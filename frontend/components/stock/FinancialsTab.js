@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { stockAPI } from '../../lib/api';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { formatLargeNumber } from '../../lib/utils/formatters';
+import QuarterlyResults from './QuarterlyResults';
 
 export default function FinancialsTab({ symbol }) {
   const [financials, setFinancials] = useState(null);
@@ -17,6 +18,8 @@ export default function FinancialsTab({ symbol }) {
         }
       } catch (error) {
         console.error('Error fetching financials:', error);
+        // Set empty financials data on error so the page doesn't break
+        setFinancials({ p_and_l: [], balance_sheet: [] });
       } finally {
         setLoading(false);
       }
@@ -28,10 +31,14 @@ export default function FinancialsTab({ symbol }) {
   }, [symbol]);
 
   if (loading) return <LoadingSpinner size="sm" />;
-  if (!financials) return <div className="text-center py-8 text-gray-500">No financial data available</div>;
 
   return (
     <div className="space-y-8">
+      {/* Quarterly Results Widget */}
+      <div>
+        <QuarterlyResults symbol={symbol} />
+      </div>
+
       {/* P&L Statement */}
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Profit & Loss Statement</h3>

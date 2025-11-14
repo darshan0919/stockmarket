@@ -49,6 +49,19 @@ export function formatPercent(value, decimals = 2) {
 }
 
 /**
+ * Format percentage with sign (for growth values)
+ */
+export function formatPercentage(value, decimals = 2) {
+  if (value === null || value === undefined) return 'N/A';
+  
+  const num = Number(value);
+  if (isNaN(num)) return 'N/A';
+  
+  const sign = num >= 0 ? '+' : '';
+  return `${sign}${num.toFixed(decimals)}%`;
+}
+
+/**
  * Format number with decimals
  */
 export function formatNumber(value, decimals = 2) {

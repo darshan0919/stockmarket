@@ -49,6 +49,7 @@ export const stockAPI = {
   getTechnicals: (symbol) => api.get(`/stocks/${symbol}/technicals`),
   getFinancials: (symbol, quarters = 4) =>
     api.get(`/stocks/${symbol}/financials?quarters=${quarters}`),
+  getQuarterlyResults: (symbol) => api.get(`/stocks/${symbol}/quarterly`),
 };
 
 // Screener APIs

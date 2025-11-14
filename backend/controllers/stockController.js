@@ -376,12 +376,19 @@ const getStockFinancials = async (req, res, next) => {
     const { symbol } = req.params;
     const quarters = parseInt(req.query.quarters) || 4;
 
+    // Try to find stock in database
     const stock = await Stock.findOne({ symbol: symbol.toUpperCase() }).lean();
 
+    // If stock not found in database, return empty data (not an error)
+    // This allows the quarterly results widget to still work with NSE API
     if (!stock) {
-      return res.status(404).json({
-        success: false,
-        error: 'Stock not found',
+      return res.json({
+        success: true,
+        data: {
+          p_and_l: [],
+          balance_sheet: [],
+          message: 'Historical financial data not available in database',
+        },
       });
     }
 
@@ -419,10 +426,181 @@ const getStockFinancials = async (req, res, next) => {
   }
 };
 
+/**
+ * Get quarterly financial results from NSE
+ * GET /api/stocks/:symbol/quarterly
+ */
+const getQuarterlyResults = async (req, res, next) => {
+  const { symbol } = req.params;
+  const upperSymbol = symbol.toUpperCase();
+
+  try {
+    // Fetch quarterly results from NSE India using results-comparison API
+    const nseResponse = await axios.get(
+      `https://www.nseindia.com/api/results-comparision?symbol=${upperSymbol}&period=Quarterly&comparisionType=quarterly`,
+      {
+        timeout: 10000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'application/json',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Encoding': 'gzip, deflate, br',
+        },
+      }
+    );
+
+    const rawData = nseResponse.data;
+    
+    // Extract financial results from NSE response
+    const financialResults = rawData?.resCmpData || [];
+    
+    if (!financialResults || financialResults.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          quarters: [],
+          message: 'No quarterly results available',
+        },
+      });
+    }
+
+    // Parse and normalize quarterly results
+    // Sort by date (most recent first) and take up to 8 quarters
+    const sortedResults = financialResults
+      .sort((a, b) => {
+        const dateA = new Date(a.re_to_dt.split('-').reverse().join('-'));
+        const dateB = new Date(b.re_to_dt.split('-').reverse().join('-'));
+        return dateB - dateA;
+      })
+      .slice(0, 8);
+
+    // Helper function to parse numeric values
+    const parseValue = (val) => {
+      if (!val || val === '-' || val === 'NA' || val === null) return null;
+      const numStr = String(val).replace(/,/g, '');
+      const num = parseFloat(numStr);
+      return isNaN(num) ? null : num;
+    };
+
+    // Helper function to format date from DD-MMM-YYYY to a readable quarter format
+    const formatPeriod = (toDate, fromDate) => {
+      const date = new Date(toDate.split('-').reverse().join('-'));
+      const month = date.getMonth() + 1;
+      const quarter = Math.ceil(month / 3);
+      const year = date.getFullYear();
+      return `Q${quarter} ${year}`;
+    };
+
+    // Parse each quarter's data and structure it
+    const quarters = sortedResults.map((item) => {
+      // Calculate expenses (total expenses - interest - depreciation - tax)
+      const totalIncome = parseValue(item.re_total_inc);
+      const netSales = parseValue(item.re_net_sale);
+      const otherIncome = parseValue(item.re_oth_inc_new);
+      const totalOtherExp = parseValue(item.re_oth_tot_exp);
+      const staffCost = parseValue(item.re_staff_cost);
+      const rawMatConsump = parseValue(item.re_rawmat_consump);
+      const otherExp = parseValue(item.re_oth_exp);
+      const interest = parseValue(item.re_int_new);
+      const depreciation = parseValue(item.re_depr_und_exp);
+      const pbt = parseValue(item.re_pro_loss_bef_tax);
+      const tax = parseValue(item.re_tax);
+      const netProfit = parseValue(item.re_net_profit);
+      
+      // Calculate operating profit (Sales - Operating Expenses)
+      // Operating Expenses = Raw materials + Staff + Other expenses
+      const operatingExpenses = (rawMatConsump || 0) + (staffCost || 0) + (otherExp || 0);
+      const operatingProfit = netSales ? (netSales - operatingExpenses) : null;
+      
+      // Calculate OPM % (Operating Profit Margin)
+      const opmPercent = netSales && operatingProfit ? (operatingProfit / netSales) * 100 : null;
+      
+      // Calculate tax percentage
+      const taxPercent = pbt && pbt !== 0 ? (tax / pbt) * 100 : null;
+      
+      // Get EPS
+      const eps = parseValue(item.re_basic_eps_for_cont_dic_opr) || parseValue(item.re_dilut_eps_for_cont_dic_opr);
+      
+      return {
+        period: formatPeriod(item.re_to_dt, item.re_from_dt),
+        to_date: item.re_to_dt,
+        from_date: item.re_from_dt,
+        sales: netSales,
+        expenses: operatingExpenses || totalOtherExp,
+        operating_profit: operatingProfit,
+        opm_percent: opmPercent,
+        other_income: otherIncome,
+        interest: interest,
+        depreciation: depreciation,
+        pbt: pbt,
+        tax_percent: taxPercent,
+        net_profit: netProfit,
+        eps: eps,
+        audited: item.re_res_type === 'A',
+      };
+    });
+
+    // Calculate YoY and QoQ growth
+    quarters.forEach((quarter, index) => {
+      // YoY Growth (compare with quarter 4 positions back)
+      if (index + 4 < quarters.length) {
+        const prevYearQuarter = quarters[index + 4];
+        
+        if (quarter.sales && prevYearQuarter.sales && prevYearQuarter.sales !== 0) {
+          quarter.yoy_sales_growth = ((quarter.sales - prevYearQuarter.sales) / Math.abs(prevYearQuarter.sales)) * 100;
+        }
+        
+        if (quarter.net_profit && prevYearQuarter.net_profit && prevYearQuarter.net_profit !== 0) {
+          quarter.yoy_profit_growth = ((quarter.net_profit - prevYearQuarter.net_profit) / Math.abs(prevYearQuarter.net_profit)) * 100;
+        }
+      }
+
+      // QoQ Growth (compare with previous quarter)
+      if (index + 1 < quarters.length) {
+        const prevQuarter = quarters[index + 1];
+        
+        if (quarter.sales && prevQuarter.sales && prevQuarter.sales !== 0) {
+          quarter.qoq_sales_growth = ((quarter.sales - prevQuarter.sales) / Math.abs(prevQuarter.sales)) * 100;
+        }
+        
+        if (quarter.net_profit && prevQuarter.net_profit && prevQuarter.net_profit !== 0) {
+          quarter.qoq_profit_growth = ((quarter.net_profit - prevQuarter.net_profit) / Math.abs(prevQuarter.net_profit)) * 100;
+        }
+      }
+    });
+
+    // Reverse to show oldest to newest (left to right in table)
+    quarters.reverse();
+
+    res.json({
+      success: true,
+      data: {
+        symbol: upperSymbol,
+        quarters,
+        source: 'NSE India',
+        source_url: `https://www.nseindia.com/get-quotes/equity?symbol=${upperSymbol}`,
+      },
+    });
+  } catch (error) {
+    console.error('NSE API Error for quarterly results:', error.message);
+    
+    // Return empty data instead of error
+    res.json({
+      success: true,
+      data: {
+        symbol: upperSymbol,
+        quarters: [],
+        error: 'Unable to fetch quarterly results from NSE',
+      },
+    });
+  }
+};
+
 module.exports = {
   searchStocks,
   getStockDetails,
   getStockTechnicals,
   getStockFinancials,
+  getQuarterlyResults,
 };
 
