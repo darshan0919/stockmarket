@@ -70,13 +70,13 @@ export default function StockDetails() {
 
   if (!stockData) return null;
 
-  const { basic_info, fundamentals, latest_financial, price_history_5y } = stockData;
+  const { basic_info, price_info, fundamentals, latest_financial, price_history_5y, nse_data } = stockData;
 
-  // Calculate latest price and change
-  const latestPrice = price_history_5y.length > 0 ? price_history_5y[price_history_5y.length - 1].close : null;
-  const prevPrice = price_history_5y.length > 1 ? price_history_5y[price_history_5y.length - 2].close : null;
-  const change = latestPrice && prevPrice ? latestPrice - prevPrice : 0;
-  const changePercent = prevPrice && prevPrice !== 0 ? (change / prevPrice) * 100 : 0;
+  // Use price_info if available (from NSE API), otherwise calculate from history
+  const latestPrice = price_info?.last_price || price_info?.close || 
+    (price_history_5y.length > 0 ? price_history_5y[price_history_5y.length - 1].close : null);
+  const change = price_info?.change || 0;
+  const changePercent = price_info?.change_percent || 0;
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
@@ -147,26 +147,40 @@ export default function StockDetails() {
                     </div>
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3">Key Metrics Snapshot</h4>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">Price Information</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">P/E Ratio:</span>
+                        <span className="text-sm text-gray-600">Day High:</span>
                         <span className="text-sm font-semibold text-gray-900">
-                          {fundamentals.pe_ratio || 'N/A'}
+                          ₹{price_info?.day_high || 'N/A'}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">ROE:</span>
+                        <span className="text-sm text-gray-600">Day Low:</span>
                         <span className="text-sm font-semibold text-gray-900">
-                          {fundamentals.roe ? `${fundamentals.roe.toFixed(2)}%` : 'N/A'}
+                          ₹{price_info?.day_low || 'N/A'}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Debt/Equity:</span>
+                        <span className="text-sm text-gray-600">52W High:</span>
                         <span className="text-sm font-semibold text-gray-900">
-                          {fundamentals.debt_to_equity || 'N/A'}
+                          ₹{price_info?.week_high || 'N/A'}
                         </span>
                       </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">52W Low:</span>
+                        <span className="text-sm font-semibold text-gray-900">
+                          ₹{price_info?.week_low || 'N/A'}
+                        </span>
+                      </div>
+                      {fundamentals.pe_ratio && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">P/E Ratio:</span>
+                          <span className="text-sm font-semibold text-gray-900">
+                            {fundamentals.pe_ratio.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -186,4 +200,5 @@ export default function StockDetails() {
     </>
   );
 }
+
 

@@ -1,0 +1,9 @@
+- search api -> need reliable fastest apis : nse & bse.
+- Order book and updates over execution of it (news, press releases, new launches)
+- ⁠previous earning call transcript analysis dashboard
+- ⁠prediction on business long term, i mean we can compare trend of same type of share in other markets and how that was performed, so we can predict for indian market ( long term )
+- How much % should we allocate based on volatility
+- upcoming results - real-time update
+- result prediction based on results from other stocks in sector
+- storing derived data -> DVM score etc, balance sheet score, red flags, cash flow score etc.
+- patterns from historical data -> US & Indian markets -> results (ratios, balance sheet, cash flow, promoters, credit ratings, order book) & market reactions; price-volume relations with announcements
