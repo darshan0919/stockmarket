@@ -2,7 +2,9 @@ const Stock = require('../models/Stock');
 const Fundamental = require('../models/Fundamental');
 const PriceHistory = require('../models/PriceHistory');
 const FinancialStatement = require('../models/FinancialStatement');
+const QuarterlyResult = require('../models/QuarterlyResult');
 const { calculateAllIndicators, calculateSMA } = require('../utils/technicalIndicators');
+const { parseXBRL } = require('../utils/xbrlParser');
 const axios = require('axios');
 
 /**
@@ -427,170 +429,410 @@ const getStockFinancials = async (req, res, next) => {
 };
 
 /**
- * Get quarterly financial results from NSE
+ * Helper function to calculate YoY and QoQ growth metrics
+ */
+function calculateGrowthMetrics(quarters) {
+  // Sort by date (newest first)
+  const sorted = quarters.sort(
+    (a, b) => new Date(b.to_date) - new Date(a.to_date)
+  );
+
+  sorted.forEach((quarter, index) => {
+    // YoY Growth (compare with quarter 4 positions back)
+    if (index + 4 < sorted.length) {
+      const prevYearQuarter = sorted[index + 4];
+
+      if (
+        quarter.revenue &&
+        prevYearQuarter.revenue &&
+        prevYearQuarter.revenue !== 0
+      ) {
+        quarter.yoy_revenue_growth =
+          ((quarter.revenue - prevYearQuarter.revenue) /
+            Math.abs(prevYearQuarter.revenue)) *
+          100;
+      }
+
+      if (
+        quarter.net_profit &&
+        prevYearQuarter.net_profit &&
+        prevYearQuarter.net_profit !== 0
+      ) {
+        quarter.yoy_profit_growth =
+          ((quarter.net_profit - prevYearQuarter.net_profit) /
+            Math.abs(prevYearQuarter.net_profit)) *
+          100;
+      }
+    }
+
+    // QoQ Growth
+    if (index + 1 < sorted.length) {
+      const prevQuarter = sorted[index + 1];
+
+      if (quarter.revenue && prevQuarter.revenue && prevQuarter.revenue !== 0) {
+        quarter.qoq_revenue_growth =
+          ((quarter.revenue - prevQuarter.revenue) /
+            Math.abs(prevQuarter.revenue)) *
+          100;
+      }
+
+      if (
+        quarter.net_profit &&
+        prevQuarter.net_profit &&
+        prevQuarter.net_profit !== 0
+      ) {
+        quarter.qoq_profit_growth =
+          ((quarter.net_profit - prevQuarter.net_profit) /
+            Math.abs(prevQuarter.net_profit)) *
+          100;
+      }
+    }
+  });
+
+  // Reverse to oldest to newest for display
+  return sorted.reverse();
+}
+
+/**
+ * Format quarterly result for API response
+ */
+function formatQuarterForResponse(quarter) {
+  return {
+    period: quarter.period,
+    to_date: quarter.to_date,
+    from_date: quarter.from_date,
+    broadcast_date: quarter.broadcast_date,
+    sales: quarter.revenue,
+    expenses: quarter.total_expenses || quarter.cost_of_materials + quarter.employee_expenses + quarter.other_expenses,
+    operating_profit: quarter.operating_profit,
+    opm_percent: quarter.opm_percent,
+    other_income: quarter.other_income,
+    interest: quarter.finance_costs,
+    depreciation: quarter.depreciation,
+    pbt: quarter.profit_before_tax,
+    tax_percent: quarter.tax_percent,
+    net_profit: quarter.net_profit,
+    eps: quarter.eps_basic || quarter.eps_diluted,
+    audited: quarter.audited,
+    consolidated: quarter.consolidated,
+    yoy_sales_growth: quarter.yoy_revenue_growth,
+    yoy_profit_growth: quarter.yoy_profit_growth,
+    qoq_sales_growth: quarter.qoq_revenue_growth,
+    qoq_profit_growth: quarter.qoq_profit_growth,
+  };
+}
+
+/**
+ * Get quarterly financial results with XBRL parsing and caching
  * GET /api/stocks/:symbol/quarterly
  */
 const getQuarterlyResults = async (req, res, next) => {
   const { symbol } = req.params;
   const upperSymbol = symbol.toUpperCase();
+  const { force_refresh } = req.query; // ?force_refresh=true to bypass cache
 
   try {
-    // Fetch quarterly results from NSE India using results-comparison API
-    const nseResponse = await axios.get(
-      `https://www.nseindia.com/api/results-comparision?symbol=${upperSymbol}&period=Quarterly&comparisionType=quarterly`,
-      {
-        timeout: 10000,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'application/json',
-          'Accept-Language': 'en-US,en;q=0.9',
-          'Accept-Encoding': 'gzip, deflate, br',
-        },
-      }
-    );
+    // Step 1: Check cache first (data from last 7 days)
+    const cacheExpiry = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    const rawData = nseResponse.data;
+    if (!force_refresh) {
+      const cachedResults = await QuarterlyResult.find({
+        symbol: upperSymbol,
+        last_updated: { $gte: cacheExpiry },
+      })
+        .sort({ to_date: 1 }) // Oldest to newest
+        .lean();
+
+      if (cachedResults.length > 0) {
+        console.log(
+          `Cache hit for ${upperSymbol}: ${cachedResults.length} quarters`
+        );
+
+        // Calculate growth metrics
+        const resultsWithGrowth = calculateGrowthMetrics(cachedResults);
+        const formattedQuarters = resultsWithGrowth.map(formatQuarterForResponse);
+
+        return res.json({
+          success: true,
+          data: {
+            symbol: upperSymbol,
+            quarters: formattedQuarters,
+            source: "Database Cache (NSE India)",
+            cached: true,
+          },
+        });
+      }
+    }
+
+    // Step 2: Fetch from NSE API
+    console.log(`Cache miss for ${upperSymbol}, fetching from NSE...`);
+
+    // First get company name from quote API
+    let companyName = "";
+    try {
+      const quoteResponse = await axios.get(
+        `https://www.nseindia.com/api/quote-equity?symbol=${upperSymbol}`,
+        {
+          timeout: 10000,
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+            Accept: "application/json",
+          },
+        }
+      );
+      companyName = quoteResponse.data.info?.companyName || "";
+    } catch (err) {
+      console.warn(`Could not fetch company name: ${err.message}`);
+    }
+
+    // Fetch from both APIs and merge results
+    const issuer = encodeURIComponent(companyName || `${upperSymbol} LIMITED`);
     
-    // Extract financial results from NSE response
-    const financialResults = rawData?.resCmpData || [];
+    // API 1: corporates-financial-results (historical data)
+    let historicalResults = [];
+    try {
+      const historicalResponse = await axios.get(
+        `https://www.nseindia.com/api/corporates-financial-results?index=equities&symbol=${upperSymbol}&issuer=${issuer}&period=Quarterly`,
+        {
+          timeout: 15000,
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+            Accept: "application/json",
+          },
+        }
+      );
+      historicalResults = historicalResponse.data || [];
+      console.log(`Historical API: ${historicalResults.length} quarters found`);
+    } catch (err) {
+      console.warn(`Historical API failed: ${err.message}`);
+    }
+
+    // API 2: integrated-filing-results (recent 4 quarters with broadcast time)
+    let recentResults = [];
+    try {
+      const recentResponse = await axios.get(
+        `https://www.nseindia.com/api/integrated-filing-results?index=equities&symbol=${upperSymbol}&issuer=${issuer}&period_ended=all&type=Integrated%20Filing-%20Financials&page=1&size=20`,
+        {
+          timeout: 15000,
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+            Accept: "application/json",
+          },
+        }
+      );
+      recentResults = (recentResponse.data?.data || []).map(r => ({
+        xbrl: r.xbrl,
+        companyName: r.cmName,
+        consolidated: r.consolidated,
+        audited: r.audited,
+        fromDate: null, // Not provided in this API
+        toDate: r.qe_Date,
+        filingDate: r.creation_Date,
+        broadcastDate: r.broadcast_Date,
+        seqNumber: r.seq_Id,
+      }));
+      console.log(`Recent API: ${recentResults.length} quarters found`);
+    } catch (err) {
+      console.warn(`Recent API failed: ${err.message}`);
+    }
+
+    // Merge results: Use recent API data preferentially, then historical
+    // Create a map to deduplicate by (toDate + consolidated)
+    const resultsMap = new Map();
     
-    if (!financialResults || financialResults.length === 0) {
+    // Add historical results first
+    historicalResults.forEach(r => {
+      if (r.xbrl) {
+        const key = `${r.toDate}_${r.consolidated}`;
+        resultsMap.set(key, {
+          ...r,
+          source: 'historical'
+        });
+      }
+    });
+    
+    // Override/add with recent results (they have broadcast_date)
+    recentResults.forEach(r => {
+      if (r.xbrl) {
+        const key = `${r.toDate}_${r.consolidated}`;
+        resultsMap.set(key, {
+          ...r,
+          source: 'recent'
+        });
+      }
+    });
+
+    const allResults = Array.from(resultsMap.values());
+    console.log(`Merged: ${allResults.length} unique quarters`);
+
+    if (allResults.length === 0) {
       return res.json({
         success: true,
         data: {
           quarters: [],
-          message: 'No quarterly results available',
+          message: "No quarterly results available",
         },
       });
     }
 
-    // Parse and normalize quarterly results
-    // Sort by date (most recent first) and take up to 8 quarters
-    const sortedResults = financialResults
-      .sort((a, b) => {
-        const dateA = new Date(a.re_to_dt.split('-').reverse().join('-'));
-        const dateB = new Date(b.re_to_dt.split('-').reverse().join('-'));
-        return dateB - dateA;
-      })
-      .slice(0, 8);
+    // Step 3: Parse XBRL documents and store in database
+    const promises = [];
 
-    // Helper function to parse numeric values
-    const parseValue = (val) => {
-      if (!val || val === '-' || val === 'NA' || val === null) return null;
-      const numStr = String(val).replace(/,/g, '');
-      const num = parseFloat(numStr);
-      return isNaN(num) ? null : num;
-    };
+    // Process all results (both consolidated and standalone)
+    const latestResults = allResults;
 
-    // Helper function to format date from DD-MMM-YYYY to a readable quarter format
-    const formatPeriod = (toDate, fromDate) => {
-      const date = new Date(toDate.split('-').reverse().join('-'));
-      const month = date.getMonth() + 1;
-      const quarter = Math.ceil(month / 3);
-      const year = date.getFullYear();
-      return `Q${quarter} ${year}`;
-    };
+    for (const result of latestResults) {
+      promises.push(
+        (async () => {
+          try {
+            // Check if already in database
+            const existing = await QuarterlyResult.findOne({
+              symbol: upperSymbol,
+              seq_number: result.seqNumber,
+            });
 
-    // Parse each quarter's data and structure it
-    const quarters = sortedResults.map((item) => {
-      // Calculate expenses (total expenses - interest - depreciation - tax)
-      const totalIncome = parseValue(item.re_total_inc);
-      const netSales = parseValue(item.re_net_sale);
-      const otherIncome = parseValue(item.re_oth_inc_new);
-      const totalOtherExp = parseValue(item.re_oth_tot_exp);
-      const staffCost = parseValue(item.re_staff_cost);
-      const rawMatConsump = parseValue(item.re_rawmat_consump);
-      const otherExp = parseValue(item.re_oth_exp);
-      const interest = parseValue(item.re_int_new);
-      const depreciation = parseValue(item.re_depr_und_exp);
-      const pbt = parseValue(item.re_pro_loss_bef_tax);
-      const tax = parseValue(item.re_tax);
-      const netProfit = parseValue(item.re_net_profit);
-      
-      // Calculate operating profit (Sales - Operating Expenses)
-      // Operating Expenses = Raw materials + Staff + Other expenses
-      const operatingExpenses = (rawMatConsump || 0) + (staffCost || 0) + (otherExp || 0);
-      const operatingProfit = netSales ? (netSales - operatingExpenses) : null;
-      
-      // Calculate OPM % (Operating Profit Margin)
-      const opmPercent = netSales && operatingProfit ? (operatingProfit / netSales) * 100 : null;
-      
-      // Calculate tax percentage
-      const taxPercent = pbt && pbt !== 0 ? (tax / pbt) * 100 : null;
-      
-      // Get EPS
-      const eps = parseValue(item.re_basic_eps_for_cont_dic_opr) || parseValue(item.re_dilut_eps_for_cont_dic_opr);
-      
-      return {
-        period: formatPeriod(item.re_to_dt, item.re_from_dt),
-        to_date: item.re_to_dt,
-        from_date: item.re_from_dt,
-        sales: netSales,
-        expenses: operatingExpenses || totalOtherExp,
-        operating_profit: operatingProfit,
-        opm_percent: opmPercent,
-        other_income: otherIncome,
-        interest: interest,
-        depreciation: depreciation,
-        pbt: pbt,
-        tax_percent: taxPercent,
-        net_profit: netProfit,
-        eps: eps,
-        audited: item.re_res_type === 'A',
-      };
-    });
+            if (existing && !force_refresh) {
+              return existing;
+            }
 
-    // Calculate YoY and QoQ growth
-    quarters.forEach((quarter, index) => {
-      // YoY Growth (compare with quarter 4 positions back)
-      if (index + 4 < quarters.length) {
-        const prevYearQuarter = quarters[index + 4];
-        
-        if (quarter.sales && prevYearQuarter.sales && prevYearQuarter.sales !== 0) {
-          quarter.yoy_sales_growth = ((quarter.sales - prevYearQuarter.sales) / Math.abs(prevYearQuarter.sales)) * 100;
-        }
-        
-        if (quarter.net_profit && prevYearQuarter.net_profit && prevYearQuarter.net_profit !== 0) {
-          quarter.yoy_profit_growth = ((quarter.net_profit - prevYearQuarter.net_profit) / Math.abs(prevYearQuarter.net_profit)) * 100;
-        }
-      }
+            // Parse XBRL
+            const parsedData = await parseXBRL(result.xbrl);
 
-      // QoQ Growth (compare with previous quarter)
-      if (index + 1 < quarters.length) {
-        const prevQuarter = quarters[index + 1];
-        
-        if (quarter.sales && prevQuarter.sales && prevQuarter.sales !== 0) {
-          quarter.qoq_sales_growth = ((quarter.sales - prevQuarter.sales) / Math.abs(prevQuarter.sales)) * 100;
-        }
-        
-        if (quarter.net_profit && prevQuarter.net_profit && prevQuarter.net_profit !== 0) {
-          quarter.qoq_profit_growth = ((quarter.net_profit - prevQuarter.net_profit) / Math.abs(prevQuarter.net_profit)) * 100;
-        }
-      }
-    });
+            // Parse toDate - handle different formats (DD-MMM-YYYY or YYYY-MM-DD)
+            let toDate;
+            if (result.toDate.includes('-') && result.toDate.length > 10) {
+              // Format: DD-MMM-YYYY (e.g., "30-SEP-2025")
+              const parts = result.toDate.split('-');
+              const months = {
+                JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,
+                JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11,
+                Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,
+                Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11
+              };
+              const monthStr = parts[1].toUpperCase().substring(0, 3);
+              toDate = new Date(parseInt(parts[2]), months[monthStr], parseInt(parts[0]));
+            } else {
+              toDate = new Date(result.toDate);
+            }
 
-    // Reverse to show oldest to newest (left to right in table)
-    quarters.reverse();
+            // Create period string
+            const quarter = Math.ceil((toDate.getMonth() + 1) / 3);
+            const year = toDate.getFullYear();
+            const period = `Q${quarter} ${year}`;
+
+            // Parse broadcast date if available
+            let broadcastDate = null;
+            if (result.broadcastDate) {
+              // Format: "16-Oct-2025 17:04:16"
+              const bcParts = result.broadcastDate.split(' ');
+              const dateParts = bcParts[0].split('-');
+              const timeParts = bcParts[1].split(':');
+              const months = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+              broadcastDate = new Date(
+                dateParts[2],
+                months[dateParts[1]],
+                dateParts[0],
+                timeParts[0],
+                timeParts[1],
+                timeParts[2]
+              );
+            }
+
+            // Prepare document
+            const quarterDoc = {
+              symbol: upperSymbol,
+              company_name: result.companyName || companyName,
+              from_date: result.fromDate ? new Date(result.fromDate) : null,
+              to_date: toDate,
+              period,
+              quarter,
+              fiscal_year: year,
+              filing_date: result.filingDate ? new Date(result.filingDate) : null,
+              broadcast_date: broadcastDate,
+              audited: result.audited === "Audited" || result.audited === "Un-Audited" ? result.audited === "Audited" : false,
+              consolidated: result.consolidated === "Consolidated",
+              seq_number: result.seqNumber,
+              xbrl_url: result.xbrl,
+              last_updated: new Date(),
+              ...parsedData,
+            };
+
+            // Upsert to database
+            const saved = await QuarterlyResult.findOneAndUpdate(
+              { symbol: upperSymbol, seq_number: result.seqNumber },
+              quarterDoc,
+              { upsert: true, new: true }
+            );
+
+            return saved;
+          } catch (error) {
+            console.error(
+              `Failed to parse quarter ${result.toDate}:`,
+              error.message
+            );
+            return null;
+          }
+        })()
+      );
+    }
+
+    // Wait for all parsing to complete
+    const parsedResults = await Promise.all(promises);
+    const validResults = parsedResults.filter((r) => r !== null);
+
+    // Step 4: Calculate growth metrics
+    const quarters = calculateGrowthMetrics(validResults);
+    const formattedQuarters = quarters.map(formatQuarterForResponse);
 
     res.json({
       success: true,
       data: {
         symbol: upperSymbol,
-        quarters,
-        source: 'NSE India',
+        quarters: formattedQuarters,
+        source: "NSE India (XBRL)",
+        cached: false,
         source_url: `https://www.nseindia.com/get-quotes/equity?symbol=${upperSymbol}`,
       },
     });
   } catch (error) {
-    console.error('NSE API Error for quarterly results:', error.message);
-    
-    // Return empty data instead of error
+    console.error("Error fetching quarterly results:", error.message);
+
+    // Fallback to database if API fails
+    try {
+      const fallbackResults = await QuarterlyResult.find({
+        symbol: upperSymbol,
+      })
+        .sort({ to_date: 1 })
+        .lean();
+
+      if (fallbackResults.length > 0) {
+        const quarters = calculateGrowthMetrics(fallbackResults);
+        const formattedQuarters = quarters.map(formatQuarterForResponse);
+
+        return res.json({
+          success: true,
+          data: {
+            symbol: upperSymbol,
+            quarters: formattedQuarters,
+            source: "Database Cache (Fallback)",
+            cached: true,
+            warning: "Using cached data due to API error",
+          },
+        });
+      }
+    } catch (dbErr) {
+      console.error("Database fallback error:", dbErr);
+    }
+
     res.json({
       success: true,
       data: {
         symbol: upperSymbol,
         quarters: [],
-        error: 'Unable to fetch quarterly results from NSE',
+        error: "Unable to fetch quarterly results",
       },
     });
   }

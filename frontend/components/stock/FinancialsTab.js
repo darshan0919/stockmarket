@@ -3,6 +3,7 @@ import { stockAPI } from '../../lib/api';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { formatLargeNumber } from '../../lib/utils/formatters';
 import QuarterlyResults from './QuarterlyResults';
+import YearlyResults from './YearlyResults';
 
 export default function FinancialsTab({ symbol }) {
   const [financials, setFinancials] = useState(null);
@@ -39,8 +40,13 @@ export default function FinancialsTab({ symbol }) {
         <QuarterlyResults symbol={symbol} />
       </div>
 
-      {/* P&L Statement */}
+      {/* Yearly Results Widget */}
       <div>
+        <YearlyResults symbol={symbol} />
+      </div>
+
+      {/* P&L Statement - Keeping old widget for reference */}
+      <div className="hidden">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Profit & Loss Statement</h3>
         <div className="table-container">
           <table className="data-table">

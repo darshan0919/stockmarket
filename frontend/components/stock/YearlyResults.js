@@ -1,47 +1,109 @@
 import { useState, useEffect, useRef } from "react";
 import { stockAPI } from "../../lib/api";
 import LoadingSpinner from "../common/LoadingSpinner";
-import {
-  formatLargeNumber,
-  formatPercentage,
-} from "../../lib/utils/formatters";
+import { formatPercentage } from "../../lib/utils/formatters";
 import _isNil from "lodash/isNil";
 
-export default function QuarterlyResults({ symbol }) {
+export default function YearlyResults({ symbol }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [resultType, setResultType] = useState("consolidated"); // "consolidated" or "standalone"
+  const [resultType, setResultType] = useState("consolidated");
   const scrollContainerRef = useRef(null);
 
   useEffect(() => {
-    const fetchQuarterlyResults = async () => {
+    const fetchYearlyResults = async () => {
       try {
         setLoading(true);
         setError(null);
         const response = await stockAPI.getQuarterlyResults(symbol);
         if (response.data.success) {
-          setData(response.data.data);
+          // Aggregate quarterly data into yearly
+          const quarters = response.data.data.quarters || [];
+          const yearlyData = aggregateToYearly(quarters);
+          setData({ ...response.data.data, yearly: yearlyData });
         } else {
-          setError("Failed to fetch quarterly results");
+          setError("Failed to fetch yearly results");
         }
       } catch (err) {
-        console.error("Error fetching quarterly results:", err);
-        setError("Unable to load quarterly results");
+        console.error("Error fetching yearly results:", err);
+        setError("Unable to load yearly results");
       } finally {
         setLoading(false);
       }
     };
 
     if (symbol) {
-      fetchQuarterlyResults();
+      fetchYearlyResults();
     }
   }, [symbol]);
 
-  // Scroll to the right (latest quarter) when data loads or result type changes
+  // Aggregate quarterly data into yearly
+  const aggregateToYearly = (quarters) => {
+    const yearlyMap = {};
+
+    quarters.forEach((q) => {
+      // Extract fiscal year from period (e.g., "Q1 2024" -> 2024)
+      const match = q.period.match(/\d{4}/);
+      if (!match) return;
+
+      const year = match[0];
+      const consolidated = q.consolidated;
+      const key = `${year}_${consolidated}`;
+
+      if (!yearlyMap[key]) {
+        yearlyMap[key] = {
+          year,
+          consolidated,
+          quarters: [],
+          sales: 0,
+          expenses: 0,
+          operating_profit: 0,
+          other_income: 0,
+          interest: 0,
+          depreciation: 0,
+          pbt: 0,
+          net_profit: 0,
+          eps: 0,
+          dividend_payout: null, // Will need to be fetched separately or calculated
+        };
+      }
+
+      yearlyMap[key].quarters.push(q);
+      // Sum up the values
+      yearlyMap[key].sales += q.sales || 0;
+      yearlyMap[key].expenses += q.expenses || 0;
+      yearlyMap[key].operating_profit += q.operating_profit || 0;
+      yearlyMap[key].other_income += q.other_income || 0;
+      yearlyMap[key].interest += q.interest || 0;
+      yearlyMap[key].depreciation += q.depreciation || 0;
+      yearlyMap[key].pbt += q.pbt || 0;
+      yearlyMap[key].net_profit += q.net_profit || 0;
+      yearlyMap[key].eps += q.eps || 0;
+    });
+
+    // Calculate OPM% and Tax% for each year
+    Object.values(yearlyMap).forEach((yearData) => {
+      if (yearData.sales > 0) {
+        yearData.opm_percent = (yearData.operating_profit / yearData.sales) * 100;
+      }
+      if (yearData.pbt > 0) {
+        const tax = yearData.pbt - yearData.net_profit;
+        yearData.tax_percent = (tax / yearData.pbt) * 100;
+      }
+      // Calculate dividend payout % (Net Profit basis)
+      // This would ideally come from actual dividend data
+      // For now, we'll leave it as null or calculate if dividend data is available
+      yearData.dividend_payout = null;
+    });
+
+    // Convert to array and sort by year
+    return Object.values(yearlyMap).sort((a, b) => a.year - b.year);
+  };
+
+  // Scroll to the right (latest year) when data loads or result type changes
   useEffect(() => {
     if (data && scrollContainerRef.current) {
-      // Wait for the DOM to update, then scroll to the right
       setTimeout(() => {
         if (scrollContainerRef.current) {
           scrollContainerRef.current.scrollLeft =
@@ -53,20 +115,9 @@ export default function QuarterlyResults({ symbol }) {
 
   const formatValue = (value) => {
     if (value === null || value === undefined) return "-";
-    // Don't convert to K format, just format with commas
     return value.toLocaleString("en-IN", {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
-    });
-  };
-
-  const formatBroadcastDate = (dateStr) => {
-    if (!dateStr) return "-";
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
     });
   };
 
@@ -83,23 +134,40 @@ export default function QuarterlyResults({ symbol }) {
     return <div className="text-center py-8 text-gray-500">{error}</div>;
   }
 
-  if (!data || !data.quarters || data.quarters.length === 0) {
+  if (!data || !data.yearly || data.yearly.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
-        No quarterly results available
+        No yearly results available
       </div>
     );
   }
 
-  // Filter quarters based on selected type
-  const allQuarters = data.quarters || [];
-  const quarters = allQuarters.filter((q) =>
-    resultType === "consolidated" ? q.consolidated : !q.consolidated
+  // Filter years based on selected type
+  const allYears = data.yearly || [];
+  const years = allYears.filter((y) =>
+    resultType === "consolidated" ? y.consolidated : !y.consolidated
   );
 
   // Check if both types exist
-  const hasConsolidated = allQuarters.some((q) => q.consolidated);
-  const hasStandalone = allQuarters.some((q) => !q.consolidated);
+  const hasConsolidated = allYears.some((y) => y.consolidated);
+  const hasStandalone = allYears.some((y) => !y.consolidated);
+
+  // Calculate YoY growth
+  years.forEach((year, index) => {
+    if (index > 0) {
+      const prevYear = years[index - 1];
+      if (prevYear.sales && prevYear.sales !== 0) {
+        year.yoy_sales_growth =
+          ((year.sales - prevYear.sales) / Math.abs(prevYear.sales)) * 100;
+      }
+      if (prevYear.net_profit && prevYear.net_profit !== 0) {
+        year.yoy_profit_growth =
+          ((year.net_profit - prevYear.net_profit) /
+            Math.abs(prevYear.net_profit)) *
+          100;
+      }
+    }
+  });
 
   // Define rows to display
   const rows = [
@@ -127,9 +195,9 @@ export default function QuarterlyResults({ symbol }) {
       format: (v) => (!_isNil(v) ? v.toFixed(2) : "-"),
     },
     {
-      key: "broadcast_date",
-      label: "Broadcast Time",
-      format: formatBroadcastDate,
+      key: "dividend_payout",
+      label: "Dividend Payout %",
+      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : "-"),
     },
   ];
 
@@ -144,16 +212,6 @@ export default function QuarterlyResults({ symbol }) {
       label: "YoY Net Profit Growth %",
       format: formatGrowth,
     },
-    {
-      key: "qoq_sales_growth",
-      label: "QoQ Sales Growth %",
-      format: formatGrowth,
-    },
-    {
-      key: "qoq_profit_growth",
-      label: "QoQ Net Profit Growth %",
-      format: formatGrowth,
-    },
   ];
 
   return (
@@ -162,7 +220,7 @@ export default function QuarterlyResults({ symbol }) {
         <div className="flex justify-between items-center mb-1">
           <div className="flex items-center gap-4">
             <h3 className="text-lg font-semibold text-gray-900">
-              Quarterly Results ({quarters.length} quarters)
+              Yearly Results ({years.length} years)
             </h3>
 
             {/* Consolidated/Standalone Switcher */}
@@ -221,12 +279,12 @@ export default function QuarterlyResults({ symbol }) {
               <th className="sticky left-0 z-10 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r">
                 Metric
               </th>
-              {quarters.map((quarter, index) => (
+              {years.map((year, index) => (
                 <th
                   key={index}
                   className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                 >
-                  {quarter.period}
+                  {year.year}
                 </th>
               ))}
             </tr>
@@ -241,12 +299,12 @@ export default function QuarterlyResults({ symbol }) {
                 <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
                   {row.label}
                 </td>
-                {quarters.map((quarter, index) => (
+                {years.map((year, index) => (
                   <td
                     key={index}
                     className="px-4 py-3 text-sm text-gray-900 text-right whitespace-nowrap"
                   >
-                    {row.format(quarter[row.key])}
+                    {row.format(year[row.key])}
                   </td>
                 ))}
               </tr>
@@ -254,7 +312,7 @@ export default function QuarterlyResults({ symbol }) {
 
             {/* Separator row */}
             <tr className="bg-gray-100">
-              <td colSpan={quarters.length + 1} className="px-4 py-2">
+              <td colSpan={years.length + 1} className="px-4 py-2">
                 <div className="text-xs font-semibold text-gray-700 uppercase">
                   Growth Metrics
                 </div>
@@ -270,12 +328,12 @@ export default function QuarterlyResults({ symbol }) {
                 <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
                   {row.label}
                 </td>
-                {quarters.map((quarter, index) => (
+                {years.map((year, index) => (
                   <td
                     key={index}
                     className="px-4 py-3 text-sm text-right whitespace-nowrap font-semibold"
                   >
-                    {row.format(quarter[row.key])}
+                    {row.format(year[row.key])}
                   </td>
                 ))}
               </tr>
@@ -292,9 +350,9 @@ export default function QuarterlyResults({ symbol }) {
       )}
 
       <p className="text-xs text-gray-400 mt-1 italic">
-        💡 Scroll left to view older quarters. Latest quarter shown on the
-        right.
+        💡 Scroll left to view older years. Latest year shown on the right.
       </p>
     </div>
   );
 }
+
