@@ -145,6 +145,11 @@ export default function QuarterlyResults({ symbol }) {
       format: formatGrowth,
     },
     {
+      key: "yoy_eps_growth",
+      label: "YoY EPS Growth %",
+      format: formatGrowth,
+    },
+    {
       key: "qoq_sales_growth",
       label: "QoQ Sales Growth %",
       format: formatGrowth,
@@ -152,6 +157,11 @@ export default function QuarterlyResults({ symbol }) {
     {
       key: "qoq_profit_growth",
       label: "QoQ Net Profit Growth %",
+      format: formatGrowth,
+    },
+    {
+      key: "qoq_eps_growth",
+      label: "QoQ EPS Growth %",
       format: formatGrowth,
     },
   ];

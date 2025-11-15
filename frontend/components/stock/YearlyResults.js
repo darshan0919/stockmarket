@@ -38,22 +38,24 @@ export default function YearlyResults({ symbol }) {
     }
   }, [symbol]);
 
-  // Aggregate quarterly data into yearly
+  // Aggregate quarterly data into yearly (fiscal year basis)
   const aggregateToYearly = (quarters) => {
     const yearlyMap = {};
+    const ttmData = {}; // TTM data by consolidated flag
 
     quarters.forEach((q) => {
-      // Extract fiscal year from period (e.g., "Q1 2024" -> 2024)
-      const match = q.period.match(/\d{4}/);
-      if (!match) return;
+      // Extract fiscal year from period (e.g., "Q1 FY25" -> 2025)
+      const fyMatch = q.period.match(/FY(\d{2})/);
+      if (!fyMatch) return;
 
-      const year = match[0];
+      const fiscal_year = parseInt("20" + fyMatch[1]); // Convert FY25 to 2025
       const consolidated = q.consolidated;
-      const key = `${year}_${consolidated}`;
+      const key = `${fiscal_year}_${consolidated}`;
 
       if (!yearlyMap[key]) {
         yearlyMap[key] = {
-          year,
+          fiscal_year,
+          year: `FY${fyMatch[1]}`,
           consolidated,
           quarters: [],
           sales: 0,
@@ -85,7 +87,8 @@ export default function YearlyResults({ symbol }) {
     // Calculate OPM% and Tax% for each year
     Object.values(yearlyMap).forEach((yearData) => {
       if (yearData.sales > 0) {
-        yearData.opm_percent = (yearData.operating_profit / yearData.sales) * 100;
+        yearData.opm_percent =
+          (yearData.operating_profit / yearData.sales) * 100;
       }
       if (yearData.pbt > 0) {
         const tax = yearData.pbt - yearData.net_profit;
@@ -97,8 +100,63 @@ export default function YearlyResults({ symbol }) {
       yearData.dividend_payout = null;
     });
 
-    // Convert to array and sort by year
-    return Object.values(yearlyMap).sort((a, b) => a.year - b.year);
+    // Calculate TTM (Trailing Twelve Months) - last 4 quarters
+    const sortedQuarters = [...quarters].sort(
+      (a, b) => new Date(b.to_date) - new Date(a.to_date)
+    );
+
+    // Group by consolidated flag
+    const consolidatedQuarters = sortedQuarters.filter((q) => q.consolidated);
+    const standaloneQuarters = sortedQuarters.filter((q) => !q.consolidated);
+
+    [
+      { quarters: consolidatedQuarters, consolidated: true },
+      { quarters: standaloneQuarters, consolidated: false },
+    ].forEach(({ quarters: qList, consolidated }) => {
+      if (qList.length >= 4) {
+        const last4 = qList.slice(0, 4);
+        ttmData[consolidated] = {
+          fiscal_year: 9999, // Ensure it's sorted last
+          year: "TTM",
+          consolidated,
+          isTTM: true,
+          quarters: last4,
+          sales: last4.reduce((sum, q) => sum + (q.sales || 0), 0),
+          expenses: last4.reduce((sum, q) => sum + (q.expenses || 0), 0),
+          operating_profit: last4.reduce(
+            (sum, q) => sum + (q.operating_profit || 0),
+            0
+          ),
+          other_income: last4.reduce((sum, q) => sum + (q.other_income || 0), 0),
+          interest: last4.reduce((sum, q) => sum + (q.interest || 0), 0),
+          depreciation: last4.reduce((sum, q) => sum + (q.depreciation || 0), 0),
+          pbt: last4.reduce((sum, q) => sum + (q.pbt || 0), 0),
+          net_profit: last4.reduce((sum, q) => sum + (q.net_profit || 0), 0),
+          eps: last4.reduce((sum, q) => sum + (q.eps || 0), 0),
+          dividend_payout: null,
+        };
+
+        // Calculate OPM% and Tax% for TTM
+        if (ttmData[consolidated].sales > 0) {
+          ttmData[consolidated].opm_percent =
+            (ttmData[consolidated].operating_profit /
+              ttmData[consolidated].sales) *
+            100;
+        }
+        if (ttmData[consolidated].pbt > 0) {
+          const tax =
+            ttmData[consolidated].pbt - ttmData[consolidated].net_profit;
+          ttmData[consolidated].tax_percent =
+            (tax / ttmData[consolidated].pbt) * 100;
+        }
+      }
+    });
+
+    // Combine yearly data with TTM
+    const allData = [...Object.values(yearlyMap), ...Object.values(ttmData)];
+
+    // Sort by fiscal year
+    return allData.sort((a, b) => a.fiscal_year - b.fiscal_year);
   };
 
   // Scroll to the right (latest year) when data loads or result type changes
@@ -152,19 +210,38 @@ export default function YearlyResults({ symbol }) {
   const hasConsolidated = allYears.some((y) => y.consolidated);
   const hasStandalone = allYears.some((y) => !y.consolidated);
 
-  // Calculate YoY growth
+  // Calculate YoY growth (compare with previous fiscal year, exclude TTM from growth calc)
   years.forEach((year, index) => {
-    if (index > 0) {
+    if (!year.isTTM && index > 0) {
       const prevYear = years[index - 1];
-      if (prevYear.sales && prevYear.sales !== 0) {
-        year.yoy_sales_growth =
-          ((year.sales - prevYear.sales) / Math.abs(prevYear.sales)) * 100;
+      if (!prevYear.isTTM) {
+        if (prevYear.sales && prevYear.sales !== 0) {
+          year.yoy_sales_growth =
+            ((year.sales - prevYear.sales) / Math.abs(prevYear.sales)) * 100;
+        }
+        if (prevYear.net_profit && prevYear.net_profit !== 0) {
+          year.yoy_profit_growth =
+            ((year.net_profit - prevYear.net_profit) /
+              Math.abs(prevYear.net_profit)) *
+            100;
+        }
       }
-      if (prevYear.net_profit && prevYear.net_profit !== 0) {
-        year.yoy_profit_growth =
-          ((year.net_profit - prevYear.net_profit) /
-            Math.abs(prevYear.net_profit)) *
-          100;
+    }
+    
+    // For TTM, compare with previous full fiscal year
+    if (year.isTTM && index > 0) {
+      const prevYear = years[index - 1];
+      if (!prevYear.isTTM) {
+        if (prevYear.sales && prevYear.sales !== 0) {
+          year.yoy_sales_growth =
+            ((year.sales - prevYear.sales) / Math.abs(prevYear.sales)) * 100;
+        }
+        if (prevYear.net_profit && prevYear.net_profit !== 0) {
+          year.yoy_profit_growth =
+            ((year.net_profit - prevYear.net_profit) /
+              Math.abs(prevYear.net_profit)) *
+            100;
+        }
       }
     }
   });
