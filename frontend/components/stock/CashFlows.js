@@ -159,19 +159,19 @@ export default function CashFlows({ symbol }) {
       key: "cash_from_operating",
       label: "Cash from Operating Activity",
       format: formatValue,
-      expandable: true,
+      expandable: false,
     },
     {
       key: "cash_from_investing",
       label: "Cash from Investing Activity",
       format: formatValue,
-      expandable: true,
+      expandable: false,
     },
     {
       key: "cash_from_financing",
       label: "Cash from Financing Activity",
       format: formatValue,
-      expandable: true,
+      expandable: false,
     },
     {
       key: "net_cash_flow",
@@ -313,9 +313,12 @@ export default function CashFlows({ symbol }) {
         💡 Scroll left to view older periods. Latest period shown on the right.
       </p>
 
-      <p className="text-xs text-gray-500 mt-1">
-        Note: Cash flow data integration in progress. Currently showing placeholder structure.
-      </p>
+      {data.source && (
+        <p className="text-xs text-gray-500 mt-2">
+          Data source: {data.source}
+          {data.cached && " (cached)"}
+        </p>
+      )}
     </div>
   );
 }

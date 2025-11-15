@@ -88,8 +88,17 @@ export default function BalanceSheet({ symbol }) {
       // Balance sheet is point-in-time, so we take the last quarter of each FY
       if (!yearlyMap[key].latestQuarter || q.quarter === 4) {
         yearlyMap[key].latestQuarter = q;
-        // These values would come from the balance sheet data
-        // For now, using placeholder logic
+        // Balance sheet is point-in-time, use the latest quarter values
+        yearlyMap[key].equity_capital = q.equity_capital;
+        yearlyMap[key].reserves = q.reserves;
+        yearlyMap[key].borrowings = q.borrowings;
+        yearlyMap[key].other_liabilities = q.other_liabilities;
+        yearlyMap[key].total_liabilities = q.total_liabilities;
+        yearlyMap[key].fixed_assets = q.fixed_assets;
+        yearlyMap[key].cwip = q.cwip;
+        yearlyMap[key].investments = q.investments;
+        yearlyMap[key].other_assets = q.other_assets;
+        yearlyMap[key].total_assets = q.total_assets;
       }
     });
 
@@ -113,6 +122,16 @@ export default function BalanceSheet({ symbol }) {
           consolidated,
           isTTM: true,
           latestQuarter: latest,
+          equity_capital: latest.equity_capital,
+          reserves: latest.reserves,
+          borrowings: latest.borrowings,
+          other_liabilities: latest.other_liabilities,
+          total_liabilities: latest.total_liabilities,
+          fixed_assets: latest.fixed_assets,
+          cwip: latest.cwip,
+          investments: latest.investments,
+          other_assets: latest.other_assets,
+          total_assets: latest.total_assets,
         };
       }
     });
@@ -130,6 +149,75 @@ export default function BalanceSheet({ symbol }) {
     return (
       <div className="text-center py-8 text-gray-500">
         No balance sheet data available
+      </div>
+    );
+  }
+
+  // Check if any balance sheet data exists
+  const hasBalanceSheetData = data.quarters.some(
+    (q) =>
+      q.equity_capital ||
+      q.reserves ||
+      q.borrowings ||
+      q.total_liabilities ||
+      q.fixed_assets ||
+      q.total_assets
+  );
+
+  if (!hasBalanceSheetData) {
+    return (
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0">
+            <svg
+              className="h-6 w-6 text-yellow-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Balance Sheet Data Not Available
+            </h3>
+            <p className="text-sm text-gray-700 mb-3">
+              NSE only provides Balance Sheet data in annual financial reports, not in quarterly filings. 
+              Quarterly XBRL documents contain P&L and Cash Flow statements only.
+            </p>
+            <p className="text-sm text-gray-600 mb-4">
+              We're working on integrating annual report data to show Balance Sheet information. 
+              In the meantime, you can view the official reports on NSE.
+            </p>
+            <a
+              href={`https://www.nseindia.com/get-quotes/equity?symbol=${symbol}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              View on NSE
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+            </a>
+          </div>
+        </div>
       </div>
     );
   }
@@ -157,15 +245,15 @@ export default function BalanceSheet({ symbol }) {
   const liabilitiesRows = [
     { key: "equity_capital", label: "Equity Capital", format: formatValue },
     { key: "reserves", label: "Reserves", format: formatValue },
-    { key: "borrowings", label: "Borrowings", format: formatValue, expandable: true },
-    { key: "other_liabilities", label: "Other Liabilities", format: formatValue, expandable: true },
+    { key: "borrowings", label: "Borrowings", format: formatValue, expandable: false },
+    { key: "other_liabilities", label: "Other Liabilities", format: formatValue, expandable: false },
   ];
 
   const assetsRows = [
-    { key: "fixed_assets", label: "Fixed Assets", format: formatValue, expandable: true },
+    { key: "fixed_assets", label: "Fixed Assets", format: formatValue, expandable: false },
     { key: "cwip", label: "CWIP", format: formatValue },
     { key: "investments", label: "Investments", format: formatValue },
-    { key: "other_assets", label: "Other Assets", format: formatValue, expandable: true },
+    { key: "other_assets", label: "Other Assets", format: formatValue, expandable: false },
   ];
 
   const totalRows = [
@@ -360,9 +448,12 @@ export default function BalanceSheet({ symbol }) {
         💡 Scroll left to view older periods. Latest period shown on the right.
       </p>
 
-      <p className="text-xs text-gray-500 mt-1">
-        Note: Balance sheet data integration in progress. Currently showing placeholder structure.
-      </p>
+      {data.source && (
+        <p className="text-xs text-gray-500 mt-2">
+          Data source: {data.source}
+          {data.cached && " (cached)"}
+        </p>
+      )}
     </div>
   );
 }

@@ -567,6 +567,8 @@ function formatQuarterForResponse(quarter) {
     to_date: quarter.to_date,
     from_date: quarter.from_date,
     broadcast_date: quarter.broadcast_date,
+
+    // P&L Data
     sales: quarter.revenue,
     expenses:
       quarter.total_expenses ||
@@ -584,12 +586,32 @@ function formatQuarterForResponse(quarter) {
     eps: quarter.eps_basic || quarter.eps_diluted,
     audited: quarter.audited,
     consolidated: quarter.consolidated,
+
+    // Growth Metrics
     yoy_sales_growth: quarter.yoy_revenue_growth,
     yoy_profit_growth: quarter.yoy_profit_growth,
     yoy_eps_growth: quarter.yoy_eps_growth,
     qoq_sales_growth: quarter.qoq_revenue_growth,
     qoq_profit_growth: quarter.qoq_profit_growth,
     qoq_eps_growth: quarter.qoq_eps_growth,
+
+    // Balance Sheet Data
+    equity_capital: quarter.equity_capital,
+    reserves: quarter.reserves,
+    borrowings: quarter.borrowings,
+    other_liabilities: quarter.other_liabilities,
+    total_liabilities: quarter.total_liabilities,
+    fixed_assets: quarter.fixed_assets,
+    cwip: quarter.cwip,
+    investments: quarter.investments,
+    other_assets: quarter.other_assets,
+    total_assets: quarter.total_assets,
+
+    // Cash Flow Data
+    cash_from_operating: quarter.cash_from_operating,
+    cash_from_investing: quarter.cash_from_investing,
+    cash_from_financing: quarter.cash_from_financing,
+    net_cash_flow: quarter.net_cash_flow,
   };
 }
 
