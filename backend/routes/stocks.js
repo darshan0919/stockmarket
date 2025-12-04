@@ -6,6 +6,7 @@ const {
   getStockTechnicals,
   getStockFinancials,
   getQuarterlyResults,
+  getOrderBook,
 } = require('../controllers/stockController');
 
 // Search stocks
@@ -22,6 +23,9 @@ router.get('/:symbol/financials', getStockFinancials);
 
 // Get quarterly results
 router.get('/:symbol/quarterly', getQuarterlyResults);
+
+// Get order book
+router.get('/:symbol/orderbook', getOrderBook);
 
 module.exports = router;
 

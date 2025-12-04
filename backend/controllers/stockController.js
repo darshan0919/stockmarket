@@ -8,6 +8,7 @@ const {
   calculateSMA,
 } = require("../utils/technicalIndicators");
 const { parseXBRL } = require("../utils/xbrlParser");
+const { OrderBookExtractor, OrderEventType, OrderEvent } = require("../models/Orderbook");
 const axios = require("axios");
 
 /**
@@ -995,10 +996,76 @@ const getQuarterlyResults = async (req, res, next) => {
   }
 };
 
+/**
+ * Get order book for a stock
+ * GET /api/stocks/:symbol/orderbook
+ */
+const getOrderBook = async (req, res, next) => {
+  try {
+    const { symbol } = req.params;
+    const upperSymbol = symbol.toUpperCase();
+
+    // Initialize OrderBook extractor
+    const extractor = new OrderBookExtractor(upperSymbol);
+
+    // TODO: In production, fetch from actual data sources:
+    // 1. Latest order book from annual/quarterly reports
+    // 2. Order events from corporate announcements
+    
+    // For now, return example data structure
+    // Set a sample latest order book (this should come from IR documents)
+    extractor.setLatestOrderBook(
+      5000.0, // Sample value in Cr
+      new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().substring(0, 10), // 90 days ago
+      "Quarterly_Report_Q2_FY25"
+    );
+
+    // Sample order events (these should come from NSE/BSE announcements)
+    extractor.orderEvents = [
+      new OrderEvent({
+        date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString().substring(0, 10),
+        eventType: OrderEventType.ORDER_INFLOW,
+        amountCr: 300.0,
+        description: "New order received from client",
+      }),
+      new OrderEvent({
+        date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().substring(0, 10),
+        eventType: OrderEventType.ORDER_COMPLETION,
+        amountCr: 150.0,
+        description: "Project completion",
+      }),
+      new OrderEvent({
+        date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().substring(0, 10),
+        eventType: OrderEventType.ORDER_INFLOW,
+        amountCr: 250.0,
+        description: "Additional order from existing client",
+      }),
+    ];
+
+    // Generate the report
+    const report = extractor.generateReport();
+
+    return res.json({
+      success: true,
+      data: report,
+    });
+  } catch (error) {
+    console.error("Error fetching order book:", error);
+    return res.status(500).json({
+      success: false,
+      data: {
+        symbol: req.params.symbol,
+        error: "Unable to fetch order book data",
+      },
+    });
+  }
+};
+
 module.exports = {
   searchStocks,
   getStockDetails,
   getStockTechnicals,
   getStockFinancials,
   getQuarterlyResults,
+  getOrderBook,
 };
