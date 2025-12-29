@@ -50,7 +50,13 @@ export const stockAPI = {
   getFinancials: (symbol, quarters = 4) =>
     api.get(`/stocks/${symbol}/financials?quarters=${quarters}`),
   getQuarterlyResults: (symbol) => api.get(`/stocks/${symbol}/quarterly`),
-  getOrderBook: (symbol) => api.get(`/stocks/${symbol}/orderbook`),
+};
+
+// Transcript APIs
+export const transcriptAPI = {
+  getTranscripts: (symbol) => api.get(`/result-transcript/${symbol}`),
+  analyzeTranscript: (symbol, attachmentName) =>
+    api.post(`/result-transcript/${symbol}/analyze`, { attachmentName }, {timeout: 200000}),
 };
 
 // Screener APIs
@@ -80,6 +86,11 @@ export const watchlistAPI = {
 export const marketAPI = {
   getIndices: () => api.get("/market/indices"),
   getStats: () => api.get("/market/stats"),
+};
+
+// Upcoming Results APIs
+export const upcomingResultsAPI = {
+  getAll: (page = 1, limit = 10) => api.get(`/upcoming-results?page=${page}&limit=${limit}`),
 };
 
 export default api;

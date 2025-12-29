@@ -19,6 +19,7 @@ export default function SearchBar({ placeholder = 'Search stocks...' }) {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setShowResults(false);
+        console.log('handleClickOutside');
       }
     };
 

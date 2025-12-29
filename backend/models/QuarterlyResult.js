@@ -67,6 +67,8 @@ const quarterlyResultSchema = new mongoose.Schema(
     provisions: Number,
     deferred_tax_liabilities: Number,
     total_liabilities: Number,
+    other_curr_financial_liabilities: Number,
+    other_non_curr_financial_liabilities: Number,
 
     // Balance Sheet - Assets (in crores INR)
     property_plant_equipment: Number,
@@ -117,6 +119,7 @@ const quarterlyResultSchema = new mongoose.Schema(
 // Compound index for efficient queries
 quarterlyResultSchema.index({ symbol: 1, to_date: -1 });
 quarterlyResultSchema.index({ symbol: 1, fiscal_year: -1, quarter: -1 });
+quarterlyResultSchema.index({ last_updated: -1 }, { expireAfterSeconds: 60 * 60 * 24 * 2 });
 
 module.exports = mongoose.model("QuarterlyResult", quarterlyResultSchema);
 

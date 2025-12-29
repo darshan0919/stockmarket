@@ -5,7 +5,7 @@ import { formatNumber, formatChange, getChangeColor } from '../../lib/utils/form
 export default function MarketSnapshot() {
   const { marketData, loading, error } = useMarket();
 
-  if (loading) return <LoadingSpinner size="sm" />;
+  if (loading) return <LoadingSpinner size="sm" text="Loading market data..." />;
   if (error) return <div className="text-red-600">Error loading market data</div>;
   if (!marketData) return null;
 

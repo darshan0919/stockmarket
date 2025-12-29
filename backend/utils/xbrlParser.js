@@ -7,6 +7,7 @@ const xml2js = require("xml2js");
 const XBRL_FIELD_MAP = {
   // Revenue
   "in-bse-fin:RevenueFromOperations": "revenue",
+  "in-bse-fin:GrossPremiumIncome": "revenue",
   "in-bse-fin:OtherIncome": "other_income",
   "in-bse-fin:Income": "total_income",
 
@@ -20,6 +21,9 @@ const XBRL_FIELD_MAP = {
 
   // Profitability
   "in-bse-fin:ProfitBeforeExceptionalItemsAndTax": "operating_profit",
+  "in-bse-fin:OperatingProfitOrLoss": "operating_profit_or_loss",
+  "in-bse-fin:ProfitLossBeforeTax": "operating_profit",
+  "in-bse-fin:ProfitOrLoss": "profit_or_loss",
   "in-bse-fin:ProfitBeforeTax": "profit_before_tax",
   "in-bse-fin:TaxExpense": "tax_expense",
   "in-bse-fin:ProfitLossForPeriod": "net_profit",
@@ -33,14 +37,17 @@ const XBRL_FIELD_MAP = {
 
   // Balance Sheet - Liabilities
   "in-bse-fin:EquityShareCapital": "equity_capital",
+  "in-bse-fin:ShareCapital": "equity_capital",
   "in-bse-fin:ReservesAndSurplus": "reserves",
   "in-bse-fin:OtherEquity": "other_equity",
-  "in-bse-fin:LongTermBorrowings": "long_term_borrowings",
-  "in-bse-fin:ShortTermBorrowings": "short_term_borrowings",
+  "in-bse-fin:BorrowingsNoncurrent": "long_term_borrowings",
+  "in-bse-fin:BorrowingsCurrent": "short_term_borrowings",
   "in-bse-fin:Borrowings": "borrowings",
   "in-bse-fin:TradePay ables": "trade_payables",
   "in-bse-fin:OtherCurrentLiabilities": "other_current_liabilities",
   "in-bse-fin:OtherNonCurrentLiabilities": "other_non_current_liabilities",
+  "in-bse-fin:OtherNoncurrentFinancialLiabilities": "other_non_curr_financial_liabilities",
+  "in-bse-fin:OtherCurrentFinancialLiabilities": "other_curr_financial_liabilities",
   "in-bse-fin:Provisions": "provisions",
   "in-bse-fin:DeferredTaxLiabilitiesNet": "deferred_tax_liabilities",
   "in-bse-fin:TotalEquityAndLiabilities": "total_liabilities",
@@ -108,6 +115,7 @@ async function parseXBRL(xbrlUrl) {
 
     const result = await parser.parseStringPromise(response.data);
     const xbrl = result.xbrl;
+    
 
     // Extract data based on context (OneD for quarterly)
     const data = {};
@@ -124,16 +132,23 @@ async function parseXBRL(xbrlUrl) {
         // Find the quarterly data
         // P&L/Cash Flow: context OneD or FourD (duration)
         // Balance Sheet: context AsOf_EndOfReportingPeriod or similar (instant)
-        const quarterlyEntry = entries.find(
+        let quarterlyEntry = entries.find(
           (e) =>
             e.$ &&
             (e.$.contextRef === "OneD" ||
-              e.$.contextRef === "FourD" ||
+              e.$.contextRef === "OneI" ||
               e.$.contextRef?.includes("AsOf") ||
-              e.$.contextRef?.includes("EndOfReportingPeriod") ||
-              e.$.contextRef === "Current" ||
-              e.$.contextRef === "I_Current")
+              e.$.contextRef?.includes("EndOfReportingPeriod"))
         );
+
+        if (!quarterlyEntry) {
+          quarterlyEntry = entries.find(
+            (e) =>
+              e.$ &&
+              (e.$.contextRef === "FourD") ||
+              e.$.contextRef === "Current" ||
+              e.$.contextRef === "I_Current");
+        }
 
         if (quarterlyEntry) {
           let value = quarterlyEntry._;
@@ -158,6 +173,10 @@ async function parseXBRL(xbrlUrl) {
           }
         }
       }
+    }
+
+    if (!data.operating_profit && data.operating_profit_or_loss) {
+      data.operating_profit = data.operating_profit_or_loss;
     }
 
     // Calculate derived fields
@@ -218,8 +237,8 @@ async function parseXBRL(xbrlUrl) {
 
     return data;
   } catch (error) {
-    console.error("XBRL parsing error:", error.message);
-    throw new Error(`Failed to parse XBRL: ${error.message}`);
+    console.error("XBRL parsing error:", error);
+    throw new Error(`Failed to parse XBRL: ${error}`);
   }
 }
 

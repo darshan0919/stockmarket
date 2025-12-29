@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import SearchBar from '../components/common/SearchBar';
 import MarketSnapshot from '../components/dashboard/MarketSnapshot';
 import WatchlistSummary from '../components/dashboard/WatchlistSummary';
+import UpcomingResults from '../components/dashboard/UpcomingResults';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -39,9 +40,14 @@ export default function Dashboard() {
         </div>
 
         {/* Market Snapshot & Watchlist */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <MarketSnapshot />
           <WatchlistSummary />
+        </div>
+
+        {/* Upcoming Results - Full Width */}
+        <div className="mb-8">
+          <UpcomingResults />
         </div>
 
         {/* Pre-built Screeners */}

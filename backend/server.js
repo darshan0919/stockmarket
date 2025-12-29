@@ -21,6 +21,8 @@ app.use('/api/screener', require('./routes/screener'));
 app.use('/api/watchlist', require('./routes/watchlist'));
 app.use('/api/market', require('./routes/market'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/result-transcript', require('./routes/resultTranscript'));
+app.use('/api/upcoming-results', require('./routes/upcomingResult'));
 
 // Health check
 app.get('/api/health', (req, res) => {

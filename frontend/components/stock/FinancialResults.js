@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import { stockAPI } from "../../lib/api";
 import LoadingSpinner from "../common/LoadingSpinner";
 import { formatPercentage } from "../../lib/utils/formatters";
@@ -10,7 +10,15 @@ export default function FinancialResults({ symbol }) {
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState("quarterly"); // "quarterly" or "yearly"
   const [resultType, setResultType] = useState("consolidated");
+  const [expandedRows, setExpandedRows] = useState({}); // Track expanded rows
   const scrollContainerRef = useRef(null);
+
+  const toggleRowExpansion = (key) => {
+    setExpandedRows((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -251,9 +259,21 @@ export default function FinancialResults({ symbol }) {
   const hasConsolidated = allQuarters.some((q) => q.consolidated);
   const hasStandalone = allQuarters.some((q) => !q.consolidated);
 
-  // Define rows based on view mode
+  // Define rows based on view mode with expandable sub-rows
   const financialRows = [
-    { key: "sales", label: "Sales", format: formatValue },
+    {
+      key: "sales",
+      label: "Sales",
+      format: formatValue,
+      expandable: true,
+      subRows:
+        viewMode === "quarterly"
+          ? [
+              { key: "yoy_sales_growth", label: "YoY Growth %", format: formatGrowth },
+              { key: "qoq_sales_growth", label: "QoQ Growth %", format: formatGrowth },
+            ]
+          : [{ key: "yoy_sales_growth", label: "YoY Growth %", format: formatGrowth }],
+    },
     { key: "expenses", label: "Expenses", format: formatValue },
     { key: "operating_profit", label: "Operating Profit", format: formatValue },
     {
@@ -270,11 +290,31 @@ export default function FinancialResults({ symbol }) {
       label: "Tax %",
       format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : "-"),
     },
-    { key: "net_profit", label: "Net Profit", format: formatValue },
+    {
+      key: "net_profit",
+      label: "Net Profit",
+      format: formatValue,
+      expandable: true,
+      subRows:
+        viewMode === "quarterly"
+          ? [
+              { key: "yoy_profit_growth", label: "YoY Growth %", format: formatGrowth },
+              { key: "qoq_profit_growth", label: "QoQ Growth %", format: formatGrowth },
+            ]
+          : [{ key: "yoy_profit_growth", label: "YoY Growth %", format: formatGrowth }],
+    },
     {
       key: "eps",
       label: "EPS",
       format: (v) => (!_isNil(v) ? v.toFixed(2) : "-"),
+      expandable: viewMode === "quarterly",
+      subRows:
+        viewMode === "quarterly"
+          ? [
+              { key: "yoy_eps_growth", label: "YoY Growth %", format: formatGrowth },
+              { key: "qoq_eps_growth", label: "QoQ Growth %", format: formatGrowth },
+            ]
+          : [],
     },
   ];
 
@@ -295,54 +335,6 @@ export default function FinancialResults({ symbol }) {
       format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : "-"),
     });
   }
-
-  // Growth rows based on view mode
-  const growthRows =
-    viewMode === "quarterly"
-      ? [
-          {
-            key: "yoy_sales_growth",
-            label: "YoY Sales Growth %",
-            format: formatGrowth,
-          },
-          {
-            key: "yoy_profit_growth",
-            label: "YoY Net Profit Growth %",
-            format: formatGrowth,
-          },
-          {
-            key: "yoy_eps_growth",
-            label: "YoY EPS Growth %",
-            format: formatGrowth,
-          },
-          {
-            key: "qoq_sales_growth",
-            label: "QoQ Sales Growth %",
-            format: formatGrowth,
-          },
-          {
-            key: "qoq_profit_growth",
-            label: "QoQ Net Profit Growth %",
-            format: formatGrowth,
-          },
-          {
-            key: "qoq_eps_growth",
-            label: "QoQ EPS Growth %",
-            format: formatGrowth,
-          },
-        ]
-      : [
-          {
-            key: "yoy_sales_growth",
-            label: "YoY Sales Growth %",
-            format: formatGrowth,
-          },
-          {
-            key: "yoy_profit_growth",
-            label: "YoY Net Profit Growth %",
-            format: formatGrowth,
-          },
-        ];
 
   return (
     <div>
@@ -444,53 +436,73 @@ export default function FinancialResults({ symbol }) {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {/* Main financial metrics */}
+            {/* Main financial metrics with expandable sub-rows */}
             {financialRows.map((row, rowIndex) => (
-              <tr
-                key={row.key}
-                className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}
-              >
-                <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
-                  {row.label}
-                </td>
-                {periods.map((period, index) => (
-                  <td
-                    key={index}
-                    className="px-4 py-3 text-sm text-gray-900 text-right whitespace-nowrap"
-                  >
-                    {row.format(period[row.key])}
+              <Fragment key={row.key}>
+                <tr
+                  className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                >
+                  <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
+                    <div className="flex items-center gap-2">
+                      {row.expandable && row.subRows?.length > 0 ? (
+                        <button
+                          onClick={() => toggleRowExpansion(row.key)}
+                          className="w-5 h-5 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors"
+                          title={expandedRows[row.key] ? "Collapse" : "Expand"}
+                        >
+                          {expandedRows[row.key] ? (
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                            </svg>
+                          ) : (
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                          )}
+                        </button>
+                      ) : (
+                        <span className="w-5" />
+                      )}
+                      {row.label}
+                    </div>
                   </td>
-                ))}
-              </tr>
-            ))}
+                  {periods.map((period, index) => (
+                    <td
+                      key={index}
+                      className="px-4 py-3 text-sm text-gray-900 text-right whitespace-nowrap"
+                    >
+                      {row.format(period[row.key])}
+                    </td>
+                  ))}
+                </tr>
 
-            {/* Separator row */}
-            <tr className="bg-gray-100">
-              <td colSpan={periods.length + 1} className="px-4 py-2">
-                <div className="text-xs font-semibold text-gray-700 uppercase">
-                  Growth Metrics
-                </div>
-              </td>
-            </tr>
-
-            {/* Growth metrics */}
-            {growthRows.map((row, rowIndex) => (
-              <tr
-                key={row.key}
-                className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}
-              >
-                <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
-                  {row.label}
-                </td>
-                {periods.map((period, index) => (
-                  <td
-                    key={index}
-                    className="px-4 py-3 text-sm text-right whitespace-nowrap font-semibold"
-                  >
-                    {row.format(period[row.key])}
-                  </td>
-                ))}
-              </tr>
+                {/* Sub-rows for expandable metrics */}
+                {row.expandable &&
+                  expandedRows[row.key] &&
+                  row.subRows?.map((subRow) => (
+                    <tr
+                      key={subRow.key}
+                      className="bg-blue-50"
+                    >
+                      <td className="sticky left-0 z-20 px-4 py-2 text-sm text-gray-600 border-r bg-blue-50">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5" />
+                          <span className="pl-2 border-l-2 border-blue-300">
+                            {subRow.label}
+                          </span>
+                        </div>
+                      </td>
+                      {periods.map((period, index) => (
+                        <td
+                          key={index}
+                          className="px-4 py-2 text-sm text-right whitespace-nowrap font-semibold"
+                        >
+                          {subRow.format(period[subRow.key])}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+              </Fragment>
             ))}
           </tbody>
         </table>
