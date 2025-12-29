@@ -155,6 +155,37 @@ const getUpcomingResults = async (req, res, next) => {
   }
 };
 
+const getUpcomingResultsSymbols = async (req, res, next) => {
+  try {
+    // Fetch from both NSE and BSE in parallel
+    const [nseResults, bseResults] = await Promise.all([
+      nseUpcomingResults().catch((err) => {
+        console.error("NSE API error:", err.message);
+        return [];
+      }),
+      bseUpcomingResults().catch((err) => {
+        console.error("BSE API error:", err.message);
+        return [];
+      }),
+    ]);
+
+    // Merge results with NSE preference
+    const mergedResults = mergeResults(nseResults, bseResults);
+
+    // Extract only exchange symbols
+    const symbols = mergedResults.map((result) => result.exchangeSymbol);
+
+    res.json({
+      success: true,
+      symbols: symbols,
+      total: symbols.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getUpcomingResults,
+  getUpcomingResultsSymbols,
 };

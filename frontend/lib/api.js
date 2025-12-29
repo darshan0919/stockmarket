@@ -56,7 +56,11 @@ export const stockAPI = {
 export const transcriptAPI = {
   getTranscripts: (symbol) => api.get(`/result-transcript/${symbol}`),
   analyzeTranscript: (symbol, attachmentName) =>
-    api.post(`/result-transcript/${symbol}/analyze`, { attachmentName }, {timeout: 200000}),
+    api.post(
+      `/result-transcript/${symbol}/analyze`,
+      { attachmentName },
+      { timeout: 200000 }
+    ),
 };
 
 // Screener APIs
@@ -90,7 +94,9 @@ export const marketAPI = {
 
 // Upcoming Results APIs
 export const upcomingResultsAPI = {
-  getAll: (page = 1, limit = 10) => api.get(`/upcoming-results?page=${page}&limit=${limit}`),
+  getAll: (page = 1, limit = 10) =>
+    api.get(`/upcoming-results?page=${page}&limit=${limit}`),
+  getSymbols: () => api.get("/upcoming-results/symbols"),
 };
 
 export default api;
