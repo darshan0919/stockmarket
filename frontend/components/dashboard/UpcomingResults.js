@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/router';
-import { upcomingResultsAPI } from '../../lib/api';
-import LoadingSpinner from '../common/LoadingSpinner';
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/router";
+import { upcomingResultsAPI } from "../../lib/api";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -26,14 +26,19 @@ export default function UpcomingResults() {
     const fetchUpcomingResults = async () => {
       try {
         setLoading(true);
-        const response = await upcomingResultsAPI.getAll(currentPage, ITEMS_PER_PAGE);
+        const response = await upcomingResultsAPI.getAll(
+          currentPage,
+          ITEMS_PER_PAGE
+        );
         if (response.data.success) {
           setResults(response.data.data || []);
-          setTotalResults(response.data.total || response.data.data?.length || 0);
+          setTotalResults(
+            response.data.total || response.data.data?.length || 0
+          );
         }
       } catch (err) {
-        console.error('Error fetching upcoming results:', err);
-        setError('Unable to load upcoming results');
+        console.error("Error fetching upcoming results:", err);
+        setError("Unable to load upcoming results");
       } finally {
         setLoading(false);
       }
@@ -49,35 +54,38 @@ export default function UpcomingResults() {
         setShowColumnMenu(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const formatPrice = (value) => {
-    if (value === null || value === undefined) return '-';
+    if (value === null || value === undefined) return "-";
     const num = parseFloat(value);
-    if (isNaN(num)) return '-';
-    return `₹${num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (isNaN(num)) return "-";
+    return `₹${num.toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   };
 
   const formatPercent = (value) => {
-    if (value === null || value === undefined || value === '') return '-';
+    if (value === null || value === undefined || value === "") return "-";
     const num = parseFloat(value);
-    if (isNaN(num)) return '-';
+    if (isNaN(num)) return "-";
     return `${num.toFixed(2)}%`;
   };
 
   const formatRatio = (value) => {
-    if (value === null || value === undefined || value === '') return '-';
+    if (value === null || value === undefined || value === "") return "-";
     const num = parseFloat(value);
-    if (isNaN(num)) return '-';
+    if (isNaN(num)) return "-";
     return num.toFixed(2);
   };
 
   const formatNumber = (value) => {
-    if (value === null || value === undefined || value === '') return '-';
+    if (value === null || value === undefined || value === "") return "-";
     const num = parseFloat(value);
-    if (isNaN(num)) return '-';
+    if (isNaN(num)) return "-";
     if (Math.abs(num) >= 10000000) {
       return `₹${(num / 10000000).toFixed(1)} Cr`;
     }
@@ -93,13 +101,32 @@ export default function UpcomingResults() {
     }
   };
 
+  const handleExchangeTagClick = (e, exchangeSymbol) => {
+    e.stopPropagation(); // Prevent row click
+    if (exchangeSymbol) {
+      const stockScansUrl = `https://www.stockscans.in/company/${encodeURIComponent(
+        exchangeSymbol
+      )}/consolidated`;
+      window.open(stockScansUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const getExchangeTagColor = (exchange) => {
+    if (exchange === "NSE") {
+      return "bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200";
+    }
+    return "bg-purple-100 text-purple-800 hover:bg-purple-200 border-purple-200";
+  };
+
   const getStockDetail = (result, path) => {
     if (!result.stockDetails) return null;
-    return path.split('.').reduce((obj, key) => obj?.[key], result.stockDetails);
+    return path
+      .split(".")
+      .reduce((obj, key) => obj?.[key], result.stockDetails);
   };
 
   const toggleColumn = (column) => {
-    setVisibleColumns(prev => ({ ...prev, [column]: !prev[column] }));
+    setVisibleColumns((prev) => ({ ...prev, [column]: !prev[column] }));
   };
 
   // Pagination
@@ -108,7 +135,9 @@ export default function UpcomingResults() {
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Upcoming Results</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">
+          Upcoming Results
+        </h2>
         <div className="flex justify-center py-8">
           <LoadingSpinner size="sm" />
         </div>
@@ -119,7 +148,9 @@ export default function UpcomingResults() {
   if (error) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Upcoming Results</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">
+          Upcoming Results
+        </h2>
         <p className="text-red-500 text-sm">{error}</p>
       </div>
     );
@@ -130,8 +161,18 @@ export default function UpcomingResults() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-amber-100 rounded-lg">
-            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <svg
+              className="w-5 h-5 text-amber-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
             </svg>
           </div>
           <h2 className="text-xl font-bold text-gray-900">Upcoming Results</h2>
@@ -145,19 +186,31 @@ export default function UpcomingResults() {
             className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
             title="Configure columns"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+              />
             </svg>
           </button>
 
           {showColumnMenu && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-10">
-              <p className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">Show Columns</p>
+              <p className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                Show Columns
+              </p>
               {[
-                { key: 'roce', label: 'ROCE' },
-                { key: 'debtToEquity', label: 'Debt/Equity' },
-                { key: 'orderBook', label: 'Order Book' },
-                { key: 'revenue', label: 'Revenue' },
+                { key: "roce", label: "ROCE" },
+                { key: "debtToEquity", label: "Debt/Equity" },
+                { key: "orderBook", label: "Order Book" },
+                { key: "revenue", label: "Revenue" },
               ].map(({ key, label }) => (
                 <label
                   key={key}
@@ -195,10 +248,10 @@ export default function UpcomingResults() {
                   </th>
                   {visibleColumns.pe && (
                     <th className="text-right py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                     PE
+                      PE
                     </th>
                   )}
-                  
+
                   {visibleColumns.roce && (
                     <th className="text-right py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       ROCE
@@ -224,16 +277,27 @@ export default function UpcomingResults() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {results.map((result, index) => {
-                  const pe = getStockDetail(result, 'fundamentals.pe_ratio');                  
-                  const roce = getStockDetail(result, 'fundamentals.roce');
-                  const debtToEquity = getStockDetail(result, 'fundamentals.debt_to_equity');
-                  const price = getStockDetail(result, 'currentPrice.last_price');
-                  const change = getStockDetail(result, 'currentPrice.change');
-                  const changePercent = getStockDetail(result, 'currentPrice.change_percent');
-                  const sector = getStockDetail(result, 'basicInfo.sector');
-                  const industry = getStockDetail(result, 'basicInfo.industry');
-                  const orderBook = result.orderBook || getStockDetail(result, 'orderBook');
-                  const revenue = result.revenue || getStockDetail(result, 'revenue');
+                  const pe = getStockDetail(result, "fundamentals.pe_ratio");
+                  const roce = getStockDetail(result, "fundamentals.roce");
+                  const debtToEquity = getStockDetail(
+                    result,
+                    "fundamentals.debt_to_equity"
+                  );
+                  const price = getStockDetail(
+                    result,
+                    "currentPrice.last_price"
+                  );
+                  const change = getStockDetail(result, "currentPrice.change");
+                  const changePercent = getStockDetail(
+                    result,
+                    "currentPrice.change_percent"
+                  );
+                  const sector = getStockDetail(result, "basicInfo.sector");
+                  const industry = getStockDetail(result, "basicInfo.industry");
+                  const orderBook =
+                    result.orderBook || getStockDetail(result, "orderBook");
+                  const revenue =
+                    result.revenue || getStockDetail(result, "revenue");
                   const isPositive = change !== null && change >= 0;
 
                   return (
@@ -247,11 +311,44 @@ export default function UpcomingResults() {
                           {/* Company Info - Left */}
                           <div className="flex flex-col gap-0.5 min-w-0">
                             <span className="font-semibold text-gray-900 text-sm truncate">
-                              {result.name || getStockDetail(result, 'basicInfo.name') || '-'}
+                              {result.name ||
+                                getStockDetail(result, "basicInfo.name") ||
+                                "-"}
                             </span>
-                            <span className="text-xs text-gray-500">
-                              {result.symbol || '-'}
-                            </span>
+                            {/* Exchange Tag Button */}
+                            <button
+                              onClick={(e) =>
+                                handleExchangeTagClick(
+                                  e,
+                                  result.exchangeSymbol ||
+                                    `BSE:${result.symbol}`
+                                )
+                              }
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded border transition-colors cursor-pointer ${getExchangeTagColor(
+                                result.exchange
+                              )}`}
+                              title={`View on StockScans: ${
+                                result.exchangeSymbol || result.symbol
+                              }`}
+                            >
+                              <span>
+                                {result.exchangeSymbol ||
+                                  `BSE:${result.symbol}`}
+                              </span>
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                />
+                              </svg>
+                            </button>
                             {sector && (
                               <span className="text-xs text-gray-500">
                                 {sector}
@@ -269,8 +366,21 @@ export default function UpcomingResults() {
                               {formatPrice(price)}
                             </span>
                             {(change !== null || changePercent !== null) && (
-                              <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-red-500'}`}>
-                                {change ? (isPositive ? '+' : '') + change?.toFixed(2) : ''}{changePercent ? ` (${isPositive ? '+' : ''}${changePercent?.toFixed(2)}%)` : ''}
+                              <span
+                                className={`text-xs font-medium ${
+                                  isPositive
+                                    ? "text-emerald-600"
+                                    : "text-red-500"
+                                }`}
+                              >
+                                {change
+                                  ? (isPositive ? "+" : "") + change?.toFixed(2)
+                                  : ""}
+                                {changePercent
+                                  ? ` (${
+                                      isPositive ? "+" : ""
+                                    }${changePercent?.toFixed(2)}%)`
+                                  : ""}
                               </span>
                             )}
                           </div>
@@ -278,44 +388,50 @@ export default function UpcomingResults() {
                       </td>
                       <td className="py-3 px-3 text-center">
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                          {result.date || '-'}
+                          {result.date || "-"}
                         </span>
                       </td>
                       {visibleColumns.pe && (
                         <td className="py-3 px-3 text-right">
-                          <span className={`text-sm font-medium ${
-                            pe !== null && pe < 25
-                              ? 'text-emerald-600' 
-                              : pe !== null && pe > 45
-                                ? 'text-red-500' 
-                                : 'text-gray-700'
-                          }`}>
+                          <span
+                            className={`text-sm font-medium ${
+                              pe !== null && pe < 25
+                                ? "text-emerald-600"
+                                : pe !== null && pe > 45
+                                ? "text-red-500"
+                                : "text-gray-700"
+                            }`}
+                          >
                             {formatRatio(pe)}
                           </span>
                         </td>
                       )}
                       {visibleColumns.roce && (
                         <td className="py-3 px-3 text-right">
-                          <span className={`text-sm font-medium ${
-                            roce !== null && roce >= 15 
-                              ? 'text-emerald-600' 
-                              : roce !== null && roce < 10 
-                                ? 'text-red-500' 
-                                : 'text-gray-700'
-                          }`}>
+                          <span
+                            className={`text-sm font-medium ${
+                              roce !== null && roce >= 15
+                                ? "text-emerald-600"
+                                : roce !== null && roce < 10
+                                ? "text-red-500"
+                                : "text-gray-700"
+                            }`}
+                          >
                             {formatPercent(roce)}
                           </span>
                         </td>
                       )}
                       {visibleColumns.debtToEquity && (
                         <td className="py-3 px-3 text-right">
-                          <span className={`text-sm font-medium ${
-                            debtToEquity !== null && debtToEquity <= 0.5 
-                              ? 'text-emerald-600' 
-                              : debtToEquity !== null && debtToEquity > 1 
-                                ? 'text-red-500' 
-                                : 'text-gray-700'
-                          }`}>
+                          <span
+                            className={`text-sm font-medium ${
+                              debtToEquity !== null && debtToEquity <= 0.5
+                                ? "text-emerald-600"
+                                : debtToEquity !== null && debtToEquity > 1
+                                ? "text-red-500"
+                                : "text-gray-700"
+                            }`}
+                          >
                             {formatRatio(debtToEquity)}
                           </span>
                         </td>
@@ -335,8 +451,18 @@ export default function UpcomingResults() {
                         </td>
                       )}
                       <td className="py-3 px-2">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        <svg
+                          className="w-4 h-4 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
                         </svg>
                       </td>
                     </tr>
@@ -350,33 +476,41 @@ export default function UpcomingResults() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
               <p className="text-sm text-gray-500">
-                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, totalResults)} of {totalResults}
+                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+                {Math.min(currentPage * ITEMS_PER_PAGE, totalResults)} of{" "}
+                {totalResults}
               </p>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                  }
                   disabled={currentPage === 1}
                   className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 text-sm font-medium rounded-lg transition-colors ${
-                        currentPage === page
-                          ? 'bg-amber-500 text-white'
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-8 h-8 text-sm font-medium rounded-lg transition-colors ${
+                          currentPage === page
+                            ? "bg-amber-500 text-white"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  )}
                 </div>
                 <button
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                  }
                   disabled={currentPage === totalPages}
                   className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -389,7 +523,8 @@ export default function UpcomingResults() {
       )}
 
       <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-gray-100">
-        Data source: BSE India. Fundamentals from latest available financials.
+        Data source: NSE India & BSE India. Click exchange tag to view on
+        StockScans.
       </p>
     </div>
   );

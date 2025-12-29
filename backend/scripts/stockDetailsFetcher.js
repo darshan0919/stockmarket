@@ -76,7 +76,7 @@ const fetchStockDetails = async (symbol, scripCode) => {
   
       let currentMetrics;
       try {
-        currentMetrics = await getCurrentMetrics(upperSymbol);
+        // currentMetrics = await getCurrentMetrics(upperSymbol);
         console.log("currentMetrics", currentMetrics);
       } catch (error) {
         console.error("Error fetching current metrics:", error);
