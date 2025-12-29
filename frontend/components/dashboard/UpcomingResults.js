@@ -18,6 +18,7 @@ export default function UpcomingResults() {
     debtToEquity: true,
     revenue: false,
     orderBook: false,
+    category: true,
   });
   const router = useRouter();
   const menuRef = useRef(null);
@@ -106,7 +107,7 @@ export default function UpcomingResults() {
     if (exchangeSymbol) {
       const stockScansUrl = `https://www.stockscans.in/company/${encodeURIComponent(
         exchangeSymbol
-      )}/consolidated`;
+      )}/standalone`;
       window.open(stockScansUrl, "_blank", "noopener,noreferrer");
     }
   };
@@ -211,6 +212,7 @@ export default function UpcomingResults() {
                 { key: "debtToEquity", label: "Debt/Equity" },
                 { key: "orderBook", label: "Order Book" },
                 { key: "revenue", label: "Revenue" },
+                { key: "category", label: "Category" },
               ].map(({ key, label }) => (
                 <label
                   key={key}
@@ -244,8 +246,16 @@ export default function UpcomingResults() {
                     Company
                   </th>
                   <th className="text-center py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Price
+                  </th>
+                  <th className="text-center py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Result Date
                   </th>
+                  {visibleColumns.category && (
+                    <th className="text-left py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Category
+                    </th>
+                  )}
                   {visibleColumns.pe && (
                     <th className="text-right py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       PE
@@ -307,83 +317,67 @@ export default function UpcomingResults() {
                       className="hover:bg-amber-50 cursor-pointer transition-colors"
                     >
                       <td className="py-3 px-3">
-                        <div className="flex items-start justify-between gap-4">
-                          {/* Company Info - Left */}
-                          <div className="flex flex-col gap-0.5 min-w-0">
-                            <span className="font-semibold text-gray-900 text-sm truncate">
-                              {result.name ||
-                                getStockDetail(result, "basicInfo.name") ||
-                                "-"}
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-semibold text-gray-900 text-sm truncate">
+                            {result.name ||
+                              getStockDetail(result, "basicInfo.name") ||
+                              "-"}
+                          </span>
+                          {/* Exchange Tag Button */}
+                          <button
+                            onClick={(e) =>
+                              handleExchangeTagClick(
+                                e,
+                                result.exchangeSymbol || `BSE:${result.symbol}`
+                              )
+                            }
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded border transition-colors cursor-pointer ${getExchangeTagColor(
+                              result.exchange
+                            )}`}
+                            title={`View on StockScans: ${
+                              result.exchangeSymbol || result.symbol
+                            }`}
+                          >
+                            <span>
+                              {result.exchangeSymbol || `BSE:${result.symbol}`}
                             </span>
-                            {/* Exchange Tag Button */}
-                            <button
-                              onClick={(e) =>
-                                handleExchangeTagClick(
-                                  e,
-                                  result.exchangeSymbol ||
-                                    `BSE:${result.symbol}`
-                                )
-                              }
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded border transition-colors cursor-pointer ${getExchangeTagColor(
-                                result.exchange
-                              )}`}
-                              title={`View on StockScans: ${
-                                result.exchangeSymbol || result.symbol
+                            <svg
+                              className="w-3 h-3"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span className="text-sm font-semibold text-gray-900">
+                            {formatPrice(price)}
+                          </span>
+                          {(change !== null || changePercent !== null) && (
+                            <span
+                              className={`text-xs font-medium ${
+                                isPositive ? "text-emerald-600" : "text-red-500"
                               }`}
                             >
-                              <span>
-                                {result.exchangeSymbol ||
-                                  `BSE:${result.symbol}`}
-                              </span>
-                              <svg
-                                className="w-3 h-3"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                                />
-                              </svg>
-                            </button>
-                            {sector && (
-                              <span className="text-xs text-gray-500">
-                                {sector}
-                              </span>
-                            )}
-                            {industry && (
-                              <span className="text-xs text-gray-400">
-                                {industry}
-                              </span>
-                            )}
-                          </div>
-                          {/* Price Info - Right */}
-                          <div className="flex flex-col items-end flex-shrink-0">
-                            <span className="text-sm font-semibold text-gray-900">
-                              {formatPrice(price)}
+                              {change
+                                ? (isPositive ? "+" : "") + change?.toFixed(2)
+                                : ""}
+                              {changePercent
+                                ? ` (${
+                                    isPositive ? "+" : ""
+                                  }${changePercent?.toFixed(2)}%)`
+                                : ""}
                             </span>
-                            {(change !== null || changePercent !== null) && (
-                              <span
-                                className={`text-xs font-medium ${
-                                  isPositive
-                                    ? "text-emerald-600"
-                                    : "text-red-500"
-                                }`}
-                              >
-                                {change
-                                  ? (isPositive ? "+" : "") + change?.toFixed(2)
-                                  : ""}
-                                {changePercent
-                                  ? ` (${
-                                      isPositive ? "+" : ""
-                                    }${changePercent?.toFixed(2)}%)`
-                                  : ""}
-                              </span>
-                            )}
-                          </div>
+                          )}
                         </div>
                       </td>
                       <td className="py-3 px-3 text-center">
@@ -391,6 +385,25 @@ export default function UpcomingResults() {
                           {result.date || "-"}
                         </span>
                       </td>
+                      {visibleColumns.category && (
+                        <td className="py-3 px-3">
+                          <div className="flex flex-col gap-0.5">
+                            {sector && (
+                              <span className="text-xs text-gray-700 font-medium">
+                                {sector}
+                              </span>
+                            )}
+                            {industry && (
+                              <span className="text-xs text-gray-500">
+                                {industry}
+                              </span>
+                            )}
+                            {!sector && !industry && (
+                              <span className="text-xs text-gray-400">-</span>
+                            )}
+                          </div>
+                        </td>
+                      )}
                       {visibleColumns.pe && (
                         <td className="py-3 px-3 text-right">
                           <span
