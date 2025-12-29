@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
+import Image from "next/image";
 import { upcomingResultsAPI } from "../../lib/api";
 import LoadingSpinner from "../common/LoadingSpinner";
 
@@ -102,13 +103,23 @@ export default function UpcomingResults() {
     }
   };
 
-  const handleExchangeTagClick = (e, exchangeSymbol) => {
+  const handleStockScansClick = (e, exchangeSymbol) => {
     e.stopPropagation(); // Prevent row click
     if (exchangeSymbol) {
       const stockScansUrl = `https://www.stockscans.in/company/${encodeURIComponent(
         exchangeSymbol
       )}/standalone`;
       window.open(stockScansUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const handleScreenerClick = (e, symbol) => {
+    e.stopPropagation(); // Prevent row click
+    if (symbol) {
+      const screenerUrl = `https://www.screener.in/company/${encodeURIComponent(
+        symbol
+      )}/`;
+      window.open(screenerUrl, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -323,38 +334,52 @@ export default function UpcomingResults() {
                               getStockDetail(result, "basicInfo.name") ||
                               "-"}
                           </span>
-                          {/* Exchange Tag Button */}
-                          <button
-                            onClick={(e) =>
-                              handleExchangeTagClick(
-                                e,
-                                result.exchangeSymbol || `BSE:${result.symbol}`
-                              )
-                            }
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded border transition-colors cursor-pointer ${getExchangeTagColor(
-                              result.exchange
-                            )}`}
-                            title={`View on StockScans: ${
-                              result.exchangeSymbol || result.symbol
-                            }`}
-                          >
-                            <span>
+                          {/* Exchange Tag and External Links */}
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded border ${getExchangeTagColor(
+                                result.exchange
+                              ).replace(/hover:bg-\S+/, "")}`}
+                            >
                               {result.exchangeSymbol || `BSE:${result.symbol}`}
                             </span>
-                            <svg
-                              className="w-3 h-3"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                            {/* StockScans Button */}
+                            <button
+                              onClick={(e) =>
+                                handleStockScansClick(
+                                  e,
+                                  result.exchangeSymbol ||
+                                    `BSE:${result.symbol}`
+                                )
+                              }
+                              className="inline-flex items-center justify-center p-1 rounded border border-gray-300 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+                              title="View on StockScans"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                              <Image
+                                src="/icons/stockscans.png"
+                                alt="StockScans"
+                                width={16}
+                                height={16}
+                                className="object-contain"
                               />
-                            </svg>
-                          </button>
+                            </button>
+                            {/* Screener Button */}
+                            <button
+                              onClick={(e) =>
+                                handleScreenerClick(e, result.symbol)
+                              }
+                              className="inline-flex items-center justify-center p-1 rounded border border-gray-300 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+                              title="View on Screener"
+                            >
+                              <Image
+                                src="/icons/screener.png"
+                                alt="Screener"
+                                width={16}
+                                height={16}
+                                className="object-contain"
+                              />
+                            </button>
+                          </div>
                         </div>
                       </td>
                       <td className="py-3 px-3">
