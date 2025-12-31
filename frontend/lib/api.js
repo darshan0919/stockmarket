@@ -104,4 +104,20 @@ export const announcementsAPI = {
   getBySymbol: (symbol) => api.get(`/announcements/${symbol}`),
 };
 
+// Orders APIs
+export const ordersAPI = {
+  getBySymbol: (symbol, limit = 50) =>
+    api.get(`/orders/${symbol}?limit=${limit}`),
+  getFullParsed: (symbol, limit = 20) =>
+    api.get(`/orders/${symbol}/full?limit=${limit}`, { timeout: 180000 }),
+  parsePdf: (symbol, attachmentUrl) =>
+    api.post(
+      `/orders/${symbol}/parse-pdf`,
+      { attachmentUrl },
+      { timeout: 120000 }
+    ),
+  getOrderbook: (symbol) =>
+    api.get(`/orders/${symbol}/orderbook`, { timeout: 300000 }),
+};
+
 export default api;

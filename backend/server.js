@@ -24,6 +24,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/result-transcript', require('./routes/resultTranscript'));
 app.use('/api/upcoming-results', require('./routes/upcomingResult'));
 app.use('/api/announcements', require('./routes/announcements'));
+app.use('/api/orders', require('./routes/orders'));
 
 // Health check
 app.get('/api/health', (req, res) => {

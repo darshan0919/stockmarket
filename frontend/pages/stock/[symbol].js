@@ -10,6 +10,7 @@ import ChartTab from "../../components/stock/ChartTab";
 import TechnicalTab from "../../components/stock/TechnicalTab";
 import TranscriptTab from "../../components/stock/TranscriptTab";
 import AnnouncementsTab from "../../components/stock/AnnouncementsTab";
+import OrdersTab from "../../components/stock/OrdersTab";
 
 export default function StockDetails() {
   const router = useRouter();
@@ -100,6 +101,7 @@ export default function StockDetails() {
     { id: "chart", label: "Chart" },
     { id: "technicals", label: "Technicals" },
     { id: "transcript", label: "Transcript Analysis" },
+    { id: "orders", label: "Orders" },
     { id: "announcements", label: "Announcements" },
   ];
 
@@ -244,6 +246,8 @@ export default function StockDetails() {
             {activeTab === "transcript" && (
               <TranscriptTab symbol={basic_info.symbol} />
             )}
+
+            {activeTab === "orders" && <OrdersTab symbol={basic_info.symbol} />}
 
             {activeTab === "announcements" && (
               <AnnouncementsTab symbol={basic_info.symbol} />
