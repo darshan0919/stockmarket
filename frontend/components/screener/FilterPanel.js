@@ -21,7 +21,18 @@ export default function FilterPanel({ onFilter, onClear }) {
     current_ratio_min: '',
   });
 
-  const sectors = ['IT', 'Pharma', 'FMCG', 'Financial Services', 'Energy', 'Automobile', 'Telecom', 'Infrastructure', 'Consumer Durables', 'Cement'];
+  const sectors = [
+    'IT',
+    'Pharma',
+    'FMCG',
+    'Financial Services',
+    'Energy',
+    'Automobile',
+    'Telecom',
+    'Infrastructure',
+    'Consumer Durables',
+    'Cement',
+  ];
 
   const handleChange = (field, value) => {
     setFilters((prev) => ({ ...prev, [field]: value }));
@@ -286,4 +297,3 @@ export default function FilterPanel({ onFilter, onClear }) {
     </div>
   );
 }
-

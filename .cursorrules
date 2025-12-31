@@ -1,0 +1,113 @@
+# Stock Screener - Cursor Rules
+
+## Project Overview
+
+Stock Screener is a full-stack application for Indian stock market analysis:
+- **Backend**: Express.js REST API with MongoDB (`backend/`)
+- **Frontend**: Next.js 14 React application (`frontend/`)
+- **Documentation**: Comprehensive docs in `docs/`
+
+## MANDATORY Requirements for Every Change
+
+### 1. Documentation
+- Add JSDoc comments to all functions/components
+- Update relevant docs in `docs/` folder
+- Include `@see` references to link code and docs
+
+### 2. Testing
+- Add unit tests in `__tests__/` folder next to source file
+- Test happy path, edge cases, and error handling
+- Run `npm test` before committing
+
+### 3. Code Formatting
+- Run `npm run format` (Prettier) before committing
+- Follow existing code patterns and conventions
+
+## Quick Navigation
+
+| Purpose | Location |
+|---------|----------|
+| Main documentation | `docs/README.md` |
+| API documentation | `docs/API_REFERENCE.md` |
+| Architecture | `docs/ARCHITECTURE.md` |
+| Backend guide | `docs/backend/README.md` |
+| Frontend guide | `docs/frontend/README.md` |
+| Testing guide | `docs/TESTING.md` |
+
+## Key Files
+
+### Backend Entry Points
+- Server: `backend/server.js`
+- Routes: `backend/routes/*.js`
+- Controllers: `backend/controllers/*.js`
+- Models: `backend/models/*.js`
+- External APIs: `backend/api/*.js`
+- Utilities: `backend/utils/*.js`
+
+### Frontend Entry Points
+- App: `frontend/pages/_app.js`
+- API Client: `frontend/lib/api.js`
+- Hooks: `frontend/lib/hooks/*.js`
+- Utilities: `frontend/lib/utils/*.js`
+- Components: `frontend/components/**/*.js`
+
+## Code Patterns
+
+### Backend Controller
+```javascript
+/**
+ * Handler description
+ * @route METHOD /api/endpoint
+ * @see {@link docs/API_REFERENCE.md#section} for API docs
+ */
+const handler = async (req, res, next) => {
+  try {
+    // Implementation
+    res.json({ success: true, data: {} });
+  } catch (error) {
+    next(error);
+  }
+};
+```
+
+### Frontend Component
+```javascript
+/**
+ * Component description
+ * @param {Object} props
+ * @see {@link docs/frontend/components/Component.md} for docs
+ */
+export default function Component({ prop }) {
+  // Implementation
+}
+```
+
+### Test File
+```javascript
+/**
+ * Unit tests for Module
+ * @file path/to/__tests__/module.test.js
+ * @see docs/path/to/doc.md for documentation
+ */
+describe('Module', () => {
+  it('should work correctly', () => {
+    // Test
+  });
+});
+```
+
+## Before Committing Checklist
+
+- [ ] `npm run format` executed
+- [ ] `npm test` passes
+- [ ] JSDoc comments added
+- [ ] Documentation updated
+- [ ] Tests added for new code
+- [ ] No linter errors
+
+## Ignored Folders (Do Not Modify)
+
+Per user rules, do not modify:
+- `packages/next-infra/src/server`
+- `packages/next-infra/src/webpack/mf-utils/test-server`
+

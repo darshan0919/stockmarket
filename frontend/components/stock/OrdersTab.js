@@ -1,14 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
-import Image from "next/image";
-import { ordersAPI } from "../../lib/api";
-import LoadingSpinner from "../common/LoadingSpinner";
+import { useState, useEffect, useMemo } from 'react';
+import Image from 'next/image';
+import { ordersAPI } from '../../lib/api';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 // Format currency value
-const formatCurrency = (value, unit = "Crore", currency = "INR") => {
-  if (value === null || value === undefined) return "-";
+const formatCurrency = (value, unit = 'Crore', currency = 'INR') => {
+  if (value === null || value === undefined) return '-';
 
-  const symbol = currency === "USD" ? "$" : "₹";
-  const formattedValue = value.toLocaleString("en-IN", {
+  const symbol = currency === 'USD' ? '$' : '₹';
+  const formattedValue = value.toLocaleString('en-IN', {
     maximumFractionDigits: 2,
     minimumFractionDigits: 0,
   });
@@ -18,22 +18,22 @@ const formatCurrency = (value, unit = "Crore", currency = "INR") => {
 
 // Format capacity value
 const formatCapacity = (capacity) => {
-  if (!capacity || !capacity.value) return "-";
-  return `${capacity.value.toLocaleString("en-IN")} ${capacity.unit}`;
+  if (!capacity || !capacity.value) return '-';
+  return `${capacity.value.toLocaleString('en-IN')} ${capacity.unit}`;
 };
 
 // Format date
 const formatDate = (dateStr) => {
-  if (!dateStr) return "-";
+  if (!dateStr) return '-';
 
   try {
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return dateStr;
 
-    return date.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
     });
   } catch (e) {
     return dateStr;
@@ -42,23 +42,23 @@ const formatDate = (dateStr) => {
 
 // Time ago helper
 const timeAgo = (dateStr) => {
-  if (!dateStr) return "";
+  if (!dateStr) return '';
 
   try {
     const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return "";
+    if (isNaN(date.getTime())) return '';
 
     const now = new Date();
     const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays} days ago`;
     if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
     if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
     return `${Math.floor(diffDays / 365)} years ago`;
   } catch (e) {
-    return "";
+    return '';
   }
 };
 
@@ -150,12 +150,8 @@ const OrderRow = ({ order, onParsePdf, isParsing, showParseButton = true }) => {
     <tr className="hover:bg-slate-50 transition-colors">
       {/* Date */}
       <td className="px-4 py-3 whitespace-nowrap">
-        <div className="text-sm font-medium text-slate-900">
-          {formatDate(announcement_date)}
-        </div>
-        <div className="text-xs text-slate-500">
-          {timeAgo(announcement_date)}
-        </div>
+        <div className="text-sm font-medium text-slate-900">{formatDate(announcement_date)}</div>
+        <div className="text-xs text-slate-500">{timeAgo(announcement_date)}</div>
       </td>
 
       {/* Order Amount */}
@@ -164,8 +160,8 @@ const OrderRow = ({ order, onParsePdf, isParsing, showParseButton = true }) => {
           <div className="text-sm font-semibold text-emerald-600">
             {formatCurrency(
               orderValue.value_in_crore_inr || orderValue.amount,
-              orderValue.unit || "Crore",
-              orderValue.currency || "INR"
+              orderValue.unit || 'Crore',
+              orderValue.currency || 'INR'
             )}
           </div>
         ) : (
@@ -187,21 +183,17 @@ const OrderRow = ({ order, onParsePdf, isParsing, showParseButton = true }) => {
       {/* Customer */}
       <td className="px-4 py-3">
         <div className="text-sm text-slate-900 max-w-xs truncate">
-          {order_details?.customer_name || "-"}
+          {order_details?.customer_name || '-'}
         </div>
         {order_details?.customer_type && (
-          <span className="text-xs text-slate-500">
-            {order_details.customer_type}
-          </span>
+          <span className="text-xs text-slate-500">{order_details.customer_type}</span>
         )}
       </td>
 
       {/* Description */}
       <td className="px-4 py-3">
         <div className="text-sm text-slate-700 max-w-md">
-          <p className="line-clamp-2">
-            {order_details?.project_description || description || "-"}
-          </p>
+          <p className="line-clamp-2">{order_details?.project_description || description || '-'}</p>
         </div>
       </td>
 
@@ -211,20 +203,14 @@ const OrderRow = ({ order, onParsePdf, isParsing, showParseButton = true }) => {
           {/* Parsing status indicator */}
           {pdf_parsed ? (
             <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
-              <svg
-                className="w-3.5 h-3.5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
                   d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                   clipRule="evenodd"
                 />
               </svg>
-              {confidence_score
-                ? `${(confidence_score * 100).toFixed(0)}%`
-                : "Parsed"}
+              {confidence_score ? `${(confidence_score * 100).toFixed(0)}%` : 'Parsed'}
             </span>
           ) : showParseButton && attachment_url ? (
             <button
@@ -234,11 +220,7 @@ const OrderRow = ({ order, onParsePdf, isParsing, showParseButton = true }) => {
             >
               {isParsing ? (
                 <>
-                  <svg
-                    className="w-3 h-3 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle
                       className="opacity-25"
                       cx="12"
@@ -285,12 +267,7 @@ const OrderRow = ({ order, onParsePdf, isParsing, showParseButton = true }) => {
               className="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
               title="View PDF"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -324,7 +301,7 @@ const EmptyState = ({ message }) => (
     </svg>
     <h3 className="text-lg font-medium text-slate-700 mb-1">No orders found</h3>
     <p className="text-sm text-slate-500">
-      {message || "No order announcements are available for this company."}
+      {message || 'No order announcements are available for this company.'}
     </p>
   </div>
 );
@@ -356,12 +333,7 @@ const OrderInflowSummary = ({ orders, totalValue }) => {
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -369,23 +341,13 @@ const OrderInflowSummary = ({ orders, totalValue }) => {
                   d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                 />
               </svg>
-              <h4 className="text-sm font-semibold uppercase tracking-wider">
-                Total Order Inflow
-              </h4>
+              <h4 className="text-sm font-semibold uppercase tracking-wider">Total Order Inflow</h4>
             </div>
-            <div className="text-3xl font-bold">
-              {formatCurrency(totalValue || 0)}
-            </div>
-            <p className="text-white/70 text-xs mt-1">
-              From all parsed announcements
-            </p>
+            <div className="text-3xl font-bold">{formatCurrency(totalValue || 0)}</div>
+            <p className="text-white/70 text-xs mt-1">From all parsed announcements</p>
           </div>
           <div className="hidden sm:block">
-            <svg
-              className="w-14 h-14 text-white/20"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-14 h-14 text-white/20" fill="currentColor" viewBox="0 0 24 24">
               <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
             </svg>
           </div>
@@ -397,12 +359,7 @@ const OrderInflowSummary = ({ orders, totalValue }) => {
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -414,20 +371,13 @@ const OrderInflowSummary = ({ orders, totalValue }) => {
                 {currentQuarter.periodLabel} Inflow
               </h4>
             </div>
-            <div className="text-3xl font-bold">
-              {formatCurrency(currentQuarterValue)}
-            </div>
+            <div className="text-3xl font-bold">{formatCurrency(currentQuarterValue)}</div>
             <p className="text-white/70 text-xs mt-1">
-              {currentQuarterCount} order{currentQuarterCount !== 1 ? "s" : ""}{" "}
-              this quarter
+              {currentQuarterCount} order{currentQuarterCount !== 1 ? 's' : ''} this quarter
             </p>
           </div>
           <div className="hidden sm:block">
-            <svg
-              className="w-14 h-14 text-white/20"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-14 h-14 text-white/20" fill="currentColor" viewBox="0 0 24 24">
               <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z" />
             </svg>
           </div>
@@ -438,11 +388,7 @@ const OrderInflowSummary = ({ orders, totalValue }) => {
 };
 
 // Order Book Summary Component
-const OrderBookSummary = ({
-  summary,
-  segmentBreakdown,
-  orderBookCommentary,
-}) => {
+const OrderBookSummary = ({ summary, segmentBreakdown, orderBookCommentary }) => {
   if (!summary) return null;
 
   return (
@@ -450,12 +396,7 @@ const OrderBookSummary = ({
       {/* Main Order Book Card */}
       <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 rounded-2xl p-6 text-white shadow-xl">
         <div className="flex items-center gap-2 mb-4">
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -470,9 +411,7 @@ const OrderBookSummary = ({
           {formatCurrency(summary.accumulated_order_book_crores)}
         </div>
 
-        <p className="text-white/80 text-sm mb-6">
-          Total pending orders (Baseline + New Orders)
-        </p>
+        <p className="text-white/80 text-sm mb-6">Total pending orders (Baseline + New Orders)</p>
 
         {/* Breakdown */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -486,9 +425,7 @@ const OrderBookSummary = ({
             <div className="text-white/60 text-xs mt-1">
               As of {formatDate(summary.baseline_as_of_date)}
             </div>
-            <div className="text-white/60 text-xs">
-              {summary.baseline_reporting_period}
-            </div>
+            <div className="text-white/60 text-xs">{summary.baseline_reporting_period}</div>
           </div>
 
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
@@ -533,9 +470,7 @@ const OrderBookSummary = ({
               />
             </svg>
             <div>
-              <p className="text-sm font-medium text-blue-900 mb-1">
-                Management Commentary
-              </p>
+              <p className="text-sm font-medium text-blue-900 mb-1">Management Commentary</p>
               <p className="text-sm text-blue-800">{orderBookCommentary}</p>
             </div>
           </div>
@@ -573,9 +508,7 @@ const OrderBookSummary = ({
           <div className="space-y-3">
             {segmentBreakdown.map((segment, index) => (
               <div key={index} className="flex justify-between items-center">
-                <span className="text-sm text-slate-600">
-                  {segment.segment_name}
-                </span>
+                <span className="text-sm text-slate-600">{segment.segment_name}</span>
                 <span className="text-sm font-semibold text-slate-900">
                   {formatCurrency(segment.value_crores)}
                 </span>
@@ -592,10 +525,10 @@ export default function OrdersTab({ symbol }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState("orderbook"); // orderbook | all
+  const [viewMode, setViewMode] = useState('orderbook'); // orderbook | all
   const [parsingOrderId, setParsingOrderId] = useState(null);
-  const [sortBy, setSortBy] = useState("date");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('desc');
 
   // Order book specific state
   const [orderbookData, setOrderbookData] = useState(null);
@@ -606,10 +539,8 @@ export default function OrdersTab({ symbol }) {
   const [clientFetchTime, setClientFetchTime] = useState(null);
 
   // Fallback notification when orderbook baseline not found
-  const [orderbookFallbackMessage, setOrderbookFallbackMessage] =
-    useState(null);
-  const [orderbookFallbackDetails, setOrderbookFallbackDetails] =
-    useState(null);
+  const [orderbookFallbackMessage, setOrderbookFallbackMessage] = useState(null);
+  const [orderbookFallbackDetails, setOrderbookFallbackDetails] = useState(null);
 
   // Fetch orders based on view mode
   const fetchData = async (mode = viewMode) => {
@@ -625,13 +556,13 @@ export default function OrdersTab({ symbol }) {
       setClientFetchTime(null);
       setOrderbookData(null);
       // Only clear fallback message if explicitly switching modes (not during fallback)
-      if (mode !== "all" || viewMode !== "orderbook") {
+      if (mode !== 'all' || viewMode !== 'orderbook') {
         setOrderbookFallbackMessage(null);
         setOrderbookFallbackDetails(null);
       }
 
       let response;
-      if (mode === "orderbook") {
+      if (mode === 'orderbook') {
         // No limit - fetch all outstanding orders
         response = await ordersAPI.getOrderbook(symbol);
       } else {
@@ -642,7 +573,7 @@ export default function OrdersTab({ symbol }) {
       setClientFetchTime(clientTime);
 
       if (response.data.success) {
-        if (mode === "orderbook") {
+        if (mode === 'orderbook') {
           setOrderbookData(response.data.data);
           setOrders(response.data.data.new_orders || []);
         } else {
@@ -657,15 +588,15 @@ export default function OrdersTab({ symbol }) {
         }
       } else {
         // If orderbook mode fails (no baseline found), automatically switch to "all" view
-        if (mode === "orderbook") {
+        if (mode === 'orderbook') {
           console.log(
-            "Orderbook baseline not found, switching to all orders view:",
+            'Orderbook baseline not found, switching to all orders view:',
             response.data.error
           );
           // Set fallback message to notify user
           setOrderbookFallbackMessage(
             response.data.message ||
-              "Order book baseline not found for this company. Showing all order announcements instead."
+              'Order book baseline not found for this company. Showing all order announcements instead.'
           );
           // Store details for more info display
           setOrderbookFallbackDetails({
@@ -673,16 +604,16 @@ export default function OrdersTab({ symbol }) {
             documentsFetched: response.data.documents_fetched,
             parseErrors: response.data.parse_errors,
           });
-          setViewMode("all");
+          setViewMode('all');
           // Recursively fetch with "all" mode
-          await fetchData("all");
+          await fetchData('all');
           return;
         }
-        setError(response.data.error || "Failed to fetch data");
+        setError(response.data.error || 'Failed to fetch data');
       }
     } catch (err) {
-      console.error("Error fetching data:", err);
-      setError("Unable to load data. Please try again.");
+      console.error('Error fetching data:', err);
+      setError('Unable to load data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -698,7 +629,7 @@ export default function OrdersTab({ symbol }) {
       // NSE format: NSE:SYMBOL
       const exchangeSymbol = `NSE%3A${encodeURIComponent(symbol)}`;
       const stockScansUrl = `https://www.stockscans.in/company/${exchangeSymbol}/standalone#reports`;
-      window.open(stockScansUrl, "_blank", "noopener,noreferrer");
+      window.open(stockScansUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -707,7 +638,7 @@ export default function OrdersTab({ symbol }) {
       const screenerUrl = `https://www.screener.in/company/${encodeURIComponent(
         symbol
       )}/#documents`;
-      window.open(screenerUrl, "_blank", "noopener,noreferrer");
+      window.open(screenerUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -743,20 +674,13 @@ export default function OrdersTab({ symbol }) {
                 confidence_score: parsedData?.confidence_score || 0,
                 order_details: {
                   ...o.order_details,
-                  order_value:
-                    pdfDetails.order_value || o.order_details?.order_value,
-                  order_capacity:
-                    pdfDetails.order_capacity ||
-                    o.order_details?.order_capacity,
-                  customer_name:
-                    pdfDetails.customer_name || o.order_details?.customer_name,
-                  customer_type:
-                    pdfDetails.customer_type || o.order_details?.customer_type,
-                  order_type:
-                    pdfDetails.order_type || o.order_details?.order_type,
+                  order_value: pdfDetails.order_value || o.order_details?.order_value,
+                  order_capacity: pdfDetails.order_capacity || o.order_details?.order_capacity,
+                  customer_name: pdfDetails.customer_name || o.order_details?.customer_name,
+                  customer_type: pdfDetails.customer_type || o.order_details?.customer_type,
+                  order_type: pdfDetails.order_type || o.order_details?.order_type,
                   project_description:
-                    pdfDetails.project_description ||
-                    o.order_details?.project_description,
+                    pdfDetails.project_description || o.order_details?.project_description,
                 },
               };
             }
@@ -765,7 +689,7 @@ export default function OrdersTab({ symbol }) {
         );
       }
     } catch (err) {
-      console.error("Error parsing PDF:", err);
+      console.error('Error parsing PDF:', err);
     } finally {
       setParsingOrderId(null);
     }
@@ -776,14 +700,14 @@ export default function OrdersTab({ symbol }) {
     const sorted = [...orders];
 
     sorted.sort((a, b) => {
-      if (sortBy === "date") {
+      if (sortBy === 'date') {
         const dateA = new Date(a.announcement_date || 0);
         const dateB = new Date(b.announcement_date || 0);
-        return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
-      } else if (sortBy === "amount") {
+        return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+      } else if (sortBy === 'amount') {
         const amountA = a.order_details?.order_value?.value_in_crore_inr || 0;
         const amountB = b.order_details?.order_value?.value_in_crore_inr || 0;
-        return sortOrder === "desc" ? amountB - amountA : amountA - amountB;
+        return sortOrder === 'desc' ? amountB - amountA : amountA - amountB;
       }
       return 0;
     });
@@ -794,10 +718,10 @@ export default function OrdersTab({ symbol }) {
   // Toggle sort
   const handleSort = (column) => {
     if (sortBy === column) {
-      setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
+      setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
     } else {
       setSortBy(column);
-      setSortOrder("desc");
+      setSortOrder('desc');
     }
   };
 
@@ -806,9 +730,9 @@ export default function OrdersTab({ symbol }) {
       <LoadingSpinner
         size="sm"
         text={
-          viewMode === "orderbook"
-            ? "Loading order book... This may take a moment as we analyze reports."
-            : "Loading orders..."
+          viewMode === 'orderbook'
+            ? 'Loading order book... This may take a moment as we analyze reports.'
+            : 'Loading orders...'
         }
       />
     );
@@ -835,9 +759,7 @@ export default function OrdersTab({ symbol }) {
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-1">
             <h3 className="text-lg font-semibold text-gray-900">
-              {viewMode === "orderbook"
-                ? "Order Book Analysis"
-                : "All Order Announcements"}
+              {viewMode === 'orderbook' ? 'Order Book Analysis' : 'All Order Announcements'}
             </h3>
             {/* External Links */}
             <div className="flex items-center gap-1.5">
@@ -872,9 +794,9 @@ export default function OrdersTab({ symbol }) {
             </div>
           </div>
           <p className="text-sm text-slate-500">
-            {viewMode === "orderbook"
-              ? "Outstanding unexecuted order book from latest reports + new orders"
-              : "All corporate announcements for received orders and contracts"}
+            {viewMode === 'orderbook'
+              ? 'Outstanding unexecuted order book from latest reports + new orders'
+              : 'All corporate announcements for received orders and contracts'}
           </p>
         </div>
 
@@ -883,21 +805,21 @@ export default function OrdersTab({ symbol }) {
           <span className="text-sm text-slate-600">View:</span>
           <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50">
             <button
-              onClick={() => handleViewModeChange("orderbook")}
+              onClick={() => handleViewModeChange('orderbook')}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                viewMode === "orderbook"
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
+                viewMode === 'orderbook'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Order Book
             </button>
             <button
-              onClick={() => handleViewModeChange("all")}
+              onClick={() => handleViewModeChange('all')}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                viewMode === "all"
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
+                viewMode === 'all'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               All Orders
@@ -927,23 +849,18 @@ export default function OrdersTab({ symbol }) {
               <p className="text-sm font-medium text-amber-800">
                 Order Book Baseline Not Available
               </p>
-              <p className="text-sm text-amber-700 mt-1">
-                {orderbookFallbackMessage}
-              </p>
+              <p className="text-sm text-amber-700 mt-1">{orderbookFallbackMessage}</p>
               {orderbookFallbackDetails && (
                 <div className="mt-3 text-xs text-amber-600 space-y-1">
                   {orderbookFallbackDetails.documentsFetched && (
                     <p>
-                      Documents found:{" "}
-                      {orderbookFallbackDetails.documentsFetched
-                        .annual_reports || 0}{" "}
-                      annual reports,{" "}
-                      {orderbookFallbackDetails.documentsFetched
-                        .investor_presentations || 0}{" "}
-                      investor presentations,{" "}
-                      {orderbookFallbackDetails.documentsFetched
-                        .financial_results || 0}{" "}
-                      financial results
+                      Documents found:{' '}
+                      {orderbookFallbackDetails.documentsFetched.annual_reports || 0} annual
+                      reports,{' '}
+                      {orderbookFallbackDetails.documentsFetched.investor_presentations || 0}{' '}
+                      investor presentations,{' '}
+                      {orderbookFallbackDetails.documentsFetched.financial_results || 0} financial
+                      results
                     </p>
                   )}
                   {orderbookFallbackDetails.documentsChecked &&
@@ -951,13 +868,11 @@ export default function OrdersTab({ symbol }) {
                       <div>
                         <p className="font-medium">Documents analyzed:</p>
                         <ul className="list-disc list-inside ml-2 mt-1">
-                          {orderbookFallbackDetails.documentsChecked
-                            .slice(0, 3)
-                            .map((doc, i) => (
-                              <li key={i} className="truncate max-w-md">
-                                {doc}
-                              </li>
-                            ))}
+                          {orderbookFallbackDetails.documentsChecked.slice(0, 3).map((doc, i) => (
+                            <li key={i} className="truncate max-w-md">
+                              {doc}
+                            </li>
+                          ))}
                         </ul>
                       </div>
                     )}
@@ -971,12 +886,7 @@ export default function OrdersTab({ symbol }) {
               }}
               className="text-amber-400 hover:text-amber-600 transition-colors"
             >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -995,12 +905,7 @@ export default function OrdersTab({ symbol }) {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white/10 rounded-lg">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -1013,20 +918,14 @@ export default function OrdersTab({ symbol }) {
                 <div className="text-xs text-slate-300 uppercase tracking-wider">
                   Total Load Time
                 </div>
-                <div className="text-2xl font-bold">
-                  {formatDuration(clientFetchTime)}
-                </div>
+                <div className="text-2xl font-bold">{formatDuration(clientFetchTime)}</div>
               </div>
             </div>
 
             {cacheStats && (
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-lg">
-                  <svg
-                    className="w-4 h-4 text-emerald-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
+                  <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
                       d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -1041,11 +940,7 @@ export default function OrdersTab({ symbol }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-lg">
-                  <svg
-                    className="w-4 h-4 text-amber-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
+                  <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
                       d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
@@ -1054,18 +949,12 @@ export default function OrdersTab({ symbol }) {
                   </svg>
                   <div>
                     <div className="text-xs text-slate-400">Fresh Parses</div>
-                    <div className="font-semibold">
-                      {cacheStats.cache_misses}
-                    </div>
+                    <div className="font-semibold">{cacheStats.cache_misses}</div>
                   </div>
                 </div>
                 {cacheStats.baseline_from_cache !== undefined && (
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-lg">
-                    <svg
-                      className="w-4 h-4 text-blue-400"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
+                    <svg className="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                       <path
                         fillRule="evenodd"
@@ -1076,7 +965,7 @@ export default function OrdersTab({ symbol }) {
                     <div>
                       <div className="text-xs text-slate-400">Baseline</div>
                       <div className="font-semibold">
-                        {cacheStats.baseline_from_cache ? "Cached" : "Fresh"}
+                        {cacheStats.baseline_from_cache ? 'Cached' : 'Fresh'}
                       </div>
                     </div>
                   </div>
@@ -1092,15 +981,14 @@ export default function OrdersTab({ symbol }) {
         <OrderInflowSummary
           orders={sortedOrders}
           totalValue={sortedOrders.reduce(
-            (sum, o) =>
-              sum + (o.order_details?.order_value?.value_in_crore_inr || 0),
+            (sum, o) => sum + (o.order_details?.order_value?.value_in_crore_inr || 0),
             0
           )}
         />
       )}
 
       {/* Order Book View */}
-      {viewMode === "orderbook" && orderbookData && (
+      {viewMode === 'orderbook' && orderbookData && (
         <>
           <OrderBookSummary
             summary={orderbookData.orderbook_summary}
@@ -1112,14 +1000,11 @@ export default function OrdersTab({ symbol }) {
           {sortedOrders.length > 0 && (
             <div className="mt-8">
               <h4 className="text-lg font-semibold text-slate-900 mb-4">
-                New Orders Since{" "}
-                {formatDate(
-                  orderbookData.orderbook_summary?.baseline_as_of_date
-                )}
+                New Orders Since {formatDate(orderbookData.orderbook_summary?.baseline_as_of_date)}
               </h4>
               <p className="text-sm text-slate-500 mb-4">
-                {orderbookData.total_announcements_after_baseline} order
-                announcements found after baseline date
+                {orderbookData.total_announcements_after_baseline} order announcements found after
+                baseline date
               </p>
 
               {/* Orders Table */}
@@ -1130,15 +1015,13 @@ export default function OrdersTab({ symbol }) {
                       <tr>
                         <th
                           className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider cursor-pointer hover:bg-slate-100"
-                          onClick={() => handleSort("date")}
+                          onClick={() => handleSort('date')}
                         >
                           <div className="flex items-center gap-1">
                             Date
-                            {sortBy === "date" && (
+                            {sortBy === 'date' && (
                               <svg
-                                className={`w-3 h-3 ${
-                                  sortOrder === "asc" ? "rotate-180" : ""
-                                }`}
+                                className={`w-3 h-3 ${sortOrder === 'asc' ? 'rotate-180' : ''}`}
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >
@@ -1153,15 +1036,13 @@ export default function OrdersTab({ symbol }) {
                         </th>
                         <th
                           className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider cursor-pointer hover:bg-slate-100"
-                          onClick={() => handleSort("amount")}
+                          onClick={() => handleSort('amount')}
                         >
                           <div className="flex items-center justify-end gap-1">
                             Amount
-                            {sortBy === "amount" && (
+                            {sortBy === 'amount' && (
                               <svg
-                                className={`w-3 h-3 ${
-                                  sortOrder === "asc" ? "rotate-180" : ""
-                                }`}
+                                className={`w-3 h-3 ${sortOrder === 'asc' ? 'rotate-180' : ''}`}
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >
@@ -1208,7 +1089,7 @@ export default function OrdersTab({ symbol }) {
       )}
 
       {/* All Orders View */}
-      {viewMode === "all" && (
+      {viewMode === 'all' && (
         <>
           {sortedOrders.length === 0 ? (
             <EmptyState />
@@ -1217,48 +1098,33 @@ export default function OrdersTab({ symbol }) {
               {/* Summary Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                  <div className="text-sm font-medium text-blue-600 mb-1">
-                    Total Orders
-                  </div>
-                  <div className="text-2xl font-bold text-slate-900">
-                    {sortedOrders.length}
-                  </div>
+                  <div className="text-sm font-medium text-blue-600 mb-1">Total Orders</div>
+                  <div className="text-2xl font-bold text-slate-900">{sortedOrders.length}</div>
                 </div>
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-                  <div className="text-sm font-medium text-emerald-600 mb-1">
-                    With Values
-                  </div>
+                  <div className="text-sm font-medium text-emerald-600 mb-1">With Values</div>
                   <div className="text-2xl font-bold text-slate-900">
                     {
-                      sortedOrders.filter(
-                        (o) => o.order_details?.order_value?.value_in_crore_inr
-                      ).length
+                      sortedOrders.filter((o) => o.order_details?.order_value?.value_in_crore_inr)
+                        .length
                     }
                   </div>
                 </div>
                 <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-                  <div className="text-sm font-medium text-purple-600 mb-1">
-                    Total Value
-                  </div>
+                  <div className="text-sm font-medium text-purple-600 mb-1">Total Value</div>
                   <div className="text-2xl font-bold text-slate-900">
                     {formatCurrency(
                       sortedOrders.reduce(
-                        (sum, o) =>
-                          sum +
-                          (o.order_details?.order_value?.value_in_crore_inr ||
-                            0),
+                        (sum, o) => sum + (o.order_details?.order_value?.value_in_crore_inr || 0),
                         0
                       )
                     )}
                   </div>
                 </div>
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                  <div className="text-sm font-medium text-amber-600 mb-1">
-                    AI Parsed
-                  </div>
+                  <div className="text-sm font-medium text-amber-600 mb-1">AI Parsed</div>
                   <div className="text-2xl font-bold text-slate-900">
-                    {sortedOrders.filter((o) => o.pdf_parsed).length}/
-                    {sortedOrders.length}
+                    {sortedOrders.filter((o) => o.pdf_parsed).length}/{sortedOrders.length}
                   </div>
                 </div>
               </div>
@@ -1271,15 +1137,13 @@ export default function OrdersTab({ symbol }) {
                       <tr>
                         <th
                           className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider cursor-pointer hover:bg-slate-100"
-                          onClick={() => handleSort("date")}
+                          onClick={() => handleSort('date')}
                         >
                           <div className="flex items-center gap-1">
                             Date
-                            {sortBy === "date" && (
+                            {sortBy === 'date' && (
                               <svg
-                                className={`w-3 h-3 ${
-                                  sortOrder === "asc" ? "rotate-180" : ""
-                                }`}
+                                className={`w-3 h-3 ${sortOrder === 'asc' ? 'rotate-180' : ''}`}
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >
@@ -1294,15 +1158,13 @@ export default function OrdersTab({ symbol }) {
                         </th>
                         <th
                           className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider cursor-pointer hover:bg-slate-100"
-                          onClick={() => handleSort("amount")}
+                          onClick={() => handleSort('amount')}
                         >
                           <div className="flex items-center justify-end gap-1">
                             Amount
-                            {sortBy === "amount" && (
+                            {sortBy === 'amount' && (
                               <svg
-                                className={`w-3 h-3 ${
-                                  sortOrder === "asc" ? "rotate-180" : ""
-                                }`}
+                                className={`w-3 h-3 ${sortOrder === 'asc' ? 'rotate-180' : ''}`}
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >
@@ -1349,8 +1211,8 @@ export default function OrdersTab({ symbol }) {
 
       {/* Attribution */}
       <p className="text-xs text-gray-500 mt-6">
-        Data source: NSE India corporate announcements & reports. Order values
-        are extracted using AI from official filings.
+        Data source: NSE India corporate announcements & reports. Order values are extracted using
+        AI from official filings.
       </p>
     </div>
   );

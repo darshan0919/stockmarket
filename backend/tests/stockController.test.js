@@ -106,7 +106,8 @@ describe('Stock Controller - Quarterly Results', () => {
       QuarterlyResult.findOneAndUpdate = jest.fn().mockResolvedValue(mockSavedResult);
 
       // Mock NSE API responses
-      axios.get = jest.fn()
+      axios.get = jest
+        .fn()
         .mockResolvedValueOnce({
           data: { info: { companyName: 'Eternal Limited' } },
         })
@@ -134,9 +135,7 @@ describe('Stock Controller - Quarterly Results', () => {
         opm_percent: 4.52,
       });
 
-      const response = await request(app)
-        .get('/api/stocks/ETERNAL/quarterly')
-        .expect(200);
+      const response = await request(app).get('/api/stocks/ETERNAL/quarterly').expect(200);
 
       expect(response.body).toHaveProperty('success', true);
       expect(response.body.data).toHaveProperty('symbol', 'ETERNAL');
@@ -174,12 +173,10 @@ describe('Stock Controller - Quarterly Results', () => {
         lean: jest.fn().mockResolvedValue(mockCachedData),
       });
 
-      const response = await request(app)
-        .get('/api/stocks/ETERNAL/quarterly')
-        .expect(200);
+      const response = await request(app).get('/api/stocks/ETERNAL/quarterly').expect(200);
 
       const quarter = response.body.data.quarters[0];
-      
+
       // Check required fields exist
       expect(quarter).toHaveProperty('period', 'Q1 2024');
       expect(quarter).toHaveProperty('sales', 3562);
@@ -196,7 +193,8 @@ describe('Stock Controller - Quarterly Results', () => {
 
     it('should fallback to database on API error', async () => {
       // Mock cache miss
-      QuarterlyResult.find = jest.fn()
+      QuarterlyResult.find = jest
+        .fn()
         .mockReturnValueOnce({
           sort: jest.fn().mockReturnThis(),
           limit: jest.fn().mockReturnThis(),
@@ -222,9 +220,7 @@ describe('Stock Controller - Quarterly Results', () => {
       // Mock API failure
       axios.get = jest.fn().mockRejectedValue(new Error('API Error'));
 
-      const response = await request(app)
-        .get('/api/stocks/ETERNAL/quarterly')
-        .expect(200);
+      const response = await request(app).get('/api/stocks/ETERNAL/quarterly').expect(200);
 
       expect(response.body).toHaveProperty('success', true);
       expect(response.body.data).toHaveProperty('cached', true);
@@ -247,7 +243,8 @@ describe('Stock Controller - Quarterly Results', () => {
       QuarterlyResult.findOne = jest.fn().mockResolvedValue(null);
       QuarterlyResult.findOneAndUpdate = jest.fn().mockResolvedValue(mockSavedResult);
 
-      axios.get = jest.fn()
+      axios.get = jest
+        .fn()
         .mockResolvedValueOnce({
           data: { info: { companyName: 'Eternal Limited' } },
         })
@@ -287,7 +284,8 @@ describe('Stock Controller - Quarterly Results', () => {
         lean: jest.fn().mockResolvedValue([]),
       });
 
-      axios.get = jest.fn()
+      axios.get = jest
+        .fn()
         .mockResolvedValueOnce({
           data: { info: { companyName: 'Invalid Company' } },
         })
@@ -295,9 +293,7 @@ describe('Stock Controller - Quarterly Results', () => {
           data: [],
         });
 
-      const response = await request(app)
-        .get('/api/stocks/INVALID/quarterly')
-        .expect(200);
+      const response = await request(app).get('/api/stocks/INVALID/quarterly').expect(200);
 
       expect(response.body).toHaveProperty('success', true);
       expect(response.body.data.quarters).toEqual([]);
@@ -338,9 +334,7 @@ describe('Stock Controller - Quarterly Results', () => {
         lean: jest.fn().mockResolvedValue(mockFinancials),
       });
 
-      const response = await request(app)
-        .get('/api/stocks/RELIANCE/financials')
-        .expect(200);
+      const response = await request(app).get('/api/stocks/RELIANCE/financials').expect(200);
 
       expect(response.body).toHaveProperty('success', true);
       expect(response.body.data).toHaveProperty('p_and_l');
@@ -352,14 +346,15 @@ describe('Stock Controller - Quarterly Results', () => {
         lean: jest.fn().mockResolvedValue(null),
       });
 
-      const response = await request(app)
-        .get('/api/stocks/NONEXISTENT/financials')
-        .expect(200);
+      const response = await request(app).get('/api/stocks/NONEXISTENT/financials').expect(200);
 
       expect(response.body).toHaveProperty('success', true);
       expect(response.body.data).toHaveProperty('p_and_l', []);
       expect(response.body.data).toHaveProperty('balance_sheet', []);
-      expect(response.body.data).toHaveProperty('message', 'Historical financial data not available in database');
+      expect(response.body.data).toHaveProperty(
+        'message',
+        'Historical financial data not available in database'
+      );
     });
 
     it('should handle database errors gracefully', async () => {
@@ -367,9 +362,7 @@ describe('Stock Controller - Quarterly Results', () => {
         lean: jest.fn().mockRejectedValue(new Error('Database error')),
       });
 
-      const response = await request(app)
-        .get('/api/stocks/ERROR/financials')
-        .expect(500);
+      const response = await request(app).get('/api/stocks/ERROR/financials').expect(500);
 
       expect(response.body).toHaveProperty('success', false);
       expect(response.body).toHaveProperty('error');

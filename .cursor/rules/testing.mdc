@@ -1,0 +1,219 @@
+---
+description: Testing requirements and conventions
+globs: ["**/*.test.js", "**/*.spec.js", "**/tests/**/*", "**/__tests__/**/*"]
+---
+
+# Testing Rules
+
+## MANDATORY Testing Requirements
+
+Every code change MUST include corresponding tests:
+
+1. **New functions/methods**: Add unit tests
+2. **Bug fixes**: Add regression test
+3. **New components**: Add component tests
+4. **API changes**: Update integration tests
+
+## Test File Location
+
+Place tests in `__tests__/` folder next to the source file:
+
+```
+module/
+├── feature.js
+└── __tests__/
+    └── feature.test.js
+```
+
+## Test File Header
+
+Every test file MUST include:
+
+```javascript
+/**
+ * Unit tests for [Module Name]
+ * @file [path/to/test/file.test.js]
+ * @see [docs/path/to/documentation.md] for documentation
+ */
+```
+
+## Test Structure
+
+```javascript
+describe('ModuleName', () => {
+  // Setup
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('functionName', () => {
+    // Happy path
+    it('should handle expected input correctly', () => {
+      // Arrange
+      const input = 'test';
+      
+      // Act
+      const result = functionName(input);
+      
+      // Assert
+      expect(result).toBe('expected');
+    });
+
+    // Edge cases
+    it('should handle null input', () => {
+      expect(functionName(null)).toBeNull();
+    });
+
+    it('should handle undefined input', () => {
+      expect(functionName(undefined)).toBeUndefined();
+    });
+
+    it('should handle empty input', () => {
+      expect(functionName('')).toBe('');
+    });
+
+    // Error handling
+    it('should throw error for invalid input', () => {
+      expect(() => functionName(-1)).toThrow();
+    });
+  });
+});
+```
+
+## Backend Test Patterns
+
+### Controller Tests
+
+```javascript
+const request = require('supertest');
+const express = require('express');
+
+// Mock dependencies
+jest.mock('../models/Model');
+jest.mock('axios');
+
+// Create test app
+const app = express();
+app.use(express.json());
+app.use('/api/route', require('../routes/route'));
+app.use((err, req, res, next) => {
+  res.status(500).json({ success: false, error: err.message });
+});
+
+describe('Controller', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should return 200 for valid request', async () => {
+    Model.find.mockResolvedValue([]);
+    
+    const response = await request(app)
+      .get('/api/route')
+      .expect(200);
+    
+    expect(response.body.success).toBe(true);
+  });
+});
+```
+
+### Utility Tests
+
+```javascript
+describe('utilFunction', () => {
+  it('should calculate correctly', () => {
+    const result = utilFunction([1, 2, 3]);
+    expect(result).toBeCloseTo(2, 5);
+  });
+});
+```
+
+## Frontend Test Patterns
+
+### Component Tests
+
+```javascript
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+jest.mock('../lib/api');
+
+describe('Component', () => {
+  it('renders correctly', () => {
+    render(<Component prop="value" />);
+    expect(screen.getByText('expected')).toBeInTheDocument();
+  });
+
+  it('handles user interaction', async () => {
+    render(<Component />);
+    await userEvent.click(screen.getByRole('button'));
+    expect(screen.getByText('clicked')).toBeInTheDocument();
+  });
+});
+```
+
+### Hook Tests
+
+```javascript
+import { renderHook, waitFor, act } from '@testing-library/react';
+
+describe('useHook', () => {
+  it('fetches data on mount', async () => {
+    api.getData.mockResolvedValue({ data: { success: true, data: {} } });
+    
+    const { result } = renderHook(() => useHook());
+    
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+    
+    expect(result.current.data).toBeDefined();
+  });
+});
+```
+
+## Required Test Coverage
+
+### For Each Function/Method
+
+1. ✅ Happy path (expected input)
+2. ✅ Edge cases (null, undefined, empty)
+3. ✅ Error handling
+4. ✅ Boundary conditions
+
+### For Each Component
+
+1. ✅ Renders correctly
+2. ✅ Props are applied
+3. ✅ Loading state
+4. ✅ Error state
+5. ✅ User interactions
+
+### For Each Hook
+
+1. ✅ Initial state
+2. ✅ Data fetching
+3. ✅ Error handling
+4. ✅ Cleanup on unmount
+
+## Running Tests
+
+```bash
+# Backend
+cd backend
+npm test              # Run all tests
+npm run test:watch    # Watch mode
+
+# Frontend
+cd frontend
+npm test              # Run all tests
+npm run test:watch    # Watch mode
+```
+
+## Test Coverage Thresholds
+
+Minimum required:
+- Statements: 80%
+- Branches: 75%
+- Functions: 80%
+- Lines: 80%

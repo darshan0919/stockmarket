@@ -32,13 +32,13 @@ router.get('/data/update', async (req, res) => {
 router.delete('/cache/orderbook/:symbol?', async (req, res) => {
   try {
     const { symbol } = req.params;
-    
+
     if (symbol) {
       // Clear cache for specific symbol
       const result = await ModelResponse.deleteMany({
-        attachment_name: { $regex: symbol.toUpperCase(), $options: 'i' }
+        attachment_name: { $regex: symbol.toUpperCase(), $options: 'i' },
       });
-      
+
       res.json({
         success: true,
         message: `Cleared ${result.deletedCount} cached responses for ${symbol.toUpperCase()}`,
@@ -47,7 +47,7 @@ router.delete('/cache/orderbook/:symbol?', async (req, res) => {
     } else {
       // Clear all orderbook-related cache
       const result = await ModelResponse.deleteMany({});
-      
+
       res.json({
         success: true,
         message: `Cleared all ${result.deletedCount} cached AI responses`,
@@ -63,4 +63,3 @@ router.delete('/cache/orderbook/:symbol?', async (req, res) => {
 });
 
 module.exports = router;
-

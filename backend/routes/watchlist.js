@@ -16,4 +16,3 @@ router.post('/:symbol', addToWatchlist);
 router.delete('/:symbol', removeFromWatchlist);
 
 module.exports = router;
-

@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { stockAPI } from "../../lib/api";
-import LoadingSpinner from "../common/LoadingSpinner";
+import { useState, useEffect } from 'react';
+import { stockAPI } from '../../lib/api';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 export default function OrderBook({ symbol }) {
   const [data, setData] = useState(null);
@@ -16,11 +16,11 @@ export default function OrderBook({ symbol }) {
         if (response.data.success) {
           setData(response.data.data);
         } else {
-          setError("Failed to fetch order book");
+          setError('Failed to fetch order book');
         }
       } catch (err) {
-        console.error("Error fetching order book:", err);
-        setError("Unable to load order book");
+        console.error('Error fetching order book:', err);
+        setError('Unable to load order book');
       } finally {
         setLoading(false);
       }
@@ -32,19 +32,19 @@ export default function OrderBook({ symbol }) {
   }, [symbol]);
 
   const formatCurrency = (value) => {
-    if (value === null || value === undefined) return "-";
-    return `₹${value.toLocaleString("en-IN", {
+    if (value === null || value === undefined) return '-';
+    return `₹${value.toLocaleString('en-IN', {
       maximumFractionDigits: 0,
     })} Cr`;
   };
 
   const formatDate = (dateStr) => {
-    if (!dateStr) return "-";
+    if (!dateStr) return '-';
     const date = new Date(dateStr);
-    return date.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
     });
   };
 
@@ -64,16 +64,14 @@ export default function OrderBook({ symbol }) {
   const quality = data.qualityMetrics;
   const events = data.recentEvents || [];
 
-  const growthColor = summary.orderBookGrowthCr >= 0 ? "text-green-600" : "text-red-600";
-  const growthSign = summary.orderBookGrowthCr >= 0 ? "+" : "";
+  const growthColor = summary.orderBookGrowthCr >= 0 ? 'text-green-600' : 'text-red-600';
+  const growthSign = summary.orderBookGrowthCr >= 0 ? '+' : '';
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-          Order Book Analysis
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">Order Book Analysis</h3>
         <p className="text-xs text-gray-500">
           Pending order book as of {formatDate(data.reportMetadata.dataAsOf)}
         </p>
@@ -87,12 +85,8 @@ export default function OrderBook({ symbol }) {
           <div className="text-2xl font-bold text-blue-900 mb-1">
             {formatCurrency(summary.latestReportedOrderBookCr)}
           </div>
-          <div className="text-xs text-blue-700">
-            As of {formatDate(summary.latestReportDate)}
-          </div>
-          <div className="text-xs text-blue-600 mt-1">
-            Source: {summary.latestReportSource}
-          </div>
+          <div className="text-xs text-blue-700">As of {formatDate(summary.latestReportDate)}</div>
+          <div className="text-xs text-blue-600 mt-1">Source: {summary.latestReportSource}</div>
         </div>
 
         {/* Inflow & Completion */}
@@ -134,9 +128,7 @@ export default function OrderBook({ symbol }) {
       {/* Recent Events */}
       {events.length > 0 && (
         <div>
-          <h4 className="text-sm font-semibold text-gray-900 mb-3">
-            Recent Order Events
-          </h4>
+          <h4 className="text-sm font-semibold text-gray-900 mb-3">Recent Order Events</h4>
           <div className="border border-gray-200 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -161,11 +153,9 @@ export default function OrderBook({ symbol }) {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {events.map((event, index) => {
-                    const isInflow = event.type === "order_inflow";
-                    const sign = isInflow ? "+" : "-";
-                    const amountColor = isInflow
-                      ? "text-green-600"
-                      : "text-red-600";
+                    const isInflow = event.type === 'order_inflow';
+                    const sign = isInflow ? '+' : '-';
+                    const amountColor = isInflow ? 'text-green-600' : 'text-red-600';
 
                     return (
                       <tr key={index} className="hover:bg-gray-50">
@@ -175,12 +165,10 @@ export default function OrderBook({ symbol }) {
                         <td className="px-4 py-3 text-sm whitespace-nowrap">
                           <span
                             className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                              isInflow
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
+                              isInflow ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                             }`}
                           >
-                            {event.type.replace(/_/g, " ").toUpperCase()}
+                            {event.type.replace(/_/g, ' ').toUpperCase()}
                           </span>
                         </td>
                         <td
@@ -222,12 +210,11 @@ export default function OrderBook({ symbol }) {
             />
           </svg>
           <div className="text-sm text-blue-800">
-            <strong>Note:</strong> Order book data is calculated by tracking
-            order inflows, completions, and cancellations from the latest
-            reported order book. The confidence score reflects data recency,
-            completeness, and source diversity. This is sample data - in
-            production, it will be populated from annual/quarterly reports and
-            corporate announcements.
+            <strong>Note:</strong> Order book data is calculated by tracking order inflows,
+            completions, and cancellations from the latest reported order book. The confidence score
+            reflects data recency, completeness, and source diversity. This is sample data - in
+            production, it will be populated from annual/quarterly reports and corporate
+            announcements.
           </div>
         </div>
       </div>
@@ -236,11 +223,8 @@ export default function OrderBook({ symbol }) {
       <div className="text-xs text-gray-500 flex items-center gap-4">
         <span>Events Analyzed: {quality.eventsAnalyzed}</span>
         <span>•</span>
-        <span>
-          Report Date: {formatDate(data.reportMetadata.generatedDate)}
-        </span>
+        <span>Report Date: {formatDate(data.reportMetadata.generatedDate)}</span>
       </div>
     </div>
   );
 }
-

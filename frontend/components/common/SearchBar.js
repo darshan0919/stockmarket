@@ -43,7 +43,7 @@ export default function SearchBar({ placeholder = 'Search stocks...' }) {
         if (response.data.success) {
           const newResults = response.data.results || [];
           const totalCount = response.data.total || 0;
-          
+
           // Append results for pagination
           setResults(page === 1 ? newResults : [...results, ...newResults]);
           setTotal(totalCount);
@@ -179,7 +179,9 @@ export default function SearchBar({ placeholder = 'Search stocks...' }) {
                         </div>
                         <div className="text-sm text-gray-600 mt-0.5">
                           {stock.symbol} · {stock.exchange || 'NSE'}
-                          {stock.sector && <span className="ml-2 text-gray-500">• {stock.sector}</span>}
+                          {stock.sector && (
+                            <span className="ml-2 text-gray-500">• {stock.sector}</span>
+                          )}
                         </div>
                       </div>
                       <div className="text-right ml-4">
@@ -189,7 +191,9 @@ export default function SearchBar({ placeholder = 'Search stocks...' }) {
                           </div>
                         )}
                         {stock.change_percent !== null && stock.change_percent !== undefined && (
-                          <div className={`text-sm font-medium ${getChangeColor(stock.change_percent)}`}>
+                          <div
+                            className={`text-sm font-medium ${getChangeColor(stock.change_percent)}`}
+                          >
                             {formatChange(stock.change_percent)}
                           </div>
                         )}
@@ -207,7 +211,9 @@ export default function SearchBar({ placeholder = 'Search stocks...' }) {
                     disabled={loading}
                     className="w-full px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded transition-colors disabled:opacity-50"
                   >
-                    {loading ? 'Loading...' : `Show next ${Math.min(limit, total - results.length)} results`}
+                    {loading
+                      ? 'Loading...'
+                      : `Show next ${Math.min(limit, total - results.length)} results`}
                   </button>
                   <div className="text-xs text-center text-gray-500 mt-2">
                     Showing {results.length} of {total} results
@@ -238,4 +244,3 @@ export default function SearchBar({ placeholder = 'Search stocks...' }) {
     </div>
   );
 }
-

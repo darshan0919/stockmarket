@@ -8,26 +8,128 @@ const { delay } = require('../utils/dataFetcher');
 
 // Sample NSE stocks data for initial seeding
 const sampleStocks = [
-  { symbol: 'RELIANCE', name: 'Reliance Industries Ltd', sector: 'Energy', industry: 'Oil & Gas', market_cap: 1500000 },
-  { symbol: 'TCS', name: 'Tata Consultancy Services Ltd', sector: 'IT', industry: 'Software', market_cap: 1200000 },
-  { symbol: 'HDFCBANK', name: 'HDFC Bank Ltd', sector: 'Financial Services', industry: 'Banking', market_cap: 1100000 },
+  {
+    symbol: 'RELIANCE',
+    name: 'Reliance Industries Ltd',
+    sector: 'Energy',
+    industry: 'Oil & Gas',
+    market_cap: 1500000,
+  },
+  {
+    symbol: 'TCS',
+    name: 'Tata Consultancy Services Ltd',
+    sector: 'IT',
+    industry: 'Software',
+    market_cap: 1200000,
+  },
+  {
+    symbol: 'HDFCBANK',
+    name: 'HDFC Bank Ltd',
+    sector: 'Financial Services',
+    industry: 'Banking',
+    market_cap: 1100000,
+  },
   { symbol: 'INFY', name: 'Infosys Ltd', sector: 'IT', industry: 'Software', market_cap: 650000 },
-  { symbol: 'ICICIBANK', name: 'ICICI Bank Ltd', sector: 'Financial Services', industry: 'Banking', market_cap: 620000 },
-  { symbol: 'HINDUNILVR', name: 'Hindustan Unilever Ltd', sector: 'FMCG', industry: 'Consumer Goods', market_cap: 580000 },
+  {
+    symbol: 'ICICIBANK',
+    name: 'ICICI Bank Ltd',
+    sector: 'Financial Services',
+    industry: 'Banking',
+    market_cap: 620000,
+  },
+  {
+    symbol: 'HINDUNILVR',
+    name: 'Hindustan Unilever Ltd',
+    sector: 'FMCG',
+    industry: 'Consumer Goods',
+    market_cap: 580000,
+  },
   { symbol: 'ITC', name: 'ITC Ltd', sector: 'FMCG', industry: 'Tobacco', market_cap: 520000 },
-  { symbol: 'SBIN', name: 'State Bank of India', sector: 'Financial Services', industry: 'Banking', market_cap: 480000 },
-  { symbol: 'BHARTIARTL', name: 'Bharti Airtel Ltd', sector: 'Telecom', industry: 'Telecommunications', market_cap: 450000 },
-  { symbol: 'KOTAKBANK', name: 'Kotak Mahindra Bank Ltd', sector: 'Financial Services', industry: 'Banking', market_cap: 380000 },
-  { symbol: 'LT', name: 'Larsen & Toubro Ltd', sector: 'Infrastructure', industry: 'Construction', market_cap: 350000 },
-  { symbol: 'AXISBANK', name: 'Axis Bank Ltd', sector: 'Financial Services', industry: 'Banking', market_cap: 320000 },
+  {
+    symbol: 'SBIN',
+    name: 'State Bank of India',
+    sector: 'Financial Services',
+    industry: 'Banking',
+    market_cap: 480000,
+  },
+  {
+    symbol: 'BHARTIARTL',
+    name: 'Bharti Airtel Ltd',
+    sector: 'Telecom',
+    industry: 'Telecommunications',
+    market_cap: 450000,
+  },
+  {
+    symbol: 'KOTAKBANK',
+    name: 'Kotak Mahindra Bank Ltd',
+    sector: 'Financial Services',
+    industry: 'Banking',
+    market_cap: 380000,
+  },
+  {
+    symbol: 'LT',
+    name: 'Larsen & Toubro Ltd',
+    sector: 'Infrastructure',
+    industry: 'Construction',
+    market_cap: 350000,
+  },
+  {
+    symbol: 'AXISBANK',
+    name: 'Axis Bank Ltd',
+    sector: 'Financial Services',
+    industry: 'Banking',
+    market_cap: 320000,
+  },
   { symbol: 'WIPRO', name: 'Wipro Ltd', sector: 'IT', industry: 'Software', market_cap: 280000 },
-  { symbol: 'ASIANPAINT', name: 'Asian Paints Ltd', sector: 'Consumer Durables', industry: 'Paints', market_cap: 270000 },
-  { symbol: 'MARUTI', name: 'Maruti Suzuki India Ltd', sector: 'Automobile', industry: 'Auto Manufacturing', market_cap: 260000 },
-  { symbol: 'SUNPHARMA', name: 'Sun Pharmaceutical Industries Ltd', sector: 'Pharma', industry: 'Pharmaceuticals', market_cap: 240000 },
-  { symbol: 'TITAN', name: 'Titan Company Ltd', sector: 'Consumer Durables', industry: 'Jewellery', market_cap: 230000 },
-  { symbol: 'ULTRACEMCO', name: 'UltraTech Cement Ltd', sector: 'Cement', industry: 'Cement', market_cap: 220000 },
-  { symbol: 'BAJFINANCE', name: 'Bajaj Finance Ltd', sector: 'Financial Services', industry: 'NBFC', market_cap: 210000 },
-  { symbol: 'NESTLEIND', name: 'Nestle India Ltd', sector: 'FMCG', industry: 'Food Products', market_cap: 200000 },
+  {
+    symbol: 'ASIANPAINT',
+    name: 'Asian Paints Ltd',
+    sector: 'Consumer Durables',
+    industry: 'Paints',
+    market_cap: 270000,
+  },
+  {
+    symbol: 'MARUTI',
+    name: 'Maruti Suzuki India Ltd',
+    sector: 'Automobile',
+    industry: 'Auto Manufacturing',
+    market_cap: 260000,
+  },
+  {
+    symbol: 'SUNPHARMA',
+    name: 'Sun Pharmaceutical Industries Ltd',
+    sector: 'Pharma',
+    industry: 'Pharmaceuticals',
+    market_cap: 240000,
+  },
+  {
+    symbol: 'TITAN',
+    name: 'Titan Company Ltd',
+    sector: 'Consumer Durables',
+    industry: 'Jewellery',
+    market_cap: 230000,
+  },
+  {
+    symbol: 'ULTRACEMCO',
+    name: 'UltraTech Cement Ltd',
+    sector: 'Cement',
+    industry: 'Cement',
+    market_cap: 220000,
+  },
+  {
+    symbol: 'BAJFINANCE',
+    name: 'Bajaj Finance Ltd',
+    sector: 'Financial Services',
+    industry: 'NBFC',
+    market_cap: 210000,
+  },
+  {
+    symbol: 'NESTLEIND',
+    name: 'Nestle India Ltd',
+    sector: 'FMCG',
+    industry: 'Food Products',
+    market_cap: 200000,
+  },
 ];
 
 /**
@@ -151,8 +253,8 @@ async function seedDatabase() {
       // Generate and save price history (5 years)
       const basePrice = Math.random() * 2000 + 100;
       const priceHistory = generatePriceHistory(basePrice, 1260);
-      
-      const priceDocuments = priceHistory.map(ph => ({
+
+      const priceDocuments = priceHistory.map((ph) => ({
         stock_id: stock._id,
         ...ph,
       }));
@@ -172,8 +274,8 @@ async function seedDatabase() {
       // Generate and save financial statements
       const baseRevenue = stockData.market_cap * 0.5;
       const financials = generateFinancials(baseRevenue);
-      
-      const financialDocuments = financials.map(f => ({
+
+      const financialDocuments = financials.map((f) => ({
         stock_id: stock._id,
         ...f,
       }));
@@ -187,13 +289,13 @@ async function seedDatabase() {
 
     console.log('\n✅ Database seeding completed successfully!');
     console.log(`Total stocks: ${sampleStocks.length}`);
-    
+
     const totalPrices = await PriceHistory.countDocuments();
     console.log(`Total price records: ${totalPrices}`);
-    
+
     const totalFundamentals = await Fundamental.countDocuments();
     console.log(`Total fundamental records: ${totalFundamentals}`);
-    
+
     const totalFinancials = await FinancialStatement.countDocuments();
     console.log(`Total financial statements: ${totalFinancials}`);
 
@@ -206,4 +308,3 @@ async function seedDatabase() {
 
 // Run the seeding script
 seedDatabase();
-

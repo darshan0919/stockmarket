@@ -1,16 +1,16 @@
-import { useState, useEffect, useMemo } from "react";
-import { announcementsAPI } from "../../lib/api";
-import LoadingSpinner from "../common/LoadingSpinner";
+import { useState, useEffect, useMemo } from 'react';
+import { announcementsAPI } from '../../lib/api';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 // Helper function to format relative time
 const formatTimeAgo = (dateString) => {
-  if (!dateString) return "";
+  if (!dateString) return '';
 
   // NSE date format: "31-Dec-2025 10:30:00"
   let date;
-  if (dateString.includes("-")) {
-    const parts = dateString.split(" ");
-    const dateParts = parts[0].split("-");
+  if (dateString.includes('-')) {
+    const parts = dateString.split(' ');
+    const dateParts = parts[0].split('-');
     const months = {
       Jan: 0,
       Feb: 1,
@@ -25,11 +25,7 @@ const formatTimeAgo = (dateString) => {
       Nov: 10,
       Dec: 11,
     };
-    date = new Date(
-      parseInt(dateParts[2]),
-      months[dateParts[1]],
-      parseInt(dateParts[0])
-    );
+    date = new Date(parseInt(dateParts[2]), months[dateParts[1]], parseInt(dateParts[0]));
   } else {
     date = new Date(dateString);
   }
@@ -39,15 +35,11 @@ const formatTimeAgo = (dateString) => {
   const now = new Date();
   const diffInSeconds = Math.floor((now - date) / 1000);
 
-  if (diffInSeconds < 60) return "Just now";
-  if (diffInSeconds < 3600)
-    return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-  if (diffInSeconds < 86400)
-    return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-  if (diffInSeconds < 2592000)
-    return `${Math.floor(diffInSeconds / 86400)} days ago`;
-  if (diffInSeconds < 31536000)
-    return `${Math.floor(diffInSeconds / 2592000)} months ago`;
+  if (diffInSeconds < 60) return 'Just now';
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+  if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+  if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)} months ago`;
   return `${Math.floor(diffInSeconds / 31536000)} years ago`;
 };
 
@@ -61,14 +53,12 @@ const AnnouncementCard = ({ announcement }) => {
         <div className="flex-1 min-w-0">
           {/* Title/Subject */}
           <h3 className="text-sm font-semibold text-slate-900 mb-1 leading-tight">
-            {subject?.replace(/_/g, " ") || "Announcement"}
+            {subject?.replace(/_/g, ' ') || 'Announcement'}
           </h3>
 
           {/* Description */}
           {desc && (
-            <p className="text-sm text-slate-600 mt-2 line-clamp-3 leading-relaxed">
-              {desc}
-            </p>
+            <p className="text-sm text-slate-600 mt-2 line-clamp-3 leading-relaxed">{desc}</p>
           )}
 
           {/* Attachment Text */}
@@ -87,9 +77,7 @@ const AnnouncementCard = ({ announcement }) => {
                   d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
                 />
               </svg>
-              <span className="text-xs text-slate-500 leading-relaxed">
-                {attchmntText}
-              </span>
+              <span className="text-xs text-slate-500 leading-relaxed">{attchmntText}</span>
             </div>
           )}
         </div>
@@ -103,12 +91,7 @@ const AnnouncementCard = ({ announcement }) => {
             className="flex-shrink-0 p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
             title="View attachment"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -144,13 +127,11 @@ const EmptyState = ({ searchTerm }) => (
         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
       />
     </svg>
-    <h3 className="text-lg font-medium text-slate-700 mb-1">
-      No announcements found
-    </h3>
+    <h3 className="text-lg font-medium text-slate-700 mb-1">No announcements found</h3>
     <p className="text-sm text-slate-500">
       {searchTerm
         ? `No results for "${searchTerm}". Try a different search term.`
-        : "No announcements available for this company."}
+        : 'No announcements available for this company.'}
     </p>
   </div>
 );
@@ -159,7 +140,7 @@ export default function AnnouncementsTab({ symbol }) {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [visibleCount, setVisibleCount] = useState(20);
 
   // Fetch announcements
@@ -178,8 +159,8 @@ export default function AnnouncementsTab({ symbol }) {
           setAnnouncements(Array.isArray(data) ? data : []);
         }
       } catch (err) {
-        console.error("Error fetching announcements:", err);
-        setError("Unable to load announcements");
+        console.error('Error fetching announcements:', err);
+        setError('Unable to load announcements');
         setAnnouncements([]);
       } finally {
         setLoading(false);
@@ -218,7 +199,7 @@ export default function AnnouncementsTab({ symbol }) {
 
   // Clear search
   const handleClearSearch = () => {
-    setSearchTerm("");
+    setSearchTerm('');
     setVisibleCount(20);
   };
 
@@ -230,9 +211,7 @@ export default function AnnouncementsTab({ symbol }) {
     return (
       <div className="text-center py-8">
         <div className="text-red-500 mb-2">{error}</div>
-        <p className="text-sm text-gray-500">
-          Announcements may not be available for this stock.
-        </p>
+        <p className="text-sm text-gray-500">Announcements may not be available for this stock.</p>
       </div>
     );
   }
@@ -272,12 +251,7 @@ export default function AnnouncementsTab({ symbol }) {
               onClick={handleClearSearch}
               className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -318,8 +292,7 @@ export default function AnnouncementsTab({ symbol }) {
                 onClick={handleLoadMore}
                 className="px-6 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm"
               >
-                Load More ({filteredAnnouncements.length - visibleCount}{" "}
-                remaining)
+                Load More ({filteredAnnouncements.length - visibleCount} remaining)
               </button>
             </div>
           )}
@@ -330,8 +303,7 @@ export default function AnnouncementsTab({ symbol }) {
 
       {/* Attribution */}
       <p className="text-xs text-gray-500 mt-6">
-        Data source: NSE India. Announcements are provided by the stock
-        exchange.
+        Data source: NSE India. Announcements are provided by the stock exchange.
       </p>
     </div>
   );

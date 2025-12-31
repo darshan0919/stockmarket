@@ -63,4 +63,3 @@ const fundamentalSchema = new mongoose.Schema({
 fundamentalSchema.index({ stock_id: 1, date: -1 });
 
 module.exports = mongoose.model('Fundamental', fundamentalSchema);
-

@@ -1,6 +1,6 @@
-const { upcomingResults: bseUpcomingResults } = require("../api/bseIndiaApi");
-const { upcomingResults: nseUpcomingResults } = require("../api/nseIndiaApi");
-const { fetchStockDetails } = require("../scripts/stockDetailsFetcher");
+const { upcomingResults: bseUpcomingResults } = require('../api/bseIndiaApi');
+const { upcomingResults: nseUpcomingResults } = require('../api/nseIndiaApi');
+const { fetchStockDetails } = require('../scripts/stockDetailsFetcher');
 
 /**
  * Normalize BSE result to common format
@@ -10,7 +10,7 @@ const normalizeBseResult = (result) => ({
   name: result.Long_Name,
   date: result.meeting_date,
   scrip_code: result.scrip_Code,
-  exchange: "BSE",
+  exchange: 'BSE',
   exchangeSymbol: `BSE:${result.short_name}`,
 });
 
@@ -23,7 +23,7 @@ const normalizeNseResult = (result) => ({
   name: result.company,
   date: result.date,
   scrip_code: null, // NSE doesn't use scrip codes
-  exchange: "NSE",
+  exchange: 'NSE',
   exchangeSymbol: `NSE:${result.symbol}`,
 });
 
@@ -109,18 +109,16 @@ const getUpcomingResults = async (req, res, next) => {
     // Fetch from both NSE and BSE in parallel
     const [nseResults, bseResults] = await Promise.all([
       nseUpcomingResults().catch((err) => {
-        console.error("NSE API error:", err.message);
+        console.error('NSE API error:', err.message);
         return [];
       }),
       bseUpcomingResults().catch((err) => {
-        console.error("BSE API error:", err.message);
+        console.error('BSE API error:', err.message);
         return [];
       }),
     ]);
 
-    console.log(
-      `Fetched ${nseResults.length} NSE results, ${bseResults.length} BSE results`
-    );
+    console.log(`Fetched ${nseResults.length} NSE results, ${bseResults.length} BSE results`);
 
     // Merge results with NSE preference
     const mergedResults = mergeResults(nseResults, bseResults);
@@ -133,10 +131,7 @@ const getUpcomingResults = async (req, res, next) => {
 
     // Fetch stock details for each result
     const promises = paginatedResults.map(async (result) => {
-      const stockDetails = await fetchStockDetails(
-        result.symbol,
-        result.scrip_code
-      );
+      const stockDetails = await fetchStockDetails(result.symbol, result.scrip_code);
       return {
         ...result,
         stockDetails: stockDetails,
@@ -160,11 +155,11 @@ const getUpcomingResultsSymbols = async (req, res, next) => {
     // Fetch from both NSE and BSE in parallel
     const [nseResults, bseResults] = await Promise.all([
       nseUpcomingResults().catch((err) => {
-        console.error("NSE API error:", err.message);
+        console.error('NSE API error:', err.message);
         return [];
       }),
       bseUpcomingResults().catch((err) => {
-        console.error("BSE API error:", err.message);
+        console.error('BSE API error:', err.message);
         return [];
       }),
     ]);

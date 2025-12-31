@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import { stockAPI } from "../../lib/api";
-import LoadingSpinner from "../common/LoadingSpinner";
-import { formatPercentage } from "../../lib/utils/formatters";
-import _isNil from "lodash/isNil";
+import { useState, useEffect, useRef } from 'react';
+import { stockAPI } from '../../lib/api';
+import LoadingSpinner from '../common/LoadingSpinner';
+import { formatPercentage } from '../../lib/utils/formatters';
+import _isNil from 'lodash/isNil';
 
 export default function YearlyResults({ symbol }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [resultType, setResultType] = useState("consolidated");
+  const [resultType, setResultType] = useState('consolidated');
   const scrollContainerRef = useRef(null);
 
   useEffect(() => {
@@ -23,11 +23,11 @@ export default function YearlyResults({ symbol }) {
           const yearlyData = aggregateToYearly(quarters);
           setData({ ...response.data.data, yearly: yearlyData });
         } else {
-          setError("Failed to fetch yearly results");
+          setError('Failed to fetch yearly results');
         }
       } catch (err) {
-        console.error("Error fetching yearly results:", err);
-        setError("Unable to load yearly results");
+        console.error('Error fetching yearly results:', err);
+        setError('Unable to load yearly results');
       } finally {
         setLoading(false);
       }
@@ -48,7 +48,7 @@ export default function YearlyResults({ symbol }) {
       const fyMatch = q.period.match(/FY(\d{2})/);
       if (!fyMatch) return;
 
-      const fiscal_year = parseInt("20" + fyMatch[1]); // Convert FY25 to 2025
+      const fiscal_year = parseInt('20' + fyMatch[1]); // Convert FY25 to 2025
       const consolidated = q.consolidated;
       const key = `${fiscal_year}_${consolidated}`;
 
@@ -87,8 +87,7 @@ export default function YearlyResults({ symbol }) {
     // Calculate OPM% and Tax% for each year
     Object.values(yearlyMap).forEach((yearData) => {
       if (yearData.sales > 0) {
-        yearData.opm_percent =
-          (yearData.operating_profit / yearData.sales) * 100;
+        yearData.opm_percent = (yearData.operating_profit / yearData.sales) * 100;
       }
       if (yearData.pbt > 0) {
         const tax = yearData.pbt - yearData.net_profit;
@@ -101,9 +100,7 @@ export default function YearlyResults({ symbol }) {
     });
 
     // Calculate TTM (Trailing Twelve Months) - last 4 quarters
-    const sortedQuarters = [...quarters].sort(
-      (a, b) => new Date(b.to_date) - new Date(a.to_date)
-    );
+    const sortedQuarters = [...quarters].sort((a, b) => new Date(b.to_date) - new Date(a.to_date));
 
     // Group by consolidated flag
     const consolidatedQuarters = sortedQuarters.filter((q) => q.consolidated);
@@ -117,16 +114,13 @@ export default function YearlyResults({ symbol }) {
         const last4 = qList.slice(0, 4);
         ttmData[consolidated] = {
           fiscal_year: 9999, // Ensure it's sorted last
-          year: "TTM",
+          year: 'TTM',
           consolidated,
           isTTM: true,
           quarters: last4,
           sales: last4.reduce((sum, q) => sum + (q.sales || 0), 0),
           expenses: last4.reduce((sum, q) => sum + (q.expenses || 0), 0),
-          operating_profit: last4.reduce(
-            (sum, q) => sum + (q.operating_profit || 0),
-            0
-          ),
+          operating_profit: last4.reduce((sum, q) => sum + (q.operating_profit || 0), 0),
           other_income: last4.reduce((sum, q) => sum + (q.other_income || 0), 0),
           interest: last4.reduce((sum, q) => sum + (q.interest || 0), 0),
           depreciation: last4.reduce((sum, q) => sum + (q.depreciation || 0), 0),
@@ -139,15 +133,11 @@ export default function YearlyResults({ symbol }) {
         // Calculate OPM% and Tax% for TTM
         if (ttmData[consolidated].sales > 0) {
           ttmData[consolidated].opm_percent =
-            (ttmData[consolidated].operating_profit /
-              ttmData[consolidated].sales) *
-            100;
+            (ttmData[consolidated].operating_profit / ttmData[consolidated].sales) * 100;
         }
         if (ttmData[consolidated].pbt > 0) {
-          const tax =
-            ttmData[consolidated].pbt - ttmData[consolidated].net_profit;
-          ttmData[consolidated].tax_percent =
-            (tax / ttmData[consolidated].pbt) * 100;
+          const tax = ttmData[consolidated].pbt - ttmData[consolidated].net_profit;
+          ttmData[consolidated].tax_percent = (tax / ttmData[consolidated].pbt) * 100;
         }
       }
     });
@@ -164,25 +154,24 @@ export default function YearlyResults({ symbol }) {
     if (data && scrollContainerRef.current) {
       setTimeout(() => {
         if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollLeft =
-            scrollContainerRef.current.scrollWidth;
+          scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
         }
       }, 100);
     }
   }, [data, resultType]);
 
   const formatValue = (value) => {
-    if (value === null || value === undefined) return "-";
-    return value.toLocaleString("en-IN", {
+    if (value === null || value === undefined) return '-';
+    return value.toLocaleString('en-IN', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     });
   };
 
   const formatGrowth = (value) => {
-    if (value === null || value === undefined) return "-";
+    if (value === null || value === undefined) return '-';
     const formatted = formatPercentage(value);
-    const colorClass = value >= 0 ? "text-green-600" : "text-red-600";
+    const colorClass = value >= 0 ? 'text-green-600' : 'text-red-600';
     return <span className={colorClass}>{formatted}</span>;
   };
 
@@ -193,17 +182,13 @@ export default function YearlyResults({ symbol }) {
   }
 
   if (!data || !data.yearly || data.yearly.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        No yearly results available
-      </div>
-    );
+    return <div className="text-center py-8 text-gray-500">No yearly results available</div>;
   }
 
   // Filter years based on selected type
   const allYears = data.yearly || [];
   const years = allYears.filter((y) =>
-    resultType === "consolidated" ? y.consolidated : !y.consolidated
+    resultType === 'consolidated' ? y.consolidated : !y.consolidated
   );
 
   // Check if both types exist
@@ -216,31 +201,25 @@ export default function YearlyResults({ symbol }) {
       const prevYear = years[index - 1];
       if (!prevYear.isTTM) {
         if (prevYear.sales && prevYear.sales !== 0) {
-          year.yoy_sales_growth =
-            ((year.sales - prevYear.sales) / Math.abs(prevYear.sales)) * 100;
+          year.yoy_sales_growth = ((year.sales - prevYear.sales) / Math.abs(prevYear.sales)) * 100;
         }
         if (prevYear.net_profit && prevYear.net_profit !== 0) {
           year.yoy_profit_growth =
-            ((year.net_profit - prevYear.net_profit) /
-              Math.abs(prevYear.net_profit)) *
-            100;
+            ((year.net_profit - prevYear.net_profit) / Math.abs(prevYear.net_profit)) * 100;
         }
       }
     }
-    
+
     // For TTM, compare with previous full fiscal year
     if (year.isTTM && index > 0) {
       const prevYear = years[index - 1];
       if (!prevYear.isTTM) {
         if (prevYear.sales && prevYear.sales !== 0) {
-          year.yoy_sales_growth =
-            ((year.sales - prevYear.sales) / Math.abs(prevYear.sales)) * 100;
+          year.yoy_sales_growth = ((year.sales - prevYear.sales) / Math.abs(prevYear.sales)) * 100;
         }
         if (prevYear.net_profit && prevYear.net_profit !== 0) {
           year.yoy_profit_growth =
-            ((year.net_profit - prevYear.net_profit) /
-              Math.abs(prevYear.net_profit)) *
-            100;
+            ((year.net_profit - prevYear.net_profit) / Math.abs(prevYear.net_profit)) * 100;
         }
       }
     }
@@ -248,45 +227,45 @@ export default function YearlyResults({ symbol }) {
 
   // Define rows to display
   const rows = [
-    { key: "sales", label: "Sales", format: formatValue },
-    { key: "expenses", label: "Expenses", format: formatValue },
-    { key: "operating_profit", label: "Operating Profit", format: formatValue },
+    { key: 'sales', label: 'Sales', format: formatValue },
+    { key: 'expenses', label: 'Expenses', format: formatValue },
+    { key: 'operating_profit', label: 'Operating Profit', format: formatValue },
     {
-      key: "opm_percent",
-      label: "OPM %",
-      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : "-"),
+      key: 'opm_percent',
+      label: 'OPM %',
+      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : '-'),
     },
-    { key: "other_income", label: "Other Income", format: formatValue },
-    { key: "interest", label: "Interest", format: formatValue },
-    { key: "depreciation", label: "Depreciation", format: formatValue },
-    { key: "pbt", label: "Profit Before Tax", format: formatValue },
+    { key: 'other_income', label: 'Other Income', format: formatValue },
+    { key: 'interest', label: 'Interest', format: formatValue },
+    { key: 'depreciation', label: 'Depreciation', format: formatValue },
+    { key: 'pbt', label: 'Profit Before Tax', format: formatValue },
     {
-      key: "tax_percent",
-      label: "Tax %",
-      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : "-"),
+      key: 'tax_percent',
+      label: 'Tax %',
+      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : '-'),
     },
-    { key: "net_profit", label: "Net Profit", format: formatValue },
+    { key: 'net_profit', label: 'Net Profit', format: formatValue },
     {
-      key: "eps",
-      label: "EPS",
-      format: (v) => (!_isNil(v) ? v.toFixed(2) : "-"),
+      key: 'eps',
+      label: 'EPS',
+      format: (v) => (!_isNil(v) ? v.toFixed(2) : '-'),
     },
     {
-      key: "dividend_payout",
-      label: "Dividend Payout %",
-      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : "-"),
+      key: 'dividend_payout',
+      label: 'Dividend Payout %',
+      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : '-'),
     },
   ];
 
   const growthRows = [
     {
-      key: "yoy_sales_growth",
-      label: "YoY Sales Growth %",
+      key: 'yoy_sales_growth',
+      label: 'YoY Sales Growth %',
       format: formatGrowth,
     },
     {
-      key: "yoy_profit_growth",
-      label: "YoY Net Profit Growth %",
+      key: 'yoy_profit_growth',
+      label: 'YoY Net Profit Growth %',
       format: formatGrowth,
     },
   ];
@@ -305,11 +284,11 @@ export default function YearlyResults({ symbol }) {
               <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
                 {hasConsolidated && (
                   <button
-                    onClick={() => setResultType("consolidated")}
+                    onClick={() => setResultType('consolidated')}
                     className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                      resultType === "consolidated"
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
+                      resultType === 'consolidated'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
                     Consolidated
@@ -317,11 +296,11 @@ export default function YearlyResults({ symbol }) {
                 )}
                 {hasStandalone && (
                   <button
-                    onClick={() => setResultType("standalone")}
+                    onClick={() => setResultType('standalone')}
                     className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                      resultType === "standalone"
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
+                      resultType === 'standalone'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
                     Standalone
@@ -348,7 +327,7 @@ export default function YearlyResults({ symbol }) {
       <div
         ref={scrollContainerRef}
         className="overflow-x-auto border rounded-lg"
-        style={{ scrollBehavior: "smooth" }}
+        style={{ scrollBehavior: 'smooth' }}
       >
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -369,10 +348,7 @@ export default function YearlyResults({ symbol }) {
           <tbody className="bg-white divide-y divide-gray-200">
             {/* Main financial metrics */}
             {rows.map((row, rowIndex) => (
-              <tr
-                key={row.key}
-                className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}
-              >
+              <tr key={row.key} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
                   {row.label}
                 </td>
@@ -390,18 +366,13 @@ export default function YearlyResults({ symbol }) {
             {/* Separator row */}
             <tr className="bg-gray-100">
               <td colSpan={years.length + 1} className="px-4 py-2">
-                <div className="text-xs font-semibold text-gray-700 uppercase">
-                  Growth Metrics
-                </div>
+                <div className="text-xs font-semibold text-gray-700 uppercase">Growth Metrics</div>
               </td>
             </tr>
 
             {/* Growth metrics */}
             {growthRows.map((row, rowIndex) => (
-              <tr
-                key={row.key}
-                className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}
-              >
+              <tr key={row.key} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
                   {row.label}
                 </td>
@@ -422,7 +393,7 @@ export default function YearlyResults({ symbol }) {
       {data.source && (
         <p className="text-xs text-gray-500 mt-2">
           Data source: {data.source}
-          {data.cached && " (cached)"}
+          {data.cached && ' (cached)'}
         </p>
       )}
 
@@ -432,4 +403,3 @@ export default function YearlyResults({ symbol }) {
     </div>
   );
 }
-

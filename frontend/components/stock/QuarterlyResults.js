@@ -1,17 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import { stockAPI } from "../../lib/api";
-import LoadingSpinner from "../common/LoadingSpinner";
-import {
-  formatLargeNumber,
-  formatPercentage,
-} from "../../lib/utils/formatters";
-import _isNil from "lodash/isNil";
+import { useState, useEffect, useRef } from 'react';
+import { stockAPI } from '../../lib/api';
+import LoadingSpinner from '../common/LoadingSpinner';
+import { formatLargeNumber, formatPercentage } from '../../lib/utils/formatters';
+import _isNil from 'lodash/isNil';
 
 export default function QuarterlyResults({ symbol }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [resultType, setResultType] = useState("consolidated"); // "consolidated" or "standalone"
+  const [resultType, setResultType] = useState('consolidated'); // "consolidated" or "standalone"
   const scrollContainerRef = useRef(null);
 
   useEffect(() => {
@@ -23,11 +20,11 @@ export default function QuarterlyResults({ symbol }) {
         if (response.data.success) {
           setData(response.data.data);
         } else {
-          setError("Failed to fetch quarterly results");
+          setError('Failed to fetch quarterly results');
         }
       } catch (err) {
-        console.error("Error fetching quarterly results:", err);
-        setError("Unable to load quarterly results");
+        console.error('Error fetching quarterly results:', err);
+        setError('Unable to load quarterly results');
       } finally {
         setLoading(false);
       }
@@ -44,36 +41,35 @@ export default function QuarterlyResults({ symbol }) {
       // Wait for the DOM to update, then scroll to the right
       setTimeout(() => {
         if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollLeft =
-            scrollContainerRef.current.scrollWidth;
+          scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
         }
       }, 100);
     }
   }, [data, resultType]);
 
   const formatValue = (value) => {
-    if (value === null || value === undefined) return "-";
+    if (value === null || value === undefined) return '-';
     // Don't convert to K format, just format with commas
-    return value.toLocaleString("en-IN", {
+    return value.toLocaleString('en-IN', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     });
   };
 
   const formatBroadcastDate = (dateStr) => {
-    if (!dateStr) return "-";
+    if (!dateStr) return '-';
     const date = new Date(dateStr);
-    return date.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
     });
   };
 
   const formatGrowth = (value) => {
-    if (value === null || value === undefined) return "-";
+    if (value === null || value === undefined) return '-';
     const formatted = formatPercentage(value);
-    const colorClass = value >= 0 ? "text-green-600" : "text-red-600";
+    const colorClass = value >= 0 ? 'text-green-600' : 'text-red-600';
     return <span className={colorClass}>{formatted}</span>;
   };
 
@@ -84,17 +80,13 @@ export default function QuarterlyResults({ symbol }) {
   }
 
   if (!data || !data.quarters || data.quarters.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        No quarterly results available
-      </div>
-    );
+    return <div className="text-center py-8 text-gray-500">No quarterly results available</div>;
   }
 
   // Filter quarters based on selected type
   const allQuarters = data.quarters || [];
   const quarters = allQuarters.filter((q) =>
-    resultType === "consolidated" ? q.consolidated : !q.consolidated
+    resultType === 'consolidated' ? q.consolidated : !q.consolidated
   );
 
   // Check if both types exist
@@ -103,65 +95,65 @@ export default function QuarterlyResults({ symbol }) {
 
   // Define rows to display
   const rows = [
-    { key: "sales", label: "Sales", format: formatValue },
-    { key: "expenses", label: "Expenses", format: formatValue },
-    { key: "operating_profit", label: "Operating Profit", format: formatValue },
+    { key: 'sales', label: 'Sales', format: formatValue },
+    { key: 'expenses', label: 'Expenses', format: formatValue },
+    { key: 'operating_profit', label: 'Operating Profit', format: formatValue },
     {
-      key: "opm_percent",
-      label: "OPM %",
-      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : "-"),
+      key: 'opm_percent',
+      label: 'OPM %',
+      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : '-'),
     },
-    { key: "other_income", label: "Other Income", format: formatValue },
-    { key: "interest", label: "Interest", format: formatValue },
-    { key: "depreciation", label: "Depreciation", format: formatValue },
-    { key: "pbt", label: "Profit Before Tax", format: formatValue },
+    { key: 'other_income', label: 'Other Income', format: formatValue },
+    { key: 'interest', label: 'Interest', format: formatValue },
+    { key: 'depreciation', label: 'Depreciation', format: formatValue },
+    { key: 'pbt', label: 'Profit Before Tax', format: formatValue },
     {
-      key: "tax_percent",
-      label: "Tax %",
-      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : "-"),
+      key: 'tax_percent',
+      label: 'Tax %',
+      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : '-'),
     },
-    { key: "net_profit", label: "Net Profit", format: formatValue },
+    { key: 'net_profit', label: 'Net Profit', format: formatValue },
     {
-      key: "eps",
-      label: "EPS",
-      format: (v) => (!_isNil(v) ? v.toFixed(2) : "-"),
+      key: 'eps',
+      label: 'EPS',
+      format: (v) => (!_isNil(v) ? v.toFixed(2) : '-'),
     },
     {
-      key: "broadcast_date",
-      label: "Broadcast Time",
+      key: 'broadcast_date',
+      label: 'Broadcast Time',
       format: formatBroadcastDate,
     },
   ];
 
   const growthRows = [
     {
-      key: "yoy_sales_growth",
-      label: "YoY Sales Growth %",
+      key: 'yoy_sales_growth',
+      label: 'YoY Sales Growth %',
       format: formatGrowth,
     },
     {
-      key: "yoy_profit_growth",
-      label: "YoY Net Profit Growth %",
+      key: 'yoy_profit_growth',
+      label: 'YoY Net Profit Growth %',
       format: formatGrowth,
     },
     {
-      key: "yoy_eps_growth",
-      label: "YoY EPS Growth %",
+      key: 'yoy_eps_growth',
+      label: 'YoY EPS Growth %',
       format: formatGrowth,
     },
     {
-      key: "qoq_sales_growth",
-      label: "QoQ Sales Growth %",
+      key: 'qoq_sales_growth',
+      label: 'QoQ Sales Growth %',
       format: formatGrowth,
     },
     {
-      key: "qoq_profit_growth",
-      label: "QoQ Net Profit Growth %",
+      key: 'qoq_profit_growth',
+      label: 'QoQ Net Profit Growth %',
       format: formatGrowth,
     },
     {
-      key: "qoq_eps_growth",
-      label: "QoQ EPS Growth %",
+      key: 'qoq_eps_growth',
+      label: 'QoQ EPS Growth %',
       format: formatGrowth,
     },
   ];
@@ -180,11 +172,11 @@ export default function QuarterlyResults({ symbol }) {
               <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
                 {hasConsolidated && (
                   <button
-                    onClick={() => setResultType("consolidated")}
+                    onClick={() => setResultType('consolidated')}
                     className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                      resultType === "consolidated"
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
+                      resultType === 'consolidated'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
                     Consolidated
@@ -192,11 +184,11 @@ export default function QuarterlyResults({ symbol }) {
                 )}
                 {hasStandalone && (
                   <button
-                    onClick={() => setResultType("standalone")}
+                    onClick={() => setResultType('standalone')}
                     className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                      resultType === "standalone"
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
+                      resultType === 'standalone'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
                     Standalone
@@ -223,7 +215,7 @@ export default function QuarterlyResults({ symbol }) {
       <div
         ref={scrollContainerRef}
         className="overflow-x-auto border rounded-lg"
-        style={{ scrollBehavior: "smooth" }}
+        style={{ scrollBehavior: 'smooth' }}
       >
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -244,10 +236,7 @@ export default function QuarterlyResults({ symbol }) {
           <tbody className="bg-white divide-y divide-gray-200">
             {/* Main financial metrics */}
             {rows.map((row, rowIndex) => (
-              <tr
-                key={row.key}
-                className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}
-              >
+              <tr key={row.key} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
                   {row.label}
                 </td>
@@ -265,18 +254,13 @@ export default function QuarterlyResults({ symbol }) {
             {/* Separator row */}
             <tr className="bg-gray-100">
               <td colSpan={quarters.length + 1} className="px-4 py-2">
-                <div className="text-xs font-semibold text-gray-700 uppercase">
-                  Growth Metrics
-                </div>
+                <div className="text-xs font-semibold text-gray-700 uppercase">Growth Metrics</div>
               </td>
             </tr>
 
             {/* Growth metrics */}
             {growthRows.map((row, rowIndex) => (
-              <tr
-                key={row.key}
-                className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}
-              >
+              <tr key={row.key} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
                   {row.label}
                 </td>
@@ -297,13 +281,12 @@ export default function QuarterlyResults({ symbol }) {
       {data.source && (
         <p className="text-xs text-gray-500 mt-2">
           Data source: {data.source}
-          {data.cached && " (cached)"}
+          {data.cached && ' (cached)'}
         </p>
       )}
 
       <p className="text-xs text-gray-400 mt-1 italic">
-        💡 Scroll left to view older quarters. Latest quarter shown on the
-        right.
+        💡 Scroll left to view older quarters. Latest quarter shown on the right.
       </p>
     </div>
   );

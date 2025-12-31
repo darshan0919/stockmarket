@@ -7,22 +7,14 @@
 // =========================
 
 const OrderEventType = {
-  ORDER_INFLOW: "order_inflow",
-  ORDER_COMPLETION: "order_completion",
-  ORDER_CANCELLATION: "order_cancellation",
-  ORDER_UPDATE: "order_update",
+  ORDER_INFLOW: 'order_inflow',
+  ORDER_COMPLETION: 'order_completion',
+  ORDER_CANCELLATION: 'order_cancellation',
+  ORDER_UPDATE: 'order_update',
 };
 
 class OrderBookEntry {
-  constructor({
-    date,
-    valueCr,
-    source,
-    period,
-    segment = null,
-    notes = null,
-    confidence = 1.0,
-  }) {
+  constructor({ date, valueCr, source, period, segment = null, notes = null, confidence = 1.0 }) {
     this.date = date;
     this.valueCr = valueCr;
     this.source = source;
@@ -42,7 +34,7 @@ class OrderEvent {
     customer = null,
     segment = null,
     executionTimelineMonths = null,
-    source = "corporate_announcement",
+    source = 'corporate_announcement',
     confidence = 0.9,
   }) {
     this.date = date; // "YYYY-MM-DD"
@@ -83,7 +75,7 @@ class OrderBookExtractor {
 
   extractTextFromPdf(pdfPath) {
     // Implement: use pdf-parse, pdfjs, etc.
-    return "";
+    return '';
   }
 
   // ----- Parsing helpers -----
@@ -97,15 +89,15 @@ class OrderBookExtractor {
     let m;
     while ((m = patternOb.exec(text)) !== null) {
       const dateStr = m[1].trim();
-      let amount = parseFloat(m[2].replace(/,/g, ""));
+      let amount = parseFloat(m[2].replace(/,/g, ''));
       const unit = m[3].toLowerCase();
-      if (unit.includes("lakh")) amount = amount / 100.0;
+      if (unit.includes('lakh')) amount = amount / 100.0;
       entries.push(
         new OrderBookEntry({
           date: dateStr,
           valueCr: amount,
-          source: "document_text",
-          period: "as_reported",
+          source: 'document_text',
+          period: 'as_reported',
           confidence: 0.95,
         })
       );
@@ -115,15 +107,15 @@ class OrderBookExtractor {
     const patternPending =
       /(pending|backlog|outstanding)\s+(orders?|backlog)\s+(of|valued\s+at)\s*[₹Rs\.]*\s*([\d,]+(?:\.\d+)?)\s*(Cr|Crore|cr|crore|Lakh|lakh)/gi;
     while ((m = patternPending.exec(text)) !== null) {
-      let amount = parseFloat(m[4].replace(/,/g, ""));
+      let amount = parseFloat(m[4].replace(/,/g, ''));
       const unit = m[5].toLowerCase();
-      if (unit.includes("lakh")) amount = amount / 100.0;
+      if (unit.includes('lakh')) amount = amount / 100.0;
       entries.push(
         new OrderBookEntry({
           date: documentDate,
           valueCr: amount,
-          source: "document_text",
-          period: "pending",
+          source: 'document_text',
+          period: 'pending',
           confidence: 0.9,
         })
       );
@@ -133,15 +125,15 @@ class OrderBookExtractor {
     const patternInflow =
       /order\s+(inflow|received|won)\s*[:\s]+[₹Rs\.]*\s*([\d,]+(?:\.\d+)?)\s*(Cr|Crore|cr|crore|Lakh|lakh)/gi;
     while ((m = patternInflow.exec(text)) !== null) {
-      let amount = parseFloat(m[2].replace(/,/g, ""));
+      let amount = parseFloat(m[2].replace(/,/g, ''));
       const unit = m[3].toLowerCase();
-      if (unit.includes("lakh")) amount = amount / 100.0;
+      if (unit.includes('lakh')) amount = amount / 100.0;
       entries.push(
         new OrderBookEntry({
           date: documentDate,
           valueCr: amount,
-          source: "document_text",
-          period: "inflow",
+          source: 'document_text',
+          period: 'inflow',
           confidence: 0.9,
         })
       );
@@ -153,38 +145,31 @@ class OrderBookExtractor {
   classifyAnnouncementTitle(title) {
     const t = title.toLowerCase();
     if (
-      ["received", "receipt of", "order from", "award", "won", "inflow"].some(
-        (k) => t.includes(k)
-      )
+      ['received', 'receipt of', 'order from', 'award', 'won', 'inflow'].some((k) => t.includes(k))
     )
       return OrderEventType.ORDER_INFLOW;
-    if (
-      ["completion", "completed", "executed", "execution of"].some((k) =>
-        t.includes(k)
-      )
-    )
+    if (['completion', 'completed', 'executed', 'execution of'].some((k) => t.includes(k)))
       return OrderEventType.ORDER_COMPLETION;
-    if (["cancel", "cancellation", "terminated"].some((k) => t.includes(k)))
+    if (['cancel', 'cancellation', 'terminated'].some((k) => t.includes(k)))
       return OrderEventType.ORDER_CANCELLATION;
     return OrderEventType.ORDER_UPDATE;
   }
 
   parseAmountFromText(text) {
-    const pattern =
-      /[₹Rs\.]*\s*([\d,]+(?:\.\d+)?)\s*(Cr|Crore|cr|crore|Lakh|lakh)/i;
+    const pattern = /[₹Rs\.]*\s*([\d,]+(?:\.\d+)?)\s*(Cr|Crore|cr|crore|Lakh|lakh)/i;
     const m = text.match(pattern);
     if (!m) return 0.0;
-    let amt = parseFloat(m[1].replace(/,/g, ""));
+    let amt = parseFloat(m[1].replace(/,/g, ''));
     const unit = m[2].toLowerCase();
-    if (unit.includes("lakh")) amt = amt / 100.0;
+    if (unit.includes('lakh')) amt = amt / 100.0;
     return amt;
   }
 
   extractOrderEventsFromAnnouncements(announcements) {
     const events = [];
     for (const ann of announcements) {
-      const title = ann.title || "";
-      const dateStr = ann.date || "";
+      const title = ann.title || '';
+      const dateStr = ann.date || '';
       const ttype = this.classifyAnnouncementTitle(title);
       let amount = ann.amountCr;
       if (amount == null) amount = this.parseAmountFromText(title);
@@ -196,7 +181,7 @@ class OrderBookExtractor {
           eventType: ttype,
           amountCr: amount,
           description: title,
-          source: "corporate_announcement",
+          source: 'corporate_announcement',
           confidence: 0.9,
         })
       );
@@ -212,7 +197,7 @@ class OrderBookExtractor {
       date: dateStr, // "YYYY-MM-DD"
       valueCr,
       source,
-      period: "latest_reported",
+      period: 'latest_reported',
       confidence: 0.99,
     });
   }
@@ -271,7 +256,7 @@ class OrderBookExtractor {
 
   generateReport(todayStr = null) {
     if (!this.latestOrderBook)
-      throw new Error("latestOrderBook not set before calling generateReport");
+      throw new Error('latestOrderBook not set before calling generateReport');
 
     const [calculated, accumulatedEvents, conf] = this.accumulate(todayStr);
 
@@ -282,8 +267,7 @@ class OrderBookExtractor {
     const completed = accumulatedEvents
       .filter(
         (e) =>
-          e.type === OrderEventType.ORDER_COMPLETION ||
-          e.type === OrderEventType.ORDER_CANCELLATION
+          e.type === OrderEventType.ORDER_COMPLETION || e.type === OrderEventType.ORDER_CANCELLATION
       )
       .reduce((sum, e) => sum + e.amountCr, 0);
 
@@ -325,63 +309,53 @@ class OrderBookExtractor {
     const s = report.orderBookSummary;
     const q = report.qualityMetrics;
 
-    console.log("=".repeat(80));
+    console.log('='.repeat(80));
     console.log(`ORDER BOOK REPORT: ${this.ticker}`);
-    console.log("=".repeat(80));
+    console.log('='.repeat(80));
     console.log();
     console.log(
-      `Latest reported order book: ₹${s.latestReportedOrderBookCr.toLocaleString(
-        "en-IN",
-        { maximumFractionDigits: 0 }
-      )} Cr (as of ${s.latestReportDate}, source: ${s.latestReportSource})`
+      `Latest reported order book: ₹${s.latestReportedOrderBookCr.toLocaleString('en-IN', {
+        maximumFractionDigits: 0,
+      })} Cr (as of ${s.latestReportDate}, source: ${s.latestReportSource})`
     );
     console.log();
     console.log(
-      `Inflow since report:      +₹${s.inflowSinceReportCr.toLocaleString(
-        "en-IN",
-        { maximumFractionDigits: 0 }
-      )} Cr`
+      `Inflow since report:      +₹${s.inflowSinceReportCr.toLocaleString('en-IN', {
+        maximumFractionDigits: 0,
+      })} Cr`
     );
     console.log(
-      `Completion/cancellation: -₹${s.completionSinceReportCr.toLocaleString(
-        "en-IN",
-        { maximumFractionDigits: 0 }
-      )} Cr`
+      `Completion/cancellation: -₹${s.completionSinceReportCr.toLocaleString('en-IN', {
+        maximumFractionDigits: 0,
+      })} Cr`
     );
     console.log();
     console.log(
-      `CALCULATED PENDING ORDER BOOK: ₹${s.calculatedPendingOrderBookCr.toLocaleString(
-        "en-IN",
-        { maximumFractionDigits: 0 }
-      )} Cr (growth: ${
-        s.orderBookGrowthCr >= 0 ? "+" : ""
-      }${s.orderBookGrowthCr.toFixed(
+      `CALCULATED PENDING ORDER BOOK: ₹${s.calculatedPendingOrderBookCr.toLocaleString('en-IN', {
+        maximumFractionDigits: 0,
+      })} Cr (growth: ${s.orderBookGrowthCr >= 0 ? '+' : ''}${s.orderBookGrowthCr.toFixed(
         0
       )} Cr, ${s.orderBookGrowthPercentage.toFixed(1)}%)`
     );
     console.log();
-    console.log(
-      `Overall confidence score: ${(q.overallConfidenceScore * 100).toFixed(
-        1
-      )}%`
-    );
+    console.log(`Overall confidence score: ${(q.overallConfidenceScore * 100).toFixed(1)}%`);
     console.log(`Events analyzed:          ${q.eventsAnalyzed}`);
     console.log();
-    console.log("Recent events:");
+    console.log('Recent events:');
     for (const ev of report.recentEvents) {
-      const sign = ev.type === OrderEventType.ORDER_INFLOW ? "+" : "-";
+      const sign = ev.type === OrderEventType.ORDER_INFLOW ? '+' : '-';
       console.log(
-        `  ${ev.date}  ${sign}₹${ev.amountCr.toLocaleString("en-IN", {
+        `  ${ev.date}  ${sign}₹${ev.amountCr.toLocaleString('en-IN', {
           maximumFractionDigits: 0,
-        })} Cr | ${ev.description.slice(
-          0,
-          70
-        )}  (running: ₹${ev.runningTotalCr.toLocaleString("en-IN", {
-          maximumFractionDigits: 0,
-        })} Cr)`
+        })} Cr | ${ev.description.slice(0, 70)}  (running: ₹${ev.runningTotalCr.toLocaleString(
+          'en-IN',
+          {
+            maximumFractionDigits: 0,
+          }
+        )} Cr)`
       );
     }
-    console.log("=".repeat(80));
+    console.log('='.repeat(80));
   }
 
   toJson(todayStr = null) {
@@ -394,38 +368,38 @@ class OrderBookExtractor {
 // =========================
 
 function exampleWaaree() {
-  const extractor = new OrderBookExtractor("WAAREERTL", "542693");
+  const extractor = new OrderBookExtractor('WAAREERTL', '542693');
 
   // In real use, set from parsed annual/quarterly report
   extractor.setLatestOrderBook(
     5000.0, // ₹ Cr
-    "2025-03-31",
-    "Annual_Report_FY24-25"
+    '2025-03-31',
+    'Annual_Report_FY24-25'
   );
 
   // In real use, build from BSE/NSE announcements
   extractor.orderEvents = [
     new OrderEvent({
-      date: "2025-09-10",
+      date: '2025-09-10',
       eventType: OrderEventType.ORDER_INFLOW,
       amountCr: 300.0,
-      description: "Received order for 100 MW Solar EPC from SECI",
+      description: 'Received order for 100 MW Solar EPC from SECI',
     }),
     new OrderEvent({
-      date: "2025-10-15",
+      date: '2025-10-15',
       eventType: OrderEventType.ORDER_COMPLETION,
       amountCr: 150.0,
-      description: "Completion of 50 MW Solar Project for Adani",
+      description: 'Completion of 50 MW Solar Project for Adani',
     }),
     new OrderEvent({
-      date: "2025-11-20",
+      date: '2025-11-20',
       eventType: OrderEventType.ORDER_INFLOW,
       amountCr: 250.0,
-      description: "Receipt of order from NTPC for 50 MW Solar EPC",
+      description: 'Receipt of order from NTPC for 50 MW Solar EPC',
     }),
   ];
 
-  extractor.printReport("2025-12-04");
+  extractor.printReport('2025-12-04');
   // console.log(extractor.toJson("2025-12-04"));
 }
 

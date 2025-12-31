@@ -45,9 +45,7 @@ export default function WatchlistSummary() {
                 <div className="text-sm text-gray-600">{stock.name}</div>
               </div>
               <div className="text-right">
-                <div className="font-semibold text-gray-900">
-                  {formatCurrency(stock.price)}
-                </div>
+                <div className="font-semibold text-gray-900">{formatCurrency(stock.price)}</div>
                 <div className={`text-sm font-medium ${getChangeColor(stock.change_percent)}`}>
                   {formatChange(stock.change_percent, 2)}%
                 </div>
@@ -59,4 +57,3 @@ export default function WatchlistSummary() {
     </div>
   );
 }
-

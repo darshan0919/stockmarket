@@ -2,92 +2,98 @@ const axios = require('axios');
 const { parseXBRL } = require('../utils/xbrlParser');
 const QuarterlyResult = require('../models/QuarterlyResult');
 
-
 const getCurrentMetrics = async (symbol) => {
-    const upperSymbol = symbol.toUpperCase();
-    const consolidateResults = await QuarterlyResult.find({ symbol: upperSymbol, consolidated: true }).sort({ to_date: -1 }).limit(4).lean();
-    if (consolidateResults.length > 0) {
-        return calculateMetrics(consolidateResults);
-    }
+  const upperSymbol = symbol.toUpperCase();
+  const consolidateResults = await QuarterlyResult.find({ symbol: upperSymbol, consolidated: true })
+    .sort({ to_date: -1 })
+    .limit(4)
+    .lean();
+  if (consolidateResults.length > 0) {
+    return calculateMetrics(consolidateResults);
+  }
 
-    const standaloneResults = await QuarterlyResult.find({ symbol: upperSymbol, consolidated: false }).sort({ to_date: -1 }).limit(4).lean();
-    if (standaloneResults.length > 0) {
-        return calculateMetrics(standaloneResults);
-    }
-    const results = await fetchAndStoreQuarterlyResults(symbol);
-    if (results.empty) {
-        return {};
-    }
-    
-    return getCurrentMetrics(symbol);
-}
+  const standaloneResults = await QuarterlyResult.find({ symbol: upperSymbol, consolidated: false })
+    .sort({ to_date: -1 })
+    .limit(4)
+    .lean();
+  if (standaloneResults.length > 0) {
+    return calculateMetrics(standaloneResults);
+  }
+  const results = await fetchAndStoreQuarterlyResults(symbol);
+  if (results.empty) {
+    return {};
+  }
+
+  return getCurrentMetrics(symbol);
+};
 
 const calculateMetrics = (results) => {
-    const currentMetrics = {
-       debt_equity_ratio: getDebtEquityRatio(results[0]),
-       roce: getROCE(results),
-       last_quarter_roce: getROCE(results.slice(0, 1)),
-    }
-    return currentMetrics;
-}  
+  const currentMetrics = {
+    debt_equity_ratio: getDebtEquityRatio(results[0]),
+    roce: getROCE(results),
+    last_quarter_roce: getROCE(results.slice(0, 1)),
+  };
+  return currentMetrics;
+};
 
 const getROCE = (results) => {
-    // console.log("results", results);
-    let total_operating_profit = results.reduce((acc, result) => acc + result.operating_profit, 0);
-    let total_capital = 0
-    let count = 0;
-    results.forEach(result => {
-        if(!result.equity_capital) {
-            return;
-        }
-        let capital_employed = total_equity(result) + total_borrowings(result);
-        if( capital_employed > 0) {
-            total_capital += capital_employed
-            count++;
-        }
-    });
-    // console.log("total_capital", total_capital, "count", count);
-    // console.log("total_operating_profit", total_operating_profit);
-    if(count == 0 || results.length <= 2) {
-        return null;
+  // console.log("results", results);
+  let total_operating_profit = results.reduce((acc, result) => acc + result.operating_profit, 0);
+  let total_capital = 0;
+  let count = 0;
+  results.forEach((result) => {
+    if (!result.equity_capital) {
+      return;
     }
-    total_operating_profit = (total_operating_profit * 4) / results.length;
-    total_capital = total_capital / count;
-    return (total_operating_profit / total_capital) * 100;
-}
+    let capital_employed = total_equity(result) + total_borrowings(result);
+    if (capital_employed > 0) {
+      total_capital += capital_employed;
+      count++;
+    }
+  });
+  // console.log("total_capital", total_capital, "count", count);
+  // console.log("total_operating_profit", total_operating_profit);
+  if (count == 0 || results.length <= 2) {
+    return null;
+  }
+  total_operating_profit = (total_operating_profit * 4) / results.length;
+  total_capital = total_capital / count;
+  return (total_operating_profit / total_capital) * 100;
+};
 
 const getDebtEquityRatio = (result) => {
-    console.log("borrowings", total_borrowings(result), "equity", total_equity(result));
-    return total_borrowings(result) / total_equity(result);
-}
+  console.log('borrowings', total_borrowings(result), 'equity', total_equity(result));
+  return total_borrowings(result) / total_equity(result);
+};
 
 const total_equity = (result) => {
-    return result.equity_capital + (result.reserves || 0) + (result.other_equity || 0);
-}
+  return result.equity_capital + (result.reserves || 0) + (result.other_equity || 0);
+};
 
 const total_borrowings = (result) => {
-    return (result.borrowings || 0)
-    + (result.other_non_curr_financial_liabilities || 0) + (result.other_curr_financial_liabilities || 0)
-}
-
+  return (
+    (result.borrowings || 0) +
+    (result.other_non_curr_financial_liabilities || 0) +
+    (result.other_curr_financial_liabilities || 0)
+  );
+};
 
 const fetchAndStoreQuarterlyResults = async (symbol) => {
   // First get company name from quote API
   const upperSymbol = symbol.toUpperCase();
-  let companyName = "";
+  let companyName = '';
   try {
     const quoteResponse = await axios.get(
       `https://www.nseindia.com/api/quote-equity?symbol=${upperSymbol}`,
       {
         timeout: 10000,
         headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-          Accept: "application/json",
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+          Accept: 'application/json',
         },
       }
     );
-    companyName = quoteResponse.data.info?.companyName || "";
+    companyName = quoteResponse.data.info?.companyName || '';
   } catch (err) {
     console.warn(`Could not fetch company name: ${err.message}`);
   }
@@ -103,9 +109,8 @@ const fetchAndStoreQuarterlyResults = async (symbol) => {
       {
         timeout: 15000,
         headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-          Accept: "application/json",
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+          Accept: 'application/json',
         },
       }
     );
@@ -123,9 +128,8 @@ const fetchAndStoreQuarterlyResults = async (symbol) => {
       {
         timeout: 15000,
         headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-          Accept: "application/json",
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+          Accept: 'application/json',
         },
       }
     );
@@ -155,7 +159,7 @@ const fetchAndStoreQuarterlyResults = async (symbol) => {
       const key = `${r.toDate}_${r.consolidated}`;
       resultsMap.set(key, {
         ...r,
-        source: "historical",
+        source: 'historical',
       });
     }
   });
@@ -166,7 +170,7 @@ const fetchAndStoreQuarterlyResults = async (symbol) => {
       const key = `${r.toDate}_${r.consolidated}`;
       resultsMap.set(key, {
         ...r,
-        source: "recent",
+        source: 'recent',
       });
     }
   });
@@ -176,7 +180,7 @@ const fetchAndStoreQuarterlyResults = async (symbol) => {
 
   if (allResults.length === 0) {
     return {
-      empty: true 
+      empty: true,
     };
   }
 
@@ -205,9 +209,9 @@ const fetchAndStoreQuarterlyResults = async (symbol) => {
 
           // Parse toDate - handle different formats (DD-MMM-YYYY or YYYY-MM-DD)
           let toDate;
-          if (result.toDate.includes("-") && result.toDate.length > 10) {
+          if (result.toDate.includes('-') && result.toDate.length > 10) {
             // Format: DD-MMM-YYYY (e.g., "30-SEP-2025")
-            const parts = result.toDate.split("-");
+            const parts = result.toDate.split('-');
             const months = {
               JAN: 0,
               FEB: 1,
@@ -235,11 +239,7 @@ const fetchAndStoreQuarterlyResults = async (symbol) => {
               Dec: 11,
             };
             const monthStr = parts[1].toUpperCase().substring(0, 3);
-            toDate = new Date(
-              parseInt(parts[2]),
-              months[monthStr],
-              parseInt(parts[0])
-            );
+            toDate = new Date(parseInt(parts[2]), months[monthStr], parseInt(parts[0]));
           } else {
             toDate = new Date(result.toDate);
           }
@@ -273,9 +273,9 @@ const fetchAndStoreQuarterlyResults = async (symbol) => {
           let broadcastDate = null;
           if (result.broadcastDate) {
             // Format: "16-Oct-2025 17:04:16"
-            const bcParts = result.broadcastDate.split(" ");
-            const dateParts = bcParts[0].split("-");
-            const timeParts = bcParts[1].split(":");
+            const bcParts = result.broadcastDate.split(' ');
+            const dateParts = bcParts[0].split('-');
+            const timeParts = bcParts[1].split(':');
             const months = {
               Jan: 0,
               Feb: 1,
@@ -309,15 +309,13 @@ const fetchAndStoreQuarterlyResults = async (symbol) => {
             period,
             quarter,
             fiscal_year,
-            filing_date: result.filingDate
-              ? new Date(result.filingDate)
-              : null,
+            filing_date: result.filingDate ? new Date(result.filingDate) : null,
             broadcast_date: broadcastDate,
             audited:
-              result.audited === "Audited" || result.audited === "Un-Audited"
-                ? result.audited === "Audited"
+              result.audited === 'Audited' || result.audited === 'Un-Audited'
+                ? result.audited === 'Audited'
                 : false,
-            consolidated: result.consolidated === "Consolidated",
+            consolidated: result.consolidated === 'Consolidated',
             seq_number: result.seqNumber,
             xbrl_url: result.xbrl,
             last_updated: new Date(),
@@ -333,10 +331,7 @@ const fetchAndStoreQuarterlyResults = async (symbol) => {
 
           return saved;
         } catch (error) {
-          console.error(
-            `Failed to parse quarter ${result.toDate}:`,
-            error
-          );
+          console.error(`Failed to parse quarter ${result.toDate}:`, error);
           return null;
         }
       })()
@@ -348,9 +343,7 @@ const fetchAndStoreQuarterlyResults = async (symbol) => {
   return parsedResults;
 };
 
-
-
 module.exports = {
-    getCurrentMetrics,
-    fetchAndStoreQuarterlyResults,
+  getCurrentMetrics,
+  fetchAndStoreQuarterlyResults,
 };

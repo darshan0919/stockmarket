@@ -18,17 +18,17 @@ const getWatchlist = async (req, res, next) => {
       });
     }
 
-    const symbols = watchlistItems.map(item => item.symbol);
+    const symbols = watchlistItems.map((item) => item.symbol);
     const stocks = await Stock.find({ symbol: { $in: symbols } }).lean();
 
     const stockMap = {};
-    stocks.forEach(stock => {
+    stocks.forEach((stock) => {
       stockMap[stock.symbol] = stock;
     });
 
     // Get fundamentals and latest prices for each stock
     const enrichedWatchlist = await Promise.all(
-      watchlistItems.map(async item => {
+      watchlistItems.map(async (item) => {
         const stock = stockMap[item.symbol];
         if (!stock) return null;
 
@@ -47,7 +47,8 @@ const getWatchlist = async (req, res, next) => {
 
         const price = latestPrice ? latestPrice.close : null;
         const change = latestPrice && prevPrice ? latestPrice.close - prevPrice.close : 0;
-        const changePercent = prevPrice && prevPrice.close !== 0 ? (change / prevPrice.close) * 100 : 0;
+        const changePercent =
+          prevPrice && prevPrice.close !== 0 ? (change / prevPrice.close) * 100 : 0;
 
         return {
           symbol: stock.symbol,
@@ -63,7 +64,7 @@ const getWatchlist = async (req, res, next) => {
       })
     );
 
-    const filteredWatchlist = enrichedWatchlist.filter(item => item !== null);
+    const filteredWatchlist = enrichedWatchlist.filter((item) => item !== null);
 
     res.json({
       success: true,
@@ -150,4 +151,3 @@ module.exports = {
   addToWatchlist,
   removeFromWatchlist,
 };
-

@@ -1,10 +1,6 @@
 export default function Table({ columns, data, onRowClick, emptyMessage = 'No data available' }) {
   if (!data || data.length === 0) {
-    return (
-      <div className="text-center py-12 text-gray-500">
-        {emptyMessage}
-      </div>
-    );
+    return <div className="text-center py-12 text-gray-500">{emptyMessage}</div>;
   }
 
   return (
@@ -13,10 +9,7 @@ export default function Table({ columns, data, onRowClick, emptyMessage = 'No da
         <thead>
           <tr>
             {columns.map((column, index) => (
-              <th
-                key={index}
-                className={column.align === 'right' ? 'text-right' : 'text-left'}
-              >
+              <th key={index} className={column.align === 'right' ? 'text-right' : 'text-left'}>
                 {column.header}
               </th>
             ))}
@@ -44,4 +37,3 @@ export default function Table({ columns, data, onRowClick, emptyMessage = 'No da
     </div>
   );
 }
-

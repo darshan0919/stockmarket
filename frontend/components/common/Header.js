@@ -14,9 +14,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/">
-            <div className="text-2xl font-bold text-primary-600 cursor-pointer">
-              Stock Screener
-            </div>
+            <div className="text-2xl font-bold text-primary-600 cursor-pointer">Stock Screener</div>
           </Link>
 
           {/* Navigation */}
@@ -54,4 +52,3 @@ export default function Header() {
     </header>
   );
 }
-

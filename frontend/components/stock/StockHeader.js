@@ -1,4 +1,9 @@
-import { formatCurrency, formatChange, formatLargeNumber, getChangeColor } from '../../lib/utils/formatters';
+import {
+  formatCurrency,
+  formatChange,
+  formatLargeNumber,
+  getChangeColor,
+} from '../../lib/utils/formatters';
 import { useWatchlist } from '../../lib/hooks/useWatchlist';
 
 export default function StockHeader({ stock, latestPrice, change, changePercent }) {
@@ -44,9 +49,7 @@ export default function StockHeader({ stock, latestPrice, change, changePercent 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
           <div className="text-sm text-gray-600 mb-1">Current Price</div>
-          <div className="text-2xl font-bold text-gray-900">
-            {formatCurrency(latestPrice)}
-          </div>
+          <div className="text-2xl font-bold text-gray-900">{formatCurrency(latestPrice)}</div>
           <div className={`text-sm font-medium ${getChangeColor(changePercent)}`}>
             {formatChange(change)} ({formatChange(changePercent)}%)
           </div>
@@ -69,4 +72,3 @@ export default function StockHeader({ stock, latestPrice, change, changePercent 
     </div>
   );
 }
-

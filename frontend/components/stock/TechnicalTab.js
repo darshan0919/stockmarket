@@ -28,7 +28,8 @@ export default function TechnicalTab({ symbol }) {
   }, [symbol]);
 
   if (loading) return <LoadingSpinner size="sm" />;
-  if (!technicals) return <div className="text-center py-8 text-gray-500">No technical data available</div>;
+  if (!technicals)
+    return <div className="text-center py-8 text-gray-500">No technical data available</div>;
 
   const getRSISignal = (rsi) => {
     if (!rsi) return { text: 'N/A', color: 'text-gray-600' };
@@ -38,7 +39,8 @@ export default function TechnicalTab({ symbol }) {
   };
 
   const getMACDSignal = (macd) => {
-    if (!macd || macd.macd === null || macd.signal === null) return { text: 'N/A', color: 'text-gray-600' };
+    if (!macd || macd.macd === null || macd.signal === null)
+      return { text: 'N/A', color: 'text-gray-600' };
     if (macd.macd > macd.signal) return { text: 'Bullish', color: 'text-green-600' };
     if (macd.macd < macd.signal) return { text: 'Bearish', color: 'text-red-600' };
     return { text: 'Neutral', color: 'text-gray-600' };
@@ -81,18 +83,16 @@ export default function TechnicalTab({ symbol }) {
         {/* RSI */}
         <div className="border border-gray-200 rounded-lg p-6">
           <div className="text-sm text-gray-600 mb-2">RSI (14)</div>
-          <div className="text-3xl font-bold text-gray-900">
-            {formatNumber(technicals.rsi_14)}
-          </div>
-          <div className={`text-sm font-semibold mt-1 ${rsiSignal.color}`}>
-            {rsiSignal.text}
-          </div>
+          <div className="text-3xl font-bold text-gray-900">{formatNumber(technicals.rsi_14)}</div>
+          <div className={`text-sm font-semibold mt-1 ${rsiSignal.color}`}>{rsiSignal.text}</div>
           <div className="text-xs text-gray-500 mt-1">Relative Strength Index</div>
         </div>
 
         {/* MACD */}
         <div className="border border-gray-200 rounded-lg p-6 md:col-span-2">
-          <div className="text-sm text-gray-600 mb-3">MACD (Moving Average Convergence Divergence)</div>
+          <div className="text-sm text-gray-600 mb-3">
+            MACD (Moving Average Convergence Divergence)
+          </div>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <div className="text-xs text-gray-500 mb-1">MACD Line</div>
@@ -123,15 +123,26 @@ export default function TechnicalTab({ symbol }) {
       <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h4 className="text-sm font-semibold text-blue-900 mb-2">Interpretation Guide</h4>
         <ul className="text-sm text-blue-800 space-y-1">
-          <li>• <strong>RSI &gt; 70:</strong> Overbought (potential sell signal)</li>
-          <li>• <strong>RSI &lt; 30:</strong> Oversold (potential buy signal)</li>
-          <li>• <strong>MACD above Signal:</strong> Bullish momentum</li>
-          <li>• <strong>MACD below Signal:</strong> Bearish momentum</li>
-          <li>• <strong>Price above SMA:</strong> Uptrend</li>
-          <li>• <strong>Price below SMA:</strong> Downtrend</li>
+          <li>
+            • <strong>RSI &gt; 70:</strong> Overbought (potential sell signal)
+          </li>
+          <li>
+            • <strong>RSI &lt; 30:</strong> Oversold (potential buy signal)
+          </li>
+          <li>
+            • <strong>MACD above Signal:</strong> Bullish momentum
+          </li>
+          <li>
+            • <strong>MACD below Signal:</strong> Bearish momentum
+          </li>
+          <li>
+            • <strong>Price above SMA:</strong> Uptrend
+          </li>
+          <li>
+            • <strong>Price below SMA:</strong> Downtrend
+          </li>
         </ul>
       </div>
     </div>
   );
 }
-

@@ -23,4 +23,3 @@ const modelResponseSchema = new mongoose.Schema({
 modelResponseSchema.index({ attachment_name: 1, prompt: 1 });
 
 module.exports = mongoose.model('modelRespnse', modelResponseSchema);
-

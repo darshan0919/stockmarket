@@ -1,10 +1,21 @@
-// Technical Indicators Calculations
+/**
+ * Technical Indicators Calculations
+ * @module utils/technicalIndicators
+ * @see {@link docs/backend/utils/technicalIndicators.md} for detailed documentation
+ * @see {@link backend/utils/__tests__/technicalIndicators.test.js} for tests
+ */
 
 /**
  * Calculate Simple Moving Average
- * @param {Array} prices - Array of closing prices
- * @param {Number} period - Period for SMA calculation
- * @returns {Array} Array of SMA values
+ * SMA = (P1 + P2 + ... + Pn) / n
+ *
+ * @param {number[]} prices - Array of closing prices
+ * @param {number} period - Period for SMA calculation
+ * @returns {number[]} Array of SMA values
+ *
+ * @example
+ * const prices = [10, 20, 30, 40, 50];
+ * const sma = calculateSMA(prices, 3); // [20, 30, 40]
  */
 function calculateSMA(prices, period) {
   if (!prices || prices.length < period) {
@@ -22,9 +33,15 @@ function calculateSMA(prices, period) {
 
 /**
  * Calculate Exponential Moving Average
- * @param {Array} prices - Array of closing prices
- * @param {Number} period - Period for EMA calculation
- * @returns {Array} Array of EMA values
+ * EMA = (Price × k) + (Previous EMA × (1 - k)), where k = 2 / (period + 1)
+ *
+ * @param {number[]} prices - Array of closing prices
+ * @param {number} period - Period for EMA calculation
+ * @returns {number[]} Array of EMA values
+ *
+ * @example
+ * const prices = [10, 20, 30, 40, 50];
+ * const ema = calculateEMA(prices, 3);
  */
 function calculateEMA(prices, period) {
   if (!prices || prices.length === 0) {
@@ -43,9 +60,15 @@ function calculateEMA(prices, period) {
 
 /**
  * Calculate Relative Strength Index
- * @param {Array} prices - Array of closing prices
- * @param {Number} period - Period for RSI calculation (default 14)
- * @returns {Number} Current RSI value
+ * RSI = 100 - (100 / (1 + RS)), where RS = Average Gain / Average Loss
+ *
+ * @param {number[]} prices - Array of closing prices
+ * @param {number} [period=14] - Period for RSI calculation
+ * @returns {number|null} Current RSI value (0-100) or null if insufficient data
+ *
+ * @example
+ * const rsi = calculateRSI(prices, 14);
+ * // RSI > 70: Overbought, RSI < 30: Oversold
  */
 function calculateRSI(prices, period = 14) {
   if (!prices || prices.length < period + 1) {
@@ -57,8 +80,8 @@ function calculateRSI(prices, period = 14) {
     changes.push(prices[i] - prices[i - 1]);
   }
 
-  const gains = changes.map(c => c > 0 ? c : 0);
-  const losses = changes.map(c => c < 0 ? -c : 0);
+  const gains = changes.map((c) => (c > 0 ? c : 0));
+  const losses = changes.map((c) => (c < 0 ? -c : 0));
 
   let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
   let avgLoss = losses.slice(0, period).reduce((a, b) => a + b, 0) / period;
@@ -67,12 +90,12 @@ function calculateRSI(prices, period = 14) {
   for (let i = period; i < changes.length; i++) {
     avgGain = (avgGain * (period - 1) + gains[i]) / period;
     avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
-    
+
     if (avgLoss === 0) {
       rsi.push(100);
     } else {
       const rs = avgGain / avgLoss;
-      rsi.push(100 - (100 / (1 + rs)));
+      rsi.push(100 - 100 / (1 + rs));
     }
   }
 
@@ -81,8 +104,15 @@ function calculateRSI(prices, period = 14) {
 
 /**
  * Calculate MACD (Moving Average Convergence Divergence)
- * @param {Array} prices - Array of closing prices
- * @returns {Object} Object with macd, signal, and histogram values
+ * MACD Line = EMA(12) - EMA(26)
+ * Signal Line = EMA(9) of MACD Line
+ * Histogram = MACD Line - Signal Line
+ *
+ * @param {number[]} prices - Array of closing prices (minimum 26 required)
+ * @returns {{macd: number|null, signal: number|null, histogram: number|null}} MACD values
+ *
+ * @example
+ * const { macd, signal, histogram } = calculateMACD(prices);
  */
 function calculateMACD(prices) {
   if (!prices || prices.length < 26) {
@@ -98,7 +128,7 @@ function calculateMACD(prices) {
   }
 
   const signalLine = calculateEMA(macdLine, 9);
-  
+
   const histogram = [];
   for (let i = 0; i < macdLine.length && i < signalLine.length; i++) {
     histogram.push(macdLine[i] - signalLine[i]);
@@ -114,8 +144,17 @@ function calculateMACD(prices) {
 
 /**
  * Calculate all technical indicators for a stock
- * @param {Array} priceHistory - Array of price history objects with close prices
- * @returns {Object} Object containing all technical indicators
+ * Combines SMA, EMA, RSI, and MACD calculations
+ *
+ * @param {Object[]} priceHistory - Array of price history objects
+ * @param {number} priceHistory[].close - Closing price
+ * @returns {{sma_50: number|null, sma_200: number|null, rsi_14: number|null, macd: Object}} All indicators
+ *
+ * @example
+ * const indicators = calculateAllIndicators(priceHistory);
+ * // { sma_50: 100, sma_200: 95, rsi_14: 65, macd: {...} }
+ *
+ * @see Used by stockController.getStockTechnicals()
  */
 function calculateAllIndicators(priceHistory) {
   if (!priceHistory || priceHistory.length === 0) {
@@ -127,7 +166,7 @@ function calculateAllIndicators(priceHistory) {
     };
   }
 
-  const closePrices = priceHistory.map(ph => ph.close);
+  const closePrices = priceHistory.map((ph) => ph.close);
 
   const sma50Array = calculateSMA(closePrices, 50);
   const sma200Array = calculateSMA(closePrices, 200);
@@ -147,4 +186,3 @@ module.exports = {
   calculateMACD,
   calculateAllIndicators,
 };
-

@@ -1,6 +1,37 @@
+/**
+ * useWatchlist Hook - Manages user's stock watchlist state
+ * @module hooks/useWatchlist
+ * @see {@link docs/frontend/hooks/useWatchlist.md} for documentation
+ * @see {@link frontend/lib/hooks/__tests__/useWatchlist.test.js} for tests
+ */
+
 import { useState, useEffect } from 'react';
 import { watchlistAPI } from '../api';
 
+/**
+ * Custom hook for managing watchlist operations
+ *
+ * @returns {Object} Hook return value
+ * @returns {Object[]} returns.watchlist - Array of watchlist items
+ * @returns {boolean} returns.loading - Loading state
+ * @returns {string|null} returns.error - Error message if any
+ * @returns {Function} returns.fetchWatchlist - Refresh watchlist
+ * @returns {Function} returns.addToWatchlist - Add symbol to watchlist
+ * @returns {Function} returns.removeFromWatchlist - Remove symbol from watchlist
+ * @returns {Function} returns.isInWatchlist - Check if symbol is in watchlist
+ *
+ * @example
+ * function WatchlistButton({ symbol }) {
+ *   const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlist();
+ *   const inList = isInWatchlist(symbol);
+ *
+ *   return (
+ *     <button onClick={() => inList ? removeFromWatchlist(symbol) : addToWatchlist(symbol)}>
+ *       {inList ? 'Remove' : 'Add'}
+ *     </button>
+ *   );
+ * }
+ */
 export function useWatchlist() {
   const [watchlist, setWatchlist] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -66,4 +97,3 @@ export function useWatchlist() {
     isInWatchlist,
   };
 }
-

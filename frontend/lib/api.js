@@ -1,12 +1,21 @@
-import axios from "axios";
+/**
+ * API Client - Centralized Axios instance for backend communication
+ * @module lib/api
+ * @see {@link docs/frontend/lib/api.md} for detailed documentation
+ * @see {@link docs/API_REFERENCE.md} for backend API documentation
+ * @see {@link frontend/lib/__tests__/api.test.js} for tests
+ */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+import axios from 'axios';
+
+/** @constant {string} API_URL - Backend API base URL */
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_URL,
   timeout: 30000,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
@@ -27,28 +36,32 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response) {
-      console.error("API Error:", error.response.data);
+      console.error('API Error:', error.response.data);
     } else if (error.request) {
-      console.error("Network Error:", error.message);
+      console.error('Network Error:', error.message);
     } else {
-      console.error("Error:", error.message);
+      console.error('Error:', error.message);
     }
     return Promise.reject(error);
   }
 );
 
-// Stock APIs
+/**
+ * Stock API methods
+ * @see {@link docs/API_REFERENCE.md#stock-apis} for endpoint documentation
+ */
 export const stockAPI = {
+  /** Search stocks by symbol/name @see GET /api/stocks/search */
   search: (query, page = 1, limit = 10) =>
-    api.get(
-      `/stocks/search?q=${encodeURIComponent(
-        query
-      )}&page=${page}&limit=${limit}`
-    ),
+    api.get(`/stocks/search?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`),
+  /** Get stock details @see GET /api/stocks/:symbol */
   getDetails: (symbol) => api.get(`/stocks/${symbol}`),
+  /** Get technical indicators @see GET /api/stocks/:symbol/technicals */
   getTechnicals: (symbol) => api.get(`/stocks/${symbol}/technicals`),
+  /** Get financial statements @see GET /api/stocks/:symbol/financials */
   getFinancials: (symbol, quarters = 4) =>
     api.get(`/stocks/${symbol}/financials?quarters=${quarters}`),
+  /** Get quarterly results @see GET /api/stocks/:symbol/quarterly */
   getQuarterlyResults: (symbol) => api.get(`/stocks/${symbol}/quarterly`),
 };
 
@@ -56,22 +69,17 @@ export const stockAPI = {
 export const transcriptAPI = {
   getTranscripts: (symbol) => api.get(`/result-transcript/${symbol}`),
   analyzeTranscript: (symbol, attachmentName) =>
-    api.post(
-      `/result-transcript/${symbol}/analyze`,
-      { attachmentName },
-      { timeout: 200000 }
-    ),
+    api.post(`/result-transcript/${symbol}/analyze`, { attachmentName }, { timeout: 200000 }),
 };
 
-// Screener APIs
+/**
+ * Screener API methods
+ * @see {@link docs/API_REFERENCE.md#screener-apis} for endpoint documentation
+ */
 export const screenerAPI = {
-  runScreener: (
-    filters,
-    sortBy = "market_cap",
-    sortOrder = "desc",
-    limit = 100
-  ) =>
-    api.post("/screener/run", {
+  /** Run stock screener with filters @see POST /api/screener/run */
+  runScreener: (filters, sortBy = 'market_cap', sortOrder = 'desc', limit = 100) =>
+    api.post('/screener/run', {
       filters,
       sort_by: sortBy,
       sort_order: sortOrder,
@@ -79,24 +87,34 @@ export const screenerAPI = {
     }),
 };
 
-// Watchlist APIs
+/**
+ * Watchlist API methods
+ * @see {@link docs/API_REFERENCE.md#watchlist-apis} for endpoint documentation
+ */
 export const watchlistAPI = {
-  getAll: () => api.get("/watchlist"),
+  /** Get all watchlist items @see GET /api/watchlist */
+  getAll: () => api.get('/watchlist'),
+  /** Add stock to watchlist @see POST /api/watchlist/:symbol */
   add: (symbol) => api.post(`/watchlist/${symbol}`),
+  /** Remove stock from watchlist @see DELETE /api/watchlist/:symbol */
   remove: (symbol) => api.delete(`/watchlist/${symbol}`),
 };
 
-// Market APIs
+/**
+ * Market API methods
+ * @see {@link docs/API_REFERENCE.md#market-apis} for endpoint documentation
+ */
 export const marketAPI = {
-  getIndices: () => api.get("/market/indices"),
-  getStats: () => api.get("/market/stats"),
+  /** Get market indices (Nifty, Sensex) @see GET /api/market/indices */
+  getIndices: () => api.get('/market/indices'),
+  /** Get market statistics @see GET /api/market/stats */
+  getStats: () => api.get('/market/stats'),
 };
 
 // Upcoming Results APIs
 export const upcomingResultsAPI = {
-  getAll: (page = 1, limit = 10) =>
-    api.get(`/upcoming-results?page=${page}&limit=${limit}`),
-  getSymbols: () => api.get("/upcoming-results/symbols"),
+  getAll: (page = 1, limit = 10) => api.get(`/upcoming-results?page=${page}&limit=${limit}`),
+  getSymbols: () => api.get('/upcoming-results/symbols'),
 };
 
 // Announcements APIs
@@ -106,18 +124,12 @@ export const announcementsAPI = {
 
 // Orders APIs
 export const ordersAPI = {
-  getBySymbol: (symbol, limit = 50) =>
-    api.get(`/orders/${symbol}?limit=${limit}`),
+  getBySymbol: (symbol, limit = 50) => api.get(`/orders/${symbol}?limit=${limit}`),
   getFullParsed: (symbol, limit = 20) =>
     api.get(`/orders/${symbol}/full?limit=${limit}`, { timeout: 180000 }),
   parsePdf: (symbol, attachmentUrl) =>
-    api.post(
-      `/orders/${symbol}/parse-pdf`,
-      { attachmentUrl },
-      { timeout: 120000 }
-    ),
-  getOrderbook: (symbol) =>
-    api.get(`/orders/${symbol}/orderbook`, { timeout: 300000 }),
+    api.post(`/orders/${symbol}/parse-pdf`, { attachmentUrl }, { timeout: 120000 }),
+  getOrderbook: (symbol) => api.get(`/orders/${symbol}/orderbook`, { timeout: 300000 }),
 };
 
 export default api;

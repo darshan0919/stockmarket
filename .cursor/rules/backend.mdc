@@ -1,0 +1,168 @@
+---
+description: Backend-specific rules for Express.js API development
+globs: ["backend/**/*"]
+---
+
+# Backend Development Rules
+
+## Directory Structure
+
+```
+backend/
+├── api/           # External API integrations
+├── controllers/   # Request handlers (business logic)
+├── middleware/    # Express middleware
+├── models/        # Mongoose schemas
+├── routes/        # API route definitions
+├── scripts/       # Data fetching scripts
+├── tests/         # Integration tests
+├── utils/         # Utility functions
+└── server.js      # Application entry
+```
+
+## Adding New API Endpoints
+
+### Step 1: Create Route
+
+```javascript
+// backend/routes/newFeature.js
+const express = require('express');
+const router = express.Router();
+const { handler } = require('../controllers/newFeatureController');
+
+/**
+ * @route GET /api/new-feature
+ * @desc Description of endpoint
+ * @access Public
+ */
+router.get('/', handler);
+
+module.exports = router;
+```
+
+### Step 2: Create Controller
+
+```javascript
+// backend/controllers/newFeatureController.js
+
+/**
+ * Handler description
+ * GET /api/new-feature
+ * 
+ * @see {@link docs/API_REFERENCE.md#new-feature} for API documentation
+ */
+const handler = async (req, res, next) => {
+  try {
+    // Implementation
+    res.json({ success: true, data: {} });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { handler };
+```
+
+### Step 3: Register Route in server.js
+
+```javascript
+app.use('/api/new-feature', require('./routes/newFeature'));
+```
+
+### Step 4: Add Tests
+
+```javascript
+// backend/controllers/__tests__/newFeatureController.test.js
+// Follow testing conventions in docs/TESTING.md
+```
+
+### Step 5: Update Documentation
+
+- Add endpoint to `docs/API_REFERENCE.md`
+- Update `docs/ARCHITECTURE.md` if needed
+
+## Mongoose Model Template
+
+```javascript
+// backend/models/NewModel.js
+const mongoose = require('mongoose');
+
+/**
+ * NewModel Schema
+ * @see {@link docs/backend/models/NewModel.md} for documentation
+ */
+const newModelSchema = new mongoose.Schema({
+  field: {
+    type: String,
+    required: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+// Indexes
+newModelSchema.index({ field: 1 });
+
+module.exports = mongoose.model('NewModel', newModelSchema);
+```
+
+## Utility Function Template
+
+```javascript
+// backend/utils/newUtil.js
+
+/**
+ * Utility function description
+ * 
+ * @param {Type} param - Description
+ * @returns {ReturnType} Description
+ * 
+ * @example
+ * const result = utilFunction(input);
+ * 
+ * @see {@link docs/backend/utils/newUtil.md} for documentation
+ */
+function utilFunction(param) {
+  // Implementation
+}
+
+module.exports = { utilFunction };
+```
+
+## Error Handling
+
+Always use try-catch and pass errors to next():
+
+```javascript
+const handler = async (req, res, next) => {
+  try {
+    // Implementation
+  } catch (error) {
+    next(error); // Handled by middleware/errorHandler.js
+  }
+};
+```
+
+## External API Integration
+
+When adding new external API:
+
+1. Create file in `backend/api/`
+2. Document API details (base URL, auth, rate limits)
+3. Add caching if appropriate
+4. Add tests in `backend/api/__tests__/`
+
+## Environment Variables
+
+Document new env vars in:
+- `.env.example` (create if doesn't exist)
+- `docs/backend/README.md`
+
+## Testing Checklist
+
+- [ ] Unit tests for controller functions
+- [ ] Edge case tests (null, empty, error)
+- [ ] Mock external dependencies
+- [ ] Test file in `__tests__/` folder next to source

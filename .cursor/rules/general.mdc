@@ -1,0 +1,113 @@
+---
+description: General project rules for Stock Screener application
+globs: ["**/*"]
+---
+
+# Stock Screener Project Rules
+
+## Project Overview
+
+This is a full-stack stock market analysis application with:
+- **Backend**: Express.js REST API with MongoDB (`backend/`)
+- **Frontend**: Next.js 14 React application (`frontend/`)
+- **Documentation**: Comprehensive docs in `docs/`
+
+## Documentation Requirements
+
+### MANDATORY: Update documentation for every change
+
+1. **For new features/functions**: Add JSDoc comments and update relevant docs in `docs/`
+2. **For API changes**: Update `docs/API_REFERENCE.md`
+3. **For architecture changes**: Update `docs/ARCHITECTURE.md`
+4. **For new components**: Document props and usage in component file
+
+### JSDoc Template
+
+```javascript
+/**
+ * Brief description of function/component
+ * 
+ * @param {Type} paramName - Parameter description
+ * @returns {ReturnType} Description of return value
+ * 
+ * @example
+ * // Usage example
+ * functionName(param)
+ * 
+ * @see {@link docs/path/to/doc.md} for detailed documentation
+ */
+```
+
+## Testing Requirements
+
+### MANDATORY: Add tests for every change
+
+1. **Backend tests**: Place in `__tests__/` folder next to source file
+2. **Frontend tests**: Place in `__tests__/` folder next to source file
+3. **Test naming**: `[filename].test.js`
+
+### Test File Template
+
+```javascript
+/**
+ * Unit tests for [Module Name]
+ * @file path/to/__tests__/module.test.js
+ * @see docs/path/to/doc.md for documentation
+ */
+
+describe('ModuleName', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('functionName', () => {
+    it('should handle expected case', () => {
+      // Arrange - Act - Assert
+    });
+
+    it('should handle edge case', () => {
+      // Test edge cases
+    });
+
+    it('should handle errors', () => {
+      // Test error handling
+    });
+  });
+});
+```
+
+## Code Formatting
+
+- **Prettier** is configured - run `npm run format` before committing
+- Configuration: `.prettierrc` in project root
+
+## Key File Locations
+
+| Purpose | Backend | Frontend |
+|---------|---------|----------|
+| Entry point | `server.js` | `pages/_app.js` |
+| API routes | `routes/*.js` | N/A |
+| Business logic | `controllers/*.js` | N/A |
+| Data models | `models/*.js` | N/A |
+| External APIs | `api/*.js` | `lib/api.js` |
+| Utilities | `utils/*.js` | `lib/utils/*.js` |
+| Components | N/A | `components/*.js` |
+| Custom hooks | N/A | `lib/hooks/*.js` |
+| Tests | `tests/`, `*/__tests__/` | `*/__tests__/` |
+
+## Code Navigation Tips
+
+- **Main documentation index**: `docs/README.md`
+- **API documentation**: `docs/API_REFERENCE.md`
+- **Architecture overview**: `docs/ARCHITECTURE.md`
+- **Backend guide**: `docs/backend/README.md`
+- **Frontend guide**: `docs/frontend/README.md`
+- **Testing guide**: `docs/TESTING.md`
+
+## Before Submitting Changes
+
+1. ✅ Run `npm run format` in both backend and frontend
+2. ✅ Run `npm test` in both backend and frontend
+3. ✅ Update relevant documentation
+4. ✅ Add/update tests for changes
+5. ✅ Verify no linter errors

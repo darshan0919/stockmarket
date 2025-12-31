@@ -10,13 +10,13 @@ const getMarketIndices = async (req, res, next) => {
     // Mock data for market indices - replace with actual data from API
     const indices = {
       nifty50: {
-        current: 19200.50,
-        change: 125.30,
+        current: 19200.5,
+        change: 125.3,
         change_percent: 0.65,
       },
       sensex: {
         current: 62500.75,
-        change: 200.50,
+        change: 200.5,
         change_percent: 0.32,
       },
     };
@@ -29,7 +29,7 @@ const getMarketIndices = async (req, res, next) => {
       if (!sector || sector === 'Unknown') continue;
 
       const sectorStocks = await Stock.find({ sector }).limit(10).lean();
-      
+
       if (sectorStocks.length === 0) continue;
 
       let totalChange = 0;
@@ -82,7 +82,7 @@ const getMarketStats = async (req, res, next) => {
       success: true,
       data: {
         total_stocks: totalStocks,
-        total_sectors: sectors.filter(s => s && s !== 'Unknown').length,
+        total_sectors: sectors.filter((s) => s && s !== 'Unknown').length,
       },
     });
   } catch (error) {
@@ -94,4 +94,3 @@ module.exports = {
   getMarketIndices,
   getMarketStats,
 };
-

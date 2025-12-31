@@ -40,4 +40,3 @@ priceHistorySchema.index({ stock_id: 1, date: -1 });
 priceHistorySchema.index({ date: -1 });
 
 module.exports = mongoose.model('PriceHistory', priceHistorySchema);
-

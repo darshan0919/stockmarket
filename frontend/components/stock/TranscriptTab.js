@@ -1,14 +1,20 @@
-import { useState, useEffect } from "react";
-import { transcriptAPI } from "../../lib/api";
-import LoadingSpinner from "../common/LoadingSpinner";
+import { useState, useEffect } from 'react';
+import { transcriptAPI } from '../../lib/api';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 // Metric Card Component for numeric values
-const MetricCard = ({ label, value, unit, growth, colorClass = "bg-slate-50 border-slate-200" }) => {
+const MetricCard = ({
+  label,
+  value,
+  unit,
+  growth,
+  colorClass = 'bg-slate-50 border-slate-200',
+}) => {
   if (value === null || value === undefined) return null;
-  
+
   const isPositiveGrowth = growth > 0;
   const isNegativeGrowth = growth < 0;
-  
+
   return (
     <div className={`${colorClass} border rounded-xl p-4 transition-all hover:shadow-md`}>
       <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{label}</p>
@@ -19,17 +25,31 @@ const MetricCard = ({ label, value, unit, growth, colorClass = "bg-slate-50 bord
         {unit && <span className="text-sm text-slate-500">{unit}</span>}
       </div>
       {growth !== null && growth !== undefined && (
-        <div className={`flex items-center gap-1 mt-1 text-sm font-medium ${
-          isPositiveGrowth ? 'text-emerald-600' : isNegativeGrowth ? 'text-red-500' : 'text-slate-500'
-        }`}>
+        <div
+          className={`flex items-center gap-1 mt-1 text-sm font-medium ${
+            isPositiveGrowth
+              ? 'text-emerald-600'
+              : isNegativeGrowth
+                ? 'text-red-500'
+                : 'text-slate-500'
+          }`}
+        >
           {isPositiveGrowth && (
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                clipRule="evenodd"
+              />
             </svg>
           )}
           {isNegativeGrowth && (
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
             </svg>
           )}
           <span>{Math.abs(growth)}% YoY</span>
@@ -42,9 +62,7 @@ const MetricCard = ({ label, value, unit, growth, colorClass = "bg-slate-50 bord
 // Section Header Component
 const SectionHeader = ({ icon, title, subtitle }) => (
   <div className="flex items-center gap-3 mb-4">
-    <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
-      {icon}
-    </div>
+    <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">{icon}</div>
     <div>
       <h4 className="text-lg font-semibold text-slate-900">{title}</h4>
       {subtitle && <p className="text-sm text-slate-500">{subtitle}</p>}
@@ -53,17 +71,19 @@ const SectionHeader = ({ icon, title, subtitle }) => (
 );
 
 // Bullet List Component
-const BulletList = ({ items, colorClass = "text-slate-600", bulletColor = "bg-slate-400" }) => {
+const BulletList = ({ items, colorClass = 'text-slate-600', bulletColor = 'bg-slate-400' }) => {
   if (!items || items.length === 0) return null;
-  
+
   return (
     <ul className="space-y-2">
-      {items.filter(item => item).map((item, idx) => (
-        <li key={idx} className="flex gap-3">
-          <span className={`mt-2 w-1.5 h-1.5 rounded-full ${bulletColor} flex-shrink-0`} />
-          <span className={`text-sm ${colorClass}`}>{item}</span>
-        </li>
-      ))}
+      {items
+        .filter((item) => item)
+        .map((item, idx) => (
+          <li key={idx} className="flex gap-3">
+            <span className={`mt-2 w-1.5 h-1.5 rounded-full ${bulletColor} flex-shrink-0`} />
+            <span className={`text-sm ${colorClass}`}>{item}</span>
+          </li>
+        ))}
     </ul>
   );
 };
@@ -71,7 +91,7 @@ const BulletList = ({ items, colorClass = "text-slate-600", bulletColor = "bg-sl
 // Text Block Component for commentary
 const TextBlock = ({ label, text }) => {
   if (!text) return null;
-  
+
   return (
     <div className="mb-3">
       <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{label}</p>
@@ -83,16 +103,16 @@ const TextBlock = ({ label, text }) => {
 // Main Analysis Result UI Component
 const AnalysisResultUI = ({ data }) => {
   if (!data || !data.data) return null;
-  
+
   const { meta, data: analysisData } = data;
-  const { 
+  const {
     current_quarter_financials: financials,
     order_book: orderBook,
     expansion_and_capex: capex,
     guidance_next_quarter: guidance,
     positive_highlights: highlights,
     challenges,
-    red_flags: redFlags
+    red_flags: redFlags,
   } = analysisData;
 
   return (
@@ -115,34 +135,43 @@ const AnalysisResultUI = ({ data }) => {
 
       {/* Key Metrics Grid */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6">
-        <SectionHeader 
-          icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
+        <SectionHeader
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
+            </svg>
+          }
           title="Key Financial Metrics"
           subtitle="Current quarter performance"
         />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MetricCard 
-            label="Revenue" 
-            value={financials?.revenue_from_operations} 
+          <MetricCard
+            label="Revenue"
+            value={financials?.revenue_from_operations}
             unit={financials?.revenue_unit}
             growth={financials?.revenue_growth_yoy}
             colorClass="bg-emerald-50 border-emerald-200"
           />
-          <MetricCard 
-            label="EBITDA Margin" 
-            value={financials?.ebitda_margin} 
+          <MetricCard
+            label="EBITDA Margin"
+            value={financials?.ebitda_margin}
             unit="%"
             colorClass="bg-blue-50 border-blue-200"
           />
-          <MetricCard 
-            label="PAT Growth" 
-            value={financials?.pat_growth_yoy} 
+          <MetricCard
+            label="PAT Growth"
+            value={financials?.pat_growth_yoy}
             unit="% YoY"
             colorClass="bg-violet-50 border-violet-200"
           />
-          <MetricCard 
-            label="Order Book" 
-            value={orderBook?.current_value} 
+          <MetricCard
+            label="Order Book"
+            value={orderBook?.current_value}
             unit={orderBook?.value_unit}
             colorClass="bg-amber-50 border-amber-200"
           />
@@ -152,8 +181,17 @@ const AnalysisResultUI = ({ data }) => {
       {/* Order Book Details */}
       {orderBook && (
         <div className="bg-white border border-slate-200 rounded-2xl p-6">
-          <SectionHeader 
-            icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
+          <SectionHeader
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
+              </svg>
+            }
             title="Order Book & Pipeline"
           />
           <div className="grid md:grid-cols-2 gap-6">
@@ -163,12 +201,14 @@ const AnalysisResultUI = ({ data }) => {
             </div>
             {orderBook.orderbook_breakdown && (
               <div className="bg-slate-50 rounded-xl p-4">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Orderbook Breakdown</p>
-                <BulletList 
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+                  Orderbook Breakdown
+                </p>
+                <BulletList
                   items={[
                     orderBook.orderbook_breakdown.primary_segment_orderbook,
                     orderBook.orderbook_breakdown.secondary_segment_orderbook,
-                    orderBook.orderbook_breakdown.other_orderbook
+                    orderBook.orderbook_breakdown.other_orderbook,
                   ]}
                   bulletColor="bg-indigo-400"
                 />
@@ -186,23 +226,42 @@ const AnalysisResultUI = ({ data }) => {
       {/* Revenue Breakdown */}
       {financials?.revenue_breakdown && (
         <div className="bg-white border border-slate-200 rounded-2xl p-6">
-          <SectionHeader 
-            icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>}
+          <SectionHeader
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"
+                />
+              </svg>
+            }
             title="Revenue Breakdown"
           />
           <div className="space-y-3">
-            <BulletList 
+            <BulletList
               items={[
                 financials.revenue_breakdown.primary_segment_revenue,
                 financials.revenue_breakdown.secondary_segment_revenue,
-                financials.revenue_breakdown.other_revenue
+                financials.revenue_breakdown.other_revenue,
               ]}
               bulletColor="bg-emerald-400"
             />
             {financials.revenue_breakdown.revenue_mix_commentary && (
               <div className="bg-slate-50 rounded-xl p-4 mt-4">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Management Commentary</p>
-                <p className="text-sm text-slate-700 leading-relaxed">{financials.revenue_breakdown.revenue_mix_commentary}</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                  Management Commentary
+                </p>
+                <p className="text-sm text-slate-700 leading-relaxed">
+                  {financials.revenue_breakdown.revenue_mix_commentary}
+                </p>
               </div>
             )}
           </div>
@@ -212,8 +271,17 @@ const AnalysisResultUI = ({ data }) => {
       {/* Expansion & Capex */}
       {capex && (capex.plans || capex.capex_plan_future) && (
         <div className="bg-white border border-slate-200 rounded-2xl p-6">
-          <SectionHeader 
-            icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}
+          <SectionHeader
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                />
+              </svg>
+            }
             title="Expansion & Capex"
           />
           <div className="space-y-3">
@@ -227,15 +295,27 @@ const AnalysisResultUI = ({ data }) => {
       {/* Guidance */}
       {guidance && (
         <div className="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 rounded-2xl p-6">
-          <SectionHeader 
-            icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>}
+          <SectionHeader
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                />
+              </svg>
+            }
             title="Forward Guidance"
           />
           <div className="grid md:grid-cols-2 gap-4">
             <TextBlock label="Revenue Expectation" text={guidance.revenue_expectation} />
             <TextBlock label="Margin Expectation" text={guidance.profit_margin_expectation} />
             <TextBlock label="Capex Guidance" text={guidance.capex_guidance} />
-            <TextBlock label="Expected Revenue from Order Book" text={guidance.revenue_expectation_from_order_book_number} />
+            <TextBlock
+              label="Expected Revenue from Order Book"
+              text={guidance.revenue_expectation_from_order_book_number}
+            />
           </div>
         </div>
       )}
@@ -243,43 +323,102 @@ const AnalysisResultUI = ({ data }) => {
       {/* Positive Highlights */}
       {highlights && highlights.length > 0 && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
-          <SectionHeader 
-            icon={<svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+          <SectionHeader
+            icon={
+              <svg
+                className="w-5 h-5 text-emerald-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            }
             title="Positive Highlights"
           />
-          <BulletList items={highlights} colorClass="text-emerald-800" bulletColor="bg-emerald-500" />
+          <BulletList
+            items={highlights}
+            colorClass="text-emerald-800"
+            bulletColor="bg-emerald-500"
+          />
         </div>
       )}
 
       {/* Challenges */}
-      {challenges && (challenges.immediate_issues?.length > 0 || challenges.future_risks?.length > 0) && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
-          <SectionHeader 
-            icon={<svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>}
-            title="Challenges"
-          />
-          <div className="grid md:grid-cols-2 gap-6">
-            {challenges.immediate_issues?.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-3">Immediate Issues</p>
-                <BulletList items={challenges.immediate_issues} colorClass="text-amber-900" bulletColor="bg-amber-500" />
-              </div>
-            )}
-            {challenges.future_risks?.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-3">Future Risks</p>
-                <BulletList items={challenges.future_risks} colorClass="text-amber-900" bulletColor="bg-amber-500" />
-              </div>
-            )}
+      {challenges &&
+        (challenges.immediate_issues?.length > 0 || challenges.future_risks?.length > 0) && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+            <SectionHeader
+              icon={
+                <svg
+                  className="w-5 h-5 text-amber-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              }
+              title="Challenges"
+            />
+            <div className="grid md:grid-cols-2 gap-6">
+              {challenges.immediate_issues?.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-3">
+                    Immediate Issues
+                  </p>
+                  <BulletList
+                    items={challenges.immediate_issues}
+                    colorClass="text-amber-900"
+                    bulletColor="bg-amber-500"
+                  />
+                </div>
+              )}
+              {challenges.future_risks?.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-3">
+                    Future Risks
+                  </p>
+                  <BulletList
+                    items={challenges.future_risks}
+                    colorClass="text-amber-900"
+                    bulletColor="bg-amber-500"
+                  />
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Red Flags */}
       {redFlags && redFlags.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
-          <SectionHeader 
-            icon={<svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" /></svg>}
+          <SectionHeader
+            icon={
+              <svg
+                className="w-5 h-5 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"
+                />
+              </svg>
+            }
             title="Red Flags"
           />
           <BulletList items={redFlags} colorClass="text-red-800" bulletColor="bg-red-500" />
@@ -314,8 +453,8 @@ export default function TranscriptTab({ symbol }) {
           }
         }
       } catch (err) {
-        console.error("Error fetching transcripts:", err);
-        setError("Unable to load earnings call transcripts");
+        console.error('Error fetching transcripts:', err);
+        setError('Unable to load earnings call transcripts');
       } finally {
         setLoading(false);
       }
@@ -344,23 +483,23 @@ export default function TranscriptTab({ symbol }) {
         setAnalysisResult(response.data.data);
       }
     } catch (err) {
-      console.error("Error analyzing transcript:", err);
-      setError("Unable to analyze transcript");
+      console.error('Error analyzing transcript:', err);
+      setError('Unable to analyze transcript');
     } finally {
       setAnalyzing(false);
     }
   };
 
   const formatDate = (dateStr) => {
-    if (!dateStr) return "-";
+    if (!dateStr) return '-';
     // Handle different date formats
     try {
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) return dateStr;
-      return date.toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
+      return date.toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
       });
     } catch {
       return dateStr;
@@ -419,7 +558,7 @@ export default function TranscriptTab({ symbol }) {
             </label>
             <select
               id="transcript-date"
-              value={selectedTranscript?.ATTACHMENTNAME || ""}
+              value={selectedTranscript?.ATTACHMENTNAME || ''}
               onChange={handleTranscriptSelect}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
             >
@@ -438,11 +577,7 @@ export default function TranscriptTab({ symbol }) {
           >
             {analyzing ? (
               <>
-                <svg
-                  className="animate-spin h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                   <circle
                     className="opacity-25"
                     cx="12"
@@ -461,12 +596,7 @@ export default function TranscriptTab({ symbol }) {
               </>
             ) : (
               <>
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -487,12 +617,7 @@ export default function TranscriptTab({ symbol }) {
               rel="noopener noreferrer"
               className="px-6 py-2 bg-slate-100 text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-200 transition-colors flex items-center gap-2"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -506,18 +631,13 @@ export default function TranscriptTab({ symbol }) {
         </div>
       </div>
 
-
       {/* Analysis Result */}
       {analysisResult && <AnalysisResultUI data={analysisResult} />}
 
-     
-
       {/* Attribution */}
       <p className="text-xs text-gray-500 mt-4">
-        Data source: BSE India. Earnings call transcripts are provided by the
-        company.
+        Data source: BSE India. Earnings call transcripts are provided by the company.
       </p>
     </div>
   );
 }
-

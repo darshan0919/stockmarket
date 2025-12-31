@@ -1,0 +1,204 @@
+---
+description: Documentation requirements for all code changes
+globs: ["**/*"]
+---
+
+# Documentation Rules
+
+## MANDATORY Documentation Requirements
+
+Every code change MUST include documentation updates:
+
+1. **New functions**: Add JSDoc comments
+2. **New components**: Document props and usage
+3. **API changes**: Update `docs/API_REFERENCE.md`
+4. **Architecture changes**: Update `docs/ARCHITECTURE.md`
+
+## Documentation Structure
+
+```
+docs/
+├── README.md              # Main index
+├── ARCHITECTURE.md        # System design
+├── API_REFERENCE.md       # REST API docs
+├── TESTING.md             # Testing guide
+├── CONTRIBUTING.md        # Contribution guidelines
+├── backend/
+│   ├── README.md          # Backend overview
+│   ├── api/               # API module docs
+│   ├── controllers/       # Controller docs
+│   └── utils/             # Utility docs
+└── frontend/
+    ├── README.md          # Frontend overview
+    ├── components/        # Component docs
+    ├── hooks/             # Hook docs
+    └── lib/               # Library docs
+```
+
+## JSDoc Requirements
+
+### Functions
+
+```javascript
+/**
+ * Brief description of what the function does
+ * 
+ * @param {string} param1 - Description of param1
+ * @param {number} [param2=10] - Optional param with default
+ * @returns {Object} Description of return value
+ * @throws {Error} Description of when error is thrown
+ * 
+ * @example
+ * const result = functionName('input', 20);
+ * // Returns: { processed: true }
+ * 
+ * @see {@link docs/path/to/doc.md} for detailed documentation
+ */
+function functionName(param1, param2 = 10) {
+  // Implementation
+}
+```
+
+### React Components
+
+```javascript
+/**
+ * ComponentName - Brief description
+ * 
+ * Displays [what it displays] and allows [what interactions].
+ * 
+ * @param {Object} props - Component props
+ * @param {string} props.requiredProp - Description of required prop
+ * @param {string} [props.optionalProp='default'] - Description of optional prop
+ * @param {Function} [props.onAction] - Callback when action occurs
+ * @returns {JSX.Element} Rendered component
+ * 
+ * @example
+ * <ComponentName
+ *   requiredProp="value"
+ *   optionalProp="custom"
+ *   onAction={(data) => console.log(data)}
+ * />
+ * 
+ * @see {@link docs/frontend/components/ComponentName.md} for documentation
+ */
+export default function ComponentName({ requiredProp, optionalProp = 'default', onAction }) {
+  // Implementation
+}
+```
+
+### Custom Hooks
+
+```javascript
+/**
+ * useHookName - Brief description of hook purpose
+ * 
+ * @param {string} param - Description
+ * @returns {Object} Hook return value
+ * @returns {any} returns.data - The fetched data
+ * @returns {boolean} returns.loading - Loading state
+ * @returns {string|null} returns.error - Error message if any
+ * @returns {Function} returns.refresh - Function to refresh data
+ * 
+ * @example
+ * function MyComponent() {
+ *   const { data, loading, error, refresh } = useHookName('param');
+ *   
+ *   if (loading) return <Spinner />;
+ *   if (error) return <Error message={error} />;
+ *   return <Display data={data} />;
+ * }
+ * 
+ * @see {@link docs/frontend/hooks/useHookName.md} for documentation
+ */
+export function useHookName(param) {
+  // Implementation
+}
+```
+
+## API Documentation Format
+
+When adding/modifying API endpoints, update `docs/API_REFERENCE.md`:
+
+```markdown
+### Endpoint Name
+
+Description of what the endpoint does.
+
+\`\`\`http
+METHOD /api/path/{param}?query={value}
+\`\`\`
+
+**Parameters:**
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| param | string | Yes | Description |
+| query | string | No | Description |
+
+**Request Body:** (for POST/PUT)
+\`\`\`json
+{
+  "field": "value"
+}
+\`\`\`
+
+**Response:**
+\`\`\`json
+{
+  "success": true,
+  "data": {}
+}
+\`\`\`
+
+**Code Reference:**
+- Function: `handlerName()` in `backend/controllers/controller.js:line`
+```
+
+## Cross-Referencing
+
+Always link related documentation:
+
+### In Code
+```javascript
+/**
+ * @see {@link docs/path/to/doc.md} for documentation
+ */
+```
+
+### In Documentation
+```markdown
+**Code Reference:**
+- Function: `functionName()` in `path/to/file.js:lineNumber`
+
+**Related Documentation:**
+- [Related Doc](./path/to/related.md)
+```
+
+## Documentation Checklist
+
+For every change, verify:
+
+- [ ] JSDoc comments added/updated
+- [ ] Related docs in `docs/` updated
+- [ ] API changes reflected in `API_REFERENCE.md`
+- [ ] Code references are accurate
+- [ ] Examples are provided
+- [ ] Cross-references are correct
+
+## Quick Reference Updates
+
+When adding new files, update the relevant README quick reference tables:
+
+### Backend (`docs/backend/README.md`)
+```markdown
+| Controller | File | Documentation |
+|------------|------|---------------|
+| NewController | newController.js | [Link](./controllers/newController.md) |
+```
+
+### Frontend (`docs/frontend/README.md`)
+```markdown
+| Component | File | Documentation |
+|-----------|------|---------------|
+| NewComponent | NewComponent.js | [Link](./components/NewComponent.md) |
+```

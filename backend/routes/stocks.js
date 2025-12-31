@@ -24,4 +24,3 @@ router.get('/:symbol/financials', getStockFinancials);
 router.get('/:symbol/quarterly', getQuarterlyResults);
 
 module.exports = router;
-

@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import { stockAPI } from "../../lib/api";
-import LoadingSpinner from "../common/LoadingSpinner";
-import _isNil from "lodash/isNil";
+import { useState, useEffect, useRef } from 'react';
+import { stockAPI } from '../../lib/api';
+import LoadingSpinner from '../common/LoadingSpinner';
+import _isNil from 'lodash/isNil';
 
 export default function BalanceSheet({ symbol }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState("quarterly"); // "quarterly" or "yearly"
-  const [resultType, setResultType] = useState("consolidated");
+  const [viewMode, setViewMode] = useState('quarterly'); // "quarterly" or "yearly"
+  const [resultType, setResultType] = useState('consolidated');
   const scrollContainerRef = useRef(null);
 
   useEffect(() => {
@@ -20,11 +20,11 @@ export default function BalanceSheet({ symbol }) {
         if (response.data.success) {
           setData(response.data.data);
         } else {
-          setError("Failed to fetch balance sheet");
+          setError('Failed to fetch balance sheet');
         }
       } catch (err) {
-        console.error("Error fetching balance sheet:", err);
-        setError("Unable to load balance sheet");
+        console.error('Error fetching balance sheet:', err);
+        setError('Unable to load balance sheet');
       } finally {
         setLoading(false);
       }
@@ -40,16 +40,15 @@ export default function BalanceSheet({ symbol }) {
     if (data && scrollContainerRef.current) {
       setTimeout(() => {
         if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollLeft =
-            scrollContainerRef.current.scrollWidth;
+          scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
         }
       }, 100);
     }
   }, [data, viewMode, resultType]);
 
   const formatValue = (value) => {
-    if (value === null || value === undefined) return "-";
-    return value.toLocaleString("en-IN", {
+    if (value === null || value === undefined) return '-';
+    return value.toLocaleString('en-IN', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     });
@@ -63,7 +62,7 @@ export default function BalanceSheet({ symbol }) {
       const fyMatch = q.period.match(/FY(\d{2})/);
       if (!fyMatch) return;
 
-      const fiscal_year = parseInt("20" + fyMatch[1]);
+      const fiscal_year = parseInt('20' + fyMatch[1]);
       const consolidated = q.consolidated;
       const key = `${fiscal_year}_${consolidated}`;
 
@@ -103,9 +102,7 @@ export default function BalanceSheet({ symbol }) {
     });
 
     // Add TTM (use latest quarter's balance sheet)
-    const sortedQuarters = [...quarters].sort(
-      (a, b) => new Date(b.to_date) - new Date(a.to_date)
-    );
+    const sortedQuarters = [...quarters].sort((a, b) => new Date(b.to_date) - new Date(a.to_date));
 
     const consolidatedQuarters = sortedQuarters.filter((q) => q.consolidated);
     const standaloneQuarters = sortedQuarters.filter((q) => !q.consolidated);
@@ -118,7 +115,7 @@ export default function BalanceSheet({ symbol }) {
         const latest = qList[0];
         yearlyMap[`9999_${consolidated}`] = {
           fiscal_year: 9999,
-          year: "TTM",
+          year: 'TTM',
           consolidated,
           isTTM: true,
           latestQuarter: latest,
@@ -146,11 +143,7 @@ export default function BalanceSheet({ symbol }) {
   }
 
   if (!data || !data.quarters || data.quarters.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        No balance sheet data available
-      </div>
-    );
+    return <div className="text-center py-8 text-gray-500">No balance sheet data available</div>;
   }
 
   // Check if any balance sheet data exists
@@ -188,12 +181,12 @@ export default function BalanceSheet({ symbol }) {
               Balance Sheet Data Not Available
             </h3>
             <p className="text-sm text-gray-700 mb-3">
-              NSE only provides Balance Sheet data in annual financial reports, not in quarterly filings. 
-              Quarterly XBRL documents contain P&L and Cash Flow statements only.
+              NSE only provides Balance Sheet data in annual financial reports, not in quarterly
+              filings. Quarterly XBRL documents contain P&L and Cash Flow statements only.
             </p>
             <p className="text-sm text-gray-600 mb-4">
-              We're working on integrating annual report data to show Balance Sheet information. 
-              In the meantime, you can view the official reports on NSE.
+              We're working on integrating annual report data to show Balance Sheet information. In
+              the meantime, you can view the official reports on NSE.
             </p>
             <a
               href={`https://www.nseindia.com/get-quotes/equity?symbol=${symbol}`}
@@ -202,12 +195,7 @@ export default function BalanceSheet({ symbol }) {
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
             >
               View on NSE
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -226,14 +214,14 @@ export default function BalanceSheet({ symbol }) {
   const allQuarters = data.quarters || [];
   let periods;
 
-  if (viewMode === "quarterly") {
+  if (viewMode === 'quarterly') {
     periods = allQuarters.filter((q) =>
-      resultType === "consolidated" ? q.consolidated : !q.consolidated
+      resultType === 'consolidated' ? q.consolidated : !q.consolidated
     );
   } else {
     const yearly = aggregateToYearly(allQuarters);
     periods = yearly.filter((y) =>
-      resultType === "consolidated" ? y.consolidated : !y.consolidated
+      resultType === 'consolidated' ? y.consolidated : !y.consolidated
     );
   }
 
@@ -243,22 +231,27 @@ export default function BalanceSheet({ symbol }) {
 
   // Define balance sheet rows (based on Screener.in)
   const liabilitiesRows = [
-    { key: "equity_capital", label: "Equity Capital", format: formatValue },
-    { key: "reserves", label: "Reserves", format: formatValue },
-    { key: "borrowings", label: "Borrowings", format: formatValue, expandable: false },
-    { key: "other_liabilities", label: "Other Liabilities", format: formatValue, expandable: false },
+    { key: 'equity_capital', label: 'Equity Capital', format: formatValue },
+    { key: 'reserves', label: 'Reserves', format: formatValue },
+    { key: 'borrowings', label: 'Borrowings', format: formatValue, expandable: false },
+    {
+      key: 'other_liabilities',
+      label: 'Other Liabilities',
+      format: formatValue,
+      expandable: false,
+    },
   ];
 
   const assetsRows = [
-    { key: "fixed_assets", label: "Fixed Assets", format: formatValue, expandable: false },
-    { key: "cwip", label: "CWIP", format: formatValue },
-    { key: "investments", label: "Investments", format: formatValue },
-    { key: "other_assets", label: "Other Assets", format: formatValue, expandable: false },
+    { key: 'fixed_assets', label: 'Fixed Assets', format: formatValue, expandable: false },
+    { key: 'cwip', label: 'CWIP', format: formatValue },
+    { key: 'investments', label: 'Investments', format: formatValue },
+    { key: 'other_assets', label: 'Other Assets', format: formatValue, expandable: false },
   ];
 
   const totalRows = [
-    { key: "total_liabilities", label: "Total Liabilities", format: formatValue, bold: true },
-    { key: "total_assets", label: "Total Assets", format: formatValue, bold: true },
+    { key: 'total_liabilities', label: 'Total Liabilities', format: formatValue, bold: true },
+    { key: 'total_assets', label: 'Total Assets', format: formatValue, bold: true },
   ];
 
   return (
@@ -267,27 +260,27 @@ export default function BalanceSheet({ symbol }) {
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-4">
             <h3 className="text-lg font-semibold text-gray-900">
-              Balance Sheet ({periods.length} {viewMode === "quarterly" ? "quarters" : "years"})
+              Balance Sheet ({periods.length} {viewMode === 'quarterly' ? 'quarters' : 'years'})
             </h3>
 
             {/* Quarterly/Yearly Toggle */}
             <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
               <button
-                onClick={() => setViewMode("quarterly")}
+                onClick={() => setViewMode('quarterly')}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                  viewMode === "quarterly"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
+                  viewMode === 'quarterly'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 Quarterly
               </button>
               <button
-                onClick={() => setViewMode("yearly")}
+                onClick={() => setViewMode('yearly')}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                  viewMode === "yearly"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
+                  viewMode === 'yearly'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 Yearly
@@ -299,11 +292,11 @@ export default function BalanceSheet({ symbol }) {
               <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
                 {hasConsolidated && (
                   <button
-                    onClick={() => setResultType("consolidated")}
+                    onClick={() => setResultType('consolidated')}
                     className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                      resultType === "consolidated"
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
+                      resultType === 'consolidated'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
                     Consolidated
@@ -311,11 +304,11 @@ export default function BalanceSheet({ symbol }) {
                 )}
                 {hasStandalone && (
                   <button
-                    onClick={() => setResultType("standalone")}
+                    onClick={() => setResultType('standalone')}
                     className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                      resultType === "standalone"
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
+                      resultType === 'standalone'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
                     Standalone
@@ -331,7 +324,7 @@ export default function BalanceSheet({ symbol }) {
       <div
         ref={scrollContainerRef}
         className="overflow-x-auto border rounded-lg"
-        style={{ scrollBehavior: "smooth" }}
+        style={{ scrollBehavior: 'smooth' }}
       >
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -344,7 +337,7 @@ export default function BalanceSheet({ symbol }) {
                   key={index}
                   className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                 >
-                  {viewMode === "quarterly" ? period.period : period.year}
+                  {viewMode === 'quarterly' ? period.period : period.year}
                 </th>
               ))}
             </tr>
@@ -360,10 +353,7 @@ export default function BalanceSheet({ symbol }) {
               </td>
             </tr>
             {liabilitiesRows.map((row, rowIndex) => (
-              <tr
-                key={row.key}
-                className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}
-              >
+              <tr key={row.key} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
                   {row.label}
                   {row.expandable && (
@@ -393,10 +383,7 @@ export default function BalanceSheet({ symbol }) {
               </td>
             </tr>
             {assetsRows.map((row, rowIndex) => (
-              <tr
-                key={row.key}
-                className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}
-              >
+              <tr key={row.key} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
                   {row.label}
                   {row.expandable && (
@@ -451,10 +438,9 @@ export default function BalanceSheet({ symbol }) {
       {data.source && (
         <p className="text-xs text-gray-500 mt-2">
           Data source: {data.source}
-          {data.cached && " (cached)"}
+          {data.cached && ' (cached)'}
         </p>
       )}
     </div>
   );
 }
-

@@ -1,20 +1,20 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const axios = require("axios");
+const axios = require('axios');
 const {
   parseOrderFromPdf,
   parseAmountFromText,
   parseCapacityFromText,
-} = require("../api/orderParser");
-const { getOrderbookBaseline } = require("../api/orderbookBaselineParser");
+} = require('../api/orderParser');
+const { getOrderbookBaseline } = require('../api/orderbookBaselineParser');
 
 // NSE API headers
 const NSE_HEADERS = {
-  Accept: "application/json",
-  "Accept-Language": "en-US,en;q=0.9",
-  "Accept-Encoding": "gzip, deflate, br",
-  "User-Agent":
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  Accept: 'application/json',
+  'Accept-Language': 'en-US,en;q=0.9',
+  'Accept-Encoding': 'gzip, deflate, br',
+  'User-Agent':
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
 };
 
 /**
@@ -41,17 +41,17 @@ const fetchOrderAnnouncements = async (symbol) => {
     // Filter 1: Subject/Description contains "Bagging/Receiving of orders/contracts" (case insensitive)
     // Filter 2: Attachment URL contains "Tender_intimation" (case insensitive)
     const orderAnnouncements = allAnnouncements.filter((ann) => {
-      const subject = (ann.subject || "").toLowerCase();
-      const desc = (ann.desc || "").toLowerCase();
-      const attachmentUrl = (ann.attchmntFile || "").toLowerCase();
+      const subject = (ann.subject || '').toLowerCase();
+      const desc = (ann.desc || '').toLowerCase();
+      const attachmentUrl = (ann.attchmntFile || '').toLowerCase();
 
       // Check if subject or description contains the order subject
       const hasOrderSubject =
-        subject.includes("bagging/receiving of orders/contracts") ||
-        desc.includes("bagging/receiving of orders/contracts");
+        subject.includes('bagging/receiving of orders/contracts') ||
+        desc.includes('bagging/receiving of orders/contracts');
 
       // Check if attachment URL contains "Tender_intimation"
-      const hasTenderIntimation = attachmentUrl.includes("tender_intimation");
+      const hasTenderIntimation = attachmentUrl.includes('tender_intimation');
 
       // Return true if EITHER condition is met
       return hasOrderSubject || hasTenderIntimation;
@@ -59,7 +59,7 @@ const fetchOrderAnnouncements = async (symbol) => {
 
     return orderAnnouncements;
   } catch (error) {
-    console.error("Error fetching order announcements:", error.message);
+    console.error('Error fetching order announcements:', error.message);
     return [];
   }
 };
@@ -73,31 +73,31 @@ const parseNseDate = (dateStr) => {
   if (!dateStr) return null;
 
   try {
-    const parts = dateStr.split(" ");
-    const dateParts = parts[0].split("-");
+    const parts = dateStr.split(' ');
+    const dateParts = parts[0].split('-');
     const months = {
-      Jan: "01",
-      Feb: "02",
-      Mar: "03",
-      Apr: "04",
-      May: "05",
-      Jun: "06",
-      Jul: "07",
-      Aug: "08",
-      Sep: "09",
-      Oct: "10",
-      Nov: "11",
-      Dec: "12",
+      Jan: '01',
+      Feb: '02',
+      Mar: '03',
+      Apr: '04',
+      May: '05',
+      Jun: '06',
+      Jul: '07',
+      Aug: '08',
+      Sep: '09',
+      Oct: '10',
+      Nov: '11',
+      Dec: '12',
     };
 
     if (dateParts.length === 3) {
-      const day = dateParts[0].padStart(2, "0");
-      const month = months[dateParts[1]] || "01";
+      const day = dateParts[0].padStart(2, '0');
+      const month = months[dateParts[1]] || '01';
       const year = dateParts[2];
       return `${year}-${month}-${day}`;
     }
   } catch (e) {
-    console.error("Error parsing date:", dateStr);
+    console.error('Error parsing date:', dateStr);
   }
 
   return dateStr;
@@ -107,15 +107,15 @@ const parseNseDate = (dateStr) => {
  * GET /api/orders/:symbol
  * Fetch and parse order announcements for a stock
  */
-router.get("/:symbol", async (req, res, next) => {
+router.get('/:symbol', async (req, res, next) => {
   try {
     const { symbol } = req.params;
-    const { parsePdf = "false", limit = "50" } = req.query;
+    const { parsePdf = 'false', limit = '50' } = req.query;
 
     if (!symbol) {
       return res.status(400).json({
         success: false,
-        error: "Symbol is required",
+        error: 'Symbol is required',
       });
     }
 
@@ -134,20 +134,17 @@ router.get("/:symbol", async (req, res, next) => {
       const order = {
         id: `${ann.an_dt}-${ann.seq_id || orders.length}`,
         announcement_date: parseNseDate(ann.an_dt),
-        subject: ann.subject || "Order Announcement",
-        description: ann.desc || "",
+        subject: ann.subject || 'Order Announcement',
+        description: ann.desc || '',
         attachment_url: ann.attchmntFile || null,
         attachment_text: ann.attchmntText || null,
         company_name: ann.sm_name || symbol,
 
         // Extracted order details (initially from text parsing)
         order_details: {
-          order_value:
-            parseAmountFromText(ann.desc) ||
-            parseAmountFromText(ann.attchmntText),
+          order_value: parseAmountFromText(ann.desc) || parseAmountFromText(ann.attchmntText),
           order_capacity:
-            parseCapacityFromText(ann.desc) ||
-            parseCapacityFromText(ann.attchmntText),
+            parseCapacityFromText(ann.desc) || parseCapacityFromText(ann.attchmntText),
           customer_name: null,
           order_type: null,
           project_description: ann.desc || null,
@@ -171,7 +168,7 @@ router.get("/:symbol", async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching orders:", error.message);
+    console.error('Error fetching orders:', error.message);
     next(error);
   }
 });
@@ -180,7 +177,7 @@ router.get("/:symbol", async (req, res, next) => {
  * POST /api/orders/:symbol/parse-pdf
  * Parse a specific PDF attachment to extract order details
  */
-router.post("/:symbol/parse-pdf", async (req, res, next) => {
+router.post('/:symbol/parse-pdf', async (req, res, next) => {
   try {
     const { symbol } = req.params;
     const { attachmentUrl } = req.body;
@@ -188,7 +185,7 @@ router.post("/:symbol/parse-pdf", async (req, res, next) => {
     if (!attachmentUrl) {
       return res.status(400).json({
         success: false,
-        error: "attachmentUrl is required",
+        error: 'attachmentUrl is required',
       });
     }
 
@@ -204,7 +201,7 @@ router.post("/:symbol/parse-pdf", async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error("Error parsing PDF:", error.message);
+    console.error('Error parsing PDF:', error.message);
     next(error);
   }
 });
@@ -213,17 +210,17 @@ router.post("/:symbol/parse-pdf", async (req, res, next) => {
  * GET /api/orders/:symbol/full
  * Fetch orders with full PDF parsing (slower but more accurate)
  */
-router.get("/:symbol/full", async (req, res, next) => {
+router.get('/:symbol/full', async (req, res, next) => {
   const requestStartTime = Date.now();
 
   try {
     const { symbol } = req.params;
-    const { limit = "20" } = req.query;
+    const { limit = '20' } = req.query;
 
     if (!symbol) {
       return res.status(400).json({
         success: false,
-        error: "Symbol is required",
+        error: 'Symbol is required',
       });
     }
 
@@ -235,10 +232,7 @@ router.get("/:symbol/full", async (req, res, next) => {
     const fetchTime = Date.now() - fetchStartTime;
 
     // Limit for full parsing (as it's expensive)
-    const limitedAnnouncements = announcements.slice(
-      0,
-      Math.min(parseInt(limit), 30)
-    );
+    const limitedAnnouncements = announcements.slice(0, Math.min(parseInt(limit), 30));
 
     // Process announcements with PDF parsing
     const orders = [];
@@ -278,19 +272,17 @@ router.get("/:symbol/full", async (req, res, next) => {
       }
 
       // Merge text-based parsing with PDF parsing
-      const textOrderValue =
-        parseAmountFromText(ann.desc) || parseAmountFromText(ann.attchmntText);
+      const textOrderValue = parseAmountFromText(ann.desc) || parseAmountFromText(ann.attchmntText);
       const textCapacity =
-        parseCapacityFromText(ann.desc) ||
-        parseCapacityFromText(ann.attchmntText);
+        parseCapacityFromText(ann.desc) || parseCapacityFromText(ann.attchmntText);
 
       const pdfOrderDetails = parsedPdfData?.order_details || {};
 
       const order = {
         id: `${ann.an_dt}-${ann.seq_id || orders.length}`,
         announcement_date: parseNseDate(ann.an_dt),
-        subject: ann.subject || "Order Announcement",
-        description: ann.desc || "",
+        subject: ann.subject || 'Order Announcement',
+        description: ann.desc || '',
         attachment_url: ann.attchmntFile || null,
         attachment_text: ann.attchmntText || null,
         company_name: ann.sm_name || symbol,
@@ -302,8 +294,7 @@ router.get("/:symbol/full", async (req, res, next) => {
           customer_name: pdfOrderDetails.customer_name || null,
           customer_type: pdfOrderDetails.customer_type || null,
           order_type: pdfOrderDetails.order_type || null,
-          project_description:
-            pdfOrderDetails.project_description || ann.desc || null,
+          project_description: pdfOrderDetails.project_description || ann.desc || null,
           project_location: pdfOrderDetails.project_location || null,
           timeline: pdfOrderDetails.timeline || null,
           payment_terms: pdfOrderDetails.payment_terms || null,
@@ -328,9 +319,7 @@ router.get("/:symbol/full", async (req, res, next) => {
     const totalRequestTime = Date.now() - requestStartTime;
 
     // Calculate summary statistics
-    const ordersWithValues = orders.filter(
-      (o) => o.order_details?.order_value?.value_in_crore_inr
-    );
+    const ordersWithValues = orders.filter((o) => o.order_details?.order_value?.value_in_crore_inr);
     const totalOrderValue = ordersWithValues.reduce(
       (sum, o) => sum + (o.order_details.order_value.value_in_crore_inr || 0),
       0
@@ -349,8 +338,7 @@ router.get("/:symbol/full", async (req, res, next) => {
           total_request_time_ms: totalRequestTime,
           nse_fetch_time_ms: fetchTime,
           pdf_parsing_time_ms: totalParsingTime,
-          average_parse_time_ms:
-            orders.length > 0 ? Math.round(totalParseTime / orders.length) : 0,
+          average_parse_time_ms: orders.length > 0 ? Math.round(totalParseTime / orders.length) : 0,
         },
         cache_stats: {
           cache_hits: cacheHits,
@@ -363,7 +351,7 @@ router.get("/:symbol/full", async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching full orders:", error.message);
+    console.error('Error fetching full orders:', error.message);
     next(error);
   }
 });
@@ -373,7 +361,7 @@ router.get("/:symbol/full", async (req, res, next) => {
  * Get accumulated order book: baseline + new orders after baseline date
  * No limit - fetches ALL outstanding orders
  */
-router.get("/:symbol/orderbook", async (req, res, next) => {
+router.get('/:symbol/orderbook', async (req, res, next) => {
   const requestStartTime = Date.now();
 
   try {
@@ -382,7 +370,7 @@ router.get("/:symbol/orderbook", async (req, res, next) => {
     if (!symbol) {
       return res.status(400).json({
         success: false,
-        error: "Symbol is required",
+        error: 'Symbol is required',
       });
     }
 
@@ -399,7 +387,7 @@ router.get("/:symbol/orderbook", async (req, res, next) => {
         documents_fetched: baselineResult.documents_fetched,
         parse_errors: baselineResult.parse_errors,
         message:
-          "Could not find baseline order book. This company may not publish order book details in their corporate filings. Showing all order announcements instead.",
+          'Could not find baseline order book. This company may not publish order book details in their corporate filings. Showing all order announcements instead.',
       });
     }
 
@@ -454,11 +442,9 @@ router.get("/:symbol/orderbook", async (req, res, next) => {
       }
 
       // Get order value from PDF or text parsing
-      const textOrderValue =
-        parseAmountFromText(ann.desc) || parseAmountFromText(ann.attchmntText);
+      const textOrderValue = parseAmountFromText(ann.desc) || parseAmountFromText(ann.attchmntText);
       const textCapacity =
-        parseCapacityFromText(ann.desc) ||
-        parseCapacityFromText(ann.attchmntText);
+        parseCapacityFromText(ann.desc) || parseCapacityFromText(ann.attchmntText);
 
       const pdfOrderDetails = parsedPdfData?.order_details || {};
       const orderValue = pdfOrderDetails.order_value || textOrderValue;
@@ -471,8 +457,8 @@ router.get("/:symbol/orderbook", async (req, res, next) => {
       const order = {
         id: `${ann.an_dt}-${ann.seq_id || newOrders.length}`,
         announcement_date: parseNseDate(ann.an_dt),
-        subject: ann.subject || "Order Announcement",
-        description: ann.desc || "",
+        subject: ann.subject || 'Order Announcement',
+        description: ann.desc || '',
         attachment_url: ann.attchmntFile || null,
         company_name: ann.sm_name || symbol,
         order_details: {
@@ -481,8 +467,7 @@ router.get("/:symbol/orderbook", async (req, res, next) => {
           customer_name: pdfOrderDetails.customer_name || null,
           customer_type: pdfOrderDetails.customer_type || null,
           order_type: pdfOrderDetails.order_type || null,
-          project_description:
-            pdfOrderDetails.project_description || ann.desc || null,
+          project_description: pdfOrderDetails.project_description || ann.desc || null,
         },
         pdf_parsed: !!parsedPdfData?.extraction_success,
         confidence_score: parsedPdfData?.confidence_score || 0,
@@ -523,7 +508,7 @@ router.get("/:symbol/orderbook", async (req, res, next) => {
           // Accumulated = Baseline + New Orders (simplified, doesn't account for executed orders)
           accumulated_order_book_crores: accumulatedOrderBook,
           calculation_note:
-            "Accumulated = Baseline + New Orders. Does not subtract executed orders.",
+            'Accumulated = Baseline + New Orders. Does not subtract executed orders.',
         },
 
         // Order inflow for the reporting period (latest quarter/year)
@@ -542,9 +527,7 @@ router.get("/:symbol/orderbook", async (req, res, next) => {
         timing: {
           total_request_time_ms: totalRequestTime,
           average_parse_time_ms:
-            newOrders.length > 0
-              ? Math.round(totalParseTime / newOrders.length)
-              : 0,
+            newOrders.length > 0 ? Math.round(totalParseTime / newOrders.length) : 0,
         },
         cache_stats: {
           cache_hits: cacheHits,
@@ -558,7 +541,7 @@ router.get("/:symbol/orderbook", async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching order book:", error.message);
+    console.error('Error fetching order book:', error.message);
     next(error);
   }
 });

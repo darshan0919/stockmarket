@@ -1,4 +1,13 @@
-import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  CartesianGrid,
+} from 'recharts';
 import { formatChartDate, formatCurrency } from '../../lib/utils/formatters';
 
 export default function ChartTab({ priceHistory }) {
@@ -113,4 +122,3 @@ export default function ChartTab({ priceHistory }) {
     </div>
   );
 }
-

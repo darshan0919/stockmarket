@@ -6,4 +6,3 @@ const { runScreener } = require('../controllers/screenerController');
 router.post('/run', runScreener);
 
 module.exports = router;
-

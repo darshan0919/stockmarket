@@ -16,4 +16,3 @@ const watchlistSchema = new mongoose.Schema({
 watchlistSchema.index({ symbol: 1 });
 
 module.exports = mongoose.model('Watchlist', watchlistSchema);
-

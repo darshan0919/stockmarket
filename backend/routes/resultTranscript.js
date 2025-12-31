@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 const {
-    getResultTranscript,
-    analyzeTranscript
+  getResultTranscript,
+  analyzeTranscript,
 } = require('../controllers/resultTranscriptController');
 
 router.get('/:symbol', getResultTranscript);

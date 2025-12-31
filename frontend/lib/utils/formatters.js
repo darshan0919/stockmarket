@@ -3,10 +3,10 @@
  */
 export function formatCurrency(value) {
   if (value === null || value === undefined) return 'N/A';
-  
+
   const num = Number(value);
   if (isNaN(num)) return 'N/A';
-  
+
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
@@ -19,10 +19,10 @@ export function formatCurrency(value) {
  */
 export function formatLargeNumber(value) {
   if (value === null || value === undefined) return 'N/A';
-  
+
   const num = Number(value);
   if (isNaN(num)) return 'N/A';
-  
+
   if (num >= 1e9) {
     return `₹${(num / 1e9).toFixed(2)}B`;
   } else if (num >= 1e7) {
@@ -41,10 +41,10 @@ export function formatLargeNumber(value) {
  */
 export function formatPercent(value, decimals = 2) {
   if (value === null || value === undefined) return 'N/A';
-  
+
   const num = Number(value);
   if (isNaN(num)) return 'N/A';
-  
+
   return `${num.toFixed(decimals)}%`;
 }
 
@@ -53,10 +53,10 @@ export function formatPercent(value, decimals = 2) {
  */
 export function formatPercentage(value, decimals = 2) {
   if (value === null || value === undefined) return 'N/A';
-  
+
   const num = Number(value);
   if (isNaN(num)) return 'N/A';
-  
+
   const sign = num >= 0 ? '+' : '';
   return `${sign}${num.toFixed(decimals)}%`;
 }
@@ -66,10 +66,10 @@ export function formatPercentage(value, decimals = 2) {
  */
 export function formatNumber(value, decimals = 2) {
   if (value === null || value === undefined) return 'N/A';
-  
+
   const num = Number(value);
   if (isNaN(num)) return 'N/A';
-  
+
   return num.toFixed(decimals);
 }
 
@@ -78,10 +78,10 @@ export function formatNumber(value, decimals = 2) {
  */
 export function formatDate(date) {
   if (!date) return 'N/A';
-  
+
   const d = new Date(date);
   if (isNaN(d.getTime())) return 'N/A';
-  
+
   return d.toLocaleDateString('en-IN', {
     year: 'numeric',
     month: 'short',
@@ -94,10 +94,10 @@ export function formatDate(date) {
  */
 export function formatChartDate(date) {
   if (!date) return '';
-  
+
   const d = new Date(date);
   if (isNaN(d.getTime())) return '';
-  
+
   return d.toLocaleDateString('en-IN', {
     month: 'short',
     year: '2-digit',
@@ -125,11 +125,10 @@ export function getChangeBgColor(value) {
  */
 export function formatChange(value, decimals = 2) {
   if (value === null || value === undefined) return 'N/A';
-  
+
   const num = Number(value);
   if (isNaN(num)) return 'N/A';
-  
+
   const sign = num >= 0 ? '+' : '';
   return `${sign}${num.toFixed(decimals)}`;
 }
-

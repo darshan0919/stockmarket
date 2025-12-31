@@ -10,13 +10,37 @@ export default function FundamentalsTab({ fundamentals }) {
     { label: 'P/B Ratio', value: fundamentals.pb_ratio, description: 'Price to Book Value' },
     { label: 'ROE %', value: fundamentals.roe, description: 'Return on Equity' },
     { label: 'ROCE %', value: fundamentals.roce, description: 'Return on Capital Employed' },
-    { label: 'Debt/Equity', value: fundamentals.debt_to_equity, description: 'Debt to Equity Ratio' },
-    { label: 'Revenue Growth 3Y %', value: fundamentals.revenue_growth_3y, description: '3-Year Revenue CAGR' },
-    { label: 'Profit Growth 3Y %', value: fundamentals.profit_growth_3y, description: '3-Year Profit CAGR' },
-    { label: 'Dividend Yield %', value: fundamentals.dividend_yield, description: 'Annual Dividend Yield' },
-    { label: 'Current Ratio', value: fundamentals.current_ratio, description: 'Current Assets / Current Liabilities' },
+    {
+      label: 'Debt/Equity',
+      value: fundamentals.debt_to_equity,
+      description: 'Debt to Equity Ratio',
+    },
+    {
+      label: 'Revenue Growth 3Y %',
+      value: fundamentals.revenue_growth_3y,
+      description: '3-Year Revenue CAGR',
+    },
+    {
+      label: 'Profit Growth 3Y %',
+      value: fundamentals.profit_growth_3y,
+      description: '3-Year Profit CAGR',
+    },
+    {
+      label: 'Dividend Yield %',
+      value: fundamentals.dividend_yield,
+      description: 'Annual Dividend Yield',
+    },
+    {
+      label: 'Current Ratio',
+      value: fundamentals.current_ratio,
+      description: 'Current Assets / Current Liabilities',
+    },
     { label: 'EPS', value: fundamentals.eps, description: 'Earnings Per Share' },
-    { label: 'Book Value Per Share', value: fundamentals.book_value_per_share, description: 'Book Value Per Share' },
+    {
+      label: 'Book Value Per Share',
+      value: fundamentals.book_value_per_share,
+      description: 'Book Value Per Share',
+    },
   ];
 
   return (
@@ -36,4 +60,3 @@ export default function FundamentalsTab({ fundamentals }) {
     </div>
   );
 }
-

@@ -11,7 +11,7 @@ const runScreener = async (req, res, next) => {
 
     // Build stock query
     const stockQuery = {};
-    
+
     if (filters.market_cap_min !== undefined) {
       stockQuery.market_cap = { ...stockQuery.market_cap, $gte: filters.market_cap_min };
     }
@@ -26,7 +26,9 @@ const runScreener = async (req, res, next) => {
     }
 
     // Get matching stocks
-    const stocks = await Stock.find(stockQuery).select('_id symbol name sector industry market_cap').lean();
+    const stocks = await Stock.find(stockQuery)
+      .select('_id symbol name sector industry market_cap')
+      .lean();
 
     if (stocks.length === 0) {
       return res.json({
@@ -36,7 +38,7 @@ const runScreener = async (req, res, next) => {
       });
     }
 
-    const stockIds = stocks.map(s => s._id);
+    const stockIds = stocks.map((s) => s._id);
 
     // Build fundamental query
     const fundamentalQuery = { stock_id: { $in: stockIds } };
@@ -75,10 +77,16 @@ const runScreener = async (req, res, next) => {
       fundamentalQuery.profit_growth_3y = { $gte: filters.profit_growth_3y_min };
     }
     if (filters.dividend_yield_min !== undefined) {
-      fundamentalQuery.dividend_yield = { ...fundamentalQuery.dividend_yield, $gte: filters.dividend_yield_min };
+      fundamentalQuery.dividend_yield = {
+        ...fundamentalQuery.dividend_yield,
+        $gte: filters.dividend_yield_min,
+      };
     }
     if (filters.dividend_yield_max !== undefined) {
-      fundamentalQuery.dividend_yield = { ...fundamentalQuery.dividend_yield, $lte: filters.dividend_yield_max };
+      fundamentalQuery.dividend_yield = {
+        ...fundamentalQuery.dividend_yield,
+        $lte: filters.dividend_yield_max,
+      };
     }
     if (filters.current_ratio_min !== undefined) {
       fundamentalQuery.current_ratio = { $gte: filters.current_ratio_min };
@@ -98,12 +106,12 @@ const runScreener = async (req, res, next) => {
 
     // Merge stock and fundamental data
     const stockMap = {};
-    stocks.forEach(stock => {
+    stocks.forEach((stock) => {
       stockMap[stock._id.toString()] = stock;
     });
 
     const results = fundamentals
-      .map(f => {
+      .map((f) => {
         const stock = stockMap[f._id.toString()];
         if (!stock) return null;
 
@@ -125,7 +133,7 @@ const runScreener = async (req, res, next) => {
           current_ratio: f.latest.current_ratio,
         };
       })
-      .filter(r => r !== null);
+      .filter((r) => r !== null);
 
     // Sort results
     const sortField = sort_by === 'market_cap' ? 'market_cap' : sort_by;
@@ -152,4 +160,3 @@ const runScreener = async (req, res, next) => {
 module.exports = {
   runScreener,
 };
-

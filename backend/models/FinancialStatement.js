@@ -73,4 +73,3 @@ const financialStatementSchema = new mongoose.Schema({
 financialStatementSchema.index({ stock_id: 1, fiscal_year: -1, quarter: -1 });
 
 module.exports = mongoose.model('FinancialStatement', financialStatementSchema);
-

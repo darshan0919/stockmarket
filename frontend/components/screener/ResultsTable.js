@@ -79,4 +79,3 @@ export default function ResultsTable({ results, loading }) {
     </div>
   );
 }
-

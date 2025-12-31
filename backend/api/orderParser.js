@@ -1,22 +1,19 @@
-const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
-const ModelResponse = require("../models/ModelResponse");
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const ModelResponse = require('../models/ModelResponse');
 
 const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 // Read the order extraction prompt from file
 const orderExtractionPrompt = fs.readFileSync(
-  path.join(__dirname, "../prompts/order_extraction.txt"),
-  "utf-8"
+  path.join(__dirname, '../prompts/order_extraction.txt'),
+  'utf-8'
 );
 
-const promptHash = crypto
-  .createHash("sha256")
-  .update(orderExtractionPrompt)
-  .digest("hex");
+const promptHash = crypto.createHash('sha256').update(orderExtractionPrompt).digest('hex');
 
 /**
  * Parse order details from a PDF attachment using Gemini AI
@@ -46,14 +43,14 @@ const parseOrderFromPdf = async (attachmentUrl) => {
       };
     } catch (e) {
       // If cached response is invalid JSON, continue to re-fetch
-      console.log("Cached response invalid, re-fetching:", attachmentUrl);
+      console.log('Cached response invalid, re-fetching:', attachmentUrl);
     }
   }
 
   const geminiApiKey = process.env.GEMINI_API_KEY;
 
   if (!geminiApiKey) {
-    throw new Error("GEMINI_API_KEY not configured");
+    throw new Error('GEMINI_API_KEY not configured');
   }
 
   try {
@@ -66,7 +63,7 @@ const parseOrderFromPdf = async (attachmentUrl) => {
               { text: orderExtractionPrompt },
               {
                 file_data: {
-                  mime_type: "application/pdf",
+                  mime_type: 'application/pdf',
                   file_uri: attachmentUrl,
                 },
               },
@@ -76,8 +73,8 @@ const parseOrderFromPdf = async (attachmentUrl) => {
       },
       {
         headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": geminiApiKey,
+          'Content-Type': 'application/json',
+          'x-goog-api-key': geminiApiKey,
         },
         timeout: 120000, // 2 minutes timeout
       }
@@ -87,13 +84,13 @@ const parseOrderFromPdf = async (attachmentUrl) => {
 
     // Clean the response - remove any markdown formatting if present
     let cleanedText = extractedText.trim();
-    if (cleanedText.startsWith("```json")) {
+    if (cleanedText.startsWith('```json')) {
       cleanedText = cleanedText.slice(7);
     }
-    if (cleanedText.startsWith("```")) {
+    if (cleanedText.startsWith('```')) {
       cleanedText = cleanedText.slice(3);
     }
-    if (cleanedText.endsWith("```")) {
+    if (cleanedText.endsWith('```')) {
       cleanedText = cleanedText.slice(0, -3);
     }
     cleanedText = cleanedText.trim();
@@ -103,10 +100,10 @@ const parseOrderFromPdf = async (attachmentUrl) => {
     try {
       parsedData = JSON.parse(cleanedText);
     } catch (parseError) {
-      console.error("Failed to parse Gemini response as JSON:", cleanedText);
+      console.error('Failed to parse Gemini response as JSON:', cleanedText);
       parsedData = {
         extraction_success: false,
-        error: "Failed to parse PDF content",
+        error: 'Failed to parse PDF content',
         raw_text: cleanedText.substring(0, 500),
       };
     }
@@ -130,7 +127,7 @@ const parseOrderFromPdf = async (attachmentUrl) => {
       },
     };
   } catch (error) {
-    console.error("Error parsing PDF with Gemini:", error.message);
+    console.error('Error parsing PDF with Gemini:', error.message);
 
     const parseTime = Date.now() - startTime;
 
@@ -173,28 +170,28 @@ const parseAmountFromText = (text) => {
   for (const pattern of patterns) {
     const match = pattern.exec(text);
     if (match) {
-      let amount = parseFloat(match[1].replace(/,/g, ""));
-      let unit = (match[2] || "Crore").toLowerCase();
+      let amount = parseFloat(match[1].replace(/,/g, ''));
+      let unit = (match[2] || 'Crore').toLowerCase();
 
       // Normalize to Crores
-      if (unit.includes("lakh")) {
+      if (unit.includes('lakh')) {
         amount = amount / 100;
-        unit = "Crore";
-      } else if (unit.includes("million") || unit === "mn") {
+        unit = 'Crore';
+      } else if (unit.includes('million') || unit === 'mn') {
         // If USD, convert to INR Crores (1 USD = ~83 INR, 10 million USD = ~83 Crore)
-        if (text.toLowerCase().includes("usd") || text.includes("$")) {
+        if (text.toLowerCase().includes('usd') || text.includes('$')) {
           amount = amount * 8.3; // Approximate conversion
         }
-        unit = "Crore";
-      } else if (unit.includes("billion") || unit === "bn") {
+        unit = 'Crore';
+      } else if (unit.includes('billion') || unit === 'bn') {
         amount = amount * 100; // Approximate for USD billion to INR Crore
-        unit = "Crore";
+        unit = 'Crore';
       }
 
       return {
         amount,
-        currency: "INR",
-        unit: "Crore",
+        currency: 'INR',
+        unit: 'Crore',
         value_in_crore_inr: amount,
       };
     }
@@ -224,7 +221,7 @@ const parseCapacityFromText = (text) => {
     const match = pattern.exec(text);
     if (match) {
       return {
-        value: parseFloat(match[1].replace(/,/g, "")),
+        value: parseFloat(match[1].replace(/,/g, '')),
         unit: match[2].toUpperCase(),
       };
     }

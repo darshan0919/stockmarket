@@ -9,7 +9,7 @@ const stockSchema = new mongoose.Schema({
     trim: true,
   },
   name: {
-    type: String
+    type: String,
   },
   sector: {
     type: String,
@@ -70,4 +70,3 @@ stockSchema.index({ sector: 1 });
 stockSchema.index({ created_at: 1 }, { expireAfterSeconds: 5 * 24 * 60 * 60 });
 
 module.exports = mongoose.model('Stock', stockSchema);
-

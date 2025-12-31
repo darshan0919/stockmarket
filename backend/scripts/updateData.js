@@ -49,8 +49,12 @@ async function updatePrices() {
         const change = (Math.random() - 0.48) * (prevClose * 0.02);
         const close = Number((prevClose + change).toFixed(2));
         const open = Number((prevClose + (Math.random() - 0.5) * (prevClose * 0.01)).toFixed(2));
-        const high = Number(Math.max(open, close, prevClose) * (1 + Math.random() * 0.01).toFixed(2));
-        const low = Number(Math.min(open, close, prevClose) * (1 - Math.random() * 0.01).toFixed(2));
+        const high = Number(
+          Math.max(open, close, prevClose) * (1 + Math.random() * 0.01).toFixed(2)
+        );
+        const low = Number(
+          Math.min(open, close, prevClose) * (1 - Math.random() * 0.01).toFixed(2)
+        );
         const volume = Math.floor(Math.random() * 10000000) + 1000000;
 
         // Insert new price record
@@ -66,7 +70,9 @@ async function updatePrices() {
 
         await newPrice.save();
         successCount++;
-        console.log(`${stock.symbol}: Updated price - Close: ${close} (${change > 0 ? '+' : ''}${change.toFixed(2)})`);
+        console.log(
+          `${stock.symbol}: Updated price - Close: ${close} (${change > 0 ? '+' : ''}${change.toFixed(2)})`
+        );
 
         // Rate limiting delay
         await delay(100);
@@ -90,7 +96,7 @@ async function updateFundamentals() {
   try {
     console.log('\nUpdating fundamentals...');
     const stocks = await Stock.find();
-    
+
     let updateCount = 0;
 
     for (const stock of stocks) {
@@ -106,8 +112,12 @@ async function updateFundamentals() {
             const updatedFundamental = new Fundamental({
               stock_id: stock._id,
               date: new Date(),
-              pe_ratio: Number((latestFundamental.pe_ratio * (0.95 + Math.random() * 0.1)).toFixed(2)),
-              pb_ratio: Number((latestFundamental.pb_ratio * (0.95 + Math.random() * 0.1)).toFixed(2)),
+              pe_ratio: Number(
+                (latestFundamental.pe_ratio * (0.95 + Math.random() * 0.1)).toFixed(2)
+              ),
+              pb_ratio: Number(
+                (latestFundamental.pb_ratio * (0.95 + Math.random() * 0.1)).toFixed(2)
+              ),
               roe: Number((latestFundamental.roe * (0.95 + Math.random() * 0.1)).toFixed(2)),
               roce: Number((latestFundamental.roce * (0.95 + Math.random() * 0.1)).toFixed(2)),
               debt_to_equity: latestFundamental.debt_to_equity,
@@ -144,12 +154,12 @@ async function updateData() {
   try {
     console.log('=== Stock Data Update Script ===\n');
     console.log('Connecting to MongoDB...');
-    
+
     await mongoose.connect(process.env.MONGO_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    
+
     console.log('Connected to MongoDB\n');
 
     // Update prices
@@ -168,4 +178,3 @@ async function updateData() {
 
 // Run the update script
 updateData();
-

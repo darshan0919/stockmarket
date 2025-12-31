@@ -1,0 +1,210 @@
+---
+description: Frontend-specific rules for Next.js React development
+globs: ["frontend/**/*"]
+---
+
+# Frontend Development Rules
+
+## Directory Structure
+
+```
+frontend/
+├── components/       # React components
+│   ├── common/      # Reusable components
+│   ├── dashboard/   # Dashboard widgets
+│   ├── screener/    # Screener components
+│   └── stock/       # Stock detail components
+├── lib/             # Utilities and hooks
+│   ├── api.js       # API client
+│   ├── hooks/       # Custom React hooks
+│   └── utils/       # Helper functions
+├── pages/           # Next.js pages
+├── public/          # Static assets
+└── styles/          # CSS styles
+```
+
+## Adding New Components
+
+### Component Template
+
+```javascript
+// frontend/components/category/NewComponent.js
+import { useState, useEffect } from 'react';
+
+/**
+ * NewComponent - Brief description
+ * 
+ * @param {Object} props
+ * @param {string} props.requiredProp - Description
+ * @param {string} [props.optionalProp] - Description
+ * @returns {JSX.Element}
+ * 
+ * @example
+ * <NewComponent requiredProp="value" />
+ * 
+ * @see {@link docs/frontend/components/NewComponent.md} for documentation
+ */
+export default function NewComponent({ requiredProp, optionalProp = 'default' }) {
+  const [state, setState] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Effect logic
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  return (
+    <div className="p-4 bg-white rounded-lg shadow">
+      {/* Component content */}
+    </div>
+  );
+}
+```
+
+### Component Test Template
+
+```javascript
+// frontend/components/category/__tests__/NewComponent.test.js
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import NewComponent from '../NewComponent';
+
+/**
+ * Unit tests for NewComponent
+ * @see {@link docs/frontend/components/NewComponent.md} for documentation
+ */
+describe('NewComponent', () => {
+  it('renders correctly', () => {
+    render(<NewComponent requiredProp="test" />);
+    expect(screen.getByText(/expected/)).toBeInTheDocument();
+  });
+
+  it('handles loading state', () => {
+    // Test loading
+  });
+
+  it('handles error state', () => {
+    // Test error
+  });
+
+  it('handles user interaction', async () => {
+    // Test interaction
+  });
+});
+```
+
+## Adding Custom Hooks
+
+### Hook Template
+
+```javascript
+// frontend/lib/hooks/useNewHook.js
+import { useState, useEffect } from 'react';
+import { someAPI } from '../api';
+
+/**
+ * Custom hook description
+ * 
+ * @param {Type} param - Description
+ * @returns {Object} { data, loading, error, refresh }
+ * 
+ * @example
+ * const { data, loading, error } = useNewHook(param);
+ * 
+ * @see {@link docs/frontend/hooks/useNewHook.md} for documentation
+ */
+export function useNewHook(param) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await someAPI.getData(param);
+      if (response.data.success) {
+        setData(response.data.data);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [param]);
+
+  return { data, loading, error, refresh: fetchData };
+}
+```
+
+## Adding API Methods
+
+When adding new API endpoints to `lib/api.js`:
+
+```javascript
+// In frontend/lib/api.js
+
+export const newAPI = {
+  /**
+   * Description of method
+   * @see {@link docs/API_REFERENCE.md#endpoint} for API documentation
+   */
+  getData: (param) => api.get(`/endpoint/${param}`),
+  
+  /**
+   * Description of method
+   * @see {@link docs/API_REFERENCE.md#endpoint} for API documentation
+   */
+  postData: (data) => api.post('/endpoint', data),
+};
+```
+
+## Styling Guidelines
+
+- Use Tailwind CSS classes
+- Common patterns:
+  - Card: `bg-white rounded-lg shadow p-4`
+  - Button: `px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600`
+  - Positive value: `text-positive`
+  - Negative value: `text-negative`
+
+## State Management Patterns
+
+### Loading/Error Pattern
+
+```javascript
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState(null);
+const [data, setData] = useState(null);
+
+if (loading) return <LoadingSpinner />;
+if (error) return <div className="text-red-500">{error}</div>;
+if (!data) return <div>No data</div>;
+```
+
+### Form State Pattern
+
+```javascript
+const [formData, setFormData] = useState({ field: '' });
+
+const handleChange = (e) => {
+  setFormData({ ...formData, [e.target.name]: e.target.value });
+};
+```
+
+## Testing Checklist
+
+- [ ] Component renders correctly
+- [ ] Loading state is displayed
+- [ ] Error state is handled
+- [ ] User interactions work
+- [ ] Keyboard navigation (if applicable)
+- [ ] Mock API calls
+- [ ] Test file in `__tests__/` folder next to component

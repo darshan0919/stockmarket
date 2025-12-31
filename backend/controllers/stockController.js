@@ -1,16 +1,13 @@
-const Stock = require("../models/Stock");
-const Fundamental = require("../models/Fundamental");
-const PriceHistory = require("../models/PriceHistory");
-const FinancialStatement = require("../models/FinancialStatement");
-const QuarterlyResult = require("../models/QuarterlyResult");
-const {
-  calculateAllIndicators,
-  calculateSMA,
-} = require("../utils/technicalIndicators");
-const { fetchAndStoreQuarterlyResults } = require("../scripts/balanceSheetDataFetcher");
-const { fetchStockDetails } = require("../scripts/stockDetailsFetcher");
-const axios = require("axios");
-const {getStockScripCode } = require("../api/bseIndiaApi");
+const Stock = require('../models/Stock');
+const Fundamental = require('../models/Fundamental');
+const PriceHistory = require('../models/PriceHistory');
+const FinancialStatement = require('../models/FinancialStatement');
+const QuarterlyResult = require('../models/QuarterlyResult');
+const { calculateAllIndicators, calculateSMA } = require('../utils/technicalIndicators');
+const { fetchAndStoreQuarterlyResults } = require('../scripts/balanceSheetDataFetcher');
+const { fetchStockDetails } = require('../scripts/stockDetailsFetcher');
+const axios = require('axios');
+const { getStockScripCode } = require('../api/bseIndiaApi');
 
 /**
  * Search stocks by symbol or name using NSE India API
@@ -22,37 +19,33 @@ const searchStocks = async (req, res, next) => {
   if (!q || q.length < 1) {
     return res.status(400).json({
       success: false,
-      error: "Search query is required",
+      error: 'Search query is required',
     });
   }
 
   try {
     // Call NSE India autocomplete API
     const apiResponse = await axios.get(
-      `https://www.nseindia.com/api/search/autocomplete?q=${encodeURIComponent(
-        q
-      )}`,
+      `https://www.nseindia.com/api/search/autocomplete?q=${encodeURIComponent(q)}`,
       {
         timeout: 10000,
         headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-          Accept: "application/json",
-          "Accept-Language": "en-US,en;q=0.9",
-          "Accept-Encoding": "gzip, deflate, br",
+          'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          Accept: 'application/json',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Encoding': 'gzip, deflate, br',
         },
       }
     );
-  
+
     // Extract and format the response from NSE India API
     const symbols = apiResponse.data.symbols || [];
 
     // Filter only equity stocks (not mutual funds, etc.)
     const equitySymbols = symbols.filter(
       (item) =>
-        item.result_sub_type === "equity" &&
-        item.activeSeries &&
-        item.activeSeries.includes("EQ")
+        item.result_sub_type === 'equity' && item.activeSeries && item.activeSeries.includes('EQ')
     );
 
     // Apply pagination
@@ -66,7 +59,7 @@ const searchStocks = async (req, res, next) => {
     const formattedResults = paginatedResults.map((stock) => ({
       name: stock.symbol_info,
       symbol: stock.symbol,
-      exchange: "NSE",
+      exchange: 'NSE',
       sector: null,
       industry: null,
       current_price: null,
@@ -82,32 +75,26 @@ const searchStocks = async (req, res, next) => {
       limit: limitNum,
     });
   } catch (error) {
-    console.error("NSE India API Error:", error.message);
+    console.error('NSE India API Error:', error.message);
 
     // Fallback to local database if NSE India API fails
     try {
-      console.log("Using local database fallback for search:", q);
+      console.log('Using local database fallback for search:', q);
 
       const pageNum = Number(page);
       const limitNum = Number(limit);
       const skip = (pageNum - 1) * limitNum;
 
       const stocks = await Stock.find({
-        $or: [
-          { symbol: { $regex: q, $options: "i" } },
-          { name: { $regex: q, $options: "i" } },
-        ],
+        $or: [{ symbol: { $regex: q, $options: 'i' } }, { name: { $regex: q, $options: 'i' } }],
       })
         .skip(skip)
         .limit(limitNum)
-        .select("id symbol name sector industry market_cap")
+        .select('id symbol name sector industry market_cap')
         .lean();
 
       const totalCount = await Stock.countDocuments({
-        $or: [
-          { symbol: { $regex: q, $options: "i" } },
-          { name: { $regex: q, $options: "i" } },
-        ],
+        $or: [{ symbol: { $regex: q, $options: 'i' } }, { name: { $regex: q, $options: 'i' } }],
       });
 
       return res.json({
@@ -115,7 +102,7 @@ const searchStocks = async (req, res, next) => {
         results: stocks.map((stock) => ({
           name: stock.name,
           symbol: stock.symbol,
-          exchange: "NSE",
+          exchange: 'NSE',
           sector: stock.sector,
           industry: stock.industry,
           current_price: null,
@@ -127,7 +114,7 @@ const searchStocks = async (req, res, next) => {
         fallback: true,
       });
     } catch (dbError) {
-      console.error("Database fallback error:", dbError);
+      console.error('Database fallback error:', dbError);
       next(error);
     }
   }
@@ -153,13 +140,13 @@ const getStockDetails = async (req, res, next) => {
         basic_info: stockDetails.basicInfo,
         price_info: stockDetails.currentPrice,
         fundamentals: stockDetails.fundamentals,
-        price_history_5y: stockDetails.priceHistory
+        price_history_5y: stockDetails.priceHistory,
       },
     });
   } catch (error) {
-      console.error("Database fallback error:", error);
-      next(error);
-    }
+    console.error('Database fallback error:', error);
+    next(error);
+  }
 };
 
 /**
@@ -175,7 +162,7 @@ const getStockTechnicals = async (req, res, next) => {
     if (!stock) {
       return res.status(404).json({
         success: false,
-        error: "Stock not found",
+        error: 'Stock not found',
       });
     }
 
@@ -238,7 +225,7 @@ const getStockFinancials = async (req, res, next) => {
         data: {
           p_and_l: [],
           balance_sheet: [],
-          message: "Historical financial data not available in database",
+          message: 'Historical financial data not available in database',
         },
       });
     }
@@ -302,36 +289,21 @@ function calculateGrowthMetrics(quarters) {
     );
 
     if (prevYearQuarter) {
-      if (
-        quarter.revenue &&
-        prevYearQuarter.revenue &&
-        prevYearQuarter.revenue !== 0
-      ) {
+      if (quarter.revenue && prevYearQuarter.revenue && prevYearQuarter.revenue !== 0) {
         quarter.yoy_revenue_growth =
-          ((quarter.revenue - prevYearQuarter.revenue) /
-            Math.abs(prevYearQuarter.revenue)) *
-          100;
+          ((quarter.revenue - prevYearQuarter.revenue) / Math.abs(prevYearQuarter.revenue)) * 100;
       }
 
-      if (
-        quarter.net_profit &&
-        prevYearQuarter.net_profit &&
-        prevYearQuarter.net_profit !== 0
-      ) {
+      if (quarter.net_profit && prevYearQuarter.net_profit && prevYearQuarter.net_profit !== 0) {
         quarter.yoy_profit_growth =
           ((quarter.net_profit - prevYearQuarter.net_profit) /
             Math.abs(prevYearQuarter.net_profit)) *
           100;
       }
 
-      if (
-        quarter.eps_basic &&
-        prevYearQuarter.eps_basic &&
-        prevYearQuarter.eps_basic !== 0
-      ) {
+      if (quarter.eps_basic && prevYearQuarter.eps_basic && prevYearQuarter.eps_basic !== 0) {
         quarter.yoy_eps_growth =
-          ((quarter.eps_basic - prevYearQuarter.eps_basic) /
-            Math.abs(prevYearQuarter.eps_basic)) *
+          ((quarter.eps_basic - prevYearQuarter.eps_basic) / Math.abs(prevYearQuarter.eps_basic)) *
           100;
       }
     }
@@ -349,31 +321,17 @@ function calculateGrowthMetrics(quarters) {
     if (prevQuarter) {
       if (quarter.revenue && prevQuarter.revenue && prevQuarter.revenue !== 0) {
         quarter.qoq_revenue_growth =
-          ((quarter.revenue - prevQuarter.revenue) /
-            Math.abs(prevQuarter.revenue)) *
-          100;
+          ((quarter.revenue - prevQuarter.revenue) / Math.abs(prevQuarter.revenue)) * 100;
       }
 
-      if (
-        quarter.net_profit &&
-        prevQuarter.net_profit &&
-        prevQuarter.net_profit !== 0
-      ) {
+      if (quarter.net_profit && prevQuarter.net_profit && prevQuarter.net_profit !== 0) {
         quarter.qoq_profit_growth =
-          ((quarter.net_profit - prevQuarter.net_profit) /
-            Math.abs(prevQuarter.net_profit)) *
-          100;
+          ((quarter.net_profit - prevQuarter.net_profit) / Math.abs(prevQuarter.net_profit)) * 100;
       }
 
-      if (
-        quarter.eps_basic &&
-        prevQuarter.eps_basic &&
-        prevQuarter.eps_basic !== 0
-      ) {
+      if (quarter.eps_basic && prevQuarter.eps_basic && prevQuarter.eps_basic !== 0) {
         quarter.qoq_eps_growth =
-          ((quarter.eps_basic - prevQuarter.eps_basic) /
-            Math.abs(prevQuarter.eps_basic)) *
-          100;
+          ((quarter.eps_basic - prevQuarter.eps_basic) / Math.abs(prevQuarter.eps_basic)) * 100;
       }
     }
   });
@@ -398,9 +356,7 @@ function formatQuarterForResponse(quarter) {
     sales: quarter.revenue,
     expenses:
       quarter.total_expenses ||
-      quarter.cost_of_materials +
-        quarter.employee_expenses +
-        quarter.other_expenses,
+      quarter.cost_of_materials + quarter.employee_expenses + quarter.other_expenses,
     operating_profit: quarter.operating_profit,
     opm_percent: quarter.opm_percent,
     other_income: quarter.other_income,
@@ -455,27 +411,24 @@ const getQuarterlyResults = async (req, res, next) => {
 
     if (!force_refresh) {
       const cachedResults = await QuarterlyResult.find({
-        symbol: upperSymbol})
+        symbol: upperSymbol,
+      })
         .sort({ to_date: 1 }) // Oldest to newest
         .lean();
 
       if (cachedResults.length > 0) {
-        console.log(
-          `Cache hit for ${upperSymbol}: ${cachedResults.length} quarters`
-        );
+        console.log(`Cache hit for ${upperSymbol}: ${cachedResults.length} quarters`);
 
         // Calculate growth metrics
         const resultsWithGrowth = calculateGrowthMetrics(cachedResults);
-        const formattedQuarters = resultsWithGrowth.map(
-          formatQuarterForResponse
-        );
+        const formattedQuarters = resultsWithGrowth.map(formatQuarterForResponse);
 
         return res.json({
           success: true,
           data: {
             symbol: upperSymbol,
             quarters: formattedQuarters,
-            source: "Database Cache (NSE India)",
+            source: 'Database Cache (NSE India)',
             cached: true,
           },
         });
@@ -497,13 +450,13 @@ const getQuarterlyResults = async (req, res, next) => {
       data: {
         symbol: upperSymbol,
         quarters: formattedQuarters,
-        source: "NSE India (XBRL)",
+        source: 'NSE India (XBRL)',
         cached: false,
         source_url: `https://www.nseindia.com/get-quotes/equity?symbol=${upperSymbol}`,
       },
     });
   } catch (error) {
-    console.error("Error fetching quarterly results:", error);
+    console.error('Error fetching quarterly results:', error);
 
     // Fallback to database if API fails
     try {
@@ -522,14 +475,14 @@ const getQuarterlyResults = async (req, res, next) => {
           data: {
             symbol: upperSymbol,
             quarters: formattedQuarters,
-            source: "Database Cache (Fallback)",
+            source: 'Database Cache (Fallback)',
             cached: true,
-            warning: "Using cached data due to API error",
+            warning: 'Using cached data due to API error',
           },
         });
       }
     } catch (dbErr) {
-      console.error("Database fallback error:", dbErr);
+      console.error('Database fallback error:', dbErr);
     }
 
     res.json({
@@ -537,13 +490,11 @@ const getQuarterlyResults = async (req, res, next) => {
       data: {
         symbol: upperSymbol,
         quarters: [],
-        error: "Unable to fetch quarterly results",
+        error: 'Unable to fetch quarterly results',
       },
     });
   }
 };
-
-
 
 module.exports = {
   searchStocks,

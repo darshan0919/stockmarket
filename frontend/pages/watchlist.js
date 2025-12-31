@@ -2,7 +2,12 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useWatchlist } from '../lib/hooks/useWatchlist';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { formatCurrency, formatChange, formatNumber, getChangeColor } from '../lib/utils/formatters';
+import {
+  formatCurrency,
+  formatChange,
+  formatNumber,
+  getChangeColor,
+} from '../lib/utils/formatters';
 
 export default function Watchlist() {
   const { watchlist, loading, removeFromWatchlist, fetchWatchlist } = useWatchlist();
@@ -130,10 +135,16 @@ export default function Watchlist() {
                       >
                         {formatChange(stock.change_percent)}%
                       </td>
-                      <td onClick={() => handleRowClick(stock)} className="text-right cursor-pointer">
+                      <td
+                        onClick={() => handleRowClick(stock)}
+                        className="text-right cursor-pointer"
+                      >
                         {formatNumber(stock.pe_ratio)}
                       </td>
-                      <td onClick={() => handleRowClick(stock)} className="text-right cursor-pointer">
+                      <td
+                        onClick={() => handleRowClick(stock)}
+                        className="text-right cursor-pointer"
+                      >
                         {formatNumber(stock.roe)}
                       </td>
                       <td className="text-center">
@@ -158,4 +169,3 @@ export default function Watchlist() {
     </>
   );
 }
-

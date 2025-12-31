@@ -1,35 +1,32 @@
-const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
-const ModelResponse = require("../models/ModelResponse");
-const { getNseCookies } = require("./nseIndiaApi");
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const ModelResponse = require('../models/ModelResponse');
+const { getNseCookies } = require('./nseIndiaApi');
 
 const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 // Read the orderbook baseline prompt from file
 const orderbookBaselinePrompt = fs.readFileSync(
-  path.join(__dirname, "../prompts/orderbook_baseline.txt"),
-  "utf-8"
+  path.join(__dirname, '../prompts/orderbook_baseline.txt'),
+  'utf-8'
 );
 
-const promptHash = crypto
-  .createHash("sha256")
-  .update(orderbookBaselinePrompt)
-  .digest("hex");
+const promptHash = crypto.createHash('sha256').update(orderbookBaselinePrompt).digest('hex');
 
 // NSE API headers (base headers, cookies added per request)
 const getNseHeaders = async () => {
   const cookies = await getNseCookies();
   return {
-    Accept: "application/json",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Accept-Encoding": "gzip, deflate, br",
-    "User-Agent":
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    Referer: "https://www.nseindia.com/",
-    Connection: "keep-alive",
+    Accept: 'application/json',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'User-Agent':
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    Referer: 'https://www.nseindia.com/',
+    Connection: 'keep-alive',
     ...(cookies && { Cookie: cookies }),
   };
 };
@@ -53,7 +50,7 @@ const fetchAnnualReports = async (symbol) => {
 
     return response.data?.data || response.data || [];
   } catch (error) {
-    console.error("Error fetching annual reports:", error.message);
+    console.error('Error fetching annual reports:', error.message);
     return [];
   }
 };
@@ -72,8 +69,8 @@ const fetchInvestorPresentations = async (symbol, monthsBack = 12) => {
     fromDate.setMonth(fromDate.getMonth() - monthsBack);
 
     const formatDate = (date) => {
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
       return `${day}-${month}-${year}`;
     };
@@ -91,7 +88,7 @@ const fetchInvestorPresentations = async (symbol, monthsBack = 12) => {
 
     return response.data?.data || response.data || [];
   } catch (error) {
-    console.error("Error fetching investor presentations:", error.message);
+    console.error('Error fetching investor presentations:', error.message);
     return [];
   }
 };
@@ -111,8 +108,8 @@ const fetchFinancialResults = async (symbol, monthsBack = 12) => {
     fromDate.setMonth(fromDate.getMonth() - monthsBack);
 
     const formatDate = (date) => {
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
       return `${day}-${month}-${year}`;
     };
@@ -130,7 +127,7 @@ const fetchFinancialResults = async (symbol, monthsBack = 12) => {
 
     return response.data?.data || response.data || [];
   } catch (error) {
-    console.error("Error fetching financial results:", error.message);
+    console.error('Error fetching financial results:', error.message);
     return [];
   }
 };
@@ -160,18 +157,15 @@ const parseNseDate = (dateStr) => {
       Dec: 11,
     };
 
-    const parts = dateStr.split("-");
+    const parts = dateStr.split('-');
     if (parts.length === 3) {
       const day = parseInt(parts[0]);
-      const month =
-        months[parts[1]] !== undefined
-          ? months[parts[1]]
-          : parseInt(parts[1]) - 1;
+      const month = months[parts[1]] !== undefined ? months[parts[1]] : parseInt(parts[1]) - 1;
       const year = parseInt(parts[2]);
       return new Date(year, month, day);
     }
   } catch (e) {
-    console.error("Error parsing date:", dateStr);
+    console.error('Error parsing date:', dateStr);
   }
 
   return null;
@@ -204,14 +198,14 @@ const parseOrderbookBaseline = async (attachmentUrl) => {
         },
       };
     } catch (e) {
-      console.log("Cached response invalid, re-fetching:", attachmentUrl);
+      console.log('Cached response invalid, re-fetching:', attachmentUrl);
     }
   }
 
   const geminiApiKey = process.env.GEMINI_API_KEY;
 
   if (!geminiApiKey) {
-    throw new Error("GEMINI_API_KEY not configured");
+    throw new Error('GEMINI_API_KEY not configured');
   }
 
   try {
@@ -224,7 +218,7 @@ const parseOrderbookBaseline = async (attachmentUrl) => {
               { text: orderbookBaselinePrompt },
               {
                 file_data: {
-                  mime_type: "application/pdf",
+                  mime_type: 'application/pdf',
                   file_uri: attachmentUrl,
                 },
               },
@@ -234,8 +228,8 @@ const parseOrderbookBaseline = async (attachmentUrl) => {
       },
       {
         headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": geminiApiKey,
+          'Content-Type': 'application/json',
+          'x-goog-api-key': geminiApiKey,
         },
         timeout: 180000, // 3 minutes for larger documents
       }
@@ -245,13 +239,13 @@ const parseOrderbookBaseline = async (attachmentUrl) => {
 
     // Clean the response
     let cleanedText = extractedText.trim();
-    if (cleanedText.startsWith("```json")) {
+    if (cleanedText.startsWith('```json')) {
       cleanedText = cleanedText.slice(7);
     }
-    if (cleanedText.startsWith("```")) {
+    if (cleanedText.startsWith('```')) {
       cleanedText = cleanedText.slice(3);
     }
-    if (cleanedText.endsWith("```")) {
+    if (cleanedText.endsWith('```')) {
       cleanedText = cleanedText.slice(0, -3);
     }
     cleanedText = cleanedText.trim();
@@ -261,10 +255,10 @@ const parseOrderbookBaseline = async (attachmentUrl) => {
     try {
       parsedData = JSON.parse(cleanedText);
     } catch (parseError) {
-      console.error("Failed to parse Gemini response as JSON:", cleanedText);
+      console.error('Failed to parse Gemini response as JSON:', cleanedText);
       parsedData = {
         extraction_success: false,
-        error: "Failed to parse document content",
+        error: 'Failed to parse document content',
         raw_text: cleanedText.substring(0, 500),
       };
     }
@@ -288,7 +282,7 @@ const parseOrderbookBaseline = async (attachmentUrl) => {
       },
     };
   } catch (error) {
-    console.error("Error parsing document with Gemini:", error.message);
+    console.error('Error parsing document with Gemini:', error.message);
 
     const parseTime = Date.now() - startTime;
 
@@ -316,21 +310,18 @@ const getOrderbookBaseline = async (symbol) => {
   const upperSymbol = symbol.toUpperCase();
 
   // Fetch annual reports, investor presentations, and financial results in parallel
-  const [annualReports, investorPresentations, financialResults] =
-    await Promise.all([
-      fetchAnnualReports(upperSymbol),
-      fetchInvestorPresentations(upperSymbol, 18), // Extended to 18 months
-      fetchFinancialResults(upperSymbol, 12),
-    ]);
+  const [annualReports, investorPresentations, financialResults] = await Promise.all([
+    fetchAnnualReports(upperSymbol),
+    fetchInvestorPresentations(upperSymbol, 18), // Extended to 18 months
+    fetchFinancialResults(upperSymbol, 12),
+  ]);
 
   console.log(
     `[${upperSymbol}] Fetched documents - Annual Reports: ${
       Array.isArray(annualReports) ? annualReports.length : 0
     }, Investor Presentations: ${
       Array.isArray(investorPresentations) ? investorPresentations.length : 0
-    }, Financial Results: ${
-      Array.isArray(financialResults) ? financialResults.length : 0
-    }`
+    }, Financial Results: ${Array.isArray(financialResults) ? financialResults.length : 0}`
   );
 
   // Combine and sort by date (most recent first)
@@ -342,12 +333,12 @@ const getOrderbookBaseline = async (symbol) => {
       const date = parseNseDate(report.an_dt || report.date);
       if (date && report.attchmntFile) {
         allDocuments.push({
-          type: "Annual Report",
+          type: 'Annual Report',
           priority: 1,
           date,
           dateStr: report.an_dt || report.date,
           attachmentUrl: report.attchmntFile,
-          description: report.desc || report.subject || "Annual Report",
+          description: report.desc || report.subject || 'Annual Report',
         });
       }
     }
@@ -359,12 +350,12 @@ const getOrderbookBaseline = async (symbol) => {
       const date = parseNseDate(pres.an_dt || pres.date);
       if (date && pres.attchmntFile) {
         allDocuments.push({
-          type: "Investor Presentation",
+          type: 'Investor Presentation',
           priority: 2,
           date,
           dateStr: pres.an_dt || pres.date,
           attachmentUrl: pres.attchmntFile,
-          description: pres.desc || pres.subject || "Investor Presentation",
+          description: pres.desc || pres.subject || 'Investor Presentation',
         });
       }
     }
@@ -376,12 +367,12 @@ const getOrderbookBaseline = async (symbol) => {
       const date = parseNseDate(result.an_dt || result.date);
       if (date && result.attchmntFile) {
         allDocuments.push({
-          type: "Financial Results",
+          type: 'Financial Results',
           priority: 3,
           date,
           dateStr: result.an_dt || result.date,
           attachmentUrl: result.attchmntFile,
-          description: result.desc || result.subject || "Financial Results",
+          description: result.desc || result.subject || 'Financial Results',
         });
       }
     }
@@ -399,16 +390,14 @@ const getOrderbookBaseline = async (symbol) => {
     return {
       success: false,
       error:
-        "No annual reports, investor presentations, or financial results found for this company",
+        'No annual reports, investor presentations, or financial results found for this company',
       baseline: null,
       documents_fetched: {
         annual_reports: Array.isArray(annualReports) ? annualReports.length : 0,
         investor_presentations: Array.isArray(investorPresentations)
           ? investorPresentations.length
           : 0,
-        financial_results: Array.isArray(financialResults)
-          ? financialResults.length
-          : 0,
+        financial_results: Array.isArray(financialResults) ? financialResults.length : 0,
       },
     };
   }
@@ -419,25 +408,17 @@ const getOrderbookBaseline = async (symbol) => {
 
   for (const doc of documentsToTry) {
     try {
-      console.log(
-        `[${upperSymbol}] Trying to parse ${doc.type}: ${doc.description}`
-      );
+      console.log(`[${upperSymbol}] Trying to parse ${doc.type}: ${doc.description}`);
       const parsedData = await parseOrderbookBaseline(doc.attachmentUrl);
 
-      if (
-        parsedData.extraction_success &&
-        parsedData.order_book?.total_value?.value_in_crore_inr
-      ) {
-        console.log(
-          `[${upperSymbol}] Successfully extracted order book from ${doc.type}`
-        );
+      if (parsedData.extraction_success && parsedData.order_book?.total_value?.value_in_crore_inr) {
+        console.log(`[${upperSymbol}] Successfully extracted order book from ${doc.type}`);
         return {
           success: true,
           baseline: {
             document: doc,
             parsed_data: parsedData,
-            order_book_value_crores:
-              parsedData.order_book.total_value.value_in_crore_inr,
+            order_book_value_crores: parsedData.order_book.total_value.value_in_crore_inr,
             as_of_date: parsedData.order_book.as_of_date,
             reporting_period: parsedData.order_book.reporting_period,
             segment_breakdown: parsedData.order_book.segment_breakdown,
@@ -452,7 +433,7 @@ const getOrderbookBaseline = async (symbol) => {
         errors.push(`${doc.type}: No order book data found`);
       }
     } catch (e) {
-      console.error("Error parsing document:", doc.attachmentUrl, e.message);
+      console.error('Error parsing document:', doc.attachmentUrl, e.message);
       errors.push(`${doc.type}: ${e.message}`);
     }
   }
@@ -460,7 +441,7 @@ const getOrderbookBaseline = async (symbol) => {
   return {
     success: false,
     error:
-      "Could not extract order book information from available documents. This company may not publish order book details in their filings.",
+      'Could not extract order book information from available documents. This company may not publish order book details in their filings.',
     documents_checked: documentsToTry.map((d) => `${d.type}: ${d.description}`),
     parse_errors: errors,
     baseline: null,

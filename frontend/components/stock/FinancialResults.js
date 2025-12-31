@@ -1,15 +1,15 @@
-import { useState, useEffect, useRef, Fragment } from "react";
-import { stockAPI } from "../../lib/api";
-import LoadingSpinner from "../common/LoadingSpinner";
-import { formatPercentage } from "../../lib/utils/formatters";
-import _isNil from "lodash/isNil";
+import { useState, useEffect, useRef, Fragment } from 'react';
+import { stockAPI } from '../../lib/api';
+import LoadingSpinner from '../common/LoadingSpinner';
+import { formatPercentage } from '../../lib/utils/formatters';
+import _isNil from 'lodash/isNil';
 
 export default function FinancialResults({ symbol }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState("quarterly"); // "quarterly" or "yearly"
-  const [resultType, setResultType] = useState("consolidated");
+  const [viewMode, setViewMode] = useState('quarterly'); // "quarterly" or "yearly"
+  const [resultType, setResultType] = useState('consolidated');
   const [expandedRows, setExpandedRows] = useState({}); // Track expanded rows
   const scrollContainerRef = useRef(null);
 
@@ -31,11 +31,11 @@ export default function FinancialResults({ symbol }) {
           const yearlyData = aggregateToYearly(quarters);
           setData({ ...response.data.data, yearly: yearlyData });
         } else {
-          setError("Failed to fetch financial results");
+          setError('Failed to fetch financial results');
         }
       } catch (err) {
-        console.error("Error fetching financial results:", err);
-        setError("Unable to load financial results");
+        console.error('Error fetching financial results:', err);
+        setError('Unable to load financial results');
       } finally {
         setLoading(false);
       }
@@ -55,7 +55,7 @@ export default function FinancialResults({ symbol }) {
       const fyMatch = q.period.match(/FY(\d{2})/);
       if (!fyMatch) return;
 
-      const fiscal_year = parseInt("20" + fyMatch[1]);
+      const fiscal_year = parseInt('20' + fyMatch[1]);
       const consolidated = q.consolidated;
       const key = `${fiscal_year}_${consolidated}`;
 
@@ -103,9 +103,7 @@ export default function FinancialResults({ symbol }) {
     });
 
     // Calculate TTM (Trailing Twelve Months) - last 4 quarters
-    const sortedQuarters = [...quarters].sort(
-      (a, b) => new Date(b.to_date) - new Date(a.to_date)
-    );
+    const sortedQuarters = [...quarters].sort((a, b) => new Date(b.to_date) - new Date(a.to_date));
 
     const consolidatedQuarters = sortedQuarters.filter((q) => q.consolidated);
     const standaloneQuarters = sortedQuarters.filter((q) => !q.consolidated);
@@ -118,16 +116,13 @@ export default function FinancialResults({ symbol }) {
         const last4 = qList.slice(0, 4);
         ttmData[consolidated] = {
           fiscal_year: 9999,
-          year: "TTM",
+          year: 'TTM',
           consolidated,
           isTTM: true,
           quarters: last4,
           sales: last4.reduce((sum, q) => sum + (q.sales || 0), 0),
           expenses: last4.reduce((sum, q) => sum + (q.expenses || 0), 0),
-          operating_profit: last4.reduce(
-            (sum, q) => sum + (q.operating_profit || 0),
-            0
-          ),
+          operating_profit: last4.reduce((sum, q) => sum + (q.operating_profit || 0), 0),
           other_income: last4.reduce((sum, q) => sum + (q.other_income || 0), 0),
           interest: last4.reduce((sum, q) => sum + (q.interest || 0), 0),
           depreciation: last4.reduce((sum, q) => sum + (q.depreciation || 0), 0),
@@ -139,8 +134,7 @@ export default function FinancialResults({ symbol }) {
 
         if (ttmData[consolidated].sales > 0) {
           ttmData[consolidated].opm_percent =
-            (ttmData[consolidated].operating_profit / ttmData[consolidated].sales) *
-            100;
+            (ttmData[consolidated].operating_profit / ttmData[consolidated].sales) * 100;
         }
         if (ttmData[consolidated].pbt > 0) {
           const tax = ttmData[consolidated].pbt - ttmData[consolidated].net_profit;
@@ -158,35 +152,34 @@ export default function FinancialResults({ symbol }) {
     if (data && scrollContainerRef.current) {
       setTimeout(() => {
         if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollLeft =
-            scrollContainerRef.current.scrollWidth;
+          scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
         }
       }, 100);
     }
   }, [data, viewMode, resultType]);
 
   const formatValue = (value) => {
-    if (value === null || value === undefined) return "-";
-    return value.toLocaleString("en-IN", {
+    if (value === null || value === undefined) return '-';
+    return value.toLocaleString('en-IN', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     });
   };
 
   const formatBroadcastDate = (dateStr) => {
-    if (!dateStr) return "-";
+    if (!dateStr) return '-';
     const date = new Date(dateStr);
-    return date.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
     });
   };
 
   const formatGrowth = (value) => {
-    if (value === null || value === undefined) return "-";
+    if (value === null || value === undefined) return '-';
     const formatted = formatPercentage(value);
-    const colorClass = value >= 0 ? "text-green-600" : "text-red-600";
+    const colorClass = value >= 0 ? 'text-green-600' : 'text-red-600';
     return <span className={colorClass}>{formatted}</span>;
   };
 
@@ -197,29 +190,25 @@ export default function FinancialResults({ symbol }) {
   }
 
   if (!data || !data.quarters || data.quarters.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        No financial results available
-      </div>
-    );
+    return <div className="text-center py-8 text-gray-500">No financial results available</div>;
   }
 
   // Prepare periods based on view mode
   const allQuarters = data.quarters || [];
   let periods, periodLabel;
 
-  if (viewMode === "quarterly") {
+  if (viewMode === 'quarterly') {
     periods = allQuarters.filter((q) =>
-      resultType === "consolidated" ? q.consolidated : !q.consolidated
+      resultType === 'consolidated' ? q.consolidated : !q.consolidated
     );
-    periodLabel = "quarters";
+    periodLabel = 'quarters';
   } else {
     const yearly = data.yearly || [];
     periods = yearly.filter((y) =>
-      resultType === "consolidated" ? y.consolidated : !y.consolidated
+      resultType === 'consolidated' ? y.consolidated : !y.consolidated
     );
-    periodLabel = "years";
-    
+    periodLabel = 'years';
+
     // Calculate YoY growth for yearly data
     periods.forEach((year, index) => {
       if (!year.isTTM && index > 0) {
@@ -231,9 +220,7 @@ export default function FinancialResults({ symbol }) {
           }
           if (prevYear.net_profit && prevYear.net_profit !== 0) {
             year.yoy_profit_growth =
-              ((year.net_profit - prevYear.net_profit) /
-                Math.abs(prevYear.net_profit)) *
-              100;
+              ((year.net_profit - prevYear.net_profit) / Math.abs(prevYear.net_profit)) * 100;
           }
         }
       }
@@ -247,9 +234,7 @@ export default function FinancialResults({ symbol }) {
           }
           if (prevYear.net_profit && prevYear.net_profit !== 0) {
             year.yoy_profit_growth =
-              ((year.net_profit - prevYear.net_profit) /
-                Math.abs(prevYear.net_profit)) *
-              100;
+              ((year.net_profit - prevYear.net_profit) / Math.abs(prevYear.net_profit)) * 100;
           }
         }
       }
@@ -262,77 +247,77 @@ export default function FinancialResults({ symbol }) {
   // Define rows based on view mode with expandable sub-rows
   const financialRows = [
     {
-      key: "sales",
-      label: "Sales",
+      key: 'sales',
+      label: 'Sales',
       format: formatValue,
       expandable: true,
       subRows:
-        viewMode === "quarterly"
+        viewMode === 'quarterly'
           ? [
-              { key: "yoy_sales_growth", label: "YoY Growth %", format: formatGrowth },
-              { key: "qoq_sales_growth", label: "QoQ Growth %", format: formatGrowth },
+              { key: 'yoy_sales_growth', label: 'YoY Growth %', format: formatGrowth },
+              { key: 'qoq_sales_growth', label: 'QoQ Growth %', format: formatGrowth },
             ]
-          : [{ key: "yoy_sales_growth", label: "YoY Growth %", format: formatGrowth }],
+          : [{ key: 'yoy_sales_growth', label: 'YoY Growth %', format: formatGrowth }],
     },
-    { key: "expenses", label: "Expenses", format: formatValue },
-    { key: "operating_profit", label: "Operating Profit", format: formatValue },
+    { key: 'expenses', label: 'Expenses', format: formatValue },
+    { key: 'operating_profit', label: 'Operating Profit', format: formatValue },
     {
-      key: "opm_percent",
-      label: "OPM %",
-      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : "-"),
+      key: 'opm_percent',
+      label: 'OPM %',
+      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : '-'),
     },
-    { key: "other_income", label: "Other Income", format: formatValue },
-    { key: "interest", label: "Interest", format: formatValue },
-    { key: "depreciation", label: "Depreciation", format: formatValue },
-    { key: "pbt", label: "Profit Before Tax", format: formatValue },
+    { key: 'other_income', label: 'Other Income', format: formatValue },
+    { key: 'interest', label: 'Interest', format: formatValue },
+    { key: 'depreciation', label: 'Depreciation', format: formatValue },
+    { key: 'pbt', label: 'Profit Before Tax', format: formatValue },
     {
-      key: "tax_percent",
-      label: "Tax %",
-      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : "-"),
+      key: 'tax_percent',
+      label: 'Tax %',
+      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : '-'),
     },
     {
-      key: "net_profit",
-      label: "Net Profit",
+      key: 'net_profit',
+      label: 'Net Profit',
       format: formatValue,
       expandable: true,
       subRows:
-        viewMode === "quarterly"
+        viewMode === 'quarterly'
           ? [
-              { key: "yoy_profit_growth", label: "YoY Growth %", format: formatGrowth },
-              { key: "qoq_profit_growth", label: "QoQ Growth %", format: formatGrowth },
+              { key: 'yoy_profit_growth', label: 'YoY Growth %', format: formatGrowth },
+              { key: 'qoq_profit_growth', label: 'QoQ Growth %', format: formatGrowth },
             ]
-          : [{ key: "yoy_profit_growth", label: "YoY Growth %", format: formatGrowth }],
+          : [{ key: 'yoy_profit_growth', label: 'YoY Growth %', format: formatGrowth }],
     },
     {
-      key: "eps",
-      label: "EPS",
-      format: (v) => (!_isNil(v) ? v.toFixed(2) : "-"),
-      expandable: viewMode === "quarterly",
+      key: 'eps',
+      label: 'EPS',
+      format: (v) => (!_isNil(v) ? v.toFixed(2) : '-'),
+      expandable: viewMode === 'quarterly',
       subRows:
-        viewMode === "quarterly"
+        viewMode === 'quarterly'
           ? [
-              { key: "yoy_eps_growth", label: "YoY Growth %", format: formatGrowth },
-              { key: "qoq_eps_growth", label: "QoQ Growth %", format: formatGrowth },
+              { key: 'yoy_eps_growth', label: 'YoY Growth %', format: formatGrowth },
+              { key: 'qoq_eps_growth', label: 'QoQ Growth %', format: formatGrowth },
             ]
           : [],
     },
   ];
 
   // Add broadcast date for quarterly view
-  if (viewMode === "quarterly") {
+  if (viewMode === 'quarterly') {
     financialRows.push({
-      key: "broadcast_date",
-      label: "Broadcast Time",
+      key: 'broadcast_date',
+      label: 'Broadcast Time',
       format: formatBroadcastDate,
     });
   }
 
   // Add dividend payout for yearly view
-  if (viewMode === "yearly") {
+  if (viewMode === 'yearly') {
     financialRows.push({
-      key: "dividend_payout",
-      label: "Dividend Payout %",
-      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : "-"),
+      key: 'dividend_payout',
+      label: 'Dividend Payout %',
+      format: (v) => (!_isNil(v) ? `${v.toFixed(2)}%` : '-'),
     });
   }
 
@@ -348,21 +333,21 @@ export default function FinancialResults({ symbol }) {
             {/* Quarterly/Yearly Toggle */}
             <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
               <button
-                onClick={() => setViewMode("quarterly")}
+                onClick={() => setViewMode('quarterly')}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                  viewMode === "quarterly"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
+                  viewMode === 'quarterly'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 Quarterly
               </button>
               <button
-                onClick={() => setViewMode("yearly")}
+                onClick={() => setViewMode('yearly')}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                  viewMode === "yearly"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
+                  viewMode === 'yearly'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 Yearly
@@ -374,11 +359,11 @@ export default function FinancialResults({ symbol }) {
               <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
                 {hasConsolidated && (
                   <button
-                    onClick={() => setResultType("consolidated")}
+                    onClick={() => setResultType('consolidated')}
                     className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                      resultType === "consolidated"
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
+                      resultType === 'consolidated'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
                     Consolidated
@@ -386,11 +371,11 @@ export default function FinancialResults({ symbol }) {
                 )}
                 {hasStandalone && (
                   <button
-                    onClick={() => setResultType("standalone")}
+                    onClick={() => setResultType('standalone')}
                     className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                      resultType === "standalone"
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
+                      resultType === 'standalone'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
                     Standalone
@@ -417,7 +402,7 @@ export default function FinancialResults({ symbol }) {
       <div
         ref={scrollContainerRef}
         className="overflow-x-auto border rounded-lg"
-        style={{ scrollBehavior: "smooth" }}
+        style={{ scrollBehavior: 'smooth' }}
       >
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -430,7 +415,7 @@ export default function FinancialResults({ symbol }) {
                   key={index}
                   className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                 >
-                  {viewMode === "quarterly" ? period.period : period.year}
+                  {viewMode === 'quarterly' ? period.period : period.year}
                 </th>
               ))}
             </tr>
@@ -439,24 +424,42 @@ export default function FinancialResults({ symbol }) {
             {/* Main financial metrics with expandable sub-rows */}
             {financialRows.map((row, rowIndex) => (
               <Fragment key={row.key}>
-                <tr
-                  className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                >
+                <tr className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                   <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
                     <div className="flex items-center gap-2">
                       {row.expandable && row.subRows?.length > 0 ? (
                         <button
                           onClick={() => toggleRowExpansion(row.key)}
                           className="w-5 h-5 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors"
-                          title={expandedRows[row.key] ? "Collapse" : "Expand"}
+                          title={expandedRows[row.key] ? 'Collapse' : 'Expand'}
                         >
                           {expandedRows[row.key] ? (
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                            <svg
+                              className="w-3 h-3"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M20 12H4"
+                              />
                             </svg>
                           ) : (
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            <svg
+                              className="w-3 h-3"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4v16m8-8H4"
+                              />
                             </svg>
                           )}
                         </button>
@@ -480,16 +483,11 @@ export default function FinancialResults({ symbol }) {
                 {row.expandable &&
                   expandedRows[row.key] &&
                   row.subRows?.map((subRow) => (
-                    <tr
-                      key={subRow.key}
-                      className="bg-blue-50"
-                    >
+                    <tr key={subRow.key} className="bg-blue-50">
                       <td className="sticky left-0 z-20 px-4 py-2 text-sm text-gray-600 border-r bg-blue-50">
                         <div className="flex items-center gap-2">
                           <span className="w-5" />
-                          <span className="pl-2 border-l-2 border-blue-300">
-                            {subRow.label}
-                          </span>
+                          <span className="pl-2 border-l-2 border-blue-300">{subRow.label}</span>
                         </div>
                       </td>
                       {periods.map((period, index) => (
@@ -511,15 +509,14 @@ export default function FinancialResults({ symbol }) {
       {data.source && (
         <p className="text-xs text-gray-500 mt-2">
           Data source: {data.source}
-          {data.cached && " (cached)"}
+          {data.cached && ' (cached)'}
         </p>
       )}
 
       <p className="text-xs text-gray-400 mt-1 italic">
-        💡 Scroll left to view older {periodLabel}. Latest {viewMode === "quarterly" ? "quarter" : "year"} shown on the
-        right.
+        💡 Scroll left to view older {periodLabel}. Latest{' '}
+        {viewMode === 'quarterly' ? 'quarter' : 'year'} shown on the right.
       </p>
     </div>
   );
 }
-
