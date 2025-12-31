@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import Image from "next/image";
 import { ordersAPI } from "../../lib/api";
 import LoadingSpinner from "../common/LoadingSpinner";
 
@@ -66,6 +67,68 @@ const formatDuration = (ms) => {
   if (ms < 1000) return `${ms}ms`;
   if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
   return `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`;
+};
+
+// Get current fiscal quarter info based on actual date
+// India follows April-March fiscal year
+// Q1 = Apr-Jun, Q2 = Jul-Sep, Q3 = Oct-Dec, Q4 = Jan-Mar
+const getCurrentFiscalQuarter = (date = new Date()) => {
+  const month = date.getMonth(); // 0-11
+  const year = date.getFullYear();
+
+  let quarter, fiscalYear, startDate, endDate;
+
+  if (month >= 3 && month <= 5) {
+    // Apr-Jun = Q1
+    quarter = 1;
+    fiscalYear = year + 1; // FY26 for Apr 2025
+    startDate = new Date(year, 3, 1); // Apr 1
+    endDate = new Date(year, 5, 30, 23, 59, 59); // Jun 30
+  } else if (month >= 6 && month <= 8) {
+    // Jul-Sep = Q2
+    quarter = 2;
+    fiscalYear = year + 1;
+    startDate = new Date(year, 6, 1); // Jul 1
+    endDate = new Date(year, 8, 30, 23, 59, 59); // Sep 30
+  } else if (month >= 9 && month <= 11) {
+    // Oct-Dec = Q3
+    quarter = 3;
+    fiscalYear = year + 1;
+    startDate = new Date(year, 9, 1); // Oct 1
+    endDate = new Date(year, 11, 31, 23, 59, 59); // Dec 31
+  } else {
+    // Jan-Mar = Q4
+    quarter = 4;
+    fiscalYear = year;
+    startDate = new Date(year, 0, 1); // Jan 1
+    endDate = new Date(year, 2, 31, 23, 59, 59); // Mar 31
+  }
+
+  const fiscalYearShort = String(fiscalYear).slice(-2);
+  const periodLabel = `Q${quarter} FY${fiscalYearShort}`;
+
+  return {
+    quarter,
+    fiscalYear,
+    periodLabel,
+    startDate,
+    endDate,
+  };
+};
+
+// Check if a date falls within the current fiscal quarter
+const isInCurrentQuarter = (dateStr) => {
+  if (!dateStr) return false;
+
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return false;
+
+    const { startDate, endDate } = getCurrentFiscalQuarter();
+    return date >= startDate && date <= endDate;
+  } catch (e) {
+    return false;
+  }
 };
 
 // Order Row Component
@@ -266,8 +329,120 @@ const EmptyState = ({ message }) => (
   </div>
 );
 
+// Order Inflow Summary Component (shows both total and current quarter)
+const OrderInflowSummary = ({ orders, totalValue }) => {
+  const currentQuarter = getCurrentFiscalQuarter();
+
+  // Filter orders for current quarter and sum their values
+  const currentQuarterOrders = orders.filter((order) =>
+    isInCurrentQuarter(order.announcement_date)
+  );
+
+  const currentQuarterValue = currentQuarterOrders.reduce((sum, order) => {
+    return sum + (order.order_details?.order_value?.value_in_crore_inr || 0);
+  }, 0);
+
+  const currentQuarterCount = currentQuarterOrders.filter(
+    (o) => o.order_details?.order_value?.value_in_crore_inr
+  ).length;
+
+  // Don't show if no orders with values
+  if (!totalValue && !currentQuarterValue) return null;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Total Order Inflow */}
+      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-5 text-white shadow-lg">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
+              </svg>
+              <h4 className="text-sm font-semibold uppercase tracking-wider">
+                Total Order Inflow
+              </h4>
+            </div>
+            <div className="text-3xl font-bold">
+              {formatCurrency(totalValue || 0)}
+            </div>
+            <p className="text-white/70 text-xs mt-1">
+              From all parsed announcements
+            </p>
+          </div>
+          <div className="hidden sm:block">
+            <svg
+              className="w-14 h-14 text-white/20"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Current Quarter Inflow */}
+      <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl p-5 text-white shadow-lg">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                />
+              </svg>
+              <h4 className="text-sm font-semibold uppercase tracking-wider">
+                {currentQuarter.periodLabel} Inflow
+              </h4>
+            </div>
+            <div className="text-3xl font-bold">
+              {formatCurrency(currentQuarterValue)}
+            </div>
+            <p className="text-white/70 text-xs mt-1">
+              {currentQuarterCount} order{currentQuarterCount !== 1 ? "s" : ""}{" "}
+              this quarter
+            </p>
+          </div>
+          <div className="hidden sm:block">
+            <svg
+              className="w-14 h-14 text-white/20"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Order Book Summary Component
-const OrderBookSummary = ({ summary, segmentBreakdown }) => {
+const OrderBookSummary = ({
+  summary,
+  segmentBreakdown,
+  orderBookCommentary,
+}) => {
   if (!summary) return null;
 
   return (
@@ -340,6 +515,33 @@ const OrderBookSummary = ({ summary, segmentBreakdown }) => {
         </div>
       </div>
 
+      {/* Management Commentary on Order Book */}
+      {orderBookCommentary && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start gap-2">
+            <svg
+              className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+              />
+            </svg>
+            <div>
+              <p className="text-sm font-medium text-blue-900 mb-1">
+                Management Commentary
+              </p>
+              <p className="text-sm text-blue-800">{orderBookCommentary}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Note about calculation */}
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
         <div className="flex items-start gap-2">
@@ -406,6 +608,8 @@ export default function OrdersTab({ symbol }) {
   // Fallback notification when orderbook baseline not found
   const [orderbookFallbackMessage, setOrderbookFallbackMessage] =
     useState(null);
+  const [orderbookFallbackDetails, setOrderbookFallbackDetails] =
+    useState(null);
 
   // Fetch orders based on view mode
   const fetchData = async (mode = viewMode) => {
@@ -423,6 +627,7 @@ export default function OrdersTab({ symbol }) {
       // Only clear fallback message if explicitly switching modes (not during fallback)
       if (mode !== "all" || viewMode !== "orderbook") {
         setOrderbookFallbackMessage(null);
+        setOrderbookFallbackDetails(null);
       }
 
       let response;
@@ -462,6 +667,12 @@ export default function OrdersTab({ symbol }) {
             response.data.message ||
               "Order book baseline not found for this company. Showing all order announcements instead."
           );
+          // Store details for more info display
+          setOrderbookFallbackDetails({
+            documentsChecked: response.data.documents_checked,
+            documentsFetched: response.data.documents_fetched,
+            parseErrors: response.data.parse_errors,
+          });
           setViewMode("all");
           // Recursively fetch with "all" mode
           await fetchData("all");
@@ -481,11 +692,32 @@ export default function OrdersTab({ symbol }) {
     fetchData();
   }, [symbol]);
 
+  // Handle external site navigation
+  const handleStockScansClick = () => {
+    if (symbol) {
+      // NSE format: NSE:SYMBOL
+      const exchangeSymbol = `NSE%3A${encodeURIComponent(symbol)}`;
+      const stockScansUrl = `https://www.stockscans.in/company/${exchangeSymbol}/standalone#reports`;
+      window.open(stockScansUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const handleScreenerClick = () => {
+    if (symbol) {
+      const screenerUrl = `https://www.screener.in/company/${encodeURIComponent(
+        symbol
+      )}/#documents`;
+      window.open(screenerUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
   // Handle view mode change
   const handleViewModeChange = async (newMode) => {
     if (newMode === viewMode) return;
     setViewMode(newMode);
-    setOrderbookFallbackMessage(null); // Clear fallback message when manually switching
+    // Clear fallback message and details when manually switching
+    setOrderbookFallbackMessage(null);
+    setOrderbookFallbackDetails(null);
     await fetchData(newMode);
   };
 
@@ -599,14 +831,47 @@ export default function OrdersTab({ symbol }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">
-            {viewMode === "orderbook"
-              ? "Order Book Analysis"
-              : "All Order Announcements"}
-          </h3>
-          <p className="text-sm text-slate-500 mt-0.5">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-1">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {viewMode === "orderbook"
+                ? "Order Book Analysis"
+                : "All Order Announcements"}
+            </h3>
+            {/* External Links */}
+            <div className="flex items-center gap-1.5">
+              {/* StockScans Button */}
+              <button
+                onClick={handleStockScansClick}
+                className="inline-flex items-center justify-center p-1.5 rounded border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+                title="View on StockScans"
+              >
+                <Image
+                  src="/icons/stockscans.png"
+                  alt="StockScans"
+                  width={18}
+                  height={18}
+                  className="object-contain"
+                />
+              </button>
+              {/* Screener Button */}
+              <button
+                onClick={handleScreenerClick}
+                className="inline-flex items-center justify-center p-1.5 rounded border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+                title="View on Screener"
+              >
+                <Image
+                  src="/icons/screener.png"
+                  alt="Screener"
+                  width={18}
+                  height={18}
+                  className="object-contain"
+                />
+              </button>
+            </div>
+          </div>
+          <p className="text-sm text-slate-500">
             {viewMode === "orderbook"
               ? "Outstanding unexecuted order book from latest reports + new orders"
               : "All corporate announcements for received orders and contracts"}
@@ -614,7 +879,7 @@ export default function OrdersTab({ symbol }) {
         </div>
 
         {/* View Mode Toggle */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <span className="text-sm text-slate-600">View:</span>
           <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50">
             <button
@@ -643,10 +908,10 @@ export default function OrdersTab({ symbol }) {
 
       {/* Fallback notification when orderbook baseline not found */}
       {orderbookFallbackMessage && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
             <svg
-              className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5"
+              className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -655,21 +920,56 @@ export default function OrdersTab({ symbol }) {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
               />
             </svg>
             <div className="flex-1">
-              <p className="text-sm text-blue-800">
+              <p className="text-sm font-medium text-amber-800">
+                Order Book Baseline Not Available
+              </p>
+              <p className="text-sm text-amber-700 mt-1">
                 {orderbookFallbackMessage}
               </p>
-              <p className="text-xs text-blue-600 mt-1">
-                This company may not have published order book information in
-                recent annual reports or investor presentations.
-              </p>
+              {orderbookFallbackDetails && (
+                <div className="mt-3 text-xs text-amber-600 space-y-1">
+                  {orderbookFallbackDetails.documentsFetched && (
+                    <p>
+                      Documents found:{" "}
+                      {orderbookFallbackDetails.documentsFetched
+                        .annual_reports || 0}{" "}
+                      annual reports,{" "}
+                      {orderbookFallbackDetails.documentsFetched
+                        .investor_presentations || 0}{" "}
+                      investor presentations,{" "}
+                      {orderbookFallbackDetails.documentsFetched
+                        .financial_results || 0}{" "}
+                      financial results
+                    </p>
+                  )}
+                  {orderbookFallbackDetails.documentsChecked &&
+                    orderbookFallbackDetails.documentsChecked.length > 0 && (
+                      <div>
+                        <p className="font-medium">Documents analyzed:</p>
+                        <ul className="list-disc list-inside ml-2 mt-1">
+                          {orderbookFallbackDetails.documentsChecked
+                            .slice(0, 3)
+                            .map((doc, i) => (
+                              <li key={i} className="truncate max-w-md">
+                                {doc}
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
+                    )}
+                </div>
+              )}
             </div>
             <button
-              onClick={() => setOrderbookFallbackMessage(null)}
-              className="text-blue-400 hover:text-blue-600 transition-colors"
+              onClick={() => {
+                setOrderbookFallbackMessage(null);
+                setOrderbookFallbackDetails(null);
+              }}
+              className="text-amber-400 hover:text-amber-600 transition-colors"
             >
               <svg
                 className="h-5 w-5"
@@ -787,12 +1087,25 @@ export default function OrdersTab({ symbol }) {
         </div>
       )}
 
+      {/* Order Inflow Summary (shown in both views - computed from actual data) */}
+      {sortedOrders.length > 0 && (
+        <OrderInflowSummary
+          orders={sortedOrders}
+          totalValue={sortedOrders.reduce(
+            (sum, o) =>
+              sum + (o.order_details?.order_value?.value_in_crore_inr || 0),
+            0
+          )}
+        />
+      )}
+
       {/* Order Book View */}
       {viewMode === "orderbook" && orderbookData && (
         <>
           <OrderBookSummary
             summary={orderbookData.orderbook_summary}
             segmentBreakdown={orderbookData.segment_breakdown}
+            orderBookCommentary={orderbookData.order_book_commentary}
           />
 
           {/* New Orders Section */}

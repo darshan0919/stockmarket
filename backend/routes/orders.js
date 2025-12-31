@@ -396,8 +396,10 @@ router.get("/:symbol/orderbook", async (req, res, next) => {
         success: false,
         error: baselineResult.error,
         documents_checked: baselineResult.documents_checked,
+        documents_fetched: baselineResult.documents_fetched,
+        parse_errors: baselineResult.parse_errors,
         message:
-          "Could not find baseline order book. Try fetching raw orders instead.",
+          "Could not find baseline order book. This company may not publish order book details in their corporate filings. Showing all order announcements instead.",
       });
     }
 
@@ -523,6 +525,10 @@ router.get("/:symbol/orderbook", async (req, res, next) => {
           calculation_note:
             "Accumulated = Baseline + New Orders. Does not subtract executed orders.",
         },
+
+        // Order inflow for the reporting period (latest quarter/year)
+        order_inflow: baseline.order_inflow,
+        order_book_commentary: baseline.order_book_commentary,
 
         // Segment breakdown if available
         segment_breakdown: baseline.segment_breakdown,

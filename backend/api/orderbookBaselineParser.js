@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const ModelResponse = require("../models/ModelResponse");
+const { getNseCookies } = require("./nseIndiaApi");
 
 const GEMINI_API_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
@@ -18,13 +19,19 @@ const promptHash = crypto
   .update(orderbookBaselinePrompt)
   .digest("hex");
 
-// NSE API headers
-const NSE_HEADERS = {
-  Accept: "application/json",
-  "Accept-Language": "en-US,en;q=0.9",
-  "Accept-Encoding": "gzip, deflate, br",
-  "User-Agent":
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+// NSE API headers (base headers, cookies added per request)
+const getNseHeaders = async () => {
+  const cookies = await getNseCookies();
+  return {
+    Accept: "application/json",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "User-Agent":
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    Referer: "https://www.nseindia.com/",
+    Connection: "keep-alive",
+    ...(cookies && { Cookie: cookies }),
+  };
 };
 
 /**
@@ -34,12 +41,13 @@ const NSE_HEADERS = {
  */
 const fetchAnnualReports = async (symbol) => {
   try {
+    const headers = await getNseHeaders();
     const url = `https://www.nseindia.com/api/NextApi/apiClient/GetQuoteApi?functionName=getCorpAnnualReport&symbol=${encodeURIComponent(
       symbol
     )}&marketApiType=equities`;
 
     const response = await axios.get(url, {
-      headers: NSE_HEADERS,
+      headers,
       timeout: 15000,
     });
 
@@ -58,6 +66,7 @@ const fetchAnnualReports = async (symbol) => {
  */
 const fetchInvestorPresentations = async (symbol, monthsBack = 12) => {
   try {
+    const headers = await getNseHeaders();
     const toDate = new Date();
     const fromDate = new Date();
     fromDate.setMonth(fromDate.getMonth() - monthsBack);
@@ -76,13 +85,52 @@ const fetchInvestorPresentations = async (symbol, monthsBack = 12) => {
     )}&toDate=${formatDate(toDate)}`;
 
     const response = await axios.get(url, {
-      headers: NSE_HEADERS,
+      headers,
       timeout: 15000,
     });
 
     return response.data?.data || response.data || [];
   } catch (error) {
     console.error("Error fetching investor presentations:", error.message);
+    return [];
+  }
+};
+
+/**
+ * Fetch quarterly/financial results for a symbol from NSE
+ * These often contain order book information
+ * @param {string} symbol - Stock symbol
+ * @param {number} monthsBack - How many months back to look
+ * @returns {Array} List of financial results
+ */
+const fetchFinancialResults = async (symbol, monthsBack = 12) => {
+  try {
+    const headers = await getNseHeaders();
+    const toDate = new Date();
+    const fromDate = new Date();
+    fromDate.setMonth(fromDate.getMonth() - monthsBack);
+
+    const formatDate = (date) => {
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    };
+
+    const url = `https://www.nseindia.com/api/NextApi/apiClient/GetQuoteApi?functionName=getCorporateAnnouncement&symbol=${encodeURIComponent(
+      symbol
+    )}&marketApiType=equities&subject=Financial%20Results&fromDate=${formatDate(
+      fromDate
+    )}&toDate=${formatDate(toDate)}`;
+
+    const response = await axios.get(url, {
+      headers,
+      timeout: 15000,
+    });
+
+    return response.data?.data || response.data || [];
+  } catch (error) {
+    console.error("Error fetching financial results:", error.message);
     return [];
   }
 };
@@ -260,29 +308,42 @@ const parseOrderbookBaseline = async (attachmentUrl) => {
 };
 
 /**
- * Get the best baseline document (most recent annual report or investor presentation)
+ * Get the best baseline document (most recent annual report, investor presentation, or financial result)
  * @param {string} symbol - Stock symbol
  * @returns {Object} Best baseline document info with parsed order book
  */
 const getOrderbookBaseline = async (symbol) => {
   const upperSymbol = symbol.toUpperCase();
 
-  // Fetch both annual reports and investor presentations
-  const [annualReports, investorPresentations] = await Promise.all([
-    fetchAnnualReports(upperSymbol),
-    fetchInvestorPresentations(upperSymbol, 12),
-  ]);
+  // Fetch annual reports, investor presentations, and financial results in parallel
+  const [annualReports, investorPresentations, financialResults] =
+    await Promise.all([
+      fetchAnnualReports(upperSymbol),
+      fetchInvestorPresentations(upperSymbol, 18), // Extended to 18 months
+      fetchFinancialResults(upperSymbol, 12),
+    ]);
+
+  console.log(
+    `[${upperSymbol}] Fetched documents - Annual Reports: ${
+      Array.isArray(annualReports) ? annualReports.length : 0
+    }, Investor Presentations: ${
+      Array.isArray(investorPresentations) ? investorPresentations.length : 0
+    }, Financial Results: ${
+      Array.isArray(financialResults) ? financialResults.length : 0
+    }`
+  );
 
   // Combine and sort by date (most recent first)
   const allDocuments = [];
 
-  // Process annual reports
+  // Process annual reports (priority 1 - most likely to have order book)
   if (Array.isArray(annualReports)) {
     for (const report of annualReports) {
       const date = parseNseDate(report.an_dt || report.date);
       if (date && report.attchmntFile) {
         allDocuments.push({
           type: "Annual Report",
+          priority: 1,
           date,
           dateStr: report.an_dt || report.date,
           attachmentUrl: report.attchmntFile,
@@ -292,13 +353,14 @@ const getOrderbookBaseline = async (symbol) => {
     }
   }
 
-  // Process investor presentations
+  // Process investor presentations (priority 2)
   if (Array.isArray(investorPresentations)) {
     for (const pres of investorPresentations) {
       const date = parseNseDate(pres.an_dt || pres.date);
       if (date && pres.attchmntFile) {
         allDocuments.push({
           type: "Investor Presentation",
+          priority: 2,
           date,
           dateStr: pres.an_dt || pres.date,
           attachmentUrl: pres.attchmntFile,
@@ -308,27 +370,67 @@ const getOrderbookBaseline = async (symbol) => {
     }
   }
 
-  // Sort by date descending (most recent first)
-  allDocuments.sort((a, b) => b.date - a.date);
+  // Process financial results (priority 3 - may contain order book info)
+  if (Array.isArray(financialResults)) {
+    for (const result of financialResults) {
+      const date = parseNseDate(result.an_dt || result.date);
+      if (date && result.attchmntFile) {
+        allDocuments.push({
+          type: "Financial Results",
+          priority: 3,
+          date,
+          dateStr: result.an_dt || result.date,
+          attachmentUrl: result.attchmntFile,
+          description: result.desc || result.subject || "Financial Results",
+        });
+      }
+    }
+  }
+
+  // Sort by priority first, then by date descending (most recent first)
+  allDocuments.sort((a, b) => {
+    if (a.priority !== b.priority) {
+      return a.priority - b.priority;
+    }
+    return b.date - a.date;
+  });
 
   if (allDocuments.length === 0) {
     return {
       success: false,
-      error: "No annual reports or investor presentations found",
+      error:
+        "No annual reports, investor presentations, or financial results found for this company",
       baseline: null,
+      documents_fetched: {
+        annual_reports: Array.isArray(annualReports) ? annualReports.length : 0,
+        investor_presentations: Array.isArray(investorPresentations)
+          ? investorPresentations.length
+          : 0,
+        financial_results: Array.isArray(financialResults)
+          ? financialResults.length
+          : 0,
+      },
     };
   }
 
-  // Try to parse the most recent document that has order book info
-  for (const doc of allDocuments.slice(0, 3)) {
-    // Try top 3 most recent
+  // Try to parse documents that might have order book info (try up to 5 documents)
+  const documentsToTry = allDocuments.slice(0, 5);
+  const errors = [];
+
+  for (const doc of documentsToTry) {
     try {
+      console.log(
+        `[${upperSymbol}] Trying to parse ${doc.type}: ${doc.description}`
+      );
       const parsedData = await parseOrderbookBaseline(doc.attachmentUrl);
 
       if (
         parsedData.extraction_success &&
         parsedData.order_book?.total_value?.value_in_crore_inr
       ) {
+        console.log(
+          `[${upperSymbol}] Successfully extracted order book from ${doc.type}`
+        );
         return {
           success: true,
           baseline: {
@@ -340,19 +442,27 @@ const getOrderbookBaseline = async (symbol) => {
             reporting_period: parsedData.order_book.reporting_period,
             segment_breakdown: parsedData.order_book.segment_breakdown,
             execution_timeline: parsedData.order_book.execution_timeline,
+            // Order inflow for the current period (quarter/year)
+            order_inflow: parsedData.order_book.order_inflow_current_period,
+            order_book_commentary: parsedData.order_book.order_book_commentary,
           },
           _cache_metadata: parsedData._cache_metadata,
         };
+      } else {
+        errors.push(`${doc.type}: No order book data found`);
       }
     } catch (e) {
       console.error("Error parsing document:", doc.attachmentUrl, e.message);
+      errors.push(`${doc.type}: ${e.message}`);
     }
   }
 
   return {
     success: false,
-    error: "Could not extract order book information from available documents",
-    documents_checked: allDocuments.slice(0, 3).map((d) => d.description),
+    error:
+      "Could not extract order book information from available documents. This company may not publish order book details in their filings.",
+    documents_checked: documentsToTry.map((d) => `${d.type}: ${d.description}`),
+    parse_errors: errors,
     baseline: null,
   };
 };
@@ -360,6 +470,7 @@ const getOrderbookBaseline = async (symbol) => {
 module.exports = {
   fetchAnnualReports,
   fetchInvestorPresentations,
+  fetchFinancialResults,
   parseOrderbookBaseline,
   getOrderbookBaseline,
 };
