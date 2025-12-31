@@ -99,4 +99,9 @@ export const upcomingResultsAPI = {
   getSymbols: () => api.get("/upcoming-results/symbols"),
 };
 
+// Announcements APIs
+export const announcementsAPI = {
+  getBySymbol: (symbol) => api.get(`/announcements/${symbol}`),
+};
+
 export default api;
