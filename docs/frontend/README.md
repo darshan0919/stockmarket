@@ -2,7 +2,7 @@
 
 > **Code Location**: `frontend/`  
 > **Entry Point**: `frontend/pages/_app.js`  
-> **Last Updated**: 2024-12-31
+> **Last Updated**: 2025-01-02
 
 ## Overview
 
@@ -14,8 +14,8 @@ The frontend is a Next.js 14 React application providing a user interface for st
 frontend/
 ├── components/              # React components
 │   ├── common/             # Reusable components
-│   │   ├── Header.js       # Navigation header
-│   │   ├── SearchBar.js    # Stock search
+│   │   ├── Header.js       # Navigation header with global search
+│   │   ├── SearchBar.js    # Stock search component (integrated in Header)
 │   │   ├── Table.js        # Data table
 │   │   ├── Modal.js        # Modal dialog
 │   │   └── LoadingSpinner.js
@@ -62,6 +62,20 @@ frontend/
 ```
 
 ## Quick Reference
+
+### Global Navigation
+
+The application features a global header with navigation and search functionality:
+
+- **Logo**: Links to the dashboard page
+- **Search Bar**: Global stock search available on all pages (symbol or company name)
+- **Navigation Links**: Dashboard, Screener, Watchlist
+
+The search bar is integrated into the header, making it accessible from any page including individual stock detail pages. It provides autocomplete functionality with:
+- Real-time search results
+- Keyboard navigation (arrow keys, Enter, Escape)
+- Direct navigation to stock detail pages
+- Pagination support for large result sets
 
 ### Components
 

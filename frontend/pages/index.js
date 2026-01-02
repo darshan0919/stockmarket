@@ -1,10 +1,14 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import SearchBar from '../components/common/SearchBar';
 import MarketSnapshot from '../components/dashboard/MarketSnapshot';
 import WatchlistSummary from '../components/dashboard/WatchlistSummary';
 import UpcomingResults from '../components/dashboard/UpcomingResults';
 
+/**
+ * Dashboard page component
+ * @component
+ * @see {@link docs/frontend/README.md} for documentation
+ */
 export default function Dashboard() {
   const router = useRouter();
 
@@ -31,12 +35,9 @@ export default function Dashboard() {
       </Head>
 
       <div className="max-w-7xl mx-auto">
-        {/* Search Section */}
+        {/* Page Title */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">Stock Screener Dashboard</h1>
-          <div className="max-w-2xl">
-            <SearchBar placeholder="Search stocks by symbol or name..." />
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900">Stock Screener Dashboard</h1>
         </div>
 
         {/* Market Snapshot & Watchlist */}

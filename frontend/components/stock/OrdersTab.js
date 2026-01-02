@@ -132,6 +132,61 @@ const isInCurrentQuarter = (dateStr) => {
   }
 };
 
+/**
+ * Get the unannounced quarter info based on transcript announcement date
+ * The quarter in which the transcript was released is the "announced quarter"
+ * The next quarter is the "unannounced quarter" whose orders we need to fetch
+ *
+ * @param {Date} transcriptDate - The date the transcript was announced
+ * @returns {Object} - Unannounced quarter info with startDate and periodLabel
+ */
+const getUnannouncedQuarter = (transcriptDate) => {
+  if (!transcriptDate || !(transcriptDate instanceof Date) || isNaN(transcriptDate.getTime())) {
+    // Default to current quarter if no valid date
+    return getCurrentFiscalQuarter();
+  }
+
+  const month = transcriptDate.getMonth(); // 0-11
+  const year = transcriptDate.getFullYear();
+
+  // Determine which quarter the transcript was released in (the "announced quarter")
+  // Then calculate the next quarter (the "unannounced quarter")
+  let unannouncedQuarter, unannouncedFiscalYear, startDate;
+
+  if (month >= 3 && month <= 5) {
+    // Transcript in Q1 (Apr-Jun) -> Unannounced is Q1 (same quarter where transcript was released)
+    // This means Q4 results were announced, and Q1 is unannounced
+    unannouncedQuarter = 1;
+    unannouncedFiscalYear = year + 1;
+    startDate = new Date(year, 3, 1); // Apr 1
+  } else if (month >= 6 && month <= 8) {
+    // Transcript in Q2 (Jul-Sep) -> Unannounced is Q2
+    unannouncedQuarter = 2;
+    unannouncedFiscalYear = year + 1;
+    startDate = new Date(year, 6, 1); // Jul 1
+  } else if (month >= 9 && month <= 11) {
+    // Transcript in Q3 (Oct-Dec) -> Unannounced is Q3
+    unannouncedQuarter = 3;
+    unannouncedFiscalYear = year + 1;
+    startDate = new Date(year, 9, 1); // Oct 1
+  } else {
+    // Transcript in Q4 (Jan-Mar) -> Unannounced is Q4
+    unannouncedQuarter = 4;
+    unannouncedFiscalYear = year;
+    startDate = new Date(year, 0, 1); // Jan 1
+  }
+
+  const fiscalYearShort = String(unannouncedFiscalYear).slice(-2);
+  const periodLabel = `Q${unannouncedQuarter} FY${fiscalYearShort}`;
+
+  return {
+    quarter: unannouncedQuarter,
+    fiscalYear: unannouncedFiscalYear,
+    periodLabel,
+    startDate,
+  };
+};
+
 // Order Row Component for Non-AI mode
 const NonAIOrderRow = ({ order }) => {
   const { announcement_date, description, attachment_url, subject, attachment_text } = order;
@@ -337,6 +392,87 @@ const OrderRow = ({ order, onParsePdf, isParsing, showParseButton = true }) => {
         </div>
       </td>
     </tr>
+  );
+};
+
+// Transcript Banner Component
+const TranscriptBanner = ({ transcript, unannouncedQuarterInfo, formatDateFn }) => {
+  if (!transcript) return null;
+
+  const transcriptUrl = transcript.attachment_url || null;
+
+  return (
+    <div className="bg-gradient-to-r from-violet-50 to-indigo-50 border border-violet-200 rounded-xl p-5 mb-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-violet-100 rounded-xl">
+            <svg
+              className="w-7 h-7 text-violet-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-violet-900 mb-1">
+              Latest Earnings Call Transcript
+            </h4>
+            <p className="text-xs text-violet-600 mb-2">
+              Announced on {formatDateFn(transcript.announcement_date)}
+            </p>
+            {unannouncedQuarterInfo && (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-violet-100 rounded-lg">
+                <svg
+                  className="w-4 h-4 text-violet-700"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span className="text-xs font-medium text-violet-800">
+                  Showing orders for{' '}
+                  <span className="font-bold">{unannouncedQuarterInfo.periodLabel}</span>
+                  <span className="text-violet-600 ml-1">
+                    (from {formatDateFn(unannouncedQuarterInfo.startDate)} onwards)
+                  </span>
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+        {transcriptUrl && (
+          <a
+            href={transcriptUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700 transition-colors text-sm flex-shrink-0"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            View Transcript
+          </a>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -613,8 +749,72 @@ export default function OrdersTab({ symbol }) {
   const [orderbookFallbackMessage, setOrderbookFallbackMessage] = useState(null);
   const [orderbookFallbackDetails, setOrderbookFallbackDetails] = useState(null);
 
+  // Transcript state for unannounced quarter calculation
+  const [latestTranscript, setLatestTranscript] = useState(null);
+  const [unannouncedQuarterInfo, setUnannouncedQuarterInfo] = useState(null);
+  const [transcriptLoading, setTranscriptLoading] = useState(true);
+
+  // Quarters data state
+  const [quartersData, setQuartersData] = useState([]);
+  const [quartersLoading, setQuartersLoading] = useState(false);
+  const [downloadingQuarter, setDownloadingQuarter] = useState(null);
+
+  // Process transcript data from orders API response
+  const processTranscriptData = (transcriptData) => {
+    if (!transcriptData) {
+      setTranscriptLoading(false);
+      return null;
+    }
+
+    try {
+      setLatestTranscript(transcriptData);
+
+      // Parse the transcript date and calculate unannounced quarter
+      const transcriptDateStr = transcriptData.announcement_date;
+      if (transcriptDateStr) {
+        const transcriptDate = new Date(transcriptDateStr);
+        const quarterInfo = getUnannouncedQuarter(transcriptDate);
+        setUnannouncedQuarterInfo(quarterInfo);
+        setTranscriptLoading(false);
+        return { transcript: transcriptData, quarterInfo };
+      }
+    } catch (err) {
+      console.error('Error processing transcript:', err);
+    }
+
+    setTranscriptLoading(false);
+    return null;
+  };
+
+  // Fetch quarters data
+  const fetchQuartersData = async () => {
+    if (!symbol) return;
+
+    try {
+      setQuartersLoading(true);
+      const response = await ordersAPI.getQuarters(symbol);
+      if (response.data.success) {
+        setQuartersData(response.data.data.quarters || []);
+      }
+    } catch (err) {
+      console.error('Error fetching quarters data:', err);
+    } finally {
+      setQuartersLoading(false);
+    }
+  };
+
+  // Filter orders based on unannounced quarter start date
+  const filterOrdersByQuarter = (allOrders, quarterInfo) => {
+    if (!quarterInfo?.startDate) return allOrders;
+
+    return allOrders.filter((order) => {
+      const orderDate = new Date(order.announcement_date);
+      return orderDate >= quarterInfo.startDate;
+    });
+  };
+
   // Fetch orders based on view mode
-  const fetchData = async (mode = viewMode) => {
+  const fetchData = async (mode = viewMode, quarterInfo = unannouncedQuarterInfo) => {
     if (!symbol) return;
 
     const fetchStartTime = Date.now();
@@ -650,8 +850,21 @@ export default function OrdersTab({ symbol }) {
       setClientFetchTime(clientTime);
 
       if (response.data.success) {
+        let fetchedOrders = [];
+        let transcriptResult = null;
+
         if (mode === 'non-ai') {
-          setOrders(response.data.data.orders || []);
+          fetchedOrders = response.data.data.orders || [];
+
+          // Process transcript data if available
+          if (response.data.data.latest_transcript) {
+            transcriptResult = processTranscriptData(response.data.data.latest_transcript);
+            // If we just got new quarter info, use it
+            if (transcriptResult?.quarterInfo) {
+              quarterInfo = transcriptResult.quarterInfo;
+            }
+          }
+
           // Store baseline document info if available
           if (response.data.data.baseline_document_url) {
             setBaselineDocumentUrl(response.data.data.baseline_document_url);
@@ -661,10 +874,17 @@ export default function OrdersTab({ symbol }) {
           }
         } else if (mode === 'orderbook') {
           setOrderbookData(response.data.data);
-          setOrders(response.data.data.new_orders || []);
+          fetchedOrders = response.data.data.new_orders || [];
         } else {
-          setOrders(response.data.data.orders || []);
+          fetchedOrders = response.data.data.orders || [];
         }
+
+        // Filter orders by unannounced quarter if we have quarter info (non-AI mode)
+        if (mode === 'non-ai' && quarterInfo) {
+          fetchedOrders = filterOrdersByQuarter(fetchedOrders, quarterInfo);
+        }
+
+        setOrders(fetchedOrders);
 
         if (response.data.data.timing) {
           setTiming(response.data.data.timing);
@@ -692,7 +912,7 @@ export default function OrdersTab({ symbol }) {
           });
           setViewMode('non-ai');
           // Recursively fetch with non-ai mode
-          await fetchData('non-ai');
+          await fetchData('non-ai', quarterInfo);
           return;
         }
         setError(response.data.error || 'Failed to fetch data');
@@ -706,7 +926,10 @@ export default function OrdersTab({ symbol }) {
   };
 
   useEffect(() => {
-    fetchData();
+    // Fetch orders - transcript data will be included in the response
+    fetchData(viewMode);
+    // Fetch quarters data
+    fetchQuartersData();
   }, [symbol]);
 
   // Handle external site navigation
@@ -735,7 +958,7 @@ export default function OrdersTab({ symbol }) {
     // Clear fallback message and details when manually switching
     setOrderbookFallbackMessage(null);
     setOrderbookFallbackDetails(null);
-    await fetchData(newMode);
+    await fetchData(newMode, unannouncedQuarterInfo);
   };
 
   // Handle individual PDF parsing
@@ -843,11 +1066,11 @@ export default function OrdersTab({ symbol }) {
     }
   };
 
-  // Download all PDFs
+  // Download all PDFs including transcript
   const handleDownloadAll = async () => {
     try {
       setDownloading(true);
-      setDownloadProgress({ current: 0, total: sortedOrders.length });
+      setDownloadProgress({ current: 0, total: sortedOrders.length + (latestTranscript ? 1 : 0) });
 
       // Show starting message
       setSnackbar({
@@ -856,13 +1079,29 @@ export default function OrdersTab({ symbol }) {
         type: 'info',
       });
 
+      // Get transcript URL and date if available
+      const transcriptUrl = latestTranscript?.attachment_url || null;
+      const transcriptDate = latestTranscript?.announcement_date || null;
+
+      // Get the unannounced quarter start date for filtering
+      const quarterStartDate = unannouncedQuarterInfo?.startDate?.toISOString() || null;
+
       // Call backend to download directly to Desktop/Stock_Data
-      const response = await ordersAPI.downloadDirect(symbol, sortedOrders.length);
+      const response = await ordersAPI.downloadDirect(
+        symbol,
+        sortedOrders.length,
+        transcriptUrl,
+        quarterStartDate,
+        transcriptDate
+      );
 
       if (response.data.success) {
         const { folder_name, folder_path, downloaded, failed } = response.data.data;
 
-        setDownloadProgress({ current: downloaded, total: sortedOrders.length });
+        setDownloadProgress({
+          current: downloaded,
+          total: sortedOrders.length + (latestTranscript ? 1 : 0),
+        });
 
         // Show success message
         setSnackbar({
@@ -895,6 +1134,57 @@ export default function OrdersTab({ symbol }) {
       setTimeout(() => {
         setDownloadProgress({ current: 0, total: 0 });
       }, 1000);
+    }
+  };
+
+  // Download quarter data
+  const handleDownloadQuarter = async (quarter) => {
+    try {
+      setDownloadingQuarter(quarter.periodLabel);
+
+      // Show starting message
+      setSnackbar({
+        show: true,
+        message: `Starting download for ${quarter.periodLabel}...`,
+        type: 'info',
+      });
+
+      const response = await ordersAPI.downloadQuarter(
+        symbol,
+        quarter.quarter,
+        quarter.fiscalYear,
+        quarter.orders,
+        quarter.transcripts
+      );
+
+      if (response.data.success) {
+        const { folder_path, downloaded } = response.data.data;
+
+        setSnackbar({
+          show: true,
+          message: `✅ Downloaded ${downloaded} file${downloaded !== 1 ? 's' : ''} for ${quarter.periodLabel} to ${folder_path}`,
+          type: 'success',
+        });
+
+        setTimeout(() => {
+          setSnackbar({ show: false, message: '', type: 'info' });
+        }, 5000);
+      } else {
+        throw new Error('Download failed');
+      }
+    } catch (err) {
+      console.error('Failed to download quarter data:', err);
+      setSnackbar({
+        show: true,
+        message: '❌ Download failed. Please try again.',
+        type: 'error',
+      });
+
+      setTimeout(() => {
+        setSnackbar({ show: false, message: '', type: 'info' });
+      }, 4000);
+    } finally {
+      setDownloadingQuarter(null);
     }
   };
 
@@ -1184,6 +1474,13 @@ export default function OrdersTab({ symbol }) {
       {/* Non-AI View - Just list announcements with links */}
       {viewMode === 'non-ai' && (
         <>
+          {/* Latest Transcript Banner */}
+          <TranscriptBanner
+            transcript={latestTranscript}
+            unannouncedQuarterInfo={unannouncedQuarterInfo}
+            formatDateFn={formatDate}
+          />
+
           {sortedOrders.length === 0 ? (
             <EmptyState message="No order announcements found for this company." />
           ) : (
@@ -1634,6 +1931,189 @@ export default function OrdersTab({ symbol }) {
           )}
         </>
       )}
+
+      {/* Last 8 Quarters Section */}
+      <div className="mt-12">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">Last 8 Quarters</h3>
+            <p className="text-sm text-slate-500 mt-1">
+              View and download order announcements and transcripts by quarter
+            </p>
+          </div>
+        </div>
+
+        {quartersLoading ? (
+          <LoadingSpinner size="sm" text="Loading quarters data..." />
+        ) : quartersData.length === 0 ? (
+          <div className="text-center py-8 text-slate-500">
+            <p>No quarters data available</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {quartersData.map((quarter) => (
+              <div
+                key={quarter.periodLabel}
+                className="bg-white border border-slate-200 rounded-xl p-6 hover:shadow-lg transition-shadow"
+              >
+                {/* Quarter Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="text-lg font-bold text-slate-900">{quarter.periodLabel}</h4>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {formatDate(quarter.startDate)} - {formatDate(quarter.endDate)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleDownloadQuarter(quarter)}
+                    disabled={
+                      downloadingQuarter === quarter.periodLabel ||
+                      (quarter.totalOrders === 0 && quarter.totalTranscripts === 0)
+                    }
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                      downloadingQuarter === quarter.periodLabel
+                        ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                        : quarter.totalOrders === 0 && quarter.totalTranscripts === 0
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : 'bg-primary-600 text-white hover:bg-primary-700'
+                    }`}
+                    title={
+                      quarter.totalOrders === 0 && quarter.totalTranscripts === 0
+                        ? 'No data available'
+                        : 'Download all files'
+                    }
+                  >
+                    {downloadingQuarter === quarter.periodLabel ? (
+                      <>
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                          />
+                        </svg>
+                        Downloading...
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                          />
+                        </svg>
+                        Download
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Quarter Stats */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="bg-blue-50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <svg
+                        className="w-4 h-4 text-blue-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      <span className="text-xs font-medium text-blue-600">Orders</span>
+                    </div>
+                    <div className="text-2xl font-bold text-slate-900">{quarter.totalOrders}</div>
+                  </div>
+
+                  <div className="bg-purple-50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <svg
+                        className="w-4 h-4 text-purple-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                        />
+                      </svg>
+                      <span className="text-xs font-medium text-purple-600">Transcripts</span>
+                    </div>
+                    <div className="text-2xl font-bold text-slate-900">
+                      {quarter.totalTranscripts}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Details List */}
+                {(quarter.orders.length > 0 || quarter.transcripts.length > 0) && (
+                  <div className="space-y-2">
+                    {quarter.transcripts.length > 0 && (
+                      <div className="text-xs text-slate-600">
+                        <span className="font-semibold">Recent transcripts:</span>
+                        <ul className="mt-1 ml-4 list-disc">
+                          {quarter.transcripts.slice(0, 2).map((t, idx) => (
+                            <li key={idx} className="truncate">
+                              {t.attachment_text || t.subject}
+                            </li>
+                          ))}
+                          {quarter.transcripts.length > 2 && (
+                            <li className="text-slate-500">
+                              +{quarter.transcripts.length - 2} more...
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                    {quarter.orders.length > 0 && (
+                      <div className="text-xs text-slate-600">
+                        <span className="font-semibold">Recent orders:</span>
+                        <ul className="mt-1 ml-4 list-disc">
+                          {quarter.orders.slice(0, 2).map((o, idx) => (
+                            <li key={idx} className="truncate">
+                              {formatDate(o.announcement_date)}
+                            </li>
+                          ))}
+                          {quarter.orders.length > 2 && (
+                            <li className="text-slate-500">+{quarter.orders.length - 2} more...</li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {quarter.totalOrders === 0 && quarter.totalTranscripts === 0 && (
+                  <div className="text-center py-4 text-slate-400 text-sm">No data available</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Attribution */}
       <p className="text-xs text-gray-500 mt-6">

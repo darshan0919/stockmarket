@@ -2,6 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { stockAPI } from '../../lib/api';
 
+/**
+ * SearchBar component for stock search with autocomplete
+ * @component
+ * @param {Object} props - Component props
+ * @param {string} [props.placeholder='Search stocks...'] - Input placeholder text
+ * @returns {JSX.Element} SearchBar component with dropdown results
+ * @see {@link docs/frontend/components/SearchBar.md} for documentation
+ */
 export default function SearchBar({ placeholder = 'Search stocks...' }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);

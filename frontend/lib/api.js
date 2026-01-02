@@ -133,8 +133,25 @@ export const ordersAPI = {
   getOrderbook: (symbol) => api.get(`/orders/${symbol}/orderbook`, { timeout: 300000 }),
   downloadAll: (symbol, limit = 100) =>
     api.post(`/orders/${symbol}/download-all`, { limit }, { timeout: 30000 }),
-  downloadDirect: (symbol, limit = 100) =>
-    api.post(`/orders/${symbol}/download-direct`, { limit }, { timeout: 60000 }),
+  downloadDirect: (
+    symbol,
+    limit = 100,
+    transcriptUrl = null,
+    quarterStartDate = null,
+    transcriptDate = null
+  ) =>
+    api.post(
+      `/orders/${symbol}/download-direct`,
+      { limit, transcriptUrl, quarterStartDate, transcriptDate },
+      { timeout: 60000 }
+    ),
+  getQuarters: (symbol) => api.get(`/orders/${symbol}/quarters`, { timeout: 30000 }),
+  downloadQuarter: (symbol, quarter, fiscalYear, orders, transcripts) =>
+    api.post(
+      `/orders/${symbol}/download-quarter`,
+      { quarter, fiscalYear, orders, transcripts },
+      { timeout: 120000 }
+    ),
 };
 
 export default api;
