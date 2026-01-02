@@ -3,7 +3,7 @@
 > **Document Type**: API Documentation  
 > **Base URL**: `http://localhost:5000/api`  
 > **Code Reference**: `backend/routes/`, `backend/controllers/`  
-> **Last Updated**: 2024-12-31
+> **Last Updated**: 2026-01-02
 
 ## Overview
 
@@ -489,13 +489,154 @@ GET /api/upcoming-results?page={page}&limit={limit}
 
 > **Route File**: `backend/routes/orders.js`
 
-### Get Orders by Symbol
+### Get Orders by Symbol (Non-AI Mode)
+
+**NEW**: Fetch raw order announcements without AI processing. This is the default mode for fast, cost-effective access to order announcements.
 
 ```http
 GET /api/orders/{symbol}?limit={number}
 ```
 
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `symbol` | string | Yes | - | Stock symbol |
+| `limit` | number | No | 50 | Maximum number of orders to return |
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "symbol": "LTIM",
+    "total_orders": 10,
+    "orders": [
+      {
+        "id": "17-Nov-2025 13:55:52-106447414",
+        "announcement_date": "2025-11-17",
+        "subject": "Order Announcement",
+        "description": "Bagging/Receiving of orders/contracts",
+        "attachment_url": "https://nsearchives.nseindia.com/corporate/...",
+        "attachment_text": "LTIMindtree Limited has informed...",
+        "company_name": "LTIMindtree Limited",
+        "order_details": null,
+        "pdf_parsed": false,
+        "parsing_error": null
+      }
+    ],
+    "baseline_document_url": null,
+    "baseline_document_title": null,
+    "mode": "non-ai"
+  }
+}
+```
+
+**Features:**
+- ⚡ Fast response (no AI processing)
+- 💰 No API costs
+- 📄 Direct PDF links
+- 🔍 Filters NSE announcements for order-related subjects
+
+### Get Orders with Full AI Parsing
+
+Fetch and parse all order announcements using Gemini AI.
+
+```http
+GET /api/orders/{symbol}/full?limit={number}
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `symbol` | string | Yes | - | Stock symbol |
+| `limit` | number | No | 20 | Maximum number of orders (max: 30) |
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "symbol": "LTIM",
+    "total_orders": 20,
+    "orders_with_parsed_values": 15,
+    "total_order_value_crores": 1234.56,
+    "orders": [
+      {
+        "id": "...",
+        "announcement_date": "2025-11-17",
+        "order_details": {
+          "order_value": {
+            "value_in_crore_inr": 123.45,
+            "currency": "INR",
+            "unit": "Crore"
+          },
+          "customer_name": "Global Tech Corp",
+          "customer_type": "Private",
+          "order_type": "New Contract",
+          "project_description": "Digital transformation project...",
+          "timeline": "24 months"
+        },
+        "pdf_parsed": true,
+        "confidence_score": 0.95,
+        "from_cache": true,
+        "parse_time_ms": 50
+      }
+    ],
+    "timing": {
+      "total_request_time_ms": 2500,
+      "nse_fetch_time_ms": 300,
+      "pdf_parsing_time_ms": 2200,
+      "average_parse_time_ms": 110
+    },
+    "cache_stats": {
+      "cache_hits": 18,
+      "cache_misses": 2,
+      "cache_hit_rate": 90
+    }
+  }
+}
+```
+
+**Code Reference:**
+- AI Parser: `backend/api/orderParser.js:parseOrderFromPdf()`
+- Prompt: `backend/prompts/order_extraction.txt`
+
+### Parse Individual PDF
+
+Parse a specific order announcement PDF.
+
+```http
+POST /api/orders/{symbol}/parse-pdf
+```
+
+**Request Body:**
+```json
+{
+  "attachmentUrl": "https://nsearchives.nseindia.com/corporate/..."
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "symbol": "LTIM",
+    "attachment_url": "...",
+    "parsed_data": {
+      "extraction_success": true,
+      "confidence_score": 0.92,
+      "order_details": {
+        "order_value": { "value_in_crore_inr": 123.45 },
+        "customer_name": "...",
+        "project_description": "..."
+      }
+    }
+  }
+}
+```
+
 ### Get Orderbook
+
+Get accumulated order book with baseline from annual reports + new orders.
 
 ```http
 GET /api/orders/{symbol}/orderbook
@@ -507,22 +648,49 @@ GET /api/orders/{symbol}/orderbook
   "success": true,
   "data": {
     "symbol": "RELIANCE",
-    "orders": [
+    "orderbook_summary": {
+      "baseline_order_book_crores": 5000,
+      "baseline_as_of_date": "2024-12-31",
+      "baseline_reporting_period": "Q3 FY24",
+      "baseline_source": "Investor Presentation",
+      "baseline_document": "Q3 FY24 Results Presentation",
+      "new_orders_since_baseline_crores": 500,
+      "new_orders_count": 5,
+      "accumulated_order_book_crores": 5500,
+      "calculation_note": "Accumulated = Baseline + New Orders. Does not subtract executed orders."
+    },
+    "order_inflow": {
+      "period": "Q3 FY24",
+      "value_crores": 800
+    },
+    "order_book_commentary": "Strong order intake in defense sector...",
+    "segment_breakdown": [
       {
-        "date": "2024-01-15",
-        "order_type": "buy",
-        "quantity": 1000,
-        "price": 2450.00
+        "segment_name": "Defense",
+        "value_crores": 3000
+      },
+      {
+        "segment_name": "Infrastructure",
+        "value_crores": 2000
       }
     ],
-    "baseline": {
-      "total_buy": 50000,
-      "total_sell": 45000,
-      "net_position": 5000
+    "new_orders": [
+      // Array of parsed order announcements
+    ],
+    "timing": { "total_request_time_ms": 5000 },
+    "cache_stats": {
+      "cache_hits": 5,
+      "cache_misses": 0,
+      "cache_hit_rate": 100,
+      "baseline_from_cache": true
     }
   }
 }
 ```
+
+**Code Reference:**
+- Baseline Parser: `backend/api/orderbookBaselineParser.js:getOrderbookBaseline()`
+- Prompt: `backend/prompts/orderbook_baseline.txt`
 
 ---
 

@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const archiver = require('archiver');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 const {
   parseOrderFromPdf,
   parseAmountFromText,
@@ -105,12 +109,13 @@ const parseNseDate = (dateStr) => {
 
 /**
  * GET /api/orders/:symbol
- * Fetch and parse order announcements for a stock
+ * Fetch order announcements for a stock (Non-AI mode - no PDF parsing)
+ * Returns basic announcement data with attachment URLs and baseline document URL
  */
 router.get('/:symbol', async (req, res, next) => {
   try {
     const { symbol } = req.params;
-    const { parsePdf = 'false', limit = '50' } = req.query;
+    const { limit = '50' } = req.query;
 
     if (!symbol) {
       return res.status(400).json({
@@ -127,7 +132,7 @@ router.get('/:symbol', async (req, res, next) => {
     // Limit the results
     const limitedAnnouncements = announcements.slice(0, parseInt(limit));
 
-    // Process announcements
+    // Process announcements - NO AI PARSING
     const orders = [];
 
     for (const ann of limitedAnnouncements) {
@@ -140,23 +145,42 @@ router.get('/:symbol', async (req, res, next) => {
         attachment_text: ann.attchmntText || null,
         company_name: ann.sm_name || symbol,
 
-        // Extracted order details (initially from text parsing)
-        order_details: {
-          order_value: parseAmountFromText(ann.desc) || parseAmountFromText(ann.attchmntText),
-          order_capacity:
-            parseCapacityFromText(ann.desc) || parseCapacityFromText(ann.attchmntText),
-          customer_name: null,
-          order_type: null,
-          project_description: ann.desc || null,
-          timeline: null,
-        },
-
-        // PDF parsing status
+        // No AI parsing - just raw data
+        order_details: null,
         pdf_parsed: false,
         parsing_error: null,
       };
 
       orders.push(order);
+    }
+
+    // Try to get baseline document info (non-AI, just metadata)
+    let baselineDocumentUrl = null;
+    let baselineDocumentTitle = null;
+
+    try {
+      // Attempt to fetch latest annual report or investor presentation
+      const annualReportUrl = `https://www.nseindia.com/api/NextApi/apiClient/GetQuoteApi?functionName=getCorpAnnualReport&symbol=${encodeURIComponent(
+        upperSymbol
+      )}&marketApiType=equities`;
+
+      const annualReportResponse = await axios.get(annualReportUrl, {
+        headers: NSE_HEADERS,
+        timeout: 5000,
+      });
+
+      const annualReports = annualReportResponse.data || [];
+      if (annualReports.length > 0) {
+        // Get the most recent annual report
+        const latestReport = annualReports[0];
+        baselineDocumentUrl = latestReport.attchmntFile || null;
+        baselineDocumentTitle = latestReport.attchmntText
+          ? `Annual Report - ${latestReport.attchmntText}`
+          : 'Latest Annual Report';
+      }
+    } catch (error) {
+      console.log('Could not fetch baseline document for', upperSymbol, ':', error.message);
+      // Not a critical error, continue without baseline
     }
 
     res.json({
@@ -165,6 +189,9 @@ router.get('/:symbol', async (req, res, next) => {
         symbol: upperSymbol,
         total_orders: orders.length,
         orders,
+        baseline_document_url: baselineDocumentUrl,
+        baseline_document_title: baselineDocumentTitle,
+        mode: 'non-ai',
       },
     });
   } catch (error) {
@@ -542,6 +569,250 @@ router.get('/:symbol/orderbook', async (req, res, next) => {
     });
   } catch (error) {
     console.error('Error fetching order book:', error.message);
+    next(error);
+  }
+});
+
+/**
+ * POST /api/orders/:symbol/download-all
+ * Download all order announcement PDFs as a ZIP file
+ */
+router.post('/:symbol/download-all', async (req, res, next) => {
+  try {
+    const { symbol } = req.params;
+    const { limit = '100' } = req.body;
+
+    if (!symbol) {
+      return res.status(400).json({
+        success: false,
+        error: 'Symbol is required',
+      });
+    }
+
+    const upperSymbol = symbol.toUpperCase();
+    const folderName = `${upperSymbol}_${new Date().toISOString().split('T')[0]}`;
+
+    // Fetch order announcements from NSE
+    const announcements = await fetchOrderAnnouncements(upperSymbol);
+    const limitedAnnouncements = announcements.slice(0, parseInt(limit));
+
+    // Filter announcements with PDF attachments
+    const pdfsToDownload = limitedAnnouncements
+      .filter((ann) => ann.attchmntFile)
+      .map((ann, index) => ({
+        url: ann.attchmntFile,
+        date: parseNseDate(ann.an_dt),
+        description: ann.attchmntText || ann.desc || 'Order Announcement',
+        index: index + 1,
+      }));
+
+    if (pdfsToDownload.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No PDFs found to download',
+      });
+    }
+
+    // Set response headers for ZIP download
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${folderName}.zip"`);
+
+    // Create ZIP archive
+    const archive = archiver('zip', {
+      zlib: { level: 9 }, // Maximum compression
+    });
+
+    // Pipe archive to response
+    archive.pipe(res);
+
+    // Error handling
+    archive.on('error', (err) => {
+      console.error('Archive error:', err);
+      throw err;
+    });
+
+    // Download and add each PDF to the archive
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const pdf of pdfsToDownload) {
+      try {
+        console.log(`Downloading PDF ${pdf.index}/${pdfsToDownload.length}: ${pdf.url}`);
+
+        // Download PDF from NSE
+        const pdfResponse = await axios.get(pdf.url, {
+          responseType: 'arraybuffer',
+          timeout: 30000,
+          headers: NSE_HEADERS,
+        });
+
+        // Create safe filename
+        const safeDescription = pdf.description
+          .replace(/[^a-z0-9]/gi, '_')
+          .replace(/_+/g, '_')
+          .substring(0, 50);
+
+        const filename = `${pdf.date}_${safeDescription}.pdf`;
+
+        // Add file to archive inside the folder
+        archive.append(Buffer.from(pdfResponse.data), {
+          name: `${folderName}/${filename}`,
+        });
+
+        successCount++;
+      } catch (err) {
+        console.error(`Failed to download PDF ${pdf.index}:`, err.message);
+        failCount++;
+      }
+    }
+
+    // Add a summary file
+    const summary = `Order PDFs for ${upperSymbol}
+Downloaded: ${new Date().toISOString()}
+Total Files: ${successCount}
+Failed Downloads: ${failCount}
+
+Files in this folder:
+${pdfsToDownload
+  .map((pdf, i) => `${i + 1}. ${pdf.date} - ${pdf.description.substring(0, 100)}`)
+  .join('\n')}
+`;
+
+    archive.append(summary, { name: `${folderName}/README.txt` });
+
+    // Finalize the archive
+    await archive.finalize();
+
+    console.log(`ZIP created successfully: ${successCount} files, ${failCount} failed`);
+  } catch (error) {
+    console.error('Error creating ZIP:', error.message);
+    if (!res.headersSent) {
+      next(error);
+    }
+  }
+});
+
+/**
+ * POST /api/orders/:symbol/download-direct
+ * Download all order announcement PDFs directly to Desktop/Stock_Data
+ */
+router.post('/:symbol/download-direct', async (req, res, next) => {
+  try {
+    const { symbol } = req.params;
+    const { limit = '100' } = req.body;
+
+    if (!symbol) {
+      return res.status(400).json({
+        success: false,
+        error: 'Symbol is required',
+      });
+    }
+
+    const upperSymbol = symbol.toUpperCase();
+    const folderName = `${upperSymbol}_${new Date().toISOString().split('T')[0]}`;
+
+    // Get Desktop path
+    const desktopPath = path.join(os.homedir(), 'Desktop');
+    const stockDataPath = path.join(desktopPath, 'Stock_Data');
+    const targetPath = path.join(stockDataPath, folderName);
+
+    // Create directories if they don't exist
+    if (!fs.existsSync(stockDataPath)) {
+      fs.mkdirSync(stockDataPath, { recursive: true });
+    }
+    if (!fs.existsSync(targetPath)) {
+      fs.mkdirSync(targetPath, { recursive: true });
+    }
+
+    // Fetch order announcements from NSE
+    const announcements = await fetchOrderAnnouncements(upperSymbol);
+    const limitedAnnouncements = announcements.slice(0, parseInt(limit));
+
+    // Filter announcements with PDF attachments
+    const pdfsToDownload = limitedAnnouncements
+      .filter((ann) => ann.attchmntFile)
+      .map((ann, index) => ({
+        url: ann.attchmntFile,
+        date: parseNseDate(ann.an_dt),
+        description: ann.attchmntText || ann.desc || 'Order Announcement',
+        index: index + 1,
+      }));
+
+    if (pdfsToDownload.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No PDFs found to download',
+      });
+    }
+
+    // Download and save each PDF
+    let successCount = 0;
+    let failCount = 0;
+    const downloadedFiles = [];
+
+    for (const pdf of pdfsToDownload) {
+      try {
+        console.log(`Downloading PDF ${pdf.index}/${pdfsToDownload.length}: ${pdf.url}`);
+
+        // Download PDF from NSE
+        const pdfResponse = await axios.get(pdf.url, {
+          responseType: 'arraybuffer',
+          timeout: 30000,
+          headers: NSE_HEADERS,
+        });
+
+        // Create safe filename
+        const safeDescription = pdf.description
+          .replace(/[^a-z0-9]/gi, '_')
+          .replace(/_+/g, '_')
+          .substring(0, 50);
+
+        const filename = `${pdf.date}_${safeDescription}.pdf`;
+        const filePath = path.join(targetPath, filename);
+
+        // Save file
+        fs.writeFileSync(filePath, Buffer.from(pdfResponse.data));
+
+        successCount++;
+        downloadedFiles.push(filename);
+      } catch (err) {
+        console.error(`Failed to download PDF ${pdf.index}:`, err.message);
+        failCount++;
+      }
+    }
+
+    // Create README file
+    const summary = `Order PDFs for ${upperSymbol}
+Downloaded: ${new Date().toISOString()}
+Location: ${targetPath}
+Total Files: ${successCount}
+Failed Downloads: ${failCount}
+
+Files in this folder:
+${pdfsToDownload
+  .map((pdf, i) => `${i + 1}. ${pdf.date} - ${pdf.description.substring(0, 100)}`)
+  .join('\n')}
+`;
+
+    fs.writeFileSync(path.join(targetPath, 'README.txt'), summary);
+
+    // Return success response
+    res.json({
+      success: true,
+      data: {
+        symbol: upperSymbol,
+        folder_name: folderName,
+        folder_path: targetPath,
+        total_pdfs: pdfsToDownload.length,
+        downloaded: successCount,
+        failed: failCount,
+        files: downloadedFiles,
+      },
+    });
+
+    console.log(`Download complete: ${successCount} files saved to ${targetPath}`);
+  } catch (error) {
+    console.error('Error downloading PDFs:', error.message);
     next(error);
   }
 });

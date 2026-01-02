@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { ordersAPI } from '../../lib/api';
 import LoadingSpinner from '../common/LoadingSpinner';
+import Snackbar from '../common/Snackbar';
 
 // Format currency value
 const formatCurrency = (value, unit = 'Crore', currency = 'INR') => {
@@ -129,6 +130,62 @@ const isInCurrentQuarter = (dateStr) => {
   } catch (e) {
     return false;
   }
+};
+
+// Order Row Component for Non-AI mode
+const NonAIOrderRow = ({ order }) => {
+  const { announcement_date, description, attachment_url, subject, attachment_text } = order;
+
+  return (
+    <tr className="hover:bg-slate-50 transition-colors">
+      {/* Date */}
+      <td className="px-4 py-3 whitespace-nowrap">
+        <div className="text-sm font-medium text-slate-900">{formatDate(announcement_date)}</div>
+        <div className="text-xs text-slate-500">{timeAgo(announcement_date)}</div>
+      </td>
+
+      {/* Subject */}
+      <td className="px-4 py-3">
+        <div className="text-sm font-medium text-slate-900 max-w-md">
+          {subject || 'Order Announcement'}
+        </div>
+      </td>
+
+      {/* Description */}
+      <td className="px-4 py-3">
+        <div className="text-sm text-slate-700 max-w-lg">
+          <p className="line-clamp-2">{attachment_text || description || '-'}</p>
+        </div>
+      </td>
+
+      {/* Actions - Attachment URL */}
+      <td className="px-4 py-3 whitespace-nowrap text-right">
+        <div className="flex items-center justify-end gap-2">
+          {attachment_url ? (
+            <a
+              href={attachment_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-md border border-primary-200 transition-colors"
+              title="View announcement PDF"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+              View PDF
+            </a>
+          ) : (
+            <span className="text-sm text-slate-400">No attachment</span>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
 };
 
 // Order Row Component
@@ -525,13 +582,27 @@ export default function OrdersTab({ symbol }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('orderbook'); // orderbook | all
+  const [viewMode, setViewMode] = useState('non-ai'); // non-ai | orderbook | all
   const [parsingOrderId, setParsingOrderId] = useState(null);
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
 
   // Order book specific state
   const [orderbookData, setOrderbookData] = useState(null);
+
+  // Baseline document for non-AI mode
+  const [baselineDocumentUrl, setBaselineDocumentUrl] = useState(null);
+  const [baselineDocumentTitle, setBaselineDocumentTitle] = useState(null);
+
+  // Copy to clipboard state
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  // Download state
+  const [downloading, setDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
+
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({ show: false, message: '', type: 'info' });
 
   // Timing and cache stats
   const [timing, setTiming] = useState(null);
@@ -555,6 +626,8 @@ export default function OrdersTab({ symbol }) {
       setCacheStats(null);
       setClientFetchTime(null);
       setOrderbookData(null);
+      setBaselineDocumentUrl(null);
+      setBaselineDocumentTitle(null);
       // Only clear fallback message if explicitly switching modes (not during fallback)
       if (mode !== 'all' || viewMode !== 'orderbook') {
         setOrderbookFallbackMessage(null);
@@ -562,10 +635,14 @@ export default function OrdersTab({ symbol }) {
       }
 
       let response;
-      if (mode === 'orderbook') {
-        // No limit - fetch all outstanding orders
+      if (mode === 'non-ai') {
+        // Non-AI mode - just fetch raw announcements, no AI parsing
+        response = await ordersAPI.getNonAI(symbol, 100);
+      } else if (mode === 'orderbook') {
+        // No limit - fetch all outstanding orders with AI parsing
         response = await ordersAPI.getOrderbook(symbol);
       } else {
+        // All orders with full AI parsing
         response = await ordersAPI.getFullParsed(symbol, 50);
       }
 
@@ -573,7 +650,16 @@ export default function OrdersTab({ symbol }) {
       setClientFetchTime(clientTime);
 
       if (response.data.success) {
-        if (mode === 'orderbook') {
+        if (mode === 'non-ai') {
+          setOrders(response.data.data.orders || []);
+          // Store baseline document info if available
+          if (response.data.data.baseline_document_url) {
+            setBaselineDocumentUrl(response.data.data.baseline_document_url);
+            setBaselineDocumentTitle(
+              response.data.data.baseline_document_title || 'Baseline Document'
+            );
+          }
+        } else if (mode === 'orderbook') {
           setOrderbookData(response.data.data);
           setOrders(response.data.data.new_orders || []);
         } else {
@@ -587,16 +673,16 @@ export default function OrdersTab({ symbol }) {
           setCacheStats(response.data.data.cache_stats);
         }
       } else {
-        // If orderbook mode fails (no baseline found), automatically switch to "all" view
+        // If orderbook mode fails (no baseline found), automatically switch to non-ai view
         if (mode === 'orderbook') {
           console.log(
-            'Orderbook baseline not found, switching to all orders view:',
+            'Orderbook baseline not found, switching to non-ai view:',
             response.data.error
           );
           // Set fallback message to notify user
           setOrderbookFallbackMessage(
             response.data.message ||
-              'Order book baseline not found for this company. Showing all order announcements instead.'
+              'Order book baseline not found for this company. Showing basic order announcements instead.'
           );
           // Store details for more info display
           setOrderbookFallbackDetails({
@@ -604,9 +690,9 @@ export default function OrdersTab({ symbol }) {
             documentsFetched: response.data.documents_fetched,
             parseErrors: response.data.parse_errors,
           });
-          setViewMode('all');
-          // Recursively fetch with "all" mode
-          await fetchData('all');
+          setViewMode('non-ai');
+          // Recursively fetch with non-ai mode
+          await fetchData('non-ai');
           return;
         }
         setError(response.data.error || 'Failed to fetch data');
@@ -725,14 +811,103 @@ export default function OrdersTab({ symbol }) {
     }
   };
 
+  // Copy JSON to clipboard
+  const handleCopyJSON = async () => {
+    try {
+      const jsonData = JSON.stringify(sortedOrders, null, 2);
+      await navigator.clipboard.writeText(jsonData);
+      setCopySuccess(true);
+
+      // Show snackbar
+      setSnackbar({
+        show: true,
+        message: 'JSON copied to clipboard!',
+        type: 'success',
+      });
+
+      setTimeout(() => {
+        setCopySuccess(false);
+        setSnackbar({ show: false, message: '', type: 'info' });
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      setSnackbar({
+        show: true,
+        message: 'Failed to copy JSON',
+        type: 'error',
+      });
+
+      setTimeout(() => {
+        setSnackbar({ show: false, message: '', type: 'info' });
+      }, 2000);
+    }
+  };
+
+  // Download all PDFs
+  const handleDownloadAll = async () => {
+    try {
+      setDownloading(true);
+      setDownloadProgress({ current: 0, total: sortedOrders.length });
+
+      // Show starting message
+      setSnackbar({
+        show: true,
+        message: 'Starting download... Please wait',
+        type: 'info',
+      });
+
+      // Call backend to download directly to Desktop/Stock_Data
+      const response = await ordersAPI.downloadDirect(symbol, sortedOrders.length);
+
+      if (response.data.success) {
+        const { folder_name, folder_path, downloaded, failed } = response.data.data;
+
+        setDownloadProgress({ current: downloaded, total: sortedOrders.length });
+
+        // Show success message
+        setSnackbar({
+          show: true,
+          message: `✅ Downloaded ${downloaded} PDF${downloaded !== 1 ? 's' : ''} to ${folder_path}`,
+          type: 'success',
+        });
+
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+          setSnackbar({ show: false, message: '', type: 'info' });
+        }, 5000);
+      } else {
+        throw new Error('Download failed');
+      }
+    } catch (err) {
+      console.error('Failed to download PDFs:', err);
+      setSnackbar({
+        show: true,
+        message: '❌ Download failed. Please try again.',
+        type: 'error',
+      });
+
+      // Auto-hide error after 4 seconds
+      setTimeout(() => {
+        setSnackbar({ show: false, message: '', type: 'info' });
+      }, 4000);
+    } finally {
+      setDownloading(false);
+      setTimeout(() => {
+        setDownloadProgress({ current: 0, total: 0 });
+      }, 1000);
+    }
+  };
+
   if (loading) {
     return (
       <LoadingSpinner
         size="sm"
         text={
-          viewMode === 'orderbook'
-            ? 'Loading order book... This may take a moment as we analyze reports.'
-            : 'Loading orders...'
+          viewMode === 'non-ai'
+            ? 'Loading orders...'
+            : viewMode === 'orderbook'
+              ? 'Loading order book... This may take a moment as we analyze reports.'
+              : 'Loading and parsing orders...'
         }
       />
     );
@@ -759,7 +934,11 @@ export default function OrdersTab({ symbol }) {
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-1">
             <h3 className="text-lg font-semibold text-gray-900">
-              {viewMode === 'orderbook' ? 'Order Book Analysis' : 'All Order Announcements'}
+              {viewMode === 'non-ai'
+                ? 'Order Announcements'
+                : viewMode === 'orderbook'
+                  ? 'Order Book Analysis'
+                  : 'All Order Announcements (AI Parsed)'}
             </h3>
             {/* External Links */}
             <div className="flex items-center gap-1.5">
@@ -794,9 +973,11 @@ export default function OrdersTab({ symbol }) {
             </div>
           </div>
           <p className="text-sm text-slate-500">
-            {viewMode === 'orderbook'
-              ? 'Outstanding unexecuted order book from latest reports + new orders'
-              : 'All corporate announcements for received orders and contracts'}
+            {viewMode === 'non-ai'
+              ? 'View order announcements with direct links to official documents (no AI processing)'
+              : viewMode === 'orderbook'
+                ? 'Outstanding unexecuted order book from latest reports + new orders'
+                : 'All corporate announcements for received orders with AI-extracted details'}
           </p>
         </div>
 
@@ -805,14 +986,26 @@ export default function OrdersTab({ symbol }) {
           <span className="text-sm text-slate-600">View:</span>
           <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50">
             <button
+              onClick={() => handleViewModeChange('non-ai')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                viewMode === 'non-ai'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+              title="View announcements without AI parsing"
+            >
+              Announcements
+            </button>
+            <button
               onClick={() => handleViewModeChange('orderbook')}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                 viewMode === 'orderbook'
                   ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
+              title="Analyze order book with AI"
             >
-              Order Book
+              Order Book (AI)
             </button>
             <button
               onClick={() => handleViewModeChange('all')}
@@ -821,8 +1014,9 @@ export default function OrdersTab({ symbol }) {
                   ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
+              title="Parse all orders with AI"
             >
-              All Orders
+              All Orders (AI)
             </button>
           </div>
         </div>
@@ -976,8 +1170,8 @@ export default function OrdersTab({ symbol }) {
         </div>
       )}
 
-      {/* Order Inflow Summary (shown in both views - computed from actual data) */}
-      {sortedOrders.length > 0 && (
+      {/* Order Inflow Summary (only shown in AI modes - when we have parsed values) */}
+      {(viewMode === 'all' || viewMode === 'orderbook') && sortedOrders.length > 0 && (
         <OrderInflowSummary
           orders={sortedOrders}
           totalValue={sortedOrders.reduce(
@@ -985,6 +1179,238 @@ export default function OrdersTab({ symbol }) {
             0
           )}
         />
+      )}
+
+      {/* Non-AI View - Just list announcements with links */}
+      {viewMode === 'non-ai' && (
+        <>
+          {sortedOrders.length === 0 ? (
+            <EmptyState message="No order announcements found for this company." />
+          ) : (
+            <>
+              {/* Simple stats and actions for non-AI mode */}
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <svg
+                      className="w-8 h-8 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <div>
+                      <div className="text-2xl font-bold text-slate-900">{sortedOrders.length}</div>
+                      <div className="text-sm text-blue-600 font-medium">
+                        Order Announcements Found
+                      </div>
+                      <div className="text-xs text-slate-500 mt-1">
+                        Click "View PDF" to see full details • Enable AI modes for automatic parsing
+                      </div>
+                    </div>
+                  </div>
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2">
+                    {/* Download All Button */}
+                    <button
+                      onClick={handleDownloadAll}
+                      disabled={downloading}
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                        downloading
+                          ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                          : 'bg-primary-600 text-white hover:bg-primary-700'
+                      }`}
+                      title="Download all PDFs"
+                    >
+                      {downloading ? (
+                        <>
+                          <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                            />
+                          </svg>
+                          {downloadProgress.total > 0
+                            ? `${downloadProgress.current}/${downloadProgress.total}`
+                            : 'Preparing...'}
+                        </>
+                      ) : (
+                        <>
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                            />
+                          </svg>
+                          Download All
+                        </>
+                      )}
+                    </button>
+                    {/* Copy JSON Button */}
+                    <button
+                      onClick={handleCopyJSON}
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                        copySuccess
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                      }`}
+                      title="Copy JSON data to clipboard"
+                    >
+                      {copySuccess ? (
+                        <>
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                            />
+                          </svg>
+                          Copy JSON
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Baseline Document Banner (if available) */}
+              {baselineDocumentUrl && (
+                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <svg
+                        className="w-8 h-8 text-indigo-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      <div>
+                        <div className="text-sm font-semibold text-indigo-900">
+                          Baseline Order Book Document
+                        </div>
+                        <div className="text-xs text-indigo-600 mt-1">{baselineDocumentTitle}</div>
+                      </div>
+                    </div>
+                    <a
+                      href={baselineDocumentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                      View Document
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* Orders Table - Non-AI */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-slate-200">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th
+                          className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider cursor-pointer hover:bg-slate-100"
+                          onClick={() => handleSort('date')}
+                        >
+                          <div className="flex items-center gap-1">
+                            Date
+                            {sortBy === 'date' && (
+                              <svg
+                                className={`w-3 h-3 ${sortOrder === 'asc' ? 'rotate-180' : ''}`}
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            )}
+                          </div>
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                          Subject
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                          Description
+                        </th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                          Document
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-slate-200">
+                      {sortedOrders.map((order) => (
+                        <NonAIOrderRow key={order.id} order={order} />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+        </>
       )}
 
       {/* Order Book View */}
@@ -1214,6 +1640,14 @@ export default function OrdersTab({ symbol }) {
         Data source: NSE India corporate announcements & reports. Order values are extracted using
         AI from official filings.
       </p>
+
+      {/* Snackbar notification */}
+      <Snackbar
+        message={snackbar.message}
+        type={snackbar.type}
+        show={snackbar.show}
+        onClose={() => setSnackbar({ show: false, message: '', type: 'info' })}
+      />
     </div>
   );
 }

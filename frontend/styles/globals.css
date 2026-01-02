@@ -118,3 +118,19 @@ a {
   }
 }
 
+/* Snackbar animation */
+@keyframes slide-up {
+  0% {
+    transform: translate(-50%, 100px);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
