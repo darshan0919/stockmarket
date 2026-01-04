@@ -93,6 +93,19 @@ export default function UpcomingResults() {
     return `₹${num.toFixed(0)}`;
   };
 
+  const formatRevenueNumber = (value) => {
+    if (value === null || value === undefined || value === "") return "-";
+    const num = parseFloat(value);
+    if (isNaN(num)) return "-";
+    if (Math.abs(num) >= 10000000) {
+      return `${(num / 10000000).toFixed(1)} Cr`;
+    }
+    if (Math.abs(num) >= 100000) {
+      return `${(num / 100000).toFixed(1)} L`;
+    }
+    return num.toFixed(0);
+  };
+
   const handleStockClick = (symbol) => {
     if (symbol) {
       router.push(`/stock/${symbol}`);
@@ -314,7 +327,7 @@ export default function UpcomingResults() {
                     </th>
                   )}
                   {visibleColumns.revenue && (
-                    <th className="text-right py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="text-center py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Revenue
                     </th>
                   )}
@@ -479,8 +492,80 @@ export default function UpcomingResults() {
                         </td>
                       )}
                       {visibleColumns.revenue && (
-                        <td className="py-3 px-3 text-right">
-                          <span className="text-sm text-gray-700">{formatNumber(revenue)}</span>
+                        <td className="py-3 px-3">
+                          {revenue && Array.isArray(revenue) && revenue.length > 0 ? (
+                            <div className="flex flex-col gap-1">
+                              {/* Period Headers Row */}
+                              <div className="flex items-center gap-2 justify-end">
+                                {revenue.map((quarter, idx) => (
+                                  <div key={idx} className="flex flex-col items-center gap-0.5 min-w-[65px]">
+                                    <span className="text-xs font-medium text-gray-600">
+                                      {quarter.period?.replace(/Q(\d)\s+FY(\d{2})/, "Q$1'$2") || "-"}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                              
+                              {/* Revenue Values Row */}
+                              <div className="flex items-center gap-2 justify-end">
+                                {revenue.map((quarter, idx) => (
+                                  <div key={idx} className="flex flex-col items-center gap-0.5 min-w-[65px]">
+                                    <span className="text-sm font-semibold text-gray-900">
+                                      {formatRevenueNumber(quarter.revenue)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                              
+                              {/* YoY Growth Row */}
+                              <div className="flex items-center gap-2 justify-end">
+                                {revenue.map((quarter, idx) => (
+                                  <div key={idx} className="flex flex-col items-center gap-0.5 min-w-[65px]">
+                                    {quarter.yoy_growth !== null && 
+                                     quarter.yoy_growth !== undefined ? (
+                                      <span
+                                        className={`text-xs font-medium ${
+                                          quarter.yoy_growth >= 0
+                                            ? "text-emerald-600"
+                                            : "text-red-500"
+                                        }`}
+                                      >
+                                        {quarter.yoy_growth >= 0 ? "+" : ""}
+                                        {quarter.yoy_growth.toFixed(1)}%
+                                      </span>
+                                    ) : (
+                                      <span className="text-xs text-gray-400">-</span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                              
+                              {/* QoQ Growth Row */}
+                              <div className="flex items-center gap-2 justify-end">
+                                {revenue.map((quarter, idx) => (
+                                  <div key={idx} className="flex flex-col items-center gap-0.5 min-w-[65px]">
+                                    {quarter.qoq_growth !== null && 
+                                     quarter.qoq_growth !== undefined ? (
+                                      <span
+                                        className={`text-xs font-medium ${
+                                          quarter.qoq_growth >= 0
+                                            ? "text-emerald-600"
+                                            : "text-red-500"
+                                        }`}
+                                      >
+                                        {quarter.qoq_growth >= 0 ? "+" : ""}
+                                        {quarter.qoq_growth.toFixed(1)}%
+                                      </span>
+                                    ) : (
+                                      <span className="text-xs text-gray-400">-</span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">-</span>
+                          )}
                         </td>
                       )}
                       {visibleColumns.orderBook && (
