@@ -29,14 +29,24 @@ export default function UpcomingResults() {
     const fetchUpcomingResults = async () => {
       try {
         setLoading(true);
+        setError(null); // Clear any previous errors
         const response = await upcomingResultsAPI.getAll(currentPage, ITEMS_PER_PAGE);
+        console.log('API Response:', response);
         if (response.data.success) {
           setResults(response.data.data || []);
           setTotalResults(response.data.total || response.data.data?.length || 0);
+        } else {
+          console.error('API returned success: false', response.data);
+          setError('Unable to load upcoming results');
         }
       } catch (err) {
         console.error('Error fetching upcoming results:', err);
-        setError('Unable to load upcoming results');
+        console.error('Error details:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+        });
+        setError(`Unable to load upcoming results: ${err.message}`);
       } finally {
         setLoading(false);
       }

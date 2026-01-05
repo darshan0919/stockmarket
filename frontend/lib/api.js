@@ -10,6 +10,7 @@ import axios from 'axios';
 
 /** @constant {string} API_URL - Backend API base URL */
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+console.log('API Client initialized with URL:', API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
@@ -22,6 +23,7 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
+    console.log('API Request:', config.method.toUpperCase(), config.url);
     return config;
   },
   (error) => {
