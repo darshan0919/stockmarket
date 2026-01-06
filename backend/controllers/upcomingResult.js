@@ -1,6 +1,7 @@
 const { upcomingResults: bseUpcomingResults } = require('../api/bseIndiaApi');
 const { upcomingResults: nseUpcomingResults } = require('../api/nseIndiaApi');
 const { fetchStockDetails } = require('../scripts/stockDetailsFetcher');
+const { getLastQuatersRevenueGrowthMetrics } = require("../scripts/quaterlyResultsFetcher");
 
 /**
  * Normalize BSE result to common format
@@ -132,9 +133,11 @@ const getUpcomingResults = async (req, res, next) => {
     // Fetch stock details for each result
     const promises = paginatedResults.map(async (result) => {
       const stockDetails = await fetchStockDetails(result.symbol, result.scrip_code);
+      const quarterlyRevenueDetails = await getLastQuatersRevenueGrowthMetrics(result.symbol, 4)
       return {
         ...result,
         stockDetails: stockDetails,
+        revenue: quarterlyRevenueDetails,
       };
     });
     const parsedResults = await Promise.all(promises);
