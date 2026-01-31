@@ -738,6 +738,249 @@ POST /api/result-transcript/{symbol}/analyze
 
 ---
 
+## Declared Results APIs
+
+> **Route File**: `backend/routes/declaredResults.js`  
+> **Controller**: `backend/controllers/declaredResultsController.js`
+
+Get declared quarterly results from companies with financial data, growth metrics, and document links.
+
+### Get Declared Results
+
+Fetch declared quarterly results with filtering and pagination.
+
+```http
+POST /api/declared-results
+```
+
+**Request Body:**
+```json
+{
+  "marketCapMin": 1000,
+  "index": ["Nifty 50"],
+  "industry": ["Banking", "IT"],
+  "order": "desc",
+  "orderBy": "Last Result Date",
+  "offset": 0,
+  "resultDate": "2026-01-31",
+  "searchCompany": "reliance",
+  "documentType": "Transcript Notes"
+}
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `marketCapMin` | number | No | 1000 | Minimum market cap in Cr |
+| `index` | array | No | [] | Filter by indices (Nifty 50, etc.) |
+| `industry` | array | No | [] | Filter by industries |
+| `order` | string | No | "desc" | Sort order (asc/desc) |
+| `orderBy` | string | No | "Last Result Date" | Sort field |
+| `offset` | number | No | 0 | Pagination offset |
+| `resultDate` | string | No | "" | Filter by specific result date |
+| `searchCompany` | string | No | "" | Search company by name |
+| `documentType` | string | No | "Transcript Notes" | Document type filter |
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "results": [
+      {
+        "companyId": "NSE:SIRCA",
+        "exchange": "NSE",
+        "symbol": "SIRCA",
+        "name": "Sirca Paints India Ltd",
+        "lastResultDate": "2026-01-31",
+        "priceToEarnings": 44.22,
+        "marketCap": 2634.33,
+        "fundamentalsSource": "C",
+        "dataSource": "Consolidated",
+        "hasConsolidated": true,
+        "hasStandalone": true,
+        "consolidatedData": [
+          ["", "202412", "202509", "202512", "Growth QoQ", "Growth YoY"],
+          ["Revenue", 88.65, 131.17, 112.79, -14.01, 27.23],
+          ["Operating Profit", 15.45, 27.4, 23.01, -16.02, 48.93],
+          ["OPM", 17.43, 20.89, 20.4, null, null],
+          ["PAT", 11.46, 18.1, 15.03, -16.96, 31.15],
+          ["NPM", 12.93, 13.8, 13.33, null, null],
+          ["EPS", 2.09, 3.24, 2.69, -16.98, 28.71]
+        ],
+        "standaloneData": [...],
+        "documents": [
+          {
+            "date": "202512",
+            "documentType": "PPT",
+            "ssUrl": "idq7d6x6un4nz5ognka15d14.pdf",
+            "hasNotes": false,
+            "fullUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/idq7d6x6un4nz5ognka15d14.pdf",
+            "notesUrl": null
+          },
+          {
+            "date": "202512",
+            "documentType": "Transcript",
+            "ssUrl": "c0ibtrj30q6tu09mb105bqmg.pdf",
+            "hasNotes": true,
+            "fullUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/c0ibtrj30q6tu09mb105bqmg.pdf",
+            "notesUrl": "https://www.stockscans.in/api/company/get-concall-notes/NSE:SIRCA/c0ibtrj30q6tu09mb105bqmg.pdf"
+          }
+        ]
+      }
+    ],
+    "pagination": {
+      "total": 171,
+      "start": 1,
+      "end": 20,
+      "offset": 0
+    },
+    "quarterDate": "202512",
+    "resultDates": ["2026-01-31", "2026-01-29", "2026-01-28"],
+    "order": "desc",
+    "orderBy": "Last Result Date"
+  }
+}
+```
+
+**Financial Data Fields:**
+- Revenue, Operating Profit, OPM % (Operating Profit Margin)
+- PAT (Profit After Tax), NPM % (Net Profit Margin), EPS
+- QoQ Growth (Quarter on Quarter)
+- YoY Growth (Year on Year)
+
+**Document Types:**
+- `Result` - Financial result filings
+- `PPT` - Investor presentation
+- `Transcript` - Earnings call transcript
+- `Transcript Notes` - AI-generated notes from transcript
+
+**Code Reference:**
+- Function: `getDeclaredResults()` in `backend/controllers/declaredResultsController.js`
+- Proxies data from StockScans API
+
+---
+
+### Get Filter Options
+
+Get available filter options for the results dashboard.
+
+```http
+GET /api/declared-results/filters
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "sortOptions": [
+      { "value": "Last Result Date", "label": "Result Date" },
+      { "value": "Market Capitalization", "label": "Market Cap" },
+      { "value": "Price To Earnings", "label": "P/E Ratio" }
+    ],
+    "documentTypes": [
+      { "value": "Transcript Notes", "label": "Transcript Notes" },
+      { "value": "Transcript", "label": "Transcript" },
+      { "value": "Result", "label": "Result" },
+      { "value": "PPT", "label": "Investor Presentation" }
+    ],
+    "indices": [
+      { "value": "Nifty 50", "label": "Nifty 50" },
+      { "value": "Nifty Next 50", "label": "Nifty Next 50" }
+    ],
+    "industries": [
+      { "value": "Information Technology", "label": "IT" },
+      { "value": "Banking", "label": "Banking" }
+    ]
+  }
+}
+```
+
+**Code Reference:**
+- Function: `getFilterOptions()` in `backend/controllers/declaredResultsController.js`
+
+---
+
+### Download Transcript Notes
+
+Download transcript notes for all companies in a quarter. This endpoint authenticates with StockScans using environment credentials and downloads AI-generated notes to the server filesystem.
+
+```http
+POST /api/declared-results/download-notes
+```
+
+**Request Body:**
+```json
+{
+  "quarterDate": "Dec 2025",
+  "companyIds": [
+    {
+      "companyId": "NSE:SIRCA",
+      "symbol": "SIRCA",
+      "name": "Sirca Paints India Ltd",
+      "notesUrl": "https://www.stockscans.in/api/company/get-concall-notes/NSE:SIRCA/transcript.pdf"
+    }
+  ]
+}
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `quarterDate` | string | Yes | Quarter name (e.g., "Dec 2025") |
+| `companyIds` | array | Yes | Array of company data with notesUrl |
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "quarterDate": "Dec 2025",
+    "downloadDir": "/path/to/stockmarket/downloads/Dec 2025",
+    "totalCompanies": 45,
+    "successCount": 43,
+    "errorCount": 2,
+    "results": [
+      {
+        "companyId": "NSE:SIRCA",
+        "symbol": "SIRCA",
+        "name": "Sirca Paints India Ltd",
+        "success": true,
+        "filePath": "/path/to/downloads/Dec 2025/SIRCA_NSE_SIRCA_notes.json",
+        "fileName": "SIRCA_NSE_SIRCA_notes.json"
+      },
+      {
+        "companyId": "NSE:EXAMPLE",
+        "symbol": "EXAMPLE",
+        "name": "Example Corp",
+        "success": false,
+        "error": "HTTP 404: Not Found"
+      }
+    ]
+  }
+}
+```
+
+**Authentication:**
+- Uses `GMAIL` and `PASSWORD` environment variables
+- Authenticates with StockScans API before downloading
+- Returns 401 if authentication fails
+- Returns 500 if credentials not configured
+
+**File Storage:**
+- Downloads to: `<repo_root>/downloads/<quarter-name>/`
+- Filename format: `{SYMBOL}_{EXCHANGE}_{COMPANY_ID}_notes.json`
+- Files are JSON containing AI-generated transcript notes
+
+**Code Reference:**
+- Function: `downloadTranscriptNotes()` in `backend/controllers/declaredResultsController.js`
+- Auth Service: `backend/services/stockscansAuth.js`
+
+**Related:**
+- See `loginToStockScans()` in `backend/services/stockscansAuth.js` for authentication flow
+- Frontend implementation in `frontend/pages/results.js` (handleDownloadAllNotes)
+
+---
+
 ## Announcements APIs
 
 > **Route File**: `backend/routes/announcements.js`

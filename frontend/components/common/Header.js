@@ -50,6 +50,15 @@ export default function Header() {
                 Screener
               </span>
             </Link>
+            <Link href="/results">
+              <span
+                className={`text-sm font-medium cursor-pointer hover:text-primary-600 transition-colors ${
+                  isActive('/results') ? 'text-primary-600' : 'text-gray-700'
+                }`}
+              >
+                Results
+              </span>
+            </Link>
             <Link href="/watchlist">
               <span
                 className={`text-sm font-medium cursor-pointer hover:text-primary-600 transition-colors ${

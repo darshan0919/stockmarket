@@ -124,6 +124,32 @@ export const announcementsAPI = {
   getBySymbol: (symbol) => api.get(`/announcements/${symbol}`),
 };
 
+/**
+ * Declared Results API methods
+ * @see {@link docs/API_REFERENCE.md#declared-results-apis} for endpoint documentation
+ */
+export const declaredResultsAPI = {
+  /** Get declared results with filters @see POST /api/declared-results */
+  getResults: (params = {}) =>
+    api.post('/declared-results', {
+      marketCapMin: params.marketCapMin || 1000,
+      index: params.index || [],
+      industry: params.industry || [],
+      watchlistIds: params.watchlistIds || [],
+      order: params.order || 'desc',
+      orderBy: params.orderBy || 'Last Result Date',
+      offset: params.offset || 0,
+      resultDate: params.resultDate || '',
+      searchCompany: params.searchCompany || '',
+      documentType: params.documentType || '',
+    }),
+  /** Get filter options @see GET /api/declared-results/filters */
+  getFilterOptions: () => api.get('/declared-results/filters'),
+  /** Download transcript notes for quarter @see POST /api/declared-results/download-notes */
+  downloadTranscriptNotes: (quarterDate, companyIds) =>
+    api.post('/declared-results/download-notes', { quarterDate, companyIds }, { timeout: 300000 }),
+};
+
 // Orders APIs
 export const ordersAPI = {
   getBySymbol: (symbol, limit = 50) => api.get(`/orders/${symbol}?limit=${limit}`),
