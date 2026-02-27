@@ -130,33 +130,19 @@ async function parseXBRL(xbrlUrl) {
         let quarterlyEntry = entries.find(
           (e) =>
             e.$ &&
-<<<<<<< Updated upstream
             (e.$.contextRef === 'OneD' ||
               e.$.contextRef === 'OneI' ||
               e.$.contextRef?.includes('AsOf') ||
               e.$.contextRef?.includes('EndOfReportingPeriod'))
-=======
-            (e.$.contextRef === "OneD")
->>>>>>> Stashed changes
         );
 
         if (!quarterlyEntry) {
           quarterlyEntry = entries.find(
             (e) =>
-<<<<<<< Updated upstream
               (e.$ && e.$.contextRef === 'FourD') ||
               e.$.contextRef === 'Current' ||
               e.$.contextRef === 'I_Current'
           );
-=======
-              e.$ &&
-              (e.$.contextRef === "FourD") ||
-              e.$.contextRef === "Current" ||
-              e.$.contextRef === "I_Current" ||
-              e.$.contextRef === "OneI" ||
-              e.$.contextRef?.includes("AsOf") ||
-              e.$.contextRef?.includes("EndOfReportingPeriod"))
->>>>>>> Stashed changes
         }
 
         if (quarterlyEntry) {
