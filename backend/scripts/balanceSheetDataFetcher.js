@@ -37,28 +37,20 @@ const calculateMetrics = (results) => {
 };
 
 const getROCE = (results) => {
-    let total_operating_profit = results.reduce((acc, result) => acc + result.operating_profit, 0);
-    let total_capital = 0
-    let count = 0;
-    results.forEach(result => {
-        if(!result.equity_capital) {
-            return;
-        }
-        let capital_employed = total_equity(result) + total_borrowings(result);
-        if( capital_employed > 0) {
-            total_capital += capital_employed
-            count++;
-        }
-    });
-    if(count == 0 || results.length <= 2) {
-        return null;
+  let total_operating_profit = results.reduce((acc, result) => acc + result.operating_profit, 0);
+  let total_capital = 0;
+  let count = 0;
+  results.forEach((result) => {
+    if (!result.equity_capital) {
+      return;
     }
-    let capital_employed = total_equity(result) + total_borrowings(result);
+    const capital_employed = total_equity(result) + total_borrowings(result);
     if (capital_employed > 0) {
       total_capital += capital_employed;
       count++;
     }
-  if (count == 0 || results.length <= 2) {
+  });
+  if (count === 0 || results.length <= 2) {
     return null;
   }
   total_operating_profit = (total_operating_profit * 4) / results.length;

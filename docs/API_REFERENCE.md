@@ -3,6 +3,7 @@
 > **Document Type**: API Documentation  
 > **Base URL**: `http://localhost:5000/api`  
 > **Code Reference**: `backend/routes/`, `backend/controllers/`  
+> **Shared Modules**: `backend/utils/nseHelpers.js` (NSE utilities), `backend/api/geminiClient.js` (AI client)  
 > **Last Updated**: 2026-01-02
 
 ## Overview
@@ -487,7 +488,10 @@ GET /api/upcoming-results?page={page}&limit={limit}
 
 ## Orders APIs
 
-> **Route File**: `backend/routes/orders.js`
+> **Route File**: `backend/routes/orders.js`  
+> **Controller**: `backend/controllers/ordersController.js`  
+> **Service**: `backend/services/ordersService.js`  
+> **Shared Modules**: `backend/utils/nseHelpers.js` (NSE utilities), `backend/api/geminiClient.js` (AI client)
 
 ### Get Orders by Symbol (Non-AI Mode)
 
@@ -596,7 +600,9 @@ GET /api/orders/{symbol}/full?limit={number}
 ```
 
 **Code Reference:**
+- Controller: `backend/controllers/ordersController.js`
 - AI Parser: `backend/api/orderParser.js:parseOrderFromPdf()`
+- Shared AI Client: `backend/api/geminiClient.js:parsePdfWithGemini()`
 - Prompt: `backend/prompts/order_extraction.txt`
 
 ### Parse Individual PDF
@@ -689,8 +695,49 @@ GET /api/orders/{symbol}/orderbook
 ```
 
 **Code Reference:**
+- Controller: `backend/controllers/ordersController.js`
 - Baseline Parser: `backend/api/orderbookBaselineParser.js:getOrderbookBaseline()`
+- Shared AI Client: `backend/api/geminiClient.js:parsePdfWithGemini()`
+- NSE Helpers: `backend/utils/nseHelpers.js` (date parsing, headers)
 - Prompt: `backend/prompts/orderbook_baseline.txt`
+
+### Download All Order PDFs (ZIP)
+
+```http
+POST /api/orders/{symbol}/download-all
+```
+
+**Request Body:** `{ "limit": "100" }` (optional, default 100)
+
+**Response:** ZIP file attachment with all order PDFs.
+
+### Download Order PDFs to Desktop
+
+```http
+POST /api/orders/{symbol}/download-direct
+```
+
+**Request Body:** `{ "limit": "100", "transcriptUrl": null, "quarterStartDate": null, "transcriptDate": null }`
+
+**Response:** JSON with `folder_path`, `downloaded`, `files`. Saves to Desktop/Stock_Data.
+
+### Get Quarters (Last 8)
+
+```http
+GET /api/orders/{symbol}/quarters
+```
+
+**Response:** JSON with `quarters` array (orders and transcripts grouped by fiscal quarter).
+
+### Download Quarter PDFs
+
+```http
+POST /api/orders/{symbol}/download-quarter
+```
+
+**Request Body:** `{ "quarter": 1, "fiscalYear": 2025, "orders": [], "transcripts": [] }`
+
+**Response:** JSON with `folder_path`, `downloaded`, `files`. Saves to Desktop/Stock_Data.
 
 ---
 
@@ -734,6 +781,7 @@ POST /api/result-transcript/{symbol}/analyze
 
 **Code Reference:**
 - AI Integration: `backend/api/geminiApi.js:geminiResultAnalysis()`
+- Shared AI Client: `backend/api/geminiClient.js:parsePdfWithGemini()`
 - Prompt: `backend/prompts/earning_call.txt`
 
 ---
@@ -983,7 +1031,9 @@ POST /api/declared-results/download-notes
 
 ## Announcements APIs
 
-> **Route File**: `backend/routes/announcements.js`
+> **Route File**: `backend/routes/announcements.js`  
+> **Controller**: `backend/controllers/announcementsController.js`  
+> **Shared Modules**: `backend/utils/nseHelpers.js` (NSE headers)
 
 ### Get Announcements by Symbol
 
@@ -1005,6 +1055,62 @@ GET /api/announcements/{symbol}
   ]
 }
 ```
+
+**Code Reference:**
+- Function: `getAnnouncements()` in `backend/controllers/announcementsController.js`
+- Uses NSE_HEADERS from `backend/utils/nseHelpers.js`
+
+---
+
+## Admin APIs
+
+> **Route File**: `backend/routes/admin.js`  
+> **Controller**: `backend/controllers/adminController.js`  
+> **Model**: `backend/models/ModelResponse.js` (cache storage)
+
+### Trigger Data Update
+
+```http
+GET /api/admin/data/update
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Data update initiated",
+  "note": "Run the scripts/updateData.js script manually for now"
+}
+```
+
+**Code Reference:**
+- Function: `triggerDataUpdate()` in `backend/controllers/adminController.js`
+
+### Clear Orderbook Cache
+
+Clear AI model cache for order book parsing. If symbol provided, clears cache for that symbol only. If no symbol, clears all orderbook-related cache.
+
+```http
+DELETE /api/admin/cache/orderbook
+DELETE /api/admin/cache/orderbook/{symbol}
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `symbol` | string | No | Stock symbol - if provided, clears cache for that symbol only |
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Cleared 5 cached responses for RELIANCE",
+  "deletedCount": 5
+}
+```
+
+**Code Reference:**
+- Function: `clearOrderbookCache()` in `backend/controllers/adminController.js`
+- Model: `backend/models/ModelResponse.js`
 
 ---
 

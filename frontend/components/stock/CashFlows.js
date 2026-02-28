@@ -114,11 +114,11 @@ export default function CashFlows({ symbol }) {
   if (loading) return <LoadingSpinner size="sm" />;
 
   if (error) {
-    return <div className="text-center py-8 text-gray-500">{error}</div>;
+    return <div className="text-center py-8 opacity-50">{error}</div>;
   }
 
   if (!data || !data.quarters || data.quarters.length === 0) {
-    return <div className="text-center py-8 text-gray-500">No cash flow data available</div>;
+    return <div className="text-center py-8 opacity-50">No cash flow data available</div>;
   }
 
   const allQuarters = data.quarters || [];
@@ -259,20 +259,20 @@ export default function CashFlows({ symbol }) {
                 key={row.key}
                 className={
                   row.bold
-                    ? 'bg-gray-100 font-semibold'
+                    ? 'bg-base-200/30 font-semibold'
                     : rowIndex % 2 === 0
-                      ? 'bg-white'
-                      : 'bg-gray-50'
+                      ? ''
+                      : 'bg-base-200/30'
                 }
               >
                 <td
                   className={`sticky left-0 z-10 px-4 py-3 text-sm ${
                     row.bold ? 'font-bold' : 'font-medium'
-                  } text-gray-900 border-r bg-inherit`}
+                  } border-r border-base-200 bg-inherit`}
                 >
                   {row.label}
                   {row.expandable && (
-                    <span className="ml-1 text-blue-500 cursor-pointer" title="Expandable">
+                    <span className="ml-1 text-primary cursor-pointer" title="Expandable">
                       +
                     </span>
                   )}
@@ -280,7 +280,7 @@ export default function CashFlows({ symbol }) {
                 {periods.map((period, index) => (
                   <td
                     key={index}
-                    className={`px-4 py-3 text-sm text-gray-900 text-right whitespace-nowrap ${
+                    className={`px-4 py-3 text-sm text-right whitespace-nowrap ${
                       row.bold ? 'font-bold' : ''
                     }`}
                   >
@@ -293,12 +293,12 @@ export default function CashFlows({ symbol }) {
         </table>
       </div>
 
-      <p className="text-xs text-gray-400 mt-2 italic">
+      <p className="text-xs opacity-40 mt-2 italic">
         💡 Scroll left to view older periods. Latest period shown on the right.
       </p>
 
       {data.source && (
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-xs opacity-50 mt-2">
           Data source: {data.source}
           {data.cached && ' (cached)'}
         </p>

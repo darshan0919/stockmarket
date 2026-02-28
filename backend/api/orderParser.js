@@ -1,11 +1,6 @@
-const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
-const ModelResponse = require('../models/ModelResponse');
-
-const GEMINI_API_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+const { parsePdfWithGemini, hashPrompt } = require('./geminiClient');
 
 // Read the order extraction prompt from file
 const orderExtractionPrompt = fs.readFileSync(
@@ -13,138 +8,25 @@ const orderExtractionPrompt = fs.readFileSync(
   'utf-8'
 );
 
-const promptHash = crypto.createHash('sha256').update(orderExtractionPrompt).digest('hex');
+const promptHash = hashPrompt(orderExtractionPrompt);
 
 /**
  * Parse order details from a PDF attachment using Gemini AI
  * @param {string} attachmentUrl - URL to the PDF attachment
  * @returns {Object} Extracted order details with cache metadata
+ * @see {@link docs/API_REFERENCE.md#orders-apis} for Orders API docs
+ * @see {@link docs/backend/api/orderParser.md} for parser docs
+ * @see {@link docs/backend/README.md} for backend API overview
  */
 const parseOrderFromPdf = async (attachmentUrl) => {
-  const startTime = Date.now();
-
-  // Check if we already have a cached response
-  const existingResponse = await ModelResponse.findOne({
-    attachment_name: attachmentUrl,
-    prompt: promptHash,
+  return parsePdfWithGemini({
+    attachmentUrl,
+    prompt: orderExtractionPrompt,
+    promptHash,
+    timeout: 120000,
+    parseJson: true,
+    errorShape: { order_details: null, document_info: null },
   });
-
-  if (existingResponse) {
-    try {
-      const cachedData = JSON.parse(existingResponse.response);
-      const parseTime = Date.now() - startTime;
-      return {
-        ...cachedData,
-        _cache_metadata: {
-          from_cache: true,
-          cached_at: existingResponse.created_at,
-          parse_time_ms: parseTime,
-        },
-      };
-    } catch (e) {
-      // If cached response is invalid JSON, continue to re-fetch
-      console.log('Cached response invalid, re-fetching:', attachmentUrl);
-    }
-  }
-
-  const geminiApiKey = process.env.GEMINI_API_KEY;
-
-  if (!geminiApiKey) {
-    throw new Error('GEMINI_API_KEY not configured');
-  }
-
-  try {
-    const response = await axios.post(
-      GEMINI_API_URL,
-      {
-        contents: [
-          {
-            parts: [
-              { text: orderExtractionPrompt },
-              {
-                file_data: {
-                  mime_type: 'application/pdf',
-                  file_uri: attachmentUrl,
-                },
-              },
-            ],
-          },
-        ],
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': geminiApiKey,
-        },
-        timeout: 120000, // 2 minutes timeout
-      }
-    );
-
-    const extractedText = response.data.candidates[0].content.parts[0].text;
-
-    // Clean the response - remove any markdown formatting if present
-    let cleanedText = extractedText.trim();
-    if (cleanedText.startsWith('```json')) {
-      cleanedText = cleanedText.slice(7);
-    }
-    if (cleanedText.startsWith('```')) {
-      cleanedText = cleanedText.slice(3);
-    }
-    if (cleanedText.endsWith('```')) {
-      cleanedText = cleanedText.slice(0, -3);
-    }
-    cleanedText = cleanedText.trim();
-
-    // Parse JSON
-    let parsedData;
-    try {
-      parsedData = JSON.parse(cleanedText);
-    } catch (parseError) {
-      console.error('Failed to parse Gemini response as JSON:', cleanedText);
-      parsedData = {
-        extraction_success: false,
-        error: 'Failed to parse PDF content',
-        raw_text: cleanedText.substring(0, 500),
-      };
-    }
-
-    // Cache the response
-    const newModelResponse = new ModelResponse({
-      attachment_name: attachmentUrl,
-      prompt: promptHash,
-      response: JSON.stringify(parsedData),
-    });
-    await newModelResponse.save();
-
-    const parseTime = Date.now() - startTime;
-
-    return {
-      ...parsedData,
-      _cache_metadata: {
-        from_cache: false,
-        cached_at: new Date(),
-        parse_time_ms: parseTime,
-      },
-    };
-  } catch (error) {
-    console.error('Error parsing PDF with Gemini:', error.message);
-
-    const parseTime = Date.now() - startTime;
-
-    // Return a structured error response
-    return {
-      extraction_success: false,
-      error: error.message,
-      order_details: null,
-      document_info: null,
-      confidence_score: 0,
-      _cache_metadata: {
-        from_cache: false,
-        cached_at: null,
-        parse_time_ms: parseTime,
-      },
-    };
-  }
 };
 
 /**

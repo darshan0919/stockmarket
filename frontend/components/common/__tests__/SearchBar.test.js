@@ -23,6 +23,14 @@ jest.mock('../../../lib/api', () => ({
 describe('SearchBar', () => {
   const mockPush = jest.fn();
 
+  /** Helper: result text may be split across <mark> for highlighting; find button by textContent */
+  const getResultButton = (name) => {
+    const buttons = screen.getAllByRole('button');
+    const found = buttons.find((btn) => btn.textContent?.includes(name));
+    if (!found) throw new Error(`No button found with text: ${name}`);
+    return found;
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     useRouter.mockReturnValue({ push: mockPush });
@@ -40,16 +48,39 @@ describe('SearchBar', () => {
     expect(screen.getByPlaceholderText('Find a stock')).toBeInTheDocument();
   });
 
+  it('uses DaisyUI input classes', () => {
+    render(<SearchBar />);
+
+    const input = screen.getByPlaceholderText('Search stocks...');
+    expect(input).toHaveClass('input');
+    expect(input).toHaveClass('input-bordered');
+  });
+
   it('shows loading state during search', async () => {
-    stockAPI.search.mockReturnValue(new Promise(() => {})); // Never resolves
+    // First request resolves quickly to show results; second request (load more) hangs to show loading
+    stockAPI.search
+      .mockResolvedValueOnce({
+        data: {
+          success: true,
+          results: [{ symbol: 'RELIANCE', name: 'Reliance Industries' }],
+          total: 15,
+        },
+      })
+      .mockReturnValueOnce(new Promise(() => {})); // Second request never resolves
 
     render(<SearchBar />);
     const input = screen.getByPlaceholderText('Search stocks...');
-
     await userEvent.type(input, 'REL');
 
     await waitFor(() => {
-      expect(screen.getByText('Searching...')).toBeInTheDocument();
+      expect(getResultButton('Reliance Industries')).toBeInTheDocument();
+    });
+
+    // Click "Show next" to trigger load more
+    fireEvent.click(screen.getByText(/Show next/));
+
+    await waitFor(() => {
+      expect(screen.getByText('Loading...')).toBeInTheDocument();
     });
   });
 
@@ -69,8 +100,8 @@ describe('SearchBar', () => {
     await userEvent.type(screen.getByPlaceholderText('Search stocks...'), 'REL');
 
     await waitFor(() => {
-      expect(screen.getByText(/Reliance Industries/)).toBeInTheDocument();
-      expect(screen.getByText(/Reliance Power/)).toBeInTheDocument();
+      expect(getResultButton('Reliance Industries')).toBeInTheDocument();
+      expect(getResultButton('Reliance Power')).toBeInTheDocument();
     });
   });
 
@@ -105,7 +136,7 @@ describe('SearchBar', () => {
     await userEvent.type(screen.getByPlaceholderText('Search stocks...'), 'REL');
 
     await waitFor(() => {
-      fireEvent.click(screen.getByText(/Reliance Industries/));
+      fireEvent.click(getResultButton('Reliance Industries'));
     });
 
     expect(mockPush).toHaveBeenCalledWith('/stock/RELIANCE');
@@ -125,7 +156,7 @@ describe('SearchBar', () => {
     await userEvent.type(input, 'REL');
 
     await waitFor(() => {
-      fireEvent.click(screen.getByText(/Reliance Industries/));
+      fireEvent.click(getResultButton('Reliance Industries'));
     });
 
     expect(input.value).toBe('');
@@ -165,7 +196,7 @@ describe('SearchBar', () => {
     await userEvent.type(input, 'REL');
 
     await waitFor(() => {
-      expect(screen.getByText(/Reliance Industries/)).toBeInTheDocument();
+      expect(getResultButton('Reliance Industries')).toBeInTheDocument();
     });
 
     // Navigate down
@@ -194,13 +225,13 @@ describe('SearchBar', () => {
     await userEvent.type(input, 'REL');
 
     await waitFor(() => {
-      expect(screen.getByText(/Reliance Industries/)).toBeInTheDocument();
+      expect(getResultButton('Reliance Industries')).toBeInTheDocument();
     });
 
     fireEvent.keyDown(input, { key: 'Escape' });
 
     await waitFor(() => {
-      expect(screen.queryByText(/Reliance Industries/)).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Reliance Industries/ })).not.toBeInTheDocument();
     });
   });
 
@@ -223,13 +254,13 @@ describe('SearchBar', () => {
     await userEvent.type(screen.getByPlaceholderText('Search stocks...'), 'REL');
 
     await waitFor(() => {
-      expect(screen.getByText(/Reliance Industries/)).toBeInTheDocument();
+      expect(getResultButton('Reliance Industries')).toBeInTheDocument();
     });
 
     fireEvent.mouseDown(screen.getByText('Outside'));
 
     await waitFor(() => {
-      expect(screen.queryByText(/Reliance Industries/)).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Reliance Industries/ })).not.toBeInTheDocument();
     });
   });
 
@@ -266,9 +297,14 @@ describe('SearchBar', () => {
     render(<SearchBar />);
     await userEvent.type(screen.getByPlaceholderText('Search stocks...'), 'REL');
 
-    await waitFor(() => {
-      expect(screen.getByText(/NSE/)).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        // NSE appears in stock row (RELIANCE · NSE) and in "NSE India" link - use getAllByText
+        const nseElements = screen.getAllByText(/NSE/);
+        expect(nseElements.length).toBeGreaterThanOrEqual(1);
+      },
+      { timeout: 2000 }
+    );
   });
 
   it('shows load more button when more results available', async () => {

@@ -36,6 +36,13 @@ describe('Header', () => {
     expect(screen.getByText('Stock Screener')).toBeInTheDocument();
   });
 
+  it('uses DaisyUI navbar on header element', () => {
+    render(<Header />);
+
+    const header = screen.getByText('Stock Screener').closest('header');
+    expect(header).toHaveClass('navbar');
+  });
+
   it('renders navigation links', () => {
     render(<Header />);
 
@@ -59,7 +66,7 @@ describe('Header', () => {
     render(<Header />);
 
     const screenerLink = screen.getByText('Screener');
-    expect(screenerLink).toHaveClass('text-primary-600');
+    expect(screenerLink).toHaveClass('btn-active');
   });
 
   it('applies default styles to inactive navigation links', () => {
@@ -71,18 +78,17 @@ describe('Header', () => {
     render(<Header />);
 
     const watchlistLink = screen.getByText('Watchlist');
-    expect(watchlistLink).toHaveClass('text-gray-700');
+    expect(watchlistLink).toHaveClass('btn-ghost');
   });
 
   it('renders all navigation items in correct order', () => {
     render(<Header />);
 
-    const navItems = screen.getAllByRole('generic').filter((el) => {
-      const text = el.textContent;
-      return text === 'Dashboard' || text === 'Screener' || text === 'Watchlist';
-    });
-
-    expect(navItems.length).toBeGreaterThanOrEqual(3);
+    // Nav links are rendered as anchor elements
+    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('Screener')).toBeInTheDocument();
+    expect(screen.getByText('Results')).toBeInTheDocument();
+    expect(screen.getByText('Watchlist')).toBeInTheDocument();
   });
 
   it('search bar is globally accessible', () => {

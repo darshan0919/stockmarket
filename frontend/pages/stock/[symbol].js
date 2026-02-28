@@ -56,14 +56,14 @@ export default function StockDetails() {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <h2 className="text-xl font-semibold text-red-900 mb-2">Error Loading Stock</h2>
-          <p className="text-red-700 mb-4">{error}</p>
-          <button
-            onClick={() => router.push('/')}
-            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
+      <div>
+        <div className="finance-card p-8 text-center">
+          <svg className="mx-auto h-12 w-12 text-error/40 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.27 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+          <h2 className="text-lg font-semibold mb-2">Error Loading Stock</h2>
+          <p className="text-sm text-base-content/60 mb-4">{error}</p>
+          <button onClick={() => router.push('/')} className="btn btn-sm btn-secondary">
             Go to Dashboard
           </button>
         </div>
@@ -82,7 +82,6 @@ export default function StockDetails() {
     nse_data,
   } = stockData;
 
-  // Use price_info if available (from NSE API), otherwise calculate from history
   const latestPrice =
     price_info?.last_price ||
     price_info?.close ||
@@ -96,7 +95,7 @@ export default function StockDetails() {
     { id: 'financials', label: 'Financials' },
     { id: 'chart', label: 'Chart' },
     { id: 'technicals', label: 'Technicals' },
-    { id: 'transcript', label: 'Transcript Analysis' },
+    { id: 'transcript', label: 'Transcripts' },
     { id: 'orders', label: 'Orders' },
     { id: 'announcements', label: 'Announcements' },
   ];
@@ -110,8 +109,7 @@ export default function StockDetails() {
         <meta name="description" content={`Stock details for ${basic_info.name}`} />
       </Head>
 
-      <div className="max-w-7xl mx-auto">
-        {/* Stock Header */}
+      <div>
         <StockHeader
           stock={basic_info}
           latestPrice={latestPrice}
@@ -120,106 +118,127 @@ export default function StockDetails() {
         />
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-md mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6" aria-label="Tabs">
+        <div className="finance-card mb-5">
+          <div className="border-b border-base-300/60 overflow-x-auto">
+            <div className="flex px-1">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                     activeTab === tab.id
-                      ? 'border-primary-600 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-secondary text-secondary'
+                      : 'border-transparent text-base-content/50 hover:text-base-content/80 hover:border-base-300'
                   }`}
                 >
                   {tab.label}
                 </button>
               ))}
-            </nav>
+            </div>
           </div>
 
-          {/* Tab Content */}
-          <div className="p-6">
+          <div className="p-5">
             {activeTab === 'overview' && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Company Overview</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <div>
-                      <span className="text-sm text-gray-600">Company Name:</span>
-                      <p className="text-base font-semibold text-gray-900">{basic_info.name}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-gray-600">Symbol:</span>
-                      <p className="text-base font-semibold text-gray-900">{basic_info.symbol}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-gray-600">Sector:</span>
-                      <p className="text-base font-semibold text-gray-900">{basic_info.sector}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-gray-600">Industry:</span>
-                      <p className="text-base font-semibold text-gray-900">{basic_info.industry}</p>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3">Price Information</h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Day High:</span>
-                        <span className="text-sm font-semibold text-gray-900">
-                          ₹{price_info?.day_high || 'N/A'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Day Low:</span>
-                        <span className="text-sm font-semibold text-gray-900">
-                          ₹{price_info?.day_low || 'N/A'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">52W High:</span>
-                        <span className="text-sm font-semibold text-gray-900">
-                          ₹{price_info?.week_high || 'N/A'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">52W Low:</span>
-                        <span className="text-sm font-semibold text-gray-900">
-                          ₹{price_info?.week_low || 'N/A'}
-                        </span>
-                      </div>
-                      {fundamentals.pe_ratio && (
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">P/E Ratio:</span>
-                          <span className="text-sm font-semibold text-gray-900">
-                            {fundamentals.pe_ratio}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <OverviewSection
+                basicInfo={basic_info}
+                priceInfo={price_info}
+                fundamentals={fundamentals}
+              />
             )}
-
             {activeTab === 'fundamentals' && <FundamentalsTab fundamentals={fundamentals} />}
-
             {activeTab === 'financials' && <FinancialsTab symbol={basic_info.symbol} />}
-
             {activeTab === 'chart' && <ChartTab priceHistory={price_history_5y} />}
-
             {activeTab === 'technicals' && <TechnicalTab symbol={basic_info.symbol} />}
-
             {activeTab === 'transcript' && <TranscriptTab symbol={basic_info.symbol} />}
-
             {activeTab === 'orders' && <OrdersTab symbol={basic_info.symbol} />}
-
             {activeTab === 'announcements' && <AnnouncementsTab symbol={basic_info.symbol} />}
           </div>
         </div>
       </div>
     </>
+  );
+}
+
+function OverviewSection({ basicInfo, priceInfo, fundamentals }) {
+  const quickRatios = [
+    { label: 'P/E Ratio', value: fundamentals?.pe_ratio, format: 'number' },
+    { label: 'P/B Ratio', value: fundamentals?.pb_ratio, format: 'number' },
+    { label: 'ROE', value: fundamentals?.roe, format: 'percent' },
+    { label: 'ROCE', value: fundamentals?.roce, format: 'percent' },
+    { label: 'Debt/Equity', value: fundamentals?.debt_to_equity, format: 'number' },
+    { label: 'Dividend Yield', value: fundamentals?.dividend_yield, format: 'percent' },
+    { label: 'EPS', value: fundamentals?.eps, format: 'currency' },
+    { label: 'Book Value', value: fundamentals?.book_value_per_share, format: 'currency' },
+  ];
+
+  const priceData = [
+    { label: 'Day High', value: priceInfo?.day_high },
+    { label: 'Day Low', value: priceInfo?.day_low },
+    { label: '52W High', value: priceInfo?.week_high },
+    { label: '52W Low', value: priceInfo?.week_low },
+  ];
+
+  const formatValue = (val, format) => {
+    if (val === null || val === undefined) return '-';
+    const num = parseFloat(val);
+    if (isNaN(num)) return '-';
+    if (format === 'percent') return `${num.toFixed(2)}%`;
+    if (format === 'currency') return `₹${num.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+    return num.toFixed(2);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Company Info */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <InfoItem label="Company" value={basicInfo.name} />
+        <InfoItem label="Symbol" value={basicInfo.symbol} />
+        <InfoItem label="Sector" value={basicInfo.sector} />
+        <InfoItem label="Industry" value={basicInfo.industry} />
+      </div>
+
+      {/* Quick Ratios - inspired by stockscans.in */}
+      <div>
+        <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">
+          Quick Ratios
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+          {quickRatios.map((ratio, idx) => (
+            <div key={idx} className="finance-stat text-center">
+              <div className="text-2xs text-base-content/50 mb-1">{ratio.label}</div>
+              <div className="text-sm font-bold font-mono tabular-nums text-base-content">
+                {formatValue(ratio.value, ratio.format)}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Price Information */}
+      <div>
+        <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">
+          Price Information
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {priceData.map((item, idx) => (
+            <div key={idx} className="flex justify-between items-center finance-stat">
+              <span className="text-xs text-base-content/50">{item.label}</span>
+              <span className="text-sm font-semibold font-mono tabular-nums">
+                {item.value ? `₹${parseFloat(item.value).toLocaleString('en-IN')}` : '-'}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InfoItem({ label, value }) {
+  return (
+    <div>
+      <div className="text-2xs text-base-content/40 uppercase tracking-wider">{label}</div>
+      <div className="text-sm font-medium text-base-content mt-0.5">{value || '-'}</div>
+    </div>
   );
 }

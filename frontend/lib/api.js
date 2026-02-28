@@ -10,7 +10,9 @@ import axios from 'axios';
 
 /** @constant {string} API_URL - Backend API base URL */
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-console.log('API Client initialized with URL:', API_URL);
+if (process.env.NODE_ENV !== 'production') {
+  console.log('API Client initialized with URL:', API_URL);
+}
 
 const api = axios.create({
   baseURL: API_URL,
@@ -23,7 +25,9 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    console.log('API Request:', config.method.toUpperCase(), config.url);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('API Request:', config.method.toUpperCase(), config.url);
+    }
     return config;
   },
   (error) => {
@@ -37,12 +41,14 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response) {
-      console.error('API Error:', error.response.data);
-    } else if (error.request) {
-      console.error('Network Error:', error.message);
-    } else {
-      console.error('Error:', error.message);
+    if (process.env.NODE_ENV !== 'production') {
+      if (error.response) {
+        console.error('API Error:', error.response.data);
+      } else if (error.request) {
+        console.error('Network Error:', error.message);
+      } else {
+        console.error('Error:', error.message);
+      }
     }
     return Promise.reject(error);
   }

@@ -139,11 +139,11 @@ export default function BalanceSheet({ symbol }) {
   if (loading) return <LoadingSpinner size="sm" />;
 
   if (error) {
-    return <div className="text-center py-8 text-gray-500">{error}</div>;
+    return <div className="text-center py-8 opacity-50">{error}</div>;
   }
 
   if (!data || !data.quarters || data.quarters.length === 0) {
-    return <div className="text-center py-8 text-gray-500">No balance sheet data available</div>;
+    return <div className="text-center py-8 opacity-50">No balance sheet data available</div>;
   }
 
   // Check if any balance sheet data exists
@@ -159,11 +159,11 @@ export default function BalanceSheet({ symbol }) {
 
   if (!hasBalanceSheetData) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+      <div className="alert alert-warning">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
             <svg
-              className="h-6 w-6 text-yellow-600"
+              className="h-6 w-6 text-warning"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -177,14 +177,12 @@ export default function BalanceSheet({ symbol }) {
             </svg>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Balance Sheet Data Not Available
-            </h3>
-            <p className="text-sm text-gray-700 mb-3">
+            <h3 className="text-lg font-semibold mb-2">Balance Sheet Data Not Available</h3>
+            <p className="text-sm mb-3 opacity-60">
               NSE only provides Balance Sheet data in annual financial reports, not in quarterly
               filings. Quarterly XBRL documents contain P&L and Cash Flow statements only.
             </p>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm opacity-60 mb-4">
               We're working on integrating annual report data to show Balance Sheet information. In
               the meantime, you can view the official reports on NSE.
             </p>
@@ -192,7 +190,7 @@ export default function BalanceSheet({ symbol }) {
               href={`https://www.nseindia.com/get-quotes/equity?symbol=${symbol}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              className="btn btn-sm btn-secondary"
             >
               View on NSE
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -259,29 +257,21 @@ export default function BalanceSheet({ symbol }) {
       <div className="mb-4">
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-4">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold">
               Balance Sheet ({periods.length} {viewMode === 'quarterly' ? 'quarters' : 'years'})
             </h3>
 
             {/* Quarterly/Yearly Toggle */}
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            <div className="join">
               <button
                 onClick={() => setViewMode('quarterly')}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                  viewMode === 'quarterly'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                className={`join-item btn btn-xs ${viewMode === 'quarterly' ? 'btn-secondary' : 'btn-ghost'}`}
               >
                 Quarterly
               </button>
               <button
                 onClick={() => setViewMode('yearly')}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                  viewMode === 'yearly'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                className={`join-item btn btn-xs ${viewMode === 'yearly' ? 'btn-secondary' : 'btn-ghost'}`}
               >
                 Yearly
               </button>
@@ -289,14 +279,12 @@ export default function BalanceSheet({ symbol }) {
 
             {/* Consolidated/Standalone Switcher */}
             {(hasConsolidated || hasStandalone) && (
-              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <div className="join">
                 {hasConsolidated && (
                   <button
                     onClick={() => setResultType('consolidated')}
-                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                      resultType === 'consolidated'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
+                    className={`join-item btn btn-xs ${
+                      resultType === 'consolidated' ? 'btn-secondary' : 'btn-ghost'
                     }`}
                   >
                     Consolidated
@@ -305,10 +293,8 @@ export default function BalanceSheet({ symbol }) {
                 {hasStandalone && (
                   <button
                     onClick={() => setResultType('standalone')}
-                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                      resultType === 'standalone'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
+                    className={`join-item btn btn-xs ${
+                      resultType === 'standalone' ? 'btn-secondary' : 'btn-ghost'
                     }`}
                   >
                     Standalone
@@ -318,55 +304,52 @@ export default function BalanceSheet({ symbol }) {
             )}
           </div>
         </div>
-        <p className="text-xs text-gray-500">Figures in Crores</p>
+        <p className="text-xs opacity-50">Figures in Crores</p>
       </div>
 
       <div
         ref={scrollContainerRef}
-        className="overflow-x-auto border rounded-lg"
+        className="overflow-x-auto border border-base-200 rounded-lg"
         style={{ scrollBehavior: 'smooth' }}
       >
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="table table-sm">
+          <thead>
             <tr>
-              <th className="sticky left-0 z-10 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r">
+              <th className="sticky left-0 z-10 bg-base-200/30 px-4 py-3 text-left text-xs font-medium opacity-50 uppercase tracking-wider border-r border-base-200">
                 Item
               </th>
               {periods.map((period, index) => (
                 <th
                   key={index}
-                  className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                  className="px-4 py-3 text-right text-xs font-medium opacity-50 uppercase tracking-wider whitespace-nowrap"
                 >
                   {viewMode === 'quarterly' ? period.period : period.year}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody>
             {/* Liabilities Section */}
-            <tr className="bg-blue-50">
+            <tr className="bg-primary/10">
               <td
                 colSpan={periods.length + 1}
-                className="px-4 py-2 text-sm font-semibold text-gray-700 uppercase"
+                className="px-4 py-2 text-sm font-semibold opacity-60 uppercase"
               >
                 Liabilities
               </td>
             </tr>
             {liabilitiesRows.map((row, rowIndex) => (
-              <tr key={row.key} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
+              <tr key={row.key} className={rowIndex % 2 === 0 ? '' : 'bg-base-200/30'}>
+                <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium border-r border-base-200 bg-inherit">
                   {row.label}
                   {row.expandable && (
-                    <span className="ml-1 text-blue-500 cursor-pointer" title="Expandable">
+                    <span className="ml-1 text-primary cursor-pointer" title="Expandable">
                       +
                     </span>
                   )}
                 </td>
                 {periods.map((period, index) => (
-                  <td
-                    key={index}
-                    className="px-4 py-3 text-sm text-gray-900 text-right whitespace-nowrap"
-                  >
+                  <td key={index} className="px-4 py-3 text-sm text-right whitespace-nowrap">
                     {row.format(period[row.key] || 0)}
                   </td>
                 ))}
@@ -374,29 +357,26 @@ export default function BalanceSheet({ symbol }) {
             ))}
 
             {/* Assets Section */}
-            <tr className="bg-green-50">
+            <tr className="bg-success/10">
               <td
                 colSpan={periods.length + 1}
-                className="px-4 py-2 text-sm font-semibold text-gray-700 uppercase"
+                className="px-4 py-2 text-sm font-semibold opacity-60 uppercase"
               >
                 Assets
               </td>
             </tr>
             {assetsRows.map((row, rowIndex) => (
-              <tr key={row.key} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
+              <tr key={row.key} className={rowIndex % 2 === 0 ? '' : 'bg-base-200/30'}>
+                <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium border-r border-base-200 bg-inherit">
                   {row.label}
                   {row.expandable && (
-                    <span className="ml-1 text-blue-500 cursor-pointer" title="Expandable">
+                    <span className="ml-1 text-primary cursor-pointer" title="Expandable">
                       +
                     </span>
                   )}
                 </td>
                 {periods.map((period, index) => (
-                  <td
-                    key={index}
-                    className="px-4 py-3 text-sm text-gray-900 text-right whitespace-nowrap"
-                  >
+                  <td key={index} className="px-4 py-3 text-sm text-right whitespace-nowrap">
                     {row.format(period[row.key] || 0)}
                   </td>
                 ))}
@@ -404,23 +384,23 @@ export default function BalanceSheet({ symbol }) {
             ))}
 
             {/* Totals Section */}
-            <tr className="bg-gray-100">
+            <tr className="bg-base-200/30">
               <td
                 colSpan={periods.length + 1}
-                className="px-4 py-2 text-sm font-semibold text-gray-700 uppercase"
+                className="px-4 py-2 text-sm font-semibold opacity-60 uppercase"
               >
                 Totals
               </td>
             </tr>
             {totalRows.map((row) => (
-              <tr key={row.key} className="bg-gray-50 font-semibold">
-                <td className="sticky left-0 z-10 px-4 py-3 text-sm font-bold text-gray-900 border-r bg-gray-50">
+              <tr key={row.key} className="bg-base-200/30 font-semibold">
+                <td className="sticky left-0 z-10 px-4 py-3 text-sm font-bold border-r border-base-200 bg-base-200/30">
                   {row.label}
                 </td>
                 {periods.map((period, index) => (
                   <td
                     key={index}
-                    className="px-4 py-3 text-sm text-gray-900 text-right whitespace-nowrap font-bold"
+                    className="px-4 py-3 text-sm text-right whitespace-nowrap font-bold"
                   >
                     {row.format(period[row.key] || 0)}
                   </td>
@@ -431,12 +411,12 @@ export default function BalanceSheet({ symbol }) {
         </table>
       </div>
 
-      <p className="text-xs text-gray-400 mt-2 italic">
+      <p className="text-xs opacity-40 mt-2 italic">
         💡 Scroll left to view older periods. Latest period shown on the right.
       </p>
 
       {data.source && (
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-xs opacity-50 mt-2">
           Data source: {data.source}
           {data.cached && ' (cached)'}
         </p>

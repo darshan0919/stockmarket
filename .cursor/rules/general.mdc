@@ -1,6 +1,6 @@
 ---
 description: General project rules for Stock Screener application
-globs: ["**/*"]
+globs: ['**/*']
 ---
 
 # Stock Screener Project Rules
@@ -8,6 +8,7 @@ globs: ["**/*"]
 ## Project Overview
 
 This is a full-stack stock market analysis application with:
+
 - **Backend**: Express.js REST API with MongoDB (`backend/`)
 - **Frontend**: Next.js 14 React application (`frontend/`)
 - **Documentation**: Comprehensive docs in `docs/`
@@ -26,14 +27,14 @@ This is a full-stack stock market analysis application with:
 ```javascript
 /**
  * Brief description of function/component
- * 
+ *
  * @param {Type} paramName - Parameter description
  * @returns {ReturnType} Description of return value
- * 
+ *
  * @example
  * // Usage example
  * functionName(param)
- * 
+ *
  * @see {@link docs/path/to/doc.md} for detailed documentation
  */
 ```
@@ -83,17 +84,17 @@ describe('ModuleName', () => {
 
 ## Key File Locations
 
-| Purpose | Backend | Frontend |
-|---------|---------|----------|
-| Entry point | `server.js` | `pages/_app.js` |
-| API routes | `routes/*.js` | N/A |
-| Business logic | `controllers/*.js` | N/A |
-| Data models | `models/*.js` | N/A |
-| External APIs | `api/*.js` | `lib/api.js` |
-| Utilities | `utils/*.js` | `lib/utils/*.js` |
-| Components | N/A | `components/*.js` |
-| Custom hooks | N/A | `lib/hooks/*.js` |
-| Tests | `tests/`, `*/__tests__/` | `*/__tests__/` |
+| Purpose        | Backend                  | Frontend          |
+| -------------- | ------------------------ | ----------------- |
+| Entry point    | `server.js`              | `pages/_app.js`   |
+| API routes     | `routes/*.js`            | N/A               |
+| Business logic | `controllers/*.js`       | N/A               |
+| Data models    | `models/*.js`            | N/A               |
+| External APIs  | `api/*.js`               | `lib/api.js`      |
+| Utilities      | `utils/*.js`             | `lib/utils/*.js`  |
+| Components     | N/A                      | `components/*.js` |
+| Custom hooks   | N/A                      | `lib/hooks/*.js`  |
+| Tests          | `tests/`, `*/__tests__/` | `*/__tests__/`    |
 
 ## Code Navigation Tips
 
@@ -103,6 +104,10 @@ describe('ModuleName', () => {
 - **Backend guide**: `docs/backend/README.md`
 - **Frontend guide**: `docs/frontend/README.md`
 - **Testing guide**: `docs/TESTING.md`
+
+## Browser Tips
+
+- Whenever navigating to: https://www.stockscans.in/ Use credentials from backend/.env -> GMAIL_USERNAME & GMAIL_PASSWORD
 
 ## Before Submitting Changes
 

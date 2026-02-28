@@ -26,8 +26,7 @@ const analyzeTranscript = async (req, res, next) => {
       });
     }
 
-    const response = await geminiResultAnalysis(attachmentName);
-    data = JSON.parse(response);
+    const data = await geminiResultAnalysis(attachmentName);
     data.url = `https://www.bseindia.com/xml-data/corpfiling/AttachHis/${attachmentName}`;
 
     res.json({

@@ -68,37 +68,36 @@ export default function Screener() {
         <meta name="description" content="Screen stocks with custom filters" />
       </Head>
 
-      <div className="max-w-7xl mx-auto">
+      <div>
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Stock Screener</h1>
+          <div>
+            <h1 className="page-header">Stock Screener</h1>
+            <p className="section-subtitle mt-1">
+              Choose from fundamental filters to find your ideal stocks
+            </p>
+          </div>
           {results.length > 0 && (
-            <button
-              onClick={handleExportCSV}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-            >
+            <button onClick={handleExportCSV} className="btn btn-sm btn-success gap-1.5">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
               Export CSV
             </button>
           )}
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            Error: {error}
+          <div className="finance-card border-error/30 bg-error/5 p-4 mb-5">
+            <span className="text-sm text-error">{error}</span>
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Filter Panel */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
           <div className="lg:col-span-1">
             <FilterPanel onFilter={handleFilter} onClear={handleClear} />
           </div>
-
-          {/* Results */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Results</h2>
-              <ResultsTable results={results} loading={loading} />
-            </div>
+            <ResultsTable results={results} loading={loading} />
           </div>
         </div>
       </div>

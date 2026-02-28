@@ -48,24 +48,22 @@ const AnnouncementCard = ({ announcement }) => {
   const { subject, desc, an_dt, attchmntFile, attchmntText } = announcement;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-lg hover:border-slate-300 transition-all duration-200 group">
+    <div className="finance-card-hover p-5 group">
       <div className="flex justify-between items-start gap-3">
         <div className="flex-1 min-w-0">
           {/* Title/Subject */}
-          <h3 className="text-sm font-semibold text-slate-900 mb-1 leading-tight">
+          <h3 className="text-sm font-semibold mb-1 leading-tight">
             {subject?.replace(/_/g, ' ') || 'Announcement'}
           </h3>
 
           {/* Description */}
-          {desc && (
-            <p className="text-sm text-slate-600 mt-2 line-clamp-3 leading-relaxed">{desc}</p>
-          )}
+          {desc && <p className="text-sm opacity-60 mt-2 line-clamp-3 leading-relaxed">{desc}</p>}
 
           {/* Attachment Text */}
           {attchmntText && (
             <div className="mt-3 flex items-start gap-2">
               <svg
-                className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0"
+                className="w-4 h-4 opacity-40 mt-0.5 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -77,7 +75,7 @@ const AnnouncementCard = ({ announcement }) => {
                   d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
                 />
               </svg>
-              <span className="text-xs text-slate-500 leading-relaxed">{attchmntText}</span>
+              <span className="text-xs opacity-50 leading-relaxed">{attchmntText}</span>
             </div>
           )}
         </div>
@@ -88,7 +86,7 @@ const AnnouncementCard = ({ announcement }) => {
             href={attchmntFile}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-shrink-0 p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+            className="flex-shrink-0 p-2 opacity-40 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
             title="View attachment"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,8 +102,8 @@ const AnnouncementCard = ({ announcement }) => {
       </div>
 
       {/* Time ago */}
-      <div className="mt-4 pt-3 border-t border-slate-100">
-        <span className="text-xs text-slate-500">{formatTimeAgo(an_dt)}</span>
+      <div className="mt-4 pt-3 border-t border-base-200">
+        <span className="text-xs opacity-50">{formatTimeAgo(an_dt)}</span>
       </div>
     </div>
   );
@@ -115,7 +113,7 @@ const AnnouncementCard = ({ announcement }) => {
 const EmptyState = ({ searchTerm }) => (
   <div className="text-center py-12">
     <svg
-      className="w-16 h-16 mx-auto mb-4 text-slate-300"
+      className="w-16 h-16 mx-auto mb-4 opacity-30"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -127,8 +125,8 @@ const EmptyState = ({ searchTerm }) => (
         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
       />
     </svg>
-    <h3 className="text-lg font-medium text-slate-700 mb-1">No announcements found</h3>
-    <p className="text-sm text-slate-500">
+    <h3 className="text-lg font-medium opacity-70 mb-1">No announcements found</h3>
+    <p className="text-sm opacity-50">
       {searchTerm
         ? `No results for "${searchTerm}". Try a different search term.`
         : 'No announcements available for this company.'}
@@ -210,8 +208,8 @@ export default function AnnouncementsTab({ symbol }) {
   if (error && announcements.length === 0) {
     return (
       <div className="text-center py-8">
-        <div className="text-red-500 mb-2">{error}</div>
-        <p className="text-sm text-gray-500">Announcements may not be available for this stock.</p>
+        <div className="text-error mb-2">{error}</div>
+        <p className="text-sm opacity-50">Announcements may not be available for this stock.</p>
       </div>
     );
   }
@@ -220,13 +218,13 @@ export default function AnnouncementsTab({ symbol }) {
     <div>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Announcements</h3>
+        <h3 className="text-lg font-semibold">Announcements</h3>
 
         {/* Search Input */}
         <div className="relative w-full sm:w-80">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg
-              className="w-5 h-5 text-slate-400"
+              className="w-5 h-5 opacity-40"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -244,12 +242,12 @@ export default function AnnouncementsTab({ symbol }) {
             placeholder="Search announcements..."
             value={searchTerm}
             onChange={handleSearchChange}
-            className="w-full pl-10 pr-10 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm bg-white"
+            className="w-full pl-10 pr-10 py-2 border border-base-300/60 rounded-lg focus:outline-none focus:border-secondary/50 focus:bg-base-100 text-sm bg-base-200/60 transition-all"
           />
           {searchTerm && (
             <button
               onClick={handleClearSearch}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-base-content/40 hover:text-base-content/70"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -266,7 +264,7 @@ export default function AnnouncementsTab({ symbol }) {
 
       {/* Results count */}
       {announcements.length > 0 && (
-        <p className="text-sm text-slate-500 mb-4">
+        <p className="text-sm opacity-50 mb-4">
           {searchTerm
             ? `Showing ${visibleAnnouncements.length} of ${filteredAnnouncements.length} results`
             : `${announcements.length} announcements`}
@@ -290,7 +288,7 @@ export default function AnnouncementsTab({ symbol }) {
             <div className="mt-6 text-center">
               <button
                 onClick={handleLoadMore}
-                className="px-6 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm"
+                className="btn btn-sm btn-secondary btn-outline gap-1.5"
               >
                 Load More ({filteredAnnouncements.length - visibleCount} remaining)
               </button>
@@ -302,7 +300,7 @@ export default function AnnouncementsTab({ symbol }) {
       )}
 
       {/* Attribution */}
-      <p className="text-xs text-gray-500 mt-6">
+      <p className="text-xs text-base-content/40 mt-6">
         Data source: NSE India. Announcements are provided by the stock exchange.
       </p>
     </div>

@@ -10,12 +10,15 @@ import {
 } from 'recharts';
 import { formatChartDate, formatCurrency } from '../../lib/utils/formatters';
 
+/**
+ * Price chart tab with SMA overlays using Recharts
+ * @component
+ */
 export default function ChartTab({ priceHistory }) {
   if (!priceHistory || priceHistory.length === 0) {
-    return <div className="text-center py-8 text-gray-500">No price history available</div>;
+    return <div className="text-center py-8 text-base-content/50">No price history available</div>;
   }
 
-  // Calculate SMAs
   const calculateSMA = (data, period) => {
     const result = [];
     for (let i = 0; i < data.length; i++) {
@@ -41,23 +44,20 @@ export default function ChartTab({ priceHistory }) {
     sma200: sma200[index],
   }));
 
-  // Sample every nth data point for better performance
   const sampleRate = Math.ceil(chartData.length / 250);
   const sampledData = chartData.filter((_, index) => index % sampleRate === 0);
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded shadow-lg">
-          <p className="text-sm text-gray-600 mb-1">{payload[0].payload.fullDate}</p>
-          <p className="text-sm font-semibold text-gray-900">
-            Close: {formatCurrency(payload[0].value)}
-          </p>
-          {payload[1] && payload[1].value && (
-            <p className="text-sm text-green-600">SMA 50: {formatCurrency(payload[1].value)}</p>
+        <div className="bg-base-100 p-3 border border-base-300 rounded-box shadow-lg">
+          <p className="text-sm opacity-60 mb-1">{payload[0].payload.fullDate}</p>
+          <p className="text-sm font-semibold">Close: {formatCurrency(payload[0].value)}</p>
+          {payload[1]?.value && (
+            <p className="text-sm text-success">SMA 50: {formatCurrency(payload[1].value)}</p>
           )}
-          {payload[2] && payload[2].value && (
-            <p className="text-sm text-orange-600">SMA 200: {formatCurrency(payload[2].value)}</p>
+          {payload[2]?.value && (
+            <p className="text-sm text-warning">SMA 200: {formatCurrency(payload[2].value)}</p>
           )}
         </div>
       );
@@ -67,19 +67,19 @@ export default function ChartTab({ priceHistory }) {
 
   return (
     <div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Price Chart (5 Years)</h3>
-      <div className="bg-gray-50 rounded-lg p-4">
+      <h3 className="text-lg font-semibold mb-4">Price Chart (5 Years)</h3>
+      <div className="bg-base-200/30 rounded-box p-4">
         <ResponsiveContainer width="100%" height={400}>
           <LineChart data={sampledData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" />
             <XAxis
               dataKey="date"
-              stroke="#6b7280"
+              stroke="rgba(128,128,128,0.5)"
               style={{ fontSize: '12px' }}
               interval="preserveStartEnd"
             />
             <YAxis
-              stroke="#6b7280"
+              stroke="rgba(128,128,128,0.5)"
               style={{ fontSize: '12px' }}
               tickFormatter={(value) => `₹${value.toFixed(0)}`}
             />
@@ -114,10 +114,10 @@ export default function ChartTab({ priceHistory }) {
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <div className="mt-4 text-sm text-gray-600">
-        <p>• Blue line: Closing price</p>
-        <p>• Green dashed line: 50-day Simple Moving Average</p>
-        <p>• Orange dashed line: 200-day Simple Moving Average</p>
+      <div className="mt-4 text-sm opacity-60">
+        <p>Blue line: Closing price</p>
+        <p>Green dashed: 50-day SMA</p>
+        <p>Orange dashed: 200-day SMA</p>
       </div>
     </div>
   );

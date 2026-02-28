@@ -6,6 +6,8 @@
 
 import {
   formatCurrency,
+  formatPrice,
+  formatQuarterDate,
   formatLargeNumber,
   formatPercent,
   formatPercentage,
@@ -56,6 +58,41 @@ describe('Formatters', () => {
     it('should limit decimal places to 2', () => {
       const result = formatCurrency(1234.5678);
       expect(result).toMatch(/1,234\.57|1,234\.56/); // Rounded
+    });
+
+    it('should accept custom empty placeholder', () => {
+      expect(formatCurrency(null, '-')).toBe('-');
+      expect(formatCurrency(undefined, '-')).toBe('-');
+    });
+  });
+
+  describe('formatPrice', () => {
+    it('should format price as simple ₹X.XX', () => {
+      expect(formatPrice(1234.56)).toBe('₹1234.56');
+    });
+
+    it('should return N/A for null', () => {
+      expect(formatPrice(null)).toBe('N/A');
+    });
+
+    it('should accept custom empty placeholder', () => {
+      expect(formatPrice(null, '-')).toBe('-');
+    });
+
+    it('should handle zero', () => {
+      expect(formatPrice(0)).toBe('₹0.00');
+    });
+  });
+
+  describe('formatQuarterDate', () => {
+    it('should format YYYYMM to "Mon YYYY"', () => {
+      expect(formatQuarterDate('202512')).toBe('Dec 2025');
+      expect(formatQuarterDate('202401')).toBe('Jan 2024');
+    });
+
+    it('should return original string for invalid input', () => {
+      expect(formatQuarterDate('')).toBe('');
+      expect(formatQuarterDate('20251')).toBe('20251');
     });
   });
 
@@ -128,6 +165,11 @@ describe('Formatters', () => {
 
     it('should handle string numbers', () => {
       expect(formatPercent('12.5')).toBe('12.50%');
+    });
+
+    it('should accept custom empty placeholder', () => {
+      expect(formatPercent(null, 2, '-')).toBe('-');
+      expect(formatPercent('', 2, '-')).toBe('-');
     });
   });
 
@@ -226,42 +268,42 @@ describe('Formatters', () => {
   });
 
   describe('getChangeColor', () => {
-    it('should return positive class for positive value', () => {
-      expect(getChangeColor(10)).toBe('text-positive');
+    it('should return success class for positive value', () => {
+      expect(getChangeColor(10)).toBe('text-success');
     });
 
-    it('should return negative class for negative value', () => {
-      expect(getChangeColor(-10)).toBe('text-negative');
+    it('should return error class for negative value', () => {
+      expect(getChangeColor(-10)).toBe('text-error');
     });
 
-    it('should return gray class for zero', () => {
-      expect(getChangeColor(0)).toBe('text-gray-600');
+    it('should return base-content/60 class for zero', () => {
+      expect(getChangeColor(0)).toBe('text-base-content/60');
     });
 
-    it('should return gray class for null', () => {
-      expect(getChangeColor(null)).toBe('text-gray-600');
+    it('should return base-content/60 class for null', () => {
+      expect(getChangeColor(null)).toBe('text-base-content/60');
     });
 
-    it('should return gray class for undefined', () => {
-      expect(getChangeColor(undefined)).toBe('text-gray-600');
+    it('should return base-content/60 class for undefined', () => {
+      expect(getChangeColor(undefined)).toBe('text-base-content/60');
     });
   });
 
   describe('getChangeBgColor', () => {
-    it('should return positive bg class for positive value', () => {
-      expect(getChangeBgColor(10)).toBe('bg-positive');
+    it('should return success bg class for positive value', () => {
+      expect(getChangeBgColor(10)).toBe('bg-success/10 text-success');
     });
 
-    it('should return negative bg class for negative value', () => {
-      expect(getChangeBgColor(-10)).toBe('bg-negative');
+    it('should return error bg class for negative value', () => {
+      expect(getChangeBgColor(-10)).toBe('bg-error/10 text-error');
     });
 
-    it('should return gray bg class for zero', () => {
-      expect(getChangeBgColor(0)).toBe('bg-gray-100');
+    it('should return base-200 bg class for zero', () => {
+      expect(getChangeBgColor(0)).toBe('bg-base-200');
     });
 
-    it('should return gray bg class for null', () => {
-      expect(getChangeBgColor(null)).toBe('bg-gray-100');
+    it('should return base-200 bg class for null', () => {
+      expect(getChangeBgColor(null)).toBe('bg-base-200');
     });
   });
 

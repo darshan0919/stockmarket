@@ -3,9 +3,14 @@ import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { upcomingResultsAPI } from '../../lib/api';
 import LoadingSpinner from '../common/LoadingSpinner';
+import { formatCurrency, formatPercent } from '../../lib/utils/formatters';
 
 const ITEMS_PER_PAGE = 20;
 
+/**
+ * Upcoming quarterly results table with configurable columns and pagination
+ * @component
+ */
 export default function UpcomingResults() {
   const [results, setResults] = useState([]);
   const [totalResults, setTotalResults] = useState(0);
@@ -29,23 +34,16 @@ export default function UpcomingResults() {
     const fetchUpcomingResults = async () => {
       try {
         setLoading(true);
-        setError(null); // Clear any previous errors
+        setError(null);
         const response = await upcomingResultsAPI.getAll(currentPage, ITEMS_PER_PAGE);
-        console.log('API Response:', response);
         if (response.data.success) {
           setResults(response.data.data || []);
           setTotalResults(response.data.total || response.data.data?.length || 0);
         } else {
-          console.error('API returned success: false', response.data);
           setError('Unable to load upcoming results');
         }
       } catch (err) {
         console.error('Error fetching upcoming results:', err);
-        console.error('Error details:', {
-          message: err.message,
-          response: err.response?.data,
-          status: err.response?.status,
-        });
         setError(`Unable to load upcoming results: ${err.message}`);
       } finally {
         setLoading(false);
@@ -55,7 +53,6 @@ export default function UpcomingResults() {
     fetchUpcomingResults();
   }, [currentPage]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -66,22 +63,8 @@ export default function UpcomingResults() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const formatPrice = (value) => {
-    if (value === null || value === undefined) return '-';
-    const num = parseFloat(value);
-    if (isNaN(num)) return '-';
-    return `₹${num.toLocaleString('en-IN', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  };
-
-  const formatPercent = (value) => {
-    if (value === null || value === undefined || value === '') return '-';
-    const num = parseFloat(value);
-    if (isNaN(num)) return '-';
-    return `${num.toFixed(2)}%`;
-  };
+  const formatPrice = (value) => formatCurrency(value, '-');
+  const formatPercentDisplay = (value) => formatPercent(value, 2, '-');
 
   const formatRatio = (value) => {
     if (value === null || value === undefined || value === '') return '-';
@@ -94,57 +77,44 @@ export default function UpcomingResults() {
     if (value === null || value === undefined || value === '') return '-';
     const num = parseFloat(value);
     if (isNaN(num)) return '-';
-    if (Math.abs(num) >= 10000000) {
-      return `₹${(num / 10000000).toFixed(1)} Cr`;
-    }
-    if (Math.abs(num) >= 100000) {
-      return `₹${(num / 100000).toFixed(1)} L`;
-    }
+    if (Math.abs(num) >= 10000000) return `₹${(num / 10000000).toFixed(1)} Cr`;
+    if (Math.abs(num) >= 100000) return `₹${(num / 100000).toFixed(1)} L`;
     return `₹${num.toFixed(0)}`;
   };
 
   const formatRevenueNumber = (value) => {
-    if (value === null || value === undefined || value === "") return "-";
+    if (value === null || value === undefined || value === '') return '-';
     const num = parseFloat(value);
-    if (isNaN(num)) return "-";
-    if (Math.abs(num) >= 10000000) {
-      return `${(num / 10000000).toFixed(1)} Cr`;
-    }
-    if (Math.abs(num) >= 100000) {
-      return `${(num / 100000).toFixed(1)} L`;
-    }
+    if (isNaN(num)) return '-';
+    if (Math.abs(num) >= 10000000) return `${(num / 10000000).toFixed(1)} Cr`;
+    if (Math.abs(num) >= 100000) return `${(num / 100000).toFixed(1)} L`;
     return num.toFixed(0);
   };
 
   const handleStockClick = (symbol) => {
-    if (symbol) {
-      router.push(`/stock/${symbol}`);
-    }
+    if (symbol) router.push(`/stock/${symbol}`);
   };
 
   const handleStockScansClick = (e, exchangeSymbol) => {
-    e.stopPropagation(); // Prevent row click
+    e.stopPropagation();
     if (exchangeSymbol) {
-      const stockScansUrl = `https://www.stockscans.in/company/${encodeURIComponent(
-        exchangeSymbol
-      )}/standalone`;
-      window.open(stockScansUrl, '_blank', 'noopener,noreferrer');
+      window.open(
+        `https://www.stockscans.in/company/${encodeURIComponent(exchangeSymbol)}/standalone`,
+        '_blank',
+        'noopener,noreferrer'
+      );
     }
   };
 
   const handleScreenerClick = (e, symbol) => {
-    e.stopPropagation(); // Prevent row click
+    e.stopPropagation();
     if (symbol) {
-      const screenerUrl = `https://www.screener.in/company/${encodeURIComponent(symbol)}/`;
-      window.open(screenerUrl, '_blank', 'noopener,noreferrer');
+      window.open(
+        `https://www.screener.in/company/${encodeURIComponent(symbol)}/`,
+        '_blank',
+        'noopener,noreferrer'
+      );
     }
-  };
-
-  const getExchangeTagColor = (exchange) => {
-    if (exchange === 'NSE') {
-      return 'bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200';
-    }
-    return 'bg-purple-100 text-purple-800 hover:bg-purple-200 border-purple-200';
   };
 
   const getStockDetail = (result, path) => {
@@ -158,11 +128,9 @@ export default function UpcomingResults() {
 
   const handleCopySymbols = async () => {
     try {
-      // Fetch all symbols without pagination
       const response = await upcomingResultsAPI.getSymbols();
       if (response.data.success && response.data.symbols) {
-        const symbols = response.data.symbols.join(', ');
-        await navigator.clipboard.writeText(symbols);
+        await navigator.clipboard.writeText(response.data.symbols.join(', '));
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }
@@ -171,486 +139,422 @@ export default function UpcomingResults() {
     }
   };
 
-  // Pagination
   const totalPages = Math.ceil(totalResults / ITEMS_PER_PAGE) || 1;
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Upcoming Results</h2>
-        <div className="flex justify-center py-8">
-          <LoadingSpinner size="sm" />
-        </div>
+      <div className="finance-card p-5">
+        <h2 className="section-title">Upcoming Results</h2>
+        <LoadingSpinner size="sm" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Upcoming Results</h2>
-        <p className="text-red-500 text-sm">{error}</p>
+      <div className="finance-card p-5">
+        <h2 className="section-title mb-3">Upcoming Results</h2>
+        <div className="text-error text-sm">{error}</div>
       </div>
     );
   }
 
+  const columnOptions = [
+    { key: 'roce', label: 'ROCE' },
+    { key: 'debtToEquity', label: 'Debt/Equity' },
+    { key: 'orderBook', label: 'Order Book' },
+    { key: 'revenue', label: 'Revenue' },
+    { key: 'category', label: 'Category' },
+  ];
+
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-amber-100 rounded-lg">
-            <svg
-              className="w-5 h-5 text-amber-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
+    <div className="finance-card">
+      <div className="p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <h2 className="section-title">Upcoming Results</h2>
+            <span className="finance-badge bg-warning/15 text-warning">{results.length}</span>
           </div>
-          <h2 className="text-xl font-bold text-gray-900">Upcoming Results</h2>
-          <span className="text-sm text-gray-500">({results.length})</span>
-        </div>
 
-        <div className="flex items-center gap-2">
-          {/* Copy Symbols Button */}
-          <button
-            onClick={handleCopySymbols}
-            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Copy all exchange symbols for creating a watchlist in StockScans"
-          >
-            {copied ? (
-              <svg
-                className="w-5 h-5 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                />
-              </svg>
-            )}
-          </button>
-
-          {/* Column Settings Dropdown */}
-          <div className="relative" ref={menuRef}>
+          <div className="flex items-center gap-1">
             <button
-              onClick={() => setShowColumnMenu(!showColumnMenu)}
-              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Configure columns"
+              onClick={handleCopySymbols}
+              className={`btn btn-ghost btn-sm btn-square ${copied ? 'text-success' : ''}`}
+              title="Copy all exchange symbols"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-                />
-              </svg>
+              {copied ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+              )}
             </button>
 
-            {showColumnMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-10">
-                <p className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-                  Show Columns
-                </p>
-                {[
-                  { key: 'roce', label: 'ROCE' },
-                  { key: 'debtToEquity', label: 'Debt/Equity' },
-                  { key: 'orderBook', label: 'Order Book' },
-                  { key: 'revenue', label: 'Revenue' },
-                  { key: 'category', label: 'Category' },
-                ].map(({ key, label }) => (
-                  <label
-                    key={key}
-                    className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={visibleColumns[key]}
-                      onChange={() => toggleColumn(key)}
-                      className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
-                    />
-                    <span className="text-sm text-gray-700">{label}</span>
-                  </label>
-                ))}
-              </div>
-            )}
+            <div className="dropdown dropdown-end" ref={menuRef}>
+              <label
+                tabIndex={0}
+                className="btn btn-ghost btn-sm btn-square"
+                onClick={() => setShowColumnMenu(!showColumnMenu)}
+                title="Configure columns"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                  />
+                </svg>
+              </label>
+              {showColumnMenu && (
+                <ul
+                  tabIndex={0}
+                  className="dropdown-content menu bg-base-100 rounded-box shadow-lg border border-base-300 w-48 p-2 z-10"
+                >
+                  <li className="menu-title">Show Columns</li>
+                  {columnOptions.map(({ key, label }) => (
+                    <li key={key}>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={visibleColumns[key]}
+                          onChange={() => toggleColumn(key)}
+                          className="checkbox checkbox-sm checkbox-warning"
+                        />
+                        {label}
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {results.length === 0 ? (
-        <p className="text-gray-500 text-sm text-center py-8">No upcoming results scheduled</p>
-      ) : (
-        <>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="text-left py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Company
-                  </th>
-                  <th className="text-center py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Price
-                  </th>
-                  <th className="text-center py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Result Date
-                  </th>
-                  {visibleColumns.category && (
-                    <th className="text-left py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Category
-                    </th>
-                  )}
-                  {visibleColumns.pe && (
-                    <th className="text-right py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      PE
-                    </th>
-                  )}
+        {results.length === 0 ? (
+          <p className="text-center py-10 text-base-content/40 text-sm">No upcoming results scheduled</p>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="finance-table">
+                <thead>
+                  <tr>
+                    <th>Company</th>
+                    <th className="text-center">Price</th>
+                    <th className="text-center">Result Date</th>
+                    {visibleColumns.category && <th>Category</th>}
+                    {visibleColumns.pe && <th className="text-right">PE</th>}
+                    {visibleColumns.roce && <th className="text-right">ROCE</th>}
+                    {visibleColumns.debtToEquity && <th className="text-right">D/E</th>}
+                    {visibleColumns.revenue && <th className="text-center">Revenue</th>}
+                    {visibleColumns.orderBook && <th className="text-right">Order Book</th>}
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {results.map((result, index) => {
+                    const pe = getStockDetail(result, 'fundamentals.pe_ratio');
+                    const roce = getStockDetail(result, 'fundamentals.roce');
+                    const debtToEquity = getStockDetail(result, 'fundamentals.debt_to_equity');
+                    const price = getStockDetail(result, 'currentPrice.last_price');
+                    const change = getStockDetail(result, 'currentPrice.change');
+                    const changePercent = getStockDetail(result, 'currentPrice.change_percent');
+                    const sector = getStockDetail(result, 'basicInfo.sector');
+                    const industry = getStockDetail(result, 'basicInfo.industry');
+                    const orderBook = result.orderBook || getStockDetail(result, 'orderBook');
+                    const revenue = result.revenue || getStockDetail(result, 'revenue');
+                    const isPositive = change !== null && change >= 0;
 
-                  {visibleColumns.roce && (
-                    <th className="text-right py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      ROCE
-                    </th>
-                  )}
-                  {visibleColumns.debtToEquity && (
-                    <th className="text-right py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      D/E
-                    </th>
-                  )}
-                  {visibleColumns.revenue && (
-                    <th className="text-center py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Revenue
-                    </th>
-                  )}
-                  {visibleColumns.orderBook && (
-                    <th className="text-right py-3 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Order Book
-                    </th>
-                  )}
-                  <th className="py-3 px-2"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {results.map((result, index) => {
-                  const pe = getStockDetail(result, 'fundamentals.pe_ratio');
-                  const roce = getStockDetail(result, 'fundamentals.roce');
-                  const debtToEquity = getStockDetail(result, 'fundamentals.debt_to_equity');
-                  const price = getStockDetail(result, 'currentPrice.last_price');
-                  const change = getStockDetail(result, 'currentPrice.change');
-                  const changePercent = getStockDetail(result, 'currentPrice.change_percent');
-                  const sector = getStockDetail(result, 'basicInfo.sector');
-                  const industry = getStockDetail(result, 'basicInfo.industry');
-                  const orderBook = result.orderBook || getStockDetail(result, 'orderBook');
-                  const revenue = result.revenue || getStockDetail(result, 'revenue');
-                  const isPositive = change !== null && change >= 0;
-
-                  return (
-                    <tr
-                      key={index}
-                      onClick={() => handleStockClick(result.symbol)}
-                      className="hover:bg-amber-50 cursor-pointer transition-colors"
-                    >
-                      <td className="py-3 px-3">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="font-semibold text-gray-900 text-sm truncate">
-                            {result.name || getStockDetail(result, 'basicInfo.name') || '-'}
-                          </span>
-                          {/* Exchange Tag and External Links */}
-                          <div className="flex items-center gap-1.5">
-                            <span
-                              className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded border ${getExchangeTagColor(
-                                result.exchange
-                              ).replace(/hover:bg-\S+/, '')}`}
-                            >
-                              {result.exchangeSymbol || `BSE:${result.symbol}`}
+                    return (
+                      <tr
+                        key={index}
+                        onClick={() => handleStockClick(result.symbol)}
+                        className="hover cursor-pointer"
+                      >
+                        <td>
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-semibold text-sm truncate">
+                              {result.name || getStockDetail(result, 'basicInfo.name') || '-'}
                             </span>
-                            {/* StockScans Button */}
-                            <button
-                              onClick={(e) =>
-                                handleStockScansClick(
-                                  e,
-                                  result.exchangeSymbol || `BSE:${result.symbol}`
-                                )
-                              }
-                              className="inline-flex items-center justify-center p-1 rounded border border-gray-300 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
-                              title="View on StockScans"
-                            >
-                              <Image
-                                src="/icons/stockscans.png"
-                                alt="StockScans"
-                                width={16}
-                                height={16}
-                                className="object-contain"
-                              />
-                            </button>
-                            {/* Screener Button */}
-                            <button
-                              onClick={(e) => handleScreenerClick(e, result.symbol)}
-                              className="inline-flex items-center justify-center p-1 rounded border border-gray-300 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
-                              title="View on Screener"
-                            >
-                              <Image
-                                src="/icons/screener.png"
-                                alt="Screener"
-                                width={16}
-                                height={16}
-                                className="object-contain"
-                              />
-                            </button>
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className={`badge badge-sm ${
+                                  result.exchange === 'NSE'
+                                    ? 'badge-info badge-outline'
+                                    : 'badge-secondary badge-outline'
+                                }`}
+                              >
+                                {result.exchangeSymbol || `BSE:${result.symbol}`}
+                              </span>
+                              <button
+                                onClick={(e) =>
+                                  handleStockScansClick(
+                                    e,
+                                    result.exchangeSymbol || `BSE:${result.symbol}`
+                                  )
+                                }
+                                className="btn btn-ghost btn-xs btn-square"
+                                title="View on StockScans"
+                              >
+                                <Image
+                                  src="/icons/stockscans.png"
+                                  alt="StockScans"
+                                  width={16}
+                                  height={16}
+                                  className="object-contain"
+                                />
+                              </button>
+                              <button
+                                onClick={(e) => handleScreenerClick(e, result.symbol)}
+                                className="btn btn-ghost btn-xs btn-square"
+                                title="View on Screener"
+                              >
+                                <Image
+                                  src="/icons/screener.png"
+                                  alt="Screener"
+                                  width={16}
+                                  height={16}
+                                  className="object-contain"
+                                />
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="py-3 px-3">
-                        <div className="flex flex-col items-center gap-0.5">
-                          <span className="text-sm font-semibold text-gray-900">
-                            {formatPrice(price)}
-                          </span>
-                          {(change !== null || changePercent !== null) && (
+                        </td>
+                        <td className="text-center">
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className="text-sm font-semibold">{formatPrice(price)}</span>
+                            {(change !== null || changePercent !== null) && (
+                              <span
+                                className={`text-xs font-medium ${
+                                  isPositive ? 'text-success' : 'text-error'
+                                }`}
+                              >
+                                {change ? (isPositive ? '+' : '') + change?.toFixed(2) : ''}
+                                {changePercent
+                                  ? ` (${isPositive ? '+' : ''}${changePercent?.toFixed(2)}%)`
+                                  : ''}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="text-center">
+                          <span className="badge badge-warning badge-sm">{result.date || '-'}</span>
+                        </td>
+                        {visibleColumns.category && (
+                          <td>
+                            <div className="flex flex-col gap-0.5">
+                              {sector && <span className="text-xs font-medium">{sector}</span>}
+                              {industry && <span className="text-xs opacity-60">{industry}</span>}
+                              {!sector && !industry && (
+                                <span className="text-xs opacity-40">-</span>
+                              )}
+                            </div>
+                          </td>
+                        )}
+                        {visibleColumns.pe && (
+                          <td className="text-right">
                             <span
-                              className={`text-xs font-medium ${
-                                isPositive ? 'text-emerald-600' : 'text-red-500'
+                              className={`text-sm font-medium ${
+                                pe !== null && pe < 25
+                                  ? 'text-success'
+                                  : pe !== null && pe > 45
+                                    ? 'text-error'
+                                    : ''
                               }`}
                             >
-                              {change ? (isPositive ? '+' : '') + change?.toFixed(2) : ''}
-                              {changePercent
-                                ? ` (${isPositive ? '+' : ''}${changePercent?.toFixed(2)}%)`
-                                : ''}
+                              {formatRatio(pe)}
                             </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-3 px-3 text-center">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                          {result.date || '-'}
-                        </span>
-                      </td>
-                      {visibleColumns.category && (
-                        <td className="py-3 px-3">
-                          <div className="flex flex-col gap-0.5">
-                            {sector && (
-                              <span className="text-xs text-gray-700 font-medium">{sector}</span>
-                            )}
-                            {industry && <span className="text-xs text-gray-500">{industry}</span>}
-                            {!sector && !industry && (
-                              <span className="text-xs text-gray-400">-</span>
-                            )}
-                          </div>
-                        </td>
-                      )}
-                      {visibleColumns.pe && (
-                        <td className="py-3 px-3 text-right">
-                          <span
-                            className={`text-sm font-medium ${
-                              pe !== null && pe < 25
-                                ? 'text-emerald-600'
-                                : pe !== null && pe > 45
-                                  ? 'text-red-500'
-                                  : 'text-gray-700'
-                            }`}
-                          >
-                            {formatRatio(pe)}
-                          </span>
-                        </td>
-                      )}
-                      {visibleColumns.roce && (
-                        <td className="py-3 px-3 text-right">
-                          <span
-                            className={`text-sm font-medium ${
-                              roce !== null && roce >= 15
-                                ? 'text-emerald-600'
-                                : roce !== null && roce < 10
-                                  ? 'text-red-500'
-                                  : 'text-gray-700'
-                            }`}
-                          >
-                            {formatPercent(roce)}
-                          </span>
-                        </td>
-                      )}
-                      {visibleColumns.debtToEquity && (
-                        <td className="py-3 px-3 text-right">
-                          <span
-                            className={`text-sm font-medium ${
-                              debtToEquity !== null && debtToEquity <= 0.5
-                                ? 'text-emerald-600'
-                                : debtToEquity !== null && debtToEquity > 1
-                                  ? 'text-red-500'
-                                  : 'text-gray-700'
-                            }`}
-                          >
-                            {formatRatio(debtToEquity)}
-                          </span>
-                        </td>
-                      )}
-                      {visibleColumns.revenue && (
-                        <td className="py-3 px-3">
-                          {revenue && Array.isArray(revenue) && revenue.length > 0 ? (
-                            <div className="flex flex-col gap-1">
-                              {/* Period Headers Row */}
-                              <div className="flex items-center gap-2 justify-end">
-                                {revenue.map((quarter, idx) => (
-                                  <div key={idx} className="flex flex-col items-center gap-0.5 min-w-[65px]">
-                                    <span className="text-xs font-medium text-gray-600">
-                                      {quarter.period?.replace(/Q(\d)\s+FY(\d{2})/, "Q$1'$2") || "-"}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                              
-                              {/* Revenue Values Row */}
-                              <div className="flex items-center gap-2 justify-end">
-                                {revenue.map((quarter, idx) => (
-                                  <div key={idx} className="flex flex-col items-center gap-0.5 min-w-[65px]">
-                                    <span className="text-sm font-semibold text-gray-900">
-                                      {formatRevenueNumber(quarter.revenue)}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                              
-                              {/* YoY Growth Row */}
-                              <div className="flex items-center gap-2 justify-end">
-                                {revenue.map((quarter, idx) => (
-                                  <div key={idx} className="flex flex-col items-center gap-0.5 min-w-[65px]">
-                                    {quarter.yoy_growth !== null && 
-                                     quarter.yoy_growth !== undefined ? (
-                                      <span
-                                        className={`text-xs font-medium ${
-                                          quarter.yoy_growth >= 0
-                                            ? "text-emerald-600"
-                                            : "text-red-500"
-                                        }`}
-                                      >
-                                        {quarter.yoy_growth >= 0 ? "+" : ""}
-                                        {quarter.yoy_growth.toFixed(1)}%
+                          </td>
+                        )}
+                        {visibleColumns.roce && (
+                          <td className="text-right">
+                            <span
+                              className={`text-sm font-medium ${
+                                roce !== null && roce >= 15
+                                  ? 'text-success'
+                                  : roce !== null && roce < 10
+                                    ? 'text-error'
+                                    : ''
+                              }`}
+                            >
+                              {formatPercentDisplay(roce)}
+                            </span>
+                          </td>
+                        )}
+                        {visibleColumns.debtToEquity && (
+                          <td className="text-right">
+                            <span
+                              className={`text-sm font-medium ${
+                                debtToEquity !== null && debtToEquity <= 0.5
+                                  ? 'text-success'
+                                  : debtToEquity !== null && debtToEquity > 1
+                                    ? 'text-error'
+                                    : ''
+                              }`}
+                            >
+                              {formatRatio(debtToEquity)}
+                            </span>
+                          </td>
+                        )}
+                        {visibleColumns.revenue && (
+                          <td>
+                            {revenue && Array.isArray(revenue) && revenue.length > 0 ? (
+                              <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-2 justify-end">
+                                  {revenue.map((quarter, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="flex flex-col items-center gap-0.5 min-w-[65px]"
+                                    >
+                                      <span className="text-xs font-medium opacity-60">
+                                        {quarter.period?.replace(/Q(\d)\s+FY(\d{2})/, "Q$1'$2") ||
+                                          '-'}
                                       </span>
-                                    ) : (
-                                      <span className="text-xs text-gray-400">-</span>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                              
-                              {/* QoQ Growth Row */}
-                              <div className="flex items-center gap-2 justify-end">
-                                {revenue.map((quarter, idx) => (
-                                  <div key={idx} className="flex flex-col items-center gap-0.5 min-w-[65px]">
-                                    {quarter.qoq_growth !== null && 
-                                     quarter.qoq_growth !== undefined ? (
-                                      <span
-                                        className={`text-xs font-medium ${
-                                          quarter.qoq_growth >= 0
-                                            ? "text-emerald-600"
-                                            : "text-red-500"
-                                        }`}
-                                      >
-                                        {quarter.qoq_growth >= 0 ? "+" : ""}
-                                        {quarter.qoq_growth.toFixed(1)}%
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="flex items-center gap-2 justify-end">
+                                  {revenue.map((quarter, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="flex flex-col items-center gap-0.5 min-w-[65px]"
+                                    >
+                                      <span className="text-sm font-semibold">
+                                        {formatRevenueNumber(quarter.revenue)}
                                       </span>
-                                    ) : (
-                                      <span className="text-xs text-gray-400">-</span>
-                                    )}
-                                  </div>
-                                ))}
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="flex items-center gap-2 justify-end">
+                                  {revenue.map((quarter, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="flex flex-col items-center gap-0.5 min-w-[65px]"
+                                    >
+                                      {quarter.yoy_growth !== null &&
+                                      quarter.yoy_growth !== undefined ? (
+                                        <span
+                                          className={`text-xs font-medium ${
+                                            quarter.yoy_growth >= 0 ? 'text-success' : 'text-error'
+                                          }`}
+                                        >
+                                          {quarter.yoy_growth >= 0 ? '+' : ''}
+                                          {quarter.yoy_growth.toFixed(1)}%
+                                        </span>
+                                      ) : (
+                                        <span className="text-xs opacity-40">-</span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="flex items-center gap-2 justify-end">
+                                  {revenue.map((quarter, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="flex flex-col items-center gap-0.5 min-w-[65px]"
+                                    >
+                                      {quarter.qoq_growth !== null &&
+                                      quarter.qoq_growth !== undefined ? (
+                                        <span
+                                          className={`text-xs font-medium ${
+                                            quarter.qoq_growth >= 0 ? 'text-success' : 'text-error'
+                                          }`}
+                                        >
+                                          {quarter.qoq_growth >= 0 ? '+' : ''}
+                                          {quarter.qoq_growth.toFixed(1)}%
+                                        </span>
+                                      ) : (
+                                        <span className="text-xs opacity-40">-</span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-400">-</span>
-                          )}
+                            ) : (
+                              <span className="text-sm opacity-40">-</span>
+                            )}
+                          </td>
+                        )}
+                        {visibleColumns.orderBook && (
+                          <td className="text-right">
+                            <span className="text-sm">{formatNumber(orderBook)}</span>
+                          </td>
+                        )}
+                        <td>
+                          <svg
+                            className="w-4 h-4 opacity-40"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 5l7 7-7 7"
+                            />
+                          </svg>
                         </td>
-                      )}
-                      {visibleColumns.orderBook && (
-                        <td className="py-3 px-3 text-right">
-                          <span className="text-sm text-gray-700">{formatNumber(orderBook)}</span>
-                        </td>
-                      )}
-                      <td className="py-3 px-2">
-                        <svg
-                          className="w-4 h-4 text-gray-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-              <p className="text-sm text-gray-500">
-                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
-                {Math.min(currentPage * ITEMS_PER_PAGE, totalResults)} of {totalResults}
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <div className="flex items-center gap-1">
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-base-200">
+                <p className="text-sm opacity-60">
+                  Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+                  {Math.min(currentPage * ITEMS_PER_PAGE, totalResults)} of {totalResults}
+                </p>
+                <div className="join">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="join-item btn btn-sm"
+                  >
+                    Previous
+                  </button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 text-sm font-medium rounded-lg transition-colors ${
-                        currentPage === page
-                          ? 'bg-amber-500 text-white'
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }`}
+                      className={`join-item btn btn-sm ${currentPage === page ? 'btn-active' : ''}`}
                     >
                       {page}
                     </button>
                   ))}
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className="join-item btn btn-sm"
+                  >
+                    Next
+                  </button>
                 </div>
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
               </div>
-            </div>
-          )}
-        </>
-      )}
+            )}
+          </>
+        )}
 
-      <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-gray-100">
-        Data source: NSE India & BSE India. Click exchange tag to view on StockScans.
-      </p>
+        <p className="text-2xs text-base-content/40 mt-4 pt-3 border-t border-base-200">
+          Data source: NSE India & BSE India. Click exchange tag to view on StockScans.
+        </p>
+      </div>
     </div>
   );
 }

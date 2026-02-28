@@ -20,8 +20,28 @@ jest.mock('../../../lib/utils/formatters', () => ({
   formatNumber: (val) => (val !== null && val !== undefined ? val.toFixed(2) : 'N/A'),
   formatLargeNumber: (val) => (val ? `₹${val}Cr` : 'N/A'),
   formatDate: (date) => date || 'N/A',
+  formatQuarterDate: (dateStr) => {
+    if (!dateStr || dateStr.length !== 6) return dateStr;
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    const year = dateStr.substring(0, 4);
+    const month = parseInt(dateStr.substring(4, 6), 10);
+    return `${monthNames[month - 1]} ${year}`;
+  },
   getChangeColor: (val) =>
-    val > 0 ? 'text-positive' : val < 0 ? 'text-negative' : 'text-gray-600',
+    val > 0 ? 'text-success' : val < 0 ? 'text-error' : 'text-base-content/60',
 }));
 
 describe('ResultCard', () => {
@@ -131,12 +151,12 @@ describe('ResultCard', () => {
     const consolidatedBtn = screen.getByText('Consolidated');
     const standaloneBtn = screen.getByText('Standalone');
 
-    expect(consolidatedBtn).toHaveClass('bg-primary-600');
+    expect(consolidatedBtn).toHaveClass('btn-primary');
 
     // Click Standalone
     fireEvent.click(standaloneBtn);
 
-    expect(standaloneBtn).toHaveClass('bg-primary-600');
+    expect(standaloneBtn).toHaveClass('btn-primary');
   });
 
   it('should render link to stock page', () => {

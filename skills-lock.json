@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "skills": {
+    "api-design": {
+      "source": "supercent-io/skills-template",
+      "sourceType": "github",
+      "computedHash": "9e1bf8ae7221dba7639be5e20b8656026a2d22a70b46ad99b732ba7c7bef03ad"
+    },
+    "api-documentation": {
+      "source": "supercent-io/skills-template",
+      "sourceType": "github",
+      "computedHash": "27f2781ea4b22a3bfaa3047b3e424f618ef9248809029b71f98139a7b50693ce"
+    },
+    "code-refactoring": {
+      "source": "skillcreatorai/ai-agent-skills",
+      "sourceType": "github",
+      "computedHash": "6f19dccc896d729e152f34c4486d8f0fb38a694b8fbeaf002a8e4cf5380896da"
+    },
+    "daisyui": {
+      "source": "bobmatnyc/claude-mpm-skills",
+      "sourceType": "github",
+      "computedHash": "e0a9aeedd7414ef48837be8cdb7223466d80d831cce908ee8ce2f2d96a9bf964"
+    },
+    "documentation-update": {
+      "source": "geoffjay/claude-plugins",
+      "sourceType": "github",
+      "computedHash": "61fd4dbe975846f5c4b3c7a0f8edcd74bdddf34aec78ebd2f2e580b8a018ed80"
+    },
+    "file-organization": {
+      "source": "supercent-io/skills-template",
+      "sourceType": "github",
+      "computedHash": "766c341f34dbfb064f14a83d729e8e4e1fe21d9ea8e9532096c2aabd52c22db9"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "computedHash": "6412eb4eb3b91595ebab937f0c69501240e7ba761b3d82510b5cf506ec5c7adc"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67"
+    },
+    "frontend-patterns": {
+      "source": "affaan-m/everything-claude-code",
+      "sourceType": "github",
+      "computedHash": "48c9438b32e62679de45e510b34f3e81b1341d4ba9aeae97b92bbd7e3e01986a"
+    },
+    "jest-react-testing": {
+      "source": "manutej/luxor-claude-marketplace",
+      "sourceType": "github",
+      "computedHash": "2f938ce10a81d8583b679d7ce75eb935fffbad5aab4e5d9681285bc3c9b83224"
+    },
+    "jira": {
+      "source": "softaworks/agent-toolkit",
+      "sourceType": "github",
+      "computedHash": "be408703bd1bdebbdd1631c36ab030b7fd19606ca2d8550fadb0079fe88befd9"
+    },
+    "mongodb": {
+      "source": "hoodini/ai-agents-skills",
+      "sourceType": "github",
+      "computedHash": "9b169b7c9de672fb8646c8c0c91865bc2dff3d5739b2d864bd039f12cf5dc800"
+    },
+    "nextjs-best-practices": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "8f5b6b588c638139854181f80a241c16575810a3bd45b0983e55078b6aed347a"
+    },
+    "nodejs-backend-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "4c6bf8fbd9a13d61e326ddeb210af5854fea3b253922a7981bd7718f3b765c08"
+    },
+    "tailwind-design-system": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "d0e4d2ba5a99cdc6e264d3927d1d81e85e79f551c8e246fa0a86123217eaad94"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": "4365be772fd3b41994a72ad478472c6d680678e7f3859860ab010e9c46e48ee0"
+    }
+  }
+}

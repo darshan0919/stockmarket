@@ -1,12 +1,16 @@
+/**
+ * @fileoverview Order book baseline parser - fetches and parses order book from annual reports
+ * @module api/orderbookBaselineParser
+ * @see {@link docs/API_REFERENCE.md#orders-apis} for Orders API docs
+ * @see {@link docs/backend/api/geminiClient.md} for shared AI client
+ */
+
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
-const ModelResponse = require('../models/ModelResponse');
+const { parseNseDateToObject, formatNseDateForApi } = require('../utils/nseHelpers');
+const { parsePdfWithGemini, hashPrompt } = require('./geminiClient');
 const { getNseCookies } = require('./nseIndiaApi');
-
-const GEMINI_API_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 // Read the orderbook baseline prompt from file
 const orderbookBaselinePrompt = fs.readFileSync(
@@ -14,7 +18,7 @@ const orderbookBaselinePrompt = fs.readFileSync(
   'utf-8'
 );
 
-const promptHash = crypto.createHash('sha256').update(orderbookBaselinePrompt).digest('hex');
+const promptHash = hashPrompt(orderbookBaselinePrompt);
 
 // NSE API headers (base headers, cookies added per request)
 const getNseHeaders = async () => {
@@ -68,18 +72,11 @@ const fetchInvestorPresentations = async (symbol, monthsBack = 12) => {
     const fromDate = new Date();
     fromDate.setMonth(fromDate.getMonth() - monthsBack);
 
-    const formatDate = (date) => {
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      return `${day}-${month}-${year}`;
-    };
-
     const url = `https://www.nseindia.com/api/NextApi/apiClient/GetQuoteApi?functionName=getCorporateAnnouncement&symbol=${encodeURIComponent(
       symbol
-    )}&marketApiType=equities&subject=Investor%20Presentation&fromDate=${formatDate(
+    )}&marketApiType=equities&subject=Investor%20Presentation&fromDate=${formatNseDateForApi(
       fromDate
-    )}&toDate=${formatDate(toDate)}`;
+    )}&toDate=${formatNseDateForApi(toDate)}`;
 
     const response = await axios.get(url, {
       headers,
@@ -107,18 +104,11 @@ const fetchFinancialResults = async (symbol, monthsBack = 12) => {
     const fromDate = new Date();
     fromDate.setMonth(fromDate.getMonth() - monthsBack);
 
-    const formatDate = (date) => {
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      return `${day}-${month}-${year}`;
-    };
-
     const url = `https://www.nseindia.com/api/NextApi/apiClient/GetQuoteApi?functionName=getCorporateAnnouncement&symbol=${encodeURIComponent(
       symbol
-    )}&marketApiType=equities&subject=Financial%20Results&fromDate=${formatDate(
+    )}&marketApiType=equities&subject=Financial%20Results&fromDate=${formatNseDateForApi(
       fromDate
-    )}&toDate=${formatDate(toDate)}`;
+    )}&toDate=${formatNseDateForApi(toDate)}`;
 
     const response = await axios.get(url, {
       headers,
@@ -133,172 +123,19 @@ const fetchFinancialResults = async (symbol, monthsBack = 12) => {
 };
 
 /**
- * Parse NSE date format to Date object
- * @param {string} dateStr - Date string like "31-Dec-2025" or "31-12-2025"
- * @returns {Date} Date object
- */
-const parseNseDate = (dateStr) => {
-  if (!dateStr) return null;
-
-  try {
-    // Handle format: "31-Dec-2025"
-    const months = {
-      Jan: 0,
-      Feb: 1,
-      Mar: 2,
-      Apr: 3,
-      May: 4,
-      Jun: 5,
-      Jul: 6,
-      Aug: 7,
-      Sep: 8,
-      Oct: 9,
-      Nov: 10,
-      Dec: 11,
-    };
-
-    const parts = dateStr.split('-');
-    if (parts.length === 3) {
-      const day = parseInt(parts[0]);
-      const month = months[parts[1]] !== undefined ? months[parts[1]] : parseInt(parts[1]) - 1;
-      const year = parseInt(parts[2]);
-      return new Date(year, month, day);
-    }
-  } catch (e) {
-    console.error('Error parsing date:', dateStr);
-  }
-
-  return null;
-};
-
-/**
  * Parse order book baseline from a PDF document using Gemini AI
  * @param {string} attachmentUrl - URL to the PDF attachment
  * @returns {Object} Extracted order book baseline data
  */
 const parseOrderbookBaseline = async (attachmentUrl) => {
-  const startTime = Date.now();
-
-  // Check if we already have a cached response
-  const existingResponse = await ModelResponse.findOne({
-    attachment_name: attachmentUrl,
-    prompt: promptHash,
+  return parsePdfWithGemini({
+    attachmentUrl,
+    prompt: orderbookBaselinePrompt,
+    promptHash,
+    timeout: 180000,
+    parseJson: true,
+    errorShape: { order_book: null, document_info: null },
   });
-
-  if (existingResponse) {
-    try {
-      const cachedData = JSON.parse(existingResponse.response);
-      const parseTime = Date.now() - startTime;
-      return {
-        ...cachedData,
-        _cache_metadata: {
-          from_cache: true,
-          cached_at: existingResponse.created_at,
-          parse_time_ms: parseTime,
-        },
-      };
-    } catch (e) {
-      console.log('Cached response invalid, re-fetching:', attachmentUrl);
-    }
-  }
-
-  const geminiApiKey = process.env.GEMINI_API_KEY;
-
-  if (!geminiApiKey) {
-    throw new Error('GEMINI_API_KEY not configured');
-  }
-
-  try {
-    const response = await axios.post(
-      GEMINI_API_URL,
-      {
-        contents: [
-          {
-            parts: [
-              { text: orderbookBaselinePrompt },
-              {
-                file_data: {
-                  mime_type: 'application/pdf',
-                  file_uri: attachmentUrl,
-                },
-              },
-            ],
-          },
-        ],
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': geminiApiKey,
-        },
-        timeout: 180000, // 3 minutes for larger documents
-      }
-    );
-
-    const extractedText = response.data.candidates[0].content.parts[0].text;
-
-    // Clean the response
-    let cleanedText = extractedText.trim();
-    if (cleanedText.startsWith('```json')) {
-      cleanedText = cleanedText.slice(7);
-    }
-    if (cleanedText.startsWith('```')) {
-      cleanedText = cleanedText.slice(3);
-    }
-    if (cleanedText.endsWith('```')) {
-      cleanedText = cleanedText.slice(0, -3);
-    }
-    cleanedText = cleanedText.trim();
-
-    // Parse JSON
-    let parsedData;
-    try {
-      parsedData = JSON.parse(cleanedText);
-    } catch (parseError) {
-      console.error('Failed to parse Gemini response as JSON:', cleanedText);
-      parsedData = {
-        extraction_success: false,
-        error: 'Failed to parse document content',
-        raw_text: cleanedText.substring(0, 500),
-      };
-    }
-
-    // Cache the response
-    const newModelResponse = new ModelResponse({
-      attachment_name: attachmentUrl,
-      prompt: promptHash,
-      response: JSON.stringify(parsedData),
-    });
-    await newModelResponse.save();
-
-    const parseTime = Date.now() - startTime;
-
-    return {
-      ...parsedData,
-      _cache_metadata: {
-        from_cache: false,
-        cached_at: new Date(),
-        parse_time_ms: parseTime,
-      },
-    };
-  } catch (error) {
-    console.error('Error parsing document with Gemini:', error.message);
-
-    const parseTime = Date.now() - startTime;
-
-    return {
-      extraction_success: false,
-      error: error.message,
-      order_book: null,
-      document_info: null,
-      confidence_score: 0,
-      _cache_metadata: {
-        from_cache: false,
-        cached_at: null,
-        parse_time_ms: parseTime,
-      },
-    };
-  }
 };
 
 /**
@@ -330,7 +167,7 @@ const getOrderbookBaseline = async (symbol) => {
   // Process annual reports (priority 1 - most likely to have order book)
   if (Array.isArray(annualReports)) {
     for (const report of annualReports) {
-      const date = parseNseDate(report.an_dt || report.date);
+      const date = parseNseDateToObject(report.an_dt || report.date);
       if (date && report.attchmntFile) {
         allDocuments.push({
           type: 'Annual Report',
@@ -347,7 +184,7 @@ const getOrderbookBaseline = async (symbol) => {
   // Process investor presentations (priority 2)
   if (Array.isArray(investorPresentations)) {
     for (const pres of investorPresentations) {
-      const date = parseNseDate(pres.an_dt || pres.date);
+      const date = parseNseDateToObject(pres.an_dt || pres.date);
       if (date && pres.attchmntFile) {
         allDocuments.push({
           type: 'Investor Presentation',
@@ -364,7 +201,7 @@ const getOrderbookBaseline = async (symbol) => {
   // Process financial results (priority 3 - may contain order book info)
   if (Array.isArray(financialResults)) {
     for (const result of financialResults) {
-      const date = parseNseDate(result.an_dt || result.date);
+      const date = parseNseDateToObject(result.an_dt || result.date);
       if (date && result.attchmntFile) {
         allDocuments.push({
           type: 'Financial Results',

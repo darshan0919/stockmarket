@@ -7,11 +7,12 @@ const getStockScripCode = async (symbol) => {
     `${BSE_API_URL}/PeerSmartSearch/w?Type=SS&text=${symbol.trim()}`,
     {
       headers: {
-        'Referer': 'https://www.bseindia.com/',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'application/json, text/plain, */*',
+        Referer: 'https://www.bseindia.com/',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Accept: 'application/json, text/plain, */*',
         'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br'
+        'Accept-Encoding': 'gzip, deflate, br',
       },
     }
   );
@@ -22,12 +23,12 @@ const getStockScripCode = async (symbol) => {
 };
 
 const getResultAnnoucement = async (symbol, fromDate, toDate) => {
-  pageno = 1;
+  let pageno = 1;
   const scripCode = await getStockScripCode(symbol);
   if (!scripCode) {
     return null;
   }
-  result = [];
+  let result = [];
   while (true) {
     const response = await axios.get(`${BSE_API_URL}/AnnSubCategoryGetData/w`, {
       headers: {
@@ -78,5 +79,4 @@ module.exports = {
   getResultAnnoucement,
   upcomingResults,
   getCompanyInfo,
-
 };

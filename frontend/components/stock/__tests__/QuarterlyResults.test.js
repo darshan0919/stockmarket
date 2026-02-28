@@ -39,6 +39,7 @@ describe('QuarterlyResults Component', () => {
             net_profit: 686.04,
             eps: 16.39,
             audited: true,
+            consolidated: true,
           },
           {
             period: 'Q2 2024',
@@ -56,6 +57,7 @@ describe('QuarterlyResults Component', () => {
             net_profit: 467.9,
             eps: 8.16,
             audited: false,
+            consolidated: true,
             qoq_sales_growth: -49.74,
             qoq_profit_growth: -31.8,
             yoy_sales_growth: 15.5,
@@ -86,7 +88,7 @@ describe('QuarterlyResults Component', () => {
     render(<QuarterlyResults symbol="SRM" />);
 
     await waitFor(() => {
-      expect(screen.getByText('Quarterly Results')).toBeInTheDocument();
+      expect(screen.getByText(/Quarterly Results/)).toBeInTheDocument();
     });
 
     // Check for header
@@ -139,16 +141,16 @@ describe('QuarterlyResults Component', () => {
     render(<QuarterlyResults symbol="SRM" />);
 
     await waitFor(() => {
-      // Positive growth should be green
+      // Positive growth should use DaisyUI success
       const positiveGrowth = screen.getAllByText(/\+15\.50%/);
       if (positiveGrowth.length > 0) {
-        expect(positiveGrowth[0]).toHaveClass('text-green-600');
+        expect(positiveGrowth[0]).toHaveClass('text-success');
       }
 
-      // Negative growth should be red
+      // Negative growth should use DaisyUI error
       const negativeGrowth = screen.getAllByText(/-49\.74%/);
       if (negativeGrowth.length > 0) {
-        expect(negativeGrowth[0]).toHaveClass('text-red-600');
+        expect(negativeGrowth[0]).toHaveClass('text-error');
       }
     });
   });
@@ -176,6 +178,7 @@ describe('QuarterlyResults Component', () => {
               net_profit: null,
               eps: null,
               audited: false,
+              consolidated: true,
             },
           ],
           source: 'NSE India',

@@ -1,14 +1,24 @@
 import '../styles/globals.css';
 import Header from '../components/common/Header';
+import { SnackbarProvider } from '../lib/contexts/SnackbarContext';
 
+/**
+ * Root application component. Wraps all pages with Header and SnackbarProvider.
+ * @param {Object} props
+ * @param {import('next').AppProps} props.Component - The page component to render
+ * @param {Object} props.pageProps - Props passed to the page component
+ * @see {@link docs/frontend/README.md} for frontend architecture
+ */
 function MyApp({ Component, pageProps }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main className="container mx-auto px-4 py-8">
-        <Component {...pageProps} />
-      </main>
-    </div>
+    <SnackbarProvider>
+      <div className="min-h-screen bg-base-200">
+        <Header />
+        <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <Component {...pageProps} />
+        </main>
+      </div>
+    </SnackbarProvider>
   );
 }
 

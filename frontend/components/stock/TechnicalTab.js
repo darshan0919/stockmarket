@@ -29,21 +29,21 @@ export default function TechnicalTab({ symbol }) {
 
   if (loading) return <LoadingSpinner size="sm" />;
   if (!technicals)
-    return <div className="text-center py-8 text-gray-500">No technical data available</div>;
+    return <div className="text-center py-8 opacity-50">No technical data available</div>;
 
   const getRSISignal = (rsi) => {
-    if (!rsi) return { text: 'N/A', color: 'text-gray-600' };
-    if (rsi >= 70) return { text: 'Overbought', color: 'text-red-600' };
-    if (rsi <= 30) return { text: 'Oversold', color: 'text-green-600' };
-    return { text: 'Neutral', color: 'text-gray-600' };
+    if (!rsi) return { text: 'N/A', color: 'opacity-60' };
+    if (rsi >= 70) return { text: 'Overbought', color: 'text-error' };
+    if (rsi <= 30) return { text: 'Oversold', color: 'text-success' };
+    return { text: 'Neutral', color: 'opacity-60' };
   };
 
   const getMACDSignal = (macd) => {
     if (!macd || macd.macd === null || macd.signal === null)
-      return { text: 'N/A', color: 'text-gray-600' };
-    if (macd.macd > macd.signal) return { text: 'Bullish', color: 'text-green-600' };
-    if (macd.macd < macd.signal) return { text: 'Bearish', color: 'text-red-600' };
-    return { text: 'Neutral', color: 'text-gray-600' };
+      return { text: 'N/A', color: 'opacity-60' };
+    if (macd.macd > macd.signal) return { text: 'Bullish', color: 'text-success' };
+    if (macd.macd < macd.signal) return { text: 'Bearish', color: 'text-error' };
+    return { text: 'Neutral', color: 'opacity-60' };
   };
 
   const rsiSignal = getRSISignal(technicals.rsi_14);
@@ -51,66 +51,49 @@ export default function TechnicalTab({ symbol }) {
 
   return (
     <div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Technical Indicators</h3>
+      <h3 className="text-lg font-semibold mb-4">Technical Indicators</h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Current Price */}
-        <div className="border border-gray-200 rounded-lg p-6">
-          <div className="text-sm text-gray-600 mb-2">Current Price</div>
-          <div className="text-3xl font-bold text-gray-900">
-            {formatCurrency(technicals.current_price)}
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="finance-stat">
+          <div className="text-2xs text-base-content/40 uppercase tracking-wider">Current Price</div>
+          <div className="text-2xl font-bold font-mono tabular-nums mt-1">{formatCurrency(technicals.current_price)}</div>
         </div>
 
-        {/* SMA 50 */}
-        <div className="border border-gray-200 rounded-lg p-6">
-          <div className="text-sm text-gray-600 mb-2">SMA 50</div>
-          <div className="text-3xl font-bold text-gray-900">
-            {formatCurrency(technicals.sma_50)}
-          </div>
-          <div className="text-xs text-gray-500 mt-1">50-day Simple Moving Average</div>
+        <div className="finance-stat">
+          <div className="text-2xs text-base-content/40 uppercase tracking-wider">SMA 50</div>
+          <div className="text-2xl font-bold font-mono tabular-nums mt-1">{formatCurrency(technicals.sma_50)}</div>
+          <div className="text-2xs text-base-content/40 mt-1">50-day Simple Moving Average</div>
         </div>
 
-        {/* SMA 200 */}
-        <div className="border border-gray-200 rounded-lg p-6">
-          <div className="text-sm text-gray-600 mb-2">SMA 200</div>
-          <div className="text-3xl font-bold text-gray-900">
-            {formatCurrency(technicals.sma_200)}
-          </div>
-          <div className="text-xs text-gray-500 mt-1">200-day Simple Moving Average</div>
+        <div className="finance-stat">
+          <div className="text-2xs text-base-content/40 uppercase tracking-wider">SMA 200</div>
+          <div className="text-2xl font-bold font-mono tabular-nums mt-1">{formatCurrency(technicals.sma_200)}</div>
+          <div className="text-2xs text-base-content/40 mt-1">200-day Simple Moving Average</div>
         </div>
 
-        {/* RSI */}
-        <div className="border border-gray-200 rounded-lg p-6">
-          <div className="text-sm text-gray-600 mb-2">RSI (14)</div>
-          <div className="text-3xl font-bold text-gray-900">{formatNumber(technicals.rsi_14)}</div>
+        <div className="finance-stat">
+          <div className="text-2xs text-base-content/40 uppercase tracking-wider">RSI (14)</div>
+          <div className="text-2xl font-bold font-mono tabular-nums mt-1">{formatNumber(technicals.rsi_14)}</div>
           <div className={`text-sm font-semibold mt-1 ${rsiSignal.color}`}>{rsiSignal.text}</div>
-          <div className="text-xs text-gray-500 mt-1">Relative Strength Index</div>
+          <div className="text-2xs text-base-content/40 mt-1">Relative Strength Index</div>
         </div>
 
-        {/* MACD */}
-        <div className="border border-gray-200 rounded-lg p-6 md:col-span-2">
-          <div className="text-sm text-gray-600 mb-3">
+        <div className="finance-stat md:col-span-2">
+          <div className="text-2xs text-base-content/40 uppercase tracking-wider mb-3">
             MACD (Moving Average Convergence Divergence)
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <div className="text-xs text-gray-500 mb-1">MACD Line</div>
-              <div className="text-xl font-bold text-gray-900">
-                {formatNumber(technicals.macd?.macd)}
-              </div>
+              <div className="text-2xs text-base-content/40 mb-1">MACD Line</div>
+              <div className="text-xl font-bold font-mono tabular-nums">{formatNumber(technicals.macd?.macd)}</div>
             </div>
             <div>
-              <div className="text-xs text-gray-500 mb-1">Signal Line</div>
-              <div className="text-xl font-bold text-gray-900">
-                {formatNumber(technicals.macd?.signal)}
-              </div>
+              <div className="text-2xs text-base-content/40 mb-1">Signal Line</div>
+              <div className="text-xl font-bold font-mono tabular-nums">{formatNumber(technicals.macd?.signal)}</div>
             </div>
             <div>
-              <div className="text-xs text-gray-500 mb-1">Histogram</div>
-              <div className="text-xl font-bold text-gray-900">
-                {formatNumber(technicals.macd?.histogram)}
-              </div>
+              <div className="text-2xs text-base-content/40 mb-1">Histogram</div>
+              <div className="text-xl font-bold font-mono tabular-nums">{formatNumber(technicals.macd?.histogram)}</div>
             </div>
           </div>
           <div className={`text-sm font-semibold mt-3 ${macdSignal.color}`}>
@@ -119,10 +102,9 @@ export default function TechnicalTab({ symbol }) {
         </div>
       </div>
 
-      {/* Interpretation Guide */}
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h4 className="text-sm font-semibold text-blue-900 mb-2">Interpretation Guide</h4>
-        <ul className="text-sm text-blue-800 space-y-1">
+      <div className="mt-6 finance-stat">
+        <h4 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">Interpretation Guide</h4>
+        <ul className="text-sm text-base-content/70 space-y-1.5">
           <li>
             • <strong>RSI &gt; 70:</strong> Overbought (potential sell signal)
           </li>

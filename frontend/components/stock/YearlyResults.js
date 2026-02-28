@@ -171,18 +171,18 @@ export default function YearlyResults({ symbol }) {
   const formatGrowth = (value) => {
     if (value === null || value === undefined) return '-';
     const formatted = formatPercentage(value);
-    const colorClass = value >= 0 ? 'text-green-600' : 'text-red-600';
+    const colorClass = value >= 0 ? 'text-success' : 'text-error';
     return <span className={colorClass}>{formatted}</span>;
   };
 
   if (loading) return <LoadingSpinner size="sm" />;
 
   if (error) {
-    return <div className="text-center py-8 text-gray-500">{error}</div>;
+    return <div className="text-center py-8 opacity-50">{error}</div>;
   }
 
   if (!data || !data.yearly || data.yearly.length === 0) {
-    return <div className="text-center py-8 text-gray-500">No yearly results available</div>;
+    return <div className="text-center py-8 opacity-50">No yearly results available</div>;
   }
 
   // Filter years based on selected type
@@ -345,18 +345,15 @@ export default function YearlyResults({ symbol }) {
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody>
             {/* Main financial metrics */}
             {rows.map((row, rowIndex) => (
-              <tr key={row.key} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
+              <tr key={row.key} className={rowIndex % 2 === 0 ? 'bg-base-100' : 'bg-base-200/30'}>
+                <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium border-r border-base-200 bg-inherit">
                   {row.label}
                 </td>
                 {years.map((year, index) => (
-                  <td
-                    key={index}
-                    className="px-4 py-3 text-sm text-gray-900 text-right whitespace-nowrap"
-                  >
+                  <td key={index} className="px-4 py-3 text-sm text-right whitespace-nowrap">
                     {row.format(year[row.key])}
                   </td>
                 ))}
@@ -364,16 +361,16 @@ export default function YearlyResults({ symbol }) {
             ))}
 
             {/* Separator row */}
-            <tr className="bg-gray-100">
+            <tr className="bg-base-200">
               <td colSpan={years.length + 1} className="px-4 py-2">
-                <div className="text-xs font-semibold text-gray-700 uppercase">Growth Metrics</div>
+                <div className="text-xs font-semibold opacity-70 uppercase">Growth Metrics</div>
               </td>
             </tr>
 
             {/* Growth metrics */}
             {growthRows.map((row, rowIndex) => (
-              <tr key={row.key} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
+              <tr key={row.key} className={rowIndex % 2 === 0 ? 'bg-base-100' : 'bg-base-200/30'}>
+                <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium border-r border-base-200 bg-inherit">
                   {row.label}
                 </td>
                 {years.map((year, index) => (
@@ -391,13 +388,13 @@ export default function YearlyResults({ symbol }) {
       </div>
 
       {data.source && (
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-xs opacity-50 mt-2">
           Data source: {data.source}
           {data.cached && ' (cached)'}
         </p>
       )}
 
-      <p className="text-xs text-gray-400 mt-1 italic">
+      <p className="text-xs opacity-40 mt-1 italic">
         💡 Scroll left to view older years. Latest year shown on the right.
       </p>
     </div>

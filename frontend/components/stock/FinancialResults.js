@@ -179,18 +179,18 @@ export default function FinancialResults({ symbol }) {
   const formatGrowth = (value) => {
     if (value === null || value === undefined) return '-';
     const formatted = formatPercentage(value);
-    const colorClass = value >= 0 ? 'text-green-600' : 'text-red-600';
+    const colorClass = value >= 0 ? 'text-success' : 'text-error';
     return <span className={colorClass}>{formatted}</span>;
   };
 
   if (loading) return <LoadingSpinner size="sm" />;
 
   if (error) {
-    return <div className="text-center py-8 text-gray-500">{error}</div>;
+    return <div className="text-center py-8 opacity-50">{error}</div>;
   }
 
   if (!data || !data.quarters || data.quarters.length === 0) {
-    return <div className="text-center py-8 text-gray-500">No financial results available</div>;
+    return <div className="text-center py-8 opacity-50">No financial results available</div>;
   }
 
   // Prepare periods based on view mode
@@ -326,29 +326,21 @@ export default function FinancialResults({ symbol }) {
       <div className="mb-4">
         <div className="flex justify-between items-center mb-1">
           <div className="flex items-center gap-4">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold">
               Financial Results ({periods.length} {periodLabel})
             </h3>
 
             {/* Quarterly/Yearly Toggle */}
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            <div className="join">
               <button
                 onClick={() => setViewMode('quarterly')}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                  viewMode === 'quarterly'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                className={`btn btn-xs ${viewMode === 'quarterly' ? 'btn-secondary' : 'btn-ghost'}`}
               >
                 Quarterly
               </button>
               <button
                 onClick={() => setViewMode('yearly')}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                  viewMode === 'yearly'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                className={`btn btn-xs ${viewMode === 'yearly' ? 'btn-secondary' : 'btn-ghost'}`}
               >
                 Yearly
               </button>
@@ -356,14 +348,12 @@ export default function FinancialResults({ symbol }) {
 
             {/* Consolidated/Standalone Switcher */}
             {(hasConsolidated || hasStandalone) && (
-              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <div className="join">
                 {hasConsolidated && (
                   <button
                     onClick={() => setResultType('consolidated')}
-                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                      resultType === 'consolidated'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
+                    className={`btn btn-xs ${
+                      resultType === 'consolidated' ? 'btn-secondary' : 'btn-ghost'
                     }`}
                   >
                     Consolidated
@@ -372,10 +362,8 @@ export default function FinancialResults({ symbol }) {
                 {hasStandalone && (
                   <button
                     onClick={() => setResultType('standalone')}
-                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                      resultType === 'standalone'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
+                    className={`btn btn-xs ${
+                      resultType === 'standalone' ? 'btn-secondary' : 'btn-ghost'
                     }`}
                   >
                     Standalone
@@ -390,47 +378,47 @@ export default function FinancialResults({ symbol }) {
               href={data.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:text-blue-800 underline"
+              className="link link-primary text-sm"
             >
               View on NSE
             </a>
           )}
         </div>
-        <p className="text-xs text-gray-500">Figures in Crores</p>
+        <p className="text-xs opacity-50">Figures in Crores</p>
       </div>
 
       <div
         ref={scrollContainerRef}
-        className="overflow-x-auto border rounded-lg"
+        className="overflow-x-auto border border-base-200 rounded-lg"
         style={{ scrollBehavior: 'smooth' }}
       >
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="table table-sm">
+          <thead>
             <tr>
-              <th className="sticky left-0 z-10 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r">
+              <th className="sticky left-0 z-10 bg-base-200/30 px-4 py-3 text-left text-xs font-medium opacity-50 uppercase tracking-wider border-r border-base-200">
                 Metric
               </th>
               {periods.map((period, index) => (
                 <th
                   key={index}
-                  className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                  className="px-4 py-3 text-right text-xs font-medium opacity-50 uppercase tracking-wider whitespace-nowrap"
                 >
                   {viewMode === 'quarterly' ? period.period : period.year}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody>
             {/* Main financial metrics with expandable sub-rows */}
             {financialRows.map((row, rowIndex) => (
               <Fragment key={row.key}>
-                <tr className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                  <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium text-gray-900 border-r bg-inherit">
+                <tr className={rowIndex % 2 === 0 ? '' : 'bg-base-200/30'}>
+                  <td className="sticky left-0 z-10 px-4 py-3 text-sm font-medium border-r border-base-200 bg-inherit">
                     <div className="flex items-center gap-2">
                       {row.expandable && row.subRows?.length > 0 ? (
                         <button
                           onClick={() => toggleRowExpansion(row.key)}
-                          className="w-5 h-5 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors"
+                          className="btn btn-ghost btn-xs w-5 h-5 min-h-0 min-w-0 p-0 opacity-50 hover:opacity-100"
                           title={expandedRows[row.key] ? 'Collapse' : 'Expand'}
                         >
                           {expandedRows[row.key] ? (
@@ -507,13 +495,13 @@ export default function FinancialResults({ symbol }) {
       </div>
 
       {data.source && (
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-xs opacity-50 mt-2">
           Data source: {data.source}
           {data.cached && ' (cached)'}
         </p>
       )}
 
-      <p className="text-xs text-gray-400 mt-1 italic">
+      <p className="text-xs opacity-40 mt-1 italic">
         💡 Scroll left to view older {periodLabel}. Latest{' '}
         {viewMode === 'quarterly' ? 'quarter' : 'year'} shown on the right.
       </p>

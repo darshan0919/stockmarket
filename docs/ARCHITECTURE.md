@@ -2,7 +2,7 @@
 
 > **Document Type**: Technical Architecture  
 > **Code Reference**: Root project structure  
-> **Last Updated**: 2024-12-31
+> **Last Updated**: 2025-02-28
 
 ## High-Level Architecture
 
@@ -49,6 +49,12 @@
 | `screener.js` | Stock screening tool | `/screener` |
 | `watchlist.js` | User's watchlist | `/watchlist` |
 
+#### Styling & Theming
+- **DaisyUI**: Component library (Tailwind CSS plugin) for semantic components (cards, buttons, alerts, etc.)
+- **Theme Toggle**: Light/dark mode in Header, persisted via `localStorage`
+- **globals.css**: Minimal—DaisyUI handles base styles; only scrollbar and reset overrides remain
+- **Semantic Classes**: Uses DaisyUI `text-success`/`text-error` (replaced legacy `.text-positive`/`.text-negative`)
+
 #### Components (`frontend/components/`)
 
 **Common Components** (`components/common/`):
@@ -70,7 +76,12 @@
 | `ChartTab` | `ChartTab.js` | Price chart |
 | `TechnicalTab` | `TechnicalTab.js` | Technical indicators |
 | `FundamentalsTab` | `FundamentalsTab.js` | Fundamental metrics |
-| `OrderBook` | `OrderBook.js` | Parsed orderbook data |
+| `OrdersTab` | `orders/OrdersTab.js` | Orders tab with sub-views |
+| `OrderBookView` | `orders/OrderBookView.js` | Order book summary and inflows |
+| `OrderAnnouncements` | `orders/OrderAnnouncements.js` | Order announcements |
+| `OrderDetails` | `orders/OrderDetails.js` | Order row/details |
+| `QuarterView` | `orders/QuarterView.js` | Quarter-wise order view |
+| `OrderDownloads` | `orders/OrderDownloads.js` | Order PDF downloads |
 | `TranscriptTab` | `TranscriptTab.js` | Earnings call analysis |
 
 #### API Client (`frontend/lib/api.js`)
@@ -81,6 +92,11 @@ Centralized Axios instance with interceptors:
 - **marketAPI**: Market indices
 - **transcriptAPI**: AI analysis
 - **ordersAPI**: Orderbook data
+
+#### Utilities (`frontend/lib/utils/`)
+| Utility | File | Purpose |
+|---------|------|---------|
+| Formatters | `formatters.js` | Consolidated formatting (currency, price, quarter date, change %, etc.) |
 
 #### Custom Hooks (`frontend/lib/hooks/`)
 | Hook | File | Purpose |

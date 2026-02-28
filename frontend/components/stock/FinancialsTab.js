@@ -2,23 +2,16 @@ import FinancialResults from './FinancialResults';
 import BalanceSheet from './BalanceSheet';
 import CashFlows from './CashFlows';
 
+/**
+ * Financials tab composing quarterly results, balance sheet, and cash flows
+ * @component
+ */
 export default function FinancialsTab({ symbol }) {
   return (
     <div className="space-y-8">
-      {/* Financial Results Widget (Quarterly/Yearly) */}
-      <div>
-        <FinancialResults symbol={symbol} />
-      </div>
-
-      {/* Balance Sheet Widget */}
-      <div>
-        <BalanceSheet symbol={symbol} />
-      </div>
-
-      {/* Cash Flows Widget */}
-      <div>
-        <CashFlows symbol={symbol} />
-      </div>
+      <FinancialResults symbol={symbol} />
+      <BalanceSheet symbol={symbol} />
+      <CashFlows symbol={symbol} />
     </div>
   );
 }

@@ -4,56 +4,72 @@ import { formatCurrency, formatChange, getChangeColor } from '../../lib/utils/fo
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 
+/**
+ * Watchlist summary card showing top 5 watchlisted stocks
+ * @component
+ */
 export default function WatchlistSummary() {
   const { watchlist, loading } = useWatchlist();
   const router = useRouter();
 
-  if (loading) return <LoadingSpinner size="sm" />;
+  if (loading) {
+    return (
+      <div className="finance-card p-5 h-full">
+        <LoadingSpinner size="sm" />
+      </div>
+    );
+  }
 
   const displayWatchlist = watchlist.slice(0, 5);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900">Watchlist Summary</h2>
-        <Link href="/watchlist">
-          <span className="text-sm text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
+    <div className="finance-card h-full">
+      <div className="p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="section-title">Watchlist</h2>
+          <Link
+            href="/watchlist"
+            className="text-xs font-medium text-secondary hover:text-secondary/80 transition-colors"
+          >
             View All →
-          </span>
-        </Link>
-      </div>
-
-      {displayWatchlist.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <p className="mb-4">Your watchlist is empty</p>
-          <Link href="/screener">
-            <button className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
-              Find Stocks
-            </button>
           </Link>
         </div>
-      ) : (
-        <div className="space-y-3">
-          {displayWatchlist.map((stock) => (
-            <div
-              key={stock.symbol}
-              onClick={() => router.push(`/stock/${stock.symbol}`)}
-              className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-            >
-              <div>
-                <div className="font-semibold text-gray-900">{stock.symbol}</div>
-                <div className="text-sm text-gray-600">{stock.name}</div>
-              </div>
-              <div className="text-right">
-                <div className="font-semibold text-gray-900">{formatCurrency(stock.price)}</div>
-                <div className={`text-sm font-medium ${getChangeColor(stock.change_percent)}`}>
-                  {formatChange(stock.change_percent, 2)}%
+
+        {displayWatchlist.length === 0 ? (
+          <div className="text-center py-8">
+            <svg className="mx-auto h-10 w-10 text-base-content/20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+            <p className="text-sm text-base-content/50 mb-3">No stocks in watchlist</p>
+            <Link href="/screener">
+              <button className="btn btn-sm btn-secondary">Find Stocks</button>
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-1">
+            {displayWatchlist.map((stock) => (
+              <button
+                key={stock.symbol}
+                onClick={() => router.push(`/stock/${stock.symbol}`)}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-base-200/60 transition-colors text-left"
+              >
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-base-content">{stock.symbol}</div>
+                  <div className="text-xs text-base-content/50 truncate">{stock.name}</div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+                <div className="text-right flex-shrink-0 ml-3">
+                  <div className="text-sm font-semibold font-mono tabular-nums">
+                    {formatCurrency(stock.price)}
+                  </div>
+                  <div className={`text-xs font-medium font-mono tabular-nums ${getChangeColor(stock.change_percent)}`}>
+                    {formatChange(stock.change_percent, 2)}%
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

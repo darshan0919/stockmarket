@@ -166,7 +166,7 @@ For AI agents and developers, key entry points:
 
 ## Related Documentation
 
-- [NSE API Summary](../jira/NSE-API-SUMMARY.md) - NSE India API details
-- [XBRL Parsing Guide](../jira/XBRL-PARSING-IMPLEMENTATION-GUIDE.md) - Financial data parsing
-- [Orderbook Feature](../jira/orderbook-feature-implementation.md) - Orderbook implementation
+- [NSE API Summary](../jira/implementation-notes/NSE-API-SUMMARY.md) - NSE India API details
+- [XBRL Parsing Guide](../jira/implementation-notes/XBRL-PARSING-IMPLEMENTATION-GUIDE.md) - Financial data parsing
+- [Orderbook Feature](../jira/features/orders/orderbook-feature-implementation.md) - Orderbook implementation
 

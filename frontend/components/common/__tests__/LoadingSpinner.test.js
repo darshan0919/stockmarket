@@ -10,8 +10,8 @@ describe('LoadingSpinner', () => {
   it('renders spinner element', () => {
     render(<LoadingSpinner />);
 
-    // Check for spinner container
-    const spinner = document.querySelector('[class*="animate"]');
+    // Check for DaisyUI loading spinner
+    const spinner = document.querySelector('[class*="loading-spinner"]');
     expect(spinner).toBeInTheDocument();
   });
 

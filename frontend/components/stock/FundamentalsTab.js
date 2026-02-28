@@ -1,62 +1,73 @@
 import { formatNumber } from '../../lib/utils/formatters';
 
+/**
+ * Fundamentals tab displaying key financial metrics
+ * @component
+ */
 export default function FundamentalsTab({ fundamentals }) {
   if (!fundamentals || Object.keys(fundamentals).length === 0) {
-    return <div className="text-center py-8 text-gray-500">No fundamental data available</div>;
+    return (
+      <div className="text-center py-12 text-base-content/40 text-sm">
+        No fundamental data available
+      </div>
+    );
   }
 
-  const metrics = [
-    { label: 'P/E Ratio', value: fundamentals.pe_ratio, description: 'Price to Earnings' },
-    { label: 'P/B Ratio', value: fundamentals.pb_ratio, description: 'Price to Book Value' },
-    { label: 'ROE %', value: fundamentals.roe, description: 'Return on Equity' },
-    { label: 'ROCE %', value: fundamentals.roce, description: 'Return on Capital Employed' },
-    {
-      label: 'Debt/Equity',
-      value: fundamentals.debt_to_equity,
-      description: 'Debt to Equity Ratio',
-    },
-    {
-      label: 'Revenue Growth 3Y %',
-      value: fundamentals.revenue_growth_3y,
-      description: '3-Year Revenue CAGR',
-    },
-    {
-      label: 'Profit Growth 3Y %',
-      value: fundamentals.profit_growth_3y,
-      description: '3-Year Profit CAGR',
-    },
-    {
-      label: 'Dividend Yield %',
-      value: fundamentals.dividend_yield,
-      description: 'Annual Dividend Yield',
-    },
-    {
-      label: 'Current Ratio',
-      value: fundamentals.current_ratio,
-      description: 'Current Assets / Current Liabilities',
-    },
-    { label: 'EPS', value: fundamentals.eps, description: 'Earnings Per Share' },
-    {
-      label: 'Book Value Per Share',
-      value: fundamentals.book_value_per_share,
-      description: 'Book Value Per Share',
-    },
+  const valuationMetrics = [
+    { label: 'P/E Ratio', value: fundamentals.pe_ratio, desc: 'Price to Earnings' },
+    { label: 'P/B Ratio', value: fundamentals.pb_ratio, desc: 'Price to Book Value' },
+    { label: 'EPS', value: fundamentals.eps, desc: 'Earnings Per Share' },
+    { label: 'Book Value', value: fundamentals.book_value_per_share, desc: 'Per Share' },
+  ];
+
+  const profitabilityMetrics = [
+    { label: 'ROE', value: fundamentals.roe, desc: 'Return on Equity', suffix: '%' },
+    { label: 'ROCE', value: fundamentals.roce, desc: 'Return on Capital', suffix: '%' },
+    { label: 'Revenue Growth', value: fundamentals.revenue_growth_3y, desc: '3Y CAGR', suffix: '%' },
+    { label: 'Profit Growth', value: fundamentals.profit_growth_3y, desc: '3Y CAGR', suffix: '%' },
+  ];
+
+  const solvencyMetrics = [
+    { label: 'Debt/Equity', value: fundamentals.debt_to_equity, desc: 'Leverage Ratio' },
+    { label: 'Current Ratio', value: fundamentals.current_ratio, desc: 'Liquidity' },
+    { label: 'Dividend Yield', value: fundamentals.dividend_yield, desc: 'Annual Yield', suffix: '%' },
   ];
 
   return (
+    <div className="space-y-6">
+      <MetricSection title="Valuation" metrics={valuationMetrics} />
+      <MetricSection title="Profitability & Growth" metrics={profitabilityMetrics} />
+      <MetricSection title="Solvency & Dividends" metrics={solvencyMetrics} />
+    </div>
+  );
+}
+
+function MetricSection({ title, metrics }) {
+  return (
     <div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Financial Metrics</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">
+        {title}
+      </h3>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {metrics.map((metric, index) => (
-          <div key={index} className="border border-gray-200 rounded-lg p-4">
-            <div className="text-sm text-gray-600 mb-1">{metric.label}</div>
-            <div className="text-2xl font-bold text-gray-900 mb-1">
-              {formatNumber(metric.value)}
-            </div>
-            <div className="text-xs text-gray-500">{metric.description}</div>
-          </div>
+          <MetricCard key={index} {...metric} />
         ))}
       </div>
+    </div>
+  );
+}
+
+function MetricCard({ label, value, desc, suffix = '' }) {
+  const formattedValue = formatNumber(value);
+  const displayValue = formattedValue !== '-' ? `${formattedValue}${suffix}` : '-';
+
+  return (
+    <div className="finance-stat">
+      <div className="text-2xs text-base-content/40 uppercase tracking-wider">{label}</div>
+      <div className="text-xl font-bold font-mono tabular-nums text-base-content mt-1">
+        {displayValue}
+      </div>
+      <div className="text-2xs text-base-content/40 mt-0.5">{desc}</div>
     </div>
   );
 }

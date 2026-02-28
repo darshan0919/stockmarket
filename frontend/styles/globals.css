@@ -1,136 +1,134 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+@layer base {
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+
+  html {
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  body {
+    @apply text-sm;
+  }
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer components {
+  .finance-card {
+    @apply bg-base-100 rounded-xl border border-base-300 shadow-sm;
+  }
+
+  .finance-card-hover {
+    @apply bg-base-100 rounded-xl border border-base-300 shadow-sm transition-all duration-200;
+  }
+
+  .finance-card-hover:hover {
+    @apply shadow-md;
+  }
+
+  .finance-stat {
+    @apply bg-base-200 rounded-lg px-4 py-3;
+  }
+
+  .finance-badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 font-medium rounded-full;
+    font-size: 0.625rem;
+    line-height: 0.875rem;
+  }
+
+  .finance-table {
+    @apply w-full text-sm;
+  }
+
+  .finance-table th {
+    @apply text-xs font-semibold uppercase tracking-wider py-2.5 px-3 text-left border-b border-base-300 text-base-content;
+    opacity: 0.6;
+  }
+
+  .finance-table td {
+    @apply py-2.5 px-3 border-b border-base-200;
+  }
+
+  .finance-table tbody tr {
+    @apply transition-colors;
+  }
+
+  .finance-table tbody tr:hover {
+    @apply bg-base-200;
+  }
+
+  .finance-table td.num {
+    @apply text-right font-mono tabular-nums;
+  }
+
+  .finance-table th.num {
+    @apply text-right;
+  }
+
+  .text-gain {
+    @apply text-success font-medium;
+  }
+
+  .text-loss {
+    @apply text-error font-medium;
+  }
+
+  .section-title {
+    @apply text-lg font-semibold text-base-content tracking-tight;
+  }
+
+  .section-subtitle {
+    @apply text-sm text-base-content opacity-60;
+  }
+
+  .page-header {
+    @apply text-2xl font-bold text-base-content tracking-tight;
+  }
+
+  .nav-header {
+    @apply sticky top-0 z-40 shadow-lg bg-neutral text-neutral-content;
+  }
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
+  @apply bg-base-300 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  @apply bg-base-content;
+  opacity: 0.3;
 }
-
-/* Utility classes */
-.text-positive {
-  color: #10b981;
-}
-
-.text-negative {
-  color: #ef4444;
-}
-
-.bg-positive {
-  background-color: #d1fae5;
-  color: #065f46;
-}
-
-.bg-negative {
-  background-color: #fee2e2;
-  color: #991b1b;
-}
-
-/* Table styles */
-.table-container {
-  overflow-x: auto;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.data-table thead {
-  background-color: #f9fafb;
-}
-
-.data-table th {
-  padding: 0.75rem 1rem;
-  text-align: left;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.data-table td {
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  color: #1f2937;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.data-table tbody tr:hover {
-  background-color: #f9fafb;
-  cursor: pointer;
-}
-
-/* Loading spinner */
-.spinner {
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #3b82f6;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* Snackbar animation */
-@keyframes slide-up {
-  0% {
-    transform: translate(-50%, 100px);
-    opacity: 0;
-  }
-  100% {
-    transform: translate(-50%, 0);
-    opacity: 1;
-  }
-}
-
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
-}
-

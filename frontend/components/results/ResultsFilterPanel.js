@@ -5,18 +5,9 @@
  */
 
 import { useState, useEffect } from 'react';
+import { formatResultDate } from '../../lib/utils/formatters';
 
 /**
- * Format date for display (e.g., "2026-01-31" -> "Jan 31")
- */
-function formatResultDate(dateStr) {
-  if (!dateStr) return dateStr;
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-
-/**
- * Main filter panel component
  * @param {Object} props
  * @param {Function} props.onFilterChange - Callback when filters change
  * @param {Object} props.filters - Current filter values
@@ -69,7 +60,6 @@ export default function ResultsFilterPanel({
 
   const indices = ['Nifty 50', 'Nifty Next 50', 'Nifty Midcap 100', 'Nifty Smallcap 100'];
 
-  // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchQuery !== filters.searchCompany) {
@@ -144,335 +134,256 @@ export default function ResultsFilterPanel({
     (filters.searchCompany ? 1 : 0) +
     (filters.documentType ? 1 : 0);
 
-  return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
-          <input
-            type="text"
-            placeholder="Search company..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2 pl-10 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-          <svg
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        </div>
+  const closeAllDropdowns = () => {
+    setShowDateDropdown(false);
+    setShowSortDropdown(false);
+    setShowIndustryDropdown(false);
+    setShowIndexDropdown(false);
+    setShowDocTypeDropdown(false);
+  };
 
-        {/* Date Filter */}
-        <div className="relative">
-          <button
-            onClick={() => setShowDateDropdown(!showDateDropdown)}
-            className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-lg transition-colors ${
-              filters.resultDate
-                ? 'border-primary-500 bg-primary-50 text-primary-700'
-                : 'border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
+  const FilterButton = ({ active, onClick, children }) => (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-lg border transition-colors ${
+        active
+          ? 'border-secondary/40 bg-secondary/5 text-secondary'
+          : 'border-base-300/60 text-base-content/60 hover:border-base-300 hover:bg-base-200/40'
+      }`}
+    >
+      {children}
+      <svg className="w-3.5 h-3.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+  );
+
+  return (
+    <div className="finance-card mb-5">
+      <div className="p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Search */}
+          <div className="relative flex-1 min-w-[200px]">
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/30"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            {filters.resultDate ? formatResultDate(filters.resultDate) : 'Date'}
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-          {showDateDropdown && (
-            <div className="absolute z-20 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-              <div className="p-2">
-                <button
-                  onClick={() => handleDateSelect('')}
-                  className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
-                    !filters.resultDate ? 'bg-primary-50 text-primary-700' : ''
-                  }`}
-                >
+            <input
+              type="text"
+              placeholder="Search company..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-8 pl-9 pr-3 text-sm bg-base-200/60 border border-base-300/60 rounded-lg focus:outline-none focus:border-secondary/50 focus:bg-base-100 transition-all"
+            />
+          </div>
+
+          {/* Date Filter */}
+          <div className="relative">
+            <FilterButton
+              active={!!filters.resultDate}
+              onClick={() => {
+                closeAllDropdowns();
+                setShowDateDropdown(!showDateDropdown);
+              }}
+            >
+              {filters.resultDate ? formatResultDate(filters.resultDate) : 'Date'}
+            </FilterButton>
+            {showDateDropdown && (
+              <DropdownMenu>
+                <DropdownItem active={!filters.resultDate} onClick={() => handleDateSelect('')}>
                   All Dates
-                </button>
+                </DropdownItem>
                 {resultDates.map((date) => (
-                  <button
+                  <DropdownItem
                     key={date}
+                    active={filters.resultDate === date}
                     onClick={() => handleDateSelect(date)}
-                    className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
-                      filters.resultDate === date ? 'bg-primary-50 text-primary-700' : ''
-                    }`}
                   >
                     {formatResultDate(date)}
-                  </button>
+                  </DropdownItem>
                 ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Industry Filter */}
-        <div className="relative">
-          <button
-            onClick={() => setShowIndustryDropdown(!showIndustryDropdown)}
-            className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-lg transition-colors ${
-              filters.industry?.length > 0
-                ? 'border-primary-500 bg-primary-50 text-primary-700'
-                : 'border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            Industry
-            {filters.industry?.length > 0 && (
-              <span className="px-1.5 py-0.5 text-xs bg-primary-600 text-white rounded-full">
-                {filters.industry.length}
-              </span>
+              </DropdownMenu>
             )}
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-          {showIndustryDropdown && (
-            <div className="absolute z-20 mt-1 w-56 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-              <div className="p-2 space-y-1">
+          </div>
+
+          {/* Industry Filter */}
+          <div className="relative">
+            <FilterButton
+              active={filters.industry?.length > 0}
+              onClick={() => {
+                closeAllDropdowns();
+                setShowIndustryDropdown(!showIndustryDropdown);
+              }}
+            >
+              Industry
+              {filters.industry?.length > 0 && (
+                <span className="w-4 h-4 rounded-full bg-secondary text-white text-2xs flex items-center justify-center">
+                  {filters.industry.length}
+                </span>
+              )}
+            </FilterButton>
+            {showIndustryDropdown && (
+              <DropdownMenu wide>
                 {industries.map((industry) => (
-                  <label
-                    key={industry}
-                    className="flex items-center px-3 py-2 text-sm rounded hover:bg-gray-100 cursor-pointer"
-                  >
+                  <label key={industry} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-base-200/60 cursor-pointer rounded-md">
                     <input
                       type="checkbox"
                       checked={filters.industry?.includes(industry) || false}
                       onChange={() => handleIndustryToggle(industry)}
-                      className="mr-2 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      className="checkbox checkbox-xs checkbox-secondary"
                     />
-                    {industry}
+                    <span className="text-base-content/70">{industry}</span>
                   </label>
                 ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Index Filter */}
-        <div className="relative">
-          <button
-            onClick={() => setShowIndexDropdown(!showIndexDropdown)}
-            className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-lg transition-colors ${
-              filters.index?.length > 0
-                ? 'border-primary-500 bg-primary-50 text-primary-700'
-                : 'border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            Index
-            {filters.index?.length > 0 && (
-              <span className="px-1.5 py-0.5 text-xs bg-primary-600 text-white rounded-full">
-                {filters.index.length}
-              </span>
+              </DropdownMenu>
             )}
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-          {showIndexDropdown && (
-            <div className="absolute z-20 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
-              <div className="p-2 space-y-1">
+          </div>
+
+          {/* Index Filter */}
+          <div className="relative">
+            <FilterButton
+              active={filters.index?.length > 0}
+              onClick={() => {
+                closeAllDropdowns();
+                setShowIndexDropdown(!showIndexDropdown);
+              }}
+            >
+              Index
+              {filters.index?.length > 0 && (
+                <span className="w-4 h-4 rounded-full bg-secondary text-white text-2xs flex items-center justify-center">
+                  {filters.index.length}
+                </span>
+              )}
+            </FilterButton>
+            {showIndexDropdown && (
+              <DropdownMenu>
                 {indices.map((index) => (
-                  <label
-                    key={index}
-                    className="flex items-center px-3 py-2 text-sm rounded hover:bg-gray-100 cursor-pointer"
-                  >
+                  <label key={index} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-base-200/60 cursor-pointer rounded-md">
                     <input
                       type="checkbox"
                       checked={filters.index?.includes(index) || false}
                       onChange={() => handleIndexToggle(index)}
-                      className="mr-2 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      className="checkbox checkbox-xs checkbox-secondary"
                     />
-                    {index}
+                    <span className="text-base-content/70">{index}</span>
                   </label>
                 ))}
-              </div>
-            </div>
-          )}
-        </div>
+              </DropdownMenu>
+            )}
+          </div>
 
-        {/* Document Type Filter */}
-        <div className="relative">
-          <button
-            onClick={() => setShowDocTypeDropdown(!showDocTypeDropdown)}
-            className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-lg transition-colors ${
-              filters.documentType
-                ? 'border-primary-500 bg-primary-50 text-primary-700'
-                : 'border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            {documentTypes.find((d) => d.value === filters.documentType)?.label || 'All Documents'}
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-          {showDocTypeDropdown && (
-            <div className="absolute z-20 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
-              <div className="p-2">
+          {/* Document Type */}
+          <div className="relative">
+            <FilterButton
+              active={!!filters.documentType}
+              onClick={() => {
+                closeAllDropdowns();
+                setShowDocTypeDropdown(!showDocTypeDropdown);
+              }}
+            >
+              {documentTypes.find((d) => d.value === filters.documentType)?.label || 'Documents'}
+            </FilterButton>
+            {showDocTypeDropdown && (
+              <DropdownMenu>
                 {documentTypes.map((docType) => (
-                  <button
+                  <DropdownItem
                     key={docType.value}
+                    active={filters.documentType === docType.value}
                     onClick={() => handleDocTypeChange(docType.value)}
-                    className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
-                      filters.documentType === docType.value ? 'bg-primary-50 text-primary-700' : ''
-                    }`}
                   >
                     {docType.label}
-                  </button>
+                  </DropdownItem>
                 ))}
-              </div>
-            </div>
-          )}
-        </div>
+              </DropdownMenu>
+            )}
+          </div>
 
-        {/* Sort Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setShowSortDropdown(!showSortDropdown)}
-            className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Sort: {sortOptions.find((o) => o.value === filters.orderBy)?.label || 'Result Date'}
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-          {showSortDropdown && (
-            <div className="absolute z-20 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg">
-              <div className="p-2">
+          {/* Sort */}
+          <div className="relative">
+            <FilterButton
+              active={false}
+              onClick={() => {
+                closeAllDropdowns();
+                setShowSortDropdown(!showSortDropdown);
+              }}
+            >
+              {sortOptions.find((o) => o.value === filters.orderBy)?.label || 'Sort'}
+            </FilterButton>
+            {showSortDropdown && (
+              <DropdownMenu>
                 {sortOptions.map((option) => (
-                  <button
+                  <DropdownItem
                     key={option.value}
+                    active={filters.orderBy === option.value}
                     onClick={() => handleSortChange(option.value)}
-                    className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
-                      filters.orderBy === option.value ? 'bg-primary-50 text-primary-700' : ''
-                    }`}
                   >
                     {option.label}
-                  </button>
+                  </DropdownItem>
                 ))}
-              </div>
-            </div>
+              </DropdownMenu>
+            )}
+          </div>
+
+          {/* Order Toggle */}
+          <button
+            onClick={handleOrderToggle}
+            className="w-8 h-8 rounded-lg border border-base-300/60 flex items-center justify-center text-base-content/50 hover:border-base-300 hover:bg-base-200/40 transition-colors"
+            title={filters.order === 'desc' ? 'Descending' : 'Ascending'}
+          >
+            <svg className={`w-4 h-4 ${filters.order === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </button>
+
+          {/* Clear */}
+          {activeFilterCount > 0 && (
+            <button
+              onClick={handleClearFilters}
+              className="h-8 px-3 text-xs font-medium text-error/80 hover:text-error hover:bg-error/5 rounded-lg transition-colors flex items-center gap-1"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Clear ({activeFilterCount})
+            </button>
+          )}
+
+          {loading && (
+            <span className="loading loading-spinner loading-xs text-secondary" />
           )}
         </div>
 
-        {/* Order Toggle */}
-        <button
-          onClick={handleOrderToggle}
-          className="flex items-center gap-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          title={filters.order === 'desc' ? 'Descending' : 'Ascending'}
-        >
-          {filters.order === 'desc' ? (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 14l-7 7m0 0l-7-7m7 7V3"
-              />
-            </svg>
-          ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 10l7-7m0 0l7 7m-7-7v18"
-              />
-            </svg>
-          )}
-        </button>
-
-        {/* Clear Filters */}
-        {activeFilterCount > 0 && (
-          <button
-            onClick={handleClearFilters}
-            className="flex items-center gap-1 px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-            Clear ({activeFilterCount})
-          </button>
-        )}
-
-        {/* Loading indicator */}
-        {loading && (
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-            Loading...
-          </div>
+        {(showDateDropdown || showSortDropdown || showIndustryDropdown || showIndexDropdown || showDocTypeDropdown) && (
+          <div className="fixed inset-0 z-10" onClick={closeAllDropdowns} />
         )}
       </div>
-
-      {/* Click outside handler */}
-      {(showDateDropdown ||
-        showSortDropdown ||
-        showIndustryDropdown ||
-        showIndexDropdown ||
-        showDocTypeDropdown) && (
-        <div
-          className="fixed inset-0 z-10"
-          onClick={() => {
-            setShowDateDropdown(false);
-            setShowSortDropdown(false);
-            setShowIndustryDropdown(false);
-            setShowIndexDropdown(false);
-            setShowDocTypeDropdown(false);
-          }}
-        />
-      )}
     </div>
+  );
+}
+
+function DropdownMenu({ children, wide }) {
+  return (
+    <div className={`absolute top-full left-0 mt-1 ${wide ? 'w-56' : 'w-44'} max-h-60 overflow-y-auto finance-card shadow-xl z-20 py-1`}>
+      {children}
+    </div>
+  );
+}
+
+function DropdownItem({ children, active, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+        active
+          ? 'bg-secondary/10 text-secondary font-medium'
+          : 'text-base-content/70 hover:bg-base-200/60'
+      }`}
+    >
+      {children}
+    </button>
   );
 }
