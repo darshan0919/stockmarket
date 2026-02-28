@@ -25,7 +25,12 @@ function DocumentBadge({ doc }) {
       {doc.documentType}
       {doc.fullUrl && (
         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+          />
         </svg>
       )}
     </>
@@ -33,7 +38,9 @@ function DocumentBadge({ doc }) {
 
   if (!doc.fullUrl) {
     return (
-      <span className={`finance-badge ${styles[doc.documentType] || 'bg-base-200 text-base-content/50'}`}>
+      <span
+        className={`finance-badge ${styles[doc.documentType] || 'bg-base-200 text-base-content/50'}`}
+      >
         {doc.documentType}
       </span>
     );
@@ -88,10 +95,14 @@ function FinancialRow({ label, data }) {
       <td className="py-2 px-2 text-xs text-right font-mono tabular-nums font-semibold text-base-content">
         {formatNumber(latest)}
       </td>
-      <td className={`py-2 px-2 text-xs text-right font-mono tabular-nums font-medium ${getChangeColor(qoqGrowth)}`}>
+      <td
+        className={`py-2 px-2 text-xs text-right font-mono tabular-nums font-medium ${getChangeColor(qoqGrowth)}`}
+      >
         {qoqGrowth !== null ? `${qoqGrowth > 0 ? '+' : ''}${formatNumber(qoqGrowth)}%` : '-'}
       </td>
-      <td className={`py-2 px-2 text-xs text-right font-mono tabular-nums font-medium ${getChangeColor(yoyGrowth)}`}>
+      <td
+        className={`py-2 px-2 text-xs text-right font-mono tabular-nums font-medium ${getChangeColor(yoyGrowth)}`}
+      >
         {yoyGrowth !== null ? `${yoyGrowth > 0 ? '+' : ''}${formatNumber(yoyGrowth)}%` : '-'}
       </td>
     </tr>
@@ -185,12 +196,19 @@ export default function ResultCard({ result }) {
               <tr className="border-b border-base-200">
                 <th className="pb-1.5 text-left"></th>
                 {quarters.map((q, idx) => (
-                  <th key={idx} className="pb-1.5 text-right text-2xs font-medium text-base-content/40 px-2">
+                  <th
+                    key={idx}
+                    className="pb-1.5 text-right text-2xs font-medium text-base-content/40 px-2"
+                  >
                     {formatQuarterDate(String(q))}
                   </th>
                 ))}
-                <th className="pb-1.5 text-right text-2xs font-medium text-base-content/40 px-2">QoQ</th>
-                <th className="pb-1.5 text-right text-2xs font-medium text-base-content/40 px-2">YoY</th>
+                <th className="pb-1.5 text-right text-2xs font-medium text-base-content/40 px-2">
+                  QoQ
+                </th>
+                <th className="pb-1.5 text-right text-2xs font-medium text-base-content/40 px-2">
+                  YoY
+                </th>
               </tr>
             </thead>
             <tbody>

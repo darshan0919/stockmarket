@@ -23,7 +23,7 @@ export default function StockDetails() {
 
   useEffect(() => {
     const fetchStockDetails = async () => {
-      if (!symbol) return;
+      if (!router.isReady || !symbol) return;
 
       try {
         setLoading(true);
@@ -41,9 +41,9 @@ export default function StockDetails() {
     };
 
     fetchStockDetails();
-  }, [symbol]);
+  }, [router.isReady, symbol]);
 
-  if (loading) {
+  if (!router.isReady || loading) {
     return (
       <>
         <Head>
@@ -58,8 +58,18 @@ export default function StockDetails() {
     return (
       <div>
         <div className="finance-card p-8 text-center">
-          <svg className="mx-auto h-12 w-12 text-error/40 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.27 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          <svg
+            className="mx-auto h-12 w-12 text-error/40 mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.27 16.5c-.77.833.192 2.5 1.732 2.5z"
+            />
           </svg>
           <h2 className="text-lg font-semibold mb-2">Error Loading Stock</h2>
           <p className="text-sm text-base-content/60 mb-4">{error}</p>
@@ -183,7 +193,8 @@ function OverviewSection({ basicInfo, priceInfo, fundamentals }) {
     const num = parseFloat(val);
     if (isNaN(num)) return '-';
     if (format === 'percent') return `${num.toFixed(2)}%`;
-    if (format === 'currency') return `₹${num.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+    if (format === 'currency')
+      return `₹${num.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
     return num.toFixed(2);
   };
 

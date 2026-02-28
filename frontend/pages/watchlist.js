@@ -73,9 +73,17 @@ export default function Watchlist() {
               </p>
             )}
           </div>
-          <button onClick={fetchWatchlist} className="btn btn-sm btn-ghost gap-1.5 text-base-content/50">
+          <button
+            onClick={fetchWatchlist}
+            className="btn btn-sm btn-ghost gap-1.5 text-base-content/50"
+          >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
             Refresh
           </button>
@@ -84,11 +92,23 @@ export default function Watchlist() {
         {watchlist.length === 0 ? (
           <div className="finance-card">
             <div className="p-12 text-center">
-              <svg className="mx-auto h-14 w-14 text-base-content/15 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              <svg
+                className="mx-auto h-14 w-14 text-base-content/15 mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                />
               </svg>
               <h2 className="text-base font-semibold mb-2">Your watchlist is empty</h2>
-              <p className="text-sm text-base-content/40 mb-6">Start adding stocks to track them here</p>
+              <p className="text-sm text-base-content/40 mb-6">
+                Start adding stocks to track them here
+              </p>
               <button onClick={() => router.push('/screener')} className="btn btn-sm btn-secondary">
                 Find Stocks
               </button>
@@ -177,7 +197,8 @@ export default function Watchlist() {
       >
         <div className="space-y-4">
           <p className="text-sm text-base-content/60">
-            Remove <span className="font-semibold text-base-content">{symbolToRemove}</span> from your watchlist?
+            Remove <span className="font-semibold text-base-content">{symbolToRemove}</span> from
+            your watchlist?
           </p>
           <div className="flex justify-end gap-2">
             <button onClick={handleRemoveCancel} className="btn btn-sm btn-ghost">

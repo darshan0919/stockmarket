@@ -128,6 +128,13 @@ export const upcomingResultsAPI = {
 // Announcements APIs
 export const announcementsAPI = {
   getBySymbol: (symbol) => api.get(`/announcements/${symbol}`),
+  /** Download announcement PDFs as ZIP @see POST /api/announcements/:symbol/download */
+  downloadPdfs: (symbol, announcements) =>
+    api.post(
+      `/announcements/${symbol}/download`,
+      { announcements },
+      { responseType: 'blob', timeout: 120000 }
+    ),
 };
 
 /**

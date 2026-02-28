@@ -39,7 +39,12 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
             <form method="dialog">
               <button className="w-7 h-7 rounded-lg flex items-center justify-center text-base-content/30 hover:text-base-content/60 hover:bg-base-200 transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </form>

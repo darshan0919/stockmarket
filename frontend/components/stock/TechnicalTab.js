@@ -55,25 +55,35 @@ export default function TechnicalTab({ symbol }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="finance-stat">
-          <div className="text-2xs text-base-content/40 uppercase tracking-wider">Current Price</div>
-          <div className="text-2xl font-bold font-mono tabular-nums mt-1">{formatCurrency(technicals.current_price)}</div>
+          <div className="text-2xs text-base-content/40 uppercase tracking-wider">
+            Current Price
+          </div>
+          <div className="text-2xl font-bold font-mono tabular-nums mt-1">
+            {formatCurrency(technicals.current_price)}
+          </div>
         </div>
 
         <div className="finance-stat">
           <div className="text-2xs text-base-content/40 uppercase tracking-wider">SMA 50</div>
-          <div className="text-2xl font-bold font-mono tabular-nums mt-1">{formatCurrency(technicals.sma_50)}</div>
+          <div className="text-2xl font-bold font-mono tabular-nums mt-1">
+            {formatCurrency(technicals.sma_50)}
+          </div>
           <div className="text-2xs text-base-content/40 mt-1">50-day Simple Moving Average</div>
         </div>
 
         <div className="finance-stat">
           <div className="text-2xs text-base-content/40 uppercase tracking-wider">SMA 200</div>
-          <div className="text-2xl font-bold font-mono tabular-nums mt-1">{formatCurrency(technicals.sma_200)}</div>
+          <div className="text-2xl font-bold font-mono tabular-nums mt-1">
+            {formatCurrency(technicals.sma_200)}
+          </div>
           <div className="text-2xs text-base-content/40 mt-1">200-day Simple Moving Average</div>
         </div>
 
         <div className="finance-stat">
           <div className="text-2xs text-base-content/40 uppercase tracking-wider">RSI (14)</div>
-          <div className="text-2xl font-bold font-mono tabular-nums mt-1">{formatNumber(technicals.rsi_14)}</div>
+          <div className="text-2xl font-bold font-mono tabular-nums mt-1">
+            {formatNumber(technicals.rsi_14)}
+          </div>
           <div className={`text-sm font-semibold mt-1 ${rsiSignal.color}`}>{rsiSignal.text}</div>
           <div className="text-2xs text-base-content/40 mt-1">Relative Strength Index</div>
         </div>
@@ -85,15 +95,21 @@ export default function TechnicalTab({ symbol }) {
           <div className="grid grid-cols-3 gap-4">
             <div>
               <div className="text-2xs text-base-content/40 mb-1">MACD Line</div>
-              <div className="text-xl font-bold font-mono tabular-nums">{formatNumber(technicals.macd?.macd)}</div>
+              <div className="text-xl font-bold font-mono tabular-nums">
+                {formatNumber(technicals.macd?.macd)}
+              </div>
             </div>
             <div>
               <div className="text-2xs text-base-content/40 mb-1">Signal Line</div>
-              <div className="text-xl font-bold font-mono tabular-nums">{formatNumber(technicals.macd?.signal)}</div>
+              <div className="text-xl font-bold font-mono tabular-nums">
+                {formatNumber(technicals.macd?.signal)}
+              </div>
             </div>
             <div>
               <div className="text-2xs text-base-content/40 mb-1">Histogram</div>
-              <div className="text-xl font-bold font-mono tabular-nums">{formatNumber(technicals.macd?.histogram)}</div>
+              <div className="text-xl font-bold font-mono tabular-nums">
+                {formatNumber(technicals.macd?.histogram)}
+              </div>
             </div>
           </div>
           <div className={`text-sm font-semibold mt-3 ${macdSignal.color}`}>
@@ -103,7 +119,9 @@ export default function TechnicalTab({ symbol }) {
       </div>
 
       <div className="mt-6 finance-stat">
-        <h4 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">Interpretation Guide</h4>
+        <h4 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">
+          Interpretation Guide
+        </h4>
         <ul className="text-sm text-base-content/70 space-y-1.5">
           <li>
             • <strong>RSI &gt; 70:</strong> Overbought (potential sell signal)

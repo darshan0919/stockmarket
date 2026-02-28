@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { getAnnouncements } = require('../controllers/announcementsController');
+const {
+  getAnnouncements,
+  downloadAnnouncements,
+} = require('../controllers/announcementsController');
 
 /**
  * Announcements routes
@@ -8,5 +11,6 @@ const { getAnnouncements } = require('../controllers/announcementsController');
  */
 
 router.get('/:symbol', getAnnouncements);
+router.post('/:symbol/download', downloadAnnouncements);
 
 module.exports = router;

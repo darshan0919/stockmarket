@@ -245,7 +245,9 @@ export default function UpcomingResults() {
         </div>
 
         {results.length === 0 ? (
-          <p className="text-center py-10 text-base-content/40 text-sm">No upcoming results scheduled</p>
+          <p className="text-center py-10 text-base-content/40 text-sm">
+            No upcoming results scheduled
+          </p>
         ) : (
           <>
             <div className="overflow-x-auto">

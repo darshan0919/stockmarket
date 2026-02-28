@@ -154,7 +154,12 @@ export default function SearchBar({ placeholder = 'Search stocks...' }) {
             className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         )}
@@ -175,9 +180,7 @@ export default function SearchBar({ placeholder = 'Search stocks...' }) {
                     key={`${stock.symbol}-${index}`}
                     onClick={() => handleSelectStock(stock.symbol)}
                     className={`w-full flex items-center justify-between px-4 py-2.5 text-left transition-colors ${
-                      index === selectedIndex
-                        ? 'bg-secondary/10'
-                        : 'hover:bg-base-200/60'
+                      index === selectedIndex ? 'bg-secondary/10' : 'hover:bg-base-200/60'
                     }`}
                   >
                     <div className="flex-1 min-w-0">
@@ -185,9 +188,7 @@ export default function SearchBar({ placeholder = 'Search stocks...' }) {
                         {highlightMatch(stock.name || stock.symbol, query)}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs font-medium text-secondary">
-                          {stock.symbol}
-                        </span>
+                        <span className="text-xs font-medium text-secondary">{stock.symbol}</span>
                         <span className="text-2xs text-base-content/40">
                           {stock.exchange || 'NSE'}
                         </span>
@@ -205,7 +206,9 @@ export default function SearchBar({ placeholder = 'Search stocks...' }) {
                         </div>
                       )}
                       {stock.change_percent !== null && stock.change_percent !== undefined && (
-                        <div className={`text-xs font-medium font-mono ${getChangeColor(stock.change_percent)}`}>
+                        <div
+                          className={`text-xs font-medium font-mono ${getChangeColor(stock.change_percent)}`}
+                        >
                           {formatPercentage(stock.change_percent)}
                         </div>
                       )}

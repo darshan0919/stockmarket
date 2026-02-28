@@ -170,7 +170,12 @@ export default function ResultsFilterPanel({
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
             </svg>
             <input
               type="text"
@@ -229,7 +234,10 @@ export default function ResultsFilterPanel({
             {showIndustryDropdown && (
               <DropdownMenu wide>
                 {industries.map((industry) => (
-                  <label key={industry} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-base-200/60 cursor-pointer rounded-md">
+                  <label
+                    key={industry}
+                    className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-base-200/60 cursor-pointer rounded-md"
+                  >
                     <input
                       type="checkbox"
                       checked={filters.industry?.includes(industry) || false}
@@ -262,7 +270,10 @@ export default function ResultsFilterPanel({
             {showIndexDropdown && (
               <DropdownMenu>
                 {indices.map((index) => (
-                  <label key={index} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-base-200/60 cursor-pointer rounded-md">
+                  <label
+                    key={index}
+                    className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-base-200/60 cursor-pointer rounded-md"
+                  >
                     <input
                       type="checkbox"
                       checked={filters.index?.includes(index) || false}
@@ -334,8 +345,18 @@ export default function ResultsFilterPanel({
             className="w-8 h-8 rounded-lg border border-base-300/60 flex items-center justify-center text-base-content/50 hover:border-base-300 hover:bg-base-200/40 transition-colors"
             title={filters.order === 'desc' ? 'Descending' : 'Ascending'}
           >
-            <svg className={`w-4 h-4 ${filters.order === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            <svg
+              className={`w-4 h-4 ${filters.order === 'asc' ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 14l-7 7m0 0l-7-7m7 7V3"
+              />
             </svg>
           </button>
 
@@ -346,18 +367,25 @@ export default function ResultsFilterPanel({
               className="h-8 px-3 text-xs font-medium text-error/80 hover:text-error hover:bg-error/5 rounded-lg transition-colors flex items-center gap-1"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
               Clear ({activeFilterCount})
             </button>
           )}
 
-          {loading && (
-            <span className="loading loading-spinner loading-xs text-secondary" />
-          )}
+          {loading && <span className="loading loading-spinner loading-xs text-secondary" />}
         </div>
 
-        {(showDateDropdown || showSortDropdown || showIndustryDropdown || showIndexDropdown || showDocTypeDropdown) && (
+        {(showDateDropdown ||
+          showSortDropdown ||
+          showIndustryDropdown ||
+          showIndexDropdown ||
+          showDocTypeDropdown) && (
           <div className="fixed inset-0 z-10" onClick={closeAllDropdowns} />
         )}
       </div>
@@ -367,7 +395,9 @@ export default function ResultsFilterPanel({
 
 function DropdownMenu({ children, wide }) {
   return (
-    <div className={`absolute top-full left-0 mt-1 ${wide ? 'w-56' : 'w-44'} max-h-60 overflow-y-auto finance-card shadow-xl z-20 py-1`}>
+    <div
+      className={`absolute top-full left-0 mt-1 ${wide ? 'w-56' : 'w-44'} max-h-60 overflow-y-auto finance-card shadow-xl z-20 py-1`}
+    >
       {children}
     </div>
   );

@@ -28,8 +28,18 @@ export default function ResultsTable({ results, loading }) {
         <div className="p-5">
           <h2 className="section-title mb-4">Results</h2>
           <div className="text-center py-16">
-            <svg className="mx-auto h-12 w-12 text-base-content/15 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            <svg
+              className="mx-auto h-12 w-12 text-base-content/15 mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+              />
             </svg>
             <p className="text-sm text-base-content/50">No stocks found</p>
             <p className="text-xs text-base-content/30 mt-1">Adjust filters and run the screener</p>
@@ -70,11 +80,7 @@ export default function ResultsTable({ results, loading }) {
             </thead>
             <tbody>
               {results.map((stock) => (
-                <tr
-                  key={stock.id}
-                  onClick={() => handleRowClick(stock)}
-                  className="cursor-pointer"
-                >
+                <tr key={stock.id} onClick={() => handleRowClick(stock)} className="cursor-pointer">
                   <td className="font-semibold text-secondary">{stock.symbol}</td>
                   <td className="text-base-content/80">{stock.name}</td>
                   <td>

@@ -233,9 +233,7 @@ export default function Results() {
                   <span className="font-medium">{formatQuarterDate(quarterDate)} Quarter</span>
                 )}
                 {pagination.total > 0 && (
-                  <span className="ml-2 text-base-content/40">
-                    ({pagination.total} companies)
-                  </span>
+                  <span className="ml-2 text-base-content/40">({pagination.total} companies)</span>
                 )}
               </p>
             </div>
@@ -253,7 +251,12 @@ export default function Results() {
                 ) : (
                   <>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
                     </svg>
                     Download Notes
                     {loadingAllNotes ? (
@@ -268,10 +271,14 @@ export default function Results() {
           </div>
 
           {downloadStatus && (
-            <div className={`finance-card p-4 mt-4 ${downloadStatus.success ? 'border-success/30 bg-success/5' : 'border-error/30 bg-error/5'}`}>
+            <div
+              className={`finance-card p-4 mt-4 ${downloadStatus.success ? 'border-success/30 bg-success/5' : 'border-error/30 bg-error/5'}`}
+            >
               <div className="flex items-start justify-between">
                 <div>
-                  <span className={`text-sm ${downloadStatus.success ? 'text-success' : 'text-error'}`}>
+                  <span
+                    className={`text-sm ${downloadStatus.success ? 'text-success' : 'text-error'}`}
+                  >
                     {downloadStatus.message}
                   </span>
                   {downloadStatus.details && (
@@ -282,9 +289,17 @@ export default function Results() {
                     </p>
                   )}
                 </div>
-                <button onClick={() => setDownloadStatus(null)} className="text-base-content/30 hover:text-base-content/60">
+                <button
+                  onClick={() => setDownloadStatus(null)}
+                  className="text-base-content/30 hover:text-base-content/60"
+                >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -303,7 +318,10 @@ export default function Results() {
           <div className="finance-card border-error/30 bg-error/5 p-4 mb-5">
             <div className="flex items-center justify-between">
               <span className="text-sm text-error">{error}</span>
-              <button onClick={() => fetchResults(filters)} className="text-xs font-medium text-error hover:underline">
+              <button
+                onClick={() => fetchResults(filters)}
+                className="text-xs font-medium text-error hover:underline"
+              >
                 Try again
               </button>
             </div>
@@ -312,8 +330,18 @@ export default function Results() {
 
         {!loading && results.length === 0 && !error ? (
           <div className="text-center py-20">
-            <svg className="mx-auto h-14 w-14 text-base-content/15 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg
+              className="mx-auto h-14 w-14 text-base-content/15 mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
             <h3 className="text-base font-medium mb-1">No results found</h3>
             <p className="text-sm text-base-content/40">Try adjusting your filters</p>
@@ -346,7 +374,11 @@ export default function Results() {
 
             {hasMore && (
               <div className="mt-6 text-center">
-                <button onClick={handleLoadMore} disabled={loading} className="btn btn-sm btn-secondary btn-outline gap-1.5">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={loading}
+                  className="btn btn-sm btn-secondary btn-outline gap-1.5"
+                >
                   {loading ? (
                     <>
                       <span className="loading loading-spinner loading-xs" />

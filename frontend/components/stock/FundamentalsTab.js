@@ -23,14 +23,24 @@ export default function FundamentalsTab({ fundamentals }) {
   const profitabilityMetrics = [
     { label: 'ROE', value: fundamentals.roe, desc: 'Return on Equity', suffix: '%' },
     { label: 'ROCE', value: fundamentals.roce, desc: 'Return on Capital', suffix: '%' },
-    { label: 'Revenue Growth', value: fundamentals.revenue_growth_3y, desc: '3Y CAGR', suffix: '%' },
+    {
+      label: 'Revenue Growth',
+      value: fundamentals.revenue_growth_3y,
+      desc: '3Y CAGR',
+      suffix: '%',
+    },
     { label: 'Profit Growth', value: fundamentals.profit_growth_3y, desc: '3Y CAGR', suffix: '%' },
   ];
 
   const solvencyMetrics = [
     { label: 'Debt/Equity', value: fundamentals.debt_to_equity, desc: 'Leverage Ratio' },
     { label: 'Current Ratio', value: fundamentals.current_ratio, desc: 'Liquidity' },
-    { label: 'Dividend Yield', value: fundamentals.dividend_yield, desc: 'Annual Yield', suffix: '%' },
+    {
+      label: 'Dividend Yield',
+      value: fundamentals.dividend_yield,
+      desc: 'Annual Yield',
+      suffix: '%',
+    },
   ];
 
   return (

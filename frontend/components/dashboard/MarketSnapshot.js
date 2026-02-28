@@ -59,7 +59,9 @@ export default function MarketSnapshot() {
                 .map(([sector, change]) => (
                   <div key={sector} className="flex items-center justify-between">
                     <span className="text-sm text-base-content/70">{sector}</span>
-                    <span className={`text-sm font-medium font-mono tabular-nums ${getChangeColor(change)}`}>
+                    <span
+                      className={`text-sm font-medium font-mono tabular-nums ${getChangeColor(change)}`}
+                    >
                       {formatChange(change, 2)}%
                     </span>
                   </div>
@@ -84,15 +86,21 @@ function IndexCard({ name, value, change, changePercent }) {
         {formatNumber(value, 2)}
       </div>
       <div className={`flex items-center gap-1.5 mt-1 ${getChangeColor(change)}`}>
-        <svg className={`w-3.5 h-3.5 ${isPositive ? '' : 'rotate-180'}`} fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+        <svg
+          className={`w-3.5 h-3.5 ${isPositive ? '' : 'rotate-180'}`}
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+            clipRule="evenodd"
+          />
         </svg>
         <span className="text-sm font-medium font-mono tabular-nums">
           {formatChange(change, 2)}
         </span>
-        <span className="text-xs font-mono tabular-nums">
-          ({formatChange(changePercent, 2)}%)
-        </span>
+        <span className="text-xs font-mono tabular-nums">({formatChange(changePercent, 2)}%)</span>
       </div>
     </div>
   );

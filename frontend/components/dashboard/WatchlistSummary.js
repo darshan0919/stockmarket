@@ -37,8 +37,18 @@ export default function WatchlistSummary() {
 
         {displayWatchlist.length === 0 ? (
           <div className="text-center py-8">
-            <svg className="mx-auto h-10 w-10 text-base-content/20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            <svg
+              className="mx-auto h-10 w-10 text-base-content/20 mb-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+              />
             </svg>
             <p className="text-sm text-base-content/50 mb-3">No stocks in watchlist</p>
             <Link href="/screener">
@@ -61,7 +71,9 @@ export default function WatchlistSummary() {
                   <div className="text-sm font-semibold font-mono tabular-nums">
                     {formatCurrency(stock.price)}
                   </div>
-                  <div className={`text-xs font-medium font-mono tabular-nums ${getChangeColor(stock.change_percent)}`}>
+                  <div
+                    className={`text-xs font-medium font-mono tabular-nums ${getChangeColor(stock.change_percent)}`}
+                  >
                     {formatChange(stock.change_percent, 2)}%
                   </div>
                 </div>

@@ -8,9 +8,7 @@
  */
 export default function Table({ columns, data, onRowClick, emptyMessage = 'No data available' }) {
   if (!data || data.length === 0) {
-    return (
-      <div className="text-center py-12 text-base-content/40 text-sm">{emptyMessage}</div>
-    );
+    return <div className="text-center py-12 text-base-content/40 text-sm">{emptyMessage}</div>;
   }
 
   return (
@@ -19,10 +17,7 @@ export default function Table({ columns, data, onRowClick, emptyMessage = 'No da
         <thead>
           <tr>
             {columns.map((column, index) => (
-              <th
-                key={index}
-                className={column.align === 'right' ? 'num' : ''}
-              >
+              <th key={index} className={column.align === 'right' ? 'num' : ''}>
                 {column.header}
               </th>
             ))}
@@ -36,10 +31,7 @@ export default function Table({ columns, data, onRowClick, emptyMessage = 'No da
               className={onRowClick ? 'cursor-pointer' : ''}
             >
               {columns.map((column, colIndex) => (
-                <td
-                  key={colIndex}
-                  className={column.align === 'right' ? 'num' : ''}
-                >
+                <td key={colIndex} className={column.align === 'right' ? 'num' : ''}>
                   {column.render ? column.render(row) : row[column.field]}
                 </td>
               ))}

@@ -140,6 +140,7 @@ export default function AnnouncementsTab({ symbol }) {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [visibleCount, setVisibleCount] = useState(20);
+  const [downloading, setDownloading] = useState(false);
 
   // Fetch announcements
   useEffect(() => {
@@ -201,6 +202,44 @@ export default function AnnouncementsTab({ symbol }) {
     setVisibleCount(20);
   };
 
+  /**
+   * Download all PDF attachments from filtered announcements as a single ZIP file
+   * Uses backend proxy to fetch PDFs from NSE (bypasses CORS restrictions)
+   * @see {@link docs/frontend/components/AnnouncementsTab.md} for component docs
+   */
+  const handleDownload = async () => {
+    const announcementsWithFiles = filteredAnnouncements.filter((ann) => ann.attchmntFile);
+
+    if (announcementsWithFiles.length === 0) return;
+
+    setDownloading(true);
+
+    try {
+      const payload = announcementsWithFiles.map((ann) => ({
+        url: ann.attchmntFile,
+        subject: ann.subject || ann.desc || 'announcement',
+        date: ann.an_dt || '',
+      }));
+
+      const response = await announcementsAPI.downloadPdfs(symbol, payload);
+
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${symbol}_announcements_${new Date().toISOString().split('T')[0]}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download announcement PDFs:', err);
+      alert('Failed to download PDFs. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   if (loading) {
     return <LoadingSpinner size="sm" />;
   }
@@ -220,45 +259,76 @@ export default function AnnouncementsTab({ symbol }) {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h3 className="text-lg font-semibold">Announcements</h3>
 
-        {/* Search Input */}
-        <div className="relative w-full sm:w-80">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg
-              className="w-5 h-5 opacity-40"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-          <input
-            type="text"
-            placeholder="Search announcements..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="w-full pl-10 pr-10 py-2 border border-base-300/60 rounded-lg focus:outline-none focus:border-secondary/50 focus:bg-base-100 text-sm bg-base-200/60 transition-all"
-          />
-          {searchTerm && (
+        <div className="flex gap-2 items-center flex-wrap">
+          {/* Download Button */}
+          {filteredAnnouncements.filter((ann) => ann.attchmntFile).length > 0 && (
             <button
-              onClick={handleClearSearch}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-base-content/40 hover:text-base-content/70"
+              onClick={handleDownload}
+              disabled={downloading}
+              className="btn btn-sm btn-secondary gap-1.5"
+              title="Download all PDF attachments from filtered announcements"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {downloading ? (
+                <>
+                  <span className="loading loading-spinner loading-xs"></span>
+                  Downloading...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  Download PDFs ({filteredAnnouncements.filter((ann) => ann.attchmntFile).length})
+                </>
+              )}
+            </button>
+          )}
+
+          {/* Search Input */}
+          <div className="relative w-full sm:w-80">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg
+                className="w-5 h-5 opacity-40"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
               </svg>
-            </button>
-          )}
+            </div>
+            <input
+              type="text"
+              placeholder="Search announcements..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="w-full pl-10 pr-10 py-2 border border-base-300/60 rounded-lg focus:outline-none focus:border-secondary/50 focus:bg-base-100 text-sm bg-base-200/60 transition-all"
+            />
+            {searchTerm && (
+              <button
+                onClick={handleClearSearch}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-base-content/40 hover:text-base-content/70"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

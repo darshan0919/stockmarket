@@ -31,10 +31,7 @@ export default function QuarterView({ quarters, loading, downloadingQuarter, onD
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {quarters.map((quarter) => (
-        <div
-          key={quarter.periodLabel}
-          className="finance-card hover:shadow-lg transition-shadow"
-        >
+        <div key={quarter.periodLabel} className="finance-card hover:shadow-lg transition-shadow">
           <div className="card-body p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
