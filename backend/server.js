@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/database');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
+const { findAvailablePort } = require('./utils/portUtils');
 
 // Initialize express app
 const app = express();
@@ -40,8 +41,19 @@ app.get('/api/health', (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-});
+// Start server with automatic port switching if needed
+const PREFERRED_PORT = parseInt(process.env.PORT) || 5000;
+
+(async () => {
+  try {
+    const PORT = await findAvailablePort(PREFERRED_PORT);
+    app.listen(PORT, () => {
+      console.log(
+        `Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`
+      );
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error.message);
+    process.exit(1);
+  }
+})();
