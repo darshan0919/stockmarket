@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Walk the Talk — Management Credibility Scorer",
+  "version": "2.1.0",
+  "description": "One click. Scores management credibility from earnings transcripts and financials.",
+
+  "permissions": ["storage", "sidePanel", "tabs", "cookies"],
+
+  "host_permissions": [
+    "https://www.stockscans.in/*",
+    "https://stockscans.in/*",
+    "https://stockscans-assets.s3.ap-south-1.amazonaws.com/*",
+    "https://api.anthropic.com/*"
+  ],
+
+  "background": { "service_worker": "background.js" },
+
+  "content_scripts": [{
+    "matches": ["https://www.stockscans.in/company/*"],
+    "js": ["utils.js", "content.js"],
+    "run_at": "document_idle"
+  }],
+
+  "side_panel": { "default_path": "sidepanel.html" },
+
+  "action": {
+    "default_title": "Walk the Talk",
+    "default_icon": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
+  },
+
+  "icons": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
+}
