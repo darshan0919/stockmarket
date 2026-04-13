@@ -125,8 +125,12 @@ GET /api/stocks/{symbol}
 }
 ```
 
+**Note:** Stock details returns ROCE/debt-style metrics only from **cached** quarterly results in MongoDB. It does **not** run NSE quarterly XBRL ingestion (that path is used by `GET /api/stocks/{symbol}/quarterly`), so the endpoint stays responsive for newly listed symbols.
+
+**Note:** `Stock` documents are **not** TTL-expired in the schema (older DBs may still have a `created_at` TTL index — drop it if rows disappear after a few days). BSE peer search uses a timeout and uppercase symbol matching; if BSE fails, the server persists the row from the NSE quote only.
+
 **Code Reference:**
-- Function: `getStockDetails()` in `backend/controllers/stockController.js:140-163`
+- Function: `getStockDetails()` in `backend/controllers/stockController.js`
 - Uses `backend/scripts/stockDetailsFetcher.js`
 
 ---
@@ -1033,32 +1037,82 @@ POST /api/declared-results/download-notes
 
 > **Route File**: `backend/routes/announcements.js`  
 > **Controller**: `backend/controllers/announcementsController.js`  
-> **Shared Modules**: `backend/utils/nseHelpers.js` (NSE headers)
+> **Upstream**: StockScans `POST /api/company/announcements/search` (proxied server-side)  
+> **Auth**: Set `STOCKSCANS_AUTH_TOKEN` in backend `.env` (same JWT as the `authtoken` cookie on stockscans.in)
 
 ### Get Announcements by Symbol
 
 ```http
-GET /api/announcements/{symbol}
+GET /api/announcements/{symbol}?search={optional}&offset={optional}&provider={optional}
 ```
 
-**Response:**
+| Query | Description |
+|-------|-------------|
+| `search` | Optional. StockScans requires at least 3 characters; shorter or omitted values use a broad default search on the server (`report`). |
+| `offset` | Pagination offset (default `0`). |
+| `provider` | Optional. `stockscans` — StockScans only (no NSE fallback; returns **502**/**503** on failure). `nse` — NSE `corporate-announcements` only. Omit or `auto` — if `STOCKSCANS_AUTH_TOKEN` is set, try StockScans first; on failure fall back to NSE (legacy behavior). The UI sends an explicit `provider` so users are not silently switched when they chose StockScans. |
+
+**Providers:** `meta.provider` is `"stockscans"` or `"nse"` for successful responses. For `provider=stockscans`, errors return JSON with `success: false` and `meta.provider: "stockscans"` (no NSE data in the same response).
+
+**Response (StockScans):**
 ```json
 {
   "success": true,
   "data": [
     {
-      "headline": "Board Meeting Notice",
-      "date": "2024-01-15",
-      "category": "Board Meeting",
-      "attachment": "Notice.pdf"
+      "subject": "Board Meeting",
+      "desc": "Notice text (plain)",
+      "an_dt": "15-Jun-2024 00:00:00",
+      "attchmntFile": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/....pdf",
+      "attchmntText": null,
+      "source": "stockscans",
+      "companyId": "NSE:SYMBOL"
     }
-  ]
+  ],
+  "meta": {
+    "offset": 0,
+    "limit": 30,
+    "search": "Ltd",
+    "companyId": "NSE:SYMBOL",
+    "requestedSearch": null,
+    "provider": "stockscans"
+  }
 }
 ```
 
+**Response (NSE fallback):** Same `success` / `data` shape as raw NSE API array items (`subject`, `desc`, `an_dt`, `attchmntFile`, …). `meta.provider` is `"nse"` and may include a `note` explaining fallback.
+
+**Errors (`provider=stockscans`, HTTP 502/503):** JSON includes `success: false`, `error` (message), optional `code`, and `meta.provider: "stockscans"`. Common `code` values from the StockScans client:
+
+| `code` | Meaning |
+|--------|---------|
+| `STOCKSCANS_AUTH_REQUIRED` | Backend has no `STOCKSCANS_AUTH_TOKEN` |
+| `STOCKSCANS_BAD_COMPANY` | Upstream HTTP 5xx with a generic/empty body — often **unknown `companyId`** on StockScans (not a JWT problem) |
+| `STOCKSCANS_HTTP_ERROR` | Other HTTP errors (e.g. auth401/403, or 5xx with a specific upstream message) |
+| `STOCKSCANS_API_ERROR` | JSON body `status: "error"` from StockScans |
+
 **Code Reference:**
 - Function: `getAnnouncements()` in `backend/controllers/announcementsController.js`
-- Uses NSE_HEADERS from `backend/utils/nseHelpers.js`
+- Client: `backend/services/stockscansAnnouncements.js`
+- PDF ZIP download uses public S3 URLs for StockScans attachments; NSE headers are still used for legacy NSE PDF URLs if present.
+
+### Download announcement PDFs (ZIP)
+
+```http
+POST /api/announcements/{symbol}/download
+Content-Type: application/json
+```
+
+**Body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `announcements` | `Array<{ url, subject?, date? }>` | Yes | PDF URLs and metadata for each file |
+| `search` | string | No | Current search query; when present, included in the ZIP attachment filename (sanitized) |
+
+**Response:** `application/zip` stream. Filename pattern: `{SYMBOL}_announcements_{optionalSearch}_{YYYY-MM-DD}.zip` (search segment omitted when `search` is empty).
+
+**Code Reference:** `downloadAnnouncements()` in `backend/controllers/announcementsController.js`
 
 ---
 

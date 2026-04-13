@@ -131,7 +131,7 @@ const getStockDetails = async (req, res, next) => {
   try {
     // Fetch data from NSE India Quote API
 
-    const scripCode = await getStockScripCode(symbol);
+    const scripCode = await getStockScripCode(upperSymbol);
     const stockDetails = await fetchStockDetails(upperSymbol, scripCode);
 
     res.json({

@@ -2,10 +2,15 @@ const axios = require('axios');
 
 const BSE_API_URL = 'https://api.bseindia.com/BseIndiaAPI/api';
 
+/** Axios timeout (ms) for BSE calls — unbounded requests caused stock-details to hang when BSE stalled. */
+const BSE_REQUEST_TIMEOUT_MS = 12000;
+
 const getStockScripCode = async (symbol) => {
+  const normalized = symbol.trim().toUpperCase();
   const response = await axios.get(
-    `${BSE_API_URL}/PeerSmartSearch/w?Type=SS&text=${symbol.trim()}`,
+    `${BSE_API_URL}/PeerSmartSearch/w?Type=SS&text=${encodeURIComponent(normalized)}`,
     {
+      timeout: BSE_REQUEST_TIMEOUT_MS,
       headers: {
         Referer: 'https://www.bseindia.com/',
         'User-Agent':
@@ -16,8 +21,9 @@ const getStockScripCode = async (symbol) => {
       },
     }
   );
-  const data = response.data.replaceAll('&nbsp;', ' ');
-  const regex = new RegExp(`<strong>${symbol}<\\/strong>\\s+\\w+\\s+(\\d+)`);
+  const data = String(response.data).replaceAll('&nbsp;', ' ');
+  // BSE HTML uses uppercase symbols; match with normalized symbol so /stock/waareertl still works.
+  const regex = new RegExp(`<strong>${normalized}<\\/strong>\\s+\\w+\\s+(\\d+)`);
   const match = data.match(regex);
   return match?.[1] || null;
 };
@@ -67,6 +73,7 @@ const getCompanyInfo = async (scripCode) => {
   const response = await axios.get(
     `${BSE_API_URL}/ComHeadernew/w?quotetype=EQ&scripcode=${scripCode}`,
     {
+      timeout: BSE_REQUEST_TIMEOUT_MS,
       headers: {
         Referer: 'https://www.bseindia.com/',
       },

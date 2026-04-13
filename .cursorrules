@@ -33,6 +33,7 @@ Stock Screener is a full-stack application for Indian stock market analysis:
 | Backend guide | `docs/backend/README.md` |
 | Frontend guide | `docs/frontend/README.md` |
 | Testing guide | `docs/TESTING.md` |
+| Local Jira-style issues (“log Jira”) | `jira/issues/`, rule `.cursor/rules/jira.mdc` |
 
 ## Key Files
 

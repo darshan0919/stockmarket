@@ -127,14 +127,43 @@ export const upcomingResultsAPI = {
 
 // Announcements APIs
 export const announcementsAPI = {
-  getBySymbol: (symbol) => api.get(`/announcements/${symbol}`),
-  /** Download announcement PDFs as ZIP @see POST /api/announcements/:symbol/download */
-  downloadPdfs: (symbol, announcements) =>
-    api.post(
-      `/announcements/${symbol}/download`,
-      { announcements },
-      { responseType: 'blob', timeout: 120000 }
-    ),
+  /**
+   * List announcements (StockScans search proxy). Optional `search` (≥3 chars) and `offset` for pagination.
+   * @param {string} symbol - NSE symbol
+   * @param {{ search?: string, offset?: number, provider?: 'stockscans'|'nse' }} [params] - `provider` selects upstream (required for explicit mode)
+   * @see GET /api/announcements/:symbol
+   */
+  getBySymbol: (symbol, params = {}) => {
+    const sp = new URLSearchParams();
+    if (params.search != null && String(params.search).trim() !== '') {
+      sp.set('search', String(params.search).trim());
+    }
+    if (params.offset != null && params.offset > 0) {
+      sp.set('offset', String(params.offset));
+    }
+    if (params.provider === 'stockscans' || params.provider === 'nse') {
+      sp.set('provider', params.provider);
+    }
+    const q = sp.toString();
+    const path = `/announcements/${encodeURIComponent(symbol)}`;
+    return api.get(q ? `${path}?${q}` : path);
+  },
+  /**
+   * Download announcement PDFs as ZIP @see POST /api/announcements/:symbol/download
+   * @param {string} symbol
+   * @param {Array<{url:string,subject?:string,date?:string}>} announcements
+   * @param {{ search?: string }} [options] - Optional search query; included in ZIP name when set
+   */
+  downloadPdfs: (symbol, announcements, options = {}) => {
+    const body = { announcements };
+    const s =
+      options.search !== undefined && options.search !== null ? String(options.search).trim() : '';
+    if (s) body.search = s;
+    return api.post(`/announcements/${encodeURIComponent(symbol)}/download`, body, {
+      responseType: 'blob',
+      timeout: 120000,
+    });
+  },
 };
 
 /**

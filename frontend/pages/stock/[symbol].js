@@ -12,6 +12,10 @@ import TranscriptTab from '../../components/stock/TranscriptTab';
 import AnnouncementsTab from '../../components/stock/AnnouncementsTab';
 import OrdersTab from '../../components/stock/OrdersTab';
 
+/**
+ * Stock detail route: loads quote and fundamentals from GET /api/stocks/:symbol.
+ * @see {@link docs/frontend/README.md} for routing
+ */
 export default function StockDetails() {
   const router = useRouter();
   const { symbol } = router.query;
@@ -29,8 +33,10 @@ export default function StockDetails() {
         setLoading(true);
         setError(null);
         const response = await stockAPI.getDetails(symbol);
-        if (response.data.success) {
+        if (response.data.success && response.data.data) {
           setStockData(response.data.data);
+        } else {
+          setError(response.data?.error || 'Failed to load stock details');
         }
       } catch (err) {
         setError(err.response?.data?.error || err.message);
@@ -81,7 +87,21 @@ export default function StockDetails() {
     );
   }
 
-  if (!stockData) return null;
+  if (!stockData) {
+    return (
+      <div>
+        <div className="finance-card p-8 text-center">
+          <h2 className="text-lg font-semibold mb-2">No stock data</h2>
+          <p className="text-sm text-base-content/60 mb-4">
+            The server returned an empty response.
+          </p>
+          <button onClick={() => router.push('/')} className="btn btn-sm btn-secondary">
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const {
     basic_info,

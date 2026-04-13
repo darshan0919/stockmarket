@@ -272,5 +272,64 @@ describe('API Client', () => {
 
       expect(axios.get).toHaveBeenCalledWith('/announcements/RELIANCE');
     });
+
+    it('should pass search and offset query params', async () => {
+      axios.get.mockResolvedValue({ data: { success: true } });
+
+      await announcementsAPI.getBySymbol('RELIANCE', { search: 'div', offset: 30 });
+
+      expect(axios.get).toHaveBeenCalledWith('/announcements/RELIANCE?search=div&offset=30');
+    });
+
+    it('should pass provider when stockscans or nse', async () => {
+      axios.get.mockResolvedValue({ data: { success: true } });
+
+      await announcementsAPI.getBySymbol('RELIANCE', { provider: 'stockscans', offset: 0 });
+
+      expect(axios.get).toHaveBeenCalledWith('/announcements/RELIANCE?provider=stockscans');
+
+      await announcementsAPI.getBySymbol('X', { provider: 'nse' });
+
+      expect(axios.get).toHaveBeenCalledWith('/announcements/X?provider=nse');
+    });
+
+    it('should post download body with optional search for ZIP naming', async () => {
+      axios.post.mockResolvedValue({ data: new Blob() });
+      const items = [{ url: 'https://example.com/a.pdf', subject: 'R', date: '' }];
+
+      await announcementsAPI.downloadPdfs('RELIANCE', items, { search: '  results  ' });
+
+      expect(axios.post).toHaveBeenCalledWith(
+        '/announcements/RELIANCE/download',
+        { announcements: items, search: 'results' },
+        { responseType: 'blob', timeout: 120000 }
+      );
+    });
+
+    it('should encode symbol in download path', async () => {
+      axios.post.mockResolvedValue({ data: new Blob() });
+      const items = [{ url: 'https://example.com/a.pdf', subject: 'R', date: '' }];
+
+      await announcementsAPI.downloadPdfs('M&M', items);
+
+      expect(axios.post).toHaveBeenCalledWith(
+        '/announcements/M%26M/download',
+        { announcements: items },
+        { responseType: 'blob', timeout: 120000 }
+      );
+    });
+
+    it('should omit search from download body when not provided', async () => {
+      axios.post.mockResolvedValue({ data: new Blob() });
+      const items = [{ url: 'https://example.com/a.pdf', subject: 'R', date: '' }];
+
+      await announcementsAPI.downloadPdfs('RELIANCE', items);
+
+      expect(axios.post).toHaveBeenCalledWith(
+        '/announcements/RELIANCE/download',
+        { announcements: items },
+        { responseType: 'blob', timeout: 120000 }
+      );
+    });
   });
 });

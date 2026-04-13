@@ -3,23 +3,38 @@ const { getCompanyInfo } = require('../api/bseIndiaApi');
 const { getCurrentMetrics } = require('./balanceSheetDataFetcher');
 const Stock = require('../models/Stock');
 
+/**
+ * Build a new Stock document from NSE quote-equity payload when BSE is unavailable.
+ * @param {string} upperSymbol - Uppercase symbol
+ * @param {Object} nseData - Parsed JSON from /api/quote-equity
+ * @returns {Object} Unsaved Mongoose Stock document
+ */
+function stockFromNseQuote(upperSymbol, nseData) {
+  const info = nseData.info || {};
+  const meta = nseData.metadata || {};
+  const sec = nseData.securityInfo || {};
+  return new Stock({
+    symbol: upperSymbol,
+    name: info.companyName || upperSymbol,
+    sector: info.macro || meta.sectorName || meta.pdSectorInd || 'Unknown',
+    industry: info.industry || 'Unknown',
+    isin: info.isin || 'Unknown',
+    face_value: sec.faceValue ?? 0,
+    index_name: meta.indexName || sec.index || 'Unknown',
+  });
+}
+
+/**
+ * Aggregate NSE quote, BSE-backed stock record, and DB-only quarterly metrics for the stock details API.
+ * @param {string} symbol - Uppercase symbol
+ * @param {string|null} scripCode - BSE scrip code when creating a new Stock document from BSE
+ * @returns {Promise<Object>} Payload for GET /api/stocks/:symbol
+ * @see {@link docs/API_REFERENCE.md#get-stock-details}
+ */
 const fetchStockDetails = async (symbol, scripCode) => {
   const upperSymbol = symbol.toUpperCase();
 
   let stock = await Stock.findOne({ symbol: upperSymbol });
-  if (!stock) {
-    const companyInfoBSE = await getCompanyInfo(scripCode);
-    stock = new Stock({
-      symbol: upperSymbol,
-      name: companyInfoBSE.CompanyName,
-      sector: companyInfoBSE.Sector,
-      industry: companyInfoBSE.Industry,
-      isin: companyInfoBSE.ISIN,
-      face_value: companyInfoBSE.FaceVal,
-      index_name: companyInfoBSE.Index,
-    });
-    await stock.save();
-  }
 
   const nseResponse = await axios.get(
     `https://www.nseindia.com/api/quote-equity?symbol=${upperSymbol}`,
@@ -35,6 +50,37 @@ const fetchStockDetails = async (symbol, scripCode) => {
     }
   );
   const nseData = nseResponse.data;
+
+  if (!stock) {
+    let created = null;
+    if (scripCode) {
+      try {
+        const b = await getCompanyInfo(scripCode);
+        const bseName = b?.CompanyName || b?.SLONGNAME;
+        if (b && bseName) {
+          created = new Stock({
+            symbol: upperSymbol,
+            name: bseName,
+            sector: b.Sector || b.SECTOR || 'Unknown',
+            industry: b.Industry || b.INDUSTRY || 'Unknown',
+            isin: b.ISIN || b.ISIN_CODE || 'Unknown',
+            face_value: b.FaceVal ?? b.FACE_VAL ?? 0,
+            index_name: b.Index || b.INDEX_NAME || 'Unknown',
+          });
+        }
+      } catch (err) {
+        console.warn(
+          'BSE getCompanyInfo failed; persisting stock from NSE quote only:',
+          err.message
+        );
+      }
+    }
+    if (!created) {
+      created = stockFromNseQuote(upperSymbol, nseData);
+    }
+    stock = created;
+    await stock.save();
+  }
 
   // Extract basic info
   const basicInfo = {
@@ -72,11 +118,15 @@ const fetchStockDetails = async (symbol, scripCode) => {
 
   let currentMetrics;
   try {
-    currentMetrics = await getCurrentMetrics(upperSymbol);
+    currentMetrics = await getCurrentMetrics(upperSymbol, { allowFetch: false });
     console.log('currentMetrics', currentMetrics);
   } catch (error) {
     console.error('Error fetching current metrics:', error);
   }
+
+  const pb = stock.pb_ratio;
+  const bookValuePerShare =
+    pb != null && pb !== 0 && Number.isFinite(pb) ? priceInfo.lastPrice / pb : null;
 
   // Extract fundamentals
   const fundamentals = {
@@ -85,7 +135,7 @@ const fetchStockDetails = async (symbol, scripCode) => {
     sector_pe: nseData.metadata?.pdSectorPe || null,
     market_cap: basicInfo.market_cap,
     face_value: nseData.securityInfo?.faceValue,
-    book_value_per_share: priceInfo.lastPrice / stock.pb_ratio, // Not available in quote API
+    book_value_per_share: bookValuePerShare,
     dividend_yield: currentMetrics?.last_quarter_roce, // Not available in quote API
     roe: stock.roe, // Not available in quote API
     roce: currentMetrics?.roce, // Not available in quote API
@@ -128,4 +178,4 @@ const fetchStockDetails = async (symbol, scripCode) => {
     priceHistory: priceHistory,
   };
 };
-module.exports = { fetchStockDetails };
+module.exports = { fetchStockDetails, stockFromNseQuote };

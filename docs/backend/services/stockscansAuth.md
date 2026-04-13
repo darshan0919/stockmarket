@@ -8,7 +8,7 @@ Authentication service for StockScans API. Provides token retrieval and authenti
 ## Functions/Methods
 
 ### getAuthToken()
-Get StockScans authentication token from environment variable `STOCKSCANS_AUTH_TOKEN`. Token is a JWT from browser cookies after logging into stockscans.in.
+Get StockScans authentication token from environment variable `STOCKSCANS_AUTH_TOKEN`. The value is trimmed (leading/trailing whitespace and stray newlines from `.env` are removed). Token is a JWT from browser cookies after logging into stockscans.in.
 
 **Returns:** string - Auth token
 

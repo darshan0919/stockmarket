@@ -67,6 +67,6 @@ const stockSchema = new mongoose.Schema({
 stockSchema.index({ symbol: 1 });
 stockSchema.index({ name: 'text', symbol: 'text' });
 stockSchema.index({ sector: 1 });
-stockSchema.index({ created_at: 1 }, { expireAfterSeconds: 5 * 24 * 60 * 60 });
+// Do not TTL-expire Stock documents: expiry forced repeated BSE lookups and broke /api/stocks/:symbol when BSE was slow or returned no scrip.
 
 module.exports = mongoose.model('Stock', stockSchema);

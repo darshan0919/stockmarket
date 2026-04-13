@@ -13,7 +13,7 @@ const axios = require('axios');
  * @throws {Error} If token not configured in environment
  */
 function getAuthToken() {
-  const token = process.env.STOCKSCANS_AUTH_TOKEN;
+  const token = (process.env.STOCKSCANS_AUTH_TOKEN || '').trim();
   if (!token) {
     throw new Error(
       'STOCKSCANS_AUTH_TOKEN not configured. Login to stockscans.in and copy the authtoken cookie value to .env'

@@ -8,6 +8,7 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const { getAuthToken, createAuthenticatedClient } = require('../services/stockscansAuth');
+const { ensureRepoDownloadsRoot } = require('../utils/repoDownloads');
 
 const STOCKSCANS_API_URL = 'https://www.stockscans.in/api/company/scan-company-results';
 const STOCKSCANS_ASSETS_URL = 'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs';
@@ -256,8 +257,7 @@ const downloadTranscriptNotes = async (req, res, next) => {
     // Create authenticated axios client
     const authClient = createAuthenticatedClient(authToken);
 
-    // Create download directory
-    const downloadDir = path.join(process.cwd(), '..', 'downloads', quarterDate);
+    const downloadDir = path.join(ensureRepoDownloadsRoot(), quarterDate);
     if (!fs.existsSync(downloadDir)) {
       fs.mkdirSync(downloadDir, { recursive: true });
     }

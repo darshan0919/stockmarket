@@ -9,7 +9,7 @@ const axios = require('axios');
 const archiver = require('archiver');
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
+const { PassThrough } = require('stream');
 const {
   parseOrderFromPdf,
   parseAmountFromText,
@@ -28,6 +28,7 @@ const {
   parseNseDateToTimestamp,
   isOrderAnnouncement,
 } = require('../utils/nseHelpers');
+const { ensureRepoDownloadsRoot } = require('../utils/repoDownloads');
 
 /**
  * GET /api/orders/:symbol
@@ -457,7 +458,7 @@ async function getOrderbook(req, res, next) {
 
 /**
  * POST /api/orders/:symbol/download-all
- * Download all order announcement PDFs as a ZIP file
+ * Download all order announcement PDFs as a ZIP file; also saves a copy under repo `downloads/`.
  * @route POST /api/orders/:symbol/download-all
  * @see {@link docs/API_REFERENCE.md#orders-apis}
  */
@@ -498,11 +499,28 @@ async function downloadAll(req, res, next) {
     res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition', `attachment; filename="${folderName}.zip"`);
 
+    const downloadsRoot = ensureRepoDownloadsRoot();
+    const zipFileName = `${folderName}.zip`;
+    const zipPath = path.join(downloadsRoot, zipFileName);
+    const fileOut = fs.createWriteStream(zipPath);
+    const pass = new PassThrough();
+
     const archive = archiver('zip', {
       zlib: { level: 9 },
     });
 
-    archive.pipe(res);
+    archive.pipe(pass);
+    pass.pipe(res);
+    pass.pipe(fileOut);
+
+    res.setHeader('X-Saved-To-Repo', path.join('downloads', zipFileName));
+
+    fileOut.on('finish', () => {
+      console.log(`Orders ZIP saved to repo: ${zipPath}`);
+    });
+    fileOut.on('error', (err) => {
+      console.error('Failed to write orders ZIP under repo downloads:', err.message);
+    });
 
     archive.on('error', (err) => {
       console.error('Archive error:', err);
@@ -566,7 +584,7 @@ ${pdfsToDownload
 
 /**
  * POST /api/orders/:symbol/download-direct
- * Download all order announcement PDFs directly to Desktop/Stock_Data
+ * Download order (and optional transcript) PDFs into the repository `downloads/` folder
  * @route POST /api/orders/:symbol/download-direct
  * @see {@link docs/API_REFERENCE.md#orders-apis}
  */
@@ -593,13 +611,9 @@ async function downloadDirect(req, res, next) {
     const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, -5);
     const folderName = `${upperSymbol}_${timestamp}`;
 
-    const desktopPath = path.join(os.homedir(), 'Desktop');
-    const stockDataPath = path.join(desktopPath, 'Stock_Data');
-    const targetPath = path.join(stockDataPath, folderName);
+    const downloadsRoot = ensureRepoDownloadsRoot();
+    const targetPath = path.join(downloadsRoot, folderName);
 
-    if (!fs.existsSync(stockDataPath)) {
-      fs.mkdirSync(stockDataPath, { recursive: true });
-    }
     if (!fs.existsSync(targetPath)) {
       fs.mkdirSync(targetPath, { recursive: true });
     }
@@ -873,13 +887,9 @@ async function downloadQuarter(req, res, next) {
     const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, -5);
     const folderName = `${upperSymbol}_${periodLabel}_${timestamp}`;
 
-    const desktopPath = path.join(os.homedir(), 'Desktop');
-    const stockDataPath = path.join(desktopPath, 'Stock_Data');
-    const targetPath = path.join(stockDataPath, folderName);
+    const downloadsRoot = ensureRepoDownloadsRoot();
+    const targetPath = path.join(downloadsRoot, folderName);
 
-    if (!fs.existsSync(stockDataPath)) {
-      fs.mkdirSync(stockDataPath, { recursive: true });
-    }
     if (!fs.existsSync(targetPath)) {
       fs.mkdirSync(targetPath, { recursive: true });
     }

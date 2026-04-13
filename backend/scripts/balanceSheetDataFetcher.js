@@ -2,7 +2,16 @@ const axios = require('axios');
 const { parseXBRL } = require('../utils/xbrlParser');
 const QuarterlyResult = require('../models/QuarterlyResult');
 
-const getCurrentMetrics = async (symbol) => {
+/**
+ * Load ROCE / debt metrics from cached quarterly results, optionally hydrating from NSE.
+ * Heavy hydration (XBRL fetch/parse) must not run on the stock-details request path or the API will time out.
+ * @param {string} symbol - Trading symbol
+ * @param {{ allowFetch?: boolean }} [options] - When `allowFetch` is false, only reads MongoDB (fast path for GET /api/stocks/:symbol)
+ * @returns {Promise<Object>} Metrics object or empty object
+ * @see {@link docs/API_REFERENCE.md} Stock APIs
+ */
+const getCurrentMetrics = async (symbol, options = {}) => {
+  const { allowFetch = true } = options;
   const upperSymbol = symbol.toUpperCase();
   const consolidateResults = await QuarterlyResult.find({ symbol: upperSymbol, consolidated: true })
     .sort({ to_date: -1 })
@@ -19,12 +28,15 @@ const getCurrentMetrics = async (symbol) => {
   if (standaloneResults.length > 0) {
     return calculateMetrics(standaloneResults);
   }
+  if (!allowFetch) {
+    return {};
+  }
   const results = await fetchAndStoreQuarterlyResults(symbol);
   if (results.empty) {
     return {};
   }
 
-  return getCurrentMetrics(symbol);
+  return getCurrentMetrics(symbol, options);
 };
 
 const calculateMetrics = (results) => {

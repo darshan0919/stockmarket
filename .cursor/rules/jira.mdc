@@ -1,0 +1,31 @@
+---
+description: When the user mentions Jira, log work as markdown in jira/ (local tracking), not external Atlassian unless explicitly requested
+globs: ['**/*']
+---
+
+# Jira in this repository
+
+## Default: “log Jira” = local docs in `jira/`
+
+When the user asks to **log Jira**, **create a Jira ticket**, **file an issue**, **track in Jira**, or similar **without** explicitly asking to use **Atlassian**, **MCP**, **sprinklr.atlassian.net**, or a specific **Jira project key**:
+
+1. **Create or update** a markdown file under `jira/` (prefer `jira/issues/` for bugs/tasks, `jira/implementation-notes/` for longer postmortems if that fits existing patterns).
+2. Include a **Tracking fields** table with the fields you would use on a real ticket, for example:
+   - Issue Key (optional placeholder if mirrored externally)
+   - Issue Type, Status, Priority
+   - Labels, Component
+   - Summary, Created, Updated
+   - Reporter / Assignee (optional, often left blank locally)
+3. Add **Description**, **Root cause** (if known), **Fix**, **Verification**, and **Links** as needed.
+4. **Index**: Add a one-line entry to `jira/README.md` in the appropriate section when adding a new issue doc.
+
+Do **not** assume the user wants issues created in a corporate Jira instance.
+
+## Exception: external Jira
+
+Only use **Atlassian MCP**, `jira` CLI, or other external tools when the user **explicitly** asks to create/update issues in **their Jira** (e.g. names a project key, site, or says “create in Jira Cloud”).
+
+## Reference
+
+- Issue doc example: `jira/issues/STOCK-ANNOUNCEMENTS-PAGINATION-ZIP-COUNT.md`
+- Folder index: `jira/issues/README.md`

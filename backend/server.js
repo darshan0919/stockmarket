@@ -1,4 +1,6 @@
-require('dotenv').config();
+const path = require('path');
+// Load .env from this file's directory so `node ../backend/server.js` or IDE "cwd=repo root" still works
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/database');
@@ -12,7 +14,11 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    exposedHeaders: ['X-Saved-To-Repo'],
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

@@ -1,9 +1,12 @@
 # Jira / Feature Specifications
 
-Feature specifications, implementation notes, and testing guides for the Stock Screener application.
+Feature specifications, implementation notes, testing guides, and **local Jira-style issue docs** for the Stock Screener application.
+
+When someone says **“log Jira”** in this repo, the default is to add markdown under **`jira/issues/`** (or related folders) with tracking fields—not to create tickets in an external Jira unless explicitly requested. See `.cursor/rules/jira.mdc`.
 
 ## Table of Contents
 
+- [Issues (local tracking)](#issues-local-tracking)
 - [Features](#features)
   - [Search](#search)
   - [Financials](#financials)
@@ -12,6 +15,18 @@ Feature specifications, implementation notes, and testing guides for the Stock S
   - [General](#general)
 - [Implementation Notes](#implementation-notes)
 - [Testing](#testing)
+
+---
+
+## Issues (local tracking)
+
+Tracked bugs/tasks as markdown (optional **Issue Key** if mirrored in real Jira).
+
+| Document | Description |
+|----------|-------------|
+| [issues/README.md](issues/README.md) | Convention for `jira/issues/` |
+| [STOCK-ANNOUNCEMENTS-PAGINATION-ZIP-COUNT.md](issues/STOCK-ANNOUNCEMENTS-PAGINATION-ZIP-COUNT.md) | StockScans pagination broke bulk ZIP + announcement counts; offset fix |
+| [STOCK-ANNOUNCEMENTS-STOCKSCANS-500-BAD-SYMBOL.md](issues/STOCK-ANNOUNCEMENTS-STOCKSCANS-500-BAD-SYMBOL.md) | StockScans HTTP 500 for unknown company mislabeled; clearer codes + UI hints |
 
 ---
 

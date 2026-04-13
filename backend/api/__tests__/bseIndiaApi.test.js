@@ -16,13 +16,13 @@ jest.mock('axios');
 
 describe('BSE India API', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('getStockScripCode', () => {
     it('should extract scrip code from search response', async () => {
       const mockResponse = {
-        data: '<strong>RELIANCE</strong> RELIANCE IND 500325 EQ',
+        data: '<strong>RELIANCE</strong>&nbsp;&nbsp;&nbsp;INE002A01018&nbsp;&nbsp;&nbsp;500325',
       };
 
       axios.get.mockResolvedValue(mockResponse);
@@ -33,11 +33,24 @@ describe('BSE India API', () => {
       expect(axios.get).toHaveBeenCalledWith(
         expect.stringContaining('PeerSmartSearch'),
         expect.objectContaining({
+          timeout: 12000,
           headers: expect.objectContaining({
             Referer: 'https://www.bseindia.com/',
           }),
         })
       );
+    });
+
+    it('should match BSE HTML when input symbol is lowercase', async () => {
+      const mockResponse = {
+        data: '<strong>WAAREERTL</strong>&nbsp;&nbsp;&nbsp;INE299N01021&nbsp;&nbsp;&nbsp;534618',
+      };
+
+      axios.get.mockResolvedValue(mockResponse);
+
+      const result = await getStockScripCode('waareertl');
+
+      expect(result).toBe('534618');
     });
 
     it('should return null when symbol not found', async () => {
@@ -166,8 +179,8 @@ describe('BSE India API', () => {
 
       const result = await getResultAnnoucement('TEST', '01-01-2024', '31-12-2024');
 
-      // Should stop at 10 pages (1 for scrip + 10 for data)
-      expect(axios.get).toHaveBeenCalledTimes(11);
+      // 1 scrip lookup + 11 announcement requests: loop fetches page 11 then exits on pageno > 10
+      expect(axios.get).toHaveBeenCalledTimes(12);
     });
   });
 
@@ -218,7 +231,7 @@ describe('BSE India API', () => {
       expect(result).toEqual(mockData);
       expect(axios.get).toHaveBeenCalledWith(
         expect.stringContaining('scripcode=500325'),
-        expect.any(Object)
+        expect.objectContaining({ timeout: 12000 })
       );
     });
 
