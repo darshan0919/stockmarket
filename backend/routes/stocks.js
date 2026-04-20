@@ -7,9 +7,21 @@ const {
   getStockFinancials,
   getQuarterlyResults,
 } = require('../controllers/stockController');
+const {
+  headResearchDashboard,
+  getResearchDashboard,
+  postResearchDashboard,
+  deleteResearchDashboard,
+} = require('../controllers/researchDashboardController');
 
 // Search stocks
 router.get('/search', searchStocks);
+
+// Institutional research dashboard HTML (uploaded)
+router.head('/:symbol/research-dashboard', headResearchDashboard);
+router.get('/:symbol/research-dashboard', getResearchDashboard);
+router.post('/:symbol/research-dashboard', postResearchDashboard);
+router.delete('/:symbol/research-dashboard', deleteResearchDashboard);
 
 // Get stock details
 router.get('/:symbol', getStockDetails);

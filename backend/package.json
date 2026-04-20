@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "extract-institutional-prompts": "node scripts/extractInstitutionalPrompts.js",
     "test": "jest --coverage --verbose",
     "test:watch": "jest --watch",
     "format": "prettier --write \"**/*.{js,json}\"",
@@ -19,6 +20,7 @@
     "express": "^4.18.2",
     "joi": "^17.10.0",
     "mongoose": "^7.0.0",
+    "multer": "^2.1.1",
     "xml2js": "^0.6.2"
   },
   "devDependencies": {
@@ -26,6 +28,7 @@
     "jest": "^30.2.0",
     "nodemon": "^3.0.1",
     "parse-xbrl": "^1.1.5",
+    "pdf-parse": "^1.1.1",
     "prettier": "^3.2.5",
     "supertest": "^7.1.4"
   }

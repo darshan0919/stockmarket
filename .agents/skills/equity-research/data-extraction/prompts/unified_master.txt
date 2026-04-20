@@ -1,0 +1,476 @@
+I have 5 document folders containing PDFs for a company research project. I need you to 
+extract high-signal informa9on from each document type and save the outputs as structured 
+.txt files. 
+ 
+COMPANY & TICKER 
+Company: [Company name] 
+Ticker: [NSE 9cker] 
+ 
+EXTRACTION RULES 
+- Extract ONLY high-signal informa9on (structured, condensed, analyst-ready) 
+- Do NOT reproduce full verba9m text unless specifically instructed. See each sec9on for 
+verba9m requirements (e.g., auditor report, accoun9ng policy changes)  
+- Preserve exact numbers, dates, and specific claims 
+- Target output: concise analyst-ready extracts, not document dumps 
+- If a sec9on is missing: write "Not disclosed / Not available" 
+ 
+DOCUMENTS ATTACHED 
+I have alached all PDFs from 5 categories (some may be empty): 
+1. Annual Reports 
+2. Concall Transcripts 
+3. Investor Presenta9ons 
+4. Credit Ra9ng Reports 
+5. Events & Announcements (BSE/NSE filings, press releases) 
+
+ 
+YOUR TASKS — Run in order: 
+ 
+—————————————————————————————————————————
+———————————————————————— 
+ 
+TASK 1: ANNUAL REPORT EXTRACTION 
+Output filename: [TICKER]_AR_Extracts.txt 
+ 
+For each annual report year (process all years, most recent first): 
+ 
+SECTION 1 — MD&A KEY EXTRACTS 
+Extract ONLY: 
+- Industry growth rates cited (with source) 
+- Company market posi9on / market share 
+- 2–4 bullets on structural demand drivers 
+- Segment performance (compact table: segment, revenue, EBIT/EBITDA, margin, YoY 
+change) 
+- Margin movement drivers with specific magnitudes 
+- One-9me items or excep9onal factors 
+- Working capital / receivable / inventory commentary 
+- Forward-looking statements (verba9m quotes only, max 3–6 quotes) 
+- Risks flagged by management (skip generic boilerplate; include only context-specific risks) 
+ 
+SECTION 2 — NOTES TO ACCOUNTS HIGHLIGHTS 
+Extract ONLY forensic-relevant items (skip rou9ne disclosures): 
+- Accoun9ng policy changes (verba9m descrip9on) 
+- Deprecia9on / inventory valua9on method changes 
+- Revenue recogni9on changes 
+
+- Any restatement or prior period adjustment (verba9m) 
+- Borrowings snapshot table (type, amount, rate, maturity) 
+- Capital commitments (total ₹ Cr + nature) 
+ 
+SECTION 3 — RELATED PARTY TRANSACTIONS 
+Compact table format (no verba9m reproduc9on): 
+| Counterparty | Nature | Amount (₹ Cr) | % of Revenue | Outstanding Balance | 
+ 
+Also include: 
+- KMP remunera9on summary table 
+- Any loans to/from related par9es or guarantees 
+ 
+SECTION 4 — AUDITOR'S REPORT 
+Preserve VERBATIM: 
+- Auditor opinion type (Unmodified / Qualified / Adverse / Disclaimer) 
+- Every Qualifica9on text (full verba9m) 
+- Every Emphasis of Maler (full verba9m) 
+- Each Key Audit Maler (KAM) heading + auditor's response (full verba9m) 
+- Any "Other Maler" paragraph 
+- IFC opinion 
+ 
+Skip: rou9ne boilerplate, responsibility paragraphs, signatory details. 
+ 
+SECTION 5 — SEGMENT DISCLOSURES 
+Compact table only: 
+| Segment | Revenue (₹ Cr) | Profit (₹ Cr) | Margin (%) | Assets (₹ Cr) | Capex (₹ Cr) | 
+ 
+Also include: 
+
+- Geographic revenue split table 
+ 
+SECTION 6 — EXTRACTION NOTES 
+One paragraph per year flagging: sec9ons missing, non-standard language in auditor report, 
+image-based pages, policy changes not clearly explained. 
+ 
+SECTION 7 — CONSOLIDATED FORENSIC DATA BLOCK (at end of file) 
+Structured format only: 
+ 
+CONSOLIDATED FORENSIC DATA BLOCK 
+Company: [Name] | Ticker: [NSE 9cker] 
+Extracted: [Date] 
+ 
+AUDITOR 
+                         FY23       FY24       FY25 
+Name: 
+Firm type (Big4/Mid/Small): 
+Tenure as auditor (years): 
+Key Audit Malers:       [List each KAM heading per year. Flag if new, dropped, or changed 
+year on year] 
+Emphasis of Maler: 
+Qualifica9ons: 
+IFC Opinion: 
+ 
+RELATED PARTY TRANSACTIONS 
+FY25: [Counterparty | Nature | Rs Cr | % of revenue] 
+FY24: [Similar format] 
+FY23: [Similar format] 
+Trend note: [New counterparty appearing, transac9on size growing, or nature changing] 
+
+ 
+CONTINGENT LIABILITIES 
+                         FY23       FY24       FY25 
+Total Rs Cr: 
+% of net worth: 
+Key items:               [List. Flag any item that grew >50% year on year] 
+ 
+CWIP (Capital Work in Progress) 
+                         FY23       FY24       FY25 
+Opening Rs Cr: 
+Addi9ons Rs Cr: 
+Capitalisa9ons Rs Cr: 
+Closing Rs Cr: 
+Writeoffs: 
+% of gross block: 
+Ageing flags:            [Any asset stuck >2 years without capitalisa9on and its amount] 
+ 
+EXTRACTION CONFIDENCE 
+                         FY23       FY24       FY25 
+Auditor block:           [High / Medium / Low] 
+RPT block:               [High / Medium / Low] 
+Con9ngent liabili9es:  [High / Medium / Low] 
+CWIP block:              [High / Medium / Low] 
+Overall notes:           [Any block rated Medium or Low — state reason] 
+ 
+Output target: 2,500–4,000 words per year. All numbers with units (₹ Cr, %). 
+ 
+
+—————————————————————————————————————————
+———————————————————————— 
+ 
+TASK 2: CONCALL TRANSCRIPT EXTRACTION 
+Output filename: [TICKER]_Concall.txt 
+ 
+For each quarter (process all quarters, most recent first): 
+ 
+HEADER 
+Company: [Name] 
+Quarter: [Q#FY##] 
+Date of Call: [Date] 
+Key Management Present: [Name – Title] for each 
+Analyst Firms Present: [List] 
+ 
+SECTION 1 — FINANCIAL PERFORMANCE SUMMARY 
+Numbers only in table format: 
+| Metric | Current Qtr | YoY | QoQ | 
+| Revenue (₹ Cr) | | | | 
+| EBITDA (₹ Cr) | | | | 
+| EBITDA Margin (%) | | | | 
+| PAT (₹ Cr) | | | | 
+| Order Inflow (₹ Cr) | | | | 
+| Order Book (₹ Cr) | | | | 
+(Add other segment/KPI rows only if explicitly stated) 
+ 
+SECTION 2 — MANAGEMENT OPENING KEY EXTRACTS 
+Do NOT reproduce full opening statement. Extract only: 
+
+- Guidance statements (revenue growth, margin targets, order inflow targets) 
+- Changes to prior guidance 
+- Segment-level commentary with specific numbers 
+- Capex, debt, working capital outlook 
+- One-9me items or excep9onal factors 
+- Direct quotes for guidance phrases only 
+ 
+SECTION 3 — ANALYST Q&A HIGH SIGNAL EXCHANGES 
+Extract only ques9ons and answers containing: 
+- Guidance clarifica9on or pushback 
+- Margin drivers / headwinds 
+- Order pipeline, win rates, conversion 9melines 
+- Working capital or cash flow concerns 
+- Compe99ve dynamics 
+- Segment / geography outlook 
+- Management walking back or upgrading statements 
+ 
+Format: 
+Q [Analyst name, Firm]: [Condensed ques9on — 1–3 sentences] 
+A [Respondent, Title]: [Condensed answer — preserve exact numbers and forward-looking 
+language verba9m. Paraphrase factual background.] 
+ 
+Skip: rou9ne housekeeping ques9ons. 
+ 
+SECTION 4 — GUIDANCE TRACKER 
+Compile all forward-looking statements into one table: 
+| Topic | Guidance / Target | Timeframe | Prior Guidance (if revised) | 
+| Revenue growth | | | | 
+
+| EBITDA margin | | | | 
+| Order inflow | | | | 
+| Capex | | | | 
+| Debt / Net D/E | | | | 
+| Other | | | | 
+ 
+SECTION 5 — KEY RISKS AND CONCERNS RAISED 
+List any risks, headwinds, or concerns (from management or analyst Q&A). Bullet format. 3–
+8 points. 
+ 
+SECTION 6 — NOTABLE MANAGEMENT COMMENTARY 
+Verba9m quotes ONLY where phrasing malers analy9cally (commitments, guidance 
+walking-back, specific claims). Limit to 3–5 quotes per transcript. Label each with speaker 
+name and context. 
+ 
+FILE SUMMARY (at end, a}er all quarters) 
+Documents processed: [Number] 
+Quarters covered: [List] 
+Date range: [Earliest to latest] 
+Extrac9on issues: [Any transcript incomplete or missing sec9ons] 
+ 
+Output target: 800–1,500 words per quarter. 
+ 
+—————————————————————————————————————————
+———————————————————————— 
+ 
+TASK 3: INVESTOR PRESENTATION EXTRACTION 
+Output filename: [TICKER]_InvestorPres.txt 
+ 
+
+For each presenta9on (most recent first): 
+ 
+HEADER 
+Company: [Name] 
+Presenta9on Title: [As stated on cover slide] 
+Date: [Date] 
+Occasion: [Earnings call / Analyst day / AGM / Investor day / Other] 
+Total slides in source: [Number] 
+ 
+SECTION 1 — KEY FINANCIAL HIGHLIGHTS 
+Headline numbers in table format: 
+| Metric | Current Period | YoY | Comments | 
+| Revenue (₹ Cr) | | | | 
+| EBITDA (₹ Cr) | | | | 
+| EBITDA Margin (%) | | | | 
+| PAT (₹ Cr) | | | | 
+| Order Book (₹ Cr) | | | | 
+| Order Inflow (₹ Cr) | | | | 
+(Add segment KPI rows only if on headline slide) 
+ 
+SECTION 2 — SEGMENT / BUSINESS PERFORMANCE 
+For each segment shown, extract: 
+- Revenue, margin, YoY growth 
+- Order book / pipeline if shown 
+- Opera9onal metrics (capacity, u9lisa9on, volume) 
+- Commentary box on slide (condense to 1–2 sentences) 
+ 
+Use table or structured bullet format. 
+
+ 
+SECTION 3 — STRATEGY & OUTLOOK SLIDES 
+Extract from strategy/outlook slides only: 
+- Strategic ini9a9ves (1 bullet per ini9a9ve) 
+- Capex plan (total ₹ Cr + phasing + purpose) 
+- Capacity addi9ons (loca9on, size, 9meline, commissioning) 
+- Medium-term guidance / targets (numbers verba9m) 
+- New product launches / geography expansion / M&A 
+ 
+SECTION 4 — CHARTS & DATA TABLES 
+For each chart/table: 
+- Extract all data labels and axis values 
+- Note chart 9tle and what it shows 
+- Skip if purely illustra9ve with no numbers 
+Format: 
+**Chart: [Title]** 
+[Extracted data in table format] 
+[Short interpreta9on, e.g., "shows 18% CAGR FY22–FY25"] 
+ 
+SECTION 5 — MANAGEMENT MESSAGES / QUOTE SLIDES 
+If any slide features CEO/CFO quote or strategic message, reproduce verba9m with 
+alribu9on. 
+ 
+SECTION 6 — ESG / SUSTAINABILITY SLIDES 
+Brief bullet summary (3–5 bullets). Preserve specific targets (e.g., "Net Zero by 2045", "30% 
+renewable by FY28"). 
+ 
+SECTION 7 — SLIDES DELIBERATELY SKIPPED 
+Brief note: "Skipped: Cover, Agenda, Thank You, Disclaimer, [N] decora9ve slides." 
+
+ 
+FILE SUMMARY (at end, a}er all presenta9ons) 
+Documents processed: [Number] 
+Presenta9ons covered: [List with dates] 
+Key numerical data captured: [Capacity / Guidance / Segment data / Order book — confirm 
+each present or absent] 
+Extrac9on Issues: [Any slide or sec9on poorly extracted / image-based / unreadable] 
+ 
+Output target: 600–1,200 words per presenta9on. 
+ 
+—————————————————————————————————————————
+———————————————————————— 
+ 
+TASK 4: CREDIT RATING REPORT EXTRACTION 
+Output filename: [TICKER]_Ra9ngReports.txt 
+ 
+For each report (most recent first): 
+ 
+HEADER 
+Company: [Name] 
+Ra9ng Agency: [ICRA / CRISIL / India Ra9ngs / CARE / Other] 
+Instrument Rated: [Name of instrument(s) with amount] 
+Ra9ng Assigned: [e.g., AA / AA- / A+] 
+Outlook: [Stable / Posi9ve / Nega9ve / Watch] 
+Date of Ra9ng: [Date] 
+Previous Ra9ng: [If men9oned] 
+Previous Outlook: [If men9oned] 
+Ra9ng Ac9on: [Upgrade / Downgrade / Reaffirmed / Fresh / Watch] 
+ 
+
+SECTION 1 — RATING RATIONALE KEY POINTS 
+Condense into 4–8 bullets. Preserve specific numbers, margins, ra9os, peer comparisons. No 
+verba9m paragraphs. 
+ 
+SECTION 2 — KEY STRENGTHS 
+Bullet list — condensed. Each bullet 1–2 sentences. Preserve specific metrics (e.g., "order 
+book 2.5x FY25 revenue"). 
+ 
+SECTION 3 — KEY CONCERNS / RATING SENSITIVITIES 
+Bullet list — condensed. 1–2 sentences each with specific numbers where cited. 
+ 
+SECTION 4 — LIQUIDITY ASSESSMENT 
+One short paragraph OR 3–5 bullets covering: 
+- Liquidity categorisa9on (Strong / Adequate / Stretched / Poor) 
+- Cash balance (₹ Cr) 
+- Undrawn lines (₹ Cr) 
+- Near-term debt maturi9es (₹ Cr) 
+- Average bank u9lisa9on (%) 
+ 
+SECTION 5 — FINANCIAL METRICS TABLE 
+Reproduce exactly as-is (preserve every number, every row): 
+| Metric | FY## | FY## | FY## | 
+(all rows from source) 
+ 
+SECTION 6 — RATING TRIGGERS 
+Two sub-headings: 
+ 
+**Upgrade triggers:** 
+- Bullet list — condensed. Preserve thresholds (e.g., "Net D/E below 0.5x sustained") 
+
+ 
+**Downgrade triggers:** 
+- Bullet list — condensed. Preserve thresholds. 
+ 
+SECTION 7 — OUTLOOK RATIONALE 
+2–4 sentences explaining the assigned outlook. Preserve forward-looking thresholds. 
+ 
+FILE SUMMARY (at end, a}er all reports) 
+Documents processed: [Number] 
+Agencies covered: [List] 
+Date range: [Earliest to latest] 
+Ra9ng Trajectory: [One line — e.g., "Stable AA across 3 years" or "Upgraded A+ to AA in 
+FY24"] 
+Outlook Trajectory: [One line] 
+Agency Divergence: [Flag if agencies differ in ra9ng or outlook] 
+Extrac9on Issues: [Any sec9on missing or poorly extracted] 
+ 
+Output target: 500–900 words per report. 
+ 
+—————————————————————————————————————————
+———————————————————————— 
+ 
+TASK 5: EVENTS & ANNOUNCEMENTS EXTRACTION 
+Output filename: [TICKER]_Events.txt 
+ 
+Collate all announcement files (BSE filings, order wins, ra9ng lelers, press releases, etc.) into 
+one structured events feed. 
+ 
+For EACH announcement, extract and structure as: 
+
+ 
+EVENT 
+Date: [DD-MMM-YYYY — infer from document if not explicit] 
+Category: [Order Win | Corporate Ac9on | Ra9ng Change | Regulatory/Policy | 
+Management Change | Financial Result | Analyst Coverage | Other] 
+Source: [BSE / NSE / Press Release / Ra9ng Agency / Newspaper / Exchange Circular / Other] 
+Headline: [One line — what happened] 
+Detail: [2–3 sentences — full context verba9m or closely paraphrased. Preserve all numbers 
+exactly.] 
+Financial impact: [Quan9fy if possible — Rs Cr order value, ra9ng change effect, equity 
+dilu9on %, etc. If not quan9fiable write "Not quan9fiable from source."] 
+Significance: [HIGH / MEDIUM / LOW — your assessment of materiality] 
+ 
+Repeat for EVERY announcement in EVERY file. 
+ 
+A}er all events, add: 
+ 
+COLLATION SUMMARY 
+Total announcements processed: [Number] 
+Date range covered: [Earliest to latest] 
+Category breakdown: [Order Win: X | Corporate Ac9on: X | Ra9ng Change: X | Regulatory: X 
+| Management Change: X | Result: X | Analyst Coverage: X | Other: X] 
+HIGH significance events: [List headlines only] 
+Extrac9on issues: [Any file unclear, image-based, or par9ally extracted] 
+ 
+SORT ALL EVENTS REVERSE CHRONOLOGICALLY (most recent first). 
+REMOVE DUPLICATES if the same announcement appears in mul9ple files (keep the version 
+with more detail). 
+ 
+
+—————————————————————————————————————————
+———————————————————————— 
+ 
+EXECUTION INSTRUCTIONS 
+ 
+1. Start with TASK 1 (Annual Reports). Read all alached annual report PDFs. 
+2. Once TASK 1 is complete, output: ✓ [TICKER]_AR_Extracts.txt complete 
+3. Move to TASK 2 (Concalls). Read all concall transcript PDFs. 
+4. Once TASK 2 is complete, output: ✓ [TICKER]_Concall.txt complete 
+5. Move to TASK 3 (Investor Presenta9ons). Read all presenta9on PDFs. 
+6. Once TASK 3 is complete, output: ✓ [TICKER]_InvestorPres.txt complete 
+7. Move to TASK 4 (Credit Ra9ngs). Read all credit ra9ng PDFs. 
+8. Once TASK 4 is complete, output: ✓ [TICKER]_Ra9ngReports.txt complete 
+9. Move to TASK 5 (Events). Read all event/announcement PDFs. 
+10. Once TASK 5 is complete, output: ✓ [TICKER]_Events.txt complete 
+ 
+A}er all 5 tasks are complete, output the final summary: 
+ 
+EXTRACTION COMPLETE 
+Company: [Name] | Ticker: [TICKER] 
+Completed: [9mestamp] 
+ 
+✓ [TICKER]_AR_Extracts.txt 
+✓ [TICKER]_Concall.txt 
+✓ [TICKER]_InvestorPres.txt 
+✓ [TICKER]_Ra9ngReports.txt 
+✓ [TICKER]_Events.txt 
+
+ 
+These output files are ready for Project B (Dashboard Generator). 
+ 
+—————————————————————————————————————————
+———————————————————————— 
+ 
+KEY EXTRACTION PRINCIPLES 
+ 
+1. HIGH-SIGNAL EXTRACTION: Condense intelligently. Preserve exact numbers, auditor 
+language (only for qualifica9ons/KAMs), and analy9cally-weighted phrases. Paraphrase 
+rou9ne disclosures. 
+ 
+2. PRESERVE VERBATIM: 
+   - Auditor qualifica9ons and Key Audit Malers (KAMs) 
+   - Guidance statements (growth targets, margin targets, capex plans) 
+   - Board-approved accoun9ng policy changes 
+   - Specific management commentary with analy9cal weight 
+   - All numerical values 
+ 
+3. PARAPHRASE / CONDENSE: 
+   - MD&A boilerplate business descrip9ons 
+   - Rou9ne risk disclosures (currency, interest rate, unless elaborated) 
+   - Rou9ne working capital commentary 
+   - Compliance language 
+ 
+4. SKIP ENTIRELY: 
+   - No9ce of AGM / Board approvals (dates only) 
+   - Safe harbour disclaimers 
+   - Operator scripts from concalls 
+
+   - Decora9ve slides from presenta9ons 
+   - Vote-of-thanks from concalls 
+ 
+5. ALWAYS UNIT THE NUMBERS: ₹ Cr, %, x, MW, MT, etc. 
+ 
+6. MISSING SECTIONS: Write "Not disclosed / Not available [in specific document]" 
+ 
+7. IMAGE-BASED OR SCANNED: Extract what's possible; note in extrac9on issues. 
+ 
+Ready to proceed?

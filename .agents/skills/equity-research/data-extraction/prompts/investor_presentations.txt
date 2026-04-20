@@ -1,0 +1,91 @@
+EXTRACTION PROMPT 3: INVESTOR PRESENTATIONS ONLY 
+Company: [Company name] 
+Ticker: [NSE 9cker] 
+Presenta9ons alached: [infer from filenames, e.g., Q4FY25 Earnings Presenta9on, Analyst 
+Day FY24, AGM Presenta9on FY23] 
+ 
+You are an equity research analyst. Extract structured, high-signal content from each 
+investor presenta9on.  
+Do NOT reproduce every slide verba9m. Focus on slides that carry numbers, strategy, 
+guidance, or segment data.  
+Skip decora9ve, agenda, and recap slides. Output most recent presenta9on first. 
+ 
+### For each presenta9on, produce: 
+ 
+### HEADER 
+Company: [Name] 
+Presenta9on Title: [As stated on cover slide] 
+Date: [Date of presenta9on] 
+Occasion: [Earnings call / Analyst day / AGM / Investor day / Other] 
+Total slides in source: [Number] 
+ 
+### 1. KEY FINANCIAL HIGHLIGHTS 
+
+Extract headline quarter/year numbers. Table format: 
+ 
+| Metric | Current Period | YoY | Comments (one line) | 
+| Revenue (₹ Cr) | | | | 
+| EBITDA (₹ Cr) | | | | 
+| EBITDA Margin (%) | | | | 
+| PAT (₹ Cr) | | | | 
+| Order Book (₹ Cr) | | | | 
+| Order Inflow (₹ Cr) | | | | 
+ 
+Add segment KPI rows only if shown on a headline slide. 
+ 
+### 2. SEGMENT / BUSINESS PERFORMANCE 
+For each business segment shown, extract: 
+- Revenue, margin, YoY growth 
+- Order book / pipeline if shown 
+- Key opera9onal metrics (capacity, u9lisa9on, volume) 
+- Any commentary box on the slide (condensed to 1–2 sentences) 
+ 
+Table or structured bullet format. 
+ 
+### 3. STRATEGY & OUTLOOK SLIDES 
+Extract from strategy, outlook, or guidance slides only. Structure as bullet points: 
+- Strategic ini9a9ves flagged (1 bullet per ini9a9ve) 
+- Capex plan — total ₹ Cr + phasing + purpose 
+- Capacity addi9ons — loca9on, size, 9meline, expected commissioning 
+- Medium-term guidance or targets (reproduce numbers verba9m) 
+- New product launches / geography expansion / M&A 
+
+ 
+### 4. CHARTS & DATA TABLES 
+For each chart or data table in the deck: 
+- Extract all data labels and axis values 
+- Note the chart 9tle and what it shows 
+- Skip if purely illustra9ve with no numbers 
+ 
+Format: 
+**Chart: [Title]** 
+[Table of extracted data points] 
+[Short interpreta9on if relevant — e.g. "shows 18% CAGR in order book FY22–FY25"] 
+ 
+### 5. MANAGEMENT MESSAGES / QUOTE SLIDES 
+If any slide features a CEO/CFO quote or strategic message, reproduce the quote verba9m 
+with alribu9on. 
+ 
+### 6. ESG / SUSTAINABILITY SLIDES (if present) 
+Brief bullet summary — 3–5 bullets. Preserve any specific targets (e.g. "Net Zero by 2045", 
+"30% renewable mix by FY28"). 
+ 
+### SLIDES DELIBERATELY SKIPPED 
+Brief note lis9ng categories skipped: "Cover, Agenda, Thank You, Disclaimer, [N] decora9ve 
+slides." 
+ 
+### FILE SUMMARY (at end, a}er all presenta9ons) 
+Documents processed: [Number] 
+Presenta9ons covered: [List with dates] 
+Key numerical data captured: [Capacity figures / Guidance / Segment data / Order book — 
+confirm each present or absent] 
+
+Extrac9on Issues: [Any slide or sec9on poorly extracted / image-based / unreadable] 
+ 
+OUTPUT RULES 
+- Target output length: 600–1,200 words per presenta9on 
+- All numbers must carry units (₹ Cr, %, x, MW, MT, etc.) 
+- Skip: cover slides, agenda, disclaimers, safe harbour, thank-you slides, purely decora9ve 
+slides 
+- Flag explicitly any slide that appeared image-based with no extractable text 
+- Preserve structure and numbers; condense prose

@@ -10,6 +10,8 @@ import axios from 'axios';
 
 /** @constant {string} API_URL - Backend API base URL */
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+/** Trailing-slash-free base for building absolute browser URLs (iframe, new tab) */
+const API_BASE_TRIMMED = API_URL.replace(/\/+$/, '');
 if (process.env.NODE_ENV !== 'production') {
   console.log('API Client initialized with URL:', API_URL);
 }
@@ -71,7 +73,76 @@ export const stockAPI = {
     api.get(`/stocks/${symbol}/financials?quarters=${quarters}`),
   /** Get quarterly results @see GET /api/stocks/:symbol/quarterly */
   getQuarterlyResults: (symbol) => api.get(`/stocks/${symbol}/quarterly`),
+  /**
+   * @see HEAD /api/stocks/:symbol/research-dashboard
+   * @returns {Promise<import('axios').AxiosResponse<void>>} status 200 if HTML exists, 404 if not
+   */
+  researchDashboardHead: (symbol) =>
+    api.head(`/stocks/${encodeURIComponent(symbol)}/research-dashboard`, {
+      validateStatus: (s) => s === 200 || s === 404,
+    }),
+  /**
+   * @see POST /api/stocks/:symbol/research-dashboard
+   * @param {string} symbol
+   * @param {File|Blob} file
+   */
+  uploadResearchDashboard: (symbol, file) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post(`/stocks/${encodeURIComponent(symbol)}/research-dashboard`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000,
+      maxContentLength: 30 * 1024 * 1024,
+      maxBodyLength: 30 * 1024 * 1024,
+    });
+  },
+  /** @see DELETE /api/stocks/:symbol/research-dashboard */
+  deleteResearchDashboard: (symbol) =>
+    api.delete(`/stocks/${encodeURIComponent(symbol)}/research-dashboard`),
 };
+
+/**
+ * Institutional equity research pipeline (prompts only; no LLM in backend).
+ */
+export const researchPipelineAPI = {
+  /** @see GET /api/research-pipeline/prompts */
+  listPrompts: () => api.get('/research-pipeline/prompts'),
+  /**
+   * @see GET /api/research-pipeline/prompts/:id
+   * @param {string} id
+   * @param {{ company?: string, ticker?: string }} [params]
+   */
+  getPromptText: (id, params = {}) => {
+    const sp = new URLSearchParams();
+    if (params.company) sp.set('company', String(params.company));
+    if (params.ticker) sp.set('ticker', String(params.ticker));
+    const q = sp.toString();
+    return api.get(`/research-pipeline/prompts/${encodeURIComponent(id)}${q ? `?${q}` : ''}`, {
+      responseType: 'text',
+      transformResponse: [(d) => d],
+    });
+  },
+  /**
+   * Absolute URL to open raw prompt in a new tab (optional).
+   * @param {string} id
+   * @param {{ company?: string, ticker?: string }} [params]
+   */
+  getPromptAbsoluteUrl: (id, params = {}) => {
+    const sp = new URLSearchParams();
+    if (params.company) sp.set('company', String(params.company));
+    if (params.ticker) sp.set('ticker', String(params.ticker));
+    const q = sp.toString();
+    return `${API_BASE_TRIMMED}/research-pipeline/prompts/${encodeURIComponent(id)}${q ? `?${q}` : ''}`;
+  },
+};
+
+/**
+ * Browser URL for embedding uploaded dashboard HTML (same origin as API host).
+ * @param {string} symbol
+ */
+export function getResearchDashboardIframeSrc(symbol) {
+  return `${API_BASE_TRIMMED}/stocks/${encodeURIComponent(symbol)}/research-dashboard`;
+}
 
 // Transcript APIs
 export const transcriptAPI = {

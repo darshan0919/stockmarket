@@ -1,0 +1,103 @@
+EXTRACTION PROMPT 2: CONCALLS ONLY 
+Company: [Company name] 
+Ticker: [NSE 9cker] 
+Quarters alached: [infer from filenames, e.g., Q1FY25, Q2FY25, Q3FY25, Q4FY25] 
+ 
+You are an equity research analyst. Extract only the high-signal sec9ons from each concall 
+transcript.  
+
+Do NOT reproduce full verba9m transcript text. Condense intelligently — preserve exact 
+numbers,  
+management language on guidance/outlook, and verba9m quotes only where a specific 
+phrase carries analy9cal weight. 
+ 
+Process all quarters. Output most recent quarter first. 
+ 
+For each transcript, produce the following structured sec9ons: 
+ 
+### HEADER 
+Company: [Name] 
+Quarter: [Q#FY##] 
+Date of Call: [Date] 
+Key Management Present: [Name – Title] for each speaker 
+Analyst Firms Present: [List firms] 
+ 
+### 1. FINANCIAL PERFORMANCE SUMMARY 
+Extract reported numbers only (no commentary). Use a compact table format: 
+ 
+| Metric | Current Qtr | YoY | QoQ | 
+| Revenue (₹ Cr) | | | | 
+| EBITDA (₹ Cr) | | | | 
+| EBITDA Margin (%) | | | | 
+| PAT (₹ Cr) | | | | 
+| Order Inflow (₹ Cr) | | | | 
+| Order Book (₹ Cr) | | | | 
+ 
+Add other segment/KPI rows only if explicitly stated in the call. 
+ 
+
+### 2. MANAGEMENT OPENING — KEY EXTRACTS 
+Do not reproduce the full opening statement. Extract only: 
+- Guidance statements (revenue growth, margin targets, order inflow targets) 
+- Any changes to prior guidance 
+- Segment-level commentary with specific numbers 
+- Capex, debt, working capital outlook 
+- Any one-9me items or excep9onal factors called out 
+ 
+Format as labelled bullet points. Include direct quotes only for guidance phrases. 
+ 
+### 3. ANALYST Q&A — HIGH SIGNAL EXCHANGES 
+Extract only ques9ons and answers that contain: 
+- Guidance clarifica9on or pushback 
+- Margin drivers / headwinds 
+- Order pipeline, conversion 9melines, win rates 
+- Working capital or cash flow concerns 
+- Compe99ve dynamics 
+- Specific segment or geography outlook 
+- Management walking back or upgrading prior statements 
+ 
+**Format:** 
+ 
+Q [Analyst name, Firm]: [Condensed ques9on — 1–3 sentences capturing the core ask] 
+A [Respondent, Title]: [Condensed answer — preserve exact numbers and any forward-
+looking language verba9m. Paraphrase factual background.] 
+ 
+Skip rou9ne housekeeping ques9ons (technical difficul9es, thank-yous, repeat of already-
+stated numbers). 
+ 
+
+### 4. GUIDANCE TRACKER 
+Compile all forward-looking statements made in this call into a single table: 
+ 
+| Topic | Guidance / Target | Timeframe | Prior Guidance (if revised) | 
+| Revenue growth | | | | 
+| EBITDA margin | | | | 
+| Order inflow | | | | 
+| Capex | | | | 
+| Debt / Net D/E | | | | 
+| Other | | | | 
+ 
+### 5. KEY RISKS AND CONCERNS RAISED 
+List any risks, headwinds, or concerns raised — either by management proac9vely or in 
+response to analyst ques9ons. Bullet format. 3–8 points. 
+ 
+### 6. NOTABLE MANAGEMENT COMMENTARY 
+Verba9m quotes only where exact phrasing malers analy9cally (e.g. a commitment, a 
+walking-back of guidance, an unusually specific claim). Limit to 3–5 quotes per transcript. 
+Label each with speaker name and context. 
+ 
+### FILE SUMMARY (at end of file, a}er all quarters) 
+Documents processed: [Number] 
+Quarters covered: [List] 
+Date range: [Earliest to latest] 
+Extrac9on issues: [Any transcript incomplete, poorly formaled, or missing sec9ons] 
+ 
+OUTPUT RULES 
+- Target output length: 800–1,500 words per quarter transcript 
+
+- Do not reproduce management preamble, operator scripts, safe harbour disclaimers, or 
+vote-of-thanks exchanges 
+- All numbers must carry units (₹ Cr, %, x) 
+- If a sec9on has no relevant content for a given quarter, write: *Not discussed / Not 
+available* 
+- Write in crisp analyst prose — no filler phrases

@@ -11,6 +11,7 @@ import TechnicalTab from '../../components/stock/TechnicalTab';
 import TranscriptTab from '../../components/stock/TranscriptTab';
 import AnnouncementsTab from '../../components/stock/AnnouncementsTab';
 import OrdersTab from '../../components/stock/OrdersTab';
+import ResearchPipelineTab from '../../components/stock/ResearchPipelineTab';
 
 /**
  * Stock detail route: loads quote and fundamentals from GET /api/stocks/:symbol.
@@ -128,6 +129,7 @@ export default function StockDetails() {
     { id: 'transcript', label: 'Transcripts' },
     { id: 'orders', label: 'Orders' },
     { id: 'announcements', label: 'Announcements' },
+    { id: 'research', label: 'Research pipeline' },
   ];
 
   return (
@@ -182,6 +184,7 @@ export default function StockDetails() {
             {activeTab === 'transcript' && <TranscriptTab symbol={basic_info.symbol} />}
             {activeTab === 'orders' && <OrdersTab symbol={basic_info.symbol} />}
             {activeTab === 'announcements' && <AnnouncementsTab symbol={basic_info.symbol} />}
+            {activeTab === 'research' && <ResearchPipelineTab basicInfo={basic_info} />}
           </div>
         </div>
       </div>

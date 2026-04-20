@@ -41,3 +41,6 @@ coverage/
 # Downloads
 downloads/
 
+# Uploaded research dashboards (per-symbol HTML)
+backend/uploads/
+
