@@ -134,6 +134,41 @@ export const researchPipelineAPI = {
     const q = sp.toString();
     return `${API_BASE_TRIMMED}/research-pipeline/prompts/${encodeURIComponent(id)}${q ? `?${q}` : ''}`;
   },
+  /** @see POST /api/research-pipeline/workspace/:symbol/init */
+  initWorkspace: (symbol) =>
+    api.post(`/research-pipeline/workspace/${encodeURIComponent(symbol)}/init`),
+  /** @see GET /api/research-pipeline/workspace/:symbol/status */
+  getWorkspaceStatus: (symbol) =>
+    api.get(`/research-pipeline/workspace/${encodeURIComponent(symbol)}/status`),
+  /**
+   * Save announcement PDFs under RESEARCH_ROOT/[TICKER]/Events_Announcements/
+   * @see POST /api/research-pipeline/workspace/:symbol/events-pdfs
+   */
+  saveEventsPdfsToWorkspace: (symbol, announcements, options = {}) => {
+    const body = { announcements };
+    const s =
+      options.search !== undefined && options.search !== null ? String(options.search).trim() : '';
+    if (s) body.search = s;
+    return api.post(
+      `/research-pipeline/workspace/${encodeURIComponent(symbol)}/events-pdfs`,
+      body,
+      {
+        timeout: 300000,
+      }
+    );
+  },
+  /**
+   * StockScans multi-category PDF fetch into workspace folders for a time window.
+   * @see POST /api/research-pipeline/workspace/:symbol/stockscans-pack
+   * @param {string} symbol
+   * @param {string} timeSpan - m3|m6|y1|y3|y5|all
+   */
+  stockscansPackToWorkspace: (symbol, timeSpan) =>
+    api.post(
+      `/research-pipeline/workspace/${encodeURIComponent(symbol)}/stockscans-pack`,
+      { timeSpan },
+      { timeout: 600000 }
+    ),
 };
 
 /**

@@ -14,7 +14,7 @@ Produce **one** offline-capable `[TICKER]_Dashboard.html`: institutional-grade s
 **Required**
 
 - `[TICKER]_MasterData.xlsx` — Screener.in export (tabs: Financials, Peers, Shareholding, Company, Ratios).  
-- `[TICKER]_AR_Extracts.txt`, `[TICKER]_Concall.txt`, `[TICKER]_InvestorPres.txt`, `[TICKER]_Ra9ngReports.txt` (or consistent rating filename matching your Project A outputs).
+- `[TICKER]_AR_Extracts.txt`, `[TICKER]_Concall.txt`, `[TICKER]_InvestorPres.txt`, `[TICKER]_RatingReports.txt` (or consistent rating filename matching your Project A outputs).
 
 **Optional**
 

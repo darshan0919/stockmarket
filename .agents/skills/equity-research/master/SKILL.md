@@ -26,12 +26,13 @@ Route to the individual sub-skill if the user explicitly asks for just a 1-pager
 
 **0 — Intake.** `GET /api/stocks/:symbol` to resolve meta. Create `~/Research/[TICKER]/{Annual_Reports,Concalls,Investor_Presentations,Credit_Rating_Reports,Events_Announcements}/`.
 
-**1 — Acquisition (local backend).** Start backend (`cd backend && npm start`; read actual port from stdout — `findAvailablePort` may drift). Run in parallel:
+**1 — Acquisition (local backend).** Start backend (`cd backend && npm start`; read actual port from stdout — `findAvailablePort` may drift). Set `RESEARCH_ROOT` (default `~/Research`) on the API host so paths match this skill. Run in parallel:
 | Source | Endpoint / script | Target |
 |---|---|---|
-| Announcements (Stockscans) | `POST /api/announcements/:symbol/download` | `Events_Announcements/` |
-| AR / concalls / decks / ratings | `backend/scripts/*` + `backend/api/{nse,bse,stockscans}*.js` | respective folders |
-| Screener MasterData.xlsx | `backend/api/screener*` | `[TICKER]_MasterData.xlsx` |
+| Announcements PDFs → workspace | `GET /api/announcements/:symbol` → `POST /api/research-pipeline/workspace/:symbol/events-pdfs` (or `master/scripts/orchestrate.py acquire`) | `[RESEARCH_ROOT]/[TICKER]/Events_Announcements/*.pdf` |
+| ZIP mirror (optional) | `POST /api/announcements/:symbol/download` | repo `downloads/*.zip` only |
+| AR / concalls / decks / ratings | `backend/scripts/*` + `backend/api/{nse,bse,stockscans}*.js` | respective folders under `[RESEARCH_ROOT]/[TICKER]/` |
+| Screener MasterData.xlsx | `backend/api/screener*` | `[RESEARCH_ROOT]/[TICKER]/[TICKER]_MasterData.xlsx` |
 
 Skip if user supplied files.
 

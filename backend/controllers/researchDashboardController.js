@@ -124,11 +124,22 @@ function deleteResearchDashboard(req, res) {
   }
 }
 
+/**
+ * @param {string} symbol
+ * @returns {boolean}
+ */
+function hasUploadedDashboard(symbol) {
+  const { file, sym } = dashboardPathForSymbol(symbol);
+  return !!(sym && fs.existsSync(file));
+}
+
 module.exports = {
   headResearchDashboard,
   getResearchDashboard,
   postResearchDashboard,
   deleteResearchDashboard,
+  hasUploadedDashboard,
+  dashboardPathForSymbol,
   MAX_FILE_BYTES,
   UPLOAD_ROOT,
 };

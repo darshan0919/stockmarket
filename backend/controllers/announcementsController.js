@@ -12,6 +12,7 @@ const archiver = require('archiver');
 const { NSE_HEADERS, parseNseDate } = require('../utils/nseHelpers');
 const { ensureRepoDownloadsRoot } = require('../utils/repoDownloads');
 const { searchCompanyAnnouncements } = require('../services/stockscansAnnouncements');
+const { fetchAnnouncementPdfBuffers } = require('../services/announcementPdfFetch');
 
 /** @typedef {'auto'|'stockscans'|'nse'} AnnouncementsProviderMode */
 
@@ -260,34 +261,17 @@ const downloadAnnouncements = async (req, res, next) => {
       throw err;
     });
 
+    const fetched = await fetchAnnouncementPdfBuffers(pdfs);
     let successCount = 0;
     let failCount = 0;
 
-    for (const pdf of pdfs) {
-      try {
-        const isStockScansS3 =
-          typeof pdf.url === 'string' &&
-          pdf.url.includes('stockscans-assets.s3.ap-south-1.amazonaws.com');
-        const pdfResponse = await axios.get(pdf.url, {
-          responseType: 'arraybuffer',
-          timeout: 30000,
-          headers: isStockScansS3 ? { Accept: 'application/pdf,*/*' } : NSE_HEADERS,
+    for (const r of fetched) {
+      if (r.ok) {
+        archive.append(r.buffer, {
+          name: `${folderName}/${r.filename}`,
         });
-
-        const safeSubject = (pdf.subject || 'announcement')
-          .replace(/[^a-z0-9]/gi, '_')
-          .replace(/_+/g, '_')
-          .substring(0, 60);
-        const date = parseNseDate(pdf.date) || 'unknown';
-        const filename = `${date}_${safeSubject}.pdf`;
-
-        archive.append(Buffer.from(pdfResponse.data), {
-          name: `${folderName}/${filename}`,
-        });
-
         successCount++;
-      } catch (err) {
-        console.error(`Failed to download PDF: ${pdf.url}`, err.message);
+      } else {
         failCount++;
       }
     }

@@ -17,8 +17,6 @@ import json
 import os
 import sys
 from pathlib import Path
-from urllib.parse import urlencode
-
 import requests
 
 BACKEND_DEFAULT = os.environ.get("STOCKMARKET_BACKEND", "http://localhost:5000")
@@ -47,9 +45,39 @@ def acquire(ticker: str, backend: str) -> None:
     sym = ticker.upper()
 
     def fetch_announcements():
-        r = requests.post(f"{backend}/api/announcements/{sym}/download", timeout=300)
-        r.raise_for_status()
-        return ("announcements", r.json() if r.headers.get("content-type", "").startswith("application/json") else {"ok": True})
+        """List announcements with PDFs, then save into Events_Announcements/ via research-pipeline API."""
+        base = backend.rstrip("/")
+        init_r = requests.post(f"{base}/api/research-pipeline/workspace/{sym}/init", timeout=60)
+        init_r.raise_for_status()
+        ann_r = requests.get(
+            f"{base}/api/announcements/{sym}",
+            params={"provider": "auto"},
+            timeout=120,
+        )
+        ann_r.raise_for_status()
+        items = ann_r.json().get("data") or []
+        downloads = []
+        for it in items:
+            url = it.get("attchmntFile")
+            if not url:
+                continue
+            downloads.append(
+                {
+                    "url": url,
+                    "subject": it.get("subject") or it.get("desc") or "announcement",
+                    "date": it.get("an_dt") or "",
+                }
+            )
+        if not downloads:
+            return ("announcements", {"skipped": "no_pdf_attachments_in_feed"})
+        downloads = downloads[:50]
+        save_r = requests.post(
+            f"{base}/api/research-pipeline/workspace/{sym}/events-pdfs",
+            json={"announcements": downloads},
+            timeout=300,
+        )
+        save_r.raise_for_status()
+        return ("announcements", save_r.json())
 
     def fetch_stock_meta():
         r = requests.get(f"{backend}/api/stocks/{sym}", timeout=30)
