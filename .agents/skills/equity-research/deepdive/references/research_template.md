@@ -1,252 +1,107 @@
 # Equity Research Deep Dive — 19-Section Template
 
-This is the analytical framework. Follow this structure for every report. Adapt section depth
-based on available data — skip sections only if data is genuinely unavailable.
+Analytical framework. Adapt depth to data; skip only when genuinely unavailable.
+
+## Dashboard mapping (for master skill routing)
+
+| § | Section | Dashboard tab |
+|---|---|---|
+| 1 | Business Deep Dive | 1 Overview, 2 Business |
+| 2 | Industry & Competitive | 3 Industry |
+| 3 | Peer Comparison | 3 Industry, 4 Financials |
+| 4 | Product & Revenue Concentration | 2 Business |
+| 5 | Pipeline & Future Growth | 5 Growth |
+| 6 | Business Performance | 4 Financials |
+| 7 | Analyst Q&A | 11 Concall |
+| 8 | Management Commentary | 11 Concall, 0 Exec Summary |
+| **9** | **Management & Promoter Track Record** | *no tab — memo only* |
+| 10 | Capital Allocation | 12 Cap. Alloc. |
+| 11 | Financial Quality & Red Flags | 7 Forensics |
+| 12 | Shareholding Pattern | 13 Ownership |
+| 13 | Guidance & Outlook | 4 Financials, 5 Growth, 11 Concall |
+| **14** | **Variant Perception** | *no tab — memo only* |
+| 15 | Scenario Building | 6 Estimates, 8 Valuation |
+| 16 | Valuation Analysis | 8 Valuation |
+| 17 | Investment Verdict | 0, 9 Thesis |
+| 18 | Key Quotes | 11 Concall |
+| **19** | **Technical Analysis** | *no tab — memo only* |
+
+Master skill: run §1–18 (minus 9, 14) feeding tabs; include 9, 14, 19 only in the standalone PDF.
+
+## Research searches (Phase 1)
+
+Adapt company name and sector:
+
+1. `<Company> business overview products segments`
+2. `<Company> latest quarterly results revenue profit FY26`
+3. `<Company> annual report FY25 FY26 revenue EBITDA PAT`
+4. `<Company> management team promoter background`
+5. `<Company> competitors peer comparison industry`
+6. `<Company> capacity expansion capex growth plans`
+7. `<Company> concall transcript latest quarter`
+8. `<Company> shareholding pattern FII DII mutual fund`
+9. `<Company> risks challenges concerns`
+10. `<Company> valuation PE EV/EBITDA historical`
+11. `<Industry> market size India growth rate TAM`
+12. `<Company> stock price technical analysis 52 week`
+
+Also: `site:screener.in <Company>`, Trendlyne, Tickertape, MoneyControl.
 
 ---
 
-## Section 1: Business Deep Dive
+## §1 Business Deep Dive
+Business model in plain English; value-chain position; revenue by segment (table); key products & end-uses; GTM (B2B/B2C, direct/distributor/licensing); critical dependencies (customer/supplier concentration, regulatory approvals).
 
-Answer ALL of these:
-- What is the business and business model? Explain to a layman.
-- Where does it fit in the value chain between suppliers and customers?
-- Revenue breakdown by segment (table format).
-- Key products/services and their end-use applications.
-- Go-to-market strategy (B2B vs B2C, direct vs distributor, licensing vs owned).
-- Critical dependencies (key customers, suppliers, regulatory approvals).
+## §2 Industry & Competitive Positioning
+Porter's 5 Forces (brief, specific); industry trends (pricing, demand, regulation, tech); company position (leader/challenger/niche); pricing power vs commoditization; barriers & moat; TAM/SAM/SOM if available.
 
-**Output format**: Narrative paragraphs + revenue breakdown table.
+## §3 Peer Comparison (CRITICAL)
+Table with 4–6 closest listed peers across: Market Cap, Revenue, 3Y Rev CAGR, EBITDA Mgn, PAT Mgn, ROE, ROCE, P/E (TTM), EV/EBITDA, P/B, D/E. Then: where better/worse; premium/discount justified?
 
----
+## §4 Product & Revenue Concentration
+Top 5–10 products by revenue; top-3 product concentration (%); per-product risks (patent, regulatory, customer); highest vs lowest margin SKUs; lifecycle stage; partnerships/licensing.
 
-## Section 2: Industry & Competitive Positioning
+## §5 Pipeline & Future Growth
+R&D / NPD pipeline by stage (early → filed → approved → launched); launch timelines + addressable market; R&D % of revenue vs peers; first-to-market opportunities.
 
-- Porter's 5 Forces analysis (brief but specific).
-- Industry trends: pricing, demand, regulation, technology shifts.
-- Company positioning: leader, challenger, or niche player?
-- Pricing power vs commoditization signals.
-- Barriers to entry and moat assessment.
-- TAM/SAM/SOM if available.
+## §6 Business Performance
+Key KPIs; performance by segment/geo/product; structural vs cyclical growth; margin bridge (gross, EBITDA, PAT); working-capital cycle (debtor/inventory/payable days, CCC). Tables: KPIs, margin trend, WC.
 
-**Output format**: Structured analysis with industry data table.
+## §7 Analyst Q&A Goldmine
+Most important questions from recent concalls; repeated analyst concerns; how mgmt handles pressure; questions dodged or answered vaguely; most bullish/bearish analyst views.
 
----
+## §8 Management Commentary (MOST IMPORTANT)
+Tone (optimism/caution/defensiveness); what mgmt is NOT saying; hedging/vague/overconfident language; forward-looking statement credibility; **would you give them capital?** Justify.
 
-## Section 3: Peer Comparison (CRITICAL)
+## §9 Management & Promoter Track Record (CRITICAL)
+Backgrounds, education, tenure; past successes/failures/controversies; comp vs company size; recent departures/additions; professional vs promoter-run; **3Y promoter holding trend**; pledging % and trend; related-party transactions (nature, quantum, arms-length); SEBI / legal actions.
 
-Create a detailed peer comparison table with 4-6 closest listed peers:
+## §10 Capital Allocation & Strategy
+Capex plans (scale, timing, returns); IRR / asset turns / payback; M&A history and track record; capital discipline vs empire-building; dividend and buyback history; historical capital-allocation returns.
 
-| Metric | Company | Peer 1 | Peer 2 | Peer 3 | Peer 4 |
-|--------|---------|--------|--------|--------|--------|
-| Market Cap | | | | | |
-| Revenue (Rs Cr) | | | | | |
-| Rev Growth 3Y CAGR | | | | | |
-| EBITDA Margin | | | | | |
-| PAT Margin | | | | | |
-| ROE | | | | | |
-| ROCE | | | | | |
-| P/E (TTM) | | | | | |
-| EV/EBITDA | | | | | |
-| P/B | | | | | |
-| Debt/Equity | | | | | |
+## §11 Financial Quality & Red Flags (BRUTAL)
+Number–commentary inconsistencies; aggressive accounting (rev recognition, capitalization, provisions); WC stress / debt issues / cash-flow mismatch; one-off adjustments; **CFO vs PAT bridge (table required)**; contingent liabilities & off-BS items; auditor qualifications; unusual RPT; tax-rate gap. Output: red-flag checklist + CFO-vs-PAT table.
 
-Then analyze: Where is the company better/worse than peers? Is the valuation premium/discount justified?
+## §12 Shareholding Pattern
+Current split (Promoter/FII/DII/MF/Retail — table); 4-quarter change (table); prominent institutional holders; recent bulk/block deals; pledging status and trend.
 
----
+## §13 Guidance & Outlook
+Explicit guidance from mgmt; implicit guidance (between the lines); assumptions; risks to guidance (internal + external); conservative vs aggressive; what must go right/wrong.
 
-## Section 4: Product & Revenue Concentration
+## §14 Variant Perception (EDGE)
+What the market is likely misunderstanding; upside not fully priced; downside the market ignores; consensus vs reality; what would change the narrative. Without this, the report adds no value over a terminal.
 
-- Top 5-10 products/SKUs by revenue contribution.
-- Revenue concentration from top 3 products (%).
-- Risks per product: patent expiry, regulatory, customer concentration.
-- Highest vs lowest margin products.
-- Product lifecycle stage (growth/maturity/decline).
+## §15 Scenario Building
+Three scenarios with EXPLICIT assumptions — Bull / Base / Bear. Each: growth rate, margin, catalyst assumptions; Revenue / EBITDA / PAT projections (table); exit multiple; target price; what triggers this scenario.
 
----
+## §16 Valuation Analysis
+Current multiples (P/E, EV/EBITDA, P/B, P/S); 5Y historical range (high/low/median — table); peer comp (ref §3); DCF if data permits (state assumptions); what's priced in at CMP; margin of safety.
 
-## Section 5: Pipeline & Future Growth
+## §17 Investment Verdict
+Clear view: **BUY / HOLD / AVOID**; time horizon; key triggers to track next 2–4 quarters; what would change the thesis (bull + bear); position sizing (high conviction vs tracking); specific target price with methodology.
 
-- R&D or product development pipeline.
-- Pipeline by stage: early development → filed → approved → launched.
-- Expected launch timelines and addressable market for each.
-- R&D spend as % of revenue vs peers.
-- First-to-market opportunities.
-- Partnerships or licensing deals for pipeline products.
+## §18 Key Quotes
+Important analyst questions; key mgmt quotes supporting conclusions; both bullish and cautionary quotes; use as evidence for the thesis.
 
----
-
-## Section 6: Business Performance
-
-- Key KPIs that drive the business.
-- Performance by segment, geography, product.
-- Growth drivers vs temporary tailwinds.
-- Cyclical vs structural growth separation.
-- Margin analysis: gross, EBITDA, PAT — drivers of expansion/contraction.
-- Working capital cycle: debtor days, inventory days, payable days, CCC.
-
-**Output format**: KPI table + margin trend table + working capital table.
-
----
-
-## Section 7: Analyst Q&A Goldmine
-
-- Most important questions from recent earnings calls.
-- Repeated concerns across analysts.
-- How management responds under pressure.
-- Questions avoided or answered vaguely.
-- What analysts are most bullish/bearish about.
-
----
-
-## Section 8: Management Commentary (MOST IMPORTANT)
-
-- Tone: optimism vs caution vs defensiveness.
-- What management is NOT saying (missing disclosures).
-- Hedging language, vague statements, overconfidence.
-- Forward-looking statements — credibility assessment.
-- Would you give money to this management? Why or why not?
-
----
-
-## Section 9: Management & Promoter Track Record (CRITICAL)
-
-- Promoters and key management: background, education, experience.
-- Previous successes/failures/controversies.
-- Tenure of key executives.
-- Compensation relative to company size.
-- Recent departures/additions and reasons.
-- Professional management vs promoter-run family business?
-- Promoter holding trend (3 years): increasing/stable/decreasing.
-- Promoter pledging: % and trend.
-- Related party transactions: nature, quantum, arms-length assessment.
-- SEBI/legal actions against promoters.
-
----
-
-## Section 10: Capital Allocation & Strategy
-
-- Capex plans: scale, timing, expected returns.
-- ROI clarity: IRR, asset turns, payback period.
-- M&A history and track record.
-- Capital discipline vs empire building.
-- Dividend policy and payout history.
-- Buyback history.
-- Historical capital allocation returns.
-
----
-
-## Section 11: Financial Quality & Red Flags
-
-This section must be BRUTALLY honest. Check for:
-- Inconsistencies in numbers vs commentary.
-- Aggressive accounting (revenue recognition, capitalization, provisions).
-- Working capital stress, debt issues, cash flow mismatch.
-- One-off adjustments masking real performance.
-- **CFO vs PAT**: Is cash profit matching reported profit? (Table required)
-- Contingent liabilities and off-balance sheet items.
-- Auditor observations or qualifications.
-- Unusual related party transactions.
-- Tax rate vs statutory rate gaps.
-
-**Output format**: Red flag checklist table + CFO vs PAT comparison.
-
----
-
-## Section 12: Shareholding Pattern
-
-- Current breakdown: Promoter, FII, DII, MF, Retail (table).
-- Change over last 4 quarters (table).
-- Prominent MF/institutional holders.
-- Recent bulk/block deals.
-- Pledging status and trend.
-
----
-
-## Section 13: Guidance & Outlook
-
-- Explicit guidance extracted from management commentary.
-- Implicit guidance (reading between the lines).
-- Assumptions behind guidance.
-- Risks to guidance (internal + external).
-- Conservative vs aggressive assessment.
-- What must go right/wrong for guidance to be met/missed.
-
----
-
-## Section 14: Variant Perception (CRITICAL FOR EDGE)
-
-This is what separates useful research from noise:
-- What is the market likely misunderstanding?
-- Upside triggers not fully priced in.
-- Downside risks the market may be ignoring.
-- Consensus view vs reality.
-- What would change the narrative?
-
----
-
-## Section 15: Scenario Building
-
-Build 3 scenarios with EXPLICIT assumptions:
-
-### Bull Case
-- Specific growth rate, margin, and catalyst assumptions.
-- Revenue, EBITDA, PAT projections (table).
-- Valuation multiple and target price.
-- What needs to go right.
-
-### Base Case
-- Realistic expectations with specific numbers.
-- Revenue, EBITDA, PAT projections (table).
-- Valuation multiple and fair value.
-- Most likely outcome.
-
-### Bear Case
-- What goes wrong — specific risks.
-- Revenue, EBITDA, PAT projections (table).
-- Valuation multiple and downside price.
-- Key triggers for this scenario.
-
----
-
-## Section 16: Valuation Analysis
-
-- Current multiples: P/E, EV/EBITDA, P/B, P/S.
-- 5-year historical range (table: high/low/median).
-- Peer comparison multiples (reference Section 3).
-- DCF if sufficient data (state assumptions explicitly).
-- What is priced in at current levels?
-- Margin of safety assessment.
-
----
-
-## Section 17: Investment Verdict
-
-Must include ALL of:
-- Clear view: **BUY / HOLD / AVOID**
-- Time horizon: short term vs long term
-- Key triggers to track (next 2-4 quarters)
-- What would change the thesis (bull and bear)
-- Position sizing: high conviction vs tracking position
-- Specific target price with methodology
-
----
-
-## Section 18: Key Quotes
-
-- Important analyst questions from concalls.
-- Key management quotes supporting conclusions.
-- Both bullish and cautionary quotes.
-- Use quotes as evidence for investment thesis.
-
----
-
-## Section 19: Technical Analysis
-
-- Primary trend (weekly) and secondary trend (daily).
-- Key support levels (3+) with rationale.
-- Key resistance levels (3+) with rationale.
-- Moving averages: 50/100/200 DMA vs price. Golden/death cross?
-- RSI: current reading and zone.
-- Volume analysis: move supported by volume? Divergences?
-- Chart patterns forming.
-- Technical verdict: BUY/HOLD/SELL with risk-reward.
+## §19 Technical Analysis
+Primary (weekly) & secondary (daily) trend; 3+ support and 3+ resistance levels with rationale; 50/100/200 DMA vs price (golden/death cross?); RSI reading and zone; volume confirmation / divergences; chart patterns forming; **technical verdict + risk-reward**.
