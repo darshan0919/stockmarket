@@ -8,6 +8,8 @@ const { fetchAndStoreQuarterlyResults } = require('../scripts/balanceSheetDataFe
 const { fetchStockDetails } = require('../scripts/stockDetailsFetcher');
 const axios = require('axios');
 const { getStockScripCode } = require('../api/bseIndiaApi');
+const { getPriceVolumeDeliverable, formatDate } = require('../api/nseIndiaApi');
+const { parseNseDateToObject } = require('../utils/nseHelpers');
 
 /**
  * Search stocks by symbol or name using NSE India API
@@ -496,10 +498,141 @@ const getQuarterlyResults = async (req, res, next) => {
   }
 };
 
+/**
+ * Aggregate daily candles into ISO-week (Mon-Fri) candles.
+ * Each output candle: open of first day, close of last, high/low extrema,
+ * sum of traded & deliverable volumes.
+ */
+const aggregateWeekly = (daily) => {
+  if (!daily.length) return [];
+  const weeks = new Map();
+  for (const c of daily) {
+    const d = new Date(c.time + 'T00:00:00Z');
+    // Monday-anchored ISO week key
+    const day = d.getUTCDay(); // 0..6 (Sun..Sat)
+    const offsetToMon = (day + 6) % 7;
+    const monday = new Date(d);
+    monday.setUTCDate(d.getUTCDate() - offsetToMon);
+    const key = monday.toISOString().slice(0, 10);
+
+    const w = weeks.get(key);
+    if (!w) {
+      weeks.set(key, { ...c, time: key });
+    } else {
+      w.high = Math.max(w.high, c.high);
+      w.low = Math.min(w.low, c.low);
+      w.close = c.close;
+      w.volume += c.volume;
+      w.deliveryVolume += c.deliveryVolume;
+    }
+  }
+  return [...weeks.values()].sort((a, b) => a.time.localeCompare(b.time));
+};
+
+const toNumber = (v) => {
+  if (v === null || v === undefined || v === '' || v === '-') return 0;
+  const n = typeof v === 'number' ? v : parseFloat(String(v).replace(/,/g, ''));
+  return Number.isFinite(n) ? n : 0;
+};
+
+/**
+ * GET /api/stocks/:symbol/delivery-volume
+ * Query: from=YYYY-MM-DD, to=YYYY-MM-DD, interval=daily|weekly
+ *
+ * Proxies NSE historicalOR (priceVolumeDeliverable) and returns rows
+ * suitable for lightweight-charts: { time, open, high, low, close, volume, deliveryVolume, deliveryPercent }.
+ * Chunks NSE requests to 365-day windows (NSE limit) and dedupes.
+ */
+const getDeliveryVolume = async (req, res) => {
+  const symbol = String(req.params.symbol || '').toUpperCase();
+  const interval = (req.query.interval || 'daily').toLowerCase();
+  if (!symbol) {
+    return res.status(400).json({ success: false, error: 'Symbol required' });
+  }
+  if (!['daily', 'weekly'].includes(interval)) {
+    return res.status(400).json({ success: false, error: 'interval must be daily|weekly' });
+  }
+
+  const today = new Date();
+  const defaultFrom = new Date(today);
+  defaultFrom.setFullYear(today.getFullYear() - 1);
+
+  const parseDate = (s, fallback) => {
+    if (!s) return fallback;
+    const d = new Date(s);
+    return Number.isNaN(d.getTime()) ? fallback : d;
+  };
+
+  const toDate = parseDate(req.query.to, today);
+  const fromDate = parseDate(req.query.from, defaultFrom);
+
+  if (fromDate > toDate) {
+    return res.status(400).json({ success: false, error: '`from` must be <= `to`' });
+  }
+
+  try {
+    // Chunk into <= 365-day windows for NSE
+    const chunks = [];
+    let cursor = new Date(fromDate);
+    while (cursor <= toDate) {
+      const chunkEnd = new Date(cursor);
+      chunkEnd.setDate(chunkEnd.getDate() + 364);
+      if (chunkEnd > toDate) chunkEnd.setTime(toDate.getTime());
+      chunks.push([new Date(cursor), new Date(chunkEnd)]);
+      cursor = new Date(chunkEnd);
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    const allRows = [];
+    for (const [a, b] of chunks) {
+      const rows = await getPriceVolumeDeliverable(symbol, formatDate(a), formatDate(b));
+      allRows.push(...rows);
+    }
+
+    const seen = new Map();
+    for (const r of allRows) {
+      const dateObj = parseNseDateToObject(r.mTIMESTAMP || r.CH_TIMESTAMP);
+      if (!dateObj) continue;
+      const time = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+      const open = toNumber(r.CH_OPENING_PRICE);
+      const high = toNumber(r.CH_TRADE_HIGH_PRICE);
+      const low = toNumber(r.CH_TRADE_LOW_PRICE);
+      const close = toNumber(r.CH_CLOSING_PRICE);
+      const volume = toNumber(r.CH_TOT_TRADED_QTY ?? r.COP_TRADED_QTY);
+      const deliveryVolume = toNumber(r.COP_DELIV_QTY);
+      const deliveryPercent = toNumber(r.COP_DELIV_PERC);
+      if (!open && !high && !low && !close) continue;
+      seen.set(time, { time, open, high, low, close, volume, deliveryVolume, deliveryPercent });
+    }
+
+    let candles = [...seen.values()].sort((a, b) => a.time.localeCompare(b.time));
+    if (interval === 'weekly') candles = aggregateWeekly(candles);
+
+    return res.json({
+      success: true,
+      data: {
+        symbol,
+        interval,
+        from: fromDate.toISOString().slice(0, 10),
+        to: toDate.toISOString().slice(0, 10),
+        candles,
+      },
+    });
+  } catch (err) {
+    console.error('getDeliveryVolume error:', err.response?.status, err.message);
+    return res.status(502).json({
+      success: false,
+      error: 'Failed to fetch delivery-volume data from NSE',
+      detail: err.message,
+    });
+  }
+};
+
 module.exports = {
   searchStocks,
   getStockDetails,
   getStockTechnicals,
   getStockFinancials,
   getQuarterlyResults,
+  getDeliveryVolume,
 };

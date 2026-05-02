@@ -32,6 +32,9 @@ A comprehensive local-first stock screener web application for analyzing Indian 
 
 ```
 stockmarket/
+├── package.json         # Yarn 3 workspaces root (yarn install, yarn dev)
+├── yarn.lock            # Pinned dependency tree (commit this file)
+├── .yarnrc.yml          # Yarn Berry settings (node_modules linker)
 ├── backend/
 │   ├── config/           # Database configuration
 │   ├── models/           # Mongoose schemas
@@ -54,62 +57,69 @@ stockmarket/
 
 ### Prerequisites
 
-- Node.js 18+ installed
+- Node.js 18+ (includes [Corepack](https://nodejs.org/api/corepack.html) for the pinned Yarn version)
 - MongoDB installed and running
-- Terminal/Command Prompt
+- Terminal
+
+Enable Corepack once per machine (lets the repo use Yarn 3 via the `packageManager` field in `package.json`):
+
+```bash
+corepack enable
+```
 
 ### Installation
 
-#### 1. Clone the repository
+#### 1. Clone the repository and install dependencies
 
 ```bash
-cd /Users/darshan.patel/code/personal/stockmarket
+cd stockmarket
+yarn install
 ```
 
-#### 2. Setup Backend
+This installs every dependency for the root package, `backend`, and `frontend` (Yarn workspaces).
+
+#### 2. Configure environment
+
+**Backend** — create `backend/.env` (see values your deployment needs), for example:
 
 ```bash
-# Navigate to backend
-cd backend
-
-# Install dependencies
-npm install
-
-# Create .env file
-cat > .env << EOF
+cat > backend/.env << EOF
 MONGO_URL=mongodb://localhost:27017/stock-screener
 PORT=5000
 ALPHA_VANTAGE_API_KEY=your_api_key_here
 FMP_API_KEY=your_api_key_here
 NODE_ENV=development
 EOF
-
-# Seed the database with sample data
-node scripts/fetchData.js
-
-# Start the backend server
-npm run dev
 ```
 
-Backend will run on `http://localhost:5000`
-
-#### 3. Setup Frontend
+**Frontend** — point the app at the API:
 
 ```bash
-# Navigate to frontend (in a new terminal)
-cd frontend
-
-# Install dependencies
-npm install
-
-# Create .env.local file
-echo "NEXT_PUBLIC_API_URL=http://localhost:5000/api" > .env.local
-
-# Start the frontend development server
-npm run dev
+echo "NEXT_PUBLIC_API_URL=http://localhost:5000/api" > frontend/.env.local
 ```
 
-Frontend will run on `http://localhost:3000`
+#### 3. Seed the database (optional, first run)
+
+```bash
+node backend/scripts/fetchData.js
+```
+
+#### 4. Run the full stack in development
+
+From the **repository root**:
+
+```bash
+yarn dev
+```
+
+This starts the Express API (nodemon) and Next.js (`next dev`) together. Backend defaults to `http://localhost:5000`, frontend to `http://localhost:3000`.
+
+To run a single workspace:
+
+```bash
+yarn workspace stock-screener-backend dev
+yarn workspace stock-screener-frontend dev
+```
 
 ### Accessing the Application
 
@@ -198,14 +208,23 @@ crontab -e
 
 ## Available Scripts
 
-### Backend
-- `npm start` - Start production server
-- `npm run dev` - Start development server with nodemon
+### Root (repository)
 
-### Frontend
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm start` - Start production server
+- `yarn install` — Install all workspace dependencies (uses `yarn.lock`)
+- `yarn dev` — Backend + frontend dev servers in one terminal
+- `yarn test` — Run backend tests, then frontend tests
+- `yarn format` — Prettier in backend, then frontend
+
+### Backend (`yarn workspace stock-screener-backend <script>`)
+
+- `yarn workspace stock-screener-backend start` — Production server
+- `yarn workspace stock-screener-backend dev` — Development with nodemon
+
+### Frontend (`yarn workspace stock-screener-frontend <script>`)
+
+- `yarn workspace stock-screener-frontend dev` — Next.js dev server
+- `yarn workspace stock-screener-frontend build` — Production build
+- `yarn workspace stock-screener-frontend start` — Production server
 
 ## Sample Stocks Included
 
@@ -245,7 +264,7 @@ The application comes pre-seeded with 20 major Indian stocks:
 
 ### Port Already in Use
 - Backend (5000): Change PORT in backend/.env
-- Frontend (3000): Use `npm run dev -- -p 3001`
+- Frontend (3000): Use `yarn workspace stock-screener-frontend dev -- -p 3001`
 
 ### No Data in Application
 - Run the seed script: `node backend/scripts/fetchData.js`

@@ -106,8 +106,45 @@ const upcomingResults = async () => {
   }
 };
 
+/**
+ * Fetch historical price-volume-deliverable data for a symbol.
+ * NSE caps each request to ~365 days, so callers requesting longer windows
+ * must chunk and concatenate.
+ *
+ * Returns NSE-shaped rows with fields:
+ *   CH_TIMESTAMP, CH_OPENING_PRICE, CH_TRADE_HIGH_PRICE,
+ *   CH_TRADE_LOW_PRICE, CH_CLOSING_PRICE, CH_TOT_TRADED_QTY,
+ *   COP_DELIV_QTY, COP_DELIV_PERC, mTIMESTAMP
+ */
+const getPriceVolumeDeliverable = async (symbol, fromDate, toDate) => {
+  const cookies = await getNseCookies();
+  const url = `${NSE_API_URL}/historicalOR/generateSecurityWiseHistoricalData`;
+  const response = await axios.get(url, {
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      Accept: 'application/json, text/plain, */*',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Accept-Encoding': 'gzip, deflate, br',
+      Referer: `https://www.nseindia.com/get-quotes/equity?symbol=${encodeURIComponent(symbol)}`,
+      Connection: 'keep-alive',
+      ...(cookies && { Cookie: cookies }),
+    },
+    params: {
+      from: fromDate,
+      to: toDate,
+      symbol,
+      type: 'priceVolumeDeliverable',
+      series: 'ALL',
+    },
+    timeout: 20000,
+  });
+  return Array.isArray(response.data) ? response.data : response.data?.data || [];
+};
+
 module.exports = {
   upcomingResults,
   getNseCookies,
   formatDate,
+  getPriceVolumeDeliverable,
 };

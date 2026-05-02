@@ -23,6 +23,9 @@ Stock Screener is a full-stack application for analyzing Indian stock market dat
 
 ```
 stockmarket/
+├── package.json               # Yarn 3 workspaces root (yarn install, yarn dev)
+├── yarn.lock                  # Pinned installs — commit to git
+├── .yarnrc.yml                # Yarn settings (node_modules linker)
 ├── backend/                    # Express.js REST API server
 │   ├── api/                   # External API integrations (NSE, BSE, Gemini)
 │   ├── controllers/           # Request handlers
@@ -59,9 +62,9 @@ stockmarket/
 ## Getting Started
 
 ### Prerequisites
-- Node.js >= 18.x
+- Node.js >= 18.x (enable Corepack: `corepack enable`)
 - MongoDB >= 6.0
-- npm or yarn
+- Yarn 3 (version pinned via `packageManager` in root `package.json`)
 
 ### Quick Start
 
@@ -70,17 +73,18 @@ stockmarket/
 git clone <repository-url>
 cd stockmarket
 
-# Backend setup
-cd backend
-npm install
-cp .env.example .env  # Configure environment variables
-npm run dev
+corepack enable
+yarn install
 
-# Frontend setup (new terminal)
-cd frontend
-npm install
-npm run dev
+# Backend: create backend/.env (Mongo URL, PORT, API keys — see README)
+# Frontend: API URL (create if missing)
+echo "NEXT_PUBLIC_API_URL=http://localhost:5000/api" > frontend/.env.local
+
+# Run both apps in development (from repo root)
+yarn dev
 ```
+
+**Workspaces**: `backend` and `frontend` are Yarn workspaces. Dependencies resolve from the root `yarn.lock`.
 
 ### Environment Variables
 

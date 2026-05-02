@@ -6,6 +6,7 @@ Get your Stock Screener application up and running in 5 minutes!
 
 Before starting, ensure you have:
 - ✅ Node.js 18+ (`node --version`)
+- ✅ Corepack enabled once: `corepack enable` (pins Yarn via `package.json`)
 - ✅ MongoDB installed and running
 - ✅ Terminal access
 
@@ -27,52 +28,36 @@ net start MongoDB
 mongod --dbpath /path/to/data/directory
 ```
 
-### Step 2: Backend Setup
-
-Open Terminal 1:
+### Step 2: Install and configure (from repo root)
 
 ```bash
-# Navigate to backend directory
-cd /Users/darshan.patel/code/personal/stockmarket/backend
+cd /path/to/stockmarket
 
-# Install dependencies
-npm install
+yarn install
 
-# Create environment file
-cat > .env << 'EOF'
+# Backend env
+cat > backend/.env << 'EOF'
 MONGO_URL=mongodb://localhost:27017/stock-screener
 PORT=5000
 NODE_ENV=development
 EOF
 
-# Seed database (takes 2-3 minutes)
-node scripts/fetchData.js
+# Frontend env
+echo "NEXT_PUBLIC_API_URL=http://localhost:5000/api" > frontend/.env.local
 
-# Start backend server
-npm run dev
+# Seed database (takes 2-3 minutes), first run only
+node backend/scripts/fetchData.js
 ```
 
-✅ Backend should now be running on http://localhost:5000
-
-### Step 3: Frontend Setup
-
-Open Terminal 2:
+### Step 3: Run the app (one terminal)
 
 ```bash
-# Navigate to frontend directory
-cd /Users/darshan.patel/code/personal/stockmarket/frontend
-
-# Install dependencies
-npm install
-
-# Create environment file
-echo "NEXT_PUBLIC_API_URL=http://localhost:5000/api" > .env.local
-
-# Start frontend server
-npm run dev
+yarn dev
 ```
 
-✅ Frontend should now be running on http://localhost:3000
+✅ Backend: http://localhost:5000 — Frontend: http://localhost:3000
+
+To run only one app: `yarn workspace stock-screener-backend dev` or `yarn workspace stock-screener-frontend dev`.
 
 ### Step 4: Access Application
 
@@ -119,7 +104,7 @@ brew services start mongodb-community  # macOS
 # Edit backend/.env and change PORT=5001
 
 # Frontend (port 3000)
-npm run dev -- -p 3001
+yarn workspace stock-screener-frontend dev -- -p 3001
 ```
 
 ### No Stocks Showing
@@ -195,7 +180,7 @@ The application comes with 20 major Indian stocks:
 
 ## Stopping the Application
 
-Press `Ctrl+C` in both terminal windows to stop the servers.
+Press `Ctrl+C` in the terminal running `yarn dev` to stop both servers.
 
 To stop MongoDB:
 

@@ -99,25 +99,31 @@ backend/
 ### Running the Server
 
 ```bash
+# Prefer: install once from monorepo root (see repo README)
+# yarn install
+
+# From repository root
+yarn workspace stock-screener-backend dev   # Development with hot reload
+yarn workspace stock-screener-backend start # Production
+
+# Or from backend/ (after root yarn install)
 cd backend
-npm install
-cp .env.example .env  # Configure environment
-npm run dev           # Development with hot reload
-npm start             # Production
+yarn dev
+yarn start
 ```
 
 ### Running Tests
 
 ```bash
-npm test              # Run all tests with coverage
-npm run test:watch    # Watch mode
+yarn workspace stock-screener-backend test
+yarn workspace stock-screener-backend test:watch
 ```
 
 ### Code Formatting
 
 ```bash
-npm run format        # Format code with Prettier
-npm run format:check  # Check formatting
+yarn workspace stock-screener-backend format
+yarn workspace stock-screener-backend format:check
 ```
 
 ## Environment Variables

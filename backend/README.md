@@ -6,8 +6,11 @@ Express.js REST API for stock screening and analysis.
 
 ### 1. Install Dependencies
 
+From the **repository root** (Yarn workspaces):
+
 ```bash
-npm install
+corepack enable
+yarn install
 ```
 
 ### 2. Configure Environment
@@ -46,11 +49,13 @@ This will populate the database with 20 sample stocks and 5 years of historical 
 ### 5. Start Server
 
 ```bash
-# Development mode (with auto-reload)
-npm run dev
+# From repo root
+yarn workspace stock-screener-backend dev
+yarn workspace stock-screener-backend start   # production
 
-# Production mode
-npm start
+# Or from this directory after root yarn install
+yarn dev
+yarn start   # production
 ```
 
 Server will start on `http://localhost:5000`

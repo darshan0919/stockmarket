@@ -7,6 +7,7 @@ import StockHeader from '../../components/stock/StockHeader';
 import FundamentalsTab from '../../components/stock/FundamentalsTab';
 import FinancialsTab from '../../components/stock/FinancialsTab';
 import ChartTab from '../../components/stock/ChartTab';
+import DeliveryVolumeChartTab from '../../components/stock/DeliveryVolumeChartTab';
 import TechnicalTab from '../../components/stock/TechnicalTab';
 import TranscriptTab from '../../components/stock/TranscriptTab';
 import AnnouncementsTab from '../../components/stock/AnnouncementsTab';
@@ -125,6 +126,7 @@ export default function StockDetails() {
     { id: 'fundamentals', label: 'Fundamentals' },
     { id: 'financials', label: 'Financials' },
     { id: 'chart', label: 'Chart' },
+    { id: 'charts', label: 'Charts' },
     { id: 'technicals', label: 'Technicals' },
     { id: 'transcript', label: 'Transcripts' },
     { id: 'orders', label: 'Orders' },
@@ -180,6 +182,7 @@ export default function StockDetails() {
             {activeTab === 'fundamentals' && <FundamentalsTab fundamentals={fundamentals} />}
             {activeTab === 'financials' && <FinancialsTab symbol={basic_info.symbol} />}
             {activeTab === 'chart' && <ChartTab priceHistory={price_history_5y} />}
+            {activeTab === 'charts' && <DeliveryVolumeChartTab symbol={basic_info.symbol} />}
             {activeTab === 'technicals' && <TechnicalTab symbol={basic_info.symbol} />}
             {activeTab === 'transcript' && <TranscriptTab symbol={basic_info.symbol} />}
             {activeTab === 'orders' && <OrdersTab symbol={basic_info.symbol} />}

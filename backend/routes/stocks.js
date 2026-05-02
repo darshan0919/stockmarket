@@ -6,6 +6,7 @@ const {
   getStockTechnicals,
   getStockFinancials,
   getQuarterlyResults,
+  getDeliveryVolume,
 } = require('../controllers/stockController');
 const {
   headResearchDashboard,
@@ -34,5 +35,8 @@ router.get('/:symbol/financials', getStockFinancials);
 
 // Get quarterly results
 router.get('/:symbol/quarterly', getQuarterlyResults);
+
+// Get OHLC + delivery volume time series (proxies NSE historicalOR)
+router.get('/:symbol/delivery-volume', getDeliveryVolume);
 
 module.exports = router;

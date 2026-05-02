@@ -31,17 +31,31 @@ stockmarket/
 ### Backend
 
 ```bash
-cd backend
-npm test              # Run all tests with coverage
-npm run test:watch    # Watch mode for development
+# From repository root (recommended)
+yarn workspace stock-screener-backend test
+yarn workspace stock-screener-backend test:watch
+
+# Or from backend/
+cd backend && yarn test
+cd backend && yarn test:watch
 ```
 
 ### Frontend
 
 ```bash
-cd frontend
-npm test              # Run all tests with coverage
-npm run test:watch    # Watch mode for development
+# From repository root (recommended)
+yarn workspace stock-screener-frontend test
+yarn workspace stock-screener-frontend test:watch
+
+# Or from frontend/
+cd frontend && yarn test
+cd frontend && yarn test:watch
+```
+
+### All workspaces (root)
+
+```bash
+yarn test
 ```
 
 ## Backend Testing
@@ -464,14 +478,12 @@ jest.mock('next/router', () => ({
 
 ```bash
 # Backend
-cd backend
-npm test
-open coverage/lcov-report/index.html
+yarn workspace stock-screener-backend test
+open backend/coverage/lcov-report/index.html
 
 # Frontend
-cd frontend
-npm test
-open coverage/lcov-report/index.html
+yarn workspace stock-screener-frontend test
+open frontend/coverage/lcov-report/index.html
 ```
 
 ### Coverage Thresholds

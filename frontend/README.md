@@ -6,8 +6,11 @@ Next.js frontend for stock screening and analysis.
 
 ### 1. Install Dependencies
 
+From the **repository root**:
+
 ```bash
-npm install
+corepack enable
+yarn install
 ```
 
 ### 2. Configure Environment
@@ -21,17 +24,19 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ### 3. Start Development Server
 
 ```bash
-npm run dev
+yarn workspace stock-screener-frontend dev
+# Or from this directory:
+yarn dev
 ```
 
 Application will start on `http://localhost:3000`
 
 ## Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm start` - Start production server
-- `npm run lint` - Run ESLint
+- `yarn dev` — Start development server
+- `yarn build` — Build for production
+- `yarn start` — Start production server
+- `yarn lint` — Run ESLint
 
 ## Pages
 

@@ -105,24 +105,28 @@ The search bar is integrated into the header, making it accessible from any page
 
 ```bash
 cd frontend
-npm install
-npm run dev   # Development server at http://localhost:3000
-npm run build # Production build
-npm start     # Start production server
+# Dependencies are installed from repo root: yarn install
+
+yarn dev   # Development server at http://localhost:3000
+yarn build # Production build
+yarn start # Start production server
+
+# Or from repo root:
+yarn workspace stock-screener-frontend dev
 ```
 
 ### Running Tests
 
 ```bash
-npm test              # Run all tests
-npm run test:watch    # Watch mode
+yarn workspace stock-screener-frontend test
+yarn workspace stock-screener-frontend test:watch
 ```
 
 ### Code Formatting
 
 ```bash
-npm run format        # Format code with Prettier
-npm run format:check  # Check formatting
+yarn workspace stock-screener-frontend format
+yarn workspace stock-screener-frontend format:check
 ```
 
 ## API Client

@@ -3,6 +3,7 @@
 ## Project Overview
 
 Stock Screener is a full-stack application for Indian stock market analysis:
+
 - **Backend**: Express.js REST API with MongoDB (`backend/`)
 - **Frontend**: Next.js 14 React application (`frontend/`)
 - **Documentation**: Comprehensive docs in `docs/`
@@ -10,34 +11,38 @@ Stock Screener is a full-stack application for Indian stock market analysis:
 ## MANDATORY Requirements for Every Change
 
 ### 1. Documentation
+
 - Add JSDoc comments to all functions/components
 - Update relevant docs in `docs/` folder
 - Include `@see` references to link code and docs
 
 ### 2. Testing
+
 - Add unit tests in `__tests__/` folder next to source file
 - Test happy path, edge cases, and error handling
-- Run `npm test` before committing
+- Run `yarn test` at the repository root before committing
 
 ### 3. Code Formatting
-- Run `npm run format` (Prettier) before committing
+
+- Run `yarn format` at the repository root (Prettier) before committing
 - Follow existing code patterns and conventions
 
 ## Quick Navigation
 
-| Purpose | Location |
-|---------|----------|
-| Main documentation | `docs/README.md` |
-| API documentation | `docs/API_REFERENCE.md` |
-| Architecture | `docs/ARCHITECTURE.md` |
-| Backend guide | `docs/backend/README.md` |
-| Frontend guide | `docs/frontend/README.md` |
-| Testing guide | `docs/TESTING.md` |
+| Purpose                              | Location                                      |
+| ------------------------------------ | --------------------------------------------- |
+| Main documentation                   | `docs/README.md`                              |
+| API documentation                    | `docs/API_REFERENCE.md`                       |
+| Architecture                         | `docs/ARCHITECTURE.md`                        |
+| Backend guide                        | `docs/backend/README.md`                      |
+| Frontend guide                       | `docs/frontend/README.md`                     |
+| Testing guide                        | `docs/TESTING.md`                             |
 | Local Jira-style issues (“log Jira”) | `jira/issues/`, rule `.cursor/rules/jira.mdc` |
 
 ## Key Files
 
 ### Backend Entry Points
+
 - Server: `backend/server.js`
 - Routes: `backend/routes/*.js`
 - Controllers: `backend/controllers/*.js`
@@ -46,6 +51,7 @@ Stock Screener is a full-stack application for Indian stock market analysis:
 - Utilities: `backend/utils/*.js`
 
 ### Frontend Entry Points
+
 - App: `frontend/pages/_app.js`
 - API Client: `frontend/lib/api.js`
 - Hooks: `frontend/lib/hooks/*.js`
@@ -55,6 +61,7 @@ Stock Screener is a full-stack application for Indian stock market analysis:
 ## Code Patterns
 
 ### Backend Controller
+
 ```javascript
 /**
  * Handler description
@@ -72,6 +79,7 @@ const handler = async (req, res, next) => {
 ```
 
 ### Frontend Component
+
 ```javascript
 /**
  * Component description
@@ -84,6 +92,7 @@ export default function Component({ prop }) {
 ```
 
 ### Test File
+
 ```javascript
 /**
  * Unit tests for Module
@@ -99,8 +108,8 @@ describe('Module', () => {
 
 ## Before Committing Checklist
 
-- [ ] `npm run format` executed
-- [ ] `npm test` passes
+- [ ] `yarn format` executed (repo root)
+- [ ] `yarn test` passes (repo root)
 - [ ] JSDoc comments added
 - [ ] Documentation updated
 - [ ] Tests added for new code
@@ -109,6 +118,6 @@ describe('Module', () => {
 ## Ignored Folders (Do Not Modify)
 
 Per user rules, do not modify:
+
 - `packages/next-infra/src/server`
 - `packages/next-infra/src/webpack/mf-utils/test-server`
-

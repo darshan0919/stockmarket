@@ -16,9 +16,9 @@ This guide outlines the standards and practices for contributing to the Stock Sc
 git clone <repository-url>
 cd stockmarket
 
-# Install dependencies
-cd backend && npm install
-cd ../frontend && npm install
+# Install dependencies (Yarn 3 workspaces — single install at root)
+corepack enable
+yarn install
 ```
 
 ### 2. Create Feature Branch
@@ -78,7 +78,7 @@ This project uses Prettier with the following configuration:
 Format code before committing:
 
 ```bash
-npm run format
+yarn format
 ```
 
 ## Documentation Requirements
@@ -193,8 +193,8 @@ when the API returns an empty array.
 Before submitting a PR, ensure:
 
 - [ ] Code follows the style guide
-- [ ] Code is formatted with Prettier (`npm run format`)
-- [ ] All tests pass (`npm test`)
+- [ ] Code is formatted with Prettier (`yarn format` from repo root)
+- [ ] All tests pass (`yarn test` from repo root)
 - [ ] New tests added for new features
 - [ ] Documentation is updated
 - [ ] No console.log statements (except for debugging during development)

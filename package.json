@@ -1,0 +1,18 @@
+{
+  "name": "stock-screener",
+  "private": true,
+  "packageManager": "yarn@3.8.7",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "description": "Stock Screener monorepo (Yarn 3 workspaces)",
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c cyan,magenta \"yarn workspace stock-screener-backend dev\" \"yarn workspace stock-screener-frontend dev\"",
+    "test": "yarn workspace stock-screener-backend test && yarn workspace stock-screener-frontend test",
+    "format": "yarn workspace stock-screener-backend format && yarn workspace stock-screener-frontend format"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

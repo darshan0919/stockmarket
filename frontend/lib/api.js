@@ -74,6 +74,18 @@ export const stockAPI = {
   /** Get quarterly results @see GET /api/stocks/:symbol/quarterly */
   getQuarterlyResults: (symbol) => api.get(`/stocks/${symbol}/quarterly`),
   /**
+   * Get OHLC + delivery volume time series for the chart tab.
+   * @see GET /api/stocks/:symbol/delivery-volume
+   * @param {string} symbol
+   * @param {{from?: string, to?: string, interval?: 'daily'|'weekly'}} [opts]
+   */
+  getDeliveryVolume: (symbol, { from, to, interval = 'daily' } = {}) => {
+    const params = new URLSearchParams({ interval });
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    return api.get(`/stocks/${symbol}/delivery-volume?${params.toString()}`);
+  },
+  /**
    * @see HEAD /api/stocks/:symbol/research-dashboard
    * @returns {Promise<import('axios').AxiosResponse<void>>} status 200 if HTML exists, 404 if not
    */
