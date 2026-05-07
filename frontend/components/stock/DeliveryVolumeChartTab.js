@@ -27,6 +27,7 @@ const RANGES = [
   { id: '6M', days: 180 },
   { id: '1Y', days: 365 },
   { id: '2Y', days: 730 },
+  { id: '3Y', days: 1095 },
   { id: '5Y', days: 1825 },
 ];
 
