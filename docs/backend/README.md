@@ -134,6 +134,7 @@ yarn workspace stock-screener-backend format:check
 | `MONGODB_URI` | Yes | MongoDB connection string |
 | `NODE_ENV` | No | Environment (development/production) |
 | `GEMINI_API_KEY` | Yes | Google Gemini API key |
+| `TWITTER_BEARER_TOKEN` | No | Bearer token for X API v2 (Tweet Downloader); alias `X_BEARER_TOKEN` |
 | `ALPHA_VANTAGE_API_KEY` | No | Alpha Vantage API key |
 | `FMP_API_KEY` | No | Financial Modeling Prep API key |
 

@@ -44,6 +44,7 @@ Application will start on `http://localhost:3000`
 - Search bar with auto-complete
 - Market snapshot (indices & sectors)
 - Watchlist summary
+- Tweet Downloader (X API JSON export; requires `TWITTER_BEARER_TOKEN` on backend)
 - Quick screener templates
 
 ### Screener (`/screener`)

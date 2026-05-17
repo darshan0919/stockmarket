@@ -14,6 +14,7 @@ import api, {
   ordersAPI,
   upcomingResultsAPI,
   announcementsAPI,
+  twitterAPI,
 } from '../api';
 
 jest.mock('axios', () => {
@@ -329,6 +330,20 @@ describe('API Client', () => {
         '/announcements/RELIANCE/download',
         { announcements: items },
         { responseType: 'blob', timeout: 120000 }
+      );
+    });
+  });
+
+  describe('twitterAPI', () => {
+    it('should POST fetch-tweets with body and extended timeout', async () => {
+      axios.post.mockResolvedValue({ data: { success: true, data: {} } });
+
+      await twitterAPI.fetchTweets({ handle: 'testuser', intervalDays: 14 });
+
+      expect(axios.post).toHaveBeenCalledWith(
+        '/twitter/fetch-tweets',
+        { handle: 'testuser', intervalDays: 14 },
+        { timeout: 120000 }
       );
     });
   });

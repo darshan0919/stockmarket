@@ -1168,6 +1168,65 @@ DELETE /api/admin/cache/orderbook/{symbol}
 
 ---
 
+## X (Twitter) APIs
+
+> **Route File**: `backend/routes/twitter.js`  
+> **Controller**: `backend/controllers/twitterController.js`
+
+Exports tweets for a public handle within a UTC lookback window using [X API v2](https://developer.twitter.com/en/docs/twitter-api) on the server. Requires a **Bearer token** with access to user lookup and user tweets.
+
+### Environment
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `TWITTER_BEARER_TOKEN` | Yes* | OAuth 2.0 Bearer token from the X developer portal |
+| `X_BEARER_TOKEN` | Yes* | Alias for `TWITTER_BEARER_TOKEN` if the former is unset |
+
+\*If neither is set, the endpoint returns `503` with configuration instructions.
+
+### Fetch tweets for JSON download
+
+```http
+POST /api/twitter/fetch-tweets
+Content-Type: application/json
+```
+
+**Body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `handle` | string | Yes | Username without or with `@`; leading `@` is stripped |
+| `intervalDays` | number | Yes | Lookback length in days (`1`–`365`); tweets from `now - intervalDays` through `now` (UTC) |
+
+**Success response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "user": { "id": "...", "username": "...", "name": "..." },
+    "tweets": [ { "id": "...", "text": "...", "created_at": "..." } ],
+    "includes": { "users": [] },
+    "query": {
+      "handle": "example",
+      "intervalDays": 7,
+      "start_time": "...",
+      "end_time": "..."
+    },
+    "meta": {
+      "tweetCount": 42,
+      "pagesFetched": 1
+    }
+  }
+}
+```
+
+The dashboard **Tweet Downloader** posts to this route and saves `data` as a prettified `.json` file in the browser.
+
+**Code reference:** `fetchTweetsForDownload()` in `backend/controllers/twitterController.js`
+
+---
+
 ## Error Codes
 
 | HTTP Code | Description |

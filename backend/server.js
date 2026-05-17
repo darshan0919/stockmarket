@@ -34,6 +34,7 @@ app.use('/api/announcements', require('./routes/announcements'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/declared-results', require('./routes/declaredResults'));
 app.use('/api/research-pipeline', require('./routes/researchPipeline'));
+app.use('/api/twitter', require('./routes/twitter'));
 
 // Health check
 app.get('/api/health', (req, res) => {

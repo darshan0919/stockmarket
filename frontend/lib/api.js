@@ -342,4 +342,20 @@ export const ordersAPI = {
     ),
 };
 
+/**
+ * X (Twitter) API proxy — tweet export for dashboard.
+ * @see {@link docs/API_REFERENCE.md#x-twitter-apis}
+ */
+export const twitterAPI = {
+  /**
+   * Fetch tweets for a handle over a day interval; returns merged payload for JSON download.
+   * @param {{ handle: string, intervalDays: number }} body
+   * @see POST /api/twitter/fetch-tweets
+   */
+  fetchTweets: (body) =>
+    api.post('/twitter/fetch-tweets', body, {
+      timeout: 120000,
+    }),
+};
+
 export default api;
