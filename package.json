@@ -6,9 +6,18 @@
     "backend",
     "frontend"
   ],
+  "resolutions": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "next": "14.2.35"
+  },
   "description": "Stock Screener monorepo (Yarn 3 workspaces)",
   "scripts": {
     "dev": "concurrently -n backend,frontend -c cyan,magenta \"yarn workspace stock-screener-backend dev\" \"yarn workspace stock-screener-frontend dev\"",
+    "build": "yarn workspace stock-screener-frontend build",
+    "start": "concurrently -n backend,frontend -c cyan,magenta \"yarn workspace stock-screener-backend start\" \"yarn workspace stock-screener-frontend start\"",
+    "seed": "node backend/scripts/fetchData.js",
+    "deploy:local": "yarn build && yarn start",
     "test": "yarn workspace stock-screener-backend test && yarn workspace stock-screener-frontend test",
     "format": "yarn workspace stock-screener-backend format && yarn workspace stock-screener-frontend format"
   },

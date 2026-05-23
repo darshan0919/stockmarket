@@ -236,3 +236,5 @@ export default function Dashboard() {
     </>
   );
 }
+
+export { getServerSideProps } from '../lib/forceServerSide';

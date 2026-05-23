@@ -1,6 +1,9 @@
 import '../styles/globals.css';
-import Header from '../components/common/Header';
+import dynamic from 'next/dynamic';
 import { SnackbarProvider } from '../lib/contexts/SnackbarContext';
+
+/** Header uses useRouter; load client-only so static prerender does not fail. */
+const Header = dynamic(() => import('../components/common/Header'), { ssr: false });
 
 /**
  * Root application component. Wraps all pages with Header and SnackbarProvider.

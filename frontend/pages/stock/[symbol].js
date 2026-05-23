@@ -279,3 +279,5 @@ function InfoItem({ label, value }) {
     </div>
   );
 }
+
+export { getServerSideProps } from '../../lib/forceServerSide';

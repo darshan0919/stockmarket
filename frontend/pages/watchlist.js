@@ -213,3 +213,5 @@ export default function Watchlist() {
     </>
   );
 }
+
+export { getServerSideProps } from '../lib/forceServerSide';

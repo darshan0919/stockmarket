@@ -402,3 +402,5 @@ export default function Results() {
     </>
   );
 }
+
+export { getServerSideProps } from '../lib/forceServerSide';

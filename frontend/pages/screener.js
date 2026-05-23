@@ -109,3 +109,5 @@ export default function Screener() {
     </>
   );
 }
+
+export { getServerSideProps } from '../lib/forceServerSide';
