@@ -282,6 +282,17 @@ export const announcementsAPI = {
       timeout: 120000,
     });
   },
+  /**
+   * Download latest earnings-call transcript PDFs for companies in a saved StockScans scan.
+   * @param {{ scanUrl: string, quarterDate?: string }} params
+   * @see POST /api/announcements/concalls/download
+   */
+  downloadLatestConcalls: ({ scanUrl, quarterDate } = {}) =>
+    api.post(
+      '/announcements/concalls/download',
+      { scanUrl, quarterDate },
+      { responseType: 'blob', timeout: 300000 }
+    ),
 };
 
 /**

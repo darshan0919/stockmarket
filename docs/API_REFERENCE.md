@@ -1114,6 +1114,33 @@ Content-Type: application/json
 
 **Code Reference:** `downloadAnnouncements()` in `backend/controllers/announcementsController.js`
 
+### Download latest concall transcripts (ZIP)
+
+```http
+POST /api/announcements/concalls/download
+Content-Type: application/json
+```
+
+1. Load saved scan definition from `GET https://www.stockscans.in/scans/saved/{scanId}` (embedded in page HTML).
+2. Run `POST https://www.stockscans.in/api/company/scans/run` with that scan (paginated) to collect `companyId` values.
+3. For each company, fetch the latest **Earnings Call** via `POST /api/company/announcements/scan` (batched at 10 `companyFilters` per request — StockScans API limit), build PDF URLs from `ssUrl`, and stream a ZIP. Also saved under repo `downloads/`.
+
+**Body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `scanUrl` | string | Yes | Saved scan link, e.g. `https://www.stockscans.in/scans/saved/c29a98ebbb568f073162ba24`, or bare scan id |
+| `quarterDate` | string | No | StockScans quarter key `YYYYMM` (e.g. `202603`). Defaults to current quarter; walks back up to 4 quarters for companies missing in the first announcement scan |
+
+**Response:** `application/zip` — filename `concalls_{quarterDate}_{YYYY-MM-DD}.zip`. Header `X-Concall-Missing` lists company ids with no transcript found (comma-separated). Header `X-Saved-To-Repo` gives the repo-relative path when written to disk.
+
+**Errors:** **400** invalid/missing `scanUrl`; **404** empty scan or no PDFs; **503** when `STOCKSCANS_AUTH_TOKEN` is missing.
+
+**Code Reference:**
+- `downloadLatestConcalls()` in `backend/controllers/announcementsController.js`
+- `fetchCompanyIdsFromSavedScanUrl()` in `backend/services/stockscansSavedScan.js`
+- `resolveLatestEarningsCalls()` in `backend/services/stockscansAnnouncementScan.js`
+
 ---
 
 ## Admin APIs

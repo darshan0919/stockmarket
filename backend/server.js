@@ -16,7 +16,7 @@ connectDB();
 // Middleware
 app.use(
   cors({
-    exposedHeaders: ['X-Saved-To-Repo'],
+    exposedHeaders: ['X-Saved-To-Repo', 'X-Concall-Missing'],
   })
 );
 app.use(express.json());

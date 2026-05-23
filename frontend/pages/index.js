@@ -4,6 +4,7 @@ import MarketSnapshot from '../components/dashboard/MarketSnapshot';
 import WatchlistSummary from '../components/dashboard/WatchlistSummary';
 import UpcomingResults from '../components/dashboard/UpcomingResults';
 import TweetDownloaderCard from '../components/dashboard/TweetDownloaderCard';
+import ConcallDownloaderCard from '../components/dashboard/ConcallDownloaderCard';
 
 /**
  * Dashboard page component
@@ -137,7 +138,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mt-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mt-5">
           <button
             onClick={() => router.push('/screener')}
             className="finance-card-hover p-5 text-left group"
@@ -228,6 +229,8 @@ export default function Dashboard() {
           </button>
 
           <TweetDownloaderCard />
+
+          <ConcallDownloaderCard />
         </div>
       </div>
     </>
