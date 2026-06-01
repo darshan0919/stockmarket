@@ -1,5 +1,5 @@
-const axios = require('axios');
-const { getCompanyInfo } = require('../api/bseIndiaApi');
+const { getCompanyInfo, getStockScripCode, getBseQuoteHeader } = require('../api/bseIndiaApi');
+const { getQuoteEquity } = require('../api/nseIndiaApi');
 const { getCurrentMetrics } = require('./balanceSheetDataFetcher');
 const Stock = require('../models/Stock');
 
@@ -9,6 +9,53 @@ const Stock = require('../models/Stock');
  * @param {Object} nseData - Parsed JSON from /api/quote-equity
  * @returns {Object} Unsaved Mongoose Stock document
  */
+/**
+ * Map BSE header + company info into NSE quote-equity-shaped payload.
+ * @param {Object} bseHeader - getBseQuoteHeader response
+ * @param {Object} bseComInfo - getCompanyInfo response
+ * @param {string} upperSymbol
+ * @returns {Object}
+ */
+function quoteFromBseData(bseHeader, bseComInfo, upperSymbol) {
+  const rate = bseHeader?.CurrRate || {};
+  const name = bseHeader?.Cmpname?.FullN || bseComInfo?.SecurityId || upperSymbol;
+  const lastPrice = parseFloat(rate.LTP);
+  const change = parseFloat(rate.Chg);
+  const changePercent = parseFloat(rate.PcChg);
+  const previousClose =
+    Number.isFinite(lastPrice) && Number.isFinite(change) ? lastPrice - change : null;
+
+  return {
+    info: {
+      companyName: name,
+      industry: bseComInfo?.Industry || bseComInfo?.IndustryNew || 'Unknown',
+      isin: bseComInfo?.ISIN || 'Unknown',
+      macro: bseComInfo?.Sector,
+      listingDate: null,
+    },
+    metadata: {
+      pdSymbolPe: parseFloat(bseComInfo?.PE) || null,
+      pdSectorPe: null,
+      sectorName: bseComInfo?.Sector,
+    },
+    securityInfo: {
+      faceValue: parseFloat(bseComInfo?.FaceVal) || 0,
+      issuedSize: null,
+    },
+    priceInfo: {
+      lastPrice: Number.isFinite(lastPrice) ? lastPrice : null,
+      change: Number.isFinite(change) ? change : null,
+      pChange: Number.isFinite(changePercent) ? changePercent : null,
+      previousClose,
+      open: null,
+      close: Number.isFinite(lastPrice) ? lastPrice : null,
+      vwap: null,
+      intraDayHighLow: { max: null, min: null },
+      weekHighLow: { max: null, min: null },
+    },
+  };
+}
+
 function stockFromNseQuote(upperSymbol, nseData) {
   const info = nseData.info || {};
   const meta = nseData.metadata || {};
@@ -36,20 +83,21 @@ const fetchStockDetails = async (symbol, scripCode) => {
 
   let stock = await Stock.findOne({ symbol: upperSymbol });
 
-  const nseResponse = await axios.get(
-    `https://www.nseindia.com/api/quote-equity?symbol=${upperSymbol}`,
-    {
-      timeout: 10000,
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        Accept: 'application/json',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-      },
+  let nseData;
+  try {
+    nseData = await getQuoteEquity(upperSymbol);
+  } catch (nseErr) {
+    console.warn('NSE quote-equity failed; falling back to BSE:', nseErr.message);
+    const resolvedScrip = scripCode || (await getStockScripCode(upperSymbol));
+    if (!resolvedScrip) {
+      throw nseErr;
     }
-  );
-  const nseData = nseResponse.data;
+    const [bseHeader, bseComInfo] = await Promise.all([
+      getBseQuoteHeader(resolvedScrip),
+      getCompanyInfo(resolvedScrip),
+    ]);
+    nseData = quoteFromBseData(bseHeader, bseComInfo, upperSymbol);
+  }
 
   if (!stock) {
     let created = null;
@@ -178,4 +226,4 @@ const fetchStockDetails = async (symbol, scripCode) => {
     priceHistory: priceHistory,
   };
 };
-module.exports = { fetchStockDetails, stockFromNseQuote };
+module.exports = { fetchStockDetails, stockFromNseQuote, quoteFromBseData };

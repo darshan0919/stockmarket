@@ -2,172 +2,124 @@
 
 > **File**: `backend/api/nseIndiaApi.js`  
 > **Tests**: `backend/api/__tests__/nseIndiaApi.test.js`  
-> **Last Updated**: 2024-12-31
+> **Last Updated**: 2026-05-30
 
 ## Overview
 
-This module provides functions for interacting with the NSE India (National Stock Exchange) API to fetch stock market data.
+Central gateway for NSE India (National Stock Exchange) JSON API calls. All endpoints require a browser-like session: fetch cookies from the homepage, then pass `Cookie` + `Referer` on each request.
 
 ## API Details
 
 - **Base URL**: `https://www.nseindia.com/api`
-- **Authentication**: Cookie-based session
-- **Rate Limiting**: Aggressive (requires proper headers and cookies)
+- **Authentication**: Cookie-based session (`getNseCookies`)
+- **Retry**: `nseGet` clears cache and retries once on HTTP 401/403
 
 ## Functions
 
+### clearNseCookieCache
+
+Clears the in-memory cookie cache (used before retry after auth failure).
+
+```javascript
+clearNseCookieCache(): void
+```
+
 ### getNseCookies
 
-Fetches and caches session cookies required for NSE API calls.
+Fetches and caches session cookies from `https://www.nseindia.com/` (5-minute TTL).
 
 ```javascript
 async function getNseCookies() → string | null
 ```
 
-**Returns:** `string | null` - Cookie string or null if failed
+### getNseHeaders
 
-**Caching:** Cookies are cached for 5 minutes to reduce API calls.
-
-**Example:**
-```javascript
-const { getNseCookies } = require('../api/nseIndiaApi');
-
-const cookies = await getNseCookies();
-// Result: "nsit=abc123; nseappid=xyz789; ..."
-```
-
-**Implementation Details:**
-- Fetches NSE homepage to get session cookies
-- Extracts `set-cookie` headers
-- Caches cookies with 5-minute expiry
-- Returns cached cookies if still valid
-
----
-
-### formatDate
-
-Formats a JavaScript Date object to DD-MM-YYYY format required by NSE API.
+Builds headers for a single request (cookies + User-Agent + Referer).
 
 ```javascript
-function formatDate(date) → string
+async function getNseHeaders({ referer }) → Object
 ```
 
-**Parameters:**
-| Name | Type | Description |
-|------|------|-------------|
-| `date` | `Date` | JavaScript Date object |
+### nseGet
 
-**Returns:** `string` - Date in DD-MM-YYYY format
-
-**Example:**
-```javascript
-const { formatDate } = require('../api/nseIndiaApi');
-
-const date = new Date('2024-01-15');
-const formatted = formatDate(date);
-// Result: "15-01-2024"
-```
-
----
-
-### upcomingResults
-
-Fetches upcoming financial result dates from NSE event calendar.
+Authenticated GET with cookie session and one retry on 401/403.
 
 ```javascript
-async function upcomingResults() → Object[]
+async function nseGet(path, { params, referer, timeout }) → AxiosResponse
 ```
 
-**Returns:** `Object[]` - Array of upcoming result announcements
+### searchAutocomplete
 
-**Response Structure:**
+Stock search: tries NSE `/search/autocomplete` with session cookies; on **404** (endpoint often unavailable) falls back to **BSE** `PeerSmartSearch` via `bseSmartSearch()`.
+
 ```javascript
-[
-  {
-    symbol: "INFY",
-    company: "Infosys Limited",
-    date: "15-Jan-2024",
-    purpose: "Financial Results"
-  }
-]
+async function searchAutocomplete(query) → { symbols: Array }
 ```
 
-**Example:**
+### warmupNseSession / mergeSetCookie
+
+Homepage + optional equity-page warmup with browser-like headers (`sec-ch-ua`, `Sec-Fetch-*`) so Akamai accepts the session.
+
+### getQuoteEquity
+
+Equity quote for a symbol (`/quote-equity`).
+
 ```javascript
-const { upcomingResults } = require('../api/nseIndiaApi');
-
-const results = await upcomingResults();
-// Returns array of upcoming result dates
+async function getQuoteEquity(symbol) → Object
 ```
 
-**Implementation Details:**
-- Fetches from `/event-calendar` endpoint
-- Date range: today to 1 year ahead
-- Filters for `subject: 'Financial Results'`
-- Uses cookies for authentication
+### getCorporateAnnouncements
+
+Corporate announcements for a symbol.
+
+```javascript
+async function getCorporateAnnouncements(symbol, extraParams?) → Array
+```
+
+### getCorporatesFinancialResults / getIntegratedFilingResults
+
+Quarterly financial results (historical + integrated filing).
+
+### getQuoteApi
+
+Wrapper for NSE `NextApi/apiClient/GetQuoteApi` (annual reports, filtered announcements).
+
+### upcomingResults / getPriceVolumeDeliverable / formatDate
+
+Event calendar and historical delivery-volume data (unchanged behavior, now routed through `nseGet`).
 
 ## Request Headers
 
-All NSE API calls require specific headers:
-
 ```javascript
-const headers = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-  'Accept': 'application/json, text/plain, */*',
-  'Accept-Language': 'en-US,en;q=0.9',
-  'Accept-Encoding': 'gzip, deflate, br',
-  'Referer': 'https://www.nseindia.com/',
-  'Connection': 'keep-alive',
-  'Cookie': cookies  // From getNseCookies()
-};
+const headers = await getNseHeaders({
+  referer: 'https://www.nseindia.com/get-quotes/equity?symbol=RELIANCE',
+});
+// Includes Cookie from getNseCookies()
 ```
 
-## Error Handling
+## Usage
 
 ```javascript
-try {
-  const results = await upcomingResults();
-} catch (error) {
-  console.error('NSE API Error:', error.message);
-  // Returns empty array on failure
-}
-```
+const { searchAutocomplete, getQuoteEquity } = require('../api/nseIndiaApi');
 
-## Usage Example
-
-```javascript
-// backend/controllers/upcomingResult.js
-const { upcomingResults } = require('../api/nseIndiaApi');
-
-const getUpcomingResults = async (req, res, next) => {
-  try {
-    const results = await upcomingResults();
-    res.json({ success: true, data: results });
-  } catch (error) {
-    next(error);
-  }
-};
+const search = await searchAutocomplete('rel');
+const quote = await getQuoteEquity('RELIANCE');
 ```
 
 ## NSE API Endpoints Used
 
-| Endpoint | Purpose |
-|----------|---------|
-| `/search/autocomplete` | Stock search |
-| `/event-calendar` | Upcoming events |
-| `/corporates` | Corporate filings |
-| `/quote-equity` | Stock quotes |
-
-## Rate Limiting Considerations
-
-1. Always use cookies for authentication
-2. Include proper User-Agent header
-3. Add delays between rapid requests
-4. Cache responses where possible
+| Endpoint | Helper |
+|----------|--------|
+| `/search/autocomplete` | `searchAutocomplete` |
+| `/quote-equity` | `getQuoteEquity` |
+| `/corporate-announcements` | `getCorporateAnnouncements` |
+| `/corporates-financial-results` | `getCorporatesFinancialResults` |
+| `/integrated-filing-results` | `getIntegratedFilingResults` |
+| `/event-calendar` | `upcomingResults` |
+| `/historicalOR/generateSecurityWiseHistoricalData` | `getPriceVolumeDeliverable` |
+| `/NextApi/apiClient/GetQuoteApi` | `getQuoteApi` |
 
 ## Related Documentation
 
-- [BSE India API](./bseIndiaApi.md) - Alternative data source
-- [Upcoming Results Controller](../controllers/upcomingResult.md) - Uses this API
-- [Stock Controller](../controllers/stockController.md) - Uses NSE search
-
+- [Stock Controller](../controllers/stockController.md)
+- [BSE India API](./bseIndiaApi.md)

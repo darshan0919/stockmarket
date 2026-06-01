@@ -131,16 +131,29 @@ const getUpcomingResults = async (req, res, next) => {
     const paginatedResults = mergedResults.slice(startIndex, endIndex);
 
     // Fetch stock details for each result
-    const promises = paginatedResults.map(async (result) => {
-      const stockDetails = await fetchStockDetails(result.symbol, result.scrip_code);
-      const quarterlyRevenueDetails = await getLastQuatersRevenueGrowthMetrics(result.symbol, 4);
-      return {
-        ...result,
-        stockDetails: stockDetails,
-        revenue: quarterlyRevenueDetails,
-      };
-    });
-    const parsedResults = await Promise.all(promises);
+    const parsedResults = await Promise.all(
+      paginatedResults.map(async (result) => {
+        try {
+          const stockDetails = await fetchStockDetails(result.symbol, result.scrip_code);
+          const quarterlyRevenueDetails = await getLastQuatersRevenueGrowthMetrics(
+            result.symbol,
+            4
+          );
+          return {
+            ...result,
+            stockDetails,
+            revenue: quarterlyRevenueDetails,
+          };
+        } catch (err) {
+          console.warn(`Stock details failed for ${result.symbol}:`, err.message);
+          return {
+            ...result,
+            stockDetails: null,
+            revenue: null,
+          };
+        }
+      })
+    );
 
     res.json({
       success: true,

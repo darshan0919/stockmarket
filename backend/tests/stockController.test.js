@@ -6,6 +6,12 @@ const FinancialStatement = require('../models/FinancialStatement');
 const QuarterlyResult = require('../models/QuarterlyResult');
 const xbrlParser = require('../utils/xbrlParser');
 const axios = require('axios');
+const {
+  getQuoteEquity,
+  getCorporatesFinancialResults,
+  getIntegratedFilingResults,
+} = require('../api/nseIndiaApi');
+const { fetchAndStoreQuarterlyResults } = require('../scripts/balanceSheetDataFetcher');
 
 // Mock the database models
 jest.mock('../models/Stock');
@@ -13,6 +19,23 @@ jest.mock('../models/FinancialStatement');
 jest.mock('../models/QuarterlyResult');
 jest.mock('../utils/xbrlParser');
 jest.mock('axios');
+jest.mock('../api/nseIndiaApi', () => ({
+  getQuoteEquity: jest.fn(),
+  getCorporatesFinancialResults: jest.fn(),
+  getIntegratedFilingResults: jest.fn(),
+  searchAutocomplete: jest.fn(),
+  getPriceVolumeDeliverable: jest.fn(),
+  formatDate: jest.requireActual('../api/nseIndiaApi').formatDate,
+}));
+jest.mock('../scripts/balanceSheetDataFetcher', () => {
+  const actual = jest.requireActual('../scripts/balanceSheetDataFetcher');
+  return {
+    ...actual,
+    fetchAndStoreQuarterlyResults: jest
+      .fn()
+      .mockImplementation(actual.fetchAndStoreQuarterlyResults),
+  };
+});
 
 // Create a test app
 const app = express();
@@ -29,6 +52,8 @@ app.use((err, req, res, next) => {
 describe('Stock Controller - Quarterly Results', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    const actual = jest.requireActual('../scripts/balanceSheetDataFetcher');
+    fetchAndStoreQuarterlyResults.mockImplementation(actual.fetchAndStoreQuarterlyResults);
   });
 
   describe('GET /api/stocks/:symbol/quarterly', () => {
@@ -105,26 +130,20 @@ describe('Stock Controller - Quarterly Results', () => {
       QuarterlyResult.findOne = jest.fn().mockResolvedValue(null);
       QuarterlyResult.findOneAndUpdate = jest.fn().mockResolvedValue(mockSavedResult);
 
-      // Mock NSE API responses
-      axios.get = jest
-        .fn()
-        .mockResolvedValueOnce({
-          data: { info: { companyName: 'Eternal Limited' } },
-        })
-        .mockResolvedValueOnce({
-          data: [
-            {
-              xbrl: 'https://example.com/xbrl1.xml',
-              companyName: 'Eternal Limited',
-              consolidated: 'Consolidated',
-              audited: 'Audited',
-              fromDate: '01-Jan-2024',
-              toDate: '31-Mar-2024',
-              filingDate: '15-May-2024',
-              seqNumber: 'SEQ001',
-            },
-          ],
-        });
+      getQuoteEquity.mockResolvedValue({ info: { companyName: 'Eternal Limited' } });
+      getCorporatesFinancialResults.mockResolvedValue([
+        {
+          xbrl: 'https://example.com/xbrl1.xml',
+          companyName: 'Eternal Limited',
+          consolidated: 'Consolidated',
+          audited: 'Audited',
+          fromDate: '01-Jan-2024',
+          toDate: '31-Mar-2024',
+          filingDate: '15-May-2024',
+          seqNumber: 'SEQ001',
+        },
+      ]);
+      getIntegratedFilingResults.mockResolvedValue([]);
 
       // Mock XBRL parser
       xbrlParser.parseXBRL = jest.fn().mockResolvedValue({
@@ -217,8 +236,7 @@ describe('Stock Controller - Quarterly Results', () => {
           ]),
         });
 
-      // Mock API failure
-      axios.get = jest.fn().mockRejectedValue(new Error('API Error'));
+      fetchAndStoreQuarterlyResults.mockRejectedValueOnce(new Error('API Error'));
 
       const response = await request(app).get('/api/stocks/ETERNAL/quarterly').expect(200);
 
@@ -243,25 +261,20 @@ describe('Stock Controller - Quarterly Results', () => {
       QuarterlyResult.findOne = jest.fn().mockResolvedValue(null);
       QuarterlyResult.findOneAndUpdate = jest.fn().mockResolvedValue(mockSavedResult);
 
-      axios.get = jest
-        .fn()
-        .mockResolvedValueOnce({
-          data: { info: { companyName: 'Eternal Limited' } },
-        })
-        .mockResolvedValueOnce({
-          data: [
-            {
-              xbrl: 'https://example.com/xbrl1.xml',
-              companyName: 'Eternal Limited',
-              consolidated: 'Consolidated',
-              audited: 'Audited',
-              fromDate: '01-Jan-2024',
-              toDate: '31-Mar-2024',
-              filingDate: '15-May-2024',
-              seqNumber: 'SEQ001',
-            },
-          ],
-        });
+      getQuoteEquity.mockResolvedValue({ info: { companyName: 'Eternal Limited' } });
+      getCorporatesFinancialResults.mockResolvedValue([
+        {
+          xbrl: 'https://example.com/xbrl1.xml',
+          companyName: 'Eternal Limited',
+          consolidated: 'Consolidated',
+          audited: 'Audited',
+          fromDate: '01-Jan-2024',
+          toDate: '31-Mar-2024',
+          filingDate: '15-May-2024',
+          seqNumber: 'SEQ001',
+        },
+      ]);
+      getIntegratedFilingResults.mockResolvedValue([]);
 
       xbrlParser.parseXBRL = jest.fn().mockResolvedValue({
         revenue: 3562,
@@ -284,20 +297,15 @@ describe('Stock Controller - Quarterly Results', () => {
         lean: jest.fn().mockResolvedValue([]),
       });
 
-      axios.get = jest
-        .fn()
-        .mockResolvedValueOnce({
-          data: { info: { companyName: 'Invalid Company' } },
-        })
-        .mockResolvedValueOnce({
-          data: [],
-        });
+      getQuoteEquity.mockResolvedValue({ info: { companyName: 'Invalid Company' } });
+      getCorporatesFinancialResults.mockResolvedValue([]);
+      getIntegratedFilingResults.mockResolvedValue([]);
 
       const response = await request(app).get('/api/stocks/INVALID/quarterly').expect(200);
 
       expect(response.body).toHaveProperty('success', true);
       expect(response.body.data.quarters).toEqual([]);
-      expect(response.body.data).toHaveProperty('message', 'No quarterly results available');
+      expect(response.body.data).toHaveProperty('symbol', 'INVALID');
     });
   });
 

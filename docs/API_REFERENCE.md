@@ -70,7 +70,7 @@ GET /api/stocks/search?q={query}&page={page}&limit={limit}
 
 **Code Reference:**
 - Function: `searchStocks()` in `backend/controllers/stockController.js:19-134`
-- Uses NSE India autocomplete API with database fallback
+- Uses NSE India autocomplete via `backend/api/nseIndiaApi.js` (`searchAutocomplete`, cookie session); database fallback on failure
 
 ---
 

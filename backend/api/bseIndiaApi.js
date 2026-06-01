@@ -1,33 +1,69 @@
-const axios = require('axios');
+const { bseGetText, bseGetJson, BSE_REQUEST_TIMEOUT_MS } = require('./bseHttp');
 
-const BSE_API_URL = 'https://api.bseindia.com/BseIndiaAPI/api';
-
-/** Axios timeout (ms) for BSE calls — unbounded requests caused stock-details to hang when BSE stalled. */
-const BSE_REQUEST_TIMEOUT_MS = 12000;
-
-const getStockScripCode = async (symbol) => {
-  const normalized = symbol.trim().toUpperCase();
-  const response = await axios.get(
-    `${BSE_API_URL}/PeerSmartSearch/w?Type=SS&text=${encodeURIComponent(normalized)}`,
-    {
-      timeout: BSE_REQUEST_TIMEOUT_MS,
-      headers: {
-        Referer: 'https://www.bseindia.com/',
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        Accept: 'application/json, text/plain, */*',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-      },
-    }
-  );
-  const data = String(response.data).replaceAll('&nbsp;', ' ');
-  // BSE HTML uses uppercase symbols; match with normalized symbol so /stock/waareertl still works.
-  const regex = new RegExp(`<strong>${normalized}<\\/strong>\\s+\\w+\\s+(\\d+)`);
-  const match = data.match(regex);
-  return match?.[1] || null;
+/**
+ * Parse BSE PeerSmartSearch HTML into NSE-autocomplete-shaped symbols.
+ * @param {string} html - Raw HTML fragment from BSE search API
+ * @returns {Array<Object>}
+ */
+const parseBseSmartSearchHtml = (html) => {
+  const symbols = [];
+  const itemRegex = /liclick\('(\d+)','([^']+)'\)[\s\S]*?<span>([\s\S]*?)<\/span>/gi;
+  let match = itemRegex.exec(html);
+  while (match) {
+    const spanPlain = match[3]
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/gi, ' ')
+      .trim();
+    const tokens = spanPlain.split(/\s+/).filter(Boolean);
+    const symbol = tokens[0] || match[2].split(' ')[0];
+    symbols.push({
+      symbol,
+      symbol_info: match[2],
+      result_sub_type: 'equity',
+      activeSeries: ['EQ'],
+      listing_date: null,
+      bse_scrip_code: match[1],
+    });
+    match = itemRegex.exec(html);
+  }
+  return symbols;
 };
 
+/**
+ * Resolve BSE scrip code for an NSE/BSE symbol via smart search.
+ * @param {string} symbol
+ * @returns {Promise<string|null>}
+ */
+const getStockScripCode = async (symbol) => {
+  try {
+    const normalized = symbol.trim().toUpperCase();
+    const { data } = await bseGetText('PeerSmartSearch/w', {
+      params: { Type: 'SS', text: normalized },
+      timeout: BSE_REQUEST_TIMEOUT_MS,
+    });
+    const html = String(data).replaceAll('&nbsp;', ' ');
+    const symbols = parseBseSmartSearchHtml(html);
+    const exact = symbols.find((item) => item.symbol?.toUpperCase() === normalized);
+    if (exact?.bse_scrip_code) {
+      return exact.bse_scrip_code;
+    }
+
+    const regex = new RegExp(`<strong>${normalized}<\\/strong>\\s+\\w+\\s+(\\d+)`);
+    const match = html.match(regex);
+    return match?.[1] || null;
+  } catch (error) {
+    console.warn('BSE getStockScripCode failed:', error.message);
+    return null;
+  }
+};
+
+/**
+ * Fetch earnings-call transcript announcements from BSE.
+ * @param {string} symbol
+ * @param {string} fromDate
+ * @param {string} toDate
+ * @returns {Promise<Array|null>}
+ */
 const getResultAnnoucement = async (symbol, fromDate, toDate) => {
   let pageno = 1;
   const scripCode = await getStockScripCode(symbol);
@@ -36,10 +72,7 @@ const getResultAnnoucement = async (symbol, fromDate, toDate) => {
   }
   let result = [];
   while (true) {
-    const response = await axios.get(`${BSE_API_URL}/AnnSubCategoryGetData/w`, {
-      headers: {
-        Referer: 'https://www.bseindia.com/',
-      },
+    const response = await bseGetJson('AnnSubCategoryGetData/w', {
       params: {
         pageno: pageno,
         strCat: 'Company Update',
@@ -51,39 +84,67 @@ const getResultAnnoucement = async (symbol, fromDate, toDate) => {
         subcategory: 'Earnings Call Transcript',
       },
     });
-    result.push(...response.data.Table);
-    if (result.length >= response.data.Table1[0].ROWCNT || pageno > 10) {
+    result.push(...response.Table);
+    if (result.length >= response.Table1[0].ROWCNT || pageno > 10) {
       return result;
     }
     pageno++;
   }
-  return result;
 };
 
+/**
+ * Fetch upcoming result dates from BSE.
+ * @returns {Promise<Array>}
+ */
 const upcomingResults = async () => {
-  const response = await axios.get(`${BSE_API_URL}/Corpforthresults/w`, {
-    headers: {
-      Referer: 'https://www.bseindia.com/',
-    },
-  });
-  return response.data;
+  return bseGetJson('Corpforthresults/w');
 };
 
+/**
+ * Fetch company header metadata from BSE.
+ * @param {string} scripCode
+ * @returns {Promise<Object>}
+ */
 const getCompanyInfo = async (scripCode) => {
-  const response = await axios.get(
-    `${BSE_API_URL}/ComHeadernew/w?quotetype=EQ&scripcode=${scripCode}`,
-    {
-      timeout: BSE_REQUEST_TIMEOUT_MS,
-      headers: {
-        Referer: 'https://www.bseindia.com/',
-      },
-    }
-  );
-  return response.data;
+  return bseGetJson('ComHeadernew/w', {
+    params: { quotetype: 'EQ', scripcode: scripCode },
+    timeout: BSE_REQUEST_TIMEOUT_MS,
+  });
 };
+
+/**
+ * Live quote header from BSE (LTP, change, company name).
+ * @param {string} scripCode - BSE scrip code
+ * @returns {Promise<Object>}
+ */
+const getBseQuoteHeader = async (scripCode) => {
+  return bseGetJson('getScripHeaderData/w', {
+    params: { Market: 'EQ', scripcode: scripCode },
+    timeout: BSE_REQUEST_TIMEOUT_MS,
+  });
+};
+
+/**
+ * BSE smart search (fallback when NSE autocomplete is unavailable).
+ * @param {string} query - Search text
+ * @returns {Promise<{ symbols: Array<Object> }>}
+ * @see {@link docs/backend/api/bseIndiaApi.md}
+ */
+const bseSmartSearch = async (query) => {
+  const { data } = await bseGetText('PeerSmartSearch/w', {
+    params: { Type: 'SS', text: query },
+    timeout: BSE_REQUEST_TIMEOUT_MS,
+  });
+  const html = String(data || '');
+  return { symbols: parseBseSmartSearchHtml(html) };
+};
+
 module.exports = {
   getStockScripCode,
   getResultAnnoucement,
   upcomingResults,
   getCompanyInfo,
+  getBseQuoteHeader,
+  bseSmartSearch,
+  parseBseSmartSearchHtml,
 };

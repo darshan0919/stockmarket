@@ -1,6 +1,6 @@
 # Stock Controller
 
-Handles stock search, details, technicals, financials, and quarterly results. Uses NSE India API with MongoDB fallback for search.
+Handles stock search, details, technicals, financials, and quarterly results. NSE JSON calls go through `backend/api/nseIndiaApi.js` (cookie session + retry); search falls back to MongoDB on API failure.
 
 ## Source File
 `backend/controllers/stockController.js`
@@ -8,7 +8,7 @@ Handles stock search, details, technicals, financials, and quarterly results. Us
 ## Functions/Methods
 
 ### searchStocks(req, res, next)
-Search stocks by symbol or name. Uses NSE autocomplete API; falls back to local database on API failure.
+Search stocks by symbol or name. Uses `searchAutocomplete()` from `nseIndiaApi`; falls back to local database on API failure.
 
 **Parameters:**
 - `req.query.q` (string) - Search query (required)
@@ -18,7 +18,7 @@ Search stocks by symbol or name. Uses NSE autocomplete API; falls back to local 
 **Returns:** JSON with `results`, `total`, `page`, `limit`
 
 ### getStockDetails(req, res, next)
-Get comprehensive stock details including basic info, price, fundamentals, and 5-year price history.
+Get comprehensive stock details including basic info, price, fundamentals, and 5-year price history. Tries `getQuoteEquity()` from `nseIndiaApi`; on NSE 403, falls back to BSE `getBseQuoteHeader` + `getCompanyInfo` via `quoteFromBseData()` in `stockDetailsFetcher`. BSE HTTP uses `bseHttp.js` (undici) because BSE responses include malformed headers that break axios. If all live sources fail, returns cached MongoDB `Stock` data with `fallback: true`.
 
 **Parameters:**
 - `req.params.symbol` (string) - Stock symbol

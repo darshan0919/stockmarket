@@ -4,11 +4,13 @@
  * @see docs/API_REFERENCE.md#announcements-apis
  */
 
-const axios = require('axios');
 const { getAnnouncements } = require('../announcementsController');
 const { searchCompanyAnnouncements } = require('../../services/stockscansAnnouncements');
+const { getCorporateAnnouncements } = require('../../api/nseIndiaApi');
 
-jest.mock('axios');
+jest.mock('../../api/nseIndiaApi', () => ({
+  getCorporateAnnouncements: jest.fn(),
+}));
 jest.mock('../../services/stockscansAnnouncements', () => ({
   searchCompanyAnnouncements: jest.fn(),
 }));
@@ -36,17 +38,12 @@ describe('announcementsController.getAnnouncements', () => {
 
   it('provider=nse uses NSE only and does not call StockScans', async () => {
     mockReq.query = { provider: 'nse' };
-    axios.get.mockResolvedValue({ data: [{ subject: 'A', attchmntFile: 'x' }] });
+    getCorporateAnnouncements.mockResolvedValue([{ subject: 'A', attchmntFile: 'x' }]);
 
     await getAnnouncements(mockReq, mockRes, mockNext);
 
     expect(searchCompanyAnnouncements).not.toHaveBeenCalled();
-    expect(axios.get).toHaveBeenCalledWith(
-      'https://www.nseindia.com/api/corporate-announcements',
-      expect.objectContaining({
-        params: { index: 'equities', symbol: 'RELIANCE' },
-      })
-    );
+    expect(getCorporateAnnouncements).toHaveBeenCalledWith('RELIANCE');
     expect(mockRes.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: true,
@@ -70,7 +67,7 @@ describe('announcementsController.getAnnouncements', () => {
         meta: expect.objectContaining({ provider: 'stockscans' }),
       })
     );
-    expect(axios.get).not.toHaveBeenCalled();
+    expect(getCorporateAnnouncements).not.toHaveBeenCalled();
   });
 
   it('provider=stockscans returns 503 when auth token missing in service', async () => {
@@ -82,18 +79,18 @@ describe('announcementsController.getAnnouncements', () => {
     await getAnnouncements(mockReq, mockRes, mockNext);
 
     expect(mockRes.status).toHaveBeenCalledWith(503);
-    expect(axios.get).not.toHaveBeenCalled();
+    expect(getCorporateAnnouncements).not.toHaveBeenCalled();
   });
 
   it('provider=auto falls back to NSE when StockScans fails', async () => {
     mockReq.query = {};
     searchCompanyAnnouncements.mockRejectedValue(new Error('StockScans down'));
-    axios.get.mockResolvedValue({ data: [{ subject: 'NSE only' }] });
+    getCorporateAnnouncements.mockResolvedValue([{ subject: 'NSE only' }]);
 
     await getAnnouncements(mockReq, mockRes, mockNext);
 
     expect(searchCompanyAnnouncements).toHaveBeenCalled();
-    expect(axios.get).toHaveBeenCalled();
+    expect(getCorporateAnnouncements).toHaveBeenCalledWith('RELIANCE');
     expect(mockRes.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: true,
@@ -117,6 +114,6 @@ describe('announcementsController.getAnnouncements', () => {
         meta: expect.objectContaining({ provider: 'stockscans', limit: 30 }),
       })
     );
-    expect(axios.get).not.toHaveBeenCalled();
+    expect(getCorporateAnnouncements).not.toHaveBeenCalled();
   });
 });

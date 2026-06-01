@@ -2,8 +2,11 @@
 
 Client for BSE India public APIs. Fetches scrip codes, result announcements, upcoming results, and company info.
 
-## Source File
-`backend/api/bseIndiaApi.js`
+HTTP transport lives in `backend/api/bseHttp.js` (undici `fetch`). BSE responses sometimes ship malformed headers that break Node's axios/https parser; undici tolerates them.
+
+## Source Files
+- `backend/api/bseIndiaApi.js` — domain helpers (search, quote, announcements)
+- `backend/api/bseHttp.js` — low-level GET client
 
 ## Functions/Methods
 

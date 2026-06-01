@@ -35,6 +35,11 @@ const MONTH_INDEX_MAP = {
   Dec: 11,
 };
 
+/**
+ * Static headers for NSE PDF/asset fetches only.
+ * For NSE JSON API endpoints use {@link module:api/nseIndiaApi.nseGet} or {@link module:api/nseIndiaApi.getNseHeaders}
+ * (session cookies are required).
+ */
 const NSE_HEADERS = {
   Accept: 'application/json',
   'Accept-Language': 'en-US,en;q=0.9',

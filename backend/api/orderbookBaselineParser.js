@@ -5,12 +5,11 @@
  * @see {@link docs/backend/api/geminiClient.md} for shared AI client
  */
 
-const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const { parseNseDateToObject, formatNseDateForApi } = require('../utils/nseHelpers');
 const { parsePdfWithGemini, hashPrompt } = require('./geminiClient');
-const { getNseCookies } = require('./nseIndiaApi');
+const { getQuoteApi } = require('./nseIndiaApi');
 
 // Read the orderbook baseline prompt from file
 const orderbookBaselinePrompt = fs.readFileSync(
@@ -20,21 +19,6 @@ const orderbookBaselinePrompt = fs.readFileSync(
 
 const promptHash = hashPrompt(orderbookBaselinePrompt);
 
-// NSE API headers (base headers, cookies added per request)
-const getNseHeaders = async () => {
-  const cookies = await getNseCookies();
-  return {
-    Accept: 'application/json',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Accept-Encoding': 'gzip, deflate, br',
-    'User-Agent':
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    Referer: 'https://www.nseindia.com/',
-    Connection: 'keep-alive',
-    ...(cookies && { Cookie: cookies }),
-  };
-};
-
 /**
  * Fetch annual reports for a symbol from NSE
  * @param {string} symbol - Stock symbol
@@ -42,17 +26,7 @@ const getNseHeaders = async () => {
  */
 const fetchAnnualReports = async (symbol) => {
   try {
-    const headers = await getNseHeaders();
-    const url = `https://www.nseindia.com/api/NextApi/apiClient/GetQuoteApi?functionName=getCorpAnnualReport&symbol=${encodeURIComponent(
-      symbol
-    )}&marketApiType=equities`;
-
-    const response = await axios.get(url, {
-      headers,
-      timeout: 15000,
-    });
-
-    return response.data?.data || response.data || [];
+    return await getQuoteApi('getCorpAnnualReport', symbol);
   } catch (error) {
     console.error('Error fetching annual reports:', error.message);
     return [];
@@ -67,23 +41,15 @@ const fetchAnnualReports = async (symbol) => {
  */
 const fetchInvestorPresentations = async (symbol, monthsBack = 12) => {
   try {
-    const headers = await getNseHeaders();
     const toDate = new Date();
     const fromDate = new Date();
     fromDate.setMonth(fromDate.getMonth() - monthsBack);
 
-    const url = `https://www.nseindia.com/api/NextApi/apiClient/GetQuoteApi?functionName=getCorporateAnnouncement&symbol=${encodeURIComponent(
-      symbol
-    )}&marketApiType=equities&subject=Investor%20Presentation&fromDate=${formatNseDateForApi(
-      fromDate
-    )}&toDate=${formatNseDateForApi(toDate)}`;
-
-    const response = await axios.get(url, {
-      headers,
-      timeout: 15000,
+    return await getQuoteApi('getCorporateAnnouncement', symbol, {
+      subject: 'Investor Presentation',
+      fromDate: formatNseDateForApi(fromDate),
+      toDate: formatNseDateForApi(toDate),
     });
-
-    return response.data?.data || response.data || [];
   } catch (error) {
     console.error('Error fetching investor presentations:', error.message);
     return [];
@@ -99,23 +65,15 @@ const fetchInvestorPresentations = async (symbol, monthsBack = 12) => {
  */
 const fetchFinancialResults = async (symbol, monthsBack = 12) => {
   try {
-    const headers = await getNseHeaders();
     const toDate = new Date();
     const fromDate = new Date();
     fromDate.setMonth(fromDate.getMonth() - monthsBack);
 
-    const url = `https://www.nseindia.com/api/NextApi/apiClient/GetQuoteApi?functionName=getCorporateAnnouncement&symbol=${encodeURIComponent(
-      symbol
-    )}&marketApiType=equities&subject=Financial%20Results&fromDate=${formatNseDateForApi(
-      fromDate
-    )}&toDate=${formatNseDateForApi(toDate)}`;
-
-    const response = await axios.get(url, {
-      headers,
-      timeout: 15000,
+    return await getQuoteApi('getCorporateAnnouncement', symbol, {
+      subject: 'Financial Results',
+      fromDate: formatNseDateForApi(fromDate),
+      toDate: formatNseDateForApi(toDate),
     });
-
-    return response.data?.data || response.data || [];
   } catch (error) {
     console.error('Error fetching financial results:', error.message);
     return [];

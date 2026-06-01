@@ -4,15 +4,16 @@
  * @see docs/backend/api/bseIndiaApi.md for documentation
  */
 
-const axios = require('axios');
+const { bseGetText, bseGetJson } = require('../bseHttp');
 const {
   getStockScripCode,
   getResultAnnoucement,
   upcomingResults,
   getCompanyInfo,
+  parseBseSmartSearchHtml,
 } = require('../bseIndiaApi');
 
-jest.mock('axios');
+jest.mock('../bseHttp');
 
 describe('BSE India API', () => {
   beforeEach(() => {
@@ -21,32 +22,25 @@ describe('BSE India API', () => {
 
   describe('getStockScripCode', () => {
     it('should extract scrip code from search response', async () => {
-      const mockResponse = {
-        data: '<strong>RELIANCE</strong>&nbsp;&nbsp;&nbsp;INE002A01018&nbsp;&nbsp;&nbsp;500325',
-      };
-
-      axios.get.mockResolvedValue(mockResponse);
+      bseGetText.mockResolvedValue({
+        data: "<li ng-click=\"liclick('500325','RELIANCE INDUSTRIES LTD')\"><span><strong>RELIANCE</strong>&nbsp;&nbsp;&nbsp;INE002A01018&nbsp;&nbsp;&nbsp;500325</span></li>",
+      });
 
       const result = await getStockScripCode('RELIANCE');
 
       expect(result).toBe('500325');
-      expect(axios.get).toHaveBeenCalledWith(
-        expect.stringContaining('PeerSmartSearch'),
+      expect(bseGetText).toHaveBeenCalledWith(
+        'PeerSmartSearch/w',
         expect.objectContaining({
-          timeout: 12000,
-          headers: expect.objectContaining({
-            Referer: 'https://www.bseindia.com/',
-          }),
+          params: { Type: 'SS', text: 'RELIANCE' },
         })
       );
     });
 
     it('should match BSE HTML when input symbol is lowercase', async () => {
-      const mockResponse = {
-        data: '<strong>WAAREERTL</strong>&nbsp;&nbsp;&nbsp;INE299N01021&nbsp;&nbsp;&nbsp;534618',
-      };
-
-      axios.get.mockResolvedValue(mockResponse);
+      bseGetText.mockResolvedValue({
+        data: "<li ng-click=\"liclick('534618','WAAREE RENEWABLE TECH LTD')\"><span><strong>WAAREERTL</strong>&nbsp;&nbsp;&nbsp;INE299N01021&nbsp;&nbsp;&nbsp;534618</span></li>",
+      });
 
       const result = await getStockScripCode('waareertl');
 
@@ -54,11 +48,7 @@ describe('BSE India API', () => {
     });
 
     it('should return null when symbol not found', async () => {
-      const mockResponse = {
-        data: 'No results found',
-      };
-
-      axios.get.mockResolvedValue(mockResponse);
+      bseGetText.mockResolvedValue({ data: 'No results found' });
 
       const result = await getStockScripCode('NONEXISTENT');
 
@@ -66,11 +56,9 @@ describe('BSE India API', () => {
     });
 
     it('should handle &nbsp; in response', async () => {
-      const mockResponse = {
+      bseGetText.mockResolvedValue({
         data: '<strong>INFY</strong>&nbsp;INFOSYS&nbsp;500209',
-      };
-
-      axios.get.mockResolvedValue(mockResponse);
+      });
 
       const result = await getStockScripCode('INFY');
 
@@ -78,43 +66,43 @@ describe('BSE India API', () => {
     });
 
     it('should trim symbol before search', async () => {
-      axios.get.mockResolvedValue({ data: '<strong>TCS</strong> TCS 532540' });
+      bseGetText.mockResolvedValue({ data: '<strong>TCS</strong> TCS 532540' });
 
       await getStockScripCode('  TCS  ');
 
-      expect(axios.get).toHaveBeenCalledWith(
-        expect.stringContaining('text=TCS'),
-        expect.any(Object)
+      expect(bseGetText).toHaveBeenCalledWith(
+        'PeerSmartSearch/w',
+        expect.objectContaining({
+          params: { Type: 'SS', text: 'TCS' },
+        })
       );
     });
 
-    it('should handle API error gracefully', async () => {
-      axios.get.mockRejectedValue(new Error('Network error'));
+    it('should return null on API error instead of throwing', async () => {
+      bseGetText.mockRejectedValue(new Error('Network error'));
 
-      await expect(getStockScripCode('RELIANCE')).rejects.toThrow('Network error');
+      const result = await getStockScripCode('RELIANCE');
+
+      expect(result).toBeNull();
     });
   });
 
   describe('getResultAnnoucement', () => {
     it('should fetch result announcements for a stock', async () => {
-      const mockScripResponse = {
-        data: '<strong>INFY</strong> INFOSYS 500209',
-      };
+      bseGetText.mockResolvedValue({
+        data: "<li ng-click=\"liclick('500209','INFOSYS LTD')\"><span><strong>INFY</strong>&nbsp;500209</span></li>",
+      });
 
-      const mockAnnouncements = {
-        data: {
-          Table: [
-            {
-              HEADLINE: 'Earnings Call Transcript Q1 2024',
-              DT_TM: '15-Apr-2024',
-              ATTACHNAME: 'transcript.pdf',
-            },
-          ],
-          Table1: [{ ROWCNT: 1 }],
-        },
-      };
-
-      axios.get.mockResolvedValueOnce(mockScripResponse).mockResolvedValueOnce(mockAnnouncements);
+      bseGetJson.mockResolvedValue({
+        Table: [
+          {
+            HEADLINE: 'Earnings Call Transcript Q1 2024',
+            DT_TM: '15-Apr-2024',
+            ATTACHNAME: 'transcript.pdf',
+          },
+        ],
+        Table1: [{ ROWCNT: 1 }],
+      });
 
       const result = await getResultAnnoucement('INFY', '01-01-2024', '31-12-2024');
 
@@ -123,7 +111,7 @@ describe('BSE India API', () => {
     });
 
     it('should return null when scrip code not found', async () => {
-      axios.get.mockResolvedValue({ data: 'No results' });
+      bseGetText.mockResolvedValue({ data: 'No results' });
 
       const result = await getResultAnnoucement('INVALID', '01-01-2024', '31-12-2024');
 
@@ -131,28 +119,19 @@ describe('BSE India API', () => {
     });
 
     it('should paginate through multiple pages', async () => {
-      const mockScripResponse = {
-        data: '<strong>RELIANCE</strong> RELIANCE 500325',
-      };
+      bseGetText.mockResolvedValue({
+        data: "<li ng-click=\"liclick('500325','RELIANCE INDUSTRIES LTD')\"><span><strong>RELIANCE</strong>&nbsp;500325</span></li>",
+      });
 
-      const page1 = {
-        data: {
+      bseGetJson
+        .mockResolvedValueOnce({
           Table: [{ HEADLINE: 'Transcript 1' }, { HEADLINE: 'Transcript 2' }],
           Table1: [{ ROWCNT: 3 }],
-        },
-      };
-
-      const page2 = {
-        data: {
+        })
+        .mockResolvedValueOnce({
           Table: [{ HEADLINE: 'Transcript 3' }],
           Table1: [{ ROWCNT: 3 }],
-        },
-      };
-
-      axios.get
-        .mockResolvedValueOnce(mockScripResponse)
-        .mockResolvedValueOnce(page1)
-        .mockResolvedValueOnce(page2);
+        });
 
       const result = await getResultAnnoucement('RELIANCE', '01-01-2024', '31-12-2024');
 
@@ -160,27 +139,20 @@ describe('BSE India API', () => {
     });
 
     it('should limit pagination to 10 pages', async () => {
-      const mockScripResponse = {
-        data: '<strong>TEST</strong> TEST 100000',
-      };
+      bseGetText.mockResolvedValue({
+        data: "<li ng-click=\"liclick('100000','TEST LTD')\"><span><strong>TEST</strong>&nbsp;100000</span></li>",
+      });
 
-      // Mock infinite pagination scenario
       const infinitePage = {
-        data: {
-          Table: [{ HEADLINE: 'Item' }],
-          Table1: [{ ROWCNT: 999 }], // Very high count
-        },
+        Table: [{ HEADLINE: 'Item' }],
+        Table1: [{ ROWCNT: 999 }],
       };
 
-      axios.get.mockResolvedValueOnce(mockScripResponse);
-      for (let i = 0; i < 15; i++) {
-        axios.get.mockResolvedValueOnce(infinitePage);
-      }
+      bseGetJson.mockResolvedValue(infinitePage);
 
-      const result = await getResultAnnoucement('TEST', '01-01-2024', '31-12-2024');
+      await getResultAnnoucement('TEST', '01-01-2024', '31-12-2024');
 
-      // 1 scrip lookup + 11 announcement requests: loop fetches page 11 then exits on pageno > 10
-      expect(axios.get).toHaveBeenCalledTimes(12);
+      expect(bseGetJson).toHaveBeenCalledTimes(11);
     });
   });
 
@@ -194,23 +166,16 @@ describe('BSE India API', () => {
         },
       ];
 
-      axios.get.mockResolvedValue({ data: mockData });
+      bseGetJson.mockResolvedValue(mockData);
 
       const result = await upcomingResults();
 
       expect(result).toEqual(mockData);
-      expect(axios.get).toHaveBeenCalledWith(
-        expect.stringContaining('Corpforthresults'),
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Referer: 'https://www.bseindia.com/',
-          }),
-        })
-      );
+      expect(bseGetJson).toHaveBeenCalledWith('Corpforthresults/w');
     });
 
     it('should handle API error', async () => {
-      axios.get.mockRejectedValue(new Error('API error'));
+      bseGetJson.mockRejectedValue(new Error('API error'));
 
       await expect(upcomingResults()).rejects.toThrow('API error');
     });
@@ -224,30 +189,26 @@ describe('BSE India API', () => {
         SECTOR: 'Energy',
       };
 
-      axios.get.mockResolvedValue({ data: mockData });
+      bseGetJson.mockResolvedValue(mockData);
 
       const result = await getCompanyInfo('500325');
 
       expect(result).toEqual(mockData);
-      expect(axios.get).toHaveBeenCalledWith(
-        expect.stringContaining('scripcode=500325'),
-        expect.objectContaining({ timeout: 12000 })
-      );
-    });
-
-    it('should include proper headers', async () => {
-      axios.get.mockResolvedValue({ data: {} });
-
-      await getCompanyInfo('500325');
-
-      expect(axios.get).toHaveBeenCalledWith(
-        expect.any(String),
+      expect(bseGetJson).toHaveBeenCalledWith(
+        'ComHeadernew/w',
         expect.objectContaining({
-          headers: expect.objectContaining({
-            Referer: 'https://www.bseindia.com/',
-          }),
+          params: { quotetype: 'EQ', scripcode: '500325' },
         })
       );
+    });
+  });
+
+  describe('parseBseSmartSearchHtml', () => {
+    it('extracts NSE-shaped symbols from BSE HTML', () => {
+      const html = `<li ng-click="liclick('500325','RELIANCE INDUSTRIES LTD')"><a><strong>REL</strong>IANCE INDUSTRIES LTD<br /><span><strong>REL</strong>IANCE&nbsp;&nbsp;&nbsp;INE002A01018&nbsp;&nbsp;&nbsp;500325</span></a></li>`;
+      const symbols = parseBseSmartSearchHtml(html);
+      expect(symbols[0].symbol).toBe('RELIANCE');
+      expect(symbols[0].bse_scrip_code).toBe('500325');
     });
   });
 });

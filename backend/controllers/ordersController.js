@@ -28,6 +28,7 @@ const {
   parseNseDateToTimestamp,
   isOrderAnnouncement,
 } = require('../utils/nseHelpers');
+const { getQuoteApi } = require('../api/nseIndiaApi');
 const { ensureRepoDownloadsRoot } = require('../utils/repoDownloads');
 
 /**
@@ -76,16 +77,7 @@ async function getOrders(req, res, next) {
     let baselineDocumentTitle = null;
 
     try {
-      const annualReportUrl = `https://www.nseindia.com/api/NextApi/apiClient/GetQuoteApi?functionName=getCorpAnnualReport&symbol=${encodeURIComponent(
-        upperSymbol
-      )}&marketApiType=equities`;
-
-      const annualReportResponse = await axios.get(annualReportUrl, {
-        headers: NSE_HEADERS,
-        timeout: 5000,
-      });
-
-      const annualReports = annualReportResponse.data || [];
+      const annualReports = await getQuoteApi('getCorpAnnualReport', upperSymbol);
       if (annualReports.length > 0) {
         const latestReport = annualReports[0];
         baselineDocumentUrl = latestReport.attchmntFile || null;

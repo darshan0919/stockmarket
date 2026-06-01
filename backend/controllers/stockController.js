@@ -6,9 +6,8 @@ const QuarterlyResult = require('../models/QuarterlyResult');
 const { calculateAllIndicators, calculateSMA } = require('../utils/technicalIndicators');
 const { fetchAndStoreQuarterlyResults } = require('../scripts/balanceSheetDataFetcher');
 const { fetchStockDetails } = require('../scripts/stockDetailsFetcher');
-const axios = require('axios');
 const { getStockScripCode } = require('../api/bseIndiaApi');
-const { getPriceVolumeDeliverable, formatDate } = require('../api/nseIndiaApi');
+const { getPriceVolumeDeliverable, formatDate, searchAutocomplete } = require('../api/nseIndiaApi');
 const { parseNseDateToObject } = require('../utils/nseHelpers');
 
 /**
@@ -26,23 +25,8 @@ const searchStocks = async (req, res, next) => {
   }
 
   try {
-    // Call NSE India autocomplete API
-    const apiResponse = await axios.get(
-      `https://www.nseindia.com/api/search/autocomplete?q=${encodeURIComponent(q)}`,
-      {
-        timeout: 10000,
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          Accept: 'application/json',
-          'Accept-Language': 'en-US,en;q=0.9',
-          'Accept-Encoding': 'gzip, deflate, br',
-        },
-      }
-    );
-
-    // Extract and format the response from NSE India API
-    const symbols = apiResponse.data.symbols || [];
+    const apiData = await searchAutocomplete(q);
+    const symbols = apiData.symbols || [];
 
     // Filter only equity stocks (not mutual funds, etc.)
     const equitySymbols = symbols.filter(
@@ -123,6 +107,55 @@ const searchStocks = async (req, res, next) => {
 };
 
 /**
+ * Build stock details response from a cached Stock document when live APIs fail.
+ * @param {Object} stock - Lean Stock document
+ * @returns {Object}
+ */
+const buildStockDetailsFromDb = (stock) => ({
+  basic_info: {
+    symbol: stock.symbol,
+    name: stock.name,
+    sector: stock.sector,
+    industry: stock.industry,
+    market_cap: stock.market_cap || null,
+    listing_date: stock.listing_date || null,
+    isin: stock.isin,
+    face_value: stock.face_value,
+    index_name: stock.index_name,
+  },
+  price_info: {
+    last_price: null,
+    change: null,
+    change_percent: null,
+    previous_close: null,
+    open: null,
+    close: null,
+    vwap: null,
+    day_high: null,
+    day_low: null,
+    week_high: null,
+    week_low: null,
+  },
+  fundamentals: {
+    pe_ratio: null,
+    pb_ratio: stock.pb_ratio,
+    sector_pe: null,
+    market_cap: stock.market_cap || null,
+    face_value: stock.face_value,
+    book_value_per_share: null,
+    dividend_yield: null,
+    roe: stock.roe,
+    roce: null,
+    debt_to_equity: null,
+    net_profit_margin: stock.npm,
+    operating_profit_margin: stock.opm,
+    eps: stock.eps,
+  },
+  price_history_5y: [],
+  fallback: true,
+});
+
+/**
  * Get stock details by symbol using NSE API
  * GET /api/stocks/:symbol
  */
@@ -131,8 +164,6 @@ const getStockDetails = async (req, res, next) => {
   const upperSymbol = symbol.toUpperCase();
 
   try {
-    // Fetch data from NSE India Quote API
-
     const scripCode = await getStockScripCode(upperSymbol);
     const stockDetails = await fetchStockDetails(upperSymbol, scripCode);
 
@@ -146,8 +177,22 @@ const getStockDetails = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Database fallback error:', error);
-    next(error);
+    console.error('Live stock fetch failed, trying DB fallback:', error.message);
+
+    try {
+      const stock = await Stock.findOne({ symbol: upperSymbol }).lean();
+      if (!stock) {
+        return next(error);
+      }
+
+      return res.json({
+        success: true,
+        data: buildStockDetailsFromDb(stock),
+      });
+    } catch (dbError) {
+      console.error('Database fallback error:', dbError);
+      next(error);
+    }
   }
 };
 

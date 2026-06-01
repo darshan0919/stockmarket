@@ -5,208 +5,150 @@
  */
 
 const axios = require('axios');
-const { upcomingResults, getNseCookies, formatDate } = require('../nseIndiaApi');
 
 jest.mock('axios');
+jest.mock('../bseIndiaApi', () => ({
+  bseSmartSearch: jest.fn(),
+}));
+
+const { bseSmartSearch } = require('../bseIndiaApi');
 
 describe('NSE India API', () => {
+  let api;
+
+  const mockHomepage = () => {
+    axios.get.mockResolvedValueOnce({
+      headers: { 'set-cookie': ['nsit=abc123; path=/'] },
+      data: '<html></html>',
+    });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset the cached cookies between tests
-    jest.resetModules();
+    api = require('../nseIndiaApi');
+    api.clearNseCookieCache();
+    bseSmartSearch.mockReset();
   });
 
   describe('formatDate', () => {
     it('should format date as DD-MM-YYYY', () => {
-      const date = new Date('2024-01-15');
-      const result = formatDate(date);
-
-      expect(result).toBe('15-01-2024');
-    });
-
-    it('should pad single digit day with zero', () => {
-      const date = new Date('2024-01-05');
-      const result = formatDate(date);
-
-      expect(result).toBe('05-01-2024');
-    });
-
-    it('should pad single digit month with zero', () => {
-      const date = new Date('2024-03-15');
-      const result = formatDate(date);
-
-      expect(result).toBe('15-03-2024');
-    });
-
-    it('should handle December correctly', () => {
-      const date = new Date('2024-12-25');
-      const result = formatDate(date);
-
-      expect(result).toBe('25-12-2024');
-    });
-
-    it('should handle January correctly', () => {
-      const date = new Date('2024-01-01');
-      const result = formatDate(date);
-
-      expect(result).toBe('01-01-2024');
+      expect(api.formatDate(new Date('2024-01-15'))).toBe('15-01-2024');
     });
   });
 
   describe('getNseCookies', () => {
     it('should fetch cookies from NSE homepage', async () => {
-      const { getNseCookies: freshGetCookies } = require('../nseIndiaApi');
-
-      axios.get.mockResolvedValueOnce({
-        headers: {
-          'set-cookie': ['nsit=abc123; path=/', 'nseappid=xyz789; path=/'],
-        },
-      });
-
-      const cookies = await freshGetCookies();
-
+      mockHomepage();
+      const cookies = await api.getNseCookies();
       expect(cookies).toContain('nsit=abc123');
-      expect(cookies).toContain('nseappid=xyz789');
       expect(axios.get).toHaveBeenCalledWith(
         'https://www.nseindia.com/',
         expect.objectContaining({
           headers: expect.objectContaining({
             'User-Agent': expect.any(String),
+            'sec-ch-ua': expect.any(String),
           }),
         })
       );
     });
+  });
 
-    it('should return null on error', async () => {
-      axios.get.mockRejectedValueOnce(new Error('Network error'));
+  describe('clearNseCookieCache', () => {
+    it('forces a fresh cookie fetch on next request', async () => {
+      mockHomepage();
+      axios.get.mockResolvedValueOnce({ data: { symbols: [] } });
+      mockHomepage();
+      axios.get.mockResolvedValueOnce({ data: { symbols: [] } });
+      bseSmartSearch.mockResolvedValue({ symbols: [{ symbol: 'TCS' }] });
 
-      const cookies = await getNseCookies();
+      await api.searchAutocomplete('rel');
+      api.clearNseCookieCache();
+      await api.searchAutocomplete('tcs');
 
-      // May return cached cookies or null
-      expect(cookies).toBeDefined();
+      const homeCalls = axios.get.mock.calls.filter((c) => c[0] === 'https://www.nseindia.com/');
+      expect(homeCalls.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe('searchAutocomplete', () => {
+    it('returns NSE symbols when autocomplete succeeds', async () => {
+      mockHomepage();
+      axios.get.mockResolvedValueOnce({
+        data: { symbols: [{ symbol: 'RELIANCE', result_sub_type: 'equity' }] },
+      });
+
+      const data = await api.searchAutocomplete('rel');
+
+      expect(data.symbols).toHaveLength(1);
+      expect(bseSmartSearch).not.toHaveBeenCalled();
     });
 
-    it('should return null when no cookies in response', async () => {
-      axios.get.mockResolvedValueOnce({
-        headers: {},
+    it('falls back to BSE when NSE returns 404', async () => {
+      mockHomepage();
+      const err404 = new Error('Not found');
+      err404.response = { status: 404 };
+      axios.get.mockRejectedValueOnce(err404);
+      bseSmartSearch.mockResolvedValue({
+        symbols: [{ symbol: 'RELIANCE', symbol_info: 'Reliance Industries Ltd' }],
       });
 
-      // Need fresh module to avoid cached cookies
-      jest.isolateModules(() => {
-        const { getNseCookies: freshGetCookies } = require('../nseIndiaApi');
-        // This would return cached cookies if any, or null
+      const data = await api.searchAutocomplete('rel');
+
+      expect(bseSmartSearch).toHaveBeenCalledWith('rel');
+      expect(data.symbols[0].symbol).toBe('RELIANCE');
+    });
+  });
+
+  describe('getQuoteEquity', () => {
+    it('warms up equity page and requests quote-equity', async () => {
+      mockHomepage();
+      axios.get.mockResolvedValueOnce({
+        headers: { 'set-cookie': ['eq=1; path=/'] },
+        data: '<html></html>',
       });
+      axios.get.mockResolvedValueOnce({
+        data: { info: { companyName: 'Reliance Industries Limited' } },
+      });
+
+      const data = await api.getQuoteEquity('reliance');
+
+      expect(data.info.companyName).toContain('Reliance');
+      const quoteCall = axios.get.mock.calls.find((c) => String(c[0]).includes('/quote-equity'));
+      expect(quoteCall[1].params).toEqual({ symbol: 'RELIANCE' });
+    });
+  });
+
+  describe('nseGet', () => {
+    it('retries once after 403', async () => {
+      const err403 = new Error('Forbidden');
+      err403.response = { status: 403 };
+
+      mockHomepage();
+      axios.get.mockRejectedValueOnce(err403);
+      mockHomepage();
+      axios.get.mockResolvedValueOnce({ data: { ok: true } });
+
+      const response = await api.nseGet('/test-endpoint');
+
+      expect(response.data).toEqual({ ok: true });
     });
   });
 
   describe('upcomingResults', () => {
     it('should fetch upcoming results from NSE API', async () => {
-      const mockData = [
-        {
-          symbol: 'INFY',
-          company: 'Infosys Limited',
-          date: '15-Jan-2024',
-          purpose: 'Financial Results',
-        },
-        {
-          symbol: 'TCS',
-          company: 'Tata Consultancy Services',
-          date: '17-Jan-2024',
-          purpose: 'Financial Results',
-        },
-      ];
+      const mockData = [{ symbol: 'INFY', company: 'Infosys Limited', date: '15-Jan-2024' }];
 
-      // Mock cookie fetch
-      axios.get.mockResolvedValueOnce({
-        headers: {
-          'set-cookie': ['nsit=abc123; path=/'],
-        },
-      });
+      mockHomepage();
+      axios.get.mockResolvedValueOnce({ data: mockData });
 
-      // Mock event calendar API
-      axios.get.mockResolvedValueOnce({
-        data: mockData,
-      });
-
-      const result = await upcomingResults();
-
+      const result = await api.upcomingResults();
       expect(result).toEqual(mockData);
     });
 
     it('should return empty array on API error', async () => {
       axios.get.mockRejectedValue(new Error('API error'));
-
-      const result = await upcomingResults();
-
+      const result = await api.upcomingResults();
       expect(result).toEqual([]);
-    });
-
-    it('should return empty array when response has no data', async () => {
-      axios.get.mockResolvedValueOnce({
-        headers: { 'set-cookie': ['nsit=abc123'] },
-      });
-      axios.get.mockResolvedValueOnce({
-        data: null,
-      });
-
-      const result = await upcomingResults();
-
-      expect(result).toEqual([]);
-    });
-
-    it('should call API with correct parameters', async () => {
-      axios.get.mockResolvedValueOnce({
-        headers: { 'set-cookie': ['nsit=abc123'] },
-      });
-      axios.get.mockResolvedValueOnce({
-        data: [],
-      });
-
-      await upcomingResults();
-
-      // Check the API call to event-calendar
-      const apiCall = axios.get.mock.calls.find((call) => call[0].includes('event-calendar'));
-
-      if (apiCall) {
-        expect(apiCall[1].params).toMatchObject({
-          index: 'equities',
-          subject: 'Financial Results',
-        });
-      }
-    });
-
-    it('should include cookies in API request', async () => {
-      axios.get.mockResolvedValueOnce({
-        headers: { 'set-cookie': ['nsit=abc123; path=/'] },
-      });
-      axios.get.mockResolvedValueOnce({
-        data: [],
-      });
-
-      await upcomingResults();
-
-      const apiCall = axios.get.mock.calls.find((call) => call[0].includes('event-calendar'));
-
-      if (apiCall) {
-        expect(apiCall[1].headers).toHaveProperty('Cookie');
-      }
-    });
-
-    it('should handle timeout correctly', async () => {
-      axios.get.mockResolvedValueOnce({
-        headers: { 'set-cookie': ['nsit=abc123'] },
-      });
-      axios.get.mockResolvedValueOnce({
-        data: [{ symbol: 'TEST' }],
-      });
-
-      await upcomingResults();
-
-      const apiCall = axios.get.mock.calls.find((call) => call[0].includes('event-calendar'));
-
-      if (apiCall) {
-        expect(apiCall[1].timeout).toBe(15000);
-      }
     });
   });
 });

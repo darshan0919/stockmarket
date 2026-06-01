@@ -10,6 +10,7 @@ const { PassThrough } = require('stream');
 const axios = require('axios');
 const archiver = require('archiver');
 const { NSE_HEADERS, parseNseDate } = require('../utils/nseHelpers');
+const { getCorporateAnnouncements } = require('../api/nseIndiaApi');
 const { ensureRepoDownloadsRoot } = require('../utils/repoDownloads');
 const { searchCompanyAnnouncements } = require('../services/stockscansAnnouncements');
 const {
@@ -73,16 +74,7 @@ function sanitizeSearchForFilename(raw) {
  * @returns {Promise<Array>} NSE announcement objects
  */
 async function fetchNseCorporateAnnouncements(upperSymbol) {
-  const response = await axios.get('https://www.nseindia.com/api/corporate-announcements', {
-    params: {
-      index: 'equities',
-      symbol: upperSymbol,
-    },
-    headers: NSE_HEADERS,
-    timeout: 15000,
-  });
-  const raw = response.data;
-  return Array.isArray(raw) ? raw : [];
+  return getCorporateAnnouncements(upperSymbol);
 }
 
 /**

@@ -1,5 +1,9 @@
-const axios = require('axios');
 const { parseXBRL } = require('../utils/xbrlParser');
+const {
+  getQuoteEquity,
+  getCorporatesFinancialResults,
+  getIntegratedFilingResults,
+} = require('../api/nseIndiaApi');
 const QuarterlyResult = require('../models/QuarterlyResult');
 
 /**
@@ -92,17 +96,8 @@ const fetchAndStoreQuarterlyResults = async (symbol) => {
   const upperSymbol = symbol.toUpperCase();
   let companyName = '';
   try {
-    const quoteResponse = await axios.get(
-      `https://www.nseindia.com/api/quote-equity?symbol=${upperSymbol}`,
-      {
-        timeout: 10000,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-          Accept: 'application/json',
-        },
-      }
-    );
-    companyName = quoteResponse.data.info?.companyName || '';
+    const quoteData = await getQuoteEquity(upperSymbol);
+    companyName = quoteData.info?.companyName || '';
   } catch (err) {
     console.warn(`Could not fetch company name: ${err.message}`);
   }
@@ -113,17 +108,7 @@ const fetchAndStoreQuarterlyResults = async (symbol) => {
   // API 1: corporates-financial-results (historical data)
   let historicalResults = [];
   try {
-    const historicalResponse = await axios.get(
-      `https://www.nseindia.com/api/corporates-financial-results?index=equities&symbol=${upperSymbol}&issuer=${issuer}&period=Quarterly`,
-      {
-        timeout: 15000,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-          Accept: 'application/json',
-        },
-      }
-    );
-    historicalResults = historicalResponse.data || [];
+    historicalResults = await getCorporatesFinancialResults(upperSymbol, issuer);
     console.log(`Historical API: ${historicalResults.length} quarters found`);
   } catch (err) {
     console.warn(`Historical API failed: ${err.message}`);
@@ -132,17 +117,8 @@ const fetchAndStoreQuarterlyResults = async (symbol) => {
   // API 2: integrated-filing-results (recent 4 quarters with broadcast time)
   let recentResults = [];
   try {
-    const recentResponse = await axios.get(
-      `https://www.nseindia.com/api/integrated-filing-results?index=equities&symbol=${upperSymbol}&issuer=${issuer}&period_ended=all&type=Integrated%20Filing-%20Financials&page=1&size=20`,
-      {
-        timeout: 15000,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-          Accept: 'application/json',
-        },
-      }
-    );
-    recentResults = (recentResponse.data?.data || []).map((r) => ({
+    const recentData = await getIntegratedFilingResults(upperSymbol, issuer);
+    recentResults = recentData.map((r) => ({
       xbrl: r.xbrl,
       companyName: r.cmName,
       consolidated: r.consolidated,
@@ -188,9 +164,7 @@ const fetchAndStoreQuarterlyResults = async (symbol) => {
   console.log(`Merged: ${allResults.length} unique quarters`);
 
   if (allResults.length === 0) {
-    return {
-      empty: true,
-    };
+    return [];
   }
 
   // Step 3: Parse XBRL documents and store in database

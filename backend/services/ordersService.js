@@ -6,8 +6,8 @@
  * @see {@link docs/backend/services/ordersService.md} for service docs
  */
 
-const axios = require('axios');
-const { NSE_HEADERS, parseNseDate, isOrderAnnouncement } = require('../utils/nseHelpers');
+const { parseNseDate, isOrderAnnouncement } = require('../utils/nseHelpers');
+const { getCorporateAnnouncements } = require('../api/nseIndiaApi');
 
 /**
  * Fetch all announcements from NSE India API
@@ -16,16 +16,7 @@ const { NSE_HEADERS, parseNseDate, isOrderAnnouncement } = require('../utils/nse
  */
 async function fetchAllAnnouncements(symbol) {
   try {
-    const allAnnouncementsUrl = `https://www.nseindia.com/api/corporate-announcements?index=equities&symbol=${encodeURIComponent(
-      symbol
-    )}`;
-
-    const response = await axios.get(allAnnouncementsUrl, {
-      headers: NSE_HEADERS,
-      timeout: 15000,
-    });
-
-    return response.data || [];
+    return await getCorporateAnnouncements(symbol);
   } catch (error) {
     console.error('Error fetching announcements:', error.message);
     return [];
