@@ -134,7 +134,16 @@ yarn workspace stock-screener-backend format:check
 | `MONGODB_URI` | Yes | MongoDB connection string |
 | `NODE_ENV` | No | Environment (development/production) |
 | `GEMINI_API_KEY` | Yes | Google Gemini API key |
-| `TWITTER_BEARER_TOKEN` | No | Bearer token for X API v2 (Tweet Downloader); alias `X_BEARER_TOKEN` |
+| `TWITTER_AUTH_TOKEN` | Yes* | `auth_token` cookie for x.com GraphQL (Tweet Downloader) |
+| `TWITTER_CSRF_TOKEN` | Yes* | `ct0` cookie / `x-csrf-token` for x.com GraphQL |
+| `TWITTER_USER_BY_SCREEN_NAME_QUERY_ID` | Yes* | GraphQL query id for handle → user id lookup |
+| `TWITTER_USER_TWEETS_QUERY_ID` | No | GraphQL query id for user timeline (has default) |
+| `TWITTER_BEARER_TOKEN` | No | Bearer token header; alias `X_BEARER_TOKEN` |
+| `TWITTER_COOKIES` | No | Full Cookie header override |
+| `TWITTER_USER_AGENT` | No | Browser user-agent string |
+
+\*Required for Tweet Downloader; see `docs/API_REFERENCE.md#x-twitter-apis`
+
 | `ALPHA_VANTAGE_API_KEY` | No | Alpha Vantage API key |
 | `FMP_API_KEY` | No | Financial Modeling Prep API key |
 

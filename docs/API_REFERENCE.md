@@ -1200,16 +1200,36 @@ DELETE /api/admin/cache/orderbook/{symbol}
 > **Route File**: `backend/routes/twitter.js`  
 > **Controller**: `backend/controllers/twitterController.js`
 
-Exports tweets for a public handle within a UTC lookback window using [X API v2](https://developer.twitter.com/en/docs/twitter-api) on the server. Requires a **Bearer token** with access to user lookup and user tweets.
+Exports tweets for a public handle within a UTC lookback window using **x.com internal GraphQL** (`UserByScreenName` + `UserTweets`) on the server. Requires a **logged-in browser session** copied into `backend/.env` (same cookies/headers as the x.com web app).
 
-### Environment
+### Environment (`# TWEETER` in `backend/.env`)
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `TWITTER_BEARER_TOKEN` | Yes* | OAuth 2.0 Bearer token from the X developer portal |
-| `X_BEARER_TOKEN` | Yes* | Alias for `TWITTER_BEARER_TOKEN` if the former is unset |
+| `TWITTER_AUTH_TOKEN` | **Yes** | `auth_token` cookie value from a logged-in x.com session |
+| `TWITTER_CSRF_TOKEN` | **Yes** | `ct0` cookie value; must match the `x-csrf-token` header |
+| `TWITTER_USER_BY_SCREEN_NAME_QUERY_ID` | **Yes** | GraphQL query id for `UserByScreenName` (from Network tab URL path) |
+| `TWITTER_USER_TWEETS_QUERY_ID` | No | GraphQL query id for `UserTweets` (default: `54_zVtVXJlQtnIBrY2QSXQ`) |
+| `TWITTER_BEARER_TOKEN` | No | `authorization` Bearer token; defaults to x.com public web bearer |
+| `X_BEARER_TOKEN` | No | Alias for `TWITTER_BEARER_TOKEN` |
+| `TWITTER_COOKIES` | No | Full `Cookie` header string; if set, overrides `auth_token` + `ct0` assembly |
+| `TWITTER_USER_AGENT` | No | Browser `User-Agent` copied from DevTools |
 
-\*If neither is set, the endpoint returns `503` with configuration instructions.
+If `TWITTER_AUTH_TOKEN` or `TWITTER_CSRF_TOKEN` is missing, the endpoint returns `503`.
+
+#### How to fill the variables
+
+1. Log in to [x.com](https://x.com) in Chrome.
+2. Open **DevTools → Network**, filter by `graphql`.
+3. Open any profile (e.g. `https://x.com/SureshKBN`).
+4. Click the **`UserByScreenName`** request:
+   - Copy the id from the URL: `https://x.com/i/api/graphql/{QUERY_ID}/UserByScreenName?...` → `TWITTER_USER_BY_SCREEN_NAME_QUERY_ID`
+   - In **Request Headers**, copy `cookie` → `auth_token=...` and `ct0=...` values into `TWITTER_AUTH_TOKEN` and `TWITTER_CSRF_TOKEN` (or paste the whole `cookie` header into `TWITTER_COOKIES`)
+   - Copy `x-csrf-token` — it must equal `ct0`
+   - Optionally copy `authorization` (Bearer …) → `TWITTER_BEARER_TOKEN`, and `user-agent` → `TWITTER_USER_AGENT`
+5. Scroll the profile timeline and confirm a **`UserTweets`** request; if its query id differs from the default, set `TWITTER_USER_TWEETS_QUERY_ID`.
+
+Session cookies expire periodically — refresh them from DevTools when exports start failing with `401`/`403`.
 
 ### Fetch tweets for JSON download
 

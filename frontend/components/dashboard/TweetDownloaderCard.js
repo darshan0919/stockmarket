@@ -4,7 +4,7 @@ import { twitterAPI } from '../../lib/api';
 import { useSnackbar } from '../../lib/contexts/SnackbarContext';
 
 /**
- * Dashboard entry that opens a modal to fetch tweets via X API v2 and download JSON.
+ * Dashboard entry that opens a modal to fetch tweets via x.com GraphQL and download JSON.
  * @see {@link docs/frontend/README.md} for frontend architecture
  * @see {@link docs/API_REFERENCE.md#x-twitter-apis}
  */
@@ -93,7 +93,7 @@ export default function TweetDownloaderCard() {
             <h3 className="text-sm font-semibold group-hover:text-secondary transition-colors">
               Tweet Downloader
             </h3>
-            <p className="text-xs text-base-content/50 mt-0.5">Export tweets from X API as JSON</p>
+            <p className="text-xs text-base-content/50 mt-0.5">Export tweets from x.com as JSON</p>
           </div>
         </div>
       </button>
@@ -106,8 +106,8 @@ export default function TweetDownloaderCard() {
       >
         <form onSubmit={onSubmit} className="space-y-4">
           <p className="text-sm text-base-content/70">
-            Fetches posts for the author in the selected lookback window using your server-side X
-            API credentials.
+            Fetches posts for the author in the selected lookback window using your server-side
+            x.com session credentials.
           </p>
           <label className="form-control w-full" htmlFor="tweet-downloader-handle">
             <span className="label-text text-xs font-medium">Twitter handle (author)</span>

@@ -1,17 +1,27 @@
 /**
- * Unit tests for twitterController (X API v2 proxy).
+ * Unit tests for twitterController (X GraphQL proxy).
  * @file backend/controllers/__tests__/twitterController.test.js
  * @see docs/API_REFERENCE.md#x-twitter-apis
  */
 
-const axios = require('axios');
 const {
   normalizeHandle,
   twitterErrorMessage,
   fetchTweetsForDownload,
 } = require('../twitterController');
 
-jest.mock('axios');
+jest.mock('../../utils/twitterGraphql', () => ({
+  getTwitterGraphqlAuthFromEnv: jest.fn(),
+  fetchUserByScreenName: jest.fn(),
+  fetchAllUserTweetsGraphql: jest.fn(),
+  graphqlErrorMessage: jest.fn((data, status) => `X GraphQL error (${status})`),
+}));
+
+const {
+  getTwitterGraphqlAuthFromEnv,
+  fetchUserByScreenName,
+  fetchAllUserTweetsGraphql,
+} = require('../../utils/twitterGraphql');
 
 describe('twitterController helpers', () => {
   it('normalizeHandle strips @ and whitespace', () => {
@@ -30,7 +40,14 @@ describe('twitterController.fetchTweetsForDownload', () => {
   let mockReq;
   let mockRes;
   let mockNext;
-  const savedBearer = process.env.TWITTER_BEARER_TOKEN;
+  const mockAuth = {
+    bearer: 'bearer',
+    cookie: 'cookie',
+    csrf: 'csrf',
+    userAgent: 'ua',
+    userTweetsQueryId: 'q1',
+    userByScreenNameQueryId: 'q2',
+  };
 
   beforeEach(() => {
     mockReq = { body: {} };
@@ -40,16 +57,11 @@ describe('twitterController.fetchTweetsForDownload', () => {
     };
     mockNext = jest.fn();
     jest.clearAllMocks();
-    process.env.TWITTER_BEARER_TOKEN = 'test-bearer';
+    getTwitterGraphqlAuthFromEnv.mockReturnValue(mockAuth);
   });
 
-  afterEach(() => {
-    process.env.TWITTER_BEARER_TOKEN = savedBearer;
-  });
-
-  it('returns 503 when bearer token missing', async () => {
-    delete process.env.TWITTER_BEARER_TOKEN;
-    delete process.env.X_BEARER_TOKEN;
+  it('returns 503 when session auth missing', async () => {
+    getTwitterGraphqlAuthFromEnv.mockReturnValue(null);
 
     await fetchTweetsForDownload(mockReq, mockRes, mockNext);
 
@@ -57,7 +69,7 @@ describe('twitterController.fetchTweetsForDownload', () => {
     expect(mockRes.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,
-        error: expect.stringContaining('TWITTER_BEARER_TOKEN'),
+        error: expect.stringContaining('TWITTER_AUTH_TOKEN'),
       })
     );
     expect(mockNext).not.toHaveBeenCalled();
@@ -82,25 +94,23 @@ describe('twitterController.fetchTweetsForDownload', () => {
 
   it('aggregates tweets and returns success JSON', async () => {
     mockReq.body = { handle: '@demo', intervalDays: 7 };
-
-    axios.get
-      .mockResolvedValueOnce({
-        status: 200,
-        data: {
-          data: { id: 'u1', username: 'demo', name: 'Demo' },
-        },
-      })
-      .mockResolvedValueOnce({
-        status: 200,
-        data: {
-          data: [{ id: 't1', text: 'hello' }],
-          meta: {},
-          includes: { users: [{ id: 'u1', username: 'demo' }] },
-        },
-      });
+    fetchUserByScreenName.mockResolvedValue({ id: 'u1', username: 'demo', name: 'Demo' });
+    fetchAllUserTweetsGraphql.mockResolvedValue({
+      tweets: [{ id: 't1', text: 'hello' }],
+      pagesFetched: 1,
+    });
 
     await fetchTweetsForDownload(mockReq, mockRes, mockNext);
 
+    expect(fetchUserByScreenName).toHaveBeenCalledWith('demo', mockAuth);
+    expect(fetchAllUserTweetsGraphql).toHaveBeenCalledWith(
+      'u1',
+      expect.any(Date),
+      expect.any(Date),
+      mockAuth,
+      'https://x.com/demo',
+      25
+    );
     expect(mockRes.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: true,
@@ -108,30 +118,43 @@ describe('twitterController.fetchTweetsForDownload', () => {
           user: { id: 'u1', username: 'demo', name: 'Demo' },
           tweets: [{ id: 't1', text: 'hello' }],
           meta: expect.objectContaining({ tweetCount: 1, pagesFetched: 1 }),
-          query: expect.objectContaining({ handle: 'demo', intervalDays: 7 }),
+          query: expect.objectContaining({
+            handle: 'demo',
+            intervalDays: 7,
+            source: 'x-graphql',
+          }),
         }),
       })
     );
     expect(mockNext).not.toHaveBeenCalled();
-    expect(axios.get).toHaveBeenCalledWith(
-      expect.stringContaining('/users/by/username/demo'),
-      expect.any(Object)
-    );
-    expect(axios.get).toHaveBeenCalledWith(
-      expect.stringContaining('/users/u1/tweets'),
-      expect.any(Object)
-    );
   });
 
-  it('calls next with error when Twitter returns failure', async () => {
-    mockReq.body = { handle: 'gone', intervalDays: 7 };
-    const twErr = new Error('not found');
-    twErr.statusCode = 404;
-    axios.get.mockRejectedValueOnce(twErr);
+  it('skips user lookup when userId provided', async () => {
+    mockReq.body = { handle: 'demo', userId: 'u99', intervalDays: 7 };
+    fetchAllUserTweetsGraphql.mockResolvedValue({ tweets: [], pagesFetched: 0 });
 
     await fetchTweetsForDownload(mockReq, mockRes, mockNext);
 
-    expect(mockNext).toHaveBeenCalledWith(twErr);
+    expect(fetchUserByScreenName).not.toHaveBeenCalled();
+    expect(fetchAllUserTweetsGraphql).toHaveBeenCalledWith(
+      'u99',
+      expect.any(Date),
+      expect.any(Date),
+      mockAuth,
+      'https://x.com/demo',
+      25
+    );
+  });
+
+  it('calls next with error when GraphQL layer throws', async () => {
+    mockReq.body = { handle: 'gone', intervalDays: 7 };
+    const gqlErr = new Error('not found');
+    gqlErr.statusCode = 404;
+    fetchUserByScreenName.mockRejectedValue(gqlErr);
+
+    await fetchTweetsForDownload(mockReq, mockRes, mockNext);
+
+    expect(mockNext).toHaveBeenCalledWith(gqlErr);
     expect(mockRes.json).not.toHaveBeenCalled();
   });
 });
