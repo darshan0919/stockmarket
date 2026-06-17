@@ -235,6 +235,16 @@ export const marketAPI = {
   getIndices: () => api.get('/market/indices'),
   /** Get market statistics @see GET /api/market/stats */
   getStats: () => api.get('/market/stats'),
+  /**
+   * Get enriched top gainers table.
+   * @param {{ count?: number, bucket?: string, enrich?: boolean }} [params]
+   * @see GET /api/market/top-gainers
+   */
+  getTopGainers: ({ count = 20, bucket = 'allSec', enrich = true } = {}) => {
+    const sp = new URLSearchParams({ count: String(count), bucket });
+    if (!enrich) sp.set('enrich', 'false');
+    return api.get(`/market/top-gainers?${sp.toString()}`, { timeout: 90000 });
+  },
 };
 
 // Upcoming Results APIs

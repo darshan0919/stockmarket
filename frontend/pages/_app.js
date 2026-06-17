@@ -17,7 +17,7 @@ function MyApp({ Component, pageProps }) {
     <SnackbarProvider>
       <div className="min-h-screen bg-base-200">
         <Header />
-        <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <main className="px-4 sm:px-6 lg:px-8 py-6">
           <Component {...pageProps} />
         </main>
       </div>

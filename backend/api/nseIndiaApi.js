@@ -346,6 +346,20 @@ const upcomingResults = async () => {
 };
 
 /**
+ * Live market variations (top gainers / losers) across NSE index buckets.
+ * @param {'gainers'|'loosers'} [variation='gainers'] - NSE spells losers "loosers"
+ * @returns {Promise<Object>} Map of bucket name -> { data: [...] } plus legends/dateTime
+ */
+const getLiveVariations = async (variation = 'gainers') => {
+  const response = await nseGet('/live-analysis-variations', {
+    params: { index: variation },
+    referer: `${NSE_HOME_URL}market-data/top-gainers-losers`,
+    timeout: 15000,
+  });
+  return response.data || {};
+};
+
+/**
  * Fetch historical price-volume-deliverable data for a symbol.
  * @param {string} symbol
  * @param {string} fromDate
@@ -386,4 +400,5 @@ module.exports = {
   upcomingResults,
   formatDate,
   getPriceVolumeDeliverable,
+  getLiveVariations,
 };

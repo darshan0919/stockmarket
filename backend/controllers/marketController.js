@@ -1,5 +1,6 @@
 const Stock = require('../models/Stock');
 const PriceHistory = require('../models/PriceHistory');
+const { getTopGainers } = require('../services/topGainers');
 
 /**
  * Get market indices overview
@@ -90,7 +91,29 @@ const getMarketStats = async (req, res, next) => {
   }
 };
 
+/**
+ * Get top gainers with enriched metrics (price, % day change, volume, value,
+ * delivery-to-trade ratio, P/E, 1-week change).
+ * GET /api/market/top-gainers?count=20&bucket=allSec&enrich=true
+ */
+const getTopGainersHandler = async (req, res, next) => {
+  try {
+    const { count, bucket } = req.query;
+    const enrich = req.query.enrich !== 'false';
+    const data = await getTopGainers({ count, bucket, enrich });
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('Error fetching top gainers:', error.message);
+    res.status(502).json({
+      success: false,
+      error: 'Failed to fetch top gainers from NSE',
+      detail: error.message,
+    });
+  }
+};
+
 module.exports = {
   getMarketIndices,
   getMarketStats,
+  getTopGainers: getTopGainersHandler,
 };

@@ -87,6 +87,7 @@ describe('Header', () => {
     // Nav links are rendered as anchor elements
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Screener')).toBeInTheDocument();
+    expect(screen.getByText('Gainers')).toBeInTheDocument();
     expect(screen.getByText('Results')).toBeInTheDocument();
     expect(screen.getByText('Watchlist')).toBeInTheDocument();
   });
