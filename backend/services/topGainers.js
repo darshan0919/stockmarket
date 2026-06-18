@@ -3,24 +3,22 @@
  *
  * Base list (symbol, price, % day change, volume, traded value) comes from NSE's
  * `live-analysis-variations` endpoint. Each row is then enriched in parallel with
- * P/E (quote-equity) and delivery-to-trade ratio + 1-week price change
- * (price-volume-deliverable history). Results are cached briefly to avoid
- * hammering NSE on every page load.
+ * delivery % from quote-equity (today) + history (T-1 fallback + 30D avg + 1W change).
+ * Fundamental metrics (Market Cap, P/E, PAT Growth TTM, Retail Holdings) are fetched
+ * in a single batch from Stockscans. Results are cached briefly to avoid hammering
+ * NSE on every page load.
  *
  * @module services/topGainers
- * @see {@link docs/backend/services/topGainers.md} for documentation
  */
 
 const {
   getLiveVariations,
-  getQuoteEquity,
+  getSymbolData,
   getPriceVolumeDeliverable,
   formatDate,
-  nseGet,
-  NSE_HOME_URL,
 } = require('../api/nseIndiaApi');
-const { getStockScripCode, getCompanyInfo } = require('../api/bseIndiaApi');
 const { parseNseDateToObject } = require('../utils/nseHelpers');
+const { fetchFundamentals } = require('./stockscansMetrics');
 
 const CACHE_TTL_MS = 90 * 1000;
 const ENRICH_CONCURRENCY = 6;
@@ -60,66 +58,27 @@ const mapWithConcurrency = async (tasks, limit) => {
 };
 
 /**
- * Fetch P/E, market cap (in ₹ Cr), and today's delivery % for a symbol.
- * Tries NSE quote-equity first; falls back to BSE when NSE 403s.
- * BSE gives P/E only — market cap and delivery % remain null on BSE fallback.
- * @param {string} symbol
- * @param {number|null} ltp - Last traded price from the base row
- * @returns {Promise<{ pe: number|null, marketCapCr: number|null, deliveryPercent: number|null }>}
- */
-const fetchQuoteMetrics = async (symbol, ltp) => {
-  try {
-    const quote = await getQuoteEquity(symbol);
-    const pe = toNumber(quote?.metadata?.pdSymbolPe);
-    const issuedSize = toNumber(quote?.securityInfo?.issuedSize);
-    const lastPrice = toNumber(quote?.priceInfo?.lastPrice) ?? ltp;
-    const marketCapCr =
-      issuedSize != null && lastPrice != null ? (issuedSize * lastPrice) / 1e7 : null;
-    const deliveryPercent = toNumber(quote?.tradeInfo?.deliveryToTradedQuantity);
-    return { pe, marketCapCr, deliveryPercent };
-  } catch {
-    // fall through to BSE
-  }
-
-  try {
-    const scripCode = await getStockScripCode(symbol);
-    if (!scripCode) return { pe: null, marketCapCr: null, deliveryPercent: null };
-    const info = await getCompanyInfo(scripCode);
-    return { pe: toNumber(info?.PE), marketCapCr: null, deliveryPercent: null };
-  } catch {
-    return { pe: null, marketCapCr: null, deliveryPercent: null };
-  }
-};
-
-/**
- * Fetch latest public/retail shareholding % from NSE.
- * Returns null on failure or when data unavailable.
+ * Fetch today's delivery % for a symbol from NSE quote-equity.
+ * Returns null on failure; caller falls back to T-1 from history.
  * @param {string} symbol
  * @returns {Promise<number|null>}
  */
-const fetchRetailHolding = async (symbol) => {
+const fetchSymbolMetrics = async (symbol) => {
+  const empty = { price: null, changePercent: null, volume: null, value: null, marketCapCr: null, deliveryPercent: null };
   try {
-    const today = new Date();
-    const from = new Date(today);
-    from.setFullYear(today.getFullYear() - 1);
-    const response = await nseGet('/corporate-share-holdings-master', {
-      params: {
-        symbol,
-        series: 'EQ',
-        fromDate: formatDate(from),
-        toDate: formatDate(today),
-        index: 'equities',
-      },
-      referer: `${NSE_HOME_URL}get-quotes/equity?symbol=${symbol}`,
-      symbol,
-    });
-    const data = Array.isArray(response.data) ? response.data : [];
-    // Sort descending by date and take the latest filing
-    const sorted = data.filter((r) => r?.date).sort((a, b) => new Date(b.date) - new Date(a.date));
-    const latest = sorted[0];
-    return toNumber(latest?.public_val);
+    const data = await getSymbolData(symbol);
+    if (!data) return empty;
+    const totalMarketCap = toNumber(data.tradeInfo?.totalMarketCap);
+    return {
+      price: toNumber(data.tradeInfo?.lastPrice),
+      changePercent: toNumber(data.metaData?.pChange),
+      volume: toNumber(data.tradeInfo?.totalTradedVolume),
+      value: toNumber(data.tradeInfo?.totalTradedValue),
+      marketCapCr: totalMarketCap != null ? totalMarketCap / 1e7 : null,
+      deliveryPercent: toNumber(data.tradeInfo?.deliveryToTradedQuantity),
+    };
   } catch {
-    return null;
+    return empty;
   }
 };
 
@@ -191,8 +150,8 @@ const mapBaseRow = (row) => {
   const price = toNumber(row.ltp);
   const volume = toNumber(row.trade_quantity);
   const turnover = toNumber(row.turnover);
-  // NSE turnover is in ₹ lakhs on this endpoint; convert to absolute ₹. Fall back to
-  // volume × price (the spec's "volume × avg price") when turnover is unavailable.
+  // NSE turnover is in rupees lakhs on this endpoint; convert to absolute rupees. Fall back to
+  // volume x price (the spec's "volume x avg price") when turnover is unavailable.
   const value =
     turnover != null ? turnover * 1e5 : volume != null && price != null ? volume * price : null;
 
@@ -211,6 +170,7 @@ const mapBaseRow = (row) => {
     avgDeliveryPercent30d: null,
     weekChangePercent: null,
     retailHoldingPercent: null,
+    patGrowthTtm: null,
   };
 };
 
@@ -250,39 +210,65 @@ const selectRows = (variations, bucket, count) => {
  * @param {number} [options.count] - Number of rows (1..50)
  * @param {string} [options.bucket] - NSE bucket name
  * @param {boolean} [options.enrich=true] - Whether to enrich with P/E + delivery + 1W
- * @returns {Promise<{ rows: Object[], timestamp: string|null, bucket: string, count: number }>}
+ * @param {'nse'|'bse'} [options.exchange='nse'] - Exchange segment
+ * @returns {Promise<{ rows: Object[], timestamp: string|null, bucket: string, count: number, exchange: string }>}
  */
-const getTopGainers = async ({ count, bucket = 'allSec', enrich = true } = {}) => {
+const getTopGainers = async ({
+  count,
+  bucket = 'allSec',
+  enrich = true,
+  exchange = 'nse',
+} = {}) => {
   const resolvedCount = Math.min(Math.max(parseInt(count, 10) || DEFAULT_COUNT, 1), MAX_COUNT);
-  const cacheKey = `${bucket}:${resolvedCount}:${enrich ? 1 : 0}`;
+  const exchSeg = exchange === 'bse' ? 'bse' : '';
+  const cacheKey = `${exchSeg || 'nse'}:${bucket}:${resolvedCount}:${enrich ? 1 : 0}`;
 
   const cached = cache.get(cacheKey);
   if (cached && cached.expires > Date.now()) {
     return cached.payload;
   }
 
-  const variations = await getLiveVariations('gainers');
+  const variations = await getLiveVariations('gainers', exchSeg);
   const { rows, timestamp, bucket: resolvedBucket } = selectRows(variations, bucket, resolvedCount);
 
   if (enrich && rows.length > 0) {
+    // Batch-fetch fundamentals (Market Cap, P/E, PAT Growth TTM, Retail Holdings) from Stockscans
+    const symbols = rows.map((r) => r.symbol);
+    let batchMetrics = {};
+    try { batchMetrics = await fetchFundamentals(symbols); } catch { /* best-effort */ }
+
+    // Per-symbol: delivery % (today from quote-equity, T-1 fallback) + history
     const tasks = rows.map((row) => async () => {
-      const [quoteMetrics, history, retailHoldingPercent] = await Promise.all([
-        fetchQuoteMetrics(row.symbol, row.price),
+      const [symbolMetrics, history] = await Promise.all([
+        fetchSymbolMetrics(row.symbol),
         fetchHistoryMetrics(row.symbol),
-        fetchRetailHolding(row.symbol),
       ]);
-      row.pe = quoteMetrics.pe;
-      row.marketCapCr = quoteMetrics.marketCapCr;
-      // Prefer today's live delivery % from quote-equity; fall back to T-1 from history
-      row.deliveryPercent = quoteMetrics.deliveryPercent ?? history.deliveryPercent;
+      const fm = batchMetrics[row.symbol] ?? {};
+      // Live fields from getSymbolData override base row values
+      if (symbolMetrics.price != null) row.price = symbolMetrics.price;
+      if (symbolMetrics.changePercent != null) row.changePercent = symbolMetrics.changePercent;
+      if (symbolMetrics.volume != null) row.volume = symbolMetrics.volume;
+      if (symbolMetrics.value != null) row.value = symbolMetrics.value;
+      // Market cap: prefer live NSE value, fall back to Stockscans
+      row.marketCapCr = symbolMetrics.marketCapCr ?? fm.marketCapCr ?? null;
+      row.pe = fm.pe ?? null;
+      row.retailHoldingPercent = fm.retailHoldingsPercent ?? null;
+      row.patGrowthTtm = fm.patGrowthTtm ?? null;
+      // Prefer today's live delivery %; fall back to T-1 from history
+      row.deliveryPercent = symbolMetrics.deliveryPercent ?? history.deliveryPercent;
       row.avgDeliveryPercent30d = history.avgDeliveryPercent30d;
       row.weekChangePercent = history.weekChangePercent;
-      row.retailHoldingPercent = retailHoldingPercent;
     });
     await mapWithConcurrency(tasks, ENRICH_CONCURRENCY);
   }
 
-  const payload = { rows, timestamp, bucket: resolvedBucket, count: rows.length };
+  const payload = {
+    rows,
+    timestamp,
+    bucket: resolvedBucket,
+    count: rows.length,
+    exchange: exchSeg || 'nse',
+  };
   cache.set(cacheKey, { expires: Date.now() + CACHE_TTL_MS, payload });
   return payload;
 };

@@ -7,7 +7,7 @@
 import Head from 'next/head';
 import { useState, useEffect, useCallback } from 'react';
 import { marketAPI } from '../lib/api';
-import TopGainersTable from '../components/gainers/TopGainersTable';
+import TopGainersTable, { ColumnPicker, useColumnState } from '../components/gainers/TopGainersTable';
 import { formatDate } from '../lib/utils/formatters';
 
 const BUCKETS = [
@@ -22,14 +22,20 @@ export default function Gainers() {
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState({ timestamp: null, bucket: 'allSec', count: 0 });
   const [bucket, setBucket] = useState('allSec');
+  const [exchange, setExchange] = useState('nse');
+  const { hiddenCols, toggleColumn } = useColumnState();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchGainers = useCallback(async (selectedBucket) => {
+  const fetchGainers = useCallback(async (selectedBucket, selectedExchange) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await marketAPI.getTopGainers({ count: 25, bucket: selectedBucket });
+      const response = await marketAPI.getTopGainers({
+        count: 25,
+        bucket: selectedBucket,
+        exchange: selectedExchange,
+      });
       if (response.data.success) {
         const { rows: newRows, timestamp, bucket: resolvedBucket, count } = response.data.data;
         setRows(newRows);
@@ -46,8 +52,8 @@ export default function Gainers() {
   }, []);
 
   useEffect(() => {
-    fetchGainers(bucket);
-  }, [bucket, fetchGainers]);
+    fetchGainers(bucket, exchange);
+  }, [bucket, exchange, fetchGainers]);
 
   return (
     <>
@@ -75,6 +81,20 @@ export default function Gainers() {
               </p>
             </div>
             <div className="flex items-center gap-2">
+              <ColumnPicker hiddenCols={hiddenCols} toggleColumn={toggleColumn} />
+              {/* Exchange toggle */}
+              <div className="join">
+                {['nse', 'bse'].map((ex) => (
+                  <button
+                    key={ex}
+                    onClick={() => setExchange(ex)}
+                    disabled={loading}
+                    className={`join-item btn btn-sm ${exchange === ex ? 'btn-primary' : 'btn-ghost border border-base-300'}`}
+                  >
+                    {ex.toUpperCase()}
+                  </button>
+                ))}
+              </div>
               <select
                 value={bucket}
                 onChange={(e) => setBucket(e.target.value)}
@@ -89,7 +109,7 @@ export default function Gainers() {
                 ))}
               </select>
               <button
-                onClick={() => fetchGainers(bucket)}
+                onClick={() => fetchGainers(bucket, exchange)}
                 disabled={loading}
                 className="btn btn-sm btn-secondary btn-outline gap-1.5"
               >
@@ -138,7 +158,7 @@ export default function Gainers() {
               ))}
             </div>
           ) : (
-            <TopGainersTable rows={rows} />
+            <TopGainersTable rows={rows} hiddenCols={hiddenCols} />
           )}
         </div>
 

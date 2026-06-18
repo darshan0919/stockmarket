@@ -98,7 +98,7 @@ const warmupNseSession = async (equitySymbol) => {
 
   const home = await axios.get(NSE_HOME_URL, {
     headers: DOCUMENT_HEADERS,
-    timeout: 15000,
+    timeout: 60000,
   });
   cookie = mergeSetCookie(cookie, home.headers['set-cookie']);
 
@@ -113,7 +113,7 @@ const warmupNseSession = async (equitySymbol) => {
           Referer: NSE_HOME_URL,
           'Sec-Fetch-Site': 'same-origin',
         },
-        timeout: 15000,
+        timeout: 60000,
       }
     );
     cookie = mergeSetCookie(cookie, equityPage.headers['set-cookie']);
@@ -159,7 +159,7 @@ const getNseHeaders = async ({ referer = NSE_HOME_URL, symbol } = {}) => {
  * @param {Object} [options]
  * @returns {Promise<import('axios').AxiosResponse>}
  */
-const nseGet = async (path, { params, referer = NSE_HOME_URL, symbol, timeout = 15000 } = {}) => {
+const nseGet = async (path, { params, referer = NSE_HOME_URL, symbol, timeout = 60000 } = {}) => {
   const url = path.startsWith('http')
     ? path
     : `${NSE_API_URL}${path.startsWith('/') ? path : `/${path}`}`;
@@ -224,6 +224,31 @@ const getQuoteEquity = async (symbol) => {
 };
 
 /**
+ * Fetch live intraday quote via NextApi getSymbolData.
+ * Returns the first element of equityResponse, which includes tradeInfo.deliveryToTradedQuantity
+ * with today's live delivery % (updated throughout the session).
+ * @param {string} symbol
+ * @param {string} [series='EQ']
+ * @returns {Promise<Object>}
+ */
+const getSymbolData = async (symbol, series = 'EQ') => {
+  const upperSymbol = symbol.toUpperCase();
+  const response = await nseGet('/NextApi/apiClient/GetQuoteApi', {
+    params: {
+      functionName: 'getSymbolData',
+      marketType: 'N',
+      series,
+      symbol: upperSymbol,
+    },
+    referer: `${NSE_HOME_URL}get-quotes/equity?symbol=${encodeURIComponent(upperSymbol)}`,
+    symbol: upperSymbol,
+    timeout: 60000,
+  });
+  const arr = response.data?.equityResponse;
+  return Array.isArray(arr) && arr.length > 0 ? arr[0] : null;
+};
+
+/**
  * Corporate announcements for a symbol.
  * @param {string} symbol
  * @param {Object} [extraParams]
@@ -235,7 +260,7 @@ const getCorporateAnnouncements = async (symbol, extraParams = {}) => {
     params: { index: 'equities', symbol: upperSymbol, ...extraParams },
     referer: `${NSE_HOME_URL}get-quotes/equity?symbol=${encodeURIComponent(upperSymbol)}`,
     symbol: upperSymbol,
-    timeout: 15000,
+    timeout: 60000,
   });
   const raw = response.data;
   return Array.isArray(raw) ? raw : [];
@@ -258,7 +283,7 @@ const getCorporatesFinancialResults = async (symbol, issuer) => {
     },
     referer: `${NSE_HOME_URL}get-quotes/equity?symbol=${encodeURIComponent(upperSymbol)}`,
     symbol: upperSymbol,
-    timeout: 15000,
+    timeout: 60000,
   });
   return response.data || [];
 };
@@ -283,7 +308,7 @@ const getIntegratedFilingResults = async (symbol, issuer) => {
     },
     referer: `${NSE_HOME_URL}get-quotes/equity?symbol=${encodeURIComponent(upperSymbol)}`,
     symbol: upperSymbol,
-    timeout: 15000,
+    timeout: 60000,
   });
   return response.data?.data || [];
 };
@@ -306,7 +331,7 @@ const getQuoteApi = async (functionName, symbol, extraParams = {}) => {
     },
     referer: `${NSE_HOME_URL}get-quotes/equity?symbol=${encodeURIComponent(upperSymbol)}`,
     symbol: upperSymbol,
-    timeout: 15000,
+    timeout: 60000,
   });
   return response.data?.data ?? response.data ?? [];
 };
@@ -335,7 +360,7 @@ const upcomingResults = async () => {
         to_date: formatDate(oneYearLater),
         subject: 'Financial Results',
       },
-      timeout: 15000,
+      timeout: 60000,
     });
 
     return response.data || [];
@@ -350,11 +375,13 @@ const upcomingResults = async () => {
  * @param {'gainers'|'loosers'} [variation='gainers'] - NSE spells losers "loosers"
  * @returns {Promise<Object>} Map of bucket name -> { data: [...] } plus legends/dateTime
  */
-const getLiveVariations = async (variation = 'gainers') => {
+const getLiveVariations = async (variation = 'gainers', exchSeg = '') => {
+  const params = { index: variation };
+  if (exchSeg) params.exchSeg = exchSeg;
   const response = await nseGet('/live-analysis-variations', {
-    params: { index: variation },
+    params,
     referer: `${NSE_HOME_URL}market-data/top-gainers-losers`,
-    timeout: 15000,
+    timeout: 60000,
   });
   return response.data || {};
 };
@@ -393,6 +420,7 @@ module.exports = {
   nseGet,
   searchAutocomplete,
   getQuoteEquity,
+  getSymbolData,
   getCorporateAnnouncements,
   getCorporatesFinancialResults,
   getIntegratedFilingResults,

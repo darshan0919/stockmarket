@@ -240,8 +240,8 @@ export const marketAPI = {
    * @param {{ count?: number, bucket?: string, enrich?: boolean }} [params]
    * @see GET /api/market/top-gainers
    */
-  getTopGainers: ({ count = 20, bucket = 'allSec', enrich = true } = {}) => {
-    const sp = new URLSearchParams({ count: String(count), bucket });
+  getTopGainers: ({ count = 20, bucket = 'allSec', enrich = true, exchange = 'nse' } = {}) => {
+    const sp = new URLSearchParams({ count: String(count), bucket, exchange });
     if (!enrich) sp.set('enrich', 'false');
     return api.get(`/market/top-gainers?${sp.toString()}`, { timeout: 90000 });
   },

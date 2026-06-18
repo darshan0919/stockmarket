@@ -14,7 +14,7 @@ const formatVolume = (value) => {
   return num.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 };
 
-const COLUMNS = [
+export const COLUMNS = [
   {
     id: 'name',
     header: 'Name',
@@ -66,21 +66,37 @@ const COLUMNS = [
   },
   {
     id: 'value',
-    header: 'Value (₹ Cr)',
+    header: 'Value (Rs Cr)',
     sortKey: 'value',
     align: 'right',
     render: (row) => (row.value != null ? (row.value / 1e7).toFixed(2) : 'N/A'),
   },
   {
     id: 'deliveryValue',
-    header: 'Del Value (₹ Cr)',
+    header: 'Del Value (Rs Cr)',
     sortKey: 'deliveryValue',
     align: 'right',
     render: (row) => (row.deliveryValue != null ? (row.deliveryValue / 1e7).toFixed(2) : 'N/A'),
   },
   {
+    id: 'delVsMcap',
+    header: 'Del Val / MCap %',
+    sortKey: 'delVsMcap',
+    align: 'right',
+    render: (row) =>
+      row.delVsMcap != null ? `${Number(row.delVsMcap).toFixed(3)}%` : 'N/A',
+  },
+  {
+    id: 'valVsMcap',
+    header: 'Val / MCap %',
+    sortKey: 'valVsMcap',
+    align: 'right',
+    render: (row) =>
+      row.valVsMcap != null ? `${Number(row.valVsMcap).toFixed(3)}%` : 'N/A',
+  },
+  {
     id: 'marketCapCr',
-    header: 'Mkt Cap (₹ Cr)',
+    header: 'Mkt Cap (Rs Cr)',
     sortKey: 'marketCapCr',
     align: 'right',
     render: (row) => (row.marketCapCr != null ? Number(row.marketCapCr).toFixed(0) : 'N/A'),
@@ -114,6 +130,20 @@ const COLUMNS = [
     render: (row) => formatNumber(row.pe, 1),
   },
   {
+    id: 'patGrowth',
+    header: 'PAT Growth TTM',
+    sortKey: 'patGrowthTtm',
+    align: 'right',
+    render: (row) =>
+      row.patGrowthTtm != null ? (
+        <span className={row.patGrowthTtm >= 0 ? 'text-success' : 'text-error'}>
+          {Number(row.patGrowthTtm).toFixed(1)}%
+        </span>
+      ) : (
+        'N/A'
+      ),
+  },
+  {
     id: 'weekChange',
     header: '1W Change',
     sortKey: 'weekChangePercent',
@@ -126,7 +156,52 @@ const COLUMNS = [
   },
 ];
 
-const DEFAULT_HIDDEN = new Set();
+/** Hook to manage column visibility state. Use in the parent page. */
+export function useColumnState() {
+  const [hiddenCols, setHiddenCols] = useState(new Set());
+  const toggleColumn = (id) => {
+    setHiddenCols((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  return { hiddenCols, toggleColumn };
+}
+
+/** Dropdown column picker to render in the page header. */
+export function ColumnPicker({ hiddenCols, toggleColumn }) {
+  return (
+    <div className="dropdown dropdown-end">
+      <label tabIndex={0} className="btn btn-sm btn-ghost gap-1 text-base-content/60">
+        Columns
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </label>
+      <div
+        tabIndex={0}
+        className="dropdown-content z-10 p-2 shadow-lg bg-base-100 rounded-box w-48 border border-base-300 mt-1"
+      >
+        {COLUMNS.filter((col) => !col.always).map((col) => (
+          <label
+            key={col.id}
+            className="flex items-center gap-2 cursor-pointer py-1 px-2 hover:bg-base-200 rounded"
+          >
+            <input
+              type="checkbox"
+              className="checkbox checkbox-xs"
+              checked={!hiddenCols.has(col.id)}
+              onChange={() => toggleColumn(col.id)}
+            />
+            <span className="text-sm">{col.header}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function SortIcon({ direction }) {
   if (!direction) {
@@ -171,22 +246,28 @@ const compare = (a, b, key, dir) => {
   return dir === 'asc' ? asc : -asc;
 };
 
-export default function TopGainersTable({ rows }) {
+export default function TopGainersTable({ rows, hiddenCols }) {
   const router = useRouter();
   const [sortKey, setSortKey] = useState('deliveryValue');
   const [sortDir, setSortDir] = useState('desc');
-  const [hiddenCols, setHiddenCols] = useState(DEFAULT_HIDDEN);
 
-  // Compute deliveryValue client-side: total value × (delivery% / 100)
   const enrichedRows = useMemo(
     () =>
-      rows.map((row) => ({
-        ...row,
-        deliveryValue:
+      rows.map((row) => {
+        const deliveryValue =
           row.value != null && row.deliveryPercent != null
             ? row.value * (row.deliveryPercent / 100)
-            : null,
-      })),
+            : null;
+        const delVsMcap =
+          deliveryValue != null && row.marketCapCr != null && row.marketCapCr > 0
+            ? (deliveryValue / (row.marketCapCr * 1e7)) * 100
+            : null;
+        const valVsMcap =
+          row.value != null && row.marketCapCr != null && row.marketCapCr > 0
+            ? (row.value / (row.marketCapCr * 1e7)) * 100
+            : null;
+        return { ...row, deliveryValue, delVsMcap, valVsMcap };
+      }),
     [rows]
   );
 
@@ -205,15 +286,6 @@ export default function TopGainersTable({ rows }) {
     return [...enrichedRows].sort((a, b) => compare(a, b, sortKey, sortDir));
   }, [enrichedRows, sortKey, sortDir]);
 
-  const toggleColumn = (id) => {
-    setHiddenCols((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
   const visibleColumns = COLUMNS.filter((col) => col.always || !hiddenCols.has(col.id));
 
   if (!rows || rows.length === 0) {
@@ -225,83 +297,45 @@ export default function TopGainersTable({ rows }) {
   }
 
   return (
-    <div>
-      {/* Column picker */}
-      <div className="flex justify-end mb-2 px-1">
-        <div className="dropdown dropdown-end">
-          <label tabIndex={0} className="btn btn-xs btn-ghost gap-1 text-base-content/60">
-            Columns
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </label>
-          <div
-            tabIndex={0}
-            className="dropdown-content z-10 p-2 shadow-lg bg-base-100 rounded-box w-48 border border-base-300 mt-1"
-          >
-            {COLUMNS.filter((col) => !col.always).map((col) => (
-              <label
+    <div className="overflow-x-auto">
+      <table className="finance-table">
+        <thead>
+          <tr>
+            {visibleColumns.map((col) => (
+              <th
                 key={col.id}
-                className="flex items-center gap-2 cursor-pointer py-1 px-2 hover:bg-base-200 rounded"
+                className={[
+                  col.align === 'right' ? 'num' : '',
+                  col.sortKey
+                    ? 'cursor-pointer select-none hover:opacity-80 transition-opacity'
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                onClick={() => handleHeaderClick(col.sortKey)}
               >
-                <input
-                  type="checkbox"
-                  className="checkbox checkbox-xs"
-                  checked={!hiddenCols.has(col.id)}
-                  onChange={() => toggleColumn(col.id)}
-                />
-                <span className="text-sm">{col.header}</span>
-              </label>
+                {col.header}
+                {col.sortKey && <SortIcon direction={sortKey === col.sortKey ? sortDir : null} />}
+              </th>
             ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="finance-table">
-          <thead>
-            <tr>
+          </tr>
+        </thead>
+        <tbody>
+          {sorted.map((row) => (
+            <tr
+              key={row.symbol}
+              className="cursor-pointer"
+              onClick={() => router.push(`/stock/${row.symbol}`)}
+            >
               {visibleColumns.map((col) => (
-                <th
-                  key={col.id}
-                  className={[
-                    col.align === 'right' ? 'num' : '',
-                    col.sortKey
-                      ? 'cursor-pointer select-none hover:opacity-80 transition-opacity'
-                      : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                  onClick={() => handleHeaderClick(col.sortKey)}
-                >
-                  {col.header}
-                  {col.sortKey && <SortIcon direction={sortKey === col.sortKey ? sortDir : null} />}
-                </th>
+                <td key={col.id} className={col.align === 'right' ? 'num' : ''}>
+                  {col.render(row)}
+                </td>
               ))}
             </tr>
-          </thead>
-          <tbody>
-            {sorted.map((row) => (
-              <tr
-                key={row.symbol}
-                className="cursor-pointer"
-                onClick={() => router.push(`/stock/${row.symbol}`)}
-              >
-                {visibleColumns.map((col) => (
-                  <td key={col.id} className={col.align === 'right' ? 'num' : ''}>
-                    {col.render(row)}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

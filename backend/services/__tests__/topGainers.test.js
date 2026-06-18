@@ -1,28 +1,22 @@
 /**
  * Unit tests for the Top Gainers service.
  * @file backend/services/__tests__/topGainers.test.js
- * @see {@link docs/API_REFERENCE.md#market-apis}
  */
 
 const mockGetLiveVariations = jest.fn();
-const mockGetQuoteEquity = jest.fn();
+const mockGetSymbolData = jest.fn();
 const mockGetPriceVolumeDeliverable = jest.fn();
-const mockNseGet = jest.fn();
-const mockGetStockScripCode = jest.fn();
-const mockGetCompanyInfo = jest.fn();
+const mockFetchFundamentals = jest.fn();
 
 jest.mock('../../api/nseIndiaApi', () => ({
   getLiveVariations: (...args) => mockGetLiveVariations(...args),
-  getQuoteEquity: (...args) => mockGetQuoteEquity(...args),
+  getSymbolData: (...args) => mockGetSymbolData(...args),
   getPriceVolumeDeliverable: (...args) => mockGetPriceVolumeDeliverable(...args),
-  nseGet: (...args) => mockNseGet(...args),
-  NSE_HOME_URL: 'https://www.nseindia.com/',
   formatDate: (d) => d.toISOString().slice(0, 10),
 }));
 
-jest.mock('../../api/bseIndiaApi', () => ({
-  getStockScripCode: (...args) => mockGetStockScripCode(...args),
-  getCompanyInfo: (...args) => mockGetCompanyInfo(...args),
+jest.mock('../stockscansMetrics', () => ({
+  fetchFundamentals: (...args) => mockFetchFundamentals(...args),
 }));
 
 const {
@@ -36,8 +30,8 @@ const {
 beforeEach(() => {
   jest.clearAllMocks();
   clearTopGainersCache();
-  // default: shareholding returns empty array (no retail data)
-  mockNseGet.mockResolvedValue({ data: [] });
+  // default: Stockscans returns nulls for all symbols
+  mockFetchFundamentals.mockResolvedValue({});
 });
 
 describe('mapBaseRow', () => {
@@ -58,6 +52,7 @@ describe('mapBaseRow', () => {
       volume: 1_000_000,
       value: 1005 * 1e5,
       pe: null,
+      patGrowthTtm: null,
     });
   });
 
@@ -106,18 +101,25 @@ describe('mapWithConcurrency', () => {
 });
 
 describe('getTopGainers', () => {
-  it('enriches rows with P/E, market cap, retail holding, delivery and 1-week change', async () => {
+  it('enriches rows with fundamentals from Stockscans and delivery/history from NSE', async () => {
     mockGetLiveVariations.mockResolvedValue({
       allSec: {
         timestamp: 't',
         data: [{ symbol: 'ABC', ltp: 110, net_price: 5, trade_quantity: 100 }],
       },
     });
-    mockGetQuoteEquity.mockResolvedValue({
-      metadata: { pdSymbolPe: 24.5 },
-      securityInfo: { issuedSize: 1_000_000_000 }, // 100 Cr shares
-      priceInfo: { lastPrice: 110 },
-      tradeInfo: { deliveryToTradedQuantity: 65 }, // today's live delivery %
+    mockFetchFundamentals.mockResolvedValue({
+      ABC: { pe: 24.5, marketCapCr: 11000, patGrowthTtm: 18.3, retailHoldingsPercent: 38.5 },
+    });
+    mockGetSymbolData.mockResolvedValue({
+      metaData: { pChange: 5 },
+      tradeInfo: {
+        lastPrice: 110,
+        totalTradedVolume: 100,
+        totalTradedValue: 91300,
+        totalMarketCap: 110000000000, // 11000 Cr in rupees
+        deliveryToTradedQuantity: 65,
+      },
     });
     mockGetPriceVolumeDeliverable.mockResolvedValue([
       { CH_TIMESTAMP: '2026-06-10', CH_CLOSING_PRICE: 100, COP_DELIV_PERC: 40 },
@@ -125,39 +127,28 @@ describe('getTopGainers', () => {
       { CH_TIMESTAMP: '2026-06-12', CH_CLOSING_PRICE: 102, COP_DELIV_PERC: 42 },
       { CH_TIMESTAMP: '2026-06-13', CH_CLOSING_PRICE: 103, COP_DELIV_PERC: 43 },
       { CH_TIMESTAMP: '2026-06-16', CH_CLOSING_PRICE: 104, COP_DELIV_PERC: 44 },
-      { CH_TIMESTAMP: '2026-06-17', CH_CLOSING_PRICE: 110, COP_DELIV_PERC: 55 }, // T-1 fallback
+      { CH_TIMESTAMP: '2026-06-17', CH_CLOSING_PRICE: 110, COP_DELIV_PERC: 55 },
     ]);
-    // shareholding endpoint returns retail data
-    mockNseGet.mockResolvedValue({
-      data: [
-        { date: '2026-03-31', public_val: '38.5' },
-        { date: '2025-12-31', public_val: '37.2' },
-      ],
-    });
 
     const { rows, count } = await getTopGainers({ count: 5 });
     expect(count).toBe(1);
-    // P/E and market cap from quote-equity
     expect(rows[0].pe).toBe(24.5);
-    expect(rows[0].marketCapCr).toBeCloseTo((1_000_000_000 * 110) / 1e7, 1); // 11000 Cr
+    expect(rows[0].marketCapCr).toBeCloseTo(11000, 0);
+    expect(rows[0].patGrowthTtm).toBe(18.3);
+    expect(rows[0].retailHoldingPercent).toBe(38.5);
     // today's delivery % from quote-equity takes priority over T-1 history
     expect(rows[0].deliveryPercent).toBe(65);
     // 30d avg: average of all 6 mock rows → (40+41+42+43+44+55)/6 ≈ 44.17
     expect(rows[0].avgDeliveryPercent30d).toBeCloseTo(44.17, 1);
     expect(rows[0].weekChangePercent).toBe(10);
-    // retail from shareholding (latest date wins)
-    expect(rows[0].retailHoldingPercent).toBe(38.5);
   });
 
   it('falls back to T-1 delivery % from history when quote-equity has no tradeInfo', async () => {
     mockGetLiveVariations.mockResolvedValue({
       allSec: { data: [{ symbol: 'ABC', ltp: 110, net_price: 5 }] },
     });
-    mockGetQuoteEquity.mockResolvedValue({
-      metadata: { pdSymbolPe: 20 },
-      priceInfo: { lastPrice: 110 },
-      // no tradeInfo → deliveryToTradedQuantity is undefined
-    });
+    mockFetchFundamentals.mockResolvedValue({ ABC: { pe: 20, marketCapCr: null, patGrowthTtm: null, retailHoldingsPercent: null } });
+    mockGetSymbolData.mockResolvedValue(null); // no data → all fields null
     mockGetPriceVolumeDeliverable.mockResolvedValue([
       { CH_TIMESTAMP: '2026-06-16', CH_CLOSING_PRICE: 100, COP_DELIV_PERC: 44 },
       { CH_TIMESTAMP: '2026-06-17', CH_CLOSING_PRICE: 110, COP_DELIV_PERC: 55 },
@@ -172,10 +163,9 @@ describe('getTopGainers', () => {
     mockGetLiveVariations.mockResolvedValue({
       allSec: { data: [{ symbol: 'ABC', ltp: 110, net_price: 5 }] },
     });
-    mockGetQuoteEquity.mockRejectedValue(new Error('blocked'));
+    mockFetchFundamentals.mockRejectedValue(new Error('stockscans down'));
+    mockGetSymbolData.mockRejectedValue(new Error('blocked'));
     mockGetPriceVolumeDeliverable.mockRejectedValue(new Error('blocked'));
-    mockGetStockScripCode.mockRejectedValue(new Error('blocked'));
-    mockNseGet.mockRejectedValue(new Error('blocked'));
 
     const { rows } = await getTopGainers({ count: 5 });
     expect(rows[0]).toMatchObject({
@@ -185,20 +175,8 @@ describe('getTopGainers', () => {
       avgDeliveryPercent30d: null,
       weekChangePercent: null,
       retailHoldingPercent: null,
+      patGrowthTtm: null,
     });
-  });
-
-  it('falls back to BSE company info for P/E when NSE quote-equity fails', async () => {
-    mockGetLiveVariations.mockResolvedValue({
-      allSec: { data: [{ symbol: 'ABC', ltp: 110, net_price: 5 }] },
-    });
-    mockGetQuoteEquity.mockRejectedValue(new Error('403'));
-    mockGetPriceVolumeDeliverable.mockResolvedValue([]);
-    mockGetStockScripCode.mockResolvedValue('500001');
-    mockGetCompanyInfo.mockResolvedValue({ PE: '18.7' });
-
-    const { rows } = await getTopGainers({ count: 5 });
-    expect(rows[0].pe).toBe(18.7);
   });
 
   it('serves cached payload without re-calling NSE', async () => {
