@@ -93,6 +93,33 @@ const getResultAnnoucement = async (symbol, fromDate, toDate) => {
 };
 
 /**
+ * Fetch delivery / position data for a BSE-listed stock.
+ * Returns trade date, quantity traded, deliverable quantity, and delivery %.
+ * @param {string} scripCode - BSE scrip code (e.g. '504028' for GEE Ltd)
+ * @returns {Promise<{tradeDate: string, qtyTraded: number, deliverableQty: number, deliveryPct: number}|null>}
+ */
+const getSecurityPosition = async (scripCode) => {
+  try {
+    const raw = await bseGetJson('SecurityPosition/w', {
+      params: { quotetype: 'EQ', scripcode: String(scripCode) },
+      timeout: BSE_REQUEST_TIMEOUT_MS,
+    });
+    // API returns a JSON-encoded string (double-serialised); unwrap if needed
+    const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    const clean = (val) => parseFloat(String(val ?? '0').replace(/,/g, '')) || 0;
+    return {
+      tradeDate:      data.TradeDate || null,
+      qtyTraded:      clean(data.QtyTraded),
+      deliverableQty: clean(data.DeliverableQty),
+      deliveryPct:    clean(data.PcDQ_TQ),
+    };
+  } catch (error) {
+    console.warn(`BSE getSecurityPosition failed for scrip ${scripCode}:`, error.message);
+    return null;
+  }
+};
+
+/**
  * Fetch upcoming result dates from BSE.
  * @returns {Promise<Array>}
  */
@@ -142,6 +169,7 @@ const bseSmartSearch = async (query) => {
 module.exports = {
   getStockScripCode,
   getResultAnnoucement,
+  getSecurityPosition,
   upcomingResults,
   getCompanyInfo,
   getBseQuoteHeader,

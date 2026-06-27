@@ -211,6 +211,11 @@ export const screenerAPI = {
       sort_order: sortOrder,
       limit,
     }),
+  /** List saved StockScans scans @see GET /api/screener/saved-scans */
+  getSavedScans: () => api.get('/screener/saved-scans'),
+  /** Run a saved scan with live enrichment @see POST /api/screener/run-scan */
+  runScan: (scan, enrich = true) =>
+    api.post('/screener/run-scan', { scan, enrich }, { timeout: 180000 }),
 };
 
 /**
@@ -240,9 +245,10 @@ export const marketAPI = {
    * @param {{ count?: number, bucket?: string, enrich?: boolean }} [params]
    * @see GET /api/market/top-gainers
    */
-  getTopGainers: ({ count = 20, bucket = 'allSec', enrich = true, exchange = 'nse' } = {}) => {
+  getTopGainers: ({ count = 20, bucket = 'allSec', enrich = true, exchange = 'nse', orderBook = false } = {}) => {
     const sp = new URLSearchParams({ count: String(count), bucket, exchange });
     if (!enrich) sp.set('enrich', 'false');
+    if (orderBook) sp.set('orderBook', 'true');
     return api.get(`/market/top-gainers?${sp.toString()}`, { timeout: 90000 });
   },
 };

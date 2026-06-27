@@ -9,6 +9,7 @@ const SESSION_TTL_MS = 5 * 60 * 1000;
 /** @see {@link docs/backend/api/nseIndiaApi.md} */
 let sessionCookies = null;
 let sessionExpiry = null;
+let activeWarmup = null;
 
 const DOCUMENT_HEADERS = {
   'User-Agent': DEFAULT_USER_AGENT,
@@ -82,46 +83,66 @@ const mergeSetCookie = (existing, setCookie) => {
 const clearNseCookieCache = () => {
   sessionCookies = null;
   sessionExpiry = null;
+  activeWarmup = null;
 };
 
 /**
  * Establish NSE session (homepage + optional equity quote page).
+ *
+ * IMPORTANT: When the session is still valid, this returns immediately regardless of
+ * equitySymbol. The old behaviour (always reloading homepage when equitySymbol was
+ * given) caused 18+ simultaneous homepage requests during parallel enrichment, which
+ * triggers NSE/Akamai bot detection and returns 403 for the entire server session.
+ *
+ * Concurrent expired-session calls are serialized via activeWarmup so only one
+ * actual warmup runs at a time.
+ *
  * @param {string} [equitySymbol]
  * @returns {Promise<string|null>} Cookie header value
  */
 const warmupNseSession = async (equitySymbol) => {
-  if (sessionCookies && sessionExpiry && Date.now() < sessionExpiry && !equitySymbol) {
+  if (sessionCookies && sessionExpiry && Date.now() < sessionExpiry) {
     return sessionCookies;
   }
 
-  let cookie = sessionCookies || '';
+  if (activeWarmup) return activeWarmup;
 
-  const home = await axios.get(NSE_HOME_URL, {
-    headers: DOCUMENT_HEADERS,
-    timeout: 60000,
-  });
-  cookie = mergeSetCookie(cookie, home.headers['set-cookie']);
+  activeWarmup = (async () => {
+    let cookie = sessionCookies || '';
 
-  if (equitySymbol) {
-    const upper = equitySymbol.toUpperCase();
-    const equityPage = await axios.get(
-      `${NSE_HOME_URL}get-quotes/equity?symbol=${encodeURIComponent(upper)}`,
-      {
-        headers: {
-          ...DOCUMENT_HEADERS,
-          Cookie: cookie,
-          Referer: NSE_HOME_URL,
-          'Sec-Fetch-Site': 'same-origin',
-        },
-        timeout: 60000,
-      }
-    );
-    cookie = mergeSetCookie(cookie, equityPage.headers['set-cookie']);
+    const home = await axios.get(NSE_HOME_URL, {
+      headers: DOCUMENT_HEADERS,
+      timeout: 60000,
+    });
+    cookie = mergeSetCookie(cookie, home.headers['set-cookie']);
+
+    if (equitySymbol) {
+      const upper = equitySymbol.toUpperCase();
+      const equityPage = await axios.get(
+        `${NSE_HOME_URL}get-quotes/equity?symbol=${encodeURIComponent(upper)}`,
+        {
+          headers: {
+            ...DOCUMENT_HEADERS,
+            Cookie: cookie,
+            Referer: NSE_HOME_URL,
+            'Sec-Fetch-Site': 'same-origin',
+          },
+          timeout: 60000,
+        }
+      );
+      cookie = mergeSetCookie(cookie, equityPage.headers['set-cookie']);
+    }
+
+    sessionCookies = cookie || null;
+    sessionExpiry = Date.now() + SESSION_TTL_MS;
+    return sessionCookies;
+  })();
+
+  try {
+    return await activeWarmup;
+  } finally {
+    activeWarmup = null;
   }
-
-  sessionCookies = cookie || null;
-  sessionExpiry = Date.now() + SESSION_TTL_MS;
-  return sessionCookies;
 };
 
 /**

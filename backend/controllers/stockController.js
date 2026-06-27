@@ -7,7 +7,7 @@ const { calculateAllIndicators, calculateSMA } = require('../utils/technicalIndi
 const { fetchAndStoreQuarterlyResults } = require('../scripts/balanceSheetDataFetcher');
 const { fetchStockDetails } = require('../scripts/stockDetailsFetcher');
 const { getStockScripCode } = require('../api/bseIndiaApi');
-const { getPriceVolumeDeliverable, formatDate, searchAutocomplete } = require('../api/nseIndiaApi');
+const { getPriceVolumeDeliverable, formatDate, searchAutocomplete, getSymbolData } = require('../api/nseIndiaApi');
 const { parseNseDateToObject } = require('../utils/nseHelpers');
 
 /**
@@ -651,6 +651,32 @@ const getDeliveryVolume = async (req, res) => {
     }
 
     let candles = [...seen.values()].sort((a, b) => a.time.localeCompare(b.time));
+
+    // Append today's live candle from getSymbolData (historical API is T-1 only)
+    try {
+      const liveData = await getSymbolData(symbol);
+      if (liveData) {
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        // Only add if today isn't already in history (market open) and data looks valid
+        const lastHistorical = candles[candles.length - 1];
+        if (lastHistorical?.time !== todayStr) {
+          const open = toNumber(liveData.metaData?.open);
+          const high = toNumber(liveData.metaData?.dayHigh);
+          const low = toNumber(liveData.metaData?.dayLow);
+          const close = toNumber(liveData.tradeInfo?.lastPrice);
+          const volume = toNumber(liveData.tradeInfo?.totalTradedVolume);
+          const deliveryVolume = toNumber(liveData.tradeInfo?.deliveryquantity);
+          const deliveryPercent = toNumber(liveData.tradeInfo?.deliveryToTradedQuantity);
+          if (open && high && low && close) {
+            candles.push({ time: todayStr, open, high, low, close, volume, deliveryVolume, deliveryPercent });
+          }
+        }
+      }
+    } catch {
+      // best-effort; skip today's candle if live fetch fails
+    }
+
     if (interval === 'weekly') candles = aggregateWeekly(candles);
 
     return res.json({

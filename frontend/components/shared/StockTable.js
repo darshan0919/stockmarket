@@ -1,3 +1,9 @@
+/**
+ * Unified live-stock table shared by the Top Gainers and Screener pages.
+ *
+ * Columns match the top-gainers enrichment shape plus live order-book depth.
+ * All sorting is client-side. Filtering (sell offers / buy bids) is mutual-exclusive.
+ */
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import {
@@ -7,11 +13,11 @@ import {
   getChangeColor,
 } from '../../lib/utils/formatters';
 
-const formatVolume = (value) => {
-  if (value === null || value === undefined) return 'N/A';
-  const num = Number(value);
-  if (isNaN(num)) return 'N/A';
-  return num.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+const fmtVol = (v) => {
+  if (v == null) return 'N/A';
+  const n = Number(v);
+  if (isNaN(n)) return 'N/A';
+  return n.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 };
 
 export const COLUMNS = [
@@ -24,9 +30,6 @@ export const COLUMNS = [
     render: (row) => (
       <div className="flex flex-col">
         <span className="font-semibold">{row.symbol}</span>
-        {row.name && row.name !== row.symbol && (
-          <span className="text-xs text-base-content/50">{row.name}</span>
-        )}
       </div>
     ),
   },
@@ -47,14 +50,35 @@ export const COLUMNS = [
     ),
   },
   {
-    id: 'changePercent',
-    header: '% Day',
-    sortKey: 'changePercent',
+    id: 'bidLevels',
+    header: 'Bids',
+    sortKey: 'bidLevels',
     align: 'right',
     render: (row) => (
-      <span className={getChangeColor(row.changePercent)}>
-        {formatPercentage(row.changePercent)}
-      </span>
+      <div className="flex flex-col items-end">
+        <span className="text-success font-medium">
+          {row.bidLevels != null ? row.bidLevels : 'N/A'}
+        </span>
+        {row.totalBidQty != null && (
+          <span className="text-xs text-base-content/40">{fmtVol(row.totalBidQty)}</span>
+        )}
+      </div>
+    ),
+  },
+  {
+    id: 'offerLevels',
+    header: 'Offers',
+    sortKey: 'offerLevels',
+    align: 'right',
+    render: (row) => (
+      <div className="flex flex-col items-end">
+        <span className="text-error font-medium">
+          {row.offerLevels != null ? row.offerLevels : 'N/A'}
+        </span>
+        {row.totalOfferQty != null && (
+          <span className="text-xs text-base-content/40">{fmtVol(row.totalOfferQty)}</span>
+        )}
+      </div>
     ),
   },
   {
@@ -62,7 +86,7 @@ export const COLUMNS = [
     header: 'Volume',
     sortKey: 'volume',
     align: 'right',
-    render: (row) => formatVolume(row.volume),
+    render: (row) => fmtVol(row.volume),
   },
   {
     id: 'value',
@@ -99,7 +123,8 @@ export const COLUMNS = [
     header: 'Mkt Cap (Rs Cr)',
     sortKey: 'marketCapCr',
     align: 'right',
-    render: (row) => (row.marketCapCr != null ? Number(row.marketCapCr).toFixed(0) : 'N/A'),
+    render: (row) =>
+      row.marketCapCr != null ? Number(row.marketCapCr).toFixed(0) : 'N/A',
   },
   {
     id: 'retailHolding',
@@ -156,21 +181,18 @@ export const COLUMNS = [
   },
 ];
 
-/** Hook to manage column visibility state. Use in the parent page. */
 export function useColumnState() {
-  const [hiddenCols, setHiddenCols] = useState(new Set());
-  const toggleColumn = (id) => {
+  const [hiddenCols, setHiddenCols] = useState(new Set(['bidLevels', 'offerLevels']));
+  const toggleColumn = (id) =>
     setHiddenCols((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  };
   return { hiddenCols, toggleColumn };
 }
 
-/** Dropdown column picker to render in the page header. */
 export function ColumnPicker({ hiddenCols, toggleColumn }) {
   return (
     <div className="dropdown dropdown-end">
@@ -182,9 +204,9 @@ export function ColumnPicker({ hiddenCols, toggleColumn }) {
       </label>
       <div
         tabIndex={0}
-        className="dropdown-content z-10 p-2 shadow-lg bg-base-100 rounded-box w-48 border border-base-300 mt-1"
+        className="dropdown-content z-10 p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300 mt-1 max-h-80 overflow-y-auto"
       >
-        {COLUMNS.filter((col) => !col.always).map((col) => (
+        {COLUMNS.filter((c) => !c.always).map((col) => (
           <label
             key={col.id}
             className="flex items-center gap-2 cursor-pointer py-1 px-2 hover:bg-base-200 rounded"
@@ -206,28 +228,13 @@ export function ColumnPicker({ hiddenCols, toggleColumn }) {
 function SortIcon({ direction }) {
   if (!direction) {
     return (
-      <svg
-        className="w-3.5 h-3.5 opacity-30 ml-1 inline"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"
-        />
+      <svg className="w-3.5 h-3.5 opacity-30 ml-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
       </svg>
     );
   }
   return (
-    <svg
-      className="w-3.5 h-3.5 opacity-80 ml-1 inline"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
+    <svg className="w-3.5 h-3.5 opacity-80 ml-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       {direction === 'asc' ? (
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
       ) : (
@@ -246,7 +253,16 @@ const compare = (a, b, key, dir) => {
   return dir === 'asc' ? asc : -asc;
 };
 
-export default function TopGainersTable({ rows, hiddenCols }) {
+/**
+ * @param {{
+ *   rows: Object[],
+ *   hiddenCols: Set<string>,
+ *   sellOffersOnly: boolean,
+ *   buyBidsOnly: boolean,
+ *   emptyMessage?: string,
+ * }} props
+ */
+export default function StockTable({ rows, hiddenCols, sellOffersOnly, buyBidsOnly, emptyMessage }) {
   const router = useRouter();
   const [sortKey, setSortKey] = useState('delVsMcap');
   const [sortDir, setSortDir] = useState('desc');
@@ -273,26 +289,27 @@ export default function TopGainersTable({ rows, hiddenCols }) {
 
   const handleHeaderClick = (key) => {
     if (!key) return;
-    if (sortKey === key) {
-      setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'));
-    } else {
-      setSortKey(key);
-      setSortDir('desc');
-    }
+    if (sortKey === key) setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'));
+    else { setSortKey(key); setSortDir('desc'); }
   };
 
-  // Filters: delivery value >= 5 Cr; retail <= 50%; retail stake >= 50 Cr
-  const filtered = useMemo(
-    () =>
-      enrichedRows.filter((row) => {
-        // deliveryValue is in rupees; 5 Cr = 5e7
-        if (row.deliveryValue != null && row.deliveryValue < 5e7) return false;
-        if (row.retailHoldingPercent != null && row.retailHoldingPercent > 50) return false;
-        if (row.marketCapCr == null || row.retailHoldingPercent == null) return true;
-        return (row.marketCapCr * row.retailHoldingPercent) / 100 >= 50;
-      }),
-    [enrichedRows]
-  );
+  const filtered = useMemo(() => {
+    let rows = enrichedRows.filter((row) => {
+      // Market Cap < 300 Cr → hide
+      if (row.marketCapCr != null && row.marketCapCr < 300) return false;
+      // Del Value < 5 Cr → hide (deliveryValue is in rupees; 5 Cr = 5e7)
+      if (row.deliveryValue != null && row.deliveryValue < 5e7) return false;
+      // Retail % > 50 → hide
+      if (row.retailHoldingPercent != null && row.retailHoldingPercent > 50) return false;
+      // Retail Stake < 50 Cr → hide
+      if (row.marketCapCr != null && row.retailHoldingPercent != null &&
+          (row.marketCapCr * row.retailHoldingPercent) / 100 < 50) return false;
+      return true;
+    });
+    if (sellOffersOnly) return rows.filter((r) => r.offerLevels != null && r.offerLevels > 0);
+    if (buyBidsOnly) return rows.filter((r) => r.bidLevels != null && r.bidLevels > 0);
+    return rows;
+  }, [enrichedRows, sellOffersOnly, buyBidsOnly]);
 
   const sorted = useMemo(() => {
     if (!sortKey) return filtered;
@@ -304,7 +321,17 @@ export default function TopGainersTable({ rows, hiddenCols }) {
   if (!rows || rows.length === 0) {
     return (
       <div className="text-center py-12 text-base-content/40 text-sm">
-        No gainers available right now
+        {emptyMessage || 'No data available'}
+      </div>
+    );
+  }
+
+  if (filtered.length === 0) {
+    return (
+      <div className="text-center py-12 text-base-content/40 text-sm">
+        {buyBidsOnly
+          ? 'No stocks with active buy bids right now.'
+          : 'No stocks with active sell offers right now.'}
       </div>
     );
   }
@@ -319,12 +346,8 @@ export default function TopGainersTable({ rows, hiddenCols }) {
                 key={col.id}
                 className={[
                   col.align === 'right' ? 'num' : '',
-                  col.sortKey
-                    ? 'cursor-pointer select-none hover:opacity-80 transition-opacity'
-                    : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
+                  col.sortKey ? 'cursor-pointer select-none hover:opacity-80 transition-opacity' : '',
+                ].filter(Boolean).join(' ')}
                 onClick={() => handleHeaderClick(col.sortKey)}
               >
                 {col.header}

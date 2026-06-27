@@ -100,7 +100,8 @@ const getTopGainersHandler = async (req, res, next) => {
   try {
     const { count, bucket, exchange } = req.query;
     const enrich = req.query.enrich !== 'false';
-    const data = await getTopGainers({ count, bucket, enrich, exchange });
+    const orderBook = req.query.orderBook === 'true';
+    const data = await getTopGainers({ count, bucket, enrich, exchange, orderBook });
     res.json({ success: true, data });
   } catch (error) {
     console.error('Error fetching top gainers:', error.message);

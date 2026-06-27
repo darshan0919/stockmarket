@@ -14,6 +14,7 @@
 const {
   getLiveVariations,
   getSymbolData,
+  getQuoteEquity,
   getPriceVolumeDeliverable,
   formatDate,
 } = require('../api/nseIndiaApi');
@@ -21,7 +22,7 @@ const { parseNseDateToObject } = require('../utils/nseHelpers');
 const { fetchFundamentals } = require('./stockscansMetrics');
 
 const CACHE_TTL_MS = 90 * 1000;
-const ENRICH_CONCURRENCY = 6;
+const ENRICH_CONCURRENCY = 3;
 const DEFAULT_COUNT = 20;
 const MAX_COUNT = 50;
 
@@ -77,7 +78,8 @@ const fetchSymbolMetrics = async (symbol) => {
       marketCapCr: totalMarketCap != null ? totalMarketCap / 1e7 : null,
       deliveryPercent: toNumber(data.tradeInfo?.deliveryToTradedQuantity),
     };
-  } catch {
+  } catch (err) {
+    console.warn(`[topGainers] fetchSymbolMetrics(${symbol}) failed: ${err.response?.status ?? err.message}`);
     return empty;
   }
 };
@@ -136,7 +138,47 @@ const fetchHistoryMetrics = async (symbol) => {
         : null;
 
     return { deliveryPercent: latest.deliveryPercent, weekChangePercent, avgDeliveryPercent30d };
-  } catch {
+  } catch (err) {
+    console.warn(`[topGainers] fetchHistoryMetrics(${symbol}) failed: ${err.response?.status ?? err.message}`);
+    return empty;
+  }
+};
+
+/**
+ * Count populated order-book levels (non-zero price).
+ * Returns null when levels data is absent rather than 0, so callers can distinguish
+ * "no data" (null → N/A in UI) from "empty book" (0).
+ * @param {Array|undefined} levels
+ * @returns {number|null}
+ */
+const countOrderLevels = (levels) => {
+  if (!Array.isArray(levels) || levels.length === 0) return null;
+  const count = levels.filter((l) => toNumber(l?.price) > 0).length;
+  return count > 0 ? count : null;
+};
+
+/**
+ * Fetch live bid/offer depth from NSE /quote-equity (the only NSE endpoint that
+ * includes marketDeptOrderBook in its response).
+ * @param {string} symbol
+ * @returns {Promise<{ bidLevels: number|null, offerLevels: number|null, totalBidQty: number|null, totalOfferQty: number|null }>}
+ */
+const fetchOrderBookMetrics = async (symbol) => {
+  const empty = { bidLevels: null, offerLevels: null, totalBidQty: null, totalOfferQty: null };
+  try {
+    const data = await getQuoteEquity(symbol);
+    if (!data) return empty;
+    const book = data.marketDeptOrderBook || {};
+    const rawBidQty = toNumber(book.totalBuyQuantity);
+    const rawOfferQty = toNumber(book.totalSellQuantity);
+    return {
+      bidLevels: countOrderLevels(book.buy),
+      offerLevels: countOrderLevels(book.sell),
+      totalBidQty: rawBidQty != null ? rawBidQty : null,
+      totalOfferQty: rawOfferQty != null ? rawOfferQty : null,
+    };
+  } catch (err) {
+    console.warn(`[topGainers] fetchOrderBookMetrics(${symbol}) failed: ${err.response?.status ?? err.message}`);
     return empty;
   }
 };
@@ -171,6 +213,10 @@ const mapBaseRow = (row) => {
     weekChangePercent: null,
     retailHoldingPercent: null,
     patGrowthTtm: null,
+    bidLevels: null,
+    offerLevels: null,
+    totalBidQty: null,
+    totalOfferQty: null,
   };
 };
 
@@ -218,10 +264,11 @@ const getTopGainers = async ({
   bucket = 'allSec',
   enrich = true,
   exchange = 'nse',
+  orderBook = false,
 } = {}) => {
   const resolvedCount = Math.min(Math.max(parseInt(count, 10) || DEFAULT_COUNT, 1), MAX_COUNT);
   const exchSeg = exchange === 'bse' ? 'bse' : '';
-  const cacheKey = `${exchSeg || 'nse'}:${bucket}:${resolvedCount}:${enrich ? 1 : 0}`;
+  const cacheKey = `${exchSeg || 'nse'}:${bucket}:${resolvedCount}:${enrich ? 1 : 0}:${orderBook ? 1 : 0}`;
 
   const cached = cache.get(cacheKey);
   if (cached && cached.expires > Date.now()) {
@@ -237,11 +284,12 @@ const getTopGainers = async ({
     let batchMetrics = {};
     try { batchMetrics = await fetchFundamentals(symbols); } catch { /* best-effort */ }
 
-    // Per-symbol: delivery % (today from quote-equity, T-1 fallback) + history
+    // Per-symbol: delivery % (today from quote-equity, T-1 fallback) + history + order book
     const tasks = rows.map((row) => async () => {
-      const [symbolMetrics, history] = await Promise.all([
+      const [symbolMetrics, history, obMetrics] = await Promise.all([
         fetchSymbolMetrics(row.symbol),
         fetchHistoryMetrics(row.symbol),
+        orderBook ? fetchOrderBookMetrics(row.symbol) : Promise.resolve({ bidLevels: null, offerLevels: null, totalBidQty: null, totalOfferQty: null }),
       ]);
       const fm = batchMetrics[row.symbol] ?? {};
       // Live fields from getSymbolData override base row values
@@ -258,6 +306,11 @@ const getTopGainers = async ({
       row.deliveryPercent = symbolMetrics.deliveryPercent ?? history.deliveryPercent;
       row.avgDeliveryPercent30d = history.avgDeliveryPercent30d;
       row.weekChangePercent = history.weekChangePercent;
+      // Live order book depth
+      row.bidLevels = obMetrics.bidLevels;
+      row.offerLevels = obMetrics.offerLevels;
+      row.totalBidQty = obMetrics.totalBidQty;
+      row.totalOfferQty = obMetrics.totalOfferQty;
     });
     await mapWithConcurrency(tasks, ENRICH_CONCURRENCY);
   }
@@ -279,9 +332,12 @@ const clearTopGainersCache = () => cache.clear();
 module.exports = {
   getTopGainers,
   clearTopGainersCache,
-  // exported for tests
+  // exported for tests and reuse by screener
   selectRows,
   mapBaseRow,
   mapWithConcurrency,
   BUCKETS,
+  fetchSymbolMetrics,
+  fetchHistoryMetrics,
+  fetchOrderBookMetrics,
 };
