@@ -19,6 +19,8 @@ const {
 } = require('../services/stockscansAnnouncementScan');
 const { fetchCompanyIdsFromSavedScanUrl } = require('../services/stockscansSavedScan');
 const { fetchAnnouncementPdfBuffers } = require('../services/announcementPdfFetch');
+const announcementScansPage = require('../services/stockscansAnnouncementScansPage');
+const announcementScanIgnoreStore = require('../services/announcementScanIgnoreStore');
 
 /** @typedef {'auto'|'stockscans'|'nse'} AnnouncementsProviderMode */
 
@@ -66,6 +68,31 @@ function sanitizeSearchForFilename(raw) {
     .replace(/^_|_$/g, '')
     .substring(0, 60);
   return s || '';
+}
+
+/**
+ * Convert StockScans proxy errors to app JSON responses.
+ * @param {import('express').Response} res
+ * @param {Error} err
+ * @returns {import('express').Response}
+ */
+function respondAnnouncementScanError(res, err) {
+  const status =
+    err.code === 'STOCKSCANS_AUTH_REQUIRED'
+      ? 503
+      : err.code === 'STOCKSCANS_SUBSCRIPTION_REQUIRED'
+        ? 402
+        : err.code === 'INVALID_SCAN_ID' ||
+            err.code === 'COMPANY_KEY_REQUIRED' ||
+            err.code === 'SCAN_KEY_REQUIRED'
+          ? 400
+          : 502;
+  return res.status(status).json({
+    success: false,
+    error: err.message || 'StockScans announcement scan failed',
+    code: err.code,
+    details: err.details,
+  });
 }
 
 /**
@@ -191,6 +218,162 @@ const getAnnouncements = async (req, res, next) => {
     }
 
     next(error);
+  }
+};
+
+/**
+ * Metadata for the announcement-scans clone.
+ * @route GET /api/announcements/scans/metadata
+ */
+const getAnnouncementScanMetadata = async (req, res) => {
+  try {
+    const data = await announcementScansPage.fetchAnnouncementScanMetadata();
+    res.json({ success: true, data });
+  } catch (err) {
+    respondAnnouncementScanError(res, err);
+  }
+};
+
+/**
+ * Company search used by @company filters.
+ * @route GET /api/announcements/scans/company-search?q=
+ */
+const searchAnnouncementScanCompanies = async (req, res) => {
+  try {
+    const companies = await announcementScansPage.searchCompanies(req.query.q);
+    res.json({ success: true, data: { companies } });
+  } catch (err) {
+    respondAnnouncementScanError(res, err);
+  }
+};
+
+/**
+ * Authenticated StockScans watchlists for announcement-scan filters.
+ * @route GET /api/announcements/scans/watchlists
+ */
+const getAnnouncementScanWatchlists = async (req, res) => {
+  try {
+    const watchlists = await announcementScansPage.fetchWatchlists();
+    res.json({ success: true, data: { watchlists } });
+  } catch (err) {
+    respondAnnouncementScanError(res, err);
+  }
+};
+
+/**
+ * Authenticated saved StockScans announcement scans.
+ * @route GET /api/announcements/scans/saved
+ */
+const getSavedAnnouncementScans = async (req, res) => {
+  try {
+    const scans = await announcementScansPage.fetchSavedAnnouncementScans();
+    res.json({ success: true, data: { announcementScans: scans } });
+  } catch (err) {
+    respondAnnouncementScanError(res, err);
+  }
+};
+
+/**
+ * Create/update a saved StockScans announcement scan.
+ * @route PUT /api/announcements/scans/saved
+ */
+const saveAnnouncementScan = async (req, res) => {
+  try {
+    const data = await announcementScansPage.saveAnnouncementScan(req.body || {});
+    res.json({ success: true, data });
+  } catch (err) {
+    respondAnnouncementScanError(res, err);
+  }
+};
+
+/**
+ * Persist StockScans announcement-scan order.
+ * @route PUT /api/announcements/scans/saved/order
+ */
+const reorderAnnouncementScans = async (req, res) => {
+  try {
+    const data = await announcementScansPage.reorderAnnouncementScans(req.body?.scanIds);
+    res.json({ success: true, data });
+  } catch (err) {
+    respondAnnouncementScanError(res, err);
+  }
+};
+
+/**
+ * Delete a saved StockScans announcement scan.
+ * @route DELETE /api/announcements/scans/saved/:scanId
+ */
+const deleteAnnouncementScan = async (req, res) => {
+  try {
+    const data = await announcementScansPage.deleteAnnouncementScan(req.params.scanId);
+    res.json({ success: true, data });
+  } catch (err) {
+    respondAnnouncementScanError(res, err);
+  }
+};
+
+/**
+ * Run StockScans announcement scan.
+ * @route POST /api/announcements/scans/run
+ */
+const runAnnouncementScan = async (req, res) => {
+  try {
+    const data = await announcementScansPage.runAnnouncementScan(req.body || {});
+    res.json({ success: true, data });
+  } catch (err) {
+    respondAnnouncementScanError(res, err);
+  }
+};
+
+/**
+ * Keyword/company statistics table for a scan.
+ * @route POST /api/announcements/scans/statistics
+ */
+const getAnnouncementScanStatistics = async (req, res) => {
+  try {
+    const data = await announcementScansPage.fetchAnnouncementStatistics(req.body || {});
+    res.json({ success: true, data });
+  } catch (err) {
+    respondAnnouncementScanError(res, err);
+  }
+};
+
+/**
+ * Company-level drilldown used from the statistics table.
+ * @route POST /api/announcements/scans/company
+ */
+const getAnnouncementScanCompany = async (req, res) => {
+  try {
+    const data = await announcementScansPage.fetchCompanyAnnouncements(req.body || {});
+    res.json({ success: true, data });
+  } catch (err) {
+    respondAnnouncementScanError(res, err);
+  }
+};
+
+/**
+ * Local app-only ignore keyword overlays saved under the project data folder.
+ * @route GET /api/announcements/scans/ignored-keywords
+ */
+const getAnnouncementScanIgnoredKeywords = async (req, res) => {
+  try {
+    const data = await announcementScanIgnoreStore.readIgnoreStore();
+    res.json({ success: true, data });
+  } catch (err) {
+    respondAnnouncementScanError(res, err);
+  }
+};
+
+/**
+ * Save ignore keywords for one announcement scan to a local project file.
+ * @route PUT /api/announcements/scans/ignored-keywords
+ */
+const saveAnnouncementScanIgnoredKeywords = async (req, res) => {
+  try {
+    const data = await announcementScanIgnoreStore.saveIgnoreKeywords(req.body || {});
+    res.json({ success: true, data });
+  } catch (err) {
+    respondAnnouncementScanError(res, err);
   }
 };
 
@@ -459,6 +642,18 @@ ${pdfs.map((pdf, i) => `${i + 1}. ${pdf.symbol} — ${parseNseDate(pdf.date) || 
 
 module.exports = {
   getAnnouncements,
+  getAnnouncementScanMetadata,
+  searchAnnouncementScanCompanies,
+  getAnnouncementScanWatchlists,
+  getSavedAnnouncementScans,
+  saveAnnouncementScan,
+  reorderAnnouncementScans,
+  deleteAnnouncementScan,
+  runAnnouncementScan,
+  getAnnouncementScanStatistics,
+  getAnnouncementScanCompany,
+  getAnnouncementScanIgnoredKeywords,
+  saveAnnouncementScanIgnoredKeywords,
   downloadAnnouncements,
   downloadLatestConcalls,
 };

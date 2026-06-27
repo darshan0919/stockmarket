@@ -102,6 +102,10 @@
   .nav-header {
     @apply sticky top-0 z-40 shadow-lg bg-neutral text-neutral-content;
   }
+
+  .announcement-workbench mark {
+    @apply rounded px-1 bg-warning/20 text-base-content;
+  }
 }
 
 @keyframes slideUp {

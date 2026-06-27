@@ -34,6 +34,7 @@ export default function Header() {
   const navLinks = [
     { href: '/', label: 'Dashboard', icon: DashboardIcon },
     { href: '/screener', label: 'Screener', icon: ScreenerIcon },
+    { href: '/announcement-scans', label: 'Announcements', icon: AnnouncementsIcon },
     { href: '/gainers', label: 'Gainers', icon: GainersIcon },
     { href: '/results', label: 'Results', icon: ResultsIcon },
     { href: '/watchlist', label: 'Watchlist', icon: WatchlistIcon },
@@ -210,6 +211,19 @@ function GainersIcon({ className }) {
         strokeLinejoin="round"
         strokeWidth={2}
         d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+      />
+    </svg>
+  );
+}
+
+function AnnouncementsIcon({ className }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0119 8.414V19a2 2 0 01-2 2z"
       />
     </svg>
   );

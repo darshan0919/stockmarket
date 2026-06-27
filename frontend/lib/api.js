@@ -245,7 +245,13 @@ export const marketAPI = {
    * @param {{ count?: number, bucket?: string, enrich?: boolean }} [params]
    * @see GET /api/market/top-gainers
    */
-  getTopGainers: ({ count = 20, bucket = 'allSec', enrich = true, exchange = 'nse', orderBook = false } = {}) => {
+  getTopGainers: ({
+    count = 20,
+    bucket = 'allSec',
+    enrich = true,
+    exchange = 'nse',
+    orderBook = false,
+  } = {}) => {
     const sp = new URLSearchParams({ count: String(count), bucket, exchange });
     if (!enrich) sp.set('enrich', 'false');
     if (orderBook) sp.set('orderBook', 'true');
@@ -309,6 +315,37 @@ export const announcementsAPI = {
       { scanUrl, quarterDate },
       { responseType: 'blob', timeout: 300000 }
     ),
+};
+
+// Standalone StockScans announcement-scans clone APIs
+export const announcementScansAPI = {
+  /** @see GET /api/announcements/scans/metadata */
+  getMetadata: () => api.get('/announcements/scans/metadata'),
+  /** @see GET /api/announcements/scans/company-search */
+  searchCompanies: (query) =>
+    api.get(`/announcements/scans/company-search?q=${encodeURIComponent(query)}`),
+  /** @see GET /api/announcements/scans/watchlists */
+  getWatchlists: () => api.get('/announcements/scans/watchlists'),
+  /** @see GET /api/announcements/scans/saved */
+  getSavedScans: () => api.get('/announcements/scans/saved'),
+  /** @see PUT /api/announcements/scans/saved */
+  saveScan: (scan) => api.put('/announcements/scans/saved', scan),
+  /** @see PUT /api/announcements/scans/saved/order */
+  reorderScans: (scanIds) => api.put('/announcements/scans/saved/order', { scanIds }),
+  /** @see DELETE /api/announcements/scans/saved/:scanId */
+  deleteScan: (scanId) => api.delete(`/announcements/scans/saved/${encodeURIComponent(scanId)}`),
+  /** @see GET /api/announcements/scans/ignored-keywords */
+  getIgnoredKeywords: () => api.get('/announcements/scans/ignored-keywords'),
+  /** @see PUT /api/announcements/scans/ignored-keywords */
+  saveIgnoredKeywords: (payload) => api.put('/announcements/scans/ignored-keywords', payload),
+  /** @see POST /api/announcements/scans/run */
+  runScan: (params) => api.post('/announcements/scans/run', params, { timeout: 120000 }),
+  /** @see POST /api/announcements/scans/statistics */
+  getStatistics: (params) =>
+    api.post('/announcements/scans/statistics', params, { timeout: 120000 }),
+  /** @see POST /api/announcements/scans/company */
+  getCompanyAnnouncements: (params) =>
+    api.post('/announcements/scans/company', params, { timeout: 120000 }),
 };
 
 /**
