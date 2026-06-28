@@ -20,6 +20,7 @@ const { nse, stockscans } = require('@stock/api');
 const { sendHtmlEmail } = require('./lib/emailService');
 const { NotesDb } = require('./lib/notesDb');
 const { loadEnv, argValue } = require('./lib/env');
+const { withDriveDataSync } = require('./lib/driveDataStore');
 const ist = require('./lib/ist');
 
 // ── Paths & config ────────────────────────────────────────────────────────────
@@ -932,5 +933,8 @@ module.exports = {
 
 if (require.main === module) {
   loadEnv(argValue('--env-file'));
-  runCli(process.argv.slice(2));
+  withDriveDataSync('insightValidator', () => runCli(process.argv.slice(2))).catch((e) => {
+    process.stderr.write(JSON.stringify({ error: e.message, command: 'drive-sync' }));
+    process.exit(1);
+  });
 }

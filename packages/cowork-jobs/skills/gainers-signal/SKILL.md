@@ -20,9 +20,16 @@ email synthesis over their output. Do NOT re-fetch or re-compute anything.
 ```bash
 SCAN=$(find /sessions -path '*cowork-jobs/gainersScanner.js' 2>/dev/null | head -1)
 DATA="$(dirname "$SCAN")/data"   # data + .env now live with the jobs in the monorepo
+SYNC="$(dirname "$SCAN")/lib/driveDataStore.js"
 export GAINERS_OUTPUT_DIR="$DATA/daily_gainers" BSE_SCRIP_CACHE="$DATA/delivery_cache/bse_scrip_codes.json" \
-       COWORK_ENV="$DATA/.env"
+       COWORK_DATA_DIR="$DATA" COWORK_ENV="$DATA/.env" COWORK_DRIVE_EMAIL="djplearner@gmail.com"
+# Optional when Google Drive auto-detection fails:
+# export COWORK_DRIVE_ROOT="$HOME/Library/CloudStorage/GoogleDrive-djplearner@gmail.com/My Drive/StockMarket/cowork-jobs/v1"
 ```
+
+The Node scanner pulls existing Drive data before it runs and pushes the raw daily output
+after it finishes. If no Drive folder is mounted or configured, sync is skipped unless
+`COWORK_DRIVE_STRICT=1`.
 
 ## Step 1 — Scanner (Node, deterministic)
 
@@ -37,6 +44,7 @@ yields 0 gainers (holiday / API issue), send a "no signals today" email and stop
 
 ```bash
 cd "$DATA" && python3 gainers_classifier.py
+node "$SYNC" push
 ```
 Reads the raw JSON and writes `daily_gainers/{market_date}_insights.json` with `signals[]`
 — each has `primary_driver`, `conviction`, `in_email`, and a pre-built `evidence[]`
@@ -71,5 +79,7 @@ If email status is `skipped`/`error`, print a warning but do not fail.
 
 ## Rules
 - Do NOT re-fetch or re-compute — both scripts did that.
+- After the Python classifier, run the Drive push so `{market_date}_insights.json` is
+  available on the next computer.
 - Show ALL `evidence[]` lines per stock; don't truncate. Cite actual numbers.
 - Tag delivery `[NSE]`/`[BSE]` next to the %; show routine announcement subjects as context.

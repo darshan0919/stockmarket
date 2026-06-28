@@ -5,7 +5,13 @@
   "description": "Cowork automation jobs (ported from Company Research Python) running on @stock/api.",
   "type": "commonjs",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "data:doctor": "node lib/driveDataStore.js doctor",
+    "data:init": "node lib/driveDataStore.js init",
+    "data:pull": "node lib/driveDataStore.js pull",
+    "data:push": "node lib/driveDataStore.js push",
+    "data:sync": "node lib/driveDataStore.js sync",
+    "data:manifest": "node lib/driveDataStore.js manifest"
   },
   "dependencies": {
     "@stock/api": "workspace:*"

@@ -30,8 +30,15 @@ JOB=$(find /sessions -path '*cowork-jobs/insightValidator.js' 2>/dev/null | head
 DATA="$(dirname "$JOB")/data"   # data + .env now live with the jobs in the monorepo
 # Data (notes/, delivery_cache/, validation/ ledger+proposals) and .env live in the data dir:
 export WI_DATA_DIR="$DATA" WI_NOTES_DIR="$DATA/notes" WI_VALIDATION_DIR="$DATA/validation" \
-       IV_CACHE_DIR="$DATA/delivery_cache" COWORK_ENV="$DATA/.env"
+       IV_CACHE_DIR="$DATA/delivery_cache" COWORK_DATA_DIR="$DATA" COWORK_ENV="$DATA/.env" \
+       COWORK_DRIVE_EMAIL="djplearner@gmail.com"
+# Optional when Google Drive auto-detection fails:
+# export COWORK_DRIVE_ROOT="$HOME/Library/CloudStorage/GoogleDrive-djplearner@gmail.com/My Drive/StockMarket/cowork-jobs/v1"
 ```
+
+The job pulls Drive data before each command and pushes ledger, proposals, sector context,
+ignored logs, notes, and delivery cache back to Drive after it finishes. If no Drive
+folder is mounted or configured, sync is skipped unless `COWORK_DRIVE_STRICT=1`.
 
 ## Run
 

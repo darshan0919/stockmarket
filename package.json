@@ -20,7 +20,13 @@
     "seed": "node backend/scripts/fetchData.js",
     "deploy:local": "yarn build && yarn start",
     "test": "yarn workspace stock-screener-backend test && yarn workspace stock-screener-frontend test",
-    "format": "yarn workspace stock-screener-backend format && yarn workspace stock-screener-frontend format"
+    "format": "yarn workspace stock-screener-backend format && yarn workspace stock-screener-frontend format",
+    "cowork:data:doctor": "yarn workspace @stock/cowork-jobs data:doctor",
+    "cowork:data:init": "yarn workspace @stock/cowork-jobs data:init",
+    "cowork:data:pull": "yarn workspace @stock/cowork-jobs data:pull",
+    "cowork:data:push": "yarn workspace @stock/cowork-jobs data:push",
+    "cowork:data:sync": "yarn workspace @stock/cowork-jobs data:sync",
+    "cowork:data:manifest": "yarn workspace @stock/cowork-jobs data:manifest"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

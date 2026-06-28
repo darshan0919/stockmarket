@@ -24,9 +24,16 @@ The 24h window and the two watchlists (Near Highs + Radar) are baked into the jo
 ```bash
 JOB=$(find /sessions -path '*cowork-jobs/watchlistInsights.js' 2>/dev/null | head -1)
 DATA="$(dirname "$JOB")/data"   # data + .env now live with the jobs in the monorepo
-export WI_DATA_DIR="$DATA" WI_NOTES_DIR="$DATA/notes" WI_VALIDATION_DIR="$DATA/validation" COWORK_ENV="$DATA/.env"
+export WI_DATA_DIR="$DATA" WI_NOTES_DIR="$DATA/notes" WI_VALIDATION_DIR="$DATA/validation" \
+       COWORK_DATA_DIR="$DATA" COWORK_ENV="$DATA/.env" COWORK_DRIVE_EMAIL="djplearner@gmail.com"
+# Optional when Google Drive auto-detection fails:
+# export COWORK_DRIVE_ROOT="$HOME/Library/CloudStorage/GoogleDrive-djplearner@gmail.com/My Drive/StockMarket/cowork-jobs/v1"
 run(){ node "$JOB" "$@"; }
 ```
+
+Each command pulls Drive data before it runs and pushes notes plus validation logs after
+it finishes. If no Drive folder is mounted or configured, sync is skipped unless
+`COWORK_DRIVE_STRICT=1`.
 
 ## Step 1 — Fetch new announcements
 ```bash

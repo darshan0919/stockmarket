@@ -21,6 +21,7 @@ const { sendHtmlEmail } = require('./lib/emailService');
 const { NotesDb } = require('./lib/notesDb');
 const { pdfToText } = require('./lib/pdfText');
 const { loadEnv, argValue } = require('./lib/env');
+const { withDriveDataSync } = require('./lib/driveDataStore');
 const ist = require('./lib/ist');
 
 const SCRIPT_DIR = process.env.WI_DATA_DIR || process.cwd();
@@ -551,5 +552,8 @@ module.exports = {
 
 if (require.main === module) {
   loadEnv(argValue('--env-file'));
-  runCli(process.argv.slice(2));
+  withDriveDataSync('watchlistInsights', () => runCli(process.argv.slice(2))).catch((e) => {
+    process.stderr.write(JSON.stringify({ error: e.message, command: 'drive-sync' }));
+    process.exit(1);
+  });
 }

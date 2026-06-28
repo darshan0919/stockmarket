@@ -25,6 +25,7 @@ const fs = require('fs');
 const path = require('path');
 const { stockscans, nse, bse } = require('@stock/api');
 const { loadEnv, argValue } = require('./lib/env');
+const { withDriveDataSync } = require('./lib/driveDataStore');
 
 const OUTPUT_DIR = process.env.GAINERS_OUTPUT_DIR || path.join(process.cwd(), 'daily_gainers');
 const SCRIP_CACHE_FILE =
@@ -647,10 +648,10 @@ module.exports = {
 
 if (require.main === module) {
   loadEnv(argValue('--env-file'));
-  (async () => {
+  withDriveDataSync('gainersScanner', async () => {
     const dateArg = argValue('--date');
     const marketDate = dateArg ? new Date(`${dateArg}T00:00:00Z`) : undefined;
     const output = await main({ marketDate });
     process.stdout.write(JSON.stringify(output));
-  })().catch((e) => { console.error(e.message); process.exit(1); });
+  }).catch((e) => { console.error(e.message); process.exit(1); });
 }
