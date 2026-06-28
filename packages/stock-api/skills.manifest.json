@@ -1,0 +1,12 @@
+{
+  "$comment": "Which cloud skill gets which vendored client slice. ISP: most skills only need the Stockscans (fundamentals) client. The sync copies python/<file> into <skillsRoot>/<skill>/scripts/_vendor/. Edit python/* (the canonical source), never the vendored copies.",
+  "vendorDir": "scripts/_vendor",
+  "skills": {
+    "stock-documents-fetcher": ["stockscans_client.py"],
+    "pre-pead-scanner": ["stockscans_client.py"],
+    "watchlist-catalyst-scanner": ["stockscans_client.py"],
+    "announcement-keyword-explorer": ["stockscans_client.py"],
+    "fundamental-shift-scanner": ["stockscans_client.py"],
+    "peer-comparison": ["stockscans_client.py"]
+  }
+}

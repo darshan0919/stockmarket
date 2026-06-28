@@ -1,0 +1,384 @@
+{
+  "schema_version": "1.0",
+  "market_date": "2026-06-23",
+  "generated_at_ist": "2026-06-25T08:00:00+05:30",
+  "summary": {
+    "total_analyzed": 28,
+    "fundamental_movers": 0,
+    "sector_catalysts": 0,
+    "price_action_breakouts": 15,
+    "noise_excluded": 13,
+    "in_email": 15
+  },
+  "signals": [
+    {
+      "ticker": "NSE:PGIL",
+      "name": "Pearl Global Industries Ltd",
+      "industry": "Garments & Apparels",
+      "return_1d": 10.2,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "HIGH",
+      "in_email": true,
+      "evidence": [
+        "Vol spike: 30.4× 20-day avg (extreme volume surge)",
+        "Near 20-day high breakout (at window high)",
+        "Delivery %: 48.4% (above 40% threshold, real buyers)"
+      ],
+      "exclusion_reason": ""
+    },
+    {
+      "ticker": "NSE:AETHER",
+      "name": "Aether Industries Ltd",
+      "industry": "Specialty Chemicals",
+      "return_1d": 9.1,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "HIGH",
+      "in_email": true,
+      "evidence": [
+        "Vol spike: 8.6× 20-day avg",
+        "Near 20-day high breakout (at window high)",
+        "Delivery %: 52.8% (strong real buying)"
+      ],
+      "exclusion_reason": ""
+    },
+    {
+      "ticker": "NSE:SETL",
+      "name": "Standard Engineering Technologies Ltd",
+      "industry": "Capital Goods",
+      "return_1d": 8.6,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "HIGH",
+      "in_email": true,
+      "evidence": [
+        "Vol spike: 5.8× 20-day avg",
+        "Near 20-day high breakout (at window high)",
+        "Delivery %: 47.7% (above threshold)"
+      ],
+      "exclusion_reason": ""
+    },
+    {
+      "ticker": "NSE:KPRMILL",
+      "name": "K P R Mill Ltd",
+      "industry": "Garments & Apparels",
+      "return_1d": 7.7,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "HIGH",
+      "in_email": true,
+      "evidence": [
+        "Vol spike: 21.4× 20-day avg (massive surge)",
+        "At top of 20-day range (pct_in_range: 100%)",
+        "Delivery %: 55.9% (high conviction buying)"
+      ],
+      "exclusion_reason": ""
+    },
+    {
+      "ticker": "NSE:JSWINFRA",
+      "name": "JSW Infrastructure Ltd",
+      "industry": "Port & Port services",
+      "return_1d": 7.5,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "HIGH",
+      "in_email": true,
+      "evidence": [
+        "Vol spike: 9.9× 20-day avg",
+        "Near 20-day high breakout (at window high)",
+        "Delivery %: 47.9% (above threshold)"
+      ],
+      "exclusion_reason": ""
+    },
+    {
+      "ticker": "NSE:PINELABS",
+      "name": "Pine Labs Ltd",
+      "industry": "IT - Software",
+      "return_1d": 7.5,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "HIGH",
+      "in_email": true,
+      "evidence": [
+        "Vol spike: 2.6× 20-day avg",
+        "At top of 20-day range (pct_in_range: 100%)",
+        "Delivery %: 56.9% (very high, strong institutional participation)"
+      ],
+      "exclusion_reason": ""
+    },
+    {
+      "ticker": "NSE:M&MFIN",
+      "name": "Mahindra & Mahindra Financial Services Ltd",
+      "industry": "Finance - NBFC",
+      "return_1d": 6.7,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "HIGH",
+      "in_email": true,
+      "evidence": [
+        "Vol spike: 6.4× 20-day avg",
+        "At top of 20-day range (pct_in_range: 100%)",
+        "Delivery %: 56.7% (high, strong real demand)"
+      ],
+      "exclusion_reason": ""
+    },
+    {
+      "ticker": "NSE:ARVIND",
+      "name": "Arvind Ltd",
+      "industry": "Textiles",
+      "return_1d": 6.6,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "HIGH",
+      "in_email": true,
+      "evidence": [
+        "Vol spike: 2.9× 20-day avg",
+        "Near 20-day high breakout (at window high)",
+        "Delivery %: 45.1% (above threshold)"
+      ],
+      "exclusion_reason": ""
+    },
+    {
+      "ticker": "NSE:CREDITACC",
+      "name": "CreditAccess Grameen Ltd",
+      "industry": "Finance - NBFC",
+      "return_1d": 6.5,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "HIGH",
+      "in_email": true,
+      "evidence": [
+        "Vol spike: 8.9× 20-day avg",
+        "At top of 20-day range (pct_in_range: 100%)",
+        "Delivery %: 53.2% (strong real buying)"
+      ],
+      "exclusion_reason": ""
+    },
+    {
+      "ticker": "NSE:OFSS",
+      "name": "Oracle Financial Services Software Ltd",
+      "industry": "IT - Software",
+      "return_1d": 6.1,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "HIGH",
+      "in_email": true,
+      "evidence": [
+        "Vol spike: 2.7× 20-day avg",
+        "Near 20-day high breakout (at window high)",
+        "Delivery %: 41.7% (above threshold)"
+      ],
+      "exclusion_reason": ""
+    },
+    {
+      "ticker": "BSE:GEE",
+      "name": "GEE Ltd",
+      "industry": "Electrodes - Welding Equipment",
+      "return_1d": 20.0,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "MEDIUM",
+      "in_email": true,
+      "evidence": [
+        "Vol spike: 20.9× 20-day avg (extreme surge, BSE-listed)",
+        "Near 20-day high breakout (at window high)",
+        "Delivery data unavailable (BSE-only, NSE bhavdata does not cover)"
+      ],
+      "exclusion_reason": ""
+    },
+    {
+      "ticker": "NSE:QUADFUTURE",
+      "name": "Quadrant Future Tek Ltd",
+      "industry": "Cables - Power",
+      "return_1d": 11.9,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "MEDIUM",
+      "in_email": true,
+      "evidence": [
+        "Near 20-day high breakout (at window high)",
+        "At top of 20-day range (pct_in_range: 100%)",
+        "Delivery %: 41.1% (borderline, just above threshold; vol spike only 1.0×)"
+      ],
+      "exclusion_reason": ""
+    },
+    {
+      "ticker": "BSE:EMERALL",
+      "name": "Emerald Leisures Ltd",
+      "industry": "Hotels",
+      "return_1d": 11.1,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "MEDIUM",
+      "in_email": true,
+      "evidence": [
+        "Vol spike: 12.2× 20-day avg",
+        "At top of 20-day range (pct_in_range: 100%)",
+        "Delivery data unavailable (BSE-only)"
+      ],
+      "exclusion_reason": ""
+    },
+    {
+      "ticker": "BSE:MAFATIND",
+      "name": "Mafatlal Industries Ltd",
+      "industry": "Textiles",
+      "return_1d": 8.5,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "MEDIUM",
+      "in_email": true,
+      "evidence": [
+        "Vol spike: 11.5× 20-day avg",
+        "At top of 20-day range (pct_in_range: 100%)",
+        "Delivery data unavailable (BSE-only)"
+      ],
+      "exclusion_reason": ""
+    },
+    {
+      "ticker": "NSE:ENTERO",
+      "name": "Entero Healthcare Solutions Ltd",
+      "industry": "Healthcare",
+      "return_1d": 6.9,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "MEDIUM",
+      "in_email": true,
+      "evidence": [
+        "Vol spike: 4.2× 20-day avg",
+        "Delivery %: 60.4% (very high, strongest in list)",
+        "pct_in_20d_range: 70% (not at breakout level)"
+      ],
+      "exclusion_reason": ""
+    },
+    {
+      "ticker": "NSE:ICIL",
+      "name": "Indo Count Industries Ltd",
+      "industry": "Textiles",
+      "return_1d": 10.3,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "LOW",
+      "in_email": false,
+      "evidence": [],
+      "exclusion_reason": "Vol spike 10.6× but delivery only 31.7% (below 40% threshold)"
+    },
+    {
+      "ticker": "NSE:ROTO",
+      "name": "Roto Pumps Ltd",
+      "industry": "Pumps",
+      "return_1d": 7.9,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "LOW",
+      "in_email": false,
+      "evidence": [],
+      "exclusion_reason": "Vol spike 18.6× but delivery only 3.1% — intraday churn, no real buying"
+    },
+    {
+      "ticker": "NSE:PATELENG",
+      "name": "Patel Engineering Ltd",
+      "industry": "Infrastructure",
+      "return_1d": 7.8,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "LOW",
+      "in_email": false,
+      "evidence": [],
+      "exclusion_reason": "Vol spike 9.0× but delivery only 35.4% (below 40% threshold)"
+    },
+    {
+      "ticker": "NSE:POLYPLEX",
+      "name": "Polyplex Corporation Ltd",
+      "industry": "Packaging",
+      "return_1d": 7.3,
+      "primary_driver": "PRICE_ACTION",
+      "conviction": "LOW",
+      "in_email": false,
+      "evidence": [],
+      "exclusion_reason": "Near high breakout but delivery only 20.4% (below 40% threshold)"
+    },
+    {
+      "ticker": "BSE:BAJAJST",
+      "name": "Bajaj Steel Industries Ltd",
+      "industry": "Steel",
+      "return_1d": 7.7,
+      "primary_driver": "VOLATILITY",
+      "conviction": "LOW",
+      "in_email": false,
+      "evidence": [],
+      "exclusion_reason": "Vol spike only 2.8×, no near_high, no delivery data — insufficient signal"
+    },
+    {
+      "ticker": "BSE:MANCREDIT",
+      "name": "Mangal Credit & Fincorp Ltd",
+      "industry": "Finance",
+      "return_1d": 7.3,
+      "primary_driver": "VOLATILITY",
+      "conviction": "LOW",
+      "in_email": false,
+      "evidence": [],
+      "exclusion_reason": "Vol spike only 1.1×, no delivery data, no announcement — noise"
+    },
+    {
+      "ticker": "BSE:BEMHY",
+      "name": "Bemco Hydraulics Ltd",
+      "industry": "Capital Goods",
+      "return_1d": 7.1,
+      "primary_driver": "VOLATILITY",
+      "conviction": "LOW",
+      "in_email": false,
+      "evidence": [],
+      "exclusion_reason": "Vol spike only 1.9×, no delivery data — insufficient signal"
+    },
+    {
+      "ticker": "BSE:LANCER",
+      "name": "Lancer Containers Lines Ltd",
+      "industry": "Logistics",
+      "return_1d": 7.1,
+      "primary_driver": "VOLATILITY",
+      "conviction": "LOW",
+      "in_email": false,
+      "evidence": [],
+      "exclusion_reason": "Vol 2.4×, no near_high, no delivery data — LOW conviction"
+    },
+    {
+      "ticker": "BSE:SPITZE",
+      "name": "Maruti Interior Products Ltd",
+      "industry": "Consumer Durables",
+      "return_1d": 7.0,
+      "primary_driver": "VOLATILITY",
+      "conviction": "LOW",
+      "in_email": false,
+      "evidence": [],
+      "exclusion_reason": "pct_in_range only 31%, no delivery data"
+    },
+    {
+      "ticker": "BSE:XTGLOBAL",
+      "name": "XT Global Infotech Ltd",
+      "industry": "IT",
+      "return_1d": 7.0,
+      "primary_driver": "VOLATILITY",
+      "conviction": "LOW",
+      "in_email": false,
+      "evidence": [],
+      "exclusion_reason": "Vol spike only 1.3×, no delivery data — noise"
+    },
+    {
+      "ticker": "BSE:BALGOPAL",
+      "name": "Balgopal Commercial Ltd",
+      "industry": "Finance",
+      "return_1d": 7.0,
+      "primary_driver": "VOLATILITY",
+      "conviction": "LOW",
+      "in_email": false,
+      "evidence": [],
+      "exclusion_reason": "Vol 2.2×, no delivery data — LOW conviction"
+    },
+    {
+      "ticker": "BSE:KINETICENG",
+      "name": "Kinetic Engineering Ltd",
+      "industry": "Auto Ancillaries",
+      "return_1d": 7.0,
+      "primary_driver": "VOLATILITY",
+      "conviction": "LOW",
+      "in_email": false,
+      "evidence": [],
+      "exclusion_reason": "Vol 3.6×, no delivery data — LOW conviction"
+    },
+    {
+      "ticker": "BSE:ANDREWYU",
+      "name": "Andrew Yule & Company Ltd",
+      "industry": "Diversified",
+      "return_1d": 6.0,
+      "primary_driver": "VOLATILITY",
+      "conviction": "LOW",
+      "in_email": false,
+      "evidence": [],
+      "exclusion_reason": "Vol 3.6×, no delivery data, pct_in_range 91% but insufficient corroboration"
+    }
+  ],
+  "sector_catalysts": []
+}

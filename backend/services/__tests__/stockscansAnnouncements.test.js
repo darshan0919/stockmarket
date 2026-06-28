@@ -4,13 +4,14 @@
  * @see {@link docs/API_REFERENCE.md#announcements-apis}
  */
 
-const mockPost = jest.fn();
+const mockSearch = jest.fn();
 
+// Service now delegates the HTTP to @stock/api; auth stays mocked to a valid token.
+jest.mock('@stock/api', () => ({
+  stockscans: { searchAnnouncements: (...args) => mockSearch(...args) },
+}));
 jest.mock('../stockscansAuth', () => ({
   getAuthToken: () => 'test-token',
-  createAuthenticatedClient: () => ({
-    post: (...args) => mockPost(...args),
-  }),
 }));
 
 const {
@@ -78,11 +79,11 @@ describe('stockscansAnnouncements', () => {
 
   describe('searchCompanyAnnouncements', () => {
     beforeEach(() => {
-      mockPost.mockReset();
+      mockSearch.mockReset();
     });
 
     it('maps HTTP 500 Internal error to STOCKSCANS_BAD_COMPANY', async () => {
-      mockPost.mockRejectedValue({
+      mockSearch.mockRejectedValue({
         response: { status: 500, data: { message: 'Internal error occurred' } },
       });
       await expect(
@@ -94,7 +95,7 @@ describe('stockscansAnnouncements', () => {
     });
 
     it('keeps STOCKSCANS_HTTP_ERROR when upstream returns a specific 500 message', async () => {
-      mockPost.mockRejectedValue({
+      mockSearch.mockRejectedValue({
         response: { status: 500, data: { message: 'Scheduled maintenance' } },
       });
       await expect(

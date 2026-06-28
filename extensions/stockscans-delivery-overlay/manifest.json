@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "StockScans Delivery Volume Overlay",
+  "version": "0.1.1",
+  "description": "Overlays NSE delivery volume on StockScans daily charts.",
+  "host_permissions": [
+    "https://www.stockscans.in/charts/*",
+    "https://stockscans.in/charts/*",
+    "https://www.nseindia.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.stockscans.in/charts/*",
+        "https://stockscans.in/charts/*"
+      ],
+      "js": ["page-hook.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://www.stockscans.in/charts/*",
+        "https://stockscans.in/charts/*"
+      ],
+      "css": ["content.css"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_title": "StockScans Delivery Volume Overlay"
+  }
+}

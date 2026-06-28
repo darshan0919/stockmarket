@@ -4,11 +4,13 @@
  * @see {@link docs/API_REFERENCE.md#download-latest-concall-transcripts-zip} for API docs
  */
 
-const { getAuthToken, createAuthenticatedClient } = require('./stockscansAuth');
+const { getAuthToken } = require('./stockscansAuth');
+const { stockscans } = require('@stock/api');
 const { STOCKSCANS_ASSETS_BASE, ymdToNseDisplay } = require('./stockscansAnnouncements');
 
 const STOCKSCANS_ANNOUNCEMENTS_SCAN_URL =
   'https://www.stockscans.in/api/company/announcements/scan';
+const STOCKSCANS_ANNOUNCEMENT_SCANS_REFERER = 'https://www.stockscans.in/announcement-scans';
 
 /** StockScans validates `companyFilters` with max length 10 per announcement scan request */
 const MAX_ANNOUNCEMENT_SCAN_COMPANY_FILTERS = 10;
@@ -133,14 +135,15 @@ function mapScanAnnouncement(row) {
  * @param {number} [options.offset=0]
  * @returns {Promise<{ announcements: Object[], meta: Object }>}
  */
-async function postEarningsCallScan(client, { companyIds, quarterDate, offset = 0 }) {
+async function postEarningsCallScan({ companyIds, quarterDate, offset = 0 }) {
   const ids = Array.isArray(companyIds) ? companyIds.filter(Boolean) : [];
   const qd = String(quarterDate || '').trim() || currentQuarterDate();
 
-  let response;
+  // Raw HTTP + auth now live in @stock/api StockscansClient; this service keeps the
+  // payload shape, batching, mapping, and upstream-error classification.
+  let body;
   try {
-    response = await client.post(
-      STOCKSCANS_ANNOUNCEMENTS_SCAN_URL,
+    body = await stockscans.scanAnnouncements(
       {
         scan: {
           scanId: '',
@@ -158,12 +161,7 @@ async function postEarningsCallScan(client, { companyIds, quarterDate, offset = 
         offset: Math.max(0, offset),
         quarterDate: qd,
       },
-      {
-        headers: {
-          Origin: 'https://www.stockscans.in',
-          Referer: 'https://www.stockscans.in/announcement-scans',
-        },
-      }
+      { referer: STOCKSCANS_ANNOUNCEMENT_SCANS_REFERER }
     );
   } catch (err) {
     if (err.response) {
@@ -184,7 +182,7 @@ async function postEarningsCallScan(client, { companyIds, quarterDate, offset = 
     throw out;
   }
 
-  const body = response.data || {};
+  body = body || {};
   if (body.status === 'error') {
     const err = new Error(body.message || 'StockScans announcement scan failed');
     err.code = 'STOCKSCANS_API_ERROR';
@@ -231,10 +229,8 @@ async function scanEarningsCalls({ companyIds, quarterDate, offset = 0 }) {
     throw err;
   }
 
-  let client;
   try {
-    const token = getAuthToken();
-    client = createAuthenticatedClient(token);
+    getAuthToken();
   } catch (err) {
     const out = new Error(err.message || 'StockScans auth required');
     out.code = 'STOCKSCANS_AUTH_REQUIRED';
@@ -243,7 +239,7 @@ async function scanEarningsCalls({ companyIds, quarterDate, offset = 0 }) {
 
   const chunks = chunkCompanyIds(ids);
   if (chunks.length === 1) {
-    return postEarningsCallScan(client, {
+    return postEarningsCallScan({
       companyIds: chunks[0],
       quarterDate: qd,
       offset,
@@ -255,7 +251,7 @@ async function scanEarningsCalls({ companyIds, quarterDate, offset = 0 }) {
   let apiCalls = 0;
 
   for (const chunk of chunks) {
-    const result = await postEarningsCallScan(client, {
+    const result = await postEarningsCallScan({
       companyIds: chunk,
       quarterDate: qd,
       offset: 0,

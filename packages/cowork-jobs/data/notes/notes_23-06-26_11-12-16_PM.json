@@ -1,0 +1,1065 @@
+{
+  "meta": {
+    "version": "1.0",
+    "lastRun": "2026-06-23T23:22:05.869100+05:30",
+    "totalCompanies": 54,
+    "totalNotes": 30
+  },
+  "companies": {
+    "NSE:GREAVESCOT": {
+      "companyId": "NSE:GREAVESCOT",
+      "ticker": "NSE:GREAVESCOT",
+      "name": "Greaves Cotton Ltd",
+      "lastUpdated": "2026-06-23T22:35:20.201300+05:30",
+      "businessSummary": "Diversified engineering company — automotive components, power products, and EV mobility.",
+      "notes": [
+        {
+          "id": "a51a14bf-b741-4aa9-8df4-0c14f8ffb876",
+          "createdAt": "2026-06-23T22:21:10.403180+05:30",
+          "type": "announcement",
+          "announcementId": "bv1swc09abyci8pv46bbc140.pdf",
+          "announcementTitle": "Incorporation of WOS in Dubai UAE",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/bv1swc09abyci8pv46bbc140.pdf",
+          "insight": "Greaves Cotton has incorporated a wholly owned subsidiary Greaves International Trading FZE in Dubai UAE (effective 18 Jun 2026). This signals intent to build an international distribution / export channel, likely for EV components or power products. Worth monitoring for revenue contribution in 6–12 months.",
+          "significance": "medium",
+          "tags": [
+            "international_expansion",
+            "subsidiary",
+            "uae"
+          ]
+        },
+        {
+          "id": "cb9cc5aa-d311-4a9a-8023-3ac35391752e",
+          "createdAt": "2026-06-23T22:35:20.115324+05:30",
+          "type": "announcement",
+          "announcementId": "blis9bf84jfx84rc1om4532p.pdf",
+          "announcementTitle": "Incorporation of WOS in Dubai UAE (duplicate filing)",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/blis9bf84jfx84rc1om4532p.pdf",
+          "insight": "Duplicate filing for the same Greaves International Trading FZE (Dubai) WOS incorporation announced today. Same event as bv1swc09abyci8pv46bbc140.pdf — no new information. Greaves Cotton is building international trading infrastructure in UAE, consistent with their EV and power products export ambitions.",
+          "significance": "routine",
+          "tags": [
+            "international_expansion",
+            "subsidiary"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "bv1swc09abyci8pv46bbc140.pdf",
+        "blis9bf84jfx84rc1om4532p.pdf"
+      ]
+    },
+    "NSE:INOXINDIA": {
+      "companyId": "NSE:INOXINDIA",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T22:32:50.051688+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "j32i9eza2t5r849dw5afdmxa.pdf"
+      ]
+    },
+    "NSE:SAMMAANCAP": {
+      "companyId": "NSE:SAMMAANCAP",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:15.462228+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "shz5ygg03edv36s7medaev6p.pdf",
+        "ro1xk5wptla1tnuvw9wffbj1.pdf"
+      ]
+    },
+    "NSE:BLISSGVS": {
+      "companyId": "NSE:BLISSGVS",
+      "ticker": "NSE:BLISSGVS",
+      "name": "Bliss GVS Pharma Ltd",
+      "lastUpdated": "2026-06-23T23:12:15.757997+05:30",
+      "businessSummary": "Bliss GVS Pharma is a specialty pharmaceutical manufacturer focused on suppositories, soft gelatin capsules, and anti-malarial drugs. It has a significant Africa/emerging markets export business.",
+      "notes": [
+        {
+          "id": "4b8cad0c-f7b4-4fc6-b1b8-242b505a1270",
+          "createdAt": "2026-06-23T22:38:20.033147+05:30",
+          "type": "announcement",
+          "announcementId": "g3x9xb2ltv4cmk4kvye4ym44.pdf",
+          "announcementTitle": "Record Date Fixed for Final Dividend FY2025-26",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/g3x9xb2ltv4cmk4kvye4ym44.pdf",
+          "insight": "Bliss GVS Pharma has fixed a record date for payment of final dividend for FY ended March 31, 2026, with the 41st AGM scheduled July 15, 2026. The dividend quantum was not disclosed in this filing. This signals the company is distributing profits for FY26 and the AGM will ratify the dividend. For shareholders, ensure shareholding is recorded before the record date to be eligible. Not a material fundamental development — monitor the AGM outcome and FY26 annual results for more substance.",
+          "significance": "low",
+          "tags": [
+            "dividend"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "wx5v7otg5c9rgzj6nv5q7oij.pdf",
+        "3j7urgkkopoyhjb15si03dgf.pdf",
+        "g3x9xb2ltv4cmk4kvye4ym44.pdf",
+        "w2hqgciqja4jiut43rrn6ucr.pdf"
+      ]
+    },
+    "NSE:SONACOMS": {
+      "companyId": "NSE:SONACOMS",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T22:32:50.889669+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "m7o7u7gsmnmykeevqsftmlpq.pdf"
+      ]
+    },
+    "NSE:SHRIPISTON": {
+      "companyId": "NSE:SHRIPISTON",
+      "ticker": "NSE:SHRIPISTON",
+      "name": "Shriram Pistons & Rings Ltd",
+      "lastUpdated": "2026-06-23T22:35:04.824460+05:30",
+      "businessSummary": "SPR Auto Technologies (formerly Shriram Pistons & Rings) manufactures pistons, rings, and engine components for automotive OEMs. A key Tier-1 auto-ancillary supplier in India.",
+      "notes": [
+        {
+          "id": "580b820f-9b4e-4202-81b4-fec3166403d6",
+          "createdAt": "2026-06-23T22:35:04.737615+05:30",
+          "type": "announcement",
+          "announcementId": "1clzdcyd71t2cbfls8efbzdi.pdf",
+          "announcementTitle": "Communication to Shareholders Regarding TDS/Withholding Tax on Dividend",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/1clzdcyd71t2cbfls8efbzdi.pdf",
+          "insight": "The board has recommended a final dividend of Rs. 5/- per share (face value Rs. 10/-) for FY2025-26, subject to shareholder approval at the 62nd AGM on July 27, 2026; record date is July 20, 2026. This routine TDS communication confirms a dividend will be paid by August 25, 2026 — positive for income investors. It also notes the company has been renamed SPR Auto Technologies Limited, which may signal a broader brand repositioning. Watch for the AGM outcome and any management commentary on the name change rationale.",
+          "significance": "low",
+          "tags": [
+            "dividend"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "1clzdcyd71t2cbfls8efbzdi.pdf"
+      ]
+    },
+    "NSE:SAREGAMA": {
+      "companyId": "NSE:SAREGAMA",
+      "ticker": "NSE:SAREGAMA",
+      "name": "Saregama India Ltd",
+      "lastUpdated": "2026-06-23T22:35:31.938352+05:30",
+      "businessSummary": "Saregama India is the largest music label in India, owning one of the world's largest catalogues of Indian music. Revenue streams include music licensing, the Carvaan device, and OTT/digital rights.",
+      "notes": [
+        {
+          "id": "7eaffab2-7d5b-4452-87ae-0f96a65ef80a",
+          "createdAt": "2026-06-23T22:35:31.847392+05:30",
+          "type": "announcement",
+          "announcementId": "sta3o5weghx5jrufowfp5ibb.pdf",
+          "announcementTitle": "Disclosure under SEBI Takeover Regulations — Composure Services Pvt Ltd",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/sta3o5weghx5jrufowfp5ibb.pdf",
+          "insight": "Composure Services Pvt Ltd filed a Regulation 31(4) disclosure under the SEBI Takeover Regulations, indicating that an entity has crossed or is close to crossing a significant shareholding threshold (typically 5%, 10%, or a control threshold). This type of SAST disclosure is a signal that a strategic or financial investor is building or adjusting a stake in Saregama. If it marks a meaningful stake increase, it could indicate growing investor interest in Saregama's content IP and digital licensing business. The counterparty identity (Composure Services) is not widely known — monitor for further stake disclosures or open market purchases in subsequent filings.",
+          "significance": "medium",
+          "tags": [
+            "acquisition"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "sta3o5weghx5jrufowfp5ibb.pdf"
+      ]
+    },
+    "NSE:AXISCADES": {
+      "companyId": "NSE:AXISCADES",
+      "ticker": "NSE:AXISCADES",
+      "name": "AXISCADES Technologies Ltd",
+      "lastUpdated": "2026-06-23T22:35:44.275895+05:30",
+      "businessSummary": "AXISCADES is an engineering R&D services company focused on aerospace, defense, automotive, energy, and industrial domains. It is undergoing a strategic transformation involving divestment of its heavy engineering/automotive/aerospace engineering services vertical.",
+      "notes": [
+        {
+          "id": "efe9697c-2fac-48b5-bff5-72783b0ea6b1",
+          "createdAt": "2026-06-23T22:35:44.186199+05:30",
+          "type": "announcement",
+          "announcementId": "lzt54axcn6228tpthl1y7giv.pdf",
+          "announcementTitle": "Credit Rating placed on Rating Watch with Developing Implications",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/lzt54axcn6228tpthl1y7giv.pdf",
+          "insight": "CARE Ratings has placed AXISCADES' long-term bank facilities (Rs. 21 Cr) and combined long/short-term facilities (Rs. 80 Cr) on Rating Watch with Developing Implications (RWD) — directly linked to the company's announced divestment of its Engineering Services business (heavy engineering, automotive, energy, aerospace) disclosed on May 26 and June 12, 2026. A RWD rating means the outcome — upgrade or downgrade — depends on how the divestment is executed and what the resulting company looks like. If the divested business is the core revenue engine, the remaining entity's credit profile could weaken significantly. Conversely, if proceeds are used to deleverage, it could be credit-positive. This is a transitional moment: watch for details on the divestment deal structure (valuation, buyer, retained business) and how management plans to redeploy the capital.",
+          "significance": "medium",
+          "tags": [
+            "credit_rating",
+            "demerger"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "lzt54axcn6228tpthl1y7giv.pdf"
+      ]
+    },
+    "NSE:CONFIPET": {
+      "companyId": "NSE:CONFIPET",
+      "ticker": "NSE:CONFIPET",
+      "name": "Confidence Petroleum India Ltd",
+      "lastUpdated": "2026-06-23T22:35:54.467984+05:30",
+      "businessSummary": "Confidence Petroleum is one of India's largest LPG cylinder manufacturers and distributors, also engaged in automotive LPG/CNG retail and industrial gas solutions.",
+      "notes": [
+        {
+          "id": "224ab4d5-2125-4047-af16-12a8efe9ef94",
+          "createdAt": "2026-06-23T22:35:54.379598+05:30",
+          "type": "announcement",
+          "announcementId": "4pi6do6espju4yvho69ktudt.pdf",
+          "announcementTitle": "Investor Presentation",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/4pi6do6espju4yvho69ktudt.pdf",
+          "insight": "Confidence Petroleum filed an investor presentation with the exchanges on June 23, 2026. The PDF content was not extractable, limiting insight. Such presentations typically update investors on operational performance, capacity utilization, and near-term guidance. Watch for the uploaded version on the company website (www.confidencegroup.co) for specific KPIs — particularly LPG cylinder volumes, CNG station additions, and EBITDA margin trajectory.",
+          "significance": "low",
+          "tags": [
+            "investor_meet"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "4pi6do6espju4yvho69ktudt.pdf"
+      ]
+    },
+    "NSE:RPTECH": {
+      "companyId": "NSE:RPTECH",
+      "ticker": "NSE:RPTECH",
+      "name": "Rashi Peripherals Ltd",
+      "lastUpdated": "2026-06-23T22:36:11.340271+05:30",
+      "businessSummary": "Rashi Peripherals (RP Tech) is one of India's largest IT product distributors, representing global technology brands across compute, peripherals, networking, and components. It is pivoting from pure hardware distribution toward higher-margin enterprise and solutions.",
+      "notes": [
+        {
+          "id": "16d53c7a-29ba-49a3-bbcb-943b4d40060b",
+          "createdAt": "2026-06-23T22:36:11.081063+05:30",
+          "type": "announcement",
+          "announcementId": "gc6yf8j9x8tx2wa0wzy5cx5b.pdf",
+          "announcementTitle": "Board Approves Acquisition of 67% stake in VDA Infosolutions Pvt Ltd for Rs. 368.5 Cr",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/gc6yf8j9x8tx2wa0wzy5cx5b.pdf",
+          "insight": "RP Tech has approved acquisition of a 67% controlling stake in VDA Infosolutions Pvt Ltd (a Mumbai-based enterprise IT solutions and services company) for Rs. 368.5 crores cash consideration — implying an EV of ~Rs. 550 crores (~0.65x FY26 revenue of Rs. 850 Cr). VDA had net worth of Rs. 234 Cr and total assets of Rs. 427 Cr as of March 2026. This is a transformative move: RP Tech is buying a services/solutions company to accelerate its pivot from low-margin product distribution (~1-2% EBITDA) to higher-margin managed services and enterprise IT. The deal valuation looks reasonable at ~0.65x revenue for a profitable IT services firm. Key risks: integration complexity (distribution vs. services DNA), funded by cash (monitors balance sheet leverage) and execution risk in scaling VDA under RP Tech's umbrella. Watch for deal completion timeline, financing structure, and whether VDA's existing enterprise clients cross-sell RP Tech's distribution portfolio.",
+          "significance": "high",
+          "tags": [
+            "acquisition",
+            "capex"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "gc6yf8j9x8tx2wa0wzy5cx5b.pdf",
+        "ycvv6ygvcjn7mk4zb2agwk1i.pdf",
+        "ydd5y1qud7tqy082xmuod9w4.pdf"
+      ]
+    },
+    "NSE:GODREJIND": {
+      "companyId": "NSE:GODREJIND",
+      "ticker": "NSE:GODREJIND",
+      "name": "Godrej Industries Ltd",
+      "lastUpdated": "2026-06-23T22:36:26.089505+05:30",
+      "businessSummary": "Godrej Industries is the holding company of the Godrej Group, with interests in chemicals (surfactants, oleochemicals), real estate (Godrej Properties), financial services (Godrej Capital), agri (Godrej Agrovet), and consumer goods (Godrej Consumer Products).",
+      "notes": [
+        {
+          "id": "69823917-1dec-4591-b7f0-33286ae4a36f",
+          "createdAt": "2026-06-23T22:36:25.948327+05:30",
+          "type": "announcement",
+          "announcementId": "4yhm2wukrvrx6ge188gp8i3v.pdf",
+          "announcementTitle": "Outcome of Postal Ballot — Resolution Passed with Requisite Majority",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/4yhm2wukrvrx6ge188gp8i3v.pdf",
+          "insight": "Godrej Industries' postal ballot dated May 15, 2026 has concluded with the resolution passed with requisite majority (voting closed June 22, 2026). The specific resolution detail was not captured in the filing summary — the full postal ballot notice from May 15 would reveal what shareholders approved (typically could be a related party transaction, fundraise, or governance change for a holding company like GIL). This confirms the board can proceed with whatever corporate action was proposed last month. Watch for the follow-through implementation announcement to understand the materiality.",
+          "significance": "medium",
+          "tags": [
+            "agm_outcome"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "4yhm2wukrvrx6ge188gp8i3v.pdf"
+      ]
+    },
+    "NSE:HARDWYN": {
+      "companyId": "NSE:HARDWYN",
+      "ticker": "NSE:HARDWYN",
+      "name": "Hardwyn India Ltd",
+      "lastUpdated": "2026-06-23T22:36:43.477176+05:30",
+      "businessSummary": "Hardwyn India manufactures architectural hardware products including door fittings, glass fittings, and access control hardware. Listed on NSE SME platform.",
+      "notes": [
+        {
+          "id": "9811a4a4-143b-4716-8cb1-2e08a9237c6e",
+          "createdAt": "2026-06-23T22:36:43.385966+05:30",
+          "type": "announcement",
+          "announcementId": "xcqtwvv1vhpswt2ecul9dr68.pdf",
+          "announcementTitle": "Corrigendum to First EGM Notice — July 03, 2026",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/xcqtwvv1vhpswt2ecul9dr68.pdf",
+          "insight": "Hardwyn India has issued a corrigendum to its First Extraordinary General Meeting notice, scheduled for July 3, 2026 via VC/OAVM. Corrigenda to EGM notices typically correct an error in the original notice — often around resolution wording, eligibility dates, or voting details. The substance of what shareholders will vote on at the EGM remains unknown without reading the original notice. Watch for the EGM outcome on July 3 to understand what corporate action (fundraise, structural change, or special resolution) was being sought.",
+          "significance": "low",
+          "tags": [
+            "agm_outcome"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "xcqtwvv1vhpswt2ecul9dr68.pdf"
+      ]
+    },
+    "NSE:AEROENTER": {
+      "companyId": "NSE:AEROENTER",
+      "ticker": "NSE:AEROENTER",
+      "name": "Aeroflex Enterprises Ltd",
+      "lastUpdated": "2026-06-23T22:36:43.672539+05:30",
+      "businessSummary": "Aeroflex Enterprises manufactures stainless steel flexible hoses and assemblies for industrial, defense, and infrastructure applications.",
+      "notes": [
+        {
+          "id": "a8b5aba6-f7f4-41a2-b2d5-da32cfc7d845",
+          "createdAt": "2026-06-23T22:36:43.577447+05:30",
+          "type": "announcement",
+          "announcementId": "NSE:AEROENTER_2026-06-23_Clarification sought from Aero",
+          "announcementTitle": "NSE Sought Clarification on Significant Price Movement",
+          "pdfUrl": "",
+          "insight": "NSE has formally sought clarification from Aeroflex Enterprises regarding significant movement in its stock price on June 23, 2026 — this is a surveillance action triggered when a stock moves sharply without a disclosed corporate reason. The company's reply is awaited. Such queries are typically followed by either a company confirmation that there is no undisclosed material information, or disclosure of a pending corporate event (order win, acquisition, fundraise, etc.). If the price spike was driven by speculation and no material event exists, expect a price correction. If a corporate event is disclosed in the reply, this could be a high-significance catalyst. Watch closely for the company's response filing within 24 hours.",
+          "significance": "medium",
+          "tags": [
+            "regulatory"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "NSE:AEROENTER_2026-06-23_Clarification sought from Aero"
+      ]
+    },
+    "NSE:APOLLO": {
+      "companyId": "NSE:APOLLO",
+      "ticker": "NSE:APOLLO",
+      "name": "Apollo Micro Systems Ltd",
+      "lastUpdated": "2026-06-23T22:37:01.474931+05:30",
+      "businessSummary": "Apollo Micro Systems designs and manufactures defense and aerospace electronic systems — embedded electronics, avionics, and electronic warfare solutions primarily for Indian defense PSUs and DRDO.",
+      "notes": [
+        {
+          "id": "8ecdec3e-7e7a-4ada-827b-99e5f7d60cd2",
+          "createdAt": "2026-06-23T22:37:01.372878+05:30",
+          "type": "announcement",
+          "announcementId": "rwhupcgcecy6d1uaxr2hvc8o.pdf",
+          "announcementTitle": "Allotment of 21.43L Equity Shares on Conversion of Warrants at Rs. 114/share",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/rwhupcgcecy6d1uaxr2hvc8o.pdf",
+          "insight": "Apollo Micro has allotted 21,43,095 equity shares at Rs. 114/share to three allottees (Reena Karwa, Superstar Investments, Trikaya Wealth Advisors) upon conversion of warrants originally issued June 2025. Total proceeds received: Rs. 18.32 crores. The conversion was at Rs. 85.50 warrant exercise price (25% paid upfront; remainder now). Paid-up capital increases to 37.16 crore shares — incremental dilution of ~0.58%, which is modest. This is a part-conversion of a larger batch of 3.8 crore warrants issued in 2025; remaining ~3.59 crore warrants are still outstanding and will result in further dilution over time. With the stock likely trading above Rs. 114, conversion is economically rational for warrant holders. Monitor the pace of remaining warrant conversions as a potential supply overhang on the stock.",
+          "significance": "medium",
+          "tags": [
+            "equity_dilution"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "rwhupcgcecy6d1uaxr2hvc8o.pdf"
+      ]
+    },
+    "NSE:SETL": {
+      "companyId": "NSE:SETL",
+      "ticker": "NSE:SETL",
+      "name": "Standard Engineering Technology Ltd",
+      "lastUpdated": "2026-06-23T22:37:01.669519+05:30",
+      "businessSummary": "Standard Engineering Technology Ltd is a listed SME company. Business details are limited — likely involved in engineering or technology manufacturing.",
+      "notes": [
+        {
+          "id": "dc37bd1d-4fc5-4de3-912b-5b5b633b77c5",
+          "createdAt": "2026-06-23T22:37:01.569154+05:30",
+          "type": "announcement",
+          "announcementId": "NSE:SETL_2026-06-23_Clarification sought from Stan",
+          "announcementTitle": "NSE Sought Clarification on Significant Price Movement",
+          "pdfUrl": "",
+          "insight": "NSE has sought a clarification from Standard Engineering Technology Ltd on June 23, 2026 regarding significant movement in its stock price. This is a standard surveillance query for unusual price/volume activity. The company's reply is pending. For small-cap/SME companies like SETL, such queries can sometimes precede announcement of contract wins, promoter stake sales, or fundraising events. However, they can also reflect speculative activity with no underlying corporate development. Watch for the company's response and whether it is followed by a material disclosure.",
+          "significance": "medium",
+          "tags": [
+            "regulatory"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "NSE:SETL_2026-06-23_Clarification sought from Stan"
+      ]
+    },
+    "NSE:MARINE": {
+      "companyId": "NSE:MARINE",
+      "ticker": "NSE:MARINE",
+      "name": "Marine Electricals (India) Ltd",
+      "lastUpdated": "2026-06-23T22:37:25.849190+05:30",
+      "businessSummary": "Marine Electricals manufactures power distribution systems, switchgear, and electrical panels — primarily for marine vessels, data centers, and industrial applications.",
+      "notes": [
+        {
+          "id": "4552bfde-d3c1-41db-b4fc-ecd14d31493f",
+          "createdAt": "2026-06-23T22:37:25.751344+05:30",
+          "type": "announcement",
+          "announcementId": "fukkftsfi3tuqcohqk4bp9mb.pdf",
+          "announcementTitle": "Order win of Rs. 75.19 Cr from STT Global Data Centres and Princeton Digital Group",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/fukkftsfi3tuqcohqk4bp9mb.pdf",
+          "insight": "Marine Electricals has won two orders totalling Rs. 75.19 crores (ex-tax) from STT Global Data Centres India and Princeton Digital Group India — both marquee data center operators — for supply of power distribution systems over 12-18 months. This is a meaningful order in the context of India's booming data center capex cycle, and confirms Marine Electricals is establishing itself as a credible power distribution vendor for hyperscale/co-location DCs. Two separate blue-chip data center clients in a single announcement suggests a broadening customer base beyond traditional marine applications. Watch for whether data center revenue becomes a recurring order stream and how this compares to total order book / annual revenue to gauge materiality.",
+          "significance": "medium",
+          "tags": [
+            "order_win",
+            "capacity"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "fukkftsfi3tuqcohqk4bp9mb.pdf"
+      ]
+    },
+    "NSE:GPIL": {
+      "companyId": "NSE:GPIL",
+      "ticker": "NSE:GPIL",
+      "name": "Godawari Power & Ispat Ltd",
+      "lastUpdated": "2026-06-23T22:37:26.052716+05:30",
+      "businessSummary": "Godawari Power & Ispat is an integrated steel manufacturer based in Chhattisgarh, producing iron pellets, sponge iron, billets, and wire rods. It also has captive power generation.",
+      "notes": [
+        {
+          "id": "5c3f6c4a-ed91-43ba-ac1b-e891e7e17a9e",
+          "createdAt": "2026-06-23T22:37:25.951447+05:30",
+          "type": "announcement",
+          "announcementId": "2lbvyfeurxj3dfh46ky7zrrp.pdf",
+          "announcementTitle": "6.91 MW Waste Heat Recovery Power Plant Commences Commercial Operations",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/2lbvyfeurxj3dfh46ky7zrrp.pdf",
+          "insight": "GPIL's 6.91 MW Waste Heat Recovery Based (WHRB) power plant at its Siltara, Raipur facility has commenced commercial operations on June 23, 2026 — announced earlier on April 2, 2026. The plant utilises waste heat from the Pellet Plant and Ferro Alloys Division flue gas, converting it into captive power. This reduces GPIL's grid power dependency and lowers per-unit energy costs, which is directly margin-accretive for a steel manufacturer where power is a major input cost. While 6.91 MW is relatively modest in the context of an integrated steel plant, it represents a step toward operational self-sufficiency. Watch for total captive power capacity post this addition and management commentary on power cost savings per tonne in the next quarterly result.",
+          "significance": "medium",
+          "tags": [
+            "capacity",
+            "capex"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "2lbvyfeurxj3dfh46ky7zrrp.pdf"
+      ]
+    },
+    "NSE:HONASA": {
+      "companyId": "NSE:HONASA",
+      "ticker": "NSE:HONASA",
+      "name": "Honasa Consumer Ltd",
+      "lastUpdated": "2026-06-23T22:37:45.787464+05:30",
+      "businessSummary": "Honasa Consumer (Mamaearth parent) is a digital-first House of Brands in beauty and personal care — operating Mamaearth, Derma Co, Aqualogica, Dr. Sheth's, Staze, and BBlunt. It sells primarily via D2C and modern trade with a digital-first go-to-market.",
+      "notes": [
+        {
+          "id": "d9afacfa-031c-42b9-9a90-751f3642dc1a",
+          "createdAt": "2026-06-23T22:37:45.605059+05:30",
+          "type": "announcement",
+          "announcementId": "gorfm83unq701fa6ndzs0crp.pdf",
+          "announcementTitle": "Acquisition of 58% stake in Fluence Pharma Pvt Ltd at ~Rs. 135 Cr EV; WOS Honasa Health incorporated",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/gorfm83unq701fa6ndzs0crp.pdf",
+          "insight": "Honasa has acquired a controlling 58% stake in Fluence Pharma Pvt Ltd — a nutraceuticals company with patented Cyclical Nutrition Therapy (CNT), dermatologist distribution in 3,000+ clinics, and brands Hair Fact/Skin Fact/Pro Fact — at ~Rs. 135 crores EV (implying ~3.4x FY26 revenue of Rs. 40 Cr and ~17x EV/EBITDA at 20% margins). The remaining 42% will be acquired in two tranches over 5-7 years. Honasa will also incorporate 'Honasa Health Private Limited' as a WOS to run B2C nutraceuticals operations. This marks a deliberate strategic pivot: Honasa is moving beyond topical beauty into 'inside-out' supplements, tapping India's Rs. 16,000 Cr+ vitamins and supplements market growing at 11% CAGR. The acquisition is competitively logical — Derma Co already has a clinical-dermatologist channel, and Fluence's practitioner trust (3,000+ dermatologists) directly complements it. Key risks: nutraceuticals is a new category with different regulatory and formulation complexity; valuation multiples appear full for a Rs. 40 Cr revenue company; management bandwidth stretched across 6+ brands. Watch for contribution of nutraceuticals revenue in Q2/Q3 FY27 and whether the Fluence science can scale via D2C channels.",
+          "significance": "high",
+          "tags": [
+            "acquisition",
+            "subsidiary",
+            "capex"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "gorfm83unq701fa6ndzs0crp.pdf",
+        "wk574dvxas9ik9y1u6p3t2s6.pdf"
+      ]
+    },
+    "NSE:KIRLOSENG": {
+      "companyId": "NSE:KIRLOSENG",
+      "ticker": "NSE:KIRLOSENG",
+      "name": "Kirloskar Oil Engines Ltd",
+      "lastUpdated": "2026-06-23T22:38:08.557343+05:30",
+      "businessSummary": "Kirloskar Oil Engines (KOEL) manufactures diesel and gas engines, gensets, and pump systems for agriculture, industrial, and power generation applications. It is a leading engine maker with export presence.",
+      "notes": [
+        {
+          "id": "ae13a624-5494-412c-b249-ad8171e58030",
+          "createdAt": "2026-06-23T22:38:08.006301+05:30",
+          "type": "announcement",
+          "announcementId": "321jpg6vg05cw4q31ed38ktr.pdf",
+          "announcementTitle": "Multiple Investor Call Intimations — June 26 and June 29, 2026",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/321jpg6vg05cw4q31ed38ktr.pdf",
+          "insight": "KOEL has scheduled 5 separate investor calls over June 26 (at 2:45 PM, 3:30 PM, 4:15 PM) and June 29 (at 10:30 AM, 11:15 AM) — an unusually high density of investor meets in a short period. This pattern is consistent with a management roadshow, often timed around quarterly results or a significant corporate development that management wants to proactively communicate to institutional investors. Watch for whether a Q1 FY27 result, analyst day, or corporate action announcement follows these calls, which could explain the urgency.",
+          "significance": "low",
+          "tags": [
+            "investor_meet"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "321jpg6vg05cw4q31ed38ktr.pdf",
+        "hcunvs1ie4d9x069qfqanrv8.pdf",
+        "hlkncw49zw824kfoh72mijdg.pdf",
+        "m58qg1di51d3nfkbz676u62t.pdf",
+        "8e0i1c9v70g1ix3i94dth0py.pdf",
+        "9e8vdg0tt2z1srsa1z8dk6mn.pdf"
+      ]
+    },
+    "NSE:ATHERENERG": {
+      "companyId": "NSE:ATHERENERG",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T22:38:33.494096+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "lnwe73ilri72wo2yt4k1jpzv.pdf"
+      ]
+    },
+    "NSE:SIS": {
+      "companyId": "NSE:SIS",
+      "ticker": "NSE:SIS",
+      "name": "SIS Ltd",
+      "lastUpdated": "2026-06-23T22:38:51.214313+05:30",
+      "businessSummary": "SIS Ltd is one of India's largest security services and facility management companies, operating across guarding, cash logistics (SIS Cash Services), and electronics security. It has significant operations in Australia via SIS Australia.",
+      "notes": [
+        {
+          "id": "fd7c775f-c931-4a9e-a3bb-616f841fc9a0",
+          "createdAt": "2026-06-23T22:38:51.126450+05:30",
+          "type": "announcement",
+          "announcementId": "dw7jed4rluidcuazy87hgqin.pdf",
+          "announcementTitle": "Board to Consider Buyback of Equity Shares on June 29, 2026",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/dw7jed4rluidcuazy87hgqin.pdf",
+          "insight": "SIS Ltd's board has scheduled a meeting on June 29, 2026 to consider and approve a buyback of equity shares. A buyback signals management's confidence in the company's intrinsic value exceeding the current market price and is shareholder-friendly — it reduces share count, boosts EPS, and returns cash more tax-efficiently than dividends. For SIS, this comes at a time when the security services sector is experiencing steady demand growth from corporates and government contracts. The buyback size, method (open market vs. tender offer), and pricing will be critical — watch for the board outcome on June 29 to assess materiality. If the buyback price is at a meaningful premium to CMP, expect a sharp positive price reaction.",
+          "significance": "high",
+          "tags": [
+            "buyback"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "dw7jed4rluidcuazy87hgqin.pdf"
+      ]
+    },
+    "NSE:MSTCLTD": {
+      "companyId": "NSE:MSTCLTD",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:13.736763+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "3zc68ds1kmd7st1ujvipoem9.pdf"
+      ]
+    },
+    "NSE:DREDGECORP": {
+      "companyId": "NSE:DREDGECORP",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:13.854860+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "whp5eawatjvnqsqv2oaljggi.pdf"
+      ]
+    },
+    "NSE:ITDC": {
+      "companyId": "NSE:ITDC",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:13.952681+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "mkvjetviiya0qhkl97ag5qj2.pdf"
+      ]
+    },
+    "NSE:NRBBEARING": {
+      "companyId": "NSE:NRBBEARING",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:14.047193+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "5unjndqgo967xgtpe7ze924l.pdf"
+      ]
+    },
+    "NSE:SCHNEIDER": {
+      "companyId": "NSE:SCHNEIDER",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:14.141289+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "dr8d0mgq16lo0vxhlicqio61.pdf"
+      ]
+    },
+    "BSE:KALIND": {
+      "companyId": "BSE:KALIND",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:14.244698+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "x8erjmn7lgwon61p3mib7pvh.pdf"
+      ]
+    },
+    "NSE:XPROINDIA": {
+      "companyId": "NSE:XPROINDIA",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:15.947087+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "ezai82f1uxwpyi9tmnyrns62.pdf",
+        "37nowz2omhyw62tlntszclb2.pdf",
+        "3k713rjvj46ob7jqm6n2byk9.pdf",
+        "3m57gunznbfppvzgakm43fnb.pdf"
+      ]
+    },
+    "NSE:UFBL": {
+      "companyId": "NSE:UFBL",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:14.439915+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "jwz138s3qzyrsbgux5okwpvz.pdf"
+      ]
+    },
+    "BSE:KMEW": {
+      "companyId": "BSE:KMEW",
+      "ticker": "BSE:KMEW",
+      "name": "Knowledge Marine & Engineering Works Ltd",
+      "lastUpdated": "2026-06-23T23:18:42.275536+05:30",
+      "businessSummary": "Knowledge Marine & Engineering Works (KMEW) is a marine and dredging company providing services for inland waterways, ports, and coastal infrastructure. It charters dredgers and marine vessels.",
+      "notes": [
+        {
+          "id": "69f7343b-55ba-48bb-8f89-91f249c75f8e",
+          "createdAt": "2026-06-23T23:18:42.180888+05:30",
+          "type": "announcement",
+          "announcementId": "c4rh7b2fjc550flmtasikf21.pdf",
+          "announcementTitle": "Board Meeting June 26 to Approve Equity Fundraise (Preferential/QIP/Warrants)",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/c4rh7b2fjc550flmtasikf21.pdf",
+          "insight": "KMEW has called a board meeting on June 26, 2026 to consider raising funds via equity shares, warrants, preference shares, or a combination through preferential allotment, QIP, or private placement — subject to shareholder approval via EGM. The board will also call an EGM. This is a clear equity fundraise signal — KMEW is likely looking to fund fleet expansion or working capital given the ongoing boom in Indian coastal and inland waterway infrastructure spending. The fundraise route (QIP vs. preferential) will indicate whether institutional investors are being targeted. Watch for the board outcome on June 26 for quantum, method, and pricing.",
+          "significance": "high",
+          "tags": [
+            "fundraise",
+            "equity_dilution"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "e9iu80695gqdhnymm759wqhr.pdf",
+        "c4rh7b2fjc550flmtasikf21.pdf"
+      ]
+    },
+    "NSE:YASHO": {
+      "companyId": "NSE:YASHO",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:14.624679+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "dalpdje4849pzu3nqwoyssty.pdf"
+      ]
+    },
+    "NSE:SBC": {
+      "companyId": "NSE:SBC",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:14.719395+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "h0tabwc8ot1x6trtaqb82jco.pdf"
+      ]
+    },
+    "NSE:TMB": {
+      "companyId": "NSE:TMB",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:14.812566+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "uj5b0mzib6ic7517syyz61v0.pdf"
+      ]
+    },
+    "NSE:MODISONLTD": {
+      "companyId": "NSE:MODISONLTD",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:14.908007+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "3yt0rdnwzug091m1m3khcmrv.pdf"
+      ]
+    },
+    "NSE:LLOYDSENGG": {
+      "companyId": "NSE:LLOYDSENGG",
+      "ticker": "NSE:LLOYDSENGG",
+      "name": "Lloyds Engineering Works Ltd",
+      "lastUpdated": "2026-06-23T23:18:42.461996+05:30",
+      "businessSummary": "Lloyds Engineering Works manufactures industrial and process equipment — pressure vessels, heat exchangers, and reactor systems — for oil & gas, power, and defence customers.",
+      "notes": [
+        {
+          "id": "24319916-9929-48e3-be79-ad41f1193101",
+          "createdAt": "2026-06-23T23:18:42.370372+05:30",
+          "type": "announcement",
+          "announcementId": "0daby7n2z1gl4wwolnunmv0q.pdf",
+          "announcementTitle": "Promoter Lloyds Enterprises Releases Pledge on 2.3 Crore Shares (LAS with Tata Capital)",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/0daby7n2z1gl4wwolnunmv0q.pdf",
+          "insight": "Promoter entity Lloyds Enterprises Limited has released a pledge on 2,30,00,000 equity shares of Lloyds Engineering Works (held as security under a Loan Against Securities agreement with Tata Capital), effective June 16, 2026. Pledge release is a strong positive signal — it means the promoter has repaid or restructured the LAS borrowing, reducing the overhang of forced selling that pledged shares represent. Lower promoter pledge = lower risk of margin calls triggering market sales. Watch for total remaining promoter pledge levels post this release to assess whether the overhang is fully cleared.",
+          "significance": "high",
+          "tags": [
+            "debt"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "zrn9bcp8e7bcrnbp27vqe17b.pdf",
+        "13cbkanhftyhdfo8sc81hplm.pdf",
+        "0daby7n2z1gl4wwolnunmv0q.pdf"
+      ]
+    },
+    "NSE:NAVINFLUOR": {
+      "companyId": "NSE:NAVINFLUOR",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:15.088936+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "fbnyc3k7htsf3xfmc2kc5jij.pdf"
+      ]
+    },
+    "NSE:NOCIL": {
+      "companyId": "NSE:NOCIL",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:15.177474+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "7vhf4ytjaultmgspyywhwgv4.pdf"
+      ]
+    },
+    "NSE:SHILPAMED": {
+      "companyId": "NSE:SHILPAMED",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:15.267912+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "quynjbtjigy37w7yjiz57qyw.pdf"
+      ]
+    },
+    "NSE:ARVIND": {
+      "companyId": "NSE:ARVIND",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:15.360579+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "8iyr8553gfzto3tthwi38xyp.pdf"
+      ]
+    },
+    "NSE:NUVAMA": {
+      "companyId": "NSE:NUVAMA",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:15.667283+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "wxofbuikj8dm0ike5pwztaz5.pdf"
+      ]
+    },
+    "NSE:WELCORP": {
+      "companyId": "NSE:WELCORP",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:16.137758+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "cj3utxxromtypsv555h8svlr.pdf",
+        "k10fysayzf8pngqai848qr18.pdf"
+      ]
+    },
+    "NSE:WHEELS": {
+      "companyId": "NSE:WHEELS",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:16.232413+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "wl5q8djhg7vzawahnxeebrwn.pdf"
+      ]
+    },
+    "NSE:MARKSANS": {
+      "companyId": "NSE:MARKSANS",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:16.336417+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "kn449u2mvkdrvdq02m1vc00r.pdf"
+      ]
+    },
+    "NSE:INDSWFTLAB": {
+      "companyId": "NSE:INDSWFTLAB",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:16.543935+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "nxynhskkk8q367vxaoutmu80.pdf"
+      ]
+    },
+    "NSE:SUPRIYA": {
+      "companyId": "NSE:SUPRIYA",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-06-23T23:12:16.640504+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "n84nf6nl67u8blcanyk6e2u1.pdf"
+      ]
+    },
+    "NSE:SYRMA": {
+      "companyId": "NSE:SYRMA",
+      "ticker": "NSE:SYRMA",
+      "name": "Syrma SGS Technology Ltd",
+      "lastUpdated": "2026-06-23T23:17:11.514731+05:30",
+      "businessSummary": "Syrma SGS is an EMS (Electronics Manufacturing Services) company making PCBs, electronic assemblies, and IoT devices for healthcare, automotive, and industrial customers. It has been expanding into higher-complexity electronics.",
+      "notes": [
+        {
+          "id": "737b416b-0ba6-4717-85fe-0b76ffde52d4",
+          "createdAt": "2026-06-23T23:17:11.388562+05:30",
+          "type": "announcement",
+          "announcementId": "xb64fxpj5c36ifat70eaj5bs.pdf",
+          "announcementTitle": "JV Agreement with Kaga Electronics India for EMS Facility Targeting Japanese Clients",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/xb64fxpj5c36ifat70eaj5bs.pdf",
+          "insight": "Syrma SGS has signed a JV agreement with Kaga Electronics India Pvt Ltd to establish a state-of-the-art EMS manufacturing facility in India, focusing specifically on Japanese OEM clients. Syrma will hold up to 60% and Kaga up to 40% in the JV entity (to be incorporated). Kaga Electronics is a major Japanese electronics distributor/manufacturer — this JV is a deliberate strategy to capture Japan-to-India EMS relocation as Japanese companies diversify supply chains away from China. This is strategically significant: Japanese customers tend to be long-term, volume-driven, and exacting on quality — winning a marquee Japanese JV partner validates Syrma's manufacturing capabilities. Watch for JVCo incorporation, initial capex, and first Japanese client order announcement.",
+          "significance": "high",
+          "tags": [
+            "acquisition",
+            "international_expansion",
+            "capex"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "xb64fxpj5c36ifat70eaj5bs.pdf"
+      ]
+    },
+    "NSE:SATIN": {
+      "companyId": "NSE:SATIN",
+      "ticker": "NSE:SATIN",
+      "name": "Satin Creditcare Network Ltd",
+      "lastUpdated": "2026-06-23T23:17:11.717881+05:30",
+      "businessSummary": "Satin Creditcare is a mid-size NBFC-MFI focused on microfinance lending to low-income borrowers, primarily rural women in Tier 3-5 markets. It operates in a high-NPA risk environment tied to borrower stress cycles.",
+      "notes": [
+        {
+          "id": "c7fca66a-bf0c-4dad-aefa-4636682df2a6",
+          "createdAt": "2026-06-23T23:17:11.619234+05:30",
+          "type": "announcement",
+          "announcementId": "stpbqjzztldlxxnmwzt9qrh3.pdf",
+          "announcementTitle": "Board Approves NCD Issuance of Up to Rs. 5,000 Crore; AGM Aug 7, 2026",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/stpbqjzztldlxxnmwzt9qrh3.pdf",
+          "insight": "Satin Creditcare's board approved raising up to Rs. 5,000 Crore via privately placed NCDs in one or more tranches over 1 year, subject to shareholder approval at the AGM (Aug 7, 2026). This is a significant liability-side event — Rs. 5,000 Cr is a very large borrowing authorization for an NBFC of Satin's size, suggesting aggressive AUM growth plans for FY27. For an MFI, NCD-based borrowing diversifies away from bank credit lines which can be restrictive. The key risk: microfinance NPA cycle in India has been elevated — watch whether the growth plan is backed by improving collection efficiency or risks amplifying leverage into a stressed borrower base. Also noted: CCO Vikas Gupta re-appointed for 3 years, and AGM set for Aug 7.",
+          "significance": "high",
+          "tags": [
+            "debt",
+            "fundraise"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "stpbqjzztldlxxnmwzt9qrh3.pdf"
+      ]
+    },
+    "NSE:MUTHOOTMF": {
+      "companyId": "NSE:MUTHOOTMF",
+      "ticker": "NSE:MUTHOOTMF",
+      "name": "Muthoot Microfin Ltd",
+      "lastUpdated": "2026-06-23T23:17:37.988101+05:30",
+      "businessSummary": "Muthoot Microfin is a microfinance NBFC-MFI primarily operating in South and East India, offering small-ticket JLG loans to rural women borrowers. It is part of the Muthoot Pappachan Group.",
+      "notes": [
+        {
+          "id": "ac398d0e-9b5b-4eed-9601-ddbd99639a1e",
+          "createdAt": "2026-06-23T23:17:37.897828+05:30",
+          "type": "announcement",
+          "announcementId": "932r31mahegz212hvq6vqa8v.pdf",
+          "announcementTitle": "Board Meeting June 30 to Authorize NCD Issuance Rs. 3,000 Cr (Private) + Rs. 1,000 Cr (Public) for FY27",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/932r31mahegz212hvq6vqa8v.pdf",
+          "insight": "Muthoot Microfin is calling a board meeting on June 30, 2026 to approve NCD issuance of up to Rs. 3,000 Crore via private placement and Rs. 1,000 Crore via public issue for FY2026-27 — total Rs. 4,000 Crore in authorized borrowings. AGM scheduling also on the agenda. This suggests Muthoot Microfin is planning significant AUM expansion in FY27 and wants capital markets access beyond bank credit. The public NCD route (Rs. 1,000 Cr) is notable — public NCDs attract retail investors and require higher disclosure standards. Watch for board outcome on June 30 and AGM date announcement.",
+          "significance": "high",
+          "tags": [
+            "debt",
+            "fundraise"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "932r31mahegz212hvq6vqa8v.pdf"
+      ]
+    },
+    "BSE:YASHHV": {
+      "companyId": "BSE:YASHHV",
+      "ticker": "BSE:YASHHV",
+      "name": "Yash Highvoltage Ltd",
+      "lastUpdated": "2026-06-23T23:17:38.448388+05:30",
+      "businessSummary": "Yash Highvoltage manufactures high-voltage electrical equipment including transformers, switchgear, and power transmission components. It operates in the fast-growing power infrastructure segment.",
+      "notes": [
+        {
+          "id": "2d8b62a3-caf6-427c-9393-6df49c7a84ac",
+          "createdAt": "2026-06-23T23:17:38.078395+05:30",
+          "type": "announcement",
+          "announcementId": "hzabwvk0falr1tnxi5jk3dnc.pdf",
+          "announcementTitle": "Board Approves Preferential Allotment of Shares + Warrants at Rs. 721/share totalling Rs. 151 Cr; EGM July 15",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/hzabwvk0falr1tnxi5jk3dnc.pdf",
+          "insight": "Yash Highvoltage board approved a preferential issue of 12.62L equity shares and 8.32L convertible warrants to non-promoter identified allottees at Rs. 721/share (face value Rs. 5, premium Rs. 716), raising Rs. 151 Crores in total. EGM called for July 15, 2026 for shareholder approval. The relevant date for ICDR pricing purposes is June 15, 2026. This is a significant equity fundraise for a power equipment company — Rs. 151 Cr at Rs. 721/share to non-promoters indicates institutional interest. Watch for who the allottees are (disclosed in Annexure A of the board outcome), whether this capital is earmarked for capacity expansion, and whether the warrants get converted at a later date (potential further dilution of ~8.32L shares).",
+          "significance": "high",
+          "tags": [
+            "equity_dilution",
+            "fundraise"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "hzabwvk0falr1tnxi5jk3dnc.pdf",
+        "xtwaqbitnw1kgjdv6o19is42.pdf",
+        "xd41v6r4bc8wlofr1bv29igz.pdf",
+        "xzhqo0266yhxccn3tt51p2vq.pdf"
+      ]
+    },
+    "NSE:DEEDEV": {
+      "companyId": "NSE:DEEDEV",
+      "ticker": "NSE:DEEDEV",
+      "name": "DEE Development Engineers Ltd",
+      "lastUpdated": "2026-06-23T23:18:08.924766+05:30",
+      "businessSummary": "DEE Development Engineers manufactures specialized process piping, pressure vessels, and industrial equipment for oil & gas, power, and other sectors. Its WOS DEE Fabricom India has expanded into wind energy structures.",
+      "notes": [
+        {
+          "id": "4e7de7ec-1aee-4f6c-a303-8b5d6a10e585",
+          "createdAt": "2026-06-23T23:18:08.819496+05:30",
+          "type": "announcement",
+          "announcementId": "c1eolpxvb6s07bck7j0xf0a1.pdf",
+          "announcementTitle": "WOS DEE Fabricom Wins Rs. 64 Cr Order for 15 Windmill Towers from Ganeko Solar",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/c1eolpxvb6s07bck7j0xf0a1.pdf",
+          "insight": "DEE Development's wholly owned subsidiary DEE Fabricom India has bagged an order worth Rs. 64 Crores (inclusive of GST) from Ganeko Solar Pvt Ltd for manufacturing 15 Envision-make EN156 353MT windmill towers for 3.3MW turbines, to be executed by January 2027. This is a notable order for the company's renewable energy vertical — wind tower manufacturing is a high-value structural engineering play benefiting from India's accelerating wind energy capacity additions. Payment terms are structured (25% advance + 55% on material readiness + 20% within 15 days), which is healthy for working capital. Watch for whether this signals a pipeline of similar wind tower orders and how DEE Fabricom's revenue contribution grows relative to the parent DEE Development.",
+          "significance": "high",
+          "tags": [
+            "order_win",
+            "capacity"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "c1eolpxvb6s07bck7j0xf0a1.pdf"
+      ]
+    },
+    "NSE:MSPL": {
+      "companyId": "NSE:MSPL",
+      "ticker": "NSE:MSPL",
+      "name": "MSP Steel & Power Ltd",
+      "lastUpdated": "2026-06-23T23:18:09.443064+05:30",
+      "businessSummary": "MSP Steel & Power is a mid-size integrated steel manufacturer in Eastern India producing billets, TMT bars, and structural steel. It has captive power and is focused on the construction steel market.",
+      "notes": [
+        {
+          "id": "1138ac38-b956-43e1-9d71-48282673e8c2",
+          "createdAt": "2026-06-23T23:18:09.032629+05:30",
+          "type": "announcement",
+          "announcementId": "eqq61xdvea1yrxcyo2497ht0.pdf",
+          "announcementTitle": "5 Promoter Group Entities Buy ~46.7L Shares in Open Market on June 16-18, 2026",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/eqq61xdvea1yrxcyo2497ht0.pdf",
+          "insight": "Five promoter group entities of MSP Steel (Shree Vinay Finvest, Ginny Traders, Sampat Marketing, Ilex Pvt Ltd, M.A. Hire Purchase) collectively purchased ~46.7 lakh equity shares in the open market between June 16-18, 2026 — a coordinated, multi-entity open market buy by the promoter group. This is a strong signal of promoter conviction in the stock at current prices. Such coordinated promoter buying often precedes a re-rating catalyst (better quarterly results, order wins, capacity commissioning) or reflects a view that the stock is undervalued. Also note: MSPL has called an EGM for July 14, 2026 for unspecified special business — the combination of promoter buying + EGM could indicate an impending corporate action. Watch for the EGM agenda disclosure and Q1 FY27 results.",
+          "significance": "high",
+          "tags": [
+            "acquisition"
+          ]
+        },
+        {
+          "id": "f0435040-944c-4f8d-8d29-be52885a94b8",
+          "createdAt": "2026-06-23T23:18:09.238762+05:30",
+          "type": "announcement",
+          "announcementId": "h2fdu6jpe75ht86h2batkq1i.pdf",
+          "announcementTitle": "EGM Convened for July 14, 2026",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/h2fdu6jpe75ht86h2batkq1i.pdf",
+          "insight": "MSPL has called an EGM for July 14, 2026 (from June 19 disclosure) for special business, though the specific agenda items from the EGM notice were not fully captured. Combined with the promoter group buying 46.7L shares in open market on June 16-18, this EGM takes on additional significance — could involve fundraise approval, structural change, or a strategic resolution. Watch for EGM notice details and outcome on July 14.",
+          "significance": "medium",
+          "tags": [
+            "agm_outcome"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "eqq61xdvea1yrxcyo2497ht0.pdf",
+        "h2fdu6jpe75ht86h2batkq1i.pdf",
+        "eua59qnrmzmqwpylca79pgox.pdf"
+      ]
+    },
+    "NSE:TDPOWERSYS": {
+      "companyId": "NSE:TDPOWERSYS",
+      "ticker": "NSE:TDPOWERSYS",
+      "name": "TD Power Systems Ltd",
+      "lastUpdated": "2026-06-23T23:18:42.089249+05:30",
+      "businessSummary": "TD Power Systems manufactures AC generators, alternators, and motors for power generation — for gas turbines, steam turbines, hydro applications, and industrial use. It exports significantly and serves global OEMs.",
+      "notes": [
+        {
+          "id": "4c1a964c-ddb1-4090-8499-31346205e40a",
+          "createdAt": "2026-06-23T23:18:41.990347+05:30",
+          "type": "announcement",
+          "announcementId": "rkomrdigflmzk5x6pvqjk5m6.pdf",
+          "announcementTitle": "CRISIL Upgrades Credit Rating to AA-/Stable (from A+/Positive); Short-Term to A1+",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/rkomrdigflmzk5x6pvqjk5m6.pdf",
+          "insight": "CRISIL has upgraded TD Power Systems' long-term bank facility rating from A+/Positive to AA-/Stable, and short-term from A1 to A1+, on Rs. 488 Crore of bank facilities. A credit upgrade to AA- is a meaningful signal — it indicates CRISIL has assessed a material improvement in TDPS's financial risk profile, likely reflecting stronger cash flows, improved order book quality, reduced leverage, or better coverage ratios. AA- is investment-grade excellent, enabling TDPS to borrow at lower rates and enhancing supplier/customer confidence. This upgrade also reflects the strong tailwinds in global power generation demand (both conventional and renewable). Watch for the detailed CRISIL rationale letter for specific improvement drivers — whether it is order book, export revenues, or balance sheet deleveraging.",
+          "significance": "high",
+          "tags": [
+            "credit_rating"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "rkomrdigflmzk5x6pvqjk5m6.pdf"
+      ]
+    },
+    "NSE:BANDHANBNK": {
+      "companyId": "NSE:BANDHANBNK",
+      "ticker": "NSE:BANDHANBNK",
+      "name": "Bandhan Bank Ltd",
+      "lastUpdated": "2026-06-23T23:22:05.595557+05:30",
+      "businessSummary": "Bandhan Bank is a private sector bank with strong roots in microfinance lending (MFI), primarily serving low-income borrowers in Eastern India. It has been diversifying into retail, MSME, and housing finance.",
+      "notes": [
+        {
+          "id": "55192089-68c6-4379-9e1c-fe0f77b316b7",
+          "createdAt": "2026-06-23T23:22:05.500272+05:30",
+          "type": "announcement",
+          "announcementId": "7014bgqp3l0ejxh3mhzepf4t.pdf",
+          "announcementTitle": "Board Meeting June 25 to Discuss Capital Plan",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/7014bgqp3l0ejxh3mhzepf4t.pdf",
+          "insight": "Bandhan Bank has called a board meeting on June 25, 2026 to discuss the bank's capital plan. For a bank, a formal capital plan board meeting can signal one of several things: (1) a capital raise via QIP, preferential allotment, or AT1 bonds to shore up capital adequacy ratios; (2) a strategic pivot in capital allocation toward specific segments; or (3) RBI-driven capital planning requirements. Bandhan has historically had capital adequacy concerns tied to its MFI book stress. Watch for board outcomes on June 25 — the quantum, instrument type (equity vs. debt), and pricing will be critical. An equity raise would signal dilution; AT1/Tier-2 would signal leverage path.",
+          "significance": "high",
+          "tags": [
+            "fundraise"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "7014bgqp3l0ejxh3mhzepf4t.pdf"
+      ]
+    },
+    "NSE:ACUTAAS": {
+      "companyId": "NSE:ACUTAAS",
+      "ticker": "NSE:ACUTAAS",
+      "name": "Acuitas Solutions Ltd",
+      "lastUpdated": "2026-06-23T23:22:05.868178+05:30",
+      "businessSummary": "Acuitas Solutions (formerly known as Acutaas) is an IT services company providing enterprise software, ERP, and digital transformation services.",
+      "notes": [
+        {
+          "id": "ff4fa39c-83b4-4df6-ab1b-2971cdb18f5d",
+          "createdAt": "2026-06-23T23:22:05.688066+05:30",
+          "type": "announcement",
+          "announcementId": "loo4girbzknwcf7f71z7211i.pdf",
+          "announcementTitle": "CGST Anti-Evasion Search Conducted June 23, 2026 — Inquiry Concluded, No Demand Issued",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/loo4girbzknwcf7f71z7211i.pdf",
+          "insight": "The CGST (Central Goods & Services Tax) Anti-Evasion wing conducted a search at Acuitas' premises on June 23, 2026. The company has disclosed that the inquiry has concluded and no demand has been issued as of the date of filing. While the absence of a tax demand is reassuring, the fact of a CGST anti-evasion search is itself a red flag worth monitoring — it indicates GST authorities had specific intelligence that triggered the search. Watch for any follow-up disclosures indicating a show-cause notice or demand in subsequent weeks, as GST inquiries can continue post-search.",
+          "significance": "high",
+          "tags": [
+            "regulatory",
+            "red_flag"
+          ]
+        }
+      ],
+      "processedAnnouncements": [
+        "loo4girbzknwcf7f71z7211i.pdf",
+        "et0bdofysyqzp665860hmuzz.pdf"
+      ]
+    }
+  }
+}

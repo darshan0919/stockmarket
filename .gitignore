@@ -52,3 +52,6 @@ downloads/
 # Uploaded research dashboards (per-symbol HTML)
 backend/uploads/
 
+
+# Cowork jobs runtime data + secrets (relocated from Company Research) — keep the .py helpers tracked
+packages/cowork-jobs/data/.env

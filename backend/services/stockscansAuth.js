@@ -1,35 +1,32 @@
 /**
- * @fileoverview Authentication service for StockScans API
+ * @fileoverview Authentication service for StockScans API.
  * @module services/stockscansAuth
  * @see {@link docs/backend/services/stockscansAuth.md} for detailed documentation
+ *
+ * The token source is now centralized in `@stock/api` (StockscansAuth) so the
+ * backend, cowork jobs, and skills all resolve the SAME token. This file keeps its
+ * historical export surface (getAuthToken, createAuthenticatedClient).
  */
 
 const axios = require('axios');
+const { StockscansAuth } = require('@stock/api');
+
+// Lazy per-request token resolution (env STOCKSCANS_AUTH_TOKEN, legacy fallback).
+const auth = new StockscansAuth();
 
 /**
- * Get the StockScans authentication token from environment
- * The token is a JWT that should be obtained from browser cookies after logging into stockscans.in
+ * Get the StockScans authentication token.
  * @returns {string} Authentication token
- * @throws {Error} If token not configured in environment
+ * @throws {Error} If token not configured
  */
 function getAuthToken() {
-  const token = (process.env.STOCKSCANS_AUTH_TOKEN || '').trim();
-  if (!token) {
-    throw new Error(
-      'STOCKSCANS_AUTH_TOKEN not configured. Login to stockscans.in and copy the authtoken cookie value to .env'
-    );
-  }
-  return token;
+  return auth.getToken();
 }
 
 /**
- * Create axios instance with authentication headers
- * @param {string} authToken - Authentication token from getAuthToken()
- * @returns {axios.AxiosInstance} Axios instance configured with auth headers
- * @example
- * const token = getAuthToken();
- * const authClient = createAuthenticatedClient(token);
- * const response = await authClient.get('https://www.stockscans.in/api/...');
+ * Create an axios instance with StockScans auth headers.
+ * @param {string} authToken - Token from getAuthToken()
+ * @returns {axios.AxiosInstance}
  */
 function createAuthenticatedClient(authToken) {
   return axios.create({

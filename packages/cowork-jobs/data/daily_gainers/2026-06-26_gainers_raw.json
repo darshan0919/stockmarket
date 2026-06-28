@@ -1,0 +1,1439 @@
+{
+  "market_date": "2026-06-26",
+  "run_ts": "2026-06-27T10:13:29.217990+05:30",
+  "total_gainers": 50,
+  "filtered_gainers": 38,
+  "excluded_gainers": 12,
+  "gainers": [
+    {
+      "ticker": "NSE:SAKSOFT",
+      "name": "Saksoft Ltd",
+      "industry": "IT - Software",
+      "sector": "IT - Software",
+      "return_1d": 15.08,
+      "market_cap_cr": 2126.78,
+      "close_price": 0.0,
+      "retail_holding_pct": 30.88,
+      "delivery_value_cr": 21.76,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:SAKSOFT"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:BLACKROSE",
+      "name": "Black Rose Industries Ltd",
+      "industry": "Speciality Chemicals",
+      "sector": "Chemicals",
+      "return_1d": 12.84,
+      "market_cap_cr": 643.47,
+      "close_price": 0.0,
+      "retail_holding_pct": 24.85,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:BLACKROSE"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:RAMCOIND",
+      "name": "Ramco Industries Ltd",
+      "industry": "Cement Products",
+      "sector": "Cement - Products",
+      "return_1d": 12.69,
+      "market_cap_cr": 2976.49,
+      "close_price": 0.0,
+      "retail_holding_pct": 41.06,
+      "delivery_value_cr": 53.08,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:RAMCOIND"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:RELAXO",
+      "name": "Relaxo Footwears Ltd",
+      "industry": "Footwear",
+      "sector": "Leather",
+      "return_1d": 12.09,
+      "market_cap_cr": 10294.86,
+      "close_price": 0.0,
+      "retail_holding_pct": 15.95,
+      "delivery_value_cr": 45.15,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:RELAXO"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:EMMFORCE",
+      "name": "Emmforce Autotech Ltd",
+      "industry": "Auto Ancillaries - Others",
+      "sector": "Auto Ancillaries",
+      "return_1d": 11.71,
+      "market_cap_cr": 308.93,
+      "close_price": 0.0,
+      "retail_holding_pct": 25.43,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:EMMFORCE"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:PIXTRANS",
+      "name": "Pix Transmission Ltd",
+      "industry": "Rubber Processing/Rubber Products",
+      "sector": "Plantation & Plantation Products",
+      "return_1d": 11.37,
+      "market_cap_cr": 2447.22,
+      "close_price": 0.0,
+      "retail_holding_pct": 35.02,
+      "delivery_value_cr": 18.03,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:PIXTRANS"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:KMCSHIL",
+      "name": "KMC Speciality Hospitals (India) Ltd",
+      "industry": "Hospitals",
+      "sector": "Healthcare",
+      "return_1d": 11.14,
+      "market_cap_cr": 2106.24,
+      "close_price": 0.0,
+      "retail_holding_pct": 25.0,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:KMCSHIL"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:EVERESTIND",
+      "name": "Everest Industries Ltd",
+      "industry": "Pre-Engineering Buildings",
+      "sector": "Cement - Products",
+      "return_1d": 10.68,
+      "market_cap_cr": 731.82,
+      "close_price": 0.0,
+      "retail_holding_pct": 39.46,
+      "delivery_value_cr": 7.45,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:EVERESTIND"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:NWIL",
+      "name": "Nurture Well Industries Ltd",
+      "industry": "Diversified",
+      "sector": "Finance",
+      "return_1d": 9.98,
+      "market_cap_cr": 643.8,
+      "close_price": 0.0,
+      "retail_holding_pct": 45.94,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:NWIL"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:MSUMI",
+      "name": "Motherson Sumi Wiring India Ltd",
+      "industry": "Auto Ancillaries - Diversified",
+      "sector": "Auto Ancillaries",
+      "return_1d": 9.1,
+      "market_cap_cr": 27362.24,
+      "close_price": 0.0,
+      "retail_holding_pct": 11.09,
+      "delivery_value_cr": 125.95,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:MSUMI"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:REPCOHOME",
+      "name": "Repco Home Finance Ltd",
+      "industry": "Finance - Housing",
+      "sector": "Finance",
+      "return_1d": 7.44,
+      "market_cap_cr": 2627.58,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": 21.32,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:REPCOHOME"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:ASARFI",
+      "name": "Asarfi Hospital Ltd",
+      "industry": "Hospitals/Medical Services",
+      "sector": "Healthcare",
+      "return_1d": 7.34,
+      "market_cap_cr": 448.84,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:ASARFI"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:AEGISLOG",
+      "name": "Aegis Logistics Ltd",
+      "industry": "Logistics",
+      "sector": "Trading",
+      "return_1d": 7.31,
+      "market_cap_cr": 40036.82,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": 148.26,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:AEGISLOG"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:BALGOPAL",
+      "name": "Balgopal Commercial Ltd",
+      "industry": "Trading",
+      "sector": "Trading",
+      "return_1d": 7.27,
+      "market_cap_cr": 434.04,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:BALGOPAL"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:BLISSGVS",
+      "name": "Bliss GVS Pharma Ltd",
+      "industry": "Pharma - Formulators",
+      "sector": "Pharmaceuticals",
+      "return_1d": 6.92,
+      "market_cap_cr": 5217.44,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": 28.35,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:BLISSGVS"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:LTELEVATOR",
+      "name": "L T Elevator Ltd",
+      "industry": "Engineering - Light - General",
+      "sector": "Capital Goods-Non Electrical Equipment",
+      "return_1d": 6.92,
+      "market_cap_cr": 503.03,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:LTELEVATOR"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:WHEELS",
+      "name": "Wheels India Ltd",
+      "industry": "Auto Ancillaries - Wheels",
+      "sector": "Auto Ancillaries",
+      "return_1d": 6.89,
+      "market_cap_cr": 4091.06,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": 14.54,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:WHEELS"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:DYCL",
+      "name": "Dynamic Cables Ltd",
+      "industry": "Cables - Power",
+      "sector": "Cables",
+      "return_1d": 6.76,
+      "market_cap_cr": 1828.83,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": 17.55,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:DYCL"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:FUSION",
+      "name": "Fusion Finance Ltd",
+      "industry": "Finance & Investments - Microfinance",
+      "sector": "Finance",
+      "return_1d": 6.54,
+      "market_cap_cr": 3116.78,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": 17.89,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:FUSION"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:FEDDERSHOL",
+      "name": "Fedders Holding Ltd",
+      "industry": "Finance & Investments - Others",
+      "sector": "Finance",
+      "return_1d": 6.35,
+      "market_cap_cr": 843.93,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:FEDDERSHOL"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:EBGNG",
+      "name": "GNG Electronics Ltd",
+      "industry": "New age - Platform - E-Retail",
+      "sector": "Trading",
+      "return_1d": 6.34,
+      "market_cap_cr": 6450.2,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": 31.08,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:EBGNG"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:ONWARDTEC",
+      "name": "Onward Technologies Ltd",
+      "industry": "IT - ER&D",
+      "sector": "IT - Software",
+      "return_1d": 6.07,
+      "market_cap_cr": 633.26,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": 12.18,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:ONWARDTEC"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:TVSELECT",
+      "name": "TVS Electronics Ltd",
+      "industry": "Computer - Hardware",
+      "sector": "IT - Hardware",
+      "return_1d": 5.97,
+      "market_cap_cr": 935.31,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": 6.12,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:TVSELECT"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:M&MFIN",
+      "name": "Mahindra & Mahindra Financial Services Ltd",
+      "industry": "Finance & Investments - CV Finance",
+      "sector": "Finance",
+      "return_1d": 5.69,
+      "market_cap_cr": 45667.5,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": 161.11,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:M&MFIN"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:GOODRICKE",
+      "name": "Goodricke Group Ltd",
+      "industry": "Plantations - Tea & Coffee",
+      "sector": "Plantation & Plantation Products",
+      "return_1d": 5.46,
+      "market_cap_cr": 404.68,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:GOODRICKE"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:RAMCOSYS",
+      "name": "Ramco Systems Ltd",
+      "industry": "IT Product Companies",
+      "sector": "IT - Software",
+      "return_1d": 5.34,
+      "market_cap_cr": 2667.71,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": 62.61,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:RAMCOSYS"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:TALBROAUTO",
+      "name": "Talbros Automotive Components Ltd",
+      "industry": "Auto Ancillaries - Axle shafts",
+      "sector": "Auto Ancillaries",
+      "return_1d": 5.27,
+      "market_cap_cr": 2509.25,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": 20.65,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:TALBROAUTO"
+      },
+      "delivery": {
+        "available": true,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:INVPRECQ",
+      "name": "Investment & Precision Castings Ltd",
+      "industry": "Castings - Steel/Alloy",
+      "sector": "Castings, Forgings & Fastners",
+      "return_1d": 5.03,
+      "market_cap_cr": 823.35,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:INVPRECQ"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:SAYAJIHOTL",
+      "name": "Sayaji Hotels Ltd",
+      "industry": "Hotels",
+      "sector": "Hotels & Restaurants",
+      "return_1d": 5.0,
+      "market_cap_cr": 537.1,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:SAYAJIHOTL"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:BAFNAPH",
+      "name": "Bafna Pharmaceuticals Ltd",
+      "industry": "Pharma - Formulators",
+      "sector": "Pharmaceuticals",
+      "return_1d": 5.0,
+      "market_cap_cr": 460.54,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:BAFNAPH"
+      },
+      "delivery": {
+        "available": false,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:EBIX",
+      "name": "Eraaya Lifespaces Ltd",
+      "industry": "Finance & Investments - Others",
+      "sector": "Finance",
+      "return_1d": 5.0,
+      "market_cap_cr": 522.02,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:EBIX"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:SJCORP",
+      "name": "SJ Corporation Ltd",
+      "industry": "Diamond, Gems & Jewellery",
+      "sector": "Diamond, Gems and Jewellery",
+      "return_1d": 5.0,
+      "market_cap_cr": 395.35,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:SJCORP"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:HITECHGEAR",
+      "name": "The Hi-Tech Gears Ltd",
+      "industry": "Auto Ancillaries - Gears",
+      "sector": "Auto Ancillaries",
+      "return_1d": 5.0,
+      "market_cap_cr": 1207.17,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:HITECHGEAR"
+      },
+      "delivery": {
+        "available": false,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:SKM",
+      "name": "SK Minerals & Additives Ltd",
+      "industry": "Trading",
+      "sector": "Chemicals",
+      "return_1d": 5.0,
+      "market_cap_cr": 461.45,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:SKM"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:IDREAM",
+      "name": "IDream Film Infrastructure Company Ltd",
+      "industry": "IT - Software",
+      "sector": "IT - Software",
+      "return_1d": 5.0,
+      "market_cap_cr": 14377.2,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:IDREAM"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:POOJAENT",
+      "name": "Vashu Bhagnani Industries Ltd",
+      "industry": "Entertainment & Media",
+      "sector": "Entertainment",
+      "return_1d": 5.0,
+      "market_cap_cr": 501.27,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:POOJAENT"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "BSE:SELECTRIC",
+      "name": "Schneider Electric President Systems Ltd",
+      "industry": "Electronics - Others",
+      "sector": "Consumer Durables",
+      "return_1d": 5.0,
+      "market_cap_cr": 1376.02,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/BSE:SELECTRIC"
+      },
+      "delivery": {
+        "available": true,
+        "source": "bse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    },
+    {
+      "ticker": "NSE:STLTECH",
+      "name": "Sterlite Technologies Ltd",
+      "industry": "Cables - Telecom",
+      "sector": "Cables",
+      "return_1d": 5.0,
+      "market_cap_cr": 29941.76,
+      "close_price": 0.0,
+      "retail_holding_pct": null,
+      "delivery_value_cr": null,
+      "announcements": [],
+      "ann_count": 0,
+      "has_material_ann": false,
+      "price_signals": {
+        "error": "404 Client Error: Not Found for url: https://www.stockscans.in/api/company/prices/NSE:STLTECH"
+      },
+      "delivery": {
+        "available": false,
+        "source": "nse_api",
+        "delivery_pct": null,
+        "delivery_value_cr": null
+      }
+    }
+  ],
+  "sector_scans": {
+    "IT - Software": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:SAKSOFT",
+        "BSE:IDREAM"
+      ]
+    },
+    "Speciality Chemicals": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "BSE:BLACKROSE"
+      ]
+    },
+    "Cement Products": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:RAMCOIND"
+      ]
+    },
+    "Footwear": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:RELAXO"
+      ]
+    },
+    "Auto Ancillaries - Others": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "BSE:EMMFORCE"
+      ]
+    },
+    "Rubber Processing/Rubber Products": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:PIXTRANS"
+      ]
+    },
+    "Hospitals": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "BSE:KMCSHIL"
+      ]
+    },
+    "Pre-Engineering Buildings": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:EVERESTIND"
+      ]
+    },
+    "Diversified": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "BSE:NWIL"
+      ]
+    },
+    "Auto Ancillaries - Diversified": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:MSUMI"
+      ]
+    },
+    "Finance - Housing": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:REPCOHOME"
+      ]
+    },
+    "Hospitals/Medical Services": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "BSE:ASARFI"
+      ]
+    },
+    "Logistics": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:AEGISLOG"
+      ]
+    },
+    "Trading": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "BSE:BALGOPAL",
+        "BSE:SKM"
+      ]
+    },
+    "Pharma - Formulators": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:BLISSGVS",
+        "NSE:BAFNAPH"
+      ]
+    },
+    "Engineering - Light - General": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "BSE:LTELEVATOR"
+      ]
+    },
+    "Auto Ancillaries - Wheels": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:WHEELS"
+      ]
+    },
+    "Cables - Power": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:DYCL"
+      ]
+    },
+    "Finance & Investments - Microfinance": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:FUSION"
+      ]
+    },
+    "Finance & Investments - Others": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "BSE:FEDDERSHOL",
+        "BSE:EBIX"
+      ]
+    },
+    "New age - Platform - E-Retail": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:EBGNG"
+      ]
+    },
+    "IT - ER&D": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:ONWARDTEC"
+      ]
+    },
+    "Computer - Hardware": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:TVSELECT"
+      ]
+    },
+    "Finance & Investments - CV Finance": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:M&MFIN"
+      ]
+    },
+    "Plantations - Tea & Coffee": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "BSE:GOODRICKE"
+      ]
+    },
+    "IT Product Companies": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:RAMCOSYS"
+      ]
+    },
+    "Auto Ancillaries - Axle shafts": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:TALBROAUTO"
+      ]
+    },
+    "Castings - Steel/Alloy": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "BSE:INVPRECQ"
+      ]
+    },
+    "Hotels": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "BSE:SAYAJIHOTL"
+      ]
+    },
+    "Diamond, Gems & Jewellery": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "BSE:SJCORP"
+      ]
+    },
+    "Auto Ancillaries - Gears": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:HITECHGEAR"
+      ]
+    },
+    "Entertainment & Media": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "BSE:POOJAENT"
+      ]
+    },
+    "Electronics - Others": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "BSE:SELECTRIC"
+      ]
+    },
+    "Cables - Telecom": {
+      "companies": [],
+      "breadth": {},
+      "gainer_tickers": [
+        "NSE:STLTECH"
+      ]
+    }
+  },
+  "cluster_summary": [
+    {
+      "industry": "IT - Software",
+      "gainer_tickers": [
+        "NSE:SAKSOFT",
+        "BSE:IDREAM"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Speciality Chemicals",
+      "gainer_tickers": [
+        "BSE:BLACKROSE"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Cement Products",
+      "gainer_tickers": [
+        "NSE:RAMCOIND"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Footwear",
+      "gainer_tickers": [
+        "NSE:RELAXO"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Auto Ancillaries - Others",
+      "gainer_tickers": [
+        "BSE:EMMFORCE"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Rubber Processing/Rubber Products",
+      "gainer_tickers": [
+        "NSE:PIXTRANS"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Hospitals",
+      "gainer_tickers": [
+        "BSE:KMCSHIL"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Pre-Engineering Buildings",
+      "gainer_tickers": [
+        "NSE:EVERESTIND"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Diversified",
+      "gainer_tickers": [
+        "BSE:NWIL"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Auto Ancillaries - Diversified",
+      "gainer_tickers": [
+        "NSE:MSUMI"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Finance - Housing",
+      "gainer_tickers": [
+        "NSE:REPCOHOME"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Hospitals/Medical Services",
+      "gainer_tickers": [
+        "BSE:ASARFI"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Logistics",
+      "gainer_tickers": [
+        "NSE:AEGISLOG"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Trading",
+      "gainer_tickers": [
+        "BSE:BALGOPAL",
+        "BSE:SKM"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Pharma - Formulators",
+      "gainer_tickers": [
+        "NSE:BLISSGVS",
+        "NSE:BAFNAPH"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Engineering - Light - General",
+      "gainer_tickers": [
+        "BSE:LTELEVATOR"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Auto Ancillaries - Wheels",
+      "gainer_tickers": [
+        "NSE:WHEELS"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Cables - Power",
+      "gainer_tickers": [
+        "NSE:DYCL"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Finance & Investments - Microfinance",
+      "gainer_tickers": [
+        "NSE:FUSION"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Finance & Investments - Others",
+      "gainer_tickers": [
+        "BSE:FEDDERSHOL",
+        "BSE:EBIX"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "New age - Platform - E-Retail",
+      "gainer_tickers": [
+        "NSE:EBGNG"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "IT - ER&D",
+      "gainer_tickers": [
+        "NSE:ONWARDTEC"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Computer - Hardware",
+      "gainer_tickers": [
+        "NSE:TVSELECT"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Finance & Investments - CV Finance",
+      "gainer_tickers": [
+        "NSE:M&MFIN"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Plantations - Tea & Coffee",
+      "gainer_tickers": [
+        "BSE:GOODRICKE"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "IT Product Companies",
+      "gainer_tickers": [
+        "NSE:RAMCOSYS"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Auto Ancillaries - Axle shafts",
+      "gainer_tickers": [
+        "NSE:TALBROAUTO"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Castings - Steel/Alloy",
+      "gainer_tickers": [
+        "BSE:INVPRECQ"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Hotels",
+      "gainer_tickers": [
+        "BSE:SAYAJIHOTL"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Diamond, Gems & Jewellery",
+      "gainer_tickers": [
+        "BSE:SJCORP"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Auto Ancillaries - Gears",
+      "gainer_tickers": [
+        "NSE:HITECHGEAR"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Entertainment & Media",
+      "gainer_tickers": [
+        "BSE:POOJAENT"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Electronics - Others",
+      "gainer_tickers": [
+        "BSE:SELECTRIC"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    },
+    {
+      "industry": "Cables - Telecom",
+      "gainer_tickers": [
+        "NSE:STLTECH"
+      ],
+      "pct_up": null,
+      "avg_return": null,
+      "total_cos": null
+    }
+  ]
+}

@@ -10,11 +10,7 @@
  * @module services/stockscansMetrics
  */
 
-const axios = require('axios');
-const { getAuthToken } = require('./stockscansAuth');
-
-const CARD_DETAILS_URL = 'https://www.stockscans.in/api/company/card-details';
-const SCANS_RUN_URL = 'https://www.stockscans.in/api/company/scans/run';
+const { stockscans } = require('@stock/api');
 
 /**
  * Saved scan ID used as a token for scans/run. The actual filters are
@@ -42,21 +38,6 @@ async function fetchFundamentals(nseSymbols) {
     result[s] = { marketCapCr: null, pe: null, patGrowthTtm: null, retailHoldingsPercent: null };
   }
 
-  let authToken;
-  try {
-    authToken = getAuthToken();
-  } catch {
-    return result;
-  }
-
-  const headers = {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-    Cookie: `authtoken=${authToken}`,
-    Origin: 'https://www.stockscans.in',
-    Referer: 'https://www.stockscans.in/',
-  };
-
   const companyIds = nseSymbols.map((s) => `NSE:${s}`);
 
   const scanBody = {
@@ -82,14 +63,16 @@ async function fetchFundamentals(nseSymbols) {
     offset: 0,
   };
 
+  // Raw HTTP + auth now live in @stock/api StockscansClient; this service keeps
+  // only the metric-mapping business logic.
   const [cardResult, scanResult] = await Promise.allSettled([
-    axios.post(CARD_DETAILS_URL, { companyIds }, { headers, timeout: 15000 }),
-    axios.post(SCANS_RUN_URL, scanBody, { headers, timeout: 20000 }),
+    stockscans.cardDetails(companyIds),
+    stockscans.runScan(scanBody),
   ]);
 
   // card-details → marketCapCr + pe
   if (cardResult.status === 'fulfilled') {
-    const cardData = cardResult.value.data?.cardData ?? {};
+    const cardData = cardResult.value?.cardData ?? {};
     for (const symbol of nseSymbols) {
       const ratios = cardData[`NSE:${symbol}`]?.metaRatios;
       if (ratios) {
@@ -101,7 +84,7 @@ async function fetchFundamentals(nseSymbols) {
 
   // scans/run → patGrowthTtm + retailHoldingsPercent
   if (scanResult.status === 'fulfilled') {
-    const table = scanResult.value.data?.table;
+    const table = scanResult.value?.table;
     if (Array.isArray(table) && table.length > 1) {
       const hdr = table[0];
       const cidIdx = hdr.indexOf('companyId');

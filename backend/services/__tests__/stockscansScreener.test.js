@@ -3,11 +3,18 @@
  */
 
 const mockGetAuthToken = jest.fn(() => 'test-token');
-const mockCreateAuthenticatedClient = jest.fn();
+const mockSavedScans = jest.fn();
+const mockRunScan = jest.fn();
 
+// Service now delegates the HTTP to @stock/api; auth stays mocked to a valid token.
+jest.mock('@stock/api', () => ({
+  stockscans: {
+    savedScans: (...args) => mockSavedScans(...args),
+    runScan: (...args) => mockRunScan(...args),
+  },
+}));
 jest.mock('../stockscansAuth', () => ({
   getAuthToken: (...args) => mockGetAuthToken(...args),
-  createAuthenticatedClient: (...args) => mockCreateAuthenticatedClient(...args),
 }));
 
 const {
@@ -91,12 +98,9 @@ describe('parseTableBody', () => {
 
 describe('fetchSavedScans', () => {
   it('normalizes a bare-array response', async () => {
-    const getMock = jest.fn().mockResolvedValue({
-      data: [
-        { scanId: 'id1', scanName: 'Scan One', scanDescription: 'desc', filters: [] },
-      ],
-    });
-    mockCreateAuthenticatedClient.mockReturnValue({ get: getMock });
+    mockSavedScans.mockResolvedValue([
+      { scanId: 'id1', scanName: 'Scan One', scanDescription: 'desc', filters: [] },
+    ]);
 
     const scans = await fetchSavedScans();
     expect(scans).toHaveLength(1);
@@ -105,20 +109,16 @@ describe('fetchSavedScans', () => {
   });
 
   it('normalizes a { scans: [...] } response', async () => {
-    const getMock = jest.fn().mockResolvedValue({
-      data: { scans: [{ scanId: 'id2', scanName: 'Scan Two', filters: [] }] },
-    });
-    mockCreateAuthenticatedClient.mockReturnValue({ get: getMock });
+    mockSavedScans.mockResolvedValue({ scans: [{ scanId: 'id2', scanName: 'Scan Two', filters: [] }] });
 
     const scans = await fetchSavedScans();
     expect(scans[0].scanId).toBe('id2');
   });
 
   it('throws STOCKSCANS_AUTH_REQUIRED on 401', async () => {
-    const getMock = jest.fn().mockRejectedValue(
+    mockSavedScans.mockRejectedValue(
       Object.assign(new Error('Unauthorized'), { response: { status: 401 } })
     );
-    mockCreateAuthenticatedClient.mockReturnValue({ get: getMock });
 
     await expect(fetchSavedScans()).rejects.toMatchObject({ code: 'STOCKSCANS_AUTH_REQUIRED' });
   });
@@ -130,32 +130,26 @@ describe('runScan', () => {
   });
 
   it('paginates until end >= total and merges rows', async () => {
-    const postMock = jest.fn()
+    mockRunScan
       .mockResolvedValueOnce({
-        data: {
-          total: 3,
-          start: 1,
-          end: 2,
-          table: [
-            ['companyId', 'Market Capitalization'],
-            ['NSE:A', 1000],
-            ['NSE:B', 800],
-          ],
-        },
+        total: 3,
+        start: 1,
+        end: 2,
+        table: [
+          ['companyId', 'Market Capitalization'],
+          ['NSE:A', 1000],
+          ['NSE:B', 800],
+        ],
       })
       .mockResolvedValueOnce({
-        data: {
-          total: 3,
-          start: 3,
-          end: 3,
-          table: [
-            ['companyId', 'Market Capitalization'],
-            ['NSE:C', 500],
-          ],
-        },
+        total: 3,
+        start: 3,
+        end: 3,
+        table: [
+          ['companyId', 'Market Capitalization'],
+          ['NSE:C', 500],
+        ],
       });
-
-    mockCreateAuthenticatedClient.mockReturnValue({ post: postMock });
 
     const { rows, columns, total, scanName } = await runScan(makeScan());
 
@@ -164,6 +158,6 @@ describe('runScan', () => {
     expect(columns[0].key).toBe('Market Capitalization');
     expect(total).toBe(3);
     expect(scanName).toBe('Test Scan');
-    expect(postMock).toHaveBeenCalledTimes(2);
+    expect(mockRunScan).toHaveBeenCalledTimes(2);
   });
 });

@@ -4,11 +4,9 @@
  * @see {@link docs/API_REFERENCE.md#announcements-apis} for API docs
  */
 
-const axios = require('axios');
-const { getAuthToken, createAuthenticatedClient } = require('./stockscansAuth');
+const { getAuthToken } = require('./stockscansAuth');
+const { stockscans } = require('@stock/api');
 
-const STOCKSCANS_ANNOUNCEMENTS_SEARCH_URL =
-  'https://www.stockscans.in/api/company/announcements/search';
 const STOCKSCANS_ASSETS_BASE = 'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs';
 
 /** Minimum search length required by StockScans (API returns validation error below this) */
@@ -90,19 +88,6 @@ function mapStockScansAnnouncement(row) {
 }
 
 /**
- * Resolve axios client: authenticated when `STOCKSCANS_AUTH_TOKEN` is set
- * @returns {{ client: import('axios').AxiosInstance, hasAuth: boolean }}
- */
-function getAnnouncementsClient() {
-  try {
-    const token = getAuthToken();
-    return { client: createAuthenticatedClient(token), hasAuth: true };
-  } catch {
-    return { client: axios.create({ timeout: 30000 }), hasAuth: false };
-  }
-}
-
-/**
  * Search announcements for a company via StockScans
  * @param {Object} options
  * @param {string} options.companyId - e.g. `NSE:RELIANCE`
@@ -115,8 +100,9 @@ async function searchCompanyAnnouncements({ companyId, search, offset = 0 }) {
   const raw = (search || '').trim();
   const effectiveSearch = raw.length >= MIN_SEARCH_LENGTH ? raw : DEFAULT_ANNOUNCEMENT_SEARCH;
 
-  const { client, hasAuth } = getAnnouncementsClient();
-  if (!hasAuth) {
+  try {
+    getAuthToken();
+  } catch {
     const err = new Error(
       'STOCKSCANS_AUTH_TOKEN is required for announcements. Add the authtoken cookie value from stockscans.in to backend/.env'
     );
@@ -124,23 +110,13 @@ async function searchCompanyAnnouncements({ companyId, search, offset = 0 }) {
     throw err;
   }
 
-  let response;
+  // Raw HTTP + auth headers now live in @stock/api StockscansClient; this service
+  // keeps its mapping + the rich upstream-error classification below.
+  let body;
   try {
-    response = await client.post(
-      STOCKSCANS_ANNOUNCEMENTS_SEARCH_URL,
-      {
-        search: effectiveSearch,
-        companyId,
-        offset,
-      },
-      {
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          Origin: 'https://www.stockscans.in',
-          Referer: `https://www.stockscans.in/company/${encodeURIComponent(companyId)}`,
-        },
-      }
+    body = await stockscans.searchAnnouncements(
+      { search: effectiveSearch, companyId, offset },
+      { referer: `https://www.stockscans.in/company/${encodeURIComponent(companyId)}` }
     );
   } catch (err) {
     if (err.response) {
@@ -185,7 +161,7 @@ async function searchCompanyAnnouncements({ companyId, search, offset = 0 }) {
     throw out;
   }
 
-  const body = response.data || {};
+  body = body || {};
   if (body.status === 'error') {
     const err = new Error(body.message || 'StockScans announcements search failed');
     err.code = 'STOCKSCANS_API_ERROR';

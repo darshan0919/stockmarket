@@ -15,12 +15,15 @@ const {
   resolveLatestEarningsCalls,
 } = require('../stockscansAnnouncementScan');
 
+const mockScan = jest.fn();
+
+// Service now delegates the HTTP to @stock/api; auth stays mocked to a valid token.
+jest.mock('@stock/api', () => ({
+  stockscans: { scanAnnouncements: (...args) => mockScan(...args) },
+}));
 jest.mock('../stockscansAuth', () => ({
   getAuthToken: jest.fn(() => 'test-token'),
-  createAuthenticatedClient: jest.fn(),
 }));
-
-const { createAuthenticatedClient } = require('../stockscansAuth');
 
 describe('stockscansAnnouncementScan', () => {
   describe('parseCompanyIdInput', () => {
@@ -63,28 +66,23 @@ describe('stockscansAnnouncementScan', () => {
   });
 
   describe('scanEarningsCalls', () => {
-    let postMock;
-
     beforeEach(() => {
-      postMock = jest.fn();
-      createAuthenticatedClient.mockReturnValue({ post: postMock });
+      mockScan.mockReset();
     });
 
     it('posts companyFilters to scan API', async () => {
-      postMock.mockResolvedValue({
-        data: {
-          announcements: [
-            {
-              companyId: 'NSE:RELIANCE',
-              name: 'Reliance',
-              title: 'Transcript',
-              date: '2026-01-18',
-              ssUrl: 'x.pdf',
-            },
-          ],
-          total: 1,
-          quarterDate: '202603',
-        },
+      mockScan.mockResolvedValue({
+        announcements: [
+          {
+            companyId: 'NSE:RELIANCE',
+            name: 'Reliance',
+            title: 'Transcript',
+            date: '2026-01-18',
+            ssUrl: 'x.pdf',
+          },
+        ],
+        total: 1,
+        quarterDate: '202603',
       });
 
       const { announcements, meta } = await scanEarningsCalls({
@@ -92,8 +90,7 @@ describe('stockscansAnnouncementScan', () => {
         quarterDate: '202603',
       });
 
-      expect(postMock).toHaveBeenCalledWith(
-        'https://www.stockscans.in/api/company/announcements/scan',
+      expect(mockScan).toHaveBeenCalledWith(
         expect.objectContaining({
           quarterDate: '202603',
           scan: expect.objectContaining({
@@ -101,7 +98,7 @@ describe('stockscansAnnouncementScan', () => {
             companyFilters: [{ companyId: 'NSE:RELIANCE' }],
           }),
         }),
-        expect.any(Object)
+        expect.objectContaining({ referer: expect.any(String) })
       );
       expect(announcements).toHaveLength(1);
       expect(meta.total).toBe(1);
@@ -115,15 +112,13 @@ describe('stockscansAnnouncementScan', () => {
 
     it('batches companyFilters when more than 10 companies', async () => {
       const ids = Array.from({ length: 12 }, (_, i) => `NSE:CO${i}`);
-      postMock.mockResolvedValue({
-        data: { announcements: [], total: 0, quarterDate: '202603' },
-      });
+      mockScan.mockResolvedValue({ announcements: [], total: 0, quarterDate: '202603' });
 
       await scanEarningsCalls({ companyIds: ids, quarterDate: '202603' });
 
-      expect(postMock).toHaveBeenCalledTimes(2);
-      const firstFilters = postMock.mock.calls[0][1].scan.companyFilters;
-      const secondFilters = postMock.mock.calls[1][1].scan.companyFilters;
+      expect(mockScan).toHaveBeenCalledTimes(2);
+      const firstFilters = mockScan.mock.calls[0][0].scan.companyFilters;
+      const secondFilters = mockScan.mock.calls[1][0].scan.companyFilters;
       expect(firstFilters).toHaveLength(MAX_ANNOUNCEMENT_SCAN_COMPANY_FILTERS);
       expect(secondFilters).toHaveLength(2);
     });
@@ -137,36 +132,25 @@ describe('stockscansAnnouncementScan', () => {
   });
 
   describe('resolveLatestEarningsCalls', () => {
-    let postMock;
-
     beforeEach(() => {
-      postMock = jest.fn();
-      createAuthenticatedClient.mockReturnValue({ post: postMock });
+      mockScan.mockReset();
     });
 
     it('walks back a quarter for companies missing in the first scan', async () => {
-      postMock
+      mockScan
+        .mockResolvedValueOnce({ announcements: [], total: 0, quarterDate: '202603' })
         .mockResolvedValueOnce({
-          data: {
-            announcements: [],
-            total: 0,
-            quarterDate: '202603',
-          },
-        })
-        .mockResolvedValueOnce({
-          data: {
-            announcements: [
-              {
-                companyId: 'NSE:TCS',
-                name: 'TCS',
-                title: 'Transcript',
-                date: '2025-10-15',
-                ssUrl: 'tcs.pdf',
-              },
-            ],
-            total: 1,
-            quarterDate: '202512',
-          },
+          announcements: [
+            {
+              companyId: 'NSE:TCS',
+              name: 'TCS',
+              title: 'Transcript',
+              date: '2025-10-15',
+              ssUrl: 'tcs.pdf',
+            },
+          ],
+          total: 1,
+          quarterDate: '202512',
         });
 
       const { announcements, missing, meta } = await resolveLatestEarningsCalls({
@@ -175,7 +159,7 @@ describe('stockscansAnnouncementScan', () => {
         maxQuarterLookback: 2,
       });
 
-      expect(postMock).toHaveBeenCalledTimes(2);
+      expect(mockScan).toHaveBeenCalledTimes(2);
       expect(announcements).toHaveLength(1);
       expect(missing).toEqual([]);
       expect(meta.found).toBe(1);

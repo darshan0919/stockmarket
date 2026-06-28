@@ -5,8 +5,7 @@
  * @module services/stockscansAnnouncementScansPage
  */
 
-const axios = require('axios');
-const { createAuthenticatedClient } = require('./stockscansAuth');
+const { stockscans, StockscansAuth } = require('@stock/api');
 const { STOCKSCANS_ASSETS_BASE } = require('./stockscansAnnouncements');
 
 const STOCKSCANS_ORIGIN = 'https://www.stockscans.in';
@@ -374,23 +373,19 @@ const TRENDING_KEYWORDS = {
  * @param {{ authRequired?: boolean }} [options]
  * @returns {import('axios').AxiosInstance}
  */
-function makeClient(options = {}) {
-  const token = (process.env.STOCKSCANS_AUTH_TOKEN || '').trim();
-  if (token) return createAuthenticatedClient(token);
-  if (options.authRequired) {
+// Raw HTTP + auth now live in @stock/api StockscansClient. Public endpoints call the
+// client with optionalAuth (works unauthenticated); the auth-required ones gate on a
+// token first to preserve the STOCKSCANS_AUTH_REQUIRED contract.
+function requireAuth() {
+  try {
+    new StockscansAuth().getToken();
+  } catch {
     const err = new Error(
       'STOCKSCANS_AUTH_TOKEN is required for saved announcement scans and watchlists.'
     );
     err.code = 'STOCKSCANS_AUTH_REQUIRED';
     throw err;
   }
-  return axios.create({
-    timeout: 60000,
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-  });
 }
 
 /**
@@ -649,23 +644,19 @@ function mapAnnouncementScanResponse(body = {}) {
 }
 
 async function postStockScansAnnouncementScan(payload) {
-  const response = await makeClient().post(ANNOUNCEMENT_SCAN_URL, payload, {
-    headers: {
-      Origin: STOCKSCANS_ORIGIN,
-      Referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE,
-    },
+  const data = await stockscans.scanAnnouncements(payload, {
+    referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE,
+    optionalAuth: true,
   });
-  return mapAnnouncementScanResponse(response.data || {});
+  return mapAnnouncementScanResponse(data || {});
 }
 
 async function postStockScansAnnouncementStatistics(payload) {
-  const response = await makeClient().post(ANNOUNCEMENT_STATISTICS_URL, payload, {
-    headers: {
-      Origin: STOCKSCANS_ORIGIN,
-      Referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE,
-    },
+  const data = await stockscans.announcementStatistics(payload, {
+    referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE,
+    optionalAuth: true,
   });
-  return response.data || {};
+  return data || {};
 }
 
 /**
@@ -843,12 +834,13 @@ async function fetchFilteredAnnouncementStatistics(payload, rawStats) {
 
 async function fetchAnnouncementScanMetadata() {
   try {
-    const response = await makeClient().get(SCAN_METADATA_URL, {
-      headers: { Origin: STOCKSCANS_ORIGIN, Referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE },
+    const data = await stockscans.scanMetadata({
+      referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE,
+      optionalAuth: true,
     });
     return {
-      indexList: arrayOr(response.data?.indexList),
-      industryList: arrayOr(response.data?.industryList),
+      indexList: arrayOr(data?.indexList),
+      industryList: arrayOr(data?.industryList),
       announcementTypes: ANNOUNCEMENT_TYPES,
       trendingKeywords: TRENDING_KEYWORDS,
       quarterDates: getQuarterDates(),
@@ -863,65 +855,62 @@ async function searchCompanies(query) {
   const q = String(query || '').trim();
   if (!q) return [];
   try {
-    const response = await makeClient().get(COMPANY_SEARCH_URL, {
-      params: { q, type: 'Company' },
-      headers: { Origin: STOCKSCANS_ORIGIN, Referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE },
+    const data = await stockscans.companySearch(q, {
+      type: 'Company',
+      referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE,
+      optionalAuth: true,
     });
-    return arrayOr(response.data?.companies);
+    return arrayOr(data?.companies);
   } catch (err) {
     throw toStockScansError(err, 'StockScans company search failed');
   }
 }
 
 async function fetchWatchlists() {
+  requireAuth();
   try {
-    const response = await makeClient({ authRequired: true }).get(WATCHLISTS_URL, {
-      params: { view: 'names' },
-      headers: { Origin: STOCKSCANS_ORIGIN, Referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE },
+    const data = await stockscans.watchlistsList({
+      view: 'names',
+      referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE,
     });
-    return arrayOr(response.data?.watchlists);
+    return arrayOr(data?.watchlists);
   } catch (err) {
     throw toStockScansError(err, 'StockScans watchlists failed');
   }
 }
 
 async function fetchSavedAnnouncementScans() {
+  requireAuth();
   try {
-    const response = await makeClient({ authRequired: true }).get(SAVED_ANNOUNCEMENT_SCANS_URL, {
-      headers: { Origin: STOCKSCANS_ORIGIN, Referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE },
+    const data = await stockscans.savedAnnouncementScans({
+      referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE,
     });
-    return arrayOr(response.data?.announcementScans);
+    return arrayOr(data?.announcementScans);
   } catch (err) {
     throw toStockScansError(err, 'StockScans saved announcement scans failed');
   }
 }
 
 async function saveAnnouncementScan(scan) {
+  requireAuth();
   try {
     const payload = stripLocalScanFields(normalizeScan(scan));
-    const response = await makeClient({ authRequired: true }).put(
-      SAVED_ANNOUNCEMENT_SCANS_URL,
-      payload,
-      {
-        headers: { Origin: STOCKSCANS_ORIGIN, Referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE },
-      }
-    );
-    return response.data || {};
+    const data = await stockscans.saveAnnouncementScan(payload, {
+      referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE,
+    });
+    return data || {};
   } catch (err) {
     throw toStockScansError(err, 'StockScans save announcement scan failed');
   }
 }
 
 async function reorderAnnouncementScans(scanIds) {
+  requireAuth();
   try {
-    const response = await makeClient({ authRequired: true }).put(
-      `${SAVED_ANNOUNCEMENT_SCANS_URL}/order`,
-      { scanIds: arrayOr(scanIds) },
-      {
-        headers: { Origin: STOCKSCANS_ORIGIN, Referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE },
-      }
-    );
-    return response.data || {};
+    const data = await stockscans.reorderAnnouncementScans(arrayOr(scanIds), {
+      referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE,
+    });
+    return data || {};
   } catch (err) {
     throw toStockScansError(err, 'StockScans reorder announcement scans failed');
   }
@@ -934,14 +923,12 @@ async function deleteAnnouncementScan(scanId) {
     err.code = 'INVALID_SCAN_ID';
     throw err;
   }
+  requireAuth();
   try {
-    const response = await makeClient({ authRequired: true }).delete(
-      `${SAVED_ANNOUNCEMENT_SCANS_URL}/${encodeURIComponent(id)}`,
-      {
-        headers: { Origin: STOCKSCANS_ORIGIN, Referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE },
-      }
-    );
-    return response.data || {};
+    const data = await stockscans.deleteAnnouncementScan(id, {
+      referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE,
+    });
+    return data || {};
   } catch (err) {
     throw toStockScansError(err, 'StockScans delete announcement scan failed');
   }
@@ -989,12 +976,13 @@ async function fetchCompanyAnnouncements(params = {}) {
     descriptionKeywordsToIgnore: params.descriptionKeywordsToIgnore,
   });
   try {
-    const response = await makeClient().post(ANNOUNCEMENT_COMPANY_URL, payload, {
-      headers: { Origin: STOCKSCANS_ORIGIN, Referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE },
+    const data = await stockscans.companyAnnouncements(payload, {
+      referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE,
+      optionalAuth: true,
     });
     return {
       announcements: filterIgnoredAnnouncements(
-        arrayOr(response.data?.announcements).map(mapAnnouncement).filter(Boolean),
+        arrayOr(data?.announcements).map(mapAnnouncement).filter(Boolean),
         ignoreScan
       ),
     };

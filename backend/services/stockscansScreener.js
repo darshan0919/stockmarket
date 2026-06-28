@@ -10,11 +10,8 @@
  * @module services/stockscansScreener
  */
 
-const { getAuthToken, createAuthenticatedClient } = require('./stockscansAuth');
-
-const SAVED_SCANS_URL = 'https://www.stockscans.in/api/user/saved-scans';
-const SCANS_RUN_URL = 'https://www.stockscans.in/api/company/scans/run';
-const SAVED_SCAN_PAGE = 'https://www.stockscans.in/scans/saved';
+const { getAuthToken } = require('./stockscansAuth');
+const { stockscans } = require('@stock/api');
 
 /**
  * @typedef {Object} SavedScan
@@ -39,14 +36,16 @@ const SAVED_SCAN_PAGE = 'https://www.stockscans.in/scans/saved';
  * @property {Record<string, number|string|null>} metrics - keyed by column key
  */
 
-const toAuthClient = () => {
-  let token;
-  try { token = getAuthToken(); } catch (err) {
+// Raw HTTP + auth now live in @stock/api StockscansClient; this service keeps its
+// table parsing, pagination, and upstream-error classification.
+const ensureAuth = () => {
+  try {
+    getAuthToken();
+  } catch (err) {
     const out = new Error(err.message || 'StockScans auth required');
     out.code = 'STOCKSCANS_AUTH_REQUIRED';
     throw out;
   }
-  return createAuthenticatedClient(token);
 };
 
 /**
@@ -54,12 +53,10 @@ const toAuthClient = () => {
  * @returns {Promise<SavedScan[]>}
  */
 const fetchSavedScans = async () => {
-  const client = toAuthClient();
-  let response;
+  ensureAuth();
+  let raw;
   try {
-    response = await client.get(SAVED_SCANS_URL, {
-      headers: { Origin: 'https://www.stockscans.in', Referer: 'https://www.stockscans.in/scans/saved' },
-    });
+    raw = await stockscans.savedScans();
   } catch (err) {
     if (err.response) {
       const status = err.response.status;
@@ -73,7 +70,6 @@ const fetchSavedScans = async () => {
     throw out;
   }
 
-  const raw = response.data;
   // API may return { scans: [...] } or a bare array
   const list = Array.isArray(raw) ? raw : (Array.isArray(raw?.scans) ? raw.scans : []);
 
@@ -164,7 +160,7 @@ const runScan = async (scan) => {
     throw err;
   }
 
-  const client = toAuthClient();
+  ensureAuth();
   const scanId = scan.scanId;
   const scanName = scan.scanName || scanId;
 
@@ -177,10 +173,9 @@ const runScan = async (scan) => {
   let total = 0;
 
   for (;;) {
-    let response;
+    let data;
     try {
-      response = await client.post(
-        SCANS_RUN_URL,
+      data = await stockscans.runScan(
         {
           ratiosType: 'Ratios',
           timePeriod: 'Latest',
@@ -190,12 +185,7 @@ const runScan = async (scan) => {
           orderBy: 'Market Capitalization',
           offset,
         },
-        {
-          headers: {
-            Origin: 'https://www.stockscans.in',
-            Referer: `${SAVED_SCAN_PAGE}/${scanId}`,
-          },
-        }
+        scanId
       );
     } catch (err) {
       if (err.response) {
@@ -216,7 +206,7 @@ const runScan = async (scan) => {
       throw out;
     }
 
-    const body = response.data || {};
+    const body = data || {};
     if (body.status === 'error') {
       const err = new Error(body.message || 'StockScans scan run failed');
       err.code = 'STOCKSCANS_API_ERROR';

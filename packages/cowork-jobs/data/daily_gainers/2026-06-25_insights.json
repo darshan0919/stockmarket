@@ -1,0 +1,565 @@
+{
+  "schema_version": "1.1",
+  "market_date": "2026-06-25",
+  "generated_at_ist": "2026-06-26T12:06:03.452024+05:30",
+  "summary": {
+    "total_analyzed": 38,
+    "fundamental_movers": 0,
+    "sector_catalysts": 0,
+    "price_action_breakouts": 0,
+    "noise_excluded": 38,
+    "in_email": 0
+  },
+  "signals": [
+    {
+      "ticker": "NSE:SAKSOFT",
+      "name": "Saksoft Ltd",
+      "industry": "IT - Software",
+      "return_1d": 15.08,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 4.2%",
+        "Delivery value: \u20b921.8 Cr",
+        "Return: +15.08%"
+      ],
+      "exclusion_reason": "delivery 4.2% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "BSE:BLACKROSE",
+      "name": "Black Rose Industries Ltd",
+      "industry": "Speciality Chemicals",
+      "return_1d": 12.84,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 58.5% \u2713 high",
+        "Return: +12.84%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "NSE:RAMCOIND",
+      "name": "Ramco Industries Ltd",
+      "industry": "Cement Products",
+      "return_1d": 12.69,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 5.8%",
+        "Delivery value: \u20b953.1 Cr",
+        "Return: +12.69%"
+      ],
+      "exclusion_reason": "delivery 5.8% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "NSE:RELAXO",
+      "name": "Relaxo Footwears Ltd",
+      "industry": "Footwear",
+      "return_1d": 12.09,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 3.2%",
+        "Delivery value: \u20b945.1 Cr",
+        "Return: +12.09%"
+      ],
+      "exclusion_reason": "delivery 3.2% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "BSE:EMMFORCE",
+      "name": "Emmforce Autotech Ltd",
+      "industry": "Auto Ancillaries - Others",
+      "return_1d": 11.71,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 67.7% \u2713 high",
+        "Return: +11.71%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "NSE:PIXTRANS",
+      "name": "Pix Transmission Ltd",
+      "industry": "Rubber Processing/Rubber Products",
+      "return_1d": 11.37,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 3.5%",
+        "Delivery value: \u20b918.0 Cr",
+        "Return: +11.37%"
+      ],
+      "exclusion_reason": "delivery 3.5% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "BSE:KMCSHIL",
+      "name": "KMC Speciality Hospitals (India) Ltd",
+      "industry": "Hospitals",
+      "return_1d": 11.14,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 29.3%",
+        "Return: +11.14%"
+      ],
+      "exclusion_reason": "delivery 29.3% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "NSE:EVERESTIND",
+      "name": "Everest Industries Ltd",
+      "industry": "Pre-Engineering Buildings",
+      "return_1d": 10.68,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 23.3%",
+        "Delivery value: \u20b97.5 Cr",
+        "Return: +10.68%"
+      ],
+      "exclusion_reason": "delivery 23.3% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "BSE:NWIL",
+      "name": "Nurture Well Industries Ltd",
+      "industry": "Diversified",
+      "return_1d": 9.98,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 64.1% \u2713 high",
+        "Return: +9.98%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "NSE:MSUMI",
+      "name": "Motherson Sumi Wiring India Ltd",
+      "industry": "Auto Ancillaries - Diversified",
+      "return_1d": 9.1,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 13.5%",
+        "Delivery value: \u20b9126.0 Cr",
+        "Return: +9.10%"
+      ],
+      "exclusion_reason": "delivery 13.5% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "NSE:REPCOHOME",
+      "name": "Repco Home Finance Ltd",
+      "industry": "Finance - Housing",
+      "return_1d": 7.44,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 21.3%",
+        "Delivery value: \u20b921.3 Cr",
+        "Return: +7.44%"
+      ],
+      "exclusion_reason": "delivery 21.3% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "BSE:ASARFI",
+      "name": "Asarfi Hospital Ltd",
+      "industry": "Hospitals/Medical Services",
+      "return_1d": 7.34,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 63.0% \u2713 high",
+        "Return: +7.34%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "BSE:BALGOPAL",
+      "name": "Balgopal Commercial Ltd",
+      "industry": "Trading",
+      "return_1d": 7.27,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 97.2% \u2713 high",
+        "Return: +7.27%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "BSE:AEGISLOG",
+      "name": "Aegis Logistics Ltd",
+      "industry": "Logistics",
+      "return_1d": 7.27,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 35.0%",
+        "Return: +7.27%"
+      ],
+      "exclusion_reason": "delivery 35.0% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "BSE:LTELEVATOR",
+      "name": "L T Elevator Ltd",
+      "industry": "Engineering - Light - General",
+      "return_1d": 6.92,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 60.6% \u2713 high",
+        "Return: +6.92%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "NSE:BLISSGVS",
+      "name": "Bliss GVS Pharma Ltd",
+      "industry": "Pharma - Formulators",
+      "return_1d": 6.92,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 34.2%",
+        "Delivery value: \u20b928.4 Cr",
+        "Return: +6.92%"
+      ],
+      "exclusion_reason": "delivery 34.2% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "NSE:WHEELS",
+      "name": "Wheels India Ltd",
+      "industry": "Auto Ancillaries - Wheels",
+      "return_1d": 6.89,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 41.0%",
+        "Delivery value: \u20b914.5 Cr",
+        "Return: +6.89%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "NSE:DYCL",
+      "name": "Dynamic Cables Ltd",
+      "industry": "Cables - Power",
+      "return_1d": 6.76,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 17.7%",
+        "Delivery value: \u20b917.6 Cr",
+        "Return: +6.76%"
+      ],
+      "exclusion_reason": "delivery 17.7% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "BSE:EBGNG",
+      "name": "GNG Electronics Ltd",
+      "industry": "New age - Platform - E-Retail",
+      "return_1d": 6.69,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 39.1%",
+        "Return: +6.69%"
+      ],
+      "exclusion_reason": "delivery 39.1% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "NSE:FUSION",
+      "name": "Fusion Finance Ltd",
+      "industry": "Finance & Investments - Microfinance",
+      "return_1d": 6.54,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 34.7%",
+        "Delivery value: \u20b917.9 Cr",
+        "Return: +6.54%"
+      ],
+      "exclusion_reason": "delivery 34.7% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "BSE:FEDDERSHOL",
+      "name": "Fedders Holding Ltd",
+      "industry": "Finance & Investments - Others",
+      "return_1d": 6.35,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 42.8%",
+        "Return: +6.35%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "NSE:ONWARDTEC",
+      "name": "Onward Technologies Ltd",
+      "industry": "IT - ER&D",
+      "return_1d": 6.07,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 3.8%",
+        "Delivery value: \u20b912.2 Cr",
+        "Return: +6.07%"
+      ],
+      "exclusion_reason": "delivery 3.8% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "NSE:TVSELECT",
+      "name": "TVS Electronics Ltd",
+      "industry": "Computer - Hardware",
+      "return_1d": 5.97,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 14.3%",
+        "Delivery value: \u20b96.1 Cr",
+        "Return: +5.97%"
+      ],
+      "exclusion_reason": "delivery 14.3% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "NSE:M&MFIN",
+      "name": "Mahindra & Mahindra Financial Services Ltd",
+      "industry": "Finance & Investments - CV Finance",
+      "return_1d": 5.69,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 50.2% \u2713 high",
+        "Delivery value: \u20b9161.1 Cr",
+        "Return: +5.69%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "BSE:GOODRICKE",
+      "name": "Goodricke Group Ltd",
+      "industry": "Plantations - Tea & Coffee",
+      "return_1d": 5.46,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 81.7% \u2713 high",
+        "Return: +5.46%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "NSE:RAMCOSYS",
+      "name": "Ramco Systems Ltd",
+      "industry": "IT Product Companies",
+      "return_1d": 5.34,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 4.9%",
+        "Delivery value: \u20b962.6 Cr",
+        "Return: +5.34%"
+      ],
+      "exclusion_reason": "delivery 4.9% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "NSE:TALBROAUTO",
+      "name": "Talbros Automotive Components Ltd",
+      "industry": "Auto Ancillaries - Axle shafts",
+      "return_1d": 5.27,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 18.7%",
+        "Delivery value: \u20b920.6 Cr",
+        "Return: +5.27%"
+      ],
+      "exclusion_reason": "delivery 18.7% < 40% \u2014 likely intraday"
+    },
+    {
+      "ticker": "BSE:TMCV",
+      "name": "Tata Motors Ltd",
+      "industry": "Auto & Auto Ancl - CV",
+      "return_1d": 5.06,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 42.0%",
+        "Return: +5.06%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "BSE:INVPRECQ",
+      "name": "Investment & Precision Castings Ltd",
+      "industry": "Castings - Steel/Alloy",
+      "return_1d": 5.03,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 81.4% \u2713 high",
+        "Return: +5.03%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "NSE:HFCL",
+      "name": "HFCL Ltd",
+      "industry": "Telecom Services",
+      "return_1d": 5.0,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [NSE]: 41.1%",
+        "Delivery value: \u20b9206.8 Cr",
+        "Return: +5.00%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "BSE:AUTOIND",
+      "name": "Autoline Industries Ltd",
+      "industry": "Auto Ancillaries - Sheet Metal",
+      "return_1d": 5.0,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 100.0% \u2713 high",
+        "Return: +5.00%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "BSE:SAYAJIHOTL",
+      "name": "Sayaji Hotels Ltd",
+      "industry": "Hotels",
+      "return_1d": 5.0,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 99.4% \u2713 high",
+        "Return: +5.00%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "BSE:SJCORP",
+      "name": "SJ Corporation Ltd",
+      "industry": "Diamond, Gems & Jewellery",
+      "return_1d": 5.0,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 100.0% \u2713 high",
+        "Return: +5.00%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "BSE:KANORICHEM",
+      "name": "Kanoria Chemicals & Industries Ltd",
+      "industry": "Chemicals - Organic - Alcohol Based",
+      "return_1d": 5.0,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 100.0% \u2713 high",
+        "Return: +5.00%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "BSE:POOJAENT",
+      "name": "Vashu Bhagnani Industries Ltd",
+      "industry": "Entertainment & Media",
+      "return_1d": 5.0,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 100.0% \u2713 high",
+        "Return: +5.00%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "BSE:SKM",
+      "name": "SK Minerals & Additives Ltd",
+      "industry": "Trading",
+      "return_1d": 5.0,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 65.0% \u2713 high",
+        "Return: +5.00%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "BSE:EBIX",
+      "name": "Eraaya Lifespaces Ltd",
+      "industry": "Finance & Investments - Others",
+      "return_1d": 5.0,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 100.0% \u2713 high",
+        "Return: +5.00%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    },
+    {
+      "ticker": "BSE:HITECHGEAR",
+      "name": "The Hi-Tech Gears Ltd",
+      "industry": "Auto Ancillaries - Gears",
+      "return_1d": 5.0,
+      "primary_driver": "VOLATILITY",
+      "conviction": null,
+      "in_email": false,
+      "evidence": [
+        "Delivery [BSE]: 100.0% \u2713 high",
+        "Return: +5.00%"
+      ],
+      "exclusion_reason": "no qualifying price signal"
+    }
+  ],
+  "sector_catalysts": []
+}

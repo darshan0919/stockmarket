@@ -12,18 +12,19 @@ const {
   fetchCompanyIdsFromSavedScanUrl,
 } = require('../stockscansSavedScan');
 
+const mockPageHtml = jest.fn();
+const mockRunScan = jest.fn();
+
+// Service now delegates the HTTP to @stock/api; auth stays mocked to a valid token.
+jest.mock('@stock/api', () => ({
+  stockscans: {
+    savedScanPageHtml: (...args) => mockPageHtml(...args),
+    runScan: (...args) => mockRunScan(...args),
+  },
+}));
 jest.mock('../stockscansAuth', () => ({
   getAuthToken: jest.fn(() => 'test-token'),
-  createAuthenticatedClient: jest.fn(),
 }));
-
-jest.mock('axios', () => ({
-  get: jest.fn(),
-  create: jest.fn(),
-}));
-
-const axios = require('axios');
-const { createAuthenticatedClient } = require('../stockscansAuth');
 
 const SCAN_ID = 'c29a98ebbb568f073162ba24';
 const SCAN_HTML_SNIPPET = `prefix"scan":{"scanId":"${SCAN_ID}","scanName":"Pre PEAD Candidates","scanDescription":"Pre PEAD Candidates","industry":[],"index":[],"sector":[],"tags":[],"watchlistIds":[],"filters":[{"left":"Market Capitalization","sign":">=","right":"300"}],"alertFrequency":null},"frequency":nullsuffix`;
@@ -65,37 +66,30 @@ describe('stockscansSavedScan', () => {
   });
 
   describe('runScanAndCollectCompanyIds', () => {
-    let postMock;
-
     beforeEach(() => {
-      postMock = jest.fn();
-      createAuthenticatedClient.mockReturnValue({ post: postMock });
+      mockRunScan.mockReset();
     });
 
     it('paginates until end >= total', async () => {
-      postMock
+      mockRunScan
         .mockResolvedValueOnce({
-          data: {
-            total: 3,
-            start: 1,
-            end: 2,
-            table: [
-              ['companyId', 'Name'],
-              ['NSE:A', 'A'],
-              ['NSE:B', 'B'],
-            ],
-          },
+          total: 3,
+          start: 1,
+          end: 2,
+          table: [
+            ['companyId', 'Name'],
+            ['NSE:A', 'A'],
+            ['NSE:B', 'B'],
+          ],
         })
         .mockResolvedValueOnce({
-          data: {
-            total: 3,
-            start: 3,
-            end: 3,
-            table: [
-              ['companyId', 'Name'],
-              ['NSE:C', 'C'],
-            ],
-          },
+          total: 3,
+          start: 3,
+          end: 3,
+          table: [
+            ['companyId', 'Name'],
+            ['NSE:C', 'C'],
+          ],
         });
 
       const { companyIds, meta } = await runScanAndCollectCompanyIds({
@@ -112,27 +106,23 @@ describe('stockscansSavedScan', () => {
 
       expect(companyIds).toEqual(['NSE:A', 'NSE:B', 'NSE:C']);
       expect(meta.pages).toBe(2);
-      expect(postMock).toHaveBeenCalledTimes(2);
-      expect(postMock.mock.calls[1][1].offset).toBe(2);
+      expect(mockRunScan).toHaveBeenCalledTimes(2);
+      expect(mockRunScan.mock.calls[1][0].offset).toBe(2);
     });
   });
 
   describe('fetchCompanyIdsFromSavedScanUrl', () => {
     beforeEach(() => {
       jest.clearAllMocks();
-      axios.get.mockResolvedValue({ data: SCAN_HTML_SNIPPET });
-      createAuthenticatedClient.mockReturnValue({
-        post: jest.fn().mockResolvedValue({
-          data: {
-            total: 1,
-            start: 1,
-            end: 1,
-            table: [
-              ['companyId', 'Name'],
-              ['NSE:BELRISE', 'Belrise'],
-            ],
-          },
-        }),
+      mockPageHtml.mockResolvedValue(SCAN_HTML_SNIPPET);
+      mockRunScan.mockResolvedValue({
+        total: 1,
+        start: 1,
+        end: 1,
+        table: [
+          ['companyId', 'Name'],
+          ['NSE:BELRISE', 'Belrise'],
+        ],
       });
     });
 
@@ -141,10 +131,7 @@ describe('stockscansSavedScan', () => {
         `https://www.stockscans.in/scans/saved/${SCAN_ID}`
       );
 
-      expect(axios.get).toHaveBeenCalledWith(
-        expect.stringContaining(`/scans/saved/${SCAN_ID}`),
-        expect.any(Object)
-      );
+      expect(mockPageHtml).toHaveBeenCalledWith(SCAN_ID);
       expect(companyIds).toEqual(['NSE:BELRISE']);
       expect(meta.scanId).toBe(SCAN_ID);
     });

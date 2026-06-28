@@ -4,8 +4,8 @@
  * @see {@link docs/API_REFERENCE.md#download-latest-concall-transcripts-zip} for API docs
  */
 
-const axios = require('axios');
-const { getAuthToken, createAuthenticatedClient } = require('./stockscansAuth');
+const { getAuthToken } = require('./stockscansAuth');
+const { stockscans } = require('@stock/api');
 
 const STOCKSCANS_SCANS_RUN_URL = 'https://www.stockscans.in/api/company/scans/run';
 const STOCKSCANS_SAVED_SCAN_PAGE = 'https://www.stockscans.in/scans/saved';
@@ -106,29 +106,19 @@ function extractScanFromSavedPageHtml(html, scanId) {
  * @returns {Promise<StockScansScanDefinition>}
  */
 async function fetchSavedScanDefinition(scanId) {
-  let token;
   try {
-    token = getAuthToken();
+    getAuthToken();
   } catch (err) {
     const out = new Error(err.message || 'StockScans auth required');
     out.code = 'STOCKSCANS_AUTH_REQUIRED';
     throw out;
   }
 
+  // Raw HTTP + auth now live in @stock/api StockscansClient; this service keeps the
+  // RSC-payload parsing, pagination, and upstream-error classification.
   let html;
   try {
-    const response = await axios.get(`${STOCKSCANS_SAVED_SCAN_PAGE}/${scanId}`, {
-      headers: {
-        Cookie: `authtoken=${token}`,
-        Accept: 'text/html,application/xhtml+xml',
-        'User-Agent':
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      },
-      timeout: 30000,
-      maxRedirects: 5,
-      validateStatus: (s) => s >= 200 && s < 400,
-    });
-    html = response.data;
+    html = await stockscans.savedScanPageHtml(scanId);
   } catch (err) {
     const out = new Error(err.message || 'Failed to load saved scan page');
     out.code = 'STOCKSCANS_NETWORK';
@@ -179,10 +169,8 @@ async function runScanAndCollectCompanyIds(scan, options = {}) {
     throw err;
   }
 
-  let client;
   try {
-    const token = getAuthToken();
-    client = createAuthenticatedClient(token);
+    getAuthToken();
   } catch (err) {
     const out = new Error(err.message || 'StockScans auth required');
     out.code = 'STOCKSCANS_AUTH_REQUIRED';
@@ -201,10 +189,9 @@ async function runScanAndCollectCompanyIds(scan, options = {}) {
   let pages = 0;
 
   for (;;) {
-    let response;
+    let data;
     try {
-      response = await client.post(
-        STOCKSCANS_SCANS_RUN_URL,
+      data = await stockscans.runScan(
         {
           ratiosType: 'Ratios',
           timePeriod: 'Latest',
@@ -214,12 +201,7 @@ async function runScanAndCollectCompanyIds(scan, options = {}) {
           orderBy,
           offset,
         },
-        {
-          headers: {
-            Origin: 'https://www.stockscans.in',
-            Referer: `${STOCKSCANS_SAVED_SCAN_PAGE}/${scanId}`,
-          },
-        }
+        scanId
       );
     } catch (err) {
       if (err.response) {
@@ -241,7 +223,7 @@ async function runScanAndCollectCompanyIds(scan, options = {}) {
       throw out;
     }
 
-    const body = response.data || {};
+    const body = data || {};
     if (body.status === 'error') {
       const err = new Error(body.message || 'StockScans scan run failed');
       err.code = 'STOCKSCANS_API_ERROR';

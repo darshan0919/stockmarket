@@ -4,7 +4,8 @@
   "packageManager": "yarn@3.8.7",
   "workspaces": [
     "backend",
-    "frontend"
+    "frontend",
+    "packages/*"
   ],
   "resolutions": {
     "react": "18.3.1",

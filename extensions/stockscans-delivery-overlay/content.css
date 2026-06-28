@@ -1,0 +1,46 @@
+.ssdv-overlay-canvas {
+  position: absolute;
+  inset: 0 auto auto 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.ssdv-status {
+  position: absolute;
+  left: 12px;
+  bottom: 52px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: min(360px, calc(100% - 96px));
+  padding: 4px 7px;
+  border: 1px solid rgba(120, 123, 134, 0.22);
+  border-radius: 4px;
+  background: color-mix(in srgb, canvas 82%, transparent);
+  color: #4b5563;
+  font: 11px/1.25 Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  pointer-events: none;
+  white-space: nowrap;
+  opacity: 0.92;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+.ssdv-status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #26a69a;
+  box-shadow: 10px 0 0 #ef5350;
+  margin-right: 10px;
+  flex: 0 0 auto;
+}
+
+.ssdv-status[data-tone="error"] {
+  color: #b42318;
+}
+
+.ssdv-status[data-tone="muted"] {
+  opacity: 0.55;
+}

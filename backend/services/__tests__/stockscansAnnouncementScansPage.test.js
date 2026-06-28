@@ -2,15 +2,23 @@
  * Unit tests for standalone StockScans announcement-scans page helpers.
  */
 
-jest.mock('axios', () => ({
-  create: jest.fn(),
+const mockScan = jest.fn();
+const mockStats = jest.fn();
+
+// Service now delegates HTTP to @stock/api (optionalAuth for the public page endpoints).
+jest.mock('@stock/api', () => ({
+  stockscans: {
+    scanAnnouncements: (...args) => mockScan(...args),
+    announcementStatistics: (...args) => mockStats(...args),
+  },
+  // Public endpoints don't call this; auth-required ones gate on it (no token in tests).
+  StockscansAuth: class {
+    getToken() {
+      throw new Error('STOCKSCANS_AUTH_TOKEN not set');
+    }
+  },
 }));
 
-jest.mock('../stockscansAuth', () => ({
-  createAuthenticatedClient: jest.fn(),
-}));
-
-const axios = require('axios');
 const {
   DEFAULT_ANNOUNCEMENT_SCAN,
   normalizeScan,
@@ -123,16 +131,13 @@ describe('stockscansAnnouncementScansPage', () => {
   });
 
   it('posts normalized payload to StockScans run API', async () => {
-    const post = jest.fn().mockResolvedValue({
-      data: {
-        announcements: [{ companyId: 'NSE:LT', title: 'Order win', ssUrl: 'x.pdf' }],
-        start: 1,
-        end: 1,
-        total: 1,
-        quarterDate: '202606',
-      },
+    mockScan.mockResolvedValue({
+      announcements: [{ companyId: 'NSE:LT', title: 'Order win', ssUrl: 'x.pdf' }],
+      start: 1,
+      end: 1,
+      total: 1,
+      quarterDate: '202606',
     });
-    axios.create.mockReturnValue({ post });
 
     const out = await runAnnouncementScan({
       scan: { searchFilters: ['Order Book'], searchMode: 'full' },
@@ -140,8 +145,7 @@ describe('stockscansAnnouncementScansPage', () => {
       quarterDate: '202606',
     });
 
-    expect(post).toHaveBeenCalledWith(
-      'https://www.stockscans.in/api/company/announcements/scan',
+    expect(mockScan).toHaveBeenCalledWith(
       expect.objectContaining({
         quarterDate: '202606',
         offset: 0,
@@ -151,41 +155,36 @@ describe('stockscansAnnouncementScansPage', () => {
           searchMode: 'full',
         }),
       }),
-      expect.any(Object)
+      expect.objectContaining({ optionalAuth: true })
     );
     expect(out.announcements).toHaveLength(1);
   });
 
   it('paginates over StockScans rows until it fills the filtered response page', async () => {
-    const post = jest.fn((url, payload) => {
+    mockScan.mockImplementation((payload) => {
       if (payload.offset === 0) {
         return Promise.resolve({
-          data: {
-            announcements: [
-              { companyId: 'NSE:IGNORED', title: 'Board Meeting', ssUrl: 'ignored.pdf' },
-              { companyId: 'NSE:KEEP1', title: 'Order win', ssUrl: 'keep1.pdf' },
-            ],
-            start: 1,
-            end: 2,
-            total: 4,
-            quarterDate: '202606',
-          },
+          announcements: [
+            { companyId: 'NSE:IGNORED', title: 'Board Meeting', ssUrl: 'ignored.pdf' },
+            { companyId: 'NSE:KEEP1', title: 'Order win', ssUrl: 'keep1.pdf' },
+          ],
+          start: 1,
+          end: 2,
+          total: 4,
+          quarterDate: '202606',
         });
       }
       return Promise.resolve({
-        data: {
-          announcements: [
-            { companyId: 'NSE:KEEP2', title: 'Order win', ssUrl: 'keep2.pdf' },
-            { companyId: 'NSE:KEEP3', title: 'Order win', ssUrl: 'keep3.pdf' },
-          ],
-          start: 3,
-          end: 4,
-          total: 4,
-          quarterDate: '202606',
-        },
+        announcements: [
+          { companyId: 'NSE:KEEP2', title: 'Order win', ssUrl: 'keep2.pdf' },
+          { companyId: 'NSE:KEEP3', title: 'Order win', ssUrl: 'keep3.pdf' },
+        ],
+        start: 3,
+        end: 4,
+        total: 4,
+        quarterDate: '202606',
       });
     });
-    axios.create.mockReturnValue({ post });
 
     const out = await runAnnouncementScan({
       scan: { searchFilters: ['Order'], titleKeywordsToIgnore: ['Board Meeting'] },
@@ -193,9 +192,9 @@ describe('stockscansAnnouncementScansPage', () => {
       quarterDate: '202606',
     });
 
-    expect(post).toHaveBeenCalledTimes(2);
-    expect(post.mock.calls.map((call) => call[1].offset)).toEqual([0, 2]);
-    expect(post.mock.calls[0][1].scan.titleKeywordsToIgnore).toBeUndefined();
+    expect(mockScan).toHaveBeenCalledTimes(2);
+    expect(mockScan.mock.calls.map((call) => call[0].offset)).toEqual([0, 2]);
+    expect(mockScan.mock.calls[0][0].scan.titleKeywordsToIgnore).toBeUndefined();
     expect(out.announcements.map((row) => row.companyId)).toEqual([
       'NSE:KEEP1',
       'NSE:KEEP2',
@@ -206,45 +205,36 @@ describe('stockscansAnnouncementScansPage', () => {
   });
 
   it('recomputes statistics from filtered announcement rows when ignore keywords are present', async () => {
-    const post = jest.fn((url, payload) => {
-      if (url.endsWith('/statistics')) {
-        return Promise.resolve({
-          data: {
-            keywords: ['Order Book'],
-            totalMatches: 3,
-            totalCompanies: 2,
-            companyData: [
-              ['101', 'Keep Ltd', 'NSE:KEEP', [2]],
-              ['102', 'Ignored Ltd', 'NSE:IGNORED', [1]],
-            ],
-          },
-        });
-      }
-      return Promise.resolve({
-        data: {
-          announcements: [
-            {
-              companyId: 'NSE:KEEP',
-              name: 'Keep Ltd',
-              title: 'Order Book update',
-              ssUrl: 'keep.pdf',
-            },
-            {
-              companyId: 'NSE:IGNORED',
-              name: 'Ignored Ltd',
-              title: 'Board Meeting',
-              snippet: [{ text: '<mark>order</mark> <mark>book</mark>' }],
-              ssUrl: 'ignored.pdf',
-            },
-          ],
-          start: 1,
-          end: 2,
-          total: 2,
-          quarterDate: '202606',
-        },
-      });
+    mockStats.mockResolvedValue({
+      keywords: ['Order Book'],
+      totalMatches: 3,
+      totalCompanies: 2,
+      companyData: [
+        ['101', 'Keep Ltd', 'NSE:KEEP', [2]],
+        ['102', 'Ignored Ltd', 'NSE:IGNORED', [1]],
+      ],
     });
-    axios.create.mockReturnValue({ post });
+    mockScan.mockResolvedValue({
+      announcements: [
+        {
+          companyId: 'NSE:KEEP',
+          name: 'Keep Ltd',
+          title: 'Order Book update',
+          ssUrl: 'keep.pdf',
+        },
+        {
+          companyId: 'NSE:IGNORED',
+          name: 'Ignored Ltd',
+          title: 'Board Meeting',
+          snippet: [{ text: '<mark>order</mark> <mark>book</mark>' }],
+          ssUrl: 'ignored.pdf',
+        },
+      ],
+      start: 1,
+      end: 2,
+      total: 2,
+      quarterDate: '202606',
+    });
 
     const out = await fetchAnnouncementStatistics({
       scan: { searchFilters: ['Order Book'], titleKeywordsToIgnore: ['Board Meeting'] },
