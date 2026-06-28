@@ -1,0 +1,622 @@
+<!--
+QUARTERLY-RESULT-ANALYSIS WIDGET TEMPLATE
+==========================================
+This is the reference structure for the institutional single-quarter briefing widget.
+Copy the <style> block and section skeletons — adapt the content per deliverable.
+
+Expected integration: render via the visualize:show_widget tool with this as the widget_code.
+The styling uses CSS variables from the visualize design system — do not hardcode colors
+unless the user explicitly requests a standalone HTML file (see SKILL.md for that mode).
+
+Layout map:
+  1. Header band            — company / ticker / quarter / result date / CMP / mcap
+  2. Verdict chips          — 5-8 single-word tags
+  3. BASKET 1 (Business)    — 4 sub-sections with Structural/Cyclical/Temporary tags
+  4. BASKET 2 (Risk)        — 3 sub-sections with HIGH/MED/LOW severity
+  5. BASKET 3 (Management)  — Tone + Change vs prior + Strategic + Capital allocation
+  6. Monitoring Checklist   — KPI / Threshold / Horizon / Source table
+-->
+
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  .qra {
+    max-width: 1040px;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    color: var(--color-text-primary);
+    padding: 0.75rem 1rem 1.2rem;
+  }
+
+  /* Header */
+  .qra-hdr {
+    border-bottom: 2.5px solid var(--color-text-primary);
+    padding-bottom: 0.45rem;
+    margin-bottom: 0.6rem;
+  }
+  .qra-eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--color-text-tertiary);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+  }
+  .qra-title {
+    font-size: 18px;
+    font-weight: 500;
+    font-family: var(--font-serif);
+    margin-top: 0.15rem;
+  }
+  .qra-sub {
+    font-size: 9.5px;
+    font-family: var(--font-mono);
+    color: var(--color-text-secondary);
+    margin-top: 0.2rem;
+  }
+  .qra-meta {
+    display: flex;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+    margin-top: 0.35rem;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--color-text-secondary);
+  }
+  .qra-meta span strong {
+    color: var(--color-text-primary);
+    font-weight: 500;
+  }
+
+  /* Verdict chip strip */
+  .verdict-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0.5rem 0 0.7rem;
+  }
+
+  /* Sections (baskets) */
+  .basket {
+    margin-top: 0.95rem;
+  }
+  .basket-hd {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-primary);
+    border-bottom: 1.5px solid var(--color-text-primary);
+    padding-bottom: 4px;
+    margin-bottom: 0.55rem;
+    font-weight: 500;
+  }
+  .basket-hd .basket-q {
+    color: var(--color-text-tertiary);
+    font-style: italic;
+    margin-left: 0.5rem;
+    text-transform: none;
+    letter-spacing: 0.04em;
+  }
+
+  /* Sub-section */
+  .sub {
+    margin-top: 0.55rem;
+  }
+  .sub-hd {
+    font-size: 9.5px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--color-text-tertiary);
+    border-bottom: 0.5px solid var(--color-border-primary);
+    padding-bottom: 3px;
+    margin-bottom: 0.35rem;
+  }
+
+  /* Observation row — used inside each sub-section */
+  .obs {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.6rem;
+    padding: 0.4rem 0.55rem;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    line-height: 1.5;
+    font-size: 11.5px;
+  }
+  .obs:last-child {
+    border-bottom: none;
+  }
+  .obs-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .obs-name {
+    font-weight: 500;
+  }
+  .obs-why {
+    color: var(--color-text-secondary);
+  }
+  .obs-impact {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--color-text-primary);
+  }
+  .obs-tags {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: flex-end;
+  }
+
+  /* Chips */
+  .chip {
+    display: inline-block;
+    font-size: 8.5px;
+    font-family: var(--font-mono);
+    padding: 1.5px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  /* Tag colours: structural / cyclical / temporary */
+  .chip-structural { background: #e6f1fb; color: #0c447c; }       /* blue */
+  .chip-cyclical   { background: #faeeda; color: #633806; }       /* amber */
+  .chip-temporary  { background: #f1e9f6; color: #4b1a64; }       /* violet */
+  /* Severity */
+  .chip-high       { background: #fcebeb; color: #791f1f; }       /* red */
+  .chip-med        { background: #faeeda; color: #633806; }       /* amber */
+  .chip-low        { background: #eaf3de; color: #27500a; }       /* green */
+  /* Conviction (future triggers) */
+  .chip-hc         { background: #eaf3de; color: #27500a; }       /* green = HIGH CONVICTION */
+  .chip-mc         { background: #faeeda; color: #633806; }       /* amber = MEDIUM */
+  .chip-opt        { background: #e6f1fb; color: #0c447c; }       /* blue = OPTIONALITY */
+  /* Sustainability tags for margins */
+  .chip-sustain    { background: #eaf3de; color: #27500a; }
+  .chip-cyc-m      { background: #faeeda; color: #633806; }
+  .chip-temp-m     { background: #f1e9f6; color: #4b1a64; }
+  /* Tone */
+  .chip-tone-agg   { background: #fcebeb; color: #791f1f; }       /* red */
+  .chip-tone-conf  { background: #eaf3de; color: #27500a; }       /* green */
+  .chip-tone-caut  { background: #faeeda; color: #633806; }       /* amber */
+  .chip-tone-def   { background: #f1e9f6; color: #4b1a64; }       /* violet */
+  .chip-tone-opp   { background: #e6f1fb; color: #0c447c; }       /* blue */
+  .chip-tone-cons  { background: #e6f1fb; color: #0c447c; }       /* blue */
+  /* Capital allocation grade */
+  .chip-grade-h    { background: #eaf3de; color: #27500a; }
+  .chip-grade-m    { background: #faeeda; color: #633806; }
+  .chip-grade-l    { background: #fcebeb; color: #791f1f; }
+
+  /* Verbatim quote */
+  .quote {
+    font-style: italic;
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    border-left: 2px solid var(--color-border-primary);
+    padding: 3px 8px;
+    margin: 4px 0;
+    font-family: var(--font-serif);
+    line-height: 1.5;
+  }
+  .quote-attr {
+    font-style: normal;
+    font-size: 9.5px;
+    font-family: var(--font-mono);
+    color: var(--color-text-tertiary);
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* Highlight callouts */
+  .hl {
+    padding: 0.5rem 0.7rem;
+    border-radius: var(--border-radius-md);
+    margin: 0.4rem 0;
+    font-size: 11.5px;
+    line-height: 1.6;
+  }
+  .hl-g { background: #eaf3de; border-left: 3px solid #5bad3a; color: #1a3d0a; }
+  .hl-r { background: #fcebeb; border-left: 3px solid #e24b4a; color: #52100f; }
+  .hl-y { background: #faeeda; border-left: 3px solid #ef9f27; color: #412402; }
+  .hl-b { background: #e6f1fb; border-left: 3px solid #3a85c9; color: #0a2752; }
+  .hl strong { font-weight: 500; }
+
+  /* Tone block */
+  .tone-block {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.5rem 0.9rem;
+    margin: 0.4rem 0 0.5rem;
+    font-size: 11px;
+    line-height: 1.55;
+  }
+  .tone-block dt {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-tertiary);
+    padding-top: 1px;
+  }
+  .tone-block dd {
+    color: var(--color-text-primary);
+  }
+
+  /* Four-axis confidence */
+  .four-axis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+    margin-top: 0.45rem;
+    font-size: 10px;
+  }
+  .axis-card {
+    background: var(--color-background-secondary, #f7f5f3);
+    border: 0.5px solid var(--color-border-primary);
+    border-radius: var(--border-radius-md);
+    padding: 0.4rem 0.55rem;
+    font-family: var(--font-mono);
+  }
+  .axis-card .axis-name {
+    font-size: 8.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+  }
+  .axis-card .axis-val {
+    margin-top: 3px;
+    font-size: 11px;
+    color: var(--color-text-primary);
+  }
+
+  /* Monitoring checklist table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    margin-top: 0.35rem;
+  }
+  th {
+    font-family: var(--font-mono);
+    font-size: 8.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-tertiary);
+    padding: 4px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border-primary);
+  }
+  td {
+    padding: 4px 8px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    vertical-align: top;
+    line-height: 1.45;
+  }
+  td.num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-tertiary);
+    width: 26px;
+  }
+  td.mono {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+  }
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* Narrative shift block */
+  .shift {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin: 0.4rem 0;
+  }
+  .shift-col {
+    background: var(--color-background-secondary, #f7f5f3);
+    border-radius: var(--border-radius-md);
+    padding: 0.5rem 0.65rem;
+    font-size: 11px;
+    line-height: 1.55;
+  }
+  .shift-col .shift-q {
+    font-size: 8.5px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+    margin-bottom: 3px;
+  }
+
+  /* Footer source list */
+  .src-list {
+    font-size: 9.5px;
+    font-family: var(--font-mono);
+    color: var(--color-text-tertiary);
+    margin-top: 0.7rem;
+    padding-top: 0.5rem;
+    border-top: 0.5px solid var(--color-border-primary);
+    line-height: 1.6;
+  }
+</style>
+
+<div class="qra">
+
+  <!-- ========================== 1. HEADER ========================== -->
+  <div class="qra-hdr">
+    <div class="qra-eyebrow">Quarterly Result Analysis · Institutional Briefing</div>
+    <div class="qra-title">{{COMPANY_NAME}} — {{QUARTER}}</div>
+    <div class="qra-sub">{{TICKER}} · {{SECTOR}} · {{INDUSTRY}}</div>
+    <div class="qra-meta">
+      <span><strong>Result Date:</strong> {{RESULT_DATE}}</span>
+      <span><strong>CMP:</strong> Rs {{CMP}}</span>
+      <span><strong>Market Cap:</strong> Rs {{MCAP}} Cr</span>
+      <span><strong>TTM P/E:</strong> {{TTM_PE}}×</span>
+    </div>
+  </div>
+
+  <!-- Optional alert banner for major positive/negative surprises (delete if not needed) -->
+  <div class="hl hl-y">
+    <strong>Headline takeaway —</strong> {{ONE_LINE_VERDICT}}
+  </div>
+
+  <!-- ========================== 2. VERDICT CHIPS ========================== -->
+  <div class="basket">
+    <div class="basket-hd">Verdict Tags <span class="basket-q">— quarter in 5-8 words</span></div>
+    <div class="verdict-strip">
+      <!-- Use one of: chip-structural / chip-cyclical / chip-temporary / chip-high / chip-med / chip-low -->
+      <span class="chip chip-structural">MARGIN INFLECTION</span>
+      <span class="chip chip-structural">PREMIUM MIX SHIFT</span>
+      <span class="chip chip-cyclical">RAW MATL TAILWIND</span>
+      <span class="chip chip-med">CAUTIOUS DEMAND TONE</span>
+      <span class="chip chip-low">CAPEX ON TRACK</span>
+      <span class="chip chip-temporary">FX GAIN ONE-OFF</span>
+    </div>
+  </div>
+
+  <!-- ========================== 3. BASKET 1 — BUSINESS ========================== -->
+  <div class="basket">
+    <div class="basket-hd">Basket 1 — Business <span class="basket-q">What is improving?</span></div>
+
+    <!-- 1A. Growth Drivers -->
+    <div class="sub">
+      <div class="sub-hd">1A. Growth Drivers</div>
+      <div class="obs">
+        <div class="obs-body">
+          <div class="obs-name">{{Driver name (5-7 words)}}</div>
+          <div class="obs-why">{{Why it matters — one sentence}}</div>
+          <div class="obs-impact">{{Earnings impact — Rs Cr / bps / %}}</div>
+        </div>
+        <div class="obs-tags">
+          <span class="chip chip-structural">STRUCTURAL</span>
+        </div>
+      </div>
+      <!-- Repeat .obs for 3-5 drivers -->
+    </div>
+
+    <!-- 1B. Margin & Profitability Triggers -->
+    <div class="sub">
+      <div class="sub-hd">1B. Margin &amp; Profitability Triggers</div>
+      <div class="obs">
+        <div class="obs-body">
+          <div class="obs-name">{{Margin trigger name}}</div>
+          <div class="obs-why">{{Mechanism in one line}}</div>
+          <div class="obs-impact">{{Margin impact in bps}}</div>
+        </div>
+        <div class="obs-tags">
+          <span class="chip chip-sustain">SUSTAINABLE</span>
+        </div>
+      </div>
+      <!-- Repeat for 2-4 margin triggers -->
+    </div>
+
+    <!-- 1C. Capex, Balance Sheet & Cash Flow -->
+    <div class="sub">
+      <div class="sub-hd">1C. Capex, Balance Sheet &amp; Cash Flow</div>
+      <div class="obs">
+        <div class="obs-body">
+          <div class="obs-name">{{Item — e.g. Capex Rs 500 Cr commissioned}}</div>
+          <div class="obs-why">{{Effect on future earnings power}}</div>
+          <div class="obs-impact">{{ROCE bps / Net debt Rs Cr / DSO days}}</div>
+        </div>
+        <div class="obs-tags">
+          <span class="chip chip-structural">STRUCTURAL</span>
+        </div>
+      </div>
+      <!-- Repeat for 2-4 items. If inconsistency found, add an hl-y callout. -->
+      <div class="hl hl-y">
+        <strong>Capital allocation check —</strong> {{If applicable: state any inconsistency between capex plan and cash flow capability}}
+      </div>
+    </div>
+
+    <!-- 1D. Future Earnings Triggers -->
+    <div class="sub">
+      <div class="sub-hd">1D. Future Earnings Triggers <span style="font-style:italic;color:var(--color-text-tertiary);">— hidden, forward-looking</span></div>
+      <div class="obs">
+        <div class="obs-body">
+          <div class="obs-name">{{Trigger — e.g. New product approval H2 FY27}}</div>
+          <div class="obs-why">{{Why it matters + timeline}}</div>
+          <div class="obs-impact">{{Quantified upside}}</div>
+        </div>
+        <div class="obs-tags">
+          <span class="chip chip-hc">HIGH CONVICTION</span>
+        </div>
+      </div>
+      <!-- Repeat for 2-4 triggers -->
+    </div>
+  </div>
+
+  <!-- ========================== 4. BASKET 2 — RISK ========================== -->
+  <div class="basket">
+    <div class="basket-hd">Basket 2 — Risk <span class="basket-q">What can go wrong?</span></div>
+
+    <!-- 2A. Business Risks -->
+    <div class="sub">
+      <div class="sub-hd">2A. Business Risks</div>
+      <div class="obs">
+        <div class="obs-body">
+          <div class="obs-name">{{Risk name}}</div>
+          <div class="obs-why">{{Specific evidence from this quarter}}</div>
+          <div class="obs-impact"><strong>Watch:</strong> {{Indicator that would confirm/deny}}</div>
+        </div>
+        <div class="obs-tags">
+          <span class="chip chip-high">HIGH</span>
+          <span class="chip chip-structural">STRUCTURAL</span>
+        </div>
+      </div>
+      <!-- Repeat for 2-4 risks -->
+    </div>
+
+    <!-- 2B. Management Commentary Risks -->
+    <div class="sub">
+      <div class="sub-hd">2B. Management Commentary Risks <span style="font-style:italic;color:var(--color-text-tertiary);">— highest signal</span></div>
+      <div class="hl hl-r">
+        <strong>Avoided answering —</strong> {{Analyst question + management's evasive response, both quoted briefly}}
+      </div>
+      <div class="hl hl-y">
+        <strong>Stopped discussing —</strong> {{Topic that was prominent in prior 2-3 calls but absent this quarter}}
+      </div>
+      <div class="hl hl-y">
+        <strong>Confidence reduced —</strong> {{Phrase ladder: "we will" → "we expect" → "we are watching"}}
+      </div>
+    </div>
+
+    <!-- 2C. Industry & Macro Risks -->
+    <div class="sub">
+      <div class="sub-hd">2C. Industry &amp; Macro Risks</div>
+      <div class="obs">
+        <div class="obs-body">
+          <div class="obs-name">{{Macro factor → company exposure}}</div>
+          <div class="obs-why">{{P&amp;L impact direction + magnitude}}</div>
+          <div class="obs-impact">{{Sensitivity if disclosed}}</div>
+        </div>
+        <div class="obs-tags">
+          <span class="chip chip-med">MED</span>
+        </div>
+      </div>
+      <!-- Repeat for 1-3 risks -->
+    </div>
+  </div>
+
+  <!-- ========================== 5. BASKET 3 — MANAGEMENT ========================== -->
+  <div class="basket">
+    <div class="basket-hd">Basket 3 — Management <span class="basket-q">What are they signalling between the lines?</span></div>
+
+    <!-- 3A. Tone -->
+    <div class="sub">
+      <div class="sub-hd">3A. Management Tone</div>
+      <div class="tone-block">
+        <dt>Overall</dt>
+        <dd>
+          <span class="chip chip-tone-conf">CONFIDENT</span> on margins,
+          <span class="chip chip-tone-caut">CAUTIOUS</span> on volumes
+        </dd>
+        <dt>Evidence</dt>
+        <dd>
+          <div class="quote">{{Quote 1 supporting first tone label}}<span class="quote-attr">— {{Speaker, Role, Quarter Concall}}</span></div>
+          <div class="quote">{{Quote 2 supporting second tone label}}<span class="quote-attr">— {{Speaker, Role, Quarter Concall}}</span></div>
+        </dd>
+      </div>
+      <div class="four-axis">
+        <div class="axis-card"><div class="axis-name">Growth</div><div class="axis-val">CAUTIOUS</div></div>
+        <div class="axis-card"><div class="axis-name">Margin</div><div class="axis-val">CONFIDENT</div></div>
+        <div class="axis-card"><div class="axis-name">Demand</div><div class="axis-val">CAUTIOUS</div></div>
+        <div class="axis-card"><div class="axis-name">Cap. Alloc.</div><div class="axis-val">CONFIDENT</div></div>
+      </div>
+    </div>
+
+    <!-- 3B. Change vs Previous Quarters -->
+    <div class="sub">
+      <div class="sub-hd">3B. Change vs Previous Quarters</div>
+      <div class="shift">
+        <div class="shift-col">
+          <div class="shift-q">{{Prior Quarter}} commentary</div>
+          <div class="quote">{{Prior quote}}<span class="quote-attr">— {{Speaker, Prior Q Concall}}</span></div>
+        </div>
+        <div class="shift-col">
+          <div class="shift-q">{{This Quarter}} commentary</div>
+          <div class="quote">{{This quote}}<span class="quote-attr">— {{Speaker, This Q Concall}}</span></div>
+        </div>
+      </div>
+      <div class="hl hl-b">
+        <strong>Shift —</strong> {{e.g. "Survival → expansion: deleveraging complete, growth capex pivot announced this quarter. Watch order book conversion."}}
+      </div>
+      <!-- Repeat shift+hl for 1-3 narrative shifts -->
+    </div>
+
+    <!-- 3C. Strategic Direction (3-5 yr) -->
+    <div class="sub">
+      <div class="sub-hd">3C. Strategic Direction (3-5 yr build)</div>
+      <div class="obs">
+        <div class="obs-body">
+          <div class="obs-name">{{Direction — e.g. Asset-light branded play}}</div>
+          <div class="obs-why">{{Evidence — capex + headcount + customer signals}}</div>
+          <div class="obs-impact">{{Target metric at maturity}}</div>
+        </div>
+        <div class="obs-tags">
+          <span class="chip chip-hc">BACKED BY EVIDENCE</span>
+        </div>
+      </div>
+      <!-- Repeat for 1-2 strategic directions -->
+    </div>
+
+    <!-- 3D. Capital Allocation Quality -->
+    <div class="sub">
+      <div class="sub-hd">3D. Capital Allocation Quality</div>
+      <div class="tone-block">
+        <dt>Overall grade</dt>
+        <dd><span class="chip chip-grade-h">HIGH</span> &nbsp; {{One-line rationale}}</dd>
+        <dt>Capex discipline</dt>
+        <dd>{{IRR thresholds, project ranking, prior-capex outcomes referenced}}</dd>
+        <dt>M&amp;A / Acquisitions</dt>
+        <dd>{{Strategic fit, valuation paid — or "no M&amp;A this quarter"}}</dd>
+        <dt>Shareholder return</dt>
+        <dd>{{Dividend / buyback policy}}</dd>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================== 6. MONITORING CHECKLIST ========================== -->
+  <div class="basket">
+    <div class="basket-hd">Forward Monitoring Checklist <span class="basket-q">— next 2-8 quarters</span></div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>KPI</th>
+          <th>Threshold</th>
+          <th>Horizon</th>
+          <th>Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="num">1</td>
+          <td>{{KPI name}}</td>
+          <td class="mono">{{Number + direction}}</td>
+          <td class="mono">{{Q+FY}}</td>
+          <td>{{Document + section}}</td>
+        </tr>
+        <!-- Repeat for 6-10 rows. Coverage rule:
+             at least 1 revenue/volume, 1 margin, 1 cashflow/WC, 1 capital allocation,
+             1 'stopped saying', 1 external lead indicator. -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ========================== 7. SOURCES ========================== -->
+  <div class="src-list">
+    <strong>Sources —</strong>
+    {{Q3 FY26 Investor Presentation, 17 pp}} ·
+    {{Q3 FY26 Concall Transcript, 22 pp}} ·
+    {{Q3 FY26 Result PDF, 8 pp}} ·
+    {{Q2 FY26 Concall Transcript for change-vs-prior, 24 pp}}
+    {{(Live CMP source if used: Stockscans / Dhan / Kotak Neo)}}
+  </div>
+
+</div>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<!--
+  pre-pead-scanner briefing template
+  ----------------------------------
+  Fill this structure with the analysed universe. The skill replaces every
+  {{PLACEHOLDER}} and repeats the marked blocks per company. Keep the
+  conviction-pill classes (high/med/low) and the column order from SKILL.md
+  Step 6. Self-contained: no external JS, fonts loaded from Google Fonts CDN.
+
+  SECTIONS (in order):
+    Header            — scan name, timestamp, universe counts
+    01 Methodology    — universe construction + exclusions callout
+    02 Master table   — ONE row per ranked company, sorted High→Low conviction.
+                        Columns: Rank | Company | Sector | MCap | CMP |
+                        FY guidance signal | Tone read | Validation
+                        (orderbook/capacity/util/history) | 9M Rev | 9M PAT |
+                        Est Q Rev | Est OPM | Est PAT | Est EPS | Conviction
+    03 Deep-dive      — one CARD per company: verbatim guidance quotes
+                        (speaker+date), validation evidence block, the
+                        next-quarter maths shown transparently, what-could-be-wrong
+    04 Cross-cutting risks
+    05 Exclusions     — every dropped name + reason
+    06 Result-day watchlist — metrics to verify when each reports
+    Footer            — sources, methodology, classification
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{SCAN_NAME}} — Pre-Results Conviction Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1115; --panel:#161a22; --panel-2:#1b212c; --line:#2a3340;
+    --ink:#e6e9ef; --ink-dim:#97a1b1; --ink-faint:#6b7588;
+    --accent:#d4a93a; --green:#58c896; --amber:#e8b75b; --red:#e57373; --blue:#6ba9e8; --cite:#c9a572;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Inter Tight',-apple-system,sans-serif;line-height:1.5}
+  body{padding:32px 28px;max-width:1320px;margin:0 auto}
+  h1,h2,h3,h4{font-family:'Fraunces',Georgia,serif;font-weight:500;letter-spacing:-.01em;margin:0}
+  h1{font-size:38px;line-height:1.1}
+  .mono{font-family:'JetBrains Mono',monospace;font-feature-settings:'tnum'}
+  .small{font-size:12px}.tiny{font-size:11px}.dim{color:var(--ink-dim)}.faint{color:var(--ink-faint)}
+
+  .header{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:22px;border-bottom:1px solid var(--line);margin-bottom:26px}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  .subhead{font-size:14px;color:var(--ink-dim);margin-top:10px;max-width:740px}
+  .timestamp{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);text-align:right;line-height:1.7}
+
+  .callout{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);padding:18px 22px;margin-bottom:26px;border-radius:4px}
+  .callout.risk-cut{border-left-color:var(--red)}
+  .callout h3{font-family:'Inter Tight',sans-serif;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  .callout p{margin:0 0 8px;font-size:14px}.callout p:last-child{margin:0}
+
+  .section-title{font-family:'Fraunces',serif;font-size:22px;margin:32px 0 12px;border-bottom:1px solid var(--line);padding-bottom:8px;display:flex;align-items:baseline;gap:12px}
+  .section-title .num{font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:14px}
+
+  table.master{width:100%;border-collapse:collapse;font-size:12px}
+  table.master thead th{background:var(--panel);padding:9px 7px;text-align:left;font-weight:600;color:var(--ink-dim);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;border-bottom:2px solid var(--line)}
+  table.master tbody td{padding:10px 7px;border-bottom:1px solid var(--line);vertical-align:top}
+  table.master tbody tr:hover{background:var(--panel)}
+  table.master .rk{font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:600;font-size:13px}
+  table.master .nm{font-weight:600;font-size:13px}
+  table.master .tk{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);margin-top:2px}
+  table.master .num{font-family:'JetBrains Mono',monospace;text-align:right;font-feature-settings:'tnum';white-space:nowrap}
+
+  .pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+  .pill.high{background:rgba(88,200,150,.13);color:var(--green);border:1px solid rgba(88,200,150,.3)}
+  .pill.med{background:rgba(232,183,91,.13);color:var(--amber);border:1px solid rgba(232,183,91,.3)}
+  .pill.low{background:rgba(229,115,115,.13);color:var(--red);border:1px solid rgba(229,115,115,.3)}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:22px 24px;margin-bottom:16px}
+  .card-head{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:14px;gap:16px}
+  .card-head .lhs{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .card-head .rank{font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:16px;font-weight:600}
+  .card-head .nm{font-family:'Fraunces',serif;font-size:22px;font-weight:500}
+  .card-head .meta{display:flex;gap:14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint)}
+  .card-head .meta .v{color:var(--ink)}
+
+  .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:22px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .block-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:8px;padding-bottom:4px;border-bottom:1px dashed var(--line)}
+  .block .row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}
+  .block .row .lab{color:var(--ink-dim)}
+  .block .row .val{font-family:'JetBrains Mono',monospace;font-feature-settings:'tnum'}
+  .block .row .val.hi{color:var(--green)}.block .row .val.lo{color:var(--red)}
+
+  blockquote{margin:8px 0;padding:10px 14px;border-left:2px solid var(--cite);background:rgba(201,165,114,.06);font-size:12.5px;font-style:italic;line-height:1.55}
+  blockquote .source{display:block;font-style:normal;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);margin-top:6px;letter-spacing:.04em}
+  .verdict{background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:12px 16px;margin-top:12px;font-size:12.5px;line-height:1.6}
+  .verdict strong{color:var(--accent)}
+  .risk{font-size:11.5px;color:var(--ink-dim);border-top:1px solid var(--line);padding-top:10px;margin-top:12px;line-height:1.55}
+  .risk b{color:var(--red);font-weight:500}
+
+  .footer{margin-top:50px;padding-top:22px;border-top:1px solid var(--line);font-size:11px;color:var(--ink-faint);line-height:1.7}
+  .footer h4{font-family:'Fraunces',serif;color:var(--ink-dim);font-size:14px;margin-bottom:8px}
+  .footer ul{padding-left:18px;margin:4px 0}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div>
+    <div class="eyebrow">Pre-Results Conviction Briefing · Internal</div>
+    <h1>{{SCAN_NAME}}</h1>
+    <div class="subhead">{{N_RANKED}} companies ranked by clarity &amp; credibility of latest concall guidance, validated against order book / capacity / utilisation / history, with a back-computed next-quarter estimate. Results not yet declared for any ranked name as of timestamp.</div>
+  </div>
+  <div class="timestamp">
+    Report timestamp<br><span class="dim">{{TODAY}}</span><br>
+    Source universe<br><span class="dim">{{SCAN_SOURCE}} ({{N_ANALYSED}} of {{N_TOTAL}} after exclusions)</span>
+  </div>
+</header>
+
+<!-- 01 METHODOLOGY -->
+<div class="callout">
+  <h3>Universe construction &amp; exclusions</h3>
+  <p>{{METHODOLOGY_PARA_1}}</p>
+  <p>{{METHODOLOGY_PARA_2_EXCLUSIONS}}</p>
+  <p>{{METHODOLOGY_PARA_3_SELECTION}}</p>
+</div>
+
+<!-- 02 MASTER TABLE -->
+<div class="section-title"><span class="num">01.</span> Master Scoreboard — sorted by conviction</div>
+<div class="dim small" style="margin-bottom:12px">Next-quarter estimate = (FY guidance − YTD actual) where both available; else run-rate × seasonality. Inputs tagged [guided]/[actual]/[estimate] in the per-company cards. ₹ Cr unless noted.</div>
+<div style="overflow-x:auto">
+<table class="master">
+  <thead>
+    <tr>
+      <th>#</th><th>Company</th><th>Sector</th>
+      <th class="num">MCap</th><th class="num">CMP</th>
+      <th>FY guidance (signal)</th><th>Tone / clarity</th>
+      <th>Validation (book · capacity · util · history)</th>
+      <th class="num">9M Rev</th><th class="num">9M PAT</th>
+      <th class="num">Est Q Rev</th><th class="num">Est OPM</th>
+      <th class="num">Est PAT</th><th class="num">Est EPS</th>
+      <th>Conviction</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- REPEAT one <tr> per ranked company, High→Low -->
+    <tr>
+      <td class="rk">{{RANK}}</td>
+      <td><div class="nm">{{NAME}}</div><div class="tk">{{COMPANY_ID}}</div></td>
+      <td>{{SECTOR}}</td>
+      <td class="num">{{MCAP}}</td><td class="num">{{CMP}}</td>
+      <td>{{GUIDANCE_SIGNAL}}</td>
+      <td>{{TONE_READ}}</td>
+      <td>{{VALIDATION_SUMMARY}}</td>
+      <td class="num">{{YTD_REV}}</td><td class="num">{{YTD_PAT}}</td>
+      <td class="num">{{EST_Q_REV}}</td><td class="num">{{EST_OPM}}</td>
+      <td class="num">{{EST_PAT}}</td><td class="num">{{EST_EPS}}</td>
+      <td><span class="pill {{CONVICTION_CLASS}}">{{CONVICTION_LABEL}}</span></td>
+    </tr>
+    <!-- /REPEAT -->
+  </tbody>
+</table>
+</div>
+
+<!-- 03 DEEP DIVE -->
+<div class="section-title"><span class="num">02.</span> Per-Company Deep Dive</div>
+<!-- REPEAT one .card per ranked company, High→Low -->
+<div class="card">
+  <div class="card-head">
+    <div class="lhs">
+      <span class="rank">#{{RANK}}</span>
+      <span class="nm">{{NAME}}</span>
+      <span class="dim small">{{COMPANY_ID}} · {{SECTOR}}</span>
+    </div>
+    <div class="meta">
+      <span>MCap <span class="v">₹{{MCAP}} Cr</span></span>
+      <span>CMP <span class="v">₹{{CMP}}</span></span>
+      <span>Concall <span class="v">{{CONCALL_DATE}}</span></span>
+    </div>
+  </div>
+  <div class="grid">
+    <div>
+      <div class="block-title">Guidance (verbatim, latest concall)</div>
+      <blockquote>{{GUIDANCE_QUOTE_1}}<span class="source">{{SPEAKER_1}} · {{CONCALL_DATE}}</span></blockquote>
+      <blockquote>{{GUIDANCE_QUOTE_2}}<span class="source">{{SPEAKER_2}} · {{CONCALL_DATE}}</span></blockquote>
+      <div class="verdict"><strong>Verdict — {{CONVICTION_LABEL}}.</strong> {{VERDICT_NARRATIVE}}</div>
+    </div>
+    <div>
+      <div class="block-title">YTD actuals &amp; next-quarter maths</div>
+      <div class="block">
+        <div class="row"><span class="lab">Last reported Q revenue</span><span class="val">{{LASTQ_REV}}</span></div>
+        <div class="row"><span class="lab">9M / YTD revenue</span><span class="val">{{YTD_REV}}</span></div>
+        <div class="row"><span class="lab">9M / YTD PAT</span><span class="val">{{YTD_PAT}}</span></div>
+        <div class="row"><span class="lab">FY revenue guidance</span><span class="val">{{FY_REV_GUIDE}}</span></div>
+        <div class="row"><span class="lab">Est. next-Q revenue</span><span class="val hi">{{EST_Q_REV}} ({{IMPLIED_GROWTH}})</span></div>
+        <div class="row"><span class="lab">Est. next-Q OPM</span><span class="val">{{EST_OPM}}</span></div>
+        <div class="row"><span class="lab">Est. next-Q PAT</span><span class="val hi">{{EST_PAT}}</span></div>
+        <div class="row"><span class="lab">Est. next-Q EPS</span><span class="val">{{EST_EPS}}</span></div>
+      </div>
+      <div class="block-title" style="margin-top:18px">Validation scorecard</div>
+      <div class="block">
+        <div class="row"><span class="lab">Order book / coverage</span><span class="val">{{ORDERBOOK}}</span></div>
+        <div class="row"><span class="lab">Capacity status</span><span class="val">{{CAPACITY}}</span></div>
+        <div class="row"><span class="lab">Utilisation</span><span class="val">{{UTILISATION}}</span></div>
+        <div class="row"><span class="lab">History / seasonality fit</span><span class="val">{{HISTORY_FIT}}</span></div>
+      </div>
+      <div class="risk"><b>What could be wrong</b> — {{WHAT_COULD_BE_WRONG}}</div>
+    </div>
+  </div>
+</div>
+<!-- /REPEAT -->
+
+<!-- 04 CROSS-CUTTING RISKS -->
+<div class="section-title"><span class="num">03.</span> Cross-Cutting "What Could Be Wrong" with This Analysis</div>
+<div class="callout risk-cut">
+  <p>{{CROSS_RISK_1}}</p>
+  <p>{{CROSS_RISK_2}}</p>
+  <p>{{CROSS_RISK_3}}</p>
+  <!-- add more as warranted: scan-timing contamination, unaudited concall numbers,
+       stale-quarter newsflow, momentum-selection bias, asset-light capacity misread -->
+</div>
+
+<!-- 05 EXCLUSIONS -->
+<div class="section-title"><span class="num">04.</span> Excluded / Deferred Names</div>
+<div class="dim small" style="margin-bottom:12px">Shown for transparency — the universe was not cherry-picked.</div>
+<div style="overflow-x:auto">
+<table class="master">
+  <thead><tr><th>Company</th><th>companyId</th><th>Reason excluded / deferred</th></tr></thead>
+  <tbody>
+    <!-- REPEAT one row per excluded name -->
+    <tr><td class="nm">{{EXC_NAME}}</td><td class="mono tiny">{{EXC_ID}}</td><td>{{EXC_REASON}}</td></tr>
+    <!-- /REPEAT -->
+  </tbody>
+</table>
+</div>
+
+<!-- 06 RESULT-DAY WATCHLIST -->
+<div class="section-title"><span class="num">05.</span> Watchlist — What to Verify on Result Day</div>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;font-size:13px;line-height:1.6">
+  <!-- REPEAT one card per ranked company -->
+  <div class="card" style="padding:14px 18px">
+    <h4 style="font-family:'Inter Tight',sans-serif;color:var(--accent);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">{{NAME}}</h4>
+    {{WATCH_METRICS}}
+  </div>
+  <!-- /REPEAT -->
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <h4>Sources &amp; methodology</h4>
+  <ul>
+    <li>Universe: Stockscans saved scan "{{SCAN_NAME}}" (ID {{SCAN_ID}}), re-run {{TODAY}}. Filters: {{FILTERS}}.</li>
+    <li>Concall transcripts &amp; investor presentations fetched from the Stockscans documents API ({{CONCALL_QUARTER}}).</li>
+    <li>YTD actuals and quarter figures extracted verbatim from earnings-call transcripts where stated; figures marked "est" are computed from TTM / prior-year base.</li>
+    <li>CMP and Market Cap as of {{TODAY}} per Stockscans (cross-check vs Dhan.co / Kotak Neo on result day).</li>
+    <li>{{N_EXCLUDED}} companies excluded ({{EXCLUSION_SUMMARY}}).</li>
+  </ul>
+  <h4 style="margin-top:18px">Classification</h4>
+  <p>Internal — for investment conviction building, not a published recommendation. Next-quarter estimates are analyst-derived from management guidance and are <em>not</em> company-issued targets. Treat as directional. All figures ₹ Cr unless noted. Indian fiscal year: FY26 = April 2025 – March 2026.</p>
+</div>
+
+</body>
+</html>

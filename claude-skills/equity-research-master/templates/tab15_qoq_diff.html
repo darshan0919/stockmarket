@@ -1,0 +1,94 @@
+<!--
+  Tab 15 — Q-o-Q Filings Diff & Repricing
+  Appended to the 15-tab base dashboard from `equity-research-dashboard`.
+  Render conditionally: only when schemas.json.meta.tab15_enabled === true
+  (i.e. ≥2 consecutive investor decks present).
+
+  Content blueprint sourced from `consecutive-filings-diff/assets/briefing_template.html`.
+  Integration contract (must match base dashboard rules):
+    - Pane id: `tab-15`
+    - Nav button: add to nav list, href="#" onclick="showTab(15)"
+    - All charts use Chart.js 4.4.1 (same CDN as base)
+    - ASCII hyphen-minus for negatives; no Unicode minus in data arrays
+    - Every color var used here MUST exist in :root AND [data-theme="dark"]
+    - Missing values render as `---------`, never `NaN`
+-->
+<section id="tab-15" class="tab-pane" role="tabpanel" aria-labelledby="tab-15-btn">
+  <header class="tab-header">
+    <h2>Q-o-Q Diff &amp; Repricing</h2>
+    <p class="tab-subtitle">Forensic diff of consecutive investor presentations, reconciled with the latest concall and repriced at live CMP.</p>
+  </header>
+
+  <!-- 1. Quarter-pair header -->
+  <div class="qoq-header">
+    <div class="qoq-chip" data-role="prior-quarter"><!-- e.g. Q3 FY26 --></div>
+    <div class="qoq-chip" data-role="current-quarter"><!-- e.g. Q4 FY26 --></div>
+    <div class="qoq-chip" data-role="cmp-live"><!-- CMP ₹---- (as of DD-MMM) --></div>
+  </div>
+
+  <!-- 2. P&L diff -->
+  <div class="qoq-block" id="qoq-pnl">
+    <h3>P&amp;L Diff</h3>
+    <table class="qoq-table" data-source="schemas.qoq_deltas.pnl"></table>
+  </div>
+
+  <!-- 3. Balance sheet & cash flow quality -->
+  <div class="qoq-block" id="qoq-bs-cf">
+    <h3>Balance Sheet &amp; Cash Flow Quality</h3>
+    <table class="qoq-table" data-source="schemas.qoq_deltas.bs_cf"></table>
+  </div>
+
+  <!-- 4. Operational KPIs -->
+  <div class="qoq-block" id="qoq-kpis">
+    <h3>Operational KPIs</h3>
+    <table class="qoq-table" data-source="schemas.qoq_deltas.kpis"></table>
+  </div>
+
+  <!-- 5. Positive / negative surprises -->
+  <div class="qoq-block qoq-surprises" id="qoq-surprises">
+    <h3>Surprises</h3>
+    <div class="qoq-surprise-col">
+      <h4>Positive</h4>
+      <ul data-source="schemas.qoq_deltas.surprises.positive"></ul>
+    </div>
+    <div class="qoq-surprise-col">
+      <h4>Negative</h4>
+      <ul data-source="schemas.qoq_deltas.surprises.negative"></ul>
+    </div>
+  </div>
+
+  <!-- 6. New growth triggers -->
+  <div class="qoq-block" id="qoq-new-triggers">
+    <h3>New Growth Triggers (This Quarter)</h3>
+    <ul class="trigger-list" data-source="schemas.qoq_deltas.new_triggers"></ul>
+  </div>
+
+  <!-- 7. Growth-hampering events -->
+  <div class="qoq-block" id="qoq-headwinds">
+    <h3>Growth-Hampering Events</h3>
+    <ul data-source="schemas.qoq_deltas.headwinds"></ul>
+  </div>
+
+  <!-- 8. New products / verticals / capacity -->
+  <div class="qoq-block" id="qoq-new-capacity">
+    <h3>New Products, Verticals &amp; Capacity Additions</h3>
+    <ul data-source="schemas.qoq_deltas.new_capacity"></ul>
+  </div>
+
+  <!-- 9. Concall reconciliation -->
+  <div class="qoq-block" id="qoq-concall-recon">
+    <h3>Concall Reconciliation</h3>
+    <table class="qoq-table" data-source="schemas.qoq_deltas.concall_reconciliation">
+      <!-- columns: Management claim | Filings evidence | Verdict (Aligned / Partial / Contradicted) -->
+    </table>
+  </div>
+
+  <!-- 10. Valuation reset at live CMP -->
+  <div class="qoq-block" id="qoq-valuation-reset">
+    <h3>Valuation Reset (Live CMP)</h3>
+    <table class="qoq-table" data-source="schemas.qoq_deltas.valuation_reset">
+      <!-- rows: TTM P/E, FY+1 P/E, Peer median, Implied PT, Upside/Downside% -->
+    </table>
+    <div class="qoq-verdict-badge" data-source="schemas.qoq_deltas.verdict"><!-- BUY / ACCUMULATE / HOLD / REDUCE / SELL --></div>
+  </div>
+</section>
