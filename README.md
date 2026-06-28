@@ -8,6 +8,10 @@ A comprehensive local-first stock screener web application for analyzing Indian 
 - 📊 **Advanced Screener**: Filter stocks with 15+ fundamental and technical criteria
 - 📈 **Price Charts**: Interactive 5-year price charts with SMA overlays
 - 📋 **Watchlist**: Track your favorite stocks with real-time price updates
+- 🏢 **Corporate Announcements**: Scan and analyze corporate announcements and documents
+- 🚀 **Top Gainers**: Track daily top gainers live
+- 🤖 **Automated Insights**: AI-powered insight validation and generation for watchlists
+- 🔄 **Data Pipelines**: Robust jobs for syncing and offloading data from real sources (NSE, BSE, Stockscans)
 - 💹 **Technical Indicators**: RSI, MACD, SMA50, SMA200 calculations
 - 📑 **Financial Statements**: View P&L and Balance Sheets for last 4 quarters
 - 🎯 **Pre-built Screeners**: Value, Growth, Dividend, Quality stock templates
@@ -50,6 +54,9 @@ stockmarket/
 │   ├── lib/            # API client & utilities
 │   ├── styles/         # CSS files
 │   └── public/         # Static assets
+├── packages/
+│   ├── stock-api/       # Centralized API clients (Stockscans, NSE, BSE)
+│   └── cowork-jobs/     # Automated data pipelines and cron jobs
 └── README.md
 ```
 
@@ -172,6 +179,12 @@ Open your browser and go to:
 - Add stocks from screener or stock details page
 - View real-time prices and changes
 - Remove stocks with one click
+- **Insights**: AI-powered insight validation and summaries for watched stocks
+
+### Corporate Announcements & Scans
+- Scan through official corporate announcements
+- Live tracking of Top Gainers
+- Dedicated dashboards for detailed document analysis
 
 ## Data Management
 
@@ -185,6 +198,13 @@ The `scripts/fetchData.js` script seeds the database with 20 sample Indian stock
 ```bash
 cd backend
 node scripts/fetchData.js
+```
+
+You can also use the comprehensive data pipelines provided by `@stock/cowork-jobs` to sync data with real APIs.
+
+```bash
+yarn cowork:data:init
+yarn cowork:data:sync
 ```
 
 ### Daily Data Updates
@@ -202,8 +222,11 @@ To automate daily updates, set up a cron job:
 # Edit crontab
 crontab -e
 
-# Add this line to run daily at 6:00 PM IST
+# Add this line to run daily at 6:00 PM IST (legacy updates)
 0 18 * * * cd /Users/darshan.patel/code/personal/stockmarket/backend && node scripts/updateData.js
+
+# Add this line to run data offloading daily at 8:30 PM (cowork jobs)
+30 20 * * * cd /Users/darshan.patel/code/personal/stockmarket && yarn cowork:data:offload
 ```
 
 ## Available Scripts
@@ -214,6 +237,7 @@ crontab -e
 - `yarn dev` — Backend + frontend dev servers in one terminal
 - `yarn test` — Run backend tests, then frontend tests
 - `yarn format` — Prettier in backend, then frontend
+- `yarn cowork:data:*` — Various data pipeline and sync jobs (e.g., `sync`, `offload`, `pull`)
 
 ### Backend (`yarn workspace stock-screener-backend <script>`)
 
