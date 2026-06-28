@@ -127,6 +127,6 @@ After the widget renders, write 2-3 short paragraphs outside it. Lead each with 
 
 The widget renders inline via `visualize:show_widget`. If the user explicitly asks for a saved file or attachment:
 
-`/mnt/user-data/outputs/<Company>_Q<X>_FY<YY>_ResultAnalysis.html` (standalone — replace CSS variables with literal colours)
+`/mnt/project/packages/cowork-jobs/data/agent-outputs/<Company>_Q<X>_FY<YY>_ResultAnalysis.html` (standalone — replace CSS variables with literal colours)
 
 If the user wants a PDF instead, suggest routing to `equity-research-deepdive` for a full report, or use the inline widget as the deliverable. This skill's natural medium is the interactive briefing.

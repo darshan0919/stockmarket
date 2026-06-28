@@ -97,7 +97,7 @@ data = {
     "dodged_questions": [...],
     "key_quotes": [...],
     "analysts_on_call": [...],
-    "output_path": "/mnt/user-data/outputs/<Company>_Concall_<Mode>.pdf",
+    "output_path": "/mnt/project/packages/cowork-jobs/data/agent-outputs/<Company>_Concall_<Mode>.pdf",
 }
 create_concall_pdf(data)
 ```

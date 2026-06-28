@@ -104,4 +104,4 @@ Render an interactive HTML briefing using `assets/briefing_template.html` as the
 
 Below the master table, give a per-company deep-dive card (verbatim guidance quotes with speaker + date, the validation evidence, the next-quarter maths shown transparently, and a "what could be wrong" block), then a cross-cutting risks section, an exclusions list (with reasons), and a result-day watchlist of the specific metrics to verify when each company reports.
 
-If the `visualize` tool is available, render the table through it; otherwise write the self-contained HTML file to `/mnt/user-data/outputs/` and present it. Either way the underlying schema is the same.
+If the `visualize` tool is available, render the table through it; otherwise write the self-contained HTML file to `/mnt/project/packages/cowork-jobs/data/agent-outputs/` and present it. Either way the underlying schema is the same.

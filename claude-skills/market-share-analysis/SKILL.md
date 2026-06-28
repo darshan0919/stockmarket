@@ -277,7 +277,7 @@ data = {
 
     "analyst_view": "[Analyst View] One-paragraph opinionated take...",
 
-    "output_path": "/mnt/user-data/outputs/MarketShare_<Industry>_<DD-MMM-YYYY>.html",
+    "output_path": "/mnt/project/packages/cowork-jobs/data/agent-outputs/MarketShare_<Industry>_<DD-MMM-YYYY>.html",
 }
 
 create_market_share_widget(data)

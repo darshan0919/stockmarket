@@ -128,7 +128,7 @@ data = {
     "valuation_summary": "...",
     "peer_comparison_table": [...],
     "sources": "...",
-    "output_path": "/mnt/user-data/outputs/<Company>_DRHP_Analysis.pdf",
+    "output_path": "/mnt/project/packages/cowork-jobs/data/agent-outputs/<Company>_DRHP_Analysis.pdf",
 }
 create_drhp_pdf(data)
 ```

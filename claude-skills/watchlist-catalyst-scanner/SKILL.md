@@ -26,7 +26,7 @@ python3 /tmp/scan_catalysts.py \
     [--days 7] [--scan-id <24hex>] [--authtoken-file <path>]
 ```
 
-Outputs to `/mnt/user-data/outputs/`:
+Outputs to `/mnt/project/packages/cowork-jobs/data/agent-outputs/`:
 - `catalyst_alerts_YYYYMMDD.html` — self-contained dark/light briefing with
   HIGH/MEDIUM/RISK filter buttons, value chips, links to filing PDFs on the
   Stockscans S3 bucket. Present via `present_files`.

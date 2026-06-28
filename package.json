@@ -26,7 +26,9 @@
     "cowork:data:pull": "yarn workspace @stock/cowork-jobs data:pull",
     "cowork:data:push": "yarn workspace @stock/cowork-jobs data:push",
     "cowork:data:sync": "yarn workspace @stock/cowork-jobs data:sync",
-    "cowork:data:manifest": "yarn workspace @stock/cowork-jobs data:manifest"
+    "cowork:data:manifest": "yarn workspace @stock/cowork-jobs data:manifest",
+    "cowork:data:auth": "yarn workspace @stock/cowork-jobs data:auth",
+    "cowork:data:offload": "yarn workspace @stock/cowork-jobs data:offload"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

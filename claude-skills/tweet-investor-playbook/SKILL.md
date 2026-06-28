@@ -157,7 +157,7 @@ End the section with a one-line **Confidence in this playbook**: High / Medium /
 
 Use `assets/widget_template.html` as the shell. Populate the `<script id="playbook-data" type="application/json">` block with the synthesised JSON. The widget is self-contained — no external scripts, no fetch calls. Vanilla JS only.
 
-Save the widget to `/mnt/user-data/outputs/<handle>_investor_playbook.html` and the Markdown source to `/mnt/user-data/outputs/<handle>_investor_playbook.md`. Call `present_files` with the HTML first.
+Save the widget to `/mnt/project/packages/cowork-jobs/data/agent-outputs/<handle>_investor_playbook.html` and the Markdown source to `/mnt/project/packages/cowork-jobs/data/agent-outputs/<handle>_investor_playbook.md`. Call `present_files` with the HTML first.
 
 ## Strict methodological rules
 

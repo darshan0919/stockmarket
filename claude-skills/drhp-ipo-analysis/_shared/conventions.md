@@ -119,7 +119,7 @@ How many to fetch (recommended defaults per skill):
 
 ### When a skill produces a PDF
 - Use ReportLab via `_shared/pdf_utils.py` — palettes (`INSTITUTIONAL_DARK`, `INSTITUTIONAL_LIGHT`), `parse_markdown_table()`, `format_inline_markdown()`, `styled_table()`. Do not re-implement.
-- Save to `/mnt/user-data/outputs/<Company>_<Skill>.pdf`.
+- Save to `/mnt/project/packages/cowork-jobs/data/agent-outputs/<Company>_<Skill>.pdf`.
 - Always call `present_files` so the user can see and download.
 
 ### When a skill produces an HTML widget
@@ -127,7 +127,7 @@ How many to fetch (recommended defaults per skill):
 - ASCII hyphen-minus `-` for negative numbers in JS arrays.
 - CSS variables defined in **both** `:root` and `[data-theme="dark"]`.
 - Missing data → `---------`, never `NaN` or blank.
-- Save to `/mnt/user-data/outputs/<Company>_<Skill>.html`.
+- Save to `/mnt/project/packages/cowork-jobs/data/agent-outputs/<Company>_<Skill>.html`.
 
 ### When a skill produces a research note (markdown / inline)
 - Lead with a 3-line **TL;DR** at the top: rating + key thesis + one risk.

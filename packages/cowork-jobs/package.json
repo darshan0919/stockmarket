@@ -11,10 +11,13 @@
     "data:pull": "node lib/driveDataStore.js pull",
     "data:push": "node lib/driveDataStore.js push",
     "data:sync": "node lib/driveDataStore.js sync",
-    "data:manifest": "node lib/driveDataStore.js manifest"
+    "data:manifest": "node lib/driveDataStore.js manifest",
+    "data:auth": "node lib/googleDriveAuth.js",
+    "data:offload": "node scripts/offloadToDrive.js"
   },
   "dependencies": {
-    "@stock/api": "workspace:*"
+    "@stock/api": "workspace:*",
+    "googleapis": "^148.0.0"
   },
   "optionalDependencies": {
     "nodemailer": "^6.9.0"

@@ -100,7 +100,7 @@ data = {
         {"pattern": "Gensol — diversion via shells", "match": "NO", "evidence": "..."},
         ...
     ],
-    "output_path": "/mnt/user-data/outputs/<Company>_Forensic.pdf",
+    "output_path": "/mnt/project/packages/cowork-jobs/data/agent-outputs/<Company>_Forensic.pdf",
 }
 create_forensic_pdf(data)
 ```

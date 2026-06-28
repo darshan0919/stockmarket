@@ -93,7 +93,7 @@ Apply the rating bands from conventions §6:
 ### Phase 4 — Render
 
 Two output formats, same schema:
-- **HTML widget** — interactive scoreboard with per-quarter drill-down. Default. Saved to `/mnt/user-data/outputs/<Company>_Credibility.html`.
+- **HTML widget** — interactive scoreboard with per-quarter drill-down. Default. Saved to `/mnt/project/packages/cowork-jobs/data/agent-outputs/<Company>_Credibility.html`.
 - **PDF** — for sharing in committee meetings; uses the standard ReportLab pipeline. Saved to `<Company>_Credibility.pdf`.
 
 ```python
@@ -118,7 +118,7 @@ data = {
     ],
     "case_study_match": "Mayur" | "Navin" | "Hikal" | "Gravita" | None,
     "interpretation": "1-paragraph synthesis",
-    "output_path": "/mnt/user-data/outputs/<Company>_Credibility.html",
+    "output_path": "/mnt/project/packages/cowork-jobs/data/agent-outputs/<Company>_Credibility.html",
 }
 create_credibility_widget(data)
 ```

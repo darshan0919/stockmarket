@@ -52,7 +52,7 @@ Common flags:
 - `--start-date`, `--end-date`: `YYYY` or `YYYYMM`. `YYYY` for `--start-date` pads to Jan; for `--end-date` pads to Dec. So `--start-date 2024 --end-date 2025` covers Jan-2024 → Dec-2025 across all types.
 - `--year YYYY`: shorthand for `--start-date YYYY --end-date YYYY`.
 - `--last-n N`: keep only the N most recent matches. If multiple `--types` are passed, this is per type (so `--types Transcript PPT --last-n 2` returns 2 of each).
-- `-o, --output-dir`: where PDFs and `manifest.json` go. Defaults to `./stock_documents`. **For research workflows that pass documents to other skills, save to `/mnt/user-data/outputs/<ticker>_docs/` so downstream skills can find them.**
+- `-o, --output-dir`: where PDFs and `manifest.json` go. Defaults to `./stock_documents`. **For research workflows that pass documents to other skills, save to `/mnt/project/packages/cowork-jobs/data/agent-outputs/<ticker>_docs/` so downstream skills can find them.**
 - `--list-only`: print matches without downloading. Useful for previewing.
 - `--manifest-only`: print the JSON manifest to stdout (helps another skill ingest the result programmatically).
 
@@ -76,7 +76,7 @@ If you want annual reports for a single FY by name, the cleanest approach is `--
 
 Last 4 quarterly transcripts:
 ```
-python3 /tmp/fetch_documents.py NSE:BSE -t Transcript --last-n 4 -o /mnt/user-data/outputs/bse_docs
+python3 /tmp/fetch_documents.py NSE:BSE -t Transcript --last-n 4 -o /mnt/project/packages/cowork-jobs/data/agent-outputs/bse_docs
 ```
 
 Last 5 annual reports (FY21–FY25):
@@ -119,7 +119,7 @@ Common flags:
 
 Anything mentioning "merger":
 ```
-python3 /tmp/fetch_announcements.py NSE:BSE --search merger --max-pages 10 -o /mnt/user-data/outputs/bse_ann
+python3 /tmp/fetch_announcements.py NSE:BSE --search merger --max-pages 10 -o /mnt/project/packages/cowork-jobs/data/agent-outputs/bse_ann
 ```
 
 Buybacks OR dividends in 2025:
@@ -195,7 +195,7 @@ Same shape but with announcement-level fields (`title`, `description`, `companyK
 ## Output destination convention
 
 - For one-off interactive use, default `./stock_documents/` is fine.
-- When invoked **by another skill** (the common case), save to `/mnt/user-data/outputs/<safe_ticker>_docs/` so the downstream skill can read both the PDFs and the manifest from a stable, predictable path. Pass that path back via the manifest so the calling skill can locate everything in one shot.
+- When invoked **by another skill** (the common case), save to `/mnt/project/packages/cowork-jobs/data/agent-outputs/<safe_ticker>_docs/` so the downstream skill can read both the PDFs and the manifest from a stable, predictable path. Pass that path back via the manifest so the calling skill can locate everything in one shot.
 
 ## Failure modes & how to handle them
 

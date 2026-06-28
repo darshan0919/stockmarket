@@ -5,6 +5,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { loadEnv, argValue } = require('./env');
+const driveApi = require('./googleDriveApi');
 
 const SCHEMA_VERSION = 'cowork-drive-store.v1';
 const DEFAULT_OWNER_EMAIL = 'djplearner@gmail.com';
@@ -56,7 +57,18 @@ function resolveDriveRoot() {
 
 function isDriveSyncEnabled() {
   if (process.env.COWORK_DRIVE_SYNC === '0') return false;
-  return Boolean(resolveDriveRoot());
+  return Boolean(resolveDriveRoot()) || driveApi.isApiConfigured();
+}
+
+/**
+ * Detect which transport mode is available.
+ * @returns {'api' | 'local-mount' | 'disabled'}
+ */
+function detectTransport() {
+  if (process.env.COWORK_DRIVE_SYNC === '0') return 'disabled';
+  if (resolveDriveRoot()) return 'local-mount';
+  if (driveApi.isApiConfigured()) return 'api';
+  return 'disabled';
 }
 
 function sha256(filePath) {
@@ -97,6 +109,44 @@ function classifyLocalDocument(localRel) {
   const name = path.posix.basename(rel);
   const isoDay = parseIsoDayFromLocalRel(rel);
   const { year, month, day } = ymdParts(isoDay);
+
+  let m;
+  if ((m = rel.match(/^agent-outputs\/(.*)$/))) {
+    return {
+      kind: 'agent-output',
+      category: 'claude-skills',
+      localRel: rel,
+      driveRel: `agent-outputs/${m[1]}`,
+      date: null,
+      retention: 'keep',
+      producer: 'claude-skills',
+    };
+  }
+
+  if (rel === 'notes/current.json') {
+    return {
+      kind: 'state',
+      category: 'watchlist-notes',
+      localRel: rel,
+      driveRel: 'notes/current.json',
+      date: null,
+      retention: 'source-of-truth',
+      producer: 'watchlistInsights',
+    };
+  }
+
+  if (/^notes\/events\/\d{4}-\d{2}\.jsonl$/.test(rel)) {
+    const monthStr = name.substring(0, 7); // YYYY-MM
+    return {
+      kind: 'event-log',
+      category: 'watchlist-notes-events',
+      localRel: rel,
+      driveRel: `notes/events/${monthStr}.jsonl`,
+      date: monthStr,
+      retention: 'keep',
+      producer: 'watchlistInsights',
+    };
+  }
 
   if (rel === 'notes/.current_run') {
     return {
@@ -237,11 +287,24 @@ function classifyDriveDocument(driveRel) {
   const rel = posixRel(driveRel);
   const name = path.posix.basename(rel);
 
+  if (rel === 'notes/current.json') {
+    return classifyLocalDocument('notes/current.json');
+  }
+
+  let m;
+  if ((m = rel.match(/^agent-outputs\/(.*)$/))) {
+    return classifyLocalDocument(`agent-outputs/${m[1]}`);
+  }
+
+  if (/^notes\/events\/\d{4}-\d{2}\.jsonl$/.test(rel)) {
+    return classifyLocalDocument(rel);
+  }
+
   if (rel === 'notes/current_run.txt') {
     return classifyLocalDocument('notes/.current_run');
   }
 
-  let m = rel.match(/^notes\/snapshots\/\d{4}\/\d{2}\/(notes_.*\.json)$/);
+  m = rel.match(/^notes\/snapshots\/\d{4}\/\d{2}\/(notes_.*\.json)$/);
   if (m) return classifyLocalDocument(`notes/${m[1]}`);
 
   m = rel.match(/^gainers\/(\d{4})\/(\d{2})\/(\d{2})\/gainers_raw\.json$/);
@@ -405,13 +468,11 @@ function ensureDriveRoot(driveRoot = resolveDriveRoot()) {
   return driveRoot;
 }
 
-function syncToDrive({ dataRoot = resolveDataRoot(), driveRoot = resolveDriveRoot(), dryRun = false } = {}) {
-  if (process.env.COWORK_DRIVE_SYNC === '0') {
-    return { enabled: false, disabled: true, copied: 0, indexed: 0, driveRoot: driveRoot || null, dataRoot };
-  }
+// ── Local-mount sync (original, synchronous) ──────────────────────────────────
 
+function syncToDriveLocal({ dataRoot = resolveDataRoot(), driveRoot = resolveDriveRoot(), dryRun = false } = {}) {
   const root = ensureDriveRoot(driveRoot);
-  if (!root) return { enabled: false, copied: 0, indexed: 0, driveRoot: null, dataRoot };
+  if (!root) return { enabled: false, copied: 0, indexed: 0, driveRoot: null, dataRoot, transport: 'local-mount' };
 
   let copied = 0;
   for (const doc of localDocuments(dataRoot)) {
@@ -419,19 +480,15 @@ function syncToDrive({ dataRoot = resolveDataRoot(), driveRoot = resolveDriveRoo
     if (copyIfNewer(doc.abs, dst, dryRun)) copied += 1;
   }
   const indexed = dryRun ? localDocuments(dataRoot).length : writeMetadata(root, dataRoot);
-  return { enabled: true, direction: 'push', copied, indexed, driveRoot: root, dataRoot };
+  return { enabled: true, direction: 'push', copied, indexed, driveRoot: root, dataRoot, transport: 'local-mount' };
 }
 
-function syncFromDrive({ dataRoot = resolveDataRoot(), driveRoot = resolveDriveRoot(), dryRun = false } = {}) {
-  if (process.env.COWORK_DRIVE_SYNC === '0') {
-    return { enabled: false, disabled: true, copied: 0, driveRoot: driveRoot || null, dataRoot };
-  }
-
+function syncFromDriveLocal({ dataRoot = resolveDataRoot(), driveRoot = resolveDriveRoot(), dryRun = false } = {}) {
   if (!driveRoot || !fs.existsSync(driveRoot)) {
     if (process.env.COWORK_DRIVE_STRICT === '1') {
       throw new Error('Drive root does not exist. Run data:init after mounting Google Drive.');
     }
-    return { enabled: false, copied: 0, driveRoot: driveRoot || null, dataRoot };
+    return { enabled: false, copied: 0, driveRoot: driveRoot || null, dataRoot, transport: 'local-mount' };
   }
 
   let copied = 0;
@@ -439,18 +496,132 @@ function syncFromDrive({ dataRoot = resolveDataRoot(), driveRoot = resolveDriveR
     const dst = path.join(dataRoot, ...doc.localRel.split('/'));
     if (copyIfNewer(doc.abs, dst, dryRun)) copied += 1;
   }
-  return { enabled: true, direction: 'pull', copied, driveRoot, dataRoot };
+  return { enabled: true, direction: 'pull', copied, driveRoot, dataRoot, transport: 'local-mount' };
+}
+
+// ── API-mode sync (async, uses googleapis) ────────────────────────────────────
+
+async function syncToDriveApi({ dataRoot = resolveDataRoot(), dryRun = false } = {}) {
+  const { drive } = driveApi.createDriveClient();
+  const rootPath = process.env.COWORK_DRIVE_PATH || driveApi.DEFAULT_ROOT_PATH;
+  const docs = localDocuments(dataRoot);
+  let copied = 0;
+
+  for (const doc of docs) {
+    if (dryRun) {
+      copied += 1;
+      continue;
+    }
+    try {
+      await driveApi.uploadFile(drive, rootPath, doc.driveRel, doc.abs);
+      copied += 1;
+    } catch (e) {
+      process.stderr.write(`[cowork-drive-api] upload failed ${doc.driveRel}: ${e.message}\n`);
+    }
+  }
+
+  return {
+    enabled: true,
+    direction: 'push',
+    copied,
+    indexed: docs.length,
+    driveRoot: `drive://${rootPath}`,
+    dataRoot,
+    transport: 'api',
+  };
+}
+
+async function syncFromDriveApi({ dataRoot = resolveDataRoot(), dryRun = false } = {}) {
+  const { drive } = driveApi.createDriveClient();
+  const rootPath = process.env.COWORK_DRIVE_PATH || driveApi.DEFAULT_ROOT_PATH;
+
+  let remoteFiles;
+  try {
+    remoteFiles = await driveApi.listAllFiles(drive, rootPath);
+  } catch (e) {
+    if (process.env.COWORK_DRIVE_STRICT === '1') {
+      throw new Error(`Failed to list Drive files: ${e.message}`);
+    }
+    return { enabled: false, copied: 0, driveRoot: `drive://${rootPath}`, dataRoot, transport: 'api', error: e.message };
+  }
+
+  let copied = 0;
+  for (const file of remoteFiles) {
+    // Skip _meta files
+    if (file.driveRel.startsWith('_meta/')) continue;
+
+    const doc = classifyDriveDocument(file.driveRel);
+    if (!doc) continue;
+
+    const localPath = path.join(dataRoot, ...doc.localRel.split('/'));
+    if (dryRun) {
+      copied += 1;
+      continue;
+    }
+
+    try {
+      const downloaded = await driveApi.downloadFile(drive, rootPath, file.driveRel, localPath);
+      if (downloaded) copied += 1;
+    } catch (e) {
+      process.stderr.write(`[cowork-drive-api] download failed ${file.driveRel}: ${e.message}\n`);
+    }
+  }
+
+  return {
+    enabled: true,
+    direction: 'pull',
+    copied,
+    driveRoot: `drive://${rootPath}`,
+    dataRoot,
+    transport: 'api',
+  };
+}
+
+// ── Transport-switching sync (picks local-mount or API) ───────────────────────
+
+async function syncToDrive(opts = {}) {
+  if (process.env.COWORK_DRIVE_SYNC === '0') {
+    const dataRoot = opts.dataRoot || resolveDataRoot();
+    return { enabled: false, disabled: true, copied: 0, indexed: 0, driveRoot: null, dataRoot };
+  }
+
+  // If driveRoot is explicitly provided, always use local-mount transport
+  if (opts.driveRoot) return syncToDriveLocal(opts);
+
+  const transport = detectTransport();
+  if (transport === 'local-mount') return syncToDriveLocal(opts);
+  if (transport === 'api') return syncToDriveApi(opts);
+
+  const dataRoot = opts.dataRoot || resolveDataRoot();
+  return { enabled: false, copied: 0, indexed: 0, driveRoot: null, dataRoot };
+}
+
+async function syncFromDrive(opts = {}) {
+  if (process.env.COWORK_DRIVE_SYNC === '0') {
+    const dataRoot = opts.dataRoot || resolveDataRoot();
+    return { enabled: false, disabled: true, copied: 0, driveRoot: null, dataRoot };
+  }
+
+  // If driveRoot is explicitly provided, always use local-mount transport
+  if (opts.driveRoot) return syncFromDriveLocal(opts);
+
+  const transport = detectTransport();
+  if (transport === 'local-mount') return syncFromDriveLocal(opts);
+  if (transport === 'api') return syncFromDriveApi(opts);
+
+  const dataRoot = opts.dataRoot || resolveDataRoot();
+  return { enabled: false, copied: 0, driveRoot: null, dataRoot };
 }
 
 async function withDriveDataSync(label, fn) {
-  syncFromDrive();
+  await syncFromDrive();
   try {
     return await fn();
   } finally {
-    const result = syncToDrive();
+    const result = await syncToDrive();
     if (result.enabled && process.env.COWORK_DRIVE_LOG === '1') {
       process.stderr.write(
-        `[cowork-drive] ${label || 'job'} synced ${result.copied} file(s) to ${result.driveRoot}\n`
+        `[cowork-drive] ${label || 'job'} synced ${result.copied} file(s) to ${result.driveRoot} (${result.transport || 'unknown'})\n`
       );
     }
   }
@@ -459,14 +630,17 @@ async function withDriveDataSync(label, fn) {
 function doctor() {
   const dataRoot = resolveDataRoot();
   const driveRoot = resolveDriveRoot();
+  const transport = detectTransport();
   return {
     schemaVersion: SCHEMA_VERSION,
     ownerEmail: process.env.COWORK_DRIVE_EMAIL || DEFAULT_OWNER_EMAIL,
+    transport,
     dataRoot,
     dataRootExists: fs.existsSync(dataRoot),
-    driveRoot,
-    driveRootExists: Boolean(driveRoot && fs.existsSync(driveRoot)),
+    driveRoot: transport === 'api' ? `drive://${process.env.COWORK_DRIVE_PATH || driveApi.DEFAULT_ROOT_PATH}` : driveRoot,
+    driveRootExists: transport === 'api' ? true : Boolean(driveRoot && fs.existsSync(driveRoot)),
     driveSyncEnabled: isDriveSyncEnabled(),
+    apiConfigured: driveApi.isApiConfigured(),
     localDocumentCount: localDocuments(dataRoot).length,
     driveDocumentCount: driveRoot && fs.existsSync(driveRoot) ? driveDocuments(driveRoot).length : 0,
   };
@@ -476,22 +650,31 @@ function printJson(value) {
   process.stdout.write(`${JSON.stringify(value, null, 2)}\n`);
 }
 
-function runCli(argv = process.argv.slice(2)) {
+async function runCli(argv = process.argv.slice(2)) {
   const cmd = argv[0] || 'doctor';
   if (cmd === 'doctor') return printJson(doctor());
   if (cmd === 'init') {
+    const transport = detectTransport();
+    if (transport === 'api') {
+      // For API mode, just verify connectivity
+      printJson(doctor());
+      return;
+    }
     const root = ensureDriveRoot();
     if (!root) {
-      throw new Error('Set COWORK_DRIVE_ROOT to your Google Drive folder before running init');
+      throw new Error(
+        'No Drive transport configured.\n' +
+          'Either set COWORK_DRIVE_ROOT (local mount) or run `yarn cowork:data:auth` (API mode).'
+      );
     }
     writeMetadata(root, resolveDataRoot());
     return printJson(doctor());
   }
-  if (cmd === 'pull') return printJson(syncFromDrive());
-  if (cmd === 'push') return printJson(syncToDrive());
+  if (cmd === 'pull') return printJson(await syncFromDrive());
+  if (cmd === 'push') return printJson(await syncToDrive());
   if (cmd === 'sync') {
-    const pull = syncFromDrive();
-    const push = syncToDrive();
+    const pull = await syncFromDrive();
+    const push = await syncToDrive();
     return printJson({ pull, push });
   }
   if (cmd === 'manifest') {
@@ -522,6 +705,7 @@ module.exports = {
   documentDto,
   resolveDataRoot,
   resolveDriveRoot,
+  detectTransport,
   syncFromDrive,
   syncToDrive,
   withDriveDataSync,

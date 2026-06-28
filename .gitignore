@@ -55,8 +55,12 @@ backend/uploads/
 
 # Cowork jobs runtime data + secrets (relocated from Company Research) — keep the .py helpers tracked
 packages/cowork-jobs/data/.env
+packages/cowork-jobs/data/credentials.json
 packages/cowork-jobs/data/company_notes.json
 packages/cowork-jobs/data/daily_gainers/
 packages/cowork-jobs/data/delivery_cache/
 packages/cowork-jobs/data/notes/
 packages/cowork-jobs/data/validation/
+
+# Root delivery_cache (duplicate of cowork-jobs data)
+delivery_cache/

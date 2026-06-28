@@ -78,7 +78,7 @@ data = {
     "in_the_price": "...", "risks": ["<b>Risk:</b> ...", ...],
     "scoreboard": [[1, "...", "...", "...", "HIGH"], ...],
     "sources": "...",
-    "output_path": "/mnt/user-data/outputs/<Company>_Growth_Triggers.pdf",
+    "output_path": "/mnt/project/packages/cowork-jobs/data/agent-outputs/<Company>_Growth_Triggers.pdf",
 }
 create_growth_triggers_pdf(data)
 ```

@@ -116,7 +116,7 @@ create_sector_report(
     sector_name="Quick Commerce",
     sub_theme="Dark store unit economics & moat sustainability",  # or None
     report_markdown=report_md,
-    output_path="/mnt/user-data/outputs/Sector_QuickCommerce.pdf",
+    output_path="/mnt/project/packages/cowork-jobs/data/agent-outputs/Sector_QuickCommerce.pdf",
 )
 ```
 

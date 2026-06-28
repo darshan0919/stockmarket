@@ -189,7 +189,7 @@ data = {
         "biggest_risk": "...",
     },
     "sources": "...",
-    "output_path": "/mnt/user-data/outputs/Peer_<Sector>_<DD-MMM-YYYY>.pdf",
+    "output_path": "/mnt/project/packages/cowork-jobs/data/agent-outputs/Peer_<Sector>_<DD-MMM-YYYY>.pdf",
 }
 create_peer_comparison_pdf(data)
 ```
