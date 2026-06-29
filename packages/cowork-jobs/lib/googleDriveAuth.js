@@ -20,7 +20,7 @@
  *   2. Opens a browser for Google consent
  *   3. Starts a local HTTP server to receive the callback
  *   4. Exchanges the auth code for a refresh token
- *   5. Appends GOOGLE_REFRESH_TOKEN (and optionally client ID/secret) to .env
+ *   5. Appends GOOGLE_REFRESH_TOKEN (and optionally client ID/secret) to root .env
  */
 
 const fs = require('fs');
@@ -171,7 +171,7 @@ function waitForAuthCode() {
 
 function appendToEnvFile(entries) {
   const envPath =
-    process.env.COWORK_ENV || path.join(process.cwd(), '.env');
+    process.env.COWORK_ENV || path.join(__dirname, '..', '..', '..', '.env');
   let content = '';
   if (fs.existsSync(envPath)) {
     content = fs.readFileSync(envPath, 'utf8');

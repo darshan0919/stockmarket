@@ -65,7 +65,7 @@ export default function ConcallDownloaderCard() {
       const msg =
         err?.response?.data?.error ||
         err?.message ||
-        'Download failed. Check STOCKSCANS_AUTH_TOKEN in backend/.env.';
+        'Download failed. Check STOCKSCANS_AUTH_TOKEN in .env.';
       showSnackbar(msg, 'error');
     } finally {
       setLoading(false);

@@ -1,6 +1,6 @@
 const path = require('path');
-// Load .env from this file's directory so `node ../backend/server.js` or IDE "cwd=repo root" still works
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+// Load .env from the repo root so all packages share a single credentials file
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/database');

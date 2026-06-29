@@ -75,7 +75,7 @@ async function fetchTweetsForDownload(req, res, next) {
       res.status(503).json({
         success: false,
         error:
-          'X GraphQL is not configured. Set TWITTER_AUTH_TOKEN and TWITTER_CSRF_TOKEN in backend/.env (see # TWEETER section).',
+          'X GraphQL is not configured. Set TWITTER_AUTH_TOKEN and TWITTER_CSRF_TOKEN in .env (see # TWEETER section).',
       });
       return;
     }

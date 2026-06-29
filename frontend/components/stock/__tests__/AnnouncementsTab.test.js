@@ -232,7 +232,7 @@ describe('AnnouncementsTab', () => {
       response: {
         data: {
           error:
-            'StockScans authentication failed (HTTP 401). Refresh STOCKSCANS_AUTH_TOKEN in backend/.env from your stockscans.in session.',
+            'StockScans authentication failed (HTTP 401). Refresh STOCKSCANS_AUTH_TOKEN in .env from your stockscans.in session.',
           code: 'STOCKSCANS_HTTP_ERROR',
         },
       },

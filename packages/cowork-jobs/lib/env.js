@@ -6,12 +6,12 @@ const fs = require('fs');
  * Minimal .env loader (no dependency). Loads KEY=VALUE lines into process.env
  * without overwriting values already present. Returns the path used, or null.
  *
- * Resolution: explicit path arg → COWORK_ENV → ./.env in cwd.
+ * Resolution: explicit path arg → COWORK_ENV → repo root .env.
  * @param {string} [explicitPath]
  * @returns {string|null}
  */
 function loadEnv(explicitPath) {
-  const path = explicitPath || process.env.COWORK_ENV || `${process.cwd()}/.env`;
+  const path = explicitPath || process.env.COWORK_ENV || require('path').join(__dirname, '..', '..', '..', '.env');
   if (!fs.existsSync(path)) return null;
   for (const raw of fs.readFileSync(path, 'utf8').split(/\r?\n/)) {
     const line = raw.trim();

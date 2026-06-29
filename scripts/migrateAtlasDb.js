@@ -31,16 +31,16 @@ const CANONICAL_COLLECTION = 'modelresponses';
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function loadMongoUrl() {
-  const envPath = path.resolve(__dirname, '..', 'backend', '.env');
+  const envPath = path.resolve(__dirname, '..', '.env');
   if (!fs.existsSync(envPath)) {
-    console.error(`❌  Could not find backend/.env at ${envPath}`);
+    console.error(`❌  Could not find .env at ${envPath}`);
     process.exit(1);
   }
 
   const envContent = fs.readFileSync(envPath, 'utf-8');
   const match = envContent.match(/^MONGO_URL=(.+)$/m);
   if (!match) {
-    console.error('❌  MONGO_URL not found in backend/.env');
+    console.error('❌  MONGO_URL not found in .env');
     process.exit(1);
   }
 

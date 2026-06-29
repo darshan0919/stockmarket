@@ -104,7 +104,7 @@ async function searchCompanyAnnouncements({ companyId, search, offset = 0 }) {
     getAuthToken();
   } catch {
     const err = new Error(
-      'STOCKSCANS_AUTH_TOKEN is required for announcements. Add the authtoken cookie value from stockscans.in to backend/.env'
+      'STOCKSCANS_AUTH_TOKEN is required for announcements. Add the authtoken cookie value from stockscans.in to .env'
     );
     err.code = 'STOCKSCANS_AUTH_REQUIRED';
     throw err;
@@ -130,7 +130,7 @@ async function searchCompanyAnnouncements({ companyId, search, offset = 0 }) {
       }
       let code = 'STOCKSCANS_HTTP_ERROR';
       if (status === 401 || status === 403) {
-        message = `StockScans authentication failed (HTTP ${status}). Refresh STOCKSCANS_AUTH_TOKEN in backend/.env from your stockscans.in session.`;
+        message = `StockScans authentication failed (HTTP ${status}). Refresh STOCKSCANS_AUTH_TOKEN in .env from your stockscans.in session.`;
       } else if (status >= 500) {
         const raw =
           data && typeof data === 'object' && typeof data.message === 'string'

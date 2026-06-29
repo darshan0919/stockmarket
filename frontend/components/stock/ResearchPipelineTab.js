@@ -355,7 +355,7 @@ export default function ResearchPipelineTab({ basicInfo }) {
             machine running the backend (<code className="text-2xs">Annual_Reports</code>,{' '}
             <code className="text-2xs">Concalls</code>, etc.). Requires{' '}
             <code className="text-2xs">STOCKSCANS_AUTH_TOKEN</code> in{' '}
-            <code className="text-2xs">backend/.env</code>.
+            <code className="text-2xs">.env</code>.
           </p>
           <label className="form-control w-full max-w-xs">
             <span className="label-text text-2xs opacity-70">Interval</span>

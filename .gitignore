@@ -12,6 +12,7 @@ package-lock.json
 
 # Environment variables
 .env
+!.env.example
 .env.local
 .env*.local
 
@@ -54,7 +55,6 @@ backend/uploads/
 
 
 # Cowork jobs runtime data + secrets (relocated from Company Research) — keep the .py helpers tracked
-packages/cowork-jobs/data/.env
 packages/cowork-jobs/data/credentials.json
 packages/cowork-jobs/data/company_notes.json
 packages/cowork-jobs/data/daily_gainers/
