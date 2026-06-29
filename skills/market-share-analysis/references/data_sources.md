@@ -153,7 +153,7 @@ Acceptable responses, in priority order:
 When this skill needs primary documents for the top 5-10 listed players, use:
 
 ```bash
-python3 /tmp/fetch_documents.py "NSE:TICKER" \
+python3 packages/stock-api/python/fetchers/fetch_documents.py "NSE:TICKER" \
     -t "Annual Report" PPT --last-n 2 -o /tmp/<industry>_msa_docs/
 ```
 

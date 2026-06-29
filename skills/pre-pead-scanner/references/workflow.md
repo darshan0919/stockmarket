@@ -22,7 +22,7 @@ A "pre-results" thesis is void the moment a company reports. The freshest signal
 Confirm via the documents API — a brand-new `Result` document dated to the quarter that is *about* to be reported means results are out:
 
 ```bash
-python3 /tmp/fetch_documents.py "<companyId>" \
+python3 packages/stock-api/python/fetchers/fetch_documents.py "<companyId>" \
     -t Result --last-n 1 --list-only
 ```
 
@@ -33,7 +33,7 @@ If the latest `Result` date corresponds to the quarter about to be reported (e.g
 The whole method rests on management's most recent guidance. No concall, no guidance, no analysis. Check the documents API for a transcript dated to the **previous** quarter (the one already reported):
 
 ```bash
-python3 /tmp/fetch_documents.py "<companyId>" \
+python3 packages/stock-api/python/fetchers/fetch_documents.py "<companyId>" \
     -t Transcript --last-n 2 --list-only
 ```
 
@@ -48,7 +48,7 @@ Fetch the in-scope documents for real (drop `--list-only`, add `-o`):
 
 ```bash
 SAFE=$(echo "<companyId>" | tr ':' '_')
-python3 /tmp/fetch_documents.py "<companyId>" \
+python3 packages/stock-api/python/fetchers/fetch_documents.py "<companyId>" \
     -t Transcript --last-n 1 -o "/tmp/pead/${SAFE}_docs"
 ```
 
@@ -65,7 +65,7 @@ For each in-scope company, read the latest concall and extract two things, in th
 If the latest concall alone can't settle the validation (e.g. you need to see whether guidance was narrowing or widening across calls, or whether the order book is growing or being burned faster than replaced), **fetch more concalls** — the previous 2–4 quarters — and track the guidance drift:
 
 ```bash
-python3 /tmp/fetch_documents.py "<companyId>" \
+python3 packages/stock-api/python/fetchers/fetch_documents.py "<companyId>" \
     -t Transcript --last-n 4 -o "/tmp/pead/${SAFE}_docs"
 ```
 

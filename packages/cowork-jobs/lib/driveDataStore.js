@@ -114,12 +114,12 @@ function classifyLocalDocument(localRel) {
   if ((m = rel.match(/^agent-outputs\/(.*)$/))) {
     return {
       kind: 'agent-output',
-      category: 'claude-skills',
+      category: 'skills',
       localRel: rel,
       driveRel: `agent-outputs/${m[1]}`,
       date: null,
       retention: 'keep',
-      producer: 'claude-skills',
+      producer: 'skills',
     };
   }
 

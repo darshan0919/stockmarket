@@ -12,7 +12,7 @@ All Claude AI skills for the stockmarket monorepo, managed as version-controlled
 **To update a skill:** Edit the files in this repo → commit → push. Changes are live on the next Claude invocation. No reinstall needed.
 
 **To add a new skill:**
-1. Create `claude-skills/<skill-name>/SKILL.md`
+1. Create `skills/<skill-name>/SKILL.md`
 2. Add scripts, references, assets as needed
 3. Add an entry to `registry.json`
 4. Done — the invoker will find it automatically
@@ -20,7 +20,7 @@ All Claude AI skills for the stockmarket monorepo, managed as version-controlled
 ## Directory structure
 
 ```
-claude-skills/
+skills/
 ├── README.md                    # this file
 ├── registry.json                # skill name → file paths + aliases map
 ├── _shared/                     # shared across all skills (single source of truth)
@@ -66,7 +66,7 @@ claude-skills/
 
 Claude's `web_fetch` cannot pass auth headers, so raw GitHub URLs must be publicly accessible.
 
-**Option A (recommended):** Keep this `claude-skills/` directory in a public repo (or a public subfolder via GitHub Pages). Your backend/frontend code can stay in a separate private repo.
+**Option A (recommended):** Keep this `skills/` directory in a public repo (or a public subfolder via GitHub Pages). Your backend/frontend code can stay in a separate private repo.
 
 **Option B:** Set up a read-only Cloudflare Worker proxy that injects a GitHub token. Point `base_url` in `registry.json` to the proxy URL.
 
@@ -76,7 +76,7 @@ After forking/cloning this repo, update the `base_url` in `registry.json`:
 
 ```json
 {
-  "base_url": "https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/claude-skills"
+  "base_url": "https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/skills"
 }
 ```
 
@@ -91,7 +91,7 @@ Python scripts are cached to `/tmp/` at the start of each Claude session:
 
 ## Shared files
 
-`_shared/conventions.md` and `_shared/pdf_utils.py` were previously duplicated inside each skill's own `_shared/` directory. After this migration they live here once. Skills reference them via the invoker's shared injection step.
+`_shared/conventions.md` and `packages/stock-api/python/utils/pdf_utils.py` were previously duplicated inside each skill's own `_shared/` directory. After the migration, `conventions.md` lives in `skills/_shared/` and `pdf_utils.py` lives in `packages/stock-api/python/utils/`. Skills reference them via their absolute or relative paths.
 
 **Do not edit the per-skill `_shared/` copies** — they are legacy and will be removed in a future cleanup pass. Edit the root `_shared/` files only.
 

@@ -57,7 +57,7 @@ Fetch the previous 2–4 transcripts and watch how the *same* guidance moved acr
 - **Silent flags** — items disclosed in a filing but never raised by management or analysts on the call. Surface them; they're often where the surprise hides.
 
 ```bash
-python3 /tmp/fetch_documents.py "<companyId>" \
+python3 packages/stock-api/python/fetchers/fetch_documents.py "<companyId>" \
     -t Transcript --last-n 4 -o "/tmp/pead/${SAFE}_docs"
 ```
 

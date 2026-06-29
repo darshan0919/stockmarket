@@ -25,12 +25,8 @@ live in Claude Web on the next invocation. No reinstall required.
 ## Registry URL
 
 ```
-https://raw.githubusercontent.com/darshan0919/stockmarket/main/claude-skills/registry.json
+https://raw.githubusercontent.com/darshan0919/stockmarket/main/skills/registry.json
 ```
-
-> **Before first use:** Replace `YOUR_GITHUB_USER` and `YOUR_MONOREPO` in
-> this URL with your actual GitHub username and repo name. The same
-> base_url is stored in registry.json — update it there too.
 
 ## Execution protocol
 
@@ -44,7 +40,7 @@ Extract from the user's message:
 ### Step 2 — Fetch the registry
 
 ```
-web_fetch: https://raw.githubusercontent.com/darshan0919/stockmarket/main/claude-skills/registry.json
+web_fetch: https://raw.githubusercontent.com/darshan0919/stockmarket/main/skills/registry.json
 ```
 
 Parse the JSON. Build `base_url` from the `base_url` field in the registry
@@ -88,13 +84,9 @@ For each path in the skill's `scripts` array:
   curl -fsSL "{base_url}/{script_path}" -o /tmp/<filename>
 ```
 
-Do this for ALL scripts listed before starting execution, not lazily. The
-fetch_documents.py + fetch_announcements.py pair is almost always needed and
-should always be cached together when either appears in the scripts array.
-
-**fetch_announcements.py depends on fetch_documents.py** (imports from it via
-`sys.path.insert(0, Path(__file__).resolve().parent)`). Both must be in
-`/tmp/` for the import to work.
+Do this for ALL scripts listed before starting execution, not lazily.
+When either `fetch_documents.py` or `fetch_announcements.py` appears in the scripts array,
+cache both — they depend on each other and must both be in `/tmp/`.
 
 ### Step 7 — Fetch reference files (lazy — only when skill instructs)
 
@@ -114,14 +106,33 @@ Follow the SKILL.md instructions exactly, with:
 
 ## Script path substitution table
 
-When executing a skill, paths are resolved as follows:
+All scripts are cached to `/tmp/<filename>` in Step 6. When SKILL.md says to run a script,
+substitute the cached `/tmp/<filename>` path. The mapping is:
 
-| What SKILL.md says | What to actually run |
+| Script (in registry `scripts` array) | Cached as |
 |---|---|
-| `python3 packages/stock-api/python/fetchers/fetch_documents.py` | Already correct — script was cached to /tmp in Step 6 |
-| `python3 packages/stock-api/python/fetchers/fetch_announcements.py` | Already correct |
-| `python3 /tmp/generate_concall_pdf.py` | Already correct |
-| Any `python3 /tmp/<script>.py` | Already correct |
+| `packages/stock-api/python/fetchers/fetch_documents.py` | `/tmp/fetch_documents.py` |
+| `packages/stock-api/python/fetchers/fetch_announcements.py` | `/tmp/fetch_announcements.py` |
+| `packages/stock-api/python/fetchers/fetch_and_extract.py` | `/tmp/fetch_and_extract.py` |
+| `packages/stock-api/python/generators/generate_concall_pdf.py` | `/tmp/generate_concall_pdf.py` |
+| `packages/stock-api/python/generators/generate_forensic_pdf.py` | `/tmp/generate_forensic_pdf.py` |
+| `packages/stock-api/python/generators/generate_report.py` | `/tmp/generate_report.py` |
+| `packages/stock-api/python/generators/generate_pdf.py` | `/tmp/generate_pdf.py` |
+| `packages/stock-api/python/generators/generate_credibility_widget.py` | `/tmp/generate_credibility_widget.py` |
+| `packages/stock-api/python/generators/generate_peer_pdf.py` | `/tmp/generate_peer_pdf.py` |
+| `packages/stock-api/python/generators/generate_market_share_html.py` | `/tmp/generate_market_share_html.py` |
+| `packages/stock-api/python/generators/generate_sector_report.py` | `/tmp/generate_sector_report.py` |
+| `packages/stock-api/python/generators/generate_drhp_pdf.py` | `/tmp/generate_drhp_pdf.py` |
+| `packages/stock-api/python/analyzers/compute_concentration.py` | `/tmp/compute_concentration.py` |
+| `packages/stock-api/python/analyzers/run_scan.py` | `/tmp/run_scan.py` |
+| `packages/stock-api/python/analyzers/scan_catalysts.py` | `/tmp/scan_catalysts.py` |
+| `packages/stock-api/python/analyzers/catalyst_rules.py` | `/tmp/catalyst_rules.py` |
+| `packages/stock-api/python/analyzers/parse_tweet_dump.py` | `/tmp/parse_tweet_dump.py` |
+| `packages/stock-api/python/orchestration/orchestrate.py` | `/tmp/orchestrate.py` |
+| `packages/stock-api/python/utils/pdf_utils.py` | `/tmp/pdf_utils.py` |
+
+**fetch_announcements.py depends on fetch_documents.py** — both must be cached to `/tmp/`
+together for the import to work.
 
 ## Branch override
 
@@ -136,7 +147,7 @@ If user says "use branch dev" or "test version" or similar:
 | Registry fetch fails (404/timeout) | Tell user the registry URL may be wrong or repo is private. Show the URL being fetched. |
 | Skill not found in registry | List all available skill names + aliases from the last successful registry fetch |
 | Script curl fails | Show the URL that failed. Suggest checking if repo is public. |
-| Script import error in /tmp | Both fetch_documents.py and fetch_announcements.py must be in /tmp together — re-cache both |
+| Script import error in /tmp | Re-cache both `fetch_documents.py` and `fetch_announcements.py` together — they have a mutual dependency |
 | Auth token missing for Stockscans scripts | The scripts look for `/mnt/project/Stockscans_authtoken` — prompt user to ensure it's present |
 
 ## Private repo handling
@@ -144,19 +155,19 @@ If user says "use branch dev" or "test version" or similar:
 If the monorepo is private, raw GitHub URLs will return 404.
 Options (tell user to pick one):
 
-1. **Recommended**: Make `claude-skills/` a separate public repo or GitHub Pages site.
+1. **Recommended**: Make `skills/` a separate public repo or GitHub Pages site.
    Then update `base_url` in registry.json to point to the public URL.
 2. **Alternative**: Set up a thin read-only proxy (Cloudflare Worker) that injects
    the GitHub token server-side. Point `base_url` to the proxy URL.
 3. **Local fallback**: For sessions where GitHub is unreachable, skills can be
-   invoked directly from `/mnt/skills/user/` if still installed there.
+   invoked directly from the local `skills/` directory in the monorepo.
 
 ## Important: no skill should be installed locally except this one
 
 Once migration is complete:
 - Uninstall all `.skill` files from Claude except `github-skill-invoker`
 - All skill logic lives in GitHub; this file is the only local entry point
-- To add a new skill: add folder to `claude-skills/` in GitHub + entry in `registry.json`
+- To add a new skill: add folder to `skills/` in GitHub + entry in `registry.json`
 - To update a skill: edit in GitHub; no Claude reinstall needed
 
 ## Available skills (quick reference — authoritative list is registry.json)

@@ -13,33 +13,33 @@ Enforces the **Script-First architecture** for every Claude Cowork scheduled tas
 
 ## Core Principle
 
-When a Cowork task is created or modified, it must be split into two components:
+When a Cowork task is created or modified, it must be designed with a **strict orchestration architecture**:
 
-| Component | Responsibility | Runs When |
-|---|---|---|
-| **Companion Script** | All computation, data fetching, parsing, formatting, filtering, sorting, aggregation | First — before the model |
-| **Task Prompt** | Reasoning, judgment, synthesis, decisions, recommendations | After the script outputs are ready |
+| Component | Responsibility |
+|---|---|
+| **APIs / Scripts / Skills** | All computation, data fetching, parsing, filtering, logic, judgment, and formatting. |
+| **Scheduled Cowork Task** | Pure orchestration. It only handles calling the respective APIs/scripts/skills in order. It has NO logic of its own. |
 
-The script resolves all facts. The prompt interprets them.
+The scripts and skills do all the real work. The scheduled task simply orchestrates them using exact file paths.
 
 ---
 
 ## Step-by-Step Workflow
 
-### Step 1 — Understand the Task
+### Step 1 — Figure out which apis/scripts/skills to create
 
 Ask the user (or infer from context):
 1. What should this task *do* end-to-end?
 2. What data/files/APIs does it need to touch?
-3. What decision or synthesis does the model need to make?
-4. What is the output format / where does it go?
-5. How often does it run, and what triggers it?
+3. Based on the requirements, figure out exactly which APIs, companion scripts, or skills need to be created.
 
-### Step 2 — Partition the Work
+### Step 2 — Create them and place them in the stockmarket project
+
+Create the necessary APIs, scripts, and skills, and place them in the appropriate places in the `stockmarket` project.
 
 Apply the boundary rule to every operation in the task:
 
-**Goes in the Script (deterministic):**
+**Goes in the Script/API/Skill:**
 - File reads/writes (CSV, JSON, Excel, TXT, logs)
 - API calls (fetch data, paginate, authenticate)
 - Parsing (HTML, PDF, JSON, XML)
@@ -47,21 +47,9 @@ Apply the boundary rule to every operation in the task:
 - Filtering and sorting (by date, value, flag)
 - Aggregation (sum, count, group-by, rolling averages)
 - Deduplication, joins, schema normalization
-- Computing derived fields (ratios, deltas, % change)
+- Any judgment, reasoning, or synthesis (encapsulate in a skill if needed)
 
-**Goes in the Prompt (judgment):**
-- Interpreting whether a number is "good" or "bad"
-- Writing a recommendation, summary, or narrative
-- Deciding what action to take given ambiguity
-- Flagging anomalies that require human judgment
-- Synthesizing multiple data sources into a conclusion
-- Drafting communications (emails, alerts, reports)
-
-**Gray area rule:** If it can be computed with a function and the same inputs always yield the same outputs → script. If it requires weighing tradeoffs or reading context → prompt.
-
-### Step 3 — Write the Companion Script
-
-Generate a Python script (preferred) or bash script that:
+Generate Python scripts (preferred) or bash scripts that:
 
 ```python
 # Structure every companion script like this:
@@ -69,8 +57,7 @@ Generate a Python script (preferred) or bash script that:
 #!/usr/bin/env python3
 """
 Task: <task name>
-Purpose: Pre-computes all deterministic inputs for the Claude task prompt.
-Output: Writes structured JSON to stdout or a temp file for the prompt to consume.
+Purpose: Handles logic for the task.
 """
 
 import json, sys
@@ -81,133 +68,102 @@ def fetch_data():
     pass
 
 def process(raw):
-    """All parsing, filtering, sorting, aggregation here."""
-    pass
-
-def format_output(processed):
-    """Normalize into a clean structure the prompt can directly use."""
+    """All logic, parsing, filtering, sorting, aggregation here."""
     pass
 
 if __name__ == "__main__":
     raw = fetch_data()
     processed = process(raw)
-    output = format_output(processed)
-    print(json.dumps(output, indent=2))
-    # OR: write to /tmp/task_output.json for the prompt to read
+    print(json.dumps(processed, indent=2))
 ```
 
 **Script rules:**
 - Must be idempotent — safe to re-run
 - Must handle errors gracefully (try/except with meaningful messages)
-- Must produce a clean, flat JSON output that the prompt can directly read
-- Must not contain any "reasoning" or narrative — only data
 - Should be fast — if slow, add caching or pagination logic
 
-### Step 4 — Write the Task Prompt
+### Step 3 — Create a scheduled cowork task
 
-The task prompt must follow this template:
+Create a scheduled cowork task that only handles calling the respective apis/scripts/skills.
+
+**Critical Rules for the Scheduled Task:**
+1. It doesn't have any logic of its own. 
+2. Its job is ONLY to orchestrate the execution of the respective apis/scripts/skills.
+3. It must refer to the **exact absolute paths** of the respective apis/scripts/skills for invoking them.
+
+The task definition must follow this template:
 
 ```
 ## Context
 [1-2 lines: what this task does and when it runs]
 
-## Input
-The companion script has already run and produced the following output:
-<paste or reference script output structure here>
+## Execution Plan
+Call the following exact scripts/APIs in order:
+1. Execute script: /path/to/stockmarket/scripts/script_name.py
+2. Execute skill: /path/to/stockmarket/skills/skill_name/SKILL.md
+3. [etc...]
 
-## Your Job
-[Describe ONLY the judgment/reasoning/synthesis work]
-
-Do NOT re-compute anything the script already computed.
-Do NOT re-fetch any data.
-Do NOT re-sort or re-filter. The script has done this.
-
-## Output Format
-[Describe exact output: file, message, table, alert, etc.]
+Do NOT run any logic, calculations, data fetching, or file modifications directly. Your only job is to orchestrate these existing scripts/skills exactly as specified.
 ```
-
-**Prompt rules:**
-- Prompt should be under 300 words for most tasks
-- Never instruct the model to "calculate", "fetch", "parse", "sort", "filter", "count", or "aggregate" — those belong in the script
-- The prompt references script output, it does not reproduce script logic
-- Prompt must specify output format exactly
-
-### Step 5 — Validate the Split
-
-Before finalizing, run this checklist:
-
-- [ ] Does the script handle ALL data fetching and computation?
-- [ ] Is the prompt free of any "calculate X" or "fetch Y" instructions?
-- [ ] Does the script output a clean JSON the prompt can immediately use?
-- [ ] Would the script produce identical output if run twice with the same inputs?
-- [ ] Is the prompt focused entirely on what to *decide* or *synthesize*?
-- [ ] Is error handling in the script (not the prompt)?
-- [ ] Is the script idempotent and safe to re-run?
 
 ---
 
 ## Output to Deliver to User
 
-Always deliver both artifacts:
+Always deliver the following:
 
-### Artifact 1: `<task_name>_script.py`
-Complete, runnable Python script with proper error handling and JSON output.
+### Artifact 1: Scripts and Skills Creation
+Create the necessary scripts/skills as files in the appropriate directories of the `stockmarket` project. Provide the user with the absolute paths to the newly created files.
 
 ### Artifact 2: Task Prompt (in a code block)
-Lightweight prompt text ready to paste into the Cowork task scheduler, referencing the script's output structure.
+Lightweight prompt text ready to paste into the Cowork task scheduler, orchestrating the scripts/skills with absolute paths.
 
 ### Artifact 3: Quickstart comment (optional)
-If the task needs env vars, API keys, or dependencies, list them in a `# SETUP` block at the top of the script.
+If the task needs env vars, API keys, or dependencies, list them in a `# SETUP` block at the top of the relevant script.
 
 ---
 
-## Examples of the Split in Practice
+## Examples of the Orchestration in Practice
 
-### ❌ Wrong — Everything in the Prompt
+### ❌ Wrong — Task has its own logic
 ```
 Task Prompt: "Fetch my last 7 days of trades from the Zerodha API, 
 filter to only losing trades, calculate the average loss, 
 sort by size, and write a short reflection on what went wrong."
 ```
 
-### ✅ Right — Split Architecture
-**Script does:** API auth → fetch trades → filter losing → calculate avg loss → sort by size → output JSON  
-**Prompt does:** Read the JSON → write a short reflection on patterns and what to adjust
+### ✅ Right — Pure Orchestration
+**Script does:** API auth → fetch trades → filter losing → calculate avg loss → sort by size → output JSON to a file
+**Skill does:** Reads the JSON → writes a short reflection on patterns
+**Task Prompt does:** Execute `/path/to/stockmarket/scripts/fetch_losing_trades.py` and then execute `/path/to/stockmarket/skills/write_reflection/SKILL.md`
 
 ---
 
-### ❌ Wrong — Prompt asks model to parse
+### ❌ Wrong — Task asks model to parse
 ```
 Task Prompt: "Read the CSV at /data/watchlist.csv, 
 parse each row, and for each stock check if RSI > 70..."
 ```
 
-### ✅ Right
-**Script does:** Read CSV → compute RSI for each ticker → flag RSI > 70 → output list  
-**Prompt does:** For the flagged stocks, assess whether to trim or hold based on broader thesis
+### ✅ Right — Pure Orchestration
+**Script does:** Read CSV → compute RSI for each ticker → flag RSI > 70 → write output 
+**Task Prompt does:** Execute `/path/to/stockmarket/scripts/check_rsi.py`.
 
 ---
 
 ## When Modifying an Existing Task
 
 If the user is updating an existing task:
-1. Re-audit the current prompt for any computation that should move to the script
-2. Update the script first, then update the prompt to consume the new output
-3. Re-run the Step 5 checklist
-4. Version the script (add `# v2 — added X` comment at top)
+1. Re-audit the current prompt for any logic or computation that should move to a script or skill.
+2. Update the script/skill first, then update the prompt to only orchestrate the calls with exact paths.
+3. Version the script (add `# v2 — added X` comment at top)
 
 ---
 
 ## Edge Cases
 
 **"The task is very simple, does it need a script?"**  
-Yes, if it touches any external data (file, API, network). The discipline matters more on simple tasks because the habit must generalize.
-
-**"The script output is too large for the prompt context."**  
-Summarize or truncate in the script itself. The script decides what's relevant, not the prompt.
-
-**"The task is one-time, not recurring."**  
-Still split. One-time tasks become recurring later. Start clean.
+Yes. All logic and data fetching belong in a script or skill. The task prompt must remain purely orchestration.
 
 **"I don't know how to write the script."**  
 Describe what data you need and where it comes from. This skill will write the script for you.
