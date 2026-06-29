@@ -9,7 +9,7 @@ description: >
   watchlist catalyst scan, fundamental shift scan, management credibility
   tracker, watchlist sync, gainers signal, insight validation, equity
   extraction, equity dashboard, equity master, stock documents fetcher,
-  cowork task architect, announcement keyword explorer — or references any
+  cowork task architect, announcement keyword explorer, skill manager — or references any
   of these skills by name or alias. Fetches the LATEST version of the skill
   from GitHub and executes it with the user's parameters. Always use this
   skill even when the user names a skill directly — it ensures they get the
@@ -130,6 +130,8 @@ substitute the cached `/tmp/<filename>` path. The mapping is:
 | `packages/stock-api/python/analyzers/parse_tweet_dump.py` | `/tmp/parse_tweet_dump.py` |
 | `packages/stock-api/python/orchestration/orchestrate.py` | `/tmp/orchestrate.py` |
 | `packages/stock-api/python/utils/pdf_utils.py` | `/tmp/pdf_utils.py` |
+| `packages/stock-api/python/utils/doc_generator.py` | `/tmp/doc_generator.py` |
+| `packages/stock-api/python/stockscans_client.py` | `/tmp/stockscans_client.py` |
 
 **fetch_announcements.py depends on fetch_documents.py** — both must be cached to `/tmp/`
 together for the import to work.
@@ -200,3 +202,4 @@ Once migration is complete:
 | gainers-signal | gainers signal, top gainers, daily gainers |
 | watchlist-insights | watchlist insights, daily insights |
 | cowork-task-architect | cowork task, create task, schedule task |
+| skill-manager | skill manager, create skill, skill creator |

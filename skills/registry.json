@@ -558,6 +558,31 @@
         "automate in cowork",
         "recurring task"
       ]
+    },
+    "skill-manager": {
+      "skill_md": "skills/skill-manager/SKILL.md",
+      "scripts": [
+        "packages/stock-api/python/skill_manager/__init__.py",
+        "packages/stock-api/python/skill_manager/aggregate_benchmark.py",
+        "packages/stock-api/python/skill_manager/generate_report.py",
+        "packages/stock-api/python/skill_manager/generate_review.py",
+        "packages/stock-api/python/skill_manager/improve_description.py",
+        "packages/stock-api/python/skill_manager/package_skill.py",
+        "packages/stock-api/python/skill_manager/quick_validate.py",
+        "packages/stock-api/python/skill_manager/run_eval.py",
+        "packages/stock-api/python/skill_manager/run_loop.py",
+        "packages/stock-api/python/skill_manager/utils.py"
+      ],
+      "references": [],
+      "shared": [],
+      "aliases": [
+        "skill manager",
+        "create skill",
+        "modify skill",
+        "delete skill",
+        "skill creator",
+        "manage skills"
+      ]
     }
   }
 }
