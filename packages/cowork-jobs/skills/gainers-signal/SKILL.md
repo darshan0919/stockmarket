@@ -18,9 +18,10 @@ email synthesis over their output. Do NOT re-fetch or re-compute anything.
 ## Setup
 
 ```bash
-SCAN=$(find /sessions -path '*cowork-jobs/gainersScanner.js' 2>/dev/null | head -1)
-DATA="$(dirname "$SCAN")/data"   # data + .env now live with the jobs in the monorepo
-SYNC="$(dirname "$SCAN")/lib/driveDataStore.js"
+COWORK_JOBS=$(find /sessions -maxdepth 5 -type d -name "cowork-jobs" 2>/dev/null | grep -v node_modules | head -1)
+SCAN="$COWORK_JOBS/gainersScanner.js"
+DATA="$COWORK_JOBS/data"
+SYNC="$COWORK_JOBS/lib/driveDataStore.js"
 export GAINERS_OUTPUT_DIR="$DATA/daily_gainers" BSE_SCRIP_CACHE="$DATA/delivery_cache/bse_scrip_codes.json" \
        COWORK_DATA_DIR="$DATA" COWORK_ENV="$DATA/.env" COWORK_DRIVE_EMAIL="djplearner@gmail.com"
 # Optional when Google Drive auto-detection fails:

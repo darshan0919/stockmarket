@@ -11,8 +11,14 @@ const fs = require('fs');
  * @returns {string|null}
  */
 function loadEnv(explicitPath) {
-  const path = explicitPath || process.env.COWORK_ENV || require('path').join(__dirname, '..', '..', '..', '.env');
-  if (!fs.existsSync(path)) return null;
+  const repoRoot = require('path').join(__dirname, '..', '..', '..', '.env');
+  const candidates = [
+    explicitPath,
+    process.env.COWORK_ENV,
+    repoRoot,
+  ].filter(Boolean);
+  const path = candidates.find(p => fs.existsSync(p));
+  if (!path) return null;
   for (const raw of fs.readFileSync(path, 'utf8').split(/\r?\n/)) {
     const line = raw.trim();
     if (!line || line.startsWith('#')) continue;

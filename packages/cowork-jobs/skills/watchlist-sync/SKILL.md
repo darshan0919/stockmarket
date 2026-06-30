@@ -25,8 +25,9 @@ parameters. No model judgment is required.
 ## Setup
 
 ```bash
-JOB=$(find /sessions -path '*cowork-jobs/watchlistUpdater.js' 2>/dev/null | head -1)
-DATA="$(dirname "$JOB")/data"   # data + .env now live with the jobs in the monorepo
+COWORK_JOBS=$(find /sessions -maxdepth 5 -type d -name "cowork-jobs" 2>/dev/null | grep -v node_modules | head -1)
+JOB="$COWORK_JOBS/watchlistUpdater.js"
+DATA="$COWORK_JOBS/data"
 export COWORK_ENV="$DATA/.env"        # STOCKSCANS_AUTH_TOKEN + GOOGLE_APP_PASSWORD live here
 ```
 

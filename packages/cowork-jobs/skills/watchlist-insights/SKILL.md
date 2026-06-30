@@ -22,8 +22,9 @@ The 24h window and the two watchlists (Near Highs + Radar) are baked into the jo
 ## Setup
 
 ```bash
-JOB=$(find /sessions -path '*cowork-jobs/watchlistInsights.js' 2>/dev/null | head -1)
-DATA="$(dirname "$JOB")/data"   # data + .env now live with the jobs in the monorepo
+COWORK_JOBS=$(find /sessions -maxdepth 5 -type d -name "cowork-jobs" 2>/dev/null | grep -v node_modules | head -1)
+JOB="$COWORK_JOBS/watchlistInsights.js"
+DATA="$COWORK_JOBS/data"
 export WI_DATA_DIR="$DATA" WI_NOTES_DIR="$DATA/notes" WI_VALIDATION_DIR="$DATA/validation" \
        COWORK_DATA_DIR="$DATA" COWORK_ENV="$DATA/.env" COWORK_DRIVE_EMAIL="djplearner@gmail.com"
 # Optional when Google Drive auto-detection fails:
