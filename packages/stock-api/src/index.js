@@ -21,6 +21,9 @@ const { StockscansClient, STOCKSCANS_BASE_URL, S3_BASE_URL } = require('./client
 const { NseClient } = require('./clients/NseClient');
 const { BseClient, parseBseSmartSearchHtml } = require('./clients/BseClient');
 
+const generators = require('./generators');
+const analyzers = require('./analyzers');
+
 // Convenience singletons (lazy auth → token resolved per request).
 // One shared NseSession backs both the price-action client and any low-level
 // transport callers (e.g. backend adapters) so they share a single cookie jar.
@@ -48,4 +51,8 @@ module.exports = {
   parseBseSmartSearchHtml,
   STOCKSCANS_BASE_URL,
   S3_BASE_URL,
+  // Generators
+  ...generators,
+  // Analyzers
+  ...analyzers
 };

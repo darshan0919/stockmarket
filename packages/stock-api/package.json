@@ -4,13 +4,21 @@
   "private": true,
   "description": "Centralized stock-data API clients. Stockscans = fundamentals; NSE/BSE = price-action.",
   "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./utils/*": "./src/utils/*.js",
+    "./fetchers/*": "./src/fetchers/*.js",
+    "./analyzers/*": "./src/analyzers/*.js",
+    "./stockscansClient": "./src/clients/StockscansClient.js"
+  },
+  "sideEffects": false,
   "type": "commonjs",
   "scripts": {
-    "test": "jest",
-    "sync-skills": "node sync-skills.js"
+    "test": "jest"
   },
   "dependencies": {
-    "axios": "^1.6.0"
+    "axios": "^1.6.0",
+    "puppeteer": "^25.2.1"
   },
   "devDependencies": {
     "jest": "^30.2.0"
