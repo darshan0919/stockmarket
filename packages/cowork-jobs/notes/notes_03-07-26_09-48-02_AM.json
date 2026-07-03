@@ -1,0 +1,1106 @@
+{
+  "meta": {
+    "version": "1.0",
+    "lastRun": "2026-07-03T09:49:20+05:30",
+    "totalCompanies": 37,
+    "totalNotes": 43
+  },
+  "companies": {
+    "NSE:BLUSPRING": {
+      "companyId": "NSE:BLUSPRING",
+      "ticker": "NSE:BLUSPRING",
+      "name": "Bluspring Enterprises Ltd",
+      "lastUpdated": "2026-07-03T09:48:18+05:30",
+      "businessSummary": "Bluspring Enterprises Ltd (NSE:BLUSPRING) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "54b116fb-b964-4c9d-a7bf-3797a6f9f57b",
+          "createdAt": "2026-07-03T09:48:18+05:30",
+          "type": "announcement",
+          "announcementId": "6gtrxts0dk7wxue6cv94mgd7.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Award_of_Order_Receipt_of_Order",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/6gtrxts0dk7wxue6cv94mgd7.pdf",
+          "insight": "Bluspring Enterprises Limited Regd. Office: 3/3/2, Bellandur Gate, Sarjapur Main Road, Bengaluru – 560103, Karnataka Tel: 080-6105 6001 | E-mail: corporatesecretarial@bluspring.com | CIN: L81100KA2024PLC184648 Date: July 3, 2026 To, BSE Limited 1st Floor, New Trading Ring, Rotunda Building, PJ Towers, Dalal Street, Mumbai – 400 001 NaƟonal Stock Exchange of India Limited Exchange Plaza, Bandra- Kurla Complex, Bandra (East), Mumbai – 400 051 Scrip Code: 544414 NSE Symbol: BLUSPRING Dear Sir/ Mada",
+          "significance": "medium",
+          "tags": [
+            "order_book"
+          ],
+          "category": "order_book",
+          "announcementDescription": "Award of Order / Receipt of Order - Intimation of Bagging/ Receiving of order/ Contracts"
+        }
+      ],
+      "processedAnnouncements": [
+        "6gtrxts0dk7wxue6cv94mgd7.pdf"
+      ]
+    },
+    "NSE:ANGELONE": {
+      "companyId": "NSE:ANGELONE",
+      "ticker": "NSE:ANGELONE",
+      "name": "Angel One Ltd",
+      "lastUpdated": "2026-07-03T09:48:19+05:30",
+      "businessSummary": "Angel One Ltd (NSE:ANGELONE) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "139f7dca-57c1-44eb-aca8-4bc8a50f7d15",
+          "createdAt": "2026-07-03T09:48:19+05:30",
+          "type": "announcement",
+          "announcementId": "hxul6ll9elnav4hhsm7rq6xj.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Monthly Business Updates",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/hxul6ll9elnav4hhsm7rq6xj.pdf",
+          "insight": "Classified as Public Angel One Limited CIN: L67120MH1996PLC101709, SEBI Registration No Stock Broker:INZ000161534, CDSL: IN-DP-384-2018, PMS:INP000001546, Research Analyst: INH000000164, Investment Advisor: INA000008172, AMFI Regn. No. ARN–77404, PFRDA, Regn. No.-19092018. Corporate & Regd Office: 601, 6th Floor, Ackruti Star, Central Road, MIDC, Andheri (E), Mumbai - 400093. T: (022) 4000 3600 F: (022) 4000 3609 E: support@angelone.in www.angelone.in To, Listing Department National Stock Exchan",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "Monthly Business Updates - Monthly Business updates for the month of June 2026"
+        }
+      ],
+      "processedAnnouncements": [
+        "hxul6ll9elnav4hhsm7rq6xj.pdf"
+      ]
+    },
+    "NSE:MTARTECH": {
+      "companyId": "NSE:MTARTECH",
+      "ticker": "NSE:MTARTECH",
+      "name": "MTAR Technologies Ltd",
+      "lastUpdated": "2026-07-03T09:48:19+05:30",
+      "businessSummary": "MTAR Technologies Ltd (NSE:MTARTECH) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "79e8f7d1-d0f1-420e-8d3d-c4b91091174c",
+          "createdAt": "2026-07-03T09:48:19+05:30",
+          "type": "announcement",
+          "announcementId": "czorctduwqxolhluit20mbp1.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/czorctduwqxolhluit20mbp1.pdf",
+          "insight": "To, Date: 02 nd July, 2026 BSE Limited, P. J. Towers, Dalal Street, Mumbai-400001. (BSE Scrip Code: 543270) NSE Limited, Exchange Plaza, Bandra Kurla Complex, Bandra (E), Mumbai- 400051. (NSE Symbol: MTARTECH) Dear Sir/Madam, Sub: Intimation of Schedule of Analyst / Institutional Investor meetings under the SEBI (Listing Obligations and Disclosure Requirements), Regulations 2015. Ref: Regulation 30(6) of the Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements)",
+          "significance": "low",
+          "tags": [
+            "investor_meet"
+          ],
+          "category": "investor_meet",
+          "announcementDescription": "Analyst / Investor Meet - Investors Meet schedule"
+        }
+      ],
+      "processedAnnouncements": [
+        "czorctduwqxolhluit20mbp1.pdf"
+      ]
+    },
+    "NSE:CGCL": {
+      "companyId": "NSE:CGCL",
+      "ticker": "NSE:CGCL",
+      "name": "Capri Global Capital Ltd",
+      "lastUpdated": "2026-07-03T09:48:35+05:30",
+      "businessSummary": "Capri Global Capital Ltd (NSE:CGCL) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "1b521e09-a65f-4530-bae9-026a86a098f5",
+          "createdAt": "2026-07-03T09:48:20+05:30",
+          "type": "announcement",
+          "announcementId": "94rsmr4bm24evm4qw9bqzij5.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Credit Rating",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/94rsmr4bm24evm4qw9bqzij5.pdf",
+          "insight": "July 2, 2026 The Secretary BSE Limited Pheeroze Jeejeebhoy Towers Dalal Street, Fort Mumbai - 400 001 Scrip Code: 531595 The Secretary National Stock Exchange of India Limited Exchange Plaza, 5 th Floor Plot No- 'C' Block, G Block Bandra-Kurla Complex, Bandra (East) Mumbai – 400 051 Scrip Code: CGCL Sub: Intimation under Regulation 30 of the Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations 2015 – Assignment and upgradation of Credit Rating Limi",
+          "significance": "low",
+          "tags": [
+            "credit_rating"
+          ],
+          "category": "credit_rating",
+          "announcementDescription": "Credit Rating - Intimation - Assignment and upgradation of Credit Rating Limits"
+        },
+        {
+          "id": "eb7e8908-20c4-4c82-bae5-da3cc8412892",
+          "createdAt": "2026-07-03T09:48:35+05:30",
+          "type": "announcement",
+          "announcementId": "j8wb5mntgt5jxez0av3zcqe2.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/j8wb5mntgt5jxez0av3zcqe2.pdf",
+          "insight": "July 02, 2026 Sub: Intimation of Group Meeting with Analysts / Investors under Regulation 30 of SEBI (LODR) Regulations, 2015 Pursuant to Regulation 30 read with Schedule III of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015, we hereby inform you that the representatives of the Company will be participating in group meeting with Analysts/Investors as per the schedule provided below: During the aforesaid meet(s)/call (s), no unpublished price sensitive information wi",
+          "significance": "low",
+          "tags": [
+            "investor_meet"
+          ],
+          "category": "investor_meet",
+          "announcementDescription": "Analyst / Investor Meet - Intimation of Group Meeting with Analysts / Investors under Regulation 30 of SEBI (LODR) Regulations 2015"
+        }
+      ],
+      "processedAnnouncements": [
+        "94rsmr4bm24evm4qw9bqzij5.pdf",
+        "j8wb5mntgt5jxez0av3zcqe2.pdf"
+      ]
+    },
+    "NSE:PERSISTENT": {
+      "companyId": "NSE:PERSISTENT",
+      "ticker": "NSE:PERSISTENT",
+      "name": "Persistent Systems Ltd",
+      "lastUpdated": "2026-07-03T09:48:21+05:30",
+      "businessSummary": "Persistent Systems Ltd (NSE:PERSISTENT) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "8d5106bf-0f36-458c-b314-71765b2f4494",
+          "createdAt": "2026-07-03T09:48:20+05:30",
+          "type": "announcement",
+          "announcementId": "wyyqqcxkyiwbqkv16epkqu9s.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/wyyqqcxkyiwbqkv16epkqu9s.pdf",
+          "insight": "Persistent Systems Limited, Bhageerath, 402 Senapati Bapat Road, Pune 411 016, Maharashtra, India CIN - L72300PN1990PLC056696 Tel: +91 (20) 6703 5555 | Fax - +91 (20) 6703 6003 | E-mail - info@persistent.com | Website - www.persistent.com Page 1 of 2 NSE & BSE / 2026-27 / 079 July 2, 2026 The Manager, Corporate Services, National Stock Exchange of India Limited Exchange Plaza, Bandra Kurla Complex, Bandra (E), Mumbai 400 051 Ref: Symbol: PERSISTENT The Manager, Corporate Services, BSE Limited P ",
+          "significance": "low",
+          "tags": [
+            "investor_meet"
+          ],
+          "category": "investor_meet",
+          "announcementDescription": "Analyst / Investor Meet - The Intimation of Investor/Analyst sessions scheduled to be held on Monday July 6 2026 is as enclosed."
+        },
+        {
+          "id": "d699c9a5-66a6-4972-85b1-5e1020a347fe",
+          "createdAt": "2026-07-03T09:48:21+05:30",
+          "type": "announcement",
+          "announcementId": "7rf0n7wdmt6tygfdpk2h21ac.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/7rf0n7wdmt6tygfdpk2h21ac.pdf",
+          "insight": "Persistent Systems Limited, Bhageerath, 402 Senapati Bapat Road, Pune 411 016, Maharashtra, India CIN - L72300PN1990PLC056696 Tel: +91 (20) 6703 5555 | Fax - +91 (20) 6703 6003 | E-mail - info@persistent.com | Website - www.persistent.com Page 1 of 2 NSE & BSE / 2026-27 / 078 July 2, 2026 The Manager, Corporate Services, National Stock Exchange of India Limited Exchange Plaza, Bandra Kurla Complex, Bandra (E), Mumbai 400 051 Ref: Symbol: PERSISTENT The Manager, Corporate Services, BSE Limited P ",
+          "significance": "low",
+          "tags": [
+            "investor_meet"
+          ],
+          "category": "investor_meet",
+          "announcementDescription": "Analyst / Investor Meet - The Outcome of Investor/Analyst sessions held on Thursday July 2 2026 is as enclosed."
+        }
+      ],
+      "processedAnnouncements": [
+        "wyyqqcxkyiwbqkv16epkqu9s.pdf",
+        "7rf0n7wdmt6tygfdpk2h21ac.pdf"
+      ]
+    },
+    "NSE:RAMCOSYS": {
+      "companyId": "NSE:RAMCOSYS",
+      "ticker": "NSE:RAMCOSYS",
+      "name": "Ramco Systems Ltd",
+      "lastUpdated": "2026-07-03T09:48:27+05:30",
+      "businessSummary": "Ramco Systems Ltd (NSE:RAMCOSYS) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "5004313e-40d8-4ba0-a866-e44c271ff43b",
+          "createdAt": "2026-07-03T09:48:20+05:30",
+          "type": "announcement",
+          "announcementId": "kcw5sc57x40kv581hpxxlb4h.pdf",
+          "announcementTitle": "Intimation Under Regulation 30(5) Of SEBI (Listing Obligations And Disclosure Requirements) Regulations 2015",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/kcw5sc57x40kv581hpxxlb4h.pdf",
+          "insight": "Ramco Systems Limited Corporate Office: 64, Sardar Patel Road, Taramani, Chennai 600 113, Tamilnadu, India. Tel: +91 44 2235 4510 / 6653 4000, Fax: +91 44 2235 5704│CIN : L72300TN1997PLC037550 Registered Office: 47, P.S.K. Nagar, Rajapalayam 626 108, Tamilnadu, India. Global Offices: India│Singapore│ Malaysia│Indonesia│HongKong│China│Vietnam│Macau│Japan│Philippines│Australia│ New Zealand│UAE│Saudi Arabia│USA│Canada│United Kingdom│Germany│Switzerland│Spain│Sudan│South Africa www.ramco.com July 02",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "General - Intimation under Regulation 30(5) of SEBI (LODR) Regulations 2015."
+        },
+        {
+          "id": "66cf33c8-9c76-489e-83f9-44d8ab0e2137",
+          "createdAt": "2026-07-03T09:48:22+05:30",
+          "type": "announcement",
+          "announcementId": "qppau20d1iaofu4kr8dsdae3.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/qppau20d1iaofu4kr8dsdae3.pdf",
+          "insight": "Ramco Systems Limited Corporate Office: 64, Sardar Patel Road, Taramani, Chennai 600 113, Tamilnadu, India. Tel: +91 44 2235 4510 / 6653 4000, Fax: +91 44 2235 5704│CIN : L72300TN1997PLC037550 Registered Office: 47, P.S.K. Nagar, Rajapalayam 626 108, Tamilnadu, India. Global Offices: India│Singapore│ Malaysia│Indonesia│HongKong│China│Vietnam│Macau│Japan│Philippines│Australia│ New Zealand│UAE│Saudi Arabia│USA│Canada│United Kingdom│Germany│Switzerland│Spain│Sudan│South Africa www.ramco.com July 02",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "Press Release / Media Release - Press Release titled \"Ramco Systems appoints Sandesh Bilagi as Chief Executive Officer\""
+        },
+        {
+          "id": "ebaed7aa-2d66-4788-b8be-875d169a4885",
+          "createdAt": "2026-07-03T09:48:27+05:30",
+          "type": "announcement",
+          "announcementId": "4jovy4kn21m80pk9ry3uzbv6.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Meeting Updates",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/4jovy4kn21m80pk9ry3uzbv6.pdf",
+          "insight": "Ramco Systems Limited Corporate Office: 64, Sardar Patel Road, Taramani, Chennai 600 113, Tamilnadu, India. Tel: +91 44 2235 4510 / 6653 4000, Fax: +91 44 2235 5704│CIN : L72300TN1997PLC037550 Registered Office: 47, P.S.K. Nagar, Rajapalayam 626 108, Tamilnadu, India. Global Offices: India│Singapore│ Malaysia│Indonesia│HongKong│China│Vietnam│Macau│Japan│Philippines│Australia│ New Zealand│UAE│Saudi Arabia│USA│Canada│United Kingdom│Germany│Switzerland│Spain│Sudan│South Africa www.ramco.com July 02",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "Meeting Updates - Based on the recommendations of Nomination and Remuneration Committee the Board of Directors in its Meeting held today the July 02 2026 had approved the appointment of Mr. Raghuveer Sandesh Bilagi the current President & Chief Operating Officer as the Chief Executive Officer and a Key Managerial Personnel effective from July 02 2026."
+        }
+      ],
+      "processedAnnouncements": [
+        "kcw5sc57x40kv581hpxxlb4h.pdf",
+        "qppau20d1iaofu4kr8dsdae3.pdf",
+        "4jovy4kn21m80pk9ry3uzbv6.pdf"
+      ]
+    },
+    "NSE:ACUTAAS": {
+      "companyId": "NSE:ACUTAAS",
+      "ticker": "NSE:ACUTAAS",
+      "name": "Acutaas Chemicals Ltd",
+      "lastUpdated": "2026-07-03T09:48:21+05:30",
+      "businessSummary": "Acutaas Chemicals Ltd (NSE:ACUTAAS) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "3e8a70b5-09a1-4db6-8f3f-0409f547e9d8",
+          "createdAt": "2026-07-03T09:48:21+05:30",
+          "type": "announcement",
+          "announcementId": "ap8enpejdyycrz37vf72bxy0.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Change in Management",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/ap8enpejdyycrz37vf72bxy0.pdf",
+          "insight": "A fi C T a fi S® ACUTAAS CHEMICALS LIMITED (Formerly known as Ami Organics Limited) A U CIN No. : L24100GJ2007RLC061083 You and us: chemistry’s apex — — _— July 2, 2026 To, To, The Listing Department, The Listing Department BSE LIMITED, National Stock Exchange of India Limited, Phiroze Jeejeebhoy Towers, Exchange Plaza, 5™ Floor, Plot no. C-1, Dalal Street, Fort G-Block, Bandra Kurla Complex, Mumbai- 400 001 Mumbai -400051 Scrip Code: 543349 NSE Symbol: ACUTAAS Subject: Intimation pursuant to Re",
+          "significance": "high",
+          "tags": [
+            "management_change"
+          ],
+          "category": "management_change",
+          "announcementDescription": "Change in Management - Nomination and Remuneration Committee at its meeting held today has approved designation of a Senior Management Personnel (SMP) of the Company as per details attached."
+        }
+      ],
+      "processedAnnouncements": [
+        "ap8enpejdyycrz37vf72bxy0.pdf"
+      ]
+    },
+    "NSE:HAPPYFORGE": {
+      "companyId": "NSE:HAPPYFORGE",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-07-03T09:48:22+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "1m88nxfz31jj1ogvu65typo3.pdf"
+      ]
+    },
+    "NSE:ASTERDM": {
+      "companyId": "NSE:ASTERDM",
+      "ticker": "NSE:ASTERDM",
+      "name": "Aster DM Healthcare Ltd",
+      "lastUpdated": "2026-07-03T09:49:01+05:30",
+      "businessSummary": "Aster DM Healthcare Ltd (NSE:ASTERDM) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "70ec117e-8d72-4d61-aa4b-b5e6938277ab",
+          "createdAt": "2026-07-03T09:48:28+05:30",
+          "type": "announcement",
+          "announcementId": "bznw5c6xdkt6r6qjudynpv81.pdf",
+          "announcementTitle": "Updated Outcome Of The Meeting Of The Board Of Directors Held On Wednesday 1 July 2026 With Additional Details In Response To E-Mail Received From BSE On 02 July 2026",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/bznw5c6xdkt6r6qjudynpv81.pdf",
+          "insight": "2 July 2026 To The Secretary, Listing Department, BSE Limited, 1 st Floor, Phiroze Jeejeebhoy Towers, Dalal Street, Mumbai 400001. Scrip Code: 540975 To The Manager, Listing Department, The National Stock Exchange of India Ltd, Bandra Kurla Complex, Bandra (East), Mumbai 400051. Scrip Symbol: ASTERDM Dear Sir / Madam, Subject: Updated outcome of the Meeting of the Board of Directors held on Wednesday, 1 July 2026 Ref: E-mail received from BSE on 02 July 2026 requesting submission of fresh corpor",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "General - Updated outcome of the Meeting of the Board of Directors held on Wednesday 1 July 2026 with additional details in response to e-mail received from BSE on 02 July 2026"
+        },
+        {
+          "id": "393a3517-a13e-41de-8832-ad5fd69063f7",
+          "createdAt": "2026-07-03T09:49:01+05:30",
+          "type": "announcement",
+          "announcementId": "nermubc59k5xdjzgl6ktxzay.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/nermubc59k5xdjzgl6ktxzay.pdf",
+          "insight": "02 July 2026 To The Secretary, Listing Department, BSE Limited, 1 st Floor, Phiroze Jeejeebhoy Towers, Dalal Street, Mumbai 400001. Scrip Code: 540975 To The Manager, Listing Department, The National Stock Exchange of India Ltd, Exchange Plaza, Bandra Kurla Complex, Bandra (East), Mumbai 400051. Scrip Symbol: ASTERDM Dear Sir/Madam, Sub: Press release on successful completion of the merger between Aster DM Healthcare and Quality Care India Limited Re: Regulation 30 read-with Schedule III to the ",
+          "significance": "medium",
+          "tags": [
+            "acquisition"
+          ],
+          "category": "acquisition",
+          "announcementDescription": "Press Release / Media Release - Successful completion of the merger between Aster DM Healthcare and Quality Care India Limited"
+        }
+      ],
+      "processedAnnouncements": [
+        "bznw5c6xdkt6r6qjudynpv81.pdf",
+        "nermubc59k5xdjzgl6ktxzay.pdf"
+      ]
+    },
+    "NSE:SANDHAR": {
+      "companyId": "NSE:SANDHAR",
+      "ticker": "NSE:SANDHAR",
+      "name": "Sandhar Technologies Limited",
+      "lastUpdated": "2026-07-03T09:48:29+05:30",
+      "businessSummary": "Sandhar Technologies Limited (NSE:SANDHAR) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "94b6cf96-afe3-4fbe-b420-a6accdf69ca0",
+          "createdAt": "2026-07-03T09:48:29+05:30",
+          "type": "announcement",
+          "announcementId": "mabl55v8o7xuf6luqteiatry.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Acquisition",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/mabl55v8o7xuf6luqteiatry.pdf",
+          "insight": "Sandhar Technologies Limited Corporate Office: 13, Sector-44, Gurugram-122 002, Haryana, India. Ph: + 91 12-4518900 Registered Office: B-6/20, L.S.C., Safdarjung Enclave, New Delhi-110 029, India, Ph: +91-11-40511800 E-mail: enquiries@sandhar.in, website: www.sandhargroup.com; CIN-L74999DL1987PLC029553 Ref: STL /SE/ 2026-2027/Regulation 30/20 Dated: 02 nd July, 2026 To, To, Department of Corporate Services, Listing Department, BSE Limited National Stock Exchange of India Limited Phiroze Jeejeebh",
+          "significance": "medium",
+          "tags": [
+            "acquisition"
+          ],
+          "category": "acquisition",
+          "announcementDescription": "Acquisition - Execution of Share subscription and Shareholders Agreement"
+        }
+      ],
+      "processedAnnouncements": [
+        "mabl55v8o7xuf6luqteiatry.pdf"
+      ]
+    },
+    "NSE:DEEPAKFERT": {
+      "companyId": "NSE:DEEPAKFERT",
+      "ticker": "NSE:DEEPAKFERT",
+      "name": "Deepak Fertilisers & Petrochemicals Corp Ltd",
+      "lastUpdated": "2026-07-03T09:48:29+05:30",
+      "businessSummary": "Deepak Fertilisers & Petrochemicals Corp Ltd (NSE:DEEPAKFERT) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "1886193e-e970-4aac-a182-ea7da5960fe9",
+          "createdAt": "2026-07-03T09:48:29+05:30",
+          "type": "announcement",
+          "announcementId": "r1276cf2sopgfpmvvqkn151o.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Change in Management",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/r1276cf2sopgfpmvvqkn151o.pdf",
+          "insight": "2 nd July, 2026 The Secretary Listing Department BSE Limited National Stock Exchange of India Ltd. Phiroze Jeejeebhoy Towers, Exchange Plaza, Dalal Street, Fort, Bandra - Kurla Complex, Bandra (E) Mumbai – 400 001 Mumbai – 400 051 BSE Code: 500645 NSE Code: DEEPAKFERT Dear Sir/ Madam, Sub: Change in Senior Management: In terms of provisions of Regulation 30 (read with Part A of Schedule III) and other applicable provisions of the SEBI (Listing Obligations and Disclosure Requirements) Regulations",
+          "significance": "high",
+          "tags": [
+            "management_change"
+          ],
+          "category": "management_change",
+          "announcementDescription": "Change in Management - Intimation under Regulation 30 of the SEBI (Listing Obligations and Disclosure Requirements) Regulations 2015"
+        }
+      ],
+      "processedAnnouncements": [
+        "r1276cf2sopgfpmvvqkn151o.pdf"
+      ]
+    },
+    "NSE:BLSE": {
+      "companyId": "NSE:BLSE",
+      "ticker": "NSE:BLSE",
+      "name": "BLS E-Services Ltd",
+      "lastUpdated": "2026-07-03T09:48:40+05:30",
+      "businessSummary": "BLS E-Services Ltd (NSE:BLSE) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "4a3f39d2-6bfd-4f09-bd14-77fa9b601b89",
+          "createdAt": "2026-07-03T09:48:30+05:30",
+          "type": "announcement",
+          "announcementId": "fded8d6c2tebjujj16ms4wcz.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/fded8d6c2tebjujj16ms4wcz.pdf",
+          "insight": "July 02, 2026 Subject: Press Release Dear Sir / Madam, Pursuant to Regulation 30 read with Schedule III of Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations 2015, please find enclosed a Press Release dated July 02, 2026 titled “BLS E-Services Successfully Consummates Acquisition of 100% stake in Atyati Technologies, Acquisition to strengthen BLSe's AI driven banking solutions and technology capabilities for banks and financial institutions”. You",
+          "significance": "medium",
+          "tags": [
+            "acquisition"
+          ],
+          "category": "acquisition",
+          "announcementDescription": "Press Release / Media Release - Pursuant to Regulation 30 read with Schedule III of Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations 2015 please find enclosed a Press Release dated July 02 2026 titled BLS E-Services Successfully Consummates Acquisition of 100% stake in Atyati Technologies Acquisition to strengthen BLSes AI driven banking solutions and technology capabilities for banks and financial institutions."
+        },
+        {
+          "id": "a0301a2a-e904-4b39-bc70-41922f3efb86",
+          "createdAt": "2026-07-03T09:48:40+05:30",
+          "type": "announcement",
+          "announcementId": "08o9ib4jvu1ck5ljaw05x0t7.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Updates on Acquisition",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/08o9ib4jvu1ck5ljaw05x0t7.pdf",
+          "insight": "July 02, 2026 National Stock Exchange of India Limited (“NSE”) Exchange Plaza, C-1 Block G, Bandra Kurla Complex Bandra [E], Mumbai – 400051 BSE Limited (“BSE”) Phiroze Jeejeebhoy Towers, Dalal Street, Fort, Mumbai - 400 001 NSE Scrip Symbol: BLSE BSE Scrip Code: 544107 Dear Sir/Madam, Subject: Successful Completion of Acquisition of Equity Shares of Atyati Technologies Private Limited Pursuant to the requirements of Regulation 30 of the SEBI (Listing Obligations and Disclosure Requirements) Reg",
+          "significance": "medium",
+          "tags": [
+            "acquisition"
+          ],
+          "category": "acquisition",
+          "announcementDescription": "Acquisition - Pursuant to the requirements of Regulation 30 of the SEBI (Listing Obligations and Disclosure Requirements) Regulations 2015 (including any statutory modification(s) amendment(s) or re-enactment(s) thereof for the time being in force) and in continuation of our earlier corporate announcement dated February 16 2026 March 31 2026 April 30 2026 and May 18 2026 we would like to inform you that the Company has successfully completed the acquisition of 100% equity shareholding in Atyati Technologies Private Limited (ATPL) on July 02 2026. Consequent to this acquisition ATPL has now become a wholly-owned subsidiary of the Company"
+        }
+      ],
+      "processedAnnouncements": [
+        "fded8d6c2tebjujj16ms4wcz.pdf",
+        "08o9ib4jvu1ck5ljaw05x0t7.pdf"
+      ]
+    },
+    "NSE:SANSTAR": {
+      "companyId": "NSE:SANSTAR",
+      "ticker": "NSE:SANSTAR",
+      "name": "Sanstar Ltd",
+      "lastUpdated": "2026-07-03T09:48:30+05:30",
+      "businessSummary": "Sanstar Ltd (NSE:SANSTAR) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "3e43f040-fef2-4a41-81ad-fcdfbecc6af9",
+          "createdAt": "2026-07-03T09:48:30+05:30",
+          "type": "announcement",
+          "announcementId": "cnpwphy6ffi9u4ctcwgp6hkr.pdf",
+          "announcementTitle": "Intimation Of Listing Approval",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/cnpwphy6ffi9u4ctcwgp6hkr.pdf",
+          "insight": "FAGUN HARSH SHAH Digitally signed by FAGUN HARSH SHAH Date: 2026.07.02 16:44:37 +05'30' Ref: NSE/LIST/56009 July 02, 2026 The Company Secretary Sanstar Limited Dear Sir/Madam, Sub: In - Principle approval for listing of 18024157 Equity shares of Rs. 2/- each issued on preferential basis. We are in receipt of your application for in-principle approval for listing of 18024157 Equity shares of Rs. 2/- each issued on preferential basis bearing distinctive numbers from 182244251 to 200268407. We have",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "General - Please find herewith intimation of Listing Approval obtained from BSE Limited and National Stock Exchange of India Limited vide letter dated 02nd July 2026"
+        }
+      ],
+      "processedAnnouncements": [
+        "cnpwphy6ffi9u4ctcwgp6hkr.pdf"
+      ]
+    },
+    "NSE:HFCL": {
+      "companyId": "NSE:HFCL",
+      "ticker": "NSE:HFCL",
+      "name": "HFCL Ltd",
+      "lastUpdated": "2026-07-03T09:48:31+05:30",
+      "businessSummary": "HFCL Ltd (NSE:HFCL) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "3300451e-c931-4147-a0df-3b02537ef2b5",
+          "createdAt": "2026-07-03T09:48:31+05:30",
+          "type": "announcement",
+          "announcementId": "2hzk0y0wmz4mq6m2279dzjkl.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Credit Rating",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/2hzk0y0wmz4mq6m2279dzjkl.pdf",
+          "insight": "Regd. Office & Works: 8, Electronics Complex, Chambaghat, Solan-173213 (H.P.) Tel: (01792) 230644, 230645, 230647 Fax: (01792) 231902 Corporate Identity Number: L64200HP1987PLC007466 HFCL/SEC/26-27 July 02, 2026 The BSE Ltd. 1 st Floor, New Trading Wing, Rotunda Building Phiroze Jeejeebhoy Towers, Dalal Street, Fort Mumbai – 400001 corp.relations@bseindia.com Security Code No.: 500183 The National Stock Exchange of India Ltd. Exchange Plaza, 5 th Floor, C – 1, Block G Bandra – Kurla Complex, Ban",
+          "significance": "low",
+          "tags": [
+            "credit_rating"
+          ],
+          "category": "credit_rating",
+          "announcementDescription": "Credit Rating - We wish to inform you that CARE Ratings Limited (a SEBI Registered Credit Rating Agency) vide its letter dated July 01 2026 has assigned/upgraded the credit ratings of various bank facilities of HTL Limited a material subsidiary of the Company (\"HTL\"). The ratings have been upgraded from the earlier rating levels and carry a Positive Outlook reflecting the improved operational and financial performance of HTL Limited. The details of the credit ratings assigned to HTL for bank facilities are as per attached letter."
+        }
+      ],
+      "processedAnnouncements": [
+        "2hzk0y0wmz4mq6m2279dzjkl.pdf"
+      ]
+    },
+    "NSE:STLTECH": {
+      "companyId": "NSE:STLTECH",
+      "ticker": "NSE:STLTECH",
+      "name": "Sterlite Technologies Ltd",
+      "lastUpdated": "2026-07-03T09:48:31+05:30",
+      "businessSummary": "Sterlite Technologies Ltd (NSE:STLTECH) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "12a5e0a9-c1df-41e7-bde3-c8a4c4ca369c",
+          "createdAt": "2026-07-03T09:48:31+05:30",
+          "type": "announcement",
+          "announcementId": "vrumf8dolh29wyhju3qyvnzl.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/vrumf8dolh29wyhju3qyvnzl.pdf",
+          "insight": "www.stl.tech Sterlite Technologies Limited Registered office: 4th Floor, Godrej Millennium, Koregaon Road 9, STS 12/1, Pune, Maharashtra- 411 001, India. CIN - L31300PN2000PLC202408 July 02, 2026 National Stock Exchange of India Limited Exchange Plaza, 5 th Floor, Plot No. C-1, G Block, Bandra Kurla Complex, Bandra (East) Mumbai – 4000517 Scrip ID - STLTECH BSE Limited Phirozee Jeejeebhoy Towers, Dalal Street, Mumbai – 400001 Scrip Code - 532374 Sub: - Press Release – STL raises INR 1500 Cr thro",
+          "significance": "medium",
+          "tags": [
+            "fundraise"
+          ],
+          "category": "fundraise",
+          "announcementDescription": "Press Release / Media Release - Press release - The Company raises Rs. 1500 Crores through QIP"
+        }
+      ],
+      "processedAnnouncements": [
+        "vrumf8dolh29wyhju3qyvnzl.pdf"
+      ]
+    },
+    "NSE:IBULLSLTD": {
+      "companyId": "NSE:IBULLSLTD",
+      "ticker": "NSE:IBULLSLTD",
+      "name": "Indiabulls Limited",
+      "lastUpdated": "2026-07-03T09:48:34+05:30",
+      "businessSummary": "Indiabulls Limited (NSE:IBULLSLTD) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "9e01a995-e24d-417a-9174-41be88a909b0",
+          "createdAt": "2026-07-03T09:48:34+05:30",
+          "type": "announcement",
+          "announcementId": "icrq9aabkxjjl6yyrpiqms5c.pdf",
+          "announcementTitle": "Shareholder Meeting / Postal Ballot-Outcome of EGM",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/icrq9aabkxjjl6yyrpiqms5c.pdf",
+          "insight": "Indiabulls Limited (formerly Yaari Digital Integrated Services Limited) Registered Office: 5th Floor, Plot No. 108, IT Park, Udyog Vihar, Phase 1, Gurgaon – 122016, Haryana | Tel/Fax: 0124 6685800 Corporate Office: One International Center (formerly IFC), Tower - 1, 4 th Floor, S. B. Marg, Elphinstone (W), Mumbai – 400013, Maharashtra | Tel: 022 62498580 | Fax: 022 61899600 CIN: L64200HR2007PLC077999, Website: www.indiabulls.com, Email: support@indiabulls.com Date: July 2, 2026 Scrip Code - 5335",
+          "significance": "low",
+          "tags": [
+            "agm_egm"
+          ],
+          "category": "agm_egm",
+          "announcementDescription": "EGM - Please find attached proceedings and Outcome of Extraordinary General Meeting of the Members of the Company held on July 2 2026."
+        }
+      ],
+      "processedAnnouncements": [
+        "icrq9aabkxjjl6yyrpiqms5c.pdf"
+      ]
+    },
+    "NSE:SEAMECLTD": {
+      "companyId": "NSE:SEAMECLTD",
+      "ticker": "NSE:SEAMECLTD",
+      "name": "SEAMEC Ltd",
+      "lastUpdated": "2026-07-03T09:48:39+05:30",
+      "businessSummary": "SEAMEC Ltd (NSE:SEAMECLTD) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "1d4ecd8a-975c-4e40-9b30-357066ce1500",
+          "createdAt": "2026-07-03T09:48:39+05:30",
+          "type": "announcement",
+          "announcementId": "t08lfg3jd0sqnm0d5pflie86.pdf",
+          "announcementTitle": "Announcement Under Regulation 30 Of SEBI (LODR) Regulations 2015 - Update",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/t08lfg3jd0sqnm0d5pflie86.pdf",
+          "insight": "SEAMEC/BSE&NSE/SMO/ARRIVALSEAMECPALADIN/0207/2026 July 02, 2026 Corporate Relations Department BSE Limited Phirojee Jeejeebhoy Towers, Dalal Street, Mumbai – 400001 The Manager Listing Department National Stock Exchange of India Limited Exchange Plaza, Plot No. C/1, G Block, Bandra-Kurla Complex, Bandra (East) Mumbai - 400051 Scrip Code: 526807 Trading Symbol: SEAMECLTD Sub: Deployment Status of Vessel SEAMEC PALADIN – Arrival in India Dear Sir / Madam, Further to our letter no. SEAMEC/BSE&NSE/S",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "General - Intimation of Deployment Status of Vessel \"SEAMEC PALADIN\" - Arrival of Vessel into India"
+        }
+      ],
+      "processedAnnouncements": [
+        "t08lfg3jd0sqnm0d5pflie86.pdf"
+      ]
+    },
+    "NSE:SKYGOLD": {
+      "companyId": "NSE:SKYGOLD",
+      "ticker": "NSE:SKYGOLD",
+      "name": "Sky Gold & Diamonds Ltd",
+      "lastUpdated": "2026-07-03T09:48:40+05:30",
+      "businessSummary": "Sky Gold & Diamonds Ltd (NSE:SKYGOLD) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "4547396a-7184-45f4-930d-3a4c293e6f57",
+          "createdAt": "2026-07-03T09:48:40+05:30",
+          "type": "announcement",
+          "announcementId": "ek1vicsdohi2malnzpfd75rg.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/ek1vicsdohi2malnzpfd75rg.pdf",
+          "insight": "Date: 2 nd July 2026 To, BSE Limited Phiroze Jeejeebhoy Towers, Dalal Street, Fort, Mumbai 400001 Scrip Code: 541967 To, National Stock Exchange of India Limited, Exchange Plaza, Plot No. C/1, G Block, Bandra- Kurla Complex, Bandra (East), Mumbai 400051 Trading Symbol: SKYGOLD Subject: Outcome of Investors Meeting Dear Sir/Madam, Pursuant to Regulation 30 of SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015, we would like to inform you that the officials of the Company hav",
+          "significance": "low",
+          "tags": [
+            "investor_meet"
+          ],
+          "category": "investor_meet",
+          "announcementDescription": "Analyst / Investor Meet - Pursuant to Regulation 30 of SEBI (Listing Obligations and Disclosure Requirements) Regulations 2015 we would like to inform you that the officials of the Company have interacted in the Investor Meeting held today i.e. on Thursday 2nd July 2026."
+        }
+      ],
+      "processedAnnouncements": [
+        "ek1vicsdohi2malnzpfd75rg.pdf"
+      ]
+    },
+    "NSE:EQUITASBNK": {
+      "companyId": "NSE:EQUITASBNK",
+      "ticker": "NSE:EQUITASBNK",
+      "name": "Equitas Small Finance Bank Ltd",
+      "lastUpdated": "2026-07-03T09:48:40+05:30",
+      "businessSummary": "Equitas Small Finance Bank Ltd (NSE:EQUITASBNK) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "e18a77a0-5cfb-4042-ab29-8cd993f4b24f",
+          "createdAt": "2026-07-03T09:48:40+05:30",
+          "type": "announcement",
+          "announcementId": "l9a2pnr7mn2xnh2bf8vl39u5.pdf",
+          "announcementTitle": "Business Updates For The Quarter Ended June 30 2026",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/l9a2pnr7mn2xnh2bf8vl39u5.pdf",
+          "insight": "July 02, 2026 National Stock Exchange of India Limited Exchange Plaza Bandra Kurla Complex Mumbai – 400051 BSE Limited Phiroze Jeejeebhoy Towers Dalal Street Mumbai – 400 001 Symbol : EQUITASBNK Scrip Code : 543243, 976218 and 976979 Dear Sir Sub: Disclosure under SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015-Business update for the quarter ended June 30, 2026 In accordance with applicable clauses of the SEBI (Listing Obligations and Disclosure Requirements) Regulation",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "General - Equitas Small Finance Bank Limited has informed the Exchanges regarding the Business updates for the quarter ended June 30 2026"
+        }
+      ],
+      "processedAnnouncements": [
+        "l9a2pnr7mn2xnh2bf8vl39u5.pdf"
+      ]
+    },
+    "NSE:PREMIERENE": {
+      "companyId": "NSE:PREMIERENE",
+      "ticker": "NSE:PREMIERENE",
+      "name": "Premier Energies Ltd",
+      "lastUpdated": "2026-07-03T09:48:40+05:30",
+      "businessSummary": "Premier Energies Ltd (NSE:PREMIERENE) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "c4616652-2061-4ba0-9774-0df03334974f",
+          "createdAt": "2026-07-03T09:48:40+05:30",
+          "type": "announcement",
+          "announcementId": "lh1yzwxpn19omli3z49i17xd.pdf",
+          "announcementTitle": "Board Meeting Outcome for Outcome Of The Board Meeting",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/lh1yzwxpn19omli3z49i17xd.pdf",
+          "insight": "Ref. No: PEL 26/2026-27 Date: July 02, 2026 Dear Sir/Madam, Sub: - Outcome of the Board Meeting - Incorporation of a Wholly Owned Subsidiary Company Pursuant to the Regulation 30 of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015, we wish to inform you that the Board of Directors of the Company, at its meeting held on July 02, 2026, has approved to incorporate a wholly owned subsidiary in the name as may be approved and made available by the Central Registration Cent",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "Outcome without intimation - Outcome of the Board Meeting - Incorporation of a Wholly Owned Subsidiary Company"
+        }
+      ],
+      "processedAnnouncements": [
+        "lh1yzwxpn19omli3z49i17xd.pdf"
+      ]
+    },
+    "NSE:INDOBORAX": {
+      "companyId": "NSE:INDOBORAX",
+      "ticker": "NSE:INDOBORAX",
+      "name": "Indo Borax & Chemicals Ltd",
+      "lastUpdated": "2026-07-03T09:48:53+05:30",
+      "businessSummary": "Indo Borax & Chemicals Ltd (NSE:INDOBORAX) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "92af63af-d07d-447d-8612-123865a4a5e8",
+          "createdAt": "2026-07-03T09:48:53+05:30",
+          "type": "announcement",
+          "announcementId": "6l4r53ghla43tna3d471mjy4.pdf",
+          "announcementTitle": "Reg. 34 (1) Annual Report.",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/6l4r53ghla43tna3d471mjy4.pdf",
+          "insight": "Encl:A/a Pravin Chavan Company Secretary and Compliance Officer Membership No: A16857 Yours Faithfully, For lndo Borax & Chemicals Limited Thanking you, Kindly take the above on your records. The Annual Report for the financial year 2025-26 is also being uploaded on the Company's website at www.tndoborax.com. Further, in accordance with Regulation 36(1)(b) of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015, the Company will be sending a letter to those shareholders w",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "Reg. 34 (1) Annual Report - Annual Report for the Financial Year 2025-26."
+        }
+      ],
+      "processedAnnouncements": [
+        "6l4r53ghla43tna3d471mjy4.pdf"
+      ]
+    },
+    "NSE:TITAGARH": {
+      "companyId": "NSE:TITAGARH",
+      "ticker": "NSE:TITAGARH",
+      "name": "Titagarh Rail Systems Ltd",
+      "lastUpdated": "2026-07-03T09:48:53+05:30",
+      "businessSummary": "Titagarh Rail Systems Ltd (NSE:TITAGARH) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "00efe4a9-0fca-4150-aee6-5a819f3de14b",
+          "createdAt": "2026-07-03T09:48:53+05:30",
+          "type": "announcement",
+          "announcementId": "5b78l97bs6l87wv9ah5twxik.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/5b78l97bs6l87wv9ah5twxik.pdf",
+          "insight": "CIN: L27320WB1997PLC084819 Registered Office: Poddar Point, 10th Floor, 113 Park Street, Kolkata – 700016, WB, India Corporate Office: Titagarh Towers, 756, Anandapur, E. M. Bypass, Kolkata - 700107, WB, India Phone: +91 33 4019 0800 | Fax: +91 33 4019 0826 | Email: corp@titagarh.in | Web: www.titagarh.in 2 nd July, 2026 BSE Limited (BSE) The Department of Corporate Services Phiroze Jeejeebhoy Towers Dalal Street, Mumbai – 400 001 Scrip Code: 532966 National Stock Exchange of India Limited (NSE)",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "Press Release / Media Release - Please find enclosed herewith Press Release dated 2nd July 2026"
+        }
+      ],
+      "processedAnnouncements": [
+        "5b78l97bs6l87wv9ah5twxik.pdf"
+      ]
+    },
+    "NSE:J&KBANK": {
+      "companyId": "NSE:J&KBANK",
+      "ticker": "NSE:J&KBANK",
+      "name": "Jammu and Kashmir Bank Ltd",
+      "lastUpdated": "2026-07-03T09:48:53+05:30",
+      "businessSummary": "Jammu and Kashmir Bank Ltd (NSE:J&KBANK) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "44f6b596-f10e-408e-a5d2-d4f83b8ebe5b",
+          "createdAt": "2026-07-03T09:48:53+05:30",
+          "type": "announcement",
+          "announcementId": "c0zbmmmjikvlqlfdfkrpl4dn.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Memorandum of Understanding /Agreements",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/c0zbmmmjikvlqlfdfkrpl4dn.pdf",
+          "insight": "Jammu and Kashmir Bank Limited Corporate Headquarters M A Road, Srinagar 190001 Kashmir, India CIN: L65110JK1938SGC000048 T +91 (0)194 248 3775 F +91 (0)194 248 1928 W www.jkb.bank.in E board.sectt@jkbmail.com Board Secretariat Ref:-JKB/BS/F3652/2026/063 Date: 02 nd July, 2026 National Stock Exchange of India Limited Exchange Plaza 5 th Floor Plot No. C/1 G-Block Bandra Kurla Complex Bandra (E) Mumbai – 400 051 Symbol: J&KBANK The BSE Limited Phiroze Jeejeebhoy Towers Dalal Street Mumbai – 400 0",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "Memorandum of Understanding /Agreements - Corporate Agency Agreement with SBI Life Insurance Company Limited and HDFC Life Insurance Company Limited"
+        }
+      ],
+      "processedAnnouncements": [
+        "c0zbmmmjikvlqlfdfkrpl4dn.pdf"
+      ]
+    },
+    "NSE:KIRLOSENG": {
+      "companyId": "NSE:KIRLOSENG",
+      "ticker": "",
+      "name": "",
+      "lastUpdated": "2026-07-03T09:48:54+05:30",
+      "businessSummary": "",
+      "notes": [],
+      "processedAnnouncements": [
+        "y41n8t0sq81i5kxvod121hlq.pdf"
+      ]
+    },
+    "NSE:ANANDRATHI": {
+      "companyId": "NSE:ANANDRATHI",
+      "ticker": "NSE:ANANDRATHI",
+      "name": "Anand Rathi Wealth Ltd",
+      "lastUpdated": "2026-07-03T09:48:54+05:30",
+      "businessSummary": "Anand Rathi Wealth Ltd (NSE:ANANDRATHI) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "fb9b7ecd-a1e3-4157-b39d-ac52ec8faa48",
+          "createdAt": "2026-07-03T09:48:54+05:30",
+          "type": "announcement",
+          "announcementId": "khlcm288ph4xiixvgoacej4n.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/khlcm288ph4xiixvgoacej4n.pdf",
+          "insight": "Ref No: 39/2026-27 Dated: 02 nd July, 2026 The Manager, Listing Department, The National Stock Exchange of India Ltd., Exchange Plaza, 5 th Floor, Plot C/1, G Block, Bandra - Kurla Complex, Bandra (E), Mumbai - 400 051. Tel No.: 2659 8235 Fax No.: 26598237/ 26598238 Trading Symbol: ANANDRATHI The Manager, Listing Department, BSE Limited, Phiroze Jeejeebhoy Tower, Dalal Street, Mumbai 400 001. Tel no.: 22721233 Fax No.: 22723719/ 22723121/ 22722037 Scrip Code: 543415 Subject: Intimation of Schedu",
+          "significance": "low",
+          "tags": [
+            "investor_meet"
+          ],
+          "category": "investor_meet",
+          "announcementDescription": "Analyst / Investor Meet - Intimation of Schedule of Q1 & FY27 Earnings Conference Call for Investors and Analysts under SEBI (Listing Obligations and Disclosure Requirements) Regulations 2015"
+        }
+      ],
+      "processedAnnouncements": [
+        "khlcm288ph4xiixvgoacej4n.pdf"
+      ]
+    },
+    "NSE:BELRISE": {
+      "companyId": "NSE:BELRISE",
+      "ticker": "NSE:BELRISE",
+      "name": "Belrise Industries Ltd",
+      "lastUpdated": "2026-07-03T09:48:58+05:30",
+      "businessSummary": "Belrise Industries Ltd (NSE:BELRISE) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "facf834c-ba6a-42cc-9f11-a39ee8de615f",
+          "createdAt": "2026-07-03T09:48:58+05:30",
+          "type": "announcement",
+          "announcementId": "oyw91dywr4k7w9ugbrkfi0n9.pdf",
+          "announcementTitle": "Shareholder Meeting / Postal Ballot-Outcome of Postal_Ballot",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/oyw91dywr4k7w9ugbrkfi0n9.pdf",
+          "insight": "Date: July 02, 2026 The Secretary, Listing Department BSE Limited Phiroze Jeejeebhoy Towers, Dalal Street, Mumbai – 400 001 Scrip Code: 544405 ISIN: INE894V01022 The Secretary, Listing Department National Stock Exchange of India Limited Exchange Plaza, C-1, Block G, Bandra Kurla Complex, Bandra Kurla (E), Mumbai – 400 051 Symbol: BELRISE ISIN: INE894V01022 Sub: E-Voting Results of the Postal Ballot - Notice dated May 29, 2026. Dear Sir/Madam, This is further to our intimation dated May 29, 2026,",
+          "significance": "low",
+          "tags": [
+            "agm_egm"
+          ],
+          "category": "agm_egm",
+          "announcementDescription": "Postal Ballot - The Belrise Industries Limited has informed the exchange on the voting results of postal ballot"
+        }
+      ],
+      "processedAnnouncements": [
+        "oyw91dywr4k7w9ugbrkfi0n9.pdf"
+      ]
+    },
+    "NSE:SOUTHBANK": {
+      "companyId": "NSE:SOUTHBANK",
+      "ticker": "NSE:SOUTHBANK",
+      "name": "South Indian Bank Ltd",
+      "lastUpdated": "2026-07-03T09:48:58+05:30",
+      "businessSummary": "South Indian Bank Ltd (NSE:SOUTHBANK) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "c8e2de6d-136a-402b-bb0f-ff9eec951d3a",
+          "createdAt": "2026-07-03T09:48:58+05:30",
+          "type": "announcement",
+          "announcementId": "3ynb63ksozmoqso80f3c3n0h.pdf",
+          "announcementTitle": "Intimation Under Regulation 6(1) & 7(1) Of The SEBI (Listing Obligations And Disclosure Requirements) Regulations 2015",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/3ynb63ksozmoqso80f3c3n0h.pdf",
+          "insight": "DEPT : SECRETARIAL The South Indian Bank Ltd., Regd. Office: Thrissur, Kerala Head Office: S.I.B. House, T.B. Road, P.B. No: 28, Thrissur - 680001, Kerala (Tel) 0487-2420 020, (Fax) 91 487-244 2021, e-mail: sibcorporate@sib.bank.in CIN: L65191KL 1929PLC001017, Toll Free (India) 1800-102-9408, 1800-425-1809 (BSNL) www.southindianbank.bank.in Dear Madam/Sir, Sub: Intimation under Regulation 6(1) & 7(1) of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015 Pursuant to Regu",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "General - Intimation under Regulation 6(1) & 7(1) of SEBI (LODR) Regulations 2015"
+        }
+      ],
+      "processedAnnouncements": [
+        "3ynb63ksozmoqso80f3c3n0h.pdf"
+      ]
+    },
+    "NSE:SBC": {
+      "companyId": "NSE:SBC",
+      "ticker": "NSE:SBC",
+      "name": "SBC Exports Ltd",
+      "lastUpdated": "2026-07-03T09:48:58+05:30",
+      "businessSummary": "SBC Exports Ltd (NSE:SBC) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "461259e1-4957-4f93-b28f-b5c12e8fd13c",
+          "createdAt": "2026-07-03T09:48:58+05:30",
+          "type": "announcement",
+          "announcementId": "2z91uzyxl5wa35jl0l31lb9w.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Award_of_Order_Receipt_of_Order",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/2z91uzyxl5wa35jl0l31lb9w.pdf",
+          "insight": "Ref: D/2026-27/13 Date: 02.07.2026 To, Listing Department National Stock Exchange of India Limited ‘Exchange Plaza’. C-1, Block G, Bandra Kurla Complex, Bandra (E), Mumbai - 400 051 Symbol: SBC To, Listing Department BSE Limited P.J. Towers, Dalal Street Mumbai-400001 Scrip Code: 542725 Subject: Intimation under Regulation 30 of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015 – Extension of Contract by Mahamana Pandit Madan Mohan Malaviya Cancer Centre & Homi Bhabha ",
+          "significance": "medium",
+          "tags": [
+            "order_book"
+          ],
+          "category": "order_book",
+          "announcementDescription": "Award of Order / Receipt of Order - Extension of Existing order recieved from (MPMMC)(BHU) amounting aprox 32 crores."
+        }
+      ],
+      "processedAnnouncements": [
+        "2z91uzyxl5wa35jl0l31lb9w.pdf"
+      ]
+    },
+    "NSE:SANGHVIMOV": {
+      "companyId": "NSE:SANGHVIMOV",
+      "ticker": "NSE:SANGHVIMOV",
+      "name": "Sanghvi Movers Ltd",
+      "lastUpdated": "2026-07-03T09:48:58+05:30",
+      "businessSummary": "Sanghvi Movers Ltd (NSE:SANGHVIMOV) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "0749fcce-5d77-45be-a831-82ccd8950bba",
+          "createdAt": "2026-07-03T09:48:58+05:30",
+          "type": "announcement",
+          "announcementId": "j2jzzgj2cn0g31iweb24qj73.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Credit Rating",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/j2jzzgj2cn0g31iweb24qj73.pdf",
+          "insight": "SANGHVI MOVERS LIMITED Regd. Office: Survey No. 92, Tathawade, Taluka - Mulshi, Pune, Maharashtra - 411033, INDIA. Tel. : 020-66744700, 020-27400700 E-mail : sanghvi@sanghvicranes.com Web : www.sanghvicranes.com CIN No.: L29150PN1989PLC054143 REF: SML/SEC/SE/26-27/18 July 02, 2026 To, The Manager, Listing Department To, The Manager, Listing Department BSE Limited National Stock Exchange of India Limited Scrip Code: 530073 Symbol: SANGHVIMOV Subject: Intimation under Regulation 30 of the SEBI (Li",
+          "significance": "low",
+          "tags": [
+            "credit_rating"
+          ],
+          "category": "credit_rating",
+          "announcementDescription": "Credit Rating - Intimation of Credit Rating of Wholly Owned Material Subsidiary"
+        }
+      ],
+      "processedAnnouncements": [
+        "j2jzzgj2cn0g31iweb24qj73.pdf"
+      ]
+    },
+    "NSE:HSCL": {
+      "companyId": "NSE:HSCL",
+      "ticker": "NSE:HSCL",
+      "name": "Himadri Speciality Chemical Ltd",
+      "lastUpdated": "2026-07-03T09:48:59+05:30",
+      "businessSummary": "Himadri Speciality Chemical Ltd (NSE:HSCL) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "5d41b27b-5052-4e6c-800f-ac3878ec9aad",
+          "createdAt": "2026-07-03T09:48:59+05:30",
+          "type": "announcement",
+          "announcementId": "kzac216ndxmvzkaq83xr2wp2.pdf",
+          "announcementTitle": "Disclosures under Reg. 29(2) of SEBI (SAST) Regulations 2011",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/kzac216ndxmvzkaq83xr2wp2.pdf",
+          "insight": "SHYAM GROUP OF INDUSTRIES Corporate Office: : P-19, Plate no. D-403, CPT Colony, Taratala Road, Kolkata 700088 Phone: +91-33-4011 3000, Fax: +91-33-2285 2212, Email: cs@shyamgroup.com Registered Office: P-19, Plate no. D-403, CPT Colony, Taratala Road, Kolkata 700088 Ph: +91-33-4011 1000 To Date: 02/07/2026 BSE Limited Department of Corporate Services P. J. Towers, 25 th Floor, Dalal Street, Mumbai- 400 001 National Stock Exchange of India Ltd Exchange Plaza, C-1, Block-G Bandra Kurla Complex, B",
+          "significance": "medium",
+          "tags": [
+            "shareholding_change"
+          ],
+          "category": "shareholding_change",
+          "announcementDescription": "Disclosures under Reg. 29(2) of SEBI (SAST) Regulations 2011 - The Exchange has received the disclosure under Regulation 29(2) of SEBI (Substantial Acquisition of Shares & Takeovers) Regulations 2011 for Mahabir Prasad Agarwal & Others"
+        }
+      ],
+      "processedAnnouncements": [
+        "kzac216ndxmvzkaq83xr2wp2.pdf"
+      ]
+    },
+    "NSE:TALBROAUTO": {
+      "companyId": "NSE:TALBROAUTO",
+      "ticker": "NSE:TALBROAUTO",
+      "name": "Talbros Automotive Components Ltd",
+      "lastUpdated": "2026-07-03T09:49:00+05:30",
+      "businessSummary": "Talbros Automotive Components Ltd (NSE:TALBROAUTO) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "ee56b1c3-3dd3-49b8-8eb1-1864a738a7b5",
+          "createdAt": "2026-07-03T09:48:59+05:30",
+          "type": "announcement",
+          "announcementId": "2f9hrya5dezgxiznxflwe77w.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Updates on Joint Venture",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/2f9hrya5dezgxiznxflwe77w.pdf",
+          "insight": "talb @ Talbros Automotive Components Ltd. www.talbros.com zndJuly’zozs Listing Department Listing Department BSE Limited National Stock Exchange of India Limited Phiroze Jeejeebhoy Towers, Exchange Plaza, Plot No. C/1, Dalal Street, G Block, Bandra Kurla Complex, Mumbai — 400 001 Bandra (East), Mumbai — 400 051 Scrip Code: 505160 Symbol: TALBROAUTO Sub: Intimation under Regulation 30 of the SEBI (Listing Obligations and Disclosure ubs Requirements) Regulations, 2015 Dear Sir/ Madam, Pursuant to ",
+          "significance": "medium",
+          "tags": [
+            "acquisition"
+          ],
+          "category": "acquisition",
+          "announcementDescription": "Joint Venture - Intimation under Regulation 30 of SEBI (LODR) Regulation 2015 for execution of Joint Venture Agreement with Lohum Cleantech Private Limited"
+        },
+        {
+          "id": "9b00d3b5-8165-4d01-868e-78a55f76f89d",
+          "createdAt": "2026-07-03T09:49:00+05:30",
+          "type": "announcement",
+          "announcementId": "ed51xxgfnf1rsaqelbu65fc6.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Memorandum of Understanding /Agreements",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/ed51xxgfnf1rsaqelbu65fc6.pdf",
+          "insight": "talb @ Talbros Automotive Components Ltd. www.talbros.com zndJuly’zozs Listing Department Listing Department BSE Limited National Stock Exchange of India Limited Phiroze Jeejeebhoy Towers, Exchange Plaza, Plot No. C/1, Dalal Street, G Block, Bandra Kurla Complex, Mumbai — 400 001 Bandra (East), Mumbai — 400 051 Scrip Code: 505160 Symbol: TALBROAUTO Sub: Intimation under Regulation 30 of the SEBI (Listing Obligations and Disclosure ubs Requirements) Regulations, 2015 Dear Sir/ Madam, Pursuant to ",
+          "significance": "medium",
+          "tags": [
+            "acquisition"
+          ],
+          "category": "acquisition",
+          "announcementDescription": "Memorandum of Understanding /Agreements - Intimation under Regulation 30 of SEBI (LODR) Regulations 2015 for execution of Joint Venture Agreement with Lohum Cleantech Private Limited."
+        }
+      ],
+      "processedAnnouncements": [
+        "2f9hrya5dezgxiznxflwe77w.pdf",
+        "ed51xxgfnf1rsaqelbu65fc6.pdf"
+      ]
+    },
+    "NSE:GNA": {
+      "companyId": "NSE:GNA",
+      "ticker": "NSE:GNA",
+      "name": "GNA Axles Ltd",
+      "lastUpdated": "2026-07-03T09:49:01+05:30",
+      "businessSummary": "GNA Axles Ltd (NSE:GNA) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "4d7e32e9-e7e9-4666-93bb-0b8dd0300381",
+          "createdAt": "2026-07-03T09:49:01+05:30",
+          "type": "announcement",
+          "announcementId": "v8b5o1jgbc96pcb1vhiumth4.pdf",
+          "announcementTitle": "Board Meeting Intimation for Approval Of First Quarter Results",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/v8b5o1jgbc96pcb1vhiumth4.pdf",
+          "insight": "GNA Date : 2\" July, 2026 GNA AXLES LIMITED Regd. Office: GNAHOUSE, I-C, CHHOTI BARADARI - PART-lI (GARHA ROAD, JALANDHAR:- 144 404 Phones : 01814630477 Fax : 01814630477 E-mail : info@gnagroup.com Website : www.gnaaxies.in Department of Corporate Services BSE Limited 25\" Floor Rotunda Building, P J Towers Dalal Street, Fort MUMBAI 400001 SCRIP CODE : 540124 The National Stock Exchange of India Limited “Exchange Plaza™ Plot No C-1, G Block Bandra Kurla Complex Bandra (East) MUMBAI - 400051 SCRIP ",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "Board Meeting - G N A Axles Ltdhas informed BSE that the meeting of the Board of Directors of the Company is scheduled on 16/07/2026 inter alia to consider and approve Board Meeting Notice is attached"
+        }
+      ],
+      "processedAnnouncements": [
+        "v8b5o1jgbc96pcb1vhiumth4.pdf"
+      ]
+    },
+    "NSE:VMART": {
+      "companyId": "NSE:VMART",
+      "ticker": "NSE:VMART",
+      "name": "V-Mart Retail Ltd",
+      "lastUpdated": "2026-07-03T09:49:19+05:30",
+      "businessSummary": "",
+      "notes": [
+        {
+          "id": "4e2e4ac4-1147-4ce8-8315-b0b19fb7498d",
+          "createdAt": "2026-07-03T09:49:05+05:30",
+          "type": "announcement",
+          "announcementId": "6hjloumhsqpbtozl2tye9m0z.pdf",
+          "announcementTitle": "Notice Of The AGM For The Financial Year 2025-26",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/6hjloumhsqpbtozl2tye9m0z.pdf",
+          "insight": "Ref. No. CS/S/L-977/2026-27 2 nd July, 2026 To: To: The Listing Department The Corporate Relationship Department NATIONAL STOCK EXCHANGE OF INDIA THE BSE LTD LIMITED Phiroze Jeejeebhoy Towers, “Exchange Plaza” Dalal Street, Mumbai – 400 001 Bandra-Kurla Complex Scrip Code: 534976 Bandra (E ), Mumbai – 400 051 Fax: 022-22723121 Scrip Code: VMART Fax: 022-26598120 Email: corp.relations@bseindia.com Email: cmlist@nse.co.in Sub: Notice of the AGM for the Financial Year 2025-26 Dear Sir/Madam, Pursua",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "AGM - Notice of the 24th AGM for FY 2025-26"
+        },
+        {
+          "id": "fb98632d-dc91-456e-adcc-def9a2255bfb",
+          "createdAt": "2026-07-03T09:49:19+05:30",
+          "type": "announcement",
+          "announcementId": "lpy4syaqhrrczm4g0vb8v8v0.pdf",
+          "announcementTitle": "Reg. 34 (1) Annual Report.",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/lpy4syaqhrrczm4g0vb8v8v0.pdf",
+          "insight": "Ref. No. CS/S/L-976/2026-27 2 nd July, 2026 To: To: The Listing Department The Corporate Relationship Department NATIONAL STOCK EXCHANGE OF INDIA THE BSE LTD LIMITED Phiroze Jeejeebhoy Towers, “Exchange Plaza” Dalal Street, Mumbai – 400 001 Bandra-Kurla Complex Scrip Code: 534976 Bandra (E ), Mumbai – 400 051 Fax: 022-22723121 Scrip Code: VMART Fax: 022-26598120 Email: corp.relations@bseindia.com Email: cmlist@nse.co.in Sub: Integrated Annual Report for the Financial Year 2025-26 Dear Sir/Madam,",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "Reg. 34 (1) Annual Report - Integrated Annual report for the Financial Year 2025-26"
+        }
+      ],
+      "processedAnnouncements": [
+        "wyix3ab1v7fjcu5hvbgget8k.pdf",
+        "6hjloumhsqpbtozl2tye9m0z.pdf",
+        "lpy4syaqhrrczm4g0vb8v8v0.pdf"
+      ]
+    },
+    "NSE:PANAMAPET": {
+      "companyId": "NSE:PANAMAPET",
+      "ticker": "NSE:PANAMAPET",
+      "name": "Panama Petrochem Ltd",
+      "lastUpdated": "2026-07-03T09:49:05+05:30",
+      "businessSummary": "Panama Petrochem Ltd (NSE:PANAMAPET) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "3ba4adc1-d7da-4942-87b9-d4d561f2936f",
+          "createdAt": "2026-07-03T09:49:05+05:30",
+          "type": "announcement",
+          "announcementId": "mdnqsim9zaadxlu6v9r6fvf7.pdf",
+          "announcementTitle": "Announcement Under Regulation 30",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/mdnqsim9zaadxlu6v9r6fvf7.pdf",
+          "insight": "Corporate Office & Communication Address: 40I Aza House, 24, Turner Road, Bandra (W), Mumbai 400 050. Website: www.panamapetro.com Phone : 9I-22-42I77777 I Fax : 9I-22-42I77788 I E-mail : ho@panamapetro.com CIN No. L23209GJI982PLC005062 Date: July 02, 2026 BSE Limited Pjiroze Jeejeebhoy Towers, Dalal Street, Fort, Mumbai 400 001 Scrip Code: 524820 National Stock Exchange of India Limited Exchange Plaza,5 th Floor, Plot No. C/1 G Block, Bandra-Kurla Complex Bandra (E), Mumbai-400 051 Scrip Symbol",
+          "significance": "low",
+          "tags": [
+            "general"
+          ],
+          "category": "general",
+          "announcementDescription": "General - Announcement under Regulation 30"
+        }
+      ],
+      "processedAnnouncements": [
+        "mdnqsim9zaadxlu6v9r6fvf7.pdf"
+      ]
+    },
+    "NSE:KERNEX": {
+      "companyId": "NSE:KERNEX",
+      "ticker": "NSE:KERNEX",
+      "name": "Kernex Microsystems (India) Ltd",
+      "lastUpdated": "2026-07-03T09:49:06+05:30",
+      "businessSummary": "Kernex Microsystems (India) Ltd (NSE:KERNEX) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "2ec1841f-6b6c-43f7-a372-9668063482a3",
+          "createdAt": "2026-07-03T09:49:06+05:30",
+          "type": "announcement",
+          "announcementId": "wrv1falnkqf62tntockvck2i.pdf",
+          "announcementTitle": "Successful Commissioning Of Kernex-Built Kavach System On North Central Railway",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/wrv1falnkqf62tntockvck2i.pdf",
+          "insight": "KERNEX MICROSYSTEMS (INDIA) LTD. CIN : L30007TG1991 PLC013211 Tel: +91 841~67600 Fax: +91 841~7695 email: kemex@kemex.in Website: www.kemex.in (An ISO 9001-2015 Certified Company) I 1509001 Registered OffIce : \"TECHNOPOLlS\". Plot Nos: 38-41. Hardware Technology Park. TSIIC Layout. Raviryal (V). ~-501510. TeIaoga oa, India. 2 nd July 2026 :-1'0------------------------- ---------------- --- ------------: -1'0---------------------- ------- ---------------------------- i The Listing I Compliance Dep",
+          "significance": "medium",
+          "tags": [
+            "capacity"
+          ],
+          "category": "capacity",
+          "announcementDescription": "General - Successful Commissioning of Kernex-Built Kavach System on Tundla-Panki Dham Section of North Central Railways"
+        }
+      ],
+      "processedAnnouncements": [
+        "wrv1falnkqf62tntockvck2i.pdf"
+      ]
+    },
+    "NSE:EBGNG": {
+      "companyId": "NSE:EBGNG",
+      "ticker": "NSE:EBGNG",
+      "name": "GNG Electronics Ltd",
+      "lastUpdated": "2026-07-03T09:49:19+05:30",
+      "businessSummary": "GNG Electronics Ltd (NSE:EBGNG) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "194be893-3576-40fc-ad25-73298afb6512",
+          "createdAt": "2026-07-03T09:49:19+05:30",
+          "type": "announcement",
+          "announcementId": "fkfvx04wrytvps7psnu2oi8n.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/fkfvx04wrytvps7psnu2oi8n.pdf",
+          "insight": "July 02, 2026 To, National Stock Exchange of India Limited Exchange Plaza, 5th Floor, C-1, Block G, Bandra Kurla Complex, Bandra (E), Mumbai 400051 To, BSE Limited Phiroze Jeejeebhoy Towers, Dalal Street, Mumbai – 400001 NSE Symbol - EBGNG Scrip Code – 544455 Sub: Intimation of schedule of Investors / Analyst Meet under the SEBI (Listing Obligations and Disclosure Requirements), Regulations 2015 Dear Sir/Madam, Pursuant to Regulation 30 of the SEBI (Listing Obligations and Disclosure Requirement",
+          "significance": "low",
+          "tags": [
+            "investor_meet"
+          ],
+          "category": "investor_meet",
+          "announcementDescription": "Analyst / Investor Meet - Intimation for interaction with Investors / Analysts"
+        }
+      ],
+      "processedAnnouncements": [
+        "fkfvx04wrytvps7psnu2oi8n.pdf"
+      ]
+    },
+    "NSE:GALAPREC": {
+      "companyId": "NSE:GALAPREC",
+      "ticker": "NSE:GALAPREC",
+      "name": "Gala Precision Engineering Ltd",
+      "lastUpdated": "2026-07-03T09:49:20+05:30",
+      "businessSummary": "Gala Precision Engineering Ltd (NSE:GALAPREC) - listed Indian company; auto-generated placeholder summary pending manual review (new to notes DB, general knowledge unavailable in this batch mode).",
+      "notes": [
+        {
+          "id": "c60607f1-7d79-44ed-b1d0-c61b6b3bfcfb",
+          "createdAt": "2026-07-03T09:49:20+05:30",
+          "type": "announcement",
+          "announcementId": "kwf36m4ybpslqax0tj92aw04.pdf",
+          "announcementTitle": "Disclosures under Reg. 29(2) of SEBI (SAST) Regulations 2011",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/kwf36m4ybpslqax0tj92aw04.pdf",
+          "insight": "ALPA KIRAN CHHEDA 806 SIDDHGIRI RAJKAMAL LANE RA.JKAMAL STUDIO COMPOUND PAREL 400012 National Stock Exchange of India Limited Exchange Plaza, 5 1 1i Floor, Plot No. C/l, G Block, Bandra Kurla Complex, Bandra (East). Mumbai - 400 051 Email: 1akeover@nse.co.in Gala Precision Engineering Limited A-80 l, 8 1 h Floor, Thane One DIL Complex, Ghodbunder Road Majiwade, Thane- 400610. Email: investor.relations@galagroup.com Date: .July 1, 2026 BSE Limited I'' Floor, New Trading Ring, PJ Towers, Dalal Str",
+          "significance": "medium",
+          "tags": [
+            "shareholding_change"
+          ],
+          "category": "shareholding_change",
+          "announcementDescription": "Disclosures under Reg. 29(2) of SEBI (SAST) Regulations 2011 - The Exchange has received the disclosure under Regulation 29(2) of SEBI (Substantial Acquisition of Shares & Takeovers) Regulations 2011 for Alpa Kiran Chheda & Others"
+        }
+      ],
+      "processedAnnouncements": [
+        "kwf36m4ybpslqax0tj92aw04.pdf"
+      ]
+    }
+  }
+}
