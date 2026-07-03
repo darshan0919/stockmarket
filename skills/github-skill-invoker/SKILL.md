@@ -9,7 +9,9 @@ description: >
   watchlist catalyst scan, fundamental shift scan, management credibility
   tracker, watchlist sync, gainers signal, insight validation, equity
   extraction, equity dashboard, equity master, stock documents fetcher,
-  cowork task architect, announcement keyword explorer, skill manager — or references any
+  cowork task architect, announcement keyword explorer, skill manager,
+  investment thesis engine, financial model, value chain analysis,
+  annual report analysis, stage 2 catalyst analysis — or references any
   of these skills by name or alias. Fetches the LATEST version of the skill
   from GitHub and executes it with the user's parameters. Always use this
   skill even when the user names a skill directly — it ensures they get the

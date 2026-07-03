@@ -1,11 +1,12 @@
 {
   "version": "1.0",
-  "description": "Stockmarket monorepo — Claude skills registry",
+  "description": "Stockmarket monorepo \u2014 Claude skills registry",
   "base_url": "https://raw.githubusercontent.com/darshan0919/stockmarket/main",
   "_note": "Source of truth for generating registry.json and invoker tables.",
   "shared": [
     "skills/_shared/conventions.md",
-    "packages/stock-api/src/utils/pdfUtils.js"
+    "packages/stock-api/src/utils/pdfUtils.js",
+    "skills/_shared/data-verification.md"
   ],
   "skills": {
     "stock-documents-fetcher": {
@@ -635,6 +636,103 @@
         "delete skill",
         "skill creator",
         "manage skills"
+      ]
+    },
+    "investment-thesis-engine": {
+      "skill_md": "skills/investment-thesis-engine/SKILL.md",
+      "entry": null,
+      "references": [
+        "skills/investment-thesis-engine/references/thesis_schema.md",
+        "skills/investment-thesis-engine/references/signal_rules.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/_shared/data-verification.md"
+      ],
+      "aliases": [
+        "investment thesis",
+        "thesis engine",
+        "update thesis",
+        "buy hold sell signal",
+        "thesis review",
+        "recompute signal",
+        "should i still hold",
+        "living thesis",
+        "evolving thesis"
+      ]
+    },
+    "financial-model": {
+      "skill_md": "skills/financial-model/SKILL.md",
+      "entry": null,
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/_shared/data-verification.md"
+      ],
+      "aliases": [
+        "financial model",
+        "3 year forecast",
+        "forecast model",
+        "bear base bull",
+        "irr from here",
+        "project the pnl",
+        "valuation model",
+        "earnings model"
+      ]
+    },
+    "value-chain-analysis": {
+      "skill_md": "skills/value-chain-analysis/SKILL.md",
+      "entry": null,
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/_shared/data-verification.md"
+      ],
+      "aliases": [
+        "value chain",
+        "where does margin sit",
+        "chokepoint analysis",
+        "value migration",
+        "map the chain",
+        "bottleneck owner"
+      ]
+    },
+    "annual-report-analysis": {
+      "skill_md": "skills/annual-report-analysis/SKILL.md",
+      "entry": null,
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/_shared/data-verification.md"
+      ],
+      "aliases": [
+        "annual report analysis",
+        "analyse this ar",
+        "ar analysis",
+        "md letter summary",
+        "governance check",
+        "remuneration check",
+        "kmp resignations"
+      ]
+    },
+    "stage2-catalyst-analysis": {
+      "skill_md": "skills/stage2-catalyst-analysis/SKILL.md",
+      "entry": null,
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/_shared/data-verification.md"
+      ],
+      "aliases": [
+        "stage 2",
+        "weinstein stage",
+        "soic lti",
+        "30 wema",
+        "breakout analysis",
+        "why now catalyst",
+        "technical stage",
+        "entry stop loss",
+        "institutional accumulation"
       ]
     }
   }
