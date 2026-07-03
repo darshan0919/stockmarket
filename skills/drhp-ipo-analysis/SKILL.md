@@ -91,12 +91,9 @@ Each red flag rated **GREEN / YELLOW / RED** with verbatim evidence and page cit
 
 ### Phase 4 — PDF generation
 
-```python
-import sys
-sys.path.insert(0, '<skill_path>/scripts')
-sys.path.insert(0, '<skill_path>/_shared')
-from generate_drhp_pdf import create_drhp_pdf
+Write the following JSON to a temporary file (e.g. `data.json`):
 
+```json
 data = {
     "company_name": "...",
     "issue_type": "Mainboard IPO" | "SME IPO" | "FPO",
@@ -110,27 +107,17 @@ data = {
     "subscription_view": "SUBSCRIBE" | "AVOID" | "SUBSCRIBE-FOR-LISTING-GAINS-ONLY" | "WATCH-POST-LISTING",
     "verdict_rationale": "...",
     "sections": [   # one per the 10 framework sections
-        {"title": "1. Business Overview", "body": "...", "evidence": [...]},
-        ...
-    ],
-    "financial_table": {
-        "headers": ["FY23", "FY24", "FY25"],
-        "rows": [
-            {"metric": "Revenue (Rs Cr)", "values": [...]},
-            ...
-        ],
-    },
-    "red_flags": [
-        {"flag": "Heavy client concentration", "rating": "RED",
-         "evidence": "Top 1 customer = 47% of FY25 revenue", "page": "p.245"},
-        ...
-    ],
-    "valuation_summary": "...",
-    "peer_comparison_table": [...],
-    "sources": "...",
-    "output_path": "/mnt/project/packages/cowork-jobs/data/agent-outputs/<Company>_DRHP_Analysis.pdf",
-}
-create_drhp_pdf(data)
+        {"title": "1. Business Overview", "body": "...", "evidence": [...]}
+```
+
+Then execute the two-step HTML-to-PDF pipeline:
+
+```bash
+# 1. Generate HTML (Bundle Mode)
+bash ./skills/_shared/resolve.sh $(basename $(dirname skills/drhp-ipo-analysis/SKILL.md)) --input data.json --output report.html
+
+# 2. Render PDF (Clone Mode)
+bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "<Company>_Output.pdf"
 ```
 
 ## Output discipline

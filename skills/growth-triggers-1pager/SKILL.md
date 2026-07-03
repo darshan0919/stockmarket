@@ -64,26 +64,29 @@ Rules: company-specific and verifiable only (concall / deck / AR / order-book di
 
 ### Phase 3 — PDF generation
 
-```python
-import sys; sys.path.insert(0, '<skill_path>/scripts')
-from generate_pdf import create_growth_triggers_pdf
+Write the following JSON to a temporary file (e.g. `data.json`):
 
+```json
 data = {
     "company_name": "...", "ticker": "NSE: ...", "date": "Month Year",
     "cmp": "Rs ...", "market_cap": "Rs ... Cr", "cap_category": "Small/Mid/Large Cap",
     "sector": "...",
     "snapshot": "Business paragraph with <b>bold</b> for key numbers.",
     "kpi_headers": [...8 labels...], "kpi_values": [...8 values...],
-    "triggers": [{"name": ..., "body": ..., "impact": ..., "timeline": ..., "conviction": ...}, ...],
-    "in_the_price": "...", "risks": ["<b>Risk:</b> ...", ...],
-    "scoreboard": [[1, "...", "...", "...", "HIGH"], ...],
-    "sources": "...",
-    "output_path": "/mnt/project/packages/cowork-jobs/data/agent-outputs/<Company>_Growth_Triggers.pdf",
-}
-create_growth_triggers_pdf(data)
+    "triggers": [{"name": ..., "body": ..., "impact": ..., "timeline": ..., "conviction": ...}
 ```
 
-Script at [`packages/stock-api/python/generators/generate_pdf.py`](packages/stock-api/python/generators/generate_pdf.py). Shares palette/helpers with `../packages/stock-api/python/utils/pdf_utils.py`. **PDF must fit on 1 page.** If it spills: cut trigger body text, not triggers. Drop to 5 triggers if still tight.
+Then execute the two-step HTML-to-PDF pipeline:
+
+```bash
+# 1. Generate HTML (Bundle Mode)
+bash ./skills/_shared/resolve.sh $(basename $(dirname skills/growth-triggers-1pager/SKILL.md)) --input data.json --output report.html
+
+# 2. Render PDF (Clone Mode)
+bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "<Company>_Output.pdf"
+```
+
+Script at [`packages/stock-api/src/generators/generatePdf.js`](packages/stock-api/src/generators/generatePdf.js). Shares palette/helpers with `../packages/stock-api/python/utils/pdf_utils.py`. **PDF must fit on 1 page.** If it spills: cut trigger body text, not triggers. Drop to 5 triggers if still tight.
 
 ## Conventions & pitfalls
 

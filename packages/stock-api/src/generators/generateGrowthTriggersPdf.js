@@ -1,6 +1,6 @@
 'use strict';
 
-const { wrapHtml, markdownToHtml, renderPdf } = require('../utils/pdfRenderer');
+const { wrapHtml, markdownToHtml } = require('../utils/pdfRenderer');
 const { INSTITUTIONAL_LIGHT, formatInlineMarkdown } = require('../utils/pdfUtils');
 
 function _convictionColor(tag) {
@@ -116,7 +116,7 @@ async function createGrowthTriggersPdf(data) {
     
     const htmlContent = wrapHtml(title, subtitle, bodyHtml);
     
-    await renderPdf(htmlContent, outputPath, title);
+    require('fs').writeFileSync(outputPath, htmlContent, 'utf8');
     console.log(`✅ Growth Triggers PDF saved to: ${outputPath}`);
     return outputPath;
 }

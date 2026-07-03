@@ -66,135 +66,28 @@ After fetching, read `manifest.json` per company. If a critical type is missing 
 
 For each ticker, fetch live valuation snapshots via Screener.in:
 
-```python
-# CMP, P/E (TTM and forward), Market Cap, ROCE, ROE, D/E, Promoter holding
-# These come from the screener data — never calculated, always extracted
-```
+Write the following JSON to a temporary file (e.g. `data.json`):
 
-This step is mandatory — historical AR data alone gives you 6-12 month-old valuation. The peer comparison must be at live CMP.
-
-### Phase 3 — Per-company extraction
-
-For each company, extract the data needed for the four spine dimensions. See [`references/comparison_dimensions.md`](references/comparison_dimensions.md) for the full extraction list. Summary:
-
-**Dimension 1 — Demand, Order Book, Book-to-Bill:**
-- Latest reported revenue (TTM)
-- Order book in Rs Cr from investor presentation / concall
-- Book-to-bill ratio = Order book / TTM revenue
-- Capacity utilisation %
-- Concall management commentary on demand environment
-
-**Dimension 2 — Forward earnings projections:**
-- Latest concall guidance for revenue, EBITDA, margin, capex
-- Confidence level of the guidance (HIGH / MEDIUM / LOW per `concall-analysis` framework)
-- Analyst consensus FY+1 / FY+2 EPS (from MoneyControl / Trendlyne)
-- Implied 2-year forward EPS CAGR
-
-**Dimension 3 — CF & BS health:**
-- 3-year CFO/PAT (from AR cash flow statement)
-- Debt/Equity (latest)
-- Net debt / EBITDA
-- Working capital cycle (DSO + Inventory days − Payable days)
-- Contingent liabilities as % of net worth
-- Promoter pledge %
-
-**Dimension 4 — Valuation (relative):**
-- Live P/E (TTM) and forward
-- EV/EBITDA
-- P/B
-- 5-year P/E historical median + percentile (where current sits)
-- Implied PEG (forward P/E / forward EPS CAGR)
-
-**Dimension 5 (optional) — Management Credibility Overlay:**
-- Run `management-credibility-tracker` per company; feeds credibility scores into synthesis
-- See Phase 4 below
-
-**Dimension 6 — Shareholding Trends & Verdict:**
-- Promoter holding % (latest quarter + 4-quarter trend)
-- FII holding % (latest + 4-quarter trend)
-- DII holding % (latest + 4-quarter trend)
-- Retail / public holding %
-- Promoter pledge % trend
-- Trend verdict: Accumulating / Distributing / Stable — separately for FII, DII, Promoter
-- Fetch from: Screener.in shareholding tab OR BSE bulk/block deal announcements
-- Source: Screener.in `https://www.screener.in/company/<SYMBOL>/` → Shareholding tab
-
-**Dimension 7 — Solvency & Liquidity Ratios:**
-- Current Ratio = Current Assets / Current Liabilities (latest quarterly balance sheet)
-- Quick Ratio = (Current Assets − Inventories) / Current Liabilities
-- Interest Coverage Ratio (ICR) = EBIT / Interest Expense (TTM)
-- Debt Service Coverage Ratio (DSCR) = (EBITDA − Taxes) / (Interest + Principal repayments)
-- Net Debt / Equity
-- Fetch latest quarterly result (P&L + BS) via stock-documents-fetcher if not already in context
-- Calculate from the BS and P&L directly — never lift these from aggregator sites without cross-checking the raw filing
-
-### Phase 4 — Synthesis
-
-Build the comparison around the seven dimensions, then add a final cross-cutting verdict.
-
-For each dimension, produce:
-- A **side-by-side table** with all companies' values
-- A **winner row** declaring which company is best on this dimension and why
-- A **risk row** flagging the company most at risk on this dimension
-
-Then a final **relative-value verdict** that synthesises across all seven:
-- Which company is the best business?
-- Which company is most attractively priced?
-- Are these the same company? (If yes, easy call; if no, it's the relative-value setup.)
-- What's the catalyst that closes the gap?
-
-Optionally include `management-credibility-tracker` results for each company — adds an 8th dimension that informs how to weight the management commentary.
-
-### Phase 5 — Render
-
-Two formats, same schema:
-- **PDF** (default for 2-3 companies): cleanest for printing / sharing in committee
-- **HTML widget** (default for 4-6 companies): interactive sortable tables better suit larger comparisons
-
-```python
-import sys
-sys.path.insert(0, '<skill_path>/scripts')
-sys.path.insert(0, '<skill_path>/_shared')
-from generate_peer_pdf import create_peer_comparison_pdf
-
+```json
 data = {
     "title": "Telecom Equipment Peer Comparison: STL Tech vs HFCL",
     "date": "May 2026",
     "companies": [
         {"name": "STL Tech", "ticker": "NSE:STLTECH", "cmp": "Rs 165",
-         "market_cap_cr": 6800, "sector": "Telecom equipment"},
-        {"name": "HFCL", "ticker": "NSE:HFCL", "cmp": "Rs 105",
-         "market_cap_cr": 14500, "sector": "Telecom equipment"},
-    ],
-    "executive_summary": "...",
-    "demand_table": [...],            # Dimension 1
-    "demand_winner": "...",
-    "earnings_table": [...],          # Dimension 2
-    "earnings_winner": "...",
-    "cash_bs_table": [...],           # Dimension 3
-    "cash_bs_winner": "...",
-    "valuation_table": [...],         # Dimension 4
-    "valuation_winner": "...",
-    "shareholding_table": [...],      # Dimension 6 — shareholding trends
-    "shareholding_winner": "...",
-    "solvency_liquidity_table": [...],# Dimension 7 — solvency & liquidity ratios
-    "solvency_liquidity_winner": "...",
-    "credibility_table": [...],       # Optional Dimension 8 (was 5)
-    "verdict": {
-        "best_business": "...",
-        "best_priced": "...",
-        "relative_value_setup": "...",
-        "preferred_pick": "...",
-        "key_catalyst": "...",
-        "biggest_risk": "...",
-    },
-    "sources": "...",
-    "output_path": "/mnt/project/packages/cowork-jobs/data/agent-outputs/Peer_<Sector>_<DD-MMM-YYYY>.pdf",
-}
-create_peer_comparison_pdf(data)
+         "market_cap_cr": 6800, "sector": "Telecom equipment"}
 ```
 
-See [`packages/stock-api/python/generators/generate_peer_pdf.py`](packages/stock-api/python/generators/generate_peer_pdf.py).
+Then execute the two-step HTML-to-PDF pipeline:
+
+```bash
+# 1. Generate HTML (Bundle Mode)
+bash ./skills/_shared/resolve.sh $(basename $(dirname skills/peer-comparison/SKILL.md)) --input data.json --output report.html
+
+# 2. Render PDF (Clone Mode)
+bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "<Company>_Output.pdf"
+```
+
+See [`packages/stock-api/src/generators/generatePeerPdf.js`](packages/stock-api/src/generators/generatePeerPdf.js).
 
 ## Output discipline
 

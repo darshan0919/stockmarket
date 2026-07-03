@@ -121,32 +121,9 @@ Follow the full framework in [`references/framework_9parts.md`](references/frame
 
 **Compute concentration metrics with the helper script:**
 
-```python
-import sys; sys.path.insert(0, '<skill_path>/scripts')
-from compute_concentration import compute_metrics, hhi_classification
+Write the following JSON to a temporary file (e.g. `data.json`):
 
-shares_pct = [22.5, 18.3, 14.1, 9.8, 7.2, 5.5, 4.1, 3.0, 2.5, 2.0, 11.0]   # last entry = Others residual
-metrics = compute_metrics(shares_pct)
-# -> {'CR3': 54.9, 'CR5': 71.9, 'CR10': 89.0, 'HHI': 1334.8, 'classification': 'Competitive/Fragmented'}
-```
-
-### Phase 4 — Verdict & opinion (compulsory)
-
-The framework is descriptive; the verdict is prescriptive. End with **one paragraph** answering:
-- Who is the structural winner by the end of the forward horizon, and why?
-- Where is the asymmetric bet — i.e., which player has >500 bps Bear-Bull share spread?
-- What is the early-warning signal that flips the structural view?
-
-Mark this clearly as `[Analyst View]` and include the supporting 2-3 facts.
-
-### Phase 5 — Render the HTML widget (default)
-
-```python
-import sys
-sys.path.insert(0, '<skill_path>/scripts')
-sys.path.insert(0, '<skill_path>/_shared')
-from generate_market_share_html import create_market_share_widget
-
+```json
 data = {
     "industry": "Indian Stainless Steel Tubes & Pipes",
     "geography": "India",
@@ -162,128 +139,20 @@ data = {
     "verification": {
         "tam_sources": ["JISA industry report FY25", "Jindal Stainless IP Q4 FY25"],
         "tam_gap": "No gap >15%; both anchor industry size to Rs ~14,500 Cr FY25.",
-        "rde_mix": {"R": 3, "D": 7, "E": 1},        # counts across the player table
-        "confidence": "MEDIUM",                       # HIGH / MEDIUM / LOW
-        "open_definition_questions": []               # if any, list — these block proceeding
-    },
-
-    "executive_summary": "One-paragraph punchline...",
-
-    # Part 1
-    "sizing": {
-        "boundary": "...",
-        "tam_cr": 18500, "sam_cr": 14500, "som_cr": 13200,
-        "tam_methodology": "...",
-        "historical": [
-            {"year": "FY20", "size_cr": 9800, "yoy": None},
-            {"year": "FY21", "size_cr": 10200, "yoy": 4.1},
-            # ...
-        ],
-        "sub_segments": [
-            {"name": "Decorative welded", "share_pct": 42, "notes": "..."},
-            # ...
-        ],
-    },
-
-    # Part 2
-    "structure": {
-        # CR/HHI computed by compute_concentration.py — pass through here
-        "CR3": 54.9, "CR5": 71.9, "CR10": 89.0, "HHI": 1334.8,
-        "classification": "Competitive/Fragmented",
-        "tiers": [
-            {"tier": "Tier 1 — Scale leaders", "players": ["Player A", "Player B"], "share_range": ">10%"},
-            # ...
-        ],
-        "organized_pct": 68, "unorganized_pct": 32,
-        "organized_drivers": "GST + BIS standards have driven 15pp of formalisation since FY20.",
-    },
-
-    # Part 3 — THE centrepiece
-    "players": [
-        {"rank": 1, "name": "Player A", "listed": "Listed", "ticker": "NSE:PLAYERA",
-         "revenue_cr_latest": 3262, "share_latest": 22.5, "share_t5": 18.0,
-         "delta_bps": 450, "source": "R", "notes": ""},
-        # ... 10-15 rows including "Others"
-    ],
-
-    # Part 4
-    "dynamics": {
-        "top_gainers": [
-            {"player": "Player A", "delta_bps": 450, "what_they_did": "...",
-             "structural_or_cyclical": "Structural", "next_3y": "Extends"},
-            # ...
-        ],
-        "top_losers": [
-            {"player": "Player X", "delta_bps": -380, "what_went_wrong": "...",
-             "structural_or_cyclical": "Cyclical", "next_3y": "Partial reversal"},
-            # ...
-        ],
-        "structural_winner_thesis": "...",
-    },
-
-    # Part 5 — moat heatmap (4 dimensions x N tier-1 players)
-    "moat_heatmap": [
-        {"player": "Player A",
-         "barrier_to_entry": {"score": 4, "evidence": "BIS-certified, 8 plants, 3 in tax-free zones"},
-         "pricing_power": {"score": 3, "evidence": "3Y gross margin +200 bps despite raw material volatility"},
-         "switching_cost": {"score": 4, "evidence": "Approved vendor at L&T, BHEL — 18-month re-qualification"},
-         "cost_advantage": {"score": 5, "evidence": "Captive nickel processing; cost/tonne 8% below median peer"}},
-        # ...
-    ],
-
-    # Part 6 — supply-demand
-    "supply_demand": {
-        "installed_capacity": "...",
-        "utilisation_pct": 82,
-        "capex_pipeline": [
-            {"player": "Player A", "capex_cr": 800, "capacity_add": "+25 kTpa by FY27"},
-            # ...
-        ],
-        "capex_to_demand_ratio": "Building ~1.1x next-3-year demand growth — slight over-build risk.",
-        "pricing_trend": "...",
-        "raw_material_concentration": "Nickel + chrome both commodity-traded; pass-through ~3-6 month lag.",
-    },
-
-    # Part 7 — disruption matrix
-    "threats": [
-        {"category": "Imports (China)", "probability": "Medium", "impact_bps": 300,
-         "early_warning": "Anti-dumping review outcome expected Q3 FY26"},
-        # ...
-    ],
-
-    # Part 8 — forward projection
-    "projection": [
-        {"player": "Player A",
-         "bear": {"share": 21.0, "delta_bps": -150}, "base": {"share": 25.5, "delta_bps": 300},
-         "bull": {"share": 31.0, "delta_bps": 850}, "bear_bull_spread_bps": 1000,
-         "implied_cagr_base": 14.5,
-         "key_assumptions": ["Capex on track", "Margin defensible at current spread"]},
-        # ...
-    ],
-
-    # Part 9 — data quality
-    "data_quality": {
-        "confidence_overall": "MEDIUM",
-        "rde_mix_summary": "3 [R], 7 [D], 1 [E] — derivation-heavy but not estimate-heavy.",
-        "biggest_gaps": [
-            "Unorganized share quantification — best-case derived from GST formalisation data, not direct.",
-            # ...
-        ],
-        "sources_used": [
-            {"source": "Jindal Stainless Q4 FY25 IP", "url": "...", "pull_date": "17-May-2026"},
-            # ...
-        ],
-    },
-
-    "analyst_view": "[Analyst View] One-paragraph opinionated take...",
-
-    "output_path": "/mnt/project/packages/cowork-jobs/data/agent-outputs/MarketShare_<Industry>_<DD-MMM-YYYY>.html",
-}
-
-create_market_share_widget(data)
+        "rde_mix": {"R": 3, "D": 7, "E": 1}
 ```
 
-See [`packages/stock-api/python/generators/generate_market_share_html.py`](packages/stock-api/python/generators/generate_market_share_html.py).
+Then execute the two-step HTML-to-PDF pipeline:
+
+```bash
+# 1. Generate HTML (Bundle Mode)
+bash ./skills/_shared/resolve.sh $(basename $(dirname skills/market-share-analysis/SKILL.md)) --input data.json --output report.html
+
+# 2. Render PDF (Clone Mode)
+bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "<Company>_Output.pdf"
+```
+
+See [`packages/stock-api/src/generators/generateMarketShareHtml.js`](packages/stock-api/src/generators/generateMarketShareHtml.js).
 
 The HTML widget is the only shipped renderer. If a printed committee version is later needed, the same `data` dict can be adapted into `peer-comparison`'s ReportLab pipeline (`../packages/stock-api/python/utils/pdf_utils.py` carries the same palette) — that's a one-off adaptation, not a built-in path.
 

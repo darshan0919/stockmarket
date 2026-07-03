@@ -74,19 +74,25 @@ web_fetch: {base_url}/{shared_path}
 Keep file contents in context — they are referenced by the skill instructions
 (conventions, pdf_utils, etc.).
 
-### Step 6 — Cache scripts to /tmp
+### Step 6 — Resolve execution mode
 
-For each path in the skill's `scripts` array:
+Check the skill's `mode` field in the registry:
 
-```bash
-# Check cache first (scripts persist for the session)
-[ -f /tmp/<filename> ] || \
-  curl -fsSL "{base_url}/{script_path}" -o /tmp/<filename>
-```
+- **If `mode` is `bundle`**:
+  The skill is pre-bundled in a single file. Curl it to `/tmp/`:
+  ```bash
+  [ -f /tmp/<skill_name>.cjs ] || \\
+    curl -fsSL "{base_url}/packages/stock-api/dist-skills/<skill_name>.cjs" -o /tmp/<skill_name>.cjs
+  ```
 
-Do this for ALL scripts listed before starting execution, not lazily.
-When either `fetch_documents.py` or `fetch_announcements.py` appears in the scripts array,
-cache both — they depend on each other and must both be in `/tmp/`.
+- **If `mode` is `clone`**:
+  The skill uses Puppeteer or heavy deps. Run a shallow clone into `/tmp/sm-clone` (cached per session):
+  ```bash
+  if [ ! -d /tmp/sm-clone ]; then
+    git clone --depth 1 https://github.com/darshan0919/stockmarket.git /tmp/sm-clone
+    cd /tmp/sm-clone/packages/stock-api && npm ci
+  fi
+  ```
 
 ### Step 7 — Fetch reference files (lazy — only when skill instructs)
 
@@ -100,41 +106,34 @@ web_fetch: {base_url}/{reference_path}
 ### Step 8 — Execute the skill
 
 Follow the SKILL.md instructions exactly, with:
-- All `/tmp/<script>` paths substituted where the skill says to run a script
-- The user's ticker/params passed through
-- Shared file content already in context (conventions, pdf_utils)
+- The executed path being either `/tmp/<skill_name>.cjs` (bundle) or `/tmp/sm-clone/packages/stock-api/bin/<skill_name>.js` (clone).
+- The user's ticker/params passed through as CLI arguments.
+- Shared file content already in context (conventions, pdf_utils).
 
 ## Script path substitution table
 
-All scripts are cached to `/tmp/<filename>` in Step 6. When SKILL.md says to run a script,
-substitute the cached `/tmp/<filename>` path. The mapping is:
+All scripts are resolved according to their mode (bundle or clone).
 
-| Script (in registry `scripts` array) | Cached as |
+| Entrypoint / Mode | Cached / Execution path |
 |---|---|
-| `packages/stock-api/python/fetchers/fetch_documents.py` | `/tmp/fetch_documents.py` |
-| `packages/stock-api/python/fetchers/fetch_announcements.py` | `/tmp/fetch_announcements.py` |
-| `packages/stock-api/python/fetchers/fetch_and_extract.py` | `/tmp/fetch_and_extract.py` |
-| `packages/stock-api/python/generators/generate_concall_pdf.py` | `/tmp/generate_concall_pdf.py` |
-| `packages/stock-api/python/generators/generate_forensic_pdf.py` | `/tmp/generate_forensic_pdf.py` |
-| `packages/stock-api/python/generators/generate_report.py` | `/tmp/generate_report.py` |
-| `packages/stock-api/python/generators/generate_pdf.py` | `/tmp/generate_pdf.py` |
-| `packages/stock-api/python/generators/generate_credibility_widget.py` | `/tmp/generate_credibility_widget.py` |
-| `packages/stock-api/python/generators/generate_peer_pdf.py` | `/tmp/generate_peer_pdf.py` |
-| `packages/stock-api/python/generators/generate_market_share_html.py` | `/tmp/generate_market_share_html.py` |
-| `packages/stock-api/python/generators/generate_sector_report.py` | `/tmp/generate_sector_report.py` |
-| `packages/stock-api/python/generators/generate_drhp_pdf.py` | `/tmp/generate_drhp_pdf.py` |
-| `packages/stock-api/python/analyzers/compute_concentration.py` | `/tmp/compute_concentration.py` |
-| `packages/stock-api/python/analyzers/run_scan.py` | `/tmp/run_scan.py` |
-| `packages/stock-api/python/analyzers/scan_catalysts.py` | `/tmp/scan_catalysts.py` |
-| `packages/stock-api/python/analyzers/catalyst_rules.py` | `/tmp/catalyst_rules.py` |
-| `packages/stock-api/python/analyzers/parse_tweet_dump.py` | `/tmp/parse_tweet_dump.py` |
-| `packages/stock-api/python/orchestration/orchestrate.py` | `/tmp/orchestrate.py` |
-| `packages/stock-api/python/utils/pdf_utils.py` | `/tmp/pdf_utils.py` |
-| `packages/stock-api/python/utils/doc_generator.py` | `/tmp/doc_generator.py` |
-| `packages/stock-api/python/stockscans_client.py` | `/tmp/stockscans_client.py` |
+| `dist-skills/stock-documents-fetcher.cjs` (bundle) | `/tmp/stock-documents-fetcher.cjs` |
+| `packages/stock-api/bin/concall-analysis.js` (clone) | `/tmp/sm-clone/packages/stock-api/bin/concall-analysis.js` |
+| `packages/stock-api/bin/forensic-accounting.js` (clone) | `/tmp/sm-clone/packages/stock-api/bin/forensic-accounting.js` |
+| `packages/stock-api/bin/equity-research-deepdive.js` (clone) | `/tmp/sm-clone/packages/stock-api/bin/equity-research-deepdive.js` |
+| `packages/stock-api/bin/growth-triggers-1pager.js` (clone) | `/tmp/sm-clone/packages/stock-api/bin/growth-triggers-1pager.js` |
+| `dist-skills/management-credibility-tracker.cjs` (bundle) | `/tmp/management-credibility-tracker.cjs` |
+| `packages/stock-api/bin/peer-comparison.js` (clone) | `/tmp/sm-clone/packages/stock-api/bin/peer-comparison.js` |
+| `dist-skills/market-share-analysis.cjs` (bundle) | `/tmp/market-share-analysis.cjs` |
+| `packages/stock-api/bin/sector-research-deepdive.js` (clone) | `/tmp/sm-clone/packages/stock-api/bin/sector-research-deepdive.js` |
+| `packages/stock-api/bin/drhp-ipo-analysis.js` (clone) | `/tmp/sm-clone/packages/stock-api/bin/drhp-ipo-analysis.js` |
+| `dist-skills/quarterly-result-analysis.cjs` (bundle) | `/tmp/quarterly-result-analysis.cjs` |
+| `dist-skills/consecutive-filings-diff.cjs` (bundle) | `/tmp/consecutive-filings-diff.cjs` |
+| `dist-skills/pre-pead-scanner.cjs` (bundle) | `/tmp/pre-pead-scanner.cjs` |
+| `dist-skills/watchlist-catalyst-scanner.cjs` (bundle) | `/tmp/watchlist-catalyst-scanner.cjs` |
+| `dist-skills/equity-research-extraction.cjs` (bundle) | `/tmp/equity-research-extraction.cjs` |
+| `dist-skills/tweet-investor-playbook.cjs` (bundle) | `/tmp/tweet-investor-playbook.cjs` |
+| `dist-skills/announcement-keyword-explorer.cjs` (bundle) | `/tmp/announcement-keyword-explorer.cjs` |
 
-**fetch_announcements.py depends on fetch_documents.py** — both must be cached to `/tmp/`
-together for the import to work.
 
 ## Branch override
 

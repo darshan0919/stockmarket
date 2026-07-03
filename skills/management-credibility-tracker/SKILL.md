@@ -46,61 +46,9 @@ If only 4-5 transcripts are available (recent IPO), proceed but flag in the outp
 
 This skill **does not re-implement** concall extraction. Call `concall-analysis` in `multi-quarter` mode and consume its output:
 
-```python
-import sys
-sys.path.insert(0, '/tmp')
-sys.path.insert(0, '/tmp')
+Write the following JSON to a temporary file (e.g. `data.json`):
 
-# concall-analysis will return a dict with `themes`, `promises`, `confidence_counter`
-# We use the `promises` table as our primary input
-```
-
-The `promises` table has these fields per row:
-```
-{
-    "quarter": "Q4 FY24",
-    "promise": "FY26 revenue growth 20% YoY",
-    "outcome": "FY26 actual: 14% (Q3 TTM)",
-    "status": "DELIVERED" | "ON TRACK" | "MISSING" | "MISSED" | "TOO EARLY",
-    "metric_type": "revenue" | "margin" | "capex" | "capacity" | "client" | "other",
-}
-```
-
-For each promise, score per the credibility taxonomy:
-- DELIVERED → +1
-- ON TRACK → +1
-- MISSING (yet to come due) → 0 (don't count yet)
-- MISSED (>10% below guided value) → -1
-- TOO EARLY → 0 (skip)
-
-### Phase 3 — Score aggregation
-
-Compute these aggregates:
-- **Total credibility score** = Σ(scores) over all closed promises (excluding MISSING/TOO EARLY)
-- **Promises closed** = count of promises that have either delivered or missed
-- **Beat rate** = (count of +1) / promises closed
-- **Most-missed metric** = which metric type (revenue/margin/capex/capacity) has the worst beat rate?
-- **Most-credible metric** = best beat rate
-- **Confidence trajectory** = from `confidence_counter` table — is HIGH-language declining over time?
-
-Apply the rating bands from conventions §6:
-- Score **+5 to +8** → **HIGH credibility** (Mayur/Navin pattern)
-- Score **+1 to +4** → **MEDIUM credibility** (most mid-cap managements)
-- Score **0** → **MIXED** (Gravita pattern — some delivered, some missed)
-- Score **-1 to -2** → **WATCH** (Hikal pattern after FY25)
-- Score **-3 or worse** → **RED** — management is not walking the talk; resize accordingly
-
-### Phase 4 — Render
-
-Two output formats, same schema:
-- **HTML widget** — interactive scoreboard with per-quarter drill-down. Default. Saved to `/mnt/project/packages/cowork-jobs/data/agent-outputs/<Company>_Credibility.html`.
-- **PDF** — for sharing in committee meetings; uses the standard ReportLab pipeline. Saved to `<Company>_Credibility.pdf`.
-
-```python
-import sys
-sys.path.insert(0, '<skill_path>/scripts')
-from generate_credibility_widget import create_credibility_widget
-
+```json
 data = {
     "company_name": "...",
     "ticker": "NSE: ...",
@@ -113,14 +61,17 @@ data = {
     "most_credible_metric": str,
     "promises": [                  # full table, color-coded in widget
         {"quarter": "Q4 FY24", "promise": "...", "outcome": "...",
-         "status": "DELIVERED", "score": 1, "metric_type": "revenue"},
-        ...
-    ],
-    "case_study_match": "Mayur" | "Navin" | "Hikal" | "Gravita" | None,
-    "interpretation": "1-paragraph synthesis",
-    "output_path": "/mnt/project/packages/cowork-jobs/data/agent-outputs/<Company>_Credibility.html",
-}
-create_credibility_widget(data)
+         "status": "DELIVERED", "score": 1, "metric_type": "revenue"}
+```
+
+Then execute the two-step HTML-to-PDF pipeline:
+
+```bash
+# 1. Generate HTML (Bundle Mode)
+bash ./skills/_shared/resolve.sh $(basename $(dirname skills/management-credibility-tracker/SKILL.md)) --input data.json --output report.html
+
+# 2. Render PDF (Clone Mode)
+bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "<Company>_Output.pdf"
 ```
 
 ## The 4 documented case studies (calibration anchors)

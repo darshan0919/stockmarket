@@ -1,6 +1,6 @@
 'use strict';
 
-const { wrapHtml, markdownToHtml, renderPdf } = require('../utils/pdfRenderer');
+const { wrapHtml, markdownToHtml } = require('../utils/pdfRenderer');
 
 /**
  * createResearchReport converts markdown to an institutional PDF report.
@@ -13,7 +13,7 @@ async function createResearchReport(companyName, ticker, reportMarkdown, outputP
     
     const htmlContent = wrapHtml(title, subtitle, bodyHtml);
     
-    await renderPdf(htmlContent, outputPath, headerText);
+    require('fs').writeFileSync(outputPath, htmlContent, 'utf8');
     console.log(`✅ Report saved to: ${outputPath}`);
     return outputPath;
 }

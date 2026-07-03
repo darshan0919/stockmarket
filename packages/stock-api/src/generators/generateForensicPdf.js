@@ -1,6 +1,6 @@
 'use strict';
 
-const { wrapHtml, markdownToHtml, renderPdf } = require('../utils/pdfRenderer');
+const { wrapHtml, markdownToHtml } = require('../utils/pdfRenderer');
 const { INSTITUTIONAL_LIGHT, formatInlineMarkdown, styledTableHtml } = require('../utils/pdfUtils');
 
 function flagColor(rating) {
@@ -236,7 +236,7 @@ async function createForensicPdf(data) {
     
     const htmlContent = wrapHtml(title, subtitle, bodyHtml);
     
-    await renderPdf(htmlContent, outputPath, headerText);
+    require('fs').writeFileSync(outputPath, htmlContent, 'utf8');
     console.log(`✅ Forensic Report saved to: ${outputPath}`);
     return outputPath;
 }

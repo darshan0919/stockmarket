@@ -37,7 +37,7 @@ yields 0 gainers (holiday / API issue), send a "no signals today" email and stop
 ## Step 2 — Classifier (Python, deterministic, no API)
 
 ```bash
-cd "$DATA" && python3 gainers_classifier.py
+node "$COWORK_JOBS/lib/gainersClassifier.js"
 ```
 Reads the raw JSON and writes `daily_gainers/{market_date}_insights.json` with `signals[]`
 — each has `primary_driver`, `conviction`, `in_email`, and a pre-built `evidence[]`

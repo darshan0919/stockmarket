@@ -64,3 +64,7 @@ packages/cowork-jobs/data/validation/
 
 # Root delivery_cache (duplicate of cowork-jobs data)
 delivery_cache/
+
+# Data guards
+packages/cowork-jobs/notes/
+packages/cowork-jobs/process_watchlist.js

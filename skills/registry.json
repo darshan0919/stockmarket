@@ -2,17 +2,19 @@
   "version": "1.0",
   "description": "Stockmarket monorepo — Claude skills registry",
   "base_url": "https://raw.githubusercontent.com/darshan0919/stockmarket/main",
-  "_note": "base_url is the repo root; skill_md paths use skills/ prefix; scripts use packages/stock-api/python/{domain}/ prefix",
+  "_note": "Source of truth for generating registry.json and invoker tables.",
   "shared": [
     "skills/_shared/conventions.md",
-    "packages/stock-api/python/utils/pdf_utils.py"
+    "packages/stock-api/src/utils/pdfUtils.js"
   ],
   "skills": {
     "stock-documents-fetcher": {
       "skill_md": "skills/stock-documents-fetcher/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/fetchers/fetch_documents.py",
-        "packages/stock-api/python/fetchers/fetch_announcements.py"
+      "entry": "packages/stock-api/bin/stock-documents-fetcher.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/fetchers/announcementsFetcher.js"
       ],
       "references": [
         "skills/stock-documents-fetcher/references/api_details.md"
@@ -34,10 +36,12 @@
     },
     "concall-analysis": {
       "skill_md": "skills/concall-analysis/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/fetchers/fetch_documents.py",
-        "packages/stock-api/python/fetchers/fetch_announcements.py",
-        "packages/stock-api/python/generators/generate_concall_pdf.py"
+      "entry": "packages/stock-api/bin/concall-analysis.js",
+      "mode": "clone",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/fetchers/announcementsFetcher.js",
+        "packages/stock-api/src/generators/generateConcallPdf.js"
       ],
       "references": [
         "skills/concall-analysis/references/deep_12section.md",
@@ -47,7 +51,7 @@
       ],
       "shared": [
         "skills/_shared/conventions.md",
-        "packages/stock-api/python/utils/pdf_utils.py"
+        "packages/stock-api/src/utils/pdfUtils.js"
       ],
       "aliases": [
         "concall",
@@ -62,9 +66,11 @@
     },
     "forensic-accounting": {
       "skill_md": "skills/forensic-accounting/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/fetchers/fetch_documents.py",
-        "packages/stock-api/python/generators/generate_forensic_pdf.py"
+      "entry": "packages/stock-api/bin/forensic-accounting.js",
+      "mode": "clone",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/generators/generateForensicPdf.js"
       ],
       "references": [
         "skills/forensic-accounting/references/forensic_extraction.md",
@@ -74,7 +80,7 @@
       ],
       "shared": [
         "skills/_shared/conventions.md",
-        "packages/stock-api/python/utils/pdf_utils.py"
+        "packages/stock-api/src/utils/pdfUtils.js"
       ],
       "aliases": [
         "forensic",
@@ -90,16 +96,18 @@
     },
     "equity-research-deepdive": {
       "skill_md": "skills/equity-research-deepdive/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/fetchers/fetch_documents.py",
-        "packages/stock-api/python/generators/generate_report.py"
+      "entry": "packages/stock-api/bin/equity-research-deepdive.js",
+      "mode": "clone",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/generators/generateReport.js"
       ],
       "references": [
         "skills/equity-research-deepdive/references/research_template.md"
       ],
       "shared": [
         "skills/_shared/conventions.md",
-        "packages/stock-api/python/utils/pdf_utils.py"
+        "packages/stock-api/src/utils/pdfUtils.js"
       ],
       "aliases": [
         "deep dive",
@@ -115,14 +123,16 @@
     },
     "growth-triggers-1pager": {
       "skill_md": "skills/growth-triggers-1pager/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/fetchers/fetch_documents.py",
-        "packages/stock-api/python/generators/generate_pdf.py"
+      "entry": "packages/stock-api/bin/growth-triggers-1pager.js",
+      "mode": "clone",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/generators/generateGrowthTriggersPdf.js"
       ],
       "references": [],
       "shared": [
         "skills/_shared/conventions.md",
-        "packages/stock-api/python/utils/pdf_utils.py"
+        "packages/stock-api/src/utils/pdfUtils.js"
       ],
       "aliases": [
         "growth triggers",
@@ -137,9 +147,11 @@
     },
     "management-credibility-tracker": {
       "skill_md": "skills/management-credibility-tracker/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/fetchers/fetch_documents.py",
-        "packages/stock-api/python/generators/generate_credibility_widget.py"
+      "entry": "packages/stock-api/bin/management-credibility-tracker.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/generators/generateCredibilityWidget.js"
       ],
       "references": [
         "skills/management-credibility-tracker/references/credibility_framework.md",
@@ -147,7 +159,7 @@
       ],
       "shared": [
         "skills/_shared/conventions.md",
-        "packages/stock-api/python/utils/pdf_utils.py"
+        "packages/stock-api/src/utils/pdfUtils.js"
       ],
       "aliases": [
         "management credibility",
@@ -162,16 +174,18 @@
     },
     "peer-comparison": {
       "skill_md": "skills/peer-comparison/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/fetchers/fetch_documents.py",
-        "packages/stock-api/python/generators/generate_peer_pdf.py"
+      "entry": "packages/stock-api/bin/peer-comparison.js",
+      "mode": "clone",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/generators/generatePeerPdf.js"
       ],
       "references": [
         "skills/peer-comparison/references/comparison_dimensions.md"
       ],
       "shared": [
         "skills/_shared/conventions.md",
-        "packages/stock-api/python/utils/pdf_utils.py"
+        "packages/stock-api/src/utils/pdfUtils.js"
       ],
       "aliases": [
         "peer comparison",
@@ -185,9 +199,11 @@
     },
     "market-share-analysis": {
       "skill_md": "skills/market-share-analysis/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/analyzers/compute_concentration.py",
-        "packages/stock-api/python/generators/generate_market_share_html.py"
+      "entry": "packages/stock-api/bin/market-share-analysis.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/analyzers/computeConcentration.js",
+        "packages/stock-api/src/generators/generateMarketShareHtml.js"
       ],
       "references": [
         "skills/market-share-analysis/references/framework_9parts.md",
@@ -197,7 +213,7 @@
       ],
       "shared": [
         "skills/_shared/conventions.md",
-        "packages/stock-api/python/utils/pdf_utils.py"
+        "packages/stock-api/src/utils/pdfUtils.js"
       ],
       "aliases": [
         "market share",
@@ -212,8 +228,10 @@
     },
     "sector-research-deepdive": {
       "skill_md": "skills/sector-research-deepdive/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/generators/generate_sector_report.py"
+      "entry": "packages/stock-api/bin/sector-research-deepdive.js",
+      "mode": "clone",
+      "modules": [
+        "packages/stock-api/src/generators/generateSectorReport.js"
       ],
       "references": [
         "skills/sector-research-deepdive/references/research_protocol.md",
@@ -221,7 +239,7 @@
       ],
       "shared": [
         "skills/_shared/conventions.md",
-        "packages/stock-api/python/utils/pdf_utils.py"
+        "packages/stock-api/src/utils/pdfUtils.js"
       ],
       "aliases": [
         "sector report",
@@ -235,8 +253,10 @@
     },
     "drhp-ipo-analysis": {
       "skill_md": "skills/drhp-ipo-analysis/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/generators/generate_drhp_pdf.py"
+      "entry": "packages/stock-api/bin/drhp-ipo-analysis.js",
+      "mode": "clone",
+      "modules": [
+        "packages/stock-api/src/generators/generateDrhpPdf.js"
       ],
       "references": [
         "skills/drhp-ipo-analysis/references/drhp_10section.md",
@@ -244,7 +264,7 @@
       ],
       "shared": [
         "skills/_shared/conventions.md",
-        "packages/stock-api/python/utils/pdf_utils.py"
+        "packages/stock-api/src/utils/pdfUtils.js"
       ],
       "aliases": [
         "drhp",
@@ -258,8 +278,10 @@
     },
     "quarterly-result-analysis": {
       "skill_md": "skills/quarterly-result-analysis/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/fetchers/fetch_documents.py"
+      "entry": "packages/stock-api/bin/quarterly-result-analysis.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js"
       ],
       "references": [
         "skills/quarterly-result-analysis/references/basket_framework.md",
@@ -271,7 +293,7 @@
       ],
       "shared": [
         "skills/_shared/conventions.md",
-        "packages/stock-api/python/utils/pdf_utils.py"
+        "packages/stock-api/src/utils/pdfUtils.js"
       ],
       "aliases": [
         "quarterly results",
@@ -285,8 +307,10 @@
     },
     "consecutive-filings-diff": {
       "skill_md": "skills/consecutive-filings-diff/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/fetchers/fetch_documents.py"
+      "entry": "packages/stock-api/bin/consecutive-filings-diff.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js"
       ],
       "references": [
         "skills/consecutive-filings-diff/references/phase1_diff_framework.md",
@@ -312,9 +336,11 @@
     },
     "pre-pead-scanner": {
       "skill_md": "skills/pre-pead-scanner/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/fetchers/fetch_documents.py",
-        "packages/stock-api/python/analyzers/run_scan.py"
+      "entry": "packages/stock-api/bin/pre-pead-scanner.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/analyzers/runScan.js"
       ],
       "references": [
         "skills/pre-pead-scanner/references/workflow.md",
@@ -338,9 +364,11 @@
     },
     "watchlist-catalyst-scanner": {
       "skill_md": "skills/watchlist-catalyst-scanner/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/analyzers/scan_catalysts.py",
-        "packages/stock-api/python/analyzers/catalyst_rules.py"
+      "entry": "packages/stock-api/bin/watchlist-catalyst-scanner.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/analyzers/scanCatalysts.js",
+        "packages/stock-api/src/analyzers/catalystRules.js"
       ],
       "references": [
         "skills/watchlist-catalyst-scanner/references/catalyst_taxonomy.md"
@@ -358,7 +386,7 @@
     },
     "fundamental-shift-scanner": {
       "skill_md": "skills/fundamental-shift-scanner/SKILL.md",
-      "scripts": [],
+      "entry": null,
       "references": [],
       "shared": [],
       "aliases": [
@@ -374,9 +402,11 @@
     },
     "equity-research-extraction": {
       "skill_md": "skills/equity-research-extraction/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/fetchers/fetch_documents.py",
-        "packages/stock-api/python/fetchers/fetch_announcements.py"
+      "entry": "packages/stock-api/bin/equity-research-extraction.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/fetchers/announcementsFetcher.js"
       ],
       "references": [
         "skills/equity-research-extraction/references/workflow-checklist.md"
@@ -397,7 +427,7 @@
     },
     "equity-research-dashboard": {
       "skill_md": "skills/equity-research-dashboard/SKILL.md",
-      "scripts": [],
+      "entry": null,
       "references": [],
       "prompts": [
         "skills/equity-research-dashboard/prompts/dashboard_master_v4.txt"
@@ -414,9 +444,15 @@
     },
     "equity-research-master": {
       "skill_md": "skills/equity-research-master/SKILL.md",
+      "entry": null,
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/fetchers/announcementsFetcher.js",
+        "packages/stock-api/python/orchestration/orchestrate.py"
+      ],
       "scripts": [
-        "packages/stock-api/python/fetchers/fetch_documents.py",
-        "packages/stock-api/python/fetchers/fetch_announcements.py",
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/fetchers/announcementsFetcher.js",
         "packages/stock-api/python/orchestration/orchestrate.py"
       ],
       "references": [],
@@ -437,8 +473,10 @@
     },
     "tweet-investor-playbook": {
       "skill_md": "skills/tweet-investor-playbook/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/analyzers/parse_tweet_dump.py"
+      "entry": "packages/stock-api/bin/tweet-investor-playbook.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/analyzers/parseTweetDump.js"
       ],
       "references": [
         "skills/tweet-investor-playbook/references/classification_taxonomy.md",
@@ -461,8 +499,10 @@
     },
     "announcement-keyword-explorer": {
       "skill_md": "skills/announcement-keyword-explorer/SKILL.md",
-      "scripts": [
-        "packages/stock-api/python/fetchers/fetch_and_extract.py"
+      "entry": "packages/stock-api/bin/announcement-keyword-explorer.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/announcementScanner.js"
       ],
       "references": [],
       "shared": [],
@@ -477,7 +517,7 @@
     },
     "stock-report": {
       "skill_md": "skills/stock-report/SKILL.md",
-      "scripts": [],
+      "entry": null,
       "references": [],
       "shared": [],
       "aliases": [
@@ -493,7 +533,7 @@
     },
     "watchlist-sync": {
       "skill_md": "skills/watchlist-sync/SKILL.md",
-      "scripts": [],
+      "entry": null,
       "references": [],
       "shared": [],
       "aliases": [
@@ -506,7 +546,7 @@
     },
     "insight-validation": {
       "skill_md": "skills/insight-validation/SKILL.md",
-      "scripts": [],
+      "entry": null,
       "references": [],
       "shared": [],
       "aliases": [
@@ -519,7 +559,7 @@
     },
     "gainers-signal": {
       "skill_md": "skills/gainers-signal/SKILL.md",
-      "scripts": [],
+      "entry": null,
       "references": [],
       "shared": [],
       "aliases": [
@@ -533,7 +573,7 @@
     },
     "watchlist-insights": {
       "skill_md": "skills/watchlist-insights/SKILL.md",
-      "scripts": [],
+      "entry": null,
       "references": [],
       "shared": [],
       "aliases": [
@@ -546,7 +586,7 @@
     },
     "cowork-task-architect": {
       "skill_md": "skills/cowork-task-architect/SKILL.md",
-      "scripts": [],
+      "entry": null,
       "references": [],
       "shared": [],
       "aliases": [
@@ -561,6 +601,19 @@
     },
     "skill-manager": {
       "skill_md": "skills/skill-manager/SKILL.md",
+      "entry": null,
+      "modules": [
+        "packages/stock-api/python/skill_manager/__init__.py",
+        "packages/stock-api/python/skill_manager/aggregate_benchmark.py",
+        "packages/stock-api/python/skill_manager/generate_report.py",
+        "packages/stock-api/python/skill_manager/generate_review.py",
+        "packages/stock-api/python/skill_manager/improve_description.py",
+        "packages/stock-api/python/skill_manager/package_skill.py",
+        "packages/stock-api/python/skill_manager/quick_validate.py",
+        "packages/stock-api/python/skill_manager/run_eval.py",
+        "packages/stock-api/python/skill_manager/run_loop.py",
+        "packages/stock-api/python/skill_manager/utils.py"
+      ],
       "scripts": [
         "packages/stock-api/python/skill_manager/__init__.py",
         "packages/stock-api/python/skill_manager/aggregate_benchmark.py",

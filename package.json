@@ -31,6 +31,8 @@
     "cowork:data:offload": "yarn workspace @stock/cowork-jobs data:offload"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "@duckdb/node-api": "^1.5.4-r.1",
+    "concurrently": "^9.1.2",
+    "esbuild": "^0.28.1"
   }
 }

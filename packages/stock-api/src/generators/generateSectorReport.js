@@ -1,6 +1,6 @@
 'use strict';
 
-const { wrapHtml, markdownToHtml, renderPdf } = require('../utils/pdfRenderer');
+const { wrapHtml, markdownToHtml } = require('../utils/pdfRenderer');
 const { INSTITUTIONAL_DARK, formatInlineMarkdown } = require('../utils/pdfUtils');
 
 /**
@@ -49,7 +49,7 @@ async function createSectorReport(sectorName, subTheme, reportMarkdown, outputPa
     
     htmlContent = htmlContent.replace('<div class="thick-line"></div>', classificationHtml);
     
-    await renderPdf(htmlContent, outputPath, headerText, footerLeft);
+    require('fs').writeFileSync(outputPath, htmlContent, 'utf8');
     console.log(`✅ Sector primer saved to: ${outputPath}`);
     return outputPath;
 }

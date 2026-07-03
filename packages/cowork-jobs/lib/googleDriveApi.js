@@ -60,6 +60,16 @@ function createDriveClient(opts = {}) {
 }
 
 /**
+ * Helper to get AbortSignal for a 30-second timeout.
+ * Prevents Drive API from hanging indefinitely (I3).
+ */
+function getTimeoutOptions() {
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(new Error('Drive API timeout')), 30000).unref();
+  return { signal: controller.signal };
+}
+
+/**
  * In-memory folder ID cache: { 'StockMarket/cowork-jobs/v1/gainers/2026/06' → 'driveId123' }
  */
 const _folderCache = new Map();
@@ -97,7 +107,7 @@ async function ensureFolder(drive, folderPath) {
       q: query,
       fields: 'files(id, name)',
       pageSize: 1,
-    });
+    }, getTimeoutOptions());
 
     if (res.data.files && res.data.files.length > 0) {
       parentId = res.data.files[0].id;
@@ -110,7 +120,7 @@ async function ensureFolder(drive, folderPath) {
           parents: [parentId],
         },
         fields: 'id',
-      });
+      }, getTimeoutOptions());
       parentId = created.data.id;
     }
 
@@ -146,7 +156,7 @@ async function uploadFile(drive, rootPath, driveRel, localPath) {
     q: query,
     fields: 'files(id, name, size, modifiedTime)',
     pageSize: 1,
-  });
+  }, getTimeoutOptions());
 
   const media = {
     body: fs.createReadStream(localPath),
@@ -159,7 +169,7 @@ async function uploadFile(drive, rootPath, driveRel, localPath) {
       fileId,
       media,
       fields: 'id, name',
-    });
+    }, getTimeoutOptions());
     return { id: res.data.id, name: res.data.name, action: 'updated' };
   }
 
@@ -171,7 +181,7 @@ async function uploadFile(drive, rootPath, driveRel, localPath) {
     },
     media,
     fields: 'id, name',
-  });
+  }, getTimeoutOptions());
   return { id: res.data.id, name: res.data.name, action: 'created' };
 }
 
@@ -190,7 +200,7 @@ async function downloadFile(drive, rootPath, driveRel, localPath) {
 
   const res = await drive.files.get(
     { fileId, alt: 'media' },
-    { responseType: 'stream' }
+    { responseType: 'stream', ...getTimeoutOptions() }
   );
 
   fs.mkdirSync(path.dirname(localPath), { recursive: true });
@@ -234,7 +244,7 @@ async function findFileId(drive, rootPath, driveRel) {
     q: query,
     fields: 'files(id)',
     pageSize: 1,
-  });
+  }, getTimeoutOptions());
 
   return res.data.files && res.data.files.length > 0
     ? res.data.files[0].id
@@ -261,7 +271,7 @@ async function listAllFiles(drive, rootPath) {
           'nextPageToken, files(id, name, mimeType, size, modifiedTime)',
         pageSize: 100,
         pageToken,
-      });
+      }, getTimeoutOptions());
 
       for (const f of res.data.files || []) {
         const rel = prefix ? `${prefix}/${f.name}` : f.name;

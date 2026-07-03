@@ -1,0 +1,655 @@
+{
+  "version": "1.0",
+  "description": "Stockmarket monorepo — Claude skills registry",
+  "base_url": "https://raw.githubusercontent.com/darshan0919/stockmarket/main",
+  "_note": "Source of truth for generating registry.json and invoker tables.",
+  "shared": [
+    "skills/_shared/conventions.md",
+    "packages/stock-api/src/utils/pdfUtils.js"
+  ],
+  "skills": {
+    "stock-documents-fetcher": {
+      "skill_md": "skills/stock-documents-fetcher/SKILL.md",
+      "entry": "packages/stock-api/bin/stock-documents-fetcher.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/fetchers/announcementsFetcher.js"
+      ],
+      "references": [
+        "skills/stock-documents-fetcher/references/api_details.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
+      "aliases": [
+        "fetch documents",
+        "fetch transcripts",
+        "fetch annual reports",
+        "download filings",
+        "get concall",
+        "pull documents",
+        "stockscans fetch",
+        "fetch ppt",
+        "get investor presentation"
+      ]
+    },
+    "concall-analysis": {
+      "skill_md": "skills/concall-analysis/SKILL.md",
+      "entry": "packages/stock-api/bin/concall-analysis.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/fetchers/announcementsFetcher.js",
+        "packages/stock-api/src/generators/generateConcallPdf.js"
+      ],
+      "references": [
+        "skills/concall-analysis/references/deep_12section.md",
+        "skills/concall-analysis/references/brief_9section.md",
+        "skills/concall-analysis/references/multi_quarter.md",
+        "skills/concall-analysis/references/multi_peer.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "packages/stock-api/src/utils/pdfUtils.js"
+      ],
+      "aliases": [
+        "concall",
+        "earnings call analysis",
+        "transcript analysis",
+        "concall deep dive",
+        "quarterly call",
+        "concall brief",
+        "multi quarter concall",
+        "peer concall"
+      ]
+    },
+    "forensic-accounting": {
+      "skill_md": "skills/forensic-accounting/SKILL.md",
+      "entry": "packages/stock-api/bin/forensic-accounting.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/generators/generateForensicPdf.js"
+      ],
+      "references": [
+        "skills/forensic-accounting/references/forensic_extraction.md",
+        "skills/forensic-accounting/references/forensic_master_prompt.md",
+        "skills/forensic-accounting/references/fraud_patterns.md",
+        "skills/forensic-accounting/references/piotroski_dupont.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "packages/stock-api/src/utils/pdfUtils.js"
+      ],
+      "aliases": [
+        "forensic",
+        "forensic check",
+        "fraud check",
+        "accounting quality",
+        "is this company cooking books",
+        "piotroski",
+        "dupont",
+        "red flags accounting",
+        "forensic analysis"
+      ]
+    },
+    "equity-research-deepdive": {
+      "skill_md": "skills/equity-research-deepdive/SKILL.md",
+      "entry": "packages/stock-api/bin/equity-research-deepdive.js",
+      "mode": "clone",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/generators/generateReport.js"
+      ],
+      "references": [
+        "skills/equity-research-deepdive/references/research_template.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "packages/stock-api/src/utils/pdfUtils.js"
+      ],
+      "aliases": [
+        "deep dive",
+        "equity deep dive",
+        "research report",
+        "investment memo",
+        "fundamental analysis",
+        "full analysis",
+        "should I invest",
+        "analyze company",
+        "tell me everything about"
+      ]
+    },
+    "growth-triggers-1pager": {
+      "skill_md": "skills/growth-triggers-1pager/SKILL.md",
+      "entry": "packages/stock-api/bin/growth-triggers-1pager.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/generators/generateGrowthTriggersPdf.js"
+      ],
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "packages/stock-api/src/utils/pdfUtils.js"
+      ],
+      "aliases": [
+        "growth triggers",
+        "1 pager",
+        "one pager",
+        "catalyst note",
+        "re-rating triggers",
+        "conviction note",
+        "why will stock rerate",
+        "growth catalyst"
+      ]
+    },
+    "management-credibility-tracker": {
+      "skill_md": "skills/management-credibility-tracker/SKILL.md",
+      "entry": "packages/stock-api/bin/management-credibility-tracker.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/generators/generateCredibilityWidget.js"
+      ],
+      "references": [
+        "skills/management-credibility-tracker/references/credibility_framework.md",
+        "skills/management-credibility-tracker/references/case_study_calibration.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "packages/stock-api/src/utils/pdfUtils.js"
+      ],
+      "aliases": [
+        "management credibility",
+        "walk the talk",
+        "management track record",
+        "guidance tracker",
+        "is management delivering",
+        "overpromising",
+        "credibility score",
+        "management quality"
+      ]
+    },
+    "peer-comparison": {
+      "skill_md": "skills/peer-comparison/SKILL.md",
+      "entry": "packages/stock-api/bin/peer-comparison.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/generators/generatePeerPdf.js"
+      ],
+      "references": [
+        "skills/peer-comparison/references/comparison_dimensions.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "packages/stock-api/src/utils/pdfUtils.js"
+      ],
+      "aliases": [
+        "peer comparison",
+        "compare companies",
+        "side by side",
+        "which to buy",
+        "peer report",
+        "compare stocks",
+        "relative valuation"
+      ]
+    },
+    "market-share-analysis": {
+      "skill_md": "skills/market-share-analysis/SKILL.md",
+      "entry": "packages/stock-api/bin/market-share-analysis.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/analyzers/computeConcentration.js",
+        "packages/stock-api/src/generators/generateMarketShareHtml.js"
+      ],
+      "references": [
+        "skills/market-share-analysis/references/framework_9parts.md",
+        "skills/market-share-analysis/references/concentration_metrics.md",
+        "skills/market-share-analysis/references/data_sources.md",
+        "skills/market-share-analysis/references/anti_patterns.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "packages/stock-api/src/utils/pdfUtils.js"
+      ],
+      "aliases": [
+        "market share",
+        "competitive landscape",
+        "industry concentration",
+        "who dominates",
+        "cr3 cr5 hhi",
+        "organised unorganised",
+        "top players",
+        "market structure"
+      ]
+    },
+    "sector-research-deepdive": {
+      "skill_md": "skills/sector-research-deepdive/SKILL.md",
+      "entry": "packages/stock-api/bin/sector-research-deepdive.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/generators/generateSectorReport.js"
+      ],
+      "references": [
+        "skills/sector-research-deepdive/references/research_protocol.md",
+        "skills/sector-research-deepdive/references/sector_framework.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "packages/stock-api/src/utils/pdfUtils.js"
+      ],
+      "aliases": [
+        "sector report",
+        "sector deep dive",
+        "industry analysis",
+        "thematic note",
+        "sector primer",
+        "industry deep dive",
+        "competitive dynamics"
+      ]
+    },
+    "drhp-ipo-analysis": {
+      "skill_md": "skills/drhp-ipo-analysis/SKILL.md",
+      "entry": "packages/stock-api/bin/drhp-ipo-analysis.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/generators/generateDrhpPdf.js"
+      ],
+      "references": [
+        "skills/drhp-ipo-analysis/references/drhp_10section.md",
+        "skills/drhp-ipo-analysis/references/drhp_red_flags.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "packages/stock-api/src/utils/pdfUtils.js"
+      ],
+      "aliases": [
+        "drhp",
+        "ipo analysis",
+        "rhp analysis",
+        "should I subscribe ipo",
+        "analyse drhp",
+        "ipo fairly priced",
+        "prospectus analysis"
+      ]
+    },
+    "quarterly-result-analysis": {
+      "skill_md": "skills/quarterly-result-analysis/SKILL.md",
+      "entry": "packages/stock-api/bin/quarterly-result-analysis.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js"
+      ],
+      "references": [
+        "skills/quarterly-result-analysis/references/basket_framework.md",
+        "skills/quarterly-result-analysis/references/monitoring_checklist_patterns.md",
+        "skills/quarterly-result-analysis/references/tone_taxonomy.md"
+      ],
+      "assets": [
+        "skills/quarterly-result-analysis/assets/result_widget_template.html"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "packages/stock-api/src/utils/pdfUtils.js"
+      ],
+      "aliases": [
+        "quarterly results",
+        "result analysis",
+        "what changed this quarter",
+        "quarterly snapshot",
+        "post result note",
+        "q result",
+        "results analysis"
+      ]
+    },
+    "consecutive-filings-diff": {
+      "skill_md": "skills/consecutive-filings-diff/SKILL.md",
+      "entry": "packages/stock-api/bin/consecutive-filings-diff.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js"
+      ],
+      "references": [
+        "skills/consecutive-filings-diff/references/phase1_diff_framework.md",
+        "skills/consecutive-filings-diff/references/phase2_concall_reconciliation.md",
+        "skills/consecutive-filings-diff/references/phase3_live_repricing.md",
+        "skills/consecutive-filings-diff/references/writing_style.md"
+      ],
+      "assets": [
+        "skills/consecutive-filings-diff/assets/briefing_template.html"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
+      "aliases": [
+        "diff decks",
+        "compare presentations",
+        "q vs q presentation",
+        "consecutive filings",
+        "qoq diff",
+        "update thesis latest concall",
+        "reprice after results"
+      ]
+    },
+    "pre-pead-scanner": {
+      "skill_md": "skills/pre-pead-scanner/SKILL.md",
+      "entry": "packages/stock-api/bin/pre-pead-scanner.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/analyzers/runScan.js"
+      ],
+      "references": [
+        "skills/pre-pead-scanner/references/workflow.md",
+        "skills/pre-pead-scanner/references/guidance_extraction.md",
+        "skills/pre-pead-scanner/references/forward_estimation.md",
+        "skills/pre-pead-scanner/references/scan_api.md"
+      ],
+      "assets": [
+        "skills/pre-pead-scanner/assets/briefing_template.html"
+      ],
+      "shared": [],
+      "aliases": [
+        "pre pead",
+        "pre results scanner",
+        "rank companies before earnings",
+        "estimate next quarter",
+        "guidance ranking",
+        "pre-PEAD",
+        "results season scanner"
+      ]
+    },
+    "watchlist-catalyst-scanner": {
+      "skill_md": "skills/watchlist-catalyst-scanner/SKILL.md",
+      "entry": "packages/stock-api/bin/watchlist-catalyst-scanner.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/analyzers/scanCatalysts.js",
+        "packages/stock-api/src/analyzers/catalystRules.js"
+      ],
+      "references": [
+        "skills/watchlist-catalyst-scanner/references/catalyst_taxonomy.md"
+      ],
+      "shared": [],
+      "aliases": [
+        "catalyst scanner",
+        "scan watchlist",
+        "any catalysts today",
+        "catalyst alerts",
+        "what's moving watchlist",
+        "daily catalyst scan",
+        "check announcements"
+      ]
+    },
+    "fundamental-shift-scanner": {
+      "skill_md": "skills/fundamental-shift-scanner/SKILL.md",
+      "entry": null,
+      "references": [],
+      "shared": [],
+      "aliases": [
+        "fundamental shift",
+        "what changed this week",
+        "recent news",
+        "scan announcements",
+        "what's new with",
+        "recent filings",
+        "red flags recent",
+        "pulse check stock"
+      ]
+    },
+    "equity-research-extraction": {
+      "skill_md": "skills/equity-research-extraction/SKILL.md",
+      "entry": "packages/stock-api/bin/equity-research-extraction.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/fetchers/announcementsFetcher.js"
+      ],
+      "references": [
+        "skills/equity-research-extraction/references/workflow-checklist.md"
+      ],
+      "prompts": [
+        "skills/equity-research-extraction/prompts/unified_master.txt"
+      ],
+      "shared": [],
+      "aliases": [
+        "equity extraction",
+        "research extraction",
+        "extract from annual report",
+        "project a extraction",
+        "ar extracts",
+        "concall extraction",
+        "document extraction"
+      ]
+    },
+    "equity-research-dashboard": {
+      "skill_md": "skills/equity-research-dashboard/SKILL.md",
+      "entry": null,
+      "references": [],
+      "prompts": [
+        "skills/equity-research-dashboard/prompts/dashboard_master_v4.txt"
+      ],
+      "shared": [],
+      "aliases": [
+        "equity dashboard",
+        "research dashboard",
+        "project b dashboard",
+        "15 tab dashboard",
+        "institutional dashboard",
+        "generate dashboard"
+      ]
+    },
+    "equity-research-master": {
+      "skill_md": "skills/equity-research-master/SKILL.md",
+      "entry": null,
+      "modules": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/fetchers/announcementsFetcher.js",
+        "packages/stock-api/python/orchestration/orchestrate.py"
+      ],
+      "scripts": [
+        "packages/stock-api/src/fetchers/documentsFetcher.js",
+        "packages/stock-api/src/fetchers/announcementsFetcher.js",
+        "packages/stock-api/python/orchestration/orchestrate.py"
+      ],
+      "references": [],
+      "templates": [
+        "skills/equity-research-master/templates/tab15_qoq_diff.html"
+      ],
+      "shared": [],
+      "aliases": [
+        "equity master",
+        "full equity research",
+        "complete analysis",
+        "research ticker",
+        "institutional dashboard",
+        "16 tab dashboard",
+        "master dashboard",
+        "full workup"
+      ]
+    },
+    "tweet-investor-playbook": {
+      "skill_md": "skills/tweet-investor-playbook/SKILL.md",
+      "entry": "packages/stock-api/bin/tweet-investor-playbook.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/analyzers/parseTweetDump.js"
+      ],
+      "references": [
+        "skills/tweet-investor-playbook/references/classification_taxonomy.md",
+        "skills/tweet-investor-playbook/references/synthesis_rules.md",
+        "skills/tweet-investor-playbook/references/track_record_methodology.md"
+      ],
+      "assets": [
+        "skills/tweet-investor-playbook/assets/widget_template.html"
+      ],
+      "shared": [],
+      "aliases": [
+        "tweet playbook",
+        "investor tweets",
+        "analyse tweets",
+        "investment style from tweets",
+        "tweet corpus",
+        "distil investor thinking",
+        "track record tweets"
+      ]
+    },
+    "announcement-keyword-explorer": {
+      "skill_md": "skills/announcement-keyword-explorer/SKILL.md",
+      "entry": "packages/stock-api/bin/announcement-keyword-explorer.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/stock-api/src/fetchers/announcementScanner.js"
+      ],
+      "references": [],
+      "shared": [],
+      "aliases": [
+        "announcement keywords",
+        "keyword explorer",
+        "find announcement keywords",
+        "scan keywords",
+        "announcement search keywords",
+        "expand keyword search"
+      ]
+    },
+    "stock-report": {
+      "skill_md": "skills/stock-report/SKILL.md",
+      "entry": null,
+      "references": [],
+      "shared": [],
+      "aliases": [
+        "stock report",
+        "equity report",
+        "research note",
+        "buy sell recommendation",
+        "price target",
+        "stock analysis",
+        "should I buy",
+        "investment view"
+      ]
+    },
+    "watchlist-sync": {
+      "skill_md": "skills/watchlist-sync/SKILL.md",
+      "entry": null,
+      "references": [],
+      "shared": [],
+      "aliases": [
+        "watchlist sync",
+        "sync watchlist",
+        "near highs sync",
+        "nightly sync",
+        "watchlist update"
+      ]
+    },
+    "insight-validation": {
+      "skill_md": "skills/insight-validation/SKILL.md",
+      "entry": null,
+      "references": [],
+      "shared": [],
+      "aliases": [
+        "insight validation",
+        "validate insights",
+        "morning insights check",
+        "delivery backed price action",
+        "insight ledger"
+      ]
+    },
+    "gainers-signal": {
+      "skill_md": "skills/gainers-signal/SKILL.md",
+      "entry": null,
+      "references": [],
+      "shared": [],
+      "aliases": [
+        "gainers signal",
+        "top gainers",
+        "daily gainers",
+        "gainer classification",
+        "conviction signals",
+        "8am gainers run"
+      ]
+    },
+    "watchlist-insights": {
+      "skill_md": "skills/watchlist-insights/SKILL.md",
+      "entry": null,
+      "references": [],
+      "shared": [],
+      "aliases": [
+        "watchlist insights",
+        "announcement insights",
+        "daily insights",
+        "watchlist digest",
+        "corporate announcement digest"
+      ]
+    },
+    "cowork-task-architect": {
+      "skill_md": "skills/cowork-task-architect/SKILL.md",
+      "entry": null,
+      "references": [],
+      "shared": [],
+      "aliases": [
+        "cowork task",
+        "create task",
+        "schedule task",
+        "cowork architect",
+        "task prompt",
+        "automate in cowork",
+        "recurring task"
+      ]
+    },
+    "skill-manager": {
+      "skill_md": "skills/skill-manager/SKILL.md",
+      "entry": null,
+      "modules": [
+        "packages/stock-api/python/skill_manager/__init__.py",
+        "packages/stock-api/python/skill_manager/aggregate_benchmark.py",
+        "packages/stock-api/python/skill_manager/generate_report.py",
+        "packages/stock-api/python/skill_manager/generate_review.py",
+        "packages/stock-api/python/skill_manager/improve_description.py",
+        "packages/stock-api/python/skill_manager/package_skill.py",
+        "packages/stock-api/python/skill_manager/quick_validate.py",
+        "packages/stock-api/python/skill_manager/run_eval.py",
+        "packages/stock-api/python/skill_manager/run_loop.py",
+        "packages/stock-api/python/skill_manager/utils.py"
+      ],
+      "scripts": [
+        "packages/stock-api/python/skill_manager/__init__.py",
+        "packages/stock-api/python/skill_manager/aggregate_benchmark.py",
+        "packages/stock-api/python/skill_manager/generate_report.py",
+        "packages/stock-api/python/skill_manager/generate_review.py",
+        "packages/stock-api/python/skill_manager/improve_description.py",
+        "packages/stock-api/python/skill_manager/package_skill.py",
+        "packages/stock-api/python/skill_manager/quick_validate.py",
+        "packages/stock-api/python/skill_manager/run_eval.py",
+        "packages/stock-api/python/skill_manager/run_loop.py",
+        "packages/stock-api/python/skill_manager/utils.py"
+      ],
+      "references": [],
+      "shared": [],
+      "aliases": [
+        "skill manager",
+        "create skill",
+        "modify skill",
+        "delete skill",
+        "skill creator",
+        "manage skills"
+      ]
+    },
+    "render-pdf": {
+      "skill_md": "skills/render-pdf/SKILL.md",
+      "entry": "packages/stock-api/bin/render-pdf.js",
+      "mode": "clone",
+      "modules": [
+        "packages/stock-api/src/utils/pdfRenderer.js"
+      ],
+      "references": [],
+      "shared": [],
+      "aliases": [
+        "render pdf",
+        "html to pdf"
+      ]
+    }
+  }
+}

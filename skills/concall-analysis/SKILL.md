@@ -71,38 +71,29 @@ All four frameworks share three core extraction tasks — extract these from eve
 
 ### Phase 3 — PDF generation
 
-```python
-import sys
-sys.path.insert(0, '<skill_path>/scripts')
-sys.path.insert(0, '<skill_path>/_shared')
-from generate_concall_pdf import create_concall_pdf
+Write the following JSON to a temporary file (e.g. `data.json`):
 
+```json
 data = {
     "mode": "deep" | "brief" | "multi-quarter" | "multi-peer",
     "company_name": "...",
     "ticker": "NSE: ...",
     "quarter": "Q3 FY26",                    # for deep/brief
     "quarters": ["Q4 FY25", "Q1 FY26", ...], # for multi-quarter
-    "peers": [{"name": "...", "ticker": "..."}, ...],  # for multi-peer
-    "executive_summary": "...",
-    "tone_analysis": {
-        "overall": "Bullish" | "Neutral" | "Cautious" | "Defensive",
-        "high_commitment_count": int,
-        "medium_count": int,
-        "low_count": int,
-        "shift_from_prior": "..." # only if multi-quarter
-    },
-    "sections": [...],   # mode-dependent
-    "guidance_table": [...],
-    "dodged_questions": [...],
-    "key_quotes": [...],
-    "analysts_on_call": [...],
-    "output_path": "/mnt/project/packages/cowork-jobs/data/agent-outputs/<Company>_Concall_<Mode>.pdf",
-}
-create_concall_pdf(data)
+    "peers": [{"name": "...", "ticker": "..."}
 ```
 
-See [`packages/stock-api/python/generators/generate_concall_pdf.py`](packages/stock-api/python/generators/generate_concall_pdf.py) for the full schema per mode.
+Then execute the two-step HTML-to-PDF pipeline:
+
+```bash
+# 1. Generate HTML (Bundle Mode)
+bash ./skills/_shared/resolve.sh $(basename $(dirname skills/concall-analysis/SKILL.md)) --input data.json --output report.html
+
+# 2. Render PDF (Clone Mode)
+bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "<Company>_Output.pdf"
+```
+
+See [`packages/stock-api/src/generators/generateConcallPdf.js`](packages/stock-api/src/generators/generateConcallPdf.js) for the full schema per mode.
 
 ## Critical extraction rules
 

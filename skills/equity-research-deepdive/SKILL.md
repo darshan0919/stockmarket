@@ -69,7 +69,7 @@ from generate_report import create_research_report
 create_research_report(company_name, ticker, report_markdown, output_path)
 ```
 
-Script at [`packages/stock-api/python/generators/generate_report.py`](packages/stock-api/python/generators/generate_report.py). Uses shared palette/helpers from `../packages/stock-api/python/utils/pdf_utils.py`. Fallback: `pandoc report.md -o report.pdf --pdf-engine=weasyprint`.
+Script at [`packages/stock-api/src/generators/generateReport.js`](packages/stock-api/src/generators/generateReport.js). Uses shared palette/helpers from `../packages/stock-api/python/utils/pdf_utils.py`. Fallback: `pandoc report.md -o report.pdf --pdf-engine=weasyprint`.
 
 ## Pitfalls to avoid
 

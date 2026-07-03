@@ -74,11 +74,9 @@ Then run **two bonus analyses** every time:
 
 ### Phase 4 — PDF generation
 
-```python
-import sys
-sys.path.insert(0, '<skill_path>/scripts')
-from generate_forensic_pdf import create_forensic_pdf
+Write the following JSON to a temporary file (e.g. `data.json`):
 
+```json
 data = {
     "company_name": "...", "ticker": "NSE: ...", "date": "Month Year",
     "fy_range": "FY23–FY25",
@@ -87,22 +85,17 @@ data = {
     "overall_rating": "GREEN" | "YELLOW" | "RED",
     "rating_rationale": "One paragraph.",
     "checklist": [   # the GREEN/YELLOW/RED summary table
-        {"area": "CFO/PAT", "flag": "GREEN", "evidence": "...", "page": "FY25 AR p.142"},
-        ...
-    ],
-    "sections": [   # the 9 forensic sections
-        {"title": "1. Revenue recognition", "flag": "GREEN", "body": "...", "evidence": [...]},
-        ...
-    ],
-    "piotroski": {"score": 7, "components": [...9 items...]},
-    "dupont": {"years": [...], "roe": [...], "npm": [...], "at": [...], "em": [...], "interpretation": "..."},
-    "fraud_pattern_check": [
-        {"pattern": "Gensol — diversion via shells", "match": "NO", "evidence": "..."},
-        ...
-    ],
-    "output_path": "/mnt/project/packages/cowork-jobs/data/agent-outputs/<Company>_Forensic.pdf",
-}
-create_forensic_pdf(data)
+        {"area": "CFO/PAT", "flag": "GREEN", "evidence": "...", "page": "FY25 AR p.142"}
+```
+
+Then execute the two-step HTML-to-PDF pipeline:
+
+```bash
+# 1. Generate HTML (Bundle Mode)
+bash ./skills/_shared/resolve.sh $(basename $(dirname skills/forensic-accounting/SKILL.md)) --input data.json --output report.html
+
+# 2. Render PDF (Clone Mode)
+bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "<Company>_Output.pdf"
 ```
 
 The PDF is typically 4–8 pages: 1 page summary + checklist, 1 page per major section (sometimes combined), plus Piotroski/DuPont and fraud-pattern-match table at the end.
@@ -122,7 +115,7 @@ This skill is invoked by:
 - `equity-research-master` (Tab 7 Forensics consumes the schema this skill produces)
 - `consecutive-filings-diff` Phase 1 forensic backbone references the same threshold table
 
-When called from another skill, set `output_format="schema"` instead of `"pdf"` — the calling skill will render. See [`packages/stock-api/python/generators/generate_forensic_pdf.py`](packages/stock-api/python/generators/generate_forensic_pdf.py) for the schema definition.
+When called from another skill, set `output_format="schema"` instead of `"pdf"` — the calling skill will render. See [`packages/stock-api/src/generators/generateForensicPdf.js`](packages/stock-api/src/generators/generateForensicPdf.js) for the schema definition.
 
 ## Pitfalls to avoid
 
