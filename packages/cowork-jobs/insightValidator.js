@@ -17,7 +17,7 @@
 const fs = require('fs');
 const path = require('path');
 const { nse, stockscans } = require('@stock/api');
-const { sendHtmlEmail } = require('./lib/emailService');
+const { sendHtmlEmail, stockscansLink } = require('./lib/emailService');
 const { NotesDb } = require('./lib/notesDb');
 const { loadEnv, argValue } = require('./lib/env');
 const { withDriveDataSync } = require('./lib/driveDataStore');
@@ -756,7 +756,7 @@ function buildEmail(run, props, qr) {
     const indS = typeof ind1d === 'number' ? ` (${signed(ind1d, 1)})` : '';
     parts.push(
       "<tr style='border-top:1px solid #ddd'>" +
-      `<td><b>${r.name}</b><br><small>${(r.title || '').slice(0, 42)}</small></td>` +
+      `<td><b>${stockscansLink(r.name, r.companyId, 'NSE')}</b><br><small>${(r.title || '').slice(0, 42)}</small></td>` +
       `<td>${r.significance}</td><td>${retS}</td>` +
       `<td>${s.deliv_per ?? '—'}</td><td>${s.vol_spike ?? '—'}</td>` +
       `<td style='color:${color};font-weight:bold'>${s.label || 'pending'}</td>` +

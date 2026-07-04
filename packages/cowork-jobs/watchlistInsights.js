@@ -17,7 +17,7 @@
 const fs = require('fs');
 const path = require('path');
 const { stockscans, S3_BASE_URL } = require('@stock/api');
-const { sendHtmlEmail } = require('./lib/emailService');
+const { sendHtmlEmail, stockscansLink } = require('./lib/emailService');
 const { NotesDb } = require('./lib/notesDb');
 const { pdfToText } = require('./lib/pdfText');
 const { loadEnv, argValue } = require('./lib/env');
@@ -476,7 +476,7 @@ function buildDigestHtml(digest) {
       const pdf = d.pdfUrl ? ` | <a href="${d.pdfUrl}">PDF</a>` : '';
       parts.push(
         `<div style="margin-bottom:16px;border-left:3px solid ${color};padding-left:12px">` +
-        `<b>${d.name} (${d.ticker}) — ${d.title}</b><br>${insight}<br>` +
+        `<b>${stockscansLink(`${d.name} (${d.ticker})`, d.ticker, 'NSE')} — ${d.title}</b><br>${insight}<br>` +
         `<small>Tags: ${tags}${pdf}</small></div>`
       );
     }

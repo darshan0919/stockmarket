@@ -120,6 +120,51 @@ class BseClient {
       timeout: BSE_REQUEST_TIMEOUT_MS,
     });
   }
+
+  /**
+   * Bulk or block deals for a date range.
+   * Endpoint verified 04-Jul-2026: BulkDealData_ng/w?DealType=1|2&sc_code=&FDate=&TDate=
+   * (DealType 1 = bulk, 2 = block; dates DD/MM/YYYY; discovered from
+   * www.bseindia.com Angular bundle main-NDJVSDUL.js.)
+   * Response: { Table: [{ DEAL_DATE, SCRIP_CODE, scripname, CLIENT_NAME,
+   * TRANSACTION_TYPE ('B'|'S'), QUANTITY, PRICE }] } — value = QUANTITY × PRICE.
+   * @param {'bulk'|'block'} dealType
+   * @param {string} fromDate - DD/MM/YYYY
+   * @param {string} toDate   - DD/MM/YYYY
+   * @returns {Promise<Array>}
+   */
+  async getBulkBlockDeals(dealType, fromDate, toDate) {
+    const res = await bseGetJson('BulkDealData_ng/w', {
+      params: {
+        DealType: dealType === 'block' ? '2' : '1',
+        sc_code: '',
+        FDate: fromDate,
+        TDate: toDate,
+      },
+      timeout: BSE_REQUEST_TIMEOUT_MS,
+    });
+    return res?.Table || [];
+  }
+
+  /**
+   * Insider (PIT Reg 7(2)) trades from BSE API (InsiderTrade15/w).
+   * @param {string} fromDate - DD/MM/YYYY
+   * @param {string} toDate - DD/MM/YYYY
+   * @returns {Promise<Array>}
+   */
+  async getInsiderFilings(fromDate, toDate) {
+    try {
+      const res = await bseGetJson('InsiderTrade15/w', {
+        params: { fromdt: fromDate, todt: toDate, pageno: 1, scripcode: '' },
+        timeout: BSE_REQUEST_TIMEOUT_MS,
+      });
+      return res?.Table || [];
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn('BSE getInsiderFilings failed:', error.message);
+      return [];
+    }
+  }
 }
 
 module.exports = { BseClient, parseBseSmartSearchHtml };

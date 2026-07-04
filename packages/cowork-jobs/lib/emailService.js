@@ -52,4 +52,14 @@ async function sendHtmlEmail({
   }
 }
 
-module.exports = { sendHtmlEmail, GMAIL_USER };
+function stockscansUrl(symbol, exchange = 'NSE') {
+  return `https://www.stockscans.in/company/${exchange}:${symbol}`;
+}
+
+function stockscansLink(name, symbol, exchange = 'NSE', color = 'inherit') {
+  if (!symbol) return name;
+  const safeName = String(name || symbol).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  return `<a href="${stockscansUrl(symbol, exchange)}" style="text-decoration:none;color:${color}" target="_blank">${safeName}</a>`;
+}
+
+module.exports = { sendHtmlEmail, GMAIL_USER, stockscansUrl, stockscansLink };

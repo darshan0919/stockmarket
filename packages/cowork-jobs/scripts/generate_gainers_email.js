@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { loadEnv } = require('../lib/env');
-const { sendHtmlEmail } = require('../lib/emailService');
+const { sendHtmlEmail, stockscansLink } = require('../lib/emailService');
 
 loadEnv('/Users/darshan.patel/code/personal/stockmarket/.env');
 if (process.env.GOOGLE_APP_PASSWORD) {
@@ -59,7 +59,7 @@ function renderStockCard(s) {
     <div style="background-color: #1e2230; border: 1px solid #2e3447; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
         <div>
-          <span style="font-size: 16px; font-weight: 700; color: #f8fafc;">${s.name}</span>
+          <span style="font-size: 16px; font-weight: 700; color: #f8fafc;">${stockscansLink(s.name, s.ticker, 'NSE', '#f8fafc')}</span>
           <span style="font-size: 13px; color: #94a3b8; margin-left: 6px;">(${s.ticker})</span>
           <div style="font-size: 12px; color: #64748b; margin-top: 2px;">${s.industry || 'General'} · Mcap: ₹${s.market_cap_cr ? s.market_cap_cr.toLocaleString('en-IN') : 'N/A'} Cr</div>
         </div>

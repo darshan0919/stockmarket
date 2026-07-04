@@ -25,7 +25,8 @@ function loadEnv(explicitPath) {
     const eq = line.indexOf('=');
     if (eq < 0) continue;
     const key = line.slice(0, eq).trim();
-    const val = line.slice(eq + 1).trim();
+    // Strip inline comments (whitespace + '#'): `KEY=value   # note` → `value`.
+    const val = line.slice(eq + 1).replace(/\s+#.*$/, '').trim();
     if (key && process.env[key] === undefined) process.env[key] = val;
   }
   return path;

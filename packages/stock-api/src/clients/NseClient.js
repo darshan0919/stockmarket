@@ -110,6 +110,76 @@ class NseClient {
   }
 
   /**
+   * Today's large deals snapshot — bulk, block, and short-selling deals.
+   * Endpoint verified 04-Jul-2026: /api/snapshot-capital-market-largedeal
+   * Returns { as_on_date, BULK_DEALS_DATA, BLOCK_DEALS_DATA, SHORT_DEALS_DATA }.
+   * Each row: { date, symbol, name, clientName, buySell, qty, watp, remarks }.
+   * Deal value (₹) is NOT included — compute as qty × watp.
+   * @returns {Promise<Object>}
+   */
+  async getLargeDeals() {
+    const res = await this.session.get('/snapshot-capital-market-largedeal', {
+      referer: `${NSE_HOME_URL}market-data/large-deals`,
+      timeout: 30000,
+    });
+    return res.data || {};
+  }
+
+  /**
+   * SAST Regulation 29(1)/29(2) disclosures (substantial acquisitions).
+   * Endpoint verified 04-Jul-2026: /api/corporate-sast-reg29?index=equities
+   * Row fields: symbol, company, acquirerName, acqSaleType (Acquisition|Sale),
+   * noOfShareAcq, noOfShareSale, totAftShare (% post), attachement, timestamp.
+   * No ₹ value in the payload — estimate as shares × close price.
+   * @param {string} fromDate - DD-MM-YYYY
+   * @param {string} toDate   - DD-MM-YYYY
+   * @returns {Promise<Array>}
+   */
+  async getSastReg29(fromDate, toDate) {
+    const res = await this.session.get('/corporate-sast-reg29', {
+      params: { index: 'equities', from_date: fromDate, to_date: toDate },
+      referer: `${NSE_HOME_URL}companies-listing/corporate-filings-regulation-29`,
+      timeout: 30000,
+    });
+    return res.data?.data || [];
+  }
+
+  /**
+   * Insider trading (PIT Reg 7(2)) filing index.
+   * NOTE: the old /api/corporates-pit endpoint returns empty since NSE's 2026
+   * GIGW revamp; the live endpoint (verified 04-Jul-2026) is /api/corporates-pit-gg.
+   * Rows are filing METADATA only: { symbol, companyName, regulation,
+   * typeOfSubmission, broadcastDateTime, xmlFileName (XBRL url), ixbrl }.
+   * Trade details (person, qty, ₹ value) must be parsed from xmlFileName XBRL.
+   * @param {string} fromDate - DD-MM-YYYY
+   * @param {string} toDate   - DD-MM-YYYY
+   * @returns {Promise<Array>}
+   */
+  async getInsiderFilings(fromDate, toDate) {
+    const res = await this.session.get('/corporates-pit-gg', {
+      params: { index: 'equities', from_date: fromDate, to_date: toDate },
+      referer: `${NSE_HOME_URL}companies-listing/corporate-filings-insider-trading`,
+      timeout: 60000,
+    });
+    return res.data?.data || [];
+  }
+
+  /**
+   * Fetch a raw XBRL/XML document from nsearchives (no cookie warmup needed,
+   * but the shared session keeps headers browser-like).
+   * @param {string} url - Absolute nsearchives.nseindia.com URL.
+   * @returns {Promise<string|null>}
+   */
+  async fetchArchiveXml(url) {
+    try {
+      const res = await this.session.get(url, { referer: NSE_HOME_URL, timeout: 20000 });
+      return typeof res.data === 'string' ? res.data : String(res.data ?? '');
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Live market variations (top gainers / losers) across NSE index buckets.
    * @param {'gainers'|'loosers'} [variation='gainers'] - NSE spells losers "loosers".
    * @param {string} [exchSeg='']

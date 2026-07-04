@@ -1,0 +1,636 @@
+#!/usr/bin/env node
+'use strict';
+
+/**
+ * dealsDigest.js — Daily NSE/BSE deals digest (task: daily-deals-digest).
+ *
+ * Fetches the four "Latest Trades" categories that screener.in/filings shows,
+ * from the exchanges directly, sorts each by deal VALUE (₹) descending, keeps
+ * the top 10, and emails an HTML digest.
+ *
+ *   1. Bulk deals   — NSE /api/snapshot-capital-market-largedeal (+ BSE BulkDealData_ng DealType=1)
+ *   2. Block deals  — same NSE snapshot (+ BSE DealType=2)
+ *   3. SAST Reg 29  — NSE /api/corporate-sast-reg29 (₹ value ≈ shares × last close)
+ *   4. Insider PIT  — NSE /api/corporates-pit-gg → parse each filing's XBRL for
+ *                     person, qty and ₹ value (old /api/corporates-pit is dead
+ *                     since NSE's 2026 GIGW revamp — verified 04-Jul-2026)
+ *
+ * Usage:
+ *   node dealsDigest.js [--date YYYY-MM-DD] [--no-email] [--max-xbrl N] [--env-file <path>]
+ *
+ * # SETUP
+ *   - GOOGLE_APP_PASSWORD in repo .env (used by lib/emailService.js; email is
+ *     skipped gracefully when missing)
+ *   - DEALS_DIGEST_TO (optional, defaults to GMAIL_USER in emailService)
+ *   - No other credentials: NSE/BSE endpoints are public (cookie warmup handled
+ *     by @stock/api NseSession)
+ *
+ * Output: prints JSON summary to stdout and writes
+ *   data/deals_digest/{date}_deals.json  (raw + top10 per category)
+ */
+
+const fs = require('fs');
+const path = require('path');
+const { nse, bse } = require('@stock/api');
+const { loadEnv, argValue } = require('./lib/env');
+const { sendHtmlEmail, stockscansUrl } = require('./lib/emailService');
+
+const TOP_N = 10;
+const XBRL_CONCURRENCY = 8;
+const SAST_QUOTE_LIMIT = 40; // max unique symbols priced for SAST value estimate
+const CRORE = 1e7;
+
+async function getScreenerData(symbol) {
+  try {
+    const searchRes = await fetch(`https://www.screener.in/api/company/search/?q=${encodeURIComponent(symbol)}`);
+    if (!searchRes.ok) return null;
+    const json = await searchRes.json();
+    const match = json.find(j => j.url.includes(`/${symbol}/`) || j.url.includes(symbol)) || json[0];
+    if (!match) return null;
+
+    const htmlRes = await fetch(`https://www.screener.in${match.url}`);
+    if (!htmlRes.ok) return null;
+    const html = await htmlRes.text();
+    const mcapMatch = html.match(/Market Cap[^>]*>.*?<span class="number">([^<]+)<\/span>/is);
+    const mcapCr = mcapMatch ? parseFloat(mcapMatch[1].replace(/,/g, '')) : null;
+    
+    return {
+      companyName: match.name,
+      marketCap: mcapCr ? mcapCr * 1e7 : null
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+let dualListedBseScrips = null;
+async function isAvailableOnNSE(scripCode) {
+  if (!scripCode) return false;
+  
+  if (!dualListedBseScrips) {
+    try {
+      const res = await fetch('https://api.kite.trade/instruments');
+      const csv = await res.text();
+      
+      const nseSymbols = new Set();
+      dualListedBseScrips = new Set();
+      
+      const lines = csv.split('\n');
+      for (const l of lines) {
+        if (l.includes(',EQ,') && (l.trim().endsWith(',NSE') || l.trim().endsWith('NSE'))) {
+          const p = l.split(',');
+          let symbol = p[2].trim();
+          symbol = symbol.replace(/-(EQ|BE|BZ|SM|ST|IQ|IL)$/i, '');
+          nseSymbols.add(symbol);
+        }
+      }
+      for (const l of lines) {
+        if (l.includes(',EQ,') && (l.trim().endsWith(',BSE') || l.trim().endsWith('BSE'))) {
+          const p = l.split(',');
+          const symbol = p[2].trim();
+          if (nseSymbols.has(symbol)) {
+            dualListedBseScrips.add(p[1]); // exchange_token is BSE scrip code
+          }
+        }
+      }
+    } catch (e) {
+      dualListedBseScrips = new Set(); // fallback to empty set on error
+    }
+  }
+  
+  return dualListedBseScrips.has(String(scripCode));
+}
+
+function removeIntradayPairs(deals) {
+  const result = [];
+  const unmatched = new Map();
+
+  for (const d of deals) {
+    const isBuy = /buy|acq/i.test(d.side || '');
+    const sideKey = isBuy ? 'BUY' : 'SELL';
+    const oppositeSideKey = isBuy ? 'SELL' : 'BUY';
+    const matchKey = `${d.symbol}_${d.client}_${d.qty}_${oppositeSideKey}`;
+    const myKey = `${d.symbol}_${d.client}_${d.qty}_${sideKey}`;
+
+    if (unmatched.has(matchKey) && unmatched.get(matchKey).length > 0) {
+      unmatched.get(matchKey).pop();
+    } else {
+      if (!unmatched.has(myKey)) unmatched.set(myKey, []);
+      unmatched.get(myKey).push(d);
+    }
+  }
+
+  for (const list of unmatched.values()) {
+    result.push(...list);
+  }
+
+  return result;
+}
+
+// ── date helpers ──────────────────────────────────────────────────────────────
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function istNow() {
+  return new Date(Date.now() + (330 + new Date().getTimezoneOffset()) * 60000);
+}
+
+/** @param {Date} d */
+function fmt(d, sep) {
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return [dd, mm, d.getFullYear()].join(sep);
+}
+
+/** '03-Jul-2026' → Date (or null) */
+function parseNseDate(s) {
+  if (!s) return null;
+  const m = /^(\d{2})-([A-Za-z]{3})-(\d{4})/.exec(String(s).trim());
+  if (!m) return null;
+  const mon = MONTHS.findIndex((x) => x.toLowerCase() === m[2].toLowerCase());
+  return mon < 0 ? null : new Date(Number(m[3]), mon, Number(m[1]));
+}
+
+function num(x) {
+  if (x === null || x === undefined || x === '' || x === '-') return null;
+  const n = Number(String(x).replace(/,/g, ''));
+  return Number.isFinite(n) ? n : null;
+}
+
+function crores(v) {
+  if (v === null || v === undefined) return '—';
+  return `₹${(v / CRORE).toLocaleString('en-IN', { maximumFractionDigits: 2 })} cr`;
+}
+
+// ── category fetchers (all errors contained per category) ─────────────────────
+
+/**
+ * NSE + BSE bulk/block deals for the latest available trading day.
+ * @returns {{bulk: Array, block: Array, asOnDate: string|null}}
+ */
+async function fetchBulkBlock(targetIst) {
+  const out = { bulk: [], block: [], asOnDate: null, errors: [] };
+
+  try {
+    const snap = await nse.getLargeDeals();
+    out.asOnDate = snap.as_on_date || null;
+    // Snapshot rows trail over several days; keep only the target date's rows
+    // (screener-style: a category is empty when there were no deals that day).
+    const targetTime = new Date(
+      targetIst.getFullYear(), targetIst.getMonth(), targetIst.getDate()
+    ).getTime();
+    const forTarget = (rows) =>
+      (rows || []).filter((r) => parseNseDate(r.date)?.getTime() === targetTime);
+    for (const [key, list] of [
+      ['bulk', forTarget(snap.BULK_DEALS_DATA)],
+      ['block', forTarget(snap.BLOCK_DEALS_DATA)],
+    ]) {
+      for (const r of list) {
+        const qty = num(r.qty);
+        const price = num(r.watp);
+        out[key].push({
+          exchange: 'NSE',
+          date: r.date,
+          symbol: r.symbol,
+          name: r.name,
+          client: r.clientName,
+          side: r.buySell,
+          qty,
+          price,
+          value: qty !== null && price !== null ? qty * price : null,
+        });
+      }
+    }
+  } catch (e) {
+    out.errors.push(`NSE large deals: ${e.message}`);
+  }
+
+  try {
+    const dmy = fmt(targetIst, '/');
+    for (const [key, type] of [['bulk', 'bulk'], ['block', 'block']]) {
+      const rows = await bse.getBulkBlockDeals(type, dmy, dmy);
+      for (const r of rows) {
+        const qty = num(r.QUANTITY);
+        const price = num(r.PRICE);
+        out[key].push({
+          exchange: 'BSE',
+          date: r.DEAL_DATE ? String(r.DEAL_DATE).slice(0, 10) : null,
+          symbol: r.scripname,
+          name: r.scripname,
+          client: r.CLIENT_NAME,
+          side: r.TRANSACTION_TYPE === 'S' ? 'SELL' : 'BUY',
+          qty,
+          price,
+          value: qty !== null && price !== null ? qty * price : null,
+        });
+      }
+    }
+  } catch (e) {
+    out.errors.push(`BSE bulk/block: ${e.message}`);
+  }
+
+  out.bulk = removeIntradayPairs(out.bulk);
+  out.block = removeIntradayPairs(out.block);
+  return out;
+}
+
+/**
+ * SAST Reg 29 disclosures; ₹ value estimated as shares moved × NSE last close.
+ */
+async function fetchSast(targetIst) {
+  const out = { rows: [], errors: [] };
+  let raw = [];
+  try {
+    const dmy = fmt(targetIst, '-');
+    raw = await nse.getSastReg29(dmy, dmy);
+  } catch (e) {
+    out.errors.push(`NSE SAST reg29: ${e.message}`);
+    return out;
+  }
+
+  const rows = raw
+    .filter((r) => {
+      if (!r.acquirerDate) return false;
+      const parts = r.acquirerDate.toUpperCase().split(' TO ');
+      const start = new Date(parts[0].trim());
+      const end = new Date((parts[1] || parts[0]).trim());
+      
+      const t = new Date(targetIst.getFullYear(), targetIst.getMonth(), targetIst.getDate());
+      return t >= start && t <= end;
+    })
+    .map((r) => {
+      const acq = num(r.noOfShareAcq);
+      const sale = num(r.noOfShareSale);
+    const shares = (acq || 0) + (sale || 0);
+    return {
+      exchange: 'NSE',
+      symbol: r.symbol,
+      company: r.company,
+      acquirer: r.acquirerName,
+      side: r.acqSaleType,
+      regType: r.regType,
+      shares: shares || null,
+      pctPost: r.totAftShare ?? null,
+      timestamp: r.timestamp,
+      attachment: r.attachement || null,
+      value: null,
+    };
+  });
+
+  // Price the symbols (bounded) to estimate value = shares × last close.
+  const symbols = [...new Set(rows.filter((r) => r.shares).map((r) => r.symbol))].slice(
+    0,
+    SAST_QUOTE_LIMIT
+  );
+  const prices = {};
+  for (const sym of symbols) {
+    try {
+      // NOTE: /api/quote-equity 403s since NSE's 2026 GIGW revamp; the NextApi
+      // getSymbolData endpoint is the live quote source (verified 04-Jul-2026).
+      const s = await nse.getSymbolData(sym);
+      const p = num(
+        s?.priceInfo?.lastPrice ?? s?.orderBook?.lastPrice ?? s?.priceInfo?.close
+      );
+      if (p) prices[sym] = p;
+    } catch {
+      /* leave unpriced — sorts last */
+    }
+  }
+  for (const r of rows) {
+    if (r.shares && prices[r.symbol]) r.value = r.shares * prices[r.symbol];
+  }
+  out.rows = rows;
+  return out;
+}
+
+// XBRL tag extractor: <in-bse-co:Tag ...>value</...>
+function xbrlAll(xml, tag) {
+  const re = new RegExp(`<(?:[\\w-]+:)?${tag}(?:\\s[^>]*)?>([^<]*)<`, 'g');
+  const vals = [];
+  let m;
+  while ((m = re.exec(xml)) !== null) vals.push(m[1].trim());
+  return vals;
+}
+
+/**
+ * Insider (PIT Reg 7(2)) trades: filing index from corporates-pit-gg, details
+ * parsed from each filing's XBRL (person, category, qty, ₹ value).
+ */
+async function fetchInsider(targetIst, maxXbrl) {
+  const out = { rows: [], totalFilings: 0, parsed: 0, errors: [] };
+  let filings = [];
+  try {
+    const dmy = fmt(targetIst, '-');
+    filings = await nse.getInsiderFilings(dmy, dmy);
+  } catch (e) {
+    out.errors.push(`NSE corporates-pit-gg: ${e.message}`);
+    return out;
+  }
+
+  const originals = filings.filter(
+    (f) => f.xmlFileName && (f.typeOfSubmission || 'Original') === 'Original'
+  );
+  out.totalFilings = originals.length;
+  const todo = originals.slice(0, maxXbrl);
+
+  let i = 0;
+  const results = [];
+  async function worker() {
+    while (i < todo.length) {
+      const f = todo[i++];
+      const xml = await nse.fetchArchiveXml(f.xmlFileName);
+      if (!xml) continue;
+      const values = xbrlAll(xml, 'SecuritiesAcquiredOrDisposedValueOfSecurity').map(num);
+      const qtys = xbrlAll(xml, 'SecuritiesAcquiredOrDisposedNumberOfSecurity').map(num);
+      const types = xbrlAll(xml, 'SecuritiesAcquiredOrDisposedTransactionType');
+      const persons = xbrlAll(xml, 'NameOfThePerson');
+      const cats = xbrlAll(xml, 'CategoryOfPerson');
+      const modes = xbrlAll(xml, 'ModeOfAcquisitionOrDisposal');
+      const totalValue = values.reduce((a, b) => a + (b || 0), 0) || null;
+      const totalQty = qtys.reduce((a, b) => a + (b || 0), 0) || null;
+      results.push({
+        exchange: 'NSE',
+        symbol: f.symbol,
+        company: f.companyName,
+        person: persons[0] || null,
+        personCount: new Set(persons).size,
+        category: cats[0] || null,
+        side: [...new Set(types)].join('/') || null,
+        mode: [...new Set(modes)].join('/') || null,
+        qty: totalQty,
+        value: totalValue,
+        regulation: f.regulation,
+        broadcast: f.broadcastDateTime,
+        link: f.ixbrl || f.xmlFileName,
+      });
+    }
+  }
+  await Promise.all(Array.from({ length: XBRL_CONCURRENCY }, worker));
+  out.parsed = results.length;
+
+  try {
+    const dmyBse = fmt(targetIst, '/');
+    const bseFilings = await bse.getInsiderFilings(dmyBse, dmyBse);
+    for (const b of bseFilings) {
+      const qty = num(b.Fld_SecurityNo) || 0;
+      const val = num(b.Fld_SecurityValue) || 0;
+      if (!qty || !val) continue;
+
+      const bseComp = (b.Companyname || '').toLowerCase().trim();
+      const nseMatch = results.some(r => r.exchange === 'NSE' && (r.company || '').toLowerCase().trim() === bseComp);
+      if (nseMatch) {
+        continue;
+      }
+
+      if (await isAvailableOnNSE(b.Fld_ScripCode)) {
+        continue;
+      }
+
+      results.push({
+        exchange: 'BSE',
+        symbol: b.Companyname || String(b.Fld_ScripCode),
+        company: b.Companyname,
+        person: b.Fld_PromoterName || null,
+        personCount: 1,
+        category: b.Fld_PersonCatgName || null,
+        side: (b.Fld_TransactionType === 'Acquisition' || b.ModeOfAquisation === 'Market Purchase') ? 'Buy' : 'Sell',
+        mode: b.ModeOfAquisation || null,
+        qty: qty,
+        value: val,
+        regulation: 'PIT',
+        broadcast: b.Fld_CreateDate,
+        link: b.xbrlurl ? `https://www.bseindia.com${b.xbrlurl}` : null,
+      });
+      out.parsed++;
+      out.totalFilings++;
+    }
+  } catch (e) {
+    out.errors.push(`BSE InsiderTrade15/w: ${e.message}`);
+  }
+
+  // Deduplicate cross-listed filings (same person, side, qty, value)
+  const uniqueResults = [];
+  const seenKeys = new Set();
+  for (const r of results) {
+    const p = String(r.person || '').substring(0, 15).toLowerCase();
+    const key = `${p}_${r.side}_${r.qty}_${r.value}`;
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
+      uniqueResults.push(r);
+    }
+  }
+
+  out.rows = uniqueResults;
+  return out;
+}
+
+// ── ranking + rendering ───────────────────────────────────────────────────────
+
+async function groupAndTop10ByNetValue(rows) {
+  const groupsBySym = {};
+  for (const r of rows) {
+    if (!r.symbol) continue;
+    if (!groupsBySym[r.symbol]) {
+      groupsBySym[r.symbol] = { symbol: r.symbol, netValue: 0, deals: [] };
+    }
+    groupsBySym[r.symbol].deals.push(r);
+    
+    const isBuy = /buy|acq/i.test(r.side || '');
+    const isSell = /sell|sale|dispos/i.test(r.side || '');
+    if (isBuy) groupsBySym[r.symbol].netValue += (r.value || 0);
+    else if (isSell) groupsBySym[r.symbol].netValue -= (r.value || 0);
+    else groupsBySym[r.symbol].netValue += (r.value || 0);
+  }
+
+  let allGroups = Object.values(groupsBySym);
+  allGroups = allGroups.filter((g) => Math.abs(g.netValue) >= 50000000);
+  allGroups.sort((a, b) => Math.abs(b.netValue) - Math.abs(a.netValue));
+  const top10 = allGroups.slice(0, TOP_N);
+
+  await Promise.all(top10.map(async (g) => {
+    g.deals.sort((a, b) => (b.value ?? -1) - (a.value ?? -1));
+    let nseData = null;
+    try {
+      nseData = await nse.getSymbolData(g.symbol);
+    } catch {}
+    
+    g.companyName = nseData?.metaData?.companyName || g.symbol;
+    g.marketCap = nseData?.tradeInfo?.totalMarketCap || null;
+
+    if (!g.marketCap || g.companyName === g.symbol) {
+      const scr = await getScreenerData(g.symbol);
+      if (scr) {
+        if (!g.marketCap && scr.marketCap) g.marketCap = scr.marketCap;
+        if (g.companyName === g.symbol && scr.companyName) g.companyName = scr.companyName;
+      }
+    }
+  }));
+
+  return top10;
+}
+
+function pctMcap(netValue, mcap) {
+  if (!mcap || isNaN(mcap)) return '—';
+  const pct = (Math.abs(netValue) / mcap) * 100;
+  return pct.toFixed(4) + '%';
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+function tableHtml(title, headers, rowsHtml, note) {
+  return `
+  <h3 style="margin:24px 0 6px;font-family:Arial,sans-serif;color:#1a237e">${title}</h3>
+  ${note ? `<p style="margin:0 0 8px;font:12px Arial;color:#666">${note}</p>` : ''}
+  ${rowsHtml.length
+    ? `<table cellpadding="6" cellspacing="0" border="0" style="border-collapse:collapse;font:13px Arial;width:100%;white-space:nowrap">
+       <tr style="background:#e8eaf6;text-align:left">${headers.map((h) => `<th style="border-bottom:2px solid #9fa8da">${h}</th>`).join('')}</tr>
+       ${rowsHtml.join('\n')}</table>`
+    : '<p style="font:13px Arial;color:#999">No records.</p>'}`;
+}
+
+function td(v, right, wrap) {
+  return `<td style="border-bottom:1px solid #eee${right ? ';text-align:right' : ''}${wrap ? ';white-space:normal' : ''}">${v}</td>`;
+}
+
+function renderEmail(dateLabel, digest) {
+  const sideColor = (s) =>
+    /buy|acq/i.test(s || '') ? '#1b5e20' : /sell|sale|dispos/i.test(s || '') ? '#b71c1c' : '#333';
+
+  const dealRows = (groups) =>
+    groups.flatMap((g, gIdx) =>
+      g.deals.map((r, idx) => {
+        const isFirst = idx === 0;
+        const rs = g.deals.length;
+        const numCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee">${gIdx + 1}</td>` : '';
+        const symCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee"><a href="${stockscansUrl(g.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(g.companyName || g.symbol)}</b></a> <span style="color:#888">${esc(r.exchange)}</span></td>` : '';
+        const netCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right;color:${g.netValue < 0 ? '#b71c1c' : '#1b5e20'}"><b>${crores(g.netValue)}</b></td>` : '';
+        const mcapPctCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right">${pctMcap(g.netValue, g.marketCap)}</td>` : '';
+        return `<tr>${numCol}${symCol}${netCol}${mcapPctCol}${td(esc(r.client), false, true)}${td(`<span style="color:${sideColor(r.side)}">${esc(r.side)}</span>`)}${td(r.qty?.toLocaleString('en-IN') ?? '—', 1)}${td(r.price?.toLocaleString('en-IN') ?? '—', 1)}${td(`<b>${crores(r.value)}</b>`, 1)}</tr>`;
+      })
+    );
+
+  const sastRows = (groups) =>
+    groups.flatMap((g, gIdx) =>
+      g.deals.map((r, idx) => {
+        const isFirst = idx === 0;
+        const rs = g.deals.length;
+        const numCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee">${gIdx + 1}</td>` : '';
+        const symCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee"><a href="${stockscansUrl(g.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(g.companyName || g.symbol)}</b></a></td>` : '';
+        const netCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right;color:${g.netValue < 0 ? '#b71c1c' : '#1b5e20'}"><b>${crores(g.netValue)}</b></td>` : '';
+        const mcapPctCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right">${pctMcap(g.netValue, g.marketCap)}</td>` : '';
+        return `<tr>${numCol}${symCol}${netCol}${mcapPctCol}${td(esc(r.acquirer), false, true)}${td(`<span style="color:${sideColor(r.side)}">${esc(r.side)}</span>`)}${td(r.shares?.toLocaleString('en-IN') ?? '—', 1)}${td(`<b>${crores(r.value)}</b>`, 1)}</tr>`;
+      })
+    );
+
+  const insiderRows = (groups) =>
+    groups.flatMap((g, gIdx) =>
+      g.deals.map((r, idx) => {
+        const isFirst = idx === 0;
+        const rs = g.deals.length;
+        const numCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee">${gIdx + 1}</td>` : '';
+        const symCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee"><a href="${stockscansUrl(g.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(g.companyName || g.symbol)}</b></a></td>` : '';
+        const isActualTransaction = g.deals.some(d => /buy|sell|acq|sale|dispos/i.test(d.side || ''));
+        const netColor = isActualTransaction ? (g.netValue < 0 ? '#b71c1c' : '#1b5e20') : '#888';
+        const netCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right;color:${netColor}"><b>${crores(g.netValue)}</b></td>` : '';
+        const mcapPctCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right">${pctMcap(g.netValue, g.marketCap)}</td>` : '';
+        return `<tr>${numCol}${symCol}${netCol}${mcapPctCol}${td(esc(r.person) + (r.personCount > 1 ? ` <span style="color:#888">+${r.personCount - 1}</span>` : ''), false, true)}${td(esc(r.category))}${td(`<span style="color:${sideColor(r.side)}">${esc(r.side)}</span>`)}${td(r.qty?.toLocaleString('en-IN') ?? '—', 1)}${td(`<b>${crores(r.value)}</b>`, 1)}</tr>`;
+      })
+    );
+
+  const errs = [
+    ...digest.bulkBlock.errors,
+    ...digest.sast.errors,
+    ...digest.insider.errors,
+  ];
+
+  return `
+<div style="max-width:860px">
+  <h2 style="font-family:Arial;color:#0d1333;margin:0">Daily Deals Digest — ${dateLabel}</h2>
+  <p style="font:12px Arial;color:#666;margin:4px 0 0">Top ${TOP_N} companies per category by net value. Sources: NSE large-deals snapshot, NSE SAST Reg 29, NSE PIT (corporates-pit-gg + XBRL), BSE BulkDealData_ng. Like screener.in/filings, but ours.</p>
+  ${tableHtml(`1️⃣ Bulk Deals (${digest.bulk10.reduce((a, g) => a + g.deals.length, 0)}/${digest.bulkBlock.bulk.length})`, ['#', 'Stock', 'Net Value', '% of Mcap', 'Client', 'Side', 'Qty', 'Price', 'Value'], dealRows(digest.bulk10))}
+  ${tableHtml(`2️⃣ Block Deals (${digest.block10.reduce((a, g) => a + g.deals.length, 0)}/${digest.bulkBlock.block.length})`, ['#', 'Stock', 'Net Value', '% of Mcap', 'Client', 'Side', 'Qty', 'Price', 'Value'], dealRows(digest.block10))}
+  ${tableHtml(`3️⃣ SAST Trades (${digest.sast10.reduce((a, g) => a + g.deals.length, 0)}/${digest.sast.rows.length})`, ['#', 'Stock', 'Net Value', '% of Mcap', 'Acquirer', 'Type', 'Shares', 'Est. Value'], sastRows(digest.sast10), 'Value estimated as shares × NSE last close (SAST filings don’t carry ₹ value).')}
+  ${tableHtml(`4️⃣ Insider Trades (${digest.insider10.reduce((a, g) => a + g.deals.length, 0)}/${digest.insider.parsed} parsed of ${digest.insider.totalFilings})`, ['#', 'Stock', 'Net Value', '% of Mcap', 'Person', 'Category', 'Side', 'Qty', 'Value'], insiderRows(digest.insider10))}
+  ${errs.length ? `<p style="font:12px Arial;color:#b71c1c"><b>Fetch warnings:</b> ${errs.map(esc).join(' · ')}</p>` : ''}
+</div>`;
+}
+
+// ── main ──────────────────────────────────────────────────────────────────────
+
+async function main() {
+  loadEnv(argValue('--env-file'));
+  const dateArg = argValue('--date'); // YYYY-MM-DD
+  const noEmail = process.argv.includes('--no-email');
+  const maxXbrl = Number(argValue('--max-xbrl')) || 600;
+
+  const target = dateArg
+    ? new Date(`${dateArg}T00:00:00`)
+    : istNow();
+  const dateLabel = fmt(target, '-');
+
+  const [bulkBlock, sast, insider] = [
+    await fetchBulkBlock(target),
+    await fetchSast(target),
+    await fetchInsider(target, maxXbrl),
+  ];
+
+  const digest = {
+    date: dateLabel,
+    bulkBlock,
+    sast,
+    insider,
+    bulk10: await groupAndTop10ByNetValue(bulkBlock.bulk),
+    block10: await groupAndTop10ByNetValue(bulkBlock.block),
+    sast10: await groupAndTop10ByNetValue(sast.rows),
+    insider10: await groupAndTop10ByNetValue(insider.rows),
+  };
+
+  // Persist snapshot
+  const outDir = path.join(__dirname, 'data', 'deals_digest');
+  fs.mkdirSync(outDir, { recursive: true });
+  const outFile = path.join(outDir, `${dateLabel}_deals.json`);
+  fs.writeFileSync(outFile, JSON.stringify(digest, null, 2));
+
+  // Email
+  let email = { status: 'skipped', reason: '--no-email' };
+  if (!noEmail) {
+    email = await sendHtmlEmail({
+      subject: `📊 Deals Digest ${dateLabel} — Bulk/Block/SAST/Insider top ${TOP_N} companies by value`,
+      htmlBody: renderEmail(dateLabel, digest),
+      to: process.env.DEALS_DIGEST_TO || undefined,
+    });
+  }
+
+  console.log(
+    JSON.stringify(
+      {
+        date: dateLabel,
+        counts: {
+          bulk: bulkBlock.bulk.length,
+          block: bulkBlock.block.length,
+          sast: sast.rows.length,
+          insiderFilings: insider.totalFilings,
+          insiderParsed: insider.parsed,
+        },
+        top: {
+          bulk: digest.bulk10.map((g) => ({ symbol: g.symbol, netValue: crores(g.netValue), mcapPct: pctMcap(g.netValue, g.marketCap), deals: g.deals.map(r => `${r.side || ''} ${crores(r.value)}`.trim()) })),
+          block: digest.block10.map((g) => ({ symbol: g.symbol, netValue: crores(g.netValue), mcapPct: pctMcap(g.netValue, g.marketCap), deals: g.deals.map(r => `${r.side || ''} ${crores(r.value)}`.trim()) })),
+          sast: digest.sast10.map((g) => ({ symbol: g.symbol, netValue: crores(g.netValue), mcapPct: pctMcap(g.netValue, g.marketCap), deals: g.deals.map(r => `${r.side || ''} ${crores(r.value)}`.trim()) })),
+          insider: digest.insider10.map((g) => ({ symbol: g.symbol, netValue: crores(g.netValue), mcapPct: pctMcap(g.netValue, g.marketCap), deals: g.deals.map(r => `${r.side || ''} ${crores(r.value)}`.trim()) })),
+        },
+        errors: [...bulkBlock.errors, ...sast.errors, ...insider.errors],
+        email,
+        snapshot: outFile,
+      },
+      null,
+      2
+    )
+  );
+}
+
+main().catch((e) => {
+  console.error('dealsDigest failed:', e);
+  process.exit(1);
+});
