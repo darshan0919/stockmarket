@@ -90,6 +90,7 @@ Create a scheduled cowork task that only handles calling the respective apis/scr
 1. It doesn't have any logic of its own. 
 2. Its job is ONLY to orchestrate the execution of the respective apis/scripts/skills.
 3. It must refer to the **exact absolute paths** of the respective apis/scripts/skills for invoking them.
+4. The task prompt must always include a fallback github file path for each script/skill, in case the local file path is missing or inaccessible.
 
 The task definition must follow this template:
 
@@ -100,7 +101,9 @@ The task definition must follow this template:
 ## Execution Plan
 Call the following exact scripts/APIs in order:
 1. Execute script: /path/to/stockmarket/scripts/script_name.py
+   (Fallback: https://raw.githubusercontent.com/darshan0919/stockmarket/main/scripts/script_name.py)
 2. Execute skill: /path/to/stockmarket/skills/skill_name/SKILL.md
+   (Fallback: https://raw.githubusercontent.com/darshan0919/stockmarket/main/skills/skill_name/SKILL.md)
 3. [etc...]
 
 Do NOT run any logic, calculations, data fetching, or file modifications directly. Your only job is to orchestrate these existing scripts/skills exactly as specified.
