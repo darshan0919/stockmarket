@@ -45,21 +45,21 @@ mkdir -p "$RESEARCH_ROOT/Annual_Reports" "$RESEARCH_ROOT/Concalls" \
 
 ```bash
 # Standardised filings via stock-documents-fetcher
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t "Annual Report" --last-n 5 -o "$RESEARCH_ROOT/Annual_Reports" &
 
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t Transcript --last-n 8 -o "$RESEARCH_ROOT/Concalls" &
 
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t PPT --last-n 8 -o "$RESEARCH_ROOT/Investor_Presentations" &
 
 # Corporate announcements (credit rating + events)
-python3 packages/stock-api/python/fetchers/fetch_announcements.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_announcements.py "$TICKER" \
     --search 'rating|outlook|downgrade|upgrade' --max-pages 10 \
     -o "$RESEARCH_ROOT/Credit_Rating_Reports" &
 
-python3 packages/stock-api/python/fetchers/fetch_announcements.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_announcements.py "$TICKER" \
     --search 'merger|acquisition|capex|order|buyback|dividend' --max-pages 10 \
     -o "$RESEARCH_ROOT/Events_Announcements" &
 
@@ -74,7 +74,7 @@ Each folder will contain a `manifest.json` after fetching. Read the manifests to
 
 **2 — Single extraction pass.** `GET /api/research-pipeline/prompts/unified_master?company=<name>&ticker=<TICKER>`; apply once → 5 `.txt` files (AR / Concall / InvestorPres / RatingReports / Events). See [`equity-research-extraction`](../data-extraction/SKILL.md).
 
-**3 — Compute shared schemas** (`packages/stock-api/python/orchestration/orchestrate.py compute-schemas --ticker [TICKER]`) → `_cache/schemas.json`:
+**3 — Compute shared schemas** (`stock-api/python/orchestration/orchestrate.py compute-schemas --ticker [TICKER]`) → `_cache/schemas.json`:
 - `kpi_table` (revenue, EBITDA, PAT, margins, ROCE, ROE) → Tabs 0, 4, 5
 - `valuation_ladder` (TTM P/E, FY+1 P/E, peer median, DCF PT) → Tabs 0, 8, 9
 - `triggers` (5–7 catalysts + conviction + timeline) → Tabs 0, 5, 9
@@ -120,7 +120,7 @@ Missing `_Estimates.txt` → omit Tab 6 and renumber (per dashboard rule).
 ## Files
 
 - `SKILL.md` — this file
-- `packages/stock-api/python/orchestration/orchestrate.py` — `acquire` / `compute-schemas` / `publish` subcommands
+- `stock-api/python/orchestration/orchestrate.py` — `acquire` / `compute-schemas` / `publish` subcommands
 - `templates/tab15_qoq_diff.html` — Tab 15 fragment
 
 ## Troubleshooting

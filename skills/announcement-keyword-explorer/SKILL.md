@@ -33,7 +33,7 @@ on a topic, not just the ones that happen to match one phrase.
 ## Step 1 — Run the script (deterministic heavy lifting)
 
 ```bash
-python /home/claude/announcement-keyword-explorer/packages/stock-api/python/fetchers/fetch_and_extract.py \
+python /home/claude/announcement-keyword-explorer/stock-api/python/fetchers/fetch_and_extract.py \
   --keyword "<USER_KEYWORD>" \
   --quarters 4 \
   --min-mcap 300 \

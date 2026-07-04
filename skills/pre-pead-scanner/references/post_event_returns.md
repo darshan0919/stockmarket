@@ -14,7 +14,7 @@ Concall and transcript returns are **not** in the scan — they must be *derived
 
 ## Deriving the returns
 
-`postEventReturns(rawPrices, events, windows)` in `packages/stock-api/src/analyzers/postEventReturns.js` (CLI: `post_event_returns.py`):
+`postEventReturns(rawPrices, events, windows)` in `stock-api/src/analyzers/postEventReturns.js` (CLI: `post_event_returns.py`):
 
 - Pull the price series from Stockscans `prices(companyId)`.
 - Pass the event dates: `{ result: 'YYYY-MM-DD', concall: 'YYYY-MM-DD', transcript: 'YYYY-MM-DD' }`.
@@ -22,7 +22,7 @@ Concall and transcript returns are **not** in the scan — they must be *derived
 - Windows are counted in *trading days* (candle steps), not calendar days, so they're comparable across names regardless of holidays.
 
 ```bash
-python3 packages/stock-api/python/analyzers/post_event_returns.py "NSE:PGEL" \
+python3 stock-api/python/analyzers/post_event_returns.py "NSE:PGEL" \
     --result 2026-01-28 --concall 2026-01-29 --transcript 2026-02-03 \
     --windows 1,5,20 --json-out /tmp/pead/NSE_PGEL_returns.json
 ```

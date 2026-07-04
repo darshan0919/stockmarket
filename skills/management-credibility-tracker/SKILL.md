@@ -32,11 +32,11 @@ SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_credibility_docs"
 
 # 6-8 quarterly transcripts is the sweet spot
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t Transcript --last-n 8 -o "$DOCS_DIR"
 
 # Also pull the latest annual report for the long-form Vision/Strategy guidance
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t "Annual Report" --last-n 1 -o "$DOCS_DIR"
 ```
 

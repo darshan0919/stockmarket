@@ -43,7 +43,7 @@ Pure-JS + `axios` code (fetchers, analyzers, HTML generators, the 4 cowork jobs)
 ### Mode `clone` (only for PDF/Chromium skills)
 Entrypoints that transitively need `puppeteer` (the report PDF generators).
 
-- The invoker shallow-clones the repo to `/tmp/sm`, runs `npm ci` in `packages/stock-api`,
+- The invoker shallow-clones the repo to `/tmp/sm`, runs `npm ci` in `stock-api`,
   caches for the session, then `node bin/<skill>.js`.
 - Chromium (~150 MB) downloads on first install — slow but works; cache in `/tmp` for reuse.
 
@@ -79,7 +79,7 @@ again, via **generate + verify in CI**:
 - CI gates (all fast, offline):
   - `gen-registry.js --check` — `registry.json` matches generator output (no manual drift).
   - `verify-registry.js` — every referenced path exists **on disk and on `origin/main`**;
-    **no path points at `packages/stock-api/python/**`** (migration guard).
+    **no path points at `stock-api/python/**`** (migration guard).
   - `build-skills.js --check` — every `dist-skills/*.cjs` is up to date with its source.
 - Pre-commit hook runs the three `--check`s so drift is caught before it lands.
 
@@ -93,9 +93,9 @@ This is what converts "centralized = fragile" into "centralized = safe."
 
 | Still-Python | Used by | Port target |
 |---|---|---|
-| `packages/cowork-jobs/data/gainers_classifier.py` | `gainers-signal` skill (SKILL.md calls `python3`) | `cowork-jobs/lib/gainersClassifier.js` — pure computation over scanner JSON, no API; straight port |
-| `packages/stock-api/python/orchestration/orchestrate.py` | `equity-research-master` | Node orchestrator that composes the already-JS fetchers/generators |
-| `packages/stock-api/python/skill_manager/*.py` (10 files) | `skill-manager` skill | Port to Node, or keep `skill-manager` as an explicitly out-of-scope dev-tool (see note) |
+| `jobs/data/gainers_classifier.py` | `gainers-signal` skill (SKILL.md calls `python3`) | `jobs/lib/gainersClassifier.js` — pure computation over scanner JSON, no API; straight port |
+| `stock-api/python/orchestration/orchestrate.py` | `equity-research-master` | Node orchestrator that composes the already-JS fetchers/generators |
+| `stock-api/python/skill_manager/*.py` (10 files) | `skill-manager` skill | Port to Node, or keep `skill-manager` as an explicitly out-of-scope dev-tool (see note) |
 
 Notes:
 - `gainers_classifier.py` is the most urgent — it's a **live `python3` dependency in a daily
@@ -104,7 +104,7 @@ Notes:
 - `skill-manager` is a meta/dev tool (evals, packaging), not a data skill. Decide explicitly:
   port to Node for uniformity, or carve it out as "authoring tooling, Python allowed." Don't
   leave it ambiguous.
-- After porting, **delete** `packages/stock-api/python/**` (or `legacy/` for one cycle) and
+- After porting, **delete** `stock-api/python/**` (or `legacy/` for one cycle) and
   remove every `python3` invocation from SKILL.md files. Add a CI grep guard: fail if any
   SKILL.md or job references `python3`.
 

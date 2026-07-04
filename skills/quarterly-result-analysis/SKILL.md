@@ -50,7 +50,7 @@ SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_qra_docs"
 
 # Latest quarter's PPT + Transcript + Result
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t PPT Transcript Result \
     --last-n 1 \
     -o "$DOCS_DIR"
@@ -59,7 +59,7 @@ python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
 For the **"change vs prior quarters"** sub-section in the Management basket, the prior quarter's transcript is essential. Fetch one extra Transcript:
 
 ```bash
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t Transcript --last-n 2 -o "$DOCS_DIR"
 ```
 
@@ -127,6 +127,6 @@ After the widget renders, write 2-3 short paragraphs outside it. Lead each with 
 
 The widget renders inline via `visualize:show_widget`. If the user explicitly asks for a saved file or attachment:
 
-`/mnt/project/packages/cowork-jobs/data/agent-outputs/<Company>_Q<X>_FY<YY>_ResultAnalysis.html` (standalone — replace CSS variables with literal colours)
+`/mnt/project/jobs/data/agent-outputs/<Company>_Q<X>_FY<YY>_ResultAnalysis.html` (standalone — replace CSS variables with literal colours)
 
 If the user wants a PDF instead, suggest routing to `equity-research-deepdive` for a full report, or use the inline widget as the deliverable. This skill's natural medium is the interactive briefing.

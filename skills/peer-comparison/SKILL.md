@@ -50,11 +50,11 @@ for T in "${TICKERS[@]}"; do
     DOCS_DIR="$ROOT/$SAFE"
     mkdir -p "$DOCS_DIR"
     
-    python3 packages/stock-api/python/fetchers/fetch_documents.py "$T" \
+    python3 stock-api/python/fetchers/fetch_documents.py "$T" \
         -t "Annual Report" --last-n 2 -o "$DOCS_DIR" &
-    python3 packages/stock-api/python/fetchers/fetch_documents.py "$T" \
+    python3 stock-api/python/fetchers/fetch_documents.py "$T" \
         -t Transcript --last-n 2 -o "$DOCS_DIR" &
-    python3 packages/stock-api/python/fetchers/fetch_documents.py "$T" \
+    python3 stock-api/python/fetchers/fetch_documents.py "$T" \
         -t PPT --last-n 2 -o "$DOCS_DIR" &
 done
 wait
@@ -87,7 +87,7 @@ bash ./skills/_shared/resolve.sh $(basename $(dirname skills/peer-comparison/SKI
 bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "<Company>_Output.pdf"
 ```
 
-See [`packages/stock-api/src/generators/generatePeerPdf.js`](packages/stock-api/src/generators/generatePeerPdf.js).
+See [`stock-api/src/generators/generatePeerPdf.js`](stock-api/src/generators/generatePeerPdf.js).
 
 ## Output discipline
 

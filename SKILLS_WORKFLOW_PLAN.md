@@ -50,23 +50,23 @@ Everything in §5–§8 exists to make these five statements true and *tested*.
 ### 2a. The registry points at code that no longer exists
 
 `skills/registry.json` still references the **pre-migration Python paths**. The Python→JS
-migration moved the logic into `packages/stock-api/src/**`, but the registry (and the
+migration moved the logic into `stock-api/src/**`, but the registry (and the
 github-skill-invoker substitution table, and each skill's `scripts` array) were never
 updated. Result: **19 of 30 referenced files are missing on `main`** (verified with
 `git ls-tree -r origin/main`):
 
 ```
-packages/stock-api/python/fetchers/{fetch_documents,fetch_announcements,fetch_and_extract}.py
-packages/stock-api/python/generators/{generate_concall_pdf,generate_forensic_pdf,generate_report,
+stock-api/python/fetchers/{fetch_documents,fetch_announcements,fetch_and_extract}.py
+stock-api/python/generators/{generate_concall_pdf,generate_forensic_pdf,generate_report,
     generate_pdf,generate_credibility_widget,generate_peer_pdf,generate_market_share_html,
     generate_sector_report,generate_drhp_pdf}.py
-packages/stock-api/python/analyzers/{compute_concentration,run_scan,scan_catalysts,
+stock-api/python/analyzers/{compute_concentration,run_scan,scan_catalysts,
     catalyst_rules,parse_tweet_dump}.py
-packages/stock-api/python/utils/pdf_utils.py
+stock-api/python/utils/pdf_utils.py
 skills/_shared/conventions.md
 ```
 
-The JS replacements **do exist** at `packages/stock-api/src/**` (see the mapping in
+The JS replacements **do exist** at `stock-api/src/**` (see the mapping in
 **Appendix A**). So the fix is a **repoint + reshape**, not a rebuild.
 
 **Blast radius** — every GitHub-invoked skill that lists a missing script is currently
@@ -90,9 +90,9 @@ to `/tmp`, run `python3 /tmp/x.py`". The migrated JS **cannot** work this way �
 use relative requires and depend on the whole package graph + npm deps:
 
 ```js
-// packages/stock-api/src/fetchers/documentsFetcher.js
+// stock-api/src/fetchers/documentsFetcher.js
 const { stockscans } = require('../index');           // pulls the entire @stock/api graph
-// packages/stock-api/src/generators/generateReport.js
+// stock-api/src/generators/generateReport.js
 const { renderPdf } = require('../utils/pdfRenderer'); // + puppeteer (Chromium download)
 ```
 
@@ -103,7 +103,7 @@ in §5.**
 
 ### 2c. No unified local-vs-remote or data-fallback contract
 
-- Cowork-jobs skills locate code with `find /sessions … -name cowork-jobs` (local only, no
+- Cowork-jobs skills locate code with `find /sessions … -name jobs` (local only, no
   GitHub fallback). GitHub-invoked skills fetch from GitHub (remote only, no local-first).
   Neither honors "local-first when project in context, remote otherwise."
 - Data access is ad-hoc per skill via env vars (`COWORK_DATA_DIR`, `GAINERS_OUTPUT_DIR`,
@@ -121,7 +121,7 @@ in §5.**
 | I2 | `.env` not found / wrong session | `data/.env` was a **symlink to a dead sandbox path**; worked around by repointing `COWORK_ENV` | ≥1 run, recurring risk |
 | I3 | Job hangs indefinitely | Google Drive **API** OAuth call never resolves in the sandbox (no timeout/abort); had to disable Drive sync | watchlist-insights runs |
 | I4 | Structural scoring incomplete | NSE delivery bhavcopy **not yet published** at run time (`deliveryConfirmed:0, deliveryPending:true`); no retry/defer | Time-sensitive runs |
-| I5 | Stray files committed by agents | `process_watchlist.js`, mislocated `notes/` dir left in `packages/cowork-jobs/` | Multiple runs |
+| I5 | Stray files committed by agents | `process_watchlist.js`, mislocated `notes/` dir left in `jobs/` | Multiple runs |
 | I6 | Subagent shortcut | Batch PDF read instead of per-PDF, silently lowering insight quality | ≥1 run |
 
 These are the "issues related to task execution" to fix. I1–I4 are the blockers; I5–I6 are
@@ -129,8 +129,8 @@ hygiene.
 
 ### 2e. Data layout today
 
-Canonical data is **files** under `packages/cowork-jobs/data/` (git-ignored), mirrored to
-Drive `StockMarket/cowork-jobs/v1/` via `lib/driveDataStore.js` (local-mount or API
+Canonical data is **files** under `jobs/data/` (git-ignored), mirrored to
+Drive `StockMarket/jobs/v1/` via `lib/driveDataStore.js` (local-mount or API
 transport, sha256-indexed, `documents.jsonl` manifest). Formats: **JSON** (notes, gainers,
 insights, ledgers, proposals), **CSV** (NSE delivery bhavcopy, one file/day), a JSON
 scrip-code cache. `docs/COWORK_DRIVE_DATA.md` already describes a good partitioned target
@@ -167,7 +167,7 @@ stockmarket/  (monorepo, Node-only execution)
       dist-skills/                 # NEW (generated): esbuild single-file bundles per skill entrypoint
       data-store/                  # NEW: DataStore facade (local-first → Drive), format adapters
       python/                      # DELETE after cutover (only skill_manager + orchestrate remain)
-    cowork-jobs/                   # 4 scheduled jobs (JS, exists) — consume @stock/api + DataStore
+    jobs/                   # 4 scheduled jobs (JS, exists) — consume @stock/api + DataStore
   skills/
     _shared/
       conventions.md               # NEW: create (referenced but missing)
@@ -201,7 +201,7 @@ ranked:
 
 | Strategy | How | Pros | Cons | Verdict |
 |---|---|---|---|---|
-| **A. Sparse/whole clone** | Skill runs `git clone --depth 1 https://github.com/darshan0919/stockmarket /tmp/sm && cd packages/stock-api && npm ci` on first use; cache for the session | Real code, always current, requires work as-is | ~node_modules install cost; puppeteer Chromium download | **Fallback / heavy skills** |
+| **A. Sparse/whole clone** | Skill runs `git clone --depth 1 https://github.com/darshan0919/stockmarket /tmp/sm && cd stock-api && npm ci` on first use; cache for the session | Real code, always current, requires work as-is | ~node_modules install cost; puppeteer Chromium download | **Fallback / heavy skills** |
 | **B. Single-file bundles** | `esbuild` bundles each skill entrypoint (`bin/<skill>.js`) into `dist-skills/<skill>.cjs` with deps inlined; committed to repo; invoker curls the **one** bundle to `/tmp` and `node`s it | Keeps the invoker's simple "one file to /tmp" model; fast; no npm install | Must regen bundles on change (CI); native deps (puppeteer) can't be bundled | **Primary for API/analyzer skills** |
 | **C. Publish npm package** | `npm publish @stock/api`; skills `npx @stock/api <cmd>` | Standard | Public package, version churn, still needs Chromium for PDFs | Not now |
 
@@ -216,7 +216,7 @@ Give every skill a real CLI so "run the script" is well-defined and identical ac
 environments. Example:
 
 ```js
-// packages/stock-api/bin/concall-analysis.js
+// stock-api/bin/concall-analysis.js
 #!/usr/bin/env node
 const { fetchDocuments } = require('../src/fetchers/documentsFetcher');
 const { generateConcallPdf } = require('../src/generators/generateConcallPdf');
@@ -235,7 +235,7 @@ Skills stop hand-writing `find` blocks. Instead they source one contract (commit
 ```bash
 # 1. Is the stockmarket project in local context?
 SM_LOCAL="$(find /sessions -maxdepth 6 -type d -name 'stock-api' -path '*packages/*' 2>/dev/null \
-            | grep -v node_modules | head -1 | sed 's#/packages/stock-api##')"
+            | grep -v node_modules | head -1 | sed 's#/stock-api##')"
 if [ -n "$SM_LOCAL" ] && [ -d "$SM_LOCAL/.git" ]; then
   MODE=local;  SKILL_ROOT="$SM_LOCAL"          # in-project → local-first
 else
@@ -244,7 +244,7 @@ fi
 
 # 2. Resolve the skill entrypoint
 if [ "$MODE" = local ]; then
-  ENTRY="$SKILL_ROOT/packages/stock-api/bin/<skill>.js"      # prefer local code
+  ENTRY="$SKILL_ROOT/stock-api/bin/<skill>.js"      # prefer local code
   [ -f "$ENTRY" ] || MODE=remote                             # fall back if absent
 fi
 if [ "$MODE" = remote ]; then
@@ -284,7 +284,7 @@ on `main`. **This class of bug (2a) never recurs** once the check is in CI.
 
 ## 6. Data-resolution contract (local-first → Drive)
 
-Introduce one **`DataStore`** facade (`packages/stock-api/data-store/DataStore.js`) that all
+Introduce one **`DataStore`** facade (`stock-api/data-store/DataStore.js`) that all
 skills and jobs use instead of ad-hoc `fs` + env vars. API sketch:
 
 ```js
@@ -297,7 +297,7 @@ store.locate(key);          // returns { local, drive, source } without reading
 ```
 
 Resolution order inside `read()`:
-1. **Local** (`projectRoot/packages/cowork-jobs/data/**` when project in context, else the
+1. **Local** (`projectRoot/jobs/data/**` when project in context, else the
    session data dir) — **first** (MVP #4).
 2. **Drive** (mounted folder → API) — fallback (MVP #2, #5).
 3. Miss → typed `NotFound` (caller decides: refetch from API, or skip).
@@ -344,7 +344,7 @@ depth.** A leaked Drive link then yields only ciphertext, and the token is least
 ### 7b. Where secrets live
 
 ```
-StockMarket/cowork-jobs/v1/_secrets/.env.age      # AES/age-encrypted, NEVER in the catalog
+StockMarket/jobs/v1/_secrets/.env.age      # AES/age-encrypted, NEVER in the catalog
 ```
 - `_secrets/` is **excluded** from `documents.jsonl`, from any shareable data export, and
   from git (it's on Drive, not in the repo). Sharing the *workflow* (code + non-secret data)
@@ -422,7 +422,7 @@ WHERE month BETWEEN 5 AND 7 GROUP BY symbol HAVING avg(delivery_pct) > 70;
 
 **Layout (Hive-partitioned, extends `docs/COWORK_DRIVE_DATA.md`):**
 ```
-StockMarket/cowork-jobs/v1/
+StockMarket/jobs/v1/
   _meta/{database.json, documents.jsonl, schemas/*.json}
   nse-delivery/year=YYYY/month=MM/day=DD.parquet
   gainers/year=YYYY/month=MM/day=DD/{gainers.parquet, insights.json}
@@ -466,7 +466,7 @@ every registry skill has at least a resolvability test + a smoke test.**
 - `verify-registry.js`: for every skill in `registry.json`, assert `entry` + every
   `modules`/`references` path **exists on disk AND on `origin/main`** (`git ls-tree`).
 - Assert `registry.json` is byte-identical to `gen-registry.js` output (no drift).
-- Assert no reference points at `packages/stock-api/python/**` (migration guard).
+- Assert no reference points at `stock-api/python/**` (migration guard).
 - **Acceptance:** 0 missing paths; this test would currently FAIL (catches §2a) → passes
   after Phase 1.
 
@@ -502,7 +502,7 @@ every registry skill has at least a resolvability test + a smoke test.**
   (parity for §8c).
 
 ### T5 — `@stock/api` client + generator units (extend existing)
-- Existing fixture-based client tests stay green (`packages/stock-api/test/*`).
+- Existing fixture-based client tests stay green (`stock-api/test/*`).
 - Each generator: given a fixture input, produces a non-empty PDF/HTML and a valid result
   JSON; PDF page-1 renders without clipping (the "visual inspection" rule, automated via a
   render-and-measure check).
@@ -532,16 +532,16 @@ scheduled task until its Node path passes a manual run (protects the daily email
 **Phase 0 — Safety net & discovery (no behavior change).**
 - Add `verify-registry.js` (T1) and run it → confirms the 19 missing paths. Commit it
   *failing-allowed* or as a report first.
-- Inventory `packages/stock-api/src/**` vs registry; produce the Appendix A mapping as a
+- Inventory `stock-api/src/**` vs registry; produce the Appendix A mapping as a
   checked-in `MIGRATION_MAP.md`.
 - Create `skills/_shared/conventions.md` (currently referenced-but-missing).
-- Clean the stray files (I5): remove `packages/cowork-jobs/process_watchlist.js` and the
+- Clean the stray files (I5): remove `jobs/process_watchlist.js` and the
   mislocated `notes/` dir; add `.gitignore` guards.
 
 **Phase 1 — Registry repoint + entrypoints.**
 - Author `registry.manifest.json`; write `gen-registry.js`; generate `registry.json` with
   **JS paths** (Appendix A) + per-skill `entry`/`mode`.
-- Add `packages/stock-api/bin/<skill>.js` for every skill that has a script (thin argv→module
+- Add `stock-api/bin/<skill>.js` for every skill that has a script (thin argv→module
   CLIs, JSON result to stdout).
 - Update each skill's `scripts`/`references` arrays. `verify-registry.js` (T1) now **passes**.
 - **Gate:** T1 + T2 green.
@@ -563,7 +563,7 @@ scheduled task until its Node path passes a manual run (protects the daily email
 - **Gate:** T3 + T4 green (incl. I1/I2/I3 regression tests).
 
 **Phase 4 — Skills → Node contract + data storage.**
-- Rewrite the 4 cowork-jobs SKILL.md and the report-skill SKILL.md to source
+- Rewrite the 4 jobs SKILL.md and the report-skill SKILL.md to source
   `skills/_shared/resolve.sh` and call `bin/<skill>.js` (drop the `find` blocks).
 - Land the §8 storage refactor: format adapters, `migrate-data.js`, DuckDB catalog; keep
   `_archive/` originals one cycle.
@@ -572,7 +572,7 @@ scheduled task until its Node path passes a manual run (protects the daily email
 - **Gate:** T5 + T6 + one clean T7 per job.
 
 **Phase 5 — Decommission + verify.**
-- Delete `packages/stock-api/python/**` (or move to `legacy/` one cycle); remove `python3`
+- Delete `stock-api/python/**` (or move to `legacy/` one cycle); remove `python3`
   from every path. Port/retire `orchestrate.py` and `skill_manager/*.py` to Node (they were
   outside the earlier migration — see Appendix A note).
 - Full `yarn test`; archive parity diffs; update `docs/` (ARCHITECTURE, COWORK_DRIVE_DATA,
@@ -632,7 +632,7 @@ scheduled task until its Node path passes a manual run (protects the daily email
 ## Appendix A — Registry Python → JavaScript mapping
 
 Registry currently references the left column (missing on `main`); repoint to the right
-(exists at `packages/stock-api/src/**`). "Used by" lists the dependent skills.
+(exists at `stock-api/src/**`). "Used by" lists the dependent skills.
 
 | Registry ref (dead Python) | Target JS module (exists) | Used by |
 |---|---|---|

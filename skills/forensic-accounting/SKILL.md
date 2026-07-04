@@ -32,7 +32,7 @@ TICKER="NSE:SWARAJENG"            # replace with actual
 SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_forensic_docs"
 
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t "Annual Report" --last-n 3 -o "$DOCS_DIR"
 ```
 
@@ -115,7 +115,7 @@ This skill is invoked by:
 - `equity-research-master` (Tab 7 Forensics consumes the schema this skill produces)
 - `consecutive-filings-diff` Phase 1 forensic backbone references the same threshold table
 
-When called from another skill, set `output_format="schema"` instead of `"pdf"` — the calling skill will render. See [`packages/stock-api/src/generators/generateForensicPdf.js`](packages/stock-api/src/generators/generateForensicPdf.js) for the schema definition.
+When called from another skill, set `output_format="schema"` instead of `"pdf"` — the calling skill will render. See [`stock-api/src/generators/generateForensicPdf.js`](stock-api/src/generators/generateForensicPdf.js) for the schema definition.
 
 ## Pitfalls to avoid
 

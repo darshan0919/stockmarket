@@ -76,7 +76,7 @@ SAFE=$(echo "$TICKER" | tr ':' '_')
 OUT_DIR="/tmp/${SAFE}_shiftscan"
 START=$(date -d '7 days ago' +%Y-%m-%d)   # or `date -v-7d` on macOS
 
-python3 packages/stock-api/python/fetchers/fetch_announcements.py \
+python3 stock-api/python/fetchers/fetch_announcements.py \
     "$TICKER" --start "$START" --max-pages 5 -o "$OUT_DIR"
 ```
 

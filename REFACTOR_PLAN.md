@@ -127,7 +127,7 @@ so they share the package via the workspace (no cross-repo copy drift):
 ```
 stockmarket/
   packages/
-    cowork-jobs/
+    jobs/
       package.json            # depends on @stock/api
       watchlistInsights.js    # was watchlist_insights.py
       watchlistUpdater.js     # was watchlist_updater.py
@@ -167,7 +167,7 @@ in the Node job, judgment/synthesis in the skill prompt):
 ```
 <skill-name>/
   SKILL.md          # parameterized: accepts inputs with documented defaults
-  scripts/ → thin wrapper that calls packages/cowork-jobs/<job>.js
+  scripts/ → thin wrapper that calls jobs/<job>.js
 ```
 
 - **SKILL.md** declares **parameters with defaults** (e.g. `watchlistId`,
@@ -209,7 +209,7 @@ The skills are Python; rewriting them all to Node is unnecessary churn. So keep 
 the **same Phase-0 contract**:
 
 ```
-packages/stock-api/
+stock-api/
   src/…                 # JS clients (local projects)
   python/
     stockscans_client.py  # canonical Python port — single source for skills
@@ -251,7 +251,7 @@ no skill breaks mid-migration.
 ## 5. Phased execution
 
 **Phase 0 — Scaffold & contract (no behavior change).**
-Stand up `packages/stock-api` skeleton + jest. Write a one-page **endpoint
+Stand up `stock-api` skeleton + jest. Write a one-page **endpoint
 contract** (URL, method, headers, params, response shape) for every Stockscans /
 NSE / BSE call found in both codebases — this is the spec the clients implement and
 the test fixtures assert against.
@@ -268,7 +268,7 @@ with package calls (keep export names). Run the existing backend jest suite — 
 before/after is the acceptance gate.
 
 **Phase 3 — Port the cowork jobs to Node.**
-Rewrite the 4 Python scripts as `packages/cowork-jobs/*.js` on top of `@stock/api`,
+Rewrite the 4 Python scripts as `jobs/*.js` on top of `@stock/api`,
 preserving every subcommand. Delete the inline/duplicated Stockscans+NSE+BSE code.
 Diff a real run (Python vs Node) on the same day's data for parity.
 
@@ -366,7 +366,7 @@ fixtures, switch one consumer at a time behind tests. Left as a scoped, test-gat
 follow-up.
 
 **(4b) Vendor the Python client into cloud skills: BLOCKED on repo access.**
-`packages/stock-api/sync-skills.js` is ready and tested. It must run against your
+`stock-api/sync-skills.js` is ready and tested. It must run against your
 skill **source** repo (`node sync-skills.js --skills-root <dir>`), which isn't
 reachable from here — the marketplace skill cache is read-only. Run it where you
 author skills; add `--check` to CI.
@@ -376,7 +376,7 @@ author skills; add `--check` to CI.
 ## 6b. Implementation status (2026-06-27)
 
 **Phase 4 — tasks → skills: DONE (skills authored + all 4 task prompts repointed).**
-Four parameterized skills live in `packages/cowork-jobs/skills/<name>/SKILL.md`:
+Four parameterized skills live in `jobs/skills/<name>/SKILL.md`:
 `watchlist-sync` and `insight-validation` (thin — the Node job does everything),
 `watchlist-insights` and `gainers-signal` (script-first: deterministic job + the
 model-judgment steps that used to live in the task prompt). Each documents its
@@ -407,12 +407,12 @@ other two jobs). 51 job tests still green.
    write/email paths (the in-sandbox verification only exercised read paths).
 
 **Phase 4b — vendor the Python client into cloud skills (pending your skill repo).**
-`packages/stock-api/sync-skills.js` is ready; run it against your skill sources:
+`stock-api/sync-skills.js` is ready; run it against your skill sources:
 `node sync-skills.js --skills-root <dir>` (then `--check` as a CI gate). Can't run from
 here — the skill cache is read-only.
 
-**Phase 3 — cowork jobs port: COMPLETE (4 of 4 jobs).** New `packages/cowork-jobs`
-workspace (`@stock/cowork-jobs`): dependency-free `.env` loader + `emailService`
+**Phase 3 — cowork jobs port: COMPLETE (4 of 4 jobs).** New `jobs`
+workspace (`@stock/jobs`): dependency-free `.env` loader + `emailService`
 (nodemailer lazy-loaded → imports fine without it).
 
 - `watchlist_updater.py` → `watchlistUpdater.js` — 1:1 behaviour + `--dry-run`.
@@ -446,10 +446,10 @@ workspace (`@stock/cowork-jobs`): dependency-free `.env` loader + `emailService`
   makeProposals, categoryFromTags, titleInfoDensity, quality review) **numerically
   identical to the Python** on shared fixtures.
 
-**51 cowork-jobs tests green; backend adapters 21 green; package 13 green.** A
+**51 jobs tests green; backend adapters 21 green; package 13 green.** A
 runaway-pagination bug (would OOM) was found and guarded during the insights port.
 Note: only deterministic/mocked parity is provable in-sandbox; live API-response
-parity needs the token + network. Phase 3 is the cowork-jobs *code* port; wiring the
+parity needs the token + network. Phase 3 is the jobs *code* port; wiring the
 scheduled tasks to invoke these via skills is Phase 4.
 
 **Phase 2 — backend cutover: DONE & green.** The backend's `api/nseIndiaApi.js`,
@@ -467,7 +467,7 @@ of the changed modules. Package suite: 13 tests green.
 **Done — the keystone `@stock/api` package is built and green** (Phases 0–1, plus
 the skill-vendoring tooling), all additive/non-breaking:
 
-- `stockmarket/packages/stock-api/` registered as a yarn workspace (`packages/*`);
+- `stockmarket/stock-api/` registered as a yarn workspace (`packages/*`);
   `@stock/api` added to the backend's deps.
 - Shared layer: `HttpClient`, `NseSession` (cookie warmup, instance-scoped),
   `bseHttp` (fetch), unified `StockscansAuth` (`STOCKSCANS_AUTH_TOKEN` + legacy
@@ -489,7 +489,7 @@ the skill-vendoring tooling), all additive/non-breaking:
    fundamental NSE/BSE consumers (announcements, financial results, upcoming) onto
    Stockscans is a behavior change needing parity tests — tracked, not yet done.
 2. **Cowork jobs (Phase 3):** port the 4 Python scripts to
-   `packages/cowork-jobs/*.js`; parity-diff vs Python.
+   `jobs/*.js`; parity-diff vs Python.
 3. **Tasks → skills (Phase 4) + vendor into cloud skills (Phase 4b):** run
    `sync-skills.js` against your skill source repo; switch skills to
    `STOCKSCANS_AUTH_TOKEN`; delete their hand-rolled HTTP/token code.

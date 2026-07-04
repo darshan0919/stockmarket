@@ -43,7 +43,7 @@ Both scripts auto-decode the JWT's `exp` claim and warn if expiry is within 7 da
 ## Running the documents script
 
 ```
-python3 packages/stock-api/python/fetchers/fetch_documents.py <TICKER> [options]
+python3 stock-api/python/fetchers/fetch_documents.py <TICKER> [options]
 ```
 
 Common flags:
@@ -52,7 +52,7 @@ Common flags:
 - `--start-date`, `--end-date`: `YYYY` or `YYYYMM`. `YYYY` for `--start-date` pads to Jan; for `--end-date` pads to Dec. So `--start-date 2024 --end-date 2025` covers Jan-2024 → Dec-2025 across all types.
 - `--year YYYY`: shorthand for `--start-date YYYY --end-date YYYY`.
 - `--last-n N`: keep only the N most recent matches. If multiple `--types` are passed, this is per type (so `--types Transcript PPT --last-n 2` returns 2 of each).
-- `-o, --output-dir`: where PDFs and `manifest.json` go. Defaults to `./stock_documents`. **For research workflows that pass documents to other skills, save to `/mnt/project/packages/cowork-jobs/data/agent-outputs/<ticker>_docs/` so downstream skills can find them.**
+- `-o, --output-dir`: where PDFs and `manifest.json` go. Defaults to `./stock_documents`. **For research workflows that pass documents to other skills, save to `/mnt/project/jobs/data/agent-outputs/<ticker>_docs/` so downstream skills can find them.**
 - `--list-only`: print matches without downloading. Useful for previewing.
 - `--manifest-only`: print the JSON manifest to stdout (helps another skill ingest the result programmatically).
 
@@ -76,33 +76,33 @@ If you want annual reports for a single FY by name, the cleanest approach is `--
 
 Last 4 quarterly transcripts:
 ```
-python3 packages/stock-api/python/fetchers/fetch_documents.py NSE:BSE -t Transcript --last-n 4 -o /mnt/project/packages/cowork-jobs/data/agent-outputs/bse_docs
+python3 stock-api/python/fetchers/fetch_documents.py NSE:BSE -t Transcript --last-n 4 -o /mnt/project/jobs/data/agent-outputs/bse_docs
 ```
 
 Last 5 annual reports (FY21–FY25):
 ```
-python3 packages/stock-api/python/fetchers/fetch_documents.py NSE:SWARAJENG -t "Annual Report" --start-date 2021 --end-date 2025
+python3 stock-api/python/fetchers/fetch_documents.py NSE:SWARAJENG -t "Annual Report" --start-date 2021 --end-date 2025
 ```
 
 All four document types since the start of FY26:
 ```
-python3 packages/stock-api/python/fetchers/fetch_documents.py NSE:BSE -t Transcript PPT Result "Annual Report" --start-date 202504
+python3 stock-api/python/fetchers/fetch_documents.py NSE:BSE -t Transcript PPT Result "Annual Report" --start-date 202504
 ```
 
 Single-quarter snapshot (Q2 FY26 only):
 ```
-python3 packages/stock-api/python/fetchers/fetch_documents.py NSE:BSE -t PPT Result Transcript --start-date 202509 --end-date 202509
+python3 stock-api/python/fetchers/fetch_documents.py NSE:BSE -t PPT Result Transcript --start-date 202509 --end-date 202509
 ```
 
 Preview without downloading:
 ```
-python3 packages/stock-api/python/fetchers/fetch_documents.py NSE:BSE -t Result --last-n 8 --list-only
+python3 stock-api/python/fetchers/fetch_documents.py NSE:BSE -t Result --last-n 8 --list-only
 ```
 
 ## Running the announcements script
 
 ```
-python3 packages/stock-api/python/fetchers/fetch_announcements.py <TICKER> [options]
+python3 stock-api/python/fetchers/fetch_announcements.py <TICKER> [options]
 ```
 
 Use this for anything outside the four standardised types — corporate actions, board changes, takeover disclosures, credit-rating updates, ESOPs, AGM notices, regulatory orders, etc.
@@ -119,23 +119,23 @@ Common flags:
 
 Anything mentioning "merger":
 ```
-python3 packages/stock-api/python/fetchers/fetch_announcements.py NSE:BSE --search merger --max-pages 10 -o /mnt/project/packages/cowork-jobs/data/agent-outputs/bse_ann
+python3 stock-api/python/fetchers/fetch_announcements.py NSE:BSE --search merger --max-pages 10 -o /mnt/project/jobs/data/agent-outputs/bse_ann
 ```
 
 Buybacks OR dividends in 2025:
 ```
-python3 packages/stock-api/python/fetchers/fetch_announcements.py NSE:BSE --search 'buyback|dividend' \
+python3 stock-api/python/fetchers/fetch_announcements.py NSE:BSE --search 'buyback|dividend' \
     --start 2025-01-01 --end 2025-12-31 --max-pages 30
 ```
 
 Two-term AND search (rating changes by CRISIL specifically):
 ```
-python3 packages/stock-api/python/fetchers/fetch_announcements.py NSE:BSE --search rating --search CRISIL --max-pages 20
+python3 stock-api/python/fetchers/fetch_announcements.py NSE:BSE --search rating --search CRISIL --max-pages 20
 ```
 
 Just preview:
 ```
-python3 packages/stock-api/python/fetchers/fetch_announcements.py NSE:BSE --search ESOP --list-only
+python3 stock-api/python/fetchers/fetch_announcements.py NSE:BSE --search ESOP --list-only
 ```
 
 ## Manifest format (for downstream skills)
@@ -195,7 +195,7 @@ Same shape but with announcement-level fields (`title`, `description`, `companyK
 ## Output destination convention
 
 - For one-off interactive use, default `./stock_documents/` is fine.
-- When invoked **by another skill** (the common case), save to `/mnt/project/packages/cowork-jobs/data/agent-outputs/<safe_ticker>_docs/` so the downstream skill can read both the PDFs and the manifest from a stable, predictable path. Pass that path back via the manifest so the calling skill can locate everything in one shot.
+- When invoked **by another skill** (the common case), save to `/mnt/project/jobs/data/agent-outputs/<safe_ticker>_docs/` so the downstream skill can read both the PDFs and the manifest from a stable, predictable path. Pass that path back via the manifest so the calling skill can locate everything in one shot.
 
 ## Failure modes & how to handle them
 

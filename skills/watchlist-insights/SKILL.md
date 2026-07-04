@@ -22,7 +22,7 @@ The 24h window and the two watchlists (Near Highs + Radar) are baked into the jo
 ## Setup
 
 ```bash
-JOB=$(find /sessions -path '*cowork-jobs/watchlistInsights.js' 2>/dev/null | head -1)
+JOB=$(find /sessions -path '*jobs/watchlistInsights.js' 2>/dev/null | head -1)
 DATA=$(find /sessions -name 'company_notes.json' 2>/dev/null | head -1 | xargs -0 dirname 2>/dev/null \
         || find /sessions -path '*Company Research*' -name '.env' 2>/dev/null | head -1 | xargs dirname)
 export WI_DATA_DIR="$DATA" WI_NOTES_DIR="$DATA/notes" WI_VALIDATION_DIR="$DATA/validation" COWORK_ENV="$DATA/.env"

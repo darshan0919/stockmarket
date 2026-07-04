@@ -41,7 +41,7 @@ function generateInvokerTable(manifest) {
     if (skill.mode === 'bundle') {
       newTable += `| \`dist-skills/${skillName}.cjs\` (bundle) | \`/tmp/${skillName}.cjs\` |\n`;
     } else if (skill.mode === 'clone') {
-      newTable += `| \`${skill.entry}\` (clone) | \`/tmp/sm-clone/packages/stock-api/bin/${skillName}.js\` |\n`;
+      newTable += `| \`${skill.entry}\` (clone) | \`/tmp/sm-clone/stock-api/bin/${skillName}.js\` |\n`;
     }
   }
   

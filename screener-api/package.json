@@ -1,0 +1,36 @@
+{
+  "name": "screener-api",
+  "version": "1.0.0",
+  "description": "Stock Screener Backend API",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "extract-institutional-prompts": "node scripts/extractInstitutionalPrompts.js",
+    "test": "jest --coverage --verbose",
+    "test:watch": "jest --watch",
+    "format": "prettier --write \"**/*.{js,json}\"",
+    "format:check": "prettier --check \"**/*.{js,json}\""
+  },
+  "dependencies": {
+    "@stock/api": "workspace:*",
+    "archiver": "^7.0.1",
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "joi": "^17.10.0",
+    "mongoose": "^7.0.0",
+    "multer": "^2.1.1",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.2.0",
+    "nodemon": "^3.0.1",
+    "parse-xbrl": "^1.1.5",
+    "pdf-parse": "^1.1.1",
+    "prettier": "^3.2.5",
+    "supertest": "^7.1.4"
+  }
+}

@@ -75,5 +75,5 @@ Nine steps, run in order — each gates or feeds the next. A company that fails 
 ## Dependencies
 
 - `stock-documents-fetcher` (sibling skill) — used in Steps 1–3 to fetch results, transcripts, PPTs, and in Step 6 to pull any broker/research PDFs the user supplies.
-- Analyzer helpers in `packages/stock-api/src/analyzers/`: `runScan.js` (`resolveUniverse` with the built-in liquidity gate) and `postEventReturns.js` (forward drift from price history + event dates).
+- Analyzer helpers in `stock-api/src/analyzers/`: `runScan.js` (`resolveUniverse` with the built-in liquidity gate) and `postEventReturns.js` (forward drift from price history + event dates).
 - A valid Stockscans `authtoken` — resolved from `--authtoken-file`, `STOCKSCANS_AUTHTOKEN`, or `/mnt/project/Stockscans_authtoken`. On a 401/403 the token expired — ask the user to refresh it from the browser.

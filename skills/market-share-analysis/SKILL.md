@@ -72,7 +72,7 @@ TICKER="NSE:<SYMBOL>"
 SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_msa_docs"
 
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t "Annual Report" PPT --last-n 2 -o "$DOCS_DIR"
 ```
 
@@ -152,9 +152,9 @@ bash ./skills/_shared/resolve.sh $(basename $(dirname skills/market-share-analys
 bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "<Company>_Output.pdf"
 ```
 
-See [`packages/stock-api/src/generators/generateMarketShareHtml.js`](packages/stock-api/src/generators/generateMarketShareHtml.js).
+See [`stock-api/src/generators/generateMarketShareHtml.js`](stock-api/src/generators/generateMarketShareHtml.js).
 
-The HTML widget is the only shipped renderer. If a printed committee version is later needed, the same `data` dict can be adapted into `peer-comparison`'s ReportLab pipeline (`../packages/stock-api/python/utils/pdf_utils.py` carries the same palette) — that's a one-off adaptation, not a built-in path.
+The HTML widget is the only shipped renderer. If a printed committee version is later needed, the same `data` dict can be adapted into `peer-comparison`'s ReportLab pipeline (`../stock-api/python/utils/pdf_utils.py` carries the same palette) — that's a one-off adaptation, not a built-in path.
 
 ### Phase 6 — Present
 

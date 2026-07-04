@@ -27,7 +27,7 @@ TICKER="NSE:SWARAJENG"            # replace with actual ticker
 SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_triggers_docs"
 
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t "Annual Report" Transcript PPT Result \
     --last-n 2 \
     -o "$DOCS_DIR"
@@ -86,7 +86,7 @@ bash ./skills/_shared/resolve.sh $(basename $(dirname skills/growth-triggers-1pa
 bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "<Company>_Output.pdf"
 ```
 
-Script at [`packages/stock-api/src/generators/generatePdf.js`](packages/stock-api/src/generators/generatePdf.js). Shares palette/helpers with `../packages/stock-api/python/utils/pdf_utils.py`. **PDF must fit on 1 page.** If it spills: cut trigger body text, not triggers. Drop to 5 triggers if still tight.
+Script at [`stock-api/src/generators/generatePdf.js`](stock-api/src/generators/generatePdf.js). Shares palette/helpers with `../stock-api/python/utils/pdf_utils.py`. **PDF must fit on 1 page.** If it spills: cut trigger body text, not triggers. Drop to 5 triggers if still tight.
 
 ## Conventions & pitfalls
 

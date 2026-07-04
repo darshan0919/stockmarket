@@ -3,9 +3,10 @@
   "private": true,
   "packageManager": "yarn@3.8.7",
   "workspaces": [
-    "backend",
-    "frontend",
-    "packages/*"
+    "screener-api",
+    "screener-web",
+    "stock-api",
+    "jobs"
   ],
   "resolutions": {
     "react": "18.3.1",
@@ -14,23 +15,23 @@
   },
   "description": "Stock Screener monorepo (Yarn 3 workspaces)",
   "scripts": {
-    "dev": "concurrently -n backend,frontend -c cyan,magenta \"yarn workspace stock-screener-backend dev\" \"yarn workspace stock-screener-frontend dev\"",
-    "build": "yarn workspace stock-screener-frontend build",
-    "start": "concurrently -n backend,frontend -c cyan,magenta \"yarn workspace stock-screener-backend start\" \"yarn workspace stock-screener-frontend start\"",
-    "seed": "node backend/scripts/fetchData.js",
+    "dev": "concurrently -n api,web -c cyan,magenta \"yarn workspace screener-api dev\" \"yarn workspace screener-web dev\"",
+    "build": "yarn workspace screener-web build",
+    "start": "concurrently -n api,web -c cyan,magenta \"yarn workspace screener-api start\" \"yarn workspace screener-web start\"",
+    "seed": "node screener-api/scripts/fetchData.js",
     "deploy:local": "yarn build && yarn start",
-    "test": "yarn workspace stock-screener-backend test && yarn workspace stock-screener-frontend test",
-    "format": "yarn workspace stock-screener-backend format && yarn workspace stock-screener-frontend format",
-    "cowork:data:doctor": "yarn workspace @stock/cowork-jobs data:doctor",
-    "cowork:data:init": "yarn workspace @stock/cowork-jobs data:init",
-    "cowork:data:pull": "yarn workspace @stock/cowork-jobs data:pull",
-    "cowork:data:push": "yarn workspace @stock/cowork-jobs data:push",
-    "cowork:data:sync": "yarn workspace @stock/cowork-jobs data:sync",
-    "cowork:data:manifest": "yarn workspace @stock/cowork-jobs data:manifest",
-    "cowork:data:auth": "yarn workspace @stock/cowork-jobs data:auth",
-    "cowork:data:offload": "yarn workspace @stock/cowork-jobs data:offload",
+    "test": "yarn workspace screener-api test && yarn workspace screener-web test",
+    "format": "yarn workspace screener-api format && yarn workspace screener-web format",
+    "cowork:data:doctor": "yarn workspace @stock/jobs data:doctor",
+    "cowork:data:init": "yarn workspace @stock/jobs data:init",
+    "cowork:data:pull": "yarn workspace @stock/jobs data:pull",
+    "cowork:data:push": "yarn workspace @stock/jobs data:push",
+    "cowork:data:sync": "yarn workspace @stock/jobs data:sync",
+    "cowork:data:manifest": "yarn workspace @stock/jobs data:manifest",
+    "cowork:data:auth": "yarn workspace @stock/jobs data:auth",
+    "cowork:data:offload": "yarn workspace @stock/jobs data:offload",
     "cowork:data:stockscans-ppts": "node scripts/fetchStockscansPpts.js && node scripts/extractPptText.js",
-    "cowork:jobs:ca-digest": "yarn workspace @stock/cowork-jobs ca-digest"
+    "cowork:jobs:ca-digest": "yarn workspace @stock/jobs ca-digest"
   },
   "devDependencies": {
     "@duckdb/node-api": "^1.5.4-r.1",

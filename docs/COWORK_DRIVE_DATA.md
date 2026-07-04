@@ -25,13 +25,13 @@ djplearner@gmail.com
 Default Drive database root:
 
 ```text
-StockMarket/cowork-jobs/v1
+StockMarket/jobs/v1
 ```
 
 When Google Drive for Desktop is mounted on macOS, the full path is usually:
 
 ```text
-~/Library/CloudStorage/GoogleDrive-djplearner@gmail.com/My Drive/StockMarket/cowork-jobs/v1
+~/Library/CloudStorage/GoogleDrive-djplearner@gmail.com/My Drive/StockMarket/jobs/v1
 ```
 
 If auto-detection does not find it, set `COWORK_DRIVE_ROOT` explicitly.
@@ -41,13 +41,13 @@ If auto-detection does not find it, set `COWORK_DRIVE_ROOT` explicitly.
 The jobs keep using the existing local layout under:
 
 ```text
-packages/cowork-jobs/data
+jobs/data
 ```
 
 The Drive store maps those files into a partitioned structure:
 
 ```text
-StockMarket/cowork-jobs/v1/
+StockMarket/jobs/v1/
   _meta/
     database.json
     documents.jsonl
@@ -135,12 +135,12 @@ yarn cowork:data:manifest
 Or from the workspace:
 
 ```bash
-yarn workspace @stock/cowork-jobs data:doctor
-yarn workspace @stock/cowork-jobs data:init
-yarn workspace @stock/cowork-jobs data:pull
-yarn workspace @stock/cowork-jobs data:push
-yarn workspace @stock/cowork-jobs data:sync
-yarn workspace @stock/cowork-jobs data:manifest
+yarn workspace @stock/jobs data:doctor
+yarn workspace @stock/jobs data:init
+yarn workspace @stock/jobs data:pull
+yarn workspace @stock/jobs data:push
+yarn workspace @stock/jobs data:sync
+yarn workspace @stock/jobs data:manifest
 ```
 
 Use `data:doctor` first. If `driveRoot` is `null` or `driveRootExists` is `false`, mount
@@ -148,12 +148,12 @@ Google Drive for Desktop or set `COWORK_DRIVE_ROOT`.
 
 ## Environment
 
-`packages/cowork-jobs/data/.env.example` contains the Drive settings:
+`jobs/data/.env.example` contains the Drive settings:
 
 ```bash
 COWORK_DRIVE_EMAIL=djplearner@gmail.com
 COWORK_DRIVE_SYNC=1
-# COWORK_DRIVE_ROOT=/absolute/path/to/Google Drive/StockMarket/cowork-jobs/v1
+# COWORK_DRIVE_ROOT=/absolute/path/to/Google Drive/StockMarket/jobs/v1
 # COWORK_DRIVE_LOG=1
 # COWORK_DRIVE_STRICT=1
 ```
@@ -161,7 +161,7 @@ COWORK_DRIVE_SYNC=1
 Recommended job exports:
 
 ```bash
-export COWORK_DATA_DIR="/absolute/path/to/packages/cowork-jobs/data"
+export COWORK_DATA_DIR="/absolute/path/to/jobs/data"
 export COWORK_ENV="$COWORK_DATA_DIR/.env"
 export COWORK_DRIVE_EMAIL="djplearner@gmail.com"
 ```
@@ -173,7 +173,7 @@ job instead of silently running local-only.
 
 1. Clone the repo and install dependencies.
 2. Install Google Drive for Desktop and sign in as `djplearner@gmail.com`.
-3. Create `packages/cowork-jobs/data/.env` from `.env.example`; do not store secrets in Git or Drive.
+3. Create `jobs/data/.env` from `.env.example`; do not store secrets in Git or Drive.
 4. Run `yarn cowork:data:doctor`.
 5. If Drive is detected, run `yarn cowork:data:pull`.
 6. Run the relevant cowork job.
@@ -181,7 +181,7 @@ job instead of silently running local-only.
 ## Git Policy
 
 Daily generated data should not be committed to Git. The repo now ignores the runtime
-data folders under `packages/cowork-jobs/data`.
+data folders under `jobs/data`.
 
 At daily frequency, Git will keep every historical blob forever and the repo will grow
 even when files are deleted later. Google Drive is the better home for this workload:

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const MANIFEST_PATH = path.join(__dirname, '../skills/registry.manifest.json');
-const BIN_DIR = path.join(__dirname, '../packages/stock-api/bin');
+const BIN_DIR = path.join(__dirname, '../stock-api/bin');
 
 if (!fs.existsSync(BIN_DIR)) {
   fs.mkdirSync(BIN_DIR, { recursive: true });
@@ -17,9 +17,9 @@ for (const [skillName, skillData] of Object.entries(manifest.skills)) {
     let requires = '';
     if (skillData.modules) {
       requires = skillData.modules.map(mod => {
-        // e.g., "packages/stock-api/src/fetchers/documentsFetcher.js"
-        // we are in "packages/stock-api/bin"
-        const relPath = '../' + mod.replace('packages/stock-api/', '');
+        // e.g., "stock-api/src/fetchers/documentsFetcher.js"
+        // we are in "stock-api/bin"
+        const relPath = '../' + mod.replace('stock-api/', '');
         return `const mod_${path.basename(mod, '.js')} = require('${relPath}');`;
       }).join('\n');
     }

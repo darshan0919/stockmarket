@@ -5,26 +5,26 @@ const REGISTRY_PATH = path.join(__dirname, '../skills/registry.json');
 const MANIFEST_PATH = path.join(__dirname, '../skills/registry.manifest.json');
 
 const pyToJsMap = {
-  'packages/stock-api/python/fetchers/fetch_documents.py': 'packages/stock-api/src/fetchers/documentsFetcher.js',
-  'packages/stock-api/python/fetchers/fetch_announcements.py': 'packages/stock-api/src/fetchers/announcementsFetcher.js',
-  'packages/stock-api/python/fetchers/fetch_and_extract.py': 'packages/stock-api/src/fetchers/announcementScanner.js',
-  'packages/stock-api/python/generators/generate_concall_pdf.py': 'packages/stock-api/src/generators/generateConcallPdf.js',
-  'packages/stock-api/python/generators/generate_forensic_pdf.py': 'packages/stock-api/src/generators/generateForensicPdf.js',
-  'packages/stock-api/python/generators/generate_report.py': 'packages/stock-api/src/generators/generateReport.js',
-  'packages/stock-api/python/generators/generate_pdf.py': 'packages/stock-api/src/generators/generateGrowthTriggersPdf.js',
-  'packages/stock-api/python/generators/generate_credibility_widget.py': 'packages/stock-api/src/generators/generateCredibilityWidget.js',
-  'packages/stock-api/python/generators/generate_peer_pdf.py': 'packages/stock-api/src/generators/generatePeerPdf.js',
-  'packages/stock-api/python/generators/generate_market_share_html.py': 'packages/stock-api/src/generators/generateMarketShareHtml.js',
-  'packages/stock-api/python/generators/generate_sector_report.py': 'packages/stock-api/src/generators/generateSectorReport.js',
-  'packages/stock-api/python/generators/generate_drhp_pdf.py': 'packages/stock-api/src/generators/generateDrhpPdf.js',
-  'packages/stock-api/python/analyzers/compute_concentration.py': 'packages/stock-api/src/analyzers/computeConcentration.js',
-  'packages/stock-api/python/analyzers/run_scan.py': 'packages/stock-api/src/analyzers/runScan.js',
-  'packages/stock-api/python/analyzers/scan_catalysts.py': 'packages/stock-api/src/analyzers/scanCatalysts.js',
-  'packages/stock-api/python/analyzers/catalyst_rules.py': 'packages/stock-api/src/analyzers/catalystRules.js',
-  'packages/stock-api/python/analyzers/parse_tweet_dump.py': 'packages/stock-api/src/analyzers/parseTweetDump.js',
-  'packages/stock-api/python/utils/pdf_utils.py': 'packages/stock-api/src/utils/pdfUtils.js',
-  'packages/stock-api/python/utils/doc_generator.py': 'packages/stock-api/src/utils/docGenerator.js',
-  'packages/stock-api/python/stockscans_client.py': 'packages/stock-api/src/clients/StockscansClient.js',
+  'stock-api/python/fetchers/fetch_documents.py': 'stock-api/src/fetchers/documentsFetcher.js',
+  'stock-api/python/fetchers/fetch_announcements.py': 'stock-api/src/fetchers/announcementsFetcher.js',
+  'stock-api/python/fetchers/fetch_and_extract.py': 'stock-api/src/fetchers/announcementScanner.js',
+  'stock-api/python/generators/generate_concall_pdf.py': 'stock-api/src/generators/generateConcallPdf.js',
+  'stock-api/python/generators/generate_forensic_pdf.py': 'stock-api/src/generators/generateForensicPdf.js',
+  'stock-api/python/generators/generate_report.py': 'stock-api/src/generators/generateReport.js',
+  'stock-api/python/generators/generate_pdf.py': 'stock-api/src/generators/generateGrowthTriggersPdf.js',
+  'stock-api/python/generators/generate_credibility_widget.py': 'stock-api/src/generators/generateCredibilityWidget.js',
+  'stock-api/python/generators/generate_peer_pdf.py': 'stock-api/src/generators/generatePeerPdf.js',
+  'stock-api/python/generators/generate_market_share_html.py': 'stock-api/src/generators/generateMarketShareHtml.js',
+  'stock-api/python/generators/generate_sector_report.py': 'stock-api/src/generators/generateSectorReport.js',
+  'stock-api/python/generators/generate_drhp_pdf.py': 'stock-api/src/generators/generateDrhpPdf.js',
+  'stock-api/python/analyzers/compute_concentration.py': 'stock-api/src/analyzers/computeConcentration.js',
+  'stock-api/python/analyzers/run_scan.py': 'stock-api/src/analyzers/runScan.js',
+  'stock-api/python/analyzers/scan_catalysts.py': 'stock-api/src/analyzers/scanCatalysts.js',
+  'stock-api/python/analyzers/catalyst_rules.py': 'stock-api/src/analyzers/catalystRules.js',
+  'stock-api/python/analyzers/parse_tweet_dump.py': 'stock-api/src/analyzers/parseTweetDump.js',
+  'stock-api/python/utils/pdf_utils.py': 'stock-api/src/utils/pdfUtils.js',
+  'stock-api/python/utils/doc_generator.py': 'stock-api/src/utils/docGenerator.js',
+  'stock-api/python/stockscans_client.py': 'stock-api/src/clients/StockscansClient.js',
 };
 
 const registry = JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf-8'));
@@ -51,7 +51,7 @@ for (const [skillName, skillData] of Object.entries(registry.skills)) {
       skillData.scripts = skillData.scripts.map(p => pyToJsMap[p] || p);
       modules = skillData.scripts;
     } else {
-      entry = `packages/stock-api/bin/${skillName}.js`;
+      entry = `stock-api/bin/${skillName}.js`;
       modules = skillData.scripts.map(p => pyToJsMap[p] || p);
       
       // If it uses a PDF generator, mode = clone

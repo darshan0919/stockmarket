@@ -49,7 +49,7 @@ DOCS_DIR="/tmp/${SAFE}_concall_docs"
 # multi-quarter: N=4..8
 # multi-peer: 1 per peer; iterate
 N=1
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t Transcript --last-n $N -o "$DOCS_DIR"
 ```
 
@@ -93,7 +93,7 @@ bash ./skills/_shared/resolve.sh $(basename $(dirname skills/concall-analysis/SK
 bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "<Company>_Output.pdf"
 ```
 
-See [`packages/stock-api/src/generators/generateConcallPdf.js`](packages/stock-api/src/generators/generateConcallPdf.js) for the full schema per mode.
+See [`stock-api/src/generators/generateConcallPdf.js`](stock-api/src/generators/generateConcallPdf.js) for the full schema per mode.
 
 ## Critical extraction rules
 

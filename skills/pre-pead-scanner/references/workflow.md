@@ -4,7 +4,7 @@ This is the operational heart of the skill. SKILL.md gives the one-line summary 
 
 Underlying thesis: a scan tells you *who* reports next; this workflow tells you *which of them is set up to surprise, in a way you can trade*. That means four things, checked across the steps: a surprise is coming (your estimate diverges from street **and** guidance), the company can deliver it (evidence, not tone), it isn't already priced (valuation), and it's tradeable (liquidity + historical drift).
 
-Commands below show `python3 /tmp/run_scan.py` and `python3 packages/stock-api/python/fetchers/fetch_documents.py` as the invocation shape the runtime uses; when running from the JS package directly, the equivalents are `resolveUniverse()` / `postEventReturns()` in `packages/stock-api/src/analyzers/`. Use whichever the environment exposes — the logic and the JSON shapes are identical.
+Commands below show `python3 /tmp/run_scan.py` and `python3 stock-api/python/fetchers/fetch_documents.py` as the invocation shape the runtime uses; when running from the JS package directly, the equivalents are `resolveUniverse()` / `postEventReturns()` in `stock-api/src/analyzers/`. Use whichever the environment exposes — the logic and the JSON shapes are identical.
 
 ## Step 0 — Resolve the scan into a universe, then GATE ON LIQUIDITY
 
@@ -32,7 +32,7 @@ A "pre-results" thesis is void the moment a company reports. The freshest signal
 Confirm via the documents API — a brand-new `Result` document dated to the quarter about to be reported means results are out:
 
 ```bash
-python3 packages/stock-api/python/fetchers/fetch_documents.py "<companyId>" \
+python3 stock-api/python/fetchers/fetch_documents.py "<companyId>" \
     -t Result --last-n 1 --list-only
 ```
 
@@ -43,7 +43,7 @@ If the latest `Result` date corresponds to the quarter about to be reported (e.g
 The whole method rests on management's most recent guidance. No concall, no guidance, no analysis. Check for a transcript dated to the **previous** quarter (the one already reported):
 
 ```bash
-python3 packages/stock-api/python/fetchers/fetch_documents.py "<companyId>" \
+python3 stock-api/python/fetchers/fetch_documents.py "<companyId>" \
     -t Transcript --last-n 2 --list-only
 ```
 
@@ -58,7 +58,7 @@ Fetch the in-scope documents for real (drop `--list-only`, add `-o`):
 
 ```bash
 SAFE=$(echo "<companyId>" | tr ':' '_')
-python3 packages/stock-api/python/fetchers/fetch_documents.py "<companyId>" \
+python3 stock-api/python/fetchers/fetch_documents.py "<companyId>" \
     -t Transcript --last-n 1 -o "/tmp/pead/${SAFE}_docs"
 ```
 
@@ -77,7 +77,7 @@ For each in-scope company, read the latest concall and extract two things, in th
 If the latest concall alone can't settle the validation (guidance narrowing vs widening across calls, order book growing vs burning), **fetch the previous 2–4 concalls** and track guidance drift:
 
 ```bash
-python3 packages/stock-api/python/fetchers/fetch_documents.py "<companyId>" \
+python3 stock-api/python/fetchers/fetch_documents.py "<companyId>" \
     -t Transcript --last-n 4 -o "/tmp/pead/${SAFE}_docs"
 ```
 
@@ -120,7 +120,7 @@ Knowing a beat is coming is worthless if the stock fades it. For each name, meas
 - **After the concall** and **after the transcript release** — *derived*: take the concall/transcript dates (recorded in Step 2) and the price history, and compute forward returns at +1D / +5D / +20D.
 
 ```bash
-python3 packages/stock-api/python/analyzers/post_event_returns.py "<companyId>" \
+python3 stock-api/python/analyzers/post_event_returns.py "<companyId>" \
     --result 2026-01-28 --concall 2026-01-29 --transcript 2026-02-03 \
     --windows 1,5,20 --json-out "/tmp/pead/${SAFE}_returns.json"
 ```
@@ -154,7 +154,7 @@ Render an interactive HTML briefing using `assets/briefing_template.html`. The m
 
 Below the master table, give a per-company deep-dive card (verbatim guidance quotes with speaker + date, the validation evidence, the next-quarter maths shown transparently, both surprises, the valuation and drift reads, and a "what could be wrong" block), then a cross-cutting risks section, an exclusions list split into **illiquid** (with measured values) / **already-declared** / **no-concall**, and a result-day watchlist of the specific metrics to verify when each reports.
 
-If the `visualize` tool is available, render the table through it; otherwise write the self-contained HTML file to `/mnt/project/packages/cowork-jobs/data/agent-outputs/` and present it.
+If the `visualize` tool is available, render the table through it; otherwise write the self-contained HTML file to `/mnt/project/jobs/data/agent-outputs/` and present it.
 
 ## Final self-audit (do not skip)
 

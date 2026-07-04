@@ -28,11 +28,11 @@ SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_diff_docs"
 
 # Two most recent investor presentations (prior quarter + latest quarter)
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t PPT --last-n 2 -o "$DOCS_DIR"
 
 # Latest concall transcript
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t Transcript --last-n 1 -o "$DOCS_DIR"
 ```
 
@@ -40,7 +40,7 @@ After fetching, read `$DOCS_DIR/manifest.json` to confirm what was downloaded. T
 
 If the company does not publish investor presentations (manifest returns 0 PPT documents), use the two most recent `Result` filings as a substitute:
 ```bash
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t Result --last-n 2 -o "$DOCS_DIR"
 ```
 

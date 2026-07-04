@@ -23,10 +23,10 @@ for (const g of generators) {
 // Add render-pdf
 data.skills['render-pdf'] = {
   "skill_md": "skills/render-pdf/SKILL.md",
-  "entry": "packages/stock-api/bin/render-pdf.js",
+  "entry": "stock-api/bin/render-pdf.js",
   "mode": "clone",
   "modules": [
-    "packages/stock-api/src/utils/pdfRenderer.js"
+    "stock-api/src/utils/pdfRenderer.js"
   ],
   "references": [],
   "shared": [],

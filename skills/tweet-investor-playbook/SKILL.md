@@ -11,7 +11,7 @@ Turn a public investor's tweet history into a tight, citation-anchored playbook 
 
 Trigger phrases include: "analyse these tweets", "extract investor style", "build a playbook from this tweet dump", "rate their stock picks", "what's their hit rate", "distil their thinking", "what does X tweet about markets".
 
-Inputs accepted (auto-detect via `packages/stock-api/python/analyzers/parse_tweet_dump.py`):
+Inputs accepted (auto-detect via `stock-api/python/analyzers/parse_tweet_dump.py`):
 
 - **Twitter API v2 JSON** — `{data: [{id, text, created_at, ...}]}` shape
 - **NDJSON** — one tweet per line
@@ -27,7 +27,7 @@ Run these phases in order. Don't skip phases even if the corpus is small.
 
 ### Phase 1 — Ingestion & sanity check
 
-1. Run `packages/stock-api/python/analyzers/parse_tweet_dump.py <input-path>` to produce a normalised JSON at `/home/claude/_tweets_normalised.json`.
+1. Run `stock-api/python/analyzers/parse_tweet_dump.py <input-path>` to produce a normalised JSON at `/home/claude/_tweets_normalised.json`.
 2. Read the normalised file and confirm to the user:
    - Handle (best-effort from author field; if absent, ask)
    - Total tweets parsed
@@ -157,7 +157,7 @@ End the section with a one-line **Confidence in this playbook**: High / Medium /
 
 Use `assets/widget_template.html` as the shell. Populate the `<script id="playbook-data" type="application/json">` block with the synthesised JSON. The widget is self-contained — no external scripts, no fetch calls. Vanilla JS only.
 
-Save the widget to `/mnt/project/packages/cowork-jobs/data/agent-outputs/<handle>_investor_playbook.html` and the Markdown source to `/mnt/project/packages/cowork-jobs/data/agent-outputs/<handle>_investor_playbook.md`. Call `present_files` with the HTML first.
+Save the widget to `/mnt/project/jobs/data/agent-outputs/<handle>_investor_playbook.html` and the Markdown source to `/mnt/project/jobs/data/agent-outputs/<handle>_investor_playbook.md`. Call `present_files` with the HTML first.
 
 ## Strict methodological rules
 
@@ -180,4 +180,4 @@ These are non-negotiable. Apply them throughout:
 
 ## Scripts
 
-- `packages/stock-api/python/analyzers/parse_tweet_dump.py` — format-agnostic tweet parser; outputs normalised JSON
+- `stock-api/python/analyzers/parse_tweet_dump.py` — format-agnostic tweet parser; outputs normalised JSON

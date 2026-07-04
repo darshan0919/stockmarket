@@ -70,7 +70,7 @@ For Indian listed companies, if the user has provided a Stockscans ticker for an
 TICKER="NSE:DMART"           # example — replace per company
 SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_sector_docs"
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t Transcript PPT --last-n 4 -o "$DOCS_DIR"
 ```
 
@@ -116,11 +116,11 @@ create_sector_report(
     sector_name="Quick Commerce",
     sub_theme="Dark store unit economics & moat sustainability",  # or None
     report_markdown=report_md,
-    output_path="/mnt/project/packages/cowork-jobs/data/agent-outputs/Sector_QuickCommerce.pdf",
+    output_path="/mnt/project/jobs/data/agent-outputs/Sector_QuickCommerce.pdf",
 )
 ```
 
-Script: [`packages/stock-api/src/generators/generateSectorReport.js`](packages/stock-api/src/generators/generateSectorReport.js). Uses palette/helpers from `../packages/stock-api/python/utils/pdf_utils.py`.  
+Script: [`stock-api/src/generators/generateSectorReport.js`](stock-api/src/generators/generateSectorReport.js). Uses palette/helpers from `../stock-api/python/utils/pdf_utils.py`.  
 Fallback: `pandoc report.md -o report.pdf --pdf-engine=weasyprint` if reportlab errors out.
 
 After generation, run a self-audit: re-read the PDF for (a) any number flagged `[Unverified]` that slipped into a non-tentative sentence, (b) any company section that opens with CMP/Mcap/P/E, (c) any "strong moat" / "great management" claim without a mechanism. Fix and regenerate.

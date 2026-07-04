@@ -23,7 +23,7 @@ SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_deepdive_docs"
 
 # 5 ARs + 4 quarters each of concalls, presentations, results
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t "Annual Report" Transcript PPT Result \
     --last-n 4 \
     -o "$DOCS_DIR"
@@ -33,7 +33,7 @@ One pass fetches all four types (4 each = up to 16 PDFs). Then treat every file 
 
 For annual reports specifically, run `--last-n 5` separately (5 years > 4 quarters of depth):
 ```bash
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t "Annual Report" --last-n 5 -o "$DOCS_DIR"
 ```
 
@@ -69,7 +69,7 @@ from generate_report import create_research_report
 create_research_report(company_name, ticker, report_markdown, output_path)
 ```
 
-Script at [`packages/stock-api/src/generators/generateReport.js`](packages/stock-api/src/generators/generateReport.js). Uses shared palette/helpers from `../packages/stock-api/python/utils/pdf_utils.py`. Fallback: `pandoc report.md -o report.pdf --pdf-engine=weasyprint`.
+Script at [`stock-api/src/generators/generateReport.js`](stock-api/src/generators/generateReport.js). Uses shared palette/helpers from `../stock-api/python/utils/pdf_utils.py`. Fallback: `pandoc report.md -o report.pdf --pdf-engine=weasyprint`.
 
 ## Pitfalls to avoid
 

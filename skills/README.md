@@ -91,7 +91,7 @@ Python scripts are cached to `/tmp/` at the start of each Claude session:
 
 ## Shared files
 
-`_shared/conventions.md` and `packages/stock-api/python/utils/pdf_utils.py` were previously duplicated inside each skill's own `_shared/` directory. After the migration, `conventions.md` lives in `skills/_shared/` and `pdf_utils.py` lives in `packages/stock-api/python/utils/`. Skills reference them via their absolute or relative paths.
+`_shared/conventions.md` and `stock-api/python/utils/pdf_utils.py` were previously duplicated inside each skill's own `_shared/` directory. After the migration, `conventions.md` lives in `skills/_shared/` and `pdf_utils.py` lives in `stock-api/python/utils/`. Skills reference them via their absolute or relative paths.
 
 **Do not edit the per-skill `_shared/` copies** — they are legacy and will be removed in a future cleanup pass. Edit the root `_shared/` files only.
 

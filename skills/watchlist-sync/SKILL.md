@@ -25,7 +25,7 @@ parameters. No model judgment is required.
 ## Setup
 
 ```bash
-JOB=$(find /sessions -path '*cowork-jobs/watchlistUpdater.js' 2>/dev/null | head -1)
+JOB=$(find /sessions -path '*jobs/watchlistUpdater.js' 2>/dev/null | head -1)
 DATA=$(find /sessions -name 'company_notes.json' 2>/dev/null | head -1 | xargs -0 dirname 2>/dev/null \
         || find /sessions -path '*Company Research*' -name '.env' 2>/dev/null | head -1 | xargs dirname)
 export COWORK_ENV="$DATA/.env"        # STOCKSCANS_AUTH_TOKEN + GOOGLE_APP_PASSWORD live here

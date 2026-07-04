@@ -56,7 +56,7 @@ stockmarket/
 │   └── public/         # Static assets
 ├── packages/
 │   ├── stock-api/       # Centralized API clients (Stockscans, NSE, BSE)
-│   └── cowork-jobs/     # Automated data pipelines and cron jobs
+│   └── jobs/     # Automated data pipelines and cron jobs
 └── README.md
 ```
 
@@ -200,7 +200,7 @@ cd backend
 node scripts/fetchData.js
 ```
 
-You can also use the comprehensive data pipelines provided by `@stock/cowork-jobs` to sync data with real APIs.
+You can also use the comprehensive data pipelines provided by `@stock/jobs` to sync data with real APIs.
 
 ```bash
 yarn cowork:data:init

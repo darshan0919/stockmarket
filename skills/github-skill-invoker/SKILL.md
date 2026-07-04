@@ -84,7 +84,7 @@ Check the skill's `mode` field in the registry:
   The skill is pre-bundled in a single file. Curl it to `/tmp/`:
   ```bash
   [ -f /tmp/<skill_name>.cjs ] || \\
-    curl -fsSL "{base_url}/packages/stock-api/dist-skills/<skill_name>.cjs" -o /tmp/<skill_name>.cjs
+    curl -fsSL "{base_url}/stock-api/dist-skills/<skill_name>.cjs" -o /tmp/<skill_name>.cjs
   ```
 
 - **If `mode` is `clone`**:
@@ -92,7 +92,7 @@ Check the skill's `mode` field in the registry:
   ```bash
   if [ ! -d /tmp/sm-clone ]; then
     git clone --depth 1 https://github.com/darshan0919/stockmarket.git /tmp/sm-clone
-    cd /tmp/sm-clone/packages/stock-api && npm ci
+    cd /tmp/sm-clone/stock-api && npm ci
   fi
   ```
 
@@ -108,7 +108,7 @@ web_fetch: {base_url}/{reference_path}
 ### Step 8 — Execute the skill
 
 Follow the SKILL.md instructions exactly, with:
-- The executed path being either `/tmp/<skill_name>.cjs` (bundle) or `/tmp/sm-clone/packages/stock-api/bin/<skill_name>.js` (clone).
+- The executed path being either `/tmp/<skill_name>.cjs` (bundle) or `/tmp/sm-clone/stock-api/bin/<skill_name>.js` (clone).
 - The user's ticker/params passed through as CLI arguments.
 - Shared file content already in context (conventions, pdf_utils).
 
@@ -119,15 +119,15 @@ All scripts are resolved according to their mode (bundle or clone).
 | Entrypoint / Mode | Cached / Execution path |
 |---|---|
 | `dist-skills/stock-documents-fetcher.cjs` (bundle) | `/tmp/stock-documents-fetcher.cjs` |
-| `packages/stock-api/bin/concall-analysis.js` (clone) | `/tmp/sm-clone/packages/stock-api/bin/concall-analysis.js` |
-| `packages/stock-api/bin/forensic-accounting.js` (clone) | `/tmp/sm-clone/packages/stock-api/bin/forensic-accounting.js` |
-| `packages/stock-api/bin/equity-research-deepdive.js` (clone) | `/tmp/sm-clone/packages/stock-api/bin/equity-research-deepdive.js` |
-| `packages/stock-api/bin/growth-triggers-1pager.js` (clone) | `/tmp/sm-clone/packages/stock-api/bin/growth-triggers-1pager.js` |
+| `stock-api/bin/concall-analysis.js` (clone) | `/tmp/sm-clone/stock-api/bin/concall-analysis.js` |
+| `stock-api/bin/forensic-accounting.js` (clone) | `/tmp/sm-clone/stock-api/bin/forensic-accounting.js` |
+| `stock-api/bin/equity-research-deepdive.js` (clone) | `/tmp/sm-clone/stock-api/bin/equity-research-deepdive.js` |
+| `stock-api/bin/growth-triggers-1pager.js` (clone) | `/tmp/sm-clone/stock-api/bin/growth-triggers-1pager.js` |
 | `dist-skills/management-credibility-tracker.cjs` (bundle) | `/tmp/management-credibility-tracker.cjs` |
-| `packages/stock-api/bin/peer-comparison.js` (clone) | `/tmp/sm-clone/packages/stock-api/bin/peer-comparison.js` |
+| `stock-api/bin/peer-comparison.js` (clone) | `/tmp/sm-clone/stock-api/bin/peer-comparison.js` |
 | `dist-skills/market-share-analysis.cjs` (bundle) | `/tmp/market-share-analysis.cjs` |
-| `packages/stock-api/bin/sector-research-deepdive.js` (clone) | `/tmp/sm-clone/packages/stock-api/bin/sector-research-deepdive.js` |
-| `packages/stock-api/bin/drhp-ipo-analysis.js` (clone) | `/tmp/sm-clone/packages/stock-api/bin/drhp-ipo-analysis.js` |
+| `stock-api/bin/sector-research-deepdive.js` (clone) | `/tmp/sm-clone/stock-api/bin/sector-research-deepdive.js` |
+| `stock-api/bin/drhp-ipo-analysis.js` (clone) | `/tmp/sm-clone/stock-api/bin/drhp-ipo-analysis.js` |
 | `dist-skills/quarterly-result-analysis.cjs` (bundle) | `/tmp/quarterly-result-analysis.cjs` |
 | `dist-skills/consecutive-filings-diff.cjs` (bundle) | `/tmp/consecutive-filings-diff.cjs` |
 | `dist-skills/pre-pead-scanner.cjs` (bundle) | `/tmp/pre-pead-scanner.cjs` |

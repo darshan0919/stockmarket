@@ -30,21 +30,21 @@ mkdir -p "$RESEARCH_ROOT/Annual_Reports" \
          "$RESEARCH_ROOT/Events_Announcements"
 
 # Core standardised filings — fetch 5 ARs, 8 quarters of concalls + decks + results
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t "Annual Report" --last-n 5 -o "$RESEARCH_ROOT/Annual_Reports"
 
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t Transcript --last-n 8 -o "$RESEARCH_ROOT/Concalls"
 
-python3 packages/stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t PPT --last-n 8 -o "$RESEARCH_ROOT/Investor_Presentations"
 
 # Optional: pull credit-rating and events announcements
-python3 packages/stock-api/python/fetchers/fetch_announcements.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_announcements.py "$TICKER" \
     --search 'rating|outlook|downgrade|upgrade|watch' \
     --max-pages 10 -o "$RESEARCH_ROOT/Credit_Rating_Reports"
 
-python3 packages/stock-api/python/fetchers/fetch_announcements.py "$TICKER" \
+python3 stock-api/python/fetchers/fetch_announcements.py "$TICKER" \
     --search 'merger|acquisition|demerger|delisting|buyback|dividend|capex|order' \
     --max-pages 10 -o "$RESEARCH_ROOT/Events_Announcements"
 ```

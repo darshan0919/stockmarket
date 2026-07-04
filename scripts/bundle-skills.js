@@ -3,7 +3,7 @@ const path = require('path');
 const esbuild = require('esbuild');
 
 const MANIFEST_PATH = path.join(__dirname, '../skills/registry.manifest.json');
-const DIST_DIR = path.join(__dirname, '../packages/stock-api/dist-skills');
+const DIST_DIR = path.join(__dirname, '../stock-api/dist-skills');
 
 if (!fs.existsSync(DIST_DIR)) {
   fs.mkdirSync(DIST_DIR, { recursive: true });
