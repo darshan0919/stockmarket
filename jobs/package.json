@@ -18,7 +18,11 @@
     "deals-digest": "node dealsDigest.js",
     "weekly-ppt-insights": "node weeklyPptInsights.js",
     "order-book-digest": "node orderBookDigest.js",
-    "mna-tracker": "node mnaTracker.js"
+    "mna-tracker": "node mnaTracker.js",
+    "tasks:sync": "node scripts/sync-tasks.js",
+    "tasks:push": "node scripts/sync-tasks.js --push",
+    "tasks:pull": "node scripts/sync-tasks.js --pull",
+    "tasks:diff": "node scripts/sync-tasks.js --push --dry-run"
   },
   "dependencies": {
     "@stock/api": "workspace:*",

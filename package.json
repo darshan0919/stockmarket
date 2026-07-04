@@ -31,7 +31,12 @@
     "cowork:data:auth": "yarn workspace @stock/jobs data:auth",
     "cowork:data:offload": "yarn workspace @stock/jobs data:offload",
     "cowork:data:stockscans-ppts": "node scripts/fetchStockscansPpts.js && node scripts/extractPptText.js",
-    "cowork:jobs:ca-digest": "yarn workspace @stock/jobs ca-digest"
+    "cowork:jobs:ca-digest": "yarn workspace @stock/jobs ca-digest",
+    "tasks:sync": "node jobs/scripts/sync-tasks.js",
+    "tasks:push": "node jobs/scripts/sync-tasks.js --push",
+    "tasks:pull": "node jobs/scripts/sync-tasks.js --pull",
+    "tasks:diff": "node jobs/scripts/sync-tasks.js --push --dry-run",
+    "tasks:platforms": "node jobs/scripts/sync-tasks.js --list-platforms"
   },
   "devDependencies": {
     "@duckdb/node-api": "^1.5.4-r.1",
