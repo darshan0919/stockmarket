@@ -12,12 +12,18 @@
     "data:push": "node lib/driveDataStore.js push",
     "data:sync": "node lib/driveDataStore.js sync",
     "data:manifest": "node lib/driveDataStore.js manifest",
-    "data:auth": "node lib/googleDriveAuth.js",
-    "data:offload": "node scripts/offloadToDrive.js"
+    "data:auth": "node scripts/googleAuth.js",
+    "data:offload": "node scripts/offloadToDrive.js",
+    "ca-digest": "node corpActionsDigest.js",
+    "deals-digest": "node dealsDigest.js",
+    "weekly-ppt-insights": "node weeklyPptInsights.js",
+    "order-book-digest": "node orderBookDigest.js",
+    "mna-tracker": "node mnaTracker.js"
   },
   "dependencies": {
     "@stock/api": "workspace:*",
-    "googleapis": "^148.0.0"
+    "googleapis": "^148.0.0",
+    "pdf-parse": "^2.4.5"
   },
   "optionalDependencies": {
     "nodemailer": "^6.9.0"

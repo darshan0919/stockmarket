@@ -3,13 +3,17 @@
 const { evaluateCatalystRules } = require('./catalystRules');
 const { computeConcentration, computeHHI } = require('./computeConcentration');
 const { parseTweetDump } = require('./parseTweetDump');
-const { runScan } = require('./runScan');
+const { runScan, resolveUniverse, applyLiquidityGate } = require('./runScan');
 const { scanCatalysts } = require('./scanCatalysts');
+const { postEventReturns, eventReturns, driftSignature } = require('./postEventReturns');
 
 module.exports = {
   evaluateCatalystRules,
   computeConcentration, computeHHI,
   parseTweetDump,
   runScan,
+  resolveUniverse,
+  applyLiquidityGate,
+  postEventReturns, eventReturns, driftSignature,
   scanCatalysts
 };

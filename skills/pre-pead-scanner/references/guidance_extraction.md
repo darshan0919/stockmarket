@@ -1,6 +1,8 @@
-# Guidance extraction, validation & conviction rubric
+# Guidance extraction, validation & the capability tier
 
-This is the analytical core of the skill (Step 4 and Step 6). The goal: separate companies management has *credibly* set up to beat from those merely *talking* a good quarter. Read this before analysing the first company.
+This is Step 3 — the analytical core, and the **deliverability leg** of the surprise score. The goal: separate companies management has *credibly* set up to beat from those merely *talking* a good quarter. Read this before analysing the first company.
+
+Its output — the capability tier (HIGH/MEDIUM/LOW) — is not the final rank. It is the credibility gate on the surprise: `surprise_scoring.md` multiplies your predicted surprise *down* when deliverability is weak, because a "beat" resting on tone rather than a booked order book isn't a real surprise. A large predicted beat with LOW deliverability should never rank above a moderate beat with HIGH deliverability.
 
 ## Mindset: guidance vs capability
 
@@ -12,7 +14,7 @@ A pre-results edge does not come from management optimism — everyone is optimi
 
 Rank on which archetype each company fits, not on how good the quarter "sounds".
 
-## Step 4a — Extract the guidance (verbatim)
+## Step 3a — Extract the guidance (verbatim)
 
 For each in-scope concall, pull the three guidance dimensions as **verbatim quotes** with **speaker name and date**. Paraphrasing a number is how errors enter the model — quote it.
 
@@ -27,7 +29,7 @@ Extraction mechanics:
 - Distinguish a *company* statement from a *response to an analyst's framing*. "We are maintaining guidance of ₹5,700–5,800 Cr" is company guidance; "so you'd need ₹160 Cr in Q4? — around that" is management *agreeing* to an analyst's number. Both are usable, but tag the latter as *directional, not formal guidance*.
 - Watch for **chairman-vs-CFO asymmetry** and any **walk-back** of a previously firm target to an "aspiration" — both are material conviction signals.
 
-## Step 4b — Validate against hard evidence
+## Step 3b — Validate against hard evidence
 
 For each company, score the guidance against four evidence pillars. The first three are forward-looking; the fourth is the reality check.
 
@@ -61,9 +63,9 @@ python3 packages/stock-api/python/fetchers/fetch_documents.py "<companyId>" \
     -t Transcript --last-n 4 -o "/tmp/pead/${SAFE}_docs"
 ```
 
-## Step 6 — Conviction-tier rubric
+## The capability tier (deliverability leg)
 
-Assign each company a tier from the *evidence*, not the optimism. Use this as a guide, not a rigid score:
+Assign each company a tier from the *evidence*, not the optimism — this is the `Deliverability` input to the composite surprise score. Use as a guide, not a rigid score:
 
 **HIGH** — all of:
 - Explicit numerical guidance (revenue and/or PAT), ideally reiterated or narrowed-up across calls.

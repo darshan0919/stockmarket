@@ -501,23 +501,46 @@ function syncFromDriveLocal({ dataRoot = resolveDataRoot(), driveRoot = resolveD
 
 // ── API-mode sync (async, uses googleapis) ────────────────────────────────────
 
-async function syncToDriveApi({ dataRoot = resolveDataRoot(), dryRun = false } = {}) {
+const DEFAULT_API_CONCURRENCY = 20;
+
+/**
+ * Run `fn` over `items` with at most `limit` in flight at once.
+ * Each `fn(item)` result is ignored here - callers track outcomes via closures.
+ */
+async function forEachLimit(items, limit, fn) {
+  let idx = 0;
+  const n = Math.max(1, Math.min(limit, items.length || 1));
+  async function worker() {
+    while (idx < items.length) {
+      const i = idx;
+      idx += 1;
+      await fn(items[i], i);
+    }
+  }
+  await Promise.all(Array.from({ length: n }, worker));
+}
+
+async function syncToDriveApi({
+  dataRoot = resolveDataRoot(),
+  dryRun = false,
+  concurrency = Number(process.env.COWORK_DRIVE_CONCURRENCY) || DEFAULT_API_CONCURRENCY,
+} = {}) {
   const { drive } = driveApi.createDriveClient();
   const rootPath = process.env.COWORK_DRIVE_PATH || driveApi.DEFAULT_ROOT_PATH;
   const docs = localDocuments(dataRoot);
   let copied = 0;
 
-  for (const doc of docs) {
-    if (dryRun) {
-      copied += 1;
-      continue;
-    }
-    try {
-      await driveApi.uploadFile(drive, rootPath, doc.driveRel, doc.abs);
-      copied += 1;
-    } catch (e) {
-      process.stderr.write(`[cowork-drive-api] upload failed ${doc.driveRel}: ${e.message}\n`);
-    }
+  if (dryRun) {
+    copied = docs.length;
+  } else {
+    await forEachLimit(docs, concurrency, async (doc) => {
+      try {
+        await driveApi.uploadFile(drive, rootPath, doc.driveRel, doc.abs);
+        copied += 1;
+      } catch (e) {
+        process.stderr.write(`[cowork-drive-api] upload failed ${doc.driveRel}: ${e.message}\n`);
+      }
+    });
   }
 
   return {
@@ -531,7 +554,11 @@ async function syncToDriveApi({ dataRoot = resolveDataRoot(), dryRun = false } =
   };
 }
 
-async function syncFromDriveApi({ dataRoot = resolveDataRoot(), dryRun = false } = {}) {
+async function syncFromDriveApi({
+  dataRoot = resolveDataRoot(),
+  dryRun = false,
+  concurrency = Number(process.env.COWORK_DRIVE_CONCURRENCY) || DEFAULT_API_CONCURRENCY,
+} = {}) {
   const { drive } = driveApi.createDriveClient();
   const rootPath = process.env.COWORK_DRIVE_PATH || driveApi.DEFAULT_ROOT_PATH;
 
@@ -545,26 +572,25 @@ async function syncFromDriveApi({ dataRoot = resolveDataRoot(), dryRun = false }
     return { enabled: false, copied: 0, driveRoot: `drive://${rootPath}`, dataRoot, transport: 'api', error: e.message };
   }
 
+  const toFetch = remoteFiles
+    .filter((file) => !file.driveRel.startsWith('_meta/'))
+    .map((file) => ({ file, doc: classifyDriveDocument(file.driveRel) }))
+    .filter(({ doc }) => Boolean(doc));
+
   let copied = 0;
-  for (const file of remoteFiles) {
-    // Skip _meta files
-    if (file.driveRel.startsWith('_meta/')) continue;
 
-    const doc = classifyDriveDocument(file.driveRel);
-    if (!doc) continue;
-
-    const localPath = path.join(dataRoot, ...doc.localRel.split('/'));
-    if (dryRun) {
-      copied += 1;
-      continue;
-    }
-
-    try {
-      const downloaded = await driveApi.downloadFile(drive, rootPath, file.driveRel, localPath);
-      if (downloaded) copied += 1;
-    } catch (e) {
-      process.stderr.write(`[cowork-drive-api] download failed ${file.driveRel}: ${e.message}\n`);
-    }
+  if (dryRun) {
+    copied = toFetch.length;
+  } else {
+    await forEachLimit(toFetch, concurrency, async ({ file, doc }) => {
+      const localPath = path.join(dataRoot, ...doc.localRel.split('/'));
+      try {
+        const downloaded = await driveApi.downloadFile(drive, rootPath, file.driveRel, localPath);
+        if (downloaded) copied += 1;
+      } catch (e) {
+        process.stderr.write(`[cowork-drive-api] download failed ${file.driveRel}: ${e.message}\n`);
+      }
+    });
   }
 
   return {

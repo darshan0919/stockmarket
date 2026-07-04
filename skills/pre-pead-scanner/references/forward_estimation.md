@@ -1,6 +1,6 @@
 # Forward estimation — next-quarter Revenue / OPM / PAT / EPS
 
-This is Step 5: turn extracted guidance + reported actuals into a defensible estimate for the upcoming quarter. The discipline is to **show every step** and **tag every input** `[guided]`, `[actual]`, or `[estimate]`, so the reader can rebuild the number and challenge any assumption.
+This is Step 4: turn extracted guidance + reported actuals into a defensible estimate for the upcoming quarter. That estimate is the input to the surprise (Step 5) — it is the number you compare against the street and against guidance — so precision and honest tagging here propagate into every downstream score. The discipline is to **show every step** and **tag every input** `[guided]`, `[actual]`, or `[estimate]`, so the reader can rebuild the number and challenge any assumption.
 
 ## The primary method: full-year minus year-to-date
 

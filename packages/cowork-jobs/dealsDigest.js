@@ -559,15 +559,24 @@ function renderEmail(dateLabel, digest) {
 
 // ── main ──────────────────────────────────────────────────────────────────────
 
+function parseDateArg(s) {
+  if (!s) return null;
+  const str = String(s).trim();
+  let m = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/.exec(str);
+  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  m = /^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/.exec(str);
+  if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  const d = new Date(str.includes('T') ? str : `${str}T00:00:00`);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 async function main() {
   loadEnv(argValue('--env-file'));
-  const dateArg = argValue('--date'); // YYYY-MM-DD
+  const dateArg = argValue('--date');
   const noEmail = process.argv.includes('--no-email');
   const maxXbrl = Number(argValue('--max-xbrl')) || 600;
 
-  const target = dateArg
-    ? new Date(`${dateArg}T00:00:00`)
-    : istNow();
+  const target = parseDateArg(dateArg) || istNow();
   const dateLabel = fmt(target, '-');
 
   const [bulkBlock, sast, insider] = [

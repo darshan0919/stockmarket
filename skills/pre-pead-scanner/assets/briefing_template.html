@@ -9,17 +9,22 @@
 
   SECTIONS (in order):
     Header            — scan name, timestamp, universe counts
-    01 Methodology    — universe construction + exclusions callout
-    02 Master table   — ONE row per ranked company, sorted High→Low conviction.
-                        Columns: Rank | Company | Sector | MCap | CMP |
-                        FY guidance signal | Tone read | Validation
-                        (orderbook/capacity/util/history) | 9M Rev | 9M PAT |
-                        Est Q Rev | Est OPM | Est PAT | Est EPS | Conviction
+    01 Methodology    — universe construction (incl. liquidity gate) + exclusions
+    02 Master table   — ONE row per ranked company, sorted by composite surprise
+                        score (highest positive surprise → lowest). Columns:
+                        Rank | Company | Sector | MCap | CMP | Liquidity
+                        (50D ATV / free float) | FY guidance signal | Tone read |
+                        Validation (orderbook/capacity/util/history) | 9M Rev |
+                        9M PAT | Est Q Rev | Est OPM | Est PAT | Est EPS |
+                        Surprise vs Street | Surprise vs Guidance | Valuation
+                        (50D P/E vs hist / target upside) | Post-event drift |
+                        Composite score
     03 Deep-dive      — one CARD per company: verbatim guidance quotes
-                        (speaker+date), validation evidence block, the
-                        next-quarter maths shown transparently, what-could-be-wrong
+                        (speaker+date), validation evidence, next-quarter maths,
+                        the two surprises, valuation & drift reads, what-could-be-wrong
     04 Cross-cutting risks
-    05 Exclusions     — every dropped name + reason
+    05 Exclusions     — dropped names, GROUPED: illiquid (with measured ATV /
+                        free float) | already-declared | no-concall
     06 Result-day watchlist — metrics to verify when each reports
     Footer            — sources, methodology, classification
 -->
@@ -106,7 +111,7 @@
   <div>
     <div class="eyebrow">Pre-Results Conviction Briefing · Internal</div>
     <h1>{{SCAN_NAME}}</h1>
-    <div class="subhead">{{N_RANKED}} companies ranked by clarity &amp; credibility of latest concall guidance, validated against order book / capacity / utilisation / history, with a back-computed next-quarter estimate. Results not yet declared for any ranked name as of timestamp.</div>
+    <div class="subhead">{{N_RANKED}} tradeable companies ranked by composite <strong>earnings-surprise</strong> score — a back-computed next-quarter estimate scored against BOTH street/research estimates AND management's guidance, credibility-gated on order book / capacity / utilisation / history, adjusted for valuation (is the beat priced?) and historical post-event drift (is it tradeable?). Illiquid names (50D avg traded value &lt; ₹5 Cr or free float &lt; ₹50 Cr) excluded. Results not yet declared for any ranked name as of timestamp.</div>
   </div>
   <div class="timestamp">
     Report timestamp<br><span class="dim">{{TODAY}}</span><br>
@@ -123,41 +128,51 @@
 </div>
 
 <!-- 02 MASTER TABLE -->
-<div class="section-title"><span class="num">01.</span> Master Scoreboard — sorted by conviction</div>
-<div class="dim small" style="margin-bottom:12px">Next-quarter estimate = (FY guidance − YTD actual) where both available; else run-rate × seasonality. Inputs tagged [guided]/[actual]/[estimate] in the per-company cards. ₹ Cr unless noted.</div>
+<div class="section-title"><span class="num">01.</span> Master Scoreboard — sorted by composite surprise score</div>
+<div class="dim small" style="margin-bottom:12px">Next-quarter estimate = (FY guidance − YTD actual) where both available; else run-rate × seasonality, one-offs stripped. Surprise vs Street = estimate vs research/consensus [consensus] or [consensus-proxy]; Surprise vs Guidance = estimate vs the naive FY-guide − YTD [market]. Composite = surprise, credibility-gated on deliverability, discounted for valuation, weighted by post-event drift. Inputs tagged [guided]/[actual]/[estimate] in the cards. ₹ Cr unless noted.</div>
 <div style="overflow-x:auto">
 <table class="master">
   <thead>
     <tr>
       <th>#</th><th>Company</th><th>Sector</th>
       <th class="num">MCap</th><th class="num">CMP</th>
+      <th class="num">50D ATV · FF</th>
       <th>FY guidance (signal)</th><th>Tone / clarity</th>
       <th>Validation (book · capacity · util · history)</th>
       <th class="num">9M Rev</th><th class="num">9M PAT</th>
       <th class="num">Est Q Rev</th><th class="num">Est OPM</th>
       <th class="num">Est PAT</th><th class="num">Est EPS</th>
-      <th>Conviction</th>
+      <th>Surprise<br>vs Street</th><th>Surprise<br>vs Guide</th>
+      <th>Valuation<br>(50D P/E · tgt)</th>
+      <th>Drift<br>(R·C·T)</th>
+      <th>Composite</th>
     </tr>
   </thead>
   <tbody>
-    <!-- REPEAT one <tr> per ranked company, High→Low -->
+    <!-- REPEAT one <tr> per ranked company, highest composite surprise → lowest -->
     <tr>
       <td class="rk">{{RANK}}</td>
       <td><div class="nm">{{NAME}}</div><div class="tk">{{COMPANY_ID}}</div></td>
       <td>{{SECTOR}}</td>
       <td class="num">{{MCAP}}</td><td class="num">{{CMP}}</td>
+      <td class="num">{{ATV_CR}} · {{FREE_FLOAT_CR}}</td>
       <td>{{GUIDANCE_SIGNAL}}</td>
       <td>{{TONE_READ}}</td>
       <td>{{VALIDATION_SUMMARY}}</td>
       <td class="num">{{YTD_REV}}</td><td class="num">{{YTD_PAT}}</td>
       <td class="num">{{EST_Q_REV}}</td><td class="num">{{EST_OPM}}</td>
       <td class="num">{{EST_PAT}}</td><td class="num">{{EST_EPS}}</td>
-      <td><span class="pill {{CONVICTION_CLASS}}">{{CONVICTION_LABEL}}</span></td>
+      <td class="num">{{SURPRISE_STREET}}</td>
+      <td class="num">{{SURPRISE_GUIDANCE}}</td>
+      <td class="num">{{VALUATION_READ}}</td>
+      <td class="num">{{DRIFT_SIGNATURE}}</td>
+      <td><span class="pill {{CONVICTION_CLASS}}">{{COMPOSITE_LABEL}}</span></td>
     </tr>
     <!-- /REPEAT -->
   </tbody>
 </table>
 </div>
+<div class="tiny faint" style="margin-top:6px">50D ATV = 50-day average traded value (₹ Cr); FF = free float (₹ Cr). Surprise: +ve = beat, −ve = miss; magnitude small/mod/large. Drift (R·C·T) = historical forward return after Result · Concall · Transcript. Composite pill: high = top positive surprise, med = mixed, low = miss/priced/fade.</div>
 
 <!-- 03 DEEP DIVE -->
 <div class="section-title"><span class="num">02.</span> Per-Company Deep Dive</div>
@@ -194,12 +209,25 @@
         <div class="row"><span class="lab">Est. next-Q PAT</span><span class="val hi">{{EST_PAT}}</span></div>
         <div class="row"><span class="lab">Est. next-Q EPS</span><span class="val">{{EST_EPS}}</span></div>
       </div>
-      <div class="block-title" style="margin-top:18px">Validation scorecard</div>
+      <div class="block-title" style="margin-top:18px">Validation scorecard (deliverability)</div>
       <div class="block">
         <div class="row"><span class="lab">Order book / coverage</span><span class="val">{{ORDERBOOK}}</span></div>
         <div class="row"><span class="lab">Capacity status</span><span class="val">{{CAPACITY}}</span></div>
         <div class="row"><span class="lab">Utilisation</span><span class="val">{{UTILISATION}}</span></div>
         <div class="row"><span class="lab">History / seasonality fit</span><span class="val">{{HISTORY_FIT}}</span></div>
+        <div class="row"><span class="lab">Deliverability tier</span><span class="val">{{DELIVERABILITY_TIER}}</span></div>
+      </div>
+      <div class="block-title" style="margin-top:18px">Surprise, expectations &amp; tradeability</div>
+      <div class="block">
+        <div class="row"><span class="lab">Street / consensus est.</span><span class="val">{{STREET_EST}}</span></div>
+        <div class="row"><span class="lab">Surprise vs street</span><span class="val hi">{{SURPRISE_STREET}} ({{SURPRISE_STREET_QUADRANT}})</span></div>
+        <div class="row"><span class="lab">Guidance-implied</span><span class="val">{{GUIDANCE_IMPLIED}}</span></div>
+        <div class="row"><span class="lab">Surprise vs guidance</span><span class="val hi">{{SURPRISE_GUIDANCE}}</span></div>
+        <div class="row"><span class="lab">50D avg P/E · vs hist/industry</span><span class="val">{{PE_50D}} · {{PE_VS_HISTORY}}</span></div>
+        <div class="row"><span class="lab">Research target · upside</span><span class="val">{{RESEARCH_TARGET}} · {{TARGET_UPSIDE}}</span></div>
+        <div class="row"><span class="lab">Is the beat priced?</span><span class="val">{{PRICING_MODIFIER}}</span></div>
+        <div class="row"><span class="lab">Post-event drift (R·C·T)</span><span class="val">{{DRIFT_DETAIL}}</span></div>
+        <div class="row"><span class="lab">Drift signature</span><span class="val">{{DRIFT_SIGNATURE}}</span></div>
       </div>
       <div class="risk"><b>What could be wrong</b> — {{WHAT_COULD_BE_WRONG}}</div>
     </div>
@@ -219,13 +247,27 @@
 
 <!-- 05 EXCLUSIONS -->
 <div class="section-title"><span class="num">04.</span> Excluded / Deferred Names</div>
-<div class="dim small" style="margin-bottom:12px">Shown for transparency — the universe was not cherry-picked.</div>
+<div class="dim small" style="margin-bottom:12px">Shown for transparency — the universe was not cherry-picked. Grouped by reason.</div>
+
+<div class="block-title" style="margin:10px 0 6px">Illiquid — failed the tradeability gate (50D ATV &lt; ₹5 Cr or free float &lt; ₹50 Cr)</div>
 <div style="overflow-x:auto">
 <table class="master">
-  <thead><tr><th>Company</th><th>companyId</th><th>Reason excluded / deferred</th></tr></thead>
+  <thead><tr><th>Company</th><th>companyId</th><th class="num">50D ATV (₹Cr)</th><th class="num">Free float (₹Cr)</th><th>Failed floor</th></tr></thead>
   <tbody>
-    <!-- REPEAT one row per excluded name -->
-    <tr><td class="nm">{{EXC_NAME}}</td><td class="mono tiny">{{EXC_ID}}</td><td>{{EXC_REASON}}</td></tr>
+    <!-- REPEAT one row per illiquid name -->
+    <tr><td class="nm">{{EXC_NAME}}</td><td class="mono tiny">{{EXC_ID}}</td><td class="num">{{EXC_ATV_CR}}</td><td class="num">{{EXC_FF_CR}}</td><td>{{EXC_FLOOR}}</td></tr>
+    <!-- /REPEAT -->
+  </tbody>
+</table>
+</div>
+
+<div class="block-title" style="margin:16px 0 6px">Already declared &nbsp;·&nbsp; No prior-quarter concall &nbsp;·&nbsp; Liquidity unverified</div>
+<div style="overflow-x:auto">
+<table class="master">
+  <thead><tr><th>Company</th><th>companyId</th><th>Category</th><th>Reason excluded / deferred</th></tr></thead>
+  <tbody>
+    <!-- REPEAT one row per non-illiquid exclusion -->
+    <tr><td class="nm">{{EXC_NAME}}</td><td class="mono tiny">{{EXC_ID}}</td><td>{{EXC_CATEGORY}}</td><td>{{EXC_REASON}}</td></tr>
     <!-- /REPEAT -->
   </tbody>
 </table>

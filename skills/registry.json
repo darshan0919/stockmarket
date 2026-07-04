@@ -341,12 +341,17 @@
       "mode": "bundle",
       "modules": [
         "packages/stock-api/src/fetchers/documentsFetcher.js",
-        "packages/stock-api/src/analyzers/runScan.js"
+        "packages/stock-api/src/analyzers/runScan.js",
+        "packages/stock-api/src/analyzers/postEventReturns.js"
       ],
       "references": [
         "skills/pre-pead-scanner/references/workflow.md",
+        "skills/pre-pead-scanner/references/liquidity_gate.md",
         "skills/pre-pead-scanner/references/guidance_extraction.md",
         "skills/pre-pead-scanner/references/forward_estimation.md",
+        "skills/pre-pead-scanner/references/surprise_scoring.md",
+        "skills/pre-pead-scanner/references/valuation_and_expectations.md",
+        "skills/pre-pead-scanner/references/post_event_returns.md",
         "skills/pre-pead-scanner/references/scan_api.md"
       ],
       "assets": [
@@ -360,7 +365,12 @@
         "estimate next quarter",
         "guidance ranking",
         "pre-PEAD",
-        "results season scanner"
+        "results season scanner",
+        "predict earnings surprise",
+        "earnings surprise",
+        "who beats consensus",
+        "beat or miss",
+        "pre results surprise"
       ]
     },
     "watchlist-catalyst-scanner": {

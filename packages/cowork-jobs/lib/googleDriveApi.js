@@ -70,13 +70,58 @@ function getTimeoutOptions() {
 }
 
 /**
- * In-memory folder ID cache: { 'StockMarket/cowork-jobs/v1/gainers/2026/06' → 'driveId123' }
+ * In-memory folder ID cache: { 'StockMarket/cowork-jobs/v1/gainers/2026/06' → Promise<'driveId123'> }
+ *
+ * Stores PROMISES rather than resolved ids so that concurrent callers asking
+ * for the same not-yet-created folder await the same in-flight request
+ * instead of racing to create duplicate folders (I3 concurrency fix).
  */
 const _folderCache = new Map();
 
 /**
+ * Look up or create a single folder segment under a known parent.
+ *
+ * @param {object} drive - googleapis drive client
+ * @param {string} seg - folder name for this segment
+ * @param {string} parentId - Drive id of the parent folder
+ * @returns {Promise<string>} - Drive folder ID for this segment
+ */
+async function resolveOrCreateSegment(drive, seg, parentId) {
+  const query = [
+    `name = '${seg.replace(/'/g, "\\'")}'`,
+    `'${parentId}' in parents`,
+    "mimeType = 'application/vnd.google-apps.folder'",
+    'trashed = false',
+  ].join(' and ');
+
+  const res = await drive.files.list({
+    q: query,
+    fields: 'files(id, name)',
+    pageSize: 1,
+  }, getTimeoutOptions());
+
+  if (res.data.files && res.data.files.length > 0) {
+    return res.data.files[0].id;
+  }
+
+  // Create folder
+  const created = await drive.files.create({
+    requestBody: {
+      name: seg,
+      mimeType: 'application/vnd.google-apps.folder',
+      parents: [parentId],
+    },
+    fields: 'id',
+  }, getTimeoutOptions());
+  return created.data.id;
+}
+
+/**
  * Find or create a folder on Google Drive, returning its ID.
  * Walks the path segments from root, creating each folder if missing.
+ *
+ * Safe to call concurrently for overlapping paths (e.g. many files landing
+ * in the same date folder) - in-flight creations are cached and shared.
  *
  * @param {object} drive - googleapis drive client
  * @param {string} folderPath - slash-separated path (e.g. 'StockMarket/cowork-jobs/v1/gainers/2026')
@@ -84,50 +129,28 @@ const _folderCache = new Map();
  */
 async function ensureFolder(drive, folderPath) {
   const segments = folderPath.split('/').filter(Boolean);
-  let parentId = 'root';
+  let parentIdPromise = Promise.resolve('root');
   let builtPath = '';
 
   for (const seg of segments) {
     builtPath = builtPath ? `${builtPath}/${seg}` : seg;
 
-    if (_folderCache.has(builtPath)) {
-      parentId = _folderCache.get(builtPath);
-      continue;
+    if (!_folderCache.has(builtPath)) {
+      const parentPromiseForThisSeg = parentIdPromise;
+      const segForThisSeg = seg;
+      // Set synchronously (no await before this point in the iteration) so
+      // a concurrent call for the same builtPath reuses this promise rather
+      // than kicking off a second create.
+      _folderCache.set(
+        builtPath,
+        parentPromiseForThisSeg.then((parentId) => resolveOrCreateSegment(drive, segForThisSeg, parentId))
+      );
     }
 
-    // Search for existing folder
-    const query = [
-      `name = '${seg.replace(/'/g, "\\'")}'`,
-      `'${parentId}' in parents`,
-      "mimeType = 'application/vnd.google-apps.folder'",
-      'trashed = false',
-    ].join(' and ');
-
-    const res = await drive.files.list({
-      q: query,
-      fields: 'files(id, name)',
-      pageSize: 1,
-    }, getTimeoutOptions());
-
-    if (res.data.files && res.data.files.length > 0) {
-      parentId = res.data.files[0].id;
-    } else {
-      // Create folder
-      const created = await drive.files.create({
-        requestBody: {
-          name: seg,
-          mimeType: 'application/vnd.google-apps.folder',
-          parents: [parentId],
-        },
-        fields: 'id',
-      }, getTimeoutOptions());
-      parentId = created.data.id;
-    }
-
-    _folderCache.set(builtPath, parentId);
+    parentIdPromise = _folderCache.get(builtPath);
   }
 
-  return parentId;
+  return parentIdPromise;
 }
 
 /**

@@ -28,7 +28,9 @@
     "cowork:data:sync": "yarn workspace @stock/cowork-jobs data:sync",
     "cowork:data:manifest": "yarn workspace @stock/cowork-jobs data:manifest",
     "cowork:data:auth": "yarn workspace @stock/cowork-jobs data:auth",
-    "cowork:data:offload": "yarn workspace @stock/cowork-jobs data:offload"
+    "cowork:data:offload": "yarn workspace @stock/cowork-jobs data:offload",
+    "cowork:data:stockscans-ppts": "node scripts/fetchStockscansPpts.js && node scripts/extractPptText.js",
+    "cowork:jobs:ca-digest": "yarn workspace @stock/cowork-jobs ca-digest"
   },
   "devDependencies": {
     "@duckdb/node-api": "^1.5.4-r.1",

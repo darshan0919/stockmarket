@@ -1,6 +1,17 @@
 # Stockscans scan API — request/response details
 
-Reference for the two endpoints `run_scan.py` uses to turn a saved-scan URL into a company universe. Read this if you're extending the script or debugging an unexpected response. For day-to-day use, `run_scan.py` abstracts all of this away.
+Reference for the two endpoints `run_scan` uses to turn a saved-scan URL into a company universe. Read this if you're extending the script or debugging an unexpected response. For day-to-day use, `run_scan` abstracts all of this away, and additionally applies the **liquidity gate** (see `liquidity_gate.md`) so downstream steps only see tradeable names.
+
+## Runner CLI (Step 0)
+
+```bash
+python3 /tmp/run_scan.py "<SCAN_URL>" \
+    --min-atv-cr 5 \          # 50D avg traded value floor, ₹ Cr (default 5)
+    --min-free-float-cr 50 \  # free-float floor, ₹ Cr (default 50)
+    --json-out /tmp/pead_universe.json
+```
+
+The output JSON separates `companies` (liquid, tradeable — these proceed), `excluded_illiquid` (with measured `atvCr`/`freeFloatCr`), and `unresolved_liquidity` (columns missing — must be resolved, never passed silently). Pass `--no-liquidity-gate` only to inspect the raw universe; the ranked briefing always runs the gate on.
 
 ## The saved-scan URL
 
@@ -103,12 +114,23 @@ The exact column set follows the scan's `ratiosType`; with `"Default"` the rows 
 | `PAT Growth TTM / YoY / QoQ / 3 Years` | Momentum + historical-performance validation |
 | `Revenue Growth TTM` | Historical-performance validation |
 | `ROE`, `ROCE`, `ROA` (+ 3-yr medians) | Business-quality framing |
-| `Price To Earnings`, `Industry PE Median`, `EV To EBITDA`, `PEG`, `Price To Book Value`, `Price To Sales` | Valuation context (keep brief — this skill leads with business, not multiples) |
+| `Price To Earnings`, `Industry PE Median`, `EV To EBITDA`, `PEG`, `Price To Book Value`, `Price To Sales` | **Valuation / expectations (Step 6)** — is the beat priced in? |
 | `Debt To Equity`, `Current Ratio` | Balance-sheet check |
 | `CFO To PAT`, `CFO To EBITDA`, `Free Cash Flow`, `Operating Cash Flow` | Earnings-quality validation |
-| `Promoter / FII / DII / Retail Holdings` | Ownership context |
+| `Promoter / FII / DII / Retail Holdings` | Ownership context; promoter holding also feeds the free-float fallback |
 
-Note: `Revenue`, `Market Capitalization`, `Free Cash Flow` etc. are in **₹ Crore**. `EPS` is in ₹. Treat any single-decimal share figure with caution — confirm against the latest result for the EPS calc.
+### Liquidity, valuation & returns columns (used by the surprise workflow)
+
+These may need to be added to the saved scan's ratios if a "Default" run doesn't surface them. The runner resolves each across candidate aliases (see `liquidity_gate.md`); add aliases in `runScan.js` if a label drifts.
+
+| Column (or alias) | Use in this skill |
+|---|---|
+| `Average Traded Value 50D` / `50D Average Traded Value` / `Volume SMA 50D * SMA 50D` | **Liquidity gate (Step 0)** — floor ₹5 Cr. Expression form is in absolute ₹; `toCrore()` normalises. |
+| `Free Float Market Capitalization` / `Free Float` / `Non Promoter Holdings * Market Capitalization` | **Liquidity gate (Step 0)** — floor ₹50 Cr. Fallback: `(1 − promoter%) × mcap`. |
+| `Price To Earnings 50D Average` / 50D-avg-P/E (else approximate `50D-avg-close ÷ trailing EPS`) | **Valuation (Step 6)** — 50D avg P/E vs own history & industry. |
+| `Returns after result` / `Post Result Return` / `Return Since Last Result` | **Post-event drift (Step 7)** — result-date forward return, read directly. Concall/transcript returns are derived, not columns. |
+
+Note: `Revenue`, `Market Capitalization`, `Free Float Market Capitalization`, `Free Cash Flow` etc. are in **₹ Crore**; `EPS` is in ₹; `Returns after result` is typically a **percentage or fraction** — confirm which and normalise. Expression columns like `Volume SMA 50D * SMA 50D` are in **absolute rupees** — divide by 1e7 for ₹ Cr (the runner's `toCrore()` heuristic does this). Treat any single-decimal share figure with caution — confirm against the latest result for the EPS calc.
 
 ## 3. Auth
 

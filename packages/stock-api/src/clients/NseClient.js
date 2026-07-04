@@ -195,6 +195,46 @@ class NseClient {
     });
     return res.data || {};
   }
+
+  /**
+   * Corporate Actions (Dividends, Splits, Bonus, etc.)
+   * @param {string} [fromDate] - DD-MM-YYYY
+   * @param {string} [toDate]   - DD-MM-YYYY
+   * @returns {Promise<Array>}
+   */
+  async getCorporateActions(fromDate, toDate) {
+    const params = { index: 'equities' };
+    if (fromDate && toDate) {
+      params.from_date = fromDate;
+      params.to_date = toDate;
+    }
+    const res = await this.session.get('/corporates-corporateActions', {
+      params,
+      referer: `${NSE_HOME_URL}companies-listing/corporate-filings-actions`,
+      timeout: 30000,
+    });
+    return Array.isArray(res.data) ? res.data : (res.data?.data || []);
+  }
+
+  /**
+   * Board Meetings
+   * @param {string} [fromDate] - DD-MM-YYYY
+   * @param {string} [toDate]   - DD-MM-YYYY
+   * @returns {Promise<Array>}
+   */
+  async getBoardMeetings(fromDate, toDate) {
+    const params = { index: 'equities' };
+    if (fromDate && toDate) {
+      params.from_date = fromDate;
+      params.to_date = toDate;
+    }
+    const res = await this.session.get('/corporate-board-meetings', {
+      params,
+      referer: `${NSE_HOME_URL}companies-listing/corporate-filings-board-meetings`,
+      timeout: 30000,
+    });
+    return Array.isArray(res.data) ? res.data : (res.data?.data || []);
+  }
 }
 
 module.exports = { NseClient };

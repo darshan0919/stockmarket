@@ -165,6 +165,54 @@ class BseClient {
       return [];
     }
   }
+
+  /**
+   * Corporate Actions (Dividends, Splits, Bonus, etc.)
+   * @param {string} [fromDate] - DD/MM/YYYY
+   * @param {string} [toDate]   - DD/MM/YYYY
+   * @returns {Promise<Array>}
+   */
+  async getCorporateActions(fromDate, toDate) {
+    try {
+      const params = { scripcode: '' };
+      if (fromDate && toDate) {
+        params.FDate = fromDate;
+        params.TDate = toDate;
+      }
+      const res = await bseGetJson('CorpAction/w', {
+        params,
+        timeout: BSE_REQUEST_TIMEOUT_MS,
+      });
+      return res?.Table || [];
+    } catch (error) {
+      console.warn('BSE getCorporateActions failed:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * Board Meetings
+   * @param {string} [fromDate] - DD/MM/YYYY
+   * @param {string} [toDate]   - DD/MM/YYYY
+   * @returns {Promise<Array>}
+   */
+  async getBoardMeetings(fromDate, toDate) {
+    try {
+      const params = { scripcode: '' };
+      if (fromDate && toDate) {
+        params.FDate = fromDate;
+        params.TDate = toDate;
+      }
+      const res = await bseGetJson('BoardMeeting/w', {
+        params,
+        timeout: BSE_REQUEST_TIMEOUT_MS,
+      });
+      return res?.Table || [];
+    } catch (error) {
+      console.warn('BSE getBoardMeetings failed:', error.message);
+      return [];
+    }
+  }
 }
 
 module.exports = { BseClient, parseBseSmartSearchHtml };

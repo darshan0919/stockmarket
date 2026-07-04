@@ -1,59 +1,79 @@
 ---
 name: pre-pead-scanner
-description: Pre-results conviction scanner for Indian listed companies. Given a Stockscans saved-scan URL of companies about to report, it reads each one's latest concall, extracts revenue/margin/PAT guidance, validates it against order book, capacity, utilisation and history, projects next-quarter Revenue/OPM/PAT/EPS, and ranks every name highest-to-lowest conviction in an HTML table. Use when the user provides a Stockscans saved-scan URL and asks to find pre-results candidates, rank companies before earnings, estimate next quarter from guidance, build a pre-PEAD briefing, or get a guidance-vs-capability ranking ahead of a results season. Auto-fetches concalls; excludes names already declared or lacking a prior-quarter concall.
+description: Institutional-grade pre-results EARNINGS-SURPRISE predictor for Indian listed companies. Given a Stockscans saved-scan URL of companies about to report, it gates out illiquid names, reads each survivor's latest concall, extracts revenue/margin/PAT guidance, validates it against order book / capacity / utilisation / history, projects next-quarter Revenue/OPM/PAT/EPS, then scores the SURPRISE two ways — versus street/research-report estimates AND versus the number management's own guidance implies — layered with 50-day average P/E and valuation context (is the beat already priced?) and the stock's historical drift after result/concall/transcript (is the surprise tradeable?). Ranks every name by a composite surprise score in an HTML briefing. Use when the user provides a Stockscans saved-scan URL and asks to predict earnings surprises, find pre-results candidates, rank companies before earnings, estimate next quarter, build a pre-PEAD briefing, or screen for beats/misses ahead of a results season. Auto-fetches concalls and price history; excludes illiquid, already-declared, and no-concall names, each with its reason.
 ---
 
-# Pre-PEAD Scanner
+# Pre-PEAD Scanner — Earnings-Surprise Predictor
 
-Turns a Stockscans saved-scan of soon-to-report companies into a conviction-ranked, next-quarter estimate table. A scan tells you *who* reports next; this skill tells you *which of them management has set up to beat* — by reading what they guided and checking whether the order book, capacity, utilisation and history actually support it.
+Turns a Stockscans saved-scan of soon-to-report companies into a **surprise-ranked** briefing: for each tradeable name, which way it is likely to surprise, by how much, against what the street and management are each expecting, and whether that surprise has historically been worth trading.
 
-The deliverable is one institutional HTML briefing: a master table sorted highest-conviction -> lowest, each row carrying the extracted guidance, the validation evidence, and a back-computed Revenue / OPM / PAT / EPS estimate for the upcoming quarter, plus a per-name "what could be wrong" flag.
+The deliverable is one institutional HTML briefing — a master table sorted by composite surprise score, each row carrying the extracted guidance, the capability validation, a back-computed Revenue / OPM / PAT / EPS estimate, the **surprise versus street consensus** and the **surprise versus guidance**, the valuation/expectations read (50D avg P/E, research targets), the historical post-event drift, and a per-name "what could be wrong" flag.
 
-This is a **business-first, guidance-vs-capability** workflow. A confident management quote is worthless if the order book or capacity can't honour it; a quiet management with a full order book and idle capacity is the real signal. Weight evidence over tone.
+## The thesis
+
+Post-earnings-announcement drift (PEAD) exists because the market under-reacts to genuine surprises. To harvest it pre-results you need four things to line up, and the ranking is built to check all four:
+
+1. **A surprise is coming** — your independent next-quarter estimate diverges from what others expect. "Others" is two audiences: the **street** (research-report/consensus estimates) and the **market's read of management guidance**. A number that beats both is the cleanest setup; a number that beats one but not the other is where the interesting disagreements live.
+2. **The company can actually deliver it** — order book, commissioned capacity, utilisation headroom and run-rate/seasonality support the number. A confident quote is not evidence; a booked order book is. Weight evidence over tone.
+3. **The beat isn't already in the price** — a name trading rich to its own 50-day-average P/E and to history has already discounted good news; the same beat surprises less. Cheap-to-history names with a coming beat are the asymmetric setups.
+4. **The surprise is tradeable** — thin names can't be positioned in, and some stocks systematically "sell the news". Liquidity is a hard gate; historical drift after result/concall/transcript tells you whether a beat actually moves *this* stock.
 
 ## When to use this skill
 
-- User pastes a Stockscans saved-scan URL (`https://www.stockscans.in/scans/saved/<id>`) and asks to work through the companies before results
-- "rank these companies by conviction before earnings", "which will beat next quarter", "pre-PEAD candidates", "estimate next quarter for each of these"
-- A results season is approaching and the user wants a screen of names where management guidance looks credible and *deliverable*
-- The user has a saved scan built around `Days From Result` (companies about to report) and wants it turned into an actionable pre-results briefing
+- User pastes a Stockscans saved-scan URL (`https://www.stockscans.in/scans/saved/<id>`) and asks to predict surprises / rank names before results.
+- "which will beat next quarter", "predict earnings surprise", "pre-PEAD candidates", "estimate next quarter for each of these", "who beats consensus".
+- A results season is approaching and the user wants a screen of names set up to surprise, ranked by how tradeable that surprise is.
 
 Do **not** use this for a single named stock (use `growth-triggers-1pager` or `equity-research-deepdive`), for post-results interpretation (use `quarterly-result-analysis`), or for a two-quarter forensic diff (use `consecutive-filings-diff`).
 
 ## The workflow at a glance
 
-Six steps, run in order — each gates the next. A company that fails an early gate drops out and is reported as *excluded*, never silently dropped. **Read `references/workflow.md` for the commands, decision rules, and gates before starting** — it is the operational heart of this skill.
+Nine steps, run in order — each gates or feeds the next. A company that fails a gate drops out and is reported as *excluded*, never silently dropped. **Read `references/workflow.md` for the commands, decision rules, and gates before starting** — it is the operational heart of this skill.
 
-1. **Resolve the scan -> universe.** `packages/stock-api/python/analyzers/run_scan.py <SCAN_URL>` fetches the live saved-scan definition and returns the matching companies, keyed by `companyId`.
-2. **Drop already-declared names** — `Last Result Date` plus a `Result`-document check.
-3. **Drop names with no prior-quarter concall** — `Transcript`-document check (PPT-only -> degraded scope; nothing -> excluded).
-4. **Read the concall: extract guidance, then validate it** against order book, capacity, utilisation and history. Fetch more concalls if guidance-drift needs checking. Framework in `references/guidance_extraction.md`.
-5. **Extrapolate next-quarter Revenue / OPM / PAT / EPS** — `FY guidance - YTD actual`, else run-rate x seasonality. Method in `references/forward_estimation.md`.
-6. **Rank by conviction and render** the HTML briefing using `assets/briefing_template.html`.
+0. **Resolve the scan → universe, then GATE ON LIQUIDITY.** `run_scan` fetches the live saved-scan definition and returns the matching companies. Immediately drop any name with **50-day average traded value < ₹5 Cr** or **free float < ₹50 Cr** — an untradeable surprise is worthless. See `references/liquidity_gate.md`.
+1. **Drop already-declared names** — `Last Result Date` + a `Result`-document check.
+2. **Drop names with no prior-quarter concall** — `Transcript`-document check (PPT-only → degraded scope; nothing → excluded).
+3. **Read the concall: extract guidance, then validate capability** against order book, capacity, utilisation and history. Fetch prior concalls to track guidance drift. Framework in `references/guidance_extraction.md`.
+4. **Project next-quarter Revenue / OPM / PAT / EPS** — `FY guidance − YTD actual`, else run-rate × seasonality, one-offs stripped. Method in `references/forward_estimation.md`.
+5. **Score the surprise two ways** — versus street/research-report estimates AND versus guidance-implied. Where they diverge, say so; divergence is signal. Framework in `references/surprise_scoring.md`.
+6. **Read valuation & expectations** — 50-day average P/E vs the stock's own history and industry, research-report price targets and valuation models. Is a beat already priced in? See `references/valuation_and_expectations.md`.
+7. **Measure historical post-event drift** — returns after the last *result*, after the *concall*, and after the *transcript* release, so you know whether a beat is tradeable in this name. Result-return is a scan column; concall/transcript returns are derived from doc dates + price history. See `references/post_event_returns.md`.
+8. **Composite surprise score → rank → render** the HTML briefing using `assets/briefing_template.html`.
 
 ## Core principles
 
-**Live definition, every time.** The scan runner re-fetches the saved-scan definition on each run. Users edit their saved scans (filter thresholds, result-window days); the skill must reflect the current definition, not a cached one.
+**Liquidity is a hard gate, not a factor.** The scanner exists to find *tradeable* surprises. A name below ₹5 Cr 50D average traded value or ₹50 Cr free float is excluded before any concall is read — there is no point analysing a stock you can't build a position in. The gate is applied in code (`run_scan` with the liquidity gate on) and its exclusions are listed with their measured values.
 
-**Evidence over tone.** A CEO sounding confident is not evidence. Order book covering the guided revenue, commissioned capacity with utilisation headroom, and a run-rate consistent with the implied jump — that is evidence. Rank on evidence. When tone and evidence diverge, say so explicitly (chairman-vs-CFO asymmetries and guidance walk-backs are material signals).
+**Two benchmarks, always.** "Surprise" is meaningless without a reference. Score every name against *both* the street (research/consensus) and management guidance, and flag the gap. A beat versus a lowballed street estimate is a different trade from a beat versus an aggressive guide. Never collapse the two into one number without showing both.
 
-**Strip one-offs before extrapolating.** Reported PAT often contains deferred-tax credits, forex, one-time provisions, inventory losses. Distinguish reported from cleaned earnings before projecting, or the EPS estimate inherits the noise.
+**Evidence over tone.** A CEO sounding confident is not evidence. Order-book coverage of the guided revenue, commissioned capacity with utilisation headroom, a run-rate consistent with the implied jump — that is evidence. Rank on evidence. When tone and evidence diverge, say so.
 
-**Show the maths.** Every next-quarter estimate must be reconstructable from the inputs shown. Tag each input `[guided]` / `[actual]` / `[estimate]`. Never present an analyst estimate as company guidance.
+**Is the beat already priced?** A surprise only moves a stock to the extent it wasn't expected. A name rich to its 50D-average P/E and to research targets has discounted good news; weight its surprise down. Cheap-to-history names with a coming beat get weighted up. Valuation is the "expectations" leg of the surprise trade.
 
-**Honest exclusions.** A company excluded for already declaring, or for having no concall, is part of the output — list it with its reason. The reader needs to know the universe wasn't cherry-picked.
+**Tradeable, not just true.** A correct beat prediction earns nothing if the stock fades every good result. Use the historical drift after result/concall/transcript to separate names where surprises *stick* from "sell-the-news" names.
 
-**Self-audit before finalising.** Re-run the scan immediately before delivering and confirm none of the ranked names declared results in the interim. Spot-check headline figures (a guided number, a 9M actual, an EPS) against source.
+**Strip one-offs before extrapolating.** Reported PAT often carries deferred-tax credits, forex, one-time provisions. Distinguish reported from cleaned earnings before projecting, or the EPS estimate — and the surprise — inherit the noise.
+
+**Show the maths, tag every input.** Every estimate and every surprise must be reconstructable from the inputs shown. Tag each input `[guided]` / `[actual]` / `[estimate]` / `[consensus]` / `[market]`. Never present an analyst estimate as company guidance, or a guidance-implied number as street consensus.
+
+**Honest exclusions.** Illiquid, already-declared, and no-concall names are part of the output — list each with its reason and, for illiquid, its measured traded-value and free-float. The reader must know the universe wasn't cherry-picked.
+
+**Self-audit before finalising.** Re-run the scan immediately before delivering and confirm none of the ranked names declared in the interim. Spot-check a guided number, a 9M actual, an EPS, a 50D-P/E, and one post-event return against source. Ask "what could be wrong with this ranking?" and record the answer per name and once across the whole screen — this is a requirement, not a nicety.
 
 ## Reference files
 
-- `references/workflow.md` — the six-step mechanics: commands, gates, and decision rules. **Start here.**
-- `references/scan_api.md` — the saved-scan and scan-run endpoints; response shape; column glossary.
-- `references/guidance_extraction.md` — extracting revenue/margin/PAT guidance, the tone/clarity read, the order-book/capacity/utilisation/history validation, guidance-drift tracking, and the conviction-tier rubric. Read before analysing the first company.
-- `references/forward_estimation.md` — next-quarter Revenue/OPM/PAT/EPS extrapolation, the OPM->PAT bridge, one-off stripping, and EPS share-count gotchas.
-- `assets/briefing_template.html` — the conviction-sorted master table + deep-dive card structure for the HTML deliverable.
+- `references/workflow.md` — the nine-step mechanics: commands, gates, decision rules. **Start here.**
+- `references/liquidity_gate.md` — the ₹5 Cr traded-value / ₹50 Cr free-float gate: columns, unit handling, fallbacks, how to report exclusions.
+- `references/scan_api.md` — the saved-scan and scan-run endpoints; response shape; column glossary (incl. liquidity, valuation, and post-result-return columns).
+- `references/guidance_extraction.md` — extracting revenue/margin/PAT guidance, the tone/clarity read, the order-book/capacity/utilisation/history validation, guidance-drift tracking, and the capability tier. Read before analysing the first company.
+- `references/forward_estimation.md` — next-quarter Revenue/OPM/PAT/EPS extrapolation, the OPM→PAT bridge, one-off stripping, EPS share-count gotchas.
+- `references/surprise_scoring.md` — the two-benchmark surprise (vs street, vs guidance), sourcing research-report estimates, the composite surprise score and rank rubric.
+- `references/valuation_and_expectations.md` — 50D average P/E vs history/industry, research-report targets & valuation models, and the "is the beat priced in?" read.
+- `references/post_event_returns.md` — deriving returns after result/concall/transcript, the drift signature, and translating it into tradeability.
+- `assets/briefing_template.html` — the surprise-sorted master table + deep-dive card structure for the HTML deliverable.
 
 ## Dependencies
 
-- `stock-documents-fetcher` (sibling skill) — used in Steps 2-4 to fetch results, transcripts, PPTs.
-- A valid Stockscans `authtoken` — resolved by both scripts from `--authtoken-file`, `STOCKSCANS_AUTHTOKEN`, or `/mnt/project/Stockscans_authtoken`. On a 401/403, the token expired — ask the user to refresh it from the browser.
+- `stock-documents-fetcher` (sibling skill) — used in Steps 1–3 to fetch results, transcripts, PPTs, and in Step 6 to pull any broker/research PDFs the user supplies.
+- Analyzer helpers in `packages/stock-api/src/analyzers/`: `runScan.js` (`resolveUniverse` with the built-in liquidity gate) and `postEventReturns.js` (forward drift from price history + event dates).
+- A valid Stockscans `authtoken` — resolved from `--authtoken-file`, `STOCKSCANS_AUTHTOKEN`, or `/mnt/project/Stockscans_authtoken`. On a 401/403 the token expired — ask the user to refresh it from the browser.
