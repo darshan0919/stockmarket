@@ -48,7 +48,7 @@ describe('fetchAllCompanies pagination', () => {
       const start = payload.offset;
       return { total: 120, table: table(ids.slice(start, start + PAGE_SIZE)) };
     });
-    const out = await fetchAllCompanies(stockscans, silent);
+    const out = await fetchAllCompanies(undefined, undefined, stockscans, silent);
     expect(out).toHaveLength(120);
     expect(stockscans.runScan).toHaveBeenCalledTimes(3);
     expect(stockscans.runScan.mock.calls.map((c) => c[0].offset)).toEqual([0, 50, 100]);
@@ -58,7 +58,7 @@ describe('fetchAllCompanies pagination', () => {
     const { stockscans } = require('@stock/api');
     stockscans.runScan.mockReset();
     stockscans.runScan.mockResolvedValueOnce({ total: 999, table: table(['A', 'B']) });
-    const out = await fetchAllCompanies(stockscans, silent);
+    const out = await fetchAllCompanies(undefined, undefined, stockscans, silent);
     expect(out).toEqual(['A', 'B']);
     expect(stockscans.runScan).toHaveBeenCalledTimes(1);
   });

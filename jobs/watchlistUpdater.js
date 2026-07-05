@@ -15,48 +15,79 @@
  * Config (env or --env-file): STOCKSCANS_AUTH_TOKEN, GOOGLE_APP_PASSWORD.
  */
 
+const fs = require('fs');
+const path = require('path');
 const { stockscans } = require('@stock/api');
 const { sendHtmlEmail } = require('@stock/cloud-utils');
 const { loadEnv, hasFlag, argValue } = require('./lib/env');
 
+/**
+ * Lazily resolve the saved-scan helper (lives in the `screener-api` package).
+ * Custom scans must run with THEIR OWN saved filters, not the hardcoded
+ * Near-High payload — `runScan` sends the payload's filters, so a different
+ * scanId alone would silently reuse the wrong filters. Walk up from here to
+ * find the module regardless of monorepo layout.
+ */
+function loadSavedScanHelper() {
+  let dir = __dirname;
+  for (let i = 0; i < 8; i++) {
+    const candidate = path.join(
+      dir,
+      'screener-api/src/features/screener/stockscansSavedScan.js'
+    );
+    if (fs.existsSync(candidate)) return require(candidate);
+    dir = path.dirname(dir);
+  }
+  throw new Error(
+    'Could not locate screener-api/.../stockscansSavedScan.js for saved-scan fetch'
+  );
+}
+
 // ── Configuration (identical to the Python job) ───────────────────────────────
 
-const SCAN_ID = '9493efc2c969d602c5dedbe2';
-const SCAN_NAME = 'Chartist Near High Scan';
-const WATCHLIST_ID = '0a365ec2139aa6ca7f74c250';
-const WATCHLIST_NAME = 'Near Highs';
+// Defaults preserve the original nightly "Near Highs" behaviour. The scan and
+// target-watchlist IDs are parameterizable via `--scan-id` / `--watchlist-id`
+// (or the main() opts) so this job is agnostic of any specific pairing — the
+// caller supplies the mapping.
+const DEFAULT_SCAN_ID = '9493efc2c969d602c5dedbe2';
+const DEFAULT_SCAN_NAME = 'Chartist Near High Scan';
+const DEFAULT_WATCHLIST_ID = '0a365ec2139aa6ca7f74c250';
+const DEFAULT_WATCHLIST_NAME = 'Near Highs';
 const PAGE_SIZE = 50;
 
-const RADAR_WATCHLIST_ID = '7ca0e1a60c3fd0d8b1ab61ce';
+const DEFAULT_RADAR_WATCHLIST_ID = '7ca0e1a60c3fd0d8b1ab61ce';
 const RADAR_WATCHLIST_NAME = 'Radar';
 
-const SCAN_PAYLOAD_TEMPLATE = {
-  ratiosType: 'Performance',
-  timePeriod: 'Latest',
-  scan: {
-    scanId: SCAN_ID,
-    scanName: SCAN_NAME,
-    scanDescription: 'Chartist Scan',
-    industry: [],
-    index: [],
-    sector: [],
-    tags: [],
+/** Build the scan payload for a given scan id/name (filters are constant). */
+function buildScanPayload(scanId, scanName) {
+  return {
+    ratiosType: 'Performance',
+    timePeriod: 'Latest',
+    scan: {
+      scanId,
+      scanName,
+      scanDescription: 'Chartist Scan',
+      industry: [],
+      index: [],
+      sector: [],
+      tags: [],
+      watchlistIds: [],
+      filters: [
+        { left: '52WH Distance', sign: '<', right: '20' },
+        { left: '52WL Distance', sign: '>', right: '50' },
+        { left: 'Close Price', sign: '>=', right: 'EMA 200D' },
+        { left: 'Volume SMA 50D * SMA 50D', sign: '>=', right: '50000000' },
+        { left: 'Market Capitalization', sign: '>=', right: '500' },
+        { left: 'Market Capitalization', sign: '<', right: '50000' },
+      ],
+      alertFrequency: null,
+    },
     watchlistIds: [],
-    filters: [
-      { left: '52WH Distance', sign: '<', right: '20' },
-      { left: '52WL Distance', sign: '>', right: '50' },
-      { left: 'Close Price', sign: '>=', right: 'EMA 200D' },
-      { left: 'Volume SMA 50D * SMA 50D', sign: '>=', right: '50000000' },
-      { left: 'Market Capitalization', sign: '>=', right: '500' },
-      { left: 'Market Capitalization', sign: '<', right: '50000' },
-    ],
-    alertFrequency: null,
-  },
-  watchlistIds: [],
-  order: 'desc',
-  orderBy: 'Market Capitalization',
-  offset: 0,
-};
+    order: 'desc',
+    orderBy: 'Market Capitalization',
+    offset: 0,
+  };
+}
 
 // ── Pure helpers (exported for parity tests) ──────────────────────────────────
 
@@ -97,17 +128,37 @@ function computeDiff(desired, current) {
 }
 
 /** Paginate the scan and return all companyIds. */
-async function fetchAllCompanies(client = stockscans, log = console.log) {
+async function fetchAllCompanies(
+  scanId = DEFAULT_SCAN_ID,
+  scanName = DEFAULT_SCAN_NAME,
+  client = stockscans,
+  log = console.log
+) {
+  // Non-default scan → use its OWN saved definition/filters (correctness).
+  // Default nightly scan → keep the proven hardcoded-filter path below.
+  if (scanId && scanId !== DEFAULT_SCAN_ID) {
+    const { fetchCompanyIdsFromSavedScanUrl } = loadSavedScanHelper();
+    log(`  Using saved-scan definition for scanId=${scanId} (custom scan)`);
+    const r = await fetchCompanyIdsFromSavedScanUrl(scanId);
+    const ids = r.companyIds || r;
+    log(
+      `  Total companies in scan: ${r.meta?.total ?? ids.length}` +
+        (r.meta?.scanName ? ` ('${r.meta.scanName}')` : '')
+    );
+    log(`  ✓ Total fetched: ${ids.length} companies`);
+    return ids;
+  }
+
   const companyIds = [];
   let offset = 0;
   let total = null;
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    const payload = JSON.parse(JSON.stringify(SCAN_PAYLOAD_TEMPLATE));
+    const payload = buildScanPayload(scanId, scanName);
     payload.offset = offset;
 
-    const data = await client.runScan(payload, SCAN_ID);
+    const data = await client.runScan(payload, scanId);
 
     if (total === null) {
       total = data.total || 0;
@@ -136,7 +187,20 @@ async function fetchWatchlistCompanyIds(watchlistId, client = stockscans) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-async function main({ client = stockscans, dryRun = false, log = console.log } = {}) {
+async function main({
+  scanId = DEFAULT_SCAN_ID,
+  scanName = DEFAULT_SCAN_NAME,
+  watchlistId = DEFAULT_WATCHLIST_ID,
+  watchlistName = DEFAULT_WATCHLIST_NAME,
+  radarId = DEFAULT_RADAR_WATCHLIST_ID,
+  client = stockscans,
+  dryRun = false,
+  log = console.log,
+} = {}) {
+  const SCAN_NAME = scanName;
+  const WATCHLIST_NAME = watchlistName;
+  const WATCHLIST_ID = watchlistId;
+  const RADAR_WATCHLIST_ID = radarId;
   const now = nowIst();
   log(`\n${'='.repeat(55)}`);
   log(`  StockScans Watchlist Updater  —  ${now}${dryRun ? '  [DRY RUN]' : ''}`);
@@ -159,7 +223,7 @@ async function main({ client = stockscans, dryRun = false, log = console.log } =
   log(`\n[Step 1] Fetching companies from ${SCAN_NAME}...`);
   let companyIds;
   try {
-    companyIds = await fetchAllCompanies(client, log);
+    companyIds = await fetchAllCompanies(scanId, scanName, client, log);
     log(`  ✓ Total fetched: ${companyIds.length} companies`);
   } catch (e) {
     log(`  ✗ Scan fetch failed: ${e.message}`);
@@ -266,20 +330,27 @@ async function main({ client = stockscans, dryRun = false, log = console.log } =
 module.exports = {
   main,
   fetchAllCompanies,
-
+  buildScanPayload,
   computeDiff,
   companyIdsFromTable,
   nowIst,
-  SCAN_ID,
-
-
+  DEFAULT_SCAN_ID,
+  DEFAULT_WATCHLIST_ID,
+  DEFAULT_RADAR_WATCHLIST_ID,
   PAGE_SIZE,
 };
 
 // CLI entry
 if (require.main === module) {
   loadEnv(argValue('--env-file'));
-  main({ dryRun: hasFlag('--dry-run') }).catch((e) => {
+  main({
+    dryRun: hasFlag('--dry-run'),
+    scanId: argValue('--scan-id') || undefined,
+    watchlistId: argValue('--watchlist-id') || undefined,
+    scanName: argValue('--scan-name') || undefined,
+    watchlistName: argValue('--watchlist-name') || undefined,
+    radarId: argValue('--radar-id') || undefined,
+  }).catch((e) => {
     console.error(e.message);
     process.exit(1);
   });
