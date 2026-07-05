@@ -1,49 +1,60 @@
 ---
 name: watchlist-sync
-description: Sync a Stockscans watchlist from a saved scan — fetch all scan companies, exclude a Radar list, replace the target watchlist by diff, and email a summary. Invoke with defaults for the nightly "Near Highs" sync, or pass custom scan/watchlist IDs on demand.
+description: Sync a Stockscans watchlist from a saved scan — fetch the scan's companies (using its own saved filters), exclude a Radar list, replace the target watchlist by diff, and email a summary. Invoke with defaults for the nightly "Near Highs" sync, or pass any scan/watchlist ID pair. ID-agnostic — the caller supplies the mapping.
 ---
 
 # Watchlist Sync
 
 Thin wrapper over the deterministic companion job `watchlistUpdater.js`. The job does
 everything (fetch → diff → apply → email); this skill just invokes it with the right
-parameters. No model judgment is required.
+flags. No model judgment is required.
 
-## Parameters (all optional — omit for the nightly default)
+The job is **agnostic of any specific scan/watchlist** — pass the pair you want. To sync
+several watchlists, the caller (e.g. a scheduled task prompt) holds the list of mappings
+and invokes the job once per pair. Do NOT hardcode specific IDs in this skill.
 
-| Param | Default | Meaning |
+## Flags (all optional — omit for the nightly Near Highs default)
+
+| Flag | Default | Meaning |
 |---|---|---|
-| `sourceScanId` | `9493efc2c969d602c5dedbe2` (Chartist Near High Scan) | scan to pull companies from |
-| `targetWatchlistId` | `0a365ec2139aa6ca7f74c250` (Near Highs) | watchlist to replace |
-| `radarWatchlistId` | `7ca0e1a60c3fd0d8b1ab61ce` (Radar) | companies to exclude |
-| `dryRun` | `false` | compute + print the diff without applying or emailing |
+| `--scan-id` | `9493efc2c969d602c5dedbe2` (Near Highs) | scan to pull companies from |
+| `--watchlist-id` | `0a365ec2139aa6ca7f74c250` (Near Highs) | watchlist to replace |
+| `--scan-name` | `Chartist Near High Scan` | label used in logs/email |
+| `--watchlist-name` | `Near Highs` | label used in logs/email |
+| `--radar-id` | `7ca0e1a60c3fd0d8b1ab61ce` (Radar) | watchlist of companies to exclude |
+| `--dry-run` | off | compute + print the diff without applying or emailing |
 
-> The defaults are baked into `watchlistUpdater.js`; only pass overrides you actually
-> want to change. (Custom scan/watchlist IDs require the job to support flags — for now
-> override by editing the constants or running a `--dry-run` preview.)
+> Any **non-default** `--scan-id` runs with that scan's OWN saved definition/filters
+> (fetched from Stockscans), not the built-in Near-High filter payload. The default scan
+> keeps its original proven path. This matters: `runScan` sends the payload's filters, so
+> a different `--scan-id` without this handling would silently reuse the wrong filters.
 
 ## Setup
 
 ```bash
-JOB=$(find /sessions -path '*jobs/watchlistUpdater.js' 2>/dev/null | head -1)
-DATA=$(find /sessions -name 'company_notes.json' 2>/dev/null | head -1 | xargs -0 dirname 2>/dev/null \
-        || find /sessions -path '*Company Research*' -name '.env' 2>/dev/null | head -1 | xargs dirname)
-export COWORK_ENV="$DATA/.env"        # STOCKSCANS_AUTH_TOKEN + GOOGLE_APP_PASSWORD live here
+JOB=$(find /sessions -name watchlistUpdater.js -not -path '*/node_modules/*' 2>/dev/null | head -1)
+ENV="$(dirname "$(dirname "$JOB")")/.env"           # repo-root .env
+[ -f "$ENV" ] || ENV="$(dirname "$JOB")/data/.env"  # fallback
+export COWORK_ENV="$ENV"        # STOCKSCANS_AUTH_TOKEN + GOOGLE_APP_PASSWORD live here
 ```
 
 ## Run
 
-Default (nightly):
+Default (nightly Near Highs):
 ```bash
 node "$JOB"
 ```
 
-On-demand dry run (preview the add/remove diff, no changes, no email):
+A specific scan → watchlist pair:
 ```bash
-node "$JOB" --dry-run
+node "$JOB" --scan-id <scanId> --watchlist-id <watchlistId> \
+            --scan-name "<label>" --watchlist-name "<label>"
 ```
+
+Preview only (no changes, no email) — add `--dry-run` to any command.
 
 ## Output
 
 The job prints a step log and the final `added / removed / final count`, and emails a
-✅/❌ summary. Report that summary back; nothing else to do.
+✅/❌ summary per run. When running several mappings, report each mapping's summary and a
+combined total.

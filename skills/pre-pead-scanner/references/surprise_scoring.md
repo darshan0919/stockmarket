@@ -31,7 +31,7 @@ Surprise_street = (E − Street_est) / |Street_est|
 Tag `Street_est` `[consensus]`. Source, in order of preference:
 1. **Broker/research PDFs the user supplies** — extract the analyst's quarter or FY estimate verbatim (number, broker, date). This is the gold standard; quote it.
 2. **A stated consensus figure** if the user or a supplied doc gives one.
-3. **Proxy consensus** when nothing better exists: the trailing-four-quarter run-rate grown at the scan's `Revenue Growth TTM` / analyst-implied growth, or the FY figure embedded in the current forward P/E (`CMP × shares ÷ forward-P/E` → implied FY PAT). Flag any proxy explicitly as `[consensus-proxy]` — it is weaker than a real estimate and the reader must know.
+3. **Proxy consensus** when nothing better exists: the trailing-four-quarter run-rate grown at the scan's `Revenue Growth TTM` / analyst-implied growth. Flag any proxy explicitly as `[consensus-proxy]` — it is weaker than a real estimate and the reader must know.
 
 **Surprise vs guidance:**
 ```
@@ -60,9 +60,9 @@ Kept qualitative on purpose — this is a ranking aid, not a black box. The legs
 
 - **SurpriseCore** — the blended expected surprise. Weight the two benchmarks by benchmark quality: if you have a real broker estimate, lean on `Surprise_street`; if street is only a proxy, lean on `Surprise_guidance`. Sign it (positive = beat, negative = miss).
 - **Deliverability (0–1, from Step 3)** — the capability tier. A large surprise with no order-book/capacity support is *not* credible; multiply it down. This is the credibility gate: a HIGH-capability name keeps its surprise, a LOW-capability name has its surprise heavily discounted because the "beat" rests on tone, not evidence. **Weight up beats driven by the two structural PAT levers** — capex-live operating leverage and balance-sheet deleverage (Step 4): a beat you can attribute to incremental high-margin volume on newly-commissioned capacity, or to a quantified interest saving from lower debt, is far more bankable than one resting on a hopeful revenue number, because both are close to arithmetic once the inputs are known.
-- **Tradeability (from Step 7)** — the historical drift signature. `strong-positive-drift` amplifies a positive surprise (the market reliably rewards beats here); `fade` shrinks it (good results get sold). Liquidity is already a gate, so it doesn't re-enter here except as a tie-break (thicker names rank ahead when scores tie).
+- **Tradeability (from Step 7)** — the historical drift signature. `strong-positive-drift` amplifies a positive surprise (the market reliably rewards beats here); `fade` shrinks it (good results get sold).
 - **Screener cross-check (from Step 3c)** — a conviction modifier, not a weighted leg. Independent Screener insights that *agree* with your thesis (`good-quarter-expected`, `debt-reduced`) nudge the composite up; ones that *contradict* it (`poor-quarter-expected`, `debt-increased`, `working-capital-stretch`) must be resolved before ranking, and if unresolved they cap conviction; governance flags (`promoter-pledge`/`promoter-selling`) cap it regardless of the numbers. See `screener_insights.md`.
-- **Pricing (from Step 6)** — the expectations modifier. Cheap-to-history (low 50D avg P/E vs its own trailing, discount to research target) amplifies; rich-to-history (premium multiple, at/above target) discounts, because the beat is likelier already in the price.
+- **Pricing (from Step 6)** — the expectations modifier. Clear discount to research target amplifies; at/above target discounts, because the beat is likelier already in the price.
 
 ## Rank rubric — the tiers
 
@@ -71,10 +71,10 @@ Assign each name a tier from the *composite*, not from any single leg. Use as a 
 **TOP (high-conviction positive surprise)** — all of:
 - Positive surprise versus *both* benchmarks, or a large positive versus street with at least in-line versus guidance.
 - Deliverability HIGH: order-book coverage ≥ guided number, or commissioned capacity with utilisation headroom, or a run-rate that already lands the number.
-- Not richly priced: trading at/below its own 50D-avg-P/E history, or with clear upside to research targets.
-- Tradeable: `positive-drift` or `strong-positive-drift` after results, comfortably above the liquidity floors.
+- Not richly priced: clear upside to research targets.
+- Tradeable: `positive-drift` or `strong-positive-drift` after results.
 
-**MIDDLE** — a positive surprise exists but one leg is weak: it beats only one benchmark, or deliverability is MEDIUM (aggressive-but-plausible jump), or the stock is already priced for it (rich multiple / at target), or drift history is `noisy`. Real but with a named catch.
+**MIDDLE** — a positive surprise exists but one leg is weak: it beats only one benchmark, or deliverability is MEDIUM (aggressive-but-plausible jump), or the stock is already priced for it (at target), or drift history is `noisy`. Real but with a named catch.
 
 **BOTTOM / AVOID** — miss versus one or both benchmarks, *or* the surprise rests on LOW-deliverability tone with no evidence, *or* it's richly priced into a `fade` name (good result likely sold), *or* guidance was walked back. Include for completeness; often belongs in honourable mentions rather than the ranked longs.
 
