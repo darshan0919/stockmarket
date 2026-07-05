@@ -6,12 +6,13 @@
 
 ## Overview
 
-Stock Screener is a full-stack application for analyzing Indian stock market data. It provides real-time stock information, financial analysis, technical indicators, and screening capabilities using NSE India and BSE India APIs.
+The Stock Market AI Ecosystem is a full-stack, platform-agnostic suite for advanced stock research, analysis, and automated insight generation. It provides real-time stock information, financial analysis, AI-driven indicators, and screening capabilities by securely wrapping NSE India, BSE India, Stockscans, and various LLM APIs.
 
 ## Quick Links
 
 | Document | Description |
 |----------|-------------|
+| [Vision & Roadmap](./VISION_AND_ROADMAP.md) | Project philosophy, goals, and roadmap |
 | [Architecture](./ARCHITECTURE.md) | System design and component overview |
 | [API Reference](./API_REFERENCE.md) | Complete REST API documentation |
 | [Backend Guide](./backend/README.md) | Backend development guide |

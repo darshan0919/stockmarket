@@ -1,8 +1,36 @@
-# Stock Screener Application
+# 📈 Stock Market AI Ecosystem
 
-A comprehensive local-first stock screener web application for analyzing Indian stocks. Built with Next.js, Express, and MongoDB.
+A comprehensive, **platform-agnostic AI ecosystem** built for advanced stock research, screening, and tracking. What started as a local-first stock screener has evolved into an ultimate system to simplify and automate the investing journey.
 
-## Features
+> **Our Ultimate Goal**: Constantly learn ➔ take notes ➔ convert to actionable insights ➔ implement into our thesis/signal generation system ➔ review/test ➔ iterate.
+
+By wrapping around and enhancing existing third-party APIs (NSE, BSE, Stockscans, LLMs), we provide a robust, cross-platform product suite that manages data pipelines efficiently with minimal resources.
+
+## 🌟 Ecosystem Vision & Highlights
+
+- **Platform-Agnostic Architecture**: Designed to seamlessly integrate cross-platform tools, bridging web interfaces, automated background jobs, and AI agents.
+- **Robust Database Management (Minimal Resources)**: Leveraging highly optimized data pipelines (`@stock/jobs` and `cowork-jobs`), the system syncs, offloads, and manages massive datasets without overwhelming local or cloud resources.
+- **Enhanced Third-Party APIs**: We wrap existing APIs (NSE, BSE, AlphaVantage) and augment them with AI and custom caching layers to deliver enriched insights faster.
+- **Automated AI Insights**: Wrapping around LLMs (like Gemini) to parse earnings calls, orderbooks, and generate actionable insights automatically.
+
+## 🚀 Achievements & Roadmap
+
+### What We've Achieved So Far
+- **Comprehensive Screener**: Fast, auto-complete search across 500+ stocks with 15+ fundamental and technical filters.
+- **Technical & Fundamental Workbenches**: 5-year interactive price charts, SMA overlays, RSI, MACD, and 4-quarter P&L/Balance Sheets.
+- **Automated Data Pipelines**: Cron-scheduled jobs that offload and sync data autonomously.
+- **AI-Powered Watchlists**: Real-time tracking infused with AI insight validation.
+- **Corporate Announcements Scanner**: Dedicated workflows to scan and analyze corporate documents and track top gainers live.
+
+### What to Expect Next
+- **Advanced Signal Generation**: Transforming raw notes and learned patterns into automated trading/investing signals.
+- **Broader Market Coverage**: Expanding to the broader NSE 500 and beyond.
+- **Real-time Event Streaming**: Upgrading to WebSocket-based live price feeds and alerts.
+- **Backtesting Engine**: A robust engine to test our generated signals against historical data.
+
+---
+
+## 💻 Core Features
 
 - 🔍 **Stock Search**: Fast auto-complete search across 500+ stocks
 - 📊 **Advanced Screener**: Filter stocks with 15+ fundamental and technical criteria
@@ -304,14 +332,6 @@ The application comes pre-seeded with 20 major Indian stocks:
 - Price charts sample data for optimal rendering
 - Watchlist refreshes every 5 minutes
 
-## Future Enhancements
-
-- Add more stocks (NSE 500)
-- Real-time price updates via WebSocket
-- Advanced charting (candlestick, volume)
-- Portfolio tracking
-- Backtesting engine
-- Email alerts for watchlist
 
 ## License
 
