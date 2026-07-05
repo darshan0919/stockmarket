@@ -9,14 +9,16 @@ A skill for creating, modifying, and deleting skills in the project.
 
 ## Core Blueprint for Skill Creation & Modification
 Whenever the user asks to create or modify a skill, adhere to the following blueprint:
-1. **Differentiate between logic and reasoning**:
+1. **Check Existing Dependencies**: Before writing scripts or adding functionalities, read the dependencies registry at [DEPENDENCIES.md](file:///Users/darshan.patel/code/personal/stockmarket/skills/registries/DEPENDENCIES.md) or [workflow-dependencies.json](file:///Users/darshan.patel/code/personal/stockmarket/skills/registries/workflow-dependencies.json). Identify if any existing skills, classes, API clients, or utilities can be reused or tweaked to fulfill the workflow requirements rather than rebuilding them.
+2. **Differentiate between logic and reasoning**:
    - **Logic (computational/codifiable)**: Any data fetching, processing, or deterministic logic MUST be converted into scripts.
    - **Reasoning**: Thinking, writing, insights, extraction, and other LLM tasks should be kept as prompts within the skill.
-2. **Store artifacts appropriately**:
+3. **Store artifacts appropriately**:
    - Store respective scripts in the appropriate location in the stockmarket project.
    - Store skill definitions (`SKILL.md`, prompts, references) in their respective locations under `skills/<skill-name>/`.
-3. **Update the Registry**: 
+4. **Update the Registry**: 
    - Always add, update, or remove the entry for the skill in the registry file (`skills/registry.json`) to track its `skill_md`, `scripts`, `references`, etc.
+   - Run `yarn registries:generate` to regenerate the workflow dependencies registry files.
 
 At a high level, the process of creating a skill goes like this:
 
@@ -67,6 +69,8 @@ Start by understanding the user's intent. The current conversation might already
 ### Interview and Research
 
 Proactively ask questions about edge cases, input/output formats, example files, success criteria, and dependencies. Wait to write test prompts until you've got this part ironed out.
+
+Consult [DEPENDENCIES.md](file:///Users/darshan.patel/code/personal/stockmarket/skills/registries/DEPENDENCIES.md) or [workflow-dependencies.json](file:///Users/darshan.patel/code/personal/stockmarket/skills/registries/workflow-dependencies.json) to see if existing classes, APIs, utilities, or skills already provide the needed capabilities or can be slightly tweaked. This prevents duplicate logic.
 
 Check available MCPs - if useful for research (searching docs, finding similar skills, looking up best practices), research in parallel via subagents if available, otherwise inline. Come prepared with context to reduce burden on the user.
 

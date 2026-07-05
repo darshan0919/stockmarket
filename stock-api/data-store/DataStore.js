@@ -2,18 +2,16 @@
 
 const fs = require('fs');
 const path = require('path');
-
-// We use the existing driveDataStore and googleDriveApi for the underlying logic
-// but we abstract it via this DataStore class.
-const driveDataStore = require('../../jobs/lib/driveDataStore');
+const StorageService = require('../../jobs/lib/StorageService');
 const driveApi = require('../../jobs/lib/googleDriveApi');
+const { resolveDataRoot, detectTransport, resolveDriveRoot } = require('../../jobs/lib/driveDataStore');
 
 class DataStore {
   constructor(context = {}) {
     this.projectRoot = context.projectRoot || process.cwd();
-    this.driveRoot = context.driveRoot || driveDataStore.resolveDriveRoot();
+    this.driveRoot = context.driveRoot || resolveDriveRoot();
     this.email = context.email || process.env.COWORK_DRIVE_EMAIL;
-    this.dataRoot = driveDataStore.resolveDataRoot();
+    this.dataRoot = resolveDataRoot();
   }
 
   static open(opts = {}) {
@@ -21,19 +19,13 @@ class DataStore {
   }
 
   locate(key) {
-    // Determine the local path based on key mapping
-    // Here we can just use the key as a relative path for simplicity
+    // The key is now assumed to be the exact relative path in the modern 
+    // structured layout (entities/, events/, documents/)
     const localRel = key;
     const localPath = path.join(this.dataRoot, localRel);
-    
-    // We can use classifyLocalDocument to get the driveRel
-    const doc = driveDataStore.classifyLocalDocument(localRel);
-    const driveRel = doc ? doc.driveRel : key;
-
+    const driveRel = key;
     const hasLocal = fs.existsSync(localPath);
     
-    // Determining if it exists on drive without reading is complex synchronously,
-    // so we return paths.
     return {
       local: localPath,
       drive: driveRel,
@@ -48,7 +40,7 @@ class DataStore {
     }
     
     // Fallback to drive
-    const transport = driveDataStore.detectTransport();
+    const transport = detectTransport();
     if (transport === 'local-mount' && this.driveRoot) {
       const drivePath = path.join(this.driveRoot, loc.drive);
       if (fs.existsSync(drivePath)) {
@@ -57,8 +49,6 @@ class DataStore {
     } else if (transport === 'api') {
       const { drive } = driveApi.createDriveClient();
       const rootPath = process.env.COWORK_DRIVE_PATH || driveApi.DEFAULT_ROOT_PATH;
-      // Download to temp file or memory? The spec says return local file if present else Drive.
-      // So we can download it to the local cache and then read it.
       try {
         const downloaded = await driveApi.downloadFile(drive, rootPath, loc.drive, loc.local);
         if (downloaded) {
@@ -78,19 +68,22 @@ class DataStore {
     const loc = this.locate(key);
     fs.mkdirSync(path.dirname(loc.local), { recursive: true });
     await fs.promises.writeFile(loc.local, buf);
-    // Mark dirty for push (implicitly handled by driveDataStore's push logic which checks mtime)
+    // Write-through to Drive
+    if (options.sync) {
+      await StorageService._uploadToDrive(key, loc.local, true);
+    } else {
+      StorageService._uploadToDrive(key, loc.local, false);
+    }
   }
 
   async pull(prefix) {
-    // Hydrate local from Drive (bounded, timeout)
-    // We'll rely on the existing syncFromDrive logic which we can scope to a prefix if needed,
-    // but for now we just do a full sync or scoped sync if supported.
-    await driveDataStore.syncFromDrive({ dataRoot: this.dataRoot, driveRoot: this.driveRoot });
+    // For now, assume transport handles full sync, or we skip since pulling all is expensive
+    // If needed, this would interact with the new GoogleDrive API sync layer
   }
 
   async push(prefix) {
-    // Mirror local -> Drive (bounded, timeout)
-    await driveDataStore.syncToDrive({ dataRoot: this.dataRoot, driveRoot: this.driveRoot });
+    // Mirror local -> Drive for a specific prefix, if necessary. 
+    // Usually handled implicitly via saveEntity/saveJson.
   }
 }
 

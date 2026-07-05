@@ -26,6 +26,8 @@ const path = require('path');
 const { stockscans, nse, bse } = require('@stock/api');
 const { loadEnv, argValue } = require('./lib/env');
 const { withDriveDataSync } = require('./lib/driveDataStore');
+const StorageService = require('./lib/StorageService');
+const { sendHtmlEmail } = require('./lib/emailService');
 
 const OUTPUT_DIR = process.env.GAINERS_OUTPUT_DIR || path.join(process.cwd(), 'daily_gainers');
 const SCRIP_CACHE_FILE =
@@ -280,16 +282,17 @@ async function mapLimit(items, limit, fn) {
   return results;
 }
 
-// ── BSE scrip cache (disk) ────────────────────────────────────────────────────
+// ── BSE scrip cache (entities) ──────────────────────────────────────────────────
 function loadScripCache() {
   try {
-    if (fs.existsSync(SCRIP_CACHE_FILE)) return JSON.parse(fs.readFileSync(SCRIP_CACHE_FILE, 'utf8'));
+    const data = StorageService.readJson('entities/reference/bse/scrip_codes/meta.json');
+    if (data) return data;
   } catch { /* ignore */ }
   return {};
 }
-function saveScripCache(cache) {
-  fs.mkdirSync(path.dirname(SCRIP_CACHE_FILE), { recursive: true });
-  fs.writeFileSync(SCRIP_CACHE_FILE, JSON.stringify(cache, null, 2));
+async function saveScripCache(cache) {
+  StorageService.init();
+  await StorageService.saveEntity('reference', 'bse', 'scrip_codes', cache);
 }
 
 // ── API-bound steps (delegate to @stock/api) ──────────────────────────────────
@@ -384,7 +387,7 @@ async function fetchDeliveryPerSymbol(gainers, { nseClient = nse, bseClient = bs
       out[ticker] = { available: false, error: e.message };
     }
   });
-  if (cacheDirty) saveScripCache(cache);
+  if (cacheDirty) await saveScripCache(cache);
   return out;
 }
 
@@ -523,6 +526,18 @@ async function main({
   const mDateStr = mDate.toISOString().slice(0, 10);
   log(`[gainers_scanner] market_date=${mDateStr}  run_ts=${runTs}\n`);
 
+  // 0. Validate auth
+  try {
+    await ss.validateAuth();
+  } catch (e) {
+    log(`[ERROR] Auth validation failed: ${e.message}\n`);
+    await sendHtmlEmail({
+      subject: `Daily Gainers Signal - ❌ Auth Failed [${mDateStr}]`,
+      htmlBody: `<p><b>Time:</b> ${runTs}</p><p><b>Error:</b> ${e.message}</p><p>Please update STOCKSCANS_AUTH_TOKEN in .env.</p>`,
+    });
+    throw e;
+  }
+
   // 1. Top 50 gainers
   log('[1/7] Fetching top 50 gainers …\n');
   const gainers = (await fetchTopGainers(ss)).map(normaliseGainer);
@@ -626,10 +641,10 @@ async function main({
   };
 
   // 7. Write + stdout
-  fs.mkdirSync(outputDir, { recursive: true });
-  const outPath = path.join(outputDir, `${mDateStr}_gainers_raw.json`);
-  fs.writeFileSync(outPath, JSON.stringify(output, null, 2));
-  log(`[gainers_scanner] Written → ${outPath}\n`);
+  const dtoPaths = StorageService.getEventDtoPaths('gainers_raw', mDate, 'events/gainers');
+  StorageService.init();
+  await StorageService.saveJson(dtoPaths.jsonPath, output, false);
+  log(`[gainers_scanner] Written → ${dtoPaths.jsonPath}\n`);
   return output;
 }
 

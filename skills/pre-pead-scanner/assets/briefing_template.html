@@ -196,6 +196,13 @@
       <blockquote>{{GUIDANCE_QUOTE_1}}<span class="source">{{SPEAKER_1}} · {{CONCALL_DATE}}</span></blockquote>
       <blockquote>{{GUIDANCE_QUOTE_2}}<span class="source">{{SPEAKER_2}} · {{CONCALL_DATE}}</span></blockquote>
       <div class="verdict"><strong>Verdict — {{CONVICTION_LABEL}}.</strong> {{VERDICT_NARRATIVE}}</div>
+      <div class="block-title" style="margin-top:18px">Screener insights (independent cross-check)</div>
+      <div class="block">
+        <div class="row"><span class="lab">Pros</span><span class="val hi">{{SCREENER_PROS}}</span></div>
+        <div class="row"><span class="lab">Cons</span><span class="val lo">{{SCREENER_CONS}}</span></div>
+        <div class="row"><span class="lab">Key ratios (P/E · ROCE · ROE · D/E)</span><span class="val">{{SCREENER_RATIOS}}</span></div>
+        <div class="row"><span class="lab">Agrees / contradicts thesis?</span><span class="val">{{SCREENER_VERDICT}}</span></div>
+      </div>
     </div>
     <div>
       <div class="block-title">YTD actuals &amp; next-quarter maths</div>
@@ -207,6 +214,9 @@
         <div class="row"><span class="lab">Est. next-Q revenue</span><span class="val hi">{{EST_Q_REV}} ({{IMPLIED_GROWTH}})</span></div>
         <div class="row"><span class="lab">Est. next-Q OPM</span><span class="val">{{EST_OPM}}</span></div>
         <div class="row"><span class="lab">Est. next-Q PAT</span><span class="val hi">{{EST_PAT}}</span></div>
+        <div class="row"><span class="lab">&nbsp;&nbsp;↳ of which capex-live op. leverage</span><span class="val">{{PAT_FROM_OPLEV}}</span></div>
+        <div class="row"><span class="lab">&nbsp;&nbsp;↳ of which deleverage (interest saved, post-tax)</span><span class="val">{{PAT_FROM_DELEVERAGE}}</span></div>
+        <div class="row"><span class="lab">&nbsp;&nbsp;↳ net capex D&amp;A / interest step-up</span><span class="val lo">{{CAPEX_DA_INT_STEPUP}}</span></div>
         <div class="row"><span class="lab">Est. next-Q EPS</span><span class="val">{{EST_EPS}}</span></div>
       </div>
       <div class="block-title" style="margin-top:18px">Validation scorecard (deliverability)</div>

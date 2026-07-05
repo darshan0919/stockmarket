@@ -34,6 +34,7 @@ const path = require('path');
 const { nse, bse } = require('@stock/api');
 const { loadEnv, argValue } = require('./lib/env');
 const { sendHtmlEmail, stockscansUrl } = require('./lib/emailService');
+const StorageService = require('./lib/StorageService');
 
 const TOP_N = 10;
 const XBRL_CONCURRENCY = 8;
@@ -596,18 +597,24 @@ async function main() {
     insider10: await groupAndTop10ByNetValue(insider.rows),
   };
 
-  // Persist snapshot
-  const outDir = path.join(__dirname, 'data', 'deals_digest');
-  fs.mkdirSync(outDir, { recursive: true });
-  const outFile = path.join(outDir, `${dateLabel}_deals.json`);
-  fs.writeFileSync(outFile, JSON.stringify(digest, null, 2));
+  // Prepare DTO assets using StorageService helper
+  const dtoPaths = StorageService.getEventDtoPaths('digest', target, 'documents/deals_digest');
+  
+  digest.assets = dtoPaths.assetsMap;
+
+  const htmlBody = renderEmail(dateLabel, digest);
+
+  // Use StorageService for dual-write
+  StorageService.init();
+  await StorageService.saveJson(dtoPaths.jsonPath, digest, false);
+  await StorageService.saveContent(dtoPaths.htmlPath, htmlBody, false);
 
   // Email
   let email = { status: 'skipped', reason: '--no-email' };
   if (!noEmail) {
     email = await sendHtmlEmail({
       subject: `📊 Deals Digest ${dateLabel} — Bulk/Block/SAST/Insider top ${TOP_N} companies by value`,
-      htmlBody: renderEmail(dateLabel, digest),
+      htmlBody: htmlBody,
       to: process.env.DEALS_DIGEST_TO || undefined,
     });
   }
@@ -631,7 +638,7 @@ async function main() {
         },
         errors: [...bulkBlock.errors, ...sast.errors, ...insider.errors],
         email,
-        snapshot: outFile,
+        snapshot: dtoPaths.jsonPath,
       },
       null,
       2

@@ -31,23 +31,30 @@ Extraction mechanics:
 
 ## Step 3b — Validate against hard evidence
 
-For each company, score the guidance against four evidence pillars. The first three are forward-looking; the fourth is the reality check.
+For each company, score the guidance against five evidence pillars. The first four are forward-looking (order book, capacity/capex-live, utilisation, and balance-sheet deleverage — the last two of which feed the direct PAT levers in Step 4); the fifth is the historical reality check.
 
 ### 1. Order book / backlog
 - Is there booked, executable revenue covering the guided figure? Compute **order-book coverage** = executable order book ÷ guided revenue for the relevant period.
 - Is the book *growing or being burned*? Order intake < execution means the book is shrinking — a yellow flag even if current coverage is fine.
 - For book-to-bill businesses (EPC, capital goods, defence), this is the single most important pillar. For consumer/FMCG/pharma-formulation names there is no order book — lean on capacity + history instead, and say so.
 
-### 2. Capacity
+### 2. Capacity (and capex going live — the operating-leverage lever)
 - Is there physical headroom to produce the guided volume? New lines *commissioned* (not just announced) are the strongest signal — idle-but-ready capacity converts directly to revenue when demand pulls.
-- A capacity addition that lands *next* fiscal year does **not** help the upcoming quarter — don't credit it to the near-term estimate (a common error).
+- **Capture the capex-live status precisely** — it drives the operating-leverage PAT lever in Step 4. Extract: which line/plant is now *commissioned and producing this quarter*, its capacity and current ramp/utilisation, and any stated **contribution/incremental margin** (management often says the incremental tonne earns far more than the blended margin). Incremental revenue on already-built capacity drops through at a high margin — that's how a company beats on PAT while guiding flat blended margin.
+- A capacity addition that lands *next* fiscal year does **not** help the upcoming quarter — don't credit it to the near-term estimate (a common error). Also note the flip side to feed the bridge: when the asset capitalises, interest stops being capitalised and book depreciation starts — capture the expected D&A/interest step-up so Step 4 can net it against the leverage gain.
 - **Asset-light reinterpretation:** for visa/retail/platform/services names, "capacity" means hiring pipeline, store roll-out velocity, contract licences, or processing throughput. Reinterpret explicitly rather than marking "N/A".
 
 ### 3. Utilisation
 - Current utilisation tells you how much of the guided growth is "free" (filling idle capacity, high incremental margin) vs needs *new* capacity (capex, ramp risk, lower near-term margin).
 - A jump from, say, 80% → 100% utilisation on an existing line is high-confidence and margin-accretive. A guided number requiring utilisation above nameplate is not credible.
 
-### 4. Historical performance (the reality check)
+### 4. Balance-sheet / deleverage (the direct PAT lever)
+- Extract the **net-debt trajectory and repayment schedule** — where is net debt now vs a year ago, and what has management committed to repay this year? Lower debt cuts interest expense, which flows *directly* to PBT/PAT with no operating assumption — the most bankable piece of a PAT beat. Feed it to Lever 2 in Step 4.
+- Also capture the **blended cost of debt** (interest ÷ average borrowings) and whether the debt is floating (rate moves matter) or fixed.
+- **Check how the deleverage is funded:** repayment from operating cash flow is clean and un-dilutive; repayment from an equity raise/QIP cuts interest but raises the share count — a wash-or-worse for EPS, so flag it.
+- For net-cash or already-lightly-levered names this pillar is N/A — say so rather than forcing it.
+
+### 5. Historical performance (the reality check)
 - Does the implied next-quarter number fit the company's run-rate and **seasonality**? Many Indian businesses are Q4-loaded (March year-end push) or Q1-loaded (govt-fiscal-driven) — a big sequential jump can be perfectly normal *for that business*.
 - **The >30% rule:** if the implied next-quarter figure requires a sequential jump greater than ~30%, demand a *specific* mechanism (stated seasonality, a named order milestone, a line commissioning this quarter). Absent one, flag it red regardless of how confident the tone was.
 - Cross-check the run-rate against the scan's `Revenue` (TTM), `Revenue Growth TTM`, and `PAT Growth YoY/QoQ`.

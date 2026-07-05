@@ -105,6 +105,7 @@ Call the following exact scripts/APIs in order:
 2. Execute skill: /path/to/stockmarket/skills/skill_name/SKILL.md
    (Fallback: https://raw.githubusercontent.com/darshan0919/stockmarket/main/skills/skill_name/SKILL.md)
 3. [etc...]
+N. (FINAL STEP ALWAYS) Execute script: /Users/darshan.patel/code/personal/stockmarket/scripts/track_invocation.py --name [insert task name] --type task
 
 Do NOT run any logic, calculations, data fetching, or file modifications directly. Your only job is to orchestrate these existing scripts/skills exactly as specified.
 ```

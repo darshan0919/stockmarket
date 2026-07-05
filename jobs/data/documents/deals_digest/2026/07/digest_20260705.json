@@ -1,0 +1,28 @@
+{
+  "date": "05-07-2026",
+  "bulkBlock": {
+    "bulk": [],
+    "block": [],
+    "asOnDate": "03-Jul-2026",
+    "errors": []
+  },
+  "sast": {
+    "rows": [],
+    "errors": []
+  },
+  "insider": {
+    "rows": [],
+    "totalFilings": 0,
+    "parsed": 0,
+    "errors": []
+  },
+  "bulk10": [],
+  "block10": [],
+  "sast10": [],
+  "insider10": [],
+  "assets": {
+    "json": "digest_20260705.json",
+    "html": "digest_20260705.html",
+    "pdf": "digest_20260705.pdf"
+  }
+}

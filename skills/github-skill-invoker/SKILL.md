@@ -112,6 +112,14 @@ Follow the SKILL.md instructions exactly, with:
 - The user's ticker/params passed through as CLI arguments.
 - Shared file content already in context (conventions, pdf_utils).
 
+### Step 9 — Track Invocation (Token Usage)
+
+After the skill has finished executing and generating its output for the user, you MUST log the invocation by running the token usage tracker script:
+```bash
+/Users/darshan.patel/code/personal/stockmarket/scripts/track_invocation.py --name {skill_name} --type skill
+```
+(Include `--files /tmp/...` if specific files were heavily read and generated large outputs).
+
 ## Script path substitution table
 
 All scripts are resolved according to their mode (bundle or clone).

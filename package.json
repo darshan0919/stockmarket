@@ -36,7 +36,8 @@
     "tasks:push": "node jobs/scripts/sync-tasks.js --push",
     "tasks:pull": "node jobs/scripts/sync-tasks.js --pull",
     "tasks:diff": "node jobs/scripts/sync-tasks.js --push --dry-run",
-    "tasks:platforms": "node jobs/scripts/sync-tasks.js --list-platforms"
+    "tasks:platforms": "node jobs/scripts/sync-tasks.js --list-platforms",
+    "registries:generate": "node scripts/generate-registries.js"
   },
   "devDependencies": {
     "@duckdb/node-api": "^1.5.4-r.1",

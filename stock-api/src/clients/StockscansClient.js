@@ -382,6 +382,24 @@ class StockscansClient {
     const { data } = await this.http.get(url, { timeout, responseType: 'arraybuffer' });
     return Buffer.from(data);
   }
+
+  /**
+   * Validate that the auth token is active.
+   * Throws if expired.
+   */
+  async validateAuth() {
+    try {
+      await this.http.get(`${BASE_URL}/api/user/watchlists`, {
+        params: { view: 'names' },
+        headers: this._headers(`${BASE_URL}/`),
+      });
+    } catch (e) {
+      if (e.response && (e.response.status === 401 || e.response.status === 403)) {
+        throw new Error('STOCKSCANS_AUTH_TOKEN is expired or invalid.');
+      }
+      throw e;
+    }
+  }
 }
 
 module.exports = { StockscansClient, STOCKSCANS_BASE_URL: BASE_URL, S3_BASE_URL };

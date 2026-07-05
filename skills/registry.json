@@ -342,7 +342,10 @@
       "modules": [
         "stock-api/src/fetchers/documentsFetcher.js",
         "stock-api/src/analyzers/runScan.js",
-        "stock-api/src/analyzers/postEventReturns.js"
+        "stock-api/src/analyzers/postEventReturns.js",
+        "stock-api/src/analyzers/screenerInsights.js",
+        "stock-api/src/clients/ScreenerClient.js",
+        "stock-api/src/auth/screenerAuth.js"
       ],
       "references": [
         "skills/pre-pead-scanner/references/workflow.md",
@@ -352,6 +355,7 @@
         "skills/pre-pead-scanner/references/surprise_scoring.md",
         "skills/pre-pead-scanner/references/valuation_and_expectations.md",
         "skills/pre-pead-scanner/references/post_event_returns.md",
+        "skills/pre-pead-scanner/references/screener_insights.md",
         "skills/pre-pead-scanner/references/scan_api.md"
       ],
       "assets": [
@@ -743,6 +747,18 @@
         "technical stage",
         "entry stop loss",
         "institutional accumulation"
+      ]
+    },
+    "token-usage-analyzer": {
+      "skill_md": "skills/token-usage-analyzer/SKILL.md",
+      "entry": null,
+      "references": [],
+      "shared": [],
+      "aliases": [
+        "token usage",
+        "token analyzer",
+        "cost analysis",
+        "token efficiency"
       ]
     }
   }

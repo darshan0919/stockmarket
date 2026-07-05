@@ -1,0 +1,1099 @@
+{
+  "skills": [
+    {
+      "name": "stock-documents-fetcher",
+      "description": "",
+      "aliases": [
+        "fetch documents",
+        "fetch transcripts",
+        "fetch annual reports",
+        "download filings",
+        "get concall",
+        "pull documents",
+        "stockscans fetch",
+        "fetch ppt",
+        "get investor presentation"
+      ],
+      "entry": "stock-api/bin/stock-documents-fetcher.js",
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js",
+        "stock-api/src/fetchers/announcementsFetcher.js"
+      ]
+    },
+    {
+      "name": "concall-analysis",
+      "description": "",
+      "aliases": [
+        "concall",
+        "earnings call analysis",
+        "transcript analysis",
+        "concall deep dive",
+        "quarterly call",
+        "concall brief",
+        "multi quarter concall",
+        "peer concall"
+      ],
+      "entry": "stock-api/bin/concall-analysis.js",
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js",
+        "stock-api/src/fetchers/announcementsFetcher.js",
+        "stock-api/src/generators/generateConcallPdf.js"
+      ]
+    },
+    {
+      "name": "forensic-accounting",
+      "description": "",
+      "aliases": [
+        "forensic",
+        "forensic check",
+        "fraud check",
+        "accounting quality",
+        "is this company cooking books",
+        "piotroski",
+        "dupont",
+        "red flags accounting",
+        "forensic analysis"
+      ],
+      "entry": "stock-api/bin/forensic-accounting.js",
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js",
+        "stock-api/src/generators/generateForensicPdf.js"
+      ]
+    },
+    {
+      "name": "equity-research-deepdive",
+      "description": "",
+      "aliases": [
+        "deep dive",
+        "equity deep dive",
+        "research report",
+        "investment memo",
+        "fundamental analysis",
+        "full analysis",
+        "should I invest",
+        "analyze company",
+        "tell me everything about"
+      ],
+      "entry": "stock-api/bin/equity-research-deepdive.js",
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js",
+        "stock-api/src/generators/generateReport.js"
+      ]
+    },
+    {
+      "name": "growth-triggers-1pager",
+      "description": "",
+      "aliases": [
+        "growth triggers",
+        "1 pager",
+        "one pager",
+        "catalyst note",
+        "re-rating triggers",
+        "conviction note",
+        "why will stock rerate",
+        "growth catalyst"
+      ],
+      "entry": "stock-api/bin/growth-triggers-1pager.js",
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js",
+        "stock-api/src/generators/generateGrowthTriggersPdf.js"
+      ]
+    },
+    {
+      "name": "management-credibility-tracker",
+      "description": "",
+      "aliases": [
+        "management credibility",
+        "walk the talk",
+        "management track record",
+        "guidance tracker",
+        "is management delivering",
+        "overpromising",
+        "credibility score",
+        "management quality"
+      ],
+      "entry": "stock-api/bin/management-credibility-tracker.js",
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js",
+        "stock-api/src/generators/generateCredibilityWidget.js"
+      ]
+    },
+    {
+      "name": "peer-comparison",
+      "description": "",
+      "aliases": [
+        "peer comparison",
+        "compare companies",
+        "side by side",
+        "which to buy",
+        "peer report",
+        "compare stocks",
+        "relative valuation"
+      ],
+      "entry": "stock-api/bin/peer-comparison.js",
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js",
+        "stock-api/src/generators/generatePeerPdf.js"
+      ]
+    },
+    {
+      "name": "market-share-analysis",
+      "description": "",
+      "aliases": [
+        "market share",
+        "competitive landscape",
+        "industry concentration",
+        "who dominates",
+        "cr3 cr5 hhi",
+        "organised unorganised",
+        "top players",
+        "market structure"
+      ],
+      "entry": "stock-api/bin/market-share-analysis.js",
+      "modules": [
+        "stock-api/src/analyzers/computeConcentration.js",
+        "stock-api/src/generators/generateMarketShareHtml.js"
+      ]
+    },
+    {
+      "name": "sector-research-deepdive",
+      "description": "",
+      "aliases": [
+        "sector report",
+        "sector deep dive",
+        "industry analysis",
+        "thematic note",
+        "sector primer",
+        "industry deep dive",
+        "competitive dynamics"
+      ],
+      "entry": "stock-api/bin/sector-research-deepdive.js",
+      "modules": [
+        "stock-api/src/generators/generateSectorReport.js"
+      ]
+    },
+    {
+      "name": "drhp-ipo-analysis",
+      "description": "",
+      "aliases": [
+        "drhp",
+        "ipo analysis",
+        "rhp analysis",
+        "should I subscribe ipo",
+        "analyse drhp",
+        "ipo fairly priced",
+        "prospectus analysis"
+      ],
+      "entry": "stock-api/bin/drhp-ipo-analysis.js",
+      "modules": [
+        "stock-api/src/generators/generateDrhpPdf.js"
+      ]
+    },
+    {
+      "name": "quarterly-result-analysis",
+      "description": "",
+      "aliases": [
+        "quarterly results",
+        "result analysis",
+        "what changed this quarter",
+        "quarterly snapshot",
+        "post result note",
+        "q result",
+        "results analysis"
+      ],
+      "entry": "stock-api/bin/quarterly-result-analysis.js",
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js"
+      ]
+    },
+    {
+      "name": "consecutive-filings-diff",
+      "description": "",
+      "aliases": [
+        "diff decks",
+        "compare presentations",
+        "q vs q presentation",
+        "consecutive filings",
+        "qoq diff",
+        "update thesis latest concall",
+        "reprice after results"
+      ],
+      "entry": "stock-api/bin/consecutive-filings-diff.js",
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js"
+      ]
+    },
+    {
+      "name": "pre-pead-scanner",
+      "description": "",
+      "aliases": [
+        "pre pead",
+        "pre results scanner",
+        "rank companies before earnings",
+        "estimate next quarter",
+        "guidance ranking",
+        "pre-PEAD",
+        "results season scanner"
+      ],
+      "entry": "stock-api/bin/pre-pead-scanner.js",
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js",
+        "stock-api/src/analyzers/runScan.js"
+      ]
+    },
+    {
+      "name": "watchlist-catalyst-scanner",
+      "description": "",
+      "aliases": [
+        "catalyst scanner",
+        "scan watchlist",
+        "any catalysts today",
+        "catalyst alerts",
+        "what's moving watchlist",
+        "daily catalyst scan",
+        "check announcements"
+      ],
+      "entry": "stock-api/bin/watchlist-catalyst-scanner.js",
+      "modules": [
+        "stock-api/src/analyzers/scanCatalysts.js",
+        "stock-api/src/analyzers/catalystRules.js"
+      ]
+    },
+    {
+      "name": "fundamental-shift-scanner",
+      "description": "",
+      "aliases": [
+        "fundamental shift",
+        "what changed this week",
+        "recent news",
+        "scan announcements",
+        "what's new with",
+        "recent filings",
+        "red flags recent",
+        "pulse check stock"
+      ],
+      "entry": null,
+      "modules": []
+    },
+    {
+      "name": "equity-research-extraction",
+      "description": "",
+      "aliases": [
+        "equity extraction",
+        "research extraction",
+        "extract from annual report",
+        "project a extraction",
+        "ar extracts",
+        "concall extraction",
+        "document extraction"
+      ],
+      "entry": "stock-api/bin/equity-research-extraction.js",
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js",
+        "stock-api/src/fetchers/announcementsFetcher.js"
+      ]
+    },
+    {
+      "name": "equity-research-dashboard",
+      "description": "",
+      "aliases": [
+        "equity dashboard",
+        "research dashboard",
+        "project b dashboard",
+        "15 tab dashboard",
+        "institutional dashboard",
+        "generate dashboard"
+      ],
+      "entry": null,
+      "modules": []
+    },
+    {
+      "name": "equity-research-master",
+      "description": "",
+      "aliases": [
+        "equity master",
+        "full equity research",
+        "complete analysis",
+        "research ticker",
+        "institutional dashboard",
+        "16 tab dashboard",
+        "master dashboard",
+        "full workup"
+      ],
+      "entry": null,
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js",
+        "stock-api/src/fetchers/announcementsFetcher.js",
+        "stock-api/python/orchestration/orchestrate.py"
+      ]
+    },
+    {
+      "name": "tweet-investor-playbook",
+      "description": "",
+      "aliases": [
+        "tweet playbook",
+        "investor tweets",
+        "analyse tweets",
+        "investment style from tweets",
+        "tweet corpus",
+        "distil investor thinking",
+        "track record tweets"
+      ],
+      "entry": "stock-api/bin/tweet-investor-playbook.js",
+      "modules": [
+        "stock-api/src/analyzers/parseTweetDump.js"
+      ]
+    },
+    {
+      "name": "announcement-keyword-explorer",
+      "description": "",
+      "aliases": [
+        "announcement keywords",
+        "keyword explorer",
+        "find announcement keywords",
+        "scan keywords",
+        "announcement search keywords",
+        "expand keyword search"
+      ],
+      "entry": "stock-api/bin/announcement-keyword-explorer.js",
+      "modules": [
+        "stock-api/src/fetchers/announcementScanner.js"
+      ]
+    },
+    {
+      "name": "stock-report",
+      "description": "",
+      "aliases": [
+        "stock report",
+        "equity report",
+        "research note",
+        "buy sell recommendation",
+        "price target",
+        "stock analysis",
+        "should I buy",
+        "investment view"
+      ],
+      "entry": null,
+      "modules": []
+    },
+    {
+      "name": "watchlist-sync",
+      "description": "",
+      "aliases": [
+        "watchlist sync",
+        "sync watchlist",
+        "near highs sync",
+        "nightly sync",
+        "watchlist update"
+      ],
+      "entry": null,
+      "modules": []
+    },
+    {
+      "name": "insight-validation",
+      "description": "",
+      "aliases": [
+        "insight validation",
+        "validate insights",
+        "morning insights check",
+        "delivery backed price action",
+        "insight ledger"
+      ],
+      "entry": null,
+      "modules": []
+    },
+    {
+      "name": "gainers-signal",
+      "description": "",
+      "aliases": [
+        "gainers signal",
+        "top gainers",
+        "daily gainers",
+        "gainer classification",
+        "conviction signals",
+        "8am gainers run"
+      ],
+      "entry": null,
+      "modules": []
+    },
+    {
+      "name": "watchlist-insights",
+      "description": "",
+      "aliases": [
+        "watchlist insights",
+        "announcement insights",
+        "daily insights",
+        "watchlist digest",
+        "corporate announcement digest"
+      ],
+      "entry": null,
+      "modules": []
+    },
+    {
+      "name": "cowork-task-architect",
+      "description": "",
+      "aliases": [
+        "cowork task",
+        "create task",
+        "schedule task",
+        "cowork architect",
+        "task prompt",
+        "automate in cowork",
+        "recurring task"
+      ],
+      "entry": null,
+      "modules": []
+    },
+    {
+      "name": "skill-manager",
+      "description": "",
+      "aliases": [
+        "skill manager",
+        "create skill",
+        "modify skill",
+        "delete skill",
+        "skill creator",
+        "manage skills"
+      ],
+      "entry": null,
+      "modules": [
+        "stock-api/python/skill_manager/__init__.py",
+        "stock-api/python/skill_manager/aggregate_benchmark.py",
+        "stock-api/python/skill_manager/generate_report.py",
+        "stock-api/python/skill_manager/generate_review.py",
+        "stock-api/python/skill_manager/improve_description.py",
+        "stock-api/python/skill_manager/package_skill.py",
+        "stock-api/python/skill_manager/quick_validate.py",
+        "stock-api/python/skill_manager/run_eval.py",
+        "stock-api/python/skill_manager/run_loop.py",
+        "stock-api/python/skill_manager/utils.py"
+      ]
+    },
+    {
+      "name": "render-pdf",
+      "description": "",
+      "aliases": [
+        "render pdf",
+        "html to pdf"
+      ],
+      "entry": "stock-api/bin/render-pdf.js",
+      "modules": [
+        "stock-api/src/utils/pdfRenderer.js"
+      ]
+    },
+    {
+      "name": "investment-thesis-engine",
+      "description": "",
+      "aliases": [
+        "investment thesis",
+        "thesis engine",
+        "update thesis",
+        "buy hold sell signal",
+        "thesis review",
+        "recompute signal",
+        "should i still hold",
+        "living thesis",
+        "evolving thesis"
+      ],
+      "entry": null,
+      "modules": []
+    },
+    {
+      "name": "financial-model",
+      "description": "",
+      "aliases": [
+        "financial model",
+        "3 year forecast",
+        "forecast model",
+        "bear base bull",
+        "irr from here",
+        "project the pnl",
+        "valuation model",
+        "earnings model"
+      ],
+      "entry": null,
+      "modules": []
+    },
+    {
+      "name": "value-chain-analysis",
+      "description": "",
+      "aliases": [
+        "value chain",
+        "where does margin sit",
+        "chokepoint analysis",
+        "value migration",
+        "map the chain",
+        "bottleneck owner"
+      ],
+      "entry": null,
+      "modules": []
+    },
+    {
+      "name": "annual-report-analysis",
+      "description": "",
+      "aliases": [
+        "annual report analysis",
+        "analyse this ar",
+        "ar analysis",
+        "md letter summary",
+        "governance check",
+        "remuneration check",
+        "kmp resignations"
+      ],
+      "entry": null,
+      "modules": []
+    },
+    {
+      "name": "stage2-catalyst-analysis",
+      "description": "",
+      "aliases": [
+        "stage 2",
+        "weinstein stage",
+        "soic lti",
+        "30 wema",
+        "breakout analysis",
+        "why now catalyst",
+        "technical stage",
+        "entry stop loss",
+        "institutional accumulation"
+      ],
+      "entry": null,
+      "modules": []
+    }
+  ],
+  "classes": [
+    {
+      "name": "event",
+      "file": "stock-api/src/analyzers/catalystRules.js",
+      "methods": []
+    },
+    {
+      "name": "event",
+      "file": "stock-api/src/analyzers/catalystRules.js",
+      "methods": []
+    },
+    {
+      "name": "StockscansAuth",
+      "file": "stock-api/src/auth/stockscansAuth.js",
+      "methods": [
+        "_readFromEnvFile",
+        "_warnLegacy",
+        "getToken",
+        "headers"
+      ]
+    },
+    {
+      "name": "BseClient",
+      "file": "stock-api/src/clients/BseClient.js",
+      "methods": [
+        "getScripCode",
+        "smartSearch",
+        "getSecurityPosition",
+        "getQuoteHeader",
+        "getBulkBlockDeals",
+        "getInsiderFilings",
+        "getCorporateActions",
+        "getBoardMeetings"
+      ]
+    },
+    {
+      "name": "NseClient",
+      "file": "stock-api/src/clients/NseClient.js",
+      "methods": [
+        "_quoteReferer",
+        "getQuote",
+        "getSymbolData",
+        "getPriceVolumeDeliverable",
+        "getDeliveryBhavcopy",
+        "getLargeDeals",
+        "getSastReg29",
+        "getInsiderFilings",
+        "fetchArchiveXml",
+        "getLiveVariations",
+        "getCorporateActions",
+        "getBoardMeetings"
+      ]
+    },
+    {
+      "name": "StockscansClient",
+      "file": "stock-api/src/clients/StockscansClient.js",
+      "methods": [
+        "_headers",
+        "runScan",
+        "getScanMetadata",
+        "scanAnnouncements",
+        "announcementStatistics",
+        "companyAnnouncements",
+        "scanMetadata",
+        "companySearch",
+        "watchlistsList",
+        "savedAnnouncementScans",
+        "saveAnnouncementScan",
+        "reorderAnnouncementScans",
+        "deleteAnnouncementScan",
+        "searchAnnouncements",
+        "searchCompany",
+        "cardDetails",
+        "prices",
+        "documents",
+        "watchlistTable",
+        "replaceWatchlist",
+        "updateWatchlist",
+        "savedScanPageHtml",
+        "savedScans",
+        "s3PdfUrl",
+        "fetchPdf"
+      ]
+    },
+    {
+      "name": "HttpClient",
+      "file": "stock-api/src/http/HttpClient.js",
+      "methods": [
+        "_headers",
+        "get",
+        "post",
+        "put",
+        "delete"
+      ]
+    },
+    {
+      "name": "NseSession",
+      "file": "stock-api/src/http/nseSession.js",
+      "methods": [
+        "clearCache",
+        "_mergeSetCookie",
+        "warmup",
+        "getCookies",
+        "headers",
+        "get"
+      ]
+    },
+    {
+      "name": "SimpleTemplate",
+      "file": "stock-api/src/utils/docGenerator.js",
+      "methods": [
+        "applyFilter",
+        "resolveValue",
+        "render",
+        "loadMarketplace",
+        "extractFrontmatter",
+        "buildContext",
+        "renderTemplate",
+        "generateAll"
+      ]
+    },
+    {
+      "name": "DocGenerator",
+      "file": "stock-api/src/utils/docGenerator.js",
+      "methods": [
+        "applyFilter",
+        "resolveValue",
+        "render",
+        "loadMarketplace",
+        "extractFrontmatter",
+        "buildContext",
+        "renderTemplate",
+        "generateAll"
+      ]
+    }
+  ],
+  "apis": [
+    {
+      "name": "parseBseSmartSearchHtml",
+      "file": "stock-api/src/clients/BseClient.js",
+      "description": "Exported from BseClient.js"
+    },
+    {
+      "name": "buildBseUrl",
+      "file": "stock-api/src/http/bseHttp.js",
+      "description": "Exported from bseHttp.js"
+    },
+    {
+      "name": "bseGetText",
+      "file": "stock-api/src/http/bseHttp.js",
+      "description": "Exported from bseHttp.js"
+    },
+    {
+      "name": "bseGetJson",
+      "file": "stock-api/src/http/bseHttp.js",
+      "description": "Exported from bseHttp.js"
+    }
+  ],
+  "utilities": [
+    {
+      "name": "extractValueCrore",
+      "file": "stock-api/src/analyzers/catalystRules.js",
+      "description": "Exported from catalystRules.js"
+    },
+    {
+      "name": "findNames",
+      "file": "stock-api/src/analyzers/catalystRules.js",
+      "description": "Exported from catalystRules.js"
+    },
+    {
+      "name": "classify",
+      "file": "stock-api/src/analyzers/catalystRules.js",
+      "description": "Exported from catalystRules.js"
+    },
+    {
+      "name": "priceVolumeAlerts",
+      "file": "stock-api/src/analyzers/catalystRules.js",
+      "description": "Exported from catalystRules.js"
+    },
+    {
+      "name": "hhiClassification",
+      "file": "stock-api/src/analyzers/computeConcentration.js",
+      "description": "Exported from computeConcentration.js"
+    },
+    {
+      "name": "crN",
+      "file": "stock-api/src/analyzers/computeConcentration.js",
+      "description": "Exported from computeConcentration.js"
+    },
+    {
+      "name": "hhi",
+      "file": "stock-api/src/analyzers/computeConcentration.js",
+      "description": "Exported from computeConcentration.js"
+    },
+    {
+      "name": "computeMetrics",
+      "file": "stock-api/src/analyzers/computeConcentration.js",
+      "description": "Exported from computeConcentration.js"
+    },
+    {
+      "name": "deltaBps",
+      "file": "stock-api/src/analyzers/computeConcentration.js",
+      "description": "Exported from computeConcentration.js"
+    },
+    {
+      "name": "asymmetricFlag",
+      "file": "stock-api/src/analyzers/computeConcentration.js",
+      "description": "Exported from computeConcentration.js"
+    },
+    {
+      "name": "evaluateCatalystRules",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "computeConcentration",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "computeHHI",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "parseTweetDump",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "runScan",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "resolveUniverse",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "applyLiquidityGate",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "postEventReturns",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "eventReturns",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "driftSignature",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "scanCatalysts",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "sniffAndParse",
+      "file": "stock-api/src/analyzers/parseTweetDump.js",
+      "description": "Exported from parseTweetDump.js"
+    },
+    {
+      "name": "resolveReplyContext",
+      "file": "stock-api/src/analyzers/parseTweetDump.js",
+      "description": "Exported from parseTweetDump.js"
+    },
+    {
+      "name": "normaliseTweet",
+      "file": "stock-api/src/analyzers/parseTweetDump.js",
+      "description": "Exported from parseTweetDump.js"
+    },
+    {
+      "name": "normalizeCandles",
+      "file": "stock-api/src/analyzers/postEventReturns.js",
+      "description": "Exported from postEventReturns.js"
+    },
+    {
+      "name": "anchorIndex",
+      "file": "stock-api/src/analyzers/postEventReturns.js",
+      "description": "Exported from postEventReturns.js"
+    },
+    {
+      "name": "forwardReturn",
+      "file": "stock-api/src/analyzers/postEventReturns.js",
+      "description": "Exported from postEventReturns.js"
+    },
+    {
+      "name": "tsToDate",
+      "file": "stock-api/src/analyzers/postEventReturns.js",
+      "description": "Exported from postEventReturns.js"
+    },
+    {
+      "name": "parseScanId",
+      "file": "stock-api/src/analyzers/runScan.js",
+      "description": "Exported from runScan.js"
+    },
+    {
+      "name": "buildRunPayload",
+      "file": "stock-api/src/analyzers/runScan.js",
+      "description": "Exported from runScan.js"
+    },
+    {
+      "name": "flattenTable",
+      "file": "stock-api/src/analyzers/runScan.js",
+      "description": "Exported from runScan.js"
+    },
+    {
+      "name": "col",
+      "file": "stock-api/src/analyzers/runScan.js",
+      "description": "Exported from runScan.js"
+    },
+    {
+      "name": "toCrore",
+      "file": "stock-api/src/analyzers/runScan.js",
+      "description": "Exported from runScan.js"
+    },
+    {
+      "name": "parseNum",
+      "file": "stock-api/src/analyzers/runScan.js",
+      "description": "Exported from runScan.js"
+    },
+    {
+      "name": "renderHtml",
+      "file": "stock-api/src/analyzers/scanCatalysts.js",
+      "description": "Exported from scanCatalysts.js"
+    },
+    {
+      "name": "fetchAnnouncementsBatch",
+      "file": "stock-api/src/analyzers/scanCatalysts.js",
+      "description": "Exported from scanCatalysts.js"
+    },
+    {
+      "name": "fetchAndExtract",
+      "file": "stock-api/src/fetchers/announcementScanner.js",
+      "description": "Exported from announcementScanner.js"
+    },
+    {
+      "name": "lastNQuarterDates",
+      "file": "stock-api/src/fetchers/announcementScanner.js",
+      "description": "Exported from announcementScanner.js"
+    },
+    {
+      "name": "fetchQuarter",
+      "file": "stock-api/src/fetchers/announcementScanner.js",
+      "description": "Exported from announcementScanner.js"
+    },
+    {
+      "name": "extractNgrams",
+      "file": "stock-api/src/fetchers/announcementScanner.js",
+      "description": "Exported from announcementScanner.js"
+    },
+    {
+      "name": "extractCandidatePhrases",
+      "file": "stock-api/src/fetchers/announcementScanner.js",
+      "description": "Exported from announcementScanner.js"
+    },
+    {
+      "name": "tokenize",
+      "file": "stock-api/src/fetchers/announcementScanner.js",
+      "description": "Exported from announcementScanner.js"
+    },
+    {
+      "name": "fetchAnnouncements",
+      "file": "stock-api/src/fetchers/announcementsFetcher.js",
+      "description": "Exported from announcementsFetcher.js"
+    },
+    {
+      "name": "iterAnnouncements",
+      "file": "stock-api/src/fetchers/announcementsFetcher.js",
+      "description": "Exported from announcementsFetcher.js"
+    },
+    {
+      "name": "matchesQuery",
+      "file": "stock-api/src/fetchers/announcementsFetcher.js",
+      "description": "Exported from announcementsFetcher.js"
+    },
+    {
+      "name": "inDateRange",
+      "file": "stock-api/src/fetchers/announcementsFetcher.js",
+      "description": "Exported from announcementsFetcher.js"
+    },
+    {
+      "name": "announcementFilename",
+      "file": "stock-api/src/fetchers/announcementsFetcher.js",
+      "description": "Exported from announcementsFetcher.js"
+    },
+    {
+      "name": "fetchDocuments",
+      "file": "stock-api/src/fetchers/documentsFetcher.js",
+      "description": "Exported from documentsFetcher.js"
+    },
+    {
+      "name": "filterDocuments",
+      "file": "stock-api/src/fetchers/documentsFetcher.js",
+      "description": "Exported from documentsFetcher.js"
+    },
+    {
+      "name": "normaliseType",
+      "file": "stock-api/src/fetchers/documentsFetcher.js",
+      "description": "Exported from documentsFetcher.js"
+    },
+    {
+      "name": "parseDateFilter",
+      "file": "stock-api/src/fetchers/documentsFetcher.js",
+      "description": "Exported from documentsFetcher.js"
+    },
+    {
+      "name": "docYyyymm",
+      "file": "stock-api/src/fetchers/documentsFetcher.js",
+      "description": "Exported from documentsFetcher.js"
+    },
+    {
+      "name": "safeTicker",
+      "file": "stock-api/src/fetchers/documentsFetcher.js",
+      "description": "Exported from documentsFetcher.js"
+    },
+    {
+      "name": "buildFilename",
+      "file": "stock-api/src/fetchers/documentsFetcher.js",
+      "description": "Exported from documentsFetcher.js"
+    },
+    {
+      "name": "createConcallPdf",
+      "file": "stock-api/src/generators/generateConcallPdf.js",
+      "description": "Exported from generateConcallPdf.js"
+    },
+    {
+      "name": "createCredibilityWidget",
+      "file": "stock-api/src/generators/generateCredibilityWidget.js",
+      "description": "Exported from generateCredibilityWidget.js"
+    },
+    {
+      "name": "getCredibilitySchema",
+      "file": "stock-api/src/generators/generateCredibilityWidget.js",
+      "description": "Exported from generateCredibilityWidget.js"
+    },
+    {
+      "name": "createDrhpPdf",
+      "file": "stock-api/src/generators/generateDrhpPdf.js",
+      "description": "Exported from generateDrhpPdf.js"
+    },
+    {
+      "name": "createForensicPdf",
+      "file": "stock-api/src/generators/generateForensicPdf.js",
+      "description": "Exported from generateForensicPdf.js"
+    },
+    {
+      "name": "getForensicSchema",
+      "file": "stock-api/src/generators/generateForensicPdf.js",
+      "description": "Exported from generateForensicPdf.js"
+    },
+    {
+      "name": "createGrowthTriggersPdf",
+      "file": "stock-api/src/generators/generateGrowthTriggersPdf.js",
+      "description": "Exported from generateGrowthTriggersPdf.js"
+    },
+    {
+      "name": "createMarketShareWidget",
+      "file": "stock-api/src/generators/generateMarketShareHtml.js",
+      "description": "Exported from generateMarketShareHtml.js"
+    },
+    {
+      "name": "createPeerComparisonPdf",
+      "file": "stock-api/src/generators/generatePeerPdf.js",
+      "description": "Exported from generatePeerPdf.js"
+    },
+    {
+      "name": "getPeerSchema",
+      "file": "stock-api/src/generators/generatePeerPdf.js",
+      "description": "Exported from generatePeerPdf.js"
+    },
+    {
+      "name": "createResearchReport",
+      "file": "stock-api/src/generators/generateReport.js",
+      "description": "Exported from generateReport.js"
+    },
+    {
+      "name": "createSectorReport",
+      "file": "stock-api/src/generators/generateSectorReport.js",
+      "description": "Exported from generateSectorReport.js"
+    },
+    {
+      "name": "nse",
+      "file": "stock-api/src/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "bse",
+      "file": "stock-api/src/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "nseSession",
+      "file": "stock-api/src/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "wrapHtml",
+      "file": "stock-api/src/utils/pdfRenderer.js",
+      "description": "Exported from pdfRenderer.js"
+    },
+    {
+      "name": "markdownToHtml",
+      "file": "stock-api/src/utils/pdfRenderer.js",
+      "description": "Exported from pdfRenderer.js"
+    },
+    {
+      "name": "renderPdf",
+      "file": "stock-api/src/utils/pdfRenderer.js",
+      "description": "Exported from pdfRenderer.js"
+    },
+    {
+      "name": "parseMarkdownTable",
+      "file": "stock-api/src/utils/pdfUtils.js",
+      "description": "Exported from pdfUtils.js"
+    },
+    {
+      "name": "formatInlineMarkdown",
+      "file": "stock-api/src/utils/pdfUtils.js",
+      "description": "Exported from pdfUtils.js"
+    },
+    {
+      "name": "styledTableHtml",
+      "file": "stock-api/src/utils/pdfUtils.js",
+      "description": "Exported from pdfUtils.js"
+    }
+  ]
+}

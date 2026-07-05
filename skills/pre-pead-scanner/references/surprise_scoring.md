@@ -59,8 +59,9 @@ Composite = SurpriseCore × Deliverability × (1 + Tradeability) × Pricing
 Kept qualitative on purpose — this is a ranking aid, not a black box. The legs:
 
 - **SurpriseCore** — the blended expected surprise. Weight the two benchmarks by benchmark quality: if you have a real broker estimate, lean on `Surprise_street`; if street is only a proxy, lean on `Surprise_guidance`. Sign it (positive = beat, negative = miss).
-- **Deliverability (0–1, from Step 3)** — the capability tier. A large surprise with no order-book/capacity support is *not* credible; multiply it down. This is the credibility gate: a HIGH-capability name keeps its surprise, a LOW-capability name has its surprise heavily discounted because the "beat" rests on tone, not evidence.
+- **Deliverability (0–1, from Step 3)** — the capability tier. A large surprise with no order-book/capacity support is *not* credible; multiply it down. This is the credibility gate: a HIGH-capability name keeps its surprise, a LOW-capability name has its surprise heavily discounted because the "beat" rests on tone, not evidence. **Weight up beats driven by the two structural PAT levers** — capex-live operating leverage and balance-sheet deleverage (Step 4): a beat you can attribute to incremental high-margin volume on newly-commissioned capacity, or to a quantified interest saving from lower debt, is far more bankable than one resting on a hopeful revenue number, because both are close to arithmetic once the inputs are known.
 - **Tradeability (from Step 7)** — the historical drift signature. `strong-positive-drift` amplifies a positive surprise (the market reliably rewards beats here); `fade` shrinks it (good results get sold). Liquidity is already a gate, so it doesn't re-enter here except as a tie-break (thicker names rank ahead when scores tie).
+- **Screener cross-check (from Step 3c)** — a conviction modifier, not a weighted leg. Independent Screener insights that *agree* with your thesis (`good-quarter-expected`, `debt-reduced`) nudge the composite up; ones that *contradict* it (`poor-quarter-expected`, `debt-increased`, `working-capital-stretch`) must be resolved before ranking, and if unresolved they cap conviction; governance flags (`promoter-pledge`/`promoter-selling`) cap it regardless of the numbers. See `screener_insights.md`.
 - **Pricing (from Step 6)** — the expectations modifier. Cheap-to-history (low 50D avg P/E vs its own trailing, discount to research target) amplifies; rich-to-history (premium multiple, at/above target) discounts, because the beat is likelier already in the price.
 
 ## Rank rubric — the tiers
@@ -86,6 +87,7 @@ Sort the master table by composite, TOP → BOTTOM.
 - `Guidance_implied` and `Surprise_guidance`.
 - The blended direction/magnitude label and the composite tier.
 - One line on **which benchmark you trust more here and why** (real broker estimate vs proxy; fresh guide vs stale).
+- A **PAT-surprise decomposition** — how much of the beat is topline vs capex-live operating leverage vs deleverage interest saving. A beat concentrated in the two structural levers is higher-confidence; say so, and carry the ₹-per-lever figures from Step 4.
 
 ## What could be wrong here
 

@@ -20,6 +20,8 @@ const { StockscansAuth } = require('./auth/stockscansAuth');
 const { StockscansClient, STOCKSCANS_BASE_URL, S3_BASE_URL } = require('./clients/StockscansClient');
 const { NseClient } = require('./clients/NseClient');
 const { BseClient, parseBseSmartSearchHtml } = require('./clients/BseClient');
+const { ScreenerAuth } = require('./auth/screenerAuth');
+const { ScreenerClient, SCREENER_BASE_URL } = require('./clients/ScreenerClient');
 
 const generators = require('./generators');
 const analyzers = require('./analyzers');
@@ -31,6 +33,7 @@ const nseSession = new NseSession();
 const stockscans = new StockscansClient();
 const nse = new NseClient({ session: nseSession });
 const bse = new BseClient();
+const screener = new ScreenerClient();
 
 module.exports = {
   // Classes (for DI / custom config)
@@ -40,10 +43,13 @@ module.exports = {
   StockscansClient,
   NseClient,
   BseClient,
+  ScreenerAuth,
+  ScreenerClient,
   // Default singletons
   stockscans,
   nse,
   bse,
+  screener,
   nseSession,
   // Low-level transport (for adapters)
   bseHttp,
@@ -51,6 +57,7 @@ module.exports = {
   parseBseSmartSearchHtml,
   STOCKSCANS_BASE_URL,
   S3_BASE_URL,
+  SCREENER_BASE_URL,
   // Generators
   ...generators,
   // Analyzers

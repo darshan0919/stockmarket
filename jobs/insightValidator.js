@@ -21,6 +21,7 @@ const { sendHtmlEmail, stockscansLink } = require('./lib/emailService');
 const { NotesDb } = require('./lib/notesDb');
 const { loadEnv, argValue } = require('./lib/env');
 const { withDriveDataSync } = require('./lib/driveDataStore');
+const StorageService = require('./lib/StorageService');
 const ist = require('./lib/ist');
 
 // ── Paths & config ────────────────────────────────────────────────────────────
@@ -81,11 +82,17 @@ function dateFromIso(isoDay) {
 
 /** Fetch the delivery CSV for a Date, using a local disk cache. null if unpublished. */
 async function fetchDeliveryCsv(date, client = nse) {
-  fs.mkdirSync(CACHE_DIR, { recursive: true });
-  const cache = path.join(CACHE_DIR, `sec_bhavdata_full_${ddmmyyyy(date)}.csv`);
-  if (fs.existsSync(cache) && fs.statSync(cache).size > 1000) return fs.readFileSync(cache, 'utf8');
+  StorageService.init();
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  const relPath = `events/market-data/nse-delivery/${yyyy}/${mm}/sec_bhavdata_full_${yyyy}${mm}${dd}.csv`;
+  
+  const cache = StorageService.readContent(relPath);
+  if (cache && cache.length > 1000) return cache;
+  
   const text = await client.getDeliveryBhavcopy(ddmmyyyy(date));
-  if (text) fs.writeFileSync(cache, text);
+  if (text) await StorageService.saveContent(relPath, text, false);
   return text;
 }
 
@@ -267,12 +274,12 @@ async function fetchLiveReturns(client = stockscans) {
 }
 
 async function fetchSectorContext(target, client = stockscans) {
-  fs.mkdirSync(VAL_DIR, { recursive: true });
-  // Cache key uses the target trading date in YYYYMMDD.
-  const isoCompact = `${target.getUTCFullYear()}${String(target.getUTCMonth() + 1).padStart(2, '0')}${String(target.getUTCDate()).padStart(2, '0')}`;
-  const cacheFile = path.join(VAL_DIR, `sector_context_${isoCompact}.json`);
-  if (fs.existsSync(cacheFile) && fs.statSync(cacheFile).size > 200) {
-    try { return JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch { /* refetch */ }
+  StorageService.init();
+  const dtoPaths = StorageService.getEventDtoPaths('sector_context', target, 'events/validation/sector-context');
+  
+  const cached = StorageService.readJson(dtoPaths.jsonPath);
+  if (cached && Object.keys(cached).length > 2) {
+    return cached;
   }
 
   const companies = {};
@@ -327,7 +334,9 @@ async function fetchSectorContext(target, client = stockscans) {
     sector: medians('sector'),
     companies,
   };
-  try { fs.writeFileSync(cacheFile, JSON.stringify(ctx)); } catch { /* ignore */ }
+  try { 
+    await StorageService.saveJson(dtoPaths.jsonPath, ctx, false);
+  } catch { /* ignore */ }
   return ctx;
 }
 
@@ -440,9 +449,8 @@ async function runValidation(insights, target, clients = { nse, stockscans }) {
 
 // ── Ledger + proposals ────────────────────────────────────────────────────────
 function loadLedger() {
-  if (fs.existsSync(LEDGER_PATH)) {
-    try { return JSON.parse(fs.readFileSync(LEDGER_PATH, 'utf8')); } catch { /* fall through */ }
-  }
+  const data = StorageService.readJson('entities/validation/main/ledger/meta.json');
+  if (data) return data;
   return { days: {}, byCategory: {}, validatedNotesFiles: [] };
 }
 
@@ -451,8 +459,8 @@ function isAlreadyValidated(notesFilename) {
   return (loadLedger().validatedNotesFiles || []).includes(notesFilename);
 }
 
-function updateLedger(run, notesFilename) {
-  fs.mkdirSync(VAL_DIR, { recursive: true });
+async function updateLedger(run, notesFilename) {
+  StorageService.init();
   const led = loadLedger();
   const compact = (run.results || []).map((r) => {
     const sec = r.sector || {};
@@ -487,7 +495,7 @@ function updateLedger(run, notesFilename) {
     else if (sl === 'against-sector') c.against_sector = (c.against_sector || 0) + 1;
   }
   led.lastUpdated = ist.nowIstIso();
-  fs.writeFileSync(LEDGER_PATH, JSON.stringify(led, null, 2));
+  await StorageService.saveEntity('validation', 'main', 'ledger', led);
   return led;
 }
 
@@ -544,8 +552,11 @@ function makeProposals(led, minSamples = 6) {
   return props;
 }
 
-function writeProposals(props, target, qr) {
-  fs.mkdirSync(VAL_DIR, { recursive: true });
+async function writeProposals(props, target, qr) {
+  StorageService.init();
+  const relPath = 'documents/validation/proposals/proposals.md';
+  const existing = StorageService.readContent(relPath) || '';
+  
   const iso = target.toISOString().slice(0, 10);
   let s = `\n## ${iso} — proposed insight-prompt refinements\n`;
   for (const p of props) s += `- ${p}\n`;
@@ -565,7 +576,7 @@ function writeProposals(props, target, qr) {
     for (const sug of irr.suggestions || []) s += `- ${sug}\n`;
     for (const mf of (irr.potentialMisfilters || []).slice(0, 10)) s += `  • POSSIBLE MIS-FILTER: ${mf}\n`;
   }
-  fs.appendFileSync(PROPOSALS_PATH, s);
+  await StorageService.saveContent(relPath, existing + s, false);
 }
 
 // ── Quality review ────────────────────────────────────────────────────────────
@@ -681,15 +692,14 @@ function qualityReviewCategorisation(notes) {
 }
 
 function qualityReviewIgnored(target) {
-  fs.mkdirSync(VAL_DIR, { recursive: true });
-  const iso = `${target.getUTCFullYear()}${String(target.getUTCMonth() + 1).padStart(2, '0')}${String(target.getUTCDate()).padStart(2, '0')}`;
-  const logPath = path.join(VAL_DIR, `ignored_log_${iso}.json`);
-  if (!fs.existsSync(logPath)) {
-    return { ignored: [], potentialMisfilters: [], suggestions: ['No ignored log found — ensure watchlistInsights.js is updated to write validation/ignored_log_YYYYMMDD.json.'] };
-  }
-  let ignored;
-  try { ignored = JSON.parse(fs.readFileSync(logPath, 'utf8')); } catch {
-    return { ignored: [], potentialMisfilters: [], suggestions: ['Could not parse ignored log.'] };
+  const yyyy = target.getFullYear();
+  const mm = String(target.getMonth() + 1).padStart(2, '0');
+  const dd = String(target.getDate()).padStart(2, '0');
+  const logPath = `events/validation/ignored-log/${yyyy}/${mm}/${dd}_log.json`;
+  
+  const ignored = StorageService.readJson(logPath);
+  if (!ignored) {
+    return { ignored: [], potentialMisfilters: [], suggestions: ['No ignored log found — ensure watchlistInsights.js is updated to write to the events log.'] };
   }
   const INFORMATIVE = ['rating', 'upgrade', 'downgrade', 'order', 'capex', 'appointment',
     'resignation', 'qip', 'preferential', 'amalgamation', 'acquisition', 'demerger', 'penalty',

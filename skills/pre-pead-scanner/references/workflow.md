@@ -6,6 +6,19 @@ Underlying thesis: a scan tells you *who* reports next; this workflow tells you 
 
 Commands below show `python3 /tmp/run_scan.py` and `python3 stock-api/python/fetchers/fetch_documents.py` as the invocation shape the runtime uses; when running from the JS package directly, the equivalents are `resolveUniverse()` / `postEventReturns()` in `stock-api/src/analyzers/`. Use whichever the environment exposes — the logic and the JSON shapes are identical.
 
+## Preflight — verify session tokens BEFORE running (do not skip)
+
+This skill depends on two session-authenticated sources whose tokens expire: **Stockscans** (`STOCKSCANS_AUTH_TOKEN`) and **Screener.in** (`SCREENER_SESSIONID` / `SCREENER_CSRFTOKEN`), both in `.env`. An expired token either errors (Stockscans → 401/403) or, worse, silently degrades to a thin public page (Screener). Ranking on half-authenticated data is worse than not running at all, so check first:
+
+1. Confirm both tokens are present in `.env`.
+2. Probe each: run one Stockscans call and one Screener `companyPage` + `detectAuthState`.
+3. If **either** is expired/rejected, **STOP — do not run the ranking prompt.** Tell the user exactly which key to refresh and how, e.g.:
+
+   > "Your **Screener** session has expired. Log in at screener.in → DevTools → Application → Cookies → copy fresh `sessionid` (and `csrftoken`) → update `SCREENER_SESSIONID` / `SCREENER_CSRFTOKEN` in `.env`, then re-run."
+   > "Your **Stockscans** token has expired. Refresh the `authtoken` cookie from stockscans.in and update `STOCKSCANS_AUTH_TOKEN` in `.env`, then re-run."
+
+Only once both probes pass do you proceed to Step 0. Details and the exact detection logic are in `screener_insights.md` (Preflight section).
+
 ## Step 0 — Resolve the scan into a universe, then GATE ON LIQUIDITY
 
 The scan URL is the only required input. Run the scan runner, which fetches the **live** saved-scan definition (so any edits the user made are respected — never hardcode filters) and returns the matching companies, with the liquidity gate applied.
@@ -81,7 +94,24 @@ python3 stock-api/python/fetchers/fetch_documents.py "<companyId>" \
     -t Transcript --last-n 4 -o "/tmp/pead/${SAFE}_docs"
 ```
 
-The full extraction-and-validation framework — the four evidence pillars and the capability tier — is in `guidance_extraction.md`. **Read it before analysing the first company.**
+The full extraction-and-validation framework — the five evidence pillars (order book, capacity/capex-live, utilisation, deleverage, history) and the capability tier — is in `guidance_extraction.md`. **Read it before analysing the first company.**
+
+## Step 3c — Screener insights cross-check (independent second opinion)
+
+Once per in-scope company, pull Screener's auto-generated **Pros/Cons insights** and **key ratios** — an independent, filings-based read that knows nothing of your concall work:
+
+```
+resp     = await screener.companyPageWithFallback('<symbol>')   // strip NSE:/BSE: prefix
+insights = parseScreenerInsights(resp)
+```
+
+If `insights.authExpired` is true, halt per the Preflight rule — do **not** proceed on a degraded page. Otherwise use the tagged insights and ratios to **corroborate or challenge** the thesis you just built:
+- `good-quarter-expected` / `debt-reduced` alongside your projected beat and deleverage lever → independent support, raise conviction.
+- `poor-quarter-expected` / `debt-increased` / `working-capital-stretch` against your projected beat → a **contradiction to resolve before ranking**, not to average away.
+- `promoter-pledge` / `promoter-selling` → governance overhang; cap conviction regardless of the numbers.
+- `stockPE` vs your 50D-avg-P/E (Step 6), `debtToEquity` vs the deleverage lever (Step 4), `roce`/`roe` vs the capability tier (Step 3).
+
+Full mapping, tag list, and the "what could be wrong" is in `screener_insights.md`. Carry the pros/cons, tags, and 2–3 key ratios into the deep-dive card.
 
 ## Step 4 — Project next-quarter Revenue / OPM / PAT / EPS
 
@@ -91,7 +121,9 @@ Combine guidance with YTD (9M) actuals and historical financials. Cleanest metho
 Next-quarter estimate = FY guidance − YTD actual
 ```
 
-Carry ranges. Where there's no full-year figure, extrapolate from the recent quarterly run-rate adjusted for stated seasonality and any new-capacity ramp. Always compute Revenue (with implied YoY/sequential growth), OPM, PAT, and EPS (PAT ÷ equity shares). **Strip one-offs from the base quarter first.** Show the maths; tag each input `[guided]`/`[actual]`/`[estimate]`. Method, OPM→PAT bridge, one-off stripping, and EPS share-count gotchas are in `forward_estimation.md`.
+Carry ranges. Where there's no full-year figure, extrapolate from the recent quarterly run-rate adjusted for stated seasonality and any new-capacity ramp. Always compute Revenue (with implied YoY/sequential growth), OPM, PAT, and EPS (PAT ÷ equity shares). **Strip one-offs from the base quarter first.** Show the maths; tag each input `[guided]`/`[actual]`/`[estimate]`.
+
+**Model the two direct PAT levers explicitly** — they are usually where the PAT surprise actually comes from, and they're more bankable than a revenue guess: **(1) capex-live operating leverage** (incremental revenue on newly-commissioned capacity drops through at high incremental margin — a company can guide flat blended margin and still beat on PAT) and **(2) balance-sheet deleverage** (lower debt → lower interest → direct, near-arithmetic lift to PAT after tax). Put both in the bridge as named lines and net the capex interest/depreciation step-up against them, so the PAT beat is *attributable*. Method, formulae, and guardrails in `forward_estimation.md`.
 
 This your-estimate is the input to the surprise in Step 5 — it is what you are comparing *against* the street and the guide.
 
@@ -148,6 +180,7 @@ Render an interactive HTML briefing using `assets/briefing_template.html`. The m
 | **Surprise vs street** | Step 5a |
 | **Surprise vs guidance** | Step 5b |
 | 50D avg P/E vs history/industry; target upside | Step 6 |
+| Screener insights (agree / contradict) + key ratios | Step 3c |
 | Post-event drift (result / concall / transcript) | Step 7 |
 | **Composite surprise score + direction** | Step 8 rubric |
 | What could be wrong | per-name risk |
@@ -158,4 +191,4 @@ If the `visualize` tool is available, render the table through it; otherwise wri
 
 ## Final self-audit (do not skip)
 
-Before delivering: (1) re-run Step 0 and confirm no ranked name has declared in the interim; (2) spot-check one guided number, one 9M actual, one EPS, one 50D-P/E, and one post-event return against source; (3) confirm every illiquid exclusion shows its measured traded-value and free-float; (4) write the cross-cutting "what could be wrong with this ranking?" paragraph — selection bias from the scan filters, stale consensus, unaudited concall numbers, a market-wide move contaminating the drift history, or a unit error in the liquidity/valuation columns.
+Before delivering: (1) re-run Step 0 and confirm no ranked name has declared in the interim; (2) spot-check one guided number, one 9M actual, one EPS, one 50D-P/E, and one post-event return against source; (3) confirm every illiquid exclusion shows its measured traded-value and free-float; (4) confirm the Screener session was authenticated for the run (no name silently ranked on a degraded page) and flag any name where Screener contradicted your call and you couldn't resolve it; (5) write the cross-cutting "what could be wrong with this ranking?" paragraph — selection bias from the scan filters, stale consensus, unaudited concall numbers, a market-wide move contaminating the drift history, a unit error in the liquidity/valuation columns, or an expired token degrading a source mid-run.

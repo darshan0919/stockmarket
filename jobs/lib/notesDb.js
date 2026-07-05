@@ -1,9 +1,8 @@
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
 const crypto = require('crypto');
-const { nowIstIso, notesTimestamp } = require('./ist');
+const { nowIstIso } = require('./ist');
+const StorageService = require('./StorageService');
 
 const emptyNotes = () => ({
   meta: { version: '1.0', lastRun: null, totalCompanies: 0, totalNotes: 0 },
@@ -11,56 +10,36 @@ const emptyNotes = () => ({
 });
 
 /**
- * Notes DB — port of the watchlist_insights.py notes layer.
+ * Notes DB — now backed by StorageService entities architecture.
  *
- * Each run writes to a fresh timestamped `notes_*.json` inside `notesDir`; the
- * previous run's file is never modified. `.current_run` holds this run's filename
- * so every command in the run shares one destination file.
+ * It uses the single entity path `entities/watchlist-notes/main/current`.
+ * StorageService.saveEntity automatically creates history backups on every save.
  */
 class NotesDb {
   constructor(notesDir) {
-    this.dir = notesDir;
-    this.pointer = path.join(notesDir, '.current_run');
+    StorageService.init();
   }
 
   getLatestFile() {
-    if (!fs.existsSync(this.dir)) return null;
-    const files = fs
-      .readdirSync(this.dir)
-      .filter((f) => /^notes_.*\.json$/.test(f))
-      .map((f) => ({ f, mtime: fs.statSync(path.join(this.dir, f)).mtimeMs }))
-      .sort((a, b) => b.mtime - a.mtime);
-    return files.length ? path.join(this.dir, files[0].f) : null;
+    // Return standard entity path for legacy compat if requested
+    return 'entities/watchlist-notes/main/current/meta.json';
   }
 
-  /** Start a new run: copy the latest notes into a fresh timestamped file. */
   initRun() {
-    fs.mkdirSync(this.dir, { recursive: true });
-    const newName = `notes_${notesTimestamp()}.json`;
-    const newPath = path.join(this.dir, newName);
-    const latest = this.getLatestFile();
-    if (latest) fs.copyFileSync(latest, newPath);
-    else fs.writeFileSync(newPath, JSON.stringify(emptyNotes(), null, 2));
-    fs.writeFileSync(this.pointer, newName);
-    return newPath;
+    StorageService.init();
+    return this.getLatestFile();
   }
 
   currentRunFile() {
-    if (fs.existsSync(this.pointer)) {
-      const name = fs.readFileSync(this.pointer, 'utf8').trim();
-      const candidate = path.join(this.dir, name);
-      if (fs.existsSync(candidate)) return candidate;
-    }
-    const latest = this.getLatestFile();
-    return latest || this.initRun();
+    return this.getLatestFile();
   }
 
   load() {
-    return JSON.parse(fs.readFileSync(this.currentRunFile(), 'utf8'));
+    const data = StorageService.readJson(this.getLatestFile());
+    return data || emptyNotes();
   }
 
-  save(notes) {
-    const file = this.currentRunFile();
+  async save(notes) {
     const companies = notes.companies || {};
     notes.meta.totalCompanies = Object.keys(companies).length;
     notes.meta.totalNotes = Object.values(companies).reduce(
@@ -68,7 +47,7 @@ class NotesDb {
       0
     );
     notes.meta.lastRun = nowIstIso();
-    fs.writeFileSync(file, JSON.stringify(notes, null, 2));
+    await StorageService.saveEntity('watchlist-notes', 'main', 'current', notes);
   }
 
   static getCompany(notes, companyId) {

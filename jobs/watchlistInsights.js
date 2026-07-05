@@ -22,6 +22,7 @@ const { NotesDb } = require('./lib/notesDb');
 const { pdfToText } = require('./lib/pdfText');
 const { loadEnv, argValue } = require('./lib/env');
 const { withDriveDataSync } = require('./lib/driveDataStore');
+const StorageService = require('./lib/StorageService');
 const ist = require('./lib/ist');
 
 const SCRIPT_DIR = process.env.WI_DATA_DIR || process.cwd();
@@ -248,13 +249,15 @@ function matchedNoiseKeyword(title, description) {
   return INSIGNIFICANT_KEYWORDS.find((kw) => combined.includes(kw)) || null;
 }
 
-function logIgnoredAnnouncement(ann, matchedKw) {
-  fs.mkdirSync(VALIDATION_DIR, { recursive: true });
-  const logPath = path.join(VALIDATION_DIR, `ignored_log_${ist.istYmd()}.json`);
-  let existing = [];
-  if (fs.existsSync(logPath)) {
-    try { existing = JSON.parse(fs.readFileSync(logPath, 'utf8')); } catch { existing = []; }
-  }
+async function logIgnoredAnnouncement(ann, matchedKw) {
+  StorageService.init();
+  const dateStr = ist.istYmd(); // YYYYMMDD
+  const yyyy = dateStr.slice(0, 4);
+  const mm = dateStr.slice(4, 6);
+  const dd = dateStr.slice(6, 8);
+  const logPath = `events/validation/ignored-log/${yyyy}/${mm}/${dd}_log.json`;
+
+  let existing = StorageService.readJson(logPath) || [];
   const title = ann.title || ann.subject || ann.headline || '';
   existing.push({
     companyId: ann.companyId || '',
@@ -264,11 +267,21 @@ function logIgnoredAnnouncement(ann, matchedKw) {
     matchedKeyword: matchedKw,
     createdAt: ann.createdAt || '',
   });
-  fs.writeFileSync(logPath, JSON.stringify(existing, null, 2));
+  await StorageService.saveJson(logPath, existing, false);
 }
 
-/** Paginate the announcements API → all raw announcements within the last 24h. */
 async function gatherInwindowRaw(client = stockscans, now = new Date()) {
+  try {
+    await client.validateAuth();
+  } catch (e) {
+    const errorMsg = `Auth validation failed: ${e.message}`;
+    await sendHtmlEmail({
+      subject: `Watchlist Insights - ❌ Auth Failed`,
+      htmlBody: `<p><b>Time:</b> ${ist.nowIstHuman()}</p><p><b>Error:</b> ${errorMsg}</p><p>Please update STOCKSCANS_AUTH_TOKEN in .env.</p>`,
+    });
+    throw e;
+  }
+
   const cutoffMs = now.getTime() - 24 * 60 * 60 * 1000;
   const qdate = ist.quarterDate(now);
   const allRaw = [];
@@ -303,7 +316,6 @@ async function gatherInwindowRaw(client = stockscans, now = new Date()) {
 // ── Commands ──────────────────────────────────────────────────────────────────
 
 async function cmdFetchAnnouncements(client = stockscans) {
-  db.initRun();
   const notes = db.load();
   const allRaw = await gatherInwindowRaw(client);
   const results = [];
@@ -318,7 +330,7 @@ async function cmdFetchAnnouncements(client = stockscans) {
     const pdfUrl = ssUrl ? `${S3_BASE_URL}${ssUrl}` : '';
 
     const noiseKw = matchedNoiseKeyword(title, description);
-    if (noiseKw !== null) { logIgnoredAnnouncement(ann, noiseKw); continue; }
+    if (noiseKw !== null) { await logIgnoredAnnouncement(ann, noiseKw); continue; }
 
     const co = NotesDb.getCompany(notes, companyId);
     if (co && (co.processedAnnouncements || []).includes(annId)) continue;
@@ -346,7 +358,7 @@ function cmdGetCompanyNotes(companyId) {
   process.stdout.write(JSON.stringify(co));
 }
 
-function cmdAddNote(noteJsonStr) {
+async function cmdAddNote(noteJsonStr) {
   const payload = JSON.parse(noteJsonStr);
   const notes = db.load();
   const co = NotesDb.ensureCompany(notes, payload.companyId, payload.ticker || '', payload.name || '');
@@ -371,16 +383,16 @@ function cmdAddNote(noteJsonStr) {
     noteId = entry.id;
   }
   co.lastUpdated = ist.nowIstIso();
-  db.save(notes);
+  await db.save(notes);
   process.stdout.write(JSON.stringify({ status: 'ok', companyId: payload.companyId, noteId }));
 }
 
-function cmdMarkProcessed(companyId, annId) {
+async function cmdMarkProcessed(companyId, annId) {
   const notes = db.load();
   const co = NotesDb.ensureCompany(notes, companyId);
   if (!co.processedAnnouncements.includes(annId)) co.processedAnnouncements.push(annId);
   co.lastUpdated = ist.nowIstIso();
-  db.save(notes);
+  await db.save(notes);
   process.stdout.write(JSON.stringify({ status: 'ok' }));
 }
 
@@ -398,14 +410,8 @@ function cmdInsightTemplate(category = 'general') {
 }
 
 function cmdInitNotes() {
-  fs.mkdirSync(NOTES_DIR, { recursive: true });
-  const latest = db.getLatestFile();
-  if (latest) {
-    process.stdout.write(JSON.stringify({ status: 'exists', latestFile: path.basename(latest), dir: NOTES_DIR }));
-    return;
-  }
-  const p = db.initRun();
-  process.stdout.write(JSON.stringify({ status: 'created', file: path.basename(p), dir: NOTES_DIR }));
+  db.initRun();
+  process.stdout.write(JSON.stringify({ status: 'ready', file: db.getLatestFile(), dir: 'entities' }));
 }
 
 async function sendHtml(htmlBody) {

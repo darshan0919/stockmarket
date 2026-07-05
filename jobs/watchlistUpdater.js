@@ -141,6 +141,19 @@ async function main({ client = stockscans, dryRun = false, log = console.log } =
   log(`\n${'='.repeat(55)}`);
   log(`  StockScans Watchlist Updater  —  ${now}${dryRun ? '  [DRY RUN]' : ''}`);
   log(`${'='.repeat(55)}`);
+  // Step 0 — validate auth
+  try {
+    await client.validateAuth();
+  } catch (e) {
+    log(`  ✗ Auth validation failed: ${e.message}`);
+    if (!dryRun) {
+      await sendHtmlEmail({
+        subject: 'StockScans Watchlist Update - ❌ Auth Failed',
+        htmlBody: `<p><b>Time:</b> ${now}</p><p><b>Error:</b> ${e.message}</p><p>Please update STOCKSCANS_AUTH_TOKEN in .env.</p>`,
+      });
+    }
+    throw e;
+  }
 
   // Step 1 — fetch all companies
   log(`\n[Step 1] Fetching companies from ${SCAN_NAME}...`);
