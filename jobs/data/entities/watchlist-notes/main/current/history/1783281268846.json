@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "version": "1.0",
+    "lastRun": "2026-07-06T01:24:28+05:30",
+    "totalCompanies": 1,
+    "totalNotes": 3
+  },
+  "companies": {
+    "NSE:Z": {
+      "companyId": "NSE:Z",
+      "ticker": "NSE:Z",
+      "name": "Zeta",
+      "lastUpdated": "2026-07-06T01:21:48+05:30",
+      "businessSummary": "",
+      "notes": [
+        {
+          "id": "734bfb33-fe9d-4b8f-ba71-d4d9357840c8",
+          "announcementId": "z.pdf",
+          "insight": "hi",
+          "significance": "high",
+          "createdAt": "2026-06-27T10:00:00+05:30"
+        },
+        {
+          "id": "1a9f4008-1670-4a69-a9a5-5ea95f86a936",
+          "announcementId": "z.pdf",
+          "insight": "hi",
+          "significance": "high",
+          "createdAt": "2026-06-27T10:00:00+05:30"
+        },
+        {
+          "id": "0f7922b9-2f0c-4455-9dcc-57c38a889f8d",
+          "announcementId": "z.pdf",
+          "insight": "hi",
+          "significance": "high",
+          "createdAt": "2026-06-27T10:00:00+05:30"
+        }
+      ],
+      "processedAnnouncements": []
+    }
+  }
+}

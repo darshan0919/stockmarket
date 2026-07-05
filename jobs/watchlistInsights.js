@@ -9,9 +9,12 @@
  * analysis. All Stockscans access goes through @stock/api.
  *
  * Usage: node watchlistInsights.js <command> [args]
- *   fetch-announcements | read-pdf <url> | get-company-notes <id> | add-note [json]
+ *   fetch-announcements <watchlistIds> | read-pdf <url> | get-company-notes <id> | add-note [json]
  *   mark-processed <companyId> <announcementId> | list-companies | insight-template <cat>
  *   send-summary [html] | build-digest | send-digest | init-notes
+ *
+ * <watchlistIds> is a required, comma-separated list of watchlist IDs (e.g. "id1,id2,id3").
+ * This job is agnostic of which watchlists it scans — the caller (skill/task) decides.
  */
 
 const fs = require('fs');
@@ -31,18 +34,34 @@ const VALIDATION_DIR = process.env.WI_VALIDATION_DIR || path.join(SCRIPT_DIR, 'v
 
 const db = new NotesDb(NOTES_DIR);
 
-const ANNOUNCEMENTS_PAYLOAD = {
-  scan: {
-    scanId: '04706a679c7508e4b17f9565',
-    scanName: 'Watchlist Scan',
-    filters: [], industry: [], index: [],
-    watchlistIds: ['0a365ec2139aa6ca7f74c250', '7ca0e1a60c3fd0d8b1ab61ce'],
-    searchFilters: [], announcementType: 'All', alerts: false, searchMode: 'full',
-    companyIds: [], companyFilters: [],
-  },
-  offset: 0,
-  quarterDate: '',
-};
+// NOTE: this job is agnostic of which watchlists it scans — watchlistIds must be passed
+// in by the caller (CLI arg / skill input), never hardcoded here. See parseWatchlistIds().
+function buildAnnouncementsPayload(watchlistIds) {
+  return {
+    scan: {
+      scanId: '',
+      scanName: 'Watchlist Scan',
+      filters: [], industry: [], index: [],
+      watchlistIds,
+      searchFilters: [], announcementType: 'All', alerts: false, searchMode: 'full',
+      companyIds: [], companyFilters: [],
+    },
+    offset: 0,
+    quarterDate: '',
+  };
+}
+
+/** Parse a comma-separated watchlistIds string (CLI arg) into a non-empty array. Throws if empty/missing. */
+function parseWatchlistIds(raw) {
+  const ids = String(raw || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (!ids.length) {
+    throw new Error('watchlistIds required: pass one or more comma-separated watchlist IDs, e.g. "fetch-announcements id1,id2,id3"');
+  }
+  return ids;
+}
 
 // ── Insignificance filter ─────────────────────────────────────────────────────
 const INSIGNIFICANT_KEYWORDS = [
@@ -270,7 +289,10 @@ async function logIgnoredAnnouncement(ann, matchedKw) {
   await StorageService.saveJson(logPath, existing, false);
 }
 
-async function gatherInwindowRaw(client = stockscans, now = new Date()) {
+async function gatherInwindowRaw(client = stockscans, now = new Date(), watchlistIds) {
+  if (!Array.isArray(watchlistIds) || !watchlistIds.length) {
+    throw new Error('watchlistIds required: gatherInwindowRaw(client, now, watchlistIds)');
+  }
   try {
     await client.validateAuth();
   } catch (e) {
@@ -292,7 +314,7 @@ async function gatherInwindowRaw(client = stockscans, now = new Date()) {
   const MAX_PAGES = 200;
 
   for (let pageNo = 0; pageNo < MAX_PAGES; pageNo++) {
-    const payload = JSON.parse(JSON.stringify(ANNOUNCEMENTS_PAYLOAD));
+    const payload = buildAnnouncementsPayload(watchlistIds);
     payload.quarterDate = qdate;
     payload.offset = offset;
     const data = await client.scanAnnouncements(payload);
@@ -315,9 +337,10 @@ async function gatherInwindowRaw(client = stockscans, now = new Date()) {
 
 // ── Commands ──────────────────────────────────────────────────────────────────
 
-async function cmdFetchAnnouncements(client = stockscans) {
+async function cmdFetchAnnouncements(watchlistIdsArg, client = stockscans) {
+  const watchlistIds = parseWatchlistIds(watchlistIdsArg);
   const notes = db.load();
-  const allRaw = await gatherInwindowRaw(client);
+  const allRaw = await gatherInwindowRaw(client, new Date(), watchlistIds);
   const results = [];
   for (const ann of allRaw) {
     const companyId = ann.companyId || '';
@@ -514,7 +537,7 @@ async function cmdSendDigest(client = stockscans) {
 // ── CLI dispatch ──────────────────────────────────────────────────────────────
 
 const COMMANDS = {
-  'fetch-announcements': [cmdFetchAnnouncements, 0],
+  'fetch-announcements': [cmdFetchAnnouncements, 1],
   'read-pdf': [cmdReadPdf, 1],
   'get-company-notes': [cmdGetCompanyNotes, 1],
   'add-note': [cmdAddNote, 0],
@@ -552,8 +575,8 @@ async function runCli(argv) {
 
 module.exports = {
   categoriseAnnouncement, insightTemplate, announcementId, isNoise, matchedNoiseKeyword,
-  gatherInwindowRaw,  buildDigestHtml, cmdFetchAnnouncements,
-  CATEGORY_RULES, INSIGNIFICANT_KEYWORDS,  runCli, db, NOTES_DIR,
+  gatherInwindowRaw, buildDigestHtml, cmdFetchAnnouncements, parseWatchlistIds,
+  CATEGORY_RULES, INSIGNIFICANT_KEYWORDS, runCli, db, NOTES_DIR,
 };
 
 if (require.main === module) {

@@ -69,17 +69,29 @@ describe('buildDigestHtml', () => {
   });
 });
 
+describe('parseWatchlistIds', () => {
+  test('splits + trims a comma-separated list', () => {
+    expect(wi.parseWatchlistIds(' id1, id2 ,id3')).toEqual(['id1', 'id2', 'id3']);
+  });
+  test('throws when missing/empty', () => {
+    expect(() => wi.parseWatchlistIds('')).toThrow(/watchlistIds required/);
+    expect(() => wi.parseWatchlistIds(undefined)).toThrow(/watchlistIds required/);
+    expect(() => wi.parseWatchlistIds(',, ,')).toThrow(/watchlistIds required/);
+  });
+});
+
 describe('gatherInwindowRaw (pagination + 24h window)', () => {
   test('stops once the last item on a page is older than 24h', async () => {
     const now = new Date('2026-06-27T12:00:00+05:30');
     const iso = (h) => new Date(now.getTime() - h * 3600 * 1000).toISOString();
     const client = {
+      validateAuth: jest.fn().mockResolvedValue(true),
       scanAnnouncements: jest
         .fn()
         .mockResolvedValueOnce({ announcements: [{ companyId: 'NSE:A', createdAt: iso(1) }, { companyId: 'NSE:B', createdAt: iso(5) }] })
         .mockResolvedValueOnce({ announcements: [{ companyId: 'NSE:C', createdAt: iso(20) }, { companyId: 'NSE:D', createdAt: iso(30) }] }),
     };
-    const out = await wi.gatherInwindowRaw(client, now);
+    const out = await wi.gatherInwindowRaw(client, now, ['wl-1']);
     // D (30h) is outside the window and dropped; A,B,C kept
     expect(out.map((a) => a.companyId)).toEqual(['NSE:A', 'NSE:B', 'NSE:C']);
     expect(client.scanAnnouncements).toHaveBeenCalledTimes(2);
@@ -107,6 +119,7 @@ describe('notes DB round-trip', () => {
 describe('cmdFetchAnnouncements end-to-end (mock client + temp notes)', () => {
   test('drops noise + already-processed, tags category', async () => {
     const { stockscans } = require('@stock/api');
+    stockscans.validateAuth = jest.fn().mockResolvedValue(true);
     const now = Date.now();
     const recent = new Date(now - 3600 * 1000).toISOString();
     stockscans.scanAnnouncements
@@ -119,7 +132,7 @@ describe('cmdFetchAnnouncements end-to-end (mock client + temp notes)', () => {
       .mockResolvedValue({ announcements: [] }); // terminate pagination
     let captured = '';
     const spy = jest.spyOn(process.stdout, 'write').mockImplementation((s) => { captured += s; return true; });
-    await wi.cmdFetchAnnouncements(stockscans);
+    await wi.cmdFetchAnnouncements('wl-1,wl-2', stockscans);
     spy.mockRestore();
 
     const out = JSON.parse(captured);

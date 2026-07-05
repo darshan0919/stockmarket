@@ -1,6 +1,6 @@
 ---
 name: watchlist-insights
-description: Daily watchlist corporate-announcement insights — fetch new non-routine announcements across the Near Highs + Radar watchlists, read each PDF, write an actionable quantified insight per category into the notes DB, and email the full 24h digest. Invoke with defaults for the 8 AM run, or on demand to re-process a company.
+description: Daily watchlist corporate-announcement insights — fetch new non-routine announcements across the caller-supplied watchlists, read each PDF, write an actionable quantified insight per category into the notes DB, and email the full 24h digest. Invoke with explicit watchlistIds (a scheduled task prompt holds the mapping), or on demand to re-process a company.
 ---
 
 # Watchlist Daily Insights
@@ -10,14 +10,20 @@ PDF text, notes DB, email). YOUR job is the judgment — reading each PDF and wr
 insight. Process announcements **one at a time**; never write an insight from the
 title/description alone.
 
-## Parameters (optional)
+The job is **agnostic of any specific watchlist** — it has no built-in default. The
+caller (e.g. a scheduled task prompt) supplies the `watchlistIds` to scan on every
+invocation. Do NOT hardcode specific IDs in this skill; if watchlistIds are not supplied,
+ask for them rather than guessing.
+
+## Parameters
 
 | Param | Default | Meaning |
 |---|---|---|
+| `watchlistIds` | **required, no default** | comma-separated watchlist IDs to scan (the caller's prompt states these explicitly) |
 | `email` | on | run `send-digest` at the end (off = just update notes) |
 | company filter | none | on demand, process only a given `companyId` |
 
-The 24h window and the two watchlists (Near Highs + Radar) are baked into the job.
+The 24h window is baked into the job; the watchlist set is not.
 
 ## Setup
 
@@ -38,8 +44,13 @@ it finishes. If no Drive folder is mounted or configured, sync is skipped unless
 
 ## Step 1 — Fetch new announcements
 ```bash
-run fetch-announcements
+run fetch-announcements <watchlistIds>
 ```
+`<watchlistIds>` is a required, comma-separated list, e.g.
+`run fetch-announcements 0a365ec2139aa6ca7f74c250,7ca0e1a60c3fd0d8b1ab61ce`. Get the IDs
+from the invoking prompt — do not invent or reuse IDs from a previous run without
+confirming they still apply. The command errors clearly if the arg is missing/empty.
+
 Returns a JSON array of new, non-routine, unprocessed announcements — each with a
 `category` and `pdfUrl`. (Routine noise is already dropped and logged for the validator.)
 
