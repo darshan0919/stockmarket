@@ -43,6 +43,7 @@ Available high-level agentic skills defined in the project:
 | [value-chain-analysis](file:////Users/darshan.patel/code/personal/stockmarket) | `N/A` | value chain, where does margin sit, chokepoint analysis, value migration, map the chain, bottleneck owner |
 | [annual-report-analysis](file:////Users/darshan.patel/code/personal/stockmarket) | `N/A` | annual report analysis, analyse this ar, ar analysis, md letter summary, governance check, remuneration check, kmp resignations |
 | [stage2-catalyst-analysis](file:////Users/darshan.patel/code/personal/stockmarket) | `N/A` | stage 2, weinstein stage, soic lti, 30 wema, breakout analysis, why now catalyst, technical stage, entry stop loss, institutional accumulation |
+| [dead-code-scanner](file:////Users/darshan.patel/code/personal/stockmarket) | `N/A` | dead code, dead code scanner, find unused files, find unused exports, find dead code, clean up unused code |
 
 ---
 
@@ -58,6 +59,15 @@ Instantiable classes for DI or custom configurations:
 - **Source File**: [catalystRules.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/catalystRules.js)
 - **Key Methods**:
 
+
+### ScreenerAuth
+- **Source File**: [screenerAuth.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/auth/screenerAuth.js)
+- **Key Methods**:
+  - `_envFile()`
+  - `_resolve()`
+  - `cookieHeader()`
+  - `headers()`
+  - `isConfigured()`
 
 ### StockscansAuth
 - **Source File**: [stockscansAuth.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/auth/stockscansAuth.js)
@@ -95,6 +105,15 @@ Instantiable classes for DI or custom configurations:
   - `getCorporateActions()`
   - `getBoardMeetings()`
 
+### ScreenerClient
+- **Source File**: [ScreenerClient.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/clients/ScreenerClient.js)
+- **Key Methods**:
+  - `_slug()`
+  - `companyPage()`
+  - `_throttle()`
+  - `companyPageWithFallback()`
+  - `validateAuth()`
+
 ### StockscansClient
 - **Source File**: [StockscansClient.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/clients/StockscansClient.js)
 - **Key Methods**:
@@ -123,6 +142,7 @@ Instantiable classes for DI or custom configurations:
   - `savedScans()`
   - `s3PdfUrl()`
   - `fetchPdf()`
+  - `validateAuth()`
 
 ### HttpClient
 - **Source File**: [HttpClient.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/http/HttpClient.js)
@@ -207,6 +227,15 @@ Helper functions and utilities for common processes (data parsing, PDF generatio
 | `postEventReturns` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/index.js) | Exported from index.js |
 | `eventReturns` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/index.js) | Exported from index.js |
 | `driftSignature` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/index.js) | Exported from index.js |
+| `parseScreenerInsights` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/index.js) | Exported from index.js |
+| `detectAuthState` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/index.js) | Exported from index.js |
+| `parseProsCons` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/index.js) | Exported from index.js |
+| `parseTopRatios` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/index.js) | Exported from index.js |
+| `tagInsights` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/index.js) | Exported from index.js |
+| `avgTradedValueCr` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/index.js) | Exported from index.js |
+| `toCandles` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/index.js) | Exported from index.js |
+| `fetchPriceMetrics` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/index.js) | Exported from index.js |
+| `normalizePvd` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/index.js) | Exported from index.js |
 | `scanCatalysts` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/index.js) | Exported from index.js |
 | `sniffAndParse` | [parseTweetDump.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/parseTweetDump.js) | Exported from parseTweetDump.js |
 | `resolveReplyContext` | [parseTweetDump.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/parseTweetDump.js) | Exported from parseTweetDump.js |
@@ -215,6 +244,7 @@ Helper functions and utilities for common processes (data parsing, PDF generatio
 | `anchorIndex` | [postEventReturns.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/postEventReturns.js) | Exported from postEventReturns.js |
 | `forwardReturn` | [postEventReturns.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/postEventReturns.js) | Exported from postEventReturns.js |
 | `tsToDate` | [postEventReturns.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/postEventReturns.js) | Exported from postEventReturns.js |
+| `toIsoDate` | [priceMetrics.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/priceMetrics.js) | Exported from priceMetrics.js |
 | `parseScanId` | [runScan.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/runScan.js) | Exported from runScan.js |
 | `buildRunPayload` | [runScan.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/runScan.js) | Exported from runScan.js |
 | `flattenTable` | [runScan.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/runScan.js) | Exported from runScan.js |
@@ -223,6 +253,8 @@ Helper functions and utilities for common processes (data parsing, PDF generatio
 | `parseNum` | [runScan.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/runScan.js) | Exported from runScan.js |
 | `renderHtml` | [scanCatalysts.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/scanCatalysts.js) | Exported from scanCatalysts.js |
 | `fetchAnnouncementsBatch` | [scanCatalysts.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/scanCatalysts.js) | Exported from scanCatalysts.js |
+| `pickRatio` | [screenerInsights.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/screenerInsights.js) | Exported from screenerInsights.js |
+| `stripTags` | [screenerInsights.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/analyzers/screenerInsights.js) | Exported from screenerInsights.js |
 | `fetchAndExtract` | [announcementScanner.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/fetchers/announcementScanner.js) | Exported from announcementScanner.js |
 | `lastNQuarterDates` | [announcementScanner.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/fetchers/announcementScanner.js) | Exported from announcementScanner.js |
 | `fetchQuarter` | [announcementScanner.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/fetchers/announcementScanner.js) | Exported from announcementScanner.js |
@@ -255,6 +287,7 @@ Helper functions and utilities for common processes (data parsing, PDF generatio
 | `createSectorReport` | [generateSectorReport.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/generators/generateSectorReport.js) | Exported from generateSectorReport.js |
 | `nse` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/index.js) | Exported from index.js |
 | `bse` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/index.js) | Exported from index.js |
+| `screener` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/index.js) | Exported from index.js |
 | `nseSession` | [index.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/index.js) | Exported from index.js |
 | `wrapHtml` | [pdfRenderer.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/utils/pdfRenderer.js) | Exported from pdfRenderer.js |
 | `markdownToHtml` | [pdfRenderer.js](file:////Users/darshan.patel/code/personal/stockmarket/stock-api/src/utils/pdfRenderer.js) | Exported from pdfRenderer.js |

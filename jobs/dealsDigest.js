@@ -33,8 +33,8 @@ const fs = require('fs');
 const path = require('path');
 const { nse, bse } = require('@stock/api');
 const { loadEnv, argValue } = require('./lib/env');
-const { sendHtmlEmail, stockscansUrl } = require('./lib/emailService');
-const StorageService = require('./lib/StorageService');
+const { sendHtmlEmail, stockscansUrl } = require('@stock/cloud-utils');
+const StorageService = require('@stock/cloud-utils').StorageService;
 
 const TOP_N = 10;
 const XBRL_CONCURRENCY = 8;
@@ -604,10 +604,9 @@ async function main() {
 
   const htmlBody = renderEmail(dateLabel, digest);
 
-  // Use StorageService for dual-write
+  // Use StorageService for saving the JSON source data
   StorageService.init();
   await StorageService.saveJson(dtoPaths.jsonPath, digest, false);
-  await StorageService.saveContent(dtoPaths.htmlPath, htmlBody, false);
 
   // Email
   let email = { status: 'skipped', reason: '--no-email' };

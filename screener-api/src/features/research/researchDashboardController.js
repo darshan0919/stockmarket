@@ -139,7 +139,7 @@ module.exports = {
   postResearchDashboard,
   deleteResearchDashboard,
   hasUploadedDashboard,
-  dashboardPathForSymbol,
-  MAX_FILE_BYTES,
-  UPLOAD_ROOT,
+
+
+
 };

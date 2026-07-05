@@ -17,12 +17,12 @@
 const fs = require('fs');
 const path = require('path');
 const { stockscans, S3_BASE_URL } = require('@stock/api');
-const { sendHtmlEmail, stockscansLink } = require('./lib/emailService');
+const { sendHtmlEmail, stockscansLink } = require('@stock/cloud-utils');
 const { NotesDb } = require('./lib/notesDb');
-const { pdfToText } = require('./lib/pdfText');
+const { pdfToText } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
 const { withDriveDataSync } = require('./lib/driveDataStore');
-const StorageService = require('./lib/StorageService');
+const StorageService = require('@stock/cloud-utils').StorageService;
 const ist = require('./lib/ist');
 
 const SCRIPT_DIR = process.env.WI_DATA_DIR || process.cwd();
@@ -552,8 +552,8 @@ async function runCli(argv) {
 
 module.exports = {
   categoriseAnnouncement, insightTemplate, announcementId, isNoise, matchedNoiseKeyword,
-  gatherInwindowRaw, collectDigest, buildDigestHtml, cmdFetchAnnouncements,
-  CATEGORY_RULES, INSIGNIFICANT_KEYWORDS, CATEGORY_INSIGHT_TEMPLATES, runCli, db, NOTES_DIR,
+  gatherInwindowRaw,  buildDigestHtml, cmdFetchAnnouncements,
+  CATEGORY_RULES, INSIGNIFICANT_KEYWORDS,  runCli, db, NOTES_DIR,
 };
 
 if (require.main === module) {

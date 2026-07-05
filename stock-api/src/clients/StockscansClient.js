@@ -54,10 +54,14 @@ class StockscansClient {
    * @returns {Promise<Object>}
    */
   async getScanMetadata(scanId) {
-    const { data } = await this.http.get(`${BASE_URL}/api/company/scans/metadata`, {
-      params: { scanId },
-      headers: this._headers(`${BASE_URL}/scans/saved/${scanId}`),
-    });
+    // The saved-scan *definition* (filters, tags, name) lives at the user
+    // saved-scans endpoint. The older `/api/company/scans/metadata` path returns
+    // only generic index/industry lists — not a scan definition — so callers
+    // that need the filters (runScan, catalyst/keyword scanners) must use this.
+    const { data } = await this.http.get(
+      `${BASE_URL}/api/user/saved-scans/${encodeURIComponent(scanId)}`,
+      { headers: this._headers(`${BASE_URL}/scans/saved/${scanId}`) }
+    );
     return data;
   }
 

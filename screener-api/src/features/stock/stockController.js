@@ -1,7 +1,4 @@
 const Stock = require('./Stock');
-const Fundamental = require('./Fundamental');
-const PriceHistory = require('./PriceHistory');
-const FinancialStatement = require('./FinancialStatement');
 const QuarterlyResult = require('../results/QuarterlyResult');
 const { calculateAllIndicators, calculateSMA } = require('../../core/utils/technicalIndicators');
 const { fetchAndStoreQuarterlyResults } = require('../../../scripts/balanceSheetDataFetcher');
@@ -213,13 +210,28 @@ const getStockTechnicals = async (req, res, next) => {
       });
     }
 
-    // Get recent price history for technical calculations
-    const priceHistory = await PriceHistory.find({
-      stock_id: stock._id,
-    })
-      .sort({ date: -1 })
-      .limit(250)
-      .lean();
+    // Fetch recent price history from NSE for technical calculations (last 1 year)
+    const toDate = new Date();
+    const fromDate = new Date();
+    fromDate.setFullYear(fromDate.getFullYear() - 1);
+
+    let priceHistory = [];
+    try {
+      const rows = await getPriceVolumeDeliverable(symbol.toUpperCase(), formatDate(fromDate), formatDate(toDate));
+      priceHistory = rows.map((r) => {
+        const dateObj = parseNseDateToObject(r.mTIMESTAMP || r.CH_TIMESTAMP);
+        return {
+          date: dateObj,
+          open: parseFloat(String(r.CH_OPENING_PRICE).replace(/,/g, '') || 0),
+          high: parseFloat(String(r.CH_TRADE_HIGH_PRICE).replace(/,/g, '') || 0),
+          low: parseFloat(String(r.CH_TRADE_LOW_PRICE).replace(/,/g, '') || 0),
+          close: parseFloat(String(r.CH_CLOSING_PRICE).replace(/,/g, '') || 0),
+          volume: parseFloat(String(r.CH_TOT_TRADED_QTY ?? r.COP_TRADED_QTY).replace(/,/g, '') || 0)
+        };
+      }).filter(r => r.date && r.close);
+    } catch (apiErr) {
+      console.warn(`Failed to fetch price volume for technicals: ${apiErr.message}`);
+    }
 
     if (priceHistory.length === 0) {
       return res.json({
@@ -234,8 +246,8 @@ const getStockTechnicals = async (req, res, next) => {
       });
     }
 
-    // Reverse to get chronological order
-    priceHistory.reverse();
+    // NSE returns data oldest to newest generally, but let's ensure chronological order for indicators
+    priceHistory.sort((a, b) => a.date - b.date);
 
     const indicators = calculateAllIndicators(priceHistory);
     const currentPrice = priceHistory[priceHistory.length - 1].close;
@@ -277,33 +289,13 @@ const getStockFinancials = async (req, res, next) => {
       });
     }
 
-    const financials = await FinancialStatement.find({
-      stock_id: stock._id,
-    })
-      .sort({ fiscal_year: -1, quarter: -1 })
-      .limit(quarters)
-      .lean();
-
+    // Since local FinancialStatement DB is dropped, we return empty data or rely on quarterly results instead
     res.json({
       success: true,
       data: {
-        p_and_l: financials.map((f) => ({
-          period: `Q${f.quarter} FY${f.fiscal_year}`,
-          revenue: f.revenue,
-          gross_profit: f.gross_profit,
-          operating_profit: f.operating_profit,
-          ebitda: f.ebitda,
-          net_profit: f.net_profit,
-        })),
-        balance_sheet: financials.map((f) => ({
-          period: `Q${f.quarter} FY${f.fiscal_year}`,
-          total_assets: f.total_assets,
-          total_liabilities: f.total_liabilities,
-          shareholders_equity: f.shareholders_equity,
-          total_debt: f.total_debt,
-          current_assets: f.current_assets,
-          current_liabilities: f.current_liabilities,
-        })),
+        p_and_l: [],
+        balance_sheet: [],
+        message: 'Annual financial data is fetched via third-party APIs on the client or via Quarterly Results.'
       },
     });
   } catch (error) {

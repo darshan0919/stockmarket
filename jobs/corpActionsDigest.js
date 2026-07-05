@@ -16,7 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const { nse, bse, nseSession } = require('@stock/api');
 const { loadEnv, argValue } = require('./lib/env');
-const { sendHtmlEmail, stockscansUrl } = require('./lib/emailService');
+const { sendHtmlEmail, stockscansUrl } = require('@stock/cloud-utils');
 
 // We will fetch Screener data to get market caps (for sorting/display).
 async function getScreenerData(symbol) {

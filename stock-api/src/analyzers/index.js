@@ -9,6 +9,9 @@ const { postEventReturns, eventReturns, driftSignature } = require('./postEventR
 const {
   parseScreenerInsights, detectAuthState, parseProsCons, parseTopRatios, tagInsights,
 } = require('./screenerInsights');
+const {
+  avgTradedValueCr, toCandles, fetchPriceMetrics, normalizePvd,
+} = require('./priceMetrics');
 
 module.exports = {
   evaluateCatalystRules,
@@ -19,5 +22,6 @@ module.exports = {
   applyLiquidityGate,
   postEventReturns, eventReturns, driftSignature,
   parseScreenerInsights, detectAuthState, parseProsCons, parseTopRatios, tagInsights,
+  avgTradedValueCr, toCandles, fetchPriceMetrics, normalizePvd,
   scanCatalysts
 };

@@ -290,14 +290,14 @@ async function fetchCompanyIdsFromSavedScanUrl(scanUrlOrId) {
 }
 
 module.exports = {
-  STOCKSCANS_SCANS_RUN_URL,
-  STOCKSCANS_SAVED_SCAN_PAGE,
-  parseScanIdFromUrl,
+
+
+
   escapeRegExp,
-  normalizeEscapedScanJson,
-  extractScanFromSavedPageHtml,
-  fetchSavedScanDefinition,
-  companyIdsFromScanTable,
-  runScanAndCollectCompanyIds,
+
+
+
+
+
   fetchCompanyIdsFromSavedScanUrl,
 };

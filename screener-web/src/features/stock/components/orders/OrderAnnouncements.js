@@ -14,7 +14,7 @@ import OrderDownloads from './OrderDownloads';
  * @param {Object|null} props.unannouncedQuarterInfo - Quarter info for filtering
  * @param {function} props.formatDateFn - Date formatter
  */
-export function TranscriptBanner({ transcript, unannouncedQuarterInfo, formatDateFn }) {
+function TranscriptBanner({ transcript, unannouncedQuarterInfo, formatDateFn }) {
   if (!transcript) return null;
 
   const transcriptUrl = transcript.attachment_url || null;

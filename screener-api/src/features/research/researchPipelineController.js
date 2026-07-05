@@ -301,6 +301,6 @@ module.exports = {
   getWorkspaceStatus,
   saveEventsPdfsToWorkspace,
   postStockscansPack,
-  PROMPTS_MANIFEST,
-  applyPlaceholders,
+
+
 };

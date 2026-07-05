@@ -331,9 +331,9 @@ const clearTopGainersCache = () => cache.clear();
 
 module.exports = {
   getTopGainers,
-  clearTopGainersCache,
+
   // exported for tests and reuse by screener
-  selectRows,
+
   mapBaseRow,
   mapWithConcurrency,
   BUCKETS,

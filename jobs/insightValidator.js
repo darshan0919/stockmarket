@@ -17,11 +17,11 @@
 const fs = require('fs');
 const path = require('path');
 const { nse, stockscans } = require('@stock/api');
-const { sendHtmlEmail, stockscansLink } = require('./lib/emailService');
+const { sendHtmlEmail, stockscansLink } = require('@stock/cloud-utils');
 const { NotesDb } = require('./lib/notesDb');
 const { loadEnv, argValue } = require('./lib/env');
 const { withDriveDataSync } = require('./lib/driveDataStore');
-const StorageService = require('./lib/StorageService');
+const StorageService = require('@stock/cloud-utils').StorageService;
 const ist = require('./lib/ist');
 
 // ── Paths & config ────────────────────────────────────────────────────────────
@@ -342,11 +342,33 @@ async function fetchSectorContext(target, client = stockscans) {
 
 // ── Notes / category mapping ──────────────────────────────────────────────────
 function latestNotesFile() {
+  // Preferred: entities-backed store (StorageService.saveEntity), if it has been populated.
   const db = new NotesDb(NOTES_DIR);
-  const latest = db.getLatestFile();
-  if (latest) return [path.basename(latest), JSON.parse(fs.readFileSync(latest, 'utf8'))];
+  const entitiesRel = db.getLatestFile();
+  const notes = StorageService.readJson(entitiesRel);
+  if (notes) return [path.basename(entitiesRel), notes];
+
+  // Fallback: newest legacy snapshot in NOTES_DIR (notes_DD-MM-YY_HH-MM-SS_AM/PM.json),
+  // written by watchlistInsights.js before it was migrated to the entities store.
+  if (fs.existsSync(NOTES_DIR)) {
+    const snapshots = fs
+      .readdirSync(NOTES_DIR)
+      .filter((f) => /^notes_.*\.json$/.test(f))
+      .map((f) => {
+        const full = path.join(NOTES_DIR, f);
+        return { f, full, mtime: fs.statSync(full).mtimeMs };
+      })
+      .sort((a, b) => b.mtime - a.mtime);
+    if (snapshots.length) {
+      const { f, full } = snapshots[0];
+      return [f, JSON.parse(fs.readFileSync(full, 'utf8'))];
+    }
+  }
+
+  // Last resort: legacy flat file at the data root.
   const flat = path.join(DATA_DIR, 'company_notes.json');
   if (fs.existsSync(flat)) return [path.basename(flat), JSON.parse(fs.readFileSync(flat, 'utf8'))];
+
   return ['', { companies: {} }];
 }
 
@@ -934,11 +956,11 @@ async function runCli(argv) {
 
 module.exports = {
   toSymbol, ddmmyyyy, parseDelivery, recentTradingDays, structuralSignal, verdict,
-  sectorAttribution, median, categoryFromTags, categoryFromNote, insightsFromNotes,
-  insightTargetDate, makeProposals, titleInfoDensity, hasSpecifics, qualityReviewInsights,
-  qualityReviewCategorisation, qualityReviewIgnored, buildEmail, renderQualitySection,
-  updateLedger, loadLedger, runValidation, runCli,
-  MOVE_MIN, TURNOVER_FLOOR_L,
+  sectorAttribution, median, categoryFromTags,  
+   makeProposals, titleInfoDensity,  qualityReviewInsights,
+  qualityReviewCategorisation,   
+     runCli,
+
 };
 
 if (require.main === module) {

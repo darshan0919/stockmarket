@@ -2,7 +2,7 @@ const request = require('supertest');
 const express = require('express');
 const stockRoutes = require('../src/features/stock/stocksRoutes');
 const Stock = require('../src/features/stock/Stock');
-const FinancialStatement = require('../src/features/stock/FinancialStatement');
+
 const QuarterlyResult = require('../src/features/results/QuarterlyResult');
 const xbrlParser = require('../src/core/utils/xbrlParser');
 const axios = require('axios');
@@ -15,7 +15,7 @@ const { fetchAndStoreQuarterlyResults } = require('../scripts/balanceSheetDataFe
 
 // Mock the database models
 jest.mock('../src/features/stock/Stock');
-jest.mock('../src/features/stock/FinancialStatement');
+
 jest.mock('../src/features/results/QuarterlyResult');
 jest.mock('../src/core/utils/xbrlParser');
 jest.mock('axios');
@@ -309,71 +309,5 @@ describe('Stock Controller - Quarterly Results', () => {
     });
   });
 
-  describe('GET /api/stocks/:symbol/financials', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
 
-    it('should return financial statements for a valid stock', async () => {
-      const mockStock = {
-        symbol: 'RELIANCE',
-        name: 'Reliance Industries Ltd',
-      };
-
-      const mockFinancials = [
-        {
-          symbol: 'RELIANCE',
-          period: 'FY2023',
-          type: 'annual',
-          revenue: 800000,
-          net_profit: 70000,
-          total_assets: 1500000,
-          total_liabilities: 800000,
-        },
-      ];
-
-      Stock.findOne = jest.fn().mockReturnValue({
-        lean: jest.fn().mockResolvedValue(mockStock),
-      });
-
-      FinancialStatement.find = jest.fn().mockReturnValue({
-        sort: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue(mockFinancials),
-      });
-
-      const response = await request(app).get('/api/stocks/RELIANCE/financials').expect(200);
-
-      expect(response.body).toHaveProperty('success', true);
-      expect(response.body.data).toHaveProperty('p_and_l');
-      expect(response.body.data).toHaveProperty('balance_sheet');
-    });
-
-    it('should return empty financials if stock not found', async () => {
-      Stock.findOne = jest.fn().mockReturnValue({
-        lean: jest.fn().mockResolvedValue(null),
-      });
-
-      const response = await request(app).get('/api/stocks/NONEXISTENT/financials').expect(200);
-
-      expect(response.body).toHaveProperty('success', true);
-      expect(response.body.data).toHaveProperty('p_and_l', []);
-      expect(response.body.data).toHaveProperty('balance_sheet', []);
-      expect(response.body.data).toHaveProperty(
-        'message',
-        'Historical financial data not available in database'
-      );
-    });
-
-    it('should handle database errors gracefully', async () => {
-      Stock.findOne = jest.fn().mockReturnValue({
-        lean: jest.fn().mockRejectedValue(new Error('Database error')),
-      });
-
-      const response = await request(app).get('/api/stocks/ERROR/financials').expect(500);
-
-      expect(response.body).toHaveProperty('success', false);
-      expect(response.body).toHaveProperty('error');
-    });
-  });
 });

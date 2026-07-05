@@ -992,21 +992,21 @@ async function fetchCompanyAnnouncements(params = {}) {
 }
 
 module.exports = {
-  ANNOUNCEMENT_TYPES,
-  DEFAULT_ANNOUNCEMENT_SCAN,
-  TRENDING_KEYWORDS,
-  getQuarterDates,
+
+
+
+
   currentQuarterDate,
   normalizeScan,
-  normalizeAnnouncementScanParams,
-  stripLocalScanFields,
-  normalizeKeywordList,
-  shouldIgnoreAnnouncement,
-  filterIgnoredAnnouncements,
-  announcementMatchesKeyword,
-  buildStatisticsCompanyLookup,
-  mapAnnouncement,
-  mapAnnouncementScanResponse,
+
+
+
+
+
+
+
+
+
   runAnnouncementScan,
   fetchAnnouncementScanMetadata,
   searchCompanies,

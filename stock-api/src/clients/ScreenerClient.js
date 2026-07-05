@@ -17,10 +17,13 @@ const BASE_URL = 'https://www.screener.in';
  * response is raw HTML; parsing lives in analyzers/screenerInsights.js.
  */
 class ScreenerClient {
-  constructor({ http, auth } = {}) {
+  constructor({ http, auth, minIntervalMs = 900, maxRetries = 3 } = {}) {
     this.http = http || new HttpClient({ timeout: 30000 });
     this.auth = auth || new ScreenerAuth();
     this.baseUrl = BASE_URL;
+    this._minIntervalMs = minIntervalMs; // spacing between requests to avoid 429
+    this._maxRetries = maxRetries;
+    this._lastReqAt = 0;
   }
 
   /**
@@ -42,14 +45,38 @@ class ScreenerClient {
   async companyPage(symbol, { consolidated = true } = {}) {
     const slug = this._slug(symbol);
     const url = `${BASE_URL}/company/${encodeURIComponent(slug)}/${consolidated ? 'consolidated/' : ''}`;
-    const { data, status } = await this.http.get(url, {
-      headers: this.auth.headers({ referer: `${BASE_URL}/` }),
-      // don't throw on 4xx/redirect — the parser inspects the body/status to
-      // distinguish "company not found" from "session expired".
-      validateStatus: () => true,
-    });
-    return { status: status || 0, html: typeof data === 'string' ? data : String(data), url };
+
+    // Screener rate-limits bursts (HTTP 429). When scanning a whole universe we
+    // hit it in a tight loop, so: keep a minimum gap between requests, and retry
+    // a 429 with exponential backoff honouring Retry-After. This keeps the
+    // insights cross-check usable across 20-30 names in one run.
+    await this._throttle();
+    let attempt = 0;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const { data, status, headers } = await this.http.get(url, {
+        headers: this.auth.headers({ referer: `${BASE_URL}/` }),
+        validateStatus: () => true,
+      });
+      if (status === 429 && attempt < this._maxRetries) {
+        const retryAfter = Number(headers && headers['retry-after']);
+        const waitMs = Number.isFinite(retryAfter) ? retryAfter * 1000 : (2 ** attempt) * 1500;
+        attempt += 1;
+        await ScreenerClient._sleep(waitMs);
+        continue;
+      }
+      return { status: status || 0, html: typeof data === 'string' ? data : String(data), url };
+    }
   }
+
+  async _throttle() {
+    const now = Date.now();
+    const wait = this._lastReqAt + this._minIntervalMs - now;
+    if (wait > 0) await ScreenerClient._sleep(wait);
+    this._lastReqAt = Date.now();
+  }
+
+  static _sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
   /**
    * Company page with a consolidated→standalone fallback (some companies have no

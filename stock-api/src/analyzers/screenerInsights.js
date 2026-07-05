@@ -69,9 +69,13 @@ function detectAuthState({ status, html } = {}) {
  * and the sibling <div class="cons">…</div>.
  */
 function parseProsCons(html) {
+  // Returns { pros, cons, prosFound, consFound } — `*Found` distinguishes a
+  // legitimately-EMPTY Screener list (container present, no bullets — Screener has
+  // no machine-generated insight for this name/view) from a MISSING container
+  // (markup drift). Only the latter warrants a "markup changed" warning.
   const grab = (cls) => {
     const block = new RegExp(`<div[^>]*class="[^"]*\\b${cls}\\b[^"]*"[^>]*>([\\s\\S]*?)</div>`, 'i').exec(html);
-    if (!block) return [];
+    if (!block) return { items: [], found: false };
     const items = [];
     const liRe = /<li[^>]*>([\s\S]*?)<\/li>/gi;
     let m;
@@ -79,9 +83,11 @@ function parseProsCons(html) {
       const t = stripTags(m[1]);
       if (t) items.push(t);
     }
-    return items;
+    return { items, found: true };
   };
-  return { pros: grab('pros'), cons: grab('cons') };
+  const p = grab('pros');
+  const c = grab('cons');
+  return { pros: p.items, cons: c.items, prosFound: p.found, consFound: c.found };
 }
 
 /**
@@ -164,7 +170,7 @@ function parseScreenerInsights(resp) {
   }
 
   const html = resp.html;
-  const { pros, cons } = parseProsCons(html);
+  const { pros, cons, prosFound, consFound } = parseProsCons(html);
   const ratios = parseTopRatios(html);
   const insightTags = tagInsights({ pros, cons });
 
@@ -182,10 +188,19 @@ function parseScreenerInsights(resp) {
   };
 
   const warnings = [];
-  if (!pros.length && !cons.length) warnings.push('No Pros/Cons parsed — Screener markup may have changed.');
+  // Only warn when the containers are ABSENT (markup drift). Present-but-empty is
+  // a valid state — Screener simply has no machine-generated insight for this name.
+  if (!prosFound && !consFound) {
+    warnings.push('Pros/Cons section not found — Screener markup may have changed.');
+  }
+  const noInsights = prosFound && consFound && !pros.length && !cons.length;
   if (!Object.keys(ratios).length) warnings.push('No top-ratios parsed — Screener markup may have changed.');
 
-  return { authExpired: false, url: resp && resp.url, pros, cons, insightTags, ratios, keyMetrics, warnings };
+  return {
+    authExpired: false, url: resp && resp.url,
+    pros, cons, prosFound, consFound, noInsights,
+    insightTags, ratios, keyMetrics, warnings,
+  };
 }
 
 module.exports = {

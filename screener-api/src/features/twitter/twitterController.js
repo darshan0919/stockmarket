@@ -163,7 +163,7 @@ async function fetchTweetsForDownload(req, res, next) {
 }
 
 module.exports = {
-  normalizeHandle,
+
   fetchTweetsForDownload,
-  twitterErrorMessage,
+
 };

@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "description": "Stockmarket monorepo \u2014 Claude skills registry",
+  "description": "Stockmarket monorepo — Claude skills registry",
   "base_url": "https://raw.githubusercontent.com/darshan0919/stockmarket/main",
   "_note": "Source of truth for generating registry.json and invoker tables.",
   "shared": [
@@ -38,7 +38,7 @@
     "concall-analysis": {
       "skill_md": "skills/concall-analysis/SKILL.md",
       "entry": "stock-api/bin/concall-analysis.js",
-      "mode": "clone",
+      "mode": "bundle",
       "modules": [
         "stock-api/src/fetchers/documentsFetcher.js",
         "stock-api/src/fetchers/announcementsFetcher.js",
@@ -68,7 +68,7 @@
     "forensic-accounting": {
       "skill_md": "skills/forensic-accounting/SKILL.md",
       "entry": "stock-api/bin/forensic-accounting.js",
-      "mode": "clone",
+      "mode": "bundle",
       "modules": [
         "stock-api/src/fetchers/documentsFetcher.js",
         "stock-api/src/generators/generateForensicPdf.js"
@@ -125,7 +125,7 @@
     "growth-triggers-1pager": {
       "skill_md": "skills/growth-triggers-1pager/SKILL.md",
       "entry": "stock-api/bin/growth-triggers-1pager.js",
-      "mode": "clone",
+      "mode": "bundle",
       "modules": [
         "stock-api/src/fetchers/documentsFetcher.js",
         "stock-api/src/generators/generateGrowthTriggersPdf.js"
@@ -176,7 +176,7 @@
     "peer-comparison": {
       "skill_md": "skills/peer-comparison/SKILL.md",
       "entry": "stock-api/bin/peer-comparison.js",
-      "mode": "clone",
+      "mode": "bundle",
       "modules": [
         "stock-api/src/fetchers/documentsFetcher.js",
         "stock-api/src/generators/generatePeerPdf.js"
@@ -230,7 +230,7 @@
     "sector-research-deepdive": {
       "skill_md": "skills/sector-research-deepdive/SKILL.md",
       "entry": "stock-api/bin/sector-research-deepdive.js",
-      "mode": "clone",
+      "mode": "bundle",
       "modules": [
         "stock-api/src/generators/generateSectorReport.js"
       ],
@@ -255,7 +255,7 @@
     "drhp-ipo-analysis": {
       "skill_md": "skills/drhp-ipo-analysis/SKILL.md",
       "entry": "stock-api/bin/drhp-ipo-analysis.js",
-      "mode": "clone",
+      "mode": "bundle",
       "modules": [
         "stock-api/src/generators/generateDrhpPdf.js"
       ],
@@ -341,21 +341,12 @@
       "mode": "bundle",
       "modules": [
         "stock-api/src/fetchers/documentsFetcher.js",
-        "stock-api/src/analyzers/runScan.js",
-        "stock-api/src/analyzers/postEventReturns.js",
-        "stock-api/src/analyzers/screenerInsights.js",
-        "stock-api/src/clients/ScreenerClient.js",
-        "stock-api/src/auth/screenerAuth.js"
+        "stock-api/src/analyzers/runScan.js"
       ],
       "references": [
         "skills/pre-pead-scanner/references/workflow.md",
-        "skills/pre-pead-scanner/references/liquidity_gate.md",
         "skills/pre-pead-scanner/references/guidance_extraction.md",
         "skills/pre-pead-scanner/references/forward_estimation.md",
-        "skills/pre-pead-scanner/references/surprise_scoring.md",
-        "skills/pre-pead-scanner/references/valuation_and_expectations.md",
-        "skills/pre-pead-scanner/references/post_event_returns.md",
-        "skills/pre-pead-scanner/references/screener_insights.md",
         "skills/pre-pead-scanner/references/scan_api.md"
       ],
       "assets": [
@@ -369,12 +360,7 @@
         "estimate next quarter",
         "guidance ranking",
         "pre-PEAD",
-        "results season scanner",
-        "predict earnings surprise",
-        "earnings surprise",
-        "who beats consensus",
-        "beat or miss",
-        "pre results surprise"
+        "results season scanner"
       ]
     },
     "watchlist-catalyst-scanner": {
@@ -652,6 +638,20 @@
         "manage skills"
       ]
     },
+    "render-pdf": {
+      "skill_md": "skills/render-pdf/SKILL.md",
+      "entry": "stock-api/bin/render-pdf.js",
+      "mode": "clone",
+      "modules": [
+        "stock-api/src/utils/pdfRenderer.js"
+      ],
+      "references": [],
+      "shared": [],
+      "aliases": [
+        "render pdf",
+        "html to pdf"
+      ]
+    },
     "investment-thesis-engine": {
       "skill_md": "skills/investment-thesis-engine/SKILL.md",
       "entry": null,
@@ -749,16 +749,18 @@
         "institutional accumulation"
       ]
     },
-    "token-usage-analyzer": {
-      "skill_md": "skills/token-usage-analyzer/SKILL.md",
+    "dead-code-scanner": {
+      "skill_md": "skills/dead-code-scanner/SKILL.md",
       "entry": null,
       "references": [],
       "shared": [],
       "aliases": [
-        "token usage",
-        "token analyzer",
-        "cost analysis",
-        "token efficiency"
+        "dead code",
+        "dead code scanner",
+        "find unused files",
+        "find unused exports",
+        "find dead code",
+        "clean up unused code"
       ]
     }
   }

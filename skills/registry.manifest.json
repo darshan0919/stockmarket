@@ -748,6 +748,20 @@
         "entry stop loss",
         "institutional accumulation"
       ]
+    },
+    "dead-code-scanner": {
+      "skill_md": "skills/dead-code-scanner/SKILL.md",
+      "entry": null,
+      "references": [],
+      "shared": [],
+      "aliases": [
+        "dead code",
+        "dead code scanner",
+        "find unused files",
+        "find unused exports",
+        "find dead code",
+        "clean up unused code"
+      ]
     }
   }
 }

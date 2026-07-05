@@ -1,7 +1,6 @@
 const Watchlist = require('./Watchlist');
 const Stock = require('../stock/Stock');
-const Fundamental = require('../stock/Fundamental');
-const PriceHistory = require('../stock/PriceHistory');
+const { getQuoteEquity } = require('../../core/api/nseIndiaApi');
 
 /**
  * Get all watchlist items
@@ -32,23 +31,21 @@ const getWatchlist = async (req, res, next) => {
         const stock = stockMap[item.symbol];
         if (!stock) return null;
 
-        const fundamental = await Fundamental.findOne({ stock_id: stock._id })
-          .sort({ date: -1 })
-          .lean();
+        // Fetch live quote from NSE instead of local DB history
+        let nseData = null;
+        try {
+          nseData = await getQuoteEquity(stock.symbol);
+        } catch (err) {
+          console.warn(`Failed to fetch live quote for ${stock.symbol}:`, err.message);
+        }
 
-        const latestPrice = await PriceHistory.findOne({ stock_id: stock._id })
-          .sort({ date: -1 })
-          .lean();
+        const priceInfo = nseData?.priceInfo || {};
+        const meta = nseData?.metadata || {};
 
-        const prevPrice = await PriceHistory.findOne({ stock_id: stock._id })
-          .sort({ date: -1 })
-          .skip(1)
-          .lean();
-
-        const price = latestPrice ? latestPrice.close : null;
-        const change = latestPrice && prevPrice ? latestPrice.close - prevPrice.close : 0;
-        const changePercent =
-          prevPrice && prevPrice.close !== 0 ? (change / prevPrice.close) * 100 : 0;
+        const price = priceInfo.lastPrice || null;
+        const change = priceInfo.change || 0;
+        const changePercent = priceInfo.pChange || 0;
+        const peRatio = meta.pdSymbolPe || null;
 
         return {
           symbol: stock.symbol,
@@ -57,8 +54,8 @@ const getWatchlist = async (req, res, next) => {
           price: price,
           change: change,
           change_percent: changePercent,
-          pe_ratio: fundamental ? fundamental.pe_ratio : null,
-          roe: fundamental ? fundamental.roe : null,
+          pe_ratio: peRatio,
+          roe: stock.roe || null,
           added_date: item.added_date,
         };
       })

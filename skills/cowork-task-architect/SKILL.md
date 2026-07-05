@@ -82,17 +82,22 @@ if __name__ == "__main__":
 - Must handle errors gracefully (try/except with meaningful messages)
 - Should be fast — if slow, add caching or pagination logic
 
-### Step 3 — Create a scheduled cowork task
+### Step 3 — Create the task in BOTH places: the repo AND the live Cowork scheduler
 
-Create a scheduled cowork task that only handles calling the respective apis/scripts/skills.
+Every task created or modified by this skill must be written to **two places, every time, in the same turn** — never just one:
 
-**Critical Rules for the Scheduled Task:**
-1. It doesn't have any logic of its own. 
+1. **The repo (`jobs/tasks/`)** — the platform-agnostic source of truth.
+2. **The live Cowork scheduler** — via the `create_scheduled_task` / `update_scheduled_task` tools, so it actually runs.
+
+These two must never drift. Do not skip step (1) just because step (2) already makes the task run — the repo copy is what lets the task be reviewed, diffed, versioned, and synced to other platforms (Codex, Antigravity, etc.) later.
+
+**Critical Rules for the Task Prompt (applies to both copies — they must be byte-identical in content):**
+1. It doesn't have any logic of its own.
 2. Its job is ONLY to orchestrate the execution of the respective apis/scripts/skills.
 3. It must refer to the **exact absolute paths** of the respective apis/scripts/skills for invoking them.
 4. The task prompt must always include a fallback github file path for each script/skill, in case the local file path is missing or inaccessible.
 
-The task definition must follow this template:
+The task prompt body must follow this template:
 
 ```
 ## Context
@@ -110,6 +115,24 @@ N. (FINAL STEP ALWAYS) Execute script: /Users/darshan.patel/code/personal/stockm
 Do NOT run any logic, calculations, data fetching, or file modifications directly. Your only job is to orchestrate these existing scripts/skills exactly as specified.
 ```
 
+#### 3a — Write the repo copy (`jobs/tasks/`)
+
+For a **new** task `<taskId>`:
+- Write the prompt body above (no YAML frontmatter, no Cowork-specific syntax) to `jobs/tasks/<taskId>/prompt.md`.
+- Add an entry to `jobs/tasks/manifest.json` with `taskId`, `description`, `cronExpression` (or note if it's `fireAt`/one-time/ad-hoc), a human-readable `schedule` string, and `enabled: true`.
+
+For an **updated** task, overwrite `jobs/tasks/<taskId>/prompt.md` and update its `manifest.json` entry in place (don't leave the old description/cron stale if it changed).
+
+#### 3b — Create/update the live Cowork task
+
+Call the tool directly — do not just instruct the user to paste something manually:
+- New task → `mcp__scheduled-tasks__create_scheduled_task` with `taskId`, `prompt` (same body as 3a), `description`, and `cronExpression` or `fireAt`.
+- Existing task → `mcp__scheduled-tasks__update_scheduled_task` with the same `taskId` and whichever fields changed.
+
+#### 3c — Confirm the two are in sync
+
+After both writes, mention that `jobs/tasks/` and Cowork are in sync for this task, and that the user can run `yarn tasks:diff` at any point to confirm no drift (e.g. if a task was later edited only in the Cowork UI without going through this skill). If drift is ever found, `yarn tasks:pull` brings the repo back in line with what Cowork is actually running.
+
 ---
 
 ## Output to Deliver to User
@@ -120,7 +143,7 @@ Always deliver the following:
 Create the necessary scripts/skills as files in the appropriate directories of the `stockmarket` project. Provide the user with the absolute paths to the newly created files.
 
 ### Artifact 2: Task Prompt (in a code block)
-Lightweight prompt text ready to paste into the Cowork task scheduler, orchestrating the scripts/skills with absolute paths.
+Lightweight prompt text, orchestrating the scripts/skills with absolute paths. This is not just a snippet to hand the user to paste — it must already have been (a) saved to `jobs/tasks/<taskId>/prompt.md` in the repo and (b) submitted via `create_scheduled_task`/`update_scheduled_task` per Step 3.
 
 ### Artifact 3: Quickstart comment (optional)
 If the task needs env vars, API keys, or dependencies, list them in a `# SETUP` block at the top of the relevant script.

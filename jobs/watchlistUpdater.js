@@ -16,7 +16,7 @@
  */
 
 const { stockscans } = require('@stock/api');
-const { sendHtmlEmail } = require('./lib/emailService');
+const { sendHtmlEmail } = require('@stock/cloud-utils');
 const { loadEnv, hasFlag, argValue } = require('./lib/env');
 
 // ── Configuration (identical to the Python job) ───────────────────────────────
@@ -266,13 +266,13 @@ async function main({ client = stockscans, dryRun = false, log = console.log } =
 module.exports = {
   main,
   fetchAllCompanies,
-  fetchWatchlistCompanyIds,
+
   computeDiff,
   companyIdsFromTable,
   nowIst,
   SCAN_ID,
-  WATCHLIST_ID,
-  RADAR_WATCHLIST_ID,
+
+
   PAGE_SIZE,
 };
 

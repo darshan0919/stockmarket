@@ -42,9 +42,6 @@ const quarterlyResultSchema = new mongoose.Schema(
     tax_expense: Number,
     net_profit: Number,
 
-    // Ratios
-    opm_percent: Number, // Operating Profit Margin %
-    tax_percent: Number,
 
     // Per share
     eps_basic: Number,
@@ -95,13 +92,6 @@ const quarterlyResultSchema = new mongoose.Schema(
     cash_from_financing: Number,
     net_cash_flow: Number,
 
-    // Growth (calculated)
-    yoy_revenue_growth: Number,
-    yoy_profit_growth: Number,
-    yoy_eps_growth: Number,
-    qoq_revenue_growth: Number,
-    qoq_profit_growth: Number,
-    qoq_eps_growth: Number,
 
     // Source tracking
     xbrl_url: String,

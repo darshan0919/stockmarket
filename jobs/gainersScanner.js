@@ -26,8 +26,8 @@ const path = require('path');
 const { stockscans, nse, bse } = require('@stock/api');
 const { loadEnv, argValue } = require('./lib/env');
 const { withDriveDataSync } = require('./lib/driveDataStore');
-const StorageService = require('./lib/StorageService');
-const { sendHtmlEmail } = require('./lib/emailService');
+const StorageService = require('@stock/cloud-utils').StorageService;
+const { sendHtmlEmail } = require('@stock/cloud-utils');
 
 const OUTPUT_DIR = process.env.GAINERS_OUTPUT_DIR || path.join(process.cwd(), 'daily_gainers');
 const SCRIP_CACHE_FILE =
@@ -651,14 +651,14 @@ async function main({
 module.exports = {
   main,
   // pure
-  roundTo, quarterDate, lastTradingDay, normaliseGainer, filterNoise, sectorBreadth,
-  priceActionSignals, applyQualityFilters, deriveNseDelivery, deriveBseDelivery, mapLimit,
-  parseCreatedMs, announcementCutoffMs, hasMaterialAnnouncement,
+   quarterDate, lastTradingDay,  filterNoise, sectorBreadth,
+   applyQualityFilters, deriveNseDelivery, deriveBseDelivery, 
+
   // api-bound
-  fetchTopGainers, fetchRetailHoldings, fetchDeliveryPerSymbol, fetchPrices,
-  fetchAnnouncementsBatch, fetchIndustryScan,
+
+  fetchAnnouncementsBatch, 
   // constants
-  QUALITY_FILTERS, NOISE_KEYWORDS, MATERIAL_KEYWORDS, PRICE_HISTORY_CANDLES,
+
 };
 
 if (require.main === module) {

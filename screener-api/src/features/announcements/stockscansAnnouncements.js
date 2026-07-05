@@ -189,8 +189,8 @@ module.exports = {
   DEFAULT_ANNOUNCEMENT_SEARCH,
   MIN_SEARCH_LENGTH,
   STOCKSCANS_ASSETS_BASE,
-  mapStockScansAnnouncement,
+
   searchCompanyAnnouncements,
-  stripHtml,
+
   ymdToNseDisplay,
 };

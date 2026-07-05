@@ -235,6 +235,6 @@ const runScan = async (scan) => {
 module.exports = {
   fetchSavedScans,
   runScan,
-  parseTableBody,
-  headerToLabel,
+
+
 };

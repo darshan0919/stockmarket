@@ -79,7 +79,7 @@ async function saveIgnoreKeywords({
 }
 
 module.exports = {
-  STORE_PATH,
+
   readIgnoreStore,
   saveIgnoreKeywords,
   normalizeKeywordArray,

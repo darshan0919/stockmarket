@@ -559,6 +559,20 @@
       ],
       "entry": null,
       "modules": []
+    },
+    {
+      "name": "dead-code-scanner",
+      "description": "",
+      "aliases": [
+        "dead code",
+        "dead code scanner",
+        "find unused files",
+        "find unused exports",
+        "find dead code",
+        "clean up unused code"
+      ],
+      "entry": null,
+      "modules": []
     }
   ],
   "classes": [
@@ -571,6 +585,17 @@
       "name": "event",
       "file": "stock-api/src/analyzers/catalystRules.js",
       "methods": []
+    },
+    {
+      "name": "ScreenerAuth",
+      "file": "stock-api/src/auth/screenerAuth.js",
+      "methods": [
+        "_envFile",
+        "_resolve",
+        "cookieHeader",
+        "headers",
+        "isConfigured"
+      ]
     },
     {
       "name": "StockscansAuth",
@@ -615,6 +640,17 @@
       ]
     },
     {
+      "name": "ScreenerClient",
+      "file": "stock-api/src/clients/ScreenerClient.js",
+      "methods": [
+        "_slug",
+        "companyPage",
+        "_throttle",
+        "companyPageWithFallback",
+        "validateAuth"
+      ]
+    },
+    {
       "name": "StockscansClient",
       "file": "stock-api/src/clients/StockscansClient.js",
       "methods": [
@@ -642,7 +678,8 @@
         "savedScanPageHtml",
         "savedScans",
         "s3PdfUrl",
-        "fetchPdf"
+        "fetchPdf",
+        "validateAuth"
       ]
     },
     {
@@ -821,6 +858,51 @@
       "description": "Exported from index.js"
     },
     {
+      "name": "parseScreenerInsights",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "detectAuthState",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "parseProsCons",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "parseTopRatios",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "tagInsights",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "avgTradedValueCr",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "toCandles",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "fetchPriceMetrics",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "normalizePvd",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
       "name": "scanCatalysts",
       "file": "stock-api/src/analyzers/index.js",
       "description": "Exported from index.js"
@@ -861,6 +943,11 @@
       "description": "Exported from postEventReturns.js"
     },
     {
+      "name": "toIsoDate",
+      "file": "stock-api/src/analyzers/priceMetrics.js",
+      "description": "Exported from priceMetrics.js"
+    },
+    {
       "name": "parseScanId",
       "file": "stock-api/src/analyzers/runScan.js",
       "description": "Exported from runScan.js"
@@ -899,6 +986,16 @@
       "name": "fetchAnnouncementsBatch",
       "file": "stock-api/src/analyzers/scanCatalysts.js",
       "description": "Exported from scanCatalysts.js"
+    },
+    {
+      "name": "pickRatio",
+      "file": "stock-api/src/analyzers/screenerInsights.js",
+      "description": "Exported from screenerInsights.js"
+    },
+    {
+      "name": "stripTags",
+      "file": "stock-api/src/analyzers/screenerInsights.js",
+      "description": "Exported from screenerInsights.js"
     },
     {
       "name": "fetchAndExtract",
@@ -1057,6 +1154,11 @@
     },
     {
       "name": "bse",
+      "file": "stock-api/src/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "screener",
       "file": "stock-api/src/index.js",
       "description": "Exported from index.js"
     },

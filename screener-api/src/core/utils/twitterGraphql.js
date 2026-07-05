@@ -479,16 +479,16 @@ async function fetchAllUserTweetsGraphql(userId, startDate, endDate, auth, refer
 }
 
 module.exports = {
-  DEFAULT_BEARER,
+
   getTwitterGraphqlAuthFromEnv,
-  buildCookieHeader,
+
   graphqlErrorMessage,
-  graphqlGet,
+
   fetchUserByScreenName,
-  parseUserByScreenName,
-  extractTweetFromEntry,
-  normalizeGraphqlTweet,
-  parseTimelineInstructions,
-  fetchUserTweetsPage,
+
+
+
+
+
   fetchAllUserTweetsGraphql,
 };

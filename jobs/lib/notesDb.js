@@ -2,7 +2,7 @@
 
 const crypto = require('crypto');
 const { nowIstIso } = require('./ist');
-const StorageService = require('./StorageService');
+const StorageService = require('@stock/cloud-utils').StorageService;
 
 const emptyNotes = () => ({
   meta: { version: '1.0', lastRun: null, totalCompanies: 0, totalNotes: 0 },
@@ -93,4 +93,4 @@ class NotesDb {
   }
 }
 
-module.exports = { NotesDb, emptyNotes };
+module.exports = { NotesDb, };

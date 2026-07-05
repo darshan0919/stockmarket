@@ -59,6 +59,6 @@ async function findAvailablePort(preferredPort, maxAttempts = 10) {
 }
 
 module.exports = {
-  isPortAvailable,
+
   findAvailablePort,
 };

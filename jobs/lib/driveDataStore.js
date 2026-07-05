@@ -5,7 +5,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { loadEnv, argValue } = require('./env');
-const driveApi = require('./googleDriveApi');
+const driveApi = require('@stock/cloud-utils');
 
 const SCHEMA_VERSION = 'cowork-drive-store.v1';
 const DEFAULT_OWNER_EMAIL = 'djplearner@gmail.com';
@@ -78,8 +78,6 @@ function sha256(filePath) {
 function parseIsoDayFromLocalRel(rel) {
   let m = rel.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (m) return `${m[1]}-${m[2]}-${m[3]}`;
-  m = rel.match(/sec_bhavdata_full_(\d{2})(\d{2})(20\d{2})/);
-  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
   m = rel.match(/(\d{4})(\d{2})(\d{2})/);
   if (m) return `${m[1]}-${m[2]}-${m[3]}`;
   m = rel.match(/_(\d{2})(\d{2})(20\d{2})/);
@@ -196,18 +194,6 @@ function classifyLocalDocument(localRel) {
     };
   }
 
-  if (/^delivery_cache\/sec_bhavdata_full_\d{8}\.csv$/.test(rel)) {
-    return {
-      kind: 'source-cache',
-      category: 'nse-delivery-bhavcopy',
-      localRel: rel,
-      driveRel: posixJoin('market-data', 'nse-delivery', year, month, name),
-      date: isoDay,
-      retention: 'cache-keep',
-      producer: 'insightValidator',
-    };
-  }
-
   if (rel === 'delivery_cache/bse_scrip_codes.json') {
     return {
       kind: 'reference-cache',
@@ -312,9 +298,6 @@ function classifyDriveDocument(driveRel) {
 
   m = rel.match(/^gainers\/(\d{4})\/(\d{2})\/(\d{2})\/insights\.json$/);
   if (m) return classifyLocalDocument(`daily_gainers/${m[1]}-${m[2]}-${m[3]}_insights.json`);
-
-  m = rel.match(/^market-data\/nse-delivery\/\d{4}\/\d{2}\/(sec_bhavdata_full_\d{8}\.csv)$/);
-  if (m) return classifyLocalDocument(`delivery_cache/${m[1]}`);
 
   if (rel === 'reference/bse_scrip_codes.json') {
     return classifyLocalDocument('delivery_cache/bse_scrip_codes.json');
@@ -440,7 +423,6 @@ function writeMetadata(driveRoot, dataRoot) {
         folders: {
           'notes/snapshots/YYYY/MM': 'watchlist insight snapshots',
           'gainers/YYYY/MM/DD': 'daily gainers raw and classified outputs',
-          'market-data/nse-delivery/YYYY/MM': 'NSE delivery bhavcopy cache',
           'validation/*': 'insight validation ledger, logs, sector context, proposals',
           reference: 'small refreshable reference caches',
           legacy: 'pre-v1 compatibility files',

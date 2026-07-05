@@ -63,6 +63,6 @@ async function fetchAnnouncementPdfBuffers(pdfs) {
 }
 
 module.exports = {
-  buildPdfFilename,
+
   fetchAnnouncementPdfBuffers,
 };

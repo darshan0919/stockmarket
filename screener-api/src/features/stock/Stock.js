@@ -19,10 +19,7 @@ const stockSchema = new mongoose.Schema({
     type: String,
     default: 'Unknown',
   },
-  market_cap: {
-    type: Number,
-    default: 0,
-  },
+
   listing_date: {
     type: Date,
   },
@@ -42,26 +39,7 @@ const stockSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  pb_ratio: {
-    type: Number,
-    default: 0,
-  },
-  roe: {
-    type: Number,
-    default: 0,
-  },
-  opm: {
-    type: Number,
-    default: 0,
-  },
-  eps: {
-    type: Number,
-    default: 0,
-  },
-  npm: {
-    type: Number,
-    default: 0,
-  },
+
 });
 
 stockSchema.index({ symbol: 1 });

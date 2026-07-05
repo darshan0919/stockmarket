@@ -151,6 +151,6 @@ module.exports = {
   getExpectedWorkspaceFiles,
   ensureLayout,
   countPdfsInDir,
-  statIfExists,
+
   writePdfBufferUnique,
 };

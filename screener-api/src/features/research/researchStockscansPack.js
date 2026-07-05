@@ -250,6 +250,6 @@ async function runStockscansPack({ symbol, timeSpan }) {
 
 module.exports = {
   runStockscansPack,
-  CATEGORY_PACK,
-  TIME_SPANS,
+
+
 };

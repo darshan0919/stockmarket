@@ -6,7 +6,8 @@
     "screener-api",
     "screener-web",
     "stock-api",
-    "jobs"
+    "jobs",
+    "cloud-utils"
   ],
   "resolutions": {
     "react": "18.3.1",
@@ -30,14 +31,14 @@
     "cowork:data:manifest": "yarn workspace @stock/jobs data:manifest",
     "cowork:data:auth": "yarn workspace @stock/jobs data:auth",
     "cowork:data:offload": "yarn workspace @stock/jobs data:offload",
-    "cowork:data:stockscans-ppts": "node scripts/fetchStockscansPpts.js && node scripts/extractPptText.js",
+    "cowork:data:stockscans-ppts": "node scripts/data/fetchStockscansPpts.js && node scripts/data/extractPptText.js",
     "cowork:jobs:ca-digest": "yarn workspace @stock/jobs ca-digest",
     "tasks:sync": "node jobs/scripts/sync-tasks.js",
     "tasks:push": "node jobs/scripts/sync-tasks.js --push",
     "tasks:pull": "node jobs/scripts/sync-tasks.js --pull",
     "tasks:diff": "node jobs/scripts/sync-tasks.js --push --dry-run",
     "tasks:platforms": "node jobs/scripts/sync-tasks.js --list-platforms",
-    "registries:generate": "node scripts/generate-registries.js"
+    "registries:generate": "node scripts/build/generate-registries.js"
   },
   "devDependencies": {
     "@duckdb/node-api": "^1.5.4-r.1",

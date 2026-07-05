@@ -127,15 +127,15 @@ All scripts are resolved according to their mode (bundle or clone).
 | Entrypoint / Mode | Cached / Execution path |
 |---|---|
 | `dist-skills/stock-documents-fetcher.cjs` (bundle) | `/tmp/stock-documents-fetcher.cjs` |
-| `stock-api/bin/concall-analysis.js` (clone) | `/tmp/sm-clone/stock-api/bin/concall-analysis.js` |
-| `stock-api/bin/forensic-accounting.js` (clone) | `/tmp/sm-clone/stock-api/bin/forensic-accounting.js` |
+| `dist-skills/concall-analysis.cjs` (bundle) | `/tmp/concall-analysis.cjs` |
+| `dist-skills/forensic-accounting.cjs` (bundle) | `/tmp/forensic-accounting.cjs` |
 | `stock-api/bin/equity-research-deepdive.js` (clone) | `/tmp/sm-clone/stock-api/bin/equity-research-deepdive.js` |
-| `stock-api/bin/growth-triggers-1pager.js` (clone) | `/tmp/sm-clone/stock-api/bin/growth-triggers-1pager.js` |
+| `dist-skills/growth-triggers-1pager.cjs` (bundle) | `/tmp/growth-triggers-1pager.cjs` |
 | `dist-skills/management-credibility-tracker.cjs` (bundle) | `/tmp/management-credibility-tracker.cjs` |
-| `stock-api/bin/peer-comparison.js` (clone) | `/tmp/sm-clone/stock-api/bin/peer-comparison.js` |
+| `dist-skills/peer-comparison.cjs` (bundle) | `/tmp/peer-comparison.cjs` |
 | `dist-skills/market-share-analysis.cjs` (bundle) | `/tmp/market-share-analysis.cjs` |
-| `stock-api/bin/sector-research-deepdive.js` (clone) | `/tmp/sm-clone/stock-api/bin/sector-research-deepdive.js` |
-| `stock-api/bin/drhp-ipo-analysis.js` (clone) | `/tmp/sm-clone/stock-api/bin/drhp-ipo-analysis.js` |
+| `dist-skills/sector-research-deepdive.cjs` (bundle) | `/tmp/sector-research-deepdive.cjs` |
+| `dist-skills/drhp-ipo-analysis.cjs` (bundle) | `/tmp/drhp-ipo-analysis.cjs` |
 | `dist-skills/quarterly-result-analysis.cjs` (bundle) | `/tmp/quarterly-result-analysis.cjs` |
 | `dist-skills/consecutive-filings-diff.cjs` (bundle) | `/tmp/consecutive-filings-diff.cjs` |
 | `dist-skills/pre-pead-scanner.cjs` (bundle) | `/tmp/pre-pead-scanner.cjs` |
@@ -143,6 +143,7 @@ All scripts are resolved according to their mode (bundle or clone).
 | `dist-skills/equity-research-extraction.cjs` (bundle) | `/tmp/equity-research-extraction.cjs` |
 | `dist-skills/tweet-investor-playbook.cjs` (bundle) | `/tmp/tweet-investor-playbook.cjs` |
 | `dist-skills/announcement-keyword-explorer.cjs` (bundle) | `/tmp/announcement-keyword-explorer.cjs` |
+| `stock-api/bin/render-pdf.js` (clone) | `/tmp/sm-clone/stock-api/bin/render-pdf.js` |
 
 
 ## Branch override
@@ -212,3 +213,10 @@ Once migration is complete:
 | watchlist-insights | watchlist insights, daily insights |
 | cowork-task-architect | cowork task, create task, schedule task |
 | skill-manager | skill manager, create skill, skill creator |
+| investment-thesis-engine | investment thesis, thesis engine, update thesis, should i still hold |
+| financial-model | financial model, 3 year forecast, bear base bull, irr from here |
+| value-chain-analysis | value chain, where does margin sit, chokepoint analysis, value migration |
+| annual-report-analysis | annual report analysis, analyse this ar, governance check, kmp resignations |
+| stage2-catalyst-analysis | stage 2, weinstein stage, breakout analysis, why now catalyst |
+| render-pdf | render pdf, html to pdf, generate pdf from html |
+| dead-code-scanner | dead code scan, unused exports, unused dependencies |
