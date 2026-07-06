@@ -128,6 +128,48 @@ function parseDelivery(csvText) {
   return out;
 }
 
+/**
+ * Live per-symbol delivery fallback via NSE's getSymbolData API (intraday, PROVISIONAL).
+ * Used only when the bhavcopy for `target` hasn't published yet, so insights aren't
+ * left as "pending" all day. Mirrors deriveNseDelivery() in gainersScanner.js, which
+ * already uses this same NseClient.getSymbolData() per-symbol endpoint.
+ *
+ * IMPORTANT: intraday delivery% can still move before NSE finalizes the day's
+ * bhavcopy, so records from this path are tagged `provisional: true` and must be
+ * excluded from ledger/byCategory learning stats (see updateLedger) — only the
+ * EOD bhavcopy is treated as "confirmed" for that purpose.
+ */
+async function fetchLiveDeliveryForSymbols(symbols, client = nse, concurrency = 8) {
+  const out = {};
+  const list = [...symbols];
+  let i = 0;
+  async function worker() {
+    while (i < list.length) {
+      const idx = i++;
+      const sym = list[idx];
+      try {
+        const sd = await client.getSymbolData(sym);
+        const ti = (sd && sd.tradeInfo) || {};
+        const dper = parseFloat(ti.deliveryToTradedQuantity);
+        const trdQty = parseFloat(ti.totalTradedVolume);
+        const trdVal = parseFloat(ti.totalTradedValue);
+        const close = parseFloat(ti.lastPrice);
+        // Skip (leave symbol un-scored → falls back to the existing pending logic)
+        // rather than fabricate a record from partial/garbled live data.
+        if (Number.isNaN(dper) || Number.isNaN(trdQty)) continue;
+        const delivQty = Math.round((trdQty * dper) / 100);
+        const turnoverLacs = Number.isNaN(trdVal) ? 0 : (trdVal / 1e7) * 100; // ₹ → Cr → Lacs
+        out[sym] = {
+          deliv_per: dper, deliv_qty: delivQty, trd_qty: trdQty,
+          turnover: turnoverLacs, trades: 0, close: Number.isNaN(close) ? null : close,
+        };
+      } catch { /* NSE live endpoint can 401/403/timeout — leave symbol un-scored */ }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, list.length) }, worker));
+  return out;
+}
+
 /** Up to n+6 weekday dates strictly before `end`. */
 function recentTradingDays(end, n) {
   const days = [];
@@ -434,6 +476,13 @@ async function runValidation(insights, target, clients = { nse, stockscans }) {
   const todayCsv = await fetchDeliveryCsv(target, clients.nse);
   const deliveryPending = todayCsv === null || todayCsv === undefined;
   const dayData = todayCsv ? parseDelivery(todayCsv) : {};
+  // Bhavcopy not published yet (e.g. mid-day run) → fetch live per-symbol delivery from
+  // NSE's getSymbolData API for just today's insight symbols, so they aren't left "pending"
+  // all day. These reads are PROVISIONAL (tagged below) since intraday delivery% can still
+  // move before EOD; see fetchLiveDeliveryForSymbols() for why they're kept out of the ledger.
+  const liveDayData = deliveryPending && symbols.size
+    ? await fetchLiveDeliveryForSymbols(symbols, clients.nse)
+    : {};
   const base = symbols.size ? await buildBaselines(symbols, target, BASELINE_DAYS, clients.nse) : {};
 
   const results = [];
@@ -447,6 +496,14 @@ async function runValidation(insights, target, clients = { nse, stockscans }) {
       rec.structural = sig;
       rec.verdict = verdict(ins.significance, sig.label);
       moveForAttr = sig.ret;
+    } else if (sym && liveDayData[sym]) {
+      // Live NSE fallback: use the already-fetched Stockscans 1D return for `ret` (same
+      // source gainersScanner relies on) rather than deriving it from the live quote.
+      const sig = structuralSignal({ ...liveDayData[sym], ret: live ?? 0 }, base[sym] || {});
+      sig.provisional = true;
+      rec.structural = sig;
+      rec.verdict = verdict(ins.significance, sig.label);
+      moveForAttr = live !== null ? live : sig.ret;
     } else {
       rec.structural = null;
       if (live === null) rec.verdict = 'no_data';
@@ -462,7 +519,8 @@ async function runValidation(insights, target, clients = { nse, stockscans }) {
     date: target.toISOString().slice(0, 10),
     deliveryPending,
     insightCount: insights.length,
-    scoredWithDelivery: results.filter((r) => r.structural).length,
+    scoredWithDelivery: results.filter((r) => r.structural && !r.structural.provisional).length,
+    scoredLive: results.filter((r) => r.structural && r.structural.provisional).length,
     marketMedian1d: ctx.market_median_1d ?? null,
     sectorUniverse: ctx.universe || 0,
     results,
@@ -492,11 +550,13 @@ async function updateLedger(run, notesFilename) {
       title: (r.title || '').slice(0, 80), category: r.category, significance: r.significance,
       verdict: r.verdict, live_ret: r.live_return_1d, deliv_per: st.deliv_per,
       vol_spike: st.vol_spike, strength: st.label, sector_label: sec.label, industry_1d: sec.industry_1d,
+      provisional: !!st.provisional,
     };
   });
   led.days[run.date] = {
     notesFile: notesFilename, validatedAt: ist.nowIstIso(), insightCount: run.insightCount,
-    scoredWithDelivery: run.scoredWithDelivery, deliveryPending: run.deliveryPending,
+    scoredWithDelivery: run.scoredWithDelivery, scoredLive: run.scoredLive || 0,
+    deliveryPending: run.deliveryPending,
     marketMedian1d: run.marketMedian1d ?? null, results: compact,
   };
   led.validatedNotesFiles ||= [];
@@ -504,7 +564,11 @@ async function updateLedger(run, notesFilename) {
 
   led.byCategory ||= {};
   for (const r of run.results || []) {
-    if (!r.structural) continue;
+    // Only EOD bhavcopy-confirmed reads feed the category-learning stats (and therefore
+    // makeProposals). Live/provisional reads are intraday and can still shift before
+    // NSE finalizes delivery%, so mixing them in would let noisy data drive prompt
+    // refinement proposals — they're still shown in the email/ledger, just not counted here.
+    if (!r.structural || r.structural.provisional) continue;
     const cat = r.category;
     const c = (led.byCategory[cat] ||= {
       confirmed: 0, overrated: 0, underrated: 0, noise_move: 0, soft: 0, samples: 0,
@@ -771,9 +835,10 @@ function buildEmail(run, props, qr) {
   const mktS = mkt !== null && mkt !== undefined ? `${signed(mkt, 2)}%` : 'n/a';
   const parts = [
     `<h2>🔎 Insight Validation — ${d}</h2>`,
-    `<p><b>${run.insightCount} insights validated</b> · ${run.scoredWithDelivery} delivery-confirmed · ` +
-    `market 1D median ${mktS} (n=${run.sectorUniverse || 0})` +
-    (run.deliveryPending ? " · <span style='color:#dd6b20'>NSE delivery file still publishing — structural read provisional</span>" : '') + '</p>',
+    `<p><b>${run.insightCount} insights validated</b> · ${run.scoredWithDelivery} delivery-confirmed` +
+    (run.scoredLive ? ` · ${run.scoredLive} scored via live NSE quote (intraday, unconfirmed)` : '') +
+    ` · market 1D median ${mktS} (n=${run.sectorUniverse || 0})` +
+    (run.deliveryPending ? " · <span style='color:#dd6b20'>NSE bhavcopy not yet published — live-API reads below are provisional and may change at EOD</span>" : '') + '</p>',
     "<table style='border-collapse:collapse;font-size:13px' cellpadding='6'>",
     "<tr style='background:#f0f0f0;text-align:left'><th>Company</th><th>Sig</th><th>1D%</th><th>Deliv%</th><th>Vol×</th><th>Strength</th><th>Verdict</th><th>Sector (ind 1D)</th></tr>",
   ];
@@ -791,7 +856,7 @@ function buildEmail(run, props, qr) {
       `<td><b>${stockscansLink(r.name, r.companyId, 'NSE')}</b><br><small>${(r.title || '').slice(0, 42)}</small></td>` +
       `<td>${r.significance}</td><td>${retS}</td>` +
       `<td>${s.deliv_per ?? '—'}</td><td>${s.vol_spike ?? '—'}</td>` +
-      `<td style='color:${color};font-weight:bold'>${s.label || 'pending'}</td>` +
+      `<td style='color:${color};font-weight:bold'>${s.label || 'pending'}${s.provisional ? ' <small style="font-weight:normal;color:#dd6b20">(live)</small>' : ''}</td>` +
       `<td>${VERDICT_BADGE[r.verdict] || r.verdict}</td>` +
       `<td style='color:${secColor}'>${sec.label || '—'}${indS}</td></tr>`
     );
@@ -802,7 +867,7 @@ function buildEmail(run, props, qr) {
   parts.push('</ul>');
   if (qr) parts.push(renderQualitySection(qr));
   parts.push("<hr style='border:none;border-top:1px solid #ddd;margin-top:16px'>");
-  parts.push("<p style='color:#999;font-size:11px'>Structural = delivery-backed (NSE DELIV_PER vs 20-day avg + volume spike). Sector column attributes the move vs its industry/sector/market 1D median. No stock is dropped — context for the refinement thesis. All proposals are logged to validation/proposals.md and NOT auto-applied.</p>");
+  parts.push("<p style='color:#999;font-size:11px'>Structural = delivery-backed (NSE DELIV_PER vs 20-day avg + volume spike). Rows marked '(live)' were scored from NSE's live per-symbol quote API (getSymbolData) because today's bhavcopy hadn't published yet — these are intraday and provisional, and are excluded from the prompt-refinement learning stats below until the EOD bhavcopy confirms them. Sector column attributes the move vs its industry/sector/market 1D median. No stock is dropped — context for the refinement thesis. All proposals are logged to validation/proposals.md and NOT auto-applied.</p>");
   return parts.join('\n');
 }
 
@@ -901,7 +966,8 @@ async function cmdRun() {
     (qr.categorisation.suggestions || []).length + (qr.ignoredLog.suggestions || []).length;
   process.stdout.write(JSON.stringify({
     date: run.date, notesFile: notesFilename, insights: run.insightCount,
-    deliveryConfirmed: run.scoredWithDelivery, deliveryPending: run.deliveryPending,
+    deliveryConfirmed: run.scoredWithDelivery, deliveryLive: run.scoredLive || 0,
+    deliveryPending: run.deliveryPending,
     proposals: props.length, qualitySuggestions: qrSug, email: mail,
   }));
 }
@@ -919,19 +985,42 @@ async function cmdFetchDelivery(d) {
 async function cmdScore(symbol) {
   const sym = symbol.toUpperCase();
   const target = new Date(Date.UTC(ist.istDate().getUTCFullYear(), ist.istDate().getUTCMonth(), ist.istDate().getUTCDate()));
-  let csv = await fetchDeliveryCsv(target);
-  let used = target;
-  if (!csv) {
-    for (const d of recentTradingDays(target, 5)) {
-      csv = await fetchDeliveryCsv(d);
-      if (csv) { used = d; break; }
+  const csv = await fetchDeliveryCsv(target);
+  if (csv) {
+    const day = parseDelivery(csv);
+    if (day[sym]) {
+      const base = await buildBaselines(new Set([sym]), target);
+      const sig = structuralSignal(day[sym], base[sym] || {});
+      process.stdout.write(JSON.stringify({ symbol: sym, date: target.toISOString().slice(0, 10), source: 'bhavcopy', metrics: sig }));
+      return;
     }
   }
-  const day = csv ? parseDelivery(csv) : {};
-  if (!day[sym]) { process.stdout.write(JSON.stringify({ symbol: sym, status: 'not_found', date: used.toISOString().slice(0, 10) })); return; }
-  const base = await buildBaselines(new Set([sym]), used);
-  const sig = structuralSignal(day[sym], base[sym] || {});
-  process.stdout.write(JSON.stringify({ symbol: sym, date: used.toISOString().slice(0, 10), metrics: sig }));
+  // Today's bhavcopy isn't published (or doesn't list this symbol yet) — try NSE's live
+  // per-symbol quote API before falling back to the most recent confirmed day, so `score`
+  // reflects TODAY's intraday read rather than a stale prior day whenever possible.
+  const live = await fetchLiveDeliveryForSymbols(new Set([sym]), nse, 1);
+  if (live[sym]) {
+    const base = await buildBaselines(new Set([sym]), target);
+    const sig = structuralSignal({ ...live[sym], ret: 0 }, base[sym] || {});
+    sig.provisional = true;
+    process.stdout.write(JSON.stringify({
+      symbol: sym, date: target.toISOString().slice(0, 10), source: 'nse_live_provisional',
+      note: 'ret=0 placeholder — pass through live Stockscans 1D return in the real pipeline for an accurate conviction score',
+      metrics: sig,
+    }));
+    return;
+  }
+  for (const d of recentTradingDays(target, 5)) {
+    const prevCsv = await fetchDeliveryCsv(d);
+    if (!prevCsv) continue;
+    const day = parseDelivery(prevCsv);
+    if (!day[sym]) continue;
+    const base = await buildBaselines(new Set([sym]), d);
+    const sig = structuralSignal(day[sym], base[sym] || {});
+    process.stdout.write(JSON.stringify({ symbol: sym, date: d.toISOString().slice(0, 10), source: 'bhavcopy_prior_day', metrics: sig }));
+    return;
+  }
+  process.stdout.write(JSON.stringify({ symbol: sym, status: 'not_found', date: target.toISOString().slice(0, 10) }));
 }
 
 function cmdShowLedger() {
@@ -956,9 +1045,9 @@ async function runCli(argv) {
 
 module.exports = {
   toSymbol, ddmmyyyy, parseDelivery, recentTradingDays, structuralSignal, verdict,
-  sectorAttribution, median, categoryFromTags,  
+  sectorAttribution, median, categoryFromTags,
    makeProposals, titleInfoDensity,  qualityReviewInsights,
-  qualityReviewCategorisation,   
+  qualityReviewCategorisation, fetchLiveDeliveryForSymbols,
      runCli,
 
 };

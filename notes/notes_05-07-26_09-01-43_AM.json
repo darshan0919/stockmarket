@@ -1,0 +1,494 @@
+{
+  "meta": {
+    "version": "1.0",
+    "lastRun": "2026-07-05T09:09:18+05:30",
+    "totalCompanies": 16,
+    "totalNotes": 19
+  },
+  "companies": {
+    "NSE:PIRAMALFIN": {
+      "companyId": "NSE:PIRAMALFIN",
+      "ticker": "NSE:PIRAMALFIN",
+      "name": "Piramal Finance Ltd",
+      "lastUpdated": "2026-07-05T09:09:14+05:30",
+      "businessSummary": "Piramal Finance Ltd (formerly Piramal Capital & Housing Finance) is the NBFC/housing-finance arm of the Piramal Group, offering retail and wholesale lending.",
+      "notes": [
+        {
+          "id": "266cb353-e956-4221-b26d-70263fe7de7b",
+          "createdAt": "2026-07-05T09:08:50+05:30",
+          "type": "announcement",
+          "announcementId": "94074eqvopszh0icvxz84ipm.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Scheme of Arrangement",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/94074eqvopszh0icvxz84ipm.pdf",
+          "insight": "Piramal Finance Ltd and its transferor entities (Piramal Corporate Tower Pvt Ltd, Piramal Agastya Offices Pvt Ltd, DHFL Investments Ltd) filed a Company Petition (C.A.(CAA)/84/MB/2026) with the NCLT Mumbai Bench on 4 Jul 2026 seeking sanction of the previously-approved scheme of amalgamation (first disclosed 18 Apr, 12 May and 26 May 2026). This is a procedural milestone, not a new corporate action — no fresh financials or swap ratios disclosed. Direction is neutral-to-positive: it keeps the intercompany restructuring (folding real-estate/investment subsidiaries into the NBFC) on schedule toward completion. No prior notes exist for this company to compare against. Watch for the NCLT hearing date and any conditions attached to the sanction order.",
+          "significance": "medium",
+          "tags": [
+            "regulatory",
+            "acquisition"
+          ],
+          "category": "regulatory",
+          "announcementDescription": "Announcement under Regulation 30 (LODR)-Scheme of Arrangement"
+        }
+      ],
+      "processedAnnouncements": [
+        "94074eqvopszh0icvxz84ipm.pdf"
+      ]
+    },
+    "BSE:SHREEREF": {
+      "companyId": "BSE:SHREEREF",
+      "ticker": "BSE:SHREEREF",
+      "name": "Shree Refrigerations Ltd",
+      "lastUpdated": "2026-07-05T09:09:14+05:30",
+      "businessSummary": "Shree Refrigerations Ltd manufactures refrigeration and cooling equipment; recently listed (BSE scrip 544458).",
+      "notes": [
+        {
+          "id": "026ae194-7d1b-4731-95db-ed05816022bd",
+          "createdAt": "2026-07-05T09:08:51+05:30",
+          "type": "announcement",
+          "announcementId": "rx2a8yob668tjzx9idptussu.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/rx2a8yob668tjzx9idptussu.pdf",
+          "insight": "Shree Refrigerations will participate in a virtual group call hosted by JSL Wealth Management Pvt Ltd on Wed 8 Jul 2026 at 12:00 PM. Company explicitly states no UPSI will be discussed and the interaction will be based on publicly available information. This is the only investor-meet note on file for this company, so no cumulative visit trend yet. Low decision value on its own; watch whether the call generates any follow-on disclosures (e.g. new guidance) that would need separate reporting.",
+          "significance": "low",
+          "tags": [
+            "investor_meet"
+          ],
+          "category": "investor_meet",
+          "announcementDescription": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation"
+        }
+      ],
+      "processedAnnouncements": [
+        "rx2a8yob668tjzx9idptussu.pdf"
+      ]
+    },
+    "NSE:MACPOWER": {
+      "companyId": "NSE:MACPOWER",
+      "ticker": "NSE:MACPOWER",
+      "name": "Macpower CNC Machines Ltd",
+      "lastUpdated": "2026-07-05T09:09:14+05:30",
+      "businessSummary": "Macpower CNC Machines Ltd manufactures CNC machine tools for metal-cutting applications.",
+      "notes": [
+        {
+          "id": "d36698a7-8d32-4224-a8b5-6f73ac0818ef",
+          "createdAt": "2026-07-05T09:08:51+05:30",
+          "type": "announcement",
+          "announcementId": "u877x2qkcsuh82pntsdu6kjn.pdf",
+          "announcementTitle": "Price movement",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/u877x2qkcsuh82pntsdu6kjn.pdf",
+          "insight": "In response to NSE's surveillance query (letter NSE/CM/Surveillance/17206, 3 Jul 2026) on unusual price movement, Macpower states it has made all required Reg. 30 disclosures and that the move is 'purely market driven,' with no pending undisclosed material development. This is a standard denial-of-information response, not new fundamental data — it neither confirms nor explains the price move. Routine: carries no independent signal beyond confirming no hidden corporate action is imminent. Watch price/volume action over the next few sessions for a genuine trigger (e.g. block deals, results, or a follow-up disclosure).",
+          "significance": "routine",
+          "tags": [
+            "press_release"
+          ],
+          "category": "general",
+          "announcementDescription": "Price movement"
+        }
+      ],
+      "processedAnnouncements": [
+        "u877x2qkcsuh82pntsdu6kjn.pdf"
+      ]
+    },
+    "NSE:ABSLAMC": {
+      "companyId": "NSE:ABSLAMC",
+      "ticker": "NSE:ABSLAMC",
+      "name": "Aditya Birla Sun Life AMC Ltd",
+      "lastUpdated": "2026-07-05T09:09:15+05:30",
+      "businessSummary": "Aditya Birla Sun Life AMC Ltd is a mutual-fund asset management company, a joint venture of Aditya Birla Capital and Sun Life Financial.",
+      "notes": [
+        {
+          "id": "f3c84ac0-848f-4183-a697-ff9a949956b1",
+          "createdAt": "2026-07-05T09:08:51+05:30",
+          "type": "announcement",
+          "announcementId": "y2s1ec912yumo1bq98qogrcz.pdf",
+          "announcementTitle": "Intimation Regarding Letters Being Dispatched To The Shareholders Of The Company",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/y2s1ec912yumo1bq98qogrcz.pdf",
+          "insight": "ABSLAMC dispatched physical letters to shareholders whose emails aren't registered with the company/RTA/depositories, pointing them to the weblink for the Notice of the 32nd AGM (scheduled Wed 29 Jul 2026, 11:00 AM via VC/OAVM) and FY25-26 Annual Report. This is a purely administrative compliance step under Reg. 36(1)(b) with zero financial or strategic content. Routine — no signal for investment decisions. Watch for the 29 Jul AGM outcome/voting results instead.",
+          "significance": "routine",
+          "tags": [
+            "agm_outcome"
+          ],
+          "category": "general",
+          "announcementDescription": "Intimation Regarding Letters Being Dispatched To The Shareholders Of The Company"
+        }
+      ],
+      "processedAnnouncements": [
+        "y2s1ec912yumo1bq98qogrcz.pdf"
+      ]
+    },
+    "NSE:IDEAFORGE": {
+      "companyId": "NSE:IDEAFORGE",
+      "ticker": "NSE:IDEAFORGE",
+      "name": "ideaForge Technology Ltd",
+      "lastUpdated": "2026-07-05T09:09:15+05:30",
+      "businessSummary": "ideaForge Technology Ltd designs and manufactures unmanned aerial systems (drones) for defence, homeland security and industrial use.",
+      "notes": [
+        {
+          "id": "448a1d2b-8d98-4bbd-91bc-79b5375d2632",
+          "createdAt": "2026-07-05T09:08:51+05:30",
+          "type": "announcement",
+          "announcementId": "adujohqxbf3p16y1plcahnyh.pdf",
+          "announcementTitle": "Shareholder Meeting / Postal Ballot-Outcome of Postal_Ballot",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/adujohqxbf3p16y1plcahnyh.pdf",
+          "insight": "Shareholders passed two postal-ballot resolutions by remote e-voting on 4 Jul 2026: (1) authorization to raise funds in one or more tranches via issuance of equity shares and/or other eligible securities, and (2) alteration of the Articles of Association. No quantum, instrument type, or pricing for the fundraise was disclosed in this filing — it is an enabling resolution, not an executed raise. This is a special resolution (fundraise authority) that should be flagged: it gives the board headroom to dilute without a further shareholder vote. Direction is neutral until an actual issuance is announced. Watch for a follow-up filing naming the instrument, quantum and allottees.",
+          "significance": "medium",
+          "tags": [
+            "fundraise",
+            "agm_outcome"
+          ],
+          "category": "agm_egm",
+          "announcementDescription": "Shareholder Meeting / Postal Ballot-Outcome of Postal_Ballot"
+        }
+      ],
+      "processedAnnouncements": [
+        "adujohqxbf3p16y1plcahnyh.pdf"
+      ]
+    },
+    "NSE:HARDWYN": {
+      "companyId": "NSE:HARDWYN",
+      "ticker": "NSE:HARDWYN",
+      "name": "Hardwyn India Ltd",
+      "lastUpdated": "2026-07-05T09:09:16+05:30",
+      "businessSummary": "Hardwyn India Ltd manufactures float glass and glass processing products.",
+      "notes": [
+        {
+          "id": "6ad41434-22f9-4dc4-aba4-b55afdf8fd9c",
+          "createdAt": "2026-07-05T09:08:51+05:30",
+          "type": "announcement",
+          "announcementId": "33wrrriu4pdqywtjpye1wccl.pdf",
+          "announcementTitle": "Declaration Of Results Of Remote E-Voting At The (01/2026-27) First EGM",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/33wrrriu4pdqywtjpye1wccl.pdf",
+          "insight": "Hardwyn declared results of its First EGM (held Fri 3 Jul 2026, 2:00-2:28 PM), record date 26 Jun 2026 with 46,857 shareholders on record; scrutinizer Akash Goel/Akash & Co. certified the e-voting. This filing is the umbrella outcome notice — the substantive resolutions passed at this same EGM (2:5 bonus issue, independent-director regularization, and MOA capital-clause amendment to ₹70 crore authorized capital) are captured in separate notes for this company. Taken together this is a shareholder-friendly EGM (bonus issue plus capital headroom). Watch the bonus-issue record date for entitlement.",
+          "significance": "medium",
+          "tags": [
+            "agm_outcome"
+          ],
+          "category": "agm_egm",
+          "announcementDescription": "Declaration Of Results Of Remote E-Voting At The (01/2026-27) First EGM"
+        },
+        {
+          "id": "75647aad-d447-4913-b952-3fdbca9f5ff3",
+          "createdAt": "2026-07-05T09:08:52+05:30",
+          "type": "announcement",
+          "announcementId": "z7l877zzudvoc0r8q5gjkp19.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Issue of Securities",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/z7l877zzudvoc0r8q5gjkp19.pdf",
+          "insight": "At the same EGM (3 Jul 2026), Hardwyn shareholders approved a 2:5 bonus issue — 2 bonus equity shares of ₹1 face value for every 5 held, funded by capitalization of free reserves/retained earnings. This increases share count (and reduces per-share metrics proportionally) without diluting existing holders' proportional ownership or requiring cash — a shareholder-friendly capital action signaling management confidence in reserves. Combined with the same-day MOA amendment raising authorized capital to ₹70 crore, the company has created headroom for the bonus plus room for further corporate actions. Watch for the record date and credit date of the bonus shares.",
+          "significance": "medium",
+          "tags": [
+            "fundraise",
+            "agm_outcome"
+          ],
+          "category": "fundraise",
+          "announcementDescription": "Announcement under Regulation 30 (LODR)-Issue of Securities"
+        },
+        {
+          "id": "1510a2b6-1be3-4da5-a066-5a0340ea4d29",
+          "createdAt": "2026-07-05T09:08:52+05:30",
+          "type": "announcement",
+          "announcementId": "dvltvdbji75198gm9ogzn5uf.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Change in Management",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/dvltvdbji75198gm9ogzn5uf.pdf",
+          "insight": "Shareholders at the 3 Jul 2026 EGM regularized Yogesh Kumar Garg (DIN 02144584) as an Independent Director; he had first been appointed as an Additional (Independent, Non-Executive) Director effective 5 Jun 2026. This is a routine formalization of an already-serving director, not a new appointment or a departure — no governance red flag. No prior notes for this company. No specific follow-up needed.",
+          "significance": "routine",
+          "tags": [
+            "management_change"
+          ],
+          "category": "management_change",
+          "announcementDescription": "Announcement under Regulation 30 (LODR)-Change in Management"
+        },
+        {
+          "id": "8f3041b9-1f06-4658-b6d3-b30a6af01193",
+          "createdAt": "2026-07-05T09:08:53+05:30",
+          "type": "announcement",
+          "announcementId": "0phonwzthocx2xudog2rc3by.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Amendments to Memorandum & Articles of Association",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/0phonwzthocx2xudog2rc3by.pdf",
+          "insight": "The same 3 Jul 2026 EGM approved altering Clause V (Capital Clause) of the Memorandum of Association, raising authorized share capital to ₹70,00,00,000 (70 crore equity shares of ₹1 face value each). This directly supports the concurrently-approved 2:5 bonus issue and gives the board room for further share issuance without another capital-clause amendment. Neutral on its own but reinforces the bullish bonus-issue signal from the same EGM. Watch whether the enlarged headroom is used for anything beyond the bonus issue (e.g. a future preferential allotment).",
+          "significance": "low",
+          "tags": [
+            "fundraise"
+          ],
+          "category": "general",
+          "announcementDescription": "Announcement under Regulation 30 (LODR)-Amendments to Memorandum & Articles of Association"
+        }
+      ],
+      "processedAnnouncements": [
+        "33wrrriu4pdqywtjpye1wccl.pdf",
+        "z7l877zzudvoc0r8q5gjkp19.pdf",
+        "dvltvdbji75198gm9ogzn5uf.pdf",
+        "0phonwzthocx2xudog2rc3by.pdf"
+      ]
+    },
+    "NSE:AKUMS": {
+      "companyId": "NSE:AKUMS",
+      "ticker": "NSE:AKUMS",
+      "name": "Akums Drugs & Pharmaceuticals Ltd",
+      "lastUpdated": "2026-07-05T09:09:15+05:30",
+      "businessSummary": "Akums Drugs & Pharmaceuticals Ltd is one of India's largest contract development and manufacturing organizations (CDMOs) for pharmaceuticals.",
+      "notes": [
+        {
+          "id": "1cca33ee-16fe-47fc-9646-4f53f25d402a",
+          "createdAt": "2026-07-05T09:08:51+05:30",
+          "type": "announcement",
+          "announcementId": "jg5ygjap1uph16n7hgf63el9.pdf",
+          "announcementTitle": "Update On Penalty Imposed On Maxcure Nutravedics Limited",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/jg5ygjap1uph16n7hgf63el9.pdf",
+          "insight": "A GST penalty of ₹3,59,10,000 imposed on wholly-owned subsidiary Maxcure Nutravedics Ltd (originally flagged 15-16 Dec 2025) has been fully set aside by the First Appellate Authority, State Tax, Ahmedabad (order dated 3 Jul 2026). The penalty stemmed from an incorrect shipping address on an October 2025 invoice/e-way bill — an administrative error, not a substantive tax evasion finding. This removes a ~₹3.6 cr contingent liability, a modest positive for the subsidiary though immaterial at the group level. No prior notes exist for Akums to compare trend. Watch whether the tax authority appeals this order further.",
+          "significance": "low",
+          "tags": [
+            "regulatory"
+          ],
+          "category": "regulatory",
+          "announcementDescription": "Update On Penalty Imposed On Maxcure Nutravedics Limited"
+        }
+      ],
+      "processedAnnouncements": [
+        "jg5ygjap1uph16n7hgf63el9.pdf"
+      ]
+    },
+    "NSE:SATIN": {
+      "companyId": "NSE:SATIN",
+      "ticker": "NSE:SATIN",
+      "name": "Satin Creditcare Network Ltd",
+      "lastUpdated": "2026-07-05T09:09:15+05:30",
+      "businessSummary": "Satin Creditcare Network Ltd is an NBFC-MFI providing microfinance and other loans to underserved segments.",
+      "notes": [
+        {
+          "id": "2b2fea6e-8dda-4416-a948-644e6f5ecc1a",
+          "createdAt": "2026-07-05T09:08:52+05:30",
+          "type": "announcement",
+          "announcementId": "3d8pqiksvoru8f19o665mkkf.pdf",
+          "announcementTitle": "Shareholder Meeting / Postal Ballot-Outcome of Postal_Ballot",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/3d8pqiksvoru8f19o665mkkf.pdf",
+          "insight": "Satin Creditcare filed the proceedings of its postal ballot conducted by remote e-voting on 4 Jul 2026 (board approved conducting the ballot on 4 Jun 2026). The extracted text covers only the procedural preamble (legal basis/circular references); the specific resolutions and vote percentages are in the annexure but were not captured in this excerpt (PDF truncated on extraction) — flagging this explicitly per the PDF-empty/partial rule rather than guessing at resolution content. No prior notes on file. Watch the full annexure (via the company website link cited) for the actual resolutions passed and any special-resolution flags (e.g. borrowing limits).",
+          "significance": "low",
+          "tags": [
+            "agm_outcome"
+          ],
+          "category": "agm_egm",
+          "announcementDescription": "Shareholder Meeting / Postal Ballot-Outcome of Postal_Ballot"
+        }
+      ],
+      "processedAnnouncements": [
+        "3d8pqiksvoru8f19o665mkkf.pdf"
+      ]
+    },
+    "NSE:J&KBANK": {
+      "companyId": "NSE:J&KBANK",
+      "ticker": "NSE:J&KBANK",
+      "name": "Jammu and Kashmir Bank Ltd",
+      "lastUpdated": "2026-07-05T09:09:16+05:30",
+      "businessSummary": "Jammu and Kashmir Bank Ltd is a scheduled commercial bank with a dominant retail/SME franchise in Jammu & Kashmir and Ladakh.",
+      "notes": [
+        {
+          "id": "57a1bf29-b1f4-46dc-91f4-4dab96112710",
+          "createdAt": "2026-07-05T09:08:52+05:30",
+          "type": "announcement",
+          "announcementId": "spi6aftku7u8ifswmfr1b3j0.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Change in Management",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/spi6aftku7u8ifswmfr1b3j0.pdf",
+          "insight": "The Board (meeting 4 Jul 2026, 11:00 AM-5:20 PM) appointed Rakesh Magotra as Chief Compliance Officer/Group Compliance Officer for a 3-year term, replacing Peer Masood Ahmad. No reason was given for Ahmad's exit and no indication of an abrupt/forced departure; this reads as a planned rotation at a senior-but-not-CEO/CFO/MD level. Governance impact is limited given CCO/GCO is a compliance function, not board-level leadership. No prior notes for this bank on file. Watch for any commentary on Ahmad's next role or reason for exit in subsequent filings.",
+          "significance": "low",
+          "tags": [
+            "management_change"
+          ],
+          "category": "management_change",
+          "announcementDescription": "Announcement under Regulation 30 (LODR)-Change in Management"
+        }
+      ],
+      "processedAnnouncements": [
+        "spi6aftku7u8ifswmfr1b3j0.pdf"
+      ]
+    },
+    "NSE:SJS": {
+      "companyId": "NSE:SJS",
+      "ticker": "NSE:SJS",
+      "name": "S J S Enterprises Ltd",
+      "lastUpdated": "2026-07-05T09:09:16+05:30",
+      "businessSummary": "S J S Enterprises Ltd makes decorative aesthetics and functional components for automotive and consumer durables OEMs.",
+      "notes": [
+        {
+          "id": "dfc48cc0-ce90-4528-94ad-83b913ff7ac9",
+          "createdAt": "2026-07-05T09:08:52+05:30",
+          "type": "announcement",
+          "announcementId": "6ku0sui06rwcljf13s7x6kfy.pdf",
+          "announcementTitle": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/6ku0sui06rwcljf13s7x6kfy.pdf",
+          "insight": "SJS Enterprises held its 21st AGM on Sat 4 Jul 2026 (11:30 AM, VC/OAVM) to transact the business set out in the 8 Jun 2026 notice; a shareholder presentation was also enclosed. The extracted text is the standard proceedings summary header — specific resolution-level vote percentages were not captured in this excerpt. No red flags evident (no special resolutions called out). No prior notes for this company. Watch the full proceedings annexure on the company website for any special resolutions (e.g. related-party or auditor items).",
+          "significance": "low",
+          "tags": [
+            "agm_outcome"
+          ],
+          "category": "agm_egm",
+          "announcementDescription": "Shareholder Meeting / Postal Ballot-Outcome of AGM"
+        }
+      ],
+      "processedAnnouncements": [
+        "6ku0sui06rwcljf13s7x6kfy.pdf"
+      ]
+    },
+    "NSE:BBOX": {
+      "companyId": "NSE:BBOX",
+      "ticker": "NSE:BBOX",
+      "name": "Black Box Ltd",
+      "lastUpdated": "2026-07-05T09:09:17+05:30",
+      "businessSummary": "Black Box Ltd is a global IT/digital infrastructure and network integration services company.",
+      "notes": [
+        {
+          "id": "e5e29ade-a89c-4f1d-b7c8-45ebe6c33dd4",
+          "createdAt": "2026-07-05T09:08:53+05:30",
+          "type": "announcement",
+          "announcementId": "cq6z7sm4nyzdmfqn8kagchvr.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Change in Management",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/cq6z7sm4nyzdmfqn8kagchvr.pdf",
+          "insight": "Jai Venkat, Head of Sales - GSI Americas, ceased to be with Black Box effective 30 Jun 2026; the company says it is sourcing a replacement and states there is 'no impact on day-to-day functioning.' This is a regional sales-head departure, not a CEO/CFO/MD or independent-director exit, so it falls below the governance-flag threshold in the template, but a Americas GSI sales-leadership gap is still worth tracking for a large services exporter. No prior notes for this company. Watch for the successor announcement and any commentary on US/Americas order momentum in the next results call.",
+          "significance": "low",
+          "tags": [
+            "management_change"
+          ],
+          "category": "management_change",
+          "announcementDescription": "Announcement under Regulation 30 (LODR)-Change in Management"
+        }
+      ],
+      "processedAnnouncements": [
+        "cq6z7sm4nyzdmfqn8kagchvr.pdf"
+      ]
+    },
+    "NSE:MANINDS": {
+      "companyId": "NSE:MANINDS",
+      "ticker": "NSE:MANINDS",
+      "name": "Man Industries (India) Ltd",
+      "lastUpdated": "2026-07-05T09:09:17+05:30",
+      "businessSummary": "Man Industries (India) Ltd manufactures large-diameter submerged-arc-welded (SAW) and other steel pipes for oil & gas and water transmission.",
+      "notes": [
+        {
+          "id": "8260ab45-f64d-4302-a788-360046a94635",
+          "createdAt": "2026-07-05T09:08:53+05:30",
+          "type": "announcement",
+          "announcementId": "7hiiclyyo26jauetivs0s9pw.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/7hiiclyyo26jauetivs0s9pw.pdf",
+          "insight": "Man Industries has scheduled an in-person group meeting with institutional investors/analysts on Wed 8 Jul 2026; the company states no UPSI will be discussed. This is the first investor-meet note on file for this company, so no cumulative-visit trend yet. No new numbers or guidance were disclosed in this intimation itself. Watch for any post-meeting disclosure of order-book or guidance commentary.",
+          "significance": "low",
+          "tags": [
+            "investor_meet"
+          ],
+          "category": "investor_meet",
+          "announcementDescription": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation"
+        }
+      ],
+      "processedAnnouncements": [
+        "7hiiclyyo26jauetivs0s9pw.pdf"
+      ]
+    },
+    "NSE:SKIPPER": {
+      "companyId": "NSE:SKIPPER",
+      "ticker": "NSE:SKIPPER",
+      "name": "Skipper Ltd",
+      "lastUpdated": "2026-07-05T09:09:17+05:30",
+      "businessSummary": "Skipper Ltd manufactures power transmission towers/structures and polymer (PVC) pipes.",
+      "notes": [
+        {
+          "id": "0bb65da7-21cd-4c28-ad03-084a04d3da64",
+          "createdAt": "2026-07-05T09:08:53+05:30",
+          "type": "announcement",
+          "announcementId": "ru9lbm92hnmtgr2hprybx0q7.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Credit Rating",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/ru9lbm92hnmtgr2hprybx0q7.pdf",
+          "insight": "CRISIL Ratings upgraded Skipper's long-term bank facility rating to CRISIL A+/Stable (action: Upgraded) on an enhanced facility size of ₹4,621 crore (up from ₹4,301 crore), while reaffirming the short-term facility rating at CRISIL A1. The agency's specific rationale text wasn't included in this letter, but an upgrade combined with a larger sanctioned facility signals improving credit profile and expanded working-capital/growth-capex headroom, and should modestly lower the cost of incremental debt. No prior notes for this company. Watch the CRISIL rationale note (if published separately) for the specific drivers cited (order book, leverage, cash flow).",
+          "significance": "medium",
+          "tags": [
+            "credit_rating"
+          ],
+          "category": "credit_rating",
+          "announcementDescription": "Announcement under Regulation 30 (LODR)-Credit Rating"
+        }
+      ],
+      "processedAnnouncements": [
+        "ru9lbm92hnmtgr2hprybx0q7.pdf"
+      ]
+    },
+    "NSE:PAISALO": {
+      "companyId": "NSE:PAISALO",
+      "ticker": "NSE:PAISALO",
+      "name": "Paisalo Digital Ltd",
+      "lastUpdated": "2026-07-05T09:09:17+05:30",
+      "businessSummary": "Paisalo Digital Ltd is an NBFC providing microfinance and retail/MSME lending, largely through a co-lending/BC franchise model.",
+      "notes": [
+        {
+          "id": "a517162f-5650-4742-aefa-f7669f53c57b",
+          "createdAt": "2026-07-05T09:08:53+05:30",
+          "type": "announcement",
+          "announcementId": "jq3lchil0faf66p7sjfs9ugm.pdf",
+          "announcementTitle": "Disclosures under Reg. 29(2) of SEBI (SAST) Regulations 2011",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/jq3lchil0faf66p7sjfs9ugm.pdf",
+          "insight": "SBI Life Insurance Company Ltd (non-promoter, no PACs) sold 50,00,000 shares of Paisalo Digital (0.55% of total capital / 0.50% of diluted capital) via open market on 1 Jul 2026. Its holding falls from 6,21,14,267 shares (6.83% total / 6.27% diluted) to 5,71,14,267 shares (6.28% total / 5.76% diluted) — a partial trim, not an exit, and it remains above the 5% disclosure threshold that triggered this Reg. 29(2) filing. Total capital of the TC is unchanged at 90,95,21,874 shares (99,09,61,314 diluted). Direction is mildly bearish (an institutional holder trimming) but modest in size relative to its remaining ~6% stake — not a change-of-control or open-offer trigger. No prior notes on file for this company. Watch for further SBI Life disclosures (a pattern of repeated trims vs a one-off booking).",
+          "significance": "medium",
+          "tags": [
+            "shareholding_change"
+          ],
+          "category": "shareholding_change",
+          "announcementDescription": "Disclosures under Reg. 29(2) of SEBI (SAST) Regulations 2011"
+        }
+      ],
+      "processedAnnouncements": [
+        "jq3lchil0faf66p7sjfs9ugm.pdf"
+      ]
+    },
+    "NSE:BELRISE": {
+      "companyId": "NSE:BELRISE",
+      "ticker": "NSE:BELRISE",
+      "name": "Belrise Industries Ltd",
+      "lastUpdated": "2026-07-05T09:09:17+05:30",
+      "businessSummary": "Belrise Industries Ltd is an automotive components manufacturer (metal & polymer parts) supplying OEMs across 2W/PV/CV segments.",
+      "notes": [
+        {
+          "id": "a801ab0e-3439-4a67-bf60-fc30a0d07f25",
+          "createdAt": "2026-07-05T09:08:53+05:30",
+          "type": "announcement",
+          "announcementId": "fe1c3uosli4z5ouwlywap4pe.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Scheme of Arrangement",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/fe1c3uosli4z5ouwlywap4pe.pdf",
+          "insight": "Belrise received Observation Letters from both NSE and BSE (both dated 3 Jul 2026) with 'no adverse observations' under Reg. 37, for its Scheme of Amalgamation (Merger by Absorption) of Badve Autocomps Pvt Ltd and Eximius Infra Tech Solutions Pvt Ltd into Belrise (Board approval first disclosed 31 Jan 2026). This clears the stock-exchange gate; the scheme still needs shareholder/creditor and NCLT sanction before becoming effective. Direction is positive — a clean exchange no-objection reduces execution risk on the consolidation of these entities into the listed company. No prior notes on file. Watch for the NCLT/shareholder meeting notice next.",
+          "significance": "medium",
+          "tags": [
+            "acquisition",
+            "regulatory"
+          ],
+          "category": "regulatory",
+          "announcementDescription": "Announcement under Regulation 30 (LODR)-Scheme of Arrangement"
+        }
+      ],
+      "processedAnnouncements": [
+        "fe1c3uosli4z5ouwlywap4pe.pdf"
+      ]
+    },
+    "NSE:ASTERDM": {
+      "companyId": "NSE:ASTERDM",
+      "ticker": "NSE:ASTERDM",
+      "name": "Aster DM Quality Care Ltd (formerly Aster DM Healthcare Ltd)",
+      "lastUpdated": "2026-07-05T09:09:18+05:30",
+      "businessSummary": "Aster DM Healthcare (now Aster DM Quality Care) is a hospital chain group across India and GCC, which merged with Quality Care India Ltd (QCIL, parent of KIMS Health-branded hospitals) to create a combined pan-India hospital network.",
+      "notes": [
+        {
+          "id": "281d88c5-602c-4a7f-af4b-fac4398b4705",
+          "createdAt": "2026-07-05T09:08:54+05:30",
+          "type": "announcement",
+          "announcementId": "2gfgqd4ymgssl89hr7prsrgp.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Change of Company Name",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/2gfgqd4ymgssl89hr7prsrgp.pdf",
+          "insight": "Following Clause 21(i) of the Scheme of Amalgamation between Quality Care India Ltd (QCIL) and Aster DM Healthcare Ltd, the company received a fresh Certificate of Incorporation from RoC-Telangana and formally changed its name to 'Aster DM Quality Care Ltd' effective 3 Jul 2026. This is a completion milestone of the previously-disclosed Aster-QCIL merger (QCIL includes the KIMS Health hospital brand per the letterhead) rather than a new corporate action — no new financial terms disclosed here. Direction is positive: it confirms the merger has reached legal completion rather than remaining pending. No prior notes on file for this entity. Watch for the first combined-entity financial disclosure to gauge integration/synergy realization.",
+          "significance": "high",
+          "tags": [
+            "acquisition"
+          ],
+          "category": "general",
+          "announcementDescription": "Announcement under Regulation 30 (LODR)-Change of Company Name"
+        }
+      ],
+      "processedAnnouncements": [
+        "2gfgqd4ymgssl89hr7prsrgp.pdf"
+      ]
+    }
+  }
+}
