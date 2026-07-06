@@ -2,33 +2,25 @@
   "name": "@stock/jobs",
   "version": "0.1.0",
   "private": true,
-  "description": "Cowork automation jobs (ported from Company Research Python) running on @stock/api.",
-  "type": "commonjs",
+  "description": "Cowork automation task definitions (jobs/tasks/) and data cache (jobs/data/). Runtime code lives in @stock/jobs-runtime (packages/jobs-runtime); these scripts delegate there.",
   "scripts": {
-    "test": "jest",
-    "data:doctor": "node lib/driveDataStore.js doctor",
-    "data:init": "node lib/driveDataStore.js init",
-    "data:pull": "node lib/driveDataStore.js pull",
-    "data:push": "node lib/driveDataStore.js push",
-    "data:sync": "node lib/driveDataStore.js sync",
-    "data:manifest": "node lib/driveDataStore.js manifest",
-    "data:auth": "node scripts/googleAuth.js",
-    "data:offload": "node scripts/offloadToDrive.js",
-    "ca-digest": "node corpActionsDigest.js",
-    "deals-digest": "node dealsDigest.js",
-    "weekly-ppt-insights": "node weeklyPptInsights.js",
-    "order-book-digest": "node orderBookDigest.js",
-    "mna-tracker": "node mnaTracker.js",
-    "tasks:sync": "node scripts/sync-tasks.js",
-    "tasks:push": "node scripts/sync-tasks.js --push",
-    "tasks:pull": "node scripts/sync-tasks.js --pull",
-    "tasks:diff": "node scripts/sync-tasks.js --push --dry-run"
-  },
-  "dependencies": {
-    "@stock/api": "workspace:*",
-    "@stock/cloud-utils": "workspace:*"
-  },
-  "devDependencies": {
-    "jest": "^30.2.0"
+    "test": "yarn workspace @stock/jobs-runtime test",
+    "data:doctor": "yarn workspace @stock/jobs-runtime data:doctor",
+    "data:init": "yarn workspace @stock/jobs-runtime data:init",
+    "data:pull": "yarn workspace @stock/jobs-runtime data:pull",
+    "data:push": "yarn workspace @stock/jobs-runtime data:push",
+    "data:sync": "yarn workspace @stock/jobs-runtime data:sync",
+    "data:manifest": "yarn workspace @stock/jobs-runtime data:manifest",
+    "data:auth": "yarn workspace @stock/jobs-runtime data:auth",
+    "data:offload": "yarn workspace @stock/jobs-runtime data:offload",
+    "ca-digest": "yarn workspace @stock/jobs-runtime ca-digest",
+    "deals-digest": "yarn workspace @stock/jobs-runtime deals-digest",
+    "weekly-ppt-insights": "yarn workspace @stock/jobs-runtime weekly-ppt-insights",
+    "order-book-digest": "yarn workspace @stock/jobs-runtime order-book-digest",
+    "mna-tracker": "yarn workspace @stock/jobs-runtime mna-tracker",
+    "tasks:sync": "yarn workspace @stock/jobs-runtime tasks:sync",
+    "tasks:push": "yarn workspace @stock/jobs-runtime tasks:push",
+    "tasks:pull": "yarn workspace @stock/jobs-runtime tasks:pull",
+    "tasks:diff": "yarn workspace @stock/jobs-runtime tasks:diff"
   }
 }

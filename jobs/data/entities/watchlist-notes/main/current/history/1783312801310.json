@@ -1,9 +1,9 @@
 {
   "meta": {
     "version": "1.0",
-    "lastRun": "2026-07-06T10:35:19+05:30",
-    "totalCompanies": 5,
-    "totalNotes": 10
+    "lastRun": "2026-07-06T10:10:01+05:30",
+    "totalCompanies": 4,
+    "totalNotes": 6
   },
   "companies": {
     "NSE:Z": {
@@ -29,20 +29,6 @@
         },
         {
           "id": "0f7922b9-2f0c-4455-9dcc-57c38a889f8d",
-          "announcementId": "z.pdf",
-          "insight": "hi",
-          "significance": "high",
-          "createdAt": "2026-06-27T10:00:00+05:30"
-        },
-        {
-          "id": "ecb79836-e9ff-4879-b539-4757ce8b0fd0",
-          "announcementId": "z.pdf",
-          "insight": "hi",
-          "significance": "high",
-          "createdAt": "2026-06-27T10:00:00+05:30"
-        },
-        {
-          "id": "f78ac6e0-40da-4635-9e92-06575285d889",
           "announcementId": "z.pdf",
           "insight": "hi",
           "significance": "high",
@@ -132,50 +118,6 @@
       ],
       "processedAnnouncements": [
         "53n6dqvx7jurauge586rb5zv.pdf"
-      ]
-    },
-    "NSE:DIACABS": {
-      "companyId": "NSE:DIACABS",
-      "ticker": "NSE:DIACABS",
-      "name": "Diamond Power Infrastructure Ltd",
-      "lastUpdated": "2026-07-06T10:11:17+05:30",
-      "businessSummary": "Vadodara-based integrated manufacturer of HT/LT/EHV power cables and T&D conductors (aluminium/alloy wire rods, ACSR/AAAC conductors) plus transmission towers, serving power, data-center, infra, defence and renewables customers in India and export markets.",
-      "notes": [
-        {
-          "id": "170fbb35-c48d-4425-a628-35149577479a",
-          "createdAt": "2026-07-06T10:10:35+05:30",
-          "type": "announcement",
-          "announcementId": "ozv7ydlhjnuufk2qhbjr9s4a.pdf",
-          "announcementTitle": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
-          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/ozv7ydlhjnuufk2qhbjr9s4a.pdf",
-          "insight": "Diamond Power Infrastructure secured a Rs. 435.71 crore order (exclusive of GST) for ~21.35 lakh meters of HT & LT power cables (HT: 1,89,404m; LT: 19,45,920m) for the 310 MW HYD22-HYD26 Data Center Projects at Hyderabad, to be executed by L&T, Sterling & Wilson and Blue Star — all top-tier EPC/data-center infrastructure contractors. Deliveries run first week of August 2026 to March 2027 (~8 months execution), implying roughly ₹163 crore/quarter of run-rate revenue from this single order alone (435.71 ÷ 8 × 3), pricing is variable per the IEEMA PV formula off April 2026 indices so realized value can move with input costs. This is explicitly framed by the company as 'among the larger single cable supply orders in India's data centre segment' and taps the high-growth data-center capex theme; no related-party or promoter interest is involved, and the order is in the ordinary course of business at arm's length. No prior notes or trailing revenue figures exist for this company yet, so the order's true book-to-bill/percent-of-revenue impact can't be computed here — treat this as flagged for verification against DIACABS's last annual/quarterly revenue once available. Watch for: whether this order is booked incrementally in coming quarterly results and any follow-on orders from the same Hyderabad data-center cluster.",
-          "significance": "high",
-          "tags": [
-            "order_win",
-            "capacity"
-          ],
-          "category": "order_book",
-          "announcementDescription": "Press Release / Media Release - Press release on receipt of order"
-        },
-        {
-          "id": "52ade46e-3ca9-42b1-bf39-bbbcc8302583",
-          "createdAt": "2026-07-06T10:11:08+05:30",
-          "type": "announcement",
-          "announcementId": "htem6rs90b8vujjrcwqvfeyf.pdf",
-          "announcementTitle": "Announcement under Regulation 30 (LODR)-Award_of_Order_Receipt_of_Order",
-          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/htem6rs90b8vujjrcwqvfeyf.pdf",
-          "insight": "DUPLICATE FILING — this is the same Rs. 435.71 crore HT/LT cable order for the 310 MW HYD22-HYD26 Hyderabad Data Center Projects (client-side execution by L&T, Sterling & Wilson, Blue Star) already captured in announcement ozv7ydlhjnuufk2qhbjr9s4a.pdf filed the same day (5 Jul 2026) under a different announcement ID/category tag ('Award of Order' vs 'Press Release'). PDF text is byte-identical to the press-release filing (same order value, quantities, delivery schedule Aug 2026-Mar 2027, IEEMA PV pricing basis). No incremental information here — do not double-count this as a second order when assessing DIACABS's order book; treat both filings as one economic event. See the sibling note on ozv7ydlhjnuufk2qhbjr9s4a.pdf for the full quantified insight.",
-          "significance": "routine",
-          "tags": [
-            "order_win"
-          ],
-          "category": "order_book",
-          "announcementDescription": "Award of Order / Receipt of Order - Receipt of order for supply of HT & LT Cables to Data Center Projects Hyderabad"
-        }
-      ],
-      "processedAnnouncements": [
-        "ozv7ydlhjnuufk2qhbjr9s4a.pdf",
-        "htem6rs90b8vujjrcwqvfeyf.pdf"
       ]
     }
   }

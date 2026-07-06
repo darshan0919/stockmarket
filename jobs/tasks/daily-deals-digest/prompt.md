@@ -3,8 +3,8 @@ Daily NSE/BSE deals digest (like screener.in/filings "Latest Trades"). The compa
 
 ## Execution Plan
 Call the following exact script:
-1. Execute script (bash): `cd "/Users/darshan.patel/code/personal/stockmarket/packages/cowork-jobs" && node dealsDigest.js`
-   (If running inside a sandbox where the folder is mounted, the equivalent mounted path of the stockmarket folder + `/packages/cowork-jobs` is fine — same script.)
+1. Execute script (bash): `cd "/Users/darshan.patel/code/personal/stockmarket/packages/jobs-runtime" && node dealsDigest.js`
+   (If running inside a sandbox where the folder is mounted, the equivalent mounted path of the stockmarket folder + `/packages/jobs-runtime` is fine — same script.)
 2. Read the JSON summary the script prints to stdout and report: per-category counts, top 3 items per category, and the `email` status.
 3. If the script exits non-zero, or `email.status` is "error" or "skipped", surface the exact error/reason in your report.
 

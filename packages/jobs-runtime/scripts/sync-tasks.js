@@ -10,13 +10,13 @@
  * Live location   = platforms.json[platform].targetDir/<taskId>/<fileName>
  *
  * Usage:
- *   node jobs/scripts/sync-tasks.js                       push repo -> Cowork (default platform, default direction)
- *   node jobs/scripts/sync-tasks.js --platform codex       push repo -> Codex
- *   node jobs/scripts/sync-tasks.js --pull                 pull Cowork -> repo
- *   node jobs/scripts/sync-tasks.js --platform codex --pull
- *   node jobs/scripts/sync-tasks.js --dry-run              preview only, write nothing
- *   node jobs/scripts/sync-tasks.js --task daily-deals-digest
- *   node jobs/scripts/sync-tasks.js --list-platforms
+ *   node packages/jobs-runtime/scripts/sync-tasks.js                       push repo -> Cowork (default platform, default direction)
+ *   node packages/jobs-runtime/scripts/sync-tasks.js --platform codex       push repo -> Codex
+ *   node packages/jobs-runtime/scripts/sync-tasks.js --pull                 pull Cowork -> repo
+ *   node packages/jobs-runtime/scripts/sync-tasks.js --platform codex --pull
+ *   node packages/jobs-runtime/scripts/sync-tasks.js --dry-run              preview only, write nothing
+ *   node packages/jobs-runtime/scripts/sync-tasks.js --task daily-deals-digest
+ *   node packages/jobs-runtime/scripts/sync-tasks.js --list-platforms
  *
  * NOTE: this only syncs the task's prompt/instructions text (rendered into
  * each platform's expected file format). It does NOT create or change cron
@@ -29,7 +29,9 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
-const TASKS_DIR = path.join(__dirname, "..", "tasks");
+// jobs/tasks/ stays in the jobs/ directory (only runtime code moved to
+// packages/jobs-runtime/), so this must reach back to the repo root.
+const TASKS_DIR = path.join(__dirname, "..", "..", "..", "jobs", "tasks");
 const PLATFORMS_FILE = path.join(TASKS_DIR, "platforms.json");
 const MANIFEST_FILE = path.join(TASKS_DIR, "manifest.json");
 
@@ -122,7 +124,7 @@ function resolvePlatform(platforms, name) {
   const renderer = renderers[config.format];
   if (!renderer) {
     throw new Error(
-      `Platform "${platformName}" declares format "${config.format}" but no renderer exists for it. Add one to renderers in jobs/scripts/sync-tasks.js.`
+      `Platform "${platformName}" declares format "${config.format}" but no renderer exists for it. Add one to renderers in packages/jobs-runtime/scripts/sync-tasks.js.`
     );
   }
   return {

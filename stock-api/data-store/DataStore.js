@@ -2,9 +2,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const StorageService = require('../../jobs/lib/StorageService');
-const driveApi = require('../../jobs/lib/googleDriveApi');
-const { resolveDataRoot, detectTransport, resolveDriveRoot } = require('../../jobs/lib/driveDataStore');
+const { StorageService, ...driveApi } = require('@stock/cloud-utils');
+const { resolveDataRoot, detectTransport, resolveDriveRoot } = require('../../packages/jobs-runtime/lib/driveDataStore');
 
 class DataStore {
   constructor(context = {}) {

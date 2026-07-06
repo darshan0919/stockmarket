@@ -318,7 +318,9 @@ async function main() {
   });
 
   // Persist snapshot
-  const outDir = path.join(__dirname, 'data', 'ca_digest');
+  // jobs/data/ stays in the jobs/ directory (only runtime code moved to
+  // packages/jobs-runtime/), so this must reach back to the repo root.
+  const outDir = path.join(__dirname, '..', '..', 'jobs', 'data', 'ca_digest');
   fs.mkdirSync(outDir, { recursive: true });
   const outFile = path.join(outDir, `${dateLabel}_ca.json`);
   fs.writeFileSync(outFile, JSON.stringify(digest, null, 2));

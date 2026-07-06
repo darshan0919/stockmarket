@@ -33,7 +33,9 @@ function resolveDataRoot() {
     process.env.WI_DATA_DIR ||
     (process.env.GAINERS_OUTPUT_DIR ? path.dirname(process.env.GAINERS_OUTPUT_DIR) : null) ||
     (process.env.IV_CACHE_DIR ? path.dirname(process.env.IV_CACHE_DIR) : null);
-  return path.resolve(expandHome(explicit || path.join(__dirname, '..', 'data')));
+  // jobs/data/ stays in the jobs/ directory (only runtime code moved to
+  // packages/jobs-runtime/), so the default must reach back to the repo root.
+  return path.resolve(expandHome(explicit || path.join(__dirname, '..', '..', '..', 'jobs', 'data')));
 }
 
 function detectGoogleDriveBase(email = DEFAULT_OWNER_EMAIL) {

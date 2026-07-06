@@ -1,0 +1,96 @@
+{
+  "meta": {
+    "version": "1.0",
+    "lastRun": "2026-07-06T10:09:13+05:30",
+    "totalCompanies": 3,
+    "totalNotes": 5
+  },
+  "companies": {
+    "NSE:Z": {
+      "companyId": "NSE:Z",
+      "ticker": "NSE:Z",
+      "name": "Zeta",
+      "lastUpdated": "2026-07-06T01:21:48+05:30",
+      "businessSummary": "",
+      "notes": [
+        {
+          "id": "734bfb33-fe9d-4b8f-ba71-d4d9357840c8",
+          "announcementId": "z.pdf",
+          "insight": "hi",
+          "significance": "high",
+          "createdAt": "2026-06-27T10:00:00+05:30"
+        },
+        {
+          "id": "1a9f4008-1670-4a69-a9a5-5ea95f86a936",
+          "announcementId": "z.pdf",
+          "insight": "hi",
+          "significance": "high",
+          "createdAt": "2026-06-27T10:00:00+05:30"
+        },
+        {
+          "id": "0f7922b9-2f0c-4455-9dcc-57c38a889f8d",
+          "announcementId": "z.pdf",
+          "insight": "hi",
+          "significance": "high",
+          "createdAt": "2026-06-27T10:00:00+05:30"
+        }
+      ],
+      "processedAnnouncements": []
+    },
+    "NSE:GRANULES": {
+      "companyId": "NSE:GRANULES",
+      "ticker": "NSE:GRANULES",
+      "name": "Granules India Ltd",
+      "lastUpdated": "2026-07-06T10:08:41+05:30",
+      "businessSummary": "Hyderabad-based pharma manufacturer of finished dosage forms, formulation intermediates and APIs, focused on high-volume off-patent products (paracetamol, metformin, ibuprofen) sold to 300+ customers in 80+ countries across regulated US/EU markets.",
+      "notes": [
+        {
+          "id": "947c6dfd-fd92-45a7-bc1e-502d3275da45",
+          "createdAt": "2026-07-06T10:08:27+05:30",
+          "type": "announcement",
+          "announcementId": "583xmnhb5dhdiv8zsxabkhia.pdf",
+          "announcementTitle": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/583xmnhb5dhdiv8zsxabkhia.pdf",
+          "insight": "Granules secured Sole First-to-File (FTF) ANDA status for Sodium Oxybate Extended-Release for Oral Suspension, the generic of LUMRYZ (a narcolepsy/cataplexy drug). This is the companys second Sole FTF ANDA after Amphetamine ER Tablets (generic Dyanavel XR), signalling growing capability in complex, differentiated generics rather than commodity products. Sole FTF status typically confers 180-day marketing exclusivity in the US on approval, which can be materially margin-accretive versus Granules base paracetamol/metformin business, but the PDF gives no revenue estimate, approval timeline, or launch date — actual P&L impact is unquantifiable from this filing alone. No prior notes exist for this company to compare against. Watch for: FDA approval/launch timing and management commentary on expected US market size for this molecule in the next concall.",
+          "significance": "medium",
+          "tags": [
+            "regulatory",
+            "press_release"
+          ],
+          "category": "general",
+          "announcementDescription": "Press Release / Media Release - Press Release"
+        }
+      ],
+      "processedAnnouncements": [
+        "583xmnhb5dhdiv8zsxabkhia.pdf"
+      ]
+    },
+    "NSE:POONAWALLA": {
+      "companyId": "NSE:POONAWALLA",
+      "ticker": "NSE:POONAWALLA",
+      "name": "Poonawalla Fincorp Ltd",
+      "lastUpdated": "2026-07-06T10:09:13+05:30",
+      "businessSummary": "Cyrus Poonawalla Group-controlled NBFC (formerly Magma Fincorp) focused on prime-customer consumer and MSME lending — personal, business, vehicle, gold and property loans — with a secured:unsecured mix of roughly 40:60.",
+      "notes": [
+        {
+          "id": "306bbc1c-ed77-41a9-96d0-9863c73da0c2",
+          "createdAt": "2026-07-06T10:09:03+05:30",
+          "type": "announcement",
+          "announcementId": "orcmbdwxlr83edliucra5ojo.pdf",
+          "announcementTitle": "Information Under Regulation 30 ... R/W Schedule A of Reg. 8 of SEBI (Prohibition Of Insider Trading) Regulations 2015",
+          "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/orcmbdwxlr83edliucra5ojo.pdf",
+          "insight": "Poonawalla Fincorp disclosed provisional Q1FY27 (quarter ended 30 June 2026) operating metrics: AUM of approximately ₹67,000 crore and liquidity of approximately ₹4,000 crore, both explicitly flagged as provisional and subject to limited review by statutory auditors. No prior notes exist for this company, so YoY/QoQ AUM growth cannot be benchmarked from internal data; ₹67,000cr is a large scale for the NBFC but the filing itself gives no growth rate, NIM, asset quality, or disbursement figures — it is a thin pre-results teaser, not a full result. Direction is neutral-to-mildly positive given continued AUM scale and stated liquidity buffer, but low information density limits actionability. Watch for: the full Q1FY27 results (asset quality/GNPA trend given ongoing unsecured lending stress in the NBFC sector) and confirmation these AUM/liquidity numbers hold post-audit.",
+          "significance": "low",
+          "tags": [
+            "investor_meet"
+          ],
+          "category": "general",
+          "announcementDescription": "General - Intimation under Regulation 30 of SEBI Listing Regulations 2015."
+        }
+      ],
+      "processedAnnouncements": [
+        "orcmbdwxlr83edliucra5ojo.pdf"
+      ]
+    }
+  }
+}

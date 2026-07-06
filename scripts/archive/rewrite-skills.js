@@ -1,10 +1,6 @@
 const fs = require('fs');
 
 const files = [
-  'jobs/skills/watchlist-sync/SKILL.md',
-  'jobs/skills/watchlist-insights/SKILL.md',
-  'jobs/skills/gainers-signal/SKILL.md',
-  'jobs/skills/insight-validation/SKILL.md',
   'skills/watchlist-sync/SKILL.md',
   'skills/watchlist-insights/SKILL.md',
   'skills/gainers-signal/SKILL.md',

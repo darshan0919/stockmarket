@@ -3,9 +3,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const { loadEnv } = require('../jobs/lib/env');
-const driveApi = require('../jobs/lib/googleDriveApi');
-const StorageService = require('../jobs/lib/StorageService');
+const { loadEnv } = require('../../packages/jobs-runtime/lib/env');
+const { StorageService, ...driveApi } = require('@stock/cloud-utils');
 
 async function main() {
   loadEnv(path.join(__dirname, '../.env'));

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const { loadEnv } = require('../jobs/lib/env');
-const StorageService = require('../jobs/lib/StorageService');
+const { loadEnv } = require('../../packages/jobs-runtime/lib/env');
+const { StorageService } = require('@stock/cloud-utils');
 
 loadEnv(path.join(__dirname, '..', '.env'));
 StorageService.init();

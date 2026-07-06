@@ -11,7 +11,7 @@ jobs/tasks/
 
 ## Syncing to a platform
 
-`jobs/scripts/sync-tasks.js` renders `prompt.md` into whatever file format the target platform expects, and copies it into that platform's live task directory.
+`packages/jobs-runtime/scripts/sync-tasks.js` renders `prompt.md` into whatever file format the target platform expects, and copies it into that platform's live task directory.
 
 ```bash
 # default platform is "cowork" (see platforms.json)
@@ -20,14 +20,14 @@ yarn tasks:push                       # push repo -> Cowork (~/Claude/Scheduled)
 yarn tasks:pull                       # pull Cowork -> repo
 
 # target a different platform
-node jobs/scripts/sync-tasks.js --platform codex --push
-node jobs/scripts/sync-tasks.js --platform antigravity --push --dry-run
+node packages/jobs-runtime/scripts/sync-tasks.js --platform codex --push
+node packages/jobs-runtime/scripts/sync-tasks.js --platform antigravity --push --dry-run
 
 # list all registered platforms
 yarn tasks:platforms
 
 # limit to one task
-node jobs/scripts/sync-tasks.js --task daily-deals-digest --push
+node packages/jobs-runtime/scripts/sync-tasks.js --task daily-deals-digest --push
 ```
 
 ## Adding a new platform
@@ -38,7 +38,7 @@ Add an entry to `platforms.json`:
 "myplatform": { "targetDir": "~/.myplatform/tasks", "format": "plain-md", "fileName": "task.md" }
 ```
 
-`format` must match a renderer registered in `jobs/scripts/sync-tasks.js` (`skill-md` for Cowork's YAML-frontmatter SKILL.md, `plain-md` for a generic markdown header + body). If a platform needs a genuinely different file shape, add a new renderer there.
+`format` must match a renderer registered in `packages/jobs-runtime/scripts/sync-tasks.js` (`skill-md` for Cowork's YAML-frontmatter SKILL.md, `plain-md` for a generic markdown header + body). If a platform needs a genuinely different file shape, add a new renderer there.
 
 ## What this does NOT do
 

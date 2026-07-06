@@ -18,7 +18,7 @@ email synthesis over their output. Do NOT re-fetch or re-compute anything.
 ## Setup
 
 ```bash
-SCAN=$(find /sessions -path '*jobs/gainersScanner.js' 2>/dev/null | head -1)
+SCAN=$(find /sessions -path '*packages/jobs-runtime/gainersScanner.js' 2>/dev/null | head -1)
 DATA=$(find /sessions -name 'gainers_classifier.py' 2>/dev/null | head -1 | xargs -0 dirname 2>/dev/null \
         || find /sessions -path '*Company Research*' -name '.env' 2>/dev/null | head -1 | xargs dirname)
 export GAINERS_OUTPUT_DIR="$DATA/daily_gainers" BSE_SCRIP_CACHE="$DATA/delivery_cache/bse_scrip_codes.json" \
@@ -64,7 +64,7 @@ Subject: `Daily Gainers Signal — {market_date}`.
 
 Send by writing the HTML to a temp file and using the shared mailer:
 ```bash
-MAILER=$(find /sessions -path '*jobs/lib/emailService.js' 2>/dev/null | head -1)
+MAILER=$(find /sessions -path '*cloud-utils/src/emailService.js' 2>/dev/null | head -1)
 node -e "const{sendHtmlEmail}=require('$MAILER');const fs=require('fs');sendHtmlEmail({subject:process.argv[1],htmlBody:fs.readFileSync(process.argv[2],'utf8')}).then(r=>console.log(JSON.stringify(r)))" \
   "Daily Gainers Signal — $MARKET_DATE" /tmp/gainers_email.html
 ```

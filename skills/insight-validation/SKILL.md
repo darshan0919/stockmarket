@@ -26,7 +26,7 @@ latest notes file and skips files already validated).
 ## Setup
 
 ```bash
-JOB=$(find /sessions -path '*jobs/insightValidator.js' 2>/dev/null | head -1)
+JOB=$(find /sessions -path '*packages/jobs-runtime/insightValidator.js' 2>/dev/null | head -1)
 DATA=$(find /sessions -name 'company_notes.json' 2>/dev/null | head -1 | xargs -0 dirname 2>/dev/null \
         || find /sessions -path '*Company Research*' -name '.env' 2>/dev/null | head -1 | xargs dirname)
 # Data (notes/, delivery_cache/, validation/ ledger+proposals) and .env live in the data dir:

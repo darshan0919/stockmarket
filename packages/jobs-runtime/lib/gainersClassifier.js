@@ -7,7 +7,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const DATA_DIR = process.env.COWORK_DATA_DIR || path.join(__dirname, '..', 'data');
+// jobs/data/ stays in the jobs/ directory (only runtime code moved to
+// packages/jobs-runtime/), so the default must reach back to the repo root.
+const DATA_DIR = process.env.COWORK_DATA_DIR || path.join(__dirname, '..', '..', '..', 'jobs', 'data');
 const GAINERS_DIR = path.join(DATA_DIR, 'daily_gainers');
 
 function latestRaw(gainersDir) {

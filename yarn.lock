@@ -1606,6 +1606,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stock/api@workspace:stock-api"
   dependencies:
+    "@stock/cloud-utils": "workspace:*"
     axios: ^1.6.0
     jest: ^30.2.0
     puppeteer: ^25.2.1
@@ -1622,13 +1623,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stock/jobs@workspace:jobs":
+"@stock/jobs-runtime@workspace:packages/jobs-runtime":
   version: 0.0.0-use.local
-  resolution: "@stock/jobs@workspace:jobs"
+  resolution: "@stock/jobs-runtime@workspace:packages/jobs-runtime"
   dependencies:
     "@stock/api": "workspace:*"
     "@stock/cloud-utils": "workspace:*"
     jest: ^30.2.0
+  languageName: unknown
+  linkType: soft
+
+"@stock/jobs@workspace:jobs":
+  version: 0.0.0-use.local
+  resolution: "@stock/jobs@workspace:jobs"
   languageName: unknown
   linkType: soft
 

@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { createDriveClient, DEFAULT_ROOT_PATH } = require('../jobs/lib/googleDriveApi');
+const { createDriveClient, DEFAULT_ROOT_PATH } = require('@stock/cloud-utils');
 
 async function cleanupDrive() {
   try {

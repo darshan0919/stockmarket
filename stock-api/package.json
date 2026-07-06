@@ -17,6 +17,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@stock/cloud-utils": "workspace:*",
     "axios": "^1.6.0",
     "puppeteer": "^25.2.1"
   },

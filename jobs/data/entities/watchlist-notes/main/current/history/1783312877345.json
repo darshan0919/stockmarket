@@ -1,9 +1,9 @@
 {
   "meta": {
     "version": "1.0",
-    "lastRun": "2026-07-06T10:35:19+05:30",
+    "lastRun": "2026-07-06T10:11:17+05:30",
     "totalCompanies": 5,
-    "totalNotes": 10
+    "totalNotes": 8
   },
   "companies": {
     "NSE:Z": {
@@ -29,20 +29,6 @@
         },
         {
           "id": "0f7922b9-2f0c-4455-9dcc-57c38a889f8d",
-          "announcementId": "z.pdf",
-          "insight": "hi",
-          "significance": "high",
-          "createdAt": "2026-06-27T10:00:00+05:30"
-        },
-        {
-          "id": "ecb79836-e9ff-4879-b539-4757ce8b0fd0",
-          "announcementId": "z.pdf",
-          "insight": "hi",
-          "significance": "high",
-          "createdAt": "2026-06-27T10:00:00+05:30"
-        },
-        {
-          "id": "f78ac6e0-40da-4635-9e92-06575285d889",
           "announcementId": "z.pdf",
           "insight": "hi",
           "significance": "high",
