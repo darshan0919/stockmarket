@@ -10,7 +10,7 @@
   ],
   "skills": {
     "stock-documents-fetcher": {
-      "skill_md": "skills/stock-documents-fetcher/SKILL.md",
+      "skill_md": "skills/equity-research/stock-documents-fetcher/SKILL.md",
       "entry": "stock-api/bin/stock-documents-fetcher.js",
       "mode": "bundle",
       "modules": [
@@ -18,7 +18,7 @@
         "stock-api/src/fetchers/announcementsFetcher.js"
       ],
       "references": [
-        "skills/stock-documents-fetcher/references/api_details.md"
+        "skills/equity-research/stock-documents-fetcher/references/api_details.md"
       ],
       "shared": [
         "skills/_shared/conventions.md"
@@ -36,7 +36,7 @@
       ]
     },
     "concall-analysis": {
-      "skill_md": "skills/concall-analysis/SKILL.md",
+      "skill_md": "skills/equity-research/concall-analysis/SKILL.md",
       "entry": "stock-api/bin/concall-analysis.js",
       "mode": "bundle",
       "modules": [
@@ -45,10 +45,10 @@
         "stock-api/src/generators/generateConcallPdf.js"
       ],
       "references": [
-        "skills/concall-analysis/references/deep_12section.md",
-        "skills/concall-analysis/references/brief_9section.md",
-        "skills/concall-analysis/references/multi_quarter.md",
-        "skills/concall-analysis/references/multi_peer.md"
+        "skills/equity-research/concall-analysis/references/deep_12section.md",
+        "skills/equity-research/concall-analysis/references/brief_9section.md",
+        "skills/equity-research/concall-analysis/references/multi_quarter.md",
+        "skills/equity-research/concall-analysis/references/multi_peer.md"
       ],
       "shared": [
         "skills/_shared/conventions.md",
@@ -66,7 +66,7 @@
       ]
     },
     "forensic-accounting": {
-      "skill_md": "skills/forensic-accounting/SKILL.md",
+      "skill_md": "skills/equity-research/forensic-accounting/SKILL.md",
       "entry": "stock-api/bin/forensic-accounting.js",
       "mode": "bundle",
       "modules": [
@@ -74,10 +74,10 @@
         "stock-api/src/generators/generateForensicPdf.js"
       ],
       "references": [
-        "skills/forensic-accounting/references/forensic_extraction.md",
-        "skills/forensic-accounting/references/forensic_master_prompt.md",
-        "skills/forensic-accounting/references/fraud_patterns.md",
-        "skills/forensic-accounting/references/piotroski_dupont.md"
+        "skills/equity-research/forensic-accounting/references/forensic_extraction.md",
+        "skills/equity-research/forensic-accounting/references/forensic_master_prompt.md",
+        "skills/equity-research/forensic-accounting/references/fraud_patterns.md",
+        "skills/equity-research/forensic-accounting/references/piotroski_dupont.md"
       ],
       "shared": [
         "skills/_shared/conventions.md",
@@ -96,7 +96,7 @@
       ]
     },
     "equity-research-deepdive": {
-      "skill_md": "skills/equity-research-deepdive/SKILL.md",
+      "skill_md": "skills/equity-research/equity-research-deepdive/SKILL.md",
       "entry": "stock-api/bin/equity-research-deepdive.js",
       "mode": "clone",
       "modules": [
@@ -104,7 +104,7 @@
         "stock-api/src/generators/generateReport.js"
       ],
       "references": [
-        "skills/equity-research-deepdive/references/research_template.md"
+        "skills/equity-research/equity-research-deepdive/references/research_template.md"
       ],
       "shared": [
         "skills/_shared/conventions.md",
@@ -123,7 +123,7 @@
       ]
     },
     "growth-triggers-1pager": {
-      "skill_md": "skills/growth-triggers-1pager/SKILL.md",
+      "skill_md": "skills/equity-research/growth-triggers-1pager/SKILL.md",
       "entry": "stock-api/bin/growth-triggers-1pager.js",
       "mode": "bundle",
       "modules": [
@@ -147,7 +147,7 @@
       ]
     },
     "management-credibility-tracker": {
-      "skill_md": "skills/management-credibility-tracker/SKILL.md",
+      "skill_md": "skills/equity-research/management-credibility-tracker/SKILL.md",
       "entry": "stock-api/bin/management-credibility-tracker.js",
       "mode": "bundle",
       "modules": [
@@ -155,8 +155,8 @@
         "stock-api/src/generators/generateCredibilityWidget.js"
       ],
       "references": [
-        "skills/management-credibility-tracker/references/credibility_framework.md",
-        "skills/management-credibility-tracker/references/case_study_calibration.md"
+        "skills/equity-research/management-credibility-tracker/references/credibility_framework.md",
+        "skills/equity-research/management-credibility-tracker/references/case_study_calibration.md"
       ],
       "shared": [
         "skills/_shared/conventions.md",
@@ -174,7 +174,7 @@
       ]
     },
     "peer-comparison": {
-      "skill_md": "skills/peer-comparison/SKILL.md",
+      "skill_md": "skills/equity-research/peer-comparison/SKILL.md",
       "entry": "stock-api/bin/peer-comparison.js",
       "mode": "bundle",
       "modules": [
@@ -182,7 +182,7 @@
         "stock-api/src/generators/generatePeerPdf.js"
       ],
       "references": [
-        "skills/peer-comparison/references/comparison_dimensions.md"
+        "skills/equity-research/peer-comparison/references/comparison_dimensions.md"
       ],
       "shared": [
         "skills/_shared/conventions.md",
@@ -199,7 +199,7 @@
       ]
     },
     "market-share-analysis": {
-      "skill_md": "skills/market-share-analysis/SKILL.md",
+      "skill_md": "skills/equity-research/market-share-analysis/SKILL.md",
       "entry": "stock-api/bin/market-share-analysis.js",
       "mode": "bundle",
       "modules": [
@@ -207,10 +207,10 @@
         "stock-api/src/generators/generateMarketShareHtml.js"
       ],
       "references": [
-        "skills/market-share-analysis/references/framework_9parts.md",
-        "skills/market-share-analysis/references/concentration_metrics.md",
-        "skills/market-share-analysis/references/data_sources.md",
-        "skills/market-share-analysis/references/anti_patterns.md"
+        "skills/equity-research/market-share-analysis/references/framework_9parts.md",
+        "skills/equity-research/market-share-analysis/references/concentration_metrics.md",
+        "skills/equity-research/market-share-analysis/references/data_sources.md",
+        "skills/equity-research/market-share-analysis/references/anti_patterns.md"
       ],
       "shared": [
         "skills/_shared/conventions.md",
@@ -228,15 +228,15 @@
       ]
     },
     "sector-research-deepdive": {
-      "skill_md": "skills/sector-research-deepdive/SKILL.md",
+      "skill_md": "skills/equity-research/sector-research-deepdive/SKILL.md",
       "entry": "stock-api/bin/sector-research-deepdive.js",
       "mode": "bundle",
       "modules": [
         "stock-api/src/generators/generateSectorReport.js"
       ],
       "references": [
-        "skills/sector-research-deepdive/references/research_protocol.md",
-        "skills/sector-research-deepdive/references/sector_framework.md"
+        "skills/equity-research/sector-research-deepdive/references/research_protocol.md",
+        "skills/equity-research/sector-research-deepdive/references/sector_framework.md"
       ],
       "shared": [
         "skills/_shared/conventions.md",
@@ -253,15 +253,15 @@
       ]
     },
     "drhp-ipo-analysis": {
-      "skill_md": "skills/drhp-ipo-analysis/SKILL.md",
+      "skill_md": "skills/equity-research/drhp-ipo-analysis/SKILL.md",
       "entry": "stock-api/bin/drhp-ipo-analysis.js",
       "mode": "bundle",
       "modules": [
         "stock-api/src/generators/generateDrhpPdf.js"
       ],
       "references": [
-        "skills/drhp-ipo-analysis/references/drhp_10section.md",
-        "skills/drhp-ipo-analysis/references/drhp_red_flags.md"
+        "skills/equity-research/drhp-ipo-analysis/references/drhp_10section.md",
+        "skills/equity-research/drhp-ipo-analysis/references/drhp_red_flags.md"
       ],
       "shared": [
         "skills/_shared/conventions.md",
@@ -278,19 +278,19 @@
       ]
     },
     "quarterly-result-analysis": {
-      "skill_md": "skills/quarterly-result-analysis/SKILL.md",
+      "skill_md": "skills/equity-research/quarterly-result-analysis/SKILL.md",
       "entry": "stock-api/bin/quarterly-result-analysis.js",
       "mode": "bundle",
       "modules": [
         "stock-api/src/fetchers/documentsFetcher.js"
       ],
       "references": [
-        "skills/quarterly-result-analysis/references/basket_framework.md",
-        "skills/quarterly-result-analysis/references/monitoring_checklist_patterns.md",
-        "skills/quarterly-result-analysis/references/tone_taxonomy.md"
+        "skills/equity-research/quarterly-result-analysis/references/basket_framework.md",
+        "skills/equity-research/quarterly-result-analysis/references/monitoring_checklist_patterns.md",
+        "skills/equity-research/quarterly-result-analysis/references/tone_taxonomy.md"
       ],
       "assets": [
-        "skills/quarterly-result-analysis/assets/result_widget_template.html"
+        "skills/equity-research/quarterly-result-analysis/assets/result_widget_template.html"
       ],
       "shared": [
         "skills/_shared/conventions.md",
@@ -307,20 +307,20 @@
       ]
     },
     "consecutive-filings-diff": {
-      "skill_md": "skills/consecutive-filings-diff/SKILL.md",
+      "skill_md": "skills/equity-research/consecutive-filings-diff/SKILL.md",
       "entry": "stock-api/bin/consecutive-filings-diff.js",
       "mode": "bundle",
       "modules": [
         "stock-api/src/fetchers/documentsFetcher.js"
       ],
       "references": [
-        "skills/consecutive-filings-diff/references/phase1_diff_framework.md",
-        "skills/consecutive-filings-diff/references/phase2_concall_reconciliation.md",
-        "skills/consecutive-filings-diff/references/phase3_live_repricing.md",
-        "skills/consecutive-filings-diff/references/writing_style.md"
+        "skills/equity-research/consecutive-filings-diff/references/phase1_diff_framework.md",
+        "skills/equity-research/consecutive-filings-diff/references/phase2_concall_reconciliation.md",
+        "skills/equity-research/consecutive-filings-diff/references/phase3_live_repricing.md",
+        "skills/equity-research/consecutive-filings-diff/references/writing_style.md"
       ],
       "assets": [
-        "skills/consecutive-filings-diff/assets/briefing_template.html"
+        "skills/equity-research/consecutive-filings-diff/assets/briefing_template.html"
       ],
       "shared": [
         "skills/_shared/conventions.md"
@@ -336,7 +336,7 @@
       ]
     },
     "pre-pead-scanner": {
-      "skill_md": "skills/pre-pead-scanner/SKILL.md",
+      "skill_md": "skills/equity-research/pre-pead-scanner/SKILL.md",
       "entry": "stock-api/bin/pre-pead-scanner.js",
       "mode": "bundle",
       "modules": [
@@ -344,13 +344,13 @@
         "stock-api/src/analyzers/runScan.js"
       ],
       "references": [
-        "skills/pre-pead-scanner/references/workflow.md",
-        "skills/pre-pead-scanner/references/guidance_extraction.md",
-        "skills/pre-pead-scanner/references/forward_estimation.md",
-        "skills/pre-pead-scanner/references/scan_api.md"
+        "skills/equity-research/pre-pead-scanner/references/workflow.md",
+        "skills/equity-research/pre-pead-scanner/references/guidance_extraction.md",
+        "skills/equity-research/pre-pead-scanner/references/forward_estimation.md",
+        "skills/equity-research/pre-pead-scanner/references/scan_api.md"
       ],
       "assets": [
-        "skills/pre-pead-scanner/assets/briefing_template.html"
+        "skills/equity-research/pre-pead-scanner/assets/briefing_template.html"
       ],
       "shared": [],
       "aliases": [
@@ -364,7 +364,7 @@
       ]
     },
     "watchlist-catalyst-scanner": {
-      "skill_md": "skills/watchlist-catalyst-scanner/SKILL.md",
+      "skill_md": "skills/equity-research/watchlist-catalyst-scanner/SKILL.md",
       "entry": "stock-api/bin/watchlist-catalyst-scanner.js",
       "mode": "bundle",
       "modules": [
@@ -372,7 +372,7 @@
         "stock-api/src/analyzers/catalystRules.js"
       ],
       "references": [
-        "skills/watchlist-catalyst-scanner/references/catalyst_taxonomy.md"
+        "skills/equity-research/watchlist-catalyst-scanner/references/catalyst_taxonomy.md"
       ],
       "shared": [],
       "aliases": [
@@ -386,7 +386,7 @@
       ]
     },
     "fundamental-shift-scanner": {
-      "skill_md": "skills/fundamental-shift-scanner/SKILL.md",
+      "skill_md": "skills/equity-research/fundamental-shift-scanner/SKILL.md",
       "entry": null,
       "references": [],
       "shared": [],
@@ -402,7 +402,7 @@
       ]
     },
     "equity-research-extraction": {
-      "skill_md": "skills/equity-research-extraction/SKILL.md",
+      "skill_md": "skills/equity-research/equity-research-extraction/SKILL.md",
       "entry": "stock-api/bin/equity-research-extraction.js",
       "mode": "bundle",
       "modules": [
@@ -410,10 +410,10 @@
         "stock-api/src/fetchers/announcementsFetcher.js"
       ],
       "references": [
-        "skills/equity-research-extraction/references/workflow-checklist.md"
+        "skills/equity-research/equity-research-extraction/references/workflow-checklist.md"
       ],
       "prompts": [
-        "skills/equity-research-extraction/prompts/unified_master.txt"
+        "skills/equity-research/equity-research-extraction/prompts/unified_master.txt"
       ],
       "shared": [],
       "aliases": [
@@ -427,11 +427,11 @@
       ]
     },
     "equity-research-dashboard": {
-      "skill_md": "skills/equity-research-dashboard/SKILL.md",
+      "skill_md": "skills/equity-research/equity-research-dashboard/SKILL.md",
       "entry": null,
       "references": [],
       "prompts": [
-        "skills/equity-research-dashboard/prompts/dashboard_master_v4.txt"
+        "skills/equity-research/equity-research-dashboard/prompts/dashboard_master_v4.txt"
       ],
       "shared": [],
       "aliases": [
@@ -444,7 +444,7 @@
       ]
     },
     "equity-research-master": {
-      "skill_md": "skills/equity-research-master/SKILL.md",
+      "skill_md": "skills/equity-research/equity-research-master/SKILL.md",
       "entry": null,
       "modules": [
         "stock-api/src/fetchers/documentsFetcher.js",
@@ -458,7 +458,7 @@
       ],
       "references": [],
       "templates": [
-        "skills/equity-research-master/templates/tab15_qoq_diff.html"
+        "skills/equity-research/equity-research-master/templates/tab15_qoq_diff.html"
       ],
       "shared": [],
       "aliases": [
@@ -473,19 +473,19 @@
       ]
     },
     "tweet-investor-playbook": {
-      "skill_md": "skills/tweet-investor-playbook/SKILL.md",
+      "skill_md": "skills/equity-research/tweet-investor-playbook/SKILL.md",
       "entry": "stock-api/bin/tweet-investor-playbook.js",
       "mode": "bundle",
       "modules": [
         "stock-api/src/analyzers/parseTweetDump.js"
       ],
       "references": [
-        "skills/tweet-investor-playbook/references/classification_taxonomy.md",
-        "skills/tweet-investor-playbook/references/synthesis_rules.md",
-        "skills/tweet-investor-playbook/references/track_record_methodology.md"
+        "skills/equity-research/tweet-investor-playbook/references/classification_taxonomy.md",
+        "skills/equity-research/tweet-investor-playbook/references/synthesis_rules.md",
+        "skills/equity-research/tweet-investor-playbook/references/track_record_methodology.md"
       ],
       "assets": [
-        "skills/tweet-investor-playbook/assets/widget_template.html"
+        "skills/equity-research/tweet-investor-playbook/assets/widget_template.html"
       ],
       "shared": [],
       "aliases": [
@@ -499,7 +499,7 @@
       ]
     },
     "announcement-keyword-explorer": {
-      "skill_md": "skills/announcement-keyword-explorer/SKILL.md",
+      "skill_md": "skills/equity-research/announcement-keyword-explorer/SKILL.md",
       "entry": "stock-api/bin/announcement-keyword-explorer.js",
       "mode": "bundle",
       "modules": [
@@ -517,7 +517,7 @@
       ]
     },
     "stock-report": {
-      "skill_md": "skills/stock-report/SKILL.md",
+      "skill_md": "skills/equity-research/stock-report/SKILL.md",
       "entry": null,
       "references": [],
       "shared": [],
@@ -533,7 +533,7 @@
       ]
     },
     "watchlist-sync": {
-      "skill_md": "skills/watchlist-sync/SKILL.md",
+      "skill_md": "skills/equity-research/watchlist-sync/SKILL.md",
       "entry": null,
       "references": [],
       "shared": [],
@@ -546,7 +546,7 @@
       ]
     },
     "insight-validation": {
-      "skill_md": "skills/insight-validation/SKILL.md",
+      "skill_md": "skills/equity-research/insight-validation/SKILL.md",
       "entry": null,
       "references": [],
       "shared": [],
@@ -559,7 +559,7 @@
       ]
     },
     "gainers-signal": {
-      "skill_md": "skills/gainers-signal/SKILL.md",
+      "skill_md": "skills/equity-research/gainers-signal/SKILL.md",
       "entry": null,
       "references": [],
       "shared": [],
@@ -573,7 +573,7 @@
       ]
     },
     "watchlist-insights": {
-      "skill_md": "skills/watchlist-insights/SKILL.md",
+      "skill_md": "skills/equity-research/watchlist-insights/SKILL.md",
       "entry": null,
       "references": [],
       "shared": [],
@@ -586,7 +586,7 @@
       ]
     },
     "cowork-task-architect": {
-      "skill_md": "skills/cowork-task-architect/SKILL.md",
+      "skill_md": "skills/tooling/cowork-task-architect/SKILL.md",
       "entry": null,
       "references": [],
       "shared": [],
@@ -601,7 +601,7 @@
       ]
     },
     "skill-manager": {
-      "skill_md": "skills/skill-manager/SKILL.md",
+      "skill_md": "skills/tooling/skill-manager/SKILL.md",
       "entry": null,
       "modules": [
         "stock-api/python/skill_manager/__init__.py",
@@ -639,7 +639,7 @@
       ]
     },
     "render-pdf": {
-      "skill_md": "skills/render-pdf/SKILL.md",
+      "skill_md": "skills/tooling/render-pdf/SKILL.md",
       "entry": "stock-api/bin/render-pdf.js",
       "mode": "clone",
       "modules": [
@@ -653,11 +653,11 @@
       ]
     },
     "investment-thesis-engine": {
-      "skill_md": "skills/investment-thesis-engine/SKILL.md",
+      "skill_md": "skills/equity-research/investment-thesis-engine/SKILL.md",
       "entry": null,
       "references": [
-        "skills/investment-thesis-engine/references/thesis_schema.md",
-        "skills/investment-thesis-engine/references/signal_rules.md"
+        "skills/equity-research/investment-thesis-engine/references/thesis_schema.md",
+        "skills/equity-research/investment-thesis-engine/references/signal_rules.md"
       ],
       "shared": [
         "skills/_shared/conventions.md",
@@ -676,7 +676,7 @@
       ]
     },
     "financial-model": {
-      "skill_md": "skills/financial-model/SKILL.md",
+      "skill_md": "skills/equity-research/financial-model/SKILL.md",
       "entry": null,
       "references": [],
       "shared": [
@@ -695,7 +695,7 @@
       ]
     },
     "value-chain-analysis": {
-      "skill_md": "skills/value-chain-analysis/SKILL.md",
+      "skill_md": "skills/equity-research/value-chain-analysis/SKILL.md",
       "entry": null,
       "references": [],
       "shared": [
@@ -712,7 +712,7 @@
       ]
     },
     "annual-report-analysis": {
-      "skill_md": "skills/annual-report-analysis/SKILL.md",
+      "skill_md": "skills/equity-research/annual-report-analysis/SKILL.md",
       "entry": null,
       "references": [],
       "shared": [
@@ -730,7 +730,7 @@
       ]
     },
     "stage2-catalyst-analysis": {
-      "skill_md": "skills/stage2-catalyst-analysis/SKILL.md",
+      "skill_md": "skills/equity-research/stage2-catalyst-analysis/SKILL.md",
       "entry": null,
       "references": [],
       "shared": [
@@ -750,7 +750,7 @@
       ]
     },
     "dead-code-scanner": {
-      "skill_md": "skills/dead-code-scanner/SKILL.md",
+      "skill_md": "skills/development/dead-code-scanner/SKILL.md",
       "entry": null,
       "references": [],
       "shared": [],

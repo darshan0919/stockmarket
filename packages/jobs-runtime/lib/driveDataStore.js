@@ -268,6 +268,23 @@ function classifyLocalDocument(localRel) {
     };
   }
 
+  // Modern structured layout (StorageService/DataStore writes entities/, events/,
+  // documents/): mirror the same relative path on Drive. Without this catch-all,
+  // offloadToDrive indexed only the legacy patterns above yet wiped the whole data
+  // root — silently deleting un-uploaded files (e.g. NSE delivery CSVs, watchlist
+  // notes entity history, deals digests).
+  if (/^(entities|events|documents)\//.test(rel)) {
+    return {
+      kind: 'structured',
+      category: rel.split('/').slice(0, 2).join('/'),
+      localRel: rel,
+      driveRel: rel,
+      date: isoDay,
+      retention: 'keep',
+      producer: 'storage-service',
+    };
+  }
+
   return null;
 }
 
@@ -314,6 +331,9 @@ function classifyDriveDocument(driveRel) {
   if (rel === 'validation/ledger/ledger.json') return classifyLocalDocument('validation/ledger.json');
   if (rel === 'validation/proposals/proposals.md') return classifyLocalDocument('validation/proposals.md');
   if (rel === 'legacy/company_notes.json') return classifyLocalDocument('company_notes.json');
+
+  // Modern structured layout: Drive path === local path.
+  if (/^(entities|events|documents)\//.test(rel)) return classifyLocalDocument(rel);
 
   if (rel.startsWith('_meta/')) return null;
   return null;
@@ -713,6 +733,7 @@ module.exports = {
   classifyLocalDocument,
   classifyDriveDocument,
   documentDto,
+  localDocuments,
   resolveDataRoot,
   resolveDriveRoot,
   detectTransport,

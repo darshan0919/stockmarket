@@ -20,12 +20,15 @@ const { nse, stockscans } = require('@stock/api');
 const { sendHtmlEmail, stockscansLink } = require('@stock/cloud-utils');
 const { NotesDb } = require('./lib/notesDb');
 const { loadEnv, argValue } = require('./lib/env');
-const { withDriveDataSync } = require('./lib/driveDataStore');
+const { withDriveDataSync, resolveDataRoot } = require('./lib/driveDataStore');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const ist = require('./lib/ist');
 
 // ── Paths & config ────────────────────────────────────────────────────────────
-const DATA_DIR = process.env.WI_DATA_DIR || process.cwd();
+// Default to the canonical data root (jobs/data), NOT process.cwd() — a cwd fallback
+// scattered notes/, validation/ and delivery_cache/ at the repo root whenever the
+// skill's env exports were missing.
+const DATA_DIR = process.env.WI_DATA_DIR || resolveDataRoot();
 const NOTES_DIR = process.env.WI_NOTES_DIR || path.join(DATA_DIR, 'notes');
 const CACHE_DIR = process.env.IV_CACHE_DIR || path.join(DATA_DIR, 'delivery_cache');
 const VAL_DIR = process.env.WI_VALIDATION_DIR || path.join(DATA_DIR, 'validation');

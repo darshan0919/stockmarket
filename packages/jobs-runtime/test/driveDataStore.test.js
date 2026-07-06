@@ -33,11 +33,19 @@ describe('driveDataStore classification', () => {
       driveRel: 'gainers/2026/06/26/insights.json',
     });
 
-    expect(store.classifyLocalDocument('delivery_cache/sec_bhavdata_full_26062026.csv')).toMatchObject({
-      category: 'nse-delivery-bhavcopy',
-      driveRel: 'market-data/nse-delivery/2026/06/sec_bhavdata_full_26062026.csv',
-      date: '2026-06-26',
+    // NSE bhavcopy now lives in the modern structured layout (written via
+    // StorageService by insightValidator) and maps 1:1 onto Drive.
+    expect(
+      store.classifyLocalDocument('events/market-data/nse-delivery/2026/06/sec_bhavdata_full_26062026.csv')
+    ).toMatchObject({
+      kind: 'structured',
+      category: 'events/market-data',
+      driveRel: 'events/market-data/nse-delivery/2026/06/sec_bhavdata_full_26062026.csv',
     });
+
+    // Files outside the recognized layouts stay unclassified (offload leaves
+    // them in place and warns instead of deleting them un-uploaded).
+    expect(store.classifyLocalDocument('random/stray.txt')).toBeNull();
   });
 });
 

@@ -24,11 +24,14 @@ const { sendHtmlEmail, stockscansLink } = require('@stock/cloud-utils');
 const { NotesDb } = require('./lib/notesDb');
 const { pdfToText } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
-const { withDriveDataSync } = require('./lib/driveDataStore');
+const { withDriveDataSync, resolveDataRoot } = require('./lib/driveDataStore');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const ist = require('./lib/ist');
 
-const SCRIPT_DIR = process.env.WI_DATA_DIR || process.cwd();
+// Default to the canonical data root (jobs/data), NOT process.cwd() — a cwd fallback
+// scattered notes/ and validation/ at the repo root whenever the skill's env exports
+// were missing.
+const SCRIPT_DIR = process.env.WI_DATA_DIR || resolveDataRoot();
 const NOTES_DIR = process.env.WI_NOTES_DIR || path.join(SCRIPT_DIR, 'notes');
 const VALIDATION_DIR = process.env.WI_VALIDATION_DIR || path.join(SCRIPT_DIR, 'validation');
 

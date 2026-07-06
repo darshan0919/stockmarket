@@ -25,14 +25,17 @@ const fs = require('fs');
 const path = require('path');
 const { stockscans, nse, bse } = require('@stock/api');
 const { loadEnv, argValue } = require('./lib/env');
-const { withDriveDataSync } = require('./lib/driveDataStore');
+const { withDriveDataSync, resolveDataRoot } = require('./lib/driveDataStore');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const { sendHtmlEmail } = require('@stock/cloud-utils');
 
-const OUTPUT_DIR = process.env.GAINERS_OUTPUT_DIR || path.join(process.cwd(), 'daily_gainers');
+// Default to the canonical data root (jobs/data), NOT process.cwd() — a cwd fallback
+// scattered daily_gainers/ and delivery_cache/ at the repo root whenever the skill's
+// env exports were missing. resolveDataRoot() honors COWORK_DATA_DIR/WI_DATA_DIR.
+const OUTPUT_DIR = process.env.GAINERS_OUTPUT_DIR || path.join(resolveDataRoot(), 'daily_gainers');
 const SCRIP_CACHE_FILE =
   process.env.BSE_SCRIP_CACHE ||
-  path.join(process.cwd(), 'delivery_cache', 'bse_scrip_codes.json');
+  path.join(resolveDataRoot(), 'delivery_cache', 'bse_scrip_codes.json');
 const PRICE_HISTORY_CANDLES = 65;
 const RATIOS_SCAN_ID = '7f7e2d4044f428e69254ce31';
 

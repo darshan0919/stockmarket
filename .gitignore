@@ -54,17 +54,23 @@ downloads/
 backend/uploads/
 
 
-# Cowork jobs runtime data + secrets (relocated from Company Research) — keep the .py helpers tracked
-packages/cowork-jobs/data/credentials.json
-packages/cowork-jobs/data/company_notes.json
-packages/cowork-jobs/data/daily_gainers/
-packages/cowork-jobs/data/delivery_cache/
-packages/cowork-jobs/data/notes/
-packages/cowork-jobs/data/validation/
-
-# Root delivery_cache (duplicate of cowork-jobs data)
+# ── Generated data (skills/cowork jobs) ──────────────────────────────────────
+# All generated data lives in jobs/data/ and is offloaded to Google Drive
+# (StockMarket/jobs/v1) by packages/jobs-runtime/scripts/offloadToDrive.js.
+# See skills/_shared/conventions.md §6–7. Data files must NEVER be committed.
+jobs/data/
 delivery_cache/
 
-# Data guards
-packages/cowork-jobs/notes/
+# Legacy stray output dirs at the repo root (written by older skill runs whose
+# env resolution fell back to process.cwd(); kept ignored as a guard)
+/daily_gainers/
+/notes/
+/validation/
+/events/
+/entities/
+/documents/
+/data/*.html
+
+# Legacy cowork-jobs paths (pre jobs-runtime relocation) — guard against revival
+packages/cowork-jobs/
 packages/cowork-jobs/process_watchlist.js

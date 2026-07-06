@@ -1,1 +1,1 @@
-Follow the `gainers-signal` skill (stockmarket/skills/gainers-signal/SKILL.md).
+Follow the `gainers-signal` skill (stockmarket/skills/equity-research/gainers-signal/SKILL.md).

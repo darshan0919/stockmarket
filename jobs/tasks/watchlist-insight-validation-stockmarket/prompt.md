@@ -1,1 +1,1 @@
-Follow the `insight-validation` skill (stockmarket/skills/insight-validation/SKILL.md).
+Follow the `insight-validation` skill (stockmarket/skills/equity-research/insight-validation/SKILL.md).
