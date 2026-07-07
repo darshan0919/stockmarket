@@ -391,7 +391,16 @@ function latestNotesFile() {
   const db = new NotesDb(NOTES_DIR);
   const entitiesRel = db.getLatestFile();
   const notes = StorageService.readJson(entitiesRel);
-  if (notes) return [path.basename(entitiesRel), notes];
+  if (notes) {
+    // NotesDb.getLatestFile() always resolves to the same static entity path
+    // ("entities/watchlist-notes/main/current/meta.json") regardless of when it was last
+    // written, so the bare filename can't be used as a validation-dedup key — it never
+    // changes even after new notes are appended. Version the identifier with the entity's
+    // lastRun timestamp (set on every NotesDb.save()) so each distinct save gets a distinct
+    // key and isAlreadyValidated() stops treating every day's fresh notes as already done.
+    const version = (notes.meta && notes.meta.lastRun) || 'unknown';
+    return [`${path.basename(entitiesRel)}@${version}`, notes];
+  }
 
   // Fallback: newest legacy snapshot in NOTES_DIR (notes_DD-MM-YY_HH-MM-SS_AM/PM.json),
   // written by watchlistInsights.js before it was migrated to the entities store.

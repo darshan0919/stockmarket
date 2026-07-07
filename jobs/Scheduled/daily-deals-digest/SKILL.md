@@ -1,3 +1,8 @@
+---
+name: daily-deals-digest
+description: Email top 10 NSE/BSE bulk, block, SAST and insider trades by value, daily at 7:30 PM IST (Mon–Fri)
+---
+
 ## Context
 Daily NSE/BSE deals digest (like screener.in/filings "Latest Trades"). The companion script fetches bulk deals, block deals, SAST Reg 29 and insider (PIT) trades from NSE/BSE, sorts each category by deal value, keeps the top 10, and emails an HTML digest to djplearner@gmail.com via Gmail.
 

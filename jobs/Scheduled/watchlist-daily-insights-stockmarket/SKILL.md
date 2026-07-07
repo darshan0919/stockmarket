@@ -1,0 +1,6 @@
+---
+name: watchlist-daily-insights-stockmarket
+description: Invoke the watchlist-insights skill (default 24h digest across Near Highs + Radar)
+---
+
+Follow the `watchlist-insights` skill (stockmarket/jobs/skills/watchlist-insights/SKILL.md) with watchlistIds = 0a365ec2139aa6ca7f74c250,7ca0e1a60c3fd0d8b1ab61ce,51a196a79dbc0296493e5174 (Near Highs + Radar + Upcoming Results).

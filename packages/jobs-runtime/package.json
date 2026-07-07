@@ -22,11 +22,7 @@
     "gainers-scanner": "node gainersScanner.js",
     "insight-validator": "node insightValidator.js",
     "watchlist-insights": "node watchlistInsights.js",
-    "watchlist-updater": "node watchlistUpdater.js",
-    "tasks:sync": "node scripts/sync-tasks.js",
-    "tasks:push": "node scripts/sync-tasks.js --push",
-    "tasks:pull": "node scripts/sync-tasks.js --pull",
-    "tasks:diff": "node scripts/sync-tasks.js --push --dry-run"
+    "watchlist-updater": "node watchlistUpdater.js"
   },
   "dependencies": {
     "@stock/api": "workspace:*",

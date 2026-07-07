@@ -575,10 +575,33 @@ async function main() {
   loadEnv(argValue('--env-file'));
   const dateArg = argValue('--date');
   const noEmail = process.argv.includes('--no-email');
+  const force = process.argv.includes('--force');
   const maxXbrl = Number(argValue('--max-xbrl')) || 600;
 
   const target = parseDateArg(dateArg) || istNow();
   const dateLabel = fmt(target, '-');
+
+  // Idempotency guard: a snapshot already existing for this date means a
+  // digest email was already sent today (e.g. scheduler double-fire, or a
+  // manual re-run on top of the scheduled one). Skip re-sending unless
+  // --force is passed. StorageService.init() is required before readJson.
+  StorageService.init();
+  const dtoPathsForCheck = StorageService.getEventDtoPaths('digest', target, 'documents/deals_digest');
+  const alreadySent = !force && !noEmail && StorageService.readJson(dtoPathsForCheck.jsonPath) !== null;
+  if (alreadySent) {
+    console.log(
+      JSON.stringify(
+        {
+          date: dateLabel,
+          email: { status: 'skipped', reason: `digest already sent for ${dateLabel} (snapshot exists at ${dtoPathsForCheck.jsonPath}); pass --force to resend` },
+          snapshot: dtoPathsForCheck.jsonPath,
+        },
+        null,
+        2
+      )
+    );
+    return;
+  }
 
   const [bulkBlock, sast, insider] = [
     await fetchBulkBlock(target),

@@ -34,11 +34,6 @@
     "cowork:data:offload": "yarn workspace @stock/jobs data:offload",
     "cowork:data:stockscans-ppts": "node scripts/data/fetchStockscansPpts.js && node scripts/data/extractPptText.js",
     "cowork:jobs:ca-digest": "yarn workspace @stock/jobs ca-digest",
-    "tasks:sync": "node packages/jobs-runtime/scripts/sync-tasks.js",
-    "tasks:push": "node packages/jobs-runtime/scripts/sync-tasks.js --push",
-    "tasks:pull": "node packages/jobs-runtime/scripts/sync-tasks.js --pull",
-    "tasks:diff": "node packages/jobs-runtime/scripts/sync-tasks.js --push --dry-run",
-    "tasks:platforms": "node packages/jobs-runtime/scripts/sync-tasks.js --list-platforms",
     "registries:generate": "node scripts/build/generate-registries.js"
   },
   "devDependencies": {

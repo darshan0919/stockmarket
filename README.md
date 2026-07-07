@@ -1,3 +1,11 @@
+# Setup
+
+1. Jobs folder is linked as cowork root folder.
+2. .env at root has all the secrets
+3. Google drive is used as database.
+4. All skills are stored in github & orchestrated via a single registry skill
+
+
 # 📈 Stock Market AI Ecosystem
 
 A comprehensive, **platform-agnostic AI ecosystem** built for advanced stock research, screening, and tracking. What started as a local-first stock screener has evolved into an ultimate system to simplify and automate the investing journey.
