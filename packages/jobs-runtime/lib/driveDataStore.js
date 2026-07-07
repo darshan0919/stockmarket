@@ -268,6 +268,20 @@ function classifyLocalDocument(localRel) {
     };
   }
 
+  // Investment-thesis engine's local mirror (data/theses/): mirrors the paired
+  // Drive DB folder 1MKK_WjVcvKCodIUaosTCZ8d_HXz6JPpL. Same relative path on Drive.
+  if (/^data\/theses\//.test(rel)) {
+    return {
+      kind: 'thesis-record',
+      category: 'investment-theses',
+      localRel: rel,
+      driveRel: rel,
+      date: isoDay,
+      retention: 'keep',
+      producer: 'thesis-engine',
+    };
+  }
+
   // Modern structured layout (StorageService/DataStore writes entities/, events/,
   // documents/): mirror the same relative path on Drive. Without this catch-all,
   // offloadToDrive indexed only the legacy patterns above yet wiped the whole data

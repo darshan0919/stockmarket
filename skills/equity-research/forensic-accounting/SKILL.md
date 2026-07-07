@@ -95,7 +95,8 @@ Then execute the two-step HTML-to-PDF pipeline:
 bash ./skills/_shared/resolve.sh $(basename $(dirname skills/forensic-accounting/SKILL.md)) --input data.json --output report.html
 
 # 2. Render PDF (Clone Mode)
-bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "<Company>_Output.pdf"
+mkdir -p jobs/data/forensic-accounting
+bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "jobs/data/forensic-accounting/<Company>_Output.pdf"
 ```
 
 The PDF is typically 4–8 pages: 1 page summary + checklist, 1 page per major section (sometimes combined), plus Piotroski/DuPont and fraud-pattern-match table at the end.

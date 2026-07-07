@@ -1,6 +1,6 @@
 ---
 name: upload-stock-reports-to-google-drive
-description: Upload stock reports to Google Drive (data:offload), then audit the repo for data-like files (json/csv/pdf/xlsx) missing from the data schema/offload pipeline and propose fixes
+description: Drive Sync & Audit — offload stock reports to Drive, audit repo for unmanaged data files
 ---
 
 Run this in order. This is an unattended scheduled run — execute autonomously, don't ask questions, and only take the specific actions listed below (no other writes, deletes, code edits, or file moves).
@@ -23,8 +23,8 @@ find /Users/darshan.patel/code/personal/stockmarket \( -iname "*.json" -o -iname
   -not -path "*/dist/*" -not -path "*/build/*" -not -path "*/coverage/*" -not -path "*/.turbo/*"
 ```
 Classify each hit into:
- - "config/lockfile/manifest — no action needed": package.json (any workspace), tsconfig*.json, skills-lock.json, .claude/settings.local.json, extensions/*/manifest.json, skills/registries/workflow-dependencies.json, scripts/skills/registries/workflow-dependencies.json, jobs/tasks/platforms.json, jobs/tasks/manifest.json. These are code/config, not research data — correctly excluded from the Drive schema. Don't flag these.
- - "data-like file outside the pipeline — real discrepancy": anything that looks like generated research/report output or app data sitting outside jobs/data/, e.g. standalone equity-report PDFs at repo root or in docs/assets/ (baseline as of 2026-07-07: ./AASTHA_equity_report_2026-07-07.pdf, ./docs/assets/INFY_equity_report_29Jun2026.pdf, ./docs/assets/Dashboard_complete_GuideExtraction___Generation_18_04_26_lyst1776605515998.pdf), or standalone data files like ./data/announcement-scan-ignore-keywords.json. Compare today's scan to this baseline and only call out NEW additions or removals — don't re-report the same known items every day.
+ - "config/lockfile/manifest — no action needed": package.json (any workspace), tsconfig*.json, skills-lock.json, .claude/settings.local.json, extensions/*/manifest.json, skills/registries/workflow-dependencies.json, scripts/skills/registries/workflow-dependencies.json, jobs/Scheduled/*/manifest.json. These are code/config, not research data — correctly excluded from the Drive schema. Don't flag these.
+ - "data-like file outside the pipeline — real discrepancy": anything that looks like generated research/report output or app data sitting outside jobs/data/, e.g. standalone equity-report PDFs at repo root or in docs/assets/ (baseline as of 2026-07-07: ./docs/assets/Dashboard_complete_GuideExtraction___Generation_18_04_26_lyst1776605515998.pdf), or standalone data files like ./data/announcement-scan-ignore-keywords.json. Compare today's scan to this baseline and only call out NEW additions or removals — don't re-report the same known items every day. (Note: ./AASTHA_equity_report_2026-07-07.pdf and ./docs/assets/INFY_equity_report_29Jun2026.pdf were untracked from git and gitignored as of 2026-07-07 — no longer a discrepancy. Also, data/theses/ — the investment-thesis engine's local mirror of Drive folder 1MKK_WjVcvKCodIUaosTCZ8d_HXz6JPpL — is now classified by classifyLocalDocument() as a legitimate managed data location, not an unclassified discrepancy.)
 
 STEP 3 — Report & mitigation plan (no code changes, no file moves/deletes)
 Summarize:

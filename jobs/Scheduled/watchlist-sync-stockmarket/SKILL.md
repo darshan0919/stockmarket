@@ -1,6 +1,6 @@
 ---
 name: watchlist-sync-stockmarket
-description: Sync multiple StockScans watchlists from their scans (Upcoming Results + Near Highs); mapping is defined in this task prompt
+description: Watchlist Sync — sync StockScans watchlists (Upcoming Results + Near Highs)
 ---
 
 Follow the `watchlist-sync` skill (stockmarket/skills/watchlist-sync/SKILL.md).

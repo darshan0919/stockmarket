@@ -83,7 +83,8 @@ Then execute the two-step HTML-to-PDF pipeline:
 bash ./skills/_shared/resolve.sh $(basename $(dirname skills/growth-triggers-1pager/SKILL.md)) --input data.json --output report.html
 
 # 2. Render PDF (Clone Mode)
-bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "<Company>_Output.pdf"
+mkdir -p jobs/data/growth-triggers-1pager
+bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "jobs/data/growth-triggers-1pager/<Company>_Output.pdf"
 ```
 
 Script at [`stock-api/src/generators/generatePdf.js`](stock-api/src/generators/generatePdf.js). Shares palette/helpers with `../stock-api/python/utils/pdf_utils.py`. **PDF must fit on 1 page.** If it spills: cut trigger body text, not triggers. Drop to 5 triggers if still tight.

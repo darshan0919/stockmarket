@@ -1,6 +1,6 @@
 ---
 name: watchlist-insight-validation-stockmarket
-description: Invoke the insight-validation skill (default: validate latest notes, ledger + proposals, email)
+description: Signal Validation — validate latest watchlist notes, update ledger + proposals, email summary
 ---
 
 Follow the `insight-validation` skill (stockmarket/skills/insight-validation/SKILL.md).

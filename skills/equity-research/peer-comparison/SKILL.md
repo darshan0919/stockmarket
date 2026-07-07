@@ -84,7 +84,8 @@ Then execute the two-step HTML-to-PDF pipeline:
 bash ./skills/_shared/resolve.sh $(basename $(dirname skills/peer-comparison/SKILL.md)) --input data.json --output report.html
 
 # 2. Render PDF (Clone Mode)
-bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "<Company>_Output.pdf"
+mkdir -p jobs/data/peer-comparison
+bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "jobs/data/peer-comparison/<Company>_Output.pdf"
 ```
 
 See [`stock-api/src/generators/generatePeerPdf.js`](stock-api/src/generators/generatePeerPdf.js).

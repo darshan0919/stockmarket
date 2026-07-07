@@ -1,6 +1,6 @@
 ---
 name: daily-deals-digest
-description: Email top 10 NSE/BSE bulk, block, SAST and insider trades by value, daily at 7:30 PM IST (Mon–Fri)
+description: Deals Digest — top 10 NSE/BSE bulk/block/SAST/insider trades by value
 ---
 
 ## Context

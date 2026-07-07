@@ -2,7 +2,7 @@
   "name": "@stock/jobs",
   "version": "0.1.0",
   "private": true,
-  "description": "Cowork automation task definitions (jobs/tasks/) and data cache (jobs/data/). Runtime code lives in @stock/jobs-runtime (packages/jobs-runtime); these scripts delegate there.",
+  "description": "Cowork automation task definitions (jobs/Scheduled/) and data cache (jobs/data/). Runtime code lives in @stock/jobs-runtime (packages/jobs-runtime); these scripts delegate there.",
   "scripts": {
     "test": "yarn workspace @stock/jobs-runtime test",
     "data:doctor": "yarn workspace @stock/jobs-runtime data:doctor",

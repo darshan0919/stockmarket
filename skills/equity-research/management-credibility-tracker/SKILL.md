@@ -71,7 +71,8 @@ Then execute the two-step HTML-to-PDF pipeline:
 bash ./skills/_shared/resolve.sh $(basename $(dirname skills/management-credibility-tracker/SKILL.md)) --input data.json --output report.html
 
 # 2. Render PDF (Clone Mode)
-bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "<Company>_Output.pdf"
+mkdir -p jobs/data/management-credibility-tracker
+bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "jobs/data/management-credibility-tracker/<Company>_Output.pdf"
 ```
 
 ## The 4 documented case studies (calibration anchors)

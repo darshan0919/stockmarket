@@ -1,6 +1,6 @@
 ---
 name: weekly-thesis-review
-description: Saturday deep review of all Investment Theses: staleness, valuation re-anchor, monitorables, and portfolio-level signal summary.
+description: Thesis Weekly Review — deep Saturday review: staleness, valuation re-anchor, monitorables
 ---
 
 You are running the weekly Investment Thesis review for Darshan's stockmarket project (folder: /Users/darshan.patel/code/personal/stockmarket).

@@ -441,7 +441,7 @@ Six scorecard bullets followed by conviction call and valuation snapshot:
 
 ## Step 4 — Generate the PDF
 
-Write a Python script at `/sessions/$SESSION_ID/generate_stock_report.py` and run it. The script uses ReportLab Platypus to build a **single PDF** saved to `/sessions/$SESSION_ID/mnt/[WORKSPACE_NAME]/[TICKER]_equity_report_[DATE].pdf`.
+Write a Python script at `/sessions/$SESSION_ID/generate_stock_report.py` and run it. The script uses ReportLab Platypus to build a **single PDF** saved to `/sessions/$SESSION_ID/mnt/[WORKSPACE_NAME]/jobs/data/stock-reports/[TICKER]_equity_report_[DATE].pdf`.
 
 Sections 1–10 flow first, then the Concall Appendix (Section 11) after a `PageBreak()`. One file, never two.
 
@@ -493,7 +493,7 @@ sed -i "s/₹/Rs./g" generate_stock_report.py
 
 ```python
 import os
-output_path = f"/sessions/{SESSION_ID}/mnt/{WORKSPACE_NAME}/{TICKER}_equity_report_{DATE}.pdf"
+output_path = f"/sessions/{SESSION_ID}/mnt/{WORKSPACE_NAME}/jobs/data/stock-reports/{TICKER}_equity_report_{DATE}.pdf"
 os.makedirs(os.path.dirname(output_path), exist_ok=True)
 ```
 

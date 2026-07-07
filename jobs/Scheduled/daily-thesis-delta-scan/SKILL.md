@@ -1,6 +1,6 @@
 ---
 name: daily-thesis-delta-scan
-description: Weekday-morning delta scan: apply new announcements/results to every stored Investment Thesis and flag signal changes.
+description: Thesis Delta Scan — apply new announcements/results to stored theses, flag signal changes
 ---
 
 You are running the daily Investment Thesis delta scan for Darshan's stockmarket project (folder: /Users/darshan.patel/code/personal/stockmarket).
