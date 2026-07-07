@@ -33,6 +33,16 @@ The verification script generates a JSON file (e.g. `verified_dead_code.json`) c
 - `unusedDependencies`: Dependencies confirmed as truly unused.
 - `unusedExports`: Exported functions/variables that are not imported outside of their defining file.
 
+Per the [output-dto-standard](../../tooling/output-dto-standard/SKILL.md), every entry in these
+three arrays carries the record-level envelope (`companyId`, `creationTime`, `modifiedTime`,
+`creator`). Note: this skill is about dead CODE, not companies — there is no ticker/company
+concept here, so `companyId` is a deliberate semantic stretch of the field name, reused to hold
+the record's own unique identifier (the file path, dependency name, or export name being
+flagged), per the standard's guidance for non-company skills. `creator` is always
+`"dead-code-scanner"`. Example entry: `{ "file": "src/utils/oldHelper.js", "companyId":
+"src/utils/oldHelper.js", "creationTime": "2026-07-07T10:00:00.000Z", "modifiedTime":
+"2026-07-07T10:00:00.000Z", "creator": "dead-code-scanner" }`.
+
 ### 4. Present Findings
 Create a markdown report summarizing the findings and ask the user if they'd like you to proceed with removing the identified dead code.
 

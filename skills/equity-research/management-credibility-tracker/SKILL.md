@@ -46,10 +46,14 @@ If only 4-5 transcripts are available (recent IPO), proceed but flag in the outp
 
 This skill **does not re-implement** concall extraction. Call `concall-analysis` in `multi-quarter` mode and consume its output:
 
-Write the following JSON to a temporary file (e.g. `data.json`):
+Write the following JSON to a temporary file (e.g. `data.json`). This `data.json` is the canonical DTO — render-pdf's PDF output (and the HTML widget) is a reproducible rendering of it, not a separate source of truth, so the four envelope fields below must be present at the top level:
 
 ```json
 data = {
+    "companyId": ticker,                      # e.g. "NSE:SWARAJENG" — same value as $TICKER in Phase 1
+    "creationTime": "2026-07-07T10:00:00+05:30",   # ISO 8601, set on first write
+    "modifiedTime": "2026-07-07T10:00:00+05:30",   # equals creationTime on first write
+    "creator": "management-credibility-tracker",
     "company_name": "...",
     "ticker": "NSE: ...",
     "tracking_window": "Q1 FY24 - Q3 FY26",   # 8 quarters

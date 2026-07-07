@@ -19,9 +19,41 @@ auto-applied.
 | `fetch-delivery [DDMMYYYY]` | debug: summarise the NSE delivery file for a date |
 | `score <SYMBOL>` | debug: print structural metrics for one NSE symbol |
 | `show-ledger` | print accumulated per-category validation stats |
+| `validate-gainers [DDMMYYYY]` | debug: run the gainers-signal D+2 follow-up validation on demand for a given source date (default: 2 trading days ago) |
 
 The default nightly behaviour is exactly `run` with no arguments (it auto-selects the
-latest notes file and skips files already validated).
+latest notes file and skips files already validated). `run` now ALSO performs the
+gainers-signal follow-up validation below as part of its normal execution — it is not a
+separate manual step.
+
+## Gainers-signal follow-up validation (D+2)
+
+In addition to validating watchlist notes, every `run` also validates `gainers-signal`'s
+HIGH-conviction picks from 2 trading days ago against that date's D+2 (today) price
+action:
+
+- Loads `jobs/data/daily_gainers/{sourceDate}_insights.json`, filters to `signals[]`
+  where `conviction === "HIGH"`.
+- For each, fetches D and D+2 close price + delivery% (via this job's existing NSE
+  delivery helpers) and computes the D+2 close-to-close return.
+- **Validated** = D+2 return is positive AND exceeds `GAINERS_VALIDATION_MIN_GAIN_PCT`
+  (default **+3%**, a tunable constant in `insightValidator.js`). Delivery% is only an
+  annotation (`deliveryTrend: rising/falling/flat`), never a hard gate.
+- Also does a best-effort, qualitative hindsight review of whether the originally
+  assigned `primary_driver` (e.g. `SECTOR_CATALYST`) still looks right, using whatever
+  sector/peer data is already in the source `insights.json`.
+- Results are written to `jobs/data/validation/gainers_ledger.json` — each record follows
+  the DTO standard (`skills/tooling/output-dto-standard/SKILL.md`): `companyId`,
+  `creationTime`, `modifiedTime`, `creator: "insight-validation"`, plus
+  `sourceDate`, `validationDate`, `conviction`, `d2Return`, `deliveryTrend`, `validated`,
+  `categorizationNote`.
+- A summary section ("🎯 Gainers-Signal Follow-up Validation (D+2)") is folded into the
+  same nightly validation email, as an additional section alongside the existing
+  watchlist-notes validation report.
+- Can also be run standalone via `validate-gainers [DDMMYYYY]` for debugging/backfill.
+
+This skill's outputs (`validation/ledger.json` and `validation/gainers_ledger.json`)
+conform to the DTO standard in `skills/tooling/output-dto-standard/SKILL.md`.
 
 ## Setup
 

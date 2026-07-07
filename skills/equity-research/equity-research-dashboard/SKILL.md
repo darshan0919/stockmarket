@@ -24,6 +24,50 @@ Produce **one** offline-capable `[TICKER]_Dashboard.html`: institutional-grade s
 
 Place extracts as in the workflow guide; attach all files to the LLM when running the prompt.
 
+## Output DTO (write before rendering)
+
+Per `skills/tooling/output-dto-standard/SKILL.md`, the HTML dashboard must be
+reproducible FROM a persisted JSON — never generated directly from the raw
+`MasterData.xlsx` / `.txt` extracts with no intermediate artifact.
+
+Before writing the dashboard HTML, write `[TICKER]_dashboard_data.json` (e.g. to
+`jobs/data/agent-outputs/`) containing the computed per-tab data that will populate the
+Chart.js charts and tables: KPI series, peer table, shareholding, ratios, triggers,
+forensic flags, valuation ladder, etc. — i.e. everything you extracted/derived from
+`MasterData.xlsx` and the Project A `.txt` extracts, structured tab-by-tab. This skill
+is single-company per run, so use one top-level record (not an array) shaped like:
+
+```json
+{
+  "companyId": "NSE:SWARAJENG",
+  "creationTime": "2026-07-07T00:00:00Z",
+  "modifiedTime": "2026-07-07T00:00:00Z",
+  "creator": "equity-research-dashboard",
+  "tabs": {
+    "execSummary": { ... },
+    "overview": { ... },
+    "business": { ... },
+    "industry": { ... },
+    "financials": { ... },
+    "growth": { ... },
+    "estimates": { ... },
+    "forensics": { ... },
+    "valuation": { ... },
+    "thesis": { ... },
+    "risks": { ... },
+    "concall": { ... },
+    "capAlloc": { ... },
+    "ownership": { ... },
+    "events": { ... }
+  }
+}
+```
+
+If re-running for the same ticker, read the existing JSON first and preserve
+`creationTime`. Only after this JSON is written should you render `[TICKER]_Dashboard.html`
+from it via the master prompt below — the HTML generation step is a template pass over
+`dashboard_data.json`, not a second independent pass over the raw source files.
+
 ## Full prompt
 
 See `prompts/dashboard_master_v4.txt` in this skill (duplicate: `backend/prompts/institutional-equity/dashboard_master_v4.txt`).

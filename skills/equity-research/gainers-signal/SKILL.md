@@ -45,7 +45,15 @@ node "$RUNTIME/lib/gainersClassifier.js"
 Reads the raw JSON and writes `jobs/data/daily_gainers/{market_date}_insights.json` with
 `signals[]` — each has `primary_driver`, `conviction`, `in_email`, and a pre-built
 `evidence[]` (announcement subjects 📋 material / 📄 routine, delivery %, vol spike,
-breakout flags).
+breakout flags). Each signal record also carries the DTO envelope required by
+`skills/tooling/output-dto-standard/SKILL.md`: `companyId`, `creationTime`,
+`modifiedTime`, `creator: "gainers-signal"`.
+
+Downstream: `insight-validation`'s nightly run performs a D+2 follow-up validation on
+this file's HIGH-conviction picks (positive, substantial D+2 return; delivery% as a
+secondary signal) and writes `jobs/data/validation/gainers_ledger.json` — see
+`skills/equity-research/insight-validation/SKILL.md`. No action needed here; just be
+aware today's HIGH picks get checked automatically two trading days out.
 
 ## Step 3 — Compose & send the email (your judgment)
 

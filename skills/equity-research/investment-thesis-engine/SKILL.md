@@ -27,7 +27,9 @@ operating leverage), **Valuation** (don't overpay, ever), **Promoter** (can mino
 shareholders trust them) — gated by forensics and management credibility.
 
 Read before any run:
-- `references/thesis_schema.md` — the JSON/MD record format.
+- `references/thesis_schema.md` — the JSON/MD record format, including the required
+  `companyId`/`creationTime`/`modifiedTime`/`creator` envelope fields per
+  `skills/tooling/output-dto-standard/SKILL.md`.
 - `references/signal_rules.md` — deterministic scoring → signal mapping. Signals must be
   reproducible from the recorded scores, never vibes.
 - `skills/_shared/data-verification.md` — anti-hallucination protocol (mandatory).

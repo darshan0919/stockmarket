@@ -52,7 +52,13 @@ For EACH item:
    AND % of capital (Δ and resulting holding), mode/price, and threshold crossed.
 4. **Save the note:** `echo '<json>' | run add-note` with `{companyId, ticker, name,
    businessSummary?, note:{type:"announcement", announcementId, announcementTitle, pdfUrl,
-   insight, significance, tags, category, announcementDescription}}`.
+   insight, significance, tags, category, announcementDescription}}`. This writes into the
+   per-company record in the notes DB (`entities/watchlist-notes/main/current`), which IS
+   the canonical JSON DTO for this skill's output (see
+   `skills/tooling/output-dto-standard/SKILL.md`) — `NotesDb.ensureCompany` stamps every
+   company record with `companyId`, `creationTime`, `modifiedTime`, and
+   `creator: "watchlist-insights"` automatically. The Step 3 digest email is a render of
+   this stored data, never drafted independently of it.
 5. **Mark processed:** `run mark-processed "<companyId>" "<announcementId>"`.
 
 Routine items that slip through: just `run mark-processed` and move on (no insight).

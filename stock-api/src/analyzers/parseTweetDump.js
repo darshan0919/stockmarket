@@ -50,12 +50,14 @@ function normaliseTweet(raw, sourceFormat) {
   const text = first(raw, TEXT_KEYS, "");
   if (!text) return null;
   const strText = String(text);
-  
+
   const isRetweet = /^RT\s+@/.test(strText) || Boolean(raw.retweeted_status);
   const inReplyToId = first(raw, REPLY_ID_KEYS);
+  const tweetId = first(raw, ID_KEYS) !== null ? String(first(raw, ID_KEYS)) : null;
+  const now = new Date().toISOString();
 
   return {
-    id: first(raw, ID_KEYS) !== null ? String(first(raw, ID_KEYS)) : null,
+    id: tweetId,
     date: parseDate(first(raw, DATE_KEYS)),
     author: first(raw, AUTHOR_KEYS) ? String(first(raw, AUTHOR_KEYS)) : null,
     text: strText,
@@ -69,6 +71,14 @@ function normaliseTweet(raw, sourceFormat) {
     retweet_count: _int(first(raw, RT_KEYS)),
     reply_count: _int(first(raw, REPLY_COUNT_KEYS)),
     source_format: sourceFormat,
+    // Output DTO Standard (skills/tooling/output-dto-standard/SKILL.md) record-level
+    // envelope. This skill isn't about companies/tickers, so `companyId` is a semantic
+    // stretch: it carries the tweet's own unique id (falling back to a stable synthetic
+    // id when the source has none), serving the same "unique record identifier" role.
+    companyId: tweetId || `${sourceFormat}_${strText.slice(0, 40)}`,
+    creationTime: now,
+    modifiedTime: now,
+    creator: 'tweet-investor-playbook',
   };
 }
 

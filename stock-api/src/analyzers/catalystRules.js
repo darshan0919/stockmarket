@@ -159,6 +159,7 @@ function findNames(text, names) {
 
 function _alert(ann, company, category, severity, why, valueCr, marquee, themes, opts = {}) {
   const { btb = null, investors = [] } = opts;
+  const now = new Date().toISOString();
   return {
     date: (ann.date || "").substring(0, 10),
     companyId: ann.companyId || company.companyId,
@@ -176,6 +177,12 @@ function _alert(ann, company, category, severity, why, valueCr, marquee, themes,
     pdf: ann.ssUrl,
     mcap: company["Market Capitalization"],
     ttm_revenue: company["Revenue"],
+    // Output DTO Standard (skills/tooling/output-dto-standard/SKILL.md) record-level
+    // envelope. `companyId` above already reuses the codebase's established ticker
+    // convention, so no separate field is needed for it.
+    creationTime: now,
+    modifiedTime: now,
+    creator: 'watchlist-catalyst-scanner',
   };
 }
 

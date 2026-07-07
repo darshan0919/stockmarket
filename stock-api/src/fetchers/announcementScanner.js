@@ -152,6 +152,8 @@ async function fetchAndExtract(keyword, options = {}) {
   const allDescriptions = [];
   const perQuarter = {};
   const errors = [];
+  const announcements = [];
+  const now = new Date().toISOString();
   let total = 0;
 
   for (const qd of quarterDates) {
@@ -159,10 +161,28 @@ async function fetchAndExtract(keyword, options = {}) {
       const items = await fetchQuarter(keyword, qd, minMcap);
       const titles = items.map(item => String(item.title || '').trim()).filter(Boolean);
       const descs = items.map(item => String(item.description || '').trim()).filter(Boolean);
-      
+
       allTitles.push(...titles);
       allDescriptions.push(...descs);
-      
+
+      // Per output-dto-standard: this file is company-related (announcements per ticker),
+      // so each raw announcement record gets the record-level DTO envelope, keyed on the
+      // real companyId/ticker convention already used elsewhere in the codebase (e.g.
+      // StockscansClient's "NSE:XYZ" style ids).
+      for (const item of items) {
+        announcements.push({
+          companyId: item.companyId || item.company_id || null,
+          name: item.name || item.Name || null,
+          date: item.date || null,
+          title: String(item.title || '').trim(),
+          description: String(item.description || '').trim(),
+          quarterDate: qd,
+          creationTime: now,
+          modifiedTime: now,
+          creator: 'announcement-keyword-explorer'
+        });
+      }
+
       perQuarter[qd] = {
         count: items.length,
         sample_titles: titles.slice(0, 10)
@@ -190,7 +210,12 @@ async function fetchAndExtract(keyword, options = {}) {
     desc_unigrams: descUnigrams,
     desc_bigrams: descBigrams,
     title_candidate_phrases: candidatePhrases,
-    errors
+    errors,
+    // Per-ticker announcement records carrying the output-dto-standard envelope
+    // (companyId, creationTime, modifiedTime, creator). The aggregate fields above
+    // (all_titles, unigrams, etc.) remain for keyword-mining; this array is the
+    // source-of-truth record set this report is actually "about".
+    announcements
   };
 
   if (output) {

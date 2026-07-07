@@ -78,7 +78,39 @@ When this skill triggers:
 
 6. **Pull live price data.** Use the data sourcing guidance in `references/phase3_live_repricing.md`. Screener.in's quoted price is often stale by days or weeks — always verify against at least one live tick source.
 
-7. **Produce the final institutional briefing** as an interactive HTML widget using the visualize tool. The widget structure is defined in `assets/briefing_template.html` — follow it unless the user asks for something different.
+7. **Write the output DTO, then render the widget from it.** Per
+   `skills/tooling/output-dto-standard/SKILL.md`, the HTML widget must be reproducible
+   FROM a persisted JSON, not generated directly from live reasoning. Before calling the
+   visualize tool:
+   - Write `{TICKER}_filings_diff.json` (e.g. to `jobs/data/agent-outputs/`) capturing the
+     diff findings, one record per company, with the required envelope fields plus the
+     10 output sections as structured data — roughly:
+     ```json
+     {
+       "companyId": "NSE:BSE",
+       "creationTime": "2026-07-07T00:00:00Z",
+       "modifiedTime": "2026-07-07T00:00:00Z",
+       "creator": "consecutive-filings-diff",
+       "quarters": { "current": "Q4FY26", "prior": "Q3FY26" },
+       "plDiff": { ... },
+       "balanceSheetCashFlow": { ... },
+       "operationalKpiDiff": { ... },
+       "positiveSurprises": [ ... ],
+       "negativeSurprises": [ ... ],
+       "newGrowthTriggers": [ ... ],
+       "newProductsCapacity": [ ... ],
+       "concallReconciliation": [ ... ],
+       "valuationReset": { ... },
+       "verdictChips": [ ... ]
+     }
+     ```
+     If re-running for the same company/quarter pair, read any existing JSON first and
+     preserve its original `creationTime`.
+   - Then produce the final institutional briefing as an interactive HTML widget using
+     the visualize tool, templated FROM that JSON — the widget structure is defined in
+     `assets/briefing_template.html` — follow it unless the user asks for something
+     different. Do not add facts to the widget that aren't in the JSON; if a fact
+     changes, update the JSON first, then re-render.
 
 8. **End with a conviction verdict.** Three bullet points maximum. What changed, what the price move means, what the action framework is now.
 

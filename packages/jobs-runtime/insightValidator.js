@@ -34,6 +34,13 @@ const CACHE_DIR = process.env.IV_CACHE_DIR || path.join(DATA_DIR, 'delivery_cach
 const VAL_DIR = process.env.WI_VALIDATION_DIR || path.join(DATA_DIR, 'validation');
 const LEDGER_PATH = path.join(VAL_DIR, 'ledger.json');
 const PROPOSALS_PATH = path.join(VAL_DIR, 'proposals.md');
+const GAINERS_DIR = path.join(DATA_DIR, 'daily_gainers');
+const GAINERS_LEDGER_PATH = path.join(VAL_DIR, 'gainers_ledger.json');
+
+// Initial default threshold for the gainers-signal HIGH-conviction follow-up validation
+// (see cmdValidateGainers / validateGainersPicks below): D+2 close-to-close return must be
+// positive AND at least this many percentage points to count as "validated". Tune as needed.
+const GAINERS_VALIDATION_MIN_GAIN_PCT = 3;
 
 const EQUITY_SERIES = new Set(['EQ', 'BE', 'BZ', 'SM', 'ST']);
 const BASELINE_DAYS = 20;
@@ -184,6 +191,27 @@ function recentTradingDays(end, n) {
     d.setUTCDate(d.getUTCDate() - 1);
   }
   return days;
+}
+
+/** Up to n weekday dates strictly after `start` (forward-looking counterpart of recentTradingDays). */
+function nextTradingDays(start, n) {
+  const days = [];
+  const d = new Date(start.getTime());
+  d.setUTCDate(d.getUTCDate() + 1);
+  let guard = 0;
+  while (days.length < n && guard < n + 14) {
+    const wd = d.getUTCDay();
+    if (wd >= 1 && wd <= 5) days.push(new Date(d.getTime()));
+    d.setUTCDate(d.getUTCDate() + 1);
+    guard += 1;
+  }
+  return days;
+}
+
+/** The nth trading day (weekday) strictly before `end`. n=2 → "2 trading days ago". */
+function tradingDaysAgo(end, n) {
+  const days = recentTradingDays(end, n);
+  return days[n - 1] || days[days.length - 1];
 }
 
 /** Trailing averages of traded/delivery qty + delivery % per symbol. */
@@ -537,6 +565,175 @@ async function runValidation(insights, target, clients = { nse, stockscans }) {
     sectorUniverse: ctx.universe || 0,
     results,
   };
+}
+
+// ── Gainers-signal follow-up validation ───────────────────────────────────────
+// D+2 follow-up validation of gainers-signal's HIGH-conviction picks. Reuses this file's
+// existing delivery-fetching helpers (fetchDeliveryCsv/parseDelivery/fetchLiveDeliveryForSymbols)
+// rather than duplicating that logic. See skills/tooling/output-dto-standard/SKILL.md for the
+// required record envelope (companyId/creationTime/modifiedTime/creator) written below.
+
+function loadGainersInsights(isoDate) {
+  const p = path.join(GAINERS_DIR, `${isoDate}_insights.json`);
+  if (!fs.existsSync(p)) return null;
+  return JSON.parse(fs.readFileSync(p, 'utf8'));
+}
+
+function loadGainersLedger() {
+  if (!fs.existsSync(GAINERS_LEDGER_PATH)) return [];
+  try { return JSON.parse(fs.readFileSync(GAINERS_LEDGER_PATH, 'utf8')); } catch { return []; }
+}
+
+function saveGainersLedger(records) {
+  fs.mkdirSync(VAL_DIR, { recursive: true });
+  fs.writeFileSync(GAINERS_LEDGER_PATH, JSON.stringify(records, null, 2));
+}
+
+/** Close price + delivery% for `sym` on date `d` — bhavcopy first, live NSE quote fallback. */
+async function deliveryForDate(sym, d, client = nse) {
+  const csv = await fetchDeliveryCsv(d, client);
+  if (csv) {
+    const day = parseDelivery(csv);
+    if (day[sym]) return { close: day[sym].close, deliv_per: day[sym].deliv_per, provisional: false };
+  }
+  const live = await fetchLiveDeliveryForSymbols([sym], client, 1);
+  if (live[sym]) return { close: live[sym].close, deliv_per: live[sym].deliv_per, provisional: true };
+  return null;
+}
+
+/**
+ * Validate gainers-signal's HIGH-conviction picks from source date `D` using D+2
+ * close-to-close return + delivery%. Rule (per user spec): validated = D+2 return is
+ * positive AND >= GAINERS_VALIDATION_MIN_GAIN_PCT. Delivery% is annotation-only
+ * (deliveryTrend), never a hard gate. Also does a best-effort hindsight review of the
+ * originally-assigned primary_driver/conviction using whatever sector data is already
+ * present in the source insights.json (sector_catalysts) — kept qualitative since no
+ * richer peer dataset is readily available here.
+ */
+async function validateGainersPicks(sourceDate, clients = { nse }) {
+  const isoD = sourceDate.toISOString().slice(0, 10);
+  const insights = loadGainersInsights(isoD);
+  if (!insights) return { sourceDate: isoD, skipped: true, reason: 'no_insights_file' };
+
+  const highSignals = (insights.signals || []).filter((s) => s.conviction === 'HIGH');
+  if (!highSignals.length) {
+    return { sourceDate: isoD, skipped: false, validationDate: null, records: [] };
+  }
+
+  const d2 = nextTradingDays(sourceDate, 2)[1] || nextTradingDays(sourceDate, 2)[0];
+  const isoD2 = d2.toISOString().slice(0, 10);
+  const nowIso = new Date().toISOString();
+  const sectorCatalysts = insights.sector_catalysts || {};
+
+  const records = [];
+  for (const sig of highSignals) {
+    const sym = sig.ticker || sig.companyId;
+    const dInfo = { close: undefined, deliv_per: sig.delivery && sig.delivery.deliv_per };
+    // Prefer the raw delivery/price captured at signal time if present; else re-fetch D.
+    let dClose = null;
+    let dDelivPer = sig.delivery && sig.delivery.available ? sig.delivery.deliv_per : null;
+    const dFetched = await deliveryForDate(sym, sourceDate, clients.nse);
+    if (dFetched) {
+      dClose = dFetched.close;
+      if (dDelivPer === null || dDelivPer === undefined) dDelivPer = dFetched.deliv_per;
+    }
+    const d2Fetched = await deliveryForDate(sym, d2, clients.nse);
+
+    let d2Return = null;
+    let deliveryTrend = 'flat';
+    let categorizationNote = 'Insufficient data to review categorisation in hindsight.';
+    let validated = false;
+
+    if (dFetched && d2Fetched && dClose) {
+      d2Return = round((d2Fetched.close - dClose) / dClose * 100, 2);
+      validated = d2Return > 0 && d2Return >= GAINERS_VALIDATION_MIN_GAIN_PCT;
+
+      const dDp = dDelivPer ?? 0;
+      const d2Dp = d2Fetched.deliv_per ?? 0;
+      const diff = d2Dp - dDp;
+      deliveryTrend = diff >= 5 ? 'rising' : diff <= -5 ? 'falling' : 'flat';
+
+      // Best-effort categorisation hindsight review.
+      if (sig.primary_driver === 'SECTOR_CATALYST') {
+        const catInfo = sectorCatalysts[sig.industry];
+        if (catInfo && typeof catInfo.avg_return === 'number') {
+          const sameSign = (d2Return >= 0) === (catInfo.avg_return >= 0);
+          categorizationNote = sameSign
+            ? `SECTOR_CATALYST looks consistent in hindsight — industry '${sig.industry}' peers averaged ${catInfo.avg_return}% same-direction as this stock's D+2 move.`
+            : `SECTOR_CATALYST looks questionable in hindsight — industry '${sig.industry}' peer average (${catInfo.avg_return}%) diverged from this stock's D+2 move (${d2Return}%); may have decoupled from the sector thesis.`;
+        } else {
+          categorizationNote = `SECTOR_CATALYST assigned but no peer/industry return data available for '${sig.industry}' in the source insights.json — cannot confirm or refute qualitatively; best-effort only.`;
+        }
+      } else if (sig.primary_driver === 'FUNDAMENTAL' || sig.primary_driver === 'PRICE_ACTION') {
+        categorizationNote = validated
+          ? `${sig.primary_driver} conviction HIGH was followed by a substantial positive D+2 move (${d2Return}%) — categorisation/conviction look reasonable in hindsight.`
+          : `${sig.primary_driver} conviction HIGH was NOT followed by a substantial positive D+2 move (${d2Return}%) — flag for review; conviction may have been over-rated, or this reflects normal noise (single data point, use judgement).`;
+      }
+    } else {
+      categorizationNote = 'D or D+2 delivery/price data unavailable (bhavcopy not published and live fallback failed) — validation skipped for this symbol.';
+    }
+
+    records.push({
+      // DTO envelope (skills/tooling/output-dto-standard/SKILL.md)
+      companyId: sig.companyId || sym,
+      creationTime: nowIso,
+      modifiedTime: nowIso,
+      creator: 'insight-validation',
+      // validation-specific fields
+      sourceDate: isoD,
+      validationDate: isoD2,
+      conviction: sig.conviction,
+      primaryDriver: sig.primary_driver,
+      d2Return,
+      deliveryTrend,
+      validated,
+      categorizationNote,
+    });
+  }
+
+  return { sourceDate: isoD, skipped: false, validationDate: isoD2, records };
+}
+
+function upsertGainersLedger(run) {
+  const existing = loadGainersLedger();
+  const key = (r) => `${r.companyId}|${r.sourceDate}`;
+  const byKey = new Map(existing.map((r) => [key(r), r]));
+  for (const rec of run.records || []) {
+    const prior = byKey.get(key(rec));
+    if (prior) rec.creationTime = prior.creationTime; // preserve original creationTime on re-validation
+    byKey.set(key(rec), rec);
+  }
+  const merged = [...byKey.values()];
+  saveGainersLedger(merged);
+  return merged;
+}
+
+function renderGainersValidationSection(run) {
+  const parts = ['<h3>🎯 Gainers-Signal Follow-up Validation (D+2)</h3>'];
+  if (!run || run.skipped) {
+    parts.push(`<p style='color:#999'>Skipped — ${run ? run.reason : 'no run'} for source date ${run ? run.sourceDate : ''}.</p>`);
+    return parts.join('\n');
+  }
+  if (!run.records.length) {
+    parts.push(`<p style='color:#999'>No HIGH-conviction gainers-signal picks on ${run.sourceDate} to validate.</p>`);
+    return parts.join('\n');
+  }
+  parts.push(`<p><b>${run.records.length} HIGH-conviction pick(s)</b> from ${run.sourceDate}, checked against ${run.validationDate} (D+2). ` +
+    `Validated = positive D+2 return &ge; ${GAINERS_VALIDATION_MIN_GAIN_PCT}% (delivery% is a secondary signal only).</p>`);
+  parts.push("<table style='border-collapse:collapse;font-size:12px;width:100%' cellpadding='5'>");
+  parts.push("<tr style='background:#f0f0f0;text-align:left'><th>Company</th><th>Driver</th><th>D+2 Return</th><th>Delivery Trend</th><th>Validated</th><th>Categorisation note</th></tr>");
+  for (const r of run.records) {
+    const okColor = r.validated ? '#2f855a' : '#c53030';
+    const retS = r.d2Return === null || r.d2Return === undefined ? '—' : signed(r.d2Return, 2);
+    parts.push(
+      "<tr style='border-top:1px solid #ddd'>" +
+      `<td><b>${r.companyId}</b></td><td>${r.primaryDriver}</td><td>${retS}%</td>` +
+      `<td>${r.deliveryTrend}</td><td style='color:${okColor};font-weight:bold'>${r.validated ? '✅ yes' : '❌ no'}</td>` +
+      `<td style='font-size:11px'>${r.categorizationNote}</td></tr>`
+    );
+  }
+  parts.push('</table>');
+  return parts.join('\n');
 }
 
 // ── Ledger + proposals ────────────────────────────────────────────────────────
@@ -973,7 +1170,21 @@ async function cmdRun() {
   const props = makeProposals(led);
   const qr = runQualityReview(notes, target);
   writeProposals(props, target, qr);
-  const mail = await sendEmail(buildEmail(run, props, qr));
+
+  // Gainers-signal HIGH-conviction D+2 follow-up validation — runs as part of the normal
+  // daily flow (not just on-demand). Source date defaults to 2 trading days ago so D+2
+  // data is available by the time this runs.
+  let gainersRun = null;
+  try {
+    const gSourceDate = tradingDaysAgo(ist.istDate(), 2);
+    gainersRun = await validateGainersPicks(gSourceDate);
+    if (!gainersRun.skipped) upsertGainersLedger(gainersRun);
+  } catch (e) {
+    gainersRun = { skipped: true, reason: `error: ${e.message}` };
+  }
+
+  const emailHtml = buildEmail(run, props, qr) + '\n' + renderGainersValidationSection(gainersRun);
+  const mail = await sendEmail(emailHtml);
   const qrSug = Object.values(qr.insightQuality.byCategory || {}).reduce((s, b) => s + (b.suggestions || []).length, 0) +
     (qr.categorisation.suggestions || []).length + (qr.ignoredLog.suggestions || []).length;
   process.stdout.write(JSON.stringify({
@@ -981,7 +1192,19 @@ async function cmdRun() {
     deliveryConfirmed: run.scoredWithDelivery, deliveryLive: run.scoredLive || 0,
     deliveryPending: run.deliveryPending,
     proposals: props.length, qualitySuggestions: qrSug, email: mail,
+    gainersValidation: gainersRun && !gainersRun.skipped
+      ? { sourceDate: gainersRun.sourceDate, validationDate: gainersRun.validationDate, count: gainersRun.records.length }
+      : { skipped: true, reason: gainersRun ? gainersRun.reason : 'unknown' },
   }));
+}
+
+async function cmdValidateGainers(d) {
+  const sourceDate = d
+    ? new Date(Date.UTC(+d.slice(4), +d.slice(2, 4) - 1, +d.slice(0, 2)))
+    : tradingDaysAgo(ist.istDate(), 2);
+  const run = await validateGainersPicks(sourceDate);
+  if (!run.skipped) upsertGainersLedger(run);
+  process.stdout.write(JSON.stringify(run));
 }
 
 async function cmdFetchDelivery(d) {
@@ -1039,7 +1262,10 @@ function cmdShowLedger() {
   process.stdout.write(JSON.stringify(loadLedger(), null, 2));
 }
 
-const COMMANDS = { run: [cmdRun, 0], 'fetch-delivery': [cmdFetchDelivery, 1], score: [cmdScore, 1], 'show-ledger': [cmdShowLedger, 0] };
+const COMMANDS = {
+  run: [cmdRun, 0], 'fetch-delivery': [cmdFetchDelivery, 1], score: [cmdScore, 1],
+  'show-ledger': [cmdShowLedger, 0], 'validate-gainers': [cmdValidateGainers, 1],
+};
 
 async function runCli(argv) {
   const cmd = argv[0];
@@ -1060,6 +1286,7 @@ module.exports = {
   sectorAttribution, median, categoryFromTags,
    makeProposals, titleInfoDensity,  qualityReviewInsights,
   qualityReviewCategorisation, fetchLiveDeliveryForSymbols,
+  nextTradingDays, tradingDaysAgo, validateGainersPicks, upsertGainersLedger,
      runCli,
 
 };

@@ -558,6 +558,31 @@ function renderEmail(dateLabel, digest) {
 </div>`;
 }
 
+// ── output DTO envelope (skills/tooling/output-dto-standard) ──────────────────
+
+const DEALS_DIGEST_CREATOR = 'daily-deals-digest';
+
+/**
+ * Stamp each per-company group record (bulk10/block10/sast10/insider10) with
+ * the standard record-level envelope: companyId (canonical EXCH:SYMBOL),
+ * creationTime, modifiedTime, creator. Applied in place before the JSON DTO
+ * is written to disk, so the persisted file — not the email — is the source
+ * of truth.
+ */
+function applyDtoEnvelope(digest) {
+  const now = new Date().toISOString();
+  for (const key of ['bulk10', 'block10', 'sast10', 'insider10']) {
+    for (const g of digest[key] || []) {
+      const exch = (g.deals && g.deals[0] && g.deals[0].exchange) || 'NSE';
+      g.companyId = g.companyId || `${exch}:${g.symbol}`;
+      g.creationTime = g.creationTime || now;
+      g.modifiedTime = now;
+      g.creator = DEALS_DIGEST_CREATOR;
+    }
+  }
+  return digest;
+}
+
 // ── main ──────────────────────────────────────────────────────────────────────
 
 function parseDateArg(s) {
@@ -620,16 +645,23 @@ async function main() {
     insider10: await groupAndTop10ByNetValue(insider.rows),
   };
 
+  // Output DTO standard (skills/tooling/output-dto-standard): every record
+  // (one per company/symbol group here) carries companyId/creationTime/
+  // modifiedTime/creator so the JSON is the canonical source the email is
+  // rendered FROM, not a byproduct of it.
+  applyDtoEnvelope(digest);
+
   // Prepare DTO assets using StorageService helper
   const dtoPaths = StorageService.getEventDtoPaths('digest', target, 'documents/deals_digest');
-  
+
   digest.assets = dtoPaths.assetsMap;
 
-  const htmlBody = renderEmail(dateLabel, digest);
-
-  // Use StorageService for saving the JSON source data
+  // Write the JSON DTO FIRST — the email is a render step derived from it,
+  // never a second, independent source of facts (output-dto-standard).
   StorageService.init();
   await StorageService.saveJson(dtoPaths.jsonPath, digest, false);
+
+  const htmlBody = renderEmail(dateLabel, digest);
 
   // Email
   let email = { status: 'skipped', reason: '--no-email' };

@@ -439,9 +439,67 @@ Six scorecard bullets followed by conviction call and valuation snapshot:
 
 ---
 
-## Step 4 — Generate the PDF
+## Step 3.5 — Write the output DTO (before any PDF code)
 
-Write a Python script at `/sessions/$SESSION_ID/generate_stock_report.py` and run it. The script uses ReportLab Platypus to build a **single PDF** saved to `/sessions/$SESSION_ID/mnt/[WORKSPACE_NAME]/jobs/data/stock-reports/[TICKER]_equity_report_[DATE].pdf`.
+Per `skills/tooling/output-dto-standard/SKILL.md`, the PDF must be reproducible FROM a
+persisted JSON — never generated directly from live reasoning with no intermediate
+artifact. Before writing a single line of the ReportLab script, write
+`[TICKER]_equity_report.json` to
+`/sessions/$SESSION_ID/mnt/[WORKSPACE_NAME]/jobs/data/stock-reports/[TICKER]_equity_report.json`
+containing every staged number and every section's content from Steps 2–3 — i.e. all
+Section 1–11 content (cover summary, thesis bullets, business overview, industry,
+management/capital allocation, financial tables, earnings-quality checklist, valuation,
+risks, recommendation, and the concall appendix's grade/"to my boss"/10-section body) as
+structured JSON, plus the required envelope fields:
+
+```json
+{
+  "companyId": "NSE:RELIANCE",
+  "creationTime": "2026-07-07T00:00:00Z",
+  "modifiedTime": "2026-07-07T00:00:00Z",
+  "creator": "stock-report",
+  "coverSummary": { "rating": "BUY", "priceTarget": 0, "cmp": 0, "...": "..." },
+  "sections": {
+    "investmentThesis": [ "..." ],
+    "businessOverview": [ "..." ],
+    "industryCompetitive": { ... },
+    "managementCapitalAllocation": [ "..." ],
+    "financials": { "pAndL": { ... }, "balanceSheet": { ... }, "cashFlow": { ... }, "commentary": [ "..." ] },
+    "earningsQuality": { "checklist": [ ... ], "commentary": [ "..." ] },
+    "valuation": { "peerTable": [ ... ], "scenarios": { ... }, "methodology": [ "..." ] },
+    "risks": [ ... ],
+    "recommendation": { "rating": "BUY", "target": 0, "entryZone": [0, 0], "invalidationTriggers": [ "..." ] }
+  },
+  "concallAppendix": {
+    "grade": "POSITIVE",
+    "signalTable": [ ... ],
+    "toMyBoss": "...",
+    "sections": { "financialSnapshot": [ ... ], "segmentBreakdown": [ ... ], "...": "..." }
+  }
+}
+```
+
+If a report for this ticker/date was already generated earlier in the session, read the
+existing JSON first and preserve its `creationTime`, only bumping `modifiedTime`. Every
+number that ends up in the PDF must trace back to this JSON — if a staged figure needs
+correcting, fix it here first, then re-render.
+
+## Step 4 — Generate the PDF (render from the DTO)
+
+Write a Python script at `/sessions/$SESSION_ID/generate_stock_report.py` and run it. The
+script MUST load `[TICKER]_equity_report.json` (written in Step 3.5) and build the
+ReportLab Platypus document purely from that JSON's fields — do not re-derive section
+content from the conversation/live reasoning inside this script; it is a template/render
+step only. Save the **single PDF** to
+`/sessions/$SESSION_ID/mnt/[WORKSPACE_NAME]/jobs/data/stock-reports/[TICKER]_equity_report_[DATE].pdf`.
+
+```python
+import json
+with open(dto_path) as f:
+    dto = json.load(f)
+# Build the PDF Platypus story entirely from dto["coverSummary"], dto["sections"],
+# dto["concallAppendix"] — no new facts introduced at render time.
+```
 
 Sections 1–10 flow first, then the Concall Appendix (Section 11) after a `PageBreak()`. One file, never two.
 

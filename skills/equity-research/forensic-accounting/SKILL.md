@@ -74,10 +74,14 @@ Then run **two bonus analyses** every time:
 
 ### Phase 4 — PDF generation
 
-Write the following JSON to a temporary file (e.g. `data.json`):
+Write the following JSON to a temporary file (e.g. `data.json`). This `data.json` is the canonical DTO — render-pdf's PDF output is a reproducible rendering of it, not a separate source of truth, so the four envelope fields below must be present at the top level:
 
 ```json
 data = {
+    "companyId": ticker,                      # e.g. "NSE:SWARAJENG" — same value as $TICKER in Phase 1
+    "creationTime": "2026-07-07T10:00:00+05:30",   # ISO 8601, set on first write
+    "modifiedTime": "2026-07-07T10:00:00+05:30",   # equals creationTime on first write
+    "creator": "forensic-accounting",
     "company_name": "...", "ticker": "NSE: ...", "date": "Month Year",
     "fy_range": "FY23–FY25",
     "snapshot": "Brief paragraph on the business + why this forensic was done.",

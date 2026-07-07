@@ -183,6 +183,21 @@ output.
 
 ## Output format
 
+**Step 5.5 — Persist the JSON DTO (before rendering anything).** Before writing the
+markdown response or widget, write the canonical JSON DTO to
+`jobs/data/agent-outputs/{date}_fundamental_shifts.json` (create the file if this is the
+first scan of the day; if it already exists, append this company's record to its
+top-level array rather than overwriting). Each element of that array is one company's
+scan result and MUST carry the standard envelope fields from
+`skills/tooling/output-dto-standard/SKILL.md` — `companyId` (canonical `EXCH:SYMBOL`,
+e.g. `"NSE:PARACABLES"`), `creationTime` (ISO 8601, set once), `modifiedTime` (ISO 8601,
+updated on every re-run), `creator: "fundamental-shift-scanner"` — plus the domain
+fields: `dateRangeStart`, `dateRangeEnd`, `signalItems[]` (each with `whatHappened`,
+`whyItMatters`, `newVsKnown`, `tag` [STRUCTURAL/CYCLICAL/ONE-OFF/GOVERNANCE-SIGNAL],
+`forwardMarker`, `source`), `noiseItems[]` (brief titles only), and `verdict` (the Step 5
+synthesis text). The inline markdown / HTML widget below is then a render of this JSON —
+never draft the verdict independently of what's in the file.
+
 Default to a concise **inline markdown response** (this is a "quick
 pulse-check" skill, not a report-generation skill — do not create a PDF or
 file unless asked):

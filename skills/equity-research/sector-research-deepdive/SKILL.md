@@ -107,6 +107,21 @@ Tone & style rules (full list in [`references/sector_framework.md`](references/s
 - ALWAYS explain *why* a metric changed, not just *that* it changed.
 - ALWAYS compare unit economics across competitors, not just one company's numbers.
 
+### Phase 4.5 — Persist the JSON DTO
+
+Before generating the PDF, write the canonical JSON DTO to
+`/mnt/project/jobs/data/agent-outputs/Sector_{SectorName}.json` (e.g.
+`Sector_QuickCommerce.json`) — the structured source the PDF is rendered from. Shape:
+sector-level fields (`sectorName`, `subTheme`, `dataAsOf`, the §1/§8/§14 variant
+perception summary, section-by-section structured content mirroring the 19-section
+framework) plus a `companies[]` array with one record per company covered in §10
+Company-by-Company. Every entry in `companies[]` MUST carry the standard envelope from
+`skills/tooling/output-dto-standard/SKILL.md` — `companyId` (canonical `EXCH:SYMBOL`),
+`creationTime`, `modifiedTime`, `creator: "sector-research-deepdive"` — alongside its
+business-model mechanics, moat mechanism, unit economics, and risk fields. Write this
+JSON from `report_md`'s structured findings before calling `create_sector_report` so the
+PDF is a render of the JSON, not an independent draft.
+
 ### Phase 5 — PDF generation
 
 ```python

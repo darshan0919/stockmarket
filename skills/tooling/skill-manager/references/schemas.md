@@ -2,6 +2,19 @@
 
 This document defines the JSON schemas used by skill-creator.
 
+**Output DTO Standard scope note:** these schemas (`evals.json`, `history.json`,
+`grading.json`, `metrics.json`, `timing.json`, `benchmark.json`, `comparison.json`,
+`analysis.json`) are internal meta-tooling bookkeeping for the skill-development loop —
+they describe eval runs, grading results, and benchmark comparisons *about other skills*,
+not an analytical/reportable output about a company, ticker, or market signal for an end
+user. Per `skills/tooling/output-dto-standard/SKILL.md`, that standard targets skills
+producing reports/signals/insights meant to be persisted and rendered (email/PDF/HTML);
+skill-manager's registry/eval/grading JSON is purely internal process bookkeeping consumed
+by the next skill-manager run, never rendered as a user-facing report. We're treating this
+as **out of scope** for the `companyId`/`creationTime`/`modifiedTime`/`creator` envelope
+rather than forcing an awkward fit — there's no natural "record" here that plays the role
+of a company/ticker/signal entry the way, say, a catalyst alert or thesis does.
+
 ---
 
 ## evals.json

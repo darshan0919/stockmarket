@@ -38,6 +38,18 @@ per-transaction unit economics per stage instead of stage margins.
 
 ## Output
 
+**Persist the JSON DTO first.** Before writing the stage-by-stage table or rendering the
+widget, write `jobs/data/agent-outputs/{Industry}_value_chain.json` — a top-level array
+with one record per named company that appears in the chain (each stage names actual
+companies; every named company gets its own record). Each record MUST carry the standard
+envelope from `skills/tooling/output-dto-standard/SKILL.md` — `companyId` (canonical
+`EXCH:SYMBOL` where the company is listed; if unlisted/private, use the company name as a
+best-effort id and note it's unlisted), `creationTime`, `modifiedTime`,
+`creator: "value-chain-analysis"` — plus domain fields: `stage`, `whoControls`,
+`marginProfile`, `chokepoint`, `valueMigrationDirection`, and (for the company being
+researched, if any) the `positioning10yr` verdict and the "what could be wrong" note. The
+table and diagram below are a render of this JSON, not an independently drafted note.
+
 - Stage-by-stage table: Stage | Who controls | Margin profile | Chokepoint | Direction of
   value migration | Key players.
 - One diagram-style summary (HTML widget or ASCII chain) marking the high-margin nodes.

@@ -9,6 +9,10 @@
   "version": 7,
   "created": "2026-07-04",
   "updated": "2026-07-04",
+  "companyId": "NSE:XYZ",
+  "creationTime": "2026-01-10T09:30:00.000Z",
+  "modifiedTime": "2026-07-04T11:05:00.000Z",
+  "creator": "investment-thesis-engine",
   "sync_pending": false,
   "signal": "ACCUMULATE",
   "prev_signal": "HOLD",
@@ -57,8 +61,28 @@
 Notes:
 - `evidence_log` is append-only; ids are stable (`e1, e2, ...`). Every pillar score must
   reference at least one evidence id. Every evidence entry carries an [R]/[D]/[E] `tag`.
-- `history.jsonl`: one line per version — `{version, date, signal, conviction, pillar_scores,
-  changed_pillars, reason, evidence_added}`. Never rewritten.
+- Per the [output-dto-standard](../../../tooling/output-dto-standard/SKILL.md), the
+  `{TICKER}_thesis.json` object (a single-entity file — one thesis per company) carries the
+  DTO envelope at the top level: `companyId` (= `ticker`, e.g. `"NSE:XYZ"`), `creationTime`
+  (set once on `init`, never changed by later `update`s), `modifiedTime` (bumped on every
+  `update`/`signal` write), `creator` (always `"investment-thesis-engine"`). These sit
+  alongside the existing `created`/`updated` date-only fields — don't remove those, they're
+  human-facing date strings used in the memo header; `creationTime`/`modifiedTime` are the
+  full ISO 8601 machine timestamps the standard requires.
+- `history.jsonl`: one line per version, append-only, never rewritten. Each line is its own
+  record and therefore carries its own envelope: `{version, date, signal, conviction,
+  pillar_scores, changed_pillars, reason, evidence_added, companyId, creationTime,
+  modifiedTime, creator}`. `companyId` = the ticker (same value on every line for a given
+  company). `creationTime` is fixed to the thesis's original `init` timestamp on every line
+  (it describes when the *thesis* was created, not when that particular line was appended).
+  `modifiedTime` is unique per line — set to the timestamp of that specific append, i.e. it
+  advances with each new version. `creator` is always `"investment-thesis-engine"`. Example
+  line: `{"version":2,"date":"2026-07-04","signal":"ACCUMULATE","conviction":7,
+  "pillar_scores":{"theme":8,"growth":7,"valuation":5,"promoter":8},
+  "changed_pillars":["growth"],"reason":"New ₹850 Cr NTPC order, evidence e12",
+  "evidence_added":["e12"],"companyId":"NSE:XYZ",
+  "creationTime":"2026-01-10T09:30:00.000Z","modifiedTime":"2026-07-04T11:05:00.000Z",
+  "creator":"investment-thesis-engine"}`.
 
 ## `{TICKER}_thesis.md` layout
 

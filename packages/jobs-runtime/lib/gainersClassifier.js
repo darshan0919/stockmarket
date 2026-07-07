@@ -153,8 +153,15 @@ function main() {
     const conv = cls.conviction;
     const ev = buildEvidence(g, sectorCatalystIndustries);
     const inEm = (conv === "HIGH" || conv === "MEDIUM") && driver !== "VOLATILITY";
+    const nowIso = new Date().toISOString();
 
     signals.push({
+      // DTO envelope (skills/tooling/output-dto-standard/SKILL.md) — required on every
+      // record: companyId reuses the existing ticker identifier, creator names this skill.
+      companyId: g.ticker,
+      creationTime: nowIso,
+      modifiedTime: nowIso,
+      creator: "gainers-signal",
       ticker: g.ticker,
       name: g.name,
       industry: g.industry || "",

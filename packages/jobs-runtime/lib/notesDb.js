@@ -57,11 +57,20 @@ class NotesDb {
   static ensureCompany(notes, companyId, ticker = '', name = '') {
     notes.companies ||= {};
     if (!notes.companies[companyId]) {
+      const now = nowIstIso();
       notes.companies[companyId] = {
         companyId,
         ticker,
         name,
-        lastUpdated: nowIstIso(),
+        // Output DTO standard envelope (skills/tooling/output-dto-standard):
+        // this record IS the canonical JSON DTO for this company's watchlist
+        // insights — the digest email is rendered FROM it, never drafted
+        // separately. `lastUpdated` (pre-existing) is kept alongside
+        // `modifiedTime` for backward compatibility with existing readers.
+        creationTime: now,
+        modifiedTime: now,
+        creator: 'watchlist-insights',
+        lastUpdated: now,
         businessSummary: '',
         notes: [],
         processedAnnouncements: [],
@@ -70,6 +79,8 @@ class NotesDb {
       const co = notes.companies[companyId];
       if (ticker && !co.ticker) co.ticker = ticker;
       if (name && !co.name) co.name = name;
+      if (!co.creationTime) co.creationTime = co.lastUpdated || nowIstIso();
+      if (!co.creator) co.creator = 'watchlist-insights';
     }
     return notes.companies[companyId];
   }

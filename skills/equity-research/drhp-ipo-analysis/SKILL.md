@@ -91,10 +91,14 @@ Each red flag rated **GREEN / YELLOW / RED** with verbatim evidence and page cit
 
 ### Phase 4 — PDF generation
 
-Write the following JSON to a temporary file (e.g. `data.json`):
+Write the following JSON to a temporary file (e.g. `data.json`). This `data.json` is the canonical DTO — render-pdf's PDF output is a reproducible rendering of it, not a separate source of truth, so the four envelope fields below must be present at the top level:
 
 ```json
 data = {
+    "companyId": "NSE: ...",                  # same ticker/symbol convention used for company_name's issuer, once listed/assigned
+    "creationTime": "2026-07-07T10:00:00+05:30",   # ISO 8601, set on first write
+    "modifiedTime": "2026-07-07T10:00:00+05:30",   # equals creationTime on first write
+    "creator": "drhp-ipo-analysis",
     "company_name": "...",
     "issue_type": "Mainboard IPO" | "SME IPO" | "FPO",
     "filing_date": "...",

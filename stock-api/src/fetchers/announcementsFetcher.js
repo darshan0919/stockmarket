@@ -126,9 +126,17 @@ async function fetchAnnouncements(ticker, options = {}) {
     }
   }
 
+  // Out of scope for the full output-DTO standard (skills/tooling/output-dto-standard):
+  // this is mechanical fetch/download metadata, not synthesized/analytical output.
+  // Still, carry minimal creator/timestamp bookkeeping so downstream skills can
+  // trace provenance of the manifest itself.
+  const fetchedAt = new Date().toISOString();
   const manifest = {
     ticker,
-    fetched_at: new Date().toISOString(),
+    creator: 'stock-documents-fetcher',
+    creationTime: fetchedAt,
+    modifiedTime: fetchedAt,
+    fetched_at: fetchedAt,
     search,
     start,
     end,

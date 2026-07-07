@@ -36,6 +36,22 @@ anchor rules. Build the workbook with the `xlsx` skill conventions.
 - Reuse existing artifacts (corpus extracts, `[TICKER]_Concall.txt`, MasterData.xlsx) before
   fetching anything.
 
+## Persist the JSON DTO before building the workbook
+
+This skill produces genuine novel synthesis (assumptions, 3-year projections,
+Bear/Base/Bull valuation, IRR) — not just a re-display of other skills' artifacts — so
+before building the `.xlsx`, write `jobs/data/agent-outputs/{TICKER}_financial_model.json`
+capturing: Year-0/TTM actuals, the concall-derived assumptions (each with its rationale
+and `[R]/[D]/[E]` source tag), the Y0→Y3 P&L line items, the Bear/Base/Bull exit
+valuation and IRR, the probability-weighted expected value, and the "what could be wrong"
+bullets. The object MUST carry the standard envelope from
+`skills/tooling/output-dto-standard/SKILL.md` — `companyId` (canonical `EXCH:SYMBOL`),
+`creationTime`, `modifiedTime`, `creator: "financial-model"`. The `.xlsx` workbook below
+is then built FROM this JSON (its cells populate from the same assumptions/figures) —
+never derive the workbook and the JSON independently, or the two drift apart. On re-runs
+after a results season (see Handoffs), update `modifiedTime` and keep `creationTime`
+from the first write.
+
 ## Workbook structure (sheets)
 
 1. **Executive Summary** — verdict-ready: CMP, MCap, 3-yr revenue/PAT CAGR (base), Bear/Base/

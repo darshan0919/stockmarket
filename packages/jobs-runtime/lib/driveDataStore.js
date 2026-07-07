@@ -244,6 +244,18 @@ function classifyLocalDocument(localRel) {
     };
   }
 
+  if (rel === 'validation/gainers_ledger.json') {
+    return {
+      kind: 'ledger',
+      category: 'gainers-validation-ledger',
+      localRel: rel,
+      driveRel: 'validation/gainers-ledger/gainers_ledger.json',
+      date: null,
+      retention: 'source-of-truth',
+      producer: 'insightValidator',
+    };
+  }
+
   if (rel === 'validation/proposals.md') {
     return {
       kind: 'proposal-log',
@@ -253,6 +265,18 @@ function classifyLocalDocument(localRel) {
       date: null,
       retention: 'source-of-truth',
       producer: 'insightValidator',
+    };
+  }
+
+  if (/^watchlist_sync\/\d{4}-\d{2}-\d{2}_.*_watchlist_sync\.json$/.test(rel)) {
+    return {
+      kind: 'daily-report',
+      category: 'watchlist-sync',
+      localRel: rel,
+      driveRel: posixJoin('watchlist-sync', year, month, day, name),
+      date: isoDay,
+      retention: 'keep',
+      producer: 'watchlist-sync',
     };
   }
 
@@ -342,7 +366,11 @@ function classifyDriveDocument(driveRel) {
   m = rel.match(/^validation\/ignored-log\/\d{4}\/\d{2}\/(ignored_log_\d{8}\.json)$/);
   if (m) return classifyLocalDocument(`validation/${m[1]}`);
 
+  m = rel.match(/^watchlist-sync\/\d{4}\/\d{2}\/\d{2}\/(\d{4}-\d{2}-\d{2}_.*_watchlist_sync\.json)$/);
+  if (m) return classifyLocalDocument(`watchlist_sync/${m[1]}`);
+
   if (rel === 'validation/ledger/ledger.json') return classifyLocalDocument('validation/ledger.json');
+  if (rel === 'validation/gainers-ledger/gainers_ledger.json') return classifyLocalDocument('validation/gainers_ledger.json');
   if (rel === 'validation/proposals/proposals.md') return classifyLocalDocument('validation/proposals.md');
   if (rel === 'legacy/company_notes.json') return classifyLocalDocument('company_notes.json');
 

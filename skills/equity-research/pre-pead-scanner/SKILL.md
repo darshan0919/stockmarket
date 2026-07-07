@@ -9,7 +9,7 @@ Turns a Stockscans saved-scan of soon-to-report companies into a **surprise-rank
 
 The deliverable is one institutional HTML briefing — a master table sorted by composite surprise score, each row carrying the extracted guidance, the capability validation, a back-computed Revenue / OPM / PAT / EPS estimate, the **surprise versus street consensus** and the **surprise versus guidance**, the historical post-event drift, and a per-name "what could be wrong" flag.
 
-**Output destination:** save the briefing to `<repo>/jobs/data/documents/reports/` (never the repo root or `data/`), then finish by running `node packages/jobs-runtime/scripts/offloadToDrive.js` — it uploads to Google Drive (`StockMarket/jobs/v1`) and removes the local copy. See `skills/_shared/conventions.md` §6.
+**Output destination:** save the `{date}_pre_pead_scan.json` DTO and the rendered briefing to `<repo>/jobs/data/documents/reports/` (never the repo root or `data/`), then finish by running `node packages/jobs-runtime/scripts/offloadToDrive.js` — it uploads to Google Drive (`StockMarket/jobs/v1`) and removes the local copy. See `skills/_shared/conventions.md` §6.
 
 ## The thesis
 
@@ -44,7 +44,18 @@ Nine steps, run in order — each gates or feeds the next. A company that fails 
 
 1. **Expectations via research reports** — use research-report price targets and valuation models to assess if the beat is already priced in. See `references/valuation_and_expectations.md`.
 2. **Measure historical post-event drift** — returns after the last *result*, after the *concall*, and after the *transcript* release, so you know whether a beat is tradeable in this name. Result-return is a scan column; concall/transcript returns are derived from doc dates + price history. See `references/post_event_returns.md`.
-3. **Composite surprise score → rank → render** the HTML briefing using `assets/briefing_template.html`.
+3. **Composite surprise score → rank → write the JSON DTO → render** the HTML briefing
+   using `assets/briefing_template.html`. Before rendering, write
+   `jobs/data/agent-outputs/{date}_pre_pead_scan.json` — a top-level array with one
+   record per candidate company (both ranked survivors and excluded names), each
+   carrying the standard envelope (`companyId` as canonical `EXCH:SYMBOL`,
+   `creationTime`, `modifiedTime`, `creator: "pre-pead-scanner"` — see
+   `skills/tooling/output-dto-standard/SKILL.md`) plus the domain fields: guidance
+   extraction, capability validation, projected Revenue/OPM/PAT/EPS, surprise-vs-street,
+   surprise-vs-guidance, historical drift, composite score/rank, "what could be wrong"
+   flag, and (for excluded names) the exclusion reason. The HTML briefing is a template
+   render of this JSON — populate `assets/briefing_template.html` from the file's
+   contents rather than drafting the table independently, so the two can never drift.
 
 ## Core principles
 

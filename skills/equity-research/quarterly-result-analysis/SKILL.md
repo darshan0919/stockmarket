@@ -80,9 +80,22 @@ Two reference files support this phase:
 - [`references/tone_taxonomy.md`](references/tone_taxonomy.md) — the six tone labels (aggressive / confident / cautious / defensive / opportunistic / conservative) with evidence patterns
 - [`references/monitoring_checklist_patterns.md`](references/monitoring_checklist_patterns.md) — how to build a falsifiable forward checklist (KPI + threshold + horizon)
 
+### Phase 2.5 — Persist the JSON DTO
+
+Before rendering the widget, write `jobs/data/agent-outputs/{TICKER}_quarterly_result.json`
+(e.g. `NSE_SWARAJENG_quarterly_result.json`) capturing the full Phase 2 output as
+structured JSON: the verdict chips, Basket 1/2/3 items (each with its
+STRUCTURAL/CYCLICAL/TEMPORARY or HIGH/MED/LOW tag), the monitoring checklist rows
+(`kpi`, `threshold`, `horizon`, `source`), and the header fields (company, ticker,
+quarter, result date, CMP, market cap). The object MUST carry the standard envelope from
+`skills/tooling/output-dto-standard/SKILL.md`: `companyId` (canonical `EXCH:SYMBOL`),
+`creationTime`, `modifiedTime`, `creator: "quarterly-result-analysis"`.
+
 ### Phase 3 — Render the briefing widget
 
-The primary output is an interactive HTML widget rendered via `visualize:show_widget`. Use [`assets/result_widget_template.html`](assets/result_widget_template.html) as the structural reference — copy the `<style>` block and section skeletons, populate with the Phase 2 findings.
+The primary output is an interactive HTML widget rendered via `visualize:show_widget`,
+templated from the Phase 2.5 JSON DTO — the widget's content must be reproducible from
+that file, not drafted separately. Use [`assets/result_widget_template.html`](assets/result_widget_template.html) as the structural reference — copy the `<style>` block and section skeletons, populate with the Phase 2 findings from the JSON DTO.
 
 Widget structure (top to bottom):
 

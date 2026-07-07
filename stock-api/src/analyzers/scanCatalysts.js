@@ -170,6 +170,7 @@ async function scanCatalysts(scanId, options = {}) {
   for (const a of grouped) {
     if (a._dups) {
       a.why += ` (+${a._dups} similar update(s) in window — grouped.)`;
+      a.modifiedTime = new Date().toISOString();
     }
   }
 
@@ -187,6 +188,7 @@ async function scanCatalysts(scanId, options = {}) {
     if (n >= 3 && !META_CATEGORIES.has(a.category) && a.severity === "MEDIUM") {
       a.severity = "HIGH";
       a.why = `CONFLUENCE: ${n} structural filings by this company in window — coordinated strategic event. ` + a.why;
+      a.modifiedTime = new Date().toISOString();
     }
   }
 

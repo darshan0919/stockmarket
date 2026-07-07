@@ -121,10 +121,14 @@ Follow the full framework in [`references/framework_9parts.md`](references/frame
 
 **Compute concentration metrics with the helper script:**
 
-Write the following JSON to a temporary file (e.g. `data.json`):
+Write the following JSON to a temporary file (e.g. `data.json`). This `data.json` is the canonical DTO — render-pdf's/the HTML widget's output is a reproducible rendering of it, not a separate source of truth, so the four envelope fields below must be present at the top level. This is an industry-level (not single-company) report, so `companyId` carries the `INDUSTRY` input value — there is no ticker convention to reuse here:
 
 ```json
 data = {
+    "companyId": industry,                    # same value as the `INDUSTRY` input, e.g. "Indian Stainless Steel Tubes & Pipes"
+    "creationTime": "2026-07-07T10:00:00+05:30",   # ISO 8601, set on first write
+    "modifiedTime": "2026-07-07T10:00:00+05:30",   # equals creationTime on first write
+    "creator": "market-share-analysis",
     "industry": "Indian Stainless Steel Tubes & Pipes",
     "geography": "India",
     "definition_scope": "Welded + seamless SS tubes; excludes carbon-steel tubes and SS sheets",

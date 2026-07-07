@@ -77,7 +77,21 @@ function parseKnipOutput(filePath) {
   return results;
 }
 
+// Output DTO Standard envelope: this skill is about dead CODE, not companies, so
+// `companyId` is a semantic stretch here — we reuse it to carry the unique identifier
+// of the flagged record (file path / dependency name / export name), per
+// skills/tooling/output-dto-standard/SKILL.md's field-naming convention for non-company skills.
+function withEnvelope(companyId, timestamp) {
+  return {
+    companyId,
+    creationTime: timestamp,
+    modifiedTime: timestamp,
+    creator: 'dead-code-scanner'
+  };
+}
+
 function runVerification() {
+  const now = new Date().toISOString();
   const verified = {
     unusedFiles: [],
     unusedDependencies: [],
@@ -106,7 +120,7 @@ function runVerification() {
     const hits = searchPattern(baseName);
     const outsideHits = hits.filter(h => !h.includes(file));
     if (outsideHits.length === 0) {
-      verified.unusedFiles.push(file);
+      verified.unusedFiles.push({ file, ...withEnvelope(file, now) });
     }
   }
 
@@ -116,7 +130,7 @@ function runVerification() {
     const hits = searchPattern(pattern);
     const actualUsage = hits.filter(h => !h.endsWith('package.json') && !h.endsWith('yarn.lock'));
     if (actualUsage.length === 0) {
-      verified.unusedDependencies.push(dep);
+      verified.unusedDependencies.push({ dependency: dep, ...withEnvelope(dep, now) });
     }
   }
 
@@ -125,7 +139,7 @@ function runVerification() {
     const hits = searchPattern(exp);
     // If we only find 1 file, and it's the file where it's defined, it's unused.
     if (hits.length <= 1) {
-      verified.unusedExports.push(exp);
+      verified.unusedExports.push({ export: exp, ...withEnvelope(exp, now) });
     }
   }
 

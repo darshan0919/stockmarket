@@ -31,7 +31,12 @@ Outputs to `/mnt/project/jobs/data/agent-outputs/`:
   HIGH/MEDIUM/RISK filter buttons, value chips, links to filing PDFs on the
   Stockscans S3 bucket. Present via `present_files`.
 - `catalyst_alerts_YYYYMMDD.json` — machine-readable alerts for downstream
-  skills (e.g. feed a HIGH order-win into `growth-triggers-1pager`).
+  skills (e.g. feed a HIGH order-win into `growth-triggers-1pager`). Each entry in
+  `alerts[]` carries the [output-dto-standard](../../tooling/output-dto-standard/SKILL.md)
+  record-level envelope: `companyId` (already the established ticker convention used by
+  `ann.companyId`/`company.companyId` elsewhere), `creationTime`, `modifiedTime` (bumped
+  when an alert is later grouped with duplicates or upgraded by the confluence rule),
+  `creator: "watchlist-catalyst-scanner"`.
 
 ## Auth
 

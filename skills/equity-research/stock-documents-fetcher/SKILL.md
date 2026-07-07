@@ -138,6 +138,20 @@ Just preview:
 python3 stock-api/python/fetchers/fetch_announcements.py NSE:BSE --search ESOP --list-only
 ```
 
+## Output DTO standard — scope note
+
+Per `skills/tooling/output-dto-standard/SKILL.md`, this skill is judged **out of scope**
+for a full JSON-DTO retrofit: it is a pure fetch/download utility (PDFs + `manifest.json`)
+with no synthesis, categorization, or analytical verdict of its own — it does not render
+any PDF/HTML/widget from the fetched documents, so there's nothing that could drift from
+a JSON source of truth. The manifest already *is* the structured artifact for this skill.
+
+That said, the manifest's provenance is now traceable at minimum: both
+`stock-api/src/fetchers/documentsFetcher.js` and `stock-api/src/fetchers/announcementsFetcher.js`
+write `creator: "stock-documents-fetcher"`, `creationTime`, and `modifiedTime` into every
+`manifest.json` they produce, alongside the existing `fetched_at` field (kept for
+backward compatibility with downstream skills that already read it).
+
 ## Manifest format (for downstream skills)
 
 Both scripts write `manifest.json` to the output directory. Downstream skills should iterate over this rather than `glob`-ing the directory — the manifest preserves API metadata (date, documentType, hasNotes, ssUrl) that's lost in the filenames.

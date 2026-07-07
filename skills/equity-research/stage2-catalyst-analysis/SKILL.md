@@ -56,6 +56,19 @@ driving institutional accumulation:
    orders), government spending.
 5. Financial snapshot from Screener: TTM sales/PAT growth, 3-yr OPM trend, D/E change, ROCE.
 
+### Persist the JSON DTO before writing the output template
+
+Before producing the text output below (for one stock, or the table for a list), write
+`jobs/data/agent-outputs/{TICKER}_stage2_catalyst.json` (for a multi-stock run, write one
+file per ticker, or a single `{date}_stage2_catalyst.json` with a top-level array — one
+record per stock either way). Each record MUST carry the standard envelope from
+`skills/tooling/output-dto-standard/SKILL.md` — `companyId` (canonical `EXCH:SYMBOL`),
+`creationTime`, `modifiedTime`, `creator: "stage2-catalyst-analysis"` — plus the domain
+fields: `stage` (1/2/3/4), `technicalVerdict` (BUY/HOLD/SELL), `entryZone`, `stopLoss`,
+`exitCriteria`, `riskReward`, `primaryTrigger` (dated), `supportingData`, `sectorContext`,
+`keyRisk`, `triggerConfidence` (HIGH/MEDIUM/LOW). The output template below is a render of
+this JSON, not a separately-drafted note.
+
 ### Output template (per stock)
 
 ```

@@ -55,6 +55,13 @@ Preview only (no changes, no email) — add `--dry-run` to any command.
 
 ## Output
 
-The job prints a step log and the final `added / removed / final count`, and emails a
-✅/❌ summary per run. When running several mappings, report each mapping's summary and a
-combined total.
+The job prints a step log and the final `added / removed / final count`. Before emailing
+the ✅/❌ summary, it now writes the canonical JSON DTO to
+`jobs/data/watchlist_sync/{date}_{watchlistName}_watchlist_sync.json` — a top-level
+`records[]` array with one entry per ticker added or removed, each carrying `companyId`,
+`change` (`added`/`removed`), `creationTime`, `modifiedTime`, and
+`creator: "watchlist-sync"` (see `skills/tooling/output-dto-standard/SKILL.md`), plus
+run-level fields (`scanName`, `watchlistName`, counts). The summary email is a render of
+that file, not a second independent source of facts. Not written on `--dry-run`, since no
+change is applied in that mode. When running several mappings, report each mapping's
+summary (and its DTO path) and a combined total.

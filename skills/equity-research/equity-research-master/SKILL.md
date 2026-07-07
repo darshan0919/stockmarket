@@ -81,6 +81,34 @@ Each folder will contain a `manifest.json` after fetching. Read the manifests to
 - `qoq_deltas` (P&L, BS, KPI, surprise objects) → Tabs 4, 8, 15 (only if ≥2 decks)
 - `forensic_flags` (CFO/PAT, WC days, RPT) → Tab 7
 
+**Output DTO (envelope).** `_cache/schemas.json` today holds only compute-cache fields
+(`kpi_table`, `valuation_ladder`, `triggers`, `qoq_deltas`, `forensic_flags`) with no
+provenance envelope — that's fine for a cache, but this file is also the consolidated
+data source the master dashboard's Phase 6 render step draws from, so per
+`skills/tooling/output-dto-standard/SKILL.md` it must additionally carry the
+record-level envelope fields at its top level:
+
+```json
+{
+  "companyId": "NSE:SWARAJENG",
+  "creationTime": "2026-07-07T00:00:00Z",
+  "modifiedTime": "2026-07-07T00:00:00Z",
+  "creator": "equity-research-master",
+  "kpi_table": { ... },
+  "valuation_ladder": { ... },
+  "triggers": [ ... ],
+  "qoq_deltas": { ... },
+  "forensic_flags": { ... }
+}
+```
+
+`orchestrate.py compute-schemas` should read any pre-existing `_cache/schemas.json`
+first (to preserve `creationTime` across re-runs), then write the envelope fields plus
+the five compute fields above in one file. Phase 6 (Render) treats `_cache/schemas.json`
+— not live re-computation — as the sole source of the numbers it injects into
+`[TICKER]_MasterDashboard.html`; if a number needs to change, update `schemas.json` and
+re-render, don't patch the HTML directly.
+
 **4 — Narrative fan-out (no PDFs).** Run sub-skill analysis, route to tab slots:
 - Deepdive 19-section framework → routed per tab (see [`deepdive/references/research_template.md`](../deepdive/references/research_template.md))
 - 1-pager 5-section framework → Tab 9 + Tab 0 verdict badge

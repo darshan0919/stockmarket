@@ -48,10 +48,49 @@ cite the AR section/page:
 
 ## Output
 
-Crisp, easy-to-understand note (MD or PDF via `render-pdf`): findings per point with
-citations, a Green/Yellow/Red chip per point, and a conclusion summarising the 3 most
-important findings. End with "What could be wrong with this analysis?" plus what to
-verify outside the AR.
+Per `skills/tooling/output-dto-standard/SKILL.md`, persist the analysis as a JSON DTO
+BEFORE rendering — never generate the MD/PDF directly from live reasoning with no
+intermediate artifact.
+
+1. **Write the DTO first.** Save `{TICKER}_annual_report_analysis.json` (e.g. to
+   `jobs/data/agent-outputs/`) shaped like:
+
+   ```json
+   {
+     "companyId": "NSE:SWARAJENG",
+     "creationTime": "2026-07-07T00:00:00Z",
+     "modifiedTime": "2026-07-07T00:00:00Z",
+     "creator": "annual-report-analysis",
+     "fiscalYear": "FY25",
+     "points": [
+       {
+         "id": 1,
+         "title": "Leadership letters",
+         "citation": "MD letter, p.4",
+         "chip": "GREEN",
+         "findings": "..."
+       }
+       // ... one entry per of the 12 points, each with citation + chip + findings
+     ],
+     "governanceRating": "GOOD",
+     "topFindings": ["...", "...", "..."],
+     "whatCouldBeWrong": "..."
+   }
+   ```
+
+   `companyId` uses the same Stockscans-style ticker convention as the rest of the
+   codebase (e.g. `"NSE:SWARAJENG"`). If re-running for the same company/FY, read the
+   existing JSON first and preserve its original `creationTime`, only bumping
+   `modifiedTime`.
+
+2. **Render from the DTO.** Only after the JSON is written, produce the crisp,
+   easy-to-understand note (MD or PDF via `render-pdf`) as a template pass over that
+   JSON: findings per point with citations, a Green/Yellow/Red chip per point (driven by
+   `points[].chip`), and a conclusion summarising the 3 most important findings
+   (`topFindings`). End with "What could be wrong with this analysis?" (`whatCouldBeWrong`)
+   plus what to verify outside the AR. Do not introduce facts in the rendered output that
+   aren't already in the JSON — if something needs to change, update the JSON first, then
+   re-render.
 
 ## Handoffs
 

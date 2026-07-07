@@ -409,6 +409,7 @@ async function cmdAddNote(noteJsonStr) {
     noteId = entry.id;
   }
   co.lastUpdated = ist.nowIstIso();
+  co.modifiedTime = co.lastUpdated; // output-dto-standard envelope field
   await db.save(notes);
   process.stdout.write(JSON.stringify({ status: 'ok', companyId: payload.companyId, noteId }));
 }
@@ -418,6 +419,7 @@ async function cmdMarkProcessed(companyId, annId) {
   const co = NotesDb.ensureCompany(notes, companyId);
   if (!co.processedAnnouncements.includes(annId)) co.processedAnnouncements.push(annId);
   co.lastUpdated = ist.nowIstIso();
+  co.modifiedTime = co.lastUpdated; // output-dto-standard envelope field
   await db.save(notes);
   process.stdout.write(JSON.stringify({ status: 'ok' }));
 }

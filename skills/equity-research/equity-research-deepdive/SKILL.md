@@ -61,15 +61,43 @@ Use the 19-section framework in [`references/research_template.md`](references/r
 
 Skip sections where data is genuinely unavailable. Surface red flags prominently. Verdict must be actionable: Buy/Hold/Avoid + time horizon + key triggers + sizing guidance + what would invalidate the thesis. Include both bull and bear arguments.
 
-### Phase 4 — PDF generation
+### Phase 4 — Write the DTO, then generate the PDF
 
-```python
-import sys; sys.path.insert(0, '<skill_path>/scripts')
-from generate_report import create_research_report
-create_research_report(company_name, ticker, report_markdown, output_path)
+Per `skills/tooling/output-dto-standard/SKILL.md`, the PDF must be reproducible FROM a
+persisted JSON DTO — never generated directly from `report_markdown` with no
+intermediate artifact. `stock-api/src/generators/generateReport.js` implements this as
+two explicit steps:
+
+1. **Write the DTO** — `writeReportDto(companyId, companyName, ticker, reportMarkdown, dtoPath)`
+   persists `{TICKER}_deepdive.json` (e.g. `jobs/data/agent-outputs/{TICKER}_deepdive.json`)
+   with the required envelope fields (`companyId`, `creationTime`, `modifiedTime`,
+   `creator: "equity-research-deepdive"`) alongside the full `reportMarkdown` (the 19-section
+   write-up from Phase 3). If the JSON already exists for this ticker, it preserves the
+   original `creationTime` and only bumps `modifiedTime`.
+2. **Render from the DTO** — `createResearchReportFromDto(dtoPath, outputPath)` reads
+   that JSON back and is the ONLY step that touches the PDF/HTML rendering — it is a pure
+   function of the DTO, never a second independent pass over the analysis.
+
+```js
+const { createResearchReport } = require('<repo_root>/stock-api/src/generators/generateReport.js');
+// Convenience wrapper: writes the DTO then renders from it in one call.
+await createResearchReport(companyName, ticker, reportMarkdown, outputPath, { companyId: ticker });
 ```
 
-Script at [`stock-api/src/generators/generateReport.js`](stock-api/src/generators/generateReport.js). Uses shared palette/helpers from `../stock-api/python/utils/pdf_utils.py`. Fallback: `pandoc report.md -o report.pdf --pdf-engine=weasyprint`.
+Or call the two steps explicitly if you want to inspect/edit the DTO between writing and
+rendering:
+
+```js
+const { writeReportDto, createResearchReportFromDto } = require('<repo_root>/stock-api/src/generators/generateReport.js');
+const dtoPath = outputPath.replace(/\.[^./]+$/, '') + '.json';
+writeReportDto(ticker, companyName, ticker, reportMarkdown, dtoPath);
+// ... inspect/edit dtoPath here if needed ...
+await createResearchReportFromDto(dtoPath, outputPath);
+```
+
+Uses shared palette/helpers from `../stock-api/python/utils/pdf_utils.py`. Fallback:
+`pandoc report.md -o report.pdf --pdf-engine=weasyprint` (in the fallback path, still
+write `{TICKER}_deepdive.json` first with the same envelope fields before invoking pandoc).
 
 ## Pitfalls to avoid
 

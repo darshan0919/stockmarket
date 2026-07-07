@@ -71,10 +71,14 @@ All four frameworks share three core extraction tasks — extract these from eve
 
 ### Phase 3 — PDF generation
 
-Write the following JSON to a temporary file (e.g. `data.json`):
+Write the following JSON to a temporary file (e.g. `data.json`). This `data.json` is the canonical DTO — render-pdf's PDF output is a reproducible rendering of it, not a separate source of truth, so the four envelope fields below must be present at the top level alongside the domain fields:
 
 ```json
 data = {
+    "companyId": ticker,                      # e.g. "NSE:SWARAJENG" — same value as $TICKER above
+    "creationTime": "2026-07-07T10:00:00+05:30",   # ISO 8601, set on first write
+    "modifiedTime": "2026-07-07T10:00:00+05:30",   # equals creationTime on first write
+    "creator": "concall-analysis",
     "mode": "deep" | "brief" | "multi-quarter" | "multi-peer",
     "company_name": "...",
     "ticker": "NSE: ...",

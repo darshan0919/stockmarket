@@ -185,6 +185,61 @@ async function fetchWatchlistCompanyIds(watchlistId, client = stockscans) {
   return new Set(companyIdsFromTable(data.table || []));
 }
 
+// ── Output DTO (skills/tooling/output-dto-standard) ───────────────────────────
+
+/**
+ * Persist the day's "what changed" as the canonical JSON DTO, written BEFORE
+ * the summary email is composed — the email is a render of this file, not an
+ * independent second source of facts. One record per ticker that was added or
+ * removed, each carrying the standard envelope (companyId/creationTime/
+ * modifiedTime/creator).
+ */
+function writeSyncDto({ scanName, watchlistName, watchlistId, before, excluded, desiredCount, itemsToAdd, itemsToRemove, now }) {
+  const dataRoot = path.join(__dirname, '..', '..', 'jobs', 'data', 'watchlist_sync');
+  fs.mkdirSync(dataRoot, { recursive: true });
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const nowIso = new Date().toISOString();
+  const records = [
+    ...itemsToAdd.map((companyId) => ({
+      companyId,
+      change: 'added',
+      watchlistId,
+      watchlistName,
+      scanName,
+      creationTime: nowIso,
+      modifiedTime: nowIso,
+      creator: 'watchlist-sync',
+    })),
+    ...itemsToRemove.map((companyId) => ({
+      companyId,
+      change: 'removed',
+      watchlistId,
+      watchlistName,
+      scanName,
+      creationTime: nowIso,
+      modifiedTime: nowIso,
+      creator: 'watchlist-sync',
+    })),
+  ];
+  const dto = {
+    date: dateStr,
+    runAt: now,
+    scanName,
+    watchlistName,
+    watchlistId,
+    companiesFromScan: before,
+    excludedInRadar: excluded,
+    desiredFinalCount: desiredCount,
+    added: itemsToAdd.length,
+    removed: itemsToRemove.length,
+    records,
+  };
+  const safeName = String(watchlistName || 'watchlist').replace(/[^a-z0-9]+/gi, '_');
+  const outPath = path.join(dataRoot, `${dateStr}_${safeName}_watchlist_sync.json`);
+  fs.writeFileSync(outPath, `${JSON.stringify(dto, null, 2)}\n`);
+  return outPath;
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main({
@@ -281,6 +336,21 @@ async function main({
     log('\n[DRY RUN] Skipping update + email.');
     return { before, excluded, desired: desiredIds.size, add: itemsToAdd, remove: itemsToRemove };
   }
+
+  // Persist the JSON DTO BEFORE the email — the notification is a render of
+  // this file, never a second independent source of facts.
+  const dtoPath = writeSyncDto({
+    scanName: SCAN_NAME,
+    watchlistName: WATCHLIST_NAME,
+    watchlistId: WATCHLIST_ID,
+    before,
+    excluded,
+    desiredCount: desiredIds.size,
+    itemsToAdd,
+    itemsToRemove,
+    now,
+  });
+  log(`  ✓ Wrote sync DTO: ${dtoPath}`);
 
   // Step 4 — apply diff
   log(`\n[Step 4] Updating watchlist '${WATCHLIST_NAME}'...`);

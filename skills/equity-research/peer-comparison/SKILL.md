@@ -66,10 +66,14 @@ After fetching, read `manifest.json` per company. If a critical type is missing 
 
 For each ticker, fetch live valuation snapshots via Screener.in:
 
-Write the following JSON to a temporary file (e.g. `data.json`):
+Write the following JSON to a temporary file (e.g. `data.json`). This `data.json` is the canonical DTO — render-pdf's PDF output is a reproducible rendering of it, not a separate source of truth, so the four envelope fields below must be present at the top level. This is a multi-company report, so `companyId` holds the comma-joined ticker list (same `EXCH:SYMBOL` convention as `TICKERS` in Phase 1) rather than a single symbol:
 
 ```json
 data = {
+    "companyId": "NSE:STLTECH,NSE:HFCL",      # comma-joined tickers, same convention as $TICKERS in Phase 1
+    "creationTime": "2026-07-07T10:00:00+05:30",   # ISO 8601, set on first write
+    "modifiedTime": "2026-07-07T10:00:00+05:30",   # equals creationTime on first write
+    "creator": "peer-comparison",
     "title": "Telecom Equipment Peer Comparison: STL Tech vs HFCL",
     "date": "May 2026",
     "companies": [

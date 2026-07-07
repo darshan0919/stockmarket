@@ -27,7 +27,7 @@ Run these phases in order. Don't skip phases even if the corpus is small.
 
 ### Phase 1 — Ingestion & sanity check
 
-1. Run `stock-api/python/analyzers/parse_tweet_dump.py <input-path>` to produce a normalised JSON at `/home/claude/_tweets_normalised.json`.
+1. Run `parseTweetDump` from `stock-api/src/analyzers/parseTweetDump.js` (`node -e` one-liner, or via the skill's own tooling) to produce a normalised JSON at `/home/claude/_tweets_normalised.json`. Each tweet object returned by `normaliseTweet()` already carries the [output-dto-standard](../../tooling/output-dto-standard/SKILL.md) record-level envelope — `companyId` (the tweet's own id, since this skill has no company/ticker concept — a deliberate stretch of the field per the standard's non-company guidance), `creationTime`, `modifiedTime`, `creator: "tweet-investor-playbook"`. Write the array returned by `parseTweetDump()` straight to `_tweets_normalised.json` — don't strip these fields.
 2. Read the normalised file and confirm to the user:
    - Handle (best-effort from author field; if absent, ask)
    - Total tweets parsed
@@ -37,7 +37,7 @@ Run these phases in order. Don't skip phases even if the corpus is small.
 
 ### Phase 2 — Classification pass
 
-For every tweet, assign one or more tags. Do this in a single pass through the corpus, writing a tagged JSON to `/home/claude/_tweets_tagged.json`. Read `references/classification_taxonomy.md` for the exact tag list and decision rules. Tag categories:
+For every tweet, assign one or more tags. Do this in a single pass through the corpus, writing a tagged JSON to `/home/claude/_tweets_tagged.json`. Each tagged record MUST carry forward the same `companyId`/`creationTime`/`creator` from the normalised record for that tweet (don't regenerate them), and refresh `modifiedTime` to the time of this tagging pass — the tagged file is a modification of the same per-tweet record, not a new one. Read `references/classification_taxonomy.md` for the exact tag list and decision rules. Tag categories:
 
 - **pick** — explicit stock mention with action verb (bought, sold, holding, top pick, recommend, like, exited, trimmed)
 - **profit_claim** — claims a realised or unrealised gain/loss, with or without a stock named

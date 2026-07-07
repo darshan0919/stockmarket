@@ -71,6 +71,11 @@ The JSON contains:
 - `desc_unigrams` / `desc_bigrams` — same for descriptions
 - `title_candidate_phrases` — Title-Case multi-word phrases seen 2+ times in titles
 - `errors` — any quarter that failed to fetch
+- `announcements` — the per-ticker raw announcement records behind the aggregates above.
+  Per the [output-dto-standard](../../tooling/output-dto-standard/SKILL.md), each entry
+  carries the record-level envelope: `companyId` (the real ticker, e.g. `"NSE:XYZ"`),
+  `creationTime`, `modifiedTime`, `creator` (`"announcement-keyword-explorer"`), alongside
+  `name`, `date`, `title`, `description`, `quarterDate`.
 
 ---
 

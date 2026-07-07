@@ -67,6 +67,21 @@ Single canonical prompt: [`prompts/unified_master.txt`](prompts/unified_master.t
 
 Synced copy at `backend/prompts/institutional-equity/unified_master.txt` for the app API — keep wording aligned when edited.
 
+## Output DTO standard — scope note
+
+Per `skills/tooling/output-dto-standard/SKILL.md`, this skill is judged **out of scope**
+for a full JSON-DTO retrofit: its job is mechanical extraction (PDFs → condensed `.txt`
+files) with no synthesized verdict, rating, or thesis of its own — it's a preprocessing
+step feeding `equity-research-dashboard`, not an analytical/reportable output in its own
+right. The `.txt` extracts are already the "structured artifact"; there's no separate
+narrative/PDF/widget rendered independently of them that could drift.
+
+The one piece of structured metadata this skill does produce — `manifest.json` written
+during Phase 0 acquisition by `stock-documents-fetcher`'s underlying fetch functions
+(`documentsFetcher.js` / `announcementsFetcher.js`) — now carries `creator`,
+`creationTime`, and `modifiedTime` at the file level, so provenance is still traceable
+even though it isn't a full record-level DTO.
+
 ## Principles
 
 - Preserve exact numbers, dates, and verbatim auditor/KAM/guidance text.
