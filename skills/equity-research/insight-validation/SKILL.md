@@ -32,7 +32,7 @@ In addition to validating watchlist notes, every `run` also validates `gainers-s
 HIGH-conviction picks from 2 trading days ago against that date's D+2 (today) price
 action:
 
-- Loads `jobs/data/daily_gainers/{sourceDate}_insights.json`, filters to `signals[]`
+- Loads `data/daily_gainers/{sourceDate}_insights.json`, filters to `signals[]`
   where `conviction === "HIGH"`.
 - For each, fetches D and D+2 close price + delivery% (via this job's existing NSE
   delivery helpers) and computes the D+2 close-to-close return.
@@ -42,7 +42,7 @@ action:
 - Also does a best-effort, qualitative hindsight review of whether the originally
   assigned `primary_driver` (e.g. `SECTOR_CATALYST`) still looks right, using whatever
   sector/peer data is already in the source `insights.json`.
-- Results are written to `jobs/data/validation/gainers_ledger.json` — each record follows
+- Results are written to `the validation collection (`data/validation.json`, type=`gainers-followup`)` — each record follows
   the DTO standard (`skills/tooling/output-dto-standard/SKILL.md`): `companyId`,
   `creationTime`, `modifiedTime`, `creator: "insight-validation"`, plus
   `sourceDate`, `validationDate`, `conviction`, `d2Return`, `deliveryTrend`, `validated`,
@@ -64,7 +64,7 @@ RUNTIME=$(dirname "$JOB")   # …/packages/jobs-runtime
 
 Do NOT export `WI_DATA_DIR` / `IV_CACHE_DIR` / `COWORK_ENV` — the job resolves everything
 itself: data (notes/, delivery_cache/, validation/ ledger+proposals) defaults to
-`<repo>/jobs/data/` and secrets to `<repo>/.env`. Exporting paths derived from fragile
+`<repo>/data/` and secrets to `<repo>/.env`. Exporting paths derived from fragile
 `find`s is what previously scattered `notes/` and `validation/` at the repo root.
 
 ## Run
@@ -85,15 +85,13 @@ node "$JOB" show-ledger              # accumulated stats
 
 `run` prints a status object (`insights`, `deliveryConfirmed`, `proposals`,
 `qualitySuggestions`, `email`) and emails the full validation + quality-review report.
-Relay the status; the proposals are logged to `jobs/data/validation/proposals.md` for
+Relay the status; the proposals are logged to `data/assets/validation-proposals.md` for
 your review.
 
 ## Offload & cleanup (MANDATORY, even on failure)
 
 ```bash
-node "$RUNTIME/scripts/offloadToDrive.js"
+node "$RUNTIME/scripts/data.js" push
 ```
-Syncs everything under `jobs/data/` to Google Drive (`StockMarket/jobs/v1`) and wipes the
-local cache. The skill is NOT complete until this has run. Never leave generated data
-files in the repo (root or `jobs/data/`) or in the session workspace; if the sync fails,
-report it — the script deliberately keeps the local cache in that case.
+Idempotent push of everything under `data/` to Google Drive (`StockMarket/data/v2`).
+Push-only: local files are KEPT (full mirror), nothing is deleted. The skill is NOT complete until this has run. Generated data belongs ONLY under `data/`; if the sync fails, report it and retry later.

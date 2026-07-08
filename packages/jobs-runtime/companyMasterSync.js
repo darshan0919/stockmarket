@@ -9,11 +9,10 @@
  * packages/jobs-runtime/dealsDigest.js's isAvailableOnNSE()), so no API key
  * or secret is required for this sync.
  *
- * This file is REFERENCE DATA, not a job output/report — unlike jobs/data/*
- * (which is offloaded to Drive and wiped locally after each run per this
- * repo's data lifecycle), this file is meant to persist locally and be
- * committed, because other skills read it synchronously as infrastructure.
- * Location: packages/jobs-runtime/data/company-master.json
+ * This file is REFERENCE DATA (Data Ecosystem v2): a regenerable heavy
+ * derivable stored at data/cache/company-master.json — kept locally, synced to
+ * Drive by scripts/data.js, never committed to git. Other skills read it
+ * synchronously via lib/companyMaster.js.
  *
  * Usage:
  *   node companyMasterSync.js                 # fetch + merge + write
@@ -23,7 +22,8 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
-const OUT_DIR = path.join(__dirname, 'data');
+// Data Ecosystem v2: write to data/cache/ (synced by scripts/data.js push).
+const OUT_DIR = path.join(require('./lib/db').dataRoot(), 'cache');
 const OUT_PATH = path.join(OUT_DIR, 'company-master.json');
 const INSTRUMENTS_URL = 'https://api.kite.trade/instruments';
 

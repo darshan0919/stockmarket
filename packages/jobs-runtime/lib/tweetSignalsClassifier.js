@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /**
  * Tweet signals classifier — deterministic, no external API / no LLM calls.
- * Reads:  jobs/data/tweet_signals/{date}_tweets_raw.json  (produced by the
+ * Reads:  data/runs/{date}_tweets_raw.json  (produced by the
  *         browser-capture step of the tweet-signals skill)
- * Writes: jobs/data/tweet_signals/{date}_insights.json
+ * Writes: classified signals → events collection via lib/db.js (type: "tweet")
+ *          + data/runs/{date}_tweets_insights.json (full DTO for the briefing)
  *
  * Conviction is CONTENT-ONLY: category materiality + quantified figures +
  * figure magnitude. Source/author verification is intentionally NOT a
@@ -24,8 +25,8 @@ const fs = require('fs');
 const path = require('path');
 const { findInText } = require('./companyMaster');
 
-const DATA_DIR = process.env.COWORK_DATA_DIR || path.join(__dirname, '..', '..', '..', 'jobs', 'data');
-const TWEETS_DIR = path.join(DATA_DIR, 'tweet_signals');
+const db = require('./db');
+const TWEETS_DIR = path.join(db.dataRoot(), 'runs');
 
 function latestRaw(dir) {
   if (!fs.existsSync(dir)) throw new Error(`No such directory: ${dir}`);
@@ -128,7 +129,7 @@ function main() {
   const base = path.basename(rawPath);
   const dateMatch = base.match(/^\d{4}-\d{2}-\d{2}/);
   const datePrefix = dateMatch ? dateMatch[0] : base.replace(/\.json$/, '');
-  const outName = `${datePrefix}_insights.json`;
+  const outName = `${datePrefix}_tweets_insights.json`;
   const outPath = path.join(TWEETS_DIR, outName);
 
   if (path.resolve(outPath) === path.resolve(rawPath)) {
@@ -146,8 +147,25 @@ function main() {
     signals,
   };
 
+  // Canonical store: one event record per resolved, non-noise signal.
+  const eventRecords = signals
+    .filter((s2) => s2.companyId && !String(s2.companyId).startsWith('UNKNOWN:') && s2.conviction !== 'NOISE')
+    .map((s2) => ({
+      ...s2,
+      type: 'tweet',
+      date: datePrefix.slice(0, 10),
+      creator: s2.creator || 'tweet-signals',
+      summary: String(s2.text || '').slice(0, 300),
+    }));
+  const stats = eventRecords.length ? db.appendEvents(eventRecords) : { inserted: 0 };
+
+  fs.mkdirSync(TWEETS_DIR, { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(output, null, 2));
-  console.log(JSON.stringify({ status: 'ok', outPath, totalTweets: tweets.length, resolvedCompanyCount: resolvedCount, byConviction }, null, 2));
+  console.log(JSON.stringify({ status: 'ok', outPath, events: stats, totalTweets: tweets.length, resolvedCompanyCount: resolvedCount, byConviction }, null, 2));
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = { classifyOne, main };

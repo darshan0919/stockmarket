@@ -94,8 +94,8 @@ Then execute the two-step HTML-to-PDF pipeline:
 bash ./skills/_shared/resolve.sh $(basename $(dirname skills/concall-analysis/SKILL.md)) --input data.json --output report.html
 
 # 2. Render PDF (Clone Mode)
-mkdir -p jobs/data/concall-analysis
-bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "jobs/data/concall-analysis/<Company>_Output.pdf"
+mkdir -p data/concall-analysis
+bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "data/concall-analysis/<Company>_Output.pdf"
 ```
 
 See [`stock-api/src/generators/generateConcallPdf.js`](stock-api/src/generators/generateConcallPdf.js) for the full schema per mode.

@@ -110,7 +110,7 @@ Tone & style rules (full list in [`references/sector_framework.md`](references/s
 ### Phase 4.5 — Persist the JSON DTO
 
 Before generating the PDF, write the canonical JSON DTO to
-`/mnt/project/jobs/data/agent-outputs/Sector_{SectorName}.json` (e.g.
+`/mnt/project/data/agent-outputs/Sector_{SectorName}.json` (e.g.
 `Sector_QuickCommerce.json`) — the structured source the PDF is rendered from. Shape:
 sector-level fields (`sectorName`, `subTheme`, `dataAsOf`, the §1/§8/§14 variant
 perception summary, section-by-section structured content mirroring the 19-section
@@ -131,7 +131,7 @@ create_sector_report(
     sector_name="Quick Commerce",
     sub_theme="Dark store unit economics & moat sustainability",  # or None
     report_markdown=report_md,
-    output_path="/mnt/project/jobs/data/agent-outputs/Sector_QuickCommerce.pdf",
+    output_path="/mnt/project/data/agent-outputs/Sector_QuickCommerce.pdf",
 )
 ```
 

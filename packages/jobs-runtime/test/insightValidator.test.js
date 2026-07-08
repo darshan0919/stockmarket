@@ -5,9 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'iv-'));
-process.env.WI_NOTES_DIR = path.join(TMP, 'notes');
-process.env.WI_VALIDATION_DIR = path.join(TMP, 'validation');
-process.env.IV_CACHE_DIR = path.join(TMP, 'cache');
+process.env.DATA_V2_DIR = TMP;
 
 jest.mock('@stock/api', () => ({
   nse: { getDeliveryBhavcopy: jest.fn() },

@@ -153,8 +153,8 @@ Then execute the two-step HTML-to-PDF pipeline:
 bash ./skills/_shared/resolve.sh $(basename $(dirname skills/market-share-analysis/SKILL.md)) --input data.json --output report.html
 
 # 2. Render PDF (Clone Mode)
-mkdir -p jobs/data/market-share-analysis
-bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "jobs/data/market-share-analysis/<Company>_Output.pdf"
+mkdir -p data/market-share-analysis
+bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "data/market-share-analysis/<Company>_Output.pdf"
 ```
 
 See [`stock-api/src/generators/generateMarketShareHtml.js`](stock-api/src/generators/generateMarketShareHtml.js).

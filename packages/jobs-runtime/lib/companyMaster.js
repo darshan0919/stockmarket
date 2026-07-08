@@ -11,7 +11,12 @@
 const fs = require('fs');
 const path = require('path');
 
-const MASTER_PATH = path.join(__dirname, '..', 'data', 'company-master.json');
+// Data Ecosystem v2: master lives in data/cache/ (regenerable via Kite; synced
+// to Drive by scripts/data.js). Falls back to the legacy in-package copy so the
+// lookup keeps working before the first companyMasterSync run on a machine.
+const MASTER_PATH_V2 = path.join(require('./db').dataRoot(), 'cache', 'company-master.json');
+const MASTER_PATH_LEGACY = path.join(__dirname, '..', 'data', 'company-master.json');
+const MASTER_PATH = fs.existsSync(MASTER_PATH_V2) ? MASTER_PATH_V2 : MASTER_PATH_LEGACY;
 
 const SUFFIX_RE = /\b(LIMITED|LTD|PVT|PRIVATE|INDIA|CO|COMPANY|CORP|CORPORATION|INC|LLC)\b\.?/gi;
 function normalizeName(name) {

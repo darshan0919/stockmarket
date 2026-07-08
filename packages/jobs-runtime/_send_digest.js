@@ -1,4 +1,3 @@
-process.env.COWORK_DRIVE_SYNC = '0';
 const wi = require('./watchlistInsights.js');
 const { NotesDb } = require('./lib/notesDb');
 const { stockscans, S3_BASE_URL } = require('@stock/api');

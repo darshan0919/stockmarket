@@ -40,7 +40,7 @@ anchor rules. Build the workbook with the `xlsx` skill conventions.
 
 This skill produces genuine novel synthesis (assumptions, 3-year projections,
 Bear/Base/Bull valuation, IRR) — not just a re-display of other skills' artifacts — so
-before building the `.xlsx`, write `jobs/data/agent-outputs/{TICKER}_financial_model.json`
+before building the `.xlsx`, write `data/agent-outputs/{TICKER}_financial_model.json`
 capturing: Year-0/TTM actuals, the concall-derived assumptions (each with its rationale
 and `[R]/[D]/[E]` source tag), the Y0→Y3 P&L line items, the Bear/Base/Bull exit
 valuation and IRR, the probability-weighted expected value, and the "what could be wrong"

@@ -57,7 +57,7 @@ Preview only (no changes, no email) — add `--dry-run` to any command.
 
 The job prints a step log and the final `added / removed / final count`. Before emailing
 the ✅/❌ summary, it now writes the canonical JSON DTO to
-`jobs/data/watchlist_sync/{date}_{watchlistName}_watchlist_sync.json` — a top-level
+`the events collection (type=`watchlist-sync`); legacy path data/runs/{date}_{watchlistName}_watchlist_sync.json` — a top-level
 `records[]` array with one entry per ticker added or removed, each carrying `companyId`,
 `change` (`added`/`removed`), `creationTime`, `modifiedTime`, and
 `creator: "watchlist-sync"` (see `skills/tooling/output-dto-standard/SKILL.md`), plus

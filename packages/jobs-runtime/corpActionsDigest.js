@@ -317,12 +317,10 @@ async function main() {
     return (b.marketCap || 0) - (a.marketCap || 0);
   });
 
-  // Persist snapshot
-  // jobs/data/ stays in the jobs/ directory (only runtime code moved to
-  // packages/jobs-runtime/), so this must reach back to the repo root.
-  const outDir = path.join(__dirname, '..', '..', 'jobs', 'data', 'ca_digest');
+  // Persist run snapshot (Data Ecosystem v2: regenerable → data/runs/)
+  const outDir = path.join(require('./lib/db').dataRoot(), 'runs');
   fs.mkdirSync(outDir, { recursive: true });
-  const outFile = path.join(outDir, `${dateLabel}_ca.json`);
+  const outFile = path.join(outDir, `ca_digest_${dateLabel}.json`);
   fs.writeFileSync(outFile, JSON.stringify(digest, null, 2));
 
   // Email
@@ -354,7 +352,11 @@ async function main() {
   );
 }
 
-main().catch((e) => {
-  console.error('corpActionsDigest failed:', e);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((e) => {
+    console.error('corpActionsDigest failed:', e);
+    process.exit(1);
+  });
+}
+
+module.exports = { main };

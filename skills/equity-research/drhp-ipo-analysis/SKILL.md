@@ -121,8 +121,8 @@ Then execute the two-step HTML-to-PDF pipeline:
 bash ./skills/_shared/resolve.sh $(basename $(dirname skills/drhp-ipo-analysis/SKILL.md)) --input data.json --output report.html
 
 # 2. Render PDF (Clone Mode)
-mkdir -p jobs/data/drhp-ipo-analysis
-bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "jobs/data/drhp-ipo-analysis/<Company>_Output.pdf"
+mkdir -p data/drhp-ipo-analysis
+bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "data/drhp-ipo-analysis/<Company>_Output.pdf"
 ```
 
 ## Output discipline

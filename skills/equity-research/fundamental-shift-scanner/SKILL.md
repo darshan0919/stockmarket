@@ -185,7 +185,7 @@ output.
 
 **Step 5.5 — Persist the JSON DTO (before rendering anything).** Before writing the
 markdown response or widget, write the canonical JSON DTO to
-`jobs/data/agent-outputs/{date}_fundamental_shifts.json` (create the file if this is the
+`data/agent-outputs/{date}_fundamental_shifts.json` (create the file if this is the
 first scan of the day; if it already exists, append this company's record to its
 top-level array rather than overwriting). Each element of that array is one company's
 scan result and MUST carry the standard envelope fields from

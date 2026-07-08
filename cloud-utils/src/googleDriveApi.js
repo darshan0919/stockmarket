@@ -4,18 +4,18 @@
  * Google Drive API v3 wrapper for jobs data sync.
  *
  * Provides file upload/download/list via the REST API using OAuth2 refresh tokens.
- * This is the "remote transport" used by driveDataStore when no local Google Drive
+ * Remote transport used by scripts/data.js (Data Ecosystem v2) when no local Google Drive
  * mount is detected but GOOGLE_REFRESH_TOKEN is set.
  *
  * Folder IDs are cached in-memory per session to avoid repeated lookups.
- * The root folder path on Drive is: StockMarket/jobs/v1 (configurable).
+ * The root folder path on Drive is: StockMarket/data/v2 (configurable).
  */
 
 const fs = require('fs');
 const path = require('path');
 const { Readable } = require('stream');
 
-const DEFAULT_ROOT_PATH = 'StockMarket/jobs/v1';
+const DEFAULT_ROOT_PATH = 'StockMarket/data/v2';
 
 let _google = null;
 function getGoogle() {
@@ -70,7 +70,7 @@ function getTimeoutOptions() {
 }
 
 /**
- * In-memory folder ID cache: { 'StockMarket/jobs/v1/gainers/2026/06' → Promise<'driveId123'> }
+ * In-memory folder ID cache: { 'StockMarket/data/v2/gainers/2026/06' → Promise<'driveId123'> }
  *
  * Stores PROMISES rather than resolved ids so that concurrent callers asking
  * for the same not-yet-created folder await the same in-flight request
@@ -124,7 +124,7 @@ async function resolveOrCreateSegment(drive, seg, parentId) {
  * in the same date folder) - in-flight creations are cached and shared.
  *
  * @param {object} drive - googleapis drive client
- * @param {string} folderPath - slash-separated path (e.g. 'StockMarket/jobs/v1/gainers/2026')
+ * @param {string} folderPath - slash-separated path (e.g. 'StockMarket/data/v2/gainers/2026')
  * @returns {Promise<string>} - Drive folder ID
  */
 async function ensureFolder(drive, folderPath) {
@@ -157,7 +157,7 @@ async function ensureFolder(drive, folderPath) {
  * Upload a local file to Google Drive at the given driveRel path.
  *
  * @param {object} drive - googleapis drive client
- * @param {string} rootPath - Drive root folder path (e.g. 'StockMarket/jobs/v1')
+ * @param {string} rootPath - Drive root folder path (e.g. 'StockMarket/data/v2')
  * @param {string} driveRel - relative path within the root (e.g. 'gainers/2026/06/26/gainers_raw.json')
  * @param {string} localPath - absolute local file path
  * @returns {Promise<{id: string, name: string, action: string}>}
@@ -291,7 +291,7 @@ async function listAllFiles(drive, rootPath) {
       const res = await drive.files.list({
         q: `'${folderId}' in parents and trashed = false`,
         fields:
-          'nextPageToken, files(id, name, mimeType, size, modifiedTime)',
+          'nextPageToken, files(id, name, mimeType, size, modifiedTime, md5Checksum)',
         pageSize: 100,
         pageToken,
       }, getTimeoutOptions());
@@ -307,6 +307,7 @@ async function listAllFiles(drive, rootPath) {
             driveRel: rel,
             size: parseInt(f.size || '0', 10),
             modifiedTime: f.modifiedTime,
+            md5: f.md5Checksum || null,
           });
         }
       }

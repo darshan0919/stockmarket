@@ -59,7 +59,7 @@ driving institutional accumulation:
 ### Persist the JSON DTO before writing the output template
 
 Before producing the text output below (for one stock, or the table for a list), write
-`jobs/data/agent-outputs/{TICKER}_stage2_catalyst.json` (for a multi-stock run, write one
+`data/agent-outputs/{TICKER}_stage2_catalyst.json` (for a multi-stock run, write one
 file per ticker, or a single `{date}_stage2_catalyst.json` with a top-level array — one
 record per stock either way). Each record MUST carry the standard envelope from
 `skills/tooling/output-dto-standard/SKILL.md` — `companyId` (canonical `EXCH:SYMBOL`),

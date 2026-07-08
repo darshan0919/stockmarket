@@ -12,7 +12,10 @@ description: >
   NEVER rebuilt from scratch when new data arrives — only the affected pillars are
   re-scored, evidence is appended, the signal is recomputed deterministically, and a new
   version is written. Source of truth is the Google Drive folder `stockmarket-theses`
-  (ID: 1MKK_WjVcvKCodIUaosTCZ8d_HXz6JPpL) with a local mirror in `data/theses/`.
+  (ID: 1MKK_WjVcvKCodIUaosTCZ8d_HXz6JPpL) — LEGACY, read-only. Canonical store is now the
+  theses collection: `data/theses.json` + `data/thesis-history.jsonl` (Data Ecosystem v2,
+  synced to Drive `StockMarket/data/v2` by `scripts/data.js push`). Write via
+  `lib/db.js saveThesis(companyId, thesis)`.
 ---
 
 # Investment Thesis Engine
@@ -36,15 +39,17 @@ Read before any run:
 
 ## Storage contract
 
-- **Source of truth:** Google Drive folder `stockmarket-theses`
-  (ID `1MKK_WjVcvKCodIUaosTCZ8d_HXz6JPpL`). Per company: `{TICKER}_thesis.json`
-  (machine state), `{TICKER}_thesis.md` (human memo), `{TICKER}_history.jsonl`
-  (one line per version — append only, never rewrite).
-- **Local mirror:** `data/theses/{TICKER}/` in the repo, same three files. Local-first when
-  the repo is in context (per `_shared/conventions.md`); always push the updated files back
-  to Drive at the end of a run. If Drive is unreachable, write locally and flag
-  `sync_pending: true` in the JSON.
-- On every run, load the existing thesis first (Drive → local fallback). If versions
+- **Source of truth (Data Ecosystem v2):** the theses collection — `data/theses.json`
+  (current thesis per company, id = companyId) + `data/thesis-history.jsonl` (one line
+  per version — append only, never rewrite). Write via
+  `packages/jobs-runtime/lib/db.js` → `saveThesis(companyId, thesis)`; render the human
+  memo to `data/assets/{TICKER}_thesis.md` from the JSON (JSON-first).
+- **Sync:** end every run with `node packages/jobs-runtime/scripts/data.js push`
+  (mirrors `data/` to Drive `StockMarket/data/v2`, push-only, keeps local files). The
+  old `stockmarket-theses` Drive folder (ID `1MKK_WjVcvKCodIUaosTCZ8d_HXz6JPpL`) is
+  LEGACY/read-only — migrated into the collection; do not write to it.
+- On every run, load the existing thesis first (`db.get('theses', companyId)` — or
+  `buildCompanyContext(companyId)` for the full research bundle). If versions
   diverge, the higher `version` number wins.
 
 ## Modes

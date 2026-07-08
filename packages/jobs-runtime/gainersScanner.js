@@ -25,17 +25,13 @@ const fs = require('fs');
 const path = require('path');
 const { stockscans, nse, bse } = require('@stock/api');
 const { loadEnv, argValue } = require('./lib/env');
-const { withDriveDataSync, resolveDataRoot } = require('./lib/driveDataStore');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const { sendHtmlEmail } = require('@stock/cloud-utils');
+const dbV2 = require('./lib/db');
 
-// Default to the canonical data root (jobs/data), NOT process.cwd() — a cwd fallback
-// scattered daily_gainers/ and delivery_cache/ at the repo root whenever the skill's
-// env exports were missing. resolveDataRoot() honors COWORK_DATA_DIR/WI_DATA_DIR.
-const OUTPUT_DIR = process.env.GAINERS_OUTPUT_DIR || path.join(resolveDataRoot(), 'daily_gainers');
-const SCRIP_CACHE_FILE =
-  process.env.BSE_SCRIP_CACHE ||
-  path.join(resolveDataRoot(), 'delivery_cache', 'bse_scrip_codes.json');
+// Data Ecosystem v2: raw scans → data/runs/, scrip cache → data/cache/ (both
+// via StorageService); classified signals → events collection (gainersClassifier).
+const OUTPUT_DIR = path.join(dbV2.dataRoot(), 'runs');
 const PRICE_HISTORY_CANDLES = 65;
 const RATIOS_SCAN_ID = '7f7e2d4044f428e69254ce31';
 
@@ -285,17 +281,17 @@ async function mapLimit(items, limit, fn) {
   return results;
 }
 
-// ── BSE scrip cache (entities) ──────────────────────────────────────────────────
+// ── BSE scrip cache (data/cache — regenerable derivable) ─────────────────────
 function loadScripCache() {
   try {
-    const data = StorageService.readJson('entities/reference/bse/scrip_codes/meta.json');
+    const data = StorageService.readJson('cache/bse-scrip-codes.json');
     if (data) return data;
   } catch { /* ignore */ }
   return {};
 }
 async function saveScripCache(cache) {
   StorageService.init();
-  await StorageService.saveEntity('reference', 'bse', 'scrip_codes', cache);
+  await StorageService.saveJson('cache/bse-scrip-codes.json', cache);
 }
 
 // ── API-bound steps (delegate to @stock/api) ──────────────────────────────────
@@ -643,10 +639,11 @@ async function main({
     industry_summary: industrySummary,
   };
 
-  // 7. Write + stdout
-  const dtoPaths = StorageService.getEventDtoPaths('gainers_raw', mDate, 'events/gainers');
+  // 7. Write raw scan to runs/ (derivable — re-fetchable from APIs; classified
+  // signals are the stored output, written by gainersClassifier → events).
+  const dtoPaths = StorageService.getEventDtoPaths('gainers_raw', mDate);
   StorageService.init();
-  await StorageService.saveJson(dtoPaths.jsonPath, output, false);
+  await StorageService.saveJson(dtoPaths.jsonPath, output);
   log(`[gainers_scanner] Written → ${dtoPaths.jsonPath}\n`);
   return output;
 }
@@ -666,10 +663,11 @@ module.exports = {
 
 if (require.main === module) {
   loadEnv(argValue('--env-file'));
-  withDriveDataSync('gainersScanner', async () => {
+  // v2: no wrap-around Drive sync — run `yarn data:push` (scripts/data.js) after the job.
+  (async () => {
     const dateArg = argValue('--date');
     const marketDate = dateArg ? new Date(`${dateArg}T00:00:00Z`) : undefined;
     const output = await main({ marketDate });
     process.stdout.write(JSON.stringify(output));
-  }).catch((e) => { console.error(e.message); process.exit(1); });
+  })().catch((e) => { console.error(e.message); process.exit(1); });
 }

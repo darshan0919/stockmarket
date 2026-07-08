@@ -46,29 +46,24 @@ Each skill should ideally also:
 These are recommendations for now, not a hard gate — but write new skills this way from
 the start; it's cheaper than retrofitting later.
 
-## Relationship to `driveDataStore.js`'s file-level envelope
+## Relationship to Data Ecosystem v2 (docs/DATA_ECOSYSTEM.md)
 
-`packages/jobs-runtime/lib/driveDataStore.js`'s `documentDto()` wraps a *file* with fields
-like `producer`, `modifiedAt`, `indexedAt` for Drive-sync bookkeeping. That is a
-**file-level** envelope used purely for the offload/classification pipeline — it does not
-know or care about the individual records inside the file.
-
-This standard's `companyId` / `creationTime` / `modifiedTime` / `creator` fields are a
-**record-level** DTO envelope, living inside the JSON content itself, one per
-company/signal/insight record. The two are complementary and should coexist: a single
-file (`{date}_insights.json`) gets a `documentDto()` file-level wrapper for Drive sync,
-while each object in its `signals[]` array separately carries the record-level DTO fields
-from this standard. Don't conflate the two — same-sounding field names (`producer` vs
-`creator`, `modifiedAt` vs `modifiedTime`) are intentionally distinct and serve different
-layers.
+This standard IS the record-level envelope of Data Ecosystem v2, enforced at write time
+by `packages/jobs-runtime/lib/db.js` (`ensureEnvelope`): every stored object carries
+`id` (deterministic), `creationTime`, `modifiedTime`, `creator`, plus `companyId(s)`,
+`date`, and `type` where applicable. Persist reports via `db.saveReport(dto)`,
+signals/deals/tweets via `db.appendEvents`, notes via `db.appendNotes`, validation via
+`db.appendValidations` — never by writing collection files directly.
 
 ## Rollout status
 
-As of this change:
-- `gainers-signal` (`packages/jobs-runtime/lib/gainersClassifier.js` → `{date}_insights.json`
-  `signals[]`) — conforms.
-- `insight-validation` (`packages/jobs-runtime/insightValidator.js` → `validation/ledger.json`
-  and the new `validation/gainers_ledger.json`) — conforms.
+As of Data Ecosystem v2 (2026-07-08), all runtime jobs conform via lib/db.js:
+- `gainers-signal` (`gainersClassifier.js` → events collection, type=`gainer`)
+- `insight-validation` (`insightValidator.js` → validation collection)
+- `daily-deals-digest` (`dealsDigest.js` → events, type=`deal`)
+- `tweet-signals` (`tweetSignalsClassifier.js` → events, type=`tweet`)
+- `watchlist-sync` (`watchlistUpdater.js` → events, type=`watchlist-sync`)
+- `watchlist-insights` (`notesDb.js` → notes collection)
 
 The remaining ~51 skills in this repo are being migrated incrementally. This document is
 the target standard for all future skill work; treat any new analytical/reportable output

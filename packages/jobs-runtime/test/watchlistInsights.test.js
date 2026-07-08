@@ -6,8 +6,7 @@ const path = require('path');
 
 // Point notes/validation at temp dirs BEFORE requiring the module (paths bind at load).
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'wi-'));
-process.env.WI_NOTES_DIR = path.join(TMP, 'notes');
-process.env.WI_VALIDATION_DIR = path.join(TMP, 'validation');
+process.env.DATA_V2_DIR = TMP;
 
 jest.mock('@stock/api', () => ({
   stockscans: { scanAnnouncements: jest.fn(), fetchPdf: jest.fn() },

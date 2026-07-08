@@ -181,7 +181,7 @@ Render an interactive HTML briefing using `assets/briefing_template.html`. The m
 
 Below the master table, give a per-company deep-dive card (verbatim guidance quotes with speaker + date, the validation evidence, the next-quarter maths shown transparently, both surprises, the expectations and drift reads, and a "what could be wrong" block), then a cross-cutting risks section, an exclusions list split into **already-declared** and **no-concall/no-PPT**, and a result-day watchlist of the specific metrics to verify when each reports.
 
-If the `visualize` tool is available, render the table through it; otherwise write the self-contained HTML file to `/mnt/project/jobs/data/agent-outputs/` and present it.
+If the `visualize` tool is available, render the table through it; otherwise write the self-contained HTML file to `/mnt/project/data/agent-outputs/` and present it.
 
 ## Final self-audit (do not skip)
 

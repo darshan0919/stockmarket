@@ -53,7 +53,7 @@ BEFORE rendering — never generate the MD/PDF directly from live reasoning with
 intermediate artifact.
 
 1. **Write the DTO first.** Save `{TICKER}_annual_report_analysis.json` (e.g. to
-   `jobs/data/agent-outputs/`) shaped like:
+   `data/agent-outputs/`) shaped like:
 
    ```json
    {

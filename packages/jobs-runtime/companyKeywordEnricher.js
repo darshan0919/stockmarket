@@ -12,7 +12,7 @@
  * risk polluting the shared master DB with wrong aliases.
  *
  * Usage:
- *   node companyKeywordEnricher.js jobs/data/tweet_signals/{date}_tweets_raw.json
+ *   node companyKeywordEnricher.js data/runs/{date}_tweets_raw.json
  */
 const fs = require('fs');
 const path = require('path');

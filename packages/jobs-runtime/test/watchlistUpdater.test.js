@@ -1,7 +1,10 @@
 'use strict';
 
+const __os=require('os'),__fs=require('fs'),__path=require('path');
+process.env.DATA_V2_DIR = __fs.mkdtempSync(__path.join(__os.tmpdir(), 'v2test-'));
+
 jest.mock('@stock/api', () => ({
-  stockscans: { runScan: jest.fn(), watchlistTable: jest.fn(), updateWatchlist: jest.fn() },
+  stockscans: { runScan: jest.fn(), watchlistTable: jest.fn(), updateWatchlist: jest.fn(), validateAuth: jest.fn(async () => true) },
 }));
 
 const {
@@ -67,6 +70,7 @@ describe('fetchAllCompanies pagination', () => {
 describe('main --dry-run', () => {
   test('computes diff, excludes Radar, and does NOT mutate the watchlist', async () => {
     const client = {
+      validateAuth: jest.fn(async () => true),
       runScan: jest.fn().mockResolvedValue({ total: 3, table: table(['A', 'B', 'RADAR1']) }),
       watchlistTable: jest.fn(),
       updateWatchlist: jest.fn(),

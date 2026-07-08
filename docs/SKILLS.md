@@ -25,9 +25,9 @@ Secrets are decentralized and **Drive-resident**.
 
 Data is structured in a "files-as-a-lakehouse" model, with all reads/writes passing through the `DataStore` abstraction:
 - Formats: Parquet (for tabular), JSON (for state/notes), CSV (legacy).
-- Storage Location: `jobs/data/` locally, mirrored to Google Drive `StockMarket/jobs/v1/`.
+- Storage Location: `data/` locally, mirrored to Google Drive `StockMarket/data/v2/`.
 - Preflight: Data operations will not hang; an `AbortController` handles timeouts. 
-- All data synchronization is managed automatically (push/pull bounds) using `driveDataStore.js` and `googleDriveApi.js`.
+- All data synchronization goes through `packages/jobs-runtime/scripts/data.js` (`yarn data:push` / `data:pull`) over `googleDriveApi.js` — see docs/DATA_ECOSYSTEM.md.
 
 ## 4. Node Execution Context
 

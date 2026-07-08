@@ -23,7 +23,7 @@ RUNTIME=$(dirname "$SCAN")   # …/packages/jobs-runtime
 ```
 
 Do NOT export `GAINERS_OUTPUT_DIR` / `WI_DATA_DIR` / `COWORK_ENV` — the scripts resolve
-everything themselves: data root defaults to `<repo>/jobs/data/` and secrets to
+everything themselves: data root defaults to `<repo>/data/` and secrets to
 `<repo>/.env`. Exporting paths derived from fragile `find`s is what previously scattered
 `daily_gainers/`, `delivery_cache/` etc. at the repo root.
 
@@ -32,7 +32,7 @@ everything themselves: data root defaults to `<repo>/jobs/data/` and secrets to
 ```bash
 node "$SCAN"            # add `--date YYYY-MM-DD` to override the market date
 ```
-Writes `jobs/data/daily_gainers/{market_date}_gainers_raw.json` (top-50 gainers, quality
+Writes `data/runs/gainers_raw_{YYYYMMDD}.json` (top-50 gainers, quality
 filters, per-symbol NSE/BSE delivery, announcements, price-action signals, sector
 breadth). If it yields 0 gainers (holiday / API issue), send a "no signals today" email
 and stop.
@@ -42,7 +42,7 @@ and stop.
 ```bash
 node "$RUNTIME/lib/gainersClassifier.js"
 ```
-Reads the raw JSON and writes `jobs/data/daily_gainers/{market_date}_insights.json` with
+Reads the raw JSON and writes the classified signals into the events collection (`data/events-YYYY-MM.json`, type=`gainer`) via `lib/db.js`, plus the full DTO `data/runs/gainers_insights_{YYYYMMDD}.json` with
 `signals[]` — each has `primary_driver`, `conviction`, `in_email`, and a pre-built
 `evidence[]` (announcement subjects 📋 material / 📄 routine, delivery %, vol spike,
 breakout flags). Each signal record also carries the DTO envelope required by
@@ -51,7 +51,7 @@ breakout flags). Each signal record also carries the DTO envelope required by
 
 Downstream: `insight-validation`'s nightly run performs a D+2 follow-up validation on
 this file's HIGH-conviction picks (positive, substantial D+2 return; delivery% as a
-secondary signal) and writes `jobs/data/validation/gainers_ledger.json` — see
+secondary signal) and writes records into the validation collection (`data/validation.json`, type=`gainers-followup`) — see
 `skills/equity-research/insight-validation/SKILL.md`. No action needed here; just be
 aware today's HIGH picks get checked automatically two trading days out.
 
@@ -83,16 +83,14 @@ If email status is `skipped`/`error`, print a warning but do not fail.
 ## Step 4 — Offload & cleanup (MANDATORY, even on failure)
 
 ```bash
-node "$RUNTIME/scripts/offloadToDrive.js"
+node "$RUNTIME/scripts/data.js" push
 ```
-Syncs everything under `jobs/data/` to Google Drive (`StockMarket/jobs/v1`) and wipes the
-local cache. The skill is NOT complete until this has run. Never leave generated data
-files in the repo (root or `jobs/data/`) or in the session workspace; if the sync fails,
-report it — the script deliberately keeps the local cache in that case.
+Idempotent push of everything under `data/` to Google Drive (`StockMarket/data/v2`).
+Push-only: local files are KEPT (full mirror), nothing is deleted. The skill is NOT complete until this has run. Generated data belongs ONLY under `data/`; if the sync fails, report it and retry later.
 
 ## Rules
 - Do NOT re-fetch or re-compute — both scripts did that.
 - Show ALL `evidence[]` lines per stock; don't truncate. Cite actual numbers.
 - Tag delivery `[NSE]`/`[BSE]` next to the %; show routine announcement subjects as context.
-- All outputs go under `jobs/data/` (the scripts do this by default) — never write data
+- All outputs go under `data/` (the scripts do this by default) — never write data
   files to the repo root, and always finish with Step 4.

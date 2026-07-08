@@ -20,22 +20,9 @@ const { nse, stockscans } = require('@stock/api');
 const { sendHtmlEmail, stockscansLink } = require('@stock/cloud-utils');
 const { NotesDb } = require('./lib/notesDb');
 const { loadEnv, argValue } = require('./lib/env');
-const { withDriveDataSync, resolveDataRoot } = require('./lib/driveDataStore');
 const StorageService = require('@stock/cloud-utils').StorageService;
+const dbV2 = require('./lib/db');
 const ist = require('./lib/ist');
-
-// ── Paths & config ────────────────────────────────────────────────────────────
-// Default to the canonical data root (jobs/data), NOT process.cwd() — a cwd fallback
-// scattered notes/, validation/ and delivery_cache/ at the repo root whenever the
-// skill's env exports were missing.
-const DATA_DIR = process.env.WI_DATA_DIR || resolveDataRoot();
-const NOTES_DIR = process.env.WI_NOTES_DIR || path.join(DATA_DIR, 'notes');
-const CACHE_DIR = process.env.IV_CACHE_DIR || path.join(DATA_DIR, 'delivery_cache');
-const VAL_DIR = process.env.WI_VALIDATION_DIR || path.join(DATA_DIR, 'validation');
-const LEDGER_PATH = path.join(VAL_DIR, 'ledger.json');
-const PROPOSALS_PATH = path.join(VAL_DIR, 'proposals.md');
-const GAINERS_DIR = path.join(DATA_DIR, 'daily_gainers');
-const GAINERS_LEDGER_PATH = path.join(VAL_DIR, 'gainers_ledger.json');
 
 // Initial default threshold for the gainers-signal HIGH-conviction follow-up validation
 // (see cmdValidateGainers / validateGainersPicks below): D+2 close-to-close return must be
@@ -96,7 +83,7 @@ async function fetchDeliveryCsv(date, client = nse) {
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, '0');
   const dd = String(date.getDate()).padStart(2, '0');
-  const relPath = `events/market-data/nse-delivery/${yyyy}/${mm}/sec_bhavdata_full_${yyyy}${mm}${dd}.csv`;
+  const relPath = `cache/nse-delivery_${yyyy}${mm}${dd}.csv`;
   
   const cache = StorageService.readContent(relPath);
   if (cache && cache.length > 1000) return cache;
@@ -348,7 +335,8 @@ async function fetchLiveReturns(client = stockscans) {
 
 async function fetchSectorContext(target, client = stockscans) {
   StorageService.init();
-  const dtoPaths = StorageService.getEventDtoPaths('sector_context', target, 'events/validation/sector-context');
+  // Regenerable derived context → data/cache/ (fetched fresh when absent).
+  const dtoPaths = { jsonPath: `cache/sector_context_${target.toISOString().slice(0, 10).replace(/-/g, '')}.json` };
   
   const cached = StorageService.readJson(dtoPaths.jsonPath);
   if (cached && Object.keys(cached).length > 2) {
@@ -415,42 +403,23 @@ async function fetchSectorContext(target, client = stockscans) {
 
 // ── Notes / category mapping ──────────────────────────────────────────────────
 function latestNotesFile() {
-  // Preferred: entities-backed store (StorageService.saveEntity), if it has been populated.
-  const db = new NotesDb(NOTES_DIR);
-  const entitiesRel = db.getLatestFile();
-  const notes = StorageService.readJson(entitiesRel);
-  if (notes) {
-    // NotesDb.getLatestFile() always resolves to the same static entity path
-    // ("entities/watchlist-notes/main/current/meta.json") regardless of when it was last
-    // written, so the bare filename can't be used as a validation-dedup key — it never
-    // changes even after new notes are appended. Version the identifier with the entity's
-    // lastRun timestamp (set on every NotesDb.save()) so each distinct save gets a distinct
-    // key and isAlreadyValidated() stops treating every day's fresh notes as already done.
-    const version = (notes.meta && notes.meta.lastRun) || 'unknown';
-    return [`${path.basename(entitiesRel)}@${version}`, notes];
-  }
-
-  // Fallback: newest legacy snapshot in NOTES_DIR (notes_DD-MM-YY_HH-MM-SS_AM/PM.json),
-  // written by watchlistInsights.js before it was migrated to the entities store.
-  if (fs.existsSync(NOTES_DIR)) {
-    const snapshots = fs
-      .readdirSync(NOTES_DIR)
-      .filter((f) => /^notes_.*\.json$/.test(f))
-      .map((f) => {
-        const full = path.join(NOTES_DIR, f);
-        return { f, full, mtime: fs.statSync(full).mtimeMs };
-      })
-      .sort((a, b) => b.mtime - a.mtime);
-    if (snapshots.length) {
-      const { f, full } = snapshots[0];
-      return [f, JSON.parse(fs.readFileSync(full, 'utf8'))];
+  // v2: NotesDb recomposes the blob from the notes collection (lib/db.js).
+  const db = new NotesDb();
+  const notes = db.load();
+  if (Object.keys(notes.companies || {}).length) {
+    // The collection path never changes, so the bare filename can't be used as a
+    // validation-dedup key. Version the identifier with the newest note's
+    // modifiedTime so each fresh batch of notes gets a distinct key and
+    // isAlreadyValidated() stops treating every day's fresh notes as already done.
+    let version = notes.meta.lastRun || '';
+    for (const co of Object.values(notes.companies)) {
+      for (const n of co.notes || []) {
+        const t = n.modifiedTime || n.createdAt || '';
+        if (t > version) version = t;
+      }
     }
+    return [`notes.json@${version || 'unknown'}`, notes];
   }
-
-  // Last resort: legacy flat file at the data root.
-  const flat = path.join(DATA_DIR, 'company_notes.json');
-  if (fs.existsSync(flat)) return [path.basename(flat), JSON.parse(fs.readFileSync(flat, 'utf8'))];
-
   return ['', { companies: {} }];
 }
 
@@ -574,19 +543,29 @@ async function runValidation(insights, target, clients = { nse, stockscans }) {
 // required record envelope (companyId/creationTime/modifiedTime/creator) written below.
 
 function loadGainersInsights(isoDate) {
-  const p = path.join(GAINERS_DIR, `${isoDate}_insights.json`);
-  if (!fs.existsSync(p)) return null;
-  return JSON.parse(fs.readFileSync(p, 'utf8'));
+  // v2: gainer signals live in the events collection (written by gainersClassifier).
+  const signals = dbV2.find('events', { type: 'gainer', date: isoDate });
+  if (!signals.length) {
+    // Fallback: the full run DTO (runs/gainers_insights_YYYYMMDD.json), if present.
+    const p = path.join(dbV2.dataRoot(), 'runs', `gainers_insights_${isoDate.replace(/-/g, '')}.json`);
+    if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf8'));
+    return null;
+  }
+  return { market_date: isoDate, signals };
 }
 
 function loadGainersLedger() {
-  if (!fs.existsSync(GAINERS_LEDGER_PATH)) return [];
-  try { return JSON.parse(fs.readFileSync(GAINERS_LEDGER_PATH, 'utf8')); } catch { return []; }
+  // v2: gainers follow-up records live in the validation collection.
+  return dbV2.find('validation', { type: 'gainers-followup', since: '1900-01-01', sort: 'date' });
 }
 
 function saveGainersLedger(records) {
-  fs.mkdirSync(VAL_DIR, { recursive: true });
-  fs.writeFileSync(GAINERS_LEDGER_PATH, JSON.stringify(records, null, 2));
+  dbV2.appendValidations(records.map((r) => ({
+    ...r,
+    type: 'gainers-followup',
+    creator: r.creator || 'insight-validation',
+    date: r.date || r.sourceDate,
+  })));
 }
 
 /** Close price + delivery% for `sym` on date `d` — bhavcopy first, live NSE quote fallback. */
@@ -736,11 +715,39 @@ function renderGainersValidationSection(run) {
   return parts.join('\n');
 }
 
-// ── Ledger + proposals ────────────────────────────────────────────────────────
+// ── Ledger + proposals (v2: validation collection via lib/db.js) ─────────────
+// The ledger blob {days, byCategory, validatedNotesFiles} is RECOMPOSED from
+// validation.json records: one record per result (verdict rows), one
+// type:"day-meta" record per day, one type:"ledger-state" record for the
+// validated-notes dedupe keys. byCategory is derived (recomputed on load) from
+// non-provisional result records — it is never stored, so it can't drift.
 function loadLedger() {
-  const data = StorageService.readJson('entities/validation/main/ledger/meta.json');
-  if (data) return data;
-  return { days: {}, byCategory: {}, validatedNotesFiles: [] };
+  const led = { days: {}, byCategory: {}, validatedNotesFiles: [] };
+  const records = dbV2.find('validation', { since: '1900-01-01' });
+  for (const r of records) {
+    if (r.type === 'ledger-state') {
+      led.validatedNotesFiles = r.validatedNotesFiles || [];
+      led.lastUpdated = r.modifiedTime;
+      continue;
+    }
+    if (r.type === 'day-meta') {
+      led.days[r.date] = { ...led.days[r.date], ...r, results: (led.days[r.date] || {}).results || [] };
+      continue;
+    }
+    (led.days[r.date] ||= { results: [] }).results ||= [];
+    led.days[r.date].results.push(r);
+    // Derived learning stats (EOD-confirmed reads only; see updateLedger note).
+    if (!r.category || r.provisional) continue;
+    const c = (led.byCategory[r.category] ||= {
+      confirmed: 0, overrated: 0, underrated: 0, noise_move: 0, soft: 0, samples: 0,
+      sector_driven: 0, against_sector: 0,
+    });
+    if (r.verdict in c) c[r.verdict] += 1;
+    c.samples += 1;
+    if (r.sector_label === 'sector-driven' || r.sector_label === 'amplified-by-sector') c.sector_driven += 1;
+    else if (r.sector_label === 'against-sector') c.against_sector += 1;
+  }
+  return led;
 }
 
 function isAlreadyValidated(notesFilename) {
@@ -749,49 +756,43 @@ function isAlreadyValidated(notesFilename) {
 }
 
 async function updateLedger(run, notesFilename) {
-  StorageService.init();
-  const led = loadLedger();
-  const compact = (run.results || []).map((r) => {
+  // One validation record per result. Only EOD bhavcopy-confirmed reads feed the
+  // category-learning stats (loadLedger() derives byCategory from non-provisional
+  // records). Live/provisional reads are intraday and can still shift before NSE
+  // finalizes delivery% — they're stored + shown, just excluded from learning.
+  const records = (run.results || []).map((r) => {
     const sec = r.sector || {};
     const st = r.structural || {};
     return {
+      date: run.date,
       companyId: r.companyId, name: r.name, noteId: r.noteId || '',
+      creator: 'insight-validation',
       title: (r.title || '').slice(0, 80), category: r.category, significance: r.significance,
       verdict: r.verdict, live_ret: r.live_return_1d, deliv_per: st.deliv_per,
       vol_spike: st.vol_spike, strength: st.label, sector_label: sec.label, industry_1d: sec.industry_1d,
       provisional: !!st.provisional,
+      id: dbV2.makeId('val', 'insight-validation', r.companyId, run.date, r.noteId || r.title || ''),
     };
   });
-  led.days[run.date] = {
+  const dayMeta = {
+    id: dbV2.makeId('val', 'insight-validation', 'day-meta', run.date),
+    type: 'day-meta',
+    date: run.date,
+    creator: 'insight-validation',
     notesFile: notesFilename, validatedAt: ist.nowIstIso(), insightCount: run.insightCount,
     scoredWithDelivery: run.scoredWithDelivery, scoredLive: run.scoredLive || 0,
     deliveryPending: run.deliveryPending,
-    marketMedian1d: run.marketMedian1d ?? null, results: compact,
+    marketMedian1d: run.marketMedian1d ?? null,
   };
-  led.validatedNotesFiles ||= [];
-  if (notesFilename && !led.validatedNotesFiles.includes(notesFilename)) led.validatedNotesFiles.push(notesFilename);
-
-  led.byCategory ||= {};
-  for (const r of run.results || []) {
-    // Only EOD bhavcopy-confirmed reads feed the category-learning stats (and therefore
-    // makeProposals). Live/provisional reads are intraday and can still shift before
-    // NSE finalizes delivery%, so mixing them in would let noisy data drive prompt
-    // refinement proposals — they're still shown in the email/ledger, just not counted here.
-    if (!r.structural || r.structural.provisional) continue;
-    const cat = r.category;
-    const c = (led.byCategory[cat] ||= {
-      confirmed: 0, overrated: 0, underrated: 0, noise_move: 0, soft: 0, samples: 0,
-      sector_driven: 0, against_sector: 0,
-    });
-    if (r.verdict in c) c[r.verdict] += 1;
-    c.samples += 1;
-    const sl = (r.sector || {}).label;
-    if (sl === 'sector-driven' || sl === 'amplified-by-sector') c.sector_driven = (c.sector_driven || 0) + 1;
-    else if (sl === 'against-sector') c.against_sector = (c.against_sector || 0) + 1;
-  }
-  led.lastUpdated = ist.nowIstIso();
-  await StorageService.saveEntity('validation', 'main', 'ledger', led);
-  return led;
+  const prevState = dbV2.get('validation', 'val_state_ledger');
+  const validatedNotesFiles = (prevState && prevState.validatedNotesFiles) || [];
+  if (notesFilename && !validatedNotesFiles.includes(notesFilename)) validatedNotesFiles.push(notesFilename);
+  const state = {
+    id: 'val_state_ledger', type: 'ledger-state', date: run.date,
+    creator: 'insight-validation', validatedNotesFiles,
+  };
+  dbV2.appendValidations([...records, dayMeta, state]);
+  return loadLedger();
 }
 
 function makeProposals(led, minSamples = 6) {
@@ -849,7 +850,7 @@ function makeProposals(led, minSamples = 6) {
 
 async function writeProposals(props, target, qr) {
   StorageService.init();
-  const relPath = 'documents/validation/proposals/proposals.md';
+  const relPath = 'assets/validation-proposals.md';
   const existing = StorageService.readContent(relPath) || '';
   
   const iso = target.toISOString().slice(0, 10);
@@ -871,7 +872,7 @@ async function writeProposals(props, target, qr) {
     for (const sug of irr.suggestions || []) s += `- ${sug}\n`;
     for (const mf of (irr.potentialMisfilters || []).slice(0, 10)) s += `  • POSSIBLE MIS-FILTER: ${mf}\n`;
   }
-  await StorageService.saveContent(relPath, existing + s, false);
+  await StorageService.saveContent(relPath, existing + s);
 }
 
 // ── Quality review ────────────────────────────────────────────────────────────
@@ -990,7 +991,7 @@ function qualityReviewIgnored(target) {
   const yyyy = target.getFullYear();
   const mm = String(target.getMonth() + 1).padStart(2, '0');
   const dd = String(target.getDate()).padStart(2, '0');
-  const logPath = `events/validation/ignored-log/${yyyy}/${mm}/${dd}_log.json`;
+  const logPath = `cache/ignored-announcements_${yyyy}${mm}${dd}.json`;
   
   const ignored = StorageService.readJson(logPath);
   if (!ignored) {
@@ -1293,8 +1294,9 @@ module.exports = {
 
 if (require.main === module) {
   loadEnv(argValue('--env-file'));
-  withDriveDataSync('insightValidator', () => runCli(process.argv.slice(2))).catch((e) => {
-    process.stderr.write(JSON.stringify({ error: e.message, command: 'drive-sync' }));
+  // v2: no wrap-around Drive sync — run `yarn data:push` (scripts/data.js) after the job.
+  runCli(process.argv.slice(2)).catch((e) => {
+    process.stderr.write(JSON.stringify({ error: e.message, command: 'cli' }));
     process.exit(1);
   });
 }

@@ -39,7 +39,7 @@ per-transaction unit economics per stage instead of stage margins.
 ## Output
 
 **Persist the JSON DTO first.** Before writing the stage-by-stage table or rendering the
-widget, write `jobs/data/agent-outputs/{Industry}_value_chain.json` — a top-level array
+widget, write `data/agent-outputs/{Industry}_value_chain.json` — a top-level array
 with one record per named company that appears in the chain (each stage names actual
 companies; every named company gets its own record). Each record MUST carry the standard
 envelope from `skills/tooling/output-dto-standard/SKILL.md` — `companyId` (canonical

@@ -2,31 +2,36 @@
 
 const crypto = require('crypto');
 const { nowIstIso } = require('./ist');
-const StorageService = require('@stock/cloud-utils').StorageService;
+const db = require('./db');
 
 const emptyNotes = () => ({
-  meta: { version: '1.0', lastRun: null, totalCompanies: 0, totalNotes: 0 },
+  meta: { version: '2.0', lastRun: null, totalCompanies: 0, totalNotes: 0 },
   companies: {},
 });
 
 /**
- * Notes DB — now backed by StorageService entities architecture.
+ * Notes DB — v2 adapter (docs/DATA_ECOSYSTEM.md).
  *
- * It uses the single entity path `entities/watchlist-notes/main/current`.
- * StorageService.saveEntity automatically creates history backups on every save.
+ * Keeps the legacy blob API ({ meta, companies: { cid: { notes[], businessSummary,
+ * processedAnnouncements[] } } }) that watchlistInsights.js / insightValidator.js
+ * consume, but persists via lib/db.js flat collections:
+ *   - each note            → one record in notes.json (deterministic id → no dupes)
+ *   - businessSummary      → a type:"business-summary" note record (one per company)
+ *   - processedAnnouncements, ticker, name
+ *                          → companies.json (per-company `state.processedAnnouncements`)
+ * load() recomposes the blob; save() decomposes it. No files outside data/*.json.
  */
 class NotesDb {
-  constructor(notesDir) {
-    StorageService.init();
+  constructor(_notesDir) {
+    db.init();
   }
 
   getLatestFile() {
-    // Return standard entity path for legacy compat if requested
-    return 'entities/watchlist-notes/main/current/meta.json';
+    // Legacy-compat identifier (some callers log it / hash it for run ids).
+    return 'notes.json';
   }
 
   initRun() {
-    StorageService.init();
     return this.getLatestFile();
   }
 
@@ -35,19 +40,90 @@ class NotesDb {
   }
 
   load() {
-    const data = StorageService.readJson(this.getLatestFile());
-    return data || emptyNotes();
+    const notes = emptyNotes();
+    const companies = db.loadFile(db.collectionFile('companies'));
+
+    for (const rec of db.find('notes', {})) {
+      const cid = rec.companyId;
+      if (!cid) continue;
+      const co = NotesDb.ensureCompany(notes, cid);
+      if (rec.type === 'business-summary') {
+        if ((rec.modifiedTime || '') >= (co._bsTime || '')) {
+          co.businessSummary = rec.text || '';
+          co._bsTime = rec.modifiedTime || '';
+        }
+        continue;
+      }
+      // Recompose the note shape the jobs expect (tolerate migrated records).
+      co.notes.push({
+        ...rec,
+        insight: rec.insight || rec.text,
+        announcementId: rec.announcementId || rec.sourceAnnouncement,
+        createdAt: rec.createdAt || rec.creationTime,
+      });
+    }
+
+    for (const co of Object.values(notes.companies)) {
+      delete co._bsTime;
+      co.notes.sort((a, b) => String(a.createdAt || '').localeCompare(String(b.createdAt || '')));
+      const c = companies[co.companyId];
+      if (c) {
+        co.ticker = co.ticker || c.nseTicker || String(co.companyId).split(':')[1] || '';
+        co.name = co.name || c.name || '';
+        co.processedAnnouncements = (c.state && c.state.processedAnnouncements) || [];
+        co.lastUpdated = c.modifiedTime || co.lastUpdated;
+      }
+      co.notes.forEach(() => { notes.meta.totalNotes += 1; });
+    }
+    notes.meta.totalCompanies = Object.keys(notes.companies).length;
+    return notes;
   }
 
   async save(notes) {
-    const companies = notes.companies || {};
-    notes.meta.totalCompanies = Object.keys(companies).length;
-    notes.meta.totalNotes = Object.values(companies).reduce(
-      (s, c) => s + (c.notes || []).length,
-      0
+    const now = nowIstIso();
+    const noteRecords = [];
+    const companyUpserts = [];
+
+    for (const [cid, co] of Object.entries(notes.companies || {})) {
+      for (const n of co.notes || []) {
+        noteRecords.push({
+          ...n,
+          companyId: cid,
+          type: n.type || n.category || 'insight',
+          creator: n.creator || 'watchlist-insights',
+          date: String(n.date || n.createdAt || n.creationTime || '').slice(0, 10) || undefined,
+          creationTime: n.creationTime || n.createdAt,
+          text: n.text || n.insight,
+          announcementId: n.announcementId || n.sourceAnnouncement,
+        });
+      }
+      if (co.businessSummary) {
+        noteRecords.push({
+          companyId: cid,
+          type: 'business-summary',
+          creator: 'watchlist-insights',
+          text: co.businessSummary,
+          // Deterministic per-company id → updates in place as summary evolves.
+          id: db.makeId('note', 'watchlist-insights', cid, '', 'business-summary'),
+        });
+      }
+      companyUpserts.push({
+        id: cid,
+        creator: 'watchlist-insights',
+        nseTicker: co.ticker || undefined,
+        name: co.name || undefined,
+        state: { processedAnnouncements: co.processedAnnouncements || [] },
+      });
+    }
+
+    if (noteRecords.length) db.appendNotes(noteRecords);
+    if (companyUpserts.length) db.upsertMany('companies', companyUpserts);
+
+    notes.meta.lastRun = now;
+    notes.meta.totalCompanies = Object.keys(notes.companies || {}).length;
+    notes.meta.totalNotes = Object.values(notes.companies || {}).reduce(
+      (s, c) => s + (c.notes || []).length, 0
     );
-    notes.meta.lastRun = nowIstIso();
-    await StorageService.saveEntity('watchlist-notes', 'main', 'current', notes);
   }
 
   static getCompany(notes, companyId) {
@@ -62,11 +138,6 @@ class NotesDb {
         companyId,
         ticker,
         name,
-        // Output DTO standard envelope (skills/tooling/output-dto-standard):
-        // this record IS the canonical JSON DTO for this company's watchlist
-        // insights — the digest email is rendered FROM it, never drafted
-        // separately. `lastUpdated` (pre-existing) is kept alongside
-        // `modifiedTime` for backward compatibility with existing readers.
         creationTime: now,
         modifiedTime: now,
         creator: 'watchlist-insights',
@@ -104,4 +175,4 @@ class NotesDb {
   }
 }
 
-module.exports = { NotesDb, };
+module.exports = { NotesDb };

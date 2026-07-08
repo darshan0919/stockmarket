@@ -69,7 +69,7 @@ intermediate artifact. `stock-api/src/generators/generateReport.js` implements t
 two explicit steps:
 
 1. **Write the DTO** — `writeReportDto(companyId, companyName, ticker, reportMarkdown, dtoPath)`
-   persists `{TICKER}_deepdive.json` (e.g. `jobs/data/agent-outputs/{TICKER}_deepdive.json`)
+   persists `{TICKER}_deepdive.json` (e.g. `data/agent-outputs/{TICKER}_deepdive.json`)
    with the required envelope fields (`companyId`, `creationTime`, `modifiedTime`,
    `creator: "equity-research-deepdive"`) alongside the full `reportMarkdown` (the 19-section
    write-up from Phase 3). If the JSON already exists for this ticker, it preserves the

@@ -57,7 +57,7 @@ also only has UI-rendered fields (relative timestamps like "16h", formatted coun
    like `full_text\\":\\"[^\\\\]{1,300}` to keep the pulled text small), extract tweet
    text from the captured JSON bodies, dedupe (X's data model repeats a retweet's
    underlying text under both the wrapper and the quoted tweet), and write to
-   `jobs/data/tweet_signals/{date}_tweets_raw.json`:
+   `data/runs/{date}_tweets_raw.json`:
    `{ listId, listName, capturedAt, captureMethod: "extension-network-interception", tweets: [{id, author, text}] }`.
 
 **Known gap (TODO, not yet solved):** the field-extraction regex above pulls `full_text`
@@ -70,7 +70,7 @@ does mean the briefing can't yet show "via @account" attribution or exact post t
 
 This solves the NSE-ticker ↔ BSE-scrip-code ↔ company-name mapping problem that several
 skills in this repo have hit independently. **One shared JSON file** is now the source of
-truth: `packages/jobs-runtime/data/company-master.json`, each record —
+truth: `data/cache/company-master.json`, each record —
 `{ companyId, nseTicker, bseTicker, companyName, keywords[] }` — `companyId` is
 `NSE:<TICKER>` when NSE-listed, else `BSE:<SCRIPCODE>`. Any skill needing ticker↔scrip
 resolution should use `packages/jobs-runtime/lib/companyMaster.js`
@@ -80,7 +80,7 @@ re-deriving its own mapping.
 ```bash
 RUNTIME=packages/jobs-runtime
 node "$RUNTIME/companyMasterSync.js"              # daily: refresh from Kite instruments
-node "$RUNTIME/companyKeywordEnricher.js" jobs/data/tweet_signals/{date}_tweets_raw.json
+node "$RUNTIME/companyKeywordEnricher.js" data/runs/{date}_tweets_raw.json
 ```
 
 - **`companyMasterSync.js`** fetches `https://api.kite.trade/instruments` — Kite Connect's
@@ -97,7 +97,7 @@ node "$RUNTIME/companyKeywordEnricher.js" jobs/data/tweet_signals/{date}_tweets_
   avoid polluting shared infra with wrong aliases. Run this AFTER Step 1's capture and
   BEFORE Step 3's classification, so same-day aliases are available immediately.
 
-This file lives outside `jobs/data/` and is NOT offloaded/wiped by `offloadToDrive.js` in
+This file lives outside `data/` and is NOT offloaded/wiped by `data.js push` in
 Step 5 — it's reference infrastructure other skills depend on synchronously, not a report
 artifact, so it should persist locally (and be committed) like code.
 
@@ -105,11 +105,11 @@ artifact, so it should persist locally (and be committed) like code.
 
 ```bash
 CLS=$(find /sessions -path '*packages/jobs-runtime/lib/tweetSignalsClassifier.js' -not -path '*/node_modules/*' 2>/dev/null | head -1)
-node "$CLS" jobs/data/tweet_signals/{date}_tweets_raw.json
+node "$CLS" data/runs/{date}_tweets_raw.json
 ```
 
 Reads the raw JSON, applies keyword-rule categorization, and writes
-`jobs/data/tweet_signals/{date}_insights.json` with `signals[]` — each carries the DTO
+`data/runs/{date}_insights.json` with `signals[]` — each carries the DTO
 envelope (`companyId`, `creationTime`, `modifiedTime`, `creator: "tweet-signals"`) per
 `skills/tooling/output-dto-standard/SKILL.md`, plus `category`, `conviction`
 (HIGH/MEDIUM/LOW/NOISE), `nseTicker`, `bseTicker`, `evidence[]`, `inDigest`.
@@ -160,13 +160,11 @@ Use the same shared mailer pattern as `gainers-signal` (see that skill's Step 3)
 ## Step 5 — Offload & cleanup (MANDATORY, even on failure)
 
 ```bash
-node "$RUNTIME/scripts/offloadToDrive.js"
+node "$RUNTIME/scripts/data.js" push
 ```
-Same as every other job in this repo — syncs `jobs/data/` to Drive and wipes the local
-cache. Never leave `tweet_signals/*.json` sitting in the repo. This does NOT touch
-`packages/jobs-runtime/data/company-master.json` — that file is outside `jobs/data/` on
-purpose and should NOT be offloaded/wiped; it's shared reference infrastructure other
-skills read directly.
+Same as every other job in this repo — idempotent push of `data/` to Drive
+(`StockMarket/data/v2`). Push-only: all local files are KEPT (full mirror). The
+company master now lives at `data/cache/company-master.json` and is synced too.
 
 ## Rules
 - Never store X session cookies, `auth_token`, or `ct0` anywhere (`.env`, files, or
@@ -175,5 +173,5 @@ skills read directly.
 - Do not attempt the raw GraphQL cURL replay approach — it requires storing live session
   secrets and is significantly more fragile (token rotation every few weeks) than the
   browser-capture approach for no real benefit at this volume.
-- All outputs go under `jobs/data/tweet_signals/` — never the repo root — and always
+- All outputs go under `data/runs/` — never the repo root — and always
   finish with Step 4.

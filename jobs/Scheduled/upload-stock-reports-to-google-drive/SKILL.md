@@ -1,38 +1,30 @@
 ---
 name: upload-stock-reports-to-google-drive
-description: Drive Sync & Audit — offload stock reports to Drive, audit repo for unmanaged data files
+description: Drive Sync & Audit — push data/ mirror to Drive (StockMarket/data/v2), audit repo for stray data files
 ---
 
 Run this in order. This is an unattended scheduled run — execute autonomously, don't ask questions, and only take the specific actions listed below (no other writes, deletes, code edits, or file moves).
 
-STEP 1 — Offload sync (existing behavior)
-Run: `cd /Users/darshan.patel/code/personal/stockmarket && yarn cowork:data:offload` (if `yarn` isn't on PATH, use `corepack yarn cowork:data:offload`).
-Report: files synced, files removed locally, and any "Skipped (could not remove)" or "WARNING: N file(s) ... NOT recognized by classifyLocalDocument()" lines verbatim — the latter is a real schema gap, not noise.
+STEP 1 — Push the v2 data mirror (push-only, keeps all local files)
+Run: `cd /Users/darshan.patel/code/personal/stockmarket && yarn workspace @stock/jobs-runtime data:push` (if `yarn` isn't on PATH, use `corepack yarn`; fallback: `node packages/jobs-runtime/scripts/data.js push`).
+Report the summary line verbatim (uploaded / merged / skipped) and any per-file errors. Push must NEVER delete local files — if the output suggests otherwise, flag it loudly.
 
-STEP 2 — Repo data-file health checkup (read-only audit)
-Goal: confirm every "data-like" file in the repo (extensions: .json, .jsonl, .csv, .xlsx, .xls, .pdf) is either (a) covered by the data schema/offload pipeline, or (b) a legitimate non-data file that's correctly out of scope.
+STEP 2 — Pull (two-way completeness)
+Run: `node packages/jobs-runtime/scripts/data.js pull` and report downloaded/merged/skipped. Conflicts on non-collection files are saved as `*.local-conflict.*` — list any such files verbatim.
 
-2a. Inside the tracked data root (jobs/data/):
-Run `node packages/jobs-runtime/lib/driveDataStore.js doctor` and `node packages/jobs-runtime/lib/driveDataStore.js manifest`.
-The schema/classifier lives in `classifyLocalDocument()` inside packages/jobs-runtime/lib/driveDataStore.js — it decides which files under jobs/data/ get offloaded. offloadToDrive.js (run in Step 1) already snapshots every file under jobs/data/ and reports any NOT matched by classifyLocalDocument() as unclassified (exit code 2 + a warning list). Any such file is a real discrepancy: it sits in the data root but is never uploaded to Drive or cleaned up locally.
-
-2b. Outside jobs/data/, scan the rest of the repo:
+STEP 3 — Repo data-file health checkup (read-only audit)
+Goal: every "data-like" file (.json, .jsonl, .csv, .xlsx, .xls, .pdf) must live under `data/` (the Data Ecosystem v2 root — see docs/DATA_ECOSYSTEM.md) or be legitimate code/config.
+Scan:
 ```
 find /Users/darshan.patel/code/personal/stockmarket \( -iname "*.json" -o -iname "*.jsonl" -o -iname "*.csv" -o -iname "*.xlsx" -o -iname "*.xls" -o -iname "*.pdf" \) \
   -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.next/*" -not -path "*/.yarn/*" \
-  -not -path "*/dist/*" -not -path "*/build/*" -not -path "*/coverage/*" -not -path "*/.turbo/*"
+  -not -path "*/dist/*" -not -path "*/build/*" -not -path "*/coverage/*" -not -path "*/data/*"
 ```
-Classify each hit into:
- - "config/lockfile/manifest — no action needed": package.json (any workspace), tsconfig*.json, skills-lock.json, .claude/settings.local.json, extensions/*/manifest.json, skills/registries/workflow-dependencies.json, scripts/skills/registries/workflow-dependencies.json, jobs/Scheduled/*/manifest.json. These are code/config, not research data — correctly excluded from the Drive schema. Don't flag these.
- - "data-like file outside the pipeline — real discrepancy": anything that looks like generated research/report output or app data sitting outside jobs/data/, e.g. standalone equity-report PDFs at repo root or in docs/assets/ (baseline as of 2026-07-07: ./docs/assets/Dashboard_complete_GuideExtraction___Generation_18_04_26_lyst1776605515998.pdf), or standalone data files like ./data/announcement-scan-ignore-keywords.json. Compare today's scan to this baseline and only call out NEW additions or removals — don't re-report the same known items every day. (Note: ./AASTHA_equity_report_2026-07-07.pdf and ./docs/assets/INFY_equity_report_29Jun2026.pdf were untracked from git and gitignored as of 2026-07-07 — no longer a discrepancy. Also, data/theses/ — the investment-thesis engine's local mirror of Drive folder 1MKK_WjVcvKCodIUaosTCZ8d_HXz6JPpL — is now classified by classifyLocalDocument() as a legitimate managed data location, not an unclassified discrepancy.)
+Classify each hit:
+ - "config/lockfile/manifest — no action": package.json (any workspace), tsconfig*.json, skills-lock.json, .claude/settings.local.json, extensions/*/manifest.json, skills/registries/*.json, jobs/Scheduled/*/manifest.json, templates/, JSON schemas. Don't flag these.
+ - "generated data outside data/ — real discrepancy": research/report outputs or app data anywhere else (repo root PDFs, docs/assets/ report PDFs, stray legacy dirs like jobs/data/, daily_gainers/, notes/, validation/, entities/, documents/, delivery_cache/ — these must no longer exist). Known baseline (don't re-report): ./docs/assets/Dashboard_complete_GuideExtraction___Generation_18_04_26_lyst1776605515998.pdf. Only call out NEW additions or removals vs baseline.
 
-STEP 3 — Report & mitigation plan (no code changes, no file moves/deletes)
-Summarize:
- - Step 1 offload result.
- - Any files unclassified inside jobs/data/ (needs a new pattern added to classifyLocalDocument() in packages/jobs-runtime/lib/driveDataStore.js) — name the exact file path(s).
- - Any NEW data-like files found outside jobs/data/ since the 2026-07-07 baseline.
- - For every discrepancy, propose one concrete fix, e.g.: "Add a classifyLocalDocument() rule matching `<path pattern>`" or "Move `<file>` into jobs/data/documents/... so the existing offload picks it up, or explicitly confirm it should stay in git and add it to the known-exclusions baseline."
- - If there are zero discrepancies, say so plainly — don't invent findings.
-This step is read-only: do not edit code, move files, or delete anything — only report and propose.
+STEP 4 — Report (no code changes, no file moves/deletes)
+Summarize: push + pull results; any `*.local-conflict.*` or unclassified warnings; any NEW data-like files outside data/; for each discrepancy propose one concrete fix (usually: "the producing skill/job must write via packages/jobs-runtime/lib/db.js or StorageService into data/ — see skills/_shared/conventions.md §6"). If zero discrepancies, say so plainly — don't invent findings.
 
-End your response with a run summary: what the offload did, whether any schema/offload discrepancies exist (new or previously known), and what changed since the last run.
+End with a run summary: what push/pull did, whether any discrepancies exist (new vs known), and what changed since the last run.

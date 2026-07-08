@@ -17,8 +17,6 @@ const { loadEnv } = require('./lib/env');
 
 loadEnv(path.join(__dirname, '../../.env'));
 
-// jobs/data/ stays in the jobs/ directory (only runtime code moved to
-// packages/jobs-runtime/), so this must reach back to the repo root.
 const outputDir = path.join(__dirname, '..', '..', 'jobs', 'data', 'stockscans-ppts');
 if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
@@ -161,7 +159,8 @@ async function run() {
     const insights = await callAnthropic(combinedText);
     
     if (insights) {
-      const outPath = path.join(__dirname, '..', '..', 'jobs', 'data', 'latest_stockscans_insights.md');
+      const outPath = path.join(require('./lib/db').dataRoot(), 'runs', 'latest_stockscans_insights.md');
+      fs.mkdirSync(path.dirname(outPath), { recursive: true });
       fs.writeFileSync(outPath, insights);
       console.log(`Saved insights to ${outPath}`);
     }
@@ -172,4 +171,8 @@ async function run() {
   }
 }
 
-run();
+if (require.main === module) {
+  run();
+}
+
+module.exports = { run };

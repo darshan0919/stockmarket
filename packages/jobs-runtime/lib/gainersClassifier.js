@@ -1,28 +1,28 @@
 #!/usr/bin/env node
 /**
  * Gainers classifier — deterministic, no external API calls.
- * Reads:  data/daily_gainers/{market_date}_gainers_raw.json
- * Writes: data/daily_gainers/{market_date}_insights.json
+ * Reads:  data/runs/gainers_raw_{YYYYMMDD}.json  (written by gainersScanner)
+ * Writes: classified signals → events collection via lib/db.js (type: "gainer"),
+ *         plus data/runs/gainers_insights_{YYYYMMDD}.json (full DTO for the email
+ *         render — regenerable from raw + this classifier).
  */
 const fs = require('fs');
 const path = require('path');
+const db = require('./db');
 
-// jobs/data/ stays in the jobs/ directory (only runtime code moved to
-// packages/jobs-runtime/), so the default must reach back to the repo root.
-const DATA_DIR = process.env.COWORK_DATA_DIR || path.join(__dirname, '..', '..', '..', 'jobs', 'data');
-const GAINERS_DIR = path.join(DATA_DIR, 'daily_gainers');
+const RUNS_DIR = path.join(db.dataRoot(), 'runs');
 
-function latestRaw(gainersDir) {
-  if (!fs.existsSync(gainersDir)) {
-    throw new Error(`No such directory: ${gainersDir}`);
+function latestRaw(runsDir = RUNS_DIR) {
+  if (!fs.existsSync(runsDir)) {
+    throw new Error(`No such directory: ${runsDir}`);
   }
-  const files = fs.readdirSync(gainersDir)
-    .filter(f => f.endsWith('_gainers_raw.json'))
-    .sort(); // lexical sort works for YYYY-MM-DD
+  const files = fs.readdirSync(runsDir)
+    .filter(f => /^gainers_raw_\d{8}\.json$/.test(f))
+    .sort(); // lexical sort works for YYYYMMDD
   if (files.length === 0) {
-    throw new Error(`No *_gainers_raw.json in ${gainersDir}`);
+    throw new Error(`No gainers_raw_*.json in ${runsDir}`);
   }
-  return path.join(gainersDir, files[files.length - 1]);
+  return path.join(runsDir, files[files.length - 1]);
 }
 
 function buildEvidence(g, sectorCatalystIndustries) {
@@ -131,7 +131,7 @@ function classify(g, sectorCatalystIndustries) {
 }
 
 function main() {
-  const rawPath = latestRaw(GAINERS_DIR);
+  const rawPath = latestRaw();
   console.error(`[classifier] reading ${path.basename(rawPath)}`);
 
   const raw = JSON.parse(fs.readFileSync(rawPath, 'utf8'));
@@ -211,10 +211,25 @@ function main() {
     signals,
   };
 
-  const outPath = path.join(GAINERS_DIR, `${marketDate}_insights.json`);
+  // Canonical store: one event record per signal (deterministic ids — re-runs upsert).
+  const eventRecords = signals
+    .filter((s) => s.companyId || s.ticker)
+    .map((s) => ({
+      ...s,
+      type: 'gainer',
+      date: marketDate,
+      companyId: s.companyId || `NSE:${String(s.ticker).toUpperCase()}`,
+      creator: s.creator || 'gainers-signal',
+      summary: `${s.ticker} +${s.return_1d}% — ${s.primary_driver} (${s.conviction})`,
+    }));
+  const stats = db.appendEvents(eventRecords);
+
+  // Full DTO for the email render step (regenerable → runs/).
+  const outPath = path.join(RUNS_DIR, `gainers_insights_${marketDate.replace(/-/g, '')}.json`);
+  fs.mkdirSync(RUNS_DIR, { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(insights, null, 2));
 
-  console.error(`[classifier] wrote ${path.basename(outPath)}  (${totalAnalyzed} analyzed, ${inEmailCount} in email)`);
+  console.error(`[classifier] events: +${stats.inserted}/${stats.updated}~; wrote ${path.basename(outPath)}  (${totalAnalyzed} analyzed, ${inEmailCount} in email)`);
 }
 
 if (require.main === module) {

@@ -1,6 +1,4 @@
-process.env.COWORK_DRIVE_SYNC = '0';
 const path = require('path');
-process.chdir('/sessions/kind-busy-shannon/mnt/stockmarket/packages/jobs-runtime');
 const mod = require('./watchlistInsights.js');
 const { NotesDb } = require('./lib/notesDb');
 const db = mod.db;
@@ -40,16 +38,16 @@ function markProcessed(companyId, annId) {
   co.modifiedTime = co.lastUpdated;
 }
 
-// Staging inputs moved under jobs/data/documents/ so the sync pipeline's
-// classifyLocalDocument() catch-all (`^(entities|events|documents)\/`)
+// Staging inputs live under data/runs/ (Data Ecosystem v2).
 // picks them up and syncs them to Drive like any other structured document,
 // instead of living as untracked scratch files outside the sync pipeline.
-const meaningful = require('../../jobs/data/documents/insights-batch/insights_data.json');
+// v2: batch input lives in data/runs/ (drop the file there before running).
+const meaningful = require(require('path').join(require('./lib/db').dataRoot(), 'runs', 'insights_data.json'));
 for (const item of meaningful) {
   addNote(item);
 }
 
-const routineIds = require('../../jobs/data/documents/routine-tracking/routine_ids.json'); // [{companyId, announcementId}]
+const routineIds = require(require('path').join(require('./lib/db').dataRoot(), 'runs', 'routine_ids.json')); // [{companyId, announcementId}]
 for (const r of routineIds) {
   markProcessed(r.companyId, r.announcementId);
 }

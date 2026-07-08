@@ -1,5 +1,8 @@
 'use strict';
 
+const __os=require('os'),__fs=require('fs'),__path=require('path');
+process.env.DATA_V2_DIR = __fs.mkdtempSync(__path.join(__os.tmpdir(), 'v2test-'));
+
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
@@ -112,6 +115,7 @@ describe('main() orchestration (mocked clients)', () => {
       };
     });
     const stockscans = {
+      validateAuth: jest.fn(async () => true),
       runScan,
       scanAnnouncements: jest.fn(async () => ({ announcements: [] })),
       prices: jest.fn(async () => [['2026-06-26', 190, 205, 188, 200, 120000]]),
@@ -136,7 +140,7 @@ describe('main() orchestration (mocked clients)', () => {
     expect(out.gainers[0].price_signals.close).toBe(200);
     expect(out.gainers[0].delivery.deliv_per).toBe(60);
     // file written
-    const written = JSON.parse(fs.readFileSync(path.join(outDir, '2026-06-26_gainers_raw.json'), 'utf8'));
+    const written = JSON.parse(fs.readFileSync(path.join(process.env.DATA_V2_DIR, 'runs', 'gainers_raw_20260626.json'), 'utf8'));
     expect(written.total_gainers).toBe(1);
   });
 });

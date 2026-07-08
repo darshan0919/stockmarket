@@ -28,7 +28,7 @@ run(){ node "$JOB" "$@"; }
 ```
 
 Do NOT export `WI_DATA_DIR` / `WI_NOTES_DIR` / `COWORK_ENV` — the job resolves everything
-itself: the notes DB and validation logs default to `<repo>/jobs/data/` and secrets to
+itself: the notes DB and validation logs default to `<repo>/data/` and secrets to
 `<repo>/.env`. Exporting paths derived from fragile `find`s is what previously scattered
 `notes/` and `validation/` at the repo root.
 
@@ -75,17 +75,15 @@ sending via `run build-digest`.
 ## Step 4 — Offload & cleanup (MANDATORY, even on failure)
 
 ```bash
-node "$RUNTIME/scripts/offloadToDrive.js"
+node "$RUNTIME/scripts/data.js" push
 ```
-Syncs everything under `jobs/data/` to Google Drive (`StockMarket/jobs/v1`) and wipes the
-local cache. The skill is NOT complete until this has run. Never leave generated data
-files in the repo (root or `jobs/data/`) or in the session workspace; if the sync fails,
-report it — the script deliberately keeps the local cache in that case.
+Idempotent push of everything under `data/` to Google Drive (`StockMarket/data/v2`).
+Push-only: local files are KEPT (full mirror), nothing is deleted. The skill is NOT complete until this has run. Generated data belongs ONLY under `data/`; if the sync fails, report it and retry later.
 
 ## Rules
 - One PDF at a time; every meaningful announcement gets its PDF read and an actionable,
   quantified insight — never from the title alone.
 - The notes DB is long-term memory: treat prior notes as signal, look for patterns and
   contradictions. Log any API error in the insight and continue.
-- All outputs go under `jobs/data/` (the job does this by default) — never write data
+- All outputs go under `data/` (the job does this by default) — never write data
   files to the repo root, and always finish with Step 4.

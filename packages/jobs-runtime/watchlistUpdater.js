@@ -195,8 +195,7 @@ async function fetchWatchlistCompanyIds(watchlistId, client = stockscans) {
  * modifiedTime/creator).
  */
 function writeSyncDto({ scanName, watchlistName, watchlistId, before, excluded, desiredCount, itemsToAdd, itemsToRemove, now }) {
-  const dataRoot = path.join(__dirname, '..', '..', 'jobs', 'data', 'watchlist_sync');
-  fs.mkdirSync(dataRoot, { recursive: true });
+  const dbV2 = require('./lib/db');
   const dateStr = new Date().toISOString().slice(0, 10);
   const nowIso = new Date().toISOString();
   const records = [
@@ -234,10 +233,15 @@ function writeSyncDto({ scanName, watchlistName, watchlistId, before, excluded, 
     removed: itemsToRemove.length,
     records,
   };
-  const safeName = String(watchlistName || 'watchlist').replace(/[^a-z0-9]+/gi, '_');
-  const outPath = path.join(dataRoot, `${dateStr}_${safeName}_watchlist_sync.json`);
-  fs.writeFileSync(outPath, `${JSON.stringify(dto, null, 2)}\n`);
-  return outPath;
+  // Data Ecosystem v2: one watchlist-sync event per run in the events collection.
+  dbV2.appendEvents([{
+    ...dto,
+    type: 'watchlist-sync',
+    creator: 'watchlist-sync',
+    changes: records.map((r) => ({ companyId: r.companyId, change: r.change })),
+    summary: `${watchlistName}: +${itemsToAdd.length} / -${itemsToRemove.length} (${desiredCount} total)`,
+  }]);
+  return `events collection (type=watchlist-sync, date=${dateStr})`;
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────

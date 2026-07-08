@@ -24,18 +24,12 @@ const { sendHtmlEmail, stockscansLink } = require('@stock/cloud-utils');
 const { NotesDb } = require('./lib/notesDb');
 const { pdfToText } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
-const { withDriveDataSync, resolveDataRoot } = require('./lib/driveDataStore');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const ist = require('./lib/ist');
 
-// Default to the canonical data root (jobs/data), NOT process.cwd() — a cwd fallback
-// scattered notes/ and validation/ at the repo root whenever the skill's env exports
-// were missing.
-const SCRIPT_DIR = process.env.WI_DATA_DIR || resolveDataRoot();
-const NOTES_DIR = process.env.WI_NOTES_DIR || path.join(SCRIPT_DIR, 'notes');
-const VALIDATION_DIR = process.env.WI_VALIDATION_DIR || path.join(SCRIPT_DIR, 'validation');
-
-const db = new NotesDb(NOTES_DIR);
+// Data Ecosystem v2: notes → notes collection (via NotesDb→lib/db.js),
+// ignored-announcements log → data/cache/ (regenerable review aid).
+const db = new NotesDb();
 
 // NOTE: this job is agnostic of which watchlists it scans — watchlistIds must be passed
 // in by the caller (CLI arg / skill input), never hardcoded here. See parseWatchlistIds().
@@ -274,10 +268,7 @@ function matchedNoiseKeyword(title, description) {
 async function logIgnoredAnnouncement(ann, matchedKw) {
   StorageService.init();
   const dateStr = ist.istYmd(); // YYYYMMDD
-  const yyyy = dateStr.slice(0, 4);
-  const mm = dateStr.slice(4, 6);
-  const dd = dateStr.slice(6, 8);
-  const logPath = `events/validation/ignored-log/${yyyy}/${mm}/${dd}_log.json`;
+  const logPath = `cache/ignored-announcements_${dateStr}.json`;
 
   let existing = StorageService.readJson(logPath) || [];
   const title = ann.title || ann.subject || ann.headline || '';
@@ -581,13 +572,14 @@ async function runCli(argv) {
 module.exports = {
   categoriseAnnouncement, insightTemplate, announcementId, isNoise, matchedNoiseKeyword,
   gatherInwindowRaw, buildDigestHtml, cmdFetchAnnouncements, parseWatchlistIds,
-  CATEGORY_RULES, INSIGNIFICANT_KEYWORDS, runCli, db, NOTES_DIR,
+  CATEGORY_RULES, INSIGNIFICANT_KEYWORDS, runCli, db,
 };
 
 if (require.main === module) {
   loadEnv(argValue('--env-file'));
-  withDriveDataSync('watchlistInsights', () => runCli(process.argv.slice(2))).catch((e) => {
-    process.stderr.write(JSON.stringify({ error: e.message, command: 'drive-sync' }));
+  // v2: no wrap-around Drive sync — run `yarn data:push` (scripts/data.js) after the job.
+  runCli(process.argv.slice(2)).catch((e) => {
+    process.stderr.write(JSON.stringify({ error: e.message, command: 'cli' }));
     process.exit(1);
   });
 }

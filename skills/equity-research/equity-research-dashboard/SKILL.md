@@ -31,7 +31,7 @@ reproducible FROM a persisted JSON — never generated directly from the raw
 `MasterData.xlsx` / `.txt` extracts with no intermediate artifact.
 
 Before writing the dashboard HTML, write `[TICKER]_dashboard_data.json` (e.g. to
-`jobs/data/agent-outputs/`) containing the computed per-tab data that will populate the
+`data/agent-outputs/`) containing the computed per-tab data that will populate the
 Chart.js charts and tables: KPI series, peer table, shareholding, ratios, triggers,
 forensic flags, valuation ladder, etc. — i.e. everything you extracted/derived from
 `MasterData.xlsx` and the Project A `.txt` extracts, structured tab-by-tab. This skill

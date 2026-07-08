@@ -82,7 +82,7 @@ When this skill triggers:
    `skills/tooling/output-dto-standard/SKILL.md`, the HTML widget must be reproducible
    FROM a persisted JSON, not generated directly from live reasoning. Before calling the
    visualize tool:
-   - Write `{TICKER}_filings_diff.json` (e.g. to `jobs/data/agent-outputs/`) capturing the
+   - Write `{TICKER}_filings_diff.json` (e.g. to `data/agent-outputs/`) capturing the
      diff findings, one record per company, with the required envelope fields plus the
      10 output sections as structured data — roughly:
      ```json

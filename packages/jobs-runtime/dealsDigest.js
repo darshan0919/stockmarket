@@ -35,6 +35,7 @@ const { nse, bse } = require('@stock/api');
 const { loadEnv, argValue } = require('./lib/env');
 const { sendHtmlEmail, stockscansUrl } = require('@stock/cloud-utils');
 const StorageService = require('@stock/cloud-utils').StorageService;
+const dbV2 = require('./lib/db');
 
 const TOP_N = 10;
 const XBRL_CONCURRENCY = 8;
@@ -606,12 +607,12 @@ async function main() {
   const target = parseDateArg(dateArg) || istNow();
   const dateLabel = fmt(target, '-');
 
-  // Idempotency guard: a snapshot already existing for this date means a
+  // Idempotency guard: a run snapshot already existing for this date means a
   // digest email was already sent today (e.g. scheduler double-fire, or a
   // manual re-run on top of the scheduled one). Skip re-sending unless
   // --force is passed. StorageService.init() is required before readJson.
   StorageService.init();
-  const dtoPathsForCheck = StorageService.getEventDtoPaths('digest', target, 'documents/deals_digest');
+  const dtoPathsForCheck = StorageService.getEventDtoPaths('digest', target);
   const alreadySent = !force && !noEmail && StorageService.readJson(dtoPathsForCheck.jsonPath) !== null;
   if (alreadySent) {
     console.log(
@@ -651,15 +652,37 @@ async function main() {
   // rendered FROM, not a byproduct of it.
   applyDtoEnvelope(digest);
 
-  // Prepare DTO assets using StorageService helper
-  const dtoPaths = StorageService.getEventDtoPaths('digest', target, 'documents/deals_digest');
+  // Prepare DTO assets using StorageService helper (runs/ + assets/ zones)
+  const dtoPaths = StorageService.getEventDtoPaths('digest', target);
 
   digest.assets = dtoPaths.assetsMap;
 
   // Write the JSON DTO FIRST — the email is a render step derived from it,
   // never a second, independent source of facts (output-dto-standard).
   StorageService.init();
-  await StorageService.saveJson(dtoPaths.jsonPath, digest, false);
+  await StorageService.saveJson(dtoPaths.jsonPath, digest);
+
+  // Canonical store (Data Ecosystem v2): one event record per deal row in the
+  // events collection, deterministic ids → scheduler double-fires upsert.
+  const isoDate = `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, '0')}-${String(target.getDate()).padStart(2, '0')}`;
+  const dealRows = [];
+  const addRows = (arr, subtype) => (arr || []).forEach((r) => dealRows.push({ ...r, subtype }));
+  addRows(bulkBlock.bulk, 'bulk');
+  addRows(bulkBlock.block, 'block');
+  addRows(sast.rows, 'sast');
+  addRows(insider.rows, 'insider');
+  const { findInText } = require('./lib/companyMaster');
+  const dealEvents = dealRows.map((r) => ({
+    ...r,
+    type: 'deal',
+    date: isoDate,
+    companyId: r.companyId ||
+      (r.symbol ? `NSE:${String(r.symbol).toUpperCase()}` : null) ||
+      (() => { try { const hit = findInText(r.companyName || r.company || r.name || ''); return hit ? hit.companyId : null; } catch (_) { return null; } })(),
+    creator: 'daily-deals-digest',
+    summary: [r.subtype, r.symbol || r.companyName || r.company, r.client || r.clientName || r.acquirer || r.personName, r.qty || r.quantity, r.price || r.avgPrice].filter(Boolean).join(' | ').slice(0, 300),
+  }));
+  if (dealEvents.length) dbV2.appendEvents(dealEvents);
 
   const htmlBody = renderEmail(dateLabel, digest);
 
@@ -700,7 +723,11 @@ async function main() {
   );
 }
 
-main().catch((e) => {
-  console.error('dealsDigest failed:', e);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((e) => {
+    console.error('dealsDigest failed:', e);
+    process.exit(1);
+  });
+}
+
+module.exports = { main };
