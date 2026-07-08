@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Tweet Signal Capture (personal use)",
+  "version": "1.0",
+  "description": "Logs ListLatestTweetsTimeline GraphQL responses to the page console while browsing an x.com list, for local signal-extraction analysis. Not published or distributed. No data leaves the browser.",
+  "content_scripts": [
+    {
+      "matches": ["https://x.com/*", "https://twitter.com/*"],
+      "js": ["inject.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    }
+  ]
+}

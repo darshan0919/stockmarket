@@ -320,6 +320,90 @@ async function listAllFiles(drive, rootPath) {
 }
 
 /**
+ * Find a folder's Drive ID by path WITHOUT creating it if missing (unlike
+ * ensureFolder). Returns null if any segment doesn't exist.
+ *
+ * @param {object} drive
+ * @param {string} folderPath - slash-separated path (e.g. 'StockMarket/cowork-jobs')
+ * @returns {Promise<string|null>}
+ */
+async function findFolderId(drive, folderPath) {
+  const segments = folderPath.split('/').filter(Boolean);
+  let parentId = 'root';
+  for (const seg of segments) {
+    const query = [
+      `name = '${seg.replace(/'/g, "\\'")}'`,
+      `'${parentId}' in parents`,
+      "mimeType = 'application/vnd.google-apps.folder'",
+      'trashed = false',
+    ].join(' and ');
+    const res = await drive.files.list({
+      q: query,
+      fields: 'files(id, name)',
+      pageSize: 1,
+    }, getTimeoutOptions());
+    if (!res.data.files || res.data.files.length === 0) return null;
+    parentId = res.data.files[0].id;
+  }
+  return parentId;
+}
+
+/**
+ * List the immediate (non-recursive) children of a folder path - both files
+ * and sub-folders. Useful for discovering sibling folders at a given level
+ * (e.g. finding a "cowork-jobs"-like folder under StockMarket/) without
+ * walking the whole tree.
+ *
+ * @param {object} drive
+ * @param {string} folderPath
+ * @returns {Promise<Array<{id: string, name: string, mimeType: string, isFolder: boolean, modifiedTime: string}>>}
+ */
+async function listChildren(drive, folderPath) {
+  const folderId = await findFolderId(drive, folderPath);
+  if (!folderId) return [];
+  const out = [];
+  let pageToken = null;
+  do {
+    const res = await drive.files.list({
+      q: `'${folderId}' in parents and trashed = false`,
+      fields: 'nextPageToken, files(id, name, mimeType, modifiedTime)',
+      pageSize: 100,
+      pageToken,
+    }, getTimeoutOptions());
+    for (const f of res.data.files || []) {
+      out.push({
+        id: f.id,
+        name: f.name,
+        mimeType: f.mimeType,
+        isFolder: f.mimeType === 'application/vnd.google-apps.folder',
+        modifiedTime: f.modifiedTime,
+      });
+    }
+    pageToken = res.data.nextPageToken;
+  } while (pageToken);
+  return out;
+}
+
+/**
+ * Rename a file or folder in place (same parent, new name). Used for
+ * archiving a folder (e.g. "cowork-jobs" -> "cowork-jobs-ARCHIVED-2026-07-08")
+ * without moving or deleting anything.
+ *
+ * @param {object} drive
+ * @param {string} fileId
+ * @param {string} newName
+ * @returns {Promise<{id: string, name: string}>}
+ */
+async function renameFile(drive, fileId, newName) {
+  const res = await drive.files.update({
+    fileId,
+    requestBody: { name: newName },
+    fields: 'id, name',
+  }, getTimeoutOptions());
+  return { id: res.data.id, name: res.data.name };
+}
+
+/**
  * Check if the Drive API is configured (credentials present in env).
  * @returns {boolean}
  */
@@ -344,6 +428,9 @@ module.exports = {
   downloadFile,
 
   listAllFiles,
+  findFolderId,
+  listChildren,
+  renameFile,
   isApiConfigured,
   clearFolderCache,
 };

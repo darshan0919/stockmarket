@@ -47,6 +47,9 @@ coverage/
 *.tmp
 *.temp
 
+# Local Drive listing cache (perf cache for jobs-runtime migrate-flat, transient)
+packages/jobs-runtime/.cache/
+
 # Downloads
 downloads/
 
