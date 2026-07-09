@@ -81,6 +81,8 @@ Idempotent push of everything under `data/` to Google Drive (`StockMarket/data/v
 Push-only: local files are KEPT (full mirror), nothing is deleted. The skill is NOT complete until this has run. Generated data belongs ONLY under `data/`; if the sync fails, report it and retry later.
 
 ## Rules
+- **Files-touched manifest (docs/DATA_RULES.md §7):** end the run by listing every file created/modified — collections with record counts (db.js helper stats / `db.touchedFiles()`), plus `runs/`/`cache/`/`assets/` files (`StorageService.touchedFiles()`), plus the `data:push` `↑ <file>` lines. A run that stored data without reporting what it touched is incomplete.
+
 - One PDF at a time; every meaningful announcement gets its PDF read and an actionable,
   quantified insight — never from the title alone.
 - The notes DB is long-term memory: treat prior notes as signal, look for patterns and

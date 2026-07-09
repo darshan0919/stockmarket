@@ -2,7 +2,10 @@
 
 Status: APPROVED + IN IMPLEMENTATION (2026-07-08). Supersedes `docs/COWORK_DRIVE_DATA.md`
 (`StockMarket/data/v2`) and the separate `stockmarket-theses` Drive folder.
-Companion: `docs/SKILL_DATA_AUDIT.md` (what each skill needs/generates/stores).
+Companions: `docs/SKILL_DATA_AUDIT.md` (what each skill needs/generates/stores) and
+`docs/DATA_RULES.md` (mandatory checklist for anything that creates/modifies
+skills, jobs, or collections — meta-skills like skill-manager and
+cowork-task-architect enforce it).
 
 ## Principles
 
@@ -16,6 +19,13 @@ Companion: `docs/SKILL_DATA_AUDIT.md` (what each skill needs/generates/stores).
    which go to `cache/` (disposable by definition).
 4. **JSON-first render**: DTO → committed template → PDF/HTML in `assets/`. Assets are
    regenerable, gitignored, disposable.
+5. **No file-deletion handling in any skill/job write path.** Cowork sandbox mounts
+   forbid deleting a file once written (EPERM), so any inline `fs.unlink`/`fs.rmSync`/
+   `fs.rm` used for cleanup or pruning can abort the operation that triggered it.
+   `data/` is a kept, ever-growing local mirror by design (§5) — this applies to
+   *everything* under it, including `_meta/checkpoints/`, not just the top-level
+   collections. If a directory ever needs bounding, do it out-of-band (a separate
+   maintenance script the user runs locally, never inline in a skill/job's write path).
 
 ## 1. Layout (flat)
 
@@ -34,7 +44,11 @@ data/
   runs/                 # per-run raw dumps + full run DTOs — synced, kept locally (full mirror)
   _meta/
     sync-state.json     # per-file contentHash + lastPush/lastPull — dedup + idempotency
-    checkpoints/        # pre-mutation snapshots (crash recovery), pruned to last 20
+    checkpoints/        # pre-mutation snapshots (crash recovery), kept indefinitely
+                        # (not pruned — see §5: no file-deletion handling in the
+                        # write path; Cowork sandbox mounts forbid deleting a file
+                        # once written, so an inline prune-via-delete could abort
+                        # a save)
 ```
 
 Why `reports/` bodies are separate files while everything else is single-file: report

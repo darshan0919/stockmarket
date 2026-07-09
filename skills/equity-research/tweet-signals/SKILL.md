@@ -167,6 +167,8 @@ Same as every other job in this repo — idempotent push of `data/` to Drive
 company master now lives at `data/cache/company-master.json` and is synced too.
 
 ## Rules
+- **Files-touched manifest (docs/DATA_RULES.md §7):** end the run by listing every file created/modified — collections with record counts (db.js helper stats / `db.touchedFiles()`), plus `runs/`/`cache/`/`assets/` files (`StorageService.touchedFiles()`), plus the `data:push` `↑ <file>` lines. A run that stored data without reporting what it touched is incomplete.
+
 - Never store X session cookies, `auth_token`, or `ct0` anywhere (`.env`, files, or
   otherwise) — this skill only ever rides the user's live, already-authenticated browser
   session for the duration of the run.

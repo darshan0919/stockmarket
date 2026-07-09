@@ -40,7 +40,6 @@ const SINGLE_FILE_COLLECTIONS = ['companies', 'reports', 'notes', 'theses', 'val
 const LINK_CAP = 200; // max event/note/insight ids kept on a company object
 const LOCK_STALE_MS = 5 * 60 * 1000;
 const LOCK_WAIT_MS = 30 * 1000;
-const CHECKPOINT_KEEP = 20;
 
 function init() {
   for (const d of Object.values(DIRS)) fs.mkdirSync(d(), { recursive: true });
@@ -172,14 +171,14 @@ function checkpoint(file) {
   fs.mkdirSync(DIRS.checkpoints(), { recursive: true });
   const name = `${path.basename(file, '.json')}.${Date.now()}.json`;
   fs.copyFileSync(file, path.join(DIRS.checkpoints(), name));
-  // Prune old checkpoints for this collection.
-  const prefix = `${path.basename(file, '.json')}.`;
-  const all = fs.readdirSync(DIRS.checkpoints())
-    .filter((f) => f.startsWith(prefix))
-    .sort();
-  for (const f of all.slice(0, Math.max(0, all.length - CHECKPOINT_KEEP))) {
-    fs.rmSync(path.join(DIRS.checkpoints(), f), { force: true });
-  }
+  // No pruning here by design: checkpoints/, like the rest of data/, is kept as a
+  // full local mirror rather than deleted from (see docs/DATA_ECOSYSTEM.md §5 — push
+  // never deletes local files). Deleting old checkpoints previously used fs.rmSync,
+  // which throws EPERM in the Cowork sandbox (mounted repo folders there forbid
+  // deleting a file once written) and would abort the entire save() that triggered
+  // it. If checkpoints/ ever needs bounding, do it out-of-band (a separate,
+  // best-effort maintenance script the user runs locally) — never inline in the
+  // write path, so a save can never fail because a delete failed.
 }
 
 function latestCheckpoint(file) {
@@ -207,12 +206,24 @@ function loadFile(file) {
   }
 }
 
+// ── Run manifest: every file this process created/modified via db.js ─────────
+// (docs/DATA_RULES.md §8 — skills/jobs must list all files touched at run end.)
+const _touched = new Set();
+function trackTouched(absFile) {
+  try { _touched.add(path.relative(dataRoot(), absFile).split(path.sep).join('/')); } catch (_) { /* best effort */ }
+}
+/** Sorted data-root-relative paths of every file written by this process. */
+function touchedFiles() {
+  return [...(_touched)].sort();
+}
+
 /** Atomic write: tmp + rename. Callers must hold the collection lock. */
 function writeFileAtomic(file, obj) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const tmp = `${file}.tmp.${process.pid}`;
   fs.writeFileSync(tmp, JSON.stringify(obj, null, 1) + '\n');
   fs.renameSync(tmp, file);
+  trackTouched(file);
 }
 
 // ── Core API ─────────────────────────────────────────────────────────────────
@@ -447,7 +458,9 @@ function saveThesis(companyId, thesis, { creator } = {}) {
   if (stats.inserted || stats.updated) {
     const line = JSON.stringify({ companyId, at: nowIstIso(), creator: thesis.creator, thesis });
     withLock('thesis-history', () => {
-      fs.appendFileSync(path.join(dataRoot(), 'thesis-history.jsonl'), line + '\n');
+      const histFile = path.join(dataRoot(), 'thesis-history.jsonl');
+      fs.appendFileSync(histFile, line + '\n');
+      trackTouched(histFile);
     });
   }
   return stats;
@@ -482,6 +495,7 @@ module.exports = {
   appendValidation, appendValidations,
   linkToCompanies,
   assetPath, runPath, cachePath,
+  touchedFiles, trackTouched, // run manifest (docs/DATA_RULES.md §8)
   withLock, collectionFile, loadFile, writeFileAtomic, // exposed for scripts/tests
   SINGLE_FILE_COLLECTIONS, LINK_CAP,
 };

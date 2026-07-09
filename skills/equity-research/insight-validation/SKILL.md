@@ -32,7 +32,7 @@ In addition to validating watchlist notes, every `run` also validates `gainers-s
 HIGH-conviction picks from 2 trading days ago against that date's D+2 (today) price
 action:
 
-- Loads `data/daily_gainers/{sourceDate}_insights.json`, filters to `signals[]`
+- Loads `sourceDate`'s `gainer` events from the events collection (`db.find('events', {type:'gainer', date: sourceDate})`), filters to
   where `conviction === "HIGH"`.
 - For each, fetches D and D+2 close price + delivery% (via this job's existing NSE
   delivery helpers) and computes the D+2 close-to-close return.
@@ -52,8 +52,9 @@ action:
   watchlist-notes validation report.
 - Can also be run standalone via `validate-gainers [DDMMYYYY]` for debugging/backfill.
 
-This skill's outputs (`validation/ledger.json` and `validation/gainers_ledger.json`)
-conform to the DTO standard in `skills/tooling/output-dto-standard/SKILL.md`.
+This skill's outputs (the `validation` collection, `data/validation.json`, types
+`ledger`/`gainers-followup`) conform to the DTO standard in
+`skills/tooling/output-dto-standard/SKILL.md`.
 
 ## Setup
 
@@ -95,3 +96,5 @@ node "$RUNTIME/scripts/data.js" push
 ```
 Idempotent push of everything under `data/` to Google Drive (`StockMarket/data/v2`).
 Push-only: local files are KEPT (full mirror), nothing is deleted. The skill is NOT complete until this has run. Generated data belongs ONLY under `data/`; if the sync fails, report it and retry later.
+
+- **Files-touched manifest (docs/DATA_RULES.md §7):** end the run by listing every file created/modified — collections with record counts (db.js helper stats / `db.touchedFiles()`), plus `runs/`/`cache/`/`assets/` files (`StorageService.touchedFiles()`), plus the `data:push` `↑ <file>` lines. A run that stored data without reporting what it touched is incomplete.

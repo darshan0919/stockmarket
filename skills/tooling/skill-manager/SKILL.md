@@ -19,6 +19,25 @@ Whenever the user asks to create or modify a skill, adhere to the following blue
 4. **Update the Registry**: 
    - Always add, update, or remove the entry for the skill in the registry file (`skills/registry.json`) to track its `skill_md`, `scripts`, `references`, etc.
    - Run `yarn registries:generate` to regenerate the workflow dependencies registry files.
+5. **Data persistence (MANDATORY if the skill stores anything)**: any skill that
+   persists data must comply with [docs/DATA_RULES.md](file:///Users/darshan.patel/code/personal/stockmarket/docs/DATA_RULES.md)
+   (companion: `docs/DATA_ECOSYSTEM.md`, `skills/_shared/conventions.md` §3, §5–8).
+   Non-negotiables to bake into every generated SKILL.md: writes go through
+   `packages/jobs-runtime/lib/db.js` helpers (never raw writes to `data/*.json`
+   collections); prefer an existing collection + new `type` over a new collection
+   (new collections require the full checklist in DATA_RULES §3 — two whitelist
+   registrations + docs + tests); every record carries the envelope
+   (`id`/`creationTime`/`modifiedTime`/`creator`, plus `companyId`/`date`/`type`);
+   raw/re-fetchable material goes to `data/runs/` or isn't stored; renders are
+   template outputs of the JSON DTO into `data/assets/`; company-scoped generating
+   skills call `buildCompanyContext(companyId)` and record `contextUsed`; NO file
+   deletions anywhere in a write path; the skill's final step is
+   `node packages/jobs-runtime/scripts/data.js push`; and the skill's final
+   report MUST include a "Files touched" section listing every file it created
+   or modified (DATA_RULES §7 — read it from `db.touchedFiles()` /
+   `StorageService.touchedFiles()` / the `data:push` `↑` lines, never from
+   memory). A generated skill that stores data without these elements is
+   non-conformant — fix before delivering.
 
 At a high level, the process of creating a skill goes like this:
 

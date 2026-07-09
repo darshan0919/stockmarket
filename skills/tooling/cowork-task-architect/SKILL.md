@@ -82,6 +82,31 @@ if __name__ == "__main__":
 - Must handle errors gracefully (try/except with meaningful messages)
 - Should be fast — if slow, add caching or pagination logic
 
+**Data persistence rules (MANDATORY when a task/script stores anything):**
+Every task/script that persists data must comply with `docs/DATA_RULES.md`
+(companion: `docs/DATA_ECOSYSTEM.md`; conventions: `skills/_shared/conventions.md`
+§3, §5–8). In short:
+- Only five destinations exist: an existing collection via
+  `packages/jobs-runtime/lib/db.js` helpers (`saveReport` / `appendEvents` /
+  `appendNotes` / `appendValidations` / `saveThesis` / `upsertMany`),
+  `data/cache/` (heavy regenerable derivables), `data/runs/` (raw per-run dumps),
+  `data/assets/` (template renders of JSON DTOs), or nothing (re-fetchable data
+  isn't stored). Never repo root, never cwd, never a new ad-hoc folder.
+- Prefer an existing collection + new `type` over a new collection; a new
+  collection requires the full checklist in DATA_RULES §3 (two whitelist
+  registrations, docs, tests).
+- Every record carries the envelope: deterministic `id`, `creationTime`,
+  `modifiedTime`, `creator` (the task/skill name), plus `companyId` / `date` /
+  `type` where applicable. Batch writes; NO file deletions in any write path
+  (Cowork mounts throw EPERM on delete — an inline `rm` aborts the save).
+- Schedule with buffers: ≥ 30 min from any existing task, ≥ 60 min from any task
+  writing the same collection (see DATA_RULES §6 for the current slot map).
+- **Files-touched manifest (DATA_RULES §7):** the task's final run summary MUST
+  list every file created/modified — from `db.touchedFiles()` /
+  `StorageService.touchedFiles()` in scripts, and the `data:push` `↑ <file>`
+  lines — with record counts for collections. Bake this into every generated
+  task prompt's reporting step.
+
 ### Step 3 — Create/update the task in the live Cowork scheduler
 
 The `jobs/` folder is linked directly as the Cowork root folder, so there is no separate repo copy to maintain — the live Cowork scheduler is the single source of truth. Create or update the task there via the `create_scheduled_task` / `update_scheduled_task` tools.
@@ -105,6 +130,11 @@ Call the following exact scripts/APIs in order:
 2. Execute skill: /path/to/stockmarket/skills/skill_name/SKILL.md
    (Fallback: https://raw.githubusercontent.com/darshan0919/stockmarket/main/skills/skill_name/SKILL.md)
 3. [etc...]
+N-1. (if the task persisted anything) Execute: node /Users/darshan.patel/code/personal/stockmarket/packages/jobs-runtime/scripts/data.js push
+   (idempotent, push-only — see docs/DATA_RULES.md §5), then include a
+   "Files touched" section in the run summary listing every file created or
+   modified (from the scripts' touchedFiles() output and the push ↑ lines —
+   docs/DATA_RULES.md §7)
 N. (FINAL STEP ALWAYS) Execute script: /Users/darshan.patel/code/personal/stockmarket/scripts/track_invocation.py --name [insert task name] --type task
 
 Do NOT run any logic, calculations, data fetching, or file modifications directly. Your only job is to orchestrate these existing scripts/skills exactly as specified.

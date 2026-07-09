@@ -14,6 +14,9 @@ The Stock Market AI Ecosystem is a full-stack, platform-agnostic suite for advan
 |----------|-------------|
 | [Vision & Roadmap](./VISION_AND_ROADMAP.md) | Project philosophy, goals, and roadmap |
 | [Architecture](./ARCHITECTURE.md) | System design and component overview |
+| [Data Ecosystem v2](./DATA_ECOSYSTEM.md) | Flat JSON collections in `data/` ↔ Drive `StockMarket/data/v2` — design, envelope, sync |
+| [Data Rules](./DATA_RULES.md) | MANDATORY checklist for any skill/job that persists data or adds a collection/type |
+| [Skill Data Audit](./SKILL_DATA_AUDIT.md) | Per-skill classification: what each skill needs, generates, and stores |
 | [API Reference](./API_REFERENCE.md) | Complete REST API documentation |
 | [Backend Guide](./backend/README.md) | Backend development guide |
 | [Frontend Guide](./frontend/README.md) | Frontend development guide |

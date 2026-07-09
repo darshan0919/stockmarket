@@ -51,7 +51,8 @@ the start; it's cheaper than retrofitting later.
 This standard IS the record-level envelope of Data Ecosystem v2, enforced at write time
 by `packages/jobs-runtime/lib/db.js` (`ensureEnvelope`): every stored object carries
 `id` (deterministic), `creationTime`, `modifiedTime`, `creator`, plus `companyId(s)`,
-`date`, and `type` where applicable. Persist reports via `db.saveReport(dto)`,
+`date`, and `type` where applicable. When authoring a NEW skill/collection, follow the checklist in `docs/DATA_RULES.md`.
+Persist reports via `db.saveReport(dto)`,
 signals/deals/tweets via `db.appendEvents`, notes via `db.appendNotes`, validation via
 `db.appendValidations` — never by writing collection files directly.
 

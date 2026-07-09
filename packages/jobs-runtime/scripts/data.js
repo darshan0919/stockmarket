@@ -162,6 +162,7 @@ async function push({ dryRun }) {
         syncedAt: new Date().toISOString(),
       };
       uploaded++;
+      console.log(`[data push] ↑ ${rel}`); // per-file manifest (docs/DATA_RULES.md §8)
       if (!dryRun) saveState(state); // incremental — interrupted pushes resume, never re-upload
     } catch (e) {
       errors.push(`${rel}: ${e.message}`);

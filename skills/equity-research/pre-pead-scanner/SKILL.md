@@ -100,3 +100,4 @@ Nine steps, run in order — each gates or feeds the next. A company that fails 
   - Screener.in session → `SCREENER_SESSIONID` + `SCREENER_CSRFTOKEN` (or a full `SCREENER_COOKIES` header). An expired `sessionid` silently degrades the page to a thin public view.
   Run the **preflight token check every time**; if either is dead, halt and tell the user exactly which `.env` key to refresh (copy the cookie from the site's DevTools → Application → Cookies) before re-running.
 
+- **Files-touched manifest (docs/DATA_RULES.md §7):** end the run by listing every file created/modified — collections with record counts (db.js helper stats / `db.touchedFiles()`), plus `runs/`/`cache/`/`assets/` files (`StorageService.touchedFiles()`), plus the `data:push` `↑ <file>` lines. A run that stored data without reporting what it touched is incomplete.

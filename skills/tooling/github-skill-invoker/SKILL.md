@@ -21,6 +21,11 @@ description: >
 # GitHub Skill Invoker
 
 Single installed meta-skill that dynamically fetches and executes any skill
+
+> **Data compliance:** any fetched skill that persists data must follow
+> `docs/DATA_RULES.md` (write via `packages/jobs-runtime/lib/db.js`, record
+> envelope, no deletes in write paths, finish with `scripts/data.js push`).
+> If a fetched skill's instructions contradict DATA_RULES, DATA_RULES wins.
 from the stockmarket monorepo on GitHub. Edit skills in GitHub → instantly
 live in Claude Web on the next invocation. No reinstall required.
 
@@ -220,3 +225,5 @@ Once migration is complete:
 | stage2-catalyst-analysis | stage 2, weinstein stage, breakout analysis, why now catalyst |
 | render-pdf | render pdf, html to pdf, generate pdf from html |
 | dead-code-scanner | dead code scan, unused exports, unused dependencies |
+
+- **Files-touched manifest (docs/DATA_RULES.md §7):** end the run by listing every file created/modified — collections with record counts (db.js helper stats / `db.touchedFiles()`), plus `runs/`/`cache/`/`assets/` files (`StorageService.touchedFiles()`), plus the `data:push` `↑ <file>` lines. A run that stored data without reporting what it touched is incomplete.

@@ -49,6 +49,23 @@ breakout flags). Each signal record also carries the DTO envelope required by
 `skills/tooling/output-dto-standard/SKILL.md`: `companyId`, `creationTime`,
 `modifiedTime`, `creator: "gainers-signal"`.
 
+**Novelty check (deterministic, folded into conviction).** For any gainer with a
+material announcement, the classifier asks "is this new?" — it looks back 90 days
+across this company's own past `gainer` events and its `watchlist-insights` notes
+(`data/notes.json`) for a near-duplicate subject (text similarity, or explicit
+follow-up phrasing like "further to our intimation dated…"/"corrigendum"). Each
+signal carries a `novelty` field (`null` = no history to compare against, i.e.
+unassessed — NOT the same as "repeat"; otherwise `{assessed, total, newCount,
+followUpCount, matches}`). **Light touch, by design:** conviction is downgraded one
+notch (HIGH → MEDIUM) only when the driver is `FUNDAMENTAL` AND *every* material
+announcement reads as a reiteration of prior disclosure — a mix of new + repeat, or a
+HIGH that also independently rests on delivery/price action, is left alone. This
+nudges stale "news" down; it does not dominate the read.
+
+Also writes `data/runs/gainers_top3_context_{YYYYMMDD}.json` — a context seed
+(top-3-by-conviction companies, each paired with `buildCompanyContext()`) consumed by
+Step 3.5 below.
+
 Downstream: `insight-validation`'s nightly run performs a D+2 follow-up validation on
 this file's HIGH-conviction picks (positive, substantial D+2 return; delivery% as a
 secondary signal) and writes records into the validation collection (`data/validation.json`, type=`gainers-followup`) — see
@@ -80,6 +97,31 @@ node -e "const{sendHtmlEmail}=require('$MAILER');const fs=require('fs');sendHtml
 ```
 If email status is `skipped`/`error`, print a warning but do not fail.
 
+## Step 3.5 — Top-3 conviction briefing reports (MANDATORY, your judgment)
+
+Every run, write one analyst briefing report per company for the **top 3 signals by
+conviction** (`HIGH` > `MEDIUM` > `LOW`, tie-broken by `|return_1d|` desc, `in_email`
+signals only) — this is what feeds better novelty checks and context on the *next*
+run for these companies, not just today's email.
+
+1. Read `data/runs/gainers_top3_context_{YYYYMMDD}.json` (written by Step 2) — it
+   already has the ranked top 3 paired with `buildCompanyContext(companyId)` (identity,
+   thesis, prior reports, notes, events, insights). Per Convention §8, weigh what's in
+   there before writing.
+2. For each of the 3, write a short DTO — no fixed schema beyond the envelope, but
+   cover: what happened (the move + evidence), what's already known vs. genuinely new
+   (tie back to the `novelty` field from Step 2), key watch items going forward, and
+   any data gaps (e.g. no company-master identity, no thesis on file — say so plainly,
+   don't fabricate sector narrative to fill the gap; ground every claim in
+   `evidence[]`/`buildCompanyContext()`, not general knowledge).
+3. Save via `db.saveReport({ creator: 'gainers-signal', type: 'gainers-top3-briefing', date: market_date, companyId, summary, contextUsed: [ids actually referenced], ...narrative })`.
+   `contextUsed` should be the ids from `buildCompanyContext()`'s `availableIds` that
+   the write-up actually drew on (empty array if the context bundle was empty).
+4. These reports link into `companies.json` automatically (`db.saveReport` →
+   `linkToCompanies`) — including creating a lazy company stub for tickers with no
+   prior `companies.json` entry, which is itself a useful signal (flag it: "no
+   company-master coverage yet" is worth knowing).
+
 ## Step 4 — Offload & cleanup (MANDATORY, even on failure)
 
 ```bash
@@ -89,6 +131,8 @@ Idempotent push of everything under `data/` to Google Drive (`StockMarket/data/v
 Push-only: local files are KEPT (full mirror), nothing is deleted. The skill is NOT complete until this has run. Generated data belongs ONLY under `data/`; if the sync fails, report it and retry later.
 
 ## Rules
+- **Files-touched manifest (docs/DATA_RULES.md §7):** end the run by listing every file created/modified — collections with record counts (db.js helper stats / `db.touchedFiles()`), plus `runs/`/`cache/`/`assets/` files (`StorageService.touchedFiles()`), plus the `data:push` `↑ <file>` lines. A run that stored data without reporting what it touched is incomplete.
+
 - Do NOT re-fetch or re-compute — both scripts did that.
 - Show ALL `evidence[]` lines per stock; don't truncate. Cite actual numbers.
 - Tag delivery `[NSE]`/`[BSE]` next to the %; show routine announcement subjects as context.

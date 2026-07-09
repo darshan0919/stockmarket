@@ -31,7 +31,17 @@ function resolveDataRoot() {
  * No per-file Drive uploads here anymore — syncing is done once per run by
  * `packages/jobs-runtime/scripts/data.js push` (push-only, keeps local files).
  */
+const _touched = new Set();
+function trackTouched(absPath) {
+  try { _touched.add(path.relative(resolveDataRoot(), absPath).split(path.sep).join('/')); } catch (_) { /* best effort */ }
+}
+
 class StorageService {
+  /** Run manifest (docs/DATA_RULES.md §8): data-root-relative paths written by this process. */
+  static touchedFiles() {
+    return [...(_touched)].sort();
+  }
+
   static init() {
     const root = resolveDataRoot();
     ['runs', 'cache', 'assets'].forEach((dir) => {
@@ -56,6 +66,7 @@ class StorageService {
     const tmp = `${absPath}.tmp.${process.pid}`;
     fs.writeFileSync(tmp, JSON.stringify(jsonObject, null, 2) + '\n');
     fs.renameSync(tmp, absPath);
+    trackTouched(absPath);
   }
 
   static async saveContent(localRelPath, content) {
@@ -65,6 +76,7 @@ class StorageService {
     const tmp = `${absPath}.tmp.${process.pid}`;
     fs.writeFileSync(tmp, content);
     fs.renameSync(tmp, absPath);
+    trackTouched(absPath);
   }
 
   static readJson(localRelPath) {

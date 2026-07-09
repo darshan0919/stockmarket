@@ -111,6 +111,8 @@ thesis", full evidence log at the bottom) + one-paragraph chat summary of what c
 End every memo with the mandatory section **"What could be wrong with this analysis?"**
 
 ## Rules
+- **Files-touched manifest (docs/DATA_RULES.md §7):** end the run by listing every file created/modified — collections with record counts (db.js helper stats / `db.touchedFiles()`), plus `runs/`/`cache/`/`assets/` files (`StorageService.touchedFiles()`), plus the `data:push` `↑ <file>` lines. A run that stored data without reporting what it touched is incomplete.
+
 
 - **Never rebuild what exists.** A thesis update that re-fetches all documents is a bug.
 - **Signals are deterministic** — apply `signal_rules.md`; if judgment overrides a rule,
