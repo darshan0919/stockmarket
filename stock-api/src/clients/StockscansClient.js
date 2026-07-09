@@ -279,6 +279,71 @@ class StockscansClient {
     return data;
   }
 
+  /**
+   * AI-synthesized growth-catalyst report for a company (ready-made research
+   * context — no synthesis needed on our side).
+   * @param {string} companyId
+   * @returns {Promise<{finalReport: string, dateLabel: string, toc: Array<{id, text}>}>}
+   */
+  async growthCatalysts(companyId) {
+    const { data } = await this.http.get(
+      `${BASE_URL}/api/company/growth-catalysts/${encodeURIComponent(companyId)}`,
+      { headers: this._headers(`${BASE_URL}/company/${companyId}`) }
+    );
+    return data;
+  }
+
+  /**
+   * AI-synthesized business-overview report for a company (ready-made research
+   * context — no synthesis needed on our side).
+   * @param {string} companyId
+   * @returns {Promise<{finalReport: string, dateLabel: string, toc: Array<{id, text}>}>}
+   */
+  async businessOverview(companyId) {
+    const { data } = await this.http.get(
+      `${BASE_URL}/api/company/business-overview/${encodeURIComponent(companyId)}`,
+      { headers: this._headers(`${BASE_URL}/company/${companyId}`) }
+    );
+    return data;
+  }
+
+  /**
+   * AI-synthesized notes from a single concall transcript. `ssUrl` is the
+   * transcript document's id — see {@link documents} (filter
+   * `documentType === 'Transcript'`) or {@link latestTranscript}.
+   * @param {string} companyId
+   * @param {string} ssUrl
+   * @returns {Promise<{finalReport: string, date: string, companyName: string, bullets: Object}>}
+   */
+  async concallNotes(companyId, ssUrl) {
+    const { data } = await this.http.get(
+      `${BASE_URL}/api/company/concall-notes/${encodeURIComponent(companyId)}/${encodeURIComponent(ssUrl)}`,
+      { headers: this._headers(`${BASE_URL}/company/${companyId}`) }
+    );
+    return data;
+  }
+
+  /**
+   * Resolve the most recent concall Transcript document for a company (or
+   * null if none on file). One extra call to {@link documents} — cheap
+   * relative to the AI-synthesis endpoints, and callers rarely want anything
+   * but the latest transcript.
+   * @param {string} companyId
+   * @returns {Promise<Object|null>} The document record (has `.ssUrl`, `.date`), or null.
+   */
+  async latestTranscript(companyId) {
+    const { documents } = await this.documents(companyId);
+    const transcripts = (documents || []).filter((d) => d.documentType === 'Transcript' && d.ssUrl);
+    if (!transcripts.length) return null;
+    // date is 'YYYY' or 'YYYYMM'; pad so lexical/numeric compare both sort correctly,
+    // unparseable dates sort last rather than crashing the comparator.
+    const rank = (d) => {
+      const raw = String(d.date || '');
+      return /^\d{4}(\d{2})?$/.test(raw) ? parseInt(raw.padEnd(6, '9'), 10) : -1;
+    };
+    return [...transcripts].sort((a, b) => rank(b) - rank(a))[0];
+  }
+
   // ── Watchlists ──────────────────────────────────────────────────────────────
 
   /**

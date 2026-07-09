@@ -108,16 +108,36 @@ run for these companies, not just today's email.
    already has the ranked top 3 paired with `buildCompanyContext(companyId)` (identity,
    thesis, prior reports, notes, events, insights). Per Convention §8, weigh what's in
    there before writing.
-2. For each of the 3, write a short DTO — no fixed schema beyond the envelope, but
+2. **Enrich with live Stockscans research context** (ready-made, no synthesis needed
+   on our side — growth catalysts, business overview, latest concall notes):
+   ```bash
+   node "$RUNTIME/scripts/fetchTop3StockscansContext.js"   # add YYYYMMDD to target a specific run
+   ```
+   Fetches `growth-catalysts`, `business-overview`, and notes from the latest
+   `Transcript` document on file (via `documents(companyId)` → highest-date
+   `documentType==='Transcript'` → `concall-notes(companyId, ssUrl)`) for each of the 3
+   companies, and writes them back into the same seed file under each company's
+   `.stockscans` key. Best-effort per source (a missing transcript doesn't block growth
+   catalysts/business overview) — check `.stockscans.errors[]` before citing a source
+   that came back empty (small/micro-caps or recent listings are often not covered).
+   Disk-cached 7 days (`data/cache/stockscans-context/`) since these are periodically
+   -refreshed research reports, not daily-changing state — re-running this step same-day
+   is a cache hit, not a re-fetch.
+3. For each of the 3, write a short DTO — no fixed schema beyond the envelope, but
    cover: what happened (the move + evidence), what's already known vs. genuinely new
-   (tie back to the `novelty` field from Step 2), key watch items going forward, and
-   any data gaps (e.g. no company-master identity, no thesis on file — say so plainly,
-   don't fabricate sector narrative to fill the gap; ground every claim in
-   `evidence[]`/`buildCompanyContext()`, not general knowledge).
-3. Save via `db.saveReport({ creator: 'gainers-signal', type: 'gainers-top3-briefing', date: market_date, companyId, summary, contextUsed: [ids actually referenced], ...narrative })`.
+   (tie back to the `novelty` field from Step 2, and to `.stockscans.growthCatalysts`/
+   `.businessOverview`/`.concallNotes` — a move that lines up with an already-flagged
+   growth catalyst or a concall-guided plan is "known", not a surprise), key watch items
+   going forward, and any data gaps (e.g. no company-master identity, no thesis on file,
+   no Stockscans coverage — say so plainly, don't fabricate sector narrative to fill the
+   gap; ground every claim in `evidence[]`/`buildCompanyContext()`/`.stockscans`, not
+   general knowledge).
+4. Save via `db.saveReport({ creator: 'gainers-signal', type: 'gainers-top3-briefing', date: market_date, companyId, summary, contextUsed: [ids actually referenced], ...narrative })`.
    `contextUsed` should be the ids from `buildCompanyContext()`'s `availableIds` that
-   the write-up actually drew on (empty array if the context bundle was empty).
-4. These reports link into `companies.json` automatically (`db.saveReport` →
+   the write-up actually drew on (empty array if the context bundle was empty). The
+   Stockscans sources aren't `db.js`-ided records (they're cached, not a collection), so
+   cite them by name in the narrative instead (e.g. `"sources": ["growth-catalysts", "concall-notes:202603"]`).
+5. These reports link into `companies.json` automatically (`db.saveReport` →
    `linkToCompanies`) — including creating a lazy company stub for tickers with no
    prior `companies.json` entry, which is itself a useful signal (flag it: "no
    company-master coverage yet" is worth knowing).
