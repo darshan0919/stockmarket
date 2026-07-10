@@ -1,6 +1,6 @@
 const path = require('path');
 // Load .env from the repo root so all packages share a single credentials file
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./core/config/database');

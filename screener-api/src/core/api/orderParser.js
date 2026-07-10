@@ -4,7 +4,7 @@ const { parsePdfWithGemini, hashPrompt } = require('./geminiClient');
 
 // Read the order extraction prompt from file
 const orderExtractionPrompt = fs.readFileSync(
-  path.join(__dirname, '../prompts/order_extraction.txt'),
+  path.join(__dirname, '../../../prompts/order_extraction.txt'),
   'utf-8'
 );
 

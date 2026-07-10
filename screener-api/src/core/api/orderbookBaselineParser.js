@@ -13,7 +13,7 @@ const { getQuoteApi } = require('./nseIndiaApi');
 
 // Read the orderbook baseline prompt from file
 const orderbookBaselinePrompt = fs.readFileSync(
-  path.join(__dirname, '../prompts/orderbook_baseline.txt'),
+  path.join(__dirname, '../../../prompts/orderbook_baseline.txt'),
   'utf-8'
 );
 

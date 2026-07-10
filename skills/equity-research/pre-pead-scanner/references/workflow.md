@@ -109,6 +109,16 @@ If `insights.authExpired` is true, halt per the Preflight rule — do **not** pr
 
 Full mapping, tag list, and the "what could be wrong" is in `screener_insights.md`. Carry the insights and 2–3 key ratios into the deep-dive card. (Note: ignore Screener's auto-generated Pros/Cons, only use the key trackables insights matrix).
 
+## Step 3d — Macro context overlay (quarter-level, run once, apply to every name)
+
+Every name in the universe reports into the same macro quarter, so this is done once per run, not once per company. Read `references/quarterly_macro_context.md` for the current fiscal quarter (e.g. `## Q1FY27`) — it logs the quarter's major macro events (crude/oil-price shocks, currency moves, rate decisions, monsoon, tariffs, etc.) each with a sector-impact table. If the file has no section for the quarter being scanned, say so explicitly and either ask the user for the macro context or note that the ranking is running without a macro overlay — do not silently skip it.
+
+For each in-scope company, look up its primary sector(s) against the event tables and add a **Macro overlay** line to its deep-dive card: which events are a tailwind, a headwind, or a non-factor, and whether management's own guidance already accounts for it. A rural NBFC guiding growth without acknowledging a flagged monsoon risk is a flag to raise; an exporter's guidance that already cites the rupee tailwind is corroboration, not new information. Macro context sanity-checks the guidance — it is a backdrop, never a substitute for the bottom-up evidence (order book, capacity, utilisation) gathered in Step 3.
+
+Keeping this file current is a standing task: when researching a new quarter for the first time, add a `## Q_FY__` section to `quarterly_macro_context.md` following the existing format (event log with sourced citations + a sector-impact table per event), so future runs in the same quarter don't re-research it from scratch.
+
+**Sector playbooks (complementary, not a substitute).** In addition to the quarter-level macro file, check `skills/_shared/sector-playbooks/` for a sector-specific playbook matching each in-scope company's sector — e.g. `fmcg-consumer-care.md` for hair oil/soap/shampoo/oral-care names. Where `quarterly_macro_context.md` is the *quarter* lens (what happened this quarter, across all sectors), a sector playbook is the *sector* lens (how this sector's economics work, its RM basket and pass-through mechanics, its guidance-giving culture, its seasonality, its export exposure — reusable across quarters). Use both: the sector playbook tells you *how* to read a macro event for that sector (e.g. "this sector's RM basket is ~100% crude-linked with no natural hedge"), the quarter file tells you *what* actually happened this quarter (e.g. "crude averaged $110/bbl in Apr–May"). If no playbook exists yet for an in-scope company's sector, note the gap — building one is valuable enough to flag to the user, following the shape of `fmcg-consumer-care.md` (sector-level reusable framework + a company note per name analysed).
+
 ## Step 4 — Project next-quarter Revenue / OPM / PAT / EPS
 
 Combine guidance with YTD (9M) actuals and historical financials. Cleanest method when both are available:
@@ -175,6 +185,7 @@ Render an interactive HTML briefing using `assets/briefing_template.html`. The m
 | **Surprise vs guidance** | Step 5b |
 | Research report target upside | Step 6 |
 | Screener Insights matrix (agree / contradict) + key ratios | Step 3c |
+| Macro overlay (tailwind / headwind / non-factor, per event) | Step 3d — `quarterly_macro_context.md` |
 | Post-event drift (result / concall / transcript) | Step 7 |
 | **Composite surprise score + direction** | Step 8 rubric |
 | What could be wrong | per-name risk |
@@ -185,4 +196,4 @@ If the `visualize` tool is available, render the table through it; otherwise wri
 
 ## Final self-audit (do not skip)
 
-Before delivering: (1) re-run Step 0 and confirm no ranked name has declared in the interim; (2) spot-check one guided number, one 9M actual, one EPS, and one post-event return against source; (3) confirm the Screener session was authenticated for the run (no name silently ranked on a degraded page) and flag any name where Screener contradicted your call and you couldn't resolve it; (4) write the cross-cutting "what could be wrong with this ranking?" paragraph — selection bias from the scan filters, stale consensus, unaudited concall numbers, a market-wide move contaminating the drift history, or an expired token degrading a source mid-run.
+Before delivering: (1) re-run Step 0 and confirm no ranked name has declared in the interim; (2) spot-check one guided number, one 9M actual, one EPS, and one post-event return against source; (3) confirm the Screener session was authenticated for the run (no name silently ranked on a degraded page) and flag any name where Screener contradicted your call and you couldn't resolve it; (4) confirm `quarterly_macro_context.md` has a section for the quarter being scanned and that it was actually applied per name, not just read — a macro overlay that was fetched but never mapped to a name's sector is as good as skipped; (5) write the cross-cutting "what could be wrong with this ranking?" paragraph — selection bias from the scan filters, stale consensus, unaudited concall numbers, a market-wide move contaminating the drift history, an expired token degrading a source mid-run, or a macro event log that's gone stale (event unwound or reversed since it was logged — e.g. the Iran-war oil spike had already fully reversed by the time Q1FY27 results season started).

@@ -29,7 +29,7 @@ Do **not** use this for a single named stock (use `growth-triggers-1pager` or `e
 
 ## The workflow at a glance
 
-Nine steps, run in order — each gates or feeds the next. A company that fails a gate drops out and is reported as *excluded*, never silently dropped. **Read `references/workflow.md` for the commands, decision rules, and gates before starting** — it is the operational heart of this skill.
+Nine steps plus a quarter-level macro overlay, run in order — each gates or feeds the next. A company that fails a gate drops out and is reported as *excluded*, never silently dropped. **Read `references/workflow.md` for the commands, decision rules, and gates before starting** — it is the operational heart of this skill.
 
 **Preflight — verify session tokens first.** Before anything, confirm the **Stockscans** and **Screener.in** tokens in `.env` are live. If either has expired, **STOP and tell the user which `.env` key to refresh** (with how) — do not run the ranking on half-authenticated data. See `references/screener_insights.md`.
 
@@ -41,6 +41,7 @@ Nine steps, run in order — each gates or feeds the next. A company that fails 
 6. **Score the surprise two ways** — versus street/research-report estimates (search the web for top equity research firm reports as second opinions) AND versus guidance-implied. Where they diverge, say so; divergence is signal. Framework in `references/surprise_scoring.md`.
 
 - **(3c) Screener insights cross-check** — pull Screener.in's key trackables insights matrix (the "Insights" table) and key ratios (ROCE/ROE, debt) as an independent second opinion; corroborate or challenge the concall thesis before ranking. See `references/screener_insights.md`.
+- **(3d) Macro context overlay** — read `references/quarterly_macro_context.md` for the quarter being scanned (event log + sector-impact tables) and add a tailwind/headwind/non-factor read to every name, checking whether management's own guidance already accounts for it. Run once per scan, applied to every name. See `references/quarterly_macro_context.md` and the corresponding step in `references/workflow.md`.
 
 1. **Expectations via research reports** — use research-report price targets and valuation models to assess if the beat is already priced in. See `references/valuation_and_expectations.md`.
 2. **Measure historical post-event drift** — returns after the last *result*, after the *concall*, and after the *transcript* release, so you know whether a beat is tradeable in this name. Result-return is a scan column; concall/transcript returns are derived from doc dates + price history. See `references/post_event_returns.md`.
@@ -89,6 +90,8 @@ Nine steps, run in order — each gates or feeds the next. A company that fails 
 - `references/valuation_and_expectations.md` — research-report targets & valuation models, and the "is the beat priced in?" read.
 - `references/post_event_returns.md` — deriving returns after result/concall/transcript, the drift signature, and translating it into tradeability.
 - `references/screener_insights.md` — the Screener.in key trackables insights matrix + key-ratios cross-check, the insight tags that move a surprise call, and the session-token preflight/expiry handling.
+- `references/quarterly_macro_context.md` — the running log of each fiscal quarter's macro events (oil/currency/rate/monsoon/tariff shocks, etc.) with sourced citations and sector-impact tables; read the section for the quarter being scanned and apply it as a tailwind/headwind overlay per name (Step 3d). Add a new `## Q_FY__` section here the first time a new quarter is scanned.
+- `../../_shared/sector-playbooks/` — reusable sector-level playbooks (RM basket & pass-through mechanics, guidance-giving culture, seasonality, export exposure, tailwind/headwind framework), one file per sector (e.g. `fmcg-consumer-care.md`), each with a company-note subsection per name analysed. Complements `quarterly_macro_context.md` — sector file = *how this sector's economics work*, macro file = *what happened this quarter*. Check for a matching playbook before analysing any in-scope company's sector for the first time; add one (or extend an existing company note) if none exists.
 - `assets/briefing_template.html` — the surprise-sorted master table + deep-dive card structure for the HTML deliverable.
 
 ## Dependencies

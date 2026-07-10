@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "scans": {
+    "d5e2faa4cbed469c8624ce29": {
+      "scanName": "Test",
+      "titleKeywordsToIgnore": [
+        "Closure Of trading window",
+        "Investor Meet",
+        "Shareholder Meeting",
+        "BRSR",
+        "Change in management",
+        "ESOP",
+        "Appointment"
+      ],
+      "descriptionKeywordsToIgnore": [],
+      "updatedAt": "2026-07-09T17:19:26.520Z"
+    }
+  }
+}

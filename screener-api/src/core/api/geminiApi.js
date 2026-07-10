@@ -4,7 +4,7 @@ const { parsePdfWithGemini, hashPrompt } = require('./geminiClient');
 
 // Read the earning call prompt from file
 const earningCallPrompt = fs.readFileSync(
-  path.join(__dirname, '../prompts/earning_call.txt'),
+  path.join(__dirname, '../../../prompts/earning_call.txt'),
   'utf-8'
 );
 
