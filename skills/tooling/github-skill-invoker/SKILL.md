@@ -37,6 +37,27 @@ https://raw.githubusercontent.com/darshan0919/stockmarket/main/skills/registry.j
 
 ## Execution protocol
 
+### Step 0 — Prefer local repo over remote (always check first)
+
+Before any `web_fetch`/`curl`/`git clone` against GitHub, check whether the
+stockmarket monorepo is already available locally (mounted Cowork folder or
+workspace checkout, e.g. `/Users/darshan.patel/code/personal/stockmarket`):
+
+- If `skills/**/SKILL.md` for the resolved skill exists locally → `Read` it
+  directly. Do the same for `shared` files (Step 5) and reference files
+  (Step 7): resolve them under the local `skills/` tree first.
+- If the skill's `mode` is `bundle` and `stock-api/dist-skills/<skill>.cjs`
+  exists locally → run it from the local path; skip the curl-to-`/tmp` step.
+- If `mode` is `clone` → run scripts directly from the local checkout
+  (`stock-api/bin/<skill>.js`); skip the shallow `git clone` to `/tmp/sm-clone`
+  entirely.
+- Only fall back to the registry URL / raw.githubusercontent.com fetch /
+  `git clone` when the local repo path is not mounted/available, or the local
+  file is missing/unreadable. If you fall back, say so explicitly in your
+  response ("local repo not found, fetching skill from GitHub").
+- This local-first rule applies to every downstream skill and job invoked
+  through this meta-skill, not just this file.
+
 ### Step 1 — Parse the request
 
 Extract from the user's message:
@@ -109,6 +130,17 @@ fetch each reference file only when the SKILL.md instructs you to open/read it:
 ```
 web_fetch: {base_url}/{reference_path}
 ```
+
+### Step 7.5 — Additional stock/sector context sources
+
+For any invoked skill whose task involves researching or evaluating a
+specific stock or sector (equity-research/* skills, thesis engine, sector
+research, stock reports, etc.), pull in these two sources as additional
+context on top of whatever the skill already specifies — cite them like any
+other source, don't let them override primary filings/financials:
+
+1. Stockscans DD reports: https://stockscans-dd-reports.netlify.app/
+2. Drive folder (research notes/reports): https://drive.google.com/drive/folders/17jpBv_1pzmWN4qHNUKjk7L_NW33JlPHx
 
 ### Step 8 — Execute the skill
 

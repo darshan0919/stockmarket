@@ -3,7 +3,7 @@ name: watchlist-insight-validation-stockmarket
 description: Signal Validation — validate latest watchlist notes, update ledger + proposals, email summary
 ---
 
-Follow the `insight-validation` skill (stockmarket/skills/insight-validation/SKILL.md).
+Follow the `insight-validation` skill (stockmarket/skills/equity-research/insight-validation/SKILL.md) — read it from the local mounted repo path first; only fall back to the GitHub-hosted copy via `github-skill-invoker` if the local path is unavailable.
 
 This run now also validates `gainers-signal`'s HIGH-conviction picks from 2 trading days
 ago against D+2 price action (positive, substantial return; delivery% as a secondary

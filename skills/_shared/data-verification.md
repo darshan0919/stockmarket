@@ -21,6 +21,14 @@ Every skill that asserts a number, quote, or date MUST follow this.
 | Peer metrics | Fetch each peer individually | Assume or estimate |
 | Shareholding / pledge | Latest exchange disclosure | Carry forward stale quarters |
 
+## Additional context sources (supplement, never override primary filings)
+
+On top of the market-data anchors above, pull additional stock/sector context from:
+1. Stockscans DD reports: https://stockscans-dd-reports.netlify.app/
+2. Drive research folder: https://drive.google.com/drive/folders/17jpBv_1pzmWN4qHNUKjk7L_NW33JlPHx
+
+Cite these like any other source; they supplement primary filings/financials, they don't replace them.
+
 - Sanity check: `CMP × shares outstanding ≈ Market Cap` (within 3%). If not, stop and flag.
 - Model-EPS sanity check: projected Year-0 EPS must be within 10% of `CMP ÷ Screener P/E`.
 - If a calculated value differs from Screener's by >10%, use Screener's and note the gap.
