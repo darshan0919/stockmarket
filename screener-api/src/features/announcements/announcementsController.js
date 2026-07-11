@@ -20,7 +20,7 @@ const {
 const { fetchCompanyIdsFromSavedScanUrl } = require('../screener/stockscansSavedScan');
 const { fetchAnnouncementPdfBuffers } = require('./announcementPdfFetch');
 const announcementScansPage = require('./stockscansAnnouncementScansPage');
-const announcementScanIgnoreStore = require('./announcementScanIgnoreStore');
+const announcementNoiseFilter = require('@stock/api/utils/announcementNoiseFilter');
 
 /** @typedef {'auto'|'stockscans'|'nse'} AnnouncementsProviderMode */
 
@@ -352,12 +352,15 @@ const getAnnouncementScanCompany = async (req, res) => {
 };
 
 /**
- * Local app-only ignore keyword overlays saved under the project data folder.
+ * The single, app-agnostic noise-keyword list shared with the watchlist-insights
+ * job (@stock/api/utils/announcementNoiseFilter, backed by
+ * stock-api/src/data/announcement-noise-keywords.json). Not scoped to any one
+ * saved scan — there's exactly one list, used everywhere.
  * @route GET /api/announcements/scans/ignored-keywords
  */
 const getAnnouncementScanIgnoredKeywords = async (req, res) => {
   try {
-    const data = await announcementScanIgnoreStore.readIgnoreStore();
+    const data = announcementNoiseFilter.loadNoiseKeywords();
     res.json({ success: true, data });
   } catch (err) {
     respondAnnouncementScanError(res, err);
@@ -365,12 +368,14 @@ const getAnnouncementScanIgnoredKeywords = async (req, res) => {
 };
 
 /**
- * Save ignore keywords for one announcement scan to a local project file.
+ * Overwrite the single shared noise-keyword list. Takes effect immediately for
+ * both this API and the watchlist-insights job (next run), since both always
+ * re-read the file fresh.
  * @route PUT /api/announcements/scans/ignored-keywords
  */
 const saveAnnouncementScanIgnoredKeywords = async (req, res) => {
   try {
-    const data = await announcementScanIgnoreStore.saveIgnoreKeywords(req.body || {});
+    const data = announcementNoiseFilter.saveNoiseKeywords(req.body || {});
     res.json({ success: true, data });
   } catch (err) {
     respondAnnouncementScanError(res, err);

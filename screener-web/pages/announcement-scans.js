@@ -4,7 +4,6 @@ import { announcementScansAPI } from '../src/core/lib/api';
 import { useSnackbar } from '../src/core/lib/contexts/SnackbarContext';
 
 const LOCAL_SCANS_KEY = 'announcementScans.local';
-const LOCAL_SCAN_OVERLAYS_KEY = 'announcementScans.localOverlays';
 const LAST_ACTIVE_SCAN_KEY = 'announcementScans.lastActive';
 const SEARCH_DEBOUNCE_MS = 250;
 
@@ -17,12 +16,12 @@ const FALLBACK_SCAN = {
   watchlistIds: [],
   announcementType: 'All',
   searchFilters: [],
-  titleKeywordsToIgnore: [],
-  descriptionKeywordsToIgnore: [],
   alerts: false,
   searchMode: 'full',
   companyFilters: [],
 };
+
+const EMPTY_IGNORED_KEYWORDS = { titleKeywordsToIgnore: [], descriptionKeywordsToIgnore: [] };
 
 const COMMON_WORDS = new Set([
   'a',
@@ -137,8 +136,6 @@ function normalizeScan(scan) {
     industry: Array.isArray(source.industry) ? source.industry : [],
     watchlistIds: Array.isArray(source.watchlistIds) ? source.watchlistIds : [],
     searchFilters: normalizeKeywordArray(source.searchFilters, 12),
-    titleKeywordsToIgnore: normalizeKeywordArray(source.titleKeywordsToIgnore),
-    descriptionKeywordsToIgnore: normalizeKeywordArray(source.descriptionKeywordsToIgnore),
     companyFilters: Array.isArray(source.companyFilters)
       ? source.companyFilters
       : Array.isArray(source.companyIds)
@@ -165,64 +162,11 @@ function setLocalScans(scans) {
   window.localStorage.setItem(LOCAL_SCANS_KEY, JSON.stringify(scans));
 }
 
-function getLocalScanOverlays() {
-  if (typeof window === 'undefined') return {};
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(LOCAL_SCAN_OVERLAYS_KEY) || '{}');
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function setLocalScanOverlays(overlays) {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(LOCAL_SCAN_OVERLAYS_KEY, JSON.stringify(overlays));
-}
-
-function persistLocalScanOverlay(scan) {
-  if (!scan?.scanId || String(scan.scanId).startsWith('local-')) return;
-  const overlays = getLocalScanOverlays();
-  overlays[scan.scanId] = {
-    titleKeywordsToIgnore: scan.titleKeywordsToIgnore || [],
-    descriptionKeywordsToIgnore: scan.descriptionKeywordsToIgnore || [],
-  };
-  setLocalScanOverlays(overlays);
-}
-
-function removeLocalScanOverlay(scanId) {
-  if (!scanId) return;
-  const overlays = getLocalScanOverlays();
-  delete overlays[scanId];
-  setLocalScanOverlays(overlays);
-}
-
-function applyLocalScanOverlays(scans) {
-  const overlays = getLocalScanOverlays();
-  return scans.map((scan) => normalizeScan({ ...scan, ...(overlays[scan.scanId] || {}) }));
-}
-
-function getIgnorePersistKey(scan) {
-  if (scan?.scanId) return String(scan.scanId);
-  const name = String(scan?.scanName || 'Default Scan').trim();
-  return name ? `name:${name}` : '__default__';
-}
-
-function findPersistedIgnore(scan, records = {}) {
-  if (!scan) return null;
-  return (
-    (scan.scanId && records[scan.scanId]) ||
-    records[`name:${String(scan.scanName || '').trim()}`] ||
-    records.__default__ ||
-    null
-  );
-}
-
-function applyPersistedIgnores(scans, records = {}) {
-  return scans.map((scan) =>
-    normalizeScan({ ...scan, ...(findPersistedIgnore(scan, records) || {}) })
-  );
-}
+// Ignore keywords used to be a per-scan, localStorage-overlaid concept (see git
+// history if you need it) — they're now a single, app-agnostic list shared with
+// the watchlist-insights job (@stock/api/utils/announcementNoiseFilter), fetched
+// and saved once via announcementScansAPI.getIgnoredKeywords/saveIgnoredKeywords
+// rather than per scan. See the `ignoredKeywords` state in AnnouncementScansPage.
 
 function quarterLabel(quarterDate) {
   const value = String(quarterDate || '');
@@ -308,9 +252,47 @@ function hasRunnableScan(scan) {
   );
 }
 
-function totalIgnoreKeywords(scan) {
+// Ignore keywords are a single global list (not per-scan), so this takes the
+// `ignoredKeywords` state shape `{titleKeywordsToIgnore, descriptionKeywordsToIgnore}`
+// rather than a scan.
+function totalIgnoreKeywords(ignoredKeywords) {
   return (
-    (scan?.titleKeywordsToIgnore?.length || 0) + (scan?.descriptionKeywordsToIgnore?.length || 0)
+    (ignoredKeywords?.titleKeywordsToIgnore?.length || 0) +
+    (ignoredKeywords?.descriptionKeywordsToIgnore?.length || 0)
+  );
+}
+
+// Client-side mirror of @stock/api/utils/announcementNoiseFilter's
+// shouldIgnoreAnnouncement (title/description checked separately). Results
+// already sent from the server were filtered against the *saved* keyword file,
+// but the "Ignore announcements" panel edits an in-memory `ignoredKeywords`
+// state before it's saved — this re-filters whatever's already on screen
+// against that in-progress state so a newly-typed keyword hides matching rows
+// immediately, without waiting for Save + a re-run of the scan.
+function normalizeIgnoreText(value) {
+  return String(value || '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function clientShouldIgnoreAnnouncement(announcement, ignoredKeywords) {
+  const title = normalizeIgnoreText(announcement?.title || announcement?.highlightedTitle);
+  const titleHit = (ignoredKeywords?.titleKeywordsToIgnore || []).some((kw) =>
+    title.includes(kw.toLowerCase())
+  );
+  if (titleHit) return true;
+  const description = normalizeIgnoreText(announcement?.description);
+  return (ignoredKeywords?.descriptionKeywordsToIgnore || []).some((kw) =>
+    description.includes(kw.toLowerCase())
+  );
+}
+
+function filterAnnouncementsByIgnoreKeywords(announcements, ignoredKeywords) {
+  if (!totalIgnoreKeywords(ignoredKeywords)) return announcements || [];
+  return (announcements || []).filter(
+    (announcement) => !clientShouldIgnoreAnnouncement(announcement, ignoredKeywords)
   );
 }
 
@@ -328,7 +310,7 @@ function pluralize(count, singular, plural = `${singular}s`) {
   return `${count} ${count === 1 ? singular : plural}`;
 }
 
-function scanActivitySummary(scan) {
+function scanActivitySummary(scan, ignoreCount = 0) {
   const includeCount = (scan.searchFilters?.length || 0) + (scan.companyFilters?.length || 0);
   const filterCount =
     (scan.filters?.length || 0) +
@@ -339,7 +321,8 @@ function scanActivitySummary(scan) {
   return {
     includeCount,
     filterCount,
-    ignoreCount: totalIgnoreKeywords(scan),
+    // Ignore rules are global (apply to every scan equally), not per scan.
+    ignoreCount,
     universe: activeUniverseLabels(scan).join(' / '),
   };
 }
@@ -560,7 +543,17 @@ function Dropdown({
   );
 }
 
-function ScanList({ scans, activeScanId, activeName, source, onSelect, onNew, onMove, onDelete }) {
+function ScanList({
+  scans,
+  activeScanId,
+  activeName,
+  source,
+  onSelect,
+  onNew,
+  onMove,
+  onDelete,
+  ignoreCount,
+}) {
   return (
     <div className="finance-card overflow-hidden lg:sticky lg:top-20">
       <div className="p-4 border-b border-base-300 bg-base-200/50 flex items-center justify-between gap-3">
@@ -598,7 +591,7 @@ function ScanList({ scans, activeScanId, activeName, source, onSelect, onNew, on
             const active =
               (activeScanId && scan.scanId === activeScanId) ||
               (!activeScanId && scan.scanName === activeName);
-            const summary = scanActivitySummary(scan);
+            const summary = scanActivitySummary(scan, ignoreCount);
             return (
               <div
                 key={scan.scanId || `${scan.scanName}-${index}`}
@@ -679,6 +672,7 @@ function KeywordBuilder({
   companySearching,
   onAddCompany,
   onRemoveCompany,
+  ignoredKeywords,
   onAddIgnoreKeyword,
   onRemoveIgnoreKeyword,
   onSaveIgnoredKeywords,
@@ -690,7 +684,7 @@ function KeywordBuilder({
   const isCompanySearch = input.startsWith('@');
   const companyQuery = isCompanySearch ? input.slice(1).trim() : '';
   const debounceRef = useRef(null);
-  const summary = scanActivitySummary(scan);
+  const summary = scanActivitySummary(scan, totalIgnoreKeywords(ignoredKeywords));
 
   useEffect(() => {
     if (!isCompanySearch || companyQuery.length < 1) return;
@@ -762,7 +756,7 @@ function KeywordBuilder({
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_auto] gap-3">
           <div className="relative min-w-0">
             <label className="text-xs font-medium text-base-content/60">Search builder</label>
-            <div className="mt-1 flex rounded-xl border border-base-300 bg-base-100 shadow-sm focus-within:border-secondary/60 focus-within:ring-2 focus-within:ring-secondary/10 overflow-hidden">
+            <div className="mt-1 flex rounded-xl border border-base-300 bg-base-100 shadow-sm focus-within:border-secondary/60 focus-within:ring-2 focus-within:ring-secondary/10">
               <div className="px-3 flex items-center text-base-content/40">
                 <SearchIcon />
               </div>
@@ -780,7 +774,7 @@ function KeywordBuilder({
               />
               <Dropdown
                 className="w-28"
-                buttonClassName="h-12 rounded-none border-0 bg-base-200 shadow-none"
+                buttonClassName="h-12 rounded-none border-0 border-l border-base-300 bg-base-200 shadow-none"
                 options={[
                   { value: 'full', label: 'Full' },
                   { value: 'quick', label: 'Quick' },
@@ -793,7 +787,7 @@ function KeywordBuilder({
               />
               <button
                 type="button"
-                className="btn btn-md btn-primary rounded-none"
+                className="btn btn-md btn-primary rounded-l-none rounded-r-[11px]"
                 onClick={submitKeyword}
                 disabled={isCompanySearch}
               >
@@ -892,7 +886,8 @@ function KeywordBuilder({
             <div>
               <h3 className="text-sm font-semibold">Ignore announcements</h3>
               <p className="text-xs text-base-content/50">
-                Remove rows when the selected field contains one of these keywords.
+                Applies to every scan — remove rows when the selected field contains one of
+                these keywords.
               </p>
             </div>
             <button
@@ -913,7 +908,7 @@ function KeywordBuilder({
               label="Title keywords to ignore"
               placeholder="e.g. board meeting"
               value={titleIgnoreInput}
-              keywords={scan.titleKeywordsToIgnore}
+              keywords={ignoredKeywords.titleKeywordsToIgnore}
               onChange={setTitleIgnoreInput}
               onSubmit={() => submitIgnoreKeyword('title', titleIgnoreInput)}
               onRemove={(keyword) => onRemoveIgnoreKeyword('title', keyword)}
@@ -922,7 +917,7 @@ function KeywordBuilder({
               label="Description keywords to ignore"
               placeholder="e.g. trading window"
               value={descriptionIgnoreInput}
-              keywords={scan.descriptionKeywordsToIgnore}
+              keywords={ignoredKeywords.descriptionKeywordsToIgnore}
               onChange={setDescriptionIgnoreInput}
               onSubmit={() => submitIgnoreKeyword('description', descriptionIgnoreInput)}
               onRemove={(keyword) => onRemoveIgnoreKeyword('description', keyword)}
@@ -1429,8 +1424,8 @@ function CompanyDetailModal({ detail, params, onClose }) {
         allTime: scope === 'all-time',
         announcementType: params.scan.announcementType,
         searchMode: params.scan.searchMode,
-        titleKeywordsToIgnore: params.scan.titleKeywordsToIgnore,
-        descriptionKeywordsToIgnore: params.scan.descriptionKeywordsToIgnore,
+        // Ignore keywords are applied server-side from the single shared list
+        // (@stock/api/utils/announcementNoiseFilter) — no longer a per-scan param.
       })
       .then((res) => {
         if (!cancelled) setRows(res.data.data?.announcements || []);
@@ -1615,6 +1610,74 @@ function TrendingModal({ metadata, activeKeywords, onSelect, onRemove, onCreateS
   );
 }
 
+function IgnoredAnnouncementsWidget({ data }) {
+  const hasData = Object.keys(data.title).length > 0 || Object.keys(data.description).length > 0;
+  
+  if (!hasData) {
+    return (
+      <div className="finance-card overflow-hidden lg:sticky lg:top-20">
+        <div className="p-4 border-b border-base-300 bg-base-200/50">
+          <h2 className="text-sm font-semibold">Ignored Announcements</h2>
+          <p className="text-xs text-base-content/50 mt-0.5">Categorized by keyword</p>
+        </div>
+        <div className="p-4 text-sm text-base-content/50">
+          No ignored announcements in current results.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="finance-card overflow-hidden lg:sticky lg:top-20 max-h-[calc(100vh-100px)] flex flex-col">
+      <div className="p-4 border-b border-base-300 bg-base-200/50">
+        <h2 className="text-sm font-semibold">Ignored Announcements</h2>
+        <p className="text-xs text-base-content/50 mt-0.5">Categorized by keyword</p>
+      </div>
+      <div className="overflow-y-auto p-4 space-y-6">
+        {Object.keys(data.title).length > 0 && (
+          <div>
+            <h3 className="text-xs font-semibold uppercase text-secondary mb-3 border-b border-base-200 pb-1">Title Keywords</h3>
+            <div className="space-y-4">
+              {Object.entries(data.title).map(([keyword, items]) => (
+                <div key={keyword}>
+                  <div className="inline-block px-2 py-1 bg-base-200 rounded text-xs font-semibold mb-2">{keyword}</div>
+                  <ul className="space-y-2">
+                    {items.map((item, idx) => (
+                      <li key={idx} className="text-xs border-l-2 border-base-300 pl-2 py-1">
+                        {item.title || item.highlightedTitle}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {Object.keys(data.description).length > 0 && (
+          <div>
+            <h3 className="text-xs font-semibold uppercase text-secondary mb-3 border-b border-base-200 pb-1">Description Keywords</h3>
+            <div className="space-y-4">
+              {Object.entries(data.description).map(([keyword, items]) => (
+                <div key={keyword}>
+                  <div className="inline-block px-2 py-1 bg-base-200 rounded text-xs font-semibold mb-2">{keyword}</div>
+                  <ul className="space-y-2">
+                    {items.map((item, idx) => (
+                      <li key={idx} className="text-xs border-l-2 border-base-300 pl-2 py-1">
+                        {item.description}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AnnouncementScansPage() {
   const { showSnackbar } = useSnackbar();
   const [metadata, setMetadata] = useState({
@@ -1634,6 +1697,7 @@ export default function AnnouncementScansPage() {
   const [savedScans, setSavedScans] = useState([]);
   const [savedSource, setSavedSource] = useState('none');
   const [activeScan, setActiveScan] = useState(normalizeScan(FALLBACK_SCAN));
+  const [ignoredKeywords, setIgnoredKeywords] = useState(EMPTY_IGNORED_KEYWORDS);
   const [quarterDate, setQuarterDate] = useState('');
   const [bootLoading, setBootLoading] = useState(true);
   const [bootError, setBootError] = useState(null);
@@ -1651,6 +1715,46 @@ export default function AnnouncementScansPage() {
   const [showTrending, setShowTrending] = useState(false);
   const lastRunKey = useRef('');
 
+  // Resizing logic
+  const [leftWidth, setLeftWidth] = useState(240);
+  const [rightWidth, setRightWidth] = useState(400);
+  const dragState = useRef({ type: null, startX: 0, startWidth: 0 });
+
+  const onLeftDragStart = useCallback((e) => {
+    dragState.current = { type: 'left', startX: e.clientX, startWidth: leftWidth };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }, [leftWidth]);
+
+  const onRightDragStart = useCallback((e) => {
+    dragState.current = { type: 'right', startX: e.clientX, startWidth: rightWidth };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }, [rightWidth]);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (dragState.current.type === 'left') {
+        const delta = e.clientX - dragState.current.startX;
+        setLeftWidth(Math.max(180, Math.min(600, dragState.current.startWidth + delta)));
+      } else if (dragState.current.type === 'right') {
+        const delta = dragState.current.startX - e.clientX;
+        setRightWidth(Math.max(280, Math.min(800, dragState.current.startWidth + delta)));
+      }
+    };
+    const handleMouseUp = () => {
+      dragState.current.type = null;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
   const params = useMemo(
     () => ({
       scan: activeScan,
@@ -1659,6 +1763,47 @@ export default function AnnouncementScansPage() {
     }),
     [activeScan, quarterDate]
   );
+
+  // Re-filter whatever's already been fetched against the in-progress
+  // (possibly unsaved) ignoredKeywords state, so adding a keyword hides
+  // matching rows immediately instead of waiting for Save + a re-run.
+  const visibleAnnouncements = useMemo(
+    () => filterAnnouncementsByIgnoreKeywords(results?.announcements, ignoredKeywords),
+    [results, ignoredKeywords]
+  );
+
+  const ignoredAnnouncementsList = useMemo(() => {
+    if (!results?.announcements) return { title: {}, description: {} };
+    const titleMap = {};
+    const descMap = {};
+
+    results.announcements.forEach((ann) => {
+      const title = normalizeIgnoreText(ann?.title || ann?.highlightedTitle);
+      const titleHit = (ignoredKeywords?.titleKeywordsToIgnore || []).find((kw) =>
+        title.includes(kw.toLowerCase())
+      );
+      
+      if (titleHit) {
+        if (!titleMap[titleHit]) titleMap[titleHit] = [];
+        if (!titleMap[titleHit].some(a => a.title === ann.title && a.highlightedTitle === ann.highlightedTitle)) {
+          titleMap[titleHit].push(ann);
+        }
+      } else {
+        const description = normalizeIgnoreText(ann?.description);
+        const descHit = (ignoredKeywords?.descriptionKeywordsToIgnore || []).find((kw) => {
+          return description.includes(kw.toLowerCase());
+        });
+        
+        if (descHit) {
+          if (!descMap[descHit]) descMap[descHit] = [];
+          if (!descMap[descHit].some(a => a.description === ann.description)) {
+            descMap[descHit].push(ann);
+          }
+        }
+      }
+    });
+    return { title: titleMap, description: descMap };
+  }, [results, ignoredKeywords]);
 
   const setUnsaved = useCallback(() => {
     setIsSaved(false);
@@ -1693,28 +1838,25 @@ export default function AnnouncementScansPage() {
           watchlists = [];
         }
 
-        let persistedIgnores = {};
         try {
           const ignoreRes = await announcementScansAPI.getIgnoredKeywords();
-          persistedIgnores = ignoreRes.data.data?.scans || {};
+          setIgnoredKeywords({
+            titleKeywordsToIgnore: ignoreRes.data.data?.titleKeywordsToIgnore || [],
+            descriptionKeywordsToIgnore: ignoreRes.data.data?.descriptionKeywordsToIgnore || [],
+          });
         } catch {
-          persistedIgnores = {};
+          setIgnoredKeywords(EMPTY_IGNORED_KEYWORDS);
         }
 
         let scans = [];
         let source = 'none';
         try {
           const savedRes = await announcementScansAPI.getSavedScans();
-          scans = applyPersistedIgnores(
-            applyLocalScanOverlays(
-              (savedRes.data.data?.announcementScans || []).map(normalizeScan)
-            ),
-            persistedIgnores
-          );
+          scans = (savedRes.data.data?.announcementScans || []).map(normalizeScan);
           source = 'stockscans';
           setAuthNotice(null);
         } catch (err) {
-          scans = applyPersistedIgnores(getLocalScans(), persistedIgnores);
+          scans = getLocalScans();
           source = scans.length > 0 ? 'local' : 'none';
           setAuthNotice(
             err.response?.data?.error ||
@@ -1724,10 +1866,7 @@ export default function AnnouncementScansPage() {
 
         if (cancelled) return;
         const quarterDates = meta.quarterDates || [];
-        const defaultScan = applyPersistedIgnores(
-          [normalizeScan(meta.defaultScan || FALLBACK_SCAN)],
-          persistedIgnores
-        )[0];
+        const defaultScan = normalizeScan(meta.defaultScan || FALLBACK_SCAN);
         const lastId =
           typeof window !== 'undefined' ? window.localStorage.getItem(LAST_ACTIVE_SCAN_KEY) : null;
         const active =
@@ -1764,7 +1903,7 @@ export default function AnnouncementScansPage() {
     setLoadingResults(true);
     setRunError(null);
     announcementScansAPI
-      .runScan({ scan: activeScan, offset: 0, quarterDate })
+      .runScan({ scan: activeScan, offset: 0, quarterDate, skipIgnoreFilter: true })
       .then((res) => {
         if (!cancelled) setResults(res.data.data);
       })
@@ -1811,6 +1950,10 @@ export default function AnnouncementScansPage() {
     setUnsaved();
   };
 
+  // Ignore keywords are a single global list, not per-scan — these edit the
+  // `ignoredKeywords` state directly (not activeScan) and don't touch
+  // setUnsaved()/isSaved, since they're independent of whichever scan happens to
+  // be active. handleSaveIgnoredKeywords below persists them to the shared file.
   const addIgnoreKeyword = (category, raw) => {
     const keyword = String(raw || '').trim();
     if (keyword.length < 2 || keyword.length > 100) {
@@ -1818,51 +1961,34 @@ export default function AnnouncementScansPage() {
       return false;
     }
     const key = category === 'title' ? 'titleKeywordsToIgnore' : 'descriptionKeywordsToIgnore';
-    const exists = activeScan[key].some((item) => item.toLowerCase() === keyword.toLowerCase());
+    const exists = ignoredKeywords[key].some(
+      (item) => item.toLowerCase() === keyword.toLowerCase()
+    );
     if (exists) return true;
-    if (activeScan[key].length >= 50) {
+    if (ignoredKeywords[key].length >= 50) {
       showSnackbar('Maximum 50 ignore keywords allowed per category.', 'warning');
       return false;
     }
-    setActiveScan({ ...activeScan, [key]: [...activeScan[key], keyword] });
-    setUnsaved();
+    setIgnoredKeywords({ ...ignoredKeywords, [key]: [...ignoredKeywords[key], keyword] });
     return true;
   };
 
   const removeIgnoreKeyword = (category, keyword) => {
     const key = category === 'title' ? 'titleKeywordsToIgnore' : 'descriptionKeywordsToIgnore';
-    setActiveScan({
-      ...activeScan,
-      [key]: activeScan[key].filter((item) => item !== keyword),
+    setIgnoredKeywords({
+      ...ignoredKeywords,
+      [key]: ignoredKeywords[key].filter((item) => item !== keyword),
     });
-    setUnsaved();
   };
 
   const handleSaveIgnoredKeywords = async () => {
-    const scanKey = getIgnorePersistKey(activeScan);
-    const payload = {
-      scanKey,
-      scanName: activeScan.scanName,
-      titleKeywordsToIgnore: activeScan.titleKeywordsToIgnore,
-      descriptionKeywordsToIgnore: activeScan.descriptionKeywordsToIgnore,
-    };
     setSavingIgnoredKeywords(true);
     try {
-      const res = await announcementScansAPI.saveIgnoredKeywords(payload);
-      const record = {
-        scanName: payload.scanName,
-        titleKeywordsToIgnore: payload.titleKeywordsToIgnore,
-        descriptionKeywordsToIgnore: payload.descriptionKeywordsToIgnore,
-        updatedAt: res.data.data?.updatedAt,
-      };
-      persistLocalScanOverlay(activeScan);
-      if (activeScan.scanId) {
-        const next = savedScans.map((scan) =>
-          scan.scanId === activeScan.scanId ? normalizeScan({ ...scan, ...record }) : scan
-        );
-        setSavedScans(next);
-        if (savedSource === 'local') setLocalScans(next);
-      }
+      const res = await announcementScansAPI.saveIgnoredKeywords(ignoredKeywords);
+      setIgnoredKeywords({
+        titleKeywordsToIgnore: res.data.data?.titleKeywordsToIgnore || [],
+        descriptionKeywordsToIgnore: res.data.data?.descriptionKeywordsToIgnore || [],
+      });
       showSnackbar(
         `Ignore rules saved to ${res.data.data?.path || 'project data file'}.`,
         'success',
@@ -1927,7 +2053,6 @@ export default function AnnouncementScansPage() {
       const scanId = res.data.data?.scanId || activeScan.scanId;
       const saved = normalizeScan({ ...activeScan, scanId });
       const next = [saved, ...savedScans.filter((scan) => scan.scanId !== saved.scanId)];
-      persistLocalScanOverlay(saved);
       setSavedScans(next);
       setSavedSource('stockscans');
       replaceScan(saved, true);
@@ -1950,7 +2075,6 @@ export default function AnnouncementScansPage() {
     if (!scan) return;
     const localDelete = () => {
       const next = savedScans.filter((item) => item.scanId !== scan.scanId);
-      removeLocalScanOverlay(scan.scanId);
       if (savedSource === 'local') setLocalScans(next);
       setSavedScans(next);
       replaceScan(next[0] || metadata.defaultScan || FALLBACK_SCAN, next.length > 0);
@@ -1993,6 +2117,7 @@ export default function AnnouncementScansPage() {
         scan: activeScan,
         offset: results.end,
         quarterDate,
+        skipIgnoreFilter: true,
       });
       const next = res.data.data;
       setResults({
@@ -2042,7 +2167,7 @@ export default function AnnouncementScansPage() {
         <meta name="description" content="StockScans announcement scan clone" />
       </Head>
 
-      <div className="announcement-workbench max-w-[1600px] mx-auto space-y-5">
+      <div className="announcement-workbench w-full mx-auto space-y-5 px-2 xl:px-4">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
           <div>
             <div className="text-[11px] font-semibold uppercase text-secondary mb-1">
@@ -2081,8 +2206,17 @@ export default function AnnouncementScansPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-[310px_minmax(0,1fr)] gap-5 items-start">
-          <aside className="order-1">
+        <div 
+          className="grid grid-cols-1 lg:grid-cols-[var(--left-width)_minmax(0,1fr)] xl:grid-cols-[var(--left-width)_minmax(0,1fr)_var(--right-width)] gap-5 items-start"
+          style={{ '--left-width': `${leftWidth}px`, '--right-width': `${rightWidth}px` }}
+        >
+          <aside className="order-1 relative">
+            <div 
+              className="absolute -right-2.5 top-0 bottom-0 w-5 cursor-col-resize z-10 group hidden lg:flex items-center justify-center"
+              onMouseDown={onLeftDragStart}
+            >
+              <div className="w-1 h-12 rounded-full bg-base-300 group-hover:bg-secondary transition-colors" />
+            </div>
             <ScanList
               scans={savedScans}
               activeScanId={activeScan.scanId}
@@ -2096,6 +2230,7 @@ export default function AnnouncementScansPage() {
               }
               onMove={handleMove}
               onDelete={handleDelete}
+              ignoreCount={totalIgnoreKeywords(ignoredKeywords)}
             />
           </aside>
 
@@ -2116,6 +2251,7 @@ export default function AnnouncementScansPage() {
               onCompanySearch={searchCompanies}
               onAddCompany={addCompany}
               onRemoveCompany={removeCompany}
+              ignoredKeywords={ignoredKeywords}
               onAddIgnoreKeyword={addIgnoreKeyword}
               onRemoveIgnoreKeyword={removeIgnoreKeyword}
               onSaveIgnoredKeywords={handleSaveIgnoredKeywords}
@@ -2154,16 +2290,16 @@ export default function AnnouncementScansPage() {
                   <span>
                     Showing{' '}
                     <span className="font-semibold text-base-content">
-                      {results.announcements?.length || 0}
+                      {visibleAnnouncements.length}
                     </span>{' '}
                     of <span className="font-semibold text-base-content">{results.total || 0}</span>
                   </span>
                 ) : (
                   <span>Table view aggregates keyword matches by company.</span>
                 )}
-                {totalIgnoreKeywords(activeScan) > 0 && (
+                {totalIgnoreKeywords(ignoredKeywords) > 0 && (
                   <span className="finance-badge bg-warning/10 text-warning border border-warning/20">
-                    {pluralize(totalIgnoreKeywords(activeScan), 'ignore')}
+                    {pluralize(totalIgnoreKeywords(ignoredKeywords), 'ignore')}
                   </span>
                 )}
               </div>
@@ -2182,10 +2318,10 @@ export default function AnnouncementScansPage() {
                 </div>
               ) : runError ? (
                 <div className="finance-card p-5 text-error">{runError}</div>
-              ) : results?.announcements?.length ? (
+              ) : visibleAnnouncements.length ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {results.announcements.map((announcement, index) => (
+                    {visibleAnnouncements.map((announcement, index) => (
                       <AnnouncementCard
                         key={`${announcement.ssUrl}-${index}`}
                         announcement={announcement}
@@ -2226,6 +2362,16 @@ export default function AnnouncementScansPage() {
               />
             )}
           </section>
+          
+          <aside className="order-3 lg:col-span-2 xl:col-span-1 relative">
+            <div 
+              className="absolute -left-2.5 top-0 bottom-0 w-5 cursor-col-resize z-10 group hidden xl:flex items-center justify-center"
+              onMouseDown={onRightDragStart}
+            >
+              <div className="w-1 h-12 rounded-full bg-base-300 group-hover:bg-secondary transition-colors" />
+            </div>
+            <IgnoredAnnouncementsWidget data={ignoredAnnouncementsList} />
+          </aside>
         </div>
       </div>
 

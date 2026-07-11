@@ -7,6 +7,10 @@
 
 const { stockscans, StockscansAuth } = require('@stock/api');
 const { STOCKSCANS_ASSETS_BASE } = require('./stockscansAnnouncements');
+const {
+  loadNoiseKeywords,
+  shouldIgnoreAnnouncement: sharedShouldIgnoreAnnouncement,
+} = require('@stock/api/utils/announcementNoiseFilter');
 
 const STOCKSCANS_ORIGIN = 'https://www.stockscans.in';
 const STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE = `${STOCKSCANS_ORIGIN}/announcement-scans`;
@@ -27,8 +31,6 @@ const DEFAULT_ANNOUNCEMENT_SCAN = {
   watchlistIds: [],
   announcementType: 'All',
   searchFilters: [],
-  titleKeywordsToIgnore: [],
-  descriptionKeywordsToIgnore: [],
   alerts: false,
   searchMode: 'full',
   companyFilters: [],
@@ -426,8 +428,6 @@ function normalizeScan(scan = {}) {
     industry: arrayOr(merged.industry),
     watchlistIds: arrayOr(merged.watchlistIds),
     searchFilters: normalizeKeywordList(merged.searchFilters, 12),
-    titleKeywordsToIgnore: normalizeKeywordList(merged.titleKeywordsToIgnore),
-    descriptionKeywordsToIgnore: normalizeKeywordList(merged.descriptionKeywordsToIgnore),
     announcementType: ANNOUNCEMENT_TYPES.includes(merged.announcementType)
       ? merged.announcementType
       : 'All',
@@ -446,16 +446,17 @@ function normalizeScan(scan = {}) {
 }
 
 /**
+ * Strips any locally-added, app-only fields from a scan before it's sent to the
+ * real StockScans API. No local-only fields remain on `scan` today (ignore
+ * keywords used to be one, per-scan, but that's gone — see
+ * @stock/api/utils/announcementNoiseFilter for the single shared list); kept as
+ * an explicit no-op passthrough so future local-only scan fields have an
+ * obvious place to be stripped.
  * @param {Object} scan
  * @returns {Object}
  */
 function stripLocalScanFields(scan) {
-  const {
-    titleKeywordsToIgnore: _titleKeywordsToIgnore,
-    descriptionKeywordsToIgnore: _descriptionKeywordsToIgnore,
-    ...stockScansScan
-  } = scan;
-  return stockScansScan;
+  return { ...scan };
 }
 
 /**
@@ -469,6 +470,11 @@ function normalizeAnnouncementScanParams(raw = {}) {
     quarterDate: /^\d{6}$/.test(String(raw.quarterDate || ''))
       ? String(raw.quarterDate)
       : currentQuarterDate(),
+    // Callers that do their own client-side ignore-keyword filtering (e.g. the
+    // announcement-scans page, so a user can add/remove a keyword and see the
+    // results update instantly, without waiting for Save + a re-run) can pass
+    // this to get raw, unfiltered StockScans pages instead.
+    skipIgnoreFilter: raw.skipIgnoreFilter === true,
   };
 }
 
@@ -486,39 +492,36 @@ function searchableText(value) {
 
 /**
  * @param {Object} announcement
- * @param {Object} scan
  * @returns {boolean}
  */
-function shouldIgnoreAnnouncement(announcement, scan) {
-  const title = searchableText(announcement.title || announcement.highlightedTitle);
-  const description = searchableText(announcement.description);
-  const titleIgnored = scan.titleKeywordsToIgnore.some((keyword) =>
-    title.includes(keyword.toLowerCase())
-  );
-  if (titleIgnored) return true;
-  return scan.descriptionKeywordsToIgnore.some((keyword) =>
-    description.includes(keyword.toLowerCase())
-  );
+function shouldIgnoreAnnouncement(announcement) {
+  return sharedShouldIgnoreAnnouncement({
+    title: announcement.title || announcement.highlightedTitle,
+    description: announcement.description,
+  });
 }
 
 /**
  * @param {Object[]} announcements
- * @param {Object} scan
  * @returns {Object[]}
  */
-function filterIgnoredAnnouncements(announcements, scan) {
-  if (!hasIgnoreKeywords(scan)) return announcements;
-  return announcements.filter((announcement) => !shouldIgnoreAnnouncement(announcement, scan));
+function filterIgnoredAnnouncements(announcements) {
+  if (!hasIgnoreKeywords()) return announcements;
+  return announcements.filter((announcement) => !shouldIgnoreAnnouncement(announcement));
 }
 
 /**
- * @param {Object} scan
+ * Whether the single shared noise-keyword list (app-agnostic — see
+ * @stock/api/utils/announcementNoiseFilter, backed by
+ * stock-api/src/data/announcement-noise-keywords.json) currently has anything to
+ * filter on. Re-checked on every call (not cached) so edits made via the app
+ * take effect immediately.
  * @returns {boolean}
  */
-function hasIgnoreKeywords(scan) {
+function hasIgnoreKeywords() {
+  const { titleKeywordsToIgnore, descriptionKeywordsToIgnore } = loadNoiseKeywords();
   return (
-    arrayOr(scan?.titleKeywordsToIgnore).length > 0 ||
-    arrayOr(scan?.descriptionKeywordsToIgnore).length > 0
+    arrayOr(titleKeywordsToIgnore).length > 0 || arrayOr(descriptionKeywordsToIgnore).length > 0
   );
 }
 
@@ -665,7 +668,7 @@ async function postStockScansAnnouncementStatistics(payload) {
  */
 async function runAnnouncementScan(params) {
   const payload = normalizeAnnouncementScanParams(params);
-  const shouldFilter = hasIgnoreKeywords(payload.scan);
+  const shouldFilter = !payload.skipIgnoreFilter && hasIgnoreKeywords();
   const stockScansScan = stripLocalScanFields(payload.scan);
   const filteredOffset = payload.offset;
   const acceptedTarget = filteredOffset + STOCKSCANS_SCAN_PAGE_SIZE;
@@ -677,8 +680,9 @@ async function runAnnouncementScan(params) {
   try {
     if (!shouldFilter) {
       return postStockScansAnnouncementScan({
-        ...payload,
         scan: stockScansScan,
+        offset: payload.offset,
+        quarterDate: payload.quarterDate,
       });
     }
 
@@ -692,7 +696,7 @@ async function runAnnouncementScan(params) {
       rawTotal = typeof page.total === 'number' ? page.total : rawTotal;
       rawEnd = typeof page.end === 'number' ? page.end : rawOffset + page.announcements.length;
 
-      accepted.push(...filterIgnoredAnnouncements(page.announcements, payload.scan));
+      accepted.push(...filterIgnoredAnnouncements(page.announcements));
 
       const noMoreRawRows =
         page.announcements.length === 0 ||
@@ -714,8 +718,8 @@ async function runAnnouncementScan(params) {
       total: filteredTotal,
       quarterDate: payload.quarterDate,
       meta: {
-        ignoredTitleKeywords: payload.scan.titleKeywordsToIgnore,
-        ignoredDescriptionKeywords: payload.scan.descriptionKeywordsToIgnore,
+        ignoredTitleKeywords: loadNoiseKeywords().titleKeywordsToIgnore,
+        ignoredDescriptionKeywords: loadNoiseKeywords().descriptionKeywordsToIgnore,
         rawTotal,
         rawEnd,
         pagesRead,
@@ -772,7 +776,7 @@ async function fetchFilteredAnnouncementStatistics(payload, rawStats) {
     rawTotal = typeof page.total === 'number' ? page.total : rawTotal;
     rawEnd = typeof page.end === 'number' ? page.end : rawOffset + page.announcements.length;
 
-    const accepted = filterIgnoredAnnouncements(page.announcements, payload.scan);
+    const accepted = filterIgnoredAnnouncements(page.announcements);
     accepted.forEach((announcement) => {
       const companyId = String(announcement.companyId || '').trim();
       if (!companyId) return;
@@ -821,8 +825,8 @@ async function fetchFilteredAnnouncementStatistics(payload, rawStats) {
     totalCompanies: companyData.length,
     meta: {
       ...(rawStats.meta || {}),
-      ignoredTitleKeywords: payload.scan.titleKeywordsToIgnore,
-      ignoredDescriptionKeywords: payload.scan.descriptionKeywordsToIgnore,
+      ignoredTitleKeywords: loadNoiseKeywords().titleKeywordsToIgnore,
+      ignoredDescriptionKeywords: loadNoiseKeywords().descriptionKeywordsToIgnore,
       rawTotal,
       rawEnd,
       pagesRead,
@@ -943,7 +947,7 @@ async function fetchAnnouncementStatistics(params) {
       quarterDate: payload.quarterDate,
       offset: payload.offset,
     });
-    if (!hasIgnoreKeywords(payload.scan)) return rawStats;
+    if (!hasIgnoreKeywords()) return rawStats;
     return fetchFilteredAnnouncementStatistics(payload, rawStats);
   } catch (err) {
     throw toStockScansError(err, 'StockScans announcement statistics failed');
@@ -971,10 +975,6 @@ async function fetchCompanyAnnouncements(params = {}) {
       : 'All',
     searchMode: params.searchMode === 'quick' ? 'quick' : 'full',
   };
-  const ignoreScan = normalizeScan({
-    titleKeywordsToIgnore: params.titleKeywordsToIgnore,
-    descriptionKeywordsToIgnore: params.descriptionKeywordsToIgnore,
-  });
   try {
     const data = await stockscans.companyAnnouncements(payload, {
       referer: STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE,
@@ -982,8 +982,7 @@ async function fetchCompanyAnnouncements(params = {}) {
     });
     return {
       announcements: filterIgnoredAnnouncements(
-        arrayOr(data?.announcements).map(mapAnnouncement).filter(Boolean),
-        ignoreScan
+        arrayOr(data?.announcements).map(mapAnnouncement).filter(Boolean)
       ),
     };
   } catch (err) {

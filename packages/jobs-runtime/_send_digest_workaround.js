@@ -1,9 +1,9 @@
 'use strict';
 // Workaround for known bug: cmdSendDigest/collectDigest call gatherInwindowRaw(client)
 // with no watchlistIds arg and throw. See memory watchlist-send-digest-broken-2026-07-06.
-require('/sessions/epic-festive-clarke/mnt/stockmarket/packages/jobs-runtime/lib/env').loadEnv();
-const wi = require('/sessions/epic-festive-clarke/mnt/stockmarket/packages/jobs-runtime/watchlistInsights.js');
-const { NotesDb } = require('/sessions/epic-festive-clarke/mnt/stockmarket/packages/jobs-runtime/lib/notesDb.js');
+require(__dirname + '/lib/env').loadEnv();
+const wi = require(__dirname + '/watchlistInsights.js');
+const { NotesDb } = require(__dirname + '/lib/notesDb.js');
 const { sendHtmlEmail } = require('@stock/cloud-utils');
 
 async function main() {

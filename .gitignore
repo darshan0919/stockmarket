@@ -61,8 +61,10 @@ backend/uploads/
 # data/ is a local mirror of Drive StockMarket/data/v2, synced by
 # packages/jobs-runtime/scripts/data.js. See skills/_shared/conventions.md §6–7.
 # Data files must NEVER be committed; only allow-listed config below survives.
+# (Per-scan announcement ignore keywords were removed 2026-07-11 in favor of a
+# single shared list at stock-api/src/data/announcement-noise-keywords.json,
+# which lives under source and isn't covered by this /data/* ignore.)
 /data/*
-!/data/announcement-scan-ignore-keywords.json
 
 # Legacy v1 store (superseded by data/; kept ignored as a guard)
 jobs/data/

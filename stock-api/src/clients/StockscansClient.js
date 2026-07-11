@@ -268,6 +268,43 @@ class StockscansClient {
   }
 
   /**
+   * Minute-level (or other timeframe) OHLCV candles — the price source for
+   * event-reaction metrics (returns since result, 1hr/1day/1month post-event).
+   * Endpoint verified live 10-Jul-2026 for NSE:ELECON: `tf=1m` batch of 1000
+   * candles reliably spans several trading days back from `before` (or "now" if
+   * omitted), including the exact minute of a same-day event — e.g. the
+   * 2026-07-10 11:47 candle captured Elecon's board-meeting result reaction
+   * (515 → 485, ~6% down move, volume 331 → 129k), matching the NSE-verified
+   * 11:47:44 announcement time.
+   * Auth: requires STOCKSCANS_AUTH_TOKEN (the `authtoken` cookie) — same as the
+   * rest of this client. No extra headers (e.g. x-sync-source) were required in
+   * testing despite appearing in a browser-captured request.
+   * Pagination: response includes `hasMore`; when true, re-call with `before`
+   * set to the earliest candle's timestamp from the previous page to page
+   * further back in history.
+   * @param {string} ticker - e.g. "NSE:ELECON".
+   * @param {Object} [opts]
+   * @param {'1m'|'5m'|'15m'|'1h'|'1d'} [opts.tf='1m']
+   * @param {string} [opts.before] - ISO timestamp (no 'Z'), e.g.
+   *   "2026-07-03T10:23:00" — fetch candles strictly before this point.
+   * @returns {Promise<{companyId:string,name:string,exchange:string,tf:string,
+   *   prices:Array<[string,number,number,number,number,number]>,hasMore:boolean}>}
+   *   prices rows are [isoTimestamp, open, high, low, close, volume].
+   */
+  async ohlcv(ticker, { tf = '1m', before } = {}) {
+    const params = { tf };
+    if (before) params.before = before;
+    const { data } = await this.http.get(
+      `${BASE_URL}/api/company/ohlcv/${encodeURIComponent(ticker)}`,
+      {
+        params,
+        headers: this._headers(`${BASE_URL}/charts/${encodeURIComponent(ticker)}`),
+      }
+    );
+    return data;
+  }
+
+  /**
    * Official company documents (AR / concall / PPT / results).
    * @param {string} companyId
    * @returns {Promise<Object>}

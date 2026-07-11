@@ -1,0 +1,18 @@
+---
+name: daily-tweet-signals-stockmarket
+description: Daily Tweet Signals — X list capture to conviction signals email
+---
+
+Run the daily tweet-signals pipeline for Darshan's "Indian Market Updates" X list (listId 2051640128133885987), following stockmarket/skills/equity-research/tweet-signals/SKILL.md (read it from the local mounted repo path first; only fall back to the GitHub-hosted copy via github-skill-invoker if the local path is unavailable).
+
+Summary of what that skill does (the SKILL.md is the source of truth — follow it, this is just context):
+1. Requires Chrome open on Darshan's machine with the `tools/tweet-signal-capture-extension` loaded (a MAIN-world content script that intercepts X's ListLatestTweetsTimeline GraphQL calls and logs one structured row per tweet — tagged [TWEET_SIGNAL_ROW] in the console — no cookies/session secrets are ever stored). If Chrome or the extension isn't reachable via the Claude in Chrome tools, do NOT fail silently — report clearly that today's capture couldn't run and stop, rather than guessing or fabricating data.
+2. Refresh the shared company master DB: `node packages/jobs-runtime/companyMasterSync.js` (fetches Kite's public instruments CSV, no auth needed).
+3. Navigate to https://x.com/i/lists/2051640128133885987 and scroll the timeline with short wheel-scroll bursts (scroll_amount 8-10, ~1s wait between bursts) until relative timestamps cross into absolute dates (i.e. past the 24h mark). Do not use keyboard End-key jumps — they stall after the first press in this UI.
+4. Read the console log for [TWEET_SIGNAL_ROW] entries, parse each JSON row ({author, createdAt, text, id}), dedupe, and write to data/runs/{date}_tweets_raw.json.
+5. Run `node packages/jobs-runtime/companyKeywordEnricher.js data/runs/{date}_tweets_raw.json` to enrich the company master's keyword aliases from today's tweets.
+6. Run `node packages/jobs-runtime/lib/tweetSignalsClassifier.js data/runs/{date}_tweets_raw.json` — this classifies content-only conviction (HIGH/MEDIUM/LOW/NOISE; source/author verification is NOT a factor), resolves companies via the master DB, groups multiple mentions of the same company into one entry (companies[] in the output, with mentionCount), and writes data/runs/{date}_tweets_insights.json plus event records to the events collection via lib/db.js.
+7. Compose a Gmail-safe HTML email briefing from the insights JSON (group by company, not by raw tweet — use the `companies[]` array so corroborating mentions of the same company show as one line with a mention count, not duplicated lines) and send it using the same shared mailer pattern as the `gainers-signal` skill. Subject: "Tweet Signals — Indian Market Updates — {date}". Include a header noting total tweets captured vs. unique companies with signals, HIGH conviction companies with evidence, MEDIUM conviction condensed, and a footer noting this is a heuristic content-based filter (not verified research, not a trading recommendation) with the byConviction/byConvictionUniqueCompanies counts.
+8. Finish with `node packages/jobs-runtime/scripts/offloadToDrive.js` (or whatever the current Data Ecosystem v2 equivalent sync/offload script is — check docs/DATA_ECOSYSTEM.md if offloadToDrive.js has been superseded) to sync jobs/run data to Drive. This is mandatory even if earlier steps had partial failures.
+
+If any step's tooling has moved or been refactored since this prompt was written (the repo's data layer was mid-refactor as of 2026-07-09), trust the current SKILL.md and repo state over this summary — this summary is a convenience recap, not the authority.

@@ -334,9 +334,18 @@ export const announcementScansAPI = {
   reorderScans: (scanIds) => api.put('/announcements/scans/saved/order', { scanIds }),
   /** @see DELETE /api/announcements/scans/saved/:scanId */
   deleteScan: (scanId) => api.delete(`/announcements/scans/saved/${encodeURIComponent(scanId)}`),
-  /** @see GET /api/announcements/scans/ignored-keywords */
+  /**
+   * Single, app-agnostic noise-keyword list (not per-scan) shared with the
+   * watchlist-insights job. Returns
+   * `{titleKeywordsToIgnore, descriptionKeywordsToIgnore, updatedAt}`.
+   * @see GET /api/announcements/scans/ignored-keywords
+   */
   getIgnoredKeywords: () => api.get('/announcements/scans/ignored-keywords'),
-  /** @see PUT /api/announcements/scans/ignored-keywords */
+  /**
+   * Overwrites the single shared noise-keyword list.
+   * @param {{titleKeywordsToIgnore?: string[], descriptionKeywordsToIgnore?: string[]}} payload
+   * @see PUT /api/announcements/scans/ignored-keywords
+   */
   saveIgnoredKeywords: (payload) => api.put('/announcements/scans/ignored-keywords', payload),
   /** @see POST /api/announcements/scans/run */
   runScan: (params) => api.post('/announcements/scans/run', params, { timeout: 120000 }),

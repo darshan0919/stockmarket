@@ -21,7 +21,7 @@ export default function Screener() {
   const [sellOffersOnly, setSellOffersOnly] = useState(false);
   const [buyBidsOnly, setBuyBidsOnly] = useState(false);
 
-  const { hiddenCols, toggleColumn } = useColumnState();
+  const { hiddenCols, toggleColumn, setGroupVisible } = useColumnState();
 
   const intervalRef = useRef(null);
   const inFlightRef = useRef(false);
@@ -173,7 +173,7 @@ export default function Screener() {
               </label>
 
               {rows.length > 0 && (
-                <ColumnPicker hiddenCols={hiddenCols} toggleColumn={toggleColumn} />
+                <ColumnPicker hiddenCols={hiddenCols} toggleColumn={toggleColumn} setGroupVisible={setGroupVisible} />
               )}
 
               {rows.length > 0 && (

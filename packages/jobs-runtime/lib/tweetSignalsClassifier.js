@@ -115,6 +115,45 @@ function classifyOne(tweet) {
   };
 }
 
+const CONVICTION_RANK = { HIGH: 3, MEDIUM: 2, LOW: 1, NOISE: 0 };
+
+/**
+ * Group signals by companyId so the same company reported by multiple
+ * accounts (e.g. an alert-bot headline + a separate hashtag-only tweet
+ * about the same order win) shows up as ONE briefing line with a mention
+ * count, not N double-counted lines. The underlying event records are still
+ * stored individually (each real tweet is a real corroborating data point —
+ * see docs/DATA_ECOSYSTEM.md's events-log model), this grouping is purely
+ * for the briefing/stats layer.
+ */
+function groupByCompany(signals) {
+  const groups = new Map();
+  for (const s of signals) {
+    if (String(s.companyId).startsWith('UNKNOWN:')) continue;
+    if (!groups.has(s.companyId)) {
+      groups.set(s.companyId, {
+        companyId: s.companyId,
+        nseTicker: s.nseTicker,
+        bseTicker: s.bseTicker,
+        mentionCount: 0,
+        maxConviction: 'NOISE',
+        categories: new Set(),
+        tweetIds: [],
+        evidenceSample: [],
+      });
+    }
+    const g = groups.get(s.companyId);
+    g.mentionCount++;
+    if (CONVICTION_RANK[s.conviction] > CONVICTION_RANK[g.maxConviction]) g.maxConviction = s.conviction;
+    g.categories.add(s.category);
+    g.tweetIds.push(s.tweetId);
+    if (g.evidenceSample.length < 3) g.evidenceSample.push({ text: s.text, evidence: s.evidence });
+  }
+  return Array.from(groups.values())
+    .map((g) => ({ ...g, categories: Array.from(g.categories) }))
+    .sort((a, b) => CONVICTION_RANK[b.maxConviction] - CONVICTION_RANK[a.maxConviction] || b.mentionCount - a.mentionCount);
+}
+
 function main() {
   const rawPath = process.argv[2] || latestRaw(TWEETS_DIR);
   const raw = JSON.parse(fs.readFileSync(rawPath, 'utf8'));
@@ -125,6 +164,12 @@ function main() {
   const byConviction = { HIGH: 0, MEDIUM: 0, LOW: 0, NOISE: 0 };
   for (const s of signals) byConviction[s.conviction] = (byConviction[s.conviction] || 0) + 1;
   const resolvedCount = signals.filter(s => !s.companyId.startsWith('UNKNOWN:')).length;
+
+  const companies = groupByCompany(signals);
+  const byConvictionUniqueCompanies = { HIGH: 0, MEDIUM: 0, LOW: 0 };
+  for (const c of companies) {
+    if (byConvictionUniqueCompanies[c.maxConviction] !== undefined) byConvictionUniqueCompanies[c.maxConviction]++;
+  }
 
   const base = path.basename(rawPath);
   const dateMatch = base.match(/^\d{4}-\d{2}-\d{2}/);
@@ -143,7 +188,10 @@ function main() {
     generatedAt: new Date().toISOString(),
     totalTweets: tweets.length,
     resolvedCompanyCount: resolvedCount,
+    uniqueCompanyCount: companies.length,
     byConviction,
+    byConvictionUniqueCompanies,
+    companies,
     signals,
   };
 
@@ -161,7 +209,7 @@ function main() {
 
   fs.mkdirSync(TWEETS_DIR, { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(output, null, 2));
-  console.log(JSON.stringify({ status: 'ok', outPath, events: stats, totalTweets: tweets.length, resolvedCompanyCount: resolvedCount, byConviction }, null, 2));
+  console.log(JSON.stringify({ status: 'ok', outPath, events: stats, totalTweets: tweets.length, resolvedCompanyCount: resolvedCount, uniqueCompanyCount: companies.length, byConviction, byConvictionUniqueCompanies }, null, 2));
 }
 
 if (require.main === module) {

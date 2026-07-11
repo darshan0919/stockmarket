@@ -348,6 +348,27 @@ async function fetchInsider(targetIst, maxXbrl) {
       const persons = xbrlAll(xml, 'NameOfThePerson');
       const cats = xbrlAll(xml, 'CategoryOfPerson');
       const modes = xbrlAll(xml, 'ModeOfAcquisitionOrDisposal');
+
+      // A single PIT filing can carry multiple legs, and not all legs are
+      // economic ownership changes:
+      //  - "conversion of security" = dispose of warrants/prefs + acquire
+      //    equity of ~equal value → legs should cancel out (net ~0).
+      //  - "pledge"/"revoke of pledge"/"invocation" = encumbrance status
+      //    change, not a purchase or sale → should contribute 0 to net,
+      //    not be added as if it were a buy (that flips sale-heavy filings
+      //    like "Sell/Pledge Revoke" from net-negative to net-positive).
+      // So: only buy/acq legs add, only sell/sale/dispos legs subtract;
+      // every other leg type (pledge, revoke, invocation, gift, etc.) is
+      // excluded from netValue but still included in the gross `value`
+      // shown in the digest for transparency on total filing activity.
+      let buyValue = 0, sellValue = 0;
+      types.forEach((t, idx) => {
+        const v = values[idx] || 0;
+        if (/buy|acq/i.test(t)) buyValue += v;
+        else if (/sell|sale|dispos/i.test(t)) sellValue += v;
+        // else: neutral leg (pledge/revoke/invocation/etc.) — excluded from net
+      });
+      const netValue = buyValue - sellValue;
       const totalValue = values.reduce((a, b) => a + (b || 0), 0) || null;
       const totalQty = qtys.reduce((a, b) => a + (b || 0), 0) || null;
       results.push({
@@ -361,6 +382,7 @@ async function fetchInsider(targetIst, maxXbrl) {
         mode: [...new Set(modes)].join('/') || null,
         qty: totalQty,
         value: totalValue,
+        netValue, // signed; used for group-level Net Value aggregation instead of value+side
         regulation: f.regulation,
         broadcast: f.broadcastDateTime,
         link: f.ixbrl || f.xmlFileName,
@@ -388,6 +410,7 @@ async function fetchInsider(targetIst, maxXbrl) {
         continue;
       }
 
+      const bseIsBuy = (b.Fld_TransactionType === 'Acquisition' || b.ModeOfAquisation === 'Market Purchase');
       results.push({
         exchange: 'BSE',
         symbol: b.Companyname || String(b.Fld_ScripCode),
@@ -395,10 +418,11 @@ async function fetchInsider(targetIst, maxXbrl) {
         person: b.Fld_PromoterName || null,
         personCount: 1,
         category: b.Fld_PersonCatgName || null,
-        side: (b.Fld_TransactionType === 'Acquisition' || b.ModeOfAquisation === 'Market Purchase') ? 'Buy' : 'Sell',
+        side: bseIsBuy ? 'Buy' : 'Sell',
         mode: b.ModeOfAquisation || null,
         qty: qty,
         value: val,
+        netValue: bseIsBuy ? val : -val, // single-leg filing; sign matches side
         regulation: 'PIT',
         broadcast: b.Fld_CreateDate,
         link: b.xbrlurl ? `https://www.bseindia.com${b.xbrlurl}` : null,
@@ -436,12 +460,21 @@ async function groupAndTop10ByNetValue(rows) {
       groupsBySym[r.symbol] = { symbol: r.symbol, netValue: 0, deals: [] };
     }
     groupsBySym[r.symbol].deals.push(r);
-    
-    const isBuy = /buy|acq/i.test(r.side || '');
-    const isSell = /sell|sale|dispos/i.test(r.side || '');
-    if (isBuy) groupsBySym[r.symbol].netValue += (r.value || 0);
-    else if (isSell) groupsBySym[r.symbol].netValue -= (r.value || 0);
-    else groupsBySym[r.symbol].netValue += (r.value || 0);
+
+    // Prefer a row's own signed netValue when the fetcher already computed
+    // one (insider PIT rows can mix buy + sell legs within a single filing,
+    // so side-string sniffing on the joined "Buy/Sell" label would wrongly
+    // treat it as a pure buy). Fall back to side-based signing of `value`
+    // for rows that only ever carry a single side (bulk/block/SAST).
+    if (r.netValue !== undefined && r.netValue !== null) {
+      groupsBySym[r.symbol].netValue += r.netValue;
+    } else {
+      const isBuy = /buy|acq/i.test(r.side || '');
+      const isSell = /sell|sale|dispos/i.test(r.side || '');
+      if (isBuy) groupsBySym[r.symbol].netValue += (r.value || 0);
+      else if (isSell) groupsBySym[r.symbol].netValue -= (r.value || 0);
+      else groupsBySym[r.symbol].netValue += (r.value || 0);
+    }
   }
 
   let allGroups = Object.values(groupsBySym);
@@ -497,8 +530,14 @@ function td(v, right, wrap) {
 }
 
 function renderEmail(dateLabel, digest) {
-  const sideColor = (s) =>
-    /buy|acq/i.test(s || '') ? '#1b5e20' : /sell|sale|dispos/i.test(s || '') ? '#b71c1c' : '#333';
+  const sideColor = (s) => {
+    const hasBuy = /buy|acq/i.test(s || '');
+    const hasSell = /sell|sale|dispos/i.test(s || '');
+    if (hasBuy && hasSell) return '#333'; // mixed legs (e.g. conversion) — neutral, not green
+    return hasBuy ? '#1b5e20' : hasSell ? '#b71c1c' : '#333';
+  };
+  // Net value color: neutral gray at exactly zero (canceling legs), not green.
+  const netColor = (v) => (v > 0 ? '#1b5e20' : v < 0 ? '#b71c1c' : '#888');
 
   const dealRows = (groups) =>
     groups.flatMap((g, gIdx) =>
@@ -507,7 +546,7 @@ function renderEmail(dateLabel, digest) {
         const rs = g.deals.length;
         const numCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee">${gIdx + 1}</td>` : '';
         const symCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee"><a href="${stockscansUrl(g.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(g.companyName || g.symbol)}</b></a> <span style="color:#888">${esc(r.exchange)}</span></td>` : '';
-        const netCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right;color:${g.netValue < 0 ? '#b71c1c' : '#1b5e20'}"><b>${crores(g.netValue)}</b></td>` : '';
+        const netCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right;color:${netColor(g.netValue)}"><b>${crores(g.netValue)}</b></td>` : '';
         const mcapPctCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right">${pctMcap(g.netValue, g.marketCap)}</td>` : '';
         return `<tr>${numCol}${symCol}${netCol}${mcapPctCol}${td(esc(r.client), false, true)}${td(`<span style="color:${sideColor(r.side)}">${esc(r.side)}</span>`)}${td(r.qty?.toLocaleString('en-IN') ?? '—', 1)}${td(r.price?.toLocaleString('en-IN') ?? '—', 1)}${td(`<b>${crores(r.value)}</b>`, 1)}</tr>`;
       })
@@ -520,7 +559,7 @@ function renderEmail(dateLabel, digest) {
         const rs = g.deals.length;
         const numCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee">${gIdx + 1}</td>` : '';
         const symCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee"><a href="${stockscansUrl(g.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(g.companyName || g.symbol)}</b></a></td>` : '';
-        const netCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right;color:${g.netValue < 0 ? '#b71c1c' : '#1b5e20'}"><b>${crores(g.netValue)}</b></td>` : '';
+        const netCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right;color:${netColor(g.netValue)}"><b>${crores(g.netValue)}</b></td>` : '';
         const mcapPctCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right">${pctMcap(g.netValue, g.marketCap)}</td>` : '';
         return `<tr>${numCol}${symCol}${netCol}${mcapPctCol}${td(esc(r.acquirer), false, true)}${td(`<span style="color:${sideColor(r.side)}">${esc(r.side)}</span>`)}${td(r.shares?.toLocaleString('en-IN') ?? '—', 1)}${td(`<b>${crores(r.value)}</b>`, 1)}</tr>`;
       })
@@ -534,8 +573,8 @@ function renderEmail(dateLabel, digest) {
         const numCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee">${gIdx + 1}</td>` : '';
         const symCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee"><a href="${stockscansUrl(g.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(g.companyName || g.symbol)}</b></a></td>` : '';
         const isActualTransaction = g.deals.some(d => /buy|sell|acq|sale|dispos/i.test(d.side || ''));
-        const netColor = isActualTransaction ? (g.netValue < 0 ? '#b71c1c' : '#1b5e20') : '#888';
-        const netCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right;color:${netColor}"><b>${crores(g.netValue)}</b></td>` : '';
+        const insiderNetColor = isActualTransaction ? netColor(g.netValue) : '#888';
+        const netCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right;color:${insiderNetColor}"><b>${crores(g.netValue)}</b></td>` : '';
         const mcapPctCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right">${pctMcap(g.netValue, g.marketCap)}</td>` : '';
         return `<tr>${numCol}${symCol}${netCol}${mcapPctCol}${td(esc(r.person) + (r.personCount > 1 ? ` <span style="color:#888">+${r.personCount - 1}</span>` : ''), false, true)}${td(esc(r.category))}${td(`<span style="color:${sideColor(r.side)}">${esc(r.side)}</span>`)}${td(r.qty?.toLocaleString('en-IN') ?? '—', 1)}${td(`<b>${crores(r.value)}</b>`, 1)}</tr>`;
       })

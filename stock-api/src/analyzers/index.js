@@ -12,6 +12,10 @@ const {
 const {
   avgTradedValueCr, toCandles, fetchPriceMetrics, normalizePvd,
 } = require('./priceMetrics');
+const {
+  classifyEventText, mergeAnnouncements, findLatestEvent, earliestEventTimestamp,
+  normalizeOhlcv, computeReactionMetrics, classifySignal, SIGNAL_THRESHOLDS,
+} = require('./eventReactionSignals');
 
 module.exports = {
   evaluateCatalystRules,
@@ -23,5 +27,7 @@ module.exports = {
   postEventReturns, eventReturns, driftSignature,
   parseScreenerInsights, detectAuthState, parseProsCons, parseTopRatios, tagInsights,
   avgTradedValueCr, toCandles, fetchPriceMetrics, normalizePvd,
-  scanCatalysts
+  scanCatalysts,
+  classifyEventText, mergeAnnouncements, findLatestEvent, earliestEventTimestamp,
+  normalizeOhlcv, computeReactionMetrics, classifySignal, SIGNAL_THRESHOLDS,
 };

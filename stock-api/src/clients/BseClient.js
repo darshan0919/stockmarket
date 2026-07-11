@@ -33,13 +33,17 @@ function parseBseSmartSearchHtml(html) {
 }
 
 /**
- * BSE client — PRICE-ACTION ONLY: traded/deliverable quantity, delivery %, live
- * quote header, and the scrip-code/smart-search lookups needed to address those
- * price-action endpoints.
+ * BSE client — primarily price-action (traded/deliverable quantity, delivery %,
+ * live quote header) plus symbol lookup, but no hard ownership boundary: BSE's
+ * announcement feed is added here too since it's the most reliable source of
+ * exact (millisecond) event timestamps (verified 10-Jul-2026, see
+ * {@link BseClient#getAnnouncements}). Stockscans remains the fallback for
+ * anything BSE/NSE don't expose reliably (see also symbol-search note below).
  *
- * Intentionally does NOT expose BSE's fundamental endpoints (earnings-call
- * transcript announcements, corporate results calendar, company header metadata)
- * — those are owned by {@link StockscansClient}.
+ * Reliability note (verified 10-Jul-2026): `getScripCode`/`smartSearch`
+ * (PeerSmartSearch) work reliably and should be preferred over NSE's search
+ * (which 404s — see NseClient) — this is the historical reason symbol lookup
+ * fell back to Stockscans in some flows; BSE search removes that need.
  */
 class BseClient {
   /**
@@ -210,6 +214,50 @@ class BseClient {
       return res?.Table || [];
     } catch (error) {
       console.warn('BSE getBoardMeetings failed:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * Corporate announcements (results, concalls, order wins, press releases, etc.)
+   * with millisecond-precision timestamps.
+   * Endpoint verified live 10-Jul-2026: AnnSubCategoryGetData/w — confirmed for
+   * TCS (results at 2026-07-09T15:56:53, concall recording at 22:21:12).
+   * NOTE: this endpoint reliably returns data only when scoped to a single
+   * `scripcode` — unscoped/date-range-only queries returned `{}` in testing, so
+   * loop per-scripcode rather than pulling the market-wide daily feed.
+   * Row fields of interest: NEWSSUB (headline), CATEGORYNAME/SUBCATNAME (filter
+   * on these, e.g. "Result", "Company Update" + NEWSSUB match for concall),
+   * DissemDT (canonical event timestamp, ISO with milliseconds),
+   * News_submission_dt (submission time, ~1s earlier).
+   * @param {string|number} scripCode - BSE scrip code (from getScripCode).
+   * @param {string} fromDate - YYYYMMDD
+   * @param {string} toDate   - YYYYMMDD
+   * @param {Object} [opts]
+   * @param {string} [opts.category='-1']
+   * @param {string} [opts.subcategory='-1']
+   * @param {number} [opts.pageNo=1]
+   * @returns {Promise<Array>}
+   */
+  async getAnnouncements(scripCode, fromDate, toDate, { category = '-1', subcategory = '-1', pageNo = 1 } = {}) {
+    try {
+      const res = await bseGetJson('AnnSubCategoryGetData/w', {
+        params: {
+          pageno: pageNo,
+          strCat: category,
+          subcategory,
+          strPrevDate: fromDate,
+          strToDate: toDate,
+          strSearch: 'P',
+          strscrip: String(scripCode),
+          strType: 'C',
+        },
+        timeout: BSE_REQUEST_TIMEOUT_MS,
+      });
+      return res?.Table || [];
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn(`BSE getAnnouncements failed for scrip ${scripCode}:`, error.message);
       return [];
     }
   }

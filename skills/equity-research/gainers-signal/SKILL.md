@@ -89,10 +89,15 @@ Subject: `Daily Gainers Signal — {market_date}`.
   delivery is unavailable; group BSE-unavailable under "confirm on bseindia.com".
 - **Footer:** `{total_analyzed} analyzed · {in_email} signals · {noise_excluded} noise`.
 
-Send by writing the HTML to a temp file and using the shared mailer:
+Send by writing the HTML to a temp file and using the shared mailer. `emailService.js`
+reads `GOOGLE_APP_PASSWORD` from `process.env` but does **not** load `.env` itself —
+you must call the repo's `loadEnv()` first or the send always reports
+`skipped: GOOGLE_APP_PASSWORD not set` even though the key is present in `.env`:
 ```bash
+SCAN=$(find /sessions -path '*packages/jobs-runtime/gainersScanner.js' -not -path '*/node_modules/*' 2>/dev/null | head -1)
+RUNTIME=$(dirname "$SCAN")
 MAILER=$(find /sessions -path '*cloud-utils/src/emailService.js' 2>/dev/null | head -1)
-node -e "const{sendHtmlEmail}=require('$MAILER');const fs=require('fs');sendHtmlEmail({subject:process.argv[1],htmlBody:fs.readFileSync(process.argv[2],'utf8')}).then(r=>console.log(JSON.stringify(r)))" \
+node -e "require('$RUNTIME/lib/env').loadEnv();const{sendHtmlEmail}=require('$MAILER');const fs=require('fs');sendHtmlEmail({subject:process.argv[1],htmlBody:fs.readFileSync(process.argv[2],'utf8')}).then(r=>console.log(JSON.stringify(r)))" \
   "Daily Gainers Signal — $MARKET_DATE" /tmp/gainers_email.html
 ```
 If email status is `skipped`/`error`, print a warning but do not fail.

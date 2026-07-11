@@ -78,6 +78,18 @@ function lastTradingDay(today) {
   return d;
 }
 
+/**
+ * "Today" as an IST calendar date (returned as a UTC-midnight Date, same shape
+ * `--date YYYY-MM-DD` produces) — NOT `new Date()`'s UTC calendar day. The market
+ * runs on IST; using the raw UTC day is wrong for ~5.5 hours of every day (any run
+ * between 18:30 and 23:59 UTC is already past midnight IST), which silently
+ * resolves `lastTradingDay` one day too far back.
+ */
+function istToday(now = new Date()) {
+  const ist = new Date(now.getTime() + (5 * 60 + 30) * 60 * 1000);
+  return new Date(Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate()));
+}
+
 function pick(raw, ...keys) {
   for (const k of keys) {
     const v = raw[k];
@@ -519,7 +531,7 @@ async function main({
   log = (m) => process.stderr.write(m),
 } = {}) {
   const ss = clients.stockscans;
-  const today = new Date();
+  const today = istToday();
   const mDate = marketDate || lastTradingDay(today);
   const runTs = istNowIso();
   const mDateStr = mDate.toISOString().slice(0, 10);
@@ -651,7 +663,7 @@ async function main({
 module.exports = {
   main,
   // pure
-   quarterDate, lastTradingDay,  filterNoise, sectorBreadth,
+   quarterDate, lastTradingDay, istToday, filterNoise, sectorBreadth,
    applyQualityFilters, deriveNseDelivery, deriveBseDelivery, 
 
   // api-bound

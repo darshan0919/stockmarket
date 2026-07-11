@@ -8,6 +8,7 @@ const {
   mapWithConcurrency,
 } = require('../market/topGainers');
 const { fetchFundamentals } = require('../stock/stockscansMetrics');
+const { ensureEventReactionCached } = require('./eventReactionService');
 
 /**
  * Run screener with filters (legacy — kept for backward compatibility)
@@ -196,6 +197,12 @@ const runSavedScan = async (req, res, next) => {
       offerLevels: null,
       totalBidQty: null,
       totalOfferQty: null,
+      // Populated on-demand from the EventReactionMetric Mongo cache — see
+      // eventReactionService.js. Viewing the screener is what triggers
+      // computation (no schedule): each row reads whatever's cached right
+      // now (fast, indexed) and fires a background refresh for next time.
+      // null on a symbol's very first-ever view (screener-web renders "—").
+      eventReaction: null,
     }));
 
     if (rows.length > 0) {
@@ -225,6 +232,11 @@ const runSavedScan = async (req, res, next) => {
         row.offerLevels = orderBook.offerLevels;
         row.totalBidQty = orderBook.totalBidQty;
         row.totalOfferQty = orderBook.totalOfferQty;
+        // On-demand cache read + background refresh trigger (see
+        // eventReactionService.js). The read itself is one fast indexed
+        // Mongo query — the expensive part (NSE/BSE + Stockscans calls) runs
+        // in the background, not awaited here.
+        row.eventReaction = await ensureEventReactionCached(row.symbol, 'result');
       });
       await mapWithConcurrency(tasks, 3);
     }

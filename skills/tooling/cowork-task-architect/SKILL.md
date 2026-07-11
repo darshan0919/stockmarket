@@ -85,7 +85,17 @@ if __name__ == "__main__":
 **Data persistence rules (MANDATORY when a task/script stores anything):**
 Every task/script that persists data must comply with `docs/DATA_RULES.md`
 (companion: `docs/DATA_ECOSYSTEM.md`; conventions: `skills/_shared/conventions.md`
-§3, §5–8). In short:
+§3, §5–8).
+
+**"Database" always means Google Drive, never MongoDB.** When a task description
+says "store this in the database", "save to our DB", or similar, that means the
+`data/` collections written via `packages/jobs-runtime/lib/db.js`, which mirror to
+Google Drive — see `docs/DATA_RULES.md`'s top callout. MongoDB (`MONGO_URL`,
+mongoose models in `screener-api`) is stale/deprecated legacy from before the Data
+Ecosystem v2 migration; do not create new Mongo models/collections for a task's
+data persistence needs, even if an existing legacy feature still reads from Mongo.
+
+In short:
 - Only five destinations exist: an existing collection via
   `packages/jobs-runtime/lib/db.js` helpers (`saveReport` / `appendEvents` /
   `appendNotes` / `appendValidations` / `saveThesis` / `upsertMany`),

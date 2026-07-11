@@ -26,6 +26,11 @@ const { pdfToText } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const ist = require('./lib/ist');
+const {
+  loadNoiseKeywords,
+  shouldIgnoreAnnouncement: sharedShouldIgnoreAnnouncement,
+  matchedNoiseKeyword: sharedMatchedNoiseKeyword,
+} = require('@stock/api/utils/announcementNoiseFilter');
 
 // Data Ecosystem v2: notes → notes collection (via NotesDb→lib/db.js),
 // ignored-announcements log → data/cache/ (regenerable review aid).
@@ -38,10 +43,16 @@ function buildAnnouncementsPayload(watchlistIds) {
     scan: {
       scanId: '',
       scanName: 'Watchlist Scan',
-      filters: [], industry: [], index: [],
+      filters: [],
+      industry: [],
+      index: [],
       watchlistIds,
-      searchFilters: [], announcementType: 'All', alerts: false, searchMode: 'full',
-      companyIds: [], companyFilters: [],
+      searchFilters: [],
+      announcementType: 'All',
+      alerts: false,
+      searchMode: 'full',
+      companyIds: [],
+      companyFilters: [],
     },
     offset: 0,
     quarterDate: '',
@@ -55,59 +66,194 @@ function parseWatchlistIds(raw) {
     .map((s) => s.trim())
     .filter(Boolean);
   if (!ids.length) {
-    throw new Error('watchlistIds required: pass one or more comma-separated watchlist IDs, e.g. "fetch-announcements id1,id2,id3"');
+    throw new Error(
+      'watchlistIds required: pass one or more comma-separated watchlist IDs, e.g. "fetch-announcements id1,id2,id3"'
+    );
   }
   return ids;
 }
 
 // ── Insignificance filter ─────────────────────────────────────────────────────
-const INSIGNIFICANT_KEYWORDS = [
-  'clarification', 'closure of trading window', 'scrutinizer', 'code of conduct',
-  'reg. 57', 'regulation 47', 'saksham niveshak', '100 day campaign', 'brsr',
-  'business responsibility and sustainability', 'book closure', 'corrigendum',
-  'cut off date', 'allotment of esop', 'allotment of esps', 'iepf', 'unclaimed dividend',
-  'kyc details', 'non-email shareholders', 'physical letter to shareholders',
-  'letter sent to shareholders', 'email communication to shareholders regarding dividend taxation',
-  'communication to shareholders regarding tax deduction', 'tax deduction on dividend',
-  'deduction of tax at source on dividend', 'grant of stock options', 'grant of options',
-  'notice of postal ballot', 'intimation of record date', 'change in directorate',
-  'annual general meeting',
-];
+// The keyword list moved to the shared, single, app-agnostic
+// @stock/api/utils/announcementNoiseFilter module (backed by
+// stock-api/src/data/announcement-noise-keywords.json — editable via the app UI)
+// so the exact same list is used here and by the announcement-scans page. See
+// isNoise/matchedNoiseKeyword below, which always re-read the file fresh via
+// loadNoiseKeywords() so an app edit takes effect on this job's next run without
+// a restart. INSIGNIFICANT_KEYWORDS below is only a point-in-time snapshot taken
+// at process start, kept for backward compat with any external caller expecting
+// this export — prefer loadNoiseKeywords() for anything that needs live values.
+const INSIGNIFICANT_KEYWORDS = loadNoiseKeywords().titleKeywordsToIgnore;
 
 // ── Categorisation (first match wins; catch-all 'general' last) ───────────────
 const CATEGORY_RULES = [
-  ['order_book', ['award_of_order', 'award of order', 'receipt of order', 'bagging',
-    'receiving of order', 'order win', 'letter of intent', 'work order', 'new order',
-    'order book', 'contract award', 'order from']],
-  ['investor_meet', ['investor meet', 'analyst meet', 'one-on-one meeting',
-    'institutional investor', 'investors meeting', 'fund manager']],
-  ['shareholding_change', ['sast', 'takeover regulation', 'takeovers',
-    'substantial acquisition of shares', 'substantial acquisition', 'open market purchase',
-    'open market sale', 'pledge', 'encumbrance', 'bulk deal', 'block deal', 'reg. 29',
-    'reg. 31', 'regulation 29', 'regulation 31', 'disclosure under regulation 29',
-    'disclosure under sast', 'promoter bought', 'promoter sold', 'promoter purchased',
-    'acquirer', 'acquisition of shares']],
-  ['credit_rating', ['credit rating', 'crisil', 'icra', 'care ratings', 'india ratings',
-    'fitch', 'rating upgrade', 'rating downgrade', 'rating watch']],
-  ['fundraise', ['qip', 'preferential allotment', 'preferential issue', 'ncd',
-    'non-convertible debenture', 'warrant', 'rights issue', 'fund rais', 'raising of fund',
-    'private placement', 'issue of securities']],
-  ['management_change', ['resignation of director', 'appointment of director',
-    'change in management', 'change in directorate', 'completion of tenure', 'cessation',
-    'new ceo', 'new cfo', 'new md']],
-  ['results', ['financial results', 'quarterly results', 'annual results',
-    'unaudited results', 'audited results']],
-  ['agm_egm', ['outcome of agm', 'outcome of egm', 'outcome of postal ballot',
-    'extraordinary general meeting', 'extra-ordinary general meeting', 'shareholder meeting',
-    'annual general meeting']],
-  ['regulatory', ['gst', 'income tax', 'tax demand', 'tax order', 'anti-evasion',
-    'search and seizure', 'show cause', 'sebi order', 'cci approval', 'nclt',
-    'adjudication', 'penalty', 'navratna', 'miniratna']],
-  ['capacity', ['commercial operations', 'commissioning', 'capacity addition', 'new plant',
-    'plant expansion', 'new facility', 'capex', 'production commence']],
+  [
+    'order_book',
+    [
+      'award_of_order',
+      'award of order',
+      'receipt of order',
+      'bagging',
+      'receiving of order',
+      'order win',
+      'letter of intent',
+      'work order',
+      'new order',
+      'order book',
+      'contract award',
+      'order from',
+    ],
+  ],
+  [
+    'investor_meet',
+    [
+      'investor meet',
+      'analyst meet',
+      'one-on-one meeting',
+      'institutional investor',
+      'investors meeting',
+      'fund manager',
+    ],
+  ],
+  [
+    'shareholding_change',
+    [
+      'sast',
+      'takeover regulation',
+      'takeovers',
+      'substantial acquisition of shares',
+      'substantial acquisition',
+      'open market purchase',
+      'open market sale',
+      'pledge',
+      'encumbrance',
+      'bulk deal',
+      'block deal',
+      'reg. 29',
+      'reg. 31',
+      'regulation 29',
+      'regulation 31',
+      'disclosure under regulation 29',
+      'disclosure under sast',
+      'promoter bought',
+      'promoter sold',
+      'promoter purchased',
+      'acquirer',
+      'acquisition of shares',
+    ],
+  ],
+  [
+    'credit_rating',
+    [
+      'credit rating',
+      'crisil',
+      'icra',
+      'care ratings',
+      'india ratings',
+      'fitch',
+      'rating upgrade',
+      'rating downgrade',
+      'rating watch',
+    ],
+  ],
+  [
+    'fundraise',
+    [
+      'qip',
+      'preferential allotment',
+      'preferential issue',
+      'ncd',
+      'non-convertible debenture',
+      'warrant',
+      'rights issue',
+      'fund rais',
+      'raising of fund',
+      'private placement',
+      'issue of securities',
+    ],
+  ],
+  [
+    'management_change',
+    [
+      'resignation of director',
+      'appointment of director',
+      'change in management',
+      'change in directorate',
+      'completion of tenure',
+      'cessation',
+      'new ceo',
+      'new cfo',
+      'new md',
+    ],
+  ],
+  [
+    'results',
+    [
+      'financial results',
+      'quarterly results',
+      'annual results',
+      'unaudited results',
+      'audited results',
+    ],
+  ],
+  [
+    'agm_egm',
+    [
+      'outcome of agm',
+      'outcome of egm',
+      'outcome of postal ballot',
+      'extraordinary general meeting',
+      'extra-ordinary general meeting',
+      'shareholder meeting',
+      'annual general meeting',
+    ],
+  ],
+  [
+    'regulatory',
+    [
+      'gst',
+      'income tax',
+      'tax demand',
+      'tax order',
+      'anti-evasion',
+      'search and seizure',
+      'show cause',
+      'sebi order',
+      'cci approval',
+      'nclt',
+      'adjudication',
+      'penalty',
+      'navratna',
+      'miniratna',
+    ],
+  ],
+  [
+    'capacity',
+    [
+      'commercial operations',
+      'commissioning',
+      'capacity addition',
+      'new plant',
+      'plant expansion',
+      'new facility',
+      'capex',
+      'production commence',
+    ],
+  ],
   ['dividend', ['dividend', 'record date for payment']],
-  ['acquisition', ['acquisition', 'merger', 'amalgamation', 'demerger', 'joint venture',
-    ' jv ', 'takeover', 'slump sale']],
+  [
+    'acquisition',
+    [
+      'acquisition',
+      'merger',
+      'amalgamation',
+      'demerger',
+      'joint venture',
+      ' jv ',
+      'takeover',
+      'slump sale',
+    ],
+  ],
   ['buyback', ['buyback', 'buy-back', 'extinguishment of shares', 'share repurchase']],
   ['general', []],
 ];
@@ -255,14 +401,17 @@ function announcementId(ann) {
   return ssUrl || `${companyId}_${dateStr}_${title.slice(0, 30)}`;
 }
 
+// title/description are checked separately (not as a combined blob) — see
+// announcementNoiseFilter.js for why. matchedNoiseKeyword returns just the
+// keyword string here (not the {keyword, field} shape) to keep this job's
+// existing call sites (which only log the keyword) unchanged.
 function isNoise(title, description) {
-  const combined = `${title} ${description}`.toLowerCase();
-  return INSIGNIFICANT_KEYWORDS.some((kw) => combined.includes(kw));
+  return sharedShouldIgnoreAnnouncement({ title, description });
 }
 
 function matchedNoiseKeyword(title, description) {
-  const combined = `${title} ${description}`.toLowerCase();
-  return INSIGNIFICANT_KEYWORDS.find((kw) => combined.includes(kw)) || null;
+  const match = sharedMatchedNoiseKeyword({ title, description });
+  return match ? match.keyword : null;
 }
 
 async function logIgnoredAnnouncement(ann, matchedKw) {
@@ -312,7 +461,10 @@ async function gatherInwindowRaw(client = stockscans, now = new Date(), watchlis
     payload.quarterDate = qdate;
     payload.offset = offset;
     const data = await client.scanAnnouncements(payload);
-    const page = data && typeof data === 'object' && !Array.isArray(data) ? data.announcements || [] : data || [];
+    const page =
+      data && typeof data === 'object' && !Array.isArray(data)
+        ? data.announcements || []
+        : data || [];
     if (!page.length) break;
     if (pageSize === null) pageSize = page.length;
     allRaw.push(...page);
@@ -347,14 +499,24 @@ async function cmdFetchAnnouncements(watchlistIdsArg, client = stockscans) {
     const pdfUrl = ssUrl ? `${S3_BASE_URL}${ssUrl}` : '';
 
     const noiseKw = matchedNoiseKeyword(title, description);
-    if (noiseKw !== null) { await logIgnoredAnnouncement(ann, noiseKw); continue; }
+    if (noiseKw !== null) {
+      await logIgnoredAnnouncement(ann, noiseKw);
+      continue;
+    }
 
     const co = NotesDb.getCompany(notes, companyId);
     if (co && (co.processedAnnouncements || []).includes(annId)) continue;
 
     results.push({
-      announcementId: annId, companyId, ticker: companyId, name, title, description,
-      date: dateStr, ssUrl, pdfUrl,
+      announcementId: annId,
+      companyId,
+      ticker: companyId,
+      name,
+      title,
+      description,
+      date: dateStr,
+      ssUrl,
+      pdfUrl,
       category: categoriseAnnouncement(title, description),
       hasNotes: co !== null,
       noteCount: co ? (co.notes || []).length : 0,
@@ -364,7 +526,10 @@ async function cmdFetchAnnouncements(watchlistIdsArg, client = stockscans) {
 }
 
 async function cmdReadPdf(url) {
-  if (!url || url === 'null') { process.stdout.write(''); return; }
+  if (!url || url === 'null') {
+    process.stdout.write('');
+    return;
+  }
   const buf = await stockscans.fetchPdf(url, 60000);
   const text = await pdfToText(buf);
   process.stdout.write(text);
@@ -378,7 +543,12 @@ function cmdGetCompanyNotes(companyId) {
 async function cmdAddNote(noteJsonStr) {
   const payload = JSON.parse(noteJsonStr);
   const notes = db.load();
-  const co = NotesDb.ensureCompany(notes, payload.companyId, payload.ticker || '', payload.name || '');
+  const co = NotesDb.ensureCompany(
+    notes,
+    payload.companyId,
+    payload.ticker || '',
+    payload.name || ''
+  );
   if (payload.businessSummary) co.businessSummary = payload.businessSummary;
   let noteId = null;
   const noteData = payload.note;
@@ -418,8 +588,11 @@ async function cmdMarkProcessed(companyId, annId) {
 function cmdListCompanies() {
   const notes = db.load();
   const result = Object.values(notes.companies || {}).map((co) => ({
-    companyId: co.companyId, ticker: co.ticker || '', name: co.name || '',
-    noteCount: (co.notes || []).length, lastUpdated: co.lastUpdated,
+    companyId: co.companyId,
+    ticker: co.ticker || '',
+    name: co.name || '',
+    noteCount: (co.notes || []).length,
+    lastUpdated: co.lastUpdated,
   }));
   process.stdout.write(JSON.stringify(result));
 }
@@ -430,7 +603,9 @@ function cmdInsightTemplate(category = 'general') {
 
 function cmdInitNotes() {
   db.initRun();
-  process.stdout.write(JSON.stringify({ status: 'ready', file: db.getLatestFile(), dir: 'entities' }));
+  process.stdout.write(
+    JSON.stringify({ status: 'ready', file: db.getLatestFile(), dir: 'entities' })
+  );
 }
 
 async function sendHtml(htmlBody) {
@@ -458,14 +633,18 @@ async function collectDigest(client = stockscans) {
     const ssUrl = ann.ssUrl || '';
     const [note] = idx[aid] || [null];
     digest.push({
-      announcementId: aid, companyId: ann.companyId || '', ticker: ann.companyId || '',
-      name: ann.name || ann.companyName || '', title, description,
+      announcementId: aid,
+      companyId: ann.companyId || '',
+      ticker: ann.companyId || '',
+      name: ann.name || ann.companyName || '',
+      title,
+      description,
       date: ann.date || ann.createdAt || '',
       pdfUrl: ssUrl ? `${S3_BASE_URL}${ssUrl}` : '',
       category: categoriseAnnouncement(title, description),
       insight: (note || {}).insight || '',
-      significance: note ? (note.significance || '') : '',
-      tags: note ? (note.tags || []) : [],
+      significance: note ? note.significance || '' : '',
+      tags: note ? note.tags || [] : [],
       hasInsight: Boolean(note && note.insight),
       needsInsight: !(note && note.insight),
     });
@@ -501,14 +680,14 @@ function buildDigestHtml(digest) {
       const pdf = d.pdfUrl ? ` | <a href="${d.pdfUrl}">PDF</a>` : '';
       parts.push(
         `<div style="margin-bottom:16px;border-left:3px solid ${color};padding-left:12px">` +
-        `<b>${stockscansLink(`${d.name} (${d.ticker})`, d.ticker, 'NSE')} — ${d.title}</b><br>${insight}<br>` +
-        `<small>Tags: ${tags}${pdf}</small></div>`
+          `<b>${stockscansLink(`${d.name} (${d.ticker})`, d.ticker, 'NSE')} — ${d.title}</b><br>${insight}<br>` +
+          `<small>Tags: ${tags}${pdf}</small></div>`
       );
     }
   }
   parts.push(
     '<p style="color:#999;font-size:12px">Routine announcements suppressed. ' +
-    'Insights for previously-seen announcements are read from company_notes.json.</p>'
+      'Insights for previously-seen announcements are read from company_notes.json.</p>'
   );
   return parts.join('\n');
 }
@@ -547,13 +726,19 @@ const COMMANDS = {
 };
 
 function readStdin() {
-  try { return fs.readFileSync(0, 'utf8'); } catch { return ''; }
+  try {
+    return fs.readFileSync(0, 'utf8');
+  } catch {
+    return '';
+  }
 }
 
 async function runCli(argv) {
   const cmd = argv[0];
   if (!cmd || !COMMANDS[cmd]) {
-    process.stdout.write(`Usage: watchlistInsights.js <command> [args]\nCommands: ${Object.keys(COMMANDS).join(', ')}\n`);
+    process.stdout.write(
+      `Usage: watchlistInsights.js <command> [args]\nCommands: ${Object.keys(COMMANDS).join(', ')}\n`
+    );
     process.exit(1);
   }
   const [fn, nArgs] = COMMANDS[cmd];
@@ -570,9 +755,19 @@ async function runCli(argv) {
 }
 
 module.exports = {
-  categoriseAnnouncement, insightTemplate, announcementId, isNoise, matchedNoiseKeyword,
-  gatherInwindowRaw, buildDigestHtml, cmdFetchAnnouncements, parseWatchlistIds,
-  CATEGORY_RULES, INSIGNIFICANT_KEYWORDS, runCli, db,
+  categoriseAnnouncement,
+  insightTemplate,
+  announcementId,
+  isNoise,
+  matchedNoiseKeyword,
+  gatherInwindowRaw,
+  buildDigestHtml,
+  cmdFetchAnnouncements,
+  parseWatchlistIds,
+  CATEGORY_RULES,
+  INSIGNIFICANT_KEYWORDS,
+  runCli,
+  db,
 };
 
 if (require.main === module) {

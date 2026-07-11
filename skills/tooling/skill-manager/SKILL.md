@@ -22,6 +22,12 @@ Whenever the user asks to create or modify a skill, adhere to the following blue
 5. **Data persistence (MANDATORY if the skill stores anything)**: any skill that
    persists data must comply with [docs/DATA_RULES.md](file:///Users/darshan.patel/code/personal/stockmarket/docs/DATA_RULES.md)
    (companion: `docs/DATA_ECOSYSTEM.md`, `skills/_shared/conventions.md` §3, §5–8).
+   **"Database"/"DB" in a user's request always means Google Drive** — the
+   `data/` collections written via `packages/jobs-runtime/lib/db.js`, which
+   mirror to Drive. MongoDB (`MONGO_URL`, mongoose models under `screener-api`)
+   is stale/deprecated legacy predating the Data Ecosystem v2 migration — never
+   generate a skill that creates a new Mongo model/collection to satisfy a
+   "store in the db" requirement.
    Non-negotiables to bake into every generated SKILL.md: writes go through
    `packages/jobs-runtime/lib/db.js` helpers (never raw writes to `data/*.json`
    collections); prefer an existing collection + new `type` over a new collection

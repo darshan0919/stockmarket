@@ -19,7 +19,7 @@ export default function Gainers() {
   const [meta, setMeta] = useState({ timestamp: null, bucket: 'allSec', count: 0 });
   const [bucket, setBucket] = useState('allSec');
   const [exchange, setExchange] = useState('nse');
-  const { hiddenCols, toggleColumn } = useColumnState();
+  const { hiddenCols, toggleColumn, setGroupVisible } = useColumnState();
   const [orderBook, setOrderBook] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -128,7 +128,7 @@ export default function Gainers() {
                 <span className="text-sm text-base-content/70">Sell offers only</span>
               </label>
 
-              <ColumnPicker hiddenCols={hiddenCols} toggleColumn={toggleColumn} />
+              <ColumnPicker hiddenCols={hiddenCols} toggleColumn={toggleColumn} setGroupVisible={setGroupVisible} />
               <button
                 onClick={() => setOrderBook((v) => !v)}
                 className={`btn btn-sm gap-1.5 ${orderBook ? 'btn-primary' : 'btn-ghost border border-base-300'}`}

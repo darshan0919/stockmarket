@@ -8,6 +8,19 @@ These rules are the enforcement companion to `docs/DATA_ECOSYSTEM.md` (design) a
 authoring persists ANYTHING, it must comply with every rule below — and its SKILL.md
 must say so (see §8).
 
+> **"Database"/"DB" means Google Drive — nothing else.** Whenever Darshan (or any
+> task prompt) says "database", "DB", "store this", "our db", etc., it refers to
+> **this system**: flat JSON collections under `<repo>/data/`, written via
+> `packages/jobs-runtime/lib/db.js`, which push-mirror to Google Drive
+> (`data/v2` folder — see `docs/DATA_ECOSYSTEM.md`). **MongoDB (`MONGO_URL`,
+> mongoose models in `screener-api/src/features/*/*.js` like `Stock.js`/
+> `Fundamental.js`) is a stale/deprecated legacy system from before the Data
+> Ecosystem v2 migration.** Do not create new Mongoose models or MongoDB
+> collections to satisfy a "store in the db" request — always route new
+> persistence through `lib/db.js` per the tree in §1. If existing legacy code
+> already reads from Mongo for something, that's fine to leave as-is, but new
+> work should not extend it.
+
 ## 1. Where data may live — the ONLY five destinations
 
 Decide with this tree, in order:

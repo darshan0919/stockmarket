@@ -3,13 +3,16 @@
 const { NseSession, NSE_HOME_URL } = require('../http/nseSession');
 
 /**
- * NSE client — PRICE-ACTION ONLY: real-time price, volume, delivery %, traded
- * quantity, and live gainers/variations.
+ * NSE client — primarily price-action (real-time price, volume, delivery %,
+ * traded quantity, live gainers/variations), but there is no hard ownership
+ * boundary: any endpoint that NSE exposes reliably belongs here too, even if
+ * {@link StockscansClient} also has a version of it. Prefer NSE/BSE directly
+ * wherever they're reliable — fall back to Stockscans where they aren't.
  *
- * Intentionally does NOT expose NSE's fundamental endpoints (corporate
- * announcements, financial results, integrated filings, event calendar) — those
- * are owned by {@link StockscansClient}. Keeping this boundary means each datum
- * has exactly one owning client and there are no duplicate endpoints.
+ * Known reliability gap (verified 10-Jul-2026): NSE's `/api/search/autocomplete`
+ * symbol-search route 404s (likely retired/bot-gated post the 2026 GIGW
+ * revamp) — use {@link BseClient#getScripCode} (BSE PeerSmartSearch, verified
+ * working) or Stockscans search for symbol resolution instead.
  */
 class NseClient {
   /**
@@ -231,6 +234,35 @@ class NseClient {
     const res = await this.session.get('/corporate-board-meetings', {
       params,
       referer: `${NSE_HOME_URL}companies-listing/corporate-filings-board-meetings`,
+      timeout: 30000,
+    });
+    return Array.isArray(res.data) ? res.data : (res.data?.data || []);
+  }
+
+  /**
+   * Corporate announcements (results, concalls/investor meets, order wins, press
+   * releases, etc.) with second-precision timestamps.
+   * Endpoint verified live 10-Jul-2026: /api/corporate-announcements — confirmed
+   * against Elecon Engineering's actual "Outcome of Board Meeting" (results) at
+   * 11:47:44 IST same day.
+   * Row fields of interest: symbol, desc (category — filter on this, e.g.
+   * "Financial Results", "Outcome of Board Meeting", "Analysts/Institutional
+   * Investor Meet/Con. Call Updates", "Award of Order(s)/Contract(s)"), an_dt
+   * (submission time), exchdisstime (exchange dissemination time — use this as
+   * the canonical event timestamp, both 'DD-Mon-YYYY HH:mm:ss').
+   * @param {string} fromDate - DD-MM-YYYY
+   * @param {string} toDate   - DD-MM-YYYY
+   * @param {string} [symbol] - Optional single-symbol filter (also passed to the
+   *   session for cookie warmup so the first call for a symbol is more reliable).
+   * @returns {Promise<Array>}
+   */
+  async getCorporateAnnouncements(fromDate, toDate, symbol) {
+    const params = { index: 'equities', from_date: fromDate, to_date: toDate };
+    if (symbol) params.symbol = symbol.toUpperCase();
+    const res = await this.session.get('/corporate-announcements', {
+      params,
+      referer: `${NSE_HOME_URL}companies-listing/corporate-filings-announcements`,
+      symbol,
       timeout: 30000,
     });
     return Array.isArray(res.data) ? res.data : (res.data?.data || []);
