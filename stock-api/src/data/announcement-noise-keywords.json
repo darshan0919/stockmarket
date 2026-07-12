@@ -37,6 +37,8 @@
     "annual report",
     "financial result"
   ],
-  "descriptionKeywordsToIgnore": [],
-  "updatedAt": "2026-07-11T17:54:41.146Z"
+  "descriptionKeywordsToIgnore": [
+    "clarification"
+  ],
+  "updatedAt": "2026-07-11T20:31:08.557Z"
 }
