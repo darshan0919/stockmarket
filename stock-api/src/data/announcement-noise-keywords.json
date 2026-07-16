@@ -31,14 +31,13 @@
     "intimation of record date",
     "change in directorate",
     "change in management",
+    "agm",
     "annual general meeting",
     "esg rating",
     "business responsibility and sustainability reporting",
     "annual report",
     "financial result"
   ],
-  "descriptionKeywordsToIgnore": [
-    "clarification"
-  ],
+  "descriptionKeywordsToIgnore": ["clarification"],
   "updatedAt": "2026-07-11T20:31:08.557Z"
 }
