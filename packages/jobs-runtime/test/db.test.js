@@ -93,6 +93,102 @@ describe('company links', () => {
   });
 });
 
+describe('conversations', () => {
+  const mkConv = (over = {}) => ({
+    id: 'conv_cloud_abc12345',
+    type: 'cloud',
+    date: '2026-07-08',
+    creator: 'conversation-capture',
+    creationTime: '2026-07-08T10:00:00.000Z',
+    modifiedTime: '2026-07-08T10:00:00.000Z',
+    title: 'Swaraj Engines deep dive',
+    sessionId: 'abc12345-...',
+    companyIds: ['NSE:SWARAJENG'],
+    tags: ['equity', 'thesis'],
+    summary: 'Margin thesis on Swaraj',
+    questions: ['What is the margin trajectory?'],
+    artifacts: [{ fileName: 'x.pdf', bytesUnavailable: true }],
+    _body: { turns: [{ role: 'user', text: 'hi' }, { role: 'assistant', text: 'analysis' }] },
+    ...over,
+  });
+
+  test('saveConversation writes slim index + full body + company link', () => {
+    const id = db.saveConversation(mkConv());
+    expect(id).toBe('conv_cloud_abc12345');
+    const idx = db.get('conversations', id);
+    expect(idx.body).toBe(`conversations/${id}.json`);
+    expect(idx.artifactCount).toBe(1);
+    expect(idx.turns).toBeUndefined();      // index is slim, no turns
+    expect(idx.questions).toBeUndefined();  // questions live only in the body
+    const body = db.readConversation(id);
+    expect(body.turns).toHaveLength(2);     // full transcript in body
+    expect(body._body).toBeUndefined();     // wrapper stripped
+    expect(db.get('companies', 'NSE:SWARAJENG').links.conversations).toContain(id);
+  });
+
+  test('re-capturing the same conversation upserts — never duplicates', () => {
+    db.saveConversation(mkConv());
+    db.saveConversation(mkConv());
+    expect(db.find('conversations', { companyId: 'NSE:SWARAJENG' })).toHaveLength(1);
+    expect(db.get('companies', 'NSE:SWARAJENG').links.conversations).toHaveLength(1);
+  });
+
+  test('envelope enforced — creator required', () => {
+    const bad = mkConv();
+    delete bad.creator;
+    expect(() => db.saveConversation(bad)).toThrow(/creator/);
+  });
+
+  test('buildCompanyContext surfaces conversations', () => {
+    const { buildCompanyContext } = require('../lib/companyContext');
+    db.saveConversation(mkConv());
+    const ctx = buildCompanyContext('NSE:SWARAJENG');
+    expect(ctx.conversations).toHaveLength(1);
+    expect(ctx.conversations[0].title).toMatch(/Swaraj/);
+    expect(ctx.availableIds).toContain('conv_cloud_abc12345');
+  });
+});
+
+describe('prompts library', () => {
+  const mkPrompt = (over = {}) => ({
+    creator: 'conversation-capture',
+    date: '2026-05-24',
+    text: 'Create an institutional-grade forward PE thesis for {company}; fetch last 5 concalls, extract order-book/capacity/margin guidance, extrapolate FY27E/FY28E.',
+    title: 'Forward PE thesis from concalls',
+    intent: 'valuation-thesis',
+    linkedSkill: 'concall-analysis',
+    inputs: ['{company}'],
+    tags: ['thesis', 'valuation', 'concall'],
+    status: 'approved',
+    improvedVersion: 'For {company}: build a forward P/E thesis. Pull the last 5 concalls + investor decks; extract order book, capacity, revenue & margin guidance with per-call citations; project FY27E/FY28E and state key assumptions + what would break the thesis.',
+    sourceConversationId: 'conv_cloud_5dd8b2c1',
+    ...over,
+  });
+
+  test('savePrompt stores with deterministic id, dedups on re-save', () => {
+    const r1 = db.savePrompt(mkPrompt());
+    expect(r1.id).toMatch(/^prompt_conversation-capture_concall-analysis_2026-05-24/);
+    expect(r1.inserted).toBe(1);
+    const r2 = db.savePrompt(mkPrompt());
+    expect(r2.inserted).toBe(0);
+    expect(db.find('prompts', {})).toHaveLength(1);
+  });
+
+  test('find prompts by linkedSkill via creator/type filters and fields preserved', () => {
+    db.savePrompt(mkPrompt());
+    const all = db.find('prompts', {});
+    expect(all[0].linkedSkill).toBe('concall-analysis');
+    expect(all[0].improvedVersion).toMatch(/forward P\/E thesis/);
+    expect(all[0].status).toBe('approved');
+  });
+
+  test('envelope enforced — creator required', () => {
+    const bad = mkPrompt();
+    delete bad.creator;
+    expect(() => db.savePrompt(bad)).toThrow(/creator/);
+  });
+});
+
 describe('find', () => {
   test('filters by companyId including companyIds[] and date/type/since', () => {
     db.appendEvents([

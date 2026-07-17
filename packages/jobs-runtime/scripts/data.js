@@ -41,9 +41,14 @@ const DRIVE_ROOT = process.env.DATA_V2_DRIVE_ROOT || 'StockMarket/data/v2';
 const NEVER_SYNC = (rel) =>
   rel.startsWith('.locks/') || rel.startsWith('_meta/') ||
   rel.includes('.tmp.') || rel.includes('.corrupt.') || path.basename(rel) === '.env' ||
-  path.basename(rel) === '.DS_Store';
+  path.basename(rel) === '.DS_Store' ||
+  // local backup/scratch files must never mirror to Drive
+  /(backup|\.bak|\.orig)$/i.test(rel) ||
+  // artifact records store their body in assets/, never as a reports/ body —
+  // any reports/rpt_artifact-migration_*.json is an orphan (do not sync)
+  /^reports\/rpt_artifact-migration_.*\.json$/.test(rel);
 const IS_COLLECTION = (rel) =>
-  /^(companies|reports|notes|theses|validation|events-\d{4}-\d{2})\.json$/.test(rel);
+  /^(companies|reports|notes|theses|validation|conversations|prompts|events-\d{4}-\d{2})\.json$/.test(rel);
 
 // ── sync-state ───────────────────────────────────────────────────────────────
 

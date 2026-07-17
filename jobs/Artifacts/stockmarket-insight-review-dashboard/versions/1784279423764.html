@@ -1,0 +1,116 @@
+<!doctype html><script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Stockmarket Insight Review Dashboard",
+  "schemaVersion": 1,
+  "description": "Stockmarket Insight Review Dashboard — closed-loop status: insight counts, pending proposals (data/_proposals), consolidation candidates, prompt library by intent, review history. Refreshed each Sunday by weekly-insight-review-stockmarket."
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stockmarket Insight Review Dashboard</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f6f7f9; color: #1a1d21; font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; padding: 24px; }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 2px; }
+  .sub { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+  .card { background: #fff; border: 1px solid #e6e8eb; border-radius: 12px; padding: 16px; }
+  .card .label { color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .card .value { font-size: 26px; font-weight: 700; margin-top: 4px; }
+  .card .hint { color: #9aa0aa; font-size: 11px; margin-top: 2px; }
+  section { background: #fff; border: 1px solid #e6e8eb; border-radius: 12px; padding: 18px 20px; margin-bottom: 16px; }
+  section h2 { font-size: 15px; margin: 0 0 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid #eef0f2; }
+  th { color: #6b7280; font-weight: 600; font-size: 11px; text-transform: uppercase; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 11px; font-size: 11px; font-weight: 600; }
+  .amber { background: #fdf3d8; color: #9a6b00; }
+  .green { background: #dff3e6; color: #1b7a43; }
+  .gray { background: #eef0f2; color: #6b7280; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { background: #f0f2f5; border: 1px solid #e6e8eb; border-radius: 8px; padding: 5px 10px; font-size: 12px; }
+  .chip b { color: #1a1d21; }
+  .empty { color: #9aa0aa; font-size: 13px; font-style: italic; }
+  .foot { color: #9aa0aa; font-size: 11px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Stockmarket Insight Review Dashboard</h1>
+  <div class="sub">The closed loop: captured chats &rarr; enriched insights &rarr; weekly review &rarr; proposals you apply. Snapshot <b>2026-07-17</b> &middot; refreshed each review.</div>
+
+  <div class="grid">
+    <div class="card"><div class="label">Conversations</div><div class="value">210</div><div class="hint">116 cloud + 94 cowork</div></div>
+    <div class="card"><div class="label">Notes</div><div class="value">464</div><div class="hint">462 + 2 rollups this review</div></div>
+    <div class="card"><div class="label">Reports</div><div class="value">79</div><div class="hint">chat-analysis + sector-note + framework</div></div>
+    <div class="card"><div class="label">Prompt library</div><div class="value">23</div><div class="hint">reusable prompts</div></div>
+  </div>
+
+  <section>
+    <h2>Pending proposals <span class="pill amber">6 awaiting your review</span></h2>
+    <div class="sub" style="margin:0 0 8px">Tick these in the <code>review-proposals</code> skill to apply. Full detail in each file under <code>data/_proposals/</code>.</div>
+    <table>
+      <thead><tr><th>&#9744;</th><th>Title</th><th>Target</th></tr></thead>
+      <tbody>
+        <tr><td>&#9744;</td><td>New skill: capital-markets-concept-explainer</td><td>new-skill</td></tr>
+        <tr><td>&#9744;</td><td>Add news/sector-search step to fundamental-shift-scanner</td><td>skills/equity-research/fundamental-shift-scanner/SKILL.md</td></tr>
+        <tr><td>&#9744;</td><td>Tag duplicate/administrative wrapper filings at write time</td><td>packages/jobs-runtime/lib/conversationExtractor.js</td></tr>
+        <tr><td>&#9744;</td><td>New scheduled task: telecom/optical-fibre peer monitor</td><td>scheduled-task</td></tr>
+        <tr><td>&#9744;</td><td>Memory: empty/skill-only session convention</td><td>memory</td></tr>
+        <tr><td>&#9744;</td><td>Memory/watchlist: ethanol-blending beneficiaries theme</td><td>memory</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Consolidation candidates <span class="pill green">applied this review</span></h2>
+    <div class="sub" style="margin:0 0 8px">Companies with many notes &mdash; the review rolls older ones into a rollup summary so research context stays readable. Raw notes are kept.</div>
+    <table>
+      <thead><tr><th>Company</th><th>Notes</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>GLOBAL:PROCESS</td><td>29</td><td><span class="pill green">rolled up 2026-07-17</span></td></tr>
+        <tr><td>NSE:ANANDRATHI</td><td>15</td><td><span class="pill green">rolled up 2026-07-17</span></td></tr>
+      </tbody>
+    </table>
+    <div class="foot">Threshold: &gt; 8 notes &rarr; rollup candidate. No other company crossed the threshold this run.</div>
+  </section>
+
+  <section>
+    <h2>Prompt library by intent (this delta)</h2>
+    <div class="row">
+      <div class="chip"><b>concept-learning</b> &times;2</div>
+      <div class="chip"><b>valuation-thesis</b> &times;1</div>
+      <div class="chip"><b>credibility-tracking</b> &times;1</div>
+      <div class="chip"><b>pre-pead-screen</b> &times;1</div>
+      <div class="chip"><b>sector-beneficiary-mapping</b> &times;1</div>
+      <div class="chip"><b>concall-analysis</b> &times;1</div>
+      <div class="chip"><b>institutional-flow-tracking</b> &times;1</div>
+      <div class="chip"><b>ipo-analysis</b> &times;1</div>
+      <div class="chip"><b>growth-triggers</b> &times;1</div>
+      <div class="chip"><b>forensic-review</b> &times;1</div>
+      <div class="chip"><b>deepdive-forward-model</b> &times;1</div>
+      <div class="chip"><b>filings-diff</b> &times;1</div>
+      <div class="chip"><b>company-report</b> &times;1</div>
+      <div class="chip"><b>ipo/deep-dive/theme-fit</b> &times;5</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Review history</h2>
+    <table>
+      <thead><tr><th>Date</th><th>Reviewed</th><th>Hygiene</th><th>Proposals</th></tr></thead>
+      <tbody>
+        <tr><td>2026-07-17</td><td>462 notes / 79 reports / 23 prompts / 210 conversations (first-ever, full-history delta)</td><td>2 rollups (GLOBAL:PROCESS, NSE:ANANDRATHI)</td><td>6</td></tr>
+      </tbody>
+    </table>
+    <div class="foot">Going forward, reviews are bounded to the delta since the last run &mdash; this one was the full backlog.</div>
+  </section>
+
+  <div class="foot">Data source: DB collections in <code>data/</code> (mirrored to Drive <code>StockMarket/data/v2</code>). Regenerated by the weekly Insight Review job.</div>
+</div>
+</body>
+</html>

@@ -39,7 +39,7 @@ const clip = (s, n) => (typeof s === 'string' && s.length > n ? `${s.slice(0, n)
  */
 function buildCompanyContext(companyId, opts = {}) {
   const {
-    reports = 5, notes = 20, eventDays = 90,
+    reports = 5, notes = 20, eventDays = 90, conversations = 10,
     fullLatestReports = true, maxChars = 120000,
   } = opts;
 
@@ -72,6 +72,7 @@ function buildCompanyContext(companyId, opts = {}) {
   const events = db.find('events', { companyId, since: sinceIso, sort: 'date' });
   const noteRecords = db.find('notes', { companyId, limit: notes, sort: 'modifiedTime' });
   const insights = db.find('validation', { companyId, since: sinceIso, sort: 'date' });
+  const conversationRecords = db.find('conversations', { companyId, limit: conversations, sort: 'date' });
 
   const bundle = {
     companyId,
@@ -83,6 +84,7 @@ function buildCompanyContext(companyId, opts = {}) {
     events: events.map((e) => ({ id: e.id, date: e.date, type: e.type, summary: clip(e.summary || e.headline, 500), conviction: e.conviction })),
     notes: noteRecords.map((n) => ({ id: n.id, date: n.date, creator: n.creator, text: clip(n.text || n.summary, 1500) })),
     insights: insights.map((v) => ({ id: v.id, date: v.date, verdict: v.verdict, symbol: v.symbol })),
+    conversations: conversationRecords.map((c) => ({ id: c.id, date: c.date, type: c.type, title: c.title, summary: clip(c.summary, 800) })),
     availableIds: [], // filled below — everything a skill can cite in contextUsed
   };
 
@@ -101,6 +103,7 @@ function buildCompanyContext(companyId, opts = {}) {
     ...bundle.events.map((e) => e.id),
     ...bundle.notes.map((n) => n.id),
     ...bundle.insights.map((v) => v.id),
+    ...bundle.conversations.map((c) => c.id),
   ];
   return bundle;
 }

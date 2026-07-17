@@ -618,7 +618,8 @@
         "getBulkBlockDeals",
         "getInsiderFilings",
         "getCorporateActions",
-        "getBoardMeetings"
+        "getBoardMeetings",
+        "getAnnouncements"
       ]
     },
     {
@@ -636,7 +637,8 @@
         "fetchArchiveXml",
         "getLiveVariations",
         "getCorporateActions",
-        "getBoardMeetings"
+        "getBoardMeetings",
+        "getCorporateAnnouncements"
       ]
     },
     {
@@ -671,7 +673,12 @@
         "searchCompany",
         "cardDetails",
         "prices",
+        "ohlcv",
         "documents",
+        "growthCatalysts",
+        "businessOverview",
+        "concallNotes",
+        "latestTranscript",
         "watchlistTable",
         "replaceWatchlist",
         "updateWatchlist",
@@ -806,6 +813,71 @@
       "name": "asymmetricFlag",
       "file": "stock-api/src/analyzers/computeConcentration.js",
       "description": "Exported from computeConcentration.js"
+    },
+    {
+      "name": "classifyEventText",
+      "file": "stock-api/src/analyzers/eventReactionSignals.js",
+      "description": "Exported from eventReactionSignals.js"
+    },
+    {
+      "name": "parseNseTimestamp",
+      "file": "stock-api/src/analyzers/eventReactionSignals.js",
+      "description": "Exported from eventReactionSignals.js"
+    },
+    {
+      "name": "parseBseTimestamp",
+      "file": "stock-api/src/analyzers/eventReactionSignals.js",
+      "description": "Exported from eventReactionSignals.js"
+    },
+    {
+      "name": "normalizeNseAnnouncement",
+      "file": "stock-api/src/analyzers/eventReactionSignals.js",
+      "description": "Exported from eventReactionSignals.js"
+    },
+    {
+      "name": "normalizeBseAnnouncement",
+      "file": "stock-api/src/analyzers/eventReactionSignals.js",
+      "description": "Exported from eventReactionSignals.js"
+    },
+    {
+      "name": "mergeAnnouncements",
+      "file": "stock-api/src/analyzers/eventReactionSignals.js",
+      "description": "Exported from eventReactionSignals.js"
+    },
+    {
+      "name": "findLatestEvent",
+      "file": "stock-api/src/analyzers/eventReactionSignals.js",
+      "description": "Exported from eventReactionSignals.js"
+    },
+    {
+      "name": "earliestEventTimestamp",
+      "file": "stock-api/src/analyzers/eventReactionSignals.js",
+      "description": "Exported from eventReactionSignals.js"
+    },
+    {
+      "name": "normalizeOhlcv",
+      "file": "stock-api/src/analyzers/eventReactionSignals.js",
+      "description": "Exported from eventReactionSignals.js"
+    },
+    {
+      "name": "candleIndexAtOrAfter",
+      "file": "stock-api/src/analyzers/eventReactionSignals.js",
+      "description": "Exported from eventReactionSignals.js"
+    },
+    {
+      "name": "candleIndexAtOrBefore",
+      "file": "stock-api/src/analyzers/eventReactionSignals.js",
+      "description": "Exported from eventReactionSignals.js"
+    },
+    {
+      "name": "computeReactionMetrics",
+      "file": "stock-api/src/analyzers/eventReactionSignals.js",
+      "description": "Exported from eventReactionSignals.js"
+    },
+    {
+      "name": "classifySignal",
+      "file": "stock-api/src/analyzers/eventReactionSignals.js",
+      "description": "Exported from eventReactionSignals.js"
     },
     {
       "name": "evaluateCatalystRules",
@@ -1088,6 +1160,31 @@
       "description": "Exported from documentsFetcher.js"
     },
     {
+      "name": "toIstNaiveString",
+      "file": "stock-api/src/fetchers/reactionCandlesFetcher.js",
+      "description": "Exported from reactionCandlesFetcher.js"
+    },
+    {
+      "name": "toIstDateString",
+      "file": "stock-api/src/fetchers/reactionCandlesFetcher.js",
+      "description": "Exported from reactionCandlesFetcher.js"
+    },
+    {
+      "name": "normalizeRows",
+      "file": "stock-api/src/fetchers/reactionCandlesFetcher.js",
+      "description": "Exported from reactionCandlesFetcher.js"
+    },
+    {
+      "name": "fetchTier",
+      "file": "stock-api/src/fetchers/reactionCandlesFetcher.js",
+      "description": "Exported from reactionCandlesFetcher.js"
+    },
+    {
+      "name": "fetchReactionCandles",
+      "file": "stock-api/src/fetchers/reactionCandlesFetcher.js",
+      "description": "Exported from reactionCandlesFetcher.js"
+    },
+    {
       "name": "createConcallPdf",
       "file": "stock-api/src/generators/generateConcallPdf.js",
       "description": "Exported from generateConcallPdf.js"
@@ -1143,6 +1240,16 @@
       "description": "Exported from generateReport.js"
     },
     {
+      "name": "createResearchReportFromDto",
+      "file": "stock-api/src/generators/generateReport.js",
+      "description": "Exported from generateReport.js"
+    },
+    {
+      "name": "writeReportDto",
+      "file": "stock-api/src/generators/generateReport.js",
+      "description": "Exported from generateReport.js"
+    },
+    {
       "name": "createSectorReport",
       "file": "stock-api/src/generators/generateSectorReport.js",
       "description": "Exported from generateSectorReport.js"
@@ -1166,6 +1273,51 @@
       "name": "nseSession",
       "file": "stock-api/src/index.js",
       "description": "Exported from index.js"
+    },
+    {
+      "name": "fetchEventReactionMetrics",
+      "file": "stock-api/src/orchestration/eventReactionMetrics.js",
+      "description": "Exported from eventReactionMetrics.js"
+    },
+    {
+      "name": "fmtNse",
+      "file": "stock-api/src/orchestration/eventReactionMetrics.js",
+      "description": "Exported from eventReactionMetrics.js"
+    },
+    {
+      "name": "fmtBse",
+      "file": "stock-api/src/orchestration/eventReactionMetrics.js",
+      "description": "Exported from eventReactionMetrics.js"
+    },
+    {
+      "name": "normalizeText",
+      "file": "stock-api/src/utils/announcementNoiseFilter.js",
+      "description": "Exported from announcementNoiseFilter.js"
+    },
+    {
+      "name": "normalizeKeywordList",
+      "file": "stock-api/src/utils/announcementNoiseFilter.js",
+      "description": "Exported from announcementNoiseFilter.js"
+    },
+    {
+      "name": "loadNoiseKeywords",
+      "file": "stock-api/src/utils/announcementNoiseFilter.js",
+      "description": "Exported from announcementNoiseFilter.js"
+    },
+    {
+      "name": "saveNoiseKeywords",
+      "file": "stock-api/src/utils/announcementNoiseFilter.js",
+      "description": "Exported from announcementNoiseFilter.js"
+    },
+    {
+      "name": "shouldIgnoreAnnouncement",
+      "file": "stock-api/src/utils/announcementNoiseFilter.js",
+      "description": "Exported from announcementNoiseFilter.js"
+    },
+    {
+      "name": "matchedNoiseKeyword",
+      "file": "stock-api/src/utils/announcementNoiseFilter.js",
+      "description": "Exported from announcementNoiseFilter.js"
     },
     {
       "name": "wrapHtml",

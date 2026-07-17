@@ -9,6 +9,43 @@
     "skills/_shared/data-verification.md"
   ],
   "skills": {
+    "review-proposals": {
+      "skill_md": "skills/tooling/review-proposals/SKILL.md",
+      "entry": null,
+      "mode": "clone",
+      "modules": [],
+      "references": [],
+      "shared": ["skills/_shared/conventions.md"],
+      "aliases": [
+        "review my proposals",
+        "show pending proposals",
+        "apply my review picks",
+        "what upgrades are pending",
+        "apply proposals"
+      ]
+    },
+    "conversation-capture": {
+      "skill_md": "skills/tooling/conversation-capture/SKILL.md",
+      "entry": "packages/jobs-runtime/scripts/captureConversation.js",
+      "mode": "clone",
+      "modules": [
+        "packages/jobs-runtime/lib/conversationExtractor.js",
+        "packages/jobs-runtime/lib/stockmarketKeywords.js",
+        "packages/jobs-runtime/lib/coworkTranscript.js"
+      ],
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
+      "aliases": [
+        "capture this chat",
+        "save this conversation",
+        "log our research",
+        "backfill conversations",
+        "capture conversation",
+        "migrate chats"
+      ]
+    },
     "stock-documents-fetcher": {
       "skill_md": "skills/equity-research/stock-documents-fetcher/SKILL.md",
       "entry": "stock-api/bin/stock-documents-fetcher.js",

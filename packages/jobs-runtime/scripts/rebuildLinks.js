@@ -17,14 +17,14 @@ const { loadEnv, hasFlag } = require('../lib/env');
 loadEnv();
 const db = require('../lib/db');
 
-const KIND_OF = { rpt: 'reports', evt: 'events', note: 'notes', val: 'insights' };
+const KIND_OF = { rpt: 'reports', evt: 'events', note: 'notes', val: 'insights', conv: 'conversations' };
 
 function collect() {
-  /** companyId -> { reports:[], events:[], notes:[], insights:[] } (with dates for ordering) */
+  /** companyId -> { reports:[], events:[], notes:[], insights:[], conversations:[] } */
   const links = new Map();
   const push = (cid, kind, id, date) => {
     if (!cid || !kind) return;
-    if (!links.has(cid)) links.set(cid, { reports: [], events: [], notes: [], insights: [] });
+    if (!links.has(cid)) links.set(cid, { reports: [], events: [], notes: [], insights: [], conversations: [] });
     links.get(cid)[kind].push({ id, date: date || '' });
   };
   const route = (r) => {
@@ -37,6 +37,7 @@ function collect() {
   for (const r of db.find('reports', {})) route(r);
   for (const r of db.find('notes', {})) route(r);
   for (const r of db.find('validation', {})) route(r);
+  for (const r of db.find('conversations', {})) route(r);
   for (const r of db.find('events', { since: '1900-01' })) route(r);
   return links;
 }

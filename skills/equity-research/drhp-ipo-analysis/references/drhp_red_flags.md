@@ -137,6 +137,20 @@ Adjust expectations for sector — service businesses (consulting, asset managem
 
 ---
 
+## 11. RPT counterparties cross-referenced against litigation parties
+
+**What to check:** Take every related-party name from the RPT summary (§8 above) and cross-reference it against every third-party name appearing in the "Outstanding Litigation and Material Developments" section (parties suing/being sued by the company, promoters, KMPs, or Senior Management — on either side of a dispute). Do this as an explicit name-matching pass, not an incidental read-through — the two sections are far apart in the document and are never cross-linked by the issuer.
+
+**Why it matters:** An RPT entity that is simultaneously (a) a growing/active related-party transaction counterparty and (b) named in a pending litigation (especially criminal proceedings) involving the promoters is a materially different situation than either fact in isolation. The Prospectus discloses both facts separately (as required) but never draws the connection — that connection is exactly the kind of thing that gets missed in a section-by-section read and is high-value for an analyst to surface explicitly.
+
+**RED if:** An RPT counterparty is named as a party (plaintiff, defendant, or transaction subject) in a *criminal* proceeding involving promoters/KMPs, AND the RPT relationship with that entity is active/growing (not wound down).
+**YELLOW if:** An RPT counterparty appears in a *civil* or tax dispute involving the company/promoters; or appears in litigation but the RPT relationship has since been reduced to near-zero.
+**GREEN if:** No overlap between RPT counterparty names and litigation-section party names.
+
+**Example (Laser Power & Infra, July 2026 Prospectus):** G.M. Dalui & Sons Private Limited is disclosed as an RPT counterparty (purchases growing 0 → ₹10.86mn → ₹89.97mn over FY24-FY26) *and* is the transaction counterparty underlying a pending criminal complaint (cheating / criminal breach of trust / conspiracy) in which the promoters are respondents seeking quashing before the Calcutta High Court. Scored YELLOW/RED-leaning in that analysis — flagged as the single most material finding in the filing, and not something either section alone would have surfaced.
+
+---
+
 ## How the red-flag count drives subscription view
 
 | Count of RED flags | Implied subscription view |

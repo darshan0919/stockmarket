@@ -34,6 +34,8 @@ data/
   companies.json        # PRIMARY DB — company metadata objects, keyed by companyId
   reports.json          # index of all analysis reports (metadata + summary + links)
   reports/<id>.json     # full report DTO bodies (LLM outputs; one flat dir, id-named)
+  conversations.json    # index of captured stockmarket chats (metadata + summary + companyIds + links)
+  conversations/<id>.json # full chat DTO bodies (turn-by-turn transcript; id-named) — see docs/CONVERSATION_CAPTURE_PLAN.md
   notes.json            # all company notes (watchlist-insights, manual, validation follow-ups)
   theses.json           # current thesis per company
   thesis-history.jsonl  # append-only thesis deltas
@@ -56,7 +58,11 @@ DTOs are 50–150 KB each; folding them into `reports.json` would make every sav
 a multi-MB file (corruption blast radius + full re-upload per sync). `reports.json` is
 the collection; bodies are linked by id — consistent with "linking defines nesting".
 Everything else (companies, notes, events, validation, theses) is small records →
-single file per collection.
+single file per collection. `conversations/` follows the same two-file pattern as
+`reports/` for the same reason: full chat transcripts are large, so the slim index lives
+in `conversations.json` and the turn-by-turn body in `conversations/<id>.json`
+(written via `db.saveConversation`; id prefix `conv` links into companies.json and
+`buildCompanyContext`).
 
 ## 2. Object envelope (every object, every collection)
 

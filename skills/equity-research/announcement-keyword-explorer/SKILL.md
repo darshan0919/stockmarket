@@ -33,20 +33,27 @@ on a topic, not just the ones that happen to match one phrase.
 ## Step 1 — Run the script (deterministic heavy lifting)
 
 ```bash
-python /home/claude/announcement-keyword-explorer/stock-api/python/fetchers/fetch_and_extract.py \
+node stock-api/bin/announcement-keyword-explorer.js \
   --keyword "<USER_KEYWORD>" \
   --quarters 4 \
   --min-mcap 300 \
   --output /tmp/keyword_explorer_output.json
 ```
 
-**Auth:** The script auto-resolves the authtoken via:
-1. `$STOCKSCANS_AUTHTOKEN` env var
-2. `/mnt/project/Stockscans_authtoken`
-3. `~/.stockscans_authtoken`
+(This is a `bundle`-mode skill per the registry — when invoked via the
+github-skill-invoker meta-skill from outside the local repo, run the cached
+`/tmp/announcement-keyword-explorer.cjs` the same way instead.)
 
-If auth fails, tell the user: *"Please paste your Stockscans authtoken — find it in
-DevTools → Application → Cookies → `authtoken` on stockscans.in"*
+**Auth:** The script (via the shared `StockscansAuth` class) auto-resolves the
+authtoken via, in order:
+1. `process.env.STOCKSCANS_AUTH_TOKEN` (canonical)
+2. `process.env.STOCKSCANS_AUTHTOKEN` (legacy — supported one more release, logs a warning)
+3. A `.env` file on disk with either of the above keys
+
+If auth fails, the script exits non-zero with `{"ok": false, "warnings": [...]}` on
+stderr. Tell the user: *"Please paste your Stockscans authtoken — find it in
+DevTools → Application → Cookies → `authtoken` on stockscans.in — and I'll set it as
+STOCKSCANS_AUTH_TOKEN."*
 
 **Quarter-date logic:** The script computes the last N quarter-end dates in YYYYMM
 format using end-of-quarter months 03, 06, 09, 12 (e.g. June 2026 → 202606,

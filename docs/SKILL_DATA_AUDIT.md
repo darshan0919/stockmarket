@@ -56,6 +56,21 @@ tweet-investor-playbook.
 - `cache/bse-scrip-codes.json`, `cache/sector-context-*.json`.
 - Config (keyword ignore lists, templates, schemas) → **git**, not DB.
 
+## G. Conversation capture (chat → knowledge)
+
+conversation-capture (weekly job + migration). See `docs/CONVERSATION_CAPTURE_PLAN.md`.
+
+- **Need**: exported chat transcripts (Cowork via session archive / session_info; cloud via
+  account Data Export), `cache/company-master.json` names for the Stage-2 classifier.
+- **Generate**: a conversation DTO per stockmarket chat + fanned-out extracts.
+- **Store**: conversation index → `conversations.json`, full transcript body →
+  `conversations/<id>.json` (via `db.saveConversation`); company-scoped extracts →
+  `notes.json` (type=chat-insight/macro-note/framework/feedback), full analyses + non-skill
+  artifacts → `reports.json` (type=chat-analysis/artifact) + `assets/`; feedback → Claude
+  memory. `creator: "conversation-capture"`.
+- **Do NOT store**: non-stockmarket chats (classifier-gated), personal/sensitive docs
+  (e.g. tax/ITR files with PAN), or artifacts a skill already persisted (skip by hash).
+
 ## F. Tooling skills (no DB writes)
 
 render-pdf (pure DTO→asset function), skill-manager, find-skills, cowork-task-architect,
@@ -65,5 +80,6 @@ token-usage-analyzer, github-skill-invoker, output-dto-standard, stock-documents
 ## Cross-skill context needs (drives `buildCompanyContext`)
 
 Every Category A/B skill benefits from: identity, thesis, last N reports (same company,
-any type), notes, last 90d events, validation verdicts. Today none of them read prior
-outputs (each starts cold) — the single biggest reuse win of v2.
+any type), notes, last 90d events, validation verdicts, and recent captured conversations
+(chat history about the company). Today none of them read prior outputs (each starts cold)
+— the single biggest reuse win of v2.

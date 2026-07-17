@@ -28,6 +28,7 @@ function dataRoot() {
 
 const DIRS = {
   reports: () => path.join(dataRoot(), 'reports'),
+  conversations: () => path.join(dataRoot(), 'conversations'),
   assets: () => path.join(dataRoot(), 'assets'),
   runs: () => path.join(dataRoot(), 'runs'),
   cache: () => path.join(dataRoot(), 'cache'),
@@ -36,7 +37,7 @@ const DIRS = {
   checkpoints: () => path.join(dataRoot(), '_meta', 'checkpoints'),
 };
 
-const SINGLE_FILE_COLLECTIONS = ['companies', 'reports', 'notes', 'theses', 'validation'];
+const SINGLE_FILE_COLLECTIONS = ['companies', 'reports', 'notes', 'theses', 'validation', 'conversations', 'prompts'];
 const LINK_CAP = 200; // max event/note/insight ids kept on a company object
 const LOCK_STALE_MS = 5 * 60 * 1000;
 const LOCK_WAIT_MS = 30 * 1000;
@@ -346,7 +347,7 @@ function eventFilesInRange({ date, since } = {}) {
 
 // ── Company links (derived; rebuildable via scripts/rebuildLinks.js) ─────────
 
-const LINK_KIND = { rpt: 'reports', evt: 'events', note: 'notes', val: 'insights' };
+const LINK_KIND = { rpt: 'reports', evt: 'events', note: 'notes', val: 'insights', conv: 'conversations' };
 
 /** Batch: one lock window + one atomic write for any number of records. */
 function linkToCompanies(records) {
@@ -412,6 +413,67 @@ function saveReport(dto) {
   }]);
   linkToCompanies(dto);
   return dto.id;
+}
+
+/**
+ * Save a captured chat: full DTO body (incl. turns) → conversations/<id>.json,
+ * slim index entry → conversations.json, id linked into companies.json.
+ * `dto` must include creator (= "conversation-capture"), type ("cowork"|"cloud"),
+ * date, and SHOULD include companyIds[], title, summary, tags[], artifacts[].
+ * Deterministic id (conv_<source>_<sessionId8>) ⇒ re-capture upserts, never dupes.
+ * The full turn-by-turn transcript may be passed as dto._body.turns or dto.turns;
+ * it is stored only in the body file, never in the slim index.
+ */
+function saveConversation(dto) {
+  ensureEnvelope(dto, { kind: 'conv', discriminator: dto.type });
+  init();
+  const turns = (dto._body && dto._body.turns) || dto.turns || [];
+  const body = { ...dto, turns };
+  delete body._body;
+  const bodyPath = path.join(DIRS.conversations(), `${dto.id}.json`);
+  withLock('conversation-bodies', () => {
+    writeFileAtomic(bodyPath, body);
+  });
+  const { id, type, date, companyIds, creator, creationTime, modifiedTime, title, sessionId, tags, summary, artifacts } = dto;
+  upsertMany('conversations', [{
+    id, type, date, companyIds: companyIds || [], creator, creationTime, modifiedTime,
+    title: title || null,
+    sessionId: sessionId || null,
+    tags: tags || [],
+    summary: summary || null,
+    artifactCount: Array.isArray(artifacts) ? artifacts.length : 0,
+    body: `conversations/${id}.json`,
+  }]);
+  linkToCompanies(dto);
+  return dto.id;
+}
+
+function readConversation(id) {
+  const p = path.join(DIRS.conversations(), `${id}.json`);
+  return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
+}
+
+/**
+ * Prompt library (docs/CONVERSATION_CAPTURE_PLAN.md): store a reusable prompt/question
+ * with its thinking + answer + skill/task link, to help ask better questions over time.
+ * `dto` should include creator, text (the prompt), date; MAY include title, intent,
+ * linkedSkill/linkedTask, inputs[], tags[], status (draft|approved|deprecated),
+ * improvedVersion, thinking, answerSummary, companyIds[], sourceConversationId.
+ * Deterministic id (hash of text) ⇒ same prompt upserts, never duplicates.
+ */
+function savePrompt(dto) {
+  const scope = dto.linkedSkill || dto.linkedTask || 'general';
+  ensureEnvelope(dto, { kind: 'prompt', scope, discriminator: dto.text || dto.title || '' });
+  const stats = upsertMany('prompts', [dto]);
+  return { id: dto.id, ...stats };
+}
+function savePrompts(dtos) {
+  if (!Array.isArray(dtos)) dtos = [dtos];
+  for (const d of dtos) {
+    const scope = d.linkedSkill || d.linkedTask || 'general';
+    ensureEnvelope(d, { kind: 'prompt', scope, discriminator: d.text || d.title || '' });
+  }
+  return upsertMany('prompts', dtos);
 }
 
 function readReport(id) {
@@ -491,7 +553,7 @@ module.exports = {
   dataRoot, init,
   makeId, ensureEnvelope,
   upsert, upsertMany, get, find,
-  saveReport, readReport, appendEvents, appendNote, appendNotes, saveThesis,
+  saveReport, readReport, saveConversation, readConversation, savePrompt, savePrompts, appendEvents, appendNote, appendNotes, saveThesis,
   appendValidation, appendValidations,
   linkToCompanies,
   assetPath, runPath, cachePath,
