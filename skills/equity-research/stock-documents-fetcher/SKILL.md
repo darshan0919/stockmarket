@@ -210,6 +210,7 @@ Same shape but with announcement-level fields (`title`, `description`, `companyK
 
 - For one-off interactive use, default `./stock_documents/` is fine.
 - When invoked **by another skill** (the common case), save to `/mnt/project/data/agent-outputs/<safe_ticker>_docs/` so the downstream skill can read both the PDFs and the manifest from a stable, predictable path. Pass that path back via the manifest so the calling skill can locate everything in one shot.
+- Never create ad-hoc debug/`tmp_*.js` scripts in the repo root or `stock-api/` to probe fetch behaviour. If you need a scratch file, write it to the gitignored `tmp/` folder at repo root and delete it when done. If the fetcher script itself has a bug, fix `fetch_documents.py`/`fetch_announcements.py` directly — don't work around it with a throwaway script.
 
 ## Failure modes & how to handle them
 

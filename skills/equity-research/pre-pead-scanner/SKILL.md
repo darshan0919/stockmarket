@@ -1,7 +1,20 @@
 ---
-
-## name: pre-pead-scanner
-description: Institutional-grade pre-results EARNINGS-SURPRISE predictor for Indian listed companies. Given a Stockscans saved-scan URL of companies about to report (defaults to https://www.stockscans.in/scans/saved/429918e3098ce660baec9f22 if none provided), it reads each survivor's latest concall AND investor PPT, extracts revenue/margin/PAT guidance, validates it against order book / capacity / utilisation / history / important business updates from last quarter (press releases, order book, commencement of plant etc. via company announcements API), projects next-quarter Revenue/OPM/PAT/EPS, then scores the SURPRISE two ways — versus street/research-report estimates (from top equity research firms via web search) AND versus the number management's own guidance implies — layered with the stock's historical drift after result/concall/transcript (is the surprise tradeable?). Cross-checks every name against Screener.in's key trackables insights matrix as an independent second opinion, and runs a session-token preflight that halts and prompts the user if the Stockscans or Screener cookies have expired. Ranks every name by a composite surprise score in an HTML briefing. Use when the user wants to predict earnings surprises, find pre-results candidates, rank companies before earnings, estimate next quarter, build a pre-PEAD briefing, or screen for beats/misses ahead of a results season. Auto-fetches concalls, PPTs, and price history; excludes already-declared and no-concall/no-PPT names.
+name: pre-pead-scanner
+description: >
+  Institutional-grade pre-results EARNINGS-SURPRISE predictor for Indian listed
+  companies. Given a Stockscans saved-scan URL of companies about to report, it
+  reads each survivor's latest concall AND investor PPT, extracts revenue/margin/PAT
+  guidance, validates it against order book / capacity / utilisation / history /
+  recent business updates, projects next-quarter Revenue/OPM/PAT/EPS, then scores
+  the SURPRISE versus street/research-report estimates AND versus management's own
+  guidance, layered with the stock's historical post-event drift. Cross-checks
+  against Screener.in's key trackables matrix as a second opinion, and halts with a
+  prompt if Stockscans/Screener session cookies have expired. Ranks every name by a
+  composite surprise score in an HTML briefing. Use when the user wants to predict
+  earnings surprises, find pre-results candidates, rank companies before earnings,
+  estimate next quarter, build a pre-PEAD briefing, or screen for beats/misses ahead
+  of a results season.
+---
 
 # Pre-PEAD Scanner — Earnings-Surprise Predictor
 
@@ -93,6 +106,10 @@ Nine steps plus a quarter-level macro overlay, run in order — each gates or fe
 - `references/quarterly_macro_context.md` — the running log of each fiscal quarter's macro events (oil/currency/rate/monsoon/tariff shocks, etc.) with sourced citations and sector-impact tables; read the section for the quarter being scanned and apply it as a tailwind/headwind overlay per name (Step 3d). Add a new `## Q_FY__` section here the first time a new quarter is scanned.
 - `../../_shared/sector-playbooks/` — reusable sector-level playbooks (RM basket & pass-through mechanics, guidance-giving culture, seasonality, export exposure, tailwind/headwind framework), one file per sector (e.g. `fmcg-consumer-care.md`), each with a company-note subsection per name analysed. Complements `quarterly_macro_context.md` — sector file = *how this sector's economics work*, macro file = *what happened this quarter*. Check for a matching playbook before analysing any in-scope company's sector for the first time; add one (or extend an existing company note) if none exists.
 - `assets/briefing_template.html` — the surprise-sorted master table + deep-dive card structure for the HTML deliverable.
+
+## Conventions
+
+- Never create ad-hoc debug/`tmp_*.js` scripts in the repo root or `stock-api/`. If you need a scratch file (probing an endpoint, testing a fetch, building an intermediate JSON), write it to the gitignored `tmp/` folder at repo root, and delete it when done. If a script has a bug, fix the actual script — don't work around it with a throwaway script.
 
 ## Dependencies
 

@@ -83,3 +83,6 @@ packages/jobs-runtime/data/
 # Legacy cowork-jobs paths (pre jobs-runtime relocation) — guard against revival
 packages/cowork-jobs/
 packages/cowork-jobs/process_watchlist.js
+
+/tmp/
+tmp_*

@@ -10,12 +10,9 @@ description: >
   forensic-accounting, consecutive-filings-diff, stage2-catalyst-analysis) produces new
   evidence for a company that has a thesis on file. The thesis is a living record: it is
   NEVER rebuilt from scratch when new data arrives — only the affected pillars are
-  re-scored, evidence is appended, the signal is recomputed deterministically, and a new
-  version is written. Source of truth is the Google Drive folder `stockmarket-theses`
-  (ID: 1MKK_WjVcvKCodIUaosTCZ8d_HXz6JPpL) — LEGACY, read-only. Canonical store is now the
-  theses collection: `data/theses.json` + `data/thesis-history.jsonl` (Data Ecosystem v2,
-  synced to Drive `StockMarket/data/v2` by `scripts/data.js push`). Write via
-  `lib/db.js saveThesis(companyId, thesis)`.
+  re-scored, evidence is appended, and the signal is recomputed deterministically.
+  Canonical store: `data/theses.json` + `data/thesis-history.jsonl` (Data Ecosystem v2,
+  synced to Drive `StockMarket/data/v2`). Write via `lib/db.js saveThesis(companyId, thesis)`.
 ---
 
 # Investment Thesis Engine
