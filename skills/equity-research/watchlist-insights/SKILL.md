@@ -10,14 +10,14 @@ PDF text, notes DB, email). YOUR job is the judgment — reading each PDF and wr
 insight. Process announcements **one at a time**; never write an insight from the
 title/description alone.
 
-## Parameters (optional)
+## Parameters
 
 | Param | Default | Meaning |
 |---|---|---|
+| `watchlistIds` | *(required, caller-supplied)* | comma-separated watchlist IDs, e.g. Near Highs + Radar + Upcoming Results. The job is agnostic of which watchlists it scans — the calling skill/task always supplies this. |
+| `--window-hours` | `24` | lookback window for `fetch-announcements` / `build-digest` / `send-digest`. Override for a missed-day catch-up (e.g. `--window-hours 72`) instead of writing a one-off script — this flag exists precisely so that never happens again. |
 | `email` | on | run `send-digest` at the end (off = just update notes) |
 | company filter | none | on demand, process only a given `companyId` |
-
-The 24h window and the two watchlists (Near Highs + Radar) are baked into the job.
 
 ## Setup
 
@@ -34,7 +34,8 @@ itself: the notes DB and validation logs default to `<repo>/data/` and secrets t
 
 ## Step 1 — Fetch new announcements
 ```bash
-run fetch-announcements
+run fetch-announcements "$WATCHLIST_IDS"                      # default 24h window
+run fetch-announcements "$WATCHLIST_IDS" --window-hours 72     # catch-up run, e.g. after a missed day
 ```
 Returns a JSON array of new, non-routine, unprocessed announcements — each with a
 `category` and `pdfUrl`. (Routine noise is already dropped and logged for the validator.)
@@ -63,14 +64,18 @@ For EACH item:
 
 Routine items that slip through: just `run mark-processed` and move on (no insight).
 
-## Step 3 — Send the 24h digest
+## Step 3 — Send the digest
 ```bash
-run send-digest
+run send-digest "$WATCHLIST_IDS"                      # same 24h window as Step 1
+run send-digest "$WATCHLIST_IDS" --window-hours 72     # match whatever --window-hours Step 1 used
 ```
-Emails insights for ALL non-routine announcements in the last 24h (stored insights are
+Emails insights for ALL non-routine announcements in the window (stored insights are
 read back from the notes DB; only genuinely-new ones get a fresh insight above). Prints
 `{status, totalAnnouncements, withInsight, missingInsight, missingIds}`. Inspect without
-sending via `run build-digest`.
+sending via `run build-digest "$WATCHLIST_IDS" [--window-hours N]`.
+
+`--window-hours` must match between Step 1 and Step 3 (both default to 24 if omitted) —
+otherwise the digest window won't line up with what was actually processed.
 
 ## Step 4 — Offload & cleanup (MANDATORY, even on failure)
 

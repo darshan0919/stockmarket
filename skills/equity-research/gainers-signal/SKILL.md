@@ -14,6 +14,7 @@ email synthesis over their output. Do NOT re-fetch or re-compute anything.
 |---|---|---|
 | `date` | last trading day | market date (`--date YYYY-MM-DD`) for the scanner |
 | `email` | on | set off to build the briefing without sending |
+| `--top-n` | `50` | size of the gainers universe pulled by the scanner (`node "$SCAN" --top-n 100` for a one-off wider pull — no script needed) |
 
 ## Setup
 
@@ -30,9 +31,10 @@ everything themselves: data root defaults to `<repo>/data/` and secrets to
 ## Step 1 — Scanner (Node, deterministic)
 
 ```bash
-node "$SCAN"            # add `--date YYYY-MM-DD` to override the market date
+node "$SCAN"                          # add `--date YYYY-MM-DD` to override the market date
+node "$SCAN" --top-n 100              # one-off wider pull (default is 50)
 ```
-Writes `data/runs/gainers_raw_{YYYYMMDD}.json` (top-50 gainers, quality
+Writes `data/runs/gainers_raw_{YYYYMMDD}.json` (top-N gainers, quality
 filters, per-symbol NSE/BSE delivery, announcements, price-action signals, sector
 breadth). If it yields 0 gainers (holiday / API issue), send a "no signals today" email
 and stop.

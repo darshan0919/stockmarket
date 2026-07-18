@@ -13,6 +13,10 @@ The script writes the canonical JSON DTO to `the events collection (type=`deal`)
 Call the following exact script:
 1. Execute script (bash): `cd "/Users/darshan.patel/code/personal/stockmarket/packages/jobs-runtime" && node dealsDigest.js`
    (If running inside a sandbox where the folder is mounted, the equivalent mounted path of the stockmarket folder + `/packages/jobs-runtime` is fine — same script.)
+   Optional flags (defaults shown match today's behavior — omit them for the normal scheduled run):
+   `--top-n <n>` (default 10, companies per category), `--sast-quote-limit <n>` (default 40, max
+   symbols priced for the SAST value estimate), `--max-xbrl <n>` (default 600), `--date YYYY-MM-DD`,
+   `--no-email`, `--force`.
 2. Read the JSON summary the script prints to stdout and report: per-category counts, top 3 items per category, and the `email` status.
 3. If the script exits non-zero, or `email.status` is "error" or "skipped", surface the exact error/reason in your report.
 

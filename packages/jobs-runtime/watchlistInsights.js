@@ -8,13 +8,18 @@
  * (Stockscans API, PDF parsing, notes JSON I/O, email). Claude orchestrates the AI
  * analysis. All Stockscans access goes through @stock/api.
  *
- * Usage: node watchlistInsights.js <command> [args]
+ * Usage: node watchlistInsights.js <command> [args] [--window-hours <n>] [--env-file <path>]
  *   fetch-announcements <watchlistIds> | read-pdf <url> | get-company-notes <id> | add-note [json]
  *   mark-processed <companyId> <announcementId> | list-companies | insight-template <cat>
- *   send-summary [html] | build-digest | send-digest | init-notes
+ *   send-summary [html] | build-digest <watchlistIds> | send-digest <watchlistIds> | init-notes
  *
  * <watchlistIds> is a required, comma-separated list of watchlist IDs (e.g. "id1,id2,id3").
  * This job is agnostic of which watchlists it scans — the caller (skill/task) decides.
+ *
+ * --window-hours <n> (optional, default 24) widens/narrows the lookback window for
+ * fetch-announcements / build-digest / send-digest — e.g. a missed-day catch-up run:
+ *   node watchlistInsights.js send-digest id1,id2,id3 --window-hours 72
+ * No flag = identical behavior to before this was added (24h).
  */
 
 const fs = require('fs');
@@ -71,6 +76,21 @@ function parseWatchlistIds(raw) {
     );
   }
   return ids;
+}
+
+/**
+ * Read the optional `--window-hours <n>` CLI flag (falls back to DEFAULT_WINDOW_HOURS,
+ * currently 24). Lets any run (scheduled or ad-hoc) widen the lookback window — e.g. a
+ * missed-day catch-up — without a bespoke script: `send-digest <ids> --window-hours 72`.
+ */
+function parseWindowHours(argv = process.argv) {
+  const raw = argValue('--window-hours', argv);
+  if (raw === null) return DEFAULT_WINDOW_HOURS;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) {
+    throw new Error(`--window-hours must be a positive number, got "${raw}"`);
+  }
+  return n;
 }
 
 // ── Insignificance filter ─────────────────────────────────────────────────────
@@ -432,9 +452,15 @@ async function logIgnoredAnnouncement(ann, matchedKw) {
   await StorageService.saveJson(logPath, existing, false);
 }
 
-async function gatherInwindowRaw(client = stockscans, now = new Date(), watchlistIds) {
+// Default lookback window, in hours, for gatherInwindowRaw / fetch-announcements /
+// build-digest / send-digest. Override per-call via the windowHours param, or from the
+// CLI via `--window-hours <n>` (see argValue in lib/env.js). Kept as a named constant
+// (not re-hardcoded per call site) so a one-off catch-up run never requires a new script.
+const DEFAULT_WINDOW_HOURS = 24;
+
+async function gatherInwindowRaw(client = stockscans, now = new Date(), watchlistIds, windowHours = DEFAULT_WINDOW_HOURS) {
   if (!Array.isArray(watchlistIds) || !watchlistIds.length) {
-    throw new Error('watchlistIds required: gatherInwindowRaw(client, now, watchlistIds)');
+    throw new Error('watchlistIds required: gatherInwindowRaw(client, now, watchlistIds, windowHours?)');
   }
   try {
     await client.validateAuth();
@@ -447,14 +473,15 @@ async function gatherInwindowRaw(client = stockscans, now = new Date(), watchlis
     throw e;
   }
 
-  const cutoffMs = now.getTime() - 24 * 60 * 60 * 1000;
+  const cutoffMs = now.getTime() - windowHours * 60 * 60 * 1000;
   const qdate = ist.quarterDate(now);
   const allRaw = [];
   let offset = 0;
   let pageSize = null;
-  // Safety guard: a 24h window is never thousands of pages. Prevents an
-  // unbounded loop if the upstream keeps returning a full, in-window page.
-  const MAX_PAGES = 200;
+  // Safety guard, scaled to the requested window: a 24h window is never thousands of
+  // pages, so scale the page budget linearly with windowHours. Prevents an unbounded
+  // loop if the upstream keeps returning a full, in-window page.
+  const MAX_PAGES = Math.max(200, Math.ceil((200 * windowHours) / DEFAULT_WINDOW_HOURS));
 
   for (let pageNo = 0; pageNo < MAX_PAGES; pageNo++) {
     const payload = buildAnnouncementsPayload(watchlistIds);
@@ -485,8 +512,9 @@ async function gatherInwindowRaw(client = stockscans, now = new Date(), watchlis
 
 async function cmdFetchAnnouncements(watchlistIdsArg, client = stockscans) {
   const watchlistIds = parseWatchlistIds(watchlistIdsArg);
+  const windowHours = parseWindowHours();
   const notes = db.load();
-  const allRaw = await gatherInwindowRaw(client, new Date(), watchlistIds);
+  const allRaw = await gatherInwindowRaw(client, new Date(), watchlistIds, windowHours);
   const results = [];
   for (const ann of allRaw) {
     const companyId = ann.companyId || '';
@@ -608,8 +636,8 @@ function cmdInitNotes() {
   );
 }
 
-async function sendHtml(htmlBody) {
-  return sendHtmlEmail({ subject: `📊 Watchlist Insights — ${ist.nowIstHuman()}`, htmlBody });
+async function sendHtml(htmlBody, subject = `📊 Watchlist Insights — ${ist.nowIstHuman()}`) {
+  return sendHtmlEmail({ subject, htmlBody });
 }
 
 async function cmdSendSummary(htmlBody) {
@@ -618,12 +646,13 @@ async function cmdSendSummary(htmlBody) {
 
 // ── Full 24h digest ───────────────────────────────────────────────────────────
 
-async function collectDigest(client = stockscans) {
+async function collectDigest(client, watchlistIds, windowHours = DEFAULT_WINDOW_HOURS) {
+  client = client || stockscans;
   const notes = db.load();
   const idx = NotesDb.buildNoteIndex(notes);
   const seen = new Set();
   const digest = [];
-  for (const ann of await gatherInwindowRaw(client)) {
+  for (const ann of await gatherInwindowRaw(client, new Date(), watchlistIds, windowHours)) {
     const title = ann.title || ann.subject || ann.headline || '';
     const description = ann.description || '';
     if (isNoise(title, description)) continue;
@@ -652,7 +681,7 @@ async function collectDigest(client = stockscans) {
   return digest;
 }
 
-function buildDigestHtml(digest) {
+function buildDigestHtml(digest, windowHours = DEFAULT_WINDOW_HOURS) {
   const dateStr = ist.nowIstDate();
   const buckets = { high: [], medium: [], low: [] };
   for (const d of digest) {
@@ -666,9 +695,10 @@ function buildDigestHtml(digest) {
     ['low', '🟢 Low Significance', '#38a169'],
   ];
   const nCompanies = new Set(digest.map((d) => d.companyId)).size;
+  const windowLabel = windowHours === 24 ? 'last 24h' : `last ${windowHours}h`;
   const parts = [
     `<h2>📊 Watchlist Insights — ${dateStr}</h2>`,
-    `<p><b>${digest.length} announcements across ${nCompanies} companies (last 24h).</b></p>`,
+    `<p><b>${digest.length} announcements across ${nCompanies} companies (${windowLabel}).</b></p>`,
   ];
   for (const [key, heading, color] of sections) {
     const items = buckets[key];
@@ -692,14 +722,22 @@ function buildDigestHtml(digest) {
   return parts.join('\n');
 }
 
-async function cmdBuildDigest(client = stockscans) {
-  process.stdout.write(JSON.stringify(await collectDigest(client)));
+async function cmdBuildDigest(watchlistIdsArg, client = stockscans) {
+  const watchlistIds = parseWatchlistIds(watchlistIdsArg);
+  const windowHours = parseWindowHours();
+  process.stdout.write(JSON.stringify(await collectDigest(client, watchlistIds, windowHours)));
 }
 
-async function cmdSendDigest(client = stockscans) {
-  const digest = await collectDigest(client);
+async function cmdSendDigest(watchlistIdsArg, client = stockscans) {
+  const watchlistIds = parseWatchlistIds(watchlistIdsArg);
+  const windowHours = parseWindowHours();
+  const digest = await collectDigest(client, watchlistIds, windowHours);
   const missing = digest.filter((d) => d.needsInsight).map((d) => d.announcementId);
-  const status = await sendHtml(buildDigestHtml(digest));
+  const windowLabel = windowHours === 24 ? '' : ` (${windowHours}h)`;
+  const status = await sendHtml(
+    buildDigestHtml(digest, windowHours),
+    `📊 Watchlist Insights${windowLabel} — ${ist.nowIstDate()}`
+  );
   Object.assign(status, {
     totalAnnouncements: digest.length,
     withInsight: digest.filter((d) => d.hasInsight).length,
@@ -720,8 +758,8 @@ const COMMANDS = {
   'list-companies': [cmdListCompanies, 0],
   'insight-template': [cmdInsightTemplate, 1],
   'send-summary': [cmdSendSummary, 0],
-  'build-digest': [cmdBuildDigest, 0],
-  'send-digest': [cmdSendDigest, 0],
+  'build-digest': [cmdBuildDigest, 1],
+  'send-digest': [cmdSendDigest, 1],
   'init-notes': [cmdInitNotes, 0],
 };
 
@@ -762,8 +800,13 @@ module.exports = {
   matchedNoiseKeyword,
   gatherInwindowRaw,
   buildDigestHtml,
+  collectDigest,
   cmdFetchAnnouncements,
+  cmdBuildDigest,
+  cmdSendDigest,
   parseWatchlistIds,
+  parseWindowHours,
+  DEFAULT_WINDOW_HOURS,
   CATEGORY_RULES,
   INSIGNIFICANT_KEYWORDS,
   runCli,

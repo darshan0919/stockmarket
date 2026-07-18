@@ -34,6 +34,9 @@ const dbV2 = require('./lib/db');
 const OUTPUT_DIR = path.join(dbV2.dataRoot(), 'runs');
 const PRICE_HISTORY_CANDLES = 65;
 const RATIOS_SCAN_ID = '7f7e2d4044f428e69254ce31';
+// Size of the gainers universe pulled each run. Override via `--top-n <n>` (see main()
+// below) — e.g. a one-off "top 100 gainers" ask no longer needs a new script.
+const DEFAULT_TOP_N = 50;
 
 const QUALITY_FILTERS = {
   min_market_cap_cr: 300,
@@ -308,14 +311,14 @@ async function saveScripCache(cache) {
 
 // ── API-bound steps (delegate to @stock/api) ──────────────────────────────────
 
-async function fetchTopGainers(client = stockscans) {
+async function fetchTopGainers(client = stockscans, topN = DEFAULT_TOP_N) {
   const payload = {
     ratiosType: 'Default',
     timePeriod: 'Latest',
     scan: {
       filters: [{ left: 'Market Capitalization', right: '300', sign: '>=' }],
       index: [], industry: [], sector: [], tags: [],
-      scanName: 'Top 50 Gainers', scanDescription: '', watchlistIds: [],
+      scanName: `Top ${topN} Gainers`, scanDescription: '', watchlistIds: [],
     },
     watchlistIds: [], order: 'desc', orderBy: 'Returns 1D', offset: 0,
   };
@@ -329,7 +332,7 @@ async function fetchTopGainers(client = stockscans) {
   } else {
     companies = data.companies || data.data || (Array.isArray(data) ? data : []);
   }
-  return companies.slice(0, 50);
+  return companies.slice(0, topN);
 }
 
 async function fetchRetailHoldings(tickers, client = stockscans) {
@@ -529,6 +532,7 @@ async function main({
   outputDir = OUTPUT_DIR,
   sleep = defaultSleep,
   log = (m) => process.stderr.write(m),
+  topN = DEFAULT_TOP_N,
 } = {}) {
   const ss = clients.stockscans;
   const today = istToday();
@@ -549,9 +553,9 @@ async function main({
     throw e;
   }
 
-  // 1. Top 50 gainers
-  log('[1/7] Fetching top 50 gainers …\n');
-  const gainers = (await fetchTopGainers(ss)).map(normaliseGainer);
+  // 1. Top-N gainers
+  log(`[1/7] Fetching top ${topN} gainers …\n`);
+  const gainers = (await fetchTopGainers(ss, topN)).map(normaliseGainer);
   log(`      → ${gainers.length} gainers\n`);
   const tickersAll = gainers.map((g) => g.ticker).filter(Boolean);
 
@@ -664,13 +668,13 @@ module.exports = {
   main,
   // pure
    quarterDate, lastTradingDay, istToday, filterNoise, sectorBreadth,
-   applyQualityFilters, deriveNseDelivery, deriveBseDelivery, 
+   applyQualityFilters, deriveNseDelivery, deriveBseDelivery,
 
   // api-bound
 
-  fetchAnnouncementsBatch, 
+  fetchAnnouncementsBatch, fetchTopGainers,
   // constants
-
+  DEFAULT_TOP_N,
 };
 
 if (require.main === module) {
@@ -679,7 +683,12 @@ if (require.main === module) {
   (async () => {
     const dateArg = argValue('--date');
     const marketDate = dateArg ? new Date(`${dateArg}T00:00:00Z`) : undefined;
-    const output = await main({ marketDate });
+    const topNArg = argValue('--top-n');
+    const topN = topNArg ? Number(topNArg) : DEFAULT_TOP_N;
+    if (!Number.isFinite(topN) || topN <= 0) {
+      throw new Error(`--top-n must be a positive number, got "${topNArg}"`);
+    }
+    const output = await main({ marketDate, topN });
     process.stdout.write(JSON.stringify(output));
   })().catch((e) => { console.error(e.message); process.exit(1); });
 }

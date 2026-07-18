@@ -26,6 +26,13 @@ latest notes file and skips files already validated). `run` now ALSO performs th
 gainers-signal follow-up validation below as part of its normal execution — it is not a
 separate manual step.
 
+`run` also accepts two optional flags (defaults shown match today's behavior — a one-off
+change of either no longer needs a new script):
+- `--baseline-days <n>` (default `20`) — price/delivery baseline lookback window.
+- `--sector-mcap-floor <cr>` (default `300`) — ₹cr market-cap floor for the sector
+  universe used in attribution. Cached sector-context files are keyed by this value, so
+  overriding it never silently reuses a cache built with a different floor.
+
 ## Gainers-signal follow-up validation (D+2)
 
 In addition to validating watchlist notes, every `run` also validates `gainers-signal`'s
@@ -80,6 +87,7 @@ On-demand examples:
 node "$JOB" score SWARAJENG          # structural read for one symbol
 node "$JOB" fetch-delivery 27062026  # did NSE publish that day's delivery file?
 node "$JOB" show-ledger              # accumulated stats
+node "$JOB" run --baseline-days 40 --sector-mcap-floor 500   # one-off wider baseline/universe
 ```
 
 ## Output

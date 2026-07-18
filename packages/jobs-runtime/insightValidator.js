@@ -11,7 +11,8 @@
  * All upstream access goes through @stock/api: NSE delivery bhavcopy via NseClient
  * (price-action); live Returns 1D + the sector universe via StockscansClient.
  *
- * Commands: run | fetch-delivery [DDMMYYYY] | score <SYMBOL> | show-ledger
+ * Commands: run [--baseline-days <n>] [--sector-mcap-floor <cr>] | fetch-delivery [DDMMYYYY]
+ *           | score <SYMBOL> | show-ledger
  */
 
 const fs = require('fs');
@@ -30,6 +31,10 @@ const ist = require('./lib/ist');
 const GAINERS_VALIDATION_MIN_GAIN_PCT = 3;
 
 const EQUITY_SERIES = new Set(['EQ', 'BE', 'BZ', 'SM', 'ST']);
+// Both of these are overridable via CLI flags on `run` (see cmdRun/COMMANDS below):
+//   --baseline-days <n>        (default 20)  — price/delivery baseline lookback window
+//   --sector-mcap-floor <cr>   (default 300) — market-cap floor (₹cr) for the sector universe
+// so a one-off "use a 40-day baseline" ask doesn't require a new script.
 const BASELINE_DAYS = 20;
 const WATCHLISTS = ['0a365ec2139aa6ca7f74c250', '7ca0e1a60c3fd0d8b1ab61ce'];
 
@@ -333,11 +338,14 @@ async function fetchLiveReturns(client = stockscans) {
   return out;
 }
 
-async function fetchSectorContext(target, client = stockscans) {
+async function fetchSectorContext(target, client = stockscans, mcapFloor = SECTOR_MCAP_FLOOR) {
   StorageService.init();
-  // Regenerable derived context → data/cache/ (fetched fresh when absent).
-  const dtoPaths = { jsonPath: `cache/sector_context_${target.toISOString().slice(0, 10).replace(/-/g, '')}.json` };
-  
+  // Regenerable derived context → data/cache/ (fetched fresh when absent). mcapFloor is
+  // part of the cache key so overriding --sector-mcap-floor never silently reuses a
+  // cache built with a different floor.
+  const floorSuffix = mcapFloor === SECTOR_MCAP_FLOOR ? '' : `_floor${mcapFloor}`;
+  const dtoPaths = { jsonPath: `cache/sector_context_${target.toISOString().slice(0, 10).replace(/-/g, '')}${floorSuffix}.json` };
+
   const cached = StorageService.readJson(dtoPaths.jsonPath);
   if (cached && Object.keys(cached).length > 2) {
     return cached;
@@ -348,7 +356,7 @@ async function fetchSectorContext(target, client = stockscans) {
     ratiosType: 'Default', timePeriod: 'Latest',
     scan: {
       industry: [], index: [], sector: [], tags: [], watchlistIds: [],
-      filters: [{ left: 'Market Capitalization', sign: '>=', right: String(SECTOR_MCAP_FLOOR) }],
+      filters: [{ left: 'Market Capitalization', sign: '>=', right: String(mcapFloor) }],
       alertFrequency: null,
     },
     watchlistIds: [], order: 'desc', orderBy: 'Market Capitalization', offset: 0,
@@ -475,8 +483,8 @@ function insightTargetDate(insights) {
 }
 
 // ── Validation ────────────────────────────────────────────────────────────────
-async function runValidation(insights, target, clients = { nse, stockscans }) {
-  const ctx = await fetchSectorContext(target, clients.stockscans);
+async function runValidation(insights, target, clients = { nse, stockscans }, baselineDays = BASELINE_DAYS, sectorMcapFloor = SECTOR_MCAP_FLOOR) {
+  const ctx = await fetchSectorContext(target, clients.stockscans, sectorMcapFloor);
   let liveRet = {};
   for (const [c, v] of Object.entries(ctx.companies || {})) if (v.ret !== null) liveRet[c] = v.ret;
   if (!Object.keys(liveRet).length) liveRet = await fetchLiveReturns(clients.stockscans);
@@ -492,7 +500,7 @@ async function runValidation(insights, target, clients = { nse, stockscans }) {
   const liveDayData = deliveryPending && symbols.size
     ? await fetchLiveDeliveryForSymbols(symbols, clients.nse)
     : {};
-  const base = symbols.size ? await buildBaselines(symbols, target, BASELINE_DAYS, clients.nse) : {};
+  const base = symbols.size ? await buildBaselines(symbols, target, baselineDays, clients.nse) : {};
 
   const results = [];
   for (const ins of insights) {
@@ -1146,7 +1154,7 @@ async function sendEmail(html) {
 }
 
 // ── Commands ──────────────────────────────────────────────────────────────────
-async function cmdRun() {
+async function cmdRun(baselineDays = BASELINE_DAYS, sectorMcapFloor = SECTOR_MCAP_FLOOR) {
   const [notesFilename, notes] = latestNotesFile();
   if (!notesFilename) { process.stdout.write(JSON.stringify({ skipped: true, reason: 'no notes file found' })); return; }
   if (isAlreadyValidated(notesFilename)) {
@@ -1166,7 +1174,7 @@ async function cmdRun() {
   }
   const insights = insightsFromNotes(notes);
   const target = insightTargetDate(insights);
-  const run = await runValidation(insights, target);
+  const run = await runValidation(insights, target, { nse, stockscans }, baselineDays, sectorMcapFloor);
   const led = updateLedger(run, notesFilename);
   const props = makeProposals(led);
   const qr = runQualityReview(notes, target);
@@ -1276,6 +1284,23 @@ async function runCli(argv) {
   }
   const [fn, n] = COMMANDS[cmd];
   const args = n ? argv.slice(1, 1 + n) : [];
+  // `run` also accepts optional named flags (default = today's hardcoded values, so
+  // omitting them is identical to before these existed):
+  //   --baseline-days <n>        (default 20)
+  //   --sector-mcap-floor <cr>   (default 300)
+  if (cmd === 'run') {
+    const baselineDaysRaw = argValue('--baseline-days', argv);
+    const sectorMcapFloorRaw = argValue('--sector-mcap-floor', argv);
+    const baselineDays = baselineDaysRaw === null ? BASELINE_DAYS : Number(baselineDaysRaw);
+    const sectorMcapFloor = sectorMcapFloorRaw === null ? SECTOR_MCAP_FLOOR : Number(sectorMcapFloorRaw);
+    if (!Number.isFinite(baselineDays) || baselineDays <= 0) {
+      throw new Error(`--baseline-days must be a positive number, got "${baselineDaysRaw}"`);
+    }
+    if (!Number.isFinite(sectorMcapFloor) || sectorMcapFloor <= 0) {
+      throw new Error(`--sector-mcap-floor must be a positive number, got "${sectorMcapFloorRaw}"`);
+    }
+    args.push(baselineDays, sectorMcapFloor);
+  }
   try { await fn(...args); } catch (e) {
     process.stderr.write(JSON.stringify({ error: e.message, command: cmd }));
     process.exit(1);
@@ -1288,7 +1313,8 @@ module.exports = {
    makeProposals, titleInfoDensity,  qualityReviewInsights,
   qualityReviewCategorisation, fetchLiveDeliveryForSymbols,
   nextTradingDays, tradingDaysAgo, validateGainersPicks, upsertGainersLedger,
-     runCli,
+     runCli, runValidation, fetchSectorContext,
+     BASELINE_DAYS, SECTOR_MCAP_FLOOR,
 
 };
 

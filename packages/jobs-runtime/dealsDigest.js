@@ -16,7 +16,8 @@
  *                     since NSE's 2026 GIGW revamp — verified 04-Jul-2026)
  *
  * Usage:
- *   node dealsDigest.js [--date YYYY-MM-DD] [--no-email] [--max-xbrl N] [--env-file <path>]
+ *   node dealsDigest.js [--date YYYY-MM-DD] [--no-email] [--max-xbrl N] [--top-n N]
+ *                       [--sast-quote-limit N] [--env-file <path>]
  *
  * # SETUP
  *   - GOOGLE_APP_PASSWORD in repo .env (used by lib/emailService.js; email is
@@ -37,6 +38,8 @@ const { sendHtmlEmail, stockscansUrl } = require('@stock/cloud-utils');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const dbV2 = require('./lib/db');
 
+// Both overridable via CLI flags on main() (see bottom of file), same pattern as the
+// existing --max-xbrl: `--top-n <n>` (default 10), `--sast-quote-limit <n>` (default 40).
 const TOP_N = 10;
 const XBRL_CONCURRENCY = 8;
 const SAST_QUOTE_LIMIT = 40; // max unique symbols priced for SAST value estimate
@@ -239,7 +242,7 @@ async function fetchBulkBlock(targetIst) {
 /**
  * SAST Reg 29 disclosures; ₹ value estimated as shares moved × NSE last close.
  */
-async function fetchSast(targetIst) {
+async function fetchSast(targetIst, sastQuoteLimit = SAST_QUOTE_LIMIT) {
   const out = { rows: [], errors: [] };
   let raw = [];
   try {
@@ -282,7 +285,7 @@ async function fetchSast(targetIst) {
   // Price the symbols (bounded) to estimate value = shares × last close.
   const symbols = [...new Set(rows.filter((r) => r.shares).map((r) => r.symbol))].slice(
     0,
-    SAST_QUOTE_LIMIT
+    sastQuoteLimit
   );
   const prices = {};
   for (const sym of symbols) {
@@ -452,7 +455,7 @@ async function fetchInsider(targetIst, maxXbrl) {
 
 // ── ranking + rendering ───────────────────────────────────────────────────────
 
-async function groupAndTop10ByNetValue(rows) {
+async function groupAndTop10ByNetValue(rows, topN = TOP_N) {
   const groupsBySym = {};
   for (const r of rows) {
     if (!r.symbol) continue;
@@ -480,7 +483,7 @@ async function groupAndTop10ByNetValue(rows) {
   let allGroups = Object.values(groupsBySym);
   allGroups = allGroups.filter((g) => Math.abs(g.netValue) >= 50000000);
   allGroups.sort((a, b) => Math.abs(b.netValue) - Math.abs(a.netValue));
-  const top10 = allGroups.slice(0, TOP_N);
+  const top10 = allGroups.slice(0, topN);
 
   await Promise.all(top10.map(async (g) => {
     g.deals.sort((a, b) => (b.value ?? -1) - (a.value ?? -1));
@@ -529,7 +532,7 @@ function td(v, right, wrap) {
   return `<td style="border-bottom:1px solid #eee${right ? ';text-align:right' : ''}${wrap ? ';white-space:normal' : ''}">${v}</td>`;
 }
 
-function renderEmail(dateLabel, digest) {
+function renderEmail(dateLabel, digest, topN = TOP_N) {
   const sideColor = (s) => {
     const hasBuy = /buy|acq/i.test(s || '');
     const hasSell = /sell|sale|dispos/i.test(s || '');
@@ -589,7 +592,7 @@ function renderEmail(dateLabel, digest) {
   return `
 <div style="max-width:860px">
   <h2 style="font-family:Arial;color:#0d1333;margin:0">Daily Deals Digest — ${dateLabel}</h2>
-  <p style="font:12px Arial;color:#666;margin:4px 0 0">Top ${TOP_N} companies per category by net value. Sources: NSE large-deals snapshot, NSE SAST Reg 29, NSE PIT (corporates-pit-gg + XBRL), BSE BulkDealData_ng. Like screener.in/filings, but ours.</p>
+  <p style="font:12px Arial;color:#666;margin:4px 0 0">Top ${topN} companies per category by net value. Sources: NSE large-deals snapshot, NSE SAST Reg 29, NSE PIT (corporates-pit-gg + XBRL), BSE BulkDealData_ng. Like screener.in/filings, but ours.</p>
   ${tableHtml(`1️⃣ Bulk Deals (${digest.bulk10.reduce((a, g) => a + g.deals.length, 0)}/${digest.bulkBlock.bulk.length})`, ['#', 'Stock', 'Net Value', '% of Mcap', 'Client', 'Side', 'Qty', 'Price', 'Value'], dealRows(digest.bulk10))}
   ${tableHtml(`2️⃣ Block Deals (${digest.block10.reduce((a, g) => a + g.deals.length, 0)}/${digest.bulkBlock.block.length})`, ['#', 'Stock', 'Net Value', '% of Mcap', 'Client', 'Side', 'Qty', 'Price', 'Value'], dealRows(digest.block10))}
   ${tableHtml(`3️⃣ SAST Trades (${digest.sast10.reduce((a, g) => a + g.deals.length, 0)}/${digest.sast.rows.length})`, ['#', 'Stock', 'Net Value', '% of Mcap', 'Acquirer', 'Type', 'Shares', 'Est. Value'], sastRows(digest.sast10), 'Value estimated as shares × NSE last close (SAST filings don’t carry ₹ value).')}
@@ -642,6 +645,8 @@ async function main() {
   const noEmail = process.argv.includes('--no-email');
   const force = process.argv.includes('--force');
   const maxXbrl = Number(argValue('--max-xbrl')) || 600;
+  const topN = Number(argValue('--top-n')) || TOP_N;
+  const sastQuoteLimit = Number(argValue('--sast-quote-limit')) || SAST_QUOTE_LIMIT;
 
   const target = parseDateArg(dateArg) || istNow();
   const dateLabel = fmt(target, '-');
@@ -670,7 +675,7 @@ async function main() {
 
   const [bulkBlock, sast, insider] = [
     await fetchBulkBlock(target),
-    await fetchSast(target),
+    await fetchSast(target, sastQuoteLimit),
     await fetchInsider(target, maxXbrl),
   ];
 
@@ -679,10 +684,10 @@ async function main() {
     bulkBlock,
     sast,
     insider,
-    bulk10: await groupAndTop10ByNetValue(bulkBlock.bulk),
-    block10: await groupAndTop10ByNetValue(bulkBlock.block),
-    sast10: await groupAndTop10ByNetValue(sast.rows),
-    insider10: await groupAndTop10ByNetValue(insider.rows),
+    bulk10: await groupAndTop10ByNetValue(bulkBlock.bulk, topN),
+    block10: await groupAndTop10ByNetValue(bulkBlock.block, topN),
+    sast10: await groupAndTop10ByNetValue(sast.rows, topN),
+    insider10: await groupAndTop10ByNetValue(insider.rows, topN),
   };
 
   // Output DTO standard (skills/tooling/output-dto-standard): every record
@@ -723,13 +728,13 @@ async function main() {
   }));
   if (dealEvents.length) dbV2.appendEvents(dealEvents);
 
-  const htmlBody = renderEmail(dateLabel, digest);
+  const htmlBody = renderEmail(dateLabel, digest, topN);
 
   // Email
   let email = { status: 'skipped', reason: '--no-email' };
   if (!noEmail) {
     email = await sendHtmlEmail({
-      subject: `📊 Deals Digest ${dateLabel} — Bulk/Block/SAST/Insider top ${TOP_N} companies by value`,
+      subject: `📊 Deals Digest ${dateLabel} — Bulk/Block/SAST/Insider top ${topN} companies by value`,
       htmlBody: htmlBody,
       to: process.env.DEALS_DIGEST_TO || undefined,
     });
