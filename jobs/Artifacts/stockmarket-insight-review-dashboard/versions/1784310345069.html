@@ -41,22 +41,21 @@
 <body>
 <div class="wrap">
   <h1>Stockmarket Insight Review Dashboard</h1>
-  <div class="sub">The closed loop: captured chats &rarr; enriched insights &rarr; weekly review &rarr; proposals you apply. Snapshot <b>2026-07-19</b> &middot; refreshed each review.</div>
+  <div class="sub">The closed loop: captured chats &rarr; enriched insights &rarr; weekly review &rarr; proposals you apply. Snapshot <b>2026-07-17</b> (follow-up cycle, ~23:09 IST) &middot; refreshed each review.</div>
 
   <div class="grid">
-    <div class="card"><div class="label">Conversations</div><div class="value">215+</div><div class="hint">+5 this cycle, backfill ongoing</div></div>
-    <div class="card"><div class="label">Notes</div><div class="value">624</div><div class="hint">573 + 51 new this cycle</div></div>
-    <div class="card"><div class="label">Reports</div><div class="value">100</div><div class="hint">97 + 3 new (gainers briefings)</div></div>
+    <div class="card"><div class="label">Conversations</div><div class="value">210+</div><div class="hint">116 cloud + 94 cowork, backfill ongoing</div></div>
+    <div class="card"><div class="label">Notes</div><div class="value">573</div><div class="hint">462 + 109 new this cycle (incl. rollups)</div></div>
+    <div class="card"><div class="label">Reports</div><div class="value">97</div><div class="hint">79 + 18 new (chat-analysis/sector-note)</div></div>
     <div class="card"><div class="label">Prompt library</div><div class="value">23</div><div class="hint">no new prompts this cycle</div></div>
   </div>
 
   <section>
-    <h2>Pending proposals <span class="pill amber">14 awaiting your review</span></h2>
+    <h2>Pending proposals <span class="pill amber">8 awaiting your review</span></h2>
     <div class="sub" style="margin:0 0 8px">Tick these in the <code>review-proposals</code> skill to apply. Full detail in each file under <code>data/_proposals/</code>.</div>
     <table>
       <thead><tr><th>&#9744;</th><th>Title</th><th>Target</th></tr></thead>
       <tbody>
-        <tr><td>&#9744;</td><td>Retry gainers-scanner announcement fetch on 429</td><td>packages/jobs-runtime/gainersScanner.js</td></tr>
         <tr><td>&#9744;</td><td>New skill: capital-markets-concept-explainer</td><td>new-skill</td></tr>
         <tr><td>&#9744;</td><td>Add news/sector-search step to fundamental-shift-scanner</td><td>skills/equity-research/fundamental-shift-scanner/SKILL.md</td></tr>
         <tr><td>&#9744;</td><td>Tag duplicate/administrative wrapper filings at write time</td><td>packages/jobs-runtime/lib/conversationExtractor.js</td></tr>
@@ -65,26 +64,21 @@
         <tr><td>&#9744;</td><td>Memory/watchlist: ethanol-blending beneficiaries theme</td><td>memory</td></tr>
         <tr><td>&#9744;</td><td>Proposal-recurrence tracker for reviewInsights.js</td><td>packages/jobs-runtime/scripts/reviewInsights.js</td></tr>
         <tr><td>&#9744;</td><td>github-skill-invoker private-repo block (NSE:MIRZAINT)</td><td>skills/github-skill-invoker</td></tr>
-        <tr><td>&#9744;</td><td>ACUTAAS duplicate-session retrieval gap</td><td>v2 proposal</td></tr>
-        <tr><td>&#9744;</td><td>CFO/PAT divergence signal</td><td>v2 proposal</td></tr>
-        <tr><td>&#9744;</td><td>Governance red-flags checklist memory</td><td>v2 proposal</td></tr>
-        <tr><td>&#9744;</td><td>Guidance annualization calculator</td><td>v2 proposal</td></tr>
-        <tr><td>&#9744;</td><td>Narrative fact-check skill gap</td><td>v2 proposal</td></tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>Consolidation candidates <span class="pill gray">checked, no change this cycle</span></h2>
+    <h2>Consolidation candidates <span class="pill green">applied this review</span></h2>
     <div class="sub" style="margin:0 0 8px">Companies with many notes &mdash; the review rolls older ones into a rollup summary so research context stays readable. Raw notes are kept.</div>
     <table>
       <thead><tr><th>Company</th><th>Notes</th><th>Status</th></tr></thead>
       <tbody>
-        <tr><td>GLOBAL:PROCESS</td><td>114</td><td><span class="pill gray">unchanged since 2026-07-17 rollup</span></td></tr>
-        <tr><td>NSE:ANANDRATHI</td><td>18</td><td><span class="pill gray">unchanged since 2026-07-17 rollup</span></td></tr>
+        <tr><td>GLOBAL:PROCESS</td><td>114</td><td><span class="pill green">rollup refreshed 2026-07-17 (was 29)</span></td></tr>
+        <tr><td>NSE:ANANDRATHI</td><td>17</td><td><span class="pill gray">checked, no change needed</span></td></tr>
       </tbody>
     </table>
-    <div class="foot">Threshold: &gt; 8 notes &rarr; rollup candidate. No company crossed the threshold newly this run.</div>
+    <div class="foot">Threshold: &gt; 8 notes &rarr; rollup candidate. No other company crossed the threshold this run.</div>
   </section>
 
   <section>
@@ -92,8 +86,7 @@
     <table>
       <thead><tr><th>Date</th><th>Reviewed</th><th>Hygiene</th><th>Proposals</th></tr></thead>
       <tbody>
-        <tr><td>2026-07-19</td><td>51 notes / 3 reports / 0 prompts / 5 conversations</td><td>none needed (signals unchanged)</td><td>+1 (14 total pending)</td></tr>
-        <tr><td>2026-07-17 (follow-up)</td><td>109 notes / 18 reports / 0 prompts (backfill delta)</td><td>GLOBAL:PROCESS rollup refreshed</td><td>+2 (8 total pending then)</td></tr>
+        <tr><td>2026-07-17 (follow-up)</td><td>109 notes / 18 reports / 0 prompts (backfill delta)</td><td>GLOBAL:PROCESS rollup refreshed</td><td>+2 (8 total pending)</td></tr>
         <tr><td>2026-07-17 (initial)</td><td>462 notes / 79 reports / 23 prompts / 210 conversations (first-ever, full-history delta)</td><td>2 rollups (GLOBAL:PROCESS, NSE:ANANDRATHI)</td><td>6</td></tr>
       </tbody>
     </table>

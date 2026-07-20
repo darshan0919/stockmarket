@@ -119,6 +119,26 @@ class StockscansClient {
   }
 
   /**
+   * Paginated corporate announcements for one or more companies. Distinct
+   * from {@link companyAnnouncements}, which posts to `/announcements/company`
+   * and returned HTTP 400 for a plain `{companyIds, offset}` payload as of
+   * 2026-07 live testing (order-book-pipeline work) — this hits the endpoint
+   * documented in stock-documents-fetcher's api_details.md and used by
+   * fetch_announcements.py, confirmed working with the same payload shape.
+   * @param {string[]} companyIds
+   * @param {number} [offset=0] - paginates in steps of 30
+   * @returns {Promise<{companyAnnouncements: Array, offset: number, limit: number}>}
+   */
+  async announcements(companyIds, offset = 0) {
+    const { data } = await this.http.post(
+      `${BASE_URL}/api/company/announcements`,
+      { companyIds, offset },
+      { headers: this._headers(`${BASE_URL}/company/${companyIds[0]}`) }
+    );
+    return data;
+  }
+
+  /**
    * Announcement-scan metadata (index/industry lists).
    * @param {Object} [opts] - { referer, optionalAuth }
    * @returns {Promise<Object>}

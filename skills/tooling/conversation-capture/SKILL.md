@@ -63,7 +63,7 @@ docs** (tax/ITR/PAN — the writer skips these; never override that).
 
 ## Governance — no direct writes to git-committed files
 
-Automated runs (the weekly capture + weekday enrichment jobs) MUST only write DB
+Automated runs (the weekly capture + weekly enrichment jobs) MUST only write DB
 collections under `data/` (git-ignored, mirrored to Drive) and Claude memory. They must
 NEVER create, edit, or delete any git-committed file — nothing under `skills/`, `scripts/`,
 `packages/*/lib`, `docs/`, `jobs/`, `registry*.json`, or tests. If a run concludes that a
@@ -79,3 +79,9 @@ Darshan's approval; this restriction is for unattended jobs.
   re-running re-extracts with zero duplicates (deterministic ids).
 - Captured conversations surface in `buildCompanyContext(companyId).conversations` — future
   research automatically sees prior chat history about the company.
+- **Staleness / re-chatting:** each conversation carries a `contentHash` (sha256 of the full
+  transcript text) and a `dirty` flag. If you keep chatting in an already-captured session,
+  the next capture run detects the hash change, re-saves the body, and sets `dirty: true`.
+  The weekly enrichment job treats "not yet enriched" OR "dirty" as its work queue, and
+  clears `dirty` back to `false` once it re-mines the conversation — so nothing gets
+  captured once and then silently ignored forever.

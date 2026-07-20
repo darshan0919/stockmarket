@@ -169,6 +169,12 @@ function extract(conv, { source = 'cloud', extraKeywords = [], llm = null, now =
   // user's own words.
   const title = n.title || (n.questions[0] || '').replace(/\s+/g, ' ').slice(0, 80);
 
+  // Content hash over the full transcript text — lets the capture job detect
+  // when an already-captured session has NEW turns appended (someone kept
+  // chatting) so it can re-save the body and flag the record `dirty` for the
+  // enrichment job to pick back up, instead of silently skipping it forever.
+  const contentHash = crypto.createHash('sha256').update(n.fullText || '').digest('hex').slice(0, 16);
+
   const conversationDto = {
     id: n.id,
     type: source,
@@ -183,6 +189,8 @@ function extract(conv, { source = 'cloud', extraKeywords = [], llm = null, now =
     summary,
     questions: n.questions,
     artifacts: n.artifacts,
+    contentHash,
+    dirty: false,
     body: `conversations/${n.id}.json`,
     // body file (written by Phase-3 writer) holds full turns:
     _body: { turns: n.turns },

@@ -434,7 +434,7 @@ function saveConversation(dto) {
   withLock('conversation-bodies', () => {
     writeFileAtomic(bodyPath, body);
   });
-  const { id, type, date, companyIds, creator, creationTime, modifiedTime, title, sessionId, tags, summary, artifacts } = dto;
+  const { id, type, date, companyIds, creator, creationTime, modifiedTime, title, sessionId, tags, summary, artifacts, contentHash, dirty } = dto;
   upsertMany('conversations', [{
     id, type, date, companyIds: companyIds || [], creator, creationTime, modifiedTime,
     title: title || null,
@@ -442,6 +442,11 @@ function saveConversation(dto) {
     tags: tags || [],
     summary: summary || null,
     artifactCount: Array.isArray(artifacts) ? artifacts.length : 0,
+    contentHash: contentHash || null,
+    // `dirty` = content changed (new turns) since the enrichment job last
+    // processed this conversation. Capture sets it true on an update; the
+    // enrichment job clears it back to false once re-processed.
+    dirty: !!dirty,
     body: `conversations/${id}.json`,
   }]);
   linkToCompanies(dto);

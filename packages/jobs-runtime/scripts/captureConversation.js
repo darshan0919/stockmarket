@@ -120,9 +120,22 @@ function captureOne(conv, opts = {}) {
   }
 
   const dto = r.conversationDto;
+
+  // Content-hash check: if this session was captured before AND its transcript
+  // text is byte-identical to last time, there's nothing new — skip cleanly.
+  // If it HAS changed (the user kept chatting in the same session), fall
+  // through and re-save, flagging the record `dirty` so the weekly enrichment
+  // job knows to re-visit it instead of assuming it's already fully mined.
+  const prior = cursor && sid ? cursor.done[sid] : null;
+  if (prior && !prior.dryRun && prior.contentHash && prior.contentHash === dto.contentHash) {
+    return { status: 'unchanged', id: dto.id };
+  }
+  const isUpdate = !!(prior && !prior.dryRun && prior.contentHash);
+  if (isUpdate) dto.dirty = true;
+
   if (dryRun) {
-    if (cursor && sid) cursor.done[sid] = { id: dto.id, dryRun: true };
-    return { status: 'would-save', id: dto.id, companyIds: dto.companyIds, artifacts: r.artifacts.length,
+    if (cursor && sid) cursor.done[sid] = { id: dto.id, contentHash: dto.contentHash, dryRun: true };
+    return { status: isUpdate ? 'would-update' : 'would-save', id: dto.id, companyIds: dto.companyIds, artifacts: r.artifacts.length,
       notes: (extract && extract.notes ? extract.notes.length : 0) };
   }
 
@@ -142,8 +155,8 @@ function captureOne(conv, opts = {}) {
     }
   }
 
-  if (cursor && sid) cursor.done[sid] = { id: dto.id, companyIds: dto.companyIds };
-  return { status: 'saved', id: dto.id, companyIds: dto.companyIds, artifacts: r.artifacts.length, notes: notesN, reports: reportsN };
+  if (cursor && sid) cursor.done[sid] = { id: dto.id, companyIds: dto.companyIds, contentHash: dto.contentHash };
+  return { status: isUpdate ? 'updated' : 'saved', id: dto.id, companyIds: dto.companyIds, artifacts: r.artifacts.length, notes: notesN, reports: reportsN };
 }
 
 // ── ingest sources ────────────────────────────────────────────────────────────
@@ -217,18 +230,23 @@ function main(argv) {
 
   const extraKeywords = loadExtraKeywords();
   const cursor = loadCursor();
-  const stats = { saved: 0, skippedNonStock: 0, skippedSensitive: 0, skippedAutomated: 0, alreadyDone: 0, wouldSave: 0 };
+  const stats = { saved: 0, updated: 0, skippedNonStock: 0, skippedSensitive: 0, skippedAutomated: 0, alreadyDone: 0, wouldSave: 0, wouldUpdate: 0 };
 
+  // NOTE: no longer pre-skipping by sid alone — captureOne itself compares
+  // contentHash so a session that gained new turns since its last capture is
+  // re-saved (and flagged dirty) instead of being silently skipped forever.
   let n = 0;
   for (const { conv, source } of items) {
     if (n >= limit) break;
     const sid = conv.uuid || conv.sessionId;
-    if (sid && cursor.done[sid] && !cursor.done[sid].dryRun) { stats.alreadyDone++; continue; }
     n++;
     const sidecar = extractSidecar && sid ? extractSidecar[sid] : null;
     const r = captureOne(conv, { source, extraKeywords, extract: sidecar, dryRun, cursor });
     if (r.status === 'saved') stats.saved++;
+    else if (r.status === 'updated') stats.updated++;
     else if (r.status === 'would-save') stats.wouldSave++;
+    else if (r.status === 'would-update') stats.wouldUpdate++;
+    else if (r.status === 'unchanged') stats.alreadyDone++;
     else if (r.status === 'skipped-nonstock') stats.skippedNonStock++;
     else if (r.status === 'skipped-sensitive') stats.skippedSensitive++;
     else if (r.status === 'skipped-automated') stats.skippedAutomated++;
@@ -239,7 +257,7 @@ function main(argv) {
   console.log('[capture]', JSON.stringify(stats));
   const touched = db.touchedFiles();
   if (touched.length) console.log('[capture] files touched:\n  ' + touched.join('\n  '));
-  if (!noPush && stats.saved > 0) {
+  if (!noPush && (stats.saved > 0 || stats.updated > 0)) {
     console.log('[capture] pushing to Drive…');
     console.log(runPush());
   }
