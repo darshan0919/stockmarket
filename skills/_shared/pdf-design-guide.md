@@ -190,13 +190,14 @@ consistently across every skill's output.
   padding, `3px` radius. Use for per-row signals in tables and end-of-report verdict bands, and
   for headline/summary badges (e.g. a subscription-view or buy/sell verdict next to the title)
   where the tag needs to stand alone as its own labeled element.
-- **Flag tag** `.ftag.ftag-{g,r,y,b}` — text-color-only tone marker (no background pill, no
-  separate rating word), for when the row/cell subject *is* the thing being rated — e.g. a
-  red-flag scan's flag name, a checklist item. Prefix with a small colored bullet (`::before`
-  content `"●"`) and color the subject text itself in the tone color; do not also print
-  "GREEN"/"YELLOW"/"RED" next to it — see the "Don't say the tone word" principle above. Use
-  `.chip` instead when the tag needs to be its own separate labeled badge (e.g. next to a
-  verdict headline); use `.ftag` when the tag color should just *be* the subject's color.
+- **Flag tag** `.ftag.ftag-{g,r,y,b}` — a bordered, tinted-background pill (`padding: 3px 8px`,
+  `border-radius: 3px`, `1px solid` border in a slightly darker tint of the same tone) wrapping
+  the subject text itself, for when the row/cell subject *is* the thing being rated — e.g. a
+  red-flag scan's flag name, a checklist item. No decorative bullet/icon prefix — the tinted
+  background + border carries the signal on its own. Do not also print "GREEN"/"YELLOW"/"RED"
+  next to it — see the "Don't say the tone word" principle above. Use `.chip` when the tag needs
+  to be its own separate labeled badge sitting next to other text (e.g. a verdict badge next to
+  a headline); use `.ftag` when the tag color should wrap and *be* the subject's own label.
 - **Callout** `.hl.hl-{g,r,y,b}` — left-border-accented block for a ranked observation, flag, or
   analyst note. `padding: 7-9px 10-12px`, `3-4px` radius, `3px` left border in the tone color.
 - **KPI card** `.kpi` inside `.grid3`/`.grid4` — `label` (mono, uppercase, muted) / `bignum`
@@ -214,8 +215,15 @@ consistently across every skill's output.
 
 1. Eyebrow + title + subtitle + thick rule (header)
 2. Optional top alert/callout for a breaking price move or the single most important caveat
-3. Numbered sections, each with a `.sec-hd`, ending in a verdict/chip band
-4. Disclaimer footer (already baked into `wrapHtml` — don't duplicate it by hand)
+3. KPI headline grid (if the report has one)
+4. **Verdict section first, always** — the report's bottom-line call (subscription
+   view/buy-sell-hold/pass-fail + one-paragraph rationale) is section `01`, immediately after the
+   KPI grid, not the last thing the reader reaches after every supporting section. The reader
+   should get the answer before the evidence; everything after section 01 is "here's why," not
+   "here's the answer, finally." Renumber the rest of the report's sections accordingly (`02`
+   onward) — don't leave a duplicate verdict at the bottom.
+5. Remaining numbered sections, each with a `.sec-hd`, in supporting-evidence order
+6. Disclaimer footer (already baked into `wrapHtml` — don't duplicate it by hand)
 
 ## Copy-paste CSS block
 
@@ -246,12 +254,11 @@ td.mono, td.r { font-family: monospace; font-size: 10px; }
 .chip-r { background: #fcebeb; color: #791f1f; }
 .chip-y { background: #faeeda; color: #633806; }
 .chip-b { background: #e6f1fb; color: #0c447c; }
-.ftag { font-weight: 600; }
-.ftag-g { color: #27500a; }
-.ftag-y { color: #633806; }
-.ftag-r { color: #791f1f; }
-.ftag-b { color: #0c447c; }
-.ftag::before { content: "●"; font-size: 8px; margin-right: 5px; vertical-align: 1px; }
+.ftag { display: inline-block; font-weight: 600; padding: 3px 8px; border-radius: 3px; border: 1px solid; font-size: 10px; }
+.ftag-g { background: #eaf3de; color: #27500a; border-color: #a9cf8a; }
+.ftag-y { background: #faeeda; color: #633806; border-color: #eec27e; }
+.ftag-r { background: #fcebeb; color: #791f1f; border-color: #ecaaa9; }
+.ftag-b { background: #e6f1fb; color: #0c447c; border-color: #a7cdec; }
 .hl { padding: 7px 10px; border-radius: 3px; margin: 6px 0; font-size: 10.5px; line-height: 1.5; }
 .hl-g { background: #eaf3de; border-left: 3px solid #5bad3a; color: #1a3d0a; }
 .hl-r { background: #fcebeb; border-left: 3px solid #e24b4a; color: #52100f; }

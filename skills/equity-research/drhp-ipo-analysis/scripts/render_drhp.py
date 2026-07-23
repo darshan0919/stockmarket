@@ -53,12 +53,11 @@ td.mono, td.r { font-family: monospace; font-size: 10px; }
 .chip-y { background: #faeeda; color: #633806; }
 .chip-b { background: #e6f1fb; color: #0c447c; }
 .chip-lg { font-size: 11px; padding: 4px 10px; }
-.ftag { font-weight: 600; }
-.ftag-g { color: #27500a; }
-.ftag-y { color: #633806; }
-.ftag-r { color: #791f1f; }
-.ftag-b { color: #0c447c; }
-.ftag::before { content: "●"; font-size: 8px; margin-right: 5px; vertical-align: 1px; }
+.ftag { display: inline-block; font-weight: 600; padding: 3px 8px; border-radius: 3px; border: 1px solid; font-size: 10px; }
+.ftag-g { background: #eaf3de; color: #27500a; border-color: #a9cf8a; }
+.ftag-y { background: #faeeda; color: #633806; border-color: #eec27e; }
+.ftag-r { background: #fcebeb; color: #791f1f; border-color: #ecaaa9; }
+.ftag-b { background: #e6f1fb; color: #0c447c; border-color: #a7cdec; }
 .hl { padding: 7px 10px; border-radius: 3px; margin: 6px 0; font-size: 10.5px; line-height: 1.5; }
 .hl-g { background: #eaf3de; border-left: 3px solid #5bad3a; color: #1a3d0a; }
 .hl-r { background: #fcebeb; border-left: 3px solid #e24b4a; color: #52100f; }
@@ -137,9 +136,15 @@ def render(dto: dict) -> str:
         for o in dto.get("objects_of_issue", [])
     )
 
+    sec_verdict = f"""
+<div class="sec" style="margin-top:0;">
+<div class="sec-hd">01&nbsp;&nbsp;Verdict</div>
+<div class="hl hl-{view_tone}"><strong>{esc(view)}.</strong> {esc(dto.get('verdict_rationale'))}</div>
+</div>"""
+
     sec01 = f"""
 <div class="sec">
-<div class="sec-hd">01&nbsp;&nbsp;Business, promoters &amp; issue proceeds</div>
+<div class="sec-hd">02&nbsp;&nbsp;Business, promoters &amp; issue proceeds</div>
 <div class="twocol">
 <div>
 <p><strong>Business:</strong> {bo.get('text','')} <span class="subnum">[{esc(bo.get('citation'))}]</span></p>
@@ -198,7 +203,7 @@ def render(dto: dict) -> str:
 
     sec02 = f"""
 <div class="sec">
-<div class="sec-hd">02&nbsp;&nbsp;Financials, restated (₹ Lakh) <span class="subnum">— FY25 cell colored vs FY24, direction that matters per metric</span></div>
+<div class="sec-hd">03&nbsp;&nbsp;Financials, restated (₹ Lakh) <span class="subnum">— FY25 cell colored vs FY24, direction that matters per metric</span></div>
 <table>
 <tr><th>Metric</th>{fin_header}</tr>
 {fin_rows}
@@ -242,7 +247,7 @@ def render(dto: dict) -> str:
 
     sec03 = f"""
 <div class="sec">
-<div class="sec-hd">03&nbsp;&nbsp;Related-party transactions, litigation &amp; contingent liabilities</div>
+<div class="sec-hd">04&nbsp;&nbsp;Related-party transactions, litigation &amp; contingent liabilities</div>
 <div class="vmatrix">
 <div>Related party</div><div>Relationship</div><div>Nature (FY25)</div><div>Amount / status</div>
 {rpt_rows}
@@ -273,7 +278,7 @@ def render(dto: dict) -> str:
     peer_chip = '<span class="chip chip-b">No listed anchor</span>'
     sec04 = f"""
 <div class="sec">
-<div class="sec-hd">04&nbsp;&nbsp;Auditor, industry data &amp; valuation anchor</div>
+<div class="sec-hd">05&nbsp;&nbsp;Auditor, industry data &amp; valuation anchor</div>
 <div class="twocol">
 <div>
 <p>{aud_chip} <strong>Auditor:</strong> {esc(aud.get('current'))}, {esc(aud.get('appointed'))}. Predecessor: {esc(aud.get('predecessor'))}. Qualifications: {esc(aud.get('qualifications'))}. <span class="subnum">[{esc(aud.get('citation'))}]</span></p>
@@ -294,28 +299,23 @@ def render(dto: dict) -> str:
     )
     sec05 = f"""
 <div class="sec">
-<div class="sec-hd">05&nbsp;&nbsp;Red-flag scan</div>
+<div class="sec-hd">06&nbsp;&nbsp;Red-flag scan</div>
 <table>
 <tr><th style="width:34%;">Flag</th><th>Evidence</th></tr>
 {flag_rows}
 </table>
 </div>"""
 
-    # ---- 06 Additional insights (shape-sniffed from DTO's `additional` field) ----
-    sec06 = render_additional_html(dto.get("additional"), section_number="06", title="Additional insights")
+    # ---- 07 Additional insights (shape-sniffed from DTO's `additional` field) ----
+    sec06 = render_additional_html(dto.get("additional"), section_number="07", title="Additional insights")
 
-    # ---- 07 Limitations + 08 verdict ----
+    # ---- 08 Limitations ----
     lim_items = "".join(f"<li>{esc(x)}</li>" for x in dto.get("limitations", []))
-    next_n = "07" if sec06 else "06"
-    verdict_n = "08" if sec06 else "07"
+    next_n = "08" if sec06 else "07"
     sec_lim = f"""
 <div class="sec">
 <div class="sec-hd">{next_n}&nbsp;&nbsp;What could be wrong with this analysis</div>
 <ul class="tight">{lim_items}</ul>
-</div>
-<div class="sec">
-<div class="sec-hd">{verdict_n}&nbsp;&nbsp;Verdict</div>
-<div class="hl hl-{view_tone}"><strong>{esc(view)}.</strong> {esc(dto.get('verdict_rationale'))}</div>
 </div>"""
 
     order_book = dto.get("order_book_inr_cr")
@@ -332,6 +332,7 @@ def render(dto: dict) -> str:
 </div>
 <div class="alert"><strong>Timing note:</strong> {alert}</div>
 <div class="grid4">{kpi_html}</div>
+{sec_verdict}
 {sec01}
 {sec02}
 {sec03}
