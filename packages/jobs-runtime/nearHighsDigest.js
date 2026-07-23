@@ -6,11 +6,11 @@ const { sendHtmlEmail } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
 const { cachePath } = require('./lib/db');
 
-const HEADERS = {
+const getHeaders = (authToken) => ({
   'accept': 'application/json',
   'accept-language': 'en-US,en;q=0.9',
   'content-type': 'application/json',
-  'cookie': '_ga=GA1.1.923358363.1766992983; authtoken=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3ODQwMzQ3NTUsInVzZXJJZCI6IjY0OGVkZjg5NmU2MzRiOTJiNjUxZjU5NyJ9.UwFNCARbEAdl_eLQ9wwVJ9X7gqdyGfM6-DMdD6MzzG8; lastLayout=7e0f8a1d63c1dacad645ffab; theme=light; _clck=n576cg%5E2%5Eg7o%5E0%5E2189; _clsk=wdey55%5E1783861291769%5E15%5E1%5Ey.clarity.ms%2Fcollect; _ga_6GLNXH796V=GS2.1.s1783858803$o886$g1$t1783861293$j57$l0$h0',
+  'cookie': `_ga=GA1.1.923358363.1766992983; authtoken=${authToken}; lastLayout=7e0f8a1d63c1dacad645ffab; theme=light; _clck=n576cg%5E2%5Eg7o%5E0%5E2189; _clsk=wdey55%5E1783861291769%5E15%5E1%5Ey.clarity.ms%2Fcollect; _ga_6GLNXH796V=GS2.1.s1783858803$o886$g1$t1783861293$j57$l0$h0`,
   'origin': 'https://www.stockscans.in',
   'priority': 'u=1, i',
   'referer': 'https://www.stockscans.in/scans/saved/9493efc2c969d602c5dedbe2',
@@ -22,19 +22,20 @@ const HEADERS = {
   'sec-fetch-site': 'same-origin',
   'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
   'x-sync-source': 'vizcbbsxmrhsr8un'
-};
+});
 
-async function runScan(payload) {
+async function runScan(payload, authToken) {
   let allRows = [];
   let header = null;
   let offset = 0;
   const limit = 50;
+  const headers = getHeaders(authToken);
 
   while (true) {
     payload.offset = offset;
     const res = await fetch('https://www.stockscans.in/api/company/scans/run', {
       method: 'POST',
-      headers: HEADERS,
+      headers,
       body: JSON.stringify(payload)
     });
     
@@ -68,7 +69,7 @@ async function main() {
   
   const payload = {"ratiosType":"Default","timePeriod":"Latest","scan":{"scanId":"9493efc2c969d602c5dedbe2","scanName":"Near Highs","scanDescription":"Near Highs","industry":[],"index":[],"tags":[],"watchlistIds":[],"filters":[{"left":"52WH Distance","sign":"<","right":"20"},{"left":"52WL Distance","sign":">","right":"50"},{"left":"Close Price","sign":">=","right":"EMA 200D"},{"left":"Volume SMA 50D * SMA 50D","sign":">=","right":"50000000"},{"left":"Market Capitalization","sign":">=","right":"500"},{"left":"Market Capitalization","sign":"<","right":"50000"}],"alertFrequency":null},"watchlistIds":[],"order":"desc","orderBy":"Market Capitalization","offset":0};
   
-  const { header, rows } = await runScan(payload);
+  const { header, rows } = await runScan(payload, process.env.STOCKSCANS_AUTH_TOKEN);
   if (!header) {
     console.log("No data returned");
     return;

@@ -14,3 +14,5 @@ bash ./skills/_shared/resolve.sh render-pdf --html <input.html> --pdf <output.pd
 ```
 
 **Note:** This skill requires a full Node.js environment with `@puppeteer/puppeteer` installed, which is why it runs in `clone` mode when invoked remotely.
+
+**Design system:** the input HTML must follow `skills/_shared/pdf-design-guide.md` (flat institutional-briefing palette, monospace section headers, `.chip`/`.hl`/`.kpi`/`.vmatrix` components). If you built the HTML via `pdfRenderer.wrapHtml()` this is automatic; if you wrote the HTML by hand, copy the CSS block from the guide into your `<style>` tag before calling this skill.

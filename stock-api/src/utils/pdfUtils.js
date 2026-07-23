@@ -3,33 +3,32 @@
 /**
  * Shared PDF utilities for puppeteer-based HTML generation.
  * (Replaces legacy python/utils/pdf_utils.py reportlab formatting)
+ *
+ * Palette + component vocabulary is the flat "institutional briefing" design
+ * system — see skills/_shared/pdf-design-guide.md for the full spec (colors,
+ * typography, component classes: .chip, .hl, .kpi, .vmatrix, .sec-hd). Both
+ * exports below resolve to the SAME flat palette so any generator, regardless
+ * of which one it imports, renders consistently. Kept as two exports only for
+ * backward-compat with existing `require` call sites — do not diverge them.
  */
 
-const INSTITUTIONAL_DARK = {
-    primary:     '#1B2A4A',
-    secondary:   '#2C4A7C',
-    tint:        '#E8EEF6',
-    good:        '#27AE60',
-    warn:        '#F39C12',
-    bad:         '#E74C3C',
-    muted:       '#555555',
-    surface:     '#F5F5F5',
-    border:      '#CCCCCC',
-    alt_row:     '#F0F4FA',
+const FLAT_PALETTE = {
+    primary:     '#111111',
+    secondary:   '#0c447c',
+    tint:        '#f5f4f0',
+    good:        '#27500a',
+    warn:        '#854f0b',
+    bad:         '#a32d2d',
+    muted:       '#666666',
+    surface:     '#f5f4f0',
+    border:      '#dddddd',
+    alt_row:     '#f5f4f0',
+    text:        '#1a1a1a',
 };
 
-const INSTITUTIONAL_LIGHT = {
-    primary:     '#1a365d',
-    secondary:   '#2b6cb0',
-    tint:        '#ebf8ff',
-    good:        '#276749',
-    warn:        '#c05621',
-    bad:         '#9b2c2c',
-    muted:       '#4a5568',
-    surface:     '#f7fafc',
-    border:      '#e2e8f0',
-    text:        '#1a202c',
-};
+const INSTITUTIONAL_DARK = FLAT_PALETTE;
+
+const INSTITUTIONAL_LIGHT = FLAT_PALETTE;
 
 /**
  * Parse a markdown pipe table -> { headers, rows }.
@@ -64,34 +63,64 @@ function formatInlineMarkdown(text) {
  * Generate HTML string for a styled table.
  */
 function styledTableHtml(data, palette, opts = {}) {
-    const headerBg = opts.headerBg || palette.primary;
-    const borderColor = opts.borderColor || palette.border || '#CCCCCC';
+    const borderColor = opts.borderColor || palette.border || '#dddddd';
     const altBg = opts.altBg !== undefined ? opts.altBg : (palette.alt_row || palette.tint);
-    
-    let html = `<table style="width: 100%; border-collapse: collapse; border: 1px solid ${borderColor}; font-family: Helvetica, sans-serif; font-size: 10px;">`;
-    
+
+    let html = `<table style="width: 100%; border-collapse: collapse; font-family: Helvetica, Arial, sans-serif; font-size: 9.8px;">`;
+
     data.forEach((row, rowIndex) => {
         const isHeader = rowIndex === 0;
-        const bg = isHeader ? headerBg : (rowIndex % 2 === 0 ? altBg : '#ffffff');
-        const color = isHeader ? '#ffffff' : (palette.text || '#000000');
-        const fontWeight = isHeader ? 'bold' : 'normal';
+        const bg = isHeader ? 'transparent' : (rowIndex % 2 === 0 ? altBg : '#ffffff');
+        const color = isHeader ? (palette.muted || '#666666') : (palette.text || '#1a1a1a');
+        const fontWeight = isHeader ? '600' : 'normal';
+        const borderStyle = isHeader ? `1.5px solid ${palette.primary || '#111111'}` : `0.5px solid ${borderColor}`;
 
         html += `<tr style="background-color: ${bg}; color: ${color}; font-weight: ${fontWeight};">`;
         row.forEach(cell => {
             const tag = isHeader ? 'th' : 'td';
-            html += `<${tag} style="border: 1px solid ${borderColor}; padding: 4px 6px; text-align: left; vertical-align: top;">${formatInlineMarkdown(cell)}</${tag}>`;
+            const headerStyle = isHeader
+                ? `font-family: monospace, Helvetica; font-size: 8px; text-transform: uppercase; letter-spacing: 0.04em; padding: 4px 6px; text-align: left; border-bottom: ${borderStyle};`
+                : `padding: 4px 6px; text-align: left; vertical-align: top; border-bottom: ${borderStyle};`;
+            html += `<${tag} style="${headerStyle}">${formatInlineMarkdown(cell)}</${tag}>`;
         });
         html += `</tr>`;
     });
-    
+
     html += `</table>`;
     return html;
+}
+
+/** Chip / pill label — mirrors .chip-{g,r,y,b} from the shared design system. */
+function chipHtml(text, tone = 'g') {
+    const tones = {
+        g: { bg: '#eaf3de', fg: '#27500a' },
+        r: { bg: '#fcebeb', fg: '#791f1f' },
+        y: { bg: '#faeeda', fg: '#633806' },
+        b: { bg: '#e6f1fb', fg: '#0c447c' },
+    };
+    const c = tones[tone] || tones.g;
+    return `<span style="display:inline-block; font-size:7.8px; font-family:monospace; padding:2px 6px; border-radius:3px; font-weight:600; background:${c.bg}; color:${c.fg};">${formatInlineMarkdown(text)}</span>`;
+}
+
+/** Callout box — mirrors .hl-{g,r,y,b} from the shared design system. */
+function calloutHtml(html, tone = 'b') {
+    const tones = {
+        g: { bg: '#eaf3de', border: '#5bad3a', fg: '#1a3d0a' },
+        r: { bg: '#fcebeb', border: '#e24b4a', fg: '#52100f' },
+        y: { bg: '#faeeda', border: '#ef9f27', fg: '#412402' },
+        b: { bg: '#e6f1fb', border: '#3a85c9', fg: '#0a2752' },
+    };
+    const c = tones[tone] || tones.b;
+    return `<div style="background:${c.bg}; border-left:3px solid ${c.border}; color:${c.fg}; padding:7px 10px; border-radius:3px; margin:6px 0; font-size:10px; line-height:1.5;">${html}</div>`;
 }
 
 module.exports = {
     INSTITUTIONAL_DARK,
     INSTITUTIONAL_LIGHT,
+    FLAT_PALETTE,
     parseMarkdownTable,
     formatInlineMarkdown,
-    styledTableHtml
+    styledTableHtml,
+    chipHtml,
+    calloutHtml,
 };

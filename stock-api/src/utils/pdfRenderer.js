@@ -7,6 +7,14 @@ const { INSTITUTIONAL_DARK, parseMarkdownTable, formatInlineMarkdown, styledTabl
 /**
  * Common HTML wrapping for deep dive reports, using INSTITUTIONAL_DARK palette.
  */
+/**
+ * Shared institutional-briefing shell. Palette + component classes match
+ * skills/_shared/pdf-design-guide.md — every skill's PDF should look like it
+ * came from the same desk. Generators pass markdown/HTML into `bodyHtml`;
+ * they can also freely emit `.chip`, `.hl`, `.kpi`/`.grid3`/`.grid4`, and
+ * `.vmatrix` markup (see pdfUtils.chipHtml / calloutHtml for JS helpers, or
+ * emit the class names directly) and it will render consistently here.
+ */
 function wrapHtml(title, subtitle, bodyHtml, options = {}) {
     return `
     <!DOCTYPE html>
@@ -14,46 +22,54 @@ function wrapHtml(title, subtitle, bodyHtml, options = {}) {
     <head>
         <meta charset="UTF-8">
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Helvetica:wght@400;700&display=swap');
-            
+            * { box-sizing: border-box; }
             body {
-                font-family: 'Helvetica', Arial, sans-serif;
-                color: #000;
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                color: ${INSTITUTIONAL_DARK.text || '#1a1a1a'};
                 margin: 0;
                 padding: 0;
-                font-size: 9pt;
-                line-height: 1.4;
+                font-size: 10.5px;
+                line-height: 1.45;
             }
-            .header-line {
-                border-top: 1px solid ${INSTITUTIONAL_DARK.primary};
-                margin-top: 10px;
-                margin-bottom: 5px;
+            .eyebrow {
+                font-size: 9px;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: ${INSTITUTIONAL_DARK.muted};
+                font-family: monospace;
+                margin-bottom: 4px;
             }
             .title {
-                font-size: 22pt;
+                font-size: 20pt;
+                font-weight: 600;
                 color: ${INSTITUTIONAL_DARK.primary};
-                margin-bottom: 4mm;
+                margin-bottom: 2mm;
             }
             .subtitle {
-                font-size: 11pt;
+                font-size: 9px;
+                font-family: monospace;
                 color: ${INSTITUTIONAL_DARK.muted};
                 margin-bottom: 8mm;
             }
             .thick-line {
-                border-top: 1.5pt solid ${INSTITUTIONAL_DARK.primary};
+                border-top: 2.5pt solid ${INSTITUTIONAL_DARK.primary};
                 margin-bottom: 6mm;
             }
             h2 {
-                font-size: 14pt;
-                color: ${INSTITUTIONAL_DARK.primary};
-                margin-top: 10mm;
+                font-size: 10.5pt;
+                font-family: monospace;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                color: ${INSTITUTIONAL_DARK.muted};
+                margin-top: 8mm;
                 margin-bottom: 4mm;
-                border-bottom: 0.5pt solid ${INSTITUTIONAL_DARK.primary};
+                border-bottom: 1px solid ${INSTITUTIONAL_DARK.border};
                 padding-bottom: 3mm;
             }
             h3 {
                 font-size: 11pt;
-                color: ${INSTITUTIONAL_DARK.secondary};
+                font-weight: 600;
+                color: ${INSTITUTIONAL_DARK.primary};
                 margin-top: 6mm;
                 margin-bottom: 3mm;
             }
@@ -71,20 +87,39 @@ function wrapHtml(title, subtitle, bodyHtml, options = {}) {
             }
             .red-flag {
                 color: ${INSTITUTIONAL_DARK.bad};
-                font-weight: bold;
+                font-weight: 600;
             }
             .quote {
-                color: ${INSTITUTIONAL_DARK.muted};
                 font-style: italic;
-                margin-left: 10mm;
-                margin-right: 10mm;
-                margin-top: 2mm;
-                margin-bottom: 3mm;
+                font-size: 9.8pt;
+                color: ${INSTITUTIONAL_DARK.muted};
+                border-left: 2px solid ${INSTITUTIONAL_DARK.border};
+                padding: 3px 10px;
+                margin: 6px 0;
             }
-            .verdict-buy { color: ${INSTITUTIONAL_DARK.good}; font-size: 14pt; font-weight: bold; margin-top: 4mm; margin-bottom: 2mm; }
-            .verdict-hold { color: ${INSTITUTIONAL_DARK.warn}; font-size: 14pt; font-weight: bold; margin-top: 4mm; margin-bottom: 2mm; }
-            .verdict-avoid { color: ${INSTITUTIONAL_DARK.bad}; font-size: 14pt; font-weight: bold; margin-top: 4mm; margin-bottom: 2mm; }
-            
+            .verdict-buy { color: ${INSTITUTIONAL_DARK.good}; font-size: 13pt; font-weight: 600; margin-top: 4mm; margin-bottom: 2mm; }
+            .verdict-hold { color: ${INSTITUTIONAL_DARK.warn}; font-size: 13pt; font-weight: 600; margin-top: 4mm; margin-bottom: 2mm; }
+            .verdict-avoid { color: ${INSTITUTIONAL_DARK.bad}; font-size: 13pt; font-weight: 600; margin-top: 4mm; margin-bottom: 2mm; }
+
+            .chip { display: inline-block; font-size: 7.8px; font-family: monospace; padding: 2px 6px; border-radius: 3px; font-weight: 600; margin: 1px 2px 1px 0; }
+            .chip-g { background: #eaf3de; color: #27500a; }
+            .chip-r { background: #fcebeb; color: #791f1f; }
+            .chip-y { background: #faeeda; color: #633806; }
+            .chip-b { background: #e6f1fb; color: #0c447c; }
+            .hl { padding: 7px 10px; border-radius: 3px; margin: 6px 0; font-size: 10px; line-height: 1.5; }
+            .hl-g { background: #eaf3de; border-left: 3px solid #5bad3a; color: #1a3d0a; }
+            .hl-r { background: #fcebeb; border-left: 3px solid #e24b4a; color: #52100f; }
+            .hl-y { background: #faeeda; border-left: 3px solid #ef9f27; color: #412402; }
+            .hl-b { background: #e6f1fb; border-left: 3px solid #3a85c9; color: #0a2752; }
+            .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0; }
+            .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0; }
+            .kpi { background: ${INSTITUTIONAL_DARK.tint}; border-radius: 4px; padding: 8px 10px; }
+            .kpi .label { font-size: 7.5px; font-family: monospace; color: ${INSTITUTIONAL_DARK.muted}; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+            .kpi .bignum { font-size: 17px; font-weight: 600; }
+            .kpi .subnum { font-size: 8.5px; font-family: monospace; color: ${INSTITUTIONAL_DARK.muted}; margin-top: 2px; }
+            .vmatrix { display: grid; border: 0.5px solid ${INSTITUTIONAL_DARK.border}; border-radius: 4px; overflow: hidden; font-size: 8.8px; margin: 6px 0; }
+            .vmatrix > div { padding: 5px 7px; border-bottom: 0.5px solid ${INSTITUTIONAL_DARK.border}; }
+
             .disclaimer {
                 font-size: 7.5pt;
                 color: ${INSTITUTIONAL_DARK.muted};
@@ -95,11 +130,12 @@ function wrapHtml(title, subtitle, bodyHtml, options = {}) {
         </style>
     </head>
     <body>
+        <div class="eyebrow">${options.eyebrow || 'Institutional research briefing'}</div>
         <div class="title">${title}</div>
         <div class="subtitle">${subtitle}</div>
         <div class="thick-line"></div>
         ${bodyHtml}
-        
+
         <div class="disclaimer">
             <p><b>Disclaimer:</b> This report is for informational and educational purposes only. It does not constitute investment advice. The author may have positions in securities discussed. Always conduct your own due diligence and consult a registered investment advisor before making investment decisions. Past performance is not indicative of future results.</p>
             <p>Report generated on ${new Date().toLocaleString('en-GB')} using AI-assisted research. Data sourced from public filings, screener.in, company presentations, and web research. All figures in INR unless stated otherwise.</p>
@@ -113,16 +149,14 @@ function wrapHtml(title, subtitle, bodyHtml, options = {}) {
  * Converts markdown subset to HTML.
  */
 function markdownToHtml(md) {
-    const lines = md.split('\
-');
+    const lines = md.split('\n');
     let html = '';
     let inTable = false;
     let tbuf = [];
 
     const flushTable = () => {
         if (tbuf.length > 0) {
-            const tableText = tbuf.join('\
-');
+            const tableText = tbuf.join('\n');
             const { headers, rows } = parseMarkdownTable(tableText);
             if (headers && rows) {
                 html += styledTableHtml([headers, ...rows], INSTITUTIONAL_DARK);
@@ -141,16 +175,13 @@ function markdownToHtml(md) {
 
         if (!trimmed) {
             if (inTable) { flushTable(); inTable = false; }
-            if (inList) { html += `</${listType}>\
-`; inList = false; }
-            html += '<br/>\
-';
+            if (inList) { html += `</${listType}>\n`; inList = false; }
+            html += '<br/>\n';
             continue;
         }
 
         if (line.includes('|') && (line.startsWith('|') || (line.match(/\\|/g) || []).length >= 2)) {
-            if (inList) { html += `</${listType}>\
-`; inList = false; }
+            if (inList) { html += `</${listType}>\n`; inList = false; }
             inTable = true;
             tbuf.push(line);
             continue;
@@ -168,53 +199,40 @@ function markdownToHtml(md) {
         if (trimmed.startsWith('# ') && !trimmed.startsWith('## ')) continue;
 
         if (inList && !trimmed.startsWith('- ') && !trimmed.startsWith('* ') && !/^\\d+\\.\\s/.test(trimmed)) {
-            html += `</${listType}>\
-`;
+            html += `</${listType}>\n`;
             inList = false;
         }
 
         if (line.startsWith('## ')) {
-            html += `<h2>${formatInlineMarkdown(line.substring(3).trim())}</h2>\
-`;
+            html += `<h2>${formatInlineMarkdown(line.substring(3).trim())}</h2>\n`;
         } else if (line.startsWith('### ')) {
-            html += `<h3>${formatInlineMarkdown(line.substring(4).trim())}</h3>\
-`;
+            html += `<h3>${formatInlineMarkdown(line.substring(4).trim())}</h3>\n`;
         } else if (/^---+$/.test(trimmed)) {
-            html += `<hr style="border-top: 0.5pt solid ${INSTITUTIONAL_DARK.border}; margin: 3mm 0;">\
-`;
+            html += `<hr style="border-top: 0.5pt solid ${INSTITUTIONAL_DARK.border}; margin: 3mm 0;">\n`;
         } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-            if (!inList) { inList = true; listType = 'ul'; html += '<ul>\
-'; }
-            html += `<li>${formatInlineMarkdown(trimmed.substring(2))}</li>\
-`;
+            if (!inList) { inList = true; listType = 'ul'; html += '<ul>\n'; }
+            html += `<li>${formatInlineMarkdown(trimmed.substring(2))}</li>\n`;
         } else if (/^\\d+\\.\\s+(.*)/.test(trimmed)) {
-            if (!inList) { inList = true; listType = 'ol'; html += '<ol>\
-'; }
+            if (!inList) { inList = true; listType = 'ol'; html += '<ol>\n'; }
             const match = trimmed.match(/^\\d+\\.\\s+(.*)/);
-            html += `<li>${formatInlineMarkdown(match[1])}</li>\
-`;
+            html += `<li>${formatInlineMarkdown(match[1])}</li>\n`;
         } else if (trimmed.startsWith('>')) {
-            html += `<div class="quote">${formatInlineMarkdown(trimmed.substring(1).trim())}</div>\
-`;
+            html += `<div class="quote">${formatInlineMarkdown(trimmed.substring(1).trim())}</div>\n`;
         } else if (line.includes('🚩') || line.toUpperCase().includes('RED FLAG')) {
             const t = trimmed.replace('🚩', '').trim();
-            html += `<p class="red-flag">⚠ ${formatInlineMarkdown(t)}</p>\
-`;
+            html += `<p class="red-flag">⚠ ${formatInlineMarkdown(t)}</p>\n`;
         } else if (trimmed.startsWith('**BUY**') || trimmed.startsWith('**HOLD**') || trimmed.startsWith('**AVOID**')) {
             let cls = 'verdict-buy';
             if (trimmed.startsWith('**HOLD**')) cls = 'verdict-hold';
             else if (trimmed.startsWith('**AVOID**')) cls = 'verdict-avoid';
-            html += `<div class="${cls}">${formatInlineMarkdown(trimmed)}</div>\
-`;
+            html += `<div class="${cls}">${formatInlineMarkdown(trimmed)}</div>\n`;
         } else {
-            html += `<p>${formatInlineMarkdown(trimmed)}</p>\
-`;
+            html += `<p>${formatInlineMarkdown(trimmed)}</p>\n`;
         }
     }
 
     if (inTable) flushTable();
-    if (inList) html += `</${listType}>\
-`;
+    if (inList) html += `</${listType}>\n`;
 
     return html;
 }
