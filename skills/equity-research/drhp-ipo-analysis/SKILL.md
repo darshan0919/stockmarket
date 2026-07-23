@@ -89,41 +89,81 @@ This is the differentiator vs a generic DRHP summary. Run the explicit red-flag 
 
 Each red flag rated **GREEN / YELLOW / RED** with verbatim evidence and page citation.
 
-### Phase 4 — PDF generation
+### Phase 4 — Data layer vs UI layer (hard boundary, do not blur)
 
-Write the following JSON to a temporary file (e.g. `data.json`). This `data.json` is the canonical DTO — render-pdf's PDF output is a reproducible rendering of it, not a separate source of truth, so the four envelope fields below must be present at the top level:
+**This phase has two strictly separate steps. Never let one script or one pass of edits do
+both.** The failure mode this guards against: an analyst "compresses for readability" and, in
+doing so, silently drops facts — because there was no persisted canonical record to compress
+*from*, only a single hand-written document that was both the data and the layout at once.
 
-```json
-data = {
-    "companyId": "NSE: ...",                  # same ticker/symbol convention used for company_name's issuer, once listed/assigned
-    "creationTime": "2026-07-07T10:00:00+05:30",   # ISO 8601, set on first write
-    "modifiedTime": "2026-07-07T10:00:00+05:30",   # equals creationTime on first write
-    "creator": "drhp-ipo-analysis",
-    "company_name": "...",
-    "issue_type": "Mainboard IPO" | "SME IPO" | "FPO",
-    "filing_date": "...",
-    "issue_size_cr": int,
-    "fresh_issue_cr": int,
-    "ofs_cr": int,
-    "price_band": "Rs ___ - Rs ___",
-    "lot_size": int,
-    "executive_summary": "...",
-    "subscription_view": "SUBSCRIBE" | "AVOID" | "SUBSCRIBE-FOR-LISTING-GAINS-ONLY" | "WATCH-POST-LISTING",
-    "verdict_rationale": "...",
-    "sections": [   # one per the 10 framework sections
-        {"title": "1. Business Overview", "body": "...", "evidence": [...]}
-```
+1. **Data layer (extraction + processing) → persist the full DTO, no compression decisions here.**
+   Everything gathered in Phases 1-3 — every number, every named entity, every citation — goes
+   into a JSON DTO. This step's only job is completeness and accuracy; it never asks "is this
+   worth including," only "is this true and cited." Persist it via
+   `require('packages/jobs-runtime/lib/db.js').saveReport(dto)` (per
+   [`skills/tooling/output-dto-standard/SKILL.md`](../../tooling/output-dto-standard/SKILL.md)) —
+   this writes `data/reports/<id>.json` (the full body, the source of truth) and links it into
+   `data/companies.json`. The DTO is a **superset schema**: every section the 10-section framework
+   produces gets a structured field (arrays of objects for repeatable data — RPTs, litigation,
+   red flags, promoters, objects of issue — not prose paragraphs), so the render step never has
+   to parse free text to find a fact.
 
-Then execute the two-step HTML-to-PDF pipeline:
+   Required envelope fields (enforced by `ensureEnvelope`): `companyId`, `creator` (=
+   `"drhp-ipo-analysis"`), `date`, `type` (=`"drhp-ipo-analysis"`), `summary`. Domain fields
+   (non-exhaustive — extend as the DRHP demands, never remove to save space):
 
-```bash
-# 1. Generate HTML (Bundle Mode)
-bash ./skills/_shared/resolve.sh $(basename $(dirname skills/drhp-ipo-analysis/SKILL.md)) --input data.json --output report.html
+   ```json
+   {
+     "type": "drhp-ipo-analysis", "creator": "drhp-ipo-analysis", "companyId": "BSE:...",
+     "date": "...", "summary": "...",
+     "source_documents": [{"label": "DRHP", "url": "...", "filed": "...", "pages": 449}],
+     "company_name": "...", "cin": "...", "issue_type": "Mainboard IPO|SME IPO|FPO",
+     "filing_date": "...", "listing": "...",
+     "post_listing_status": {"already_listed": bool, "cmp_inr": num, "market_cap_cr": num, "trailing_pe": num, "note": "..."},
+     "subscription_view": "SUBSCRIBE|SUBSCRIBE-FOR-LISTING-GAINS-ONLY|WATCH-POST-LISTING|AVOID",
+     "verdict_rationale": "...",
+     "kpi_headline": [{"label": "...", "value": "...", "sub": "..."}],
+     "business_overview": {"text": "...", "citation": "...", "product_mix_fy25_pct": {}, "customer_mix_fy25_pct": {}},
+     "promoters": [{"name": "...", "role": "...", "pre_issue_pct": num}],
+     "objects_of_issue": [{"object": "...", "amount_inr_lakh": num, "fy27_lakh": num, "fy28_lakh": num}],
+     "financials_restated_inr_lakh": {"periods": [...], "revenue": [...], "ebitda_margin_pct": [...], "pat": [...], "ronw_pct": [...], "roce_pct": [...], "debt_equity": [...], "cfo_inr_lakh": [...], "debtor_days": [...], "top10_customer_concentration_pct": [...], "citation": "..."},
+     "cash_flow_commentary": "...",
+     "related_party_transactions": [{"party": "...", "relationship": "...", "nature": "...", "fy25_amount_inr_lakh": num, "pct_of_revenue": num, "note": "..."}],
+     "litigation": {"against_company": [...], "against_promoters": [...], "against_directors": [...], "criminal_against_company_promoters_kmp": int, "notes": "...", "citation": "..."},
+     "contingent_liabilities_inr_lakh": [{"item": "...", "as_at_...": num}],
+     "auditor": {"current": "...", "appointed": "...", "predecessor": "...", "qualifications": "...", "citation": "..."},
+     "industry": {"source": "...", "commentary": "...", "citation": "..."},
+     "peer_valuation": {"listed_peers_in_india": "...", "weighted_avg_eps_inr": num, "citation": "..."},
+     "red_flags": [{"flag": "...", "rating": "GREEN|YELLOW|RED", "evidence": "..."}],
+     "limitations": ["..."],
+     "order_book_inr_cr": num, "order_book_as_of": "...",
+     "additional": { }
+   }
+   ```
 
-# 2. Render PDF (Clone Mode)
-mkdir -p data/drhp-ipo-analysis
-bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "data/drhp-ipo-analysis/<Company>_Output.pdf"
-```
+   `additional` (any JSON shape — see
+   [`skills/tooling/output-dto-standard/SKILL.md`](../../tooling/output-dto-standard/SKILL.md))
+   is where stock/sector/scenario-specific nuance goes when it doesn't fit any field above —
+   e.g. a bear/base/bull scenario, a smart-city-capex dependency note, an export-geography
+   split unique to this issuer. Don't distort another field to fit the insight in; don't drop
+   the insight because there's no field for it. The renderer (below) lays it out automatically.
+
+   See `skills/equity-research/drhp-ipo-analysis/scripts/render_drhp.py`'s docstring for the
+   complete field list this render step consumes — treat that as the living schema reference.
+
+2. **UI layer (rendering) → pure function of the DTO, zero content decisions.**
+   Run `python3 skills/equity-research/drhp-ipo-analysis/scripts/render_drhp.py data/reports/<id>.json data/drhp-ipo-analysis/<Company>_Output.pdf`.
+   This script (or the JS-generator path via `stock-api/src/generators/generateDrhpPdf.js` if
+   wired for the run) may choose layout, component (table/vmatrix/kpi-grid/chip), typography, and
+   color per `skills/_shared/pdf-design-guide.md` — but it must never omit a field that exists in
+   the DTO, never summarize a sentence down to fewer facts, and never invent a fact not in the
+   DTO. If the render script needs a DTO field that doesn't exist yet, that's a signal to go back
+   to step 1 and extend the DTO — never to work around it by writing the fact directly into the
+   render script.
+
+**Verification before shipping the PDF:** diff the rendered PDF's content against the DTO's
+field list — every top-level object/array in the DTO should be visibly represented somewhere in
+the output. This is the concrete check for the "no information loss" requirement.
 
 ## Output discipline
 
@@ -162,5 +202,9 @@ drhp-ipo-analysis/
 │   ├── drhp_10section.md                    (full 10-section framework)
 │   └── drhp_red_flags.md                    (explicit red-flag checklist)
 └── scripts/
-    └── generate_drhp_pdf.py                 (PDF generator)
+    ├── generate_drhp_pdf.py                 (PDF generator, JS-generator-path alternative)
+    └── render_drhp.py                       (UI-layer renderer — pure function of the DTO;
+                                                see its module docstring for the full field
+                                                list it consumes. Data layer writes the DTO via
+                                                db.saveReport(); this script only lays it out.)
 ```

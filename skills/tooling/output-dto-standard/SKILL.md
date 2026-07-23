@@ -35,6 +35,23 @@ these four fields, always:
 These four fields live inside the record itself, alongside whatever domain-specific
 fields the skill needs (e.g. `primary_driver`, `conviction`, `verdict`, `d2Return`, ...).
 
+## The `additional` field — escape hatch for nuance the schema didn't anticipate
+
+Every DTO SHOULD include a top-level `additional` field. Its value can be any JSON shape — a
+scalar string, a flat object, a nested object of objects, an array of dicts, an array of
+strings. Use it for stock/sector/scenario-specific insight that doesn't fit the skill's fixed
+schema (a bear/base/bull table, a one-off dependency note, a geography split unique to this
+company) — put the fact where it naturally belongs in `additional` rather than distorting it
+into an existing field, or worse, leaving it out because "there's no field for it."
+
+The render layer must not hand-write bespoke markup per insight. Use the shared shape-sniffing
+renderer at [`skills/_shared/render_additional.py`](../../_shared/render_additional.py)
+(`render_additional_html(dto.get("additional"))`) — it inspects the JSON shape at render time
+(callout vs table vs kpi-grid vs card-grid vs bullets) and lays it out automatically using the
+same component vocabulary as `skills/_shared/pdf-design-guide.md`, so every skill gets this for
+free without writing per-insight rendering code. See that module's docstring for the full
+shape → layout rule table.
+
 ## Recommended (not yet mandatory)
 
 Each skill should ideally also:
@@ -65,8 +82,13 @@ As of Data Ecosystem v2 (2026-07-08), all runtime jobs conform via lib/db.js:
 - `tweet-signals` (`tweetSignalsClassifier.js` → events, type=`tweet`)
 - `watchlist-sync` (`watchlistUpdater.js` → events, type=`watchlist-sync`)
 - `watchlist-insights` (`notesDb.js` → notes collection)
+- `drhp-ipo-analysis` (`db.saveReport(dto)` → reports collection, type=`drhp-ipo-analysis`;
+  render step is `scripts/render_drhp.py`, a pure function of the persisted DTO — see the
+  skill's SKILL.md "Phase 4" for the enforced data/UI split. Retrofitted 2026-07-24 after a
+  compression pass on a hand-written report silently dropped facts because no DTO existed to
+  render from.)
 
-The remaining ~51 skills in this repo are being migrated incrementally. This document is
+The remaining ~50 skills in this repo are being migrated incrementally. This document is
 the target standard for all future skill work; treat any new analytical/reportable output
 as non-conformant until it carries these four fields, and retrofit existing skills
 opportunistically as they're touched.
