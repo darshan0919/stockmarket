@@ -31,6 +31,13 @@ python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
 
 One pass fetches all four types (4 each = up to 16 PDFs). Then treat every file in `$DOCS_DIR` identically to an uploaded PDF. Use `$DOCS_DIR/manifest.json` to identify documents by `documentType` and `date` for targeted `grep`/`sed` extraction — this avoids running `pdftotext` blindly on 16 files.
 
+If the newest of the 4 Transcript entries isn't actually the most recently
+completed quarter (Stockscans hasn't officially filed it yet), backfill with
+`node stock-api/bin/get-latest-concall-transcript.js "$TICKER"` — read
+`fullText` from `data/reports/<id>.json` if it returns `status: "saved"`.
+A deep dive missing the freshest quarter's commentary is a real gap, not a
+minor one.
+
 For annual reports specifically, run `--last-n 5` separately (5 years > 4 quarters of depth):
 ```bash
 python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \

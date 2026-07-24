@@ -60,7 +60,26 @@ done
 wait
 ```
 
-After fetching, read `manifest.json` per company. If a critical type is missing for any company, surface that — don't silently produce gaps in the comparison.
+After fetching, read `manifest.json` per company. If the Transcript type came
+back with fewer than 2 entries for a company, or the newest one isn't
+actually the just-completed quarter, that quarter's official transcript
+likely isn't filed yet — backfill it via `concall-transcript-extractor`
+rather than silently comparing companies on different-aged transcript data:
+
+```bash
+for T in "${TICKERS[@]}"; do
+    node stock-api/bin/get-latest-concall-transcript.js "$T" &
+done
+wait
+```
+
+Handle each by `status`: `official-transcript-exists`/`results-not-out` need
+no action (the bulk fetch above already covers the first case, and the
+second means there's genuinely nothing newer). `saved` means read
+`fullText` from `data/reports/<id>.json` and use it as that company's latest
+transcript alongside the others. If a critical type is missing for any
+company even after this, surface that — don't silently produce gaps in the
+comparison.
 
 ### Phase 2 — Live market data
 

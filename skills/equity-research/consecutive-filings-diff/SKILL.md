@@ -13,7 +13,7 @@ This skill is designed for equity research analysts who already have a working t
 
 - User uploads two quarterly investor presentations (e.g., Q3 FY26 deck + Q4 FY26 deck)
 - User uploads a concall transcript alongside one or more presentations
-- **User provides only a Stockscans ticker** — the skill auto-fetches the two most recent investor presentations and the latest concall transcript
+- **User provides only a Stockscans ticker** — the skill auto-fetches the two most recent investor presentations (`stock-documents-fetcher`) and the latest concall transcript (`concall-transcript-extractor`)
 - User says any variant of: "diff these decks", "compare the two presentations", "update the thesis", "reprice with the latest numbers", "run the concall through", "what changed between these two quarters"
 - User has an existing sector thesis (e.g., from prior conversation context) and new quarterly data becomes available
 - User asks "is management on track for guidance?" with filings in hand
@@ -31,12 +31,24 @@ DOCS_DIR="/tmp/${SAFE}_diff_docs"
 python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t PPT --last-n 2 -o "$DOCS_DIR"
 
-# Latest concall transcript
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t Transcript --last-n 1 -o "$DOCS_DIR"
+# Latest concall transcript — this skill's core trigger ("update the thesis
+# with the latest concall") fires right after a results drop, exactly when
+# the official Transcript is most likely NOT filed yet. Use
+# concall-transcript-extractor, not a direct fetch:
+node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
 ```
 
 After fetching, read `$DOCS_DIR/manifest.json` to confirm what was downloaded. The two PPT entries will be sorted newest-first by `date` — the one with the **higher** `date` value is "Q" (latest quarter) and the **lower** date is "Q-1" (prior quarter). This is the correct orientation for the Phase 1 diff.
+
+Handle the transcript call's `status`: `official-transcript-exists` → run
+`fetch_documents.py -t Transcript --last-n 1 -o "$DOCS_DIR"` to actually
+download it; `saved` → read `fullText` from `data/reports/<id>.json` (the
+`id` in the output) for Phase 2, no PDF needed; `results-not-out` → the PPT
+fetch above almost certainly returned nothing new either — confirm with the
+user before proceeding, this diff may not be ready yet; `needs-recording-pipeline`
+→ follow `concall-transcript-extractor`'s tier 3 if a recording exists, else
+proceed to Phase 1/3 without a concall and skip Phase 2 (note the gap rather
+than fabricating reconciliation).
 
 If the company does not publish investor presentations (manifest returns 0 PPT documents), use the two most recent `Result` filings as a substitute:
 ```bash

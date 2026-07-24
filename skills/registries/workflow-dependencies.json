@@ -1,6 +1,32 @@
 {
   "skills": [
     {
+      "name": "concall-transcript-extractor",
+      "description": "",
+      "aliases": [
+        "concall transcript early",
+        "transcribe earnings call recording",
+        "recording of conference call",
+        "transcript before official filing",
+        "notebooklm transcript",
+        "perplexity earnings transcript",
+        "verbatim transcript from recording",
+        "concall transcript extractor",
+        "latest quarter transcript"
+      ],
+      "entry": "stock-api/bin/get-latest-concall-transcript.js",
+      "modules": [
+        "stock-api/bin/find-earnings-recording.js",
+        "stock-api/bin/save-concall-transcript.js",
+        "stock-api/src/utils/fiscalQuarter.js",
+        "stock-api/src/utils/transcriptSchema.js",
+        "stock-api/src/clients/PerplexityClient.js",
+        "stock-api/src/auth/perplexityAuth.js",
+        "stock-api/src/clients/StockscansClient.js",
+        "packages/jobs-runtime/lib/db.js"
+      ]
+    },
+    {
       "name": "stock-documents-fetcher",
       "description": "",
       "aliases": [
@@ -587,6 +613,18 @@
       "methods": []
     },
     {
+      "name": "PerplexityAuth",
+      "file": "stock-api/src/auth/perplexityAuth.js",
+      "methods": [
+        "_envFile",
+        "_resolve",
+        "cookieHeader",
+        "accountId",
+        "headers",
+        "isFullyConfigured"
+      ]
+    },
+    {
       "name": "ScreenerAuth",
       "file": "stock-api/src/auth/screenerAuth.js",
       "methods": [
@@ -642,6 +680,14 @@
       ]
     },
     {
+      "name": "PerplexityClient",
+      "file": "stock-api/src/clients/PerplexityClient.js",
+      "methods": [
+        "earningsEvents",
+        "transcript"
+      ]
+    },
+    {
       "name": "ScreenerClient",
       "file": "stock-api/src/clients/ScreenerClient.js",
       "methods": [
@@ -662,6 +708,7 @@
         "scanAnnouncements",
         "announcementStatistics",
         "companyAnnouncements",
+        "announcements",
         "scanMetadata",
         "companySearch",
         "watchlistsList",
@@ -739,6 +786,11 @@
         "renderTemplate",
         "generateAll"
       ]
+    },
+    {
+      "name": "names",
+      "file": "stock-api/src/utils/pdfRenderer.js",
+      "methods": []
     }
   ],
   "apis": [
@@ -746,6 +798,16 @@
       "name": "parseBseSmartSearchHtml",
       "file": "stock-api/src/clients/BseClient.js",
       "description": "Exported from BseClient.js"
+    },
+    {
+      "name": "toPerplexityTicker",
+      "file": "stock-api/src/clients/PerplexityClient.js",
+      "description": "Exported from PerplexityClient.js"
+    },
+    {
+      "name": "paragraphsToText",
+      "file": "stock-api/src/clients/PerplexityClient.js",
+      "description": "Exported from PerplexityClient.js"
     },
     {
       "name": "buildBseUrl",
@@ -1320,6 +1382,16 @@
       "description": "Exported from announcementNoiseFilter.js"
     },
     {
+      "name": "latestCompletedQuarter",
+      "file": "stock-api/src/utils/fiscalQuarter.js",
+      "description": "Exported from fiscalQuarter.js"
+    },
+    {
+      "name": "calendarToQuarter",
+      "file": "stock-api/src/utils/fiscalQuarter.js",
+      "description": "Exported from fiscalQuarter.js"
+    },
+    {
       "name": "wrapHtml",
       "file": "stock-api/src/utils/pdfRenderer.js",
       "description": "Exported from pdfRenderer.js"
@@ -1348,6 +1420,41 @@
       "name": "styledTableHtml",
       "file": "stock-api/src/utils/pdfUtils.js",
       "description": "Exported from pdfUtils.js"
+    },
+    {
+      "name": "chipHtml",
+      "file": "stock-api/src/utils/pdfUtils.js",
+      "description": "Exported from pdfUtils.js"
+    },
+    {
+      "name": "calloutHtml",
+      "file": "stock-api/src/utils/pdfUtils.js",
+      "description": "Exported from pdfUtils.js"
+    },
+    {
+      "name": "buildTranscriptContent",
+      "file": "stock-api/src/utils/transcriptSchema.js",
+      "description": "Exported from transcriptSchema.js"
+    },
+    {
+      "name": "segmentsFromParagraphs",
+      "file": "stock-api/src/utils/transcriptSchema.js",
+      "description": "Exported from transcriptSchema.js"
+    },
+    {
+      "name": "parseSpeakerLabeledText",
+      "file": "stock-api/src/utils/transcriptSchema.js",
+      "description": "Exported from transcriptSchema.js"
+    },
+    {
+      "name": "segmentsToFullText",
+      "file": "stock-api/src/utils/transcriptSchema.js",
+      "description": "Exported from transcriptSchema.js"
+    },
+    {
+      "name": "classifyRole",
+      "file": "stock-api/src/utils/transcriptSchema.js",
+      "description": "Exported from transcriptSchema.js"
     }
   ]
 }

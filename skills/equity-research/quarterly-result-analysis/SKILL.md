@@ -42,28 +42,60 @@ Follow [`_shared/conventions.md`](../_shared/conventions.md). Particularly:
 
 ### Phase 1 — Document acquisition
 
-If the user uploaded files directly, use those. If the user provided only a ticker, auto-fetch:
+If the user uploaded files directly, use those. If the user provided only a
+ticker, auto-fetch. **The latest quarter's Transcript specifically is a
+`concall-transcript-extractor` job** — this skill is triggered by "result-day
+intent", i.e. right after results drop, which is exactly when Stockscans'
+official Transcript is most likely to not be filed yet:
 
 ```bash
 TICKER="NSE:SWARAJENG"            # replace with the actual ticker
 SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_qra_docs"
 
-# Latest quarter's PPT + Transcript + Result
+# PPT + Result always come from Stockscans directly
 python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t PPT Transcript Result \
+    -t PPT Result \
     --last-n 1 \
     -o "$DOCS_DIR"
+
+# Latest transcript: try concall-transcript-extractor first
+node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
 ```
 
-For the **"change vs prior quarters"** sub-section in the Management basket, the prior quarter's transcript is essential. Fetch one extra Transcript:
+Handle the transcript step by `status`: `official-transcript-exists` → also
+run `fetch_documents.py -t Transcript --last-n 1 -o "$DOCS_DIR"` to download
+it alongside the PPT/Result; `saved` → read `fullText`/`segments` from
+`data/reports/<id>.json` (the `id` in the output) directly, no PDF needed;
+`results-not-out` → the whole skill should stop, not just the transcript step
+(no PPT/Result will exist either); `needs-recording-pipeline` → follow
+`concall-transcript-extractor`'s tier 3 (Chrome MCP + NotebookLM) if a
+recording was found, otherwise proceed WITHOUT a transcript and flag the gap
+explicitly in the Management basket rather than skipping it silently.
+
+For the **"change vs prior quarters"** sub-section in the Management basket,
+the prior quarter's transcript is already officially filed — fetch it the
+normal way:
 
 ```bash
 python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t Transcript --last-n 2 -o "$DOCS_DIR"
 ```
 
-Read `$DOCS_DIR/manifest.json` to confirm what arrived. If any of the three primary documents is missing for the latest quarter, surface this explicitly — do not paper over the gap with annual report data or web summaries.
+This returns the two most recent OFFICIALLY FILED transcripts. Which one is
+"prior quarter" depends on whether the latest quarter's official transcript
+existed yet: if the earlier `get-latest-concall-transcript.js` call returned
+`official-transcript-exists`, the second (older) entry here is the prior
+quarter you want. If it returned `saved` or `needs-recording-pipeline`
+instead (latest not officially filed), the FIRST (newest) entry from this
+`--last-n 2` call already IS the prior quarter — don't also treat it as the
+"latest" or you'll double-count a quarter.
+
+Read `$DOCS_DIR/manifest.json` to confirm what arrived. If any of the three
+primary documents is missing for the latest quarter (and
+`concall-transcript-extractor` couldn't produce a transcript either), surface
+this explicitly — do not paper over the gap with annual report data or web
+summaries.
 
 ### Phase 2 — 3-basket analysis
 

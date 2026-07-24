@@ -9,6 +9,36 @@
     "skills/_shared/data-verification.md"
   ],
   "skills": {
+    "concall-transcript-extractor": {
+      "skill_md": "skills/concall-transcript-extractor/SKILL.md",
+      "entry": "stock-api/bin/get-latest-concall-transcript.js",
+      "mode": "bundle",
+      "modules": [
+        "stock-api/bin/find-earnings-recording.js",
+        "stock-api/bin/save-concall-transcript.js",
+        "stock-api/src/utils/fiscalQuarter.js",
+        "stock-api/src/utils/transcriptSchema.js",
+        "stock-api/src/clients/PerplexityClient.js",
+        "stock-api/src/auth/perplexityAuth.js",
+        "stock-api/src/clients/StockscansClient.js",
+        "packages/jobs-runtime/lib/db.js"
+      ],
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
+      "aliases": [
+        "concall transcript early",
+        "transcribe earnings call recording",
+        "recording of conference call",
+        "transcript before official filing",
+        "notebooklm transcript",
+        "perplexity earnings transcript",
+        "verbatim transcript from recording",
+        "concall transcript extractor",
+        "latest quarter transcript"
+      ]
+    },
     "stock-documents-fetcher": {
       "skill_md": "skills/equity-research/stock-documents-fetcher/SKILL.md",
       "entry": "stock-api/bin/stock-documents-fetcher.js",

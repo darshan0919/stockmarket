@@ -31,9 +31,22 @@ python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t "Annual Report" Transcript PPT Result \
     --last-n 2 \
     -o "$DOCS_DIR"
+
+# The most recent Transcript above is the primary source for current
+# guidance — but it's only there if Stockscans has officially filed it.
+# Check whether concall-transcript-extractor can do better for that quarter:
+node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
 ```
 
-Use `$DOCS_DIR/manifest.json` to identify which files are which type before running `pdftotext`. The most recent `Transcript` (highest `date` value) is the primary source for current guidance; the most recent `PPT` is the primary source for capacity/capex disclosures.
+Use `$DOCS_DIR/manifest.json` to identify which files are which type before
+running `pdftotext`. The most recent `Transcript` (highest `date` value) is
+the primary source for current guidance; the most recent `PPT` is the primary
+source for capacity/capex disclosures. If `get-latest-concall-transcript.js`
+returned `status: "saved"`, its `id` points at `data/reports/<id>.json` —
+read `fullText` from there as the current-guidance source instead of (or
+alongside, for the prior quarter) the bulk-fetched Transcript PDFs; if it
+returned `official-transcript-exists`, the bulk fetch above already has what
+you need.
 
 #### Phase 1b — PDF extraction and web research
 

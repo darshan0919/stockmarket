@@ -159,26 +159,36 @@ Web search is for words and context only. If a search result contains a financia
 
 **Important:** Do not fabricate numbers. If a specific data point is unavailable, state "data not available". Forward estimates must be clearly labelled "(E)" and must be grounded in Screener actuals — never invent a base from which to project.
 
-### 2D — Concall Data: Fetch Latest Transcript from Screener.in
+### 2D — Concall Data: Fetch Latest Transcript
 
-After completing Steps 2A–2C, fetch the latest concall transcript for the same company. This data powers the **Concall Appendix** at the end of the PDF report.
+After completing Steps 2A–2C, fetch the latest concall transcript for the
+same company. This data powers the **Concall Appendix** at the end of the PDF
+report.
 
-**Fetch the Documents section:**
+**Try in order:**
 ```
-https://www.screener.in/company/TICKER/
-```
-Locate the Documents section and identify the most recent concall transcript link.
+Step 1: node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
+        (Stockscans EXCH:SYMBOL format, e.g. NSE:SWARAJENG)
+        - status "official-transcript-exists" -> fetch it via
+          stock-documents-fetcher (fetch_documents.py -t Transcript --last-n 1)
+        - status "saved" -> read fullText from data/reports/<id>.json (the
+          id in the output) directly, done
+        - status "needs-recording-pipeline" with recording.found true ->
+          follow concall-transcript-extractor's tier 3 (Chrome MCP + NotebookLM)
+        - status "results-not-out" or recording.found false -> fall through
+          to Step 2 below (this ticker's Perplexity coverage may differ from
+          Stockscans', so it's still worth trying the Screener.in path)
 
-**Fetch the transcript — try in order:**
-```
-Step 1: Try WebFetch on the transcript PDF URL directly
-Step 2: If EGRESS_BLOCKED, use Chrome:
+Step 2: Fetch the Documents section of https://www.screener.in/company/TICKER/,
+        locate the most recent concall transcript link, then try WebFetch on
+        the transcript PDF URL directly
+Step 3: If EGRESS_BLOCKED, use Chrome:
         mcp__Claude_in_Chrome__navigate (tabId, transcript_pdf_url)
         mcp__Claude_in_Chrome__get_page_text (tabId)
-Step 3: If the BSE/NSE PDF is inaccessible, search AlphaStreet:
+Step 4: If the BSE/NSE PDF is inaccessible, search AlphaStreet:
         Search: "[COMPANY NAME] Q[N] FY[YY] earnings call transcript site:alphastreet.com"
         Navigate and use get_page_text (tabId, depth=4, max_chars=50000)
-Step 4: If genuinely inaccessible after all attempts, note clearly in the PDF:
+Step 5: If genuinely inaccessible after all attempts, note clearly in the PDF:
         "Transcript not accessible — Sections 3, 4, 5, 8 will show N/A."
 ```
 

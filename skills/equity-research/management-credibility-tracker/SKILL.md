@@ -38,9 +38,19 @@ python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
 # Also pull the latest annual report for the long-form Vision/Strategy guidance
 python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t "Annual Report" --last-n 1 -o "$DOCS_DIR"
+
+# The most recent quarter — the one this scorecard is most likely to actually
+# be asked about ("have they delivered THIS time?") — may not be officially
+# filed yet even though the prior 7-8 are. Backfill it if missing:
+node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
 ```
 
-If only 4-5 transcripts are available (recent IPO), proceed but flag in the output that the credibility window is short.
+If only 4-5 transcripts are available (recent IPO), proceed but flag in the
+output that the credibility window is short. If
+`get-latest-concall-transcript.js` returned `status: "saved"`, add its
+`fullText` (from `data/reports/<id>.json`) to the set fed into Phase 2 as the
+newest quarter — don't let the scorecard silently lag one quarter behind just
+because the official filing hasn't landed yet.
 
 ### Phase 2 — Guidance extraction (delegate to concall-analysis)
 

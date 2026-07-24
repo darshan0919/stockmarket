@@ -65,12 +65,20 @@ python3 stock-api/python/fetchers/fetch_announcements.py "$TICKER" \
 
 wait   # wait for all background fetches to complete
 
+# Backfill the latest quarter's transcript if Stockscans hasn't officially
+# filed it yet (the 8-quarter Concalls fetch above only gets official filings)
+node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
+
 # Screener MasterData.xlsx — still via local backend (not on Stockscans)
 cd backend && npm start &
 # [fetch Screener export per existing backend API]
 ```
 
-Each folder will contain a `manifest.json` after fetching. Read the manifests to confirm counts before proceeding to Phase 2.
+Each folder will contain a `manifest.json` after fetching. Read the manifests
+to confirm counts before proceeding to Phase 2. If the transcript backfill
+returned `status: "saved"`, add `data/reports/<id>.json`'s `fullText` as an
+extra file in `$RESEARCH_ROOT/Concalls` (or note its path) so the extraction
+pass in Step 2 picks up the newest quarter too.
 
 **2 — Single extraction pass.** `GET /api/research-pipeline/prompts/unified_master?company=<name>&ticker=<TICKER>`; apply once → 5 `.txt` files (AR / Concall / InvestorPres / RatingReports / Events). See [`equity-research-extraction`](../data-extraction/SKILL.md).
 
