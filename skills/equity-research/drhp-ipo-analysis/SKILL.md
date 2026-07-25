@@ -64,13 +64,14 @@ Apply the framework in [`references/drhp_10section.md`](references/drhp_10sectio
 1. **Business Overview** — Core activities, products/services, revenue streams, geography
 2. **Industry & Market** — Trends, growth potential, competition, market size, claimed market share
 3. **Objects of the Issue** — How proceeds will be used (debt repayment, expansion, working capital, OFS share)
-4. **Financial Highlights (3 years)** — Revenue, EBITDA, EBITDA margin, Net profit & margin, CFO, EPS, ROE, ROCE
+4. **Financial Highlights (3 years)** — Revenue, EBITDA, EBITDA margin, Net profit & margin, CFO, EPS, ROE, ROCE, Debt/Equity
 5. **Cash Flow Analysis** — Operating, investing, financing trends; flag profit/cash mismatches
 6. **Risk Factors** — Most critical and specific risks (skip generic boilerplate)
 7. **Promoter & Management** — Names, background, holding (pre/post IPO), controversies, legal actions
 8. **Related Party Transactions** — Major RPTs, comment if abnormal or conflict-prone
 9. **Peer Comparison & Valuation** — Revenue/margins/multiples vs listed peers; is the IPO pricing fair?
 10. **Red Flags** — explicit checklist (see below)
+11. **Lock-in / Share Release Schedule** — Every distinct lock-in tranche disclosed under "Capital Structure" (Minimum Promoter's Contribution, excess promoter shareholding, entire pre-Offer capital, Anchor Investor lock-in) with its release date. **Mandatory whenever disclosed — always surfaced on page 1 of the output**, not buried in an appendix; see Phase 4 schema and the renderer's dedicated page-1 section.
 
 ### Phase 3 — Red Flag Scan
 
@@ -120,8 +121,9 @@ doing so, silently drops facts — because there was no persisted canonical reco
      "company_name": "...", "cin": "...", "issue_type": "Mainboard IPO|SME IPO|FPO",
      "filing_date": "...", "listing": "...",
      "post_listing_status": {"already_listed": bool, "cmp_inr": num, "market_cap_cr": num, "trailing_pe": num, "note": "..."},
-     "subscription_view": "SUBSCRIBE|SUBSCRIBE-FOR-LISTING-GAINS-ONLY|WATCH-POST-LISTING|AVOID",
+     "subscription_view": "BUY|ACCUMULATE|HOLD|REDUCE|AVOID",
      "verdict_rationale": "...",
+     "lock_in_schedule": [{"category": "Anchor Investors — 50%", "shares_or_pct": "...", "lock_in_period": "30 days from Allotment", "release_date": "YYYY-MM-DD", "note": "..."}],
      "kpi_headline": [{"label": "...", "value": "...", "sub": "..."}],
      "business_overview": {"text": "...", "citation": "...", "product_mix_fy25_pct": {}, "customer_mix_fy25_pct": {}},
      "promoters": [{"name": "...", "role": "...", "pre_issue_pct": num}],
@@ -173,14 +175,26 @@ the output. This is the concrete check for the "no information loss" requirement
 - **Flag the OFS-heavy issues prominently.** If >50% of issue size is OFS (promoters cashing out), highlight on page 1.
 - **Do not skip generic risk factors entirely** — pull the SPECIFIC ones (those mentioning a named customer, a specific lawsuit, a real geographic concentration). Generic boilerplate gets a single line.
 
-## The 4 subscription-view options
+## The verdict vocabulary — always post-listing action guidance
+
+Every DRHP/Prospectus this skill is asked to analyse arrives after the company is already listed
+and trading (this is how the user works). The verdict is therefore never framed as a subscription
+decision ("should I apply for this IPO") — it is framed as an entry/hold/exit call at the current
+market price, exactly like `investment-thesis-engine`'s signal vocabulary, so the two stay
+consistent for a company that later gets a full thesis. Do not use "WATCH-POST-LISTING" or any
+other pre-listing-uncertainty phrasing — the listing has already happened.
 
 | View | When to use |
 |---|---|
-| **SUBSCRIBE** | All 10 sections clean; valuation reasonable vs peers; no RED red flags; IPO-grade Quality category |
-| **SUBSCRIBE-FOR-LISTING-GAINS-ONLY** | Hot sector / high subscription expected, but post-listing fundamentals don't justify hold |
-| **WATCH-POST-LISTING** | Worth following but valuation or red flags suggest waiting for better entry |
-| **AVOID** | Any RED red flag; OR issue is dominated by OFS with no growth funding; OR valuation extreme; OR pending material litigation |
+| **BUY** | All 10 sections clean; valuation at/below fair value vs disclosed peers or pre-listing NAV; no RED red flags — a straightforward entry at CMP |
+| **ACCUMULATE** | Strong fundamentals with 1-2 monitorable (non-fraud) YELLOW flags and/or a real but not extreme valuation discount to peers — worth building a position, ideally on dips, while tracking the flagged items |
+| **HOLD** | Fundamentals intact but the stock has already re-rated to fair value or beyond, or unresolved red flags create meaningful uncertainty — don't chase, don't need to exit an existing position |
+| **REDUCE** | Red flags are emerging/worsening or valuation is materially stretched relative to fundamentals — trim exposure |
+| **AVOID** | Any RED red flag on fraud/governance grounds; OR valuation extreme with no offsetting quality; OR pending material litigation against the company itself (not just promoters in an unrelated personal capacity) |
+
+Always cross-check the verdict against the **lock-in / release schedule** (§11): a stock that looks
+cheap now but has a large promoter or pre-IPO-investor lock-in expiry within the next 2-3 quarters
+carries real supply-overhang risk that the verdict rationale must name explicitly.
 
 ## Pitfalls to avoid
 

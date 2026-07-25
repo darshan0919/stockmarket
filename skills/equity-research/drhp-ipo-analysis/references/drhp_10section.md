@@ -75,10 +75,13 @@ Required output table:
 | PAT margin         | 6.5%   | 8.3%   | 11.6%  | +5.1pp    |
 | CFO (Rs Cr)        | 28     | 41     | 78     |           |
 | CFO/PAT            | 0.80   | 0.68   | 0.71   |           |
+| Debt/Equity        | 1.10   | 0.85   | 0.62   |           |
 | EPS (Rs)           | 3.5    | 6.0    | 11.0   |           |
 | ROE                | 12%    | 18%    | 24%    |           |
 | ROCE               | 14%    | 22%    | 28%    |           |
 ```
+
+Debt/Equity = total borrowings (current + non-current financial borrowings; exclude lease liabilities unless the DRHP itself nets them in) / total equity, for each restated year. If EBITDA isn't disclosed as a standalone line, derive it: `EBITDA = Restated PBT (pre-JV/AOP share) + Finance Costs + Depreciation & Amortisation − Other Income`. Compute PAT margin and OPM (EBITDA margin) explicitly even if the DRHP doesn't label them — these are almost always derivable from the restated P&L and should never be left blank if the underlying revenue/EBITDA/PAT lines exist.
 
 **Where to find it:** "Financial Information" / "Restated Financial Statements" — long section, usually pp.250-400.
 
@@ -87,6 +90,32 @@ Required output table:
 - CFO consistently lagging PAT (earnings quality)
 - Revenue growth is recent (last 1-2 years) but not historical (pre-IPO storytelling)
 - ROE expansion driven by leverage rather than margin
+
+### KPI headline cards (top-of-report) — mandatory when data allows
+
+Every report's `kpi_headline` array must include a card for each of the following **whenever the
+underlying figures exist or are derivable** (never fabricate a card if the inputs genuinely can't
+be found — per the output-DTO-standard, silently omit rather than guess):
+
+- **OPM** (EBITDA margin) — latest-year value + 3-year trend in the `sub` line (e.g. "24.5%→25.7%, stable ~25%")
+- **NPM** (PAT margin) — latest-year value + 3-year trend
+- **CFO/PAT** — latest-year ratio + trend (flag if trending toward/below 0.7)
+- **D/E** — latest-year ratio + trend
+- **Forward D/E** — one card per future fiscal year in which the DRHP's own "Proposed schedule of
+  implementation and deployment of Net Proceeds" shows a debt-repayment tranche (e.g. if repayment
+  is split across FY27 and FY28, show both an **FY27E D/E** card and an **FY28E D/E** card; if the
+  full repayment is scheduled in a single year, show only that year's card). Compute each forward
+  D/E as: `(latest-year total borrowings − cumulative Net-Proceeds debt repayment scheduled through
+  that fiscal year) / (latest-year total equity + gross fresh-issue proceeds)`. State the assumption
+  explicitly in the card's `sub` line (no further borrowing modeled; fresh-issue equity added at
+  face+premium, not net of issue expenses) — this is a projection, not a restated fact, and must be
+  labeled "E" and caveated in `limitations`. If the Objects-of-the-Offer schedule doesn't disclose a
+  fiscal-year-by-fiscal-year deployment split, forward D/E cannot be computed — omit the card
+  entirely rather than assume a schedule.
+
+This applies to **every** DRHP/Prospectus analysis produced by this skill, not just one-off
+reports — the `kpi_headline` array and the financials table (§4 above) are both free-form/DTO-driven
+in the renderer, so populating these fields is a data-layer responsibility, not a rendering one.
 
 ## §5 Cash Flow Analysis
 

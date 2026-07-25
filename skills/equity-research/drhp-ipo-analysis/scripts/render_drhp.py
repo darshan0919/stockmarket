@@ -29,22 +29,28 @@ except ImportError:
     from render_additional import render_additional_html
 
 CSS = """
-@page { size: A4; margin: 16mm 14mm; @bottom-center { content: "<TITLE> | " counter(page) " of " counter(pages); font-size: 8px; color: #888; } }
+@page { size: A4; margin: 14mm 12mm; @bottom-center { content: "<TITLE> | " counter(page) " of " counter(pages); font-size: 8px; color: #999; } }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; color: #1a1a1a; line-height: 1.45; }
-h1 { font-size: 20px; font-weight: 600; margin-bottom: 2px; }
-.eyebrow { font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #888; font-family: monospace; margin-bottom: 4px; }
-.subline { font-size: 9.5px; font-family: monospace; color: #555; margin-top: 3px; margin-bottom: 10px; }
-.hdr { border-bottom: 2.5px solid #111; padding-bottom: 8px; margin-bottom: 12px; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 10.6px; color: #1a1a1a; line-height: 1.4; }
+h1 { font-size: 19px; font-weight: 600; margin-bottom: 2px; }
+.eyebrow { font-size: 9.2px; letter-spacing: 0.1em; text-transform: uppercase; color: #888; font-family: monospace; margin-bottom: 3px; }
+.subline { font-size: 9.2px; font-family: monospace; color: #555; margin-top: 3px; margin-bottom: 0; }
+.hdr { border-bottom: 2.5px solid #111; padding-bottom: 7px; margin-bottom: 10px; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .hdr-main { flex: 1; }
-.alert { background: #fcf3e0; border: 1px solid #ef9f27; border-radius: 4px; padding: 9px 12px; margin-bottom: 14px; font-size: 11px; color: #412402; }
-.sec { margin-top: 14px; page-break-inside: avoid; }
-.sec-hd { font-size: 11px; font-family: monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #777; border-bottom: 1px solid #ddd; padding-bottom: 3px; margin-bottom: 7px; }
-table { width: 100%; border-collapse: collapse; font-size: 10.3px; margin-bottom: 6px; }
-th { font-family: monospace; font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; padding: 4px 6px; text-align: left; border-bottom: 1.5px solid #ccc; }
+.alert { background: #fcf3e0; border: 1px solid #ef9f27; border-radius: 4px; padding: 8px 11px; margin-bottom: 12px; font-size: 10.3px; color: #412402; line-height: 1.4; }
+/* Sections flow naturally across page breaks — only small atomic units (kpi cards, callouts,
+   table rows) are protected from splitting, so a long section never forces a mostly-empty
+   trailing page. Repeating <thead> on tables keeps multi-page tables legible without repeating
+   the whole section. Section spacing is kept generous (not maximally compressed) for readability. */
+.sec { margin-top: 16px; }
+.sec-hd { font-size: 10.5px; font-family: monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #777; border-bottom: 1px solid #ddd; padding-bottom: 3px; margin-bottom: 7px; break-after: avoid; }
+table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 6px; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+th { font-family: monospace; font-size: 8.3px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; padding: 4px 6px; text-align: left; border-bottom: 1.5px solid #ccc; }
 th.r, td.r { text-align: right; }
-td { padding: 4.5px 6px; border-bottom: 0.5px solid #e5e5e5; vertical-align: top; }
-td.mono, td.r { font-family: monospace; font-size: 10px; }
+td { padding: 4px 6px; border-bottom: 0.5px solid #e5e5e5; vertical-align: top; }
+td.mono, td.r { font-family: monospace; font-size: 9.7px; }
 .up { color: #0f6e56; font-weight: 600; }
 .dn { color: #a32d2d; font-weight: 600; }
 .chip { display: inline-block; font-size: 8.6px; font-family: monospace; padding: 2.5px 6.5px; border-radius: 3px; font-weight: 600; margin: 1.5px 2px 1.5px 0; }
@@ -58,11 +64,12 @@ td.mono, td.r { font-family: monospace; font-size: 10px; }
 .ftag-y { background: #faeeda; color: #633806; border-color: #eec27e; }
 .ftag-r { background: #fcebeb; color: #791f1f; border-color: #ecaaa9; }
 .ftag-b { background: #e6f1fb; color: #0c447c; border-color: #a7cdec; }
-.hl { padding: 7px 10px; border-radius: 3px; margin: 6px 0; font-size: 10.5px; line-height: 1.5; }
+.hl { padding: 7px 10px; border-radius: 3px; margin: 6px 0; font-size: 10.5px; line-height: 1.5; break-inside: avoid; }
 .hl-g { background: #eaf3de; border-left: 3px solid #5bad3a; color: #1a3d0a; }
 .hl-r { background: #fcebeb; border-left: 3px solid #e24b4a; color: #52100f; }
 .hl-y { background: #faeeda; border-left: 3px solid #ef9f27; color: #412402; }
 .hl-b { background: #e6f1fb; border-left: 3px solid #3a85c9; color: #0a2752; }
+.note-empty { font-size: 9.8px; color: #999; font-style: italic; padding: 3px 1px; }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0; }
 .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0; }
 .kpi { background: #f5f4f0; border-radius: 4px; padding: 8px 10px; }
@@ -74,7 +81,7 @@ td.mono, td.r { font-family: monospace; font-size: 10px; }
 .bignum { font-size: 18px; font-weight: 600; }
 .subnum { font-size: 9.2px; font-family: monospace; color: #666; margin-top: 2px; }
 .vmatrix { display: grid; grid-template-columns: 160px repeat(3, 1fr); border: 0.5px solid #ccc; border-radius: 4px; overflow: hidden; font-size: 9.4px; margin: 6px 0; }
-.vmatrix > div { padding: 5.5px 7px; border-bottom: 0.5px solid #e5e5e5; }
+.vmatrix > div { padding: 5.5px 7px; border-bottom: 0.5px solid #e5e5e5; break-inside: avoid; }
 .vmatrix > div:nth-child(4n-3) { background: #f5f4f0; font-family: monospace; font-size: 8.5px; text-transform: uppercase; color: #888; }
 .vmatrix > div:nth-child(4n-2), .vmatrix > div:nth-child(4n-1), .vmatrix > div:nth-child(4n) { border-left: 0.5px solid #e5e5e5; }
 .verdict-band { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
@@ -86,8 +93,11 @@ ul.tight li { margin-bottom: 3.5px; }
 
 CHIP_TONE = {"GREEN": "g", "YELLOW": "y", "RED": "r"}
 VIEW_TONE = {
+    # Post-listing action verdicts (this skill always assumes the stock is already listed)
+    "BUY": "g", "ACCUMULATE": "g", "HOLD": "y", "REDUCE": "y", "AVOID": "r",
+    # Legacy values kept for backward-compat with older persisted reports
     "SUBSCRIBE": "g", "SUBSCRIBE-FOR-LISTING-GAINS-ONLY": "y",
-    "WATCH-POST-LISTING": "y", "AVOID": "r",
+    "WATCH-POST-LISTING": "y",
 }
 # semantic direction: True = higher value is the good outcome for this metric
 HIGHER_IS_GOOD = {
@@ -135,6 +145,11 @@ def render(dto: dict) -> str:
         f'<td class="r mono">{money(o.get("fy27_lakh")) if o.get("fy27_lakh") is not None else "—"}/{money(o.get("fy28_lakh")) if o.get("fy28_lakh") is not None else "—"}</td></tr>'
         for o in dto.get("objects_of_issue", [])
     )
+    objects_table = (
+        f'<table><thead><tr><th>Object of issue</th><th class="r">₹ Lakh</th><th class="r">FY27/28</th></tr></thead>'
+        f'<tbody>{objects_rows}</tbody></table>'
+        if dto.get("objects_of_issue") else '<div class="note-empty">Objects of the Offer not disclosed/found.</div>'
+    )
 
     sec_verdict = f"""
 <div class="sec" style="margin-top:0;">
@@ -152,10 +167,7 @@ def render(dto: dict) -> str:
 <p><strong>Promoters:</strong> {promoters_str}. <span class="subnum">[{esc(dto.get('citation_promoters'))}]</span></p>
 </div>
 <div>
-<table>
-<tr><th>Object of issue</th><th class="r">₹ Lakh</th><th class="r">FY27/28</th></tr>
-{objects_rows}
-</table>
+{objects_table}
 <div class="subnum">{esc(dto.get('objects_commentary'))} <span>[{esc(dto.get('citation_objects'))}]</span></div>
 </div>
 </div>
@@ -187,27 +199,33 @@ def render(dto: dict) -> str:
         return f"<tr><td>{label}</td>{cells}</tr>"
 
     fin_header = "".join(f'<th class="r">{p}</th>' for p in periods)
-    fin_rows = "".join([
-        row("Revenue", "revenue"),
-        row("EBITDA margin", "ebitda_margin_pct", "{:.1f}", "%"),
-        row("PAT", "pat"),
-        row("PAT margin", "pat_margin_pct", "{:.1f}", "%"),
-        row("RoNW", "ronw_pct", "{:.1f}", "%"),
-        row("ROCE", "roce_pct", "{:.1f}", "%"),
-        row("Debt-Equity", "debt_equity", "{:.2f}"),
-        row("CFO (₹L)", "cfo_inr_lakh", "{:,.0f}"),
-        row("Debtor days", "debtor_days", "{:.0f}"),
-        row("Days Working Capital", "days_working_capital", "{:.0f}"),
-        row("Top-10 customer conc.", "top10_customer_concentration_pct", "{:.1f}", "%"),
-    ])
+    # Rows only render if the underlying key has at least one non-null value — a fluid table
+    # that never wastes a full-width blank "—" row for a metric this particular DRHP lacks.
+    fin_row_defs = [
+        ("Revenue", "revenue", "{:.0f}", ""),
+        ("EBITDA margin", "ebitda_margin_pct", "{:.1f}", "%"),
+        ("PAT", "pat", "{:.0f}", ""),
+        ("PAT margin", "pat_margin_pct", "{:.1f}", "%"),
+        ("RoNW", "ronw_pct", "{:.1f}", "%"),
+        ("ROCE", "roce_pct", "{:.1f}", "%"),
+        ("Debt-Equity", "debt_equity", "{:.2f}", ""),
+        ("CFO (₹L)", "cfo_inr_lakh", "{:,.0f}", ""),
+        ("Debtor days", "debtor_days", "{:.0f}", ""),
+        ("Days Working Capital", "days_working_capital", "{:.0f}", ""),
+        ("Top-10 customer conc.", "top10_customer_concentration_pct", "{:.1f}", "%"),
+    ]
+    fin_rows = "".join(
+        row(label, key, fmt, suffix)
+        for label, key, fmt, suffix in fin_row_defs
+        if any(v is not None for v in fin.get(key, []))
+    )
 
     sec02 = f"""
 <div class="sec">
 <div class="sec-hd">03&nbsp;&nbsp;Financials, restated (₹ Lakh) <span class="subnum">— FY25 cell colored vs FY24, direction that matters per metric</span></div>
-<table>
-<tr><th>Metric</th>{fin_header}</tr>
+<table><thead><tr><th>Metric</th>{fin_header}</tr></thead><tbody>
 {fin_rows}
-</table>
+</tbody></table>
 <div class="hl hl-y">{esc(dto.get('cash_flow_commentary'))} <span class="subnum">[{esc(fin.get('citation'))}]</span></div>
 </div>"""
 
@@ -239,32 +257,35 @@ def render(dto: dict) -> str:
         + lit_rows(lit.get("against_directors", []), "Against directors")
         + f'<tr><td>Criminal — against co./promoters/KMP</td><td class="r mono {"dn" if crim else "up"}">{crim}</td><td class="r mono">—</td></tr>'
     )
+    cl_items = dto.get("contingent_liabilities_inr_lakh", [])
     cl_rows = "".join(
         f'<tr><td>{esc(c.get("item"))}</td><td class="r mono">{money(c.get("as_at_mar_2024"))}</td>'
         f'<td class="r mono">{money(c.get("as_at_mar_2025"))}</td><td class="r mono">{money(c.get("as_at_jun_2025"))}</td></tr>'
-        for c in dto.get("contingent_liabilities_inr_lakh", [])
+        for c in cl_items
+    )
+    cl_block = (
+        f'<table><thead><tr><th>Contingent liability</th><th class="r">Mar\'24</th><th class="r">Mar\'25</th><th class="r">Jun\'25</th></tr></thead>'
+        f'<tbody>{cl_rows}</tbody></table>'
+        if cl_items else '<div class="note-empty">No contingent liabilities table located in the extraction pass — treat as a gap, not a disclosed zero.</div>'
+    )
+    rpt_items = dto.get("related_party_transactions", [])
+    rpt_block = (
+        f'<div class="vmatrix"><div>Related party</div><div>Relationship</div><div>Nature (FY25)</div><div>Amount / status</div>{rpt_rows}</div>'
+        if rpt_items else '<div class="note-empty">No related-party transactions disclosed.</div>'
     )
 
     sec03 = f"""
 <div class="sec">
 <div class="sec-hd">04&nbsp;&nbsp;Related-party transactions, litigation &amp; contingent liabilities</div>
-<div class="vmatrix">
-<div>Related party</div><div>Relationship</div><div>Nature (FY25)</div><div>Amount / status</div>
-{rpt_rows}
-</div>
+{rpt_block}
 <div class="twocol">
 <div>
-<table>
-<tr><th>Litigation</th><th class="r">Count</th><th class="r">₹ Lakh</th></tr>
-{lit_html}
-</table>
+<table><thead><tr><th>Litigation</th><th class="r">Count</th><th class="r">₹ Lakh</th></tr></thead>
+<tbody>{lit_html}</tbody></table>
 <div class="subnum">{esc(lit.get('notes'))} [{esc(lit.get('citation'))}]</div>
 </div>
 <div>
-<table>
-<tr><th>Contingent liability</th><th class="r">Mar'24</th><th class="r">Mar'25</th><th class="r">Jun'25</th></tr>
-{cl_rows}
-</table>
+{cl_block}
 <div class="subnum">[{esc(dto.get('citation_contingent'))}]</div>
 </div>
 </div>
@@ -300,10 +321,8 @@ def render(dto: dict) -> str:
     sec05 = f"""
 <div class="sec">
 <div class="sec-hd">06&nbsp;&nbsp;Red-flag scan</div>
-<table>
-<tr><th style="width:34%;">Flag</th><th>Evidence</th></tr>
-{flag_rows}
-</table>
+<table><thead><tr><th style="width:26%;">Flag</th><th>Evidence</th></tr></thead>
+<tbody>{flag_rows}</tbody></table>
 </div>"""
 
     # ---- 07 Additional insights (shape-sniffed from DTO's `additional` field) ----
@@ -321,6 +340,28 @@ def render(dto: dict) -> str:
     order_book = dto.get("order_book_inr_cr")
     alert = pl.get("note", "")
 
+    # ---- Lock-in / share-release schedule — always page 1 when disclosed ----
+    lockins = dto.get("lock_in_schedule", [])
+    sec_lockin = ""
+    if lockins:
+        lockin_rows = "".join(
+            f'<tr><td>{esc(li.get("category"))}</td>'
+            f'<td class="r mono">{esc(li.get("shares_or_pct"))}</td>'
+            f'<td>{esc(li.get("lock_in_period"))}</td>'
+            f'<td class="r mono">{esc(li.get("release_date"))}</td>'
+            f'<td>{esc(li.get("note",""))}</td></tr>'
+            for li in lockins
+        )
+        sec_lockin = f"""
+<div class="sec">
+<div class="sec-hd">Lock-in / gradual release schedule <span class="subnum">— supply-overhang watch dates</span></div>
+<table>
+<colgroup><col style="width:19%"><col style="width:17%"><col style="width:13%"><col style="width:12%"><col style="width:39%"></colgroup>
+<thead><tr><th>Category</th><th class="r">Shares / %</th><th>Lock-in period</th><th class="r">Release date</th><th>Note</th></tr></thead>
+<tbody>{lockin_rows}</tbody>
+</table>
+</div>"""
+
     html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"><style>{CSS.replace('<TITLE>', dto.get('company_name','') + ' — DRHP Analysis')}</style></head><body>
 <div class="hdr">
   <div class="hdr-main">
@@ -332,6 +373,7 @@ def render(dto: dict) -> str:
 </div>
 <div class="alert"><strong>Timing note:</strong> {alert}</div>
 <div class="grid4">{kpi_html}</div>
+{sec_lockin}
 {sec_verdict}
 {sec01}
 {sec02}

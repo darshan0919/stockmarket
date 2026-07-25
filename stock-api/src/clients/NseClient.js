@@ -134,13 +134,17 @@ class NseClient {
    * Row fields: symbol, company, acquirerName, acqSaleType (Acquisition|Sale),
    * noOfShareAcq, noOfShareSale, totAftShare (% post), attachement, timestamp.
    * No ₹ value in the payload — estimate as shares × close price.
+   * `index` also accepts 'sme' — NSE SME-segment filers report on a SEPARATE
+   * index and are NOT included in index=equities (verified 2026-07-25: 2 SME
+   * filings existed on 24-Jul-2026 that index=equities omitted entirely).
    * @param {string} fromDate - DD-MM-YYYY
    * @param {string} toDate   - DD-MM-YYYY
+   * @param {string} [index='equities'] - 'equities' | 'sme'
    * @returns {Promise<Array>}
    */
-  async getSastReg29(fromDate, toDate) {
+  async getSastReg29(fromDate, toDate, index = 'equities') {
     const res = await this.session.get('/corporate-sast-reg29', {
-      params: { index: 'equities', from_date: fromDate, to_date: toDate },
+      params: { index, from_date: fromDate, to_date: toDate },
       referer: `${NSE_HOME_URL}companies-listing/corporate-filings-regulation-29`,
       timeout: 30000,
     });

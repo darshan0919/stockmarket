@@ -37,6 +37,7 @@ const { loadEnv, argValue } = require('./lib/env');
 const { sendHtmlEmail, stockscansUrl } = require('@stock/cloud-utils');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const dbV2 = require('./lib/db');
+const { tagEntityTypes, ENTITY_TYPE_LABELS } = require('./lib/entityClassifier');
 
 // Both overridable via CLI flags on main() (see bottom of file), same pattern as the
 // existing --max-xbrl: `--top-n <n>` (default 10), `--sast-quote-limit <n>` (default 40).
@@ -234,6 +235,14 @@ async function fetchBulkBlock(targetIst) {
     out.errors.push(`BSE bulk/block: ${e.message}`);
   }
 
+  // Tag HFT/Facilitator vs Broker vs Institution/FPI vs Other BEFORE dropping
+  // exact-match intraday pairs, but combine bulk+block so a desk that crosses
+  // a block via one leg in each category still nets out correctly. This is
+  // the same-day buy≈sell detection that separates riskless facilitation
+  // (HFT/prop desks warehousing a VC/anchor block and re-distributing it)
+  // from real directional buyers/sellers — see lib/entityClassifier.js.
+  tagEntityTypes([...out.bulk, ...out.block]);
+
   out.bulk = removeIntradayPairs(out.bulk);
   out.block = removeIntradayPairs(out.block);
   return out;
@@ -245,23 +254,49 @@ async function fetchBulkBlock(targetIst) {
 async function fetchSast(targetIst, sastQuoteLimit = SAST_QUOTE_LIMIT) {
   const out = { rows: [], errors: [] };
   let raw = [];
+  const dmy = fmt(targetIst, '-');
   try {
-    const dmy = fmt(targetIst, '-');
-    raw = await nse.getSastReg29(dmy, dmy);
+    raw = await nse.getSastReg29(dmy, dmy, 'equities');
   } catch (e) {
-    out.errors.push(`NSE SAST reg29: ${e.message}`);
-    return out;
+    out.errors.push(`NSE SAST reg29 (equities): ${e.message}`);
   }
+  // NSE SME-segment filers report on a SEPARATE index and are omitted from
+  // index=equities entirely (verified 2026-07-25 — 2 filings existed on
+  // 24-Jul-2026 that the equities index never returned). Merge both.
+  try {
+    const smeRaw = await nse.getSastReg29(dmy, dmy, 'sme');
+    raw = raw.concat(smeRaw);
+  } catch (e) {
+    out.errors.push(`NSE SAST reg29 (sme): ${e.message}`);
+  }
+  // KNOWN GAP: this covers NSE-listed companies only (both segments). BSE's
+  // only public SAST endpoint (Corp_Sast_disclosure_ng/w) is scoped per
+  // scrip+year, not market-wide by date — there is no cheap way to ask BSE
+  // "who filed SAST today" without looping every listed BSE scrip (thousands
+  // of calls/day). So SAST disclosures from companies listed ONLY on BSE
+  // (not dual-listed on NSE) will still be missing here. See
+  // [[deals-digest-system]] memory for the investigation trail.
 
+  // NOTE: `acquirerDate` is the underlying transaction date range (when the
+  // acquisition/sale actually happened), which frequently lags the filing
+  // date by 1-2 days (or, for old "inter-se transfer" disclosures, spans
+  // years). It must NOT be used to re-filter for "today's" deals. The NSE
+  // API's from_date/to_date params already server-side filter by `timestamp`
+  // (the broadcast/filing date), so every row `raw` returns is already
+  // correctly scoped — filter defensively on `timestamp` instead, matching
+  // what screener.in/trades/sast shows for the day. Fixed 2026-07-25: the
+  // previous acquirerDate-based filter zeroed out every row, every day.
   const rows = raw
     .filter((r) => {
-      if (!r.acquirerDate) return false;
-      const parts = r.acquirerDate.toUpperCase().split(' TO ');
-      const start = new Date(parts[0].trim());
-      const end = new Date((parts[1] || parts[0]).trim());
-      
+      if (!r.timestamp) return false;
+      const datePart = r.timestamp.split(' ')[0]; // "24-Jul-2026"
+      const filingDate = new Date(datePart.toUpperCase());
       const t = new Date(targetIst.getFullYear(), targetIst.getMonth(), targetIst.getDate());
-      return t >= start && t <= end;
+      return (
+        filingDate.getUTCFullYear() === t.getFullYear() &&
+        filingDate.getUTCMonth() === t.getMonth() &&
+        filingDate.getUTCDate() === t.getDate()
+      );
     })
     .map((r) => {
       const acq = num(r.noOfShareAcq);
@@ -542,6 +577,12 @@ function renderEmail(dateLabel, digest, topN = TOP_N) {
   // Net value color: neutral gray at exactly zero (canceling legs), not green.
   const netColor = (v) => (v > 0 ? '#1b5e20' : v < 0 ? '#b71c1c' : '#888');
 
+  const entityTag = (entityType) => {
+    if (!entityType) return '';
+    const meta = ENTITY_TYPE_LABELS[entityType] || ENTITY_TYPE_LABELS.OTHER;
+    return ` <span style="font-size:10px;padding:1px 5px;border-radius:8px;color:#fff;background:${meta.color}">${meta.label}</span>`;
+  };
+
   const dealRows = (groups) =>
     groups.flatMap((g, gIdx) =>
       g.deals.map((r, idx) => {
@@ -551,7 +592,7 @@ function renderEmail(dateLabel, digest, topN = TOP_N) {
         const symCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee"><a href="${stockscansUrl(g.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(g.companyName || g.symbol)}</b></a> <span style="color:#888">${esc(r.exchange)}</span></td>` : '';
         const netCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right;color:${netColor(g.netValue)}"><b>${crores(g.netValue)}</b></td>` : '';
         const mcapPctCol = isFirst ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right">${pctMcap(g.netValue, g.marketCap)}</td>` : '';
-        return `<tr>${numCol}${symCol}${netCol}${mcapPctCol}${td(esc(r.client), false, true)}${td(`<span style="color:${sideColor(r.side)}">${esc(r.side)}</span>`)}${td(r.qty?.toLocaleString('en-IN') ?? '—', 1)}${td(r.price?.toLocaleString('en-IN') ?? '—', 1)}${td(`<b>${crores(r.value)}</b>`, 1)}</tr>`;
+        return `<tr>${numCol}${symCol}${netCol}${mcapPctCol}${td(esc(r.client) + entityTag(r.entityType), false, true)}${td(`<span style="color:${sideColor(r.side)}">${esc(r.side)}</span>`)}${td(r.qty?.toLocaleString('en-IN') ?? '—', 1)}${td(r.price?.toLocaleString('en-IN') ?? '—', 1)}${td(`<b>${crores(r.value)}</b>`, 1)}</tr>`;
       })
     );
 
@@ -590,7 +631,7 @@ function renderEmail(dateLabel, digest, topN = TOP_N) {
   ];
 
   return `
-<div style="max-width:860px">
+<div style="max-width:1600px;width:100%;margin:0 auto">
   <h2 style="font-family:Arial;color:#0d1333;margin:0">Daily Deals Digest — ${dateLabel}</h2>
   <p style="font:12px Arial;color:#666;margin:4px 0 0">Top ${topN} companies per category by net value. Sources: NSE large-deals snapshot, NSE SAST Reg 29, NSE PIT (corporates-pit-gg + XBRL), BSE BulkDealData_ng. Like screener.in/filings, but ours.</p>
   ${tableHtml(`1️⃣ Bulk Deals (${digest.bulk10.reduce((a, g) => a + g.deals.length, 0)}/${digest.bulkBlock.bulk.length})`, ['#', 'Stock', 'Net Value', '% of Mcap', 'Client', 'Side', 'Qty', 'Price', 'Value'], dealRows(digest.bulk10))}
