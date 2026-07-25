@@ -98,16 +98,23 @@ function runDeadCodeScanner() {
 
   const actionItems = [];
 
-  // --- Category A: Obsolete / Root Temp Files ---
-  const rootTempFiles = ['check_deals_tmp.js', 'run_render_pdf_tmp.js', 'save_gandhar_tmp.js'];
-  rootTempFiles.forEach((tempFile) => {
-    if (fs.existsSync(path.join(ROOT_DIR, tempFile))) {
+  // --- Category A: Obsolete / Scratch / Temp Files across all workspaces ---
+  allRepoFiles.forEach((filePath) => {
+    const relPath = path.relative(ROOT_DIR, filePath);
+    const baseName = path.basename(filePath);
+
+    // Flag any scratch / temporary script across the repo (e.g. *_tmp.js, *_tmp2.js, *tmp*.js)
+    if (
+      baseName !== 'dead-code-scanner.js' &&
+      !relPath.includes('node_modules') &&
+      (/_tmp/i.test(baseName) || /tmp\d*\.js$/i.test(baseName))
+    ) {
       actionItems.push({
         category: 'Obsolete Temp File',
-        title: `Remove obsolete root temporary script ${tempFile}`,
-        file: tempFile,
-        detail: `File '${tempFile}' is a scratch script leftover in the root directory.`,
-        action: `[DELETE] ${tempFile}`,
+        title: `Remove obsolete temporary script ${relPath}`,
+        file: relPath,
+        detail: `File '${relPath}' is a temporary/scratch script leftover in the repository.`,
+        action: `[DELETE] ${relPath}`,
         priority: 'High',
       });
     }
@@ -196,7 +203,7 @@ function runDeadCodeScanner() {
     const baseName = path.basename(filePath);
     const ext = path.extname(filePath).toLowerCase();
 
-    // Skip entrypoints, configs, tests, documentation, index files, and skills registry
+    // Skip entrypoints, configs, tests, documentation, index files, and skills registry, or already flagged temp files
     if (
       baseName.startsWith('.') ||
       baseName.startsWith('index.') ||
@@ -208,7 +215,8 @@ function runDeadCodeScanner() {
       baseName === 'SKILL.md' ||
       baseName === 'PROMPT.md' ||
       baseName === 'QUICKSTART.md' ||
-      baseName.endsWith('_tmp.js') ||
+      /_tmp/i.test(baseName) ||
+      /tmp\d*\.js$/i.test(baseName) ||
       relPath.startsWith('skills/') ||
       relPath.startsWith('jobs/Scheduled/') ||
       relPath.includes('pages/')

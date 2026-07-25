@@ -31,26 +31,55 @@ TICKER="NSE:SWARAJENG"
 SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_credibility_docs"
 
-# 6-8 quarterly transcripts is the sweet spot
+# Step 1: list available official transcripts — no download yet, just the manifest
 python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t Transcript --last-n 8 -o "$DOCS_DIR"
+    -t Transcript --last-n 8 --list-only -o "$DOCS_DIR"
+# Produces $DOCS_DIR/manifest.json: [{date:"202606", ssUrl:"...", filename:"...", path:"..."}, ...]
+
+# Step 2: check our DB for every quarter in the manifest (instant, no network)
+# Build a JSON array from the manifest dates, then run --bulk
+BULK=$(python3 -c "
+import json, sys
+docs = json.load(open('$DOCS_DIR/manifest.json'))
+print(json.dumps([{'ticker': '$TICKER', 'quarter': d['date']} for d in docs]))
+")
+node stock-api/bin/get-latest-concall-transcript.js --bulk "$BULK"
+# Returns array: [{status:"db-hit"|"official-transcript-exists"|..., ticker, quarter, id?}]
+
+# Step 3: for entries with status "db-hit" or "saved" — transcript is already
+# in data/reports/<id>.json. Read fullText directly; skip PDF download.
+
+# Step 4: for entries with status "official-transcript-exists" — download ONLY those
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+    -t Transcript -o "$DOCS_DIR" --start-date "$YYYYMM" --end-date "$YYYYMM"
+# Then read the downloaded PDF and save its text to DB (see "Save after read" below)
+
+# Step 5: the most recent quarter may not be officially filed yet — backfill it
+node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
+# Handle status: "saved"/"db-hit" → read JSON; "needs-recording-pipeline" → follow
+# concall-transcript-extractor SKILL.md tier 4 steps
 
 # Also pull the latest annual report for the long-form Vision/Strategy guidance
 python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t "Annual Report" --last-n 1 -o "$DOCS_DIR"
+```
 
-# The most recent quarter — the one this scorecard is most likely to actually
-# be asked about ("have they delivered THIS time?") — may not be officially
-# filed yet even though the prior 7-8 are. Backfill it if missing:
-node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
+**Save after read (mandatory for every downloaded PDF transcript):** After reading
+any official transcript PDF that was NOT already in the DB, write its full text to a
+temp file and persist it so the next run is an instant DB hit:
+
+```bash
+# After reading the PDF and extracting its verbatim text:
+cat > /tmp/${SAFE}_${YYYYMM}_transcript.txt << 'EOF'
+<full verbatim transcript text here>
+EOF
+node stock-api/bin/save-concall-transcript.js "$TICKER" "$YYYYMM" \
+    /tmp/${SAFE}_${YYYYMM}_transcript.txt \
+    --fiscal-year "$FY" --fiscal-period "$QN"
 ```
 
 If only 4-5 transcripts are available (recent IPO), proceed but flag in the
-output that the credibility window is short. If
-`get-latest-concall-transcript.js` returned `status: "saved"`, add its
-`fullText` (from `data/reports/<id>.json`) to the set fed into Phase 2 as the
-newest quarter — don't let the scorecard silently lag one quarter behind just
-because the official filing hasn't landed yet.
+output that the credibility window is short.
 
 ### Phase 2 — Guidance extraction (delegate to concall-analysis)
 

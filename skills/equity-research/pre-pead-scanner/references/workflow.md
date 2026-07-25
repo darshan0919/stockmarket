@@ -63,12 +63,28 @@ Decision rule:
 
 Some companies file under a BSE security code rather than the NSE symbol — if a real-looking ticker returns zero documents, retry as `BSE:<6-digit-code>` (see the dependency skill's failure-modes section).
 
-Fetch the in-scope documents for real (drop `--list-only`, add `-o`):
+Fetch the in-scope documents — transcript DB-first, then PPT directly:
 
 ```bash
 SAFE=$(echo "<companyId>" | tr ':' '_')
-python3 stock-api/python/fetchers/fetch_documents.py "<companyId>" \
-    -t Transcript,PPT --last-n 1 -o "/tmp/pead/${SAFE}_docs"
+TICKER="<companyId>"
+
+# Transcript: check DB first (instant, no network)
+node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
+# - "db-hit"/"saved" → read fullText from data/reports/<id>.json — no PDF download needed
+# - "official-transcript-exists" → fall through: download only the transcript PDF below
+# - "needs-recording-pipeline" → proceed with PPT only; flag missing transcript in output
+
+# For transcripts NOT already in DB, download and save to DB after reading:
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+    -t Transcript --last-n 1 -o "/tmp/pead/${SAFE}_docs"
+# After reading the downloaded PDF — save text to DB so the next scan run is instant:
+# node stock-api/bin/save-concall-transcript.js "$TICKER" "$YYYYMM" \
+#     /tmp/pead/${SAFE}_${YYYYMM}_transcript.txt --fiscal-year "$FY" --fiscal-period "$QN"
+
+# PPT always fetched directly (no DB caching for PPTs)
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+    -t PPT --last-n 1 -o "/tmp/pead/${SAFE}_docs"
 ```
 
 Convert to text (`pdftotext -layout`; OCR image-PPTs via `pdftoppm -r 150` + `tesseract` in batches of four pages). Extraction mechanics are in `guidance_extraction.md`. You MUST read both the concall and the PPT, not only the concall.

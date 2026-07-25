@@ -62,21 +62,50 @@ Handle its output by `status`:
   instructions (Chrome MCP + NotebookLM) if `recording.found` is true,
   otherwise tell the user no transcript is available yet through any source.
 
-For **multi-quarter** (N=4-8, historical) and **multi-peer** modes, those
-quarters are already officially filed — keep using the bulk fetch:
+For **multi-quarter** (N=4-8, historical) and **multi-peer** modes, check the DB
+first — most historical transcripts will already be cached from prior runs:
 
 ```bash
 SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_concall_docs"
 N=4  # 4-8 for multi-quarter; 1 per peer for multi-peer
+
+# Step 1: list available official transcripts — manifest only, no downloads yet
 python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t Transcript --last-n $N -o "$DOCS_DIR"
+    -t Transcript --last-n $N --list-only -o "$DOCS_DIR"
+
+# Step 2: bulk DB check for all quarters in the manifest
+BULK=$(python3 -c "
+import json, sys
+docs = json.load(open('$DOCS_DIR/manifest.json'))
+print(json.dumps([{'ticker': '$TICKER', 'quarter': d['date']} for d in docs]))
+")
+node stock-api/bin/get-latest-concall-transcript.js --bulk "$BULK"
+# Returns: [{status:"db-hit"|"official-transcript-exists"|..., ticker, quarter, id?}]
+
+# Step 3: for "db-hit"/"saved" entries — read fullText from data/reports/<id>.json (no PDF download)
+
+# Step 4: for "official-transcript-exists" entries — download ONLY those PDFs
+python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
+    -t Transcript -o "$DOCS_DIR" --start-date "$YYYYMM" --end-date "$YYYYMM"
+# After reading each downloaded PDF, save its text to DB (see below) so future runs skip the download
+```
+
+**Save after read (mandatory for every downloaded PDF transcript):** After reading
+any official transcript PDF that was NOT already in the DB, persist its text:
+
+```bash
+cat > /tmp/${SAFE}_${YYYYMM}_transcript.txt << 'EOF'
+<full verbatim transcript text>
+EOF
+node stock-api/bin/save-concall-transcript.js "$TICKER" "$YYYYMM" \
+    /tmp/${SAFE}_${YYYYMM}_transcript.txt \
+    --fiscal-year "$FY" --fiscal-period "$QN"
 ```
 
 Use `$DOCS_DIR/manifest.json`'s `date` field to identify Q1/Q2/Q3/Q4 ordering
-— newest first. If the most recent of the N quarters you need turns out to be
-missing from Stockscans (not filed yet), get just that one via
-`concall-transcript-extractor` as above and merge it into the same set rather
+— newest first. If the most recent quarter is missing from Stockscans (not filed yet),
+get it via `concall-transcript-extractor` as above and merge it into the set rather
 than silently analyzing N-1 quarters.
 
 ### Phase 2 — Mode-specific analysis

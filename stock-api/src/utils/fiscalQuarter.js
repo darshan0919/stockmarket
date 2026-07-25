@@ -70,4 +70,78 @@ function latestCompletedQuarter(now = new Date()) {
   };
 }
 
-module.exports = { latestCompletedQuarter, QUARTER_END_MONTH, calendarToQuarter };
+/**
+ * Parse a quarter string like "Q1FY27", "Q4FY26", "Q2FY2025" into the same
+ * shape that latestCompletedQuarter() returns.
+ *
+ * Rules:
+ *   - Format: Q{1-4}FY{2-or-4-digit-year}
+ *   - 2-digit years are treated as 2000+N (e.g. FY27 → 2027)
+ *   - `fiscalYear` = the FY label (e.g. 2027 for Q1FY27)
+ *   - `yyyymm`     = the calendar end-month of that quarter
+ *
+ * Examples:
+ *   parseQuarterString("Q1FY27") → { yyyymm:"202606", fiscalYear:2027, fiscalPeriod:"Q1", ... }
+ *   parseQuarterString("Q4FY26") → { yyyymm:"202603", fiscalYear:2026, fiscalPeriod:"Q4", ... }
+ *   parseQuarterString("Q3FY27") → { yyyymm:"202612", fiscalYear:2027, fiscalPeriod:"Q3", ... }
+ *
+ * @param {string} str
+ * @returns {{yyyymm: string, fiscalYear: number, fiscalPeriod: 'Q1'|'Q2'|'Q3'|'Q4', quarterEndDate: Date}}
+ * @throws {Error} if the string is not a valid quarter descriptor
+ */
+function parseQuarterString(str) {
+  if (!str || typeof str !== 'string') throw new Error(`Quarter must be a string, got: ${str}`);
+  const s = str.trim();
+
+  // Accept raw YYYYMM (e.g. "202606") — skills get this directly from the Stockscans manifest
+  // and shouldn't need to compute the quarter string by hand.
+  if (/^\d{6}$/.test(s)) {
+    const endYear = parseInt(s.slice(0, 4), 10);
+    const endMonth = parseInt(s.slice(4, 6), 10);
+    const monthToQuarter = { 6: 'Q1', 9: 'Q2', 12: 'Q3', 3: 'Q4' };
+    const fiscalPeriod = monthToQuarter[endMonth];
+    if (!fiscalPeriod) {
+      throw new Error(
+        `Cannot determine quarter from yyyymm "${s}" — end month ${endMonth} is not a quarter-end month (3, 6, 9, or 12)`
+      );
+    }
+    // Q4 ends in March of fiscalYear; Q1/Q2/Q3 end within cycleYear (= fiscalYear - 1).
+    const cycleYear = fiscalPeriod === 'Q4' ? endYear - 1 : endYear;
+    const fiscalYear = cycleYear + 1;
+    return {
+      yyyymm: s,
+      fiscalYear,
+      fiscalPeriod,
+      quarterEndDate: new Date(endYear, endMonth - 1, 1),
+    };
+  }
+
+  const m = s.toUpperCase().match(/^Q([1-4])FY(\d{2,4})$/);
+  if (!m) {
+    throw new Error(
+      `Invalid quarter format "${str}" — expected Q1FY27, Q4FY26, 202606, etc.`
+    );
+  }
+
+  const fiscalPeriod = `Q${m[1]}`;
+  let fiscalYear = parseInt(m[2], 10);
+  if (fiscalYear < 100) fiscalYear += 2000; // FY27 → 2027
+
+  // cycleYear is the calendar year the FY cycle STARTED in (April of that year).
+  // fiscalYear = cycleYear + 1, so cycleYear = fiscalYear - 1.
+  const cycleYear = fiscalYear - 1;
+
+  const endMonth = QUARTER_END_MONTH[fiscalPeriod];
+  // Q4 ends in March of fiscalYear; Q1/Q2/Q3 end within cycleYear.
+  const endCalendarYear = fiscalPeriod === 'Q4' ? fiscalYear : cycleYear;
+  const yyyymm = `${endCalendarYear}${String(endMonth).padStart(2, '0')}`;
+
+  return {
+    yyyymm,
+    fiscalYear,
+    fiscalPeriod,
+    quarterEndDate: new Date(endCalendarYear, endMonth - 1, 1),
+  };
+}
+
+module.exports = { latestCompletedQuarter, parseQuarterString, QUARTER_END_MONTH, calendarToQuarter };

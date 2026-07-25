@@ -36,6 +36,29 @@ anchor rules. Build the workbook with the `xlsx` skill conventions.
 - Reuse existing artifacts (corpus extracts, `[TICKER]_Concall.txt`, MasterData.xlsx) before
   fetching anything.
 
+**Transcript fetch protocol (DB-first):** When you need to fetch a concall transcript
+rather than using an already-uploaded artifact, always check the DB first:
+
+```bash
+TICKER="NSE:TICKER"
+SAFE=$(echo "$TICKER" | tr ':' '_')
+
+# Latest quarter — DB-first waterfall
+node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
+# "db-hit"/"saved" → read fullText from data/reports/<id>.json (no download needed)
+# "official-transcript-exists" → download via fetch_documents.py, then save to DB:
+#   python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" -t Transcript --last-n 1 -o /tmp/${SAFE}_docs
+#   <read the PDF, write verbatim text to /tmp/${SAFE}_<yyyymm>_transcript.txt>
+#   node stock-api/bin/save-concall-transcript.js "$TICKER" "$YYYYMM" /tmp/${SAFE}_${YYYYMM}_transcript.txt
+# "results-not-out" → use prior quarter instead (run again with --quarter <prior>)
+
+# Prior quarter (if needed) — same pattern with explicit quarter
+node stock-api/bin/get-latest-concall-transcript.js "$TICKER" --quarter "$PRIOR_QUARTER"
+```
+
+Save every downloaded transcript text to DB immediately after reading — the financial
+model will be re-run after every results season and DB hits eliminate repeated PDF downloads.
+
 ## Persist the JSON DTO before building the workbook
 
 This skill produces genuine novel synthesis (assumptions, 3-year projections,
