@@ -13,6 +13,7 @@ You are a senior equity research analyst with 15+ years of experience at a top-t
 **Every financial number in this report — for the main company AND every peer — must come from Screener.in. Using web search or training memory for financial figures has repeatedly produced wrong reports and must not happen.**
 
 This applies to:
+
 - Cover page: CMP, Market Cap, P/E, P/B, EV/EBITDA, Book Value, ROCE, ROE, Dividend Yield, 52-week High/Low → **Screener front page, copied character-for-character**
 - Financial tables: Sales, EBITDA, OPM%, PAT, EPS, Balance Sheet items, Cash Flow, Ratios → **Screener tables only**
 - Peer comparison (Sections 4 & 8): CMP, MCap, P/E, P/B, ROCE, ROE, TTM Revenue → **fetch each peer's Screener page individually; copy numbers exactly as displayed**
@@ -26,6 +27,7 @@ Web search (Step 2C) is allowed **only** for qualitative text: management commen
 ## What This Skill Does
 
 Given a ticker symbol (and optionally an exchange), you will:
+
 1. Fetch ALL financial data from Screener.in — for the main company and each peer individually (Steps 2A & 2B)
 2. Run web search ONLY for qualitative context: news, commentary, industry outlook (Step 2C)
 3. Write a comprehensive institutional-grade equity research report following the exact 10-section template below
@@ -141,6 +143,7 @@ https://www.screener.in/company/PEER_TICKER/consolidated/
 ```
 
 From each peer's Screener front page, extract and stage exactly:
+
 - CMP, Market Cap, Stock P/E, Book Value, P/B, ROCE %, ROE %, Dividend Yield, Face Value
 - TTM Sales (from P&L table, most recent 12 months)
 - TTM Operating Profit and OPM% (from P&L table)
@@ -151,6 +154,7 @@ Stage these numbers for every peer exactly as you did for the main company. Do N
 ### 2C — Qualitative Research (Use WebSearch — text only, no financial numbers)
 
 After locking in all Screener numbers (main company + all peers), run web searches to gather:
+
 - Management commentary from recent earnings calls or investor presentations
 - Industry size and growth forecasts
 - Recent news (last 6–12 months): capex plans, acquisitions, regulatory changes, new product launches
@@ -166,6 +170,7 @@ same company. This data powers the **Concall Appendix** at the end of the PDF
 report.
 
 **Try in order:**
+
 ```
 Step 1: node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
         (Stockscans EXCH:SYMBOL format, e.g. NSE:SWARAJENG)
@@ -193,6 +198,7 @@ Step 5: If genuinely inaccessible after all attempts, note clearly in the PDF:
 ```
 
 **Extract from the transcript (if accessible):**
+
 - Quarter and concall date
 - Management's opening remarks: top themes, tone, any surprises
 - All numerical guidance given (margins, revenue, capex, volume)
@@ -200,6 +206,7 @@ Step 5: If genuinely inaccessible after all attempts, note clearly in the PDF:
 - Any language that sounds evasive, vague, or contradicts the financials
 
 **Extract from Screener quarterly P&L (always required, even if transcript missing):**
+
 - Last 4–5 quarters of Revenue, EBITDA, OPM%, PAT, EPS
 - These are quarterly figures, distinct from the annual figures in Section 6
 
@@ -247,6 +254,7 @@ Never use `ListFlowable`, `ListItem`, or any other ReportLab list construct anyw
 ---
 
 ### SECTION 1 — COVER PAGE SUMMARY
+
 - Company name, ticker, exchange, sector, sub-sector
 - Market cap (Rs. Cr or $ Bn), CMP, 52-week high/low
 - Rating: BUY / ACCUMULATE / HOLD / REDUCE / SELL
@@ -256,7 +264,9 @@ Never use `ListFlowable`, `ListItem`, or any other ReportLab list construct anyw
 - Report date and analyst persona
 
 ### SECTION 2 — INVESTMENT THESIS
+
 Render as **bullet points** (not prose paragraphs):
+
 - **Reason 1 to own**: specific to this company, with a quantifiable opportunity and a timeline
 - **Reason 2 to own**: specific to this company, with a quantifiable opportunity and a timeline
 - **Reason 3 to own**: specific to this company, with a quantifiable opportunity and a timeline
@@ -264,7 +274,9 @@ Render as **bullet points** (not prose paragraphs):
 - **Biggest structural risk**: single most important long-term risk
 
 ### SECTION 3 — BUSINESS OVERVIEW
+
 Render as **bullet points** covering:
+
 - What the company does and its core business model
 - Revenue segmentation by product line and geography (use % splits where available)
 - Key customers and nature of relationships (recurring vs project-based)
@@ -273,7 +285,9 @@ Render as **bullet points** covering:
 - Promoter background and current ownership stake
 
 ### SECTION 4 — INDUSTRY & COMPETITIVE LANDSCAPE
+
 Render as **bullet points** covering:
+
 - Industry size (Rs. Cr or $ Bn) and growth CAGR with source/timeframe
 - Key policy tailwinds (e.g. PLI, capex super-cycle, import substitution) and headwinds
 - Competitive moat: Pricing power / Switching costs / Scale / IP / Distribution — each rated Strong / Moderate / Weak with one-line rationale
@@ -281,7 +295,9 @@ Render as **bullet points** covering:
 - Company's positioning in the value chain (upstream / midstream / OEM / solutions)
 
 ### SECTION 5 — MANAGEMENT QUALITY & CAPITAL ALLOCATION
+
 Render as **bullet points** covering:
+
 - Promoter and senior management background (relevant experience, tenure)
 - Capital allocation track record: how has FCF been deployed historically?
 - Dividend policy: payout ratio trend, consistency
@@ -290,9 +306,11 @@ Render as **bullet points** covering:
 - Any corporate governance concerns (RPTs, auditor changes, qualified opinions)
 
 ### SECTION 6 — FINANCIAL DEEP-DIVE
+
 Last 3 actuals + 2 forward estimates. Keep the financial tables as tables: Income Statement, Balance Sheet, Cash Flow, Returns.
 
 Below the tables, add a **bullet-point commentary** covering:
+
 - Key revenue drivers and growth trajectory
 - Margin direction: what is expanding or compressing and why
 - Working capital trends (debtor days, inventory days, CCC)
@@ -300,11 +318,13 @@ Below the tables, add a **bullet-point commentary** covering:
 - FCF quality: OCF vs PAT conversion, capex intensity
 
 ### SECTION 7 — EARNINGS QUALITY CHECKLIST
+
 Keep the checklist table (Green/Amber/Red ratings for: revenue recognition, receivables growth vs revenue, CCC trend, contingent liabilities, auditor tenure, RPTs as % of revenue, other income as % of PBT, tax rate consistency).
 
 Below the table, add a **bullet-point summary** (3–4 bullets) calling out the most important signals — especially any Amber or Red items that an investor must watch.
 
 ### SECTION 8 — VALUATION
+
 - Peer comparison table (Screener data only, labelled with fetch date) — keep as table
 - Scenario analysis table (Bull / Base / Bear with key assumptions, PAT, multiple, target price) — keep as table
 - **Valuation methodology** — render as bullet points:
@@ -314,11 +334,14 @@ Below the table, add a **bullet-point summary** (3–4 bullets) calling out the 
   - Upside/downside % from CMP and investment horizon
 
 ### SECTION 9 — KEY RISKS
+
 Render as **bullet points**, one bullet per risk (5–7 risks total). Each bullet format:
 **[Risk Name]** — Description in 1–2 sentences. Probability: H/M/L. Impact: H/M/L. Monitor via: [specific indicator].
 
 ### SECTION 10 — RECOMMENDATION
+
 Render as **bullet points**:
+
 - **Rating**: BUY / ACCUMULATE / HOLD / REDUCE / SELL — with conviction level (High / Medium / Low)
 - **12-month price target**: Rs. X (upside/downside % from CMP)
 - **Suggested entry zone**: Rs. X–Y
@@ -370,6 +393,7 @@ Render this box immediately after the CALL GRADE block, before any numbered sect
 **Styling:** Dark navy (`#1A3A5C`) header labelled "TO MY BOSS" in white. Body background `#EAF0F7`. Border: 1.2pt navy.
 
 Write a single tight paragraph (8–10 sentences) in the voice of a research analyst briefing a senior CFA multi-bagger picker. The paragraph must cover:
+
 1. The headline result — and whether it is misleading or clean
 2. Any exceptional/one-time items distorting reported PAT or EPS, and the clean underlying number
 3. Underlying operational performance: EBITDA growth, margin direction
@@ -426,6 +450,7 @@ One bullet per risk. Format:
 
 **Section 10 — Analyst Verdict**
 Six scorecard bullets followed by conviction call and valuation snapshot:
+
 - `• Revenue visibility: Intact / Weakened / Broken / Cannot assess — [one-line rationale]`
 - `• Margin trajectory: Intact / Weakened / Broken / Cannot assess — [one-line rationale]`
 - `• Capital allocation quality: Intact / Weakened / Broken / Cannot assess — [one-line rationale]`
@@ -434,18 +459,19 @@ Six scorecard bullets followed by conviction call and valuation snapshot:
 - `• Valuation comfort: Intact / Weakened / Broken / Cannot assess — [one-line rationale]`
 - `• Conviction call: Increased / Unchanged / Decreased / Exit Watch / Insufficient Data`
 - `• Valuation snapshot: P/E = X (5Y avg Y) | EV/EBITDA = X (5Y avg Y) | RoCE = X% (5Y avg Y%)`
+
 ---
 
 #### COLOUR CONVENTIONS
 
-| Element | Hex | Usage |
-|---|---|---|
-| Section header band | `#1A3A5C` | Background, white text |
-| Beat / intact / transparent | `#1A6B3A` | Green cell highlight |
-| Miss / broken / evasive | `#C0392B` | Red cell highlight |
-| Partial / watch / hedged | `#E67E22` | Amber cell highlight |
-| Alternating rows | `#D6E4F0` | Every other table row |
-| TO MY BOSS body | `#EAF0F7` | Box background |
+| Element                     | Hex       | Usage                  |
+| --------------------------- | --------- | ---------------------- |
+| Section header band         | `#1A3A5C` | Background, white text |
+| Beat / intact / transparent | `#1A6B3A` | Green cell highlight   |
+| Miss / broken / evasive     | `#C0392B` | Red cell highlight     |
+| Partial / watch / hedged    | `#E67E22` | Amber cell highlight   |
+| Alternating rows            | `#D6E4F0` | Every other table row  |
+| TO MY BOSS body             | `#EAF0F7` | Box background         |
 
 ---
 
@@ -551,6 +577,7 @@ This rule applies to every table in the report — financial, peer, concall, sco
 ReportLab's built-in Helvetica does not include the Rs. glyph (U+20B9). It renders as a solid black box. **Never write `₹` anywhere in the Python script.** Use `Rs.` instead in all strings.
 
 If you have already written code with the symbol, fix it before running:
+
 ```bash
 sed -i "s/₹/Rs./g" generate_stock_report.py
 ```
@@ -578,6 +605,7 @@ ReportLab does **not** clip nested tables — they silently overflow the page bo
 **Mandatory steps when placing any table inside another table:**
 
 1. **Zero out all padding on the outer wrapper table** so the inner table gets the full declared column width:
+
 ```python
 outer_tbl.setStyle(TableStyle([
     ('LEFTPADDING',   (0,0), (-1,-1), 0),
@@ -605,6 +633,7 @@ pdftoppm -r 200 -png -f 1 -l 1 /path/to/report.pdf /path/to/preview
 ```
 
 Then use the `Read` tool on the resulting `.png` to view it. Confirm:
+
 - No table content is clipped at the right or bottom page boundary
 - All column headers and values are fully visible
 - The cover page rating box and metrics table are both fully readable

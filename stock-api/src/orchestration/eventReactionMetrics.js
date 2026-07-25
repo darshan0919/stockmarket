@@ -26,7 +26,9 @@
  */
 
 const {
-  mergeAnnouncements, findLatestEvent, earliestEventTimestamp,
+  mergeAnnouncements,
+  findLatestEvent,
+  earliestEventTimestamp,
 } = require('../analyzers/eventReactionSignals');
 const { computeReactionMetrics } = require('../analyzers/eventReactionSignals');
 const { fetchReactionCandles } = require('../fetchers/reactionCandlesFetcher');
@@ -79,12 +81,24 @@ async function fetchEventReactionMetrics(clients, symbol, category, opts = {}) {
   // earliestEventTimestamp wants the per-exchange latest-in-window pick so it
   // can compare "the same event" across sources, not just the globally latest
   // (which could already be a BSE-only sub-announcement).
-  const nseEvent = findLatestEvent(events.filter((e) => e.source === 'NSE'), category, { start, end });
-  const bseEvent = findLatestEvent(events.filter((e) => e.source === 'BSE'), category, { start, end });
+  const nseEvent = findLatestEvent(
+    events.filter((e) => e.source === 'NSE'),
+    category,
+    { start, end }
+  );
+  const bseEvent = findLatestEvent(
+    events.filter((e) => e.source === 'BSE'),
+    category,
+    { start, end }
+  );
 
   if (!nseEvent && !bseEvent) {
     return {
-      symbol, category, event: null, metrics: null, apiCalls,
+      symbol,
+      category,
+      event: null,
+      metrics: null,
+      apiCalls,
       note: `no ${category} event found for ${symbol} in the requested window`,
     };
   }
@@ -101,7 +115,12 @@ async function fetchEventReactionMetrics(clients, symbol, category, opts = {}) {
   return {
     symbol,
     category,
-    event: { source: chosen.source, category: chosen.category, headline: chosen.headline, timestamp },
+    event: {
+      source: chosen.source,
+      category: chosen.category,
+      headline: chosen.headline,
+      timestamp,
+    },
     metrics,
     apiCalls,
     note: null,

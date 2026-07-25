@@ -13,12 +13,12 @@ auto-applied.
 
 ## Commands & parameters
 
-| Invocation | When |
-|---|---|
-| `run` (default) | nightly: validate the latest notes file, write ledger + proposals, email |
-| `fetch-delivery [DDMMYYYY]` | debug: summarise the NSE delivery file for a date |
-| `score <SYMBOL>` | debug: print structural metrics for one NSE symbol |
-| `show-ledger` | print accumulated per-category validation stats |
+| Invocation                    | When                                                                                                                   |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `run` (default)               | nightly: validate the latest notes file, write ledger + proposals, email                                               |
+| `fetch-delivery [DDMMYYYY]`   | debug: summarise the NSE delivery file for a date                                                                      |
+| `score <SYMBOL>`              | debug: print structural metrics for one NSE symbol                                                                     |
+| `show-ledger`                 | print accumulated per-category validation stats                                                                        |
 | `validate-gainers [DDMMYYYY]` | debug: run the gainers-signal D+2 follow-up validation on demand for a given source date (default: 2 trading days ago) |
 
 The default nightly behaviour is exactly `run` with no arguments (it auto-selects the
@@ -28,6 +28,7 @@ separate manual step.
 
 `run` also accepts two optional flags (defaults shown match today's behavior — a one-off
 change of either no longer needs a new script):
+
 - `--baseline-days <n>` (default `20`) — price/delivery baseline lookback window.
 - `--sector-mcap-floor <cr>` (default `300`) — ₹cr market-cap floor for the sector
   universe used in attribution. Cached sector-context files are keyed by this value, so
@@ -78,11 +79,13 @@ itself: data (notes/, delivery_cache/, validation/ ledger+proposals) defaults to
 ## Run
 
 Default (nightly):
+
 ```bash
 node "$JOB" run
 ```
 
 On-demand examples:
+
 ```bash
 node "$JOB" score SWARAJENG          # structural read for one symbol
 node "$JOB" fetch-delivery 27062026  # did NSE publish that day's delivery file?
@@ -102,6 +105,7 @@ your review.
 ```bash
 node "$RUNTIME/scripts/data.js" push
 ```
+
 Idempotent push of everything under `data/` to Google Drive (`StockMarket/data/v2`).
 Push-only: local files are KEPT (full mirror), nothing is deleted. The skill is NOT complete until this has run. Generated data belongs ONLY under `data/`; if the sync fails, report it and retry later.
 

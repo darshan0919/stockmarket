@@ -4,78 +4,80 @@ const fs = require('fs');
 const path = require('path');
 
 const RATING_COLORS = {
-    'HIGH': '#27AE60',
-    'MEDIUM': '#2b6cb0',
-    'MIXED': '#F39C12',
-    'WATCH': '#E67E22',
-    'RED': '#E74C3C',
+  HIGH: '#27AE60',
+  MEDIUM: '#2b6cb0',
+  MIXED: '#F39C12',
+  WATCH: '#E67E22',
+  RED: '#E74C3C',
 };
 
 const STATUS_COLORS = {
-    'DELIVERED': '#27AE60',
-    'ON TRACK': '#2ECC71',
-    'MIXED': '#F39C12',
-    'MISSING': '#95A5A6',
-    'TOO EARLY': '#95A5A6',
-    'MISSED': '#E74C3C',
-    'WITHDRAWN': '#9B2C2C',
+  DELIVERED: '#27AE60',
+  'ON TRACK': '#2ECC71',
+  MIXED: '#F39C12',
+  MISSING: '#95A5A6',
+  'TOO EARLY': '#95A5A6',
+  MISSED: '#E74C3C',
+  WITHDRAWN: '#9B2C2C',
 };
 
 function escapeHtml(unsafe) {
-    if (!unsafe) return '';
-    return String(unsafe)
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;");
+  if (!unsafe) return '';
+  return String(unsafe)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 function _rowHtml(promise) {
-    const status = (promise.status || '').toUpperCase().trim();
-    const color = STATUS_COLORS[status] || STATUS_COLORS['MIXED'];
-    return `
+  const status = (promise.status || '').toUpperCase().trim();
+  const color = STATUS_COLORS[status] || STATUS_COLORS['MIXED'];
+  return `
         <tr>
             <td>${escapeHtml(promise.quarter || '')}</td>
             <td>${escapeHtml(promise.promise || '')}</td>
             <td>${escapeHtml(promise.outcome || '')}</td>
             <td>${escapeHtml(promise.metric_type || '—')}</td>
-            <td><span class="status-pill" style="background: ${color};">${escapeHtml(status || "—")}</span></td>
+            <td><span class="status-pill" style="background: ${color};">${escapeHtml(status || '—')}</span></td>
         </tr>`;
 }
 
 function _caseStudyBlock(caseStudyMatch) {
-    if (!caseStudyMatch) return '';
-    const descriptions = {
-        'Mayur': 'Under-promise / over-deliver. Premium credibility — accumulate on dips.',
-        'Navin': 'Multi-driver outperformance. Premium-quality compounder.',
-        'Hikal': 'Over-optimistic guidance with deteriorating language. Watch / reduce.',
-        'Gravita': 'Mixed delivery — some metrics beat, some miss. Reset to base case.',
-    };
-    const desc = descriptions[caseStudyMatch] || '';
-    return `
+  if (!caseStudyMatch) return '';
+  const descriptions = {
+    Mayur: 'Under-promise / over-deliver. Premium credibility — accumulate on dips.',
+    Navin: 'Multi-driver outperformance. Premium-quality compounder.',
+    Hikal: 'Over-optimistic guidance with deteriorating language. Watch / reduce.',
+    Gravita: 'Mixed delivery — some metrics beat, some miss. Reset to base case.',
+  };
+  const desc = descriptions[caseStudyMatch] || '';
+  return `
         <div class="case-study-callout">
             <strong>Case-study match: ${escapeHtml(caseStudyMatch)}</strong> &mdash; ${escapeHtml(desc)}
         </div>`;
 }
 
 function createCredibilityWidget(data) {
-    const outputPath = data.output_path;
-    const dir = path.dirname(outputPath);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const outputPath = data.output_path;
+  const dir = path.dirname(outputPath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-    const score = data.score || 0;
-    const rating = data.rating || 'MEDIUM';
-    const ratingColor = RATING_COLORS[rating.toUpperCase()] || RATING_COLORS['MEDIUM'];
+  const score = data.score || 0;
+  const rating = data.rating || 'MEDIUM';
+  const ratingColor = RATING_COLORS[rating.toUpperCase()] || RATING_COLORS['MEDIUM'];
 
-    const promisesRows = (data.promises || []).map(p => _rowHtml(p)).join('\n        ') || '<tr><td colspan="5">No promises tracked yet.</td></tr>';
-    
-    const beatRatePct = Math.round((data.beat_rate || 0.0) * 100);
+  const promisesRows =
+    (data.promises || []).map((p) => _rowHtml(p)).join('\n        ') ||
+    '<tr><td colspan="5">No promises tracked yet.</td></tr>';
 
-    const scoreSign = score > 0 ? '+' : (score === 0 ? '' : '-');
-    const scoreAbs = Math.abs(score);
+  const beatRatePct = Math.round((data.beat_rate || 0.0) * 100);
 
-    const htmlTemplate = `<!DOCTYPE html>
+  const scoreSign = score > 0 ? '+' : score === 0 ? '' : '-';
+  const scoreAbs = Math.abs(score);
+
+  const htmlTemplate = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -262,24 +264,24 @@ function toggleTheme() {
 </html>
 `;
 
-    fs.writeFileSync(outputPath, htmlTemplate, 'utf-8');
-    console.log(`✅ Credibility widget saved to: ${outputPath}`);
-    return outputPath;
+  fs.writeFileSync(outputPath, htmlTemplate, 'utf-8');
+  console.log(`✅ Credibility widget saved to: ${outputPath}`);
+  return outputPath;
 }
 
 function getCredibilitySchema(data) {
-    return {
-        company_name: data.company_name,
-        ticker: data.ticker,
-        score: data.score,
-        rating: data.rating,
-        beat_rate: data.beat_rate,
-        promises_closed: data.promises_closed,
-        most_credible_metric: data.most_credible_metric,
-        most_missed_metric: data.most_missed_metric,
-        case_study_match: data.case_study_match,
-        interpretation: data.interpretation,
-    };
+  return {
+    company_name: data.company_name,
+    ticker: data.ticker,
+    score: data.score,
+    rating: data.rating,
+    beat_rate: data.beat_rate,
+    promises_closed: data.promises_closed,
+    most_credible_metric: data.most_credible_metric,
+    most_missed_metric: data.most_missed_metric,
+    case_study_match: data.case_study_match,
+    interpretation: data.interpretation,
+  };
 }
 
 module.exports = { createCredibilityWidget, getCredibilitySchema };

@@ -21,10 +21,13 @@ const { sendHtmlEmail, stockscansUrl } = require('@stock/cloud-utils');
 // We will fetch Screener data to get market caps (for sorting/display).
 async function getScreenerData(symbol) {
   try {
-    const searchRes = await fetch(`https://www.screener.in/api/company/search/?q=${encodeURIComponent(symbol)}`);
+    const searchRes = await fetch(
+      `https://www.screener.in/api/company/search/?q=${encodeURIComponent(symbol)}`
+    );
     if (!searchRes.ok) return null;
     const json = await searchRes.json();
-    const match = json.find(j => j.url.includes(`/${symbol}/`) || j.url.includes(symbol)) || json[0];
+    const match =
+      json.find((j) => j.url.includes(`/${symbol}/`) || j.url.includes(symbol)) || json[0];
     if (!match) return null;
 
     const htmlRes = await fetch(`https://www.screener.in${match.url}`);
@@ -32,14 +35,14 @@ async function getScreenerData(symbol) {
     const html = await htmlRes.text();
     const mcapMatch = html.match(/Market Cap[^>]*>.*?<span class="number">([^<]+)<\/span>/is);
     const mcapCr = mcapMatch ? parseFloat(mcapMatch[1].replace(/,/g, '')) : null;
-    
+
     const priceMatch = html.match(/Current Price[^>]*>.*?<span class="number">([^<]+)<\/span>/is);
     const latestPrice = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : null;
 
     return {
       companyName: match.name,
       marketCap: mcapCr ? mcapCr * 1e7 : null,
-      latestPrice
+      latestPrice,
     };
   } catch (e) {
     return null;
@@ -60,7 +63,20 @@ function fmt(d, sep) {
 
 function parseNseDate(s) {
   if (!s || s === '-') return null;
-  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const MONTHS = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
   const m = /^(\d{2})-([A-Za-z]{3})-(\d{4})/.exec(String(s).trim());
   if (!m) return null;
   const mon = MONTHS.findIndex((x) => x.toLowerCase() === m[2].toLowerCase());
@@ -95,7 +111,7 @@ async function fetchBoardMeetings() {
         date: r.bm_date,
         purpose: r.bm_purpose,
         description: r.bm_desc,
-        timestamp: r.bm_timestamp
+        timestamp: r.bm_timestamp,
       });
     }
   } catch (e) {
@@ -106,7 +122,7 @@ async function fetchBoardMeetings() {
 
 async function fetchCorporateActions() {
   const out = { rows: [], errors: [] };
-  
+
   // NSE Corporate Actions
   try {
     const data = await nse.getCorporateActions();
@@ -118,7 +134,7 @@ async function fetchCorporateActions() {
         company: r.comp,
         exDate: r.exDate,
         recordDate: r.recDate,
-        purpose: r.subject
+        purpose: r.subject,
       });
     }
   } catch (e) {
@@ -141,7 +157,7 @@ async function fetchCorporateActions() {
         company: r.Security,
         exDate: r.ExDate, // DD/MM/YYYY
         recordDate: null, // Usually BCPeriod is available, keeping simple
-        purpose: r.Purpose
+        purpose: r.Purpose,
       });
     }
   } catch (e) {
@@ -175,14 +191,14 @@ function categorizeActions(actions) {
 function deduplicateEvents(events, dateField) {
   const unique = [];
   const seen = new Set();
-  
+
   for (const ev of events) {
     // Basic deduplication: similar symbol prefix + similar purpose
     const sym = String(ev.symbol).substring(0, 5).toLowerCase();
     const purp = String(ev.purpose).substring(0, 15).toLowerCase();
     const d = ev[dateField] || '';
     const key = `${sym}_${d}_${purp}`;
-    
+
     if (!seen.has(key)) {
       seen.add(key);
       unique.push(ev);
@@ -193,33 +209,35 @@ function deduplicateEvents(events, dateField) {
 
 async function enrichWithMarketCap(events) {
   // Fetch market cap for each event
-  await Promise.all(events.map(async (ev) => {
-    let nseData = null;
-    try {
-      if (ev.exchange === 'NSE') {
-        nseData = await nse.getSymbolData(ev.symbol);
-      }
-    } catch {}
-    
-    ev.companyName = nseData?.metaData?.companyName || ev.company || ev.symbol;
-    ev.marketCap = nseData?.tradeInfo?.totalMarketCap || null;
-    ev.latestPrice = nseData?.priceInfo?.lastPrice || nseData?.priceInfo?.close || null;
+  await Promise.all(
+    events.map(async (ev) => {
+      let nseData = null;
+      try {
+        if (ev.exchange === 'NSE') {
+          nseData = await nse.getSymbolData(ev.symbol);
+        }
+      } catch {}
 
-    if (!ev.marketCap || !ev.latestPrice || ev.companyName === ev.symbol) {
-      const scr = await getScreenerData(ev.symbol);
-      if (scr) {
-        if (!ev.marketCap && scr.marketCap) ev.marketCap = scr.marketCap;
-        if (!ev.latestPrice && scr.latestPrice) ev.latestPrice = scr.latestPrice;
-        if (ev.companyName === ev.symbol && scr.companyName) ev.companyName = scr.companyName;
-      }
-    }
+      ev.companyName = nseData?.metaData?.companyName || ev.company || ev.symbol;
+      ev.marketCap = nseData?.tradeInfo?.totalMarketCap || null;
+      ev.latestPrice = nseData?.priceInfo?.lastPrice || nseData?.priceInfo?.close || null;
 
-    if (ev.dividendAmount && ev.latestPrice) {
-      ev.dividendYield = (ev.dividendAmount / ev.latestPrice) * 100;
-    } else {
-      ev.dividendYield = null;
-    }
-  }));
+      if (!ev.marketCap || !ev.latestPrice || ev.companyName === ev.symbol) {
+        const scr = await getScreenerData(ev.symbol);
+        if (scr) {
+          if (!ev.marketCap && scr.marketCap) ev.marketCap = scr.marketCap;
+          if (!ev.latestPrice && scr.latestPrice) ev.latestPrice = scr.latestPrice;
+          if (ev.companyName === ev.symbol && scr.companyName) ev.companyName = scr.companyName;
+        }
+      }
+
+      if (ev.dividendAmount && ev.latestPrice) {
+        ev.dividendYield = (ev.dividendAmount / ev.latestPrice) * 100;
+      } else {
+        ev.dividendYield = null;
+      }
+    })
+  );
 
   // Sort by Market Cap descending
   events.sort((a, b) => (b.marketCap || 0) - (a.marketCap || 0));
@@ -229,18 +247,23 @@ async function enrichWithMarketCap(events) {
 // ── rendering ─────────────────────────────────────────────────────────────────
 
 function esc(s) {
-  return String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  return String(s ?? '').replace(
+    /[&<>"]/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]
+  );
 }
 
 function tableHtml(title, headers, rowsHtml, note) {
   return `
   <h3 style="margin:24px 0 6px;font-family:Arial,sans-serif;color:#1a237e">${title}</h3>
   ${note ? `<p style="margin:0 0 8px;font:12px Arial;color:#666">${note}</p>` : ''}
-  ${rowsHtml.length
-    ? `<table cellpadding="6" cellspacing="0" border="0" style="border-collapse:collapse;font:13px Arial;width:100%;white-space:nowrap">
+  ${
+    rowsHtml.length
+      ? `<table cellpadding="6" cellspacing="0" border="0" style="border-collapse:collapse;font:13px Arial;width:100%;white-space:nowrap">
        <tr style="background:#e8eaf6;text-align:left">${headers.map((h) => `<th style="border-bottom:2px solid #9fa8da">${h}</th>`).join('')}</tr>
        ${rowsHtml.join('\n')}</table>`
-    : '<p style="font:13px Arial;color:#999">No records.</p>'}`;
+      : '<p style="font:13px Arial;color:#999">No records.</p>'
+  }`;
 }
 
 function td(v, right, wrap) {
@@ -248,33 +271,34 @@ function td(v, right, wrap) {
 }
 
 function renderEmail(dateLabel, digest) {
-  const divRowHtml = (events, dateField) => events.map((r, i) => {
-    const symCol = `<a href="${stockscansUrl(r.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(r.companyName || r.symbol)}</b></a> <span style="color:#888">${esc(r.exchange)}</span>`;
-    const y = r.dividendYield !== null ? r.dividendYield.toFixed(2) + '%' : '—';
-    const d = esc(r[dateField] || '—');
-    const divVal = r.dividendAmount !== null ? `₹${r.dividendAmount}` : '—';
-    return `<tr>${td(i + 1)}${td(symCol)}${td(y, 1)}${td(d)}${td('<b>' + divVal + '</b>', 1)}</tr>`;
-  });
+  const divRowHtml = (events, dateField) =>
+    events.map((r, i) => {
+      const symCol = `<a href="${stockscansUrl(r.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(r.companyName || r.symbol)}</b></a> <span style="color:#888">${esc(r.exchange)}</span>`;
+      const y = r.dividendYield !== null ? r.dividendYield.toFixed(2) + '%' : '—';
+      const d = esc(r[dateField] || '—');
+      const divVal = r.dividendAmount !== null ? `₹${r.dividendAmount}` : '—';
+      return `<tr>${td(i + 1)}${td(symCol)}${td(y, 1)}${td(d)}${td('<b>' + divVal + '</b>', 1)}</tr>`;
+    });
 
-  const rowHtml = (events, dateField) => events.map((r, i) => {
-    const symCol = `<a href="${stockscansUrl(r.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(r.companyName || r.symbol)}</b></a> <span style="color:#888">${esc(r.exchange)}</span>`;
-    const mcapCol = `<b>${crores(r.marketCap)}</b>`;
-    const d = esc(r[dateField] || '—');
-    const p = esc(r.purpose || '—');
-    return `<tr>${td(i + 1)}${td(symCol)}${td(mcapCol, 1)}${td(d)}${td(p, false, true)}</tr>`;
-  });
+  const rowHtml = (events, dateField) =>
+    events.map((r, i) => {
+      const symCol = `<a href="${stockscansUrl(r.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(r.companyName || r.symbol)}</b></a> <span style="color:#888">${esc(r.exchange)}</span>`;
+      const mcapCol = `<b>${crores(r.marketCap)}</b>`;
+      const d = esc(r[dateField] || '—');
+      const p = esc(r.purpose || '—');
+      return `<tr>${td(i + 1)}${td(symCol)}${td(mcapCol, 1)}${td(d)}${td(p, false, true)}</tr>`;
+    });
 
   const errs = [...digest.boardMeetings.errors, ...digest.corporateActions.errors];
 
   return `
 <div style="max-width:860px">
-  <h2 style="font-family:Arial;color:#0d1333;margin:0">Daily Corporate Actions Digest — ${dateLabel}</h2>
-  <p style="font:12px Arial;color:#666;margin:4px 0 0">Upcoming Dividends, Splits, Bonus, and Board Meetings. Sources: NSE/BSE.</p>
   ${tableHtml(`1️⃣ Dividends (${digest.dividends.length})`, ['#', 'Company', 'Yield', 'Ex-Date', 'Dividend'], divRowHtml(digest.dividends, 'exDate'))}
   ${tableHtml(`2️⃣ Other Corporate Actions (${digest.others.length})`, ['#', 'Company', 'Market Cap', 'Ex-Date', 'Purpose'], rowHtml(digest.others, 'exDate'), 'Splits, Bonus issues, Rights, etc.')}
   ${tableHtml(`3️⃣ Board Meetings (${digest.boardMeetingsEnriched.length})`, ['#', 'Company', 'Market Cap', 'Meeting Date', 'Purpose'], rowHtml(digest.boardMeetingsEnriched, 'date'))}
   
   ${errs.length ? `<p style="font:12px Arial;color:#b71c1c"><b>Fetch warnings:</b> ${errs.map(esc).join(' · ')}</p>` : ''}
+  <p style="font:11px Arial;color:#999;margin:24px 0 0;border-top:1px solid #eee;padding-top:8px">Sources: <a href="https://www.nseindia.com/companies-listing/corporate-filings-actions" style="color:#999;text-decoration:none">NSE Corporate Actions</a> &nbsp;·&nbsp; <a href="https://www.nseindia.com/companies-listing/corporate-filings-board-meetings" style="color:#999;text-decoration:none">NSE Board Meetings</a> &nbsp;·&nbsp; <a href="https://www.bseindia.com/markets/equity/EQReports/CorporateActionCal.aspx" style="color:#999;text-decoration:none">BSE Corporate Actions</a>.</p>
 </div>`;
 }
 
@@ -283,17 +307,14 @@ function renderEmail(dateLabel, digest) {
 async function main() {
   loadEnv(argValue('--env-file'));
   const noEmail = process.argv.includes('--no-email');
-  
+
   const target = istNow();
   const dateLabel = fmt(target, '-');
 
   // Warmup session
   await nseSession.warmup();
 
-  const [bmData, caData] = await Promise.all([
-    fetchBoardMeetings(),
-    fetchCorporateActions(),
-  ]);
+  const [bmData, caData] = await Promise.all([fetchBoardMeetings(), fetchCorporateActions()]);
 
   const uniqueBMs = deduplicateEvents(bmData.rows, 'date');
   const uniqueCAs = deduplicateEvents(caData.rows, 'exDate');
@@ -340,7 +361,7 @@ async function main() {
         counts: {
           boardMeetings: digest.boardMeetingsEnriched.length,
           dividends: digest.dividends.length,
-          others: digest.others.length
+          others: digest.others.length,
         },
         errors: [...bmData.errors, ...caData.errors],
         email,

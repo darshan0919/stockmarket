@@ -8,9 +8,11 @@
 ## ✅ FULLY COMPLETED & WORKING
 
 ### 1. Quarterly Results Widget
+
 **Status**: ✅ **100% COMPLETE & WORKING**
 
 **Features**:
+
 - ✅ 11 financial metrics (Sales, Expenses, Operating Profit, OPM%, Other Income, Interest, Depreciation, PBT, Tax%, Net Profit, EPS)
 - ✅ 6 growth metrics (YoY Sales/Profit/EPS Growth, QoQ Sales/Profit/EPS Growth)
 - ✅ Fiscal year support (Q1 FY25, Q2 FY26, etc.)
@@ -26,9 +28,11 @@
 **Verified Working**: Tested with SRM, ETERNAL, RELIANCE, PENIND - All working perfectly
 
 ### 2. Yearly Results Widget
+
 **Status**: ✅ **100% COMPLETE & WORKING**
 
 **Features**:
+
 - ✅ Fiscal year aggregation (Apr-Mar)
 - ✅ TTM (Trailing Twelve Months) column
 - ✅ All financial metrics aggregated
@@ -41,9 +45,11 @@
 **Verified Working**: Yes, all calculations correct
 
 ### 3. Balance Sheet Widget
+
 **Status**: ⚠️ **UI COMPLETE, DATA PENDING**
 
 **UI Status**: ✅ 100% Complete
+
 - ✅ Quarterly/Yearly toggle
 - ✅ Consolidated/Standalone toggle
 - ✅ Proper table structure matching [Screener.in](https://www.screener.in/company/PENIND)
@@ -53,10 +59,11 @@
 **Data Status**: ❌ 0% - XBRL Not Extracting Balance Sheet Fields
 
 **Structure**:
+
 ```
 Liabilities:
 ├── Equity Capital
-├── Reserves  
+├── Reserves
 ├── Borrowings
 └── Other Liabilities
 
@@ -72,20 +79,24 @@ Totals:
 ```
 
 **Issue**: XBRL parser has field mappings defined, but actual NSE documents either:
+
 1. Don't contain balance sheet data in quarterly XBRL
 2. Use different field names than mapped
 3. Require separate API call for balance sheet
 
 ### 4. Cash Flows Widget
+
 **Status**: ⚠️ **UI COMPLETE, DATA PENDING**
 
 **UI Status**: ✅ 100% Complete
+
 - ✅ All toggles and features working
 - ✅ Proper structure
 
 **Data Status**: ❌ 0% - XBRL Not Extracting Cash Flow Fields
 
 **Structure**:
+
 ```
 ├── Cash from Operating Activity
 ├── Cash from Investing Activity
@@ -100,11 +111,13 @@ Totals:
 ## 🔄 PENDING IMPLEMENTATION
 
 ### 1. Ratios Widget (Medium Priority)
+
 **Status**: ❌ Not Started  
 **Estimated Time**: 3-4 hours  
 **Reference**: [Screener.in PENIND Ratios](https://www.screener.in/company/PENIND)
 
 **Required Metrics** (from Screener):
+
 - Debtor Days
 - Inventory Days
 - Days Payable
@@ -113,11 +126,13 @@ Totals:
 - ROCE %
 
 **Data Requirements**:
+
 - Some can be calculated from existing P&L data
 - Some require balance sheet data (Debtor Days, Inventory Days, etc.)
 - **Blocker**: Need balance sheet data
 
 **Calculation Formulas**:
+
 ```javascript
 Debtor Days = (Trade Receivables / Sales) * 365
 Inventory Days = (Inventories / Cost of Goods Sold) * 365
@@ -127,16 +142,19 @@ ROCE = (EBIT / Capital Employed) * 100
 ```
 
 ### 2. Shareholding Pattern Widget (High Priority - CAN BE DONE NOW)
+
 **Status**: ❌ Not Started  
 **Estimated Time**: 3-4 hours  
 **Reference**: [Screener.in PENIND Shareholding](https://www.screener.in/company/PENIND)
 
 **Data Source**: NSE API (separate from XBRL)
+
 ```
 https://www.nseindia.com/api/corporate-shareholding?index=equities&symbol=PENIND
 ```
 
 **Required Display**:
+
 - Promoters %
 - FIIs %
 - DIIs %
@@ -146,6 +164,7 @@ https://www.nseindia.com/api/corporate-shareholding?index=equities&symbol=PENIND
 - Trend visualization (line/bar chart)
 
 **Implementation**:
+
 1. Create new backend API endpoint
 2. Fetch from NSE shareholding API
 3. Store in new `ShareholdingPattern` model
@@ -155,16 +174,19 @@ https://www.nseindia.com/api/corporate-shareholding?index=equities&symbol=PENIND
 **This can be implemented independently of Balance Sheet issues!**
 
 ### 3. Documents Section (Low Priority)
+
 **Status**: ❌ Not Started  
 **Estimated Time**: 4-5 hours
 
 **Sections** (from Screener):
+
 - Announcements (Recent, Important, All)
 - Annual Reports
 - Credit Ratings
 - Concalls (Transcripts, Notes, PPT)
 
 **Data Source**: NSE Corporate Announcements API
+
 ```
 https://www.nseindia.com/api/corporate-announcements?index=equities&symbol=PENIND
 ```
@@ -174,11 +196,13 @@ https://www.nseindia.com/api/corporate-announcements?index=equities&symbol=PENIN
 ## 🔧 CRITICAL ISSUE: Balance Sheet & Cash Flow Data
 
 ### Problem Statement
+
 XBRL parser successfully extracts P&L data but Balance Sheet and Cash Flow fields return `null` or `0`.
 
 ### Investigation Results
 
 **Test with PENIND**:
+
 ```json
 {
   "equity_capital": null,
@@ -204,6 +228,7 @@ XBRL parser successfully extracts P&L data but Balance Sheet and Cash Flow field
 ### Potential Solutions
 
 #### Solution 1: Use Screener.in Data (Fastest)
+
 - Scrape or use Screener API if available
 - Store in our database
 - Update regularly
@@ -212,6 +237,7 @@ XBRL parser successfully extracts P&L data but Balance Sheet and Cash Flow field
 - **Cons**: Depends on external service
 
 #### Solution 2: Different NSE API
+
 - Research if NSE has separate balance sheet API
 - Many financial sites use different endpoints
 - **Time**: 3-4 hours research + implementation
@@ -219,6 +245,7 @@ XBRL parser successfully extracts P&L data but Balance Sheet and Cash Flow field
 - **Cons**: May not exist
 
 #### Solution 3: Fix XBRL Parsing (Most Complex)
+
 - Download actual XBRL documents
 - Inspect XML structure manually
 - Find correct field names and contexts
@@ -228,6 +255,7 @@ XBRL parser successfully extracts P&L data but Balance Sheet and Cash Flow field
 - **Cons**: Time-consuming, may still not work
 
 #### Solution 4: Manual Data Entry for Key Stocks
+
 - Enter balance sheet data manually for top 50 stocks
 - Update quarterly
 - **Time**: Ongoing maintenance
@@ -237,15 +265,18 @@ XBRL parser successfully extracts P&L data but Balance Sheet and Cash Flow field
 ### Recommended Approach
 
 **Phase 1** (Do Now):
+
 1. ✅ Implement Shareholding Pattern widget (independent of XBRL)
 2. ✅ Create Ratios widget structure (can show P&L-based ratios)
 
 **Phase 2** (Research):
+
 1. Investigate NSE balance sheet APIs
 2. Check if Screener has public API
 3. Examine full year XBRL documents (not quarterly)
 
 **Phase 3** (If needed):
+
 1. Consider hybrid approach:
    - P&L from XBRL (working)
    - Balance Sheet from alternative source
@@ -256,21 +287,27 @@ XBRL parser successfully extracts P&L data but Balance Sheet and Cash Flow field
 ## 📊 Current Code Status
 
 ### Backend Files
+
 **Complete & Working**:
+
 - ✅ `backend/models/QuarterlyResult.js` - All fields defined
 - ✅ `backend/controllers/stockController.js` - P&L extraction working, BS/CF fields included in API
 - ✅ `backend/utils/xbrlParser.js` - P&L parsing working, BS/CF mappings defined but not extracting
 
 **Need Update**:
+
 - ⚠️ `backend/utils/xbrlParser.js` - Need to fix BS/CF field extraction
 
 **Need Creation**:
+
 - ❌ `backend/models/ShareholdingPattern.js`
 - ❌ `backend/controllers/shareholdingController.js`
 - ❌ `backend/routes/shareholding.js`
 
 ### Frontend Files
+
 **Complete & Working**:
+
 - ✅ `frontend/components/stock/QuarterlyResults.js` - Fully functional
 - ✅ `frontend/components/stock/YearlyResults.js` - Fully functional
 - ✅ `frontend/components/stock/BalanceSheet.js` - UI complete, awaiting data
@@ -278,6 +315,7 @@ XBRL parser successfully extracts P&L data but Balance Sheet and Cash Flow field
 - ✅ `frontend/components/stock/FinancialsTab.js` - All widgets integrated
 
 **Need Creation**:
+
 - ❌ `frontend/components/stock/Ratios.js`
 - ❌ `frontend/components/stock/ShareholdingPattern.js`
 - ❌ `frontend/components/stock/Documents.js`
@@ -289,12 +327,14 @@ XBRL parser successfully extracts P&L data but Balance Sheet and Cash Flow field
 ### Can Be Done Now (No Blockers)
 
 **1. Shareholding Pattern Widget** ⭐ HIGH PRIORITY
+
 - Independent of XBRL issues
 - Uses separate NSE API
 - Clear data source
 - 3-4 hours implementation
 
 **Steps**:
+
 1. Create `ShareholdingPattern` model
 2. Create backend API endpoint
 3. Fetch from NSE shareholding API
@@ -302,6 +342,7 @@ XBRL parser successfully extracts P&L data but Balance Sheet and Cash Flow field
 5. Add to FinancialsTab
 
 **2. Ratios Widget (Partial)** ⭐ MEDIUM PRIORITY
+
 - Can show P&L-based ratios:
   - OPM % (already have)
   - Tax % (already have)
@@ -313,6 +354,7 @@ XBRL parser successfully extracts P&L data but Balance Sheet and Cash Flow field
   - Working Capital Days
 
 **3. Documents Section** ⭐ LOW PRIORITY
+
 - Simple list display
 - Fetch announcements from NSE
 - 2-3 hours implementation
@@ -320,14 +362,17 @@ XBRL parser successfully extracts P&L data but Balance Sheet and Cash Flow field
 ### Blocked (Need Balance Sheet Data)
 
 **1. Complete Balance Sheet Widget**
+
 - UI is done
 - Need data extraction fix
 
 **2. Complete Cash Flows Widget**
+
 - UI is done
 - Need data extraction fix
 
 **3. Complete Ratios Widget**
+
 - Need balance sheet fields for some metrics
 
 ---
@@ -336,31 +381,34 @@ XBRL parser successfully extracts P&L data but Balance Sheet and Cash Flow field
 
 **Overall**: 60% Complete
 
-| Component | UI | Data | Status |
-|-----------|-----|------|--------|
+| Component         | UI   | Data | Status      |
+| ----------------- | ---- | ---- | ----------- |
 | Quarterly Results | 100% | 100% | ✅ COMPLETE |
-| Yearly Results | 100% | 100% | ✅ COMPLETE |
-| Balance Sheet | 100% | 0% | ⚠️ UI DONE |
-| Cash Flows | 100% | 0% | ⚠️ UI DONE |
-| Ratios | 0% | 30% | ⏳ PENDING |
-| Shareholding | 0% | 0% | ⏳ PENDING |
-| Documents | 0% | 0% | ⏳ PENDING |
+| Yearly Results    | 100% | 100% | ✅ COMPLETE |
+| Balance Sheet     | 100% | 0%   | ⚠️ UI DONE  |
+| Cash Flows        | 100% | 0%   | ⚠️ UI DONE  |
+| Ratios            | 0%   | 30%  | ⏳ PENDING  |
+| Shareholding      | 0%   | 0%   | ⏳ PENDING  |
+| Documents         | 0%   | 0%   | ⏳ PENDING  |
 
 ---
 
 ## 💡 Recommendations
 
 ### Short Term (Next 4-6 hours)
+
 1. **Implement Shareholding Pattern** - Will give users valuable insights
 2. **Research Balance Sheet APIs** - 1 hour investigation before coding
 3. **Create partial Ratios widget** - Show what we can calculate
 
 ### Medium Term (Next Week)
+
 1. **Fix Balance Sheet data extraction** - Try different approaches
 2. **Complete Ratios widget** - Once we have BS data
 3. **Add Documents section** - For completeness
 
 ### Long Term
+
 1. **Consider alternative data sources** if NSE XBRL doesn't provide BS/CF
 2. **Add data validation** - Compare with Screener to ensure accuracy
 3. **Performance optimization** - Cache, lazy loading, etc.
@@ -377,4 +425,3 @@ XBRL parser successfully extracts P&L data but Balance Sheet and Cash Flow field
 
 **Last Updated**: November 15, 2025  
 **Next Review**: After Balance Sheet data investigation
-

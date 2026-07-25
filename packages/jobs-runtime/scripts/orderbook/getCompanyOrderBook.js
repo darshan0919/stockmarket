@@ -27,7 +27,11 @@ const { stockscans } = require('@stock/api');
 const concallStore = require('../../lib/concallNotesStore');
 const annStore = require('../../lib/orderAnnouncementStore');
 const ledger = require('../../lib/orderBookLedger');
-const { isOrderAnnouncement, extractOrderValue, AnnouncementValueNotFoundError } = require('../../lib/orderAnnouncementExtractor');
+const {
+  isOrderAnnouncement,
+  extractOrderValue,
+  AnnouncementValueNotFoundError,
+} = require('../../lib/orderAnnouncementExtractor');
 const { resolveTargets } = require('./fetchConcallNotes');
 const { processQuarter } = require('./extractOrderBook');
 
@@ -55,15 +59,29 @@ async function ensureBase(companyId) {
   const result = await processQuarter(companyId, doc); // cache-first itself
   if (result.needsLlmFallback) {
     if (existing && existing.base) {
-      return { ok: true, changed: false, quarter: existing.base.sourceQuarter, note: `latest concall (${doc.date}) needs LLM fallback for order-book value — continuing to use prior base (${existing.base.sourceQuarter})` };
+      return {
+        ok: true,
+        changed: false,
+        quarter: existing.base.sourceQuarter,
+        note: `latest concall (${doc.date}) needs LLM fallback for order-book value — continuing to use prior base (${existing.base.sourceQuarter})`,
+      };
     }
-    return { ok: false, reason: 'needsLlmFallback', llmFallbackPrompt: result.llmFallbackPrompt, quarter: doc.date };
+    return {
+      ok: false,
+      reason: 'needsLlmFallback',
+      llmFallbackPrompt: result.llmFallbackPrompt,
+      quarter: doc.date,
+    };
   }
 
   ledger.setBase(companyId, {
-    valueCr: result.valueCr, unit: result.unit || 'cr',
-    sourceType: 'concall', sourceQuarter: doc.date, sourceQuarterEndDate: quarterEndDate(doc.date),
-    label: result.label, sourceLine: result.sourceLine,
+    valueCr: result.valueCr,
+    unit: result.unit || 'cr',
+    sourceType: 'concall',
+    sourceQuarter: doc.date,
+    sourceQuarterEndDate: quarterEndDate(doc.date),
+    label: result.label,
+    sourceLine: result.sourceLine,
   });
   return { ok: true, changed: true, quarter: doc.date };
 }
@@ -75,7 +93,8 @@ async function processNewAnnouncements(companyId, sinceDate) {
   let offset = 0;
   let maxDateSeen = sinceDate;
 
-  for (let page = 0; page < 20; page++) { // 20 pages = 600 announcements — generous ceiling
+  for (let page = 0; page < 20; page++) {
+    // 20 pages = 600 announcements — generous ceiling
     const data = await stockscans.announcements([companyId], offset);
     const rows = data.companyAnnouncements || [];
     if (!rows.length) break;
@@ -83,20 +102,41 @@ async function processNewAnnouncements(companyId, sinceDate) {
     let hitOlder = false;
     for (const ann of rows) {
       const d = (ann.date || '').slice(0, 10);
-      if (sinceDate && d && d <= sinceDate) { hitOlder = true; continue; }
+      if (sinceDate && d && d <= sinceDate) {
+        hitOlder = true;
+        continue;
+      }
       if (d && d > maxDateSeen) maxDateSeen = d;
 
       let record = annStore.get(companyId, ann.ssUrl, d);
       if (!record) {
         if (!isOrderAnnouncement(ann.title)) {
-          record = { title: ann.title, description: ann.description, isOrderAnnouncement: false, extraction: null, needsLlmFallback: false };
+          record = {
+            title: ann.title,
+            description: ann.description,
+            isOrderAnnouncement: false,
+            extraction: null,
+            needsLlmFallback: false,
+          };
         } else {
           try {
             const extraction = extractOrderValue(ann);
-            record = { title: ann.title, description: ann.description, isOrderAnnouncement: true, extraction, needsLlmFallback: false };
+            record = {
+              title: ann.title,
+              description: ann.description,
+              isOrderAnnouncement: true,
+              extraction,
+              needsLlmFallback: false,
+            };
           } catch (e) {
             if (e instanceof AnnouncementValueNotFoundError) {
-              record = { title: ann.title, description: ann.description, isOrderAnnouncement: e.isOrderAnnouncement, extraction: null, needsLlmFallback: e.isOrderAnnouncement };
+              record = {
+                title: ann.title,
+                description: ann.description,
+                isOrderAnnouncement: e.isOrderAnnouncement,
+                extraction: null,
+                needsLlmFallback: e.isOrderAnnouncement,
+              };
             } else throw e;
           }
         }
@@ -104,10 +144,25 @@ async function processNewAnnouncements(companyId, sinceDate) {
       }
 
       if (record.extraction && Number.isFinite(record.extraction.deltaCr)) {
-        ledger.applyAnnouncement(companyId, { ssUrl: ann.ssUrl, date: d, deltaCr: record.extraction.deltaCr, title: ann.title });
-        applied.push({ ssUrl: ann.ssUrl, date: d, deltaCr: record.extraction.deltaCr, title: ann.title });
+        ledger.applyAnnouncement(companyId, {
+          ssUrl: ann.ssUrl,
+          date: d,
+          deltaCr: record.extraction.deltaCr,
+          title: ann.title,
+        });
+        applied.push({
+          ssUrl: ann.ssUrl,
+          date: d,
+          deltaCr: record.extraction.deltaCr,
+          title: ann.title,
+        });
       } else if (record.needsLlmFallback) {
-        pendingLlmFallback.push({ ssUrl: ann.ssUrl, date: d, title: ann.title, description: ann.description });
+        pendingLlmFallback.push({
+          ssUrl: ann.ssUrl,
+          date: d,
+          title: ann.title,
+          description: ann.description,
+        });
       }
     }
 
@@ -130,7 +185,8 @@ async function getCompanyOrderBook(companyId) {
 
   const final = ledger.get(companyId);
   return {
-    companyId, ok: true,
+    companyId,
+    ok: true,
     base: final.base,
     newlyAppliedAnnouncements: applied,
     // Recomputed from disk every call — includes fallback items from ANY
@@ -162,11 +218,21 @@ async function main() {
   if (!ticker || ticker.startsWith('--')) throw new Error('Usage: getCompanyOrderBook.js <TICKER>');
   const result = await getCompanyOrderBook(ticker);
   process.stdout.write(JSON.stringify(result, null, 2) + '\n');
-  if (!result.ok || (result.pendingLlmFallback && result.pendingLlmFallback.length)) process.exitCode = 2;
+  if (!result.ok || (result.pendingLlmFallback && result.pendingLlmFallback.length))
+    process.exitCode = 2;
 }
 
-module.exports = { getCompanyOrderBook, ensureBase, processNewAnnouncements, quarterEndDate, recordAnnouncementResolution };
+module.exports = {
+  getCompanyOrderBook,
+  ensureBase,
+  processNewAnnouncements,
+  quarterEndDate,
+  recordAnnouncementResolution,
+};
 
 if (require.main === module) {
-  main().catch((e) => { console.error(e); process.exit(1); });
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
 }

@@ -139,7 +139,4 @@ module.exports = {
   postResearchDashboard,
   deleteResearchDashboard,
   hasUploadedDashboard,
-
-
-
 };

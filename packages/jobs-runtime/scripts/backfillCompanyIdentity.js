@@ -47,7 +47,8 @@ function mergeRecord(a, b) {
   out.manual = { ...(b.manual || {}), ...(a.manual || {}) };
   out.watchlist = out.watchlist || b.watchlist;
   out.creationTime = [a.creationTime, b.creationTime].filter(Boolean).sort()[0] || a.creationTime;
-  out.modifiedTime = [a.modifiedTime, b.modifiedTime].filter(Boolean).sort().slice(-1)[0] || a.modifiedTime;
+  out.modifiedTime =
+    [a.modifiedTime, b.modifiedTime].filter(Boolean).sort().slice(-1)[0] || a.modifiedTime;
   return out;
 }
 
@@ -77,21 +78,40 @@ function main() {
       const m = lookupMaster(id);
       if (!m) continue;
       let changed = false;
-      if (!rec.name && m.companyName) { rec.name = m.companyName; changed = true; }
-      if (!rec.nseTicker && m.nseTicker) { rec.nseTicker = m.nseTicker; changed = true; }
-      if (!rec.bseScripCode && m.bseTicker) { rec.bseScripCode = m.bseTicker; changed = true; }
+      if (!rec.name && m.companyName) {
+        rec.name = m.companyName;
+        changed = true;
+      }
+      if (!rec.nseTicker && m.nseTicker) {
+        rec.nseTicker = m.nseTicker;
+        changed = true;
+      }
+      if (!rec.bseScripCode && m.bseTicker) {
+        rec.bseScripCode = m.bseTicker;
+        changed = true;
+      }
       if (changed) backfilled++;
     }
 
     const after = summarize(fixed);
 
-    console.log(JSON.stringify({
-      idsFixed: Object.keys(raw).length - Object.keys(fixed).length + Object.values(raw).filter(r => r.id !== canonicalId(r.id)).length,
-      malformedIdsFound: Object.keys(raw).filter(id => id !== canonicalId(id)).length,
-      recordsBackfilled: backfilled,
-      before, after,
-      dryRun,
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          idsFixed:
+            Object.keys(raw).length -
+            Object.keys(fixed).length +
+            Object.values(raw).filter((r) => r.id !== canonicalId(r.id)).length,
+          malformedIdsFound: Object.keys(raw).filter((id) => id !== canonicalId(id)).length,
+          recordsBackfilled: backfilled,
+          before,
+          after,
+          dryRun,
+        },
+        null,
+        2
+      )
+    );
 
     if (!dryRun) {
       db.writeFileAtomic(file, fixed);

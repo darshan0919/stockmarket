@@ -44,6 +44,7 @@ The most important section. Every guidance number needs a row in this table:
 ```
 
 Confidence ratings:
+
 - **HIGH** — "we will", "target is", "guidance is", "approved", "contracted"
 - **MEDIUM** — "we expect", "likely to", "should", "anticipate"
 - **LOW** — "may", "endeavor to", "aspire to", "could be"
@@ -53,6 +54,7 @@ Track separately: revenue growth, EBITDA margin, capex, new orders, capacity uti
 ## §5 Risk Assessment
 
 Risks management acknowledged on the call (often more credible than risk factors in the AR):
+
 - Competitive threats
 - Regulatory / policy
 - Technology disruption
@@ -77,6 +79,7 @@ If not, the analyst's task: how does what was said today compare to what peer co
 ## §8 Analyst Q&A
 
 The single most valuable section of the transcript. For each significant Q:
+
 - Analyst name + firm
 - Question (verbatim or close paraphrase)
 - Management's response (verbatim or close paraphrase)
@@ -84,6 +87,7 @@ The single most valuable section of the transcript. For each significant Q:
 - If dodged or partial — note it
 
 Pattern flags:
+
 - Same question asked by 2+ analysts and not getting a clear answer = signal
 - Question on a specific number (margin, order book, capex) answered with a generic statement = signal
 - "We'll come back to you on that" said and then no follow-up = signal

@@ -32,7 +32,7 @@ Build production-ready design systems with Tailwind CSS v4, including CSS-first 
 
 ```css
 /* app.css - Tailwind v4 CSS-first configuration */
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Define your theme with @theme */
 @theme {
@@ -734,8 +734,8 @@ export function ThemeToggle() {
 
 ```typescript
 // lib/utils.ts
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -743,12 +743,12 @@ export function cn(...inputs: ClassValue[]) {
 
 // Focus ring utility
 export const focusRing = cn(
-  "focus-visible:outline-none focus-visible:ring-2",
-  "focus-visible:ring-ring focus-visible:ring-offset-2",
+  'focus-visible:outline-none focus-visible:ring-2',
+  'focus-visible:ring-ring focus-visible:ring-offset-2'
 );
 
 // Disabled utility
-export const disabled = "disabled:pointer-events-none disabled:opacity-50";
+export const disabled = 'disabled:pointer-events-none disabled:opacity-50';
 ```
 
 ## Advanced v4 Patterns
@@ -783,7 +783,7 @@ Define reusable custom utilities:
 }
 
 /* Import with theme options */
-@import "tailwindcss" theme(static);
+@import 'tailwindcss' theme(static);
 ```
 
 ### Namespace Overrides
@@ -808,16 +808,8 @@ Define reusable custom utilities:
 @theme {
   /* Use color-mix() for alpha variants */
   --color-primary-50: color-mix(in oklab, var(--color-primary) 5%, transparent);
-  --color-primary-100: color-mix(
-    in oklab,
-    var(--color-primary) 10%,
-    transparent
-  );
-  --color-primary-200: color-mix(
-    in oklab,
-    var(--color-primary) 20%,
-    transparent
-  );
+  --color-primary-100: color-mix(in oklab, var(--color-primary) 10%, transparent);
+  --color-primary-200: color-mix(in oklab, var(--color-primary) 20%, transparent);
 }
 ```
 

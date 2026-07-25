@@ -3,13 +3,10 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const PROJECT_ROOT = '/Users/darshan.patel/code/personal/stockmarket';
-const SCRATCH_DIR = '/Users/darshan.patel/.gemini/antigravity/brain/b3891b9a-1382-4ca7-9979-0e969ae76f94/scratch';
+const SCRATCH_DIR =
+  '/Users/darshan.patel/.gemini/antigravity/brain/b3891b9a-1382-4ca7-9979-0e969ae76f94/scratch';
 
-const knipFiles = [
-  'screener-api-knip.txt',
-  'screener-web-knip.txt',
-  'jobs-knip.txt'
-];
+const knipFiles = ['screener-api-knip.txt', 'screener-web-knip.txt', 'jobs-knip.txt'];
 
 function searchPattern(pattern) {
   try {
@@ -17,11 +14,23 @@ function searchPattern(pattern) {
     // We run it inside PROJECT_ROOT
     const escapedPattern = pattern.replace(/"/g, '\\"');
     const cmd = `git grep -l "${escapedPattern}"`;
-    const output = execSync(cmd, { cwd: PROJECT_ROOT, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'ignore'] });
-    return output.trim().split('\n').filter(Boolean).map(f => path.join(PROJECT_ROOT, f));
+    const output = execSync(cmd, {
+      cwd: PROJECT_ROOT,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'ignore'],
+    });
+    return output
+      .trim()
+      .split('\n')
+      .filter(Boolean)
+      .map((f) => path.join(PROJECT_ROOT, f));
   } catch (e) {
     if (e.stdout) {
-        return e.stdout.trim().split('\n').filter(Boolean).map(f => path.join(PROJECT_ROOT, f));
+      return e.stdout
+        .trim()
+        .split('\n')
+        .filter(Boolean)
+        .map((f) => path.join(PROJECT_ROOT, f));
     }
     return [];
   }
@@ -30,11 +39,11 @@ function searchPattern(pattern) {
 function parseKnipOutput(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8');
   const lines = content.split('\n');
-  
+
   const results = {
     files: [],
     dependencies: [],
-    exports: []
+    exports: [],
   };
 
   let currentSection = null;
@@ -46,7 +55,10 @@ function parseKnipOutput(filePath) {
     if (line.startsWith('Unused files')) {
       currentSection = 'files';
       continue;
-    } else if (line.startsWith('Unused dependencies') || line.startsWith('Unused devDependencies')) {
+    } else if (
+      line.startsWith('Unused dependencies') ||
+      line.startsWith('Unused devDependencies')
+    ) {
       currentSection = 'dependencies';
       continue;
     } else if (line.startsWith('Unused exports')) {
@@ -58,10 +70,10 @@ function parseKnipOutput(filePath) {
     }
 
     if (currentSection === 'files') {
-      const match = line.match(/^([a-zA-Z0-9_\-\.\/]+)/);
+      const match = line.match(/^([a-zA-Z0-9_./-]+)/);
       if (match) results.files.push(match[1]);
     } else if (currentSection === 'dependencies') {
-      const match = line.match(/^([a-zA-Z0-9_\-\.\/@]+)\s+package\.json/);
+      const match = line.match(/^([a-zA-Z0-9_./-@]+)\s+package\.json/);
       if (match) results.dependencies.push(match[1]);
     } else if (currentSection === 'exports') {
       const parts = line.split(/\s+/);
@@ -86,7 +98,7 @@ function withEnvelope(companyId, timestamp) {
     companyId,
     creationTime: timestamp,
     modifiedTime: timestamp,
-    creator: 'dead-code-scanner'
+    creator: 'dead-code-scanner',
   };
 }
 
@@ -95,21 +107,21 @@ function runVerification() {
   const verified = {
     unusedFiles: [],
     unusedDependencies: [],
-    unusedExports: []
+    unusedExports: [],
   };
 
   const allCandidates = {
     files: new Set(),
     dependencies: new Set(),
-    exports: new Set()
+    exports: new Set(),
   };
 
   for (const file of knipFiles) {
     if (fs.existsSync(path.join(SCRATCH_DIR, file))) {
       const parsed = parseKnipOutput(path.join(SCRATCH_DIR, file));
-      parsed.files.forEach(f => allCandidates.files.add(f));
-      parsed.dependencies.forEach(d => allCandidates.dependencies.add(d));
-      parsed.exports.forEach(e => allCandidates.exports.add(e));
+      parsed.files.forEach((f) => allCandidates.files.add(f));
+      parsed.dependencies.forEach((d) => allCandidates.dependencies.add(d));
+      parsed.exports.forEach((e) => allCandidates.exports.add(e));
     }
   }
 
@@ -118,7 +130,7 @@ function runVerification() {
     const baseName = path.basename(file, path.extname(file));
     if (baseName === 'index') continue;
     const hits = searchPattern(baseName);
-    const outsideHits = hits.filter(h => !h.includes(file));
+    const outsideHits = hits.filter((h) => !h.includes(file));
     if (outsideHits.length === 0) {
       verified.unusedFiles.push({ file, ...withEnvelope(file, now) });
     }
@@ -128,7 +140,7 @@ function runVerification() {
   for (const dep of allCandidates.dependencies) {
     const pattern = `['"\`]${dep}['"\`]`;
     const hits = searchPattern(pattern);
-    const actualUsage = hits.filter(h => !h.endsWith('package.json') && !h.endsWith('yarn.lock'));
+    const actualUsage = hits.filter((h) => !h.endsWith('package.json') && !h.endsWith('yarn.lock'));
     if (actualUsage.length === 0) {
       verified.unusedDependencies.push({ dependency: dep, ...withEnvelope(dep, now) });
     }
@@ -143,7 +155,10 @@ function runVerification() {
     }
   }
 
-  fs.writeFileSync(path.join(SCRATCH_DIR, 'verified_dead_code.json'), JSON.stringify(verified, null, 2));
+  fs.writeFileSync(
+    path.join(SCRATCH_DIR, 'verified_dead_code.json'),
+    JSON.stringify(verified, null, 2)
+  );
   console.log('Verification complete. Results saved to verified_dead_code.json');
 }
 

@@ -8,22 +8,28 @@
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.type === "START_ANALYSIS") {
+  if (msg.type === 'START_ANALYSIS') {
     chrome.sidePanel.open({ tabId: sender.tab.id }).then(() => {
       setTimeout(() => {
-        chrome.runtime.sendMessage({ type: "BEGIN_ANALYSIS", payload: msg.payload }).catch(() => {});
+        chrome.runtime
+          .sendMessage({ type: 'BEGIN_ANALYSIS', payload: msg.payload })
+          .catch(() => {});
       }, 400);
     });
     sendResponse({ ok: true });
     return true;
   }
 
-  if (msg.type === "RELAY_TO_CONTENT") {
-    getStockscansTab().then(tab => {
-      if (!tab) { sendResponse({ error: "No stockscans tab found" }); return; }
-      chrome.tabs.sendMessage(tab.id, msg.inner)
-        .then(r => sendResponse(r))
-        .catch(e => sendResponse({ error: e.message }));
+  if (msg.type === 'RELAY_TO_CONTENT') {
+    getStockscansTab().then((tab) => {
+      if (!tab) {
+        sendResponse({ error: 'No stockscans tab found' });
+        return;
+      }
+      chrome.tabs
+        .sendMessage(tab.id, msg.inner)
+        .then((r) => sendResponse(r))
+        .catch((e) => sendResponse({ error: e.message }));
     });
     return true;
   }
@@ -34,6 +40,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
  * @returns {Promise<chrome.tabs.Tab|null>}
  */
 async function getStockscansTab() {
-  const tabs = await chrome.tabs.query({ url: ["*://www.stockscans.in/company/*"] });
+  const tabs = await chrome.tabs.query({ url: ['*://www.stockscans.in/company/*'] });
   return tabs.length ? tabs[0] : null;
 }

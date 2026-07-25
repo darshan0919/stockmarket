@@ -10,18 +10,18 @@ The Stock Market AI Ecosystem is a full-stack, platform-agnostic suite for advan
 
 ## Quick Links
 
-| Document | Description |
-|----------|-------------|
-| [Vision & Roadmap](./VISION_AND_ROADMAP.md) | Project philosophy, goals, and roadmap |
-| [Architecture](./ARCHITECTURE.md) | System design and component overview |
-| [Data Ecosystem v2](./DATA_ECOSYSTEM.md) | Flat JSON collections in `data/` ↔ Drive `StockMarket/data/v2` — design, envelope, sync |
-| [Data Rules](./DATA_RULES.md) | MANDATORY checklist for any skill/job that persists data or adds a collection/type |
-| [Skill Data Audit](./SKILL_DATA_AUDIT.md) | Per-skill classification: what each skill needs, generates, and stores |
-| [API Reference](./API_REFERENCE.md) | Complete REST API documentation |
-| [Backend Guide](./backend/README.md) | Backend development guide |
-| [Frontend Guide](./frontend/README.md) | Frontend development guide |
-| [Testing Guide](./TESTING.md) | Testing strategies and conventions |
-| [Contributing](./CONTRIBUTING.md) | Contribution guidelines |
+| Document                                    | Description                                                                             |
+| ------------------------------------------- | --------------------------------------------------------------------------------------- |
+| [Vision & Roadmap](./VISION_AND_ROADMAP.md) | Project philosophy, goals, and roadmap                                                  |
+| [Architecture](./ARCHITECTURE.md)           | System design and component overview                                                    |
+| [Data Ecosystem v2](./DATA_ECOSYSTEM.md)    | Flat JSON collections in `data/` ↔ Drive `StockMarket/data/v2` — design, envelope, sync |
+| [Data Rules](./DATA_RULES.md)               | MANDATORY checklist for any skill/job that persists data or adds a collection/type      |
+| [Skill Data Audit](./SKILL_DATA_AUDIT.md)   | Per-skill classification: what each skill needs, generates, and stores                  |
+| [API Reference](./API_REFERENCE.md)         | Complete REST API documentation                                                         |
+| [Backend Guide](./backend/README.md)        | Backend development guide                                                               |
+| [Frontend Guide](./frontend/README.md)      | Frontend development guide                                                              |
+| [Testing Guide](./TESTING.md)               | Testing strategies and conventions                                                      |
+| [Contributing](./CONTRIBUTING.md)           | Contribution guidelines                                                                 |
 
 ## Project Structure
 
@@ -51,12 +51,14 @@ stockmarket/
 ## Tech Stack
 
 ### Backend
+
 - **Runtime**: Node.js
 - **Framework**: Express.js
 - **Database**: MongoDB with Mongoose ODM
 - **External APIs**: NSE India, BSE India, Gemini AI
 
 ### Frontend
+
 - **Framework**: Next.js 14
 - **UI Library**: React 18
 - **Styling**: Tailwind CSS
@@ -66,6 +68,7 @@ stockmarket/
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js >= 18.x (enable Corepack: `corepack enable`)
 - MongoDB >= 6.0
 - Yarn 3 (version pinned via `packageManager` in root `package.json`)
@@ -93,6 +96,7 @@ yarn dev
 ### Environment Variables
 
 **Backend** (`backend/.env`):
+
 ```env
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/stockmarket
@@ -103,6 +107,7 @@ FMP_API_KEY=<your-fmp-key>
 ```
 
 **Frontend** (`frontend/.env.local`):
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
@@ -110,54 +115,61 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ## Core Features
 
 ### 1. Stock Search & Details
+
 - Real-time stock search via NSE India autocomplete API
 - Comprehensive stock details including price, fundamentals, and technicals
 - See: `backend/controllers/stockController.js` → `searchStocks()`, `getStockDetails()`
 
 ### 2. Financial Results
+
 - Quarterly and yearly financial results from XBRL data
 - YoY and QoQ growth calculations
 - Balance sheet and P&L analysis
 - See: `backend/scripts/balanceSheetDataFetcher.js`
 
 ### 3. Stock Screener
+
 - Filter stocks by market cap, P/E, P/B, ROE, ROCE
 - Sort and paginate results
 - See: `backend/controllers/screenerController.js` → `runScreener()`
 
 ### 4. Technical Analysis
+
 - SMA, EMA, RSI, MACD calculations
 - Price chart with historical data
 - See: `backend/utils/technicalIndicators.js`
 
 ### 5. Watchlist Management
+
 - Add/remove stocks from watchlist
 - Track multiple stocks
 - See: `backend/controllers/watchlistController.js`
 
 ### 6. AI-Powered Analysis
+
 - Earnings call transcript analysis using Gemini AI
 - Orderbook parsing with AI
 - See: `backend/api/geminiApi.js`
 
 ## API Endpoints Quick Reference
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/stocks/search` | GET | Search stocks by symbol/name |
-| `/api/stocks/:symbol` | GET | Get stock details |
-| `/api/stocks/:symbol/quarterly` | GET | Get quarterly results |
-| `/api/stocks/:symbol/technicals` | GET | Get technical indicators |
-| `/api/screener/run` | POST | Run stock screener |
-| `/api/watchlist` | GET/POST/DELETE | Manage watchlist |
-| `/api/market/indices` | GET | Get market indices |
-| `/api/upcoming-results` | GET | Get upcoming result dates |
+| Endpoint                         | Method          | Description                  |
+| -------------------------------- | --------------- | ---------------------------- |
+| `/api/stocks/search`             | GET             | Search stocks by symbol/name |
+| `/api/stocks/:symbol`            | GET             | Get stock details            |
+| `/api/stocks/:symbol/quarterly`  | GET             | Get quarterly results        |
+| `/api/stocks/:symbol/technicals` | GET             | Get technical indicators     |
+| `/api/screener/run`              | POST            | Run stock screener           |
+| `/api/watchlist`                 | GET/POST/DELETE | Manage watchlist             |
+| `/api/market/indices`            | GET             | Get market indices           |
+| `/api/upcoming-results`          | GET             | Get upcoming result dates    |
 
 ## Code Navigation
 
 For AI agents and developers, key entry points:
 
 ### Backend
+
 - **Server Entry**: `backend/server.js`
 - **Route Definitions**: `backend/routes/*.js`
 - **Business Logic**: `backend/controllers/*.js`
@@ -166,6 +178,7 @@ For AI agents and developers, key entry points:
 - **Utilities**: `backend/utils/*.js`
 
 ### Frontend
+
 - **App Entry**: `frontend/pages/_app.js`
 - **API Client**: `frontend/lib/api.js`
 - **Custom Hooks**: `frontend/lib/hooks/*.js`
@@ -177,4 +190,3 @@ For AI agents and developers, key entry points:
 - [NSE API Summary](../jira/implementation-notes/NSE-API-SUMMARY.md) - NSE India API details
 - [XBRL Parsing Guide](../jira/implementation-notes/XBRL-PARSING-IMPLEMENTATION-GUIDE.md) - Financial data parsing
 - [Orderbook Feature](../jira/features/orders/orderbook-feature-implementation.md) - Orderbook implementation
-

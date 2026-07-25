@@ -34,7 +34,8 @@ function extractTuples(raw) {
 
     // Find the first "recent" created_at within the window (skips the
     // account-creation created_at, which is usually the first one seen).
-    const createdAtRe = /created_at\\?"?:\\?"((?:Mon|Tue|Wed|Thu|Fri|Sat|Sun) \w+ \d+ [\d:]+ \+0000 \d{4})/g;
+    const createdAtRe =
+      /created_at\\?"?:\\?"((?:Mon|Tue|Wed|Thu|Fri|Sat|Sun) \w+ \d+ [\d:]+ \+0000 \d{4})/g;
     let createdAt = null;
     let ca;
     while ((ca = createdAtRe.exec(windowText)) !== null) {
@@ -82,12 +83,18 @@ function main() {
     text: t.text,
   }));
 
-  console.log(JSON.stringify({
-    captureMethod: 'extension-network-interception',
-    extractedAt: new Date().toISOString(),
-    totalExtracted: tweets.length,
-    tweets,
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        captureMethod: 'extension-network-interception',
+        extractedAt: new Date().toISOString(),
+        totalExtracted: tweets.length,
+        tweets,
+      },
+      null,
+      2
+    )
+  );
 }
 
 main();

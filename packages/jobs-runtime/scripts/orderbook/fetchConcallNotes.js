@@ -27,7 +27,9 @@ const { stockscans } = require('@stock/api');
 function parseArgs(argv) {
   const ticker = argv[2];
   if (!ticker || ticker.startsWith('--')) {
-    throw new Error('Usage: fetchConcallNotes.js <TICKER> [--last-n N] [--quarter YYYYMM] [--force]');
+    throw new Error(
+      'Usage: fetchConcallNotes.js <TICKER> [--last-n N] [--quarter YYYYMM] [--force]'
+    );
   }
   const lastN = argValue('--last-n', argv) ? parseInt(argValue('--last-n', argv), 10) : 1;
   const quarter = argValue('--quarter', argv);
@@ -38,7 +40,9 @@ function parseArgs(argv) {
 /** Resolve the list of Transcript documents to fetch (with hasNotes:true), newest first. */
 async function resolveTargets(companyId, { lastN, quarter }) {
   const { documents } = await stockscans.documents(companyId);
-  let transcripts = (documents || []).filter((d) => d.documentType === 'Transcript' && d.ssUrl && d.hasNotes);
+  let transcripts = (documents || []).filter(
+    (d) => d.documentType === 'Transcript' && d.ssUrl && d.hasNotes
+  );
   transcripts.sort((a, b) => String(b.date).localeCompare(String(a.date)));
   if (quarter) return transcripts.filter((d) => d.date === quarter);
   return transcripts.slice(0, lastN);
@@ -46,7 +50,12 @@ async function resolveTargets(companyId, { lastN, quarter }) {
 
 async function fetchOne(companyId, doc, { force }) {
   if (!force && store.has(companyId, doc.date)) {
-    return { companyId, date: doc.date, fromCache: true, hasReport: !!store.get(companyId, doc.date).finalReport };
+    return {
+      companyId,
+      date: doc.date,
+      fromCache: true,
+      hasReport: !!store.get(companyId, doc.date).finalReport,
+    };
   }
   const cn = await stockscans.concallNotes(companyId, doc.ssUrl);
   store.save(companyId, doc.date, {
@@ -63,7 +72,17 @@ async function main() {
   const { ticker, lastN, quarter, force } = parseArgs(process.argv);
   const targets = await resolveTargets(ticker, { lastN, quarter });
   if (!targets.length) {
-    process.stdout.write(JSON.stringify({ companyId: ticker, results: [], note: 'no Transcript with hasNotes:true found for this ticker/quarter' }, null, 2) + '\n');
+    process.stdout.write(
+      JSON.stringify(
+        {
+          companyId: ticker,
+          results: [],
+          note: 'no Transcript with hasNotes:true found for this ticker/quarter',
+        },
+        null,
+        2
+      ) + '\n'
+    );
     return;
   }
   const results = [];
@@ -77,5 +96,8 @@ async function main() {
 module.exports = { main, resolveTargets, fetchOne };
 
 if (require.main === module) {
-  main().catch((e) => { console.error(e); process.exit(1); });
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
 }

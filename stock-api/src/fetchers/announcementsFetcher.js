@@ -10,8 +10,8 @@ const API_PAGE_SIZE = 30;
 async function fetchAnnouncementsPage(ticker, offset = 0) {
   // Use the standard companyAnnouncements client method which maps to the same backend logic
   const payload = { companyIds: [ticker], offset };
-  const data = await stockscans.companyAnnouncements(payload, { 
-    referer: `https://www.stockscans.in/company/${encodeURIComponent(ticker)}` 
+  const data = await stockscans.companyAnnouncements(payload, {
+    referer: `https://www.stockscans.in/company/${encodeURIComponent(ticker)}`,
   });
   return data.companyAnnouncements || [];
 }
@@ -30,14 +30,14 @@ async function* iterAnnouncements(ticker, { maxPages = 5, stopBefore = null } = 
     if (rows.length < API_PAGE_SIZE) return;
 
     // Polite delay
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, 200));
   }
 }
 
 function matchesQuery(ann, patterns) {
   if (!patterns || patterns.length === 0) return true;
   const haystack = `${ann.title || ''} ${ann.description || ''}`;
-  return patterns.every(p => p.test(haystack));
+  return patterns.every((p) => p.test(haystack));
 }
 
 function inDateRange(ann, start, end) {
@@ -65,10 +65,10 @@ async function fetchAnnouncements(ticker, options = {}) {
     maxPages = 5,
     maxResults = 50,
     outputDir = './stock_announcements',
-    listOnly = false
+    listOnly = false,
   } = options;
 
-  const patterns = (Array.isArray(search) ? search : [search]).map(s => new RegExp(s, 'i'));
+  const patterns = (Array.isArray(search) ? search : [search]).map((s) => new RegExp(s, 'i'));
   const matched = [];
   let seen = 0;
 
@@ -105,7 +105,7 @@ async function fetchAnnouncements(ticker, options = {}) {
         filename: fname,
         path: dest,
         size_bytes: fs.statSync(dest).size,
-        cached: true
+        cached: true,
       });
       continue;
     }
@@ -119,7 +119,7 @@ async function fetchAnnouncements(ticker, options = {}) {
         filename: fname,
         path: dest,
         size_bytes: buf.length,
-        cached: false
+        cached: false,
       });
     } catch (e) {
       skipped.push({ ...ann, reason: String(e) });
@@ -141,7 +141,7 @@ async function fetchAnnouncements(ticker, options = {}) {
     start,
     end,
     announcements: fetched,
-    skipped
+    skipped,
   };
 
   const manifestPath = path.join(outDir, 'manifest.json');
@@ -155,5 +155,5 @@ module.exports = {
   iterAnnouncements,
   matchesQuery,
   inDateRange,
-  announcementFilename
+  announcementFilename,
 };

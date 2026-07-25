@@ -33,13 +33,17 @@ function resolveDataRoot() {
  */
 const _touched = new Set();
 function trackTouched(absPath) {
-  try { _touched.add(path.relative(resolveDataRoot(), absPath).split(path.sep).join('/')); } catch (_) { /* best effort */ }
+  try {
+    _touched.add(path.relative(resolveDataRoot(), absPath).split(path.sep).join('/'));
+  } catch (_) {
+    /* best effort */
+  }
 }
 
 class StorageService {
   /** Run manifest (docs/DATA_RULES.md §8): data-root-relative paths written by this process. */
   static touchedFiles() {
-    return [...(_touched)].sort();
+    return [..._touched].sort();
   }
 
   static init() {

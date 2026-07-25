@@ -12,6 +12,7 @@ All Claude AI skills for the stockmarket monorepo, managed as version-controlled
 **To update a skill:** Edit the files in this repo → commit → push. Changes are live on the next Claude invocation. No reinstall needed.
 
 **To add a new skill:**
+
 1. Create `skills/<skill-name>/SKILL.md`
 2. Add scripts, references, assets as needed
 3. Add an entry to `registry.json`
@@ -85,6 +86,7 @@ Also update the registry URL in `github-skill-invoker/SKILL.md`.
 ## Script caching (/tmp)
 
 Python scripts are cached to `/tmp/` at the start of each Claude session:
+
 - Scripts persist within a session (no re-fetch on each skill call)
 - Scripts are re-fetched at the start of a new session
 - `fetch_announcements.py` imports from `fetch_documents.py` — both must be in `/tmp/` together
@@ -98,6 +100,7 @@ Python scripts are cached to `/tmp/` at the start of each Claude session:
 ## Authtoken for Stockscans
 
 Scripts that call the Stockscans API need a JWT authtoken. They look for it at:
+
 1. `--authtoken-file` CLI arg
 2. `STOCKSCANS_AUTHTOKEN` env var
 3. `/mnt/project/Stockscans_authtoken` (Claude project file — default)

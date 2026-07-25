@@ -32,7 +32,9 @@ const TOTAL_QUALIFIERS = [
   'closing',
   'unexecuted',
   'net',
-  'group', 'group-wide', 'group wide',
+  'group',
+  'group-wide',
+  'group wide',
   'overall',
 ];
 
@@ -41,16 +43,48 @@ const TOTAL_QUALIFIERS = [
 // over TOTAL_QUALIFIERS if both match (e.g. "Standalone Smart Meter Order
 // Book" is a segment, not the company total).
 const SEGMENT_KEYWORDS = [
-  'mix', 'structure', 'coverage', 'maturity', 'momentum', 'conversion',
-  'readiness', 'velocity', 'replenishment', 'softness', 'visibility',
-  'guidance', 'target', 'booking', // process/qualitative words, not a value label
-  'jv', 'joint venture',
+  'mix',
+  'structure',
+  'coverage',
+  'maturity',
+  'momentum',
+  'conversion',
+  'readiness',
+  'velocity',
+  'replenishment',
+  'softness',
+  'visibility',
+  'guidance',
+  'target',
+  'booking', // process/qualitative words, not a value label
+  'jv',
+  'joint venture',
   // vertical/segment qualifiers seen in the mined sample — extend this list
   // whenever the LLM fallback resolves a new one (see learnSegmentKeyword()).
-  'water', 'nuclear', 'defense', 'defence', 'aerospace', 'ev ', 'export',
-  'domestic', 'smart meter', 'jal jeevan', 'jjm', 'machine building',
-  'warship', 'non-defense', 'non defense', 'arc ', 'tbwes', 'healthcare',
-  'power t&d', 'international', 'wagon', 'o&m', '(ads)', 'ads)',
+  'water',
+  'nuclear',
+  'defense',
+  'defence',
+  'aerospace',
+  'ev ',
+  'export',
+  'domestic',
+  'smart meter',
+  'jal jeevan',
+  'jjm',
+  'machine building',
+  'warship',
+  'non-defense',
+  'non defense',
+  'arc ',
+  'tbwes',
+  'healthcare',
+  'power t&d',
+  'international',
+  'wagon',
+  'o&m',
+  '(ads)',
+  'ads)',
   'warship',
 ];
 
@@ -58,21 +92,32 @@ const SEGMENT_KEYWORDS = [
 // e.g. "**₹13,447 Cr**", "**>₹22,000 Cr**", "**~₹5,000 Cr**", "**₹798 Cr**".
 // Deliberately requires a currency unit (Cr/Lakh/Mn/Bn) so percentages,
 // counts ("39 platforms"), and durations ("1 year") never false-positive.
-const VALUE_RE = /\*\*\s*[₹Rr>~≈]*\s*([\d][\d,]*\.?\d*)\s*(Cr\.?|Crore|Crores|Lakh|Lakhs|Lac|Lacs|Mn|Million|Bn|Billion)\b/i;
+const VALUE_RE =
+  /\*\*\s*[₹Rr>~≈]*\s*([\d][\d,]*\.?\d*)\s*(Cr\.?|Crore|Crores|Lakh|Lakhs|Lac|Lacs|Mn|Million|Bn|Billion)\b/i;
 
 // Matches one "key figure" bullet line of Stockscans' notes format.
 // Group 1 = label text, Group 2 = everything after the colon (value + refs).
 const BULLET_RE = /\*\*([^*]{1,80}?):\*\*\s*(.*)$/;
 
 const UNIT_TO_CR = {
-  cr: 1, 'cr.': 1, crore: 1, crores: 1,
-  lakh: 0.01, lakhs: 0.01, lac: 0.01, lacs: 0.01,
-  mn: 0.1, million: 0.1,
-  bn: 1000, billion: 1000,
+  cr: 1,
+  'cr.': 1,
+  crore: 1,
+  crores: 1,
+  lakh: 0.01,
+  lakhs: 0.01,
+  lac: 0.01,
+  lacs: 0.01,
+  mn: 0.1,
+  million: 0.1,
+  bn: 1000,
+  billion: 1000,
 };
 
 function normalizeLabel(label) {
-  return String(label || '').trim().toLowerCase();
+  return String(label || '')
+    .trim()
+    .toLowerCase();
 }
 
 /** True if `label` denotes the whole-company order book (not a segment/qualitative metric). */
@@ -84,7 +129,10 @@ function isTotalLabel(label) {
   if (SEGMENT_KEYWORDS.some((kw) => norm.includes(kw))) return false;
   // Strip parens only now, for qualifier-head matching (e.g. "Closing Order Book (FY26)").
   const dropParens = norm.replace(/\([^)]*\)/g, '').trim();
-  let head = dropParens.replace(/\b(order\s*)?backlog\b/, '').replace(/\border\s*book\b/, '').trim();
+  let head = dropParens
+    .replace(/\b(order\s*)?backlog\b/, '')
+    .replace(/\border\s*book\b/, '')
+    .trim();
   // Trailing decorations that don't change what's being totaled, e.g.
   // "Order Book + L1" / "Order Book & L1" (L1 = lowest-bidder pipeline, still
   // reported as part of one combined total figure in the source bullet).
@@ -110,11 +158,20 @@ function parseValue(text) {
  * `--learn` flag, which does that automatically via a source-text rewrite).
  */
 function learnSegmentKeyword(keyword) {
-  const k = String(keyword || '').toLowerCase().trim();
+  const k = String(keyword || '')
+    .toLowerCase()
+    .trim();
   if (k && !SEGMENT_KEYWORDS.includes(k)) SEGMENT_KEYWORDS.push(k);
 }
 
 module.exports = {
-  TOTAL_QUALIFIERS, SEGMENT_KEYWORDS, VALUE_RE, BULLET_RE, UNIT_TO_CR,
-  normalizeLabel, isTotalLabel, parseValue, learnSegmentKeyword,
+  TOTAL_QUALIFIERS,
+  SEGMENT_KEYWORDS,
+  VALUE_RE,
+  BULLET_RE,
+  UNIT_TO_CR,
+  normalizeLabel,
+  isTotalLabel,
+  parseValue,
+  learnSegmentKeyword,
 };

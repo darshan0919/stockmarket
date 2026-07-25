@@ -194,9 +194,7 @@
         "competitive dynamics"
       ],
       "entry": "stock-api/bin/sector-research-deepdive.js",
-      "modules": [
-        "stock-api/src/generators/generateSectorReport.js"
-      ]
+      "modules": ["stock-api/src/generators/generateSectorReport.js"]
     },
     {
       "name": "drhp-ipo-analysis",
@@ -211,9 +209,7 @@
         "prospectus analysis"
       ],
       "entry": "stock-api/bin/drhp-ipo-analysis.js",
-      "modules": [
-        "stock-api/src/generators/generateDrhpPdf.js"
-      ]
+      "modules": ["stock-api/src/generators/generateDrhpPdf.js"]
     },
     {
       "name": "quarterly-result-analysis",
@@ -228,9 +224,7 @@
         "results analysis"
       ],
       "entry": "stock-api/bin/quarterly-result-analysis.js",
-      "modules": [
-        "stock-api/src/fetchers/documentsFetcher.js"
-      ]
+      "modules": ["stock-api/src/fetchers/documentsFetcher.js"]
     },
     {
       "name": "consecutive-filings-diff",
@@ -245,9 +239,7 @@
         "reprice after results"
       ],
       "entry": "stock-api/bin/consecutive-filings-diff.js",
-      "modules": [
-        "stock-api/src/fetchers/documentsFetcher.js"
-      ]
+      "modules": ["stock-api/src/fetchers/documentsFetcher.js"]
     },
     {
       "name": "pre-pead-scanner",
@@ -366,9 +358,7 @@
         "track record tweets"
       ],
       "entry": "stock-api/bin/tweet-investor-playbook.js",
-      "modules": [
-        "stock-api/src/analyzers/parseTweetDump.js"
-      ]
+      "modules": ["stock-api/src/analyzers/parseTweetDump.js"]
     },
     {
       "name": "announcement-keyword-explorer",
@@ -382,9 +372,7 @@
         "expand keyword search"
       ],
       "entry": "stock-api/bin/announcement-keyword-explorer.js",
-      "modules": [
-        "stock-api/src/fetchers/announcementScanner.js"
-      ]
+      "modules": ["stock-api/src/fetchers/announcementScanner.js"]
     },
     {
       "name": "stock-report",
@@ -498,14 +486,9 @@
     {
       "name": "render-pdf",
       "description": "",
-      "aliases": [
-        "render pdf",
-        "html to pdf"
-      ],
+      "aliases": ["render pdf", "html to pdf"],
       "entry": "stock-api/bin/render-pdf.js",
-      "modules": [
-        "stock-api/src/utils/pdfRenderer.js"
-      ]
+      "modules": ["stock-api/src/utils/pdfRenderer.js"]
     },
     {
       "name": "investment-thesis-engine",
@@ -627,23 +610,12 @@
     {
       "name": "ScreenerAuth",
       "file": "stock-api/src/auth/screenerAuth.js",
-      "methods": [
-        "_envFile",
-        "_resolve",
-        "cookieHeader",
-        "headers",
-        "isConfigured"
-      ]
+      "methods": ["_envFile", "_resolve", "cookieHeader", "headers", "isConfigured"]
     },
     {
       "name": "StockscansAuth",
       "file": "stock-api/src/auth/stockscansAuth.js",
-      "methods": [
-        "_readFromEnvFile",
-        "_warnLegacy",
-        "getToken",
-        "headers"
-      ]
+      "methods": ["_readFromEnvFile", "_warnLegacy", "getToken", "headers"]
     },
     {
       "name": "BseClient",
@@ -682,21 +654,12 @@
     {
       "name": "PerplexityClient",
       "file": "stock-api/src/clients/PerplexityClient.js",
-      "methods": [
-        "earningsEvents",
-        "transcript"
-      ]
+      "methods": ["earningsEvents", "transcript"]
     },
     {
       "name": "ScreenerClient",
       "file": "stock-api/src/clients/ScreenerClient.js",
-      "methods": [
-        "_slug",
-        "companyPage",
-        "_throttle",
-        "companyPageWithFallback",
-        "validateAuth"
-      ]
+      "methods": ["_slug", "companyPage", "_throttle", "companyPageWithFallback", "validateAuth"]
     },
     {
       "name": "StockscansClient",
@@ -739,25 +702,12 @@
     {
       "name": "HttpClient",
       "file": "stock-api/src/http/HttpClient.js",
-      "methods": [
-        "_headers",
-        "get",
-        "post",
-        "put",
-        "delete"
-      ]
+      "methods": ["_headers", "get", "post", "put", "delete"]
     },
     {
       "name": "NseSession",
       "file": "stock-api/src/http/nseSession.js",
-      "methods": [
-        "clearCache",
-        "_mergeSetCookie",
-        "warmup",
-        "getCookies",
-        "headers",
-        "get"
-      ]
+      "methods": ["clearCache", "_mergeSetCookie", "warmup", "getCookies", "headers", "get"]
     },
     {
       "name": "SimpleTemplate",

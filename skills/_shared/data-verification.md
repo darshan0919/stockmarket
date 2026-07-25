@@ -13,17 +13,18 @@ Every skill that asserts a number, quote, or date MUST follow this.
 
 ## Market-data anchor rules (NON-NEGOTIABLE)
 
-| Data point | Source of truth | Never do |
-|---|---|---|
-| P/E | Screener.in / Stockscans | Calculate from quarterly PAT |
-| CMP | Latest live quote | Use prices from old articles or training data |
-| Market Cap | Screener.in / Stockscans | Derive from a wrong/stale CMP |
-| Peer metrics | Fetch each peer individually | Assume or estimate |
-| Shareholding / pledge | Latest exchange disclosure | Carry forward stale quarters |
+| Data point            | Source of truth              | Never do                                      |
+| --------------------- | ---------------------------- | --------------------------------------------- |
+| P/E                   | Screener.in / Stockscans     | Calculate from quarterly PAT                  |
+| CMP                   | Latest live quote            | Use prices from old articles or training data |
+| Market Cap            | Screener.in / Stockscans     | Derive from a wrong/stale CMP                 |
+| Peer metrics          | Fetch each peer individually | Assume or estimate                            |
+| Shareholding / pledge | Latest exchange disclosure   | Carry forward stale quarters                  |
 
 ## Additional context sources (supplement, never override primary filings)
 
 On top of the market-data anchors above, pull additional stock/sector context from:
+
 1. Stockscans DD reports: https://stockscans-dd-reports.netlify.app/
 2. Drive research folder: https://drive.google.com/drive/folders/17jpBv_1pzmWN4qHNUKjk7L_NW33JlPHx
 
@@ -36,6 +37,7 @@ Cite these like any other source; they supplement primary filings/financials, th
 ## Source tagging
 
 Mark every share/size/market number as one of:
+
 - **[R]** reported by the company/player,
 - **[D]** derived (e.g., player revenue ÷ industry size),
 - **[E]** analyst estimate.

@@ -18,14 +18,14 @@ Good: `Channel inventory days < 35 by Q4 FY26 (Concall management commentary)`
 
 A complete checklist of 6 to 10 items must include at least one from each of these categories:
 
-| # | Category | Why it must be there |
-|---|---|---|
-| 1 | Revenue / volume KPI | The top line is the broadest measure of demand vs management's guidance |
-| 2 | Margin KPI | Mix shift and operating leverage manifest here |
-| 3 | Cash flow / working capital KPI | Earnings quality lives in the cash conversion |
-| 4 | Capital allocation KPI | Tests management's stated capex / acquisition plan |
-| 5 | Stopped-discussing item | The Basket 2 §2B "what they stopped saying" — verify if it returns next quarter |
-| 6 | Industry / external lead indicator | A non-company data point that predicts the next inflection |
+| #   | Category                           | Why it must be there                                                            |
+| --- | ---------------------------------- | ------------------------------------------------------------------------------- |
+| 1   | Revenue / volume KPI               | The top line is the broadest measure of demand vs management's guidance         |
+| 2   | Margin KPI                         | Mix shift and operating leverage manifest here                                  |
+| 3   | Cash flow / working capital KPI    | Earnings quality lives in the cash conversion                                   |
+| 4   | Capital allocation KPI             | Tests management's stated capex / acquisition plan                              |
+| 5   | Stopped-discussing item            | The Basket 2 §2B "what they stopped saying" — verify if it returns next quarter |
+| 6   | Industry / external lead indicator | A non-company data point that predicts the next inflection                      |
 
 If a particular category genuinely has nothing to monitor, state why — don't pad the list to 10.
 
@@ -33,85 +33,85 @@ If a particular category genuinely has nothing to monitor, state why — don't p
 
 The output table format (use exactly this in the widget):
 
-| # | KPI | Threshold | Horizon | Source |
-|---|---|---|---|---|
-| 1 | <metric name> | <number + direction> | <Q + FY> | <document type + section> |
-| 2 | ... | ... | ... | ... |
+| #   | KPI           | Threshold            | Horizon  | Source                    |
+| --- | ------------- | -------------------- | -------- | ------------------------- |
+| 1   | <metric name> | <number + direction> | <Q + FY> | <document type + section> |
+| 2   | ...           | ...                  | ...      | ...                       |
 
 ## Examples by sector
 
-The taxonomy is industry-agnostic, but the *specific* KPIs vary. Below are example checklist items by sector — adapt to the company in hand.
+The taxonomy is industry-agnostic, but the _specific_ KPIs vary. Below are example checklist items by sector — adapt to the company in hand.
 
 ### Capital goods / industrials
 
-| KPI | Threshold pattern |
-|---|---|
-| Order book | ≥ N× annual revenue |
-| Book-to-bill | ≥ 1.0× |
-| Execution period | ≤ X months |
-| Margin on new orders | ≥ Y% (often disclosed) |
-| Capex commissioning | On-time vs slide schedule |
+| KPI                  | Threshold pattern         |
+| -------------------- | ------------------------- |
+| Order book           | ≥ N× annual revenue       |
+| Book-to-bill         | ≥ 1.0×                    |
+| Execution period     | ≤ X months                |
+| Margin on new orders | ≥ Y% (often disclosed)    |
+| Capex commissioning  | On-time vs slide schedule |
 
 ### FMCG / consumer
 
-| KPI | Threshold pattern |
-|---|---|
-| Volume growth | ≥ X% YoY |
-| Premium product mix | ≥ Y% of revenue |
-| Counters / distribution reach | ≥ N lakh |
-| Channel inventory days | ≤ X days |
-| A&P as % of revenue | within management's stated band |
+| KPI                           | Threshold pattern               |
+| ----------------------------- | ------------------------------- |
+| Volume growth                 | ≥ X% YoY                        |
+| Premium product mix           | ≥ Y% of revenue                 |
+| Counters / distribution reach | ≥ N lakh                        |
+| Channel inventory days        | ≤ X days                        |
+| A&P as % of revenue           | within management's stated band |
 
 ### Financials (banks, NBFCs)
 
-| KPI | Threshold pattern |
-|---|---|
-| AUM / loan book growth | ≥ X% YoY |
-| Net Interest Margin (NIM) | ≥ X% |
-| Gross NPA / Net NPA | ≤ X% |
-| Credit cost | ≤ X bps |
-| C/I ratio | ≤ X% |
-| Cost of funds | within Y bps of policy rate |
+| KPI                       | Threshold pattern           |
+| ------------------------- | --------------------------- |
+| AUM / loan book growth    | ≥ X% YoY                    |
+| Net Interest Margin (NIM) | ≥ X%                        |
+| Gross NPA / Net NPA       | ≤ X%                        |
+| Credit cost               | ≤ X bps                     |
+| C/I ratio                 | ≤ X%                        |
+| Cost of funds             | within Y bps of policy rate |
 
 ### IT services
 
-| KPI | Threshold pattern |
-|---|---|
-| Constant-currency revenue growth | ≥ X% |
-| EBIT margin | ≥ Y% |
-| Deal TCV (large deal wins) | ≥ $N Bn |
-| Attrition | ≤ Z% LTM |
-| Headcount additions | tied to revenue growth |
+| KPI                              | Threshold pattern      |
+| -------------------------------- | ---------------------- |
+| Constant-currency revenue growth | ≥ X%                   |
+| EBIT margin                      | ≥ Y%                   |
+| Deal TCV (large deal wins)       | ≥ $N Bn                |
+| Attrition                        | ≤ Z% LTM               |
+| Headcount additions              | tied to revenue growth |
 
 ### Pharma / chemicals / specialty
 
-| KPI | Threshold pattern |
-|---|---|
-| US filings (ANDA / 505(b)(2)) | ≥ N |
-| Approvals received | ≥ N |
-| Capex on R&D / Revenue | within band |
-| Customer concentration | ≤ X% |
-| Plant inspection outcome | EIR / 483 / Warning |
+| KPI                           | Threshold pattern   |
+| ----------------------------- | ------------------- |
+| US filings (ANDA / 505(b)(2)) | ≥ N                 |
+| Approvals received            | ≥ N                 |
+| Capex on R&D / Revenue        | within band         |
+| Customer concentration        | ≤ X%                |
+| Plant inspection outcome      | EIR / 483 / Warning |
 
 ### Infrastructure / EPC
 
-| KPI | Threshold pattern |
-|---|---|
-| Order inflow | ≥ Rs X Cr/quarter |
-| L1 position vs order book | ≥ Y% |
-| Receivables days | ≤ X days |
-| Mobilisation advance % | ≥ Y% of contract |
-| Working capital cycle | ≤ X days |
+| KPI                       | Threshold pattern |
+| ------------------------- | ----------------- |
+| Order inflow              | ≥ Rs X Cr/quarter |
+| L1 position vs order book | ≥ Y%              |
+| Receivables days          | ≤ X days          |
+| Mobilisation advance %    | ≥ Y% of contract  |
+| Working capital cycle     | ≤ X days          |
 
 ### Renewables / clean energy
 
-| KPI | Threshold pattern |
-|---|---|
-| Project pipeline | ≥ X MW / GW |
-| PPA tariff (avg) | ≥ Rs Y/unit |
-| Module / panel cost | within stated range |
-| Capacity commissioned | vs slide deck schedule |
-| Receivables from DISCOMs | ≤ X days |
+| KPI                      | Threshold pattern      |
+| ------------------------ | ---------------------- |
+| Project pipeline         | ≥ X MW / GW            |
+| PPA tariff (avg)         | ≥ Rs Y/unit            |
+| Module / panel cost      | within stated range    |
+| Capacity commissioned    | vs slide deck schedule |
+| Receivables from DISCOMs | ≤ X days               |
 
 ## Pattern 1 — the "stopped saying" item
 

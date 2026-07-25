@@ -9,10 +9,10 @@ Pulls official filings for Indian-listed companies (NSE/BSE) from Stockscans and
 
 There are two endpoints behind this skill:
 
-| When to use | Endpoint | Script |
-|---|---|---|
-| Standardised filings (Annual Report, PPT, Result, Transcript) | `/api/company/documents/{ticker}` | `scripts/fetch_documents.py` |
-| Free-text search across exchange announcements (merger, buyback, AGM, rating change, board changes, ESOP, etc.) | `/api/company/announcements` | `scripts/fetch_announcements.py` |
+| When to use                                                                                                     | Endpoint                          | Script                           |
+| --------------------------------------------------------------------------------------------------------------- | --------------------------------- | -------------------------------- |
+| Standardised filings (Annual Report, PPT, Result, Transcript)                                                   | `/api/company/documents/{ticker}` | `scripts/fetch_documents.py`     |
+| Free-text search across exchange announcements (merger, buyback, AGM, rating change, board changes, ESOP, etc.) | `/api/company/announcements`      | `scripts/fetch_announcements.py` |
 
 The two scripts share auth, downloading, and manifest writing — they only differ in how documents are listed and filtered.
 
@@ -75,26 +75,31 @@ If you want annual reports for a single FY by name, the cleanest approach is `--
 ### Examples
 
 Last 4 quarterly transcripts:
+
 ```
 python3 stock-api/python/fetchers/fetch_documents.py NSE:BSE -t Transcript --last-n 4 -o /mnt/project/data/agent-outputs/bse_docs
 ```
 
 Last 5 annual reports (FY21–FY25):
+
 ```
 python3 stock-api/python/fetchers/fetch_documents.py NSE:SWARAJENG -t "Annual Report" --start-date 2021 --end-date 2025
 ```
 
 All four document types since the start of FY26:
+
 ```
 python3 stock-api/python/fetchers/fetch_documents.py NSE:BSE -t Transcript PPT Result "Annual Report" --start-date 202504
 ```
 
 Single-quarter snapshot (Q2 FY26 only):
+
 ```
 python3 stock-api/python/fetchers/fetch_documents.py NSE:BSE -t PPT Result Transcript --start-date 202509 --end-date 202509
 ```
 
 Preview without downloading:
+
 ```
 python3 stock-api/python/fetchers/fetch_documents.py NSE:BSE -t Result --last-n 8 --list-only
 ```
@@ -118,22 +123,26 @@ Common flags:
 ### Examples
 
 Anything mentioning "merger":
+
 ```
 python3 stock-api/python/fetchers/fetch_announcements.py NSE:BSE --search merger --max-pages 10 -o /mnt/project/data/agent-outputs/bse_ann
 ```
 
 Buybacks OR dividends in 2025:
+
 ```
 python3 stock-api/python/fetchers/fetch_announcements.py NSE:BSE --search 'buyback|dividend' \
     --start 2025-01-01 --end 2025-12-31 --max-pages 30
 ```
 
 Two-term AND search (rating changes by CRISIL specifically):
+
 ```
 python3 stock-api/python/fetchers/fetch_announcements.py NSE:BSE --search rating --search CRISIL --max-pages 20
 ```
 
 Just preview:
+
 ```
 python3 stock-api/python/fetchers/fetch_announcements.py NSE:BSE --search ESOP --list-only
 ```
@@ -144,7 +153,7 @@ Per `skills/tooling/output-dto-standard/SKILL.md`, this skill is judged **out of
 for a full JSON-DTO retrofit: it is a pure fetch/download utility (PDFs + `manifest.json`)
 with no synthesis, categorization, or analytical verdict of its own — it does not render
 any PDF/HTML/widget from the fetched documents, so there's nothing that could drift from
-a JSON source of truth. The manifest already *is* the structured artifact for this skill.
+a JSON source of truth. The manifest already _is_ the structured artifact for this skill.
 
 That said, the manifest's provenance is now traceable at minimum: both
 `stock-api/src/fetchers/documentsFetcher.js` and `stock-api/src/fetchers/announcementsFetcher.js`
@@ -202,7 +211,7 @@ Same shape but with announcement-level fields (`title`, `description`, `companyK
 
 **Retries.** Each S3 download retries twice with a small back-off before giving up. Failures land in `manifest.skipped` with a `reason` field, so you can re-run later.
 
-**No silent ticker validation.** An invalid ticker (e.g. `NSE:NOTREAL`) returns an empty document list with a `NOTE` printed to stderr — it does *not* error out. If you get zero documents, double-check the ticker on stockscans.in.
+**No silent ticker validation.** An invalid ticker (e.g. `NSE:NOTREAL`) returns an empty document list with a `NOTE` printed to stderr — it does _not_ error out. If you get zero documents, double-check the ticker on stockscans.in.
 
 **Polite pagination.** The announcements script sleeps 200 ms between paginated calls. Don't crank `--max-pages` to absurd values (>50) without reason — a fund manager doesn't need 1,500 announcements parsed for one query.
 

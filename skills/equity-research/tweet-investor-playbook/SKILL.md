@@ -65,6 +65,7 @@ Build each tab using the schemas below. Read `references/synthesis_rules.md` for
 #### Tab 1: Insights (Share Market Investment Insights)
 
 5–15 themes, each with:
+
 - `theme` — 4–8 word headline
 - `summary` — 1–3 sentence description in neutral analyst voice
 - `category` — one of: Philosophy / Stock-Selection / Sector-View / Macro / Risk-Mgmt / Position-Sizing / Sell-Discipline
@@ -83,6 +84,7 @@ Direct quotables. Apply this hierarchy:
 3. **Cluster duplicates** → if 5 tweets express the same heuristic, render ONE re-worded card with all citations.
 
 Each quote card has:
+
 - `quote_or_concept` — the re-worded line or named concept
 - `kind` — "Concept" (well-known) or "Original" (their formulation)
 - `cluster_size` — how many tweets feed this card
@@ -93,6 +95,7 @@ Aim for 10–25 cards. Cull anything that doesn't add operational signal.
 #### Tab 3: Playbook (Actionable Ideas / Triggers / Processes / SOPs)
 
 This is the operational core. Each entry has:
+
 - `rule` — imperative phrasing ("Screen for RoCE > 18% over 5 years")
 - `type` — Screen / Entry-Trigger / Exit-Trigger / Position-Sizing / Risk-Check / Allocation-SOP / Diligence-Step
 - `derived_from` — direct quote citation or "synthesised from N tweets"

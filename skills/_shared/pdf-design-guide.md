@@ -22,12 +22,13 @@ cover, add it here first, then use it — don't one-off it in a single generator
 
 **This guide governs the UI layer only.** It controls layout, typography, component choice
 (table vs `.vmatrix` vs `.kpi` grid vs chip), and color/tone mapping. It must never be the place
-where a decision gets made about *which facts appear in the report* — that decision belongs
+where a decision gets made about _which facts appear in the report_ — that decision belongs
 entirely to the data layer (the skill's extraction/processing script), which persists a full DTO
 per [`skills/tooling/output-dto-standard/SKILL.md`](../tooling/output-dto-standard/SKILL.md)
 before any rendering happens.
 
 Concretely:
+
 - The render step (this guide's CSS/components) must be a **pure function of the DTO**: same
   DTO in → same PDF out, every time. It reads every field that exists and lays it out; it does
   not summarize, truncate, or selectively omit content to hit a page-count or word-count target.
@@ -36,7 +37,7 @@ Concretely:
   densely) or by adding a page — never by having the render step quietly drop DTO fields.
 - Concrete failure mode this prevents: an analyst hand-writes both content and HTML in one pass,
   "compresses for readability," and silently loses facts because there was no persisted
-  intermediate record to compress *from* — only one document acting as both data and layout.
+  intermediate record to compress _from_ — only one document acting as both data and layout.
   See `skills/equity-research/drhp-ipo-analysis/SKILL.md`'s "Phase 4" for a worked example of the
   two-step split (`db.saveReport(dto)` → `render_drhp.py`) that this guide expects every skill
   to follow.
@@ -55,9 +56,9 @@ Concretely:
 Chips and callouts aren't the only place tone belongs. Once a report has real numbers in it,
 apply the same signal discipline to the numbers themselves:
 
-- **Trend deltas** (a metric that moved period-over-period): color the *direction that matters*,
+- **Trend deltas** (a metric that moved period-over-period): color the _direction that matters_,
   not just literal up/down. Revenue/margin/RoNW increasing → `.up`; debtor days or leverage
-  *increasing* is bad, so color that occurrence `.dn` even though the number went up — `.up`/`.dn`
+  _increasing_ is bad, so color that occurrence `.dn` even though the number went up — `.up`/`.dn`
   are semantic (good/bad), not directional.
 - **Headline verdict** (subscription view, buy/sell/hold, pass/fail) belongs in the header as a
   `.chip` in the matching tone, not just as plain text — the reader should get the verdict's
@@ -111,7 +112,7 @@ apply the same signal discipline to the numbers themselves:
   convert a table to a denser vmatrix/grid, or merge near-duplicate sections — not smaller fonts.
 - **Compression must not drop facts.** Before finalizing, diff the report's content against the
   source extraction notes/earlier draft: every distinct fact, number, named entity, and citation
-  that was gathered during research should appear *somewhere* in the final layout (a table row,
+  that was gathered during research should appear _somewhere_ in the final layout (a table row,
   a vmatrix cell, a chip label) — compression shortens how a fact is said, it never decides to
   leave it out. If two facts are genuinely redundant (e.g. same number stated twice), keep the
   more decision-relevant instance and drop the other — but that's a dedup call, not a targeted-len
@@ -137,7 +138,7 @@ apply the same signal discipline to the numbers themselves:
 - **Don't say the tone word when the color already says it.** If a row/cell is colored to signal
   GREEN/YELLOW/RED (or good/bad), don't also spell out the word "GREEN"/"YELLOW"/"RED" next to
   it — that's the same signal twice, once as color and once as redundant text, and it's exactly
-  the kind of duplication this guide exists to avoid. Color the *subject itself* (the flag name,
+  the kind of duplication this guide exists to avoid. Color the _subject itself_ (the flag name,
   the metric label, the row topic) with `.ftag.ftag-{g,y,r,b}` (text-color-only, no chip pill —
   see Components) instead of pairing a neutral-colored label with a separate rating chip.
 - **Numbered sections, not free-flowing headings.** `01 Live snapshot`, `02 P&L diff`, etc. Makes
@@ -147,23 +148,23 @@ apply the same signal discipline to the numbers themselves:
 
 ## Palette
 
-| Token | Hex | Use |
-|---|---|---|
-| `primary` | `#111111` | Title text, thick top rule, table header rule |
-| `text` | `#1a1a1a` | Body text |
-| `muted` | `#666666` | Eyebrow, subtitle, table header labels, captions |
-| `border` | `#dddddd` | Hairline rules, table row dividers |
-| `tint` / `surface` / `alt_row` | `#f5f4f0` | KPI card bg, alternating table rows |
-| `secondary` | `#0c447c` | Rarely used directly — prefer `chip-b` |
+| Token                          | Hex       | Use                                              |
+| ------------------------------ | --------- | ------------------------------------------------ |
+| `primary`                      | `#111111` | Title text, thick top rule, table header rule    |
+| `text`                         | `#1a1a1a` | Body text                                        |
+| `muted`                        | `#666666` | Eyebrow, subtitle, table header labels, captions |
+| `border`                       | `#dddddd` | Hairline rules, table row dividers               |
+| `tint` / `surface` / `alt_row` | `#f5f4f0` | KPI card bg, alternating table rows              |
+| `secondary`                    | `#0c447c` | Rarely used directly — prefer `chip-b`           |
 
 Signal tones (used consistently for chips and callouts, never swapped):
 
-| Tone | Chip bg / fg | Callout bg / left-border / fg | Meaning |
-|---|---|---|---|
-| green (`g`) | `#eaf3de` / `#27500a` | `#eaf3de` / `#5bad3a` / `#1a3d0a` | confirmed, clean, resolved, positive |
-| red (`r`) | `#fcebeb` / `#791f1f` | `#fcebeb` / `#e24b4a` / `#52100f` | red flag, core driver of risk, highest materiality |
-| amber (`y`) | `#faeeda` / `#633806` | `#faeeda` / `#ef9f27` / `#412402` | watchlist, unresolved, caveat, unverified input |
-| blue (`b`) | `#e6f1fb` / `#0c447c` | `#e6f1fb` / `#3a85c9` / `#0a2752` | neutral/informational note |
+| Tone        | Chip bg / fg          | Callout bg / left-border / fg     | Meaning                                            |
+| ----------- | --------------------- | --------------------------------- | -------------------------------------------------- |
+| green (`g`) | `#eaf3de` / `#27500a` | `#eaf3de` / `#5bad3a` / `#1a3d0a` | confirmed, clean, resolved, positive               |
+| red (`r`)   | `#fcebeb` / `#791f1f` | `#fcebeb` / `#e24b4a` / `#52100f` | red flag, core driver of risk, highest materiality |
+| amber (`y`) | `#faeeda` / `#633806` | `#faeeda` / `#ef9f27` / `#412402` | watchlist, unresolved, caveat, unverified input    |
+| blue (`b`)  | `#e6f1fb` / `#0c447c` | `#e6f1fb` / `#3a85c9` / `#0a2752` | neutral/informational note                         |
 
 Never use raw black, red, or green outside this table — always pull from it so tone reads
 consistently across every skill's output.
@@ -192,12 +193,12 @@ consistently across every skill's output.
   where the tag needs to stand alone as its own labeled element.
 - **Flag tag** `.ftag.ftag-{g,r,y,b}` — a bordered, tinted-background pill (`padding: 3px 8px`,
   `border-radius: 3px`, `1px solid` border in a slightly darker tint of the same tone) wrapping
-  the subject text itself, for when the row/cell subject *is* the thing being rated — e.g. a
+  the subject text itself, for when the row/cell subject _is_ the thing being rated — e.g. a
   red-flag scan's flag name, a checklist item. No decorative bullet/icon prefix — the tinted
   background + border carries the signal on its own. Do not also print "GREEN"/"YELLOW"/"RED"
   next to it — see the "Don't say the tone word" principle above. Use `.chip` when the tag needs
   to be its own separate labeled badge sitting next to other text (e.g. a verdict badge next to
-  a headline); use `.ftag` when the tag color should wrap and *be* the subject's own label.
+  a headline); use `.ftag` when the tag color should wrap and _be_ the subject's own label.
 - **Callout** `.hl.hl-{g,r,y,b}` — left-border-accented block for a ranked observation, flag, or
   analyst note. `padding: 7-9px 10-12px`, `3-4px` radius, `3px` left border in the tone color.
 - **KPI card** `.kpi` inside `.grid3`/`.grid4` — `label` (mono, uppercase, muted) / `bignum`
@@ -232,55 +233,281 @@ verbatim into your report's `<style>` tag. It is the same system as `wrapHtml` a
 for a full-page report with `@page` margins for weasyprint/Chromium print rendering:
 
 ```css
-@page { size: A4; margin: 16mm 14mm; @bottom-center { content: "<Report title> | " counter(page) " of " counter(pages); font-size: 8px; color: #888; } }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 11px; color: #1a1a1a; line-height: 1.45; }
-h1 { font-size: 20px; font-weight: 600; margin-bottom: 2px; }
-.eyebrow { font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #888; font-family: monospace; margin-bottom: 4px; }
-.subline { font-size: 9.5px; font-family: monospace; color: #555; margin-top: 3px; margin-bottom: 10px; }
-.hdr { border-bottom: 2.5px solid #111; padding-bottom: 8px; margin-bottom: 12px; }
-.alert { background: #fcf3e0; border: 1px solid #ef9f27; border-radius: 4px; padding: 9px 12px; margin-bottom: 14px; font-size: 11px; color: #412402; }
-.sec { margin-top: 16px; page-break-inside: avoid; }
-.sec-hd { font-size: 11px; font-family: monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #777; border-bottom: 1px solid #ddd; padding-bottom: 3px; margin-bottom: 7px; }
-table { width: 100%; border-collapse: collapse; font-size: 10.3px; margin-bottom: 6px; }
-th { font-family: monospace; font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; padding: 4px 6px; text-align: left; border-bottom: 1.5px solid #ccc; }
-th.r, td.r { text-align: right; }
-td { padding: 4.5px 6px; border-bottom: 0.5px solid #e5e5e5; vertical-align: top; }
-td.mono, td.r { font-family: monospace; font-size: 10px; }
-.up { color: #0f6e56; font-weight: 600; }
-.dn { color: #a32d2d; font-weight: 600; }
-.chip { display: inline-block; font-size: 8.6px; font-family: monospace; padding: 2.5px 6.5px; border-radius: 3px; font-weight: 600; margin: 1.5px 2px 1.5px 0; }
-.chip-g { background: #eaf3de; color: #27500a; }
-.chip-r { background: #fcebeb; color: #791f1f; }
-.chip-y { background: #faeeda; color: #633806; }
-.chip-b { background: #e6f1fb; color: #0c447c; }
-.ftag { display: inline-block; font-weight: 600; padding: 3px 8px; border-radius: 3px; border: 1px solid; font-size: 10px; }
-.ftag-g { background: #eaf3de; color: #27500a; border-color: #a9cf8a; }
-.ftag-y { background: #faeeda; color: #633806; border-color: #eec27e; }
-.ftag-r { background: #fcebeb; color: #791f1f; border-color: #ecaaa9; }
-.ftag-b { background: #e6f1fb; color: #0c447c; border-color: #a7cdec; }
-.hl { padding: 7px 10px; border-radius: 3px; margin: 6px 0; font-size: 10.5px; line-height: 1.5; }
-.hl-g { background: #eaf3de; border-left: 3px solid #5bad3a; color: #1a3d0a; }
-.hl-r { background: #fcebeb; border-left: 3px solid #e24b4a; color: #52100f; }
-.hl-y { background: #faeeda; border-left: 3px solid #ef9f27; color: #412402; }
-.hl-b { background: #e6f1fb; border-left: 3px solid #3a85c9; color: #0a2752; }
-.quote { font-style: italic; font-size: 10.3px; color: #555; border-left: 2px solid #ccc; padding: 3px 10px; margin: 6px 0; }
-.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0; }
-.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0; }
-.kpi { background: #f5f4f0; border-radius: 4px; padding: 8px 10px; }
-.kpi-g { border-left: 3px solid #5bad3a; }
-.kpi-y { border-left: 3px solid #ef9f27; }
-.kpi-r { border-left: 3px solid #e24b4a; }
-.kpi-b { border-left: 3px solid #3a85c9; }
-.label { font-size: 8px; font-family: monospace; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
-.bignum { font-size: 18px; font-weight: 600; }
-.subnum { font-size: 9.2px; font-family: monospace; color: #666; margin-top: 2px; }
-.vmatrix { display: grid; grid-template-columns: 130px repeat(3, 1fr); border: 0.5px solid #ccc; border-radius: 4px; overflow: hidden; font-size: 9.4px; margin: 6px 0; }
-.vmatrix > div { padding: 5.5px 7px; border-bottom: 0.5px solid #e5e5e5; }
-.vmatrix > div:nth-child(4n-3) { background: #f5f4f0; font-family: monospace; font-size: 8.5px; text-transform: uppercase; color: #888; }
-.vmatrix > div:nth-child(4n-2), .vmatrix > div:nth-child(4n-1), .vmatrix > div:nth-child(4n) { border-left: 0.5px solid #e5e5e5; }
-.verdict-band { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
-strong { font-weight: 600; }
+@page {
+  size: A4;
+  margin: 16mm 14mm;
+  @bottom-center {
+    content: '<Report title> | ' counter(page) ' of ' counter(pages);
+    font-size: 8px;
+    color: #888;
+  }
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 11px;
+  color: #1a1a1a;
+  line-height: 1.45;
+}
+h1 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.eyebrow {
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #888;
+  font-family: monospace;
+  margin-bottom: 4px;
+}
+.subline {
+  font-size: 9.5px;
+  font-family: monospace;
+  color: #555;
+  margin-top: 3px;
+  margin-bottom: 10px;
+}
+.hdr {
+  border-bottom: 2.5px solid #111;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+.alert {
+  background: #fcf3e0;
+  border: 1px solid #ef9f27;
+  border-radius: 4px;
+  padding: 9px 12px;
+  margin-bottom: 14px;
+  font-size: 11px;
+  color: #412402;
+}
+.sec {
+  margin-top: 16px;
+  page-break-inside: avoid;
+}
+.sec-hd {
+  font-size: 11px;
+  font-family: monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #777;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 3px;
+  margin-bottom: 7px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10.3px;
+  margin-bottom: 6px;
+}
+th {
+  font-family: monospace;
+  font-size: 8.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #888;
+  padding: 4px 6px;
+  text-align: left;
+  border-bottom: 1.5px solid #ccc;
+}
+th.r,
+td.r {
+  text-align: right;
+}
+td {
+  padding: 4.5px 6px;
+  border-bottom: 0.5px solid #e5e5e5;
+  vertical-align: top;
+}
+td.mono,
+td.r {
+  font-family: monospace;
+  font-size: 10px;
+}
+.up {
+  color: #0f6e56;
+  font-weight: 600;
+}
+.dn {
+  color: #a32d2d;
+  font-weight: 600;
+}
+.chip {
+  display: inline-block;
+  font-size: 8.6px;
+  font-family: monospace;
+  padding: 2.5px 6.5px;
+  border-radius: 3px;
+  font-weight: 600;
+  margin: 1.5px 2px 1.5px 0;
+}
+.chip-g {
+  background: #eaf3de;
+  color: #27500a;
+}
+.chip-r {
+  background: #fcebeb;
+  color: #791f1f;
+}
+.chip-y {
+  background: #faeeda;
+  color: #633806;
+}
+.chip-b {
+  background: #e6f1fb;
+  color: #0c447c;
+}
+.ftag {
+  display: inline-block;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 1px solid;
+  font-size: 10px;
+}
+.ftag-g {
+  background: #eaf3de;
+  color: #27500a;
+  border-color: #a9cf8a;
+}
+.ftag-y {
+  background: #faeeda;
+  color: #633806;
+  border-color: #eec27e;
+}
+.ftag-r {
+  background: #fcebeb;
+  color: #791f1f;
+  border-color: #ecaaa9;
+}
+.ftag-b {
+  background: #e6f1fb;
+  color: #0c447c;
+  border-color: #a7cdec;
+}
+.hl {
+  padding: 7px 10px;
+  border-radius: 3px;
+  margin: 6px 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+.hl-g {
+  background: #eaf3de;
+  border-left: 3px solid #5bad3a;
+  color: #1a3d0a;
+}
+.hl-r {
+  background: #fcebeb;
+  border-left: 3px solid #e24b4a;
+  color: #52100f;
+}
+.hl-y {
+  background: #faeeda;
+  border-left: 3px solid #ef9f27;
+  color: #412402;
+}
+.hl-b {
+  background: #e6f1fb;
+  border-left: 3px solid #3a85c9;
+  color: #0a2752;
+}
+.quote {
+  font-style: italic;
+  font-size: 10.3px;
+  color: #555;
+  border-left: 2px solid #ccc;
+  padding: 3px 10px;
+  margin: 6px 0;
+}
+.grid4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 8px 0;
+}
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 8px 0;
+}
+.kpi {
+  background: #f5f4f0;
+  border-radius: 4px;
+  padding: 8px 10px;
+}
+.kpi-g {
+  border-left: 3px solid #5bad3a;
+}
+.kpi-y {
+  border-left: 3px solid #ef9f27;
+}
+.kpi-r {
+  border-left: 3px solid #e24b4a;
+}
+.kpi-b {
+  border-left: 3px solid #3a85c9;
+}
+.label {
+  font-size: 8px;
+  font-family: monospace;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 3px;
+}
+.bignum {
+  font-size: 18px;
+  font-weight: 600;
+}
+.subnum {
+  font-size: 9.2px;
+  font-family: monospace;
+  color: #666;
+  margin-top: 2px;
+}
+.vmatrix {
+  display: grid;
+  grid-template-columns: 130px repeat(3, 1fr);
+  border: 0.5px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+  font-size: 9.4px;
+  margin: 6px 0;
+}
+.vmatrix > div {
+  padding: 5.5px 7px;
+  border-bottom: 0.5px solid #e5e5e5;
+}
+.vmatrix > div:nth-child(4n-3) {
+  background: #f5f4f0;
+  font-family: monospace;
+  font-size: 8.5px;
+  text-transform: uppercase;
+  color: #888;
+}
+.vmatrix > div:nth-child(4n-2),
+.vmatrix > div:nth-child(4n-1),
+.vmatrix > div:nth-child(4n) {
+  border-left: 0.5px solid #e5e5e5;
+}
+.verdict-band {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+strong {
+  font-weight: 600;
+}
 ```
 
 Adjust `.vmatrix`'s `grid-template-columns` first value (label column width) to fit your longest

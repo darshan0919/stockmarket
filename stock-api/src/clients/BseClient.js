@@ -239,7 +239,12 @@ class BseClient {
    * @param {number} [opts.pageNo=1]
    * @returns {Promise<Array>}
    */
-  async getAnnouncements(scripCode, fromDate, toDate, { category = '-1', subcategory = '-1', pageNo = 1 } = {}) {
+  async getAnnouncements(
+    scripCode,
+    fromDate,
+    toDate,
+    { category = '-1', subcategory = '-1', pageNo = 1 } = {}
+  ) {
     try {
       const res = await bseGetJson('AnnSubCategoryGetData/w', {
         params: {

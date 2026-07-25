@@ -27,7 +27,7 @@ NSE API → XBRL Document → Parser → Database Cache → API Response
 **File:** `backend/models/QuarterlyResult.js`
 
 ```javascript
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const quarterlyResultSchema = new mongoose.Schema(
   {
@@ -103,7 +103,7 @@ const quarterlyResultSchema = new mongoose.Schema(
 quarterlyResultSchema.index({ symbol: 1, to_date: -1 });
 quarterlyResultSchema.index({ symbol: 1, fiscal_year: -1, quarter: -1 });
 
-module.exports = mongoose.model("QuarterlyResult", quarterlyResultSchema);
+module.exports = mongoose.model('QuarterlyResult', quarterlyResultSchema);
 ```
 
 ---
@@ -113,45 +113,44 @@ module.exports = mongoose.model("QuarterlyResult", quarterlyResultSchema);
 ### File: `backend/utils/xbrlParser.js`
 
 ```javascript
-const axios = require("axios");
-const xml2js = require("xml2js");
+const axios = require('axios');
+const xml2js = require('xml2js');
 
 /**
  * XBRL field mappings to our schema
  */
 const XBRL_FIELD_MAP = {
   // Revenue
-  "in-bse-fin:RevenueFromOperations": "revenue",
-  "in-bse-fin:OtherIncome": "other_income",
-  "in-bse-fin:Income": "total_income",
+  'in-bse-fin:RevenueFromOperations': 'revenue',
+  'in-bse-fin:OtherIncome': 'other_income',
+  'in-bse-fin:Income': 'total_income',
 
   // Expenses
-  "in-bse-fin:CostOfMaterialsConsumed": "cost_of_materials",
-  "in-bse-fin:EmployeeBenefitExpense": "employee_expenses",
-  "in-bse-fin:FinanceCosts": "finance_costs",
-  "in-bse-fin:DepreciationDepletionAndAmortisationExpense": "depreciation",
-  "in-bse-fin:OtherExpenses": "other_expenses",
-  "in-bse-fin:Expenses": "total_expenses",
+  'in-bse-fin:CostOfMaterialsConsumed': 'cost_of_materials',
+  'in-bse-fin:EmployeeBenefitExpense': 'employee_expenses',
+  'in-bse-fin:FinanceCosts': 'finance_costs',
+  'in-bse-fin:DepreciationDepletionAndAmortisationExpense': 'depreciation',
+  'in-bse-fin:OtherExpenses': 'other_expenses',
+  'in-bse-fin:Expenses': 'total_expenses',
 
   // Profitability
-  "in-bse-fin:ProfitBeforeExceptionalItemsAndTax": "operating_profit",
-  "in-bse-fin:ProfitBeforeTax": "profit_before_tax",
-  "in-bse-fin:TaxExpense": "tax_expense",
-  "in-bse-fin:ProfitLossForPeriod": "net_profit",
+  'in-bse-fin:ProfitBeforeExceptionalItemsAndTax': 'operating_profit',
+  'in-bse-fin:ProfitBeforeTax': 'profit_before_tax',
+  'in-bse-fin:TaxExpense': 'tax_expense',
+  'in-bse-fin:ProfitLossForPeriod': 'net_profit',
 
   // Per share
-  "in-bse-fin:BasicEarningsLossPerShareFromContinuingOperations": "eps_basic",
-  "in-bse-fin:DilutedEarningsLossPerShareFromContinuingOperations":
-    "eps_diluted",
-  "in-bse-fin:FaceValueOfEquityShareCapital": "face_value",
-  "in-bse-fin:PaidUpValueOfEquityShareCapital": "paid_up_capital",
+  'in-bse-fin:BasicEarningsLossPerShareFromContinuingOperations': 'eps_basic',
+  'in-bse-fin:DilutedEarningsLossPerShareFromContinuingOperations': 'eps_diluted',
+  'in-bse-fin:FaceValueOfEquityShareCapital': 'face_value',
+  'in-bse-fin:PaidUpValueOfEquityShareCapital': 'paid_up_capital',
 
   // Metadata
-  "in-bse-fin:NameOfTheCompany": "company_name",
-  "in-bse-fin:DateOfStartOfReportingPeriod": "from_date",
-  "in-bse-fin:DateOfEndOfReportingPeriod": "to_date",
-  "in-bse-fin:WhetherResultsAreAuditedOrUnaudited": "audited_status",
-  "in-bse-fin:NatureOfReportStandaloneConsolidated": "report_type",
+  'in-bse-fin:NameOfTheCompany': 'company_name',
+  'in-bse-fin:DateOfStartOfReportingPeriod': 'from_date',
+  'in-bse-fin:DateOfEndOfReportingPeriod': 'to_date',
+  'in-bse-fin:WhetherResultsAreAuditedOrUnaudited': 'audited_status',
+  'in-bse-fin:NatureOfReportStandaloneConsolidated': 'report_type',
 };
 
 /**
@@ -166,8 +165,7 @@ async function parseXBRL(xbrlUrl) {
     const response = await axios.get(xbrlUrl, {
       timeout: 15000,
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
       },
     });
 
@@ -185,37 +183,34 @@ async function parseXBRL(xbrlUrl) {
 
     // Find fields and extract values
     for (const [xbrlField, ourField] of Object.entries(XBRL_FIELD_MAP)) {
-      const cleanField = xbrlField.replace("in-bse-fin:", "");
+      const cleanField = xbrlField.replace('in-bse-fin:', '');
 
       if (xbrl[cleanField]) {
-        const entries = Array.isArray(xbrl[cleanField])
-          ? xbrl[cleanField]
-          : [xbrl[cleanField]];
+        const entries = Array.isArray(xbrl[cleanField]) ? xbrl[cleanField] : [xbrl[cleanField]];
 
         // Find the quarterly data (context OneD)
         const quarterlyEntry = entries.find(
-          (e) =>
-            e.$ && (e.$.contextRef === "OneD" || e.$.contextRef === "FourD")
+          (e) => e.$ && (e.$.contextRef === 'OneD' || e.$.contextRef === 'FourD')
         );
 
         if (quarterlyEntry) {
           let value = quarterlyEntry._;
 
           // Convert to number if applicable
-          if (typeof value === "string" && !isNaN(value)) {
+          if (typeof value === 'string' && !isNaN(value)) {
             value = parseFloat(value);
 
             // Convert from INR to Crores (divide by 10^7)
-            if (quarterlyEntry.$.unitRef === "INR") {
+            if (quarterlyEntry.$.unitRef === 'INR') {
               value = value / 10000000;
             }
           }
 
           // Handle special cases
-          if (ourField === "audited_status") {
-            data.audited = value === "Audited";
-          } else if (ourField === "report_type") {
-            data.consolidated = value === "Consolidated";
+          if (ourField === 'audited_status') {
+            data.audited = value === 'Audited';
+          } else if (ourField === 'report_type') {
+            data.consolidated = value === 'Consolidated';
           } else {
             data[ourField] = value;
           }
@@ -234,7 +229,7 @@ async function parseXBRL(xbrlUrl) {
 
     return data;
   } catch (error) {
-    console.error("XBRL parsing error:", error.message);
+    console.error('XBRL parsing error:', error.message);
     throw new Error(`Failed to parse XBRL: ${error.message}`);
   }
 }
@@ -246,9 +241,7 @@ function extractPeriods(xbrl) {
   const periods = {};
 
   if (xbrl.context) {
-    const contexts = Array.isArray(xbrl.context)
-      ? xbrl.context
-      : [xbrl.context];
+    const contexts = Array.isArray(xbrl.context) ? xbrl.context : [xbrl.context];
 
     contexts.forEach((ctx) => {
       if (ctx.$ && ctx.$.id && ctx.period) {
@@ -286,8 +279,8 @@ npm install xml2js
 Add this new improved function:
 
 ```javascript
-const QuarterlyResult = require("../models/QuarterlyResult");
-const { parseXBRL } = require("../utils/xbrlParser");
+const QuarterlyResult = require('../models/QuarterlyResult');
+const { parseXBRL } = require('../utils/xbrlParser');
 
 /**
  * Get quarterly financial results with XBRL parsing and caching
@@ -312,9 +305,7 @@ const getQuarterlyResultsV2 = async (req, res, next) => {
         .lean();
 
       if (cachedResults.length > 0) {
-        console.log(
-          `Cache hit for ${upperSymbol}: ${cachedResults.length} quarters`
-        );
+        console.log(`Cache hit for ${upperSymbol}: ${cachedResults.length} quarters`);
 
         // Calculate growth metrics
         const resultsWithGrowth = calculateGrowthMetrics(cachedResults);
@@ -324,7 +315,7 @@ const getQuarterlyResultsV2 = async (req, res, next) => {
           data: {
             symbol: upperSymbol,
             quarters: resultsWithGrowth,
-            source: "Database Cache (NSE India)",
+            source: 'Database Cache (NSE India)',
             cached: true,
           },
         });
@@ -335,20 +326,19 @@ const getQuarterlyResultsV2 = async (req, res, next) => {
     console.log(`Cache miss for ${upperSymbol}, fetching from NSE...`);
 
     // First get company name from quote API
-    let companyName = "";
+    let companyName = '';
     try {
       const quoteResponse = await axios.get(
         `https://www.nseindia.com/api/quote-equity?symbol=${upperSymbol}`,
         {
           timeout: 10000,
           headers: {
-            "User-Agent":
-              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-            Accept: "application/json",
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+            Accept: 'application/json',
           },
         }
       );
-      companyName = quoteResponse.data.info?.companyName || "";
+      companyName = quoteResponse.data.info?.companyName || '';
     } catch (err) {
       console.warn(`Could not fetch company name: ${err.message}`);
     }
@@ -360,9 +350,8 @@ const getQuarterlyResultsV2 = async (req, res, next) => {
       {
         timeout: 15000,
         headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-          Accept: "application/json",
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+          Accept: 'application/json',
         },
       }
     );
@@ -374,7 +363,7 @@ const getQuarterlyResultsV2 = async (req, res, next) => {
         success: true,
         data: {
           quarters: [],
-          message: "No quarterly results available",
+          message: 'No quarterly results available',
         },
       });
     }
@@ -385,7 +374,7 @@ const getQuarterlyResultsV2 = async (req, res, next) => {
 
     // Take latest 8 quarters
     const latestResults = results
-      .filter((r) => r.xbrl && r.consolidated === "Consolidated") // Prefer consolidated
+      .filter((r) => r.xbrl && r.consolidated === 'Consolidated') // Prefer consolidated
       .slice(0, 8);
 
     for (const result of latestResults) {
@@ -421,8 +410,8 @@ const getQuarterlyResultsV2 = async (req, res, next) => {
               quarter,
               fiscal_year: year,
               filing_date: new Date(result.filingDate),
-              audited: result.audited === "Audited",
-              consolidated: result.consolidated === "Consolidated",
+              audited: result.audited === 'Audited',
+              consolidated: result.consolidated === 'Consolidated',
               seq_number: result.seqNumber,
               xbrl_url: result.xbrl,
               last_updated: new Date(),
@@ -438,10 +427,7 @@ const getQuarterlyResultsV2 = async (req, res, next) => {
 
             return saved;
           } catch (error) {
-            console.error(
-              `Failed to parse quarter ${result.toDate}:`,
-              error.message
-            );
+            console.error(`Failed to parse quarter ${result.toDate}:`, error.message);
             return null;
           }
         })()
@@ -460,13 +446,13 @@ const getQuarterlyResultsV2 = async (req, res, next) => {
       data: {
         symbol: upperSymbol,
         quarters,
-        source: "NSE India (XBRL)",
+        source: 'NSE India (XBRL)',
         cached: false,
         source_url: `https://www.nseindia.com/get-quotes/equity?symbol=${upperSymbol}`,
       },
     });
   } catch (error) {
-    console.error("Error fetching quarterly results:", error.message);
+    console.error('Error fetching quarterly results:', error.message);
 
     // Fallback to database if API fails
     try {
@@ -485,14 +471,14 @@ const getQuarterlyResultsV2 = async (req, res, next) => {
           data: {
             symbol: upperSymbol,
             quarters,
-            source: "Database Cache (Fallback)",
+            source: 'Database Cache (Fallback)',
             cached: true,
-            warning: "Using cached data due to API error",
+            warning: 'Using cached data due to API error',
           },
         });
       }
     } catch (dbErr) {
-      console.error("Database fallback error:", dbErr);
+      console.error('Database fallback error:', dbErr);
     }
 
     res.json({
@@ -500,7 +486,7 @@ const getQuarterlyResultsV2 = async (req, res, next) => {
       data: {
         symbol: upperSymbol,
         quarters: [],
-        error: "Unable to fetch quarterly results",
+        error: 'Unable to fetch quarterly results',
       },
     });
   }
@@ -511,31 +497,19 @@ const getQuarterlyResultsV2 = async (req, res, next) => {
  */
 function calculateGrowthMetrics(quarters) {
   // Sort by date
-  const sorted = quarters.sort(
-    (a, b) => new Date(b.to_date) - new Date(a.to_date)
-  );
+  const sorted = quarters.sort((a, b) => new Date(b.to_date) - new Date(a.to_date));
 
   sorted.forEach((quarter, index) => {
     // YoY Growth (compare with quarter 4 positions back)
     if (index + 4 < sorted.length) {
       const prevYearQuarter = sorted[index + 4];
 
-      if (
-        quarter.revenue &&
-        prevYearQuarter.revenue &&
-        prevYearQuarter.revenue !== 0
-      ) {
+      if (quarter.revenue && prevYearQuarter.revenue && prevYearQuarter.revenue !== 0) {
         quarter.yoy_revenue_growth =
-          ((quarter.revenue - prevYearQuarter.revenue) /
-            Math.abs(prevYearQuarter.revenue)) *
-          100;
+          ((quarter.revenue - prevYearQuarter.revenue) / Math.abs(prevYearQuarter.revenue)) * 100;
       }
 
-      if (
-        quarter.net_profit &&
-        prevYearQuarter.net_profit &&
-        prevYearQuarter.net_profit !== 0
-      ) {
+      if (quarter.net_profit && prevYearQuarter.net_profit && prevYearQuarter.net_profit !== 0) {
         quarter.yoy_profit_growth =
           ((quarter.net_profit - prevYearQuarter.net_profit) /
             Math.abs(prevYearQuarter.net_profit)) *
@@ -549,20 +523,12 @@ function calculateGrowthMetrics(quarters) {
 
       if (quarter.revenue && prevQuarter.revenue && prevQuarter.revenue !== 0) {
         quarter.qoq_revenue_growth =
-          ((quarter.revenue - prevQuarter.revenue) /
-            Math.abs(prevQuarter.revenue)) *
-          100;
+          ((quarter.revenue - prevQuarter.revenue) / Math.abs(prevQuarter.revenue)) * 100;
       }
 
-      if (
-        quarter.net_profit &&
-        prevQuarter.net_profit &&
-        prevQuarter.net_profit !== 0
-      ) {
+      if (quarter.net_profit && prevQuarter.net_profit && prevQuarter.net_profit !== 0) {
         quarter.qoq_profit_growth =
-          ((quarter.net_profit - prevQuarter.net_profit) /
-            Math.abs(prevQuarter.net_profit)) *
-          100;
+          ((quarter.net_profit - prevQuarter.net_profit) / Math.abs(prevQuarter.net_profit)) * 100;
       }
     }
   });
@@ -579,8 +545,8 @@ function calculateGrowthMetrics(quarters) {
 ### File: `backend/scripts/syncQuarterlyResults.js`
 
 ```javascript
-const mongoose = require("mongoose");
-const { getQuarterlyResultsV2 } = require("../controllers/stockController");
+const mongoose = require('mongoose');
+const { getQuarterlyResultsV2 } = require('../controllers/stockController');
 
 /**
  * Background job to sync quarterly results for all tracked stocks
@@ -590,8 +556,8 @@ async function syncQuarterlyResults() {
     await mongoose.connect(process.env.MONGODB_URI);
 
     // Get list of stocks to sync
-    const Stock = require("../models/Stock");
-    const stocks = await Stock.find().select("symbol").lean();
+    const Stock = require('../models/Stock');
+    const stocks = await Stock.find().select('symbol').lean();
 
     console.log(`Syncing quarterly results for ${stocks.length} stocks...`);
 
@@ -603,15 +569,13 @@ async function syncQuarterlyResults() {
         // Simulate request/response
         const req = {
           params: { symbol: stock.symbol },
-          query: { force_refresh: "true" },
+          query: { force_refresh: 'true' },
         };
         const res = {
           json: (data) => {
             if (data.success && data.data.quarters.length > 0) {
               synced++;
-              console.log(
-                `✓ ${stock.symbol}: ${data.data.quarters.length} quarters`
-              );
+              console.log(`✓ ${stock.symbol}: ${data.data.quarters.length} quarters`);
             }
           },
         };
@@ -629,7 +593,7 @@ async function syncQuarterlyResults() {
     console.log(`\nSync complete: ${synced} success, ${failed} failed`);
     process.exit(0);
   } catch (error) {
-    console.error("Sync job error:", error);
+    console.error('Sync job error:', error);
     process.exit(1);
   }
 }
@@ -684,7 +648,7 @@ Add `getQuarterlyResultsV2()` to `stockController.js`.
 ### Step 5: Update Routes
 
 ```javascript
-router.get("/:symbol/quarterly-v2", getQuarterlyResultsV2);
+router.get('/:symbol/quarterly-v2', getQuarterlyResultsV2);
 ```
 
 ### Step 6: Test

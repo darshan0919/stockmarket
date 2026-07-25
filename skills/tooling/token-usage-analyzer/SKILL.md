@@ -21,28 +21,37 @@ You will receive a JSON payload containing aggregated token usage, invocations, 
 Review the token usage report and generate a markdown analysis covering the following:
 
 ### 1. High-Level Summary
+
 - Total cost across the project for the week.
 - The top 3 most expensive skills/tasks.
 
 ### 2. Efficiency Anomalies
+
 Flag any skills or tasks that exhibit poor token efficiency. Look for:
+
 - Very high input tokens (>100k per invocation) for tasks that should be simple.
 - Disproportionately high cost relative to value.
 
 ### 3. Model Optimization Recommendations
+
 For each heavily used skill, assess if the current model is appropriate:
+
 - **Claude 3.5 Sonnet**: Best for complex reasoning, coding, and deep synthesis.
 - **Claude 3 Haiku**: Best for simple extraction, fast summarization, classification, and routing.
 - **Claude 3 Opus**: Rarely needed unless extreme nuance is required.
 
 **Recommendation rules:**
-- If a task is primarily *extracting data* from large documents (e.g., pulling numbers or short keywords), recommend down-shifting to **Claude 3 Haiku**.
+
+- If a task is primarily _extracting data_ from large documents (e.g., pulling numbers or short keywords), recommend down-shifting to **Claude 3 Haiku**.
 - If a task uses Haiku but has very complex synthesis instructions, recommend upgrading to **Claude 3.5 Sonnet**.
 
 ### 4. Payload Truncation Opportunities
+
 If a task routinely consumes massive context (e.g., >200k tokens per run), recommend structural changes to the companion scripts:
+
 - Pre-filtering data in Python before passing to the LLM.
 - Chunking documents or using an embeddings approach if the whole document isn't needed.
 
 ## Output Format
+
 Output a clean, readable markdown report using tables and bullet points. Use GitHub-flavored alerts (`> [!TIP]`, `> [!WARNING]`) to highlight the most critical cost-saving recommendations.

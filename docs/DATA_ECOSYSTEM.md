@@ -23,7 +23,7 @@ cowork-task-architect enforce it).
    forbid deleting a file once written (EPERM), so any inline `fs.unlink`/`fs.rmSync`/
    `fs.rm` used for cleanup or pruning can abort the operation that triggered it.
    `data/` is a kept, ever-growing local mirror by design (§5) — this applies to
-   *everything* under it, including `_meta/checkpoints/`, not just the top-level
+   _everything_ under it, including `_meta/checkpoints/`, not just the top-level
    collections. If a directory ever needs bounding, do it out-of-band (a separate
    maintenance script the user runs locally, never inline in a skill/job's write path).
 
@@ -68,12 +68,12 @@ in `conversations.json` and the turn-by-turn body in `conversations/<id>.json`
 
 No `schemaVersion`, no redundant wrappers. Required on every object:
 
-| Field | Notes |
-|---|---|
-| `id` | Deterministic: `<kind>_<creator>_<companyId|scope>_<date>[_<hash8>]` — same logical output twice ⇒ same id ⇒ upsert, never duplicate |
-| `creationTime` | ISO 8601 IST, set once |
+| Field          | Notes                                                              |
+| -------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `id`           | Deterministic: `<kind>_<creator>_<companyId                        | scope>_<date>[_<hash8>]` — same logical output twice ⇒ same id ⇒ upsert, never duplicate |
+| `creationTime` | ISO 8601 IST, set once                                             |
 | `modifiedTime` | ISO 8601 IST, bumped on every change; sync conflict resolution key |
-| `creator` | Source of creation: skill/script/job name, or `user` |
+| `creator`      | Source of creation: skill/script/job name, or `user`               |
 
 Required retrieval fields where applicable:
 
@@ -89,19 +89,27 @@ Required retrieval fields where applicable:
 {
   "id": "NSE:SWARAJENG",
   "name": "Swaraj Engines Ltd",
-  "nseTicker": "SWARAJENG", "bseScripCode": "500407", "isin": "INE277A01016",
-  "sector": "...", "industry": "...", "keywords": ["SWARAJ"],
+  "nseTicker": "SWARAJENG",
+  "bseScripCode": "500407",
+  "isin": "INE277A01016",
+  "sector": "...",
+  "industry": "...",
+  "keywords": ["SWARAJ"],
   "aliases": ["BSE:500407"],
-  "links": {                       // ids only — resolve via collections
-    "thesis": "NSE:SWARAJENG",     // key into theses.json
+  "links": {
+    // ids only — resolve via collections
+    "thesis": "NSE:SWARAJENG", // key into theses.json
     "reports": ["rpt_concall-analysis_NSE:SWARAJENG_2026-07-01"],
     "notes": ["note_..."],
-    "events": ["evt_deal_..."],    // capped to last 200; older found by scanning events-*.json on companyId
-    "insights": ["val_..."]
+    "events": ["evt_deal_..."], // capped to last 200; older found by scanning events-*.json on companyId
+    "insights": ["val_..."],
   },
-  "watchlist": true, "conviction": null,   // rollup convenience fields
-  "manual": {},                    // user-authored, never machine-overwritten
-  "creationTime": "...", "modifiedTime": "...", "creator": "company-master-sync"
+  "watchlist": true,
+  "conviction": null, // rollup convenience fields
+  "manual": {}, // user-authored, never machine-overwritten
+  "creationTime": "...",
+  "modifiedTime": "...",
+  "creator": "company-master-sync",
 }
 ```
 
@@ -121,7 +129,7 @@ Required retrieval fields where applicable:
 - Envelope enforced at write time: missing `id` → derived deterministically; missing
   `creationTime/modifiedTime/creator` → rejected (creator must be explicit).
 - `buildCompanyContext(companyId, {tokenBudget})` → `{ identity, thesis, notes,
-  reports (last N summaries + latest full DTO per type), events (90d), insights }`.
+reports (last N summaries + latest full DTO per type), events (90d), insights }`.
   **Convention §8: every Category A/B skill (see audit) MUST call this before
   generating and record `contextUsed: [ids]` in its DTO.**
 

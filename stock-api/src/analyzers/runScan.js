@@ -8,17 +8,19 @@ function parseScanId(arg) {
   const m = arg.match(/\/scans\/saved\/([a-f0-9]{24})/);
   if (m) return m[1];
   if (/^[a-f0-9]{24}$/.test(arg.trim())) return arg.trim();
-  throw new Error(`Could not parse a scanId from '${arg}'. Expected a URL like https://www.stockscans.in/scans/saved/<24-hex> or the bare id.`);
+  throw new Error(
+    `Could not parse a scanId from '${arg}'. Expected a URL like https://www.stockscans.in/scans/saved/<24-hex> or the bare id.`
+  );
 }
 
 function buildRunPayload(definition) {
   return {
-    ratiosType: "Default",
-    timePeriod: "Latest",
+    ratiosType: 'Default',
+    timePeriod: 'Latest',
     scan: definition,
     watchlistIds: definition.watchlistIds || [],
-    order: "desc",
-    orderBy: "Market Capitalization",
+    order: 'desc',
+    orderBy: 'Market Capitalization',
     offset: 0,
   };
 }
@@ -33,7 +35,10 @@ function buildRunPayload(definition) {
 
 /** Case/whitespace-insensitive lookup of the first matching alias in a row. */
 function col(row, aliases) {
-  const norm = (s) => String(s).toLowerCase().replace(/[\s_]+/g, '');
+  const norm = (s) =>
+    String(s)
+      .toLowerCase()
+      .replace(/[\s_]+/g, '');
   const map = {};
   for (const k of Object.keys(row)) map[norm(k)] = row[k];
   for (const a of aliases) {
@@ -68,15 +73,24 @@ function toCrore(raw) {
 }
 
 const ATV_ALIASES = [
-  'Average Traded Value 50D', 'Avg Traded Value 50D', '50D Average Traded Value',
-  '50D Avg Traded Value', 'Traded Value SMA 50D', 'Traded Value 50D',
-  'Average Traded Value', 'Avg Traded Value',
+  'Average Traded Value 50D',
+  'Avg Traded Value 50D',
+  '50D Average Traded Value',
+  '50D Avg Traded Value',
+  'Traded Value SMA 50D',
+  'Traded Value 50D',
+  'Average Traded Value',
+  'Avg Traded Value',
   // expression fallbacks (absolute ₹ — toCrore handles the unit):
-  'Volume SMA 50D * SMA 50D', 'Volume SMA 50 * SMA 50',
+  'Volume SMA 50D * SMA 50D',
+  'Volume SMA 50 * SMA 50',
 ];
 const FREEFLOAT_ALIASES = [
-  'Free Float Market Capitalization', 'Free Float Mcap', 'Free Float Market Cap',
-  'Free Float', 'Non Promoter Holdings * Market Capitalization',
+  'Free Float Market Capitalization',
+  'Free Float Mcap',
+  'Free Float Market Cap',
+  'Free Float',
+  'Non Promoter Holdings * Market Capitalization',
 ];
 const PROMOTER_ALIASES = ['Promoter Holdings', 'Promoter Holding', 'Promoters Holdings'];
 const MCAP_ALIASES = ['Market Capitalization', 'Market Cap', 'Mcap'];
@@ -136,14 +150,22 @@ function applyLiquidityGate(companies, opts = {}) {
     }
 
     const liq = {
-      atvCr: round2(atv.cr), atvSource: atvCol.source, atvUnit: atv.assumedUnit,
-      freeFloatCr: round2(ff.cr), freeFloatSource: ffEstimated ? 'estimated' : ffCol.source,
-      freeFloatUnit: ff.assumedUnit, freeFloatEstimated: ffEstimated,
+      atvCr: round2(atv.cr),
+      atvSource: atvCol.source,
+      atvUnit: atv.assumedUnit,
+      freeFloatCr: round2(ff.cr),
+      freeFloatSource: ffEstimated ? 'estimated' : ffCol.source,
+      freeFloatUnit: ff.assumedUnit,
+      freeFloatEstimated: ffEstimated,
     };
 
     // If either metric is unresolvable, don't guess a pass/fail.
     if (!Number.isFinite(atv.cr) || !Number.isFinite(ff.cr)) {
-      unresolved.push({ ...c, _liquidity: liq, _liquidityNote: 'traded-value or free-float column not found in scan output' });
+      unresolved.push({
+        ...c,
+        _liquidity: liq,
+        _liquidityNote: 'traded-value or free-float column not found in scan output',
+      });
       continue;
     }
 
@@ -152,8 +174,15 @@ function applyLiquidityGate(companies, opts = {}) {
     if (failAtv || failFf) {
       const reasons = [];
       if (failAtv) reasons.push(`50D avg traded value ₹${round2(atv.cr)} Cr < ₹${minAtvCr} Cr`);
-      if (failFf) reasons.push(`free float ₹${round2(ff.cr)} Cr < ₹${minFreeFloatCr} Cr${ffEstimated ? ' (est.)' : ''}`);
-      excluded.push({ ...c, _liquidity: liq, _exclusionReason: `illiquid — ${reasons.join('; ')}` });
+      if (failFf)
+        reasons.push(
+          `free float ₹${round2(ff.cr)} Cr < ₹${minFreeFloatCr} Cr${ffEstimated ? ' (est.)' : ''}`
+        );
+      excluded.push({
+        ...c,
+        _liquidity: liq,
+        _exclusionReason: `illiquid — ${reasons.join('; ')}`,
+      });
     } else {
       liquid.push({ ...c, _liquidity: liq });
     }
@@ -162,7 +191,9 @@ function applyLiquidityGate(companies, opts = {}) {
   return { liquid, excluded, unresolved };
 }
 
-function round2(n) { return Number.isFinite(n) ? Math.round(n * 100) / 100 : null; }
+function round2(n) {
+  return Number.isFinite(n) ? Math.round(n * 100) / 100 : null;
+}
 
 function flattenTable(runResp) {
   const table = runResp.table;
@@ -201,7 +232,7 @@ async function resolveUniverse(scanArg, options = {}) {
   const scanName = definition.scanName || scanId;
 
   const payload = buildRunPayload(definition);
-  
+
   // Handle pagination until we get all results
   const allRows = [];
   let total = null;
@@ -211,10 +242,10 @@ async function resolveUniverse(scanArg, options = {}) {
     payload.offset = offset;
     const runResp = await stockscans.runScan(payload, scanId);
     const { rows, total: currentTotal } = flattenTable(runResp);
-    
+
     total = currentTotal;
     if (rows.length === 0) break;
-    
+
     allRows.push(...rows);
     offset += rows.length;
   }
@@ -225,14 +256,17 @@ async function resolveUniverse(scanArg, options = {}) {
     filters: definition.filters || [],
     total,
     fetched_at: new Date().toISOString(),
-    companies: allRows
+    companies: allRows,
   };
 
   if (liquidityGate) {
-    const { liquid, excluded, unresolved } = applyLiquidityGate(allRows, { minAtvCr, minFreeFloatCr });
+    const { liquid, excluded, unresolved } = applyLiquidityGate(allRows, {
+      minAtvCr,
+      minFreeFloatCr,
+    });
     universe.liquidityGate = { minAtvCr, minFreeFloatCr };
-    universe.companies = liquid;               // downstream steps only see tradeable names
-    universe.excluded_illiquid = excluded;     // reported, never silently dropped
+    universe.companies = liquid; // downstream steps only see tradeable names
+    universe.excluded_illiquid = excluded; // reported, never silently dropped
     universe.unresolved_liquidity = unresolved; // columns missing → analyst must add ratio
     universe.raw_total = allRows.length;
   }

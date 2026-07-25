@@ -7,8 +7,12 @@
 const fs = require('fs');
 const origRmSync = fs.rmSync.bind(fs);
 fs.rmSync = (p, opts) => {
-  try { return origRmSync(p, opts); } catch (e) {
-    if (e && e.code === 'EPERM') { return undefined; }
+  try {
+    return origRmSync(p, opts);
+  } catch (e) {
+    if (e && e.code === 'EPERM') {
+      return undefined;
+    }
     throw e;
   }
 };

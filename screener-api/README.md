@@ -71,21 +71,25 @@ GET /api/health
 ### Stock APIs
 
 #### Search Stocks
+
 ```
 GET /api/stocks/search?q={query}
 ```
 
 #### Get Stock Details
+
 ```
 GET /api/stocks/:symbol
 ```
 
 #### Get Technicals
+
 ```
 GET /api/stocks/:symbol/technicals
 ```
 
 #### Get Financials
+
 ```
 GET /api/stocks/:symbol/financials?quarters=4
 ```
@@ -93,6 +97,7 @@ GET /api/stocks/:symbol/financials?quarters=4
 ### Screener API
 
 #### Run Screener
+
 ```
 POST /api/screener/run
 Content-Type: application/json
@@ -112,16 +117,19 @@ Content-Type: application/json
 ### Watchlist APIs
 
 #### Get Watchlist
+
 ```
 GET /api/watchlist
 ```
 
 #### Add to Watchlist
+
 ```
 POST /api/watchlist/:symbol
 ```
 
 #### Remove from Watchlist
+
 ```
 DELETE /api/watchlist/:symbol
 ```
@@ -129,11 +137,13 @@ DELETE /api/watchlist/:symbol
 ### Market APIs
 
 #### Get Indices
+
 ```
 GET /api/market/indices
 ```
 
 #### Get Stats
+
 ```
 GET /api/market/stats
 ```
@@ -141,28 +151,35 @@ GET /api/market/stats
 ## Database Models
 
 ### Stock
+
 - symbol, name, sector, industry, market_cap, listing_date
 
 ### Fundamental
+
 - stock_id, date, pe_ratio, pb_ratio, roe, roce, debt_to_equity, etc.
 
 ### PriceHistory
+
 - stock_id, date, open, high, low, close, volume
 
 ### FinancialStatement
+
 - stock_id, period_type, fiscal_year, quarter, revenue, profits, assets, etc.
 
 ### Watchlist
+
 - symbol, added_date
 
 ## Scripts
 
 ### Fetch Data (Initial Seed)
+
 ```bash
 node scripts/fetchData.js
 ```
 
 ### Update Data (Daily)
+
 ```bash
 node scripts/updateData.js
 ```
@@ -170,6 +187,7 @@ node scripts/updateData.js
 ## Technical Indicators
 
 Implemented calculations:
+
 - SMA (Simple Moving Average)
 - EMA (Exponential Moving Average)
 - RSI (Relative Strength Index)
@@ -189,8 +207,8 @@ All endpoints return consistent error format:
 ## Development
 
 The backend uses:
+
 - Express.js for REST API
 - Mongoose for MongoDB ODM
 - Joi for validation
 - CORS for cross-origin requests
-

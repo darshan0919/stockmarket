@@ -55,10 +55,25 @@ function findCandidates(finalReport) {
   return candidates;
 }
 
-const QUALIFIER_PRIORITY = ['', 'total', 'outstanding', 'consolidated', 'net', 'overall', 'group', 'group-wide', 'current', 'closing', 'unexecuted', 'standalone'];
+const QUALIFIER_PRIORITY = [
+  '',
+  'total',
+  'outstanding',
+  'consolidated',
+  'net',
+  'overall',
+  'group',
+  'group-wide',
+  'current',
+  'closing',
+  'unexecuted',
+  'standalone',
+];
 
 function qualifierRank(label) {
-  const norm = normalizeLabel(label).replace(/order.?book.*$|backlog.*$/, '').trim();
+  const norm = normalizeLabel(label)
+    .replace(/order.?book.*$|backlog.*$/, '')
+    .trim();
   const i = QUALIFIER_PRIORITY.indexOf(norm);
   return i === -1 ? 99 : i;
 }
@@ -83,7 +98,7 @@ function extractOrderBook(finalReport, meta = {}) {
   if (!totals.length) {
     throw new OrderBookNotFoundError(
       `No company-wide order-book total found for ${meta.companyId || '?'} ${meta.date || ''} — ` +
-      `${candidates.length} order-book bullet(s) present but none classified as a total with a parseable Cr/Lakh/Mn value.`,
+        `${candidates.length} order-book bullet(s) present but none classified as a total with a parseable Cr/Lakh/Mn value.`,
       { orderBookLines: candidates.map((c) => c.rawLine).slice(0, 15) }
     );
   }
@@ -92,12 +107,20 @@ function extractOrderBook(finalReport, meta = {}) {
   const best = totals[0];
 
   if (totals.length > 1) {
-    const disagree = totals.some((t) => Math.abs(t.parsed.valueCr - best.parsed.valueCr) / best.parsed.valueCr > 0.15);
+    const disagree = totals.some(
+      (t) => Math.abs(t.parsed.valueCr - best.parsed.valueCr) / best.parsed.valueCr > 0.15
+    );
     if (disagree) {
       throw new OrderBookAmbiguousError(
         `Multiple order-book totals for ${meta.companyId || '?'} ${meta.date || ''} disagree by >15% — ` +
-        `picking automatically risks being wrong (e.g. actual vs. guidance, or standalone vs. consolidated).`,
-        { candidates: totals.map((t) => ({ label: t.label, valueCr: t.parsed.valueCr, rawLine: t.rawLine })) }
+          `picking automatically risks being wrong (e.g. actual vs. guidance, or standalone vs. consolidated).`,
+        {
+          candidates: totals.map((t) => ({
+            label: t.label,
+            valueCr: t.parsed.valueCr,
+            rawLine: t.rawLine,
+          })),
+        }
       );
     }
   }
@@ -115,4 +138,9 @@ function extractOrderBook(finalReport, meta = {}) {
   };
 }
 
-module.exports = { extractOrderBook, findCandidates, OrderBookNotFoundError, OrderBookAmbiguousError };
+module.exports = {
+  extractOrderBook,
+  findCandidates,
+  OrderBookNotFoundError,
+  OrderBookAmbiguousError,
+};

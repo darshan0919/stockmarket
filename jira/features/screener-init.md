@@ -1,5 +1,7 @@
 # Stock Screener Application - Development Prompt
+
 ## Personal Use - MVP Edition
+
 ### Tech Stack: Next.js (React) + Node.js/Express + MongoDB/PostgreSQL
 
 ---
@@ -21,6 +23,7 @@ Build a **local-first stock screener web application** for personal investment a
 **Database Setup:**
 
 Choose one:
+
 - **MongoDB:** Document-based, flexible schema, JSON-like format. Use Mongoose for schema validation.
 - **PostgreSQL:** Relational, robust, ACID compliance. Use Prisma or Sequelize ORM.
 
@@ -31,8 +34,8 @@ Stocks
 - id (PK), symbol, name, sector, industry, market_cap, listing_date
 
 Fundamentals
-- id (PK), stock_id (FK), date, pe_ratio, pb_ratio, roe, roce, 
-  debt_to_equity, revenue_growth_3y, profit_growth_3y, 
+- id (PK), stock_id (FK), date, pe_ratio, pb_ratio, roe, roce,
+  debt_to_equity, revenue_growth_3y, profit_growth_3y,
   dividend_yield, current_ratio, eps, book_value_per_share
 
 PriceHistory
@@ -40,8 +43,8 @@ PriceHistory
 - (Index on stock_id and date for fast queries)
 
 FinancialStatements
-- id (PK), stock_id (FK), period_type (quarterly/annual), 
-  fiscal_year, quarter, revenue, gross_profit, operating_profit, 
+- id (PK), stock_id (FK), period_type (quarterly/annual),
+  fiscal_year, quarter, revenue, gross_profit, operating_profit,
   net_profit, total_assets, total_liabilities, shareholders_equity
 
 Watchlist
@@ -49,12 +52,14 @@ Watchlist
 ```
 
 **Data Sources:**
+
 - Alpha Vantage, Yahoo Finance, Financial Modeling Prep (free tiers)
 - Create `scripts/fetchData.js` for initial bulk data load
 - Create `scripts/updateData.js` for daily EOD updates
 - Pre-populate with NSE 500 stocks' 5 years historical data + fundamentals
 
 **Database Connection:**
+
 ```js
 // MongoDB with Mongoose
 const mongoose = require('mongoose');
@@ -70,6 +75,7 @@ const prisma = new PrismaClient();
 ### 2. Backend Requirements
 
 **Technology Stack:**
+
 - Node.js 18+ with Express.js
 - Mongoose (MongoDB) or Prisma (PostgreSQL)
 - Axios for API calls to external data sources
@@ -82,7 +88,7 @@ const prisma = new PrismaClient();
 backend/
 ├── server.js                 # Express app entry point
 ├── .env                      # DB_URL, API_KEYS, PORT
-├── .env.example             
+├── .env.example
 ├── package.json
 ├── config/
 │   └── database.js          # DB connection setup
@@ -211,6 +217,7 @@ Response: { message: "Data update initiated", updated_count: 500 }
    - Max 1000 results per query
 
 2. **Technical Indicators** (`utils/technicalIndicators.js`):
+
 ```javascript
 // SMA Calculation
 function calculateSMA(prices, period) {
@@ -229,15 +236,15 @@ function calculateRSI(prices, period = 14) {
   for (let i = 1; i < prices.length; i++) {
     changes.push(prices[i] - prices[i - 1]);
   }
-  
-  const gains = changes.map(c => c > 0 ? c : 0);
-  const losses = changes.map(c => c < 0 ? -c : 0);
-  
+
+  const gains = changes.map((c) => (c > 0 ? c : 0));
+  const losses = changes.map((c) => (c < 0 ? -c : 0));
+
   const avgGain = gains.slice(0, period).reduce((a, b) => a + b) / period;
   const avgLoss = losses.slice(0, period).reduce((a, b) => a + b) / period;
-  
+
   const rs = avgGain / avgLoss;
-  const rsi = 100 - (100 / (1 + rs));
+  const rsi = 100 - 100 / (1 + rs);
   return rsi;
 }
 
@@ -273,6 +280,7 @@ async function fetchFundamentals(symbol) {
 ```
 
 4. **Database Models** (Mongoose example):
+
 ```javascript
 // Stock Model
 const stockSchema = new Schema({
@@ -281,7 +289,7 @@ const stockSchema = new Schema({
   sector: String,
   industry: String,
   market_cap: Number,
-  listing_date: Date
+  listing_date: Date,
 });
 
 // Fundamentals Model
@@ -296,7 +304,7 @@ const fundamentalSchema = new Schema({
   revenue_growth_3y: Number,
   profit_growth_3y: Number,
   dividend_yield: Number,
-  current_ratio: Number
+  current_ratio: Number,
 });
 
 // Price History Model (Time Series)
@@ -307,7 +315,7 @@ const priceSchema = new Schema({
   high: Number,
   low: Number,
   close: Number,
-  volume: Number
+  volume: Number,
 });
 ```
 
@@ -316,6 +324,7 @@ const priceSchema = new Schema({
 ### 3. Frontend Requirements
 
 **Technology Stack:**
+
 - Next.js 14+ with React 18+
 - JavaScript (ES6+) or TypeScript
 - Tailwind CSS for styling
@@ -506,6 +515,7 @@ export default function ChartTab({ symbol }) {
 ```
 
 **UI Specifics:**
+
 - Clean, minimal design with Tailwind CSS
 - Clear typography hierarchy
 - Responsive: works on 1024px+ screens
@@ -540,8 +550,8 @@ function calculateRSI(closePrices, period = 14) {
     changes.push(closePrices[i] - closePrices[i - 1]);
   }
 
-  const gains = changes.map(c => c > 0 ? c : 0);
-  const losses = changes.map(c => c < 0 ? -c : 0);
+  const gains = changes.map((c) => (c > 0 ? c : 0));
+  const losses = changes.map((c) => (c < 0 ? -c : 0));
 
   let avgGain = gains.slice(0, period).reduce((a, b) => a + b) / period;
   let avgLoss = losses.slice(0, period).reduce((a, b) => a + b) / period;
@@ -551,7 +561,7 @@ function calculateRSI(closePrices, period = 14) {
     avgGain = (avgGain * (period - 1) + gains[i]) / period;
     avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
     const rs = avgGain / avgLoss;
-    rsi.push(100 - (100 / (1 + rs)));
+    rsi.push(100 - 100 / (1 + rs));
   }
   return rsi;
 }
@@ -581,6 +591,7 @@ function calculateEMA(prices, period) {
 ## 5. Data & Calculations
 
 **Fundamental Metrics:**
+
 - P/E Ratio: Stock Price / EPS
 - P/B Ratio: Stock Price / Book Value Per Share
 - ROE: (Net Income / Shareholders' Equity) × 100
@@ -592,6 +603,7 @@ function calculateEMA(prices, period) {
 - Profit Growth 3Y CAGR: (Current Year Profit / 3-Year Ago Profit) ^ (1/3) - 1
 
 **Financial Statements Display:**
+
 - Show last 4 quarters of: Revenue, Gross Profit, Operating Profit, EBITDA, Net Profit, EPS
 - Show last 2 years of: Total Assets, Total Liabilities, Shareholders' Equity, Debt, Current Assets, Current Liabilities
 
@@ -628,6 +640,7 @@ stock-screener/
 ```
 
 **Backend `package.json`:**
+
 ```json
 {
   "dependencies": {
@@ -650,6 +663,7 @@ stock-screener/
 ```
 
 **Frontend `package.json`:**
+
 ```json
 {
   "dependencies": {
@@ -697,6 +711,7 @@ npm run dev
 ## 7. MVP Feature Set (In Priority Order)
 
 ### Priority 1 (Must Have - Week 1)
+
 - ✅ Backend API setup with Express + MongoDB/PostgreSQL
 - ✅ Database schema and models
 - ✅ Stock search endpoint with auto-complete
@@ -707,6 +722,7 @@ npm run dev
 - ✅ Stock details modal with fundamentals table
 
 ### Priority 2 (Should Have - Week 2)
+
 - ✅ Dashboard with quick links and market snapshot
 - ✅ 10 more filters for advanced screening
 - ✅ Pre-built screeners (Growth, Dividend, Low Debt, Quality)
@@ -717,6 +733,7 @@ npm run dev
 - ✅ Peer comparison (stocks with similar market cap in same sector)
 
 ### Priority 3 (Nice to Have - Week 3)
+
 - ✅ Export screener results to CSV
 - ✅ UI polish and responsive design
 - ✅ Real-time watchlist price updates (every 5 minutes)
@@ -730,6 +747,7 @@ npm run dev
 ## 8. Data Initialization & Update Strategy
 
 **Initial Setup Script** (`scripts/fetchData.js`):
+
 ```javascript
 // Fetch all NSE 500 stocks
 // Get 5 years of daily OHLCV data
@@ -741,6 +759,7 @@ node scripts/fetchData.js
 ```
 
 **Daily Update Script** (`scripts/updateData.js`):
+
 ```javascript
 // Fetch latest EOD prices for all stocks
 // Update technical indicators
@@ -751,6 +770,7 @@ node scripts/updateData.js
 ```
 
 **Scheduling:**
+
 - Linux/Mac: Add to crontab
   ```bash
   # Run daily at 6:00 PM IST
@@ -760,6 +780,7 @@ node scripts/updateData.js
 - Manual: Run script when needed
 
 **API Rate Limits:**
+
 - Alpha Vantage: 5 req/min, 500/day
 - Financial Modeling Prep: 250/day free
 - Implement exponential backoff and caching
@@ -769,6 +790,7 @@ node scripts/updateData.js
 ## 9. Specific Instructions for Development
 
 ### Backend Development Order (12-14 hours):
+
 1. **Setup** (30 min): Express, MongoDB/PostgreSQL connection, .env
 2. **Database Models** (1 hour): Define Mongoose schemas or Prisma models
 3. **Data Fetch Script** (2 hours): Implement `fetchData.js` and test
@@ -781,6 +803,7 @@ node scripts/updateData.js
 10. **Testing** (1 hour): Postman API testing
 
 ### Frontend Development Order (14-16 hours):
+
 1. **Project Setup** (30 min): Next.js, React, Tailwind, Recharts
 2. **API Client** (30 min): axios wrapper in lib/api.js
 3. **Reusable Components** (1 hour): Table, Modal, LoadingSpinner, SearchBar
@@ -951,6 +974,7 @@ stock-screener/
 ## 15. Success Criteria
 
 **By End of Week 1:**
+
 - ✅ Backend API fully functional with 7+ endpoints
 - ✅ Basic frontend with search and screener working
 - ✅ Screener executes with 5 fundamental filters
@@ -958,6 +982,7 @@ stock-screener/
 - ✅ SQLite/MongoDB/PostgreSQL populated with 500 stocks
 
 **By End of Week 2:**
+
 - ✅ All 15 filters working
 - ✅ Pre-built screeners functional
 - ✅ Stock details page complete
@@ -965,6 +990,7 @@ stock-screener/
 - ✅ Financial statements visible
 
 **By End of Week 3:**
+
 - ✅ Complete MVP as per Priority 1 & 2
 - ✅ Code cleanup and optimization
 - ✅ Responsive design finalized

@@ -39,6 +39,7 @@ A deep dive missing the freshest quarter's commentary is a real gap, not a
 minor one.
 
 For annual reports specifically, run `--last-n 5` separately (5 years > 4 quarters of depth):
+
 ```bash
 python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t "Annual Report" --last-n 5 -o "$DOCS_DIR"
@@ -55,12 +56,12 @@ python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
 
 Use the 19-section framework in [`references/research_template.md`](references/research_template.md). Effort allocation:
 
-| Priority | Sections |
-|---|---|
-| CRITICAL | Business Deep Dive, Management Commentary, Management Track Record, Variant Perception |
-| HIGH | Peer Comparison, Financial Quality, Scenario Building, Valuation |
-| IMPORTANT | Industry, Pipeline, Capital Allocation, Guidance |
-| SUPPORTING | Product, Performance, Shareholding, Q&A, Technical, Key Quotes |
+| Priority   | Sections                                                                               |
+| ---------- | -------------------------------------------------------------------------------------- |
+| CRITICAL   | Business Deep Dive, Management Commentary, Management Track Record, Variant Perception |
+| HIGH       | Peer Comparison, Financial Quality, Scenario Building, Valuation                       |
+| IMPORTANT  | Industry, Pipeline, Capital Allocation, Guidance                                       |
+| SUPPORTING | Product, Performance, Shareholding, Q&A, Technical, Key Quotes                         |
 
 **Principles:** quantify everything (ban "could grow"); label facts vs opinion; challenge management claims with data; use INR/Cr/FY26 conventions.
 
@@ -95,7 +96,10 @@ Or call the two steps explicitly if you want to inspect/edit the DTO between wri
 rendering:
 
 ```js
-const { writeReportDto, createResearchReportFromDto } = require('<repo_root>/stock-api/src/generators/generateReport.js');
+const {
+  writeReportDto,
+  createResearchReportFromDto,
+} = require('<repo_root>/stock-api/src/generators/generateReport.js');
 const dtoPath = outputPath.replace(/\.[^./]+$/, '') + '.json';
 writeReportDto(ticker, companyName, ticker, reportMarkdown, dtoPath);
 // ... inspect/edit dtoPath here if needed ...

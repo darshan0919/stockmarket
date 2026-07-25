@@ -1,13 +1,13 @@
 (function stockscansDeliveryOverlayContent() {
-  "use strict";
+  'use strict';
 
-  const SOURCE = "stockscans-delivery-overlay";
-  const FROM_PAGE = "page";
-  const FROM_CONTENT = "content";
-  const UP_VOLUME_COLOR = "#8bd0c9";
-  const DOWN_VOLUME_COLOR = "#f6a3a2";
-  const DELIVERY_UP = "rgba(38, 166, 154, 0.94)";
-  const DELIVERY_DOWN = "rgba(239, 83, 80, 0.92)";
+  const SOURCE = 'stockscans-delivery-overlay';
+  const FROM_PAGE = 'page';
+  const FROM_CONTENT = 'content';
+  const UP_VOLUME_COLOR = '#8bd0c9';
+  const DOWN_VOLUME_COLOR = '#f6a3a2';
+  const DELIVERY_UP = 'rgba(38, 166, 154, 0.94)';
+  const DELIVERY_DOWN = 'rgba(239, 83, 80, 0.92)';
   const MIN_BAR_COUNT = 12;
   const PIXEL_SCAN_START_RATIO = 0.68;
   const MAX_STORED_BAR_BATCHES = 6;
@@ -22,13 +22,13 @@
     activePane: null,
     deliveryCache: new Map(),
     inFlightRanges: new Map(),
-    lastDrawKey: "",
+    lastDrawKey: '',
     lastUrl: location.href,
   };
 
-  window.addEventListener("message", handlePageMessage);
-  window.addEventListener("resize", scheduleUpdate, { passive: true });
-  window.addEventListener("visibilitychange", scheduleUpdate, { passive: true });
+  window.addEventListener('message', handlePageMessage);
+  window.addEventListener('resize', scheduleUpdate, { passive: true });
+  window.addEventListener('visibilitychange', scheduleUpdate, { passive: true });
 
   const observer = new MutationObserver(() => {
     if (location.href !== state.lastUrl) {
@@ -36,7 +36,7 @@
       state.ohlcv = null;
       state.bars = [];
       state.barBatches = [];
-      state.lastDrawKey = "";
+      state.lastDrawKey = '';
       hideOverlay();
       requestPageState();
     }
@@ -54,23 +54,23 @@
     const message = event.data;
     if (!message || message.source !== SOURCE || message.from !== FROM_PAGE) return;
 
-    if (message.type === "OHLCV_RESPONSE") {
+    if (message.type === 'OHLCV_RESPONSE') {
       state.ohlcv = normalizeOhlcv(message.payload);
       state.barBatches = [];
       state.bars = [];
-      state.lastDrawKey = "";
+      state.lastDrawKey = '';
       scheduleUpdate();
       return;
     }
 
-    if (message.type === "VOLUME_BARS") {
+    if (message.type === 'VOLUME_BARS') {
       rememberBarBatch(message.payload?.bars);
       scheduleUpdate();
     }
   }
 
   function requestPageState() {
-    window.postMessage({ source: SOURCE, from: FROM_CONTENT, type: "REQUEST_STATE" }, "*");
+    window.postMessage({ source: SOURCE, from: FROM_CONTENT, type: 'REQUEST_STATE' }, '*');
   }
 
   function scheduleUpdate() {
@@ -78,7 +78,7 @@
     state.updateTimer = window.setTimeout(() => {
       state.updateTimer = 0;
       updateOverlay().catch((error) => {
-        showStatus(error.message, "error");
+        showStatus(error.message, 'error');
       });
     }, 100);
   }
@@ -93,7 +93,7 @@
       return;
     }
 
-    if (ohlcv.tf !== "1D") {
+    if (ohlcv.tf !== '1D') {
       hideOverlay();
       return;
     }
@@ -107,13 +107,13 @@
     }
 
     if (bars.length < MIN_BAR_COUNT) {
-      showStatus("Waiting for volume bars", "muted");
+      showStatus('Waiting for volume bars', 'muted');
       return;
     }
 
     const slice = findVisiblePriceSlice(ohlcv.prices, bars);
     if (!slice) {
-      showStatus("Matching delivery range", "muted");
+      showStatus('Matching delivery range', 'muted');
       return;
     }
 
@@ -133,12 +133,12 @@
   }
 
   function findChartSurface() {
-    const canvases = [...document.querySelectorAll("canvas")];
+    const canvases = [...document.querySelectorAll('canvas')];
     const chartCanvas = canvases.find((canvas) => {
-      if (canvas.classList.contains("ssdv-overlay-canvas")) return false;
+      if (canvas.classList.contains('ssdv-overlay-canvas')) return false;
       const rect = canvas.getBoundingClientRect();
-      const zIndex = String(canvas.style?.zIndex || "");
-      return rect.width > 500 && rect.height > 300 && zIndex === "2";
+      const zIndex = String(canvas.style?.zIndex || '');
+      return rect.width > 500 && rect.height > 300 && zIndex === '2';
     });
     return chartCanvas ? { canvas: chartCanvas, pane: chartCanvas.parentElement } : null;
   }
@@ -157,17 +157,17 @@
     }
 
     if (!state.overlayCanvas) {
-      const canvas = document.createElement("canvas");
-      canvas.className = "ssdv-overlay-canvas";
-      canvas.setAttribute("aria-hidden", "true");
+      const canvas = document.createElement('canvas');
+      canvas.className = 'ssdv-overlay-canvas';
+      canvas.setAttribute('aria-hidden', 'true');
       pane.appendChild(canvas);
       state.overlayCanvas = canvas;
     }
 
     if (!state.statusEl) {
-      const status = document.createElement("div");
-      status.className = "ssdv-status";
-      status.textContent = "Delivery volume";
+      const status = document.createElement('div');
+      status.className = 'ssdv-status';
+      status.textContent = 'Delivery volume';
       pane.appendChild(status);
       state.statusEl = status;
     }
@@ -195,7 +195,7 @@
 
   function drawOverlay({ pane, bars, rows, deliveryMap, symbol, from, to }) {
     const canvas = ensureOverlay(pane);
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     const dpr = Math.max(1, window.devicePixelRatio || 1);
     const drawKey = [
       symbol,
@@ -204,7 +204,7 @@
       bars.length,
       Math.round(pane.getBoundingClientRect().width),
       Math.round(pane.getBoundingClientRect().height),
-    ].join("|");
+    ].join('|');
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
@@ -231,9 +231,9 @@
 
     if (painted) {
       state.lastDrawKey = drawKey;
-      showStatus(`Delivery volume ${from} to ${to}`, "ok");
+      showStatus(`Delivery volume ${from} to ${to}`, 'ok');
     } else {
-      showStatus("No delivery data for visible bars", "muted");
+      showStatus('No delivery data for visible bars', 'muted');
     }
   }
 
@@ -257,7 +257,7 @@
     if (hasCachedDeliveryRange(symbol, from, to)) return;
     if (state.inFlightRanges.has(key)) return state.inFlightRanges.get(key);
 
-    showStatus("Loading delivery volume", "muted");
+    showStatus('Loading delivery volume', 'muted');
     const promise = fetchDeliveryRange(symbol, from, to)
       .then((candles) => {
         const symbolCache = state.deliveryCache.get(symbol) || new Map();
@@ -279,7 +279,7 @@
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage(
         {
-          type: "FETCH_DELIVERY_VOLUME",
+          type: 'FETCH_DELIVERY_VOLUME',
           payload: { symbol, from, to },
         },
         (response) => {
@@ -289,7 +289,7 @@
             return;
           }
           if (!response?.ok) {
-            reject(new Error(response?.error || "Delivery fetch failed"));
+            reject(new Error(response?.error || 'Delivery fetch failed'));
             return;
           }
           resolve(response.payload?.candles || []);
@@ -331,10 +331,7 @@
     for (const raw of rawBars) {
       const bar = normalizeBar(raw);
       if (!bar) continue;
-      if (
-        Math.abs(bar.spaceW - paneWidth) > 3 ||
-        Math.abs(bar.spaceH - paneHeight) > 3
-      ) {
+      if (Math.abs(bar.spaceW - paneWidth) > 3 || Math.abs(bar.spaceH - paneHeight) > 3) {
         continue;
       }
       if (bar.y < paneHeight * 0.72) continue;
@@ -348,7 +345,7 @@
   }
 
   function normalizeBar(raw) {
-    const style = String(raw?.style || "").toLowerCase();
+    const style = String(raw?.style || '').toLowerCase();
     if (style !== UP_VOLUME_COLOR && style !== DOWN_VOLUME_COLOR) return null;
 
     const backingW = Math.round(toNumber(raw.cw));
@@ -407,12 +404,9 @@
     let image;
 
     try {
-      image = canvas.getContext("2d", { willReadFrequently: true }).getImageData(
-        0,
-        scanY,
-        backingW,
-        scanH
-      );
+      image = canvas
+        .getContext('2d', { willReadFrequently: true })
+        .getImageData(0, scanY, backingW, scanH);
     } catch {
       return [];
     }
@@ -515,7 +509,7 @@
   }
 
   function matchVolumePixel(r, g, b, a) {
-    if (a < 40) return "";
+    if (a < 40) return '';
 
     return classifyVolumeColor(r, g, b);
   }
@@ -527,7 +521,7 @@
       return upDistance <= downDistance ? UP_VOLUME_COLOR : DOWN_VOLUME_COLOR;
     }
 
-    return "";
+    return '';
   }
 
   function colorDistance(r, g, b, targetR, targetG, targetB) {
@@ -588,7 +582,7 @@
   function isValidPriceRow(row) {
     return (
       Array.isArray(row) &&
-      typeof row[0] === "string" &&
+      typeof row[0] === 'string' &&
       /^\d{4}-\d{2}-\d{2}$/.test(row[0]) &&
       Number.isFinite(toNumber(row[5]))
     );
@@ -598,29 +592,31 @@
     if (!payload || !Array.isArray(payload.prices)) return null;
     return {
       companyId: String(payload.companyId || parseCompanyIdFromUrl()),
-      name: String(payload.name || ""),
-      exchange: String(payload.exchange || ""),
-      tf: String(payload.tf || "").toUpperCase(),
+      name: String(payload.name || ''),
+      exchange: String(payload.exchange || ''),
+      tf: String(payload.tf || '').toUpperCase(),
       prices: payload.prices,
     };
   }
 
   function parseCompanyIdFromUrl() {
     const match = location.pathname.match(/\/charts\/([^/?#]+)/i);
-    return match ? decodeURIComponent(match[1]).toUpperCase() : "";
+    return match ? decodeURIComponent(match[1]).toUpperCase() : '';
   }
 
   function normalizeNseSymbol(companyId) {
-    const normalized = String(companyId || "").trim().toUpperCase();
-    if (!normalized) return "";
-    if (normalized.startsWith("NSE:")) return normalized.slice(4);
-    if (!normalized.includes(":")) return normalized;
-    return "";
+    const normalized = String(companyId || '')
+      .trim()
+      .toUpperCase();
+    if (!normalized) return '';
+    if (normalized.startsWith('NSE:')) return normalized.slice(4);
+    if (!normalized.includes(':')) return normalized;
+    return '';
   }
 
   function hideOverlay() {
     if (state.overlayCanvas) {
-      const ctx = state.overlayCanvas.getContext("2d");
+      const ctx = state.overlayCanvas.getContext('2d');
       ctx.clearRect(0, 0, state.overlayCanvas.width, state.overlayCanvas.height);
       state.overlayCanvas.remove();
       state.overlayCanvas = null;
@@ -630,29 +626,29 @@
       state.statusEl = null;
     }
     state.activePane = null;
-    state.lastDrawKey = "";
+    state.lastDrawKey = '';
   }
 
   function showStatus(text, tone) {
     const pane = findChartPane();
-    if (!pane || state.ohlcv?.tf !== "1D") return;
+    if (!pane || state.ohlcv?.tf !== '1D') return;
     ensureOverlay(pane);
     if (!state.statusEl) return;
 
     state.statusEl.textContent = text;
-    state.statusEl.dataset.tone = tone === "error" ? "error" : tone === "muted" ? "muted" : "ok";
+    state.statusEl.dataset.tone = tone === 'error' ? 'error' : tone === 'muted' ? 'muted' : 'ok';
   }
 
   function waitForBody() {
     if (document.body) return Promise.resolve();
     return new Promise((resolve) => {
-      document.addEventListener("DOMContentLoaded", resolve, { once: true });
+      document.addEventListener('DOMContentLoaded', resolve, { once: true });
     });
   }
 
   function toNumber(value) {
-    if (value === null || value === undefined || value === "") return 0;
-    const number = typeof value === "number" ? value : Number(String(value).replace(/,/g, ""));
+    if (value === null || value === undefined || value === '') return 0;
+    const number = typeof value === 'number' ? value : Number(String(value).replace(/,/g, ''));
     return Number.isFinite(number) ? number : 0;
   }
 

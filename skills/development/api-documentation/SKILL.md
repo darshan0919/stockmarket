@@ -7,7 +7,6 @@ platforms: [Claude, ChatGPT, Gemini]
 
 # API Documentation
 
-
 ## When to use this skill
 
 - **API 개발**: 새 엔드포인트 추가 시
@@ -148,7 +147,7 @@ components:
             properties:
               error:
                 type: string
-                example: "Authentication required"
+                example: 'Authentication required'
 
     BadRequest:
       description: Bad Request
@@ -159,7 +158,7 @@ components:
             properties:
               error:
                 type: string
-                example: "Invalid input"
+                example: 'Invalid input'
 
   securitySchemes:
     bearerAuth:
@@ -174,6 +173,7 @@ security:
 ### Step 2: 코드에서 문서 생성 (JSDoc/Decorators)
 
 **Express + TypeScript**:
+
 ```typescript
 /**
  * @swagger
@@ -216,16 +216,21 @@ router.post('/users', async (req, res) => {
 ### Step 3: 인터랙티브 문서
 
 **Swagger UI 설정**:
+
 ```typescript
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 
 const swaggerDocument = YAML.load('./openapi.yaml');
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: "My API Documentation"
-}));
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'My API Documentation',
+  })
+);
 ```
 
 ### Step 4: 예제 및 가이드
@@ -238,24 +243,26 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
 All API requests require authentication using JWT tokens.
 
 #### Getting a Token
+
 \`\`\`bash
 curl -X POST https://api.example.com/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "yourpassword"}'
+ -H "Content-Type: application/json" \
+ -d '{"email": "user@example.com", "password": "yourpassword"}'
 \`\`\`
 
 Response:
 \`\`\`json
 {
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "..."
+"accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+"refreshToken": "..."
 }
 \`\`\`
 
 #### Using the Token
+
 \`\`\`bash
 curl -X GET https://api.example.com/v1/users \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+ -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 \`\`\`
 
 ### Creating a User
@@ -265,34 +272,36 @@ curl -X GET https://api.example.com/v1/users \
 **Request Body**:
 \`\`\`json
 {
-  "email": "john@example.com",
-  "name": "John Doe",
-  "password": "SecurePass123!"
+"email": "john@example.com",
+"name": "John Doe",
+"password": "SecurePass123!"
 }
 \`\`\`
 
 **Success Response** (201):
 \`\`\`json
 {
-  "id": "123e4567-e89b-12d3-a456-426614174000",
-  "email": "john@example.com",
-  "name": "John Doe",
-  "createdAt": "2025-01-15T10:00:00Z"
+"id": "123e4567-e89b-12d3-a456-426614174000",
+"email": "john@example.com",
+"name": "John Doe",
+"createdAt": "2025-01-15T10:00:00Z"
 }
 \`\`\`
 
 **Error Response** (400):
 \`\`\`json
 {
-  "error": "Email already exists"
+"error": "Email already exists"
 }
 \`\`\`
 
 ### Rate Limiting
+
 - 100 requests per 15 minutes per IP
 - Header: `X-RateLimit-Remaining`
 
 ### Pagination
+
 \`\`\`
 GET /v1/users?page=2&limit=20
 \`\`\`
@@ -300,17 +309,18 @@ GET /v1/users?page=2&limit=20
 Response includes pagination info:
 \`\`\`json
 {
-  "data": [...],
-  "pagination": {
-    "page": 2,
-    "limit": 20,
-    "total": 157,
-    "pages": 8
-  }
+"data": [...],
+"pagination": {
+"page": 2,
+"limit": 20,
+"total": 157,
+"pages": 8
+}
 }
 \`\`\`
 
 ### Error Codes
+
 - `400` - Bad Request (validation error)
 - `401` - Unauthorized (missing/invalid token)
 - `403` - Forbidden (insufficient permissions)
@@ -372,17 +382,21 @@ docs/
 ## Metadata
 
 ### 버전
+
 - **현재 버전**: 1.0.0
 - **최종 업데이트**: 2025-01-01
 - **호환 플랫폼**: Claude, ChatGPT, Gemini
 
 ### 태그
+
 `#API-documentation` `#OpenAPI` `#Swagger` `#REST` `#developer-docs` `#documentation`
 
 ## Examples
 
 ### Example 1: Basic usage
+
 <!-- Add example content here -->
 
 ### Example 2: Advanced usage
+
 <!-- Add advanced example content here -->

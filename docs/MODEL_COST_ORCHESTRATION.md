@@ -21,14 +21,14 @@ Author aid, not investment advice. Written 2026-07-17.
   Flash-Lite is cheaper still and has a Batch API. (Sources at bottom.)
 - **The system is already script-first.** The canonical pattern is
   `scanner (Node, deterministic) → classifier (Node, deterministic) → LLM compose/synthesis
-  → data.js push to Drive`. The JSON DTO written to `data/runs/…` is the handoff bus.
+→ data.js push to Drive`. The JSON DTO written to `data/runs/…` is the handoff bus.
   Cost optimization = pushing more of the "LLM compose/synthesis" box down into Gemini or
   scripts, and shrinking what's left for Claude.
 
 ## 1. The routing rule — a strict decision tree (Darshan's principle)
 
-The governing insight: **if a script can *validate* an output deterministically, a script
-can *generate* it too — so it must be a script, not Gemini.** Verification is not where you
+The governing insight: **if a script can _validate_ an output deterministically, a script
+can _generate_ it too — so it must be a script, not Gemini.** Verification is not where you
 place a task; it's a consequence of where the task genuinely belongs. This collapses the
 routing to an ordered tree — take the first branch that applies:
 
@@ -43,7 +43,7 @@ routing to an ordered tree — take the first branch that applies:
    → **Gemini.** Design the task so it needs **minimal Claude verification** by construction:
    verbatim-only, rigid schema, `null` for missing, source anchors (see §5). Claude spot-checks
    lightly; script-verify only in the rare case a cheap deterministic check exists (e.g. a
-   percentage must be 0–100) — but if a *full* script check exists, you're in branch 1, not here.
+   percentage must be 0–100) — but if a _full_ script check exists, you're in branch 1, not here.
 
 3. **Everything else** — synthesis, judgment, "new vs known", anything that becomes a stored
    thesis / investment signal / applied proposal (high fabrication cost, the credibility axis).
@@ -60,18 +60,20 @@ script and echo its output — pure branch 1 leakage. Fix those first (§2 Tier 
 ## 2. Three tiers of cost win (ordered by effort/reward)
 
 ### Tier A — Delete the LLM entirely (free wins, do first)
+
 These jobs already say "your only job is to orchestrate the script; do NOT run any logic":
 
-| Job | Today | Change |
-|---|---|---|
+| Job                  | Today                                             | Change                                               |
+| -------------------- | ------------------------------------------------- | ---------------------------------------------------- |
 | `daily-deals-digest` | Claude session runs `dealsDigest.js`, echoes JSON | Run `dealsDigest.js` on a plain node cron. No model. |
-| `near-highs-digest` | Claude session runs `nearHighsDigest.js` | Plain node cron. No model. |
-| `watchlist-sync` | Fetch + diff + email, no judgment | Plain node cron. No model. |
+| `near-highs-digest`  | Claude session runs `nearHighsDigest.js`          | Plain node cron. No model.                           |
+| `watchlist-sync`     | Fetch + diff + email, no judgment                 | Plain node cron. No model.                           |
 
 The script already builds and sends the email. The model adds only a status echo you can
 get from the script's own exit code + a log line. **Route: none (cron the script).**
 
 ### Tier B — Shared deterministic email renderer (recurring win)
+
 Five jobs each end with "compose a Gmail-safe inline-CSS dark-theme HTML email from the
 insights JSON." That is templating, not judgment — the DTO already carries every fact
 (`evidence[]`, conviction, counts). Build one `packages/jobs-runtime/lib/renderDigestEmail.js`
@@ -85,6 +87,7 @@ that takes a DTO + a section spec and returns HTML. Then:
 This removes the single most frequent Claude token sink in the daily jobs.
 
 ### Tier C — Split extraction (Gemini) from synthesis (Claude)
+
 For the analytical work, insert a Gemini extraction stage that writes structured JSON, and
 let Claude reason only over that JSON — never over raw PDFs. Details in §3–4.
 
@@ -94,57 +97,60 @@ Legend: **S** = plain script (no LLM) · **G** = Gemini · **C** = Claude · **G
 extracts, Claude synthesizes.
 
 ### Scheduled — daily
-| Job | Sub-step | Route | Why |
-|---|---|---|---|
-| deals-digest | everything | **S** | pure fetch/sort/email |
-| near-highs-digest | everything | **S** | pure fetch/count/email |
-| watchlist-sync | everything | **S** | fetch/diff/email |
-| gainers-signal | scanner, classifier, novelty | **S** | already deterministic Node |
-| gainers-signal | email compose | **G/S** | render from DTO (Tier B) |
-| gainers-signal | top-3 briefing ("known vs new", catalyst tie-in) | **C** | synthesis + fabrication risk |
-| tweet-signals | Chrome capture, master sync, classifier | **S** | browser + deterministic Node |
-| tweet-signals | email compose | **G/S** | render from `companies[]` DTO |
-| watchlist-insights | fetch announcements, routine filter | **S** | already Node |
-| watchlist-insights | read each PDF → extract quantified facts per category template | **G** | high-volume structured extraction; Gemini reads PDF natively |
-| watchlist-insights | significance / actionability of *material* items only | **G→C** | Gemini drafts, Claude judges the few that matter |
-| thesis-delta-scan | detect 24h material events per ticker (fetch/filter/>5% move) | **S/G** | deterministic + extraction |
-| thesis-delta-scan | re-score pillars, signal change, monitorables | **C** | investment judgment, credibility |
+
+| Job                | Sub-step                                                       | Route   | Why                                                          |
+| ------------------ | -------------------------------------------------------------- | ------- | ------------------------------------------------------------ |
+| deals-digest       | everything                                                     | **S**   | pure fetch/sort/email                                        |
+| near-highs-digest  | everything                                                     | **S**   | pure fetch/count/email                                       |
+| watchlist-sync     | everything                                                     | **S**   | fetch/diff/email                                             |
+| gainers-signal     | scanner, classifier, novelty                                   | **S**   | already deterministic Node                                   |
+| gainers-signal     | email compose                                                  | **G/S** | render from DTO (Tier B)                                     |
+| gainers-signal     | top-3 briefing ("known vs new", catalyst tie-in)               | **C**   | synthesis + fabrication risk                                 |
+| tweet-signals      | Chrome capture, master sync, classifier                        | **S**   | browser + deterministic Node                                 |
+| tweet-signals      | email compose                                                  | **G/S** | render from `companies[]` DTO                                |
+| watchlist-insights | fetch announcements, routine filter                            | **S**   | already Node                                                 |
+| watchlist-insights | read each PDF → extract quantified facts per category template | **G**   | high-volume structured extraction; Gemini reads PDF natively |
+| watchlist-insights | significance / actionability of _material_ items only          | **G→C** | Gemini drafts, Claude judges the few that matter             |
+| thesis-delta-scan  | detect 24h material events per ticker (fetch/filter/>5% move)  | **S/G** | deterministic + extraction                                   |
+| thesis-delta-scan  | re-score pillars, signal change, monitorables                  | **C**   | investment judgment, credibility                             |
 
 ### Scheduled — weekly
-| Job | Sub-step | Route | Why |
-|---|---|---|---|
-| insight-validation | D+2 return / delivery% validation | **S** | deterministic math (already scripted) |
-| insight-validation | prompt-refinement proposals | **C** (light) | judgment, but small |
-| conversation-enrichment | verbatim extraction of prompts/notes/facts | **G** | "extract ONLY what's written" + 6–10 convos/batch = ideal Gemini |
-| conversation-enrichment | framework promotion / feedback routing / proposals | **C** | judgment about what's reusable |
-| insight-review | delta, dedup clustering, hygiene | **S** | `reviewInsights.js` already |
-| insight-review | synthesize proposals (6 targets) | **C** | governance-sensitive, creative |
-| thesis-review | valuation re-anchor, staleness, monitorable checks | **S** | deterministic fetch + threshold math |
-| thesis-review | signal synthesis + "what could be wrong" | **C** | judgment, credibility |
-| weekly-conversation-capture | capture bodies + artifacts | **S/G** | IO + verbatim extraction |
+
+| Job                         | Sub-step                                           | Route         | Why                                                              |
+| --------------------------- | -------------------------------------------------- | ------------- | ---------------------------------------------------------------- |
+| insight-validation          | D+2 return / delivery% validation                  | **S**         | deterministic math (already scripted)                            |
+| insight-validation          | prompt-refinement proposals                        | **C** (light) | judgment, but small                                              |
+| conversation-enrichment     | verbatim extraction of prompts/notes/facts         | **G**         | "extract ONLY what's written" + 6–10 convos/batch = ideal Gemini |
+| conversation-enrichment     | framework promotion / feedback routing / proposals | **C**         | judgment about what's reusable                                   |
+| insight-review              | delta, dedup clustering, hygiene                   | **S**         | `reviewInsights.js` already                                      |
+| insight-review              | synthesize proposals (6 targets)                   | **C**         | governance-sensitive, creative                                   |
+| thesis-review               | valuation re-anchor, staleness, monitorable checks | **S**         | deterministic fetch + threshold math                             |
+| thesis-review               | signal synthesis + "what could be wrong"           | **C**         | judgment, credibility                                            |
+| weekly-conversation-capture | capture bodies + artifacts                         | **S/G**       | IO + verbatim extraction                                         |
 
 ### On-demand analytical skills
-| Skill | Extraction phase (→ JSON) | Synthesis phase |
-|---|---|---|
-| concall-analysis | **G**: guidance quotes, segment numbers, capex, order book | **C**: 12-section read, verdict |
-| quarterly-result-analysis | **G**: P&L/segment deltas from PDF | **C**: 3-basket interpretation |
-| drhp-ipo-analysis | **G**: financials, objects, risk factors, shareholding | **C**: verdict, red flags |
-| annual-report-analysis | **G**: statements, notes, RPTs | **C**: quality judgment |
-| forensic-accounting | **G/S**: F-score, DuPont, RPT tables (compute) | **C**: fraud-pattern match, verdict |
-| management-credibility-tracker | **G**: guided-vs-actual pairs across concalls | **C**: credibility read |
-| financial-model | **S**: the math; **G**: extract driver inputs | **C**: assumptions, scenarios |
-| equity-research-dashboard | **S/G**: HTML from xlsx + txt (templated) | — (mostly deterministic) |
-| peer-comparison / market-share / sector-research | **G**: gather + tabulate per-company data | **C**: comparative synthesis |
-| tweet-investor-playbook | **G**: cluster + tag tweet corpus | **C**: playbook synthesis |
-| stock-documents-fetcher / announcement-keyword-explorer / gainers scanner | **S** | — pure IO |
 
-**Rule of thumb across the analytical skills:** the long-PDF *reading* is where Claude tokens
+| Skill                                                                     | Extraction phase (→ JSON)                                  | Synthesis phase                     |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------- | ----------------------------------- |
+| concall-analysis                                                          | **G**: guidance quotes, segment numbers, capex, order book | **C**: 12-section read, verdict     |
+| quarterly-result-analysis                                                 | **G**: P&L/segment deltas from PDF                         | **C**: 3-basket interpretation      |
+| drhp-ipo-analysis                                                         | **G**: financials, objects, risk factors, shareholding     | **C**: verdict, red flags           |
+| annual-report-analysis                                                    | **G**: statements, notes, RPTs                             | **C**: quality judgment             |
+| forensic-accounting                                                       | **G/S**: F-score, DuPont, RPT tables (compute)             | **C**: fraud-pattern match, verdict |
+| management-credibility-tracker                                            | **G**: guided-vs-actual pairs across concalls              | **C**: credibility read             |
+| financial-model                                                           | **S**: the math; **G**: extract driver inputs              | **C**: assumptions, scenarios       |
+| equity-research-dashboard                                                 | **S/G**: HTML from xlsx + txt (templated)                  | — (mostly deterministic)            |
+| peer-comparison / market-share / sector-research                          | **G**: gather + tabulate per-company data                  | **C**: comparative synthesis        |
+| tweet-investor-playbook                                                   | **G**: cluster + tag tweet corpus                          | **C**: playbook synthesis           |
+| stock-documents-fetcher / announcement-keyword-explorer / gainers scanner | **S**                                                      | — pure IO                           |
+
+**Rule of thumb across the analytical skills:** the long-PDF _reading_ is where Claude tokens
 bleed today. Move reading to Gemini (1M context, per-page PDF billing), hand Claude a tight
 JSON of facts + quotes, and let Claude do only the part you actually pay it for — the read.
 
 ## 4. Orchestration & the Gemini↔Claude handoff
 
-You do not need a message bus. The filesystem/Drive JSON you already use *is* the bus.
+You do not need a message bus. The filesystem/Drive JSON you already use _is_ the bus.
 
 **Contract:** every Gemini stage writes `data/runs/<date>/<skill>_extract.json` with a fixed
 schema (see §5 prompts). Every Claude stage reads that file and must not re-fetch or re-read
@@ -180,7 +186,7 @@ if you let it and is weaker than Claude at "should I trust this." So: **give it 
 schema, forbid inference, force `null` for missing, demand source anchors, ban prose** — chosen
 so the output needs only a light Claude glance, not a re-derivation.
 
-Verification stance (per §1): don't bolt a *full* deterministic validator onto a Gemini
+Verification stance (per §1): don't bolt a _full_ deterministic validator onto a Gemini
 extract — if the output were fully script-checkable it should have been script-generated
 (branch 1). Use only **cheap bound-checks** here (a percentage is 0–100, a date parses, a
 required quote is non-empty); **Claude does the substantive verify** on the few material items.
@@ -188,6 +194,7 @@ The design goal is to hand Gemini tasks so verbatim and schema-bound that even t
 glance rarely finds anything.
 
 ### 5a. Announcement-PDF extraction (for watchlist-insights)
+
 ```
 You are a data-extraction engine. Read the attached corporate-announcement PDF for an
 Indian listed company. Return ONLY valid JSON matching this schema — no prose, no markdown:
@@ -212,10 +219,12 @@ use outside knowledge. If a number is not in the document, use null and list the
 "missing". Every fact must be supported by a verbatim quote. If the PDF is empty/scanned/
 unreadable, return {"error":"unreadable"} and nothing else.
 ```
+
 Then a deterministic check (script): if `pct_of_capital` present, sanity-bound 0–100; flag
 if `amount_inr_cr` and quotes disagree. Only after that does Claude write the "significance."
 
 ### 5b. Concall / result extraction (for concall + quarterly skills)
+
 ```
 Extract from the attached concall transcript / results PDF. Output ONLY this JSON:
 
@@ -233,9 +242,11 @@ Extract only what is stated. No inference, no narrative, no valuation, no opinio
 null for anything absent. Every guidance/quote entry carries its exact page number.
 Never compute P/E or valuation — leave that to the synthesis stage.
 ```
+
 Claude then does the 12-section read / 3-basket interpretation over this JSON — never the PDF.
 
 ### 5c. Conversation verbatim extraction (for conversation-enrichment)
+
 ```
 From the conversation text below, extract reusable knowledge. Output ONLY JSON:
 
@@ -249,6 +260,7 @@ Anti-hallucination is the ONLY priority. Copy facts VERBATIM from the text. Neve
 ticker, figure, or claim not present. If a field isn't in the text, omit it. If the
 conversation has no reusable signal, return {"prompts":[],"company_notes":[],"frameworks":[]}.
 ```
+
 Claude reviews only `frameworks` + ticker-resolution ambiguities; the bulk (`prompts`,
 `company_notes`) is written straight to the DB from Gemini's output.
 
@@ -282,7 +294,7 @@ Independent of Gemini, these convert model tokens into deterministic code:
   fallback). Gemini vision helps but table-number extraction from scans is error-prone.
   Every Gemini-extracted number must pass a deterministic reconciliation (totals add up,
   `CMP×shares≈MCap`, 0≤pct≤100) before Claude treats it as fact. Don't remove the human/Claude
-  check on the *few* material items.
+  check on the _few_ material items.
 - **Splitting has overhead.** Two scheduled sessions (extract-cron + Claude-synth) beat one
   only when extraction dominates tokens. For short jobs it's net-negative — the table in §3
   reflects that (small jobs stay whole or go fully-script).
@@ -291,8 +303,8 @@ Independent of Gemini, these convert model tokens into deterministic code:
 - **Losing the thematic read.** Fully templated emails lose the one-line "dominant theme"
   synthesis. Acceptable, or delegate just that sentence to Gemini — but verify it doesn't
   overstate (it will, if unconstrained).
-- **Credibility asymmetry is real and directional.** Route *toward* Claude on anything that
-  becomes a stored thesis, an investment signal, or an applied proposal; route *toward*
+- **Credibility asymmetry is real and directional.** Route _toward_ Claude on anything that
+  becomes a stored thesis, an investment signal, or an applied proposal; route _toward_
   Gemini on extraction, formatting, and high-volume first passes. When unsure, the safe
   default is Gemini-extracts-Claude-verifies, not Gemini-decides.
 - **This is a routing design, not a benchmark.** Before committing a skill to Gemini
@@ -311,6 +323,7 @@ Independent of Gemini, these convert model tokens into deterministic code:
 ---
 
 ### Sources
+
 - Gemini 2.5 Flash capabilities/context: https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/2-5-flash
 - Gemini API pricing (Flash / Flash-Lite / Batch, PDF-as-image billing): https://ai.google.dev/gemini-api/docs/pricing
 - Flash-Lite: https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/2-5-flash-lite

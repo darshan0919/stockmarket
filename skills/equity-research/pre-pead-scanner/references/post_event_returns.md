@@ -1,16 +1,16 @@
 # Post-event returns — is the surprise tradeable?
 
-This is Step 7. A correct beat prediction earns nothing if the stock fades every good result. This step measures how *this specific name* has historically behaved after its three information events, so the ranking can separate stocks where surprises stick (tradeable PEAD) from "sell-the-news" names where they don't.
+This is Step 7. A correct beat prediction earns nothing if the stock fades every good result. This step measures how _this specific name_ has historically behaved after its three information events, so the ranking can separate stocks where surprises stick (tradeable PEAD) from "sell-the-news" names where they don't.
 
 ## The three events — and why all three
 
 A company reveals information in three distinct pulses, and each has its own drift signature:
 
 1. **Result** — the headline numbers hit the exchange. The first, crudest reaction. `Returns after result` is available directly as a **Stockscans scan column** — read it from the scan row; no derivation needed.
-2. **Concall** — management context, guidance, Q&A tone. Often held 0–2 days after the result. Moves the stock on *interpretation* of the numbers, not the numbers themselves.
-3. **Transcript release** — the full written transcript lands a few days later. Slower investors (and models) digest detail the live call moved too fast to price. A stock that's flat into the result but drifts *after the transcript* is one where the surprise lives in the detail — exactly the under-reaction PEAD is built to harvest.
+2. **Concall** — management context, guidance, Q&A tone. Often held 0–2 days after the result. Moves the stock on _interpretation_ of the numbers, not the numbers themselves.
+3. **Transcript release** — the full written transcript lands a few days later. Slower investors (and models) digest detail the live call moved too fast to price. A stock that's flat into the result but drifts _after the transcript_ is one where the surprise lives in the detail — exactly the under-reaction PEAD is built to harvest.
 
-Concall and transcript returns are **not** in the scan — they must be *derived* from the event date (recorded in Step 2) and the price history. That's what `postEventReturns` does.
+Concall and transcript returns are **not** in the scan — they must be _derived_ from the event date (recorded in Step 2) and the price history. That's what `postEventReturns` does.
 
 ## Deriving the returns
 
@@ -19,7 +19,7 @@ Concall and transcript returns are **not** in the scan — they must be *derived
 - Pull the price series from Stockscans `prices(companyId)`.
 - Pass the event dates: `{ result: 'YYYY-MM-DD', concall: 'YYYY-MM-DD', transcript: 'YYYY-MM-DD' }`.
 - It **anchors** each event on the first trading day whose close reflects it (events often fall on a holiday or after market close, so you anchor on the next available close, not the literal date), then measures forward return over trading-day windows — default **+1D / +5D / +20D**.
-- Windows are counted in *trading days* (candle steps), not calendar days, so they're comparable across names regardless of holidays.
+- Windows are counted in _trading days_ (candle steps), not calendar days, so they're comparable across names regardless of holidays.
 
 ```bash
 python3 stock-api/python/analyzers/post_event_returns.py "NSE:PGEL" \
@@ -31,7 +31,7 @@ Returns are fractions (`0.08` = +8%). If the series doesn't extend far enough pa
 
 ## The drift signature
 
-One quarter's post-event return is an anecdote; the *pattern* across the last several quarters is the signal. Run the derivation for the last 3–4 result/concall/transcript events and pass the chosen-window returns (usually `d20`) to `driftSignature(rets)`. It labels the pattern:
+One quarter's post-event return is an anecdote; the _pattern_ across the last several quarters is the signal. Run the derivation for the last 3–4 result/concall/transcript events and pass the chosen-window returns (usually `d20`) to `driftSignature(rets)`. It labels the pattern:
 
 - **`strong-positive-drift`** — mean ≥ +5% and up in ≥60% of quarters. Beats reliably get rewarded here; a correct positive-surprise prediction is high-value. Amplify the composite score.
 - **`positive-drift`** — mean > +1%, up ≥50%. Tradeable, weaker.
@@ -43,7 +43,7 @@ Report the signature and the underlying per-quarter returns so the reader can se
 
 ## Reading the result-vs-concall-vs-transcript gap
 
-The *shape* across the three events is itself informative:
+The _shape_ across the three events is itself informative:
 
 - **Pops on result, fades after** → the reaction is a headline algo/retail spike that informed money sells into. Low-quality drift.
 - **Flat on result, drifts up after concall/transcript** → the market under-reacted to the numbers and re-rated on the detail. **The highest-quality PEAD signature** — this is the under-reaction the whole strategy targets.
@@ -53,7 +53,7 @@ Use the gap to sharpen the tradeability read, not just the single-window number.
 
 ## Feeding it into the rank
 
-The drift signature is the **Tradeability** leg of the composite score in `surprise_scoring.md`. Positive-drift names amplify a positive surprise; fade names shrink it. It does *not* change the *direction* of your surprise prediction — a fade name can still beat; the drift only tells you whether the beat is worth trading in that name.
+The drift signature is the **Tradeability** leg of the composite score in `surprise_scoring.md`. Positive-drift names amplify a positive surprise; fade names shrink it. It does _not_ change the _direction_ of your surprise prediction — a fade name can still beat; the drift only tells you whether the beat is worth trading in that name.
 
 ## What could be wrong here
 

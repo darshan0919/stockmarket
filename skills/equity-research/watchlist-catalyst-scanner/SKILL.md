@@ -27,6 +27,7 @@ python3 /tmp/scan_catalysts.py \
 ```
 
 Outputs to `/mnt/project/data/agent-outputs/`:
+
 - `catalyst_alerts_YYYYMMDD.html` — self-contained dark/light briefing with
   HIGH/MEDIUM/RISK filter buttons, value chips, links to filing PDFs on the
   Stockscans S3 bucket. Present via `present_files`.
@@ -76,7 +77,7 @@ announcements POST works via urllib with cookie auth + referer.
   names suppressed. **Direction (buy/sell) is NOT in the summary — alerts say
   so explicitly; always open the filing PDF.**
 - RISK channel (forensic lens): pledge creation/encumbrance, auditor/CFO exit,
-  raids, downgrades, defaults. Pledge *release* is a positive DELEVERAGING HIGH.
+  raids, downgrades, defaults. Pledge _release_ is a positive DELEVERAGING HIGH.
 
 ## Known limitations (read before trusting output)
 

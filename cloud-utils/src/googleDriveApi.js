@@ -94,25 +94,31 @@ async function resolveOrCreateSegment(drive, seg, parentId) {
     'trashed = false',
   ].join(' and ');
 
-  const res = await drive.files.list({
-    q: query,
-    fields: 'files(id, name)',
-    pageSize: 1,
-  }, getTimeoutOptions());
+  const res = await drive.files.list(
+    {
+      q: query,
+      fields: 'files(id, name)',
+      pageSize: 1,
+    },
+    getTimeoutOptions()
+  );
 
   if (res.data.files && res.data.files.length > 0) {
     return res.data.files[0].id;
   }
 
   // Create folder
-  const created = await drive.files.create({
-    requestBody: {
-      name: seg,
-      mimeType: 'application/vnd.google-apps.folder',
-      parents: [parentId],
+  const created = await drive.files.create(
+    {
+      requestBody: {
+        name: seg,
+        mimeType: 'application/vnd.google-apps.folder',
+        parents: [parentId],
+      },
+      fields: 'id',
     },
-    fields: 'id',
-  }, getTimeoutOptions());
+    getTimeoutOptions()
+  );
   return created.data.id;
 }
 
@@ -143,7 +149,9 @@ async function ensureFolder(drive, folderPath) {
       // than kicking off a second create.
       _folderCache.set(
         builtPath,
-        parentPromiseForThisSeg.then((parentId) => resolveOrCreateSegment(drive, segForThisSeg, parentId))
+        parentPromiseForThisSeg.then((parentId) =>
+          resolveOrCreateSegment(drive, segForThisSeg, parentId)
+        )
       );
     }
 
@@ -175,11 +183,14 @@ async function uploadFile(drive, rootPath, driveRel, localPath) {
     'trashed = false',
   ].join(' and ');
 
-  const existing = await drive.files.list({
-    q: query,
-    fields: 'files(id, name, size, modifiedTime)',
-    pageSize: 1,
-  }, getTimeoutOptions());
+  const existing = await drive.files.list(
+    {
+      q: query,
+      fields: 'files(id, name, size, modifiedTime)',
+      pageSize: 1,
+    },
+    getTimeoutOptions()
+  );
 
   const media = {
     body: fs.createReadStream(localPath),
@@ -188,23 +199,29 @@ async function uploadFile(drive, rootPath, driveRel, localPath) {
   if (existing.data.files && existing.data.files.length > 0) {
     // Update existing file
     const fileId = existing.data.files[0].id;
-    const res = await drive.files.update({
-      fileId,
-      media,
-      fields: 'id, name',
-    }, getTimeoutOptions());
+    const res = await drive.files.update(
+      {
+        fileId,
+        media,
+        fields: 'id, name',
+      },
+      getTimeoutOptions()
+    );
     return { id: res.data.id, name: res.data.name, action: 'updated' };
   }
 
   // Create new file
-  const res = await drive.files.create({
-    requestBody: {
-      name,
-      parents: [folderId],
+  const res = await drive.files.create(
+    {
+      requestBody: {
+        name,
+        parents: [folderId],
+      },
+      media,
+      fields: 'id, name',
     },
-    media,
-    fields: 'id, name',
-  }, getTimeoutOptions());
+    getTimeoutOptions()
+  );
   return { id: res.data.id, name: res.data.name, action: 'created' };
 }
 
@@ -263,15 +280,16 @@ async function findFileId(drive, rootPath, driveRel) {
     'trashed = false',
   ].join(' and ');
 
-  const res = await drive.files.list({
-    q: query,
-    fields: 'files(id)',
-    pageSize: 1,
-  }, getTimeoutOptions());
+  const res = await drive.files.list(
+    {
+      q: query,
+      fields: 'files(id)',
+      pageSize: 1,
+    },
+    getTimeoutOptions()
+  );
 
-  return res.data.files && res.data.files.length > 0
-    ? res.data.files[0].id
-    : null;
+  return res.data.files && res.data.files.length > 0 ? res.data.files[0].id : null;
 }
 
 /**
@@ -288,13 +306,15 @@ async function listAllFiles(drive, rootPath) {
   async function walkFolder(folderId, prefix) {
     let pageToken = null;
     do {
-      const res = await drive.files.list({
-        q: `'${folderId}' in parents and trashed = false`,
-        fields:
-          'nextPageToken, files(id, name, mimeType, size, modifiedTime, md5Checksum)',
-        pageSize: 100,
-        pageToken,
-      }, getTimeoutOptions());
+      const res = await drive.files.list(
+        {
+          q: `'${folderId}' in parents and trashed = false`,
+          fields: 'nextPageToken, files(id, name, mimeType, size, modifiedTime, md5Checksum)',
+          pageSize: 100,
+          pageToken,
+        },
+        getTimeoutOptions()
+      );
 
       for (const f of res.data.files || []) {
         const rel = prefix ? `${prefix}/${f.name}` : f.name;
@@ -338,11 +358,14 @@ async function findFolderId(drive, folderPath) {
       "mimeType = 'application/vnd.google-apps.folder'",
       'trashed = false',
     ].join(' and ');
-    const res = await drive.files.list({
-      q: query,
-      fields: 'files(id, name)',
-      pageSize: 1,
-    }, getTimeoutOptions());
+    const res = await drive.files.list(
+      {
+        q: query,
+        fields: 'files(id, name)',
+        pageSize: 1,
+      },
+      getTimeoutOptions()
+    );
     if (!res.data.files || res.data.files.length === 0) return null;
     parentId = res.data.files[0].id;
   }
@@ -365,12 +388,15 @@ async function listChildren(drive, folderPath) {
   const out = [];
   let pageToken = null;
   do {
-    const res = await drive.files.list({
-      q: `'${folderId}' in parents and trashed = false`,
-      fields: 'nextPageToken, files(id, name, mimeType, modifiedTime)',
-      pageSize: 100,
-      pageToken,
-    }, getTimeoutOptions());
+    const res = await drive.files.list(
+      {
+        q: `'${folderId}' in parents and trashed = false`,
+        fields: 'nextPageToken, files(id, name, mimeType, modifiedTime)',
+        pageSize: 100,
+        pageToken,
+      },
+      getTimeoutOptions()
+    );
     for (const f of res.data.files || []) {
       out.push({
         id: f.id,
@@ -396,11 +422,14 @@ async function listChildren(drive, folderPath) {
  * @returns {Promise<{id: string, name: string}>}
  */
 async function renameFile(drive, fileId, newName) {
-  const res = await drive.files.update({
-    fileId,
-    requestBody: { name: newName },
-    fields: 'id, name',
-  }, getTimeoutOptions());
+  const res = await drive.files.update(
+    {
+      fileId,
+      requestBody: { name: newName },
+      fields: 'id, name',
+    },
+    getTimeoutOptions()
+  );
   return { id: res.data.id, name: res.data.name };
 }
 
@@ -411,8 +440,8 @@ async function renameFile(drive, fileId, newName) {
 function isApiConfigured() {
   return Boolean(
     process.env.GOOGLE_CLIENT_ID &&
-      process.env.GOOGLE_CLIENT_SECRET &&
-      process.env.GOOGLE_REFRESH_TOKEN
+    process.env.GOOGLE_CLIENT_SECRET &&
+    process.env.GOOGLE_REFRESH_TOKEN
   );
 }
 

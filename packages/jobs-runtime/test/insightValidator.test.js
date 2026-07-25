@@ -107,12 +107,29 @@ describe('categoryFromTags', () => {
 
 describe('makeProposals', () => {
   test('proposes tightening when over-rated ratio high', () => {
-    const led = { byCategory: { order_book: { samples: 8, overrated: 5, underrated: 0, noise_move: 0, confirmed: 3, soft: 0, sector_driven: 0, against_sector: 0 } } };
+    const led = {
+      byCategory: {
+        order_book: {
+          samples: 8,
+          overrated: 5,
+          underrated: 0,
+          noise_move: 0,
+          confirmed: 3,
+          soft: 0,
+          sector_driven: 0,
+          against_sector: 0,
+        },
+      },
+    };
     const props = v.makeProposals(led);
     expect(props.join('\n')).toMatch(/over-rated/);
   });
   test('placeholder when under min samples', () => {
-    const led = { byCategory: { order_book: { samples: 2, overrated: 2, confirmed: 0, underrated: 0, noise_move: 0 } } };
+    const led = {
+      byCategory: {
+        order_book: { samples: 2, overrated: 2, confirmed: 0, underrated: 0, noise_move: 0 },
+      },
+    };
     expect(v.makeProposals(led)[0]).toMatch(/Not enough/);
   });
 });
@@ -128,9 +145,19 @@ describe('titleInfoDensity', () => {
 describe('quality review', () => {
   const notes = {
     companies: {
-      'NSE:A': { name: 'Alpha', notes: [
-        { type: 'announcement', significance: 'high', announcementTitle: 'Disclosure', insight: 'the company announced that the exchange has received a disclosure', tags: ['sast'], category: 'order_book' },
-      ] },
+      'NSE:A': {
+        name: 'Alpha',
+        notes: [
+          {
+            type: 'announcement',
+            significance: 'high',
+            announcementTitle: 'Disclosure',
+            insight: 'the company announced that the exchange has received a disclosure',
+            tags: ['sast'],
+            category: 'order_book',
+          },
+        ],
+      },
     },
   };
   test('flags generic body + weak title + category mismatch', () => {

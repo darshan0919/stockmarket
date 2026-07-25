@@ -5,7 +5,9 @@
 const fs = require('fs');
 const origRmSync = fs.rmSync.bind(fs);
 fs.rmSync = (p, opts) => {
-  try { return origRmSync(p, opts); } catch (e) {
+  try {
+    return origRmSync(p, opts);
+  } catch (e) {
     if (e && e.code === 'EPERM') return undefined;
     throw e;
   }
@@ -22,44 +24,234 @@ const byIdx = (i) => arr[i];
 
 // index -> {insight, significance, tags, category?}
 const INSIGHTS = {
-  0: { insight: "Monthly order-book/execution update (Annexure A) for June 2026 covering order inflow, execution and closing order position across DEE Development's segments — a routine recurring voluntary disclosure with no new incremental fact beyond figures already implicit in previously-disclosed order wins (e.g. the Rs.64cr Ganeko Solar order). Watch next month's cumulative FY27 order-inflow trend.", significance: 'routine', tags: [] },
-  1: { insight: "DEE Development's Fund-Raising Committee allotted 59,76,096 equity shares at Rs.502/share (Rs.492 premium) on preferential basis, raising Rs.300.00cr, per the June 3 board approval and June 27 EGM. Paid-up equity capital rises from Rs.69.26cr to Rs.75.24cr (+8.6% share count dilution). This completes a previously-flagged capital raise; watch deployment of the Rs.300cr proceeds in upcoming quarters.", significance: 'medium', tags: ['fundraise', 'equity_dilution'] },
-  2: { insight: "Poonawalla Fincorp scheduled its Q1 FY27 earnings conference call for July 17, 2026 5:00 PM IST, same day as results. Standard public dial-in invite (no institutions pre-named) — a scheduling intimation, not new financial information.", significance: 'routine', tags: ['investor_meet'] },
-  3: { insight: "Motilal Oswal Mutual Fund (8 schemes) acquired 47,16,484 additional shares of Sterlite Technologies (0.97% of capital) via the market, taking its combined holding from 4.7534% to 5.7196% and crossing the 5% SEBI SAST Reg 29(1) disclosure threshold. This is institutional (non-promoter) accumulation, consistent with the demand context from STL's ongoing QIP (floor Rs.613.69/share) flagged in prior notes — a incrementally positive signal on institutional conviction.", significance: 'medium', tags: [] },
-  4: { insight: "S.P. Apparels issued a corporate guarantee of Rs.12,51,33,300 to HSBC as security for a term loan availed by its wholly-owned UK subsidiary, S.P. Apparels (UK) Pvt Ltd. Routine intra-group treasury support, immaterial relative to company scale.", significance: 'low', tags: ['debt'] },
-  5: { insight: "Standard Engineering Technology (formerly Standard Glass Lining Technology) has called a board meeting for July 11, 2026 to consider a further preferential equity issue, subject to shareholder approval; trading window already closed since July 1 pending Q1 results. No issue size/price disclosed yet — this is a heads-up notice only. Watch the July 11 outcome for quantum and pricing.", significance: 'low', tags: ['fundraise'] },
-  6: { insight: "Macpower CNC Machines scheduled a 1x1 virtual meeting with an unnamed Foreign Institutional Investor for July 10, 2026 9:00 AM. No UPSI to be shared per the disclosure; institution identity undisclosed, so no incremental signal beyond continued FII interest.", significance: 'routine', tags: ['investor_meet'] },
-  7: { insight: "Craftsman Automation signed a Shareholders' Agreement, Securities Subscription Agreement and Power Purchase Agreement with Solarcraft Power India 24 Pvt Ltd, committing up to Rs.3.36cr (in tranches) toward equity + compulsorily convertible debentures, to secure captive solar power under the Electricity Act 2003 captive-consumption route. Small outlay (~0.3% of typical capex budget scale) aimed at long-term power-cost savings, not core-business capacity.", significance: 'low', tags: ['capex'] },
-  8: { insight: "Capri Global Capital's board (circular resolution, July 8) appointed Mr. Ignatius Kaitha as Chief Human Resource Officer and Mr. Ateet Parikh as Chief Collection Officer, both designated Senior Management Personnel. These are new senior-management hires/promotions, not CEO/CFO/MD-level departures — no governance red flag per the standard escalation criteria.", significance: 'low', tags: ['management_change'] },
-  9: { insight: "Revised outcome of Suven Life Sciences' July 8 board meeting — a same-day administrative correction superseded within hours by the final outcome filing (warrant-conversion allotment of 1,85,70,133 shares at Rs.134, re-appointment of independent director Dr. Vajja Sambasiva Rao, and incorporation of Singapore subsidiary Suven Neurosciences). Marked routine here to avoid duplicating the substantive insights recorded against the final outcome announcement for the same meeting.", significance: 'routine', tags: [] },
-  10: { insight: "Himadri Speciality Chemical's board will meet July 15, 2026 to approve unaudited standalone and consolidated Q1 FY27 results; trading window (closed since July 1) reopens 48h after declaration. Pure scheduling notice, no results data yet.", significance: 'routine', tags: [] },
-  11: { insight: "Chennai Petroleum Corporation's board will meet July 23, 2026 to approve audited Q1 FY27 results; trading window remains closed until July 25. Pure scheduling notice, no results data yet.", significance: 'routine', tags: [] },
-  12: { insight: "TANFAC Industries' Preferential Issue Committee cut its proposed preferential-issue size by 43%, from Rs.173.49cr to Rs.99.41cr, after promoter Anupam Rasayan India revised down its subscription commitment. Revised plan: 4,24,647 equity shares (Rs.5 FV) at Rs.2,341/share to Anupam Rasayan (promoter, 2,60,065 shares) plus non-promoters Alrox Enterprises (1,00,000), Vivek Jain (53,395) and Tatvam Trade. A reduced raise size vs. the original board-approved plan (July 6) may signal lower promoter conviction on quantum or right-sizing to actual demand — worth watching at the July 30 EGM vote.", significance: 'medium', tags: ['fundraise', 'equity_dilution'] },
-  13: { insight: "TANFAC Industries called an EGM for July 30, 2026 (remote e-voting July 27-29, cut-off July 23) to seek shareholder approval for the revised Rs.99.41cr preferential issue flagged in the same day's Preferential Issue Committee outcome. Procedural step in the fundraise process, not new information beyond that outcome.", significance: 'low', tags: ['fundraise'] },
-  14: { insight: "CEAT approved a further investment of up to Rs.274 lakh (22,447 equity shares) via rights-issue subscription in wholly-owned subsidiary Tyresnmore Online Pvt Ltd (FY26 turnover Rs.4,329.13 lakh). Small incremental capital infusion (~Rs.2.74cr) into an existing e-commerce subsidiary, immaterial to CEAT's overall scale.", significance: 'low', tags: ['subsidiary'] },
-  15: { insight: "Aditya Infotech (CP Plus) disclosed that Avathon Inc. (Austin, TX) and SparkCognition India have filed a Request for Arbitration (dated May 28, 2026) before the ICC, alleging breach of an agreement under which the company was to purchase and resell Avathon/SparkCognition products. No claim quantum disclosed; disclosure itself was delayed pending legal coordination, which the company flagged explicitly. This is a cross-border litigation/arbitration exposure — a new legal risk with unknown financial impact. Watch for the claim amount and arbitration timeline in subsequent filings.", significance: 'medium', tags: ['regulatory'] },
-  16: { insight: "HFCL launched a unified brand, 'OptiQ AI(TM)', for its existing optical-connectivity product portfolio (fibre cables, patch cords, cassettes, enclosure panels) targeting AI/hyperscale data-centre customers and future 800G/1.6T network migration. Marketing/brand repositioning of an existing product line — no new order, revenue figure, or customer named in the release.", significance: 'low', tags: ['press_release'] },
-  17: { insight: "Bhagiradha Chemicals sent shareholders (those without registered emails) a letter with a web-link to the FY25-26 Annual Report, per Reg 36(1)(b). Pure compliance/administrative filing, no new information.", significance: 'routine', tags: [] },
-  18: { insight: "Munjal Auto Industries' Registrar & Share Transfer Agent (MCS Share Transfer Agent Ltd) relocated its branch from Vadodara to Mumbai; all investor-services correspondence to shift to the new address. Pure administrative filing.", significance: 'routine', tags: [] },
-  19: { insight: "Datapatterns filed its FY25-26 Annual Report under Reg 34(1) — a large (~1MB) standard regulatory filing with no isolated new disclosure beyond what the Annual Report itself contains; not independently reviewed line-by-line given its size and routine compliance nature.", significance: 'routine', tags: [] },
-  20: { insight: "Aether Industries' Nomination & Remuneration Committee granted 1,77,996 stock options at an exercise price of Rs.1,200 each (FV Rs.10) under the AIL ESOS 2021 scheme to eligible employees. Standard employee-retention ESOP grant; modestly dilutive but routine in scale and mechanism.", significance: 'low', tags: [] },
-  21: { insight: "CARE Ratings assigned a fresh 'CARE A+; Stable' rating to Share India Securities' proposed Rs.250cr Non-Convertible Debentures (received July 7, disclosed July 8). This is a new-instrument rating ahead of issuance (not an upgrade/downgrade of an existing rating) and signals an upcoming Rs.250cr NCD raise — see the related Rs.50cr NCD allotment disclosed the same day.", significance: 'medium', tags: ['credit_rating', 'debt', 'fundraise'] },
-  22: { insight: "Bhagiradha Chemicals filed its FY25-26 Annual Report under Reg 34(1) — a large (~1.6MB) standard regulatory filing, companion to the shareholder-letter disclosure filed the same day. Pure compliance filing, not independently reviewed line-by-line.", significance: 'routine', tags: [] },
-  23: { insight: "Silver Touch Technologies won an order from RITES Limited (a Navratna PSU under Ministry of Railways) to design, develop and implement 'PARAKH', an AI-based Detailed Project Report (DPR) Appraisal & Intelligence Platform for infrastructure-project appraisal. Order size: Rs.6,27,76,000 (~Rs.6.28cr) over a 24-month execution period — implied run-rate of roughly Rs.0.78cr/quarter. Modest in absolute value but a marquee government/PSU AI-infrastructure win reinforcing the company's push into national infra-governance AI (per the press release framing); this is a revised re-issue of a July 7 release.", significance: 'medium', tags: ['order_win'] },
-  24: { insight: "Share India Securities' Finance Committee approved allotment of 50,000 listed, secured, rated NCDs (Rs.10,000 FV each) aggregating Rs.50.00cr on private placement basis. This tranche sits within the broader Rs.250cr NCD programme that CARE Ratings assigned 'A+; Stable' to the same day (see related item) — incremental debt-funded capital raise.", significance: 'medium', tags: ['fundraise', 'debt'] },
-  25: { insight: "Suven Life Sciences' board approved incorporating a wholly-owned subsidiary, Suven Neurosciences Pte. Ltd., in Singapore — a clinical-stage biopharmaceutical entity focused on acquiring, developing and commercialising novel therapeutics for neurological and other disorders. Funding: 100% cash, initial subscription at SGD 1.00/share, for a total planned investment of USD 100.00 Mn (~Rs.830cr at ~83/USD), to be deployed in one or more tranches. This is a major strategic pivot into clinical-stage neuro-therapeutics and a materially large capital commitment relative to Suven's existing scale — likely funded in part by the same-day Rs.248.84cr warrant-conversion allotment (see related item). Watch for the WOS's initial pipeline/asset disclosures and tranche-wise capital deployment.", significance: 'high', tags: ['subsidiary', 'international_expansion', 'capex'] },
-  26: { insight: "Ceigall India, jointly with Sushee Infra & Mining (JV: CIL 74% / SIML 26%), emerged as L1 (lowest) bidder for a Ministry of Road Transport & Highways EPC tender (ID 2025_MoRTH_868177_1) to construct a 82.4km stretch (km 85.60-168.00) of the Lada-Sarli section of NH-913 (Frontier Highway) in Arunachal Pradesh. Awarded cost: Rs.704.70cr (excl. GST); 48-month construction + 5-year maintenance period. CIL's effective share: ~74% x Rs.704.70cr = ~Rs.521cr. This adds to the ~Rs.4,050cr of HAM highway SPV order momentum flagged in prior notes — continued strong order-book build in EPC roads.", significance: 'medium', tags: ['order_win'] },
-  27: { insight: "Jupiter Capital Private Limited (an entity holding AXISCADES Technologies shares) created a pledge of 1,00,000 equity shares of AXISCADES in favour of Catalyst Trusteeship Ltd (Trustee), with lender JM Financial Credit Solutions Ltd, dated 02.07.2026 — a SAST Reg 31(1)/31(2) encumbrance-creation disclosure. Note: the underlying PDF (page 2, the filled disclosure table) is a scanned/rotated image and OCR extraction was only partially legible for the precise pre-/post-pledge percentage-of-capital figures; the share count (1,00,000) and counterparties are confirmed, but the resulting %-of-capital encumbered should be treated as provisional pending a cleaner read of the source document.", significance: 'medium', tags: [] },
-  28: { insight: "Suven Life Sciences' board re-appointed Dr. Vajja Sambasiva Rao (DIN 09233939) as Non-Executive Independent Director for a second five-year term (21-Jan-2027 to 20-Jan-2032), subject to AGM shareholder approval. Continuity re-appointment, not a departure — no governance red flag.", significance: 'low', tags: ['management_change'] },
-  29: { insight: "Suven Life Sciences allotted 1,85,70,133 equity shares (Rs.1 FV) on preferential basis via conversion of an equal number of fully-paid warrants at Rs.134/share, for aggregate consideration of Rs.248,83,97,822 (~Rs.248.84cr), with 100% consideration already received from all 17 non-promoter allottees (largest: Tejas Trivedi 37,31,343 shares, Ketan Chhotalal Sheth 20,00,000, ITI Holdings and Investment Pvt Ltd 18,65,670). Paid-up capital rises from 26,39,92,553 to 28,25,62,686 shares (+7.03% share-count dilution). This fresh ~Rs.249cr capital infusion plausibly funds (in part) the same-day USD 100Mn Singapore neuro-subsidiary commitment (see related item).", significance: 'high', tags: ['fundraise', 'equity_dilution'] },
-  30: { insight: "Rollup summary of Suven Life Sciences' July 8 board meeting (11:50 AM-12:35 PM IST), covering the same three substantive decisions recorded individually elsewhere today: (1) warrant-conversion equity allotment raising ~Rs.248.84cr, (2) independent director re-appointment, and (3) incorporation of Singapore neuro-subsidiary Suven Neurosciences with a planned USD 100Mn investment. Marked routine here — see the three linked items for the quantified, category-specific insights.", significance: 'routine', tags: [] },
-  31: { insight: "The Scheme of Amalgamation of J.B. Chemicals & Pharmaceuticals with Torrent Pharmaceuticals became EFFECTIVE July 8, 2026 (Appointed Date 21-Jan-2026): Torrent Pharma and JB Chemicals filed the certified NCLT Ahmedabad order (dated 6-Jul-2026) and Scheme with the Registrar of Companies, Ahmedabad. JB Chemicals now stands amalgamated into and dissolved into Torrent Pharma without winding up. This completes the merger process flagged in prior notes (NCLT sanction 6-Jul, record date 17-Jul for shareholder entitlement) — JB Chemicals ceases to exist as a separately listed entity; shareholders receive Torrent Pharma shares per the swap ratio as of the record date.", significance: 'high', tags: ['acquisition'] },
-  32: { insight: "Angel One's board will meet July 15, 2026 to also consider declaring the first interim dividend for FY26-27; record date fixed as Tuesday, July 21, 2026. No dividend amount disclosed yet (fixed ahead of the declaring meeting); trading window closed since July 1 until 48h post Q1 results.", significance: 'low', tags: ['dividend'] },
-  33: { insight: "Promoter-group entity Fairpoint Tradecom LLP (holds 2,46,50,000 shares = 9.25% of Responsive Industries' capital) filed a revised SAST/PIT disclosure covering a sequence of pledge events between June 4-8, 2026: created a pledge of 3,00,000 shares (0.11%) in favour of Mrs. Suman Gandhi as loan collateral, released 1,00,000 shares (0.04%) pledged to Imperial Solutions Pvt Ltd on loan repayment, then created a further pledge of 1,00,000 shares (0.04%) again in favour of Mrs. Suman Gandhi. Net effect: total encumbered promoter shares rose from 74,69,971 (2.80% of capital) to 77,69,971 (2.91% of capital) — a modest net increase, meaning roughly 31% of the promoter group's 9.25% stake is now pledged. Worth tracking the cumulative encumbrance trend, though this specific filing is a correction/consolidation of already-disclosed events rather than a fresh large pledge.", significance: 'medium', tags: [] },
-  34: { insight: "Bajaj Consumer Care will participate in an ICICI Securities-organised earnings conference call on July 13, 2026 4:00 PM re: Q1 FY27 unaudited results (transcript/audio to be hosted on the company website). Standard single-broker-organised call scheduling, no new information disclosed.", significance: 'routine', tags: ['investor_meet'] },
-  35: { insight: "Marksans Pharma signed a definitive agreement to acquire 100% of ABCnow GmbH, a Flensburg, Germany-based pharmaceutical wholesale/distribution company (OTC products), for total cash consideration of EUR 892,384 (~Rs.8.3cr), expected to close by July 31, 2026. Target is financially small (FY25 revenue EUR 227,233.69, down from EUR 510,215.60 in FY24) but strategically gives Marksans its own front-end sales/marketing/distribution infrastructure in Germany to market products manufactured in its India/UK/USA plants — a market-access bolt-on for European expansion, not a related-party deal. Note: stockscans' generic 'Press Release' title/category masked the real subject (an acquisition) — the categoriser missed it because the announcement metadata title didn't contain the word 'acquisition'.", significance: 'medium', tags: ['acquisition', 'international_expansion'] },
-  36: { insight: "INOX India (INOXCVA) announced it has secured multiple orders worth Rs.939cr since May 21, 2026 to date, driven by another 'mega' order in its industrial gas (IG) cryogenic-technology vertical from the space-exploration industry. Rs.939cr is very large relative to INOX India's typical annual revenue scale (~Rs.1,000-1,200cr range), implying a substantial order-book boost likely exceeding the >10% of revenue 'high' threshold. Note: stockscans categorised this as generic 'Press Release / Media Release' rather than order_book — the real subject (a major order win) was masked by the generic announcement title.", significance: 'high', tags: ['order_win'] },
-  37: { insight: "The Reserve Bank of India approved the appointment of Mr. Mahesh Muralidhar Pai (DIN 09164982) as Managing Director & CEO of South Indian Bank for a 3-year term effective October 1, 2026 (RBI letter dated July 7, 2026, 6:41 PM IST). The appointment will be placed before the board on July 16, 2026, with shareholder approval to follow. A confirmed MD/CEO leadership transition at a listed bank, now regulatory-cleared — high relevance per bank-governance standards even though this is an appointment (continuity of the process flagged May 22, 2026) rather than an abrupt departure.", significance: 'high', tags: ['management_change'] },
+  0: {
+    insight:
+      "Monthly order-book/execution update (Annexure A) for June 2026 covering order inflow, execution and closing order position across DEE Development's segments — a routine recurring voluntary disclosure with no new incremental fact beyond figures already implicit in previously-disclosed order wins (e.g. the Rs.64cr Ganeko Solar order). Watch next month's cumulative FY27 order-inflow trend.",
+    significance: 'routine',
+    tags: [],
+  },
+  1: {
+    insight:
+      "DEE Development's Fund-Raising Committee allotted 59,76,096 equity shares at Rs.502/share (Rs.492 premium) on preferential basis, raising Rs.300.00cr, per the June 3 board approval and June 27 EGM. Paid-up equity capital rises from Rs.69.26cr to Rs.75.24cr (+8.6% share count dilution). This completes a previously-flagged capital raise; watch deployment of the Rs.300cr proceeds in upcoming quarters.",
+    significance: 'medium',
+    tags: ['fundraise', 'equity_dilution'],
+  },
+  2: {
+    insight:
+      'Poonawalla Fincorp scheduled its Q1 FY27 earnings conference call for July 17, 2026 5:00 PM IST, same day as results. Standard public dial-in invite (no institutions pre-named) — a scheduling intimation, not new financial information.',
+    significance: 'routine',
+    tags: ['investor_meet'],
+  },
+  3: {
+    insight:
+      "Motilal Oswal Mutual Fund (8 schemes) acquired 47,16,484 additional shares of Sterlite Technologies (0.97% of capital) via the market, taking its combined holding from 4.7534% to 5.7196% and crossing the 5% SEBI SAST Reg 29(1) disclosure threshold. This is institutional (non-promoter) accumulation, consistent with the demand context from STL's ongoing QIP (floor Rs.613.69/share) flagged in prior notes — a incrementally positive signal on institutional conviction.",
+    significance: 'medium',
+    tags: [],
+  },
+  4: {
+    insight:
+      'S.P. Apparels issued a corporate guarantee of Rs.12,51,33,300 to HSBC as security for a term loan availed by its wholly-owned UK subsidiary, S.P. Apparels (UK) Pvt Ltd. Routine intra-group treasury support, immaterial relative to company scale.',
+    significance: 'low',
+    tags: ['debt'],
+  },
+  5: {
+    insight:
+      'Standard Engineering Technology (formerly Standard Glass Lining Technology) has called a board meeting for July 11, 2026 to consider a further preferential equity issue, subject to shareholder approval; trading window already closed since July 1 pending Q1 results. No issue size/price disclosed yet — this is a heads-up notice only. Watch the July 11 outcome for quantum and pricing.',
+    significance: 'low',
+    tags: ['fundraise'],
+  },
+  6: {
+    insight:
+      'Macpower CNC Machines scheduled a 1x1 virtual meeting with an unnamed Foreign Institutional Investor for July 10, 2026 9:00 AM. No UPSI to be shared per the disclosure; institution identity undisclosed, so no incremental signal beyond continued FII interest.',
+    significance: 'routine',
+    tags: ['investor_meet'],
+  },
+  7: {
+    insight:
+      "Craftsman Automation signed a Shareholders' Agreement, Securities Subscription Agreement and Power Purchase Agreement with Solarcraft Power India 24 Pvt Ltd, committing up to Rs.3.36cr (in tranches) toward equity + compulsorily convertible debentures, to secure captive solar power under the Electricity Act 2003 captive-consumption route. Small outlay (~0.3% of typical capex budget scale) aimed at long-term power-cost savings, not core-business capacity.",
+    significance: 'low',
+    tags: ['capex'],
+  },
+  8: {
+    insight:
+      "Capri Global Capital's board (circular resolution, July 8) appointed Mr. Ignatius Kaitha as Chief Human Resource Officer and Mr. Ateet Parikh as Chief Collection Officer, both designated Senior Management Personnel. These are new senior-management hires/promotions, not CEO/CFO/MD-level departures — no governance red flag per the standard escalation criteria.",
+    significance: 'low',
+    tags: ['management_change'],
+  },
+  9: {
+    insight:
+      "Revised outcome of Suven Life Sciences' July 8 board meeting — a same-day administrative correction superseded within hours by the final outcome filing (warrant-conversion allotment of 1,85,70,133 shares at Rs.134, re-appointment of independent director Dr. Vajja Sambasiva Rao, and incorporation of Singapore subsidiary Suven Neurosciences). Marked routine here to avoid duplicating the substantive insights recorded against the final outcome announcement for the same meeting.",
+    significance: 'routine',
+    tags: [],
+  },
+  10: {
+    insight:
+      "Himadri Speciality Chemical's board will meet July 15, 2026 to approve unaudited standalone and consolidated Q1 FY27 results; trading window (closed since July 1) reopens 48h after declaration. Pure scheduling notice, no results data yet.",
+    significance: 'routine',
+    tags: [],
+  },
+  11: {
+    insight:
+      "Chennai Petroleum Corporation's board will meet July 23, 2026 to approve audited Q1 FY27 results; trading window remains closed until July 25. Pure scheduling notice, no results data yet.",
+    significance: 'routine',
+    tags: [],
+  },
+  12: {
+    insight:
+      "TANFAC Industries' Preferential Issue Committee cut its proposed preferential-issue size by 43%, from Rs.173.49cr to Rs.99.41cr, after promoter Anupam Rasayan India revised down its subscription commitment. Revised plan: 4,24,647 equity shares (Rs.5 FV) at Rs.2,341/share to Anupam Rasayan (promoter, 2,60,065 shares) plus non-promoters Alrox Enterprises (1,00,000), Vivek Jain (53,395) and Tatvam Trade. A reduced raise size vs. the original board-approved plan (July 6) may signal lower promoter conviction on quantum or right-sizing to actual demand — worth watching at the July 30 EGM vote.",
+    significance: 'medium',
+    tags: ['fundraise', 'equity_dilution'],
+  },
+  13: {
+    insight:
+      "TANFAC Industries called an EGM for July 30, 2026 (remote e-voting July 27-29, cut-off July 23) to seek shareholder approval for the revised Rs.99.41cr preferential issue flagged in the same day's Preferential Issue Committee outcome. Procedural step in the fundraise process, not new information beyond that outcome.",
+    significance: 'low',
+    tags: ['fundraise'],
+  },
+  14: {
+    insight:
+      "CEAT approved a further investment of up to Rs.274 lakh (22,447 equity shares) via rights-issue subscription in wholly-owned subsidiary Tyresnmore Online Pvt Ltd (FY26 turnover Rs.4,329.13 lakh). Small incremental capital infusion (~Rs.2.74cr) into an existing e-commerce subsidiary, immaterial to CEAT's overall scale.",
+    significance: 'low',
+    tags: ['subsidiary'],
+  },
+  15: {
+    insight:
+      'Aditya Infotech (CP Plus) disclosed that Avathon Inc. (Austin, TX) and SparkCognition India have filed a Request for Arbitration (dated May 28, 2026) before the ICC, alleging breach of an agreement under which the company was to purchase and resell Avathon/SparkCognition products. No claim quantum disclosed; disclosure itself was delayed pending legal coordination, which the company flagged explicitly. This is a cross-border litigation/arbitration exposure — a new legal risk with unknown financial impact. Watch for the claim amount and arbitration timeline in subsequent filings.',
+    significance: 'medium',
+    tags: ['regulatory'],
+  },
+  16: {
+    insight:
+      "HFCL launched a unified brand, 'OptiQ AI(TM)', for its existing optical-connectivity product portfolio (fibre cables, patch cords, cassettes, enclosure panels) targeting AI/hyperscale data-centre customers and future 800G/1.6T network migration. Marketing/brand repositioning of an existing product line — no new order, revenue figure, or customer named in the release.",
+    significance: 'low',
+    tags: ['press_release'],
+  },
+  17: {
+    insight:
+      'Bhagiradha Chemicals sent shareholders (those without registered emails) a letter with a web-link to the FY25-26 Annual Report, per Reg 36(1)(b). Pure compliance/administrative filing, no new information.',
+    significance: 'routine',
+    tags: [],
+  },
+  18: {
+    insight:
+      "Munjal Auto Industries' Registrar & Share Transfer Agent (MCS Share Transfer Agent Ltd) relocated its branch from Vadodara to Mumbai; all investor-services correspondence to shift to the new address. Pure administrative filing.",
+    significance: 'routine',
+    tags: [],
+  },
+  19: {
+    insight:
+      'Datapatterns filed its FY25-26 Annual Report under Reg 34(1) — a large (~1MB) standard regulatory filing with no isolated new disclosure beyond what the Annual Report itself contains; not independently reviewed line-by-line given its size and routine compliance nature.',
+    significance: 'routine',
+    tags: [],
+  },
+  20: {
+    insight:
+      "Aether Industries' Nomination & Remuneration Committee granted 1,77,996 stock options at an exercise price of Rs.1,200 each (FV Rs.10) under the AIL ESOS 2021 scheme to eligible employees. Standard employee-retention ESOP grant; modestly dilutive but routine in scale and mechanism.",
+    significance: 'low',
+    tags: [],
+  },
+  21: {
+    insight:
+      "CARE Ratings assigned a fresh 'CARE A+; Stable' rating to Share India Securities' proposed Rs.250cr Non-Convertible Debentures (received July 7, disclosed July 8). This is a new-instrument rating ahead of issuance (not an upgrade/downgrade of an existing rating) and signals an upcoming Rs.250cr NCD raise — see the related Rs.50cr NCD allotment disclosed the same day.",
+    significance: 'medium',
+    tags: ['credit_rating', 'debt', 'fundraise'],
+  },
+  22: {
+    insight:
+      'Bhagiradha Chemicals filed its FY25-26 Annual Report under Reg 34(1) — a large (~1.6MB) standard regulatory filing, companion to the shareholder-letter disclosure filed the same day. Pure compliance filing, not independently reviewed line-by-line.',
+    significance: 'routine',
+    tags: [],
+  },
+  23: {
+    insight:
+      "Silver Touch Technologies won an order from RITES Limited (a Navratna PSU under Ministry of Railways) to design, develop and implement 'PARAKH', an AI-based Detailed Project Report (DPR) Appraisal & Intelligence Platform for infrastructure-project appraisal. Order size: Rs.6,27,76,000 (~Rs.6.28cr) over a 24-month execution period — implied run-rate of roughly Rs.0.78cr/quarter. Modest in absolute value but a marquee government/PSU AI-infrastructure win reinforcing the company's push into national infra-governance AI (per the press release framing); this is a revised re-issue of a July 7 release.",
+    significance: 'medium',
+    tags: ['order_win'],
+  },
+  24: {
+    insight:
+      "Share India Securities' Finance Committee approved allotment of 50,000 listed, secured, rated NCDs (Rs.10,000 FV each) aggregating Rs.50.00cr on private placement basis. This tranche sits within the broader Rs.250cr NCD programme that CARE Ratings assigned 'A+; Stable' to the same day (see related item) — incremental debt-funded capital raise.",
+    significance: 'medium',
+    tags: ['fundraise', 'debt'],
+  },
+  25: {
+    insight:
+      "Suven Life Sciences' board approved incorporating a wholly-owned subsidiary, Suven Neurosciences Pte. Ltd., in Singapore — a clinical-stage biopharmaceutical entity focused on acquiring, developing and commercialising novel therapeutics for neurological and other disorders. Funding: 100% cash, initial subscription at SGD 1.00/share, for a total planned investment of USD 100.00 Mn (~Rs.830cr at ~83/USD), to be deployed in one or more tranches. This is a major strategic pivot into clinical-stage neuro-therapeutics and a materially large capital commitment relative to Suven's existing scale — likely funded in part by the same-day Rs.248.84cr warrant-conversion allotment (see related item). Watch for the WOS's initial pipeline/asset disclosures and tranche-wise capital deployment.",
+    significance: 'high',
+    tags: ['subsidiary', 'international_expansion', 'capex'],
+  },
+  26: {
+    insight:
+      "Ceigall India, jointly with Sushee Infra & Mining (JV: CIL 74% / SIML 26%), emerged as L1 (lowest) bidder for a Ministry of Road Transport & Highways EPC tender (ID 2025_MoRTH_868177_1) to construct a 82.4km stretch (km 85.60-168.00) of the Lada-Sarli section of NH-913 (Frontier Highway) in Arunachal Pradesh. Awarded cost: Rs.704.70cr (excl. GST); 48-month construction + 5-year maintenance period. CIL's effective share: ~74% x Rs.704.70cr = ~Rs.521cr. This adds to the ~Rs.4,050cr of HAM highway SPV order momentum flagged in prior notes — continued strong order-book build in EPC roads.",
+    significance: 'medium',
+    tags: ['order_win'],
+  },
+  27: {
+    insight:
+      'Jupiter Capital Private Limited (an entity holding AXISCADES Technologies shares) created a pledge of 1,00,000 equity shares of AXISCADES in favour of Catalyst Trusteeship Ltd (Trustee), with lender JM Financial Credit Solutions Ltd, dated 02.07.2026 — a SAST Reg 31(1)/31(2) encumbrance-creation disclosure. Note: the underlying PDF (page 2, the filled disclosure table) is a scanned/rotated image and OCR extraction was only partially legible for the precise pre-/post-pledge percentage-of-capital figures; the share count (1,00,000) and counterparties are confirmed, but the resulting %-of-capital encumbered should be treated as provisional pending a cleaner read of the source document.',
+    significance: 'medium',
+    tags: [],
+  },
+  28: {
+    insight:
+      "Suven Life Sciences' board re-appointed Dr. Vajja Sambasiva Rao (DIN 09233939) as Non-Executive Independent Director for a second five-year term (21-Jan-2027 to 20-Jan-2032), subject to AGM shareholder approval. Continuity re-appointment, not a departure — no governance red flag.",
+    significance: 'low',
+    tags: ['management_change'],
+  },
+  29: {
+    insight:
+      'Suven Life Sciences allotted 1,85,70,133 equity shares (Rs.1 FV) on preferential basis via conversion of an equal number of fully-paid warrants at Rs.134/share, for aggregate consideration of Rs.248,83,97,822 (~Rs.248.84cr), with 100% consideration already received from all 17 non-promoter allottees (largest: Tejas Trivedi 37,31,343 shares, Ketan Chhotalal Sheth 20,00,000, ITI Holdings and Investment Pvt Ltd 18,65,670). Paid-up capital rises from 26,39,92,553 to 28,25,62,686 shares (+7.03% share-count dilution). This fresh ~Rs.249cr capital infusion plausibly funds (in part) the same-day USD 100Mn Singapore neuro-subsidiary commitment (see related item).',
+    significance: 'high',
+    tags: ['fundraise', 'equity_dilution'],
+  },
+  30: {
+    insight:
+      "Rollup summary of Suven Life Sciences' July 8 board meeting (11:50 AM-12:35 PM IST), covering the same three substantive decisions recorded individually elsewhere today: (1) warrant-conversion equity allotment raising ~Rs.248.84cr, (2) independent director re-appointment, and (3) incorporation of Singapore neuro-subsidiary Suven Neurosciences with a planned USD 100Mn investment. Marked routine here — see the three linked items for the quantified, category-specific insights.",
+    significance: 'routine',
+    tags: [],
+  },
+  31: {
+    insight:
+      'The Scheme of Amalgamation of J.B. Chemicals & Pharmaceuticals with Torrent Pharmaceuticals became EFFECTIVE July 8, 2026 (Appointed Date 21-Jan-2026): Torrent Pharma and JB Chemicals filed the certified NCLT Ahmedabad order (dated 6-Jul-2026) and Scheme with the Registrar of Companies, Ahmedabad. JB Chemicals now stands amalgamated into and dissolved into Torrent Pharma without winding up. This completes the merger process flagged in prior notes (NCLT sanction 6-Jul, record date 17-Jul for shareholder entitlement) — JB Chemicals ceases to exist as a separately listed entity; shareholders receive Torrent Pharma shares per the swap ratio as of the record date.',
+    significance: 'high',
+    tags: ['acquisition'],
+  },
+  32: {
+    insight:
+      "Angel One's board will meet July 15, 2026 to also consider declaring the first interim dividend for FY26-27; record date fixed as Tuesday, July 21, 2026. No dividend amount disclosed yet (fixed ahead of the declaring meeting); trading window closed since July 1 until 48h post Q1 results.",
+    significance: 'low',
+    tags: ['dividend'],
+  },
+  33: {
+    insight:
+      "Promoter-group entity Fairpoint Tradecom LLP (holds 2,46,50,000 shares = 9.25% of Responsive Industries' capital) filed a revised SAST/PIT disclosure covering a sequence of pledge events between June 4-8, 2026: created a pledge of 3,00,000 shares (0.11%) in favour of Mrs. Suman Gandhi as loan collateral, released 1,00,000 shares (0.04%) pledged to Imperial Solutions Pvt Ltd on loan repayment, then created a further pledge of 1,00,000 shares (0.04%) again in favour of Mrs. Suman Gandhi. Net effect: total encumbered promoter shares rose from 74,69,971 (2.80% of capital) to 77,69,971 (2.91% of capital) — a modest net increase, meaning roughly 31% of the promoter group's 9.25% stake is now pledged. Worth tracking the cumulative encumbrance trend, though this specific filing is a correction/consolidation of already-disclosed events rather than a fresh large pledge.",
+    significance: 'medium',
+    tags: [],
+  },
+  34: {
+    insight:
+      'Bajaj Consumer Care will participate in an ICICI Securities-organised earnings conference call on July 13, 2026 4:00 PM re: Q1 FY27 unaudited results (transcript/audio to be hosted on the company website). Standard single-broker-organised call scheduling, no new information disclosed.',
+    significance: 'routine',
+    tags: ['investor_meet'],
+  },
+  35: {
+    insight:
+      "Marksans Pharma signed a definitive agreement to acquire 100% of ABCnow GmbH, a Flensburg, Germany-based pharmaceutical wholesale/distribution company (OTC products), for total cash consideration of EUR 892,384 (~Rs.8.3cr), expected to close by July 31, 2026. Target is financially small (FY25 revenue EUR 227,233.69, down from EUR 510,215.60 in FY24) but strategically gives Marksans its own front-end sales/marketing/distribution infrastructure in Germany to market products manufactured in its India/UK/USA plants — a market-access bolt-on for European expansion, not a related-party deal. Note: stockscans' generic 'Press Release' title/category masked the real subject (an acquisition) — the categoriser missed it because the announcement metadata title didn't contain the word 'acquisition'.",
+    significance: 'medium',
+    tags: ['acquisition', 'international_expansion'],
+  },
+  36: {
+    insight:
+      "INOX India (INOXCVA) announced it has secured multiple orders worth Rs.939cr since May 21, 2026 to date, driven by another 'mega' order in its industrial gas (IG) cryogenic-technology vertical from the space-exploration industry. Rs.939cr is very large relative to INOX India's typical annual revenue scale (~Rs.1,000-1,200cr range), implying a substantial order-book boost likely exceeding the >10% of revenue 'high' threshold. Note: stockscans categorised this as generic 'Press Release / Media Release' rather than order_book — the real subject (a major order win) was masked by the generic announcement title.",
+    significance: 'high',
+    tags: ['order_win'],
+  },
+  37: {
+    insight:
+      'The Reserve Bank of India approved the appointment of Mr. Mahesh Muralidhar Pai (DIN 09164982) as Managing Director & CEO of South Indian Bank for a 3-year term effective October 1, 2026 (RBI letter dated July 7, 2026, 6:41 PM IST). The appointment will be placed before the board on July 16, 2026, with shareholder approval to follow. A confirmed MD/CEO leadership transition at a listed bank, now regulatory-cleared — high relevance per bank-governance standards even though this is an appointment (continuity of the process flagged May 22, 2026) rather than an abrupt departure.',
+    significance: 'high',
+    tags: ['management_change'],
+  },
 };
 
 async function run() {
@@ -68,7 +260,10 @@ async function run() {
   for (const [idxStr, data] of Object.entries(INSIGHTS)) {
     const idx = Number(idxStr);
     const a = byIdx(idx);
-    if (!a) { console.error('missing announcement for idx', idx); continue; }
+    if (!a) {
+      console.error('missing announcement for idx', idx);
+      continue;
+    }
     const co = NotesDb.ensureCompany(notes, a.companyId, a.ticker || a.companyId, a.name || '');
     co.notes.push({
       id: NotesDb.uuid ? NotesDb.uuid() : undefined,

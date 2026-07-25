@@ -74,14 +74,17 @@ export default function Gainers() {
   const displayedCount = sellOffersOnly
     ? rows.filter((r) => r.offerLevels != null && r.offerLevels > 0).length
     : buyBidsOnly
-    ? rows.filter((r) => r.bidLevels != null && r.bidLevels > 0).length
-    : rows.length;
+      ? rows.filter((r) => r.bidLevels != null && r.bidLevels > 0).length
+      : rows.length;
 
   return (
     <>
       <Head>
         <title>Top Gainers - Stock Screener</title>
-        <meta name="description" content="Top gaining Indian stocks with volume, delivery, P/E and weekly change" />
+        <meta
+          name="description"
+          content="Top gaining Indian stocks with volume, delivery, P/E and weekly change"
+        />
       </Head>
 
       <div>
@@ -128,7 +131,11 @@ export default function Gainers() {
                 <span className="text-sm text-base-content/70">Sell offers only</span>
               </label>
 
-              <ColumnPicker hiddenCols={hiddenCols} toggleColumn={toggleColumn} setGroupVisible={setGroupVisible} />
+              <ColumnPicker
+                hiddenCols={hiddenCols}
+                toggleColumn={toggleColumn}
+                setGroupVisible={setGroupVisible}
+              />
               <button
                 onClick={() => setOrderBook((v) => !v)}
                 className={`btn btn-sm gap-1.5 ${orderBook ? 'btn-primary' : 'btn-ghost border border-base-300'}`}
@@ -158,7 +165,9 @@ export default function Gainers() {
                 aria-label="Gainers universe"
               >
                 {BUCKETS.map((b) => (
-                  <option key={b.value} value={b.value}>{b.label}</option>
+                  <option key={b.value} value={b.value}>
+                    {b.label}
+                  </option>
                 ))}
               </select>
 
@@ -175,7 +184,12 @@ export default function Gainers() {
                 ) : (
                   <>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
                     </svg>
                     Refresh
                   </>
@@ -197,7 +211,10 @@ export default function Gainers() {
           <div className="finance-card border-error/30 bg-error/5 p-4 mb-5">
             <div className="flex items-center justify-between">
               <span className="text-sm text-error">{error}</span>
-              <button onClick={() => fetchGainers(bucket, exchange, orderBook)} className="text-xs font-medium text-error hover:underline">
+              <button
+                onClick={() => fetchGainers(bucket, exchange, orderBook)}
+                className="text-xs font-medium text-error hover:underline"
+              >
                 Try again
               </button>
             </div>
@@ -224,7 +241,8 @@ export default function Gainers() {
 
         {!loading && rows.length > 0 && (
           <div className="mt-3 text-center text-xs text-base-content/30">
-            Del Value = traded value × delivery% · 1W = 5-session price change · Bids/Offers from live NSE order book
+            Del Value = traded value × delivery% · 1W = 5-session price change · Bids/Offers from
+            live NSE order book
           </div>
         )}
       </div>

@@ -1,9 +1,11 @@
 # Orders Tab: Non-AI Mode Implementation
 
 ## Overview
+
 Implemented a Non-AI mode for the Orders Tab that displays order announcements without any AI processing. This mode is now the default view when users open the Orders Tab.
 
 ## Implementation Date
+
 January 2, 2026
 
 ## Changes Made
@@ -11,6 +13,7 @@ January 2, 2026
 ### 1. Backend Changes (`backend/routes/orders.js`)
 
 #### Modified Endpoint: `GET /api/orders/:symbol`
+
 - **Previous behavior**: Used text parsing to extract basic order details from announcement descriptions
 - **New behavior**: Returns raw announcement data without any parsing
 - **Key changes**:
@@ -20,6 +23,7 @@ January 2, 2026
   - Removed text parsing functions (`parseAmountFromText`, `parseCapacityFromText`)
 
 **Response structure**:
+
 ```json
 {
   "success": true,
@@ -50,31 +54,39 @@ January 2, 2026
 ### 2. Frontend API Changes (`frontend/lib/api.js`)
 
 Added new method to `ordersAPI`:
+
 ```javascript
-getNonAI: (symbol, limit = 50) => api.get(`/orders/${symbol}?limit=${limit}`)
+getNonAI: (symbol, limit = 50) => api.get(`/orders/${symbol}?limit=${limit}`);
 ```
 
 ### 3. Frontend Component Changes (`frontend/components/stock/OrdersTab.js`)
 
 #### New Default View Mode
+
 - Changed default `viewMode` from `'orderbook'` to `'non-ai'`
 - No AI calls are made on initial load
 
 #### New Component: `NonAIOrderRow`
+
 Displays order announcements in a simplified table format:
+
 - **Date**: Announcement date with relative time
 - **Subject**: Order announcement subject
 - **Description**: Brief description from NSE
 - **Document**: Direct link to PDF attachment
 
 #### Updated View Mode Toggle
+
 Now has three modes:
+
 1. **Announcements** (default, non-ai): Raw announcements with PDF links
 2. **Order Book (AI)**: AI-analyzed order book with baseline + new orders
 3. **All Orders (AI)**: All orders with full AI parsing
 
 #### Updated `fetchData` Function
+
 Added handling for `non-ai` mode:
+
 ```javascript
 if (mode === 'non-ai') {
   response = await ordersAPI.getNonAI(symbol, 100);
@@ -82,6 +94,7 @@ if (mode === 'non-ai') {
 ```
 
 #### UI Changes
+
 - **Header titles** updated to reflect current mode
 - **Loading messages** customized per mode
 - **Info banner** shows announcement count without AI metrics
@@ -91,25 +104,32 @@ if (mode === 'non-ai') {
 ### 4. User Experience
 
 #### Non-AI Mode (Default)
+
 **Pros**:
+
 - ⚡ Fast loading (no AI processing)
 - 💰 No API costs (no Gemini calls)
 - 📄 Direct access to source documents
 - 🎯 Simple, clean interface
 
 **Cons**:
+
 - No automatic value extraction
 - No customer/project details
 - Users must read PDFs manually
 
 #### AI Modes (On-demand)
+
 Users can switch to AI modes when they need:
+
 - Parsed order values and details
 - Order book analysis with baselines
 - Aggregate statistics and trends
 
 ### 5. Fallback Behavior
+
 If user selects "Order Book (AI)" but no baseline is found:
+
 - Automatically falls back to non-ai mode
 - Shows informative message about missing baseline
 - Displays documents checked/analyzed
@@ -125,6 +145,7 @@ If user selects "Order Book (AI)" but no baseline is found:
 ## Testing
 
 ### Backend Testing
+
 ```bash
 # Test non-AI endpoint
 curl "http://localhost:5000/api/orders/LTIM?limit=3"
@@ -136,6 +157,7 @@ curl "http://localhost:5000/api/orders/LTIM?limit=3"
 ```
 
 ### Frontend Testing
+
 1. Open any stock detail page
 2. Navigate to "Orders" tab
 3. Verify:
@@ -147,10 +169,13 @@ curl "http://localhost:5000/api/orders/LTIM?limit=3"
 ## API Documentation
 
 ### Endpoint: `GET /api/orders/:symbol`
+
 **Query Parameters**:
+
 - `limit` (optional): Number of orders to return (default: 50)
 
 **Response**:
+
 - `success`: Boolean
 - `data.symbol`: Stock symbol
 - `data.total_orders`: Number of orders found
@@ -176,6 +201,7 @@ curl "http://localhost:5000/api/orders/LTIM?limit=3"
 ## Backward Compatibility
 
 ✅ All existing AI endpoints remain unchanged:
+
 - `GET /api/orders/:symbol/full` - Full AI parsing
 - `POST /api/orders/:symbol/parse-pdf` - Individual PDF parsing
 - `GET /api/orders/:symbol/orderbook` - Order book analysis
@@ -183,4 +209,3 @@ curl "http://localhost:5000/api/orders/LTIM?limit=3"
 ## Conclusion
 
 Successfully implemented a Non-AI mode as the default view for the Orders Tab. This provides users with fast, cost-effective access to order announcements while maintaining the ability to use AI features on-demand.
-

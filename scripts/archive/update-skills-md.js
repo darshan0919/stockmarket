@@ -8,14 +8,18 @@ for (const file of files) {
 
   // Replace references to packages/stock-api/python/generators/generate_..._pdf.py
   // with packages/stock-api/src/generators/generate...Pdf.js
-  content = content.replace(/packages\/stock-api\/python\/generators\/generate_([a-z_]+)\.py/g, (match, p1) => {
-    const camel = p1.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
-    return `packages/stock-api/src/generators/generate${camel.charAt(0).toUpperCase() + camel.slice(1)}.js`;
-  });
+  content = content.replace(
+    /packages\/stock-api\/python\/generators\/generate_([a-z_]+)\.py/g,
+    (match, p1) => {
+      const camel = p1.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+      return `packages/stock-api/src/generators/generate${camel.charAt(0).toUpperCase() + camel.slice(1)}.js`;
+    }
+  );
 
   // Specifically, we will replace the python code blocks with node equivalents.
-  content = content.replace(/```python[\s\S]*?import sys[\s\S]*?sys\.path\.insert[\s\S]*?(data = \{[\s\S]*?\})[\s\S]*?```/, 
-`Write the following JSON to a temporary file (e.g. \`data.json\`):
+  content = content.replace(
+    /```python[\s\S]*?import sys[\s\S]*?sys\.path\.insert[\s\S]*?(data = \{[\s\S]*?\})[\s\S]*?```/,
+    `Write the following JSON to a temporary file (e.g. \`data.json\`):
 
 \`\`\`json
 $1
@@ -29,7 +33,8 @@ bash ./skills/_shared/resolve.sh $(basename $(dirname ${file})) --input data.jso
 
 # 2. Render PDF (Clone Mode)
 bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "<Company>_Output.pdf"
-\`\`\``);
+\`\`\``
+  );
 
   fs.writeFileSync(file, content, 'utf8');
 }

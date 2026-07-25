@@ -53,6 +53,7 @@ FY+1 P/E = CMP × shares / FY+1 estimated PAT
 ```
 
 FY+1 PAT is built from:
+
 - Revenue estimate = orderbook coverage + new wins assumption + realization per unit
 - EBITDA margin = latest deck's margin, adjusted for concall commentary (don't use the 15% floor if CFO said margins will keep improving)
 - Below-EBITDA = actual latest D&A, interest, and effective tax rate

@@ -133,19 +133,16 @@ All templates receive the following context:
 The skill includes a Python script `doc_generator.py` that:
 
 1. **Loads marketplace.json**
-
    - Reads the marketplace catalog
    - Validates structure
    - Builds component index
 
 2. **Scans Plugin Files**
-
    - Reads agent/command frontmatter
    - Extracts skill metadata
    - Builds comprehensive component list
 
 3. **Prepares Template Context**
-
    - Organizes plugins by category
    - Creates component indexes
    - Calculates statistics
@@ -309,25 +306,21 @@ Suggestion: Check YAML frontmatter syntax
 ## Best Practices
 
 1. **Always Regenerate After Changes**
-
    - Run after every plugin add/update/remove
    - Ensure docs stay synchronized
    - Commit documentation with plugin changes
 
 2. **Validate Before Generation**
-
    - Run marketplace validation first
    - Fix any errors or warnings
    - Ensure all files exist
 
 3. **Review Generated Output**
-
    - Check generated files for correctness
    - Verify formatting and links
    - Test any code examples
 
 4. **Template Maintenance**
-
    - Keep templates simple and readable
    - Use consistent formatting
    - Document template variables
@@ -355,7 +348,6 @@ To add a new section to a template:
    ```
 
 2. **Update Context (if needed)**
-
    - Add new data to template context in doc_generator.py
    - Process additional metadata
 
@@ -369,12 +361,10 @@ To add a new section to a template:
 To add a new documentation file:
 
 1. **Create Template**
-
    - Add `assets/newdoc.md.j2`
    - Define structure and content
 
 2. **Update Script**
-
    - Add to doc_generator.py template list
    - Define output path
 
@@ -424,17 +414,14 @@ After running this skill:
 When marketplace structure changes:
 
 1. **Assess Impact**
-
    - Identify affected templates
    - Determine required changes
 
 2. **Update Templates**
-
    - Modify Jinja2 templates
    - Test with current data
 
 3. **Update Script**
-
    - Adjust context preparation if needed
    - Add new data processing
 

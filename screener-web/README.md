@@ -41,6 +41,7 @@ Application will start on `http://localhost:3000`
 ## Pages
 
 ### Dashboard (`/`)
+
 - Search bar with auto-complete
 - Market snapshot (indices & sectors)
 - Watchlist summary
@@ -48,11 +49,13 @@ Application will start on `http://localhost:3000`
 - Quick screener templates
 
 ### Screener (`/screener`)
+
 - Advanced filtering panel
 - Results table with sorting
 - CSV export functionality
 
 ### Stock Details (`/stock/[symbol]`)
+
 - Company overview
 - Fundamentals metrics
 - Financial statements
@@ -60,6 +63,7 @@ Application will start on `http://localhost:3000`
 - Technical analysis
 
 ### Watchlist (`/watchlist`)
+
 - Track favorite stocks
 - Real-time price updates
 - Quick access to stock details
@@ -67,6 +71,7 @@ Application will start on `http://localhost:3000`
 ## Components
 
 ### Common
+
 - `Header` - Navigation bar
 - `SearchBar` - Auto-complete search
 - `Table` - Reusable data table
@@ -74,14 +79,17 @@ Application will start on `http://localhost:3000`
 - `LoadingSpinner` - Loading indicator
 
 ### Dashboard
+
 - `MarketSnapshot` - Indices overview
 - `WatchlistSummary` - Top watchlist items
 
 ### Screener
+
 - `FilterPanel` - All screening filters
 - `ResultsTable` - Filtered stock results
 
 ### Stock
+
 - `StockHeader` - Price & company info
 - `FundamentalsTab` - Financial metrics
 - `FinancialsTab` - Statements
@@ -91,6 +99,7 @@ Application will start on `http://localhost:3000`
 ## Styling
 
 Using Tailwind CSS with custom configuration:
+
 - Primary color: Blue (#3b82f6)
 - Responsive breakpoints: sm, md, lg, xl
 - Custom utilities for positive/negative values
@@ -98,6 +107,7 @@ Using Tailwind CSS with custom configuration:
 ## API Integration
 
 All API calls go through `lib/api.js`:
+
 - Centralized axios instance
 - Request/response interceptors
 - Error handling
@@ -105,6 +115,7 @@ All API calls go through `lib/api.js`:
 ## State Management
 
 Using React hooks:
+
 - `useState` for local state
 - `useEffect` for side effects
 - Custom hooks in `lib/hooks/`:
@@ -114,6 +125,7 @@ Using React hooks:
 ## Utilities
 
 ### Formatters (`lib/utils/formatters.js`)
+
 - `formatCurrency` - Indian currency format
 - `formatLargeNumber` - Cr, L, K suffixes
 - `formatPercent` - Percentage display
@@ -133,4 +145,3 @@ Using React hooks:
 - Firefox (latest)
 - Safari (latest)
 - Edge (latest)
-

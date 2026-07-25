@@ -50,14 +50,18 @@ function normalizeCandles(raw) {
       date = tsToDate(ts);
     } else if (row && typeof row === 'object') {
       close = Number(
-        row.close != null ? row.close
-          : row.c != null ? row.c
-            : row.Close != null ? row.Close : NaN
+        row.close != null ? row.close : row.c != null ? row.c : row.Close != null ? row.Close : NaN
       );
-      const ts = row.date != null ? row.date
-        : row.time != null ? row.time
-          : row.t != null ? row.t
-            : row.Date != null ? row.Date : null;
+      const ts =
+        row.date != null
+          ? row.date
+          : row.time != null
+            ? row.time
+            : row.t != null
+              ? row.t
+              : row.Date != null
+                ? row.Date
+                : null;
       date = tsToDate(ts);
     }
 
@@ -149,11 +153,14 @@ function postEventReturns(rawPrices, events, windows = [1, 5, 20]) {
 
   const result = {};
   for (const [label, date] of Object.entries(events || {})) {
-    if (!date) { result[label] = { anchorDate: null, windows: emptyWindows(windows), note: 'no event date' }; continue; }
+    if (!date) {
+      result[label] = { anchorDate: null, windows: emptyWindows(windows), note: 'no event date' };
+      continue;
+    }
     const er = eventReturns(candles, date, windows);
     // If we couldn't anchor, or the last window is null, say why.
-    const insufficient = er.anchorDate == null
-      || er.windows[`d${windows[windows.length - 1]}`] == null;
+    const insufficient =
+      er.anchorDate == null || er.windows[`d${windows[windows.length - 1]}`] == null;
     result[label] = {
       eventDate: date,
       ...er,
@@ -179,7 +186,8 @@ function emptyWindows(windows) {
  */
 function driftSignature(rets) {
   const clean = (rets || []).filter((r) => Number.isFinite(r));
-  if (clean.length < 2) return { n: clean.length, mean: null, hitRate: null, label: 'insufficient' };
+  if (clean.length < 2)
+    return { n: clean.length, mean: null, hitRate: null, label: 'insufficient' };
   const mean = clean.reduce((a, b) => a + b, 0) / clean.length;
   const hitRate = clean.filter((r) => r > 0).length / clean.length;
   let label;

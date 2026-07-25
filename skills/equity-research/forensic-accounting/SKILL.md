@@ -5,7 +5,7 @@ description: Institutional-grade forensic accounting analysis for Indian listed 
 
 # Forensic Accounting
 
-> "If the auditor resigns without explanation — that alone is a sell signal. True in every major Indian fraud case." — *AI for the Intelligent Investor*, Day 1, p.61
+> "If the auditor resigns without explanation — that alone is a sell signal. True in every major Indian fraud case." — _AI for the Intelligent Investor_, Day 1, p.61
 
 This skill encodes the single most important prompt from the SOIC course: a brutal, evidence-grounded forensic check on a company's annual report. Every claim must cite a page number. Every red flag must quantify the impact. The output is read by a fund manager who is one quarter away from sizing a position — accuracy and pessimism beat hedge.
 
@@ -42,13 +42,13 @@ Read `$DOCS_DIR/manifest.json` to confirm. If only 1–2 ARs are available (e.g.
 
 For each AR, extract these sections targeted-ly. Don't `pdftotext` 250 pages and hope grep finds it:
 
-| Section needed | Extraction approach |
-|---|---|
-| P&L, Balance Sheet, Cash Flow | `pdftotext -layout` then `grep -A 30 "Statement of Profit"`, `"Balance Sheet"`, `"Cash Flow Statement"` |
-| Notes to accounts (RPTs, contingent liabs, accounting policies) | Find Notes section table of contents, extract specific note-number ranges |
-| Auditor's Report + CARO + KAMs | Always near front; usually pp.50–80 in larger ARs |
-| MDA | Front section, use grep for "Management Discussion" |
-| Director's Report / Corporate Governance | Front section |
+| Section needed                                                  | Extraction approach                                                                                     |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| P&L, Balance Sheet, Cash Flow                                   | `pdftotext -layout` then `grep -A 30 "Statement of Profit"`, `"Balance Sheet"`, `"Cash Flow Statement"` |
+| Notes to accounts (RPTs, contingent liabs, accounting policies) | Find Notes section table of contents, extract specific note-number ranges                               |
+| Auditor's Report + CARO + KAMs                                  | Always near front; usually pp.50–80 in larger ARs                                                       |
+| MDA                                                             | Front section, use grep for "Management Discussion"                                                     |
+| Director's Report / Corporate Governance                        | Front section                                                                                           |
 
 Reference the [extraction patterns in `references/forensic_extraction.md`](references/forensic_extraction.md) for grep templates per section.
 
@@ -57,6 +57,7 @@ Reference the [extraction patterns in `references/forensic_extraction.md`](refer
 Apply [`references/forensic_master_prompt.md`](references/forensic_master_prompt.md) — the full nine-section framework with thresholds, evidence requirements, and the Gensol/Brightcom/Manpasand/IndusInd pattern-matchers.
 
 Sections:
+
 1. **Brief summary** — Green/Yellow/Red checklist with one-line evidence per item
 2. **Revenue recognition** — Aggressive practices, channel stuffing, capitalisation policies (Brightcom pattern)
 3. **Cash flow discrepancies** — CFO vs PAT vs EBITDA bridge (Gensol pattern)
@@ -116,6 +117,7 @@ The PDF is typically 4–8 pages: 1 page summary + checklist, 1 page per major s
 ## Cross-skill integration
 
 This skill is invoked by:
+
 - `equity-research-deepdive` (delegates §11 Financial Quality & Red Flags entirely to this skill — no duplication)
 - `equity-research-master` (Tab 7 Forensics consumes the schema this skill produces)
 - `consecutive-filings-diff` Phase 1 forensic backbone references the same threshold table

@@ -17,19 +17,26 @@ const { loadEnv, hasFlag } = require('../lib/env');
 loadEnv();
 const db = require('../lib/db');
 
-const KIND_OF = { rpt: 'reports', evt: 'events', note: 'notes', val: 'insights', conv: 'conversations' };
+const KIND_OF = {
+  rpt: 'reports',
+  evt: 'events',
+  note: 'notes',
+  val: 'insights',
+  conv: 'conversations',
+};
 
 function collect() {
   /** companyId -> { reports:[], events:[], notes:[], insights:[], conversations:[] } */
   const links = new Map();
   const push = (cid, kind, id, date) => {
     if (!cid || !kind) return;
-    if (!links.has(cid)) links.set(cid, { reports: [], events: [], notes: [], insights: [], conversations: [] });
+    if (!links.has(cid))
+      links.set(cid, { reports: [], events: [], notes: [], insights: [], conversations: [] });
     links.get(cid)[kind].push({ id, date: date || '' });
   };
   const route = (r) => {
-    const kind = KIND_OF[String(r.id).split('_')[0]] ||
-      (r.verdict !== undefined ? 'insights' : null);
+    const kind =
+      KIND_OF[String(r.id).split('_')[0]] || (r.verdict !== undefined ? 'insights' : null);
     const ids = r.companyIds || (r.companyId ? [r.companyId] : []);
     for (const cid of ids) push(cid, kind, r.id, r.date || r.creationTime);
   };
@@ -55,7 +62,15 @@ function run() {
     for (const cid of links.keys()) {
       if (!companies[cid]) {
         const now = require('../lib/ist').nowIstIso();
-        companies[cid] = { id: cid, name: null, links: {}, manual: {}, creationTime: now, modifiedTime: now, creator: 'rebuild-links' };
+        companies[cid] = {
+          id: cid,
+          name: null,
+          links: {},
+          manual: {},
+          creationTime: now,
+          modifiedTime: now,
+          creator: 'rebuild-links',
+        };
       }
     }
 
@@ -84,7 +99,9 @@ function run() {
     if (!dry) db.writeFileAtomic(file, companies);
   });
 
-  console.log(`[rebuildLinks] companies with links: ${links.size}; updated: ${changed}${dry ? ' (dry-run, not written)' : ''}`);
+  console.log(
+    `[rebuildLinks] companies with links: ${links.size}; updated: ${changed}${dry ? ' (dry-run, not written)' : ''}`
+  );
 }
 
 run();

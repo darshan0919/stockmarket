@@ -7,21 +7,22 @@ const { loadEnv, argValue } = require('./lib/env');
 const { cachePath } = require('./lib/db');
 
 const getHeaders = (authToken) => ({
-  'accept': 'application/json',
+  accept: 'application/json',
   'accept-language': 'en-US,en;q=0.9',
   'content-type': 'application/json',
-  'cookie': `_ga=GA1.1.923358363.1766992983; authtoken=${authToken}; lastLayout=7e0f8a1d63c1dacad645ffab; theme=light; _clck=n576cg%5E2%5Eg7o%5E0%5E2189; _clsk=wdey55%5E1783861291769%5E15%5E1%5Ey.clarity.ms%2Fcollect; _ga_6GLNXH796V=GS2.1.s1783858803$o886$g1$t1783861293$j57$l0$h0`,
-  'origin': 'https://www.stockscans.in',
-  'priority': 'u=1, i',
-  'referer': 'https://www.stockscans.in/scans/saved/9493efc2c969d602c5dedbe2',
+  cookie: `_ga=GA1.1.923358363.1766992983; authtoken=${authToken}; lastLayout=7e0f8a1d63c1dacad645ffab; theme=light; _clck=n576cg%5E2%5Eg7o%5E0%5E2189; _clsk=wdey55%5E1783861291769%5E15%5E1%5Ey.clarity.ms%2Fcollect; _ga_6GLNXH796V=GS2.1.s1783858803$o886$g1$t1783861293$j57$l0$h0`,
+  origin: 'https://www.stockscans.in',
+  priority: 'u=1, i',
+  referer: 'https://www.stockscans.in/scans/saved/9493efc2c969d602c5dedbe2',
   'sec-ch-ua': '"Not;A=Brand";v="8", "Chromium";v="150", "Google Chrome";v="150"',
   'sec-ch-ua-mobile': '?0',
   'sec-ch-ua-platform': '"macOS"',
   'sec-fetch-dest': 'empty',
   'sec-fetch-mode': 'cors',
   'sec-fetch-site': 'same-origin',
-  'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
-  'x-sync-source': 'vizcbbsxmrhsr8un'
+  'user-agent':
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
+  'x-sync-source': 'vizcbbsxmrhsr8un',
 });
 
 async function runScan(payload, authToken) {
@@ -31,12 +32,13 @@ async function runScan(payload, authToken) {
   const limit = 50;
   const headers = getHeaders(authToken);
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     payload.offset = offset;
     const res = await fetch('https://www.stockscans.in/api/company/scans/run', {
       method: 'POST',
       headers,
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) throw new Error(`API Error: ${res.status}`);
@@ -50,8 +52,28 @@ async function runScan(payload, authToken) {
   return { header, rows: allRows };
 }
 
-function tableHtml(title, counts, streakMap) {
-  const rows = counts.map(c => `<tr><td style="border-bottom:1px solid #eee">${c.name || 'Unknown'}</td><td style="border-bottom:1px solid #eee;text-align:right">${c.count}</td><td style="border-bottom:1px solid #eee;text-align:right">${streakMap[c.name] || 1}</td></tr>`);
+function scanSourceHtml(scan) {
+  const url = `https://www.stockscans.in/scans/saved/${scan.scanId}`;
+  const filterText = (scan.filters || [])
+    .map((f) => `${f.left} ${f.sign} ${f.right}`)
+    .join(' &nbsp;·&nbsp; ');
+  return `Source: <a href="${url}" style="color:#1a237e;text-decoration:none;font-weight:bold">${scan.scanName}</a> &nbsp;|&nbsp; ${filterText}`;
+}
+
+function makeLink(name, type) {
+  const encoded = encodeURIComponent(name || '');
+  const url =
+    type === 'industry'
+      ? `https://www.stockscans.in/scans/new?industry=${encoded}&filters=`
+      : `https://www.stockscans.in/scans/new?sector=${encoded}&filters=`;
+  return `<a href="${url}" style="color:#1a237e;text-decoration:none">${name || 'Unknown'}</a>`;
+}
+
+function tableHtml(title, counts, streakMap, type) {
+  const rows = counts.map(
+    (c) =>
+      `<tr><td style="border-bottom:1px solid #eee">${makeLink(c.name, type)}</td><td style="border-bottom:1px solid #eee;text-align:right">${c.count}</td><td style="border-bottom:1px solid #eee;text-align:right">${streakMap[c.name] || 1}</td></tr>`
+  );
   return `
   <h3 style="margin:24px 0 6px;font-family:Arial,sans-serif;color:#1a237e">${title}</h3>
   <table cellpadding="6" cellspacing="0" border="0" style="border-collapse:collapse;font:13px Arial;width:100%;max-width:500px;white-space:nowrap">
@@ -64,11 +86,36 @@ async function main() {
   loadEnv(argValue('--env-file'));
   const noEmail = process.argv.includes('--no-email');
 
-  const payload = { "ratiosType": "Default", "timePeriod": "Latest", "scan": { "scanId": "9493efc2c969d602c5dedbe2", "scanName": "Near Highs", "scanDescription": "Near Highs", "industry": [], "index": [], "tags": [], "watchlistIds": [], "filters": [{ "left": "52WH Distance", "sign": "<", "right": "20" }, { "left": "52WL Distance", "sign": ">", "right": "50" }, { "left": "Close Price", "sign": ">=", "right": "EMA 200D" }, { "left": "Volume SMA 50D * SMA 50D", "sign": ">=", "right": "50000000" }, { "left": "Market Capitalization", "sign": ">=", "right": "500" }, { "left": "Market Capitalization", "sign": "<", "right": "50000" }], "alertFrequency": null }, "watchlistIds": [], "order": "desc", "orderBy": "Market Capitalization", "offset": 0 };
+  const payload = {
+    ratiosType: 'Default',
+    timePeriod: 'Latest',
+    scan: {
+      scanId: '9493efc2c969d602c5dedbe2',
+      scanName: 'Near Highs',
+      scanDescription: 'Near Highs',
+      industry: [],
+      index: [],
+      tags: [],
+      watchlistIds: [],
+      filters: [
+        { left: '52WH Distance', sign: '<', right: '20' },
+        { left: '52WL Distance', sign: '>', right: '50' },
+        { left: 'Close Price', sign: '>=', right: 'EMA 200D' },
+        { left: 'Volume SMA 50D * SMA 50D', sign: '>=', right: '50000000' },
+        { left: 'Market Capitalization', sign: '>=', right: '500' },
+        { left: 'Market Capitalization', sign: '<', right: '50000' },
+      ],
+      alertFrequency: null,
+    },
+    watchlistIds: [],
+    order: 'desc',
+    orderBy: 'Market Capitalization',
+    offset: 0,
+  };
 
   const { header, rows } = await runScan(payload, process.env.STOCKSCANS_AUTH_TOKEN);
   if (!header) {
-    console.log("No data returned");
+    console.log('No data returned');
     return;
   }
 
@@ -98,13 +145,24 @@ async function main() {
     cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
   }
 
+  const sortCounts = (countsMap) => {
+    return Object.entries(countsMap)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  };
+
+  const industryAll = sortCounts(industryCounts);
+  const sectorAll = sortCounts(sectorCounts);
+  const top5Industries = industryAll.slice(0, 5).map((x) => x.name);
+  const top5Sectors = sectorAll.slice(0, 5).map((x) => x.name);
+
   if (cache.lastRunDate !== isoDate) {
     const newIndStreaks = {};
     const newSecStreaks = {};
-    for (const ind of Object.keys(industryCounts)) {
+    for (const ind of top5Industries) {
       newIndStreaks[ind] = (cache.industryStreaks[ind] || 0) + 1;
     }
-    for (const sec of Object.keys(sectorCounts)) {
+    for (const sec of top5Sectors) {
       newSecStreaks[sec] = (cache.sectorStreaks[sec] || 0) + 1;
     }
     cache.industryStreaks = newIndStreaks;
@@ -114,21 +172,14 @@ async function main() {
     fs.writeFileSync(cacheFile, JSON.stringify(cache, null, 2));
   }
 
-  const sortCounts = (countsMap, streakMap) => {
-    return Object.entries(countsMap)
-      .map(([name, count]) => ({ name, count, streak: streakMap[name] || 1 }))
-      .sort((a, b) => b.count - a.count || b.streak - a.streak);
-  };
-
-  const industrySorted = sortCounts(industryCounts, cache.industryStreaks);
-  const sectorSorted = sortCounts(sectorCounts, cache.sectorStreaks);
+  const industrySorted = industryAll.slice(0, 5);
+  const sectorSorted = sectorAll.slice(0, 5);
 
   const htmlBody = `
 <div style="max-width:860px">
-  <h2 style="font-family:Arial;color:#0d1333;margin:0">Near Highs Digest — ${dateLabel}</h2>
-  <p style="font:12px Arial;color:#666;margin:4px 0 0">Near Highs by Industry and Sector.</p>
-  ${tableHtml('Industry vs Count', industrySorted, cache.industryStreaks)}
-  ${tableHtml('Sector vs Count', sectorSorted, cache.sectorStreaks)}
+  ${tableHtml('Industry vs Count', industrySorted, cache.industryStreaks, 'industry')}
+  ${tableHtml('Sector vs Count', sectorSorted, cache.sectorStreaks, 'sector')}
+  <p style="font:11px Arial;color:#999;margin:24px 0 0;border-top:1px solid #eee;padding-top:8px">${scanSourceHtml(payload.scan)}</p>
 </div>`;
 
   let email = { status: 'skipped', reason: '--no-email' };
@@ -140,13 +191,19 @@ async function main() {
     });
   }
 
-  console.log(JSON.stringify({
-    date: dateLabel,
-    totalNearHighs: rows.length,
-    topIndustries: industrySorted.slice(0, 5),
-    topSectors: sectorSorted.slice(0, 5),
-    email
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        date: dateLabel,
+        totalNearHighs: rows.length,
+        topIndustries: industrySorted.slice(0, 5),
+        topSectors: sectorSorted.slice(0, 5),
+        email,
+      },
+      null,
+      2
+    )
+  );
 }
 
 if (require.main === module) {

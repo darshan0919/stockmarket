@@ -26,7 +26,9 @@ describe('StockscansClient.ohlcv', () => {
     expect(http.calls[0].url).toBe('https://www.stockscans.in/api/company/ohlcv/NSE%3AELECON');
     expect(http.calls[0].opts.params).toEqual({ tf: '1m' });
     expect(http.calls[0].opts.headers.cookie).toBe('authtoken=tok');
-    expect(http.calls[0].opts.headers.referer).toBe('https://www.stockscans.in/charts/NSE%3AELECON');
+    expect(http.calls[0].opts.headers.referer).toBe(
+      'https://www.stockscans.in/charts/NSE%3AELECON'
+    );
     expect(data.companyId).toBe('NSE:ELECON');
   });
 

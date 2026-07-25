@@ -37,7 +37,15 @@ const DIRS = {
   checkpoints: () => path.join(dataRoot(), '_meta', 'checkpoints'),
 };
 
-const SINGLE_FILE_COLLECTIONS = ['companies', 'reports', 'notes', 'theses', 'validation', 'conversations', 'prompts'];
+const SINGLE_FILE_COLLECTIONS = [
+  'companies',
+  'reports',
+  'notes',
+  'theses',
+  'validation',
+  'conversations',
+  'prompts',
+];
 const LINK_CAP = 200; // max event/note/insight ids kept on a company object
 const LOCK_STALE_MS = 5 * 60 * 1000;
 const LOCK_WAIT_MS = 30 * 1000;
@@ -68,7 +76,8 @@ function makeId(kind, creator, scope, date, discriminator = '') {
  */
 function ensureEnvelope(record, { kind, scope, discriminator } = {}) {
   if (!record || typeof record !== 'object') throw new Error('record must be an object');
-  if (!record.creator) throw new Error('record.creator is required (skill/script/job name or "user")');
+  if (!record.creator)
+    throw new Error('record.creator is required (skill/script/job name or "user")');
   if (!record.id) {
     if (!kind) throw new Error('record.id missing and no `kind` given to derive one');
     record.id = makeId(kind, record.creator, scope || record.companyId, record.date, discriminator);
@@ -92,13 +101,20 @@ function sleep(ms) {
 // content is {released:true} or stale. release = overwrite with {released:true}.
 function lockToken() {
   return JSON.stringify({
-    pid: process.pid, ts: Date.now(), host: require('os').hostname(),
-    nonce: crypto.randomBytes(8).toString('hex'), released: false,
+    pid: process.pid,
+    ts: Date.now(),
+    host: require('os').hostname(),
+    nonce: crypto.randomBytes(8).toString('hex'),
+    released: false,
   });
 }
 
 function readLock(lockPath) {
-  try { return JSON.parse(fs.readFileSync(lockPath, 'utf8')); } catch (_) { return null; }
+  try {
+    return JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+  } catch (_) {
+    return null;
+  }
 }
 
 function acquireLock(name) {
@@ -119,12 +135,18 @@ function acquireLock(name) {
       const free = !cur || cur.released === true || Date.now() - (cur.ts || 0) > LOCK_STALE_MS;
       if (free) {
         // Claim by overwrite, then verify we won any race.
-        try { fs.writeFileSync(lockPath, token); } catch (_) { /* retry */ }
+        try {
+          fs.writeFileSync(lockPath, token);
+        } catch (_) {
+          /* retry */
+        }
         const now = readLock(lockPath);
         if (now && JSON.stringify(now) === token) return { lockPath, token };
       }
       if (Date.now() > deadline) {
-        throw new Error(`Could not acquire lock ${name} within ${LOCK_WAIT_MS}ms — another writer is active.`);
+        throw new Error(
+          `Could not acquire lock ${name} within ${LOCK_WAIT_MS}ms — another writer is active.`
+        );
       }
       sleep(backoff);
       backoff = Math.min(backoff * 2, 2000);
@@ -139,7 +161,9 @@ function releaseLock(lock) {
     if (cur && JSON.stringify(cur) === lock.token) {
       fs.writeFileSync(lock.lockPath, JSON.stringify({ released: true, ts: Date.now() }));
     }
-  } catch (_) { /* best effort */ }
+  } catch (_) {
+    /* best effort */
+  }
 }
 
 /** Run fn while holding the collection lock. */
@@ -158,7 +182,8 @@ function collectionFile(collection, { date } = {}) {
   if (collection === 'events') {
     const d = date || nowIstIso().slice(0, 10);
     const ym = String(d).slice(0, 7); // YYYY-MM
-    if (!/^\d{4}-\d{2}$/.test(ym)) throw new Error(`events need a valid date (YYYY-MM-DD), got: ${date}`);
+    if (!/^\d{4}-\d{2}$/.test(ym))
+      throw new Error(`events need a valid date (YYYY-MM-DD), got: ${date}`);
     return path.join(dataRoot(), `events-${ym}.json`);
   }
   if (!SINGLE_FILE_COLLECTIONS.includes(collection)) {
@@ -185,7 +210,10 @@ function checkpoint(file) {
 function latestCheckpoint(file) {
   const prefix = `${path.basename(file, '.json')}.`;
   if (!fs.existsSync(DIRS.checkpoints())) return null;
-  const all = fs.readdirSync(DIRS.checkpoints()).filter((f) => f.startsWith(prefix)).sort();
+  const all = fs
+    .readdirSync(DIRS.checkpoints())
+    .filter((f) => f.startsWith(prefix))
+    .sort();
   return all.length ? path.join(DIRS.checkpoints(), all[all.length - 1]) : null;
 }
 
@@ -198,7 +226,9 @@ function loadFile(file) {
   } catch (e) {
     const cp = latestCheckpoint(file);
     if (cp) {
-      console.error(`[db] CORRUPT ${path.basename(file)} — restoring from checkpoint ${path.basename(cp)}`);
+      console.error(
+        `[db] CORRUPT ${path.basename(file)} — restoring from checkpoint ${path.basename(cp)}`
+      );
       fs.copyFileSync(file, `${file}.corrupt.${Date.now()}`); // keep evidence
       fs.copyFileSync(cp, file);
       return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -211,11 +241,15 @@ function loadFile(file) {
 // (docs/DATA_RULES.md §8 — skills/jobs must list all files touched at run end.)
 const _touched = new Set();
 function trackTouched(absFile) {
-  try { _touched.add(path.relative(dataRoot(), absFile).split(path.sep).join('/')); } catch (_) { /* best effort */ }
+  try {
+    _touched.add(path.relative(dataRoot(), absFile).split(path.sep).join('/'));
+  } catch (_) {
+    /* best effort */
+  }
 }
 /** Sorted data-root-relative paths of every file written by this process. */
 function touchedFiles() {
-  return [...(_touched)].sort();
+  return [..._touched].sort();
 }
 
 /** Atomic write: tmp + rename. Callers must hold the collection lock. */
@@ -325,14 +359,17 @@ function find(collection, filter = {}) {
       (!filter.since || (r.date || r.creationTime || '') >= filter.since)
   );
   const key = filter.sort || 'date';
-  out.sort((x, y) => String(y[key] || y.modifiedTime || '').localeCompare(String(x[key] || x.modifiedTime || '')));
+  out.sort((x, y) =>
+    String(y[key] || y.modifiedTime || '').localeCompare(String(x[key] || x.modifiedTime || ''))
+  );
   return filter.limit ? out.slice(0, filter.limit) : out;
 }
 
 function eventFilesInRange({ date, since } = {}) {
   const root = dataRoot();
   if (!fs.existsSync(root)) return [];
-  let months = fs.readdirSync(root)
+  let months = fs
+    .readdirSync(root)
     .filter((f) => /^events-\d{4}-\d{2}\.json$/.test(f))
     .sort();
   if (date) {
@@ -347,7 +384,13 @@ function eventFilesInRange({ date, since } = {}) {
 
 // ── Company links (derived; rebuildable via scripts/rebuildLinks.js) ─────────
 
-const LINK_KIND = { rpt: 'reports', evt: 'events', note: 'notes', val: 'insights', conv: 'conversations' };
+const LINK_KIND = {
+  rpt: 'reports',
+  evt: 'events',
+  note: 'notes',
+  val: 'insights',
+  conv: 'conversations',
+};
 
 /** Batch: one lock window + one atomic write for any number of records. */
 function linkToCompanies(records) {
@@ -404,13 +447,33 @@ function saveReport(dto) {
   withLock('report-bodies', () => {
     writeFileAtomic(bodyPath, dto);
   });
-  const { id, type, date, companyId, companyIds, creator, creationTime, modifiedTime, summary, contextUsed } = dto;
-  upsertMany('reports', [{
-    id, type, date, companyId, companyIds, creator, creationTime, modifiedTime,
-    summary: summary || null,
-    contextUsed: contextUsed || [],
-    body: `reports/${id}.json`,
-  }]);
+  const {
+    id,
+    type,
+    date,
+    companyId,
+    companyIds,
+    creator,
+    creationTime,
+    modifiedTime,
+    summary,
+    contextUsed,
+  } = dto;
+  upsertMany('reports', [
+    {
+      id,
+      type,
+      date,
+      companyId,
+      companyIds,
+      creator,
+      creationTime,
+      modifiedTime,
+      summary: summary || null,
+      contextUsed: contextUsed || [],
+      body: `reports/${id}.json`,
+    },
+  ]);
   linkToCompanies(dto);
   return dto.id;
 }
@@ -434,21 +497,44 @@ function saveConversation(dto) {
   withLock('conversation-bodies', () => {
     writeFileAtomic(bodyPath, body);
   });
-  const { id, type, date, companyIds, creator, creationTime, modifiedTime, title, sessionId, tags, summary, artifacts, contentHash, dirty } = dto;
-  upsertMany('conversations', [{
-    id, type, date, companyIds: companyIds || [], creator, creationTime, modifiedTime,
-    title: title || null,
-    sessionId: sessionId || null,
-    tags: tags || [],
-    summary: summary || null,
-    artifactCount: Array.isArray(artifacts) ? artifacts.length : 0,
-    contentHash: contentHash || null,
-    // `dirty` = content changed (new turns) since the enrichment job last
-    // processed this conversation. Capture sets it true on an update; the
-    // enrichment job clears it back to false once re-processed.
-    dirty: !!dirty,
-    body: `conversations/${id}.json`,
-  }]);
+  const {
+    id,
+    type,
+    date,
+    companyIds,
+    creator,
+    creationTime,
+    modifiedTime,
+    title,
+    sessionId,
+    tags,
+    summary,
+    artifacts,
+    contentHash,
+    dirty,
+  } = dto;
+  upsertMany('conversations', [
+    {
+      id,
+      type,
+      date,
+      companyIds: companyIds || [],
+      creator,
+      creationTime,
+      modifiedTime,
+      title: title || null,
+      sessionId: sessionId || null,
+      tags: tags || [],
+      summary: summary || null,
+      artifactCount: Array.isArray(artifacts) ? artifacts.length : 0,
+      contentHash: contentHash || null,
+      // `dirty` = content changed (new turns) since the enrichment job last
+      // processed this conversation. Capture sets it true on an update; the
+      // enrichment job clears it back to false once re-processed.
+      dirty: !!dirty,
+      body: `conversations/${id}.json`,
+    },
+  ]);
   linkToCompanies(dto);
   return dto.id;
 }
@@ -492,7 +578,10 @@ function appendEvents(records, { creator } = {}) {
     if (creator && !r.creator) r.creator = creator;
     if (!r.date) throw new Error('event records require `date` (market date YYYY-MM-DD)');
     if (!r.type) throw new Error('event records require `type`');
-    ensureEnvelope(r, { kind: 'evt', discriminator: `${r.type}|${r.companyId || ''}|${r.headline || r.summary || ''}` });
+    ensureEnvelope(r, {
+      kind: 'evt',
+      discriminator: `${r.type}|${r.companyId || ''}|${r.headline || r.summary || ''}`,
+    });
   }
   const stats = upsertMany('events', records);
   linkToCompanies(records);
@@ -547,22 +636,50 @@ function appendValidations(records) {
 const appendValidation = (record) => appendValidations([record]);
 
 /** Path helpers for non-collection artifacts (assets/runs/cache). */
-function assetPath(name) { init(); return path.join(DIRS.assets(), name); }
+function assetPath(name) {
+  init();
+  return path.join(DIRS.assets(), name);
+}
 function runPath(skill, runId, name) {
   init();
   return path.join(DIRS.runs(), `${skill}_${runId}_${name}`);
 }
-function cachePath(name) { init(); return path.join(DIRS.cache(), name); }
+function cachePath(name) {
+  init();
+  return path.join(DIRS.cache(), name);
+}
 
 module.exports = {
-  dataRoot, init,
-  makeId, ensureEnvelope,
-  upsert, upsertMany, get, find,
-  saveReport, readReport, saveConversation, readConversation, savePrompt, savePrompts, appendEvents, appendNote, appendNotes, saveThesis,
-  appendValidation, appendValidations,
+  dataRoot,
+  init,
+  makeId,
+  ensureEnvelope,
+  upsert,
+  upsertMany,
+  get,
+  find,
+  saveReport,
+  readReport,
+  saveConversation,
+  readConversation,
+  savePrompt,
+  savePrompts,
+  appendEvents,
+  appendNote,
+  appendNotes,
+  saveThesis,
+  appendValidation,
+  appendValidations,
   linkToCompanies,
-  assetPath, runPath, cachePath,
-  touchedFiles, trackTouched, // run manifest (docs/DATA_RULES.md §8)
-  withLock, collectionFile, loadFile, writeFileAtomic, // exposed for scripts/tests
-  SINGLE_FILE_COLLECTIONS, LINK_CAP,
+  assetPath,
+  runPath,
+  cachePath,
+  touchedFiles,
+  trackTouched, // run manifest (docs/DATA_RULES.md §8)
+  withLock,
+  collectionFile,
+  loadFile,
+  writeFileAtomic, // exposed for scripts/tests
+  SINGLE_FILE_COLLECTIONS,
+  LINK_CAP,
 };

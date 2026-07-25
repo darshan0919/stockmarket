@@ -34,13 +34,20 @@ const { loadEnv, hasFlag } = require('../lib/env');
 loadEnv();
 const db = require('../lib/db');
 const {
-  createDriveClient, uploadFile, downloadFile, listAllFiles, isApiConfigured,
+  createDriveClient,
+  uploadFile,
+  downloadFile,
+  listAllFiles,
+  isApiConfigured,
 } = require('@stock/cloud-utils/src/googleDriveApi');
 
 const DRIVE_ROOT = process.env.DATA_V2_DRIVE_ROOT || 'StockMarket/data/v2';
 const NEVER_SYNC = (rel) =>
-  rel.startsWith('.locks/') || rel.startsWith('_meta/') ||
-  rel.includes('.tmp.') || rel.includes('.corrupt.') || path.basename(rel) === '.env' ||
+  rel.startsWith('.locks/') ||
+  rel.startsWith('_meta/') ||
+  rel.includes('.tmp.') ||
+  rel.includes('.corrupt.') ||
+  path.basename(rel) === '.env' ||
   path.basename(rel) === '.DS_Store' ||
   // local backup/scratch files must never mirror to Drive
   /(backup|\.bak|\.orig)$/i.test(rel) ||
@@ -48,13 +55,19 @@ const NEVER_SYNC = (rel) =>
   // any reports/rpt_artifact-migration_*.json is an orphan (do not sync)
   /^reports\/rpt_artifact-migration_.*\.json$/.test(rel);
 const IS_COLLECTION = (rel) =>
-  /^(companies|reports|notes|theses|validation|conversations|prompts|events-\d{4}-\d{2})\.json$/.test(rel);
+  /^(companies|reports|notes|theses|validation|conversations|prompts|events-\d{4}-\d{2})\.json$/.test(
+    rel
+  );
 
 // ── sync-state ───────────────────────────────────────────────────────────────
 
 const statePath = () => path.join(db.dataRoot(), '_meta', 'sync-state.json');
 function loadState() {
-  try { return JSON.parse(fs.readFileSync(statePath(), 'utf8')); } catch (_) { return { files: {} }; }
+  try {
+    return JSON.parse(fs.readFileSync(statePath(), 'utf8'));
+  } catch (_) {
+    return { files: {} };
+  }
 }
 function saveState(state) {
   fs.mkdirSync(path.dirname(statePath()), { recursive: true });
@@ -89,13 +102,20 @@ function mergeCollections(a, b) {
   let changed = false;
   for (const [id, rb] of Object.entries(b)) {
     const ra = out[id];
-    if (!ra) { out[id] = rb; changed = true; continue; }
+    if (!ra) {
+      out[id] = rb;
+      changed = true;
+      continue;
+    }
     const ta = String(ra.modifiedTime || '');
     const tb = String(rb.modifiedTime || '');
     let winner = ra;
     if (tb > ta) winner = rb;
     else if (tb === ta && recHash(rb) > recHash(ra)) winner = rb; // deterministic tie-break
-    if (winner !== ra) { out[id] = winner; changed = true; }
+    if (winner !== ra) {
+      out[id] = winner;
+      changed = true;
+    }
   }
   return { merged: out, changed };
 }
@@ -106,7 +126,11 @@ async function mergeFromDrive(drive, rel) {
   const ok = await downloadFile(drive, DRIVE_ROOT, rel, tmp);
   if (!ok) return false;
   let remote;
-  try { remote = JSON.parse(fs.readFileSync(tmp, 'utf8')); } finally { fs.rmSync(tmp, { force: true }); }
+  try {
+    remote = JSON.parse(fs.readFileSync(tmp, 'utf8'));
+  } finally {
+    fs.rmSync(tmp, { force: true });
+  }
   const local = db.loadFile(path.join(db.dataRoot(), rel));
   const { merged, changed } = mergeCollections(local, remote);
   if (changed) {
@@ -128,7 +152,9 @@ async function push({ dryRun }) {
   // Drive-side listing once, to detect remote drift for conflict handling.
   const remote = new Map((await listAllFiles(drive, DRIVE_ROOT)).map((f) => [f.driveRel, f]));
 
-  let uploaded = 0, skipped = 0, merged = 0;
+  let uploaded = 0,
+    skipped = 0,
+    merged = 0;
   const errors = [];
 
   for (const rel of locals) {
@@ -136,21 +162,29 @@ async function push({ dryRun }) {
     const hash = sha256(abs);
     const st = state.files[rel];
     const remoteEntry = remote.get(rel);
-    const remoteDrifted = remoteEntry && st && st.driveModifiedTime &&
+    const remoteDrifted =
+      remoteEntry &&
+      st &&
+      st.driveModifiedTime &&
       remoteEntry.modifiedTime !== st.driveModifiedTime;
 
-    if (st && st.sha256 === hash && !remoteDrifted) { skipped++; continue; }
+    if (st && st.sha256 === hash && !remoteDrifted) {
+      skipped++;
+      continue;
+    }
 
     // Already on Drive with identical content (e.g. interrupted previous push):
     // adopt into sync-state instead of re-uploading. Keeps re-runs convergent.
     if (remoteEntry && remoteEntry.md5 && remoteEntry.md5 === md5(abs) && !remoteDrifted) {
       state.files[rel] = {
-        sha256: hash, driveId: remoteEntry.id,
+        sha256: hash,
+        driveId: remoteEntry.id,
         driveModifiedTime: remoteEntry.modifiedTime,
         syncedAt: new Date().toISOString(),
       };
       if (!dryRun) saveState(state);
-      skipped++; continue;
+      skipped++;
+      continue;
     }
 
     try {
@@ -158,7 +192,10 @@ async function push({ dryRun }) {
         // Both sides may have changed → merge before uploading (no data loss).
         if (!dryRun && (await mergeFromDrive(drive, rel))) merged++;
       }
-      if (dryRun) { uploaded++; continue; }
+      if (dryRun) {
+        uploaded++;
+        continue;
+      }
       const res = await uploadFile(drive, DRIVE_ROOT, rel, abs);
       state.files[rel] = {
         sha256: sha256(abs),
@@ -179,12 +216,17 @@ async function push({ dryRun }) {
     const fresh = new Map((await listAllFiles(drive, DRIVE_ROOT)).map((f) => [f.driveRel, f]));
     for (const [rel, entry] of Object.entries(state.files)) {
       const f = fresh.get(rel);
-      if (f) { entry.driveModifiedTime = f.modifiedTime; entry.driveId = f.id; }
+      if (f) {
+        entry.driveModifiedTime = f.modifiedTime;
+        entry.driveId = f.id;
+      }
     }
     saveState(state);
   }
 
-  console.log(`[data push] uploaded=${uploaded} merged=${merged} skipped=${skipped}${dryRun ? ' (dry-run)' : ''}`);
+  console.log(
+    `[data push] uploaded=${uploaded} merged=${merged} skipped=${skipped}${dryRun ? ' (dry-run)' : ''}`
+  );
   if (errors.length) {
     console.error(`[data push] ${errors.length} error(s) — NOT pruning those files:`);
     errors.forEach((e) => console.error(`  - ${e}`));
@@ -197,7 +239,9 @@ async function pull({ dryRun }) {
   const { drive } = createDriveClient();
   const root = db.dataRoot();
   const remote = await listAllFiles(drive, DRIVE_ROOT);
-  let downloaded = 0, mergedN = 0, skipped = 0;
+  let downloaded = 0,
+    mergedN = 0,
+    skipped = 0;
 
   for (const f of remote) {
     const rel = f.driveRel;
@@ -208,8 +252,14 @@ async function pull({ dryRun }) {
     const localChanged = localExists && (!st || sha256(abs) !== st.sha256);
     const remoteChanged = !st || st.driveModifiedTime !== f.modifiedTime;
 
-    if (localExists && !remoteChanged) { skipped++; continue; }
-    if (dryRun) { downloaded++; continue; }
+    if (localExists && !remoteChanged) {
+      skipped++;
+      continue;
+    }
+    if (dryRun) {
+      downloaded++;
+      continue;
+    }
 
     if (IS_COLLECTION(rel) && localChanged) {
       if (await mergeFromDrive(drive, rel)) mergedN++;
@@ -217,16 +267,25 @@ async function pull({ dryRun }) {
       if (localChanged && localExists) {
         // Non-mergeable conflict: keep the local version as evidence, Drive wins.
         fs.copyFileSync(abs, `${abs}.local-conflict.${Date.now()}`);
-        console.error(`[data pull] CONFLICT (non-collection): ${rel} — local copy saved as *.local-conflict.*`);
+        console.error(
+          `[data pull] CONFLICT (non-collection): ${rel} — local copy saved as *.local-conflict.*`
+        );
       }
       await downloadFile(drive, DRIVE_ROOT, rel, abs);
       downloaded++;
     }
-    state.files[rel] = { sha256: sha256(abs), driveId: f.id, driveModifiedTime: f.modifiedTime, syncedAt: new Date().toISOString() };
+    state.files[rel] = {
+      sha256: sha256(abs),
+      driveId: f.id,
+      driveModifiedTime: f.modifiedTime,
+      syncedAt: new Date().toISOString(),
+    };
   }
 
   if (!dryRun) saveState(state);
-  console.log(`[data pull] downloaded=${downloaded} merged=${mergedN} skipped=${skipped}${dryRun ? ' (dry-run)' : ''}`);
+  console.log(
+    `[data pull] downloaded=${downloaded} merged=${mergedN} skipped=${skipped}${dryRun ? ' (dry-run)' : ''}`
+  );
 }
 
 async function status() {
@@ -237,7 +296,9 @@ async function status() {
     const st = state.files[rel];
     return !st || sha256(path.join(root, rel)) !== st.sha256;
   });
-  console.log(`[data status] local files: ${locals.length}; changed since last sync: ${localChanged.length}`);
+  console.log(
+    `[data status] local files: ${locals.length}; changed since last sync: ${localChanged.length}`
+  );
   localChanged.slice(0, 50).forEach((r) => console.log(`  ~ ${r}`));
   if (isApiConfigured && !isApiConfigured()) {
     console.log('[data status] Drive API not configured — remote comparison skipped.');
@@ -251,7 +312,9 @@ async function status() {
       return st && st.driveModifiedTime && st.driveModifiedTime !== f.modifiedTime;
     });
     const remoteOnly = remote.filter((f) => !state.files[f.driveRel] && !NEVER_SYNC(f.driveRel));
-    console.log(`[data status] remote files: ${remote.length}; drifted: ${remoteDrift.length}; not-yet-pulled: ${remoteOnly.length}`);
+    console.log(
+      `[data status] remote files: ${remote.length}; drifted: ${remoteDrift.length}; not-yet-pulled: ${remoteOnly.length}`
+    );
     remoteDrift.slice(0, 20).forEach((f) => console.log(`  ! ${f.driveRel} (changed on Drive)`));
     remoteOnly.slice(0, 20).forEach((f) => console.log(`  + ${f.driveRel}`));
   } catch (e) {

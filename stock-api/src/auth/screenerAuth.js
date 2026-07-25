@@ -36,9 +36,10 @@ class ScreenerAuth {
     this._csrftoken = csrftoken || null;
     this._cookies = cookies || null;
     this._envPath = envPath || null;
-    this._userAgent = userAgent
-      || 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
-        + '(KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36';
+    this._userAgent =
+      userAgent ||
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
+        '(KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36';
   }
 
   _envFile(key) {
@@ -73,9 +74,9 @@ class ScreenerAuth {
     const csrftoken = this._resolve('SCREENER_CSRFTOKEN', this._csrftoken);
     if (!sessionid) {
       throw new Error(
-        'SCREENER_SESSIONID not set. Log in to screener.in, copy the `sessionid` '
-        + '(and `csrftoken`) cookie from DevTools → Application → Cookies, and set '
-        + 'SCREENER_SESSIONID / SCREENER_CSRFTOKEN in .env.'
+        'SCREENER_SESSIONID not set. Log in to screener.in, copy the `sessionid` ' +
+          '(and `csrftoken`) cookie from DevTools → Application → Cookies, and set ' +
+          'SCREENER_SESSIONID / SCREENER_CSRFTOKEN in .env.'
       );
     }
     const parts = [];
@@ -93,8 +94,9 @@ class ScreenerAuth {
       if (!optional) throw err;
     }
     const h = {
-      accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,'
-        + 'image/webp,image/apng,*/*;q=0.8',
+      accept:
+        'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,' +
+        'image/webp,image/apng,*/*;q=0.8',
       'accept-language': 'en-US,en;q=0.9',
       'user-agent': this._userAgent,
       referer,
@@ -106,7 +108,12 @@ class ScreenerAuth {
 
   /** True if a usable session cookie is configured (does not check server-side validity). */
   isConfigured() {
-    try { this.cookieHeader(); return true; } catch { return false; }
+    try {
+      this.cookieHeader();
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
 

@@ -17,7 +17,7 @@ This is the single most important instruction in the entire skill. Every section
 The hierarchy of analysis, in strict order:
 
 1. **Business model mechanics** — how does the company make money at the transaction level? Unit economics of a single transaction/order/policy/service.
-2. **Competitive moat** — *why* does this company win? What would a well-funded competitor need, and how long would it take?
+2. **Competitive moat** — _why_ does this company win? What would a well-funded competitor need, and how long would it take?
 3. **Customer behaviour** — who uses it, how often, what they spend, repeat/retention rates, cohort maturation.
 4. **Margin drivers** — specific operational levers (owned brands, ad revenue, density, recurring commissions, operating leverage). Show the mechanics, not just the numbers.
 5. **Strategic choices & trade-offs** — what bets is management making? What are they sacrificing short-term for long-term?
@@ -39,17 +39,17 @@ Before writing a single word, complete the protocol in [`references/research_pro
 5. **For policy / regulatory claims**, search for the actual gazette notification, bill text, or official press release. Cite it.
 6. **Date-stamp the report** and flag any figure older than 2 quarters.
 
-*Why this exists:* a prior SOIC note carried a P/E error sourced from Screener.in (POCL). This protocol exists to prevent that class of error permanently. **Accuracy > Speed.**
+_Why this exists:_ a prior SOIC note carried a P/E error sourced from Screener.in (POCL). This protocol exists to prevent that class of error permanently. **Accuracy > Speed.**
 
 ### Phase 1 — Sector classification & framework selection
 
 Classify the sector before starting analysis. The framework adapts:
 
-| Sector type | Section 6 becomes | Section 9 becomes | Lead emphasis |
-|---|---|---|---|
-| **Platform / consumer internet** (Blinkit, Nykaa, Zomato, Policybazaar, Urban Company) | Unit Economics & Margin Architecture (per-order P&L) | Strategic Initiatives Map (category expansion, dark store roll-out) | Customer behaviour, repeat rate, contribution margin per order |
-| **Industrial / infrastructure / manufacturing** (nuclear, defence, semis, MLCC, EPC, capital goods) | Structural Framework (e.g. Thorium & 3-Stage; API vs Formulations; Wafer → Fab → Packaging) | Stalled / Revived / Upcoming Project Map | Capacity, order book quality, technology positioning |
-| **Financial services / regulated** (NBFC, insurance, broking, AMC) | Regulatory Capital & Unit Economics (per-policy / per-customer P&L) | Distribution & Product Mix Roadmap | Persistency, claims ratio, AUM mix, regulatory moat |
+| Sector type                                                                                         | Section 6 becomes                                                                           | Section 9 becomes                                                   | Lead emphasis                                                  |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------- |
+| **Platform / consumer internet** (Blinkit, Nykaa, Zomato, Policybazaar, Urban Company)              | Unit Economics & Margin Architecture (per-order P&L)                                        | Strategic Initiatives Map (category expansion, dark store roll-out) | Customer behaviour, repeat rate, contribution margin per order |
+| **Industrial / infrastructure / manufacturing** (nuclear, defence, semis, MLCC, EPC, capital goods) | Structural Framework (e.g. Thorium & 3-Stage; API vs Formulations; Wafer → Fab → Packaging) | Stalled / Revived / Upcoming Project Map                            | Capacity, order book quality, technology positioning           |
+| **Financial services / regulated** (NBFC, insurance, broking, AMC)                                  | Regulatory Capital & Unit Economics (per-policy / per-customer P&L)                         | Distribution & Product Mix Roadmap                                  | Persistency, claims ratio, AUM mix, regulatory moat            |
 
 If genuinely hybrid (e.g. fintech-NBFC, D2C-with-manufacturing), pick the dominant framing and note the hybrid nature upfront.
 
@@ -58,11 +58,12 @@ If genuinely hybrid (e.g. fintech-NBFC, D2C-with-manufacturing), pick the domina
 Follow the search framework in [`references/research_protocol.md`](references/research_protocol.md) §Research Searches. Effort is heavily front-loaded here — report quality is 100% gated on research depth.
 
 Sources, in priority order:
+
 - **Official primary sources:** company filings, BSE/NSE announcements, gazette notifications, regulator press releases, government policy documents.
 - **Concalls & investor presentations** — latest 2–4 quarters per major company; prioritise strategic commentary over guidance numbers.
 - **Industry reports** — credit rating agency sector reports (CARE, ICRA, India Ratings, CRISIL), reputed industry associations, IEA/IRENA/IAEA for energy, SIA/ESIA for semis, WHO/IQVIA for pharma.
 - **Long-form business analysis** — Substack deep-dives, founder/CEO interviews, podcasts. These often have business-mechanism insights that brokerage notes miss.
-- **Financial portals:** Screener.in for per-company financials/peers/shareholding; Trendlyne / Tickertape / MoneyControl for additional data. *Treat Screener.in figures as starting points — verify against the actual filing for any number that drives a conclusion.*
+- **Financial portals:** Screener.in for per-company financials/peers/shareholding; Trendlyne / Tickertape / MoneyControl for additional data. _Treat Screener.in figures as starting points — verify against the actual filing for any number that drives a conclusion._
 
 For Indian listed companies, if the user has provided a Stockscans ticker for any company in the sector, auto-fetch documents:
 
@@ -78,18 +79,19 @@ python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
 
 Use the 19-section framework in [`references/sector_framework.md`](references/sector_framework.md). Effort allocation by criticality:
 
-| Priority | Sections |
-|---|---|
-| CRITICAL | §1 Executive Summary, §6 Sector-Specific Deep Topic, §7 Value Chain Breakdown, §10 Company-by-Company, §11 Monopolies & Moats |
-| HIGH | §2 First Principles, §4 India Story, §5 Policy & Regulatory, §8 Emerging Theme, §14 Risks & Bear Case |
-| IMPORTANT | §3 Global Trends, §9 Project/Initiatives Map, §12 Global Value Chain, §13 Adjacent Demand, §15 Framework, §16 What to Watch |
-| SUPPORTING | §17 Sources, Appendices A & B |
+| Priority   | Sections                                                                                                                      |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| CRITICAL   | §1 Executive Summary, §6 Sector-Specific Deep Topic, §7 Value Chain Breakdown, §10 Company-by-Company, §11 Monopolies & Moats |
+| HIGH       | §2 First Principles, §4 India Story, §5 Policy & Regulatory, §8 Emerging Theme, §14 Risks & Bear Case                         |
+| IMPORTANT  | §3 Global Trends, §9 Project/Initiatives Map, §12 Global Value Chain, §13 Adjacent Demand, §15 Framework, §16 What to Watch   |
+| SUPPORTING | §17 Sources, Appendices A & B                                                                                                 |
 
 **Data density target:** 15–20 tables across all sections. **At least 5 must be business-model or unit-economics focused** (per-transaction P&L, customer behaviour, moat mechanism, margin drivers), not financial-summary focused.
 
 ### Phase 4 — Writing
 
 Tone & style rules (full list in [`references/sector_framework.md`](references/sector_framework.md) §Tone & Style):
+
 - Write like a senior analyst explaining the business to the investment committee, not listing stock metrics.
 - Lead every section with the "so what" for the **business**, not the stock price.
 - Be opinionated — every `[Analyst View]` must contain a clear stance with business reasoning.
@@ -99,12 +101,13 @@ Tone & style rules (full list in [`references/sector_framework.md`](references/s
 - Every number gets a source or is marked `[Analyst Estimate]`.
 
 **Critical "anti-shallow-analysis" rules** (full enforcement list in [`references/research_protocol.md`](references/research_protocol.md)):
+
 - NEVER lead a company section with CMP / Mcap / P/E as the header or first sentence.
 - NEVER list brokerage target prices — they add noise, not insight.
-- NEVER write "Company X has a strong moat" without explaining the *mechanism* of why and how durable.
+- NEVER write "Company X has a strong moat" without explaining the _mechanism_ of why and how durable.
 - NEVER describe a business model in one sentence ("marketplace model") — explain it at the transaction level.
 - NEVER let valuation commentary exceed 10% of any company's analysis section.
-- ALWAYS explain *why* a metric changed, not just *that* it changed.
+- ALWAYS explain _why_ a metric changed, not just _that_ it changed.
 - ALWAYS compare unit economics across competitors, not just one company's numbers.
 
 ### Phase 4.5 — Persist the JSON DTO
@@ -144,10 +147,10 @@ After generation, run a self-audit: re-read the PDF for (a) any number flagged `
 
 - **Leading with valuation.** If the company section opens with P/E or target price, you've failed the philosophy test. Rewrite.
 - **Listing brokerage target prices.** They're noise. Delete them; explain business triggers instead.
-- **Generic moat claims.** "Brand strength" / "scale advantage" without the mechanism is empty. Explain *how* the moat actually works at the operational level.
+- **Generic moat claims.** "Brand strength" / "scale advantage" without the mechanism is empty. Explain _how_ the moat actually works at the operational level.
 - **One-sentence business models.** "Marketplace model" tells you nothing. Walk through a single transaction: who pays whom, what costs hit, what's the contribution margin.
 - **Country-level macro filler.** "India's GDP is growing" is not sector analysis. Cut it.
-- **Restating concall guidance numbers verbatim.** Translate them into business mechanics — what *operationally* must happen for the guidance to hit?
+- **Restating concall guidance numbers verbatim.** Translate them into business mechanics — what _operationally_ must happen for the guidance to hit?
 - **Not flagging unverified data.** The Screener.in / POCL P/E error happened because numbers weren't cross-checked. Always cite, always verify, always flag.
 - **Skipping the bear case.** Lead bear with business risks (model risk, competitive risk, customer behaviour risk, unit economics risk) — valuation risk should be last, not first.
 - **No variant perception.** Without §1 / §8 / §14 telling the reader something the consensus is missing, the report is a Bloomberg printout. Provide an edge.

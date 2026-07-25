@@ -12,12 +12,8 @@ const fs = require('fs');
  */
 function loadEnv(explicitPath) {
   const repoRoot = require('path').join(__dirname, '..', '..', '..', '.env');
-  const candidates = [
-    explicitPath,
-    process.env.COWORK_ENV,
-    repoRoot,
-  ].filter(Boolean);
-  const path = candidates.find(p => fs.existsSync(p));
+  const candidates = [explicitPath, process.env.COWORK_ENV, repoRoot].filter(Boolean);
+  const path = candidates.find((p) => fs.existsSync(p));
   if (!path) return null;
   for (const raw of fs.readFileSync(path, 'utf8').split(/\r?\n/)) {
     const line = raw.trim();
@@ -26,7 +22,10 @@ function loadEnv(explicitPath) {
     if (eq < 0) continue;
     const key = line.slice(0, eq).trim();
     // Strip inline comments (whitespace + '#'): `KEY=value   # note` → `value`.
-    const val = line.slice(eq + 1).replace(/\s+#.*$/, '').trim();
+    const val = line
+      .slice(eq + 1)
+      .replace(/\s+#.*$/, '')
+      .trim();
     if (key && process.env[key] === undefined) process.env[key] = val;
   }
   return path;

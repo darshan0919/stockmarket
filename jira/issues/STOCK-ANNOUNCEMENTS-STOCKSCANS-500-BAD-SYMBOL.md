@@ -2,17 +2,17 @@
 
 ## Tracking fields (local Jira)
 
-| Field | Value |
-|--------|--------|
-| **Issue Key** | — |
-| **Issue Type** | Bug |
-| **Status** | Done |
-| **Priority** | Medium |
-| **Labels** | `announcements`, `stockscans`, `integration` |
-| **Component** | Announcements tab / StockScans proxy |
-| **Summary** | StockScans upstream HTTP 500 for unknown `companyId` produced misleading “try again” + token-refresh UI |
-| **Created** | 2026-04-13 |
-| **Updated** | 2026-04-13 |
+| Field          | Value                                                                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------- |
+| **Issue Key**  | —                                                                                                       |
+| **Issue Type** | Bug                                                                                                     |
+| **Status**     | Done                                                                                                    |
+| **Priority**   | Medium                                                                                                  |
+| **Labels**     | `announcements`, `stockscans`, `integration`                                                            |
+| **Component**  | Announcements tab / StockScans proxy                                                                    |
+| **Summary**    | StockScans upstream HTTP 500 for unknown `companyId` produced misleading “try again” + token-refresh UI |
+| **Created**    | 2026-04-13                                                                                              |
+| **Updated**    | 2026-04-13                                                                                              |
 
 ## Description
 
@@ -29,10 +29,10 @@ Our client overwrote the upstream message for every5xx with a generic “try aga
 
 ## Fix
 
-| Area | Change |
-|------|--------|
-| `backend/services/stockscansAnnouncements.js` | Classify generic/internal/empty 5xx responses as `STOCKSCANS_BAD_COMPANY` with a clear message naming `companyId` and suggesting NSE or verifying on stockscans.in; keep distinct copy for specific upstream messages. |
-| `frontend/components/stock/AnnouncementsTab.js` | Read `error.response.data.code`; show token hint only for auth-style errors; show NSE/symbol hint for `STOCKSCANS_BAD_COMPANY`. |
+| Area                                            | Change                                                                                                                                                                                                                 |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `backend/services/stockscansAnnouncements.js`   | Classify generic/internal/empty 5xx responses as `STOCKSCANS_BAD_COMPANY` with a clear message naming `companyId` and suggesting NSE or verifying on stockscans.in; keep distinct copy for specific upstream messages. |
+| `frontend/components/stock/AnnouncementsTab.js` | Read `error.response.data.code`; show token hint only for auth-style errors; show NSE/symbol hint for `STOCKSCANS_BAD_COMPANY`.                                                                                        |
 
 ## Verification
 

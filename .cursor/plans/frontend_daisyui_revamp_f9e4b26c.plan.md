@@ -11,14 +11,12 @@ isProject: false
 
 Install 4 top-rated skills relevant to our stack (Next.js + Tailwind + DaisyUI + React):
 
-
 | Skill                                                  | Installs | Why                                                      |
 | ------------------------------------------------------ | -------- | -------------------------------------------------------- |
 | `wshobson/agents@tailwind-design-system`               | 12.1K    | Tailwind design system patterns                          |
 | `bobmatnyc/claude-mpm-skills@daisyui`                  | 268      | DaisyUI component patterns (best DaisyUI-specific skill) |
 | `vercel-labs/agent-skills@vercel-react-best-practices` | 174.6K   | React best practices from Vercel                         |
 | `anthropics/skills@frontend-design`                    | 106.4K   | General frontend design patterns                         |
-
 
 Commands:
 
@@ -42,7 +40,6 @@ npx skills add anthropics/skills@frontend-design -y
 
 ### 2b. Common Components (6 files)
 
-
 | Component                                                                    | DaisyUI Conversion                           |
 | ---------------------------------------------------------------------------- | -------------------------------------------- |
 | [Header.js](frontend/components/common/Header.js) (71 lines)                 | `navbar` component + dark mode `swap` toggle |
@@ -52,9 +49,7 @@ npx skills add anthropics/skills@frontend-design -y
 | [LoadingSpinner.js](frontend/components/common/LoadingSpinner.js) (13 lines) | `loading loading-spinner` component          |
 | [Snackbar.js](frontend/components/common/Snackbar.js) (77 lines)             | `toast` + `alert` components                 |
 
-
 ### 2c. Dashboard Components (3 files)
-
 
 | Component                                                                           | DaisyUI Conversion                         |
 | ----------------------------------------------------------------------------------- | ------------------------------------------ |
@@ -62,18 +57,14 @@ npx skills add anthropics/skills@frontend-design -y
 | [WatchlistSummary.js](frontend/components/dashboard/WatchlistSummary.js) (54 lines) | `card`, `stat` components                  |
 | [MarketSnapshot.js](frontend/components/dashboard/MarketSnapshot.js) (58 lines)     | `stats` component                          |
 
-
 ### 2d. Results Components (2 files)
-
 
 | Component                                                                              | DaisyUI Conversion                                    |
 | -------------------------------------------------------------------------------------- | ----------------------------------------------------- |
 | [ResultCard.js](frontend/components/results/ResultCard.js) (232 lines)                 | `card`, `badge`, `stat` components                    |
 | [ResultsFilterPanel.js](frontend/components/results/ResultsFilterPanel.js) (452 lines) | `select`, `input`, `btn-group`, `collapse` components |
 
-
 ### 2e. Stock Detail Components (14 files)
-
 
 | Component                                                            | DaisyUI Conversion                          |
 | -------------------------------------------------------------------- | ------------------------------------------- |
@@ -91,18 +82,14 @@ npx skills add anthropics/skills@frontend-design -y
 | [FinancialsTab.js](frontend/components/stock/FinancialsTab.js)       | `tabs` component                            |
 | [OrdersTab (+ sub-components)](frontend/components/stock/orders/)    | `table`, `card`, `btn`, `badge`, `collapse` |
 
-
 ### 2f. Screener Components (2 files)
-
 
 | Component                                                                  | DaisyUI Conversion                |
 | -------------------------------------------------------------------------- | --------------------------------- |
 | [FilterPanel.js](frontend/components/screener/FilterPanel.js) (280 lines)  | `range`, `select`, `input`, `btn` |
 | [ResultsTable.js](frontend/components/screener/ResultsTable.js) (76 lines) | `table`                           |
 
-
 ### 2g. Pages (6 files)
-
 
 | Page                                                  | DaisyUI Conversion                         |
 | ----------------------------------------------------- | ------------------------------------------ |
@@ -114,5 +101,3 @@ npx skills add anthropics/skills@frontend-design -y
 | [screener.js](frontend/pages/screener.js)             | Layout updates                             |
 | [stock/[symbol].js](frontend/pages/stock/[symbol].js) | `tabs` component for tab navigation        |
 | [404                                                  |                                            |
-
-

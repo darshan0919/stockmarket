@@ -12,13 +12,19 @@ const bwName = (n) => fixtures.find((c) => c.name === n);
 
 describe('stockmarketKeywords.classify', () => {
   test('stock title + body scores as stock', () => {
-    const r = kw.classify({ title: 'Swaraj Engines', text: 'NSE equity thesis on margins, capex and dividend' });
+    const r = kw.classify({
+      title: 'Swaraj Engines',
+      text: 'NSE equity thesis on margins, capex and dividend',
+    });
     expect(r.isStock).toBe(true);
     expect(r.matched).toEqual(expect.arrayContaining(['equity', 'thesis', 'dividend']));
   });
 
   test('non-stock small talk is not stock', () => {
-    const r = kw.classify({ title: 'Drafting a pitch or proposal', text: 'Please help me write a nice cover letter to a friend.' });
+    const r = kw.classify({
+      title: 'Drafting a pitch or proposal',
+      text: 'Please help me write a nice cover letter to a friend.',
+    });
     expect(r.isStock).toBe(false);
   });
 
@@ -39,7 +45,9 @@ describe('conversationExtractor.detectCompanyIds', () => {
   });
 
   test('drops placeholders and 1–2 char tickers, keeps real ones', () => {
-    const ids = ex.detectCompanyIds('example NSE:TICKER and NSE:XXX and NSE:M and NSE:AC but real NSE:STLTECH and NSE:BHAGYANGR and BSE:530555');
+    const ids = ex.detectCompanyIds(
+      'example NSE:TICKER and NSE:XXX and NSE:M and NSE:AC but real NSE:STLTECH and NSE:BHAGYANGR and BSE:530555'
+    );
     expect(ids).toEqual(['BSE:530555', 'NSE:BHAGYANGR', 'NSE:STLTECH']);
     expect(ids).not.toContain('NSE:TICKER');
     expect(ids).not.toContain('NSE:XXX');
@@ -63,9 +71,19 @@ describe('conversationExtractor.extract', () => {
   });
 
   test('cowork "local_<uuid>" session keys yield DISTINCT ids (no collision)', () => {
-    const mk = (sid) => ({ uuid: sid, name: 'Swaraj Engines equity', chat_messages: [{ sender: 'human', text: 'NSE thesis margin capex' }] });
-    const a = ex.extract(mk('local_5a88b1ac-a4ff-44f4-a86e-267f941a3e2a'), { source: 'cowork', now: NOW });
-    const b = ex.extract(mk('local_935db39a-f18a-4f41-a2b7-326ca4f18a47'), { source: 'cowork', now: NOW });
+    const mk = (sid) => ({
+      uuid: sid,
+      name: 'Swaraj Engines equity',
+      chat_messages: [{ sender: 'human', text: 'NSE thesis margin capex' }],
+    });
+    const a = ex.extract(mk('local_5a88b1ac-a4ff-44f4-a86e-267f941a3e2a'), {
+      source: 'cowork',
+      now: NOW,
+    });
+    const b = ex.extract(mk('local_935db39a-f18a-4f41-a2b7-326ca4f18a47'), {
+      source: 'cowork',
+      now: NOW,
+    });
     expect(a.conversationDto.id).not.toBe(b.conversationDto.id);
     expect(a.conversationDto.id).toBe('conv_cowork_5a88b1ac');
     expect(b.conversationDto.id).toBe('conv_cowork_935db39a');
@@ -87,7 +105,11 @@ describe('conversationExtractor.extract', () => {
   test('injected llm enriches summary + routing without changing purity', () => {
     const llm = {
       summarize: () => 'LLM summary',
-      route: () => ({ notes: [{ type: 'chat-insight' }], reports: [], companyIds: ['NSE:SWARAJENG'] }),
+      route: () => ({
+        notes: [{ type: 'chat-insight' }],
+        reports: [],
+        companyIds: ['NSE:SWARAJENG'],
+      }),
     };
     const r = ex.extract(bwName('Swaraj Engines'), { source: 'cloud', now: NOW, llm });
     expect(r.conversationDto.summary).toBe('LLM summary');

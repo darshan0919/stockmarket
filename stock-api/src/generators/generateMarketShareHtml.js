@@ -328,85 +328,93 @@ document.addEventListener('DOMContentLoaded', function() {
 `;
 
 function escapeHtml(unsafe) {
-    if (unsafe == null) return "---------";
-    return String(unsafe)
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;");
+  if (unsafe == null) return '---------';
+  return String(unsafe)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
-function fmtNum(value, decimals = 1, unit = "") {
-    if (value == null || value === "") return "---------";
-    let f = parseFloat(value);
-    if (isNaN(f)) return escapeHtml(value);
-    
-    let s = decimals === 0 
-        ? Math.round(f).toLocaleString('en-US') 
-        : f.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-    return `${s}${unit}`;
+function fmtNum(value, decimals = 1, unit = '') {
+  if (value == null || value === '') return '---------';
+  let f = parseFloat(value);
+  if (isNaN(f)) return escapeHtml(value);
+
+  let s =
+    decimals === 0
+      ? Math.round(f).toLocaleString('en-US')
+      : f.toLocaleString('en-US', {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        });
+  return `${s}${unit}`;
 }
 
 function fmtDeltaBps(bps) {
-    if (bps == null) return '<span class="delta-zero">---</span>';
-    let f = parseFloat(bps);
-    if (isNaN(f)) return escapeHtml(bps);
-    
-    if (f > 0) return `<span class="delta-pos">+${Math.round(f).toLocaleString('en-US')}</span>`;
-    if (f < 0) return `<span class="delta-neg">${Math.round(f).toLocaleString('en-US')}</span>`;
-    return '<span class="delta-zero">0</span>';
+  if (bps == null) return '<span class="delta-zero">---</span>';
+  let f = parseFloat(bps);
+  if (isNaN(f)) return escapeHtml(bps);
+
+  if (f > 0) return `<span class="delta-pos">+${Math.round(f).toLocaleString('en-US')}</span>`;
+  if (f < 0) return `<span class="delta-neg">${Math.round(f).toLocaleString('en-US')}</span>`;
+  return '<span class="delta-zero">0</span>';
 }
 
 function _sourceTag(tag) {
-    if (!tag) return "";
-    let safe = escapeHtml(String(tag));
-    let cssClass = "tag-" + safe.replace(/-/g, "-");
-    return `<span class="tag ${cssClass}">${safe}</span>`;
+  if (!tag) return '';
+  let safe = escapeHtml(String(tag));
+  let cssClass = 'tag-' + safe.replace(/-/g, '-');
+  return `<span class="tag ${cssClass}">${safe}</span>`;
 }
 
 function _hhiBadge(hhiValue, classification) {
-    if (hhiValue == null) return "";
-    let cls = "hhi-monopoly";
-    if (classification === "Competitive/Fragmented") cls = "hhi-fragmented";
-    else if (classification === "Moderately Concentrated") cls = "hhi-moderate";
-    else if (classification === "Highly Concentrated") cls = "hhi-high";
-    
-    return `<span class="hhi-badge ${cls}">${escapeHtml(classification)}</span>`;
+  if (hhiValue == null) return '';
+  let cls = 'hhi-monopoly';
+  if (classification === 'Competitive/Fragmented') cls = 'hhi-fragmented';
+  else if (classification === 'Moderately Concentrated') cls = 'hhi-moderate';
+  else if (classification === 'Highly Concentrated') cls = 'hhi-high';
+
+  return `<span class="hhi-badge ${cls}">${escapeHtml(classification)}</span>`;
 }
 
 function _confidenceBadge(level) {
-    let levelStr = (level || "MEDIUM").toUpperCase();
-    return `<span class="confidence-badge confidence-${levelStr}">${levelStr}</span>`;
+  let levelStr = (level || 'MEDIUM').toUpperCase();
+  return `<span class="confidence-badge confidence-${levelStr}">${levelStr}</span>`;
 }
 
 function _buildVerification(data) {
-    let v = data.verification || {};
-    let rde = v.rde_mix || {};
-    let r = rde.R || 0, d = rde.D || 0, e = rde.E || 0;
-    let total = r + d + e;
-    let ePct = total > 0 ? (e / total * 100).toFixed(1) : 0.0;
-    
-    let tamSources = v.tam_sources || [];
-    let openQs = v.open_definition_questions || [];
-    
-    let rows = [
-        ["Industry", escapeHtml(data.industry)],
-        ["Geography", escapeHtml(data.geography)],
-        ["Definition scope", escapeHtml(data.definition_scope)],
-        ["TAM sources", tamSources.length > 0 ? escapeHtml(tamSources.join(" | ")) : "---"],
-        ["TAM gap (across sources)", escapeHtml(v.tam_gap || "n/a")],
-        ["R / D / E mix", `R=${r}, D=${d}, E=${e} (${ePct}% estimate-heavy)`],
-        ["Confidence rating", _confidenceBadge(v.confidence)]
-    ];
-    
-    if (openQs.length > 0) {
-        rows.push(["⚠ Open definition questions", openQs.map(q => escapeHtml(q)).join("<br>")]);
-    }
-    
-    let gridHtml = rows.map(([lbl, val]) => `<div class="label">${lbl}</div><div class="value">${val}</div>`).join("\n");
-    
-    return `
+  let v = data.verification || {};
+  let rde = v.rde_mix || {};
+  let r = rde.R || 0,
+    d = rde.D || 0,
+    e = rde.E || 0;
+  let total = r + d + e;
+  let ePct = total > 0 ? ((e / total) * 100).toFixed(1) : 0.0;
+
+  let tamSources = v.tam_sources || [];
+  let openQs = v.open_definition_questions || [];
+
+  let rows = [
+    ['Industry', escapeHtml(data.industry)],
+    ['Geography', escapeHtml(data.geography)],
+    ['Definition scope', escapeHtml(data.definition_scope)],
+    ['TAM sources', tamSources.length > 0 ? escapeHtml(tamSources.join(' | ')) : '---'],
+    ['TAM gap (across sources)', escapeHtml(v.tam_gap || 'n/a')],
+    ['R / D / E mix', `R=${r}, D=${d}, E=${e} (${ePct}% estimate-heavy)`],
+    ['Confidence rating', _confidenceBadge(v.confidence)],
+  ];
+
+  if (openQs.length > 0) {
+    rows.push(['⚠ Open definition questions', openQs.map((q) => escapeHtml(q)).join('<br>')]);
+  }
+
+  let gridHtml = rows
+    .map(([lbl, val]) => `<div class="label">${lbl}</div><div class="value">${val}</div>`)
+    .join('\n');
+
+  return `
     <div class="verification-block">
         <h3>Part 0 — Data Verification Block</h3>
         <div class="verification-grid">${gridHtml}</div>
@@ -415,68 +423,85 @@ function _buildVerification(data) {
 }
 
 function _buildKpiStrip(data) {
-    let s = data.structure || {};
-    let sizing = data.sizing || {};
-    let players = data.players || [];
-    let topPlayer = players.length > 0 ? players[0] : {};
-    
-    let cards = [
-        ["Industry Size", fmtNum(sizing.sam_cr || sizing.tam_cr, 0), escapeHtml(data.currency_unit || "Rs Cr")],
-        ["CR3", fmtNum(s.CR3, 1, "%"), ""],
-        ["CR5", fmtNum(s.CR5, 1, "%"), ""],
-        ["CR10", fmtNum(s.CR10, 1, "%"), ""],
-        ["HHI", fmtNum(s.HHI, 0), _hhiBadge(s.HHI, s.classification)],
-        ["Top Player", escapeHtml(topPlayer.name || "---"), fmtNum(topPlayer.share_latest, 1, "% share")]
-    ];
-    
-    let cells = cards.map(([lbl, val, sub]) => 
+  let s = data.structure || {};
+  let sizing = data.sizing || {};
+  let players = data.players || [];
+  let topPlayer = players.length > 0 ? players[0] : {};
+
+  let cards = [
+    [
+      'Industry Size',
+      fmtNum(sizing.sam_cr || sizing.tam_cr, 0),
+      escapeHtml(data.currency_unit || 'Rs Cr'),
+    ],
+    ['CR3', fmtNum(s.CR3, 1, '%'), ''],
+    ['CR5', fmtNum(s.CR5, 1, '%'), ''],
+    ['CR10', fmtNum(s.CR10, 1, '%'), ''],
+    ['HHI', fmtNum(s.HHI, 0), _hhiBadge(s.HHI, s.classification)],
+    [
+      'Top Player',
+      escapeHtml(topPlayer.name || '---'),
+      fmtNum(topPlayer.share_latest, 1, '% share'),
+    ],
+  ];
+
+  let cells = cards
+    .map(
+      ([lbl, val, sub]) =>
         `<div class="kpi"><div class="kpi-label">${lbl}</div><div class="kpi-value">${val}</div><div class="kpi-sub">${sub}</div></div>`
-    ).join("\n");
-    
-    return `<div class="kpi-strip">${cells}</div>`;
+    )
+    .join('\n');
+
+  return `<div class="kpi-strip">${cells}</div>`;
 }
 
 function _buildPlayerTable(data) {
-    let players = data.players || [];
-    if (!players.length) return '<p class="section-intro">No player data provided.</p>';
-    
-    let cols = [
-        ["Rank", "rank", true],
-        ["Player", "name", false],
-        ["Listed?", "listed", false],
-        ["Latest Rev", "revenue_cr_latest", true],
-        ["Share Latest", "share_latest", true],
-        ["Share T-5", "share_t5", true],
-        ["Δ bps", "delta_bps", true],
-        ["Source", "source", false],
-        ["Notes", "notes", false]
-    ];
-    
-    let thHtml = cols.map((col, i) => 
+  let players = data.players || [];
+  if (!players.length) return '<p class="section-intro">No player data provided.</p>';
+
+  let cols = [
+    ['Rank', 'rank', true],
+    ['Player', 'name', false],
+    ['Listed?', 'listed', false],
+    ['Latest Rev', 'revenue_cr_latest', true],
+    ['Share Latest', 'share_latest', true],
+    ['Share T-5', 'share_t5', true],
+    ['Δ bps', 'delta_bps', true],
+    ['Source', 'source', false],
+    ['Notes', 'notes', false],
+  ];
+
+  let thHtml = cols
+    .map(
+      (col, i) =>
         `<th class="sortable" onclick="sortTable('player-table', ${i}, ${col[2]})">${col[0]}<span class="sort-indicator"></span></th>`
-    ).join("");
-    
-    let rowsHtml = players.map(p => {
-        let cells = [];
-        cells.push(`<td class="num">${escapeHtml(p.rank)}</td>`);
-        
-        let ticker = p.ticker;
-        let nameHtml = escapeHtml(p.name);
-        if (ticker) nameHtml += ` <span style="color:var(--muted);font-size:10px">(${escapeHtml(ticker)})</span>`;
-        cells.push(`<td>${nameHtml}</td>`);
-        
-        cells.push(`<td>${escapeHtml(p.listed)}</td>`);
-        cells.push(`<td class="num">${fmtNum(p.revenue_cr_latest, 0)}</td>`);
-        cells.push(`<td class="num">${fmtNum(p.share_latest, 1, "%")}</td>`);
-        cells.push(`<td class="num">${fmtNum(p.share_t5, 1, "%")}</td>`);
-        cells.push(`<td class="num">${fmtDeltaBps(p.delta_bps)}</td>`);
-        cells.push(`<td class="center">${_sourceTag(p.source)}</td>`);
-        cells.push(`<td style="font-size:11px;color:var(--muted)">${escapeHtml(p.notes || "")}</td>`);
-        
-        return `<tr>${cells.join("")}</tr>`;
-    }).join("");
-    
-    return `
+    )
+    .join('');
+
+  let rowsHtml = players
+    .map((p) => {
+      let cells = [];
+      cells.push(`<td class="num">${escapeHtml(p.rank)}</td>`);
+
+      let ticker = p.ticker;
+      let nameHtml = escapeHtml(p.name);
+      if (ticker)
+        nameHtml += ` <span style="color:var(--muted);font-size:10px">(${escapeHtml(ticker)})</span>`;
+      cells.push(`<td>${nameHtml}</td>`);
+
+      cells.push(`<td>${escapeHtml(p.listed)}</td>`);
+      cells.push(`<td class="num">${fmtNum(p.revenue_cr_latest, 0)}</td>`);
+      cells.push(`<td class="num">${fmtNum(p.share_latest, 1, '%')}</td>`);
+      cells.push(`<td class="num">${fmtNum(p.share_t5, 1, '%')}</td>`);
+      cells.push(`<td class="num">${fmtDeltaBps(p.delta_bps)}</td>`);
+      cells.push(`<td class="center">${_sourceTag(p.source)}</td>`);
+      cells.push(`<td style="font-size:11px;color:var(--muted)">${escapeHtml(p.notes || '')}</td>`);
+
+      return `<tr>${cells.join('')}</tr>`;
+    })
+    .join('');
+
+  return `
     <table class="report-table" id="player-table">
         <thead><tr>${thHtml}</tr></thead>
         <tbody>${rowsHtml}</tbody>
@@ -490,27 +515,30 @@ function _buildPlayerTable(data) {
 }
 
 function _buildTierTable(data) {
-    let s = data.structure || {};
-    let tiers = s.tiers || [];
-    if (!tiers.length) return "";
-    
-    let rows = tiers.map(t => 
-        `<tr><td><b>${escapeHtml(t.tier)}</b></td><td>${escapeHtml(t.share_range || "")}</td><td>${escapeHtml((t.players || []).join(", "))}</td></tr>`
-    ).join("");
-    
-    let orgPct = s.organized_pct;
-    let unorgPct = s.unorganized_pct;
-    let orgBlock = "";
-    if (orgPct != null || unorgPct != null) {
-        orgBlock = `
+  let s = data.structure || {};
+  let tiers = s.tiers || [];
+  if (!tiers.length) return '';
+
+  let rows = tiers
+    .map(
+      (t) =>
+        `<tr><td><b>${escapeHtml(t.tier)}</b></td><td>${escapeHtml(t.share_range || '')}</td><td>${escapeHtml((t.players || []).join(', '))}</td></tr>`
+    )
+    .join('');
+
+  let orgPct = s.organized_pct;
+  let unorgPct = s.unorganized_pct;
+  let orgBlock = '';
+  if (orgPct != null || unorgPct != null) {
+    orgBlock = `
         <p class="section-intro" style="margin-top:8px">
             <b>Organised vs Unorganised:</b> ${fmtNum(orgPct, 1, '%')} organised /
             ${fmtNum(unorgPct, 1, '%')} unorganised.
             <i>${escapeHtml(s.organized_drivers || '')}</i>
         </p>`;
-    }
-    
-    return `
+  }
+
+  return `
     <table class="report-table">
         <thead><tr><th>Tier</th><th>Share Range</th><th>Players</th></tr></thead>
         <tbody>${rows}</tbody>
@@ -520,22 +548,25 @@ function _buildTierTable(data) {
 }
 
 function _buildDynamics(data) {
-    let dyn = data.dynamics || {};
-    let gainers = dyn.top_gainers || [];
-    let losers = dyn.top_losers || [];
-    let thesis = dyn.structural_winner_thesis;
-    
-    const block = (rows, title, deltaClass) => {
-        if (!rows || !rows.length) return "";
-        let body = rows.map(r => 
-            `<tr><td><b>${escapeHtml(r.player)}</b></td>
+  let dyn = data.dynamics || {};
+  let gainers = dyn.top_gainers || [];
+  let losers = dyn.top_losers || [];
+  let thesis = dyn.structural_winner_thesis;
+
+  const block = (rows, title, deltaClass) => {
+    if (!rows || !rows.length) return '';
+    let body = rows
+      .map(
+        (r) =>
+          `<tr><td><b>${escapeHtml(r.player)}</b></td>
             <td class="num"><span class="delta-${deltaClass}">${fmtDeltaBps(r.delta_bps)}</span></td>
-            <td>${escapeHtml(r.what_they_did || r.what_went_wrong || "")}</td>
-            <td class="center">${escapeHtml(r.structural_or_cyclical || "")}</td>
-            <td>${escapeHtml(r.next_3y || "")}</td></tr>`
-        ).join("");
-        
-        return `
+            <td>${escapeHtml(r.what_they_did || r.what_went_wrong || '')}</td>
+            <td class="center">${escapeHtml(r.structural_or_cyclical || '')}</td>
+            <td>${escapeHtml(r.next_3y || '')}</td></tr>`
+      )
+      .join('');
+
+    return `
         <h3 style="font-size:13px;color:var(--primary);margin:12px 0 4px 0">${title}</h3>
         <table class="report-table">
             <thead><tr>
@@ -545,48 +576,58 @@ function _buildDynamics(data) {
             <tbody>${body}</tbody>
         </table>
         `;
-    };
-    
-    let thesisBlock = thesis ? `<div class="analyst-view">${escapeHtml(thesis)}</div>` : "";
-    return block(gainers, "Top Share Gainers", "pos") + block(losers, "Top Share Losers", "neg") + thesisBlock;
+  };
+
+  let thesisBlock = thesis ? `<div class="analyst-view">${escapeHtml(thesis)}</div>` : '';
+  return (
+    block(gainers, 'Top Share Gainers', 'pos') +
+    block(losers, 'Top Share Losers', 'neg') +
+    thesisBlock
+  );
 }
 
 function _buildMoatHeatmap(data) {
-    let heatmap = data.moat_heatmap || [];
-    if (!heatmap.length) return "";
-    
-    let dims = ["barrier_to_entry", "pricing_power", "switching_cost", "cost_advantage"];
-    let dimLabels = ["Barrier to Entry", "Pricing Power", "Switching Cost", "Cost Advantage"];
-    
-    let thHtml = "<th>Player</th>" + dimLabels.map(lbl => `<th>${lbl}</th>`).join("") + "<th>Avg</th>";
-    
-    let rows = heatmap.map(h => {
-        let cells = [`<td><b>${escapeHtml(h.player)}</b></td>`];
-        let scores = [];
-        
-        for (let dim of dims) {
-            let d = h[dim] || {};
-            let score = d.score;
-            let evidence = d.evidence || "";
-            
-            if (score == null) {
-                cells.push('<td class="moat-cell" style="background:var(--muted)">---</td>');
-                continue;
-            }
-            
-            let scoreInt = Math.round(parseFloat(score)) || 0;
-            scores.push(scoreInt);
-            let cls = `moat-${Math.max(1, Math.min(5, scoreInt))}`;
-            cells.push(`<td class="moat-cell ${cls}"><div>${scoreInt}</div><div class="evidence">${escapeHtml(evidence)}</div></td>`);
+  let heatmap = data.moat_heatmap || [];
+  if (!heatmap.length) return '';
+
+  let dims = ['barrier_to_entry', 'pricing_power', 'switching_cost', 'cost_advantage'];
+  let dimLabels = ['Barrier to Entry', 'Pricing Power', 'Switching Cost', 'Cost Advantage'];
+
+  let thHtml =
+    '<th>Player</th>' + dimLabels.map((lbl) => `<th>${lbl}</th>`).join('') + '<th>Avg</th>';
+
+  let rows = heatmap
+    .map((h) => {
+      let cells = [`<td><b>${escapeHtml(h.player)}</b></td>`];
+      let scores = [];
+
+      for (let dim of dims) {
+        let d = h[dim] || {};
+        let score = d.score;
+        let evidence = d.evidence || '';
+
+        if (score == null) {
+          cells.push('<td class="moat-cell" style="background:var(--muted)">---</td>');
+          continue;
         }
-        
-        let avg = scores.length > 0 ? (scores.reduce((a,b) => a+b, 0) / scores.length).toFixed(2) : "---";
-        cells.push(`<td class="num"><b>${avg}</b></td>`);
-        
-        return `<tr>${cells.join("")}</tr>`;
-    }).join("");
-    
-    return `
+
+        let scoreInt = Math.round(parseFloat(score)) || 0;
+        scores.push(scoreInt);
+        let cls = `moat-${Math.max(1, Math.min(5, scoreInt))}`;
+        cells.push(
+          `<td class="moat-cell ${cls}"><div>${scoreInt}</div><div class="evidence">${escapeHtml(evidence)}</div></td>`
+        );
+      }
+
+      let avg =
+        scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2) : '---';
+      cells.push(`<td class="num"><b>${avg}</b></td>`);
+
+      return `<tr>${cells.join('')}</tr>`;
+    })
+    .join('');
+
+  return `
     <table class="report-table">
         <thead><tr>${thHtml}</tr></thead>
         <tbody>${rows}</tbody>
@@ -595,25 +636,28 @@ function _buildMoatHeatmap(data) {
 }
 
 function _buildThreats(data) {
-    let threats = data.threats || [];
-    if (!threats.length) return "";
-    
-    const piCell = (prob) => {
-        if (!prob) return "";
-        let p = String(prob).trim().toLowerCase();
-        let cls = p.startsWith("h") ? "pi-high" : (p.startsWith("m") ? "pi-med" : "pi-low");
-        return `<span class="prob-impact-cell ${cls}">${escapeHtml(prob)}</span>`;
-    };
-    
-    let rows = threats.map(t => 
+  let threats = data.threats || [];
+  if (!threats.length) return '';
+
+  const piCell = (prob) => {
+    if (!prob) return '';
+    let p = String(prob).trim().toLowerCase();
+    let cls = p.startsWith('h') ? 'pi-high' : p.startsWith('m') ? 'pi-med' : 'pi-low';
+    return `<span class="prob-impact-cell ${cls}">${escapeHtml(prob)}</span>`;
+  };
+
+  let rows = threats
+    .map(
+      (t) =>
         `<tr><td><b>${escapeHtml(t.category)}</b></td>
         <td class="center">${piCell(t.probability)}</td>
         <td class="num">${fmtNum(t.impact_bps, 0)} bps</td>
-        <td>${escapeHtml(t.early_warning || "")}</td>
-        <td>${escapeHtml(t.mitigant || "")}</td></tr>`
-    ).join("");
-    
-    return `
+        <td>${escapeHtml(t.early_warning || '')}</td>
+        <td>${escapeHtml(t.mitigant || '')}</td></tr>`
+    )
+    .join('');
+
+  return `
     <table class="report-table">
         <thead><tr>
             <th>Threat</th><th>Probability</th><th>Impact (bps at risk)</th>
@@ -625,30 +669,32 @@ function _buildThreats(data) {
 }
 
 function _buildProjection(data) {
-    let projection = data.projection || [];
-    if (!projection.length) return "";
-    
-    let rows = projection.map(p => {
-        let bear = p.bear || {};
-        let base = p.base || {};
-        let bull = p.bull || {};
-        let spread = p.bear_bull_spread_bps;
-        
-        let asym = "";
-        if (spread != null && parseFloat(spread) >= 500) {
-            asym = '<span class="asymmetric-flag">ASYM</span>';
-        }
-        
-        return `<tr><td><b>${escapeHtml(p.player)}</b></td>
-        <td class="num">${fmtNum(bear.share, 1, "%")} <span style="color:var(--muted);font-size:10px">(${fmtDeltaBps(bear.delta_bps)})</span></td>
-        <td class="num">${fmtNum(base.share, 1, "%")} <span style="color:var(--muted);font-size:10px">(${fmtDeltaBps(base.delta_bps)})</span></td>
-        <td class="num">${fmtNum(bull.share, 1, "%")} <span style="color:var(--muted);font-size:10px">(${fmtDeltaBps(bull.delta_bps)})</span></td>
+  let projection = data.projection || [];
+  if (!projection.length) return '';
+
+  let rows = projection
+    .map((p) => {
+      let bear = p.bear || {};
+      let base = p.base || {};
+      let bull = p.bull || {};
+      let spread = p.bear_bull_spread_bps;
+
+      let asym = '';
+      if (spread != null && parseFloat(spread) >= 500) {
+        asym = '<span class="asymmetric-flag">ASYM</span>';
+      }
+
+      return `<tr><td><b>${escapeHtml(p.player)}</b></td>
+        <td class="num">${fmtNum(bear.share, 1, '%')} <span style="color:var(--muted);font-size:10px">(${fmtDeltaBps(bear.delta_bps)})</span></td>
+        <td class="num">${fmtNum(base.share, 1, '%')} <span style="color:var(--muted);font-size:10px">(${fmtDeltaBps(base.delta_bps)})</span></td>
+        <td class="num">${fmtNum(bull.share, 1, '%')} <span style="color:var(--muted);font-size:10px">(${fmtDeltaBps(bull.delta_bps)})</span></td>
         <td class="num">${fmtNum(spread, 0)} bps</td>
-        <td class="num">${fmtNum(p.implied_cagr_base, 1, "%")}</td>
+        <td class="num">${fmtNum(p.implied_cagr_base, 1, '%')}</td>
         <td class="center">${asym}</td></tr>`;
-    }).join("");
-    
-    return `
+    })
+    .join('');
+
+  return `
     <table class="report-table">
         <thead><tr>
             <th>Player</th><th>Bear</th><th>Base</th><th>Bull</th>
@@ -667,24 +713,27 @@ function _buildProjection(data) {
 }
 
 function _buildSupplyDemand(data) {
-    let sd = data.supply_demand || {};
-    if (!Object.keys(sd).length) return "";
-    
-    let capex = sd.capex_pipeline || [];
-    let capexRows = capex.map(c => 
+  let sd = data.supply_demand || {};
+  if (!Object.keys(sd).length) return '';
+
+  let capex = sd.capex_pipeline || [];
+  let capexRows = capex
+    .map(
+      (c) =>
         `<tr><td>${escapeHtml(c.player)}</td>
         <td class="num">${fmtNum(c.capex_cr, 0)}</td>
-        <td>${escapeHtml(c.capacity_add || "")}</td></tr>`
-    ).join("");
-    
-    let capexTable = "";
-    if (capexRows) {
-        capexTable = `<h3 style='font-size:13px;color:var(--primary);margin:12px 0 4px 0'>Capex pipeline (next 3Y)</h3>
+        <td>${escapeHtml(c.capacity_add || '')}</td></tr>`
+    )
+    .join('');
+
+  let capexTable = '';
+  if (capexRows) {
+    capexTable = `<h3 style='font-size:13px;color:var(--primary);margin:12px 0 4px 0'>Capex pipeline (next 3Y)</h3>
         <table class='report-table'><thead><tr><th>Player</th><th>Capex (Cr)</th><th>Capacity add</th></tr></thead>
         <tbody>${capexRows}</tbody></table>`;
-    }
-    
-    return `
+  }
+
+  return `
     <table class="report-table">
         <thead><tr><th>Capacity / Pricing / Raw Material</th><th>Value</th></tr></thead>
         <tbody>
@@ -700,17 +749,20 @@ function _buildSupplyDemand(data) {
 }
 
 function _buildSubSegments(data) {
-    let sizing = data.sizing || {};
-    let subs = sizing.sub_segments || [];
-    if (!subs.length) return "";
-    
-    let rows = subs.map(s => 
+  let sizing = data.sizing || {};
+  let subs = sizing.sub_segments || [];
+  if (!subs.length) return '';
+
+  let rows = subs
+    .map(
+      (s) =>
         `<tr><td><b>${escapeHtml(s.name)}</b></td>
-        <td class="num">${fmtNum(s.share_pct, 1, "%")}</td>
-        <td>${escapeHtml(s.notes || "")}</td></tr>`
-    ).join("");
-    
-    return `
+        <td class="num">${fmtNum(s.share_pct, 1, '%')}</td>
+        <td>${escapeHtml(s.notes || '')}</td></tr>`
+    )
+    .join('');
+
+  return `
     <table class="report-table">
         <thead><tr><th>Sub-segment</th><th>Share of Industry</th><th>Notes</th></tr></thead>
         <tbody>${rows}</tbody>
@@ -719,18 +771,21 @@ function _buildSubSegments(data) {
 }
 
 function _buildDataQuality(data) {
-    let dq = data.data_quality || {};
-    let gaps = dq.biggest_gaps || [];
-    let sources = dq.sources_used || [];
-    
-    let gapsHtml = gaps.map(g => `<li>${escapeHtml(g)}</li>`).join("");
-    let sourcesHtml = sources.map(s => 
-        `<li><b>${escapeHtml(s.source)}</b> (${escapeHtml(s.type || "primary")}) — 
-        <a href="${escapeHtml(s.url || "#")}" target="_blank" rel="noopener">link</a> · 
-        pulled ${escapeHtml(s.pull_date || "—")}</li>`
-    ).join("");
-    
-    return `
+  let dq = data.data_quality || {};
+  let gaps = dq.biggest_gaps || [];
+  let sources = dq.sources_used || [];
+
+  let gapsHtml = gaps.map((g) => `<li>${escapeHtml(g)}</li>`).join('');
+  let sourcesHtml = sources
+    .map(
+      (s) =>
+        `<li><b>${escapeHtml(s.source)}</b> (${escapeHtml(s.type || 'primary')}) — 
+        <a href="${escapeHtml(s.url || '#')}" target="_blank" rel="noopener">link</a> · 
+        pulled ${escapeHtml(s.pull_date || '—')}</li>`
+    )
+    .join('');
+
+  return `
     <table class="report-table">
         <tbody>
             <tr><td style="width:25%"><b>Overall confidence</b></td>
@@ -745,48 +800,53 @@ function _buildDataQuality(data) {
 }
 
 function createMarketShareWidget(data) {
-    const outputPath = data.output_path;
-    const dir = path.dirname(outputPath);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const outputPath = data.output_path;
+  const dir = path.dirname(outputPath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-    let chartPayload = {
-        sizing: { historical: (data.sizing || {}).historical || [] },
-        projection: data.projection || []
-    };
+  let chartPayload = {
+    sizing: { historical: (data.sizing || {}).historical || [] },
+    projection: data.projection || [],
+  };
 
-    let title = data.industry || "Market Share Analysis";
-    let dateStr = data.date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    let geography = data.geography || "India";
+  let title = data.industry || 'Market Share Analysis';
+  let dateStr =
+    data.date ||
+    new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  let geography = data.geography || 'India';
 
-    let sections = [
-        ["Executive Summary", `<p>${escapeHtml(data.executive_summary || "---")}</p>`],
-        ["Part 1 — Industry Sizing", 
-         `<p><b>Boundary:</b> ${escapeHtml((data.sizing || {}).boundary || "---")}</p>
-         <div class="chart-container"><canvas id="historical-chart"></canvas></div>` + _buildSubSegments(data)],
-        ["Part 2 — Market Structure & Tiering", _buildTierTable(data)],
-        ["Part 3 — Player-by-Player Market Share", _buildPlayerTable(data)],
-        ["Part 4 — Share Dynamics (the Why)", _buildDynamics(data)],
-        ["Part 5 — Competitive Moat Heatmap", _buildMoatHeatmap(data)],
-        ["Part 6 — Supply, Demand & Pricing", _buildSupplyDemand(data)],
-        ["Part 7 — Disruption & Threat Map", _buildThreats(data)],
-        ["Part 8 — Forward Share Projection (Bear / Base / Bull)", _buildProjection(data)],
-        ["Part 9 — Data Quality Disclosure", _buildDataQuality(data)]
-    ];
+  let sections = [
+    ['Executive Summary', `<p>${escapeHtml(data.executive_summary || '---')}</p>`],
+    [
+      'Part 1 — Industry Sizing',
+      `<p><b>Boundary:</b> ${escapeHtml((data.sizing || {}).boundary || '---')}</p>
+         <div class="chart-container"><canvas id="historical-chart"></canvas></div>` +
+        _buildSubSegments(data),
+    ],
+    ['Part 2 — Market Structure & Tiering', _buildTierTable(data)],
+    ['Part 3 — Player-by-Player Market Share', _buildPlayerTable(data)],
+    ['Part 4 — Share Dynamics (the Why)', _buildDynamics(data)],
+    ['Part 5 — Competitive Moat Heatmap', _buildMoatHeatmap(data)],
+    ['Part 6 — Supply, Demand & Pricing', _buildSupplyDemand(data)],
+    ['Part 7 — Disruption & Threat Map', _buildThreats(data)],
+    ['Part 8 — Forward Share Projection (Bear / Base / Bull)', _buildProjection(data)],
+    ['Part 9 — Data Quality Disclosure', _buildDataQuality(data)],
+  ];
 
-    let bodyParts = [];
-    for (let [h, htmlContent] of sections) {
-        bodyParts.push(`<h2 class="section-title">${h}</h2>`);
-        bodyParts.push(htmlContent);
-    }
-    
-    if (data.analyst_view) {
-        bodyParts.push(`<div class="analyst-view">${escapeHtml(data.analyst_view)}</div>`);
-    }
+  let bodyParts = [];
+  for (let [h, htmlContent] of sections) {
+    bodyParts.push(`<h2 class="section-title">${h}</h2>`);
+    bodyParts.push(htmlContent);
+  }
 
-    let bodyHtml = bodyParts.join("\n");
-    let embeddedJson = JSON.stringify(chartPayload);
+  if (data.analyst_view) {
+    bodyParts.push(`<div class="analyst-view">${escapeHtml(data.analyst_view)}</div>`);
+  }
 
-    let html = `<!DOCTYPE html>
+  let bodyHtml = bodyParts.join('\n');
+  let embeddedJson = JSON.stringify(chartPayload);
+
+  let html = `<!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
@@ -801,9 +861,9 @@ function createMarketShareWidget(data) {
     <div class="report-header">
         <h1 class="report-title">${escapeHtml(title)}</h1>
         <div class="report-meta">
-            ${escapeHtml(geography)} · ${escapeHtml(data.definition_scope || "scope undefined")} ·
-            Historical horizon: ${escapeHtml(data.historical_horizon || "")} ·
-            Forward horizon: ${escapeHtml(data.forward_horizon || "")} ·
+            ${escapeHtml(geography)} · ${escapeHtml(data.definition_scope || 'scope undefined')} ·
+            Historical horizon: ${escapeHtml(data.historical_horizon || '')} ·
+            Forward horizon: ${escapeHtml(data.forward_horizon || '')} ·
             Data current as of ${escapeHtml(dateStr)}
         </div>
         <div class="classification-banner">
@@ -828,9 +888,9 @@ ${_JS}
 </body>
 </html>`;
 
-    fs.writeFileSync(outputPath, html, 'utf-8');
-    console.log(`✅ Market Share widget saved to: ${outputPath}`);
-    return outputPath;
+  fs.writeFileSync(outputPath, html, 'utf-8');
+  console.log(`✅ Market Share widget saved to: ${outputPath}`);
+  return outputPath;
 }
 
 module.exports = { createMarketShareWidget };

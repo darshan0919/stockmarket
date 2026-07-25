@@ -18,7 +18,7 @@ description: >
 # Investment Thesis Engine
 
 A living, versioned Buy/Hold/Sell thesis per company. Built once, then evolved forever —
-delta updates only. This is the top of the skill stack: it *consumes* other skills'
+delta updates only. This is the top of the skill stack: it _consumes_ other skills'
 outputs; it re-does none of their work.
 
 **Philosophy (SOIC):** business first, stock price second. The signal follows four pillars —
@@ -27,6 +27,7 @@ operating leverage), **Valuation** (don't overpay, ever), **Promoter** (can mino
 shareholders trust them) — gated by forensics and management credibility.
 
 Read before any run:
+
 - `references/thesis_schema.md` — the JSON/MD record format, including the required
   `companyId`/`creationTime`/`modifiedTime`/`creator` envelope fields per
   `skills/tooling/output-dto-standard/SKILL.md`.
@@ -108,8 +109,8 @@ thesis", full evidence log at the bottom) + one-paragraph chat summary of what c
 End every memo with the mandatory section **"What could be wrong with this analysis?"**
 
 ## Rules
-- **Files-touched manifest (docs/DATA_RULES.md §7):** end the run by listing every file created/modified — collections with record counts (db.js helper stats / `db.touchedFiles()`), plus `runs/`/`cache/`/`assets/` files (`StorageService.touchedFiles()`), plus the `data:push` `↑ <file>` lines. A run that stored data without reporting what it touched is incomplete.
 
+- **Files-touched manifest (docs/DATA_RULES.md §7):** end the run by listing every file created/modified — collections with record counts (db.js helper stats / `db.touchedFiles()`), plus `runs/`/`cache/`/`assets/` files (`StorageService.touchedFiles()`), plus the `data:push` `↑ <file>` lines. A run that stored data without reporting what it touched is incomplete.
 
 - **Never rebuild what exists.** A thesis update that re-fetches all documents is a bug.
 - **Signals are deterministic** — apply `signal_rules.md`; if judgment overrides a rule,

@@ -1,14 +1,17 @@
 # Orders Tab Non-AI Mode Enhancements
 
 ## Implementation Date
+
 January 2, 2026
 
 ## Issues Fixed
 
 ### 1. Error at http://localhost:3000/stock/SHAKTIPUMP
+
 **Issue**: Component was potentially trying to access undefined properties in non-AI mode.
 
 **Fix**: Updated `NonAIOrderRow` component to safely handle all order properties:
+
 - Added `attachment_text` field extraction
 - Uses `attachment_text` as primary description, fallback to `description`
 - All property access is safely guarded with optional chaining
@@ -16,9 +19,11 @@ January 2, 2026
 **File**: `frontend/components/stock/OrdersTab.js`
 
 ### 2. Copy JSON Feature
+
 **Feature**: Added ability to copy the rendered orders data as JSON to clipboard.
 
 **Implementation**:
+
 - Added `copySuccess` state to track copy status
 - Created `handleCopyJSON()` function using `navigator.clipboard.writeText()`
 - Added "Copy JSON" button in the stats banner
@@ -26,6 +31,7 @@ January 2, 2026
 - Copies the entire `sortedOrders` array with proper formatting (2-space indent)
 
 **UI Elements**:
+
 - Button in top-right of stats banner
 - Green success state with "Copied!" message
 - Copy icon from Heroicons
@@ -34,9 +40,11 @@ January 2, 2026
 **File**: `frontend/components/stock/OrdersTab.js` lines 750-759, 1145-1168
 
 ### 3. Baseline Document Entry
+
 **Feature**: Show baseline order book document (annual report/investor presentation) in non-AI mode.
 
 **Backend Implementation**:
+
 - Modified `GET /api/orders/:symbol` endpoint
 - Attempts to fetch latest annual report from NSE API
 - Returns `baseline_document_url` and `baseline_document_title`
@@ -44,6 +52,7 @@ January 2, 2026
 - Timeout set to 5 seconds
 
 **Frontend Implementation**:
+
 - Added state variables: `baselineDocumentUrl`, `baselineDocumentTitle`
 - Fetches and stores baseline document info from API response
 - Displays beautiful gradient banner when baseline document is available
@@ -53,23 +62,28 @@ January 2, 2026
   - "View Document" button linking to PDF
   - Gradient background (indigo to purple)
 
-**Files**: 
+**Files**:
+
 - Backend: `backend/routes/orders.js` lines 146-172
 - Frontend: `frontend/components/stock/OrdersTab.js` lines 566-572, 1170-1205
 
 ## Visual Improvements
 
 ### Non-AI Mode Stats Banner
+
 **Before**: Simple blue banner with order count
 
 **After**: Enhanced banner with:
+
 - Order count on the left
 - "Copy JSON" button on the right
 - Responsive layout
 - Better spacing and alignment
 
 ### Baseline Document Banner
+
 **New**: Gradient banner (indigo/purple) showing:
+
 - Document icon
 - "Baseline Order Book Document" title
 - Document name/description
@@ -80,7 +94,9 @@ January 2, 2026
 ## Code Quality
 
 ### State Management
+
 Added new state variables:
+
 ```javascript
 const [baselineDocumentUrl, setBaselineDocumentUrl] = useState(null);
 const [baselineDocumentTitle, setBaselineDocumentTitle] = useState(null);
@@ -88,6 +104,7 @@ const [copySuccess, setCopySuccess] = useState(false);
 ```
 
 ### Function Additions
+
 ```javascript
 // Copy JSON to clipboard
 const handleCopyJSON = async () => {
@@ -103,6 +120,7 @@ const handleCopyJSON = async () => {
 ```
 
 ### Error Handling
+
 - Backend: Try-catch around baseline document fetch
 - Frontend: Conditional rendering prevents errors when baseline URL is null
 - All property access uses optional chaining
@@ -110,7 +128,9 @@ const handleCopyJSON = async () => {
 ## API Changes
 
 ### GET /api/orders/:symbol Response
+
 **Enhanced fields**:
+
 ```json
 {
   "success": true,
@@ -128,6 +148,7 @@ const handleCopyJSON = async () => {
 ## Testing
 
 ### Manual Testing
+
 ```bash
 # Test backend endpoint
 curl "http://localhost:5000/api/orders/SHAKTIPUMP?limit=3"
@@ -139,6 +160,7 @@ curl "http://localhost:5000/api/orders/SHAKTIPUMP?limit=3"
 ```
 
 ### Frontend Testing
+
 1. Navigate to http://localhost:3000/stock/SHAKTIPUMP
 2. Go to "Orders" tab (should be in "Announcements" mode by default)
 3. Verify:
@@ -190,9 +212,9 @@ curl "http://localhost:5000/api/orders/SHAKTIPUMP?limit=3"
 ## Conclusion
 
 Successfully enhanced the Non-AI mode with three key features:
+
 1. ✅ Fixed potential errors with SHAKTIPUMP stock
 2. ✅ Added JSON copy functionality
 3. ✅ Added baseline document display
 
 All changes maintain backward compatibility and enhance the user experience without adding complexity.
-

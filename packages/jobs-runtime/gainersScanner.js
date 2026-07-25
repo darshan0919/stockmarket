@@ -46,16 +46,46 @@ const QUALITY_FILTERS = {
 };
 
 const NOISE_KEYWORDS = [
-  'closure of trading window', 'code of conduct', 'scrutinizer', 'regulation 47',
-  'saksham niveshak', 'brsr', 'book closure', 'corrigendum', 'cut off date',
-  'allotment of esop', 'allotment of esps', 'iepf', 'unclaimed dividend',
-  'regulation 74', 'regulation 57', '100 day campaign',
+  'closure of trading window',
+  'code of conduct',
+  'scrutinizer',
+  'regulation 47',
+  'saksham niveshak',
+  'brsr',
+  'book closure',
+  'corrigendum',
+  'cut off date',
+  'allotment of esop',
+  'allotment of esps',
+  'iepf',
+  'unclaimed dividend',
+  'regulation 74',
+  'regulation 57',
+  '100 day campaign',
 ];
 
 const MATERIAL_KEYWORDS = [
-  'order', 'contract', 'win', 'award', 'result', 'profit', 'revenue', 'pat',
-  'fda', 'pli', 'capacity', 'expansion', 'merger', 'acquisition', 'demerger',
-  'buyback', 'qip', 'preferential', 'warrant', 'stake', 'sast',
+  'order',
+  'contract',
+  'win',
+  'award',
+  'result',
+  'profit',
+  'revenue',
+  'pat',
+  'fda',
+  'pli',
+  'capacity',
+  'expansion',
+  'merger',
+  'acquisition',
+  'demerger',
+  'buyback',
+  'qip',
+  'preferential',
+  'warrant',
+  'stake',
+  'sast',
 ];
 
 // ── Pure helpers (exported for parity tests) ──────────────────────────────────
@@ -69,7 +99,20 @@ function roundTo(x, n) {
 
 /** YYYYMM of the last month of the date's quarter. */
 function quarterDate(d) {
-  const end = { 0: '03', 1: '03', 2: '03', 3: '06', 4: '06', 5: '06', 6: '09', 7: '09', 8: '09', 9: '12', 10: '12', 11: '12' };
+  const end = {
+    0: '03',
+    1: '03',
+    2: '03',
+    3: '06',
+    4: '06',
+    5: '06',
+    6: '09',
+    7: '09',
+    8: '09',
+    9: '12',
+    10: '12',
+    11: '12',
+  };
   return `${d.getUTCFullYear()}${end[d.getUTCMonth()]}`;
 }
 
@@ -117,7 +160,9 @@ function normaliseGainer(raw) {
     name: pick(raw, 'Name', 'name', 'company_name', 'companyName') || ticker,
     industry: pick(raw, 'Industry', 'industry', 'industryName') || 'Unknown',
     sector: pick(raw, 'Sector', 'sector', 'sectorName') || 'Unknown',
-    return_1d: toFloat(pick(raw, 'Returns 1D', 'return_1d', 'returnOneDay', '1DReturn', 'priceChangePct')),
+    return_1d: toFloat(
+      pick(raw, 'Returns 1D', 'return_1d', 'returnOneDay', '1DReturn', 'priceChangePct')
+    ),
     market_cap_cr: toFloat(pick(raw, 'Market Capitalization', 'market_cap', 'marketCap', 'mcap')),
     close_price: toFloat(pick(raw, 'Close', 'close', 'lastPrice', 'price')),
     raw,
@@ -188,7 +233,9 @@ function priceActionSignals(candles) {
 
   const supportCandidates = lows.length ? [...lows.slice(-10)].sort((a, b) => a - b) : [];
   const supportLevel = supportCandidates.length ? roundTo(supportCandidates[0], 2) : null;
-  const pctAboveSupport = supportLevel ? roundTo(((cp - supportLevel) / supportLevel) * 100, 2) : null;
+  const pctAboveSupport = supportLevel
+    ? roundTo(((cp - supportLevel) / supportLevel) * 100, 2)
+    : null;
 
   return {
     close: roundTo(cp, 2),
@@ -231,7 +278,9 @@ function applyQualityFilters(gainers, deliveryMap) {
     if (mcap !== null && mcap !== undefined && retail !== null && retail !== undefined) {
       const stake = (mcap * retail) / 100;
       if (stake < f.min_retail_stake_value_cr) {
-        reasons.push(`retail_stake_value ${stake.toFixed(0)} Cr < ${f.min_retail_stake_value_cr} Cr`);
+        reasons.push(
+          `retail_stake_value ${stake.toFixed(0)} Cr < ${f.min_retail_stake_value_cr} Cr`
+        );
       }
     }
     if (reasons.length) {
@@ -301,7 +350,9 @@ function loadScripCache() {
   try {
     const data = StorageService.readJson('cache/bse-scrip-codes.json');
     if (data) return data;
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return {};
 }
 async function saveScripCache(cache) {
@@ -317,10 +368,18 @@ async function fetchTopGainers(client = stockscans, topN = DEFAULT_TOP_N) {
     timePeriod: 'Latest',
     scan: {
       filters: [{ left: 'Market Capitalization', right: '300', sign: '>=' }],
-      index: [], industry: [], sector: [], tags: [],
-      scanName: `Top ${topN} Gainers`, scanDescription: '', watchlistIds: [],
+      index: [],
+      industry: [],
+      sector: [],
+      tags: [],
+      scanName: `Top ${topN} Gainers`,
+      scanDescription: '',
+      watchlistIds: [],
     },
-    watchlistIds: [], order: 'desc', orderBy: 'Returns 1D', offset: 0,
+    watchlistIds: [],
+    order: 'desc',
+    orderBy: 'Returns 1D',
+    offset: 0,
   };
   const data = await client.runScan(payload);
   let companies;
@@ -339,14 +398,23 @@ async function fetchRetailHoldings(tickers, client = stockscans) {
   const result = Object.fromEntries(tickers.map((t) => [t, null]));
   if (tickers.length === 0) return result;
   const payload = {
-    ratiosType: 'Ratios', timePeriod: 'Latest',
+    ratiosType: 'Ratios',
+    timePeriod: 'Latest',
     scan: {
       scanId: RATIOS_SCAN_ID,
       filters: [{ left: 'Retail Holdings', sign: '>=', right: '-999999' }],
-      index: [], industry: [], sector: [], tags: [], watchlistIds: [],
-      companyIds: tickers, alertFrequency: null,
+      index: [],
+      industry: [],
+      sector: [],
+      tags: [],
+      watchlistIds: [],
+      companyIds: tickers,
+      alertFrequency: null,
     },
-    watchlistIds: [], order: 'desc', orderBy: 'Returns 1D', offset: 0,
+    watchlistIds: [],
+    order: 'desc',
+    orderBy: 'Returns 1D',
+    offset: 0,
   };
   try {
     const data = await client.runScan(payload);
@@ -378,13 +446,18 @@ async function fetchDeliveryPerSymbol(gainers, { nseClient = nse, bseClient = bs
     try {
       if (ticker.startsWith('NSE:')) {
         const sd = await nseClient.getSymbolData(ticker.slice(4));
-        out[ticker] = sd ? deriveNseDelivery(sd) : { available: false, source: 'nse_api', error: 'no data' };
+        out[ticker] = sd
+          ? deriveNseDelivery(sd)
+          : { available: false, source: 'nse_api', error: 'no data' };
       } else if (ticker.startsWith('BSE:')) {
         const sym = ticker.slice(4).toUpperCase();
         let scrip = cache[sym];
         if (!scrip) {
           scrip = await bseClient.getScripCode(sym);
-          if (scrip) { cache[sym] = scrip; cacheDirty = true; }
+          if (scrip) {
+            cache[sym] = scrip;
+            cacheDirty = true;
+          }
         }
         if (!scrip) {
           out[ticker] = { available: false, source: 'bse_api', error: 'scrip code not found' };
@@ -411,7 +484,11 @@ async function fetchPrices(ticker, client = stockscans) {
     let candles = Array.isArray(raw) ? raw : raw.prices || raw.data || raw.candles || [];
     if (candles.length && Array.isArray(candles[0])) {
       candles = candles.map((c) => ({
-        date: c[0], open: c[1], high: c[2], low: c[3], close: c[4],
+        date: c[0],
+        open: c[1],
+        high: c[2],
+        low: c[3],
+        close: c[4],
         volume: c.length > 5 ? c[5] : null,
       }));
     }
@@ -440,7 +517,12 @@ function announcementCutoffMs(marketDate) {
 }
 
 /** Fetch last 7 days of announcements for all tickers (paginated). → { ticker: [ann] } */
-async function fetchAnnouncementsBatch(tickers, marketDate, client = stockscans, sleep = defaultSleep) {
+async function fetchAnnouncementsBatch(
+  tickers,
+  marketDate,
+  client = stockscans,
+  sleep = defaultSleep
+) {
   const qdate = quarterDate(marketDate);
   const cutoffMs = announcementCutoffMs(marketDate);
   const results = Object.fromEntries(tickers.map((t) => [t, []]));
@@ -453,9 +535,16 @@ async function fetchAnnouncementsBatch(tickers, marketDate, client = stockscans,
       scan: {
         scanId: '04706a679c7508e4b17f9565',
         scanName: 'Gainers Announcements',
-        filters: [], industry: [], index: [], watchlistIds: [], searchFilters: [],
-        announcementType: 'All', alerts: false, searchMode: 'full',
-        companyIds: tickers, companyFilters: [],
+        filters: [],
+        industry: [],
+        index: [],
+        watchlistIds: [],
+        searchFilters: [],
+        announcementType: 'All',
+        alerts: false,
+        searchMode: 'full',
+        companyIds: tickers,
+        companyFilters: [],
       },
       offset,
       quarterDate: qdate,
@@ -467,7 +556,10 @@ async function fetchAnnouncementsBatch(tickers, marketDate, client = stockscans,
       process.stderr.write(`[WARN] announcements fetch failed (offset=${offset}): ${e.message}\n`);
       break;
     }
-    const page = data && typeof data === 'object' && !Array.isArray(data) ? data.announcements || [] : data || [];
+    const page =
+      data && typeof data === 'object' && !Array.isArray(data)
+        ? data.announcements || []
+        : data || [];
     if (!page.length) break;
     if (pageSize === null) pageSize = page.length;
 
@@ -475,7 +567,10 @@ async function fetchAnnouncementsBatch(tickers, marketDate, client = stockscans,
     for (const ann of page) {
       const createdStr = ann.createdAt || ann.date || '';
       const createdMs = parseCreatedMs(createdStr);
-      if (createdMs !== null && createdMs < cutoffMs) { done = true; break; }
+      if (createdMs !== null && createdMs < cutoffMs) {
+        done = true;
+        break;
+      }
       const annTicker = ann.companyId || ann.ticker || '';
       if (annTicker in results) {
         results[annTicker].push({
@@ -496,12 +591,22 @@ async function fetchAnnouncementsBatch(tickers, marketDate, client = stockscans,
 
 async function fetchIndustryScan(industry, client = stockscans) {
   const payload = {
-    ratiosType: 'Default', timePeriod: 'Latest',
+    ratiosType: 'Default',
+    timePeriod: 'Latest',
     scan: {
-      filters: [], index: [], industry: [industry], sector: [], tags: [],
-      scanName: industry, scanDescription: '', watchlistIds: [],
+      filters: [],
+      index: [],
+      industry: [industry],
+      sector: [],
+      tags: [],
+      scanName: industry,
+      scanDescription: '',
+      watchlistIds: [],
     },
-    watchlistIds: [], order: 'desc', orderBy: 'Market Capitalization', offset: 0,
+    watchlistIds: [],
+    order: 'desc',
+    orderBy: 'Market Capitalization',
+    offset: 0,
   };
   const data = await client.runScan(payload);
   const companies = data.companies || data.data || (Array.isArray(data) ? data : []);
@@ -562,16 +667,24 @@ async function main({
   // 1b. Retail holdings
   log('[1b/7] Fetching retail holdings …\n');
   const retailMap = await fetchRetailHoldings(tickersAll, ss);
-  gainers.forEach((g) => { g.retail_holding_pct = retailMap[g.ticker]; });
+  gainers.forEach((g) => {
+    g.retail_holding_pct = retailMap[g.ticker];
+  });
 
   // 1c. Per-symbol delivery
   log('[1c/7] Fetching per-symbol delivery (NSE + BSE) …\n');
-  const deliveryMapAll = await fetchDeliveryPerSymbol(gainers, { nseClient: clients.nse, bseClient: clients.bse });
+  const deliveryMapAll = await fetchDeliveryPerSymbol(gainers, {
+    nseClient: clients.nse,
+    bseClient: clients.bse,
+  });
   const nAvail = Object.values(deliveryMapAll).filter((d) => d.available).length;
   log(`      → delivery available for ${nAvail}/${gainers.length}\n`);
 
   // 1d. Quality filters
-  const { passed: gainersFiltered, excluded: gainersExcluded } = applyQualityFilters(gainers, deliveryMapAll);
+  const { passed: gainersFiltered, excluded: gainersExcluded } = applyQualityFilters(
+    gainers,
+    deliveryMapAll
+  );
   log(`      → ${gainersFiltered.length} passed, ${gainersExcluded.length} excluded\n`);
   const tickers = gainersFiltered.map((g) => g.ticker).filter(Boolean);
 
@@ -591,7 +704,12 @@ async function main({
     try {
       const companies = await fetchIndustryScan(ind, ss);
       sectorScans[ind] = {
-        companies: companies.map((c) => ({ ticker: c.ticker, name: c.name, return_1d: c.return_1d, market_cap: c.market_cap_cr })),
+        companies: companies.map((c) => ({
+          ticker: c.ticker,
+          name: c.name,
+          return_1d: c.return_1d,
+          market_cap: c.market_cap_cr,
+        })),
         breadth: sectorBreadth(companies),
         gainer_tickers: indTickers,
       };
@@ -610,15 +728,29 @@ async function main({
     const delivery = deliveryMapAll[g.ticker] || {};
     const annRaw = annMap[g.ticker] || [];
     enriched.push({
-      ticker: g.ticker, name: g.name, industry: g.industry, sector: g.sector,
-      return_1d: g.return_1d, market_cap_cr: g.market_cap_cr, close_price: g.close_price,
-      retail_holding_pct: g.retail_holding_pct, delivery_value_cr: g.delivery_value_cr,
-      announcements: annRaw, ann_count: annRaw.length, has_material_ann: hasMaterialAnnouncement(annRaw),
+      ticker: g.ticker,
+      name: g.name,
+      industry: g.industry,
+      sector: g.sector,
+      return_1d: g.return_1d,
+      market_cap_cr: g.market_cap_cr,
+      close_price: g.close_price,
+      retail_holding_pct: g.retail_holding_pct,
+      delivery_value_cr: g.delivery_value_cr,
+      announcements: annRaw,
+      ann_count: annRaw.length,
+      has_material_ann: hasMaterialAnnouncement(annRaw),
       price_signals: paSigs,
       delivery: {
-        available: delivery.available || false, source: delivery.source, deliv_per: delivery.deliv_per,
-        trd_qty: delivery.trd_qty, deliv_qty: delivery.deliv_qty, trd_value_cr: delivery.trd_value_cr,
-        deliv_value_cr: delivery.deliv_value_cr, high_delivery: delivery.high_delivery, scrip_code: delivery.scrip_code,
+        available: delivery.available || false,
+        source: delivery.source,
+        deliv_per: delivery.deliv_per,
+        trd_qty: delivery.trd_qty,
+        deliv_qty: delivery.deliv_qty,
+        trd_value_cr: delivery.trd_value_cr,
+        deliv_value_cr: delivery.deliv_value_cr,
+        high_delivery: delivery.high_delivery,
+        scrip_code: delivery.scrip_code,
       },
       sector_breadth: (sectorScans[g.industry] || {}).breadth || {},
       sector_broad_move: ((sectorScans[g.industry] || {}).breadth || {}).broad_move || false,
@@ -642,14 +774,20 @@ async function main({
     run_at_ist: runTs,
     delivery_available: nAvail > 0,
     quality_filter: {
-      rules: QUALITY_FILTERS, raw_count: gainers.length,
-      passed_count: enriched.length, excluded_count: gainersExcluded.length,
+      rules: QUALITY_FILTERS,
+      raw_count: gainers.length,
+      passed_count: enriched.length,
+      excluded_count: gainersExcluded.length,
     },
     total_gainers: enriched.length,
     gainers: enriched,
     excluded_by_quality_filter: gainersExcluded.map((g) => ({
-      ticker: g.ticker, name: g.name, return_1d: g.return_1d, market_cap_cr: g.market_cap_cr,
-      retail_holding_pct: g.retail_holding_pct, delivery_value_cr: g.delivery_value_cr,
+      ticker: g.ticker,
+      name: g.name,
+      return_1d: g.return_1d,
+      market_cap_cr: g.market_cap_cr,
+      retail_holding_pct: g.retail_holding_pct,
+      delivery_value_cr: g.delivery_value_cr,
       exclusion_reasons: g.exclusion_reasons || [],
     })),
     industry_summary: industrySummary,
@@ -667,12 +805,19 @@ async function main({
 module.exports = {
   main,
   // pure
-   quarterDate, lastTradingDay, istToday, filterNoise, sectorBreadth,
-   applyQualityFilters, deriveNseDelivery, deriveBseDelivery,
+  quarterDate,
+  lastTradingDay,
+  istToday,
+  filterNoise,
+  sectorBreadth,
+  applyQualityFilters,
+  deriveNseDelivery,
+  deriveBseDelivery,
 
   // api-bound
 
-  fetchAnnouncementsBatch, fetchTopGainers,
+  fetchAnnouncementsBatch,
+  fetchTopGainers,
   // constants
   DEFAULT_TOP_N,
 };
@@ -690,5 +835,8 @@ if (require.main === module) {
     }
     const output = await main({ marketDate, topN });
     process.stdout.write(JSON.stringify(output));
-  })().catch((e) => { console.error(e.message); process.exit(1); });
+  })().catch((e) => {
+    console.error(e.message);
+    process.exit(1);
+  });
 }

@@ -29,7 +29,9 @@ const MASTER = path.join(__dirname, '..', 'data', 'company-master.json');
 const DRY = hasFlag('--dry-run');
 
 const manifest = { migrated: {}, skippedDerivable: [], quarantined: [], errors: [] };
-const bump = (k, n = 1) => { manifest.migrated[k] = (manifest.migrated[k] || 0) + n; };
+const bump = (k, n = 1) => {
+  manifest.migrated[k] = (manifest.migrated[k] || 0) + n;
+};
 
 const readJson = (f) => JSON.parse(fs.readFileSync(f, 'utf8'));
 const listFiles = (dir) => {
@@ -50,7 +52,13 @@ const rel = (abs) => path.relative(SRC, abs).split(path.sep).join('/');
 let masterMod = null;
 function companyIdFor(ticker, name) {
   if (ticker) return `NSE:${String(ticker).toUpperCase().trim()}`;
-  if (!masterMod) { try { masterMod = require('../lib/companyMaster'); } catch (_) { masterMod = false; } }
+  if (!masterMod) {
+    try {
+      masterMod = require('../lib/companyMaster');
+    } catch (_) {
+      masterMod = false;
+    }
+  }
   if (masterMod && name) {
     const hit = masterMod.findInText(String(name));
     if (hit) return hit.companyId;
@@ -63,38 +71,60 @@ function companyIdFor(ticker, name) {
 function migrateGainersInsights(file) {
   const j = readJson(file);
   const date = j.market_date || path.basename(file).slice(0, 10);
-  const records = (j.signals || []).map((s) => ({
-    type: 'gainer',
-    date,
-    companyId: s.companyId || companyIdFor(s.ticker, s.name),
-    creator: s.creator || 'gainers-signal',
-    creationTime: s.creationTime,
-    modifiedTime: s.modifiedTime,
-    name: s.name, industry: s.industry,
-    return_1d: s.return_1d, market_cap_cr: s.market_cap_cr,
-    primary_driver: s.primary_driver, conviction: s.conviction,
-    evidence: s.evidence, delivery: s.delivery,
-    summary: `${s.ticker} +${s.return_1d}% — ${s.primary_driver} (${s.conviction})`,
-  })).filter((r) => r.companyId);
+  const records = (j.signals || [])
+    .map((s) => ({
+      type: 'gainer',
+      date,
+      companyId: s.companyId || companyIdFor(s.ticker, s.name),
+      creator: s.creator || 'gainers-signal',
+      creationTime: s.creationTime,
+      modifiedTime: s.modifiedTime,
+      name: s.name,
+      industry: s.industry,
+      return_1d: s.return_1d,
+      market_cap_cr: s.market_cap_cr,
+      primary_driver: s.primary_driver,
+      conviction: s.conviction,
+      evidence: s.evidence,
+      delivery: s.delivery,
+      summary: `${s.ticker} +${s.return_1d}% — ${s.primary_driver} (${s.conviction})`,
+    }))
+    .filter((r) => r.companyId);
   if (!DRY && records.length) db.appendEvents(records);
   bump('events:gainer', records.length);
 }
 
 function migrateTweetInsights(file) {
   const j = readJson(file);
-  const date = (path.basename(file).match(/^(\d{4}-\d{2}-\d{2})/) || [])[1] ||
+  const date =
+    (path.basename(file).match(/^(\d{4}-\d{2}-\d{2})/) || [])[1] ||
     String(j.generatedAt || '').slice(0, 10);
-  const records = (j.signals || []).map((s) => ({
-    ...s,
-    type: 'tweet',
-    date,
-    summary: s.text ? String(s.text).slice(0, 300) : undefined,
-  })).filter((r) => r.companyId && r.conviction !== 'NOISE');
+  const records = (j.signals || [])
+    .map((s) => ({
+      ...s,
+      type: 'tweet',
+      date,
+      summary: s.text ? String(s.text).slice(0, 300) : undefined,
+    }))
+    .filter((r) => r.companyId && r.conviction !== 'NOISE');
   if (!DRY && records.length) db.appendEvents(records, { creator: 'tweet-signals' });
   bump('events:tweet', records.length);
 }
 
-const MONTHS = { jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06', jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12' };
+const MONTHS = {
+  jan: '01',
+  feb: '02',
+  mar: '03',
+  apr: '04',
+  may: '05',
+  jun: '06',
+  jul: '07',
+  aug: '08',
+  sep: '09',
+  oct: '10',
+  nov: '11',
+  dec: '12',
+};
 /** Normalize "06-07-2026" (DD-MM-YYYY) / "06-Jul-2026" / ISO → "YYYY-MM-DD". */
 function normDate(s) {
   if (!s) return null;
@@ -104,7 +134,8 @@ function normDate(s) {
   m = s.match(/^(\d{2})-(\d{2})-(\d{4})$/);
   if (m) return `${m[3]}-${m[2]}-${m[1]}`;
   m = s.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/);
-  if (m && MONTHS[m[2].toLowerCase()]) return `${m[3]}-${MONTHS[m[2].toLowerCase()]}-${String(m[1]).padStart(2, '0')}`;
+  if (m && MONTHS[m[2].toLowerCase()])
+    return `${m[3]}-${MONTHS[m[2].toLowerCase()]}-${String(m[1]).padStart(2, '0')}`;
   return null;
 }
 
@@ -123,9 +154,19 @@ function migrateDealsDigest(file) {
     type: 'deal',
     subtype: r.subtype,
     date: normDate(r.date) || date, // row dates come as "06-Jul-2026"
-    companyId: r.companyId || companyIdFor(r.symbol || r.ticker, r.companyName || r.company || r.name),
+    companyId:
+      r.companyId || companyIdFor(r.symbol || r.ticker, r.companyName || r.company || r.name),
     creator: 'daily-deals-digest',
-    summary: [r.subtype, r.symbol || r.companyName || r.company, r.client || r.clientName || r.acquirer || r.personName, r.qty || r.quantity, r.price || r.avgPrice].filter(Boolean).join(' | ').slice(0, 300),
+    summary: [
+      r.subtype,
+      r.symbol || r.companyName || r.company,
+      r.client || r.clientName || r.acquirer || r.personName,
+      r.qty || r.quantity,
+      r.price || r.avgPrice,
+    ]
+      .filter(Boolean)
+      .join(' | ')
+      .slice(0, 300),
   }));
   if (!DRY && records.length) db.appendEvents(records);
   bump('events:deal', records.length);
@@ -140,8 +181,12 @@ function migrateWatchlistSync(file) {
     type: 'watchlist-sync',
     date,
     creator: 'watchlist-sync',
-    scanName: j.scanName, watchlistName: j.watchlistName, watchlistId: j.watchlistId,
-    added: j.added, removed: j.removed, finalCount: j.desiredFinalCount,
+    scanName: j.scanName,
+    watchlistName: j.watchlistName,
+    watchlistId: j.watchlistId,
+    added: j.added,
+    removed: j.removed,
+    finalCount: j.desiredFinalCount,
     changes: (j.records || []).map((r) => ({ companyId: r.companyId, change: r.change })),
     summary: `${j.watchlistName}: +${j.added} / -${j.removed} (${j.desiredFinalCount} total)`,
   };
@@ -179,7 +224,9 @@ function migrateNotesDb(file) {
   for (const [cid, c] of Object.entries(companies)) {
     if (c.businessSummary) {
       batch.push({
-        companyId: cid, type: 'business-summary', creator: 'watchlist-insights',
+        companyId: cid,
+        type: 'business-summary',
+        creator: 'watchlist-insights',
         date: String(c.lastUpdated || '').slice(0, 10) || undefined,
         text: c.businessSummary,
       });
@@ -190,7 +237,8 @@ function migrateNotesDb(file) {
         companyId: cid,
         type: note.category || note.type || 'insight',
         creator: note.creator || 'watchlist-insights',
-        date: String(note.date || note.creationTime || note.addedAt || '').slice(0, 10) || undefined,
+        date:
+          String(note.date || note.creationTime || note.addedAt || '').slice(0, 10) || undefined,
         creationTime: note.creationTime || note.addedAt,
         text,
         sourceAnnouncement: note.announcementId || note.attachment || undefined,
@@ -209,7 +257,8 @@ function migrateValidationLedger(file) {
     const results = day.results || {};
     for (const [symbol, res] of Object.entries(results)) {
       batch.push({
-        date, symbol,
+        date,
+        symbol,
         companyId: companyIdFor(symbol) || `NSE:${symbol}`,
         creator: 'insight-validation',
         ...(typeof res === 'object' ? res : { value: res }),
@@ -231,7 +280,8 @@ function migrateTheses() {
     if (fs.existsSync(tPath)) {
       const thesis = readJson(tPath);
       delete thesis.sync_pending;
-      if (!DRY) db.saveThesis(cid, thesis, { creator: thesis.creator || 'investment-thesis-engine' });
+      if (!DRY)
+        db.saveThesis(cid, thesis, { creator: thesis.creator || 'investment-thesis-engine' });
       bump('theses');
     }
     const hPath = path.join(THESES, dir.name, 'history.jsonl');
@@ -259,7 +309,11 @@ function migrateAsset(file) {
 /** Enrich companies.json stubs with identity from the Kite master cache. */
 function enrichCompanies() {
   let master;
-  try { master = readJson(db.cachePath('company-master.json')); } catch (_) { return; }
+  try {
+    master = readJson(db.cachePath('company-master.json'));
+  } catch (_) {
+    return;
+  }
   const byId = new Map();
   for (const c of master.companies || []) {
     if (c.nseTicker) byId.set(`NSE:${c.nseTicker.toUpperCase()}`, c);
@@ -291,21 +345,43 @@ function route(file) {
   const r = rel(file);
   const base = path.basename(file);
   try {
-    if (/daily_gainers\/.*_insights\.json$/.test(r) || /unindexed\/gainers-insights\//.test(r)) return migrateGainersInsights(file);
+    if (/daily_gainers\/.*_insights\.json$/.test(r) || /unindexed\/gainers-insights\//.test(r))
+      return migrateGainersInsights(file);
     if (/tweet_signals\/.*_insights\.json$/.test(r)) return migrateTweetInsights(file);
     if (/deals_digest\/.*\.json$/.test(r)) return migrateDealsDigest(file);
-    if (/watchlist_sync\/.*\.json$/.test(r) || /unindexed\/watchlist-sync\/.*\.json$/.test(r)) return migrateWatchlistSync(file);
-    if (/entities\/watchlist-notes\/.*\/current\/meta\.json$/.test(r) || /^notes\/notes_.*\.json$/.test(r) || /unindexed\/watchlist-notes\/.*\.json$/.test(r) || /unindexed\/company-notes-legacy\/.*\.json$/.test(r)) return migrateNotesDb(file);
+    if (/watchlist_sync\/.*\.json$/.test(r) || /unindexed\/watchlist-sync\/.*\.json$/.test(r))
+      return migrateWatchlistSync(file);
+    if (
+      /entities\/watchlist-notes\/.*\/current\/meta\.json$/.test(r) ||
+      /^notes\/notes_.*\.json$/.test(r) ||
+      /unindexed\/watchlist-notes\/.*\.json$/.test(r) ||
+      /unindexed\/company-notes-legacy\/.*\.json$/.test(r)
+    )
+      return migrateNotesDb(file);
     if (/insights-batch\/.*\.json$/.test(r)) return migrateInsightsBatch(file);
-    if (/entities\/validation\/main\/ledger\/meta\.json$/.test(r) || /unindexed\/validation-ledger\//.test(r)) return migrateValidationLedger(file);
-    if (/bse-scrip-codes\//.test(r) || /scrip_codes\/meta\.json$/.test(r) || base === 'bse_scrip_codes.json') return migrateCacheFile(file, 'bse-scrip-codes.json');
+    if (
+      /entities\/validation\/main\/ledger\/meta\.json$/.test(r) ||
+      /unindexed\/validation-ledger\//.test(r)
+    )
+      return migrateValidationLedger(file);
+    if (
+      /bse-scrip-codes\//.test(r) ||
+      /scrip_codes\/meta\.json$/.test(r) ||
+      base === 'bse_scrip_codes.json'
+    )
+      return migrateCacheFile(file, 'bse-scrip-codes.json');
     if (/sector-context\//.test(r)) return migrateCacheFile(file, `sector-context-${base}`);
     if (/documents\/reports\/.*\.html$/.test(r)) return migrateAsset(file);
-    if (/documents\/(validation|unindexed\/validation-proposals)\/.*\.md$/.test(r)) return migrateAsset(file);
+    if (/documents\/(validation|unindexed\/validation-proposals)\/.*\.md$/.test(r))
+      return migrateAsset(file);
     // Derivable / transient — deliberately not migrated:
     // (entity /history/ files are StorageService auto-backups of state we migrate
     //  from /current/; gainers_raw / tweets_raw / market-data are re-fetchable)
-    if (/\/history\/\d+\.json$|_gainers_raw\.json$|gainers_raw_\d+\.json$|_tweets_raw|gainers-raw\/|market-data\/|ignored-announcements\/|ignored_log|ignored-log\/|\.current_run$|routine-tracking\/|(^|\/)\.env$|\.DS_Store$/.test(r)) {
+    if (
+      /\/history\/\d+\.json$|_gainers_raw\.json$|gainers_raw_\d+\.json$|_tweets_raw|gainers-raw\/|market-data\/|ignored-announcements\/|ignored_log|ignored-log\/|\.current_run$|routine-tracking\/|(^|\/)\.env$|\.DS_Store$/.test(
+        r
+      )
+    ) {
       return manifest.skippedDerivable.push(r);
     }
     manifest.quarantined.push(r);
@@ -328,7 +404,9 @@ function run() {
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 
   console.log('[migrate] migrated:', JSON.stringify(manifest.migrated));
-  console.log(`[migrate] skipped-derivable: ${manifest.skippedDerivable.length}, quarantined: ${manifest.quarantined.length}, errors: ${manifest.errors.length}`);
+  console.log(
+    `[migrate] skipped-derivable: ${manifest.skippedDerivable.length}, quarantined: ${manifest.quarantined.length}, errors: ${manifest.errors.length}`
+  );
   manifest.quarantined.slice(0, 30).forEach((q) => console.log(`  ? ${q}`));
   manifest.errors.forEach((e) => console.error(`  ! ${e}`));
   console.log(`[migrate] manifest: ${manifestPath}`);

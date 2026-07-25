@@ -2,7 +2,12 @@
 
 const fs = require('fs');
 const path = require('path');
-const { INSTITUTIONAL_DARK, parseMarkdownTable, formatInlineMarkdown, styledTableHtml } = require('./pdfUtils');
+const {
+  INSTITUTIONAL_DARK,
+  parseMarkdownTable,
+  formatInlineMarkdown,
+  styledTableHtml,
+} = require('./pdfUtils');
 
 /**
  * Common HTML wrapping for deep dive reports, using INSTITUTIONAL_DARK palette.
@@ -16,7 +21,7 @@ const { INSTITUTIONAL_DARK, parseMarkdownTable, formatInlineMarkdown, styledTabl
  * emit the class names directly) and it will render consistently here.
  */
 function wrapHtml(title, subtitle, bodyHtml, options = {}) {
-    return `
+  return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -149,134 +154,160 @@ function wrapHtml(title, subtitle, bodyHtml, options = {}) {
  * Converts markdown subset to HTML.
  */
 function markdownToHtml(md) {
-    const lines = md.split('\n');
-    let html = '';
-    let inTable = false;
-    let tbuf = [];
+  const lines = md.split('\n');
+  let html = '';
+  let inTable = false;
+  let tbuf = [];
 
-    const flushTable = () => {
-        if (tbuf.length > 0) {
-            const tableText = tbuf.join('\n');
-            const { headers, rows } = parseMarkdownTable(tableText);
-            if (headers && rows) {
-                html += styledTableHtml([headers, ...rows], INSTITUTIONAL_DARK);
-                html += '<br/>';
-            }
-            tbuf = [];
-        }
-    };
+  const flushTable = () => {
+    if (tbuf.length > 0) {
+      const tableText = tbuf.join('\n');
+      const { headers, rows } = parseMarkdownTable(tableText);
+      if (headers && rows) {
+        html += styledTableHtml([headers, ...rows], INSTITUTIONAL_DARK);
+        html += '<br/>';
+      }
+      tbuf = [];
+    }
+  };
 
-    let inList = false;
-    let listType = '';
+  let inList = false;
+  let listType = '';
 
-    for (let i = 0; i < lines.length; i++) {
-        let line = lines[i].trimEnd();
-        const trimmed = line.trim();
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i].trimEnd();
+    const trimmed = line.trim();
 
-        if (!trimmed) {
-            if (inTable) { flushTable(); inTable = false; }
-            if (inList) { html += `</${listType}>\n`; inList = false; }
-            html += '<br/>\n';
-            continue;
-        }
-
-        if (line.includes('|') && (line.startsWith('|') || (line.match(/\\|/g) || []).length >= 2)) {
-            if (inList) { html += `</${listType}>\n`; inList = false; }
-            inTable = true;
-            tbuf.push(line);
-            continue;
-        }
-
-        if (inTable) {
-            if (line.includes('|')) {
-                tbuf.push(line);
-                continue;
-            }
-            flushTable();
-            inTable = false;
-        }
-
-        if (trimmed.startsWith('# ') && !trimmed.startsWith('## ')) continue;
-
-        if (inList && !trimmed.startsWith('- ') && !trimmed.startsWith('* ') && !/^\\d+\\.\\s/.test(trimmed)) {
-            html += `</${listType}>\n`;
-            inList = false;
-        }
-
-        if (line.startsWith('## ')) {
-            html += `<h2>${formatInlineMarkdown(line.substring(3).trim())}</h2>\n`;
-        } else if (line.startsWith('### ')) {
-            html += `<h3>${formatInlineMarkdown(line.substring(4).trim())}</h3>\n`;
-        } else if (/^---+$/.test(trimmed)) {
-            html += `<hr style="border-top: 0.5pt solid ${INSTITUTIONAL_DARK.border}; margin: 3mm 0;">\n`;
-        } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-            if (!inList) { inList = true; listType = 'ul'; html += '<ul>\n'; }
-            html += `<li>${formatInlineMarkdown(trimmed.substring(2))}</li>\n`;
-        } else if (/^\\d+\\.\\s+(.*)/.test(trimmed)) {
-            if (!inList) { inList = true; listType = 'ol'; html += '<ol>\n'; }
-            const match = trimmed.match(/^\\d+\\.\\s+(.*)/);
-            html += `<li>${formatInlineMarkdown(match[1])}</li>\n`;
-        } else if (trimmed.startsWith('>')) {
-            html += `<div class="quote">${formatInlineMarkdown(trimmed.substring(1).trim())}</div>\n`;
-        } else if (line.includes('🚩') || line.toUpperCase().includes('RED FLAG')) {
-            const t = trimmed.replace('🚩', '').trim();
-            html += `<p class="red-flag">⚠ ${formatInlineMarkdown(t)}</p>\n`;
-        } else if (trimmed.startsWith('**BUY**') || trimmed.startsWith('**HOLD**') || trimmed.startsWith('**AVOID**')) {
-            let cls = 'verdict-buy';
-            if (trimmed.startsWith('**HOLD**')) cls = 'verdict-hold';
-            else if (trimmed.startsWith('**AVOID**')) cls = 'verdict-avoid';
-            html += `<div class="${cls}">${formatInlineMarkdown(trimmed)}</div>\n`;
-        } else {
-            html += `<p>${formatInlineMarkdown(trimmed)}</p>\n`;
-        }
+    if (!trimmed) {
+      if (inTable) {
+        flushTable();
+        inTable = false;
+      }
+      if (inList) {
+        html += `</${listType}>\n`;
+        inList = false;
+      }
+      html += '<br/>\n';
+      continue;
     }
 
-    if (inTable) flushTable();
-    if (inList) html += `</${listType}>\n`;
+    if (line.includes('|') && (line.startsWith('|') || (line.match(/\\|/g) || []).length >= 2)) {
+      if (inList) {
+        html += `</${listType}>\n`;
+        inList = false;
+      }
+      inTable = true;
+      tbuf.push(line);
+      continue;
+    }
 
-    return html;
+    if (inTable) {
+      if (line.includes('|')) {
+        tbuf.push(line);
+        continue;
+      }
+      flushTable();
+      inTable = false;
+    }
+
+    if (trimmed.startsWith('# ') && !trimmed.startsWith('## ')) continue;
+
+    if (
+      inList &&
+      !trimmed.startsWith('- ') &&
+      !trimmed.startsWith('* ') &&
+      !/^\\d+\\.\\s/.test(trimmed)
+    ) {
+      html += `</${listType}>\n`;
+      inList = false;
+    }
+
+    if (line.startsWith('## ')) {
+      html += `<h2>${formatInlineMarkdown(line.substring(3).trim())}</h2>\n`;
+    } else if (line.startsWith('### ')) {
+      html += `<h3>${formatInlineMarkdown(line.substring(4).trim())}</h3>\n`;
+    } else if (/^---+$/.test(trimmed)) {
+      html += `<hr style="border-top: 0.5pt solid ${INSTITUTIONAL_DARK.border}; margin: 3mm 0;">\n`;
+    } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      if (!inList) {
+        inList = true;
+        listType = 'ul';
+        html += '<ul>\n';
+      }
+      html += `<li>${formatInlineMarkdown(trimmed.substring(2))}</li>\n`;
+    } else if (/^\\d+\\.\\s+(.*)/.test(trimmed)) {
+      if (!inList) {
+        inList = true;
+        listType = 'ol';
+        html += '<ol>\n';
+      }
+      const match = trimmed.match(/^\\d+\\.\\s+(.*)/);
+      html += `<li>${formatInlineMarkdown(match[1])}</li>\n`;
+    } else if (trimmed.startsWith('>')) {
+      html += `<div class="quote">${formatInlineMarkdown(trimmed.substring(1).trim())}</div>\n`;
+    } else if (line.includes('🚩') || line.toUpperCase().includes('RED FLAG')) {
+      const t = trimmed.replace('🚩', '').trim();
+      html += `<p class="red-flag">⚠ ${formatInlineMarkdown(t)}</p>\n`;
+    } else if (
+      trimmed.startsWith('**BUY**') ||
+      trimmed.startsWith('**HOLD**') ||
+      trimmed.startsWith('**AVOID**')
+    ) {
+      let cls = 'verdict-buy';
+      if (trimmed.startsWith('**HOLD**')) cls = 'verdict-hold';
+      else if (trimmed.startsWith('**AVOID**')) cls = 'verdict-avoid';
+      html += `<div class="${cls}">${formatInlineMarkdown(trimmed)}</div>\n`;
+    } else {
+      html += `<p>${formatInlineMarkdown(trimmed)}</p>\n`;
+    }
+  }
+
+  if (inTable) flushTable();
+  if (inList) html += `</${listType}>\n`;
+
+  return html;
 }
 
 async function renderPdf(htmlContent, outputPath, headerText, footerLeftText) {
-    let puppeteer;
-    try {
-        puppeteer = require('puppeteer');
-    } catch (err) {
-        throw new Error('puppeteer is required to generate PDFs. Please install it.');
-    }
-    const browser = await puppeteer.launch({ headless: 'new' });
-    const page = await browser.newPage();
-    
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-    
-    const dir = path.dirname(outputPath);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  let puppeteer;
+  try {
+    puppeteer = require('puppeteer');
+  } catch (err) {
+    throw new Error('puppeteer is required to generate PDFs. Please install it.');
+  }
+  const browser = await puppeteer.launch({ headless: 'new' });
+  const page = await browser.newPage();
 
-    await page.pdf({
-        path: outputPath,
-        format: 'A4',
-        margin: { top: '18mm', bottom: '18mm', left: '15mm', right: '15mm' },
-        displayHeaderFooter: true,
-        headerTemplate: `
+  await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+
+  const dir = path.dirname(outputPath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+  await page.pdf({
+    path: outputPath,
+    format: 'A4',
+    margin: { top: '18mm', bottom: '18mm', left: '15mm', right: '15mm' },
+    displayHeaderFooter: true,
+    headerTemplate: `
             <div style="width: 100%; font-size: 7px; color: ${INSTITUTIONAL_DARK.muted}; padding: 0 15mm; display: flex; justify-content: space-between; border-bottom: 1px solid ${INSTITUTIONAL_DARK.primary}; margin-bottom: 10px;">
                 <span>${headerText}</span>
                 <span>${new Date().toLocaleString('en-GB', { month: 'long', year: 'numeric' })}</span>
             </div>
         `,
-        footerTemplate: `
+    footerTemplate: `
             <div style="width: 100%; font-size: 7px; color: ${INSTITUTIONAL_DARK.muted}; padding: 0 15mm; display: flex; justify-content: space-between; border-top: 0.5px solid ${INSTITUTIONAL_DARK.primary}; margin-top: 10px;">
                 <span>${footerLeftText || 'For informational purposes only. Not investment advice.'}</span>
                 <span>Page <span class="pageNumber"></span></span>
             </div>
-        `
-    });
-    
-    await browser.close();
-    return outputPath;
+        `,
+  });
+
+  await browser.close();
+  return outputPath;
 }
 
 module.exports = {
-    wrapHtml,
-    markdownToHtml,
-    renderPdf
+  wrapHtml,
+  markdownToHtml,
+  renderPdf,
 };

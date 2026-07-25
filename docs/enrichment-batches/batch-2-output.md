@@ -5,6 +5,7 @@ Stored in DB collections (data/prompts.json, data/notes.json, data/reports.json)
 ## Prompt library (6)
 
 ### Map listed beneficiaries of a policy/theme by revenue & margin exposure
+
 - **id:** `prompt_conversation-capture_sector-research-deepdive_2026-06-12_d92a7643`
 - **intent:** sector-beneficiary-mapping | **linkedSkill:** sector-research-deepdive | **status:** approved
 - **prompt:** /sector-research-deepdive — If India moves toward higher <policy/theme>, which listed/unlisted companies benefit most? Give company names with highest revenue & margins from this newly expanded TAM. Starting points: <segments>.
@@ -12,6 +13,7 @@ Stored in DB collections (data/prompts.json, data/notes.json, data/reports.json)
 - **tags:** sector, thematic, tam, beneficiaries | **source:** `conv_cloud_0fd9e7e6`
 
 ### Analyze a pasted/linked concall transcript
+
 - **id:** `prompt_conversation-capture_concall-analysis_2026-06-01_a87db38a`
 - **intent:** concall-analysis | **linkedSkill:** concall-analysis | **status:** approved
 - **prompt:** /concall-analysis <stockscans URL or pasted transcript>
@@ -19,6 +21,7 @@ Stored in DB collections (data/prompts.json, data/notes.json, data/reports.json)
 - **tags:** concall, earnings, analysis | **source:** `conv_cloud_d24b55ba`
 
 ### Track institutional buying + growth-trigger timeline for a stock
+
 - **id:** `prompt_conversation-capture_growth-triggers-1pager_2026-06-01_7323bc58`
 - **intent:** institutional-flow-tracking | **linkedSkill:** growth-triggers-1pager | **status:** approved
 - **prompt:** <company URL> Over the last 6 months track all major deals and institution buyouts of this company. Why are mutual funds buying it so much? Show a timeline of events (from corporate announcements) that are the growth triggers for institutional interest at such high valuation.
@@ -26,6 +29,7 @@ Stored in DB collections (data/prompts.json, data/notes.json, data/reports.json)
 - **tags:** institutional, deals, growth-triggers, timeline | **source:** `conv_cloud_0102a92e`
 
 ### Preferential issue mechanics vs QIP (SEBI) — investor Q&A
+
 - **id:** `prompt_conversation-capture_general_2026-06-01_5d1a8aab`
 - **intent:** concept-learning | **linkedSkill:** (none) | **status:** approved
 - **prompt:** What are the core differences between a preferential issue and a QIP? Price & size? Who can participate / who are the allottees? Lock-in period? How can I apply to preferential issues in future?
@@ -33,6 +37,7 @@ Stored in DB collections (data/prompts.json, data/notes.json, data/reports.json)
 - **tags:** sebi, preferential-issue, qip, capital-markets, concept | **source:** `conv_cloud_d24b55ba`
 
 ### Generate institutional stock report from a Stockscans URL
+
 - **id:** `prompt_conversation-capture_stock-report_2026-05-24_e1618061`
 - **intent:** company-report | **linkedSkill:** stock-report | **status:** approved
 - **prompt:** /stock-report <stockscans company URL>
@@ -40,6 +45,7 @@ Stored in DB collections (data/prompts.json, data/notes.json, data/reports.json)
 - **tags:** stock-report, equity, pdf | **source:** `conv_cloud_48224d82`
 
 ### Forward P/E thesis with FY27E/FY28E from concalls
+
 - **id:** `prompt_conversation-capture_financial-model_2026-05-24_e1a98d7b`
 - **intent:** valuation-thesis | **linkedSkill:** financial-model | **status:** approved
 - **prompt:** Create an institutional-grade honest forward PE thesis for <company>. Fetch & study last 5 concalls + investor presentations. Extract order-book, capacity, revenue & margin guidance. Extrapolate & calculate FY27E, FY28E based on these inputs.
@@ -67,4 +73,3 @@ Stored in DB collections (data/prompts.json, data/notes.json, data/reports.json)
 
 - **framework** (2026-06-01, `rpt_conversation-capture_global_2026-06-01_06a61df0`): Preferential issue vs QIP under SEBI ICDR Chapter V (from DEEDEV Q&A). Pref issue: open to any named allottee incl. promoters/MFs/AIFs/FPIs/HNIs; allottees named upfront in EGM notice; interested allottees abstain from voting; max 49 allottees; price >= SEBI floor (higher of 2-week/26-week avg). Lock-in: promoter 18 months, non-promoter 12 months; allotment within 15 days of EGM. QIP: QIBs only, no promoters.
   - source: `undefined` | body: `data/reports/rpt_conversation-capture_global_2026-06-01_06a61df0.json`
-

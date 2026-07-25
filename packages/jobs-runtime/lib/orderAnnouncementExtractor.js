@@ -24,16 +24,26 @@
  * LLM read" rather than "this isn't an order announcement at all".
  */
 
-const TITLE_RE = /award.{0,3}of.{0,3}order|receipt.{0,3}of.{0,3}order|award_of_order|receipt_of_order/i;
+const TITLE_RE =
+  /award.{0,3}of.{0,3}order|receipt.{0,3}of.{0,3}order|award_of_order|receipt_of_order/i;
 
 // e.g. "Rs. 1,180 Crores", "Rs 1180 Cr", "₹798 crore", "worth Rs. 45.6 Cr"
-const VALUE_RE = /(?:Rs\.?|₹|INR)\s*([\d][\d,]*\.?\d*)\s*(Cr\.?|Crore|Crores|Lakh|Lakhs|Lac|Lacs|Mn|Million|Bn|Billion)\b/i;
+const VALUE_RE =
+  /(?:Rs\.?|₹|INR)\s*([\d][\d,]*\.?\d*)\s*(Cr\.?|Crore|Crores|Lakh|Lakhs|Lac|Lacs|Mn|Million|Bn|Billion)\b/i;
 
 const UNIT_TO_CR = {
-  cr: 1, 'cr.': 1, crore: 1, crores: 1,
-  lakh: 0.01, lakhs: 0.01, lac: 0.01, lacs: 0.01,
-  mn: 0.1, million: 0.1,
-  bn: 1000, billion: 1000,
+  cr: 1,
+  'cr.': 1,
+  crore: 1,
+  crores: 1,
+  lakh: 0.01,
+  lakhs: 0.01,
+  lac: 0.01,
+  lacs: 0.01,
+  mn: 0.1,
+  million: 0.1,
+  bn: 1000,
+  billion: 1000,
 };
 
 class AnnouncementValueNotFoundError extends Error {
@@ -59,7 +69,8 @@ function extractOrderValue(ann) {
   const description = ann.description || '';
   if (!isOrderAnnouncement(title)) {
     throw new AnnouncementValueNotFoundError(
-      `Not an order-win/receipt filing (title: "${title}")`, { isOrderAnnouncement: false }
+      `Not an order-win/receipt filing (title: "${title}")`,
+      { isOrderAnnouncement: false }
     );
   }
   const m = VALUE_RE.exec(description) || VALUE_RE.exec(title);
@@ -73,11 +84,18 @@ function extractOrderValue(ann) {
   const unitRaw = m[2].toLowerCase();
   const crMultiplier = UNIT_TO_CR[unitRaw];
   return {
-    value: numeric, unit: unitRaw,
+    value: numeric,
+    unit: unitRaw,
     deltaCr: Math.round(numeric * crMultiplier * 100) / 100,
     confidence: 'high',
     sourceText: description || title,
   };
 }
 
-module.exports = { isOrderAnnouncement, extractOrderValue, AnnouncementValueNotFoundError, VALUE_RE, TITLE_RE };
+module.exports = {
+  isOrderAnnouncement,
+  extractOrderValue,
+  AnnouncementValueNotFoundError,
+  VALUE_RE,
+  TITLE_RE,
+};

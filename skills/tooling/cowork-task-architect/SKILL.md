@@ -6,7 +6,8 @@ description: >
 
 # Cowork Task Architect
 
-Enforces the **Script-First architecture** for every Claude Cowork scheduled task:  
+Enforces the **Script-First architecture** for every Claude Cowork scheduled task:
+
 > **Script = deterministic + repeatable. Task Prompt = ambiguous + requires judgment.**
 
 ---
@@ -15,10 +16,10 @@ Enforces the **Script-First architecture** for every Claude Cowork scheduled tas
 
 When a Cowork task is created or modified, it must be designed with a **strict orchestration architecture**:
 
-| Component | Responsibility |
-|---|---|
-| **APIs / Scripts / Skills** | All computation, data fetching, parsing, filtering, logic, judgment, and formatting. |
-| **Scheduled Cowork Task** | Pure orchestration. It only handles calling the respective APIs/scripts/skills in order. It has NO logic of its own. |
+| Component                   | Responsibility                                                                                                       |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **APIs / Scripts / Skills** | All computation, data fetching, parsing, filtering, logic, judgment, and formatting.                                 |
+| **Scheduled Cowork Task**   | Pure orchestration. It only handles calling the respective APIs/scripts/skills in order. It has NO logic of its own. |
 
 The scripts and skills do all the real work. The scheduled task simply orchestrates them using exact file paths.
 
@@ -29,7 +30,8 @@ The scripts and skills do all the real work. The scheduled task simply orchestra
 ### Step 1 — Figure out which apis/scripts/skills to create
 
 Ask the user (or infer from context):
-1. What should this task *do* end-to-end?
+
+1. What should this task _do_ end-to-end?
 2. What data/files/APIs does it need to touch?
 3. Based on the requirements, figure out exactly which APIs, companion scripts, or skills need to be created.
 
@@ -40,6 +42,7 @@ Create the necessary APIs, scripts, and skills, and place them in the appropriat
 Apply the boundary rule to every operation in the task:
 
 **Goes in the Script/API/Skill:**
+
 - File reads/writes (CSV, JSON, Excel, TXT, logs)
 - API calls (fetch data, paginate, authenticate)
 - Parsing (HTML, PDF, JSON, XML)
@@ -78,6 +81,7 @@ if __name__ == "__main__":
 ```
 
 **Script rules:**
+
 - Must be idempotent — safe to re-run
 - Must handle errors gracefully (try/except with meaningful messages)
 - Should be fast — if slow, add caching or pagination logic
@@ -96,6 +100,7 @@ Ecosystem v2 migration; do not create new Mongo models/collections for a task's
 data persistence needs, even if an existing legacy feature still reads from Mongo.
 
 In short:
+
 - Only five destinations exist: an existing collection via
   `packages/jobs-runtime/lib/db.js` helpers (`saveReport` / `appendEvents` /
   `appendNotes` / `appendValidations` / `saveThesis` / `upsertMany`),
@@ -122,6 +127,7 @@ In short:
 The `jobs/` folder is linked directly as the Cowork root folder, so there is no separate repo copy to maintain — the live Cowork scheduler is the single source of truth. Create or update the task there via the `create_scheduled_task` / `update_scheduled_task` tools.
 
 **Critical Rules for the Task Prompt:**
+
 1. It doesn't have any logic of its own.
 2. Its job is ONLY to orchestrate the execution of the respective apis/scripts/skills.
 3. It must refer to the **exact absolute paths** of the respective apis/scripts/skills for invoking them.
@@ -151,6 +157,7 @@ Do NOT run any logic, calculations, data fetching, or file modifications directl
 ```
 
 Call the tool directly — do not just instruct the user to paste something manually:
+
 - New task → `mcp__scheduled-tasks__create_scheduled_task` with `taskId`, `prompt` (the body above), `description`, and `cronExpression` or `fireAt`.
 - Existing task → `mcp__scheduled-tasks__update_scheduled_task` with the same `taskId` and whichever fields changed.
 
@@ -161,12 +168,15 @@ Call the tool directly — do not just instruct the user to paste something manu
 Always deliver the following:
 
 ### Artifact 1: Scripts and Skills Creation
+
 Create the necessary scripts/skills as files in the appropriate directories of the `stockmarket` project. Provide the user with the absolute paths to the newly created files.
 
 ### Artifact 2: Task Prompt (in a code block)
+
 Lightweight prompt text, orchestrating the scripts/skills with absolute paths. This is not just a snippet to hand the user to paste — it must already have been submitted via `create_scheduled_task`/`update_scheduled_task` per Step 3.
 
 ### Artifact 3: Quickstart comment (optional)
+
 If the task needs env vars, API keys, or dependencies, list them in a `# SETUP` block at the top of the relevant script.
 
 ---
@@ -174,13 +184,15 @@ If the task needs env vars, API keys, or dependencies, list them in a `# SETUP` 
 ## Examples of the Orchestration in Practice
 
 ### ❌ Wrong — Task has its own logic
+
 ```
-Task Prompt: "Fetch my last 7 days of trades from the Zerodha API, 
-filter to only losing trades, calculate the average loss, 
+Task Prompt: "Fetch my last 7 days of trades from the Zerodha API,
+filter to only losing trades, calculate the average loss,
 sort by size, and write a short reflection on what went wrong."
 ```
 
 ### ✅ Right — Pure Orchestration
+
 **Script does:** API auth → fetch trades → filter losing → calculate avg loss → sort by size → output JSON to a file
 **Skill does:** Reads the JSON → writes a short reflection on patterns
 **Task Prompt does:** Execute `/path/to/stockmarket/scripts/fetch_losing_trades.py` and then execute `/path/to/stockmarket/skills/write_reflection/SKILL.md`
@@ -188,13 +200,15 @@ sort by size, and write a short reflection on what went wrong."
 ---
 
 ### ❌ Wrong — Task asks model to parse
+
 ```
-Task Prompt: "Read the CSV at /data/watchlist.csv, 
+Task Prompt: "Read the CSV at /data/watchlist.csv,
 parse each row, and for each stock check if RSI > 70..."
 ```
 
 ### ✅ Right — Pure Orchestration
-**Script does:** Read CSV → compute RSI for each ticker → flag RSI > 70 → write output 
+
+**Script does:** Read CSV → compute RSI for each ticker → flag RSI > 70 → write output
 **Task Prompt does:** Execute `/path/to/stockmarket/scripts/check_rsi.py`.
 
 ---
@@ -202,6 +216,7 @@ parse each row, and for each stock check if RSI > 70..."
 ## When Modifying an Existing Task
 
 If the user is updating an existing task:
+
 1. Re-audit the current prompt for any logic or computation that should move to a script or skill.
 2. Update the script/skill first, then update the prompt to only orchestrate the calls with exact paths.
 3. Version the script (add `# v2 — added X` comment at top)
@@ -229,6 +244,7 @@ All Stockscans API logic — authentication, token resolution, document fetching
 ### When to use it
 
 Any Cowork task companion script that needs to:
+
 - Fetch documents (transcripts, annual reports, PPTs, results)
 - Pull corporate announcements
 - Run a saved scan to get a company universe

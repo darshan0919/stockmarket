@@ -25,12 +25,12 @@ Every output JSON object, at the record level (e.g. one object per company/ticke
 inside a `signals[]`, `results[]`, etc. array — not just once per file), MUST include
 these four fields, always:
 
-| Field | Type | Meaning |
-|---|---|---|
-| `companyId` | string | The unique identifier for the company/ticker this record is about. Use the canonical symbol/ISIN-style ID already used elsewhere in the codebase — see `insightValidator.js`'s existing `companyId` usage (e.g. `"NSE:SWARAJENG"`) for the established convention. Do not invent a new ID scheme. |
-| `creationTime` | string (ISO 8601) | Timestamp of when this record was first created. |
-| `modifiedTime` | string (ISO 8601) | Timestamp of the last update to this record. Equals `creationTime` on first write. |
-| `creator` | string | The skill name (kebab-case, matching the skill directory / frontmatter `name`) that produced this record, e.g. `"gainers-signal"`, `"insight-validation"`. |
+| Field          | Type              | Meaning                                                                                                                                                                                                                                                                                           |
+| -------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `companyId`    | string            | The unique identifier for the company/ticker this record is about. Use the canonical symbol/ISIN-style ID already used elsewhere in the codebase — see `insightValidator.js`'s existing `companyId` usage (e.g. `"NSE:SWARAJENG"`) for the established convention. Do not invent a new ID scheme. |
+| `creationTime` | string (ISO 8601) | Timestamp of when this record was first created.                                                                                                                                                                                                                                                  |
+| `modifiedTime` | string (ISO 8601) | Timestamp of the last update to this record. Equals `creationTime` on first write.                                                                                                                                                                                                                |
+| `creator`      | string            | The skill name (kebab-case, matching the skill directory / frontmatter `name`) that produced this record, e.g. `"gainers-signal"`, `"insight-validation"`.                                                                                                                                        |
 
 These four fields live inside the record itself, alongside whatever domain-specific
 fields the skill needs (e.g. `primary_driver`, `conviction`, `verdict`, `d2Return`, ...).
@@ -55,6 +55,7 @@ shape → layout rule table.
 ## Recommended (not yet mandatory)
 
 Each skill should ideally also:
+
 - Define its own typed DTO shape for its record (JSON Schema, or a documented TS/JSDoc
   type) alongside the code that produces it.
 - Provide a corresponding render template that is a pure function of that DTO — same
@@ -76,6 +77,7 @@ signals/deals/tweets via `db.appendEvents`, notes via `db.appendNotes`, validati
 ## Rollout status
 
 As of Data Ecosystem v2 (2026-07-08), all runtime jobs conform via lib/db.js:
+
 - `gainers-signal` (`gainersClassifier.js` → events collection, type=`gainer`)
 - `insight-validation` (`insightValidator.js` → validation collection)
 - `daily-deals-digest` (`dealsDigest.js` → events, type=`deal`)

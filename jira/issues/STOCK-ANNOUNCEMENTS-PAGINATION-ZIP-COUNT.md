@@ -4,21 +4,21 @@
 
 Use this table for repo-local tracking. If the work is mirrored in a real Jira project, copy **Issue Key** here when known.
 
-| Field | Value |
-|--------|--------|
-| **Issue Key** | — (optional external key, e.g. `PROJ-123`) |
-| **Issue Type** | Bug |
-| **Status** | Done |
-| **Priority** | High |
-| **Labels** | `announcements`, `stockscans`, `pagination`, `frontend` |
-| **Component** | Announcements tab / StockScans integration |
-| **Summary** | Bulk “Download ZIP” unreliable; announcements count wrong with StockScans pagination |
-| **Affects version** | — |
-| **Fix version** | — |
-| **Reporter** | — |
-| **Assignee** | — |
-| **Created** | 2026-04-13 |
-| **Updated** | 2026-04-13 |
+| Field               | Value                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| **Issue Key**       | — (optional external key, e.g. `PROJ-123`)                                           |
+| **Issue Type**      | Bug                                                                                  |
+| **Status**          | Done                                                                                 |
+| **Priority**        | High                                                                                 |
+| **Labels**          | `announcements`, `stockscans`, `pagination`, `frontend`                              |
+| **Component**       | Announcements tab / StockScans integration                                           |
+| **Summary**         | Bulk “Download ZIP” unreliable; announcements count wrong with StockScans pagination |
+| **Affects version** | —                                                                                    |
+| **Fix version**     | —                                                                                    |
+| **Reporter**        | —                                                                                    |
+| **Assignee**        | —                                                                                    |
+| **Created**         | 2026-04-13                                                                           |
+| **Updated**         | 2026-04-13                                                                           |
 
 ## Description
 
@@ -33,11 +33,11 @@ Secondary: ZIP download path did not `encodeURIComponent` the symbol (e.g. `M&M`
 
 ## Fix (codebase)
 
-| Area | Change |
-|------|--------|
-| `frontend/lib/announcementBulkDownload.js` | After each page: `offset += batch.length` (do not derive next offset from `meta.offset` via `??`). |
+| Area                                            | Change                                                                                                                       |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `frontend/lib/announcementBulkDownload.js`      | After each page: `offset += batch.length` (do not derive next offset from `meta.offset` via `??`).                           |
 | `frontend/components/stock/AnnouncementsTab.js` | `setNextOffset(offset + batch.length)` for StockScans; when `hasMore`, clarify copy: “loaded (more when you use Load more)”. |
-| `frontend/lib/api.js` | `POST /announcements/:symbol/download` uses `encodeURIComponent(symbol)`. |
+| `frontend/lib/api.js`                           | `POST /announcements/:symbol/download` uses `encodeURIComponent(symbol)`.                                                    |
 
 ## Tests
 

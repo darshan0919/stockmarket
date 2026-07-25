@@ -29,28 +29,31 @@ curl -s http://localhost:3000 | head -5
 ✅ **Header:** "Quarterly Results" with "View on NSE" link  
 ✅ **Table:** Horizontal scrollable with quarters as columns  
 ✅ **Metrics (11 rows):**
-   - Sales
-   - Expenses
-   - Operating Profit
-   - OPM %
-   - Other Income
-   - Interest
-   - Depreciation
-   - Profit Before Tax
-   - Tax %
-   - Net Profit
-   - EPS
+
+- Sales
+- Expenses
+- Operating Profit
+- OPM %
+- Other Income
+- Interest
+- Depreciation
+- Profit Before Tax
+- Tax %
+- Net Profit
+- EPS
 
 ✅ **Growth Metrics Section (gray header)**  
 ✅ **Growth Rows (4 rows):**
-   - YoY Sales Growth % (colored)
-   - YoY Net Profit Growth % (colored)
-   - QoQ Sales Growth % (colored)
-   - QoQ Net Profit Growth % (colored)
+
+- YoY Sales Growth % (colored)
+- YoY Net Profit Growth % (colored)
+- QoQ Sales Growth % (colored)
+- QoQ Net Profit Growth % (colored)
 
 ✅ **Colors:**
-   - Green for positive growth
-   - Red for negative growth
+
+- Green for positive growth
+- Red for negative growth
 
 ### 4. Test Different Stocks
 
@@ -64,17 +67,21 @@ Try these stocks to verify the widget works across different companies:
 ### 5. Test Edge Cases
 
 **A. Stock with no quarterly data:**
+
 ```bash
 curl http://localhost:5000/api/stocks/INVALID/quarterly
 ```
+
 Expected: `{"success":true,"data":{"quarters":[],"message":"No quarterly results available"}}`
 
 **B. Stock page with no data:**
+
 - Should show: "No quarterly results available"
 
 ### 6. Troubleshooting
 
 #### Backend Not Starting?
+
 ```bash
 cd /Users/darshan.patel/code/personal/stockmarket/backend
 node server.js
@@ -86,11 +93,12 @@ node server.js
 1. **Clear browser cache and reload**
 2. **Check browser console for errors** (F12 → Console tab)
 3. **Verify API call:**
+
    ```javascript
    // In browser console
    fetch('http://localhost:5000/api/stocks/SRM/quarterly')
-     .then(r => r.json())
-     .then(d => console.log(d))
+     .then((r) => r.json())
+     .then((d) => console.log(d));
    ```
 
 4. **Check if component is loaded:**
@@ -109,11 +117,13 @@ node server.js
 #### Widget Showing But No Data?
 
 1. **Test API directly:**
+
    ```bash
    curl -v http://localhost:5000/api/stocks/SRM/quarterly
    ```
 
 2. **Check NSE API access:**
+
    ```bash
    curl -s "https://www.nseindia.com/api/results-comparision?symbol=SRM&period=Quarterly&comparisionType=quarterly" \
      -H "User-Agent: Mozilla/5.0" \
@@ -169,7 +179,7 @@ For reference, here's what the API should return:
         "eps": 8.16,
         "audited": false,
         "qoq_sales_growth": -49.74,
-        "qoq_profit_growth": -31.80
+        "qoq_profit_growth": -31.8
       }
     ],
     "source": "NSE India",
@@ -210,12 +220,15 @@ When viewing the widget in browser:
 ## Common Issues & Solutions
 
 ### Issue 1: "No quarterly results available"
+
 **Cause:** NSE API might be down or the stock symbol is incorrect  
 **Solution:** Try another stock symbol or check NSE API status
 
 ### Issue 2: Widget not appearing
+
 **Cause:** Frontend hasn't reloaded the new component  
-**Solution:** 
+**Solution:**
+
 ```bash
 # Clear Next.js cache and restart
 cd frontend
@@ -224,12 +237,15 @@ npm run dev
 ```
 
 ### Issue 3: API timeout
+
 **Cause:** NSE API is slow or network issues  
 **Solution:** Increase timeout in backend controller (currently 10 seconds)
 
 ### Issue 4: Formatting looks wrong
+
 **Cause:** CSS not loaded or Tailwind not compiling  
-**Solution:** 
+**Solution:**
+
 ```bash
 cd frontend
 npm run build
@@ -249,9 +265,8 @@ npm run dev
 ✅ NSE link works correctly  
 ✅ Loading and error states work  
 ✅ No console errors  
-✅ API responds with valid data  
+✅ API responds with valid data
 
 ---
 
 **Last Updated:** November 14, 2025
-

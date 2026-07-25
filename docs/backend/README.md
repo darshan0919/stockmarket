@@ -71,28 +71,28 @@ backend/
 
 ### Controllers
 
-| Controller | File | Documentation |
-|------------|------|---------------|
-| Stock Controller | [stockController.js](./controllers/stockController.md) | Stock search, details, quarterly results |
-| Screener Controller | [screenerController.js](./controllers/screenerController.md) | Stock screening |
-| Market Controller | [marketController.js](./controllers/marketController.md) | Market indices |
-| Watchlist Controller | [watchlistController.js](./controllers/watchlistController.md) | Watchlist CRUD |
+| Controller           | File                                                           | Documentation                            |
+| -------------------- | -------------------------------------------------------------- | ---------------------------------------- |
+| Stock Controller     | [stockController.js](./controllers/stockController.md)         | Stock search, details, quarterly results |
+| Screener Controller  | [screenerController.js](./controllers/screenerController.md)   | Stock screening                          |
+| Market Controller    | [marketController.js](./controllers/marketController.md)       | Market indices                           |
+| Watchlist Controller | [watchlistController.js](./controllers/watchlistController.md) | Watchlist CRUD                           |
 
 ### Utilities
 
-| Utility | File | Documentation |
-|---------|------|---------------|
-| Technical Indicators | [technicalIndicators.js](./utils/technicalIndicators.md) | SMA, EMA, RSI, MACD |
-| Validators | [validators.js](./utils/validators.md) | Joi validation schemas |
-| XBRL Parser | [xbrlParser.js](./utils/xbrlParser.md) | Financial data parsing |
+| Utility              | File                                                     | Documentation          |
+| -------------------- | -------------------------------------------------------- | ---------------------- |
+| Technical Indicators | [technicalIndicators.js](./utils/technicalIndicators.md) | SMA, EMA, RSI, MACD    |
+| Validators           | [validators.js](./utils/validators.md)                   | Joi validation schemas |
+| XBRL Parser          | [xbrlParser.js](./utils/xbrlParser.md)                   | Financial data parsing |
 
 ### External APIs
 
-| API | File | Documentation |
-|-----|------|---------------|
+| API       | File                                   | Documentation         |
+| --------- | -------------------------------------- | --------------------- |
 | NSE India | [nseIndiaApi.js](./api/nseIndiaApi.md) | NSE India integration |
 | BSE India | [bseIndiaApi.js](./api/bseIndiaApi.md) | BSE India integration |
-| Gemini AI | [geminiApi.js](./api/geminiApi.md) | AI analysis |
+| Gemini AI | [geminiApi.js](./api/geminiApi.md)     | AI analysis           |
 
 ## Development
 
@@ -128,19 +128,19 @@ yarn workspace stock-screener-backend format:check
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `PORT` | No | Server port (default: 5000) |
-| `MONGODB_URI` | Yes | MongoDB connection string |
-| `NODE_ENV` | No | Environment (development/production) |
-| `GEMINI_API_KEY` | Yes | Google Gemini API key |
-| `TWITTER_AUTH_TOKEN` | Yes* | `auth_token` cookie for x.com GraphQL (Tweet Downloader) |
-| `TWITTER_CSRF_TOKEN` | Yes* | `ct0` cookie / `x-csrf-token` for x.com GraphQL |
-| `TWITTER_USER_BY_SCREEN_NAME_QUERY_ID` | Yes* | GraphQL query id for handle → user id lookup |
-| `TWITTER_USER_TWEETS_QUERY_ID` | No | GraphQL query id for user timeline (has default) |
-| `TWITTER_BEARER_TOKEN` | No | Bearer token header; alias `X_BEARER_TOKEN` |
-| `TWITTER_COOKIES` | No | Full Cookie header override |
-| `TWITTER_USER_AGENT` | No | Browser user-agent string |
+| Variable                               | Required | Description                                              |
+| -------------------------------------- | -------- | -------------------------------------------------------- |
+| `PORT`                                 | No       | Server port (default: 5000)                              |
+| `MONGODB_URI`                          | Yes      | MongoDB connection string                                |
+| `NODE_ENV`                             | No       | Environment (development/production)                     |
+| `GEMINI_API_KEY`                       | Yes      | Google Gemini API key                                    |
+| `TWITTER_AUTH_TOKEN`                   | Yes\*    | `auth_token` cookie for x.com GraphQL (Tweet Downloader) |
+| `TWITTER_CSRF_TOKEN`                   | Yes\*    | `ct0` cookie / `x-csrf-token` for x.com GraphQL          |
+| `TWITTER_USER_BY_SCREEN_NAME_QUERY_ID` | Yes\*    | GraphQL query id for handle → user id lookup             |
+| `TWITTER_USER_TWEETS_QUERY_ID`         | No       | GraphQL query id for user timeline (has default)         |
+| `TWITTER_BEARER_TOKEN`                 | No       | Bearer token header; alias `X_BEARER_TOKEN`              |
+| `TWITTER_COOKIES`                      | No       | Full Cookie header override                              |
+| `TWITTER_USER_AGENT`                   | No       | Browser user-agent string                                |
 
 \*Required for Tweet Downloader; see `docs/API_REFERENCE.md#x-twitter-apis`
 
@@ -201,6 +201,7 @@ app.use('/api/new-feature', require('./routes/newFeature'));
 ## Database Models
 
 ### Stock Model
+
 ```javascript
 // backend/models/Stock.js
 {
@@ -215,6 +216,7 @@ app.use('/api/new-feature', require('./routes/newFeature'));
 ```
 
 ### QuarterlyResult Model
+
 ```javascript
 // backend/models/QuarterlyResult.js
 {
@@ -238,15 +240,15 @@ All errors are caught by the global error handler:
 const errorHandler = (err, req, res, next) => {
   res.status(err.statusCode || 500).json({
     success: false,
-    error: err.message || 'Server Error'
+    error: err.message || 'Server Error',
   });
 };
 ```
 
 To throw a custom error:
+
 ```javascript
 const error = new Error('Custom message');
 error.statusCode = 400;
 throw error;
 ```
-

@@ -12,14 +12,16 @@ Completed final refinements to the Quarterly Results widget and created a brand 
 ### 🎯 Part 1: Quarterly Results Widget Refinements
 
 #### 1. **Removed K Format Conversion** ✅
+
 **Before:** Values like 7,167 shown as "7.17K"  
 **After:** Full values with commas: "7,167"
 
 **Implementation:**
+
 ```javascript
 const formatValue = (value) => {
-  if (value === null || value === undefined) return "-";
-  return value.toLocaleString("en-IN", {
+  if (value === null || value === undefined) return '-';
+  return value.toLocaleString('en-IN', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
@@ -27,18 +29,21 @@ const formatValue = (value) => {
 ```
 
 #### 2. **Removed Rupee Symbol** ✅
+
 **Before:** `₹7,167 Cr`  
 **After:** `7,167` (just numbers)
 
 **Rationale:** Cleaner display, less visual clutter
 
 #### 3. **Removed " Cr" Suffix** ✅
+
 **Before:** Each cell showed "7,167 Cr"  
 **After:** Just "7,167"
 
 **Added:** Subtitle below header: "Figures in Crores"
 
 **Visual:**
+
 ```
 ┌─────────────────────────────────┐
 │ Quarterly Results (18 quarters)│
@@ -52,10 +57,12 @@ const formatValue = (value) => {
 ```
 
 #### 4. **Moved Broadcast Time to Last** ✅
+
 **Before:** First row  
 **After:** Last row in main metrics (before growth section)
 
 **Row Order:**
+
 1. Sales
 2. Expenses
 3. Operating Profit
@@ -70,6 +77,7 @@ const formatValue = (value) => {
 12. **Broadcast Time** ← Moved to end
 
 #### 5. **Removed Rupee Symbol from EPS** ✅
+
 **Before:** `EPS (₹)`  
 **After:** `EPS`
 
@@ -80,9 +88,11 @@ const formatValue = (value) => {
 Created a completely new widget that shows annual aggregated data in the same format as Quarterly Results.
 
 #### **Widget Title:** "Yearly Results"
+
 Previously called "Profit & Loss Statement" - now renamed and redesigned.
 
 #### **Data Source:**
+
 - Aggregates quarterly data by fiscal year
 - Sums up all 4 quarters for each year
 - Separates consolidated vs standalone
@@ -96,6 +106,7 @@ Previously called "Profit & Loss Statement" - now renamed and redesigned.
    - Consolidated/Standalone switcher
 
 2. **Annual Aggregation** ✅
+
    ```javascript
    // Example for 2024:
    Sales 2024 = Q1 2024 + Q2 2024 + Q3 2024 + Q4 2024
@@ -131,11 +142,13 @@ Previously called "Profit & Loss Statement" - now renamed and redesigned.
 ### Frontend Changes
 
 #### 1. QuarterlyResults.js
+
 **Modified Functions:**
+
 ```javascript
 // Removed formatLargeNumber dependency
 const formatValue = (value) => {
-  return value.toLocaleString("en-IN", {
+  return value.toLocaleString('en-IN', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
@@ -143,6 +156,7 @@ const formatValue = (value) => {
 ```
 
 **Layout Changes:**
+
 ```jsx
 // Added subtitle
 <div className="mb-4">
@@ -155,6 +169,7 @@ const formatValue = (value) => {
 ```
 
 **Row Reordering:**
+
 ```javascript
 const rows = [
   // ... sales, expenses, etc.
@@ -164,6 +179,7 @@ const rows = [
 ```
 
 #### 2. YearlyResults.js (NEW FILE)
+
 **Created:** `/frontend/components/stock/YearlyResults.js`
 
 **Key Functions:**
@@ -172,11 +188,11 @@ const rows = [
 // Aggregate quarterly data into yearly
 const aggregateToYearly = (quarters) => {
   const yearlyMap = {};
-  
+
   quarters.forEach((q) => {
     const year = q.period.match(/\d{4}/)[0];
     const key = `${year}_${q.consolidated}`;
-    
+
     if (!yearlyMap[key]) {
       yearlyMap[key] = {
         year,
@@ -186,51 +202,53 @@ const aggregateToYearly = (quarters) => {
         // ... other fields
       };
     }
-    
+
     // Sum quarterly values
     yearlyMap[key].sales += q.sales || 0;
     yearlyMap[key].expenses += q.expenses || 0;
     // ... etc
   });
-  
+
   // Calculate percentages
   Object.values(yearlyMap).forEach((yearData) => {
     yearData.opm_percent = (yearData.operating_profit / yearData.sales) * 100;
     yearData.tax_percent = ((yearData.pbt - yearData.net_profit) / yearData.pbt) * 100;
   });
-  
+
   return Object.values(yearlyMap).sort((a, b) => a.year - b.year);
 };
 ```
 
 **YoY Growth Calculation:**
+
 ```javascript
 years.forEach((year, index) => {
   if (index > 0) {
     const prevYear = years[index - 1];
-    year.yoy_sales_growth = 
-      ((year.sales - prevYear.sales) / prevYear.sales) * 100;
-    year.yoy_profit_growth = 
-      ((year.net_profit - prevYear.net_profit) / prevYear.net_profit) * 100;
+    year.yoy_sales_growth = ((year.sales - prevYear.sales) / prevYear.sales) * 100;
+    year.yoy_profit_growth = ((year.net_profit - prevYear.net_profit) / prevYear.net_profit) * 100;
   }
 });
 ```
 
 #### 3. FinancialsTab.js
+
 **Updated Imports:**
+
 ```javascript
 import YearlyResults from './YearlyResults';
 ```
 
 **Layout:**
+
 ```jsx
 <div className="space-y-8">
   {/* Quarterly Results Widget */}
   <QuarterlyResults symbol={symbol} />
-  
+
   {/* Yearly Results Widget */}
   <YearlyResults symbol={symbol} />
-  
+
   {/* Old P&L hidden */}
   <div className="hidden">...</div>
 </div>
@@ -241,6 +259,7 @@ import YearlyResults from './YearlyResults';
 ## Example Output
 
 ### Quarterly Results (Updated)
+
 ```
 ┌────────────────────────────────────────────────────────┐
 │ Quarterly Results (18 quarters)                        │
@@ -274,6 +293,7 @@ Data source: NSE India (XBRL) (cached)
 ```
 
 ### Yearly Results (NEW)
+
 ```
 ┌──────────────────────────────────────────────────┐
 │ Yearly Results (5 years)                         │
@@ -310,38 +330,40 @@ Data source: NSE India (XBRL) (cached)
 
 ### Quarterly Results
 
-| Feature | Before | After |
-|---------|--------|-------|
-| **Number Format** | 7.17K Cr | 7,167 |
-| **Rupee Symbol** | ₹7.17K | 7,167 |
-| **Cr Suffix** | Yes | No (subtitle instead) |
-| **EPS Label** | EPS (₹) | EPS |
-| **Broadcast Time** | Row 1 | Row 12 (last) |
-| **Subtitle** | None | "Figures in Crores" |
+| Feature            | Before   | After                 |
+| ------------------ | -------- | --------------------- |
+| **Number Format**  | 7.17K Cr | 7,167                 |
+| **Rupee Symbol**   | ₹7.17K   | 7,167                 |
+| **Cr Suffix**      | Yes      | No (subtitle instead) |
+| **EPS Label**      | EPS (₹)  | EPS                   |
+| **Broadcast Time** | Row 1    | Row 12 (last)         |
+| **Subtitle**       | None     | "Figures in Crores"   |
 
 ### Yearly Results
 
-| Feature | Old P&L Widget | New Yearly Results |
-|---------|----------------|-------------------|
-| **Title** | "Profit & Loss Statement" | "Yearly Results" |
-| **Layout** | Vertical table | Horizontal scrollable |
-| **Data Aggregation** | None (raw annual) | Quarterly sum |
-| **Switcher** | No | Yes (Cons/Stand) |
-| **Metrics** | 5 basic | 12 detailed + dividend |
-| **Growth** | No | YoY growth % |
-| **Scroll** | N/A | Right to left |
-| **Format** | Different | Matches Quarterly |
+| Feature              | Old P&L Widget            | New Yearly Results     |
+| -------------------- | ------------------------- | ---------------------- |
+| **Title**            | "Profit & Loss Statement" | "Yearly Results"       |
+| **Layout**           | Vertical table            | Horizontal scrollable  |
+| **Data Aggregation** | None (raw annual)         | Quarterly sum          |
+| **Switcher**         | No                        | Yes (Cons/Stand)       |
+| **Metrics**          | 5 basic                   | 12 detailed + dividend |
+| **Growth**           | No                        | YoY growth %           |
+| **Scroll**           | N/A                       | Right to left          |
+| **Format**           | Different                 | Matches Quarterly      |
 
 ---
 
 ## Files Modified
 
 ### Frontend (3 files)
+
 1. ✅ `frontend/components/stock/QuarterlyResults.js` - Formatting updates
 2. ✅ `frontend/components/stock/YearlyResults.js` - NEW FILE
 3. ✅ `frontend/components/stock/FinancialsTab.js` - Added YearlyResults
 
 ### No Backend Changes
+
 - Backend already provides quarterly data
 - Aggregation happens on frontend
 - No new API endpoints needed
@@ -353,6 +375,7 @@ Data source: NSE India (XBRL) (cached)
 ### Yearly Aggregation Example
 
 **Input (4 Quarters):**
+
 ```json
 [
   { "period": "Q1 2024", "sales": 3562, "net_profit": 175 },
@@ -363,15 +386,17 @@ Data source: NSE India (XBRL) (cached)
 ```
 
 **Output (1 Year):**
+
 ```json
 {
   "year": "2024",
-  "sales": 17972,  // 3562 + 4206 + 4799 + 5405
-  "net_profit": 663  // 175 + 253 + 176 + 59
+  "sales": 17972, // 3562 + 4206 + 4799 + 5405
+  "net_profit": 663 // 175 + 253 + 176 + 59
 }
 ```
 
 **Percentage Calculations:**
+
 ```javascript
 // OPM % = (Operating Profit / Sales) × 100
 opm_percent = (761 / 17972) × 100 = 4.23%
@@ -385,16 +410,19 @@ tax_percent = ((761 - 663) / 761) × 100 = 13.27%
 ## Known Limitations
 
 ### 1. **Dividend Payout % Not Available**
+
 - **Current:** Shows "-" for all years
 - **Reason:** Dividend data not in quarterly API
 - **Solution:** Need separate dividend API or database
 
 **Potential Data Sources:**
+
 - NSE dividend history API
 - Corporate actions API
 - Manual data entry
 
 **Future Implementation:**
+
 ```javascript
 // Fetch dividend data separately
 const dividends = await fetchDividends(symbol, year);
@@ -402,11 +430,13 @@ const dividendPayout = (dividends.total / yearData.net_profit) * 100;
 ```
 
 ### 2. **Incomplete Years**
+
 - If current year has only 2 quarters, YTD sum shown
 - Growth calculations still accurate
 - Clear labeling could be added (e.g., "2025 YTD")
 
 ### 3. **EPS Aggregation**
+
 - Currently sums quarterly EPS
 - Technically should be: Annual Net Profit / Shares
 - Minor discrepancy due to share count changes
@@ -421,7 +451,7 @@ const dividendPayout = (dividends.total / yearData.net_profit) * 100;
 # 1. Start backend
 cd backend && node server.js
 
-# 2. Start frontend  
+# 2. Start frontend
 cd frontend && npm run dev
 
 # 3. Navigate to stock page
@@ -446,6 +476,7 @@ http://localhost:3000/stock/ETERNAL
 ### Test Results
 
 **Quarterly Results:**
+
 ```
 ✅ Format: 7,167 (no K, no ₹, no Cr)
 ✅ Subtitle: "Figures in Crores"
@@ -455,6 +486,7 @@ http://localhost:3000/stock/ETERNAL
 ```
 
 **Yearly Results:**
+
 ```
 ✅ Title: "Yearly Results"
 ✅ 5 years aggregated (2020-2024)
@@ -471,6 +503,7 @@ http://localhost:3000/stock/ETERNAL
 ## Future Enhancements
 
 ### 1. **Add Actual Dividend Data**
+
 ```javascript
 // Fetch from NSE corporate actions API
 const fetchDividends = async (symbol, year) => {
@@ -484,6 +517,7 @@ const fetchDividends = async (symbol, year) => {
 ```
 
 ### 2. **Add More Annual Metrics**
+
 - ROCE (Return on Capital Employed)
 - ROE (Return on Equity)
 - Debt/Equity Ratio
@@ -491,12 +525,14 @@ const fetchDividends = async (symbol, year) => {
 - Quick Ratio
 
 ### 3. **Visual Enhancements**
+
 - Sparkline charts for trends
 - Color coding (positive/negative values)
 - Highlight year-over-year changes
 - Add fiscal year boundary indicators
 
 ### 4. **Export Functionality**
+
 - Download as Excel
 - Download as PDF
 - Share via URL
@@ -506,6 +542,7 @@ const fetchDividends = async (symbol, year) => {
 ## Success Criteria
 
 ### Quarterly Results
+
 - ✅ No K format (full numbers)
 - ✅ No rupee symbols
 - ✅ No " Cr" suffix
@@ -514,6 +551,7 @@ const fetchDividends = async (symbol, year) => {
 - ✅ EPS without ₹ symbol
 
 ### Yearly Results
+
 - ✅ Widget created and functional
 - ✅ Title "Yearly Results"
 - ✅ Same format as Quarterly Results
@@ -542,4 +580,3 @@ Both widgets now provide comprehensive financial analysis in a clean, consistent
 **Status:** ✅ COMPLETE  
 **Date:** November 15, 2025  
 **Version:** 4.0 (Final)
-

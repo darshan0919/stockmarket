@@ -44,7 +44,10 @@ const sumOrderQty = (levels) => {
   let found = false;
   for (const l of levels) {
     const q = toNumber(l?.quantity);
-    if (q != null) { total += q; found = true; }
+    if (q != null) {
+      total += q;
+      found = true;
+    }
   }
   return found ? total : null;
 };
@@ -75,12 +78,14 @@ const fetchSymbolLiveData = async (symbol) => {
     const sellLevels = orderBook.sell;
 
     // NSE also provides aggregate totals on the same object
-    const bidQty = toNumber(orderBook.totalBuyQuantity) != null
-      ? toNumber(orderBook.totalBuyQuantity)
-      : sumOrderQty(buyLevels);
-    const offerQty = toNumber(orderBook.totalSellQuantity) != null
-      ? toNumber(orderBook.totalSellQuantity)
-      : sumOrderQty(sellLevels);
+    const bidQty =
+      toNumber(orderBook.totalBuyQuantity) != null
+        ? toNumber(orderBook.totalBuyQuantity)
+        : sumOrderQty(buyLevels);
+    const offerQty =
+      toNumber(orderBook.totalSellQuantity) != null
+        ? toNumber(orderBook.totalSellQuantity)
+        : sumOrderQty(sellLevels);
 
     return {
       price: toNumber(data.tradeInfo?.lastPrice),

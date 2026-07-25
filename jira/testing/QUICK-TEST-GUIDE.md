@@ -17,10 +17,12 @@ curl 'http://localhost:5000/api/stocks/HDFCBANK'
 ### 2. Open Stock Pages in Browser
 
 #### SRM Stock (Your Request)
+
 - http://localhost:3000/stock/SRM
 - http://localhost:3001/stock/SRM
 
 #### Popular Stocks
+
 - http://localhost:3000/stock/RELIANCE
 - http://localhost:3000/stock/TCS
 - http://localhost:3000/stock/HDFCBANK
@@ -32,6 +34,7 @@ curl 'http://localhost:5000/api/stocks/HDFCBANK'
 ## ✅ What to Verify
 
 ### Stock Header Should Show:
+
 - ✅ Company name (e.g., "SRM Contractors Limited")
 - ✅ Symbol and exchange (e.g., "SRM · NSE")
 - ✅ Current price (e.g., "₹634.00")
@@ -39,12 +42,14 @@ curl 'http://localhost:5000/api/stocks/HDFCBANK'
 - ✅ Trading status indicator
 
 ### Overview Tab Should Display:
+
 - ✅ Company information (name, symbol, sector, industry)
 - ✅ Day High and Low prices
 - ✅ 52-Week High and Low
 - ✅ P/E Ratio (when available)
 
 ### All Tabs Should Load:
+
 - ✅ Overview
 - ✅ Fundamentals
 - ✅ Financials
@@ -56,30 +61,38 @@ curl 'http://localhost:5000/api/stocks/HDFCBANK'
 ## 🧪 Test Scenarios
 
 ### Scenario 1: New Stock (SRM)
+
 **URL**: http://localhost:3000/stock/SRM
-**Expected**: 
+**Expected**:
+
 - Page loads successfully
 - Shows "SRM Contractors Limited"
 - Displays current price from NSE
 - Shows sector as "Construction"
 
 ### Scenario 2: Popular Large Cap (Reliance)
+
 **URL**: http://localhost:3000/stock/RELIANCE
 **Expected**:
+
 - Shows "Reliance Industries Limited"
 - Displays real-time price
 - Shows F&O status (should be true)
 
 ### Scenario 3: Tech Stock (Infosys)
+
 **URL**: http://localhost:3000/stock/INFY
 **Expected**:
+
 - Shows "Infosys Limited"
 - Displays sector as IT or Technology
 - Shows P/E ratio
 
 ### Scenario 4: Banking Stock (HDFC Bank)
+
 **URL**: http://localhost:3000/stock/HDFCBANK
 **Expected**:
+
 - Shows "HDFC Bank Limited"
 - Displays sector as Financial Services or Banking
 - High market cap value
@@ -95,6 +108,7 @@ curl 'http://localhost:5000/api/stocks/SRM' | python3 -m json.tool
 ```
 
 **Should return JSON with:**
+
 - `success: true`
 - `data.basic_info` (company details)
 - `data.price_info` (current prices)
@@ -123,29 +137,37 @@ done
 ## 🐛 Troubleshooting
 
 ### Page Shows "Loading..." Forever
+
 **Solution**: Check backend is running on port 5000
+
 ```bash
 curl http://localhost:5000/api/health
 ```
 
 ### "Stock not found" Error
+
 **Possible causes:**
+
 1. NSE API is down (check fallback is working)
 2. Invalid stock symbol
 3. Stock not listed on NSE
 
 **Check API directly:**
+
 ```bash
 curl 'http://localhost:5000/api/stocks/YOURSYMBOL'
 ```
 
 ### Price Shows as "N/A"
+
 **Possible causes:**
+
 1. Market closed (NSE only provides data during trading hours for some fields)
 2. Stock suspended
 3. Network issue with NSE API
 
 **Verify NSE data:**
+
 ```bash
 curl -s 'http://localhost:5000/api/stocks/YOURSYMBOL' | grep -i "last_price"
 ```
@@ -172,6 +194,7 @@ else:
 ## 🎯 Success Criteria
 
 ### ✅ All Green Means Success:
+
 - [ ] Backend API responds on port 5000
 - [ ] Frontend loads on port 3000 and 3001
 - [ ] SRM stock page displays without errors
@@ -186,16 +209,19 @@ else:
 ## 🔗 Quick Links
 
 ### Backend API Endpoints
+
 - Health Check: http://localhost:5000/api/health
 - Stock Details: http://localhost:5000/api/stocks/:symbol
 - Search: http://localhost:5000/api/stocks/search?q=hdfc
 
 ### Frontend Pages
+
 - Dashboard: http://localhost:3000/
 - Screener: http://localhost:3000/screener
 - Stock Details: http://localhost:3000/stock/:symbol
 
 ### NSE Reference
+
 - Sample NSE Page: https://www.nseindia.com/get-quotes/equity?symbol=SRM
 - NSE API (used): `https://www.nseindia.com/api/quote-equity?symbol=SRM`
 
@@ -213,6 +239,7 @@ else:
 ## 🎉 Expected Results
 
 ### For SRM Stock:
+
 ```
 Company: SRM Contractors Limited
 Symbol: SRM
@@ -232,4 +259,3 @@ P/E Ratio: 18.24
 **Last Updated**: November 14, 2025
 **Status**: ✅ All Systems Working
 **Data Source**: NSE India API with MongoDB fallback
-

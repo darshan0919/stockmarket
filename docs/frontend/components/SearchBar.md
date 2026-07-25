@@ -53,8 +53,8 @@ function MyComponent() {
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| Prop          | Type   | Default              | Description                          |
+| ------------- | ------ | -------------------- | ------------------------------------ |
 | `placeholder` | string | `'Search stocks...'` | Placeholder text for the input field |
 
 ## Component Behavior
@@ -70,12 +70,12 @@ function MyComponent() {
 
 ### Keyboard Shortcuts
 
-| Key | Action |
-|-----|--------|
+| Key         | Action                         |
+| ----------- | ------------------------------ |
 | `ArrowDown` | Move selection down in results |
-| `ArrowUp` | Move selection up in results |
-| `Enter` | Navigate to selected stock |
-| `Escape` | Close results dropdown |
+| `ArrowUp`   | Move selection up in results   |
+| `Enter`     | Navigate to selected stock     |
+| `Escape`    | Close results dropdown         |
 
 ### Features in Detail
 
@@ -321,6 +321,7 @@ The SearchBar is now integrated into the Header component for global availabilit
 ```
 
 This makes the search available on:
+
 - Dashboard page
 - Screener page
 - Watchlist page
@@ -339,14 +340,15 @@ See [API_REFERENCE.md](../../API_REFERENCE.md#stock-search) for search endpoint 
 ## Changelog
 
 ### 2025-01-02
+
 - Integrated into Header component for global availability
 - Added comprehensive JSDoc comments
 - Created detailed documentation
 - No functional changes to search behavior
 
 ### Previous
+
 - Initial implementation with autocomplete
 - Keyboard navigation support
 - Pagination support
 - Highlight matching text
-

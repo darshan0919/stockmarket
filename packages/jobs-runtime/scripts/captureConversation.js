@@ -73,8 +73,11 @@ function cursorPath() {
   return path.join(db.dataRoot(), '_meta', 'conversation-capture.json');
 }
 function loadCursor() {
-  try { return JSON.parse(fs.readFileSync(cursorPath(), 'utf8')); }
-  catch (_) { return { done: {}, skipped: {}, sensitive: {}, lastRun: null }; }
+  try {
+    return JSON.parse(fs.readFileSync(cursorPath(), 'utf8'));
+  } catch (_) {
+    return { done: {}, skipped: {}, sensitive: {}, lastRun: null };
+  }
 }
 function saveCursor(c) {
   const p = cursorPath();
@@ -89,7 +92,14 @@ function saveCursor(c) {
  * @param {object} opts  { source, extraKeywords, extract, dryRun, now, cursor }
  */
 function captureOne(conv, opts = {}) {
-  const { source = 'cloud', extraKeywords = [], extract = null, dryRun = false, now = null, cursor = null } = opts;
+  const {
+    source = 'cloud',
+    extraKeywords = [],
+    extract = null,
+    dryRun = false,
+    now = null,
+    cursor = null,
+  } = opts;
 
   // Automated scheduled-job runs are NOT interactive chats — the user asked to
   // capture conversations where they chat with Claude, not machine job runs
@@ -100,7 +110,8 @@ function captureOne(conv, opts = {}) {
   ).length;
   const sidEarly = conv.uuid || conv.sessionId;
   if (humanTurns === 0) {
-    if (cursor && sidEarly) cursor.skipped[sidEarly] = { reason: 'automated-run', title: conv.name || '' };
+    if (cursor && sidEarly)
+      cursor.skipped[sidEarly] = { reason: 'automated-run', title: conv.name || '' };
     return { status: 'skipped-automated', id: null };
   }
 
@@ -108,7 +119,8 @@ function captureOne(conv, opts = {}) {
 
   const sid = conv.uuid || conv.sessionId || (r.conversationDto && r.conversationDto.id);
   if (!r.isStock) {
-    if (cursor && sid) cursor.skipped[sid] = { title: conv.name || conv.title || '', score: r.score };
+    if (cursor && sid)
+      cursor.skipped[sid] = { title: conv.name || conv.title || '', score: r.score };
     return { status: 'skipped-nonstock', id: null, score: r.score };
   }
 
@@ -134,16 +146,23 @@ function captureOne(conv, opts = {}) {
   if (isUpdate) dto.dirty = true;
 
   if (dryRun) {
-    if (cursor && sid) cursor.done[sid] = { id: dto.id, contentHash: dto.contentHash, dryRun: true };
-    return { status: isUpdate ? 'would-update' : 'would-save', id: dto.id, companyIds: dto.companyIds, artifacts: r.artifacts.length,
-      notes: (extract && extract.notes ? extract.notes.length : 0) };
+    if (cursor && sid)
+      cursor.done[sid] = { id: dto.id, contentHash: dto.contentHash, dryRun: true };
+    return {
+      status: isUpdate ? 'would-update' : 'would-save',
+      id: dto.id,
+      companyIds: dto.companyIds,
+      artifacts: r.artifacts.length,
+      notes: extract && extract.notes ? extract.notes.length : 0,
+    };
   }
 
   // (3) raw conversation FIRST.
   db.saveConversation(dto);
 
   // (5) optional precomputed fan-out (from the skill's LLM reasoning).
-  let notesN = 0, reportsN = 0;
+  let notesN = 0,
+    reportsN = 0;
   if (extract) {
     if (Array.isArray(extract.notes) && extract.notes.length) {
       db.appendNotes(extract.notes.map((n) => ({ creator: ex.CREATOR, ...n })));
@@ -155,8 +174,16 @@ function captureOne(conv, opts = {}) {
     }
   }
 
-  if (cursor && sid) cursor.done[sid] = { id: dto.id, companyIds: dto.companyIds, contentHash: dto.contentHash };
-  return { status: isUpdate ? 'updated' : 'saved', id: dto.id, companyIds: dto.companyIds, artifacts: r.artifacts.length, notes: notesN, reports: reportsN };
+  if (cursor && sid)
+    cursor.done[sid] = { id: dto.id, companyIds: dto.companyIds, contentHash: dto.contentHash };
+  return {
+    status: isUpdate ? 'updated' : 'saved',
+    id: dto.id,
+    companyIds: dto.companyIds,
+    artifacts: r.artifacts.length,
+    notes: notesN,
+    reports: reportsN,
+  };
 }
 
 // ── ingest sources ────────────────────────────────────────────────────────────
@@ -216,21 +243,38 @@ function runPush() {
 function main(argv) {
   const args = argv.slice(2);
   const flag = (name) => args.includes(name);
-  const val = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : null; };
+  const val = (name) => {
+    const i = args.indexOf(name);
+    return i >= 0 ? args[i + 1] : null;
+  };
 
   const dryRun = flag('--dry-run');
   const noPush = flag('--no-push') || dryRun;
   const limit = val('--limit') ? parseInt(val('--limit'), 10) : Infinity;
-  const extractSidecar = val('--extract') ? JSON.parse(fs.readFileSync(val('--extract'), 'utf8')) : null;
+  const extractSidecar = val('--extract')
+    ? JSON.parse(fs.readFileSync(val('--extract'), 'utf8'))
+    : null;
 
   let items = [];
   if (val('--cloud-file')) items = ingestCloudFile(val('--cloud-file'));
   else if (val('--cowork-archive')) items = ingestCoworkArchive(val('--cowork-archive'));
-  else { console.error('Provide --cloud-file <f> or --cowork-archive <dir>'); process.exit(2); }
+  else {
+    console.error('Provide --cloud-file <f> or --cowork-archive <dir>');
+    process.exit(2);
+  }
 
   const extraKeywords = loadExtraKeywords();
   const cursor = loadCursor();
-  const stats = { saved: 0, updated: 0, skippedNonStock: 0, skippedSensitive: 0, skippedAutomated: 0, alreadyDone: 0, wouldSave: 0, wouldUpdate: 0 };
+  const stats = {
+    saved: 0,
+    updated: 0,
+    skippedNonStock: 0,
+    skippedSensitive: 0,
+    skippedAutomated: 0,
+    alreadyDone: 0,
+    wouldSave: 0,
+    wouldUpdate: 0,
+  };
 
   // NOTE: no longer pre-skipping by sid alone — captureOne itself compares
   // contentHash so a session that gained new turns since its last capture is
@@ -266,4 +310,11 @@ function main(argv) {
 
 if (require.main === module) main(process.argv);
 
-module.exports = { captureOne, isSensitivePersonal, loadExtraKeywords, parseTranscript, ingestCoworkArchive, main };
+module.exports = {
+  captureOne,
+  isSensitivePersonal,
+  loadExtraKeywords,
+  parseTranscript,
+  ingestCoworkArchive,
+  main,
+};

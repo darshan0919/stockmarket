@@ -73,7 +73,9 @@ class NotesDb {
         co.processedAnnouncements = (c.state && c.state.processedAnnouncements) || [];
         co.lastUpdated = c.modifiedTime || co.lastUpdated;
       }
-      co.notes.forEach(() => { notes.meta.totalNotes += 1; });
+      co.notes.forEach(() => {
+        notes.meta.totalNotes += 1;
+      });
     }
     notes.meta.totalCompanies = Object.keys(notes.companies).length;
     return notes;
@@ -122,7 +124,8 @@ class NotesDb {
     notes.meta.lastRun = now;
     notes.meta.totalCompanies = Object.keys(notes.companies || {}).length;
     notes.meta.totalNotes = Object.values(notes.companies || {}).reduce(
-      (s, c) => s + (c.notes || []).length, 0
+      (s, c) => s + (c.notes || []).length,
+      0
     );
   }
 

@@ -1,6 +1,10 @@
 'use strict';
 
-const { fetchReactionCandles, fetchTier, toIstNaiveString } = require('../src/fetchers/reactionCandlesFetcher');
+const {
+  fetchReactionCandles,
+  fetchTier,
+  toIstNaiveString,
+} = require('../src/fetchers/reactionCandlesFetcher');
 
 /** Build a fake StockscansClient whose ohlcv() serves synthetic 1-minute-spaced
  * candles from a fixed pool, honoring `tf` (spacing) and `before` (cursor),
@@ -12,7 +16,9 @@ function fakeStockscans({ earliestMs, latestMs, pageSize = 1000 }) {
     calls,
     async ohlcv(ticker, { tf, before }) {
       calls.push({ tf, before });
-      const stepMs = { '1m': 60e3, '5m': 5 * 60e3, '15m': 15 * 60e3, '1h': 3600e3, '1D': 86400e3 }[tf];
+      const stepMs = { '1m': 60e3, '5m': 5 * 60e3, '15m': 15 * 60e3, '1h': 3600e3, '1D': 86400e3 }[
+        tf
+      ];
       // tf=1D sends a bare 'YYYY-MM-DD' `before` (date-only); everything else
       // sends a naive IST timestamp — mirror the real API's two formats.
       const beforeMs = /^\d{4}-\d{2}-\d{2}$/.test(before)
@@ -51,7 +57,9 @@ describe('fetchTier', () => {
     const targetMs = eventMs + 60 * 60e3; // event + 1hr (partly in the future — clipped to "now")
     const ss = fakeStockscans({ earliestMs: eventMs - 5 * 3600e3, latestMs: now });
 
-    const { candles, calls } = await fetchTier(ss, 'NSE:TEST', '1m', targetMs, { stopAtMs: eventMs });
+    const { candles, calls } = await fetchTier(ss, 'NSE:TEST', '1m', targetMs, {
+      stopAtMs: eventMs,
+    });
 
     expect(calls).toBe(1);
     expect(candles[0].t).toBeLessThanOrEqual(eventMs);
@@ -68,7 +76,10 @@ describe('fetchTier', () => {
     const targetMs = eventMs + 2 * 24 * 3600e3; // 2-day gap >> ~16.6h page span
     const ss = fakeStockscans({ earliestMs: eventMs - 3600e3, latestMs: now });
 
-    const { candles, calls } = await fetchTier(ss, 'NSE:TEST', '1m', targetMs, { stopAtMs: eventMs, maxPages: 6 });
+    const { candles, calls } = await fetchTier(ss, 'NSE:TEST', '1m', targetMs, {
+      stopAtMs: eventMs,
+      maxPages: 6,
+    });
 
     expect(calls).toBeGreaterThan(1);
     expect(calls).toBeLessThanOrEqual(6);
@@ -81,7 +92,10 @@ describe('fetchTier', () => {
     const targetMs = eventMs + 10 * 24 * 3600e3;
     const ss = fakeStockscans({ earliestMs: now - 40 * 24 * 3600e3, latestMs: now });
 
-    const { calls } = await fetchTier(ss, 'NSE:TEST', '1m', targetMs, { stopAtMs: eventMs, maxPages: 2 });
+    const { calls } = await fetchTier(ss, 'NSE:TEST', '1m', targetMs, {
+      stopAtMs: eventMs,
+      maxPages: 2,
+    });
 
     expect(calls).toBe(2);
   });
@@ -92,7 +106,10 @@ describe('fetchTier', () => {
     const targetMs = eventMs + 60 * 60e3; // event + 1hr — the real "near" tier usage
     const ss = fakeStockscans({ earliestMs: now - 40 * 24 * 3600e3, latestMs: now });
 
-    const { calls } = await fetchTier(ss, 'NSE:TEST', '1m', targetMs, { stopAtMs: eventMs, maxPages: 4 });
+    const { calls } = await fetchTier(ss, 'NSE:TEST', '1m', targetMs, {
+      stopAtMs: eventMs,
+      maxPages: 4,
+    });
 
     expect(calls).toBe(1);
   });
@@ -104,7 +121,10 @@ describe('fetchReactionCandles', () => {
     const eventTimestamp = '2026-07-10T11:47:46+05:30'; // ~2min before "now" fixture below is irrelevant; fetchTier uses Date.now()
     // fakeStockscans has data from well before the event through "now".
     const eventMs = Date.parse(eventTimestamp);
-    const ss = fakeStockscans({ earliestMs: eventMs - 40 * 24 * 3600e3, latestMs: eventMs + 5 * 60e3 });
+    const ss = fakeStockscans({
+      earliestMs: eventMs - 40 * 24 * 3600e3,
+      latestMs: eventMs + 5 * 60e3,
+    });
 
     const result = await fetchReactionCandles(ss, 'NSE:ELECON', eventTimestamp);
 
@@ -123,6 +143,8 @@ describe('fetchReactionCandles', () => {
 
   it('throws on an invalid event timestamp instead of silently returning empty data', async () => {
     const ss = fakeStockscans({ earliestMs: 0, latestMs: Date.now() });
-    await expect(fetchReactionCandles(ss, 'NSE:X', 'not-a-date')).rejects.toThrow(/invalid eventTimestamp/);
+    await expect(fetchReactionCandles(ss, 'NSE:X', 'not-a-date')).rejects.toThrow(
+      /invalid eventTimestamp/
+    );
   });
 });

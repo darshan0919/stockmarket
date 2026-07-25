@@ -479,16 +479,11 @@ async function fetchAllUserTweetsGraphql(userId, startDate, endDate, auth, refer
 }
 
 module.exports = {
-
   getTwitterGraphqlAuthFromEnv,
 
   graphqlErrorMessage,
 
   fetchUserByScreenName,
-
-
-
-
 
   fetchAllUserTweetsGraphql,
 };

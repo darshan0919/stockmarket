@@ -7,7 +7,9 @@
 const fs = require('fs');
 const origRmSync = fs.rmSync.bind(fs);
 fs.rmSync = (p, opts) => {
-  try { return origRmSync(p, opts); } catch (e) {
+  try {
+    return origRmSync(p, opts);
+  } catch (e) {
     if (e && e.code === 'EPERM') return undefined;
     throw e;
   }
@@ -20,7 +22,11 @@ const { NotesDb } = require(path.join(__dirname, 'lib', 'notesDb'));
 const { sendHtmlEmail } = require('@stock/cloud-utils');
 loadEnv();
 
-const WATCHLIST_IDS = ['0a365ec2139aa6ca7f74c250', '7ca0e1a60c3fd0d8b1ab61ce', '51a196a79dbc0296493e5174'];
+const WATCHLIST_IDS = [
+  '0a365ec2139aa6ca7f74c250',
+  '7ca0e1a60c3fd0d8b1ab61ce',
+  '51a196a79dbc0296493e5174',
+];
 
 async function collectDigest(client) {
   const notes = wi.db.load();
@@ -38,14 +44,18 @@ async function collectDigest(client) {
     const ssUrl = ann.ssUrl || '';
     const [note] = idx[aid] || [null];
     digest.push({
-      announcementId: aid, companyId: ann.companyId || '', ticker: ann.companyId || '',
-      name: ann.name || ann.companyName || '', title, description,
+      announcementId: aid,
+      companyId: ann.companyId || '',
+      ticker: ann.companyId || '',
+      name: ann.name || ann.companyName || '',
+      title,
+      description,
       date: ann.date || ann.createdAt || '',
       pdfUrl: ssUrl ? `${require('@stock/api').S3_BASE_URL}${ssUrl}` : '',
       category: wi.categoriseAnnouncement(title, description),
       insight: (note || {}).insight || '',
-      significance: note ? (note.significance || '') : '',
-      tags: note ? (note.tags || []) : [],
+      significance: note ? note.significance || '' : '',
+      tags: note ? note.tags || [] : [],
       hasInsight: Boolean(note && note.insight),
       needsInsight: !(note && note.insight),
     });

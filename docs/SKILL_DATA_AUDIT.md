@@ -31,14 +31,14 @@ tweet-investor-playbook.
 
 ## C. Scheduled event/signal jobs
 
-| Skill | Regenerable inputs (don't store) | LLM/derived output (store) |
-|---|---|---|
-| gainers-signal | NSE gainers API, delivery data, quality filters → `runs/` | classified signals → `events-YYYY-MM.json` (type=gainer) |
-| tweet-signals | — (browser capture is NOT re-fetchable → raw capture IS source, store slim) | classified signals → `events-*.json` (type=tweet); raw capture → `runs/` 90d |
-| daily-deals-digest | NSE/BSE bulk/block/SAST/insider APIs (re-fetchable ~short window) | digest records → `events-*.json` (type=deal) |
-| watchlist-insights | announcements API + PDFs | per-company insight notes → `notes.json` |
-| announcement-keyword-explorer | announcements API | keyword hits if annotated → `events-*.json` (type=announcement) |
-| fundamental-shift-scanner / watchlist-catalyst-scanner | filings via Stockscans | scan verdicts → `reports.json` (type=scan) or `events-*.json` |
+| Skill                                                  | Regenerable inputs (don't store)                                            | LLM/derived output (store)                                                   |
+| ------------------------------------------------------ | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| gainers-signal                                         | NSE gainers API, delivery data, quality filters → `runs/`                   | classified signals → `events-YYYY-MM.json` (type=gainer)                     |
+| tweet-signals                                          | — (browser capture is NOT re-fetchable → raw capture IS source, store slim) | classified signals → `events-*.json` (type=tweet); raw capture → `runs/` 90d |
+| daily-deals-digest                                     | NSE/BSE bulk/block/SAST/insider APIs (re-fetchable ~short window)           | digest records → `events-*.json` (type=deal)                                 |
+| watchlist-insights                                     | announcements API + PDFs                                                    | per-company insight notes → `notes.json`                                     |
+| announcement-keyword-explorer                          | announcements API                                                           | keyword hits if annotated → `events-*.json` (type=announcement)              |
+| fundamental-shift-scanner / watchlist-catalyst-scanner | filings via Stockscans                                                      | scan verdicts → `reports.json` (type=scan) or `events-*.json`                |
 
 ## D. State & ledgers (always store — not regenerable)
 

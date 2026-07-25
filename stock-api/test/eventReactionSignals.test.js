@@ -17,15 +17,45 @@ const {
 // (see NseClient.getCorporateAnnouncements / BseClient.getAnnouncements /
 // StockscansClient.ohlcv doc comments for the verification notes).
 const NSE_ROWS = [
-  { symbol: 'ELECON', desc: 'Press Release', an_dt: '10-Jul-2026 12:07:43', exchdisstime: '10-Jul-2026 12:07:44' },
-  { symbol: 'ELECON', desc: 'Outcome of Board Meeting', an_dt: '10-Jul-2026 11:47:44', exchdisstime: '10-Jul-2026 11:47:46' },
+  {
+    symbol: 'ELECON',
+    desc: 'Press Release',
+    an_dt: '10-Jul-2026 12:07:43',
+    exchdisstime: '10-Jul-2026 12:07:44',
+  },
+  {
+    symbol: 'ELECON',
+    desc: 'Outcome of Board Meeting',
+    an_dt: '10-Jul-2026 11:47:44',
+    exchdisstime: '10-Jul-2026 11:47:46',
+  },
 ];
 
 const BSE_ROWS = [
-  { NEWSSUB: 'Announcement under Regulation 30 (LODR)-Press Release / Media Release', CATEGORYNAME: 'Company Update', DissemDT: '2026-07-10T12:06:54.22', News_submission_dt: '2026-07-10T12:06:54' },
-  { NEWSSUB: 'Financial Results For The Quarter Ended On 30Th June, 2026', CATEGORYNAME: 'Result', DissemDT: '2026-07-10T11:53:30.63', News_submission_dt: '2026-07-10T11:53:30' },
-  { NEWSSUB: 'Board Meeting Outcome for Outcome Of Board Meeting Held On 10Th July, 2026', CATEGORYNAME: 'Board Meeting', DissemDT: '2026-07-10T11:46:21.317', News_submission_dt: '2026-07-10T11:46:21' },
-  { NEWSSUB: 'Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation', CATEGORYNAME: 'Company Update', DissemDT: '2026-07-07T15:43:02.787', News_submission_dt: '2026-07-07T15:43:02' },
+  {
+    NEWSSUB: 'Announcement under Regulation 30 (LODR)-Press Release / Media Release',
+    CATEGORYNAME: 'Company Update',
+    DissemDT: '2026-07-10T12:06:54.22',
+    News_submission_dt: '2026-07-10T12:06:54',
+  },
+  {
+    NEWSSUB: 'Financial Results For The Quarter Ended On 30Th June, 2026',
+    CATEGORYNAME: 'Result',
+    DissemDT: '2026-07-10T11:53:30.63',
+    News_submission_dt: '2026-07-10T11:53:30',
+  },
+  {
+    NEWSSUB: 'Board Meeting Outcome for Outcome Of Board Meeting Held On 10Th July, 2026',
+    CATEGORYNAME: 'Board Meeting',
+    DissemDT: '2026-07-10T11:46:21.317',
+    News_submission_dt: '2026-07-10T11:46:21',
+  },
+  {
+    NEWSSUB: 'Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation',
+    CATEGORYNAME: 'Company Update',
+    DissemDT: '2026-07-07T15:43:02.787',
+    News_submission_dt: '2026-07-07T15:43:02',
+  },
 ];
 
 // A slice of the live NSE:ELECON 1m OHLCV response spanning the result minute.
@@ -41,7 +71,9 @@ describe('classifyEventText', () => {
   it('classifies results, concalls, orders, monthly updates', () => {
     expect(classifyEventText('Outcome of Board Meeting')).toBe('result');
     expect(classifyEventText('Financial Results for the quarter')).toBe('result');
-    expect(classifyEventText('Analysts/Institutional Investor Meet/Con. Call Updates')).toBe('concall');
+    expect(classifyEventText('Analysts/Institutional Investor Meet/Con. Call Updates')).toBe(
+      'concall'
+    );
     expect(classifyEventText('Award of Order(s)/Contract(s)')).toBe('order');
     expect(classifyEventText('Monthly Business Update')).toBe('monthly_update');
     expect(classifyEventText('Press Release')).toBeNull();
@@ -90,7 +122,10 @@ describe('mergeAnnouncements + findLatestEvent', () => {
   });
 
   it('earliestEventTimestamp takes the min across exchanges (BSE board-meeting sub-announcement led NSE by ~85s)', () => {
-    const nseResult = findLatestEvent(events.filter((e) => e.source === 'NSE'), 'result');
+    const nseResult = findLatestEvent(
+      events.filter((e) => e.source === 'NSE'),
+      'result'
+    );
     const bseResult = events.find((e) => e.headline.includes('Board Meeting Outcome'));
     expect(earliestEventTimestamp(nseResult, bseResult)).toBe(bseResult.timestamp);
   });
@@ -155,7 +190,7 @@ describe('normalizeOhlcv + computeReactionMetrics', () => {
 
 describe('classifySignal', () => {
   it('uses the documented thresholds: 1day>4%, 1week>6%, 1month>10%', () => {
-    expect(SIGNAL_THRESHOLDS).toEqual({ oneDay: 0.04, oneWeek: 0.06, oneMonth: 0.10 });
+    expect(SIGNAL_THRESHOLDS).toEqual({ oneDay: 0.04, oneWeek: 0.06, oneMonth: 0.1 });
   });
 
   it('flags a move as signal when it clears the threshold, in either direction', () => {
@@ -180,6 +215,11 @@ describe('classifySignal', () => {
   });
 
   it('handles a missing/undefined metrics object without throwing', () => {
-    expect(classifySignal(undefined)).toEqual({ oneDay: null, oneWeek: null, oneMonth: null, any: null });
+    expect(classifySignal(undefined)).toEqual({
+      oneDay: null,
+      oneWeek: null,
+      oneMonth: null,
+      any: null,
+    });
   });
 });

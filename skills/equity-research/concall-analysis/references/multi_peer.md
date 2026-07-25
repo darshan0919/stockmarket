@@ -41,6 +41,7 @@ Aggressive growth guidance from one company in a sector where peers are cautious
 ### Table 3 — Sector-specific KPIs
 
 Pick 4-8 sector-relevant KPIs and compare. Examples:
+
 - **Telecom equipment:** order book, book-to-bill ratio, capacity utilisation, gross margin
 - **Pharma:** R&D % of revenue, US generic price erosion, ANDA filings, capacity addition
 - **Auto components:** capacity utilisation, raw material pass-through, EV revenue share
@@ -58,6 +59,7 @@ Pick 4-8 sector-relevant KPIs and compare. Examples:
 ### Table 4 — Most evasive vs most transparent
 
 Score each company on:
+
 - Number of quantitative answers given to analyst questions (out of total Q&A)
 - Number of dodged/non-answer responses
 - Specificity of forward guidance
@@ -74,6 +76,7 @@ Score each company on:
 ## Final synthesis
 
 One paragraph each:
+
 - **Sector consensus** — what are 3+ managements agreeing on?
 - **Divergent voice** — who is the outlier and on what?
 - **Most credible** — which management's guidance you'd weight most?

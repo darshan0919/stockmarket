@@ -17,8 +17,13 @@ async function main() {
   const opts = program.opts();
 
   const resolvedPdfDir = path.dirname(path.resolve(opts.pdf));
-  if (!resolvedPdfDir.includes(`${path.sep}jobs${path.sep}data`) && !resolvedPdfDir.includes('jobs/data')) {
-    console.error(`[render-pdf] WARNING: output path "${opts.pdf}" is not under jobs/data/ — generated report PDFs should live under jobs/data/<skill-slug>/ per repo convention.`);
+  if (
+    !resolvedPdfDir.includes(`${path.sep}jobs${path.sep}data`) &&
+    !resolvedPdfDir.includes('jobs/data')
+  ) {
+    console.error(
+      `[render-pdf] WARNING: output path "${opts.pdf}" is not under jobs/data/ — generated report PDFs should live under jobs/data/<skill-slug>/ per repo convention.`
+    );
   }
 
   try {

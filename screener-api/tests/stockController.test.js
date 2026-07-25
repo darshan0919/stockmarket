@@ -308,6 +308,4 @@ describe('Stock Controller - Quarterly Results', () => {
       expect(response.body.data).toHaveProperty('symbol', 'INVALID');
     });
   });
-
-
 });

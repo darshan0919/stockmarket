@@ -72,6 +72,7 @@ The application features a global header with navigation and search functionalit
 - **Navigation Links**: Dashboard, Screener, Watchlist
 
 The search bar is integrated into the header, making it accessible from any page including individual stock detail pages. It provides autocomplete functionality with:
+
 - Real-time search results
 - Keyboard navigation (arrow keys, Enter, Escape)
 - Direct navigation to stock detail pages
@@ -79,25 +80,25 @@ The search bar is integrated into the header, making it accessible from any page
 
 ### Components
 
-| Component | File | Documentation |
-|-----------|------|---------------|
-| SearchBar | [SearchBar.js](./components/SearchBar.md) | Stock search with autocomplete |
-| QuarterlyResults | [QuarterlyResults.js](./components/QuarterlyResults.md) | Financial results table |
-| StockHeader | [StockHeader.js](./components/StockHeader.md) | Stock price header |
+| Component        | File                                                    | Documentation                  |
+| ---------------- | ------------------------------------------------------- | ------------------------------ |
+| SearchBar        | [SearchBar.js](./components/SearchBar.md)               | Stock search with autocomplete |
+| QuarterlyResults | [QuarterlyResults.js](./components/QuarterlyResults.md) | Financial results table        |
+| StockHeader      | [StockHeader.js](./components/StockHeader.md)           | Stock price header             |
 
 ### Hooks
 
-| Hook | File | Documentation |
-|------|------|---------------|
-| useMarket | [useMarket.js](./hooks/useMarket.md) | Market data hook |
+| Hook         | File                                       | Documentation        |
+| ------------ | ------------------------------------------ | -------------------- |
+| useMarket    | [useMarket.js](./hooks/useMarket.md)       | Market data hook     |
 | useWatchlist | [useWatchlist.js](./hooks/useWatchlist.md) | Watchlist management |
 
 ### Utilities
 
-| Utility | File | Documentation |
-|---------|------|---------------|
+| Utility    | File                                   | Documentation              |
+| ---------- | -------------------------------------- | -------------------------- |
 | formatters | [formatters.js](./utils/formatters.md) | Number and date formatting |
-| api | [api.js](./lib/api.md) | API client |
+| api        | [api.js](./lib/api.md)                 | API client                 |
 
 ## Development
 
@@ -143,16 +144,16 @@ const details = await stockAPI.getDetails('RELIANCE');
 
 ### Available APIs
 
-| API Object | Methods |
-|------------|---------|
-| `stockAPI` | `search()`, `getDetails()`, `getTechnicals()`, `getFinancials()`, `getQuarterlyResults()` |
-| `screenerAPI` | `runScreener()` |
-| `watchlistAPI` | `getAll()`, `add()`, `remove()` |
-| `marketAPI` | `getIndices()`, `getStats()` |
-| `transcriptAPI` | `getTranscripts()`, `analyzeTranscript()` |
-| `ordersAPI` | `getBySymbol()`, `getFullParsed()`, `parsePdf()`, `getOrderbook()` |
-| `upcomingResultsAPI` | `getAll()`, `getSymbols()` |
-| `announcementsAPI` | `getBySymbol()` |
+| API Object           | Methods                                                                                   |
+| -------------------- | ----------------------------------------------------------------------------------------- |
+| `stockAPI`           | `search()`, `getDetails()`, `getTechnicals()`, `getFinancials()`, `getQuarterlyResults()` |
+| `screenerAPI`        | `runScreener()`                                                                           |
+| `watchlistAPI`       | `getAll()`, `add()`, `remove()`                                                           |
+| `marketAPI`          | `getIndices()`, `getStats()`                                                              |
+| `transcriptAPI`      | `getTranscripts()`, `analyzeTranscript()`                                                 |
+| `ordersAPI`          | `getBySymbol()`, `getFullParsed()`, `parsePdf()`, `getOrderbook()`                        |
+| `upcomingResultsAPI` | `getAll()`, `getSymbols()`                                                                |
+| `announcementsAPI`   | `getBySymbol()`                                                                           |
 
 ## Custom Hooks
 
@@ -163,10 +164,10 @@ import { useMarket } from '../lib/hooks/useMarket';
 
 function MyComponent() {
   const { marketData, loading, error, refresh } = useMarket();
-  
+
   if (loading) return <LoadingSpinner />;
   if (error) return <div>Error: {error}</div>;
-  
+
   return <div>{marketData.nifty50.current}</div>;
 }
 ```
@@ -177,14 +178,8 @@ function MyComponent() {
 import { useWatchlist } from '../lib/hooks/useWatchlist';
 
 function MyComponent() {
-  const { 
-    watchlist, 
-    loading, 
-    addToWatchlist, 
-    removeFromWatchlist,
-    isInWatchlist 
-  } = useWatchlist();
-  
+  const { watchlist, loading, addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
+
   const handleAdd = async () => {
     const result = await addToWatchlist('RELIANCE');
     if (result.success) {
@@ -198,15 +193,15 @@ function MyComponent() {
 
 ### Formatters (`lib/utils/formatters.js`)
 
-| Function | Description | Example |
-|----------|-------------|---------|
-| `formatCurrency(value)` | Indian currency format | `₹1,234.56` |
-| `formatLargeNumber(value)` | Abbreviated numbers | `₹1.5Cr` |
-| `formatPercent(value)` | Percentage | `12.50%` |
-| `formatPercentage(value)` | Signed percentage | `+12.50%` |
-| `formatNumber(value)` | Decimal number | `12.50` |
-| `formatDate(date)` | Indian date format | `Jan 15, 2024` |
-| `getChangeColor(value)` | Color class for change | `text-positive` |
+| Function                   | Description            | Example         |
+| -------------------------- | ---------------------- | --------------- |
+| `formatCurrency(value)`    | Indian currency format | `₹1,234.56`     |
+| `formatLargeNumber(value)` | Abbreviated numbers    | `₹1.5Cr`        |
+| `formatPercent(value)`     | Percentage             | `12.50%`        |
+| `formatPercentage(value)`  | Signed percentage      | `+12.50%`       |
+| `formatNumber(value)`      | Decimal number         | `12.50`         |
+| `formatDate(date)`         | Indian date format     | `Jan 15, 2024`  |
+| `getChangeColor(value)`    | Color class for change | `text-positive` |
 
 ## Component Patterns
 
@@ -255,7 +250,7 @@ const tabs = [
 ];
 
 const [activeTab, setActiveTab] = useState('quarterly');
-const ActiveComponent = tabs.find(t => t.id === activeTab).component;
+const ActiveComponent = tabs.find((t) => t.id === activeTab).component;
 ```
 
 ## Styling
@@ -319,8 +314,8 @@ export default function ScreenerPage() {
 
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
+| Variable              | Description                                            |
+| --------------------- | ------------------------------------------------------ |
 | `NEXT_PUBLIC_API_URL` | Backend API URL (default: `http://localhost:5000/api`) |
 
 ## Adding New Components
@@ -335,16 +330,12 @@ export default function ScreenerPage() {
  * @param {Object} props - Component props
  * @param {string} props.data - Data to display
  * @returns {JSX.Element}
- * 
+ *
  * @example
  * <NewComponent data="example" />
  */
 export default function NewComponent({ data }) {
-  return (
-    <div className="p-4 bg-white rounded-lg shadow">
-      {data}
-    </div>
-  );
+  return <div className="p-4 bg-white rounded-lg shadow">{data}</div>;
 }
 ```
 
@@ -369,4 +360,3 @@ describe('NewComponent', () => {
 // frontend/components/index.js
 export { default as NewComponent } from './NewComponent';
 ```
-

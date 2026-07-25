@@ -5,6 +5,7 @@ Use this when running Phase 2 (per-tweet tagging). Each tweet receives one or mo
 ## Tags
 
 ### `pick`
+
 A tweet that names a specific stock/company AND has an action verb attached.
 
 **Action verbs (Buy-side):** bought, buying, added, accumulated, top pick, conviction buy, long, like, holding, position, portfolio, my pick, recommend, ideas, betting on
@@ -12,19 +13,23 @@ A tweet that names a specific stock/company AND has an action verb attached.
 **Action verbs (Watching):** watching, on my radar, tracking, may buy, considering
 
 Examples that qualify:
+
 - "Added more @JIOFIN today" — pick (Buy, JIOFIN)
 - "Trimmed my INFY position above 1500" — pick (Sell, INFY)
 - "BAJAJCON is a top conviction" — pick (Buy, BAJAJCON)
 
 Examples that do NOT qualify:
+
 - "INFY result was good" — concept/macro, not a pick (no action by the author)
 - "What do you think of HDFC?" — question, not a pick
 - "RIL had a great run" — observation, not a pick
 
 ### `profit_claim`
+
 Tweet asserts the author realised or is sitting on a gain/loss. Includes vague claims.
 
 Examples:
+
 - "Made 3x on this in 18 months"
 - "My portfolio is up 40% YTD"
 - "Took a hit on the small-cap rotation"
@@ -32,41 +37,51 @@ Examples:
 If a stock is named in the same or adjacent tweet, also tag `pick`.
 
 ### `process`
+
 Describes a screening criterion, an entry/exit rule, a checklist item, or any operational SOP.
 
 Examples:
+
 - "I never buy stocks with D/E > 1"
 - "Three things I check before buying: ROCE, FCF, promoter pledge"
 - "Sell rule: position size > 15%, trim"
 
 ### `macro_view`
+
 Opinion on rates, sectors, cycles, currencies, commodities, geopolitics, regulation.
 
 Examples:
+
 - "RBI is done cutting for FY26"
 - "PSU banks have more room"
 - "Crude below 70 is bullish for India"
 
 ### `concept`
+
 General investing philosophy or mental model that isn't a screen or rule.
 
 Examples:
+
 - "Compounders > traders, always"
 - "Time in market > timing the market"
 - "Drawdowns are the price of admission"
 
 ### `anti_pattern`
+
 What the investor avoids or warns against.
 
 Examples:
+
 - "I never short anything"
 - "Stay away from sugar stocks"
 - "Avoid promoters with > 30% pledge"
 
 ### `off_topic`
+
 Personal life, jokes without market content, retweets without commentary, sports, politics unrelated to markets. Exclude from playbook synthesis.
 
 ### `uncertain`
+
 Sarcasm, ambiguous tone, unclear referent, low-confidence classification. Flag for caution; do not promote to high-confidence insights.
 
 ## Decision rules

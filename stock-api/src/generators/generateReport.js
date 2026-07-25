@@ -35,7 +35,7 @@ function writeReportDto(companyId, companyName, ticker, reportMarkdown, outputJs
     creator: CREATOR,
     companyName,
     ticker,
-    reportMarkdown
+    reportMarkdown,
   };
 
   fs.mkdirSync(path.dirname(outputJsonPath), { recursive: true });
@@ -94,7 +94,7 @@ Test paragraph.
 
 **BUY** with a 12-month target of Rs 500.
 `;
-  createResearchReport("Test Company Ltd", "NSE: TEST", sample, "/tmp/test_report.pdf")
+  createResearchReport('Test Company Ltd', 'NSE: TEST', sample, '/tmp/test_report.pdf')
     .then(() => process.exit(0))
     .catch(console.error);
 }

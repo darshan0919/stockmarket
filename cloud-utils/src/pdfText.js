@@ -13,7 +13,7 @@ async function ocrPdf() {
   // aren't installed we degrade exactly like the Python (returns ''), so SAST-scan
   // PDFs simply fall back to the description rather than crashing.
   try {
-    // eslint-disable-next-line global-require, import/no-unresolved
+    // eslint-disable-next-line global-require
     require.resolve('tesseract.js');
   } catch {
     return '';
@@ -65,4 +65,4 @@ async function pdfToText(buf) {
   return text;
 }
 
-module.exports = { pdfToText, };
+module.exports = { pdfToText };

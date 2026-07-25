@@ -22,6 +22,7 @@ Implemented major enhancements to the Quarterly Results widget based on [Screene
 **After:** All financial values show " Cr" suffix
 
 **Example:**
+
 ```
 Sales: 7,167 Cr
 Net Profit: 691 Cr
@@ -29,10 +30,11 @@ EPS (₹): 0.76
 ```
 
 **Implementation:**
+
 ```javascript
 const formatValue = (value) => {
-  if (value === null || value === undefined) return "-";
-  return formatLargeNumber(value) + " Cr";
+  if (value === null || value === undefined) return '-';
+  return formatLargeNumber(value) + ' Cr';
 };
 ```
 
@@ -56,16 +58,19 @@ const formatValue = (value) => {
 **Solution:** Fetch from both APIs and intelligently merge
 
 **API 1: Historical Data**
+
 - **Endpoint:** `corporates-financial-results`
 - **Provides:** 30+ historical quarters
 - **Limitation:** Missing recent 4 quarters
 
 **API 2: Recent Filings**
-- **Endpoint:** `integrated-filing-results` 
+
+- **Endpoint:** `integrated-filing-results`
 - **Provides:** Recent 20 filings with broadcast dates
 - **Advantage:** Includes latest quarters, standalone & consolidated
 
 **Merge Strategy:**
+
 1. Fetch from both APIs concurrently
 2. Create unique key: `${toDate}_${consolidated}`
 3. Historical data added first
@@ -73,6 +78,7 @@ const formatValue = (value) => {
 5. Result: Complete data with broadcast times
 
 **Backend Logs:**
+
 ```
 Historical API: 30 quarters found
 Recent API: 6 quarters found
@@ -84,6 +90,7 @@ Merged: 36 unique quarters
 **UI Component:** Segmented control (similar to Screener.in)
 
 **Visual:**
+
 ```
 ┌────────────────────────────────────┐
 │ [Consolidated]  Standalone         │
@@ -91,6 +98,7 @@ Merged: 36 unique quarters
 ```
 
 **Behavior:**
+
 - Auto-detects available types
 - Shows only if multiple types exist
 - Smooth transition between views
@@ -98,10 +106,11 @@ Merged: 36 unique quarters
 - Maintains scroll position within type
 
 **Implementation:**
+
 ```javascript
-const [resultType, setResultType] = useState("consolidated");
-const quarters = allQuarters.filter(q => 
-  resultType === "consolidated" ? q.consolidated : !q.consolidated
+const [resultType, setResultType] = useState('consolidated');
+const quarters = allQuarters.filter((q) =>
+  resultType === 'consolidated' ? q.consolidated : !q.consolidated
 );
 ```
 
@@ -111,6 +120,7 @@ const quarters = allQuarters.filter(q =>
 **After:** Shows all available (typically 30-40)
 
 **Statistics:**
+
 - ETERNAL: 36 quarters (18 consolidated + 18 standalone)
 - INFY: 16 quarters (8 + 8)
 - Varies by company
@@ -120,17 +130,21 @@ const quarters = allQuarters.filter(q =>
 ### Backend Changes
 
 #### 1. Database Model Update
+
 **File:** `backend/models/QuarterlyResult.js`
 
 **Added Field:**
+
 ```javascript
 broadcast_date: Date,
 ```
 
 #### 2. Dual API Fetching
+
 **File:** `backend/controllers/stockController.js`
 
 **Key Changes:**
+
 ```javascript
 // Fetch from both APIs
 const historicalResponse = await axios.get(
@@ -143,36 +157,61 @@ const recentResponse = await axios.get(
 
 // Merge with deduplication
 const resultsMap = new Map();
-historicalResults.forEach(r => {
+historicalResults.forEach((r) => {
   const key = `${r.toDate}_${r.consolidated}`;
-  resultsMap.set(key, {...r, source: 'historical'});
+  resultsMap.set(key, { ...r, source: 'historical' });
 });
-recentResults.forEach(r => {
+recentResults.forEach((r) => {
   const key = `${r.toDate}_${r.consolidated}`;
-  resultsMap.set(key, {...r, source: 'recent'}); // Override
+  resultsMap.set(key, { ...r, source: 'recent' }); // Override
 });
 ```
 
 #### 3. Date Parsing Enhancement
+
 **Handles Multiple Formats:**
+
 - `DD-MMM-YYYY` (e.g., "30-SEP-2025")
 - `YYYY-MM-DD` (standard ISO)
 - `DD-Month-YYYY HH:MM:SS` (broadcast dates)
 
 **Implementation:**
+
 ```javascript
 const months = {
-  JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,
-  JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11,
-  Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,
-  Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11
+  JAN: 0,
+  FEB: 1,
+  MAR: 2,
+  APR: 3,
+  MAY: 4,
+  JUN: 5,
+  JUL: 6,
+  AUG: 7,
+  SEP: 8,
+  OCT: 9,
+  NOV: 10,
+  DEC: 11,
+  Jan: 0,
+  Feb: 1,
+  Mar: 2,
+  Apr: 3,
+  May: 4,
+  Jun: 5,
+  Jul: 6,
+  Aug: 7,
+  Sep: 8,
+  Oct: 9,
+  Nov: 10,
+  Dec: 11,
 };
 const monthStr = parts[1].toUpperCase().substring(0, 3);
 toDate = new Date(parseInt(parts[2]), months[monthStr], parseInt(parts[0]));
 ```
 
 #### 4. Response Format Update
+
 **Added Fields:**
+
 ```javascript
 function formatQuarterForResponse(quarter) {
   return {
@@ -187,33 +226,40 @@ function formatQuarterForResponse(quarter) {
 ### Frontend Changes
 
 #### 1. Consolidated/Standalone Switcher
+
 **File:** `frontend/components/stock/QuarterlyResults.js`
 
 **State Management:**
+
 ```javascript
-const [resultType, setResultType] = useState("consolidated");
+const [resultType, setResultType] = useState('consolidated');
 const allQuarters = data.quarters || [];
-const quarters = allQuarters.filter(q =>
-  resultType === "consolidated" ? q.consolidated : !q.consolidated
+const quarters = allQuarters.filter((q) =>
+  resultType === 'consolidated' ? q.consolidated : !q.consolidated
 );
 ```
 
 **UI Component:**
+
 ```jsx
 <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
   <button
-    onClick={() => setResultType("consolidated")}
-    className={resultType === "consolidated" 
-      ? "bg-white text-gray-900 shadow-sm" 
-      : "text-gray-600 hover:text-gray-900"}
+    onClick={() => setResultType('consolidated')}
+    className={
+      resultType === 'consolidated'
+        ? 'bg-white text-gray-900 shadow-sm'
+        : 'text-gray-600 hover:text-gray-900'
+    }
   >
     Consolidated
   </button>
   <button
-    onClick={() => setResultType("standalone")}
-    className={resultType === "standalone" 
-      ? "bg-white text-gray-900 shadow-sm" 
-      : "text-gray-600 hover:text-gray-900"}
+    onClick={() => setResultType('standalone')}
+    className={
+      resultType === 'standalone'
+        ? 'bg-white text-gray-900 shadow-sm'
+        : 'text-gray-600 hover:text-gray-900'
+    }
   >
     Standalone
   </button>
@@ -221,46 +267,49 @@ const quarters = allQuarters.filter(q =>
 ```
 
 #### 2. Broadcast Date Formatting
+
 ```javascript
 const formatBroadcastDate = (dateStr) => {
-  if (!dateStr) return "-";
+  if (!dateStr) return '-';
   const date = new Date(dateStr);
-  return date.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
+  return date.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
   });
 };
 ```
 
 #### 3. Crores Suffix
+
 ```javascript
 const formatValue = (value) => {
-  if (value === null || value === undefined) return "-";
-  return formatLargeNumber(value) + " Cr";
+  if (value === null || value === undefined) return '-';
+  return formatLargeNumber(value) + ' Cr';
 };
 ```
 
 #### 4. New Row Added
+
 ```javascript
 const rows = [
   {
-    key: "broadcast_date",
-    label: "Broadcast Time",
+    key: 'broadcast_date',
+    label: 'Broadcast Time',
     format: formatBroadcastDate,
   },
-  { key: "sales", label: "Sales", format: formatValue },
+  { key: 'sales', label: 'Sales', format: formatValue },
   // ... rest of rows
 ];
 ```
 
 #### 5. Auto-Scroll on Type Change
+
 ```javascript
 useEffect(() => {
   if (data && scrollContainerRef.current) {
     setTimeout(() => {
-      scrollContainerRef.current.scrollLeft = 
-        scrollContainerRef.current.scrollWidth;
+      scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
     }, 100);
   }
 }, [data, resultType]); // Re-scroll on type change
@@ -269,9 +318,11 @@ useEffect(() => {
 ## API Endpoints
 
 ### 1. Historical Data API
+
 **URL:** `https://www.nseindia.com/api/corporates-financial-results`
 
 **Query Parameters:**
+
 - `index=equities`
 - `symbol=ETERNAL`
 - `issuer=ETERNAL LIMITED`
@@ -280,14 +331,17 @@ useEffect(() => {
 **Response:** Array of quarterly results with XBRL links
 
 **Limitations:**
+
 - Missing recent 4 quarters
 - No broadcast timestamp
 - Only shows one type (consolidated or standalone)
 
-### 2. Recent Filings API  
+### 2. Recent Filings API
+
 **URL:** `https://www.nseindia.com/api/integrated-filing-results`
 
 **Query Parameters:**
+
 - `index=equities`
 - `symbol=ETERNAL`
 - `issuer=ETERNAL LIMITED`
@@ -296,7 +350,8 @@ useEffect(() => {
 - `page=1`
 - `size=20`
 
-**Response:** 
+**Response:**
+
 ```json
 {
   "data": [
@@ -313,6 +368,7 @@ useEffect(() => {
 ```
 
 **Advantages:**
+
 - Has broadcast_Date
 - Includes recent quarters
 - Both standalone & consolidated
@@ -321,6 +377,7 @@ useEffect(() => {
 ## Real-World Results
 
 ### ETERNAL Limited
+
 ```
 Total Quarters: 36
 ├── Consolidated: 18 quarters
@@ -338,18 +395,20 @@ Latest Data (Consolidated):
 ```
 
 ### Data Distribution
+
 | Quarter | Consolidated | Standalone | Broadcast Date |
-|---------|--------------|------------|----------------|
-| Q2 2021 | ✓ | ✓ | - |
-| Q3 2021 | ✓ | ✓ | - |
-| ... | ... | ... | ... |
-| Q1 2025 | ✓ | ✓ | 01 May 2025 |
-| Q2 2025 | ✓ | ✓ | 21 Jul 2025 |
-| Q3 2025 | ✓ | ✓ | 16 Oct 2025 |
+| ------- | ------------ | ---------- | -------------- |
+| Q2 2021 | ✓            | ✓          | -              |
+| Q3 2021 | ✓            | ✓          | -              |
+| ...     | ...          | ...        | ...            |
+| Q1 2025 | ✓            | ✓          | 01 May 2025    |
+| Q2 2025 | ✓            | ✓          | 21 Jul 2025    |
+| Q3 2025 | ✓            | ✓          | 16 Oct 2025    |
 
 ## User Experience
 
 ### Before Enhancement
+
 1. Only 8 quarters visible
 2. No unit indication (confusing scale)
 3. No broadcast time info
@@ -357,6 +416,7 @@ Latest Data (Consolidated):
 5. Missing recent quarters
 
 ### After Enhancement
+
 1. ✅ All 36+ quarters visible
 2. ✅ Clear " Cr" suffix on all values
 3. ✅ Broadcast time row shows publication date
@@ -396,13 +456,15 @@ Data source: NSE India (XBRL) (cached)
 ## Performance Metrics
 
 ### API Response Times
+
 - **Historical API**: ~2-3 seconds
-- **Recent API**: ~2-3 seconds  
+- **Recent API**: ~2-3 seconds
 - **Parallel Fetch**: ~3-4 seconds (concurrent)
 - **Total Backend**: ~15-20 seconds (first fetch with XBRL parsing)
 - **Cached Response**: <100ms
 
 ### Data Volume
+
 - **API 1 Response**: ~30 quarters × 2 types = 60 entries
 - **API 2 Response**: ~20 filings (both types)
 - **Merged Unique**: ~36 quarters
@@ -410,6 +472,7 @@ Data source: NSE India (XBRL) (cached)
 - **Total Download**: ~10-15MB XML data
 
 ### Cache Efficiency
+
 - **First Request**: 15-20 seconds
 - **Subsequent Requests**: <100ms (99.5% faster)
 - **Cache Duration**: 7 days
@@ -418,17 +481,20 @@ Data source: NSE India (XBRL) (cached)
 ## Files Modified
 
 ### Backend
+
 1. `backend/models/QuarterlyResult.js` - Added broadcast_date field
 2. `backend/controllers/stockController.js` - Dual API integration, date parsing
 3. `backend/tests/stockController.test.js` - Updated assertions
 
 ### Frontend
+
 1. `frontend/components/stock/QuarterlyResults.js` - Switcher, broadcast row, Cr suffix
 2. (No changes to API layer - backward compatible)
 
 ## Testing
 
 ### Manual Testing
+
 ```bash
 # Test dual API fetch
 curl "http://localhost:5000/api/stocks/ETERNAL/quarterly?force_refresh=true"
@@ -442,6 +508,7 @@ curl "http://localhost:5000/api/stocks/TCS/quarterly"
 ```
 
 ### Test Results
+
 ```
 ✅ Dual API merge working
 ✅ 36 quarters retrieved (18 + 18)
@@ -455,16 +522,19 @@ curl "http://localhost:5000/api/stocks/TCS/quarterly"
 ## Known Limitations
 
 ### 1. Broadcast Date Coverage
+
 - **Available:** Recent 20 filings (~4-5 quarters)
 - **Not Available:** Historical quarters (older data)
 - **Display:** Shows "-" for missing broadcast dates
 
 ### 2. Data Availability
+
 - **Varies by Company:** Some have 40+ quarters, others 10-15
 - **Filing Compliance:** Depends on company's XBRL adoption
 - **API Limits:** Recent API limited to 20 entries per page
 
 ### 3. Performance
+
 - **Initial Load:** 15-20 seconds (multiple XBRL downloads)
 - **Mitigation:** Database caching reduces to <100ms
 - **Recommendation:** Background sync job for popular stocks
@@ -472,27 +542,29 @@ curl "http://localhost:5000/api/stocks/TCS/quarterly"
 ## Future Enhancements
 
 ### 1. Pagination for Recent API
+
 ```javascript
 // Fetch multiple pages if needed
 for (let page = 1; page <= 3; page++) {
-  const response = await axios.get(
-    `...&page=${page}&size=20`
-  );
+  const response = await axios.get(`...&page=${page}&size=20`);
   // Merge results
 }
 ```
 
 ### 2. Visual Indicators
+
 - Badge showing "New" for recently broadcast results
 - Color coding for audited vs unaudited
 - Icon differentiating standalone vs consolidated
 
 ### 3. Export Functionality
+
 - Download as CSV/Excel
 - Include all 36+ quarters
 - Preserve formatting (Cr suffix, percentages)
 
 ### 4. Year Separators
+
 ```
 | Q3 2024 | Q4 2024 ║ Q1 2025 | Q2 2025 |
                     ↑
@@ -512,6 +584,7 @@ for (let page = 1; page <= 3; page++) {
 ## Deployment Instructions
 
 ### 1. Backend Deployment
+
 ```bash
 cd backend
 npm install  # xml2js already installed
@@ -519,6 +592,7 @@ node server.js
 ```
 
 ### 2. Frontend Deployment
+
 ```bash
 cd frontend
 npm run build
@@ -526,6 +600,7 @@ npm start
 ```
 
 ### 3. Cache Refresh (Optional)
+
 ```bash
 # Force refresh for all symbols
 curl "http://localhost:5000/api/stocks/ETERNAL/quarterly?force_refresh=true"
@@ -534,7 +609,9 @@ curl "http://localhost:5000/api/stocks/INFY/quarterly?force_refresh=true"
 ```
 
 ### 4. Background Sync (Recommended)
+
 Create cron job to pre-populate cache:
+
 ```bash
 0 */6 * * * /path/to/sync-quarterly-results.sh
 ```
@@ -569,4 +646,3 @@ The implementation is production-ready, fully tested, and maintains backward com
 **Version:** 3.0  
 **Date:** November 15, 2025  
 **Reference:** Based on [Screener.in Quarterly Results](https://www.screener.in/company/ETERNAL/consolidated/#quarters)
-

@@ -43,15 +43,15 @@ Decide with this tree, in order:
 
 New data almost always fits an existing collection — prefer, in order:
 
-| Data | Collection | Write via |
-|---|---|---|
-| Analysis/report DTO (single or multi company, sector) | `reports.json` + `reports/<id>.json` body | `db.saveReport(dto)` |
-| Dated market occurrence (gainer, deal, tweet, announcement, sync run, scan hit) | `events-YYYY-MM.json` with a new `type` | `db.appendEvents(records)` |
-| Company observation/insight/summary | `notes.json` with a new `type` | `db.appendNotes(records)` |
-| Outcome/verdict/score against a prior output | `validation.json` with a new `type` | `db.appendValidations(records)` |
-| Investment thesis state | `theses.json` (+`thesis-history.jsonl`) | `db.saveThesis(companyId, thesis)` |
-| Per-company machine state (dedupe sets, cursors) | `companies.json` → the company's `state.<yourSkill>` | `db.upsertMany('companies', [...])` |
-| Cross-company singleton state | a dedicated `<kind>_state_<name>` record inside the closest collection (see `val_state_ledger`) | `db.upsert(...)` |
+| Data                                                                            | Collection                                                                                      | Write via                           |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------- |
+| Analysis/report DTO (single or multi company, sector)                           | `reports.json` + `reports/<id>.json` body                                                       | `db.saveReport(dto)`                |
+| Dated market occurrence (gainer, deal, tweet, announcement, sync run, scan hit) | `events-YYYY-MM.json` with a new `type`                                                         | `db.appendEvents(records)`          |
+| Company observation/insight/summary                                             | `notes.json` with a new `type`                                                                  | `db.appendNotes(records)`           |
+| Outcome/verdict/score against a prior output                                    | `validation.json` with a new `type`                                                             | `db.appendValidations(records)`     |
+| Investment thesis state                                                         | `theses.json` (+`thesis-history.jsonl`)                                                         | `db.saveThesis(companyId, thesis)`  |
+| Per-company machine state (dedupe sets, cursors)                                | `companies.json` → the company's `state.<yourSkill>`                                            | `db.upsertMany('companies', [...])` |
+| Cross-company singleton state                                                   | a dedicated `<kind>_state_<name>` record inside the closest collection (see `val_state_ledger`) | `db.upsert(...)`                    |
 
 **A new `type` inside an existing collection is ALWAYS preferred over a new
 collection.** Adding a `type` needs no code change — just document it in

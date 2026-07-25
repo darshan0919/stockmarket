@@ -27,6 +27,7 @@ If a data point cannot be verified via search, explicitly mark it as `[Unverifie
 ### 0.4 Per-company verification
 
 For every company mentioned in §10 or in any peer-comp table, verify via fresh web search:
+
 - Latest reported revenue (most recent annual or TTM).
 - Key operating metrics (capacity, order book, AUM, dark store count, etc. — whichever is the binding constraint for that business).
 - Recent concall commentary (last 1–2 quarters) — preferably a direct quote.
@@ -95,7 +96,7 @@ Adapt sector name and sub-theme. The first 12 are the standard sector search set
 - **Industry associations:** SIAM (auto), ELCINA / IESA (electronics), IPA (pharma), CEA (power), DAE (nuclear), SIA (semis global).
 - **Multilaterals:** IEA / IRENA / IAEA / WHO / IMF / World Bank — for global benchmarks.
 - **Long-form business analysis:** Substack deep-dives, founder/CEO interviews, podcasts. Often contain business-mechanism insights that brokerage notes miss.
-- **Financial portals:** Screener.in (per-company financials/peers/shareholding), Trendlyne, Tickertape, MoneyControl. *Treat Screener.in figures as starting points — verify against the actual filing for any number that drives a conclusion.*
+- **Financial portals:** Screener.in (per-company financials/peers/shareholding), Trendlyne, Tickertape, MoneyControl. _Treat Screener.in figures as starting points — verify against the actual filing for any number that drives a conclusion._
 
 ### Sources to avoid as primary
 
@@ -120,7 +121,7 @@ These rules are absolute. Violation = re-do the section.
 
 The "business first" philosophy is enforced through these specific bans:
 
-- **NEVER lead a company section with CMP / Mcap / P/E as the header or first sentence.** These belong in a one-line reference *after* the business analysis.
+- **NEVER lead a company section with CMP / Mcap / P/E as the header or first sentence.** These belong in a one-line reference _after_ the business analysis.
 - **NEVER list brokerage target prices.** They are noise, not insight. Replace with business catalysts the user can actually track.
 - **NEVER write "Company X has a strong moat"** without explaining the MECHANISM. What specifically makes the moat? How does it operate at the transaction level? How durable is it against well-funded competition?
 - **NEVER describe a business model in one sentence** ("marketplace model"). Explain HOW it works at the transaction level — who pays whom, where the margin comes from, what the contribution per unit looks like.

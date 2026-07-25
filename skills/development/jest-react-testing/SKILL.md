@@ -47,6 +47,7 @@ React Testing Library follows these guiding principles:
 ### Basic Jest Configuration
 
 **jest.config.js** (JavaScript projects):
+
 ```javascript
 /** @type {import('jest').Config} */
 const config = {
@@ -93,8 +94,9 @@ module.exports = config;
 ```
 
 **jest.config.js** (TypeScript projects):
+
 ```typescript
-import type {Config} from 'jest';
+import type { Config } from 'jest';
 
 const config: Config = {
   preset: 'ts-jest',
@@ -137,6 +139,7 @@ export default config;
 ### Setup Files
 
 **src/setupTests.js**:
+
 ```javascript
 // Add custom jest matchers from jest-dom
 import '@testing-library/jest-dom';
@@ -148,7 +151,7 @@ expect.extend(matchers);
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -175,10 +178,7 @@ global.IntersectionObserver = class IntersectionObserver {
 const originalError = console.error;
 beforeAll(() => {
   console.error = (...args) => {
-    if (
-      typeof args[0] === 'string' &&
-      args[0].includes('Warning: ReactDOM.render')
-    ) {
+    if (typeof args[0] === 'string' && args[0].includes('Warning: ReactDOM.render')) {
       return;
     }
     originalError.call(console, ...args);
@@ -197,12 +197,14 @@ afterEach(() => {
 
 ### File Mocks
 
-**__mocks__/fileMock.js**:
+****mocks**/fileMock.js**:
+
 ```javascript
 module.exports = 'test-file-stub';
 ```
 
-**__mocks__/styleMock.js**:
+****mocks**/styleMock.js**:
+
 ```javascript
 module.exports = {};
 ```
@@ -222,61 +224,68 @@ React Testing Library provides three types of queries:
 **Recommended Query Order** (accessibility-focused):
 
 1. **getByRole**: Most accessible query
+
    ```javascript
-   getByRole('button', { name: /submit/i })
-   getByRole('heading', { level: 1 })
-   getByRole('textbox', { name: /username/i })
+   getByRole('button', { name: /submit/i });
+   getByRole('heading', { level: 1 });
+   getByRole('textbox', { name: /username/i });
    ```
 
 2. **getByLabelText**: For form fields with labels
+
    ```javascript
-   getByLabelText(/email address/i)
-   getByLabelText('Password')
+   getByLabelText(/email address/i);
+   getByLabelText('Password');
    ```
 
 3. **getByPlaceholderText**: For inputs with placeholders
+
    ```javascript
-   getByPlaceholderText(/search/i)
+   getByPlaceholderText(/search/i);
    ```
 
 4. **getByText**: For non-interactive elements with text
+
    ```javascript
-   getByText(/welcome/i)
-   getByText('Error: Invalid credentials')
+   getByText(/welcome/i);
+   getByText('Error: Invalid credentials');
    ```
 
 5. **getByDisplayValue**: For form elements with values
+
    ```javascript
-   getByDisplayValue('John Doe')
+   getByDisplayValue('John Doe');
    ```
 
 6. **getByAltText**: For images with alt text
+
    ```javascript
-   getByAltText(/profile picture/i)
+   getByAltText(/profile picture/i);
    ```
 
 7. **getByTitle**: For elements with title attribute
+
    ```javascript
-   getByTitle(/close/i)
+   getByTitle(/close/i);
    ```
 
 8. **getByTestId**: Last resort when other queries don't work
    ```javascript
-   getByTestId('custom-element')
+   getByTestId('custom-element');
    ```
 
 ### Query Variants
 
 ```javascript
 // Single element queries
-screen.getByRole('button')      // Throws if not found or multiple found
-screen.queryByRole('button')    // Returns null if not found
-await screen.findByRole('button') // Async, waits up to 1000ms
+screen.getByRole('button'); // Throws if not found or multiple found
+screen.queryByRole('button'); // Returns null if not found
+await screen.findByRole('button'); // Async, waits up to 1000ms
 
 // Multiple element queries
-screen.getAllByRole('listitem')      // Throws if none found
-screen.queryAllByRole('listitem')    // Returns [] if none found
-await screen.findAllByRole('listitem') // Async version
+screen.getAllByRole('listitem'); // Throws if none found
+screen.queryAllByRole('listitem'); // Returns [] if none found
+await screen.findAllByRole('listitem'); // Async version
 ```
 
 ## Component Testing Strategies
@@ -421,6 +430,7 @@ describe('UserProfile Component', () => {
 ### Mocking Modules
 
 **Automatic Mock**:
+
 ```javascript
 // __mocks__/axios.js
 export default {
@@ -432,6 +442,7 @@ export default {
 ```
 
 **Usage in test**:
+
 ```javascript
 import axios from 'axios';
 import { UserService } from './UserService';
@@ -500,6 +511,7 @@ describe('Button Component', () => {
 ### Mocking API Calls with MSW (Mock Service Worker)
 
 **Setup MSW**:
+
 ```javascript
 // src/mocks/handlers.js
 import { rest } from 'msw';
@@ -531,6 +543,7 @@ export const handlers = [
 ```
 
 **Setup server**:
+
 ```javascript
 // src/mocks/server.js
 import { setupServer } from 'msw/node';
@@ -540,6 +553,7 @@ export const server = setupServer(...handlers);
 ```
 
 **Configure in setupTests.js**:
+
 ```javascript
 import { server } from './mocks/server';
 
@@ -549,6 +563,7 @@ afterAll(() => server.close());
 ```
 
 **Usage in tests**:
+
 ```javascript
 import { render, screen, waitFor } from '@testing-library/react';
 import { server } from './mocks/server';
@@ -570,10 +585,7 @@ describe('UserList Component', () => {
   it('handles server error', async () => {
     server.use(
       rest.get('/api/users', (req, res, ctx) => {
-        return res(
-          ctx.status(500),
-          ctx.json({ message: 'Internal Server Error' })
-        );
+        return res(ctx.status(500), ctx.json({ message: 'Internal Server Error' }));
       })
     );
 
@@ -706,9 +718,7 @@ describe('DataFetcher Component', () => {
   it('handles timeout for missing elements', async () => {
     render(<DataFetcher url="/api/missing" />);
 
-    await expect(
-      screen.findByText(/success/i, {}, { timeout: 500 })
-    ).rejects.toThrow();
+    await expect(screen.findByText(/success/i, {}, { timeout: 500 })).rejects.toThrow();
   });
 });
 ```
@@ -857,10 +867,9 @@ describe('useFetch Hook', () => {
   });
 
   it('refetches when URL changes', async () => {
-    const { result, rerender } = renderHook(
-      ({ url }) => useFetch(url),
-      { initialProps: { url: '/api/users' } }
-    );
+    const { result, rerender } = renderHook(({ url }) => useFetch(url), {
+      initialProps: { url: '/api/users' },
+    });
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -885,11 +894,7 @@ import { ThemeProvider } from './ThemeContext';
 import { useTheme } from './useTheme';
 
 describe('useTheme Hook', () => {
-  const wrapper = ({ children }) => (
-    <ThemeProvider initialTheme="light">
-      {children}
-    </ThemeProvider>
-  );
+  const wrapper = ({ children }) => <ThemeProvider initialTheme="light">{children}</ThemeProvider>;
 
   it('returns current theme', () => {
     const { result } = renderHook(() => useTheme(), { wrapper });
@@ -993,11 +998,7 @@ import userEvent from '@testing-library/user-event';
 import { AppRoutes } from './AppRoutes';
 
 const renderWithRouter = (ui, { initialEntries = ['/'] } = {}) => {
-  return render(
-    <MemoryRouter initialEntries={initialEntries}>
-      {ui}
-    </MemoryRouter>
-  );
+  return render(<MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>);
 };
 
 describe('AppRoutes Integration', () => {
@@ -1065,9 +1066,7 @@ describe('TodoList Integration', () => {
   it('renders initial todos from store', () => {
     const initialState = {
       todos: {
-        items: [
-          { id: 1, text: 'Existing todo', completed: false },
-        ],
+        items: [{ id: 1, text: 'Existing todo', completed: false }],
       },
     };
 
@@ -1135,6 +1134,7 @@ expect(container).toContainHTML('<span>Text</span>');
 ### Test Organization
 
 1. **Group Related Tests**: Use `describe` blocks to organize tests
+
    ```javascript
    describe('UserProfile', () => {
      describe('when loading', () => {
@@ -1149,6 +1149,7 @@ expect(container).toContainHTML('<span>Text</span>');
    ```
 
 2. **Use Descriptive Test Names**: Test names should describe behavior
+
    ```javascript
    // Good
    it('displays error message when login fails', () => {});
@@ -1158,6 +1159,7 @@ expect(container).toContainHTML('<span>Text</span>');
    ```
 
 3. **Follow AAA Pattern**: Arrange, Act, Assert
+
    ```javascript
    it('increments counter', async () => {
      // Arrange
@@ -1209,7 +1211,7 @@ it('renders list of items', () => {
   const items = ['Apple', 'Banana', 'Cherry'];
   render(<ItemList items={items} />);
 
-  items.forEach(item => {
+  items.forEach((item) => {
     expect(screen.getByText(item)).toBeInTheDocument();
   });
 });
@@ -1272,18 +1274,23 @@ it('renders modal in portal', () => {
 ### Common Issues
 
 **Issue**: "Unable to find element"
+
 - **Solution**: Use screen.debug() to see DOM, check query type, wait for async updates
 
 **Issue**: "Act warnings"
+
 - **Solution**: Use userEvent instead of fireEvent, wrap state updates in act(), use waitFor/findBy
 
 **Issue**: "Jest timeout"
+
 - **Solution**: Increase timeout, check for infinite loops, ensure async operations complete
 
 **Issue**: "Cannot read property of undefined"
+
 - **Solution**: Check mocks are set up correctly, ensure components receive required props
 
 **Issue**: "Multiple elements found"
+
 - **Solution**: Make queries more specific, use getAllBy for multiple elements
 
 ## Resources

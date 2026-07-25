@@ -53,7 +53,8 @@ async function main() {
     type: 'consecutive-filings-diff-forensic-check',
     date: DATE,
     companyId: COMPANY,
-    summary: 'Gandhar Oil Q1FY27 vs Q4FY26 filings diff + basic forensic check. Highest-ever PAT (₹206cr, +688% YoY) is margin/realization-driven not volume-driven (spread 3.0x QoQ to ₹28,145/kl). Verified Q1FY27 call: management denies inventory-gain framing, guides margin to hold near 16.2% for the year (no numeric volume/tax guidance given). Forensic check clean (unmodified audit, no exceptional items) with two governance yellow flags (RMC chair domain-expertise downgrade; unexplained MOA widening into financial-instrument trading). FY27 PAT scenarios: Bear ~₹360cr / Base ~₹580cr / Bull ~₹800cr against CMP ₹283.42.',
+    summary:
+      'Gandhar Oil Q1FY27 vs Q4FY26 filings diff + basic forensic check. Highest-ever PAT (₹206cr, +688% YoY) is margin/realization-driven not volume-driven (spread 3.0x QoQ to ₹28,145/kl). Verified Q1FY27 call: management denies inventory-gain framing, guides margin to hold near 16.2% for the year (no numeric volume/tax guidance given). Forensic check clean (unmodified audit, no exceptional items) with two governance yellow flags (RMC chair domain-expertise downgrade; unexplained MOA widening into financial-instrument trading). FY27 PAT scenarios: Bear ~₹360cr / Base ~₹580cr / Bull ~₹800cr against CMP ₹283.42.',
     contextUsed: [],
     sections: {
       plDiff: {
@@ -62,12 +63,22 @@ async function main() {
         pat: { q4fy26: 37.0, q1fy27: 205.9, yoy: '+688%' },
         grossMarginSpreadPerKl: { q4fy26: 9351, q1fy27: 28145 },
       },
-      operationalKpi: { phpoGrowthYoY: '+18%', pioGrowthYoY: '+28%', lubricantsGrowthYoY: 'stable', channelPartnersGrowthYoY: '-23.6%', capacityUtilisation: '97% on 2-shift basis, 3rd shift available' },
+      operationalKpi: {
+        phpoGrowthYoY: '+18%',
+        pioGrowthYoY: '+28%',
+        lubricantsGrowthYoY: 'stable',
+        channelPartnersGrowthYoY: '-23.6%',
+        capacityUtilisation: '97% on 2-shift basis, 3rd shift available',
+      },
       concallVerified: {
         date: '2026-07-2x',
-        keyQuoteInventory: "We don't carry that much of inventory to justify inventory gains... generally up to 30, 35, 40 days. The gains have mostly come in on account of being able to sell at higher prices.",
-        keyQuoteMargin: 'We are hopeful of the margins remaining at this level or around this level for the whole year.',
-        numericGuidanceGiven: ['EBITDA margin: qualitative, ~16.2% "at or around this level" for the year'],
+        keyQuoteInventory:
+          "We don't carry that much of inventory to justify inventory gains... generally up to 30, 35, 40 days. The gains have mostly come in on account of being able to sell at higher prices.",
+        keyQuoteMargin:
+          'We are hopeful of the margins remaining at this level or around this level for the whole year.',
+        numericGuidanceGiven: [
+          'EBITDA margin: qualitative, ~16.2% "at or around this level" for the year',
+        ],
         numericGuidanceNotGiven: ['FY27 volume growth %', 'blended tax rate %'],
       },
       forensicAccounting: {
@@ -96,4 +107,7 @@ async function main() {
   console.log('touchedFiles:', JSON.stringify(db.touchedFiles ? db.touchedFiles() : 'n/a'));
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

@@ -183,6 +183,7 @@ const fetchAndStoreQuarterlyResults = async (symbol) => {
             seq_number: result.seqNumber,
           });
 
+          const force_refresh = false;
           if (existing && !force_refresh) {
             return existing;
           }

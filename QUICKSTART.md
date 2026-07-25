@@ -5,6 +5,7 @@ Get your Stock Screener application up and running in 5 minutes!
 ## Prerequisites Check
 
 Before starting, ensure you have:
+
 - ✅ Node.js 18+ (`node --version`)
 - ✅ Corepack enabled once: `corepack enable` (pins Yarn via `package.json`)
 - ✅ MongoDB installed and running
@@ -67,20 +68,24 @@ Open your browser and visit:
 ## First Time Usage
 
 ### 1. Dashboard
+
 - Try the search bar - type "RELIANCE" or "TCS"
 - View market snapshot
 - Click on a pre-built screener template
 
 ### 2. Screener
+
 - Set some filters (e.g., P/E max: 25, ROE min: 15)
 - Click "Run Screener"
 - Click on any stock to view details
 
 ### 3. Stock Details
+
 - View fundamentals, financials, and charts
 - Add stock to watchlist using the button
 
 ### 4. Watchlist
+
 - Navigate to Watchlist page
 - View your tracked stocks
 - Click on any stock for details
@@ -118,6 +123,7 @@ node scripts/fetchData.js
 ### API Connection Error
 
 Check that:
+
 1. Backend is running on port 5000
 2. Frontend .env.local has: `NEXT_PUBLIC_API_URL=http://localhost:5000/api`
 3. Restart frontend after changing .env.local
@@ -125,20 +131,24 @@ Check that:
 ## Testing the Application
 
 ### 1. Test Search
+
 - Go to Dashboard
 - Search "TCS" - should show Tata Consultancy Services
 
 ### 2. Test Screener
+
 - Go to Screener
 - Set P/E max: 30
 - Click "Run Screener"
 - Should show multiple stocks
 
 ### 3. Test Stock Details
+
 - Click on any stock from search or screener
 - All tabs should load with data
 
 ### 4. Test Watchlist
+
 - From stock details, click "Add to Watchlist"
 - Go to Watchlist page
 - Stock should appear there
@@ -165,6 +175,7 @@ crontab -e
 ## Sample Stocks Included
 
 The application comes with 20 major Indian stocks:
+
 - Financial: HDFCBANK, ICICIBANK, SBIN, KOTAKBANK, AXISBANK
 - IT: TCS, INFY, WIPRO
 - Consumer: HINDUNILVR, ITC, NESTLEIND, ASIANPAINT
@@ -199,4 +210,3 @@ net stop MongoDB                     # Windows
 ---
 
 **Happy Stock Screening! 📈**
-

@@ -75,11 +75,11 @@ is a normal commit, not a hidden runtime state file.
 
 ## Validation (2026-07-19, 27 companies, defence/EPC/capital-goods/auto-ancillary/shipbuilding/rail)
 
-| Outcome | Count | % |
-|---|---|---|
-| Clean deterministic extraction | 17 | 63% |
-| Correctly flagged ambiguous (2 disagreeing totals) | 2 | 7% |
-| No total found → LLM fallback needed | 8 | 30% |
+| Outcome                                            | Count | %   |
+| -------------------------------------------------- | ----- | --- |
+| Clean deterministic extraction                     | 17    | 63% |
+| Correctly flagged ambiguous (2 disagreeing totals) | 2     | 7%  |
+| No total found → LLM fallback needed               | 8     | 30% |
 
 Zero false positives observed in manual spot-check (every "OK" result's
 `sourceLine` was hand-verified against the mined corpus). The 30% MISS rate
@@ -124,13 +124,13 @@ data/cache/order-announcements/<companyId>/<ssUrl>.json  — every announcement 
 data/cache/order-book-ledger/<companyId>.json            — base (latest concall figure) + applied announcement deltas + running cumulative + audit history
 ```
 
-| File | Role |
-|---|---|
-| `lib/concallNotesStore.js` | `getOrderBook()`/`saveOrderBook()` — the extraction result lives ON the concall-note record it came from, never a separate file that could drift out of sync |
-| `lib/orderAnnouncementExtractor.js` | Classifies + extracts a single announcement. Title match (`Award_of_Order_Receipt_of_Order` — a fixed SEBI Reg-30 filing category, mined live) is the free, reliable classifier; value comes from a `Rs./₹ X Cr` regex over title+description |
-| `lib/orderAnnouncementStore.js` | Permanent per-announcement cache. `unresolved(companyId)` recomputes the pending-LLM-fallback list FROM DISK every call — not "seen this run" — so an unresolved item is never silently lost once the watermark moves past its date (a real bug caught during validation, see below) |
-| `lib/orderBookLedger.js` | `setBase()` (new concall → replaces base, resets applied-announcements since the new base already reflects them), `applyAnnouncement()` (idempotent — a re-applied `ssUrl` is a no-op), `advanceWatermark()`, `recompute()` (cumulative is ALWAYS derived from base + deltas, never hand-set) |
-| `scripts/orderbook/getCompanyOrderBook.js` | Orchestrator — the one entry point a skill calls: `ensureBase()` then `processNewAnnouncements(sinceDate)` |
+| File                                       | Role                                                                                                                                                                                                                                                                                          |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/concallNotesStore.js`                 | `getOrderBook()`/`saveOrderBook()` — the extraction result lives ON the concall-note record it came from, never a separate file that could drift out of sync                                                                                                                                  |
+| `lib/orderAnnouncementExtractor.js`        | Classifies + extracts a single announcement. Title match (`Award_of_Order_Receipt_of_Order` — a fixed SEBI Reg-30 filing category, mined live) is the free, reliable classifier; value comes from a `Rs./₹ X Cr` regex over title+description                                                 |
+| `lib/orderAnnouncementStore.js`            | Permanent per-announcement cache. `unresolved(companyId)` recomputes the pending-LLM-fallback list FROM DISK every call — not "seen this run" — so an unresolved item is never silently lost once the watermark moves past its date (a real bug caught during validation, see below)          |
+| `lib/orderBookLedger.js`                   | `setBase()` (new concall → replaces base, resets applied-announcements since the new base already reflects them), `applyAnnouncement()` (idempotent — a re-applied `ssUrl` is a no-op), `advanceWatermark()`, `recompute()` (cumulative is ALWAYS derived from base + deltas, never hand-set) |
+| `scripts/orderbook/getCompanyOrderBook.js` | Orchestrator — the one entry point a skill calls: `ensureBase()` then `processNewAnnouncements(sinceDate)`                                                                                                                                                                                    |
 
 ### Call pattern
 
@@ -179,7 +179,7 @@ just by convention.
   correctly moved from 99,262 Cr → 99,762 Cr, and the item permanently
   dropped out of `pendingLlmFallback` on the next call.
 - **Bug caught and fixed during validation**: the first version only returned
-  `pendingLlmFallback` for announcements seen *in that call*. Once the
+  `pendingLlmFallback` for announcements seen _in that call_. Once the
   watermark advanced past their dates, a second call reported an empty
   pending list — silently losing track of 6 real unresolved items. Fixed by
   making `orderAnnouncementStore.unresolved()` scan the cache directory fresh
@@ -206,7 +206,7 @@ just by convention.
   same month would overcount. Worth flagging explicitly to whoever resolves
   fallback items via LLM.
 - **The `announcements()` client method was newly added** (`StockscansClient.
-  announcements()`) because the pre-existing `companyAnnouncements()` method
+announcements()`) because the pre-existing `companyAnnouncements()` method
   returns HTTP 400 for the documented payload shape (verified live,
   2026-07-19) — that pre-existing method is left untouched since other
   callers (`scanCatalysts.js`, `stockscansAnnouncementScansPage.js`) may

@@ -3,11 +3,11 @@
 Centralized stock-data API clients for the whole stack. One source of truth per
 datum, split by domain:
 
-| Client | Owns | Use for |
-|---|---|---|
+| Client             | Owns             | Use for                                                                    |
+| ------------------ | ---------------- | -------------------------------------------------------------------------- |
 | `StockscansClient` | **Fundamentals** | documents, announcements, scans, watchlists, screener, card-detail metrics |
-| `NseClient` | **Price-action** | quote, live delivery %, price/volume/deliverable history, live gainers |
-| `BseClient` | **Price-action** | traded/deliverable qty, delivery %, live quote header, scrip-code lookup |
+| `NseClient`        | **Price-action** | quote, live delivery %, price/volume/deliverable history, live gainers     |
+| `BseClient`        | **Price-action** | traded/deliverable qty, delivery %, live quote header, scrip-code lookup   |
 
 > Rule: anything **fundamental** comes from Stockscans. NSE/BSE are **only** for
 > price/volume/delivery. No endpoint is exposed on more than one client.
@@ -17,9 +17,9 @@ datum, split by domain:
 ```js
 const { stockscans, nse, bse } = require('@stock/api');
 
-const scan = await stockscans.runScan(payload, scanId);   // fundamentals
-const live = await nse.getSymbolData('TCS');              // price-action (delivery %)
-const pos  = await bse.getSecurityPosition('500325');     // price-action
+const scan = await stockscans.runScan(payload, scanId); // fundamentals
+const live = await nse.getSymbolData('TCS'); // price-action (delivery %)
+const pos = await bse.getSecurityPosition('500325'); // price-action
 ```
 
 Inject dependencies for tests/custom config:

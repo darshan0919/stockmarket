@@ -59,6 +59,7 @@ function sanitizeSearchForZipFilename(raw) {
   const t = raw !== undefined && raw !== null ? String(raw).trim() : '';
   if (!t) return '';
   const s = t
+    // eslint-disable-next-line no-control-regex
     .replace(/[/\\:*?"<>|\x00-\x1f]+/g, '_')
     .replace(/\s+/g, '_')
     .replace(/_+/g, '_')

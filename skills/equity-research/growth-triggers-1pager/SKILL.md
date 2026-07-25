@@ -59,6 +59,7 @@ you need.
 **1. Company snapshot** — 3–4 lines plain English (business, value-chain position, moat or commodity, promoter %). Then the 8-column KPI table: `FY Rev | FY PAT | EBITDA Mgn | ROE | ROCE | Debt | PE (TTM) | Div Yield` (TTM if annuals not out).
 
 **2. Core growth triggers (5–7)** — each with:
+
 - Name (5–7 words)
 - Body (2–3 sentences — specific event / capex / policy / order)
 - Quantified impact (revenue Rs Cr, margin bps, volume %, TAM)

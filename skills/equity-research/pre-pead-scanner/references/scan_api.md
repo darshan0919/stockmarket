@@ -16,9 +16,11 @@ The output JSON separates `companies` (liquid, tradeable — these proceed), `ex
 ## The saved-scan URL
 
 A saved scan lives at:
+
 ```
 https://www.stockscans.in/scans/saved/<scanId>
 ```
+
 `<scanId>` is a 24-character hex string (a Mongo ObjectId). `run_scan.py` accepts either the full URL or the bare id.
 
 ## 1. Definition endpoint (fetch the live filters)
@@ -28,21 +30,24 @@ https://www.stockscans.in/scans/saved/<scanId>
 **Headers**: `accept: application/json`, `content-type: application/json`, `cookie: authtoken=<JWT>`
 
 ### Response
+
 ```json
 {
   "scanId": "c29a98ebbb568f073162ba24",
   "scanName": "Pre PEAD Candidates",
   "scanDescription": "Pre PEAD Candidates",
-  "industry": [], "index": [], "sector": [],
+  "industry": [],
+  "index": [],
+  "sector": [],
   "tags": [["NSE"]],
   "watchlistIds": [],
   "filters": [
-    {"left": "Market Capitalization", "sign": ">=", "right": "300"},
-    {"left": "Market Capitalization", "sign": "<",  "right": "30000"},
-    {"left": "Days From Result",       "sign": "<=", "right": "3"},
-    {"left": "Days From Result",       "sign": ">=", "right": "2"},
-    {"left": "Retail Holdings * Market Capitalization", "sign": ">=", "right": "100"},
-    {"left": "Volume SMA 20D * SMA 20D", "sign": ">=", "right": "50000000"}
+    { "left": "Market Capitalization", "sign": ">=", "right": "300" },
+    { "left": "Market Capitalization", "sign": "<", "right": "30000" },
+    { "left": "Days From Result", "sign": "<=", "right": "3" },
+    { "left": "Days From Result", "sign": ">=", "right": "2" },
+    { "left": "Retail Holdings * Market Capitalization", "sign": ">=", "right": "100" },
+    { "left": "Volume SMA 20D * SMA 20D", "sign": ">=", "right": "50000000" }
   ],
   "alertFrequency": null
 }
@@ -52,7 +57,8 @@ https://www.stockscans.in/scans/saved/<scanId>
 
 ### `Days From Result` semantics
 
-This is the filter that makes a scan a "pre-results" scan. It counts *forward* to the next scheduled result:
+This is the filter that makes a scan a "pre-results" scan. It counts _forward_ to the next scheduled result:
+
 - `Days From Result >= 0 AND <= 1` → reports today or tomorrow
 - `Days From Result >= 2 AND <= 3` → reports in two to three days
 
@@ -65,7 +71,9 @@ So the window the user has set tells you which result dates to expect in `Next R
 **Headers**: definition headers + `origin: https://www.stockscans.in`
 
 ### Body
+
 Wrap the definition object under `scan`:
+
 ```json
 {
   "ratiosType": "Default",
@@ -77,9 +85,11 @@ Wrap the definition object under `scan`:
   "offset": 0
 }
 ```
+
 `offset` paginates if the scan returns more rows than one page; in practice these scans return the full set in one call (`total` in the response tells you the count).
 
 ### Response
+
 ```json
 {
   "table": [
@@ -92,43 +102,44 @@ Wrap the definition object under `scan`:
   "total": 31
 }
 ```
+
 The first row of `table` is the header; every subsequent row is a company. `run_scan.py` zips them into dicts.
 
 ### Columns surfaced (as of May 2026)
 
 The exact column set follows the scan's `ratiosType`; with `"Default"` the rows carry, among others:
 
-| Column | Use in this skill |
-|---|---|
-| `companyId` | **The key for every downstream API call** (e.g. `NSE:PGEL`) |
-| `Name` | Display |
-| `Sector`, `Industry` | Display / business-first framing |
-| `Last Result Date` | Step 2 — already-declared check |
-| `Next Result Date` | Confirms the upcoming report date |
-| `Days From Result` | Pre-results window |
-| `Market Capitalization` | ₹ Cr |
-| `Close Price` | CMP (cross-check on result day vs Dhan/Kotak) |
-| `Revenue` | TTM revenue — historical base for extrapolation |
-| `EPS` | Trailing EPS — cross-check for the EPS estimate |
-| `Equity Shares` | Share count for the EPS calc (Step 5) |
-| `PAT Growth TTM / YoY / QoQ / 3 Years` | Momentum + historical-performance validation |
-| `Revenue Growth TTM` | Historical-performance validation |
-| `ROE`, `ROCE`, `ROA` (+ 3-yr medians) | Business-quality framing |
-| `Price To Earnings`, `Industry PE Median`, `EV To EBITDA`, `PEG`, `Price To Book Value`, `Price To Sales` | **Valuation / expectations (Step 6)** — is the beat priced in? |
-| `Debt To Equity`, `Current Ratio` | Balance-sheet check |
-| `CFO To PAT`, `CFO To EBITDA`, `Free Cash Flow`, `Operating Cash Flow` | Earnings-quality validation |
-| `Promoter / FII / DII / Retail Holdings` | Ownership context; promoter holding also feeds the free-float fallback |
+| Column                                                                                                    | Use in this skill                                                      |
+| --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `companyId`                                                                                               | **The key for every downstream API call** (e.g. `NSE:PGEL`)            |
+| `Name`                                                                                                    | Display                                                                |
+| `Sector`, `Industry`                                                                                      | Display / business-first framing                                       |
+| `Last Result Date`                                                                                        | Step 2 — already-declared check                                        |
+| `Next Result Date`                                                                                        | Confirms the upcoming report date                                      |
+| `Days From Result`                                                                                        | Pre-results window                                                     |
+| `Market Capitalization`                                                                                   | ₹ Cr                                                                   |
+| `Close Price`                                                                                             | CMP (cross-check on result day vs Dhan/Kotak)                          |
+| `Revenue`                                                                                                 | TTM revenue — historical base for extrapolation                        |
+| `EPS`                                                                                                     | Trailing EPS — cross-check for the EPS estimate                        |
+| `Equity Shares`                                                                                           | Share count for the EPS calc (Step 5)                                  |
+| `PAT Growth TTM / YoY / QoQ / 3 Years`                                                                    | Momentum + historical-performance validation                           |
+| `Revenue Growth TTM`                                                                                      | Historical-performance validation                                      |
+| `ROE`, `ROCE`, `ROA` (+ 3-yr medians)                                                                     | Business-quality framing                                               |
+| `Price To Earnings`, `Industry PE Median`, `EV To EBITDA`, `PEG`, `Price To Book Value`, `Price To Sales` | **Valuation / expectations (Step 6)** — is the beat priced in?         |
+| `Debt To Equity`, `Current Ratio`                                                                         | Balance-sheet check                                                    |
+| `CFO To PAT`, `CFO To EBITDA`, `Free Cash Flow`, `Operating Cash Flow`                                    | Earnings-quality validation                                            |
+| `Promoter / FII / DII / Retail Holdings`                                                                  | Ownership context; promoter holding also feeds the free-float fallback |
 
 ### Liquidity, valuation & returns columns (used by the surprise workflow)
 
 These may need to be added to the saved scan's ratios if a "Default" run doesn't surface them. The runner resolves each across candidate aliases (see `liquidity_gate.md`); add aliases in `runScan.js` if a label drifts.
 
-| Column (or alias) | Use in this skill |
-|---|---|
-| `Average Traded Value 50D` / `50D Average Traded Value` / `Volume SMA 50D * SMA 50D` | **Liquidity gate (Step 0)** — floor ₹5 Cr. Expression form is in absolute ₹; `toCrore()` normalises. |
-| `Free Float Market Capitalization` / `Free Float` / `Non Promoter Holdings * Market Capitalization` | **Liquidity gate (Step 0)** — floor ₹50 Cr. Fallback: `(1 − promoter%) × mcap`. |
-| `Price To Earnings 50D Average` / 50D-avg-P/E (else approximate `50D-avg-close ÷ trailing EPS`) | **Valuation (Step 6)** — 50D avg P/E vs own history & industry. |
-| `Returns after result` / `Post Result Return` / `Return Since Last Result` | **Post-event drift (Step 7)** — result-date forward return, read directly. Concall/transcript returns are derived, not columns. |
+| Column (or alias)                                                                                   | Use in this skill                                                                                                               |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `Average Traded Value 50D` / `50D Average Traded Value` / `Volume SMA 50D * SMA 50D`                | **Liquidity gate (Step 0)** — floor ₹5 Cr. Expression form is in absolute ₹; `toCrore()` normalises.                            |
+| `Free Float Market Capitalization` / `Free Float` / `Non Promoter Holdings * Market Capitalization` | **Liquidity gate (Step 0)** — floor ₹50 Cr. Fallback: `(1 − promoter%) × mcap`.                                                 |
+| `Price To Earnings 50D Average` / 50D-avg-P/E (else approximate `50D-avg-close ÷ trailing EPS`)     | **Valuation (Step 6)** — 50D avg P/E vs own history & industry.                                                                 |
+| `Returns after result` / `Post Result Return` / `Return Since Last Result`                          | **Post-event drift (Step 7)** — result-date forward return, read directly. Concall/transcript returns are derived, not columns. |
 
 Note: `Revenue`, `Market Capitalization`, `Free Float Market Capitalization`, `Free Cash Flow` etc. are in **₹ Crore**; `EPS` is in ₹; `Returns after result` is typically a **percentage or fraction** — confirm which and normalise. Expression columns like `Volume SMA 50D * SMA 50D` are in **absolute rupees** — divide by 1e7 for ₹ Cr (the runner's `toCrore()` heuristic does this). Treat any single-decimal share figure with caution — confirm against the latest result for the EPS calc.
 

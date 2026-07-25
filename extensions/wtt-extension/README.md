@@ -61,15 +61,15 @@ On first use, the extension prompts for your **Anthropic API key**:
 
 ## Permissions Explained
 
-| Permission | Why |
-|---|---|
-| `storage` | Persist the API key across sessions |
-| `sidePanel` | Show the analysis UI in Chrome's side panel |
-| `tabs` | Query for the active stockscans.in tab |
-| `cookies` | Access stockscans.in session for API calls |
+| Permission                        | Why                                                 |
+| --------------------------------- | --------------------------------------------------- |
+| `storage`                         | Persist the API key across sessions                 |
+| `sidePanel`                       | Show the analysis UI in Chrome's side panel         |
+| `tabs`                            | Query for the active stockscans.in tab              |
+| `cookies`                         | Access stockscans.in session for API calls          |
 | `host_permissions: stockscans.in` | Content script injection and same-origin API access |
-| `host_permissions: S3` | Download earnings PDFs (transcripts, results, PPTs) |
-| `host_permissions: anthropic.com` | Claude API calls for AI analysis |
+| `host_permissions: S3`            | Download earnings PDFs (transcripts, results, PPTs) |
+| `host_permissions: anthropic.com` | Claude API calls for AI analysis                    |
 
 ## File Structure
 
@@ -102,12 +102,12 @@ wtt-extension/
 
 ## Scoring Model
 
-| Component | Weight | What It Measures |
-|---|---|---|
-| Execution Score | 50% | Did numeric guidance match actual results? |
-| Language Score | 30% | Clarity, specificity, absence of hedge words |
-| Consistency Score | 20% | Stable narrative vs shifting stories |
-| **WTT Score** | **weighted avg** | `exec × 0.5 + lang × 0.3 + cons × 0.2` |
+| Component         | Weight           | What It Measures                             |
+| ----------------- | ---------------- | -------------------------------------------- |
+| Execution Score   | 50%              | Did numeric guidance match actual results?   |
+| Language Score    | 30%              | Clarity, specificity, absence of hedge words |
+| Consistency Score | 20%              | Stable narrative vs shifting stories         |
+| **WTT Score**     | **weighted avg** | `exec × 0.5 + lang × 0.3 + cons × 0.2`       |
 
 ## Tech Stack
 

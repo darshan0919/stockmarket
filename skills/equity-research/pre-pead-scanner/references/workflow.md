@@ -1,8 +1,8 @@
 # The nine-step workflow (detailed mechanics)
 
-This is the operational heart of the skill. SKILL.md gives the one-line summary of each step; this file gives the commands, decision rules, and gates. Follow the steps in order — each gates or feeds the next, and a company that fails a gate drops out of the universe and is reported as *excluded*, never silently dropped.
+This is the operational heart of the skill. SKILL.md gives the one-line summary of each step; this file gives the commands, decision rules, and gates. Follow the steps in order — each gates or feeds the next, and a company that fails a gate drops out of the universe and is reported as _excluded_, never silently dropped.
 
-Underlying thesis: a scan tells you *who* reports next; this workflow tells you *which of them is set up to surprise, in a way you can trade*. That means four things, checked across the steps: a surprise is coming (your estimate diverges from street **and** guidance), the company can deliver it (evidence, not tone), it isn't already priced (valuation), and it's tradeable (historical drift).
+Underlying thesis: a scan tells you _who_ reports next; this workflow tells you _which of them is set up to surprise, in a way you can trade_. That means four things, checked across the steps: a surprise is coming (your estimate diverges from street **and** guidance), the company can deliver it (evidence, not tone), it isn't already priced (valuation), and it's tradeable (historical drift).
 
 Commands below show `python3 /tmp/run_scan.py` and `python3 stock-api/python/fetchers/fetch_documents.py` as the invocation shape the runtime uses; when running from the JS package directly, the equivalents are `resolveUniverse()` / `postEventReturns()` in `stock-api/src/analyzers/`. Use whichever the environment exposes — the logic and the JSON shapes are identical.
 
@@ -29,13 +29,14 @@ python3 /tmp/run_scan.py "<SCAN_URL>" \
 ```
 
 The runner returns:
+
 - `companies` — the names that matched the scan. All of these proceed.
 
 The critical field on every row is **`companyId`** (e.g. `NSE:PGEL`) — every downstream call keys off it. Each row also carries `Name`, `Sector`, `Last Result Date`, `Next Result Date`, `Close Price`, `Market Capitalization`, `Revenue`, `EPS`, `Equity Shares`, `PAT Growth TTM/YoY/QoQ`, `ROE`, `ROCE`, valuation multiples, and the returns columns — keep them all; they feed the later steps. See `scan_api.md` for the full column glossary.
 
 ## Step 1 — Drop names that have already declared
 
-A "pre-results" thesis is void the moment a company reports. The freshest signal is `Last Result Date` from the scan row: if it equals today's date (or any date in the current results window the user cares about), the company has *already* declared — exclude it.
+A "pre-results" thesis is void the moment a company reports. The freshest signal is `Last Result Date` from the scan row: if it equals today's date (or any date in the current results window the user cares about), the company has _already_ declared — exclude it.
 
 Confirm via the documents API — a brand-new `Result` document dated to the quarter about to be reported means results are out:
 
@@ -56,6 +57,7 @@ python3 stock-api/python/fetchers/fetch_documents.py "<companyId>" \
 ```
 
 Decision rule:
+
 - If a `Transcript` OR `PPT` for the most recent reported quarter exists (one of them must be present) → **in scope**, fetch and analyse BOTH.
 - Neither transcript nor recent PPT (only a bare `Result` sheet) → **exclude**, with the reason recorded.
 
@@ -77,9 +79,9 @@ Convert to text (`pdftotext -layout`; OCR image-PPTs via `pdftoppm -r 150` + `te
 
 For each in-scope company, read the latest concall AND PPT and extract two things, in this order:
 
-**(a) The guidance itself** — revenue, margin (OPM/EBITDA), and PAT, as *verbatim quotes* with speaker and date. Capture FY guidance and any explicit next-quarter colour. Never paraphrase a number; quote it.
+**(a) The guidance itself** — revenue, margin (OPM/EBITDA), and PAT, as _verbatim quotes_ with speaker and date. Capture FY guidance and any explicit next-quarter colour. Never paraphrase a number; quote it.
 
-**(b) How credibly they can hit it** — assess tone/clarity/data-backedness, then **validate against hard evidence**: order-book/backlog coverage, capacity & utilisation headroom, historical run-rate/seasonality fit. A guided figure needing a >30% sequential jump needs a *specific* mechanism or it earns a red flag.
+**(b) How credibly they can hit it** — assess tone/clarity/data-backedness, then **validate against hard evidence**: order-book/backlog coverage, capacity & utilisation headroom, historical run-rate/seasonality fit. A guided figure needing a >30% sequential jump needs a _specific_ mechanism or it earns a red flag.
 
 If the latest concall/PPT alone can't settle the validation (guidance narrowing vs widening across calls, order book growing vs burning), **fetch the previous 2–4 concalls** and track guidance drift.
 
@@ -102,6 +104,7 @@ insights = parseScreenerInsights(resp)
 ```
 
 If `insights.authExpired` is true, halt per the Preflight rule — do **not** proceed on a degraded page. Otherwise use the insights table and ratios to **corroborate or challenge** the thesis you just built:
+
 - Positive insights (e.g., debt reduced, strong growth guidance) alongside your projected beat → independent support, raise conviction.
 - Negative insights (e.g., poor quarter expected, debt increased) against your projected beat → a **contradiction to resolve before ranking**, not to average away.
 - Governance overhangs → cap conviction regardless of the numbers.
@@ -117,7 +120,7 @@ For each in-scope company, look up its primary sector(s) against the event table
 
 Keeping this file current is a standing task: when researching a new quarter for the first time, add a `## Q_FY__` section to `quarterly_macro_context.md` following the existing format (event log with sourced citations + a sector-impact table per event), so future runs in the same quarter don't re-research it from scratch.
 
-**Sector playbooks (complementary, not a substitute).** In addition to the quarter-level macro file, check `skills/_shared/sector-playbooks/` for a sector-specific playbook matching each in-scope company's sector — e.g. `fmcg-consumer-care.md` for hair oil/soap/shampoo/oral-care names. Where `quarterly_macro_context.md` is the *quarter* lens (what happened this quarter, across all sectors), a sector playbook is the *sector* lens (how this sector's economics work, its RM basket and pass-through mechanics, its guidance-giving culture, its seasonality, its export exposure — reusable across quarters). Use both: the sector playbook tells you *how* to read a macro event for that sector (e.g. "this sector's RM basket is ~100% crude-linked with no natural hedge"), the quarter file tells you *what* actually happened this quarter (e.g. "crude averaged $110/bbl in Apr–May"). If no playbook exists yet for an in-scope company's sector, note the gap — building one is valuable enough to flag to the user, following the shape of `fmcg-consumer-care.md` (sector-level reusable framework + a company note per name analysed).
+**Sector playbooks (complementary, not a substitute).** In addition to the quarter-level macro file, check `skills/_shared/sector-playbooks/` for a sector-specific playbook matching each in-scope company's sector — e.g. `fmcg-consumer-care.md` for hair oil/soap/shampoo/oral-care names. Where `quarterly_macro_context.md` is the _quarter_ lens (what happened this quarter, across all sectors), a sector playbook is the _sector_ lens (how this sector's economics work, its RM basket and pass-through mechanics, its guidance-giving culture, its seasonality, its export exposure — reusable across quarters). Use both: the sector playbook tells you _how_ to read a macro event for that sector (e.g. "this sector's RM basket is ~100% crude-linked with no natural hedge"), the quarter file tells you _what_ actually happened this quarter (e.g. "crude averaged $110/bbl in Apr–May"). If no playbook exists yet for an in-scope company's sector, note the gap — building one is valuable enough to flag to the user, following the shape of `fmcg-consumer-care.md` (sector-level reusable framework + a company note per name analysed).
 
 ## Step 4 — Project next-quarter Revenue / OPM / PAT / EPS
 
@@ -129,13 +132,13 @@ Next-quarter estimate = FY guidance − YTD actual
 
 Carry ranges. Where there's no full-year figure, extrapolate from the recent quarterly run-rate adjusted for stated seasonality and any new-capacity ramp. Always compute Revenue (with implied YoY/sequential growth), OPM, PAT, and EPS (PAT ÷ equity shares). **Strip one-offs from the base quarter first.** Show the maths; tag each input `[guided]`/`[actual]`/`[estimate]`.
 
-**Model the two direct PAT levers explicitly** — they are usually where the PAT surprise actually comes from, and they're more bankable than a revenue guess: **(1) capex-live operating leverage** (incremental revenue on newly-commissioned capacity drops through at high incremental margin — a company can guide flat blended margin and still beat on PAT) and **(2) balance-sheet deleverage** (lower debt → lower interest → direct, near-arithmetic lift to PAT after tax). Put both in the bridge as named lines and net the capex interest/depreciation step-up against them, so the PAT beat is *attributable*. Method, formulae, and guardrails in `forward_estimation.md`.
+**Model the two direct PAT levers explicitly** — they are usually where the PAT surprise actually comes from, and they're more bankable than a revenue guess: **(1) capex-live operating leverage** (incremental revenue on newly-commissioned capacity drops through at high incremental margin — a company can guide flat blended margin and still beat on PAT) and **(2) balance-sheet deleverage** (lower debt → lower interest → direct, near-arithmetic lift to PAT after tax). Put both in the bridge as named lines and net the capex interest/depreciation step-up against them, so the PAT beat is _attributable_. Method, formulae, and guardrails in `forward_estimation.md`.
 
-This your-estimate is the input to the surprise in Step 5 — it is what you are comparing *against* the street and the guide.
+This your-estimate is the input to the surprise in Step 5 — it is what you are comparing _against_ the street and the guide.
 
 ## Step 5 — Score the surprise, two benchmarks
 
-A surprise needs a reference. Compute your Step-4 estimate against *both*:
+A surprise needs a reference. Compute your Step-4 estimate against _both_:
 
 **(a) Versus street/consensus.** Use research reports from top equity research firms (fetch these by searching the web) as a second opinion and to get street consensus estimates. `Surprise_street = (your estimate − street estimate) / street estimate`.
 
@@ -145,16 +148,18 @@ Report both, and **flag the divergence**: a name that beats street but not its o
 
 ## Step 6 — Valuation & expectations: is the beat already priced?
 
-A surprise only moves a stock to the extent it wasn't expected, and price *is* expectations. For each name read:
+A surprise only moves a stock to the extent it wasn't expected, and price _is_ expectations. For each name read:
+
 - **Research-report price targets and valuation models** from top equity research firms. Search the web for these reports. Note the upside/downside to target, and what growth the target implies.
 
-Translate into an *expectations* modifier on the surprise. Method in `valuation_and_expectations.md`.
+Translate into an _expectations_ modifier on the surprise. Method in `valuation_and_expectations.md`.
 
 ## Step 7 — Historical post-event drift: is the surprise tradeable?
 
 Knowing a beat is coming is worthless if the stock fades it. For each name, measure the forward return after its three information events:
+
 - **After the last result** — available directly as a scan column (`Returns after result` / equivalent).
-- **After the concall** and **after the transcript release** — *derived*: take the concall/transcript dates (recorded in Step 2) and the price history, and compute forward returns at +1D / +5D / +20D.
+- **After the concall** and **after the transcript release** — _derived_: take the concall/transcript dates (recorded in Step 2) and the price history, and compute forward returns at +1D / +5D / +20D.
 
 ```bash
 python3 stock-api/python/analyzers/post_event_returns.py "<companyId>" \
@@ -172,23 +177,23 @@ Combine the four legs into a composite surprise score for each name — directio
 
 Render an interactive HTML briefing using `assets/briefing_template.html`. The master table columns must include everything extracted and computed:
 
-| Column | Source |
-|---|---|
-| Rank, Company, companyId, Sector | scan |
-| MCap, CMP | scan |
-| FY guidance (verbatim signal) | concall / PPT (Step 3a) |
-| Tone / clarity read | concall / PPT (Step 3b) |
-| Validation: order book / capacity / business updates | concall + scan + announcements API (Step 3b) |
-| YTD (9M) actual Revenue / PAT | concall / PPT / Result |
-| **Est. next-Q Revenue / OPM / PAT / EPS** | Step 4 |
-| **Surprise vs street** | Step 5a (via web search for research reports) |
-| **Surprise vs guidance** | Step 5b |
-| Research report target upside | Step 6 |
-| Screener Insights matrix (agree / contradict) + key ratios | Step 3c |
-| Macro overlay (tailwind / headwind / non-factor, per event) | Step 3d — `quarterly_macro_context.md` |
-| Post-event drift (result / concall / transcript) | Step 7 |
-| **Composite surprise score + direction** | Step 8 rubric |
-| What could be wrong | per-name risk |
+| Column                                                      | Source                                        |
+| ----------------------------------------------------------- | --------------------------------------------- |
+| Rank, Company, companyId, Sector                            | scan                                          |
+| MCap, CMP                                                   | scan                                          |
+| FY guidance (verbatim signal)                               | concall / PPT (Step 3a)                       |
+| Tone / clarity read                                         | concall / PPT (Step 3b)                       |
+| Validation: order book / capacity / business updates        | concall + scan + announcements API (Step 3b)  |
+| YTD (9M) actual Revenue / PAT                               | concall / PPT / Result                        |
+| **Est. next-Q Revenue / OPM / PAT / EPS**                   | Step 4                                        |
+| **Surprise vs street**                                      | Step 5a (via web search for research reports) |
+| **Surprise vs guidance**                                    | Step 5b                                       |
+| Research report target upside                               | Step 6                                        |
+| Screener Insights matrix (agree / contradict) + key ratios  | Step 3c                                       |
+| Macro overlay (tailwind / headwind / non-factor, per event) | Step 3d — `quarterly_macro_context.md`        |
+| Post-event drift (result / concall / transcript)            | Step 7                                        |
+| **Composite surprise score + direction**                    | Step 8 rubric                                 |
+| What could be wrong                                         | per-name risk                                 |
 
 Below the master table, give a per-company deep-dive card (verbatim guidance quotes with speaker + date, the validation evidence, the next-quarter maths shown transparently, both surprises, the expectations and drift reads, and a "what could be wrong" block), then a cross-cutting risks section, an exclusions list split into **already-declared** and **no-concall/no-PPT**, and a result-day watchlist of the specific metrics to verify when each reports.
 

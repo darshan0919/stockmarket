@@ -25,7 +25,11 @@ const { HttpClient } = require('./http/HttpClient');
 const { NseSession } = require('./http/nseSession');
 const bseHttp = require('./http/bseHttp');
 const { StockscansAuth } = require('./auth/stockscansAuth');
-const { StockscansClient, STOCKSCANS_BASE_URL, S3_BASE_URL } = require('./clients/StockscansClient');
+const {
+  StockscansClient,
+  STOCKSCANS_BASE_URL,
+  S3_BASE_URL,
+} = require('./clients/StockscansClient');
 const { NseClient } = require('./clients/NseClient');
 const { BseClient, parseBseSmartSearchHtml } = require('./clients/BseClient');
 const { ScreenerAuth } = require('./auth/screenerAuth');

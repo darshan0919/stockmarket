@@ -244,9 +244,5 @@ const getOrderbookBaseline = async (symbol) => {
 };
 
 module.exports = {
-
-
-
-
   getOrderbookBaseline,
 };

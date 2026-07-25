@@ -10,11 +10,11 @@ email synthesis over their output. Do NOT re-fetch or re-compute anything.
 
 ## Parameters (optional)
 
-| Param | Default | Meaning |
-|---|---|---|
-| `date` | last trading day | market date (`--date YYYY-MM-DD`) for the scanner |
-| `email` | on | set off to build the briefing without sending |
-| `--top-n` | `50` | size of the gainers universe pulled by the scanner (`node "$SCAN" --top-n 100` for a one-off wider pull — no script needed) |
+| Param     | Default          | Meaning                                                                                                                     |
+| --------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `date`    | last trading day | market date (`--date YYYY-MM-DD`) for the scanner                                                                           |
+| `email`   | on               | set off to build the briefing without sending                                                                               |
+| `--top-n` | `50`             | size of the gainers universe pulled by the scanner (`node "$SCAN" --top-n 100` for a one-off wider pull — no script needed) |
 
 ## Setup
 
@@ -34,6 +34,7 @@ everything themselves: data root defaults to `<repo>/data/` and secrets to
 node "$SCAN"                          # add `--date YYYY-MM-DD` to override the market date
 node "$SCAN" --top-n 100              # one-off wider pull (default is 50)
 ```
+
 Writes `data/runs/gainers_raw_{YYYYMMDD}.json` (top-N gainers, quality
 filters, per-symbol NSE/BSE delivery, announcements, price-action signals, sector
 breadth). If it yields 0 gainers (holiday / API issue), send a "no signals today" email
@@ -44,6 +45,7 @@ and stop.
 ```bash
 node "$RUNTIME/lib/gainersClassifier.js"
 ```
+
 Reads the raw JSON and writes the classified signals into the events collection (`data/events-YYYY-MM.json`, type=`gainer`) via `lib/db.js`, plus the full DTO `data/runs/gainers_insights_{YYYYMMDD}.json` with
 `signals[]` — each has `primary_driver`, `conviction`, `in_email`, and a pre-built
 `evidence[]` (announcement subjects 📋 material / 📄 routine, delivery %, vol spike,
@@ -59,7 +61,7 @@ follow-up phrasing like "further to our intimation dated…"/"corrigendum"). Eac
 signal carries a `novelty` field (`null` = no history to compare against, i.e.
 unassessed — NOT the same as "repeat"; otherwise `{assessed, total, newCount,
 followUpCount, matches}`). **Light touch, by design:** conviction is downgraded one
-notch (HIGH → MEDIUM) only when the driver is `FUNDAMENTAL` AND *every* material
+notch (HIGH → MEDIUM) only when the driver is `FUNDAMENTAL` AND _every_ material
 announcement reads as a reiteration of prior disclosure — a mix of new + repeat, or a
 HIGH that also independently rests on delivery/price action, is left alone. This
 nudges stale "news" down; it does not dominate the read.
@@ -95,6 +97,7 @@ Send by writing the HTML to a temp file and using the shared mailer. `emailServi
 reads `GOOGLE_APP_PASSWORD` from `process.env` but does **not** load `.env` itself —
 you must call the repo's `loadEnv()` first or the send always reports
 `skipped: GOOGLE_APP_PASSWORD not set` even though the key is present in `.env`:
+
 ```bash
 SCAN=$(find /sessions -path '*packages/jobs-runtime/gainersScanner.js' -not -path '*/node_modules/*' 2>/dev/null | head -1)
 RUNTIME=$(dirname "$SCAN")
@@ -102,13 +105,14 @@ MAILER=$(find /sessions -path '*cloud-utils/src/emailService.js' 2>/dev/null | h
 node -e "require('$RUNTIME/lib/env').loadEnv();const{sendHtmlEmail}=require('$MAILER');const fs=require('fs');sendHtmlEmail({subject:process.argv[1],htmlBody:fs.readFileSync(process.argv[2],'utf8')}).then(r=>console.log(JSON.stringify(r)))" \
   "Daily Gainers Signal — $MARKET_DATE" /tmp/gainers_email.html
 ```
+
 If email status is `skipped`/`error`, print a warning but do not fail.
 
 ## Step 3.5 — Top-3 conviction briefing reports (MANDATORY, your judgment)
 
 Every run, write one analyst briefing report per company for the **top 3 signals by
 conviction** (`HIGH` > `MEDIUM` > `LOW`, tie-broken by `|return_1d|` desc, `in_email`
-signals only) — this is what feeds better novelty checks and context on the *next*
+signals only) — this is what feeds better novelty checks and context on the _next_
 run for these companies, not just today's email.
 
 1. Read `data/runs/gainers_top3_context_{YYYYMMDD}.json` (written by Step 2) — it
@@ -154,10 +158,12 @@ run for these companies, not just today's email.
 ```bash
 node "$RUNTIME/scripts/data.js" push
 ```
+
 Idempotent push of everything under `data/` to Google Drive (`StockMarket/data/v2`).
 Push-only: local files are KEPT (full mirror), nothing is deleted. The skill is NOT complete until this has run. Generated data belongs ONLY under `data/`; if the sync fails, report it and retry later.
 
 ## Rules
+
 - **Files-touched manifest (docs/DATA_RULES.md §7):** end the run by listing every file created/modified — collections with record counts (db.js helper stats / `db.touchedFiles()`), plus `runs/`/`cache/`/`assets/` files (`StorageService.touchedFiles()`), plus the `data:push` `↑ <file>` lines. A run that stored data without reporting what it touched is incomplete.
 
 - Do NOT re-fetch or re-compute — both scripts did that.

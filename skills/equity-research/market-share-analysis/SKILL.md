@@ -5,7 +5,7 @@ description: Institutional-grade 9-part market share analysis for an Indian or g
 
 # Market Share Analysis
 
-Industry-level competitive structure analysis. The output answers: *who has what share, why they have it, whether it's durable, and what could change it in the next 3-5 years* — defensible to a sell-side review committee, with every number sourced and every estimate flagged.
+Industry-level competitive structure analysis. The output answers: _who has what share, why they have it, whether it's durable, and what could change it in the next 3-5 years_ — defensible to a sell-side review committee, with every number sourced and every estimate flagged.
 
 The deliverable is an interactive HTML widget with sortable tables and a confidence badge driven by the [R/D/E] mix from Part 0.
 
@@ -27,6 +27,7 @@ The deliverable is an interactive HTML widget with sortable tables and a confide
 ## Conventions
 
 Follow [`_shared/conventions.md`](../_shared/conventions.md). Especially:
+
 - Citation discipline — every market share number, every TAM figure, every capacity number needs a source tag with pull date
 - FY26 = April 2025–March 2026
 - `Rs Cr` for Indian context, `USD Bn` for global; never mix currencies in one table without normalisation
@@ -35,9 +36,11 @@ Follow [`_shared/conventions.md`](../_shared/conventions.md). Especially:
 ## Required input
 
 **Mandatory:**
+
 - `INDUSTRY` — e.g., "Indian Stainless Steel Tubes & Pipes", "Indian AMC", "Global Lithography Equipment"
 
 **Strongly recommended (defaults below if omitted):**
+
 - `GEOGRAPHY` — default: `India` (most user requests). Other valid: `Global`, `India ex-captive`, specific state.
 - `DEFINITION SCOPE` — what's in / out (sub-segments). If omitted, the skill must propose a scope in Part 0 and ask for confirmation before proceeding.
 - `CURRENCY & UNIT` — default: `Rs Cr` for India, `USD Bn` for global.
@@ -106,18 +109,18 @@ Run [`references/framework_9parts.md`](references/framework_9parts.md) §Part 0:
 
 Follow the full framework in [`references/framework_9parts.md`](references/framework_9parts.md). Summary of what each part must produce:
 
-| Part | What it produces | Key deliverable |
-|---|---|---|
-| 0 | Data verification block | Visible top-of-report panel with [R/D/E] mix + confidence rating |
-| 1 | Industry definition & sizing | Boundary paragraph, TAM/SAM/SOM, historical growth table, sub-segment split |
-| 2 | Market structure | CR3 / CR5 / CR10 / HHI with badge + tier table + organized vs unorganized |
-| 3 | Player-by-player share table | THE centrepiece — rank, player, listed/unlisted, latest revenue, share latest, share T-5, Δ bps, source tag |
-| 4 | Share dynamics (the why) | Top 5 gainers + top 3 losers, each diagnosed (what they did right/wrong, structural vs cyclical, next 3 years) |
-| 5 | Competitive moat mapping | Porter + Greenwald 4-dimension 1-5 scoring per Tier-1 player, with evidence column |
-| 6 | Supply-demand & pricing | Installed capacity, utilisation, capex pipeline, realisation trends, spread vs key input, import parity |
-| 7 | Disruption & threat map | 6-category threat matrix with probability × impact × early-warning signal |
-| 8 | Forward Bear/Base/Bull projection | Share by player at end of forward horizon, 2-3 assumptions per scenario, flag >500 bps Bear-Bull spread |
-| 9 | Data quality disclosure | Confidence rating, 3 biggest data gaps, sources with pull dates |
+| Part | What it produces                  | Key deliverable                                                                                                |
+| ---- | --------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 0    | Data verification block           | Visible top-of-report panel with [R/D/E] mix + confidence rating                                               |
+| 1    | Industry definition & sizing      | Boundary paragraph, TAM/SAM/SOM, historical growth table, sub-segment split                                    |
+| 2    | Market structure                  | CR3 / CR5 / CR10 / HHI with badge + tier table + organized vs unorganized                                      |
+| 3    | Player-by-player share table      | THE centrepiece — rank, player, listed/unlisted, latest revenue, share latest, share T-5, Δ bps, source tag    |
+| 4    | Share dynamics (the why)          | Top 5 gainers + top 3 losers, each diagnosed (what they did right/wrong, structural vs cyclical, next 3 years) |
+| 5    | Competitive moat mapping          | Porter + Greenwald 4-dimension 1-5 scoring per Tier-1 player, with evidence column                             |
+| 6    | Supply-demand & pricing           | Installed capacity, utilisation, capex pipeline, realisation trends, spread vs key input, import parity        |
+| 7    | Disruption & threat map           | 6-category threat matrix with probability × impact × early-warning signal                                      |
+| 8    | Forward Bear/Base/Bull projection | Share by player at end of forward horizon, 2-3 assumptions per scenario, flag >500 bps Bear-Bull spread        |
+| 9    | Data quality disclosure           | Confidence rating, 3 biggest data gaps, sources with pull dates                                                |
 
 **Compute concentration metrics with the helper script:**
 

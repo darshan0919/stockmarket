@@ -39,14 +39,14 @@ User clicks button
 
 ### Message Types
 
-| Type | From | To | Payload |
-|---|---|---|---|
-| `START_ANALYSIS` | content.js | background.js | `{ symbol }` |
-| `BEGIN_ANALYSIS` | background.js | sidepanel.js | `{ symbol }` |
-| `RELAY_TO_CONTENT` | sidepanel.js | background.js | `{ inner: {...} }` |
-| `FETCH_DOCS_LIST` | (via relay) | content.js | none |
-| `GET_FINANCIALS` | (via relay) | content.js | none |
-| `FETCH_NOTES` | (via relay) | content.js | `{ symbol, ssUrl }` |
+| Type               | From          | To            | Payload             |
+| ------------------ | ------------- | ------------- | ------------------- |
+| `START_ANALYSIS`   | content.js    | background.js | `{ symbol }`        |
+| `BEGIN_ANALYSIS`   | background.js | sidepanel.js  | `{ symbol }`        |
+| `RELAY_TO_CONTENT` | sidepanel.js  | background.js | `{ inner: {...} }`  |
+| `FETCH_DOCS_LIST`  | (via relay)   | content.js    | none                |
+| `GET_FINANCIALS`   | (via relay)   | content.js    | none                |
+| `FETCH_NOTES`      | (via relay)   | content.js    | `{ symbol, ssUrl }` |
 
 ## Pipeline Steps
 
@@ -61,6 +61,7 @@ User clicks button
 ### Step 2: Download PDFs and Notes
 
 For each quarter:
+
 1. **Transcript PDF** (primary narrative source): fetched from S3 as base64
 2. **Result PDF** (financial data): fetched from S3 as base64
 3. **PPT** (fallback if no transcript): fetched from S3 as base64
@@ -71,6 +72,7 @@ Also fetches **DOM financial tables** by scraping `<table>` elements on the page
 ### Step 3: Extract Claims and Financials
 
 For each quarter, calls Claude with:
+
 - **Inputs**: PDF documents (base64), analyst notes (text), DOM table data (text)
 - **System prompt**: Senior equity analyst role
 - **Expected output**: JSON with two keys:
@@ -82,25 +84,27 @@ Token limit: 4096 tokens per call. Uses retry logic (1 retry on failure).
 ### Step 4: Score Quarters
 
 Processes quarters chronologically (oldest to newest). For each consecutive pair:
+
 - **Prior quarter claims** compared against **current quarter actuals**
 - Claude produces scores and evidence:
 
-| Field | Type | Range | Description |
-|---|---|---|---|
-| `execution_score` | number | 0–100 | Did guidance match actuals? |
-| `language_score` | number | 0–100 | Clarity and specificity of language |
-| `consistency_score` | number | 0–100 | Narrative stability across quarters |
-| `wtt_score` | number | 0–100 | Weighted: `exec×0.5 + lang×0.3 + cons×0.2` |
-| `delivered` | string[] | — | Specific promises that were kept |
-| `missed` | string[] | — | Specific promises that were broken |
-| `red_flags` | string[] | — | Concerning language patterns |
-| `verdict` | string | — | One-sentence assessment |
+| Field               | Type     | Range | Description                                |
+| ------------------- | -------- | ----- | ------------------------------------------ |
+| `execution_score`   | number   | 0–100 | Did guidance match actuals?                |
+| `language_score`    | number   | 0–100 | Clarity and specificity of language        |
+| `consistency_score` | number   | 0–100 | Narrative stability across quarters        |
+| `wtt_score`         | number   | 0–100 | Weighted: `exec×0.5 + lang×0.3 + cons×0.2` |
+| `delivered`         | string[] | —     | Specific promises that were kept           |
+| `missed`            | string[] | —     | Specific promises that were broken         |
+| `red_flags`         | string[] | —     | Concerning language patterns               |
+| `verdict`           | string   | —     | One-sentence assessment                    |
 
 **Score normalisation**: After parsing, the extension coerces all score fields to numbers and recomputes `wtt_score` client-side to prevent Claude arithmetic errors.
 
 ### Step 5: Overall Verdict
 
 Synthesises all quarter scores into a final assessment:
+
 - `overall_score` (0–100)
 - `trend`: improving | declining | stable | volatile
 - `credibility_rating`: High | Medium | Low | Very Low
@@ -112,21 +116,22 @@ Synthesises all quarter scores into a final assessment:
 
 ### Configuration
 
-| Parameter | Value |
-|---|---|
-| Model | `claude-sonnet-4-20250514` |
-| Default max_tokens | 4096 |
-| Request timeout | 120 seconds |
-| Max retries | 1 (with 1s backoff) |
-| API version | `2023-06-01` |
-| Beta header | `anthropic-beta: pdfs-2024-09-25` (required for PDF document input) |
-| Browser access | `anthropic-dangerous-direct-browser-access: true` |
+| Parameter          | Value                                                               |
+| ------------------ | ------------------------------------------------------------------- |
+| Model              | `claude-sonnet-4-20250514`                                          |
+| Default max_tokens | 4096                                                                |
+| Request timeout    | 120 seconds                                                         |
+| Max retries        | 1 (with 1s backoff)                                                 |
+| API version        | `2023-06-01`                                                        |
+| Beta header        | `anthropic-beta: pdfs-2024-09-25` (required for PDF document input) |
+| Browser access     | `anthropic-dangerous-direct-browser-access: true`                   |
 
 ### JSON Extraction
 
 Claude responses are parsed using a multi-strategy approach (`extractJSON`):
+
 1. Direct `JSON.parse` on the raw response
-2. Extract content from markdown code fences (`` ```json ... ``` ``)
+2. Extract content from markdown code fences (` ```json ... ``` `)
 3. Brace-matching: find the outermost `{ ... }` or `[ ... ]` using a character-level parser that handles strings and escapes
 
 This makes the pipeline resilient to preamble text, markdown formatting, and other non-JSON content that Claude may include.
@@ -144,20 +149,21 @@ This makes the pipeline resilient to preamble text, markdown formatting, and oth
 
 ### Stockscans API (same-origin, via content script)
 
-| Endpoint | Method | Returns |
-|---|---|---|
-| `/api/company/documents/{symbol}` | GET | Document list (type, date, ssUrl, hasNotes) |
-| `/api/company/concall-notes/{symbol}/{ssUrl}` | GET | Structured analyst notes |
+| Endpoint                                      | Method | Returns                                     |
+| --------------------------------------------- | ------ | ------------------------------------------- |
+| `/api/company/documents/{symbol}`             | GET    | Document list (type, date, ssUrl, hasNotes) |
+| `/api/company/concall-notes/{symbol}/{ssUrl}` | GET    | Structured analyst notes                    |
 
 ### S3 (direct fetch from side panel)
 
-| URL Pattern | Content |
-|---|---|
+| URL Pattern                                                          | Content       |
+| -------------------------------------------------------------------- | ------------- |
 | `stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/{ssUrl}` | Earnings PDFs |
 
 ### DOM Scraping (content script)
 
 Financial tables are identified by:
+
 - Having quarterly column headers matching `Q[1-4]FY\d{2}`
 - Row labels containing keywords like "revenue", "equity", "operating cash"
 - Classified as: `income_stmt`, `balance_sheet`, or `cashflow`
@@ -165,6 +171,7 @@ Financial tables are identified by:
 ## Report Generation
 
 The downloaded HTML report is a standalone, self-contained file with:
+
 - Embedded Google Fonts (Syne, DM Sans, JetBrains Mono)
 - Dark theme matching the extension's aesthetic
 - Overall score hero section with credibility rating and trend
@@ -176,6 +183,7 @@ The downloaded HTML report is a standalone, self-contained file with:
 ## SPA Navigation Handling
 
 stockscans.in is a single-page application. The extension detects navigation via:
+
 1. **MutationObserver** on `document.documentElement` — catches DOM changes from client-side routing
 2. **History API patching** — wraps `pushState` and `replaceState` to detect programmatic navigations
 3. **popstate listener** — catches browser back/forward

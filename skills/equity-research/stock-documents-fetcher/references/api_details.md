@@ -9,6 +9,7 @@ Reference doc for the two endpoints used by this skill. Read this if you're exte
 where `{ticker}` is URL-encoded (`NSE:BSE` → `NSE%3ABSE`).
 
 **Required headers**:
+
 - `accept: application/json`
 - `content-type: application/json`
 - `cookie: authtoken=<JWT>` — the JWT lives in the `authtoken` cookie on stockscans.in
@@ -38,12 +39,12 @@ where `{ticker}` is URL-encoded (`NSE:BSE` → `NSE%3ABSE`).
 
 ### Field semantics
 
-| Field | Meaning |
-|---|---|
-| `date` | `"YYYY"` for `Annual Report`; `"YYYYMM"` for `PPT`, `Result`, `Transcript`. The YYYYMM month is the **quarter-end month** for results-oriented docs (e.g. `202509` = quarter ending Sep-2025 = Q2 FY26 in Indian fiscal calendar). |
-| `documentType` | One of: `"Annual Report"`, `"PPT"` (investor presentation), `"Result"` (financial result), `"Transcript"` (earnings call transcript). |
-| `ssUrl` | The S3 object key (just the filename, no path). Build the full URL by prefixing `https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/`. |
-| `hasNotes` | Whether Stockscans has enriched/annotated notes for this document. Useful for picking transcripts. |
+| Field          | Meaning                                                                                                                                                                                                                            |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `date`         | `"YYYY"` for `Annual Report`; `"YYYYMM"` for `PPT`, `Result`, `Transcript`. The YYYYMM month is the **quarter-end month** for results-oriented docs (e.g. `202509` = quarter ending Sep-2025 = Q2 FY26 in Indian fiscal calendar). |
+| `documentType` | One of: `"Annual Report"`, `"PPT"` (investor presentation), `"Result"` (financial result), `"Transcript"` (earnings call transcript).                                                                                              |
+| `ssUrl`        | The S3 object key (just the filename, no path). Build the full URL by prefixing `https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/`.                                                                             |
+| `hasNotes`     | Whether Stockscans has enriched/annotated notes for this document. Useful for picking transcripts.                                                                                                                                 |
 
 ### Confirmed document types
 
@@ -59,13 +60,15 @@ Returns `200 OK` with `{"companyId": "NSE:WHATEVER", "documents": []}`. No 404. 
 **URL**: `https://www.stockscans.in/api/company/announcements`
 
 **Body**:
+
 ```json
-{"companyIds": ["NSE:BSE"], "offset": 0}
+{ "companyIds": ["NSE:BSE"], "offset": 0 }
 ```
 
 `companyIds` is plural — the API supports multi-company queries, but the script keeps it single-ticker for simplicity. `offset` paginates in steps of 30.
 
 **Required headers**: same as documents endpoint, plus:
+
 - `origin: https://www.stockscans.in`
 
 ### Response
@@ -100,7 +103,7 @@ Returns `200 OK` with `{"companyId": "NSE:WHATEVER", "documents": []}`. No 404. 
 The `authtoken` is a HS256 JWT with payload:
 
 ```json
-{"exp": 1779196263, "userId": "648edf896e634b92b651f597"}
+{ "exp": 1779196263, "userId": "648edf896e634b92b651f597" }
 ```
 
 `exp` is a Unix timestamp in seconds. The skill decodes this without verification — we don't have the signing key, but the server enforces it on every request, so the scripts only use the local decode for friendly expiry warnings.
@@ -110,6 +113,7 @@ Tokens are issued with multi-week lifetimes. When one expires, the user must log
 ## 4. The S3 CDN
 
 PDFs are served publicly (no auth) from:
+
 ```
 https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/<ssUrl>
 ```

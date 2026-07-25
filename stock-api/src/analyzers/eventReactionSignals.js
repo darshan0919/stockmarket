@@ -33,9 +33,19 @@
  */
 const CATEGORY_PATTERNS = {
   result: [/financial results?/i, /outcome of board meeting/i, /board meeting outcome/i],
-  concall: [/analysts?\/institutional investor meet/i, /con\.?\s*call/i, /investor presentation/i, /earnings conference call/i],
+  concall: [
+    /analysts?\/institutional investor meet/i,
+    /con\.?\s*call/i,
+    /investor presentation/i,
+    /earnings conference call/i,
+  ],
   order: [/award(ing)? of order/i, /order\s*\/?\s*contract/i, /receipt of order/i, /bags? order/i],
-  monthly_update: [/monthly business update/i, /business update/i, /sales update/i, /monthly (sales|production) update/i],
+  monthly_update: [
+    /monthly business update/i,
+    /business update/i,
+    /sales update/i,
+    /monthly (sales|production) update/i,
+  ],
 };
 
 /**
@@ -55,7 +65,18 @@ function classifyEventText(text) {
 // ── Timestamp parsing ───────────────────────────────────────────────────────
 
 const MONTHS = {
-  jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11,
+  jan: 0,
+  feb: 1,
+  mar: 2,
+  apr: 3,
+  may: 4,
+  jun: 5,
+  jul: 6,
+  aug: 7,
+  sep: 8,
+  oct: 9,
+  nov: 10,
+  dec: 11,
 };
 
 /**
@@ -65,7 +86,9 @@ const MONTHS = {
  * @returns {string|null} ISO 8601, e.g. "2026-07-10T11:47:46+05:30"
  */
 function parseNseTimestamp(s) {
-  const m = /^(\d{2})-([A-Za-z]{3})-(\d{4})\s+(\d{2}):(\d{2}):(\d{2})$/.exec(String(s || '').trim());
+  const m = /^(\d{2})-([A-Za-z]{3})-(\d{4})\s+(\d{2}):(\d{2}):(\d{2})$/.exec(
+    String(s || '').trim()
+  );
   if (!m) return null;
   const [, dd, mon, yyyy, hh, mi, ss] = m;
   const month = MONTHS[mon.toLowerCase()];
@@ -187,7 +210,14 @@ function normalizeOhlcv(rawPrices) {
     const raw = /T\d{2}:\d{2}:\d{2}/.test(row[0]) ? row[0] : `${row[0]}T00:00:00`;
     const t = Date.parse(raw.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(raw) ? raw : `${raw}+05:30`);
     if (!Number.isFinite(t)) continue;
-    out.push({ t, open: Number(row[1]), high: Number(row[2]), low: Number(row[3]), close: Number(row[4]), volume: Number(row[5] ?? 0) });
+    out.push({
+      t,
+      open: Number(row[1]),
+      high: Number(row[2]),
+      low: Number(row[3]),
+      close: Number(row[4]),
+      volume: Number(row[5] ?? 0),
+    });
   }
   out.sort((a, b) => a.t - b.t);
   return out;
@@ -203,7 +233,8 @@ function candleIndexAtOrAfter(candles, t) {
 function candleIndexAtOrBefore(candles, t) {
   let idx = -1;
   for (let i = 0; i < candles.length; i++) {
-    if (candles[i].t <= t) idx = i; else break;
+    if (candles[i].t <= t) idx = i;
+    else break;
   }
   return idx;
 }
@@ -233,7 +264,15 @@ function candleIndexAtOrBefore(candles, t) {
  * }}
  */
 function computeReactionMetrics(candles, eventTimestamp) {
-  const empty = (note) => ({ anchor: null, sinceResult: null, oneHour: null, oneDay: null, oneWeek: null, oneMonth: null, note });
+  const empty = (note) => ({
+    anchor: null,
+    sinceResult: null,
+    oneHour: null,
+    oneDay: null,
+    oneWeek: null,
+    oneMonth: null,
+    note,
+  });
   const eventT = Date.parse(eventTimestamp);
   if (!Number.isFinite(eventT) || !candles.length) {
     return empty('no event timestamp or no candles');
@@ -268,7 +307,8 @@ function computeReactionMetrics(candles, eventTimestamp) {
 
   const sinceResult = anchorPrice > 0 ? lastCandle.close / anchorPrice - 1 : null;
   const values = {};
-  for (const [key, offsetMs] of Object.entries(WINDOWS)) values[key] = returnAt(anchor.t + offsetMs);
+  for (const [key, offsetMs] of Object.entries(WINDOWS))
+    values[key] = returnAt(anchor.t + offsetMs);
 
   const pending = [];
   const missingHistory = [];
@@ -280,7 +320,10 @@ function computeReactionMetrics(candles, eventTimestamp) {
 
   const notes = [];
   if (pending.length) notes.push(`window not yet elapsed: ${pending.join(', ')}`);
-  if (missingHistory.length) notes.push(`insufficient candle history (need to page further back/forward with 'before'): ${missingHistory.join(', ')}`);
+  if (missingHistory.length)
+    notes.push(
+      `insufficient candle history (need to page further back/forward with 'before'): ${missingHistory.join(', ')}`
+    );
 
   return {
     anchor: { t: anchor.t, iso: new Date(anchor.t).toISOString(), open: anchorPrice },
@@ -301,7 +344,7 @@ function computeReactionMetrics(candles, eventTimestamp) {
  * applies whether the move is up or down, since a >4% single-day drop after
  * a result is just as much a "signal" as a >4% pop.
  */
-const SIGNAL_THRESHOLDS = { oneDay: 0.04, oneWeek: 0.06, oneMonth: 0.10 };
+const SIGNAL_THRESHOLDS = { oneDay: 0.04, oneWeek: 0.06, oneMonth: 0.1 };
 
 /**
  * Classify a computeReactionMetrics() result against the signal thresholds.

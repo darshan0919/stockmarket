@@ -5,7 +5,6 @@
 3. Google drive is used as database.
 4. All skills are stored in github & orchestrated via a single registry skill
 
-
 # 📈 Stock Market AI Ecosystem
 
 A comprehensive, **platform-agnostic AI ecosystem** built for advanced stock research, screening, and tracking. What started as a local-first stock screener has evolved into an ultimate system to simplify and automate the investing journey.
@@ -24,6 +23,7 @@ By wrapping around and enhancing existing third-party APIs (NSE, BSE, Stockscans
 ## 🚀 Achievements & Roadmap
 
 ### What We've Achieved So Far
+
 - **Comprehensive Screener**: Fast, auto-complete search across 500+ stocks with 15+ fundamental and technical filters.
 - **Technical & Fundamental Workbenches**: 5-year interactive price charts, SMA overlays, RSI, MACD, and 4-quarter P&L/Balance Sheets.
 - **Automated Data Pipelines**: Cron-scheduled jobs that offload and sync data autonomously.
@@ -31,6 +31,7 @@ By wrapping around and enhancing existing third-party APIs (NSE, BSE, Stockscans
 - **Corporate Announcements Scanner**: Dedicated workflows to scan and analyze corporate documents and track top gainers live.
 
 ### What to Expect Next
+
 - **Advanced Signal Generation**: Transforming raw notes and learned patterns into automated trading/investing signals.
 - **Broader Market Coverage**: Expanding to the broader NSE 500 and beyond.
 - **Real-time Event Streaming**: Upgrading to WebSocket-based live price feeds and alerts.
@@ -56,12 +57,14 @@ By wrapping around and enhancing existing third-party APIs (NSE, BSE, Stockscans
 ## Tech Stack
 
 ### Backend
+
 - **Node.js** + **Express.js** - REST API
 - **MongoDB** + **Mongoose** - Database
 - **Axios** - External API calls
 - **Joi** - Input validation
 
 ### Frontend
+
 - **Next.js 14** - React framework
 - **React 18** - UI library
 - **Tailwind CSS** - Styling
@@ -167,44 +170,52 @@ yarn workspace stock-screener-frontend dev
 ### Accessing the Application
 
 Open your browser and go to:
+
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:5000/api
 
 ## API Endpoints
 
 ### Stock APIs
+
 - `GET /api/stocks/search?q={query}` - Search stocks
 - `GET /api/stocks/:symbol` - Get stock details
 - `GET /api/stocks/:symbol/technicals` - Get technical indicators
 - `GET /api/stocks/:symbol/financials` - Get financial statements
 
 ### Screener API
+
 - `POST /api/screener/run` - Run stock screener with filters
 
 ### Watchlist APIs
+
 - `GET /api/watchlist` - Get all watchlist items
 - `POST /api/watchlist/:symbol` - Add stock to watchlist
 - `DELETE /api/watchlist/:symbol` - Remove from watchlist
 
 ### Market APIs
+
 - `GET /api/market/indices` - Get market indices data
 - `GET /api/market/stats` - Get market statistics
 
 ## Usage Guide
 
 ### Dashboard
+
 - Search for stocks using the search bar
 - View market snapshot (Nifty 50, Sensex, sector performance)
 - Quick access to watchlist summary
 - Launch pre-built screeners
 
 ### Screener
+
 - Apply filters: Market Cap, P/E, P/B, ROE, ROCE, Debt/Equity, etc.
 - Click "Run Screener" to see results
 - Click on any stock row to view details
 - Export results to CSV
 
 ### Stock Details
+
 - **Overview**: Company information and key metrics
 - **Fundamentals**: All financial ratios and metrics
 - **Financials**: P&L and Balance Sheet for 4 quarters
@@ -212,12 +223,14 @@ Open your browser and go to:
 - **Technicals**: RSI, MACD, and moving averages
 
 ### Watchlist
+
 - Add stocks from screener or stock details page
 - View real-time prices and changes
 - Remove stocks with one click
 - **Insights**: AI-powered insight validation and summaries for watched stocks
 
 ### Corporate Announcements & Scans
+
 - Scan through official corporate announcements
 - Live tracking of Top Gainers
 - Dedicated dashboards for detailed document analysis
@@ -227,6 +240,7 @@ Open your browser and go to:
 ### Initial Data Population
 
 The `scripts/fetchData.js` script seeds the database with 20 sample Indian stocks and generates:
+
 - 5 years of daily price history
 - Latest fundamental metrics
 - 4 quarters of financial statements
@@ -289,6 +303,7 @@ crontab -e
 ## Sample Stocks Included
 
 The application comes pre-seeded with 20 major Indian stocks:
+
 - RELIANCE, TCS, HDFCBANK, INFY, ICICIBANK
 - HINDUNILVR, ITC, SBIN, BHARTIARTL, KOTAKBANK
 - LT, AXISBANK, WIPRO, ASIANPAINT, MARUTI
@@ -297,6 +312,7 @@ The application comes pre-seeded with 20 major Indian stocks:
 ## Features in Detail
 
 ### Screener Filters
+
 - Market Cap (Min/Max)
 - Sectors (Multi-select)
 - P/E Ratio (Min/Max)
@@ -310,6 +326,7 @@ The application comes pre-seeded with 20 major Indian stocks:
 - Current Ratio (Min)
 
 ### Pre-built Screeners
+
 1. **Value Stocks**: P/E ≤ 15, P/B ≤ 3, ROE ≥ 15%
 2. **Growth Stocks**: Revenue Growth ≥ 15%, Profit Growth ≥ 15%
 3. **Dividend Stocks**: Dividend Yield ≥ 2%, P/E ≤ 20
@@ -319,17 +336,21 @@ The application comes pre-seeded with 20 major Indian stocks:
 ## Troubleshooting
 
 ### MongoDB Connection Error
+
 - Ensure MongoDB is running: `mongod` or `brew services start mongodb-community`
 - Check MONGO_URL in backend/.env
 
 ### Port Already in Use
+
 - Backend (5000): Change PORT in backend/.env
 - Frontend (3000): Use `yarn workspace stock-screener-frontend dev -- -p 3001`
 
 ### No Data in Application
+
 - Run the seed script: `node backend/scripts/fetchData.js`
 
 ### API Errors
+
 - Check backend server is running on port 5000
 - Verify NEXT_PUBLIC_API_URL in frontend/.env.local
 
@@ -339,7 +360,6 @@ The application comes pre-seeded with 20 major Indian stocks:
 - Screener queries execute in < 3 seconds
 - Price charts sample data for optimal rendering
 - Watchlist refreshes every 5 minutes
-
 
 ## License
 

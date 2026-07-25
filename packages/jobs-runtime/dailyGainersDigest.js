@@ -31,6 +31,7 @@ async function runScan(payload, authToken) {
   let offset = 0;
   const limit = 50;
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     payload.offset = offset;
     const res = await fetch('https://www.stockscans.in/api/company/scans/run', {
@@ -53,10 +54,27 @@ async function runScan(payload, authToken) {
   return { header, rows: allRows };
 }
 
-function tableHtml(title, counts, streakMap) {
+function scanSourceHtml(scan) {
+  const url = `https://www.stockscans.in/scans/saved/${scan.scanId}`;
+  const filterText = (scan.filters || [])
+    .map((f) => `${f.left} ${f.sign} ${f.right}`)
+    .join(' &nbsp;·&nbsp; ');
+  return `Source: <a href="${url}" style="color:#1a237e;text-decoration:none;font-weight:bold">${scan.scanName}</a> &nbsp;|&nbsp; ${filterText}`;
+}
+
+function makeLink(name, type) {
+  const encoded = encodeURIComponent(name || '');
+  const url =
+    type === 'industry'
+      ? `https://www.stockscans.in/scans/new?industry=${encoded}&filters=`
+      : `https://www.stockscans.in/scans/new?sector=${encoded}&filters=`;
+  return `<a href="${url}" style="color:#1a237e;text-decoration:none">${name || 'Unknown'}</a>`;
+}
+
+function tableHtml(title, counts, streakMap, type) {
   const rows = counts.map(
     (c) =>
-      `<tr><td style="border-bottom:1px solid #eee">${c.name || 'Unknown'}</td><td style="border-bottom:1px solid #eee;text-align:right">${c.count}</td><td style="border-bottom:1px solid #eee;text-align:right">${streakMap[c.name] || 1}</td></tr>`
+      `<tr><td style="border-bottom:1px solid #eee">${makeLink(c.name, type)}</td><td style="border-bottom:1px solid #eee;text-align:right">${c.count}</td><td style="border-bottom:1px solid #eee;text-align:right">${streakMap[c.name] || 1}</td></tr>`
   );
   return `
   <h3 style="margin:24px 0 6px;font-family:Arial,sans-serif;color:#1a237e">${title}</h3>
@@ -125,13 +143,24 @@ async function main() {
     cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
   }
 
+  const sortCounts = (countsMap) => {
+    return Object.entries(countsMap)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  };
+
+  const industryAll = sortCounts(industryCounts);
+  const sectorAll = sortCounts(sectorCounts);
+  const top5Industries = industryAll.slice(0, 5).map((x) => x.name);
+  const top5Sectors = sectorAll.slice(0, 5).map((x) => x.name);
+
   if (cache.lastRunDate !== isoDate) {
     const newIndStreaks = {};
     const newSecStreaks = {};
-    for (const ind of Object.keys(industryCounts)) {
+    for (const ind of top5Industries) {
       newIndStreaks[ind] = (cache.industryStreaks[ind] || 0) + 1;
     }
-    for (const sec of Object.keys(sectorCounts)) {
+    for (const sec of top5Sectors) {
       newSecStreaks[sec] = (cache.sectorStreaks[sec] || 0) + 1;
     }
     cache.industryStreaks = newIndStreaks;
@@ -141,21 +170,14 @@ async function main() {
     fs.writeFileSync(cacheFile, JSON.stringify(cache, null, 2));
   }
 
-  const sortCounts = (countsMap, streakMap) => {
-    return Object.entries(countsMap)
-      .map(([name, count]) => ({ name, count, streak: streakMap[name] || 1 }))
-      .sort((a, b) => b.count - a.count || b.streak - a.streak);
-  };
-
-  const industrySorted = sortCounts(industryCounts, cache.industryStreaks);
-  const sectorSorted = sortCounts(sectorCounts, cache.sectorStreaks);
+  const industrySorted = industryAll.slice(0, 5);
+  const sectorSorted = sectorAll.slice(0, 5);
 
   const htmlBody = `
 <div style="max-width:860px">
-  <h2 style="font-family:Arial;color:#0d1333;margin:0">Daily Gainers Digest — ${dateLabel}</h2>
-  <p style="font:12px Arial;color:#666;margin:4px 0 0">Top Gainers (Market Cap &gt;= 500, Returns 1D &gt;= 5%) by Industry and Sector.</p>
-  ${tableHtml('Industry vs Count', industrySorted, cache.industryStreaks)}
-  ${tableHtml('Sector vs Count', sectorSorted, cache.sectorStreaks)}
+  ${tableHtml('Industry vs Count', industrySorted, cache.industryStreaks, 'industry')}
+  ${tableHtml('Sector vs Count', sectorSorted, cache.sectorStreaks, 'sector')}
+  <p style="font:11px Arial;color:#999;margin:24px 0 0;border-top:1px solid #eee;padding-top:8px">${scanSourceHtml(payload.scan)}</p>
 </div>`;
 
   let email = { status: 'skipped', reason: '--no-email' };

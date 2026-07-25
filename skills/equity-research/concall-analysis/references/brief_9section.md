@@ -17,6 +17,7 @@ Mark tone as: **Bullish / Neutral / Cautious / Defensive**.
 Forward-looking statements + demand visibility + projection numbers.
 
 Format: bullet list with one number per bullet. e.g.,
+
 - Revenue growth guidance: 15% for FY27
 - EBITDA margin target: 18-20% by H2 FY27
 - Capex: Rs 250 Cr over FY26-FY28
@@ -67,6 +68,7 @@ Revenue, EBITDA, net profit, margins (brief only — full numbers go in the offi
 ## Output structure (PDF)
 
 Single 2-3 page PDF. Layout:
+
 - Page 1: Header, KPI strip, §1, §2, §9 (the three most important)
 - Page 2: §3-§8 in compact form
 

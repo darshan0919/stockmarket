@@ -13,19 +13,15 @@ A 9-point quality score originally designed to separate value traps from genuine
 Compute each as 0 or 1 based on the rule. Total = sum.
 
 **Profitability (4 points)**
+
 1. **Positive net income** — PAT > 0 (FY current)
 2. **Positive ROA** — Net income / Total assets (FY current) > 0
 3. **Positive operating cash flow** — CFO > 0 (FY current)
 4. **CFO > Net income** — Earnings quality check; CFO/PAT > 1
 
-**Leverage & Liquidity (3 points)**
-5. **Long-term debt ratio declined** — LTD/Total assets FY current < FY prior
-6. **Current ratio improved** — CA/CL FY current > FY prior
-7. **No new shares issued** — Diluted shares outstanding FY current ≤ FY prior
+**Leverage & Liquidity (3 points)** 5. **Long-term debt ratio declined** — LTD/Total assets FY current < FY prior 6. **Current ratio improved** — CA/CL FY current > FY prior 7. **No new shares issued** — Diluted shares outstanding FY current ≤ FY prior
 
-**Operating efficiency (2 points)**
-8. **Gross margin improved** — Gross margin FY current > FY prior
-9. **Asset turnover improved** — Revenue/Total assets FY current > FY prior
+**Operating efficiency (2 points)** 8. **Gross margin improved** — Gross margin FY current > FY prior 9. **Asset turnover improved** — Revenue/Total assets FY current > FY prior
 
 ### Output table format
 
@@ -52,6 +48,7 @@ Compute each as 0 or 1 based on the rule. Total = sum.
 - **0–3:** Weak. Often correlates with value traps. Cross-reference with the forensic checklist — low Piotroski + RED forensic flags = SELL.
 
 **What can be wrong with this analysis:**
+
 - Year-end window dressing (paying down debt at year-end) can inflate score 5 (LTD ratio); check 4-quarter trend if available.
 - Accounting changes (revenue recognition shift, depreciation policy change) can mechanically tick scores 8 or 9 without operational improvement.
 - A score of 9 doesn't override RED on RPTs or auditor changes. Piotroski measures financial quality, not governance.
@@ -64,7 +61,7 @@ Compute each as 0 or 1 based on the rule. Total = sum.
 
 ## DuPont Analysis
 
-Decomposes ROE into three drivers to show *why* the ROE is what it is.
+Decomposes ROE into three drivers to show _why_ the ROE is what it is.
 
 ```
 ROE = Net Profit Margin × Asset Turnover × Equity Multiplier
@@ -79,7 +76,7 @@ Two companies can have identical 20% ROE for very different reasons:
 - **High leverage:** NPM 8%, AT 0.5, EM 5.0 → a leveraged play (e.g., a bank or NBFC)
 - **High asset turnover:** NPM 5%, AT 3.0, EM 1.3 → a working-capital-light distribution business
 
-The forensic implication: ROE driven by the equity multiplier alone is *risky* ROE. ROE driven by margin expansion or asset-turnover improvement is *quality* ROE.
+The forensic implication: ROE driven by the equity multiplier alone is _risky_ ROE. ROE driven by margin expansion or asset-turnover improvement is _quality_ ROE.
 
 ### Output table format
 
@@ -94,6 +91,7 @@ The forensic implication: ROE driven by the equity multiplier alone is *risky* R
 ```
 
 The interpretation section should answer **four questions**:
+
 1. What is driving the ROE today?
 2. Has the driver changed materially over 5 years?
 3. Is the current driver sustainable, or is it artificially inflated by debt?

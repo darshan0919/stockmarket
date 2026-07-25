@@ -49,7 +49,10 @@ function parseArgs(argv) {
  * @param {StockscansClient} [opts.client] - Inject for reuse/tests.
  * @returns {Promise<{found:false,ticker:string}|{found:true,ticker:string,announcement:Object,pdfUrl:string,pdfPath:string}>}
  */
-async function findRecordingAnnouncement(ticker, { outDir = process.cwd(), sinceDays = 10, client } = {}) {
+async function findRecordingAnnouncement(
+  ticker,
+  { outDir = process.cwd(), sinceDays = 10, client } = {}
+) {
   const c = client || new StockscansClient();
   await c.validateAuth();
 

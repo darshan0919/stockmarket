@@ -30,6 +30,7 @@ git checkout -b feature/your-feature-name
 ### 3. Make Changes
 
 Follow the coding standards below and ensure:
+
 - Code is formatted with Prettier
 - All tests pass
 - New features have tests
@@ -52,14 +53,14 @@ Follow the coding standards below and ensure:
 
 ### Naming Conventions
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Variables | camelCase | `stockData` |
-| Functions | camelCase | `fetchStockData()` |
-| Constants | UPPER_SNAKE_CASE | `API_BASE_URL` |
-| Components | PascalCase | `SearchBar` |
-| Files | camelCase.js | `stockController.js` |
-| Test files | *.test.js | `stockController.test.js` |
+| Type       | Convention       | Example                   |
+| ---------- | ---------------- | ------------------------- |
+| Variables  | camelCase        | `stockData`               |
+| Functions  | camelCase        | `fetchStockData()`        |
+| Constants  | UPPER_SNAKE_CASE | `API_BASE_URL`            |
+| Components | PascalCase       | `SearchBar`               |
+| Files      | camelCase.js     | `stockController.js`      |
+| Test files | \*.test.js       | `stockController.test.js` |
 
 ### Code Formatting
 
@@ -94,16 +95,16 @@ yarn format
 ```javascript
 /**
  * Calculate Simple Moving Average for a price series
- * 
+ *
  * @param {number[]} prices - Array of closing prices
  * @param {number} period - Number of periods for SMA calculation
  * @returns {number[]} Array of SMA values
- * 
+ *
  * @example
  * const prices = [10, 20, 30, 40, 50];
  * const sma = calculateSMA(prices, 3);
  * // Returns: [20, 30, 40]
- * 
+ *
  * @see {@link docs/backend/utils/technicalIndicators.md} for detailed documentation
  */
 function calculateSMA(prices, period) {
@@ -159,15 +160,15 @@ type(scope): description
 
 ### Types
 
-| Type | Description |
-|------|-------------|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `docs` | Documentation changes |
-| `style` | Formatting, no code change |
-| `refactor` | Code refactoring |
-| `test` | Adding tests |
-| `chore` | Maintenance tasks |
+| Type       | Description                |
+| ---------- | -------------------------- |
+| `feat`     | New feature                |
+| `fix`      | Bug fix                    |
+| `docs`     | Documentation changes      |
+| `style`    | Formatting, no code change |
+| `refactor` | Code refactoring           |
+| `test`     | Adding tests               |
+| `chore`    | Maintenance tasks          |
 
 ### Examples
 
@@ -262,4 +263,3 @@ When using AI agents to contribute:
 3. **Update documentation** for any new features
 4. **Follow existing patterns** in the codebase
 5. **Reference code locations** in documentation for easy navigation
-

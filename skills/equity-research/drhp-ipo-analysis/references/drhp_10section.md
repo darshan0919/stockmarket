@@ -49,6 +49,7 @@ The most important section to read first. Where is the IPO money going?
 **Where to find it:** "Objects of the Offer", typically pp.80-120, well-marked.
 
 **Flag if:**
+
 - OFS > 50% of total issue → promoters / PE investors are cashing out, not raising for growth
 - "General corporate purposes" > 25% of fresh issue → vague usage; SEBI caps this but companies often skirt
 - Acquisition is unspecified → blank cheque to management
@@ -86,6 +87,7 @@ Debt/Equity = total borrowings (current + non-current financial borrowings; excl
 **Where to find it:** "Financial Information" / "Restated Financial Statements" — long section, usually pp.250-400.
 
 **Flag if:**
+
 - Sudden profit spike in the year before IPO (window dressing — common red flag)
 - CFO consistently lagging PAT (earnings quality)
 - Revenue growth is recent (last 1-2 years) but not historical (pre-IPO storytelling)
@@ -106,7 +108,7 @@ be found — per the output-DTO-standard, silently omit rather than guess):
   is split across FY27 and FY28, show both an **FY27E D/E** card and an **FY28E D/E** card; if the
   full repayment is scheduled in a single year, show only that year's card). Compute each forward
   D/E as: `(latest-year total borrowings − cumulative Net-Proceeds debt repayment scheduled through
-  that fiscal year) / (latest-year total equity + gross fresh-issue proceeds)`. State the assumption
+that fiscal year) / (latest-year total equity + gross fresh-issue proceeds)`. State the assumption
   explicitly in the card's `sub` line (no further borrowing modeled; fresh-issue equity added at
   face+premium, not net of issue expenses) — this is a projection, not a restated fact, and must be
   labeled "E" and caveated in `limitations`. If the Objects-of-the-Offer schedule doesn't disclose a
@@ -127,6 +129,7 @@ in the renderer, so populating these fields is a data-layer responsibility, not 
 **Where to find it:** "Cash Flow Statement" within Restated Financials.
 
 **Flag if:**
+
 - 3-year cumulative CFO < 3-year cumulative PAT by more than 20%
 - Negative CFO in any year alongside positive PAT
 - Heavy investing cash flow without corresponding revenue translation
@@ -137,11 +140,13 @@ in the renderer, so populating these fields is a data-layer responsibility, not 
 DRHPs list 30-100+ risk factors. Most are generic boilerplate. Filter for:
 
 **Generic (low information):**
+
 - "We may face competition" — skip
 - "Economic downturn could affect business" — skip
 - "Foreign exchange fluctuations" — note only if exporter/importer
 
 **Specific (high information):**
+
 - Named customer dependency ("Our top customer accounted for X% of revenue")
 - Pending legal proceedings against promoter / KMP — name the proceeding, name the parties
 - Outstanding criminal proceedings
@@ -168,6 +173,7 @@ Required output: extract the **specific** risk factors only. Generic ones get on
 **Where to find it:** "Our Management" + "Our Promoters" sections, plus "Outstanding Litigation" annexure.
 
 **Flag if:**
+
 - Promoter compensation > 5% of PAT (concentrated extraction)
 - Multiple legal proceedings against promoters (count them)
 - Other businesses by promoters in same line of business — high conflict risk
@@ -185,6 +191,7 @@ Required output: extract the **specific** risk factors only. Generic ones get on
 **Where to find it:** RPT note within Restated Financials. Typically several pages.
 
 **Flag if:**
+
 - RPT counter-parties are in the same line of business as the company
 - RPT growing materially faster than revenue
 - Large royalty payments to promoter entity for "brand"
@@ -201,6 +208,7 @@ Required output: extract the **specific** risk factors only. Generic ones get on
 **Where to find it:** Either in "Basis for Issue Price" section or scattered across "Industry" + "Risk Factors".
 
 **Flag if:**
+
 - The "comparable peers" list is curated (e.g., excludes the most analogous peer to avoid showing premium pricing)
 - IPO P/E > 1.5× peer median without superior fundamentals justifying the premium
 - Industry-comparison metrics use a different basis than peer reporting
@@ -221,6 +229,7 @@ See [`drhp_red_flags.md`](drhp_red_flags.md) for the full checklist. The composi
 ```
 
 The number of RED flags drives the subscription view:
+
 - 0 RED → SUBSCRIBE candidate (subject to valuation check)
 - 1-2 RED → SUBSCRIBE-FOR-LISTING-GAINS-ONLY or WATCH-POST-LISTING
 - 3+ RED → AVOID

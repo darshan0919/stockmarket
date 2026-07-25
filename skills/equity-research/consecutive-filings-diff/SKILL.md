@@ -51,6 +51,7 @@ proceed to Phase 1/3 without a concall and skip Phase 2 (note the gap rather
 than fabricating reconciliation).
 
 If the company does not publish investor presentations (manifest returns 0 PPT documents), use the two most recent `Result` filings as a substitute:
+
 ```bash
 python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t Result --last-n 2 -o "$DOCS_DIR"

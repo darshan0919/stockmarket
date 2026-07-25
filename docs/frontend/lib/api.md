@@ -25,9 +25,11 @@ const api = axios.create({
 ## Interceptors
 
 ### Request Interceptor
+
 - Logs requests (can be extended for auth tokens)
 
 ### Response Interceptor
+
 - Handles successful responses
 - Logs API errors
 - Logs network errors
@@ -42,15 +44,16 @@ Stock-related API calls.
 import { stockAPI } from '../lib/api';
 ```
 
-| Method | Parameters | Description |
-|--------|------------|-------------|
-| `search(query, page, limit)` | `string, number, number` | Search stocks |
-| `getDetails(symbol)` | `string` | Get stock details |
-| `getTechnicals(symbol)` | `string` | Get technical indicators |
-| `getFinancials(symbol, quarters)` | `string, number` | Get financial statements |
-| `getQuarterlyResults(symbol)` | `string` | Get quarterly results |
+| Method                            | Parameters               | Description              |
+| --------------------------------- | ------------------------ | ------------------------ |
+| `search(query, page, limit)`      | `string, number, number` | Search stocks            |
+| `getDetails(symbol)`              | `string`                 | Get stock details        |
+| `getTechnicals(symbol)`           | `string`                 | Get technical indicators |
+| `getFinancials(symbol, quarters)` | `string, number`         | Get financial statements |
+| `getQuarterlyResults(symbol)`     | `string`                 | Get quarterly results    |
 
 **Example:**
+
 ```javascript
 // Search for stocks
 const response = await stockAPI.search('RELIANCE', 1, 10);
@@ -72,16 +75,17 @@ Stock screening API calls.
 import { screenerAPI } from '../lib/api';
 ```
 
-| Method | Parameters | Description |
-|--------|------------|-------------|
+| Method                                           | Parameters                       | Description        |
+| ------------------------------------------------ | -------------------------------- | ------------------ |
 | `runScreener(filters, sortBy, sortOrder, limit)` | `Object, string, string, number` | Run stock screener |
 
 **Example:**
+
 ```javascript
 const filters = {
   pe_max: 30,
   roe_min: 15,
-  sectors: ['Technology']
+  sectors: ['Technology'],
 };
 
 const results = await screenerAPI.runScreener(filters, 'market_cap', 'desc', 100);
@@ -97,13 +101,14 @@ Watchlist management API calls.
 import { watchlistAPI } from '../lib/api';
 ```
 
-| Method | Parameters | Description |
-|--------|------------|-------------|
-| `getAll()` | - | Get all watchlist items |
-| `add(symbol)` | `string` | Add stock to watchlist |
-| `remove(symbol)` | `string` | Remove stock from watchlist |
+| Method           | Parameters | Description                 |
+| ---------------- | ---------- | --------------------------- |
+| `getAll()`       | -          | Get all watchlist items     |
+| `add(symbol)`    | `string`   | Add stock to watchlist      |
+| `remove(symbol)` | `string`   | Remove stock from watchlist |
 
 **Example:**
+
 ```javascript
 // Get watchlist
 const watchlist = await watchlistAPI.getAll();
@@ -125,12 +130,13 @@ Market data API calls.
 import { marketAPI } from '../lib/api';
 ```
 
-| Method | Parameters | Description |
-|--------|------------|-------------|
-| `getIndices()` | - | Get market indices (Nifty, Sensex) |
-| `getStats()` | - | Get market statistics |
+| Method         | Parameters | Description                        |
+| -------------- | ---------- | ---------------------------------- |
+| `getIndices()` | -          | Get market indices (Nifty, Sensex) |
+| `getStats()`   | -          | Get market statistics              |
 
 **Example:**
+
 ```javascript
 const indices = await marketAPI.getIndices();
 // { nifty50: {...}, sensex: {...}, sectors: {...} }
@@ -146,12 +152,13 @@ Earnings call transcript API calls.
 import { transcriptAPI } from '../lib/api';
 ```
 
-| Method | Parameters | Description |
-|--------|------------|-------------|
-| `getTranscripts(symbol)` | `string` | Get available transcripts |
+| Method                                      | Parameters       | Description                |
+| ------------------------------------------- | ---------------- | -------------------------- |
+| `getTranscripts(symbol)`                    | `string`         | Get available transcripts  |
 | `analyzeTranscript(symbol, attachmentName)` | `string, string` | Analyze transcript with AI |
 
 **Example:**
+
 ```javascript
 // Get transcripts
 const transcripts = await transcriptAPI.getTranscripts('RELIANCE');
@@ -170,12 +177,12 @@ Order and orderbook API calls.
 import { ordersAPI } from '../lib/api';
 ```
 
-| Method | Parameters | Description |
-|--------|------------|-------------|
-| `getBySymbol(symbol, limit)` | `string, number` | Get orders |
-| `getFullParsed(symbol, limit)` | `string, number` | Get parsed orders |
-| `parsePdf(symbol, attachmentUrl)` | `string, string` | Parse PDF order |
-| `getOrderbook(symbol)` | `string` | Get orderbook |
+| Method                            | Parameters       | Description       |
+| --------------------------------- | ---------------- | ----------------- |
+| `getBySymbol(symbol, limit)`      | `string, number` | Get orders        |
+| `getFullParsed(symbol, limit)`    | `string, number` | Get parsed orders |
+| `parsePdf(symbol, attachmentUrl)` | `string, string` | Parse PDF order   |
+| `getOrderbook(symbol)`            | `string`         | Get orderbook     |
 
 ---
 
@@ -187,10 +194,10 @@ Upcoming results API calls.
 import { upcomingResultsAPI } from '../lib/api';
 ```
 
-| Method | Parameters | Description |
-|--------|------------|-------------|
-| `getAll(page, limit)` | `number, number` | Get upcoming results |
-| `getSymbols()` | - | Get symbols with upcoming results |
+| Method                | Parameters       | Description                       |
+| --------------------- | ---------------- | --------------------------------- |
+| `getAll(page, limit)` | `number, number` | Get upcoming results              |
+| `getSymbols()`        | -                | Get symbols with upcoming results |
 
 ---
 
@@ -202,9 +209,9 @@ Announcement API calls.
 import { announcementsAPI } from '../lib/api';
 ```
 
-| Method | Parameters | Description |
-|--------|------------|-------------|
-| `getBySymbol(symbol)` | `string` | Get announcements for stock |
+| Method                | Parameters | Description                 |
+| --------------------- | ---------- | --------------------------- |
+| `getBySymbol(symbol)` | `string`   | Get announcements for stock |
 
 ## Error Handling
 
@@ -229,13 +236,13 @@ try {
 
 Different endpoints have different timeout requirements:
 
-| API Method | Timeout | Reason |
-|------------|---------|--------|
-| Default | 30s | Standard operations |
-| `transcriptAPI.analyzeTranscript` | 200s | AI processing |
-| `ordersAPI.getFullParsed` | 180s | PDF parsing |
-| `ordersAPI.parsePdf` | 120s | Single PDF parsing |
-| `ordersAPI.getOrderbook` | 300s | Full orderbook calculation |
+| API Method                        | Timeout | Reason                     |
+| --------------------------------- | ------- | -------------------------- |
+| Default                           | 30s     | Standard operations        |
+| `transcriptAPI.analyzeTranscript` | 200s    | AI processing              |
+| `ordersAPI.getFullParsed`         | 180s    | PDF parsing                |
+| `ordersAPI.parsePdf`              | 120s    | Single PDF parsing         |
+| `ordersAPI.getOrderbook`          | 300s    | Full orderbook calculation |
 
 ## Usage in Components
 
@@ -271,4 +278,3 @@ function QuarterlyResults({ symbol }) {
 - [API Reference](../../API_REFERENCE.md) - Backend API documentation
 - [useMarket Hook](../hooks/useMarket.md) - Market data hook
 - [useWatchlist Hook](../hooks/useWatchlist.md) - Watchlist hook
-

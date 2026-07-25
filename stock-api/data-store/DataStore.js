@@ -3,7 +3,11 @@
 const fs = require('fs');
 const path = require('path');
 const { StorageService, ...driveApi } = require('@stock/cloud-utils');
-const { resolveDataRoot, detectTransport, resolveDriveRoot } = require('../../packages/jobs-runtime/lib/driveDataStore');
+const {
+  resolveDataRoot,
+  detectTransport,
+  resolveDriveRoot,
+} = require('../../packages/jobs-runtime/lib/driveDataStore');
 
 class DataStore {
   constructor(context = {}) {
@@ -18,17 +22,17 @@ class DataStore {
   }
 
   locate(key) {
-    // The key is now assumed to be the exact relative path in the modern 
+    // The key is now assumed to be the exact relative path in the modern
     // structured layout (entities/, events/, documents/)
     const localRel = key;
     const localPath = path.join(this.dataRoot, localRel);
     const driveRel = key;
     const hasLocal = fs.existsSync(localPath);
-    
+
     return {
       local: localPath,
       drive: driveRel,
-      source: hasLocal ? 'local' : 'drive'
+      source: hasLocal ? 'local' : 'drive',
     };
   }
 
@@ -37,7 +41,7 @@ class DataStore {
     if (fs.existsSync(loc.local)) {
       return fs.promises.readFile(loc.local);
     }
-    
+
     // Fallback to drive
     const transport = detectTransport();
     if (transport === 'local-mount' && this.driveRoot) {
@@ -57,7 +61,7 @@ class DataStore {
         console.warn(`Drive API read failed for ${key}:`, e.message);
       }
     }
-    
+
     const err = new Error(`NotFound: ${key}`);
     err.code = 'ENOENT';
     throw err;
@@ -81,7 +85,7 @@ class DataStore {
   }
 
   async push(prefix) {
-    // Mirror local -> Drive for a specific prefix, if necessary. 
+    // Mirror local -> Drive for a specific prefix, if necessary.
     // Usually handled implicitly via saveEntity/saveJson.
   }
 }

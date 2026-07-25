@@ -26,9 +26,15 @@ const IMAGE_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.b
 // session's real entropy ("5a88b1ac") instead of collapsing to "local_5a".
 // Falls back to a sha256 hash when the id has too few hex chars to be unique.
 function uuid8(s) {
-  const hex = String(s || '').replace(/^local[_-]/i, '').replace(/[^a-f0-9]/gi, '');
+  const hex = String(s || '')
+    .replace(/^local[_-]/i, '')
+    .replace(/[^a-f0-9]/gi, '');
   if (hex.length >= 8) return hex.slice(0, 8).toLowerCase();
-  return crypto.createHash('sha256').update(String(s || '')).digest('hex').slice(0, 8);
+  return crypto
+    .createHash('sha256')
+    .update(String(s || ''))
+    .digest('hex')
+    .slice(0, 8);
 }
 
 function dateOf(iso) {
@@ -104,13 +110,23 @@ function normalize(conv, { source = 'cloud' } = {}) {
   }
 
   const fullText = turns.map((t) => `${t.text}\n${t.thinking}`).join('\n');
-  return { id, source, title: conv.name || conv.title || '', date: dateOf(conv.created_at),
-    turns, questions, artifacts, fullText, summaryHint: conv.summary || '' };
+  return {
+    id,
+    source,
+    title: conv.name || conv.title || '',
+    date: dateOf(conv.created_at),
+    turns,
+    questions,
+    artifacts,
+    fullText,
+    summaryHint: conv.summary || '',
+  };
 }
 
 // Placeholder/example tokens that show up in URLs and sample text but are NOT
 // real companies (e.g. "https://.../company/NSE:TICKER", a bug note "NSE:NSE:XXX").
-const TICKER_PLACEHOLDER = /^(X{2,}|TICKER|SYMBOL|NAME|COMPANY|EXAMPLE|SAMPLE|ABC|XYZ|NSE|BSE|TEST|FOO|BAR)$/i;
+const TICKER_PLACEHOLDER =
+  /^(X{2,}|TICKER|SYMBOL|NAME|COMPANY|EXAMPLE|SAMPLE|ABC|XYZ|NSE|BSE|TEST|FOO|BAR)$/i;
 
 // Deterministic company id detection from explicit NSE:/BSE: references in text.
 // Anti-false-positive rules (see docs/CONVERSATION_CAPTURE_PLAN.md): NSE tickers
@@ -125,7 +141,7 @@ function detectCompanyIds(text) {
     if (id.startsWith('NSE:')) {
       const tk = id.slice(4);
       if (tk.replace(/[^A-Z0-9]/gi, '').length < 3) continue; // drop 1–2 char tickers
-      if (TICKER_PLACEHOLDER.test(tk)) continue;              // drop placeholders
+      if (TICKER_PLACEHOLDER.test(tk)) continue; // drop placeholders
     }
     out.add(id);
   }
@@ -147,20 +163,31 @@ function extract(conv, { source = 'cloud', extraKeywords = [], llm = null, now =
   const cls = classify({ title: n.title, text: n.fullText, extraKeywords });
 
   if (!cls.isStock && !cls.borderline) {
-    return { isStock: false, borderline: false, conversationDto: null, notes: [],
-      reports: [], artifacts: [], companyIds: [], matched: cls.matched, score: cls.score };
+    return {
+      isStock: false,
+      borderline: false,
+      conversationDto: null,
+      notes: [],
+      reports: [],
+      artifacts: [],
+      companyIds: [],
+      matched: cls.matched,
+      score: cls.score,
+    };
   }
 
   const ts = now || new Date().toISOString();
   const companyIds = detectCompanyIds(n.fullText);
 
   // LLM-optional enrichment.
-  const summary = llm && llm.summarize
-    ? llm.summarize({ title: n.title, turns: n.turns })
-    : (n.summaryHint || n.questions[0] || n.title || '').slice(0, 400);
-  const routed = llm && llm.route
-    ? llm.route({ title: n.title, turns: n.turns, companyIds })
-    : { notes: [], reports: [], companyIds: [] };
+  const summary =
+    llm && llm.summarize
+      ? llm.summarize({ title: n.title, turns: n.turns })
+      : (n.summaryHint || n.questions[0] || n.title || '').slice(0, 400);
+  const routed =
+    llm && llm.route
+      ? llm.route({ title: n.title, turns: n.turns, companyIds })
+      : { notes: [], reports: [], companyIds: [] };
 
   const allCompanyIds = [...new Set([...companyIds, ...(routed.companyIds || [])])].sort();
 
@@ -173,7 +200,11 @@ function extract(conv, { source = 'cloud', extraKeywords = [], llm = null, now =
   // when an already-captured session has NEW turns appended (someone kept
   // chatting) so it can re-save the body and flag the record `dirty` for the
   // enrichment job to pick back up, instead of silently skipping it forever.
-  const contentHash = crypto.createHash('sha256').update(n.fullText || '').digest('hex').slice(0, 16);
+  const contentHash = crypto
+    .createHash('sha256')
+    .update(n.fullText || '')
+    .digest('hex')
+    .slice(0, 16);
 
   const conversationDto = {
     id: n.id,

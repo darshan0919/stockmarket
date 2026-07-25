@@ -71,21 +71,18 @@ class NseClient {
    */
   async getPriceVolumeDeliverable(symbol, fromDate, toDate) {
     const upper = symbol.toUpperCase();
-    const res = await this.session.get(
-      '/historicalOR/generateSecurityWiseHistoricalData',
-      {
-        params: {
-          from: fromDate,
-          to: toDate,
-          symbol: upper,
-          type: 'priceVolumeDeliverable',
-          series: 'ALL',
-        },
-        referer: this._quoteReferer(upper),
+    const res = await this.session.get('/historicalOR/generateSecurityWiseHistoricalData', {
+      params: {
+        from: fromDate,
+        to: toDate,
         symbol: upper,
-        timeout: 20000,
-      }
-    );
+        type: 'priceVolumeDeliverable',
+        series: 'ALL',
+      },
+      referer: this._quoteReferer(upper),
+      symbol: upper,
+      timeout: 20000,
+    });
     return Array.isArray(res.data) ? res.data : res.data?.data || [];
   }
 
@@ -220,7 +217,7 @@ class NseClient {
       referer: `${NSE_HOME_URL}companies-listing/corporate-filings-actions`,
       timeout: 30000,
     });
-    return Array.isArray(res.data) ? res.data : (res.data?.data || []);
+    return Array.isArray(res.data) ? res.data : res.data?.data || [];
   }
 
   /**
@@ -240,7 +237,7 @@ class NseClient {
       referer: `${NSE_HOME_URL}companies-listing/corporate-filings-board-meetings`,
       timeout: 30000,
     });
-    return Array.isArray(res.data) ? res.data : (res.data?.data || []);
+    return Array.isArray(res.data) ? res.data : res.data?.data || [];
   }
 
   /**
@@ -269,7 +266,7 @@ class NseClient {
       symbol,
       timeout: 30000,
     });
-    return Array.isArray(res.data) ? res.data : (res.data?.data || []);
+    return Array.isArray(res.data) ? res.data : res.data?.data || [];
   }
 }
 

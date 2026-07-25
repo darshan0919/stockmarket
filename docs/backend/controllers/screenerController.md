@@ -3,14 +3,17 @@
 Runs stock screening with filters on market cap, sector, industry, and fundamental ratios (P/E, P/B, ROE, ROCE, etc.).
 
 ## Source File
+
 `backend/controllers/screenerController.js`
 
 ## Functions/Methods
 
 ### runScreener(req, res, next)
+
 Execute screener with filters and return matching stocks with latest fundamentals.
 
 **Parameters (req.body):**
+
 - `filters` (object) - Filter criteria
   - `market_cap_min`, `market_cap_max` (number)
   - `sectors`, `industries` (string[])
@@ -41,6 +44,7 @@ Execute screener with filters and return matching stocks with latest fundamental
 ```
 
 ## Related
+
 - [API Reference](../../API_REFERENCE.md#screener-apis)
 - [validators](../utils/validators.md)
 - [Stock Model](../../backend/models/Stock.js)

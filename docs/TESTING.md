@@ -109,9 +109,7 @@ describe('Example Controller', () => {
       ExampleModel.find = jest.fn().mockResolvedValue([{ id: 1 }]);
 
       // Act
-      const response = await request(app)
-        .get('/api/example')
-        .expect(200);
+      const response = await request(app).get('/api/example').expect(200);
 
       // Assert
       expect(response.body.success).toBe(true);
@@ -121,9 +119,7 @@ describe('Example Controller', () => {
     it('should handle errors gracefully', async () => {
       ExampleModel.find = jest.fn().mockRejectedValue(new Error('DB error'));
 
-      const response = await request(app)
-        .get('/api/example')
-        .expect(500);
+      const response = await request(app).get('/api/example').expect(500);
 
       expect(response.body.success).toBe(false);
     });
@@ -143,19 +139,19 @@ describe('Technical Indicators', () => {
     it('should calculate SMA correctly', () => {
       const prices = [10, 20, 30, 40, 50];
       const result = calculateSMA(prices, 3);
-      
+
       expect(result).toEqual([20, 30, 40]);
     });
 
     it('should return empty array for insufficient data', () => {
       const result = calculateSMA([10, 20], 5);
-      
+
       expect(result).toEqual([]);
     });
 
     it('should handle null input', () => {
       const result = calculateSMA(null, 5);
-      
+
       expect(result).toEqual([]);
     });
   });
@@ -181,7 +177,7 @@ describe('NSE India API', () => {
     it('should format date correctly', () => {
       const date = new Date('2024-01-15');
       const result = formatDate(date);
-      
+
       expect(result).toBe('15-01-2024');
     });
   });
@@ -189,16 +185,13 @@ describe('NSE India API', () => {
   describe('getNseCookies', () => {
     it('should fetch and cache cookies', async () => {
       axios.get.mockResolvedValueOnce({
-        headers: { 'set-cookie': ['cookie1=value1; path=/', 'cookie2=value2'] }
+        headers: { 'set-cookie': ['cookie1=value1; path=/', 'cookie2=value2'] },
       });
 
       const cookies = await getNseCookies();
 
       expect(cookies).toContain('cookie1=value1');
-      expect(axios.get).toHaveBeenCalledWith(
-        'https://www.nseindia.com/',
-        expect.any(Object)
-      );
+      expect(axios.get).toHaveBeenCalledWith('https://www.nseindia.com/', expect.any(Object));
     });
   });
 });
@@ -220,10 +213,7 @@ const customJestConfig = {
     '^@/components/(.*)$': '<rootDir>/components/$1',
     '^@/lib/(.*)$': '<rootDir>/lib/$1',
   },
-  collectCoverageFrom: [
-    'components/**/*.{js,jsx}',
-    'lib/**/*.{js,jsx}',
-  ],
+  collectCoverageFrom: ['components/**/*.{js,jsx}', 'lib/**/*.{js,jsx}'],
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
 };
 
@@ -262,18 +252,18 @@ describe('SearchBar', () => {
 
   it('renders search input', () => {
     render(<SearchBar />);
-    
+
     expect(screen.getByPlaceholderText('Search stocks...')).toBeInTheDocument();
   });
 
   it('shows loading state during search', async () => {
     stockAPI.search.mockReturnValue(new Promise(() => {})); // Never resolves
-    
+
     render(<SearchBar />);
     const input = screen.getByPlaceholderText('Search stocks...');
-    
+
     await userEvent.type(input, 'REL');
-    
+
     await waitFor(() => {
       expect(screen.getByText('Searching...')).toBeInTheDocument();
     });
@@ -287,10 +277,10 @@ describe('SearchBar', () => {
         total: 1,
       },
     });
-    
+
     render(<SearchBar />);
     await userEvent.type(screen.getByPlaceholderText('Search stocks...'), 'REL');
-    
+
     await waitFor(() => {
       expect(screen.getByText(/Reliance Industries/)).toBeInTheDocument();
     });
@@ -304,14 +294,14 @@ describe('SearchBar', () => {
         total: 1,
       },
     });
-    
+
     render(<SearchBar />);
     await userEvent.type(screen.getByPlaceholderText('Search stocks...'), 'REL');
-    
+
     await waitFor(() => {
       fireEvent.click(screen.getByText(/Reliance Industries/));
     });
-    
+
     expect(mockPush).toHaveBeenCalledWith('/stock/RELIANCE');
   });
 });
@@ -489,6 +479,7 @@ open frontend/coverage/lcov-report/index.html
 ### Coverage Thresholds
 
 Recommended minimum coverage:
+
 - Statements: 80%
 - Branches: 75%
 - Functions: 80%
@@ -504,4 +495,3 @@ Recommended minimum coverage:
 6. **Arrange-Act-Assert**: Structure tests clearly
 7. **Test edge cases**: Null, undefined, empty arrays, errors
 8. **Isolate tests**: Each test should be independent
-

@@ -30,24 +30,60 @@ const TWEETS_DIR = path.join(db.dataRoot(), 'runs');
 
 function latestRaw(dir) {
   if (!fs.existsSync(dir)) throw new Error(`No such directory: ${dir}`);
-  const files = fs.readdirSync(dir).filter(f => f.endsWith('_tweets_raw.json')).sort();
+  const files = fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith('_tweets_raw.json'))
+    .sort();
   if (files.length === 0) throw new Error(`No *_tweets_raw.json in ${dir}`);
   return path.join(dir, files[files.length - 1]);
 }
 
 // --- category keyword rules (checked in priority order) -------------------
 const CATEGORY_RULES = [
-  { category: 'ORDER_WIN', weight: 3, re: /\b(order win|wins? (an? )?order|secures? .*(order|contract)|epc (sub-)?contract|awarded)\b/i },
-  { category: 'CORPORATE_ACTION', weight: 3, re: /\b(board meeting|acquisition|merger|amalgamation|stake (sale|cut|hike)|buyback|rights issue|qip|ipo|open offer|shareholding)\b/i },
-  { category: 'EARNINGS_RESULTS', weight: 3, re: /\b(q[1-4] ?fy ?\d{2}|results?|revenue (grew|rose|up)|profit|pat\b|ebitda|sssg)\b/i },
-  { category: 'RATING_CREDIT', weight: 2, re: /\b(credit rating|moody'?s|crisil|icra|care ratings|upgrad(ed|e)|esg rating)\b/i },
-  { category: 'REGULATORY_POLICY', weight: 2, re: /\b(rbi|sebi|govt\.?|government|ministry|mandate|regulation|policy|customs?|duty)\b/i },
-  { category: 'GEOPOLITICAL_MACRO', weight: 1, re: /\b(pm modi|geopolitic|hormuz|iran|tanker|explosion|ukmto|trade deficit|fii|dii)\b/i },
+  {
+    category: 'ORDER_WIN',
+    weight: 3,
+    re: /\b(order win|wins? (an? )?order|secures? .*(order|contract)|epc (sub-)?contract|awarded)\b/i,
+  },
+  {
+    category: 'CORPORATE_ACTION',
+    weight: 3,
+    re: /\b(board meeting|acquisition|merger|amalgamation|stake (sale|cut|hike)|buyback|rights issue|qip|ipo|open offer|shareholding)\b/i,
+  },
+  {
+    category: 'EARNINGS_RESULTS',
+    weight: 3,
+    re: /\b(q[1-4] ?fy ?\d{2}|results?|revenue (grew|rose|up)|profit|pat\b|ebitda|sssg)\b/i,
+  },
+  {
+    category: 'RATING_CREDIT',
+    weight: 2,
+    re: /\b(credit rating|moody'?s|crisil|icra|care ratings|upgrad(ed|e)|esg rating)\b/i,
+  },
+  {
+    category: 'REGULATORY_POLICY',
+    weight: 2,
+    re: /\b(rbi|sebi|govt\.?|government|ministry|mandate|regulation|policy|customs?|duty)\b/i,
+  },
+  {
+    category: 'GEOPOLITICAL_MACRO',
+    weight: 1,
+    re: /\b(pm modi|geopolitic|hormuz|iran|tanker|explosion|ukmto|trade deficit|fii|dii)\b/i,
+  },
   { category: 'BULK_BLOCK_DEAL', weight: 2, re: /\b(bulk deal|block deal|bought \d|sold \d)\b/i },
-  { category: 'OPINION_COMMENTARY', weight: 0, re: /\b(i (had|think)|my view|bold call|portfolio churn)\b/i },
+  {
+    category: 'OPINION_COMMENTARY',
+    weight: 0,
+    re: /\b(i (had|think)|my view|bold call|portfolio churn)\b/i,
+  },
 ];
 
-const MATERIAL_CATEGORIES = new Set(['ORDER_WIN', 'CORPORATE_ACTION', 'EARNINGS_RESULTS', 'RATING_CREDIT']);
+const MATERIAL_CATEGORIES = new Set([
+  'ORDER_WIN',
+  'CORPORATE_ACTION',
+  'EARNINGS_RESULTS',
+  'RATING_CREDIT',
+]);
 
 const CRORE_RE = /(?:₹|rs\.?|inr)\s?([\d,]+(?:\.\d+)?)\s?(cr|crore)/i;
 const PCT_RE = /(\d{1,3}(?:\.\d+)?)\s?%/;
@@ -68,7 +104,8 @@ function classifyOne(tweet) {
   const croreValue = croreMatch ? parseFloat(croreMatch[1].replace(/,/g, '')) : null;
   const pctValue = pctMatch ? parseFloat(pctMatch[1]) : null;
   const hasQuantifiedFigure = croreValue !== null || pctValue !== null;
-  const isLargeFigure = (croreValue !== null && croreValue >= LARGE_CRORE_THRESHOLD) ||
+  const isLargeFigure =
+    (croreValue !== null && croreValue >= LARGE_CRORE_THRESHOLD) ||
     (pctValue !== null && pctValue >= LARGE_PCT_THRESHOLD);
 
   const isMaterial = MATERIAL_CATEGORIES.has(best.category);
@@ -89,12 +126,18 @@ function classifyOne(tweet) {
   }
 
   const company = findInText(text);
-  const companyId = company ? company.companyId : `UNKNOWN:${(tweet.author || 'unknown')}`;
+  const companyId = company ? company.companyId : `UNKNOWN:${tweet.author || 'unknown'}`;
 
   const evidence = [];
-  if (croreMatch) evidence.push(`💰 ₹${croreMatch[1]} crore mentioned${isLargeFigure ? ' (large)' : ''}`);
-  if (pctMatch) evidence.push(`📊 ${pctMatch[1]}% figure mentioned${isLargeFigure ? ' (large)' : ''}`);
-  evidence.push(company ? `🏷️ Resolved to ${company.companyId} (${company.companyName})` : '⚠️ Company not resolved — not in master DB or no matching keyword');
+  if (croreMatch)
+    evidence.push(`💰 ₹${croreMatch[1]} crore mentioned${isLargeFigure ? ' (large)' : ''}`);
+  if (pctMatch)
+    evidence.push(`📊 ${pctMatch[1]}% figure mentioned${isLargeFigure ? ' (large)' : ''}`);
+  evidence.push(
+    company
+      ? `🏷️ Resolved to ${company.companyId} (${company.companyName})`
+      : '⚠️ Company not resolved — not in master DB or no matching keyword'
+  );
 
   const now = new Date().toISOString();
   return {
@@ -144,14 +187,19 @@ function groupByCompany(signals) {
     }
     const g = groups.get(s.companyId);
     g.mentionCount++;
-    if (CONVICTION_RANK[s.conviction] > CONVICTION_RANK[g.maxConviction]) g.maxConviction = s.conviction;
+    if (CONVICTION_RANK[s.conviction] > CONVICTION_RANK[g.maxConviction])
+      g.maxConviction = s.conviction;
     g.categories.add(s.category);
     g.tweetIds.push(s.tweetId);
     if (g.evidenceSample.length < 3) g.evidenceSample.push({ text: s.text, evidence: s.evidence });
   }
   return Array.from(groups.values())
     .map((g) => ({ ...g, categories: Array.from(g.categories) }))
-    .sort((a, b) => CONVICTION_RANK[b.maxConviction] - CONVICTION_RANK[a.maxConviction] || b.mentionCount - a.mentionCount);
+    .sort(
+      (a, b) =>
+        CONVICTION_RANK[b.maxConviction] - CONVICTION_RANK[a.maxConviction] ||
+        b.mentionCount - a.mentionCount
+    );
 }
 
 function main() {
@@ -163,12 +211,13 @@ function main() {
 
   const byConviction = { HIGH: 0, MEDIUM: 0, LOW: 0, NOISE: 0 };
   for (const s of signals) byConviction[s.conviction] = (byConviction[s.conviction] || 0) + 1;
-  const resolvedCount = signals.filter(s => !s.companyId.startsWith('UNKNOWN:')).length;
+  const resolvedCount = signals.filter((s) => !s.companyId.startsWith('UNKNOWN:')).length;
 
   const companies = groupByCompany(signals);
   const byConvictionUniqueCompanies = { HIGH: 0, MEDIUM: 0, LOW: 0 };
   for (const c of companies) {
-    if (byConvictionUniqueCompanies[c.maxConviction] !== undefined) byConvictionUniqueCompanies[c.maxConviction]++;
+    if (byConvictionUniqueCompanies[c.maxConviction] !== undefined)
+      byConvictionUniqueCompanies[c.maxConviction]++;
   }
 
   const base = path.basename(rawPath);
@@ -178,7 +227,9 @@ function main() {
   const outPath = path.join(TWEETS_DIR, outName);
 
   if (path.resolve(outPath) === path.resolve(rawPath)) {
-    throw new Error(`Refusing to overwrite input file: computed outPath (${outPath}) equals rawPath. Rename the input file to avoid a collision.`);
+    throw new Error(
+      `Refusing to overwrite input file: computed outPath (${outPath}) equals rawPath. Rename the input file to avoid a collision.`
+    );
   }
 
   const output = {
@@ -197,7 +248,10 @@ function main() {
 
   // Canonical store: one event record per resolved, non-noise signal.
   const eventRecords = signals
-    .filter((s2) => s2.companyId && !String(s2.companyId).startsWith('UNKNOWN:') && s2.conviction !== 'NOISE')
+    .filter(
+      (s2) =>
+        s2.companyId && !String(s2.companyId).startsWith('UNKNOWN:') && s2.conviction !== 'NOISE'
+    )
     .map((s2) => ({
       ...s2,
       type: 'tweet',
@@ -209,7 +263,22 @@ function main() {
 
   fs.mkdirSync(TWEETS_DIR, { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(output, null, 2));
-  console.log(JSON.stringify({ status: 'ok', outPath, events: stats, totalTweets: tweets.length, resolvedCompanyCount: resolvedCount, uniqueCompanyCount: companies.length, byConviction, byConvictionUniqueCompanies }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        status: 'ok',
+        outPath,
+        events: stats,
+        totalTweets: tweets.length,
+        resolvedCompanyCount: resolvedCount,
+        uniqueCompanyCount: companies.length,
+        byConviction,
+        byConvictionUniqueCompanies,
+      },
+      null,
+      2
+    )
+  );
 }
 
 if (require.main === module) {

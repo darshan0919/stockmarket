@@ -17,8 +17,9 @@ function latestRaw(runsDir = RUNS_DIR) {
   if (!fs.existsSync(runsDir)) {
     throw new Error(`No such directory: ${runsDir}`);
   }
-  const files = fs.readdirSync(runsDir)
-    .filter(f => /^gainers_raw_\d{8}\.json$/.test(f))
+  const files = fs
+    .readdirSync(runsDir)
+    .filter((f) => /^gainers_raw_\d{8}\.json$/.test(f))
     .sort(); // lexical sort works for YYYYMMDD
   if (files.length === 0) {
     throw new Error(`No gainers_raw_*.json in ${runsDir}`);
@@ -26,7 +27,16 @@ function latestRaw(runsDir = RUNS_DIR) {
   return path.join(runsDir, files[files.length - 1]);
 }
 
-const MATERIAL_CATEGORY_SET = new Set(['board meeting', 'result', 'dividend', 'acquisition', 'merger', 'ipo', 'rights issue', 'buyback']);
+const MATERIAL_CATEGORY_SET = new Set([
+  'board meeting',
+  'result',
+  'dividend',
+  'acquisition',
+  'merger',
+  'ipo',
+  'rights issue',
+  'buyback',
+]);
 // Keep in sync with gainersScanner.js's MATERIAL_KEYWORDS (the flag that actually
 // drives `g.has_material_ann`, and thus the FUNDAMENTAL classification branch).
 // Previously this file only checked the narrower category set above, so e.g. an
@@ -34,9 +44,27 @@ const MATERIAL_CATEGORY_SET = new Set(['board meeting', 'result', 'dividend', 'a
 // displayed with the routine 📄 icon and would have been invisible to novelty
 // assessment below — fixed by aligning the two definitions.
 const MATERIAL_KEYWORDS = [
-  'order', 'contract', 'win', 'award', 'result', 'profit', 'revenue', 'pat',
-  'fda', 'pli', 'capacity', 'expansion', 'merger', 'acquisition', 'demerger',
-  'buyback', 'qip', 'preferential', 'warrant', 'stake', 'sast',
+  'order',
+  'contract',
+  'win',
+  'award',
+  'result',
+  'profit',
+  'revenue',
+  'pat',
+  'fda',
+  'pli',
+  'capacity',
+  'expansion',
+  'merger',
+  'acquisition',
+  'demerger',
+  'buyback',
+  'qip',
+  'preferential',
+  'warrant',
+  'stake',
+  'sast',
 ];
 
 function isMaterialAnn(ann) {
@@ -54,10 +82,43 @@ function isMaterialAnn(ann) {
 // check — see assessNovelty() below for the light-touch downgrade rule.
 
 const STOPWORDS = new Set([
-  'the', 'and', 'for', 'from', 'with', 'under', 'regulation', 'reg', 'ltd', 'limited',
-  'company', 'board', 'meeting', 'intimation', 'disclosure', 'disclosures', 'announcement',
-  'sebi', 'lodr', 'this', 'that', 'has', 'have', 'been', 'are', 'was', 'were', 'its', 'shares',
-  'share', 'private', 'private limited', 'pursuant', 'per', 'held', 'inter', 'alia',
+  'the',
+  'and',
+  'for',
+  'from',
+  'with',
+  'under',
+  'regulation',
+  'reg',
+  'ltd',
+  'limited',
+  'company',
+  'board',
+  'meeting',
+  'intimation',
+  'disclosure',
+  'disclosures',
+  'announcement',
+  'sebi',
+  'lodr',
+  'this',
+  'that',
+  'has',
+  'have',
+  'been',
+  'are',
+  'was',
+  'were',
+  'its',
+  'shares',
+  'share',
+  'private',
+  'private limited',
+  'pursuant',
+  'per',
+  'held',
+  'inter',
+  'alia',
 ]);
 
 function tokenize(s) {
@@ -81,10 +142,18 @@ function textSimilarity(a, b) {
 // Explicit phrasing that flags a filing as a follow-up to something already
 // disclosed, independent of text-similarity matching against our own history.
 const FOLLOWUP_PHRASES = [
-  /further to (our|the)/i, /in continuation of/i, /as (already )?informed/i,
-  /as intimated (earlier|previously)/i, /follow[- ]?up to/i, /pursuant to (our|the) (earlier|previous)/i,
-  /corrigendum/i, /clarification to/i, /revised (intimation|announcement)/i, /reiterat/i,
-  /update on/i, /status update/i,
+  /further to (our|the)/i,
+  /in continuation of/i,
+  /as (already )?informed/i,
+  /as intimated (earlier|previously)/i,
+  /follow[- ]?up to/i,
+  /pursuant to (our|the) (earlier|previous)/i,
+  /corrigendum/i,
+  /clarification to/i,
+  /revised (intimation|announcement)/i,
+  /reiterat/i,
+  /update on/i,
+  /status update/i,
 ];
 
 function looksLikeFollowUpPhrasing(subject) {
@@ -111,7 +180,12 @@ function normalizeCompanyId(id) {
  * (announcementTitle + insight text). Returns null (unknown) when there's no
  * history to compare against — absence of history is not evidence of repetition.
  */
-function assessNovelty(companyId, materialSubjects, db, { lookbackDays = NOVELTY_LOOKBACK_DAYS } = {}) {
+function assessNovelty(
+  companyId,
+  materialSubjects,
+  db,
+  { lookbackDays = NOVELTY_LOOKBACK_DAYS } = {}
+) {
   if (!materialSubjects.length) return null;
   const cid = normalizeCompanyId(companyId);
   const since = new Date(Date.now() - lookbackDays * 864e5).toISOString().slice(0, 10);
@@ -124,15 +198,21 @@ function assessNovelty(companyId, materialSubjects, db, { lookbackDays = NOVELTY
         if (line.startsWith('📋') || line.startsWith('📄')) pastTexts.push(line.slice(2).trim());
       }
     }
-  } catch (_) { /* best-effort */ }
+  } catch (_) {
+    /* best-effort */
+  }
 
   try {
-    const pastNotes = db.find('notes', { companyId: cid, since }).filter((n) => n.type !== 'business-summary');
+    const pastNotes = db
+      .find('notes', { companyId: cid, since })
+      .filter((n) => n.type !== 'business-summary');
     for (const n of pastNotes) {
       if (n.announcementTitle) pastTexts.push(n.announcementTitle);
       if (n.text) pastTexts.push(n.text);
     }
-  } catch (_) { /* best-effort */ }
+  } catch (_) {
+    /* best-effort */
+  }
 
   if (!pastTexts.length) return null; // no history to compare against — unknown, not "repeat"
 
@@ -149,11 +229,19 @@ function assessNovelty(companyId, materialSubjects, db, { lookbackDays = NOVELTY
     let bestText = null;
     for (const t of pastTexts) {
       const sim = textSimilarity(subj, t);
-      if (sim > best) { best = sim; bestText = t; }
+      if (sim > best) {
+        best = sim;
+        bestText = t;
+      }
     }
     if (best >= NOVELTY_SIMILARITY_THRESHOLD) {
       followUpCount += 1;
-      matches.push({ subject: subj, reason: 'similarity', score: Math.round(best * 100) / 100, matchedPrior: bestText });
+      matches.push({
+        subject: subj,
+        reason: 'similarity',
+        score: Math.round(best * 100) / 100,
+        matchedPrior: bestText,
+      });
     } else {
       newCount += 1;
     }
@@ -194,10 +282,10 @@ function buildEvidence(g, sectorCatalystIndustries, novelty) {
       ev.push(`Delivery ${pct.toFixed(1)}% ${tag}`);
     }
     if (deliv.high_delivery) {
-      ev.push("⚡ High-delivery flag");
+      ev.push('⚡ High-delivery flag');
     }
   } else {
-    ev.push("⚠️ Delivery data unavailable — confirm on bseindia.com");
+    ev.push('⚠️ Delivery data unavailable — confirm on bseindia.com');
   }
 
   // Price signals
@@ -207,20 +295,20 @@ function buildEvidence(g, sectorCatalystIndustries, novelty) {
       if (typeof ps.vol_ratio === 'number') {
         ev.push(`🔊 Volume spike (${ps.vol_ratio.toFixed(1)}x avg)`);
       } else {
-        ev.push("🔊 Volume spike");
+        ev.push('🔊 Volume spike');
       }
     }
     if (ps.breakout_52w) {
-      ev.push("🚀 52-week high breakout");
+      ev.push('🚀 52-week high breakout');
     }
     if (ps.above_200dma) {
-      ev.push("📈 Above 200-DMA");
+      ev.push('📈 Above 200-DMA');
     }
     if (typeof ps.rsi === 'number' && ps.rsi > 70) {
       ev.push(`RSI ${Math.round(ps.rsi)} (overbought)`);
     }
   } else {
-    ev.push("⚠️ Price-history signals unavailable");
+    ev.push('⚠️ Price-history signals unavailable');
   }
 
   // Sector
@@ -233,7 +321,7 @@ function buildEvidence(g, sectorCatalystIndustries, novelty) {
 
 function classify(g, sectorCatalystIndustries, novelty) {
   const deliv = g.delivery || {};
-  const delivPct = deliv.available ? (deliv.deliv_per || 0) : 0;
+  const delivPct = deliv.available ? deliv.deliv_per || 0 : 0;
   const highDel = !!deliv.high_delivery;
   const hasMat = !!g.has_material_ann;
   const anns = g.announcements || [];
@@ -248,35 +336,46 @@ function classify(g, sectorCatalystIndustries, novelty) {
 
   // FUNDAMENTAL
   if (hasMat && anns.length > 0) {
-    let conviction = (highDel || delivPct >= 30) ? "HIGH" : "MEDIUM";
+    let conviction = highDel || delivPct >= 30 ? 'HIGH' : 'MEDIUM';
     // Novelty check (light touch, per user guidance — never more than one notch,
     // and only when EVERY material announcement looks like a reiteration of
     // something already disclosed, not a mix). A HIGH built on stale news is
     // weaker than a HIGH built on a genuine surprise; a MEDIUM stays MEDIUM —
     // this metric nudges, it doesn't dominate the read.
-    if (novelty && novelty.assessed && novelty.total > 0 && novelty.followUpCount === novelty.total && conviction === "HIGH") {
-      conviction = "MEDIUM";
+    if (
+      novelty &&
+      novelty.assessed &&
+      novelty.total > 0 &&
+      novelty.followUpCount === novelty.total &&
+      conviction === 'HIGH'
+    ) {
+      conviction = 'MEDIUM';
     }
-    return { primary_driver: "FUNDAMENTAL", conviction };
+    return { primary_driver: 'FUNDAMENTAL', conviction };
   }
 
   // SECTOR_CATALYST
   if (inSector) {
-    const conviction = (highDel || delivPct >= 30) ? "HIGH" : "MEDIUM";
-    return { primary_driver: "SECTOR_CATALYST", conviction };
+    const conviction = highDel || delivPct >= 30 ? 'HIGH' : 'MEDIUM';
+    return { primary_driver: 'SECTOR_CATALYST', conviction };
   }
 
   // PRICE_ACTION
-  const paSignals = (highDel ? 1 : 0) + (volSpike ? 1 : 0) + (breakout ? 1 : 0) + (above200 ? 1 : 0) + (delivPct >= 40 ? 1 : 0);
+  const paSignals =
+    (highDel ? 1 : 0) +
+    (volSpike ? 1 : 0) +
+    (breakout ? 1 : 0) +
+    (above200 ? 1 : 0) +
+    (delivPct >= 40 ? 1 : 0);
   if (paSignals >= 2) {
-    return { primary_driver: "PRICE_ACTION", conviction: "HIGH" };
+    return { primary_driver: 'PRICE_ACTION', conviction: 'HIGH' };
   }
   if (paSignals === 1 || delivPct >= 25) {
-    return { primary_driver: "PRICE_ACTION", conviction: "MEDIUM" };
+    return { primary_driver: 'PRICE_ACTION', conviction: 'MEDIUM' };
   }
 
   // VOLATILITY
-  return { primary_driver: "VOLATILITY", conviction: "LOW" };
+  return { primary_driver: 'VOLATILITY', conviction: 'LOW' };
 }
 
 function main() {
@@ -299,7 +398,10 @@ function main() {
   for (const g of gainers) {
     const anns = g.announcements || [];
     const materialSubjects = g.has_material_ann
-      ? anns.filter(isMaterialAnn).map((a) => a.subject || a.category || '').filter(Boolean)
+      ? anns
+          .filter(isMaterialAnn)
+          .map((a) => a.subject || a.category || '')
+          .filter(Boolean)
       : [];
     const novelty = assessNovelty(g.ticker, materialSubjects, db);
 
@@ -307,7 +409,7 @@ function main() {
     const driver = cls.primary_driver;
     const conv = cls.conviction;
     const ev = buildEvidence(g, sectorCatalystIndustries, novelty);
-    const inEm = (conv === "HIGH" || conv === "MEDIUM") && driver !== "VOLATILITY";
+    const inEm = (conv === 'HIGH' || conv === 'MEDIUM') && driver !== 'VOLATILITY';
     const nowIso = new Date().toISOString();
 
     signals.push({
@@ -316,10 +418,10 @@ function main() {
       companyId: g.ticker,
       creationTime: nowIso,
       modifiedTime: nowIso,
-      creator: "gainers-signal",
+      creator: 'gainers-signal',
       ticker: g.ticker,
       name: g.name,
-      industry: g.industry || "",
+      industry: g.industry || '',
       return_1d: g.return_1d,
       market_cap_cr: g.market_cap_cr,
       primary_driver: driver,
@@ -341,8 +443,11 @@ function main() {
   for (const ind of sectorCatalystIndustries) {
     const info = indSummary[ind] || {};
     const tickers = info.gainer_tickers || [];
-    const returns = gainers.filter(g => tickers.includes(g.ticker)).map(g => g.return_1d).filter(r => r !== undefined && r !== null);
-    
+    const returns = gainers
+      .filter((g) => tickers.includes(g.ticker))
+      .map((g) => g.return_1d)
+      .filter((r) => r !== undefined && r !== null);
+
     let avgReturn = 0;
     if (returns.length > 0) {
       const sum = returns.reduce((a, b) => a + b, 0);
@@ -356,17 +461,19 @@ function main() {
   }
 
   const totalAnalyzed = signals.length;
-  const inEmailCount = signals.filter(s => s.in_email).length;
+  const inEmailCount = signals.filter((s) => s.in_email).length;
   const noiseExcluded = totalAnalyzed - inEmailCount;
 
   const insights = {
-    schema_version: "1.0",
+    schema_version: '1.0',
     market_date: marketDate,
     total_analyzed: totalAnalyzed,
     in_email: inEmailCount,
     noise_excluded: noiseExcluded,
-    ann_api_available: gainers.some(g => (g.ann_count || 0) > 0),
-    price_api_available: gainers.some(g => g.price_signals && g.price_signals.error === undefined),
+    ann_api_available: gainers.some((g) => (g.ann_count || 0) > 0),
+    price_api_available: gainers.some(
+      (g) => g.price_signals && g.price_signals.error === undefined
+    ),
     sector_catalysts: sectorCatalysts,
     signals,
   };
@@ -397,9 +504,11 @@ function main() {
   const CONVICTION_RANK = { HIGH: 3, MEDIUM: 2, LOW: 1 };
   const top3 = [...signals]
     .filter((s) => s.in_email)
-    .sort((a, b) =>
-      (CONVICTION_RANK[b.conviction] || 0) - (CONVICTION_RANK[a.conviction] || 0) ||
-      Math.abs(b.return_1d || 0) - Math.abs(a.return_1d || 0))
+    .sort(
+      (a, b) =>
+        (CONVICTION_RANK[b.conviction] || 0) - (CONVICTION_RANK[a.conviction] || 0) ||
+        Math.abs(b.return_1d || 0) - Math.abs(a.return_1d || 0)
+    )
     .slice(0, 3);
   const top3Context = top3.map((s) => {
     const cid = normalizeCompanyId(s.companyId);
@@ -410,27 +519,50 @@ function main() {
       context = { error: e.message };
     }
     return {
-      companyId: cid, ticker: s.ticker, name: s.name, conviction: s.conviction,
-      primary_driver: s.primary_driver, return_1d: s.return_1d, evidence: s.evidence,
-      novelty: s.novelty, context,
+      companyId: cid,
+      ticker: s.ticker,
+      name: s.name,
+      conviction: s.conviction,
+      primary_driver: s.primary_driver,
+      return_1d: s.return_1d,
+      evidence: s.evidence,
+      novelty: s.novelty,
+      context,
     };
   });
   const top3Path = path.join(RUNS_DIR, `gainers_top3_context_${marketDate.replace(/-/g, '')}.json`);
-  fs.writeFileSync(top3Path, JSON.stringify({
-    market_date: marketDate,
-    purpose: 'Context seed for the mandatory top-3-by-conviction briefing reports — see gainers-signal SKILL.md Step 3.5. Write one db.saveReport() DTO per company from this.',
-    companies: top3Context,
-  }, null, 2));
+  fs.writeFileSync(
+    top3Path,
+    JSON.stringify(
+      {
+        market_date: marketDate,
+        purpose:
+          'Context seed for the mandatory top-3-by-conviction briefing reports — see gainers-signal SKILL.md Step 3.5. Write one db.saveReport() DTO per company from this.',
+        companies: top3Context,
+      },
+      null,
+      2
+    )
+  );
 
-  console.error(`[classifier] events: +${stats.inserted}/${stats.updated}~; wrote ${path.basename(outPath)}, ${path.basename(top3Path)} (top-3: ${top3.map(s => s.ticker).join(', ') || 'none'})  (${totalAnalyzed} analyzed, ${inEmailCount} in email)`);
+  console.error(
+    `[classifier] events: +${stats.inserted}/${stats.updated}~; wrote ${path.basename(outPath)}, ${path.basename(top3Path)} (top-3: ${top3.map((s) => s.ticker).join(', ') || 'none'})  (${totalAnalyzed} analyzed, ${inEmailCount} in email)`
+  );
 }
 
 // Offline-testable exports (Convention §4) — business logic importable without
 // hitting fs/db, aside from assessNovelty which takes `db` as an explicit param
 // so tests can pass a mock.
 module.exports = {
-  classify, buildEvidence, isMaterialAnn, assessNovelty, textSimilarity, tokenize,
-  looksLikeFollowUpPhrasing, normalizeCompanyId, main,
+  classify,
+  buildEvidence,
+  isMaterialAnn,
+  assessNovelty,
+  textSimilarity,
+  tokenize,
+  looksLikeFollowUpPhrasing,
+  normalizeCompanyId,
+  main,
 };
 
 if (require.main === module) {

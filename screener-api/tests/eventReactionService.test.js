@@ -5,7 +5,9 @@ const os = require('os');
 const path = require('path');
 
 jest.mock('@stock/api', () => ({
-  nse: {}, bse: {}, stockscans: {},
+  nse: {},
+  bse: {},
+  stockscans: {},
   fetchEventReactionMetrics: jest.fn(),
   classifySignal: jest.fn(),
 }));
@@ -31,7 +33,9 @@ describe('eventReactionService (Drive/data-file cache, NOT MongoDB — see docs/
   });
 
   it('writes into data/cache/event-reaction/<SYMBOL>.json, not a database connection', () => {
-    expect(svc.cacheFile('ELECON')).toBe(path.join(tmpDir, 'cache', 'event-reaction', 'ELECON.json'));
+    expect(svc.cacheFile('ELECON')).toBe(
+      path.join(tmpDir, 'cache', 'event-reaction', 'ELECON.json')
+    );
   });
 
   describe('getLatestCached', () => {
@@ -41,11 +45,26 @@ describe('eventReactionService (Drive/data-file cache, NOT MongoDB — see docs/
 
     it('returns the most recent entry (by eventTimestamp) for the given eventType', async () => {
       fs.mkdirSync(path.dirname(svc.cacheFile('ELECON')), { recursive: true });
-      fs.writeFileSync(svc.cacheFile('ELECON'), JSON.stringify({
-        'result|2026-04-01T10:00:00+05:30': { eventType: 'result', eventTimestamp: '2026-04-01T10:00:00+05:30', metrics: { sinceResult: 0.01 } },
-        'result|2026-07-10T11:47:46+05:30': { eventType: 'result', eventTimestamp: '2026-07-10T11:47:46+05:30', metrics: { sinceResult: 0.04 } },
-        'concall|2026-07-09T22:21:12+05:30': { eventType: 'concall', eventTimestamp: '2026-07-09T22:21:12+05:30', metrics: { sinceResult: 0.02 } },
-      }));
+      fs.writeFileSync(
+        svc.cacheFile('ELECON'),
+        JSON.stringify({
+          'result|2026-04-01T10:00:00+05:30': {
+            eventType: 'result',
+            eventTimestamp: '2026-04-01T10:00:00+05:30',
+            metrics: { sinceResult: 0.01 },
+          },
+          'result|2026-07-10T11:47:46+05:30': {
+            eventType: 'result',
+            eventTimestamp: '2026-07-10T11:47:46+05:30',
+            metrics: { sinceResult: 0.04 },
+          },
+          'concall|2026-07-09T22:21:12+05:30': {
+            eventType: 'concall',
+            eventTimestamp: '2026-07-09T22:21:12+05:30',
+            metrics: { sinceResult: 0.02 },
+          },
+        })
+      );
 
       const latest = await svc.getLatestCached('elecon', 'result');
       expect(latest.eventTimestamp).toBe('2026-07-10T11:47:46+05:30');
@@ -64,8 +83,19 @@ describe('eventReactionService (Drive/data-file cache, NOT MongoDB — see docs/
 
     it('writes a new entry keyed by eventType|eventTimestamp for a new event', async () => {
       fetchEventReactionMetrics.mockResolvedValue({
-        event: { source: 'NSE', headline: 'Outcome of Board Meeting', timestamp: '2026-07-10T11:47:46+05:30' },
-        metrics: { sinceResult: 0.045, oneHour: 0.03, oneDay: null, oneWeek: null, oneMonth: null, note: 'window not yet elapsed' },
+        event: {
+          source: 'NSE',
+          headline: 'Outcome of Board Meeting',
+          timestamp: '2026-07-10T11:47:46+05:30',
+        },
+        metrics: {
+          sinceResult: 0.045,
+          oneHour: 0.03,
+          oneDay: null,
+          oneWeek: null,
+          oneMonth: null,
+          note: 'window not yet elapsed',
+        },
         apiCalls: { announcements: 3, ohlcv: 3 },
       });
       classifySignal.mockReturnValue({ oneDay: null, oneWeek: null, oneMonth: null, any: null });
@@ -84,7 +114,12 @@ describe('eventReactionService (Drive/data-file cache, NOT MongoDB — see docs/
         metrics: { sinceResult: 0.01, note: null },
         apiCalls: {},
       });
-      classifySignal.mockReturnValue({ oneDay: false, oneWeek: false, oneMonth: false, any: false });
+      classifySignal.mockReturnValue({
+        oneDay: false,
+        oneWeek: false,
+        oneMonth: false,
+        any: false,
+      });
       await svc.refreshEventReaction('ELECON', 'result');
 
       fetchEventReactionMetrics.mockResolvedValueOnce({
@@ -103,12 +138,21 @@ describe('eventReactionService (Drive/data-file cache, NOT MongoDB — see docs/
     it('is a no-op (no extra fetch, cache untouched) when the current event is already cached with settled metrics', async () => {
       fs.mkdirSync(path.dirname(svc.cacheFile('ELECON')), { recursive: true });
       const existingEntry = {
-        companyId: 'ELECON', eventType: 'result', eventTimestamp: '2026-07-10T11:47:46+05:30',
+        companyId: 'ELECON',
+        eventType: 'result',
+        eventTimestamp: '2026-07-10T11:47:46+05:30',
         metrics: { sinceResult: 0.045, note: null },
       };
-      fs.writeFileSync(svc.cacheFile('ELECON'), JSON.stringify({ 'result|2026-07-10T11:47:46+05:30': existingEntry }));
+      fs.writeFileSync(
+        svc.cacheFile('ELECON'),
+        JSON.stringify({ 'result|2026-07-10T11:47:46+05:30': existingEntry })
+      );
       fetchEventReactionMetrics.mockResolvedValue({
-        event: { source: 'NSE', headline: 'Outcome of Board Meeting', timestamp: '2026-07-10T11:47:46+05:30' },
+        event: {
+          source: 'NSE',
+          headline: 'Outcome of Board Meeting',
+          timestamp: '2026-07-10T11:47:46+05:30',
+        },
         metrics: { sinceResult: 0.045, note: null },
         apiCalls: {},
       });
@@ -120,7 +164,11 @@ describe('eventReactionService (Drive/data-file cache, NOT MongoDB — see docs/
 
     it('de-dupes concurrent refreshes for the same symbol+eventType into one fetch', async () => {
       let resolveMetrics;
-      fetchEventReactionMetrics.mockReturnValue(new Promise((resolve) => { resolveMetrics = resolve; }));
+      fetchEventReactionMetrics.mockReturnValue(
+        new Promise((resolve) => {
+          resolveMetrics = resolve;
+        })
+      );
 
       const p1 = svc.refreshEventReaction('ELECON', 'result');
       const p2 = svc.refreshEventReaction('ELECON', 'result');
@@ -148,12 +196,22 @@ describe('eventReactionService (Drive/data-file cache, NOT MongoDB — see docs/
 
     it('reshapes a cached entry into the screener-web row.eventReaction shape', async () => {
       fs.mkdirSync(path.dirname(svc.cacheFile('ELECON')), { recursive: true });
-      fs.writeFileSync(svc.cacheFile('ELECON'), JSON.stringify({
-        'result|2026-07-10T11:47:46+05:30': {
-          eventType: 'result', eventTimestamp: '2026-07-10T11:47:46+05:30',
-          metrics: { sinceResult: 0.044, oneHour: 0.029, oneDay: null, oneWeek: null, oneMonth: null },
-        },
-      }));
+      fs.writeFileSync(
+        svc.cacheFile('ELECON'),
+        JSON.stringify({
+          'result|2026-07-10T11:47:46+05:30': {
+            eventType: 'result',
+            eventTimestamp: '2026-07-10T11:47:46+05:30',
+            metrics: {
+              sinceResult: 0.044,
+              oneHour: 0.029,
+              oneDay: null,
+              oneWeek: null,
+              oneMonth: null,
+            },
+          },
+        })
+      );
       fetchEventReactionMetrics.mockResolvedValue({ event: null, metrics: null, apiCalls: {} });
 
       const result = await svc.ensureEventReactionCached('elecon', 'result');

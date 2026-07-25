@@ -7,28 +7,37 @@ const { classify, priceVolumeAlerts } = require('./catalystRules');
 const { resolveUniverse } = require('./runScan');
 
 const SEV_ORDER = { HIGH: 0, RISK: 1, MEDIUM: 2 };
-const SEV_COLOR = { HIGH: "#16a34a", RISK: "#dc2626", MEDIUM: "#d97706" };
+const SEV_COLOR = { HIGH: '#16a34a', RISK: '#dc2626', MEDIUM: '#d97706' };
 
 function escapeHtml(s) {
-  return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 function renderHtml(alerts, meta) {
-  const cards = alerts.map(a => {
+  const cards = alerts.map((a) => {
     const sev = a.severity;
-    const chips = [...(a.marquee || []).slice(0,3), ...(a.themes || []).slice(0,3), ...(a.investors || []).slice(0,3)]
-      .map(x => `<span class="chip">${escapeHtml(x)}</span>`)
-      .join("");
-    
-    let val = "";
+    const chips = [
+      ...(a.marquee || []).slice(0, 3),
+      ...(a.themes || []).slice(0, 3),
+      ...(a.investors || []).slice(0, 3),
+    ]
+      .map((x) => `<span class="chip">${escapeHtml(x)}</span>`)
+      .join('');
+
+    let val = '';
     if (a.value_cr) {
-      val = `<span class="val">Rs ${a.value_cr.toLocaleString('en-IN', {maximumFractionDigits:0})} cr`;
-      if (a.btb) val += ` · ${(a.btb*100).toFixed(0)}% of TTM rev`;
+      val = `<span class="val">Rs ${a.value_cr.toLocaleString('en-IN', { maximumFractionDigits: 0 })} cr`;
+      if (a.btb) val += ` · ${(a.btb * 100).toFixed(0)}% of TTM rev`;
       val += `</span>`;
     }
-    
-    const pdf = a.pdf ? `<a class="pdf" href="${escapeHtml(stockscans.s3PdfUrl(a.pdf))}" target="_blank">filing PDF ↗</a>` : "";
-    
+
+    const pdf = a.pdf
+      ? `<a class="pdf" href="${escapeHtml(stockscans.s3PdfUrl(a.pdf))}" target="_blank">filing PDF ↗</a>`
+      : '';
+
     return `
         <div class="card sev-${sev}" data-sev="${sev}">
           <div class="row1">
@@ -46,9 +55,9 @@ function renderHtml(alerts, meta) {
   });
 
   const counts = {
-    HIGH: alerts.filter(a => a.severity === 'HIGH').length,
-    MEDIUM: alerts.filter(a => a.severity === 'MEDIUM').length,
-    RISK: alerts.filter(a => a.severity === 'RISK').length,
+    HIGH: alerts.filter((a) => a.severity === 'HIGH').length,
+    MEDIUM: alerts.filter((a) => a.severity === 'MEDIUM').length,
+    RISK: alerts.filter((a) => a.severity === 'RISK').length,
   };
 
   return `<!doctype html><html><head><meta charset="utf-8">
@@ -104,7 +113,7 @@ async function fetchAnnouncementsBatch(tickers, stopBefore, maxPages = 10) {
 
     let stale = false;
     for (const row of rows) {
-      const d = (row.date || "").substring(0, 10);
+      const d = (row.date || '').substring(0, 10);
       if (d && d < stopBefore) {
         stale = true;
         continue;
@@ -112,7 +121,7 @@ async function fetchAnnouncementsBatch(tickers, stopBefore, maxPages = 10) {
       out.push(row);
     }
     if (stale || rows.length < 30) break;
-    await new Promise(res => setTimeout(res, 300));
+    await new Promise((res) => setTimeout(res, 300));
   }
   return out;
 }
@@ -148,7 +157,7 @@ async function scanCatalysts(scanId, options = {}) {
   const seen = new Set();
   const rawAlerts = [];
   for (const ann of raw) {
-    const key = `${ann.companyId}|${(ann.date||"").substring(0,10)}|${(ann.title||"").substring(0,80)}|${(ann.description||"").substring(0,120)}`;
+    const key = `${ann.companyId}|${(ann.date || '').substring(0, 10)}|${(ann.title || '').substring(0, 80)}|${(ann.description || '').substring(0, 120)}`;
     if (seen.has(key)) continue;
     seen.add(key);
 
@@ -175,25 +184,27 @@ async function scanCatalysts(scanId, options = {}) {
   }
 
   const alerts = grouped;
-  const META_CATEGORIES = new Set(["PRICE/VOLUME", "INSTITUTIONAL INTEREST", "RESULTS"]);
+  const META_CATEGORIES = new Set(['PRICE/VOLUME', 'INSTITUTIONAL INTEREST', 'RESULTS']);
   const structural = {};
   for (const a of alerts) {
-    if (!META_CATEGORIES.has(a.category) && a.severity !== "RISK") {
+    if (!META_CATEGORIES.has(a.category) && a.severity !== 'RISK') {
       structural[a.companyId] = (structural[a.companyId] || 0) + 1;
     }
   }
 
   for (const a of alerts) {
     const n = structural[a.companyId] || 0;
-    if (n >= 3 && !META_CATEGORIES.has(a.category) && a.severity === "MEDIUM") {
-      a.severity = "HIGH";
-      a.why = `CONFLUENCE: ${n} structural filings by this company in window — coordinated strategic event. ` + a.why;
+    if (n >= 3 && !META_CATEGORIES.has(a.category) && a.severity === 'MEDIUM') {
+      a.severity = 'HIGH';
+      a.why =
+        `CONFLUENCE: ${n} structural filings by this company in window — coordinated strategic event. ` +
+        a.why;
       a.modifiedTime = new Date().toISOString();
     }
   }
 
   alerts.push(...priceVolumeAlerts(companies));
-  
+
   alerts.sort((a, b) => {
     const sevA = SEV_ORDER[a.severity] ?? 9;
     const sevB = SEV_ORDER[b.severity] ?? 9;
@@ -201,20 +212,23 @@ async function scanCatalysts(scanId, options = {}) {
     return b.date.localeCompare(a.date);
   });
 
-  const tag = today.toISOString().replace(/[-T:.Z]/g, '').substring(0, 8);
+  const tag = today
+    .toISOString()
+    .replace(/[-T:.Z]/g, '')
+    .substring(0, 8);
   const meta = {
-    window: `${stopBefore} → ${today.toISOString().substring(0,10)} UTC`,
+    window: `${stopBefore} → ${today.toISOString().substring(0, 10)} UTC`,
     n_companies: companies.length,
     n_raw: raw.length,
-    generated: today.toISOString()
+    generated: today.toISOString(),
   };
 
   const outputDir = path.resolve(outDir);
   fs.mkdirSync(outputDir, { recursive: true });
-  
+
   const jpath = path.join(outputDir, `catalyst_alerts_${tag}.json`);
   const hpath = path.join(outputDir, `catalyst_alerts_${tag}.html`);
-  
+
   fs.writeFileSync(jpath, JSON.stringify({ meta, alerts }, null, 1), 'utf-8');
   fs.writeFileSync(hpath, renderHtml(alerts, meta), 'utf-8');
 
@@ -224,5 +238,5 @@ async function scanCatalysts(scanId, options = {}) {
 module.exports = {
   scanCatalysts,
   renderHtml,
-  fetchAnnouncementsBatch
+  fetchAnnouncementsBatch,
 };

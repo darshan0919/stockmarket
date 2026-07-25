@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 **/node_modules/
+.yarn/
 
 # Build outputs
 .next/
@@ -11,6 +12,10 @@ build/
 # Coverage
 coverage/
 **/coverage/
+
+# Data & Downloads
+data/
+downloads/
 
 # Logs
 *.log
@@ -31,7 +36,5 @@ pnpm-lock.yaml
 # Generated files
 *.min.js
 *.min.css
-
-# Documentation assets
-*.md
-
+*.pdf
+*.docx

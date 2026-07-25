@@ -57,7 +57,10 @@ function save(companyId, date, bundle) {
   fs.mkdirSync(d, { recursive: true });
   const f = file(companyId, date);
   const tmp = `${f}.tmp.${process.pid}`;
-  fs.writeFileSync(tmp, JSON.stringify({ companyId, date, fetchedAt: new Date().toISOString(), ...bundle }, null, 2));
+  fs.writeFileSync(
+    tmp,
+    JSON.stringify({ companyId, date, fetchedAt: new Date().toISOString(), ...bundle }, null, 2)
+  );
   fs.renameSync(tmp, f);
   return f;
 }
@@ -78,7 +81,8 @@ function getOrderBook(companyId, date) {
 /** Merge an extraction result onto the existing bundle (never overwrites finalReport). */
 function saveOrderBook(companyId, date, orderBookResult) {
   const bundle = get(companyId, date);
-  if (!bundle) throw new Error(`No concall-notes record for ${companyId} ${date} — fetch it first.`);
+  if (!bundle)
+    throw new Error(`No concall-notes record for ${companyId} ${date} — fetch it first.`);
   bundle.orderBook = { ...orderBookResult, computedAt: new Date().toISOString() };
   return save(companyId, date, bundle);
 }
@@ -87,7 +91,8 @@ function saveOrderBook(companyId, date, orderBookResult) {
 function listQuarters(companyId) {
   const d = dir(companyId);
   if (!fs.existsSync(d)) return [];
-  return fs.readdirSync(d)
+  return fs
+    .readdirSync(d)
     .filter((f) => f.endsWith('.json') && !f.includes('.tmp.'))
     .map((f) => f.replace(/\.json$/, ''))
     .sort();
@@ -100,4 +105,13 @@ function listCompanies() {
   return fs.readdirSync(root).filter((f) => fs.statSync(path.join(root, f)).isDirectory());
 }
 
-module.exports = { has, get, save, listQuarters, listCompanies, safeName, getOrderBook, saveOrderBook };
+module.exports = {
+  has,
+  get,
+  save,
+  listQuarters,
+  listCompanies,
+  safeName,
+  getOrderBook,
+  saveOrderBook,
+};

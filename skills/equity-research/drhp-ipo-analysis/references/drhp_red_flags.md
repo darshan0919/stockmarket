@@ -73,6 +73,7 @@ For supplier concentration, similar bands apply on input-cost side.
 **What to check:** "Outstanding Litigation" annexure for cases against the company, against promoters, against KMPs.
 
 Categories to score:
+
 - **Tax disputes** — common, often less concerning unless quantified-large
 - **Civil litigation** (commercial disputes) — moderate
 - **Criminal proceedings** against promoter/KMP — RED automatically
@@ -143,21 +144,21 @@ Adjust expectations for sector — service businesses (consulting, asset managem
 
 **Why it matters:** An RPT entity that is simultaneously (a) a growing/active related-party transaction counterparty and (b) named in a pending litigation (especially criminal proceedings) involving the promoters is a materially different situation than either fact in isolation. The Prospectus discloses both facts separately (as required) but never draws the connection — that connection is exactly the kind of thing that gets missed in a section-by-section read and is high-value for an analyst to surface explicitly.
 
-**RED if:** An RPT counterparty is named as a party (plaintiff, defendant, or transaction subject) in a *criminal* proceeding involving promoters/KMPs, AND the RPT relationship with that entity is active/growing (not wound down).
-**YELLOW if:** An RPT counterparty appears in a *civil* or tax dispute involving the company/promoters; or appears in litigation but the RPT relationship has since been reduced to near-zero.
+**RED if:** An RPT counterparty is named as a party (plaintiff, defendant, or transaction subject) in a _criminal_ proceeding involving promoters/KMPs, AND the RPT relationship with that entity is active/growing (not wound down).
+**YELLOW if:** An RPT counterparty appears in a _civil_ or tax dispute involving the company/promoters; or appears in litigation but the RPT relationship has since been reduced to near-zero.
 **GREEN if:** No overlap between RPT counterparty names and litigation-section party names.
 
-**Example (Laser Power & Infra, July 2026 Prospectus):** G.M. Dalui & Sons Private Limited is disclosed as an RPT counterparty (purchases growing 0 → ₹10.86mn → ₹89.97mn over FY24-FY26) *and* is the transaction counterparty underlying a pending criminal complaint (cheating / criminal breach of trust / conspiracy) in which the promoters are respondents seeking quashing before the Calcutta High Court. Scored YELLOW/RED-leaning in that analysis — flagged as the single most material finding in the filing, and not something either section alone would have surfaced.
+**Example (Laser Power & Infra, July 2026 Prospectus):** G.M. Dalui & Sons Private Limited is disclosed as an RPT counterparty (purchases growing 0 → ₹10.86mn → ₹89.97mn over FY24-FY26) _and_ is the transaction counterparty underlying a pending criminal complaint (cheating / criminal breach of trust / conspiracy) in which the promoters are respondents seeking quashing before the Calcutta High Court. Scored YELLOW/RED-leaning in that analysis — flagged as the single most material finding in the filing, and not something either section alone would have surfaced.
 
 ---
 
 ## How the red-flag count drives subscription view
 
-| Count of RED flags | Implied subscription view |
-|---|---|
-| 0 | SUBSCRIBE (subject to valuation check from Dimension §9) |
-| 1-2 | SUBSCRIBE-FOR-LISTING-GAINS-ONLY or WATCH-POST-LISTING |
-| 3+ | AVOID |
+| Count of RED flags | Implied subscription view                                |
+| ------------------ | -------------------------------------------------------- |
+| 0                  | SUBSCRIBE (subject to valuation check from Dimension §9) |
+| 1-2                | SUBSCRIBE-FOR-LISTING-GAINS-ONLY or WATCH-POST-LISTING   |
+| 3+                 | AVOID                                                    |
 
 Count of YELLOW flags is informational; it modifies confidence in the SUBSCRIBE view but doesn't override it.
 

@@ -43,19 +43,20 @@ to a week of corporate-action flow instead of a results PPT.
 
 ## How this differs from neighbouring skills
 
-| If you need... | Route to |
-|---|---|
-| Multi-company (watchlist) daily catalyst alerts | `watchlist-catalyst-scanner` |
-| Full single-quarter result interpretation (3-basket) | `quarterly-result-analysis` |
-| 1-page conviction note with growth triggers | `growth-triggers-1pager` |
-| Forensic red-flag scan from annual reports | `forensic-accounting` |
-| **"Did anything change THIS WEEK that matters?" — single company** | **THIS SKILL** |
+| If you need...                                                     | Route to                     |
+| ------------------------------------------------------------------ | ---------------------------- |
+| Multi-company (watchlist) daily catalyst alerts                    | `watchlist-catalyst-scanner` |
+| Full single-quarter result interpretation (3-basket)               | `quarterly-result-analysis`  |
+| 1-page conviction note with growth triggers                        | `growth-triggers-1pager`     |
+| Forensic red-flag scan from annual reports                         | `forensic-accounting`        |
+| **"Did anything change THIS WEEK that matters?" — single company** | **THIS SKILL**               |
 
 ## Workflow
 
 ### Step 1 — Resolve the ticker
 
 Accept either:
+
 - A bare ticker: `NSE:PARACABLES`, `BSE:500325`
 - A Stockscans company URL: `https://www.stockscans.in/company/NSE:PARACABLES`
   (also handle the URL-encoded form `NSE%3APARACABLES`)
@@ -136,7 +137,7 @@ updating a model, not a news aggregator summarising headlines:
    A board approving a fundraise that was guided on the last concall is
    confirmation (lower information content); an unguided acquisition
    announcement is new (higher information content). Markets re-rate on
-   *new* information disproportionately — flag which this is.
+   _new_ information disproportionately — flag which this is.
 
 4. **Tag STRUCTURAL / CYCLICAL / ONE-OFF / GOVERNANCE-SIGNAL** — same
    taxonomy as `quarterly-result-analysis`:
@@ -229,9 +230,10 @@ default and is sufficient for most uses.
 
 Follow [`management-credibility-tracker`'s shared conventions](../management-credibility-tracker/_shared/conventions.md),
 particularly:
+
 - §1 Indian-market conventions (Rs Cr, FY26 notation)
 - §2 Citation discipline — every SIGNAL item carries `[Source: filing-type,
-  DD-Mon-YYYY]`
+DD-Mon-YYYY]`
 - §3 Anti-hallucination protocol — read the actual filing PDF before sizing
   an order or fundraise; do not infer numbers not present in the
   announcement text or a quickly-fetched filing PDF

@@ -8,7 +8,6 @@ platforms: [Claude, ChatGPT, Gemini]
 
 # Project File Organization
 
-
 ## When to use this skill
 
 - **신규 프로젝트**: 초기 폴더 구조 설계
@@ -174,6 +173,7 @@ src/
 ### Step 4: 명명 규칙 (Naming Conventions)
 
 **파일명**:
+
 ```
 Components:       PascalCase.tsx
 Hooks:            camelCase.ts        (useAuth.ts)
@@ -184,6 +184,7 @@ Tests:            *.test.ts, *.spec.ts
 ```
 
 **폴더명**:
+
 ```
 kebab-case:       user-profile/
 camelCase:        userProfile/       (선택: hooks/, utils/)
@@ -193,6 +194,7 @@ PascalCase:       UserProfile/       (선택: components/)
 ```
 
 **변수/함수명**:
+
 ```typescript
 // Components: PascalCase
 const UserProfile = () => {};
@@ -219,6 +221,7 @@ const canEdit = true;
 ### Step 5: index.ts 배럴 파일
 
 **components/ui/index.ts**:
+
 ```typescript
 // ✅ 좋은 예: Named exports 재export
 export { Button } from './Button/Button';
@@ -230,6 +233,7 @@ import { Button, Input } from '@/components/ui';
 ```
 
 **❌ 나쁜 예**:
+
 ```typescript
 // 모든 것을 재export (tree-shaking 저해)
 export * from './Button';
@@ -284,6 +288,7 @@ my-app/
 3. **Path Aliases**: `@/` 사용으로 import 간소화
 
 **tsconfig.json**:
+
 ```json
 {
   "compilerOptions": {
@@ -298,6 +303,7 @@ my-app/
 ```
 
 **사용**:
+
 ```typescript
 // ❌ 나쁜 예
 import { Button } from '../../../components/ui/Button';
@@ -315,17 +321,21 @@ import { Button } from '@/components/ui';
 ## Metadata
 
 ### 버전
+
 - **현재 버전**: 1.0.0
 - **최종 업데이트**: 2025-01-01
 - **호환 플랫폼**: Claude, ChatGPT, Gemini
 
 ### 태그
+
 `#file-organization` `#project-structure` `#folder-structure` `#naming-conventions` `#utilities`
 
 ## Examples
 
 ### Example 1: Basic usage
+
 <!-- Add example content here -->
 
 ### Example 2: Advanced usage
+
 <!-- Add advanced example content here -->

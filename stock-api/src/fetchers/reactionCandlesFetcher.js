@@ -73,7 +73,14 @@ function normalizeRows(resp) {
     const iso = /[+-]\d{2}:\d{2}$|Z$/.test(withTime) ? withTime : `${withTime}+05:30`;
     const t = Date.parse(iso);
     if (!Number.isFinite(t)) continue;
-    out.push({ t, open: Number(row[1]), high: Number(row[2]), low: Number(row[3]), close: Number(row[4]), volume: Number(row[5] ?? 0) });
+    out.push({
+      t,
+      open: Number(row[1]),
+      high: Number(row[2]),
+      low: Number(row[3]),
+      close: Number(row[4]),
+      volume: Number(row[5] ?? 0),
+    });
   }
   out.sort((a, b) => a.t - b.t);
   return out;
@@ -88,7 +95,13 @@ function normalizeRows(resp) {
  * window we actually need — and pages backward only as far as `stopAtMs`.
  * @returns {{ candles: Array, calls: number }}
  */
-async function fetchTier(stockscans, ticker, tf, targetMs, { stopAtMs = -Infinity, maxPages = 4, bufferMinutes = 5 } = {}) {
+async function fetchTier(
+  stockscans,
+  ticker,
+  tf,
+  targetMs,
+  { stopAtMs = -Infinity, maxPages = 4, bufferMinutes = 5 } = {}
+) {
   const formatBefore = tf === '1D' ? toIstDateString : toIstNaiveString;
   const now = Date.now();
   const cap = Math.min(targetMs, now) + bufferMinutes * 60 * 1000;
@@ -133,7 +146,12 @@ async function fetchTier(stockscans, ticker, tf, targetMs, { stopAtMs = -Infinit
  * @param {number} [opts.maxPagesPerTier=4]
  * @returns {Promise<{ candles: Array<{t,open,high,low,close,volume}>, calls: number, tiers: Object }>}
  */
-async function fetchReactionCandles(stockscans, ticker, eventTimestamp, { maxPagesPerTier = 4 } = {}) {
+async function fetchReactionCandles(
+  stockscans,
+  ticker,
+  eventTimestamp,
+  { maxPagesPerTier = 4 } = {}
+) {
   const t0 = Date.parse(eventTimestamp);
   if (!Number.isFinite(t0)) {
     throw new Error(`fetchReactionCandles: invalid eventTimestamp "${eventTimestamp}"`);
@@ -143,15 +161,24 @@ async function fetchReactionCandles(stockscans, ticker, eventTimestamp, { maxPag
   const t2 = t0 + 24 * 60 * 60 * 1000; // +1day
   const t3 = t0 + 30 * 24 * 60 * 60 * 1000; // +1month
 
-  const near = await fetchTier(stockscans, ticker, '1m', t1, { stopAtMs: t0, maxPages: maxPagesPerTier });
-  const mid = await fetchTier(stockscans, ticker, '15m', t2, { stopAtMs: t0, maxPages: maxPagesPerTier });
+  const near = await fetchTier(stockscans, ticker, '1m', t1, {
+    stopAtMs: t0,
+    maxPages: maxPagesPerTier,
+  });
+  const mid = await fetchTier(stockscans, ticker, '15m', t2, {
+    stopAtMs: t0,
+    maxPages: maxPagesPerTier,
+  });
   // The far/1D tier always caps its cursor at "now" (not min(t3, now) like the
   // other tiers) — a single 1D page spans years, so reaching "now" costs
   // nothing extra, and doing so is what lets this tier double as (a) the
   // 1-month-post answer even when t3 is already in the past, and (b) the
   // latest-price source for `sinceResult` on an old event, where the near/mid
   // tiers (deliberately capped near the event to stay cheap) don't reach "now".
-  const far = await fetchTier(stockscans, ticker, '1D', Math.max(t3, now), { stopAtMs: t0, maxPages: maxPagesPerTier });
+  const far = await fetchTier(stockscans, ticker, '1D', Math.max(t3, now), {
+    stopAtMs: t0,
+    maxPages: maxPagesPerTier,
+  });
 
   const merged = [...near.candles, ...mid.candles, ...far.candles];
   const seen = new Set();

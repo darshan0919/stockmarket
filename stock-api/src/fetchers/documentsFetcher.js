@@ -7,29 +7,29 @@ const { stockscans } = require('../index');
 const CANONICAL_TYPES = new Set(['Annual Report', 'PPT', 'Result', 'Transcript']);
 const TYPE_ALIASES = {
   'annual report': 'Annual Report',
-  'annualreport': 'Annual Report',
-  'ar': 'Annual Report',
-  'annual': 'Annual Report',
-  'ppt': 'PPT',
-  'presentation': 'PPT',
+  annualreport: 'Annual Report',
+  ar: 'Annual Report',
+  annual: 'Annual Report',
+  ppt: 'PPT',
+  presentation: 'PPT',
   'investor presentation': 'PPT',
-  'investor_presentation': 'PPT',
-  'deck': 'PPT',
+  investor_presentation: 'PPT',
+  deck: 'PPT',
   'investor deck': 'PPT',
-  'result': 'Result',
-  'results': 'Result',
+  result: 'Result',
+  results: 'Result',
   'financial result': 'Result',
   'financial results': 'Result',
   'quarterly result': 'Result',
   'quarterly results': 'Result',
-  'earnings': 'Result',
-  'transcript': 'Transcript',
-  'transcripts': 'Transcript',
-  'concall': 'Transcript',
+  earnings: 'Result',
+  transcript: 'Transcript',
+  transcripts: 'Transcript',
+  concall: 'Transcript',
   'concall transcript': 'Transcript',
   'earnings call': 'Transcript',
   'earnings call transcript': 'Transcript',
-  'call transcript': 'Transcript'
+  'call transcript': 'Transcript',
 };
 
 function normaliseType(userType) {
@@ -38,7 +38,9 @@ function normaliseType(userType) {
   if (TYPE_ALIASES[key]) return TYPE_ALIASES[key];
   const key2 = key.replace(/\s+/g, ' ');
   if (TYPE_ALIASES[key2]) return TYPE_ALIASES[key2];
-  throw new Error(`Unknown document type: "${userType}". Allowed: ${[...CANONICAL_TYPES].sort().join(', ')}`);
+  throw new Error(
+    `Unknown document type: "${userType}". Allowed: ${[...CANONICAL_TYPES].sort().join(', ')}`
+  );
 }
 
 function parseDateFilter(s) {
@@ -62,13 +64,13 @@ function filterDocuments(docs, { types, start, end, lastN } = {}) {
 
   if (types && types.length) {
     const canonical = new Set(types.map(normaliseType));
-    out = out.filter(d => canonical.has(d.documentType));
+    out = out.filter((d) => canonical.has(d.documentType));
   }
 
   if (start !== undefined || end !== undefined) {
     const s = start !== undefined ? start : 0;
     const e = end !== undefined ? end : 999912;
-    out = out.filter(d => {
+    out = out.filter((d) => {
       const v = docYyyymm(d);
       return v >= s && v <= e;
     });
@@ -115,10 +117,11 @@ async function fetchDocuments(ticker, options = {}) {
     year,
     lastN,
     outputDir = './stock_documents',
-    listOnly = false
+    listOnly = false,
   } = options;
 
-  let start = undefined, end = undefined;
+  let start = undefined,
+    end = undefined;
   if (year) {
     if (!/^\d{4}$/.test(year)) throw new Error('year must be YYYY');
     start = parseInt(year + '01', 10);
@@ -135,7 +138,7 @@ async function fetchDocuments(ticker, options = {}) {
   }
 
   const { documents } = await stockscans.documents(ticker);
-  
+
   if (!documents || documents.length === 0) {
     return { fetched: [], skipped: [], matched: [] };
   }
@@ -167,7 +170,7 @@ async function fetchDocuments(ticker, options = {}) {
         filename: fname,
         path: dest,
         size_bytes: fs.statSync(dest).size,
-        cached: true
+        cached: true,
       });
       continue;
     }
@@ -181,7 +184,7 @@ async function fetchDocuments(ticker, options = {}) {
         filename: fname,
         path: dest,
         size_bytes: buf.length,
-        cached: false
+        cached: false,
       });
     } catch (e) {
       skipped.push({ ...d, reason: String(e) });
@@ -200,7 +203,7 @@ async function fetchDocuments(ticker, options = {}) {
     modifiedTime: fetchedAt,
     fetched_at: fetchedAt,
     documents: fetched,
-    skipped
+    skipped,
   };
 
   const manifestPath = path.join(outDir, 'manifest.json');
@@ -216,5 +219,5 @@ module.exports = {
   parseDateFilter,
   docYyyymm,
   safeTicker,
-  buildFilename
+  buildFilename,
 };

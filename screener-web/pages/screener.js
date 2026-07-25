@@ -83,25 +83,42 @@ export default function Screener() {
 
   const handleExportCSV = () => {
     if (rows.length === 0) return;
-    const headers = ['Symbol', 'Price', '%Change', 'Volume', 'Value(Cr)', 'Del%', 'Del%(30D)', 'P/E', 'MCap(Cr)', 'Retail%', 'PAT Growth TTM', '1W Change', 'Bids', 'Offers'];
+    const headers = [
+      'Symbol',
+      'Price',
+      '%Change',
+      'Volume',
+      'Value(Cr)',
+      'Del%',
+      'Del%(30D)',
+      'P/E',
+      'MCap(Cr)',
+      'Retail%',
+      'PAT Growth TTM',
+      '1W Change',
+      'Bids',
+      'Offers',
+    ];
     const csvRows = [headers.join(',')];
     rows.forEach((row) => {
-      csvRows.push([
-        row.symbol,
-        row.price ?? '',
-        row.changePercent ?? '',
-        row.volume ?? '',
-        row.value != null ? (row.value / 1e7).toFixed(2) : '',
-        row.deliveryPercent ?? '',
-        row.avgDeliveryPercent30d ?? '',
-        row.pe ?? '',
-        row.marketCapCr ?? '',
-        row.retailHoldingPercent ?? '',
-        row.patGrowthTtm ?? '',
-        row.weekChangePercent ?? '',
-        row.bidLevels ?? '',
-        row.offerLevels ?? '',
-      ].join(','));
+      csvRows.push(
+        [
+          row.symbol,
+          row.price ?? '',
+          row.changePercent ?? '',
+          row.volume ?? '',
+          row.value != null ? (row.value / 1e7).toFixed(2) : '',
+          row.deliveryPercent ?? '',
+          row.avgDeliveryPercent30d ?? '',
+          row.pe ?? '',
+          row.marketCapCr ?? '',
+          row.retailHoldingPercent ?? '',
+          row.patGrowthTtm ?? '',
+          row.weekChangePercent ?? '',
+          row.bidLevels ?? '',
+          row.offerLevels ?? '',
+        ].join(',')
+      );
     });
     const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -115,14 +132,17 @@ export default function Screener() {
   const displayedCount = sellOffersOnly
     ? rows.filter((r) => r.offerLevels != null && r.offerLevels > 0).length
     : buyBidsOnly
-    ? rows.filter((r) => r.bidLevels != null && r.bidLevels > 0).length
-    : rows.length;
+      ? rows.filter((r) => r.bidLevels != null && r.bidLevels > 0).length
+      : rows.length;
 
   return (
     <>
       <Head>
         <title>Screener - Saved Scans</title>
-        <meta name="description" content="Run your saved StockScans scans with live price and order data" />
+        <meta
+          name="description"
+          content="Run your saved StockScans scans with live price and order data"
+        />
       </Head>
 
       <div>
@@ -173,13 +193,22 @@ export default function Screener() {
               </label>
 
               {rows.length > 0 && (
-                <ColumnPicker hiddenCols={hiddenCols} toggleColumn={toggleColumn} setGroupVisible={setGroupVisible} />
+                <ColumnPicker
+                  hiddenCols={hiddenCols}
+                  toggleColumn={toggleColumn}
+                  setGroupVisible={setGroupVisible}
+                />
               )}
 
               {rows.length > 0 && (
                 <button onClick={handleExportCSV} className="btn btn-sm btn-success gap-1.5">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
                   </svg>
                   Export CSV
                 </button>
@@ -198,7 +227,12 @@ export default function Screener() {
                 ) : (
                   <>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
                     </svg>
                     Refresh
                   </>
@@ -264,7 +298,8 @@ export default function Screener() {
 
             {!loading && rows.length > 0 && (
               <div className="mt-3 text-center text-xs text-base-content/30">
-                Del Value = traded value × delivery% · 1W = 5-session price change · Bids/Offers from live NSE order book
+                Del Value = traded value × delivery% · 1W = 5-session price change · Bids/Offers
+                from live NSE order book
               </div>
             )}
           </div>

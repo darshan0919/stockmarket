@@ -7,7 +7,12 @@ const ist = require('./lib/ist');
 const notesFile = db.load();
 
 function addNote(payload) {
-  const co = NotesDb.ensureCompany(notesFile, payload.companyId, payload.ticker || '', payload.name || '');
+  const co = NotesDb.ensureCompany(
+    notesFile,
+    payload.companyId,
+    payload.ticker || '',
+    payload.name || ''
+  );
   if (payload.businessSummary) co.businessSummary = payload.businessSummary;
   const noteData = payload.note;
   const entry = {
@@ -42,20 +47,32 @@ function markProcessed(companyId, annId) {
 // picks them up and syncs them to Drive like any other structured document,
 // instead of living as untracked scratch files outside the sync pipeline.
 // v2: batch input lives in data/runs/ (drop the file there before running).
-const meaningful = require(require('path').join(require('./lib/db').dataRoot(), 'runs', 'insights_data.json'));
+const meaningful = require(
+  require('path').join(require('./lib/db').dataRoot(), 'runs', 'insights_data.json')
+);
 for (const item of meaningful) {
   addNote(item);
 }
 
-const routineIds = require(require('path').join(require('./lib/db').dataRoot(), 'runs', 'routine_ids.json')); // [{companyId, announcementId}]
+const routineIds = require(
+  require('path').join(require('./lib/db').dataRoot(), 'runs', 'routine_ids.json')
+); // [{companyId, announcementId}]
 for (const r of routineIds) {
   markProcessed(r.companyId, r.announcementId);
 }
 
-db.save(notesFile).then(() => {
-  console.log(JSON.stringify({ status: 'ok', notesAdded: meaningful.length, routineMarked: routineIds.length }));
-  process.exit(0);
-}).catch(e => {
-  console.error('save error', e);
-  process.exit(1);
-});
+db.save(notesFile)
+  .then(() => {
+    console.log(
+      JSON.stringify({
+        status: 'ok',
+        notesAdded: meaningful.length,
+        routineMarked: routineIds.length,
+      })
+    );
+    process.exit(0);
+  })
+  .catch((e) => {
+    console.error('save error', e);
+    process.exit(1);
+  });

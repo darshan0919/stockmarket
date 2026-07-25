@@ -321,15 +321,7 @@ async function resolveLatestEarningsCalls({ companyIds, quarterDate, maxQuarterL
 }
 
 module.exports = {
-
-
   currentQuarterDate,
-
-
-
-
-
-
 
   resolveLatestEarningsCalls,
 };

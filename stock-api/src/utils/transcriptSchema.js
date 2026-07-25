@@ -40,7 +40,7 @@ function classifyRole(speaker) {
  */
 function segmentsFromParagraphs(paragraphs) {
   return (paragraphs || []).map((p, i) => {
-    const speaker = (p.speakers && p.speakers.length) ? p.speakers.join(' & ') : null;
+    const speaker = p.speakers && p.speakers.length ? p.speakers.join(' & ') : null;
     return {
       i,
       speaker,
@@ -74,7 +74,13 @@ function parseSpeakerLabeledText(text) {
     const m = SPEAKER_LABEL.exec(block);
     if (m) {
       const [, speaker, rest] = m;
-      return { i, speaker: speaker.trim(), speakerRole: classifyRole(speaker), time: null, text: rest.trim() };
+      return {
+        i,
+        speaker: speaker.trim(),
+        speakerRole: classifyRole(speaker),
+        time: null,
+        text: rest.trim(),
+      };
     }
     return { i, speaker: null, speakerRole: 'unknown', time: null, text: block };
   });
@@ -88,9 +94,7 @@ function parseSpeakerLabeledText(text) {
  * @returns {string}
  */
 function segmentsToFullText(segments) {
-  return (segments || [])
-    .map((s) => (s.speaker ? `${s.speaker}: ${s.text}` : s.text))
-    .join('\n\n');
+  return (segments || []).map((s) => (s.speaker ? `${s.speaker}: ${s.text}` : s.text)).join('\n\n');
 }
 
 /**

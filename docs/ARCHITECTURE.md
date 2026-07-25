@@ -42,14 +42,16 @@
 ### Frontend Layer
 
 #### Pages (`frontend/pages/`)
-| File | Purpose | Route |
-|------|---------|-------|
-| `index.js` | Dashboard with market overview | `/` |
-| `stock/[symbol].js` | Stock detail page | `/stock/:symbol` |
-| `screener.js` | Stock screening tool | `/screener` |
-| `watchlist.js` | User's watchlist | `/watchlist` |
+
+| File                | Purpose                        | Route            |
+| ------------------- | ------------------------------ | ---------------- |
+| `index.js`          | Dashboard with market overview | `/`              |
+| `stock/[symbol].js` | Stock detail page              | `/stock/:symbol` |
+| `screener.js`       | Stock screening tool           | `/screener`      |
+| `watchlist.js`      | User's watchlist               | `/watchlist`     |
 
 #### Styling & Theming
+
 - **DaisyUI**: Component library (Tailwind CSS plugin) for semantic components (cards, buttons, alerts, etc.)
 - **Theme Toggle**: Light/dark mode in Header, persisted via `localStorage`
 - **globals.css**: Minimal—DaisyUI handles base styles; only scrollbar and reset overrides remain
@@ -85,7 +87,9 @@
 | `TranscriptTab` | `TranscriptTab.js` | Earnings call analysis |
 
 #### API Client (`frontend/lib/api.js`)
+
 Centralized Axios instance with interceptors:
+
 - **stockAPI**: Stock search, details, financials
 - **screenerAPI**: Stock screening
 - **watchlistAPI**: Watchlist CRUD
@@ -94,82 +98,92 @@ Centralized Axios instance with interceptors:
 - **ordersAPI**: Orderbook data
 
 #### Utilities (`frontend/lib/utils/`)
-| Utility | File | Purpose |
-|---------|------|---------|
+
+| Utility    | File            | Purpose                                                                 |
+| ---------- | --------------- | ----------------------------------------------------------------------- |
 | Formatters | `formatters.js` | Consolidated formatting (currency, price, quarter date, change %, etc.) |
 
 #### Custom Hooks (`frontend/lib/hooks/`)
-| Hook | File | Purpose |
-|------|------|---------|
-| `useMarket` | `useMarket.js` | Market data with auto-refresh |
-| `useWatchlist` | `useWatchlist.js` | Watchlist state management |
+
+| Hook           | File              | Purpose                       |
+| -------------- | ----------------- | ----------------------------- |
+| `useMarket`    | `useMarket.js`    | Market data with auto-refresh |
+| `useWatchlist` | `useWatchlist.js` | Watchlist state management    |
 
 ### Backend Layer
 
 #### Server Entry (`backend/server.js`)
+
 Express server setup with:
+
 - CORS configuration
 - JSON body parsing
 - Route mounting
 - Error handling middleware
 
 #### Routes (`backend/routes/`)
-| Route File | Base Path | Purpose |
-|------------|-----------|---------|
-| `stocks.js` | `/api/stocks` | Stock operations |
-| `screener.js` | `/api/screener` | Stock screening |
-| `watchlist.js` | `/api/watchlist` | Watchlist management |
-| `market.js` | `/api/market` | Market data |
-| `orders.js` | `/api/orders` | Order/orderbook data |
-| `announcements.js` | `/api/announcements` | Company announcements |
+
+| Route File            | Base Path                | Purpose                |
+| --------------------- | ------------------------ | ---------------------- |
+| `stocks.js`           | `/api/stocks`            | Stock operations       |
+| `screener.js`         | `/api/screener`          | Stock screening        |
+| `watchlist.js`        | `/api/watchlist`         | Watchlist management   |
+| `market.js`           | `/api/market`            | Market data            |
+| `orders.js`           | `/api/orders`            | Order/orderbook data   |
+| `announcements.js`    | `/api/announcements`     | Company announcements  |
 | `resultTranscript.js` | `/api/result-transcript` | AI transcript analysis |
-| `upcomingResult.js` | `/api/upcoming-results` | Upcoming result dates |
-| `admin.js` | `/api/admin` | Admin operations |
+| `upcomingResult.js`   | `/api/upcoming-results`  | Upcoming result dates  |
+| `admin.js`            | `/api/admin`             | Admin operations       |
 
 #### Controllers (`backend/controllers/`)
-| Controller | File | Key Functions |
-|------------|------|---------------|
-| `stockController` | `stockController.js` | `searchStocks`, `getStockDetails`, `getQuarterlyResults` |
-| `screenerController` | `screenerController.js` | `runScreener` |
-| `watchlistController` | `watchlistController.js` | `getWatchlist`, `addToWatchlist`, `removeFromWatchlist` |
-| `marketController` | `marketController.js` | `getMarketIndices`, `getMarketStats` |
-| `resultTranscriptController` | `resultTranscriptController.js` | `getTranscripts`, `analyzeTranscript` |
-| `upcomingResult` | `upcomingResult.js` | `getUpcomingResults` |
+
+| Controller                   | File                            | Key Functions                                            |
+| ---------------------------- | ------------------------------- | -------------------------------------------------------- |
+| `stockController`            | `stockController.js`            | `searchStocks`, `getStockDetails`, `getQuarterlyResults` |
+| `screenerController`         | `screenerController.js`         | `runScreener`                                            |
+| `watchlistController`        | `watchlistController.js`        | `getWatchlist`, `addToWatchlist`, `removeFromWatchlist`  |
+| `marketController`           | `marketController.js`           | `getMarketIndices`, `getMarketStats`                     |
+| `resultTranscriptController` | `resultTranscriptController.js` | `getTranscripts`, `analyzeTranscript`                    |
+| `upcomingResult`             | `upcomingResult.js`             | `getUpcomingResults`                                     |
 
 #### Models (`backend/models/`)
+
 MongoDB schemas using Mongoose:
 
-| Model | File | Purpose |
-|-------|------|---------|
-| `Stock` | `Stock.js` | Stock basic info (symbol, name, sector) |
-| `QuarterlyResult` | `QuarterlyResult.js` | Quarterly financial results |
-| `FinancialStatement` | `FinancialStatement.js` | Annual financial statements |
-| `PriceHistory` | `PriceHistory.js` | Historical price data |
-| `Fundamental` | `Fundamental.js` | Fundamental metrics |
-| `Watchlist` | `Watchlist.js` | User watchlist entries |
-| `Orderbook` | `Orderbook.js` | Parsed orderbook data |
-| `ModelResponse` | `ModelResponse.js` | Cached AI responses |
+| Model                | File                    | Purpose                                 |
+| -------------------- | ----------------------- | --------------------------------------- |
+| `Stock`              | `Stock.js`              | Stock basic info (symbol, name, sector) |
+| `QuarterlyResult`    | `QuarterlyResult.js`    | Quarterly financial results             |
+| `FinancialStatement` | `FinancialStatement.js` | Annual financial statements             |
+| `PriceHistory`       | `PriceHistory.js`       | Historical price data                   |
+| `Fundamental`        | `Fundamental.js`        | Fundamental metrics                     |
+| `Watchlist`          | `Watchlist.js`          | User watchlist entries                  |
+| `Orderbook`          | `Orderbook.js`          | Parsed orderbook data                   |
+| `ModelResponse`      | `ModelResponse.js`      | Cached AI responses                     |
 
 #### External APIs (`backend/api/`)
-| API Module | File | External Service |
-|------------|------|------------------|
-| `nseIndiaApi` | `nseIndiaApi.js` | NSE India (upcoming results, cookies) |
-| `bseIndiaApi` | `bseIndiaApi.js` | BSE India (scrip codes, announcements) |
-| `geminiApi` | `geminiApi.js` | Google Gemini AI (transcript analysis) |
-| `orderParser` | `orderParser.js` | PDF order parsing |
-| `orderbookBaselineParser` | `orderbookBaselineParser.js` | Orderbook baseline calculation |
+
+| API Module                | File                         | External Service                       |
+| ------------------------- | ---------------------------- | -------------------------------------- |
+| `nseIndiaApi`             | `nseIndiaApi.js`             | NSE India (upcoming results, cookies)  |
+| `bseIndiaApi`             | `bseIndiaApi.js`             | BSE India (scrip codes, announcements) |
+| `geminiApi`               | `geminiApi.js`               | Google Gemini AI (transcript analysis) |
+| `orderParser`             | `orderParser.js`             | PDF order parsing                      |
+| `orderbookBaselineParser` | `orderbookBaselineParser.js` | Orderbook baseline calculation         |
 
 #### Utilities (`backend/utils/`)
-| Utility | File | Functions |
-|---------|------|-----------|
+
+| Utility               | File                     | Functions                                                       |
+| --------------------- | ------------------------ | --------------------------------------------------------------- |
 | `technicalIndicators` | `technicalIndicators.js` | `calculateSMA`, `calculateEMA`, `calculateRSI`, `calculateMACD` |
-| `validators` | `validators.js` | Joi schemas for request validation |
-| `dataFetcher` | `dataFetcher.js` | Alpha Vantage and FMP API calls |
-| `xbrlParser` | `xbrlParser.js` | XBRL financial data parsing |
+| `validators`          | `validators.js`          | Joi schemas for request validation                              |
+| `dataFetcher`         | `dataFetcher.js`         | Alpha Vantage and FMP API calls                                 |
+| `xbrlParser`          | `xbrlParser.js`          | XBRL financial data parsing                                     |
 
 ### Data Flow Examples
 
 #### 1. Stock Search Flow
+
 ```
 User types → SearchBar → stockAPI.search() → /api/stocks/search
                                                     ↓
@@ -181,6 +195,7 @@ User types → SearchBar → stockAPI.search() → /api/stocks/search
 ```
 
 #### 2. Quarterly Results Flow
+
 ```
 Stock page loads → QuarterlyResults → stockAPI.getQuarterlyResults()
                                                     ↓
@@ -196,6 +211,7 @@ Stock page loads → QuarterlyResults → stockAPI.getQuarterlyResults()
 ```
 
 #### 3. AI Transcript Analysis Flow
+
 ```
 User clicks analyze → TranscriptTab → transcriptAPI.analyzeTranscript()
                                                     ↓
@@ -249,6 +265,7 @@ User clicks analyze → TranscriptTab → transcriptAPI.analyzeTranscript()
 ## External API Integration
 
 ### NSE India API
+
 - **Base URL**: `https://www.nseindia.com/api`
 - **Authentication**: Cookie-based (session cookies required)
 - **Rate Limiting**: Aggressive, requires proper headers
@@ -258,6 +275,7 @@ User clicks analyze → TranscriptTab → transcriptAPI.analyzeTranscript()
   - `/corporates` - Financial filings
 
 ### BSE India API
+
 - **Base URL**: `https://api.bseindia.com/BseIndiaAPI/api`
 - **Authentication**: Referer header required
 - **Key Endpoints**:
@@ -266,6 +284,7 @@ User clicks analyze → TranscriptTab → transcriptAPI.analyzeTranscript()
   - `/Corpforthresults` - Upcoming results
 
 ### Gemini AI API
+
 - **Base URL**: `https://generativelanguage.googleapis.com/v1beta`
 - **Authentication**: API key
 - **Usage**: Earnings call transcript analysis
@@ -274,23 +293,25 @@ User clicks analyze → TranscriptTab → transcriptAPI.analyzeTranscript()
 ## Error Handling
 
 ### Backend Error Middleware (`backend/middleware/errorHandler.js`)
+
 - Catches all unhandled errors
 - Returns consistent error format
 - Logs errors for debugging
 
 ### Frontend Error Handling
+
 - Axios interceptors for API errors
 - Try-catch in async operations
 - User-friendly error messages
 
 ## Caching Strategy
 
-| Data Type | Cache Location | TTL | Invalidation |
-|-----------|----------------|-----|--------------|
-| Quarterly Results | MongoDB | 2 days | Manual refresh |
-| AI Responses | MongoDB | Permanent | Never (immutable) |
-| NSE Cookies | Memory | 5 minutes | Auto-refresh |
-| Stock Details | None | N/A | Real-time fetch |
+| Data Type         | Cache Location | TTL       | Invalidation      |
+| ----------------- | -------------- | --------- | ----------------- |
+| Quarterly Results | MongoDB        | 2 days    | Manual refresh    |
+| AI Responses      | MongoDB        | Permanent | Never (immutable) |
+| NSE Cookies       | Memory         | 5 minutes | Auto-refresh      |
+| Stock Details     | None           | N/A       | Real-time fetch   |
 
 ## Security Considerations
 
@@ -299,4 +320,3 @@ User clicks analyze → TranscriptTab → transcriptAPI.analyzeTranscript()
 3. **Input Validation**: Joi schemas for all inputs
 4. **Rate Limiting**: Recommended for production
 5. **Error Sanitization**: No stack traces in production
-

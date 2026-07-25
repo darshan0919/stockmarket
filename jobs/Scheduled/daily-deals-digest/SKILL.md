@@ -4,13 +4,17 @@ description: Deals Digest — top 10 NSE/BSE bulk/block/SAST/insider trades by v
 ---
 
 ## Context
+
 Daily NSE/BSE deals digest (like screener.in/filings "Latest Trades"). The companion script fetches bulk deals, block deals, SAST Reg 29 and insider (PIT) trades from NSE/BSE, sorts each category by deal value, keeps the top 10, and emails an HTML digest to djplearner@gmail.com via Gmail.
 
 ## Output DTO
+
 The script writes the canonical JSON DTO to `the events collection (type=`deal`) + data/runs/{YYYY}/{MM}/digest_{YYYYMMDD}.json` via `StorageService.saveJson` BEFORE composing the email — each per-company group record (`bulk10`/`block10`/`sast10`/`insider10`) carries `companyId` (`EXCH:SYMBOL`), `creationTime`, `modifiedTime`, and `creator: "daily-deals-digest"` per `skills/tooling/output-dto-standard/SKILL.md`. The email HTML is a render of that JSON, never an independent draft.
 
 ## Execution Plan
+
 Call the following exact script:
+
 1. Execute script (bash): `cd "/Users/darshan.patel/code/personal/stockmarket/packages/jobs-runtime" && node dealsDigest.js`
    (If running inside a sandbox where the folder is mounted, the equivalent mounted path of the stockmarket folder + `/packages/jobs-runtime` is fine — same script.)
    Optional flags (defaults shown match today's behavior — omit them for the normal scheduled run):

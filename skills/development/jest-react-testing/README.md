@@ -45,11 +45,13 @@ This skill follows the core principles of Testing Library:
 ### Installation
 
 For React 18+ projects:
+
 ```bash
 npm install --save-dev @testing-library/react @testing-library/jest-dom @testing-library/user-event jest jest-environment-jsdom
 ```
 
 For TypeScript projects, also install:
+
 ```bash
 npm install --save-dev @types/jest ts-jest
 ```
@@ -143,28 +145,32 @@ test('loads and displays user data', async () => {
 Use queries in this order (most to least preferred):
 
 1. **getByRole** - Most accessible, reflects how users find elements
+
    ```javascript
-   screen.getByRole('button', { name: /submit/i })
+   screen.getByRole('button', { name: /submit/i });
    ```
 
 2. **getByLabelText** - Good for form fields
+
    ```javascript
-   screen.getByLabelText(/email/i)
+   screen.getByLabelText(/email/i);
    ```
 
 3. **getByPlaceholderText** - For inputs with placeholders
+
    ```javascript
-   screen.getByPlaceholderText(/search/i)
+   screen.getByPlaceholderText(/search/i);
    ```
 
 4. **getByText** - For non-interactive elements
+
    ```javascript
-   screen.getByText(/welcome/i)
+   screen.getByText(/welcome/i);
    ```
 
 5. **getByTestId** - Last resort only
    ```javascript
-   screen.getByTestId('custom-element')
+   screen.getByTestId('custom-element');
    ```
 
 ### Query Types
@@ -316,11 +322,7 @@ test('increments counter', () => {
 import { MemoryRouter } from 'react-router-dom';
 
 const renderWithRouter = (ui, { initialEntries = ['/'] } = {}) => {
-  return render(
-    <MemoryRouter initialEntries={initialEntries}>
-      {ui}
-    </MemoryRouter>
-  );
+  return render(<MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>);
 };
 ```
 
@@ -386,17 +388,20 @@ screen.logTestingPlaygroundURL(); // Opens Testing Playground with current DOM
 ### Common Issues
 
 **Can't find element**:
+
 - Use `screen.debug()` to see DOM
 - Check query type (getBy vs queryBy vs findBy)
 - Verify element has correct role/text
 - Wait for async updates with findBy
 
 **Act warnings**:
+
 - Use userEvent instead of fireEvent
 - Use waitFor/findBy for async updates
 - Wrap state updates in act()
 
 **Test timeout**:
+
 - Increase timeout in waitFor
 - Check for infinite loops
 - Ensure promises resolve
@@ -426,6 +431,7 @@ screen.logTestingPlaygroundURL(); // Opens Testing Playground with current DOM
 ## Examples
 
 See `EXAMPLES.md` for 15+ comprehensive test examples covering:
+
 - Component testing
 - Form validation
 - API integration

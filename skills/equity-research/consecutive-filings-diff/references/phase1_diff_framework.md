@@ -35,6 +35,7 @@ Extract these line items from both decks for the most recent quarter and the cum
 Build a table with these columns: Metric | Prior year (FY–1) actual | Interim period from prior deck (e.g., 9M) | Current quarter | Current full year | YoY change | Signal.
 
 For the "Signal" column, use these chip tags consistently:
+
 - `Beat` — outperformed the implied trajectory from the prior deck
 - `In line` — matched the implied trajectory
 - `Slight miss` — 0–5% below trajectory
@@ -69,6 +70,7 @@ Compute these ratios and diff vs prior year:
 **Critical:** Many Indian decks only show H1 balance sheets in Q3 presentations. If the Q4 deck shows full-year balance sheet and the Q3 deck showed H1, the comparison must be H1 prior year vs full year current — flag this asymmetry explicitly.
 
 **Red flags to explicitly hunt:**
+
 - CFO/PAT dropping by >30% YoY without a disclosed reason
 - Fixed asset additions that don't align with disclosed capex or capacity additions
 - "Other liabilities" growing faster than revenue (often hides contract liabilities or customer advances)

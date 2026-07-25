@@ -12,13 +12,14 @@ If a topic appears in only one of the three primary documents (e.g., capacity me
 
 # BASKET 1 — BUSINESS
 
-**Question:** *What is improving inside the business?*
+**Question:** _What is improving inside the business?_
 
 Include only the most important triggers. Rank by potential earnings impact, not by length of disclosure.
 
 ## 1A. Growth Drivers
 
 Identify any of the following, but only with quarter-specific evidence:
+
 - demand trends (volume vs price split)
 - premiumisation / mix shift
 - capacity expansion (committed vs commissioned vs operational)
@@ -45,7 +46,7 @@ For each driver, write 3 lines:
 
 ## 1B. Margin & Profitability Triggers
 
-Focus only on items that *change the future margin trajectory*. Pure quarterly noise (FX, one-off provisions) goes in the Risk basket.
+Focus only on items that _change the future margin trajectory_. Pure quarterly noise (FX, one-off provisions) goes in the Risk basket.
 
 - gross margin trend (direction + magnitude vs trailing 4Q avg)
 - cost optimization programme (named: e.g., procurement, automation)
@@ -57,13 +58,14 @@ Focus only on items that *change the future margin trajectory*. Pure quarterly n
 - efficiency improvements (productivity per unit / per employee)
 
 For each margin trigger, label sustainability:
+
 - `SUSTAINABLE` — driven by mix / process / scale, persists at higher revenue
 - `CYCLICAL` — driven by commodity cycle, will reverse
 - `TEMPORARY` — driven by one-off (e.g., inventory gains during input price drop)
 
 ## 1C. Capex, Balance Sheet & Cash Flow
 
-Analyse only items that affect future earnings power. Do *not* duplicate a forensic-accounting scan.
+Analyse only items that affect future earnings power. Do _not_ duplicate a forensic-accounting scan.
 
 - capex plans (Rs Cr committed, FY split, projects named)
 - utilization (current % vs target % at full ramp)
@@ -74,9 +76,10 @@ Analyse only items that affect future earnings power. Do *not* duplicate a foren
 - interest cost trend (effective rate vs prior, headroom from rate cuts)
 - ROCE improvement potential (driver: margin, asset turn, or leverage)
 
-**The single most important question in this sub-section:** *Can capital allocation accelerate future earnings, and is management's stated plan internally consistent with the cash flow capability?*
+**The single most important question in this sub-section:** _Can capital allocation accelerate future earnings, and is management's stated plan internally consistent with the cash flow capability?_
 
 Examples of inconsistency to flag:
+
 - Capex Rs 500 Cr announced; trailing FCF Rs 80 Cr/year; no fund-raise discussed → debt-funded capex (state it)
 - Buyback announced while net debt rising → financial engineering signal
 - "Asset-light" claim while gross block rising > revenue → claim contradicts disclosure
@@ -102,13 +105,14 @@ Tag each as `HIGH CONVICTION` (in book / contracted), `MEDIUM CONVICTION` (guide
 
 # BASKET 2 — RISK
 
-**Question:** *What can go wrong?*
+**Question:** _What can go wrong?_
 
 Do NOT mention generic risks. Only risks specifically visible from management commentary, financials, industry trends, or competitive dynamics this quarter.
 
 ## 2A. Business Risks
 
 Examples (only include if observed in this quarter's documents):
+
 - weak demand (volume decline, dealer destocking, channel inventory)
 - customer concentration (top-5 or top-10 % of revenue)
 - pricing pressure (price cuts disclosed, competitor pricing actions)
@@ -145,7 +149,7 @@ The highest-signal section. Track:
 
 **Three high-signal questions to ask explicitly:**
 
-1. **What did management *avoid* answering?** Note specific analyst questions where the response was vague or pivoted. Quote both Q and A.
+1. **What did management _avoid_ answering?** Note specific analyst questions where the response was vague or pivoted. Quote both Q and A.
 2. **What did they stop discussing?** Topics that dominated 2-3 prior calls and are absent now. Requires prior transcript context.
 3. **Where did confidence reduce?** Language ladder: "will" → "expect" → "endeavour to" → "depends on" is a tell.
 
@@ -169,7 +173,7 @@ Format each as: `<macro factor> → <company exposure> → <P&L impact direction
 
 # BASKET 3 — MANAGEMENT
 
-**Question:** *What is management signalling between the lines?*
+**Question:** _What is management signalling between the lines?_
 
 Interpret management behaviour — don't just quote them. Every statement here needs a verbatim evidence quote (1-2 short lines) attached as a citation.
 
@@ -184,7 +188,7 @@ Classify against the six tone labels in [`tone_taxonomy.md`](tone_taxonomy.md):
 - `OPPORTUNISTIC` — Optionality language, "if X happens we will Y"
 - `CONSERVATIVE` — Under-promising deliberately, sandbagging
 
-The tone may be a *blend* (e.g., "confident on margins, cautious on volumes"). State the blend if so. Track confidence specifically on four axes:
+The tone may be a _blend_ (e.g., "confident on margins, cautious on volumes"). State the blend if so. Track confidence specifically on four axes:
 
 - growth confidence (revenue trajectory)
 - margin visibility (gross / EBITDA / PAT)
@@ -205,6 +209,7 @@ This requires the prior transcript. The narrative arc is more informative than a
 - **buyback → preservation** (cash flow stress signal)
 
 For each shift, write:
+
 - What changed
 - One evidence quote from this call
 - One contrast quote from a prior call (1-3 quarters back)
@@ -212,7 +217,7 @@ For each shift, write:
 
 ## 3C. Strategic Direction (3-5 year)
 
-What is management *building* over the medium term? This sub-section is forward-looking. Pick the 1-2 most credible directional bets from:
+What is management _building_ over the medium term? This sub-section is forward-looking. Pick the 1-2 most credible directional bets from:
 
 - branded play (consumer-facing brand investment)
 - platform business (network effects, take rate)
@@ -223,7 +228,7 @@ What is management *building* over the medium term? This sub-section is forward-
 - digital transformation (target digital revenue % or productivity gain)
 - asset-light transition (CWIP plateauing, ROCE rising)
 
-For each direction, ask: *Is the disclosure backed by capex + headcount + customer evidence, or is it slideware?*
+For each direction, ask: _Is the disclosure backed by capex + headcount + customer evidence, or is it slideware?_
 
 ## 3D. Capital Allocation Quality
 
@@ -248,13 +253,14 @@ Open [`monitoring_checklist_patterns.md`](monitoring_checklist_patterns.md) for 
 
 Required columns:
 
-| # | KPI | Threshold | Horizon | Source |
-|---|---|---|---|---|
-| 1 | Gross margin | ≥ 28% | Q1 FY27 | Result PDF, profitability section |
-| 2 | Capex ramp | ≥ Rs 200 Cr spent | H2 FY26 | Quarterly cash flow |
-| 3 | Order book | ≥ 1.5× annual revenue | Q4 FY26 | PPT order book slide |
+| #   | KPI          | Threshold             | Horizon | Source                            |
+| --- | ------------ | --------------------- | ------- | --------------------------------- |
+| 1   | Gross margin | ≥ 28%                 | Q1 FY27 | Result PDF, profitability section |
+| 2   | Capex ramp   | ≥ Rs 200 Cr spent     | H2 FY26 | Quarterly cash flow               |
+| 3   | Order book   | ≥ 1.5× annual revenue | Q4 FY26 | PPT order book slide              |
 
 Cover at minimum:
+
 - one KPI from each of: revenue/volume, margin, cash flow, capital allocation
 - one indicator the company stopped discussing this quarter
 - one industry / external lead indicator
@@ -266,21 +272,24 @@ Cover at minimum:
 When deciding `STRUCTURAL` vs `CYCLICAL` vs `TEMPORARY` for a development:
 
 **Structural** if:
+
 - It changes the company's product mix permanently
 - It results from a one-way industry change (regulation, technology shift)
 - The driver is internal capability (new plant, new capability, new geography that won't reverse)
 - It would persist even if the broad cycle turned
 
 **Cyclical** if:
+
 - The driver is commodity price, interest rate, exchange rate, or industry pricing
 - It depends on volume or price cycles that historically oscillate
 - Peers in the same industry would show the same pattern
 
 **Temporary** if:
+
 - The driver is a specific one-off (one-time order, inventory destock, FX gain, demerger income, insurance settlement)
 - It will not repeat next quarter
 
-When in doubt, ask: *if the macro / commodity / sector cycle turned, would this still be true?* If yes — structural. If no — cyclical.
+When in doubt, ask: _if the macro / commodity / sector cycle turned, would this still be true?_ If yes — structural. If no — cyclical.
 
 ---
 
@@ -297,6 +306,7 @@ When in doubt, ask: *if the macro / commodity / sector cycle turned, would this 
 - Distinguish facts (Layer 1) from interpretation (Layer 2)
 
 **Forbidden phrases:**
+
 - "India is a growing economy"
 - "The company is well-positioned"
 - "Management is confident about future prospects"

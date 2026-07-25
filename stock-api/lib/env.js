@@ -8,9 +8,9 @@ const crypto = require('crypto');
  * Minimal .env loader (no dependency). Loads KEY=VALUE lines into process.env
  * without overwriting values already present. Returns the path used, or null.
  *
- * Resolution: 
+ * Resolution:
  * 1. explicit path arg
- * 2. COWORK_ENV 
+ * 2. COWORK_ENV
  * 3. Local repo root .env
  * 4. Drive-resident .env.age (via local mount or Drive API mock)
  *
@@ -19,14 +19,10 @@ const crypto = require('crypto');
  */
 function loadEnv(explicitPath) {
   const repoRoot = path.join(__dirname, '..', '..', '..', '.env');
-  
+
   // 1 & 2 & 3
-  const candidates = [
-    explicitPath,
-    process.env.COWORK_ENV,
-    repoRoot,
-  ].filter(Boolean);
-  
+  const candidates = [explicitPath, process.env.COWORK_ENV, repoRoot].filter(Boolean);
+
   let envPath = null;
   for (const p of candidates) {
     if (fs.existsSync(p)) {
@@ -82,7 +78,7 @@ function loadEnv(explicitPath) {
   // Validate critical secrets (e.g. required ones)
   // If required keys are missing, we should fail loud.
   // For the sake of the test, let's just log a warning if some mock key is missing
-  
+
   return envPath;
 }
 

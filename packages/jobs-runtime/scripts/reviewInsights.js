@@ -24,10 +24,15 @@ const db = require('../lib/db');
 
 const HEAVY_COMPANY_NOTES = 8; // > this ⇒ a consolidation (rollup) candidate
 
-function ledgerPath() { return path.join(db.dataRoot(), '_meta', 'review-ledger.json'); }
+function ledgerPath() {
+  return path.join(db.dataRoot(), '_meta', 'review-ledger.json');
+}
 function loadLedger() {
-  try { return JSON.parse(fs.readFileSync(ledgerPath(), 'utf8')); }
-  catch (_) { return { lastReviewAt: '1970-01-01T00:00:00.000Z', reviews: [] }; }
+  try {
+    return JSON.parse(fs.readFileSync(ledgerPath(), 'utf8'));
+  } catch (_) {
+    return { lastReviewAt: '1970-01-01T00:00:00.000Z', reviews: [] };
+  }
 }
 function saveLedger(l) {
   const p = ledgerPath();
@@ -42,7 +47,11 @@ const isNew = (r, since) => {
   const s = Date.parse(since || 0);
   return Number.isFinite(t) && t > s;
 };
-const norm = (s) => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+const norm = (s) =>
+  String(s || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
 
 // Group prompts whose title+intent are the same or whose text is near-identical —
 // candidates for merge in the library (the agent proposes/merges, not this script).
@@ -72,32 +81,61 @@ function buildPacket() {
 
   // heavy companies (rollup/consolidation candidates) — keeps buildCompanyContext lean
   const noteCountByCo = {};
-  for (const n of notes) for (const c of (n.companyIds || (n.companyId ? [n.companyId] : []))) noteCountByCo[c] = (noteCountByCo[c] || 0) + 1;
+  for (const n of notes)
+    for (const c of n.companyIds || (n.companyId ? [n.companyId] : []))
+      noteCountByCo[c] = (noteCountByCo[c] || 0) + 1;
   const heavyCompanies = Object.entries(noteCountByCo)
     .filter(([, n]) => n > HEAVY_COMPANY_NOTES)
     .sort((a, b) => b[1] - a[1])
     .map(([companyId, count]) => ({ companyId, count }));
 
   const intentHist = {};
-  for (const p of prompts) intentHist[p.intent || 'unknown'] = (intentHist[p.intent || 'unknown'] || 0) + 1;
+  for (const p of prompts)
+    intentHist[p.intent || 'unknown'] = (intentHist[p.intent || 'unknown'] || 0) + 1;
 
   return {
     windowSince: since,
     now: new Date().toISOString(),
     counts: {
-      total: { notes: notes.length, reports: reports.length, prompts: prompts.length, conversations: conversations.length },
-      delta: { notes: deltaNotes.length, reports: deltaReports.length, prompts: deltaPrompts.length, conversations: deltaConvs.length },
+      total: {
+        notes: notes.length,
+        reports: reports.length,
+        prompts: prompts.length,
+        conversations: conversations.length,
+      },
+      delta: {
+        notes: deltaNotes.length,
+        reports: deltaReports.length,
+        prompts: deltaPrompts.length,
+        conversations: deltaConvs.length,
+      },
     },
     delta: {
-      notes: deltaNotes.map((n) => ({ id: n.id, type: n.type, companyId: n.companyId, text: (n.text || '').slice(0, 140) })),
-      reports: deltaReports.map((r) => ({ id: r.id, type: r.type, summary: (r.summary || '').slice(0, 140) })),
-      prompts: deltaPrompts.map((p) => ({ id: p.id, intent: p.intent, linkedSkill: p.linkedSkill || p.linkedTask, title: p.title })),
+      notes: deltaNotes.map((n) => ({
+        id: n.id,
+        type: n.type,
+        companyId: n.companyId,
+        text: (n.text || '').slice(0, 140),
+      })),
+      reports: deltaReports.map((r) => ({
+        id: r.id,
+        type: r.type,
+        summary: (r.summary || '').slice(0, 140),
+      })),
+      prompts: deltaPrompts.map((p) => ({
+        id: p.id,
+        intent: p.intent,
+        linkedSkill: p.linkedSkill || p.linkedTask,
+        title: p.title,
+      })),
     },
     signals: {
       // → memory-update candidates
       feedbackNotes: notes.filter((n) => n.type === 'feedback').map((n) => n.id),
       // → new-skill / reference candidates
-      frameworkItems: reports.filter((r) => r.type === 'framework').map((r) => ({ id: r.id, summary: (r.summary || '').slice(0, 120) })),
+      frameworkItems: reports
+        .filter((r) => r.type === 'framework')
+        .map((r) => ({ id: r.id, summary: (r.summary || '').slice(0, 120) })),
       // → prompt-library merge candidates
       promptClusters: promptClusters(prompts),
       // → prompt intents (recurring intents may deserve a skill/task)
@@ -113,7 +151,11 @@ function main() {
   const packet = buildPacket();
   if (commit) {
     const ledger = loadLedger();
-    ledger.reviews.push({ at: packet.now, windowSince: packet.windowSince, delta: packet.counts.delta });
+    ledger.reviews.push({
+      at: packet.now,
+      windowSince: packet.windowSince,
+      delta: packet.counts.delta,
+    });
     ledger.lastReviewAt = packet.now;
     if (ledger.reviews.length > 52) ledger.reviews = ledger.reviews.slice(-52); // keep ~1yr
     saveLedger(ledger);

@@ -22,11 +22,11 @@ on a topic, not just the ones that happen to match one phrase.
 
 ## Inputs
 
-| Field | Source | Notes |
-|---|---|---|
-| `keyword` | User message | Seed phrase exactly as typed in Stockscans "Quick Search" |
-| `--quarters` | Optional | How many past quarters to scan (default 4) |
-| `--min-mcap` | Optional | Market cap floor in Cr (default 300) |
+| Field        | Source       | Notes                                                     |
+| ------------ | ------------ | --------------------------------------------------------- |
+| `keyword`    | User message | Seed phrase exactly as typed in Stockscans "Quick Search" |
+| `--quarters` | Optional     | How many past quarters to scan (default 4)                |
+| `--min-mcap` | Optional     | Market cap floor in Cr (default 300)                      |
 
 ---
 
@@ -46,14 +46,15 @@ github-skill-invoker meta-skill from outside the local repo, run the cached
 
 **Auth:** The script (via the shared `StockscansAuth` class) auto-resolves the
 authtoken via, in order:
+
 1. `process.env.STOCKSCANS_AUTH_TOKEN` (canonical)
 2. `process.env.STOCKSCANS_AUTHTOKEN` (legacy — supported one more release, logs a warning)
 3. A `.env` file on disk with either of the above keys
 
 If auth fails, the script exits non-zero with `{"ok": false, "warnings": [...]}` on
-stderr. Tell the user: *"Please paste your Stockscans authtoken — find it in
+stderr. Tell the user: _"Please paste your Stockscans authtoken — find it in
 DevTools → Application → Cookies → `authtoken` on stockscans.in — and I'll set it as
-STOCKSCANS_AUTH_TOKEN."*
+STOCKSCANS_AUTH_TOKEN."_
 
 **Quarter-date logic:** The script computes the last N quarter-end dates in YYYYMM
 format using end-of-quarter months 03, 06, 09, 12 (e.g. June 2026 → 202606,
@@ -69,6 +70,7 @@ data = json.loads(open("/tmp/keyword_explorer_output.json").read())
 ```
 
 The JSON contains:
+
 - `total_announcements` — total hits across all quarters
 - `per_quarter` — count + sample titles per quarter
 - `all_titles` — deduplicated list of every title found
@@ -99,6 +101,7 @@ Group them mentally into semantic clusters.
 ### 3b. Extract keyword candidates from titles
 
 From `title_unigrams`, `title_bigrams`, `title_candidate_phrases`:
+
 - Which high-frequency words/phrases are MEANINGFUL search terms (not noise)?
 - Which bigrams represent complete filing titles or sub-categories?
 - Are there acronyms / abbreviations worth noting?
@@ -106,6 +109,7 @@ From `title_unigrams`, `title_bigrams`, `title_candidate_phrases`:
 ### 3c. Extract keyword candidates from descriptions
 
 Descriptions are often longer and more varied. From `desc_unigrams`, `desc_bigrams`:
+
 - Do descriptions contain sub-types not visible in titles?
 - Are there regulatory section references (e.g. "Section 194", "Reg 30") that
   would work as standalone search terms?
@@ -115,6 +119,7 @@ Descriptions are often longer and more varied. From `desc_unigrams`, `desc_bigra
 ### 3d. Identify gaps
 
 Ask yourself:
+
 - **What filing variants might be MISSING** from these results? (The seed keyword
   may have already pre-filtered — some variants might use completely different
   phrasing that this seed didn't catch.)
@@ -147,6 +152,7 @@ Reason: [brief justification]
 ```
 
 **Coverage confidence rubric:**
+
 - HIGH: >50 announcements found, titles are consistent, few obvious gaps
 - MEDIUM: 10–50 announcements or clear synonym blind spots exist
 - LOW: <10 announcements or the seed keyword returned noise with no signal
@@ -159,6 +165,7 @@ Show the keyword list as a formatted HTML widget using `show_widget` if availabl
 otherwise render as clean Markdown in chat.
 
 Include a collapsible "Raw Evidence" section showing:
+
 - Top 20 actual titles seen (as proof the keywords are real)
 - Per-quarter breakdown (did volume change over time?)
 
@@ -166,13 +173,13 @@ Include a collapsible "Raw Evidence" section showing:
 
 ## Edge cases
 
-| Situation | Handling |
-|---|---|
-| 0 results for a quarter | Log it in `errors`, note it in output, don't fail |
-| Seed keyword too broad (>200 results) | Note it; suggest splitting into sub-keywords |
-| Seed keyword too narrow (<5 results) | Flag LOW confidence; suggest 2–3 alternate seeds |
-| Auth token expired | Prompt user for fresh token (see Step 1 above) |
-| Description field empty in all results | Skip desc analysis, note in output |
+| Situation                              | Handling                                          |
+| -------------------------------------- | ------------------------------------------------- |
+| 0 results for a quarter                | Log it in `errors`, note it in output, don't fail |
+| Seed keyword too broad (>200 results)  | Note it; suggest splitting into sub-keywords      |
+| Seed keyword too narrow (<5 results)   | Flag LOW confidence; suggest 2–3 alternate seeds  |
+| Auth token expired                     | Prompt user for fresh token (see Step 1 above)    |
+| Description field empty in all results | Skip desc analysis, note in output                |
 
 ---
 

@@ -22,7 +22,7 @@ open with the extension connected at run time — it will not wake or launch the
 ### Two capture methods — use the extension one; DOM-read is the fallback
 
 **Primary: `tools/tweet-signal-capture-extension/` (real JSON, use this).** A normal
-Chrome extension content script runs in an *isolated* JS world — separate from the page's
+Chrome extension content script runs in an _isolated_ JS world — separate from the page's
 own JS — so a `window.fetch` override placed there does NOT see the page's real network
 calls. This was tried first and silently captured nothing. The fix: the extension's
 `inject.js` declares `"world": "MAIN"` in its manifest, which injects it into the page's
@@ -116,6 +116,7 @@ envelope (`companyId`, `creationTime`, `modifiedTime`, `creator: "tweet-signals"
 
 **Conviction is content-only** (per feedback — source/author verification is not a
 signal of whether an announcement is material, so it's not used):
+
 - `HIGH`: material category (ORDER_WIN / CORPORATE_ACTION / EARNINGS_RESULTS /
   RATING_CREDIT) + a quantified figure + that figure is materially sized (≥₹100cr or
   ≥10%).
@@ -129,6 +130,7 @@ keyword → normalized name substring, in that priority order) instead of a bare
 regex, so prose-only announcements without a hashtag still resolve.
 
 **Known limitations to disclose in the briefing, not silently paper over:**
+
 - Not every tweet resolves to a company even with the master DB + enricher (e.g. macro
   news like "SMP KOLKATA..." or abbreviations like "RCF" that don't exactly match Kite's
   `tradingsymbol`/`name` fields) — `companyId` falls back to `UNKNOWN:<author>` and the
@@ -162,11 +164,13 @@ Use the same shared mailer pattern as `gainers-signal` (see that skill's Step 3)
 ```bash
 node "$RUNTIME/scripts/data.js" push
 ```
+
 Same as every other job in this repo — idempotent push of `data/` to Drive
 (`StockMarket/data/v2`). Push-only: all local files are KEPT (full mirror). The
 company master now lives at `data/cache/company-master.json` and is synced too.
 
 ## Rules
+
 - **Files-touched manifest (docs/DATA_RULES.md §7):** end the run by listing every file created/modified — collections with record counts (db.js helper stats / `db.touchedFiles()`), plus `runs/`/`cache/`/`assets/` files (`StorageService.touchedFiles()`), plus the `data:push` `↑ <file>` lines. A run that stored data without reporting what it touched is incomplete.
 
 - Never store X session cookies, `auth_token`, or `ct0` anywhere (`.env`, files, or

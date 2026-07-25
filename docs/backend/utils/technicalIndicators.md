@@ -27,6 +27,7 @@ function calculateSMA(prices, period) → number[]
 **Returns:** `number[]` - Array of SMA values
 
 **Example:**
+
 ```javascript
 const { calculateSMA } = require('../utils/technicalIndicators');
 
@@ -36,6 +37,7 @@ const sma = calculateSMA(prices, 3);
 ```
 
 **Algorithm:**
+
 ```
 SMA = (P1 + P2 + ... + Pn) / n
 ```
@@ -59,6 +61,7 @@ function calculateEMA(prices, period) → number[]
 **Returns:** `number[]` - Array of EMA values
 
 **Example:**
+
 ```javascript
 const { calculateEMA } = require('../utils/technicalIndicators');
 
@@ -67,6 +70,7 @@ const ema = calculateEMA(prices, 3);
 ```
 
 **Algorithm:**
+
 ```
 Multiplier (k) = 2 / (period + 1)
 EMA = (Price × k) + (Previous EMA × (1 - k))
@@ -91,21 +95,26 @@ function calculateRSI(prices, period = 14) → number | null
 **Returns:** `number | null` - Current RSI value (0-100) or null if insufficient data
 
 **Example:**
+
 ```javascript
 const { calculateRSI } = require('../utils/technicalIndicators');
 
-const prices = [44, 44.34, 44.09, 43.61, 44.33, 44.83, 45.10, 45.42, 45.84, 
-                46.08, 45.89, 46.03, 45.61, 46.28, 46.28, 46.00, 46.03];
+const prices = [
+  44, 44.34, 44.09, 43.61, 44.33, 44.83, 45.1, 45.42, 45.84, 46.08, 45.89, 46.03, 45.61, 46.28,
+  46.28, 46.0, 46.03,
+];
 const rsi = calculateRSI(prices, 14);
 // Result: ~70.53
 ```
 
 **Interpretation:**
+
 - RSI > 70: Overbought
 - RSI < 30: Oversold
 - RSI = 50: Neutral
 
 **Algorithm:**
+
 ```
 RS = Average Gain / Average Loss
 RSI = 100 - (100 / (1 + RS))
@@ -134,15 +143,19 @@ function calculateMACD(prices) → { macd: number, signal: number, histogram: nu
 | `histogram` | `number` | MACD histogram value |
 
 **Example:**
+
 ```javascript
 const { calculateMACD } = require('../utils/technicalIndicators');
 
-const prices = [/* 26+ closing prices */];
+const prices = [
+  /* 26+ closing prices */
+];
 const macd = calculateMACD(prices);
 // Result: { macd: 1.5, signal: 1.2, histogram: 0.3 }
 ```
 
 **Algorithm:**
+
 ```
 MACD Line = EMA(12) - EMA(26)
 Signal Line = EMA(9) of MACD Line
@@ -165,6 +178,7 @@ function calculateAllIndicators(priceHistory) → Object
 | `priceHistory` | `Object[]` | Array of price history objects with `close` property |
 
 **Returns:** Object with all indicators:
+
 ```javascript
 {
   sma_50: number | null,
@@ -179,6 +193,7 @@ function calculateAllIndicators(priceHistory) → Object
 ```
 
 **Example:**
+
 ```javascript
 const { calculateAllIndicators } = require('../utils/technicalIndicators');
 
@@ -210,4 +225,3 @@ const getStockTechnicals = async (req, res, next) => {
 
 - [Stock Controller](../controllers/stockController.md) - Uses this utility
 - [API Reference](../../API_REFERENCE.md#get-stock-technicals) - API endpoint documentation
-

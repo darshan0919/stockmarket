@@ -20,7 +20,9 @@ export default function ScanList({ scans, selectedScanId, onSelect, loading }) {
     return (
       <div className="finance-card sticky top-20 p-4">
         <h2 className="section-title mb-4">Saved Scans</h2>
-        <p className="text-xs text-base-content/50">No saved scans found. Create scans on stockscans.in.</p>
+        <p className="text-xs text-base-content/50">
+          No saved scans found. Create scans on stockscans.in.
+        </p>
       </div>
     );
   }

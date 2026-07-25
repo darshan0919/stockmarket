@@ -84,8 +84,16 @@ function parseArgs(argv) {
  * @returns {Promise<{ok:true,id:string,quarterDate:string,ticker:string,filesTouched:*}>}
  */
 async function saveTranscript({
-  ticker, quarterDate, transcript, segments, paragraphs,
-  source = 'notebooklm-audio', fiscalYear, fiscalPeriod, sourceUrl, announcementDate,
+  ticker,
+  quarterDate,
+  transcript,
+  segments,
+  paragraphs,
+  source = 'notebooklm-audio',
+  fiscalYear,
+  fiscalPeriod,
+  sourceUrl,
+  announcementDate,
 }) {
   if (!ticker || !quarterDate) {
     throw new Error('saveTranscript requires ticker and quarterDate');
@@ -96,7 +104,9 @@ async function saveTranscript({
 
   const content = buildTranscriptContent({ segments, paragraphs, rawText: transcript });
   if (content.stats.charCount < 200) {
-    throw new Error(`Transcript looks too short (${content.stats.charCount} chars) — refusing to save. Check the source output before retrying.`);
+    throw new Error(
+      `Transcript looks too short (${content.stats.charCount} chars) — refusing to save. Check the source output before retrying.`
+    );
   }
 
   // Context-first (docs/DATA_RULES.md §5): pull existing company context so the
@@ -111,11 +121,12 @@ async function saveTranscript({
   }
 
   const id = db.makeId('rpt', 'concall-transcript-extractor', ticker, quarterDate, 'early');
-  const sourceLabel = {
-    'stockscans-official': "Stockscans' own official Transcript filing",
-    'perplexity-quartr': 'Quartr (via Perplexity Finance), speaker-attributed',
-    'notebooklm-audio': 'the earnings-call recording audio, transcribed via NotebookLM',
-  }[source] || source;
+  const sourceLabel =
+    {
+      'stockscans-official': "Stockscans' own official Transcript filing",
+      'perplexity-quartr': 'Quartr (via Perplexity Finance), speaker-attributed',
+      'notebooklm-audio': 'the earnings-call recording audio, transcribed via NotebookLM',
+    }[source] || source;
   const dto = {
     id,
     creator: 'concall-transcript-extractor',
@@ -144,13 +155,20 @@ async function saveTranscript({
 }
 
 async function main() {
-  const { ticker, quarterDate, transcriptPath, sourceUrl, announcementDate, fiscalYear, fiscalPeriod } =
-    parseArgs(process.argv.slice(2));
+  const {
+    ticker,
+    quarterDate,
+    transcriptPath,
+    sourceUrl,
+    announcementDate,
+    fiscalYear,
+    fiscalPeriod,
+  } = parseArgs(process.argv.slice(2));
 
   if (!ticker || !quarterDate || !transcriptPath) {
     console.error(
       'Usage: save-concall-transcript.js <TICKER> <QUARTER_DATE YYYYMM> <transcript.txt> ' +
-      '[--source-url <url>] [--announcement-date YYYY-MM-DD] [--fiscal-year YYYY] [--fiscal-period Q1..Q4]'
+        '[--source-url <url>] [--announcement-date YYYY-MM-DD] [--fiscal-year YYYY] [--fiscal-period Q1..Q4]'
     );
     process.exit(1);
   }
@@ -164,7 +182,14 @@ async function main() {
   // programmatically by get-latest-concall-transcript.js with their own source
   // and structured segments/paragraphs).
   const result = await saveTranscript({
-    ticker, quarterDate, transcript, source: 'notebooklm-audio', sourceUrl, announcementDate, fiscalYear, fiscalPeriod,
+    ticker,
+    quarterDate,
+    transcript,
+    source: 'notebooklm-audio',
+    sourceUrl,
+    announcementDate,
+    fiscalYear,
+    fiscalPeriod,
   });
   console.log(JSON.stringify(result, null, 2));
 }

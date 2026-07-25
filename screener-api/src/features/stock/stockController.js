@@ -4,7 +4,12 @@ const { calculateAllIndicators, calculateSMA } = require('../../core/utils/techn
 const { fetchAndStoreQuarterlyResults } = require('../../../scripts/balanceSheetDataFetcher');
 const { fetchStockDetails } = require('../../../scripts/stockDetailsFetcher');
 const { getStockScripCode } = require('../../core/api/bseIndiaApi');
-const { getPriceVolumeDeliverable, formatDate, searchAutocomplete, getSymbolData } = require('../../core/api/nseIndiaApi');
+const {
+  getPriceVolumeDeliverable,
+  formatDate,
+  searchAutocomplete,
+  getSymbolData,
+} = require('../../core/api/nseIndiaApi');
 const { parseNseDateToObject } = require('../../core/utils/nseHelpers');
 
 /**
@@ -217,18 +222,26 @@ const getStockTechnicals = async (req, res, next) => {
 
     let priceHistory = [];
     try {
-      const rows = await getPriceVolumeDeliverable(symbol.toUpperCase(), formatDate(fromDate), formatDate(toDate));
-      priceHistory = rows.map((r) => {
-        const dateObj = parseNseDateToObject(r.mTIMESTAMP || r.CH_TIMESTAMP);
-        return {
-          date: dateObj,
-          open: parseFloat(String(r.CH_OPENING_PRICE).replace(/,/g, '') || 0),
-          high: parseFloat(String(r.CH_TRADE_HIGH_PRICE).replace(/,/g, '') || 0),
-          low: parseFloat(String(r.CH_TRADE_LOW_PRICE).replace(/,/g, '') || 0),
-          close: parseFloat(String(r.CH_CLOSING_PRICE).replace(/,/g, '') || 0),
-          volume: parseFloat(String(r.CH_TOT_TRADED_QTY ?? r.COP_TRADED_QTY).replace(/,/g, '') || 0)
-        };
-      }).filter(r => r.date && r.close);
+      const rows = await getPriceVolumeDeliverable(
+        symbol.toUpperCase(),
+        formatDate(fromDate),
+        formatDate(toDate)
+      );
+      priceHistory = rows
+        .map((r) => {
+          const dateObj = parseNseDateToObject(r.mTIMESTAMP || r.CH_TIMESTAMP);
+          return {
+            date: dateObj,
+            open: parseFloat(String(r.CH_OPENING_PRICE).replace(/,/g, '') || 0),
+            high: parseFloat(String(r.CH_TRADE_HIGH_PRICE).replace(/,/g, '') || 0),
+            low: parseFloat(String(r.CH_TRADE_LOW_PRICE).replace(/,/g, '') || 0),
+            close: parseFloat(String(r.CH_CLOSING_PRICE).replace(/,/g, '') || 0),
+            volume: parseFloat(
+              String(r.CH_TOT_TRADED_QTY ?? r.COP_TRADED_QTY).replace(/,/g, '') || 0
+            ),
+          };
+        })
+        .filter((r) => r.date && r.close);
     } catch (apiErr) {
       console.warn(`Failed to fetch price volume for technicals: ${apiErr.message}`);
     }
@@ -295,7 +308,8 @@ const getStockFinancials = async (req, res, next) => {
       data: {
         p_and_l: [],
         balance_sheet: [],
-        message: 'Annual financial data is fetched via third-party APIs on the client or via Quarterly Results.'
+        message:
+          'Annual financial data is fetched via third-party APIs on the client or via Quarterly Results.',
       },
     });
   } catch (error) {
@@ -649,7 +663,7 @@ const getDeliveryVolume = async (req, res) => {
       const liveData = await getSymbolData(symbol);
       if (liveData) {
         const now = new Date();
-        const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         // Only add if today isn't already in history (market open) and data looks valid
         const lastHistorical = candles[candles.length - 1];
         if (lastHistorical?.time !== todayStr) {
@@ -661,7 +675,16 @@ const getDeliveryVolume = async (req, res) => {
           const deliveryVolume = toNumber(liveData.tradeInfo?.deliveryquantity);
           const deliveryPercent = toNumber(liveData.tradeInfo?.deliveryToTradedQuantity);
           if (open && high && low && close) {
-            candles.push({ time: todayStr, open, high, low, close, volume, deliveryVolume, deliveryPercent });
+            candles.push({
+              time: todayStr,
+              open,
+              high,
+              low,
+              close,
+              volume,
+              deliveryVolume,
+              deliveryPercent,
+            });
           }
         }
       }

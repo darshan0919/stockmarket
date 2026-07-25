@@ -67,7 +67,8 @@
           const itemContent = entry?.content?.itemContent;
           const items = entry?.content?.items;
           const tweetResults = [];
-          if (itemContent?.tweet_results?.result) tweetResults.push(itemContent.tweet_results.result);
+          if (itemContent?.tweet_results?.result)
+            tweetResults.push(itemContent.tweet_results.result);
           if (Array.isArray(items)) {
             for (const it of items) {
               const r = it?.item?.itemContent?.tweet_results?.result;
@@ -102,7 +103,7 @@
   window.fetch = async function (...args) {
     const res = await origFetch.apply(this, args);
     try {
-      const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url);
+      const url = typeof args[0] === 'string' ? args[0] : args[0] && args[0].url;
       if (url && url.includes(MATCH)) {
         res
           .clone()

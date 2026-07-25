@@ -82,7 +82,7 @@ const parseDate = (dateStr) => {
     dec: 11,
   };
 
-  const match = dateStr.match(/(\d{1,2})[-\/](\w{3}|\d{1,2})[-\/](\d{4})/);
+  const match = dateStr.match(/(\d{1,2})[-/](\w{3}|\d{1,2})[-/](\d{4})/);
   if (match) {
     const day = parseInt(match[1]);
     const monthPart = match[2].toLowerCase();

@@ -30,10 +30,15 @@ function resolveSeedFile(runsDir) {
   const dateArg = process.argv[2] && /^\d{8}$/.test(process.argv[2]) ? process.argv[2] : null;
   if (dateArg) return path.join(runsDir, `gainers_top3_context_${dateArg}.json`);
   const files = fs.existsSync(runsDir)
-    ? fs.readdirSync(runsDir).filter((f) => /^gainers_top3_context_\d{8}\.json$/.test(f)).sort()
+    ? fs
+        .readdirSync(runsDir)
+        .filter((f) => /^gainers_top3_context_\d{8}\.json$/.test(f))
+        .sort()
     : [];
   if (!files.length) {
-    throw new Error(`No gainers_top3_context_*.json in ${runsDir} — run gainersClassifier.js (Step 2) first.`);
+    throw new Error(
+      `No gainers_top3_context_*.json in ${runsDir} — run gainersClassifier.js (Step 2) first.`
+    );
   }
   return path.join(runsDir, files[files.length - 1]);
 }
@@ -51,21 +56,30 @@ async function main() {
   }
   fs.writeFileSync(file, JSON.stringify(seed, null, 2));
 
-  process.stdout.write(`${JSON.stringify({
-    file: path.basename(file),
-    companies: companies.map((c) => ({
-      companyId: c.companyId,
-      fromCache: c.stockscans.fromCache,
-      hasGrowthCatalysts: !!c.stockscans.growthCatalysts,
-      hasBusinessOverview: !!c.stockscans.businessOverview,
-      hasConcallNotes: !!c.stockscans.concallNotes,
-      errors: c.stockscans.errors,
-    })),
-  }, null, 2)}\n`);
+  process.stdout.write(
+    `${JSON.stringify(
+      {
+        file: path.basename(file),
+        companies: companies.map((c) => ({
+          companyId: c.companyId,
+          fromCache: c.stockscans.fromCache,
+          hasGrowthCatalysts: !!c.stockscans.growthCatalysts,
+          hasBusinessOverview: !!c.stockscans.businessOverview,
+          hasConcallNotes: !!c.stockscans.concallNotes,
+          errors: c.stockscans.errors,
+        })),
+      },
+      null,
+      2
+    )}\n`
+  );
 }
 
 module.exports = { main, resolveSeedFile };
 
 if (require.main === module) {
-  main().catch((e) => { console.error(e); process.exit(1); });
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
 }

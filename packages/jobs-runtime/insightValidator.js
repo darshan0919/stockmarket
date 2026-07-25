@@ -89,10 +89,10 @@ async function fetchDeliveryCsv(date, client = nse) {
   const mm = String(date.getMonth() + 1).padStart(2, '0');
   const dd = String(date.getDate()).padStart(2, '0');
   const relPath = `cache/nse-delivery_${yyyy}${mm}${dd}.csv`;
-  
+
   const cache = StorageService.readContent(relPath);
   if (cache && cache.length > 1000) return cache;
-  
+
   const text = await client.getDeliveryBhavcopy(ddmmyyyy(date));
   if (text) await StorageService.saveContent(relPath, text, false);
   return text;
@@ -105,7 +105,9 @@ function parseDelivery(csvText) {
   if (!lines.length) return out;
   const header = lines[0].split(',').map((h) => h.trim());
   const idx = {};
-  header.forEach((c, i) => { idx[c] = i; });
+  header.forEach((c, i) => {
+    idx[c] = i;
+  });
   const g = (row, key) => (key in idx && idx[key] < row.length ? row[idx[key]].trim() : '');
   for (let i = 1; i < lines.length; i++) {
     if (!lines[i]) continue;
@@ -121,10 +123,16 @@ function parseDelivery(csvText) {
     const turn = parseFloat(g(row, 'TURNOVER_LACS') || '0');
     const trades = parseFloat(g(row, 'NO_OF_TRADES') || '0');
     if ([prev, close, trd].some((x) => Number.isNaN(x))) continue;
-    if (Number.isNaN(dq) || Number.isNaN(dper) || Number.isNaN(turn) || Number.isNaN(trades)) continue;
+    if (Number.isNaN(dq) || Number.isNaN(dper) || Number.isNaN(turn) || Number.isNaN(trades))
+      continue;
     out[sym] = {
       ret: prev ? ((close - prev) / prev) * 100 : 0.0,
-      deliv_per: dper, deliv_qty: dq, trd_qty: trd, turnover: turn, trades, close,
+      deliv_per: dper,
+      deliv_qty: dq,
+      trd_qty: trd,
+      turnover: turn,
+      trades,
+      close,
     };
   }
   return out;
@@ -162,10 +170,16 @@ async function fetchLiveDeliveryForSymbols(symbols, client = nse, concurrency = 
         const delivQty = Math.round((trdQty * dper) / 100);
         const turnoverLacs = Number.isNaN(trdVal) ? 0 : (trdVal / 1e7) * 100; // ₹ → Cr → Lacs
         out[sym] = {
-          deliv_per: dper, deliv_qty: delivQty, trd_qty: trdQty,
-          turnover: turnoverLacs, trades: 0, close: Number.isNaN(close) ? null : close,
+          deliv_per: dper,
+          deliv_qty: delivQty,
+          trd_qty: trdQty,
+          turnover: turnoverLacs,
+          trades: 0,
+          close: Number.isNaN(close) ? null : close,
         };
-      } catch { /* NSE live endpoint can 401/403/timeout — leave symbol un-scored */ }
+      } catch {
+        /* NSE live endpoint can 401/403/timeout — leave symbol un-scored */
+      }
     }
   }
   await Promise.all(Array.from({ length: Math.min(concurrency, list.length) }, worker));
@@ -256,7 +270,8 @@ function structuralSignal(day, base) {
   else label = 'WEAK';
 
   return {
-    ret: round(ret, 2), deliv_per: round(dper, 1),
+    ret: round(ret, 2),
+    deliv_per: round(dper, 1),
     vol_spike: volSpike !== null ? round(volSpike, 2) : null,
     deliv_spike: delivSpike !== null ? round(delivSpike, 2) : null,
     dper_vs_avg: dperVsAvg !== null ? round(dperVsAvg, 1) : null,
@@ -279,8 +294,13 @@ function verdict(significance, label) {
 function sectorAttribution(stockRet, companyId, ctx) {
   if (stockRet === null || stockRet === undefined || !ctx || !Object.keys(ctx).length) {
     return {
-      reference: null, ref_move: null, excess: null, industry_1d: null, sector_1d: null,
-      market_1d: ctx ? ctx.market_median_1d : null, label: 'no_context',
+      reference: null,
+      ref_move: null,
+      excess: null,
+      industry_1d: null,
+      sector_1d: null,
+      market_1d: ctx ? ctx.market_median_1d : null,
+      label: 'no_context',
     };
   }
   const comp = (ctx.companies || {})[companyId] || {};
@@ -292,9 +312,16 @@ function sectorAttribution(stockRet, companyId, ctx) {
 
   let refMove = null;
   let reference = null;
-  if (indM && indM.n >= IND_MIN_N) { refMove = indM.median; reference = `industry:${ind}`; }
-  else if (secM && secM.n >= SEC_MIN_N) { refMove = secM.median; reference = `sector:${sec}`; }
-  else if (mkt !== null) { refMove = mkt; reference = 'market'; }
+  if (indM && indM.n >= IND_MIN_N) {
+    refMove = indM.median;
+    reference = `industry:${ind}`;
+  } else if (secM && secM.n >= SEC_MIN_N) {
+    refMove = secM.median;
+    reference = `sector:${sec}`;
+  } else if (mkt !== null) {
+    refMove = mkt;
+    reference = 'market';
+  }
 
   let label;
   let excess = null;
@@ -305,17 +332,20 @@ function sectorAttribution(stockRet, companyId, ctx) {
     const bigSector = Math.abs(refMove) >= SECTOR_MOVE_MIN;
     const sameSign = stockRet >= 0 === refMove >= 0;
     if (bigSector && sameSign && Math.abs(excess) < 1.0) label = 'sector-driven';
-    else if (bigSector && sameSign && excess * (refMove >= 0 ? 1 : -1) >= 1.5) label = 'amplified-by-sector';
+    else if (bigSector && sameSign && excess * (refMove >= 0 ? 1 : -1) >= 1.5)
+      label = 'amplified-by-sector';
     else if (bigSector && !sameSign) label = 'against-sector';
     else if (Math.abs(excess) >= 2.0) label = 'stock-specific';
     else label = 'in-line';
   }
   return {
-    reference, ref_move: refMove,
+    reference,
+    ref_move: refMove,
     excess: excess !== null ? round(excess, 2) : null,
     industry_1d: indM ? indM.median : null,
     sector_1d: secM ? secM.median : null,
-    market_1d: mkt, label,
+    market_1d: mkt,
+    label,
   };
 }
 
@@ -333,7 +363,9 @@ async function fetchLiveReturns(client = stockscans) {
         const v = parseFloat(row[ri]);
         if (!Number.isNaN(v)) out[row[ci]] = v;
       }
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   }
   return out;
 }
@@ -344,7 +376,9 @@ async function fetchSectorContext(target, client = stockscans, mcapFloor = SECTO
   // part of the cache key so overriding --sector-mcap-floor never silently reuses a
   // cache built with a different floor.
   const floorSuffix = mcapFloor === SECTOR_MCAP_FLOOR ? '' : `_floor${mcapFloor}`;
-  const dtoPaths = { jsonPath: `cache/sector_context_${target.toISOString().slice(0, 10).replace(/-/g, '')}${floorSuffix}.json` };
+  const dtoPaths = {
+    jsonPath: `cache/sector_context_${target.toISOString().slice(0, 10).replace(/-/g, '')}${floorSuffix}.json`,
+  };
 
   const cached = StorageService.readJson(dtoPaths.jsonPath);
   if (cached && Object.keys(cached).length > 2) {
@@ -353,13 +387,21 @@ async function fetchSectorContext(target, client = stockscans, mcapFloor = SECTO
 
   const companies = {};
   const baseScan = {
-    ratiosType: 'Default', timePeriod: 'Latest',
+    ratiosType: 'Default',
+    timePeriod: 'Latest',
     scan: {
-      industry: [], index: [], sector: [], tags: [], watchlistIds: [],
+      industry: [],
+      index: [],
+      sector: [],
+      tags: [],
+      watchlistIds: [],
       filters: [{ left: 'Market Capitalization', sign: '>=', right: String(mcapFloor) }],
       alertFrequency: null,
     },
-    watchlistIds: [], order: 'desc', orderBy: 'Market Capitalization', offset: 0,
+    watchlistIds: [],
+    order: 'desc',
+    orderBy: 'Market Capitalization',
+    offset: 0,
   };
   let offset = 0;
   let total = null;
@@ -367,7 +409,11 @@ async function fetchSectorContext(target, client = stockscans, mcapFloor = SECTO
     const payload = JSON.parse(JSON.stringify(baseScan));
     payload.offset = offset;
     let d;
-    try { d = await client.runScan(payload); } catch { break; }
+    try {
+      d = await client.runScan(payload);
+    } catch {
+      break;
+    }
     const tbl = d.table || [];
     if (tbl.length < 2) break;
     if (total === null) total = d.total || 0;
@@ -378,7 +424,11 @@ async function fetchSectorContext(target, client = stockscans, mcapFloor = SECTO
     if ([ci, ri, ii, si].some((x) => x < 0)) break;
     for (const row of tbl.slice(1)) {
       const ret = parseFloat(row[ri]);
-      companies[row[ci]] = { ret: Number.isNaN(ret) ? null : ret, industry: row[ii] || '', sector: row[si] || '' };
+      companies[row[ci]] = {
+        ret: Number.isNaN(ret) ? null : ret,
+        industry: row[ii] || '',
+        sector: row[si] || '',
+      };
     }
     offset += tbl.length - 1;
     if (total && offset >= total) break;
@@ -391,10 +441,13 @@ async function fetchSectorContext(target, client = stockscans, mcapFloor = SECTO
       (groups[v[key]] ||= []).push(v.ret);
     }
     const res = {};
-    for (const [grp, rs] of Object.entries(groups)) res[grp] = { median: round(median(rs), 2), n: rs.length };
+    for (const [grp, rs] of Object.entries(groups))
+      res[grp] = { median: round(median(rs), 2), n: rs.length };
     return res;
   };
-  const allRets = Object.values(companies).map((v) => v.ret).filter((r) => r !== null);
+  const allRets = Object.values(companies)
+    .map((v) => v.ret)
+    .filter((r) => r !== null);
   const ctx = {
     date: target.toISOString().slice(0, 10),
     universe: Object.keys(companies).length,
@@ -403,9 +456,11 @@ async function fetchSectorContext(target, client = stockscans, mcapFloor = SECTO
     sector: medians('sector'),
     companies,
   };
-  try { 
+  try {
     await StorageService.saveJson(dtoPaths.jsonPath, ctx, false);
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return ctx;
 }
 
@@ -462,11 +517,17 @@ function insightsFromNotes(notes) {
   for (const [cid, co] of Object.entries(notes.companies || {})) {
     for (const n of co.notes || []) {
       if (n.type !== 'announcement') continue;
-      if (n.significance === null || n.significance === '' || n.significance === 'routine') continue;
+      if (n.significance === null || n.significance === '' || n.significance === 'routine')
+        continue;
       out.push({
-        companyId: cid, name: co.name || cid, noteId: n.id || '',
-        title: n.announcementTitle || '', significance: n.significance,
-        tags: n.tags || [], category: categoryFromNote(n), createdAt: n.createdAt || '',
+        companyId: cid,
+        name: co.name || cid,
+        noteId: n.id || '',
+        title: n.announcementTitle || '',
+        significance: n.significance,
+        tags: n.tags || [],
+        category: categoryFromNote(n),
+        createdAt: n.createdAt || '',
       });
     }
   }
@@ -483,7 +544,13 @@ function insightTargetDate(insights) {
 }
 
 // ── Validation ────────────────────────────────────────────────────────────────
-async function runValidation(insights, target, clients = { nse, stockscans }, baselineDays = BASELINE_DAYS, sectorMcapFloor = SECTOR_MCAP_FLOOR) {
+async function runValidation(
+  insights,
+  target,
+  clients = { nse, stockscans },
+  baselineDays = BASELINE_DAYS,
+  sectorMcapFloor = SECTOR_MCAP_FLOOR
+) {
   const ctx = await fetchSectorContext(target, clients.stockscans, sectorMcapFloor);
   let liveRet = {};
   for (const [c, v] of Object.entries(ctx.companies || {})) if (v.ret !== null) liveRet[c] = v.ret;
@@ -497,9 +564,8 @@ async function runValidation(insights, target, clients = { nse, stockscans }, ba
   // NSE's getSymbolData API for just today's insight symbols, so they aren't left "pending"
   // all day. These reads are PROVISIONAL (tagged below) since intraday delivery% can still
   // move before EOD; see fetchLiveDeliveryForSymbols() for why they're kept out of the ledger.
-  const liveDayData = deliveryPending && symbols.size
-    ? await fetchLiveDeliveryForSymbols(symbols, clients.nse)
-    : {};
+  const liveDayData =
+    deliveryPending && symbols.size ? await fetchLiveDeliveryForSymbols(symbols, clients.nse) : {};
   const base = symbols.size ? await buildBaselines(symbols, target, baselineDays, clients.nse) : {};
 
   const results = [];
@@ -555,7 +621,11 @@ function loadGainersInsights(isoDate) {
   const signals = dbV2.find('events', { type: 'gainer', date: isoDate });
   if (!signals.length) {
     // Fallback: the full run DTO (runs/gainers_insights_YYYYMMDD.json), if present.
-    const p = path.join(dbV2.dataRoot(), 'runs', `gainers_insights_${isoDate.replace(/-/g, '')}.json`);
+    const p = path.join(
+      dbV2.dataRoot(),
+      'runs',
+      `gainers_insights_${isoDate.replace(/-/g, '')}.json`
+    );
     if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf8'));
     return null;
   }
@@ -568,12 +638,14 @@ function loadGainersLedger() {
 }
 
 function saveGainersLedger(records) {
-  dbV2.appendValidations(records.map((r) => ({
-    ...r,
-    type: 'gainers-followup',
-    creator: r.creator || 'insight-validation',
-    date: r.date || r.sourceDate,
-  })));
+  dbV2.appendValidations(
+    records.map((r) => ({
+      ...r,
+      type: 'gainers-followup',
+      creator: r.creator || 'insight-validation',
+      date: r.date || r.sourceDate,
+    }))
+  );
 }
 
 /** Close price + delivery% for `sym` on date `d` — bhavcopy first, live NSE quote fallback. */
@@ -581,10 +653,12 @@ async function deliveryForDate(sym, d, client = nse) {
   const csv = await fetchDeliveryCsv(d, client);
   if (csv) {
     const day = parseDelivery(csv);
-    if (day[sym]) return { close: day[sym].close, deliv_per: day[sym].deliv_per, provisional: false };
+    if (day[sym])
+      return { close: day[sym].close, deliv_per: day[sym].deliv_per, provisional: false };
   }
   const live = await fetchLiveDeliveryForSymbols([sym], client, 1);
-  if (live[sym]) return { close: live[sym].close, deliv_per: live[sym].deliv_per, provisional: true };
+  if (live[sym])
+    return { close: live[sym].close, deliv_per: live[sym].deliv_per, provisional: true };
   return null;
 }
 
@@ -632,7 +706,7 @@ async function validateGainersPicks(sourceDate, clients = { nse }) {
     let validated = false;
 
     if (dFetched && d2Fetched && dClose) {
-      d2Return = round((d2Fetched.close - dClose) / dClose * 100, 2);
+      d2Return = round(((d2Fetched.close - dClose) / dClose) * 100, 2);
       validated = d2Return > 0 && d2Return >= GAINERS_VALIDATION_MIN_GAIN_PCT;
 
       const dDp = dDelivPer ?? 0;
@@ -644,7 +718,7 @@ async function validateGainersPicks(sourceDate, clients = { nse }) {
       if (sig.primary_driver === 'SECTOR_CATALYST') {
         const catInfo = sectorCatalysts[sig.industry];
         if (catInfo && typeof catInfo.avg_return === 'number') {
-          const sameSign = (d2Return >= 0) === (catInfo.avg_return >= 0);
+          const sameSign = d2Return >= 0 === catInfo.avg_return >= 0;
           categorizationNote = sameSign
             ? `SECTOR_CATALYST looks consistent in hindsight — industry '${sig.industry}' peers averaged ${catInfo.avg_return}% same-direction as this stock's D+2 move.`
             : `SECTOR_CATALYST looks questionable in hindsight — industry '${sig.industry}' peer average (${catInfo.avg_return}%) diverged from this stock's D+2 move (${d2Return}%); may have decoupled from the sector thesis.`;
@@ -657,7 +731,8 @@ async function validateGainersPicks(sourceDate, clients = { nse }) {
           : `${sig.primary_driver} conviction HIGH was NOT followed by a substantial positive D+2 move (${d2Return}%) — flag for review; conviction may have been over-rated, or this reflects normal noise (single data point, use judgement).`;
       }
     } else {
-      categorizationNote = 'D or D+2 delivery/price data unavailable (bhavcopy not published and live fallback failed) — validation skipped for this symbol.';
+      categorizationNote =
+        'D or D+2 delivery/price data unavailable (bhavcopy not published and live fallback failed) — validation skipped for this symbol.';
     }
 
     records.push({
@@ -698,25 +773,33 @@ function upsertGainersLedger(run) {
 function renderGainersValidationSection(run) {
   const parts = ['<h3>🎯 Gainers-Signal Follow-up Validation (D+2)</h3>'];
   if (!run || run.skipped) {
-    parts.push(`<p style='color:#999'>Skipped — ${run ? run.reason : 'no run'} for source date ${run ? run.sourceDate : ''}.</p>`);
+    parts.push(
+      `<p style='color:#999'>Skipped — ${run ? run.reason : 'no run'} for source date ${run ? run.sourceDate : ''}.</p>`
+    );
     return parts.join('\n');
   }
   if (!run.records.length) {
-    parts.push(`<p style='color:#999'>No HIGH-conviction gainers-signal picks on ${run.sourceDate} to validate.</p>`);
+    parts.push(
+      `<p style='color:#999'>No HIGH-conviction gainers-signal picks on ${run.sourceDate} to validate.</p>`
+    );
     return parts.join('\n');
   }
-  parts.push(`<p><b>${run.records.length} HIGH-conviction pick(s)</b> from ${run.sourceDate}, checked against ${run.validationDate} (D+2). ` +
-    `Validated = positive D+2 return &ge; ${GAINERS_VALIDATION_MIN_GAIN_PCT}% (delivery% is a secondary signal only).</p>`);
+  parts.push(
+    `<p><b>${run.records.length} HIGH-conviction pick(s)</b> from ${run.sourceDate}, checked against ${run.validationDate} (D+2). ` +
+      `Validated = positive D+2 return &ge; ${GAINERS_VALIDATION_MIN_GAIN_PCT}% (delivery% is a secondary signal only).</p>`
+  );
   parts.push("<table style='border-collapse:collapse;font-size:12px;width:100%' cellpadding='5'>");
-  parts.push("<tr style='background:#f0f0f0;text-align:left'><th>Company</th><th>Driver</th><th>D+2 Return</th><th>Delivery Trend</th><th>Validated</th><th>Categorisation note</th></tr>");
+  parts.push(
+    "<tr style='background:#f0f0f0;text-align:left'><th>Company</th><th>Driver</th><th>D+2 Return</th><th>Delivery Trend</th><th>Validated</th><th>Categorisation note</th></tr>"
+  );
   for (const r of run.records) {
     const okColor = r.validated ? '#2f855a' : '#c53030';
     const retS = r.d2Return === null || r.d2Return === undefined ? '—' : signed(r.d2Return, 2);
     parts.push(
       "<tr style='border-top:1px solid #ddd'>" +
-      `<td><b>${r.companyId}</b></td><td>${r.primaryDriver}</td><td>${retS}%</td>` +
-      `<td>${r.deliveryTrend}</td><td style='color:${okColor};font-weight:bold'>${r.validated ? '✅ yes' : '❌ no'}</td>` +
-      `<td style='font-size:11px'>${r.categorizationNote}</td></tr>`
+        `<td><b>${r.companyId}</b></td><td>${r.primaryDriver}</td><td>${retS}%</td>` +
+        `<td>${r.deliveryTrend}</td><td style='color:${okColor};font-weight:bold'>${r.validated ? '✅ yes' : '❌ no'}</td>` +
+        `<td style='font-size:11px'>${r.categorizationNote}</td></tr>`
     );
   }
   parts.push('</table>');
@@ -739,7 +822,11 @@ function loadLedger() {
       continue;
     }
     if (r.type === 'day-meta') {
-      led.days[r.date] = { ...led.days[r.date], ...r, results: (led.days[r.date] || {}).results || [] };
+      led.days[r.date] = {
+        ...led.days[r.date],
+        ...r,
+        results: (led.days[r.date] || {}).results || [],
+      };
       continue;
     }
     (led.days[r.date] ||= { results: [] }).results ||= [];
@@ -747,12 +834,19 @@ function loadLedger() {
     // Derived learning stats (EOD-confirmed reads only; see updateLedger note).
     if (!r.category || r.provisional) continue;
     const c = (led.byCategory[r.category] ||= {
-      confirmed: 0, overrated: 0, underrated: 0, noise_move: 0, soft: 0, samples: 0,
-      sector_driven: 0, against_sector: 0,
+      confirmed: 0,
+      overrated: 0,
+      underrated: 0,
+      noise_move: 0,
+      soft: 0,
+      samples: 0,
+      sector_driven: 0,
+      against_sector: 0,
     });
     if (r.verdict in c) c[r.verdict] += 1;
     c.samples += 1;
-    if (r.sector_label === 'sector-driven' || r.sector_label === 'amplified-by-sector') c.sector_driven += 1;
+    if (r.sector_label === 'sector-driven' || r.sector_label === 'amplified-by-sector')
+      c.sector_driven += 1;
     else if (r.sector_label === 'against-sector') c.against_sector += 1;
   }
   return led;
@@ -773,13 +867,28 @@ async function updateLedger(run, notesFilename) {
     const st = r.structural || {};
     return {
       date: run.date,
-      companyId: r.companyId, name: r.name, noteId: r.noteId || '',
+      companyId: r.companyId,
+      name: r.name,
+      noteId: r.noteId || '',
       creator: 'insight-validation',
-      title: (r.title || '').slice(0, 80), category: r.category, significance: r.significance,
-      verdict: r.verdict, live_ret: r.live_return_1d, deliv_per: st.deliv_per,
-      vol_spike: st.vol_spike, strength: st.label, sector_label: sec.label, industry_1d: sec.industry_1d,
+      title: (r.title || '').slice(0, 80),
+      category: r.category,
+      significance: r.significance,
+      verdict: r.verdict,
+      live_ret: r.live_return_1d,
+      deliv_per: st.deliv_per,
+      vol_spike: st.vol_spike,
+      strength: st.label,
+      sector_label: sec.label,
+      industry_1d: sec.industry_1d,
       provisional: !!st.provisional,
-      id: dbV2.makeId('val', 'insight-validation', r.companyId, run.date, r.noteId || r.title || ''),
+      id: dbV2.makeId(
+        'val',
+        'insight-validation',
+        r.companyId,
+        run.date,
+        r.noteId || r.title || ''
+      ),
     };
   });
   const dayMeta = {
@@ -787,17 +896,24 @@ async function updateLedger(run, notesFilename) {
     type: 'day-meta',
     date: run.date,
     creator: 'insight-validation',
-    notesFile: notesFilename, validatedAt: ist.nowIstIso(), insightCount: run.insightCount,
-    scoredWithDelivery: run.scoredWithDelivery, scoredLive: run.scoredLive || 0,
+    notesFile: notesFilename,
+    validatedAt: ist.nowIstIso(),
+    insightCount: run.insightCount,
+    scoredWithDelivery: run.scoredWithDelivery,
+    scoredLive: run.scoredLive || 0,
     deliveryPending: run.deliveryPending,
     marketMedian1d: run.marketMedian1d ?? null,
   };
   const prevState = dbV2.get('validation', 'val_state_ledger');
   const validatedNotesFiles = (prevState && prevState.validatedNotesFiles) || [];
-  if (notesFilename && !validatedNotesFiles.includes(notesFilename)) validatedNotesFiles.push(notesFilename);
+  if (notesFilename && !validatedNotesFiles.includes(notesFilename))
+    validatedNotesFiles.push(notesFilename);
   const state = {
-    id: 'val_state_ledger', type: 'ledger-state', date: run.date,
-    creator: 'insight-validation', validatedNotesFiles,
+    id: 'val_state_ledger',
+    type: 'ledger-state',
+    date: run.date,
+    creator: 'insight-validation',
+    validatedNotesFiles,
   };
   dbV2.appendValidations([...records, dayMeta, state]);
   return loadLedger();
@@ -821,37 +937,47 @@ function makeProposals(led, minSamples = 6) {
     const confR = conf / n;
     let secCaveat = '';
     if (secDriven) {
-      secCaveat = ` CAVEAT: ${secDriven}/${n} of these moves were sector/market-driven ` +
+      secCaveat =
+        ` CAVEAT: ${secDriven}/${n} of these moves were sector/market-driven ` +
         `(the stock moved largely with its sector, not on the announcement) — ` +
         `discount these before concluding the insight was mis-rated.`;
     }
     if (against) {
-      secCaveat += ` Note: ${against}/${n} moved AGAINST their sector — those are the ` +
+      secCaveat +=
+        ` Note: ${against}/${n} moved AGAINST their sector — those are the ` +
         `strongest stock-specific (announcement-driven) signals.`;
     }
     if (overR >= 0.5) {
-      props.push(`\`${cat}\`: ${over}/${n} insights rated high but NOT delivery-confirmed ` +
-        `(over-rated). Propose TIGHTENING significance — require a hard, quantified trigger ` +
-        `(₹ value / % of revenue / threshold crossed) before tagging \`high\`; default ` +
-        `borderline cases to \`medium\`.${secCaveat}`);
+      props.push(
+        `\`${cat}\`: ${over}/${n} insights rated high but NOT delivery-confirmed ` +
+          `(over-rated). Propose TIGHTENING significance — require a hard, quantified trigger ` +
+          `(₹ value / % of revenue / threshold crossed) before tagging \`high\`; default ` +
+          `borderline cases to \`medium\`.${secCaveat}`
+      );
     }
     if (underR >= 0.3) {
-      props.push(`\`${cat}\`: ${under}/${n} low-rated insights saw STRONG delivery-backed moves ` +
-        `(under-rated). Propose RAISING emphasis — add the missed catalyst type to this ` +
-        `category's extraction checklist and lift its baseline significance.${secCaveat}`);
+      props.push(
+        `\`${cat}\`: ${under}/${n} low-rated insights saw STRONG delivery-backed moves ` +
+          `(under-rated). Propose RAISING emphasis — add the missed catalyst type to this ` +
+          `category's extraction checklist and lift its baseline significance.${secCaveat}`
+      );
     }
     if (noiseR >= 0.4) {
-      props.push(`\`${cat}\`: ${noise}/${n} reactions were NOISE (move on low delivery/volume). ` +
-        `Propose adding a caution line: price pops in this category are often non-structural — ` +
-        `weight the insight to fundamentals, not the tape.${secCaveat}`);
+      props.push(
+        `\`${cat}\`: ${noise}/${n} reactions were NOISE (move on low delivery/volume). ` +
+          `Propose adding a caution line: price pops in this category are often non-structural — ` +
+          `weight the insight to fundamentals, not the tape.${secCaveat}`
+      );
     }
     if (n >= minSamples && confR >= 0.7) {
       props.push(`\`${cat}\`: healthy — ${conf}/${n} delivery-confirmed. No change proposed.`);
     }
   }
   if (!props.length) {
-    props.push('Not enough delivery-confirmed samples yet to propose changes ' +
-      '(need a few trading days of post-publish data). Accumulating.');
+    props.push(
+      'Not enough delivery-confirmed samples yet to propose changes ' +
+        '(need a few trading days of post-publish data). Accumulating.'
+    );
   }
   return props;
 }
@@ -860,7 +986,7 @@ async function writeProposals(props, target, qr) {
   StorageService.init();
   const relPath = 'assets/validation-proposals.md';
   const existing = StorageService.readContent(relPath) || '';
-  
+
   const iso = target.toISOString().slice(0, 10);
   let s = `\n## ${iso} — proposed insight-prompt refinements\n`;
   for (const p of props) s += `- ${p}\n`;
@@ -878,24 +1004,47 @@ async function writeProposals(props, target, qr) {
     s += `\n### ${iso} — ignored-announcements review\n`;
     const irr = qr.ignoredLog || {};
     for (const sug of irr.suggestions || []) s += `- ${sug}\n`;
-    for (const mf of (irr.potentialMisfilters || []).slice(0, 10)) s += `  • POSSIBLE MIS-FILTER: ${mf}\n`;
+    for (const mf of (irr.potentialMisfilters || []).slice(0, 10))
+      s += `  • POSSIBLE MIS-FILTER: ${mf}\n`;
   }
   await StorageService.saveContent(relPath, existing + s);
 }
 
 // ── Quality review ────────────────────────────────────────────────────────────
 const GENERIC_PHRASES = [
-  'the company announced', 'the exchange has received', 'exchange received',
-  'a disclosure has been', 'the company has disclosed', 'no upsi', 'no material information',
-  'the board has', 'it is informed', 'pursuant to regulation', 'in compliance with',
-  'as per the', 'please refer', 'to be disclosed', 'will be informed', 'no specific',
-  'general overview', 'no new information',
+  'the company announced',
+  'the exchange has received',
+  'exchange received',
+  'a disclosure has been',
+  'the company has disclosed',
+  'no upsi',
+  'no material information',
+  'the board has',
+  'it is informed',
+  'pursuant to regulation',
+  'in compliance with',
+  'as per the',
+  'please refer',
+  'to be disclosed',
+  'will be informed',
+  'no specific',
+  'general overview',
+  'no new information',
 ];
 const WEAK_TITLE_PHRASES = [
-  'outcome of agm', 'outcome of egm', 'intimation', 'update', 'information', 'disclosure',
-  'announcement', 'communication', 'submission', 'clarification',
+  'outcome of agm',
+  'outcome of egm',
+  'intimation',
+  'update',
+  'information',
+  'disclosure',
+  'announcement',
+  'communication',
+  'submission',
+  'clarification',
 ];
-const TITLE_INFO_RE = /(₹|\brs\.?\s*\d|\d+\s*(cr|lakh|%|mw|mva|tpa|mton|km|sq|units?)\b|\bq[1-4]\b|fye?\d{2,4}|\bfy\d{2,4}\b|\b\d{2,}\b)/i;
+const TITLE_INFO_RE =
+  /(₹|\brs\.?\s*\d|\d+\s*(cr|lakh|%|mw|mva|tpa|mton|km|sq|units?)\b|\bq[1-4]\b|fye?\d{2,4}|\bfy\d{2,4}\b|\b\d{2,}\b)/i;
 
 const hasSpecifics = (text) => TITLE_INFO_RE.test(text);
 
@@ -912,22 +1061,38 @@ function qualityReviewInsights(notes) {
   for (const [cid, co] of Object.entries(notes.companies || {})) {
     for (const n of co.notes || []) {
       if (n.type !== 'announcement') continue;
-      if (n.significance === null || n.significance === '' || n.significance === 'routine') continue;
+      if (n.significance === null || n.significance === '' || n.significance === 'routine')
+        continue;
       const cat = categoryFromNote(n);
       const title = n.announcementTitle || '';
       const insight = n.insight || '';
       const sig = n.significance || '';
       const company = co.name || cid;
       total += 1;
-      const b = (byCat[cat] ||= { samples: 0, weakTitles: [], genericBodies: [], noSpecifics: [], shortInsights: [] });
+      const b = (byCat[cat] ||= {
+        samples: 0,
+        weakTitles: [],
+        genericBodies: [],
+        noSpecifics: [],
+        shortInsights: [],
+      });
       b.samples += 1;
       if (titleInfoDensity(title) === 'WEAK') b.weakTitles.push(`${company}: "${title}"`);
-      const phrases = cat !== 'investor_meet' ? GENERIC_PHRASES
-        : GENERIC_PHRASES.filter((p) => p !== 'no upsi' && p !== 'no material information');
+      const phrases =
+        cat !== 'investor_meet'
+          ? GENERIC_PHRASES
+          : GENERIC_PHRASES.filter((p) => p !== 'no upsi' && p !== 'no material information');
       const genericHits = phrases.filter((p) => insight.toLowerCase().includes(p)).length;
-      if (genericHits >= 2) b.genericBodies.push(`${company} (${sig}): ${genericHits} generic phrase(s) — "${insight.slice(0, 120)}…"`);
-      if (!hasSpecifics(insight) && insight.length > 20) b.noSpecifics.push(`${company} (${sig}): no hard numbers/₹/% found — "${insight.slice(0, 120)}…"`);
-      if (insight.trim().length < 150 && (sig === 'high' || sig === 'medium')) b.shortInsights.push(`${company} (${sig}): only ${insight.trim().length} chars`);
+      if (genericHits >= 2)
+        b.genericBodies.push(
+          `${company} (${sig}): ${genericHits} generic phrase(s) — "${insight.slice(0, 120)}…"`
+        );
+      if (!hasSpecifics(insight) && insight.length > 20)
+        b.noSpecifics.push(
+          `${company} (${sig}): no hard numbers/₹/% found — "${insight.slice(0, 120)}…"`
+        );
+      if (insight.trim().length < 150 && (sig === 'high' || sig === 'medium'))
+        b.shortInsights.push(`${company} (${sig}): only ${insight.trim().length} chars`);
     }
   }
   const overall = [];
@@ -935,26 +1100,49 @@ function qualityReviewInsights(notes) {
     const n = b.samples;
     b.suggestions ||= [];
     if (b.weakTitles.length / n >= 0.4) {
-      b.suggestions.push(`TITLES (${b.weakTitles.length}/${n}): titles lack key facts. Instruct Claude to front-load entity name + ₹ value/% + action verb — e.g. 'CRISIL upgrades outlook to Positive; limits enhanced to ₹600 Cr'. Weak examples: ${b.weakTitles.slice(0, 2).join('; ')}`);
+      b.suggestions.push(
+        `TITLES (${b.weakTitles.length}/${n}): titles lack key facts. Instruct Claude to front-load entity name + ₹ value/% + action verb — e.g. 'CRISIL upgrades outlook to Positive; limits enhanced to ₹600 Cr'. Weak examples: ${b.weakTitles.slice(0, 2).join('; ')}`
+      );
     }
     if (b.genericBodies.length / n >= 0.3) {
-      b.suggestions.push(`GENERIC BODY (${b.genericBodies.length}/${n}): insights contain filler phrases. Strengthen the template rule: 'DO NOT write sentences that merely restate that a disclosure was made — every sentence must carry a hard fact.' Examples: ${b.genericBodies.slice(0, 2).map((x) => x.slice(0, 80)).join('; ')}`);
+      b.suggestions.push(
+        `GENERIC BODY (${b.genericBodies.length}/${n}): insights contain filler phrases. Strengthen the template rule: 'DO NOT write sentences that merely restate that a disclosure was made — every sentence must carry a hard fact.' Examples: ${b.genericBodies
+          .slice(0, 2)
+          .map((x) => x.slice(0, 80))
+          .join('; ')}`
+      );
     }
     if (b.noSpecifics.length / n >= 0.4) {
-      b.suggestions.push(`NO SPECIFICS (${b.noSpecifics.length}/${n}): insights missing numbers/₹/%. Add to template: 'Every insight MUST contain at least one hard fact (₹ amount / % / date / counterparty name).'`);
+      b.suggestions.push(
+        `NO SPECIFICS (${b.noSpecifics.length}/${n}): insights missing numbers/₹/%. Add to template: 'Every insight MUST contain at least one hard fact (₹ amount / % / date / counterparty name).'`
+      );
     }
     if (b.shortInsights.length / n >= 0.3) {
-      b.suggestions.push(`SHORT INSIGHTS (${b.shortInsights.length}/${n}): high/medium insights are too brief. Template should require minimum 3 substantive sentences.`);
+      b.suggestions.push(
+        `SHORT INSIGHTS (${b.shortInsights.length}/${n}): high/medium insights are too brief. Template should require minimum 3 substantive sentences.`
+      );
     }
   }
-  if (total === 0) overall.push('No non-routine insights found for today — quality review skipped.');
+  if (total === 0)
+    overall.push('No non-routine insights found for today — quality review skipped.');
   return { byCategory: byCat, overallSuggestions: overall, total };
 }
 
 const ALL_CATS = new Set([
-  'order_book', 'investor_meet', 'shareholding_change', 'credit_rating', 'fundraise',
-  'management_change', 'results', 'agm_egm', 'regulatory', 'capacity', 'dividend',
-  'acquisition', 'buyback', 'general',
+  'order_book',
+  'investor_meet',
+  'shareholding_change',
+  'credit_rating',
+  'fundraise',
+  'management_change',
+  'results',
+  'agm_egm',
+  'regulatory',
+  'capacity',
+  'dividend',
+  'acquisition',
+  'buyback',
+  'general',
 ]);
 
 function qualityReviewCategorisation(notes) {
@@ -964,7 +1152,8 @@ function qualityReviewCategorisation(notes) {
   for (const [cid, co] of Object.entries(notes.companies || {})) {
     for (const n of co.notes || []) {
       if (n.type !== 'announcement') continue;
-      if (n.significance === null || n.significance === '' || n.significance === 'routine') continue;
+      if (n.significance === null || n.significance === '' || n.significance === 'routine')
+        continue;
       const storedCat = n.category || '';
       const tagCat = categoryFromTags(n.tags || []);
       const company = co.name || cid;
@@ -972,7 +1161,9 @@ function qualityReviewCategorisation(notes) {
       if (storedCat) usedCats.add(storedCat);
       if (tagCat) usedCats.add(tagCat);
       if (storedCat && tagCat && storedCat !== tagCat && tagCat !== 'general') {
-        mismatches.push(`${company}: stored='${storedCat}' vs tags→'${tagCat}' | tags=${JSON.stringify(n.tags || [])} | title: "${title.slice(0, 60)}"`);
+        mismatches.push(
+          `${company}: stored='${storedCat}' vs tags→'${tagCat}' | tags=${JSON.stringify(n.tags || [])} | title: "${title.slice(0, 60)}"`
+        );
       }
       const effective = storedCat || tagCat;
       if (effective === 'general') {
@@ -984,13 +1175,19 @@ function qualityReviewCategorisation(notes) {
   const emptyCats = [...ALL_CATS].filter((c) => !usedCats.has(c) && c !== 'general').sort();
   const suggestions = [];
   if (mismatches.length) {
-    suggestions.push(`CATEGORY MISMATCHES (${mismatches.length}): stored category from the insight prompt doesn't match tag-inferred category. Review whether the scheduled-task prompt is passing \`category\` correctly from fetch-announcements output, or whether CATEGORY_RULES needs new keywords.`);
+    suggestions.push(
+      `CATEGORY MISMATCHES (${mismatches.length}): stored category from the insight prompt doesn't match tag-inferred category. Review whether the scheduled-task prompt is passing \`category\` correctly from fetch-announcements output, or whether CATEGORY_RULES needs new keywords.`
+    );
   }
   if (uncategorised.length) {
-    suggestions.push(`GENERAL FALLBACK (${uncategorised.length} today): these landed in 'general'. Review CATEGORY_RULES for missing keywords that could capture them: ${uncategorised.slice(0, 4).join('; ')}`);
+    suggestions.push(
+      `GENERAL FALLBACK (${uncategorised.length} today): these landed in 'general'. Review CATEGORY_RULES for missing keywords that could capture them: ${uncategorised.slice(0, 4).join('; ')}`
+    );
   }
   if (emptyCats.length) {
-    suggestions.push(`UNDER-REPRESENTED CATEGORIES today (zero hits): ${emptyCats.join(', ')}. Consider whether keyword coverage in CATEGORY_RULES is broad enough, especially if you hold companies that regularly file in these categories.`);
+    suggestions.push(
+      `UNDER-REPRESENTED CATEGORIES today (zero hits): ${emptyCats.join(', ')}. Consider whether keyword coverage in CATEGORY_RULES is broad enough, especially if you hold companies that regularly file in these categories.`
+    );
   }
   return { mismatches, uncategorised, emptyCats, suggestions };
 }
@@ -1000,15 +1197,43 @@ function qualityReviewIgnored(target) {
   const mm = String(target.getMonth() + 1).padStart(2, '0');
   const dd = String(target.getDate()).padStart(2, '0');
   const logPath = `cache/ignored-announcements_${yyyy}${mm}${dd}.json`;
-  
+
   const ignored = StorageService.readJson(logPath);
   if (!ignored) {
-    return { ignored: [], potentialMisfilters: [], suggestions: ['No ignored log found — ensure watchlistInsights.js is updated to write to the events log.'] };
+    return {
+      ignored: [],
+      potentialMisfilters: [],
+      suggestions: [
+        'No ignored log found — ensure watchlistInsights.js is updated to write to the events log.',
+      ],
+    };
   }
-  const INFORMATIVE = ['rating', 'upgrade', 'downgrade', 'order', 'capex', 'appointment',
-    'resignation', 'qip', 'preferential', 'amalgamation', 'acquisition', 'demerger', 'penalty',
-    'sebi', 'cci', 'nclt', 'dividend', 'buyback', 'warrant', 'ncd', 'ipo', 'open offer',
-    'takeover', 'rights issue'];
+  const INFORMATIVE = [
+    'rating',
+    'upgrade',
+    'downgrade',
+    'order',
+    'capex',
+    'appointment',
+    'resignation',
+    'qip',
+    'preferential',
+    'amalgamation',
+    'acquisition',
+    'demerger',
+    'penalty',
+    'sebi',
+    'cci',
+    'nclt',
+    'dividend',
+    'buyback',
+    'warrant',
+    'ncd',
+    'ipo',
+    'open offer',
+    'takeover',
+    'rights issue',
+  ];
   const potential = [];
   const kwCounts = {};
   for (const item of ignored) {
@@ -1019,11 +1244,20 @@ function qualityReviewIgnored(target) {
       potential.push(`${item.name || '?'} | kw='${kw}' | "${(item.title || '').slice(0, 80)}"`);
     }
   }
-  const topKws = Object.entries(kwCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const topKws = Object.entries(kwCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
   const suggestions = [];
-  if (potential.length) suggestions.push(`POTENTIAL MIS-FILTERS (${potential.length}): ignored announcements contain informative signals — review whether these keywords are too broad. Top flagged: ${potential.slice(0, 5).join('; ')}`);
-  if (topKws.length) suggestions.push(`TOP SUPPRESSED KEYWORDS today: ${topKws.map(([k, v]) => `'${k}' ×${v}`).join(', ')}. If any of these are over-suppressing, tighten the keyword (e.g. prefix/suffix anchor) in INSIGNIFICANT_KEYWORDS.`);
-  if (!ignored.length) suggestions.push('No announcements were suppressed today (or log was not written).');
+  if (potential.length)
+    suggestions.push(
+      `POTENTIAL MIS-FILTERS (${potential.length}): ignored announcements contain informative signals — review whether these keywords are too broad. Top flagged: ${potential.slice(0, 5).join('; ')}`
+    );
+  if (topKws.length)
+    suggestions.push(
+      `TOP SUPPRESSED KEYWORDS today: ${topKws.map(([k, v]) => `'${k}' ×${v}`).join(', ')}. If any of these are over-suppressing, tighten the keyword (e.g. prefix/suffix anchor) in INSIGNIFICANT_KEYWORDS.`
+    );
+  if (!ignored.length)
+    suggestions.push('No announcements were suppressed today (or log was not written).');
   return { ignored, potentialMisfilters: potential, topKeywords: topKws, suggestions };
 }
 
@@ -1037,26 +1271,44 @@ function runQualityReview(notes, target) {
 
 // ── Email ─────────────────────────────────────────────────────────────────────
 const LABEL_COLOR = { STRONG: '#2f855a', MODERATE: '#38a169', WEAK: '#a0aec0', NOISE: '#dd6b20' };
-const SECTOR_COLOR = { 'sector-driven': '#dd6b20', 'amplified-by-sector': '#d69e2e', 'against-sector': '#2f855a', 'stock-specific': '#2f855a', 'in-line': '#718096', no_context: '#a0aec0' };
+const SECTOR_COLOR = {
+  'sector-driven': '#dd6b20',
+  'amplified-by-sector': '#d69e2e',
+  'against-sector': '#2f855a',
+  'stock-specific': '#2f855a',
+  'in-line': '#718096',
+  no_context: '#a0aec0',
+};
 const VERDICT_BADGE = {
-  confirmed: '✅ confirmed', overrated: '🔴 over-rated', underrated: '🟠 under-rated',
-  noise_move: '⚠️ noise move', soft: '🟡 soft', no_data: '— no data',
-  moved_pending_delivery: '⏳ moved (delivery pending)', flat_pending_delivery: '⏳ flat (delivery pending)',
+  confirmed: '✅ confirmed',
+  overrated: '🔴 over-rated',
+  underrated: '🟠 under-rated',
+  noise_move: '⚠️ noise move',
+  soft: '🟡 soft',
+  no_data: '— no data',
+  moved_pending_delivery: '⏳ moved (delivery pending)',
+  flat_pending_delivery: '⏳ flat (delivery pending)',
   confirmed_flat: '✅ flat (as expected)',
 };
 const signed = (x, dp) => `${x >= 0 ? '+' : ''}${x.toFixed(dp)}`;
 
 function buildEmail(run, props, qr) {
   const d = run.date;
-  const rows = [...run.results].sort((a, b) => Math.abs(b.live_return_1d || 0) - Math.abs(a.live_return_1d || 0));
+  const rows = [...run.results].sort(
+    (a, b) => Math.abs(b.live_return_1d || 0) - Math.abs(a.live_return_1d || 0)
+  );
   const mkt = run.marketMedian1d;
   const mktS = mkt !== null && mkt !== undefined ? `${signed(mkt, 2)}%` : 'n/a';
   const parts = [
-    `<h2>🔎 Insight Validation — ${d}</h2>`,
     `<p><b>${run.insightCount} insights validated</b> · ${run.scoredWithDelivery} delivery-confirmed` +
-    (run.scoredLive ? ` · ${run.scoredLive} scored via live NSE quote (intraday, unconfirmed)` : '') +
-    ` · market 1D median ${mktS} (n=${run.sectorUniverse || 0})` +
-    (run.deliveryPending ? " · <span style='color:#dd6b20'>NSE bhavcopy not yet published — live-API reads below are provisional and may change at EOD</span>" : '') + '</p>',
+      (run.scoredLive
+        ? ` · ${run.scoredLive} scored via live NSE quote (intraday, unconfirmed)`
+        : '') +
+      ` · market 1D median ${mktS} (n=${run.sectorUniverse || 0})` +
+      (run.deliveryPending
+        ? " · <span style='color:#dd6b20'>NSE bhavcopy not yet published — live-API reads below are provisional and may change at EOD</span>"
+        : '') +
+      '</p>',
     "<table style='border-collapse:collapse;font-size:13px' cellpadding='6'>",
     "<tr style='background:#f0f0f0;text-align:left'><th>Company</th><th>Sig</th><th>1D%</th><th>Deliv%</th><th>Vol×</th><th>Strength</th><th>Verdict</th><th>Sector (ind 1D)</th></tr>",
   ];
@@ -1071,12 +1323,12 @@ function buildEmail(run, props, qr) {
     const indS = typeof ind1d === 'number' ? ` (${signed(ind1d, 1)})` : '';
     parts.push(
       "<tr style='border-top:1px solid #ddd'>" +
-      `<td><b>${stockscansLink(r.name, r.companyId, 'NSE')}</b><br><small>${(r.title || '').slice(0, 42)}</small></td>` +
-      `<td>${r.significance}</td><td>${retS}</td>` +
-      `<td>${s.deliv_per ?? '—'}</td><td>${s.vol_spike ?? '—'}</td>` +
-      `<td style='color:${color};font-weight:bold'>${s.label || 'pending'}${s.provisional ? ' <small style="font-weight:normal;color:#dd6b20">(live)</small>' : ''}</td>` +
-      `<td>${VERDICT_BADGE[r.verdict] || r.verdict}</td>` +
-      `<td style='color:${secColor}'>${sec.label || '—'}${indS}</td></tr>`
+        `<td><b>${stockscansLink(r.name, r.companyId, 'NSE')}</b><br><small>${(r.title || '').slice(0, 42)}</small></td>` +
+        `<td>${r.significance}</td><td>${retS}</td>` +
+        `<td>${s.deliv_per ?? '—'}</td><td>${s.vol_spike ?? '—'}</td>` +
+        `<td style='color:${color};font-weight:bold'>${s.label || 'pending'}${s.provisional ? ' <small style="font-weight:normal;color:#dd6b20">(live)</small>' : ''}</td>` +
+        `<td>${VERDICT_BADGE[r.verdict] || r.verdict}</td>` +
+        `<td style='color:${secColor}'>${sec.label || '—'}${indS}</td></tr>`
     );
   }
   parts.push('</table>');
@@ -1085,7 +1337,9 @@ function buildEmail(run, props, qr) {
   parts.push('</ul>');
   if (qr) parts.push(renderQualitySection(qr));
   parts.push("<hr style='border:none;border-top:1px solid #ddd;margin-top:16px'>");
-  parts.push("<p style='color:#999;font-size:11px'>Structural = delivery-backed (NSE DELIV_PER vs 20-day avg + volume spike). Rows marked '(live)' were scored from NSE's live per-symbol quote API (getSymbolData) because today's bhavcopy hadn't published yet — these are intraday and provisional, and are excluded from the prompt-refinement learning stats below until the EOD bhavcopy confirms them. Sector column attributes the move vs its industry/sector/market 1D median. No stock is dropped — context for the refinement thesis. All proposals are logged to validation/proposals.md and NOT auto-applied.</p>");
+  parts.push(
+    "<p style='color:#999;font-size:11px'>Structural = delivery-backed (<a href='https://www.nseindia.com/market-data/equity-market-holidays-trading' style='color:#999'>NSE</a> DELIV_PER vs 20-day avg + volume spike). Rows marked '(live)' were scored from <a href='https://www.nseindia.com/get-quotes/equity?symbol=NIFTY' style='color:#999'>NSE's live per-symbol quote API</a> because today's <a href='https://www.nseindia.com/market-data/securities-available-for-trading' style='color:#999'>bhavcopy</a> hadn't published yet — these are intraday and provisional, and are excluded from the prompt-refinement learning stats below until the EOD bhavcopy confirms them. Sector column attributes the move vs its industry/sector/market 1D median. No stock is dropped — context for the refinement thesis. All proposals are logged to validation/proposals.md and NOT auto-applied.</p>"
+  );
   return parts.join('\n');
 }
 
@@ -1095,8 +1349,12 @@ function renderQualitySection(qr) {
   const total = iq.total || 0;
   if (total) {
     parts.push(`<p><b>${total} non-routine insights reviewed</b></p>`);
-    parts.push("<table style='border-collapse:collapse;font-size:12px;width:100%' cellpadding='5'>");
-    parts.push("<tr style='background:#f0f0f0'><th>Category</th><th>n</th><th>Weak Titles</th><th>Generic Body</th><th>No Specifics</th><th>Short</th></tr>");
+    parts.push(
+      "<table style='border-collapse:collapse;font-size:12px;width:100%' cellpadding='5'>"
+    );
+    parts.push(
+      "<tr style='background:#f0f0f0'><th>Category</th><th>n</th><th>Weak Titles</th><th>Generic Body</th><th>No Specifics</th><th>Short</th></tr>"
+    );
     for (const cat of Object.keys(iq.byCategory || {}).sort()) {
       const b = iq.byCategory[cat];
       const n = b.samples;
@@ -1105,15 +1363,20 @@ function renderQualitySection(qr) {
       const ns = (b.noSpecifics || []).length;
       const si = (b.shortInsights || []).length;
       const rowBg = wt || gb || ns ? '#fff3cd' : 'transparent';
-      parts.push(`<tr style='border-top:1px solid #ddd;background:${rowBg}'><td><b>${cat}</b></td><td>${n}</td>` +
-        `<td style='color:${wt ? '#c53030' : '#2f855a'}'>${wt}</td><td style='color:${gb ? '#c53030' : '#2f855a'}'>${gb}</td>` +
-        `<td style='color:${ns ? '#dd6b20' : '#2f855a'}'>${ns}</td><td style='color:${si ? '#718096' : '#2f855a'}'>${si}</td></tr>`);
+      parts.push(
+        `<tr style='border-top:1px solid #ddd;background:${rowBg}'><td><b>${cat}</b></td><td>${n}</td>` +
+          `<td style='color:${wt ? '#c53030' : '#2f855a'}'>${wt}</td><td style='color:${gb ? '#c53030' : '#2f855a'}'>${gb}</td>` +
+          `<td style='color:${ns ? '#dd6b20' : '#2f855a'}'>${ns}</td><td style='color:${si ? '#718096' : '#2f855a'}'>${si}</td></tr>`
+      );
     }
     parts.push('</table>');
     let hasSug = false;
     for (const cat of Object.keys(iq.byCategory || {}).sort()) {
       for (const s of iq.byCategory[cat].suggestions || []) {
-        if (!hasSug) { parts.push("<ul style='font-size:12px'>"); hasSug = true; }
+        if (!hasSug) {
+          parts.push("<ul style='font-size:12px'>");
+          hasSug = true;
+        }
         parts.push(`<li><b>[${cat}]</b> ${s}</li>`);
       }
     }
@@ -1123,11 +1386,15 @@ function renderQualitySection(qr) {
   }
   const cr = qr.categorisation || {};
   if ((cr.suggestions || []).length) {
-    parts.push("<h4 style='margin-top:12px'>📂 Categorisation Review</h4><ul style='font-size:12px'>");
+    parts.push(
+      "<h4 style='margin-top:12px'>📂 Categorisation Review</h4><ul style='font-size:12px'>"
+    );
     for (const s of cr.suggestions) parts.push(`<li>${s}</li>`);
     parts.push('</ul>');
     if ((cr.mismatches || []).length) {
-      parts.push(`<details><summary style='cursor:pointer;font-size:11px'>Category mismatches (${cr.mismatches.length})</summary><ul style='font-size:11px'>`);
+      parts.push(
+        `<details><summary style='cursor:pointer;font-size:11px'>Category mismatches (${cr.mismatches.length})</summary><ul style='font-size:11px'>`
+      );
       for (const mm of cr.mismatches) parts.push(`<li>${mm}</li>`);
       parts.push('</ul></details>');
     }
@@ -1135,14 +1402,18 @@ function renderQualitySection(qr) {
   const irr = qr.ignoredLog || {};
   const ignoredCount = (irr.ignored || []).length;
   const mf = irr.potentialMisfilters || [];
-  parts.push(`<h4 style='margin-top:12px'>🚫 Ignored Announcements Review (${ignoredCount} suppressed today)</h4>`);
+  parts.push(
+    `<h4 style='margin-top:12px'>🚫 Ignored Announcements Review (${ignoredCount} suppressed today)</h4>`
+  );
   if ((irr.suggestions || []).length) {
     parts.push("<ul style='font-size:12px'>");
     for (const s of irr.suggestions) parts.push(`<li>${s}</li>`);
     parts.push('</ul>');
   }
   if (mf.length) {
-    parts.push(`<details><summary style='cursor:pointer;font-size:11px'>Possible mis-filters (${mf.length})</summary><ul style='font-size:11px'>`);
+    parts.push(
+      `<details><summary style='cursor:pointer;font-size:11px'>Possible mis-filters (${mf.length})</summary><ul style='font-size:11px'>`
+    );
     for (const f of mf.slice(0, 15)) parts.push(`<li>${f}</li>`);
     parts.push('</ul></details>');
   }
@@ -1156,25 +1427,38 @@ async function sendEmail(html) {
 // ── Commands ──────────────────────────────────────────────────────────────────
 async function cmdRun(baselineDays = BASELINE_DAYS, sectorMcapFloor = SECTOR_MCAP_FLOOR) {
   const [notesFilename, notes] = latestNotesFile();
-  if (!notesFilename) { process.stdout.write(JSON.stringify({ skipped: true, reason: 'no notes file found' })); return; }
+  if (!notesFilename) {
+    process.stdout.write(JSON.stringify({ skipped: true, reason: 'no notes file found' }));
+    return;
+  }
   if (isAlreadyValidated(notesFilename)) {
     const led = loadLedger();
     const prior = Object.values(led.days || {})
       .filter((v) => v.notesFile === notesFilename)
       .sort((a, b) => (b.validatedAt || '').localeCompare(a.validatedAt || ''))[0];
-    process.stdout.write(JSON.stringify({
-      skipped: true, reason: 'already_validated', notesFile: notesFilename,
-      previousValidation: {
-        date: prior ? prior.validatedAt || '' : '',
-        insightCount: prior ? prior.insightCount || 0 : 0,
-        deliveryPending: prior ? prior.deliveryPending : null,
-      },
-    }));
+    process.stdout.write(
+      JSON.stringify({
+        skipped: true,
+        reason: 'already_validated',
+        notesFile: notesFilename,
+        previousValidation: {
+          date: prior ? prior.validatedAt || '' : '',
+          insightCount: prior ? prior.insightCount || 0 : 0,
+          deliveryPending: prior ? prior.deliveryPending : null,
+        },
+      })
+    );
     return;
   }
   const insights = insightsFromNotes(notes);
   const target = insightTargetDate(insights);
-  const run = await runValidation(insights, target, { nse, stockscans }, baselineDays, sectorMcapFloor);
+  const run = await runValidation(
+    insights,
+    target,
+    { nse, stockscans },
+    baselineDays,
+    sectorMcapFloor
+  );
   const led = updateLedger(run, notesFilename);
   const props = makeProposals(led);
   const qr = runQualityReview(notes, target);
@@ -1194,17 +1478,34 @@ async function cmdRun(baselineDays = BASELINE_DAYS, sectorMcapFloor = SECTOR_MCA
 
   const emailHtml = buildEmail(run, props, qr) + '\n' + renderGainersValidationSection(gainersRun);
   const mail = await sendEmail(emailHtml);
-  const qrSug = Object.values(qr.insightQuality.byCategory || {}).reduce((s, b) => s + (b.suggestions || []).length, 0) +
-    (qr.categorisation.suggestions || []).length + (qr.ignoredLog.suggestions || []).length;
-  process.stdout.write(JSON.stringify({
-    date: run.date, notesFile: notesFilename, insights: run.insightCount,
-    deliveryConfirmed: run.scoredWithDelivery, deliveryLive: run.scoredLive || 0,
-    deliveryPending: run.deliveryPending,
-    proposals: props.length, qualitySuggestions: qrSug, email: mail,
-    gainersValidation: gainersRun && !gainersRun.skipped
-      ? { sourceDate: gainersRun.sourceDate, validationDate: gainersRun.validationDate, count: gainersRun.records.length }
-      : { skipped: true, reason: gainersRun ? gainersRun.reason : 'unknown' },
-  }));
+  const qrSug =
+    Object.values(qr.insightQuality.byCategory || {}).reduce(
+      (s, b) => s + (b.suggestions || []).length,
+      0
+    ) +
+    (qr.categorisation.suggestions || []).length +
+    (qr.ignoredLog.suggestions || []).length;
+  process.stdout.write(
+    JSON.stringify({
+      date: run.date,
+      notesFile: notesFilename,
+      insights: run.insightCount,
+      deliveryConfirmed: run.scoredWithDelivery,
+      deliveryLive: run.scoredLive || 0,
+      deliveryPending: run.deliveryPending,
+      proposals: props.length,
+      qualitySuggestions: qrSug,
+      email: mail,
+      gainersValidation:
+        gainersRun && !gainersRun.skipped
+          ? {
+              sourceDate: gainersRun.sourceDate,
+              validationDate: gainersRun.validationDate,
+              count: gainersRun.records.length,
+            }
+          : { skipped: true, reason: gainersRun ? gainersRun.reason : 'unknown' },
+    })
+  );
 }
 
 async function cmdValidateGainers(d) {
@@ -1217,25 +1518,51 @@ async function cmdValidateGainers(d) {
 }
 
 async function cmdFetchDelivery(d) {
-  const day = d ? new Date(Date.UTC(+d.slice(4), +d.slice(2, 4) - 1, +d.slice(0, 2))) : ist.istDate();
+  const day = d
+    ? new Date(Date.UTC(+d.slice(4), +d.slice(2, 4) - 1, +d.slice(0, 2)))
+    : ist.istDate();
   const dayUtc = new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate()));
   const csv = await fetchDeliveryCsv(dayUtc);
-  if (!csv) { process.stdout.write(JSON.stringify({ date: dayUtc.toISOString().slice(0, 10), status: 'not_published' })); return; }
+  if (!csv) {
+    process.stdout.write(
+      JSON.stringify({ date: dayUtc.toISOString().slice(0, 10), status: 'not_published' })
+    );
+    return;
+  }
   const parsed = parseDelivery(csv);
   const sample = Object.fromEntries(Object.entries(parsed).slice(0, 2));
-  process.stdout.write(JSON.stringify({ date: dayUtc.toISOString().slice(0, 10), symbols: Object.keys(parsed).length, sample }));
+  process.stdout.write(
+    JSON.stringify({
+      date: dayUtc.toISOString().slice(0, 10),
+      symbols: Object.keys(parsed).length,
+      sample,
+    })
+  );
 }
 
 async function cmdScore(symbol) {
   const sym = symbol.toUpperCase();
-  const target = new Date(Date.UTC(ist.istDate().getUTCFullYear(), ist.istDate().getUTCMonth(), ist.istDate().getUTCDate()));
+  const target = new Date(
+    Date.UTC(
+      ist.istDate().getUTCFullYear(),
+      ist.istDate().getUTCMonth(),
+      ist.istDate().getUTCDate()
+    )
+  );
   const csv = await fetchDeliveryCsv(target);
   if (csv) {
     const day = parseDelivery(csv);
     if (day[sym]) {
       const base = await buildBaselines(new Set([sym]), target);
       const sig = structuralSignal(day[sym], base[sym] || {});
-      process.stdout.write(JSON.stringify({ symbol: sym, date: target.toISOString().slice(0, 10), source: 'bhavcopy', metrics: sig }));
+      process.stdout.write(
+        JSON.stringify({
+          symbol: sym,
+          date: target.toISOString().slice(0, 10),
+          source: 'bhavcopy',
+          metrics: sig,
+        })
+      );
       return;
     }
   }
@@ -1247,11 +1574,15 @@ async function cmdScore(symbol) {
     const base = await buildBaselines(new Set([sym]), target);
     const sig = structuralSignal({ ...live[sym], ret: 0 }, base[sym] || {});
     sig.provisional = true;
-    process.stdout.write(JSON.stringify({
-      symbol: sym, date: target.toISOString().slice(0, 10), source: 'nse_live_provisional',
-      note: 'ret=0 placeholder — pass through live Stockscans 1D return in the real pipeline for an accurate conviction score',
-      metrics: sig,
-    }));
+    process.stdout.write(
+      JSON.stringify({
+        symbol: sym,
+        date: target.toISOString().slice(0, 10),
+        source: 'nse_live_provisional',
+        note: 'ret=0 placeholder — pass through live Stockscans 1D return in the real pipeline for an accurate conviction score',
+        metrics: sig,
+      })
+    );
     return;
   }
   for (const d of recentTradingDays(target, 5)) {
@@ -1261,10 +1592,19 @@ async function cmdScore(symbol) {
     if (!day[sym]) continue;
     const base = await buildBaselines(new Set([sym]), d);
     const sig = structuralSignal(day[sym], base[sym] || {});
-    process.stdout.write(JSON.stringify({ symbol: sym, date: d.toISOString().slice(0, 10), source: 'bhavcopy_prior_day', metrics: sig }));
+    process.stdout.write(
+      JSON.stringify({
+        symbol: sym,
+        date: d.toISOString().slice(0, 10),
+        source: 'bhavcopy_prior_day',
+        metrics: sig,
+      })
+    );
     return;
   }
-  process.stdout.write(JSON.stringify({ symbol: sym, status: 'not_found', date: target.toISOString().slice(0, 10) }));
+  process.stdout.write(
+    JSON.stringify({ symbol: sym, status: 'not_found', date: target.toISOString().slice(0, 10) })
+  );
 }
 
 function cmdShowLedger() {
@@ -1272,14 +1612,19 @@ function cmdShowLedger() {
 }
 
 const COMMANDS = {
-  run: [cmdRun, 0], 'fetch-delivery': [cmdFetchDelivery, 1], score: [cmdScore, 1],
-  'show-ledger': [cmdShowLedger, 0], 'validate-gainers': [cmdValidateGainers, 1],
+  run: [cmdRun, 0],
+  'fetch-delivery': [cmdFetchDelivery, 1],
+  score: [cmdScore, 1],
+  'show-ledger': [cmdShowLedger, 0],
+  'validate-gainers': [cmdValidateGainers, 1],
 };
 
 async function runCli(argv) {
   const cmd = argv[0];
   if (!cmd || !COMMANDS[cmd]) {
-    process.stdout.write(`Usage: insightValidator.js <command> [args]\nCommands: ${Object.keys(COMMANDS).join(', ')}\n`);
+    process.stdout.write(
+      `Usage: insightValidator.js <command> [args]\nCommands: ${Object.keys(COMMANDS).join(', ')}\n`
+    );
     process.exit(1);
   }
   const [fn, n] = COMMANDS[cmd];
@@ -1292,7 +1637,8 @@ async function runCli(argv) {
     const baselineDaysRaw = argValue('--baseline-days', argv);
     const sectorMcapFloorRaw = argValue('--sector-mcap-floor', argv);
     const baselineDays = baselineDaysRaw === null ? BASELINE_DAYS : Number(baselineDaysRaw);
-    const sectorMcapFloor = sectorMcapFloorRaw === null ? SECTOR_MCAP_FLOOR : Number(sectorMcapFloorRaw);
+    const sectorMcapFloor =
+      sectorMcapFloorRaw === null ? SECTOR_MCAP_FLOOR : Number(sectorMcapFloorRaw);
     if (!Number.isFinite(baselineDays) || baselineDays <= 0) {
       throw new Error(`--baseline-days must be a positive number, got "${baselineDaysRaw}"`);
     }
@@ -1301,21 +1647,38 @@ async function runCli(argv) {
     }
     args.push(baselineDays, sectorMcapFloor);
   }
-  try { await fn(...args); } catch (e) {
+  try {
+    await fn(...args);
+  } catch (e) {
     process.stderr.write(JSON.stringify({ error: e.message, command: cmd }));
     process.exit(1);
   }
 }
 
 module.exports = {
-  toSymbol, ddmmyyyy, parseDelivery, recentTradingDays, structuralSignal, verdict,
-  sectorAttribution, median, categoryFromTags,
-   makeProposals, titleInfoDensity,  qualityReviewInsights,
-  qualityReviewCategorisation, fetchLiveDeliveryForSymbols,
-  nextTradingDays, tradingDaysAgo, validateGainersPicks, upsertGainersLedger,
-     runCli, runValidation, fetchSectorContext,
-     BASELINE_DAYS, SECTOR_MCAP_FLOOR,
-
+  toSymbol,
+  ddmmyyyy,
+  parseDelivery,
+  recentTradingDays,
+  structuralSignal,
+  verdict,
+  sectorAttribution,
+  median,
+  categoryFromTags,
+  makeProposals,
+  titleInfoDensity,
+  qualityReviewInsights,
+  qualityReviewCategorisation,
+  fetchLiveDeliveryForSymbols,
+  nextTradingDays,
+  tradingDaysAgo,
+  validateGainersPicks,
+  upsertGainersLedger,
+  runCli,
+  runValidation,
+  fetchSectorContext,
+  BASELINE_DAYS,
+  SECTOR_MCAP_FLOOR,
 };
 
 if (require.main === module) {

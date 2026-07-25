@@ -2,24 +2,24 @@
 
 Stored in DB (data/prompts.json, notes.json, reports.json) → Drive. Rendered 2026-07-16.
 
-**Totals:** 12 prompts, 9 notes, 2 reports. Conversations enriched: see data/_meta/conversation-enrichment.json.
+**Totals:** 12 prompts, 9 notes, 2 reports. Conversations enriched: see data/\_meta/conversation-enrichment.json.
 
 ## Prompt library (12)
 
-| title | intent | linkedSkill | source |
-|---|---|---|---|
-| Map listed beneficiaries of a policy/theme by revenue & margin exposure | sector-beneficiary-mapping | sector-research-deepdive | `conv_cloud_0fd9e7e6` |
-| Analyze a pasted/linked concall transcript | concall-analysis | concall-analysis | `conv_cloud_d24b55ba` |
-| Track institutional buying + growth-trigger timeline for a stock | institutional-flow-tracking | growth-triggers-1pager | `conv_cloud_0102a92e` |
-| Preferential issue mechanics vs QIP (SEBI) — investor Q&A | concept-learning | (none) | `conv_cloud_d24b55ba` |
-| DRHP / IPO analysis from company IR + SEBI | ipo-analysis | drhp-ipo-analysis | `conv_cloud_21317037` |
-| Growth-Triggers 1-pager (institutional analyst persona) | growth-triggers | growth-triggers-1pager | `conv_cloud_01b3b933` |
-| Forensic accounting / earnings-manipulation review | forensic-review | forensic-accounting | `conv_cloud_01b3b933` |
-| Equity deep-dive + forward EPS/PE model to FY30 | deepdive-forward-model | equity-research-deepdive | `conv_cloud_1b2c6a74` |
-| Compare consecutive PPTs/concalls for guidance drift + walk-the-talk | filings-diff | consecutive-filings-diff | `conv_cloud_127470be` |
-| Capital-markets concepts: divestment funding, circuit filters, lot size, lock-in | concept-learning | (none) | `conv_cloud_1b2c6a74` |
-| Generate institutional stock report from a Stockscans URL | company-report | stock-report | `conv_cloud_48224d82` |
-| Forward P/E thesis with FY27E/FY28E from concalls | valuation-thesis | financial-model | `conv_cloud_5dd8b2c1` |
+| title                                                                            | intent                      | linkedSkill              | source                |
+| -------------------------------------------------------------------------------- | --------------------------- | ------------------------ | --------------------- |
+| Map listed beneficiaries of a policy/theme by revenue & margin exposure          | sector-beneficiary-mapping  | sector-research-deepdive | `conv_cloud_0fd9e7e6` |
+| Analyze a pasted/linked concall transcript                                       | concall-analysis            | concall-analysis         | `conv_cloud_d24b55ba` |
+| Track institutional buying + growth-trigger timeline for a stock                 | institutional-flow-tracking | growth-triggers-1pager   | `conv_cloud_0102a92e` |
+| Preferential issue mechanics vs QIP (SEBI) — investor Q&A                        | concept-learning            | (none)                   | `conv_cloud_d24b55ba` |
+| DRHP / IPO analysis from company IR + SEBI                                       | ipo-analysis                | drhp-ipo-analysis        | `conv_cloud_21317037` |
+| Growth-Triggers 1-pager (institutional analyst persona)                          | growth-triggers             | growth-triggers-1pager   | `conv_cloud_01b3b933` |
+| Forensic accounting / earnings-manipulation review                               | forensic-review             | forensic-accounting      | `conv_cloud_01b3b933` |
+| Equity deep-dive + forward EPS/PE model to FY30                                  | deepdive-forward-model      | equity-research-deepdive | `conv_cloud_1b2c6a74` |
+| Compare consecutive PPTs/concalls for guidance drift + walk-the-talk             | filings-diff                | consecutive-filings-diff | `conv_cloud_127470be` |
+| Capital-markets concepts: divestment funding, circuit filters, lot size, lock-in | concept-learning            | (none)                   | `conv_cloud_1b2c6a74` |
+| Generate institutional stock report from a Stockscans URL                        | company-report              | stock-report             | `conv_cloud_48224d82` |
+| Forward P/E thesis with FY27E/FY28E from concalls                                | valuation-thesis            | financial-model          | `conv_cloud_5dd8b2c1` |
 
 ## Notes (9)
 

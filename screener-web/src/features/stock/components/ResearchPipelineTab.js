@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getResearchDashboardIframeSrc, researchPipelineAPI, stockAPI } from '../../../core/lib/api';
+import {
+  getResearchDashboardIframeSrc,
+  researchPipelineAPI,
+  stockAPI,
+} from '../../../core/lib/api';
 
 const STEP_KEY = (sym) => `researchPipelineStep:${sym}`;
 

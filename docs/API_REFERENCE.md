@@ -19,6 +19,7 @@ All API endpoints return JSON responses with the following structure:
 ```
 
 Error responses:
+
 ```json
 {
   "success": false,
@@ -41,13 +42,14 @@ Search for stocks by symbol or company name.
 GET /api/stocks/search?q={query}&page={page}&limit={limit}
 ```
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `q` | string | Yes | - | Search query (min 1 char) |
-| `page` | number | No | 1 | Page number |
-| `limit` | number | No | 10 | Results per page |
+| Parameter | Type   | Required | Default | Description               |
+| --------- | ------ | -------- | ------- | ------------------------- |
+| `q`       | string | Yes      | -       | Search query (min 1 char) |
+| `page`    | number | No       | 1       | Page number               |
+| `limit`   | number | No       | 10      | Results per page          |
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -69,6 +71,7 @@ GET /api/stocks/search?q={query}&page={page}&limit={limit}
 ```
 
 **Code Reference:**
+
 - Function: `searchStocks()` in `backend/controllers/stockController.js:19-134`
 - Uses NSE India autocomplete via `backend/api/nseIndiaApi.js` (`searchAutocomplete`, cookie session); database fallback on failure
 
@@ -82,11 +85,12 @@ Get comprehensive stock information.
 GET /api/stocks/{symbol}
 ```
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `symbol` | string | Yes | Stock symbol (e.g., RELIANCE) |
+| Parameter | Type   | Required | Description                   |
+| --------- | ------ | -------- | ----------------------------- |
+| `symbol`  | string | Yes      | Stock symbol (e.g., RELIANCE) |
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -100,12 +104,12 @@ GET /api/stocks/{symbol}
       "face_value": 10
     },
     "price_info": {
-      "current_price": 2450.50,
-      "change": 25.30,
+      "current_price": 2450.5,
+      "change": 25.3,
       "change_percent": 1.04,
-      "open": 2425.00,
-      "high": 2460.00,
-      "low": 2420.00,
+      "open": 2425.0,
+      "high": 2460.0,
+      "low": 2420.0,
       "volume": 5000000
     },
     "fundamentals": {
@@ -118,7 +122,7 @@ GET /api/stocks/{symbol}
     "price_history_5y": [
       {
         "date": "2024-01-01",
-        "close": 2400.00
+        "close": 2400.0
       }
     ]
   }
@@ -130,6 +134,7 @@ GET /api/stocks/{symbol}
 **Note:** `Stock` documents are **not** TTL-expired in the schema (older DBs may still have a `created_at` TTL index — drop it if rows disappear after a few days). BSE peer search uses a timeout and uppercase symbol matching; if BSE fails, the server persists the row from the NSE quote only.
 
 **Code Reference:**
+
 - Function: `getStockDetails()` in `backend/controllers/stockController.js`
 - Uses `backend/scripts/stockDetailsFetcher.js`
 
@@ -143,12 +148,13 @@ Get quarterly financial results with XBRL parsing.
 GET /api/stocks/{symbol}/quarterly?force_refresh={boolean}
 ```
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `symbol` | string | Yes | - | Stock symbol |
-| `force_refresh` | boolean | No | false | Bypass cache and fetch fresh data |
+| Parameter       | Type    | Required | Default | Description                       |
+| --------------- | ------- | -------- | ------- | --------------------------------- |
+| `symbol`        | string  | Yes      | -       | Stock symbol                      |
+| `force_refresh` | boolean | No       | false   | Bypass cache and fetch fresh data |
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -187,6 +193,7 @@ GET /api/stocks/{symbol}/quarterly?force_refresh={boolean}
 ```
 
 **Code Reference:**
+
 - Function: `getQuarterlyResults()` in `backend/controllers/stockController.js:448-544`
 - Helper: `calculateGrowthMetrics()` at line 285-383
 - Helper: `formatQuarterForResponse()` at line 388-442
@@ -203,13 +210,14 @@ GET /api/stocks/{symbol}/technicals
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
   "data": {
-    "current_price": 2450.50,
+    "current_price": 2450.5,
     "sma_50": 2380.25,
-    "sma_200": 2250.00,
+    "sma_200": 2250.0,
     "rsi_14": 65.5,
     "macd": {
       "macd": 15.2,
@@ -221,6 +229,7 @@ GET /api/stocks/{symbol}/technicals
 ```
 
 **Code Reference:**
+
 - Function: `getStockTechnicals()` in `backend/controllers/stockController.js:169-219`
 - Calculations: `backend/utils/technicalIndicators.js`
 
@@ -234,11 +243,12 @@ Get annual financial statements.
 GET /api/stocks/{symbol}/financials?quarters={number}
 ```
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `quarters` | number | No | 4 | Number of periods to return |
+| Parameter  | Type   | Required | Default | Description                 |
+| ---------- | ------ | -------- | ------- | --------------------------- |
+| `quarters` | number | No       | 4       | Number of periods to return |
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -269,6 +279,7 @@ GET /api/stocks/{symbol}/financials?quarters={number}
 ```
 
 **Code Reference:**
+
 - Function: `getStockFinancials()` in `backend/controllers/stockController.js:225-278`
 
 ---
@@ -287,6 +298,7 @@ POST /api/screener/run
 ```
 
 **Request Body:**
+
 ```json
 {
   "filters": {
@@ -312,6 +324,7 @@ POST /api/screener/run
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -340,6 +353,7 @@ POST /api/screener/run
 ```
 
 **Code Reference:**
+
 - Function: `runScreener()` in `backend/controllers/screenerController.js:8-150`
 - Validation: `backend/utils/validators.js:screenerFiltersSchema`
 
@@ -357,6 +371,7 @@ GET /api/watchlist
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -376,6 +391,7 @@ POST /api/watchlist/{symbol}
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -390,6 +406,7 @@ DELETE /api/watchlist/{symbol}
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -411,18 +428,19 @@ GET /api/market/indices
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
   "data": {
     "nifty50": {
-      "current": 19200.50,
-      "change": 125.30,
+      "current": 19200.5,
+      "change": 125.3,
       "change_percent": 0.65
     },
     "sensex": {
       "current": 62500.75,
-      "change": 200.50,
+      "change": 200.5,
       "change_percent": 0.32
     },
     "sectors": {
@@ -435,6 +453,7 @@ GET /api/market/indices
 ```
 
 **Code Reference:**
+
 - Function: `getMarketIndices()` in `backend/controllers/marketController.js:8-69`
 
 ### Get Market Stats
@@ -444,6 +463,7 @@ GET /api/market/stats
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -468,6 +488,7 @@ GET /api/upcoming-results?page={page}&limit={limit}
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -486,6 +507,7 @@ GET /api/upcoming-results?page={page}&limit={limit}
 ```
 
 **Code Reference:**
+
 - Uses: `backend/api/nseIndiaApi.js:upcomingResults()`
 
 ---
@@ -505,12 +527,13 @@ GET /api/upcoming-results?page={page}&limit={limit}
 GET /api/orders/{symbol}?limit={number}
 ```
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `symbol` | string | Yes | - | Stock symbol |
-| `limit` | number | No | 50 | Maximum number of orders to return |
+| Parameter | Type   | Required | Default | Description                        |
+| --------- | ------ | -------- | ------- | ---------------------------------- |
+| `symbol`  | string | Yes      | -       | Stock symbol                       |
+| `limit`   | number | No       | 50      | Maximum number of orders to return |
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -539,6 +562,7 @@ GET /api/orders/{symbol}?limit={number}
 ```
 
 **Features:**
+
 - ⚡ Fast response (no AI processing)
 - 💰 No API costs
 - 📄 Direct PDF links
@@ -552,12 +576,13 @@ Fetch and parse all order announcements using Gemini AI.
 GET /api/orders/{symbol}/full?limit={number}
 ```
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `symbol` | string | Yes | - | Stock symbol |
-| `limit` | number | No | 20 | Maximum number of orders (max: 30) |
+| Parameter | Type   | Required | Default | Description                        |
+| --------- | ------ | -------- | ------- | ---------------------------------- |
+| `symbol`  | string | Yes      | -       | Stock symbol                       |
+| `limit`   | number | No       | 20      | Maximum number of orders (max: 30) |
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -604,6 +629,7 @@ GET /api/orders/{symbol}/full?limit={number}
 ```
 
 **Code Reference:**
+
 - Controller: `backend/controllers/ordersController.js`
 - AI Parser: `backend/api/orderParser.js:parseOrderFromPdf()`
 - Shared AI Client: `backend/api/geminiClient.js:parsePdfWithGemini()`
@@ -618,6 +644,7 @@ POST /api/orders/{symbol}/parse-pdf
 ```
 
 **Request Body:**
+
 ```json
 {
   "attachmentUrl": "https://nsearchives.nseindia.com/corporate/..."
@@ -625,6 +652,7 @@ POST /api/orders/{symbol}/parse-pdf
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -653,6 +681,7 @@ GET /api/orders/{symbol}/orderbook
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -699,6 +728,7 @@ GET /api/orders/{symbol}/orderbook
 ```
 
 **Code Reference:**
+
 - Controller: `backend/controllers/ordersController.js`
 - Baseline Parser: `backend/api/orderbookBaselineParser.js:getOrderbookBaseline()`
 - Shared AI Client: `backend/api/geminiClient.js:parsePdfWithGemini()`
@@ -765,6 +795,7 @@ POST /api/result-transcript/{symbol}/analyze
 ```
 
 **Request Body:**
+
 ```json
 {
   "attachmentName": "EarningsCall_Q1FY24.pdf"
@@ -772,6 +803,7 @@ POST /api/result-transcript/{symbol}/analyze
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -784,6 +816,7 @@ POST /api/result-transcript/{symbol}/analyze
 ```
 
 **Code Reference:**
+
 - AI Integration: `backend/api/geminiApi.js:geminiResultAnalysis()`
 - Shared AI Client: `backend/api/geminiClient.js:parsePdfWithGemini()`
 - Prompt: `backend/prompts/earning_call.txt`
@@ -806,6 +839,7 @@ POST /api/declared-results
 ```
 
 **Request Body:**
+
 ```json
 {
   "marketCapMin": 1000,
@@ -820,19 +854,20 @@ POST /api/declared-results
 }
 ```
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `marketCapMin` | number | No | 1000 | Minimum market cap in Cr |
-| `index` | array | No | [] | Filter by indices (Nifty 50, etc.) |
-| `industry` | array | No | [] | Filter by industries |
-| `order` | string | No | "desc" | Sort order (asc/desc) |
-| `orderBy` | string | No | "Last Result Date" | Sort field |
-| `offset` | number | No | 0 | Pagination offset |
-| `resultDate` | string | No | "" | Filter by specific result date |
-| `searchCompany` | string | No | "" | Search company by name |
-| `documentType` | string | No | "Transcript Notes" | Document type filter |
+| Parameter       | Type   | Required | Default            | Description                        |
+| --------------- | ------ | -------- | ------------------ | ---------------------------------- |
+| `marketCapMin`  | number | No       | 1000               | Minimum market cap in Cr           |
+| `index`         | array  | No       | []                 | Filter by indices (Nifty 50, etc.) |
+| `industry`      | array  | No       | []                 | Filter by industries               |
+| `order`         | string | No       | "desc"             | Sort order (asc/desc)              |
+| `orderBy`       | string | No       | "Last Result Date" | Sort field                         |
+| `offset`        | number | No       | 0                  | Pagination offset                  |
+| `resultDate`    | string | No       | ""                 | Filter by specific result date     |
+| `searchCompany` | string | No       | ""                 | Search company by name             |
+| `documentType`  | string | No       | "Transcript Notes" | Document type filter               |
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -895,18 +930,21 @@ POST /api/declared-results
 ```
 
 **Financial Data Fields:**
+
 - Revenue, Operating Profit, OPM % (Operating Profit Margin)
 - PAT (Profit After Tax), NPM % (Net Profit Margin), EPS
 - QoQ Growth (Quarter on Quarter)
 - YoY Growth (Year on Year)
 
 **Document Types:**
+
 - `Result` - Financial result filings
 - `PPT` - Investor presentation
 - `Transcript` - Earnings call transcript
 - `Transcript Notes` - AI-generated notes from transcript
 
 **Code Reference:**
+
 - Function: `getDeclaredResults()` in `backend/controllers/declaredResultsController.js`
 - Proxies data from StockScans API
 
@@ -921,6 +959,7 @@ GET /api/declared-results/filters
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -949,6 +988,7 @@ GET /api/declared-results/filters
 ```
 
 **Code Reference:**
+
 - Function: `getFilterOptions()` in `backend/controllers/declaredResultsController.js`
 
 ---
@@ -962,6 +1002,7 @@ POST /api/declared-results/download-notes
 ```
 
 **Request Body:**
+
 ```json
 {
   "quarterDate": "Dec 2025",
@@ -976,12 +1017,13 @@ POST /api/declared-results/download-notes
 }
 ```
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `quarterDate` | string | Yes | Quarter name (e.g., "Dec 2025") |
-| `companyIds` | array | Yes | Array of company data with notesUrl |
+| Parameter     | Type   | Required | Description                         |
+| ------------- | ------ | -------- | ----------------------------------- |
+| `quarterDate` | string | Yes      | Quarter name (e.g., "Dec 2025")     |
+| `companyIds`  | array  | Yes      | Array of company data with notesUrl |
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -1013,21 +1055,25 @@ POST /api/declared-results/download-notes
 ```
 
 **Authentication:**
+
 - Uses `GMAIL` and `PASSWORD` environment variables
 - Authenticates with StockScans API before downloading
 - Returns 401 if authentication fails
 - Returns 500 if credentials not configured
 
 **File Storage:**
+
 - Downloads to: `<repo_root>/downloads/<quarter-name>/`
 - Filename format: `{SYMBOL}_{EXCHANGE}_{COMPANY_ID}_notes.json`
 - Files are JSON containing AI-generated transcript notes
 
 **Code Reference:**
+
 - Function: `downloadTranscriptNotes()` in `backend/controllers/declaredResultsController.js`
 - Auth Service: `backend/services/stockscansAuth.js`
 
 **Related:**
+
 - See `loginToStockScans()` in `backend/services/stockscansAuth.js` for authentication flow
 - Frontend implementation in `frontend/pages/results.js` (handleDownloadAllNotes)
 
@@ -1046,15 +1092,16 @@ POST /api/declared-results/download-notes
 GET /api/announcements/{symbol}?search={optional}&offset={optional}&provider={optional}
 ```
 
-| Query | Description |
-|-------|-------------|
-| `search` | Optional. StockScans requires at least 3 characters; shorter or omitted values use a broad default search on the server (`report`). |
-| `offset` | Pagination offset (default `0`). |
+| Query      | Description                                                                                                                                                                                                                                                                                                                                                             |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `search`   | Optional. StockScans requires at least 3 characters; shorter or omitted values use a broad default search on the server (`report`).                                                                                                                                                                                                                                     |
+| `offset`   | Pagination offset (default `0`).                                                                                                                                                                                                                                                                                                                                        |
 | `provider` | Optional. `stockscans` — StockScans only (no NSE fallback; returns **502**/**503** on failure). `nse` — NSE `corporate-announcements` only. Omit or `auto` — if `STOCKSCANS_AUTH_TOKEN` is set, try StockScans first; on failure fall back to NSE (legacy behavior). The UI sends an explicit `provider` so users are not silently switched when they chose StockScans. |
 
 **Providers:** `meta.provider` is `"stockscans"` or `"nse"` for successful responses. For `provider=stockscans`, errors return JSON with `success: false` and `meta.provider: "stockscans"` (no NSE data in the same response).
 
 **Response (StockScans):**
+
 ```json
 {
   "success": true,
@@ -1084,14 +1131,15 @@ GET /api/announcements/{symbol}?search={optional}&offset={optional}&provider={op
 
 **Errors (`provider=stockscans`, HTTP 502/503):** JSON includes `success: false`, `error` (message), optional `code`, and `meta.provider: "stockscans"`. Common `code` values from the StockScans client:
 
-| `code` | Meaning |
-|--------|---------|
-| `STOCKSCANS_AUTH_REQUIRED` | Backend has no `STOCKSCANS_AUTH_TOKEN` |
-| `STOCKSCANS_BAD_COMPANY` | Upstream HTTP 5xx with a generic/empty body — often **unknown `companyId`** on StockScans (not a JWT problem) |
-| `STOCKSCANS_HTTP_ERROR` | Other HTTP errors (e.g. auth401/403, or 5xx with a specific upstream message) |
-| `STOCKSCANS_API_ERROR` | JSON body `status: "error"` from StockScans |
+| `code`                     | Meaning                                                                                                       |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `STOCKSCANS_AUTH_REQUIRED` | Backend has no `STOCKSCANS_AUTH_TOKEN`                                                                        |
+| `STOCKSCANS_BAD_COMPANY`   | Upstream HTTP 5xx with a generic/empty body — often **unknown `companyId`** on StockScans (not a JWT problem) |
+| `STOCKSCANS_HTTP_ERROR`    | Other HTTP errors (e.g. auth401/403, or 5xx with a specific upstream message)                                 |
+| `STOCKSCANS_API_ERROR`     | JSON body `status: "error"` from StockScans                                                                   |
 
 **Code Reference:**
+
 - Function: `getAnnouncements()` in `backend/controllers/announcementsController.js`
 - Client: `backend/services/stockscansAnnouncements.js`
 - PDF ZIP download uses public S3 URLs for StockScans attachments; NSE headers are still used for legacy NSE PDF URLs if present.
@@ -1105,10 +1153,10 @@ Content-Type: application/json
 
 **Body:**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `announcements` | `Array<{ url, subject?, date? }>` | Yes | PDF URLs and metadata for each file |
-| `search` | string | No | Current search query; when present, included in the ZIP attachment filename (sanitized) |
+| Field           | Type                              | Required | Description                                                                             |
+| --------------- | --------------------------------- | -------- | --------------------------------------------------------------------------------------- |
+| `announcements` | `Array<{ url, subject?, date? }>` | Yes      | PDF URLs and metadata for each file                                                     |
+| `search`        | string                            | No       | Current search query; when present, included in the ZIP attachment filename (sanitized) |
 
 **Response:** `application/zip` stream. Filename pattern: `{SYMBOL}_announcements_{optionalSearch}_{YYYY-MM-DD}.zip` (search segment omitted when `search` is empty).
 
@@ -1127,16 +1175,17 @@ Content-Type: application/json
 
 **Body:**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `scanUrl` | string | Yes | Saved scan link, e.g. `https://www.stockscans.in/scans/saved/c29a98ebbb568f073162ba24`, or bare scan id |
-| `quarterDate` | string | No | StockScans quarter key `YYYYMM` (e.g. `202603`). Defaults to current quarter; walks back up to 4 quarters for companies missing in the first announcement scan |
+| Field         | Type   | Required | Description                                                                                                                                                    |
+| ------------- | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scanUrl`     | string | Yes      | Saved scan link, e.g. `https://www.stockscans.in/scans/saved/c29a98ebbb568f073162ba24`, or bare scan id                                                        |
+| `quarterDate` | string | No       | StockScans quarter key `YYYYMM` (e.g. `202603`). Defaults to current quarter; walks back up to 4 quarters for companies missing in the first announcement scan |
 
 **Response:** `application/zip` — filename `concalls_{quarterDate}_{YYYY-MM-DD}.zip`. Header `X-Concall-Missing` lists company ids with no transcript found (comma-separated). Header `X-Saved-To-Repo` gives the repo-relative path when written to disk.
 
 **Errors:** **400** invalid/missing `scanUrl`; **404** empty scan or no PDFs; **503** when `STOCKSCANS_AUTH_TOKEN` is missing.
 
 **Code Reference:**
+
 - `downloadLatestConcalls()` in `backend/controllers/announcementsController.js`
 - `fetchCompanyIdsFromSavedScanUrl()` in `backend/services/stockscansSavedScan.js`
 - `resolveLatestEarningsCalls()` in `backend/services/stockscansAnnouncementScan.js`
@@ -1156,6 +1205,7 @@ GET /api/admin/data/update
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -1165,6 +1215,7 @@ GET /api/admin/data/update
 ```
 
 **Code Reference:**
+
 - Function: `triggerDataUpdate()` in `backend/controllers/adminController.js`
 
 ### Clear Orderbook Cache
@@ -1176,11 +1227,12 @@ DELETE /api/admin/cache/orderbook
 DELETE /api/admin/cache/orderbook/{symbol}
 ```
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `symbol` | string | No | Stock symbol - if provided, clears cache for that symbol only |
+| Parameter | Type   | Required | Description                                                   |
+| --------- | ------ | -------- | ------------------------------------------------------------- |
+| `symbol`  | string | No       | Stock symbol - if provided, clears cache for that symbol only |
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -1190,6 +1242,7 @@ DELETE /api/admin/cache/orderbook/{symbol}
 ```
 
 **Code Reference:**
+
 - Function: `clearOrderbookCache()` in `backend/controllers/adminController.js`
 - Model: `backend/models/ModelResponse.js`
 
@@ -1204,16 +1257,16 @@ Exports tweets for a public handle within a UTC lookback window using **x.com in
 
 ### Environment (`# TWEETER` in `backend/.env`)
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `TWITTER_AUTH_TOKEN` | **Yes** | `auth_token` cookie value from a logged-in x.com session |
-| `TWITTER_CSRF_TOKEN` | **Yes** | `ct0` cookie value; must match the `x-csrf-token` header |
-| `TWITTER_USER_BY_SCREEN_NAME_QUERY_ID` | **Yes** | GraphQL query id for `UserByScreenName` (from Network tab URL path) |
-| `TWITTER_USER_TWEETS_QUERY_ID` | No | GraphQL query id for `UserTweets` (default: `54_zVtVXJlQtnIBrY2QSXQ`) |
-| `TWITTER_BEARER_TOKEN` | No | `authorization` Bearer token; defaults to x.com public web bearer |
-| `X_BEARER_TOKEN` | No | Alias for `TWITTER_BEARER_TOKEN` |
-| `TWITTER_COOKIES` | No | Full `Cookie` header string; if set, overrides `auth_token` + `ct0` assembly |
-| `TWITTER_USER_AGENT` | No | Browser `User-Agent` copied from DevTools |
+| Variable                               | Required | Description                                                                  |
+| -------------------------------------- | -------- | ---------------------------------------------------------------------------- |
+| `TWITTER_AUTH_TOKEN`                   | **Yes**  | `auth_token` cookie value from a logged-in x.com session                     |
+| `TWITTER_CSRF_TOKEN`                   | **Yes**  | `ct0` cookie value; must match the `x-csrf-token` header                     |
+| `TWITTER_USER_BY_SCREEN_NAME_QUERY_ID` | **Yes**  | GraphQL query id for `UserByScreenName` (from Network tab URL path)          |
+| `TWITTER_USER_TWEETS_QUERY_ID`         | No       | GraphQL query id for `UserTweets` (default: `54_zVtVXJlQtnIBrY2QSXQ`)        |
+| `TWITTER_BEARER_TOKEN`                 | No       | `authorization` Bearer token; defaults to x.com public web bearer            |
+| `X_BEARER_TOKEN`                       | No       | Alias for `TWITTER_BEARER_TOKEN`                                             |
+| `TWITTER_COOKIES`                      | No       | Full `Cookie` header string; if set, overrides `auth_token` + `ct0` assembly |
+| `TWITTER_USER_AGENT`                   | No       | Browser `User-Agent` copied from DevTools                                    |
 
 If `TWITTER_AUTH_TOKEN` or `TWITTER_CSRF_TOKEN` is missing, the endpoint returns `503`.
 
@@ -1240,10 +1293,10 @@ Content-Type: application/json
 
 **Body:**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `handle` | string | Yes | Username without or with `@`; leading `@` is stripped |
-| `intervalDays` | number | Yes | Lookback length in days (`1`–`365`); tweets from `now - intervalDays` through `now` (UTC) |
+| Field          | Type   | Required | Description                                                                               |
+| -------------- | ------ | -------- | ----------------------------------------------------------------------------------------- |
+| `handle`       | string | Yes      | Username without or with `@`; leading `@` is stripped                                     |
+| `intervalDays` | number | Yes      | Lookback length in days (`1`–`365`); tweets from `now - intervalDays` through `now` (UTC) |
 
 **Success response:**
 
@@ -1252,7 +1305,7 @@ Content-Type: application/json
   "success": true,
   "data": {
     "user": { "id": "...", "username": "...", "name": "..." },
-    "tweets": [ { "id": "...", "text": "...", "created_at": "..." } ],
+    "tweets": [{ "id": "...", "text": "...", "created_at": "..." }],
     "includes": { "users": [] },
     "query": {
       "handle": "example",
@@ -1276,20 +1329,20 @@ The dashboard **Tweet Downloader** posts to this route and saves `data` as a pre
 
 ## Error Codes
 
-| HTTP Code | Description |
-|-----------|-------------|
-| 200 | Success |
-| 400 | Bad Request - Invalid parameters |
-| 404 | Not Found - Resource doesn't exist |
-| 500 | Internal Server Error |
+| HTTP Code | Description                        |
+| --------- | ---------------------------------- |
+| 200       | Success                            |
+| 400       | Bad Request - Invalid parameters   |
+| 404       | Not Found - Resource doesn't exist |
+| 500       | Internal Server Error              |
 
 ## Rate Limiting
 
 Currently no rate limiting is implemented. For production:
+
 - Recommended: 100 requests/minute per IP
 - Consider using `express-rate-limit` package
 
 ## CORS
 
 CORS is enabled for all origins in development. For production, configure specific origins in `backend/server.js`.
-

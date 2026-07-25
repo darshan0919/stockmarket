@@ -39,7 +39,11 @@ function parseLines(jsonlText) {
   for (const raw of String(jsonlText).split('\n')) {
     const line = raw.trim();
     if (!line) continue;
-    try { out.push(JSON.parse(line)); } catch (_) { /* skip malformed */ }
+    try {
+      out.push(JSON.parse(line));
+    } catch (_) {
+      /* skip malformed */
+    }
   }
   return out;
 }

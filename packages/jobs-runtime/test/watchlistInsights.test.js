@@ -31,7 +31,9 @@ describe('categoriseAnnouncement (first match wins)', () => {
 describe('noise filter', () => {
   test('matches insignificant keywords', () => {
     expect(wi.isNoise('Closure of Trading Window', '')).toBe(true);
-    expect(wi.matchedNoiseKeyword('Intimation of Record Date', '')).toBe('intimation of record date');
+    expect(wi.matchedNoiseKeyword('Intimation of Record Date', '')).toBe(
+      'intimation of record date'
+    );
     expect(wi.isNoise('Bagging large order', 'EPC win')).toBe(false);
   });
 });
@@ -39,8 +41,13 @@ describe('noise filter', () => {
 describe('announcementId', () => {
   test('uses ssUrl when present, else composite key', () => {
     expect(wi.announcementId({ ssUrl: 'abc.pdf' })).toBe('abc.pdf');
-    expect(wi.announcementId({ companyId: 'NSE:X', date: '2026-06-27', title: 'A very long announcement title here' }))
-      .toBe('NSE:X_2026-06-27_A very long announcement title');
+    expect(
+      wi.announcementId({
+        companyId: 'NSE:X',
+        date: '2026-06-27',
+        title: 'A very long announcement title here',
+      })
+    ).toBe('NSE:X_2026-06-27_A very long announcement title');
   });
 });
 
@@ -58,8 +65,25 @@ describe('insightTemplate', () => {
 describe('buildDigestHtml', () => {
   test('buckets by significance and suppresses routine', () => {
     const html = wi.buildDigestHtml([
-      { companyId: 'NSE:A', ticker: 'NSE:A', name: 'A', title: 'Big order', significance: 'high', insight: 'won 500cr', tags: ['order_win'], pdfUrl: 'p' },
-      { companyId: 'NSE:B', ticker: 'NSE:B', name: 'B', title: 'Minor', significance: 'routine', insight: 'meh', tags: [] },
+      {
+        companyId: 'NSE:A',
+        ticker: 'NSE:A',
+        name: 'A',
+        title: 'Big order',
+        significance: 'high',
+        insight: 'won 500cr',
+        tags: ['order_win'],
+        pdfUrl: 'p',
+      },
+      {
+        companyId: 'NSE:B',
+        ticker: 'NSE:B',
+        name: 'B',
+        title: 'Minor',
+        significance: 'routine',
+        insight: 'meh',
+        tags: [],
+      },
     ]);
     expect(html).toContain('High Significance');
     expect(html).toContain('won 500cr');
@@ -87,8 +111,18 @@ describe('gatherInwindowRaw (pagination + 24h window)', () => {
       validateAuth: jest.fn().mockResolvedValue(true),
       scanAnnouncements: jest
         .fn()
-        .mockResolvedValueOnce({ announcements: [{ companyId: 'NSE:A', createdAt: iso(1) }, { companyId: 'NSE:B', createdAt: iso(5) }] })
-        .mockResolvedValueOnce({ announcements: [{ companyId: 'NSE:C', createdAt: iso(20) }, { companyId: 'NSE:D', createdAt: iso(30) }] }),
+        .mockResolvedValueOnce({
+          announcements: [
+            { companyId: 'NSE:A', createdAt: iso(1) },
+            { companyId: 'NSE:B', createdAt: iso(5) },
+          ],
+        })
+        .mockResolvedValueOnce({
+          announcements: [
+            { companyId: 'NSE:C', createdAt: iso(20) },
+            { companyId: 'NSE:D', createdAt: iso(30) },
+          ],
+        }),
     };
     const out = await wi.gatherInwindowRaw(client, now, ['wl-1']);
     // D (30h) is outside the window and dropped; A,B,C kept
@@ -104,7 +138,13 @@ describe('notes DB round-trip', () => {
     db.initRun();
     const notes = db.load();
     const co = NotesDb.ensureCompany(notes, 'NSE:Z', 'NSE:Z', 'Zeta');
-    co.notes.push({ id: NotesDb.uuid(), announcementId: 'z.pdf', insight: 'hi', significance: 'high', createdAt: '2026-06-27T10:00:00+05:30' });
+    co.notes.push({
+      id: NotesDb.uuid(),
+      announcementId: 'z.pdf',
+      insight: 'hi',
+      significance: 'high',
+      createdAt: '2026-06-27T10:00:00+05:30',
+    });
     db.save(notes);
 
     const reloaded = db.load();
@@ -124,13 +164,26 @@ describe('cmdFetchAnnouncements end-to-end (mock client + temp notes)', () => {
     stockscans.scanAnnouncements
       .mockResolvedValueOnce({
         announcements: [
-          { companyId: 'NSE:ORDER', title: 'Bagging of order', ssUrl: 'order.pdf', createdAt: recent },
-          { companyId: 'NSE:NOISE', title: 'Closure of Trading Window', ssUrl: 'noise.pdf', createdAt: recent },
+          {
+            companyId: 'NSE:ORDER',
+            title: 'Bagging of order',
+            ssUrl: 'order.pdf',
+            createdAt: recent,
+          },
+          {
+            companyId: 'NSE:NOISE',
+            title: 'Closure of Trading Window',
+            ssUrl: 'noise.pdf',
+            createdAt: recent,
+          },
         ],
       })
       .mockResolvedValue({ announcements: [] }); // terminate pagination
     let captured = '';
-    const spy = jest.spyOn(process.stdout, 'write').mockImplementation((s) => { captured += s; return true; });
+    const spy = jest.spyOn(process.stdout, 'write').mockImplementation((s) => {
+      captured += s;
+      return true;
+    });
     await wi.cmdFetchAnnouncements('wl-1,wl-2', stockscans);
     spy.mockRestore();
 

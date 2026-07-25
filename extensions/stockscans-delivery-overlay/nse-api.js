@@ -1,18 +1,18 @@
-"use strict";
+'use strict';
 
-const NSE_HOME_URL = "https://www.nseindia.com/";
-const NSE_API_URL = "https://www.nseindia.com/api";
+const NSE_HOME_URL = 'https://www.nseindia.com/';
+const NSE_API_URL = 'https://www.nseindia.com/api';
 const SESSION_TTL_MS = 5 * 60 * 1000;
 
 const DOCUMENT_HEADERS = {
-  accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-  "accept-language": "en-US,en;q=0.9",
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+  'accept-language': 'en-US,en;q=0.9',
 };
 
 const API_HEADERS = {
-  accept: "application/json, text/plain, */*",
-  "accept-language": "en-US,en;q=0.9",
-  "x-requested-with": "XMLHttpRequest",
+  accept: 'application/json, text/plain, */*',
+  'accept-language': 'en-US,en;q=0.9',
+  'x-requested-with': 'XMLHttpRequest',
 };
 
 let sessionExpiresAt = 0;
@@ -24,13 +24,13 @@ export function quoteReferer(symbol) {
 
 export async function getPriceVolumeDeliverable(symbol, fromDate, toDate) {
   const upper = symbol.toUpperCase();
-  return nseGet("/historicalOR/generateSecurityWiseHistoricalData", {
+  return nseGet('/historicalOR/generateSecurityWiseHistoricalData', {
     params: {
       from: fromDate,
       to: toDate,
       symbol: upper,
-      type: "priceVolumeDeliverable",
-      series: "ALL",
+      type: 'priceVolumeDeliverable',
+      series: 'ALL',
     },
     referrer: quoteReferer(upper),
     symbol: upper,
@@ -38,12 +38,12 @@ export async function getPriceVolumeDeliverable(symbol, fromDate, toDate) {
   });
 }
 
-export async function getSymbolData(symbol, series = "EQ") {
+export async function getSymbolData(symbol, series = 'EQ') {
   const upper = symbol.toUpperCase();
-  const data = await nseGet("/NextApi/apiClient/GetQuoteApi", {
+  const data = await nseGet('/NextApi/apiClient/GetQuoteApi', {
     params: {
-      functionName: "getSymbolData",
-      marketType: "N",
+      functionName: 'getSymbolData',
+      marketType: 'N',
       series,
       symbol: upper,
     },
@@ -56,13 +56,13 @@ export async function getSymbolData(symbol, series = "EQ") {
 }
 
 async function nseGet(path, { params, referrer = NSE_HOME_URL, symbol, timeoutMs = 30000 } = {}) {
-  const url = path.startsWith("http")
+  const url = path.startsWith('http')
     ? new URL(path)
-    : new URL(`${NSE_API_URL}${path.startsWith("/") ? path : `/${path}`}`);
+    : new URL(`${NSE_API_URL}${path.startsWith('/') ? path : `/${path}`}`);
 
   if (params) {
     for (const [key, value] of Object.entries(params)) {
-      if (value !== undefined && value !== null && value !== "") {
+      if (value !== undefined && value !== null && value !== '') {
         url.searchParams.set(key, String(value));
       }
     }
@@ -126,8 +126,8 @@ function clearNseSession() {
 async function fetchJson(url, options) {
   const response = await fetchWithTimeout(url, {
     ...options,
-    cache: "no-store",
-    credentials: "include",
+    cache: 'no-store',
+    credentials: 'include',
   });
   const text = await response.text();
 
@@ -145,8 +145,8 @@ async function fetchJson(url, options) {
 async function fetchText(url, options) {
   const response = await fetchWithTimeout(url, {
     ...options,
-    cache: "no-store",
-    credentials: "include",
+    cache: 'no-store',
+    credentials: 'include',
   });
   const text = await response.text();
 
@@ -167,7 +167,7 @@ async function fetchWithTimeout(url, { timeoutMs, ...options }) {
       signal: controller.signal,
     });
   } catch (error) {
-    if (error.name === "AbortError") {
+    if (error.name === 'AbortError') {
       throw new Error(`NSE request timed out for ${new URL(url).pathname}`);
     }
     throw error;
@@ -177,10 +177,8 @@ async function fetchWithTimeout(url, { timeoutMs, ...options }) {
 }
 
 function makeHttpError(response, text) {
-  const error = new Error(
-    `NSE request failed: ${response.status} ${response.statusText}`.trim()
-  );
+  const error = new Error(`NSE request failed: ${response.status} ${response.statusText}`.trim());
   error.status = response.status;
-  error.body = String(text || "").slice(0, 240);
+  error.body = String(text || '').slice(0, 240);
   return error;
 }

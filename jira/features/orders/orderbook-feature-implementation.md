@@ -14,9 +14,11 @@ Order book tracking and analysis is available in the dedicated **Orders** tab on
 ## 📊 Feature Description
 
 ### What is Order Book?
+
 The Order Book represents the total value of pending/unexecuted orders that a company has won but not yet completed. It's a crucial metric for project-based businesses (construction, EPC, manufacturing contracts, etc.).
 
 ### How It Works
+
 1. **Base**: Start with latest reported order book (from quarterly/annual reports)
 2. **Track Events**:
    - ➕ Order Inflow (new orders received)
@@ -32,6 +34,7 @@ The Order Book represents the total value of pending/unexecuted orders that a co
 ### Backend Components
 
 #### 1. OrderBook Model (`backend/models/Orderbook.js`)
+
 ```javascript
 class OrderBookExtractor {
   - setLatestOrderBook(valueCr, date, source)
@@ -48,9 +51,11 @@ class OrderEvent {
 ```
 
 #### 2. Controller (`backend/controllers/stockController.js`)
+
 **Endpoint**: `GET /api/stocks/:symbol/orderbook`
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -91,6 +96,7 @@ class OrderEvent {
 ```
 
 #### 3. Route (`backend/routes/stocks.js`)
+
 ```javascript
 router.get('/:symbol/orderbook', getOrderBook);
 ```
@@ -98,6 +104,7 @@ router.get('/:symbol/orderbook', getOrderBook);
 ### Frontend Components
 
 #### 1. API Integration (`frontend/lib/api.js`)
+
 ```javascript
 export const ordersAPI = {
   getOrders: (symbol) => api.get(`/orders/${symbol}`),
@@ -106,24 +113,27 @@ export const ordersAPI = {
 ```
 
 #### 2. Orders Tab and Sub-Components (`frontend/components/stock/orders/`)
+
 The order system uses `OrdersTab.js` as the main tab with sub-components:
 
-| Component | File | Purpose |
-|-----------|------|---------|
-| `OrdersTab` | `OrdersTab.js` | Main tab; manages state, view switching (non-ai \| orderbook \| all) |
-| `OrderBookView` | `OrderBookView.js` | Order book summary, inflow cards, new orders from announcements |
-| `OrderAnnouncements` | `OrderAnnouncements.js` | Order announcements list |
-| `OrderDetails` | `OrderDetails.js` | Order row/details display |
-| `QuarterView` | `QuarterView.js` | Quarter-wise order view |
-| `OrderDownloads` | `OrderDownloads.js` | Order PDF downloads |
+| Component            | File                    | Purpose                                                              |
+| -------------------- | ----------------------- | -------------------------------------------------------------------- |
+| `OrdersTab`          | `OrdersTab.js`          | Main tab; manages state, view switching (non-ai \| orderbook \| all) |
+| `OrderBookView`      | `OrderBookView.js`      | Order book summary, inflow cards, new orders from announcements      |
+| `OrderAnnouncements` | `OrderAnnouncements.js` | Order announcements list                                             |
+| `OrderDetails`       | `OrderDetails.js`       | Order row/details display                                            |
+| `QuarterView`        | `QuarterView.js`        | Quarter-wise order view                                              |
+| `OrderDownloads`     | `OrderDownloads.js`     | Order PDF downloads                                                  |
 
 **OrderBookView features**:
+
 - Order inflow summary cards (total and current quarter)
 - Order book from reports plus new order announcements
 - Auto-formats currency (₹ Crores)
 - Color-coded growth indicators (DaisyUI `text-success`/`text-error`)
 
 #### 3. Integration (`frontend/pages/stock/[symbol].js`)
+
 - `OrdersTab` is a dedicated tab on the stock detail page (alongside Overview, Fundamentals, etc.)
 - Passes symbol prop to OrdersTab
 
@@ -132,6 +142,7 @@ The order system uses `OrdersTab.js` as the main tab with sub-components:
 ## 🎨 UI Design
 
 ### Layout
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │ Orders Tab (Announcements | Order Book | All Orders) │
@@ -152,6 +163,7 @@ The order system uses `OrdersTab.js` as the main tab with sub-components:
 ```
 
 ### Color Scheme
+
 - **Blue**: Latest Reported (historical data)
 - **Gray**: Changes breakdown
 - **Purple**: Calculated Pending (projected)
@@ -165,6 +177,7 @@ The order system uses `OrdersTab.js` as the main tab with sub-components:
 Currently using sample data in the controller. In production, this should be replaced with:
 
 ### Data Sources
+
 1. **Latest Order Book** (from):
    - Annual Reports
    - Quarterly Investor Presentations
@@ -176,6 +189,7 @@ Currently using sample data in the controller. In production, this should be rep
    - Investor relation updates
 
 ### Parsing Strategy
+
 ```javascript
 // Parse from annual/quarterly reports
 const text = extractTextFromPdf(reportPath);
@@ -191,6 +205,7 @@ const events = extractOrderEventsFromAnnouncements(announcements);
 ## 🔧 Implementation Details
 
 ### Backend Flow
+
 ```
 1. Client requests: GET /api/stocks/SRM/orderbook
 2. Controller initializes OrderBookExtractor
@@ -201,6 +216,7 @@ const events = extractOrderEventsFromAnnouncements(announcements);
 ```
 
 ### Frontend Flow
+
 ```
 1. Stock page renders with OrdersTab as one of the tabs
 2. OrdersTab mounts with symbol prop
@@ -212,6 +228,7 @@ const events = extractOrderEventsFromAnnouncements(announcements);
 ```
 
 ### Confidence Score Calculation
+
 ```javascript
 const recConf = recencyConfidence(reportDate, today);
 // 1.0 if ≤30 days, 0.95 if ≤90 days, 0.85 if ≤180 days, etc.
@@ -227,6 +244,7 @@ const confidence = recConf * 0.4 + completeness * 0.3 + sourceDiversity * 0.3;
 ## 🚀 Future Enhancements
 
 ### Phase 1: Real Data Integration
+
 1. **Parse Annual Reports**
    - Extract order book statements from PDFs
    - OCR if needed
@@ -238,6 +256,7 @@ const confidence = recConf * 0.4 + completeness * 0.3 + sourceDiversity * 0.3;
    - Filter by keywords (order, contract, completion, etc.)
 
 3. **Database Schema**
+
 ```javascript
 OrderBookSnapshot {
   symbol: String,
@@ -258,6 +277,7 @@ OrderBookEvent {
 ```
 
 ### Phase 2: Advanced Features
+
 1. **Segment-wise Breakdown**
    - Track orders by business segment
    - Show pie chart of segment distribution
@@ -275,6 +295,7 @@ OrderBookEvent {
    - Industry benchmarking
 
 ### Phase 3: Analytics
+
 1. **Trends**
    - Order book trend (last 5 years)
    - Order-to-sales ratio
@@ -294,6 +315,7 @@ OrderBookEvent {
 ## 🧪 Testing
 
 ### Manual Testing
+
 ```bash
 # 1. Start backend server
 cd backend && npm run dev
@@ -313,6 +335,7 @@ open http://localhost:3000/stock/SRM
 ```
 
 ### Expected Results
+
 - ✅ 3 metric cards show values
 - ✅ Recent events table has 3 rows
 - ✅ Growth indicator shows +8.0% in green
@@ -323,19 +346,19 @@ open http://localhost:3000/stock/SRM
 
 ## 📋 Files Created/Modified
 
-| File | Type | Status |
-|------|------|--------|
-| `backend/models/Orderbook.js` | Existing | ✅ Used as reference |
-| `backend/controllers/ordersController.js` | Modified | ✅ Order/orderbook logic |
-| `backend/routes/orders.js` | Modified | ✅ Orders API routes |
-| `frontend/lib/api.js` | Modified | ✅ Added `ordersAPI` |
-| `frontend/components/stock/orders/OrdersTab.js` | Main | ✅ Tab with view switching |
-| `frontend/components/stock/orders/OrderBookView.js` | Sub-component | ✅ Order book summary & inflows |
-| `frontend/components/stock/orders/OrderAnnouncements.js` | Sub-component | ✅ Announcements list |
-| `frontend/components/stock/orders/OrderDetails.js` | Sub-component | ✅ Order row display |
-| `frontend/components/stock/orders/QuarterView.js` | Sub-component | ✅ Quarter-wise view |
-| `frontend/components/stock/orders/OrderDownloads.js` | Sub-component | ✅ PDF downloads |
-| `frontend/pages/stock/[symbol].js` | Modified | ✅ OrdersTab as dedicated tab |
+| File                                                     | Type          | Status                          |
+| -------------------------------------------------------- | ------------- | ------------------------------- |
+| `backend/models/Orderbook.js`                            | Existing      | ✅ Used as reference            |
+| `backend/controllers/ordersController.js`                | Modified      | ✅ Order/orderbook logic        |
+| `backend/routes/orders.js`                               | Modified      | ✅ Orders API routes            |
+| `frontend/lib/api.js`                                    | Modified      | ✅ Added `ordersAPI`            |
+| `frontend/components/stock/orders/OrdersTab.js`          | Main          | ✅ Tab with view switching      |
+| `frontend/components/stock/orders/OrderBookView.js`      | Sub-component | ✅ Order book summary & inflows |
+| `frontend/components/stock/orders/OrderAnnouncements.js` | Sub-component | ✅ Announcements list           |
+| `frontend/components/stock/orders/OrderDetails.js`       | Sub-component | ✅ Order row display            |
+| `frontend/components/stock/orders/QuarterView.js`        | Sub-component | ✅ Quarter-wise view            |
+| `frontend/components/stock/orders/OrderDownloads.js`     | Sub-component | ✅ PDF downloads                |
+| `frontend/pages/stock/[symbol].js`                       | Modified      | ✅ OrdersTab as dedicated tab   |
 
 **Note**: The legacy `OrderBook.js` component (in FundamentalsTab) has been removed. Order functionality now lives in the dedicated Orders tab.
 
@@ -344,20 +367,26 @@ open http://localhost:3000/stock/SRM
 ## 💡 Key Learnings
 
 ### 1. OrderBook Model Design
+
 The `Orderbook.js` model is well-designed with:
+
 - Clear separation of concerns (Entry vs Event)
 - Flexible accumulation logic
 - Built-in confidence scoring
 - Comprehensive report generation
 
 ### 2. Data Quality Matters
+
 Order book accuracy depends on:
+
 - Timeliness of event capture
 - Completeness of announcement tracking
 - Proper classification of event types
 
 ### 3. User Communication
+
 Important to:
+
 - Show data sources clearly
 - Display confidence scores
 - Explain calculation methodology
@@ -368,6 +397,7 @@ Important to:
 ## 🎯 Success Criteria
 
 ### Immediate (This Session)
+
 - [x] Backend API endpoint working
 - [x] Frontend component created
 - [x] Integration complete
@@ -375,12 +405,14 @@ Important to:
 - [x] No linting errors
 
 ### Short-term (This Week)
+
 - [ ] Parse order book from actual reports
 - [ ] Fetch real announcement data
 - [ ] Store in database
 - [ ] Add caching layer
 
 ### Long-term (Next Month)
+
 - [ ] Segment-wise breakdown
 - [ ] Historical trends
 - [ ] Peer comparison
@@ -391,15 +423,18 @@ Important to:
 ## 📚 References
 
 ### NSE APIs
+
 - Corporate Announcements: `https://www.nseindia.com/api/corporate-announcements`
 - Annual Reports: `https://www.nseindia.com/companies-listing/corporate-filings-annual-reports`
 
 ### Similar Features
+
 - Screener.in doesn't have this feature ⭐ **Unique!**
 - MoneyControl shows basic order book value only
 - Our implementation is more comprehensive
 
 ### Technical Docs
+
 - OrderBook Model: `backend/models/Orderbook.js`
 - Example Usage: Lines 396-435 in Orderbook.js (WAAREERTL example)
 
@@ -427,6 +462,7 @@ Important to:
 **Current State**: ✅ Fully functional with sample data
 
 **Next Steps**:
+
 1. Restart backend server to load new route
 2. Test in browser
 3. Replace sample data with real parsing logic
@@ -440,4 +476,3 @@ Important to:
 **Implemented By**: AI Assistant  
 **Feature Status**: ✅ COMPLETE (Sample Data)  
 **Production Ready**: ⏳ Needs real data integration
-

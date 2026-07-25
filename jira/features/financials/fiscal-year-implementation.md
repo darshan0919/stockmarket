@@ -1,9 +1,11 @@
 # Fiscal Year Implementation for Indian Stocks
 
 ## Overview
+
 Successfully implemented proper fiscal year handling for Indian stocks, where the financial year runs from April to March (e.g., FY25 = April 2024 to March 2025).
 
 ## Problem Statement
+
 The previous implementation treated quarters based on calendar year (Q1 = Jan-Mar, Q2 = Apr-Jun, etc.), which is incorrect for Indian companies that follow a fiscal year starting in April.
 
 ## Changes Implemented
@@ -13,9 +15,10 @@ The previous implementation treated quarters based on calendar year (Q1 = Jan-Ma
 **File**: `backend/controllers/stockController.js`
 
 #### Fiscal Quarter Mapping (lines 774-797)
+
 ```javascript
 // Fiscal Q1 = Apr-Jun (month 3-5)
-// Fiscal Q2 = Jul-Sep (month 6-8)  
+// Fiscal Q2 = Jul-Sep (month 6-8)
 // Fiscal Q3 = Oct-Dec (month 9-11)
 // Fiscal Q4 = Jan-Mar (month 0-2)
 
@@ -39,26 +42,29 @@ const period = `Q${quarter} FY${String(fiscal_year).slice(-2)}`;
 ```
 
 #### Period Format
+
 - **Old Format**: `Q1 2024`, `Q2 2024`, etc.
 - **New Format**: `Q1 FY24`, `Q2 FY25`, etc.
 
 #### Examples
-| Date | Calendar Quarter | Fiscal Quarter | Fiscal Year | Period |
-|------|------------------|----------------|-------------|---------|
-| 2024-01-15 | Q1 2024 | Q4 | FY24 | Q4 FY24 |
-| 2024-03-31 | Q1 2024 | Q4 | FY24 | Q4 FY24 |
-| 2024-04-01 | Q2 2024 | Q1 | FY25 | Q1 FY25 |
-| 2024-06-30 | Q2 2024 | Q1 | FY25 | Q1 FY25 |
-| 2024-07-01 | Q3 2024 | Q2 | FY25 | Q2 FY25 |
-| 2024-09-30 | Q3 2024 | Q2 | FY25 | Q2 FY25 |
-| 2024-10-01 | Q4 2024 | Q3 | FY25 | Q3 FY25 |
-| 2024-12-31 | Q4 2024 | Q3 | FY25 | Q3 FY25 |
+
+| Date       | Calendar Quarter | Fiscal Quarter | Fiscal Year | Period  |
+| ---------- | ---------------- | -------------- | ----------- | ------- |
+| 2024-01-15 | Q1 2024          | Q4             | FY24        | Q4 FY24 |
+| 2024-03-31 | Q1 2024          | Q4             | FY24        | Q4 FY24 |
+| 2024-04-01 | Q2 2024          | Q1             | FY25        | Q1 FY25 |
+| 2024-06-30 | Q2 2024          | Q1             | FY25        | Q1 FY25 |
+| 2024-07-01 | Q3 2024          | Q2             | FY25        | Q2 FY25 |
+| 2024-09-30 | Q3 2024          | Q2             | FY25        | Q2 FY25 |
+| 2024-10-01 | Q4 2024          | Q3             | FY25        | Q3 FY25 |
+| 2024-12-31 | Q4 2024          | Q3             | FY25        | Q3 FY25 |
 
 ### 2. Backend: YoY & QoQ Growth Calculations
 
 **File**: `backend/controllers/stockController.js` (lines 454-535)
 
 #### Updated Growth Logic
+
 - **YoY Growth**: Now compares the same fiscal quarter from the previous fiscal year
   - Q1 FY25 is compared with Q1 FY24
   - Q2 FY26 is compared with Q2 FY25
@@ -95,6 +101,7 @@ const prevQuarter = sorted.find(
 **File**: `frontend/components/stock/YearlyResults.js`
 
 #### Fiscal Year Aggregation (lines 41-160)
+
 - Parses fiscal year from period string (e.g., "Q1 FY25" → 2025)
 - Groups quarters by fiscal year (Apr-Mar)
 - Calculates yearly totals for:
@@ -104,12 +111,14 @@ const prevQuarter = sorted.find(
   - OPM%, Tax%
 
 #### TTM (Trailing Twelve Months) Column
+
 - Added TTM column showing the last 4 fiscal quarters
 - Calculated separately for consolidated and standalone results
 - Always appears as the rightmost column
 - TTM is compared with the previous full fiscal year for YoY growth
 
 #### Yearly Display Format
+
 - **Column Headers**: `FY23`, `FY24`, `FY25`, `TTM`
 - **YoY Growth**: Compares FY25 with FY24, FY24 with FY23, TTM with latest full FY
 
@@ -118,6 +127,7 @@ const prevQuarter = sorted.find(
 **File**: `backend/controllers/stockController.js` (lines 540-570)
 
 Added `quarter` and `fiscal_year` fields to API response:
+
 ```json
 {
   "period": "Q1 FY25",
@@ -136,6 +146,7 @@ Added `quarter` and `fiscal_year` fields to API response:
 ## Testing Results
 
 ### Test 1: SRM Stock
+
 ```json
 {
   "period": "Q4 FY24",
@@ -156,6 +167,7 @@ Added `quarter` and `fiscal_year` fields to API response:
 ```
 
 ### Test 2: ETERNAL Stock
+
 ```json
 {
   "period": "Q4 FY25",
@@ -174,6 +186,7 @@ Added `quarter` and `fiscal_year` fields to API response:
 ```
 
 ### Test 3: RELIANCE - YoY Growth Validation
+
 ```
 Q1 FY25: Sales 236,217 Cr → YoY: +12.04% (vs Q1 FY24)
 Q2 FY25: Sales 235,481 Cr → YoY: +0.22% (vs Q2 FY24)
@@ -244,4 +257,3 @@ All YoY comparisons are correctly matching fiscal quarters!
 **Implementation Date**: November 15, 2025
 **Status**: ✅ Complete and Tested
 **Cache Refresh**: Automatic over 2 days, or use `?force_refresh=true`
-

@@ -31,16 +31,11 @@ const { loadEnv, hasFlag, argValue } = require('./lib/env');
 function loadSavedScanHelper() {
   let dir = __dirname;
   for (let i = 0; i < 8; i++) {
-    const candidate = path.join(
-      dir,
-      'screener-api/src/features/screener/stockscansSavedScan.js'
-    );
+    const candidate = path.join(dir, 'screener-api/src/features/screener/stockscansSavedScan.js');
     if (fs.existsSync(candidate)) return require(candidate);
     dir = path.dirname(dir);
   }
-  throw new Error(
-    'Could not locate screener-api/.../stockscansSavedScan.js for saved-scan fetch'
-  );
+  throw new Error('Could not locate screener-api/.../stockscansSavedScan.js for saved-scan fetch');
 }
 
 // ── Configuration (identical to the Python job) ───────────────────────────────
@@ -194,7 +189,17 @@ async function fetchWatchlistCompanyIds(watchlistId, client = stockscans) {
  * removed, each carrying the standard envelope (companyId/creationTime/
  * modifiedTime/creator).
  */
-function writeSyncDto({ scanName, watchlistName, watchlistId, before, excluded, desiredCount, itemsToAdd, itemsToRemove, now }) {
+function writeSyncDto({
+  scanName,
+  watchlistName,
+  watchlistId,
+  before,
+  excluded,
+  desiredCount,
+  itemsToAdd,
+  itemsToRemove,
+  now,
+}) {
   const dbV2 = require('./lib/db');
   const dateStr = new Date().toISOString().slice(0, 10);
   const nowIso = new Date().toISOString();
@@ -234,13 +239,15 @@ function writeSyncDto({ scanName, watchlistName, watchlistId, before, excluded, 
     records,
   };
   // Data Ecosystem v2: one watchlist-sync event per run in the events collection.
-  dbV2.appendEvents([{
-    ...dto,
-    type: 'watchlist-sync',
-    creator: 'watchlist-sync',
-    changes: records.map((r) => ({ companyId: r.companyId, change: r.change })),
-    summary: `${watchlistName}: +${itemsToAdd.length} / -${itemsToRemove.length} (${desiredCount} total)`,
-  }]);
+  dbV2.appendEvents([
+    {
+      ...dto,
+      type: 'watchlist-sync',
+      creator: 'watchlist-sync',
+      changes: records.map((r) => ({ companyId: r.companyId, change: r.change })),
+      summary: `${watchlistName}: +${itemsToAdd.length} / -${itemsToRemove.length} (${desiredCount} total)`,
+    },
+  ]);
   return `events collection (type=watchlist-sync, date=${dateStr})`;
 }
 
@@ -289,7 +296,8 @@ async function main({
     if (!dryRun) {
       await sendHtmlEmail({
         subject: 'StockScans Watchlist Update - ❌',
-        htmlBody: `<p><b>Time:</b> ${now}</p><p><b>Stage:</b> Scan fetch failed</p>` +
+        htmlBody:
+          `<p><b>Time:</b> ${now}</p><p><b>Stage:</b> Scan fetch failed</p>` +
           `<p><b>Error:</b> ${e.message}</p><p>Watchlist was <b>NOT modified</b>.</p>`,
       });
     }
@@ -325,7 +333,8 @@ async function main({
     if (!dryRun) {
       await sendHtmlEmail({
         subject: 'StockScans Watchlist Update - ❌',
-        htmlBody: `<p><b>Time:</b> ${now}</p><p><b>Stage:</b> Current watchlist fetch failed</p>` +
+        htmlBody:
+          `<p><b>Time:</b> ${now}</p><p><b>Stage:</b> Current watchlist fetch failed</p>` +
           `<p><b>Error:</b> ${e.message}</p><p>Watchlist was <b>NOT modified</b>.</p>`,
       });
     }
@@ -371,7 +380,8 @@ async function main({
     log(`  ✗ Watchlist update failed: ${e.message}`);
     await sendHtmlEmail({
       subject: 'StockScans Watchlist Update - ❌',
-      htmlBody: `<p><b>Time:</b> ${now}</p><p><b>Stage:</b> Watchlist add/delete failed</p>` +
+      htmlBody:
+        `<p><b>Time:</b> ${now}</p><p><b>Stage:</b> Watchlist add/delete failed</p>` +
         `<p><b>Error:</b> ${e.message}</p><p>To add: <b>${itemsToAdd.length}</b> | ` +
         `To remove: <b>${itemsToRemove.length}</b> — watchlist may be <b>partially updated</b>.</p>`,
     });
@@ -395,8 +405,10 @@ async function main({
   });
 
   log(`\n${'='.repeat(55)}`);
-  log(`  ✅ Done — added ${itemsToAdd.length}, removed ${itemsToRemove.length}, ` +
-    `final count ~${desiredIds.size}`);
+  log(
+    `  ✅ Done — added ${itemsToAdd.length}, removed ${itemsToRemove.length}, ` +
+      `final count ~${desiredIds.size}`
+  );
   log(`${'='.repeat(55)}\n`);
   return { before, excluded, desired: desiredIds.size, add: itemsToAdd, remove: itemsToRemove };
 }

@@ -81,8 +81,12 @@ describe('company links', () => {
 
   test('saveReport writes body + index + link', () => {
     const id = db.saveReport({
-      type: 'concall-analysis', date: '2026-07-01', companyId: 'NSE:SWARAJENG',
-      creator: 'concall-analysis', summary: 'Strong quarter', sections: { tone: 'positive' },
+      type: 'concall-analysis',
+      date: '2026-07-01',
+      companyId: 'NSE:SWARAJENG',
+      creator: 'concall-analysis',
+      summary: 'Strong quarter',
+      sections: { tone: 'positive' },
       contextUsed: [],
     });
     expect(db.readReport(id).sections.tone).toBe('positive');
@@ -108,7 +112,12 @@ describe('conversations', () => {
     summary: 'Margin thesis on Swaraj',
     questions: ['What is the margin trajectory?'],
     artifacts: [{ fileName: 'x.pdf', bytesUnavailable: true }],
-    _body: { turns: [{ role: 'user', text: 'hi' }, { role: 'assistant', text: 'analysis' }] },
+    _body: {
+      turns: [
+        { role: 'user', text: 'hi' },
+        { role: 'assistant', text: 'analysis' },
+      ],
+    },
     ...over,
   });
 
@@ -118,11 +127,11 @@ describe('conversations', () => {
     const idx = db.get('conversations', id);
     expect(idx.body).toBe(`conversations/${id}.json`);
     expect(idx.artifactCount).toBe(1);
-    expect(idx.turns).toBeUndefined();      // index is slim, no turns
-    expect(idx.questions).toBeUndefined();  // questions live only in the body
+    expect(idx.turns).toBeUndefined(); // index is slim, no turns
+    expect(idx.questions).toBeUndefined(); // questions live only in the body
     const body = db.readConversation(id);
-    expect(body.turns).toHaveLength(2);     // full transcript in body
-    expect(body._body).toBeUndefined();     // wrapper stripped
+    expect(body.turns).toHaveLength(2); // full transcript in body
+    expect(body._body).toBeUndefined(); // wrapper stripped
     expect(db.get('companies', 'NSE:SWARAJENG').links.conversations).toContain(id);
   });
 
@@ -160,7 +169,8 @@ describe('prompts library', () => {
     inputs: ['{company}'],
     tags: ['thesis', 'valuation', 'concall'],
     status: 'approved',
-    improvedVersion: 'For {company}: build a forward P/E thesis. Pull the last 5 concalls + investor decks; extract order book, capacity, revenue & margin guidance with per-call citations; project FY27E/FY28E and state key assumptions + what would break the thesis.',
+    improvedVersion:
+      'For {company}: build a forward P/E thesis. Pull the last 5 concalls + investor decks; extract order book, capacity, revenue & margin guidance with per-call citations; project FY27E/FY28E and state key assumptions + what would break the thesis.',
     sourceConversationId: 'conv_cloud_5dd8b2c1',
     ...over,
   });
@@ -193,7 +203,12 @@ describe('find', () => {
   test('filters by companyId including companyIds[] and date/type/since', () => {
     db.appendEvents([
       mkEvent(),
-      mkEvent({ type: 'deal', companyId: undefined, companyIds: ['NSE:SWARAJENG', 'NSE:TITAN'], summary: 'block deal' }),
+      mkEvent({
+        type: 'deal',
+        companyId: undefined,
+        companyIds: ['NSE:SWARAJENG', 'NSE:TITAN'],
+        summary: 'block deal',
+      }),
       mkEvent({ companyId: 'NSE:TITAN', summary: 'titan gainer' }),
     ]);
     expect(db.find('events', { companyId: 'NSE:SWARAJENG' })).toHaveLength(2);
@@ -230,10 +245,19 @@ describe('thesis', () => {
   test('saveThesis writes current + appends history only on change', () => {
     db.saveThesis('NSE:TITAN', { pillars: ['jewellery'], creator: 'investment-thesis-engine' });
     db.saveThesis('NSE:TITAN', { pillars: ['jewellery'], creator: 'investment-thesis-engine' }); // no-op
-    const hist = fs.readFileSync(path.join(tmpRoot, 'thesis-history.jsonl'), 'utf8').trim().split('\n');
+    const hist = fs
+      .readFileSync(path.join(tmpRoot, 'thesis-history.jsonl'), 'utf8')
+      .trim()
+      .split('\n');
     expect(hist).toHaveLength(1);
-    db.saveThesis('NSE:TITAN', { pillars: ['jewellery', 'watches'], creator: 'investment-thesis-engine' });
-    const hist2 = fs.readFileSync(path.join(tmpRoot, 'thesis-history.jsonl'), 'utf8').trim().split('\n');
+    db.saveThesis('NSE:TITAN', {
+      pillars: ['jewellery', 'watches'],
+      creator: 'investment-thesis-engine',
+    });
+    const hist2 = fs
+      .readFileSync(path.join(tmpRoot, 'thesis-history.jsonl'), 'utf8')
+      .trim()
+      .split('\n');
     expect(hist2).toHaveLength(2);
   });
 });
@@ -244,8 +268,13 @@ describe('companyContext', () => {
     db.appendEvents([mkEvent({ date: new Date().toISOString().slice(0, 10) })]);
     db.appendNote({ companyId: 'NSE:SWARAJENG', creator: 'user', text: 'watch order book' });
     db.saveReport({
-      type: 'equity-research-deepdive', date: '2026-07-05', companyId: 'NSE:SWARAJENG',
-      creator: 'equity-research-deepdive', summary: 'BUY', verdict: 'BUY', contextUsed: [],
+      type: 'equity-research-deepdive',
+      date: '2026-07-05',
+      companyId: 'NSE:SWARAJENG',
+      creator: 'equity-research-deepdive',
+      summary: 'BUY',
+      verdict: 'BUY',
+      contextUsed: [],
     });
     const ctx = buildCompanyContext('NSE:SWARAJENG');
     expect(ctx.reports).toHaveLength(1);

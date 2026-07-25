@@ -886,8 +886,8 @@ function KeywordBuilder({
             <div>
               <h3 className="text-sm font-semibold">Ignore announcements</h3>
               <p className="text-xs text-base-content/50">
-                Applies to every scan — remove rows when the selected field contains one of
-                these keywords.
+                Applies to every scan — remove rows when the selected field contains one of these
+                keywords.
               </p>
             </div>
             <button
@@ -1612,7 +1612,7 @@ function TrendingModal({ metadata, activeKeywords, onSelect, onRemove, onCreateS
 
 function IgnoredAnnouncementsWidget({ data }) {
   const hasData = Object.keys(data.title).length > 0 || Object.keys(data.description).length > 0;
-  
+
   if (!hasData) {
     return (
       <div className="finance-card overflow-hidden lg:sticky lg:top-20">
@@ -1636,11 +1636,15 @@ function IgnoredAnnouncementsWidget({ data }) {
       <div className="overflow-y-auto p-4 space-y-6">
         {Object.keys(data.title).length > 0 && (
           <div>
-            <h3 className="text-xs font-semibold uppercase text-secondary mb-3 border-b border-base-200 pb-1">Title Keywords</h3>
+            <h3 className="text-xs font-semibold uppercase text-secondary mb-3 border-b border-base-200 pb-1">
+              Title Keywords
+            </h3>
             <div className="space-y-4">
               {Object.entries(data.title).map(([keyword, items]) => (
                 <div key={keyword}>
-                  <div className="inline-block px-2 py-1 bg-base-200 rounded text-xs font-semibold mb-2">{keyword}</div>
+                  <div className="inline-block px-2 py-1 bg-base-200 rounded text-xs font-semibold mb-2">
+                    {keyword}
+                  </div>
                   <ul className="space-y-2">
                     {items.map((item, idx) => (
                       <li key={idx} className="text-xs border-l-2 border-base-300 pl-2 py-1">
@@ -1653,14 +1657,18 @@ function IgnoredAnnouncementsWidget({ data }) {
             </div>
           </div>
         )}
-        
+
         {Object.keys(data.description).length > 0 && (
           <div>
-            <h3 className="text-xs font-semibold uppercase text-secondary mb-3 border-b border-base-200 pb-1">Description Keywords</h3>
+            <h3 className="text-xs font-semibold uppercase text-secondary mb-3 border-b border-base-200 pb-1">
+              Description Keywords
+            </h3>
             <div className="space-y-4">
               {Object.entries(data.description).map(([keyword, items]) => (
                 <div key={keyword}>
-                  <div className="inline-block px-2 py-1 bg-base-200 rounded text-xs font-semibold mb-2">{keyword}</div>
+                  <div className="inline-block px-2 py-1 bg-base-200 rounded text-xs font-semibold mb-2">
+                    {keyword}
+                  </div>
                   <ul className="space-y-2">
                     {items.map((item, idx) => (
                       <li key={idx} className="text-xs border-l-2 border-base-300 pl-2 py-1">
@@ -1720,17 +1728,23 @@ export default function AnnouncementScansPage() {
   const [rightWidth, setRightWidth] = useState(400);
   const dragState = useRef({ type: null, startX: 0, startWidth: 0 });
 
-  const onLeftDragStart = useCallback((e) => {
-    dragState.current = { type: 'left', startX: e.clientX, startWidth: leftWidth };
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-  }, [leftWidth]);
+  const onLeftDragStart = useCallback(
+    (e) => {
+      dragState.current = { type: 'left', startX: e.clientX, startWidth: leftWidth };
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    },
+    [leftWidth]
+  );
 
-  const onRightDragStart = useCallback((e) => {
-    dragState.current = { type: 'right', startX: e.clientX, startWidth: rightWidth };
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-  }, [rightWidth]);
+  const onRightDragStart = useCallback(
+    (e) => {
+      dragState.current = { type: 'right', startX: e.clientX, startWidth: rightWidth };
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    },
+    [rightWidth]
+  );
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -1782,10 +1796,14 @@ export default function AnnouncementScansPage() {
       const titleHit = (ignoredKeywords?.titleKeywordsToIgnore || []).find((kw) =>
         title.includes(kw.toLowerCase())
       );
-      
+
       if (titleHit) {
         if (!titleMap[titleHit]) titleMap[titleHit] = [];
-        if (!titleMap[titleHit].some(a => a.title === ann.title && a.highlightedTitle === ann.highlightedTitle)) {
+        if (
+          !titleMap[titleHit].some(
+            (a) => a.title === ann.title && a.highlightedTitle === ann.highlightedTitle
+          )
+        ) {
           titleMap[titleHit].push(ann);
         }
       } else {
@@ -1793,10 +1811,10 @@ export default function AnnouncementScansPage() {
         const descHit = (ignoredKeywords?.descriptionKeywordsToIgnore || []).find((kw) => {
           return description.includes(kw.toLowerCase());
         });
-        
+
         if (descHit) {
           if (!descMap[descHit]) descMap[descHit] = [];
-          if (!descMap[descHit].some(a => a.description === ann.description)) {
+          if (!descMap[descHit].some((a) => a.description === ann.description)) {
             descMap[descHit].push(ann);
           }
         }
@@ -2206,12 +2224,12 @@ export default function AnnouncementScansPage() {
           </div>
         )}
 
-        <div 
+        <div
           className="grid grid-cols-1 lg:grid-cols-[var(--left-width)_minmax(0,1fr)] xl:grid-cols-[var(--left-width)_minmax(0,1fr)_var(--right-width)] gap-5 items-start"
           style={{ '--left-width': `${leftWidth}px`, '--right-width': `${rightWidth}px` }}
         >
           <aside className="order-1 relative">
-            <div 
+            <div
               className="absolute -right-2.5 top-0 bottom-0 w-5 cursor-col-resize z-10 group hidden lg:flex items-center justify-center"
               onMouseDown={onLeftDragStart}
             >
@@ -2362,9 +2380,9 @@ export default function AnnouncementScansPage() {
               />
             )}
           </section>
-          
+
           <aside className="order-3 lg:col-span-2 xl:col-span-1 relative">
-            <div 
+            <div
               className="absolute -left-2.5 top-0 bottom-0 w-5 cursor-col-resize z-10 group hidden xl:flex items-center justify-center"
               onMouseDown={onRightDragStart}
             >

@@ -13,12 +13,12 @@ This is a complete walked-through example of the skill applied to Waaree Renewab
 
 ### P&L diff highlights
 
-| Metric | FY25 | 9M FY26 | Q4 FY26 | FY26 | YoY | Signal |
-|---|---|---|---|---|---|---|
+| Metric         | FY25     | 9M FY26  | Q4 FY26  | FY26     | YoY     | Signal                         |
+| -------------- | -------- | -------- | -------- | -------- | ------- | ------------------------------ |
 | Revenue (₹ Cr) | 1,597.75 | 2,229.03 | 1,102.40 | 3,331.42 | +108.5% | Beat — Q4 highest ever quarter |
-| EBITDA margin | 19.46% | 19.48% | 18.76% | 19.24% | −22 bps | Slight compression |
-| PAT (₹ Cr) | 228.92 | 322.93 | 155.72 | 478.65 | +109.1% | Beat — above estimate range |
-| EPS (₹) | 22.00 | 30.95 | 14.96 | 45.91 | +108.7% | Resets TTM P/E |
+| EBITDA margin  | 19.46%   | 19.48%   | 18.76%   | 19.24%   | −22 bps | Slight compression             |
+| PAT (₹ Cr)     | 228.92   | 322.93   | 155.72   | 478.65   | +109.1% | Beat — above estimate range    |
+| EPS (₹)        | 22.00    | 30.95    | 14.96    | 45.91    | +108.7% | Resets TTM P/E                 |
 
 ### Balance sheet flag
 
@@ -58,12 +58,12 @@ This is a complete walked-through example of the skill applied to Waaree Renewab
 
 ### Flag resolutions
 
-| Flag | Before | After | Resolution |
-|---|---|---|---|
-| CFO/PAT = 0.60x | YELLOW | GREEN-monitored | CFO stated "most receivables <6 months, LC-backed, no payment stretch" |
-| Thin orderbook | YELLOW | YELLOW | Addressed but not quantified conversion probability |
-| Margin trajectory | 15% floor | UPGRADED | CFO: "will keep improving, not normalizing at 15%" |
-| IPP leverage risk | Monitor | GREEN | "Internal accruals only, no debt tied up" |
+| Flag              | Before    | After           | Resolution                                                             |
+| ----------------- | --------- | --------------- | ---------------------------------------------------------------------- |
+| CFO/PAT = 0.60x   | YELLOW    | GREEN-monitored | CFO stated "most receivables <6 months, LC-backed, no payment stretch" |
+| Thin orderbook    | YELLOW    | YELLOW          | Addressed but not quantified conversion probability                    |
+| Margin trajectory | 15% floor | UPGRADED        | CFO: "will keep improving, not normalizing at 15%"                     |
+| IPP leverage risk | Monitor   | GREEN           | "Internal accruals only, no debt tied up"                              |
 
 ### New flags from concall
 
@@ -89,22 +89,22 @@ This is a complete walked-through example of the skill applied to Waaree Renewab
 
 ### Valuation repriced
 
-| Metric | At ₹965 (stale) | At ₹1,166.75 (live) | Change |
-|---|---|---|---|
-| Market cap | ₹10,138 Cr | ₹12,428 Cr | +22.6% |
-| TTM P/E | 21.0x | 25.4x | +4.4x |
-| FY27E P/E (FY27E EPS ₹65) | 13.6–16.4x | 16.5–19.8x | +3x richer |
-| Discount to fair (22–26x) | 33–43% | 20–32% | Narrowed 11pp |
+| Metric                    | At ₹965 (stale) | At ₹1,166.75 (live) | Change        |
+| ------------------------- | --------------- | ------------------- | ------------- |
+| Market cap                | ₹10,138 Cr      | ₹12,428 Cr          | +22.6%        |
+| TTM P/E                   | 21.0x           | 25.4x               | +4.4x         |
+| FY27E P/E (FY27E EPS ₹65) | 13.6–16.4x      | 16.5–19.8x          | +3x richer    |
+| Discount to fair (22–26x) | 33–43%          | 20–32%              | Narrowed 11pp |
 
 ### Scenario ladder
 
-| Scenario | FY27E P/E | Target | Upside |
-|---|---|---|---|
-| Bear | 22x | ₹1,430 | +22.6% |
-| Base | 24x | ₹1,560 | +33.7% |
-| Bull | 26x | ₹1,690 | +44.8% |
-| Stress | 18x | ₹1,170 | +0.3% |
-| Severe (ASPL wipeout) | 14x on ₹570 Cr | ₹770 | −34.0% |
+| Scenario              | FY27E P/E      | Target | Upside |
+| --------------------- | -------------- | ------ | ------ |
+| Bear                  | 22x            | ₹1,430 | +22.6% |
+| Base                  | 24x            | ₹1,560 | +33.7% |
+| Bull                  | 26x            | ₹1,690 | +44.8% |
+| Stress                | 18x            | ₹1,170 | +0.3%  |
+| Severe (ASPL wipeout) | 14x on ₹570 Cr | ₹770   | −34.0% |
 
 Expected value (assuming 50% base, 25% bear, 15% bull, 10% stress): +25% weighted. At prior ₹965, EV was +41%. The re-rating consumed 16pp of expected return.
 

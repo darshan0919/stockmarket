@@ -31,18 +31,9 @@ Comprehensive collection of real-world testing examples covering common scenario
 
 ```javascript
 // Button.jsx
-export const Button = ({
-  children,
-  variant = 'primary',
-  disabled = false,
-  onClick
-}) => {
+export const Button = ({ children, variant = 'primary', disabled = false, onClick }) => {
   return (
-    <button
-      className={`btn btn-${variant}`}
-      disabled={disabled}
-      onClick={onClick}
-    >
+    <button className={`btn btn-${variant}`} disabled={disabled} onClick={onClick}>
       {children}
     </button>
   );
@@ -93,7 +84,11 @@ describe('Button Component', () => {
     const user = userEvent.setup();
     const handleClick = jest.fn();
 
-    render(<Button onClick={handleClick} disabled>Disabled</Button>);
+    render(
+      <Button onClick={handleClick} disabled>
+        Disabled
+      </Button>
+    );
 
     const button = screen.getByRole('button');
 
@@ -674,11 +669,7 @@ export const Modal = ({ isOpen, onClose, title, children }) => {
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 id="modal-title">{title}</h2>
-          <button
-            onClick={onClose}
-            aria-label="Close modal"
-            className="close-button"
-          >
+          <button onClick={onClose} aria-label="Close modal" className="close-button">
             ×
           </button>
         </div>
@@ -821,7 +812,7 @@ export const Dropdown = ({ options, value, onChange, placeholder, label }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const selectedOption = options.find(opt => opt.value === value);
+  const selectedOption = options.find((opt) => opt.value === value);
 
   const handleSelect = (option) => {
     onChange(option.value);
@@ -1058,9 +1049,7 @@ describe('useLocalStorage Hook', () => {
   });
 
   it('handles objects', () => {
-    const { result } = renderHook(() =>
-      useLocalStorage('testKey', { name: 'John' })
-    );
+    const { result } = renderHook(() => useLocalStorage('testKey', { name: 'John' }));
 
     act(() => {
       result.current[1]({ name: 'Jane', age: 30 });
@@ -1087,10 +1076,9 @@ describe('useLocalStorage Hook', () => {
     localStorage.setItem('key1', JSON.stringify('value1'));
     localStorage.setItem('key2', JSON.stringify('value2'));
 
-    const { result, rerender } = renderHook(
-      ({ key }) => useLocalStorage(key, 'default'),
-      { initialProps: { key: 'key1' } }
-    );
+    const { result, rerender } = renderHook(({ key }) => useLocalStorage(key, 'default'), {
+      initialProps: { key: 'key1' },
+    });
 
     expect(result.current[0]).toBe('value1');
 
@@ -1349,11 +1337,7 @@ export const ThemeProvider = ({ children }) => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
   };
 
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>;
 };
 
 export const useTheme = () => {
@@ -1488,12 +1472,7 @@ export const FileUpload = ({ onUpload, accept = '*', maxSize = 5 * 1024 * 1024 }
 
   return (
     <div>
-      <input
-        type="file"
-        onChange={handleFileChange}
-        accept={accept}
-        aria-label="File input"
-      />
+      <input type="file" onChange={handleFileChange} accept={accept} aria-label="File input" />
 
       {file && <p>Selected: {file.name}</p>}
 
@@ -1562,9 +1541,7 @@ describe('FileUpload Component', () => {
 
   it('shows uploading state', async () => {
     const user = userEvent.setup();
-    const handleUpload = jest.fn(
-      () => new Promise((resolve) => setTimeout(resolve, 100))
-    );
+    const handleUpload = jest.fn(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
     render(<FileUpload onUpload={handleUpload} />);
 
@@ -1629,9 +1606,7 @@ export const Autocomplete = ({ options, onSelect, placeholder }) => {
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setHighlightedIndex((prev) =>
-        prev < filteredOptions.length - 1 ? prev + 1 : prev
-      );
+      setHighlightedIndex((prev) => (prev < filteredOptions.length - 1 ? prev + 1 : prev));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : prev));
@@ -1893,9 +1868,7 @@ describe('InfiniteScrollList Component', () => {
   });
 
   it('shows loading state', () => {
-    const fetchItems = jest.fn(
-      () => new Promise((resolve) => setTimeout(resolve, 100))
-    );
+    const fetchItems = jest.fn(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
     render(<InfiniteScrollList fetchItems={fetchItems} />);
 
@@ -1903,7 +1876,8 @@ describe('InfiniteScrollList Component', () => {
   });
 
   it('shows no more items message when all loaded', async () => {
-    const fetchItems = jest.fn()
+    const fetchItems = jest
+      .fn()
       .mockResolvedValueOnce([{ id: 1, text: 'Item 1' }])
       .mockResolvedValueOnce([]);
 
@@ -1920,9 +1894,7 @@ describe('InfiniteScrollList Component', () => {
   });
 
   it('does not load more when already loading', async () => {
-    const fetchItems = jest.fn(
-      () => new Promise((resolve) => setTimeout(resolve, 1000))
-    );
+    const fetchItems = jest.fn(() => new Promise((resolve) => setTimeout(resolve, 1000)));
 
     render(<InfiniteScrollList fetchItems={fetchItems} />);
 
@@ -1960,11 +1932,13 @@ export class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      return this.props.fallback || (
-        <div role="alert">
-          <h1>Something went wrong</h1>
-          <p>{this.state.error?.message}</p>
-        </div>
+      return (
+        this.props.fallback || (
+          <div role="alert">
+            <h1>Something went wrong</h1>
+            <p>{this.state.error?.message}</p>
+          </div>
+        )
       );
     }
 
@@ -2429,9 +2403,7 @@ describe('ChatRoom Component', () => {
     render(<ChatRoom roomId="test-room" websocketUrl="ws://localhost:1234" />);
 
     await server.connected;
-    await expect(server).toReceiveMessage(
-      JSON.stringify({ type: 'join', roomId: 'test-room' })
-    );
+    await expect(server).toReceiveMessage(JSON.stringify({ type: 'join', roomId: 'test-room' }));
   });
 
   it('displays received messages', async () => {

@@ -3,16 +3,17 @@
 Fetches and manages market indices data. Auto-refreshes every 5 minutes.
 
 ## Source File
+
 `frontend/lib/hooks/useMarket.js`
 
 ## Return Value
 
-| Property | Type | Description |
-|----------|------|-------------|
+| Property     | Type           | Description                               |
+| ------------ | -------------- | ----------------------------------------- |
 | `marketData` | object \| null | Market indices (nifty50, sensex, sectors) |
-| `loading` | boolean | Loading state |
-| `error` | string \| null | Error message if any |
-| `refresh` | function | Manually refresh data |
+| `loading`    | boolean        | Loading state                             |
+| `error`      | string \| null | Error message if any                      |
+| `refresh`    | function       | Manually refresh data                     |
 
 ## Usage Example
 
@@ -40,5 +41,6 @@ function MarketWidget() {
 - Auto-refresh interval: 5 minutes
 
 ## Related
+
 - [marketController](../../backend/controllers/marketController.md)
 - [api](../lib/api.md)

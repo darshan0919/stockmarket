@@ -24,7 +24,7 @@ const fmtVol = (v) => {
 // (1day > 4%, 1week > 6%, 1month > 10%) — duplicated here (not imported) since
 // screener-web doesn't currently depend on @stock/api; keep in sync manually
 // if the backend thresholds change.
-const EVENT_SIGNAL_THRESHOLDS = { oneDay: 0.04, oneWeek: 0.06, oneMonth: 0.10 };
+const EVENT_SIGNAL_THRESHOLDS = { oneDay: 0.04, oneWeek: 0.06, oneMonth: 0.1 };
 
 const fmtReturn = (v) => {
   if (v == null) return <span className="text-base-content/30">—</span>;
@@ -160,8 +160,7 @@ export const COLUMNS = [
     sortKey: 'delVsMcap',
     align: 'right',
     group: 'volumeDelivery',
-    render: (row) =>
-      row.delVsMcap != null ? `${Number(row.delVsMcap).toFixed(3)}%` : 'N/A',
+    render: (row) => (row.delVsMcap != null ? `${Number(row.delVsMcap).toFixed(3)}%` : 'N/A'),
   },
   {
     id: 'valVsMcap',
@@ -169,8 +168,7 @@ export const COLUMNS = [
     sortKey: 'valVsMcap',
     align: 'right',
     group: 'volumeDelivery',
-    render: (row) =>
-      row.valVsMcap != null ? `${Number(row.valVsMcap).toFixed(3)}%` : 'N/A',
+    render: (row) => (row.valVsMcap != null ? `${Number(row.valVsMcap).toFixed(3)}%` : 'N/A'),
   },
   {
     id: 'deliveryPercent',
@@ -194,8 +192,7 @@ export const COLUMNS = [
     sortKey: 'marketCapCr',
     align: 'right',
     group: 'fundamentals',
-    render: (row) =>
-      row.marketCapCr != null ? Number(row.marketCapCr).toFixed(0) : 'N/A',
+    render: (row) => (row.marketCapCr != null ? Number(row.marketCapCr).toFixed(0) : 'N/A'),
   },
   {
     id: 'retailHolding',
@@ -255,9 +252,15 @@ export const COLUMNS = [
     align: 'right',
     group: 'eventReactionResults',
     render: (row) =>
-      row.eventReaction?.timestamp
-        ? new Date(row.eventReaction.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' })
-        : <span className="text-base-content/30">—</span>,
+      row.eventReaction?.timestamp ? (
+        new Date(row.eventReaction.timestamp).toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: '2-digit',
+        })
+      ) : (
+        <span className="text-base-content/30">—</span>
+      ),
   },
   {
     id: 'sinceResult',
@@ -424,13 +427,28 @@ export function ColumnPicker({ hiddenCols, toggleColumn, setGroupVisible }) {
 function SortIcon({ direction }) {
   if (!direction) {
     return (
-      <svg className="w-3.5 h-3.5 opacity-30 ml-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
+      <svg
+        className="w-3.5 h-3.5 opacity-30 ml-1 inline"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"
+        />
       </svg>
     );
   }
   return (
-    <svg className="w-3.5 h-3.5 opacity-80 ml-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg
+      className="w-3.5 h-3.5 opacity-80 ml-1 inline"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
       {direction === 'asc' ? (
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
       ) : (
@@ -458,7 +476,13 @@ const compare = (a, b, key, dir) => {
  *   emptyMessage?: string,
  * }} props
  */
-export default function StockTable({ rows, hiddenCols, sellOffersOnly, buyBidsOnly, emptyMessage }) {
+export default function StockTable({
+  rows,
+  hiddenCols,
+  sellOffersOnly,
+  buyBidsOnly,
+  emptyMessage,
+}) {
   const router = useRouter();
   const [sortKey, setSortKey] = useState('delVsMcap');
   const [sortDir, setSortDir] = useState('desc');
@@ -486,7 +510,10 @@ export default function StockTable({ rows, hiddenCols, sellOffersOnly, buyBidsOn
   const handleHeaderClick = (key) => {
     if (!key) return;
     if (sortKey === key) setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'));
-    else { setSortKey(key); setSortDir('desc'); }
+    else {
+      setSortKey(key);
+      setSortDir('desc');
+    }
   };
 
   const filtered = useMemo(() => {
@@ -498,8 +525,12 @@ export default function StockTable({ rows, hiddenCols, sellOffersOnly, buyBidsOn
       // Retail % > 50 → hide
       if (row.retailHoldingPercent != null && row.retailHoldingPercent > 50) return false;
       // Retail Stake < 50 Cr → hide
-      if (row.marketCapCr != null && row.retailHoldingPercent != null &&
-          (row.marketCapCr * row.retailHoldingPercent) / 100 < 50) return false;
+      if (
+        row.marketCapCr != null &&
+        row.retailHoldingPercent != null &&
+        (row.marketCapCr * row.retailHoldingPercent) / 100 < 50
+      )
+        return false;
       return true;
     });
     if (sellOffersOnly) return rows.filter((r) => r.offerLevels != null && r.offerLevels > 0);
@@ -542,8 +573,12 @@ export default function StockTable({ rows, hiddenCols, sellOffersOnly, buyBidsOn
                 key={col.id}
                 className={[
                   col.align === 'right' ? 'num' : '',
-                  col.sortKey ? 'cursor-pointer select-none hover:opacity-80 transition-opacity' : '',
-                ].filter(Boolean).join(' ')}
+                  col.sortKey
+                    ? 'cursor-pointer select-none hover:opacity-80 transition-opacity'
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
                 onClick={() => handleHeaderClick(col.sortKey)}
               >
                 {col.header}

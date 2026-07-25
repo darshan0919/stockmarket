@@ -11,7 +11,7 @@ const {
   createPeerComparisonPdf,
   createCredibilityWidget,
   createMarketShareWidget,
-  createGrowthTriggersPdf
+  createGrowthTriggersPdf,
 } = require('../src/index');
 
 describe('Report Generators', () => {

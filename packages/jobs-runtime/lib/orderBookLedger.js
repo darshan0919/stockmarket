@@ -30,7 +30,11 @@ function file(companyId) {
 function get(companyId) {
   const f = file(companyId);
   if (!fs.existsSync(f)) return null;
-  try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch (_) { return null; }
+  try {
+    return JSON.parse(fs.readFileSync(f, 'utf8'));
+  } catch (_) {
+    return null;
+  }
 }
 
 function write(companyId, ledger) {
@@ -56,12 +60,23 @@ function recompute(ledger) {
 
 /** Set/replace the base (only called once per quarter — a new concall replaces the old base and clears applied announcements, since the new base already reflects them). */
 function setBase(companyId, base) {
-  let ledger = get(companyId) || { companyId, base: null, announcementsApplied: [], watermark: null, history: [] };
+  let ledger = get(companyId) || {
+    companyId,
+    base: null,
+    announcementsApplied: [],
+    watermark: null,
+    history: [],
+  };
   ledger.base = base;
   ledger.announcementsApplied = []; // the new base's own quarter already includes prior order wins — reset
   ledger.watermark = base.sourceQuarterEndDate;
   ledger.history = ledger.history || [];
-  ledger.history.push({ timestamp: new Date().toISOString(), trigger: 'new-base', valueCr: base.valueCr, note: `base set from ${base.sourceType} ${base.sourceQuarter}` });
+  ledger.history.push({
+    timestamp: new Date().toISOString(),
+    trigger: 'new-base',
+    valueCr: base.valueCr,
+    note: `base set from ${base.sourceType} ${base.sourceQuarter}`,
+  });
   recompute(ledger);
   return write(companyId, ledger);
 }
@@ -69,11 +84,23 @@ function setBase(companyId, base) {
 /** Append one announcement's contribution (no-op, idempotent, if ssUrl already applied). */
 function applyAnnouncement(companyId, { ssUrl, date, deltaCr, title }) {
   const ledger = get(companyId);
-  if (!ledger || !ledger.base) throw new Error(`No base set for ${companyId} — call setBase() first.`);
+  if (!ledger || !ledger.base)
+    throw new Error(`No base set for ${companyId} — call setBase() first.`);
   if (ledger.announcementsApplied.some((a) => a.ssUrl === ssUrl)) return ledger; // already applied — idempotent
-  ledger.announcementsApplied.push({ ssUrl, date, deltaCr, title, appliedAt: new Date().toISOString() });
+  ledger.announcementsApplied.push({
+    ssUrl,
+    date,
+    deltaCr,
+    title,
+    appliedAt: new Date().toISOString(),
+  });
   if (!ledger.watermark || date > ledger.watermark) ledger.watermark = date;
-  ledger.history.push({ timestamp: new Date().toISOString(), trigger: 'announcement-applied', valueCr: null, note: `+${deltaCr} Cr from ${ssUrl} (${date})` });
+  ledger.history.push({
+    timestamp: new Date().toISOString(),
+    trigger: 'announcement-applied',
+    valueCr: null,
+    note: `+${deltaCr} Cr from ${ssUrl} (${date})`,
+  });
   recompute(ledger);
   ledger.history[ledger.history.length - 1].valueCr = ledger.cumulative.valueCr;
   return write(companyId, ledger);

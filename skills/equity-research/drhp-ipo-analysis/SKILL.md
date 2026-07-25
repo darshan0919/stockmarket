@@ -95,7 +95,7 @@ Each red flag rated **GREEN / YELLOW / RED** with verbatim evidence and page cit
 **This phase has two strictly separate steps. Never let one script or one pass of edits do
 both.** The failure mode this guards against: an analyst "compresses for readability" and, in
 doing so, silently drops facts — because there was no persisted canonical record to compress
-*from*, only a single hand-written document that was both the data and the layout at once.
+_from_, only a single hand-written document that was both the data and the layout at once.
 
 1. **Data layer (extraction + processing) → persist the full DTO, no compression decisions here.**
    Everything gathered in Phases 1-3 — every number, every named entity, every citation — goes
@@ -184,13 +184,13 @@ market price, exactly like `investment-thesis-engine`'s signal vocabulary, so th
 consistent for a company that later gets a full thesis. Do not use "WATCH-POST-LISTING" or any
 other pre-listing-uncertainty phrasing — the listing has already happened.
 
-| View | When to use |
-|---|---|
-| **BUY** | All 10 sections clean; valuation at/below fair value vs disclosed peers or pre-listing NAV; no RED red flags — a straightforward entry at CMP |
-| **ACCUMULATE** | Strong fundamentals with 1-2 monitorable (non-fraud) YELLOW flags and/or a real but not extreme valuation discount to peers — worth building a position, ideally on dips, while tracking the flagged items |
-| **HOLD** | Fundamentals intact but the stock has already re-rated to fair value or beyond, or unresolved red flags create meaningful uncertainty — don't chase, don't need to exit an existing position |
-| **REDUCE** | Red flags are emerging/worsening or valuation is materially stretched relative to fundamentals — trim exposure |
-| **AVOID** | Any RED red flag on fraud/governance grounds; OR valuation extreme with no offsetting quality; OR pending material litigation against the company itself (not just promoters in an unrelated personal capacity) |
+| View           | When to use                                                                                                                                                                                                     |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **BUY**        | All 10 sections clean; valuation at/below fair value vs disclosed peers or pre-listing NAV; no RED red flags — a straightforward entry at CMP                                                                   |
+| **ACCUMULATE** | Strong fundamentals with 1-2 monitorable (non-fraud) YELLOW flags and/or a real but not extreme valuation discount to peers — worth building a position, ideally on dips, while tracking the flagged items      |
+| **HOLD**       | Fundamentals intact but the stock has already re-rated to fair value or beyond, or unresolved red flags create meaningful uncertainty — don't chase, don't need to exit an existing position                    |
+| **REDUCE**     | Red flags are emerging/worsening or valuation is materially stretched relative to fundamentals — trim exposure                                                                                                  |
+| **AVOID**      | Any RED red flag on fraud/governance grounds; OR valuation extreme with no offsetting quality; OR pending material litigation against the company itself (not just promoters in an unrelated personal capacity) |
 
 Always cross-check the verdict against the **lock-in / release schedule** (§11): a stock that looks
 cheap now but has a large promoter or pre-IPO-investor lock-in expiry within the next 2-3 quarters

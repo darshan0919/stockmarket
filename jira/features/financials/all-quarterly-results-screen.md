@@ -3,7 +3,6 @@
 ### **Requirements**
 
 1. **Quarterly Results Widget**
-
    - In the `Financials` tab on the stock’s overview page, add a quarterly results widget.
    - The widget should visually and functionally resemble the quarterly results presentation on Screener.in (see example: [https://www.screener.in/company/SRM](https://www.screener.in/company/SRM): “Financials” → “Quarterly Results”).
    - Table/Widget must include the following rows (including all those shown on Screener.in plus these additional growth rows):
@@ -26,7 +25,6 @@
    - Growth rows (YoY, QoQ) should be visually separated, trend colored (+green/-red), and calculated per period from actual reported numbers.
 
 2. **API Source**
-
    - Fetch all quarterly financial results data from official NSE APIs only.
    - Use one or more of these endpoints depending on the stock/quarterly data needed:
      - `https://www.nseindia.com/api/corp-info?symbol={SYMBOL}&corpType=financialResult&market=equities&series=EQ`
@@ -36,7 +34,6 @@
    - Reference NSE's “Financial Results” tab e.g., [https://www.nseindia.com/get-quotes/equity?symbol=SRM](https://www.nseindia.com/get-quotes/equity?symbol=SRM)
 
 3. **Backend Handling**
-
    - Provide an endpoint like `/api/stocks/:symbol/quarterly` that fetches and parses recent results from the appropriate NSE API.
    - Backend must:
      - Parse and normalize the quarterly data structure to match the UI’s requirements.

@@ -76,26 +76,45 @@ function main() {
       if (!company.keywords.includes(candidate)) {
         company.keywords.push(candidate);
         addedCount++;
-        addedLog.push({ companyId: company.companyId, keyword: candidate, viaTicker: !!tickerAnchor, viaName: !!nameAnchor });
+        addedLog.push({
+          companyId: company.companyId,
+          keyword: candidate,
+          viaTicker: !!tickerAnchor,
+          viaName: !!nameAnchor,
+        });
       }
     }
   }
 
   master.generatedAt = new Date().toISOString();
-  fs.writeFileSync(MASTER_PATH, JSON.stringify(
-    {
-      generatedAt: master.generatedAt,
-      source: master.source,
-      totalCompanies: master.totalCompanies,
-      nseListed: master.nseListed,
-      bseOnly: master.bseOnly,
-      companies: master.companies,
-    },
-    null,
-    2
-  ));
+  fs.writeFileSync(
+    MASTER_PATH,
+    JSON.stringify(
+      {
+        generatedAt: master.generatedAt,
+        source: master.source,
+        totalCompanies: master.totalCompanies,
+        nseListed: master.nseListed,
+        bseOnly: master.bseOnly,
+        companies: master.companies,
+      },
+      null,
+      2
+    )
+  );
 
-  console.log(JSON.stringify({ status: 'ok', tweetsProcessed: tweets.length, keywordsAdded: addedCount, sample: addedLog.slice(0, 15) }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        status: 'ok',
+        tweetsProcessed: tweets.length,
+        keywordsAdded: addedCount,
+        sample: addedLog.slice(0, 15),
+      },
+      null,
+      2
+    )
+  );
 }
 
 main();

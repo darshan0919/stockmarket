@@ -95,7 +95,10 @@ async function tryPerplexity(ticker, quarter) {
     (ev) => ev.fiscalYear === quarter.fiscalYear && ev.fiscalPeriod === quarter.fiscalPeriod
   );
   if (!event) {
-    return { ok: false, reason: `No matching Perplexity event for FY${quarter.fiscalYear} ${quarter.fiscalPeriod}` };
+    return {
+      ok: false,
+      reason: `No matching Perplexity event for FY${quarter.fiscalYear} ${quarter.fiscalPeriod}`,
+    };
   }
   // NOTE: deliberately NOT gating on event.actualRevenue/actualEps here — live
   // testing (2026-07-24, STLTECH.NS eventId 656796, same-day call) showed a
@@ -117,7 +120,8 @@ async function tryPerplexity(ticker, quarter) {
   return {
     ok: true,
     paragraphs: data.paragraphs,
-    sourceUrl: data.audio || `https://www.perplexity.ai/finance/${pplxTicker}/earnings?eventId=${event.id}`,
+    sourceUrl:
+      data.audio || `https://www.perplexity.ai/finance/${pplxTicker}/earnings?eventId=${event.id}`,
   };
 }
 
@@ -135,24 +139,36 @@ async function main() {
   // ── Tier 1 gate ──────────────────────────────────────────────────────────
   const { result, transcript } = await checkStockscansDocuments(client, ticker, quarter.yyyymm);
   if (!result) {
-    console.log(JSON.stringify({
-      status: 'results-not-out',
-      ticker,
-      quarter,
-      note: `No Result filed for ${quarter.fiscalPeriod} FY${quarter.fiscalYear} (${quarter.yyyymm}) yet — stopping here.`,
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          status: 'results-not-out',
+          ticker,
+          quarter,
+          note: `No Result filed for ${quarter.fiscalPeriod} FY${quarter.fiscalYear} (${quarter.yyyymm}) yet — stopping here.`,
+        },
+        null,
+        2
+      )
+    );
     return;
   }
 
   // ── Tier 2: official transcript already exists ──────────────────────────
   if (transcript) {
-    console.log(JSON.stringify({
-      status: 'official-transcript-exists',
-      ticker,
-      quarter,
-      document: transcript,
-      note: 'Stockscans already has the official Transcript filed — use stock-documents-fetcher to download it, no need to go further.',
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          status: 'official-transcript-exists',
+          ticker,
+          quarter,
+          document: transcript,
+          note: 'Stockscans already has the official Transcript filed — use stock-documents-fetcher to download it, no need to go further.',
+        },
+        null,
+        2
+      )
+    );
     return;
   }
 
@@ -168,7 +184,13 @@ async function main() {
       fiscalPeriod: quarter.fiscalPeriod,
       sourceUrl: pplx.sourceUrl,
     });
-    console.log(JSON.stringify({ status: 'saved', tier: 'perplexity-quartr', ticker, quarter, ...saved }, null, 2));
+    console.log(
+      JSON.stringify(
+        { status: 'saved', tier: 'perplexity-quartr', ticker, quarter, ...saved },
+        null,
+        2
+      )
+    );
     return;
   }
 
@@ -178,16 +200,22 @@ async function main() {
     sinceDays: 30, // wider window here — we already know results are out
     client,
   });
-  console.log(JSON.stringify({
-    status: 'needs-recording-pipeline',
-    ticker,
-    quarter,
-    perplexitySkipReason: pplx.reason,
-    recording,
-    note: recording.found
-      ? `Continue with SKILL.md steps 3-4 (Read the PDF, find the recording link, transcribe via NotebookLM through Chrome MCP), then run: node save-concall-transcript.js ${ticker} ${quarter.yyyymm} <transcript.txt> --fiscal-year ${quarter.fiscalYear} --fiscal-period ${quarter.fiscalPeriod}`
-      : 'No recording announcement found either — nothing more this pipeline can do automatically for this quarter yet.',
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        status: 'needs-recording-pipeline',
+        ticker,
+        quarter,
+        perplexitySkipReason: pplx.reason,
+        recording,
+        note: recording.found
+          ? `Continue with SKILL.md steps 3-4 (Read the PDF, find the recording link, transcribe via NotebookLM through Chrome MCP), then run: node save-concall-transcript.js ${ticker} ${quarter.yyyymm} <transcript.txt> --fiscal-year ${quarter.fiscalYear} --fiscal-period ${quarter.fiscalPeriod}`
+          : 'No recording announcement found either — nothing more this pipeline can do automatically for this quarter yet.',
+      },
+      null,
+      2
+    )
+  );
 }
 
 if (require.main === module) {

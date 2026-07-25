@@ -42,7 +42,6 @@ const quarterlyResultSchema = new mongoose.Schema(
     tax_expense: Number,
     net_profit: Number,
 
-
     // Per share
     eps_basic: Number,
     eps_diluted: Number,
@@ -91,7 +90,6 @@ const quarterlyResultSchema = new mongoose.Schema(
     cash_from_investing: Number,
     cash_from_financing: Number,
     net_cash_flow: Number,
-
 
     // Source tracking
     xbrl_url: String,

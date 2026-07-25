@@ -65,7 +65,14 @@ const mapWithConcurrency = async (tasks, limit) => {
  * @returns {Promise<number|null>}
  */
 const fetchSymbolMetrics = async (symbol) => {
-  const empty = { price: null, changePercent: null, volume: null, value: null, marketCapCr: null, deliveryPercent: null };
+  const empty = {
+    price: null,
+    changePercent: null,
+    volume: null,
+    value: null,
+    marketCapCr: null,
+    deliveryPercent: null,
+  };
   try {
     const data = await getSymbolData(symbol);
     if (!data) return empty;
@@ -79,7 +86,9 @@ const fetchSymbolMetrics = async (symbol) => {
       deliveryPercent: toNumber(data.tradeInfo?.deliveryToTradedQuantity),
     };
   } catch (err) {
-    console.warn(`[topGainers] fetchSymbolMetrics(${symbol}) failed: ${err.response?.status ?? err.message}`);
+    console.warn(
+      `[topGainers] fetchSymbolMetrics(${symbol}) failed: ${err.response?.status ?? err.message}`
+    );
     return empty;
   }
 };
@@ -139,7 +148,9 @@ const fetchHistoryMetrics = async (symbol) => {
 
     return { deliveryPercent: latest.deliveryPercent, weekChangePercent, avgDeliveryPercent30d };
   } catch (err) {
-    console.warn(`[topGainers] fetchHistoryMetrics(${symbol}) failed: ${err.response?.status ?? err.message}`);
+    console.warn(
+      `[topGainers] fetchHistoryMetrics(${symbol}) failed: ${err.response?.status ?? err.message}`
+    );
     return empty;
   }
 };
@@ -178,7 +189,9 @@ const fetchOrderBookMetrics = async (symbol) => {
       totalOfferQty: rawOfferQty != null ? rawOfferQty : null,
     };
   } catch (err) {
-    console.warn(`[topGainers] fetchOrderBookMetrics(${symbol}) failed: ${err.response?.status ?? err.message}`);
+    console.warn(
+      `[topGainers] fetchOrderBookMetrics(${symbol}) failed: ${err.response?.status ?? err.message}`
+    );
     return empty;
   }
 };
@@ -282,14 +295,25 @@ const getTopGainers = async ({
     // Batch-fetch fundamentals (Market Cap, P/E, PAT Growth TTM, Retail Holdings) from Stockscans
     const symbols = rows.map((r) => r.symbol);
     let batchMetrics = {};
-    try { batchMetrics = await fetchFundamentals(symbols); } catch { /* best-effort */ }
+    try {
+      batchMetrics = await fetchFundamentals(symbols);
+    } catch {
+      /* best-effort */
+    }
 
     // Per-symbol: delivery % (today from quote-equity, T-1 fallback) + history + order book
     const tasks = rows.map((row) => async () => {
       const [symbolMetrics, history, obMetrics] = await Promise.all([
         fetchSymbolMetrics(row.symbol),
         fetchHistoryMetrics(row.symbol),
-        orderBook ? fetchOrderBookMetrics(row.symbol) : Promise.resolve({ bidLevels: null, offerLevels: null, totalBidQty: null, totalOfferQty: null }),
+        orderBook
+          ? fetchOrderBookMetrics(row.symbol)
+          : Promise.resolve({
+              bidLevels: null,
+              offerLevels: null,
+              totalBidQty: null,
+              totalOfferQty: null,
+            }),
       ]);
       const fm = batchMetrics[row.symbol] ?? {};
       // Live fields from getSymbolData override base row values

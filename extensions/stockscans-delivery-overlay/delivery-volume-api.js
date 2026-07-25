@@ -1,16 +1,18 @@
-"use strict";
+'use strict';
 
-import { getPriceVolumeDeliverable, getSymbolData } from "./nse-api.js";
+import { getPriceVolumeDeliverable, getSymbolData } from './nse-api.js';
 
-export async function getDeliveryVolume(symbol, { from, to, interval = "daily" } = {}) {
-  const upper = String(symbol || "").trim().toUpperCase();
+export async function getDeliveryVolume(symbol, { from, to, interval = 'daily' } = {}) {
+  const upper = String(symbol || '')
+    .trim()
+    .toUpperCase();
   const fromDate = parseIsoDate(from);
   const toDate = parseIsoDate(to);
 
-  if (!upper) throw new Error("Symbol required");
-  if (!fromDate || !toDate) throw new Error("from and to must be YYYY-MM-DD");
-  if (fromDate > toDate) throw new Error("from must be <= to");
-  if (interval !== "daily") throw new Error("Only daily delivery overlay is supported");
+  if (!upper) throw new Error('Symbol required');
+  if (!fromDate || !toDate) throw new Error('from and to must be YYYY-MM-DD');
+  if (fromDate > toDate) throw new Error('from must be <= to');
+  if (interval !== 'daily') throw new Error('Only daily delivery overlay is supported');
 
   const allRows = [];
   for (const [chunkFrom, chunkTo] of chunkDateRange(fromDate, toDate, 365)) {
@@ -33,7 +35,7 @@ export async function getDeliveryVolume(symbol, { from, to, interval = "daily" }
 
   return {
     symbol: upper,
-    interval: "daily",
+    interval: 'daily',
     from: toIsoDate(fromDate),
     to: toIsoDate(toDate),
     candles,
@@ -57,7 +59,16 @@ async function appendLiveCandle(candles, symbol, fromDate, toDate) {
     const deliveryPercent = toNumber(liveData?.tradeInfo?.deliveryToTradedQuantity);
 
     if (open && high && low && close) {
-      candles.push({ time: todayStr, open, high, low, close, volume, deliveryVolume, deliveryPercent });
+      candles.push({
+        time: todayStr,
+        open,
+        high,
+        low,
+        close,
+        volume,
+        deliveryVolume,
+        deliveryPercent,
+      });
     }
   } catch {
     // Live data is best-effort; historical delivery rows remain useful without it.
@@ -94,7 +105,7 @@ function normalizeHistoricalRow(row) {
 }
 
 function parseNseDateToIso(value) {
-  if (!value) return "";
+  if (!value) return '';
   const raw = String(value).trim();
 
   if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
@@ -103,7 +114,7 @@ function parseNseDateToIso(value) {
   if (!Number.isNaN(date.getTime())) return toIsoDate(date);
 
   const match = raw.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/);
-  if (!match) return "";
+  if (!match) return '';
 
   const months = {
     JAN: 0,
@@ -120,7 +131,7 @@ function parseNseDateToIso(value) {
     DEC: 11,
   };
   const month = months[match[2].toUpperCase()];
-  if (month === undefined) return "";
+  if (month === undefined) return '';
 
   return toIsoDate(new Date(Number(match[3]), month, Number(match[1])));
 }
@@ -142,18 +153,18 @@ function chunkDateRange(fromDate, toDate, maxDays) {
 }
 
 function parseIsoDate(value) {
-  const raw = String(value || "").trim();
+  const raw = String(value || '').trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return null;
   const date = new Date(`${raw}T00:00:00`);
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
 function formatNseDate(date) {
-  return `${String(date.getDate()).padStart(2, "0")}-${String(date.getMonth() + 1).padStart(2, "0")}-${date.getFullYear()}`;
+  return `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
 }
 
 function toIsoDate(date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 function startOfDay(date) {
@@ -169,7 +180,7 @@ function endOfDay(date) {
 }
 
 function toNumber(value) {
-  if (value === null || value === undefined || value === "" || value === "-") return 0;
-  const number = typeof value === "number" ? value : Number(String(value).replace(/,/g, ""));
+  if (value === null || value === undefined || value === '' || value === '-') return 0;
+  const number = typeof value === 'number' ? value : Number(String(value).replace(/,/g, ''));
   return Number.isFinite(number) ? number : 0;
 }

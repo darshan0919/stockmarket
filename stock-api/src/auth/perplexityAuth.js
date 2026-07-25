@@ -47,9 +47,10 @@ class PerplexityAuth {
     this._cookies = cookies || null;
     this._accountId = accountId || null;
     this._envPath = envPath || null;
-    this._userAgent = userAgent
-      || 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
-        + '(KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36';
+    this._userAgent =
+      userAgent ||
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
+        '(KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36';
   }
 
   _envFile(key) {
@@ -95,13 +96,13 @@ class PerplexityAuth {
     const cookie = this.cookieHeader();
     if (requireCookie && !cookie) {
       throw new Error(
-        'PERPLEXITY_COOKIES not set. This endpoint needs a logged-in Perplexity '
-        + 'session — open perplexity.ai/finance in a browser while logged in, '
-        + 'DevTools → Network → find a /rest/finance/earnings/*/transcript/* '
-        + 'request, copy its full `cookie` request header, and set '
-        + 'PERPLEXITY_COOKIES in .env. Also set PERPLEXITY_ACCOUNT_ID from the '
-        + 'same request\'s `x-pplx-account` header. Expect to refresh this '
-        + 'periodically — the `cf_clearance` cookie inside it expires quickly.'
+        'PERPLEXITY_COOKIES not set. This endpoint needs a logged-in Perplexity ' +
+          'session — open perplexity.ai/finance in a browser while logged in, ' +
+          'DevTools → Network → find a /rest/finance/earnings/*/transcript/* ' +
+          'request, copy its full `cookie` request header, and set ' +
+          'PERPLEXITY_COOKIES in .env. Also set PERPLEXITY_ACCOUNT_ID from the ' +
+          "same request's `x-pplx-account` header. Expect to refresh this " +
+          'periodically — the `cf_clearance` cookie inside it expires quickly.'
       );
     }
     const accountId = this.accountId();

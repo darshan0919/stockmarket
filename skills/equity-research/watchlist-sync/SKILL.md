@@ -15,14 +15,14 @@ and invokes the job once per pair. Do NOT hardcode specific IDs in this skill.
 
 ## Flags (all optional — omit for the nightly Near Highs default)
 
-| Flag | Default | Meaning |
-|---|---|---|
-| `--scan-id` | `9493efc2c969d602c5dedbe2` (Near Highs) | scan to pull companies from |
-| `--watchlist-id` | `0a365ec2139aa6ca7f74c250` (Near Highs) | watchlist to replace |
-| `--scan-name` | `Chartist Near High Scan` | label used in logs/email |
-| `--watchlist-name` | `Near Highs` | label used in logs/email |
-| `--radar-id` | `7ca0e1a60c3fd0d8b1ab61ce` (Radar) | watchlist of companies to exclude |
-| `--dry-run` | off | compute + print the diff without applying or emailing |
+| Flag               | Default                                 | Meaning                                               |
+| ------------------ | --------------------------------------- | ----------------------------------------------------- |
+| `--scan-id`        | `9493efc2c969d602c5dedbe2` (Near Highs) | scan to pull companies from                           |
+| `--watchlist-id`   | `0a365ec2139aa6ca7f74c250` (Near Highs) | watchlist to replace                                  |
+| `--scan-name`      | `Chartist Near High Scan`               | label used in logs/email                              |
+| `--watchlist-name` | `Near Highs`                            | label used in logs/email                              |
+| `--radar-id`       | `7ca0e1a60c3fd0d8b1ab61ce` (Radar)      | watchlist of companies to exclude                     |
+| `--dry-run`        | off                                     | compute + print the diff without applying or emailing |
 
 > Any **non-default** `--scan-id` runs with that scan's OWN saved definition/filters
 > (fetched from Stockscans), not the built-in Near-High filter payload. The default scan
@@ -41,11 +41,13 @@ export COWORK_ENV="$ENV"        # STOCKSCANS_AUTH_TOKEN + GOOGLE_APP_PASSWORD li
 ## Run
 
 Default (nightly Near Highs):
+
 ```bash
 node "$JOB"
 ```
 
 A specific scan → watchlist pair:
+
 ```bash
 node "$JOB" --scan-id <scanId> --watchlist-id <watchlistId> \
             --scan-name "<label>" --watchlist-name "<label>"

@@ -11,7 +11,7 @@ const generators = [
   'management-credibility-tracker',
   'sector-research-deepdive',
   'peer-comparison',
-  'concall-analysis'
+  'concall-analysis',
 ];
 
 for (const g of generators) {
@@ -22,18 +22,13 @@ for (const g of generators) {
 
 // Add render-pdf
 data.skills['render-pdf'] = {
-  "skill_md": "skills/render-pdf/SKILL.md",
-  "entry": "stock-api/bin/render-pdf.js",
-  "mode": "clone",
-  "modules": [
-    "stock-api/src/utils/pdfRenderer.js"
-  ],
-  "references": [],
-  "shared": [],
-  "aliases": [
-    "render pdf",
-    "html to pdf"
-  ]
+  skill_md: 'skills/render-pdf/SKILL.md',
+  entry: 'stock-api/bin/render-pdf.js',
+  mode: 'clone',
+  modules: ['stock-api/src/utils/pdfRenderer.js'],
+  references: [],
+  shared: [],
+  aliases: ['render pdf', 'html to pdf'],
 };
 
 fs.writeFileSync(path, JSON.stringify(data, null, 2), 'utf8');

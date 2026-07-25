@@ -14,19 +14,13 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://www.stockscans.in/charts/*",
-        "https://stockscans.in/charts/*"
-      ],
+      "matches": ["https://www.stockscans.in/charts/*", "https://stockscans.in/charts/*"],
       "js": ["page-hook.js"],
       "run_at": "document_start",
       "world": "MAIN"
     },
     {
-      "matches": [
-        "https://www.stockscans.in/charts/*",
-        "https://stockscans.in/charts/*"
-      ],
+      "matches": ["https://www.stockscans.in/charts/*", "https://stockscans.in/charts/*"],
       "css": ["content.css"],
       "js": ["content.js"],
       "run_at": "document_start"

@@ -55,7 +55,7 @@ class PerplexityClient {
         requireCookie: true,
       }),
     });
-    return Array.isArray(data) ? data : (data.events || data.earnings || []);
+    return Array.isArray(data) ? data : data.events || data.earnings || [];
   }
 
   /**
@@ -96,7 +96,7 @@ function paragraphsToText(transcriptData) {
   const paragraphs = (transcriptData && transcriptData.paragraphs) || [];
   return paragraphs
     .map((p) => {
-      const speaker = (p.speakers && p.speakers.length) ? p.speakers.join(' & ') : null;
+      const speaker = p.speakers && p.speakers.length ? p.speakers.join(' & ') : null;
       return speaker ? `${speaker}: ${p.text}` : p.text;
     })
     .join('\n\n');
@@ -113,20 +113,25 @@ function toPerplexityTicker(stockscansTicker) {
   const m = /^(NSE|BSE):(.+)$/i.exec(String(stockscansTicker || '').trim());
   if (!m) {
     throw new Error(
-      `Cannot convert "${stockscansTicker}" to a Perplexity ticker — expected `
-      + `"NSE:SYMBOL" or "BSE:SYMBOL".`
+      `Cannot convert "${stockscansTicker}" to a Perplexity ticker — expected ` +
+        `"NSE:SYMBOL" or "BSE:SYMBOL".`
     );
   }
   const [, exchange, symbol] = m;
   if (exchange.toUpperCase() === 'BSE') {
     throw new Error(
-      `"${stockscansTicker}" is a BSE-only ticker — Perplexity Finance is keyed `
-      + `off NSE symbols (SYMBOL.NS) in observed testing. If this company is `
-      + `also NSE-listed, resolve its NSE symbol (e.g. via StockscansClient) `
-      + `and retry with that instead of guessing a .BO suffix.`
+      `"${stockscansTicker}" is a BSE-only ticker — Perplexity Finance is keyed ` +
+        `off NSE symbols (SYMBOL.NS) in observed testing. If this company is ` +
+        `also NSE-listed, resolve its NSE symbol (e.g. via StockscansClient) ` +
+        `and retry with that instead of guessing a .BO suffix.`
     );
   }
   return `${symbol.toUpperCase()}.NS`;
 }
 
-module.exports = { PerplexityClient, toPerplexityTicker, paragraphsToText, PERPLEXITY_BASE_URL: BASE_URL };
+module.exports = {
+  PerplexityClient,
+  toPerplexityTicker,
+  paragraphsToText,
+  PERPLEXITY_BASE_URL: BASE_URL,
+};

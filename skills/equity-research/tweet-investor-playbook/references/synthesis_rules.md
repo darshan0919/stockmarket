@@ -25,14 +25,16 @@ When the investor's view evolved over time (e.g., bearish on PSU banks in 2022, 
 
 Insights = recurring views about how markets work, what to look for, how to think.
 
-Each insight should answer: *"After reading the corpus, what does this investor consistently believe about markets?"*
+Each insight should answer: _"After reading the corpus, what does this investor consistently believe about markets?"_
 
 Good insights:
+
 - "Prioritises management quality over financial ratios" (Philosophy)
 - "Bullish India PSU re-rating since FY24 budget" (Macro / Sector-View)
 - "Cuts position when stop-loss hits 15% from entry" (Risk-Mgmt)
 
 Bad insights (cull these):
+
 - "Likes RIL" — too narrow, belongs in Track Record
 - "Talks about markets" — empty
 - "Said one positive thing about banks" — singleton, low confidence
@@ -43,18 +45,19 @@ Bad insights (cull these):
 
 If the tweet is restating a well-known investing concept, just name the concept. Don't quote. Examples:
 
-| Tweet content | Output |
-|---|---|
+| Tweet content                                 | Output                                  |
+| --------------------------------------------- | --------------------------------------- |
 | "Cigar butts and 50-cent dollars are the way" | "Cigar-butt investing (Graham/Buffett)" |
-| "Be greedy when others are fearful" | "Contrarian buying in fear (Buffett)" |
-| "Margin of safety > forecast accuracy" | "Margin of safety (Graham)" |
-| "Inversion is underrated" | "Inversion (Munger)" |
+| "Be greedy when others are fearful"           | "Contrarian buying in fear (Buffett)"   |
+| "Margin of safety > forecast accuracy"        | "Margin of safety (Graham)"             |
+| "Inversion is underrated"                     | "Inversion (Munger)"                    |
 
 **Rule 2: Unique formulations get reworded, never quoted verbatim.**
 
-If the investor has their own phrasing, capture the *idea* in fewer than 15 words in analyst voice. The original tweet text is for our internal reference only — never in the final output.
+If the investor has their own phrasing, capture the _idea_ in fewer than 15 words in analyst voice. The original tweet text is for our internal reference only — never in the final output.
 
 Example:
+
 - Tweet: "Promoter buying when stock is bleeding is the single highest-conviction signal I know of"
 - Output (reworded): "Promoter buys during drawdowns = top conviction signal"
 
@@ -75,19 +78,25 @@ Each playbook entry must be an imperative or a checklist item. If you can't rewr
 **Three columns:**
 
 ### Screens & Filters
+
 Quantitative or qualitative filters the investor uses to find ideas. Examples:
+
 - "Screen for RoCE > 18% over 5 years AND D/E < 0.5"
 - "Reject any business with promoter pledge > 20%"
 - "Only buy when FCF / PAT > 0.7"
 
 ### Entry / Exit Triggers
+
 Specific buy and sell triggers. Examples:
+
 - "Buy on 30% drawdown from 52-week high if thesis intact"
 - "Trim half when position size exceeds 15% of portfolio"
 - "Sell if quarterly EBITDA margin contracts > 300 bps"
 
 ### Process & Risk SOPs
+
 Checklists, diligence steps, position-sizing rules. Examples:
+
 - "Read last 8 concalls before initiating"
 - "Cap any single bet at 8% cost basis"
 - "Re-evaluate every position quarterly post-result"

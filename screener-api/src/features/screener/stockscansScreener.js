@@ -61,7 +61,8 @@ const fetchSavedScans = async () => {
     if (err.response) {
       const status = err.response.status;
       const out = new Error('Failed to fetch saved scans');
-      out.code = status === 401 || status === 403 ? 'STOCKSCANS_AUTH_REQUIRED' : 'STOCKSCANS_HTTP_ERROR';
+      out.code =
+        status === 401 || status === 403 ? 'STOCKSCANS_AUTH_REQUIRED' : 'STOCKSCANS_HTTP_ERROR';
       out.status = status;
       throw out;
     }
@@ -71,7 +72,7 @@ const fetchSavedScans = async () => {
   }
 
   // API may return { scans: [...] } or a bare array
-  const list = Array.isArray(raw) ? raw : (Array.isArray(raw?.scans) ? raw.scans : []);
+  const list = Array.isArray(raw) ? raw : Array.isArray(raw?.scans) ? raw.scans : [];
 
   return list.map((item) => ({
     scanId: item.scanId || item._id || item.id,
@@ -130,9 +131,10 @@ const parseTableBody = (body) => {
     if (!companyId || seen.has(companyId)) continue;
     seen.add(companyId);
 
-    const [exchange, symbol] = typeof companyId === 'string' && companyId.includes(':')
-      ? companyId.split(':')
-      : ['NSE', companyId];
+    const [exchange, symbol] =
+      typeof companyId === 'string' && companyId.includes(':')
+        ? companyId.split(':')
+        : ['NSE', companyId];
 
     const metrics = {};
     for (const col of header) {
@@ -235,6 +237,4 @@ const runScan = async (scan) => {
 module.exports = {
   fetchSavedScans,
   runScan,
-
-
 };

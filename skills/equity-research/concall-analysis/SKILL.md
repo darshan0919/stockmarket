@@ -5,16 +5,16 @@ description: Institutional-grade earnings concall transcript analysis for Indian
 
 # Concall Analysis
 
-> "The most underrated skill in investing: listening to what management DOESN'T say." — *AI for the Intelligent Investor*, Day 2, p.5
+> "The most underrated skill in investing: listening to what management DOESN'T say." — _AI for the Intelligent Investor_, Day 2, p.5
 
 This skill supports four analysis modes. Pick the one that matches the user's intent:
 
-| Mode | Trigger | Inputs | Output |
-|---|---|---|---|
-| **deep** | "deep dive on Q3 concall", "full concall analysis" | 1 transcript | 12-section PDF |
-| **brief** | "concall brief", "give me the highlights", "fast read" | 1 transcript | 9-section PDF (lighter) |
-| **multi-quarter** | "compare last 4 concalls", "track the narrative across quarters" | 4–8 transcripts (same company) | comparison PDF + tone-shift table |
-| **multi-peer** | "compare what XYZ vs ABC vs DEF said this quarter" | 1 transcript per company × 3–6 companies | peer comparison PDF |
+| Mode              | Trigger                                                          | Inputs                                   | Output                            |
+| ----------------- | ---------------------------------------------------------------- | ---------------------------------------- | --------------------------------- |
+| **deep**          | "deep dive on Q3 concall", "full concall analysis"               | 1 transcript                             | 12-section PDF                    |
+| **brief**         | "concall brief", "give me the highlights", "fast read"           | 1 transcript                             | 9-section PDF (lighter)           |
+| **multi-quarter** | "compare last 4 concalls", "track the narrative across quarters" | 4–8 transcripts (same company)           | comparison PDF + tone-shift table |
+| **multi-peer**    | "compare what XYZ vs ABC vs DEF said this quarter"               | 1 transcript per company × 3–6 companies | peer comparison PDF               |
 
 When in doubt, default to **brief**. It's the right answer for 70% of requests and is cheap to upgrade to deep if needed.
 
@@ -49,6 +49,7 @@ node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
 ```
 
 Handle its output by `status`:
+
 - `results-not-out` → tell the user this quarter hasn't reported yet, stop.
 - `official-transcript-exists` → fall through to `stock-documents-fetcher`
   (`fetch_documents.py -t Transcript --last-n 1`) to actually download it.
@@ -81,6 +82,7 @@ than silently analyzing N-1 quarters.
 ### Phase 2 — Mode-specific analysis
 
 Pick the framework reference for your mode:
+
 - **deep** → [`references/deep_12section.md`](references/deep_12section.md)
 - **brief** → [`references/brief_9section.md`](references/brief_9section.md)
 - **multi-quarter** → [`references/multi_quarter.md`](references/multi_quarter.md)
@@ -126,7 +128,7 @@ See [`stock-api/src/generators/generateConcallPdf.js`](stock-api/src/generators/
 ## Critical extraction rules
 
 1. **Quote verbatim** for: guidance numbers, tone-shift evidence, dodged questions, key red-flag statements. The exact words matter.
-2. **Distinguish** between what management said and what the analyst *interpreted* it as — these go in separate sections.
+2. **Distinguish** between what management said and what the analyst _interpreted_ it as — these go in separate sections.
 3. **Track non-answers.** If a question is asked and management responds with anything other than a number — note it. "We'll get back to you" + "we don't disclose that" + "as we said earlier" repeated 3+ times is a signal.
 4. **Don't editorialise.** "Management seemed nervous" without quotation evidence is hallucinated.
 5. **Cross-check numbers** stated in the call against the investor presentation released the same day. Mismatches happen and are signals.
@@ -141,12 +143,12 @@ When `consecutive-filings-diff` calls this skill, it requests **deep** mode but 
 
 ## Output file naming
 
-| Mode | Filename pattern |
-|---|---|
-| deep | `<Company>_Concall_<Quarter>_Deep.pdf` |
-| brief | `<Company>_Concall_<Quarter>_Brief.pdf` |
+| Mode          | Filename pattern                                   |
+| ------------- | -------------------------------------------------- |
+| deep          | `<Company>_Concall_<Quarter>_Deep.pdf`             |
+| brief         | `<Company>_Concall_<Quarter>_Brief.pdf`            |
 | multi-quarter | `<Company>_Concall_MultiQ_<earliest>-<latest>.pdf` |
-| multi-peer | `<Sector>_Concall_PeerCompare_<Quarter>.pdf` |
+| multi-peer    | `<Sector>_Concall_PeerCompare_<Quarter>.pdf`       |
 
 ## Pitfalls
 

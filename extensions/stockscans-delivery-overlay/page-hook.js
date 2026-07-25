@@ -1,11 +1,11 @@
 (function stockscansDeliveryOverlayPageHook() {
-  "use strict";
+  'use strict';
 
-  const SOURCE = "stockscans-delivery-overlay";
-  const FROM_PAGE = "page";
-  const FROM_CONTENT = "content";
+  const SOURCE = 'stockscans-delivery-overlay';
+  const FROM_PAGE = 'page';
+  const FROM_CONTENT = 'content';
   const MAX_CAPTURED_BARS = 1600;
-  const VOLUME_COLORS = new Set(["#8bd0c9", "#f6a3a2"]);
+  const VOLUME_COLORS = new Set(['#8bd0c9', '#f6a3a2']);
 
   if (window.__stockscansDeliveryOverlayHookInstalled) return;
   window.__stockscansDeliveryOverlayHookInstalled = true;
@@ -23,17 +23,17 @@
   patchXhr();
   patchCanvasFillRect();
 
-  window.addEventListener("message", (event) => {
+  window.addEventListener('message', (event) => {
     if (event.source !== window) return;
     const message = event.data;
     if (!message || message.source !== SOURCE || message.from !== FROM_CONTENT) return;
-    if (message.type === "REQUEST_STATE") {
+    if (message.type === 'REQUEST_STATE') {
       postState();
     }
   });
 
   function patchFetch() {
-    if (typeof window.fetch !== "function") return;
+    if (typeof window.fetch !== 'function') return;
     const nativeFetch = window.fetch;
 
     window.fetch = async function stockscansDeliveryOverlayFetch(input, init) {
@@ -57,13 +57,13 @@
     const nativeSend = XMLHttpRequest.prototype.send;
 
     XMLHttpRequest.prototype.open = function stockscansDeliveryOverlayOpen(method, url) {
-      this.__ssdvRequest = { method, url: String(url || ""), body: null };
+      this.__ssdvRequest = { method, url: String(url || ''), body: null };
       return nativeOpen.apply(this, arguments);
     };
 
     XMLHttpRequest.prototype.send = function stockscansDeliveryOverlaySend(body) {
       if (this.__ssdvRequest) this.__ssdvRequest.body = body;
-      this.addEventListener("load", () => {
+      this.addEventListener('load', () => {
         const requestInfo = this.__ssdvRequest || {};
         if (!isOhlcvUrl(requestInfo.url)) return;
         try {
@@ -111,7 +111,7 @@
       ch: Math.round(canvas.height),
       cssW: cssRect.width,
       cssH: cssRect.height,
-      z: String(canvas.style?.zIndex || ""),
+      z: String(canvas.style?.zIndex || ''),
     });
 
     if (drawBuffer.length > MAX_CAPTURED_BARS) {
@@ -134,51 +134,46 @@
     state.bars = drawBuffer.slice();
     state.barsSeq += 1;
     drawBuffer = [];
-    post("VOLUME_BARS", { bars: state.bars, seq: state.barsSeq });
+    post('VOLUME_BARS', { bars: state.bars, seq: state.barsSeq });
   }
 
   function handleOhlcv(data, requestInfo) {
     if (!data || !Array.isArray(data.prices)) return;
 
     state.ohlcv = {
-      companyId: String(data.companyId || requestInfo?.companyId || ""),
-      name: String(data.name || ""),
-      exchange: String(data.exchange || ""),
-      tf: String(data.tf || requestInfo?.tf || ""),
+      companyId: String(data.companyId || requestInfo?.companyId || ''),
+      name: String(data.name || ''),
+      exchange: String(data.exchange || ''),
+      tf: String(data.tf || requestInfo?.tf || ''),
       prices: data.prices,
     };
 
-    post("OHLCV_RESPONSE", state.ohlcv);
+    post('OHLCV_RESPONSE', state.ohlcv);
   }
 
   function postState() {
-    if (state.ohlcv) post("OHLCV_RESPONSE", state.ohlcv);
-    if (state.bars.length) post("VOLUME_BARS", { bars: state.bars, seq: state.barsSeq });
+    if (state.ohlcv) post('OHLCV_RESPONSE', state.ohlcv);
+    if (state.bars.length) post('VOLUME_BARS', { bars: state.bars, seq: state.barsSeq });
   }
 
   function post(type, payload) {
-    window.postMessage({ source: SOURCE, from: FROM_PAGE, type, payload }, "*");
+    window.postMessage({ source: SOURCE, from: FROM_PAGE, type, payload }, '*');
   }
 
   function getRequestInfo(input, init) {
-    const url =
-      typeof input === "string"
-        ? input
-        : input?.url
-          ? input.url
-          : "";
+    const url = typeof input === 'string' ? input : input?.url ? input.url : '';
     const body = init?.body || input?.body || null;
     const parsedBody = parseRequestBody(body);
-    return { url: String(url || ""), body, ...parsedBody };
+    return { url: String(url || ''), body, ...parsedBody };
   }
 
   function parseRequestBody(body) {
-    if (!body || typeof body !== "string") return {};
+    if (!body || typeof body !== 'string') return {};
     try {
       const parsed = JSON.parse(body);
       return {
-        companyId: typeof parsed.companyId === "string" ? parsed.companyId : "",
-        tf: typeof parsed.tf === "string" ? parsed.tf : "",
+        companyId: typeof parsed.companyId === 'string' ? parsed.companyId : '',
+        tf: typeof parsed.tf === 'string' ? parsed.tf : '',
       };
     } catch {
       return {};
@@ -186,11 +181,11 @@
   }
 
   function isOhlcvUrl(url) {
-    return /\/api\/company\/(?:custom-index-)?ohlcv(?:\?|$)/.test(String(url || ""));
+    return /\/api\/company\/(?:custom-index-)?ohlcv(?:\?|$)/.test(String(url || ''));
   }
 
   function normalizeColor(value) {
-    if (typeof value !== "string") return "";
+    if (typeof value !== 'string') return '';
     const normalized = value.trim().toLowerCase();
     if (VOLUME_COLORS.has(normalized)) return normalized;
 
@@ -198,7 +193,7 @@
     if (!rgb) return normalized;
 
     const [r, g, b] = rgb[1]
-      .split(",")
+      .split(',')
       .slice(0, 3)
       .map((part) => Number(part.trim()));
     if (![r, g, b].every(Number.isFinite)) return normalized;
@@ -210,10 +205,10 @@
     const upDistance = colorDistance(r, g, b, 139, 208, 201);
     const downDistance = colorDistance(r, g, b, 246, 163, 162);
     if (Math.min(upDistance, downDistance) <= 34) {
-      return upDistance <= downDistance ? "#8bd0c9" : "#f6a3a2";
+      return upDistance <= downDistance ? '#8bd0c9' : '#f6a3a2';
     }
 
-    return "";
+    return '';
   }
 
   function colorDistance(r, g, b, targetR, targetG, targetB) {

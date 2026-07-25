@@ -33,7 +33,9 @@ class ScreenerClient {
    * @param {string} symbol - bare symbol, or `NSE:PGEL` / `BSE:500...` (prefix stripped).
    */
   _slug(symbol) {
-    return String(symbol).replace(/^(NSE|BSE):/i, '').trim();
+    return String(symbol)
+      .replace(/^(NSE|BSE):/i, '')
+      .trim();
   }
 
   /**
@@ -60,7 +62,7 @@ class ScreenerClient {
       });
       if (status === 429 && attempt < this._maxRetries) {
         const retryAfter = Number(headers && headers['retry-after']);
-        const waitMs = Number.isFinite(retryAfter) ? retryAfter * 1000 : (2 ** attempt) * 1500;
+        const waitMs = Number.isFinite(retryAfter) ? retryAfter * 1000 : 2 ** attempt * 1500;
         attempt += 1;
         await ScreenerClient._sleep(waitMs);
         continue;
@@ -76,7 +78,9 @@ class ScreenerClient {
     this._lastReqAt = Date.now();
   }
 
-  static _sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+  static _sleep(ms) {
+    return new Promise((r) => setTimeout(r, ms));
+  }
 
   /**
    * Company page with a consolidated→standalone fallback (some companies have no

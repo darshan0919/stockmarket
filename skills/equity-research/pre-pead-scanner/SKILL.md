@@ -30,7 +30,7 @@ Post-earnings-announcement drift (PEAD) exists because the market under-reacts t
 
 1. **A surprise is coming** — your independent next-quarter estimate diverges from what others expect. "Others" is two audiences: the **street** (research-report/consensus estimates) and the **market's read of management guidance**. A number that beats both is the cleanest setup; a number that beats one but not the other is where the interesting disagreements live.
 2. **The company can actually deliver it** — order book, commissioned capacity, utilisation headroom and run-rate/seasonality support the number. A confident quote is not evidence; a booked order book is. Weight evidence over tone.
-3. **The surprise is tradeable** — some stocks systematically "sell the news". Historical drift after result/concall/transcript tells you whether a beat actually moves *this* stock.
+3. **The surprise is tradeable** — some stocks systematically "sell the news". Historical drift after result/concall/transcript tells you whether a beat actually moves _this_ stock.
 
 ## When to use this skill
 
@@ -42,7 +42,7 @@ Do **not** use this for a single named stock (use `growth-triggers-1pager` or `e
 
 ## The workflow at a glance
 
-Nine steps plus a quarter-level macro overlay, run in order — each gates or feeds the next. A company that fails a gate drops out and is reported as *excluded*, never silently dropped. **Read `references/workflow.md` for the commands, decision rules, and gates before starting** — it is the operational heart of this skill.
+Nine steps plus a quarter-level macro overlay, run in order — each gates or feeds the next. A company that fails a gate drops out and is reported as _excluded_, never silently dropped. **Read `references/workflow.md` for the commands, decision rules, and gates before starting** — it is the operational heart of this skill.
 
 **Preflight — verify session tokens first.** Before anything, confirm the **Stockscans** and **Screener.in** tokens in `.env` are live. If either has expired, **STOP and tell the user which `.env` key to refresh** (with how) — do not run the ranking on half-authenticated data. See `references/screener_insights.md`.
 
@@ -57,7 +57,7 @@ Nine steps plus a quarter-level macro overlay, run in order — each gates or fe
 - **(3d) Macro context overlay** — read `references/quarterly_macro_context.md` for the quarter being scanned (event log + sector-impact tables) and add a tailwind/headwind/non-factor read to every name, checking whether management's own guidance already accounts for it. Run once per scan, applied to every name. See `references/quarterly_macro_context.md` and the corresponding step in `references/workflow.md`.
 
 1. **Expectations via research reports** — use research-report price targets and valuation models to assess if the beat is already priced in. See `references/valuation_and_expectations.md`.
-2. **Measure historical post-event drift** — returns after the last *result*, after the *concall*, and after the *transcript* release, so you know whether a beat is tradeable in this name. Result-return is a scan column; concall/transcript returns are derived from doc dates + price history. See `references/post_event_returns.md`.
+2. **Measure historical post-event drift** — returns after the last _result_, after the _concall_, and after the _transcript_ release, so you know whether a beat is tradeable in this name. Result-return is a scan column; concall/transcript returns are derived from doc dates + price history. See `references/post_event_returns.md`.
 3. **Composite surprise score → rank → write the JSON DTO → render** the HTML briefing
    using `assets/briefing_template.html`. Before rendering, write
    `data/agent-outputs/{date}_pre_pead_scan.json` — a top-level array with one
@@ -73,13 +73,13 @@ Nine steps plus a quarter-level macro overlay, run in order — each gates or fe
 
 ## Core principles
 
-**Two benchmarks, always.** "Surprise" is meaningless without a reference. Score every name against *both* the street (research/consensus from top equity firms) and management guidance, and flag the gap. A beat versus a lowballed street estimate is a different trade from a beat versus an aggressive guide. Never collapse the two into one number without showing both.
+**Two benchmarks, always.** "Surprise" is meaningless without a reference. Score every name against _both_ the street (research/consensus from top equity firms) and management guidance, and flag the gap. A beat versus a lowballed street estimate is a different trade from a beat versus an aggressive guide. Never collapse the two into one number without showing both.
 
 **Evidence over tone.** A CEO sounding confident is not evidence. Order-book coverage of the guided revenue, commissioned capacity with utilisation headroom, recent business updates (like press releases for plant commencement), a run-rate consistent with the implied jump — that is evidence. Rank on evidence. When tone and evidence diverge, say so.
 
 **Is the beat already priced?** A surprise only moves a stock to the extent it wasn't expected. Use top equity research targets and models as a read on expectations.
 
-**Tradeable, not just true.** A correct beat prediction earns nothing if the stock fades every good result. Use the historical drift after result/concall/transcript to separate names where surprises *stick* from "sell-the-news" names.
+**Tradeable, not just true.** A correct beat prediction earns nothing if the stock fades every good result. Use the historical drift after result/concall/transcript to separate names where surprises _stick_ from "sell-the-news" names.
 
 **Follow the PAT, not just the topline — through the two direct levers.** Most earnings surprises are made below the revenue line. Model both structural PAT levers explicitly and net them: **capex-live operating leverage** (incremental revenue on newly-commissioned capacity drops through at a high incremental margin, so a company can guide flat blended margin and still beat on PAT) and **balance-sheet deleverage** (lower debt → lower interest → a direct, near-arithmetic lift to PAT after tax). Both are more bankable than a revenue guess and are often what the market misses; a beat attributable to them is higher-conviction. Net the capex depreciation/interest step-up against the leverage gain so the PAT beat is honest and attributable.
 
@@ -87,7 +87,7 @@ Nine steps plus a quarter-level macro overlay, run in order — each gates or fe
 
 **Show the maths, tag every input.** Every estimate and every surprise must be reconstructable from the inputs shown. Tag each input `[guided]` / `[actual]` / `[estimate]` / `[consensus]` / `[market]`. Never present an analyst estimate as company guidance, or a guidance-implied number as street consensus.
 
-**Cross-check with Screener, don't average.** Screener.in's key trackables insights matrix and key ratios are an independent, filings-based read on the same name. When they agree with your concall-built thesis, conviction rises; when they contradict it (you project a beat, Screener flags "poor quarter" or rising debt), that disagreement is a signal to resolve *before* ranking — never silently average the two. And never run on an expired Screener session: a stale token degrades the page to a thin public view, so verify the token in preflight and halt if it's dead.
+**Cross-check with Screener, don't average.** Screener.in's key trackables insights matrix and key ratios are an independent, filings-based read on the same name. When they agree with your concall-built thesis, conviction rises; when they contradict it (you project a beat, Screener flags "poor quarter" or rising debt), that disagreement is a signal to resolve _before_ ranking — never silently average the two. And never run on an expired Screener session: a stale token degrades the page to a thin public view, so verify the token in preflight and halt if it's dead.
 
 **Honest exclusions.** Already-declared and no-concall/no-PPT names are part of the output — list each with its reason. The reader must know the universe wasn't cherry-picked.
 
@@ -104,7 +104,7 @@ Nine steps plus a quarter-level macro overlay, run in order — each gates or fe
 - `references/post_event_returns.md` — deriving returns after result/concall/transcript, the drift signature, and translating it into tradeability.
 - `references/screener_insights.md` — the Screener.in key trackables insights matrix + key-ratios cross-check, the insight tags that move a surprise call, and the session-token preflight/expiry handling.
 - `references/quarterly_macro_context.md` — the running log of each fiscal quarter's macro events (oil/currency/rate/monsoon/tariff shocks, etc.) with sourced citations and sector-impact tables; read the section for the quarter being scanned and apply it as a tailwind/headwind overlay per name (Step 3d). Add a new `## Q_FY__` section here the first time a new quarter is scanned.
-- `../../_shared/sector-playbooks/` — reusable sector-level playbooks (RM basket & pass-through mechanics, guidance-giving culture, seasonality, export exposure, tailwind/headwind framework), one file per sector (e.g. `fmcg-consumer-care.md`), each with a company-note subsection per name analysed. Complements `quarterly_macro_context.md` — sector file = *how this sector's economics work*, macro file = *what happened this quarter*. Check for a matching playbook before analysing any in-scope company's sector for the first time; add one (or extend an existing company note) if none exists.
+- `../../_shared/sector-playbooks/` — reusable sector-level playbooks (RM basket & pass-through mechanics, guidance-giving culture, seasonality, export exposure, tailwind/headwind framework), one file per sector (e.g. `fmcg-consumer-care.md`), each with a company-note subsection per name analysed. Complements `quarterly_macro_context.md` — sector file = _how this sector's economics work_, macro file = _what happened this quarter_. Check for a matching playbook before analysing any in-scope company's sector for the first time; add one (or extend an existing company note) if none exists.
 - `assets/briefing_template.html` — the surprise-sorted master table + deep-dive card structure for the HTML deliverable.
 
 ## Conventions
@@ -118,6 +118,6 @@ Nine steps plus a quarter-level macro overlay, run in order — each gates or fe
 - **Two session tokens in `.env`, both of which expire:**
   - Stockscans `authtoken` → `STOCKSCANS_AUTH_TOKEN` (also resolvable from `--authtoken-file` or `/mnt/project/Stockscans_authtoken`). On 401/403 it's expired.
   - Screener.in session → `SCREENER_SESSIONID` + `SCREENER_CSRFTOKEN` (or a full `SCREENER_COOKIES` header). An expired `sessionid` silently degrades the page to a thin public view.
-  Run the **preflight token check every time**; if either is dead, halt and tell the user exactly which `.env` key to refresh (copy the cookie from the site's DevTools → Application → Cookies) before re-running.
+    Run the **preflight token check every time**; if either is dead, halt and tell the user exactly which `.env` key to refresh (copy the cookie from the site's DevTools → Application → Cookies) before re-running.
 
 - **Files-touched manifest (docs/DATA_RULES.md §7):** end the run by listing every file created/modified — collections with record counts (db.js helper stats / `db.touchedFiles()`), plus `runs/`/`cache/`/`assets/` files (`StorageService.touchedFiles()`), plus the `data:push` `↑ <file>` lines. A run that stored data without reporting what it touched is incomplete.

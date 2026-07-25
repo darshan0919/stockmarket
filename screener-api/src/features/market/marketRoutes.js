@@ -1,10 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {
-  getMarketIndices,
-  getMarketStats,
-  getTopGainers,
-} = require('./marketController');
+const { getMarketIndices, getMarketStats, getTopGainers } = require('./marketController');
 
 // Get market indices
 router.get('/indices', getMarketIndices);

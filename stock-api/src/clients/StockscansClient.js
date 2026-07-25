@@ -75,12 +75,13 @@ class StockscansClient {
    * @param {boolean} [opts.optionalAuth=false] - Allow unauthenticated (public page) calls.
    * @returns {Promise<Object>}
    */
-  async scanAnnouncements(payload, { referer = `${BASE_URL}/watchlists`, optionalAuth = false } = {}) {
-    const { data } = await this.http.post(
-      `${BASE_URL}/api/company/announcements/scan`,
-      payload,
-      { headers: this._headers(referer, optionalAuth) }
-    );
+  async scanAnnouncements(
+    payload,
+    { referer = `${BASE_URL}/watchlists`, optionalAuth = false } = {}
+  ) {
+    const { data } = await this.http.post(`${BASE_URL}/api/company/announcements/scan`, payload, {
+      headers: this._headers(referer, optionalAuth),
+    });
     return data;
   }
 
@@ -156,7 +157,10 @@ class StockscansClient {
    * @param {Object} [opts] - { type, referer, optionalAuth }
    * @returns {Promise<Object>}
    */
-  async companySearch(query, { type = 'Company', referer = `${BASE_URL}/`, optionalAuth = false } = {}) {
+  async companySearch(
+    query,
+    { type = 'Company', referer = `${BASE_URL}/`, optionalAuth = false } = {}
+  ) {
     const { data } = await this.http.get(`${BASE_URL}/api/company/search`, {
       params: { q: query, type },
       headers: this._headers(referer, optionalAuth),
@@ -236,11 +240,9 @@ class StockscansClient {
    * @returns {Promise<Object>}
    */
   async searchAnnouncements(payload, { referer = `${BASE_URL}/` } = {}) {
-    const { data } = await this.http.post(
-      `${BASE_URL}/api/company/announcements/search`,
-      payload,
-      { headers: this._headers(referer) }
-    );
+    const { data } = await this.http.post(`${BASE_URL}/api/company/announcements/search`, payload, {
+      headers: this._headers(referer),
+    });
     return data;
   }
 
@@ -409,14 +411,16 @@ class StockscansClient {
    * @returns {Promise<Object>}
    */
   async watchlistTable(watchlistId, opts = {}) {
-    const { ratiosType = 'Performance', order = 'desc', orderBy = 'Market Capitalization', ...rest } =
-      opts;
+    const {
+      ratiosType = 'Performance',
+      order = 'desc',
+      orderBy = 'Market Capitalization',
+      ...rest
+    } = opts;
     const payload = { watchlistId, ratiosType, order, orderBy, ...rest };
-    const { data } = await this.http.post(
-      `${BASE_URL}/api/user/watchlists/table`,
-      payload,
-      { headers: this._headers(`${BASE_URL}/watchlists`) }
-    );
+    const { data } = await this.http.post(`${BASE_URL}/api/user/watchlists/table`, payload, {
+      headers: this._headers(`${BASE_URL}/watchlists`),
+    });
     return data;
   }
 

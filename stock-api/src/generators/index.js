@@ -13,11 +13,14 @@ const { createGrowthTriggersPdf } = require('./generateGrowthTriggersPdf');
 module.exports = {
   createResearchReport,
   createDrhpPdf,
-  createForensicPdf, getForensicSchema,
+  createForensicPdf,
+  getForensicSchema,
   createConcallPdf,
   createSectorReport,
-  createPeerComparisonPdf, getPeerSchema,
-  createCredibilityWidget, getCredibilitySchema,
+  createPeerComparisonPdf,
+  getPeerSchema,
+  createCredibilityWidget,
+  getCredibilitySchema,
   createMarketShareWidget,
-  createGrowthTriggersPdf
+  createGrowthTriggersPdf,
 };

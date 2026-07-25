@@ -1,10 +1,17 @@
 'use strict';
 
-const __os=require('os'),__fs=require('fs'),__path=require('path');
+const __os = require('os'),
+  __fs = require('fs'),
+  __path = require('path');
 process.env.DATA_V2_DIR = __fs.mkdtempSync(__path.join(__os.tmpdir(), 'v2test-'));
 
 jest.mock('@stock/api', () => ({
-  stockscans: { runScan: jest.fn(), watchlistTable: jest.fn(), updateWatchlist: jest.fn(), validateAuth: jest.fn(async () => true) },
+  stockscans: {
+    runScan: jest.fn(),
+    watchlistTable: jest.fn(),
+    updateWatchlist: jest.fn(),
+    validateAuth: jest.fn(async () => true),
+  },
 }));
 
 const {
@@ -26,7 +33,11 @@ describe('companyIdsFromTable', () => {
   });
 
   test('finds companyId even when it is not the first column', () => {
-    const t = [['name', 'companyId'], ['Foo', 'X'], ['Bar', 'Y']];
+    const t = [
+      ['name', 'companyId'],
+      ['Foo', 'X'],
+      ['Bar', 'Y'],
+    ];
     expect(companyIdsFromTable(t)).toEqual(['X', 'Y']);
   });
 });

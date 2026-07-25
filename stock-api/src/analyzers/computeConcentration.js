@@ -14,7 +14,7 @@ function hhiClassification(hhiValue) {
 
 function _sorted(shares) {
   return shares
-    .filter(x => x !== null && x !== undefined)
+    .filter((x) => x !== null && x !== undefined)
     .map(Number)
     .sort((a, b) => b - a);
 }
@@ -28,15 +28,17 @@ function crN(namedShares, n) {
 function hhi(namedShares, othersShare = 0.0, othersDistribution = 'single_bucket') {
   const s = _sorted(namedShares);
   if (s.length === 0 && othersShare === 0) return 0.0;
-  
+
   const total = s.reduce((a, b) => a + b, 0) + othersShare;
   if (Math.abs(total - 1.0) < 0.01 && Math.max(...s, othersShare) <= 1.0) {
-    throw new Error('HHI input looks like fractions summing to 1.0; pass percentages instead (e.g. 25.0 for 25%).');
+    throw new Error(
+      'HHI input looks like fractions summing to 1.0; pass percentages instead (e.g. 25.0 for 25%).'
+    );
   }
 
-  let raw = s.reduce((acc, val) => acc + (val * val), 0);
+  let raw = s.reduce((acc, val) => acc + val * val, 0);
   if (othersDistribution === 'single_bucket' && othersShare > 0) {
-    raw += (othersShare * othersShare);
+    raw += othersShare * othersShare;
   }
   return Number(raw.toFixed(2));
 }
@@ -46,7 +48,7 @@ function computeMetrics(namedShares, othersShare = 0.0, othersDistribution = 'si
   const hSingle = hhi(s, othersShare, 'single_bucket');
   const hAtomic = hhi(s, othersShare, 'atomic');
   const classifyValue = othersDistribution === 'single_bucket' ? hSingle : hAtomic;
-  
+
   const sumCheck = s.reduce((a, b) => a + b, 0) + othersShare;
 
   return {
@@ -59,7 +61,7 @@ function computeMetrics(namedShares, othersShare = 0.0, othersDistribution = 'si
     classification: hhiClassification(classifyValue),
     sum_check: Number(sumCheck.toFixed(2)),
     n_named: s.length,
-    others_share: othersShare
+    others_share: othersShare,
   };
 }
 
@@ -79,5 +81,5 @@ module.exports = {
   hhi,
   computeMetrics,
   deltaBps,
-  asymmetricFlag
+  asymmetricFlag,
 };

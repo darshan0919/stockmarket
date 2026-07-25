@@ -51,6 +51,7 @@ sourceInsights: [note/report/prompt ids]
    pending. Remind Darshan the changes are uncommitted for his review.
 
 ## Guarantees
+
 - Nothing is applied without Darshan's tick. Unattended jobs still only propose.
 - You edit the working tree but never `git commit` — the human owns the commit.
 - Applying twice is safe: an `applied` proposal is skipped; edits are idempotent where possible.

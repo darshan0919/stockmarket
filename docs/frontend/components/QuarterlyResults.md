@@ -3,12 +3,13 @@
 Displays quarterly financial results in a horizontal scrollable table. Supports consolidated/standalone toggle and shows YoY/QoQ growth metrics.
 
 ## Source File
+
 `frontend/components/stock/QuarterlyResults.js`
 
 ## Props
 
-| Prop | Type | Description |
-|------|------|-------------|
+| Prop     | Type   | Description                       |
+| -------- | ------ | --------------------------------- |
 | `symbol` | string | Stock symbol to fetch results for |
 
 ## Behavior
@@ -24,10 +25,11 @@ Displays quarterly financial results in a horizontal scrollable table. Supports 
 ```jsx
 import QuarterlyResults from '../components/stock/QuarterlyResults';
 
-<QuarterlyResults symbol="RELIANCE" />
+<QuarterlyResults symbol="RELIANCE" />;
 ```
 
 ## Related
+
 - [stockController](../../backend/controllers/stockController.md)
 - [formatters](../utils/formatters.md)
 - [API Reference](../../API_REFERENCE.md#stocks-apis)

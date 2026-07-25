@@ -31,7 +31,12 @@ const fs = require('fs');
 const { loadEnv, argValue } = require('../../lib/env');
 loadEnv(argValue('--env-file'));
 const store = require('../../lib/concallNotesStore');
-const { extractOrderBook, findCandidates, OrderBookNotFoundError, OrderBookAmbiguousError } = require('../../lib/orderBookExtractor');
+const {
+  extractOrderBook,
+  findCandidates,
+  OrderBookNotFoundError,
+  OrderBookAmbiguousError,
+} = require('../../lib/orderBookExtractor');
 const { resolveTargets, fetchOne } = require('./fetchConcallNotes');
 
 function learnSegment(keyword) {
@@ -39,21 +44,26 @@ function learnSegment(keyword) {
   const src = fs.readFileSync(file, 'utf8');
   const marker = "  'power t&d', 'international', 'wagon', 'o&m', '(ads)', 'ads)',\n];";
   if (!src.includes(marker)) {
-    console.error('[learn-segment] anchor line not found — patterns file has drifted, edit manually.');
+    console.error(
+      '[learn-segment] anchor line not found — patterns file has drifted, edit manually.'
+    );
     process.exit(1);
   }
   const kw = String(keyword).toLowerCase().trim();
   const addition = `  '${kw.replace(/'/g, "\\'")}',\n];`;
   const updated = src.replace(marker, marker.replace('];', '') + addition);
   fs.writeFileSync(file, updated);
-  console.log(`[learn-segment] added "${kw}" to SEGMENT_KEYWORDS in ${path.relative(process.cwd(), file)}`);
+  console.log(
+    `[learn-segment] added "${kw}" to SEGMENT_KEYWORDS in ${path.relative(process.cwd(), file)}`
+  );
 }
 
 /** Build a small, token-cheap payload for an LLM fallback call. */
 function buildFallbackPrompt(companyId, date, candidates) {
   const lines = candidates.map((c) => c.rawLine).slice(0, 12);
   return {
-    companyId, date,
+    companyId,
+    date,
     instructions:
       'Below are every "order book"/"backlog" bullet from this company\'s concall notes. ' +
       'Return ONLY JSON: {"valueCr": <number|null>, "unit": "Cr", "label": "<which bullet you used>", "reasoning": "<max 15 words>"}. ' +
@@ -89,8 +99,12 @@ async function processQuarter(ticker, doc, { forceRecompute = false } = {}) {
     if (e instanceof OrderBookNotFoundError || e instanceof OrderBookAmbiguousError) {
       const candidates = findCandidates(bundle.finalReport);
       const record = {
-        companyId: ticker, date: doc.date, needsLlmFallback: true, fromCache: false,
-        errorType: e.name, errorMessage: e.message,
+        companyId: ticker,
+        date: doc.date,
+        needsLlmFallback: true,
+        fromCache: false,
+        errorType: e.name,
+        errorMessage: e.message,
         llmFallbackPrompt: buildFallbackPrompt(ticker, doc.date, candidates),
       };
       // Cache the "needs LLM help" state too — a batch re-run shouldn't burn
@@ -111,9 +125,17 @@ async function processQuarter(ticker, doc, { forceRecompute = false } = {}) {
  */
 function recordLlmResolution(ticker, date, { valueCr, unit = 'cr', label, reasoning }) {
   const record = {
-    companyId: ticker, date, value: valueCr, unit, valueCr, label,
-    sourceLine: null, confidence: 'llm-resolved', reasoning,
-    needsLlmFallback: false, fromCache: false,
+    companyId: ticker,
+    date,
+    value: valueCr,
+    unit,
+    valueCr,
+    label,
+    sourceLine: null,
+    confidence: 'llm-resolved',
+    reasoning,
+    needsLlmFallback: false,
+    fromCache: false,
   };
   store.saveOrderBook(ticker, date, record);
   return record;
@@ -129,14 +151,22 @@ async function main() {
 
   const ticker = argv[2];
   if (!ticker || ticker.startsWith('--')) {
-    throw new Error('Usage: extractOrderBook.js <TICKER> [--quarter YYYYMM] [--last-n N]  |  --learn-segment "<keyword>"');
+    throw new Error(
+      'Usage: extractOrderBook.js <TICKER> [--quarter YYYYMM] [--last-n N]  |  --learn-segment "<keyword>"'
+    );
   }
   const lastN = argValue('--last-n') ? parseInt(argValue('--last-n'), 10) : 1;
   const quarter = argValue('--quarter');
 
   const targets = await resolveTargets(ticker, { lastN, quarter });
   if (!targets.length) {
-    process.stdout.write(JSON.stringify({ companyId: ticker, results: [], note: 'no Transcript with hasNotes:true found' }, null, 2) + '\n');
+    process.stdout.write(
+      JSON.stringify(
+        { companyId: ticker, results: [], note: 'no Transcript with hasNotes:true found' },
+        null,
+        2
+      ) + '\n'
+    );
     return;
   }
 
@@ -150,5 +180,8 @@ async function main() {
 module.exports = { processQuarter, buildFallbackPrompt, learnSegment, recordLlmResolution };
 
 if (require.main === module) {
-  main().catch((e) => { console.error(e); process.exit(1); });
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
 }

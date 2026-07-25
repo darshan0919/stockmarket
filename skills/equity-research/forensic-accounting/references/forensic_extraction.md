@@ -46,6 +46,7 @@ grep -n -i "significant accounting policies" /tmp/full.txt | head -3
 ```
 
 Look for these subsections specifically (each is a flag-relevant policy):
+
 - Revenue recognition (Ind AS 115)
 - Property, plant and equipment (depreciation method, useful lives, capitalisation thresholds)
 - Intangible assets (Ind AS 38) — especially R&D capitalisation criteria
@@ -64,6 +65,7 @@ grep -n -E "Cash Flow|Statement of Cash Flow" /tmp/full.txt | head -5
 ```
 
 For the CFO/PAT bridge table, also extract:
+
 - "Profit before tax" line (anchor)
 - "Adjustments for" subsection (depreciation, finance costs, etc.)
 - "Working capital changes" subsection
@@ -123,6 +125,7 @@ grep -A 5 -i "paragraph 3(xx)" /tmp/auditor.txt     # internal financial control
 ### Director's Report
 
 Front of AR. Pull selectively — most of it is boilerplate. The relevant parts:
+
 - Capex completed during the year
 - Subsidiaries and their performance
 - Material orders / contracts / litigations
@@ -146,6 +149,7 @@ The aging bucket under Ind AS is typically: Not Due | <6 months | 6m-1y | 1-2y |
 ### Inventory Note
 
 Note 10 or 11 typically. Pull:
+
 - Total inventory composition (raw / WIP / finished / spare parts)
 - Net realisable value adjustments
 - Inventory days = (Inventory / COGS) × 365
@@ -171,10 +175,10 @@ forensic_extract() {
     local AR="$1"
     local OUT_DIR="$2"
     mkdir -p "$OUT_DIR"
-    
+
     # Full text first (used by all greps)
     pdftotext -layout "$AR" "$OUT_DIR/full.txt"
-    
+
     # Identify section start pages
     grep -n -i "management discussion" "$OUT_DIR/full.txt" | head -1
     grep -n -i "independent auditor" "$OUT_DIR/full.txt" | head -1
@@ -184,7 +188,7 @@ forensic_extract() {
     grep -n -i "cash flow" "$OUT_DIR/full.txt" | head -1
     grep -n -i "trade receivables" "$OUT_DIR/full.txt" | head -1
     grep -n -i "other expenses" "$OUT_DIR/full.txt" | head -1
-    
+
     echo "--- Now run targeted pdftotext -f X -l Y for each section above ---"
 }
 ```

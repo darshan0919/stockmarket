@@ -67,6 +67,7 @@ own `status` field instead).
 
 **This is an unofficial, undocumented Perplexity web-app API, not a public
 product API** — treat it as fragile:
+
 - Both the events-list AND transcript endpoints require a full authenticated
   Cookie session (confirmed live: zero cookies → Cloudflare 403 challenge,
   even though individual events report `requiresLogin: false`).
@@ -167,8 +168,20 @@ how much to trust it.
   "summary": "Verbatim earnings-call transcript for NSE:STLTECH (202606), sourced from Quartr (via Perplexity Finance), speaker-attributed. 116 segments, 14 speakers, ~8198 words.",
   "contextUsed": ["cmp_NSE:STLTECH"],
   "segments": [
-    { "i": 0, "speaker": "Operator", "speakerRole": "operator", "time": 0.1, "text": "Good day, welcome to..." },
-    { "i": 1, "speaker": "Rahul Darak", "speakerRole": "unknown", "time": 27.4, "text": "Thank you. Good day, everyone..." }
+    {
+      "i": 0,
+      "speaker": "Operator",
+      "speakerRole": "operator",
+      "time": 0.1,
+      "text": "Good day, welcome to..."
+    },
+    {
+      "i": 1,
+      "speaker": "Rahul Darak",
+      "speakerRole": "unknown",
+      "time": 27.4,
+      "text": "Thank you. Good day, everyone..."
+    }
   ],
   "fullText": "Operator: Good day, welcome to...\n\nRahul Darak: Thank you. Good day, everyone...",
   "participants": [
@@ -180,6 +193,7 @@ how much to trust it.
 ```
 
 Field notes for downstream consumers:
+
 - **`segments`** is the source of truth — one entry per spoken turn, in order
   (`i` is the 0-based index, redundant with array position but kept explicit
   so a filtered/sorted subset is still self-describing). Use this when you

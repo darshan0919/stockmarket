@@ -29,6 +29,5 @@ function ensureRepoDownloadsRoot() {
 }
 
 module.exports = {
-
   ensureRepoDownloadsRoot,
 };

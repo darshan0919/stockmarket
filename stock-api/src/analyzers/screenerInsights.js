@@ -27,8 +27,11 @@
 function stripTags(s) {
   return String(s || '')
     .replace(/<[^>]+>/g, ' ')
-    .replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ')
-    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;|&rsquo;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#39;|&rsquo;/g, "'")
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -74,7 +77,10 @@ function parseProsCons(html) {
   // no machine-generated insight for this name/view) from a MISSING container
   // (markup drift). Only the latter warrants a "markup changed" warning.
   const grab = (cls) => {
-    const block = new RegExp(`<div[^>]*class="[^"]*\\b${cls}\\b[^"]*"[^>]*>([\\s\\S]*?)</div>`, 'i').exec(html);
+    const block = new RegExp(
+      `<div[^>]*class="[^"]*\\b${cls}\\b[^"]*"[^>]*>([\\s\\S]*?)</div>`,
+      'i'
+    ).exec(html);
     if (!block) return { items: [], found: false };
     const items = [];
     const liRe = /<li[^>]*>([\s\S]*?)<\/li>/gi;
@@ -108,8 +114,9 @@ function parseTopRatios(html) {
     if (!nameM) continue;
     const name = stripTags(nameM[1]);
     // value is the concatenated numbers inside the value span
-    const valM = /class="value"[^>]*>([\s\S]*?)<\/span>\s*<\/li>/i.exec(li + '</li>')
-      || /class="value"[^>]*>([\s\S]*?)$/i.exec(li);
+    const valM =
+      /class="value"[^>]*>([\s\S]*?)<\/span>\s*<\/li>/i.exec(li + '</li>') ||
+      /class="value"[^>]*>([\s\S]*?)$/i.exec(li);
     const value = valM ? stripTags(valM[1]) : stripTags(li.replace(nameM[0], ''));
     if (name) out[name] = value;
   }
@@ -133,7 +140,9 @@ function pickRatio(ratios, aliases) {
  */
 function tagInsights({ pros = [], cons = [] }) {
   const tags = [];
-  const test = (arr, re, tag) => { if (arr.some((s) => re.test(s))) tags.push(tag); };
+  const test = (arr, re, tag) => {
+    if (arr.some((s) => re.test(s))) tags.push(tag);
+  };
   test(pros, /expected to give (a )?good quarter/i, 'good-quarter-expected');
   test(cons, /expected to give (a )?poor quarter/i, 'poor-quarter-expected');
   test(pros, /good profit growth|good.*profit.*of/i, 'good-profit-growth');
@@ -142,7 +151,11 @@ function tagInsights({ pros = [], cons = [] }) {
   test(cons, /increase in debt|increasing debt|high.*debt/i, 'debt-increased');
   test(pros, /improving (its )?(roe|roce)|healthy.*(roe|roce)/i, 'improving-returns');
   test(cons, /low (return on equity|roe|roce)|poor.*return/i, 'low-returns');
-  test(cons, /working capital.*(increased|days).*deteriorat|increase in working capital/i, 'working-capital-stretch');
+  test(
+    cons,
+    /working capital.*(increased|days).*deteriorat|increase in working capital/i,
+    'working-capital-stretch'
+  );
   test(cons, /promoter.*pledg/i, 'promoter-pledge');
   test(cons, /promoter.*(holding.*(decreas|reduc)|selling)/i, 'promoter-selling');
   test(cons, /high valuation|trading at .*times.*book value|expensive/i, 'rich-valuation-flag');
@@ -164,7 +177,11 @@ function parseScreenerInsights(resp) {
       authExpired: true,
       authReason: auth.reason,
       url: resp && resp.url,
-      pros: [], cons: [], insightTags: [], ratios: {}, keyMetrics: {},
+      pros: [],
+      cons: [],
+      insightTags: [],
+      ratios: {},
+      keyMetrics: {},
       warnings: [`Screener session not authenticated: ${auth.reason}`],
     };
   }
@@ -194,12 +211,21 @@ function parseScreenerInsights(resp) {
     warnings.push('Pros/Cons section not found — Screener markup may have changed.');
   }
   const noInsights = prosFound && consFound && !pros.length && !cons.length;
-  if (!Object.keys(ratios).length) warnings.push('No top-ratios parsed — Screener markup may have changed.');
+  if (!Object.keys(ratios).length)
+    warnings.push('No top-ratios parsed — Screener markup may have changed.');
 
   return {
-    authExpired: false, url: resp && resp.url,
-    pros, cons, prosFound, consFound, noInsights,
-    insightTags, ratios, keyMetrics, warnings,
+    authExpired: false,
+    url: resp && resp.url,
+    pros,
+    cons,
+    prosFound,
+    consFound,
+    noInsights,
+    insightTags,
+    ratios,
+    keyMetrics,
+    warnings,
   };
 }
 

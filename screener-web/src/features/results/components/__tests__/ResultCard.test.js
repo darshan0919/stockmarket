@@ -10,9 +10,9 @@ import ResultCard from '../ResultCard';
 
 // Mock next/link
 jest.mock('next/link', () => {
-  return ({ children, href }) => {
-    return <a href={href}>{children}</a>;
-  };
+  const MockLink = ({ children, href }) => <a href={href}>{children}</a>;
+  MockLink.displayName = 'MockLink';
+  return MockLink;
 });
 
 // Mock formatters

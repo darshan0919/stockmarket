@@ -62,7 +62,10 @@ function stockscansUrl(symbol, exchange = 'NSE') {
 
 function stockscansLink(name, symbol, exchange = 'NSE', color = 'inherit') {
   if (!symbol) return name;
-  const safeName = String(name || symbol).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const safeName = String(name || symbol).replace(
+    /[&<>"]/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]
+  );
   return `<a href="${stockscansUrl(symbol, exchange)}" style="text-decoration:none;color:${color}" target="_blank">${safeName}</a>`;
 }
 

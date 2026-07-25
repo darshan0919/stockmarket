@@ -7,5 +7,5 @@ module.exports = {
   ...emailService,
   ...googleDriveApi,
   StorageService,
-  pdfText
+  pdfText,
 };

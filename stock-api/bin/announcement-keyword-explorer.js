@@ -9,7 +9,7 @@ function parseArgs(argv) {
     keyword: null,
     quarters: 4,
     minMcap: 300,
-    output: null
+    output: null,
   };
 
   const positional = [];
@@ -64,11 +64,13 @@ or a .env file with that key on disk. Log in to stockscans.in and copy the
   const opts = parseArgs(argv);
 
   if (!opts.keyword) {
-    console.error(JSON.stringify({
-      ok: false,
-      outputs: [],
-      warnings: ['No --keyword provided. Run with --help for usage.']
-    }));
+    console.error(
+      JSON.stringify({
+        ok: false,
+        outputs: [],
+        warnings: ['No --keyword provided. Run with --help for usage.'],
+      })
+    );
     process.exit(1);
   }
 
@@ -81,7 +83,7 @@ or a .env file with that key on disk. Log in to stockscans.in and copy the
     const data = await fetchAndExtract(opts.keyword, {
       quarters: opts.quarters,
       minMcap: opts.minMcap,
-      output: outputPath
+      output: outputPath,
     });
 
     const errorCount = data.errors ? data.errors.length : 0;
@@ -101,9 +103,9 @@ or a .env file with that key on disk. Log in to stockscans.in and copy the
         total_announcements: data.total_announcements,
         per_quarter_counts: Object.fromEntries(
           Object.entries(data.per_quarter).map(([qd, v]) => [qd, v.count])
-        )
+        ),
       },
-      data: outputPath ? undefined : data
+      data: outputPath ? undefined : data,
     };
 
     if (allQuartersFailed) {
@@ -112,11 +114,13 @@ or a .env file with that key on disk. Log in to stockscans.in and copy the
     }
     console.log(JSON.stringify(result));
   } catch (e) {
-    console.error(JSON.stringify({
-      ok: false,
-      outputs: [],
-      warnings: [e.message]
-    }));
+    console.error(
+      JSON.stringify({
+        ok: false,
+        outputs: [],
+        warnings: [e.message],
+      })
+    );
     process.exit(1);
   }
 }

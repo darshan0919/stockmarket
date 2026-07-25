@@ -80,7 +80,6 @@ function parseCreatedAtMs(value) {
 }
 
 module.exports = {
-
   istDate,
   nowIstIso,
   nowIstHuman,

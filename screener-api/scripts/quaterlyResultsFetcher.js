@@ -13,7 +13,7 @@ const getLastQuatersRevenueGrowthMetrics = async (symbol, numberOfQuaters) => {
   }
   const lastResults = results.slice(0, numberOfQuaters);
 
-  quarterlyData = [];
+  const quarterlyData = [];
   lastResults.forEach((quarter) => {
     const prevYearQuarter = results.find(
       (q, i) =>

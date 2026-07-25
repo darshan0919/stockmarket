@@ -40,11 +40,15 @@ function calendarToQuarter(m, y) {
  *   `fiscalYear`/`fiscalPeriod` match Perplexity's earnings-event fields.
  */
 function latestCompletedQuarter(now = new Date()) {
-  const { period: currentPeriod, cycleYear } = calendarToQuarter(now.getMonth() + 1, now.getFullYear());
+  const { period: currentPeriod, cycleYear } = calendarToQuarter(
+    now.getMonth() + 1,
+    now.getFullYear()
+  );
   const idx = ORDER.indexOf(currentPeriod);
 
   let latestPeriod, latestCycleYear;
-  if (idx === 0) { // Q1 -> Q4 of the PREVIOUS cycle
+  if (idx === 0) {
+    // Q1 -> Q4 of the PREVIOUS cycle
     latestPeriod = 'Q4';
     latestCycleYear = cycleYear - 1;
   } else {

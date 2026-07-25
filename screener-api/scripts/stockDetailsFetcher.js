@@ -1,4 +1,8 @@
-const { getCompanyInfo, getStockScripCode, getBseQuoteHeader } = require('../src/core/api/bseIndiaApi');
+const {
+  getCompanyInfo,
+  getStockScripCode,
+  getBseQuoteHeader,
+} = require('../src/core/api/bseIndiaApi');
 const { getQuoteEquity } = require('../src/core/api/nseIndiaApi');
 const { getCurrentMetrics } = require('./balanceSheetDataFetcher');
 const Stock = require('../src/features/stock/Stock');

@@ -39,9 +39,9 @@ function MyApp({ Component, pageProps }) {
 
 ```javascript
 <header>
-  <Logo />           // Links to dashboard
-  <SearchBar />      // Global stock search
-  <Navigation />     // Main navigation links
+  <Logo /> // Links to dashboard
+  <SearchBar /> // Global stock search
+  <Navigation /> // Main navigation links
 </header>
 ```
 
@@ -64,11 +64,11 @@ See [SearchBar.md](./SearchBar.md) for detailed search functionality.
 
 The Header includes three main navigation links:
 
-| Link | Route | Description |
-|------|-------|-------------|
-| Dashboard | `/` | Main dashboard with market overview |
-| Screener | `/screener` | Stock screening tools |
-| Watchlist | `/watchlist` | User's watchlist |
+| Link      | Route        | Description                         |
+| --------- | ------------ | ----------------------------------- |
+| Dashboard | `/`          | Main dashboard with market overview |
+| Screener  | `/screener`  | Stock screening tools               |
+| Watchlist | `/watchlist` | User's watchlist                    |
 
 Active routes are highlighted with the primary color (`text-primary-600`).
 
@@ -170,11 +170,12 @@ export default function Header() {
 ## Related Components
 
 - [SearchBar](./SearchBar.md) - Stock search component integrated in header
-- [_app.js](../../pages/_app.md) - App wrapper that includes the header
+- [\_app.js](../../pages/_app.md) - App wrapper that includes the header
 
 ## Changelog
 
 ### 2025-01-02
+
 - Added integrated SearchBar component to header for global search
 - Updated layout to flex with search bar between logo and navigation
 - Added JSDoc comments
@@ -182,5 +183,5 @@ export default function Header() {
 - Added unit tests
 
 ### Previous
-- Initial implementation with logo and navigation links
 
+- Initial implementation with logo and navigation links

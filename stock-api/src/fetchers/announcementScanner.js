@@ -8,15 +8,82 @@ const QUARTER_END_MONTHS = [3, 6, 9, 12];
 const DEFAULT_SCAN_ID = '13d3403f48060387bd20fcbc';
 
 const STOP_WORDS = new Set([
-  'a', 'an', 'the', 'and', 'or', 'of', 'in', 'to', 'for', 'on', 'at',
-  'by', 'is', 'are', 'was', 'were', 'be', 'been', 'has', 'have', 'had',
-  'with', 'from', 'as', 'it', 'its', 'this', 'that', 'not', 'no', 'we',
-  'our', 'us', 'you', 'your', 'he', 'she', 'they', 'their', 'i', 'my',
-  'company', 'ltd', 'limited', 'pvt', 'private', 'inc', 'pursuant',
-  'section', 'regulation', 'regulations', 'under', 'sebi', 'act',
-  'trading', 'equity', 'shares', 'stock', 'nse', 'bse', 'exchange',
-  'listing', 'listed', 'securities', 'financial', 'year', 'quarter',
-  'q1', 'q2', 'q3', 'q4', 'fy', 'per', 's', 'r', 're'
+  'a',
+  'an',
+  'the',
+  'and',
+  'or',
+  'of',
+  'in',
+  'to',
+  'for',
+  'on',
+  'at',
+  'by',
+  'is',
+  'are',
+  'was',
+  'were',
+  'be',
+  'been',
+  'has',
+  'have',
+  'had',
+  'with',
+  'from',
+  'as',
+  'it',
+  'its',
+  'this',
+  'that',
+  'not',
+  'no',
+  'we',
+  'our',
+  'us',
+  'you',
+  'your',
+  'he',
+  'she',
+  'they',
+  'their',
+  'i',
+  'my',
+  'company',
+  'ltd',
+  'limited',
+  'pvt',
+  'private',
+  'inc',
+  'pursuant',
+  'section',
+  'regulation',
+  'regulations',
+  'under',
+  'sebi',
+  'act',
+  'trading',
+  'equity',
+  'shares',
+  'stock',
+  'nse',
+  'bse',
+  'exchange',
+  'listing',
+  'listed',
+  'securities',
+  'financial',
+  'year',
+  'quarter',
+  'q1',
+  'q2',
+  'q3',
+  'q4',
+  'fy',
+  'per',
+  's',
+  'r',
+  're',
 ]);
 
 function lastNQuarterDates(n = 4) {
@@ -65,28 +132,30 @@ async function fetchQuarter(keyword, quarterDate, minMcap = 300, maxOffset = 5) 
         alerts: false,
         searchMode: 'quick',
         companyIds: [],
-        companyFilters: []
+        companyFilters: [],
       },
       offset,
-      quarterDate
+      quarterDate,
     };
 
-    const data = await stockscans.scanAnnouncements(payload, { referer: 'https://www.stockscans.in/announcement-scans' });
-    const pageItems = Array.isArray(data) ? data : (data.announcements || data.results || []);
-    
+    const data = await stockscans.scanAnnouncements(payload, {
+      referer: 'https://www.stockscans.in/announcement-scans',
+    });
+    const pageItems = Array.isArray(data) ? data : data.announcements || data.results || [];
+
     if (!pageItems || pageItems.length === 0) break;
     results.push(...pageItems);
-    
+
     if (pageItems.length < 20) break;
-    
-    await new Promise(res => setTimeout(res, 300));
+
+    await new Promise((res) => setTimeout(res, 300));
   }
   return results;
 }
 
 function tokenize(text) {
   const tokens = text.toLowerCase().match(/[a-z]+/g) || [];
-  return tokens.filter(t => !STOP_WORDS.has(t) && t.length > 2);
+  return tokens.filter((t) => !STOP_WORDS.has(t) && t.length > 2);
 }
 
 function extractNgrams(texts, topN = 60) {
@@ -98,20 +167,24 @@ function extractNgrams(texts, topN = 60) {
     for (let i = 0; i < tokens.length; i++) {
       uni[tokens[i]] = (uni[tokens[i]] || 0) + 1;
       if (i < tokens.length - 1) {
-        const bigram = `${tokens[i]} ${tokens[i+1]}`;
+        const bigram = `${tokens[i]} ${tokens[i + 1]}`;
         bi[bigram] = (bi[bigram] || 0) + 1;
       }
     }
   }
 
-  const sortMap = (map, limit) => Object.entries(map)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, limit)
-    .reduce((acc, [k, v]) => { acc[k] = v; return acc; }, {});
+  const sortMap = (map, limit) =>
+    Object.entries(map)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit)
+      .reduce((acc, [k, v]) => {
+        acc[k] = v;
+        return acc;
+      }, {});
 
   return {
     unigrams: sortMap(uni, topN),
-    bigrams: sortMap(bi, Math.floor(topN / 2))
+    bigrams: sortMap(bi, Math.floor(topN / 2)),
   };
 }
 
@@ -141,11 +214,7 @@ function extractCandidatePhrases(texts) {
  * Fetch announcement-scan results and extract keyword candidates.
  */
 async function fetchAndExtract(keyword, options = {}) {
-  const {
-    quarters = 4,
-    minMcap = 300,
-    output
-  } = options;
+  const { quarters = 4, minMcap = 300, output } = options;
 
   const quarterDates = lastNQuarterDates(quarters);
   const allTitles = [];
@@ -159,8 +228,8 @@ async function fetchAndExtract(keyword, options = {}) {
   for (const qd of quarterDates) {
     try {
       const items = await fetchQuarter(keyword, qd, minMcap);
-      const titles = items.map(item => String(item.title || '').trim()).filter(Boolean);
-      const descs = items.map(item => String(item.description || '').trim()).filter(Boolean);
+      const titles = items.map((item) => String(item.title || '').trim()).filter(Boolean);
+      const descs = items.map((item) => String(item.description || '').trim()).filter(Boolean);
 
       allTitles.push(...titles);
       allDescriptions.push(...descs);
@@ -179,13 +248,13 @@ async function fetchAndExtract(keyword, options = {}) {
           quarterDate: qd,
           creationTime: now,
           modifiedTime: now,
-          creator: 'announcement-keyword-explorer'
+          creator: 'announcement-keyword-explorer',
         });
       }
 
       perQuarter[qd] = {
         count: items.length,
-        sample_titles: titles.slice(0, 10)
+        sample_titles: titles.slice(0, 10),
       };
       total += items.length;
     } catch (e) {
@@ -215,7 +284,7 @@ async function fetchAndExtract(keyword, options = {}) {
     // (companyId, creationTime, modifiedTime, creator). The aggregate fields above
     // (all_titles, unigrams, etc.) remain for keyword-mining; this array is the
     // source-of-truth record set this report is actually "about".
-    announcements
+    announcements,
   };
 
   if (output) {
@@ -231,5 +300,5 @@ module.exports = {
   fetchQuarter,
   extractNgrams,
   extractCandidatePhrases,
-  tokenize
+  tokenize,
 };

@@ -39,7 +39,6 @@ const stockSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-
 });
 
 stockSchema.index({ symbol: 1 });

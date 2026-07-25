@@ -18,21 +18,22 @@ A focused single-quarter interpretive note built around three baskets — **Busi
 
 ## How this differs from neighbouring skills
 
-| If you need... | Route to |
-|---|---|
-| Two-quarter forensic diff with repricing | `consecutive-filings-diff` |
-| Concall transcript-only deep / brief / multi-Q | `concall-analysis` |
-| Full 15-40 page deep dive across years | `equity-research-deepdive` |
-| 1-page conviction note with growth triggers | `growth-triggers-1pager` |
-| 3-year fraud / accounting quality scan | `forensic-accounting` |
-| Walk-the-talk credibility scoring (4-8 calls) | `management-credibility-tracker` |
-| **"What does THIS quarter mean for the thesis?" interpretive note** | **THIS SKILL** |
+| If you need...                                                      | Route to                         |
+| ------------------------------------------------------------------- | -------------------------------- |
+| Two-quarter forensic diff with repricing                            | `consecutive-filings-diff`       |
+| Concall transcript-only deep / brief / multi-Q                      | `concall-analysis`               |
+| Full 15-40 page deep dive across years                              | `equity-research-deepdive`       |
+| 1-page conviction note with growth triggers                         | `growth-triggers-1pager`         |
+| 3-year fraud / accounting quality scan                              | `forensic-accounting`            |
+| Walk-the-talk credibility scoring (4-8 calls)                       | `management-credibility-tracker` |
+| **"What does THIS quarter mean for the thesis?" interpretive note** | **THIS SKILL**                   |
 
-The defining feature: this skill produces an *interpretation*, not an extraction. It looks at one quarter of disclosures and answers "so what?" If the user is asking for a forensic diff, a transcript deep dive, or a multi-year report, route there instead.
+The defining feature: this skill produces an _interpretation_, not an extraction. It looks at one quarter of disclosures and answers "so what?" If the user is asking for a forensic diff, a transcript deep dive, or a multi-year report, route there instead.
 
 ## Conventions
 
 Follow [`_shared/conventions.md`](../_shared/conventions.md). Particularly:
+
 - §1 Indian-market conventions — Rs Cr, FY26, Q3 FY26
 - §2 Citation discipline — every claim sourced
 - §3 Anti-hallucination protocol — Source → Extract → Verify → Interpret
@@ -101,14 +102,15 @@ summaries.
 
 Open [`references/basket_framework.md`](references/basket_framework.md) and run the full framework. The three baskets and a final checklist:
 
-| Basket | Theme | Sub-sections |
-|---|---|---|
-| 1. **BUSINESS** | What is improving? | Growth drivers · Margin & profitability triggers · Capex, BS & cash flow · Future earnings triggers |
-| 2. **RISK** | What can go wrong? | Business risks · Management commentary risks · Industry & macro risks |
-| 3. **MANAGEMENT** | Between the lines | Tone · Change vs prior quarters · Strategic direction (3-5 yr) · Capital allocation quality |
-| **Final** | What to monitor | Investor monitoring checklist — 6-10 items over 2-8 quarters |
+| Basket            | Theme              | Sub-sections                                                                                        |
+| ----------------- | ------------------ | --------------------------------------------------------------------------------------------------- |
+| 1. **BUSINESS**   | What is improving? | Growth drivers · Margin & profitability triggers · Capex, BS & cash flow · Future earnings triggers |
+| 2. **RISK**       | What can go wrong? | Business risks · Management commentary risks · Industry & macro risks                               |
+| 3. **MANAGEMENT** | Between the lines  | Tone · Change vs prior quarters · Strategic direction (3-5 yr) · Capital allocation quality         |
+| **Final**         | What to monitor    | Investor monitoring checklist — 6-10 items over 2-8 quarters                                        |
 
 Two reference files support this phase:
+
 - [`references/tone_taxonomy.md`](references/tone_taxonomy.md) — the six tone labels (aggressive / confident / cautious / defensive / opportunistic / conservative) with evidence patterns
 - [`references/monitoring_checklist_patterns.md`](references/monitoring_checklist_patterns.md) — how to build a falsifiable forward checklist (KPI + threshold + horizon)
 
@@ -138,23 +140,23 @@ Widget structure (top to bottom):
 5. **Basket 3 — MANAGEMENT** — tone label + evidence quote · narrative shift vs prior · 3-5yr strategic build · capital allocation grade
 6. **Monitoring checklist** — table with `# | KPI | Threshold | Horizon | Source`
 
-After the widget renders, write 2-3 short paragraphs outside it. Lead each with a bolded takeaway. These are the analytically-significant observations that need full-sentence treatment — *not* a rehash of widget content. End with a falsifiable prediction or the specific next catalyst to watch (e.g., "Q1 FY27 result will test whether margin expansion is structural — gross margin must stay above 28% even if commodity prices reverse").
+After the widget renders, write 2-3 short paragraphs outside it. Lead each with a bolded takeaway. These are the analytically-significant observations that need full-sentence treatment — _not_ a rehash of widget content. End with a falsifiable prediction or the specific next catalyst to watch (e.g., "Q1 FY27 result will test whether margin expansion is structural — gross margin must stay above 28% even if commodity prices reverse").
 
 ## Core principles
 
 **Tag every observation Structural / Cyclical / Temporary.** This is the most important taxonomy in this skill — it determines whether a development affects fair value (structural) or only the next 1-2 quarters (cyclical/temporary). Never leave an observation untagged.
 
-| Tag | Meaning | Example |
-|---|---|---|
-| `STRUCTURAL` | Changes the company's earnings power permanently | Premium-product mix shifting from 20% → 40% of revenue, ROCE ceiling rising |
-| `CYCLICAL` | Tied to industry / commodity / interest-rate cycle | Steel margin expanding because HRC prices are rising |
-| `TEMPORARY` | One-off; will reverse within 1-2 quarters | Inventory de-stocking by distributors before GST rate change |
+| Tag          | Meaning                                            | Example                                                                     |
+| ------------ | -------------------------------------------------- | --------------------------------------------------------------------------- |
+| `STRUCTURAL` | Changes the company's earnings power permanently   | Premium-product mix shifting from 20% → 40% of revenue, ROCE ceiling rising |
+| `CYCLICAL`   | Tied to industry / commodity / interest-rate cycle | Steel margin expanding because HRC prices are rising                        |
+| `TEMPORARY`  | One-off; will reverse within 1-2 quarters          | Inventory de-stocking by distributors before GST rate change                |
 
-**Interpret tone, don't quote it.** Phase 2 expects you to *classify* management as one of six tone labels — with one short evidence quote per label. Reproducing five paragraphs of management commentary is not analysis.
+**Interpret tone, don't quote it.** Phase 2 expects you to _classify_ management as one of six tone labels — with one short evidence quote per label. Reproducing five paragraphs of management commentary is not analysis.
 
 **Avoid number-repetition.** The investor presentation already contains the numbers. This skill is for interpretation, not summary. If you find yourself listing "revenue Rs X Cr, EBITDA Rs Y Cr, PAT Rs Z Cr" — stop. State only the numbers that change the thesis.
 
-**Track what management *stopped* saying.** If a topic that dominated three prior calls (e.g., "exports will scale to 20%") is silent this quarter — that is a yellow flag. The Management basket's "Change vs prior quarters" sub-section is where this lives, and it's why the prior transcript should be fetched.
+**Track what management _stopped_ saying.** If a topic that dominated three prior calls (e.g., "exports will scale to 20%") is silent this quarter — that is a yellow flag. The Management basket's "Change vs prior quarters" sub-section is where this lives, and it's why the prior transcript should be fetched.
 
 **Specific over generic.** "India GDP growth" is not a tailwind. "BS-VI emission norms forcing Tier-1 OEMs to replace legacy ICE platforms, of which 60% of our order book is for new platforms" is a tailwind. No textbook explanations.
 
@@ -162,11 +164,11 @@ After the widget renders, write 2-3 short paragraphs outside it. Lead each with 
 
 ## Pitfalls
 
-- **Don't reflow the concall.** This skill is *not* `concall-analysis`. If the user wants a transcript deep dive, route there. Here, the concall is *one* of three input sources, used for tone, guidance, and dodged-question signals — not for sentence-by-sentence extraction.
+- **Don't reflow the concall.** This skill is _not_ `concall-analysis`. If the user wants a transcript deep dive, route there. Here, the concall is _one_ of three input sources, used for tone, guidance, and dodged-question signals — not for sentence-by-sentence extraction.
 - **Don't build a forensic accounting view.** That's `forensic-accounting`'s job. Here, balance sheet & cash flow appear inside Basket 1 only when they affect future earnings power (e.g., deleveraging unlocking ROCE), not as a red-flag scan.
 - **Don't skip the monitoring checklist.** It is the most valuable section for a PM who reads the note today and needs to know what data points to check next quarter. 6-10 items, every one with a number threshold and horizon.
 - **Don't let "tone" become editorialising.** "Management seemed nervous" without quotation evidence is hallucination. Every tone label needs one short verbatim quote.
-- **Don't conflate cyclical recovery with structural improvement.** A steel company's margin expanding because HRC prices rose is *cyclical*. The same company shifting 30% of volumes to value-added speciality grades is *structural*. Tag carefully.
+- **Don't conflate cyclical recovery with structural improvement.** A steel company's margin expanding because HRC prices rose is _cyclical_. The same company shifting 30% of volumes to value-added speciality grades is _structural_. Tag carefully.
 
 ## Output file naming
 

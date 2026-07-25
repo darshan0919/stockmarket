@@ -6,7 +6,7 @@ Adapt depth to data; skip only when genuinely unavailable. Section 6 and Section
 
 ## §1 Executive Summary & Investment Thesis
 
-- **One-line thesis** — what has *structurally* changed in how these businesses operate (not in their stock price).
+- **One-line thesis** — what has _structurally_ changed in how these businesses operate (not in their stock price).
 - **"What's actually new vs. just noise" table** — focus on business model changes, competitive dynamics shifts, regulatory changes. NOT stock price movements.
 - **Top picks ranked by conviction** — each rationale must explain the business reason, not the valuation reason.
   - BAD: "Trading at 45x P/E with 30% growth"
@@ -23,7 +23,7 @@ Start from physics / economics / structural logic, not stock prices.
   - For a manufacturer: what's the cost structure per unit, where is value added, what determines pricing power?
 - **Include data tables:** cost per unit, efficiency metrics, capacity factors, penetration rates, unit economics per transaction.
 - **Address misconceptions head-on** — "too many people think X; the reality is Y".
-- **For platform / consumer internet businesses:** replace traditional value-chain thinking with customer journey analysis — acquisition → first transaction → repeat behaviour → monetisation → lifetime value. *This IS the value chain for platforms.*
+- **For platform / consumer internet businesses:** replace traditional value-chain thinking with customer journey analysis — acquisition → first transaction → repeat behaviour → monetisation → lifetime value. _This IS the value chain for platforms._
 
 ## §3 Global Trends — Past, Present, Inflection
 
@@ -38,7 +38,7 @@ Start from physics / economics / structural logic, not stock prices.
 - Current snapshot table (installed base, market share, growth rate, penetration, key metrics).
 - **Customer behaviour data** — frequency, AOV, repeat rates, cohort retention, geographic penetration.
 - Execution status of major ongoing initiatives / expansions.
-- Honest assessment: *how realistic are growth targets?* Don't echo government press releases.
+- Honest assessment: _how realistic are growth targets?_ Don't echo government press releases.
 
 ## §5 Policy & Regulatory Framework
 
@@ -137,7 +137,7 @@ Structure by **business model type** (not market cap tier). For EACH company:
 
 - **Indian monopolies / near-monopolies** — explain WHY the moat exists mechanistically. Not just "Component → Monopolist → Moat Source" but the structural reason it's hard to replicate.
 - Global monopolies / oligopolies for context.
-- **Moat durability analysis** — which moats are getting *stronger* with scale (network effects) vs. which are being *eroded* (technology change, regulation, new entrants)?
+- **Moat durability analysis** — which moats are getting _stronger_ with scale (network effects) vs. which are being _eroded_ (technology change, regulation, new entrants)?
 
 ## §12 Global Value Chain Positioning
 
@@ -148,7 +148,7 @@ Structure by **business model type** (not market cap tier). For EACH company:
 ## §13 Adjacent Demand Drivers / Category Expansion
 
 - **The demand-side catalyst explained through business logic** — not "EVs are growing" but "each EV two-wheeler consumes 15,000 MLCCs vs. 2,000 for ICE, which multiplies the addressable component market by 7.5×".
-- **For platforms:** category expansion logic — *why* does Blinkit sell iPhones? (Delivery cost is the same but AOV rises from ₹450 to ₹650, structurally improving contribution per order.) *Why* does Nykaa add physical stores? (Beauty has a try-before-buy dynamic; stores convert online-hesitant customers and reduce return rates from 30% to 3%.)
+- **For platforms:** category expansion logic — _why_ does Blinkit sell iPhones? (Delivery cost is the same but AOV rises from ₹450 to ₹650, structurally improving contribution per order.) _Why_ does Nykaa add physical stores? (Beauty has a try-before-buy dynamic; stores convert online-hesitant customers and reduce return rates from 30% to 3%.)
 - Who is positioning and how.
 - `[Analyst View]` on the optionality — with business reasoning.
 
@@ -179,7 +179,7 @@ Lead with a BUSINESS evaluation framework, not a stock-picking framework.
   4. Can a deep-pocketed competitor replicate the moat in 2–3 years? (How long did the current moat take to build?)
   5. Where is the business on the J-curve? (Pre-inflection = speculative; at inflection = opportunity; post-inflection = compounder.)
 - **"Avoid the traps"** — common mistakes, framed as business analysis errors not trading errors.
-- **What would make you more constructive / defensive** — specific *business* triggers (e.g. "contribution margin sustaining above 4% for 2 quarters"), not "stock breaking above ₹500".
+- **What would make you more constructive / defensive** — specific _business_ triggers (e.g. "contribution margin sustaining above 4% for 2 quarters"), not "stock breaking above ₹500".
 
 ## §16 What to Watch — Operating Metrics & Concall Questions
 
@@ -215,22 +215,22 @@ Every acronym and technical term used in the report, defined. A 30+ page sector 
 
 For every section, include at minimum ONE of the following data elements. Note the emphasis on **business mechanics over financial metrics**.
 
-| Data Element | When to Use | Format |
-|---|---|---|
-| **Business Model Breakdown** | How a company makes money | Revenue stream → Mechanism → Margin → Who Pays |
-| **Unit Economics Table** | Per-transaction P&L | Revenue/order → Variable costs → Contribution margin |
-| **Customer Behaviour Table** | Usage patterns | Frequency → AOV → Repeat rate → LTV → CAC |
-| **Competitive Dynamics Table** | Why each player wins/loses | Platform → Moat mechanism → Threat → Defence |
-| **Comparison Table** | Old vs. New regime; India vs. Global | 2–4 column table |
-| **Snapshot Table** | Current state of industry | Key metric → Value format |
-| **Value Chain Breakdown** | Cost structure | Segment → % of Cost → What It Includes |
-| **Company Stack-Up** | Comparing on same dimension | Lead with business quality, not stock metrics |
-| **Project / Initiative Status Map** | Tracking ongoing initiatives | Initiative → Scale → Status → Business Impact |
-| **Market Sizing** | TAM / SAM | Scenario (Base/Bull) → Size → Timeline |
-| **Self-Sufficiency / Ecosystem Matrix** | Dependency analysis | Component → Status → Import / Partner Source |
-| **Risk Matrix** | Comprehensive risk accounting | Risk → Business Impact → Probability → Mitigant |
-| **Margin Driver Table** | What drives profitability | Driver → Mechanism → Who Benefits → Magnitude |
-| **Operating Metrics Table** | Key non-financial metrics | Metric → Current → Trend → Why It Matters |
+| Data Element                            | When to Use                          | Format                                               |
+| --------------------------------------- | ------------------------------------ | ---------------------------------------------------- |
+| **Business Model Breakdown**            | How a company makes money            | Revenue stream → Mechanism → Margin → Who Pays       |
+| **Unit Economics Table**                | Per-transaction P&L                  | Revenue/order → Variable costs → Contribution margin |
+| **Customer Behaviour Table**            | Usage patterns                       | Frequency → AOV → Repeat rate → LTV → CAC            |
+| **Competitive Dynamics Table**          | Why each player wins/loses           | Platform → Moat mechanism → Threat → Defence         |
+| **Comparison Table**                    | Old vs. New regime; India vs. Global | 2–4 column table                                     |
+| **Snapshot Table**                      | Current state of industry            | Key metric → Value format                            |
+| **Value Chain Breakdown**               | Cost structure                       | Segment → % of Cost → What It Includes               |
+| **Company Stack-Up**                    | Comparing on same dimension          | Lead with business quality, not stock metrics        |
+| **Project / Initiative Status Map**     | Tracking ongoing initiatives         | Initiative → Scale → Status → Business Impact        |
+| **Market Sizing**                       | TAM / SAM                            | Scenario (Base/Bull) → Size → Timeline               |
+| **Self-Sufficiency / Ecosystem Matrix** | Dependency analysis                  | Component → Status → Import / Partner Source         |
+| **Risk Matrix**                         | Comprehensive risk accounting        | Risk → Business Impact → Probability → Mitigant      |
+| **Margin Driver Table**                 | What drives profitability            | Driver → Mechanism → Who Benefits → Magnitude        |
+| **Operating Metrics Table**             | Key non-financial metrics            | Metric → Current → Trend → Why It Matters            |
 
 **Minimum data density:** 15–20 tables across all sections. **At least 5 tables MUST be business-model or unit-economics focused**, not financial-summary focused.
 

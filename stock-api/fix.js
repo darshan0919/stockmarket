@@ -10,6 +10,9 @@ fs.writeFileSync(p, c);
 p = 'src/generators/generateMarketShareHtml.js';
 c = fs.readFileSync(p, 'utf8');
 // Fix the backticks inside _JS that were unescaped
-c = c.replace(/label: \(c\) => `\$\{/g, "label: (c) => \\`\\${");
-c = c.replace(/ \? historical\[c\.dataIndex\]\.yoy \+ '%' : '-'\}\)`/g, " ? historical[c.dataIndex].yoy + '%' : '-'}\\`");
+c = c.replace(/label: \(c\) => `\$\{/g, 'label: (c) => \\`\\${');
+c = c.replace(
+  / \? historical\[c\.dataIndex\]\.yoy \+ '%' : '-'\}\)`/g,
+  " ? historical[c.dataIndex].yoy + '%' : '-'}\\`"
+);
 fs.writeFileSync(p, c);

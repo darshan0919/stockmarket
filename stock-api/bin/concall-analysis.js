@@ -7,7 +7,7 @@ const mod_generateConcallPdf = require('../src/generators/generateConcallPdf.js'
 
 function main() {
   const argv = process.argv.slice(2);
-  
+
   if (argv.includes('--help')) {
     console.log(`Usage: concall-analysis [options]`);
     console.log(`Options:
@@ -16,11 +16,11 @@ function main() {
   }
 
   // TODO: implement actual parsing and logic here
-  
+
   const result = {
     ok: true,
     outputs: [],
-    warnings: []
+    warnings: [],
   };
 
   console.log(JSON.stringify(result));

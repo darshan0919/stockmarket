@@ -78,14 +78,14 @@ For each pick row, do this:
 
 Rules in priority order (first match wins):
 
-| Condition | Verdict |
-|---|---|
-| Ticker unresolvable or company delisted with no successor | `UNVERIFIABLE` |
-| Investor tweeted "watching" / "tracking" / "may buy" | `WATCHING` (excluded from hit rate) |
-| `claim_date` within last 90 days | `TOO_EARLY` (excluded from hit rate) |
-| `return_pct > +20%` | `WIN` |
-| `return_pct` between `-10%` and `+20%` | `NEUTRAL` |
-| `return_pct < -10%` | `LOSS` |
+| Condition                                                 | Verdict                              |
+| --------------------------------------------------------- | ------------------------------------ |
+| Ticker unresolvable or company delisted with no successor | `UNVERIFIABLE`                       |
+| Investor tweeted "watching" / "tracking" / "may buy"      | `WATCHING` (excluded from hit rate)  |
+| `claim_date` within last 90 days                          | `TOO_EARLY` (excluded from hit rate) |
+| `return_pct > +20%`                                       | `WIN`                                |
+| `return_pct` between `-10%` and `+20%`                    | `NEUTRAL`                            |
+| `return_pct < -10%`                                       | `LOSS`                               |
 
 ### Benchmark check (use when feasible)
 
@@ -109,14 +109,14 @@ unverifiable_ratio = UNVERIFIABLEs / total_picks
 
 This is the headline number the user sees. Be conservative; small samples are noise.
 
-| Stars | Criteria |
-|---|---|
-| **5★** | hit_rate > 0.65 AND verifiable_picks > 20 AND unverifiable_ratio < 0.25 |
-| **4★** | hit_rate 0.50–0.65 AND verifiable_picks > 15 |
-| **3★** | hit_rate 0.40–0.50 |
-| **2★** | hit_rate 0.30–0.40 OR unverifiable_ratio > 0.40 |
-| **1★** | hit_rate < 0.30 OR unverifiable_ratio > 0.60 |
-| **N/A** | verifiable_picks < 5 — state explicitly, do not force a rating |
+| Stars   | Criteria                                                                |
+| ------- | ----------------------------------------------------------------------- |
+| **5★**  | hit_rate > 0.65 AND verifiable_picks > 20 AND unverifiable_ratio < 0.25 |
+| **4★**  | hit_rate 0.50–0.65 AND verifiable_picks > 15                            |
+| **3★**  | hit_rate 0.40–0.50                                                      |
+| **2★**  | hit_rate 0.30–0.40 OR unverifiable_ratio > 0.40                         |
+| **1★**  | hit_rate < 0.30 OR unverifiable_ratio > 0.60                            |
+| **N/A** | verifiable_picks < 5 — state explicitly, do not force a rating          |
 
 ## Unverifiable profit claims (separate section)
 

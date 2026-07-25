@@ -19,7 +19,20 @@ function toIsoDate(s) {
   if (iso) return iso[0];
   const m = /^(\d{2})-([A-Za-z]{3})-(\d{4})/.exec(String(s));
   if (!m) return null;
-  const months = { jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06', jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12' };
+  const months = {
+    jan: '01',
+    feb: '02',
+    mar: '03',
+    apr: '04',
+    may: '05',
+    jun: '06',
+    jul: '07',
+    aug: '08',
+    sep: '09',
+    oct: '10',
+    nov: '11',
+    dec: '12',
+  };
   const mm = months[m[2].toLowerCase()];
   return mm ? `${m[3]}-${mm}-${m[1]}` : null;
 }
@@ -66,7 +79,9 @@ function avgTradedValueCr(pvd, n = 50) {
   return {
     atvCr: Math.round((meanRupees / 1e7) * 100) / 100, // ₹ → ₹ Cr
     nDays: recent.length,
-    avgDelivPerc: deliv.length ? Math.round((deliv.reduce((a, b) => a + b, 0) / deliv.length) * 10) / 10 : NaN,
+    avgDelivPerc: deliv.length
+      ? Math.round((deliv.reduce((a, b) => a + b, 0) / deliv.length) * 10) / 10
+      : NaN,
   };
 }
 
@@ -90,7 +105,11 @@ async function fetchPriceMetrics(nse, symbol, { lookbackDays = 80, atvWindow = 5
   };
   const to = new Date();
   const from = new Date(Date.now() - lookbackDays * 86400000);
-  const rows = await nse.getPriceVolumeDeliverable(symbol.replace(/^NSE:/i, ''), fmt(from), fmt(to));
+  const rows = await nse.getPriceVolumeDeliverable(
+    symbol.replace(/^NSE:/i, ''),
+    fmt(from),
+    fmt(to)
+  );
   const liquidity = avgTradedValueCr(rows, atvWindow);
   return { rows, liquidity, candles: toCandles(rows) };
 }

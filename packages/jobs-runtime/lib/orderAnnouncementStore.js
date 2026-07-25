@@ -39,7 +39,11 @@ function has(companyId, ssUrl, date) {
 function get(companyId, ssUrl, date) {
   const f = file(companyId, ssUrl, date);
   if (!fs.existsSync(f)) return null;
-  try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch (_) { return null; }
+  try {
+    return JSON.parse(fs.readFileSync(f, 'utf8'));
+  } catch (_) {
+    return null;
+  }
 }
 
 /**
@@ -53,7 +57,14 @@ function save(companyId, ssUrl, date, record) {
   fs.mkdirSync(d, { recursive: true });
   const f = file(companyId, ssUrl, date);
   const tmp = `${f}.tmp.${process.pid}`;
-  fs.writeFileSync(tmp, JSON.stringify({ companyId, ssUrl, date, processedAt: new Date().toISOString(), ...record }, null, 2));
+  fs.writeFileSync(
+    tmp,
+    JSON.stringify(
+      { companyId, ssUrl, date, processedAt: new Date().toISOString(), ...record },
+      null,
+      2
+    )
+  );
   fs.renameSync(tmp, f);
   return f;
 }
@@ -62,7 +73,12 @@ function save(companyId, ssUrl, date, record) {
 function processedKeys(companyId) {
   const d = dir(companyId);
   if (!fs.existsSync(d)) return new Set();
-  return new Set(fs.readdirSync(d).filter((f) => f.endsWith('.json') && !f.includes('.tmp.')).map((f) => f.replace(/\.json$/, '')));
+  return new Set(
+    fs
+      .readdirSync(d)
+      .filter((f) => f.endsWith('.json') && !f.includes('.tmp.'))
+      .map((f) => f.replace(/\.json$/, ''))
+  );
 }
 
 /**

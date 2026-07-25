@@ -49,7 +49,12 @@ function dataRoot() {
 }
 
 function cacheFile(companyId) {
-  return path.join(dataRoot(), 'cache', 'event-reaction', `${String(companyId).toUpperCase()}.json`);
+  return path.join(
+    dataRoot(),
+    'cache',
+    'event-reaction',
+    `${String(companyId).toUpperCase()}.json`
+  );
 }
 
 function entryKey(eventType, eventTimestamp) {

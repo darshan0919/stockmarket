@@ -7,7 +7,7 @@ runs. Companion docs: `docs/DATA_ECOSYSTEM.md` (design), `docs/DATA_RULES.md` (e
 ## 0. Goal (what "done" means)
 
 Never lose stockmarket research context again. Every stockmarket-related chat (Cowork
-*and* Claude web) must leave a durable, reusable trace in exactly one of the six sinks:
+_and_ Claude web) must leave a durable, reusable trace in exactly one of the six sinks:
 **(1) Database** (existing collection + new `type`, or the new `conversations` collection),
 **(2) Skills**, **(3) Claude memory**, **(4) Scripts**, **(5) StockMarket app**,
 **(6) Automations/jobs**. Past chats are back-filled into the same sinks. Reuse happens
@@ -21,7 +21,7 @@ Two independent workstreams:
 - **Workstream B — Historical migration:** a batched back-fill of the 132+ existing local
   Cowork sessions and (separately) exported Claude-web chats.
 
-Both write through the *same* extraction/routing engine so there is one code path to trust.
+Both write through the _same_ extraction/routing engine so there is one code path to trust.
 
 ---
 
@@ -35,7 +35,7 @@ class, so §3 (new collection) applies. We follow the **`reports/` two-file patt
 because transcript bodies are large (10s–100s of KB): a slim index record in
 `conversations.json` + a full body in `conversations/<id>.json`.
 
-The conversation record is the **provenance anchor**. It is deliberately *not* where reuse
+The conversation record is the **provenance anchor**. It is deliberately _not_ where reuse
 happens — reuse happens through the extracts it fans out into existing collections
 (§2). This keeps `buildCompanyContext()` unchanged in spirit: it already reads
 notes/reports/events/validation; we just add conversations as one more linked kind.
@@ -68,20 +68,20 @@ follows. **The conversation body keeps the full trace; the extractor additionall
 structured, reusable pieces into the right existing collection.** Storing only through
 `db.js` helpers (never raw writes).
 
-| Chat content | Sink | Collection / mechanism | `type` / where |
-|---|---|---|---|
-| Full transcript (Q's, thinking summary, responses, feedback) | 1 DB | `conversations.json` + `conversations/<id>.json` | new collection, `creator:"conversation-capture"` |
-| Company-specific insight / observation surfaced in chat | 1 DB | `notes.json` via `db.appendNotes` | `type:"chat-insight"`, `companyId` set |
-| A full analysis produced in chat (deep-dive, thesis reasoning, model) | 1 DB | `reports.json` + `reports/<id>.json` via `db.saveReport` | `type:"chat-analysis"` (or the matching skill's type if a skill produced it) |
-| An output file / artifact (docx, md, xlsx, pdf) not already skill-persisted | 1 DB | `reports.json` `type:"artifact"` + file → `data/assets/` (§1.6) | linked from conversation `artifacts[]` |
-| Sector / macro view or thematic call | 1 DB | `notes.json` via `db.appendNotes` | `type:"macro-note"`, `sector`/`scope` set, no `companyId` |
-| Investment thesis change decided in chat | 1 DB | `theses.json` via `db.saveThesis` | thesis + `thesis-history.jsonl` line |
-| Dated market occurrence discussed (a specific deal/gainer/announcement worth keeping) | 1 DB | `events-YYYY-MM.json` via `db.appendEvents` | existing types |
-| Reusable **framework / methodology / analysis recipe** | 2 Skills (backlog) | append to `docs/SKILLS_BACKLOG.md` (git) + `notes.json` `type:"framework"` as the durable record | promote to a real skill later |
-| Feedback on **how Claude should work** (project-agnostic or stockmarket-specific) | 3 Memory | write a `feedback`/`project` memory file + `MEMORY.md` pointer | plus `notes.json` `type:"feedback"` scoped to project for DB-side searchability |
-| A repeatable heavy-lift identified in chat | 4 Scripts | append to `docs/SCRIPTS_BACKLOG.md` (git) | build later |
-| A UI/app need identified in chat | 5 App | append to `jira/features/ideas.md` (existing file) | existing backlog |
-| A recurring task identified in chat | 6 Automations | note in conversation record `followups[]`; propose a scheduled job | `mcp__scheduled-tasks__create_scheduled_task` |
+| Chat content                                                                          | Sink               | Collection / mechanism                                                                           | `type` / where                                                                  |
+| ------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| Full transcript (Q's, thinking summary, responses, feedback)                          | 1 DB               | `conversations.json` + `conversations/<id>.json`                                                 | new collection, `creator:"conversation-capture"`                                |
+| Company-specific insight / observation surfaced in chat                               | 1 DB               | `notes.json` via `db.appendNotes`                                                                | `type:"chat-insight"`, `companyId` set                                          |
+| A full analysis produced in chat (deep-dive, thesis reasoning, model)                 | 1 DB               | `reports.json` + `reports/<id>.json` via `db.saveReport`                                         | `type:"chat-analysis"` (or the matching skill's type if a skill produced it)    |
+| An output file / artifact (docx, md, xlsx, pdf) not already skill-persisted           | 1 DB               | `reports.json` `type:"artifact"` + file → `data/assets/` (§1.6)                                  | linked from conversation `artifacts[]`                                          |
+| Sector / macro view or thematic call                                                  | 1 DB               | `notes.json` via `db.appendNotes`                                                                | `type:"macro-note"`, `sector`/`scope` set, no `companyId`                       |
+| Investment thesis change decided in chat                                              | 1 DB               | `theses.json` via `db.saveThesis`                                                                | thesis + `thesis-history.jsonl` line                                            |
+| Dated market occurrence discussed (a specific deal/gainer/announcement worth keeping) | 1 DB               | `events-YYYY-MM.json` via `db.appendEvents`                                                      | existing types                                                                  |
+| Reusable **framework / methodology / analysis recipe**                                | 2 Skills (backlog) | append to `docs/SKILLS_BACKLOG.md` (git) + `notes.json` `type:"framework"` as the durable record | promote to a real skill later                                                   |
+| Feedback on **how Claude should work** (project-agnostic or stockmarket-specific)     | 3 Memory           | write a `feedback`/`project` memory file + `MEMORY.md` pointer                                   | plus `notes.json` `type:"feedback"` scoped to project for DB-side searchability |
+| A repeatable heavy-lift identified in chat                                            | 4 Scripts          | append to `docs/SCRIPTS_BACKLOG.md` (git)                                                        | build later                                                                     |
+| A UI/app need identified in chat                                                      | 5 App              | append to `jira/features/ideas.md` (existing file)                                               | existing backlog                                                                |
+| A recurring task identified in chat                                                   | 6 Automations      | note in conversation record `followups[]`; propose a scheduled job                               | `mcp__scheduled-tasks__create_scheduled_task`                                   |
 
 Decision rule the extractor follows (deterministic, in order): company mentioned + a
 claim about it → `chat-insight` note (or `chat-analysis` report if it's a full worked
@@ -124,7 +124,7 @@ Three distinct sources — only one needs manual effort:
   This is the one unavoidable manual step.
 - **Artifacts:** covered in §1.6.
 
-**Data Export — the least-effort path for cloud chats.** In Claude (web app *or* Claude
+**Data Export — the least-effort path for cloud chats.** In Claude (web app _or_ Claude
 Desktop): click your initials (lower-left) → **Settings → Privacy → Export data**; a
 download link is emailed to your account address (link expires 24 h; re-request anytime).
 The export is **account-level and identical whether triggered from web or desktop** — no
@@ -135,13 +135,13 @@ code, tables written into the reply) come inline. Darshan drops the file in the 
 same extractor ingests it (`captureConversation.js --source cloud --file <path>`).
 
 **Answer to "does the Export button suffice for both conversations and artifacts?" —
-mostly, with one gap.** It fully covers conversations and any *text* artifact (which is just
+mostly, with one gap.** It fully covers conversations and any _text_ artifact (which is just
 message content). It does **not** guarantee **binary artifact files** (a generated
 `.xlsx`/`.pdf`/`.docx`) or uploaded attachments as separate downloadable files — the
 personal export is JSON text, and the docs don't promise file blobs. In practice this gap is
 small for us because **almost all binary artifacts are produced in Cowork sessions, which
 are local** (captured via §1.6 folder mount), not in cloud chats. For the rare binary
-artifact created in a *cloud* chat, the only recovery is downloading it from that chat
+artifact created in a _cloud_ chat, the only recovery is downloading it from that chat
 manually; the job will record its metadata from the transcript and flag `bytesUnavailable`.
 So: Export button = all conversations + all text artifacts; local mount = all Cowork
 binary artifacts; residual = cloud-chat binaries (rare, manual).
@@ -187,9 +187,9 @@ existing and future artifacts**.
   3. **Cloud-chat uploads are NOT in the export** (see §1.4) — only the analysis text is.
   4. Anything still unreachable is recorded metadata-only with `bytesUnavailable:true` +
      `whereToFind` so it is flagged, never silently missed.
-  Net: the "everything" goal holds for analysis text (fully captured) and for
-  repo/Drive-resident artifacts; the residual is bytes that exist only inside an old
-  session's private outputs or as a cloud upload — flagged, and recoverable case-by-case.
+     Net: the "everything" goal holds for analysis text (fully captured) and for
+     repo/Drive-resident artifacts; the residual is bytes that exist only inside an old
+     session's private outputs or as a cloud upload — flagged, and recoverable case-by-case.
 - **Future artifacts → Drive at creation (DECIDED).** Going forward, any stockmarket artifact
   is written into `data/assets/` (or a `reports/` body) at creation and pushed to Drive in
   the same run — so it's captured immediately, not a week later. This becomes a line in
@@ -205,7 +205,7 @@ saving the conversation, in the same job. **I agree**, with one ordering guarant
 Per conversation, sequentially: **(1) save the conversation record + body first** (cheap,
 durable), **(2) then run extraction and fan out** to notes/reports/theses/events/memory,
 **(3) capture artifacts**, then move to the next chat; `data.js push` once at the end of the
-job. Saving the raw conversation *before* extraction means a failure in the fallible LLM
+job. Saving the raw conversation _before_ extraction means a failure in the fallible LLM
 extraction step never loses the chat — because ids are deterministic, a later run
 re-extracts with zero duplicates. So we get "same job, immediately after save" (what you
 want) plus crash-safety for free.
@@ -225,8 +225,8 @@ All new code lives beside existing runtime; no new top-level folders.
    company-link fan-out (mirror of `saveReport`). Plus the 4 registrations from §1.1.
 2. **`packages/jobs-runtime/lib/conversationExtractor.js`** — pure function
    `extract(transcript, meta) → { conversationDto, notes[], reports[], macroNotes[],
-   theses[], events[], memoryProposals[], skillBacklog[], scriptBacklog[], appIdeas[],
-   followups[] }`. Deterministic, offline-testable with fixtures (convention §4). The LLM
+theses[], events[], memoryProposals[], skillBacklog[], scriptBacklog[], appIdeas[],
+followups[] }`. Deterministic, offline-testable with fixtures (convention §4). The LLM
    step (classify/summarize turns) is isolated behind one function so it can be mocked.
 3. **`packages/jobs-runtime/scripts/captureConversation.js`** — the **heavy-lift writer**.
    Input: a JSON file `{ sessionId, title, date, source, transcript }` (or an array for
@@ -281,11 +281,13 @@ Ordered so nothing depends on a later phase. Every phase ends with a verificatio
 Heavy lifting is in scripts; the agent's job per run is small and mechanical.
 
 ### Phase 0 — Approve & freeze decisions (no code)
+
 - [ ] Darshan confirms: new `conversations` collection (vs. forcing into notes), the §1.2
       routing table, and that web chats need manual export.
 - [ ] Confirm feedback→memory is desired (memory is per-space; fine).
 
 ### Phase 1 — Extraction engine + tests (pure, offline)
+
 - [ ] Write `conversationExtractor.js` with the deterministic router (§1.2) and one mocked
       LLM classify/summarize function.
 - [ ] Fixtures: 2 real transcripts (one company deep-dive, one macro/framework chat) saved
@@ -294,6 +296,7 @@ Heavy lifting is in scripts; the agent's job per run is small and mechanical.
       output). Gate: `yarn test` green.
 
 ### Phase 2 — DB plumbing for `conversations`
+
 - [ ] `db.js`: add `conversations` to `SINGLE_FILE_COLLECTIONS`, `conv` to `LINK_KIND`,
       implement `saveConversation(dto)`.
 - [ ] `data.js`: add `conversations` to `IS_COLLECTION` regex.
@@ -303,6 +306,7 @@ Heavy lifting is in scripts; the agent's job per run is small and mechanical.
 - [ ] Docs: update `DATA_ECOSYSTEM.md` §1 + `SKILL_DATA_AUDIT.md`.
 
 ### Phase 3 — Writer script + artifact capture
+
 - [ ] `captureConversation.js` (single + batch): save conversation → extract → fan out →
       capture artifacts (§1.6, with the skill-persisted skip-by-hash rule), ending in
       `data.js push` + Files-touched manifest. Order per §1.7 (save-first).
@@ -311,6 +315,7 @@ Heavy lifting is in scripts; the agent's job per run is small and mechanical.
       `data:push` shows the uploads, re-running produces zero new records (dedup proof).
 
 ### Phase 4 — Historical migration (batched, resumable) — Workstream B
+
 - [ ] `migrateConversations.js` with the `_meta/conversation-migration.json` cursor.
 - [ ] Agent loop (per run, ~15–20 sessions): `list_sessions` → for each stockmarket session
       `read_transcript` → shape to extractor input → `captureConversation.js` batch → mark
@@ -324,6 +329,7 @@ Heavy lifting is in scripts; the agent's job per run is small and mechanical.
       companies' `buildCompanyContext` now include chat-derived notes.
 
 ### Phase 5 — Automation & consolidation
+
 - [ ] Schedule the **weekly capture job** (Sat 11:04 IST, §1.3) via
       `mcp__scheduled-tasks__create_scheduled_task` — the same `captureConversation.js` body,
       driven by the session cursor. This is the sole go-forward trigger.
@@ -365,7 +371,7 @@ correct; these are input-cleanup concerns):
 - **Multiple transcript files per session + sub-agent sidechains.** One logical session can
   have several `.jsonl` files, and `isSidechain:true` lines are sub-agent (Task-tool) runs,
   not user chats. Raw file count (~333 stock-classified) ≫ real interactive sessions (~80–100
-  expected). **Phase-4 TODO:** (a) dedup by the *real* session id (folder `local_<id>`), not
+  expected). **Phase-4 TODO:** (a) dedup by the _real_ session id (folder `local_<id>`), not
   the per-file transcript uuid; (b) drop `isSidechain:true` transcripts; (c) prefer the
   primary transcript per session. Until then, run with `--dry-run` and review counts before a
   real write.
@@ -404,7 +410,7 @@ trade data, equity analysis, stock report, sector, peer comparison, dividend tax
 
 **Validation finding (2026-07-16, Stage-1 run over the 136-chat cloud export):** keyword
 Stage-1 alone classified 113/136 as stock, 17 borderline. It produced ~6 **false negatives**
-— chats titled with a bare company name whose *body text* is empty because all content was in
+— chats titled with a bare company name whose _body text_ is empty because all content was in
 **uploaded files** (not in the export's text field): "Bandhan Bank equity research analysis",
 "Consecutive filings analysis for Acutaas", "Consecutive diff analysis for Mahabank",
 "Bajaj Consumer Care", "ACUTAAS", "Maharashtra Bank". This is exactly why Stage-2 exists: the
@@ -412,19 +418,19 @@ Stage-1 alone classified 113/136 as stock, 17 borderline. It produced ~6 **false
 borderline→LLM check catches the rest. **Do not ship the classifier on Stage-1 alone** —
 company-master matching is mandatory, not optional.
 
-1. *Pass 1 (titles only):* run the first migration using the seed set + title keywords above
+1. _Pass 1 (titles only):_ run the first migration using the seed set + title keywords above
    PLUS company-master names as `extraKeywords` (required per the finding above). Cheap, gets
    the bulk right.
-2. *Pass 2 (bodies, one-time):* after Pass 1 completes, re-scan the **full text of the
+2. _Pass 2 (bodies, one-time):_ after Pass 1 completes, re-scan the **full text of the
    matched conversations** once to harvest recurring domain terms the titles missed (company
-   names, sector jargon, framework names, ticker symbols), and append them as *proposed*
+   names, sector jargon, framework names, ticker symbols), and append them as _proposed_
    keywords to `stockmarketKeywords.js` for Darshan to approve. A borderline-skipped chat
    whose newly-found keywords now qualify it is re-evaluated in that pass (its raw was not
    stored, but the cursor kept its id, so re-checking is a cheap title/again-body test — no
    data lost). This makes the classifier self-improve from real content without silently
    widening scope (all additions are approval-gated).
 
-**Deliberately borderline titles found** (kept because they're stockmarket-*project* work,
+**Deliberately borderline titles found** (kept because they're stockmarket-_project_ work,
 tagged `project-infra` not research): "Skills data storage ecosystem", "Cowork data file
 cleanup issue", "Weekly authtoken refresh", "Scheduled tasks chat access". Clearly
 out-of-scope example: "Ask Claude to create something" (generic) → skipped unless its body
@@ -435,7 +441,7 @@ trips the classifier.
 ## 5. What could be wrong with this plan (pre-mortem)
 
 - **Extraction quality drift.** LLM routing may mis-file or over-capture. Mitigation: the
-  full transcript is always stored verbatim, so nothing is *lost* — only findability
+  full transcript is always stored verbatim, so nothing is _lost_ — only findability
   degrades. `contextUsed`/`extractedInto` provenance lets a later pass re-route.
 - **Noise inflation of `notes.json`.** Chat insights could bloat context. Mitigation:
   `type:"chat-insight"` is filterable; `buildCompanyContext` already caps counts; keep chat
@@ -452,7 +458,7 @@ trips the classifier.
 - **Sandbox delete-EPERM.** All writes are append/upsert via `db.js`; no delete in any write
   path (`DATA_RULES.md` §5) — the cursor and backlogs are append-only. Compliant.
 - **Memory scope.** Claude memory is per-space; feedback saved there won't follow Darshan to
-  Claude web. That's why feedback is *also* mirrored to `notes.json type:"feedback"` (DB is
+  Claude web. That's why feedback is _also_ mirrored to `notes.json type:"feedback"` (DB is
   the durable, portable copy).
 
 ---
@@ -501,7 +507,7 @@ Registered in `SINGLE_FILE_COLLECTIONS` + `data.js` `IS_COLLECTION`.
    conversations AND artifacts are must-have sources (skill runs included). An artifact is
    skipped ONLY when a script can cross-verify it is already stored (content-hash match
    under `assets/`/`reports/`). The chat is never skipped; an artifact that can't be verified
-   is stored, not ignored. (For *future* skill invocations we may assume the skill persisted
+   is stored, not ignored. (For _future_ skill invocations we may assume the skill persisted
    its output — but still capture the chat + any follow-up Q&A.)
 2. **Skill-run + follow-ups.** A chat may start as a skill run and continue with the user's
    follow-up questions. Those follow-ups (and Claude's answers on top of the skill) ARE

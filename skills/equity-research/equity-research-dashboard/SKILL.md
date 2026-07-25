@@ -13,13 +13,13 @@ Produce **one** offline-capable `[TICKER]_Dashboard.html`: institutional-grade s
 
 **Required**
 
-- `[TICKER]_MasterData.xlsx` — Screener.in export (tabs: Financials, Peers, Shareholding, Company, Ratios).  
+- `[TICKER]_MasterData.xlsx` — Screener.in export (tabs: Financials, Peers, Shareholding, Company, Ratios).
 - `[TICKER]_AR_Extracts.txt`, `[TICKER]_Concall.txt`, `[TICKER]_InvestorPres.txt`, `[TICKER]_RatingReports.txt` (or consistent rating filename matching your Project A outputs).
 
 **Optional**
 
-- `[TICKER]_Events.txt` — feeds Events tab.  
-- `[TICKER]_Estimates.txt` (or similar) — if absent, **Tab 6 (Estimates) is omitted** and nav renumbers.  
+- `[TICKER]_Events.txt` — feeds Events tab.
+- `[TICKER]_Estimates.txt` (or similar) — if absent, **Tab 6 (Estimates) is omitted** and nav renumbers.
 - Last-minute PDF — user specifies target tab; model extracts and routes.
 
 Place extracts as in the workflow guide; attach all files to the LLM when running the prompt.
@@ -74,12 +74,12 @@ See `prompts/dashboard_master_v4.txt` in this skill (duplicate: `backend/prompts
 
 ## Non-negotiables (checklist)
 
-- Single HTML file: `<style>` in head, one `<script>` before `</body>`, no other external assets except Chart.js URL in the prompt.  
-- **ASCII hyphen-minus** for negative numbers in JS arrays (no Unicode minus).  
-- Doughnut/pie/radar: only non-negative data values (or abs + label).  
-- Tab panes: `getElementById('tab-N')` pattern; **no** `querySelectorAll('.tab-pane')` index matching.  
-- `showTab` ends with `window.scrollTo({ top: 0, behavior: 'smooth' })`.  
-- CSS variables: every color used must exist in **both** `:root` and `[data-theme="dark"]`.  
+- Single HTML file: `<style>` in head, one `<script>` before `</body>`, no other external assets except Chart.js URL in the prompt.
+- **ASCII hyphen-minus** for negative numbers in JS arrays (no Unicode minus).
+- Doughnut/pie/radar: only non-negative data values (or abs + label).
+- Tab panes: `getElementById('tab-N')` pattern; **no** `querySelectorAll('.tab-pane')` index matching.
+- `showTab` ends with `window.scrollTo({ top: 0, behavior: 'smooth' })`.
+- CSS variables: every color used must exist in **both** `:root` and `[data-theme="dark"]`.
 - Missing data: show `---------`, never `NaN` / blank.
 
 ## Pre-generation gate
@@ -92,5 +92,5 @@ Exec Summary, Overview, Business, Industry, Financials, Growth, **Estimates (con
 
 ## Troubleshooting
 
-- **Broken charts / blank theme:** undeclared CSS variables or Unicode minus in data.  
+- **Broken charts / blank theme:** undeclared CSS variables or Unicode minus in data.
 - **Wrong tab count:** Estimates file attached or omitted — renumber per prompt.

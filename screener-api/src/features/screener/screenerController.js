@@ -100,7 +100,9 @@ const runScreener = async (req, res, next) => {
     ]);
 
     const stockMap = {};
-    stocks.forEach((stock) => { stockMap[stock._id.toString()] = stock; });
+    stocks.forEach((stock) => {
+      stockMap[stock._id.toString()] = stock;
+    });
 
     const results = fundamentals
       .map((f) => {
@@ -135,7 +137,12 @@ const runScreener = async (req, res, next) => {
 
     const limitedResults = results.slice(0, Math.min(limit, 1000));
 
-    res.json({ success: true, data: limitedResults, count: limitedResults.length, total: results.length });
+    res.json({
+      success: true,
+      data: limitedResults,
+      count: limitedResults.length,
+      total: results.length,
+    });
   } catch (error) {
     next(error);
   }
@@ -151,7 +158,9 @@ const getSavedScans = async (req, res, next) => {
     res.json({ success: true, data: scans });
   } catch (err) {
     if (err.code === 'STOCKSCANS_AUTH_REQUIRED') {
-      return res.status(401).json({ success: false, error: 'StockScans authentication required', code: err.code });
+      return res
+        .status(401)
+        .json({ success: false, error: 'StockScans authentication required', code: err.code });
     }
     next(err);
   }
@@ -208,7 +217,11 @@ const runSavedScan = async (req, res, next) => {
     if (rows.length > 0) {
       const symbols = rows.map((r) => r.symbol);
       let batchMetrics = {};
-      try { batchMetrics = await fetchFundamentals(symbols); } catch { /* best-effort */ }
+      try {
+        batchMetrics = await fetchFundamentals(symbols);
+      } catch {
+        /* best-effort */
+      }
 
       const tasks = rows.map((row) => async () => {
         const [symbolMetrics, history, orderBook] = await Promise.all([
@@ -221,11 +234,20 @@ const runSavedScan = async (req, res, next) => {
         if (symbolMetrics.changePercent != null) row.changePercent = symbolMetrics.changePercent;
         if (symbolMetrics.volume != null) row.volume = symbolMetrics.volume;
         if (symbolMetrics.value != null) row.value = symbolMetrics.value;
-        row.marketCapCr = symbolMetrics.marketCapCr != null ? symbolMetrics.marketCapCr : (fm.marketCapCr != null ? fm.marketCapCr : null);
+        row.marketCapCr =
+          symbolMetrics.marketCapCr != null
+            ? symbolMetrics.marketCapCr
+            : fm.marketCapCr != null
+              ? fm.marketCapCr
+              : null;
         row.pe = fm.pe != null ? fm.pe : null;
-        row.retailHoldingPercent = fm.retailHoldingsPercent != null ? fm.retailHoldingsPercent : null;
+        row.retailHoldingPercent =
+          fm.retailHoldingsPercent != null ? fm.retailHoldingsPercent : null;
         row.patGrowthTtm = fm.patGrowthTtm != null ? fm.patGrowthTtm : null;
-        row.deliveryPercent = symbolMetrics.deliveryPercent != null ? symbolMetrics.deliveryPercent : history.deliveryPercent;
+        row.deliveryPercent =
+          symbolMetrics.deliveryPercent != null
+            ? symbolMetrics.deliveryPercent
+            : history.deliveryPercent;
         row.avgDeliveryPercent30d = history.avgDeliveryPercent30d;
         row.weekChangePercent = history.weekChangePercent;
         row.bidLevels = orderBook.bidLevels;
@@ -247,7 +269,9 @@ const runSavedScan = async (req, res, next) => {
     });
   } catch (err) {
     if (err.code === 'STOCKSCANS_AUTH_REQUIRED') {
-      return res.status(401).json({ success: false, error: 'StockScans authentication required', code: err.code });
+      return res
+        .status(401)
+        .json({ success: false, error: 'StockScans authentication required', code: err.code });
     }
     if (err.code === 'STOCKSCANS_INVALID_SCAN') {
       return res.status(400).json({ success: false, error: err.message });

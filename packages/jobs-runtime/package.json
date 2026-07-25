@@ -20,7 +20,8 @@
     "gainers-scanner": "node gainersScanner.js",
     "insight-validator": "node insightValidator.js",
     "watchlist-insights": "node watchlistInsights.js",
-    "watchlist-updater": "node watchlistUpdater.js"
+    "watchlist-updater": "node watchlistUpdater.js",
+    "dead-code-scanner": "node deadCodeScannerJob.js"
   },
   "dependencies": {
     "@stock/api": "workspace:*",

@@ -32,9 +32,7 @@ let _cache = null;
 function loadCompanyMaster({ forceReload = false } = {}) {
   if (_cache && !forceReload) return _cache;
   if (!fs.existsSync(MASTER_PATH)) {
-    throw new Error(
-      `Company master not found at ${MASTER_PATH}. Run companyMasterSync.js first.`
-    );
+    throw new Error(`Company master not found at ${MASTER_PATH}. Run companyMasterSync.js first.`);
   }
   _cache = JSON.parse(fs.readFileSync(MASTER_PATH, 'utf8'));
 
@@ -57,7 +55,13 @@ function loadCompanyMaster({ forceReload = false } = {}) {
 /** Look up by NSE ticker, e.g. "CEIGALL" -> company record or null. */
 function findByTicker(ticker) {
   const m = loadCompanyMaster();
-  return m._byNseTicker.get(String(ticker || '').toUpperCase().trim()) || null;
+  return (
+    m._byNseTicker.get(
+      String(ticker || '')
+        .toUpperCase()
+        .trim()
+    ) || null
+  );
 }
 
 /** Look up by BSE scrip/exchange_token code, e.g. "500325" -> company record or null. */
@@ -97,4 +101,11 @@ function findInText(text) {
   return null;
 }
 
-module.exports = { loadCompanyMaster, findByTicker, findByScripCode, findInText, normalizeName, MASTER_PATH };
+module.exports = {
+  loadCompanyMaster,
+  findByTicker,
+  findByScripCode,
+  findInText,
+  normalizeName,
+  MASTER_PATH,
+};

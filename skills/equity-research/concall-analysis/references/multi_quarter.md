@@ -1,6 +1,7 @@
 # Multi-Quarter Concall Comparison
 
 Track how management's narrative evolves across 4-8 sequential quarterly calls. The goal is to detect:
+
 - Topics that were prominent in early quarters but quietly disappeared
 - Promises made but never delivered (precursor to `management-credibility-tracker`)
 - Tone shifts from confident to cautious (or vice versa)

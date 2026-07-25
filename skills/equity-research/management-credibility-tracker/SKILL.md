@@ -5,7 +5,7 @@ description: The "Walk-the-Talk" guidance tracker for Indian listed companies �
 
 # Management Credibility Tracker
 
-> "Compare each quarter's results against previous quarter's guidance. +1 for beat/on-track. -1 for miss. Aggregate over 4–8 quarters." — *AI for the Intelligent Investor*, Day 2, p.16
+> "Compare each quarter's results against previous quarter's guidance. +1 for beat/on-track. -1 for miss. Aggregate over 4–8 quarters." — _AI for the Intelligent Investor_, Day 2, p.16
 
 This skill encodes the Walk-the-Talk system from Day 2 — the one that produced the documented case studies on Mayur (+2), Hikal (-1), Navin Fluorine (+3), and Gravita (0). The output is a credibility score that goes directly into the investment verdict.
 
@@ -93,18 +93,19 @@ bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "data/manag
 
 These are the reference patterns from Day 2. Every credibility output should declare which pattern (if any) the company most resembles.
 
-| Company | Pattern | Score | Action implied |
-|---|---|---|---|
-| Mayur Uniquoters | Under-promise / over-deliver | +2 | HOLD (high quality, accumulate on dips) |
-| Navin Fluorine | Multiple-driver outperformance | +3 | HOLD/BUY (premium-quality compounder) |
-| Hikal | Over-optimistic guidance, deteriorating language | -1 | WATCH/RED |
-| Gravita India | Mixed delivery, vision-2028 nuance | 0 | MONITOR |
+| Company          | Pattern                                          | Score | Action implied                          |
+| ---------------- | ------------------------------------------------ | ----- | --------------------------------------- |
+| Mayur Uniquoters | Under-promise / over-deliver                     | +2    | HOLD (high quality, accumulate on dips) |
+| Navin Fluorine   | Multiple-driver outperformance                   | +3    | HOLD/BUY (premium-quality compounder)   |
+| Hikal            | Over-optimistic guidance, deteriorating language | -1    | WATCH/RED                               |
+| Gravita India    | Mixed delivery, vision-2028 nuance               | 0     | MONITOR                                 |
 
 The `case_study_match` field in the output schema names the closest reference pattern.
 
 ## HTML widget structure
 
 The widget is a single self-contained HTML file with:
+
 - Top banner: company name + score badge (color-coded green/yellow/red)
 - KPI strip: tracking window, promises closed, beat rate, most-missed metric
 - Color-coded scoreboard table: one row per promise, sortable by quarter / metric type / status
@@ -112,6 +113,7 @@ The widget is a single self-contained HTML file with:
 - Interpretation paragraph + case-study match callout
 
 Strict rules from `_shared/conventions.md` §5:
+
 - Single self-contained file, one `<style>`, one `<script>`
 - ASCII hyphen-minus for negatives in JS
 - CSS variables in both `:root` and `[data-theme="dark"]`
@@ -120,13 +122,16 @@ Strict rules from `_shared/conventions.md` §5:
 ## Cross-skill integration
 
 When called from `equity-research-deepdive`:
+
 - Run in **schema mode**: don't render the widget; return the dict
 - Deepdive consumes `score`, `rating`, `interpretation`, `case_study_match` to populate §9
 
 When called from `equity-research-master`:
+
 - Schema mode; the master orchestrates the rendering into the master HTML dashboard
 
 When called standalone:
+
 - Render both HTML widget AND optionally a PDF via the parameter `output_format="both"`
 
 ## Pitfalls

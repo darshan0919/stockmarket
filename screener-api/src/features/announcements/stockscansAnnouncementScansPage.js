@@ -991,20 +991,8 @@ async function fetchCompanyAnnouncements(params = {}) {
 }
 
 module.exports = {
-
-
-
-
   currentQuarterDate,
   normalizeScan,
-
-
-
-
-
-
-
-
 
   runAnnouncementScan,
   fetchAnnouncementScanMetadata,

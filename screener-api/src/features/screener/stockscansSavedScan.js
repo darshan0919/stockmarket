@@ -290,14 +290,7 @@ async function fetchCompanyIdsFromSavedScanUrl(scanUrlOrId) {
 }
 
 module.exports = {
-
-
-
   escapeRegExp,
-
-
-
-
 
   fetchCompanyIdsFromSavedScanUrl,
 };

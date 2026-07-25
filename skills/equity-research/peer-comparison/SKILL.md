@@ -5,7 +5,7 @@ description: Institutional-grade peer comparison report for 2-6 Indian listed co
 
 # Peer Comparison Report
 
-Institutional-grade side-by-side analysis of 2-6 listed companies in the same sector. The output answers a fund manager's three core questions: *which company is best at execution, which is most attractively priced, and where is the relative-value setup right now*.
+Institutional-grade side-by-side analysis of 2-6 listed companies in the same sector. The output answers a fund manager's three core questions: _which company is best at execution, which is most attractively priced, and where is the relative-value setup right now_.
 
 ## When to use this skill
 
@@ -23,10 +23,12 @@ Follow [`_shared/conventions.md`](../_shared/conventions.md). Especially the cit
 ## Required input
 
 Either:
+
 - A Stockscans peer-comparison URL with 2-6 tickers, OR
 - A list of 2-6 tickers in `EXCH:SYMBOL` format
 
 The user's "Key Pointers" (in their `Peer_Comparison_Prompt` project file) define the four mandatory dimensions:
+
 1. Demand, Order Book, Book-to-Bill
 2. Forward Earnings Projections based on Management Commentary
 3. Cash Flow & Balance Sheet Health
@@ -49,7 +51,7 @@ for T in "${TICKERS[@]}"; do
     SAFE=$(echo "$T" | tr ':' '_')
     DOCS_DIR="$ROOT/$SAFE"
     mkdir -p "$DOCS_DIR"
-    
+
     python3 stock-api/python/fetchers/fetch_documents.py "$T" \
         -t "Annual Report" --last-n 2 -o "$DOCS_DIR" &
     python3 stock-api/python/fetchers/fetch_documents.py "$T" \
@@ -132,9 +134,11 @@ See [`stock-api/src/generators/generatePeerPdf.js`](stock-api/src/generators/gen
 ## Cross-skill integration
 
 When called by `equity-research-deepdive` for §3:
+
 - Schema-only mode (no PDF rendered separately); deepdive integrates the table inline
 
 When called by `equity-research-master`:
+
 - Schema fed into Tab 3 (Industry); tabs render
 
 When `management-credibility-tracker` is run for each company first, the credibility scores feed into Phase 4 Dimension 5.

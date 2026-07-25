@@ -11,12 +11,14 @@ For each case study below: source data, score, what the language pattern looked 
 **Business:** Manufactures artificial leather and synthetic leather products for automotive, footwear, and furnishing.
 
 **What management guided:**
+
 - Export growth: 35–36%
 - 15% revenue growth over next 2 years
 - EBITDA margins: ~24–25%
 - Operating margins to 22% by FY27
 
 **What actually happened (Q3 FY26):**
+
 - PAT: Rs 50.73 Cr, up 66% YoY
 - EBITDA margins: 24–25% ✓ (matched guidance)
 - 9M FY26: 9% revenue, 15% EBITDA, 32% PAT
@@ -35,11 +37,13 @@ For each case study below: source data, score, what the language pattern looked 
 **Business:** Specialty fluorochemicals manufacturer — High-performance Products (HPP), refrigerants, and CDMO services.
 
 **What management guided (Q2 FY26):**
+
 - HPP: continue strong growth trajectory
 - 15,000 MTPA R32 capacity by Q3 FY27
 - AHF plant (Rs 4.5 B capex) commenced
 
 **What actually happened:**
+
 - HPP: 38% YoY growth ✓
 - CDMO: 97% YoY growth ✓ (massive outperformance)
 - Revenue: Rs 8.9 B, up 47.2% YoY
@@ -59,11 +63,13 @@ For each case study below: source data, score, what the language pattern looked 
 **Business:** Pharmaceutical and crop protection chemicals manufacturer with CDMO operations.
 
 **What management guided (Q4 FY25):**
+
 - Pharma business: 12–15% revenue growth
 - Growth driven by CDMO business
 - Expected better H2 performance
 
 **What actually happened:**
+
 - Revenues grew only ~7% YoY — below guidance
 - Pharma growth: only 4% YoY (vs guided 12-15%) — **MISSED**
 - CDMO grew 21% but API de-grew 8%
@@ -81,12 +87,14 @@ For each case study below: source data, score, what the language pattern looked 
 **Business:** Recycling — primarily lead recycling from batteries, aluminum, plastics; expanding into rubber, copper, lithium-ion batteries.
 
 **Vision 2028 guidance:**
+
 - Revenue CAGR: 25%+ FY24–FY28
 - PAT CAGR: 35%+
 - Capacity: 3.34 → 7 lakh MTPA by FY28
 - New verticals: Lithium-ion + rubber by H1 FY26
 
 **What actually happened (Q3 FY26):**
+
 - Revenue: only 9% in 9M ⚠ (vs 25%+ CAGR target)
 - Capacity: 3.40 lakh MTPA — only 1.8% increase from base
 - New verticals: **DELIVERED** ✓
@@ -119,9 +127,9 @@ If multiple patterns partially fit, the company is its own pattern. Note this in
 
 ## What's NOT a pattern match
 
-- A score of +2 alone doesn't mean Mayur — Mayur's signature is also the *language conservatism* and the *under-promise / over-deliver structure*. A company that hit guidance but management was using HIGH-commitment language and aggressive numbers isn't Mayur.
+- A score of +2 alone doesn't mean Mayur — Mayur's signature is also the _language conservatism_ and the _under-promise / over-deliver structure_. A company that hit guidance but management was using HIGH-commitment language and aggressive numbers isn't Mayur.
 - A score of -1 alone doesn't mean Hikal — Hikal's signature is also the language deterioration. A company that missed once but is using stable language might be a one-time event.
-- Always read the *texture* of the misses, not just the count.
+- Always read the _texture_ of the misses, not just the count.
 
 ## Adding new reference patterns
 

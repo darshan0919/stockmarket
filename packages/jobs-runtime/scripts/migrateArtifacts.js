@@ -28,16 +28,21 @@ const ART = /\.(pdf|html|docx|xlsx|csv|md|txt|pptx)$/i;
 const IMG = /\.(png|jpg|jpeg|gif|webp|svg)$/i;
 
 function isTooling(p, base) {
-  return /\/(node_modules|\.claude|skills|references)\//.test(p) ||
-    /SKILL\.md$/i.test(base) || /^SKILL(-[0-9a-f]+)?\.md$/i.test(base) ||
+  return (
+    /\/(node_modules|\.claude|skills|references)\//.test(p) ||
+    /SKILL\.md$/i.test(base) ||
+    /^SKILL(-[0-9a-f]+)?\.md$/i.test(base) ||
     /^(conventions|README|DEPENDENCIES)\.md$/i.test(base) ||
     /_(framework|template|methodology|calibration|rules|taxonomy|schema)\.md$/i.test(base) ||
     // templates/widgets in any extension are scaffolding, not analysis output
-    /(template|widget)\.(html|md|txt|json)$/i.test(base);
+    /(template|widget)\.(html|md|txt|json)$/i.test(base)
+  );
 }
 function isSource(p, base) {
-  return /\/(pead_docs|docs|downloads|source|filings)\//i.test(p) ||
-    /_(Transcript|PPT|Result|AnnualReport)_/i.test(base);
+  return (
+    /\/(pead_docs|docs|downloads|source|filings)\//i.test(p) ||
+    /_(Transcript|PPT|Result|AnnualReport)_/i.test(base)
+  );
 }
 function isAutomatedRender(base) {
   return /^(gainers_email|gainers_no_signal|tweet_signals_email|scanner_out)/i.test(base);
@@ -46,8 +51,9 @@ function isAutomatedRender(base) {
 function walk(d, out) {
   for (const e of fs.readdirSync(d, { withFileTypes: true })) {
     const p = path.join(d, e.name);
-    if (e.isDirectory()) { if (!/node_modules|\.git/.test(e.name)) walk(p, out); }
-    else out.push(p);
+    if (e.isDirectory()) {
+      if (!/node_modules|\.git/.test(e.name)) walk(p, out);
+    } else out.push(p);
   }
 }
 function sha256File(p) {
@@ -66,14 +72,18 @@ function masterTickers() {
     const set = new Set();
     for (const r of arr) if (r.nseTicker) set.add(String(r.nseTicker).toUpperCase());
     return set;
-  } catch (_) { return new Set(); }
+  } catch (_) {
+    return new Set();
+  }
 }
 // Attribute an artifact to companies by FILENAME tokens. A token counts if it is a
 // real master ticker OR it appears in the SOURCE conversation's companyIds (the
 // conversation validates the token without blindly inheriting all its companies —
 // this catches real tickers missing from the incomplete master, e.g. AASTHA).
 function coFromName(base, tickers, convCids = []) {
-  const convTickers = new Set(convCids.filter((c) => c.startsWith('NSE:')).map((c) => c.slice(4).toUpperCase()));
+  const convTickers = new Set(
+    convCids.filter((c) => c.startsWith('NSE:')).map((c) => c.slice(4).toUpperCase())
+  );
   const tokens = base.replace(/\.[^.]+$/, '').split(/[^A-Za-z0-9]+/);
   const hits = new Set();
   for (const t of tokens) {
@@ -99,7 +109,10 @@ function run() {
   const archive = args[args.indexOf('--archive') + 1];
   const dryRun = args.includes('--dry-run');
   const includeSalvage = args.includes('--include-salvage');
-  if (!archive || !fs.existsSync(archive)) { console.error('need --archive <dir>'); process.exit(2); }
+  if (!archive || !fs.existsSync(archive)) {
+    console.error('need --archive <dir>');
+    process.exit(2);
+  }
 
   const convHex = new Map(); // hex8 -> conversation index record
   for (const c of db.find('conversations', {})) {
@@ -111,14 +124,29 @@ function run() {
   const tickers = masterTickers();
   const nowIso = new Date().toISOString();
   const seenHash = existingArtifactHashes();
-  const stats = { stored: 0, referenced: 0, dedup: 0, excludedTooling: 0, excludedAuto: 0, unmappedSkipped: 0, salvaged: 0 };
-  const toStore = []; const toRef = [];
+  const stats = {
+    stored: 0,
+    referenced: 0,
+    dedup: 0,
+    excludedTooling: 0,
+    excludedAuto: 0,
+    unmappedSkipped: 0,
+    salvaged: 0,
+  };
+  const toStore = [];
+  const toRef = [];
 
   for (const p of all) {
     const base = path.basename(p);
     if (!ART.test(p)) continue;
-    if (isTooling(p, base)) { stats.excludedTooling++; continue; }
-    if (isAutomatedRender(base)) { stats.excludedAuto++; continue; }
+    if (isTooling(p, base)) {
+      stats.excludedTooling++;
+      continue;
+    }
+    if (isAutomatedRender(base)) {
+      stats.excludedAuto++;
+      continue;
+    }
 
     const m = p.match(/local_([0-9a-f]{8})/);
     const hex = m && m[1];
@@ -131,8 +159,11 @@ function run() {
     }
     if (!conv) {
       // generated but unmapped → salvage only if flagged (the SOIC PDFs session)
-      if (includeSalvage && /local_598a858c/.test(p)) { toStore.push({ p, base, conv: null, salvage: true }); }
-      else { stats.unmappedSkipped++; }
+      if (includeSalvage && /local_598a858c/.test(p)) {
+        toStore.push({ p, base, conv: null, salvage: true });
+      } else {
+        stats.unmappedSkipped++;
+      }
       continue;
     }
     toStore.push({ p, base, conv });
@@ -143,19 +174,32 @@ function run() {
   // file IS the body, so no reports/<id>.json). Company attributed from FILENAME.
   for (const it of toStore) {
     const hash = sha256File(it.p);
-    if (seenHash.has(hash)) { stats.dedup++; continue; }
+    if (seenHash.has(hash)) {
+      stats.dedup++;
+      continue;
+    }
     seenHash.set(hash, it.base);
     const cid = it.conv ? it.conv.id : 'conv_cowork_598a858c';
     const companyIds = coFromName(it.base, tickers, it.conv ? it.conv.companyIds : []); // filename validated by conv
     const assetName = safeName(`${cid}__${it.base}`);
     const rec = {
       id: `rpt_artifact-migration_${hash.slice(0, 12)}`,
-      creator: 'artifact-migration', type: 'artifact',
+      creator: 'artifact-migration',
+      type: 'artifact',
       date: (it.conv && it.conv.date) || '2026-01-01',
-      creationTime: nowIso, modifiedTime: nowIso,
-      companyIds, sourceConversationId: cid,
+      creationTime: nowIso,
+      modifiedTime: nowIso,
+      companyIds,
+      sourceConversationId: cid,
       summary: `Artifact: ${it.base}`,
-      artifact: { originalName: it.base, assetPath: `assets/${assetName}`, contentHash: hash, sizeBytes: fs.statSync(it.p).size, kind: it.salvage ? 'salvage' : 'generated', ext: path.extname(it.base).slice(1) },
+      artifact: {
+        originalName: it.base,
+        assetPath: `assets/${assetName}`,
+        contentHash: hash,
+        sizeBytes: fs.statSync(it.p).size,
+        kind: it.salvage ? 'salvage' : 'generated',
+        ext: path.extname(it.base).slice(1),
+      },
       body: `assets/${assetName}`,
       contextUsed: [cid],
     };
@@ -164,21 +208,37 @@ function run() {
       fs.copyFileSync(it.p, path.join(db.dataRoot(), 'assets', assetName));
       records.push(rec);
     }
-    if (it.salvage) stats.salvaged++; else stats.stored++;
+    if (it.salvage) stats.salvaged++;
+    else stats.stored++;
   }
   // SOURCE docs → reference only (regenerable). Unique id from conv+filename.
   for (const it of toRef) {
     const cid = it.conv ? it.conv.id : null;
-    if (!cid) { stats.unmappedSkipped++; continue; }
-    const refHash = crypto.createHash('sha256').update(cid + '|' + it.base).digest('hex').slice(0, 12);
+    if (!cid) {
+      stats.unmappedSkipped++;
+      continue;
+    }
+    const refHash = crypto
+      .createHash('sha256')
+      .update(cid + '|' + it.base)
+      .digest('hex')
+      .slice(0, 12);
     records.push({
       id: `rpt_artifact-migration_ref_${refHash}`,
-      creator: 'artifact-migration', type: 'artifact-ref',
+      creator: 'artifact-migration',
+      type: 'artifact-ref',
       date: (it.conv && it.conv.date) || '2026-01-01',
-      creationTime: nowIso, modifiedTime: nowIso,
-      companyIds: coFromName(it.base, tickers, it.conv ? it.conv.companyIds : []), sourceConversationId: cid,
+      creationTime: nowIso,
+      modifiedTime: nowIso,
+      companyIds: coFromName(it.base, tickers, it.conv ? it.conv.companyIds : []),
+      sourceConversationId: cid,
       summary: `Source doc (regenerable via stock-documents-fetcher): ${it.base}`,
-      artifact: { originalName: it.base, regenerable: true, source: 'stock-documents-fetcher', kind: 'source' },
+      artifact: {
+        originalName: it.base,
+        regenerable: true,
+        source: 'stock-documents-fetcher',
+        kind: 'source',
+      },
       contextUsed: [cid],
     });
     stats.referenced++;
@@ -191,7 +251,12 @@ function run() {
   console.log('[artifact-migration]', JSON.stringify(stats, null, 0));
   if (args.includes('--verbose')) {
     console.log('\nSTORE (bytes → assets):');
-    for (const it of toStore) console.log('  •', it.base, it.conv ? `[${(it.conv.title||'').slice(0,28)}]` : '[salvage]');
+    for (const it of toStore)
+      console.log(
+        '  •',
+        it.base,
+        it.conv ? `[${(it.conv.title || '').slice(0, 28)}]` : '[salvage]'
+      );
     console.log('\nREFERENCE (source docs, re-fetchable):', toRef.length);
   }
   if (dryRun) console.log('(dry-run — nothing written)');

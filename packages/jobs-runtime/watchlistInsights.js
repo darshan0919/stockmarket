@@ -458,9 +458,16 @@ async function logIgnoredAnnouncement(ann, matchedKw) {
 // (not re-hardcoded per call site) so a one-off catch-up run never requires a new script.
 const DEFAULT_WINDOW_HOURS = 24;
 
-async function gatherInwindowRaw(client = stockscans, now = new Date(), watchlistIds, windowHours = DEFAULT_WINDOW_HOURS) {
+async function gatherInwindowRaw(
+  client = stockscans,
+  now = new Date(),
+  watchlistIds,
+  windowHours = DEFAULT_WINDOW_HOURS
+) {
   if (!Array.isArray(watchlistIds) || !watchlistIds.length) {
-    throw new Error('watchlistIds required: gatherInwindowRaw(client, now, watchlistIds, windowHours?)');
+    throw new Error(
+      'watchlistIds required: gatherInwindowRaw(client, now, watchlistIds, windowHours?)'
+    );
   }
   try {
     await client.validateAuth();
@@ -681,7 +688,7 @@ async function collectDigest(client, watchlistIds, windowHours = DEFAULT_WINDOW_
   return digest;
 }
 
-function buildDigestHtml(digest, windowHours = DEFAULT_WINDOW_HOURS) {
+function buildDigestHtml(digest, windowHours = DEFAULT_WINDOW_HOURS, watchlistIds = []) {
   const dateStr = ist.nowIstDate();
   const buckets = { high: [], medium: [], low: [] };
   for (const d of digest) {
@@ -696,8 +703,15 @@ function buildDigestHtml(digest, windowHours = DEFAULT_WINDOW_HOURS) {
   ];
   const nCompanies = new Set(digest.map((d) => d.companyId)).size;
   const windowLabel = windowHours === 24 ? 'last 24h' : `last ${windowHours}h`;
+  const watchlistLinks = watchlistIds.length
+    ? watchlistIds
+        .map(
+          (id, i) =>
+            `<a href="https://www.stockscans.in/watchlist/${id}" style="color:#999;text-decoration:none">Watchlist ${i + 1}</a>`
+        )
+        .join(' &nbsp;·&nbsp; ')
+    : '';
   const parts = [
-    `<h2>📊 Watchlist Insights — ${dateStr}</h2>`,
     `<p><b>${digest.length} announcements across ${nCompanies} companies (${windowLabel}).</b></p>`,
   ];
   for (const [key, heading, color] of sections) {
@@ -719,6 +733,11 @@ function buildDigestHtml(digest, windowHours = DEFAULT_WINDOW_HOURS) {
     '<p style="color:#999;font-size:12px">Routine announcements suppressed. ' +
       'Insights for previously-seen announcements are read from company_notes.json.</p>'
   );
+  if (watchlistLinks) {
+    parts.push(
+      `<p style="font:11px Arial;color:#999;margin:16px 0 0;border-top:1px solid #eee;padding-top:8px">Source: ${watchlistLinks}</p>`
+    );
+  }
   return parts.join('\n');
 }
 
@@ -735,7 +754,7 @@ async function cmdSendDigest(watchlistIdsArg, client = stockscans) {
   const missing = digest.filter((d) => d.needsInsight).map((d) => d.announcementId);
   const windowLabel = windowHours === 24 ? '' : ` (${windowHours}h)`;
   const status = await sendHtml(
-    buildDigestHtml(digest, windowHours),
+    buildDigestHtml(digest, windowHours, watchlistIds),
     `📊 Watchlist Insights${windowLabel} — ${ist.nowIstDate()}`
   );
   Object.assign(status, {

@@ -3,7 +3,7 @@
 
 /**
  * Documentation Generator
- * 
+ *
  * Generates documentation files from marketplace data using lightweight templates.
  * Port of `python/utils/doc_generator.py`.
  */
@@ -60,27 +60,33 @@ class SimpleTemplate {
     let result = this.template;
 
     // Handle nested loops with .items(): {% for key, value in dict.items() %}...{% endfor %}
-    const itemsPattern = /\{%\s*for\s+(\w+)\s*,\s*(\w+)\s+in\s+([\w.]+)\.items\(\)\s*%\}(.*?)\{%\s*endfor\s*%\}/gs;
+    const itemsPattern =
+      /\{%\s*for\s+(\w+)\s*,\s*(\w+)\s+in\s+([\w.]+)\.items\(\)\s*%\}(.*?)\{%\s*endfor\s*%\}/gs;
     result = result.replace(itemsPattern, (match, keyVar, valueVar, dictName, loopBody) => {
       const dictObj = this.resolveValue(dictName, context);
       if (!dictObj || typeof dictObj !== 'object') return '';
 
-      return Object.entries(dictObj).map(([key, value]) => {
-        const loopContext = { ...context, [keyVar]: key, [valueVar]: value };
-        return new SimpleTemplate(loopBody).render(loopContext);
-      }).join('');
+      return Object.entries(dictObj)
+        .map(([key, value]) => {
+          const loopContext = { ...context, [keyVar]: key, [valueVar]: value };
+          return new SimpleTemplate(loopBody).render(loopContext);
+        })
+        .join('');
     });
 
     // Handle loops with .keys(): {% for key in dict.keys() %}...{% endfor %}
-    const keysPattern = /\{%\s*for\s+(\w+)\s+in\s+([\w.]+)\.keys\(\)\s*%\}(.*?)\{%\s*endfor\s*%\}/gs;
+    const keysPattern =
+      /\{%\s*for\s+(\w+)\s+in\s+([\w.]+)\.keys\(\)\s*%\}(.*?)\{%\s*endfor\s*%\}/gs;
     result = result.replace(keysPattern, (match, varName, dictName, loopBody) => {
       const dictObj = this.resolveValue(dictName, context);
       if (!dictObj || typeof dictObj !== 'object') return '';
 
-      return Object.keys(dictObj).map((key) => {
-        const loopContext = { ...context, [varName]: key };
-        return new SimpleTemplate(loopBody).render(loopContext);
-      }).join('');
+      return Object.keys(dictObj)
+        .map((key) => {
+          const loopContext = { ...context, [varName]: key };
+          return new SimpleTemplate(loopBody).render(loopContext);
+        })
+        .join('');
     });
 
     // Handle regular loops: {% for item in items %}...{% endfor %}
@@ -93,15 +99,17 @@ class SimpleTemplate {
         items = Object.values(items);
       }
 
-      return items.map((item) => {
-        const loopContext = { ...context, [varName]: item };
-        if (item && typeof item === 'object') {
-          for (const [k, v] of Object.entries(item)) {
-            loopContext[`${varName}.${k}`] = v;
+      return items
+        .map((item) => {
+          const loopContext = { ...context, [varName]: item };
+          if (item && typeof item === 'object') {
+            for (const [k, v] of Object.entries(item)) {
+              loopContext[`${varName}.${k}`] = v;
+            }
           }
-        }
-        return new SimpleTemplate(loopBody).render(loopContext);
-      }).join('');
+          return new SimpleTemplate(loopBody).render(loopContext);
+        })
+        .join('');
     });
 
     // Handle conditionals with comparison: {% if var1 == var2 %}...{% endif %}
@@ -116,7 +124,9 @@ class SimpleTemplate {
     const ifElsePattern = /\{%\s*if\s+([\w.]+)\s*%\}(.*?)\{%\s*else\s*%\}(.*?)\{%\s*endif\s*%\}/gs;
     result = result.replace(ifElsePattern, (match, condition, trueBody, falseBody) => {
       const condVal = this.resolveValue(condition, context);
-      return condVal ? new SimpleTemplate(trueBody).render(context) : new SimpleTemplate(falseBody).render(context);
+      return condVal
+        ? new SimpleTemplate(trueBody).render(context)
+        : new SimpleTemplate(falseBody).render(context);
     });
 
     // Handle simple conditionals: {% if condition %}...{% endif %}
@@ -142,7 +152,11 @@ class SimpleTemplate {
 }
 
 class DocGenerator {
-  constructor(marketplacePath = '.claude-plugin/marketplace.json', templatesDir = 'plugins/claude-plugin/skills/documentation-update/assets', outputDir = 'docs') {
+  constructor(
+    marketplacePath = '.claude-plugin/marketplace.json',
+    templatesDir = 'plugins/claude-plugin/skills/documentation-update/assets',
+    outputDir = 'docs'
+  ) {
     this.marketplacePath = path.resolve(marketplacePath);
     this.templatesDir = path.resolve(templatesDir);
     this.outputDir = path.resolve(outputDir);
@@ -162,10 +176,10 @@ class DocGenerator {
       const content = fs.readFileSync(filePath, 'utf8');
       const match = content.match(/^---\s*\n([\s\S]*?)\n---\s*\n/);
       if (!match) return {};
-      
+
       const frontmatterText = match[1];
       const frontmatter = {};
-      
+
       for (const line of frontmatterText.split('\n')) {
         const colonIndex = line.indexOf(':');
         if (colonIndex !== -1) {
@@ -282,10 +296,10 @@ class DocGenerator {
     const context = this.buildContext();
 
     let docsToGenerate = {
-      'agents': 'agents.md',
+      agents: 'agents.md',
       'agent-skills': 'agent-skills.md',
-      'plugins': 'plugins.md',
-      'usage': 'usage.md',
+      plugins: 'plugins.md',
+      usage: 'usage.md',
     };
 
     if (specificFile) {
@@ -324,14 +338,14 @@ function main() {
     templates: 'plugins/claude-plugin/skills/documentation-update/assets',
     output: 'docs',
     file: null,
-    dryRun: false
+    dryRun: false,
   };
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--marketplace' && args[i+1]) options.marketplace = args[++i];
-    else if (args[i] === '--templates' && args[i+1]) options.templates = args[++i];
-    else if (args[i] === '--output' && args[i+1]) options.output = args[++i];
-    else if (args[i] === '--file' && args[i+1]) options.file = args[++i];
+    if (args[i] === '--marketplace' && args[i + 1]) options.marketplace = args[++i];
+    else if (args[i] === '--templates' && args[i + 1]) options.templates = args[++i];
+    else if (args[i] === '--output' && args[i + 1]) options.output = args[++i];
+    else if (args[i] === '--file' && args[i + 1]) options.file = args[++i];
     else if (args[i] === '--dry-run') options.dryRun = true;
   }
 

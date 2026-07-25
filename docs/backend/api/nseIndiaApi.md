@@ -108,16 +108,16 @@ const quote = await getQuoteEquity('RELIANCE');
 
 ## NSE API Endpoints Used
 
-| Endpoint | Helper |
-|----------|--------|
-| `/search/autocomplete` | `searchAutocomplete` |
-| `/quote-equity` | `getQuoteEquity` |
-| `/corporate-announcements` | `getCorporateAnnouncements` |
-| `/corporates-financial-results` | `getCorporatesFinancialResults` |
-| `/integrated-filing-results` | `getIntegratedFilingResults` |
-| `/event-calendar` | `upcomingResults` |
-| `/historicalOR/generateSecurityWiseHistoricalData` | `getPriceVolumeDeliverable` |
-| `/NextApi/apiClient/GetQuoteApi` | `getQuoteApi` |
+| Endpoint                                           | Helper                          |
+| -------------------------------------------------- | ------------------------------- |
+| `/search/autocomplete`                             | `searchAutocomplete`            |
+| `/quote-equity`                                    | `getQuoteEquity`                |
+| `/corporate-announcements`                         | `getCorporateAnnouncements`     |
+| `/corporates-financial-results`                    | `getCorporatesFinancialResults` |
+| `/integrated-filing-results`                       | `getIntegratedFilingResults`    |
+| `/event-calendar`                                  | `upcomingResults`               |
+| `/historicalOR/generateSecurityWiseHistoricalData` | `getPriceVolumeDeliverable`     |
+| `/NextApi/apiClient/GetQuoteApi`                   | `getQuoteApi`                   |
 
 ## Related Documentation
 

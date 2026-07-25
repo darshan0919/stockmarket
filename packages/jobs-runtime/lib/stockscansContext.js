@@ -63,7 +63,10 @@ function writeCache(companyId, bundle) {
  * @param {Object} [opts.client=stockscans] - injectable for tests
  * @returns {Promise<{companyId, fetchedAt, fromCache, growthCatalysts, businessOverview, concallNotes, errors}>}
  */
-async function fetchStockscansContext(companyId, { ttlDays = DEFAULT_TTL_DAYS, forceRefresh = false, client = stockscans } = {}) {
+async function fetchStockscansContext(
+  companyId,
+  { ttlDays = DEFAULT_TTL_DAYS, forceRefresh = false, client = stockscans } = {}
+) {
   if (!forceRefresh) {
     const cached = readCache(companyId, ttlDays);
     if (cached) return { ...cached, fromCache: true };
@@ -80,28 +83,55 @@ async function fetchStockscansContext(companyId, { ttlDays = DEFAULT_TTL_DAYS, f
   };
 
   await Promise.all([
-    client.growthCatalysts(companyId)
+    client
+      .growthCatalysts(companyId)
       .then((r) => {
         // Stockscans returns HTTP 200 with a null finalReport for unrecognized
         // companyIds rather than a 4xx — treat an empty report as a soft
         // failure too, not a successful-but-empty result.
-        if (!r || !r.finalReport) { errors.push({ source: 'growth-catalysts', message: 'empty finalReport (unrecognized companyId or not covered)' }); return; }
+        if (!r || !r.finalReport) {
+          errors.push({
+            source: 'growth-catalysts',
+            message: 'empty finalReport (unrecognized companyId or not covered)',
+          });
+          return;
+        }
         bundle.growthCatalysts = { finalReport: r.finalReport, dateLabel: r.dateLabel, toc: r.toc };
       })
       .catch((e) => errors.push({ source: 'growth-catalysts', message: e.message })),
 
-    client.businessOverview(companyId)
+    client
+      .businessOverview(companyId)
       .then((r) => {
-        if (!r || !r.finalReport) { errors.push({ source: 'business-overview', message: 'empty finalReport (unrecognized companyId or not covered)' }); return; }
-        bundle.businessOverview = { finalReport: r.finalReport, dateLabel: r.dateLabel, toc: r.toc };
+        if (!r || !r.finalReport) {
+          errors.push({
+            source: 'business-overview',
+            message: 'empty finalReport (unrecognized companyId or not covered)',
+          });
+          return;
+        }
+        bundle.businessOverview = {
+          finalReport: r.finalReport,
+          dateLabel: r.dateLabel,
+          toc: r.toc,
+        };
       })
       .catch((e) => errors.push({ source: 'business-overview', message: e.message })),
 
-    client.latestTranscript(companyId)
+    client
+      .latestTranscript(companyId)
       .then(async (t) => {
-        if (!t) { errors.push({ source: 'concall-notes', message: 'no Transcript document on file' }); return; }
+        if (!t) {
+          errors.push({ source: 'concall-notes', message: 'no Transcript document on file' });
+          return;
+        }
         const cn = await client.concallNotes(companyId, t.ssUrl);
-        bundle.concallNotes = { finalReport: cn.finalReport, date: cn.date, companyName: cn.companyName, sourceSsUrl: t.ssUrl };
+        bundle.concallNotes = {
+          finalReport: cn.finalReport,
+          date: cn.date,
+          companyName: cn.companyName,
+          sourceSsUrl: t.ssUrl,
+        };
       })
       .catch((e) => errors.push({ source: 'concall-notes', message: e.message })),
   ]);

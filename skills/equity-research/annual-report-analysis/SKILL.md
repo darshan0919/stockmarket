@@ -29,7 +29,7 @@ cite the AR section/page:
 3. **Related-party transactions** — table: Counterparty | Nature | ₹ Cr | % of revenue |
    Outstanding. Flag new counterparties, growing quantum, or changed nature YoY.
 4. **Contingent liabilities** — total ₹ Cr, % of net worth (flag if >10%), items growing
-   >50% YoY.
+   > 50% YoY.
 5. **Miscellaneous expenses** — as % of revenue (flag if >3% of sales) and of other expenses.
 6. **Capex** — future plans AND commercialisation of past capex (CWIP ageing: anything
    stuck >2 years without capitalisation).

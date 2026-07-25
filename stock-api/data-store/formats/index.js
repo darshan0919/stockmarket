@@ -15,7 +15,9 @@ async function csvToParquet(inputPath, outputPath) {
   try {
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
     // Use COPY to write parquet
-    await conn.run(`COPY (SELECT * FROM read_csv_auto('${inputPath}')) TO '${outputPath}' (FORMAT PARQUET)`);
+    await conn.run(
+      `COPY (SELECT * FROM read_csv_auto('${inputPath}')) TO '${outputPath}' (FORMAT PARQUET)`
+    );
   } finally {
     conn.close();
     db.close();
@@ -26,7 +28,9 @@ async function jsonToParquet(inputPath, outputPath) {
   const { db, conn } = await getDb();
   try {
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-    await conn.run(`COPY (SELECT * FROM read_json_auto('${inputPath}')) TO '${outputPath}' (FORMAT PARQUET)`);
+    await conn.run(
+      `COPY (SELECT * FROM read_json_auto('${inputPath}')) TO '${outputPath}' (FORMAT PARQUET)`
+    );
   } finally {
     conn.close();
     db.close();
@@ -56,5 +60,5 @@ async function readAny(inputPath) {
 module.exports = {
   csvToParquet,
   jsonToParquet,
-  readAny
+  readAny,
 };

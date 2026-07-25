@@ -18,21 +18,27 @@
 ### Backend API Tests (Already Verified ✅)
 
 #### Test 1: Basic Search
+
 ```bash
 curl 'http://localhost:5000/api/stocks/search?q=reliance&page=1&limit=5'
 ```
+
 **Expected Result**: Returns RELIANCE stock with fallback flag
 
 #### Test 2: Pagination - Page 1
+
 ```bash
 curl 'http://localhost:5000/api/stocks/search?q=bank&page=1&limit=3'
 ```
+
 **Expected Result**: Returns 3 of 5 bank stocks (HDFC, ICICI, SBI)
 
 #### Test 3: Pagination - Page 2
+
 ```bash
 curl 'http://localhost:5000/api/stocks/search?q=bank&page=2&limit=3'
 ```
+
 **Expected Result**: Returns 2 remaining bank stocks (KOTAK, AXIS)
 
 ---
@@ -40,10 +46,12 @@ curl 'http://localhost:5000/api/stocks/search?q=bank&page=2&limit=3'
 ### Frontend UI Tests (Manual)
 
 **Application URLs:**
+
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000/api
 
 #### Test Scenario 1: Basic Search
+
 1. Open http://localhost:3000
 2. Click in the search bar
 3. Type "reliance"
@@ -54,6 +62,7 @@ curl 'http://localhost:5000/api/stocks/search?q=bank&page=2&limit=3'
    - Result is clickable
 
 #### Test Scenario 2: Pagination
+
 1. Search for "bank" (returns 5 results)
 2. **Verify:**
    - First 10 results displayed
@@ -65,6 +74,7 @@ curl 'http://localhost:5000/api/stocks/search?q=bank&page=2&limit=3'
    - Button updates or disappears when all loaded
 
 #### Test Scenario 3: Keyboard Navigation
+
 1. Search for "bank"
 2. Press **Arrow Down** key
 3. **Verify:** First result highlights in blue
@@ -76,22 +86,26 @@ curl 'http://localhost:5000/api/stocks/search?q=bank&page=2&limit=3'
 9. **Verify:** Navigates to stock details page
 
 #### Test Scenario 4: Search Highlighting
+
 1. Search for "bank"
 2. **Verify:**
    - "Bank" text in company names is highlighted in yellow
    - Example: "HDFC **Bank** Ltd"
 
 #### Test Scenario 5: Click Outside to Close
+
 1. Search for any stock
 2. Click anywhere outside the dropdown
 3. **Verify:** Dropdown closes
 
 #### Test Scenario 6: Escape Key
+
 1. Search for any stock
 2. Press **Escape** key
 3. **Verify:** Dropdown closes
 
 #### Test Scenario 7: Attribution
+
 1. Search for any stock
 2. Scroll to bottom of dropdown
 3. **Verify:** "Powered by StockScans" link is visible
@@ -101,21 +115,23 @@ curl 'http://localhost:5000/api/stocks/search?q=bank&page=2&limit=3'
 ## 📊 Test Results
 
 ### Backend Tests
-| Test | Status | Notes |
-|------|--------|-------|
-| Basic Search | ✅ PASS | Returns 1 result for "reliance" |
-| Pagination Page 1 | ✅ PASS | Returns 3 of 5 results |
-| Pagination Page 2 | ✅ PASS | Returns remaining 2 results |
+
+| Test               | Status  | Notes                                     |
+| ------------------ | ------- | ----------------------------------------- |
+| Basic Search       | ✅ PASS | Returns 1 result for "reliance"           |
+| Pagination Page 1  | ✅ PASS | Returns 3 of 5 results                    |
+| Pagination Page 2  | ✅ PASS | Returns remaining 2 results               |
 | Fallback Mechanism | ✅ PASS | Uses local DB when StockScans unavailable |
 
 ### Frontend Tests (To Be Manually Verified)
-| Test | Status | Instructions |
-|------|--------|--------------|
-| Search Dropdown | ⏳ TODO | Open app and search |
-| Keyboard Navigation | ⏳ TODO | Use arrow keys |
-| Pagination UI | ⏳ TODO | Search "bank" and click "Show next" |
-| Highlighting | ⏳ TODO | Verify yellow highlights |
-| Attribution Link | ⏳ TODO | Check footer in dropdown |
+
+| Test                | Status  | Instructions                        |
+| ------------------- | ------- | ----------------------------------- |
+| Search Dropdown     | ⏳ TODO | Open app and search                 |
+| Keyboard Navigation | ⏳ TODO | Use arrow keys                      |
+| Pagination UI       | ⏳ TODO | Search "bank" and click "Show next" |
+| Highlighting        | ⏳ TODO | Verify yellow highlights            |
+| Attribution Link    | ⏳ TODO | Check footer in dropdown            |
 
 ---
 
@@ -139,6 +155,7 @@ curl 'http://localhost:5000/api/stocks/search?q=bank&page=2&limit=3'
 ```
 
 ### Response Format (API)
+
 ```json
 {
   "success": true,
@@ -178,6 +195,7 @@ curl 'http://localhost:5000/api/stocks/search?q=bank&page=2&limit=3'
 ## 🔄 Next Steps
 
 ### For You to Test:
+
 1. ✅ Open http://localhost:3000 in your browser
 2. ✅ Try searching for different stocks
 3. ✅ Test keyboard navigation
@@ -185,6 +203,7 @@ curl 'http://localhost:5000/api/stocks/search?q=bank&page=2&limit=3'
 5. ✅ Verify the UI matches the expected design
 
 ### When StockScans API Becomes Available:
+
 1. No code changes needed
 2. API will automatically start using StockScans
 3. Prices and change % will display automatically
@@ -195,7 +214,7 @@ curl 'http://localhost:5000/api/stocks/search?q=bank&page=2&limit=3'
 ## 📝 Files Modified
 
 1. `backend/controllers/stockController.js` - Search API with StockScans integration
-2. `frontend/lib/api.js` - API client with pagination support  
+2. `frontend/lib/api.js` - API client with pagination support
 3. `frontend/components/common/SearchBar.js` - Enhanced UI with all new features
 
 ---
@@ -203,6 +222,7 @@ curl 'http://localhost:5000/api/stocks/search?q=bank&page=2&limit=3'
 ## 🎨 UI Features Summary
 
 ✅ **Implemented:**
+
 - Real-time search with debounce
 - Paginated results (10 per page)
 - "Load more" button
@@ -221,4 +241,3 @@ curl 'http://localhost:5000/api/stocks/search?q=bank&page=2&limit=3'
 **Ready for testing! 🚀**
 
 Open http://localhost:3000 and start searching!
-

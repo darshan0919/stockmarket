@@ -1,6 +1,8 @@
 'use strict';
 
-const __os=require('os'),__fs=require('fs'),__path=require('path');
+const __os = require('os'),
+  __fs = require('fs'),
+  __path = require('path');
 process.env.DATA_V2_DIR = __fs.mkdtempSync(__path.join(__os.tmpdir(), 'v2test-'));
 
 const os = require('os');
@@ -74,7 +76,11 @@ describe('applyQualityFilters', () => {
     const { passed, excluded } = g.applyQualityFilters(gainers, deliveryMap);
     expect(passed.map((x) => x.ticker)).toEqual(['NSE:GOOD']);
     expect(excluded.find((x) => x.ticker === 'NSE:SMALL').exclusion_reasons[0]).toMatch(/mcap/);
-    expect(excluded.find((x) => x.ticker === 'NSE:RETAIL').exclusion_reasons.some((r) => /retail_holding/.test(r))).toBe(true);
+    expect(
+      excluded
+        .find((x) => x.ticker === 'NSE:RETAIL')
+        .exclusion_reasons.some((r) => /retail_holding/.test(r))
+    ).toBe(true);
   });
 });
 
@@ -90,7 +96,11 @@ describe('delivery derivations match Python formulas', () => {
     expect(d.high_delivery).toBe(true);
   });
   test('BSE: deliverableQty direct; value = delivQty*close/1e7', () => {
-    const d = g.deriveBseDelivery({ deliveryPct: 40, qtyTraded: 200000, deliverableQty: 80000 }, 500, '500325');
+    const d = g.deriveBseDelivery(
+      { deliveryPct: 40, qtyTraded: 200000, deliverableQty: 80000 },
+      500,
+      '500325'
+    );
     expect(d.deliv_qty).toBe(80000);
     expect(d.deliv_value_cr).toBe(4); // 80000*500/1e7
     expect(d.high_delivery).toBe(false);
@@ -101,10 +111,18 @@ describe('main() orchestration (mocked clients)', () => {
   test('produces schema 2.0, filters, enriches, writes file', async () => {
     const runScan = jest.fn(async (payload) => {
       if (payload.ratiosType === 'Ratios') {
-        return { table: [['companyId', 'Retail Holdings'], ['NSE:GOOD', '20'], ['NSE:SMALL', '10']] };
+        return {
+          table: [
+            ['companyId', 'Retail Holdings'],
+            ['NSE:GOOD', '20'],
+            ['NSE:SMALL', '10'],
+          ],
+        };
       }
       if (payload.scan.industry && payload.scan.industry.length) {
-        return { companies: [{ companyId: 'NSE:GOOD', 'Returns 1D': 3, 'Market Capitalization': 1000 }] };
+        return {
+          companies: [{ companyId: 'NSE:GOOD', 'Returns 1D': 3, 'Market Capitalization': 1000 }],
+        };
       }
       return {
         table: [
@@ -120,7 +138,11 @@ describe('main() orchestration (mocked clients)', () => {
       scanAnnouncements: jest.fn(async () => ({ announcements: [] })),
       prices: jest.fn(async () => [['2026-06-26', 190, 205, 188, 200, 120000]]),
     };
-    const nse = { getSymbolData: jest.fn(async () => ({ tradeInfo: { deliveryToTradedQuantity: 60, totalTradedVolume: 1e6, totalTradedValue: 1e10 } })) };
+    const nse = {
+      getSymbolData: jest.fn(async () => ({
+        tradeInfo: { deliveryToTradedQuantity: 60, totalTradedVolume: 1e6, totalTradedValue: 1e10 },
+      })),
+    };
     const bse = { getScripCode: jest.fn(), getSecurityPosition: jest.fn() };
 
     const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gainers-'));
@@ -140,7 +162,12 @@ describe('main() orchestration (mocked clients)', () => {
     expect(out.gainers[0].price_signals.close).toBe(200);
     expect(out.gainers[0].delivery.deliv_per).toBe(60);
     // file written
-    const written = JSON.parse(fs.readFileSync(path.join(process.env.DATA_V2_DIR, 'runs', 'gainers_raw_20260626.json'), 'utf8'));
+    const written = JSON.parse(
+      fs.readFileSync(
+        path.join(process.env.DATA_V2_DIR, 'runs', 'gainers_raw_20260626.json'),
+        'utf8'
+      )
+    );
     expect(written.total_gainers).toBe(1);
   });
 });

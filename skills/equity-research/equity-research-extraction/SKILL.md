@@ -57,13 +57,13 @@ After running, each folder will also contain a `manifest.json`. Use the manifest
 
 ## Outputs (use actual NSE ticker)
 
-| File | Source folder |
-|---|---|
-| `[TICKER]_AR_Extracts.txt` | `Annual_Reports/` |
-| `[TICKER]_Concall.txt` | `Concalls/` |
-| `[TICKER]_InvestorPres.txt` | `Investor_Presentations/` |
-| `[TICKER]_RatingReports.txt` | `Credit_Rating_Reports/` |
-| `[TICKER]_Events.txt` | `Events_Announcements/` |
+| File                         | Source folder             |
+| ---------------------------- | ------------------------- |
+| `[TICKER]_AR_Extracts.txt`   | `Annual_Reports/`         |
+| `[TICKER]_Concall.txt`       | `Concalls/`               |
+| `[TICKER]_InvestorPres.txt`  | `Investor_Presentations/` |
+| `[TICKER]_RatingReports.txt` | `Credit_Rating_Reports/`  |
+| `[TICKER]_Events.txt`        | `Events_Announcements/`   |
 
 ## Prompt
 
