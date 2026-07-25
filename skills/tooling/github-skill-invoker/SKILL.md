@@ -41,7 +41,8 @@ https://raw.githubusercontent.com/darshan0919/stockmarket/main/skills/registry.j
 
 Before any `web_fetch`/`curl`/`git clone` against GitHub, check whether the
 stockmarket monorepo is already available locally (mounted Cowork folder or
-workspace checkout, e.g. `/Users/darshan.patel/code/personal/stockmarket`):
+stockmarket monorepo is already available locally (mounted Cowork folder or
+workspace checkout):
 
 - If `skills/**/SKILL.md` for the resolved skill exists locally → `Read` it
   directly. Do the same for `shared` files (Step 5) and reference files
@@ -158,7 +159,7 @@ Follow the SKILL.md instructions exactly, with:
 After the skill has finished executing and generating its output for the user, you MUST log the invocation by running the token usage tracker script:
 
 ```bash
-/Users/darshan.patel/code/personal/stockmarket/scripts/track_invocation.py --name {skill_name} --type skill
+python scripts/track_invocation.py --name {skill_name} --type skill
 ```
 
 (Include `--files /tmp/...` if specific files were heavily read and generated large outputs).

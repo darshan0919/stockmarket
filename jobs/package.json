@@ -15,9 +15,16 @@
     "data:offload": "yarn workspace @stock/jobs-runtime data:offload",
     "ca-digest": "yarn workspace @stock/jobs-runtime ca-digest",
     "deals-digest": "yarn workspace @stock/jobs-runtime deals-digest",
+    "daily-gainers-digest": "yarn workspace @stock/jobs-runtime daily-gainers-digest",
+    "weekly-gainers-digest": "yarn workspace @stock/jobs-runtime weekly-gainers-digest",
+    "near-highs-digest": "yarn workspace @stock/jobs-runtime near-highs-digest",
     "weekly-ppt-insights": "yarn workspace @stock/jobs-runtime weekly-ppt-insights",
     "order-book-digest": "yarn workspace @stock/jobs-runtime order-book-digest",
     "mna-tracker": "yarn workspace @stock/jobs-runtime mna-tracker",
+    "gainers-scanner": "yarn workspace @stock/jobs-runtime gainers-scanner",
+    "insight-validator": "yarn workspace @stock/jobs-runtime insight-validator",
+    "watchlist-insights": "yarn workspace @stock/jobs-runtime watchlist-insights",
+    "watchlist-updater": "yarn workspace @stock/jobs-runtime watchlist-updater",
     "dead-code-scanner": "yarn workspace @stock/jobs-runtime dead-code-scanner"
   }
 }

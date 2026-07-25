@@ -3,7 +3,7 @@ name: conversation-enrichment-stockmarket
 description: Conversation Enrichment — weekly: process all new-or-updated stockmarket chats into notes/reports/prompts
 ---
 
-You are running the Conversation Enrichment job for Darshan's stockmarket project (folder: /Users/darshan.patel/code/personal/stockmarket). Goal: mine already-captured conversations AND their artifacts for reusable knowledge. Read docs/CONVERSATION_CAPTURE_PLAN.md (esp. §1.2 routing and §6a format standard) and skills/tooling/conversation-capture/SKILL.md first. "Database"/"DB" = Google Drive via packages/jobs-runtime/lib/db.js.
+You are running the Conversation Enrichment job for Darshan's stockmarket project (stockmarket monorepo). Goal: mine already-captured conversations AND their artifacts for reusable knowledge. Read docs/CONVERSATION_CAPTURE_PLAN.md (esp. §1.2 routing and §6a format standard) and skills/tooling/conversation-capture/SKILL.md first. "Database"/"DB" = Google Drive via packages/jobs-runtime/lib/db.js.
 
 This job runs WEEKLY, shortly after the weekly-conversation-capture-stockmarket job (which captures new sessions AND re-saves any existing session that gained new turns, flagging it `dirty: true`). Because capture volume is modest week-to-week, this job processes its ENTIRE pending queue in one run — not a small batch.
 

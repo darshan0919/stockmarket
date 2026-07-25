@@ -169,7 +169,7 @@ Automate with cron (optional):
 crontab -e
 
 # Add this line (runs daily at 6 PM)
-0 18 * * * cd /Users/darshan.patel/code/personal/stockmarket/backend && node scripts/updateData.js
+0 18 * * * cd /path/to/stockmarket/screener-api && node scripts/updateData.js
 ```
 
 ## Sample Stocks Included

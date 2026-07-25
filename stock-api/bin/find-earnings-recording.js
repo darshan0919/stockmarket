@@ -5,9 +5,11 @@
  * Step 1-2 of the concall-transcript-extractor workflow (script-first, no LLM).
  *
  * 1. Search the company's corporate announcements for the word "Recording"
- *    (Stockscans announcement-search API). Companies file a short "Recording of
- *    <Company> Earnings Conference Call" announcement within hours of the call,
- *    well before the polished Transcript PDF shows up in the documents API.
+ *    using client.announcements() with client-side keyword filter (the dedicated
+ *    /api/company/announcements/search endpoint returns 404 and is broken).
+ *    Companies file a short "Recording of <Company> Earnings Conference Call"
+ *    announcement within hours of the call, well before the polished Transcript
+ *    PDF shows up in the documents API.
  * 2. Return early with { found: false } if no such announcement exists yet.
  * 3. Resolve the announcement's ssUrl to the full S3 PDF URL and download it
  *    locally so the caller (Claude, reading the PDF) can pull out the actual
@@ -58,17 +60,18 @@ async function findRecordingAnnouncement(
 
   const since = new Date(Date.now() - sinceDays * 86400000);
 
-  // searchAnnouncements is the free-text search endpoint (see
-  // stock-documents-fetcher/references/api_details.md for the sibling
-  // `/announcements` list endpoint this project shape is based on).
-  const result = await c.searchAnnouncements({
-    companyIds: [ticker],
-    query: 'Recording',
-    offset: 0,
-  });
+  // NOTE: searchAnnouncements (/api/company/announcements/search) returns HTTP
+  // 404 in the current Stockscans API. Use client.announcements() instead and
+  // filter client-side for "Recording" in the title/description.
+  const result = await c.announcements([ticker], 0);
 
   const matches = (result.companyAnnouncements || result.announcements || [])
     .filter((a) => a.ssUrl)
+    .filter((a) => {
+      const title = (a.title || a.subject || '').toLowerCase();
+      const desc = (a.description || '').toLowerCase();
+      return title.includes('recording') || desc.includes('recording');
+    })
     .filter((a) => {
       const t = new Date(a.createdAt || a.date);
       return !isNaN(t) ? t >= since : true;

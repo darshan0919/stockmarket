@@ -273,10 +273,10 @@ To automate daily updates, set up a cron job:
 crontab -e
 
 # Add this line to run daily at 6:00 PM IST (legacy updates)
-0 18 * * * cd /Users/darshan.patel/code/personal/stockmarket/backend && node scripts/updateData.js
+0 18 * * * cd /path/to/stockmarket/screener-api && node scripts/updateData.js
 
 # Add this line to run data offloading daily at 8:30 PM (cowork jobs)
-30 20 * * * cd /Users/darshan.patel/code/personal/stockmarket && yarn cowork:data:offload
+30 20 * * * cd /path/to/stockmarket && yarn cowork:data:offload
 ```
 
 ## Available Scripts

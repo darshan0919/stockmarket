@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const PROJECT_ROOT = '/Users/darshan.patel/code/personal/stockmarket';
+const PROJECT_ROOT = path.resolve(__dirname, '..');
 const SCRATCH_DIR =
   '/Users/darshan.patel/.gemini/antigravity/brain/b3891b9a-1382-4ca7-9979-0e969ae76f94/scratch';
 

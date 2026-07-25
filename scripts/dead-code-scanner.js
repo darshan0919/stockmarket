@@ -300,14 +300,14 @@ function updateTasksJson(actionItems, timestamp) {
     }
   });
 
-  // Retain previously existing Dead Code tasks that are marked completed
+  // Retain previously existing Dead Code tasks that are no longer active, marking them as completed: true
   existingTasks.forEach((task) => {
-    if (
-      task.title.startsWith('Dead Code:') &&
-      !activeDeadCodeTitles.has(task.title) &&
-      task.completed
-    ) {
-      updatedTasks.push(task);
+    if (task.title.startsWith('Dead Code:') && !activeDeadCodeTitles.has(task.title)) {
+      updatedTasks.push({
+        ...task,
+        completed: true,
+        updatedAt: timestamp,
+      });
     }
   });
 

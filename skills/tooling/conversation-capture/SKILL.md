@@ -6,8 +6,8 @@ description: Capture a stockmarket chat (and its artifacts) into the DB so resea
 # Conversation Capture
 
 Turns a stockmarket chat into durable, reusable knowledge in the Data Ecosystem v2.
-Design + rationale: [docs/CONVERSATION_CAPTURE_PLAN.md](file:///Users/darshan.patel/code/personal/stockmarket/docs/CONVERSATION_CAPTURE_PLAN.md).
-Data rules are mandatory: [docs/DATA_RULES.md](file:///Users/darshan.patel/code/personal/stockmarket/docs/DATA_RULES.md).
+Design + rationale: [docs/CONVERSATION_CAPTURE_PLAN.md](docs/CONVERSATION_CAPTURE_PLAN.md).
+Data rules are mandatory: [docs/DATA_RULES.md](docs/DATA_RULES.md).
 
 ## What counts (scope)
 

@@ -3,7 +3,7 @@ name: weekly-insight-review-stockmarket
 description: Insight Review & Upgrade — weekly: turn accumulated insights into proposals + keep the DB lean
 ---
 
-You are running the weekly Insight Review & Upgrade cycle for Darshan's stockmarket project (folder: /Users/darshan.patel/code/personal/stockmarket). Purpose: close the loop so accumulated insights become concrete upgrades instead of unused, ever-growing data — AND keep each review small enough to comprehend. Read docs/CONVERSATION_CAPTURE_PLAN.md (§6a, §7-review) and skills/tooling/review-proposals/SKILL.md first. "DB" = Google Drive via packages/jobs-runtime/lib/db.js.
+You are running the weekly Insight Review & Upgrade cycle for Darshan's stockmarket project (stockmarket monorepo). Purpose: close the loop so accumulated insights become concrete upgrades instead of unused, ever-growing data — AND keep each review small enough to comprehend. Read docs/CONVERSATION_CAPTURE_PLAN.md (§6a, §7-review) and skills/tooling/review-proposals/SKILL.md first. "DB" = Google Drive via packages/jobs-runtime/lib/db.js.
 
 GOVERNANCE (critical, unattended job): You may AUTO-APPLY only DB data-hygiene (git-ignored data/ collections). You must NEVER create/edit/delete any git-committed file — nothing under skills/, scripts/, packages/_/lib, docs/, jobs/, registry_.json, tests — and never git add/commit. Every change to code/skills/scheduled-tasks/memory is a PROPOSAL only. Darshan applies approved proposals later via the review-proposals skill (he ticks, Claude edits files, no commit).
 

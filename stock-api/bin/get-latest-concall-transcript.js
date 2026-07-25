@@ -62,7 +62,12 @@ function parseArgs(argv) {
 async function checkStockscansDocuments(client, ticker, yyyymm) {
   const { documents } = await client.documents(ticker);
   const docs = documents || [];
-  const result = docs.find((d) => d.documentType === 'Result' && d.date === yyyymm);
+  // Accept Result OR PPT as evidence that results are out — some companies
+  // (e.g. OneSource) publish their investor PPT on results day while the
+  // standalone Result PDF is indexed by Stockscans with a lag of hours/days.
+  const result = docs.find(
+    (d) => (d.documentType === 'Result' || d.documentType === 'PPT') && d.date === yyyymm
+  );
   const transcript = docs.find((d) => d.documentType === 'Transcript' && d.date === yyyymm);
   return { result, transcript };
 }
@@ -145,7 +150,7 @@ async function main() {
           status: 'results-not-out',
           ticker,
           quarter,
-          note: `No Result filed for ${quarter.fiscalPeriod} FY${quarter.fiscalYear} (${quarter.yyyymm}) yet — stopping here.`,
+          note: `No Result or PPT filed for ${quarter.fiscalPeriod} FY${quarter.fiscalYear} (${quarter.yyyymm}) yet — stopping here.`,
         },
         null,
         2

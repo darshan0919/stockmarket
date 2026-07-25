@@ -6,7 +6,7 @@ description: Drive Sync & Audit — push data/ mirror to Drive (StockMarket/data
 Run this in order. This is an unattended scheduled run — execute autonomously, don't ask questions, and only take the specific actions listed below (no other writes, deletes, code edits, or file moves).
 
 STEP 1 — Push the v2 data mirror (push-only, keeps all local files)
-Run: `cd /Users/darshan.patel/code/personal/stockmarket && yarn workspace @stock/jobs-runtime data:push` (if `yarn` isn't on PATH, use `corepack yarn`; fallback: `node packages/jobs-runtime/scripts/data.js push`).
+Run: `yarn workspace @stock/jobs-runtime data:push` (if `yarn` isn't on PATH, use `corepack yarn`; fallback: `node packages/jobs-runtime/scripts/data.js push`).
 Report the summary line verbatim (uploaded / merged / skipped) and any per-file errors. Push must NEVER delete local files — if the output suggests otherwise, flag it loudly.
 
 STEP 2 — Pull (two-way completeness)
@@ -17,7 +17,7 @@ Goal: every "data-like" file (.json, .jsonl, .csv, .xlsx, .xls, .pdf) must live 
 Scan:
 
 ```
-find /Users/darshan.patel/code/personal/stockmarket \( -iname "*.json" -o -iname "*.jsonl" -o -iname "*.csv" -o -iname "*.xlsx" -o -iname "*.xls" -o -iname "*.pdf" \) \
+find . \( -iname "*.json" -o -iname "*.jsonl" -o -iname "*.csv" -o -iname "*.xlsx" -o -iname "*.xls" -o -iname "*.pdf" \) \
   -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/.next/*" -not -path "*/.yarn/*" \
   -not -path "*/dist/*" -not -path "*/build/*" -not -path "*/coverage/*" -not -path "*/data/*"
 ```

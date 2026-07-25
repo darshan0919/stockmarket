@@ -3,7 +3,7 @@ name: weekly-conversation-capture-stockmarket
 description: Conversation Capture — weekly: store new stockmarket chats into the conversations DB collection
 ---
 
-You are running the weekly Conversation Capture job for Darshan's stockmarket project (folder: /Users/darshan.patel/code/personal/stockmarket). Goal: never lose research context — store every NEW interactive stockmarket chat into the `conversations` DB collection. Design + rules: docs/CONVERSATION_CAPTURE_PLAN.md and skills/tooling/conversation-capture/SKILL.md. "Database"/"DB" = Google Drive via packages/jobs-runtime/lib/db.js (never Mongo).
+You are running the weekly Conversation Capture job for Darshan's stockmarket project (stockmarket monorepo). Goal: never lose research context — store every NEW interactive stockmarket chat into the `conversations` DB collection. Design + rules: docs/CONVERSATION_CAPTURE_PLAN.md and skills/tooling/conversation-capture/SKILL.md. "Database"/"DB" = Google Drive via packages/jobs-runtime/lib/db.js (never Mongo).
 
 GOVERNANCE (critical): This is an unattended job. It must ONLY write DB collections under data/ (git-ignored, mirrored to Drive) via db helpers, plus temp files it cleans up. It must NEVER create, edit, or delete any git-committed file — nothing under skills/, scripts/, packages/_/lib, docs/, jobs/, registry_.json, or tests, and never `git add`/commit. If you conclude some code/skill/doc SHOULD change, do NOT apply it — write a proposal to data/\_proposals/<YYYY-MM-DD>-<slug>.md (git-ignored) and mention it in the run report for Darshan to review.
 
