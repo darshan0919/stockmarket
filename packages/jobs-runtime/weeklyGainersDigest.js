@@ -6,23 +6,26 @@ const { sendHtmlEmail } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
 const { cachePath } = require('./lib/db');
 
-const HEADERS = {
-  'accept': 'application/json',
-  'accept-language': 'en-US,en;q=0.9',
-  'content-type': 'application/json',
-  'cookie': '_ga=GA1.1.923358363.1766992983; authtoken=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3ODQwMzQ3NTUsInVzZXJJZCI6IjY0OGVkZjg5NmU2MzRiOTJiNjUxZjU5NyJ9.UwFNCARbEAdl_eLQ9wwVJ9X7gqdyGfM6-DMdD6MzzG8; lastLayout=7e0f8a1d63c1dacad645ffab; theme=light; _clck=n576cg%5E2%5Eg7o%5E0%5E2189; _ga_6GLNXH796V=GS2.1.s1783858803$o886$g1$t1783862113$j47$l0$h0; _clsk=wdey55%5E1783862114665%5E28%5E1%5Ey.clarity.ms%2Fcollect',
-  'origin': 'https://www.stockscans.in',
-  'priority': 'u=1, i',
-  'referer': 'https://www.stockscans.in/scans/saved/2fe3e39accd614d970a335bc',
-  'sec-ch-ua': '"Not;A=Brand";v="8", "Chromium";v="150", "Google Chrome";v="150"',
-  'sec-ch-ua-mobile': '?0',
-  'sec-ch-ua-platform': '"macOS"',
-  'sec-fetch-dest': 'empty',
-  'sec-fetch-mode': 'cors',
-  'sec-fetch-site': 'same-origin',
-  'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
-  'x-sync-source': 'buyie8y5mrhtgcbs'
-};
+function getHeaders() {
+  const token = (process.env.STOCKSCANS_AUTH_TOKEN || '').trim();
+  return {
+    'accept': 'application/json',
+    'accept-language': 'en-US,en;q=0.9',
+    'content-type': 'application/json',
+    'cookie': `authtoken=${token}`,
+    'origin': 'https://www.stockscans.in',
+    'priority': 'u=1, i',
+    'referer': 'https://www.stockscans.in/scans/saved/2fe3e39accd614d970a335bc',
+    'sec-ch-ua': '"Not;A=Brand";v="8", "Chromium";v="150", "Google Chrome";v="150"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"macOS"',
+    'sec-fetch-dest': 'empty',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-site': 'same-origin',
+    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
+    'x-sync-source': 'buyie8y5mrhtgcbs'
+  };
+}
 
 async function runScan(payload) {
   let allRows = [];
@@ -30,11 +33,17 @@ async function runScan(payload) {
   let offset = 0;
   const limit = 50;
 
+  const authToken = process.env.STOCKSCANS_AUTH_TOKEN;
+  const headers = {
+    ...getHeaders(),
+    ...(authToken ? { cookie: `authtoken=${authToken.trim()}` } : {})
+  };
+
   while (true) {
     payload.offset = offset;
     const res = await fetch('https://www.stockscans.in/api/company/scans/run', {
       method: 'POST',
-      headers: HEADERS,
+      headers: headers,
       body: JSON.stringify(payload)
     });
     

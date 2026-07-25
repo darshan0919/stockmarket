@@ -38,18 +38,15 @@ async function runScan(payload, authToken) {
       headers,
       body: JSON.stringify(payload)
     });
-    
+
     if (!res.ok) throw new Error(`API Error: ${res.status}`);
     const json = await res.json();
     if (!json.table || json.table.length <= 1) break;
-    
     if (!header) header = json.table[0];
     allRows.push(...json.table.slice(1));
-    
     if (offset + limit >= json.total) break;
     offset += limit;
   }
-  
   return { header, rows: allRows };
 }
 
@@ -66,41 +63,41 @@ function tableHtml(title, counts, streakMap) {
 async function main() {
   loadEnv(argValue('--env-file'));
   const noEmail = process.argv.includes('--no-email');
-  
-  const payload = {"ratiosType":"Default","timePeriod":"Latest","scan":{"scanId":"9493efc2c969d602c5dedbe2","scanName":"Near Highs","scanDescription":"Near Highs","industry":[],"index":[],"tags":[],"watchlistIds":[],"filters":[{"left":"52WH Distance","sign":"<","right":"20"},{"left":"52WL Distance","sign":">","right":"50"},{"left":"Close Price","sign":">=","right":"EMA 200D"},{"left":"Volume SMA 50D * SMA 50D","sign":">=","right":"50000000"},{"left":"Market Capitalization","sign":">=","right":"500"},{"left":"Market Capitalization","sign":"<","right":"50000"}],"alertFrequency":null},"watchlistIds":[],"order":"desc","orderBy":"Market Capitalization","offset":0};
-  
+
+  const payload = { "ratiosType": "Default", "timePeriod": "Latest", "scan": { "scanId": "9493efc2c969d602c5dedbe2", "scanName": "Near Highs", "scanDescription": "Near Highs", "industry": [], "index": [], "tags": [], "watchlistIds": [], "filters": [{ "left": "52WH Distance", "sign": "<", "right": "20" }, { "left": "52WL Distance", "sign": ">", "right": "50" }, { "left": "Close Price", "sign": ">=", "right": "EMA 200D" }, { "left": "Volume SMA 50D * SMA 50D", "sign": ">=", "right": "50000000" }, { "left": "Market Capitalization", "sign": ">=", "right": "500" }, { "left": "Market Capitalization", "sign": "<", "right": "50000" }], "alertFrequency": null }, "watchlistIds": [], "order": "desc", "orderBy": "Market Capitalization", "offset": 0 };
+
   const { header, rows } = await runScan(payload, process.env.STOCKSCANS_AUTH_TOKEN);
   if (!header) {
     console.log("No data returned");
     return;
   }
-  
+
   const industryIdx = header.indexOf('Industry');
   const sectorIdx = header.indexOf('Sector');
-  
+
   const industryCounts = {};
   const sectorCounts = {};
-  
+
   for (const r of rows) {
     const ind = r[industryIdx];
     const sec = r[sectorIdx];
     industryCounts[ind] = (industryCounts[ind] || 0) + 1;
     sectorCounts[sec] = (sectorCounts[sec] || 0) + 1;
   }
-  
+
   const target = new Date(Date.now() + (330 + new Date().getTimezoneOffset()) * 60000); // IST Now
   const dd = String(target.getDate()).padStart(2, '0');
   const mm = String(target.getMonth() + 1).padStart(2, '0');
   const dateLabel = [dd, mm, target.getFullYear()].join('-');
   const isoDate = `${target.getFullYear()}-${mm}-${dd}`;
-  
+
   // Streak Logic
   const cacheFile = cachePath('streak_nearHighs.json');
   let cache = { lastRunDate: null, industryStreaks: {}, sectorStreaks: {} };
   if (fs.existsSync(cacheFile)) {
     cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
   }
-  
+
   if (cache.lastRunDate !== isoDate) {
     const newIndStreaks = {};
     const newSecStreaks = {};
@@ -116,16 +113,16 @@ async function main() {
     fs.mkdirSync(require('path').dirname(cacheFile), { recursive: true });
     fs.writeFileSync(cacheFile, JSON.stringify(cache, null, 2));
   }
-  
+
   const sortCounts = (countsMap, streakMap) => {
     return Object.entries(countsMap)
       .map(([name, count]) => ({ name, count, streak: streakMap[name] || 1 }))
       .sort((a, b) => b.count - a.count || b.streak - a.streak);
   };
-  
+
   const industrySorted = sortCounts(industryCounts, cache.industryStreaks);
   const sectorSorted = sortCounts(sectorCounts, cache.sectorStreaks);
-  
+
   const htmlBody = `
 <div style="max-width:860px">
   <h2 style="font-family:Arial;color:#0d1333;margin:0">Near Highs Digest — ${dateLabel}</h2>
@@ -142,7 +139,7 @@ async function main() {
       to: process.env.DEALS_DIGEST_TO || undefined,
     });
   }
-  
+
   console.log(JSON.stringify({
     date: dateLabel,
     totalNearHighs: rows.length,
