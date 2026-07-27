@@ -21,27 +21,36 @@ async function ocrPdf() {
   return ''; // image rasterization path intentionally omitted unless deps are present
 }
 
+/** Fallback: pdftotext CLI (poppler) if present. Returns '' if unavailable/fails. */
+function pdftotextCli(buf) {
+  const tmp = path.join(os.tmpdir(), `wi_${Date.now()}_${Math.random().toString(36).slice(2)}.pdf`);
+  fs.writeFileSync(tmp, buf);
+  try {
+    return execFileSync('pdftotext', [tmp, '-'], { encoding: 'utf8' });
+  } catch {
+    return '';
+  } finally {
+    fs.existsSync(tmp) && fs.unlinkSync(tmp);
+  }
+}
+
 /** Extract text from a normal (text-layer) PDF buffer. */
 async function extractTextLayer(buf) {
   try {
     // eslint-disable-next-line global-require
     const pdfParse = require('pdf-parse');
     const data = await pdfParse(buf);
-    return data.text || '';
+    const text = data.text || '';
+    // pdf-parse can load but still fail at runtime on some pages/environments
+    // (e.g. missing canvas native bindings -> "DOMMatrix is not defined").
+    // Treat a near-empty result the same as a hard failure and try poppler.
+    if (text.trim().length >= 40) return text;
+    const cliText = pdftotextCli(buf);
+    return cliText.trim().length > text.trim().length ? cliText : text;
   } catch (e) {
-    if (e && e.code === 'MODULE_NOT_FOUND') {
-      // Fallback: pdftotext CLI (poppler) if present.
-      const tmp = path.join(os.tmpdir(), `wi_${Date.now()}.pdf`);
-      fs.writeFileSync(tmp, buf);
-      try {
-        return execFileSync('pdftotext', [tmp, '-'], { encoding: 'utf8' });
-      } catch {
-        return '';
-      } finally {
-        fs.existsSync(tmp) && fs.unlinkSync(tmp);
-      }
-    }
-    return '';
+    // Any pdf-parse failure (module missing, native-binding error, etc.) ->
+    // fall back to the pdftotext CLI (poppler) if present.
+    return pdftotextCli(buf);
   }
 }
 

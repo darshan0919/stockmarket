@@ -119,8 +119,12 @@ async function main() {
     return;
   }
 
-  const industryIdx = header.indexOf('Industry');
+  // The scans/run API (ratiosType: 'Default') never returns a column literally
+  // named "Industry" — only "Sector", which actually holds industry-grain
+  // values (e.g. "Pharmaceuticals", "Banks"). Fall back to it so the
+  // Industry table doesn't fill with "undefined".
   const sectorIdx = header.indexOf('Sector');
+  const industryIdx = header.indexOf('Industry') !== -1 ? header.indexOf('Industry') : sectorIdx;
 
   const industryCounts = {};
   const sectorCounts = {};

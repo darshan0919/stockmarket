@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Stockscans Intraday Deal Filter",
+  "version": "1.0.0",
+  "description": "Hides same-day matched buy/sell (intraday/HFT) rows from the Bulk/Block Deals table on stockscans.in and tracks the HFTs behind them.",
+
+  "permissions": ["storage", "downloads"],
+
+  "host_permissions": [
+    "https://www.stockscans.in/*",
+    "https://stockscans.in/*"
+  ],
+
+  "background": { "service_worker": "background.js" },
+
+  "content_scripts": [
+    {
+      "matches": ["https://www.stockscans.in/company/*", "https://stockscans.in/company/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "action": {
+    "default_title": "Intraday Deal Filter",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+
+  "icons": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
+}

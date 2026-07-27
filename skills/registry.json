@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "description": "Stockmarket monorepo — Claude skills registry",
+  "description": "Stockmarket monorepo \u2014 Claude skills registry",
   "base_url": "https://raw.githubusercontent.com/darshan0919/stockmarket/main",
   "_note": "Source of truth for generating registry.json and invoker tables.",
   "shared": [
@@ -9,13 +9,51 @@
     "skills/_shared/data-verification.md"
   ],
   "skills": {
+    "concall-transcript-extractor": {
+      "skill_md": "skills/equity-research/concall-transcript-extractor/SKILL.md",
+      "entry": "stock-api/bin/get-latest-concall-transcript.js",
+      "mode": "bundle",
+      "modules": [
+        "stock-api/bin/find-earnings-recording.js",
+        "stock-api/bin/save-concall-transcript.js",
+        "stock-api/src/utils/fiscalQuarter.js",
+        "stock-api/src/utils/transcriptSchema.js",
+        "stock-api/src/utils/concurrency.js",
+        "stock-api/src/clients/PerplexityClient.js",
+        "stock-api/src/auth/perplexityAuth.js",
+        "stock-api/src/clients/StockscansClient.js",
+        "packages/jobs-runtime/lib/db.js",
+        "stock-api/src/utils/bulkAnnouncementScan.js",
+        "stock-api/src/http/HttpClient.js"
+      ],
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
+      "aliases": [
+        "concall transcript early",
+        "transcribe earnings call recording",
+        "recording of conference call",
+        "transcript before official filing",
+        "notebooklm transcript",
+        "perplexity earnings transcript",
+        "verbatim transcript from recording",
+        "concall transcript extractor",
+        "latest quarter transcript",
+        "bulk transcript fetch",
+        "transcripts for multiple companies",
+        "historical quarter transcript"
+      ]
+    },
     "review-proposals": {
       "skill_md": "skills/tooling/review-proposals/SKILL.md",
       "entry": null,
       "mode": "clone",
       "modules": [],
       "references": [],
-      "shared": ["skills/_shared/conventions.md"],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
       "aliases": [
         "review my proposals",
         "show pending proposals",
@@ -34,7 +72,9 @@
         "packages/jobs-runtime/lib/coworkTranscript.js"
       ],
       "references": [],
-      "shared": ["skills/_shared/conventions.md"],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
       "aliases": [
         "capture this chat",
         "save this conversation",
@@ -52,8 +92,12 @@
         "stock-api/src/fetchers/documentsFetcher.js",
         "stock-api/src/fetchers/announcementsFetcher.js"
       ],
-      "references": ["skills/equity-research/stock-documents-fetcher/references/api_details.md"],
-      "shared": ["skills/_shared/conventions.md"],
+      "references": [
+        "skills/equity-research/stock-documents-fetcher/references/api_details.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
       "aliases": [
         "fetch documents",
         "fetch transcripts",
@@ -81,7 +125,10 @@
         "skills/equity-research/concall-analysis/references/multi_quarter.md",
         "skills/equity-research/concall-analysis/references/multi_peer.md"
       ],
-      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "stock-api/src/utils/pdfUtils.js"
+      ],
       "aliases": [
         "concall",
         "earnings call analysis",
@@ -107,7 +154,10 @@
         "skills/equity-research/forensic-accounting/references/fraud_patterns.md",
         "skills/equity-research/forensic-accounting/references/piotroski_dupont.md"
       ],
-      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "stock-api/src/utils/pdfUtils.js"
+      ],
       "aliases": [
         "forensic",
         "forensic check",
@@ -131,7 +181,10 @@
       "references": [
         "skills/equity-research/equity-research-deepdive/references/research_template.md"
       ],
-      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "stock-api/src/utils/pdfUtils.js"
+      ],
       "aliases": [
         "deep dive",
         "equity deep dive",
@@ -153,7 +206,10 @@
         "stock-api/src/generators/generateGrowthTriggersPdf.js"
       ],
       "references": [],
-      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "stock-api/src/utils/pdfUtils.js"
+      ],
       "aliases": [
         "growth triggers",
         "1 pager",
@@ -177,7 +233,10 @@
         "skills/equity-research/management-credibility-tracker/references/credibility_framework.md",
         "skills/equity-research/management-credibility-tracker/references/case_study_calibration.md"
       ],
-      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "stock-api/src/utils/pdfUtils.js"
+      ],
       "aliases": [
         "management credibility",
         "walk the talk",
@@ -197,8 +256,13 @@
         "stock-api/src/fetchers/documentsFetcher.js",
         "stock-api/src/generators/generatePeerPdf.js"
       ],
-      "references": ["skills/equity-research/peer-comparison/references/comparison_dimensions.md"],
-      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
+      "references": [
+        "skills/equity-research/peer-comparison/references/comparison_dimensions.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "stock-api/src/utils/pdfUtils.js"
+      ],
       "aliases": [
         "peer comparison",
         "compare companies",
@@ -223,7 +287,10 @@
         "skills/equity-research/market-share-analysis/references/data_sources.md",
         "skills/equity-research/market-share-analysis/references/anti_patterns.md"
       ],
-      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "stock-api/src/utils/pdfUtils.js"
+      ],
       "aliases": [
         "market share",
         "competitive landscape",
@@ -239,12 +306,17 @@
       "skill_md": "skills/equity-research/sector-research-deepdive/SKILL.md",
       "entry": "stock-api/bin/sector-research-deepdive.js",
       "mode": "bundle",
-      "modules": ["stock-api/src/generators/generateSectorReport.js"],
+      "modules": [
+        "stock-api/src/generators/generateSectorReport.js"
+      ],
       "references": [
         "skills/equity-research/sector-research-deepdive/references/research_protocol.md",
         "skills/equity-research/sector-research-deepdive/references/sector_framework.md"
       ],
-      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "stock-api/src/utils/pdfUtils.js"
+      ],
       "aliases": [
         "sector report",
         "sector deep dive",
@@ -259,12 +331,17 @@
       "skill_md": "skills/equity-research/drhp-ipo-analysis/SKILL.md",
       "entry": "stock-api/bin/drhp-ipo-analysis.js",
       "mode": "bundle",
-      "modules": ["stock-api/src/generators/generateDrhpPdf.js"],
+      "modules": [
+        "stock-api/src/generators/generateDrhpPdf.js"
+      ],
       "references": [
         "skills/equity-research/drhp-ipo-analysis/references/drhp_10section.md",
         "skills/equity-research/drhp-ipo-analysis/references/drhp_red_flags.md"
       ],
-      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "stock-api/src/utils/pdfUtils.js"
+      ],
       "aliases": [
         "drhp",
         "ipo analysis",
@@ -279,7 +356,9 @@
       "skill_md": "skills/equity-research/quarterly-result-analysis/SKILL.md",
       "entry": "stock-api/bin/quarterly-result-analysis.js",
       "mode": "bundle",
-      "modules": ["stock-api/src/fetchers/documentsFetcher.js"],
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js"
+      ],
       "references": [
         "skills/equity-research/quarterly-result-analysis/references/basket_framework.md",
         "skills/equity-research/quarterly-result-analysis/references/monitoring_checklist_patterns.md",
@@ -288,7 +367,10 @@
       "assets": [
         "skills/equity-research/quarterly-result-analysis/assets/result_widget_template.html"
       ],
-      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "stock-api/src/utils/pdfUtils.js"
+      ],
       "aliases": [
         "quarterly results",
         "result analysis",
@@ -303,15 +385,24 @@
       "skill_md": "skills/equity-research/consecutive-filings-diff/SKILL.md",
       "entry": "stock-api/bin/consecutive-filings-diff.js",
       "mode": "bundle",
-      "modules": ["stock-api/src/fetchers/documentsFetcher.js"],
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js"
+      ],
+      "dependsOnSkills": [
+        "forward-guidance-extractor"
+      ],
       "references": [
         "skills/equity-research/consecutive-filings-diff/references/phase1_diff_framework.md",
         "skills/equity-research/consecutive-filings-diff/references/phase2_concall_reconciliation.md",
         "skills/equity-research/consecutive-filings-diff/references/phase3_live_repricing.md",
         "skills/equity-research/consecutive-filings-diff/references/writing_style.md"
       ],
-      "assets": ["skills/equity-research/consecutive-filings-diff/assets/briefing_template.html"],
-      "shared": ["skills/_shared/conventions.md"],
+      "assets": [
+        "skills/equity-research/consecutive-filings-diff/assets/briefing_template.html"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
       "aliases": [
         "diff decks",
         "compare presentations",
@@ -336,7 +427,9 @@
         "skills/equity-research/pre-pead-scanner/references/forward_estimation.md",
         "skills/equity-research/pre-pead-scanner/references/scan_api.md"
       ],
-      "assets": ["skills/equity-research/pre-pead-scanner/assets/briefing_template.html"],
+      "assets": [
+        "skills/equity-research/pre-pead-scanner/assets/briefing_template.html"
+      ],
       "shared": [],
       "aliases": [
         "pre pead",
@@ -397,7 +490,9 @@
       "references": [
         "skills/equity-research/equity-research-extraction/references/workflow-checklist.md"
       ],
-      "prompts": ["skills/equity-research/equity-research-extraction/prompts/unified_master.txt"],
+      "prompts": [
+        "skills/equity-research/equity-research-extraction/prompts/unified_master.txt"
+      ],
       "shared": [],
       "aliases": [
         "equity extraction",
@@ -440,7 +535,9 @@
         "stock-api/python/orchestration/orchestrate.py"
       ],
       "references": [],
-      "templates": ["skills/equity-research/equity-research-master/templates/tab15_qoq_diff.html"],
+      "templates": [
+        "skills/equity-research/equity-research-master/templates/tab15_qoq_diff.html"
+      ],
       "shared": [],
       "aliases": [
         "equity master",
@@ -457,13 +554,17 @@
       "skill_md": "skills/equity-research/tweet-investor-playbook/SKILL.md",
       "entry": "stock-api/bin/tweet-investor-playbook.js",
       "mode": "bundle",
-      "modules": ["stock-api/src/analyzers/parseTweetDump.js"],
+      "modules": [
+        "stock-api/src/analyzers/parseTweetDump.js"
+      ],
       "references": [
         "skills/equity-research/tweet-investor-playbook/references/classification_taxonomy.md",
         "skills/equity-research/tweet-investor-playbook/references/synthesis_rules.md",
         "skills/equity-research/tweet-investor-playbook/references/track_record_methodology.md"
       ],
-      "assets": ["skills/equity-research/tweet-investor-playbook/assets/widget_template.html"],
+      "assets": [
+        "skills/equity-research/tweet-investor-playbook/assets/widget_template.html"
+      ],
       "shared": [],
       "aliases": [
         "tweet playbook",
@@ -479,7 +580,9 @@
       "skill_md": "skills/equity-research/announcement-keyword-explorer/SKILL.md",
       "entry": "stock-api/bin/announcement-keyword-explorer.js",
       "mode": "bundle",
-      "modules": ["stock-api/src/fetchers/announcementScanner.js"],
+      "modules": [
+        "stock-api/src/fetchers/announcementScanner.js"
+      ],
       "references": [],
       "shared": [],
       "aliases": [
@@ -617,10 +720,15 @@
       "skill_md": "skills/tooling/render-pdf/SKILL.md",
       "entry": "stock-api/bin/render-pdf.js",
       "mode": "clone",
-      "modules": ["stock-api/src/utils/pdfRenderer.js"],
+      "modules": [
+        "stock-api/src/utils/pdfRenderer.js"
+      ],
       "references": [],
       "shared": [],
-      "aliases": ["render pdf", "html to pdf"]
+      "aliases": [
+        "render pdf",
+        "html to pdf"
+      ]
     },
     "investment-thesis-engine": {
       "skill_md": "skills/equity-research/investment-thesis-engine/SKILL.md",
@@ -629,7 +737,10 @@
         "skills/equity-research/investment-thesis-engine/references/thesis_schema.md",
         "skills/equity-research/investment-thesis-engine/references/signal_rules.md"
       ],
-      "shared": ["skills/_shared/conventions.md", "skills/_shared/data-verification.md"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/_shared/data-verification.md"
+      ],
       "aliases": [
         "investment thesis",
         "thesis engine",
@@ -646,7 +757,10 @@
       "skill_md": "skills/equity-research/financial-model/SKILL.md",
       "entry": null,
       "references": [],
-      "shared": ["skills/_shared/conventions.md", "skills/_shared/data-verification.md"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/_shared/data-verification.md"
+      ],
       "aliases": [
         "financial model",
         "3 year forecast",
@@ -662,7 +776,10 @@
       "skill_md": "skills/equity-research/value-chain-analysis/SKILL.md",
       "entry": null,
       "references": [],
-      "shared": ["skills/_shared/conventions.md", "skills/_shared/data-verification.md"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/_shared/data-verification.md"
+      ],
       "aliases": [
         "value chain",
         "where does margin sit",
@@ -676,7 +793,10 @@
       "skill_md": "skills/equity-research/annual-report-analysis/SKILL.md",
       "entry": null,
       "references": [],
-      "shared": ["skills/_shared/conventions.md", "skills/_shared/data-verification.md"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/_shared/data-verification.md"
+      ],
       "aliases": [
         "annual report analysis",
         "analyse this ar",
@@ -691,7 +811,10 @@
       "skill_md": "skills/equity-research/stage2-catalyst-analysis/SKILL.md",
       "entry": null,
       "references": [],
-      "shared": ["skills/_shared/conventions.md", "skills/_shared/data-verification.md"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/_shared/data-verification.md"
+      ],
       "aliases": [
         "stage 2",
         "weinstein stage",
@@ -716,6 +839,36 @@
         "find unused exports",
         "find dead code",
         "clean up unused code"
+      ]
+    },
+    "forward-guidance-extractor": {
+      "skill_md": "skills/equity-research/forward-guidance-extractor/SKILL.md",
+      "entry": null,
+      "mode": "clone",
+      "modules": [
+        "skills/equity-research/forward-guidance-extractor/scripts/classify_transcript_status.py",
+        "skills/equity-research/forward-guidance-extractor/scripts/compute_guidance_value.py",
+        "skills/equity-research/forward-guidance-extractor/scripts/save_forward_guidance.js",
+        "skills/equity-research/forward-guidance-extractor/scripts/build_guidance_workbook.py",
+        "stock-api/bin/get-latest-concall-transcript.js",
+        "packages/jobs-runtime/lib/db.js",
+        "packages/jobs-runtime/lib/companyContext.js"
+      ],
+      "references": [
+        "skills/equity-research/forward-guidance-extractor/references/metric_taxonomy.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
+      "aliases": [
+        "forward guidance",
+        "extract guidance",
+        "management guidance extraction",
+        "guidance tracker across watchlist",
+        "pull pat revenue guidance",
+        "what did management guide for",
+        "management outlook extraction",
+        "forward looking guidance transcripts"
       ]
     }
   }

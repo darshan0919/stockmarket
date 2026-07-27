@@ -473,10 +473,50 @@ The styling uses CSS variables from the visualize design system — do not hardc
   </div>
 
   <!-- ============================================================ -->
-  <!-- SECTION 10 — Valuation reset at live CMP -->
+  <!-- SECTION 10 — Forward guidance (from forward-guidance-extractor) -->
+  <!-- This section is populated from the SAME forwardGuidance[] array that -->
+  <!-- forward-guidance-extractor persisted for this ticker/quarter. Company, -->
+  <!-- ticker, and quarter are already fixed by this report's own header, so -->
+  <!-- do NOT add Company/Ticker/Quarter columns here — that's redundant with -->
+  <!-- the header and only belongs in the standalone multi-company workbook. -->
   <!-- ============================================================ -->
   <div class="sec">
-    <div class="sec-hd">10 &nbsp; Valuation repriced at live CMP</div>
+    <div class="sec-hd">10 &nbsp; Forward guidance extracted from concall</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Metric</th>
+          <th>Period guided</th>
+          <th class="r">Guidance</th>
+          <th>Base period</th>
+          <th>Management quote</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="mono">[metric_category]</td>
+          <td>[metric]</td>
+          <td class="mono">[period_guided]</td>
+          <td class="r">[display]</td>
+          <td class="mono">[base_period or —]</td>
+          <td class="quote" style="border:none; padding:0;">[quote]</td>
+        </tr>
+        <!-- Repeat one row per forwardGuidance[] item. If an item has
+             stale_reference: true, add a chip-y "reaffirmed, not fresh"
+             tag next to the metric name. If forwardGuidance is empty because
+             no usable transcript existed this quarter, replace the table with
+             a single hl-y callout stating that explicitly — never fabricate
+             rows. -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 11 — Valuation reset at live CMP -->
+  <!-- ============================================================ -->
+  <div class="sec">
+    <div class="sec-hd">11 &nbsp; Valuation repriced at live CMP</div>
     <table>
       <thead>
         <tr>
@@ -494,10 +534,10 @@ The styling uses CSS variables from the visualize design system — do not hardc
   </div>
 
   <!-- ============================================================ -->
-  <!-- SECTION 11 — Scenario ladder -->
+  <!-- SECTION 12 — Scenario ladder -->
   <!-- ============================================================ -->
   <div class="sec">
-    <div class="sec-hd">11 &nbsp; Risk-reward scenario ladder</div>
+    <div class="sec-hd">12 &nbsp; Risk-reward scenario ladder</div>
     <div class="vmatrix">
       <div>Scenario</div>
       <div>FY+1 P/E</div>
@@ -508,10 +548,10 @@ The styling uses CSS variables from the visualize design system — do not hardc
   </div>
 
   <!-- ============================================================ -->
-  <!-- SECTION 12 — Verdict -->
+  <!-- SECTION 13 — Verdict -->
   <!-- ============================================================ -->
   <div class="sec">
-    <div class="sec-hd">12 &nbsp; Updated verdict</div>
+    <div class="sec-hd">13 &nbsp; Updated verdict</div>
     <div class="hl hl-g">
       <strong>Thesis status:</strong> [Confirmed / Weakened / Inflected] [with specific reasoning]
     </div>

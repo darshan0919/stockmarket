@@ -339,6 +339,82 @@ class StockscansClient {
   }
 
   /**
+   * Bulk "which companies have filed results this quarter" scan — powers
+   * the /result-scans page. Unlike {@link documents}, this is NOT scoped to
+   * one companyId: a single paginated call (50/page) returns every company
+   * across the whole market that has a Result/PPT/Transcript filed for the
+   * CURRENT results season.
+   *
+   * Confirmed by live testing (2026-07-26):
+   * - Schema is strict — passing `quarterDate`/`quarter` in the request body
+   *   returns HTTP 400 "Extra inputs are not permitted". This endpoint has
+   *   NO historical-quarter override; it always reflects whatever quarter
+   *   Stockscans currently considers "in season". Use {@link documents} for
+   *   any explicit non-latest quarter.
+   * - `documentType: "Transcript"` filters server-side to only companies
+   *   with an official transcript already filed (86 of 502 as of the test
+   *   date) — the exact Tier-2 "official-transcript-exists" set in one
+   *   paginated fetch, no per-company calls needed.
+   * - `searchCompany` filters to a single company by name substring (not
+   *   useful for bulk lookups — paginate documentType:"" instead and look
+   *   up companyIds client-side).
+   * - Response shape: `{ documents: [{Name, companyId, resultSsUrl,
+   *   pptSsUrl, transcriptSsUrl, hasNotes, updatedAt}], total, quarterDate }`.
+   *   `total` across all pages was 502 companies, 11 pages at offset+=50 —
+   *   trivial to fully page through even for a 1000-company bulk request,
+   *   since the call volume depends on how many companies filed this
+   *   quarter market-wide, not on how many the caller asked about.
+   *
+   * @param {Object} [opts]
+   * @param {number} [opts.offset=0] - paginates in steps of 50
+   * @param {string} [opts.documentType=''] - '', 'Result', 'PPT', or 'Transcript'
+   * @param {string} [opts.searchCompany=''] - single-company name filter (not for bulk use)
+   * @returns {Promise<{documents: Array, total: number, quarterDate: string}>}
+   */
+  async resultsDocuments({ offset = 0, documentType = '', searchCompany = '' } = {}) {
+    const { data } = await this.http.post(
+      `${BASE_URL}/api/company/results/documents`,
+      { scan: { filters: [], index: [], industry: [], watchlistIds: [] }, offset, searchCompany, documentType },
+      { headers: this._headers(`${BASE_URL}/result-scans`) }
+    );
+    return data;
+  }
+
+  /**
+   * Paginate {@link resultsDocuments} to completion and return a
+   * companyId -> doc lookup map for the CURRENT results season, plus the
+   * `quarterDate` it applies to. Callers must confirm this quarterDate
+   * matches the quarter they actually want before trusting the map (see
+   * {@link resultsDocuments} docs — there's no historical override).
+   *
+   * Cost: a fixed ~11 sequential calls regardless of how many companies the
+   * caller cares about (11 pages covered the full 502-company results
+   * season in live testing, ~2.7s total) — this is the bulk replacement for
+   * what would otherwise be one {@link documents} call per company.
+   *
+   * @param {Object} [opts]
+   * @param {string} [opts.documentType=''] - passthrough filter
+   * @returns {Promise<{quarterDate: string, byCompanyId: Map<string, Object>, total: number}>}
+   */
+  async resultsDocumentsMap({ documentType = '' } = {}) {
+    const byCompanyId = new Map();
+    let offset = 0;
+    let total = null;
+    let quarterDate = null;
+    for (;;) {
+      const page = await this.resultsDocuments({ offset, documentType });
+      total = page.total;
+      quarterDate = page.quarterDate;
+      const docs = page.documents || [];
+      if (!docs.length) break;
+      for (const doc of docs) byCompanyId.set(doc.companyId, doc);
+      offset += docs.length;
+      if (offset >= total) break;
+    }
+    return { quarterDate, byCompanyId, total };
+  }
+
+  /**
    * AI-synthesized growth-catalyst report for a company (ready-made research
    * context — no synthesis needed on our side).
    * @param {string} companyId
@@ -443,6 +519,47 @@ class StockscansClient {
         `Watchlist replace mismatch: sent ${companyIds.length}, got back ${returned}`
       );
     }
+    return data;
+  }
+
+  /**
+   * Create a new (typically throwaway) watchlist. Confirmed live 2026-07-26:
+   * `POST /api/user/watchlists` requires exactly `{watchlistName, companyIds}`
+   * — passing only one of the two fields returns HTTP 400 "Field required".
+   * Primary use case: batching an `announcements/scan` call across MORE than
+   * the 10 companies `companyFilters` allows in one call (confirmed live —
+   * an 11th unique companyId returns HTTP 400 "List should have at most 10
+   * items"). Scanning by `watchlistIds` instead of `companyFilters` has no
+   * such cap — tested live with 15 and 50 companies in one watchlist, both
+   * scanned successfully in a single call (paginated normally). Always pair
+   * with {@link deleteWatchlist} in a `finally` block — this creates a real
+   * watchlist in the user's account, not a scoped/ephemeral resource.
+   * @param {string} name
+   * @param {string[]} companyIds
+   * @returns {Promise<{watchlistId: string, watchlistName: string, companyIds: string[]}>}
+   */
+  async createWatchlist(name, companyIds) {
+    const { data } = await this.http.post(
+      `${BASE_URL}/api/user/watchlists`,
+      { watchlistName: name, companyIds },
+      { headers: this._headers(`${BASE_URL}/watchlists`) }
+    );
+    return data;
+  }
+
+  /**
+   * Delete a watchlist by id. Confirmed live: `DELETE /api/user/watchlists`
+   * with `{watchlistId}` in the body — NOT `DELETE /api/user/watchlists/{id}`
+   * as a path param, which 404s (that path pattern works for
+   * {@link deleteAnnouncementScan}, a different resource, but not this one).
+   * @param {string} watchlistId
+   * @returns {Promise<Object>}
+   */
+  async deleteWatchlist(watchlistId) {
+    const { data } = await this.http.delete(`${BASE_URL}/api/user/watchlists`, {
+      headers: this._headers(`${BASE_URL}/watchlists`),
+      data: { watchlistId },
+    });
     return data;
   }
 

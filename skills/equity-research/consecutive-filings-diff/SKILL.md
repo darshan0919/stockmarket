@@ -1,6 +1,6 @@
 ---
 name: consecutive-filings-diff
-description: Institutional-grade forensic diff across consecutive quarterly investor presentations (Q-1 vs Q), reconciled with the latest concall transcript, and repriced with live market data for any listed company. Use this skill whenever the user uploads two or more consecutive investor presentations, uploads a concall transcript alongside a presentation, says "diff these decks", "compare Q3 vs Q4 presentation", "update the thesis with the latest concall", "reprice this stock after results", or provides back-to-back quarterly filings. Also trigger when the user has an existing research thesis and new quarterly data arrives, or says "update it with the latest results". Produces an institutional briefing covering P&L diff, balance sheet & cash flow quality, operational KPIs, positive/negative surprises, new growth triggers, growth-hampering events, new products/verticals, capacity additions, concall reconciliation, and valuation reset at live CMP — rendered as an interactive HTML widget.
+description: Institutional-grade forensic diff across consecutive quarterly investor presentations (Q-1 vs Q), reconciled with the latest concall transcript, cross-checked against explicit forward guidance extracted from that same concall, and repriced with live market data for any listed company. Use this skill whenever the user uploads two or more consecutive investor presentations, uploads a concall transcript alongside a presentation, says "diff these decks", "compare Q3 vs Q4 presentation", "update the thesis with the latest concall", "reprice this stock after results", or provides back-to-back quarterly filings. Also trigger when the user has an existing research thesis and new quarterly data arrives, or says "update it with the latest results". Produces a single institutional briefing covering P&L diff, balance sheet & cash flow quality, operational KPIs, positive/negative surprises, new growth triggers, growth-hampering events, new products/verticals, capacity additions, concall reconciliation, forward guidance (always extracted via forward-guidance-extractor and folded into this same report), and valuation reset at live CMP — rendered as a single interactive HTML widget.
 ---
 
 # Consecutive Filings Diff & Thesis Repricing
@@ -75,6 +75,18 @@ Read the concall transcript line by line. Map management commentary onto the Pha
 
 Pull live CMP and market cap from at least two independent sources (screener.in is often cached — use dhan.co, kotakneo.com, tickertape.in as fallbacks). Recompute TTM P/E, FY+1 forward P/E, and discount/premium to the framework fair value. Rebuild the risk-reward ladder. See `references/phase3_live_repricing.md` for the pricing and scenario framework.
 
+### Phase 4 — Forward guidance extraction (always run, no exceptions)
+
+Every consecutive-filings-diff run has a concall transcript in hand by this point (from Phase 0/2), which is exactly the input `forward-guidance-extractor` needs — so always invoke that skill's Phase 1–3 for the current ticker/quarter rather than re-deriving guidance ad hoc inside this skill. Two things this buys you: the zero-assumption discipline (explicit, quantified guidance only — no "we expect to grow" rows) already lives in that skill's script pipeline, and a company that gets diffed today has its guidance persisted for the next quarter's walk-the-talk comparison for free.
+
+Concretely:
+1. Run `forward-guidance-extractor`'s Phase 1 (`classify_transcript_status.py`) against the same ticker/quarter — it will be an instant `available` hit since the transcript is already in `data/reports/` from this skill's own Phase 0/2.
+2. Run that skill's Phase 2 (reasoning — read the transcript once, reuse the same read from Phase 2 above rather than re-reading it) to produce the guidance items, then its Phase 3 script (`compute_guidance_value.py`) to resolve absolute/relative values.
+3. Persist via that skill's Phase 4 (`save_forward_guidance.js`) exactly as `forward-guidance-extractor/SKILL.md` specifies — this skill does not invent its own persistence path for guidance data.
+4. Take the resulting enriched guidance array and fold it into this skill's own output DTO (see the `forwardGuidance` field below) so it renders as a section inside the SAME widget — do not produce a second, separate guidance workbook for a single-company diff run. The workbook builder (`build_guidance_workbook.py`) is for multi-company batch runs of `forward-guidance-extractor` on its own; a consecutive-filings-diff run is already scoped to one company and one quarter, so skip that step here.
+
+If the transcript resolves to `missing` (no usable transcript at all), note that explicitly in the guidance section rather than fabricating rows or silently omitting the section.
+
 ## Quick-start sequence
 
 When this skill triggers:
@@ -91,13 +103,15 @@ When this skill triggers:
 
 6. **Pull live price data.** Use the data sourcing guidance in `references/phase3_live_repricing.md`. Screener.in's quoted price is often stale by days or weeks — always verify against at least one live tick source.
 
+6b. **Always run Phase 4 — invoke `forward-guidance-extractor`.** This is not optional and not skippable even for a "quick" diff: you already have the concall transcript in hand, so the marginal cost is one extra reasoning pass, not a new fetch. Follow that skill's Phase 1–4 exactly (transcript classification → explicit-guidance extraction → absolute/relative computation → persistence), then carry its enriched guidance array into this skill's own DTO rather than building a second workbook.
+
 7. **Write the output DTO, then render the widget from it.** Per
    `skills/tooling/output-dto-standard/SKILL.md`, the HTML widget must be reproducible
    FROM a persisted JSON, not generated directly from live reasoning. Before calling the
    visualize tool:
    - Write `{TICKER}_filings_diff.json` (e.g. to `data/agent-outputs/`) capturing the
      diff findings, one record per company, with the required envelope fields plus the
-     10 output sections as structured data — roughly:
+     11 output sections as structured data — roughly:
      ```json
      {
        "companyId": "NSE:BSE",
@@ -113,10 +127,17 @@ When this skill triggers:
        "newGrowthTriggers": [ ... ],
        "newProductsCapacity": [ ... ],
        "concallReconciliation": [ ... ],
+       "forwardGuidance": [ ... ],
        "valuationReset": { ... },
        "verdictChips": [ ... ]
      }
      ```
+     `forwardGuidance` is the enriched array produced by `forward-guidance-extractor`'s
+     Phase 3 script (`compute_guidance_value.py`) for this same ticker/quarter — each
+     item already carries `metric_category`, `metric`, `period_guided`, `display`,
+     `base_period`, `quote`, and `stale_reference` fields. Company, ticker, and quarter
+     are already fixed by this DTO's own `companyId`/`quarters` fields, so do not repeat
+     them inside each guidance item or render them as columns in the widget table.
      If re-running for the same company/quarter pair, read any existing JSON first and
      preserve its original `creationTime`.
    - Then produce the final institutional briefing as an interactive HTML widget using
@@ -151,8 +172,9 @@ The final deliverable is a single HTML widget rendered via the visualize tool, w
 6. **New growth triggers** — not present in prior deck, with conviction tag
 7. **New products / verticals / capacity additions** — at the company and subsidiary level
 8. **Concall reconciliation** — for each Phase 1 flag, management's position
-9. **Valuation reset at live CMP** — with scenario ladder and discount to framework fair value
-10. **Verdict band** — 5–8 chip-style summary tags
+9. **Forward guidance extracted from the concall** — explicit, quantified guidance only (via `forward-guidance-extractor`), scoped to this company/quarter — no Company/Ticker/Quarter columns since those are already fixed by the report header
+10. **Valuation reset at live CMP** — with scenario ladder and discount to framework fair value
+11. **Verdict band** — 5–8 chip-style summary tags
 
 See `assets/briefing_template.html` for the exact styling and layout to use.
 

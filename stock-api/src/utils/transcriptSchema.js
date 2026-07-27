@@ -51,14 +51,52 @@ function segmentsFromParagraphs(paragraphs) {
   });
 }
 
+// Words that show up in report section titles/headers ("Verbatim Transcript:
+// ...", "Management Outlook and Guidance:", etc.) but never in a real
+// speaker's name or role — used to reject a title line that would otherwise
+// match SPEAKER_LABEL below. Discovered live 2026-07-27: NotebookLM's
+// "Create Your Own" report, even with an explicit "output ONLY the
+// transcript, no commentary/headers" prompt, still emits a title line and
+// narrative "bridge" paragraphs between sections — the schema-level parser,
+// not the prompt, is the actual place to guard against this reliably.
+const NON_SPEAKER_TITLE_WORDS =
+  /\b(transcript|analysis|overview|summary|introduction|introductions|conclusion|remarks|session|review|highlights|performance|positioning|dynamics|commencement|guidance|outlook|report)\b/i;
+
+/** @param {string} speaker @returns {boolean} true if this looks like a real speaker name/role, not a section title */
+function looksLikeSpeakerLabel(speaker) {
+  const s = speaker.trim();
+  if (NON_SPEAKER_TITLE_WORDS.test(s)) return false;
+  // Numbered section headers ("1. Call Overview...") never reach here (no
+  // colon immediately after the number), but guard anyway for safety.
+  if (/^\d+[.)]/.test(s)) return false;
+  return true;
+}
+
 /**
  * Best-effort parse of plain "Speaker: text" formatted text (what a
  * NotebookLM verbatim-transcript report typically looks like, and what a
  * human might paste in) into segments. Paragraphs are separated by a blank
  * line; a paragraph starting with a short "Name:" prefix (<=40 chars, no
- * sentence-ending punctuation before the colon) is treated as a speaker
- * label. Anything that doesn't match becomes a speaker:null segment — this
- * is intentionally conservative: a wrong speaker label is worse than none.
+ * sentence-ending punctuation before the colon, and not matching a known
+ * report-title word — see {@link looksLikeSpeakerLabel}) is treated as a
+ * speaker label.
+ *
+ * Standalone `[HH:MM:SS]` timestamp lines (NotebookLM emits these between
+ * turns per the strict verbatim prompt) are consumed and attached as the
+ * `time` of the NEXT real speaker segment rather than becoming their own
+ * segment.
+ *
+ * Non-dialogue blocks (report titles, numbered section headers, narrative
+ * "bridge" paragraphs connecting sections, participant-list blocks) are
+ * DROPPED rather than kept as `speaker: null` segments — confirmed live
+ * this content is real and substantial even when the prompt explicitly says
+ * "output ONLY the transcript," so silently keeping it would pollute
+ * `segments`/`fullText` with analysis prose mixed into the dialogue.
+ * Exception: if the whole document contains ZERO recognizable speaker
+ * blocks (i.e. this isn't actually a speaker-labeled transcript at all —
+ * some other free-text source), every block is kept as `speaker: null`
+ * instead, preserving the original conservative behavior for genuinely
+ * unstructured input rather than returning an empty transcript.
  * @param {string} text
  * @returns {Array<Object>} segments
  */
@@ -69,21 +107,53 @@ function parseSpeakerLabeledText(text) {
     .filter(Boolean);
 
   const SPEAKER_LABEL = /^([A-Za-z][A-Za-z0-9 .,&'-]{1,50}):\s+([\s\S]+)$/;
+  const TIMESTAMP_ONLY = /^\[(\d{1,2}):(\d{2}):(\d{2})\]$/;
 
-  return blocks.map((block, i) => {
-    const m = SPEAKER_LABEL.exec(block);
-    if (m) {
-      const [, speaker, rest] = m;
-      return {
-        i,
-        speaker: speaker.trim(),
-        speakerRole: classifyRole(speaker),
-        time: null,
-        text: rest.trim(),
-      };
+  const parsed = blocks.map((block) => {
+    const ts = TIMESTAMP_ONLY.exec(block);
+    if (ts) {
+      const [, h, m, s] = ts;
+      return { kind: 'timestamp', seconds: Number(h) * 3600 + Number(m) * 60 + Number(s) };
     }
-    return { i, speaker: null, speakerRole: 'unknown', time: null, text: block };
+    const m = SPEAKER_LABEL.exec(block);
+    if (m && looksLikeSpeakerLabel(m[1])) {
+      return { kind: 'speaker', speaker: m[1].trim(), text: m[2].trim() };
+    }
+    return { kind: 'other', text: block };
   });
+
+  const hasAnySpeaker = parsed.some((p) => p.kind === 'speaker');
+
+  const segments = [];
+  let pendingTime = null;
+  for (const p of parsed) {
+    if (p.kind === 'timestamp') {
+      pendingTime = p.seconds;
+      continue;
+    }
+    if (p.kind === 'speaker') {
+      segments.push({
+        i: segments.length,
+        speaker: p.speaker,
+        speakerRole: classifyRole(p.speaker),
+        time: pendingTime,
+        text: p.text,
+      });
+      pendingTime = null;
+      continue;
+    }
+    // kind === 'other': drop it once we know this document is genuinely
+    // speaker-labeled (real transcript); otherwise fall back to keeping
+    // everything (handled below via hasAnySpeaker check).
+  }
+
+  if (!hasAnySpeaker) {
+    // No speaker structure detected anywhere — preserve the original
+    // conservative behavior rather than returning an empty transcript.
+    return blocks.map((block, i) => ({ i, speaker: null, speakerRole: 'unknown', time: null, text: block }));
+  }
+
+  return segments;
 }
 
 /**

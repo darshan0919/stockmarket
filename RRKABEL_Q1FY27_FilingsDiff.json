@@ -1,0 +1,177 @@
+{
+  "companyId": "NSE:RRKABEL",
+  "creationTime": "2026-07-27T12:30:00Z",
+  "modifiedTime": "2026-07-27T12:30:00Z",
+  "creator": "consecutive-filings-diff",
+  "quarters": { "current": "Q1FY27 (Jun-26)", "prior": "Q4FY26 (Mar-26)" },
+  "liveSnapshot": {
+    "cmp": 2570.00,
+    "cmpAsOf": "27 Jul 2026, 3:30 PM IST (post Q1FY27 results, close)",
+    "cmpSources": ["Google Finance (live, close)", "Trendlyne (₹2,485.60 intraday 11:47 AM, pre full absorption)"],
+    "marketCapCr": 28521,
+    "sharesOutstandingCr": 11.31,
+    "ttmEpsInr": 53.73,
+    "ttmPE": 47.8,
+    "trailingFY26PE_preResults": 51.8,
+    "trailingFY26PE_preResults_source": "screener.in, ₹2,321 close 19-Jun-26",
+    "priceReactionToday": "+3.06% intraday (Google Finance); range ₹2,453-₹2,584 vs open ₹2,529"
+  },
+  "plDiff": {
+    "revenueMn": { "q1fy27": 31682, "q4fy26": 29641, "qoq": "+7%", "yoy": "+54%" },
+    "ebitdaMn": { "q1fy27": 2853, "q4fy26": 2636, "qoq": "+8%", "yoy": "+99%" },
+    "ebitdaMarginPct": { "q1fy27": 9.0, "q4fy26": 8.9, "qoqBps": 10, "yoyBps": 205 },
+    "patMn": { "q1fy27": 2052, "q4fy26": 1679, "qoq": "+22%", "yoy": "+129%" },
+    "patMarginPct": { "q1fy27": 6.5, "q4fy26": 5.7, "qoqBps": 80, "yoyBps": 212 },
+    "epsInr": { "q1fy27": 18.14, "q4fy26": 14.85, "qoq": "+22%" },
+    "exceptionalItemMn": { "q1fy27": 138, "q4fy26": 0, "note": "Reversal of Labour Code provision (positive to PBT); new disclosure this quarter, not in Q4FY26 deck" },
+    "otherIncomeMn": { "q1fy27": 329, "q4fy26": 129, "qoq": "+155%", "flag": "Management confirmed part is FX-driven and explicitly said NOT a normal run rate" }
+  },
+  "segmentDiff": {
+    "wiresAndCables": {
+      "revenueMn": { "q1fy27": 28800, "q4fy26": 26664, "qoq": "+8%", "yoy": "+57%" },
+      "segmentMarginPct": { "q1fy27": 9.9, "q4fy26": 9.6, "qoqBps": 30, "yoyBps": 232 },
+      "volumeGrowthYoy": { "cables": ">25%", "wires": "~12%", "blended": "17%" }
+    },
+    "fmeg": {
+      "revenueMn": { "q1fy27": 2977, "q4fy26": 2882, "qoq": "+3%", "yoy": "+28%" },
+      "segmentMarginPct": { "q1fy27": 0.0, "q4fy26": -3.1, "qoqBps": 310, "note": "First-ever operational breakeven quarter" }
+    }
+  },
+  "balanceSheetCashFlow": {
+    "note": "Neither deck discloses a standalone Q1FY27 balance sheet or cash flow — both decks carry only the FY26-vs-FY25 annual BS/CFS. No fresh quarterly BS data to diff this cycle; flagged as a monitoring gap rather than assumed unchanged.",
+    "netWorkingCapitalDays": { "q1fy27": 50, "q4fy26": 49, "delta": "+1 day", "managementCommentary": "Described as 'broadly stable'; receivables days reportedly down 3 days QoQ per concall, though the headline WC-day metric ticked up 1 day" },
+    "fy26CfoPatRatio": 0.60,
+    "fy26CfoPatRatio_note": "FY26 CFO ₹295.2cr / FY26 PAT ₹492.2cr = 0.60x, down from FY25's 1.59x (₹494.4cr/₹311.6cr) — working capital build (inventory +₹759cr, receivables +₹175cr) ate into cash conversion; unchanged from Q4FY26 deck since same annual figures, flagged as a standing watch item"
+  },
+  "operationalKpiDiff": {
+    "revenueMixGeography": { "q1fy27": { "domestic": 71, "export": 29 }, "q4fy26": { "domestic": 75, "export": 25 }, "note": "Export mix +4pts QoQ, consistent with management's Middle East normalization narrative" },
+    "revenueMixSegment": { "q1fy27": { "wc": 91, "fmeg": 9 }, "q4fy26": { "wc": 90, "fmeg": 10 } },
+    "capacityUtilization": { "cable": "~90%", "wire": "65-70%", "source": "concall, Q1FY27 only — not disclosed in either deck" },
+    "retailTouchpoints": { "current": "1.5mn+", "annualAdds": "~20-25k/year", "dealerDistributorTrend": "management confirmed count is flat-to-down as distribution consolidates for depth" }
+  },
+  "positiveSurprises": [
+    { "item": "FMEG segment hits first-ever operational breakeven (0.0% margin) vs -3.1% in Q4FY26 and -3.2% in Q1FY26", "materiality": "High — validates multi-year FMEG turnaround thesis" },
+    { "item": "Highest-ever quarterly Revenue/EBITDA/PAT despite Q1 being seasonally the weakest quarter (management flags H2>H1 historically)", "materiality": "High" },
+    { "item": "Cable volume growth >25% YoY vs wire ~12% — B2B/cable mix shift executing as guided", "materiality": "Medium-High" },
+    { "item": "EPS beat vs street: ₹17.23 actual vs ₹13.64 consensus estimate (+26.3%); Revenue beat of +13.2% vs ₹27.99bn estimate", "materiality": "High", "source": "Google Finance / Quartr consensus" },
+    { "item": "Export growth held at ~57% YoY (matching domestic) despite Middle East disruption in April-May, with shipment normalization visible by May-June", "materiality": "Medium" }
+  ],
+  "negativeSurprises": [
+    { "item": "Other income surged 155% QoQ to ₹329mn; management confirmed this includes a non-recurring FX gain and explicitly said it is NOT a normal run rate", "materiality": "Medium — inflates headline PBT/PAT quality this quarter" },
+    { "item": "FY26 CFO/PAT ratio fell to 0.60x from 1.59x in FY25 on working-capital build; no fresh quarterly cash-flow disclosure this cycle to confirm Q1FY27 trend", "materiality": "Medium — standing watch item, not resolved by this diff" },
+    { "item": "Dealer/distributor count flat-to-declining as company consolidates distribution depth over breadth", "materiality": "Low-Medium — strategic per management, but a headline metric investors track is shrinking" },
+    { "item": "Wire volume growth (~12%) trailing cable growth (>25%) and industry growth estimate (10-12%) — wires now growing roughly in line with industry, cables driving all the alpha", "materiality": "Low-Medium" }
+  ],
+  "newGrowthTriggers": [
+    { "trigger": "Data center cable orders — early-stage, described as 'enhancement phase' with a few repeat customers; management explicit that contribution is still 'very less' of topline", "convictionTag": "Watch" },
+    { "trigger": "US export market flagged explicitly for first time as a large future opportunity, contingent on tariff clarity; company already has some approvals and is onboarding customers", "convictionTag": "Early/Speculative" },
+    { "trigger": "HV (high-voltage) cable capacity build called out specifically — company still LV-heavy, actively expanding HV presence", "convictionTag": "Medium-term structural" }
+  ],
+  "newProductsCapacity": [
+    { "item": "Silvassa wire capacity addition — expected commissioning in Q2FY27 (current quarter as of call date)" },
+    { "item": "Waghodia cable capacity addition — cable-focused, timeline within FY27" },
+    { "item": "FY27 capex of ₹600-650cr planned (of the total ₹1,200cr Project Rise FY26-28 program), ~80% cable-directed; ₹300cr already deployed in FY26" }
+  ],
+  "concallReconciliation": [
+    { "flag": "W&C margin guidance not upgraded despite hitting 9.9% in Q1 vs 10.5% FY28 target", "managementPosition": "Reaffirmed 10.5% FY28 target, called it 'early in the year' — declined to raise guidance", "resolution": "Unresolved / Conservative", "watchlistNextQ": true },
+    { "flag": "FMEG breakeven — is it sustainable or a one-off?", "managementPosition": "Explicitly flagged Q2 will likely dip below breakeven on seasonality; full-year breakeven is the real target", "resolution": "Partially resolved — moderates the headline positive surprise", "watchlistNextQ": true },
+    { "flag": "Other income spike quality", "managementPosition": "Confirmed FX-driven, 'not a normal run rate,' but gave no rupee quantification of the one-off portion", "resolution": "Confirmed but not quantified", "watchlistNextQ": true },
+    { "flag": "Middle East export disruption", "managementPosition": "Confirmed normalization by May-June; Q1 growth held at ~57% YoY, in line with domestic", "resolution": "Resolved", "watchlistNextQ": false },
+    { "flag": "Dealer/distributor count decline", "managementPosition": "Confirmed count is flat/down but framed as deliberate depth-over-breadth consolidation, not distress", "resolution": "Explained, plausible", "watchlistNextQ": true },
+    { "flag": "Pricing/realization tailwind sustainability", "managementPosition": "Quantified ~40% net metal+FX inflation flowing to ~25% product-price inflation this quarter; guided Q2 pricing impact of ~30% off last year's base if spot holds", "resolution": "Resolved / quantified", "watchlistNextQ": false }
+  ],
+  "forwardGuidance": [
+    {
+      "metric_category": "Margins",
+      "metric": "Wires & Cables segment margin",
+      "period_guided": "FY28",
+      "display": "10.5%",
+      "base_period": "Q1FY27 (currently 9.9%)",
+      "quote": "we continue to maintain our overall margin guidance of 10.5% by FY28",
+      "stale_reference": true
+    },
+    {
+      "metric_category": "Margins",
+      "metric": "EBITDA margin improvement YoY",
+      "period_guided": "FY27",
+      "display": "+100 bps YoY",
+      "base_period": "FY26 (8.1% consol EBITDA margin)",
+      "quote": "we had targeted to improve our margins by 100 basis points on year on year basis and last year we were able to achieve and even in this quarter... we are quite confident to achieve those guidelines",
+      "stale_reference": false
+    },
+    {
+      "metric_category": "Volume",
+      "metric": "Wires & Cables volume growth",
+      "period_guided": "FY27",
+      "display": "~18% YoY",
+      "base_period": "FY26 volume base",
+      "quote": "we are expecting to achieve growth of around 18% year on year... this year also, we are expecting around 18% volume growth",
+      "stale_reference": false
+    },
+    {
+      "metric_category": "CapEx",
+      "metric": "FY27 capex spend",
+      "period_guided": "FY27",
+      "display": "INR 600-650cr",
+      "base_period": "FY26 capex of ₹300cr already deployed",
+      "quote": "this year will [see] measure phase of that expansion executed in approx 600 to 650 crores, will be deployed in this year",
+      "stale_reference": false
+    },
+    {
+      "metric_category": "CapEx",
+      "metric": "Cumulative Project Rise capex",
+      "period_guided": "FY26-FY28",
+      "display": "INR 1,200cr (~80% cable-directed)",
+      "base_period": "FY26 base year of the program",
+      "quote": "we had CapEx plan of around 1200 crores, in which almost 80% is focused towards the cable side of the business",
+      "stale_reference": true
+    },
+    {
+      "metric_category": "Pricing",
+      "metric": "Raw-material/pricing inflation YoY",
+      "period_guided": "Q2FY27",
+      "display": "~30% pricing pass-through vs Q2FY26",
+      "base_period": "Q2FY26",
+      "quote": "if we consider current prices to be stable in current quarter, then it may reflect around about 30% in terms of pricing... rate hike in prices of raw material",
+      "stale_reference": false
+    },
+    {
+      "metric_category": "Top Line",
+      "metric": "FMEG revenue growth",
+      "period_guided": "FY27",
+      "display": "~20% YoY",
+      "base_period": "FY26 FMEG revenue (₹958.6cr)",
+      "quote": "we are targeting growth of around 20% in SMG business",
+      "stale_reference": false
+    },
+    {
+      "metric_category": "Bottom Line",
+      "metric": "FMEG segment profitability (full year)",
+      "period_guided": "FY27",
+      "display": "Full-year operational breakeven (Q2 likely dips)",
+      "base_period": "Q1FY27 (0.0% margin, first quarterly breakeven)",
+      "quote": "on a yearly basis, we are quite sure to achieve breakeven in this year and will maintain this positive side",
+      "stale_reference": false
+    }
+  ],
+  "valuationReset": {
+    "cmp": 2570.00,
+    "marketCapCr": 28521,
+    "ttmEpsInr": 53.73,
+    "ttmPE": 47.8,
+    "fy27eEpsInr_estimateRange": "56-59 (estimate, not company guidance)",
+    "fy27eEpsAssumptionChain": "Assumes ~30-35% PAT growth off FY26 base of ₹492.2cr, derived from: (a) management's explicit +100bps YoY EBITDA margin guidance, (b) 18% volume growth guidance, (c) Q1FY27's realized 129% YoY PAT growth as a high-water mark not assumed to repeat for the full year given the easy Q1FY26 base and FX/other-income tailwind flagged as non-recurring",
+    "fy27eForwardPE_estimateRange": "43-46x (estimate)",
+    "streetBeatContext": "Q1FY27 EPS of ₹17.23 (as reported by Quartr/Google Finance, differs slightly from the deck's ₹18.14 due to consolidation/rounding conventions) beat consensus ₹13.64 by +26.3%; revenue beat consensus by +13.2%",
+    "peerContext": "Finolex Cables ₹996 (-0.29%), KEI Industries ₹4,861 (-0.14%) same-day — RRKABEL's +3.06% reaction stands out vs flat/negative peer moves, consistent with a genuine beat-driven re-rating rather than sector-wide move"
+  },
+  "verdictChips": [
+    "Q1 beat: EPS +26.3% vs street, Revenue +13.2% vs street",
+    "FMEG: first-ever breakeven quarter — thesis-validating but Q2 seasonality caveat attached",
+    "W&C margin: 9.9% actual vs 10.5% FY28 target — management stayed conservative, did not upgrade",
+    "Other income +155% QoQ flagged by management itself as non-recurring FX — normalize PAT quality down",
+    "Cable-led growth (>25% vol) outpacing wire (~12%) — B2B/cable pivot executing on plan",
+    "TTM P/E 47.8x on live CMP, down from 51.8x pre-results despite +3% price pop, on EPS growth outrunning price",
+    "Cash conversion (CFO/PAT) at 0.60x FY26 vs 1.59x FY25 — unresolved this quarter, no fresh quarterly cash flow disclosed"
+  ]
+}

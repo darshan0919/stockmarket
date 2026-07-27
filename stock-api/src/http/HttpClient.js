@@ -76,13 +76,17 @@ class HttpClient {
 
   /**
    * @param {string} url
-   * @param {Object} [options] - { headers, timeout }
+   * @param {Object} [options] - { headers, timeout, data } - `data` is a
+   *   request body for DELETE calls that need one (e.g. Stockscans'
+   *   `DELETE /api/user/watchlists` takes `{watchlistId}` in the body, not
+   *   as a path param — confirmed live, the path-param form 404s).
    * @returns {Promise<import('axios').AxiosResponse>}
    */
-  async delete(url, { headers, timeout } = {}) {
+  async delete(url, { headers, timeout, data } = {}) {
     return this.axios.delete(url, {
       headers: this._headers(headers),
       timeout: timeout ?? this.timeout,
+      data,
     });
   }
 }

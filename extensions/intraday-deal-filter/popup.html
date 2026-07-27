@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Intraday Deal Filter</title>
+<style>
+  body { width: 360px; max-height: 480px; font: 13px -apple-system, system-ui, sans-serif; margin: 0; padding: 12px; color: #111827; }
+  h1 { font-size: 14px; margin: 0 0 8px; }
+  .sub { color: #6b7280; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid #f3f4f6; }
+  th { color: #6b7280; font-weight: 600; }
+  .empty { color: #9ca3af; padding: 12px 0; text-align: center; }
+  .actions { display: flex; gap: 8px; margin-top: 10px; }
+  button { flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; font-size: 12px; }
+  button.primary { background: #111827; color: #fff; border-color: #111827; }
+  .status { margin-top: 8px; font-size: 11px; color: #059669; min-height: 14px; }
+  .toggleRow { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; margin-bottom: 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; }
+  .toggleRow span { font-weight: 600; font-size: 12px; }
+  .switch { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; inset: 0; background-color: #d1d5db; transition: .15s; border-radius: 999px; }
+  .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: #fff; transition: .15s; border-radius: 50%; }
+  input:checked + .slider { background-color: #059669; }
+  input:checked + .slider:before { transform: translateX(16px); }
+  .settingRow { padding: 8px 10px; margin-bottom: 8px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; }
+  .settingRow .settingHead { display: flex; align-items: center; justify-content: space-between; }
+  .settingRow .settingHead span { font-weight: 600; font-size: 12px; }
+  .settingRow .settingDesc { color: #6b7280; font-size: 11px; margin-top: 4px; line-height: 1.4; }
+  .thresholdRow { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; margin-bottom: 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; }
+  .thresholdRow span { font-weight: 600; font-size: 12px; }
+  .thresholdRow.disabled { opacity: 0.45; }
+  .thresholdInputWrap { display: flex; align-items: center; gap: 4px; }
+  #thresholdInput { width: 56px; padding: 4px 6px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; text-align: right; }
+  .thresholdInputWrap span { font-weight: 400; color: #6b7280; }
+</style>
+</head>
+<body>
+  <h1>Intraday Deal Filter</h1>
+  <div class="toggleRow">
+    <span id="toggleLabel">Filtering intraday deals</span>
+    <label class="switch">
+      <input type="checkbox" id="enabledToggle" checked />
+      <span class="slider"></span>
+    </label>
+  </div>
+  <div class="settingRow">
+    <div class="settingHead">
+      <span id="removeAllLabel">Remove all same-day Buy+Sell traders</span>
+      <label class="switch">
+        <input type="checkbox" id="removeAllToggle" checked />
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="settingDesc">When on, any shareholder who bought and sold on the same day is treated as intraday and removed, regardless of quantity. The threshold below is ignored.</div>
+  </div>
+  <div class="thresholdRow" id="thresholdRow">
+    <span>Max retained-shares threshold</span>
+    <div class="thresholdInputWrap">
+      <input type="number" id="thresholdInput" min="0" max="100" step="0.1" value="2" />
+      <span>%</span>
+    </div>
+  </div>
+  <div class="sub">Known Intraday Traders (HFTs) — same-day matched Buy/Sell, or large-gross/small-net churn, on Bulk/Block Deals.</div>
+  <div id="list"></div>
+  <div class="actions">
+    <button id="exportBtn">Download JSON</button>
+    <button id="syncBtn" class="primary">Save to stockmarket/data</button>
+  </div>
+  <div class="actions">
+    <button id="clearBtn">Clear list</button>
+  </div>
+  <div id="status" class="status"></div>
+  <script src="popup.js"></script>
+</body>
+</html>
