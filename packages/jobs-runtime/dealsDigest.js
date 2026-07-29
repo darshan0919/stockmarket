@@ -38,10 +38,18 @@ const { sendHtmlEmail, stockscansUrl } = require('@stock/cloud-utils');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const dbV2 = require('./lib/db');
 const { tagEntityTypes, ENTITY_TYPE_LABELS } = require('./lib/entityClassifier');
+const { stockscans } = require('@stock/api');
+
+// Companies on this Stockscans watchlist must never be dropped from the
+// digest by the ₹5cr net-value threshold or the top-N cutoff in
+// groupAndTop10ByNetValue — if they show up in a category's raw rows, they
+// stay in that category's output regardless of rank/value. Requested after
+// the 28-Jul-2026 run silently skipped Gandhar Oil (below both cutoffs).
+const NEVER_FILTER_WATCHLIST_ID = '72e883fd788a4039780be18c';
 
 // Both overridable via CLI flags on main() (see bottom of file), same pattern as the
 // existing --max-xbrl: `--top-n <n>` (default 10), `--sast-quote-limit <n>` (default 40).
-const TOP_N = 10;
+const TOP_N = 25; // watchlist (never-filter) companies are added on top of this, not counted against it
 const XBRL_CONCURRENCY = 8;
 const SAST_QUOTE_LIMIT = 40; // max unique symbols priced for SAST value estimate
 const CRORE = 1e7;
@@ -110,30 +118,37 @@ async function isAvailableOnNSE(scripCode) {
   return dualListedBseScrips.has(String(scripCode));
 }
 
-function removeIntradayPairs(deals) {
-  const result = [];
-  const unmatched = new Map();
-
+/**
+ * Same-day intraday-churn detector, mirroring the "Remove all same-day
+ * Buy+Sell traders" (default-on) rule from the extensions/intraday-deal-filter
+ * Chrome extension: group deals by (symbol, client) — the whole fetch is
+ * already scoped to a single trading day — and if a group has at least one
+ * Buy/Acq leg AND at least one Sell/Sale/Dispos leg, that client is treated
+ * as an intraday trader (prop desk/HFT/arb square-off) for that symbol.
+ * Unlike the old removeIntradayPairs() (which only cancelled exact-quantity
+ * opposite-side pairs, leaving lopsided legs behind), this drops every leg
+ * for that (symbol, client) unconditionally — the group never enters the
+ * net-value calculation at all.
+ */
+function buildIntradayTraderGroups(deals) {
+  const groups = new Map();
   for (const d of deals) {
+    const key = `${d.symbol}|${d.client}`;
     const isBuy = /buy|acq/i.test(d.side || '');
-    const sideKey = isBuy ? 'BUY' : 'SELL';
-    const oppositeSideKey = isBuy ? 'SELL' : 'BUY';
-    const matchKey = `${d.symbol}_${d.client}_${d.qty}_${oppositeSideKey}`;
-    const myKey = `${d.symbol}_${d.client}_${d.qty}_${sideKey}`;
-
-    if (unmatched.has(matchKey) && unmatched.get(matchKey).length > 0) {
-      unmatched.get(matchKey).pop();
-    } else {
-      if (!unmatched.has(myKey)) unmatched.set(myKey, []);
-      unmatched.get(myKey).push(d);
-    }
+    const isSell = /sell|sale|dispos/i.test(d.side || '');
+    const g = groups.get(key) || { buy: false, sell: false };
+    if (isBuy) g.buy = true;
+    if (isSell) g.sell = true;
+    groups.set(key, g);
   }
+  return groups;
+}
 
-  for (const list of unmatched.values()) {
-    result.push(...list);
-  }
-
-  return result;
+function removeIntradayTraders(deals, groups) {
+  return deals.filter((d) => {
+    const g = groups.get(`${d.symbol}|${d.client}`);
+    return !(g && g.buy && g.sell);
+  });
 }
 
 // ── date helpers ──────────────────────────────────────────────────────────────
@@ -251,8 +266,11 @@ async function fetchBulkBlock(targetIst) {
   // from real directional buyers/sellers — see lib/entityClassifier.js.
   tagEntityTypes([...out.bulk, ...out.block]);
 
-  out.bulk = removeIntradayPairs(out.bulk);
-  out.block = removeIntradayPairs(out.block);
+  // Combine bulk+block before grouping so a desk that crosses a block via
+  // one leg in each category is still caught as a same-day Buy+Sell trader.
+  const intradayGroups = buildIntradayTraderGroups([...out.bulk, ...out.block]);
+  out.bulk = removeIntradayTraders(out.bulk, intradayGroups);
+  out.block = removeIntradayTraders(out.block, intradayGroups);
   return out;
 }
 
@@ -500,9 +518,27 @@ async function fetchInsider(targetIst, maxXbrl) {
   return out;
 }
 
+/**
+ * Bare NSE/BSE symbols (no "NSE:"/"BSE:" prefix) of companies on the
+ * never-filter watchlist. Fetched once per run; failures degrade to an
+ * empty set (never-filter is a safety net, not a hard dependency).
+ */
+async function getNeverFilterSymbols() {
+  try {
+    const data = await stockscans.watchlistTable(NEVER_FILTER_WATCHLIST_ID);
+    const rows = (data.table || []).slice(1); // row[0] = headers
+    return new Set(
+      rows.map((r) => String(r[0]).split(':').pop().toUpperCase()).filter(Boolean)
+    );
+  } catch (e) {
+    console.error(`Warning: could not fetch never-filter watchlist: ${e.message}`);
+    return new Set();
+  }
+}
+
 // ── ranking + rendering ───────────────────────────────────────────────────────
 
-async function groupAndTop10ByNetValue(rows, topN = TOP_N) {
+async function groupAndTop10ByNetValue(rows, topN = TOP_N, neverFilterSymbols = new Set()) {
   const groupsBySym = {};
   for (const r of rows) {
     if (!r.symbol) continue;
@@ -528,9 +564,23 @@ async function groupAndTop10ByNetValue(rows, topN = TOP_N) {
   }
 
   let allGroups = Object.values(groupsBySym);
-  allGroups = allGroups.filter((g) => Math.abs(g.netValue) >= 50000000);
+  // Never-filter symbols bypass the ₹5cr threshold entirely so a small
+  // (below-threshold) deal on a tracked company still surfaces.
+  allGroups = allGroups.filter(
+    (g) => Math.abs(g.netValue) >= 50000000 || neverFilterSymbols.has(g.symbol.toUpperCase())
+  );
   allGroups.sort((a, b) => Math.abs(b.netValue) - Math.abs(a.netValue));
   const top10 = allGroups.slice(0, topN);
+
+  // Re-add any never-filter symbols that made it past the threshold filter
+  // above but fell outside the top-N cutoff — they must remain in the
+  // results even if not currently ranked in the top N by value.
+  for (const g of allGroups) {
+    if (neverFilterSymbols.has(g.symbol.toUpperCase()) && !top10.includes(g)) {
+      top10.push(g);
+    }
+  }
+  top10.sort((a, b) => Math.abs(b.netValue) - Math.abs(a.netValue));
 
   await Promise.all(
     top10.map(async (g) => {
@@ -758,10 +808,11 @@ async function main() {
     return;
   }
 
-  const [bulkBlock, sast, insider] = [
+  const [bulkBlock, sast, insider, neverFilterSymbols] = [
     await fetchBulkBlock(target),
     await fetchSast(target, sastQuoteLimit),
     await fetchInsider(target, maxXbrl),
+    await getNeverFilterSymbols(),
   ];
 
   const digest = {
@@ -769,10 +820,10 @@ async function main() {
     bulkBlock,
     sast,
     insider,
-    bulk10: await groupAndTop10ByNetValue(bulkBlock.bulk, topN),
-    block10: await groupAndTop10ByNetValue(bulkBlock.block, topN),
-    sast10: await groupAndTop10ByNetValue(sast.rows, topN),
-    insider10: await groupAndTop10ByNetValue(insider.rows, topN),
+    bulk10: await groupAndTop10ByNetValue(bulkBlock.bulk, topN, neverFilterSymbols),
+    block10: await groupAndTop10ByNetValue(bulkBlock.block, topN, neverFilterSymbols),
+    sast10: await groupAndTop10ByNetValue(sast.rows, topN, neverFilterSymbols),
+    insider10: await groupAndTop10ByNetValue(insider.rows, topN, neverFilterSymbols),
   };
 
   // Output DTO standard (skills/tooling/output-dto-standard): every record
