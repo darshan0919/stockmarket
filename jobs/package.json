@@ -15,6 +15,7 @@
     "data:offload": "yarn workspace @stock/jobs-runtime data:offload",
     "ca-digest": "yarn workspace @stock/jobs-runtime ca-digest",
     "deals-digest": "yarn workspace @stock/jobs-runtime deals-digest",
+    "verify-deals-digest": "yarn workspace @stock/jobs-runtime verify-deals-digest",
     "daily-gainers-digest": "yarn workspace @stock/jobs-runtime daily-gainers-digest",
     "weekly-gainers-digest": "yarn workspace @stock/jobs-runtime weekly-gainers-digest",
     "near-highs-digest": "yarn workspace @stock/jobs-runtime near-highs-digest",

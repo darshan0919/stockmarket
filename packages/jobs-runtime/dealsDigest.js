@@ -39,6 +39,13 @@ const StorageService = require('@stock/cloud-utils').StorageService;
 const dbV2 = require('./lib/db');
 const { tagEntityTypes, ENTITY_TYPE_LABELS } = require('./lib/entityClassifier');
 const { stockscans } = require('@stock/api');
+const {
+  loadCompanyMaster: cmLoad,
+  findByTicker: cmFindByTicker,
+  findByScripCode: cmFindByScripCode,
+  findByBseTicker: cmFindByBseTicker,
+  normalizeName: cmNormalizeName,
+} = require('./lib/companyMaster');
 
 // Companies on this Stockscans watchlist must never be dropped from the
 // digest by the ₹5cr net-value threshold or the top-N cutoff in
@@ -78,44 +85,6 @@ async function getScreenerData(symbol) {
   } catch (e) {
     return null;
   }
-}
-
-let dualListedBseScrips = null;
-async function isAvailableOnNSE(scripCode) {
-  if (!scripCode) return false;
-
-  if (!dualListedBseScrips) {
-    try {
-      const res = await fetch('https://api.kite.trade/instruments');
-      const csv = await res.text();
-
-      const nseSymbols = new Set();
-      dualListedBseScrips = new Set();
-
-      const lines = csv.split('\n');
-      for (const l of lines) {
-        if (l.includes(',EQ,') && (l.trim().endsWith(',NSE') || l.trim().endsWith('NSE'))) {
-          const p = l.split(',');
-          let symbol = p[2].trim();
-          symbol = symbol.replace(/-(EQ|BE|BZ|SM|ST|IQ|IL)$/i, '');
-          nseSymbols.add(symbol);
-        }
-      }
-      for (const l of lines) {
-        if (l.includes(',EQ,') && (l.trim().endsWith(',BSE') || l.trim().endsWith('BSE'))) {
-          const p = l.split(',');
-          const symbol = p[2].trim();
-          if (nseSymbols.has(symbol)) {
-            dualListedBseScrips.add(p[1]); // exchange_token is BSE scrip code
-          }
-        }
-      }
-    } catch (e) {
-      dualListedBseScrips = new Set(); // fallback to empty set on error
-    }
-  }
-
-  return dualListedBseScrips.has(String(scripCode));
 }
 
 /**
@@ -173,6 +142,79 @@ function parseNseDate(s) {
   if (!m) return null;
   const mon = MONTHS.findIndex((x) => x.toLowerCase() === m[2].toLowerCase());
   return mon < 0 ? null : new Date(Number(m[3]), mon, Number(m[1]));
+}
+
+/**
+ * Resolve a deal/insider row to a canonical company identity BEFORE any
+ * dedup or grouping happens, instead of grouping on whatever raw string a
+ * given exchange feed happened to put in `symbol`/`company`/`name` that day.
+ *
+ * Two real incidents drove this (2026-07-30):
+ *  - RMCL duplicate: NSE spells it "RADHA MADHAV CORPORATION LIMITED", BSE
+ *    "Radha Madhav Corporation Ltd" — different strings, so the old
+ *    same-string dedup kept both and grouping used the raw symbol/name as
+ *    the key, producing two separate rows in the digest for one filing.
+ *  - Novartis miss: unrelated bug (see fetchInsider), but reinforced that
+ *    identity resolution needs to be a single, testable place rather than
+ *    ad hoc string comparisons scattered through this file.
+ *
+ * Resolution order:
+ *   1. NSE ticker lookup (`shared/companyMaster`, sourced from Kite
+ *      instruments + reconciled truncation-merge in companyMasterSync.js).
+ *   2. BSE scrip-code lookup, when the row carries a numeric scrip code.
+ *   3. companyMaster's own normalizeName() on the company/display name —
+ *      still returns a good cross-exchange-stable key even when the master
+ *      has no ticker/scrip record for this company at all (e.g. RMCL/Radha
+ *      Madhav Corp isn't in Kite's instruments dump — verified 2026-07-30 —
+ *      so master lookups (1) and (2) both miss it, but normalizeName still
+ *      collapses "RADHA MADHAV CORPORATION LIMITED" and "Radha Madhav
+ *      Corporation Ltd" to the same key).
+ *
+ * Returns { key, displaySymbol, companyName, nseTicker, bseTicker }.
+ */
+function resolveCompanyIdentity({ symbol, company, companyName, exchange }) {
+  const name = companyName || company || symbol || '';
+  let rec = null;
+
+  if (exchange === 'NSE' && symbol) {
+    rec = cmFindByTicker(symbol);
+  }
+  if (!rec && exchange === 'BSE' && symbol && /^\d+$/.test(String(symbol).trim())) {
+    rec = cmFindByScripCode(symbol);
+  }
+  if (!rec && exchange === 'BSE' && symbol && !/^\d+$/.test(String(symbol).trim())) {
+    // BSE bulk/block-deal rows report BSE's own alpha tradingsymbol as
+    // `scripname` (e.g. "AQYLON") rather than the numeric scrip code or the
+    // full legal name — try that before falling through to name matching.
+    rec = cmFindByBseTicker(symbol);
+  }
+  if (!rec && name) {
+    // BSE bulk/block rows key off `scripname` text rather than a numeric
+    // scrip code, so neither lookup above fires. Fall back to an EXACT
+    // normalized-name match against the master's name index (deliberately
+    // exact, not the substring/keyword scan companyMaster's findInText()
+    // does elsewhere — a substring match here risks silently merging two
+    // unrelated companies whose short normalized names happen to be
+    // contained in one another, which would be worse than the missed dedup
+    // this whole change is meant to fix).
+    try {
+      const master = cmLoad();
+      rec = master._byNormName.get(cmNormalizeName(name)) || null;
+    } catch {
+      rec = null;
+    }
+  }
+
+  const key = rec ? rec.companyId : `NAME:${cmNormalizeName(name)}`;
+  const displaySymbol = (rec && (rec.nseTicker || rec.bseTicker)) || symbol || name;
+
+  return {
+    key,
+    displaySymbol,
+    companyName: (rec && rec.companyName) || name,
+    nseTicker: rec ? rec.nseTicker : null,
+    bseTicker: rec ? rec.bseTicker : null,
+  };
 }
 
 function num(x) {
@@ -463,18 +505,34 @@ async function fetchInsider(targetIst, maxXbrl) {
       const val = num(b.Fld_SecurityValue) || 0;
       if (!qty || !val) continue;
 
-      const bseComp = (b.Companyname || '').toLowerCase().trim();
+      const bseKey = resolveCompanyIdentity({
+        symbol: b.Fld_ScripCode,
+        companyName: b.Companyname,
+        exchange: 'BSE',
+      }).key;
       const nseMatch = results.some(
-        (r) => r.exchange === 'NSE' && (r.company || '').toLowerCase().trim() === bseComp
+        (r) =>
+          r.exchange === 'NSE' &&
+          resolveCompanyIdentity({ symbol: r.symbol, companyName: r.company, exchange: 'NSE' })
+            .key === bseKey
       );
       if (nseMatch) {
         continue;
       }
 
-      if (await isAvailableOnNSE(b.Fld_ScripCode)) {
-        continue;
-      }
-
+      // NOTE: we intentionally do NOT also skip dual-listed-on-NSE symbols
+      // here just because isAvailableOnNSE() says the company trades on NSE.
+      // That used to be the second dedup gate, on the assumption that any
+      // dual-listed company's insider filing would always also show up in
+      // the NSE corporates-pit-gg feed the same day. It doesn't: NSE and BSE
+      // disclose PIT filings independently and one exchange can legitimately
+      // lag or altogether miss a same-day filing the other has (verified
+      // 2026-07-30 — Novartis India's ₹1,377cr promoter stake-sale filing
+      // was on BSE only; NSE's feed never carried it that day). Gating on
+      // isAvailableOnNSE silently dropped the row instead of keeping the one
+      // real filing we have. The nseMatch name check above is the only
+      // dedup we need: it already skips this row when NSE truly reported the
+      // same filing that day.
       const bseIsBuy =
         b.Fld_TransactionType === 'Acquisition' || b.ModeOfAquisation === 'Market Purchase';
       results.push({
@@ -541,11 +599,36 @@ async function getNeverFilterSymbols() {
 async function groupAndTop10ByNetValue(rows, topN = TOP_N, neverFilterSymbols = new Set()) {
   const groupsBySym = {};
   for (const r of rows) {
-    if (!r.symbol) continue;
-    if (!groupsBySym[r.symbol]) {
-      groupsBySym[r.symbol] = { symbol: r.symbol, netValue: 0, deals: [] };
+    if (!r.symbol && !r.company && !r.companyName) continue;
+
+    // Group by canonical company identity (NSE ticker / BSE scrip code via
+    // companyMaster, or a normalized-name key when the master has no record
+    // at all) rather than the raw symbol/name string a given feed happened
+    // to use that day — see resolveCompanyIdentity() for why: it's what
+    // fixed both the RMCL cross-exchange duplicate and keeps working even
+    // for companies (like RMCL) that aren't in the Kite instruments dump.
+    const identity = resolveCompanyIdentity({
+      symbol: r.symbol,
+      company: r.company || r.name,
+      companyName: r.companyName,
+      exchange: r.exchange,
+    });
+    const groupKey = identity.key;
+
+    if (!groupsBySym[groupKey]) {
+      groupsBySym[groupKey] = {
+        symbol: identity.displaySymbol,
+        companyName: identity.companyName,
+        nseTicker: identity.nseTicker,
+        bseTicker: identity.bseTicker,
+        netValue: 0,
+        grossValue: 0,
+        deals: [],
+      };
     }
-    groupsBySym[r.symbol].deals.push(r);
+    const g = groupsBySym[groupKey];
+    g.deals.push(r);
+    g.grossValue += Math.abs(r.value || 0);
 
     // Prefer a row's own signed netValue when the fetcher already computed
     // one (insider PIT rows can mix buy + sell legs within a single filing,
@@ -553,46 +636,74 @@ async function groupAndTop10ByNetValue(rows, topN = TOP_N, neverFilterSymbols = 
     // treat it as a pure buy). Fall back to side-based signing of `value`
     // for rows that only ever carry a single side (bulk/block/SAST).
     if (r.netValue !== undefined && r.netValue !== null) {
-      groupsBySym[r.symbol].netValue += r.netValue;
+      g.netValue += r.netValue;
     } else {
       const isBuy = /buy|acq/i.test(r.side || '');
       const isSell = /sell|sale|dispos/i.test(r.side || '');
-      if (isBuy) groupsBySym[r.symbol].netValue += r.value || 0;
-      else if (isSell) groupsBySym[r.symbol].netValue -= r.value || 0;
-      else groupsBySym[r.symbol].netValue += r.value || 0;
+      if (isBuy) g.netValue += r.value || 0;
+      else if (isSell) g.netValue -= r.value || 0;
+      else g.netValue += r.value || 0;
     }
   }
 
   let allGroups = Object.values(groupsBySym);
   // Never-filter symbols bypass the ₹5cr threshold entirely so a small
   // (below-threshold) deal on a tracked company still surfaces.
+  //
+  // Threshold is checked against grossValue (sum of |value| across every
+  // leg), not just netValue: a filing made up ENTIRELY of neutral legs
+  // (pledge/revoke/invocation — see fetchInsider's netValue comment) nets to
+  // 0 by design, which used to make the whole group vanish here regardless
+  // of how large the underlying disclosure was. That's how a ₹56.53cr Geojit
+  // promoter pledge-revoke got silently dropped on 2026-07-30: net value was
+  // exactly 0, so it never cleared the old net-only threshold even though
+  // the digest's own renderEmail() already had logic to display such
+  // "no actual transaction" groups in gray. Gating on max(|net|, gross)
+  // keeps material disclosures visible while still suppressing genuinely
+  // tiny activity.
   allGroups = allGroups.filter(
-    (g) => Math.abs(g.netValue) >= 50000000 || neverFilterSymbols.has(g.symbol.toUpperCase())
+    (g) =>
+      Math.abs(g.netValue) >= 5000000 ||
+      g.grossValue >= 5000000 ||
+      neverFilterSymbols.has(String(g.symbol).toUpperCase())
   );
-  allGroups.sort((a, b) => Math.abs(b.netValue) - Math.abs(a.netValue));
+  allGroups.sort(
+    (a, b) => Math.max(Math.abs(b.netValue), b.grossValue) - Math.max(Math.abs(a.netValue), a.grossValue)
+  );
   const top10 = allGroups.slice(0, topN);
 
   // Re-add any never-filter symbols that made it past the threshold filter
   // above but fell outside the top-N cutoff — they must remain in the
   // results even if not currently ranked in the top N by value.
   for (const g of allGroups) {
-    if (neverFilterSymbols.has(g.symbol.toUpperCase()) && !top10.includes(g)) {
+    if (neverFilterSymbols.has(String(g.symbol).toUpperCase()) && !top10.includes(g)) {
       top10.push(g);
     }
   }
-  top10.sort((a, b) => Math.abs(b.netValue) - Math.abs(a.netValue));
+  top10.sort(
+    (a, b) => Math.max(Math.abs(b.netValue), b.grossValue) - Math.max(Math.abs(a.netValue), a.grossValue)
+  );
 
   await Promise.all(
     top10.map(async (g) => {
       g.deals.sort((a, b) => (b.value ?? -1) - (a.value ?? -1));
-      let nseData = null;
-      try {
-        nseData = await nse.getSymbolData(g.symbol);
-      } catch {}
 
-      g.companyName = nseData?.metaData?.companyName || g.symbol;
+      // Only hit NSE's quote API when we actually resolved an NSE ticker for
+      // this group — a BSE-only company's scrip code isn't a valid NSE
+      // symbol and would just silently 404/catch below anyway.
+      let nseData = null;
+      if (g.nseTicker) {
+        try {
+          nseData = await nse.getSymbolData(g.nseTicker);
+        } catch {}
+      }
+
+      if (nseData?.metaData?.companyName) g.companyName = nseData.metaData.companyName;
       g.marketCap = nseData?.tradeInfo?.totalMarketCap || null;
 
+      // g.companyName already came from companyMaster (resolveCompanyIdentity)
+      // when available; only fall through to screener.in scraping when we
+      // still don't have a real name (i.e. it fell back to the raw symbol).
       if (!g.marketCap || g.companyName === g.symbol) {
         const scr = await getScreenerData(g.symbol);
         if (scr) {
@@ -623,13 +734,12 @@ function tableHtml(title, headers, rowsHtml, note) {
   return `
   <h3 style="margin:24px 0 6px;font-family:Arial,sans-serif;color:#1a237e">${title}</h3>
   ${note ? `<p style="margin:0 0 8px;font:12px Arial;color:#666">${note}</p>` : ''}
-  ${
-    rowsHtml.length
+  ${rowsHtml.length
       ? `<table cellpadding="6" cellspacing="0" border="0" style="border-collapse:collapse;font:13px Arial;width:100%;white-space:nowrap">
        <tr style="background:#e8eaf6;text-align:left">${headers.map((h) => `<th style="border-bottom:2px solid #9fa8da">${h}</th>`).join('')}</tr>
        ${rowsHtml.join('\n')}</table>`
       : '<p style="font:13px Arial;color:#999">No records.</p>'
-  }`;
+    }`;
 }
 
 function td(v, right, wrap) {
@@ -947,4 +1057,15 @@ if (require.main === module) {
   });
 }
 
-module.exports = { main };
+module.exports = {
+  main,
+  // Exported for verifyDealsDigest.js (the post-run reconciliation script) so
+  // it re-derives identity/grouping using the EXACT same rules as the digest
+  // itself, instead of a second hand-rolled copy that could silently drift
+  // out of sync with real fixes made here.
+  resolveCompanyIdentity,
+  groupAndTop10ByNetValue,
+  getNeverFilterSymbols,
+  parseDateArg,
+  fmt,
+};

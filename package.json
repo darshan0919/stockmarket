@@ -32,6 +32,7 @@
     "antigravity:tasks-and-skills:sync": "node scripts/antigravity-sync-tasks-and-skills.js",
     "quality": "yarn format:check && yarn lint && yarn test",
     "deals-digest": "yarn workspace @stock/jobs deals-digest",
+    "verify-deals-digest": "yarn workspace @stock/jobs verify-deals-digest",
     "daily-gainers-digest": "yarn workspace @stock/jobs daily-gainers-digest",
     "weekly-gainers-digest": "yarn workspace @stock/jobs weekly-gainers-digest",
     "near-highs-digest": "yarn workspace @stock/jobs near-highs-digest",

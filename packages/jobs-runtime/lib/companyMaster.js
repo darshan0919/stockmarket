@@ -39,11 +39,18 @@ function loadCompanyMaster({ forceReload = false } = {}) {
   // Build lookup indexes once per load.
   _cache._byNseTicker = new Map();
   _cache._byBseScripCode = new Map();
+  _cache._byBseSymbol = new Map();
   _cache._byNormName = new Map();
   _cache._byKeyword = new Map();
   for (const c of _cache.companies) {
     if (c.nseTicker) _cache._byNseTicker.set(c.nseTicker.toUpperCase(), c);
     if (c.bseTicker) _cache._byBseScripCode.set(String(c.bseTicker), c);
+    // BSE's own alpha tradingsymbol (distinct from the numeric scrip code) —
+    // exchange feeds like BSE's bulk/block-deal API report THIS as their
+    // `scripname`, not the full legal name or the numeric code (verified
+    // 2026-07-30: AQYLON's BSE bulk-deal rows carry symbol "AQYLON", same as
+    // its NSE ticker). Index it separately so lookups can match it directly.
+    if (c.bseSymbol) _cache._byBseSymbol.set(c.bseSymbol.toUpperCase(), c);
     _cache._byNormName.set(normalizeName(c.companyName), c);
     for (const kw of c.keywords || []) {
       _cache._byKeyword.set(kw.toUpperCase(), c);
@@ -68,6 +75,18 @@ function findByTicker(ticker) {
 function findByScripCode(scripCode) {
   const m = loadCompanyMaster();
   return m._byBseScripCode.get(String(scripCode || '').trim()) || null;
+}
+
+/** Look up by BSE's own alpha tradingsymbol (not the numeric scrip code), e.g. "AQYLON". */
+function findByBseTicker(bseSymbol) {
+  const m = loadCompanyMaster();
+  return (
+    m._byBseSymbol.get(
+      String(bseSymbol || '')
+        .toUpperCase()
+        .trim()
+    ) || null
+  );
 }
 
 /**
@@ -105,6 +124,7 @@ module.exports = {
   loadCompanyMaster,
   findByTicker,
   findByScripCode,
+  findByBseTicker,
   findInText,
   normalizeName,
   MASTER_PATH,

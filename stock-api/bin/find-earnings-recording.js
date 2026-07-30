@@ -168,7 +168,7 @@ function buildQuarterLabels({ fiscalYear, fiscalPeriod }) {
  * @param {(message: string) => void} [opts.onWarning]
  * @returns {Promise<Map<string, {found:false,ticker:string}|{found:true,ticker:string,announcement:Object,pdfUrl:string,pdfPath:string,labelConfirmed:boolean}>>}
  */
-async function findRecordingAnnouncementsBulk(entries, { outDir = process.cwd(), client, onWarning = () => {} } = {}) {
+async function findRecordingAnnouncementsBulk(entries, { outDir = process.cwd(), client, onWarning = () => { } } = {}) {
   const c = client || new StockscansClient();
   if (!client) await c.validateAuth();
 
@@ -195,7 +195,7 @@ async function findRecordingAnnouncementsBulk(entries, { outDir = process.cwd(),
       client: c,
       companyIds: tickers,
       quarterDate,
-      searchFilters: ['Audio Recording', 'Call Recording', 'Recording'],
+      searchFilters: ['Audio Recording', 'Call Recording', 'Recording', 'Link of Recording'],
       onWarning,
     });
     for (const a of announcements) {
@@ -230,7 +230,7 @@ async function findRecordingAnnouncementsBulk(entries, { outDir = process.cwd(),
     if (!labelConfirmed && labels.length) {
       onWarning(
         `${ticker}: found a "recording" announcement but none of its title/description mention ${labels.join('/')} — ` +
-          `taking the newest match anyway, but verify it's actually for the intended quarter before transcribing it.`
+        `taking the newest match anyway, but verify it's actually for the intended quarter before transcribing it.`
       );
     }
     const announcement = [...pool].sort(
