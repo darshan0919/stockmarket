@@ -53,8 +53,31 @@ packages/jobs-runtime/.cache/
 # Downloads
 downloads/
 
+# Concall recordings (raw audio/video downloads + derived transcripts) —
+# regenerable from source, must not be committed. Per DATA_RULES §1, transient
+# raw material like this belongs in data/runs/ if it must persist at all; this
+# top-level dir is a working scratch area for concall-transcript-extractor.
+recordings/
+
 # Uploaded research dashboards (per-symbol HTML)
 backend/uploads/
+
+# Stray generated artifacts (rendered PDFs/decks/reports) written to the repo
+# root by a skill run whose output-path resolution fell back to process.cwd()
+# instead of data/assets/<skill>/. Guard against re-committing these — if you
+# see files matching these patterns land at the repo root, move them into
+# data/assets/misc/ (or the producing skill's data/assets/<skill>/ subfolder)
+# and delete them from here; see skills/development/dead-code-scanner/SKILL.md
+# and scripts/find_stray_artifacts.js, which detects this class of mistake.
+/*.pdf
+/*.docx
+/*.pptx
+/*.xlsx
+/*.mp3
+/*.mp4
+/*.webm
+/*.wav
+/*.zip
 
 
 # ── Generated data — Data Ecosystem v2 (docs/DATA_ECOSYSTEM.md) ──────────────
