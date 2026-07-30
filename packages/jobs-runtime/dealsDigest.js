@@ -457,21 +457,33 @@ async function fetchInsider(targetIst, maxXbrl) {
       // economic ownership changes:
       //  - "conversion of security" = dispose of warrants/prefs + acquire
       //    equity of ~equal value → legs should cancel out (net ~0).
-      //  - "pledge"/"revoke of pledge"/"invocation" = encumbrance status
-      //    change, not a purchase or sale → should contribute 0 to net,
-      //    not be added as if it were a buy (that flips sale-heavy filings
-      //    like "Sell/Pledge Revoke" from net-negative to net-positive).
-      // So: only buy/acq legs add, only sell/sale/dispos legs subtract;
-      // every other leg type (pledge, revoke, invocation, gift, etc.) is
-      // excluded from netValue but still included in the gross `value`
-      // shown in the digest for transparency on total filing activity.
+      //  - "pledge" (new pledge created) / "invocation" (lender seizes
+      //    pledged shares) = encumbrance status change, not a purchase or
+      //    sale → contribute 0 to net, not added as if a buy (that would
+      //    flip sale-heavy filings like "Sell/Pledge" from net-negative to
+      //    net-positive).
+      //  - "revoke of pledge" / "release of pledge" is DIFFERENT: releasing
+      //    a pledge is a real, meaningful signal (promoter shares becoming
+      //    unencumbered again) and per Darshan's direction (2026-07-30) it
+      //    should count toward netValue like a buy/acquisition — this is
+      //    what makes it correctly show up as a real, colored net value
+      //    instead of ₹0. (Previously it was treated as neutral, which is
+      //    how Geojit's ₹56.53cr pledge-revoke got dropped by the group
+      //    threshold — see groupAndTop10ByNetValue's grossValue fallback,
+      //    which stays in place as a second safety net for any OTHER
+      //    still-neutral leg type that turns out to be large.)
+      // So: buy/acq legs add, release/revoke-of-pledge legs also add,
+      // sell/sale/dispos legs subtract; every other leg type (plain pledge
+      // creation, invocation, gift, etc.) is excluded from netValue but
+      // still included in the gross `value` shown in the digest.
       let buyValue = 0,
         sellValue = 0;
       types.forEach((t, idx) => {
         const v = values[idx] || 0;
         if (/buy|acq/i.test(t)) buyValue += v;
+        else if (/(revoke|release).*pledge|pledge.*(revoke|release)/i.test(t)) buyValue += v;
         else if (/sell|sale|dispos/i.test(t)) sellValue += v;
-        // else: neutral leg (pledge/revoke/invocation/etc.) — excluded from net
+        // else: neutral leg (pledge creation/invocation/etc.) — excluded from net
       });
       const netValue = buyValue - sellValue;
       const totalValue = values.reduce((a, b) => a + (b || 0), 0) || null;
@@ -533,8 +545,19 @@ async function fetchInsider(targetIst, maxXbrl) {
       // real filing we have. The nseMatch name check above is the only
       // dedup we need: it already skips this row when NSE truly reported the
       // same filing that day.
+      // Same "release/revoke of pledge counts toward net value like a buy"
+      // rule as the NSE XBRL path above — checked across both the
+      // transaction-type and mode fields since BSE splits the signal across
+      // Fld_TransactionType ("Revoke") and ModeOfAquisation ("Revocation Of
+      // Pledge") depending on the filing.
+      const pledgeReleaseRe = /(revoke|release).*pledge|pledge.*(revoke|release)/i;
+      const isPledgeRelease =
+        pledgeReleaseRe.test(b.Fld_TransactionType || '') ||
+        pledgeReleaseRe.test(b.ModeOfAquisation || '');
       const bseIsBuy =
-        b.Fld_TransactionType === 'Acquisition' || b.ModeOfAquisation === 'Market Purchase';
+        b.Fld_TransactionType === 'Acquisition' ||
+        b.ModeOfAquisation === 'Market Purchase' ||
+        isPledgeRelease;
       results.push({
         exchange: 'BSE',
         symbol: b.Companyname || String(b.Fld_ScripCode),
@@ -542,7 +565,7 @@ async function fetchInsider(targetIst, maxXbrl) {
         person: b.Fld_PromoterName || null,
         personCount: 1,
         category: b.Fld_PersonCatgName || null,
-        side: bseIsBuy ? 'Buy' : 'Sell',
+        side: isPledgeRelease ? 'Pledge Revoke' : bseIsBuy ? 'Buy' : 'Sell',
         mode: b.ModeOfAquisation || null,
         qty: qty,
         value: val,
@@ -747,7 +770,11 @@ function td(v, right, wrap) {
 
 function renderEmail(dateLabel, digest, topN = TOP_N) {
   const sideColor = (s) => {
-    const hasBuy = /buy|acq/i.test(s || '');
+    // Release/revoke of pledge now feeds netValue like a buy (fetchInsider) —
+    // color it the same way here so the per-leg badge matches.
+    const hasBuy =
+      /buy|acq/i.test(s || '') ||
+      /(revoke|release).*pledge|pledge.*(revoke|release)/i.test(s || '');
     const hasSell = /sell|sale|dispos/i.test(s || '');
     if (hasBuy && hasSell) return '#333'; // mixed legs (e.g. conversion) — neutral, not green
     return hasBuy ? '#1b5e20' : hasSell ? '#b71c1c' : '#333';
@@ -814,8 +841,14 @@ function renderEmail(dateLabel, digest, topN = TOP_N) {
         const symCol = isFirst
           ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee"><a href="${stockscansUrl(g.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(g.companyName || g.symbol)}</b></a></td>`
           : '';
+        // "Pledge Revoke"/"release of pledge" legs now feed netValue just
+        // like buy/sell (see fetchInsider) — count them as an actual
+        // transaction here too, or their real (now non-zero) net value would
+        // still render forced gray instead of the green/red it earned.
         const isActualTransaction = g.deals.some((d) =>
-          /buy|sell|acq|sale|dispos/i.test(d.side || '')
+          /buy|sell|acq|sale|dispos|(revoke|release).*pledge|pledge.*(revoke|release)/i.test(
+            d.side || ''
+          )
         );
         const insiderNetColor = isActualTransaction ? netColor(g.netValue) : '#888';
         const netCol = isFirst
