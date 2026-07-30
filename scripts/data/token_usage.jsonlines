@@ -3,3 +3,5 @@
 {"timestamp": "2026-07-30T14:40:30.598141Z", "name": "daily-deals-digest", "type": "task", "model": "gemini-2.5-pro", "estimated_input_tokens": 500, "estimated_output_tokens": 666, "files_read": 0, "context_chars": 0}
 {"timestamp": "2026-07-30T14:40:45.561077Z", "name": "daily-gainers-digest", "type": "task", "model": "gemini-2.5-pro", "estimated_input_tokens": 500, "estimated_output_tokens": 666, "files_read": 0, "context_chars": 0}
 {"timestamp": "2026-07-30T14:42:26.257320Z", "name": "near-highs-digest", "type": "task", "model": "gemini-2.5-pro", "estimated_input_tokens": 500, "estimated_output_tokens": 666, "files_read": 0, "context_chars": 0}
+{"timestamp": "2026-07-30T17:50:07.502882Z", "name": "daily-deals-digest", "type": "task", "model": "gemini-3.6-flash", "estimated_input_tokens": 500, "estimated_output_tokens": 666, "files_read": 0, "context_chars": 0}
+{"timestamp": "2026-07-30T17:55:04.886887Z", "name": "daily-deals-digest", "type": "task", "model": "gemini-3.6-flash", "estimated_input_tokens": 500, "estimated_output_tokens": 666, "files_read": 0, "context_chars": 0}

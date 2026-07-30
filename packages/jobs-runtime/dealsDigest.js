@@ -664,11 +664,10 @@ async function groupAndTop10ByNetValue(rows, topN = TOP_N, neverFilterSymbols = 
   allGroups = allGroups.filter(
     (g) =>
       Math.abs(g.netValue) >= 5000000 ||
-      g.grossValue >= 5000000 ||
       neverFilterSymbols.has(String(g.symbol).toUpperCase())
   );
   allGroups.sort(
-    (a, b) => Math.max(Math.abs(b.netValue), b.grossValue) - Math.max(Math.abs(a.netValue), a.grossValue)
+    (a, b) => Math.abs(b.netValue) - Math.abs(a.netValue)
   );
   const top10 = allGroups.slice(0, topN);
 
@@ -681,7 +680,7 @@ async function groupAndTop10ByNetValue(rows, topN = TOP_N, neverFilterSymbols = 
     }
   }
   top10.sort(
-    (a, b) => Math.max(Math.abs(b.netValue), b.grossValue) - Math.max(Math.abs(a.netValue), a.grossValue)
+    (a, b) => Math.abs(b.netValue) - Math.abs(a.netValue)
   );
 
   await Promise.all(
@@ -695,7 +694,7 @@ async function groupAndTop10ByNetValue(rows, topN = TOP_N, neverFilterSymbols = 
       if (g.nseTicker) {
         try {
           nseData = await nse.getSymbolData(g.nseTicker);
-        } catch {}
+        } catch { }
       }
 
       if (nseData?.metaData?.companyName) g.companyName = nseData.metaData.companyName;
