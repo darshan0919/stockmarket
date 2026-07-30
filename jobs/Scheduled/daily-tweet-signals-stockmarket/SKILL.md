@@ -17,3 +17,5 @@ Summary of what that skill does (the SKILL.md is the source of truth — follow 
 8. Finish with `node packages/jobs-runtime/scripts/offloadToDrive.js` (or whatever the current Data Ecosystem v2 equivalent sync/offload script is — check docs/DATA_ECOSYSTEM.md if offloadToDrive.js has been superseded) to sync jobs/run data to Drive. This is mandatory even if earlier steps had partial failures.
 
 If any step's tooling has moved or been refactored since this prompt was written (the repo's data layer was mid-refactor as of 2026-07-09), trust the current SKILL.md and repo state over this summary — this summary is a convenience recap, not the authority.
+
+Final step (every run, per `skills/tooling/cowork-task-architect/SKILL.md`): execute `python scripts/metrics/track_invocation.py --name daily-tweet-signals-stockmarket --type task --model <the exact model executing this run, e.g. claude-sonnet-5>`. No `modelUsed` needed on the classifier's event records — step 6 is deterministic, content-only rule-based classification, no LLM call.

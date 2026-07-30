@@ -6,7 +6,7 @@ const { INSTITUTIONAL_DARK, formatInlineMarkdown } = require('../utils/pdfUtils'
 /**
  * createSectorReport converts markdown to an institutional PDF sector primer.
  */
-async function createSectorReport(sectorName, subTheme, reportMarkdown, outputPath) {
+async function createSectorReport(sectorName, subTheme, reportMarkdown, outputPath, opts = {}) {
   let bodyHtml = '';
 
   // Custom replacements for sector report
@@ -41,7 +41,13 @@ async function createSectorReport(sectorName, subTheme, reportMarkdown, outputPa
     'Internal — for investment conviction building; not a published recommendation.';
 
   // Override some wrapHtml styles with classification
-  let htmlContent = wrapHtml(title, subtitle, bodyHtml, { headerBg: INSTITUTIONAL_DARK.primary });
+  // modelUsed (skills/tooling/output-dto-standard/SKILL.md): this report is entirely
+  // LLM-authored analysis and has no separate JSON DTO, so the model is stamped into
+  // the rendered disclaimer footer instead — caller must pass opts.modelUsed.
+  let htmlContent = wrapHtml(title, subtitle, bodyHtml, {
+    headerBg: INSTITUTIONAL_DARK.primary,
+    modelUsed: opts.modelUsed,
+  });
 
   const classificationHtml = `
     <div style="font-size: 8.5pt; color: ${INSTITUTIONAL_DARK.bad}; font-weight: bold; margin-bottom: 8mm;">

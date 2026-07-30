@@ -114,6 +114,16 @@ In short:
   `modifiedTime`, `creator` (the task/skill name), plus `companyId` / `date` /
   `type` where applicable. Batch writes; NO file deletions in any write path
   (Cowork mounts throw EPERM on delete — an inline `rm` aborts the save).
+- **`modelUsed` (mandatory whenever the task's LLM step writes a DTO):** a
+  scheduled task's LLM-judgment step can run on whichever model the task was
+  configured/routed to for that invocation (Sonnet, Opus, Haiku, or a cheaper
+  model like Gemini/Haiku a low-judgement sub-step was routed to for cost —
+  routing cheap sub-steps to a cheaper model is encouraged, see below). Any
+  note/report/DTO that step writes MUST set `modelUsed` to the exact model
+  string that actually ran it — read from the running context at execution
+  time, never hardcoded in the script/skill/prompt. Purely-scripted steps
+  (fetch/parse/filter/sort/aggregate) write no `modelUsed` at all. See
+  `skills/tooling/output-dto-standard/SKILL.md` "modelUsed" for the full rule.
 - Schedule with buffers: ≥ 30 min from any existing task, ≥ 60 min from any task
   writing the same collection (see DATA_RULES §6 for the current slot map).
 - **Files-touched manifest (DATA_RULES §7):** the task's final run summary MUST
@@ -151,9 +161,16 @@ N-1. (if the task persisted anything) Execute: `node packages/jobs-runtime/scrip
    "Files touched" section in the run summary listing every file created or
    modified (from the scripts' touchedFiles() output and the push ↑ lines —
    docs/DATA_RULES.md §7)
-N. (FINAL STEP ALWAYS) Execute script: `python scripts/track_invocation.py --name [insert task name] --type task`
+N. (FINAL STEP ALWAYS) Execute script: `python scripts/metrics/track_invocation.py --name [insert task name] --type task --model [the exact model string executing this run, e.g. claude-sonnet-5]`
 
 Do NOT run any logic, calculations, data fetching, or file modifications directly. Your only job is to orchestrate these existing scripts/skills exactly as specified.
+
+Any judgment/synthesis step in this task that writes a note/report/DTO (via
+db.saveReport / appendNotes / appendValidations / saveThesis) must set that
+record's `modelUsed` to the same model string passed to `--model` above — it
+is the one fact only the orchestrating run itself knows, so it cannot be
+hardcoded into the companion script ahead of time; the task prompt must state
+it explicitly for each such write.
 ```
 
 Call the tool directly — do not just instruct the user to paste something manually:

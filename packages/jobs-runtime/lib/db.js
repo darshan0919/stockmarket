@@ -4,8 +4,9 @@
  * db.js — Data Ecosystem v2 collection store (docs/DATA_ECOSYSTEM.md).
  *
  * Flat, single-file JSON collections at <repo>/data/, id-keyed objects, with:
- *  - envelope enforcement: id, creationTime, modifiedTime, creator (+ date/companyId
- *    retrieval fields where applicable)
+ *  - envelope enforcement: id, creationTime, modifiedTime, creator, modelUsed (+
+ *    date/companyId retrieval fields where applicable). modelUsed is passed through,
+ *    never invented — most collections mix script-only and LLM-authored records.
  *  - deterministic ids → re-runs upsert instead of duplicating
  *  - atomicity: tmp-file + rename; isolation: per-collection advisory lockfile;
  *    durability: pre-mutation checkpoints with auto-restore on corrupt JSON
@@ -73,6 +74,13 @@ function makeId(kind, creator, scope, date, discriminator = '') {
 /**
  * Enforce the record envelope. Mutates + returns the record.
  * Throws if `creator` is missing (must be explicit: skill/script/job name or "user").
+ *
+ * `modelUsed` (string or string[]) is NOT required or defaulted here — unlike
+ * `creator`, whether a record needs it is content-dependent (see
+ * skills/tooling/output-dto-standard/SKILL.md "modelUsed"): pure-script records
+ * correctly have none, LLM-authored ones must set it themselves before calling
+ * this. This function only passes it through untouched if present, and normalizes
+ * a single string into itself (arrays for multi-model records are left as-is).
  */
 function ensureEnvelope(record, { kind, scope, discriminator } = {}) {
   if (!record || typeof record !== 'object') throw new Error('record must be an object');
@@ -456,6 +464,7 @@ function saveReport(dto) {
     creator,
     creationTime,
     modifiedTime,
+    modelUsed,
     summary,
     contextUsed,
   } = dto;
@@ -469,6 +478,7 @@ function saveReport(dto) {
       creator,
       creationTime,
       modifiedTime,
+      ...(modelUsed !== undefined ? { modelUsed } : {}),
       summary: summary || null,
       contextUsed: contextUsed || [],
       body: `reports/${id}.json`,

@@ -118,6 +118,7 @@ When this skill triggers:
        "creationTime": "2026-07-07T00:00:00Z",
        "modifiedTime": "2026-07-07T00:00:00Z",
        "creator": "consecutive-filings-diff",
+       "modelUsed": "claude-sonnet-5",
        "quarters": { "current": "Q4FY26", "prior": "Q3FY26" },
        "plDiff": { ... },
        "balanceSheetCashFlow": { ... },

@@ -17,3 +17,5 @@ You are running the weekly Investment Thesis review for Darshan's stockmarket pr
 5. Deliver a briefing: table Ticker | Signal (Δ vs last week) | Conviction | Valuation anchor (CMP, PE) | Breached monitorables | Stale? | Next catalyst — followed by 3-5 sentences on the most important changes and a "What could be wrong with this analysis?" note.
 
 Rules: every claim dated and cited; no invented events; research aid, not investment advice.
+
+Final step (every run, per `skills/tooling/cowork-task-architect/SKILL.md`): execute `python scripts/metrics/track_invocation.py --name weekly-thesis-review --type task --model <the exact model executing this run, e.g. claude-sonnet-5>`, and set that same model string as `modelUsed` on every thesis file updated in step 3/4.

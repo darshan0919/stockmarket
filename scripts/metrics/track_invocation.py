@@ -21,7 +21,17 @@ def parse_args():
     parser.add_argument("--type", required=True, choices=["skill", "task"], help="Type of invocation")
     parser.add_argument("--files", help="Comma-separated list of files fed to context", default="")
     parser.add_argument("--output-words", type=int, default=500, help="Estimated number of words in the AI's output")
-    parser.add_argument("--model", default="claude-3-5-sonnet-20240620", help="Model used")
+    parser.add_argument(
+        "--model",
+        required=True,
+        help=(
+            "Exact model string of the model that executed this invocation's LLM "
+            "steps (e.g. claude-sonnet-5, claude-opus-5, gemini-2.5-pro) — read from "
+            "the running context, never hardcoded. Also the value any DTO this "
+            "invocation writes should use for its modelUsed field "
+            "(skills/tooling/output-dto-standard/SKILL.md)."
+        ),
+    )
     return parser.parse_args()
 
 def main():

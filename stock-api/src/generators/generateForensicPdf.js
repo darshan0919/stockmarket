@@ -260,7 +260,9 @@ async function createForensicPdf(data) {
   const subtitle = `${data.ticker || ''} • ${data.date || ''} • Period: ${data.fy_range || ''}`;
   const headerText = title;
 
-  const htmlContent = wrapHtml(title, subtitle, bodyHtml);
+  // modelUsed (skills/tooling/output-dto-standard/SKILL.md): LLM-authored forensic
+  // analysis, no separate JSON DTO — pass data.model_used through.
+  const htmlContent = wrapHtml(title, subtitle, bodyHtml, { modelUsed: data.model_used });
 
   require('fs').writeFileSync(outputPath, htmlContent, 'utf8');
   console.log(`✅ Forensic Report saved to: ${outputPath}`);

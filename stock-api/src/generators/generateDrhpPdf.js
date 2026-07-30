@@ -188,7 +188,10 @@ async function createDrhpPdf(data) {
   const subtitle = `${data.issue_type || ''} • Filing ${data.filing_date || ''}`;
   const headerText = title;
 
-  const htmlContent = wrapHtml(title, subtitle, bodyHtml);
+  // modelUsed (skills/tooling/output-dto-standard/SKILL.md): the source DTO
+  // (data/reports/<id>.json, per drhp-ipo-analysis SKILL.md Phase 4) carries
+  // modelUsed since this whole report is LLM-authored — thread it into the footer.
+  const htmlContent = wrapHtml(title, subtitle, bodyHtml, { modelUsed: data.modelUsed || data.model_used });
 
   require('fs').writeFileSync(outputPath, htmlContent, 'utf8');
   console.log(`✅ DRHP Report saved to: ${outputPath}`);

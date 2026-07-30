@@ -120,10 +120,13 @@ perception summary, section-by-section structured content mirroring the 19-secti
 framework) plus a `companies[]` array with one record per company covered in §10
 Company-by-Company. Every entry in `companies[]` MUST carry the standard envelope from
 `skills/tooling/output-dto-standard/SKILL.md` — `companyId` (canonical `EXCH:SYMBOL`),
-`creationTime`, `modifiedTime`, `creator: "sector-research-deepdive"` — alongside its
+`creationTime`, `modifiedTime`, `creator: "sector-research-deepdive"`, and `modelUsed`
+(the model you're running as — this entire 30-45 page write-up is LLM analysis, so it's
+required, not optional, per `output-dto-standard/SKILL.md`) — alongside its
 business-model mechanics, moat mechanism, unit economics, and risk fields. Write this
 JSON from `report_md`'s structured findings before calling `create_sector_report` so the
-PDF is a render of the JSON, not an independent draft.
+PDF is a render of the JSON, not an independent draft. Pass the same `modelUsed` value as
+`opts.modelUsed` to `create_sector_report` so it's stamped into the rendered footer too.
 
 ### Phase 5 — PDF generation
 

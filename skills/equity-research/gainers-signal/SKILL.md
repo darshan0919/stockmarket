@@ -143,7 +143,10 @@ run for these companies, not just today's email.
    no Stockscans coverage — say so plainly, don't fabricate sector narrative to fill the
    gap; ground every claim in `evidence[]`/`buildCompanyContext()`/`.stockscans`, not
    general knowledge).
-4. Save via `db.saveReport({ creator: 'gainers-signal', type: 'gainers-top3-briefing', date: market_date, companyId, summary, contextUsed: [ids actually referenced], ...narrative })`.
+4. Save via `db.saveReport({ creator: 'gainers-signal', type: 'gainers-top3-briefing', date: market_date, companyId, modelUsed: '<the model executing this write-up, e.g. claude-sonnet-5>', summary, contextUsed: [ids actually referenced], ...narrative })`.
+   This report is LLM-written narrative (per `output-dto-standard/SKILL.md`'s `modelUsed`
+   rule), unlike the classifier's `gainer` events above, which stay script-only with no
+   `modelUsed`.
    `contextUsed` should be the ids from `buildCompanyContext()`'s `availableIds` that
    the write-up actually drew on (empty array if the context bundle was empty). The
    Stockscans sources aren't `db.js`-ided records (they're cached, not a collection), so

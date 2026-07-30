@@ -13,3 +13,5 @@ Call the following exact script:
 3. If the script exits non-zero, surface the exact error in your report.
 
 Do NOT run any logic, calculations, data fetching, filtering, or file modifications directly. Your only job is to orchestrate the script above exactly as specified and report its output.
+
+Final step (every run, per `skills/tooling/cowork-task-architect/SKILL.md`): execute `python scripts/metrics/track_invocation.py --name near-highs-digest --type task --model <the exact model executing this run, e.g. claude-sonnet-5>`. No `modelUsed` needed — purely scripted classification, no LLM judgment.

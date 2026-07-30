@@ -192,7 +192,10 @@ top-level array rather than overwriting). Each element of that array is one comp
 scan result and MUST carry the standard envelope fields from
 `skills/tooling/output-dto-standard/SKILL.md` — `companyId` (canonical `EXCH:SYMBOL`,
 e.g. `"NSE:PARACABLES"`), `creationTime` (ISO 8601, set once), `modifiedTime` (ISO 8601,
-updated on every re-run), `creator: "fundamental-shift-scanner"` — plus the domain
+updated on every re-run), `creator: "fundamental-shift-scanner"`, and `modelUsed` (the
+exact model you're running as, e.g. `"claude-sonnet-5"` — required per
+`output-dto-standard/SKILL.md` since `whyItMatters`/`newVsKnown`/`verdict` are LLM
+interpretation, not a routine-noise filter) — plus the domain
 fields: `dateRangeStart`, `dateRangeEnd`, `signalItems[]` (each with `whatHappened`,
 `whyItMatters`, `newVsKnown`, `tag` [STRUCTURAL/CYCLICAL/ONE-OFF/GOVERNANCE-SIGNAL],
 `forwardMarker`, `source`), `noiseItems[]` (brief titles only), and `verdict` (the Step 5

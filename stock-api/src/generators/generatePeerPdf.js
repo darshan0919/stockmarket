@@ -125,7 +125,10 @@ async function createPeerComparisonPdf(data) {
   const subtitle = data.date || '';
   const headerText = title;
 
-  const htmlContent = wrapHtml(title, subtitle, bodyHtml);
+  // modelUsed (skills/tooling/output-dto-standard/SKILL.md): entirely LLM-authored
+  // analysis, no separate JSON DTO — caller passes data.model_used through to the
+  // rendered disclaimer footer.
+  const htmlContent = wrapHtml(title, subtitle, bodyHtml, { modelUsed: data.model_used });
 
   require('fs').writeFileSync(outputPath, htmlContent, 'utf8');
   console.log(`✅ Peer Comparison saved to: ${outputPath}`);

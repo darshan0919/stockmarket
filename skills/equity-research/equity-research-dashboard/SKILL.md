@@ -43,6 +43,7 @@ is single-company per run, so use one top-level record (not an array) shaped lik
   "creationTime": "2026-07-07T00:00:00Z",
   "modifiedTime": "2026-07-07T00:00:00Z",
   "creator": "equity-research-dashboard",
+  "modelUsed": "claude-sonnet-5",
   "tabs": {
     "execSummary": { ... },
     "overview": { ... },

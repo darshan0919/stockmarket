@@ -42,6 +42,7 @@ function parseArgs(argv) {
     else if (a === '--transcript-id') out.transcriptId = argv[++i];
     else if (a === '--transcript-available') out.transcriptAvailable = argv[++i] !== 'false';
     else if (a === '--stale-note') out.staleNote = argv[++i];
+    else if (a === '--model') out.model = argv[++i];
   }
   return out;
 }
@@ -81,6 +82,10 @@ function main() {
     contextUsed,
     summary: `${guidance.length} confirmed forward-guidance point(s) extracted for ${args.ticker} (${args.quarter})`,
   };
+  // modelUsed (skills/tooling/output-dto-standard/SKILL.md): the guidance values
+  // above were extracted by an LLM reading the transcript (Phase 2/3), even though
+  // this save step itself is deterministic — so the DTO still needs it.
+  if (args.model) dto.modelUsed = args.model;
 
   const id = db.saveReport(dto);
   const touched = db.touchedFiles ? db.touchedFiles() : [];

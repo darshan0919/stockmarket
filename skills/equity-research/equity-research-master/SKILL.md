@@ -104,6 +104,7 @@ record-level envelope fields at its top level:
   "creationTime": "2026-07-07T00:00:00Z",
   "modifiedTime": "2026-07-07T00:00:00Z",
   "creator": "equity-research-master",
+  "modelUsed": "claude-sonnet-5",
   "kpi_table": { ... },
   "valuation_ladder": { ... },
   "triggers": [ ... ],

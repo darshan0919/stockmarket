@@ -15,7 +15,7 @@ const CREATOR = 'equity-research-deepdive';
  * Envelope fields (companyId/creationTime/modifiedTime/creator) live at the
  * record level alongside the report content.
  */
-function writeReportDto(companyId, companyName, ticker, reportMarkdown, outputJsonPath) {
+function writeReportDto(companyId, companyName, ticker, reportMarkdown, outputJsonPath, modelUsed) {
   const now = new Date().toISOString();
   let creationTime = now;
 
@@ -37,6 +37,10 @@ function writeReportDto(companyId, companyName, ticker, reportMarkdown, outputJs
     ticker,
     reportMarkdown,
   };
+  // modelUsed (skills/tooling/output-dto-standard/SKILL.md): the reportMarkdown here is
+  // entirely LLM-authored analysis, so this DTO always needs it. The caller (the skill
+  // itself, running as some model) must supply it — never invented/defaulted here.
+  if (modelUsed) dto.modelUsed = modelUsed;
 
   fs.mkdirSync(path.dirname(outputJsonPath), { recursive: true });
   fs.writeFileSync(outputJsonPath, JSON.stringify(dto, null, 2), 'utf8');
@@ -55,7 +59,7 @@ async function createResearchReportFromDto(dtoPath, outputPath) {
   const title = dto.companyName;
   const subtitle = `${dto.ticker} | Equity Research Deep Dive | ${new Date().toLocaleString('en-GB', { month: 'long', year: 'numeric' })}`;
 
-  const htmlContent = wrapHtml(title, subtitle, bodyHtml);
+  const htmlContent = wrapHtml(title, subtitle, bodyHtml, { modelUsed: dto.modelUsed });
 
   fs.writeFileSync(outputPath, htmlContent, 'utf8');
   console.log(`✅ Report saved to: ${outputPath}`);
@@ -75,7 +79,7 @@ async function createResearchReport(companyName, ticker, reportMarkdown, outputP
   const companyId = opts.companyId || ticker;
   const dtoPath = opts.dtoPath || outputPath.replace(/\.[^./]+$/, '') + '.json';
 
-  writeReportDto(companyId, companyName, ticker, reportMarkdown, dtoPath);
+  writeReportDto(companyId, companyName, ticker, reportMarkdown, dtoPath, opts.modelUsed);
   return createResearchReportFromDto(dtoPath, outputPath);
 }
 

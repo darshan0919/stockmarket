@@ -86,6 +86,10 @@ data = {
     "creationTime": "2026-07-07T10:00:00+05:30",   # ISO 8601, set on first write
     "modifiedTime": "2026-07-07T10:00:00+05:30",   # equals creationTime on first write
     "creator": "growth-triggers-1pager",
+    "modelUsed": "claude-sonnet-5",  # the model you're running as — required per
+                                       # skills/tooling/output-dto-standard/SKILL.md
+                                       # since every trigger/conviction call here is
+                                       # LLM judgment, not scripted
     "company_name": "...", "ticker": "NSE: ...", "date": "Month Year",
     "cmp": "Rs ...", "market_cap": "Rs ... Cr", "cap_category": "Small/Mid/Large Cap",
     "sector": "...",

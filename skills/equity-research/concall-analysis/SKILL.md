@@ -133,6 +133,9 @@ data = {
     "creationTime": "2026-07-07T10:00:00+05:30",   # ISO 8601, set on first write
     "modifiedTime": "2026-07-07T10:00:00+05:30",   # equals creationTime on first write
     "creator": "concall-analysis",
+    "model_used": "claude-sonnet-5",  # required per output-dto-standard/SKILL.md — tone
+                                        # analysis, dodge detection, contradiction-finding
+                                        # are all LLM judgment
     "mode": "deep" | "brief" | "multi-quarter" | "multi-peer",
     "company_name": "...",
     "ticker": "NSE: ...",

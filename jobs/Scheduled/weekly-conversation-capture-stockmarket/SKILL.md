@@ -26,3 +26,5 @@ Steps:
 6. Deliver a short summary: counts saved (new) / updated (dirty, re-captured) / unchanged / skipped-nonstock / skipped-automated / skipped-sensitive, conversation ids with companyIds for anything new or updated, any data/\_proposals written, and a "Files touched" section. Note interpretive enrichment is deferred to the enrichment job, which now runs right after this one (see its own schedule).
 
 Rules: deterministic ids ⇒ safe to re-run; never delete files in a write path; creator="conversation-capture". Research aid, not investment advice.
+
+Final step (every run, per `skills/tooling/cowork-task-architect/SKILL.md`): execute `python scripts/metrics/track_invocation.py --name weekly-conversation-capture-stockmarket --type task --model <the exact model executing this run, e.g. claude-sonnet-5>`. No `modelUsed` needed on the captured conversation records — this run stores verbatim transcripts only, no LLM synthesis (see the enrichment job for that).

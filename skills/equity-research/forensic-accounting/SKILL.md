@@ -83,6 +83,8 @@ data = {
     "creationTime": "2026-07-07T10:00:00+05:30",   # ISO 8601, set on first write
     "modifiedTime": "2026-07-07T10:00:00+05:30",   # equals creationTime on first write
     "creator": "forensic-accounting",
+    "model_used": "claude-sonnet-5",  # required per output-dto-standard/SKILL.md — the
+                                        # rating/rationale/fraud-pattern match are LLM analysis
     "company_name": "...", "ticker": "NSE: ...", "date": "Month Year",
     "fy_range": "FY23–FY25",
     "snapshot": "Brief paragraph on the business + why this forensic was done.",

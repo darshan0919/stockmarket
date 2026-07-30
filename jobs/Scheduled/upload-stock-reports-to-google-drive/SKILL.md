@@ -31,3 +31,5 @@ STEP 4 — Report (no code changes, no file moves/deletes)
 Summarize: push + pull results; any `*.local-conflict.*` or unclassified warnings; any NEW data-like files outside data/; for each discrepancy propose one concrete fix (usually: "the producing skill/job must write via packages/jobs-runtime/lib/db.js or StorageService into data/ — see skills/\_shared/conventions.md §6"). If zero discrepancies, say so plainly — don't invent findings.
 
 End with a run summary: what push/pull did, whether any discrepancies exist (new vs known), and what changed since the last run.
+
+Final step (every run, per `skills/tooling/cowork-task-architect/SKILL.md`): execute `python scripts/metrics/track_invocation.py --name upload-stock-reports-to-google-drive --type task --model <the exact model executing this run, e.g. claude-sonnet-5>`. No `modelUsed` needed — this is a sync/audit run, no analytical output.

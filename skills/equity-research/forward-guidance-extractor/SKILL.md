@@ -159,6 +159,7 @@ node skills/equity-research/forward-guidance-extractor/scripts/save_forward_guid
   --ticker NSE:X --quarter Q1FY27 --date 2026-07-15 \
   --guidance-file NSE_X_enriched.json \
   --transcript-id <the id from classified.json/data/reports> \
+  --model claude-sonnet-5 \
   [--stale-note "FY28 target reaffirmed in passing; original guidance quarter's transcript not in DB"]
 ```
 
@@ -166,6 +167,14 @@ Storage destination (`docs/DATA_RULES.md` §2, "Analysis/report DTO" row):
 `reports.json` + `reports/<id>.json`, `type: "forward-guidance"`, written
 exclusively via `db.saveReport()` inside the script above -- never a raw file
 write. Collect each printed `id` for Phase 5.
+
+`--model` (the model executing this run's Phase 2/3 extraction reasoning, e.g.
+`claude-sonnet-5`) is required and gets written into the DTO as `modelUsed` --
+this phase's own arithmetic is scripted, but the guidance values it persists were
+extracted by an LLM reading the transcript one company at a time (see "Why
+script-first matters" above), so per `output-dto-standard/SKILL.md` the DTO needs
+`modelUsed` even though `save_forward_guidance.js` itself has no reasoning of
+its own.
 
 ## Phase 5 -- Build the consolidated workbook (script, no LLM)
 

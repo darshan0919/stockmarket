@@ -132,6 +132,9 @@ data = {
     "creationTime": "2026-07-07T10:00:00+05:30",   # ISO 8601, set on first write
     "modifiedTime": "2026-07-07T10:00:00+05:30",   # equals creationTime on first write
     "creator": "market-share-analysis",
+    "model_used": "claude-sonnet-5",  # required per output-dto-standard/SKILL.md — the
+                                        # CR3/HHI classification, moat heatmap, and Bear/
+                                        # Base/Bull projection are LLM analysis
     "industry": "Indian Stainless Steel Tubes & Pipes",
     "geography": "India",
     "definition_scope": "Welded + seamless SS tubes; excludes carbon-steel tubes and SS sheets",

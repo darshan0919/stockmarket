@@ -494,6 +494,7 @@ structured JSON, plus the required envelope fields:
   "creationTime": "2026-07-07T00:00:00Z",
   "modifiedTime": "2026-07-07T00:00:00Z",
   "creator": "stock-report",
+  "modelUsed": "claude-sonnet-5",
   "coverSummary": { "rating": "BUY", "priceTarget": 0, "cmp": 0, "...": "..." },
   "sections": {
     "investmentThesis": [ "..." ],

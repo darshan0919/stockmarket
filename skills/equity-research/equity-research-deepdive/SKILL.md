@@ -76,20 +76,23 @@ persisted JSON DTO — never generated directly from `report_markdown` with no
 intermediate artifact. `stock-api/src/generators/generateReport.js` implements this as
 two explicit steps:
 
-1. **Write the DTO** — `writeReportDto(companyId, companyName, ticker, reportMarkdown, dtoPath)`
+1. **Write the DTO** — `writeReportDto(companyId, companyName, ticker, reportMarkdown, dtoPath, modelUsed)`
    persists `{TICKER}_deepdive.json` (e.g. `data/agent-outputs/{TICKER}_deepdive.json`)
    with the required envelope fields (`companyId`, `creationTime`, `modifiedTime`,
    `creator: "equity-research-deepdive"`) alongside the full `reportMarkdown` (the 19-section
    write-up from Phase 3). If the JSON already exists for this ticker, it preserves the
-   original `creationTime` and only bumps `modifiedTime`.
+   original `creationTime` and only bumps `modifiedTime`. `reportMarkdown` is entirely
+   LLM-authored analysis, so per `output-dto-standard/SKILL.md`'s `modelUsed` rule pass
+   the model you're running as (e.g. `"claude-sonnet-5"`) as the last arg — never omit it.
 2. **Render from the DTO** — `createResearchReportFromDto(dtoPath, outputPath)` reads
    that JSON back and is the ONLY step that touches the PDF/HTML rendering — it is a pure
-   function of the DTO, never a second independent pass over the analysis.
+   function of the DTO, never a second independent pass over the analysis. It also stamps
+   `dto.modelUsed` into the rendered disclaimer footer automatically.
 
 ```js
 const { createResearchReport } = require('<repo_root>/stock-api/src/generators/generateReport.js');
 // Convenience wrapper: writes the DTO then renders from it in one call.
-await createResearchReport(companyName, ticker, reportMarkdown, outputPath, { companyId: ticker });
+await createResearchReport(companyName, ticker, reportMarkdown, outputPath, { companyId: ticker, modelUsed: 'claude-sonnet-5' });
 ```
 
 Or call the two steps explicitly if you want to inspect/edit the DTO between writing and

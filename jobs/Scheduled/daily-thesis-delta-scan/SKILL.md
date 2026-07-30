@@ -12,3 +12,5 @@ You are running the daily Investment Thesis delta scan for Darshan's stockmarket
 5. Output a briefing table: Ticker | Event | Pillar(s) touched | Signal (old → new) | Monitorable breaches. Lead with any signal changes. If nothing material happened, say so in one line.
 
 Rules: date and cite every claim; never invent events; anchor CMP/PE to Screener/Stockscans, never training data. This is research aid, not investment advice.
+
+Final step (every run, per `skills/tooling/cowork-task-architect/SKILL.md`): execute `python scripts/metrics/track_invocation.py --name daily-thesis-delta-scan --type task --model <the exact model executing this run, e.g. claude-sonnet-5>`, and set that same model string as `modelUsed` on every thesis you write in step 4 (re-scoring and signal recomputation are LLM judgment, per `investment-thesis-engine/SKILL.md`).

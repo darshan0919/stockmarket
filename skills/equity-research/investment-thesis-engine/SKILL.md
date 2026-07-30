@@ -30,7 +30,10 @@ Read before any run:
 
 - `references/thesis_schema.md` — the JSON/MD record format, including the required
   `companyId`/`creationTime`/`modifiedTime`/`creator` envelope fields per
-  `skills/tooling/output-dto-standard/SKILL.md`.
+  `skills/tooling/output-dto-standard/SKILL.md`. Also include `modelUsed` (the model
+  you're running as, e.g. `"claude-sonnet-5"`) on every version — pillar re-scoring and
+  the signal narrative are LLM judgment, not the deterministic score→signal mapping
+  alone, so this is required, not optional.
 - `references/signal_rules.md` — deterministic scoring → signal mapping. Signals must be
   reproducible from the recorded scores, never vibes.
 - `skills/_shared/data-verification.md` — anti-hallucination protocol (mandatory).

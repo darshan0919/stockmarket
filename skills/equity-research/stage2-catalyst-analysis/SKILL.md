@@ -63,7 +63,10 @@ Before producing the text output below (for one stock, or the table for a list),
 file per ticker, or a single `{date}_stage2_catalyst.json` with a top-level array — one
 record per stock either way). Each record MUST carry the standard envelope from
 `skills/tooling/output-dto-standard/SKILL.md` — `companyId` (canonical `EXCH:SYMBOL`),
-`creationTime`, `modifiedTime`, `creator: "stage2-catalyst-analysis"` — plus the domain
+`creationTime`, `modifiedTime`, `creator: "stage2-catalyst-analysis"`, and `modelUsed`
+(the model you're running as — the technical `stage`/levels are computed from indicator
+rules, but `primaryTrigger`/`sectorContext`/`keyRisk` are LLM judgment identifying the
+"why now," so this mixed record needs it per `output-dto-standard/SKILL.md`) — plus the domain
 fields: `stage` (1/2/3/4), `technicalVerdict` (BUY/HOLD/SELL), `entryZone`, `stopLoss`,
 `exitCriteria`, `riskReward`, `primaryTrigger` (dated), `supportingData`, `sectorContext`,
 `keyRisk`, `triggerConfidence` (HIGH/MEDIUM/LOW). The output template below is a render of

@@ -361,7 +361,9 @@ async function createConcallPdf(data) {
     bodyHtml += markdownToHtml(data.sources);
   }
 
-  const htmlContent = wrapHtml(titleLabel, subLabel, bodyHtml);
+  // modelUsed (skills/tooling/output-dto-standard/SKILL.md): LLM-authored tone/
+  // guidance/contradiction analysis, no separate JSON DTO — pass data.model_used.
+  const htmlContent = wrapHtml(titleLabel, subLabel, bodyHtml, { modelUsed: data.model_used });
 
   require('fs').writeFileSync(outputPath, htmlContent, 'utf8');
   console.log(`✅ Concall Report saved to: ${outputPath}`);

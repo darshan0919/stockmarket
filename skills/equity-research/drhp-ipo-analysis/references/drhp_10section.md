@@ -228,8 +228,64 @@ See [`drhp_red_flags.md`](drhp_red_flags.md) for the full checklist. The composi
 | ... |
 ```
 
-The number of RED flags drives the subscription view:
+The number of RED flags is a strong input to the verdict, but the verdict itself always uses the
+post-listing vocabulary defined in the main `SKILL.md` (BUY / ACCUMULATE / HOLD / REDUCE / AVOID),
+never a pre-listing "SUBSCRIBE" framing — every company this skill is asked about is already
+listed and trading by the time the user asks. As a rough guide:
 
-- 0 RED → SUBSCRIBE candidate (subject to valuation check)
-- 1-2 RED → SUBSCRIBE-FOR-LISTING-GAINS-ONLY or WATCH-POST-LISTING
-- 3+ RED → AVOID
+- 0 RED → BUY candidate (subject to valuation check against peers/CMP)
+- 1-2 RED → ACCUMULATE or HOLD depending on severity and whether the flags are worsening
+- 3+ RED → AVOID or REDUCE if already held
+
+## §11 Lock-in / Share Release Schedule
+
+See the main `SKILL.md` §11 — mandatory whenever disclosed, surfaced on page 1 of the output, not
+buried in an appendix.
+
+## §12 Order Book
+
+- Latest disclosed order book value and as-of date
+- Composition: Government/PSU vs private, direct vs subcontracted
+- Bid-to-win ratio if disclosed
+- The company's own caveats on conversion certainty (quote them — DRHPs frequently say the order
+  book "may not be realized as revenue" in a risk factor right next to the headline number)
+
+**Where to find it:** "Our Business" or a dedicated risk factor; search `order book|order backlog|unexecuted order`.
+
+**Flag if:** order book grew mostly via one large contract; conversion caveat is vague or absent; order book as % of revenue is declining despite revenue growth (backlog isn't keeping pace).
+
+## §13 Forward Strategy — Capex & Product Roadmap
+
+- Capex plans stated in "Business Strategies" / "Our Strategy"
+- Cross-check against the CWIP trend in the balance sheet and the capex line in Objects of the Issue — do they agree?
+- New product/platform roadmap, geographic or vertical expansion plans
+
+**Not guidance** — label as strategy/intent, not a number the company is committed to. There is no post-listing concall yet to have generated real guidance.
+
+## §14 Moat & Competitive Strengths
+
+- Pull from "Our Strengths" / "Competitive Strengths"
+- Classify each claimed strength as `REAL_MOAT` (licenses, certifications, regulatory registrations, switching costs a competitor can't quickly replicate) or `MARKETING_CLAIM` (generic claims like "experienced management," "customer-centric approach") — state the classification explicitly rather than repeating marketing language at face value.
+
+## §15 Niche Products / Platforms
+
+- Any named proprietary platform, product, or IP mentioned in the business section (not generic service-line descriptions)
+- One line per item: what it does, why it's differentiated from a plain-vanilla service offering
+
+## §16 Customer Disclosure
+
+- Are customer names disclosed or anonymized? (Check footnotes on concentration tables carefully — they sometimes mislabel "customers" as "suppliers".)
+- Customer count, repeat/retention stats if given
+- Concentration trend across **all** disclosed fiscals, not just the latest — rising concentration is a materially different risk than flat concentration at the same level
+
+## §17 Anchor Investors
+
+- Anchor Investor Allocation Price and bidding date (from the DRHP)
+- The actual allottee list is usually **not** in the DRHP — it's published separately by the exchanges after the Anchor Investor Bid Date. Use `WebSearch` to find it.
+- Judge investor quality explicitly: established/recognizable domestic MFs and FPIs vs smaller/boutique AIFs — state which, don't just list names without a read on them
+
+## §18 Post-Listing Trading Activity
+
+- Only relevant once `post_listing_status.already_listed` is true
+- Use `WebSearch` (and Claude in Chrome against NSE/BSE bulk-deal pages if no market-data connector is available) to check for bulk/block deals since listing and their counterparties
+- If unverifiable, say so explicitly — don't let a silent omission read as "nothing happened"

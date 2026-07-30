@@ -17,6 +17,8 @@ Steps:
    target: <repo-relative path> | new-skill:<name> | scheduled-task:<id> | memory:<name>
    changeType: edit | new-file | new-skill | scheduled-task | memory
    sourceInsights: [ids]
+   modelUsed: <the exact model executing this run, e.g. claude-sonnet-5 — every proposal
+   here is LLM synthesis, per skills/tooling/output-dto-standard/SKILL.md>
    ***
    # <Title>
    **Why:** <rationale citing source insight ids>
@@ -29,3 +31,5 @@ Steps:
 7. Report: delta reviewed, hygiene applied, proposals raised (titles + paths), digest path, dashboard updated. State clearly that proposals await Darshan's tick-to-apply (review-proposals skill) — you applied NO code/skill/task/memory change.
 
 If the delta is empty, do light hygiene only and report "nothing new to review". Research aid, not investment advice.
+
+Final step (every run, per `skills/tooling/cowork-task-architect/SKILL.md`): execute `python scripts/metrics/track_invocation.py --name weekly-insight-review-stockmarket --type task --model <the exact model executing this run, e.g. claude-sonnet-5>`.

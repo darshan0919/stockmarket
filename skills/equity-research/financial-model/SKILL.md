@@ -69,7 +69,10 @@ and `[R]/[D]/[E]` source tag), the Y0→Y3 P&L line items, the Bear/Base/Bull ex
 valuation and IRR, the probability-weighted expected value, and the "what could be wrong"
 bullets. The object MUST carry the standard envelope from
 `skills/tooling/output-dto-standard/SKILL.md` — `companyId` (canonical `EXCH:SYMBOL`),
-`creationTime`, `modifiedTime`, `creator: "financial-model"`. The `.xlsx` workbook below
+`creationTime`, `modifiedTime`, `creator: "financial-model"`, and (per that standard's
+`modelUsed` rule, since assumptions/valuation/IRR here are genuine LLM synthesis, not
+scripted arithmetic over given inputs) `modelUsed`: the exact model you're running as
+(e.g. `"claude-sonnet-5"`). The `.xlsx` workbook below
 is then built FROM this JSON (its cells populate from the same assumptions/figures) —
 never derive the workbook and the JSON independently, or the two drift apart. On re-runs
 after a results season (see Handoffs), update `modifiedTime` and keep `creationTime`

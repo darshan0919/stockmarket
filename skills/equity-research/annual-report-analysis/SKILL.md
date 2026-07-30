@@ -61,6 +61,7 @@ intermediate artifact.
      "creationTime": "2026-07-07T00:00:00Z",
      "modifiedTime": "2026-07-07T00:00:00Z",
      "creator": "annual-report-analysis",
+     "modelUsed": "claude-sonnet-5",
      "fiscalYear": "FY25",
      "points": [
        {

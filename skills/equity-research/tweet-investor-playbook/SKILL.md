@@ -37,7 +37,7 @@ Run these phases in order. Don't skip phases even if the corpus is small.
 
 ### Phase 2 — Classification pass
 
-For every tweet, assign one or more tags. Do this in a single pass through the corpus, writing a tagged JSON to `/home/claude/_tweets_tagged.json`. Each tagged record MUST carry forward the same `companyId`/`creationTime`/`creator` from the normalised record for that tweet (don't regenerate them), and refresh `modifiedTime` to the time of this tagging pass — the tagged file is a modification of the same per-tweet record, not a new one. Read `references/classification_taxonomy.md` for the exact tag list and decision rules. Tag categories:
+For every tweet, assign one or more tags. Do this in a single pass through the corpus, writing a tagged JSON to `/home/claude/_tweets_tagged.json`. Each tagged record MUST carry forward the same `companyId`/`creationTime`/`creator` from the normalised record for that tweet (don't regenerate them), and refresh `modifiedTime` to the time of this tagging pass — the tagged file is a modification of the same per-tweet record, not a new one. This tagging pass is where `modelUsed` first appears on these records (per `output-dto-standard/SKILL.md`) — the Phase 1 normalised records have none, since parsing is pure script, but the tag assignment here is LLM judgment; set `modelUsed` to the model you're running as on every record in `_tweets_tagged.json`. Read `references/classification_taxonomy.md` for the exact tag list and decision rules. Tag categories:
 
 - **pick** — explicit stock mention with action verb (bought, sold, holding, top pick, recommend, like, exited, trimmed)
 - **profit_claim** — claims a realised or unrealised gain/loss, with or without a stock named

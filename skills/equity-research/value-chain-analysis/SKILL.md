@@ -45,7 +45,9 @@ companies; every named company gets its own record). Each record MUST carry the 
 envelope from `skills/tooling/output-dto-standard/SKILL.md` — `companyId` (canonical
 `EXCH:SYMBOL` where the company is listed; if unlisted/private, use the company name as a
 best-effort id and note it's unlisted), `creationTime`, `modifiedTime`,
-`creator: "value-chain-analysis"` — plus domain fields: `stage`, `whoControls`,
+`creator: "value-chain-analysis"`, and `modelUsed` (the model you're running as — the
+chokepoint/positioning/value-migration read is LLM analysis, required per
+`output-dto-standard/SKILL.md`) — plus domain fields: `stage`, `whoControls`,
 `marginProfile`, `chokepoint`, `valueMigrationDirection`, and (for the company being
 researched, if any) the `positioning10yr` verdict and the "what could be wrong" note. The
 table and diagram below are a render of this JSON, not an independently drafted note.

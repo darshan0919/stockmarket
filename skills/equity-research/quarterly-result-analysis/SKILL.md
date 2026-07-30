@@ -123,7 +123,9 @@ STRUCTURAL/CYCLICAL/TEMPORARY or HIGH/MED/LOW tag), the monitoring checklist row
 (`kpi`, `threshold`, `horizon`, `source`), and the header fields (company, ticker,
 quarter, result date, CMP, market cap). The object MUST carry the standard envelope from
 `skills/tooling/output-dto-standard/SKILL.md`: `companyId` (canonical `EXCH:SYMBOL`),
-`creationTime`, `modifiedTime`, `creator: "quarterly-result-analysis"`.
+`creationTime`, `modifiedTime`, `creator: "quarterly-result-analysis"`, and `modelUsed`
+(the model you're running as — required since the Structural/Cyclical/Temporary tagging
+and tone classification are LLM judgment, not scripted).
 
 ### Phase 3 — Render the briefing widget
 

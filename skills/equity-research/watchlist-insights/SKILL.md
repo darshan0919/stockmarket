@@ -56,12 +56,15 @@ For EACH item:
    AND % of capital (Δ and resulting holding), mode/price, and threshold crossed.
 4. **Save the note:** `echo '<json>' | run add-note` with `{companyId, ticker, name,
 businessSummary?, note:{type:"announcement", announcementId, announcementTitle, pdfUrl,
-insight, significance, tags, category, announcementDescription}}`. This writes into the
+insight, significance, tags, category, announcementDescription, modelUsed:"<the model
+you are running as right now, e.g. claude-sonnet-5>"}}`. This writes into the
    per-company record in the notes DB (`entities/watchlist-notes/main/current`), which IS
    the canonical JSON DTO for this skill's output (see
    `skills/tooling/output-dto-standard/SKILL.md`) — `NotesDb.ensureCompany` stamps every
    company record with `companyId`, `creationTime`, `modifiedTime`, and
-   `creator: "watchlist-insights"` automatically. The Step 3 digest email is a render of
+   `creator: "watchlist-insights"` automatically, but `modelUsed` must be supplied by you
+   in the note payload since it's the model doing the reading/writing in step 1-3, not
+   something the script can infer. The Step 3 digest email is a render of
    this stored data, never drafted independently of it.
 5. **Mark processed:** `run mark-processed "<companyId>" "<announcementId>"`.
 

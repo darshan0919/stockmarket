@@ -20,3 +20,5 @@ Call the following exact script:
 3. If the script exits non-zero, or `email.status` is "error" or "skipped", surface the exact error/reason in your report.
 
 Do NOT run any logic, calculations, data fetching, filtering, sorting, or file modifications directly. Your only job is to orchestrate the script above exactly as specified and report its output.
+
+Final step (every run, per `skills/tooling/cowork-task-architect/SKILL.md`): execute `python scripts/metrics/track_invocation.py --name daily-deals-digest --type task --model <the exact model executing this run, e.g. claude-sonnet-5>`. No `modelUsed` needed on the deal records — this is a purely scripted sort-by-value digest, no LLM judgment.

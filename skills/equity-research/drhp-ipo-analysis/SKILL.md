@@ -72,6 +72,15 @@ Apply the framework in [`references/drhp_10section.md`](references/drhp_10sectio
 9. **Peer Comparison & Valuation** — Revenue/margins/multiples vs listed peers; is the IPO pricing fair?
 10. **Red Flags** — explicit checklist (see below)
 11. **Lock-in / Share Release Schedule** — Every distinct lock-in tranche disclosed under "Capital Structure" (Minimum Promoter's Contribution, excess promoter shareholding, entire pre-Offer capital, Anchor Investor lock-in) with its release date. **Mandatory whenever disclosed — always surfaced on page 1 of the output**, not buried in an appendix; see Phase 4 schema and the renderer's dedicated page-1 section.
+12. **Order Book** — Value as of the most recent practicable date disclosed, composition (Government/PSU vs private, direct vs subcontracted), bid-to-win ratio if given, and the company's own caveats about conversion certainty (order books frequently overstate realizable revenue — the DRHP itself usually says so in a risk factor, quote it). Search `order book|order backlog|unexecuted order`.
+13. **Forward Strategy — Capex & Product Roadmap** — DRHPs never contain numeric earnings guidance (there's no post-listing concall yet to have generated one), but the "Business Strategies"/"Our Strategy" section describes capex intent, new product/platform plans, and geographic or vertical expansion. Cross-check stated capex intent against the CWIP trend in the balance sheet and the capex line in Objects of the Issue — do the numbers agree with the narrative? Label this section clearly as *strategy*, never as *guidance*, so it isn't mistaken for a number the company committed to.
+14. **Moat & Competitive Strengths** — Pull from "Our Strengths"/"Competitive Strengths," but grade critically and say so in the output: regulatory licenses, certifications, or registrations a competitor can't quickly replicate are a real (if often narrow) moat; claims like "experienced management" or "customer-centric approach" are marketing filler, not a moat, and should be named as such rather than repeated at face value.
+15. **Niche Products / Platforms** — Any named proprietary platform, product, or IP in the business section (not generic service-line descriptions). List each by name with a one-line description of what it does and why it's differentiated from a plain-vanilla service offering.
+16. **Customer Disclosure** — State explicitly whether customer names are disclosed or anonymized (common in DRHPs — check footnotes on concentration tables carefully, they sometimes mislabel "customers" as "suppliers"). Report customer count and repeat/retention stats if given, and track the concentration trend across all disclosed fiscals, not just the latest one — a rising concentration trend is a materially different risk than a flat one at the same level.
+17. **Anchor Investors** — The DRHP/Prospectus itself rarely names anchor allottees (published separately by the exchanges after the Anchor Investor Bid Date, sometimes after this document was filed). Note the Anchor Investor Allocation Price and bidding date from the document, then use `WebSearch` to find the published allottee list. Judge investor quality explicitly — established, recognizable domestic MFs/FPIs vs smaller or boutique AIFs — and say which it is; this is a genuine quality signal that's easy to skip if you stop at the DRHP text alone.
+18. **Post-Listing Trading Activity** — If `post_listing_status.already_listed` is true, check for bulk/block deals since listing and who the counterparties are. **Do not reach for `WebSearch` first** — same-day bulk/block deal data is rarely indexed by search engines yet, which is why a search-based attempt can come back empty even when a deal happened. Instead hit the exchanges directly, the same way `packages/jobs-runtime/dealsDigest.js` (the daily-deals-digest job) does: `nse.getLargeDeals()` and `bse.getBulkBlockDeals(type, fromDmy, toDmy)` from the `@stock/api` package, which wrap NSE's `/api/snapshot-capital-market-largedeal` and BSE's `BulkDealData_ng` endpoints — both public, no auth needed. Filter the returned rows to the target symbol and date range. Only fall back to `WebSearch` (financial press, Chittorgarh-style trackers) if the direct API call fails or the company isn't found in the response, and say explicitly which path was used so a "nothing found via API" isn't mistaken for "nothing found at all." If nothing is retrievable through either path, say so explicitly in the output — a stated "could not verify" is honest; a silently omitted section reads as "nothing happened," which may not be true.
+
+Sections 12-18 are **not optional add-ons** — treat them as part of the core framework, extracted in the same pass as 1-11, not as follow-up work triggered only when a user asks a second time.
 
 ### Phase 3 — Red Flag Scan
 
@@ -110,13 +119,18 @@ _from_, only a single hand-written document that was both the data and the layou
    to parse free text to find a fact.
 
    Required envelope fields (enforced by `ensureEnvelope`): `companyId`, `creator` (=
-   `"drhp-ipo-analysis"`), `date`, `type` (=`"drhp-ipo-analysis"`), `summary`. Domain fields
+   `"drhp-ipo-analysis"`), `date`, `type` (=`"drhp-ipo-analysis"`), `summary`. This DTO is
+   entirely LLM-authored analysis (red-flag ratings, subscription view, narrative fields),
+   so per `output-dto-standard/SKILL.md`'s `modelUsed` rule it must also carry
+   `modelUsed`: the exact model string you are running as right now (e.g.
+   `"claude-sonnet-5"`) — set it yourself in the DTO before calling `saveReport`, it is
+   never inferred by `db.js`. Domain fields
    (non-exhaustive — extend as the DRHP demands, never remove to save space):
 
    ```json
    {
      "type": "drhp-ipo-analysis", "creator": "drhp-ipo-analysis", "companyId": "BSE:...",
-     "date": "...", "summary": "...",
+     "date": "...", "summary": "...", "modelUsed": "claude-sonnet-5",
      "source_documents": [{"label": "DRHP", "url": "...", "filed": "...", "pages": 449}],
      "company_name": "...", "cin": "...", "issue_type": "Mainboard IPO|SME IPO|FPO",
      "filing_date": "...", "listing": "...",
@@ -139,9 +153,28 @@ _from_, only a single hand-written document that was both the data and the layou
      "red_flags": [{"flag": "...", "rating": "GREEN|YELLOW|RED", "evidence": "..."}],
      "limitations": ["..."],
      "order_book_inr_cr": num, "order_book_as_of": "...",
-     "additional": { }
+     "additional": {
+       "order_book_composition": {"govt_psu_pct": num, "private_pct": num, "bid_to_win_pct": num, "citation": "..."},
+       "forward_strategy": {"capex_plans": "...", "capex_vs_cwip_check": "...", "product_roadmap": ["..."], "geographic_expansion": "...", "citation": "..."},
+       "moat": [{"strength": "...", "type": "REAL_MOAT|MARKETING_CLAIM", "rationale": "..."}],
+       "niche_products": [{"name": "...", "description": "...", "differentiation": "..."}],
+       "customer_disclosure": {"names_disclosed": bool, "customer_count": num, "repeat_customer_pct": num, "concentration_trend": "RISING|FLAT|FALLING", "citation": "..."},
+       "anchor_investors": {"allocation_price_inr": num, "bidding_date": "...", "total_raised_inr_cr": num, "allottees": [{"name": "...", "pct_of_anchor_book": num}], "quality_assessment": "MARQUEE|MIXED|BOUTIQUE_LESSER_KNOWN", "source": "web-search, not DRHP-native", "citation_url": "..."},
+       "post_listing_trading": {"checked": bool, "source": "nse-bse-api|websearch-fallback|unverifiable", "bulk_block_deals": [{"date": "...", "exchange": "NSE|BSE", "buyer": "...", "seller": "...", "qty": num, "price_inr": num}], "note": "state explicitly if unverifiable rather than omitting"}
+     }
    }
    ```
+
+   Note: fields 12(partial)-18 (order book composition, forward strategy, moat, niche products,
+   customer disclosure, anchor investors, post-listing trading) are nested under `additional`
+   rather than as new top-level keys. `render_drhp.py` only has hand-written sections for the
+   original top-level fields — anything outside those falls through to the generic shape-sniffing
+   renderer via `additional`, which already knows how to lay out arbitrary nested JSON. This means
+   these fields render correctly **today**, with zero script changes and zero risk of silently
+   dropping data because a renderer section wasn't written yet. `order_book_inr_cr` /
+   `order_book_as_of` stay top-level since the renderer already has a dedicated slot for them.
+   If these sections earn dedicated, better-laid-out treatment later, that's a `render_drhp.py`
+   enhancement to do deliberately — not a reason to skip populating them now.
 
    `additional` (any JSON shape — see
    [`skills/tooling/output-dto-standard/SKILL.md`](../../tooling/output-dto-standard/SKILL.md))
@@ -166,6 +199,23 @@ _from_, only a single hand-written document that was both the data and the layou
 **Verification before shipping the PDF:** diff the rendered PDF's content against the DTO's
 field list — every top-level object/array in the DTO should be visibly represented somewhere in
 the output. This is the concrete check for the "no information loss" requirement.
+
+**The PDF is mandatory output, not a stretch goal.** A run of this skill is not complete until
+`data/drhp-ipo-analysis/<Company>_Output.pdf` exists on disk and has been verified against the
+DTO. Do not substitute a chat-only summary for the PDF because the DTO/render pipeline "seems
+unavailable," "seems out of scope for this turn," or "would take too long" — those are usually
+wrong assumptions, not real blockers. Before concluding the pipeline is unavailable:
+
+1. Check whether the connected workspace actually contains the `stockmarket` repo (it does for
+   this user) and whether `skills/equity-research/drhp-ipo-analysis/scripts/render_drhp.py` and
+   `packages/jobs-runtime/lib/db.js` exist at the expected paths — a quick `find`/`ls`, not a
+   guess from memory of a previous session.
+2. If the repo genuinely isn't reachable (e.g. running in a context with no workspace connected
+   at all), say so explicitly to the user and explain exactly what's missing — don't quietly
+   drop the PDF step and only mention it if asked.
+3. If time/effort feels tight, that's a reason to work more efficiently (e.g. batch the greps,
+   skip re-reading files you already extracted), never a reason to skip the deliverable the
+   skill exists to produce.
 
 ## Output discipline
 
@@ -203,6 +253,10 @@ carries real supply-overhang risk that the verdict rationale must name explicitl
 - **Over-weighting the auditor.** A clean opinion in a DRHP is the minimum bar; the auditor doesn't catch governance issues.
 - **Ignoring the industry consultant report.** The "Industry" section in DRHPs is often paid for by the issuer (CRISIL, Frost & Sullivan reports). Treat with skepticism — verify market share / TAM claims independently.
 - **Anchoring on the price band.** The price band reflects what the issuer wants to receive, not what the company is worth.
+- **Mistaking strategy prose for guidance.** "Business Strategies" sections read like forward guidance but are aspirational — never quote them as if they were numeric management commitments.
+- **Skipping the anchor investor list because it's not in the DRHP text.** It requires a follow-up web search; do it in the same pass rather than waiting for the user to ask.
+- **Confusing "no order book conversion risk disclosure" with "no risk."** If the company doesn't caveat its order book, that's still worth noting as a gap, not a clean bill of health.
+- **Reaching for `WebSearch` for same-day bulk/block deal data.** It's frequently not indexed yet. Go straight to `nse.getLargeDeals()` / `bse.getBulkBlockDeals()` (see §18) — same source `dealsDigest.js` uses.
 
 ## File tree
 

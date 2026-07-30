@@ -95,6 +95,9 @@ data = {
     "creationTime": "2026-07-07T10:00:00+05:30",   # ISO 8601, set on first write
     "modifiedTime": "2026-07-07T10:00:00+05:30",   # equals creationTime on first write
     "creator": "peer-comparison",
+    "model_used": "claude-sonnet-5",  # the model you're running as — required per
+                                        # output-dto-standard/SKILL.md's modelUsed rule,
+                                        # since the winner/verdict calls here are LLM judgment
     "title": "Telecom Equipment Peer Comparison: STL Tech vs HFCL",
     "date": "May 2026",
     "companies": [

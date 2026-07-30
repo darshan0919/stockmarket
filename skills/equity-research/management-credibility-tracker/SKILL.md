@@ -93,6 +93,9 @@ data = {
     "creationTime": "2026-07-07T10:00:00+05:30",   # ISO 8601, set on first write
     "modifiedTime": "2026-07-07T10:00:00+05:30",   # equals creationTime on first write
     "creator": "management-credibility-tracker",
+    "model_used": "claude-sonnet-5",  # required per output-dto-standard/SKILL.md — matching
+                                        # each quarter's guidance to what actually happened is
+                                        # LLM judgment, not a scripted diff
     "company_name": "...",
     "ticker": "NSE: ...",
     "tracking_window": "Q1 FY24 - Q3 FY26",   # 8 quarters

@@ -114,7 +114,9 @@ async function createGrowthTriggersPdf(data) {
   const title = `${data.company_name || ''} (${data.ticker || ''}) — Growth Triggers 1-Pager`;
   const subtitle = `Institutional Equity | ${data.date || ''} | CMP ${data.cmp || ''} | Mkt Cap ${data.market_cap || ''} | ${data.cap_category || ''} | Sector: ${data.sector || ''}`;
 
-  const htmlContent = wrapHtml(title, subtitle, bodyHtml);
+  // modelUsed (skills/tooling/output-dto-standard/SKILL.md): LLM-authored triggers/
+  // conviction analysis, no separate JSON DTO — pass data.model_used through.
+  const htmlContent = wrapHtml(title, subtitle, bodyHtml, { modelUsed: data.model_used });
 
   require('fs').writeFileSync(outputPath, htmlContent, 'utf8');
   console.log(`✅ Growth Triggers PDF saved to: ${outputPath}`);

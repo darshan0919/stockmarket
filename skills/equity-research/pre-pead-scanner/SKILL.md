@@ -63,7 +63,9 @@ Nine steps plus a quarter-level macro overlay, run in order — each gates or fe
    `data/agent-outputs/{date}_pre_pead_scan.json` — a top-level array with one
    record per candidate company (both ranked survivors and excluded names), each
    carrying the standard envelope (`companyId` as canonical `EXCH:SYMBOL`,
-   `creationTime`, `modifiedTime`, `creator: "pre-pead-scanner"` — see
+   `creationTime`, `modifiedTime`, `creator: "pre-pead-scanner"`, and `modelUsed` — the
+   model you're running as, required since the surprise projection/score is LLM
+   judgment over the extracted guidance, not pure arithmetic — see
    `skills/tooling/output-dto-standard/SKILL.md`) plus the domain fields: guidance
    extraction, capability validation, projected Revenue/OPM/PAT/EPS, surprise-vs-street,
    surprise-vs-guidance, historical drift, composite score/rank, "what could be wrong"

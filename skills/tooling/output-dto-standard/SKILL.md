@@ -35,6 +35,42 @@ these four fields, always:
 These four fields live inside the record itself, alongside whatever domain-specific
 fields the skill needs (e.g. `primary_driver`, `conviction`, `verdict`, `d2Return`, ...).
 
+## `modelUsed` — required whenever an LLM produced (part of) this record
+
+If any part of a record's content was produced by an LLM doing reasoning, judgement,
+synthesis, classification-by-prompt, or writing (as opposed to deterministic code —
+arithmetic, sorting, regex/keyword matching, template rendering, API/file I/O), the
+record MUST also carry:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `modelUsed` | string | The exact model string that generated the LLM-authored content in this record, e.g. `"claude-sonnet-5"`, `"claude-opus-5"`, `"gemini-2.5-pro"`. |
+
+Rules:
+- **Pure-script records carry no `modelUsed` field at all** — don't write `null` or
+  `"none"`, just omit it. Example: `gainersClassifier.js` in `gainers-signal` is 100%
+  deterministic (keyword/threshold rules, Jaccard similarity, no API call) — its event
+  records correctly have no `modelUsed`. The moment a skill step asks an LLM to write
+  the analyst commentary/insight text that then gets saved into a note or report DTO,
+  that DTO needs `modelUsed`.
+- **Mixed records** (some fields scripted, some fields LLM-written — e.g. a gainers
+  signal whose `conviction` is rule-based but whose top-3 follow-up briefing prose is
+  LLM-written) get `modelUsed` on the record that contains the LLM-written part, not on
+  the purely-scripted one.
+- **Scheduled tasks**: a task can be executed by any configured model (Sonnet, Opus,
+  Haiku, or a cheaper model like Gemini/Haiku the user has routed a sub-step to for cost
+  reasons — see user preference on delegating low-judgement steps to cheaper models).
+  Whatever model actually ran the task's LLM steps for that invocation must be captured
+  as `modelUsed` on every DTO/note/report that invocation writes. Never hardcode a
+  model name in a skill/script — read it from the running context (the model executing
+  the skill's reasoning step at that moment) and pass it through explicitly into the
+  DTO, the same way `creator` is passed through today. See
+  `skills/tooling/cowork-task-architect/SKILL.md` for how this is wired for scheduled
+  tasks specifically.
+- Where a pipeline calls more than one model for different LLM sub-steps that land in
+  the *same* record (e.g. Sonnet drafts, Opus reviews), use an array:
+  `"modelUsed": ["claude-sonnet-5", "claude-opus-5"]` rather than picking one arbitrarily.
+
 ## The `additional` field — escape hatch for nuance the schema didn't anticipate
 
 Every DTO SHOULD include a top-level `additional` field. Its value can be any JSON shape — a
@@ -94,3 +130,19 @@ The remaining ~50 skills in this repo are being migrated incrementally. This doc
 the target standard for all future skill work; treat any new analytical/reportable output
 as non-conformant until it carries these four fields, and retrofit existing skills
 opportunistically as they're touched.
+
+`modelUsed` (2026-07-30): added as a fifth envelope concern — required on any record with
+LLM-authored content, omitted on pure-script records. `lib/db.js`'s `ensureEnvelope` now
+passes it through (never invents or defaults it, since most collections are mixed
+script/LLM). Retrofitted so far: `gainers-signal` (the top-3-by-conviction briefing
+reports, which are LLM-written narrative — the classifier's `gainer` events stay
+script-only, no `modelUsed`), `watchlist-insights` (per-announcement insight notes —
+reading the PDF and writing the insight is the LLM step), `drhp-ipo-analysis` (the whole
+report DTO is LLM-authored analysis). `insight-validation` was checked and correctly
+gets NO `modelUsed` — `insightValidator.js` is fully deterministic (no LLM call
+anywhere in that job), a useful worked example of the "omit, don't null" rule.
+Scheduled-task runs additionally get `modelUsed` wired in via `cowork-task-architect`
+(the task prompt must pass the executing model's string into `track_invocation.py
+--model` and into any DTO its LLM steps write), since a task's executing model can vary
+per run and is never known ahead of time by the companion script. Remaining skills: add
+`modelUsed` opportunistically per the rule above whenever touched.

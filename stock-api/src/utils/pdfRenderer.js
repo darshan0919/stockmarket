@@ -143,7 +143,7 @@ function wrapHtml(title, subtitle, bodyHtml, options = {}) {
 
         <div class="disclaimer">
             <p><b>Disclaimer:</b> This report is for informational and educational purposes only. It does not constitute investment advice. The author may have positions in securities discussed. Always conduct your own due diligence and consult a registered investment advisor before making investment decisions. Past performance is not indicative of future results.</p>
-            <p>Report generated on ${new Date().toLocaleString('en-GB')} using AI-assisted research. Data sourced from public filings, screener.in, company presentations, and web research. All figures in INR unless stated otherwise.</p>
+            <p>Report generated on ${new Date().toLocaleString('en-GB')} using AI-assisted research${options.modelUsed ? ` (model: ${Array.isArray(options.modelUsed) ? options.modelUsed.join(' + ') : options.modelUsed})` : ''}. Data sourced from public filings, screener.in, company presentations, and web research. All figures in INR unless stated otherwise.</p>
         </div>
     </body>
     </html>
