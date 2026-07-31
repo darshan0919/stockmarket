@@ -68,7 +68,13 @@ class StockscansClient {
   // ── Announcements ───────────────────────────────────────────────────────────
 
   /**
-   * Announcement scan across companies/keywords/quarter.
+   * Announcement scan across companies/keywords/quarter. See
+   * `docs/stockscans-api-schemas.md` §"POST /api/company/announcements/scan"
+   * for the full payload shape (confirmed live 2026-07-31) — notably the
+   * quarter filter is a top-level `quarterDate` ("YYYYMM", e.g. "202609"),
+   * NOT a per-item `date`/`documentType` field inside `scan`. `scan.filters`
+   * is required (defaults to `[]`); `scan.watchlistIds` is the standard way
+   * to scope to an arbitrary companyId list via a throwaway watchlist.
    * @param {Object} payload
    * @param {Object} [opts]
    * @param {string} [opts.referer] - Override the Referer header.
@@ -369,12 +375,15 @@ class StockscansClient {
    * @param {number} [opts.offset=0] - paginates in steps of 50
    * @param {string} [opts.documentType=''] - '', 'Result', 'PPT', or 'Transcript'
    * @param {string} [opts.searchCompany=''] - single-company name filter (not for bulk use)
+   * @param {string[]} [opts.watchlistIds=[]] - restrict to companies on these watchlist(s)
+   *   (e.g. a throwaway watchlist built from an arbitrary companyId list — see
+   *   get-concall-transcript-url.js scenario 2)
    * @returns {Promise<{documents: Array, total: number, quarterDate: string}>}
    */
-  async resultsDocuments({ offset = 0, documentType = '', searchCompany = '' } = {}) {
+  async resultsDocuments({ offset = 0, documentType = '', searchCompany = '', watchlistIds = [] } = {}) {
     const { data } = await this.http.post(
       `${BASE_URL}/api/company/results/documents`,
-      { scan: { filters: [], index: [], industry: [], watchlistIds: [] }, offset, searchCompany, documentType },
+      { scan: { filters: [], index: [], industry: [], watchlistIds }, offset, searchCompany, documentType },
       { headers: this._headers(`${BASE_URL}/result-scans`) }
     );
     return data;

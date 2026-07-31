@@ -65,16 +65,17 @@ node stock-api/bin/get-latest-concall-transcript.js --bulk '[{"ticker":"NSE:X"},
 - `available` -- transcript text is already in `data/reports/<id>.json`. Go
   straight to Phase 2 for these; no download needed.
 - `fetchable` -- Stockscans has the official Transcript filed, just not yet in
-  our DB. Download it (`stock-api/python/fetchers/fetch_documents.py <TICKER>
-  -t Transcript --last-n 1 -o /tmp/...`), read it, then save it immediately via
-  `node stock-api/bin/save-concall-transcript.js` (see
-  `concall-transcript-extractor/SKILL.md` for the exact save call) so the next
-  run of this skill is an instant DB hit for that company. Then treat as
-  `available`.
-- `missing` -- nothing usable exists (`results-not-out` or
-  `needs-recording-pipeline`). These companies get NO extraction attempt --
-  they go straight into the workbook's "Missing Transcripts" sheet at the end,
-  with the `reason` field from `classified.json` verbatim.
+  our DB. Confirm the URL via `stock-api/bin/get-concall-transcript-url.js
+  --companies <ids>` if needed, download it
+  (`stock-api/python/fetchers/fetch_documents.py <TICKER> -t Transcript
+  --last-n 1 -o /tmp/...`), read it, then save it immediately via
+  `node stock-api/bin/save-concall-transcript.js` so the next run of this
+  skill is an instant DB hit for that company. Then treat as `available`.
+- `missing` -- nothing usable exists (`results-not-out`, or the resolver
+  returned an `error` -- results are out but no Transcript is filed, which
+  should now be rare). These companies get NO extraction attempt -- they go
+  straight into the workbook's "Missing Transcripts" sheet at the end, with
+  the `reason` field from `classified.json` verbatim.
 
 Do not skip this gate to "save time" -- extracting guidance from a stale prior
 quarter's transcript under the current quarter's label is exactly the kind of

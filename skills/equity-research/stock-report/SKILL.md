@@ -172,17 +172,13 @@ report.
 **Try in order:**
 
 ```
-Step 1: node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
+Step 1: node stock-api/bin/get-concall-transcript-url.js --company "$TICKER"
         (Stockscans EXCH:SYMBOL format, e.g. NSE:SWARAJENG)
-        - status "official-transcript-exists" -> fetch it via
-          stock-documents-fetcher (fetch_documents.py -t Transcript --last-n 1)
-        - status "saved" -> read fullText from data/reports/<id>.json (the
-          id in the output) directly, done
-        - status "needs-recording-pipeline" with recording.found true ->
-          follow concall-transcript-extractor's tier 3 (Chrome MCP + NotebookLM)
-        - status "results-not-out" or recording.found false -> fall through
-          to Step 2 below (this ticker's Perplexity coverage may differ from
-          Stockscans', so it's still worth trying the Screener.in path)
+        - success (ssUrl/documentUrl present) -> fetch/read the document at
+          documentUrl (or via stock-documents-fetcher,
+          fetch_documents.py -t Transcript --last-n 1), done
+        - "error" -> results genuinely aren't out yet, or the transcript
+          isn't filed (rare) -> fall through to Step 2 below
 
 Step 2: Fetch the Documents section of https://www.screener.in/company/TICKER/,
         locate the most recent concall transcript link, then try WebFetch on

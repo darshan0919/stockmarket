@@ -54,10 +54,10 @@ python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t Transcript -o "$DOCS_DIR" --start-date "$YYYYMM" --end-date "$YYYYMM"
 # Then read the downloaded PDF and save its text to DB (see "Save after read" below)
 
-# Step 5: the most recent quarter may not be officially filed yet — backfill it
-node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
-# Handle status: "saved"/"db-hit" → read JSON; "needs-recording-pipeline" → follow
-# concall-transcript-extractor SKILL.md tier 4 steps
+# Step 5: resolve the official Transcript URL for the most recent quarter
+# (Stockscans guarantees a Transcript document per reported quarter now)
+node stock-api/bin/get-concall-transcript-url.js --company "$TICKER"
+# On "error" the transcript genuinely isn't filed yet (rare) — treat as unavailable
 
 # Also pull the latest annual report for the long-form Vision/Strategy guidance
 python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \

@@ -33,9 +33,9 @@ python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -o "$DOCS_DIR"
 
 # The most recent Transcript above is the primary source for current
-# guidance — but it's only there if Stockscans has officially filed it.
-# Check whether concall-transcript-extractor can do better for that quarter:
-node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
+# guidance. If the bulk fetch missed the latest quarter, resolve it directly
+# (Stockscans guarantees a Transcript document per reported quarter now):
+node stock-api/bin/get-concall-transcript-url.js --company "$TICKER"
 ```
 
 Use `$DOCS_DIR/manifest.json` to identify which files are which type before

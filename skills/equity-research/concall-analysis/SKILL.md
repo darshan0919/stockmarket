@@ -25,7 +25,7 @@ Follow [`_shared/conventions.md`](../_shared/conventions.md). Particularly: anti
 ## When to use
 
 - User uploads a `.pdf`/`.txt` concall transcript and asks for analysis
-- User provides a ticker and asks for "latest concall analysis" → get the most recent transcript via `concall-transcript-extractor` (see Phase 1 below) — it races ahead of `stock-documents-fetcher`'s official-only Transcript document when that quarter hasn't been officially filed yet
+- User provides a ticker and asks for "latest concall analysis" → resolve the most recent transcript via `stock-api/bin/get-concall-transcript-url.js` (see Phase 1 below)
 - User says "what did management say about [topic]" — pull the relevant transcript sections only
 - Other skills delegate here:
   - `equity-research-deepdive` §7 (Analyst Q&A) and §8 (Management Commentary)
@@ -38,29 +38,22 @@ Follow [`_shared/conventions.md`](../_shared/conventions.md). Particularly: anti
 ### Phase 1 — Document acquisition
 
 If the user provides only a ticker, auto-fetch. **Deep/brief mode (N=1, the
-single latest transcript) is a `concall-transcript-extractor` job, not a bulk
-`fetch_documents.py` call** — it checks results are actually out, prefers the
-official Transcript when filed, and otherwise races ahead via Perplexity/
-NotebookLM instead of coming back empty:
+single latest transcript) resolves the official Transcript URL directly** —
+Stockscans guarantees a Transcript document for every reported quarter now:
 
 ```bash
 TICKER="NSE:SWARAJENG"            # replace
-node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
+node stock-api/bin/get-concall-transcript-url.js --company "$TICKER"
 ```
 
-Handle its output by `status`:
+Handle its output:
 
-- `results-not-out` → tell the user this quarter hasn't reported yet, stop.
-- `official-transcript-exists` → fall through to `stock-documents-fetcher`
-  (`fetch_documents.py -t Transcript --last-n 1`) to actually download it.
-- `saved` → the transcript is already in `data/reports/<id>.json` (the `id`
-  field in the output). Read `fullText` for the whole transcript as a string,
-  or `segments` if you need per-speaker/per-timestamp granularity — see
-  `concall-transcript-extractor`'s SKILL.md "Output schema" section for the
-  exact shape. No PDF download needed.
-- `needs-recording-pipeline` → follow `concall-transcript-extractor`'s tier 3
-  instructions (Chrome MCP + NotebookLM) if `recording.found` is true,
-  otherwise tell the user no transcript is available yet through any source.
+- On success (`ssUrl`/`documentUrl` present) → download/read the document at
+  `documentUrl` (`stock-documents-fetcher` / `fetch_documents.py -t
+  Transcript --last-n 1`, or fetch `documentUrl` directly).
+- On `error` → that quarter's results likely aren't out yet, or the
+  transcript genuinely isn't filed (rare) — tell the user no transcript is
+  available yet.
 
 For **multi-quarter** (N=4-8, historical) and **multi-peer** modes, check the DB
 first — most historical transcripts will already be cached from prior runs:
@@ -104,9 +97,9 @@ node stock-api/bin/save-concall-transcript.js "$TICKER" "$YYYYMM" \
 ```
 
 Use `$DOCS_DIR/manifest.json`'s `date` field to identify Q1/Q2/Q3/Q4 ordering
-— newest first. If the most recent quarter is missing from Stockscans (not filed yet),
-get it via `concall-transcript-extractor` as above and merge it into the set rather
-than silently analyzing N-1 quarters.
+— newest first. If the most recent quarter is missing from the manifest,
+resolve it via `stock-api/bin/get-concall-transcript-url.js` (as above) and
+merge it into the set rather than silently analyzing N-1 quarters.
 
 ### Phase 2 — Mode-specific analysis
 

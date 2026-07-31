@@ -44,10 +44,10 @@ Follow [`_shared/conventions.md`](../_shared/conventions.md). Particularly:
 ### Phase 1 — Document acquisition
 
 If the user uploaded files directly, use those. If the user provided only a
-ticker, auto-fetch. **The latest quarter's Transcript specifically is a
-`concall-transcript-extractor` job** — this skill is triggered by "result-day
-intent", i.e. right after results drop, which is exactly when Stockscans'
-official Transcript is most likely to not be filed yet:
+ticker, auto-fetch. **The latest quarter's Transcript specifically is
+resolved via `stock-api/bin/get-concall-transcript-url.js`** — Stockscans
+guarantees a Transcript document for every reported quarter now, so this
+also works right after results drop ("result-day intent"):
 
 ```bash
 TICKER="NSE:SWARAJENG"            # replace with the actual ticker
@@ -60,18 +60,16 @@ python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     --last-n 1 \
     -o "$DOCS_DIR"
 
-# Latest transcript: try concall-transcript-extractor first
-node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
+# Latest transcript: resolve the official Transcript URL
+node stock-api/bin/get-concall-transcript-url.js --company "$TICKER"
 ```
 
-Handle the transcript step by `status`: `official-transcript-exists` → also
-run `fetch_documents.py -t Transcript --last-n 1 -o "$DOCS_DIR"` to download
-it alongside the PPT/Result; `saved` → read `fullText`/`segments` from
-`data/reports/<id>.json` (the `id` in the output) directly, no PDF needed;
-`results-not-out` → the whole skill should stop, not just the transcript step
-(no PPT/Result will exist either); `needs-recording-pipeline` → follow
-`concall-transcript-extractor`'s tier 3 (Chrome MCP + NotebookLM) if a
-recording was found, otherwise proceed WITHOUT a transcript and flag the gap
+Handle the transcript step: on success (`ssUrl`/`documentUrl`), also run
+`fetch_documents.py -t Transcript --last-n 1 -o "$DOCS_DIR"` (or fetch
+`documentUrl` directly) to download it alongside the PPT/Result. On `error`
+where PPT/Result also came back empty, the whole skill should stop — results
+aren't out yet. On `error` with PPT/Result present, the transcript genuinely
+isn't filed yet (rare) — proceed WITHOUT a transcript and flag the gap
 explicitly in the Management basket rather than skipping it silently.
 
 For the **"change vs prior quarters"** sub-section in the Management basket,
@@ -84,19 +82,18 @@ python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
 ```
 
 This returns the two most recent OFFICIALLY FILED transcripts. Which one is
-"prior quarter" depends on whether the latest quarter's official transcript
-existed yet: if the earlier `get-latest-concall-transcript.js` call returned
-`official-transcript-exists`, the second (older) entry here is the prior
-quarter you want. If it returned `saved` or `needs-recording-pipeline`
-instead (latest not officially filed), the FIRST (newest) entry from this
-`--last-n 2` call already IS the prior quarter — don't also treat it as the
-"latest" or you'll double-count a quarter.
+"prior quarter" depends on whether the latest quarter's transcript was
+already filed: if the earlier `get-concall-transcript-url.js` call succeeded
+and its `quarter` matches the newest entry here, the second (older) entry is
+the prior quarter you want. If it returned `error` (latest not filed), the
+FIRST (newest) entry from this `--last-n 2` call already IS the prior
+quarter — don't also treat it as the "latest" or you'll double-count a
+quarter.
 
 Read `$DOCS_DIR/manifest.json` to confirm what arrived. If any of the three
-primary documents is missing for the latest quarter (and
-`concall-transcript-extractor` couldn't produce a transcript either), surface
-this explicitly — do not paper over the gap with annual report data or web
-summaries.
+primary documents is missing for the latest quarter (and the transcript
+resolver returned `error` too), surface this explicitly — do not paper over
+the gap with annual report data or web summaries.
 
 ### Phase 2 — 3-basket analysis
 

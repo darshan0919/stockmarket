@@ -1,9 +1,17 @@
 ---
 name: "concall-transcript-extractor"
-description: "Canonical transcript source for ANY Indian listed company and ANY quarter — fetches, stores, and returns verbatim earnings-call transcripts via a 5-tier waterfall (DB hit → results gate → official Transcript → Perplexity/Quartr → recording + NotebookLM). Use whenever the user says \"get me the concall transcript\", \"transcribe the earnings call\", \"fetch the Q3FY26 transcript for X\", or wants transcripts for multiple companies at once. ALL other skills (concall-analysis, quarterly-result-analysis, management-credibility-tracker, consecutive-filings-diff, etc.) MUST call this skill for any transcript they need — never fetch transcripts independently."
+description: "DEPRECATED 2026-07-31 — do not use for new work. Stockscans now guarantees an official Transcript document for every reported quarter, so the Perplexity/recording/NotebookLM fallback waterfall this skill implements is no longer needed. All consumer skills now resolve transcripts directly via stock-api/bin/get-concall-transcript-url.js (see skills/_shared/conventions.md §12). Kept only for historical reference — never invoke or route to this skill."
 ---
 
-# Concall Transcript Extractor
+# Concall Transcript Extractor — DEPRECATED
+
+**This skill is deprecated as of 2026-07-31 and is not used by any current workflow.** Stockscans added live concall support: an official Transcript document is now guaranteed for every company/quarter, which was the missing piece that justified this skill's 5-tier fallback waterfall (Perplexity/Quartr, recording + NotebookLM, etc.).
+
+**Use instead:** `stock-api/bin/get-concall-transcript-url.js` (single-company/single-quarter, multi-company/latest-quarter, and multi-company/historical-quarter modes — see its header docs and `skills/_shared/conventions.md` §12 for the `ssUrl` → document URL convention). Every consumer skill (concall-analysis, quarterly-result-analysis, management-credibility-tracker, consecutive-filings-diff, forward-guidance-extractor, growth-triggers-1pager, peer-comparison, stock-report) has been repointed to call that script directly instead of this skill.
+
+The content below is preserved for reference only.
+
+# Concall Transcript Extractor (legacy)
 
 **Canonical transcript source for all skills.** Any skill that needs a concall transcript — for any quarter, any company — MUST call this script instead of fetching the transcript itself. The DB-first waterfall ensures no duplicate network calls and a consistent storage schema.
 
