@@ -136,7 +136,23 @@ describe('main() orchestration (mocked clients)', () => {
       validateAuth: jest.fn(async () => true),
       runScan,
       scanAnnouncements: jest.fn(async () => ({ announcements: [] })),
-      prices: jest.fn(async () => [['2026-06-26', 190, 205, 188, 200, 120000]]),
+      // Price history comes from ohlcv(tf='1h') and is aggregated to daily —
+      // the old prices() endpoint now 404s for every ticker, and tf='1d' is
+      // rejected with HTTP 400, so hourly-and-aggregate is the supported path.
+      // Two hourly bars on the same date must collapse into one daily candle
+      // with the LAST close (200) and the SUMMED volume.
+      ohlcv: jest.fn(async () => ({
+        prices: [
+          ['2026-06-26T10:15:00', 190, 198, 188, 195, 50000],
+          ['2026-06-26T14:15:00', 195, 205, 193, 200, 70000],
+        ],
+      })),
+      createWatchlist: jest.fn(async (name, companyIds) => ({
+        watchlistId: 'wl_test',
+        watchlistName: name,
+        companyIds,
+      })),
+      deleteWatchlist: jest.fn(async () => ({ ok: true })),
     };
     const nse = {
       getSymbolData: jest.fn(async () => ({
@@ -169,5 +185,119 @@ describe('main() orchestration (mocked clients)', () => {
       )
     );
     expect(written.total_gainers).toBe(1);
+  });
+});
+
+describe('announcement fetching uses a server-side filter', () => {
+  const scanner = require('../gainersScanner');
+
+  function annClient({ createFails = false } = {}) {
+    const calls = { created: [], deleted: [], payloads: [] };
+    return {
+      calls,
+      createWatchlist: jest.fn(async (name, companyIds) => {
+        if (createFails) throw new Error('quota exceeded');
+        calls.created.push({ name, companyIds });
+        return { watchlistId: 'wl_1', watchlistName: name, companyIds };
+      }),
+      deleteWatchlist: jest.fn(async (id) => {
+        calls.deleted.push(id);
+        return {};
+      }),
+      scanAnnouncements: jest.fn(async (payload) => {
+        calls.payloads.push(payload);
+        if (payload.offset > 0) return { announcements: [] };
+        return {
+          announcements: [
+            {
+              companyId: 'NSE:AAA',
+              title: 'Award of Order from NTPC',
+              description: '',
+              ssUrl: 'abc.pdf',
+              createdAt: '2026-07-30T10:00:00',
+            },
+            // A ticker outside our universe must never leak into the results.
+            {
+              companyId: 'NSE:ZZZ',
+              title: 'Some other filing',
+              description: '',
+              ssUrl: 'z.pdf',
+              createdAt: '2026-07-30T10:00:00',
+            },
+          ],
+        };
+      }),
+    };
+  }
+
+  const marketDate = new Date('2026-07-30T00:00:00Z');
+
+  it('scans by watchlistIds, not companyIds, and cleans the scratch watchlist up', async () => {
+    // The endpoint IGNORES scan.companyIds (verified live), so the old code
+    // paginated the entire market to find ~40 companies. watchlistIds filters
+    // server-side and has no 10-company cap.
+    const client = annClient();
+    const out = await scanner.fetchAnnouncementsBatch(
+      ['NSE:AAA', 'NSE:BBB'],
+      marketDate,
+      client,
+      async () => {},
+      () => {}
+    );
+    expect(client.calls.created[0].companyIds).toEqual(['NSE:AAA', 'NSE:BBB']);
+    expect(client.calls.payloads[0].scan.watchlistIds).toEqual(['wl_1']);
+    expect(client.calls.payloads[0].scan.companyIds).toEqual([]);
+    // A scratch watchlist is a REAL object in the user's account — leaking one
+    // per run would be visible clutter.
+    expect(client.calls.deleted).toEqual(['wl_1']);
+    expect(out['NSE:AAA']).toHaveLength(1);
+    expect(out['NSE:ZZZ']).toBeUndefined();
+  });
+
+  it('annotates each announcement with strength and a resolved pdfUrl', async () => {
+    const client = annClient();
+    const out = await scanner.fetchAnnouncementsBatch(
+      ['NSE:AAA'],
+      marketDate,
+      client,
+      async () => {},
+      () => {}
+    );
+    const a = out['NSE:AAA'][0];
+    expect(a.strength).toBe('STRONG');
+    expect(a.category_derived).toBe('order_book');
+    // Step 4 reads PDFs straight from this — no extra API calls to resolve URLs.
+    expect(a.pdfUrl).toMatch(/abc\.pdf$/);
+  });
+
+  it('falls back to the market-wide sweep when the watchlist cannot be created', async () => {
+    // A slow scan beats no announcements at all.
+    const client = annClient({ createFails: true });
+    const out = await scanner.fetchAnnouncementsBatch(
+      ['NSE:AAA'],
+      marketDate,
+      client,
+      async () => {},
+      () => {}
+    );
+    expect(client.calls.payloads[0].scan.watchlistIds).toEqual([]);
+    expect(client.calls.deleted).toEqual([]);
+    expect(out['NSE:AAA']).toHaveLength(1);
+  });
+});
+
+describe('daily aggregation of hourly candles', () => {
+  const scanner = require('../gainersScanner');
+
+  it('collapses intraday bars into one candle per day', () => {
+    const daily = scanner.aggregateToDaily([
+      ['2026-07-29T10:15:00', 100, 105, 99, 102, 1000],
+      ['2026-07-29T14:15:00', 102, 110, 101, 108, 2000],
+      ['2026-07-30T10:15:00', 108, 112, 107, 111, 3000],
+    ]);
+    expect(daily).toHaveLength(2);
+    expect(daily[0]).toMatchObject({ date: '2026-07-29', open: 100, high: 110, low: 99, close: 108 });
+    expect(daily[0].volume).toBe(3000); // summed, not last
+    expect(daily[1].close).toBe(111);
   });
 });

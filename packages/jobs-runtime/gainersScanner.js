@@ -9,7 +9,7 @@
  *   2. Quality filters (mcap / delivery / retail)
  *   3. 7-day announcements (batched)
  *   4. Industry-breadth scans
- *   5. Price history + price-action signals          → StockscansClient.prices
+ *   5. Price history + price-action signals          → StockscansClient.ohlcv(tf=1h)
  *   6. Per-symbol delivery: NSE live + BSE position   → NseClient / BseClient
  *   7. Write daily_gainers/{date}_gainers_raw.json and print JSON to stdout
  *
@@ -23,7 +23,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const { stockscans, nse, bse } = require('@stock/api');
+const { stockscans, nse, bse, S3_BASE_URL } = require('@stock/api');
+const taxonomy = require('./lib/announcementTaxonomy');
 const { loadEnv, argValue } = require('./lib/env');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const { sendHtmlEmail } = require('@stock/cloud-utils');
@@ -64,29 +65,17 @@ const NOISE_KEYWORDS = [
   '100 day campaign',
 ];
 
-const MATERIAL_KEYWORDS = [
-  'order',
-  'contract',
-  'win',
-  'award',
-  'result',
-  'profit',
-  'revenue',
-  'pat',
-  'fda',
-  'pli',
-  'capacity',
-  'expansion',
-  'merger',
-  'acquisition',
-  'demerger',
-  'buyback',
-  'qip',
-  'preferential',
-  'warrant',
-  'stake',
-  'sast',
-];
+// Materiality is no longer a flat keyword list local to this file — it comes from
+// lib/announcementTaxonomy.js, which both this scanner and watchlistInsights.js
+// share. See that module for why the old boolean was replaced by a
+// STRONG/SUPPORTING/ROUTINE strength.
+
+// Delivery thresholds. `high_delivery` (≥50%) is the classic "most of today's
+// volume was actually delivered, not intraday churn" flag. DECENT_DELIVERY_PCT is
+// the lower bar used for the sector-cluster test: a cluster is only interesting if
+// its members are being bought with conviction, not just gapping together.
+const HIGH_DELIVERY_PCT = 50;
+const DECENT_DELIVERY_PCT = 40;
 
 // ── Pure helpers (exported for parity tests) ──────────────────────────────────
 
@@ -237,6 +226,19 @@ function priceActionSignals(candles) {
     ? roundTo(((cp - supportLevel) / supportLevel) * 100, 2)
     : null;
 
+  // Long-MA trend. The candle window is PRICE_HISTORY_CANDLES (65) sessions, so a
+  // true 200-DMA isn't computable here; we use the longest MA the window supports
+  // and name the field for what it actually is (`above_long_ma` / `long_ma_days`)
+  // rather than mislabelling a 60-day mean as a 200-DMA.
+  const longMaDays = Math.min(60, closes.length);
+  const longMa = longMaDays
+    ? closes.slice(-longMaDays).reduce((s, c) => s + c, 0) / longMaDays
+    : null;
+
+  // Wilder RSI(14) over closes. Reported so the classifier can flag exhaustion —
+  // a +12% day on RSI 85 is a very different proposition from one on RSI 55.
+  const rsi = computeRsi(closes, 14);
+
   return {
     close: roundTo(cp, 2),
     prev_close: prev ? roundTo(prev, 2) : null,
@@ -250,7 +252,42 @@ function priceActionSignals(candles) {
     support_level_10d: supportLevel,
     pct_above_support: pctAboveSupport,
     candle_window_days: closes.length,
+    // ── Derived booleans consumed by gainersClassifier ────────────────────────
+    // These exist because the classifier was written against `vol_spike`,
+    // `breakout_52w`, `above_200dma` and `rsi` — fields this function never
+    // emitted, so EVERY price-action evidence line and the whole PRICE_ACTION
+    // scoring branch silently evaluated to false. Emitting them here (rather than
+    // recomputing in the classifier) keeps one definition of each signal.
+    vol_spike: volSpike !== null && volSpike >= 2.0,
+    vol_ratio: volSpike,
+    breakout_52w: nearBreakout,
+    long_ma: longMa !== null ? roundTo(longMa, 2) : null,
+    long_ma_days: longMaDays || null,
+    above_long_ma: longMa !== null ? cp > longMa : null,
+    rsi,
   };
+}
+
+/** Wilder's RSI. Returns null when there aren't enough closes for a full period. */
+function computeRsi(closes, period = 14) {
+  if (!Array.isArray(closes) || closes.length < period + 1) return null;
+  let gain = 0;
+  let loss = 0;
+  for (let i = 1; i <= period; i += 1) {
+    const d = closes[i] - closes[i - 1];
+    if (d >= 0) gain += d;
+    else loss -= d;
+  }
+  let avgGain = gain / period;
+  let avgLoss = loss / period;
+  for (let i = period + 1; i < closes.length; i += 1) {
+    const d = closes[i] - closes[i - 1];
+    avgGain = (avgGain * (period - 1) + (d > 0 ? d : 0)) / period;
+    avgLoss = (avgLoss * (period - 1) + (d < 0 ? -d : 0)) / period;
+  }
+  if (avgLoss === 0) return avgGain === 0 ? 50 : 100;
+  const rs = avgGain / avgLoss;
+  return roundTo(100 - 100 / (1 + rs), 1);
 }
 
 /** Apply the four StockTable quality filters. Returns { passed, excluded }. */
@@ -478,21 +515,48 @@ async function fetchDeliveryPerSymbol(gainers, { nseClient = nse, bseClient = bs
   return out;
 }
 
+/**
+ * Aggregate intraday OHLCV rows ([isoTs, o, h, l, c, v]) into daily candles.
+ * Rows are assumed ascending by timestamp, as the API returns them.
+ */
+function aggregateToDaily(rows) {
+  const byDay = new Map();
+  for (const r of rows) {
+    if (!Array.isArray(r) || r.length < 5) continue;
+    const day = String(r[0]).slice(0, 10);
+    const [, o, h, l, c, v] = r;
+    const cur = byDay.get(day);
+    if (!cur) {
+      byDay.set(day, { date: day, open: o, high: h, low: l, close: c, volume: v || 0 });
+    } else {
+      cur.high = Math.max(cur.high, h);
+      cur.low = Math.min(cur.low, l);
+      cur.close = c; // last bar of the day
+      cur.volume += v || 0;
+    }
+  }
+  return [...byDay.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/**
+ * Daily candles for price-action signals.
+ *
+ * Uses `ohlcv(tf='1h')` and aggregates to daily rather than the older
+ * `prices()` endpoint, which now 404s for every ticker — that outage had
+ * silently disabled ALL price-action signals (breakouts, volume spikes,
+ * trend) across the whole report. Note `tf='1d'` is rejected with HTTP 400 by
+ * this API, so hourly-and-aggregate is the supported path, not a workaround
+ * for convenience. One hourly page covers ~80 sessions, comfortably more than
+ * the 65 we need, so no pagination is required.
+ */
 async function fetchPrices(ticker, client = stockscans) {
   try {
-    const raw = await client.prices(ticker);
-    let candles = Array.isArray(raw) ? raw : raw.prices || raw.data || raw.candles || [];
-    if (candles.length && Array.isArray(candles[0])) {
-      candles = candles.map((c) => ({
-        date: c[0],
-        open: c[1],
-        high: c[2],
-        low: c[3],
-        close: c[4],
-        volume: c.length > 5 ? c[5] : null,
-      }));
-    }
-    return candles.slice(-PRICE_HISTORY_CANDLES);
+    const raw = await client.ohlcv(ticker, { tf: '1h' });
+    const rows = (raw && raw.prices) || [];
+    if (!rows.length) return [{ _error: 'no candles returned' }];
+    const daily = aggregateToDaily(rows);
+    if (!daily.length) return [{ _error: 'no daily candles after aggregation' }];
+    return daily.slice(-PRICE_HISTORY_CANDLES);
   } catch (e) {
     return [{ _error: e.message }];
   }
@@ -516,18 +580,77 @@ function announcementCutoffMs(marketDate) {
   return Date.UTC(y, mo, d, 0, 0, 0) - (5 * 60 + 30) * 60 * 1000;
 }
 
-/** Fetch last 7 days of announcements for all tickers (paginated). → { ticker: [ann] } */
+/**
+ * Fetch last 7 days of announcements for all tickers. → { ticker: [ann] }
+ *
+ * ── Why a throwaway watchlist ────────────────────────────────────────────────
+ * The announcements endpoint IGNORES `scan.companyIds` — verified live: a request
+ * naming only NSE:TCS and NSE:INFY comes back full of unrelated tickers. The old
+ * implementation passed `companyIds` anyway and filtered client-side, which meant
+ * it was paginating the ENTIRE market's announcements 30 rows at a time (with a
+ * 300ms courtesy sleep between pages) just to find ~40 companies' filings. On a
+ * busy 7-day window that is thousands of requests and many minutes — the single
+ * biggest cost in this job.
+ *
+ * `watchlistIds` DOES filter server-side, and unlike `companyFilters` it has no
+ * 10-company cap (see StockscansClient.createWatchlist). So we create one scratch
+ * watchlist holding the whole universe, scan it in a handful of pages, and delete
+ * it in a `finally` — this creates a REAL watchlist in the account, so the cleanup
+ * is not optional.
+ *
+ * Falls back to the old market-wide sweep if the watchlist can't be created, since
+ * a slow scan beats no announcements at all.
+ */
 async function fetchAnnouncementsBatch(
   tickers,
   marketDate,
   client = stockscans,
-  sleep = defaultSleep
+  sleep = defaultSleep,
+  log = (m) => process.stderr.write(m)
 ) {
+  if (!tickers.length) return {};
+  let watchlistId = null;
+  try {
+    const wl = await client.createWatchlist(
+      `_gainers_scan_${marketDate.toISOString().slice(0, 10)}_${Date.now()}`,
+      tickers
+    );
+    watchlistId = wl && (wl.watchlistId || wl.id || (wl.watchlist && wl.watchlist.id));
+    if (watchlistId)
+      log(`      → scratch watchlist ${watchlistId} (${tickers.length} companies)\n`);
+  } catch (e) {
+    log(`[WARN] scratch watchlist creation failed (${e.message}) — falling back to full sweep\n`);
+  }
+
+  try {
+    return await paginateAnnouncements(tickers, marketDate, client, sleep, watchlistId, log);
+  } finally {
+    if (watchlistId) {
+      try {
+        await client.deleteWatchlist(watchlistId);
+        log(`      → scratch watchlist ${watchlistId} deleted\n`);
+      } catch (e) {
+        // Loud on purpose: a leaked watchlist is visible clutter in the user's
+        // real account and will accumulate one per run if this keeps failing.
+        log(`[WARN] failed to delete scratch watchlist ${watchlistId}: ${e.message}\n`);
+      }
+    }
+  }
+}
+
+async function paginateAnnouncements(tickers, marketDate, client, sleep, watchlistId, log) {
   const qdate = quarterDate(marketDate);
   const cutoffMs = announcementCutoffMs(marketDate);
   const results = Object.fromEntries(tickers.map((t) => [t, []]));
+  const wanted = new Set(tickers);
   let offset = 0;
   let pageSize = null;
+  let pages = 0;
+  // Safety valve for the fallback path only: without server-side filtering this
+  // loop walks the whole market, so it needs a bound. Reaching it means the
+  // announcements are incomplete, which the caller reports rather than hides.
+  const MAX_PAGES = watchlistId ? 200 : 60;
+  let truncated = false;
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
@@ -538,12 +661,12 @@ async function fetchAnnouncementsBatch(
         filters: [],
         industry: [],
         index: [],
-        watchlistIds: [],
+        watchlistIds: watchlistId ? [watchlistId] : [],
         searchFilters: [],
         announcementType: 'All',
         alerts: false,
         searchMode: 'full',
-        companyIds: tickers,
+        companyIds: watchlistId ? [] : tickers,
         companyFilters: [],
       },
       offset,
@@ -562,6 +685,7 @@ async function fetchAnnouncementsBatch(
         : data || [];
     if (!page.length) break;
     if (pageSize === null) pageSize = page.length;
+    pages += 1;
 
     let done = false;
     for (const ann of page) {
@@ -572,20 +696,41 @@ async function fetchAnnouncementsBatch(
         break;
       }
       const annTicker = ann.companyId || ann.ticker || '';
-      if (annTicker in results) {
-        results[annTicker].push({
-          date: String(createdStr || '').slice(0, 10),
-          subject: String(ann.subject || ann.title || '').slice(0, 200),
-          category: ann.category || ann.announcementType || '',
-          description: String(ann.description || '').slice(0, 400),
-          ssUrl: ann.ssUrl || ann.fileUrl || '',
-        });
+      if (wanted.has(annTicker)) {
+        const ssUrl = ann.ssUrl || ann.fileUrl || '';
+        results[annTicker].push(
+          // `annotate` stamps category_derived / strength / category_label from the
+          // shared taxonomy. `pdfUrl` is the fully-qualified S3 link so the top-20
+          // trigger-research step can feed it straight to
+          // `watchlistInsights.js read-pdf` — without it that step would have to
+          // re-derive the URL, which is how the two pipelines drifted before.
+          taxonomy.annotate({
+            date: String(createdStr || '').slice(0, 10),
+            subject: String(ann.subject || ann.title || '').slice(0, 200),
+            category: ann.category || ann.announcementType || '',
+            description: String(ann.description || '').slice(0, 400),
+            ssUrl,
+            pdfUrl: ssUrl ? `${S3_BASE_URL}${ssUrl}` : '',
+          })
+        );
       }
     }
     if (done || page.length < (pageSize || 1)) break;
+    if (pages >= MAX_PAGES) {
+      truncated = true;
+      log(
+        `[WARN] announcements truncated at ${pages} pages (${watchlistId ? 'watchlist' : 'full-sweep fallback'}) — some filings may be missing\n`
+      );
+      break;
+    }
     offset += page.length;
     await sleep(300);
   }
+  log(`      → ${pages} announcement page(s)${truncated ? ' (TRUNCATED)' : ''}\n`);
+  Object.defineProperty(results, '_meta', {
+    value: { pages, truncated, serverFiltered: !!watchlistId },
+    enumerable: false,
+  });
   return results;
 }
 
@@ -614,10 +759,11 @@ async function fetchIndustryScan(industry, client = stockscans) {
 }
 
 function hasMaterialAnnouncement(anns) {
-  return anns.some((a) => {
-    const text = `${a.subject} ${a.description}`.toLowerCase();
-    return MATERIAL_KEYWORDS.some((kw) => text.includes(kw));
-  });
+  // Retained for backward compatibility with consumers of the raw JSON, but it is
+  // now derived from the shared taxonomy rather than a private keyword list.
+  // Prefer `ann_strength` (STRONG/SUPPORTING/ROUTINE) — the boolean can't tell an
+  // order win apart from a rating reaffirmation.
+  return taxonomy.strongestOf(anns) === 'STRONG';
 }
 
 function defaultSleep(ms) {
@@ -680,7 +826,41 @@ async function main({
   const nAvail = Object.values(deliveryMapAll).filter((d) => d.available).length;
   log(`      → delivery available for ${nAvail}/${gainers.length}\n`);
 
-  // 1d. Quality filters
+  // 1d. Price histories — fetched BEFORE the quality filter on purpose.
+  //
+  // The gainers scan table carries no `Close` column, so `close_price` is 0 for
+  // every row. BSE delivery VALUE is derived from a close price, so without one
+  // it stayed null — and a null sailed straight through the `min_delivery_value_cr`
+  // floor. Result: BSE micro-caps delivering ₹0.08 Cr were passing a ₹5 Cr filter
+  // and consuming slots in the top-20 research budget. Fetching prices first gives
+  // every BSE name a close, so the floor applies uniformly across both exchanges.
+  // The candles are reused for price-action signals below — this is a reorder,
+  // not an extra round of fetching.
+  log('[1d/7] Fetching price histories …\n');
+  const candlesByTicker = new Map(
+    (await mapLimit(gainers, 8, async (g) => [g.ticker, await fetchPrices(g.ticker, ss)])).map(
+      ([t, c]) => [t, c]
+    )
+  );
+  const priceSignalsByTicker = new Map(
+    [...candlesByTicker].map(([t, c]) => [t, priceActionSignals(c)])
+  );
+  const priceErrors = [...priceSignalsByTicker.values()].filter((p) => p.error).length;
+  log(`      → price signals for ${gainers.length - priceErrors}/${gainers.length}\n`);
+
+  // Backfill BSE delivery value/traded value now that a close price exists.
+  for (const g of gainers) {
+    const d = deliveryMapAll[g.ticker];
+    if (!d || !d.available || d.source !== 'bse_api' || d.deliv_value_cr) continue;
+    const ps = priceSignalsByTicker.get(g.ticker);
+    const close = ps && !ps.error ? ps.close : null;
+    if (!close) continue;
+    g.close_price = close;
+    if (d.deliv_qty) d.deliv_value_cr = roundTo((d.deliv_qty * close) / 1e7, 2);
+    if (d.trd_qty) d.trd_value_cr = roundTo((d.trd_qty * close) / 1e7, 2);
+  }
+
+  // 1e. Quality filters
   const { passed: gainersFiltered, excluded: gainersExcluded } = applyQualityFilters(
     gainers,
     deliveryMapAll
@@ -690,8 +870,9 @@ async function main({
 
   // 2. Announcements
   log('[2/7] Fetching 7-day announcements …\n');
-  let annMap = await fetchAnnouncementsBatch(tickers, mDate, ss, sleep);
-  annMap = Object.fromEntries(Object.entries(annMap).map(([t, a]) => [t, filterNoise(a)]));
+  const annRawMap = await fetchAnnouncementsBatch(tickers, mDate, ss, sleep, log);
+  const annMeta = annRawMap._meta || { pages: 0, truncated: false, serverFiltered: false };
+  const annMap = Object.fromEntries(Object.entries(annRawMap).map(([t, a]) => [t, filterNoise(a)]));
 
   // 3. Industry clusters
   log('[3/7] Fetching industry scans …\n');
@@ -720,13 +901,15 @@ async function main({
   }
 
   // 5. Price history + signals
-  log('[5/7] Fetching price histories …\n');
+  log('[5/7] Assembling signals …\n');
   const enriched = [];
   for (const g of gainersFiltered) {
-    const candles = await fetchPrices(g.ticker, ss);
-    const paSigs = priceActionSignals(candles);
+    // Price signals were computed in step 1d — BEFORE the quality filter, so that
+    // BSE delivery values exist in time to be filtered on. Reused here, not refetched.
+    const paSigs = priceSignalsByTicker.get(g.ticker) || { error: 'not fetched' };
     const delivery = deliveryMapAll[g.ticker] || {};
     const annRaw = annMap[g.ticker] || [];
+
     enriched.push({
       ticker: g.ticker,
       name: g.name,
@@ -740,6 +923,12 @@ async function main({
       announcements: annRaw,
       ann_count: annRaw.length,
       has_material_ann: hasMaterialAnnouncement(annRaw),
+      // Strongest announcement category present in the 7-day window, plus the
+      // categories themselves — this is what the classifier links to the price
+      // action ("+9.4% on a STRONG order_book filing" vs "+9.4% on nothing").
+      ann_strength: taxonomy.strongestOf(annRaw),
+      ann_categories: [...new Set(annRaw.map((a) => a.category_derived).filter(Boolean))],
+      strong_announcements: annRaw.filter((a) => a.strength === 'STRONG'),
       price_signals: paSigs,
       delivery: {
         available: delivery.available || false,
@@ -755,15 +944,37 @@ async function main({
       sector_breadth: (sectorScans[g.industry] || {}).breadth || {},
       sector_broad_move: ((sectorScans[g.industry] || {}).breadth || {}).broad_move || false,
     });
-    await sleep(200);
+    // No sleep here any more — this loop is pure in-memory assembly now that the
+    // fetching happens above via mapLimit. Rate-limiting belongs with the calls.
   }
 
   // 6. Industry summary
+  //
+  // `qualified_*` counts only cluster members whose move was actually
+  // delivery-backed (deliv_per >= DECENT_DELIVERY_PCT). The user's rule is "3-4
+  // stocks from the SAME sector doing this = super-strong" — but "this" means
+  // gaining WITH decent delivery. Four names co-moving on intraday churn is a
+  // sector-wide news pop or an index rebalance, not accumulation, and counting it
+  // as super-strong is precisely how a signal report loses credibility.
+  const byIndustry = {};
+  for (const g of enriched) (byIndustry[g.industry] ||= []).push(g);
+
   const industrySummary = {};
   for (const [ind, scan] of Object.entries(sectorScans)) {
+    const members = byIndustry[ind] || [];
+    const qualified = members.filter((m) => {
+      const d = m.delivery || {};
+      return d.available && (d.deliv_per || 0) >= DECENT_DELIVERY_PCT;
+    });
     industrySummary[ind] = {
       gainer_count: (scan.gainer_tickers || []).length,
       gainer_tickers: scan.gainer_tickers || [],
+      qualified_count: qualified.length,
+      qualified_tickers: qualified.map((m) => m.ticker),
+      qualified_delivery_value_cr: roundTo(
+        qualified.reduce((s, m) => s + ((m.delivery || {}).deliv_value_cr || 0), 0),
+        2
+      ),
       breadth: scan.breadth || {},
     };
   }
@@ -773,6 +984,10 @@ async function main({
     market_date: mDateStr,
     run_at_ist: runTs,
     delivery_available: nAvail > 0,
+    // Announcement coverage. `truncated: true` means the report must say
+    // "announcements incomplete" rather than "no filings found" — those are very
+    // different claims and conflating them is how a signal report misleads.
+    announcements_meta: annMeta,
     quality_filter: {
       rules: QUALITY_FILTERS,
       raw_count: gainers.length,
@@ -813,10 +1028,17 @@ module.exports = {
   applyQualityFilters,
   deriveNseDelivery,
   deriveBseDelivery,
+  priceActionSignals,
+  computeRsi,
+  hasMaterialAnnouncement,
+  HIGH_DELIVERY_PCT,
+  DECENT_DELIVERY_PCT,
 
   // api-bound
 
   fetchAnnouncementsBatch,
+  aggregateToDaily,
+  fetchPrices,
   fetchTopGainers,
   // constants
   DEFAULT_TOP_N,

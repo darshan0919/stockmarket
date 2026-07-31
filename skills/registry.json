@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "description": "Stockmarket monorepo \u2014 Claude skills registry",
+  "description": "Stockmarket monorepo — Claude skills registry",
   "base_url": "https://raw.githubusercontent.com/darshan0919/stockmarket/main",
   "_note": "Source of truth for generating registry.json and invoker tables.",
   "shared": [
@@ -640,14 +640,23 @@
       "skill_md": "skills/equity-research/gainers-signal/SKILL.md",
       "entry": null,
       "references": [],
-      "shared": [],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/tooling/output-dto-standard/SKILL.md"
+      ],
       "aliases": [
-        "gainers signal",
-        "top gainers",
-        "daily gainers",
-        "gainer classification",
+        "8am gainers run",
+        "ACT WATCH NOTED",
+        "actionable gainers",
         "conviction signals",
-        "8am gainers run"
+        "daily gainers",
+        "delivery value signal",
+        "gainer classification",
+        "gainers signal",
+        "gainers streak",
+        "gainers tiering",
+        "sector cluster signal",
+        "top gainers"
       ]
     },
     "watchlist-insights": {

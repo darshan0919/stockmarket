@@ -436,7 +436,7 @@
     },
     {
       "name": "gainers-signal",
-      "description": "Daily top-50 gainers signal — pre-compute gainers + quality filters + delivery + announcements (scanner), deterministically classify each into FUNDAMENTAL / SECTOR_CATALYST / PRICE_ACTION / VOLATILITY with conviction (classifier), then compose and email a conviction-signals briefing. Invoke with defaults for the 8 AM run, or pass a specific market date on demand.",
+      "description": "Daily gainers ACTIONABILITY signal — pre-compute gainers + quality filters + dual-axis delivery (% and ₹ Cr) + bulk announcements (scanner), deterministically tier each into ACT / WATCH / NOTED with streaks and delivery-confirmed sector clusters (classifier), research the top-20 triggers from announcement PDFs, then email a tiered briefing. Invoke with defaults for the 8 AM run, or pass a specific market date on demand.",
       "aliases": [
         "gainers signal",
         "top gainers",
