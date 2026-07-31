@@ -1,0 +1,241 @@
+{
+  "companyId": "NSE:WABAG",
+  "companyName": "VA Tech Wabag Limited",
+  "asOf": "2026-07-31",
+  "generatedBy": "packages/jobs-runtime/scripts/orderbook/getCompanyOrderBook.js + manual verification of cached filing PDFs",
+
+  "declaredBase": {
+    "valueCr": 17200,
+    "unit": "cr",
+    "label": "Order Backlog",
+    "sourceType": "concall",
+    "sourceQuarter": "202603",
+    "sourceQuarterEndDate": "2026-03-31",
+    "sourceLine": "**Liquidity & Backlog:** **\u20b917,200 Cr** Order Backlog \u00b7 **\u20b9950 Cr** Net Cash (+35% YoY) \u00b7 **\u20b95/share** Dividend",
+    "confidence": "high",
+    "supportingContext": [
+      "Order Intake: \u20b97,500 Cr annual (+31.5% YoY)",
+      "Order Backlog (O&M): \u20b96,500 Cr (~40% of total backlog)",
+      "Management: backlog provides over four years of revenue coverage"
+    ]
+  },
+
+  "fxAssumption": { "pair": "USD/INR", "rate": 95.5, "asOf": "2026-07-31" },
+
+  "disclosurePolicy": {
+    "note": "WABAG does not disclose exact order values. Every Reg-30 order filing states a classification band only.",
+    "domesticBandsCr": {
+      "Small": [0, 100],
+      "Medium": [100, 250],
+      "Large": [250, 600],
+      "Major": [600, 1000],
+      "Mega": [1000, null]
+    },
+    "internationalBandsUsdMn": {
+      "Small": [0, 10],
+      "Medium": [10, 30],
+      "Large": [30, 75],
+      "Major": [75, 150],
+      "Mega": [150, null]
+    }
+  },
+
+  "newWinsSinceBase": [
+    {
+      "date": "2026-05-22",
+      "ssUrl": "b81zpx7wpyja8shlqvrq5eyv.pdf",
+      "customer": "Delhi Jal Board (DJB)",
+      "project": "17 MGD Wastewater Treatment Plant at Mitraon, Delhi (DBO) with sludge dewatering, pumping stations and associated piping",
+      "geography": "domestic",
+      "band": "Medium",
+      "valueLowCr": 100,
+      "valueHighCr": 250,
+      "valueMidCr": 175,
+      "quantities": [{ "value": 17, "unit": "MGD" }],
+      "epcDurationMonths": 21,
+      "epcCompletionEst": "2028-02",
+      "omYears": 15,
+      "omEndEst": "2043",
+      "valueConfidence": "band-only"
+    },
+    {
+      "date": "2026-06-09",
+      "ssUrl": "m2d32er8krohq08ip9akzx9r.pdf",
+      "customer": "Ajman Sewerage (Private) Company Limited, UAE",
+      "project": "Ajman Sewage Biorefinery Plant Phase 3 \u2014 60 MLD STP, Design & Build; WABAG is consortium leader",
+      "geography": "international",
+      "band": "Large",
+      "valueLowUsdMn": 30,
+      "valueHighUsdMn": 75,
+      "valueLowCr": 286.5,
+      "valueHighCr": 716.25,
+      "valueMidCr": 501.38,
+      "quantities": [{ "value": 60, "unit": "MLD" }],
+      "epcDurationMonths": 24,
+      "epcCompletionEst": "2028-06",
+      "omYears": null,
+      "valueConfidence": "band-only",
+      "caveat": "Consortium contract; band is understood to be WABAG's own order inflow but the consortium split is not disclosed."
+    },
+    {
+      "date": "2026-06-19",
+      "ssUrl": "uwdvb3wm106h3vri498qeedb.pdf",
+      "customer": "Ministry of Electricity, Water & Renewable Energy (MEWRE), Kuwait",
+      "project": "Doha SWRO Desalination Plant with Recarbonation System \u2014 Stage II, 60 MIGD (~272 MLD), DBO via unincorporated JV with HEISCO",
+      "geography": "international",
+      "band": "Mega",
+      "valueLowUsdMn": 150,
+      "valueHighUsdMn": null,
+      "valueLowCr": 1432.5,
+      "valueHighCr": null,
+      "valueMidCr": 1910.0,
+      "valueMidBasis": "illustrative USD 200 Mn (Mega band has no disclosed upper bound)",
+      "quantities": [
+        { "value": 60, "unit": "MIGD" },
+        { "value": 272, "unit": "MLD" }
+      ],
+      "epcDurationMonths": 36,
+      "epcCompletionEst": "2029-06",
+      "omYears": 5,
+      "omEndEst": "2034",
+      "valueConfidence": "band-only-open-ended",
+      "caveat": "JV with HEISCO; WABAG's share of the JV is not disclosed. Largest single swing factor in the total."
+    },
+    {
+      "date": "2026-07-01",
+      "ssUrl": "lex8vgn31bn0zsrjk54um0at.pdf",
+      "customer": "City of Vienna, Municipal Department MA 31 \u2013 Wiener Wasser, Austria",
+      "project": "Expansion of the Donauinsel Water Works \u2014 ~1,000 l/s (~86 MLD) drinking water treatment; multi-barrier oxidation/ozonation/AOP/filtration/GAC/UV",
+      "geography": "international",
+      "band": "Large",
+      "valueLowUsdMn": 30,
+      "valueHighUsdMn": 75,
+      "valueLowCr": 286.5,
+      "valueHighCr": 716.25,
+      "valueMidCr": 501.38,
+      "quantities": [{ "value": 86, "unit": "MLD" }],
+      "epcDurationMonths": null,
+      "epcCompletionEst": "2030",
+      "epcCompletionBasis": "stated calendar completion, not a duration (~42-54 months from award)",
+      "omYears": null,
+      "valueConfidence": "band-only"
+    },
+    {
+      "date": "2026-07-20",
+      "ssUrl": "rom0q4d8qpmkdoefsur5tpby.pdf",
+      "customer": "Bangalore Water Supply and Sewerage Board (BWSSB)",
+      "project": "DBO of 100 MLD STP + 25 MLD TTP at Byramangala and 60 MLD STP at Bellandur, Bengaluru, with biogas-based captive power generation",
+      "geography": "domestic",
+      "band": "Large",
+      "valueLowCr": 250,
+      "valueHighCr": 600,
+      "valueMidCr": 425,
+      "quantities": [{ "value": 185, "unit": "MLD" }],
+      "epcDurationMonths": 36,
+      "epcCompletionEst": "2029-07",
+      "omYears": 7,
+      "omEndEst": "2036",
+      "valueConfidence": "band-only",
+      "pipelineStatus": "was routed to pendingLlmFallback; resolved here as a band, not a point value, because the filing genuinely states none"
+    }
+  ],
+
+  "newWinsTotal": {
+    "count": 5,
+    "lowCr": 2355.5,
+    "highCr": 4670.0,
+    "midCr": 3512.75,
+    "highCrBasis": "assumes Kuwait Mega at USD 250 Mn; the Mega band is open-ended so the true high is unbounded",
+    "aggregateCapacityAddedMlD": 603
+  },
+
+  "currentOrderBook": {
+    "grossLowCr": 19555.5,
+    "grossMidCr": 20712.75,
+    "grossHighCr": 21870.0,
+    "basis": "declared base 17,200 Cr (31-Mar-2026) + new wins; gross of execution since 31-Mar-2026",
+    "executionDriftNoteCr": -1430,
+    "executionDriftBasis": "~4 months at ~1,075 Cr/quarter implied run-rate (17,200 Cr / >4 years coverage); net-of-execution book is therefore likely ~18,100-20,400 Cr"
+  },
+
+  "executionRunway": {
+    "wholeBookYears": 4.0,
+    "wholeBookBasis": "management guidance: backlog provides over four years of revenue coverage",
+    "newWinsEpcMonthsMin": 21,
+    "newWinsEpcMonthsMax": 54,
+    "newWinsEpcMonthsValueWeightedApprox": 34,
+    "newWinsLastEpcCompletion": "2030",
+    "newWinsOmTailEnd": "2043",
+    "commentary": "EPC on the five new wins runs 21 months (DJB) to ~2030 (Vienna). Value-weighted, the bulk sits at 36 months because the two largest wins (Kuwait Mega, BWSSB Large) both carry 36-month EPC schedules. O&M annuity tails extend well beyond: 5 years on Kuwait (to ~2034), 7 years on BWSSB (to ~2036), 15 years on DJB (to ~2043)."
+  },
+
+  "dataQualityFindings": [
+    {
+      "severity": "high",
+      "type": "false-positive-classification",
+      "date": "2026-06-19",
+      "ssUrl": "8fnxrn097lfhnxvb90ys67c3.pdf",
+      "title": "Intimation For Receipt Of Order From GST Authorities",
+      "pipelineValueCr": 6.47,
+      "correctValueCr": 0,
+      "explanation": "This is a GST demand order (a tax liability) from the Principal Commissioner of Central Tax, Bengaluru East, rejecting a rectification application for FY2019-20 under Sec 73 CGST Act. The classifier matched on the words 'Receipt Of Order' and the PDF extractor read the demand amount INR 5,71,22,863 as an order win. It must be excluded from the order book."
+    },
+    {
+      "severity": "high",
+      "type": "false-value-extraction",
+      "explanation": "All four 'resolved' WABAG order values were parsed out of the Order Classification band table printed at the foot of every WABAG filing, not from a disclosed order value.",
+      "instances": [
+        {
+          "date": "2026-07-01",
+          "pipelineValueCr": 7.5,
+          "sourceText": "o 75 million",
+          "actualSource": "'30 to 75' cell of the International (USD Millions) band row",
+          "trueValue": "USD 30-75 Mn (Large, international)"
+        },
+        {
+          "date": "2026-06-09",
+          "pipelineValueCr": 7.5,
+          "sourceText": "o 75 Million",
+          "actualSource": "'30 to 75' cell of the International (USD Millions) band row",
+          "trueValue": "USD 30-75 Mn (Large, international)"
+        },
+        {
+          "date": "2026-06-19",
+          "pipelineValueCr": 15,
+          "sourceText": "D 150 million",
+          "actualSource": "'75 to 150' cell of the International (USD Millions) band row",
+          "trueValue": "Above USD 150 Mn (Mega, international)"
+        },
+        {
+          "date": "2026-05-22",
+          "pipelineValueCr": 250,
+          "sourceText": "Rs. 250 Crores",
+          "actualSource": "footnote defining 'Medium' as INR 100 to 250 Crores",
+          "trueValue": "INR 100-250 Cr (Medium, domestic)"
+        }
+      ]
+    },
+    {
+      "severity": "medium",
+      "type": "false-timeline-extraction",
+      "date": "2026-05-22",
+      "explanation": "The DJB filing's timeline was recorded as 180 months (15 years) ending 2041-05-22. That 15 years is the post-commissioning O&M period; the EPC schedule is 21 months. The extractor picked the longest duration in the document rather than the one answering Annexure row (f)."
+    },
+    {
+      "severity": "medium",
+      "type": "unit-misread",
+      "explanation": "'75 million' and '150 million' in the USD row were converted as if they were rupees (75 Mn INR = 7.5 Cr). Even setting aside the band-table issue, the extractor has no currency awareness for USD-denominated figures."
+    },
+    {
+      "severity": "medium",
+      "type": "polluted-durable-state",
+      "explanation": "The pipeline run persisted 5 order-win events and a ledger cumulative of 17,486.47 Cr, all built on the erroneous values above. The events collection (type: order-win) and data/cache/order-book-ledger/NSE:WABAG.json should be purged and rebuilt for this company once the extractor handles band-only disclosure."
+    }
+  ],
+
+  "pipelineRawOutput": {
+    "cumulativeValueCr": 17486.47,
+    "verdict": "not usable \u2014 see dataQualityFindings",
+    "pendingLlmFallbackCount": 1
+  }
+}

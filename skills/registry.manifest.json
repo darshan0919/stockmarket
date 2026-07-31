@@ -608,6 +608,43 @@
         "8am gainers run"
       ]
     },
+    "order-book-tracker": {
+      "skill_md": "skills/equity-research/order-book-tracker/SKILL.md",
+      "entry": "packages/jobs-runtime/scripts/orderbook/getCompanyOrderBook.js",
+      "mode": "bundle",
+      "modules": [
+        "packages/jobs-runtime/scripts/orderbook/extractOrderBook.js",
+        "packages/jobs-runtime/orderBookSync.js",
+        "packages/jobs-runtime/lib/orderBookLedger.js",
+        "packages/jobs-runtime/lib/orderBookEvents.js",
+        "packages/jobs-runtime/lib/orderBookPatterns.js",
+        "packages/jobs-runtime/lib/orderAnnouncementExtractor.js",
+        "packages/jobs-runtime/lib/orderAnnouncementStore.js",
+        "packages/jobs-runtime/lib/orderPdfExtractor.js",
+        "packages/jobs-runtime/lib/announcementPdfText.js",
+        "packages/jobs-runtime/lib/concallNotesStore.js",
+        "packages/jobs-runtime/lib/db.js",
+        "stock-api/src/clients/StockscansClient.js"
+      ],
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
+      "aliases": [
+        "order book",
+        "orderbook",
+        "unexecuted order book",
+        "outstanding order book",
+        "order backlog",
+        "current order book",
+        "order wins since concall",
+        "new order announcements",
+        "execution timeline of orders",
+        "book to bill",
+        "order inflow",
+        "L1 orders"
+      ]
+    },
     "watchlist-insights": {
       "skill_md": "skills/equity-research/watchlist-insights/SKILL.md",
       "entry": null,

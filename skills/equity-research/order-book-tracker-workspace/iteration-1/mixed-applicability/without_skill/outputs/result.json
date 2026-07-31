@@ -1,0 +1,106 @@
+{
+  "generatedAt": "2026-07-31",
+  "requested": ["NSE:POWERMECH", "NSE:PERSISTENT"],
+  "results": [
+    {
+      "companyId": "NSE:POWERMECH",
+      "ok": true,
+      "base": {
+        "valueCr": 15898,
+        "unit": "cr",
+        "sourceType": "concall",
+        "sourceQuarter": "202603",
+        "sourceQuarterEndDate": "2026-03-31",
+        "label": "Order inflow missed, but backlog grew",
+        "confidence": "llm-resolved",
+        "reasoning": "Company-wide total backlog stated in FY26 concall (both candidate bullets agree on INR 15,898 Cr)"
+      },
+      "announcementsApplied": [
+        {
+          "date": "2026-06-20",
+          "deltaCr": 1008.9,
+          "ssUrl": "kd0wf6ijoyj1ei9dkbu1zsna.pdf",
+          "source": "pdf",
+          "confidence": "medium",
+          "quantities": [],
+          "timeline": {
+            "durationMonths": 36,
+            "startDate": "2026-06-20",
+            "endDate": "2029-06-20",
+            "basis": "duration-from-filing-date"
+          }
+        },
+        {
+          "date": "2026-06-03",
+          "deltaCr": 66.26,
+          "ssUrl": "9r9vh9jwpx6y7sj557ocdgif.pdf",
+          "source": "pdf",
+          "confidence": "medium",
+          "quantities": [],
+          "timeline": null
+        },
+        {
+          "date": "2026-04-27",
+          "deltaCr": 5,
+          "ssUrl": "p7swv2pxfnpq8wglpintsh2n.pdf",
+          "source": "pdf",
+          "confidence": "medium",
+          "quantities": [],
+          "timeline": {
+            "durationMonths": 30,
+            "startDate": "2026-04-27",
+            "endDate": "2028-10-27",
+            "basis": "duration-from-filing-date"
+          }
+        },
+        {
+          "date": "2026-04-10",
+          "deltaCr": 296.44,
+          "ssUrl": "czar4ln8fk263mrkiivor5zy.pdf",
+          "source": "pdf",
+          "confidence": "medium",
+          "quantities": [{ "unit": "Km", "value": 19.54 }],
+          "timeline": null
+        },
+        {
+          "date": "2026-04-01",
+          "deltaCr": 109.22,
+          "ssUrl": "30niip2mg8vdim0ffeqk14vw.pdf",
+          "source": "pdf",
+          "confidence": "medium",
+          "quantities": [{ "unit": "MW", "value": 91.5 }],
+          "timeline": null
+        }
+      ],
+      "cumulative": {
+        "valueCr": 17383.82,
+        "unit": "cr",
+        "quantities": [
+          { "unit": "Km", "value": 19.54 },
+          { "unit": "MW", "value": 91.5 }
+        ],
+        "executionWindow": {
+          "earliestStart": "2026-04-27",
+          "latestEnd": "2029-06-20",
+          "withTimeline": 2,
+          "withoutTimeline": 3
+        },
+        "asOfDate": "2026-06-20"
+      },
+      "watermark": "2026-06-26",
+      "pendingLlmFallback": [],
+      "dbStats": {
+        "declared": { "inserted": 0, "updated": 0, "unchanged": 1 },
+        "wins": { "inserted": 0, "updated": 0, "unchanged": 5 }
+      }
+    },
+    {
+      "companyId": "NSE:PERSISTENT",
+      "ok": false,
+      "reason": "noOrderBookDisclosed",
+      "quarter": "202606",
+      "detail": "concall notes contain no order-book/backlog bullet",
+      "interpretation": "IT services company — does not report an order book/backlog figure. This is a settled answer, not an extraction failure."
+    }
+  ]
+}

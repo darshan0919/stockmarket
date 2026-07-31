@@ -2,7 +2,7 @@
   "skills": [
     {
       "name": "concall-transcript-extractor",
-      "description": "Canonical transcript source for ANY Indian listed company and ANY quarter — fetches, stores, and returns verbatim earnings-call transcripts via a 5-tier waterfall (DB hit → results gate → official Transcript → Perplexity/Quartr → recording + NotebookLM). Use whenever the user says \"get me the concall transcript\", \"transcribe the earnings call\", \"fetch the Q3FY26 transcript for X\", or wants transcripts for multiple companies at once. ALL other skills (concall-analysis, quarterly-result-analysis, management-credibility-tracker, consecutive-filings-diff, etc.) MUST call this skill for any transcript they need — never fetch transcripts independently.",
+      "description": "",
       "aliases": [
         "concall transcript early",
         "transcribe earnings call recording",
@@ -34,7 +34,7 @@
     },
     {
       "name": "stock-documents-fetcher",
-      "description": "Fetches official company documents (earnings call transcripts, investor presentations, annual reports, financial results) and corporate announcements for any Indian listed company from Stockscans. Use this skill whenever the user — OR another skill — needs to download primary-source filings for an NSE/BSE-listed company before doing any forensic, valuation, growth-trigger, or research analysis. Trigger on phrases like \"fetch the last 4 transcripts for X\", \"download annual reports for Y\", \"get me the Q3 investor presentation\", \"pull the latest concall\", \"search announcements for merger/buyback/AGM\", \"I need the FY25 AR\", or any time a research workflow requires fresh primary documents and the user gives a ticker like NSE:BSE / BSE:500325.",
+      "description": "",
       "aliases": [
         "fetch documents",
         "fetch transcripts",
@@ -54,7 +54,7 @@
     },
     {
       "name": "concall-analysis",
-      "description": "Institutional-grade earnings concall transcript analysis for Indian listed companies — supports four modes (12-section deep dive, 9-section brief, multi-quarter comparison, multi-peer comparison). Use this skill whenever the user uploads a concall transcript and asks for analysis, says \"analyse this concall\", \"concall deep dive\", \"what did management say in Q3\", \"compare last 4 concalls\", \"peer concall comparison\", \"is management's tone shifting\", or provides a Stockscans ticker and asks for the latest quarterly commentary. Auto-fetches transcripts from Stockscans when given only a ticker. Outputs a multi-page institutional PDF with management tone analysis, guidance extraction, analyst-question dodging detection, contradiction-finding, and a quantitative-data summary table.",
+      "description": "",
       "aliases": [
         "concall",
         "earnings call analysis",
@@ -74,7 +74,7 @@
     },
     {
       "name": "forensic-accounting",
-      "description": "Institutional-grade forensic accounting analysis for Indian listed companies — the 9-section Forensic Master Prompt, Piotroski F-Score, DuPont decomposition, and pattern-matching against the 4 documented Indian fraud cases (Gensol, Brightcom, Manpasand, IndusInd). Use this skill whenever the user wants to detect accounting red flags, asks for a \"forensic check\", \"fraud detection\", \"accounting quality review\", \"is this company cooking the books\", \"Piotroski score\", \"DuPont analysis\", or uploads an annual report and asks \"what could be wrong with this\". Also trigger when another skill (deepdive, master, growth-triggers) needs §11 financial-quality analysis. Auto-fetches annual reports from Stockscans when given only a ticker. Output is a multi-page institutional PDF with a Green/Yellow/Red checklist, quantified red flags with page citations, and an overall accounting-quality rating.",
+      "description": "",
       "aliases": [
         "forensic",
         "forensic check",
@@ -94,7 +94,7 @@
     },
     {
       "name": "equity-research-deepdive",
-      "description": "Produces a multi-page institutional equity research PDF (15–40 pages) covering business, competition, financials, management, valuation, scenarios, and investment verdict. Use for \"deep dive\", \"research report\", \"investment memo\", \"fundamental analysis\", \"should I invest in X\", \"analyze this company\", \"tell me everything about X\", or when user provides a Screener.in / Stockscans / Trendlyne / Tickertape link with a request for detailed analysis. **NOT** for 1-pagers or catalyst notes — those route to `growth-triggers-1pager`.",
+      "description": "",
       "aliases": [
         "deep dive",
         "equity deep dive",
@@ -114,7 +114,7 @@
     },
     {
       "name": "growth-triggers-1pager",
-      "description": ">-",
+      "description": "",
       "aliases": [
         "growth triggers",
         "1 pager",
@@ -133,7 +133,7 @@
     },
     {
       "name": "management-credibility-tracker",
-      "description": "The \"Walk-the-Talk\" guidance tracker for Indian listed companies — systematically compares what management guided across 4-8 quarterly concalls vs what actually happened. Computes a credibility score (+1 beat/on-track, 0 mixed, -1 miss). Use whenever the user wants to assess management quality, asks \"is management walking the talk\", \"are they overpromising\", \"guidance tracker\", \"credibility score\", \"did they deliver on guidance\", or wants to score management before sizing a position. Auto-fetches 4-8 concall transcripts from Stockscans when given only a ticker. Outputs an HTML widget (color-coded scoreboard with per-quarter breakdown) AND optionally a PDF — both rendering the same underlying schema. Delegated to by equity-research-deepdive §9 (Management Track Record).",
+      "description": "",
       "aliases": [
         "management credibility",
         "walk the talk",
@@ -152,7 +152,7 @@
     },
     {
       "name": "peer-comparison",
-      "description": "Institutional-grade peer comparison report for 2-6 Indian listed companies in the same sector or sub-sector. Compares them across demand & order book health, forward earnings projections from management commentary, cash flow & balance sheet quality, valuation, and management credibility. Use whenever the user uploads a Stockscans peer-comparison URL like `https://www.stockscans.in/peer-comparison?companies=NSE:X,NSE:Y`, says \"compare these companies\", \"peer report on X vs Y\", \"side-by-side analysis\", \"which of these to buy\", or asks to assess relative valuation between 2-6 NSE/BSE companies. Auto-fetches the latest annual reports, concalls, and investor presentations for each company. Outputs a multi-page institutional PDF or HTML widget with side-by-side tables for every key dimension and a final relative-value verdict.",
+      "description": "",
       "aliases": [
         "peer comparison",
         "compare companies",
@@ -170,7 +170,7 @@
     },
     {
       "name": "market-share-analysis",
-      "description": "Institutional-grade 9-part market share analysis for an Indian or global industry/sector — data verification protocol with [R/D/E] tagging, TAM/SAM/SOM sizing, concentration metrics (CR3/CR5/CR10/HHI with classification badge), tiering & organised-vs-unorganised split, player-by-player share table with 5-year bps change, share dynamics, Porter+Greenwald moat heatmap, supply-demand & pricing, disruption map, and Bear/Base/Bull forward projection. Use whenever the user names an industry and asks about \"market share\", \"competitive structure\", \"competitive landscape\", \"who dominates X\", \"industry concentration\", \"how fragmented is X\", \"CR3 / CR5 / HHI\", \"organised vs unorganised\", \"top players in X\", \"share gainers / losers\", \"consolidation in X\", or wants a sector primer / IPO comparable / competitive benchmarking framed around market share. Outputs an interactive HTML widget with sortable tables. NOT for single-stock analysis (use equity-research-deepdive) or 2-6 named-company comparison (use peer-comparison).",
+      "description": "",
       "aliases": [
         "market share",
         "competitive landscape",
@@ -189,7 +189,7 @@
     },
     {
       "name": "sector-research-deepdive",
-      "description": "Institutional-grade sector / thematic deep-dive research note — produces a 30–45 page PDF (~15,000–20,000 words) covering business mechanics, value chain, competitive dynamics, regulatory landscape, company-by-company analysis, and risks across an entire sector. Use whenever the user names a sector or sub-theme (e.g. \"quick commerce\", \"defence\", \"solar EPC\", \"beauty & personal care\", \"nuclear power\", \"pharma APIs\") and asks for a \"sector report\", \"sector deep dive\", \"industry analysis\", \"thematic note\", \"sector primer\", or wants to understand competitive dynamics across multiple companies in one industry. Also trigger when comparing 4+ companies in one sector. Business-first analysis — explains HOW the business model works at the transaction level, WHY moats exist mechanistically, what drives unit economics; deliberately de-emphasises stock prices, P/E, and target prices. NOT for single-company deep dives (use `equity-research-deepdive`) or 2–3 company head-to-head comparisons (use `peer-comparison`).",
+      "description": "",
       "aliases": [
         "sector report",
         "sector deep dive",
@@ -206,7 +206,7 @@
     },
     {
       "name": "drhp-ipo-analysis",
-      "description": "Institutional-grade analysis of Draft Red Herring Prospectus (DRHP) and Red Herring Prospectus (RHP) documents for upcoming Indian IPOs. Extracts and analyses 10 critical sections — business overview, industry, objects of issue, 3-year financials, cash flow, risk factors, promoter & management, related party transactions, peer comparison & valuation, and red flags. Use whenever the user uploads a DRHP / RHP PDF, asks \"should I subscribe to X IPO\", \"analyse this DRHP\", \"is this IPO fairly priced\", or provides a SEBI / NSE / BSE link to a prospectus document. Outputs a multi-page institutional PDF flagging governance concerns, fraud risks, and valuation justification — designed for an IPO subscription decision.",
+      "description": "",
       "aliases": [
         "drhp",
         "ipo analysis",
@@ -223,7 +223,7 @@
     },
     {
       "name": "quarterly-result-analysis",
-      "description": "Industry-agnostic single-quarter result interpretation for Indian listed companies — applies the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist. Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks \"analyse this quarter\", \"what changed this quarter\", \"is the business getting better\", \"what's management signalling\", \"result analysis\", \"quarterly snapshot\", \"post-result note\", or provides a Stockscans ticker with result-day intent. Auto-fetches the latest PPT + Transcript + Result from Stockscans when given only a ticker. Output is an interactive briefing widget tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), or multi-year deep dives (use equity-research-deepdive).",
+      "description": "",
       "aliases": [
         "quarterly results",
         "result analysis",
@@ -240,7 +240,7 @@
     },
     {
       "name": "consecutive-filings-diff",
-      "description": "Institutional-grade forensic diff across consecutive quarterly investor presentations (Q-1 vs Q), reconciled with the latest concall transcript, cross-checked against explicit forward guidance extracted from that same concall, and repriced with live market data for any listed company. Use this skill whenever the user uploads two or more consecutive investor presentations, uploads a concall transcript alongside a presentation, says \"diff these decks\", \"compare Q3 vs Q4 presentation\", \"update the thesis with the latest concall\", \"reprice this stock after results\", or provides back-to-back quarterly filings. Also trigger when the user has an existing research thesis and new quarterly data arrives, or says \"update it with the latest results\". Produces a single institutional briefing covering P&L diff, balance sheet & cash flow quality, operational KPIs, positive/negative surprises, new growth triggers, growth-hampering events, new products/verticals, capacity additions, concall reconciliation, forward guidance (always extracted via forward-guidance-extractor and folded into this same report), and valuation reset at live CMP — rendered as a single interactive HTML widget.",
+      "description": "",
       "aliases": [
         "diff decks",
         "compare presentations",
@@ -257,7 +257,7 @@
     },
     {
       "name": "pre-pead-scanner",
-      "description": ">",
+      "description": "",
       "aliases": [
         "pre pead",
         "pre results scanner",
@@ -275,7 +275,7 @@
     },
     {
       "name": "watchlist-catalyst-scanner",
-      "description": ">",
+      "description": "",
       "aliases": [
         "catalyst scanner",
         "scan watchlist",
@@ -293,7 +293,7 @@
     },
     {
       "name": "fundamental-shift-scanner",
-      "description": ">",
+      "description": "",
       "aliases": [
         "fundamental shift",
         "what changed this week",
@@ -309,7 +309,7 @@
     },
     {
       "name": "equity-research-extraction",
-      "description": "Institutional equity research PDF extraction pipeline — turns raw PDFs in 5 category folders into analyst-ready `.txt` extracts for dashboard generation. Use when the user attaches or organizes equity research PDFs, mentions Project A, forensic AR extracts, concall extraction, NSE/BSE filings, or filenames like `[TICKER]_AR_Extracts.txt`. Also triggers when user provides only a Stockscans ticker (e.g. NSE:SWARAJENG) and asks for extraction or dashboard prep — the skill will auto-fetch all required documents before extracting.",
+      "description": "",
       "aliases": [
         "equity extraction",
         "research extraction",
@@ -327,7 +327,7 @@
     },
     {
       "name": "equity-research-dashboard",
-      "description": "Generates a single self-contained institutional HTML equity dashboard (Chart.js, 15 tabs, PRE-GENERATION BRIEF, dark/light) from Screener.in MasterData.xlsx plus Project A .txt extracts. Use when the user has [TICKER]_MasterData.xlsx, extraction .txt files, mentions Project B, institutional dashboard, Tab 0–14, or GENERATE gate after PRE-GENERATION BRIEF.",
+      "description": "",
       "aliases": [
         "equity dashboard",
         "research dashboard",
@@ -341,7 +341,7 @@
     },
     {
       "name": "equity-research-master",
-      "description": ">-",
+      "description": "",
       "aliases": [
         "equity master",
         "full equity research",
@@ -361,7 +361,7 @@
     },
     {
       "name": "tweet-investor-playbook",
-      "description": "Distil a public investor's tweet corpus into an institutional-grade investment playbook. Use whenever the user uploads a tweet dump (JSON, CSV, NDJSON, or raw text) of an investor / fund manager / market commentator and asks to \"analyse their tweets\", \"extract their investment style\", \"build a playbook from their tweets\", \"what does X tweet about stocks\", \"distil their thinking\", \"rate their stock picks\", or \"what's their hit rate\". Also trigger when the user provides a folder of tweet exports from any handle and asks for actionable investment insights, recurring themes, quoted heuristics, or a track-record audit. Output is a self-contained interactive HTML widget with five tabs — Insights, Quotes, Playbook, Track Record (with live price cross-verification), and What Could Be Wrong — plus a Markdown source for archival.",
+      "description": "",
       "aliases": [
         "tweet playbook",
         "investor tweets",
@@ -378,7 +378,7 @@
     },
     {
       "name": "announcement-keyword-explorer",
-      "description": ">",
+      "description": "",
       "aliases": [
         "announcement keywords",
         "keyword explorer",
@@ -394,7 +394,7 @@
     },
     {
       "name": "stock-report",
-      "description": ">",
+      "description": "",
       "aliases": [
         "stock report",
         "equity report",
@@ -410,7 +410,7 @@
     },
     {
       "name": "watchlist-sync",
-      "description": "Sync a Stockscans watchlist from a saved scan — fetch the scan's companies (using its own saved filters), exclude a Radar list, replace the target watchlist by diff, and email a summary. Invoke with defaults for the nightly \"Near Highs\" sync, or pass any scan/watchlist ID pair. ID-agnostic — the caller supplies the mapping.",
+      "description": "",
       "aliases": [
         "watchlist sync",
         "sync watchlist",
@@ -423,7 +423,7 @@
     },
     {
       "name": "insight-validation",
-      "description": "Validate the morning's watchlist insights against the same day's delivery-backed (structural) price action, append a ledger, propose insight-prompt refinements, and email the report. Invoke with defaults for the nightly run, or pass a specific date / a single symbol on demand.",
+      "description": "",
       "aliases": [
         "insight validation",
         "validate insights",
@@ -436,7 +436,7 @@
     },
     {
       "name": "gainers-signal",
-      "description": "Daily gainers ACTIONABILITY signal — pre-compute gainers + quality filters + dual-axis delivery (% and ₹ Cr) + bulk announcements (scanner), deterministically tier each into ACT / WATCH / NOTED with streaks and delivery-confirmed sector clusters (classifier), research the top-20 triggers from announcement PDFs, then email a tiered briefing. Invoke with defaults for the 8 AM run, or pass a specific market date on demand.",
+      "description": "",
       "aliases": [
         "gainers signal",
         "top gainers",
@@ -449,8 +449,41 @@
       "modules": []
     },
     {
+      "name": "order-book-tracker",
+      "description": "",
+      "aliases": [
+        "order book",
+        "orderbook",
+        "unexecuted order book",
+        "outstanding order book",
+        "order backlog",
+        "current order book",
+        "order wins since concall",
+        "new order announcements",
+        "execution timeline of orders",
+        "book to bill",
+        "order inflow",
+        "L1 orders"
+      ],
+      "entry": "packages/jobs-runtime/scripts/orderbook/getCompanyOrderBook.js",
+      "modules": [
+        "packages/jobs-runtime/scripts/orderbook/extractOrderBook.js",
+        "packages/jobs-runtime/orderBookSync.js",
+        "packages/jobs-runtime/lib/orderBookLedger.js",
+        "packages/jobs-runtime/lib/orderBookEvents.js",
+        "packages/jobs-runtime/lib/orderBookPatterns.js",
+        "packages/jobs-runtime/lib/orderAnnouncementExtractor.js",
+        "packages/jobs-runtime/lib/orderAnnouncementStore.js",
+        "packages/jobs-runtime/lib/orderPdfExtractor.js",
+        "packages/jobs-runtime/lib/announcementPdfText.js",
+        "packages/jobs-runtime/lib/concallNotesStore.js",
+        "packages/jobs-runtime/lib/db.js",
+        "stock-api/src/clients/StockscansClient.js"
+      ]
+    },
+    {
       "name": "watchlist-insights",
-      "description": "Daily watchlist corporate-announcement insights — fetch new non-routine announcements across the Near Highs + Radar watchlists, read each PDF, write an actionable quantified insight per category into the notes DB, and email the full 24h digest. Invoke with defaults for the 8 AM run, or on demand to re-process a company.",
+      "description": "",
       "aliases": [
         "watchlist insights",
         "announcement insights",
@@ -463,7 +496,7 @@
     },
     {
       "name": "cowork-task-architect",
-      "description": ">",
+      "description": "",
       "aliases": [
         "cowork task",
         "create task",
@@ -478,7 +511,7 @@
     },
     {
       "name": "skill-manager",
-      "description": "Create, modify, and delete skills in the project. Use when users want to create a skill from scratch, edit or modify an existing skill, delete a skill, run evals to test a skill, benchmark skill performance, or optimize a skill's description.",
+      "description": "",
       "aliases": [
         "skill manager",
         "create skill",
@@ -503,7 +536,7 @@
     },
     {
       "name": "render-pdf",
-      "description": "Utility to render HTML into a standardized PDF using Puppeteer. Operates in clone mode to manage the Chromium dependency.",
+      "description": "",
       "aliases": [
         "render pdf",
         "html to pdf"
@@ -515,7 +548,7 @@
     },
     {
       "name": "investment-thesis-engine",
-      "description": ">",
+      "description": "",
       "aliases": [
         "investment thesis",
         "thesis engine",
@@ -532,7 +565,7 @@
     },
     {
       "name": "financial-model",
-      "description": ">",
+      "description": "",
       "aliases": [
         "financial model",
         "3 year forecast",
@@ -548,7 +581,7 @@
     },
     {
       "name": "value-chain-analysis",
-      "description": ">",
+      "description": "",
       "aliases": [
         "value chain",
         "where does margin sit",
@@ -562,7 +595,7 @@
     },
     {
       "name": "annual-report-analysis",
-      "description": ">",
+      "description": "",
       "aliases": [
         "annual report analysis",
         "analyse this ar",
@@ -577,7 +610,7 @@
     },
     {
       "name": "stage2-catalyst-analysis",
-      "description": ">",
+      "description": "",
       "aliases": [
         "stage 2",
         "weinstein stage",
@@ -594,7 +627,7 @@
     },
     {
       "name": "dead-code-scanner",
-      "description": "Run static analysis and rigorously cross-validate the results to find and report truly unused files, dead exports, and unused dependencies in the project. Trigger this skill whenever the user asks to find dead code, clean up unused files, find unused dependencies, or look for dead files in the codebase.",
+      "description": "",
       "aliases": [
         "dead code",
         "dead code scanner",

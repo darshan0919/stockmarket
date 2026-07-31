@@ -1,0 +1,31 @@
+{
+  "eval_id": 0,
+  "eval_name": "single-company-with-fallback",
+  "prompt": "whats the current order book for WABAG? i want the number they declared on the last concall plus anything theyve won since. also how long is the execution runway on the new wins",
+  "assertions": [
+    {
+      "id": "uses-pipeline-script",
+      "text": "Runs getCompanyOrderBook.js (or yarn order-book-sync) rather than hand-rolling its own concall/announcement parsing"
+    },
+    {
+      "id": "reports-base-value",
+      "text": "Reports the concall-declared base of approximately ₹17,200 Cr for NSE:WABAG"
+    },
+    {
+      "id": "resolves-fallback",
+      "text": "Resolves the needsLlmFallback base (the 'Liquidity & Backlog' bullet) instead of reporting failure or no data"
+    },
+    {
+      "id": "persists-resolution",
+      "text": "Calls recordLlmResolution so the resolution is cached and never re-asked"
+    },
+    {
+      "id": "addresses-execution-runway",
+      "text": "Explicitly addresses the execution timeline question, including stating when a filing gives no duration"
+    },
+    {
+      "id": "separates-base-and-deltas",
+      "text": "Presents the base and the post-concall wins as separate components rather than one opaque total"
+    }
+  ]
+}

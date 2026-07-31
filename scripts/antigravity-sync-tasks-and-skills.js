@@ -19,6 +19,9 @@ const SIDECAR_OVERRIDES = {
   'periodic-dead-code-scan': { sidecarFolder: 'dead-code-tasks', displayName: 'Dead Code Tasks', cron: '0 9 * * 0' },
   'watchlist-sync-stockmarket': { sidecarFolder: 'watchlist-sync', displayName: 'Watchlist Sync', cron: '0 16 * * *' },
   'upload-stock-reports-to-google-drive': { sidecarFolder: 'data-sync', displayName: 'Data Sync', cron: '0 1 * * *' },
+  // 21:00 — after the 20:00 digests, which write the same events collection,
+  // and late enough that the day's exchange filings have been disseminated.
+  'order-book-sync-stockmarket': { sidecarFolder: 'order-book-sync', displayName: 'Order Book Sync', cron: '0 21 * * *' },
 };
 
 function parseSkillMd(filePath) {

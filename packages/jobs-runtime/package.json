@@ -20,6 +20,7 @@
     "near-highs-digest": "node nearHighsDigest.js",
     "weekly-ppt-insights": "node weeklyPptInsights.js",
     "order-book-digest": "node orderBookDigest.js",
+    "order-book-sync": "node orderBookSync.js",
     "mna-tracker": "node mnaTracker.js",
     "gainers-scanner": "node gainersScanner.js",
     "insight-validator": "node insightValidator.js",

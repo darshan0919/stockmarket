@@ -86,6 +86,8 @@ const SEGMENT_KEYWORDS = [
   '(ads)',
   'ads)',
   'warship',
+  'specialized',
+  'specialised',
 ];
 
 // Matches the first ₹/Cr/Lakh/Mn/Bn figure inside a bolded markdown value,

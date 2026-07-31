@@ -40,6 +40,7 @@ data/
   theses.json           # current thesis per company
   thesis-history.jsonl  # append-only thesis deltas
   events-YYYY-MM.json   # monthly event partitions: gainer | deal | tweet | announcement | watchlist-sync
+                        #   | order-win | order-book-declared | order-book-sync (see docs/ORDER_BOOK_EXTRACTION.md)
   validation.json       # insight-validation ledger records
   cache/                # heavy regenerable derivables: company-master.json, bse-scrip-codes.json, extracts
   assets/               # rendered PDF/HTML, flat: <reportId>.pdf|.html (regenerable from DTOs)

@@ -1,0 +1,173 @@
+{
+  "generatedAt": "2026-07-31",
+  "skill": "order-book-tracker",
+  "requested": [
+    "NSE:POWERMECH",
+    "NSE:PERSISTENT"
+  ],
+  "summary": {
+    "withOrderBook": [
+      {
+        "companyId": "NSE:POWERMECH",
+        "unexecutedOrderBookCr": 17383.82,
+        "baseCr": 15898,
+        "deltaCr": 1485.82,
+        "baseQuarter": "202603"
+      }
+    ],
+    "notApplicable": [
+      {
+        "companyId": "NSE:PERSISTENT",
+        "reason": "noOrderBookDisclosed",
+        "detail": "concall notes contain no order-book/backlog bullet"
+      }
+    ],
+    "unresolved": []
+  },
+  "companies": [
+    {
+      "companyId": "NSE:POWERMECH",
+      "ok": true,
+      "base": {
+        "valueCr": 15898,
+        "unit": "cr",
+        "sourceType": "concall",
+        "sourceQuarter": "202603",
+        "sourceQuarterEndDate": "2026-03-31",
+        "label": "Order inflow missed, but backlog grew",
+        "sourceLine": null
+      },
+      "newlyAppliedAnnouncements": [],
+      "healedFromFallback": [],
+      "pendingLlmFallback": [],
+      "cumulative": {
+        "valueCr": 17383.82,
+        "unit": "cr",
+        "quantities": [
+          {
+            "unit": "Km",
+            "value": 19.54
+          },
+          {
+            "unit": "MW",
+            "value": 91.5
+          }
+        ],
+        "executionWindow": {
+          "earliestStart": "2026-04-27",
+          "latestEnd": "2029-06-20",
+          "withTimeline": 2,
+          "withoutTimeline": 3
+        },
+        "asOfDate": "2026-06-20",
+        "computedAt": "2026-07-31T10:57:22.005Z"
+      },
+      "watermark": "2026-06-26",
+      "dbStats": {
+        "declared": {
+          "inserted": 0,
+          "updated": 0,
+          "unchanged": 1
+        },
+        "wins": {
+          "inserted": 0,
+          "updated": 0,
+          "unchanged": 5
+        }
+      },
+      "appliedAnnouncements": [
+        {
+          "date": "2026-06-20",
+          "counterparty": "JSW Thermal Energy — civil & structural works, BTG area, 2x800 MW thermal project",
+          "valueCr": 1008.9,
+          "quantities": [],
+          "executionTimeline": {
+            "durationMonths": 36,
+            "startDate": "2026-06-20",
+            "endDate": "2029-06-20",
+            "basis": "duration-from-filing-date",
+            "sourceText": "36 Months",
+            "allDurations": [
+              "36 Months"
+            ]
+          },
+          "ssUrl": "kd0wf6ijoyj1ei9dkbu1zsna.pdf",
+          "confidence": "medium",
+          "isAggregate": false,
+          "eventId": "evt_order-book-tracker_NSE:POWERMECH_2026-06-20_e87b2f8a"
+        },
+        {
+          "date": "2026-06-03",
+          "counterparty": "Adani Infrastructure Management Services — KPI/O&M services",
+          "valueCr": 66.26,
+          "quantities": [],
+          "executionTimeline": null,
+          "ssUrl": "9r9vh9jwpx6y7sj557ocdgif.pdf",
+          "confidence": "medium",
+          "isAggregate": false,
+          "eventId": "evt_order-book-tracker_NSE:POWERMECH_2026-06-03_00e75599"
+        },
+        {
+          "date": "2026-04-27",
+          "counterparty": "South Western Railway, Bangalore — Vande Bharat sleeper maintenance depot, Thanisandra",
+          "valueCr": 5,
+          "quantities": [],
+          "executionTimeline": {
+            "durationMonths": 30,
+            "startDate": "2026-04-27",
+            "endDate": "2028-10-27",
+            "basis": "duration-from-filing-date",
+            "sourceText": "30 months",
+            "allDurations": [
+              "30 months"
+            ]
+          },
+          "ssUrl": "p7swv2pxfnpq8wglpintsh2n.pdf",
+          "confidence": "medium",
+          "isAggregate": false,
+          "eventId": "evt_order-book-tracker_NSE:POWERMECH_2026-04-27_a805d582"
+        },
+        {
+          "date": "2026-04-10",
+          "counterparty": "Maha Mumbai Metro Operation Corp — metro O&M",
+          "valueCr": 296.44,
+          "quantities": [
+            {
+              "unit": "Km",
+              "value": 19.54
+            }
+          ],
+          "executionTimeline": null,
+          "ssUrl": "czar4ln8fk263mrkiivor5zy.pdf",
+          "confidence": "medium",
+          "isAggregate": false,
+          "eventId": "evt_order-book-tracker_NSE:POWERMECH_2026-04-10_5be8f75b"
+        },
+        {
+          "date": "2026-04-01",
+          "counterparty": "Hindustan Zinc — comprehensive O&M",
+          "valueCr": 109.22,
+          "quantities": [
+            {
+              "unit": "MW",
+              "value": 91.5
+            }
+          ],
+          "executionTimeline": null,
+          "ssUrl": "30niip2mg8vdim0ffeqk14vw.pdf",
+          "confidence": "medium",
+          "isAggregate": false,
+          "eventId": "evt_order-book-tracker_NSE:POWERMECH_2026-04-01_36730deb"
+        }
+      ],
+      "deltaSumCr": 1485.82
+    },
+    {
+      "companyId": "NSE:PERSISTENT",
+      "ok": false,
+      "reason": "noOrderBookDisclosed",
+      "quarter": "202606",
+      "detail": "concall notes contain no order-book/backlog bullet"
+    }
+  ]
+}

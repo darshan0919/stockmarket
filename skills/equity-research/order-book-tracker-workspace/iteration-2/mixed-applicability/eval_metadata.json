@@ -1,0 +1,27 @@
+{
+  "eval_id": 2,
+  "eval_name": "mixed-applicability",
+  "prompt": "can you pull order book data for NSE:POWERMECH and NSE:PERSISTENT for me",
+  "assertions": [
+    {
+      "id": "powermech-reported",
+      "text": "Reports an order book figure for NSE:POWERMECH"
+    },
+    {
+      "id": "persistent-not-applicable",
+      "text": "Reports NSE:PERSISTENT as not disclosing an order book (a property of the business), NOT as missing data, a failure, or an error"
+    },
+    {
+      "id": "explains-why-na",
+      "text": "Explains why PERSISTENT has no order book (IT services companies don't report one) rather than just stating a null"
+    },
+    {
+      "id": "no-fabrication",
+      "text": "Does not invent an order book figure for PERSISTENT from unrelated metrics such as TCV, deal wins, or revenue backlog"
+    },
+    {
+      "id": "uses-pipeline-script",
+      "text": "Uses the order book scripts rather than ad-hoc parsing"
+    }
+  ]
+}

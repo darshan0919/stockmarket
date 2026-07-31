@@ -1,0 +1,248 @@
+{
+  "saved": "rpt_order-book-tracker_global_2026-07-31_f16ebb2f",
+  "dto": {
+    "type": "order-book",
+    "date": "2026-07-31",
+    "companyIds": ["NSE:RVNL", "NSE:NCC", "NSE:KIRLOSENG"],
+    "creator": "order-book-tracker",
+    "summary": "Order book comparison — RVNL Rs 1,05,085 Cr (5.15x FY26 sales), NCC Rs 87,079 Cr (4.18x), KIRLOSENG n/a (no company-wide order book). RVNL leads on multiple; NCC leads on replenishment (FY26 inflow 1.53x sales vs RVNL 0.29x).",
+    "question": "Compare order books across NSE:RVNL, NSE:NCC and NSE:KIRLOSENG — strongest revenue visibility, plus new orders won since each last concall.",
+    "verdict": {
+      "strongestOnMultiple": "NSE:RVNL",
+      "strongestOnReplenishment": "NSE:NCC",
+      "notApplicable": ["NSE:KIRLOSENG"],
+      "reasoning": "RVNL carries the larger book and the higher book-to-bill (5.15x vs 4.18x) and is the only one with a dated execution calendar (to Dec-2029 on 6 of 7 wins). But its FY26 order inflow of Rs 5,875 Cr covered only 0.29x of sales, so the book is being drawn down, and ~13% of its post-concall additions is GST rather than order value. NCC replenished at 1.53x of sales, grew the book 16% YoY to a record, and reports 74% of it escalation-protected."
+    },
+    "perCompany": {
+      "NSE:RVNL": {
+        "companyId": "NSE:RVNL",
+        "applicable": true,
+        "base": {
+          "valueCr": 99262,
+          "label": "Total Order Book",
+          "sourceQuarter": "202603",
+          "asOf": "2026-03-31",
+          "sourceLine": "*   {{bid:10}}**Total Order Book:** **₹99,262 Cr** as of March 31, 2026 (incl. **₹1,201 Cr** via JVs) [4]"
+        },
+        "winsSinceConcall": [
+          {
+            "date": "2026-04-02",
+            "order": "Order award (filing PDF not cached; value from filing title)",
+            "valueCr": 500,
+            "gstBasis": "not-stated",
+            "exGstCr": 500,
+            "quantities": [],
+            "executionEnd": null,
+            "isPeriodAggregate": false,
+            "ssUrl": "a89ggjw6fhvrpx9ml0ktmbkh.pdf"
+          },
+          {
+            "date": "2026-04-28",
+            "order": "NMDC — residential campus, Banjara Hills Hyderabad (Phase II)",
+            "valueCr": 39.21,
+            "gstBasis": "incl-18%-GST",
+            "exGstCr": 33.23,
+            "quantities": [],
+            "executionEnd": "2027-07-28",
+            "isPeriodAggregate": false,
+            "ssUrl": "9289pi6371cgqcyw3ad65vqr.pdf"
+          },
+          {
+            "date": "2026-05-22",
+            "order": "NMDC — Padapur railway siding + Bacheli capacity expansion (FSR/DPR/EPC/PMC)",
+            "valueCr": 758.07,
+            "gstBasis": "incl-18%-GST",
+            "exGstCr": 642.43,
+            "quantities": [],
+            "executionEnd": "2029-05-22",
+            "isPeriodAggregate": false,
+            "ssUrl": "6j1inftmzu9s8y1slt8t5a1o.pdf"
+          },
+          {
+            "date": "2026-06-08",
+            "order": "South East Central Railway — panel to electronic interlocking replacement",
+            "valueCr": 221.33,
+            "gstBasis": "not-stated",
+            "exGstCr": 221.33,
+            "quantities": [],
+            "executionEnd": "2028-06-08",
+            "isPeriodAggregate": false,
+            "ssUrl": "sz71zfhwzfx3b2dfbfsc3cmz.pdf"
+          },
+          {
+            "date": "2026-06-17",
+            "order": "East Coast Railway — 3rd/4th line Bhadrak–Vizianagaram, major bridges",
+            "valueCr": 967.93,
+            "gstBasis": "incl-18%-GST",
+            "exGstCr": 820.28,
+            "quantities": [
+              {
+                "unit": "Km",
+                "value": 385
+              }
+            ],
+            "executionEnd": "2029-06-17",
+            "isPeriodAggregate": false,
+            "ssUrl": "xqmnapmuxomdpiuobn3joxj8.pdf"
+          },
+          {
+            "date": "2026-06-20",
+            "order": "NMDC — buffer stockpiles & blending yard, Vizag (10 MTPA)",
+            "valueCr": 2977,
+            "gstBasis": "incl-18%-GST",
+            "exGstCr": 2522.88,
+            "quantities": [
+              {
+                "unit": "MTPA",
+                "value": 10
+              }
+            ],
+            "executionEnd": "2029-12-20",
+            "isPeriodAggregate": false,
+            "ssUrl": "927bdiikzmfetrhjmpzx4bkk.pdf"
+          },
+          {
+            "date": "2026-07-28",
+            "order": "East Central Railway — Kundawa Chainpur–Raxaul doubling (41.04 km)",
+            "valueCr": 358.97,
+            "gstBasis": "incl-18%-GST",
+            "exGstCr": 304.21,
+            "quantities": [
+              {
+                "unit": "km",
+                "value": 41.04
+              }
+            ],
+            "executionEnd": "2029-07-28",
+            "isPeriodAggregate": false,
+            "ssUrl": "02e5q2ouh8y0r3g15zeoiwaa.pdf"
+          }
+        ],
+        "deltaAsFiledCr": 5822.51,
+        "deltaExGstCr": 5044.36,
+        "currentOrderBookCr": 105084.51,
+        "currentOrderBookExGstCr": 104306.36,
+        "quantities": [
+          {
+            "unit": "Km",
+            "value": 426.04
+          },
+          {
+            "unit": "MTPA",
+            "value": 10
+          }
+        ],
+        "executionWindow": {
+          "earliestStart": "2026-04-28",
+          "latestEnd": "2029-12-20",
+          "withTimeline": 6,
+          "withoutTimeline": 1
+        },
+        "watermark": "2026-07-30",
+        "fy26RevenueCr": 20412,
+        "bookToBill": 5.15,
+        "bookToBillExGst": 5.11,
+        "fy26InflowCr": 5875,
+        "fy26InflowToRevenue": 0.29
+      },
+      "NSE:NCC": {
+        "companyId": "NSE:NCC",
+        "applicable": true,
+        "base": {
+          "valueCr": 83004,
+          "label": "Consolidated Order Book",
+          "sourceQuarter": "202603",
+          "asOf": "2026-03-31",
+          "sourceLine": "*   {{bid:16}}**Consolidated Order Book:** **₹83,004 Cr** Total Backlog (+16% YoY) [3][4]"
+        },
+        "winsSinceConcall": [
+          {
+            "date": "2026-04-30",
+            "order": "Orders received during April 2026 (4 orders: Buildings/Electrical/Transportation)",
+            "valueCr": 1703.27,
+            "gstBasis": "excl-GST",
+            "exGstCr": 1703.27,
+            "quantities": [],
+            "executionEnd": null,
+            "isPeriodAggregate": true,
+            "ssUrl": "vwf8dfp1x7l0zdxs502rmexf.pdf"
+          },
+          {
+            "date": "2026-05-31",
+            "order": "Orders received during May 2026 (Water/Buildings/Electrical)",
+            "valueCr": 1837.01,
+            "gstBasis": "excl-GST",
+            "exGstCr": 1837.01,
+            "quantities": [],
+            "executionEnd": null,
+            "isPeriodAggregate": true,
+            "ssUrl": "cuifsrifihdzh7rwyj4q01il.pdf"
+          },
+          {
+            "date": "2026-06-30",
+            "order": "Orders received during June 2026 (2 orders, Transportation)",
+            "valueCr": 534.85,
+            "gstBasis": "excl-GST",
+            "exGstCr": 534.85,
+            "quantities": [],
+            "executionEnd": null,
+            "isPeriodAggregate": false,
+            "ssUrl": "vyiczj3797y37wwle7zx1xli.pdf"
+          }
+        ],
+        "deltaAsFiledCr": 4075.13,
+        "deltaExGstCr": 4075.13,
+        "currentOrderBookCr": 87079.13,
+        "currentOrderBookExGstCr": 87079.13,
+        "quantities": [],
+        "executionWindow": null,
+        "watermark": "2026-07-29",
+        "fy26RevenueCr": 20823,
+        "bookToBill": 4.18,
+        "bookToBillExGst": 4.18,
+        "fy26InflowCr": 31884,
+        "fy26InflowToRevenue": 1.53
+      },
+      "NSE:KIRLOSENG": {
+        "companyId": "NSE:KIRLOSENG",
+        "applicable": false,
+        "reason": "noOrderBookDisclosed",
+        "fy26RevenueCr": 7701,
+        "note": "Concall discloses only a specialized NPCIL + Marine backlog of Rs 798 Cr — a product-line sub-figure, not a company-wide order book. Book-and-ship genset/engine business.",
+        "segmentBacklogCr": 798
+      }
+    },
+    "caveats": [
+      "Running totals add gross order wins to a net concall base without subtracting revenue executed since Mar-26, so both read slightly high; the Q1FY27 concall resets the base.",
+      "RVNL: 5 of 7 post-concall filings quote value including 18% GST and never state the ex-GST figure; the ex-GST column is derived (/1.18), not filed. Every NCC letter is explicitly excl. GST.",
+      "NCC: all three filings are monthly period-aggregate letters, so the stated monthly total is used and its constituent orders are deliberately not added on top.",
+      "NCC discloses no execution timeline on any of the three filings, so no execution window can be computed; RVNL states one on 6 of 7.",
+      "RVNL 41.04 km and 385 Km buckets are folded to 426.04 Km; MTPA is kept separate as the units share no denominator.",
+      "NCC July-2026 monthly order letter had not been filed as of the 2026-07-29 watermark.",
+      "Book-to-bill denominators are FY26 consolidated sales from Screener.in, used for all three so the multiples are comparable."
+    ],
+    "dataAsOf": "2026-07-31",
+    "sources": {
+      "base": "Stockscans concall notes, Q4FY26 (202603) transcripts",
+      "deltas": "NSE/BSE Regulation 30 order-award filings, PDF text layer",
+      "revenue": "Screener.in consolidated Profit & Loss, FY26 (Mar 2026)"
+    },
+    "contextUsed": [
+      "evt_order-book-tracker_NSE:RVNL_2026-07-28_2e99a9c8",
+      "evt_order-book-tracker_NSE:RVNL_2026-06-20_c2d52fa5",
+      "evt_order-book-tracker_NSE:RVNL_2026-06-17_3d7e99ee",
+      "evt_order-book-tracker_NSE:RVNL_2026-06-08_5ffc16fd",
+      "evt_order-book-tracker_NSE:RVNL_2026-05-22_92b519e6",
+      "evt_order-book-tracker_NSE:NCC_2026-06-30_c226e61b",
+      "evt_order-book-tracker_NSE:NCC_2026-05-31_3441fa8e",
+      "rpt_conversation-capture_global_2026-06-23_d7aa6a89",
+      "8fec0cde-7776-4a1f-990b-bf5e1fcee306",
+      "note_watchlist-insights_NSE:KIRLOSENG__3ce8e188",
+      "note_watchlist-insights_NSE:KIRLOSENG__9d0286a8",
+      "conv_cowork_e9a52b87"
+    ],
+    "id": "rpt_order-book-tracker_global_2026-07-31_f16ebb2f",
+    "creationTime": "2026-07-31T16:37:09+05:30",
+    "modifiedTime": "2026-07-31T16:37:09+05:30"
+  }
+}

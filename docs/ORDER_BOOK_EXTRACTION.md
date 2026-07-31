@@ -3,8 +3,11 @@
 Status: value + unit extraction from concall notes AND order-win
 announcements is built and validated, wired into a per-company cumulative
 ledger that is fully cache-first (nothing is ever parsed twice — see
-"Cache-first architecture" below). Execution-timeline extraction remains out
-of scope (see bottom).
+"Cache-first architecture" below). As of 2026-07-31 the pipeline also reads
+the announcement PDF text layer, which closed the two largest gaps —
+execution timelines and the ~50% of filings whose value appears only in the
+attachment — and it now writes durable facts to the events collection and
+runs as a scheduled job over the Radar watchlist. See "PDF tier" below.
 
 ## Why concall notes, not raw PDFs
 
@@ -218,7 +221,217 @@ announcements()`) because the pre-existing `companyAnnouncements()` method
   date-only announcement metadata but would need tightening if a future data
   source provides intra-day timestamps.
 
-## Out of scope for this pass
+## PDF tier (added 2026-07-31)
 
-- Execution-timeline extraction (deferred, per 2026-07-19 conversation).
-- PDF-body text extraction for announcements (see above).
+The two "what could be wrong" items above — the missing execution timeline
+and the ~50% of filings whose value lives only in the attachment — were both
+caused by the same thing, and it was never an OCR problem.
+
+`pdf-parse` had failed here, which made announcement PDFs look unreadable and
+pointed earlier attempts toward OCR. Re-testing with `pdfjs-dist` over every
+pending filing for NSE:NCC and NSE:RVNL found **8 of 8 carry a real embedded
+text layer** — exchange filings are template-generated, not scanned. So the
+fix was a different PDF library, not rasterise-and-OCR. No OCR tier exists and
+none is needed; a genuinely scanned filing surfaces as `scanned: true` and
+routes to the LLM queue.
+
+```
+lib/announcementPdfText.js  — pdfjs-dist text layer, permanently cached at
+                              data/cache/announcement-pdf-text/<companyId>/<ssUrl>.json
+lib/orderPdfExtractor.js    — value + quantities + timeline out of that text
+```
+
+### Why the SEBI template makes this tractable
+
+Since SEBI Master Circular HO/49/14/14(7)2025-CFD-POD2/I/3762/2026 (30 Jan
+2026), every order filing carries a standard "Annexure A" with fixed rows,
+including (f) "Time period by which the order(s)/contract(s) is to be
+executed" and (g) "Broad consideration or size of the order(s)/contract(s)".
+The answers vary in wording but the vocabulary is narrow.
+
+Two details that are easy to get wrong:
+
+- **The ₹ glyph is often mangled by font encoding** — RVNL's filings render it
+  as a stray `f` or `t` ("f 758.07 crores"). Requiring a currency symbol drops
+  these entirely, so the symbol is optional and the amount is cross-checked
+  against the SEBI-mandated word form ("Rupees Seven Hundred Fifty Eight
+  Crores Seven Lakhs Only"), which survives mangling. Agreement between the
+  two promotes the reading to `high` confidence. Note the word-form parser
+  needs a sub-accumulator for Indian grouping: "Two Thousand Nine Hundred and
+  Seventy Seven Crores" is 2977 Cr, not 2000 + 977 Cr.
+- **Period-aggregate filings** (NCC's "Order(s) received during June 2026")
+  state a total _and_ its components. When the smaller figures sum to the
+  largest, the largest is the stated total — flagged `isAggregate` with
+  `components` recorded, so the ledger adds the total once instead of
+  double-counting. This is the double-counting hazard flagged in the previous
+  section, now handled.
+
+### Timeline
+
+Filings state a _duration_ ("36 Months", "730 Days"), almost never explicit
+start/end dates. The window is therefore anchored on the filing date, and
+`basis: 'duration-from-filing-date'` records that it was derived rather than
+stated. The ledger's `cumulative.executionWindow` reports `withTimeline` /
+`withoutTimeline` counts so a consumer can see the coverage behind the dates.
+
+A filing usually mentions several durations, so picking the right one matters
+more than finding one. In precedence order, recorded in `selection`:
+
+| `selection`           | Rule                                                                                                                                                                                                            |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sebi-annexure-row-f` | The duration answering "Time period by which the order(s)/contract(s) is to be executed". Every issuer sampled reproduces this label verbatim, making it the one signal that is execution time _by definition_. |
+| `execution-context`   | Longest duration near execution wording, when row (f) is absent                                                                                                                                                 |
+| `longest-non-om`      | Last resort                                                                                                                                                                                                     |
+
+Two corrections sit underneath that, both found on real filings:
+
+- **O&M tails are excluded.** WABAG's Delhi Jal Board win is 21 months of
+  build followed by 15 years of O&M. Taking the longest span reported an
+  execution window nearly nine times too long. Durations introduced by O&M,
+  annuity, defect-liability or warranty wording are dropped, and listed
+  separately as `omDurations`. If _every_ duration in a filing is an O&M
+  period, the timeline is `null` rather than the tail.
+- **Kerned digits are reassembled.** These PDFs space digits apart, so the
+  text layer emits `"6 0 months"` for 60 and `"2 4 months"` for 24. Read
+  naively the leading digit is lost and Power Mech's 60-month contract
+  registered as **0 months** — an order that looks already delivered. Only
+  single digits are absorbed, so `"2026 36 months"` still yields 36.
+
+### Validation (2026-07-31, all 8 previously-pending filings for NCC + RVNL)
+
+| Outcome                      | Count | %    |
+| ---------------------------- | ----- | ---- |
+| Value extracted              | 8     | 100% |
+| ...at `high` confidence      | 7     | 88%  |
+| Execution timeline extracted | 5     | 63%  |
+
+The 3 filings without a timeline are NCC's monthly aggregate letters, which
+genuinely state no execution period — so timeline coverage is 5/5 on
+single-order filings. `pendingLlmFallback` for both companies went to zero and
+NCC's book moved 83,004 → 87,079 Cr as the previously-unread filings landed.
+
+Sample size was the caveat: 8 filings from 2 issuers, both PSU/EPC. Extending
+to a third issuer (WABAG) immediately cost that assumption, and the failures
+are worth recording because none of them looked like failures:
+
+- A **GST demand order** was booked as a ₹6.47 Cr win. `TITLE_RE` matches
+  "Intimation for receipt of Order from GST Authorities" word for word — a tax
+  authority issues "orders" too. Now filtered by `isRegulatoryOrder`.
+- WABAG prints a **size-band grid** ("Upto 100 | 100 to 250 | …") in the footer
+  of every filing. The value regex read that boilerplate, so four wins were
+  booked at band boundaries rather than real values. The grid and its footnote
+  are now scrubbed before any figure is matched.
+- The grid's international row is denominated in **USD millions**, which was
+  being taken as rupees — understating a USD 30–75 mn order by roughly two
+  orders of magnitude. Foreign-currency figures are now detected and refused
+  rather than converted at an assumed rate.
+
+Net effect: WABAG's book was reported as ₹17,486 Cr, of which ₹286 Cr was
+entirely fictional. It now reports the ₹17,200 Cr declared base with all five
+wins in `pendingLlmFallback` — a smaller number that is actually true.
+
+## Band-only disclosure
+
+Some issuers never state an order value at all. WABAG answers SEBI annexure
+row (g) with a size _class_ — "Mega Order \*" — and prints a grid in the
+footer defining what each class means:
+
+| Order Classification         | Small   | Medium   | Large    | Major        | Mega        |
+| ---------------------------- | ------- | -------- | -------- | ------------ | ----------- |
+| Domestic (in INR Crores)     | Upto 100 | 100–250 | 250–600  | 600–1,000    | Above 1,000 |
+| International (in USD Mn)    | Upto 10  | 10–30   | 30–75    | 75–150       | Above 150   |
+
+Refusing a figure is correct here, but reporting nothing throws away the one
+thing the filing does say. So the class and the grid are read together:
+
+- The class comes from row (g)'s answer, anchored on the row (h) label that
+  follows it. Anchoring matters — "large" appears throughout the marketing
+  prose ("a large-scale desalination solution") and only the annexure answer
+  is the issuer's own classification.
+- The jurisdiction comes from row (e), which selects the grid row.
+- An open-ended top band ("Above 1,000") yields a `null` ceiling rather than
+  a fabricated one.
+
+The result is carried as `valueBand` on the announcement and folded into the
+ledger as a **range around the firm total, never into the total itself**:
+
+```
+valueCr      17200      ← firm. Only ever stated figures.
+rangeLowCr   17550      ← + the floor of each domestic band
+rangeHighCr  18050      ← + the ceiling (null if any band is open-ended)
+foreignBands [ … ]      ← USD/EUR bands, listed unconverted
+```
+
+Foreign-currency bands widen nothing. Expressing "USD 30 to 75 mn" in crore
+needs an FX rate as of the filing date, and inventing one would reintroduce
+exactly the error this section exists to prevent — so they are reported in
+their own denomination and left for a human to weigh.
+
+This turned WABAG from five unresolved filings into five resolved ones with
+zero fallbacks, without asserting a single number the company did not state.
+
+## Non-monetary units
+
+`cumulative.quantities` holds per-unit buckets (MW, Km, MTPA, kWh, Tonnes...)
+that are **never summed across units** — 385 Km and 10 MTPA share no
+denominator. The rupee figure stays the headline; quantities describe what the
+money buys. Unit spellings are folded to a canonical form (`km`/`Kms` → `Km`)
+in both the extractor and the ledger, so older records don't strand a
+duplicate bucket.
+
+## Where the data lives
+
+Per `docs/DATA_RULES.md` §1–2, derived state stays in cache and durable facts
+go to the database:
+
+| Artifact                                    | Location                                         | Why                                      |
+| ------------------------------------------- | ------------------------------------------------ | ---------------------------------------- |
+| Running cumulative total                    | `data/cache/order-book-ledger/`                  | Derived — rebuildable from base + deltas |
+| Concall text, PDF text, per-filing verdicts | `data/cache/...`                                 | Heavy, re-derivable                      |
+| Each order win                              | `events` collection, `type: order-win`           | Dated market occurrence                  |
+| Each concall-declared order book            | `events` collection, `type: order-book-declared` | Dated market occurrence                  |
+| Per-run audit                               | `events` collection, `type: order-book-sync`     | Pipeline health                          |
+
+These are new **types** on the existing `events` collection, not a new
+collection — no whitelist changes needed. Written via
+`lib/orderBookEvents.js`, with ids derived from the source document (`ssUrl` /
+quarter) so a re-run updates in place rather than duplicating.
+
+## Scheduled job
+
+`packages/jobs-runtime/orderBookSync.js` (`yarn order-book-sync`) refreshes
+every company on the Radar watchlist, daily at 21:00 — after the 20:00 digests
+that also write `events`, and late enough for the day's filings to be
+disseminated. Because the pipeline is cache-first, a company with nothing new
+costs zero network calls.
+
+`--force-recompute` re-judges cached concall verdicts against the current
+extractor at no API cost; run it after changing extraction rules.
+
+### `noOrderBookDisclosed` — the distinction that keeps the queue honest
+
+A first run over Radar flagged 19 of 23 companies as needing an LLM, which is
+far worse than the documented 30% miss rate. The cause was conflating two
+different things:
+
+- concall notes contain **no order-book bullet at all** — the company simply
+  doesn't have an order book (order book is an EPC/defence/capital-goods
+  concept; PERSISTENT, CARTRADE, MUTHOOTMF, SATIN never will). This is an
+  answer, not a parsing failure.
+- bullets exist but state no clean company-wide total — a genuine LLM case.
+
+The first is now recorded as `noOrderBookDisclosed` and excluded from the
+fallback queue. Without it, a daily job re-asks an unanswerable question about
+the same 11 companies forever and an LLM tier burns tokens hunting for a
+number that does not exist. After the fix Radar splits 11 not-applicable /
+8 genuine fallbacks / 3 awaiting Stockscans annotation.
+
+## Still out of scope
+
+- **Execution burn-down.** The base is net of work already executed, but the
+  deltas are gross, so between concalls the running total drifts slightly
+  high. The next concall resets it. Subtracting interim revenue would need
+  quarterly execution data this pipeline doesn't fetch.
+- **Cross-checking concall figures against the investor-presentation slide**
+  (the Stockscans synthesis layer is trusted as-is).
+- **OCR for scanned filings.** None observed yet; they route to the LLM queue.

@@ -1,0 +1,295 @@
+{
+  "generatedAt": "2026-07-31T10:59:56.171Z",
+  "question": "Order-book comparison and revenue visibility ranking: NSE:RVNL vs NSE:NCC vs NSE:KIRLOSENG",
+  "method": {
+    "orderBook": "packages/jobs-runtime/orderBookSync.js — base = latest concall-declared order book, plus every Reg-30 order-win filing since that quarter end, values read from the filing PDF text layer",
+    "revenue": "Screener consolidated P&L, FY26 (Mar 2026) Sales",
+    "baseQuarterForAll": "202603 (Q4 FY26 concall)"
+  },
+  "companies": [
+    {
+      "companyId": "NSE:RVNL",
+      "name": "Rail Vikas Nigam Ltd",
+      "base": {
+        "valueCr": 99262,
+        "label": "Total Order Book",
+        "quarter": "202603",
+        "asOf": "2026-03-31",
+        "sourceLine": "*   {{bid:10}}**Total Order Book:** **₹99,262 Cr** as of March 31, 2026 (incl. **₹1,201 Cr** via JVs) [4]",
+        "isCompanyWideTotal": true
+      },
+      "newOrdersSinceLastConcall": {
+        "count": 7,
+        "totalCr": 5822.51,
+        "windowStart": "2026-03-31",
+        "windowEnd": "2026-07-28",
+        "windowDays": 119,
+        "annualisedInflowCr": 17858.96,
+        "wins": [
+          {
+            "date": "2026-04-02",
+            "valueCr": 500,
+            "ssUrl": "a89ggjw6fhvrpx9ml0ktmbkh.pdf",
+            "quantities": [],
+            "executionWindow": null,
+            "description": "Award of Order / Receipt of Order - Receipt of LOA from South Central Railway",
+            "confidence": "llm-resolved",
+            "isAggregate": false,
+            "components": []
+          },
+          {
+            "date": "2026-04-28",
+            "valueCr": 39.21,
+            "ssUrl": "9289pi6371cgqcyw3ad65vqr.pdf",
+            "quantities": [],
+            "executionWindow": {
+              "months": 15,
+              "endDate": "2027-07-28",
+              "basis": "duration-from-filing-date"
+            },
+            "description": "Award of Order / Receipt of Order - Receipt of LOA from NMDC Limited.",
+            "confidence": "high",
+            "source": "pdf",
+            "isAggregate": false,
+            "components": []
+          },
+          {
+            "date": "2026-05-22",
+            "valueCr": 758.07,
+            "ssUrl": "6j1inftmzu9s8y1slt8t5a1o.pdf",
+            "quantities": [],
+            "executionWindow": {
+              "months": 36,
+              "endDate": "2029-05-22",
+              "basis": "duration-from-filing-date"
+            },
+            "description": "Award of Order / Receipt of Order - Disclosure under Regulation 30 of SEBI (LODR) Regulations 2015- Receipt of Letter of Award of Contract from NMDC Limited.",
+            "confidence": "high",
+            "source": "pdf",
+            "isAggregate": false,
+            "components": []
+          },
+          {
+            "date": "2026-06-08",
+            "valueCr": 221.33,
+            "ssUrl": "sz71zfhwzfx3b2dfbfsc3cmz.pdf",
+            "quantities": [],
+            "executionWindow": {
+              "months": 24,
+              "endDate": "2028-06-08",
+              "basis": "duration-from-filing-date"
+            },
+            "description": "Award of Order / Receipt of Order - Disclosure under Regulation 30 of SEBI (LODR) Regulations 2015- Letter of Acceptance.",
+            "confidence": "high",
+            "source": "pdf",
+            "isAggregate": false,
+            "components": []
+          },
+          {
+            "date": "2026-06-17",
+            "valueCr": 967.93,
+            "ssUrl": "xqmnapmuxomdpiuobn3joxj8.pdf",
+            "quantities": [
+              {
+                "unit": "Km",
+                "value": 385
+              }
+            ],
+            "executionWindow": {
+              "months": 36,
+              "endDate": "2029-06-17",
+              "basis": "duration-from-filing-date"
+            },
+            "description": "Award of Order / Receipt of Order - Disclosure under Regulation 30 of SEBI (LODR) Regulations 2015- Letter of Acceptance",
+            "confidence": "high",
+            "source": "pdf",
+            "isAggregate": false,
+            "components": []
+          },
+          {
+            "date": "2026-06-20",
+            "valueCr": 2977,
+            "ssUrl": "927bdiikzmfetrhjmpzx4bkk.pdf",
+            "quantities": [
+              {
+                "unit": "MTPA",
+                "value": 10
+              }
+            ],
+            "executionWindow": {
+              "months": 42,
+              "endDate": "2029-12-20",
+              "basis": "duration-from-filing-date"
+            },
+            "description": "Award of Order / Receipt of Order - Disclosure under Regulation 30 of SEBI (LODR) Regulations 2015- Letter of Award of Contract from NMDC Limited.",
+            "confidence": "high",
+            "source": "pdf",
+            "isAggregate": false,
+            "components": []
+          },
+          {
+            "date": "2026-07-28",
+            "valueCr": 358.97,
+            "ssUrl": "02e5q2ouh8y0r3g15zeoiwaa.pdf",
+            "quantities": [
+              {
+                "unit": "km",
+                "value": 41.04
+              }
+            ],
+            "executionWindow": {
+              "months": 36,
+              "endDate": "2029-07-28",
+              "basis": "duration-from-filing-date"
+            },
+            "description": "Award of Order / Receipt of Order - Disclosure under Regulation 30 of SEBI (LODR) Regulations 2015- Letter of Acceptance from East Central Railway",
+            "confidence": "high",
+            "source": "pdf",
+            "isAggregate": false,
+            "components": []
+          }
+        ]
+      },
+      "currentOrderBookCr": 105084.51,
+      "quantities": [
+        {
+          "unit": "km",
+          "value": 41.04
+        },
+        {
+          "unit": "Km",
+          "value": 385
+        },
+        {
+          "unit": "MTPA",
+          "value": 10
+        }
+      ],
+      "executionWindow": {
+        "earliestStart": "2026-04-28",
+        "latestEnd": "2029-12-20",
+        "withTimeline": 6,
+        "withoutTimeline": 1
+      },
+      "fy26RevenueCr": 20412,
+      "bookToBill": 5.15,
+      "inflowToRevenue": 0.87,
+      "watermark": "2026-07-30"
+    },
+    {
+      "companyId": "NSE:NCC",
+      "name": "NCC Ltd",
+      "base": {
+        "valueCr": 83004,
+        "label": "Consolidated Order Book",
+        "quarter": "202603",
+        "asOf": "2026-03-31",
+        "sourceLine": "*   {{bid:16}}**Consolidated Order Book:** **₹83,004 Cr** Total Backlog (+16% YoY) [3][4]",
+        "isCompanyWideTotal": true
+      },
+      "newOrdersSinceLastConcall": {
+        "count": 3,
+        "totalCr": 4075.13,
+        "windowStart": "2026-03-31",
+        "windowEnd": "2026-06-30",
+        "windowDays": 91,
+        "annualisedInflowCr": 16345.3,
+        "wins": [
+          {
+            "date": "2026-04-30",
+            "valueCr": 1703.27,
+            "ssUrl": "vwf8dfp1x7l0zdxs502rmexf.pdf",
+            "quantities": [],
+            "executionWindow": null,
+            "description": "Award of Order / Receipt of Order - Order(s) received during April 2026",
+            "confidence": "high",
+            "source": "pdf",
+            "isAggregate": true,
+            "components": [929.96, 603.41, 169.9]
+          },
+          {
+            "date": "2026-05-31",
+            "valueCr": 1837.01,
+            "ssUrl": "cuifsrifihdzh7rwyj4q01il.pdf",
+            "quantities": [],
+            "executionWindow": null,
+            "description": "Award of Order / Receipt of Order - Order(s) received during May 2026",
+            "confidence": "high",
+            "source": "pdf",
+            "isAggregate": true,
+            "components": [1289.17, 286.42, 261.42]
+          },
+          {
+            "date": "2026-06-30",
+            "valueCr": 534.85,
+            "ssUrl": "vyiczj3797y37wwle7zx1xli.pdf",
+            "quantities": [],
+            "executionWindow": null,
+            "description": "Award of Order / Receipt of Order - Order(s) received during June 2026",
+            "confidence": "medium",
+            "source": "pdf",
+            "isAggregate": false,
+            "components": []
+          }
+        ]
+      },
+      "currentOrderBookCr": 87079.13,
+      "quantities": [],
+      "executionWindow": null,
+      "fy26RevenueCr": 20823,
+      "bookToBill": 4.18,
+      "inflowToRevenue": 0.78,
+      "watermark": "2026-07-29"
+    },
+    {
+      "companyId": "NSE:KIRLOSENG",
+      "name": "Kirloskar Oil Engines Ltd",
+      "base": {
+        "valueCr": 798,
+        "label": "Order Book (Specialized)",
+        "quarter": "202603",
+        "asOf": "2026-03-31",
+        "sourceLine": "*   {{bid:69}}**Order Book (Specialized):** **₹798 Cr** Combined NPCIL & Marine [19]",
+        "isCompanyWideTotal": false
+      },
+      "newOrdersSinceLastConcall": {
+        "count": 0,
+        "totalCr": 0,
+        "windowStart": "2026-03-31",
+        "windowEnd": "2026-03-31",
+        "windowDays": 1,
+        "annualisedInflowCr": 0,
+        "wins": []
+      },
+      "currentOrderBookCr": 798,
+      "quantities": [],
+      "executionWindow": null,
+      "fy26RevenueCr": 7701,
+      "bookToBill": 0.1,
+      "inflowToRevenue": 0,
+      "watermark": "2026-07-29"
+    }
+  ],
+  "ranking": {
+    "byBookToBill": [
+      {
+        "companyId": "NSE:RVNL",
+        "bookToBill": 5.15
+      },
+      {
+        "companyId": "NSE:NCC",
+        "bookToBill": 4.18
+      }
+    ],
+    "verdict": "NSE:RVNL",
+    "verdictReason": "Largest absolute backlog (Rs 1.05 lakh Cr), highest book-to-bill (5.1x vs NCC 4.2x), longest visible execution tail (to Dec 2029), and the fastest post-concall order intake. NCC is a close second and carries the better-quality book per rupee (74% escalation-protected, 7 verticals, no single-client dependency) but management withdrew FY27 guidance. KIRLOSENG is not an order-book business and is excluded from the ratio ranking."
+  },
+  "caveats": [
+    "The base is net of work already executed but the post-concall deltas are gross, so a running total drifts slightly high between concalls. The next concall resets it.",
+    "KIRLOSENG's Rs 798 Cr is labelled 'Order Book (Specialized) — Combined NPCIL & Marine', a two-product carve-out, not a company-wide backlog. Its 0.10x is a disclosure artefact, not a measure of weak visibility.",
+    "NCC files one aggregate letter per month, so its intake is only visible through June 2026; the July letter is not out yet. RVNL files per order and its intake runs through 28 July 2026. The two intake windows are therefore not the same length and are annualised separately.",
+    "NCC's June aggregate (Rs 534.85 Cr) was extracted at 'medium' confidence — the only figure of the ten below not at 'high'.",
+    "Execution windows are derived from the stated duration anchored on the filing date, not from stated start/end dates.",
+    "RVNL's ledger carries both a 'km' and a 'Km' quantity bucket (41.04 and 385) that should be one bucket — a canonicalisation gap in the ledger, not a double-counted rupee figure."
+  ]
+}

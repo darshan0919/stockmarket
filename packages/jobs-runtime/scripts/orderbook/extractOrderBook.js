@@ -98,6 +98,27 @@ async function processQuarter(ticker, doc, { forceRecompute = false } = {}) {
   } catch (e) {
     if (e instanceof OrderBookNotFoundError || e instanceof OrderBookAmbiguousError) {
       const candidates = findCandidates(bundle.finalReport);
+
+      // Zero candidate bullets means this company never mentioned an order
+      // book at all — which is a real ANSWER, not a parsing failure. Order
+      // book is an EPC/defence/capital-goods concept; an IT services firm, a
+      // lender or a marketplace will never report one. Sending those to an
+      // LLM asks it to find a number that does not exist, and because the
+      // verdict would never resolve, a daily job would re-queue them forever.
+      // Recording it as a terminal fact keeps the fallback queue meaningful.
+      if (!candidates.length) {
+        const record = {
+          companyId: ticker,
+          date: doc.date,
+          needsLlmFallback: false,
+          noOrderBookDisclosed: true,
+          fromCache: false,
+          reason: 'concall notes contain no order-book/backlog bullet',
+        };
+        store.saveOrderBook(ticker, doc.date, record);
+        return record;
+      }
+
       const record = {
         companyId: ticker,
         date: doc.date,

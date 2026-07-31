@@ -101,11 +101,29 @@ function unresolved(companyId) {
 }
 
 /** A skill calls this after an LLM resolves a needsLlmFallback announcement. Permanent, cached, never re-asked. */
-function recordResolution(companyId, ssUrl, date, { deltaCr, unit = 'cr', reasoning }) {
+function recordResolution(
+  companyId,
+  ssUrl,
+  date,
+  { deltaCr, unit = 'cr', reasoning, quantities = [], timeline = null, valueBand = null }
+) {
   const existing = get(companyId, ssUrl, date) || {};
   const record = {
     ...existing,
-    extraction: { deltaCr, unit, value: deltaCr, confidence: 'llm-resolved', reasoning },
+    extraction: {
+      deltaCr,
+      unit,
+      value: deltaCr,
+      confidence: 'llm-resolved',
+      source: 'llm',
+      quantities,
+      timeline,
+      // Set when the filing discloses only a SEBI size band. A null deltaCr
+      // alongside a band means "genuinely not stated", which is a different
+      // fact from "not yet read" — and it must not be re-queued as the latter.
+      valueBand,
+      reasoning,
+    },
     needsLlmFallback: false,
   };
   save(companyId, ssUrl, date, record);

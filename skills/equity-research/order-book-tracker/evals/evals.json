@@ -1,0 +1,29 @@
+{
+  "skill_name": "order-book-tracker",
+  "evals": [
+    {
+      "id": 0,
+      "name": "single-company-with-fallback",
+      "prompt": "whats the current order book for WABAG? i want the number they declared on the last concall plus anything theyve won since. also how long is the execution runway on the new wins",
+      "expected_output": "Current unexecuted order book for NSE:WABAG with the concall-declared base (₹17,200 Cr from the Q4FY26 notes, which needs an LLM read since the bullet is labelled 'Liquidity & Backlog'), plus any order wins since, with execution timeline where filings state one. The fallback should be resolved and persisted via recordLlmResolution so it doesn't recur.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 1,
+      "name": "multi-company-comparison",
+      "prompt": "compare order books across NSE:RVNL, NSE:NCC and NSE:KIRLOSENG - which one has the strongest revenue visibility? include the new orders each has won since their last concall",
+      "expected_output": "A comparison table across the three companies showing current unexecuted order book, base quarter, and wins since. RVNL ~₹1,05,085 Cr, NCC ~₹87,079 Cr, KIRLOSENG ~₹798 Cr. Should discuss revenue visibility (book-to-bill) rather than just absolute size, since KIRLOSENG's book is tiny in absolute terms but must be judged against its revenue.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 2,
+      "name": "mixed-applicability",
+      "prompt": "can you pull order book data for NSE:POWERMECH and NSE:PERSISTENT for me",
+      "expected_output": "POWERMECH has an order book (concall notes mention order inflow/backlog) and should be reported with a value. PERSISTENT is an IT services company with no order-book disclosure at all — this must be reported as 'does not disclose an order book' / not applicable, NOT as missing data or a failure. Distinguishing these two is the point of the test.",
+      "files": [],
+      "assertions": []
+    }
+  ]
+}

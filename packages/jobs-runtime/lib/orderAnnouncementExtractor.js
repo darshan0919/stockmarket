@@ -27,6 +27,22 @@
 const TITLE_RE =
   /award.{0,3}of.{0,3}order|receipt.{0,3}of.{0,3}order|award_of_order|receipt_of_order/i;
 
+// "Order" is also what a tax authority or a court issues, and those filings
+// are titled "Intimation for receipt of Order from GST Authorities" — which
+// TITLE_RE matches word for word. Left unfiltered, a ₹6.47 Cr GST demand
+// gets added to the order book as if the company had won work. A commercial
+// win is never issued BY one of these bodies, so naming them is enough.
+// Stems are deliberately left open-ended ("penalt" covers penalty/penalties,
+// "adjudicat" covers Adjudicating/Adjudication) — a trailing word boundary
+// would make them match nothing.
+const REGULATORY_ORDER_RE =
+  /\b(?:GST|CGST|SGST|IGST|NCLT|NCLAT|CESTAT|ITAT|income[\s-]?tax|tax\s+authorit|assessing\s+officer|adjudicat|tribunal|appellate|high\s+court|supreme\s+court|SEBI\s+order|penalt|demand\s+order|show\s+cause|customs|excise|enforcement\s+directorate)/i;
+
+/** True if the "order" in this title is a regulatory/judicial ruling, not a contract. */
+function isRegulatoryOrder(title) {
+  return REGULATORY_ORDER_RE.test(String(title || ''));
+}
+
 // e.g. "Rs. 1,180 Crores", "Rs 1180 Cr", "₹798 crore", "worth Rs. 45.6 Cr"
 const VALUE_RE =
   /(?:Rs\.?|₹|INR)\s*([\d][\d,]*\.?\d*)\s*(Cr\.?|Crore|Crores|Lakh|Lakhs|Lac|Lacs|Mn|Million|Bn|Billion)\b/i;
@@ -56,7 +72,7 @@ class AnnouncementValueNotFoundError extends Error {
 
 /** True if this announcement's title marks it as an order-win/receipt filing. */
 function isOrderAnnouncement(title) {
-  return TITLE_RE.test(String(title || ''));
+  return TITLE_RE.test(String(title || '')) && !isRegulatoryOrder(title);
 }
 
 /**
@@ -94,8 +110,10 @@ function extractOrderValue(ann) {
 
 module.exports = {
   isOrderAnnouncement,
+  isRegulatoryOrder,
   extractOrderValue,
   AnnouncementValueNotFoundError,
   VALUE_RE,
   TITLE_RE,
+  REGULATORY_ORDER_RE,
 };

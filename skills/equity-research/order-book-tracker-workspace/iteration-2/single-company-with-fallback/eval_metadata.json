@@ -1,0 +1,39 @@
+{
+  "eval_id": 0,
+  "eval_name": "single-company-with-fallback",
+  "prompt": "whats the current order book for WABAG? i want the number they declared on the last concall plus anything theyve won since. also how long is the execution runway on the new wins",
+  "assertions": [
+    {
+      "id": "uses-pipeline-script",
+      "text": "Runs getCompanyOrderBook.js (or yarn order-book-sync) rather than hand-rolling its own concall/announcement parsing"
+    },
+    {
+      "id": "reports-base-value",
+      "text": "Reports the concall-declared base of approximately ₹17,200 Cr for NSE:WABAG"
+    },
+    {
+      "id": "reports-band-wins",
+      "text": "Reports all five post-concall wins, each as a SEBI size band (Medium/Large/Mega) rather than omitting them or inventing a point value"
+    },
+    {
+      "id": "no-invented-fx",
+      "text": "Does not convert the USD-denominated bands (Ajman, Kuwait, Vienna) into rupees at an assumed FX rate; reports them in USD"
+    },
+    {
+      "id": "range-not-point",
+      "text": "Presents the total as a firm base plus a range (~₹17,550-18,050 Cr from domestic bands), not a single fabricated total"
+    },
+    {
+      "id": "excludes-gst-order",
+      "text": "Does not count the 19-Jun 'Receipt of Order from GST Authorities' tax demand as a commercial order win"
+    },
+    {
+      "id": "addresses-execution-runway",
+      "text": "Explicitly addresses the execution timeline question, including stating when a filing gives no duration"
+    },
+    {
+      "id": "separates-base-and-deltas",
+      "text": "Presents the base and the post-concall wins as separate components rather than one opaque total"
+    }
+  ]
+}

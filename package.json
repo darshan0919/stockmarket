@@ -38,6 +38,7 @@
     "near-highs-digest": "yarn workspace @stock/jobs near-highs-digest",
     "ca-digest": "yarn workspace @stock/jobs ca-digest",
     "order-book-digest": "yarn workspace @stock/jobs order-book-digest",
+    "order-book-sync": "yarn workspace @stock/jobs order-book-sync",
     "weekly-ppt-insights": "yarn workspace @stock/jobs weekly-ppt-insights",
     "mna-tracker": "yarn workspace @stock/jobs mna-tracker",
     "gainers-scanner": "yarn workspace @stock/jobs gainers-scanner",

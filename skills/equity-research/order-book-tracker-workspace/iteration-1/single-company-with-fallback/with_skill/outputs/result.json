@@ -1,0 +1,322 @@
+{
+  "report": {
+    "type": "order-book",
+    "date": "2026-07-31",
+    "companyId": "NSE:WABAG",
+    "creator": "order-book-tracker",
+    "summary": "Order book ₹17,200 Cr declared at Q4FY26 concall; 5 wins since (Delhi, Ajman, Kuwait, Vienna, Bengaluru) disclose only size bands, indicatively ₹2,200-3,900 Cr, taking the book to roughly ₹19,400-21,100 Cr. EPC runway May-2026 to Dec-2030.",
+    "contextUsed": [
+      "evt_order-book-tracker_NSE:WABAG_2026-07-20_17aa1c68",
+      "evt_order-book-tracker_NSE:WABAG_2026-07-01_319f4f45",
+      "evt_order-book-tracker_NSE:WABAG_2026-06-19_c36c49fd",
+      "evt_order-book-tracker_NSE:WABAG_2026-06-19_38f8c7c4",
+      "evt_order-book-tracker_NSE:WABAG_2026-06-09_6e07093f",
+      "evt_order-book-tracker_NSE:WABAG_2026-05-22_335ac477",
+      "13543140-9a45-4f3a-bbdd-b7dedc671ac8",
+      "note_watchlist-insights_NSE:WABAG__9d0286a8",
+      "val_insight-validation_NSE:WABAG_2026-07-26_31260007"
+    ],
+    "orderBook": {
+      "companyId": "NSE:WABAG",
+      "asOf": "2026-07-31",
+      "base": {
+        "valueCr": 17200,
+        "sourceQuarter": "202603",
+        "label": "Liquidity & Backlog",
+        "note": "Q4FY26 (Mar-26) concall. O&M sub-backlog of ₹6,500 Cr is ~40% of this, not additive."
+      },
+      "declaredTotalCr": 17200,
+      "disclosedDeltaCr": 0,
+      "indicativeNewWinsCr": {
+        "low": 2177,
+        "high": 3896,
+        "basis": "SEBI size bands, USD converted at ₹87"
+      },
+      "indicativeTotalCr": {
+        "low": 19377,
+        "high": 21096
+      },
+      "winsSinceBase": [
+        {
+          "date": "2026-05-22",
+          "title": "DJB — 17 MGD WWTP at Mitraon, Delhi (DBO)",
+          "valueCr": null,
+          "valueBand": "Medium — INR 100 to 250 Cr",
+          "quantities": [
+            {
+              "unit": "MLD",
+              "value": 77
+            }
+          ],
+          "executionEnd": "2028-02-22"
+        },
+        {
+          "date": "2026-06-09",
+          "title": "Ajman Sewage Biorefinery Plant Phase 3, UAE (Design & Build, consortium-led)",
+          "valueCr": null,
+          "valueBand": "Large international — USD 30 to 75 mn",
+          "quantities": [
+            {
+              "unit": "MLD",
+              "value": 60
+            }
+          ],
+          "executionEnd": "2028-06-09"
+        },
+        {
+          "date": "2026-06-19",
+          "title": "MEWRE Kuwait — Doha SWRO Desalination Plant Stage II (DBO, JV with HEISCO)",
+          "valueCr": null,
+          "valueBand": "Mega international — above USD 150 mn",
+          "quantities": [
+            {
+              "unit": "MLD",
+              "value": 272
+            }
+          ],
+          "executionEnd": "2029-06-19"
+        },
+        {
+          "date": "2026-07-01",
+          "title": "City of Vienna MA 31 — Donauinsel Water Works expansion, Austria",
+          "valueCr": null,
+          "valueBand": "Large international — USD 30 to 75 mn",
+          "quantities": [
+            {
+              "unit": "MLD",
+              "value": 86
+            }
+          ],
+          "executionEnd": "2030-12-31"
+        },
+        {
+          "date": "2026-07-20",
+          "title": "BWSSB — 100 MLD + 60 MLD STP and 25 MLD TTP, Bengaluru (DBO)",
+          "valueCr": null,
+          "valueBand": "Large domestic — INR 250 to 600 Cr",
+          "quantities": [
+            {
+              "unit": "MLD",
+              "value": 185
+            }
+          ],
+          "executionEnd": "2029-07-20"
+        }
+      ],
+      "executionWindow": {
+        "earliestStart": "2026-05-22",
+        "latestEnd": "2030-12-31",
+        "withTimeline": 5,
+        "withoutTimeline": 0
+      },
+      "capacityMld": 680,
+      "bookToBill": {
+        "revenueFy26Cr": 3950,
+        "multiple": 4.35,
+        "source": "PAT ₹371 Cr at 9.4% PAT margin"
+      },
+      "caveats": [
+        "No WABAG order filing states a rupee value — each discloses only a SEBI size band, so the deltas are ranges, not figures.",
+        "Kuwait (JV with HEISCO) and Ajman (consortium) values are whole-contract bands; WABAG’s own share is undisclosed and lower.",
+        "The base is not net of Apr-Jul 2026 execution (~₹1,000-1,300 Cr at run-rate), so the running total reads high.",
+        "A ₹6.47 Cr GST demand order was previously miscounted as an order win and has been retracted."
+      ]
+    },
+    "id": "rpt_order-book-tracker_NSE:WABAG_2026-07-31_f16ebb2f",
+    "creationTime": "2026-07-31T16:39:35+05:30",
+    "modifiedTime": "2026-07-31T16:39:35+05:30"
+  },
+  "ledger": {
+    "companyId": "NSE:WABAG",
+    "base": {
+      "valueCr": 17200,
+      "unit": "cr",
+      "sourceType": "concall",
+      "sourceQuarter": "202603",
+      "sourceQuarterEndDate": "2026-03-31",
+      "label": "Liquidity & Backlog",
+      "sourceLine": null
+    },
+    "announcementsApplied": [
+      {
+        "ssUrl": "b81zpx7wpyja8shlqvrq5eyv.pdf",
+        "date": "2026-05-22",
+        "deltaCr": null,
+        "title": "DJB — 17 MGD WWTP at Mitraon, Delhi (DBO)",
+        "valueBand": "Medium — INR 100 to 250 Cr",
+        "quantities": [
+          {
+            "unit": "MLD",
+            "value": 77
+          }
+        ],
+        "timeline": {
+          "startDate": "2026-05-22",
+          "endDate": "2028-02-22",
+          "durationMonths": 21,
+          "basis": "epc-duration-from-filing-date"
+        },
+        "confidence": "llm-resolved",
+        "isAggregate": false,
+        "source": "llm",
+        "appliedAt": "2026-07-31T11:06:44.176Z"
+      },
+      {
+        "ssUrl": "m2d32er8krohq08ip9akzx9r.pdf",
+        "date": "2026-06-09",
+        "deltaCr": null,
+        "title": "Ajman Sewage Biorefinery Plant Phase 3, UAE (Design & Build, consortium-led)",
+        "valueBand": "Large international — USD 30 to 75 mn",
+        "quantities": [
+          {
+            "unit": "MLD",
+            "value": 60
+          }
+        ],
+        "timeline": {
+          "startDate": "2026-06-09",
+          "endDate": "2028-06-09",
+          "durationMonths": 24,
+          "basis": "epc-duration-from-filing-date"
+        },
+        "confidence": "llm-resolved",
+        "isAggregate": false,
+        "source": "llm",
+        "appliedAt": "2026-07-31T11:06:44.177Z"
+      },
+      {
+        "ssUrl": "uwdvb3wm106h3vri498qeedb.pdf",
+        "date": "2026-06-19",
+        "deltaCr": null,
+        "title": "MEWRE Kuwait — Doha SWRO Desalination Plant Stage II (DBO, JV with HEISCO)",
+        "valueBand": "Mega international — above USD 150 mn",
+        "quantities": [
+          {
+            "unit": "MLD",
+            "value": 272
+          }
+        ],
+        "timeline": {
+          "startDate": "2026-06-19",
+          "endDate": "2029-06-19",
+          "durationMonths": 36,
+          "basis": "epc-duration-from-filing-date"
+        },
+        "confidence": "llm-resolved",
+        "isAggregate": false,
+        "source": "llm",
+        "appliedAt": "2026-07-31T11:06:44.178Z"
+      },
+      {
+        "ssUrl": "lex8vgn31bn0zsrjk54um0at.pdf",
+        "date": "2026-07-01",
+        "deltaCr": null,
+        "title": "City of Vienna MA 31 — Donauinsel Water Works expansion, Austria",
+        "valueBand": "Large international — USD 30 to 75 mn",
+        "quantities": [
+          {
+            "unit": "MLD",
+            "value": 86
+          }
+        ],
+        "timeline": {
+          "startDate": "2026-07-01",
+          "endDate": "2030-12-31",
+          "durationMonths": 54,
+          "basis": "stated-completion-year"
+        },
+        "confidence": "llm-resolved",
+        "isAggregate": false,
+        "source": "llm",
+        "appliedAt": "2026-07-31T11:06:44.180Z"
+      },
+      {
+        "ssUrl": "rom0q4d8qpmkdoefsur5tpby.pdf",
+        "date": "2026-07-20",
+        "deltaCr": null,
+        "title": "BWSSB — 100 MLD + 60 MLD STP and 25 MLD TTP, Bengaluru (DBO)",
+        "valueBand": "Large domestic — INR 250 to 600 Cr",
+        "quantities": [
+          {
+            "unit": "MLD",
+            "value": 185
+          }
+        ],
+        "timeline": {
+          "startDate": "2026-07-20",
+          "endDate": "2029-07-20",
+          "durationMonths": 36,
+          "basis": "epc-duration-from-filing-date"
+        },
+        "confidence": "llm-resolved",
+        "isAggregate": false,
+        "source": "llm",
+        "appliedAt": "2026-07-31T11:06:44.181Z"
+      }
+    ],
+    "watermark": "2026-07-20",
+    "history": [
+      {
+        "timestamp": "2026-07-31T11:05:44.467Z",
+        "trigger": "new-base",
+        "valueCr": 17200,
+        "note": "base set from concall 202603"
+      },
+      {
+        "timestamp": "2026-07-31T11:06:44.174Z",
+        "trigger": "new-base",
+        "valueCr": 17200,
+        "note": "base set from concall 202603"
+      },
+      {
+        "timestamp": "2026-07-31T11:06:44.176Z",
+        "trigger": "announcement-applied",
+        "valueCr": 17200,
+        "note": "b81zpx7wpyja8shlqvrq5eyv.pdf (2026-05-22) applied with no disclosed value — band: Medium — INR 100 to 250 Cr"
+      },
+      {
+        "timestamp": "2026-07-31T11:06:44.177Z",
+        "trigger": "announcement-applied",
+        "valueCr": 17200,
+        "note": "m2d32er8krohq08ip9akzx9r.pdf (2026-06-09) applied with no disclosed value — band: Large international — USD 30 to 75 mn"
+      },
+      {
+        "timestamp": "2026-07-31T11:06:44.178Z",
+        "trigger": "announcement-applied",
+        "valueCr": 17200,
+        "note": "uwdvb3wm106h3vri498qeedb.pdf (2026-06-19) applied with no disclosed value — band: Mega international — above USD 150 mn"
+      },
+      {
+        "timestamp": "2026-07-31T11:06:44.180Z",
+        "trigger": "announcement-applied",
+        "valueCr": 17200,
+        "note": "lex8vgn31bn0zsrjk54um0at.pdf (2026-07-01) applied with no disclosed value — band: Large international — USD 30 to 75 mn"
+      },
+      {
+        "timestamp": "2026-07-31T11:06:44.181Z",
+        "trigger": "announcement-applied",
+        "valueCr": 17200,
+        "note": "rom0q4d8qpmkdoefsur5tpby.pdf (2026-07-20) applied with no disclosed value — band: Large domestic — INR 250 to 600 Cr"
+      }
+    ],
+    "cumulative": {
+      "valueCr": 17200,
+      "unit": "cr",
+      "quantities": [
+        {
+          "unit": "MLD",
+          "value": 680
+        }
+      ],
+      "executionWindow": {
+        "earliestStart": "2026-05-22",
+        "latestEnd": "2030-12-31",
+        "withTimeline": 5,
+        "withoutTimeline": 0
+      },
+      "asOfDate": "2026-07-20",
+      "computedAt": "2026-07-31T11:06:44.181Z"
+    },
+    "updatedAt": "2026-07-31T11:06:44.181Z"
+  }
+}

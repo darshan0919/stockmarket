@@ -21,6 +21,7 @@
     "near-highs-digest": "yarn workspace @stock/jobs-runtime near-highs-digest",
     "weekly-ppt-insights": "yarn workspace @stock/jobs-runtime weekly-ppt-insights",
     "order-book-digest": "yarn workspace @stock/jobs-runtime order-book-digest",
+    "order-book-sync": "yarn workspace @stock/jobs-runtime order-book-sync",
     "mna-tracker": "yarn workspace @stock/jobs-runtime mna-tracker",
     "gainers-scanner": "yarn workspace @stock/jobs-runtime gainers-scanner",
     "insight-validator": "yarn workspace @stock/jobs-runtime insight-validator",

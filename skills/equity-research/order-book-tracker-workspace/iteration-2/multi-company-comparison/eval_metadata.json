@@ -1,0 +1,31 @@
+{
+  "eval_id": 1,
+  "eval_name": "multi-company-comparison",
+  "prompt": "compare order books across NSE:RVNL, NSE:NCC and NSE:KIRLOSENG - which one has the strongest revenue visibility? include the new orders each has won since their last concall",
+  "assertions": [
+    {
+      "id": "all-three-covered",
+      "text": "Reports a current order book figure for all three companies"
+    },
+    {
+      "id": "values-correct",
+      "text": "Figures match the ledger: RVNL ~₹1,05,085 Cr, NCC ~₹87,079 Cr, KIRLOSENG ~₹798 Cr"
+    },
+    {
+      "id": "comparison-table",
+      "text": "Presents a comparison table rather than three disconnected write-ups"
+    },
+    {
+      "id": "visibility-not-just-size",
+      "text": "Answers 'strongest revenue visibility' as a ratio to revenue (book-to-bill / years of revenue), not merely by absolute order book size"
+    },
+    {
+      "id": "lists-new-wins",
+      "text": "Lists the order wins recorded since each company's last concall"
+    },
+    {
+      "id": "flags-drift-caveat",
+      "text": "Notes that the running total does not subtract revenue executed since the concall"
+    }
+  ]
+}
