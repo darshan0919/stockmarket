@@ -187,18 +187,45 @@ const CATEGORY_RULES = [
   ],
   ['dividend', ['dividend', 'record date for payment']],
   [
-    'acquisition',
+    // Demerger/spin-off BEFORE merger/acquisition: a "scheme of arrangement"
+    // title is shared by all three, but "demerger" / "spin-off" / "resulting
+    // company" language is the specific tell. See references/demerger-merger-
+    // management-change-playbook.md (announcement-insights skill) for why this
+    // is treated as its own high-conviction category rather than folded into
+    // 'acquisition' — SOTP re-rating dynamics are a different animal from a
+    // control-premium M&A trade.
+    'demerger',
     [
-      'acquisition',
+      'demerger',
+      'de-merger',
+      'spin-off',
+      'spin off',
+      'scheme of arrangement',
+      'resulting company',
+      'sotp',
+      'hive off',
+      'hive-off',
+      'hived off',
+    ],
+  ],
+  [
+    // Merger/amalgamation/takeover BEFORE plain 'acquisition': these are
+    // control-change or entity-combination events (arbitrage/control-premium
+    // dynamics), distinct from a straightforward stake/business buy.
+    'merger',
+    [
       'merger',
       'amalgamation',
-      'demerger',
-      'joint venture',
-      ' jv ',
+      'amalgamated',
       'takeover',
-      'slump sale',
-      'scheme of arrangement',
+      'open offer',
+      'reverse merger',
+      'merger arbitrage',
     ],
+  ],
+  [
+    'acquisition',
+    ['acquisition', 'acquire', 'joint venture', ' jv ', 'slump sale', 'stake purchase'],
   ],
   ['buyback', ['buyback', 'buy-back', 'extinguishment of shares', 'share repurchase']],
   ['general', []],
@@ -214,23 +241,41 @@ const CATEGORY_RULES = [
  * (SUPPORTING): a rating upgrade or a USFDA clearance genuinely matters, but on
  * its own it rarely explains a double-digit single-day move the way an order win
  * or a result does. They corroborate a signal; they don't originate one.
+ *
+ * `demerger` / `merger` / `management_change` sit in HIGH_CONVICTION_CATEGORIES
+ * below (see announcement-insights skill) ON TOP OF this tier — they are always
+ * STRONG regardless of scale, because base-rate evidence (SOIC special-situations
+ * research, Aug 2026) shows spin-offs and leadership changes are disproportionate
+ * sources of re-rating alpha versus their frequency, and are cheap for retail to
+ * front-run institutions on precisely because small/mid-cap demergers fall below
+ * institutional mandate thresholds.
  */
 const STRONG_CATEGORIES = new Set([
   'results',
   'order_book',
   'acquisition',
+  'merger',
+  'demerger',
   'capacity',
   'fundraise',
   'shareholding_change',
-]);
-
-const SUPPORTING_CATEGORIES = new Set([
-  'credit_rating',
-  'regulatory',
-  'buyback',
-  'investor_meet',
   'management_change',
 ]);
+
+const SUPPORTING_CATEGORIES = new Set(['credit_rating', 'regulatory', 'buyback', 'investor_meet']);
+
+/**
+ * Categories that ALWAYS warrant the deep announcement-insights template
+ * (SOTP valuation / control-premium / governance-turnaround framework) and a
+ * `high_conviction: true` flag on the saved note, regardless of the deal size —
+ * see skills/equity-research/announcement-insights/SKILL.md and its
+ * references/demerger-merger-management-change-playbook.md for the full
+ * rationale and the extraction checklists. Any consumer of a note (digest email,
+ * investment-thesis-engine, gainers-signal) should treat
+ * `tags.includes('high_conviction')` as a "read this one" flag independent of
+ * the `significance` bucket.
+ */
+const HIGH_CONVICTION_CATEGORIES = new Set(['demerger', 'merger', 'acquisition', 'management_change']);
 
 /**
  * STRONG categories that are CALENDAR-DRIVEN rather than genuine surprises.
@@ -257,7 +302,9 @@ function isScheduled(category) {
 const CATEGORY_LABELS = {
   results: 'Earnings',
   order_book: 'Order win',
-  acquisition: 'M&A / Demerger',
+  acquisition: 'Acquisition',
+  merger: 'Merger / Amalgamation',
+  demerger: 'Demerger / Spin-off',
   capacity: 'New capacity',
   fundraise: 'QIP / Pref / Warrants',
   shareholding_change: 'SAST / stake change',
@@ -361,7 +408,9 @@ module.exports = {
   STRONG_CATEGORIES,
   SUPPORTING_CATEGORIES,
   SCHEDULED_CATEGORIES,
+  HIGH_CONVICTION_CATEGORIES,
   isScheduled,
+  isHighConviction: (category) => HIGH_CONVICTION_CATEGORIES.has(category),
   categoriseAnnouncement,
   announcementStrength,
   annotate,

@@ -31,7 +31,7 @@ scripts already produced.
 ```bash
 SCAN=$(find /sessions -path '*packages/jobs-runtime/gainersScanner.js' -not -path '*/node_modules/*' 2>/dev/null | head -1)
 RUNTIME=$(dirname "$SCAN")   # …/packages/jobs-runtime
-WI="$RUNTIME/watchlistInsights.js"   # used in Step 4 for read-pdf + insight-template
+WI="$RUNTIME/watchlistInsights.js"   # shared I/O runtime for the announcement-insights skill (Step 4: read-pdf + insight-template)
 ```
 
 Do NOT export `GAINERS_OUTPUT_DIR` / `WI_DATA_DIR` / `COWORK_ENV` — the scripts resolve
@@ -73,11 +73,15 @@ passing a ₹5 Cr filter and consuming top-20 research slots. Don't reorder thes
 
 Each announcement is stamped by `lib/announcementTaxonomy.js` with:
 
-- `category_derived` — the same 14 categories `watchlist-insights` uses (one shared
-  module, so the two jobs cannot drift apart the way they had)
-- `strength` — **STRONG** (results, order_book, acquisition/merger/demerger, capacity
-  commencement, fundraise/QIP/preferential/warrants, SAST) · **SUPPORTING** (rating
-  action, regulatory/USFDA/PLI, buyback, investor meet, management change) ·
+- `category_derived` — the same 16 categories the `announcement-insights` skill's
+  template library covers (one shared taxonomy module + one shared template library,
+  so `watchlist-insights`, `gainers-signal`, and any future caller cannot drift apart
+  the way they had). `demerger`, `merger`, `acquisition`, and `management_change` are
+  additionally `HIGH_CONVICTION_CATEGORIES` — see `announcement-insights`' SKILL.md for
+  why and Step 4 below for how that changes the research treatment here.
+- `strength` — **STRONG** (results, order_book, acquisition, merger, demerger, capacity
+  commencement, fundraise/QIP/preferential/warrants, SAST, management change) ·
+  **SUPPORTING** (rating action, regulatory/USFDA/PLI, buyback, investor meet) ·
   **ROUTINE** (everything else, plus paperwork that merely wraps a real event —
   "newspaper publication of results" and "board meeting intimation to consider results"
   are not results)
@@ -89,6 +93,30 @@ Each announcement is stamped by `lib/announcementTaxonomy.js` with:
   surprise and the delivery behind it — the first is established by Step 4's PDF read,
   the second by the delivery data.
 - `pdfUrl` — resolved S3 link, so Step 4 reads PDFs with zero extra API calls
+
+## Step 1f — Concall sentiment enrichment (Node, non-fatal)
+
+Runs automatically as part of Step 1 (`[2b/7]` in the scanner's log) —
+`fetchConcallSentiment()` in `gainersScanner.js` scopes
+`StockscansClient.concallScan()` to the quality-filtered gainer set via the
+standard throwaway-watchlist pattern and attaches the result to each
+gainer as `.concall`.
+
+Why this exists: a bullish or optimistic concall filed in the days before a
+gainer's move is a real, quantifiable reason for delivery-backed buying — the
+same spirit as a STRONG announcement, but sentiment-shaped rather than a
+discrete event. `resultQualityScore` (0-100) and `highlights` ride along so
+Step 4 doesn't need a second call to explain WHY the sentiment landed where
+it did.
+
+Schema confirmed live 2026-08-01 (see `docs/stockscans-api-schemas.md` →
+"POST /api/company/concall-scan" for the full row layout). Response envelope
+is `{rows, next, quarter, subscription}`; `next` is a plain offset cursor
+(not offset/total). `concall.recentWithinDays` is computed from row index 4
+(the concall/result date) at fetch time, so the classifier's 7-day gate (Step
+2) is live and real, not a stub. Indices 0, 5, 6, 7, 11 are read but not yet
+load-bearing anywhere — confirm their meaning against a second live
+company/quarter before a future change starts relying on one of them.
 
 ## Step 2 — Classifier (Node, deterministic, no API)
 
@@ -119,6 +147,11 @@ What it computes, and why each exists:
 - **`sector_cluster`** — `STRONG` at ≥3, `SUPER_STRONG` at ≥4 same-industry names up
   **with delivery behind them**. The delivery condition matters: four names co-moving on
   intraday churn is a sector-wide pop or an index rebalance, not accumulation.
+- **`concall` sentiment credit** — +1.5 conviction for a Bullish concall, +1
+  for Optimistic, -1 for Bearish, ONLY when `recentWithinDays <= 7` (computed
+  live from the concall date — see Step 1f). `null` (no concall data found)
+  is left uncredited and unpenalised — absence of a concall is not evidence
+  of anything.
 - **`novelty`** — unchanged in spirit. News that merely restates a prior disclosure
   loses a point; a mix of new and repeat is left alone. It nudges, it doesn't dominate.
 
@@ -138,23 +171,41 @@ The organising principle is **front-load the decision**. A reader skimming on a 
 should get the whole actionable picture before scrolling. Detail decreases sharply with
 tier — that asymmetry IS the design, so resist padding the lower tiers.
 
+**Every company name/ticker in the email is a hyperlink to its Stockscans page**, same
+as every other digest email this repo sends (`watchlistInsights`, `dealsDigest`, etc.) —
+use the shared `stockscansLink(name, symbol, exchange, color)` helper from
+`@stock/cloud-utils` (`cloud-utils/src/emailService.js`) rather than hand-building an
+`<a href>`. It already HTML-escapes the name and resolves the URL via `stockscansUrl()`,
+which sanitizes the symbol (strips a "-BE"/"-SM"/etc series suffix — see
+`stock-api/src/utils/companyId.js`) before building the link, so a suffixed companyId in
+the signals JSON can never produce a dead/wrong stockscans.in URL:
+
+```js
+const { stockscansLink } = require('@stock/cloud-utils');
+// e.g. inside the ACT block, WATCH table row, or NOTED line:
+stockscansLink(s.name, s.ticker) // -> <a href="https://www.stockscans.in/company/NSE:XYZ" ...>Company Name</a>
+```
+
 1. **Lead (2-3 sentences).** The single most important thing first. If there's a
    SUPER_STRONG sector cluster, that is the lead. Otherwise the strongest ACT name, or
    plainly "no actionable signals today — N names moved on price action alone", which is
    a perfectly good outcome and should not be dressed up.
 
-2. **🔴 ACT** — full detail, one block per name. `Company (TICKER) +X.X%` with the tier
-   badge, then: the trigger in one sentence (from Step 4's research, quantified — "₹512
+2. **🔴 ACT** — full detail, one block per name. `Company (TICKER) +X.X%` — the company
+   name hyperlinked via `stockscansLink()` — with the tier badge, then: the trigger in
+   one sentence (from Step 4's research, quantified — "₹512
    Cr order from NTPC, ~18% of FY26 revenue", never "received an order"), then delivery
    as `62% · ₹80 Cr delivered of ₹129 Cr traded`, streak if >1, then the remaining
-   `evidence[]` lines. Link the PDF.
+   `evidence[]` lines. Link the PDF. If Step 3b ran for this name, add one line —
+   e.g. `Concall: Bullish (quality 82/100), filed 3d ago — guided 18-20% FY27
+   revenue growth` — after the trigger, not instead of it.
 
-3. **🟡 WATCH** — one row per name in a compact table: Ticker · +% · Streak · Deliv % ·
-   Deliv ₹Cr · Driver · a short "why" cell. No prose blocks. If Step 4 researched the
-   name, the "why" cell carries the one-line trigger; otherwise state the driver plainly.
+3. **🟡 WATCH** — one row per name in a compact table: Ticker (hyperlinked) · +% · Streak ·
+   Deliv % · Deliv ₹Cr · Driver · a short "why" cell. No prose blocks. If Step 4 researched
+   the name, the "why" cell carries the one-line trigger; otherwise state the driver plainly.
 
-4. **⚪ NOTED** — a single line listing tickers with returns, nothing more. These are
-   logged, not recommended.
+4. **⚪ NOTED** — a single line listing hyperlinked tickers with returns, nothing more.
+   These are logged, not recommended.
 
 5. **🏭 Sector clusters** — one block per cluster, SUPER_STRONG first: the industry, how
    many qualified names, aggregate delivery value, the member tickers with returns, and
@@ -215,13 +266,43 @@ For each of the 20:
    title alone — the title says "Award of Order", the PDF says ₹512 Cr from NTPC over 30
    months, and only the second is actionable. Skip `supporting_announcements[]` PDFs
    unless the strong list is empty and the move is otherwise unexplained.
-2. **Use the category template** for the extraction checklist:
-   `node "$WI" insight-template "<category>"`. Same templates `watchlist-insights` uses,
-   so an order-book trigger here is extracted to the same standard as there.
+2. **Use the category template** for the extraction checklist — this is the
+   `announcement-insights` skill's library, shared verbatim with `watchlist-insights`:
+   `node "$WI" insight-template "<category>" --depth quick`. Default to `--depth quick`
+   here since this step is a time-boxed batch pass over 20 companies — EXCEPT if
+   `category` is one of the four HIGH_CONVICTION_CATEGORIES
+   (`demerger`/`merger`/`acquisition`/`management_change`), in which case use `--depth
+   standard` (not `quick`) even in this batch context: per `announcement-insights`'
+   playbook, these categories are disproportionately alpha-dense relative to their
+   frequency and are exactly the kind of thing this scan should not shortcut. Reserve
+   full `--depth deep` for when the user asks you to follow up on one of these 20
+   individually after the briefing goes out.
 3. **If `announcements_to_read[]` is empty** — do NOT go hunting for a narrative. Write
    the short "unexplained delivery-backed move" note: the delivery facts, the streak, the
    sector context, and what would confirm or kill the thesis. Two or three sentences is
    the right length. Fabricated causation is worse than an honest blank.
+3b. **If `needs_transcript_research` is true** (Step 1f flagged a Bullish/Optimistic
+   concall) — pull the transcript and extract its forward guidance, since a bullish
+   concall filed the same week as the move is corroborating evidence a title-only
+   announcement scan can't see:
+   - Resolve the latest transcript via `stock-api/bin/get-latest-concall-transcript.js
+     --bulk '[{"ticker":"<companyId>"}]'` (DB-first; only downloads if not already in
+     `data/reports/`) — do NOT use the retired `concall-transcript-extractor` skill
+     (superseded, see `skills/_shared/conventions.md` §12).
+   - Run `forward-guidance-extractor`'s Phase 2 extraction reasoning (or the full
+     skill if you want its Phase 3-5 workbook too) against that transcript, scoped to
+     just this one company — the "one company, one reasoning pass" rule from that
+     skill's Pitfalls section applies here too.
+   - Fold the strongest 1-2 forward-guidance line items into `trigger_quantified`
+     alongside the announcement-derived numbers, and note the concall's
+     `sentiment` + `resultQualityScore` in the summary. If the transcript's tone
+     contradicts the sentiment label (rare, but check — `highlights` from Step 1f
+     is a cheap sanity check before trusting the enum blindly), say so; don't paper
+     over a mismatch between the API's sentiment tag and what the transcript
+     actually says.
+   - This adds real cost (a transcript read + an extraction pass) on top of the PDF
+     budget in "Cost control" below — apply the same ACT-tier-first prioritisation
+     if a run would otherwise exceed budget.
 4. **Weigh the context bundle** (`context` from `buildCompanyContext()` — identity,
    thesis, prior reports, notes, events) per Convention §8, and the `novelty` field. A
    move that lines up with an already-flagged growth catalyst is "known", not a surprise,
@@ -231,10 +312,18 @@ For each of the 20:
    db.saveReport({ creator: 'gainers-signal', type: 'gainers-trigger-research',
      date: market_date, companyId, modelUsed: '<the model writing this>',
      summary, research_axis, tier, trigger, trigger_quantified, linkage,
-     contextUsed: [ids actually referenced], ...narrative })
+     contextUsed: [ids actually referenced],
+     concallCorroboration: needs_transcript_research
+       ? { sentiment, resultQualityScore, guidanceHighlights: [...] }
+       : null,
+     ...narrative })
    ```
    - `linkage` must be one of `explained` / `unexplained` / `mismatched` (same
      discipline as the email).
+   - `concallCorroboration` is only populated when Step 3b actually ran (i.e. only
+     for `needs_transcript_research: true` companies) — leave it `null` rather than
+     an empty object for everyone else, so downstream readers can distinguish "we
+     checked and found nothing extra" from "we didn't check."
    - `modelUsed` is required — this is LLM-written narrative, unlike the classifier's
      script-only `gainer` events.
    - `contextUsed` = ids from `buildCompanyContext()`'s `availableIds` the write-up
@@ -271,6 +360,9 @@ retry later.
   tagged `[NSE]`/`[BSE]`.
 - Announcement→price-action linkage is always stated as explained / unexplained /
   mismatched. Never imply causation the evidence doesn't support.
+- Concall sentiment is corroborating evidence, not a standalone trigger — never cite
+  "Bullish concall" alone as the reason for a move without either an announcement or
+  a concrete forward-guidance number from Step 3b backing it up.
 - Detail scales with tier: ACT gets prose, WATCH gets a table row, NOTED gets a ticker.
 - All outputs go under `data/` (the scripts do this by default) — never write data files
   to the repo root, and always finish with Step 5.

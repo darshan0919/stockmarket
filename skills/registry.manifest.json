@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "description": "Stockmarket monorepo — Claude skills registry",
+  "description": "Stockmarket monorepo \u2014 Claude skills registry",
   "base_url": "https://raw.githubusercontent.com/darshan0919/stockmarket/main",
   "_note": "Source of truth for generating registry.json and invoker tables.",
   "shared": [
@@ -652,7 +652,6 @@
       "shared": [],
       "aliases": [
         "watchlist insights",
-        "announcement insights",
         "daily insights",
         "watchlist digest",
         "corporate announcement digest"
@@ -834,6 +833,31 @@
         "find unused exports",
         "find dead code",
         "clean up unused code"
+      ]
+    },
+    "announcement-insights": {
+      "skill_md": "skills/equity-research/announcement-insights/SKILL.md",
+      "entry": null,
+      "references": [
+        "skills/equity-research/announcement-insights/references/demerger-merger-management-change-playbook.md",
+        "skills/equity-research/announcement-insights/references/templates/"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/tooling/output-dto-standard/SKILL.md",
+        "packages/jobs-runtime/lib/announcementTaxonomy.js",
+        "packages/jobs-runtime/watchlistInsights.js"
+      ],
+      "aliases": [
+        "announcement insights",
+        "read this filing",
+        "analyse this announcement",
+        "demerger insight",
+        "merger insight",
+        "management change insight",
+        "high conviction announcement",
+        "SOTP analysis",
+        "spin-off analysis"
       ]
     }
   }

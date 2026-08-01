@@ -10,6 +10,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
 
 // Data Ecosystem v2: master lives in data/cache/ (regenerable via Kite; synced
 // to Drive by scripts/data.js). Falls back to the legacy in-package copy so the
@@ -59,12 +60,16 @@ function loadCompanyMaster({ forceReload = false } = {}) {
   return _cache;
 }
 
-/** Look up by NSE ticker, e.g. "CEIGALL" -> company record or null. */
+/**
+ * Look up by NSE ticker, e.g. "CEIGALL" -> company record or null. Strips
+ * dash-separated series suffixes (e.g. "CEIGALL-BE") via `sanitizeCompanyId`
+ * first — the master's keys are always the bare symbol.
+ */
 function findByTicker(ticker) {
   const m = loadCompanyMaster();
   return (
     m._byNseTicker.get(
-      String(ticker || '')
+      sanitizeCompanyId(String(ticker || ''))
         .toUpperCase()
         .trim()
     ) || null
@@ -74,7 +79,7 @@ function findByTicker(ticker) {
 /** Look up by BSE scrip/exchange_token code, e.g. "500325" -> company record or null. */
 function findByScripCode(scripCode) {
   const m = loadCompanyMaster();
-  return m._byBseScripCode.get(String(scripCode || '').trim()) || null;
+  return m._byBseScripCode.get(sanitizeCompanyId(String(scripCode || '')).trim()) || null;
 }
 
 /** Look up by BSE's own alpha tradingsymbol (not the numeric scrip code), e.g. "AQYLON". */
@@ -82,7 +87,7 @@ function findByBseTicker(bseSymbol) {
   const m = loadCompanyMaster();
   return (
     m._byBseSymbol.get(
-      String(bseSymbol || '')
+      sanitizeCompanyId(String(bseSymbol || ''))
         .toUpperCase()
         .trim()
     ) || null

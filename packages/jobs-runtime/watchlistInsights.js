@@ -10,8 +10,15 @@
  *
  * Usage: node watchlistInsights.js <command> [args] [--window-hours <n>] [--env-file <path>]
  *   fetch-announcements <watchlistIds> | read-pdf <url> | get-company-notes <id> | add-note [json]
- *   mark-processed <companyId> <announcementId> | list-companies | insight-template <cat>
+ *   mark-processed <companyId> <announcementId> | list-companies | insight-template <cat> [--depth quick|standard|deep]
  *   send-summary [html] | build-digest <watchlistIds> | send-digest <watchlistIds> | init-notes
+ *
+ * insight-template's actual template CONTENT lives in the announcement-insights skill
+ * (skills/equity-research/announcement-insights/references/templates/) — this command is
+ * just an I/O loader for it, shared by watchlist-insights, gainers-signal, and any other
+ * caller. --depth defaults to 'standard'; demerger/merger/acquisition/management_change
+ * are HIGH_CONVICTION_CATEGORIES (see lib/announcementTaxonomy.js) with their own 'deep'
+ * variant — see skills/equity-research/announcement-insights/SKILL.md.
  *
  * <watchlistIds> is a required, comma-separated list of watchlist IDs (e.g. "id1,id2,id3").
  * This job is agnostic of which watchlists it scans — the caller (skill/task) decides.
@@ -111,130 +118,70 @@ const INSIGNIFICANT_KEYWORDS = loadNoiseKeywords().titleKeywordsToIgnore;
 const {
   CATEGORY_RULES,
   categoriseAnnouncement,
+  HIGH_CONVICTION_CATEGORIES,
 } = require('./lib/announcementTaxonomy');
 
-// ── Insight templates (verbatim single source of truth) ───────────────────────
-const INSIGHT_GLOBAL_RULES = `═══════════════════════════════════════════════════════════════════════════════
-INSIGHT GENERATION — GLOBAL RULES (apply to EVERY announcement, every category)
-═══════════════════════════════════════════════════════════════════════════════
-1. READ THE ACTUAL PDF FIRST. Run \`read-pdf <pdfUrl>\` and base the insight on the
-   document body. NEVER write an insight from the title/description alone — that is
-   the #1 quality failure. If the PDF is empty/404/unparseable, say so explicitly
-   in the insight, then fall back to the description.
-2. BE ACTIONABLE AND SPECIFIC. Pull the hard facts out of the PDF: names, absolute
-   numbers, percentages, ₹ amounts, dates, counterparties, thresholds. Generic
-   restatements like "the exchange has received a disclosure" or "the company made
-   an announcement" are NOT acceptable — they carry zero decision value.
-3. STRUCTURE (3–6 sentences):
-   (a) What happened — with the extracted numbers.
-   (b) Why it matters — shareholder impact, direction (positive/negative/neutral)
-       AND magnitude.
-   (c) Connection to prior notes — trend, consistency, or contradiction vs this
-       company's earlier notes.
-   (d) What to watch next — one concrete, monitorable point.
-4. CLASSIFY significance: high | medium | low | routine.
-     high   — M&A, large capex, major order win (>10% of revenue), regulatory
-              action, management change, equity dilution, change of control.
-     medium — strategic subsidiaries, smaller acquisitions, analyst/investor meets,
-              new product launches, credit-rating changes, capacity commissioning.
-     low    — minor disclosures, press releases with limited new information.
-     routine— passed the noise filter but carries no real signal (state why).
-5. TAG from: capex, order_win, acquisition, subsidiary, management_change,
-   equity_dilution, debt, credit_rating, capacity, international_expansion,
-   regulatory, dividend, buyback, agm_outcome, concall, investor_meet,
-   press_release, demerger, fundraise.
-`;
+// ── Insight templates ───────────────────────────────────────────────────────
+// Single source of truth for template CONTENT is the announcement-insights skill
+// (skills/equity-research/announcement-insights/references/), not this file.
+// watchlistInsights.js is a thin I/O loader: it locates the repo root and reads
+// the markdown template straight from disk so watchlist-insights, gainers-signal,
+// and any other caller are always reading the identical, single copy. Editing a
+// template = editing the .md file in that skill's references/templates/ dir —
+// never here.
 
-const CATEGORY_INSIGHT_TEMPLATES = {
-  shareholding_change: `CATEGORY: shareholding_change  (SAST / Substantial Acquisition of Shares & Takeovers / pledge)
-From the PDF, STATE EXPLICITLY (a bare "exchange received the disclosure" is a FAIL):
-  • WHO transacted — acquirer/seller name; promoter or non-promoter; PACs if any.
-  • DIRECTION — acquired / sold / pledge created / pledge released / pledge invoked /
-    encumbrance created or released.
-  • ABSOLUTE quantity of shares (number) AND % of total share capital — give BOTH the
-    change (Δ) AND the resulting holding (pre-% → post-%).
-  • MODE & price — open market / bulk / block / preferential / inter-se / off-market,
-    and the consideration or price per share if disclosed.
-  • TRIGGER & dates — regulation/threshold crossed (Reg 29(1)/29(2)/31, 5%/25% etc.)
-    and the transaction date(s).
-Then assess: promoter accumulation (bullish) vs exit/pledge (bearish)? Any 25% / 26% /
-open-offer threshold crossed? How does it move the cumulative promoter/major-holder
-trend vs prior notes?`,
+const ANNOUNCEMENT_INSIGHTS_TEMPLATES_DIR = path.join(
+  __dirname,
+  '..',
+  '..',
+  'skills',
+  'equity-research',
+  'announcement-insights',
+  'references',
+  'templates'
+);
 
-  order_book: `CATEGORY: order_book
-Extract: order value (₹), client/counterparty name & tier (hyperscaler/MAG7/defence/
-PSU/govt/private), scope of work, execution start & end dates, execution period (months).
-Compute implied quarterly revenue = value ÷ execution months × 3; estimate book-to-bill
-vs trailing revenue if prior notes provide it. Flag marquee counterparties and whether
-it is a repeat client or a new logo.`,
+function readTemplateFile(fileName) {
+  const p = path.join(ANNOUNCEMENT_INSIGHTS_TEMPLATES_DIR, fileName);
+  return fs.readFileSync(p, 'utf8');
+}
 
-  investor_meet: `CATEGORY: investor_meet
-List EVERY institution/fund named (no cap). Note meeting date and format (1:1 / group /
-conference / plant visit). Scan this company's investor_meet notes over the last ~30 days
-and report the cumulative visit count per institution. Many DII/FII visits in a short
-window = accumulation signal. Capture any new guidance, numbers, or disclosures shared.`,
-
-  credit_rating: `CATEGORY: credit_rating
-Extract: agency, instrument & amount rated, OLD rating → NEW rating, OLD outlook → NEW
-outlook, and the agency's key rationale (verbatim drivers). State upgrade / downgrade /
-reaffirmation and the cost-of-debt or refinancing implication.`,
-
-  fundraise: `CATEGORY: fundraise
-Extract: instrument (QIP / preferential / warrants / NCD / rights / private placement),
-quantum (₹ and number of securities), issue/conversion price, allottee names & type
-(promoter / institutional / strategic / retail), resulting dilution %, and the stated
-use of funds. Flag promoter-skin-in-the-game vs pure dilution.`,
-
-  management_change: `CATEGORY: management_change
-Extract: role, incumbent name, effective date, reason (resignation / retirement /
-removal / term-end), and successor if named. FLAG governance risk if a CEO/CFO/MD or an
-independent director leaves before term end, or any abrupt/unexplained exit, auditor
-resignation, or "personal reasons" with no successor.`,
-
-  results: `CATEGORY: results
-Extract: period; Revenue, EBITDA, EBITDA margin, PAT — both YoY and QoQ; EPS; key segment
-drivers; and any outlook commentary. Flag beats/misses vs guidance captured in prior notes.`,
-
-  agm_egm: `CATEGORY: agm_egm
-Extract: meeting type (AGM / EGM / postal-ballot OUTCOME), resolutions passed/rejected
-with vote %, and FLAG special resolutions (borrowing limits, fundraise authority, buyback,
-related-party, capital reorganisation, auditor change).`,
-
-  regulatory: `CATEGORY: regulatory
-Extract: authority (GST / IT / SEBI / CCI / NCLT / customs), nature (demand / search /
-order / penalty / approval / show-cause), the QUANTIFIED financial impact (₹), the period
-involved, and the company's stated response/appeal. Assess P&L and contingent-liability
-impact and whether it is a one-off or recurring exposure.`,
-
-  capacity: `CATEGORY: capacity
-Extract: asset/plant, capacity added (units / MW / TPA / sq ft), location, commissioning /
-COD date, capex spent, and incremental revenue potential at full utilisation. Note the
-ramp-up timeline and any change to total installed capacity.`,
-
-  dividend: `CATEGORY: dividend
-Extract: amount per share (and % of face value), interim/final/special, record & payment
-dates, total payout (₹), and yield at the prevailing price. Note payout-ratio trend vs prior.`,
-
-  acquisition: `CATEGORY: acquisition
-Extract: target name & business, stake % acquired, deal value & structure (cash / stock /
-earn-out), valuation multiple (EV/revenue or EV/EBITDA) if computable, funding source,
-strategic rationale, and expected close / consolidation date. Flag related-party deals.`,
-
-  buyback: `CATEGORY: buyback
-Extract: method (tender / open-market), size (₹ Cr AND % of paid-up capital AND % of market
-cap), price / ceiling price, buyback yield, record date, and the capital-allocation signal
-(does the promoter participate or tender?).`,
-
-  general: `CATEGORY: general
-No category-specific template. Read the PDF, identify the single most decision-relevant
-fact, quantify it, and follow the global rules. If after reading the document is genuinely
-immaterial, mark significance \`routine\` and state in one line why it carries no signal.`,
-};
-
-function insightTemplate(category) {
+/**
+ * insightTemplate(category, depth)
+ *   depth: 'quick' | 'standard' (default) | 'deep'
+ * High-conviction categories (demerger/merger/acquisition/management_change) have
+ * both a `<category>.standard.md` and `<category>.deep.md` file; `deep` is the
+ * recommended default for those four when the caller has time to spend judgment,
+ * per skills/equity-research/announcement-insights/SKILL.md. `quick` is a runtime
+ * instruction (not a separate file) applied uniformly across all categories.
+ */
+function insightTemplate(category, depth = 'standard') {
   const cat = (category || 'general').trim().toLowerCase();
-  const body = CATEGORY_INSIGHT_TEMPLATES[cat] || CATEGORY_INSIGHT_TEMPLATES.general;
-  return `${INSIGHT_GLOBAL_RULES}\n${body}\n`;
+  const d = (depth || 'standard').trim().toLowerCase();
+  const globalRules = readTemplateFile('_global.md');
+
+  let body;
+  const isHighConviction = HIGH_CONVICTION_CATEGORIES.has(cat);
+  if (isHighConviction && d === 'deep') {
+    body = readTemplateFile(`${cat}.deep.md`);
+  } else if (isHighConviction) {
+    body = readTemplateFile(`${cat}.standard.md`);
+  } else {
+    try {
+      body = readTemplateFile(`${cat}.md`);
+    } catch (e) {
+      body = readTemplateFile('general.md');
+    }
+  }
+
+  const quickSuffix =
+    d === 'quick'
+      ? '\n\nDEPTH OVERRIDE: quick — write 1-2 sentences only (what happened + the hard ' +
+        'numbers + significance tag). Skip trend synthesis, valuation math, and the ' +
+        '"what to watch" clause. Use only when explicitly time-boxed by the caller.'
+      : '';
+
+  return `${globalRules}\n${body}${quickSuffix}\n`;
 }
 
 // ── Announcement helpers ──────────────────────────────────────────────────────
@@ -414,6 +361,19 @@ async function cmdAddNote(noteJsonStr) {
   let noteId = null;
   const noteData = payload.note;
   if (noteData) {
+    // Deterministic safety net for HIGH_CONVICTION_CATEGORIES (demerger/merger/
+    // acquisition/management_change): never let one slip through as low/routine
+    // or untagged just because the model forgot — see the significance-floor and
+    // high_conviction-tag rule in announcement-insights' _global.md template.
+    // This is enforcement, not judgment — the actual analysis is still the
+    // caller's job, this just guards the floor deterministically.
+    const category = (noteData.category || '').trim().toLowerCase();
+    let significance = noteData.significance || 'routine';
+    let tags = Array.isArray(noteData.tags) ? [...noteData.tags] : [];
+    if (HIGH_CONVICTION_CATEGORIES.has(category)) {
+      if (significance === 'routine' || significance === 'low') significance = 'medium';
+      if (!tags.includes('high_conviction')) tags.push('high_conviction');
+    }
     const entry = {
       id: NotesDb.uuid(),
       createdAt: ist.nowIstIso(),
@@ -422,8 +382,8 @@ async function cmdAddNote(noteJsonStr) {
       announcementTitle: noteData.announcementTitle ?? null,
       pdfUrl: noteData.pdfUrl ?? null,
       insight: noteData.insight || '',
-      significance: noteData.significance || 'routine',
-      tags: noteData.tags || [],
+      significance,
+      tags,
       category: noteData.category || '',
       announcementDescription: noteData.announcementDescription || '',
     };
@@ -459,7 +419,8 @@ function cmdListCompanies() {
 }
 
 function cmdInsightTemplate(category = 'general') {
-  process.stdout.write(insightTemplate(category));
+  const depth = argValue('--depth', process.argv) || 'standard';
+  process.stdout.write(insightTemplate(category, depth));
 }
 
 function cmdInitNotes() {

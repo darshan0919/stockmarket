@@ -5,10 +5,17 @@ description: Daily watchlist corporate-announcement insights — fetch new non-r
 
 # Watchlist Daily Insights
 
+This skill is an **orchestrator only**: fetch the window, hand each announcement to the
+`announcement-insights` skill for the actual reading/judgment, then digest and push. It
+does not own any category-extraction logic itself — that all lives in
+`announcement-insights` (`skills/equity-research/announcement-insights/SKILL.md`) so
+`watchlist-insights`, `gainers-signal`, and any future caller share one template
+library instead of drifting apart. If you're looking for "what should the insight for a
+demerger/order-win/SAST filing say", that answer is in `announcement-insights`, not
+here.
+
 Script-first: the companion job `watchlistInsights.js` handles all I/O (Stockscans API,
-PDF text, notes DB, email). YOUR job is the judgment — reading each PDF and writing the
-insight. Process announcements **one at a time**; never write an insight from the
-title/description alone.
+PDF text, notes DB, email) — it's shared with `announcement-insights`, not duplicated.
 
 ## Parameters
 
@@ -46,29 +53,21 @@ Returns a JSON array of new, non-routine, unprocessed announcements — each wit
 
 For EACH item:
 
-1. **Read the PDF — mandatory:** `run read-pdf "<pdfUrl>"`. Base the insight on the
-   document body; only fall back to `description` if the PDF is empty/404, and say so.
-2. **Load context:** `run get-company-notes "<companyId>"`. If `null` (new company), use
-   the `stock-report` skill for a 2–3 sentence businessSummary and save it.
-3. **Fetch the category template:** `run insight-template "<category>"` and follow it
-   exactly (global rules + category-specific extraction checklist). For
-   `shareholding_change` (SAST) the insight MUST state who bought/sold, absolute shares
-   AND % of capital (Δ and resulting holding), mode/price, and threshold crossed.
-4. **Save the note:** `echo '<json>' | run add-note` with `{companyId, ticker, name,
-businessSummary?, note:{type:"announcement", announcementId, announcementTitle, pdfUrl,
-insight, significance, tags, category, announcementDescription, modelUsed:"<the model
-you are running as right now, e.g. claude-sonnet-5>"}}`. This writes into the
-   per-company record in the notes DB (`entities/watchlist-notes/main/current`), which IS
-   the canonical JSON DTO for this skill's output (see
-   `skills/tooling/output-dto-standard/SKILL.md`) — `NotesDb.ensureCompany` stamps every
-   company record with `companyId`, `creationTime`, `modifiedTime`, and
-   `creator: "watchlist-insights"` automatically, but `modelUsed` must be supplied by you
-   in the note payload since it's the model doing the reading/writing in step 1-3, not
-   something the script can infer. The Step 3 digest email is a render of
-   this stored data, never drafted independently of it.
-5. **Mark processed:** `run mark-processed "<companyId>" "<announcementId>"`.
+1. Run the full `announcement-insights` skill (its SKILL.md Steps 1-4: read-pdf →
+   get-company-notes → fetch template by category+depth → add-note).
+2. **Mark processed:** `run mark-processed "<companyId>" "<announcementId>"`.
+
+Depth: use `--depth deep` for the four HIGH_CONVICTION_CATEGORIES
+(`demerger`/`merger`/`acquisition`/`management_change`) — this is the default this
+skill asks for, since the daily digest is exactly the kind of "time to spend judgment"
+context `announcement-insights` describes, not a time-boxed scan. Use `--depth
+standard` for everything else, same as before.
 
 Routine items that slip through: just `run mark-processed` and move on (no insight).
+The `modelUsed` field in the note payload must be the model actually doing the
+reading/writing right now (e.g. `claude-sonnet-5`) — `announcement-insights`' Step 4
+covers the full payload shape and the deterministic significance-floor/tag guard that
+applies automatically to high-conviction categories.
 
 ## Step 3 — Send the digest
 
@@ -81,6 +80,14 @@ Emails insights for ALL non-routine announcements in the window (stored insights
 read back from the notes DB; only genuinely-new ones get a fresh insight above). Prints
 `{status, totalAnnouncements, withInsight, missingInsight, missingIds}`. Inspect without
 sending via `run build-digest "$WATCHLIST_IDS" [--window-hours N]`.
+
+Any note tagged `high_conviction` (the four HIGH_CONVICTION_CATEGORIES) should stand
+out in the digest — a dedicated top section, not buried alphabetically with routine
+credit-rating/investor-meet notes. If `missingInsight > 0`, treat that as a data-quality
+signal worth a one-line flag in your final report, not just a silently-passed-through
+number — investigate before the next run if the count is unusually high relative to
+`totalAnnouncements` (most announcements in-window should already have insights from
+Step 2, since routine items are mark-processed without one but shouldn't dominate).
 
 `--window-hours` must match between Step 1 and Step 3 (both default to 24 if omitted) —
 otherwise the digest window won't line up with what was actually processed.

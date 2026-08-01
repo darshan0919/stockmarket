@@ -18,6 +18,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
 const { nowIstIso } = require('./ist');
 
 // ── Roots ────────────────────────────────────────────────────────────────────
@@ -86,9 +87,23 @@ function ensureEnvelope(record, { kind, scope, discriminator } = {}) {
   if (!record || typeof record !== 'object') throw new Error('record must be an object');
   if (!record.creator)
     throw new Error('record.creator is required (skill/script/job name or "user")');
+  // Sanitize companyId(s) at the write chokepoint — every record ever saved
+  // via db.js goes through here, so this is the single place that guarantees
+  // a dash-separated series suffix (e.g. "-BE", "-SM") never gets baked into
+  // a stored record id, a companies.json link, or a future filter() match.
+  if (record.companyId) record.companyId = sanitizeCompanyId(record.companyId);
+  if (Array.isArray(record.companyIds)) {
+    record.companyIds = record.companyIds.map(sanitizeCompanyId);
+  }
   if (!record.id) {
     if (!kind) throw new Error('record.id missing and no `kind` given to derive one');
-    record.id = makeId(kind, record.creator, scope || record.companyId, record.date, discriminator);
+    // `scope` is companyId OR a free-text scope (sector/list name) per this
+    // function's contract — only run the sanitizer when it actually looks
+    // like a companyId (has an exchange prefix), so a sector name that
+    // happens to end in one of the suffix tokens is never mis-stripped.
+    const rawScope = scope || record.companyId || '';
+    const scopedId = /^[A-Z]+:/i.test(rawScope) ? sanitizeCompanyId(rawScope) : rawScope;
+    record.id = makeId(kind, record.creator, scopedId, record.date, discriminator);
   }
   const now = nowIstIso();
   if (!record.creationTime) record.creationTime = now;
@@ -344,6 +359,10 @@ function get(collection, id, { date } = {}) {
  * files covered by date/since (or the last 3 months by default).
  */
 function find(collection, filter = {}) {
+  // Sanitize the filter's companyId too — a caller passing an un-sanitized
+  // "-BE"/"-SM" suffixed id would otherwise silently match nothing against
+  // records stored with the clean id (see ensureEnvelope above).
+  if (filter.companyId) filter = { ...filter, companyId: sanitizeCompanyId(filter.companyId) };
   const files = [];
   if (collection === 'events') {
     files.push(...eventFilesInRange(filter));

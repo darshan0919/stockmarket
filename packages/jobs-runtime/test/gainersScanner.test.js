@@ -286,6 +286,166 @@ describe('announcement fetching uses a server-side filter', () => {
   });
 });
 
+describe('normaliseGainer companyId sanitization', () => {
+  test('strips a dash-separated series suffix from the raw companyId/ticker', () => {
+    const out = g.normaliseGainer({
+      companyId: 'NSE:SOMECO-BE',
+      Name: 'Some Co',
+      'Returns 1D': 5,
+      'Market Capitalization': 500,
+    });
+    expect(out.ticker).toBe('NSE:SOMECO');
+    expect(out.company_id).toBe('NSE:SOMECO');
+  });
+
+  test('leaves an unsuffixed ticker untouched', () => {
+    const out = g.normaliseGainer({ companyId: 'NSE:TATASTEEL', 'Returns 1D': 1, 'Market Capitalization': 1 });
+    expect(out.ticker).toBe('NSE:TATASTEEL');
+  });
+});
+
+describe('parseConcallScanRows', () => {
+  const { CONCALL_SCAN_SENTIMENT } = require('@stock/api/stockscansClient');
+
+  // Row shape confirmed live 2026-08-01 — see docs/stockscans-api-schemas.md
+  // and StockscansClient.concallScan's JSDoc for the field-by-field decode.
+  const bajfinanceRow = [
+    '3722',
+    'NSE:BAJFINANCE',
+    'Bajaj Finance Ltd',
+    'Conglomerate Backed NBFC',
+    '2026-07-30T18:30:00+05:30',
+    'as-8ae63089e995515f8a6ad4ec.pdf',
+    1,
+    true,
+    56,
+    2,
+    ['▲ Gold loan AUM +112%', '● FY27 guidance revision deferred', '▲ Credit costs 1.87% → 1.54%'],
+    'qu7ifxpflh34fqrzkr3wlnx9.pdf',
+  ];
+
+  test('maps companyId (index 1) to sentiment/score/highlights', () => {
+    const now = new Date('2026-07-31T00:00:00+05:30');
+    const out = g.parseConcallScanRows([bajfinanceRow], CONCALL_SCAN_SENTIMENT, now);
+
+    expect(Object.keys(out)).toEqual(['NSE:BAJFINANCE']);
+    expect(out['NSE:BAJFINANCE']).toMatchObject({
+      resultQualityScore: 56,
+      sentimentCode: 2,
+      sentiment: 'Neutral',
+      highlights: [
+        '▲ Gold loan AUM +112%',
+        '● FY27 guidance revision deferred',
+        '▲ Credit costs 1.87% → 1.54%',
+      ],
+      date: '2026-07-30T18:30:00+05:30',
+    });
+  });
+
+  test('computes recentWithinDays from the row date relative to "now"', () => {
+    const now = new Date('2026-08-06T18:30:00+05:30'); // exactly 7 days later
+    const out = g.parseConcallScanRows([bajfinanceRow], CONCALL_SCAN_SENTIMENT, now);
+    expect(out['NSE:BAJFINANCE'].recentWithinDays).toBe(7);
+  });
+
+  test('recentWithinDays is null when the date field is missing/unparseable', () => {
+    const badRow = [...bajfinanceRow];
+    badRow[4] = null;
+    const out = g.parseConcallScanRows([badRow], CONCALL_SCAN_SENTIMENT, new Date());
+    expect(out['NSE:BAJFINANCE'].recentWithinDays).toBeNull();
+  });
+
+  test('skips rows with no companyId rather than crashing', () => {
+    const noIdRow = [...bajfinanceRow];
+    noIdRow[1] = null;
+    const out = g.parseConcallScanRows([noIdRow], CONCALL_SCAN_SENTIMENT, new Date());
+    expect(Object.keys(out)).toHaveLength(0);
+  });
+
+  test('handles an empty/undefined rows array', () => {
+    expect(g.parseConcallScanRows([], CONCALL_SCAN_SENTIMENT)).toEqual({});
+    expect(g.parseConcallScanRows(undefined, CONCALL_SCAN_SENTIMENT)).toEqual({});
+  });
+
+  test('unknown sentiment code maps to null, not a crash', () => {
+    const weirdRow = [...bajfinanceRow];
+    weirdRow[9] = 99;
+    const out = g.parseConcallScanRows([weirdRow], CONCALL_SCAN_SENTIMENT, new Date());
+    expect(out['NSE:BAJFINANCE'].sentiment).toBeNull();
+    expect(out['NSE:BAJFINANCE'].sentimentCode).toBe(99);
+  });
+});
+
+describe('fetchConcallSentiment', () => {
+  function concallClient({ pages }) {
+    const calls = { created: [], deleted: [], concallScanCalls: [] };
+    let pageIdx = 0;
+    return {
+      calls,
+      createWatchlist: jest.fn(async (name, companyIds) => {
+        calls.created.push({ name, companyIds });
+        return { watchlistId: 'wl_concall_test' };
+      }),
+      deleteWatchlist: jest.fn(async (id) => {
+        calls.deleted.push(id);
+        return { ok: true };
+      }),
+      concallScan: jest.fn(async (payload) => {
+        calls.concallScanCalls.push(payload);
+        const page = pages[pageIdx];
+        pageIdx += 1;
+        return page;
+      }),
+    };
+  }
+
+  test('paginates using `next` as an offset cursor, not offset/total', async () => {
+    const client = concallClient({
+      pages: [
+        {
+          rows: [
+            ['1', 'NSE:AAA', 'AAA Ltd', 'Tech', '2026-07-30T10:00:00+05:30', null, 1, true, 50, 3, [], null],
+          ],
+          next: 1,
+          quarter: '202606',
+        },
+        {
+          rows: [
+            ['2', 'NSE:BBB', 'BBB Ltd', 'Tech', '2026-07-29T10:00:00+05:30', null, 1, true, 60, 4, [], null],
+          ],
+          next: null,
+          quarter: '202606',
+        },
+      ],
+    });
+
+    const out = await g.fetchConcallSentiment(['NSE:AAA', 'NSE:BBB'], client);
+
+    expect(client.concallScan).toHaveBeenCalledTimes(2);
+    expect(client.concallScan.mock.calls[0][0].offset).toBe(0);
+    expect(client.concallScan.mock.calls[1][0].offset).toBe(1); // page 2 uses `next`, not offset+rows.length
+    expect(Object.keys(out).sort()).toEqual(['NSE:AAA', 'NSE:BBB']);
+    expect(out['NSE:BBB'].sentiment).toBe('Bullish');
+  });
+
+  test('always deletes the throwaway watchlist, even if concallScan throws', async () => {
+    const client = concallClient({ pages: [] });
+    client.concallScan = jest.fn(async () => {
+      throw new Error('boom');
+    });
+
+    await expect(g.fetchConcallSentiment(['NSE:AAA'], client)).rejects.toThrow('boom');
+    expect(client.deleteWatchlist).toHaveBeenCalledWith('wl_concall_test');
+  });
+
+  test('returns {} for an empty ticker list without calling the API', async () => {
+    const client = concallClient({ pages: [] });
+    const out = await g.fetchConcallSentiment([], client);
+    expect(out).toEqual({});
+    expect(client.createWatchlist).not.toHaveBeenCalled();
+  });
+});
+
 describe('daily aggregation of hourly candles', () => {
   const scanner = require('../gainersScanner');
 

@@ -2,6 +2,7 @@
 
 const { HttpClient } = require('../http/HttpClient');
 const { StockscansAuth } = require('../auth/stockscansAuth');
+const { sanitizeCompanyId } = require('../utils/companyId');
 
 const BASE_URL = 'https://www.stockscans.in';
 const S3_BASE_URL = 'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/';
@@ -137,6 +138,7 @@ class StockscansClient {
    * @returns {Promise<{companyAnnouncements: Array, offset: number, limit: number}>}
    */
   async announcements(companyIds, offset = 0) {
+    companyIds = (companyIds || []).map(sanitizeCompanyId);
     const { data } = await this.http.post(
       `${BASE_URL}/api/company/announcements`,
       { companyIds, offset },
@@ -273,7 +275,7 @@ class StockscansClient {
    * @returns {Promise<Object>} Raw response; metrics live under `data.cardData[companyId].metaRatios`.
    */
   async cardDetails(companyIds) {
-    const ids = Array.isArray(companyIds) ? companyIds : [companyIds];
+    const ids = (Array.isArray(companyIds) ? companyIds : [companyIds]).map(sanitizeCompanyId);
     const { data } = await this.http.post(
       `${BASE_URL}/api/company/card-details`,
       { companyIds: ids },
@@ -288,6 +290,7 @@ class StockscansClient {
    * @returns {Promise<*>} Raw response (list-of-arrays or {prices|data|candles}).
    */
   async prices(ticker) {
+    ticker = sanitizeCompanyId(ticker);
     const { data } = await this.http.get(
       `${BASE_URL}/api/company/prices/${encodeURIComponent(ticker)}`,
       { headers: this._headers(`${BASE_URL}/company/${ticker}`) }
@@ -320,6 +323,7 @@ class StockscansClient {
    *   prices rows are [isoTimestamp, open, high, low, close, volume].
    */
   async ohlcv(ticker, { tf = '1m', before } = {}) {
+    ticker = sanitizeCompanyId(ticker);
     const params = { tf };
     if (before) params.before = before;
     const { data } = await this.http.get(
@@ -338,6 +342,10 @@ class StockscansClient {
    * @returns {Promise<Object>}
    */
   async documents(companyId) {
+    // Stockscans keys on the bare exchange:symbol — a "-BE"/"-SM" series
+    // suffix from raw feed data would otherwise 404 or silently return the
+    // wrong company's documents. See stock-api/src/utils/companyId.js.
+    companyId = sanitizeCompanyId(companyId);
     const { data } = await this.http.get(`${BASE_URL}/api/company/documents/${companyId}`, {
       headers: this._headers(`${BASE_URL}/company/${companyId}`),
     });
@@ -430,6 +438,7 @@ class StockscansClient {
    * @returns {Promise<{finalReport: string, dateLabel: string, toc: Array<{id, text}>}>}
    */
   async growthCatalysts(companyId) {
+    companyId = sanitizeCompanyId(companyId);
     const { data } = await this.http.get(
       `${BASE_URL}/api/company/growth-catalysts/${encodeURIComponent(companyId)}`,
       { headers: this._headers(`${BASE_URL}/company/${companyId}`) }
@@ -444,6 +453,7 @@ class StockscansClient {
    * @returns {Promise<{finalReport: string, dateLabel: string, toc: Array<{id, text}>}>}
    */
   async businessOverview(companyId) {
+    companyId = sanitizeCompanyId(companyId);
     const { data } = await this.http.get(
       `${BASE_URL}/api/company/business-overview/${encodeURIComponent(companyId)}`,
       { headers: this._headers(`${BASE_URL}/company/${companyId}`) }
@@ -460,6 +470,7 @@ class StockscansClient {
    * @returns {Promise<{finalReport: string, date: string, companyName: string, bullets: Object}>}
    */
   async concallNotes(companyId, ssUrl) {
+    companyId = sanitizeCompanyId(companyId);
     const { data } = await this.http.get(
       `${BASE_URL}/api/company/concall-notes/${encodeURIComponent(companyId)}/${encodeURIComponent(ssUrl)}`,
       { headers: this._headers(`${BASE_URL}/company/${companyId}`) }
@@ -486,6 +497,57 @@ class StockscansClient {
       return /^\d{4}(\d{2})?$/.test(raw) ? parseInt(raw.padEnd(6, '9'), 10) : -1;
     };
     return [...transcripts].sort((a, b) => rank(b) - rank(a))[0];
+  }
+
+  /**
+   * Concall sentiment/quality scan — powers the /concall-scans page. Confirmed
+   * live 2026-08-01 (throwaway watchlist of 50 real tickers, `resultsDocuments`
+   * transcript set). Response: `{rows: [...], next, quarter, subscription}` —
+   * NOT `records`/`data`/`items` as originally guessed. `next` is the offset to
+   * pass on the following call, or `null` when exhausted (confirmed with a
+   * 50-row page — `next: 50` on page 1, `next: null` on page 2 with 0 rows).
+   *
+   * Each row is a POSITIONAL ARRAY of 12 elements (confirmed live, sample size
+   * ~65 rows across large-caps and midcaps):
+   *   [0]  internal numeric id (string, e.g. "24769") — purpose unconfirmed
+   *   [1]  companyId, e.g. "NSE:MUTHOOTFIN"
+   *   [2]  company name
+   *   [3]  industry/category label
+   *   [4]  ISO date+offset of the concall/result, e.g. "2026-08-01T16:00:00+05:30"
+   *        — this IS the "how recent" field gainers-signal's 7-day check needs.
+   *   [5]  a PDF filename slug (e.g. "as-6dfa....pdf") — likely the results
+   *        PPT/announcement doc; not yet resolved to a full ssUrl/URL.
+   *   [6]  small integer, always `1` in every observed row — meaning unconfirmed.
+   *   [7]  boolean, always `true` in every observed row — meaning unconfirmed.
+   *   [8]  resultQualityScore (number, 0-100, nullable — null seen for ABB/URBANCO)
+   *   [9]  sentiment (number 0-4) — see {@link CONCALL_SCAN_SENTIMENT}
+   *   [10] highlights (string[], typically 3 items, each prefixed ▲/▼/●)
+   *   [11] a second PDF filename slug, nullable — likely the transcript ssUrl
+   *        (several rows had this null while [5] was present, and vice versa
+   *        never observed — needs one more live comparison against
+   *        `documents(companyId)` to confirm which doc type this is before
+   *        relying on it for a document link).
+   * Indices 0, 5, 6, 7, 11 are read but not yet load-bearing anywhere in this
+   * codebase — if a new caller needs one of them, confirm its exact meaning
+   * against a second live company/quarter first rather than assuming this
+   * comment's guess is right.
+   *
+   * Scope to a specific company set the same way as {@link scanAnnouncements}
+   * — via `payload.watchlistIds` on a throwaway watchlist (see
+   * `createWatchlist`/`deleteWatchlist`, always paired in try/finally).
+   *
+   * @param {Object} payload - e.g. `{industry:[], index:[], watchlistIds:[],
+   *   resultTiers:[], sentimentTiers:[], filters:[{left,sign,right}], q:'', offset:0}`
+   * @param {Object} [opts]
+   * @param {string} [opts.referer]
+   * @param {boolean} [opts.optionalAuth=false]
+   * @returns {Promise<{rows: Array<Array>, next: number|null, quarter: string, subscription: string}>}
+   */
+  async concallScan(payload, { referer = `${BASE_URL}/concall-scans`, optionalAuth = false } = {}) {
+    const { data } = await this.http.post(`${BASE_URL}/api/company/concall-scan`, payload, {
+      headers: this._headers(referer, optionalAuth),
+    });
+    return data;
   }
 
   // ── Watchlists ──────────────────────────────────────────────────────────────
@@ -517,6 +579,7 @@ class StockscansClient {
    * @throws {Error} If the server echoes a different count.
    */
   async replaceWatchlist(watchlistId, companyIds) {
+    companyIds = (companyIds || []).map(sanitizeCompanyId);
     const { data } = await this.http.post(
       `${BASE_URL}/api/user/watchlists/company-ids/replace`,
       { watchlistId, companyIds },
@@ -548,6 +611,7 @@ class StockscansClient {
    * @returns {Promise<{watchlistId: string, watchlistName: string, companyIds: string[]}>}
    */
   async createWatchlist(name, companyIds) {
+    companyIds = (companyIds || []).map(sanitizeCompanyId);
     const { data } = await this.http.post(
       `${BASE_URL}/api/user/watchlists`,
       { watchlistName: name, companyIds },
@@ -584,6 +648,7 @@ class StockscansClient {
       throw new Error(`action must be 'add' or 'delete', got ${action}`);
     }
     if (!companyIds || companyIds.length === 0) return {};
+    companyIds = companyIds.map(sanitizeCompanyId);
     const { data } = await this.http.put(
       `${BASE_URL}/api/user/watchlists/company-ids`,
       { watchlistId, action, companyIds },
@@ -658,4 +723,22 @@ class StockscansClient {
   }
 }
 
-module.exports = { StockscansClient, STOCKSCANS_BASE_URL: BASE_URL, S3_BASE_URL };
+/**
+ * Sentiment enum for {@link StockscansClient#concallScan} response records,
+ * index [9]. Per user-provided mapping (2026-08-01) — not yet independently
+ * confirmed against a live payload.
+ */
+const CONCALL_SCAN_SENTIMENT = {
+  0: 'Bearish',
+  1: 'Cautious',
+  2: 'Neutral', // source spec had a typo ("Nuetral") — corrected here
+  3: 'Optimistic',
+  4: 'Bullish',
+};
+
+module.exports = {
+  StockscansClient,
+  STOCKSCANS_BASE_URL: BASE_URL,
+  S3_BASE_URL,
+  CONCALL_SCAN_SENTIMENT,
+};

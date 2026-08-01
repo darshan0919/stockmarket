@@ -43,6 +43,53 @@ describe('envelope', () => {
   });
 });
 
+describe('companyId sanitization (ensureEnvelope + find)', () => {
+  test('ensureEnvelope strips a series suffix from record.companyId', () => {
+    const rec = db.ensureEnvelope(mkEvent({ companyId: 'NSE:SWARAJENG-BE' }), {
+      kind: 'evt',
+      discriminator: 'x',
+    });
+    expect(rec.companyId).toBe('NSE:SWARAJENG');
+  });
+
+  test('ensureEnvelope strips suffixes from every entry in record.companyIds[]', () => {
+    const rec = db.ensureEnvelope(
+      { creator: 'test', companyIds: ['NSE:A-BE', 'NSE:B-SM', 'NSE:C'] },
+      { kind: 'evt', scope: 'multi', discriminator: 'x' }
+    );
+    expect(rec.companyIds).toEqual(['NSE:A', 'NSE:B', 'NSE:C']);
+  });
+
+  test('a suffixed companyId produces the SAME id as the unsuffixed one (dedup relies on this)', () => {
+    const a = db.ensureEnvelope(mkEvent({ companyId: 'NSE:SWARAJENG' }), {
+      kind: 'evt',
+      discriminator: 'x',
+    });
+    const b = db.ensureEnvelope(mkEvent({ companyId: 'NSE:SWARAJENG-BE' }), {
+      kind: 'evt',
+      discriminator: 'x',
+    });
+    expect(a.id).toBe(b.id);
+  });
+
+  test('find() sanitizes filter.companyId so a suffixed lookup still matches a clean stored record', () => {
+    db.appendEvents([mkEvent({ companyId: 'NSE:SWARAJENG' })]);
+    expect(db.find('events', { companyId: 'NSE:SWARAJENG-BE' })).toHaveLength(1);
+  });
+
+  test('does not mis-strip a free-text scope that happens to end in a suffix token', () => {
+    // `scope` is only sanitized when it looks like a companyId (has an
+    // exchange prefix, e.g. "NSE:") — a plain free-text scope must survive
+    // untouched even if it happens to end with a token that looks like a
+    // series suffix (e.g. "-sm" in "watchlist-sm").
+    const rec = db.ensureEnvelope(
+      { creator: 'test' },
+      { kind: 'evt', scope: 'watchlist-sm', discriminator: 'x' }
+    );
+    expect(rec.id).toContain('watchlist-sm');
+  });
+});
+
 describe('upsert / dedup', () => {
   test('re-running the same append never duplicates', () => {
     const s1 = db.appendEvents([mkEvent()]);
@@ -282,5 +329,23 @@ describe('companyContext', () => {
     expect(ctx.notes).toHaveLength(1);
     expect(ctx.latestFullByType['equity-research-deepdive'].verdict).toBe('BUY');
     expect(ctx.availableIds.length).toBeGreaterThanOrEqual(3);
+  });
+
+  test('sanitizes a series-suffixed companyId so the bundle still resolves', () => {
+    const { buildCompanyContext } = require('../lib/companyContext');
+    db.saveReport({
+      type: 'equity-research-deepdive',
+      date: '2026-07-05',
+      companyId: 'NSE:SWARAJENG',
+      creator: 'equity-research-deepdive',
+      summary: 'BUY',
+      verdict: 'BUY',
+      contextUsed: [],
+    });
+    // Called with the SUFFIXED id, as if a raw feed handed it straight in —
+    // must still find the report saved under the clean id.
+    const ctx = buildCompanyContext('NSE:SWARAJENG-BE');
+    expect(ctx.companyId).toBe('NSE:SWARAJENG');
+    expect(ctx.reports).toHaveLength(1);
   });
 });

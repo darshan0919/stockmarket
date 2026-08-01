@@ -27,6 +27,7 @@ function gainer({
   volSpike = false,
   breakout = false,
   rsi = 60,
+  concall = null,
 } = {}) {
   const announcements = anns.map(ann);
   return {
@@ -37,6 +38,7 @@ function gainer({
     announcements,
     ann_strength: tax.strongestOf(announcements),
     ann_categories: [...new Set(announcements.map((a) => a.category_derived))],
+    concall,
     delivery: {
       available: deliveryAvailable,
       deliv_per: delivPct,
@@ -125,6 +127,69 @@ describe('scanner price signals feed the classifier contract', () => {
 
   it('returns null RSI rather than a fabricated value on short history', () => {
     expect(scanner.computeRsi([1, 2, 3], 14)).toBeNull();
+  });
+});
+
+describe('concall sentiment corroboration', () => {
+  it('awards +1.5 conviction for a recent Bullish concall and cites it in reasons', () => {
+    const g = gainer({
+      delivPct: 30,
+      delivValueCr: 40,
+      concall: { sentiment: 'Bullish', recentWithinDays: 3, resultQualityScore: 82 },
+    });
+    const withConcall = run(g);
+    const without = run(gainer({ delivPct: 30, delivValueCr: 40 }));
+
+    expect(withConcall.score).toBeCloseTo(without.score + 1.5);
+    expect(withConcall.reasons.some((r) => /bullish concall filed 3d ago/i.test(r))).toBe(true);
+    expect(withConcall.reasons.some((r) => /quality 82\/100/.test(r))).toBe(true);
+  });
+
+  it('awards +1 for Optimistic and -1 for Bearish', () => {
+    const optimistic = run(
+      gainer({ delivPct: 30, delivValueCr: 40, concall: { sentiment: 'Optimistic', recentWithinDays: 5 } })
+    );
+    const bearish = run(
+      gainer({ delivPct: 30, delivValueCr: 40, concall: { sentiment: 'Bearish', recentWithinDays: 5 } })
+    );
+    const baseline = run(gainer({ delivPct: 30, delivValueCr: 40 }));
+
+    expect(optimistic.score).toBeCloseTo(baseline.score + 1);
+    expect(bearish.score).toBeCloseTo(baseline.score - 1);
+    expect(bearish.reasons.some((r) => /bearish concall/i.test(r))).toBe(true);
+  });
+
+  it('does NOT credit a bullish concall older than 7 days', () => {
+    const stale = run(
+      gainer({ delivPct: 30, delivValueCr: 40, concall: { sentiment: 'Bullish', recentWithinDays: 8 } })
+    );
+    const baseline = run(gainer({ delivPct: 30, delivValueCr: 40 }));
+    expect(stale.score).toBeCloseTo(baseline.score);
+    expect(stale.reasons.some((r) => /concall/i.test(r))).toBe(false);
+  });
+
+  it('does NOT credit a bullish sentiment when recentWithinDays is unknown (null)', () => {
+    // Guards the "stays inert until a real number exists" design — a concall
+    // whose date we couldn't parse must never silently count as recent.
+    const unknownAge = run(
+      gainer({ delivPct: 30, delivValueCr: 40, concall: { sentiment: 'Bullish', recentWithinDays: null } })
+    );
+    const baseline = run(gainer({ delivPct: 30, delivValueCr: 40 }));
+    expect(unknownAge.score).toBeCloseTo(baseline.score);
+  });
+
+  it('is a no-op (uncredited, unpenalised) when no concall data was found', () => {
+    const noConcall = run(gainer({ delivPct: 30, delivValueCr: 40, concall: null }));
+    const baseline = run(gainer({ delivPct: 30, delivValueCr: 40 }));
+    expect(noConcall.score).toBeCloseTo(baseline.score);
+  });
+
+  it('Neutral/Cautious sentiment neither helps nor hurts the score', () => {
+    const neutral = run(
+      gainer({ delivPct: 30, delivValueCr: 40, concall: { sentiment: 'Neutral', recentWithinDays: 2 } })
+    );
+    const baseline = run(gainer({ delivPct: 30, delivValueCr: 40 }));
+    expect(neutral.score).toBeCloseTo(baseline.score);
   });
 });
 

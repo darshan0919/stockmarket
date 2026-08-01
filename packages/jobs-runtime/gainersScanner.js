@@ -29,6 +29,7 @@ const { loadEnv, argValue } = require('./lib/env');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const { sendHtmlEmail } = require('@stock/cloud-utils');
 const dbV2 = require('./lib/db');
+const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
 
 // Data Ecosystem v2: raw scans → data/runs/, scrip cache → data/cache/ (both
 // via StorageService); classified signals → events collection (gainersClassifier).
@@ -140,9 +141,15 @@ function toFloat(v, dflt = 0) {
 
 /** Extract canonical fields from a scan row regardless of key casing. */
 function normaliseGainer(raw) {
-  const ticker = String(
-    pick(raw, 'companyId', 'ticker', 'nse_code', 'symbol', 'Ticker', 'NSE Code') || ''
-  ).trim();
+  // Sanitize at ingestion — the earliest point a companyId enters this
+  // pipeline. Raw NSE/BSE scan rows sometimes carry a dash-separated trading
+  // series suffix (e.g. "SOMECO-BE", "SOMECO-SM") that isn't part of the
+  // company's identity; left in, it breaks company-master lookups, Stockscans
+  // API calls, and stockscans.in URLs for the rest of this gainer's lifetime
+  // in the pipeline. See stock-api/src/utils/companyId.js.
+  const ticker = sanitizeCompanyId(
+    String(pick(raw, 'companyId', 'ticker', 'nse_code', 'symbol', 'Ticker', 'NSE Code') || '').trim()
+  );
   return {
     ticker,
     company_id: ticker,
@@ -758,6 +765,95 @@ async function fetchIndustryScan(industry, client = stockscans) {
   return companies.map(normaliseGainer);
 }
 
+// Row layout confirmed live 2026-08-01 against real tickers (see
+// StockscansClient.concallScan's JSDoc for the full field-by-field note).
+// Indices 0, 5, 6, 7, 11 are read by nothing here — not yet load-bearing.
+const CONCALL_SCAN_ROW_INDEX = {
+  companyId: 1,
+  name: 2,
+  industry: 3,
+  date: 4,
+  resultQualityScore: 8,
+  sentiment: 9,
+  highlights: 10,
+};
+
+/**
+ * Parse one `concallScan` page's `rows` into a companyId -> sentiment map.
+ * Pulled out of {@link fetchConcallSentiment} so the parsing logic (the part
+ * that can silently drift if Stockscans changes the row shape) is unit-testable
+ * without a network call — see stock-api/test or packages/jobs-runtime test dir.
+ *
+ * @param {Array<Array>} rows
+ * @param {Object} CONCALL_SCAN_SENTIMENT - enum map, index 9 -> label
+ * @param {Date} [now] - injectable for tests
+ * @returns {Object} companyId -> {sentiment, sentimentCode, resultQualityScore, highlights, recentWithinDays, date}
+ */
+function parseConcallScanRows(rows, CONCALL_SCAN_SENTIMENT, now = new Date()) {
+  const map = {};
+  for (const r of rows || []) {
+    const companyId = r[CONCALL_SCAN_ROW_INDEX.companyId];
+    if (!companyId) continue;
+    const code = r[CONCALL_SCAN_ROW_INDEX.sentiment];
+    const dateStr = r[CONCALL_SCAN_ROW_INDEX.date];
+    const dateMs = dateStr ? Date.parse(dateStr) : NaN;
+    const recentWithinDays = Number.isFinite(dateMs)
+      ? Math.max(0, Math.floor((now.getTime() - dateMs) / 86400000))
+      : null;
+    map[companyId] = {
+      resultQualityScore: r[CONCALL_SCAN_ROW_INDEX.resultQualityScore],
+      sentimentCode: code,
+      sentiment: CONCALL_SCAN_SENTIMENT[code] || null,
+      highlights: r[CONCALL_SCAN_ROW_INDEX.highlights],
+      date: dateStr || null,
+      recentWithinDays,
+    };
+  }
+  return map;
+}
+
+/**
+ * Concall sentiment for a companyId set, via the throwaway-watchlist pattern
+ * (same as {@link fetchAnnouncementsBatch}). Non-fatal by design at the call
+ * site — a company simply absent from the result has "no concall data",
+ * which is a legitimate, common outcome, not an error.
+ *
+ * @param {string[]} tickers
+ * @param {Object} client - stockscans client instance
+ * @returns {Promise<Object>} companyId -> {sentiment, sentimentCode, resultQualityScore, highlights, recentWithinDays}
+ */
+async function fetchConcallSentiment(tickers, client = stockscans) {
+  if (!tickers.length) return {};
+  const { CONCALL_SCAN_SENTIMENT } = require('@stock/api/stockscansClient');
+  const name = `_gainers_concall_scan_${Date.now()}`;
+  const { watchlistId } = await client.createWatchlist(name, tickers);
+  let map = {};
+  try {
+    let offset = 0;
+    for (;;) {
+      const page = await client.concallScan({
+        industry: [],
+        index: [],
+        watchlistIds: [watchlistId],
+        resultTiers: [],
+        sentimentTiers: [],
+        filters: [],
+        q: '',
+        offset,
+      });
+      map = { ...map, ...parseConcallScanRows(page.rows, CONCALL_SCAN_SENTIMENT) };
+      // `next` is the offset for the following page, or null when exhausted
+      // (confirmed live: page 1 of a 50-row watchlist returned next:50, page
+      // 2 returned 0 rows and next:null) — NOT an offset+total comparison.
+      if (page.next === null || page.next === undefined) break;
+      offset = page.next;
+    }
+  } finally {
+    await client.deleteWatchlist(watchlistId).catch(() => {});
+  }
+  return map;
+}
+
 function hasMaterialAnnouncement(anns) {
   // Retained for backward compatibility with consumers of the raw JSON, but it is
   // now derived from the shared taxonomy rather than a private keyword list.
@@ -874,6 +970,21 @@ async function main({
   const annMeta = annRawMap._meta || { pages: 0, truncated: false, serverFiltered: false };
   const annMap = Object.fromEntries(Object.entries(annRawMap).map(([t, a]) => [t, filterNoise(a)]));
 
+  // 2b. Concall sentiment (bullish/optimistic transcript within the last 7 days
+  // can explain price momentum the same way a STRONG announcement does — see
+  // gainers-signal SKILL.md "Concall sentiment enrichment"). Non-fatal: the
+  // concall-scan schema is not yet confirmed live (docs/stockscans-api-schemas.md),
+  // so a failure here must not take down the whole scanner run.
+  log('[2b/7] Fetching concall sentiment …\n');
+  let concallMap = {};
+  try {
+    concallMap = await fetchConcallSentiment(tickers, ss);
+    log(`      → concall sentiment for ${Object.keys(concallMap).length}/${tickers.length}\n`);
+  } catch (e) {
+    log(`[WARN] concall sentiment fetch failed: ${e.message}\n`);
+    concallMap = {};
+  }
+
   // 3. Industry clusters
   log('[3/7] Fetching industry scans …\n');
   const industryCounts = {};
@@ -943,6 +1054,10 @@ async function main({
       },
       sector_breadth: (sectorScans[g.industry] || {}).breadth || {},
       sector_broad_move: ((sectorScans[g.industry] || {}).breadth || {}).broad_move || false,
+      // Concall sentiment (see fetchConcallSentiment) — absent key means "no
+      // concall data found", not "neutral"; the classifier must treat those
+      // differently.
+      concall: concallMap[g.ticker] || null,
     });
     // No sleep here any more — this loop is pure in-memory assembly now that the
     // fetching happens above via mapLimit. Rate-limiting belongs with the calls.
@@ -988,6 +1103,10 @@ async function main({
     // "announcements incomplete" rather than "no filings found" — those are very
     // different claims and conflating them is how a signal report misleads.
     announcements_meta: annMeta,
+    // `available: false` here (fetchConcallSentiment threw) must read in the email
+    // as "concall sentiment unavailable today" — never silently as "no bullish
+    // concalls found", which is a different, misleading claim.
+    concall_meta: { available: Object.keys(concallMap).length > 0 || tickers.length === 0 },
     quality_filter: {
       rules: QUALITY_FILTERS,
       raw_count: gainers.length,
@@ -1040,6 +1159,10 @@ module.exports = {
   aggregateToDaily,
   fetchPrices,
   fetchTopGainers,
+  fetchConcallSentiment,
+  parseConcallScanRows,
+  CONCALL_SCAN_ROW_INDEX,
+  normaliseGainer,
   // constants
   DEFAULT_TOP_N,
 };

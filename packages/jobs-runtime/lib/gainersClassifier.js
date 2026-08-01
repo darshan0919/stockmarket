@@ -11,6 +11,7 @@ const path = require('path');
 const db = require('./db');
 const { buildCompanyContext } = require('./companyContext');
 const taxonomy = require('./announcementTaxonomy');
+const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
 
 const RUNS_DIR = path.join(db.dataRoot(), 'runs');
 
@@ -218,8 +219,11 @@ function normalizeCompanyId(id) {
   // "NSE:NSE:FOO", or "NSE:BSE:FOO" — a blanket prefix stacked on top of an
   // already-correctly-tagged ticker) by an earlier version of this pipeline.
   // Keep the INNER prefix (the original, correctly-assigned exchange tag) so
-  // lookups against companies.json/notes.json still match.
-  return String(id || '').replace(/^(NSE|BSE):(NSE|BSE):/, '$2:');
+  // lookups against companies.json/notes.json still match. Composed with the
+  // shared series-suffix sanitizer ("-BE"/"-SM"/etc — see
+  // stock-api/src/utils/companyId.js) so callers get both fixes from one place.
+  const deprefixed = String(id || '').replace(/^(NSE|BSE):(NSE|BSE):/, '$2:');
+  return sanitizeCompanyId(deprefixed);
 }
 
 /**
@@ -524,6 +528,30 @@ function classify(g, sectorCatalystIndustries, novelty, extra = {}) {
     reasons.push('announcements restate prior disclosures');
   }
 
+  // Concall sentiment (see gainersScanner.js fetchConcallSentiment/parseConcallScanRows).
+  // `recentWithinDays` is computed live from concall-scan row index 4 (confirmed
+  // 2026-08-01 — docs/stockscans-api-schemas.md), so this only activates for a
+  // genuinely recent filing, not a stale one. A bullish/optimistic transcript is
+  // corroborating evidence for the move, same spirit as a STRONG announcement,
+  // but weighted lower since it explains sentiment rather than a discrete event.
+  const concall = g.concall;
+  if (concall && concall.sentiment && typeof concall.recentWithinDays === 'number' && concall.recentWithinDays <= 7) {
+    if (concall.sentiment === 'Bullish') {
+      score += 1.5;
+      reasons.push(
+        `bullish concall filed ${concall.recentWithinDays}d ago (quality ${concall.resultQualityScore ?? '—'}/100)`
+      );
+    } else if (concall.sentiment === 'Optimistic') {
+      score += 1;
+      reasons.push(
+        `optimistic concall filed ${concall.recentWithinDays}d ago (quality ${concall.resultQualityScore ?? '—'}/100)`
+      );
+    } else if (concall.sentiment === 'Bearish') {
+      score -= 1;
+      reasons.push(`bearish concall filed ${concall.recentWithinDays}d ago — cuts against the move`);
+    }
+  }
+
   const conviction = score >= 4 ? 'HIGH' : score >= 2 ? 'MEDIUM' : 'LOW';
 
   // ── Tier: what should the reader DO? ──────────────────────────────────────
@@ -700,6 +728,11 @@ function main() {
       // announcements that read as genuinely new vs. a reiteration of prior
       // disclosures. Informational even when it didn't move conviction.
       novelty: novelty || null,
+      // Concall sentiment corroboration (see gainersScanner.js fetchConcallSentiment).
+      // null = no concall data found for this company, distinct from a Neutral
+      // sentiment. `recentWithinDays` is computed live from the concall date —
+      // see docs/stockscans-api-schemas.md.
+      concall: g.concall || null,
     });
   }
 
@@ -820,6 +853,16 @@ function main() {
       sector_cluster: s.sector_cluster,
       evidence: s.evidence,
       novelty: s.novelty,
+      concall: s.concall || null,
+      // Flags Step 4 to also pull the transcript + run forward-guidance-extractor
+      // (see gainers-signal SKILL.md "Concall sentiment enrichment") — set
+      // whenever sentiment is Bullish/Optimistic, regardless of whether
+      // `recentWithinDays` was confirmed (the researcher can eyeball the
+      // transcript date themselves; the classifier's 7-day scoring gate is
+      // stricter than this research trigger on purpose).
+      needs_transcript_research: !!(
+        s.concall && ['Bullish', 'Optimistic'].includes(s.concall.sentiment)
+      ),
       // What to actually read. Empty array = no strong filing; the research step
       // should say "no discoverable trigger" rather than inventing one.
       announcements_to_read: anns

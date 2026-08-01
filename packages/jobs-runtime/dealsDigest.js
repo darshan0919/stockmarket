@@ -857,7 +857,15 @@ function renderEmail(dateLabel, digest, topN = TOP_N) {
         const mcapPctCol = isFirst
           ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right">${pctMcap(g.netValue, g.marketCap)}</td>`
           : '';
-        return `<tr>${numCol}${symCol}${netCol}${mcapPctCol}${td(esc(r.person) + (r.personCount > 1 ? ` <span style="color:#888">+${r.personCount - 1}</span>` : ''), false, true)}${td(esc(r.category))}${td(`<span style="color:${sideColor(r.side)}">${esc(r.side)}</span>`)}${td(r.qty?.toLocaleString('en-IN') ?? '—', 1)}${td(`<b>${crores(r.value)}</b>`, 1)}</tr>`;
+        // Insider XBRL filings don't carry a price field directly (unlike
+        // bulk/block, which get watp/PRICE straight from the exchange) — the
+        // filing only discloses qty and ₹ value per leg-group, so derive an
+        // average price the same way a per-share price is implied anywhere
+        // else: value ÷ qty. `r.qty`/`r.value` here are already the summed
+        // totals across every leg of one filing (see fetchInsider), so this
+        // is that filing's blended average price, not a single trade tick.
+        const avgPrice = r.qty && r.value ? r.value / r.qty : null;
+        return `<tr>${numCol}${symCol}${netCol}${mcapPctCol}${td(esc(r.person) + (r.personCount > 1 ? ` <span style="color:#888">+${r.personCount - 1}</span>` : ''), false, true)}${td(esc(r.category))}${td(`<span style="color:${sideColor(r.side)}">${esc(r.side)}</span>`)}${td(r.qty?.toLocaleString('en-IN') ?? '—', 1)}${td(avgPrice?.toLocaleString('en-IN', { maximumFractionDigits: 2 }) ?? '—', 1)}${td(`<b>${crores(r.value)}</b>`, 1)}</tr>`;
       })
     );
 
@@ -868,7 +876,7 @@ function renderEmail(dateLabel, digest, topN = TOP_N) {
   ${tableHtml(`1️⃣ Bulk Deals (${digest.bulk10.reduce((a, g) => a + g.deals.length, 0)}/${digest.bulkBlock.bulk.length})`, ['#', 'Stock', 'Net Value', '% of Mcap', 'Client', 'Side', 'Qty', 'Price', 'Value'], dealRows(digest.bulk10))}
   ${tableHtml(`2️⃣ Block Deals (${digest.block10.reduce((a, g) => a + g.deals.length, 0)}/${digest.bulkBlock.block.length})`, ['#', 'Stock', 'Net Value', '% of Mcap', 'Client', 'Side', 'Qty', 'Price', 'Value'], dealRows(digest.block10))}
   ${tableHtml(`3️⃣ SAST Trades (${digest.sast10.reduce((a, g) => a + g.deals.length, 0)}/${digest.sast.rows.length})`, ['#', 'Stock', 'Net Value', '% of Mcap', 'Acquirer', 'Type', 'Shares', 'Est. Value'], sastRows(digest.sast10), 'Value estimated as shares × NSE last close (SAST filings don’t carry ₹ value).')}
-  ${tableHtml(`4️⃣ Insider Trades (${digest.insider10.reduce((a, g) => a + g.deals.length, 0)}/${digest.insider.parsed} parsed of ${digest.insider.totalFilings})`, ['#', 'Stock', 'Net Value', '% of Mcap', 'Person', 'Category', 'Side', 'Qty', 'Value'], insiderRows(digest.insider10))}
+  ${tableHtml(`4️⃣ Insider Trades (${digest.insider10.reduce((a, g) => a + g.deals.length, 0)}/${digest.insider.parsed} parsed of ${digest.insider.totalFilings})`, ['#', 'Stock', 'Net Value', '% of Mcap', 'Person', 'Category', 'Side', 'Qty', 'Avg. Price', 'Value'], insiderRows(digest.insider10), 'Avg. Price = filing’s ₹ value ÷ qty (PIT filings don’t disclose a per-trade price directly).')}
   ${errs.length ? `<p style="font:12px Arial;color:#b71c1c"><b>Fetch warnings:</b> ${errs.map(esc).join(' · ')}</p>` : ''}
   <p style="font:11px Arial;color:#999;margin:24px 0 0;border-top:1px solid #eee;padding-top:8px">Top ${topN} companies per category by net value. Sources: <a href="https://www.nseindia.com/market-data/bulk-deals" style="color:#999;text-decoration:none">NSE Bulk/Block</a> &nbsp;·&nbsp; <a href="https://www.nseindia.com/companies-listing/corporate-filings-sast" style="color:#999;text-decoration:none">NSE SAST Reg 29</a> &nbsp;·&nbsp; <a href="https://www.nseindia.com/companies-listing/corporate-filings-insider-trading-disclosures" style="color:#999;text-decoration:none">NSE PIT</a> &nbsp;·&nbsp; <a href="https://www.bseindia.com/markets/equity/EQReports/BulkDealData_New.aspx" style="color:#999;text-decoration:none">BSE BulkDeal</a>. Like <a href="https://www.screener.in/filings" style="color:#999;text-decoration:none">screener.in/filings</a>, but ours.</p>
 </div>`;
@@ -1098,6 +1106,7 @@ module.exports = {
   resolveCompanyIdentity,
   groupAndTop10ByNetValue,
   getNeverFilterSymbols,
+  renderEmail,
   parseDateArg,
   fmt,
 };

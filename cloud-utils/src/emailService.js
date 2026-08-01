@@ -52,12 +52,28 @@ async function sendHtmlEmail({
   }
 }
 
+// NSE/BSE trading-series suffixes (Book Entry, SME platform, trade-for-trade
+// groups, etc.) sometimes appended to a symbol with a dash by raw feed data
+// — e.g. "SOMECO-BE". Stockscans company URLs (and every other lookup in
+// this repo) key on the bare symbol, so an unstripped suffix produces a
+// dead/wrong link. Canonical source: `stock-api/src/utils/companyId.js`
+// (`sanitizeCompanyId`) — cloud-utils can't depend on @stock/api (stock-api
+// depends on cloud-utils, so that would be circular), so this list is
+// duplicated here on purpose. Keep both in sync if the suffix list changes.
+const KNOWN_SERIES_SUFFIXES = ['BE', 'BZ', 'BL', 'SM', 'ST', 'IL', 'GC', 'BT'];
+const SERIES_SUFFIX_RE = new RegExp(`-(?:${KNOWN_SERIES_SUFFIXES.join('|')})$`, 'i');
+
+function sanitizeSymbol(symbol) {
+  return String(symbol || '').trim().replace(SERIES_SUFFIX_RE, '');
+}
+
 function stockscansUrl(symbol, exchange = 'NSE') {
   if (!symbol) return '';
-  if (String(symbol).includes(':')) {
-    return `https://www.stockscans.in/company/${symbol}`;
+  const clean = sanitizeSymbol(symbol);
+  if (clean.includes(':')) {
+    return `https://www.stockscans.in/company/${clean}`;
   }
-  return `https://www.stockscans.in/company/${exchange}:${symbol}`;
+  return `https://www.stockscans.in/company/${exchange}:${clean}`;
 }
 
 function stockscansLink(name, symbol, exchange = 'NSE', color = 'inherit') {
@@ -69,4 +85,4 @@ function stockscansLink(name, symbol, exchange = 'NSE', color = 'inherit') {
   return `<a href="${stockscansUrl(symbol, exchange)}" style="text-decoration:none;color:${color}" target="_blank">${safeName}</a>`;
 }
 
-module.exports = { sendHtmlEmail, GMAIL_USER, stockscansUrl, stockscansLink };
+module.exports = { sendHtmlEmail, GMAIL_USER, stockscansUrl, stockscansLink, sanitizeSymbol };

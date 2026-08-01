@@ -64,6 +64,29 @@ This skill's outputs (the `validation` collection, `data/validation.json`, types
 `ledger`/`gainers-followup`) conform to the DTO standard in
 `skills/tooling/output-dto-standard/SKILL.md`.
 
+## Template-coverage proposals (growing the announcement-insights library)
+
+This skill owns the "which new announcement categories are worth a dedicated template"
+question — `announcement-insights` (`skills/equity-research/announcement-insights/`)
+owns the mechanics of adding one once proposed, but deciding WHEN a category earns its
+own checklist is a validation/pattern-recognition job, which is what this skill already
+does nightly.
+
+As part of `run`, scan the window's notes for `category: "general"` entries whose
+`insight` text ends with a "no dedicated template yet for X — candidate for a new
+category" flag (per `general.md`'s instruction in the `announcement-insights` template
+library) or that otherwise cluster around a recognisable recurring subject (e.g. three+
+litigation-settlement notes, or land-monetisation notes, in a rolling 30-day window).
+Propose new categories the same way this skill already proposes prompt refinements —
+appended to `data/assets/validation-proposals.md` alongside the existing
+significance/tag-accuracy proposals, with: the proposed category name, 3+ example
+announcements that motivated it, a draft extraction checklist (what to extract, what to
+assess — mirror the structure of an existing `references/templates/<category>.md`),
+and whether it should be a HIGH_CONVICTION category. These are PROPOSALS — never edit
+`announcementTaxonomy.js` or add a template file directly from this skill; that's a
+`skill-manager`/`announcement-insights` maintenance action once a human reviews the
+proposal via `review-proposals`.
+
 ## Setup
 
 ```bash

@@ -80,6 +80,94 @@ Response envelope is one of `{announcements: [...], total}` /
 
 ---
 
+## POST /api/company/concall-scan
+
+Client method: `concallScan(payload, opts)`. **Confirmed live 2026-08-01**
+(throwaway watchlist of 50 real tickers drawn from `resultsDocuments`'s
+current-quarter Transcript set — see `stock-api/test/stockscansClient.concallScan.test.js`
+for the recorded fixture this doc's schema is checked against).
+
+**Request** (matches the user-provided spec exactly, mirrors the other scan
+endpoints' shape):
+
+```json
+{
+  "industry": [],
+  "index": [],
+  "watchlistIds": [],
+  "resultTiers": [],
+  "sentimentTiers": [],
+  "filters": [
+    { "left": "Market Capitalization", "sign": ">=", "right": "100" }
+  ],
+  "q": "",
+  "offset": 0
+}
+```
+
+Scope to an arbitrary companyId set via `watchlistIds` — the standard
+throwaway-watchlist pattern (`createWatchlist` / `deleteWatchlist`, paired in
+`try/finally`; see the watchlist section below).
+
+**Response:**
+
+```json
+{
+  "rows": [
+    ["24769", "NSE:MUTHOOTFIN", "Muthoot Finance Ltd", "Finance & Investments - Gold Loan",
+     "2026-08-01T16:00:00+05:30", "as-6dfa623c9445593ab0bdab05.pdf", 1, true, 47.9, 1,
+     ["▼ Yield 20.93% → 17.93%", "▲ Active customers +1.63 lakh", "▲ Belstar Microfinance returns to profit"],
+     "l0fyxca960154mtwtev1ok2t.pdf"]
+  ],
+  "next": 50,
+  "quarter": "202606",
+  "subscription": "Premium Plus"
+}
+```
+
+`next` is the offset to pass on the following call, or `null` when exhausted
+(confirmed: a 50-ticker watchlist returned `next: 50` on page 1, then 0 rows
++ `next: null` on page 2 at offset 50 — this is a plain offset cursor, not an
+offset/total comparison; do not paginate any other way). `quarter` is the
+same `"YYYYMM"` shape as `resultsDocuments`'s `quarterDate`.
+
+Each row is a **positional array of 12 elements** (confirmed live across ~65
+rows spanning large-caps and midcaps):
+
+| Index | Field | Notes |
+|---|---|---|
+| 0 | internal id | numeric string, e.g. `"24769"` — purpose unconfirmed, unused |
+| 1 | `companyId` | e.g. `"NSE:MUTHOOTFIN"` |
+| 2 | company name | |
+| 3 | industry/category label | |
+| 4 | concall/result date | ISO datetime with `+05:30` offset — **this is the "how recent" field**; `gainers-signal`'s 7-day check computes `recentWithinDays` from it |
+| 5 | PDF filename slug | e.g. `"as-6dfa....pdf"` — likely the results PPT/announcement doc, not yet resolved to a full URL; unused |
+| 6 | small integer | always `1` in every observed row — meaning unconfirmed, unused |
+| 7 | boolean | always `true` in every observed row — meaning unconfirmed, unused |
+| 8 | `resultQualityScore` | number, 0-100, nullable (null observed for ABB, Urban Company) |
+| 9 | `sentiment` | enum 0-4, see mapping below |
+| 10 | `highlights` | `string[]`, typically 3 items, each prefixed `▲`/`▼`/`●` |
+| 11 | PDF filename slug | nullable — likely the transcript ssUrl; not yet cross-checked against `documents(companyId)`, unused |
+
+Indices 0, 5, 6, 7, 11 are parsed by nothing in this codebase today — if a
+future caller needs one, confirm its exact meaning against a second live
+company/quarter before relying on this table's guess.
+
+Sentiment enum (index 9), exported as `CONCALL_SCAN_SENTIMENT` from
+`StockscansClient.js`. Live-observed values: Bajaj Finance and Reliance both
+scored `2` (Neutral), TCS scored `3` (Optimistic) — consistent with the
+user-provided mapping:
+
+```
+0: Bearish
+1: Cautious
+2: Neutral       (source spec said "Nuetral" — typo, corrected here)
+3: Optimistic
+4: Bullish
+```
+
+---
+
 ## POST /api/company/results/documents
 
 Client method: `resultsDocuments({offset, documentType, searchCompany, watchlistIds})`,

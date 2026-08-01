@@ -10,6 +10,7 @@
  */
 
 const db = require('./db');
+const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
 
 let companyMaster = null;
 function master() {
@@ -38,6 +39,11 @@ const clip = (s, n) => (typeof s === 'string' && s.length > n ? `${s.slice(0, n)
  * @param {number} [opts.maxChars=120000] rough size budget for the bundle
  */
 function buildCompanyContext(companyId, opts = {}) {
+  // Entry-point sanitization — every company-scoped skill calls this before
+  // generating (Convention §8), so this is the highest-leverage single place
+  // to guarantee a "-BE"/"-SM"-suffixed companyId never leaks into a context
+  // lookup, and therefore never into a saved report/event/thesis downstream.
+  companyId = sanitizeCompanyId(companyId);
   const {
     reports = 5,
     notes = 20,
