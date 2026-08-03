@@ -139,6 +139,7 @@ Flag any row with: >50% YoY growth, "loan to" with no commercial rationale, sale
 
 - **Receivables aging bucket** — % > 6 months overdue (rising = bad)
 - **Inventory days trend** — multi-year drift (Brightcom-style WIP buildup)
+- **Inventory Gains check (mandatory)** — when a reporting period's margin/PAT strength coincides with rising commodity/input prices, explicitly test whether the gain is inventory-valuation-driven rather than operating: (a) a jump in Other Income or an exceptional/one-off line item, (b) reported gross/EBITDA margin expansion that outpaces stated volume growth, (c) MDA/concall language on "inventory gains," "stock gains," or "favourable inventory valuation," or (d) raw-material cost as % of sales improving without a volume/pricing explanation. Quantify the estimated contribution to PAT/EBITDA where derivable from the P&L or inventory notes, and flag in the checklist whether the period's strength is inventory-gain-driven and non-recurring (tag YELLOW even if not fraudulent — it should never be read into forward earnings power) or genuinely structural/operating.
 - **Intangible assets / goodwill** — sudden growth, especially "intangibles under development"
 - **Write-offs** — frequency and magnitude of "exceptional items"
 - **Investments in subsidiaries / associates** — losses absorbed but not written down

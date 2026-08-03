@@ -483,7 +483,7 @@
     },
     {
       "name": "watchlist-insights",
-      "description": "Daily watchlist corporate-announcement insights — fetch new non-routine announcements across the Near Highs + Radar watchlists, read each PDF, write an actionable quantified insight per category into the notes DB, and email the full 24h digest. Invoke with defaults for the 8 AM run, or on demand to re-process a company.",
+      "description": "Daily watchlist corporate-announcement insights — fetch new non-routine announcements across the Near Highs + Radar watchlists, read each PDF, write an actionable quantified insight per category into the notes DB, and email the full 24h digest. Deliberately skips heavy dedicated-workflow documents (earnings results, concall transcripts, investor presentations, annual reports) rather than PDF-parsing them, logging every skip with its reason for visibility. Invoke with defaults for the 8 AM run, or on demand to re-process a company.",
       "aliases": [
         "watchlist insights",
         "daily insights",

@@ -199,6 +199,7 @@
       ]
     },
     "growth-triggers-1pager": {
+      "_deprecated": "2026-08-03: superseded by rerating-catalysts, which merges this skill's 1-pager pipeline with fundamental-shift-scanner's announcement scan under the SOIC 'new' growth-catalyst framework. Not called by any current router; kept for reference/PDF-generator reuse only.",
       "skill_md": "skills/equity-research/growth-triggers-1pager/SKILL.md",
       "entry": "stock-api/bin/growth-triggers-1pager.js",
       "mode": "bundle",
@@ -465,6 +466,7 @@
       ]
     },
     "fundamental-shift-scanner": {
+      "_deprecated": "2026-08-03: superseded by rerating-catalysts, which folds this skill's last-7-day announcement scan into a unified re-rating catalyst read across announcements + transcripts + results + PPTs. Not called by any current router; kept for reference only.",
       "skill_md": "skills/equity-research/fundamental-shift-scanner/SKILL.md",
       "entry": null,
       "references": [],
@@ -478,6 +480,36 @@
         "recent filings",
         "red flags recent",
         "pulse check stock"
+      ]
+    },
+    "rerating-catalysts": {
+      "skill_md": "skills/equity-research/rerating-catalysts/SKILL.md",
+      "entry": null,
+      "mode": "clone",
+      "references": [
+        "skills/equity-research/rerating-catalysts/references/growth_catalyst_framework.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/_shared/pdf-design-guide.md",
+        "skills/equity-research/management-credibility-tracker/_shared/conventions.md",
+        "skills/tooling/output-dto-standard/SKILL.md",
+        "skills/equity-research/stock-documents-fetcher/SKILL.md"
+      ],
+      "aliases": [
+        "growth triggers",
+        "re-rating triggers",
+        "rerating catalysts",
+        "catalyst note",
+        "1 pager",
+        "one pager",
+        "conviction note",
+        "why will this stock re-rate",
+        "growth catalyst",
+        "what's changed this week",
+        "any recent news on",
+        "fundamental shift",
+        "what's new with"
       ]
     },
     "equity-research-extraction": {

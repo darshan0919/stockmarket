@@ -21,6 +21,7 @@ The most comprehensive concall analysis in the library. Apply when the transcrip
 - Working capital narrative — receivables, inventory, payables
 - Competitive positioning narrative
 - **Tone shifts or inconsistencies** within the call (CFO vs CEO contradictions are gold)
+- **Inventory Gains check (mandatory).** When cost structure or margin commentary is discussed, explicitly test whether reported margin/PAT strength is inflated by inventory (stock) gains — i.e., gains from revaluing existing raw-material/finished-goods inventory upward as commodity/input prices rose. Listen for management language like "inventory gains," "stock gains," or "favourable inventory valuation," and cross-check against §9's quantitative table for a margin/PAT jump that outpaces stated volume growth or an unusual "Other Income"/exceptional line. Quantify the estimated contribution to PAT/EBITDA where derivable and flag explicitly whether the quarter's strength is (i) inventory-gain-driven and non-recurring, or (ii) structural/operating (volume, pricing power, cost efficiency, mix) — this belongs in §1's bottom line and §9's Significance column, not buried in a footnote.
 
 ## §3 Industry & Company-Specific Detail
 

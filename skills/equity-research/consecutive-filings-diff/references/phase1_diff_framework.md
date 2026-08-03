@@ -44,6 +44,8 @@ For the "Signal" column, use these chip tags consistently:
 
 **Key forensic check:** Compute the quarter's own margin (not just cumulative). A company reporting 19.5% cumulative EBITDA margin may have run its final quarter at 18% — the margin trajectory is what matters for next year's model.
 
+**Inventory Gains check (mandatory).** When the diff shows margin/PAT expansion vs the prior deck, explicitly test whether it is inflated by inventory (stock) gains — gains from revaluing existing raw-material/finished-goods inventory upward as commodity/input prices rose. Signals: a jump in the "Other income" line item above, a mismatch between reported gross/EBITDA margin expansion and the volume growth shown in Dimension 3, explicit concall language on "inventory gains"/"stock gains" (cross-check in Phase 2), or raw-material cost as % of sales improving with no volume/pricing explanation. Quantify the estimated PAT/EBITDA contribution where derivable and set the "Signal" chip accordingly — tag it `Mix shift` or add an explicit `Inventory-gain driven` note rather than letting it read as a clean `Beat`. This distinction feeds directly into the Positive/Negative Surprises sections: an inventory-gain-driven quarter is not a genuine positive surprise, it is a non-recurring one that reverses when commodity prices fall.
+
 ---
 
 ## Dimension 2 — Balance sheet & cash flow quality

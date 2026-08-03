@@ -15,7 +15,7 @@ the orchestrating skill's remaining steps.
 ## Why this exists as its own skill
 
 Announcement-insight generation used to be duplicated logic sitting inside
-`watchlist-insights`. As the category-template library grows (today: 15 categories,
+`watchlist-insights`. As the category-template library grows (today: 18 categories,
 more coming — see "Expanding the library" below), every orchestrating skill that reads
 announcement PDFs would otherwise have to re-embed the same extraction checklists and
 drift out of sync. Now there is exactly one place templates live
@@ -45,14 +45,43 @@ run(){ node "$JOB" "$@"; }
 read/write) even though the orchestration logic that calls it lives elsewhere — it is
 NOT being deprecated, just repositioned: think of it as this skill's companion script.
 
-## Step 1 — Read the PDF (mandatory, every time)
+## Step 0 — Should this even be parsed? (heavy-document skip check)
+
+Before fetching anything, check `category` against `HEAVY_DOCUMENT_CATEGORIES`
+(`lib/announcementTaxonomy.js`): `results`, `concall_transcript`,
+`investor_presentation`, `annual_report`. These are full dedicated-workflow documents
+(often 15-300+ pages) that specialist skills already own —
+`quarterly-result-analysis`/`pre-pead-scanner`, `concall-analysis`, `stock-report`/
+`equity-research-extraction`, `annual-report-analysis` respectively.
+
+- If you were invoked BY an orchestrator that already made this skip decision (e.g.
+  `watchlist-insights`), you won't be called at all for these — this step is a no-op
+  for you in that flow.
+- If you were invoked standalone (a user pasted this exact PDF and asked "what does
+  this mean") or by a caller that hasn't checked, still apply the skip: say briefly
+  that this category is a dedicated-workflow document, name the specialist skill that
+  owns it, and stop — don't parse a 200-page annual report just because you were asked
+  to look at it in this skill's context. The one exception is `gainers-signal`, which
+  deliberately does NOT skip `results` (its actionability signal needs the beat/miss
+  from the filing itself) — respect that caller's explicit instruction if it asks for
+  `results` anyway.
+
+## Step 1 — Read the PDF (mandatory, every time you don't skip)
 
 ```bash
-run read-pdf "<pdfUrl>"
+run read-pdf-with-meta "<pdfUrl>"
 ```
 
-Never write an insight from the title/description alone. If the PDF is empty/404/
-unparseable, say so explicitly in the insight, then fall back to the description.
+Returns `{text, numPages, isHeavyParse}` (`isHeavyParse: true` when `numPages > 4`;
+`numPages` is `null`, not `false`, when it couldn't be derived — treat that as unknown
+rather than "not heavy"). Never write an insight from the title/description alone. If
+the PDF is empty/404/unparseable, say so explicitly in the insight, then fall back to
+the description. If `isHeavyParse` came back true for a NON-skip-listed category (i.e.
+this category wasn't supposed to be heavy but the actual document turned out to be —
+happens with e.g. a lengthy `regulatory` order or a `capacity`-commissioning filing with
+a bundled technical annexure), report `numPages` back to your caller — `watchlist-insights`
+surfaces this in its digest's Heavy Parse Highlights section, which
+`insight-validation` reviews for whether that category needs its own skip rule.
 
 ## Step 2 — Load company context
 
@@ -72,12 +101,23 @@ run insight-template "<category>" --depth quick       # 1-2 sentences, time-boxe
 run insight-template "<category>" --depth deep         # full framework, HIGH_CONVICTION categories
 ```
 
-### Categories (15 today)
+### Categories (18 today)
 
 `shareholding_change`, `order_book`, `investor_meet`, `credit_rating`, `fundraise`,
 `results`, `agm_egm`, `regulatory`, `capacity`, `dividend`, `buyback`, `general`
-(uncategorized fallback), and the four **HIGH-CONVICTION** categories:
-`demerger`, `merger`, `acquisition`, `management_change`.
+(uncategorized fallback), the four **HIGH-CONVICTION** categories
+(`demerger`, `merger`, `acquisition`, `management_change`), and the three
+**HEAVY-DOCUMENT** categories that most orchestrators skip entirely rather than
+template (`concall_transcript`, `investor_presentation`, `annual_report`) — plus
+`results`, which is both STRONG/SCHEDULED *and* heavy-document; see Step 0.
+
+**Sourcing rule (applies to the Inventory Gains check below and to all `results`-category insights):** fetch the underlying Result filing via `stock-documents-fetcher`'s `documentsFetcher.js`/`StockscansClient.documents()` API, not web search — the exact "Changes in inventories" P&L line rarely appears in news summaries.
+
+The `results` template carries a mandatory **Inventory Gains check** — when a headline
+margin/PAT beat is reported, explicitly test whether it is inflated by inventory (stock)
+gains from rising commodity/input prices rather than structural/operating improvement,
+and quantify the estimated contribution where derivable. See
+`references/templates/results.md`.
 
 ### High-conviction categories get deep treatment by default
 
@@ -130,11 +170,17 @@ no `companyId`/persistence intent, skip this step and just answer in chat/output
 
 ## Output contract
 
-A single insight object: `{insight, significance, tags, category, high_conviction}`
-(`high_conviction: true` iff `category` is in `HIGH_CONVICTION_CATEGORIES`, regardless
-of whether the caller asked for `deep` — orchestrators should surface this flag
-independent of the `significance` bucket, e.g. in a digest email's subject line or a
-dedicated "high-conviction" section).
+A single insight object: `{insight, significance, tags, category, high_conviction,
+numPages, isHeavyParse}` (`high_conviction: true` iff `category` is in
+`HIGH_CONVICTION_CATEGORIES`, regardless of whether the caller asked for `deep` —
+orchestrators should surface this flag independent of the `significance` bucket, e.g.
+in a digest email's subject line or a dedicated "high-conviction" section).
+`numPages`/`isHeavyParse` come straight from Step 1's `read-pdf-with-meta` call and
+exist so a caller can highlight "this wasn't skip-listed but still needed heavy
+parsing" separately from the Step 0 skip list.
+
+If Step 0 skipped the announcement entirely, there is no insight object — just a
+`{skipped: true, category, reason}` result for the caller to log.
 
 ## Expanding the library (this is where new categories get added)
 
@@ -150,7 +196,12 @@ deserving a dedicated checklist. To add a new category:
    extract, what to assess, and (for deep) a link to a dedicated playbook reference if
    the reasoning is non-trivial (see how `demerger`/`merger`/`management_change` do it).
 3. If it should be HIGH_CONVICTION, add it to `HIGH_CONVICTION_CATEGORIES` in the
-   taxonomy file and to `CATEGORY_LABELS`.
+   taxonomy file and to `CATEGORY_LABELS`. If instead it's a heavy dedicated-workflow
+   document type that a specialist skill already owns (the `insight-validation` Heavy
+   Parse Highlights review is exactly how these get proposed), add it to
+   `HEAVY_DOCUMENT_CATEGORIES` + `HEAVY_DOCUMENT_SKIP_REASONS` instead — a category is
+   HIGH_CONVICTION or HEAVY_DOCUMENT, never both (one means "look harder," the other
+   means "don't look here, look there").
 4. No code changes needed beyond that — `insightTemplate()` in `watchlistInsights.js`
    reads the new file by category name automatically.
 

@@ -1,0 +1,232 @@
+---
+name: rerating-catalysts
+description: >-
+  Single-company re-rating catalyst engine — merges what used to be
+  `fundamental-shift-scanner` (last-week announcement pulse) and
+  `growth-triggers-1pager` (1-page conviction note) into one workflow built on
+  the SOIC "growth catalyst" methodology: a stock re-rates when the market's
+  perception of FUTURE earnings power shifts, and that shift is always
+  traceable to something NEW happening in the business (new capacity, new
+  base, new management, new corporate action, new regulation, new value-added
+  mix, new warrants/deleveraging — see references/growth_catalyst_framework.md).
+  Use for "growth triggers", "re-rating triggers", "catalyst note", "what's
+  changed this week", "any recent news on X", "why will this stock re-rate",
+  "growth catalyst", "conviction note", "1-pager", "is anything fundamentally
+  different about this company", or any request for a Stockscans ticker that
+  wants a forward-looking, EPS-accrual-oriented read rather than a backward
+  results recap. Auto-fetches the last 7 days of announcements, last 4
+  concall transcripts, last 4 quarterly results, and last 2 investor PPTs when
+  given only a ticker. Supersedes fundamental-shift-scanner and
+  growth-triggers-1pager — do not use those skills for new work.
+---
+
+# Re-rating Catalysts
+
+> A business re-rates when the market's perception of its *future* earnings
+> changes — and that perception shift is never abstract. It always traces
+> back to something specific and NEW: a capex commissioning, an order-book
+> jump, a management change, a warrant issue, a regulation. Your job is to
+> read everything this company has put out recently and surface every such
+> "new" thing that moves the needle on future EPS, quantified, timed, and
+> sourced — and to say plainly when a document set is quiet.
+
+This skill replaces two prior skills that covered overlapping ground from
+different angles: `fundamental-shift-scanner` (breadth — last week's
+announcements, noise/signal triage) and `growth-triggers-1pager` (depth — a
+5-section conviction note from ARs/transcripts/PPTs). Re-rating catalysts
+requires both lenses simultaneously, because a catalyst disclosed in an
+announcement this week is the same kind of thing as a catalyst buried in last
+quarter's concall — the "new" framework (§ references/growth_catalyst_framework.md)
+applies uniformly across document types, and treating them as separate
+workflows caused catalysts to be missed when they surfaced in one document
+type but not another.
+
+## When to use this skill
+
+- User pastes a Stockscans ticker/URL and asks for growth triggers, a 1-pager,
+  catalyst note, or "why will this re-rate"
+- "What's changed with [company] this week / recently?"
+- "Is anything fundamentally different about this company?"
+- Pre-position-sizing conviction check, or pre-call prep before a deeper dive
+  (`consecutive-filings-diff`, `quarterly-result-analysis`, `financial-model`)
+- Any time another skill needs a per-company re-rating read instead of
+  re-implementing catalyst extraction
+
+## How this differs from neighbouring skills
+
+| If you need... | Route to |
+|---|---|
+| Multi-company (watchlist) daily catalyst alerts | `watchlist-catalyst-scanner` |
+| Full single-quarter result interpretation (3-basket) | `quarterly-result-analysis` |
+| Forensic red-flag / accounting-quality scan | `forensic-accounting` |
+| Quarter-over-quarter deck diff reconciled with concall | `consecutive-filings-diff` |
+| 3-year model / bear-base-bull IRR | `financial-model` |
+| Technical/stage/relative-strength timing read | `stage2-catalyst-analysis` |
+| **Forward-looking, "new"-framework re-rating catalysts for ONE company** | **THIS SKILL** |
+
+## Workflow
+
+### Phase 1 — Document acquisition
+
+Resolve the ticker (bare `NSE:TICKER`/`BSE:CODE`, or a Stockscans company URL —
+extract and URL-decode the `EXCH:SYMBOL` segment after `/company/`). Then fetch,
+in parallel where the underlying calls allow it, via `stock-documents-fetcher`
+(do not reimplement the API calls — see its SKILL.md for the live `documentsFetcher.js`
+/ `announcementsFetcher.js` usage, since the once-documented Python CLI does not exist):
+
+1. **Last 7 days of corporate announcements** — `fetchAnnouncements(ticker, {startDate: <7 days ago>, outputDir})`, no `--search` filter (pull everything in the window, classify yourself).
+2. **Last 4 concall transcripts** — `fetchDocuments(ticker, {types: ['Transcript'], lastN: 4, outputDir})`. If the bulk fetch misses the latest quarter, resolve it directly with `stock-api/bin/get-concall-transcript-url.js --company <ticker>` per `skills/_shared/conventions.md` §12.
+3. **Last 4 quarterly results** — `fetchDocuments(ticker, {types: ['Result'], lastN: 4, outputDir})`.
+4. **Last 2 investor PPTs** — `fetchDocuments(ticker, {types: ['PPT'], lastN: 2, outputDir})`.
+
+Per `skills/_shared/conventions.md` §6, none of these downloaded PDFs are
+persisted under `<repo>/data/` — write everything to a scratch dir
+(`/tmp/<safe_ticker>_rerating/`) and read `manifest.json` to identify which
+file is which before extracting text (`pdftotext -f 1 -l <PAGES> <file>.pdf out.txt`).
+
+Also call `buildCompanyContext(companyId)` (per conventions §8) before
+analysis — weigh any prior thesis, notes, or validated catalysts already on
+file for this company, and record what you considered as `contextUsed`.
+
+**Web (always, lightweight):** CMP, market cap, PE/PB, and — only if a
+specific factual claim in a filing needs corroboration (e.g. an anti-dumping
+duty, a PLI scheme detail) — a targeted search, cited.
+
+### Phase 2 — Read everything through the "new" lens
+
+Read `references/growth_catalyst_framework.md` in full before analysing — it
+defines the "new" taxonomy (new base creation, new industry cycle, new
+management change, new corporate action, new capex, new value-added mix, new
+geography, new warrants, new deleveraging, etc.), the new-vs-confirmation
+discipline, and the quantification/conviction rules. Apply it uniformly
+across all four document sets fetched in Phase 1 — an announcement, a
+transcript line, and a PPT slide are just three different containers for the
+same kind of "new" fact.
+
+Walk every document and, for anything that isn't routine (AGM notices, book
+closures, record dates, routine board-meeting intimations — same NOISE list as
+the old fundamental-shift-scanner), extract:
+
+1. **What literally happened** — one sentence, sourced, dated: `[Source:
+   Transcript Q4FY26 / PPT / Result / BSE filing, DD-Mon-YYYY]`.
+2. **Which "new" category** it falls under (§2 of the framework doc) — a fact
+   can carry more than one tag.
+3. **New or confirmation** — cross-check against the prior quarter's
+   transcript/PPT in the same fetched set. Guided-and-now-executing is
+   confirmation (lower weight); unguided is new (higher weight).
+4. **Quantified impact** — Rs Cr order/capex, % capacity add, bps margin, %
+   volume, TAM — sized against TTM revenue/market cap where both are known.
+   If undisclosed, say "awaiting disclosure" rather than estimating.
+5. **Timeline** — quarter/FY. "Going forward" is not a timeline.
+6. **Conviction tag** — `HIGH CONVICTION` (contracted/notified/in the order
+   book) / `MEDIUM CONVICTION` (guided, not contracted) / `OPTIONALITY`
+   (asymmetric, not yet in consensus).
+7. **Forward marker** — one falsifiable checkpoint ("if Q2FY27 revenue from
+   this segment doesn't show up by [date], treat as delayed").
+
+Also run the cross-cutting checks from framework §5 explicitly, even when no
+single document flags them: order-book step-change across the 4 results,
+EBITDA/unit trend across the 4 quarters, debt/finance-cost trajectory across
+the 4 transcripts, and theme-maturity (is this a year-1 S-curve or a year-6
+theme?).
+
+### Phase 3 — Synthesize
+
+**3a. Company snapshot** — 3–4 lines (business, value-chain position,
+moat/commodity, promoter %) + 8-column KPI table: `FY Rev | FY PAT | EBITDA
+Mgn | ROE | ROCE | Debt | PE (TTM) | Div Yield`.
+
+**3b. Re-rating catalysts (5–8, ranked)** — per catalyst: name, 2–3 sentence
+body, "new" category tag(s), new-vs-confirmation flag, quantified impact,
+timeline, conviction tag, forward marker. Rank per framework §4: capacity/
+capex → new product/geography → M&A/corporate action → management/promoter
+change → margin/mix (value-added products) → regulation/policy → industry
+structure/S-curve → balance-sheet deleveraging → governance.
+
+**3c. This week's announcement flow** — the last-7-day scan folded in as its
+own subsection (what `fundamental-shift-scanner` used to output standalone):
+signal items not already covered as a full catalyst above, noise filtered out
+(one line), and — if the week was quiet — say so plainly rather than padding.
+
+**3d. What's in the price** — 2–3 lines: consensus view vs. where the
+incremental EPS-perception surprise sits.
+
+**3e. Key risks (3–4)** — execution/regulatory/commodity/demand/balance-sheet/
+concentration, each with a mitigant or probability qualifier.
+
+**3f. So-what verdict** (3–6 sentences) — does this document set, taken
+together, change how the market should price forward EPS? Does it warrant
+escalating to `consecutive-filings-diff`, `financial-model`, or
+`investment-thesis-engine`? If Darshan holds a documented thesis on file
+(from `buildCompanyContext`), does this support/contradict/sit orthogonal to
+it?
+
+### Phase 4 — Persist the JSON DTO, then render
+
+Per `output-dto-standard` (`skills/tooling/output-dto-standard/SKILL.md`),
+write the canonical JSON DTO before rendering anything — the PDF/markdown is
+a reproducible render of this file, never drafted independently of it.
+`db.saveReport()` (or the equivalent `data/agent-outputs/` append pattern used
+by the old fundamental-shift-scanner, if `saveReport` doesn't yet have a
+`rerating-catalysts` type registered — check `docs/DATA_RULES.md` before
+adding a new collection vs. reusing an existing one with a new `type`).
+
+Envelope fields (mandatory): `id`, `companyId` (canonical `EXCH:SYMBOL`),
+`creationTime`, `modifiedTime` (ISO 8601), `creator: "rerating-catalysts"`,
+`modelUsed` (e.g. `"claude-sonnet-5"` — every conviction/tag/new-vs-confirmation
+call here is LLM judgment, not scripted), `date`, `contextUsed`.
+
+Domain fields: `cmp`, `marketCap`, `capCategory`, `sector`, `snapshot`,
+`kpiHeaders`/`kpiValues`, `catalysts[]` (each with `name`, `body`,
+`newCategory[]`, `newVsConfirmation`, `impact`, `timeline`, `conviction`,
+`forwardMarker`, `sources[]`), `weeklyFlow` (`dateRangeStart`, `dateRangeEnd`,
+`signalItems[]`, `noiseItems[]`), `whatsInThePrice`, `risks[]`, `verdict`.
+
+Then render:
+
+- **Default: inline markdown response.** Sufficient for most uses — this
+  mirrors fundamental-shift-scanner's "quick pulse-check" default when the
+  ask is conversational ("what's changed with X").
+- **1-page PDF when the user wants a shareable conviction note** (the old
+  growth-triggers-1pager deliverable): follow `skills/_shared/pdf-design-guide.md`
+  for the palette/component vocabulary, generate via the two-step pipeline
+  (`resolve.sh rerating-catalysts --input data.json --output report.html`
+  then `resolve.sh render-pdf --html report.html --pdf
+  data/rerating-catalysts/<Company>_Output.pdf`). If content spills past 1
+  page, cut catalyst body text first, then drop to 5 catalysts — never drop
+  the "what's in the price" section.
+- **HTML widget** if the user wants something visual but not a file — same
+  card-based severity layout as `watchlist-catalyst-scanner` (HIGH CONVICTION
+  catalysts get stronger visual treatment).
+
+Close every run with the files-touched manifest (conventions §9) and the
+token-optimization suggestion (conventions §11).
+
+## Conventions
+
+Follow [`management-credibility-tracker`'s shared conventions](../management-credibility-tracker/_shared/conventions.md):
+§1 (Rs Cr, FY26 notation), §2 (citation discipline — every catalyst carries a
+source), §3 (anti-hallucination — read the actual PDF before sizing a number),
+§6 (STRUCTURAL/CYCLICAL/ONE-OFF/GOVERNANCE-SIGNAL taxonomy, useful as a
+secondary tag alongside the "new" category when a catalyst's persistence
+matters).
+
+## Pitfalls
+
+- **Don't reduce to a valuation call.** Framework §6 — cheapness/expensiveness
+  is out of scope here; that's `financial-model`'s job.
+- **Don't quantify without a source.** Undisclosed values stay "awaiting
+  disclosure," never estimated.
+- **Don't treat "Board Meeting Intimation" as signal.** Wait for the outcome
+  filing; note the meeting date as a forward marker if the outcome isn't in
+  the window yet.
+- **Don't call something a fresh catalyst if it's just execution of prior
+  guidance.** Tag it new-vs-confirmation honestly — confirmation still counts
+  toward the EPS-accrual math, but shouldn't be marketed as new information.
+- **Don't skip the quiet-week case.** If the 7-day announcement window is all
+  noise and the 4 transcripts/results/PPTs show no new "new" facts beyond
+  what a prior run already captured, say so in 2-3 sentences and stop —
+  padding erodes trust in every other output this skill produces.
+- **SAST/PIT filings never imply direction from the title alone** — open the
+  PDF before characterising a promoter/insider stake change as bullish or
+  bearish.

@@ -62,7 +62,7 @@ Sections:
 2. **Revenue recognition** — Aggressive practices, channel stuffing, capitalisation policies (Brightcom pattern)
 3. **Cash flow discrepancies** — CFO vs PAT vs EBITDA bridge (Gensol pattern)
 4. **Related party transactions** — Quantum, growth vs revenue, circular schemes (Gensol/Manpasand pattern)
-5. **Balance sheet** — Receivables aging, inventory days, intangibles, write-offs
+5. **Balance sheet** — Receivables aging, inventory days, intangibles, write-offs, and the mandatory **Inventory Gains check**: test whether margin/PAT strength in a period is inflated by inventory (stock) revaluation gains from rising commodity/input prices (Other Income jumps, margin-vs-volume mismatches, MDA/concall language, favourable RM-cost moves — see `references/forensic_master_prompt.md` §5) rather than genuine structural/operating improvement. **Sourcing rule:** fetch the actual Result filing P&L via `stock-documents-fetcher` (`documentsFetcher.js`/`StockscansClient.documents()`) to read the literal "Changes in inventories" line, PBT, and PAT — do not substitute web search/news-article commentary for these figures; use search only for qualitative context
 6. **Contingent liabilities** — As % of net worth; unusual movements
 7. **Misc expenses** — As % of sales (>3% = RED)
 8. **MDA consistency** — Numbers vs commentary; what's NOT being said

@@ -9,7 +9,7 @@
  * analysis. All Stockscans access goes through @stock/api.
  *
  * Usage: node watchlistInsights.js <command> [args] [--window-hours <n>] [--env-file <path>]
- *   fetch-announcements <watchlistIds> | read-pdf <url> | get-company-notes <id> | add-note [json]
+ *   fetch-announcements <watchlistIds> | read-pdf <url> | read-pdf-with-meta <url> | get-company-notes <id> | add-note [json]
  *   mark-processed <companyId> <announcementId> | list-companies | insight-template <cat> [--depth quick|standard|deep]
  *   send-summary [html] | build-digest <watchlistIds> | send-digest <watchlistIds> | init-notes
  *
@@ -34,7 +34,7 @@ const path = require('path');
 const { stockscans, S3_BASE_URL } = require('@stock/api');
 const { sendHtmlEmail, stockscansLink } = require('@stock/cloud-utils');
 const { NotesDb } = require('./lib/notesDb');
-const { pdfToText } = require('@stock/cloud-utils');
+const { pdfToText, pdfToTextWithMeta } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const ist = require('./lib/ist');
@@ -119,6 +119,8 @@ const {
   CATEGORY_RULES,
   categoriseAnnouncement,
   HIGH_CONVICTION_CATEGORIES,
+  isHeavyDocumentCategory,
+  heavyDocumentSkipReason,
 } = require('./lib/announcementTaxonomy');
 
 // ── Insight templates ───────────────────────────────────────────────────────
@@ -225,6 +227,48 @@ async function logIgnoredAnnouncement(ann, matchedKw) {
   await StorageService.saveJson(logPath, existing, false);
 }
 
+/**
+ * Log a heavy-document skip (results/concall_transcript/investor_presentation/
+ * annual_report) the same way logIgnoredAnnouncement logs noise — for
+ * visibility, not enforcement. This is what powers the digest email's "Skipped
+ * (heavy documents)" section and insight-validation's review of whether a skip
+ * looks wrong. Mirrors logIgnoredAnnouncement's file-per-day cache pattern
+ * deliberately, so both logs read the same way to a human or a script.
+ */
+async function logHeavyDocumentSkip(ann) {
+  StorageService.init();
+  const dateStr = ist.istYmd(); // YYYYMMDD
+  const logPath = `cache/heavy-doc-skips_${dateStr}.json`;
+  let existing = StorageService.readJson(logPath) || [];
+  existing.push({
+    companyId: ann.companyId || '',
+    name: ann.name || '',
+    title: ann.title || '',
+    category: ann.category || '',
+    reason: ann.heavyDocumentSkipReason || '',
+    announcementId: ann.announcementId || '',
+    date: ann.date || '',
+  });
+  await StorageService.saveJson(logPath, existing, false);
+  return existing.length;
+}
+
+async function cmdLogHeavySkip(jsonStr) {
+  const ann = JSON.parse(jsonStr);
+  const count = await logHeavyDocumentSkip(ann);
+  process.stdout.write(JSON.stringify({ status: 'ok', totalSkippedToday: count }));
+}
+
+function readHeavySkips(dateStr = ist.istYmd()) {
+  StorageService.init();
+  const logPath = `cache/heavy-doc-skips_${dateStr}.json`;
+  return StorageService.readJson(logPath) || [];
+}
+
+function cmdGetHeavySkips() {
+  process.stdout.write(JSON.stringify(readHeavySkips()));
+}
+
 // Default lookback window, in hours, for gatherInwindowRaw / fetch-announcements /
 // build-digest / send-digest. Override per-call via the windowHours param, or from the
 // CLI via `--window-hours <n>` (see argValue in lib/env.js). Kept as a named constant
@@ -315,6 +359,8 @@ async function cmdFetchAnnouncements(watchlistIdsArg, client = stockscans) {
     const co = NotesDb.getCompany(notes, companyId);
     if (co && (co.processedAnnouncements || []).includes(annId)) continue;
 
+    const category = categoriseAnnouncement(title, description);
+    const heavyDocument = isHeavyDocumentCategory(category);
     results.push({
       announcementId: annId,
       companyId,
@@ -325,7 +371,15 @@ async function cmdFetchAnnouncements(watchlistIdsArg, client = stockscans) {
       date: dateStr,
       ssUrl,
       pdfUrl,
-      category: categoriseAnnouncement(title, description),
+      category,
+      // Deterministic (script-side) classification of whether this announcement
+      // is a heavy dedicated-workflow document (results/transcript/investor
+      // presentation/annual report). watchlist-insights' orchestration skips
+      // read-pdf + announcement-insights entirely for these and just logs the
+      // skip — see HEAVY_DOCUMENT_CATEGORIES in lib/announcementTaxonomy.js and
+      // watchlist-insights' SKILL.md Step 2.
+      heavyDocument,
+      heavyDocumentSkipReason: heavyDocument ? heavyDocumentSkipReason(category) : null,
       hasNotes: co !== null,
       noteCount: co ? (co.notes || []).length : 0,
     });
@@ -341,6 +395,28 @@ async function cmdReadPdf(url) {
   const buf = await stockscans.fetchPdf(url, 60000);
   const text = await pdfToText(buf);
   process.stdout.write(text);
+}
+
+const HEAVY_PARSE_PAGE_THRESHOLD = 4;
+
+/**
+ * Same as read-pdf but returns {text, numPages, isHeavyParse} as JSON instead
+ * of raw text — this is what announcement-insights' Step 1 uses instead of
+ * plain read-pdf, so a caller (watchlist-insights) can flag "not skip-listed
+ * by category, but still turned out to be a >4-page document" for the digest's
+ * Heavy Parse Highlights section without a second PDF fetch. numPages is null
+ * when it couldn't be derived (poppler-CLI fallback) — treat that as unknown,
+ * not as "not heavy".
+ */
+async function cmdReadPdfWithMeta(url) {
+  if (!url || url === 'null') {
+    process.stdout.write(JSON.stringify({ text: '', numPages: null, isHeavyParse: false }));
+    return;
+  }
+  const buf = await stockscans.fetchPdf(url, 60000);
+  const { text, numPages } = await pdfToTextWithMeta(buf);
+  const isHeavyParse = typeof numPages === 'number' && numPages > HEAVY_PARSE_PAGE_THRESHOLD;
+  process.stdout.write(JSON.stringify({ text, numPages, isHeavyParse }));
 }
 
 function cmdGetCompanyNotes(companyId) {
@@ -374,6 +450,14 @@ async function cmdAddNote(noteJsonStr) {
       if (significance === 'routine' || significance === 'low') significance = 'medium';
       if (!tags.includes('high_conviction')) tags.push('high_conviction');
     }
+    // numPages/isHeavyParse come from announcement-insights' Step 1
+    // (read-pdf-with-meta) and get stored on the note itself — this is what
+    // lets send-digest deterministically render the "Heavy Parse Highlights"
+    // section (>4 pages, NOT a skip-listed category) without a second
+    // PDF fetch or a separate log file. See watchlist-insights' SKILL.md.
+    const numPages = Number.isFinite(noteData.numPages) ? noteData.numPages : null;
+    const isHeavyParse = noteData.isHeavyParse === true || (typeof numPages === 'number' && numPages > 4);
+    if (isHeavyParse && !tags.includes('heavy_parse')) tags.push('heavy_parse');
     const entry = {
       id: NotesDb.uuid(),
       createdAt: ist.nowIstIso(),
@@ -386,6 +470,8 @@ async function cmdAddNote(noteJsonStr) {
       tags,
       category: noteData.category || '',
       announcementDescription: noteData.announcementDescription || '',
+      numPages,
+      isHeavyParse,
     };
     co.notes.push(entry);
     noteId = entry.id;
@@ -470,12 +556,18 @@ async function collectDigest(client, watchlistIds, windowHours = DEFAULT_WINDOW_
       tags: note ? note.tags || [] : [],
       hasInsight: Boolean(note && note.insight),
       needsInsight: !(note && note.insight),
+      // Heavy Parse Highlights (Step 0 in announcement-insights): a note whose
+      // category was NOT skip-listed but whose PDF still turned out >4 pages.
+      // Rendered as a separate digest section so insight-validation can review
+      // whether that category deserves its own skip rule.
+      isHeavyParse: Boolean(note && note.isHeavyParse),
+      numPages: note ? note.numPages ?? null : null,
     });
   }
   return digest;
 }
 
-function buildDigestHtml(digest, windowHours = DEFAULT_WINDOW_HOURS, watchlistIds = []) {
+function buildDigestHtml(digest, windowHours = DEFAULT_WINDOW_HOURS, watchlistIds = [], heavySkips = []) {
   const dateStr = ist.nowIstDate();
   const buckets = { high: [], medium: [], low: [] };
   for (const d of digest) {
@@ -520,6 +612,44 @@ function buildDigestHtml(digest, windowHours = DEFAULT_WINDOW_HOURS, watchlistId
     '<p style="color:#999;font-size:12px">Routine announcements suppressed. ' +
       'Insights for previously-seen announcements are read from company_notes.json.</p>'
   );
+
+  // ── Heavy Parse Highlights: NOT skip-listed by category, but the PDF still
+  // turned out >4 pages. Deterministic — no LLM judgment involved, just
+  // filtering notes already tagged isHeavyParse/heavy_parse by add-note. ──────
+  const heavyParseItems = digest.filter((d) => d.isHeavyParse);
+  if (heavyParseItems.length) {
+    parts.push('<h3>📄 Heavy Parse Highlights (&gt;4 pages, not skip-listed)</h3>');
+    parts.push(
+      '<p style="color:#999;font-size:12px">These categories aren\'t in ' +
+        'HEAVY_DOCUMENT_CATEGORIES, but the actual filing still needed heavy parsing — ' +
+        'insight-validation reviews this list for candidate skip-rule additions.</p>'
+    );
+    for (const d of heavyParseItems) {
+      parts.push(
+        `<div style="margin-bottom:8px;font-size:13px">` +
+          `${stockscansLink(`${d.name} (${d.ticker})`, d.ticker, 'NSE')} — ${d.title} ` +
+          `<i>[${d.category}, ${d.numPages ?? '?'} pages]</i></div>`
+      );
+    }
+  }
+
+  // ── Skipped (heavy-document category, never PDF-parsed at all) ─────────────
+  if (heavySkips.length) {
+    parts.push('<h3>🚫 Skipped (heavy-document category — not parsed)</h3>');
+    parts.push(
+      '<p style="color:#999;font-size:12px">Skipped by category before any PDF fetch — ' +
+        'if something genuine was missed here, flag it so the category rule can be ' +
+        'corrected.</p>'
+    );
+    for (const s of heavySkips) {
+      parts.push(
+        `<div style="margin-bottom:8px;font-size:13px">` +
+          `${stockscansLink(`${s.name} (${s.companyId})`, s.companyId, 'NSE')} — ${s.title} ` +
+          `<i>[${s.category}]</i><br><span style="color:#999">${s.reason}</span></div>`
+      );
+    }
+  }
+
   if (watchlistLinks) {
     parts.push(
       `<p style="font:11px Arial;color:#999;margin:16px 0 0;border-top:1px solid #eee;padding-top:8px">Source: ${watchlistLinks}</p>`
@@ -531,17 +661,26 @@ function buildDigestHtml(digest, windowHours = DEFAULT_WINDOW_HOURS, watchlistId
 async function cmdBuildDigest(watchlistIdsArg, client = stockscans) {
   const watchlistIds = parseWatchlistIds(watchlistIdsArg);
   const windowHours = parseWindowHours();
-  process.stdout.write(JSON.stringify(await collectDigest(client, watchlistIds, windowHours)));
+  const digest = await collectDigest(client, watchlistIds, windowHours);
+  const heavySkips = readHeavySkips();
+  process.stdout.write(
+    JSON.stringify({
+      digest,
+      heavySkips,
+      heavyParseCount: digest.filter((d) => d.isHeavyParse).length,
+    })
+  );
 }
 
 async function cmdSendDigest(watchlistIdsArg, client = stockscans) {
   const watchlistIds = parseWatchlistIds(watchlistIdsArg);
   const windowHours = parseWindowHours();
   const digest = await collectDigest(client, watchlistIds, windowHours);
+  const heavySkips = readHeavySkips();
   const missing = digest.filter((d) => d.needsInsight).map((d) => d.announcementId);
   const windowLabel = windowHours === 24 ? '' : ` (${windowHours}h)`;
   const status = await sendHtml(
-    buildDigestHtml(digest, windowHours, watchlistIds),
+    buildDigestHtml(digest, windowHours, watchlistIds, heavySkips),
     `📊 Watchlist Insights${windowLabel} — ${ist.nowIstDate()}`
   );
   Object.assign(status, {
@@ -558,9 +697,12 @@ async function cmdSendDigest(watchlistIdsArg, client = stockscans) {
 const COMMANDS = {
   'fetch-announcements': [cmdFetchAnnouncements, 1],
   'read-pdf': [cmdReadPdf, 1],
+  'read-pdf-with-meta': [cmdReadPdfWithMeta, 1],
   'get-company-notes': [cmdGetCompanyNotes, 1],
   'add-note': [cmdAddNote, 0],
   'mark-processed': [cmdMarkProcessed, 2],
+  'log-heavy-skip': [cmdLogHeavySkip, 1],
+  'get-heavy-skips': [cmdGetHeavySkips, 0],
   'list-companies': [cmdListCompanies, 0],
   'insight-template': [cmdInsightTemplate, 1],
   'send-summary': [cmdSendSummary, 0],

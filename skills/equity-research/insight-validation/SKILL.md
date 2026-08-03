@@ -87,6 +87,40 @@ and whether it should be a HIGH_CONVICTION category. These are PROPOSALS — nev
 `skill-manager`/`announcement-insights` maintenance action once a human reviews the
 proposal via `review-proposals`.
 
+## Heavy-document skip review (the other half of the same job)
+
+Growing the template library (above) and correcting `HEAVY_DOCUMENT_CATEGORIES` (this
+section) are the same underlying job — deciding where `watchlist-insights`' limited
+thinking time should and shouldn't go — so they're reviewed together each `run`.
+`watchlist-insights` deliberately skips PDF-parsing `results`, `concall_transcript`,
+`investor_presentation`, and `annual_report` announcements (dedicated skills own them),
+and logs two things every run for exactly this review:
+
+- **`cache/heavy-doc-skips_<date>.json`** (via `watchlistInsights.js get-heavy-skips`,
+  or read the file directly) — every announcement that was skipped, with its category
+  and reason. Scan for any title that doesn't actually look like the heavy document its
+  category implies (e.g. something categorised `investor_presentation` whose title is
+  really "Investor Presentation — Announcement of Rs 200cr Order Win" — the presentation
+  keyword matched first but the real content is a material order win that should NOT
+  have been skipped). Flag these as **false-positive skip candidates**: propose either a
+  `ROUTINE_OVERRIDES`-style carve-out or a reordering of `CATEGORY_RULES` so the
+  material category wins first-match, same proposal mechanism as template-coverage
+  above (append to `data/assets/validation-proposals.md`).
+- **Notes tagged `heavy_parse`** in the window (`isHeavyParse: true`, i.e. >4 pages, on
+  a category that was NOT skip-listed) — this is the mirror case: a category currently
+  treated as "safe to parse" that keeps turning out heavy in practice. If the same
+  category shows up tagged `heavy_parse` repeatedly (e.g. 3+ times in a rolling 30-day
+  window), propose ADDING it to `HEAVY_DOCUMENT_CATEGORIES` the same way a new template
+  gets proposed — category name, 3+ example announcements, and the specialist skill (if
+  any) that should own it instead, or a note that no specialist skill exists yet and one
+  may be worth creating.
+
+Both proposal types go in the same `data/assets/validation-proposals.md` file, clearly
+labelled by type (`template-coverage` / `skip-rule-correction` / `skip-rule-addition`)
+so `review-proposals` can present them distinctly. Never edit
+`HEAVY_DOCUMENT_CATEGORIES`, `CATEGORY_RULES`, or `ROUTINE_OVERRIDES` directly from this
+skill — same rule as template proposals above.
+
 ## Setup
 
 ```bash

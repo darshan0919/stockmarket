@@ -63,6 +63,8 @@ For each margin trigger, label sustainability:
 - `CYCLICAL` — driven by commodity cycle, will reverse
 - `TEMPORARY` — driven by one-off (e.g., inventory gains during input price drop)
 
+**Inventory Gains check (mandatory).** Before tagging a margin/profit trigger `SUSTAINABLE`, explicitly test whether the quarter's strength is inflated by inventory (stock) gains — gains from revaluing existing raw-material/finished-goods inventory upward as commodity/input prices rose. Look for: (a) a jump in "Other Income" or an exceptional/one-off line item, (b) reported gross/EBITDA margin expansion that outpaces the stated volume growth, (c) explicit concall language about "inventory gains," "stock gains," or "favourable inventory valuation," or (d) raw-material cost as % of sales improving with no volume/pricing explanation. Quantify the estimated inventory-gain contribution to PAT/EBITDA where derivable, and tag it `TEMPORARY` — never `SUSTAINABLE` — since it reverses when commodity prices fall. Call this out prominently in the verdict chips (e.g. `INVENTORY-GAIN DRIVEN`) whenever it materially affects the headline result, distinguishing it from genuinely structural drivers (volume growth, pricing power, cost efficiency, mix improvement).
+
 ## 1C. Capex, Balance Sheet & Cash Flow
 
 Analyse only items that affect future earnings power. Do _not_ duplicate a forensic-accounting scan.

@@ -1,0 +1,30 @@
+{
+  "ticker": "NSE:SASKEN",
+  "creator": "stock-documents-fetcher",
+  "creationTime": "2026-08-02T18:18:54.768Z",
+  "modifiedTime": "2026-08-02T18:18:54.768Z",
+  "fetched_at": "2026-08-02T18:18:54.768Z",
+  "documents": [
+    {
+      "date": "202603",
+      "documentType": "Result",
+      "ssUrl": "akn63n5bjwfsld5clze6b8o2.pdf",
+      "hasNotes": false,
+      "filename": "NSE_SASKEN_Result_202603.pdf",
+      "path": "/sessions/gifted-admiring-tesla/mnt/stockmarket/stock_documents/NSE_SASKEN_Result_202603.pdf",
+      "size_bytes": 1006889,
+      "cached": true
+    },
+    {
+      "date": "202512",
+      "documentType": "Result",
+      "ssUrl": "cplcyaws6cci0s4nmnd94laq.pdf",
+      "hasNotes": false,
+      "filename": "NSE_SASKEN_Result_202512.pdf",
+      "path": "/sessions/gifted-admiring-tesla/mnt/stockmarket/stock_documents/NSE_SASKEN_Result_202512.pdf",
+      "size_bytes": 1315382,
+      "cached": true
+    }
+  ],
+  "skipped": []
+}

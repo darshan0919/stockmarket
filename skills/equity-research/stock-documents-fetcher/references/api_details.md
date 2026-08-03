@@ -2,6 +2,8 @@
 
 Reference doc for the two endpoints used by this skill. Read this if you're extending the skill (e.g. adding a new document type, debugging an unexpected response shape, handling a new auth flow). For day-to-day fetching, the SKILL.md is enough.
 
+**Note (2026-08-02):** this endpoint/schema documentation below is accurate and confirmed live. What was stale was only the *invocation* layer described in SKILL.md (it referenced Python CLI scripts that don't exist in this repo) — the real implementation calling these exact endpoints is `stock-api/src/fetchers/documentsFetcher.js` / `announcementsFetcher.js` (Node, via `StockscansClient` in `stock-api/src/clients/StockscansClient.js`). See SKILL.md's "Actual working usage" section for the corrected invocation.
+
 ## 1. Documents endpoint
 
 **Method**: `GET`

@@ -228,6 +228,45 @@ const CATEGORY_RULES = [
     ['acquisition', 'acquire', 'joint venture', ' jv ', 'slump sale', 'stake purchase'],
   ],
   ['buyback', ['buyback', 'buy-back', 'extinguishment of shares', 'share repurchase']],
+  [
+    // Placed last before the 'general' catch-all: these are FILING-TYPE tells
+    // (what kind of document this is), not event-type tells, so any genuine
+    // material event above (order_book, demerger, results, etc.) should win
+    // first-match even if it happens to co-mention "presentation" or
+    // "transcript". Only an announcement that is JUST the heavy document
+    // itself, with no more specific material-event keyword, lands here.
+    // See HEAVY_DOCUMENT_CATEGORIES below — watchlist-insights deliberately
+    // skips PDF-parsing these, since dedicated skills (concall-analysis,
+    // equity-research-extraction/stock-report, annual-report-analysis) own
+    // them and they are frequently 15-300+ pages.
+    'concall_transcript',
+    [
+      'transcript of earnings call',
+      'transcript of conference call',
+      'transcript of concall',
+      'transcript of the earnings call',
+      'transcript of the conference call',
+      'concall transcript',
+      'earnings call transcript',
+      'conference call transcript',
+    ],
+  ],
+  [
+    'investor_presentation',
+    [
+      'investor presentation',
+      'investors presentation',
+      'investor update',
+      'investors update',
+      'analyst presentation',
+      'presentation to investors',
+      'presentation to analysts',
+    ],
+  ],
+  [
+    'annual_report',
+    ['annual report', 'integrated annual report', "annual report and accounts"],
+  ],
   ['general', []],
 ];
 
@@ -315,8 +354,61 @@ const CATEGORY_LABELS = {
   management_change: 'Management change',
   dividend: 'Dividend',
   agm_egm: 'AGM / EGM',
+  concall_transcript: 'Concall transcript',
+  investor_presentation: 'Investor presentation',
+  annual_report: 'Annual report',
   general: 'Other',
 };
+
+/**
+ * Categories whose PDF is a heavy, dedicated-workflow document rather than
+ * something watchlist-insights should itself parse into an insight. Each has
+ * its own specialist skill that does this properly (deep extraction, section
+ * structure, multi-quarter comparison, etc.) — re-parsing the same 15-300+
+ * page document inside the daily watchlist scan would spend the model's
+ * thinking time on document mechanics instead of the actual signal, which is
+ * the opposite of what watchlist-insights exists to do.
+ *
+ * `results` is included deliberately: a genuine "Financial Results" /
+ * "Unaudited Results" filing (the full statement, not a shorter press
+ * release about it — those still fall to `general`) is exactly this kind of
+ * document, and `quarterly-result-analysis` / `pre-pead-scanner` already own
+ * it. `gainers-signal` is a DELIBERATE EXCEPTION — it does NOT skip `results`
+ * (see its SKILL.md), because its actionability signal specifically needs
+ * the beat/miss extracted from the results filing itself; only
+ * `watchlist-insights` treats this set as skip-worthy.
+ *
+ * Skipping here means: don't fetch/parse the PDF, don't call
+ * `announcement-insights`, just `mark-processed` and log the skip (category +
+ * reason) for visibility — see HEAVY_DOCUMENT_SKIP_REASONS and
+ * watchlist-insights' SKILL.md Step 2.
+ */
+const HEAVY_DOCUMENT_CATEGORIES = new Set([
+  'results',
+  'concall_transcript',
+  'investor_presentation',
+  'annual_report',
+]);
+
+const HEAVY_DOCUMENT_SKIP_REASONS = {
+  results: 'Full results/financial-statement filing — quarterly-result-analysis and ' +
+    'pre-pead-scanner own this document; re-parsing it here would spend thinking time ' +
+    'on tables instead of insight synthesis.',
+  concall_transcript: 'Full earnings-call transcript — concall-analysis / ' +
+    'concall-transcript-extractor own this; typically 15-40+ pages of verbatim Q&A.',
+  investor_presentation: 'Full investor/analyst presentation — equity-research-extraction ' +
+    'and stock-report own this; typically 20-60+ slides.',
+  annual_report: 'Full annual report — annual-report-analysis owns this; typically ' +
+    '100-300+ pages.',
+};
+
+function isHeavyDocumentCategory(category) {
+  return HEAVY_DOCUMENT_CATEGORIES.has(category);
+}
+
+function heavyDocumentSkipReason(category) {
+  return HEAVY_DOCUMENT_SKIP_REASONS[category] || 'Heavy dedicated-workflow document.';
+}
 
 /**
  * Paperwork that WRAPS a material event without being one.
@@ -409,8 +501,12 @@ module.exports = {
   SUPPORTING_CATEGORIES,
   SCHEDULED_CATEGORIES,
   HIGH_CONVICTION_CATEGORIES,
+  HEAVY_DOCUMENT_CATEGORIES,
+  HEAVY_DOCUMENT_SKIP_REASONS,
   isScheduled,
   isHighConviction: (category) => HIGH_CONVICTION_CATEGORIES.has(category),
+  isHeavyDocumentCategory,
+  heavyDocumentSkipReason,
   categoriseAnnouncement,
   announcementStrength,
   annotate,

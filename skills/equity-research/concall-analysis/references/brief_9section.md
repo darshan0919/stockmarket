@@ -58,6 +58,8 @@ Revenue, EBITDA, net profit, margins (brief only — full numbers go in the offi
 
 3-5 numbers max.
 
+**Inventory Gains check (mandatory).** If margin/PAT expansion is a headline number, explicitly note whether it is inflated by inventory (stock) gains — revaluation of existing raw-material/finished-goods inventory upward on rising input prices, often visible as an "Other Income"/exceptional jump, a margin move that outpaces volume growth, or explicit concall language ("inventory gains", "stock gains"). One line is enough in brief mode, but it must state plainly: inventory-gain-driven (non-recurring) or structural/operating (sustainable).
+
 ## §9 Sentiment Analysis
 
 - **Overall tone:** Positive / Neutral / Negative

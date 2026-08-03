@@ -7,6 +7,8 @@ description: Fetches official company documents (earnings call transcripts, inve
 
 Pulls official filings for Indian-listed companies (NSE/BSE) from Stockscans and saves them as PDFs in a directory of your choosing, alongside a `manifest.json` that downstream skills can consume.
 
+**⚠️ CORRECTED 2026-08-02 — the Python CLI scripts described below (`stock-api/python/fetchers/fetch_documents.py` / `fetch_announcements.py`) DO NOT EXIST in this repo.** There is no `stock-api/python/` directory at all. The registry's `entry` (`stock-api/bin/stock-documents-fetcher.js`) is also currently an unfinished stub (`// TODO: implement actual parsing and logic here` — prints an empty `{ok:true,outputs:[],warnings:[]}` and does nothing). **The real, working implementation is a pair of Node.js modules** — see "Actual working usage" below, added after live-testing the real fetch path. The rest of this file (flags, date semantics, manifest shape, failure modes) still accurately describes the *real* JS functions' behavior — only the invocation mechanism (Python CLI vs. `require()`) and the auth resolution (see corrected Authtoken section) were wrong.
+
 There are two endpoints behind this skill:
 
 | When to use                                                                                                     | Endpoint                          | Script                           |
@@ -14,7 +16,40 @@ There are two endpoints behind this skill:
 | Standardised filings (Annual Report, PPT, Result, Transcript)                                                   | `/api/company/documents/{ticker}` | `scripts/fetch_documents.py`     |
 | Free-text search across exchange announcements (merger, buyback, AGM, rating change, board changes, ESOP, etc.) | `/api/company/announcements`      | `scripts/fetch_announcements.py` |
 
-The two scripts share auth, downloading, and manifest writing — they only differ in how documents are listed and filtered.
+The two scripts share auth, downloading, and manifest writing — they only differ in how documents are listed and filtered. (Table above kept as-is for the flag/endpoint mapping — read "Script" as "the module documented under Actual working usage", not a literal file that exists.)
+
+## Actual working usage (Node.js, confirmed live 2026-08-02)
+
+There is no ready-made CLI wrapper on disk — call the module function directly from a small Node script (`require()`), the same pattern every other `stock-api/bin/*.js` consumer of `documentsFetcher.js` uses internally (e.g. `concall-analysis.js`, `quarterly-result-analysis.js`, both of which `require('../src/fetchers/documentsFetcher.js')`). Auth is `STOCKSCANS_AUTH_TOKEN` (env var, or the canonical key in a `.env` file), resolved by `StockscansAuth` — **not** a `Stockscans_authtoken` cookie file at `/mnt/project/...` as the original "Authtoken" section below describes; that resolution order was never implemented in code.
+
+```js
+// e.g. /tmp/fetch_docs.js — use an ABSOLUTE path to documentsFetcher.js,
+// a relative require('./stock-api/...') only works if cwd is the repo root.
+const { fetchDocuments } = require('/absolute/path/to/stockmarket/stock-api/src/fetchers/documentsFetcher.js');
+(async () => {
+  const res = await fetchDocuments('NSE:YASHO', {
+    types: ['PPT', 'Result', 'Transcript'],   // omit for all 4 types
+    startDate: '202606',                       // YYYYMM, see date semantics below
+    endDate: '202606',
+    outputDir: '/tmp/yasho_docs',
+    listOnly: false,                            // true = preview, no download
+  });
+  console.log(JSON.stringify(res.fetched, null, 2));   // downloaded docs
+  console.log(JSON.stringify(res.skipped, null, 2));   // failures, with `reason`
+})();
+```
+
+Run with the token supplied explicitly (`.env` auto-load is not guaranteed outside the jobs-runtime `Env` abstraction):
+
+```bash
+STOCKSCANS_AUTH_TOKEN="$(grep '^STOCKSCANS_AUTH_TOKEN' .env | cut -d= -f2-)" node /tmp/fetch_docs.js
+```
+
+`fetchDocuments(ticker, options)` returns `{ fetched, skipped, manifest, manifestPath }` (or just `{ matched }` when `listOnly: true`) and also writes `manifest.json` to `outputDir` — same shape documented below under "Manifest format". The `types`/`startDate`/`endDate`/`year`/`lastN`/`outputDir`/`listOnly` option keys map 1:1 to the `-t`/`--start-date`/`--end-date`/`--year`/`--last-n`/`-o`/`--list-only` flags described in the (nonexistent) Python CLI section further down — the semantics are identical, confirmed by reading `documentsFetcher.js` source directly. `fetchAnnouncements()` in `announcementsFetcher.js` follows the same pattern with the `--search`/`--start`/`--end`/`--max-pages`/`--max-results` equivalents.
+
+**Per `skills/_shared/conventions.md` §6, downloaded PDFs are re-fetchable source documents and must NOT be persisted under `<repo>/data/`** — write them to a temp/scratch dir outside the data mirror (e.g. `/tmp/<ticker>_docs/`), as in the example above.
+
+**Live-confirmed example (2026-08-02):** `fetchDocuments('NSE:YASHO', {types:['PPT','Result'], startDate:'202606', endDate:'202606', outputDir:'/tmp/yasho_docs'})` returned both the Q1FY27 PPT (`NSE_YASHO_PPT_202606.pdf`, 5.3MB) and Result (`NSE_YASHO_Result_202606.pdf`, 4.4MB) in one call, no auth issues — confirming the module + `STOCKSCANS_AUTH_TOKEN` from `.env` is a working path end-to-end. The only friction was `require()` needing an absolute path when run from outside the repo root.
 
 ## When to use this skill
 
@@ -29,16 +64,16 @@ Use it whenever you (or another skill, such as `equity-research-extraction`, `eq
 
 If the request involves text-search over miscellaneous corporate announcements (anything that isn't an Annual Report, PPT, Result, or Transcript), reach for `fetch_announcements.py` instead. The four standardised types live in the documents API.
 
-## Authtoken: where it comes from, why it matters
+## Authtoken: where it comes from, why it matters (CORRECTED 2026-08-02)
 
-Stockscans gates both endpoints with a JWT cookie. The skill resolves the token in this order:
+Stockscans gates both endpoints with a JWT cookie. The section below (file-based resolution, `--authtoken-file`) describes a scheme that was **never implemented** in this repo's actual auth code, `stock-api/src/auth/stockscansAuth.js` (`StockscansAuth`). The real resolution order (first hit wins) is:
 
-1. `--authtoken-file <path>` — explicit CLI arg
-2. `STOCKSCANS_AUTHTOKEN` environment variable
-3. `/mnt/project/Stockscans_authtoken` (default for this project)
-4. `/mnt/project/stockscans_authtoken`, `/mnt/user-data/uploads/Stockscans_authtoken`, `~/.stockscans_authtoken`
+1. an explicit token passed to the `StockscansAuth` constructor (not exposed as a CLI flag anywhere)
+2. `STOCKSCANS_AUTH_TOKEN` environment variable — **canonical**
+3. `STOCKSCANS_AUTHTOKEN` environment variable — legacy name, still supported but logs a deprecation warning
+4. a `.env` file on disk, canonical key first then legacy key
 
-Both scripts auto-decode the JWT's `exp` claim and warn if expiry is within 7 days, or hard-error if it's already past. If you get a 401/403 from the API, the token has expired — ask the user to refresh it from the browser (DevTools → Cookies → `authtoken`) and update the project file.
+There is no `Stockscans_authtoken` file-based fallback and no `--authtoken-file` flag anywhere in the codebase. Always set `STOCKSCANS_AUTH_TOKEN` (env var or `.env`) before calling `fetchDocuments`/`fetchAnnouncements` — see "Actual working usage" above for the exact invocation. The JWT itself auto-decodes an `exp` claim elsewhere in the stack (e.g. `concall-transcript-extractor`'s expiry warnings), but `StockscansAuth` itself does not warn on impending expiry — a 401/403 from the API is the first signal. If you get a 401/403, the token has expired — ask the user to log into stockscans.in, copy the fresh `authtoken` cookie value (DevTools → Application/Storage → Cookies → `authtoken`), and update `STOCKSCANS_AUTH_TOKEN` in `.env`.
 
 ## Running the documents script
 
@@ -223,7 +258,8 @@ Same shape but with announcement-level fields (`title`, `description`, `companyK
 
 ## Failure modes & how to handle them
 
-- **HTTP 401/403** → token expired. Check `check_token_expiry` output, then ask the user to refresh `Stockscans_authtoken`.
+- **`stock-api/bin/stock-documents-fetcher.js` prints `{"ok":true,"outputs":[],"warnings":[]}` and does nothing** → expected as of 2026-08-02, this is an unimplemented stub (`// TODO: implement actual parsing and logic here`) despite being the registry's `entry` for this skill. Do not invoke it — call `fetchDocuments`/`fetchAnnouncements` directly via `require()` as shown in "Actual working usage" above. If someone finishes the stub, update this note and the registry.
+- **HTTP 401/403** → token expired. There is no `check_token_expiry` helper in the actual code (see corrected Authtoken section) — a 401/403 from the API itself is the signal. Ask the user to refresh `STOCKSCANS_AUTH_TOKEN` in `.env`.
 - **Empty `documents` array on a real ticker** → the ticker symbol on Stockscans is sometimes the BSE security code rather than the NSE symbol. Try `BSE:<6-digit-code>` as an alternative.
 - **A specific quarter's PPT or Transcript is missing** → Stockscans hosts what the company filed; not every company files investor presentations or holds concalls every quarter. This is data, not a bug — note the gap rather than retrying.
 - **`Unknown document type` error** → check the alias list at the top of `fetch_documents.py` (`TYPE_ALIASES`). Add new aliases there if a research workflow keeps using a phrasing that isn't covered.
