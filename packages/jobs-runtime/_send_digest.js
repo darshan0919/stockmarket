@@ -42,7 +42,11 @@ async function collectDigest(client) {
     if (seen.has(aid)) continue;
     seen.add(aid);
     const ssUrl = ann.ssUrl || '';
-    const [note] = idx[aid] || [null];
+    // buildNoteIndex now returns { byUsecase, latest } per announcementId (see
+    // notesDb.js) — this orphaned one-off script isn't wired into any skill
+    // anymore, just keeping it non-broken rather than removing it outright.
+    const idxEntry = idx[aid];
+    const note = idxEntry ? idxEntry.latest && idxEntry.latest[0] : null;
     digest.push({
       announcementId: aid,
       companyId: ann.companyId || '',

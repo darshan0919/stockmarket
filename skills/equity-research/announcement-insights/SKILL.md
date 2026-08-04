@@ -45,6 +45,45 @@ run(){ node "$JOB" "$@"; }
 read/write) even though the orchestration logic that calls it lives elsewhere — it is
 NOT being deprecated, just repositioned: think of it as this skill's companion script.
 
+## Caching: two tiers, never fewer, never conflated
+
+Re-reading a PDF or re-deriving an insight that already exists wastes the caller's time
+budget for no benefit — but two different callers reading the SAME announcement are not
+automatically doing the SAME work, so there are two independent caching tiers with very
+different sharing rules. Get this wrong in either direction and you either burn budget
+re-parsing PDFs unnecessarily, or silently serve one skill's extraction to a caller that
+needed something else entirely.
+
+- **Tier 1 — raw PDF text, ALWAYS shared, no usecase.** `read-pdf` / `read-pdf-with-meta`
+  cache the extracted `{text, numPages, isHeavyParse}` keyed only on the PDF URL
+  (`cache/pdf-text/<hash>.json`). The text of a document is an objective fact, not a
+  judgment call — it doesn't matter whether `watchlist-insights`, `gainers-signal`, or
+  some future caller is asking. This is automatic; you don't do anything differently to
+  get the cache hit, it's built into these two commands.
+- **Tier 2 — the generated insight/note itself, scoped by `usecase`.** A "standard" note
+  is not a substitute for a "deep" one on the same announcement, and a different skill's
+  extraction (different template, different output shape) is not a substitute for
+  either. Every `add-note` call MUST include a `usecase` field:
+  `"announcement-insights:<depth>"` (e.g. `"announcement-insights:standard"`,
+  `"announcement-insights:deep"`, `"announcement-insights:quick"`) — never the calling
+  orchestrator's name; two orchestrators asking for the same depth on the same category
+  SHOULD land in the same cache bucket, because they're asking for the same extraction.
+  Similarly, every `mark-processed` call should pass that SAME `usecase` string as its
+  3rd argument, so a different skill's own dedup check (via `--usecase-prefix` on
+  `fetch-announcements`) never mistakes "announcement-insights already looked at this"
+  for "I already looked at this," or vice versa.
+
+**Never let a cache hit disappear from a human-facing output.** If a caller's own
+skip-check (`fetch-announcements`'s usecase-scoped dedup) means an announcement isn't
+returned as "new" today, that's fine for the GENERATION step — but any digest, email,
+PDF, or artifact that lists announcements in a time window must still show it, using the
+cached note, not omit it. `watchlist-insights`' `collectDigest`/`pickDigestNote` is the
+reference implementation of this: it always includes every in-window, non-noise
+announcement, and only uses the usecase lookup to decide WHICH note to display, never
+whether to display the announcement at all. A raw JSON payload MAY reference an older
+note by its `id` instead of duplicating the full insight text if that's more compact for
+the consumer — but a rendered, human-facing view never should.
+
 ## Step 0 — Should this even be parsed? (heavy-document skip check)
 
 Before fetching anything, check `category` against `HEAVY_DOCUMENT_CATEGORIES`
@@ -74,7 +113,9 @@ run read-pdf-with-meta "<pdfUrl>"
 
 Returns `{text, numPages, isHeavyParse}` (`isHeavyParse: true` when `numPages > 4`;
 `numPages` is `null`, not `false`, when it couldn't be derived — treat that as unknown
-rather than "not heavy"). Never write an insight from the title/description alone. If
+rather than "not heavy"). Transparently cache-backed (Tier 1, see above) — if any caller
+already fetched this exact PDF URL today, this returns instantly from cache instead of
+re-fetching/re-parsing. Never write an insight from the title/description alone. If
 the PDF is empty/404/unparseable, say so explicitly in the insight, then fall back to
 the description. If `isHeavyParse` came back true for a NON-skip-listed category (i.e.
 this category wasn't supposed to be heavy but the actual document turned out to be —
@@ -156,7 +197,16 @@ echo '<json>' | run add-note
 ```
 Payload: `{companyId, ticker, name, businessSummary?, note:{type:"announcement",
 announcementId, announcementTitle, pdfUrl, insight, significance, tags, category,
-announcementDescription, modelUsed:"<the model you are running as right now>"}}`.
+announcementDescription, usecase:"announcement-insights:<depth>",
+modelUsed:"<the model you are running as right now>"}}`.
+
+`usecase` is what makes this note distinguishable from a DIFFERENT depth's or a
+DIFFERENT skill's note on the same announcement (see "Caching" above) — always pass it
+explicitly as `"announcement-insights:<depth>"` (matching whatever `--depth` you used
+for `insight-template`) rather than relying on the field's default, which only exists
+for backward compatibility with callers written before this convention existed. Then
+call `mark-processed <companyId> <announcementId> <that same usecase>` so your caller's
+own dedup check stays correctly scoped.
 
 `add-note` deterministically enforces a **significance floor of `medium`** and a
 `high_conviction` tag for any HIGH_CONVICTION_CATEGORIES note — this is a code-level

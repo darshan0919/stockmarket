@@ -31,6 +31,8 @@ anchor rules. Build the workbook with the `xlsx` skill conventions.
 ## Inputs
 
 - Year-0 (latest FY) financials + TTM: Revenue, COGS/expenses, EBITDA, D&A, Interest, Tax, PAT.
+
+**Inventory Gains check (mandatory) on the Year-0 base.** Before using Year-0/TTM EBITDA, margin, or PAT as the projection base, test whether that base is inflated by inventory (stock) gains from revaluing raw-material/finished-goods inventory upward on rising commodity/input prices. Projecting Bear/Base/Bull off an inventory-gain-inflated base overstates every forward year. **Sourcing rule:** pull the "Changes in inventories" P&L line and PBT/PAT from the actual latest Result filing via `stock-documents-fetcher` — do not rely on Screener/MasterData summary rows alone. If the swing materially (directionally, >30-40%) explains Year-0 PBT growth, normalize the base (strip the non-recurring component) before running the model and say so explicitly in the Executive Summary.
 - Latest concall transcript (and prior one if available) for: growth guidance, margin
   outlook, capex/initiatives, risk factors.
 - Reuse existing artifacts (corpus extracts, `[TICKER]_Concall.txt`, MasterData.xlsx) before

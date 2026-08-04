@@ -11,7 +11,7 @@
  * Usage: node watchlistInsights.js <command> [args] [--window-hours <n>] [--env-file <path>]
  *   fetch-announcements <watchlistIds> | read-pdf <url> | read-pdf-with-meta <url> | get-company-notes <id> | add-note [json]
  *   mark-processed <companyId> <announcementId> | list-companies | insight-template <cat> [--depth quick|standard|deep]
- *   send-summary [html] | build-digest <watchlistIds> | send-digest <watchlistIds> | init-notes
+ *   send-summary [html] | build-digest <watchlistIds> | send-digest <watchlistIds> | commit-window <watchlistIds> | init-notes
  *
  * insight-template's actual template CONTENT lives in the announcement-insights skill
  * (skills/equity-research/announcement-insights/references/templates/) — this command is
@@ -23,18 +23,28 @@
  * <watchlistIds> is a required, comma-separated list of watchlist IDs (e.g. "id1,id2,id3").
  * This job is agnostic of which watchlists it scans — the caller (skill/task) decides.
  *
- * --window-hours <n> (optional, default 24) widens/narrows the lookback window for
- * fetch-announcements / build-digest / send-digest — e.g. a missed-day catch-up run:
+ * --window-hours <n> (optional) forces an explicit lookback window for
+ * fetch-announcements / build-digest / send-digest — e.g. a deliberate wider catch-up:
  *   node watchlistInsights.js send-digest id1,id2,id3 --window-hours 72
- * No flag = identical behavior to before this was added (24h).
+ * With NO flag, the window is resolved deterministically (see resolveWindowHours /
+ * the "Deterministic default window" comment near DEFAULT_WINDOW_HOURS below): it
+ * always reaches back at least to the previous calendar day's 8AM IST (this job's
+ * scheduled run time), and further back still if `commit-window` shows the last
+ * confirmed-complete run was even older than that — so a delayed or failed run
+ * never silently drops announcements just because "24h before now" doesn't cover
+ * the real gap. Call `commit-window <watchlistIds>` as the run's final step, and
+ * ONLY once the digest is confirmed healthy (see the skill's Step 3) — committing
+ * after a partial failure would let the next run's window skip past whatever
+ * didn't get processed.
  */
 
 const fs = require('fs');
+const crypto = require('crypto');
 const path = require('path');
 const { stockscans, S3_BASE_URL } = require('@stock/api');
 const { sendHtmlEmail, stockscansLink } = require('@stock/cloud-utils');
 const { NotesDb } = require('./lib/notesDb');
-const { pdfToText, pdfToTextWithMeta } = require('@stock/cloud-utils');
+const { pdfToTextWithMeta } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const ist = require('./lib/ist');
@@ -186,6 +196,34 @@ function insightTemplate(category, depth = 'standard') {
   return `${globalRules}\n${body}${quickSuffix}\n`;
 }
 
+// ── Usecase scoping (docs/DATA_RULES.md-adjacent convention, see notesDb.js) ───
+//
+// A "usecase" identifies WHAT was extracted from an announcement, not WHO
+// called for it: `<generating-skill>:<depth-or-variant>`, e.g.
+// "announcement-insights:standard", "announcement-insights:deep",
+// "gainers-signal:quick". Two orchestrators that both call announcement-insights
+// at the same depth for the same category SHOULD share a cache entry (same
+// extraction, same template) — that's why the key is keyed on the skill doing
+// the actual reading/writing (announcement-insights), not on watchlist-insights
+// vs gainers-signal vs whichever orchestrator happened to invoke it. A skill
+// with genuinely different extraction logic (different template, different
+// output shape) must use its own usecase prefix so its notes/processed-markers
+// never collide with — or get shadowed by — another skill's for the same
+// announcement. See NotesDb.buildNoteIndex/getNoteForUsecase.
+const ANNOUNCEMENT_INSIGHTS_SKILL = 'announcement-insights';
+
+/** The default usecase for a given category+depth, when a caller doesn't pass one explicitly. */
+function defaultUsecase(category, depth) {
+  const cat = (category || 'general').trim().toLowerCase();
+  const d = depth || (HIGH_CONVICTION_CATEGORIES.has(cat) ? 'deep' : 'standard');
+  return `${ANNOUNCEMENT_INSIGHTS_SKILL}:${d}`;
+}
+
+/** True if `usecase` belongs to the `prefix` family (exact match, or "prefix:variant"). */
+function usecaseMatchesPrefix(usecase, prefix) {
+  return usecase === prefix || usecase.startsWith(`${prefix}:`);
+}
+
 // ── Announcement helpers ──────────────────────────────────────────────────────
 
 function announcementId(ann) {
@@ -275,6 +313,103 @@ function cmdGetHeavySkips() {
 // (not re-hardcoded per call site) so a one-off catch-up run never requires a new script.
 const DEFAULT_WINDOW_HOURS = 24;
 
+// ── Deterministic default window (never just "24h before whenever this runs") ──
+//
+// The job is scheduled for ~8AM IST daily. A plain "last 24h" default silently
+// drops announcements whenever a run is late or was skipped entirely: a run
+// delayed to 2PM the same day only looks back to 2PM the day before, missing
+// the 8AM-2PM slice that the *previous* day's on-time run already covered by
+// the time IT looked back 24h from ITS (earlier) invocation. Two mechanisms
+// close that gap, both deterministic (no reliance on "now" alone):
+//   1. ANCHOR FLOOR — the default window never starts later than the previous
+//      calendar day's 8AM IST, regardless of what time today's run actually
+//      fires. A same-day delay just means a longer (safe, dedup'd) window.
+//   2. RESUMABLE CURSOR — `commit-window` (called once a run is confirmed
+//      healthy) persists the exact windowEnd that run used. If a later run
+//      finds that cursor is OLDER than the anchor floor (i.e. one or more
+//      entire scheduled runs were missed/failed), the window reaches back to
+//      the cursor instead — covering the full gap, however many days long.
+// Re-processing already-seen announcements is harmless: cmdFetchAnnouncements
+// already dedupes against each company's processedAnnouncements (see below).
+const ANCHOR_HOUR_IST = 8;
+const IST_OFFSET_MS = (5 * 60 + 30) * 60 * 1000;
+// Safety cap: a cursor stale beyond this is treated as an error rather than a
+// silent multi-week backfill — almost certainly a bug (or a genuinely large
+// outage) that a human should look at with an explicit --window-hours run.
+const MAX_CURSOR_LOOKBACK_MS = 30 * 24 * 60 * 60 * 1000;
+const WINDOW_CURSOR_PATH = 'cache/watchlist-insights-cursor.json';
+const PENDING_WINDOW_PATH = 'cache/watchlist-insights-pending-window.json';
+
+/** Most recent 8AM-IST clock boundary at or before `now` (real epoch ms). */
+function mostRecentEightAmIstMs(now) {
+  const shifted = ist.istDate(now); // Date with UTC fields = IST wall-clock
+  const boundaryShiftedMs = Date.UTC(
+    shifted.getUTCFullYear(),
+    shifted.getUTCMonth(),
+    shifted.getUTCDate(),
+    ANCHOR_HOUR_IST,
+    0,
+    0,
+    0
+  );
+  let boundaryRealMs = boundaryShiftedMs - IST_OFFSET_MS;
+  if (boundaryRealMs > now.getTime()) boundaryRealMs -= 24 * 60 * 60 * 1000;
+  return boundaryRealMs;
+}
+
+/** Anchor floor: the previous calendar day's 8AM IST (this job's scheduled run time). */
+function defaultWindowFloorMs(now) {
+  return mostRecentEightAmIstMs(now) - 24 * 60 * 60 * 1000;
+}
+
+/** Stable cursor-file key for a watchlistIds combo (order-independent). */
+function windowCursorKey(watchlistIds) {
+  return [...watchlistIds].sort().join(',');
+}
+
+function readWindowCursor() {
+  StorageService.init();
+  return StorageService.readJson(WINDOW_CURSOR_PATH) || {};
+}
+
+/**
+ * Resolve how many hours back this run's window should reach.
+ * `--window-hours <n>` (explicit) always wins, unchanged from before — use it
+ * for a deliberate one-off catch-up wider than the deterministic default.
+ * With no flag, the default is `(now - windowStartMs) / 1h` where
+ * windowStartMs = min(anchor floor, last-committed cursor) — see the
+ * "Deterministic default window" comment above DEFAULT_WINDOW_HOURS.
+ */
+function resolveWindowHours(now, watchlistIds, argv = process.argv) {
+  const raw = argValue('--window-hours', argv);
+  if (raw !== null) {
+    const n = Number(raw);
+    if (!Number.isFinite(n) || n <= 0) {
+      throw new Error(`--window-hours must be a positive number, got "${raw}"`);
+    }
+    return n;
+  }
+  const floorMs = defaultWindowFloorMs(now);
+  const key = windowCursorKey(watchlistIds);
+  const entry = readWindowCursor()[key];
+  let windowStartMs = floorMs;
+  if (entry && Number.isFinite(entry.lastCommittedAtMs)) {
+    if (now.getTime() - entry.lastCommittedAtMs > MAX_CURSOR_LOOKBACK_MS) {
+      throw new Error(
+        `watchlist-insights cursor for watchlists [${key}] is stale beyond the ` +
+          `${MAX_CURSOR_LOOKBACK_MS / (24 * 60 * 60 * 1000)}-day safety cap (last committed ` +
+          `${new Date(entry.lastCommittedAtMs).toISOString()}). Re-run explicitly with ` +
+          `--window-hours <n> covering the real gap, then call commit-window to reset the cursor.`
+      );
+    }
+    // Whichever reaches further back wins — the anchor floor guarantees "at
+    // least since yesterday's 8AM IST" even on a fresh/never-committed
+    // cursor; the cursor extends that further back after a real multi-day gap.
+    windowStartMs = Math.min(floorMs, entry.lastCommittedAtMs);
+  }
+  return (now.getTime() - windowStartMs) / (60 * 60 * 1000);
+}
+
 async function gatherInwindowRaw(
   client = stockscans,
   now = new Date(),
@@ -336,9 +471,19 @@ async function gatherInwindowRaw(
 
 async function cmdFetchAnnouncements(watchlistIdsArg, client = stockscans) {
   const watchlistIds = parseWatchlistIds(watchlistIdsArg);
-  const windowHours = parseWindowHours();
+  const now = new Date();
+  const windowHours = resolveWindowHours(now, watchlistIds);
+  // Which usecase FAMILY this caller's "already processed, don't return it
+  // again" check applies to. Defaults to the shared announcement-insights
+  // family (covers standard/deep/quick — whichever depth Step 2 ends up using
+  // per item) so today's only real caller (watchlist-insights) is unaffected.
+  // A different orchestrator with genuinely different extraction logic should
+  // pass its OWN --usecase-prefix so it never mistakes "some other skill
+  // already looked at this" for "I already looked at this" — see the usecase
+  // scoping comment above defaultUsecase().
+  const usecasePrefix = argValue('--usecase-prefix', process.argv) || ANNOUNCEMENT_INSIGHTS_SKILL;
   const notes = db.load();
-  const allRaw = await gatherInwindowRaw(client, new Date(), watchlistIds, windowHours);
+  const allRaw = await gatherInwindowRaw(client, now, watchlistIds, windowHours);
   const results = [];
   for (const ann of allRaw) {
     const companyId = ann.companyId || '';
@@ -357,7 +502,30 @@ async function cmdFetchAnnouncements(watchlistIdsArg, client = stockscans) {
     }
 
     const co = NotesDb.getCompany(notes, companyId);
-    if (co && (co.processedAnnouncements || []).includes(annId)) continue;
+    const processedByUsecase = (co && co.processedByUsecase) || {};
+    let alreadyProcessedForThisUsecase = Object.entries(processedByUsecase).some(
+      ([usecase, ids]) => usecaseMatchesPrefix(usecase, usecasePrefix) && (ids || []).includes(annId)
+    );
+    // Back-compat bridge: THIS specific announcement may have been marked
+    // processed before usecase-scoping existed, in which case it's in the
+    // flat legacy array but in none of the usecase buckets. Historically the
+    // ONLY writer of that legacy array was this same announcement-insights
+    // pipeline, so — but only when checking the announcement-insights prefix
+    // itself, never a different skill's usecase — treat that as "already
+    // processed" rather than silently reprocessing every pre-migration
+    // announcement the first time a widened window reaches back far enough
+    // to see it again. A newer, usecase-tagged entry for a DIFFERENT id on
+    // the same company doesn't affect this — the check is per-annId.
+    if (
+      !alreadyProcessedForThisUsecase &&
+      usecasePrefix === ANNOUNCEMENT_INSIGHTS_SKILL &&
+      co &&
+      (co.processedAnnouncements || []).includes(annId) &&
+      !Object.values(processedByUsecase).some((ids) => (ids || []).includes(annId))
+    ) {
+      alreadyProcessedForThisUsecase = true;
+    }
+    if (alreadyProcessedForThisUsecase) continue;
 
     const category = categoriseAnnouncement(title, description);
     const heavyDocument = isHeavyDocumentCategory(category);
@@ -384,7 +552,57 @@ async function cmdFetchAnnouncements(watchlistIdsArg, client = stockscans) {
       noteCount: co ? (co.notes || []).length : 0,
     });
   }
+  // Record the exact window THIS run used so a later `commit-window` call can
+  // durably advance the cursor to precisely this windowEnd — not whenever
+  // commit-window happens to be invoked, which could otherwise silently skip
+  // anything published in between (see resolveWindowHours' doc comment).
+  StorageService.init();
+  await StorageService.saveJson(PENDING_WINDOW_PATH, {
+    watchlistKey: windowCursorKey(watchlistIds),
+    windowStartMs: now.getTime() - windowHours * 60 * 60 * 1000,
+    windowEndMs: now.getTime(),
+    windowHours,
+    computedAtIso: now.toISOString(),
+  });
   process.stdout.write(JSON.stringify(results));
+}
+
+// ── Shared raw-PDF-text cache (Tier 1 — unconditionally shared, no usecase) ────
+//
+// Unlike insights (Tier 2, usecase-scoped — see defaultUsecase/getNoteForUsecase
+// above), the raw extracted TEXT of a PDF is an objective fact about the
+// document, not a judgment call — it doesn't matter whether watchlist-insights,
+// gainers-signal, or some future skill is asking for it, the answer is the
+// same. Every caller sharing this cache means a PDF already fetched+parsed by
+// ANY skill today is never fetched+parsed again by a different one. Keyed on a
+// hash of the URL (not the announcementId) since read-pdf/read-pdf-with-meta
+// only ever receive a URL — this makes the cache correct even for a caller
+// that doesn't know or care about announcementIds at all.
+const HEAVY_PARSE_PAGE_THRESHOLD = 4;
+
+function pdfCachePath(url) {
+  const hash = crypto.createHash('sha256').update(url).digest('hex').slice(0, 32);
+  return `cache/pdf-text/${hash}.json`;
+}
+
+async function readOrFetchPdfMeta(url) {
+  StorageService.init();
+  const cachePath = pdfCachePath(url);
+  const cached = StorageService.readJson(cachePath);
+  if (cached && typeof cached.text === 'string') {
+    return { text: cached.text, numPages: cached.numPages ?? null, isHeavyParse: Boolean(cached.isHeavyParse) };
+  }
+  const buf = await stockscans.fetchPdf(url, 60000);
+  const { text, numPages } = await pdfToTextWithMeta(buf);
+  const isHeavyParse = typeof numPages === 'number' && numPages > HEAVY_PARSE_PAGE_THRESHOLD;
+  await StorageService.saveJson(cachePath, {
+    pdfUrl: url,
+    text,
+    numPages,
+    isHeavyParse,
+    fetchedAtIso: new Date().toISOString(),
+  });
+  return { text, numPages, isHeavyParse };
 }
 
 async function cmdReadPdf(url) {
@@ -392,12 +610,9 @@ async function cmdReadPdf(url) {
     process.stdout.write('');
     return;
   }
-  const buf = await stockscans.fetchPdf(url, 60000);
-  const text = await pdfToText(buf);
+  const { text } = await readOrFetchPdfMeta(url);
   process.stdout.write(text);
 }
-
-const HEAVY_PARSE_PAGE_THRESHOLD = 4;
 
 /**
  * Same as read-pdf but returns {text, numPages, isHeavyParse} as JSON instead
@@ -406,16 +621,14 @@ const HEAVY_PARSE_PAGE_THRESHOLD = 4;
  * by category, but still turned out to be a >4-page document" for the digest's
  * Heavy Parse Highlights section without a second PDF fetch. numPages is null
  * when it couldn't be derived (poppler-CLI fallback) — treat that as unknown,
- * not as "not heavy".
+ * not as "not heavy". Shares the same cache as read-pdf (see readOrFetchPdfMeta).
  */
 async function cmdReadPdfWithMeta(url) {
   if (!url || url === 'null') {
     process.stdout.write(JSON.stringify({ text: '', numPages: null, isHeavyParse: false }));
     return;
   }
-  const buf = await stockscans.fetchPdf(url, 60000);
-  const { text, numPages } = await pdfToTextWithMeta(buf);
-  const isHeavyParse = typeof numPages === 'number' && numPages > HEAVY_PARSE_PAGE_THRESHOLD;
+  const { text, numPages, isHeavyParse } = await readOrFetchPdfMeta(url);
   process.stdout.write(JSON.stringify({ text, numPages, isHeavyParse }));
 }
 
@@ -444,6 +657,13 @@ async function cmdAddNote(noteJsonStr) {
     // This is enforcement, not judgment — the actual analysis is still the
     // caller's job, this just guards the floor deterministically.
     const category = (noteData.category || '').trim().toLowerCase();
+    // Which usecase produced this note — defaults to the announcement-insights
+    // family at the depth implied by category (deep for high-conviction,
+    // standard otherwise) so existing callers that don't pass this explicitly
+    // yet keep working exactly as before. New/other callers should always
+    // pass their own explicit usecase (e.g. "gainers-signal:quick") rather
+    // than relying on this default, which is announcement-insights-specific.
+    const usecase = noteData.usecase || defaultUsecase(category, noteData.depth);
     let significance = noteData.significance || 'routine';
     let tags = Array.isArray(noteData.tags) ? [...noteData.tags] : [];
     if (HIGH_CONVICTION_CATEGORIES.has(category)) {
@@ -472,6 +692,7 @@ async function cmdAddNote(noteJsonStr) {
       announcementDescription: noteData.announcementDescription || '',
       numPages,
       isHeavyParse,
+      usecase,
     };
     co.notes.push(entry);
     noteId = entry.id;
@@ -479,17 +700,35 @@ async function cmdAddNote(noteJsonStr) {
   co.lastUpdated = ist.nowIstIso();
   co.modifiedTime = co.lastUpdated; // output-dto-standard envelope field
   await db.save(notes);
-  process.stdout.write(JSON.stringify({ status: 'ok', companyId: payload.companyId, noteId }));
+  process.stdout.write(
+    JSON.stringify({ status: 'ok', companyId: payload.companyId, noteId, usecase: noteData ? noteData.usecase || defaultUsecase(noteData.category, noteData.depth) : null })
+  );
 }
 
-async function cmdMarkProcessed(companyId, annId) {
+/**
+ * mark-processed <companyId> <announcementId> [usecase]
+ * `usecase` defaults to the shared announcement-insights baseline (unchanged
+ * behavior for existing callers), but should be passed explicitly whenever
+ * the caller isn't going through the standard announcement-insights template
+ * pipeline — e.g. `heavy-doc-skip` for a heavy-document skip-log entry (never
+ * actually read/insight-generated, so it must NOT block a different skill,
+ * like quarterly-result-analysis, from later processing that same document
+ * under its own usecase), or `<your-skill>:<variant>` for anything else.
+ * Always writes both the legacy flat `processedAnnouncements` array (kept for
+ * any caller still reading that directly) AND the usecase-scoped map that
+ * fetch-announcements' skip-check actually consults.
+ */
+async function cmdMarkProcessed(companyId, annId, usecase = ANNOUNCEMENT_INSIGHTS_SKILL) {
   const notes = db.load();
   const co = NotesDb.ensureCompany(notes, companyId);
   if (!co.processedAnnouncements.includes(annId)) co.processedAnnouncements.push(annId);
+  co.processedByUsecase ||= {};
+  const bucket = (co.processedByUsecase[usecase] ||= []);
+  if (!bucket.includes(annId)) bucket.push(annId);
   co.lastUpdated = ist.nowIstIso();
   co.modifiedTime = co.lastUpdated; // output-dto-standard envelope field
   await db.save(notes);
-  process.stdout.write(JSON.stringify({ status: 'ok' }));
+  process.stdout.write(JSON.stringify({ status: 'ok', usecase }));
 }
 
 function cmdListCompanies() {
@@ -526,6 +765,43 @@ async function cmdSendSummary(htmlBody) {
 
 // ── Full 24h digest ───────────────────────────────────────────────────────────
 
+/**
+ * Look up the note this digest should show for an announcement, given the
+ * category-implied usecase (deep for high-conviction, standard otherwise).
+ * IMPORTANT — this must never be used to FILTER an announcement out of the
+ * digest, only to decide which cached note (if any) to display alongside it.
+ * The caller (collectDigest) always keeps every in-window, non-noise
+ * announcement in the output regardless of what this returns — an
+ * already-cached announcement is shown WITH its cached insight, never
+ * dropped just because it isn't "new". Falls back, in order: (1) the exact
+ * usecase this category/depth implies, (2) any other announcement-insights:*
+ * note (covers a depth choice that varied run-to-run for the same category),
+ * (3) the single newest note regardless of usecase, so a genuinely different
+ * skill's note is still surfaced rather than shown blank — `insightUsecase`
+ * on the returned entry always says which one actually matched, so a reader
+ * (or another script) can tell "this is a standard watchlist-insights note"
+ * apart from "this is someone else's note, shown as a fallback".
+ */
+function pickDigestNote(idx, aid, category) {
+  const entry = idx[aid];
+  if (!entry) return { note: null, usecase: null };
+  const wantedUsecase = defaultUsecase(category);
+  if (entry.byUsecase[wantedUsecase]) {
+    return { note: entry.byUsecase[wantedUsecase][0], usecase: wantedUsecase };
+  }
+  const anyAnnouncementInsights = Object.entries(entry.byUsecase).find(([uc]) =>
+    usecaseMatchesPrefix(uc, ANNOUNCEMENT_INSIGHTS_SKILL)
+  );
+  if (anyAnnouncementInsights) {
+    return { note: anyAnnouncementInsights[1][0], usecase: anyAnnouncementInsights[0] };
+  }
+  if (entry.latest) {
+    const [latestNote] = entry.latest;
+    return { note: latestNote, usecase: latestNote.usecase || NotesDb.LEGACY_USECASE };
+  }
+  return { note: null, usecase: null };
+}
+
 async function collectDigest(client, watchlistIds, windowHours = DEFAULT_WINDOW_HOURS) {
   client = client || stockscans;
   const notes = db.load();
@@ -540,7 +816,10 @@ async function collectDigest(client, watchlistIds, windowHours = DEFAULT_WINDOW_
     if (seen.has(aid)) continue;
     seen.add(aid);
     const ssUrl = ann.ssUrl || '';
-    const [note] = idx[aid] || [null];
+    const category = categoriseAnnouncement(title, description);
+    // Every in-window, non-noise announcement is kept below regardless of
+    // whether a cached note was found — see pickDigestNote's doc comment.
+    const { note, usecase } = pickDigestNote(idx, aid, category);
     digest.push({
       announcementId: aid,
       companyId: ann.companyId || '',
@@ -550,12 +829,17 @@ async function collectDigest(client, watchlistIds, windowHours = DEFAULT_WINDOW_
       description,
       date: ann.date || ann.createdAt || '',
       pdfUrl: ssUrl ? `${S3_BASE_URL}${ssUrl}` : '',
-      category: categoriseAnnouncement(title, description),
+      category,
       insight: (note || {}).insight || '',
       significance: note ? note.significance || '' : '',
       tags: note ? note.tags || [] : [],
       hasInsight: Boolean(note && note.insight),
       needsInsight: !(note && note.insight),
+      // Which usecase's note is being shown (null if none found yet) — lets a
+      // JSON consumer reference/cross-check the source instead of assuming
+      // the text came from today's expected depth. See pickDigestNote.
+      insightUsecase: usecase,
+      noteId: note ? note.id || null : null,
       // Heavy Parse Highlights (Step 0 in announcement-insights): a note whose
       // category was NOT skip-listed but whose PDF still turned out >4 pages.
       // Rendered as a separate digest section so insight-validation can review
@@ -660,7 +944,7 @@ function buildDigestHtml(digest, windowHours = DEFAULT_WINDOW_HOURS, watchlistId
 
 async function cmdBuildDigest(watchlistIdsArg, client = stockscans) {
   const watchlistIds = parseWatchlistIds(watchlistIdsArg);
-  const windowHours = parseWindowHours();
+  const windowHours = resolveWindowHours(new Date(), watchlistIds);
   const digest = await collectDigest(client, watchlistIds, windowHours);
   const heavySkips = readHeavySkips();
   process.stdout.write(
@@ -674,11 +958,12 @@ async function cmdBuildDigest(watchlistIdsArg, client = stockscans) {
 
 async function cmdSendDigest(watchlistIdsArg, client = stockscans) {
   const watchlistIds = parseWatchlistIds(watchlistIdsArg);
-  const windowHours = parseWindowHours();
+  const windowHours = resolveWindowHours(new Date(), watchlistIds);
   const digest = await collectDigest(client, watchlistIds, windowHours);
   const heavySkips = readHeavySkips();
   const missing = digest.filter((d) => d.needsInsight).map((d) => d.announcementId);
-  const windowLabel = windowHours === 24 ? '' : ` (${windowHours}h)`;
+  const roundedHours = Math.round(windowHours * 10) / 10;
+  const windowLabel = roundedHours === 24 ? '' : ` (${roundedHours}h)`;
   const status = await sendHtml(
     buildDigestHtml(digest, windowHours, watchlistIds, heavySkips),
     `📊 Watchlist Insights${windowLabel} — ${ist.nowIstDate()}`
@@ -692,6 +977,39 @@ async function cmdSendDigest(watchlistIdsArg, client = stockscans) {
   process.stdout.write(JSON.stringify(status));
 }
 
+/**
+ * Durably advance the resumable window cursor to the exact windowEnd that the
+ * most recent `fetch-announcements` call for these watchlistIds used (read
+ * from the pending-window marker it wrote — never "now", which would silently
+ * skip anything published between that fetch and this commit). Call this only
+ * once a run is confirmed healthy (see the skill's Step 3 digest health check)
+ * — committing after a partially-failed run would permanently drop whatever
+ * didn't get processed, since the next run's window would no longer reach
+ * back far enough to see it.
+ */
+async function cmdCommitWindow(watchlistIdsArg) {
+  const watchlistIds = parseWatchlistIds(watchlistIdsArg);
+  const key = windowCursorKey(watchlistIds);
+  StorageService.init();
+  const pending = StorageService.readJson(PENDING_WINDOW_PATH);
+  if (!pending || pending.watchlistKey !== key) {
+    throw new Error(
+      `commit-window: no matching pending window for watchlists [${key}] — call fetch-announcements ` +
+        `for these exact watchlistIds earlier in this run before committing.`
+    );
+  }
+  const cursor = readWindowCursor();
+  cursor[key] = {
+    lastCommittedAtMs: pending.windowEndMs,
+    lastCommittedAtIso: new Date(pending.windowEndMs).toISOString(),
+    updatedAtIso: new Date().toISOString(),
+  };
+  await StorageService.saveJson(WINDOW_CURSOR_PATH, cursor);
+  process.stdout.write(
+    JSON.stringify({ status: 'ok', watchlistKey: key, lastCommittedAtIso: cursor[key].lastCommittedAtIso })
+  );
+}
+
 // ── CLI dispatch ──────────────────────────────────────────────────────────────
 
 const COMMANDS = {
@@ -700,7 +1018,7 @@ const COMMANDS = {
   'read-pdf-with-meta': [cmdReadPdfWithMeta, 1],
   'get-company-notes': [cmdGetCompanyNotes, 1],
   'add-note': [cmdAddNote, 0],
-  'mark-processed': [cmdMarkProcessed, 2],
+  'mark-processed': [cmdMarkProcessed, 3],
   'log-heavy-skip': [cmdLogHeavySkip, 1],
   'get-heavy-skips': [cmdGetHeavySkips, 0],
   'list-companies': [cmdListCompanies, 0],
@@ -708,6 +1026,7 @@ const COMMANDS = {
   'send-summary': [cmdSendSummary, 0],
   'build-digest': [cmdBuildDigest, 1],
   'send-digest': [cmdSendDigest, 1],
+  'commit-window': [cmdCommitWindow, 1],
   'init-notes': [cmdInitNotes, 0],
 };
 
@@ -752,8 +1071,21 @@ module.exports = {
   cmdFetchAnnouncements,
   cmdBuildDigest,
   cmdSendDigest,
+  cmdCommitWindow,
   parseWatchlistIds,
   parseWindowHours,
+  resolveWindowHours,
+  mostRecentEightAmIstMs,
+  defaultWindowFloorMs,
+  windowCursorKey,
+  cmdMarkProcessed,
+  cmdAddNote,
+  defaultUsecase,
+  usecaseMatchesPrefix,
+  pickDigestNote,
+  ANNOUNCEMENT_INSIGHTS_SKILL,
+  readOrFetchPdfMeta,
+  pdfCachePath,
   DEFAULT_WINDOW_HOURS,
   CATEGORY_RULES,
   INSIGNIFICANT_KEYWORDS,

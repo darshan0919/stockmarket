@@ -130,6 +130,8 @@ EBITDA/unit trend across the 4 quarters, debt/finance-cost trajectory across
 the 4 transcripts, and theme-maturity (is this a year-1 S-curve or a year-6
 theme?).
 
+**Inventory Gains check (mandatory).** When the EBITDA/unit or margin trend across the 4 quarters shows expansion, explicitly test whether it is inflated by inventory (stock) gains — revaluation of raw-material/finished-goods inventory upward on rising commodity/input prices — rather than a genuine re-rating-worthy structural improvement. **Sourcing rule:** pull the "Changes in inventories" P&L line and PBT for each of the 4 quarters from the actual Result filings via `stock-documents-fetcher`, not from concall/PPT summaries. If a quarter's margin strength is inventory-gain-driven, do not list it as a margin/mix catalyst in the 3b ranking — flag it as non-recurring instead.
+
 ### Phase 3 — Synthesize
 
 **3a. Company snapshot** — 3–4 lines (business, value-chain position,

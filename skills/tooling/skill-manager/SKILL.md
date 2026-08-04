@@ -46,6 +46,32 @@ Whenever the user asks to create or modify a skill, adhere to the following blue
    `StorageService.touchedFiles()` / the `data:push` `↑` lines, never from
    memory). A generated skill that stores data without these elements is
    non-conformant — fix before delivering.
+6. **Announcement/notes caching (MANDATORY if the skill reads corporate
+   announcements or writes to the shared notes DB via
+   `packages/jobs-runtime/watchlistInsights.js`)**: this shared pipeline
+   (used today by `announcement-insights`, `watchlist-insights`, and
+   `gainers-signal`) already has a two-tier cache — read
+   `skills/equity-research/announcement-insights/SKILL.md`'s "Caching" section
+   before wiring a new skill into it, don't reinvent this. In short: raw PDF
+   text (`read-pdf`/`read-pdf-with-meta`) is cached and shared UNCONDITIONALLY
+   across every skill, since the extracted text of a document is an objective
+   fact, not a judgment call. The generated INSIGHT/note is a different
+   matter — it's scoped by an explicit `usecase` field
+   (`"<skill-name>:<depth-or-variant>"`) on every `add-note`/`mark-processed`
+   call, because two skills (or the same skill at two depths) reading the same
+   announcement produce genuinely different artifacts and must never silently
+   share or shadow each other's cache entry. A new skill that persists
+   announcement insights needs its OWN `usecase` prefix (unless it's
+   deliberately reusing an existing extraction at the same depth, in which
+   case reuse that exact usecase string) — never default to whatever
+   `announcement-insights` uses just because it's convenient, and never let a
+   `fetch-announcements`-style dedup check span usecases it doesn't own (use
+   `--usecase-prefix`). Separately: a cache hit / already-processed status
+   must NEVER cause an announcement to be silently omitted from a human-facing
+   digest, email, PDF, or artifact — only from the "should I re-generate an
+   insight" decision. If you're drafting a new SKILL.md that touches this
+   pipeline, bake both of these rules into it explicitly rather than assuming
+   the model will infer them.
 
 At a high level, the process of creating a skill goes like this:
 

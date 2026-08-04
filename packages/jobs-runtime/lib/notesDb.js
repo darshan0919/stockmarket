@@ -43,6 +43,19 @@ class NotesDb {
     const notes = emptyNotes();
     const companies = db.loadFile(db.collectionFile('companies'));
 
+    // Seed every company companies.json already knows about BEFORE folding in
+    // notes. A company accumulates state (processedAnnouncements /
+    // processedByUsecase) via mark-processed independently of add-note — the
+    // heavy-document-skip flow calls mark-processed with NO note at all. If we
+    // only created entries while iterating notes (as this used to), a
+    // note-less company would be entirely invisible to the very next load():
+    // getCompany() would return null, the "already processed" skip-check
+    // would silently fail open, and the same announcement would be
+    // re-fetched/re-skip-logged forever instead of being recognized as done.
+    for (const cid of Object.keys(companies)) {
+      NotesDb.ensureCompany(notes, cid);
+    }
+
     for (const rec of db.find('notes', {})) {
       const cid = rec.companyId;
       if (!cid) continue;
@@ -71,6 +84,16 @@ class NotesDb {
         co.ticker = co.ticker || c.nseTicker || String(co.companyId).split(':')[1] || '';
         co.name = co.name || c.name || '';
         co.processedAnnouncements = (c.state && c.state.processedAnnouncements) || [];
+        // Usecase-scoped mirror of the flat list above: { usecase: [announcementId, ...] }.
+        // "Processed" is meaningless in isolation — a "results" filing that
+        // watchlist-insights heavy-doc-skipped is NOT processed from
+        // quarterly-result-analysis's point of view, and a "standard"-depth
+        // insight is a different artifact than a "deep" one for the same
+        // announcement. Every mark-processed / fetch-announcements skip-check
+        // must key off this, never the flat legacy array, once more than one
+        // usecase touches the same announcement. See getNoteForUsecase below
+        // for the equivalent scoping on the notes themselves.
+        co.processedByUsecase = (c.state && c.state.processedByUsecase) || {};
         co.lastUpdated = c.modifiedTime || co.lastUpdated;
       }
       co.notes.forEach(() => {
@@ -114,7 +137,10 @@ class NotesDb {
         creator: 'watchlist-insights',
         nseTicker: co.ticker || undefined,
         name: co.name || undefined,
-        state: { processedAnnouncements: co.processedAnnouncements || [] },
+        state: {
+          processedAnnouncements: co.processedAnnouncements || [],
+          processedByUsecase: co.processedByUsecase || {},
+        },
       });
     }
 
@@ -159,23 +185,56 @@ class NotesDb {
     return notes.companies[companyId];
   }
 
-  /** announcementId → [note, company] for the most recent note per announcement. */
+  /**
+   * announcementId → { byUsecase: { usecase: [note, company] }, latest: [note, company] }.
+   *
+   * Two different skills (or the same skill at two different depths) reading
+   * the SAME announcement produce genuinely different artifacts — a "standard"
+   * insight is not a substitute for a "deep" one, and a quick gainers-signal
+   * one-liner is not a substitute for either. Collapsing to "the single most
+   * recent note per announcement" (the old behavior) meant a second usecase's
+   * note would silently shadow the first one everywhere the index was read —
+   * exactly the kind of silent loss this is meant to prevent. `byUsecase` is
+   * the shape every usecase-aware caller should read from; `latest` exists
+   * only for the rare caller that genuinely wants "whatever the newest note
+   * is, don't care which usecase" (e.g. a human debugging notes.json).
+   */
   static buildNoteIndex(notes) {
     const index = {};
     for (const co of Object.values(notes.companies || {})) {
       for (const n of co.notes || []) {
         const aid = n.announcementId;
         if (!aid) continue;
-        const prev = index[aid];
-        if (!prev || (n.createdAt || '') > (prev[0].createdAt || '')) index[aid] = [n, co];
+        const usecase = n.usecase || NotesDb.LEGACY_USECASE;
+        const entry = (index[aid] ||= { byUsecase: {}, latest: null });
+        const prevForUsecase = entry.byUsecase[usecase];
+        if (!prevForUsecase || (n.createdAt || '') > (prevForUsecase[0].createdAt || '')) {
+          entry.byUsecase[usecase] = [n, co];
+        }
+        if (!entry.latest || (n.createdAt || '') > (entry.latest[0].createdAt || '')) {
+          entry.latest = [n, co];
+        }
       }
     }
     return index;
+  }
+
+  /** [note, company] for one specific usecase, or null if that usecase never wrote one. */
+  static getNoteForUsecase(index, announcementId, usecase) {
+    const entry = index[announcementId];
+    if (!entry) return null;
+    return entry.byUsecase[usecase] || null;
   }
 
   static uuid() {
     return crypto.randomUUID();
   }
 }
+
+// Bucket for notes/processed-markers written before the usecase field existed.
+// Treated as its own usecase (not merged into any specific skill's bucket) so
+// old data doesn't silently masquerade as a fresh cache hit for a skill that
+// never actually ran under this convention.
+NotesDb.LEGACY_USECASE = 'legacy';
 
 module.exports = { NotesDb };
