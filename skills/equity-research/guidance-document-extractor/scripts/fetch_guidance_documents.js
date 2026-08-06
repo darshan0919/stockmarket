@@ -38,6 +38,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const { resolveUniverse } = require('../../../../stock-api/src/analyzers/runScan.js');
 const { StockscansClient } = require('../../../../stock-api/src/clients/StockscansClient.js');
 const { latestCompletedQuarter, parseQuarterString } = require('../../../../stock-api/src/utils/fiscalQuarter.js');
 const { stockscans } = require('../../../../stock-api/src/index.js');
@@ -180,7 +181,6 @@ async function downloadAndConvert(ticker, quarterYyyymm, byType, types, outDir) 
 
 async function resolveEntries(args) {
   if (args.scanUrl) {
-    const { resolveUniverse } = require('../../../../stock-api/src/analyzers/runScan.js');
     // liquidityGate:false -- this pipeline wants every company in the saved
     // scan (e.g. "upcoming results"), not just the tradeable-liquid subset;
     // the scan itself already encodes whatever selection the user wants.

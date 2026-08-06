@@ -40,11 +40,33 @@ GUIDANCE_COLUMNS = [
     ("Guidance (Absolute (Relative %))", 30),
     ("Base Period Referenced", 16),
     ("Management Quote", 60),
+    ("Source", 12),
     ("Derived Field", 12),
     ("Stale Guidance Flag", 16),
 ]
 
 MISSING_COLUMNS = [("Company/Ticker", 22), ("Quarter", 14), ("Reason", 50)]
+
+# Optional scan-table columns, present when the run's input was a Stockscans
+# saved-scan URL -- read from each DTO's `scanRow` (carried through from
+# guidance-document-extractor, never re-fetched here). Only the columns
+# actually present on at least one DTO are added, in this preferred order.
+SCAN_COL_ORDER = [
+    "Market Capitalization", "Market Cap",
+    "Price To Earnings", "P/E", "PE",
+    "CFO To PAT", "CFO/PAT",
+    "Change In FII Holdings Latest Quarter", "Change in FII Holdings Latest Quarter",
+    "FII Holdings",
+]
+
+
+def _scan_columns_present(dtos):
+    seen = []
+    for d in dtos:
+        for k in (d.get("scanRow") or {}).keys():
+            if k in SCAN_COL_ORDER and k not in seen:
+                seen.append(k)
+    return [c for c in SCAN_COL_ORDER if c in seen]
 
 
 def _write_header(ws, columns):
@@ -57,12 +79,14 @@ def _write_header(ws, columns):
     ws.freeze_panes = "A2"
 
 
-def build_guidance_sheet(ws, dtos):
-    _write_header(ws, GUIDANCE_COLUMNS)
+def build_guidance_sheet(ws, dtos, scan_cols):
+    _write_header(ws, GUIDANCE_COLUMNS + [(c, 16) for c in scan_cols])
     row = 2
     for dto in dtos:
         company_name = dto.get("companyName") or dto.get("companyId")
         stale = dto.get("staleGuidanceNote")
+        scan_row = dto.get("scanRow") or {}
+        scan_vals = [scan_row.get(c, "") for c in scan_cols]
         for item in dto.get("guidance", []):
             values = [
                 company_name,
@@ -74,24 +98,28 @@ def build_guidance_sheet(ws, dtos):
                 item.get("display") or "",
                 item.get("base_period") or "",
                 item.get("quote") or "",
+                item.get("source") or "",
                 item.get("derived_field") or "none",
                 stale or "",
-            ]
+            ] + scan_vals
             for col_idx, val in enumerate(values, start=1):
                 cell = ws.cell(row=row, column=col_idx, value=val)
-                if stale and col_idx == len(values):
+                if stale and col_idx == len(GUIDANCE_COLUMNS):
                     cell.fill = FLAG_FILL
             row += 1
     return row - 2  # data rows written
 
 
-def build_missing_sheet(ws, missing):
-    _write_header(ws, MISSING_COLUMNS)
+def build_missing_sheet(ws, missing, scan_cols):
+    _write_header(ws, MISSING_COLUMNS + [(c, 16) for c in scan_cols])
     row = 2
     for m in missing:
         ws.cell(row=row, column=1, value=m.get("ticker"))
         ws.cell(row=row, column=2, value=m.get("quarter"))
         ws.cell(row=row, column=3, value=m.get("reason"))
+        scan_row = m.get("scanRow") or {}
+        for j, c in enumerate(scan_cols, 4):
+            ws.cell(row=row, column=j, value=scan_row.get(c, ""))
         for c in range(1, 4):
             ws.cell(row=row, column=c).fill = FLAG_FILL
         row += 1
@@ -108,13 +136,15 @@ def main():
     dtos = json.load(open(args.dtos))
     missing = json.load(open(args.missing)) if args.missing else []
 
+    scan_cols = _scan_columns_present(dtos + missing)
+
     wb = Workbook()
     ws_guidance = wb.active
     ws_guidance.title = "Forward Guidance"
-    n_guidance_rows = build_guidance_sheet(ws_guidance, dtos)
+    n_guidance_rows = build_guidance_sheet(ws_guidance, dtos, scan_cols)
 
     ws_missing = wb.create_sheet("Missing Transcripts")
-    n_missing_rows = build_missing_sheet(ws_missing, missing)
+    n_missing_rows = build_missing_sheet(ws_missing, missing, scan_cols)
 
     wb.save(args.out)
     print(json.dumps({

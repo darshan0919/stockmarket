@@ -44,10 +44,11 @@ Either:
   saved scan's full company universe via `resolveUniverse()` (liquidity gate
   OFF: this pipeline wants every company the scan returns, e.g. an "upcoming
   results" list, not just the liquid subset). Every original scan-table
-  column (Market Cap, P/E, CFO/PAT, "Change in FII Holdings Latest Quarter",
-  FII Holdings, etc.) is preserved per company as `scanRow` and carried all
-  the way through to the final DB record — nothing needs to be re-fetched
-  later just to report those columns.
+  column (Market Capitalization, Price To Earnings, CFO To PAT, "Change In FII
+  Holdings Latest Quarter", FII Holdings, etc. — exact column names as
+  returned by the scan, confirmed live 2026-08-06) is preserved per company
+  as `scanRow` and carried all the way through to the final DB record —
+  nothing needs to be re-fetched later just to report those columns.
 - `--tickers NSE:A,NSE:B` or `--tickers-file companies.json` — an explicit
   list, `scanRow` is `null` for these.
 
