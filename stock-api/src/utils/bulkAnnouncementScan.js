@@ -1,6 +1,6 @@
 'use strict';
 
-const { withRetry } = require('./concurrency.js');
+const { withRetry, mapWithConcurrency } = require('./concurrency.js');
 
 // A REAL saved scan (id + name) must be echoed back in the request payload
 // even when scanning ad-hoc by watchlist/companyFilters — confirmed live
@@ -116,11 +116,37 @@ function buildAnnouncementScanBody({
 }
 
 /**
- * Fetch pages of an announcements/scan query, stopping early once every
- * companyId in `stopWhenFoundFor` has at least one match, or once
- * `maxPages` is reached, or once a short page is returned (fewer than
- * PAGE_SIZE — genuinely the last page). Never relies on the response's
- * `total` field (see DEFAULT_MAX_PAGES comment — it's not trustworthy).
+ * Fetch pages of an announcements/scan query IN PARALLEL, then truncate the
+ * combined result to exactly what the old sequential version would have
+ * returned — same output, far less wall-clock time.
+ *
+ * Why not "read total from page 1, then parallelize the rest" (the more
+ * obvious-looking optimization): this endpoint's `total` field is confirmed
+ * live (2026-07-26, see DEFAULT_MAX_PAGES comment above) to be NOT a real
+ * total — it self-inflates every page (31, 61, 91, 121, 151 for a query that
+ * only ever had ~40 real matches). Trusting it would either under-fetch
+ * (stop too early, silently dropping real matches) or over-fetch forever.
+ * Instead this exploits a fact the `total` bug doesn't affect: PAGE_SIZE is
+ * a fixed, documented constant (30/call), so the offset for page N is
+ * always `N * PAGE_SIZE` regardless of what any earlier page returned —
+ * there is no real data dependency between pages, only an artificial one
+ * from the old code awaiting each page before computing the next offset.
+ * That means EVERY page up to `maxPages` can be requested at once, with no
+ * waiting on `total` and no risk of the self-inflation bug (it's never read).
+ *
+ * The old sequential version's two stopping conditions (short page = last
+ * page; `stopWhenFoundFor` coverage) still apply, just as a POST-PROCESSING
+ * truncation over the parallel-fetched pages IN ORDER, so the returned array
+ * is byte-for-byte what the sequential loop would have produced — the only
+ * difference is when each page's request was fired.
+ *
+ * Cost/latency tradeoff, stated plainly: this always fires all `maxPages`
+ * requests (up to 5 by default), even for a query the old code might have
+ * early-exited on after page 1 or 2. That's more API calls in the
+ * already-satisfied-early case, traded for `maxPages`x lower wall-clock time
+ * in the common case where more than one page is genuinely needed. Given
+ * `maxPages` is already a small, deliberate cap (5), this trade is one-sided
+ * in favor of speed at negligible extra load.
  *
  * @param {import('../clients/StockscansClient.js').StockscansClient} client
  * @param {Object} scanBody - the `scan` object (searchFilters, announcementType, companyFilters|watchlistIds, etc.)
@@ -128,23 +154,34 @@ function buildAnnouncementScanBody({
  * @param {Object} [opts]
  * @param {Set<string>} [opts.stopWhenFoundFor] - companyIds to early-exit on once each has >=1 match
  * @param {number} [opts.maxPages=DEFAULT_MAX_PAGES]
- * @returns {Promise<Array>} flattened announcements across all pages fetched (NOT necessarily all matches — see cap/early-exit above)
+ * @returns {Promise<Array>} flattened announcements across all pages needed (NOT necessarily all matches — see cap/early-exit above)
  */
 async function scanAllPages(client, scanBody, quarterDate, { stopWhenFoundFor, maxPages = DEFAULT_MAX_PAGES } = {}) {
-  const out = [];
-  const seen = new Set();
-  let offset = 0;
-  for (let page = 0; page < maxPages; page++) {
+  const pageIndices = Array.from({ length: maxPages }, (_, i) => i);
+
+  const fetched = await mapWithConcurrency(pageIndices, maxPages, async (page) => {
+    const offset = page * PAGE_SIZE;
     const res = await withRetry(() =>
       client.scanAnnouncements(
         { scan: scanBody, offset, quarterDate },
         { referer: `${client.baseUrl}/announcement-scans` }
       )
     );
-    const anns = res.announcements || [];
+    return res.announcements || [];
+  });
+
+  // Post-process in page order to reproduce the sequential loop's exact
+  // stopping semantics. A page that errored (mapWithConcurrency returns
+  // {ok:false}) is treated as "stop here" — same as the old code's behavior
+  // of letting an error propagate out of the loop, just localized to
+  // whichever page actually failed instead of aborting earlier pages too.
+  const out = [];
+  const seen = new Set();
+  for (const result of fetched) {
+    if (!result.ok) throw result.error;
+    const anns = result.value;
     out.push(...anns);
     for (const a of anns) seen.add(a.companyId);
-    offset += anns.length;
     if (anns.length < PAGE_SIZE) break; // short page = genuinely the last page
     if (stopWhenFoundFor && [...stopWhenFoundFor].every((id) => seen.has(id))) break;
   }

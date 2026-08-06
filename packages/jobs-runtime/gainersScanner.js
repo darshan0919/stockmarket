@@ -30,6 +30,7 @@ const StorageService = require('@stock/cloud-utils').StorageService;
 const { sendHtmlEmail } = require('@stock/cloud-utils');
 const dbV2 = require('./lib/db');
 const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
+const { mapWithConcurrency } = require('@stock/api/utils/concurrency');
 
 // Data Ecosystem v2: raw scans → data/runs/, scrip cache → data/cache/ (both
 // via StorageService); classified signals → events collection (gainersClassifier).
@@ -641,23 +642,52 @@ async function fetchAnnouncementsBatch(
   }
 }
 
+/**
+ * Fetches announcement pages for a batch of tickers. Page 1 is fetched alone
+ * first (needed to learn the real page size AND to check the fast-path exit
+ * of "cutoff already hit on page 1" / "fewer results than a full page" —
+ * both common, since most watchlist-scoped scans only have a handful of
+ * recent announcements). If more pages are actually needed, the rest (up to
+ * MAX_PAGES) are fired IN PARALLEL instead of one at a time — offset for
+ * page N is `N * pageSize` once `pageSize` is known from page 1, so there is
+ * no real data dependency between later pages.
+ *
+ * This does NOT trust any `total` field from the API (this endpoint's
+ * `total` is confirmed unreliable/self-inflating for the sibling
+ * `scanAnnouncements` scans in stock-api/src/utils/bulkAnnouncementScan.js —
+ * same underlying endpoint, same caveat assumed to apply here). The
+ * date-cutoff early exit and the "short/empty page = last page" rule are
+ * both re-applied as a POST-PROCESSING pass over the parallel-fetched pages
+ * IN ORDER (oldest-fetched-index first), reproducing exactly what the old
+ * sequential loop would have accumulated — results are sorted newest-first,
+ * so processing pages in index order is equivalent to processing them in
+ * time order.
+ *
+ * Tradeoff, stated plainly: this always fires page 1 sequentially, then ALL
+ * remaining pages up to MAX_PAGES in parallel once it's clear more than one
+ * page is needed — more calls in the case where the true cutoff would have
+ * landed on page 2 or 3 of a large MAX_PAGES cap, traded for dramatically
+ * lower wall-clock time on the common multi-page case. The 300ms
+ * inter-page `sleep` from the old sequential version is dropped for the
+ * parallel batch (rate-limit pacing doesn't apply the same way to
+ * concurrent requests fired together) but a bounded fan-out (`FAN_OUT`)
+ * still caps how many are ever in flight at once, so this isn't an
+ * unbounded burst against Stockscans.
+ */
 async function paginateAnnouncements(tickers, marketDate, client, sleep, watchlistId, log) {
   const qdate = quarterDate(marketDate);
   const cutoffMs = announcementCutoffMs(marketDate);
   const results = Object.fromEntries(tickers.map((t) => [t, []]));
   const wanted = new Set(tickers);
-  let offset = 0;
-  let pageSize = null;
-  let pages = 0;
   // Safety valve for the fallback path only: without server-side filtering this
   // loop walks the whole market, so it needs a bound. Reaching it means the
   // announcements are incomplete, which the caller reports rather than hides.
   const MAX_PAGES = watchlistId ? 200 : 60;
+  const FAN_OUT = 10;
   let truncated = false;
 
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const payload = {
+  function buildPayload(offset) {
+    return {
       scan: {
         scanId: '04706a679c7508e4b17f9565',
         scanName: 'Gainers Announcements',
@@ -675,21 +705,58 @@ async function paginateAnnouncements(tickers, marketDate, client, sleep, watchli
       offset,
       quarterDate: qdate,
     };
-    let data;
-    try {
-      data = await client.scanAnnouncements(payload);
-    } catch (e) {
-      process.stderr.write(`[WARN] announcements fetch failed (offset=${offset}): ${e.message}\n`);
-      break;
-    }
-    const page =
-      data && typeof data === 'object' && !Array.isArray(data)
-        ? data.announcements || []
-        : data || [];
-    if (!page.length) break;
-    if (pageSize === null) pageSize = page.length;
-    pages += 1;
+  }
 
+  function extractPage(data) {
+    return data && typeof data === 'object' && !Array.isArray(data)
+      ? data.announcements || []
+      : data || [];
+  }
+
+  // Page 1 (sequential — needed to learn pageSize and to fast-path-exit the
+  // common single-page case without ever considering parallel fetch).
+  let page1;
+  try {
+    page1 = extractPage(await client.scanAnnouncements(buildPayload(0)));
+  } catch (e) {
+    process.stderr.write(`[WARN] announcements fetch failed (offset=0): ${e.message}\n`);
+    page1 = [];
+  }
+
+  const allPages = [page1];
+  const pageSize = page1.length || 1;
+
+  const firstPageDone =
+    page1.length === 0 ||
+    page1.length < pageSize ||
+    page1.some((ann) => {
+      const ms = parseCreatedMs(ann.createdAt || ann.date || '');
+      return ms !== null && ms < cutoffMs;
+    });
+
+  if (!firstPageDone) {
+    // More than one page is genuinely needed — fire the rest in parallel.
+    const remainingIndices = Array.from({ length: MAX_PAGES - 1 }, (_, i) => i + 1);
+    const fetched = await mapWithConcurrency(remainingIndices, FAN_OUT, async (pageIdx) => {
+      try {
+        return extractPage(await client.scanAnnouncements(buildPayload(pageIdx * pageSize)));
+      } catch (e) {
+        process.stderr.write(`[WARN] announcements fetch failed (offset=${pageIdx * pageSize}): ${e.message}\n`);
+        return null; // treated as "stop here" below, same as the old code letting an error break the loop
+      }
+    });
+    for (const result of fetched) {
+      if (!result.ok || result.value === null) break;
+      allPages.push(result.value);
+    }
+  }
+
+  // Post-process pages IN ORDER, reproducing the old sequential stopping
+  // semantics (short/empty page, or date cutoff hit mid-page).
+  let pages = 0;
+  for (const page of allPages) {
+    if (!page.length) break;
+    pages += 1;
     let done = false;
     for (const ann of page) {
       const createdStr = ann.createdAt || ann.date || '';
@@ -718,7 +785,7 @@ async function paginateAnnouncements(tickers, marketDate, client, sleep, watchli
         );
       }
     }
-    if (done || page.length < (pageSize || 1)) break;
+    if (done || page.length < pageSize) break;
     if (pages >= MAX_PAGES) {
       truncated = true;
       log(
@@ -726,8 +793,6 @@ async function paginateAnnouncements(tickers, marketDate, client, sleep, watchli
       );
       break;
     }
-    offset += page.length;
-    await sleep(300);
   }
   log(`      → ${pages} announcement page(s)${truncated ? ' (TRUNCATED)' : ''}\n`);
   Object.defineProperty(results, '_meta', {

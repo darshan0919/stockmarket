@@ -8,6 +8,7 @@ const path = require('path');
 const { searchCompanyAnnouncements } = require('../announcements/stockscansAnnouncements');
 const { fetchAnnouncementPdfBuffers } = require('../announcements/announcementPdfFetch');
 const { ensureLayout, writePdfBufferUnique } = require('../../core/utils/researchWorkspace');
+const { mapWithConcurrency } = require('@stock/api/utils/concurrency');
 
 /** @typedef {'m3'|'m6'|'y1'|'y3'|'y5'|'all'} TimeSpanPreset */
 
@@ -115,30 +116,53 @@ function sortByDateDesc(items) {
   });
 }
 
+// Bound on how many pages this will ever fetch for one company/search —
+// this endpoint returns no `total` at all (see searchCompanyAnnouncements's
+// JSDoc: meta only carries offset/limit/search/companyId), so unlike the
+// scanAnnouncements-backed utilities elsewhere in this repo there is no
+// server-reported count to sanity-check against, trustworthy or not. A cap
+// is the only way to keep this bounded.
+const MAX_PAGES = 20;
+const FAN_OUT = 8;
+
 /**
+ * Fetches page 1 alone first (needed to learn the real page size from
+ * `meta.limit`, and to fast-path-exit the common single-page case), then
+ * fires any remaining pages up to MAX_PAGES IN PARALLEL rather than
+ * one-at-a-time — offset for page N is `N * limit` once `limit` is known,
+ * so later pages have no real dependency on earlier ones' responses. No
+ * early-exit logic depends on cross-page accumulation here (unlike some
+ * other paginated fetchers in this repo) — this always drains to the last
+ * page or MAX_PAGES, so parallelizing loses nothing extra chased.
+ *
  * @param {string} companyId
  * @param {string} searchQuery
  * @returns {Promise<Object[]>}
  */
 async function fetchAllPagesStockScans(companyId, searchQuery) {
-  const out = [];
-  let offset = 0;
+  const first = await searchCompanyAnnouncements({ companyId, search: searchQuery, offset: 0 });
+  const page1 = Array.isArray(first.data) ? first.data : [];
+  const limit = typeof first.meta.limit === 'number' && first.meta.limit > 0 ? first.meta.limit : 30;
 
-  for (;;) {
-    const { data, meta } = await searchCompanyAnnouncements({
+  if (page1.length === 0 || page1.length < limit) return page1;
+
+  const remainingIndices = Array.from({ length: MAX_PAGES - 1 }, (_, i) => i + 1);
+  const fetched = await mapWithConcurrency(remainingIndices, FAN_OUT, async (pageIdx) => {
+    const { data } = await searchCompanyAnnouncements({
       companyId,
       search: searchQuery,
-      offset,
+      offset: pageIdx * limit,
     });
-    const batch = Array.isArray(data) ? data : [];
-    const limit = typeof meta.limit === 'number' ? meta.limit : 30;
+    return Array.isArray(data) ? data : [];
+  });
 
+  const out = [...page1];
+  for (const result of fetched) {
+    if (!result.ok) throw result.error;
+    const batch = result.value;
     out.push(...batch);
-
-    if (batch.length === 0 || batch.length < limit) break;
-    offset += batch.length;
+    if (batch.length === 0 || batch.length < limit) break; // short/empty page = last page
   }
-
   return out;
 }
 

@@ -42,6 +42,7 @@ const { resolveUniverse } = require('../../../../stock-api/src/analyzers/runScan
 const { StockscansClient } = require('../../../../stock-api/src/clients/StockscansClient.js');
 const { latestCompletedQuarter, parseQuarterString } = require('../../../../stock-api/src/utils/fiscalQuarter.js');
 const { stockscans } = require('../../../../stock-api/src/index.js');
+const { mapWithConcurrency } = require('../../../../stock-api/src/utils/concurrency.js');
 
 const DEFAULT_SCAN_ID = '59822b15a2859d183df3770d';
 const DEFAULT_SCAN_NAME = 'Recordings';
@@ -89,10 +90,30 @@ function safeName(ticker) {
   return ticker.replace(/[:\-]/g, '_');
 }
 
+/**
+ * Fetches all pages IN PARALLEL instead of sequentially awaiting each one
+ * before computing the next offset. This endpoint's PAGE_SIZE (30) is a
+ * fixed, documented constant (see docs/stockscans-api-schemas.md and
+ * stock-api/src/utils/bulkAnnouncementScan.js's scanAllPages, which has the
+ * same fix and the full rationale for why this does NOT rely on the
+ * response's `total` field -- that field is confirmed unreliable/
+ * self-inflating). Because the page size is fixed, offset for page N is
+ * always `N * PAGE_SIZE` with no dependency on any earlier page's response,
+ * so every page up to MAX_PAGES can be requested at once; the "stop at the
+ * first short page" rule is then applied as a post-processing truncation
+ * over the results IN ORDER, reproducing exactly what the old sequential
+ * loop would have returned.
+ */
 async function scanAllPages(client, watchlistId, quarterYyyymm, { announcementType, searchFilters }) {
-  const out = [];
-  let offset = 0;
-  for (let page = 0; page < MAX_PAGES; page++) {
+  // MAX_PAGES (40) is a generous safety cap, rarely actually needed -- firing
+  // that many requests at once risks a 429 from Stockscans (see
+  // concurrency.js's own warning about exactly this). Bound the in-flight
+  // fan-out instead of parallelizing all 40 unconditionally; still far
+  // faster than one-at-a-time for the common case of a handful of pages.
+  const FAN_OUT = 8;
+  const pageIndices = Array.from({ length: MAX_PAGES }, (_, i) => i);
+  const fetched = await mapWithConcurrency(pageIndices, FAN_OUT, async (page) => {
+    const offset = page * PAGE_SIZE;
     const res = await client.scanAnnouncements({
       scan: {
         scanId: DEFAULT_SCAN_ID,
@@ -109,10 +130,15 @@ async function scanAllPages(client, watchlistId, quarterYyyymm, { announcementTy
       offset,
       quarterDate: quarterYyyymm,
     });
-    const anns = res.announcements || res.documents || res.items || [];
+    return res.announcements || res.documents || res.items || [];
+  });
+
+  const out = [];
+  for (const result of fetched) {
+    if (!result.ok) throw result.error;
+    const anns = result.value;
     out.push(...anns);
-    if (anns.length < PAGE_SIZE) break;
-    offset += anns.length;
+    if (anns.length < PAGE_SIZE) break; // short page = genuinely the last page
   }
   return out;
 }
