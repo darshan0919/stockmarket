@@ -887,13 +887,15 @@
       "entry": null,
       "mode": "clone",
       "modules": [
+        "packages/jobs-runtime/lib/companyContext.js",
+        "packages/jobs-runtime/lib/db.js",
+        "skills/equity-research/forward-guidance-extractor/scripts/build_guidance_workbook.py",
         "skills/equity-research/forward-guidance-extractor/scripts/classify_transcript_status.py",
         "skills/equity-research/forward-guidance-extractor/scripts/compute_guidance_value.py",
         "skills/equity-research/forward-guidance-extractor/scripts/save_forward_guidance.js",
-        "skills/equity-research/forward-guidance-extractor/scripts/build_guidance_workbook.py",
         "stock-api/bin/get-latest-concall-transcript.js",
-        "packages/jobs-runtime/lib/db.js",
-        "packages/jobs-runtime/lib/companyContext.js"
+        "skills/equity-research/guidance-document-extractor/SKILL.md",
+        "skills/equity-research/pead-surprise-ranker/SKILL.md"
       ],
       "references": [
         "skills/equity-research/forward-guidance-extractor/references/metric_taxonomy.md"
@@ -935,6 +937,150 @@
         "high conviction announcement",
         "SOTP analysis",
         "spin-off analysis"
+      ]
+    },
+    "guidance-ppt-fallback": {
+      "skill_md": "skills/equity-research/guidance-ppt-fallback/SKILL.md",
+      "entry": null,
+      "mode": "clone",
+      "modules": [
+        "skills/equity-research/guidance-ppt-fallback/scripts/find_ppt_fallback_candidates.js",
+        "skills/equity-research/forward-guidance-extractor/scripts/compute_guidance_value.py",
+        "skills/equity-research/forward-guidance-extractor/scripts/save_forward_guidance.js",
+        "stock-api/src/fetchers/documentsFetcher.js",
+        "packages/jobs-runtime/lib/db.js"
+      ],
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
+      "aliases": [
+        "ppt fallback",
+        "check the ppt for guidance",
+        "did the presentation have any targets",
+        "investor presentation guidance check",
+        "guidance from deck not transcript",
+        "cheap model guidance extraction",
+        "see if the deck has guidance"
+      ],
+      "_deprecated": "2026-08-06: superseded by the guidance-document-fetcher + guidance-relevance-filter + forward-guidance-extractor pipeline, which always fetches Transcript+PPT+Result together and reads them in one unified reasoning pass instead of a sequential transcript-then-PPT-fallback design. Kept for reference only."
+    },
+    "pead-surprise-ranker": {
+      "skill_md": "skills/equity-research/pead-surprise-ranker/SKILL.md",
+      "entry": null,
+      "mode": "clone",
+      "modules": [
+        "skills/equity-research/pead-surprise-ranker/scripts/compute_pead_score.py",
+        "skills/equity-research/pead-surprise-ranker/scripts/build_pead_workbook.py",
+        "skills/equity-research/pead-surprise-ranker/scripts/save_pead_ranking.js",
+        "packages/jobs-runtime/lib/db.js"
+      ],
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
+      "aliases": [
+        "best pead bets",
+        "best visibility into next quarter",
+        "eps surprise ranking",
+        "guidance-based surprise screen",
+        "pead ranking",
+        "rank by earnings surprise potential",
+        "stage 4 guidance pipeline",
+        "who might beat this quarter"
+      ]
+    },
+    "transcript-availability-scanner": {
+      "skill_md": "skills/equity-research/transcript-availability-scanner/SKILL.md",
+      "entry": null,
+      "mode": "clone",
+      "modules": [
+        "stock-api/bin/get-latest-concall-transcript.js",
+        "skills/equity-research/forward-guidance-extractor/scripts/classify_transcript_status.py"
+      ],
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
+      "aliases": [
+        "transcript availability check",
+        "has the transcript been filed",
+        "bulk transcript status",
+        "which companies have results out",
+        "transcript gate",
+        "zero llm transcript check"
+      ],
+      "_deprecated": "2026-08-06: superseded by guidance-document-fetcher, which fetches Transcript+PPT+Result together (not just Transcript) with the same zero-LLM design plus the auto prior-quarter retry. Kept for reference only."
+    },
+    "guidance-document-fetcher": {
+      "skill_md": "skills/equity-research/guidance-document-fetcher/SKILL.md",
+      "entry": null,
+      "mode": "clone",
+      "modules": [
+        "skills/equity-research/guidance-document-fetcher/scripts/fetch_guidance_documents.js",
+        "stock-api/src/clients/StockscansClient.js",
+        "stock-api/src/fetchers/documentsFetcher.js",
+        "stock-api/src/utils/fiscalQuarter.js"
+      ],
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
+      "aliases": [
+        "fetch guidance documents",
+        "get the transcript and ppt",
+        "pull everything filed this quarter",
+        "guidance document fetcher",
+        "stage 1 guidance pipeline"
+      ],
+      "_deprecated": "2026-08-06: merged into guidance-document-extractor (fetch step is a zero-token script, so merging it into the cheap-model relevance-filter step costs nothing extra and cuts the pipeline to 2 invocations total). Also, its per-company client.documents() fetch was NOT genuinely bulk; guidance-document-extractor's fetch uses a single throwaway watchlist + a fixed handful of scanAnnouncements calls regardless of batch size. Kept for reference only."
+    },
+    "guidance-relevance-filter": {
+      "skill_md": "skills/equity-research/guidance-relevance-filter/SKILL.md",
+      "entry": null,
+      "mode": "clone",
+      "modules": [
+        "skills/equity-research/guidance-relevance-filter/scripts/check_excerpt_coverage.py"
+      ],
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
+      "aliases": [
+        "relevance filter",
+        "cheap model guidance pre-filter",
+        "candidate guidance excerpts",
+        "stage 2 guidance pipeline",
+        "recall first filter"
+      ],
+      "_deprecated": "2026-08-06: merged into guidance-document-extractor (same skill now does bulk fetch + cheap-model relevance filter + DB persistence in one invocation). Kept for reference only."
+    },
+    "guidance-document-extractor": {
+      "skill_md": "skills/equity-research/guidance-document-extractor/SKILL.md",
+      "entry": null,
+      "mode": "clone",
+      "modules": [
+        "skills/equity-research/guidance-document-extractor/scripts/fetch_guidance_documents.js",
+        "skills/equity-research/guidance-document-extractor/scripts/check_excerpt_coverage.py",
+        "skills/equity-research/guidance-document-extractor/scripts/save_guidance_documents.js",
+        "stock-api/src/clients/StockscansClient.js",
+        "stock-api/src/utils/fiscalQuarter.js",
+        "stock-api/src/analyzers/runScan.js",
+        "packages/jobs-runtime/lib/db.js"
+      ],
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
+      "aliases": [
+        "fetch guidance documents",
+        "guidance document extractor",
+        "bulk fetch transcript ppt result",
+        "guidance docs for this scan",
+        "stage 1 guidance pipeline",
+        "stage 2 guidance pipeline",
+        "cheap model guidance pre-filter",
+        "recall first filter"
       ]
     }
   }

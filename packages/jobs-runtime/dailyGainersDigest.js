@@ -71,15 +71,15 @@ function makeLink(name, type) {
   return `<a href="${url}" style="color:#1a237e;text-decoration:none">${name || 'Unknown'}</a>`;
 }
 
-function tableHtml(title, counts, streakMap, type) {
+function tableHtml(title, counts, streakMap, streakScoreMap, type) {
   const rows = counts.map(
     (c) =>
-      `<tr><td style="border-bottom:1px solid #eee">${makeLink(c.name, type)}</td><td style="border-bottom:1px solid #eee;text-align:right">${c.count}</td><td style="border-bottom:1px solid #eee;text-align:right">${streakMap[c.name] || 1}</td></tr>`
+      `<tr><td style="border-bottom:1px solid #eee">${makeLink(c.name, type)}</td><td style="border-bottom:1px solid #eee;text-align:right">${c.count}</td><td style="border-bottom:1px solid #eee;text-align:right">${streakMap[c.name] || 1}</td><td style="border-bottom:1px solid #eee;text-align:right">${streakScoreMap[c.name] || c.count}</td></tr>`
   );
   return `
   <h3 style="margin:24px 0 6px;font-family:Arial,sans-serif;color:#1a237e">${title}</h3>
   <table cellpadding="6" cellspacing="0" border="0" style="border-collapse:collapse;font:13px Arial;width:100%;max-width:500px;white-space:nowrap">
-    <tr style="background:#e8eaf6;text-align:left"><th style="border-bottom:2px solid #9fa8da">Name</th><th style="border-bottom:2px solid #9fa8da;text-align:right">Count</th><th style="border-bottom:2px solid #9fa8da;text-align:right">Streak</th></tr>
+    <tr style="background:#e8eaf6;text-align:left"><th style="border-bottom:2px solid #9fa8da">Name</th><th style="border-bottom:2px solid #9fa8da;text-align:right">Count</th><th style="border-bottom:2px solid #9fa8da;text-align:right">Streak</th><th style="border-bottom:2px solid #9fa8da;text-align:right">Streak Score</th></tr>
     ${rows.join('\n')}
   </table>`;
 }
@@ -87,6 +87,7 @@ function tableHtml(title, counts, streakMap, type) {
 async function main() {
   loadEnv(argValue('--env-file'));
   const noEmail = process.argv.includes('--no-email');
+  const force = process.argv.includes('--force');
 
   const payload = {
     ratiosType: 'Default',
@@ -142,9 +143,17 @@ async function main() {
 
   // Streak Logic
   const cacheFile = cachePath('streak_dailyGainers.json');
-  let cache = { lastRunDate: null, industryStreaks: {}, sectorStreaks: {} };
+  let cache = {
+    lastRunDate: null,
+    industryStreaks: {},
+    sectorStreaks: {},
+    industryStreakScores: {},
+    sectorStreakScores: {},
+  };
   if (fs.existsSync(cacheFile)) {
     cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+    cache.industryStreakScores = cache.industryStreakScores || {};
+    cache.sectorStreakScores = cache.sectorStreakScores || {};
   }
 
   const sortCounts = (countsMap) => {
@@ -158,17 +167,23 @@ async function main() {
   const top5Industries = industryAll.slice(0, 5).map((x) => x.name);
   const top5Sectors = sectorAll.slice(0, 5).map((x) => x.name);
 
-  if (cache.lastRunDate !== isoDate) {
+  if (cache.lastRunDate !== isoDate || force) {
     const newIndStreaks = {};
     const newSecStreaks = {};
+    const newIndStreakScores = {};
+    const newSecStreakScores = {};
     for (const ind of top5Industries) {
       newIndStreaks[ind] = (cache.industryStreaks[ind] || 0) + 1;
+      newIndStreakScores[ind] = (cache.industryStreakScores[ind] || 0) + (industryCounts[ind] || 0);
     }
     for (const sec of top5Sectors) {
       newSecStreaks[sec] = (cache.sectorStreaks[sec] || 0) + 1;
+      newSecStreakScores[sec] = (cache.sectorStreakScores[sec] || 0) + (sectorCounts[sec] || 0);
     }
     cache.industryStreaks = newIndStreaks;
     cache.sectorStreaks = newSecStreaks;
+    cache.industryStreakScores = newIndStreakScores;
+    cache.sectorStreakScores = newSecStreakScores;
     cache.lastRunDate = isoDate;
     fs.mkdirSync(require('path').dirname(cacheFile), { recursive: true });
     fs.writeFileSync(cacheFile, JSON.stringify(cache, null, 2));
@@ -179,8 +194,8 @@ async function main() {
 
   const htmlBody = `
 <div style="max-width:860px">
-  ${tableHtml('Industry vs Count', industrySorted, cache.industryStreaks, 'industry')}
-  ${tableHtml('Sector vs Count', sectorSorted, cache.sectorStreaks, 'sector')}
+  ${tableHtml('Industry vs Count', industrySorted, cache.industryStreaks, cache.industryStreakScores, 'industry')}
+  ${tableHtml('Sector vs Count', sectorSorted, cache.sectorStreaks, cache.sectorStreakScores, 'sector')}
   <p style="font:11px Arial;color:#999;margin:24px 0 0;border-top:1px solid #eee;padding-top:8px">${scanSourceHtml(payload.scan)}</p>
 </div>`;
 

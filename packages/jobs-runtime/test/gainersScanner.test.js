@@ -67,19 +67,23 @@ describe('applyQualityFilters', () => {
       { ticker: 'NSE:GOOD', market_cap_cr: 1000, retail_holding_pct: 20 },
       { ticker: 'NSE:SMALL', market_cap_cr: 100, retail_holding_pct: 10 },
       { ticker: 'NSE:RETAIL', market_cap_cr: 1000, retail_holding_pct: 80 },
+      { ticker: 'NSE:LOWSTAKE', market_cap_cr: 50, retail_holding_pct: 80 },
     ];
     const deliveryMap = {
       'NSE:GOOD': { deliv_value_cr: 50 },
       'NSE:SMALL': { deliv_value_cr: 50 },
       'NSE:RETAIL': { deliv_value_cr: 50 },
+      'NSE:LOWSTAKE': { deliv_value_cr: 50 },
     };
     const { passed, excluded } = g.applyQualityFilters(gainers, deliveryMap);
-    expect(passed.map((x) => x.ticker)).toEqual(['NSE:GOOD']);
+    // High retail holding alone no longer excludes a gainer (cap removed).
+    expect(passed.map((x) => x.ticker)).toEqual(['NSE:GOOD', 'NSE:RETAIL']);
     expect(excluded.find((x) => x.ticker === 'NSE:SMALL').exclusion_reasons[0]).toMatch(/mcap/);
+    // Still excluded via the separate min_retail_stake_value_cr check (50cr * 80% = 40cr < 50cr).
     expect(
       excluded
-        .find((x) => x.ticker === 'NSE:RETAIL')
-        .exclusion_reasons.some((r) => /retail_holding/.test(r))
+        .find((x) => x.ticker === 'NSE:LOWSTAKE')
+        .exclusion_reasons.some((r) => /retail_stake_value/.test(r))
     ).toBe(true);
   });
 });

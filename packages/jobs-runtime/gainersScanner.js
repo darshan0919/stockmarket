@@ -43,7 +43,6 @@ const DEFAULT_TOP_N = 50;
 const QUALITY_FILTERS = {
   min_market_cap_cr: 300,
   min_delivery_value_cr: 5,
-  max_retail_holding_pct: 50,
   min_retail_stake_value_cr: 50,
 };
 
@@ -315,9 +314,6 @@ function applyQualityFilters(gainers, deliveryMap) {
     }
     if (dvc !== null && dvc !== undefined && dvc < f.min_delivery_value_cr) {
       reasons.push(`delivery_value ${dvc.toFixed(2)} Cr < ${f.min_delivery_value_cr} Cr`);
-    }
-    if (retail !== null && retail !== undefined && retail > f.max_retail_holding_pct) {
-      reasons.push(`retail_holding ${retail.toFixed(1)}% > ${f.max_retail_holding_pct}%`);
     }
     if (mcap !== null && mcap !== undefined && retail !== null && retail !== undefined) {
       const stake = (mcap * retail) / 100;

@@ -8,11 +8,11 @@ const { safeTicker } = require('./documentsFetcher');
 const API_PAGE_SIZE = 30;
 
 async function fetchAnnouncementsPage(ticker, offset = 0) {
-  // Use the standard companyAnnouncements client method which maps to the same backend logic
-  const payload = { companyIds: [ticker], offset };
-  const data = await stockscans.companyAnnouncements(payload, {
-    referer: `https://www.stockscans.in/company/${encodeURIComponent(ticker)}`,
-  });
+  // NOTE: companyAnnouncements (/api/company/announcements/company) returns HTTP 400
+  // ("Field required") as of 2026-07/08 live testing — see StockscansClient.js comment
+  // on the `announcements` method. Use the working `/api/company/announcements` endpoint
+  // via the `announcements` client method instead.
+  const data = await stockscans.announcements([ticker], offset);
   return data.companyAnnouncements || [];
 }
 

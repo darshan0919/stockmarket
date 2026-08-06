@@ -51,9 +51,16 @@ Client method: `scanAnnouncements(payload, opts)`. Confirmed live 2026-07-31.
 ```
 
 Notes:
-- `scan.scanId` / `scan.scanName` are only present when replaying a *saved*
-  scan (e.g. the user's "Recordings" saved scan) — omit both for an ad-hoc
-  scan; the endpoint accepts a `scan` object without them.
+- **`scan.scanId` / `scan.scanName` are REQUIRED on every call, even ad-hoc
+  ones — CORRECTED 2026-08-06.** Omitting them returns HTTP 400
+  `{"message":"Field required","status":"error"}`. Earlier text in this doc
+  said they could be omitted for an ad-hoc scan; that was never actually
+  verified and is wrong. For ad-hoc (non-saved) scans, reuse the same
+  constants the "Recordings" scan uses —
+  `scanId: '59822b15a2859d183df3770d'`, `scanName: 'Recordings'`
+  (`DEFAULT_SCAN_ID`/`DEFAULT_SCAN_NAME` in `stock-api/src/utils/bulkAnnouncementScan.js`)
+  — they appear to be accepted as an arbitrary/placeholder scan identity
+  rather than actually scoping to that saved scan's filters.
 - `scan.watchlistIds` is the standard way to scope an ad-hoc scan to an
   arbitrary companyId list (create a throwaway watchlist, pass its id here,
   delete the watchlist after). `scan.companyFilters` is capped at 10 unique
@@ -68,6 +75,27 @@ Notes:
   announcements (recordings, transcripts). Other values exist for other
   announcement categories (order wins, preferential issues, etc. — see
   `announcement-keyword-explorer` skill for the fuller catalog).
+  **CONFIRMED 2026-08-06: `announcementType` is a real server-side enum with
+  exactly 5 values**, matching the Stockscans UI's own filter dropdown:
+  `"All"`, `"Financial Results"`, `"Earnings Call"`, `"Presentation"`,
+  `"Annual Report"`. An earlier probe in this doc incorrectly guessed values
+  like `"Investor Presentation"` — those aren't real enum members and got
+  silently treated as `"All"` before `scanId`/`scanName` were understood to
+  be required (once those were added, guessed values still returned the
+  unfiltered set rather than erroring — the endpoint appears to silently
+  ignore an unrecognized `announcementType` rather than reject it). Use
+  `"Presentation"` to bulk-fetch PPT documents and `"Financial Results"` to
+  bulk-fetch Result documents (both live-tested: `"Presentation"` returned
+  only Investor Presentation announcements, `"Financial Results"` returned
+  only board-meeting/results-outcome announcements, for a 2-company
+  watchlist at `quarterDate: "202603"`). This is the confirmed bulk path
+  used by `guidance-document-extractor` for Transcript+PPT+Result together
+  at historical quarters (no separate `resultsDocuments`-style bulk endpoint
+  exists for historical quarters — `resultsDocuments` only covers the
+  current results season). A light client-side description-prefix check is
+  still applied downstream as a sanity filter, since the enum bucket for
+  "Financial Results" was observed to include adjacent categories like
+  "Outcome of Board Meeting".
 - Paginated — advance `offset` by the number of items in the previous page
   until it's empty or `offset + page.length >= total`.
 
