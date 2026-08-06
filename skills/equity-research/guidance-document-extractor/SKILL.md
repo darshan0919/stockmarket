@@ -5,10 +5,13 @@ description: >
   bulk-fetches Transcript+PPT+Result for a batch of companies (a Stockscans
   saved-scan URL, or an explicit ticker list) via a single throwaway
   watchlist + a fixed handful of announcements/scan calls -- never one API
-  call per company -- converts each to text, then runs a cheap-model
-  (Haiku/Gemini Flash-class) recall-first pass that pulls out every passage
-  PLAUSIBLY containing forward guidance (a number near a future-period cue)
-  without judging explicit-vs-directional. Persists one durable DB record per
+  call per company -- converts each to text, then runs a cheap, recall-first
+  pass (performed directly by whichever agent is executing this skill, or a
+  cheap-tier subagent it spawns -- NEVER a separate API call to an external
+  model provider using a stored key; see Step 2 for why) that pulls out every
+  passage PLAUSIBLY containing forward guidance (a number near a
+  future-period cue) without judging explicit-vs-directional. Persists one
+  durable DB record per
   company (type guidance-documents), always -- including a genuine "nothing
   found" record -- so forward-guidance-extractor can later read it without
   needing the same /tmp files or session. Use whenever the user wants
@@ -80,7 +83,20 @@ Output (stdout, redirect to a file): JSON array, one entry per company —
 `{ticker, companyId, quarter, quarterYyyymm, found, textPaths,
 retriedPriorQuarter, scanRow}`.
 
-## Step 2 — Relevance filter, per company (cheap model)
+## Step 2 — Relevance filter, per company (cheap-tier reasoning, NO external API calls)
+
+"Cheap model" here means: whichever agent/model is currently executing this
+skill does this pass itself (or spawns a cheap-tier subagent for it, e.g. a
+Haiku-class agent call, if the orchestrating environment supports that) --
+it does NOT mean "call out to a separate provider's API using a stored key."
+This step has no bundled script for exactly that reason (contrast with Steps
+1/3/4, which are scripts) -- the absence is intentional, not a gap to fill by
+writing one. The user may invoke this whole skill from Claude, Gemini, or any
+other model; Step 2 should ride on whatever is already running the skill,
+never spin up a second, separately-billed model client. If that means this
+step runs on a flagship-tier model because that's what invoked the skill,
+that's fine -- "cheap" describes the JOB (recall-first, no judgment calls),
+not a mandate to fetch a specific cheaper model via API.
 
 For EACH company in the manifest with at least one `found` type, read the
 raw text at its `textPaths` and extract every passage where a number

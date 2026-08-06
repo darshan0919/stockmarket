@@ -48,10 +48,22 @@ def compute_one(item):
     base_v = item.get("base_value")
     base_quote = item.get("base_value_source_quote")
     base_confirmed = base_v is not None and bool(base_quote)
+    # Margins (EBITDA/Gross/Operating/Net Profit Margin, or any item whose
+    # absolute_unit is already "%") are themselves a percentage -- running
+    # them through the revenue-style relative-growth formula produces
+    # nonsense (e.g. "34% margin, down -9% from 37.4%" reads as a huge
+    # decline when the real move is 340bps). Per SKILL.md's Pitfalls section,
+    # never derive relative_pct for these; the bps delta belongs in the quote,
+    # not a computed field.
+    is_margin_like = (
+        item.get("metric_category") == "Margins" or item.get("absolute_unit") == "%"
+    )
 
     derived_field = "none"
     if abs_v is not None and rel_v is not None:
         derived_field = "none"  # management gave both directly
+    elif is_margin_like:
+        pass  # never derive a relative_pct for an already-percent metric
     elif abs_v is not None and rel_v is None and base_confirmed and base_v != 0:
         rel_v = round((abs_v - base_v) / base_v * 100, 1)
         derived_field = "relative"
