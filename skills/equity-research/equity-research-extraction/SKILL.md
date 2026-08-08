@@ -38,7 +38,7 @@ python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
 
 # Backfill the latest quarter if it's not officially filed yet — the fetch
 # above only returns OFFICIAL Transcript documents
-node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
+yarn workspace @stock/api get-latest-concall-transcript "$TICKER"
 
 python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t PPT --last-n 8 -o "$RESEARCH_ROOT/Investor_Presentations"

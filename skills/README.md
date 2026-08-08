@@ -13,54 +13,103 @@ All Claude AI skills for the stockmarket monorepo, managed as version-controlled
 
 **To add a new skill:**
 
-1. Create `skills/<skill-name>/SKILL.md`
-2. Add scripts, references, assets as needed
-3. Add an entry to `registry.json`
-4. Done — the invoker will find it automatically
+1. Create `skills/<category>/<skill-name>/SKILL.md` — `<category>` is
+   `equity-research/`, `tooling/`, or `development/` (see below).
+2. Add scripts, references, assets as needed.
+3. Add an entry to `registry.json` (and, if it should also show up in
+   `skills/registries/DEPENDENCIES.md`, to `registry.manifest.json`, then run
+   `yarn registries:generate`).
+4. Done — the invoker will find it automatically.
 
 ## Directory structure
 
+Skills are organized into three categories. This tree is generated from
+`find skills -name SKILL.md` — if it drifts from the actual directory list,
+regenerate it rather than hand-editing entries one at a time.
+
 ```
 skills/
-├── README.md                    # this file
-├── registry.json                # skill name → file paths + aliases map
-├── _shared/                     # shared across all skills (single source of truth)
-│   ├── conventions.md           # Indian market conventions, citation format, anti-hallucination
-│   └── pdf_utils.py             # ReportLab helpers, palettes, table builder
-├── github-skill-invoker/
-│   └── SKILL.md                 # the meta-skill (install this one in Claude)
-├── stock-documents-fetcher/     # CORE — fetches Stockscans documents
-│   ├── SKILL.md
-│   ├── scripts/
-│   │   ├── fetch_documents.py   # Annual Report / PPT / Result / Transcript
-│   │   └── fetch_announcements.py  # free-text announcement search
-│   └── references/
-│       └── api_details.md
-├── concall-analysis/
-├── forensic-accounting/
-├── equity-research-deepdive/
-├── growth-triggers-1pager/
-├── management-credibility-tracker/
-├── peer-comparison/
-├── market-share-analysis/
-├── sector-research-deepdive/
-├── drhp-ipo-analysis/
-├── quarterly-result-analysis/
-├── consecutive-filings-diff/
-├── pre-pead-scanner/
-├── watchlist-catalyst-scanner/
-├── fundamental-shift-scanner/
-├── equity-research-extraction/
-├── equity-research-dashboard/
-├── equity-research-master/
-├── tweet-investor-playbook/
-├── announcement-keyword-explorer/
-├── stock-report/
-├── watchlist-sync/
-├── insight-validation/
-├── gainers-signal/
-├── watchlist-insights/
-└── cowork-task-architect/
+├── README.md                       # this file
+├── registry.json                   # skill name → file paths + aliases map (read by github-skill-invoker at runtime)
+├── registry.manifest.json          # hand-maintained source for skills/registries/DEPENDENCIES.md
+├── registries/                     # generated: DEPENDENCIES.md, workflow-dependencies.json (yarn registries:generate)
+├── _shared/                        # shared across all skills (single source of truth)
+│   ├── conventions.md              # mandatory skill/job conventions — data layer, API docs, deterministic execution
+│   ├── data-verification.md
+│   ├── income-statement-signals.md
+│   └── pdf_utils.py                # ReportLab helpers, palettes, table builder
+├── equity-research/                # company/sector research skills (54)
+│   ├── stock-documents-fetcher/    # CORE — fetches Stockscans documents (Annual Report/PPT/Result/Transcript)
+│   ├── concall-analysis/
+│   ├── concall-transcript-extractor/
+│   ├── forensic-accounting/
+│   ├── equity-research-deepdive/
+│   ├── equity-research-extraction/
+│   ├── equity-research-dashboard/
+│   ├── equity-research-master/
+│   ├── growth-triggers-1pager/       # deprecated → rerating-catalysts
+│   ├── rerating-catalysts/
+│   ├── fundamental-shift-scanner/    # deprecated → rerating-catalysts
+│   ├── management-credibility-tracker/
+│   ├── peer-comparison/
+│   ├── market-share-analysis/
+│   ├── sector-research-deepdive/
+│   ├── value-chain-analysis/
+│   ├── drhp-ipo-analysis/
+│   ├── annual-report-analysis/
+│   ├── quarterly-result-analysis/
+│   ├── consecutive-filings-diff/
+│   ├── financial-model/
+│   ├── pre-pead-scanner/
+│   ├── pead-surprise-ranker/
+│   ├── forward-guidance-extractor/
+│   ├── guidance-document-extractor/
+│   ├── guidance-document-fetcher/    # deprecated → guidance-document-extractor
+│   ├── guidance-ppt-fallback/        # deprecated → guidance-document-extractor
+│   ├── guidance-relevance-filter/    # deprecated → guidance-document-extractor
+│   ├── investment-thesis-engine/
+│   ├── watchlist-catalyst-scanner/
+│   ├── watchlist-insights/
+│   ├── watchlist-sync/
+│   ├── insight-validation/
+│   ├── gainers-signal/
+│   ├── announcement-insights/
+│   ├── announcement-keyword-explorer/
+│   ├── transcript-availability-scanner/
+│   ├── stage2-catalyst-analysis/
+│   ├── stock-report/
+│   ├── monthly-sales-tracker/
+│   ├── order-book-tracker/
+│   ├── tweet-signals/
+│   └── tweet-investor-playbook/
+├── tooling/                         # meta-skills that operate on this repo itself
+│   ├── github-skill-invoker/        # the meta-skill (install this one in Claude Web)
+│   ├── find-skills/
+│   ├── skill-manager/
+│   ├── review-proposals/
+│   ├── cowork-task-architect/
+│   ├── conversation-capture/
+│   ├── antigravity-scheduled-tasks-sync/
+│   ├── token-usage-analyzer/
+│   ├── render-pdf/
+│   └── output-dto-standard/         # a written standard, not an invocable skill
+└── development/                     # generic engineering-practice skills (Cursor/Claude Code, not Claude Web)
+    ├── api-design/
+    ├── api-documentation/
+    ├── code-refactoring/
+    ├── dead-code-scanner/
+    ├── documentation-update/
+    ├── file-organization/
+    ├── frontend-design/
+    ├── frontend-patterns/
+    ├── jest-react-testing/
+    ├── jira/
+    ├── mongodb/
+    ├── nextjs-best-practices/
+    ├── nodejs-backend-patterns/
+    ├── tailwind-design-system/
+    ├── daisyui/
+    └── vercel-react-best-practices/
 ```
 
 ## Important: repo must be public (or use a proxy)

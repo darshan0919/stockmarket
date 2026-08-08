@@ -32,7 +32,7 @@ anchor rules. Build the workbook with the `xlsx` skill conventions.
 
 - Year-0 (latest FY) financials + TTM: Revenue, COGS/expenses, EBITDA, D&A, Interest, Tax, PAT.
 
-**Inventory Gains check (mandatory) on the Year-0 base.** Before using Year-0/TTM EBITDA, margin, or PAT as the projection base, test whether that base is inflated by inventory (stock) gains from revaluing raw-material/finished-goods inventory upward on rising commodity/input prices. Projecting Bear/Base/Bull off an inventory-gain-inflated base overstates every forward year. **Sourcing rule:** pull the "Changes in inventories" P&L line and PBT/PAT from the actual latest Result filing via `stock-documents-fetcher` — do not rely on Screener/MasterData summary rows alone. If the swing materially (directionally, >30-40%) explains Year-0 PBT growth, normalize the base (strip the non-recurring component) before running the model and say so explicitly in the Executive Summary.
+**Income Statement Signal Scan (mandatory) on the Year-0 base.** Before using Year-0/TTM EBITDA, margin, or PAT as the projection base, run `skills/_shared/income-statement-signals.md` against QoQ and YoY baselines — a base inflated by inventory gains, a one-off Other Income item, a tax-rate reversal, or an unflagged exceptional item overstates every forward year identically, not just the inventory case. **Sourcing rule:** pull every relevant P&L line and PBT/PAT from the actual latest Result filing via `stock-documents-fetcher` — do not rely on Screener/MasterData summary rows alone. If any line/combination clears the shared scan's materiality bar and materially explains Year-0 PBT growth, normalize the base (strip the non-recurring component) before running the model and say so explicitly in the Executive Summary.
 - Latest concall transcript (and prior one if available) for: growth guidance, margin
   outlook, capex/initiatives, risk factors.
 - Reuse existing artifacts (corpus extracts, `[TICKER]_Concall.txt`, MasterData.xlsx) before
@@ -46,16 +46,16 @@ TICKER="NSE:TICKER"
 SAFE=$(echo "$TICKER" | tr ':' '_')
 
 # Latest quarter — DB-first waterfall
-node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
+yarn workspace @stock/api get-latest-concall-transcript "$TICKER"
 # "db-hit"/"saved" → read fullText from data/reports/<id>.json (no download needed)
 # "official-transcript-exists" → download via fetch_documents.py, then save to DB:
 #   python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" -t Transcript --last-n 1 -o /tmp/${SAFE}_docs
 #   <read the PDF, write verbatim text to /tmp/${SAFE}_<yyyymm>_transcript.txt>
-#   node stock-api/bin/save-concall-transcript.js "$TICKER" "$YYYYMM" /tmp/${SAFE}_${YYYYMM}_transcript.txt
+#   yarn workspace @stock/api save-concall-transcript "$TICKER" "$YYYYMM" /tmp/${SAFE}_${YYYYMM}_transcript.txt
 # "results-not-out" → use prior quarter instead (run again with --quarter <prior>)
 
 # Prior quarter (if needed) — same pattern with explicit quarter
-node stock-api/bin/get-latest-concall-transcript.js "$TICKER" --quarter "$PRIOR_QUARTER"
+yarn workspace @stock/api get-latest-concall-transcript "$TICKER" --quarter "$PRIOR_QUARTER"
 ```
 
 Save every downloaded transcript text to DB immediately after reading — the financial

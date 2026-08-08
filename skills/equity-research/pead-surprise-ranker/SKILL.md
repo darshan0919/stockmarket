@@ -226,7 +226,7 @@ node skills/equity-research/pead-surprise-ranker/scripts/save_pead_ranking.js \
 ```
 
 Then: copy the xlsx to the user's workspace folder and present it; run
-`node packages/jobs-runtime/scripts/data.js push`; report **Files touched**
+`yarn data:push`; report **Files touched**
 (the saved report id, record count, xlsx path, `data:push` output lines);
 close with the mandatory **token-optimization note** — e.g. how many
 companies' guidance DTOs were re-read vs. newly extracted this run, and

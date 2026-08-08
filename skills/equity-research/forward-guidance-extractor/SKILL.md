@@ -314,7 +314,7 @@ Copy the finished file to the user's workspace folder and present it with
 
 ## Phase 5 -- Finish the run
 
-1. `node packages/jobs-runtime/scripts/data.js push` (mandatory, per
+1. `yarn data:push` (mandatory, per
    `conventions.md` §6).
 2. Report a **Files touched** section (per `conventions.md` §9): every
    `reports.json`/`reports/<id>.json` written (with the record count), plus the

@@ -43,7 +43,7 @@ import json, sys
 docs = json.load(open('$DOCS_DIR/manifest.json'))
 print(json.dumps([{'ticker': '$TICKER', 'quarter': d['date']} for d in docs]))
 ")
-node stock-api/bin/get-latest-concall-transcript.js --bulk "$BULK"
+yarn workspace @stock/api get-latest-concall-transcript --bulk "$BULK"
 # Returns array: [{status:"db-hit"|"official-transcript-exists"|..., ticker, quarter, id?}]
 
 # Step 3: for entries with status "db-hit" or "saved" — transcript is already
@@ -56,7 +56,7 @@ python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
 
 # Step 5: resolve the official Transcript URL for the most recent quarter
 # (Stockscans guarantees a Transcript document per reported quarter now)
-node stock-api/bin/get-concall-transcript-url.js --company "$TICKER"
+yarn workspace @stock/api get-concall-transcript-url --company "$TICKER"
 # On "error" the transcript genuinely isn't filed yet (rare) — treat as unavailable
 
 # Also pull the latest annual report for the long-form Vision/Strategy guidance
@@ -73,7 +73,7 @@ temp file and persist it so the next run is an instant DB hit:
 cat > /tmp/${SAFE}_${YYYYMM}_transcript.txt << 'EOF'
 <full verbatim transcript text here>
 EOF
-node stock-api/bin/save-concall-transcript.js "$TICKER" "$YYYYMM" \
+yarn workspace @stock/api save-concall-transcript "$TICKER" "$YYYYMM" \
     /tmp/${SAFE}_${YYYYMM}_transcript.txt \
     --fiscal-year "$FY" --fiscal-period "$QN"
 ```

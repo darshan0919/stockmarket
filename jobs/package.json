@@ -27,6 +27,13 @@
     "insight-validator": "yarn workspace @stock/jobs-runtime insight-validator",
     "watchlist-insights": "yarn workspace @stock/jobs-runtime watchlist-insights",
     "watchlist-updater": "yarn workspace @stock/jobs-runtime watchlist-updater",
-    "dead-code-scanner": "yarn workspace @stock/jobs-runtime dead-code-scanner"
+    "dead-code-scanner": "yarn workspace @stock/jobs-runtime dead-code-scanner",
+    "company-master-sync": "yarn workspace @stock/jobs-runtime company-master-sync",
+    "company-keyword-enricher": "yarn workspace @stock/jobs-runtime company-keyword-enricher",
+    "gainers-classifier": "yarn workspace @stock/jobs-runtime gainers-classifier",
+    "capture-conversation": "yarn workspace @stock/jobs-runtime capture-conversation",
+    "order-book-extract": "yarn workspace @stock/jobs-runtime order-book-extract",
+    "order-book-company": "yarn workspace @stock/jobs-runtime order-book-company",
+    "fetch-concall-notes": "yarn workspace @stock/jobs-runtime fetch-concall-notes"
   }
 }

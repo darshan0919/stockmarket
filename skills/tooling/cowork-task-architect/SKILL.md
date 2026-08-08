@@ -156,7 +156,7 @@ Call the following exact scripts/APIs in order:
 2. Execute skill: /path/to/stockmarket/skills/skill_name/SKILL.md
    (Fallback: https://raw.githubusercontent.com/darshan0919/stockmarket/main/skills/skill_name/SKILL.md)
 3. [etc...]
-N-1. (if the task persisted anything) Execute: `node packages/jobs-runtime/scripts/data.js push`
+N-1. (if the task persisted anything) Execute: `yarn data:push`
    (idempotent, push-only — see docs/DATA_RULES.md §5), then include a
    "Files touched" section in the run summary listing every file created or
    modified (from the scripts' touchedFiles() output and the push ↑ lines —

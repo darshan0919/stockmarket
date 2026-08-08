@@ -43,7 +43,7 @@ Stockscans guarantees a Transcript document for every reported quarter now:
 
 ```bash
 TICKER="NSE:SWARAJENG"            # replace
-node stock-api/bin/get-concall-transcript-url.js --company "$TICKER"
+yarn workspace @stock/api get-concall-transcript-url --company "$TICKER"
 ```
 
 Handle its output:
@@ -73,7 +73,7 @@ import json, sys
 docs = json.load(open('$DOCS_DIR/manifest.json'))
 print(json.dumps([{'ticker': '$TICKER', 'quarter': d['date']} for d in docs]))
 ")
-node stock-api/bin/get-latest-concall-transcript.js --bulk "$BULK"
+yarn workspace @stock/api get-latest-concall-transcript --bulk "$BULK"
 # Returns: [{status:"db-hit"|"official-transcript-exists"|..., ticker, quarter, id?}]
 
 # Step 3: for "db-hit"/"saved" entries — read fullText from data/reports/<id>.json (no PDF download)
@@ -91,7 +91,7 @@ any official transcript PDF that was NOT already in the DB, persist its text:
 cat > /tmp/${SAFE}_${YYYYMM}_transcript.txt << 'EOF'
 <full verbatim transcript text>
 EOF
-node stock-api/bin/save-concall-transcript.js "$TICKER" "$YYYYMM" \
+yarn workspace @stock/api save-concall-transcript "$TICKER" "$YYYYMM" \
     /tmp/${SAFE}_${YYYYMM}_transcript.txt \
     --fiscal-year "$FY" --fiscal-period "$QN"
 ```
@@ -115,7 +115,7 @@ All four frameworks share three core extraction tasks — extract these from eve
 1. **Guidance & quantitative data** — every number management states (revenue growth, margin, capex, capacity, order book). Format as a table with **Source-quote column** so the analyst can verify.
 2. **Tone & confidence language** — count of HIGH-commitment phrases ("we will", "target is", "guidance is") vs MEDIUM ("we expect", "likely to") vs LOW ("may", "endeavor to", "aspire to"). The mix predicts credibility.
 3. **Dodged or evaded questions** — analyst questions that received vague or non-answers. Quote the question verbatim AND the management response so the reader can judge.
-4. **Inventory Gains check (mandatory).** When margin/PAT performance is discussed, explicitly test whether the reported strength is inflated by inventory (stock) gains — gains from revaluing existing raw-material/finished-goods inventory upward on rising commodity/input prices. Watch for: a jump in Other Income/exceptional items, margin expansion that outpaces stated volume growth, explicit management language ("inventory gains", "stock gains", "favourable inventory valuation"), or RM-cost-as-%-of-sales improving without a volume/pricing explanation. Quantify the estimated PAT/EBITDA contribution where derivable and state plainly whether the quarter's result is inventory-gain-driven (non-recurring) or structural/operating (sustainable) — see §2/§8/§9 of the deep/brief frameworks for exactly where this lands in each mode's output. **Sourcing rule:** pull the actual "Changes in inventories" P&L line from the quarter's Result filing via `stock-documents-fetcher` (`documentsFetcher.js`/`StockscansClient.documents()`) — do not infer this from web search or news writeups, which rarely disclose the line-item figure. Transcripts must always come from `concall-transcript-extractor`, per this skill's existing rule; the same "repo API, not internet" rule applies to the financial-statement figures needed for this check.
+4. **Income Statement Signal Scan (mandatory).** When margin/PAT performance is discussed, run `skills/_shared/income-statement-signals.md` against QoQ and YoY baselines rather than checking inventory gains in isolation — it also covers Other Income composition, RM-cost moves, employee-cost leverage, D&A/interest step-ups, exceptional items, tax-rate swings, and EPS dilution, plus the combination reads (e.g. Other Income up + operating profit flat = non-operating beat). Quantify the estimated PAT/EBITDA contribution of whatever clears the materiality bar and state plainly whether the quarter's result is driven by that effect (non-recurring) or structural/operating (sustainable) — see §2/§8/§9 of the deep/brief frameworks for exactly where this lands in each mode's output. **Sourcing rule:** pull every P&L line from the quarter's Result filing via `stock-documents-fetcher` (`documentsFetcher.js`/`StockscansClient.documents()`) — do not infer these from web search or news writeups, which rarely disclose the line-item figures. Transcripts must always come from `concall-transcript-extractor`, per this skill's existing rule; the same "repo API, not internet" rule applies to the financial-statement figures needed for this scan. Report only what clears the shared scan's materiality bar.
 
 ### Phase 3 — PDF generation
 

@@ -26,7 +26,14 @@
     "insight-validator": "node insightValidator.js",
     "watchlist-insights": "node watchlistInsights.js",
     "watchlist-updater": "node watchlistUpdater.js",
-    "dead-code-scanner": "node deadCodeScannerJob.js"
+    "dead-code-scanner": "node deadCodeScannerJob.js",
+    "company-master-sync": "node companyMasterSync.js",
+    "company-keyword-enricher": "node companyKeywordEnricher.js",
+    "gainers-classifier": "node lib/gainersClassifier.js",
+    "capture-conversation": "node scripts/captureConversation.js",
+    "order-book-extract": "node scripts/orderbook/extractOrderBook.js",
+    "order-book-company": "node scripts/orderbook/getCompanyOrderBook.js",
+    "fetch-concall-notes": "node scripts/orderbook/fetchConcallNotes.js"
   },
   "dependencies": {
     "@stock/api": "workspace:*",

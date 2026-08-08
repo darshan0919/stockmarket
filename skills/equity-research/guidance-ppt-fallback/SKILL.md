@@ -159,7 +159,7 @@ the orchestrating model's name if a cheaper model did the extraction.
 
 ## Step 5 — Finish the run
 
-1. `node packages/jobs-runtime/scripts/data.js push`.
+1. `yarn data:push`.
 2. **Files touched** section: every `reports/<id>.json` written (with count),
    read from the script output, never from memory.
 3. **Token-optimization note** (mandatory, `conventions.md` §11): report how

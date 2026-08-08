@@ -33,7 +33,7 @@ on a topic, not just the ones that happen to match one phrase.
 ## Step 1 — Run the script (deterministic heavy lifting)
 
 ```bash
-node stock-api/bin/announcement-keyword-explorer.js \
+yarn workspace @stock/api announcement-keyword-explorer \
   --keyword "<USER_KEYWORD>" \
   --quarters 4 \
   --min-mcap 300 \

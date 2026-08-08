@@ -35,7 +35,7 @@ python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
 # with the latest concall") fires right after a results drop. Resolve the
 # official Transcript URL directly (Stockscans guarantees one per reported
 # quarter now):
-node stock-api/bin/get-concall-transcript-url.js --company "$TICKER"
+yarn workspace @stock/api get-concall-transcript-url --company "$TICKER"
 ```
 
 After fetching, read `$DOCS_DIR/manifest.json` to confirm what was downloaded. The two PPT entries will be sorted newest-first by `date` — the one with the **higher** `date` value is "Q" (latest quarter) and the **lower** date is "Q-1" (prior quarter). This is the correct orientation for the Phase 1 diff.
@@ -151,7 +151,7 @@ When this skill triggers:
 
 **Diff before narrative.** The temptation is to read the concall first because it reads like prose. Resist. The decks contain numeric ground truth — the concall contains management's narrative about that truth. Run the numbers first so you know when management is spinning.
 
-**Inventory Gains check (mandatory).** When Dimension 1's P&L diff shows margin/PAT expansion, explicitly test whether it is inflated by inventory (stock) gains — gains from revaluing existing raw-material/finished-goods inventory upward on rising commodity/input prices. See `references/phase1_diff_framework.md` Dimension 1 for the full checklist (Other Income jumps, margin-vs-volume mismatches, RM-cost moves) and quantification guidance. Flag explicitly in the Positive Surprises section whether the beat is (i) inventory-gain-driven and non-recurring, or (ii) structural/operating and therefore genuinely tradeable — inventory gains reverse when commodity prices fall and must never be presented as a clean beat. **Sourcing rule:** the "Changes in inventories" P&L line and PBT/PAT figures for both quarters being diffed must come from the actual Result filings fetched via `stock-documents-fetcher`'s `documentsFetcher.js`/`StockscansClient.documents()` API — never from web search or secondary news commentary, which routinely omit or round this line.
+**Income Statement Signal Scan (mandatory).** When Dimension 1's P&L diff shows margin/PAT expansion, run `skills/_shared/income-statement-signals.md` on both quarters (QoQ and YoY) rather than checking inventory alone — Other Income spikes, tax-rate swings, exceptional items, and RM-cost moves are just as capable of manufacturing a fake beat. See `references/phase1_diff_framework.md` Dimension 1 for how this feeds the diff. Flag explicitly in the Positive Surprises section whether the beat is (i) driven by a non-structural P&L effect and non-recurring, or (ii) structural/operating and therefore genuinely tradeable — a beat traced to inventory gains, a tax-rate reversal, or a one-off Other Income item must never be presented as clean. **Sourcing rule:** every P&L line and PBT/PAT figure for both quarters being diffed must come from the actual Result filings fetched via `stock-documents-fetcher`'s `documentsFetcher.js`/`StockscansClient.documents()` API — never from web search or secondary news commentary, which routinely omit or round these lines. Report only what clears the shared scan's materiality bar.
 
 **Every flag must be resolved.** A forensic diff that raises yellow flags and then doesn't track whether the concall addressed them is incomplete. If a flag survives Phase 2, it becomes a watchlist item for the next quarter — label it accordingly.
 

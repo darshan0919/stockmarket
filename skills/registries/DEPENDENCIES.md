@@ -49,6 +49,11 @@ Available high-level agentic skills defined in the project:
 | N/A | `N/A` | stage 2, weinstein stage, soic lti, 30 wema, breakout analysis, why now catalyst, technical stage, entry stop loss, institutional accumulation |
 | N/A | `N/A` | dead code, dead code scanner, find unused files, find unused exports, find dead code, clean up unused code |
 | N/A | `N/A` | announcement insights, read this filing, analyse this announcement, demerger insight, merger insight, management change insight, high conviction announcement, SOTP analysis, spin-off analysis |
+| [scripts/skills/monthly-sales-tracker/run.js](scripts/skills/monthly-sales-tracker/run.js) | `scripts/skills/monthly-sales-tracker/run.js` | monthly sales tracker, TMPV sales trend, predict monthly revenue, auto OEM monthly sales, PV domestic exports EV units, monthly unit sales prediction |
+| [packages/jobs-runtime/lib/tweetSignalsClassifier.js](packages/jobs-runtime/lib/tweetSignalsClassifier.js) | `packages/jobs-runtime/lib/tweetSignalsClassifier.js` | tweet signals, twitter signals, X list conviction briefing, daily tweet briefing, market twitter digest |
+| [scripts/antigravity-sync-tasks-and-skills.js](scripts/antigravity-sync-tasks-and-skills.js) | `scripts/antigravity-sync-tasks-and-skills.js` | sync antigravity, sync scheduled tasks, sync skills to antigravity, antigravity sidecar sync |
+| N/A | `N/A` | find a skill, is there a skill that can, discover skills, install a skill |
+| [scripts/metrics/analyze_token_usage.py](scripts/metrics/analyze_token_usage.py) | `scripts/metrics/analyze_token_usage.py` | token usage analysis, weekly token usage, cost reduction recommendations, model selection FinOps |
 
 ---
 
@@ -268,6 +273,10 @@ Helper functions and utilities for common processes (data parsing, PDF generatio
 | `candleIndexAtOrBefore` | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js) | Exported from eventReactionSignals.js |
 | `computeReactionMetrics` | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js) | Exported from eventReactionSignals.js |
 | `classifySignal` | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js) | Exported from eventReactionSignals.js |
+| `compute` | [stock-api/src/analyzers/incomeStatementSignals.js](stock-api/src/analyzers/incomeStatementSignals.js) | Exported from incomeStatementSignals.js |
+| `getOrCompute` | [stock-api/src/analyzers/incomeStatementSignals.js](stock-api/src/analyzers/incomeStatementSignals.js) | Exported from incomeStatementSignals.js |
+| `readCache` | [stock-api/src/analyzers/incomeStatementSignals.js](stock-api/src/analyzers/incomeStatementSignals.js) | Exported from incomeStatementSignals.js |
+| `writeCache` | [stock-api/src/analyzers/incomeStatementSignals.js](stock-api/src/analyzers/incomeStatementSignals.js) | Exported from incomeStatementSignals.js |
 | `evaluateCatalystRules` | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js) | Exported from index.js |
 | `computeConcentration` | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js) | Exported from index.js |
 | `computeHHI` | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js) | Exported from index.js |

@@ -70,7 +70,7 @@ SAFE=$(echo "<companyId>" | tr ':' '_')
 TICKER="<companyId>"
 
 # Transcript: check DB first (instant, no network)
-node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
+yarn workspace @stock/api get-latest-concall-transcript "$TICKER"
 # - "db-hit"/"saved" → read fullText from data/reports/<id>.json — no PDF download needed
 # - "official-transcript-exists" → fall through: download only the transcript PDF below
 # - "needs-recording-pipeline" → proceed with PPT only; flag missing transcript in output
@@ -79,7 +79,7 @@ node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
 python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
     -t Transcript --last-n 1 -o "/tmp/pead/${SAFE}_docs"
 # After reading the downloaded PDF — save text to DB so the next scan run is instant:
-# node stock-api/bin/save-concall-transcript.js "$TICKER" "$YYYYMM" \
+# yarn workspace @stock/api save-concall-transcript "$TICKER" "$YYYYMM" \
 #     /tmp/pead/${SAFE}_${YYYYMM}_transcript.txt --fiscal-year "$FY" --fiscal-period "$QN"
 
 # PPT always fetched directly (no DB caching for PPTs)

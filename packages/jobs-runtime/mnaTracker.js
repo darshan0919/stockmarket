@@ -9,60 +9,23 @@
  */
 
 const { StockscansClient } = require('@stock/api');
-const https = require('https');
 const path = require('path');
 const { loadEnv } = require('./lib/env');
+const { callAnthropic } = require('./lib/anthropicClient');
 
 loadEnv(path.join(__dirname, '../../.env'));
 
-async function callAnthropic(text) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    console.warn('ANTHROPIC_API_KEY not found in .env, skipping AI summary.');
-    return null;
-  }
-
-  const prompt = `You are a financial analyst tracking M&A activities. Extract and summarize all Mergers, Demergers, Acquisitions, Spin-offs, and Amalgamations from the following announcements. Focus on identifying the target companies, the deal values (if any), and most importantly, the "Strategic Rationale" behind each move:
+/**
+ * Build the M&A-insights prompt for a batch of announcement text.
+ * @param {string} text - Combined announcement subjects/descriptions.
+ * @returns {string} Prompt ready to pass to `callAnthropic`.
+ */
+function buildMnaPrompt(text) {
+  return `You are a financial analyst tracking M&A activities. Extract and summarize all Mergers, Demergers, Acquisitions, Spin-offs, and Amalgamations from the following announcements. Focus on identifying the target companies, the deal values (if any), and most importantly, the "Strategic Rationale" behind each move:
 
 Announcements:
 ${text.substring(0, 80000)}
 `;
-
-  return new Promise((resolve, reject) => {
-    const req = https.request(
-      {
-        hostname: 'api.anthropic.com',
-        path: '/v1/messages',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-      },
-      (res) => {
-        let data = '';
-        res.on('data', (chunk) => (data += chunk));
-        res.on('end', () => {
-          try {
-            const parsed = JSON.parse(data);
-            resolve(parsed.content[0].text);
-          } catch (e) {
-            resolve('Error parsing Anthropic response');
-          }
-        });
-      }
-    );
-    req.on('error', reject);
-    req.write(
-      JSON.stringify({
-        model: 'claude-3-haiku-20240307',
-        max_tokens: 1500,
-        messages: [{ role: 'user', content: prompt }],
-      })
-    );
-    req.end();
-  });
 }
 
 async function runMnaTracker() {
@@ -99,7 +62,7 @@ async function runMnaTracker() {
         .map((i) => `[${i.companyName || i.ticker}] ${i.subject}\n${i.description}`)
         .join('\n\n');
       console.log('Generating AI Insights for M&A...');
-      const insights = await callAnthropic(combinedText);
+      const insights = await callAnthropic(buildMnaPrompt(combinedText));
       if (insights) {
         console.log('\n--- M&A Insights ---\n');
         console.log(insights);

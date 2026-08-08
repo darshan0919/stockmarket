@@ -256,10 +256,14 @@ If you have questions about contributing:
 
 ## AI Agent Guidelines
 
-When using AI agents to contribute:
+This repo is edited by multiple AI coding tools (Claude Code, Claude Cowork,
+Cursor, Antigravity/Gemini). The canonical rule set for all of them is
+[`AGENTS.md`](../AGENTS.md) at the repo root — tool-specific files
+(`CLAUDE.md`, `.cursorrules`, `.cursor/rules/*.mdc`, `.gemini/rules/*.md`)
+are thin pointers into it, not separate rule sets.
 
-1. **Always check cursor rules** in `.cursor/rules/` before making changes
-2. **Run tests** after making changes
-3. **Update documentation** for any new features
-4. **Follow existing patterns** in the codebase
-5. **Reference code locations** in documentation for easy navigation
+1. **Read `AGENTS.md` first**, then whichever tool-specific file applies.
+2. **Run tests** after making changes (`yarn test`).
+3. **Update documentation** for any new features.
+4. **Follow existing patterns** in the codebase.
+5. **Reference code locations** in documentation for easy navigation.

@@ -14,6 +14,7 @@ const path = require('path');
 const https = require('https');
 const pdf = require('pdf-parse');
 const { loadEnv } = require('./lib/env');
+const { callAnthropic } = require('./lib/anthropicClient');
 
 loadEnv(path.join(__dirname, '../../.env'));
 
@@ -61,14 +62,13 @@ function downloadFile(url, dest) {
   });
 }
 
-async function callAnthropic(text) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    console.warn('ANTHROPIC_API_KEY not found in .env, skipping AI summary.');
-    return null;
-  }
-
-  const prompt = `You are a financial analyst. Summarize the following extracted text from weekly market presentations into these categories: 
+/**
+ * Build the weekly-PPT-insights prompt for a batch of extracted PPT text.
+ * @param {string} text - Combined extracted text from the week's PPTs.
+ * @returns {string} Prompt ready to pass to `callAnthropic`.
+ */
+function buildWeeklyPptPrompt(text) {
+  return `You are a financial analyst. Summarize the following extracted text from weekly market presentations into these categories:
 1. Macro Developments & Sector Rotation
 2. Order Book Updates
 3. Financials (Banks and NBFCs)
@@ -79,43 +79,6 @@ async function callAnthropic(text) {
 Text:
 ${text.substring(0, 80000)} // Truncating to avoid massive token usage for now
 `;
-
-  return new Promise((resolve, reject) => {
-    const req = https.request(
-      {
-        hostname: 'api.anthropic.com',
-        path: '/v1/messages',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-      },
-      (res) => {
-        let data = '';
-        res.on('data', (chunk) => (data += chunk));
-        res.on('end', () => {
-          try {
-            const parsed = JSON.parse(data);
-            resolve(parsed.content[0].text);
-          } catch (e) {
-            resolve('Error parsing Anthropic response');
-          }
-        });
-      }
-    );
-
-    req.on('error', reject);
-    req.write(
-      JSON.stringify({
-        model: 'claude-3-haiku-20240307',
-        max_tokens: 1500,
-        messages: [{ role: 'user', content: prompt }],
-      })
-    );
-    req.end();
-  });
 }
 
 async function run() {
@@ -168,7 +131,7 @@ async function run() {
     }
 
     console.log('Generating AI Insights...');
-    const insights = await callAnthropic(combinedText);
+    const insights = await callAnthropic(buildWeeklyPptPrompt(combinedText));
 
     if (insights) {
       const outPath = path.join(

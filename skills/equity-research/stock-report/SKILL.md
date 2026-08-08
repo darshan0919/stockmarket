@@ -88,7 +88,7 @@ Step 4: If consolidated lacks multi-year P&L, also navigate to:
 - **Cash Flow Statement** (ALL years visible): Cash from Operations, Cash from Investing, Cash from Financing, Net Cash Flow, Free Cash Flow, CFO/OP %
 - **Key Ratios** (ALL years visible): Debtor Days, Inventory Days, Days Payable, Cash Conversion Cycle, Working Capital Days, ROCE %
 
-**Inventory Gains check (mandatory).** Before writing any margin/PAT commentary from the Income Statement, explicitly test whether a strong quarter/year is inflated by inventory (stock) gains — gains from revaluing existing raw-material/finished-goods inventory upward on rising commodity/input prices — rather than genuine operating improvement. **Sourcing rule:** pull the "Changes in inventories of finished goods, work-in-progress and stock-in-trade" P&L line from the actual quarterly Result filing via `stock-documents-fetcher` (`documentsFetcher.js`/`StockscansClient.documents()`), not from Screener's summary tables which omit this line. A negative value = inventory build-up = a profit-inflating cost tailwind; a positive value = inventory drawdown = a cost headwind. If the swing in this line explains a large share (directionally, >30-40%) of a period's PBT growth, flag the result as inventory-gain-driven (non-recurring) in the report rather than presenting it as a clean margin beat.
+**Income Statement Signal Scan (mandatory).** Before writing any margin/PAT commentary from the Income Statement, run the full line-by-line + combination scan in `skills/_shared/income-statement-signals.md` against both QoQ and YoY baselines — inventory gains are just one of 15 lines/combinations checked (Other Income composition, RM-cost moves, employee-cost leverage, exceptional items, tax-rate swings, EPS dilution, etc.) rather than genuine operating improvement. **Sourcing rule:** pull every P&L line from the actual quarterly Result filing via `stock-documents-fetcher` (`documentsFetcher.js`/`StockscansClient.documents()`), not from Screener's summary tables which omit several of these lines. Report only what clears the shared scan's materiality bar, ranked by contribution to the PBT/PAT delta, rather than reciting every line — if nothing clears the bar, say so in one line.
 - **Shareholding Pattern** (latest quarter): Promoter %, FII %, DII %, Public %, Promoter pledge %
 - **Market data at top of page**: CMP, Market Cap, 52-week high/low, P/E, Forward PE, P/B, EV/EBITDA, Enterprise Value, Dividend Yield, Book Value per share, Face Value, ROCE, ROE, Debt, Debt-to-equity, Interest Coverage, Current ratio
 
@@ -174,7 +174,7 @@ report.
 **Try in order:**
 
 ```
-Step 1: node stock-api/bin/get-concall-transcript-url.js --company "$TICKER"
+Step 1: yarn workspace @stock/api get-concall-transcript-url --company "$TICKER"
         (Stockscans EXCH:SYMBOL format, e.g. NSE:SWARAJENG)
         - success (ssUrl/documentUrl present) -> fetch/read the document at
           documentUrl (or via stock-documents-fetcher,

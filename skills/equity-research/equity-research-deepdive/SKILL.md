@@ -33,7 +33,7 @@ One pass fetches all four types (4 each = up to 16 PDFs). Then treat every file 
 
 If the newest of the 4 Transcript entries isn't actually the most recently
 completed quarter (Stockscans hasn't officially filed it yet), backfill with
-`node stock-api/bin/get-latest-concall-transcript.js "$TICKER"` — read
+`yarn workspace @stock/api get-latest-concall-transcript "$TICKER"` — read
 `fullText` from `data/reports/<id>.json` if it returns `status: "saved"`.
 A deep dive missing the freshest quarter's commentary is a real gap, not a
 minor one.

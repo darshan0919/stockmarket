@@ -5,6 +5,10 @@ globs: ['**/*']
 
 # Stock Screener Project Rules
 
+> Canonical, tool-agnostic rules live in [`AGENTS.md`](../../AGENTS.md) — read
+> that first. This file adds Cursor-specific detail (templates, file-location
+> tables) on top of it; don't restate `AGENTS.md` content here.
+
 ## Project Overview
 
 This is a full-stack stock market analysis application with:

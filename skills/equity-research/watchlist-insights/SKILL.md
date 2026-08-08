@@ -216,7 +216,7 @@ get processed this time, silently losing it. If the run failed partway through, 
 will naturally reach back far enough to pick up the unfinished work.
 
 ```bash
-node "$RUNTIME/scripts/data.js" push
+yarn data:push
 ```
 
 Idempotent push of everything under `data/` to Google Drive (`StockMarket/data/v2`).

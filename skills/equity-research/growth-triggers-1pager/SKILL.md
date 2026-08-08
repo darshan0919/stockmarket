@@ -35,7 +35,7 @@ python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
 # The most recent Transcript above is the primary source for current
 # guidance. If the bulk fetch missed the latest quarter, resolve it directly
 # (Stockscans guarantees a Transcript document per reported quarter now):
-node stock-api/bin/get-concall-transcript-url.js --company "$TICKER"
+yarn workspace @stock/api get-concall-transcript-url --company "$TICKER"
 ```
 
 Use `$DOCS_DIR/manifest.json` to identify which files are which type before

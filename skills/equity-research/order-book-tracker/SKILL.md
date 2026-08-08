@@ -216,7 +216,7 @@ and never delete anything in a write path.
 Finish every run with:
 
 ```bash
-node packages/jobs-runtime/scripts/data.js push
+yarn data:push
 ```
 
 ## Reporting

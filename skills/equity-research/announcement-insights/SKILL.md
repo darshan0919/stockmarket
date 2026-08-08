@@ -152,13 +152,14 @@ run insight-template "<category>" --depth deep         # full framework, HIGH_CO
 template (`concall_transcript`, `investor_presentation`, `annual_report`) — plus
 `results`, which is both STRONG/SCHEDULED *and* heavy-document; see Step 0.
 
-**Sourcing rule (applies to the Inventory Gains check below and to all `results`-category insights):** fetch the underlying Result filing via `stock-documents-fetcher`'s `documentsFetcher.js`/`StockscansClient.documents()` API, not web search — the exact "Changes in inventories" P&L line rarely appears in news summaries.
+**Sourcing rule (applies to the Income Statement Signal Scan below and to all `results`-category insights):** fetch the underlying Result filing via `stock-documents-fetcher`'s `documentsFetcher.js`/`StockscansClient.documents()` API, not web search — several P&L lines (Changes in inventories, the Other Income break-up, the tax-rate reconciliation) rarely appear in news summaries.
 
-The `results` template carries a mandatory **Inventory Gains check** — when a headline
-margin/PAT beat is reported, explicitly test whether it is inflated by inventory (stock)
-gains from rising commodity/input prices rather than structural/operating improvement,
-and quantify the estimated contribution where derivable. See
-`references/templates/results.md`.
+The `results` template carries a mandatory **Income Statement Signal Scan** — when a
+headline margin/PAT beat or miss is reported, run `skills/_shared/income-statement-signals.md`
+against QoQ and YoY baselines rather than checking inventory gains alone, quantify the
+estimated contribution of whichever line(s) clear the materiality bar, and keep the insight
+terse by reporting only what clears that bar, ranked by contribution to the PBT/PAT delta.
+See `references/templates/results.md`.
 
 ### High-conviction categories get deep treatment by default
 

@@ -68,7 +68,7 @@ wait   # wait for all background fetches to complete
 
 # Backfill the latest quarter's transcript if Stockscans hasn't officially
 # filed it yet (the 8-quarter Concalls fetch above only gets official filings)
-node stock-api/bin/get-latest-concall-transcript.js "$TICKER"
+yarn workspace @stock/api get-latest-concall-transcript "$TICKER"
 
 # Screener MasterData.xlsx — still via local backend (not on Stockscans)
 cd backend && npm start &

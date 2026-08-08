@@ -9,60 +9,23 @@
  */
 
 const { StockscansClient } = require('@stock/api');
-const https = require('https');
 const path = require('path');
 const { loadEnv } = require('./lib/env');
+const { callAnthropic } = require('./lib/anthropicClient');
 
 loadEnv(path.join(__dirname, '../../.env'));
 
-async function callAnthropic(text) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    console.warn('ANTHROPIC_API_KEY not found in .env, skipping AI summary.');
-    return null;
-  }
-
-  const prompt = `You are a financial analyst tracking order books. Extract all specific order wins, contracts awarded, and LOAs from the following announcements. Detail the client name, order value (if any), and the company winning the order:
+/**
+ * Build the order-book-insights prompt for a batch of announcement text.
+ * @param {string} text - Combined announcement subjects/descriptions.
+ * @returns {string} Prompt ready to pass to `callAnthropic`.
+ */
+function buildOrderBookPrompt(text) {
+  return `You are a financial analyst tracking order books. Extract all specific order wins, contracts awarded, and LOAs from the following announcements. Detail the client name, order value (if any), and the company winning the order:
 
 Announcements:
 ${text.substring(0, 80000)}
 `;
-
-  return new Promise((resolve, reject) => {
-    const req = https.request(
-      {
-        hostname: 'api.anthropic.com',
-        path: '/v1/messages',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-      },
-      (res) => {
-        let data = '';
-        res.on('data', (chunk) => (data += chunk));
-        res.on('end', () => {
-          try {
-            const parsed = JSON.parse(data);
-            resolve(parsed.content[0].text);
-          } catch (e) {
-            resolve('Error parsing Anthropic response');
-          }
-        });
-      }
-    );
-    req.on('error', reject);
-    req.write(
-      JSON.stringify({
-        model: 'claude-3-haiku-20240307',
-        max_tokens: 1500,
-        messages: [{ role: 'user', content: prompt }],
-      })
-    );
-    req.end();
-  });
 }
 
 async function runOrderBookDigest() {
@@ -99,7 +62,7 @@ async function runOrderBookDigest() {
         .map((i) => `[${i.companyName || i.ticker}] ${i.subject}\n${i.description}`)
         .join('\n\n');
       console.log('Generating AI Insights for Order Book...');
-      const insights = await callAnthropic(combinedText);
+      const insights = await callAnthropic(buildOrderBookPrompt(combinedText));
       if (insights) {
         console.log('\n--- Order Book Insights ---\n');
         console.log(insights);

@@ -45,7 +45,7 @@ Read before any run:
   per version — append only, never rewrite). Write via
   `packages/jobs-runtime/lib/db.js` → `saveThesis(companyId, thesis)`; render the human
   memo to `data/assets/{TICKER}_thesis.md` from the JSON (JSON-first).
-- **Sync:** end every run with `node packages/jobs-runtime/scripts/data.js push`
+- **Sync:** end every run with `yarn data:push`
   (mirrors `data/` to Drive `StockMarket/data/v2`, push-only, keeps local files). The
   old `stockmarket-theses` Drive folder (ID `1MKK_WjVcvKCodIUaosTCZ8d_HXz6JPpL`) is
   LEGACY/read-only — migrated into the collection; do not write to it.

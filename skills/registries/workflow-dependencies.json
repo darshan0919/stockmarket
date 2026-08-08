@@ -654,6 +654,84 @@
       ],
       "entry": null,
       "modules": []
+    },
+    {
+      "name": "monthly-sales-tracker",
+      "description": ">",
+      "aliases": [
+        "monthly sales tracker",
+        "TMPV sales trend",
+        "predict monthly revenue",
+        "auto OEM monthly sales",
+        "PV domestic exports EV units",
+        "monthly unit sales prediction"
+      ],
+      "entry": "scripts/skills/monthly-sales-tracker/run.js",
+      "modules": [
+        "scripts/skills/monthly-sales-tracker/download-sales-pdfs.js",
+        "scripts/skills/monthly-sales-tracker/extract-sales-data.py",
+        "scripts/skills/monthly-sales-tracker/predict-financials.js",
+        "scripts/skills/monthly-sales-tracker/render-report.js",
+        "scripts/skills/monthly-sales-tracker/extract-deedev-orders.py",
+        "scripts/skills/monthly-sales-tracker/extract-mm-sales.py",
+        "scripts/skills/monthly-sales-tracker/render-deedev-report.js"
+      ]
+    },
+    {
+      "name": "tweet-signals",
+      "description": "Daily high-conviction signal extraction from an X (Twitter) list of Indian market accounts — browser-capture tweets from the last 24h (no paid API, no stored session secrets), resolve companies via the shared company-master DB (NSE ticker / BSE scrip / keywords), deterministically classify each into ORDER_WIN / CORPORATE_ACTION / EARNINGS_RESULTS / RATING_CREDIT / REGULATORY_POLICY / GEOPOLITICAL_MACRO / BULK_BLOCK_DEAL / OPINION_COMMENTARY with a content-only conviction score, then compose and email a signals briefing. Invoke with defaults for the daily run, or on demand to re-process a capture.",
+      "aliases": [
+        "tweet signals",
+        "twitter signals",
+        "X list conviction briefing",
+        "daily tweet briefing",
+        "market twitter digest"
+      ],
+      "entry": "packages/jobs-runtime/lib/tweetSignalsClassifier.js",
+      "modules": [
+        "packages/jobs-runtime/lib/extractTweetsFromCapture.js",
+        "packages/jobs-runtime/companyKeywordEnricher.js",
+        "packages/jobs-runtime/lib/companyMaster.js",
+        "packages/jobs-runtime/lib/db.js"
+      ]
+    },
+    {
+      "name": "antigravity-scheduled-tasks-sync",
+      "description": "Sync ALL repository scheduled jobs (jobs/Scheduled/) and repository skills (skills/equity-research & tooling) with Antigravity UI Sidecars (~/.gemini/config/sidecars/) and Global Skills (~/.gemini/config/skills/).",
+      "aliases": [
+        "sync antigravity",
+        "sync scheduled tasks",
+        "sync skills to antigravity",
+        "antigravity sidecar sync"
+      ],
+      "entry": "scripts/antigravity-sync-tasks-and-skills.js",
+      "modules": []
+    },
+    {
+      "name": "find-skills",
+      "description": "Helps users discover and install agent skills when they ask questions like \"how do I do X\", \"find a skill for X\", \"is there a skill that can...\", or express interest in extending capabilities. This skill should be used when the user is looking for functionality that might exist as an installable skill.",
+      "aliases": [
+        "find a skill",
+        "is there a skill that can",
+        "discover skills",
+        "install a skill"
+      ],
+      "entry": null,
+      "modules": []
+    },
+    {
+      "name": "token-usage-analyzer",
+      "description": ">",
+      "aliases": [
+        "token usage analysis",
+        "weekly token usage",
+        "cost reduction recommendations",
+        "model selection FinOps"
+      ],
+      "entry": "scripts/metrics/analyze_token_usage.py",
+      "modules": [
+        "scripts/metrics/track_invocation.py"
+      ]
     }
   ],
   "classes": [
@@ -997,6 +1075,26 @@
       "name": "classifySignal",
       "file": "stock-api/src/analyzers/eventReactionSignals.js",
       "description": "Exported from eventReactionSignals.js"
+    },
+    {
+      "name": "compute",
+      "file": "stock-api/src/analyzers/incomeStatementSignals.js",
+      "description": "Exported from incomeStatementSignals.js"
+    },
+    {
+      "name": "getOrCompute",
+      "file": "stock-api/src/analyzers/incomeStatementSignals.js",
+      "description": "Exported from incomeStatementSignals.js"
+    },
+    {
+      "name": "readCache",
+      "file": "stock-api/src/analyzers/incomeStatementSignals.js",
+      "description": "Exported from incomeStatementSignals.js"
+    },
+    {
+      "name": "writeCache",
+      "file": "stock-api/src/analyzers/incomeStatementSignals.js",
+      "description": "Exported from incomeStatementSignals.js"
     },
     {
       "name": "evaluateCatalystRules",

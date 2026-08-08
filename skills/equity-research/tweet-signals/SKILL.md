@@ -162,7 +162,7 @@ Use the same shared mailer pattern as `gainers-signal` (see that skill's Step 3)
 ## Step 5 — Offload & cleanup (MANDATORY, even on failure)
 
 ```bash
-node "$RUNTIME/scripts/data.js" push
+yarn data:push
 ```
 
 Same as every other job in this repo — idempotent push of `data/` to Drive

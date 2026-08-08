@@ -38,7 +38,7 @@ sourceInsights: [note/report/prompt ids]
 3. **Apply each approved proposal** exactly as its `Change` block specifies:
    - `edit` → Edit the target file (old→new).
    - `new-file` / `new-skill` → Write the file(s); if a skill, also add its `registry.json`
-     entry and run `node scripts/build/generate-registries.js`.
+     entry and run `yarn registries:generate`.
    - `scheduled-task` → create/update via the scheduled-tasks tool.
    - `memory` → write the memory file + `MEMORY.md` pointer.
    - `dedup`/data → apply via `db` helpers.

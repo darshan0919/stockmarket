@@ -40,7 +40,7 @@ Whenever the user asks to create or modify a skill, adhere to the following blue
    template outputs of the JSON DTO into `data/assets/`; company-scoped generating
    skills call `buildCompanyContext(companyId)` and record `contextUsed`; NO file
    deletions anywhere in a write path; the skill's final step is
-   `node packages/jobs-runtime/scripts/data.js push`; and the skill's final
+   `yarn data:push`; and the skill's final
    report MUST include a "Files touched" section listing every file it created
    or modified (DATA_RULES §7 — read it from `db.touchedFiles()` /
    `StorageService.touchedFiles()` / the `data:push` `↑` lines, never from

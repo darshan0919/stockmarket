@@ -53,7 +53,7 @@ export STOCKSCANS_AUTH_TOKEN="$(grep '^STOCKSCANS_AUTH_TOKEN' .env | cut -d= -f2
 
 # Build the bulk request: [{"ticker":"NSE:X","quarter":"Q4FY26"}, ...]
 # Quarter omitted per-entry => latestCompletedQuarter() is used for that entry.
-node stock-api/bin/get-latest-concall-transcript.js --bulk-file <companies.json> \
+yarn workspace @stock/api get-latest-concall-transcript --bulk-file <companies.json> \
   > /tmp/bulk_result.json
 ```
 

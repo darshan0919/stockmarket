@@ -160,7 +160,7 @@ your review.
 ## Offload & cleanup (MANDATORY, even on failure)
 
 ```bash
-node "$RUNTIME/scripts/data.js" push
+yarn data:push
 ```
 
 Idempotent push of everything under `data/` to Google Drive (`StockMarket/data/v2`).

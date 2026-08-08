@@ -66,26 +66,26 @@ Run the monthly-sales-tracker for NSE:TMPV
 
 ```bash
 # Full pipeline (download + extract + predict + render + open)
-node scripts/skills/monthly-sales-tracker/run.js --ticker NSE:TMPV --open
+yarn monthly-sales-tracker --ticker NSE:TMPV --open
 
 # Pre-supply announcement list (faster, avoids API fetch)
-node scripts/skills/monthly-sales-tracker/run.js \
+yarn monthly-sales-tracker \
   --ticker NSE:TMPV \
   --announcements /path/to/announcements.json \
   --open
 
 # Skip download if PDFs already present
-node scripts/skills/monthly-sales-tracker/run.js \
+yarn monthly-sales-tracker \
   --ticker NSE:TMPV \
   --skip-download
 
 # Exclude outlier quarters from regression
-node scripts/skills/monthly-sales-tracker/run.js \
+yarn monthly-sales-tracker \
   --ticker NSE:TMPV \
   --exclude-outliers
 
 # Commercial vehicles
-node scripts/skills/monthly-sales-tracker/run.js --ticker NSE:TMCV
+yarn monthly-sales-tracker --ticker NSE:TMCV
 ```
 
 ---
@@ -144,7 +144,7 @@ When invoked from chat:
 
 2. Run the pipeline:
    ```bash
-   node scripts/skills/monthly-sales-tracker/run.js --ticker <TICKER> --open
+   yarn monthly-sales-tracker --ticker <TICKER> --open
    ```
 
 3. Read `prediction.json` and summarize:

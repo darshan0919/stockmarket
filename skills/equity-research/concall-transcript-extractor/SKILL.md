@@ -18,14 +18,14 @@ The content below is preserved for reference only.
 Entrypoint:
 ```bash
 # Single company — latest completed quarter (auto-computed)
-node stock-api/bin/get-latest-concall-transcript.js <TICKER> [--out-dir <dir>] [--force]
+yarn workspace @stock/api get-latest-concall-transcript <TICKER> [--out-dir <dir>] [--force]
 
 # Single company — explicit quarter
-node stock-api/bin/get-latest-concall-transcript.js <TICKER> --quarter Q1FY27 [--out-dir <dir>] [--force]
+yarn workspace @stock/api get-latest-concall-transcript <TICKER> --quarter Q1FY27 [--out-dir <dir>] [--force]
 
 # Bulk — multiple companies/quarters in one call
-node stock-api/bin/get-latest-concall-transcript.js --bulk '[{"ticker":"NSE:X","quarter":"Q1FY27"},{"ticker":"NSE:Y"}]' [--out-dir <dir>] [--force]
-node stock-api/bin/get-latest-concall-transcript.js --bulk-file companies.json [--out-dir <dir>] [--force]
+yarn workspace @stock/api get-latest-concall-transcript --bulk '[{"ticker":"NSE:X","quarter":"Q1FY27"},{"ticker":"NSE:Y"}]' [--out-dir <dir>] [--force]
+yarn workspace @stock/api get-latest-concall-transcript --bulk-file companies.json [--out-dir <dir>] [--force]
 ```
 
 Quarter format: `Q{1-4}FY{2-or-4-digit-year}`, e.g. `Q1FY27`, `Q4FY26`, `Q2FY2026`.
@@ -322,7 +322,7 @@ Repeat for each source. Final state: Sources panel shows "Saved sources will app
 
 ```bash
 STOCKSCANS_AUTH_TOKEN="$(grep STOCKSCANS_AUTH_TOKEN .env | cut -d= -f2-)" \
-  node stock-api/bin/save-concall-transcript.js <TICKER> <yyyymm> recordings/<file>.txt \
+  yarn workspace @stock/api save-concall-transcript <TICKER> <yyyymm> recordings/<file>.txt \
   --source-url "<recording-url>" \
   --fiscal-year <YYYY> --fiscal-period <Q1..Q4>
 ```
@@ -335,7 +335,7 @@ Verify output: `{"ok":true,"id":"rpt_concall-transcript-extractor_...","filesTou
 
 ```bash
 STOCKSCANS_AUTH_TOKEN="$(grep STOCKSCANS_AUTH_TOKEN .env | cut -d= -f2-)" \
-  node packages/jobs-runtime/scripts/data.js push
+  yarn data:push
 ```
 
 This may time out (>45s) but is idempotent — verify completion via sync state:
@@ -357,17 +357,17 @@ If `syncedAt` appears for the report file, the push succeeded even if the proces
 
 ### Latest quarter (most common):
 ```bash
-node stock-api/bin/get-latest-concall-transcript.js NSE:TICKER
+yarn workspace @stock/api get-latest-concall-transcript NSE:TICKER
 ```
 
 ### Specific quarter:
 ```bash
-node stock-api/bin/get-latest-concall-transcript.js NSE:TICKER --quarter Q1FY27
+yarn workspace @stock/api get-latest-concall-transcript NSE:TICKER --quarter Q1FY27
 ```
 
 ### Bulk fetch (for multi-quarter or multi-company skills):
 ```bash
-node stock-api/bin/get-latest-concall-transcript.js --bulk \
+yarn workspace @stock/api get-latest-concall-transcript --bulk \
   '[{"ticker":"NSE:X","quarter":"Q4FY26"},{"ticker":"NSE:Y","quarter":"Q1FY27"}]'
 ```
 
@@ -436,7 +436,7 @@ Field notes:
 
 All saves go through `stock-api/bin/save-concall-transcript.js` `saveTranscript()` → `packages/jobs-runtime/lib/db.js` `saveReport()` → `data/reports.json` index + `data/reports/<id>.json` body. Never write `data/reports*.json` by hand.
 
-**End every run** with `node packages/jobs-runtime/scripts/data.js push` and report the `filesTouched` manifest (or verify via sync-state.json if it times out).
+**End every run** with `yarn data:push` and report the `filesTouched` manifest (or verify via sync-state.json if it times out).
 
 ## Failure modes
 

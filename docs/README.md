@@ -10,18 +10,31 @@ The Stock Market AI Ecosystem is a full-stack, platform-agnostic suite for advan
 
 ## Quick Links
 
-| Document                                    | Description                                                                             |
-| ------------------------------------------- | --------------------------------------------------------------------------------------- |
-| [Vision & Roadmap](./VISION_AND_ROADMAP.md) | Project philosophy, goals, and roadmap                                                  |
-| [Architecture](./ARCHITECTURE.md)           | System design and component overview                                                    |
-| [Data Ecosystem v2](./DATA_ECOSYSTEM.md)    | Flat JSON collections in `data/` ↔ Drive `StockMarket/data/v2` — design, envelope, sync |
-| [Data Rules](./DATA_RULES.md)               | MANDATORY checklist for any skill/job that persists data or adds a collection/type      |
-| [Skill Data Audit](./SKILL_DATA_AUDIT.md)   | Per-skill classification: what each skill needs, generates, and stores                  |
-| [API Reference](./API_REFERENCE.md)         | Complete REST API documentation                                                         |
-| [Backend Guide](./backend/README.md)        | Backend development guide                                                               |
-| [Frontend Guide](./frontend/README.md)      | Frontend development guide                                                              |
-| [Testing Guide](./TESTING.md)               | Testing strategies and conventions                                                      |
-| [Contributing](./CONTRIBUTING.md)           | Contribution guidelines                                                                 |
+| Document                                                  | Description                                                                             |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| [Vision & Roadmap](./VISION_AND_ROADMAP.md)               | Project philosophy, goals, and roadmap                                                  |
+| [Architecture](./ARCHITECTURE.md)                         | System design and component overview                                                    |
+| [Data Ecosystem v2](./DATA_ECOSYSTEM.md)                  | Flat JSON collections in `data/` ↔ Drive `StockMarket/data/v2` — design, envelope, sync |
+| [Data Rules](./DATA_RULES.md)                             | MANDATORY checklist for any skill/job that persists data or adds a collection/type      |
+| [Skill Data Audit](./SKILL_DATA_AUDIT.md)                 | Per-skill classification: what each skill needs, generates, and stores                  |
+| [API Reference](./API_REFERENCE.md)                       | Complete REST API documentation                                                         |
+| [Backend Guide](./backend/README.md)                      | Backend development guide                                                               |
+| [Frontend Guide](./frontend/README.md)                    | Frontend development guide                                                              |
+| [Testing Guide](./TESTING.md)                             | Testing strategies and conventions                                                      |
+| [Contributing](./CONTRIBUTING.md)                         | Contribution guidelines                                                                 |
+| [Stockscans API Schemas](./stockscans-api-schemas.md)     | Stockscans endpoint payload/response contracts                                          |
+| [Anthropic API Schemas](./anthropic-api-schemas.md)       | Anthropic Messages API contract used by jobs-runtime digests                            |
+| [Order Book Extraction](./ORDER_BOOK_EXTRACTION.md)       | Order-book scraping/parsing pipeline                                                    |
+| [Model Cost Orchestration](./MODEL_COST_ORCHESTRATION.md) | Model selection and cost strategy across skills/jobs                                    |
+| [Skills doc](./SKILLS.md)                                 | How the `skills/` framework works                                                       |
+| [`screener-api/` README](../screener-api/README.md)       | Newer API service (see also `stock-api/README.md`)                                      |
+| [`stock-api/` README](../stock-api/README.md)             | Shared external-API clients + skill CLI entry points                                    |
+| [`screener-web/` README](../screener-web/README.md)       | Newer frontend                                                                          |
+
+> **Note**: several docs below aren't yet cross-linked from a Quick Links row
+> because their scope is narrower or they're partially superseded —
+> `CONVERSATION_CAPTURE_PLAN.md`, `COWORK_DRIVE_DATA.md` (marked retired in
+> its own header). Read them directly under `docs/` if you need that history.
 
 ## Project Structure
 
@@ -44,9 +57,25 @@ stockmarket/
 │   ├── lib/                   # API client and utilities
 │   ├── pages/                 # Next.js pages
 │   └── styles/                # CSS styles
+├── screener-api/               # newer API service — see screener-api/README.md
+├── screener-web/               # newer frontend — see screener-web/README.md
+├── stock-api/                  # shared external-API clients (Stockscans/NSE/BSE/etc.) + skill CLI entry points (bin/) — see stock-api/README.md
+├── cloud-utils/                # Google Drive/Gmail integration shared across workspaces
+├── packages/jobs-runtime/      # shared data/env/job-scheduling runtime for digests, trackers, skills
+├── jobs/                       # scheduled-task definitions (delegate to packages/jobs-runtime)
+├── skills/                     # Claude Agent Skills (equity-research, tooling, development) — see skills/README.md
 ├── docs/                       # Documentation
 └── jira/                       # Feature specifications
 ```
+
+> **Note**: this tree and the "Core Features"/"API Endpoints" sections below
+> describe the original `backend/`+`frontend/` app in detail. The newer
+> `stock-api/`, `screener-api/`, `screener-web/`, `packages/jobs-runtime/`,
+> and `skills/` areas are documented in their own READMEs (linked in Quick
+> Links above) rather than duplicated here — this file hasn't been fully
+> reconciled with which stack is authoritative for which feature; treat the
+> per-workspace READMEs as the source of truth when they disagree with the
+> narrative below.
 
 ## Tech Stack
 

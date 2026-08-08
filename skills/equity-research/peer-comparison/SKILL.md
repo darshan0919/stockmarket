@@ -69,7 +69,7 @@ URL for the whole peer set directly rather than silently comparing companies
 on different-aged transcript data:
 
 ```bash
-node stock-api/bin/get-concall-transcript-url.js --companies "$(IFS=,; echo "${TICKERS[*]}")"
+yarn workspace @stock/api get-concall-transcript-url --companies "$(IFS=,; echo "${TICKERS[*]}")"
 ```
 
 For each company, if the resolver returns `ssUrl`/`documentUrl`, fetch and
