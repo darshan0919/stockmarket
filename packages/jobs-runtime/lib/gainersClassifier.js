@@ -34,16 +34,17 @@ const SECTOR_SUPER_CLUSTER_MIN = 4; // >=4 = "super strong", per the user's rule
 
 const RESEARCH_TOP_N_PER_AXIS = 10; // 10 by delivery %, 10 by delivery value = 20
 
-function latestRaw(runsDir = RUNS_DIR) {
+function latestRaw(runsDir = RUNS_DIR, rawPrefix = 'gainers_raw') {
   if (!fs.existsSync(runsDir)) {
     throw new Error(`No such directory: ${runsDir}`);
   }
+  const re = new RegExp(`^${rawPrefix}_\\d{8}\\.json$`);
   const files = fs
     .readdirSync(runsDir)
-    .filter((f) => /^gainers_raw_\d{8}\.json$/.test(f))
+    .filter((f) => re.test(f))
     .sort(); // lexical sort works for YYYYMMDD
   if (files.length === 0) {
-    throw new Error(`No gainers_raw_*.json in ${runsDir}`);
+    throw new Error(`No ${rawPrefix}_*.json in ${runsDir}`);
   }
   return path.join(runsDir, files[files.length - 1]);
 }
@@ -86,13 +87,17 @@ const STREAK_LOOKBACK_DAYS = 45;
  * Done once per run rather than per company — a per-company db.find() over the
  * events partitions would be O(companies × file reads) for identical data.
  */
-function loadStreakHistory(dbRef, marketDate, { lookbackDays = STREAK_LOOKBACK_DAYS } = {}) {
+function loadStreakHistory(
+  dbRef,
+  marketDate,
+  { lookbackDays = STREAK_LOOKBACK_DAYS, eventType = 'gainer' } = {}
+) {
   const since = new Date(new Date(`${marketDate}T00:00:00Z`).getTime() - lookbackDays * 864e5)
     .toISOString()
     .slice(0, 10);
   const byDate = new Map();
   try {
-    for (const e of dbRef.find('events', { type: 'gainer', since })) {
+    for (const e of dbRef.find('events', { type: eventType, since })) {
       if (!e.date || e.date >= marketDate) continue; // today is added by the caller
       if (!byDate.has(e.date)) byDate.set(e.date, new Set());
       byDate.get(e.date).add(normalizeCompanyId(e.companyId || e.ticker));
@@ -238,7 +243,7 @@ function assessNovelty(
   companyId,
   materialSubjects,
   db,
-  { lookbackDays = NOVELTY_LOOKBACK_DAYS } = {}
+  { lookbackDays = NOVELTY_LOOKBACK_DAYS, eventType = 'gainer' } = {}
 ) {
   if (!materialSubjects.length) return null;
   const cid = normalizeCompanyId(companyId);
@@ -246,7 +251,7 @@ function assessNovelty(
 
   let pastTexts = [];
   try {
-    const pastGainerEvents = db.find('events', { companyId: cid, type: 'gainer', since });
+    const pastGainerEvents = db.find('events', { companyId: cid, type: eventType, since });
     for (const e of pastGainerEvents) {
       for (const line of e.evidence || []) {
         if (line.startsWith('📋') || line.startsWith('📄')) pastTexts.push(line.slice(2).trim());
@@ -644,8 +649,16 @@ function selectResearchTargets(signals, perAxis = RESEARCH_TOP_N_PER_AXIS) {
   ];
 }
 
-function main() {
-  const rawPath = latestRaw();
+function main({
+  // Reuse hooks for sibling classifiers (e.g. volumeRocketingClassifier.js) that
+  // want this exact tiering/conviction logic against a differently-named raw scan.
+  rawPrefix = 'gainers_raw',
+  insightsPrefix = 'gainers_insights',
+  seedPrefix = 'gainers_research_seed',
+  eventType = 'gainer',
+  creator = 'gainers-signal',
+} = {}) {
+  const rawPath = latestRaw(RUNS_DIR, rawPrefix);
   console.error(`[classifier] reading ${path.basename(rawPath)}`);
 
   const raw = JSON.parse(fs.readFileSync(rawPath, 'utf8'));
@@ -664,7 +677,7 @@ function main() {
   // scanner and counts only members whose move was delivery-backed.
   const clusters = buildSectorClusters(indSummary);
 
-  const streakHistory = loadStreakHistory(db, marketDate);
+  const streakHistory = loadStreakHistory(db, marketDate, { eventType });
 
   const signals = [];
   for (const g of gainers) {
@@ -673,7 +686,7 @@ function main() {
       .filter(isMaterialAnn)
       .map((a) => a.subject || a.category || '')
       .filter(Boolean);
-    const novelty = assessNovelty(g.ticker, materialSubjects, db);
+    const novelty = assessNovelty(g.ticker, materialSubjects, db, { eventType });
 
     const streak = computeStreak(g.ticker, streakHistory);
     const cluster = clusters[g.industry] || null;
@@ -694,7 +707,7 @@ function main() {
       companyId: g.ticker,
       creationTime: nowIso,
       modifiedTime: nowIso,
-      creator: 'gainers-signal',
+      creator,
       ticker: g.ticker,
       name: g.name,
       industry: g.industry || '',
@@ -801,16 +814,16 @@ function main() {
     .filter((s) => s.companyId || s.ticker)
     .map((s) => ({
       ...s,
-      type: 'gainer',
+      type: eventType,
       date: marketDate,
       companyId: s.companyId || `NSE:${String(s.ticker).toUpperCase()}`,
-      creator: s.creator || 'gainers-signal',
+      creator: s.creator || creator,
       summary: `${s.ticker} +${s.return_1d}% — ${s.primary_driver} (${s.conviction})`,
     }));
   const stats = db.appendEvents(eventRecords);
 
   // Full DTO for the email render step (regenerable → runs/).
-  const outPath = path.join(RUNS_DIR, `gainers_insights_${marketDate.replace(/-/g, '')}.json`);
+  const outPath = path.join(RUNS_DIR, `${insightsPrefix}_${marketDate.replace(/-/g, '')}.json`);
   fs.mkdirSync(RUNS_DIR, { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(insights, null, 2));
 
@@ -888,7 +901,7 @@ function main() {
 
   const seedPath = path.join(
     RUNS_DIR,
-    `gainers_research_seed_${marketDate.replace(/-/g, '')}.json`
+    `${seedPrefix}_${marketDate.replace(/-/g, '')}.json`
   );
   fs.writeFileSync(
     seedPath,

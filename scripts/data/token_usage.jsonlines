@@ -47,3 +47,4 @@
 {"timestamp": "2026-08-07T14:34:27.976358Z", "name": "daily-deals-digest", "type": "task", "model": "gemini-2.5-pro", "estimated_input_tokens": 500, "estimated_output_tokens": 666, "files_read": 0, "context_chars": 0}
 {"timestamp": "2026-08-07T14:40:39.389835Z", "name": "daily-gainers-digest", "type": "task", "model": "gemini-2.5-pro", "estimated_input_tokens": 500, "estimated_output_tokens": 666, "files_read": 0, "context_chars": 0}
 {"timestamp": "2026-08-07T14:42:39.920984Z", "name": "near-highs-digest", "type": "task", "model": "gemini-2.5-pro", "estimated_input_tokens": 500, "estimated_output_tokens": 666, "files_read": 0, "context_chars": 0}
+{"timestamp": "2026-08-08T11:44:24.964609Z", "name": "daily-volume-rocketing-signal-stockmarket", "type": "task", "model": "claude-sonnet-5", "estimated_input_tokens": 500, "estimated_output_tokens": 666, "files_read": 0, "context_chars": 0}

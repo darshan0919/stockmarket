@@ -39,10 +39,14 @@ Start at [`docs/README.md`](docs/README.md) for the documentation index and
    [`.cursor/rules/documentation.mdc`](.cursor/rules/documentation.mdc).
 5. **Commits**: Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`,
    `test:`, `chore:`) — see [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md).
-6. **Follow existing patterns.** Don't introduce a new abstraction, styling
+6. **Branching**: never create a new branch to make code changes. Always work
+   directly on the local `main` branch. Do not `git add` or `git commit` the
+   changes yourself — leave them unstaged/uncommitted in the working tree so
+   the user can review and commit them.
+7. **Follow existing patterns.** Don't introduce a new abstraction, styling
    approach, or state-management pattern when one already exists in the file
    you're touching or its neighbors — match what's there.
-7. Quick pre-submit sweep: `yarn quality` (format:check + lint + test).
+8. Quick pre-submit sweep: `yarn quality` (format:check + lint + test).
 
 Backend- and frontend-specific structure, templates, and checklists:
 [`.cursor/rules/backend.mdc`](.cursor/rules/backend.mdc) ·

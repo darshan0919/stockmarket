@@ -1,6 +1,6 @@
 ---
 name: quarterly-result-analysis
-description: Industry-agnostic single-quarter result interpretation for Indian listed companies — applies the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist. Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks "analyse this quarter", "what changed this quarter", "is the business getting better", "what's management signalling", "result analysis", "quarterly snapshot", "post-result note", or provides a Stockscans ticker with result-day intent. Auto-fetches the latest PPT + Transcript + Result from Stockscans when given only a ticker. Output is an interactive briefing widget tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), or multi-year deep dives (use equity-research-deepdive).
+description: Stage 2 (flagship model) of the 2-skill quarterly-result pipeline — industry-agnostic single-quarter result interpretation for Indian listed companies, reading quarterly-result-extractor's persisted DB record (fetched documents + deterministic income-statement signal scan + recall-first tone/guidance/strategic excerpts) and applying the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist. Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks "analyse this quarter", "what changed this quarter", "is the business getting better", "what's management signalling", "result analysis", "quarterly snapshot", "post-result note", or provides a Stockscans ticker with result-day intent. Auto-invokes quarterly-result-extractor when given only a ticker and no DB record exists yet. Output is an interactive briefing widget tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), multi-year deep dives (use equity-research-deepdive), or raw document fetching without interpretation (use quarterly-result-extractor directly).
 ---
 
 # Quarterly Result Analysis
@@ -9,17 +9,25 @@ description: Industry-agnostic single-quarter result interpretation for Indian l
 
 A focused single-quarter interpretive note built around three baskets — **Business** (what is improving), **Risk** (what can go wrong), **Management** (what they signal between the lines) — and a forward-looking monitoring checklist. Industry-agnostic. Works for FMCG, capital goods, financials, IT, pharma, infra, anything.
 
+Stage 2 of `quarterly-result-extractor` → `quarterly-result-analysis`. Document
+acquisition, the deterministic income-statement signal scan, and recall-first
+excerpting live in `quarterly-result-extractor` (a separate skill as of
+2026-08-08 — previously this skill's own Phase 1). This skill reads that
+skill's persisted DB record and does the one job no earlier stage can do:
+judging what the quarter's disclosures actually MEAN for the thesis.
+
 ## When to use this skill
 
 - User uploads any combination of: quarterly investor presentation, concall transcript, results PDF, and asks for interpretation
 - User says any variant of: "analyse this quarter", "what changed", "post-result note", "result interpretation", "quarterly snapshot", "what's improving / what can go wrong", "what is management signalling"
-- User provides only a Stockscans ticker plus result-day intent — the skill auto-fetches the latest PPT + Transcript + Result
+- User provides only a Stockscans ticker plus result-day intent — see "Smart DB-availability check" below for how document acquisition is handled
 - Another skill needs a single-quarter interpretive layer (e.g., to bolt onto a multi-quarter analysis)
 
 ## How this differs from neighbouring skills
 
 | If you need...                                                      | Route to                         |
 | ------------------------------------------------------------------- | -------------------------------- |
+| Raw document fetch + signal scan, no interpretation                 | `quarterly-result-extractor`     |
 | Two-quarter forensic diff with repricing                            | `consecutive-filings-diff`       |
 | Concall transcript-only deep / brief / multi-Q                      | `concall-analysis`               |
 | Full 15-40 page deep dive across years                              | `equity-research-deepdive`       |
@@ -39,61 +47,54 @@ Follow [`_shared/conventions.md`](../_shared/conventions.md). Particularly:
 - §3 Anti-hallucination protocol — Source → Extract → Verify → Interpret
 - §6 Conviction taxonomy — Structural / Cyclical / Temporary applied to every observation here
 
-## Workflow — 3 phases
+## Workflow — 4 phases
 
-### Phase 1 — Document acquisition
+### Phase 0 — Smart DB-availability check (read before Phase 1)
 
-If the user uploaded files directly, use those. If the user provided only a
-ticker, auto-fetch. **The latest quarter's Transcript specifically is
-resolved via `stock-api/bin/get-concall-transcript-url.js`** — Stockscans
-guarantees a Transcript document for every reported quarter now, so this
-also works right after results drop ("result-day intent"):
+If the user uploaded files directly, skip straight to Phase 1 and use those
+files instead of the DB record (this remains the fastest path when the
+documents are already in hand).
 
-```bash
-TICKER="NSE:SWARAJENG"            # replace with the actual ticker
-SAFE=$(echo "$TICKER" | tr ':' '_')
-DOCS_DIR="/tmp/${SAFE}_qra_docs"
+Otherwise — the user gave only a ticker — look up `quarterly-result-extractor`'s
+persisted record: `db.find('reports', {type: 'quarterly-result-documents', companyId})`,
+then `db.readReport(id)` for the full body. Three distinct cases:
 
-# PPT + Result always come from Stockscans directly
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t PPT Result \
-    --last-n 1 \
-    -o "$DOCS_DIR"
+1. **No record at all.** `quarterly-result-extractor` was never run for this
+   company. Auto-invoke it now (this skill's whole "give me a ticker, get a
+   note" UX depends on this — unlike the batch guidance pipeline, a single
+   quarterly-result request is cheap enough per company to chain
+   automatically rather than stopping to ask). Then proceed to Phase 1 with
+   the fresh record.
+2. **Record exists, `notYetOut: false`.** Proceed to Phase 1 with this
+   record.
+3. **Record exists, `notYetOut: true`.** `quarterly-result-extractor` WAS run
+   and results genuinely aren't filed yet. Don't re-invoke it — tell the
+   user directly and stop (don't paper over the gap with annual report data
+   or web summaries).
 
-# Latest transcript: resolve the official Transcript URL
-yarn workspace @stock/api get-concall-transcript-url --company "$TICKER"
-```
+If the record is more than a few days old and the user's intent is clearly
+"result just dropped" (result-day intent), re-invoke `quarterly-result-extractor`
+rather than trusting a stale record — a same-day re-run is cheap (Step 2's
+income-statement scan is cached by `getOrCompute`, so re-running mostly
+re-checks for a newly-filed Transcript).
 
-Handle the transcript step: on success (`ssUrl`/`documentUrl`), also run
-`fetch_documents.py -t Transcript --last-n 1 -o "$DOCS_DIR"` (or fetch
-`documentUrl` directly) to download it alongside the PPT/Result. On `error`
-where PPT/Result also came back empty, the whole skill should stop — results
-aren't out yet. On `error` with PPT/Result present, the transcript genuinely
-isn't filed yet (rare) — proceed WITHOUT a transcript and flag the gap
-explicitly in the Management basket rather than skipping it silently.
+### Phase 1 — Read the extractor's record
 
-For the **"change vs prior quarters"** sub-section in the Management basket,
-the prior quarter's transcript is already officially filed — fetch it the
-normal way:
+Pull from the `quarterly-result-documents` DB record (or, if the user
+uploaded files directly, extract the same shape ad hoc):
 
-```bash
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t Transcript --last-n 2 -o "$DOCS_DIR"
-```
-
-This returns the two most recent OFFICIALLY FILED transcripts. Which one is
-"prior quarter" depends on whether the latest quarter's transcript was
-already filed: if the earlier `get-concall-transcript-url.js` call succeeded
-and its `quarter` matches the newest entry here, the second (older) entry is
-the prior quarter you want. If it returned `error` (latest not filed), the
-FIRST (newest) entry from this `--last-n 2` call already IS the prior
-quarter — don't also treat it as the "latest" or you'll double-count a
-quarter.
-
-Read `$DOCS_DIR/manifest.json` to confirm what arrived. If any of the three
-primary documents is missing for the latest quarter (and the transcript
-resolver returned `error` too), surface this explicitly — do not paper over
-the gap with annual report data or web summaries.
+- `incomeStatementSignals` — the pre-computed, materiality-filtered P&L scan
+  (Basket 1B feeds directly from this; see Core Principles below — do not
+  re-derive this arithmetic yourself).
+- `toneExcerpts` / `guidanceExcerpts` / `strategicExcerpts` — candidate
+  passages for Basket 3; this skill's job is to classify/judge these, not to
+  re-scan the raw transcript for them.
+- `possiblyDropped` — topics present in the prior transcript's excerpts but
+  absent from this quarter's; feeds the "change vs prior quarters"
+  sub-section directly.
+- `found` / `transcriptMissing` — if `transcriptMissing: true`, flag the gap
+  explicitly in the Management basket rather than skipping it silently (same
+  rule as before the split).
 
 ### Phase 2 — 3-basket analysis
 
@@ -153,11 +154,11 @@ After the widget renders, write 2-3 short paragraphs outside it. Lead each with 
 
 **Interpret tone, don't quote it.** Phase 2 expects you to _classify_ management as one of six tone labels — with one short evidence quote per label. Reproducing five paragraphs of management commentary is not analysis.
 
-**Income Statement Signal Scan (mandatory).** When assessing revenue/margin/profit performance for the period (Basket 1B — Margin & Profitability Triggers), run the full line-by-line + combination scan in `skills/_shared/income-statement-signals.md` against both QoQ and YoY baselines — it covers every P&L line (Other Income composition, RM cost, the inventory-gains check, employee cost vs. revenue, D&A/interest step-ups, exceptional items, tax-rate swings, EPS dilution) plus the holistic combination reads, with a materiality bar so the write-up stays terse. See `references/basket_framework.md` §1B for how this feeds the `SUSTAINABLE`/`CYCLICAL`/`TEMPORARY` tags. A quarter's "blockbuster" result must be explicitly flagged in the verdict chips (e.g. `INVENTORY-GAIN DRIVEN`, `TAX-RATE DRIVEN`, `NON-OPERATING BEAT`) whenever a non-structural driver clears the materiality bar — never buried in a sub-bullet. **Sourcing rule:** every P&L line comes from the actual quarterly Result filing via `stock-documents-fetcher` (`documentsFetcher.js`/`StockscansClient.documents()`), never web search or news-article summaries — web search may only add qualitative color on top of figures already sourced this way. Report only what clears the materiality bar in the shared scan, ranked by contribution to the PBT/PAT delta; if nothing clears the bar, say so in one line.
+**Income Statement Signal Scan (mandatory).** When assessing revenue/margin/profit performance for the period (Basket 1B — Margin & Profitability Triggers), run the full line-by-line + combination scan in `skills/_shared/income-statement-signals.md` against both QoQ and YoY baselines — it covers every P&L line (Other Income composition, RM cost, the inventory-gains check, employee cost vs. revenue, D&A/interest step-ups, exceptional items, tax-rate swings, EPS dilution) plus the holistic combination reads, with a materiality bar so the write-up stays terse. See `references/basket_framework.md` §1B for how this feeds the `SUSTAINABLE`/`CYCLICAL`/`TEMPORARY` tags. A quarter's "blockbuster" result must be explicitly flagged in the verdict chips (e.g. `INVENTORY-GAIN DRIVEN`, `TAX-RATE DRIVEN`, `NON-OPERATING BEAT`) whenever a non-structural driver clears the materiality bar — never buried in a sub-bullet. **Sourcing rule:** every P&L line traces back to the actual quarterly Result filing — this skill reads that scan pre-computed from `quarterly-result-extractor`'s DB record (Phase 1), it does not re-fetch or re-derive it from web search or news-article summaries; web search may only add qualitative color on top of figures already sourced this way. Report only what clears the materiality bar in the shared scan, ranked by contribution to the PBT/PAT delta; if nothing clears the bar, say so in one line.
 
 **Avoid number-repetition.** The investor presentation already contains the numbers. This skill is for interpretation, not summary. If you find yourself listing "revenue Rs X Cr, EBITDA Rs Y Cr, PAT Rs Z Cr" — stop. State only the numbers that change the thesis.
 
-**Track what management _stopped_ saying.** If a topic that dominated three prior calls (e.g., "exports will scale to 20%") is silent this quarter — that is a yellow flag. The Management basket's "Change vs prior quarters" sub-section is where this lives, and it's why the prior transcript should be fetched.
+**Track what management _stopped_ saying.** If a topic that dominated three prior calls (e.g., "exports will scale to 20%") is silent this quarter — that is a yellow flag. The Management basket's "Change vs prior quarters" sub-section is where this lives; `quarterly-result-extractor`'s `possiblyDropped` field is the starting point, not the final word — verify against the prior transcript excerpts before calling something dropped.
 
 **Specific over generic.** "India GDP growth" is not a tailwind. "BS-VI emission norms forcing Tier-1 OEMs to replace legacy ICE platforms, of which 60% of our order book is for new platforms" is a tailwind. No textbook explanations.
 
@@ -178,3 +179,12 @@ The widget renders inline via `visualize:show_widget`. If the user explicitly as
 `/mnt/project/data/agent-outputs/<Company>_Q<X>_FY<YY>_ResultAnalysis.html` (standalone — replace CSS variables with literal colours)
 
 If the user wants a PDF instead, suggest routing to `equity-research-deepdive` for a full report, or use the inline widget as the deliverable. This skill's natural medium is the interactive briefing.
+
+## Related skills
+
+- `quarterly-result-extractor` — Stage 1, fetches PPT/Result/Transcript,
+  runs the income-statement signal scan, and pulls recall-first
+  tone/guidance/strategic excerpts, persisting all of it as one DB record
+  this skill reads. Auto-invoked by Phase 0 when no record exists yet; call
+  it directly if you only want the raw documents/signals without the
+  3-basket interpretation.

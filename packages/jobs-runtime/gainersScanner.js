@@ -435,6 +435,71 @@ async function fetchTopGainers(client = stockscans, topN = DEFAULT_TOP_N) {
   return companies.slice(0, topN);
 }
 
+// ── Volume Rocketing scan (shared with the volume-rocketing skill) ──────────
+//
+// Same underlying endpoint as fetchTopGainers, but a distinct saved scan (Volume
+// >= 2.5x its own 5D SMA, Market Cap >= 300 Cr, Returns 1D >= 1) that surfaces
+// volume surges with positive price action rather than pure price gainers —
+// the two lists overlap but are not the same thing.
+// Exported so (a) volumeRocketingScanner.js can pull its own universe from it and
+// (b) this scanner can cross-check gainers-signal membership in it (Step 1 below)
+// without duplicating the filter definition.
+const VOLUME_ROCKETING_SCAN_ID = '50f6d1a6f885626f8244a239';
+
+function volumeRocketingPayload() {
+  return {
+    ratiosType: 'Default',
+    timePeriod: 'Latest',
+    scan: {
+      scanId: VOLUME_ROCKETING_SCAN_ID,
+      scanName: 'Volume Rocketing',
+      scanDescription:
+        'This scan identifies stocks with recent volume surges, boasting returns, and outperforming the market index.',
+      industry: [],
+      index: [],
+      tags: [],
+      watchlistIds: [],
+      filters: [
+        { left: 'Volume', sign: '>=', right: '2.5 * Volume SMA 5D' },
+        { left: 'Market Capitalization', sign: '>=', right: '300' },
+        { left: 'Returns 1D ', sign: '>=', right: '1' },
+      ],
+      alertFrequency: null,
+    },
+    watchlistIds: [],
+    order: 'desc',
+    orderBy: 'Volume',
+    offset: 0,
+  };
+}
+
+/**
+ * Full Volume Rocketing universe, sorted desc by Volume (server-side — see
+ * `orderBy: 'Volume'` above). No slicing here; callers decide how much of the
+ * list they need (volumeRocketingScanner.js dedupes against gainers-signal's
+ * picks and takes 20; fetchVolumeRocketingTickers() below just needs the set).
+ */
+async function fetchVolumeRocketing(client = stockscans) {
+  const data = await client.runScan(volumeRocketingPayload(), VOLUME_ROCKETING_SCAN_ID);
+  let companies;
+  if (data.table) {
+    const table = data.table;
+    if (table.length < 2) return [];
+    const headers = table[0];
+    companies = table.slice(1).map((row) => Object.fromEntries(headers.map((h, i) => [h, row[i]])));
+  } else {
+    companies = data.companies || data.data || (Array.isArray(data) ? data : []);
+  }
+  return companies;
+}
+
+/** Just the ticker set — used by gainers-signal to tag `volumeRocketing: true/false`
+ * on its own candidates without running the rest of the Volume Rocketing pipeline. */
+async function fetchVolumeRocketingTickers(client = stockscans) {
+  const rows = await fetchVolumeRocketing(client);
+  return new Set(rows.map((r) => sanitizeCompanyId(String(pick(r, 'companyId', 'ticker', 'symbol') || '').trim())).filter(Boolean));
+}
+
 async function fetchRetailHoldings(tickers, client = stockscans) {
   const result = Object.fromEntries(tickers.map((t) => [t, null]));
   if (tickers.length === 0) return result;
@@ -941,6 +1006,18 @@ async function main({
   sleep = defaultSleep,
   log = (m) => process.stderr.write(m),
   topN = DEFAULT_TOP_N,
+  // Reuse hooks for sibling scanners (e.g. volumeRocketingScanner.js) that share
+  // every step below except "what is the universe" and "what do we call it".
+  //   universeFetcher(client, topN) -> raw scan rows (same shape fetchTopGainers returns)
+  //   dtoKind                       -> filename prefix under data/runs/ (default 'gainers_raw')
+  //   tagVolumeRocketing            -> when true (gainers-signal only), cross-check each
+  //                                    candidate against the live Volume Rocketing scan and
+  //                                    stamp `volumeRocketing: true/false` — cheaper than
+  //                                    running the full sibling pipeline, see Task B in
+  //                                    volume-rocketing/SKILL.md.
+  universeFetcher = fetchTopGainers,
+  dtoKind = 'gainers_raw',
+  tagVolumeRocketing = dtoKind === 'gainers_raw',
 } = {}) {
   const ss = clients.stockscans;
   const today = istToday();
@@ -961,10 +1038,10 @@ async function main({
     throw e;
   }
 
-  // 1. Top-N gainers
-  log(`[1/7] Fetching top ${topN} gainers …\n`);
-  const gainers = (await fetchTopGainers(ss, topN)).map(normaliseGainer);
-  log(`      → ${gainers.length} gainers\n`);
+  // 1. Top-N universe (gainers, by default — swap via `universeFetcher` for siblings)
+  log(`[1/7] Fetching top ${topN} candidates …\n`);
+  const gainers = (await universeFetcher(ss, topN)).map(normaliseGainer);
+  log(`      → ${gainers.length} candidates\n`);
   const tickersAll = gainers.map((g) => g.ticker).filter(Boolean);
 
   // 1b. Retail holdings
@@ -1024,6 +1101,22 @@ async function main({
   );
   log(`      → ${gainersFiltered.length} passed, ${gainersExcluded.length} excluded\n`);
   const tickers = gainersFiltered.map((g) => g.ticker).filter(Boolean);
+
+  // 1f. Volume Rocketing cross-tag (gainers-signal only — see Task B note above).
+  // Membership check, not the full sibling pipeline: does this gainer ALSO clear
+  // Volume >= 2.5x its 5D SMA at Market Cap >= 300 Cr today? Reusing the live scan
+  // avoids re-deriving the SMA locally and guarantees the badge can never drift
+  // from what volume-rocketing itself would select.
+  let volumeRocketingTickers = new Set();
+  if (tagVolumeRocketing) {
+    log('[1f/7] Cross-checking Volume Rocketing membership …\n');
+    try {
+      volumeRocketingTickers = await fetchVolumeRocketingTickers(ss);
+      log(`      → ${volumeRocketingTickers.size} names in today's Volume Rocketing scan\n`);
+    } catch (e) {
+      log(`[WARN] Volume Rocketing cross-check failed: ${e.message}\n`);
+    }
+  }
 
   // 2. Announcements
   log('[2/7] Fetching 7-day announcements …\n');
@@ -1092,6 +1185,12 @@ async function main({
       close_price: g.close_price,
       retail_holding_pct: g.retail_holding_pct,
       delivery_value_cr: g.delivery_value_cr,
+      // Task B (gainers-signal x volume-rocketing): true when this name also clears
+      // the Volume Rocketing filter (Volume >= 2.5x 5D-SMA volume, Mcap >= 300 Cr)
+      // today. Always present (not just when true) so downstream DTO consumers don't
+      // need a membership-vs-absence special case; false when tagVolumeRocketing was
+      // off or the cross-check failed (logged above, not silently dropped).
+      volumeRocketing: volumeRocketingTickers.has(g.ticker),
       announcements: annRaw,
       ann_count: annRaw.length,
       has_material_ann: hasMaterialAnnouncement(annRaw),
@@ -1190,7 +1289,7 @@ async function main({
 
   // 7. Write raw scan to runs/ (derivable — re-fetchable from APIs; classified
   // signals are the stored output, written by gainersClassifier → events).
-  const dtoPaths = StorageService.getEventDtoPaths('gainers_raw', mDate);
+  const dtoPaths = StorageService.getEventDtoPaths(dtoKind, mDate);
   StorageService.init();
   await StorageService.saveJson(dtoPaths.jsonPath, output);
   log(`[gainers_scanner] Written → ${dtoPaths.jsonPath}\n`);
@@ -1220,12 +1319,24 @@ module.exports = {
   aggregateToDaily,
   fetchPrices,
   fetchTopGainers,
+  fetchVolumeRocketing,
+  fetchVolumeRocketingTickers,
+  fetchRetailHoldings,
+  fetchDeliveryPerSymbol,
+  fetchIndustryScan,
   fetchConcallSentiment,
   parseConcallScanRows,
   CONCALL_SCAN_ROW_INDEX,
   normaliseGainer,
+  mapLimit,
+  toFloat,
+  pick,
+  defaultSleep,
+  istNowIso,
   // constants
   DEFAULT_TOP_N,
+  VOLUME_ROCKETING_SCAN_ID,
+  QUALITY_FILTERS,
 };
 
 if (require.main === module) {

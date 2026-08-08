@@ -154,6 +154,14 @@ What it computes, and why each exists:
   of anything.
 - **`novelty`** — unchanged in spirit. News that merely restates a prior disclosure
   loses a point; a mix of new and repeat is left alone. It nudges, it doesn't dominate.
+- **`volumeRocketing`** — boolean, always present. True when this same name ALSO
+  clears the `volume-rocketing` skill's filter that day (`Volume >= 2.5 * Volume SMA
+  5D` AND `Market Capitalization >= 300` Cr AND `Returns 1D >= 1`). Computed by the scanner
+  (`gainersScanner.js` Step 1f) via a live membership check against the Volume
+  Rocketing scan — not by re-deriving the 5D SMA locally, so the badge can never
+  drift from what `volume-rocketing` itself would select. This does not run
+  `volume-rocketing`'s downstream pipeline (quality filters/announcements/classifier)
+  against these names; it is a same-day filter cross-check only, deliberately cheap.
 
 Also writes `data/runs/gainers_research_seed_{YYYYMMDD}.json` — the top-20 selection for
 Step 4, each entry carrying its STRONG announcements with resolved `pdfUrl`s and
@@ -198,11 +206,15 @@ stockscansLink(s.name, s.ticker) // -> <a href="https://www.stockscans.in/compan
    as `62% · ₹80 Cr delivered of ₹129 Cr traded`, streak if >1, then the remaining
    `evidence[]` lines. Link the PDF. If Step 3b ran for this name, add one line —
    e.g. `Concall: Bullish (quality 82/100), filed 3d ago — guided 18-20% FY27
-   revenue growth` — after the trigger, not instead of it.
+   revenue growth` — after the trigger, not instead of it. If `volumeRocketing` is
+   true, append a small `⚡ Vol 2.5x` badge next to the tier badge — it tells the
+   reader this name is independently confirmed by a volume-surge filter, not just
+   price and delivery.
 
 3. **🟡 WATCH** — one row per name in a compact table: Ticker (hyperlinked) · +% · Streak ·
-   Deliv % · Deliv ₹Cr · Driver · a short "why" cell. No prose blocks. If Step 4 researched
-   the name, the "why" cell carries the one-line trigger; otherwise state the driver plainly.
+   Deliv % · Deliv ₹Cr · Driver · a short "why" cell · ⚡ if `volumeRocketing` is true. No
+   prose blocks. If Step 4 researched the name, the "why" cell carries the one-line
+   trigger; otherwise state the driver plainly.
 
 4. **⚪ NOTED** — a single line listing hyperlinked tickers with returns, nothing more.
    These are logged, not recommended.
