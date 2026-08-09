@@ -39,6 +39,8 @@ tweet-investor-playbook.
 | watchlist-insights                                     | announcements API + PDFs                                                    | per-company insight notes → `notes.json`                                     |
 | announcement-keyword-explorer                          | announcements API                                                           | keyword hits if annotated → `events-*.json` (type=announcement)              |
 | fundamental-shift-scanner / watchlist-catalyst-scanner | filings via Stockscans                                                      | scan verdicts → `reports.json` (type=scan) or `events-*.json`                |
+| ipo-subscription-ranker                                 | IPOPlatform closed/subscription-status HTML (re-fetchable, live-updated)     | per-IPO merged subscription + deterministic rank score → **new collection** `ipos.json` (type=ipo-subscription; not company-scoped — see §3 justification below); top-3 DRHP/RHP analyses reuse `drhp-ipo-analysis`'s existing `reports.json` path; ranking rationale note → `notes.json` if a companyId can be resolved, else left on the `ipos` record only |
+| ipo-backtest (`packages/jobs-runtime/ipoBacktest.js`, ad-hoc — not a scheduled job) | IPOPlatform performance-tracker API + each IPO's permanent subscription detail page (both re-fetchable, historical figures don't change once an IPO closes) | per-window backtest DTO (scored IPOs + Pearson correlations + tier-bucket + quintile-spread stats vs actual listing gain / current CMP performance) → **existing `reports.json`** collection, new `type=ipo-scoring-backtest` (no new collection needed — fits DATA_RULES §2's "Analysis/report DTO" row). `companyIds[]` resolved from each IPO's now-live NSE/BSE symbol, so it also links into `companies.json` like any multi-company report. |
 
 ## D. State & ledgers (always store — not regenerable)
 
@@ -48,6 +50,16 @@ tweet-investor-playbook.
 - notes DB (watchlist-notes entity) → `notes.json`.
 - watchlist-sync → watchlist state lives in Stockscans (regenerable); store only the
   sync-run summary (diff) → `events-*.json` (type=watchlist-sync).
+- ipo-subscription-ranker → `ipos.json` (DATA_RULES §3 new-collection justification:
+  an IPO pre-listing/just-listed is not a shape any existing collection fits —
+  `events-*.json` is for one-off dated occurrences, not a record that gets
+  re-merged/updated across the same run's two source pages and re-ranked daily
+  until it drops off the "closed" universe; `companies.json` assumes a resolvable
+  companyId, which most of these don't have yet at scan time. Not company-scoped,
+  so no `LINK_KIND`/`rebuildLinks` entry — once an IPO lists and a companyId is
+  known, a future run may backfill `companyId` on the record and a note into
+  `notes.json`, at which point it becomes discoverable via `buildCompanyContext`
+  like any other company-scoped record).
 
 ## E. Reference / heavy derivables → `cache/` (regenerable, kept for speed)
 

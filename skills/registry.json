@@ -365,6 +365,7 @@
       "mode": "clone",
       "modules": [
         "skills/equity-research/quarterly-result-extractor/SKILL.md",
+        "skills/tooling/render-pdf/SKILL.md",
         "packages/jobs-runtime/lib/db.js"
       ],
       "references": [
@@ -377,7 +378,9 @@
       ],
       "shared": [
         "skills/_shared/conventions.md",
-        "skills/_shared/income-statement-signals.md"
+        "skills/_shared/income-statement-signals.md",
+        "skills/_shared/pdf-artifact-step.md",
+        "skills/_shared/pdf-design-guide.md"
       ],
       "aliases": [
         "quarterly results",
@@ -395,6 +398,7 @@
       "mode": "clone",
       "modules": [
         "skills/equity-research/quarterly-result-extractor/scripts/fetch_result_documents.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/compute_headline_financials.js",
         "skills/equity-research/quarterly-result-extractor/scripts/save_result_documents.js",
         "stock-api/src/fetchers/documentsFetcher.js",
         "stock-api/bin/get-concall-transcript-url.js",
@@ -423,7 +427,8 @@
         "stock-api/src/analyzers/incomeStatementSignals.js"
       ],
       "dependsOnSkills": [
-        "forward-guidance-extractor"
+        "forward-guidance-extractor",
+        "render-pdf"
       ],
       "references": [
         "skills/equity-research/consecutive-filings-diff/references/phase1_diff_framework.md",
@@ -436,7 +441,9 @@
       ],
       "shared": [
         "skills/_shared/conventions.md",
-        "skills/_shared/income-statement-signals.md"
+        "skills/_shared/income-statement-signals.md",
+        "skills/_shared/pdf-artifact-step.md",
+        "skills/_shared/pdf-design-guide.md"
       ],
       "aliases": [
         "diff decks",
@@ -630,6 +637,9 @@
       "modules": [
         "stock-api/src/analyzers/parseTweetDump.js"
       ],
+      "dependsOnSkills": [
+        "render-pdf"
+      ],
       "references": [
         "skills/equity-research/tweet-investor-playbook/references/classification_taxonomy.md",
         "skills/equity-research/tweet-investor-playbook/references/synthesis_rules.md",
@@ -638,7 +648,9 @@
       "assets": [
         "skills/equity-research/tweet-investor-playbook/assets/widget_template.html"
       ],
-      "shared": [],
+      "shared": [
+        "skills/_shared/pdf-artifact-step.md"
+      ],
       "aliases": [
         "tweet playbook",
         "investor tweets",
@@ -882,10 +894,15 @@
     "value-chain-analysis": {
       "skill_md": "skills/equity-research/value-chain-analysis/SKILL.md",
       "entry": null,
+      "dependsOnSkills": [
+        "render-pdf"
+      ],
       "references": [],
       "shared": [
         "skills/_shared/conventions.md",
-        "skills/_shared/data-verification.md"
+        "skills/_shared/data-verification.md",
+        "skills/_shared/pdf-artifact-step.md",
+        "skills/_shared/pdf-design-guide.md"
       ],
       "aliases": [
         "value chain",
@@ -1280,6 +1297,23 @@
         "weekly token usage",
         "cost reduction recommendations",
         "model selection FinOps"
+      ]
+    },
+    "ipo-subscription-ranker": {
+      "skill_md": "skills/equity-research/ipo-subscription-ranker/SKILL.md",
+      "entry": null,
+      "references": [
+        "skills/equity-research/ipo-subscription-ranker/references/ipo_ranking_framework.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md"
+      ],
+      "aliases": [
+        "ipo subscription digest",
+        "rank ipos by subscription",
+        "ipo subscription ranker",
+        "which ipos listing tomorrow",
+        "ipo subscription quality"
       ]
     }
   }

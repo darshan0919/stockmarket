@@ -111,6 +111,11 @@ bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "data/peer-
 ```
 
 See [`stock-api/src/generators/generatePeerPdf.js`](stock-api/src/generators/generatePeerPdf.js).
+Run this PDF step every time this skill is invoked standalone (not from `equity-research-master`,
+which uses schema-only mode) — don't drop it because the ask was conversational. If the
+render-pdf pipeline is genuinely unavailable in the current environment, say so explicitly
+in the closing text rather than presenting only the widget as the finished output — see
+`skills/_shared/pdf-artifact-step.md`'s "If the render pipeline is unavailable" section.
 
 ## Output discipline
 

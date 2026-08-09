@@ -55,7 +55,7 @@ const NEVER_SYNC = (rel) =>
   // any reports/rpt_artifact-migration_*.json is an orphan (do not sync)
   /^reports\/rpt_artifact-migration_.*\.json$/.test(rel);
 const IS_COLLECTION = (rel) =>
-  /^(companies|reports|notes|theses|validation|conversations|prompts|events-\d{4}-\d{2})\.json$/.test(
+  /^(companies|reports|notes|theses|validation|conversations|prompts|ipos|events-\d{4}-\d{2})\.json$/.test(
     rel
   );
 

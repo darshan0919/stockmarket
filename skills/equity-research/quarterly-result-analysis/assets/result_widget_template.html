@@ -10,11 +10,12 @@ unless the user explicitly requests a standalone HTML file (see SKILL.md for tha
 
 Layout map:
   1. Header band            — company / ticker / quarter / result date / CMP / mcap
-  2. Verdict chips          — 5-8 single-word tags
-  3. BASKET 1 (Business)    — 4 sub-sections with Structural/Cyclical/Temporary tags
-  4. BASKET 2 (Risk)        — 3 sub-sections with HIGH/MED/LOW severity
-  5. BASKET 3 (Management)  — Tone + Change vs prior + Strategic + Capital allocation
-  6. Monitoring Checklist   — KPI / Threshold / Horizon / Source table
+  2. KPI strip              — 4-8 bird's-eye headline metrics (value + comparison subtext)
+  3. Verdict chips          — 5-8 single-word tags
+  4. BASKET 1 (Business)    — 4 sub-sections with Structural/Cyclical/Temporary tags
+  5. BASKET 2 (Risk)        — 3 sub-sections with HIGH/MED/LOW severity
+  6. BASKET 3 (Management)  — Tone + Change vs prior + Strategic + Capital allocation
+  7. Monitoring Checklist   — KPI / Threshold / Horizon / Source table
 -->
 
 <style>
@@ -68,6 +69,46 @@ Layout map:
   .qra-meta span strong {
     color: var(--color-text-primary);
     font-weight: 500;
+  }
+
+  /* KPI strip — bird's-eye headline metrics, 4 per row */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.9rem 1.1rem;
+    margin: 0.6rem 0 0.75rem;
+  }
+  .kpi-card {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .kpi-label {
+    font-size: 10px;
+    color: var(--color-text-tertiary);
+  }
+  .kpi-value {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 1.2;
+  }
+  .kpi-value .kpi-value-sm {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--color-text-tertiary);
+    margin-left: 3px;
+  }
+  .kpi-sub {
+    font-size: 10px;
+    margin-top: 1px;
+  }
+  /* Tone: green = favorable move/beat, red = risk/deterioration, amber = neutral/guided context */
+  .kpi-sub-pos { color: #1f7a3d; }
+  .kpi-sub-neg { color: #b3261e; }
+  .kpi-sub-neutral { color: #8a6d1a; }
+  @media (max-width: 640px) {
+    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
   }
 
   /* Verdict chip strip */
@@ -360,12 +401,46 @@ Layout map:
     </div>
   </div>
 
+  <!-- ========================== 2. KPI STRIP ========================== -->
+  <!-- 4-8 cards, bird's-eye headline metrics so the reader can verify/visualise the numbers
+       the write-up below is discussing before reading a word of prose. Pull from
+       quarterly-result-extractor's headlineFinancials (Revenue/EBITDA margin/PAT/tax/EPS —
+       always computed) plus kpiExcerpts (ROCE, volume growth, related-party, inventory swing —
+       recall candidates) and basket findings. Tone: pos = favorable YoY/QoQ move or beat,
+       neg = risk/deterioration, neutral = guided/context number with no clear direction. -->
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <div class="kpi-label">{{KPI 1 label — e.g. Revenue YoY}}</div>
+      <div class="kpi-value">{{+57.5%}}</div>
+      <!-- omit .kpi-sub entirely if there's nothing to compare against -->
+      <div class="kpi-sub kpi-sub-pos">{{vs Rs X Cr Q1FY26 / one-line comparison}}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">{{KPI 2 label — e.g. EBITDA margin}}</div>
+      <div class="kpi-value">{{10.01%}}</div>
+      <div class="kpi-sub kpi-sub-neutral">{{vs 5.0% in Q4 FY26}}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">{{KPI 3 label — e.g. PAT YoY}}</div>
+      <div class="kpi-value">{{+90.7%}}</div>
+      <div class="kpi-sub kpi-sub-pos">{{+425% YoY / driver in 3-5 words}}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">{{KPI 4 label — e.g. Effective tax rate}}</div>
+      <div class="kpi-value">19.0% <span class="kpi-value-sm">{{vs 29.1%}}</span></div>
+      <div class="kpi-sub kpi-sub-neg">{{one-off / rate reset — flag if it inflated PAT}}</div>
+    </div>
+    <!-- Repeat card markup for a second row (5-8 total) when a governance/risk KPI from
+         kpiExcerpts (e.g. related-party at risk, inventory-build swing) or an operational
+         guidance figure (volume growth, ROCE) is decision-relevant this quarter. -->
+  </div>
+
   <!-- Optional alert banner for major positive/negative surprises (delete if not needed) -->
   <div class="hl hl-y">
     <strong>Headline takeaway —</strong> {{ONE_LINE_VERDICT}}
   </div>
 
-  <!-- ========================== 2. VERDICT CHIPS ========================== -->
+  <!-- ========================== 3. VERDICT CHIPS ========================== -->
   <div class="basket">
     <div class="basket-hd">Verdict Tags <span class="basket-q">— quarter in 5-8 words</span></div>
     <div class="verdict-strip">
@@ -379,7 +454,7 @@ Layout map:
     </div>
   </div>
 
-  <!-- ========================== 3. BASKET 1 — BUSINESS ========================== -->
+  <!-- ========================== 4. BASKET 1 — BUSINESS ========================== -->
   <div class="basket">
     <div class="basket-hd">Basket 1 — Business <span class="basket-q">What is improving?</span></div>
 
@@ -451,7 +526,7 @@ Layout map:
     </div>
   </div>
 
-  <!-- ========================== 4. BASKET 2 — RISK ========================== -->
+  <!-- ========================== 5. BASKET 2 — RISK ========================== -->
   <div class="basket">
     <div class="basket-hd">Basket 2 — Risk <span class="basket-q">What can go wrong?</span></div>
 
@@ -503,7 +578,7 @@ Layout map:
     </div>
   </div>
 
-  <!-- ========================== 5. BASKET 3 — MANAGEMENT ========================== -->
+  <!-- ========================== 6. BASKET 3 — MANAGEMENT ========================== -->
   <div class="basket">
     <div class="basket-hd">Basket 3 — Management <span class="basket-q">What are they signalling between the lines?</span></div>
 
@@ -581,7 +656,7 @@ Layout map:
     </div>
   </div>
 
-  <!-- ========================== 6. MONITORING CHECKLIST ========================== -->
+  <!-- ========================== 7. MONITORING CHECKLIST ========================== -->
   <div class="basket">
     <div class="basket-hd">Forward Monitoring Checklist <span class="basket-q">— next 2-8 quarters</span></div>
     <table>
@@ -609,7 +684,7 @@ Layout map:
     </table>
   </div>
 
-  <!-- ========================== 7. SOURCES ========================== -->
+  <!-- ========================== 8. SOURCES ========================== -->
   <div class="src-list">
     <strong>Sources —</strong>
     {{Q3 FY26 Investor Presentation, 17 pp}} ·

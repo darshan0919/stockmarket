@@ -33,7 +33,13 @@
     "capture-conversation": "node scripts/captureConversation.js",
     "order-book-extract": "node scripts/orderbook/extractOrderBook.js",
     "order-book-company": "node scripts/orderbook/getCompanyOrderBook.js",
-    "fetch-concall-notes": "node scripts/orderbook/fetchConcallNotes.js"
+    "fetch-concall-notes": "node scripts/orderbook/fetchConcallNotes.js",
+    "ipo-subscription-scan": "node ipoSubscriptionScanner.js",
+    "ipo-digest-email": "node ipoDigestEmail.js",
+    "ipo-backtest": "node ipoBacktest.js",
+    "ipo-history-cache": "node ipoHistoryCache.js",
+    "nse-ipo-history-fetcher": "node nseIpoHistoryFetcher.js",
+    "bse-ipo-history-fetcher": "node bseIpoHistoryFetcher.js"
   },
   "dependencies": {
     "@stock/api": "workspace:*",

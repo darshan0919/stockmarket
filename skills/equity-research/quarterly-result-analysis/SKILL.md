@@ -1,6 +1,6 @@
 ---
 name: quarterly-result-analysis
-description: Stage 2 (flagship model) of the 2-skill quarterly-result pipeline — industry-agnostic single-quarter result interpretation for Indian listed companies, reading quarterly-result-extractor's persisted DB record (fetched documents + deterministic income-statement signal scan + recall-first tone/guidance/strategic excerpts) and applying the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist. Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks "analyse this quarter", "what changed this quarter", "is the business getting better", "what's management signalling", "result analysis", "quarterly snapshot", "post-result note", or provides a Stockscans ticker with result-day intent. Auto-invokes quarterly-result-extractor when given only a ticker and no DB record exists yet. Output is an interactive briefing widget tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), multi-year deep dives (use equity-research-deepdive), or raw document fetching without interpretation (use quarterly-result-extractor directly).
+description: Stage 2 (flagship model) of the 2-skill quarterly-result pipeline — industry-agnostic single-quarter result interpretation for Indian listed companies, reading quarterly-result-extractor's persisted DB record (fetched documents + deterministic income-statement signal scan + recall-first tone/guidance/strategic excerpts) and applying the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist. Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks "analyse this quarter", "what changed this quarter", "is the business getting better", "what's management signalling", "result analysis", "quarterly snapshot", "post-result note", or provides a Stockscans ticker with result-day intent. Auto-invokes quarterly-result-extractor when given only a ticker and no DB record exists yet. Output is BOTH an interactive briefing widget AND a Drive-shareable PDF (same underlying DTO), opening with a bird's-eye KPI strip (Revenue/EBITDA margin/PAT/tax rate/EPS and other decision-relevant metrics, each with a comparison subtext), tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), multi-year deep dives (use equity-research-deepdive), or raw document fetching without interpretation (use quarterly-result-extractor directly).
 ---
 
 # Quarterly Result Analysis
@@ -86,15 +86,50 @@ uploaded files directly, extract the same shape ad hoc):
 - `incomeStatementSignals` — the pre-computed, materiality-filtered P&L scan
   (Basket 1B feeds directly from this; see Core Principles below — do not
   re-derive this arithmetic yourself).
-- `toneExcerpts` / `guidanceExcerpts` / `strategicExcerpts` — candidate
-  passages for Basket 3; this skill's job is to classify/judge these, not to
-  re-scan the raw transcript for them.
+- `headlineFinancials` — the always-on Revenue/EBITDA-margin/PAT/tax-rate/EPS
+  snapshot (QoQ+YoY, unfiltered by materiality). This is the KPI-strip's
+  backbone — see Phase 1.5.
+- `toneExcerpts` / `guidanceExcerpts` / `strategicExcerpts` / `kpiExcerpts` —
+  candidate passages; this skill's job is to classify/judge/select these,
+  not to re-scan the raw transcript for them. `kpiExcerpts` are candidate
+  operational/governance KPIs (ROCE, volume growth, related-party, inventory
+  swing, etc.) outside the P&L scan's reach.
 - `possiblyDropped` — topics present in the prior transcript's excerpts but
   absent from this quarter's; feeds the "change vs prior quarters"
   sub-section directly.
 - `found` / `transcriptMissing` — if `transcriptMissing: true`, flag the gap
   explicitly in the Management basket rather than skipping it silently (same
   rule as before the split).
+
+### Phase 1.5 — Select the KPI strip
+
+A bird's-eye view of 4-8 headline metrics, rendered as cards at the very top
+of the widget (right after the header band, before the verdict chips) so the
+reader can verify and visualise the numbers this note is about to discuss,
+before reading a word of prose. This is a judgment step — the extractor
+hands you raw numbers, not a finished strip — so it belongs here, not in
+Phase 1:
+
+1. **Start from `headlineFinancials`.** These 4-5 cards (Revenue, EBITDA
+   margin, PAT, effective tax rate, EPS — each with `qoqPct`/`yoyPct` or
+   prior-period values already computed) are close to always-include: they're
+   the numbers every reader checks first. Only drop one if it's genuinely
+   uninformative this quarter (e.g. tax rate barely moved and isn't part of
+   the story).
+2. **Add 0-4 more cards from `kpiExcerpts` or the basket findings** when a
+   number is decision-relevant this quarter but isn't in the P&L snapshot —
+   ROCE, guided volume/utilisation growth, a related-party amount flagged at
+   risk, an inventory-build swing, order book. Pull the number and its
+   comparison basis verbatim from the excerpt; don't compute anything new.
+3. **Assign each card a tone**: `pos` (favorable YoY/QoQ move or a beat),
+   `neg` (risk/deterioration — e.g. a related-party exposure, a margin
+   compression), or `neutral` (guided figure or context number with no clear
+   direction, e.g. a tax-rate reset that flatters PAT without being
+   "good news"). Tone drives the subtext color in the widget — see
+   `assets/result_widget_template.html`'s `.kpi-sub-pos/-neg/-neutral`.
+4. **Every card needs a comparison** wherever one exists (`vs Rs X Cr Q1FY26`,
+   `vs 5.0% in Q4 FY26`, `guided 30%+ FY27`) — a bare number without context
+   ("EPS Rs 8.23") tells the reader nothing about whether that's good.
 
 ### Phase 2 — 3-basket analysis
 
@@ -114,9 +149,12 @@ Two reference files support this phase:
 
 ### Phase 2.5 — Persist the JSON DTO
 
-Before rendering the widget, write `data/agent-outputs/{TICKER}_quarterly_result.json`
-(e.g. `NSE_SWARAJENG_quarterly_result.json`) capturing the full Phase 2 output as
-structured JSON: the verdict chips, Basket 1/2/3 items (each with its
+Before rendering the widget, save the full Phase 1.5 + Phase 2 output as one `quarterly-result`
+report via `db.saveReport(dto)` (`packages/jobs-runtime/lib/db.js`) — NOT a hand-placed file
+under `data/agent-outputs/`; a `reports.json` + `reports/<id>.json` record is what makes this
+DTO Drive-mirrored and re-readable by the Phase 4 PDF step or any other skill, per
+`docs/DATA_RULES.md` §2. The DTO: `kpiStrip` (the 4-8 selected cards — `label`, `value`,
+`subtext`, `tone`), the verdict chips, Basket 1/2/3 items (each with its
 STRUCTURAL/CYCLICAL/TEMPORARY or HIGH/MED/LOW tag), the monitoring checklist rows
 (`kpi`, `threshold`, `horizon`, `source`), and the header fields (company, ticker,
 quarter, result date, CMP, market cap). The object MUST carry the standard envelope from
@@ -131,14 +169,33 @@ The primary output is an interactive HTML widget rendered via `visualize:show_wi
 templated from the Phase 2.5 JSON DTO — the widget's content must be reproducible from
 that file, not drafted separately. Use [`assets/result_widget_template.html`](assets/result_widget_template.html) as the structural reference — copy the `<style>` block and section skeletons, populate with the Phase 2 findings from the JSON DTO.
 
+### Phase 4 — Render the PDF artifact
+
+Always also produce a PDF from the SAME Phase 2.5 DTO — see
+[`skills/_shared/pdf-artifact-step.md`](../../_shared/pdf-artifact-step.md) for the full
+mechanics (build a hex-color standalone HTML using `pdf-design-guide.md`'s component
+vocabulary — the `.kpi`/`.grid4` classes map directly onto the KPI strip, `.chip` onto the
+verdict tags, `.hl` onto the callouts — then call `render-pdf`). Save to
+`data/assets/quarterly-result-analysis/<Company>_Q<X>_FY<YY>_ResultAnalysis.pdf` and end
+the run with `node packages/jobs-runtime/scripts/data.js push` so it's Drive-shareable. Do
+this on every run, not only when the user explicitly asks for a file — a Drive link is what
+makes the note forwardable, and the whole point of persisting the DTO in Phase 2.5 is that
+this step costs no extra analysis, only a render. If the render pipeline (`render-pdf`,
+`yarn`/`node` tooling) is genuinely unavailable in the current environment, that is a
+blocker to flag explicitly in the closing text ("PDF not rendered — render pipeline
+unavailable in this session") — never finish the run silently having produced only the
+widget, since that reads to the user as if the PDF requirement was satisfied when it
+wasn't.
+
 Widget structure (top to bottom):
 
 1. **Header band** — company + ticker + quarter + result date + CMP + market cap
-2. **Verdict chips** — 5 to 8 single-word tags summarising the quarter (e.g. `MARGIN INFLECTION`, `EXPORT SCALE-UP`, `CAUTIOUS TONE`, `CAPEX HEAVY`)
-3. **Basket 1 — BUSINESS** — growth drivers, margins, capex/BS/CF, future triggers; each item tagged `STRUCTURAL` / `CYCLICAL` / `TEMPORARY`
-4. **Basket 2 — RISK** — business, commentary, macro; each item with severity (`HIGH` / `MED` / `LOW`)
-5. **Basket 3 — MANAGEMENT** — tone label + evidence quote · narrative shift vs prior · 3-5yr strategic build · capital allocation grade
-6. **Monitoring checklist** — table with `# | KPI | Threshold | Horizon | Source`
+2. **KPI strip** — 4-8 bird's-eye headline metric cards from Phase 1.5 (`.kpi-strip`/`.kpi-card` in the template) — label, big value, colored comparison subtext
+3. **Verdict chips** — 5 to 8 single-word tags summarising the quarter (e.g. `MARGIN INFLECTION`, `EXPORT SCALE-UP`, `CAUTIOUS TONE`, `CAPEX HEAVY`)
+4. **Basket 1 — BUSINESS** — growth drivers, margins, capex/BS/CF, future triggers; each item tagged `STRUCTURAL` / `CYCLICAL` / `TEMPORARY`
+5. **Basket 2 — RISK** — business, commentary, macro; each item with severity (`HIGH` / `MED` / `LOW`)
+6. **Basket 3 — MANAGEMENT** — tone label + evidence quote · narrative shift vs prior · 3-5yr strategic build · capital allocation grade
+7. **Monitoring checklist** — table with `# | KPI | Threshold | Horizon | Source`
 
 After the widget renders, write 2-3 short paragraphs outside it. Lead each with a bolded takeaway. These are the analytically-significant observations that need full-sentence treatment — _not_ a rehash of widget content. End with a falsifiable prediction or the specific next catalyst to watch (e.g., "Q1 FY27 result will test whether margin expansion is structural — gross margin must stay above 28% even if commodity prices reverse").
 
@@ -172,13 +229,14 @@ After the widget renders, write 2-3 short paragraphs outside it. Lead each with 
 - **Don't let "tone" become editorialising.** "Management seemed nervous" without quotation evidence is hallucination. Every tone label needs one short verbatim quote.
 - **Don't conflate cyclical recovery with structural improvement.** A steel company's margin expanding because HRC prices rose is _cyclical_. The same company shifting 30% of volumes to value-added speciality grades is _structural_. Tag carefully.
 
-## Output file naming
+## Outputs
 
-The widget renders inline via `visualize:show_widget`. If the user explicitly asks for a saved file or attachment:
+Two artifacts, both from the same Phase 2.5 DTO, every run:
 
-`/mnt/project/data/agent-outputs/<Company>_Q<X>_FY<YY>_ResultAnalysis.html` (standalone — replace CSS variables with literal colours)
+1. The interactive widget (Phase 3) — fast to read in-session, the primary read.
+2. The PDF (Phase 4) — `data/assets/quarterly-result-analysis/<Company>_Q<X>_FY<YY>_ResultAnalysis.pdf`, Drive-shareable. Mention its path/Drive link in the closing paragraphs after the widget — don't make the user ask for a file separately.
 
-If the user wants a PDF instead, suggest routing to `equity-research-deepdive` for a full report, or use the inline widget as the deliverable. This skill's natural medium is the interactive briefing.
+If the user wants the fuller multi-year format instead of this single-quarter note, route to `equity-research-deepdive`.
 
 ## Related skills
 
@@ -188,3 +246,5 @@ If the user wants a PDF instead, suggest routing to `equity-research-deepdive` f
   this skill reads. Auto-invoked by Phase 0 when no record exists yet; call
   it directly if you only want the raw documents/signals without the
   3-basket interpretation.
+- `render-pdf` — invoked by Phase 4 to turn the Phase 2.5 DTO into the
+  Drive-shareable PDF artifact; see `skills/_shared/pdf-artifact-step.md`.

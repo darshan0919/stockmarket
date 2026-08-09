@@ -1,6 +1,6 @@
 ---
 name: consecutive-filings-diff
-description: Institutional-grade forensic diff across consecutive quarterly investor presentations (Q-1 vs Q), reconciled with the latest concall transcript, cross-checked against explicit forward guidance extracted from that same concall, and repriced with live market data for any listed company. Use this skill whenever the user uploads two or more consecutive investor presentations, uploads a concall transcript alongside a presentation, says "diff these decks", "compare Q3 vs Q4 presentation", "update the thesis with the latest concall", "reprice this stock after results", or provides back-to-back quarterly filings. Also trigger when the user has an existing research thesis and new quarterly data arrives, or says "update it with the latest results". Produces a single institutional briefing covering P&L diff, balance sheet & cash flow quality, operational KPIs, positive/negative surprises, new growth triggers, growth-hampering events, new products/verticals, capacity additions, concall reconciliation, forward guidance (always extracted via forward-guidance-extractor and folded into this same report), and valuation reset at live CMP — rendered as a single interactive HTML widget.
+description: Institutional-grade forensic diff across consecutive quarterly investor presentations (Q-1 vs Q), reconciled with the latest concall transcript, cross-checked against explicit forward guidance extracted from that same concall, and repriced with live market data for any listed company. Use this skill whenever the user uploads two or more consecutive investor presentations, uploads a concall transcript alongside a presentation, says "diff these decks", "compare Q3 vs Q4 presentation", "update the thesis with the latest concall", "reprice this stock after results", or provides back-to-back quarterly filings. Also trigger when the user has an existing research thesis and new quarterly data arrives, or says "update it with the latest results". Produces a single institutional briefing covering P&L diff, balance sheet & cash flow quality, operational KPIs, positive/negative surprises, new growth triggers, growth-hampering events, new products/verticals, capacity additions, concall reconciliation, forward guidance (always extracted via forward-guidance-extractor and folded into this same report), and valuation reset at live CMP — rendered as BOTH a single interactive HTML widget AND a Drive-shareable PDF from the same DTO.
 ---
 
 # Consecutive Filings Diff & Thesis Repricing
@@ -105,7 +105,9 @@ When this skill triggers:
    `skills/tooling/output-dto-standard/SKILL.md`, the HTML widget must be reproducible
    FROM a persisted JSON, not generated directly from live reasoning. Before calling the
    visualize tool:
-   - Write `{TICKER}_filings_diff.json` (e.g. to `data/agent-outputs/`) capturing the
+   - Persist via `db.saveReport(dto)` (`packages/jobs-runtime/lib/db.js`, type
+     `filings-diff`) — NOT a hand-placed file under `data/agent-outputs/`; this is what
+     makes the DTO Drive-mirrored and re-readable by the PDF step below (step 9). Capture the
      diff findings, one record per company, with the required envelope fields plus the
      11 output sections as structured data — roughly:
      ```json
@@ -143,7 +145,13 @@ When this skill triggers:
      different. Do not add facts to the widget that aren't in the JSON; if a fact
      changes, update the JSON first, then re-render.
 
-8. **End with a conviction verdict.** Three bullet points maximum. What changed, what the price move means, what the action framework is now.
+8. **Render the PDF artifact.** Always also produce a PDF from the SAME DTO — see
+   [`skills/_shared/pdf-artifact-step.md`](../../_shared/pdf-artifact-step.md) for the
+   mechanics. Save to `data/assets/consecutive-filings-diff/<Company>_<Qcurr>vs<Qprior>_Diff.pdf`
+   and end the run with `node packages/jobs-runtime/scripts/data.js push` so it's
+   Drive-shareable. Do this every run, not only on request.
+
+9. **End with a conviction verdict.** Three bullet points maximum. What changed, what the price move means, what the action framework is now. Mention the PDF's path/Drive link here too.
 
 ## Core principles
 
@@ -161,7 +169,7 @@ When this skill triggers:
 
 ## Output format
 
-The final deliverable is a single HTML widget rendered via the visualize tool, with these sections in order:
+The final deliverable is BOTH a single HTML widget rendered via the visualize tool AND a Drive-shareable PDF built from the same DTO (see step 8 below), with these sections in order:
 
 1. **Headline P&L diff** — actual vs prior deck's implied trajectory
 2. **Balance sheet & cash flow quality** — with CFO/PAT and working capital ratios

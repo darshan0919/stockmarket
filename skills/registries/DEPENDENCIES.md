@@ -23,6 +23,7 @@ Available high-level agentic skills defined in the project:
 | [stock-api/bin/market-share-analysis.js](stock-api/bin/market-share-analysis.js) | `stock-api/bin/market-share-analysis.js` | market share, competitive landscape, industry concentration, who dominates, cr3 cr5 hhi, organised unorganised, top players, market structure |
 | [stock-api/bin/sector-research-deepdive.js](stock-api/bin/sector-research-deepdive.js) | `stock-api/bin/sector-research-deepdive.js` | sector report, sector deep dive, industry analysis, thematic note, sector primer, industry deep dive, competitive dynamics |
 | [stock-api/bin/drhp-ipo-analysis.js](stock-api/bin/drhp-ipo-analysis.js) | `stock-api/bin/drhp-ipo-analysis.js` | drhp, ipo analysis, rhp analysis, should I subscribe ipo, analyse drhp, ipo fairly priced, prospectus analysis |
+| [stock-api/bin/quarterly-result-analysis.js](stock-api/bin/quarterly-result-analysis.js) | `stock-api/bin/quarterly-result-analysis.js` | quarterly results, result analysis, what changed this quarter, quarterly snapshot, post result note, q result, results analysis |
 | [stock-api/bin/consecutive-filings-diff.js](stock-api/bin/consecutive-filings-diff.js) | `stock-api/bin/consecutive-filings-diff.js` | diff decks, compare presentations, q vs q presentation, consecutive filings, qoq diff, update thesis latest concall, reprice after results |
 | [stock-api/bin/pre-pead-scanner.js](stock-api/bin/pre-pead-scanner.js) | `stock-api/bin/pre-pead-scanner.js` | pre pead, pre results scanner, rank companies before earnings, estimate next quarter, guidance ranking, pre-PEAD, results season scanner |
 | [stock-api/bin/watchlist-catalyst-scanner.js](stock-api/bin/watchlist-catalyst-scanner.js) | `stock-api/bin/watchlist-catalyst-scanner.js` | catalyst scanner, scan watchlist, any catalysts today, catalyst alerts, what's moving watchlist, daily catalyst scan, check announcements |
@@ -53,6 +54,7 @@ Available high-level agentic skills defined in the project:
 | [scripts/antigravity-sync-tasks-and-skills.js](scripts/antigravity-sync-tasks-and-skills.js) | `scripts/antigravity-sync-tasks-and-skills.js` | sync antigravity, sync scheduled tasks, sync skills to antigravity, antigravity sidecar sync |
 | N/A | `N/A` | find a skill, is there a skill that can, discover skills, install a skill |
 | [scripts/metrics/analyze_token_usage.py](scripts/metrics/analyze_token_usage.py) | `scripts/metrics/analyze_token_usage.py` | token usage analysis, weekly token usage, cost reduction recommendations, model selection FinOps |
+| N/A | `N/A` | ipo subscription digest, rank ipos by subscription, ipo subscription ranker, which ipos listing tomorrow, ipo subscription quality |
 
 ---
 

@@ -223,7 +223,7 @@
     },
     {
       "name": "quarterly-result-analysis",
-      "description": "Industry-agnostic single-quarter result interpretation for Indian listed companies — applies the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist. Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks \"analyse this quarter\", \"what changed this quarter\", \"is the business getting better\", \"what's management signalling\", \"result analysis\", \"quarterly snapshot\", \"post-result note\", or provides a Stockscans ticker with result-day intent. Auto-fetches the latest PPT + Transcript + Result from Stockscans when given only a ticker. Output is an interactive briefing widget tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), or multi-year deep dives (use equity-research-deepdive).",
+      "description": "Stage 2 (flagship model) of the 2-skill quarterly-result pipeline — industry-agnostic single-quarter result interpretation for Indian listed companies, reading quarterly-result-extractor's persisted DB record (fetched documents + deterministic income-statement signal scan + recall-first tone/guidance/strategic excerpts) and applying the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist. Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks \"analyse this quarter\", \"what changed this quarter\", \"is the business getting better\", \"what's management signalling\", \"result analysis\", \"quarterly snapshot\", \"post-result note\", or provides a Stockscans ticker with result-day intent. Auto-invokes quarterly-result-extractor when given only a ticker and no DB record exists yet. Output is BOTH an interactive briefing widget AND a Drive-shareable PDF (same underlying DTO), opening with a bird's-eye KPI strip (Revenue/EBITDA margin/PAT/tax rate/EPS and other decision-relevant metrics, each with a comparison subtext), tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), multi-year deep dives (use equity-research-deepdive), or raw document fetching without interpretation (use quarterly-result-extractor directly).",
       "aliases": [
         "quarterly results",
         "result analysis",
@@ -240,7 +240,7 @@
     },
     {
       "name": "consecutive-filings-diff",
-      "description": "Institutional-grade forensic diff across consecutive quarterly investor presentations (Q-1 vs Q), reconciled with the latest concall transcript, cross-checked against explicit forward guidance extracted from that same concall, and repriced with live market data for any listed company. Use this skill whenever the user uploads two or more consecutive investor presentations, uploads a concall transcript alongside a presentation, says \"diff these decks\", \"compare Q3 vs Q4 presentation\", \"update the thesis with the latest concall\", \"reprice this stock after results\", or provides back-to-back quarterly filings. Also trigger when the user has an existing research thesis and new quarterly data arrives, or says \"update it with the latest results\". Produces a single institutional briefing covering P&L diff, balance sheet & cash flow quality, operational KPIs, positive/negative surprises, new growth triggers, growth-hampering events, new products/verticals, capacity additions, concall reconciliation, forward guidance (always extracted via forward-guidance-extractor and folded into this same report), and valuation reset at live CMP — rendered as a single interactive HTML widget.",
+      "description": "Institutional-grade forensic diff across consecutive quarterly investor presentations (Q-1 vs Q), reconciled with the latest concall transcript, cross-checked against explicit forward guidance extracted from that same concall, and repriced with live market data for any listed company. Use this skill whenever the user uploads two or more consecutive investor presentations, uploads a concall transcript alongside a presentation, says \"diff these decks\", \"compare Q3 vs Q4 presentation\", \"update the thesis with the latest concall\", \"reprice this stock after results\", or provides back-to-back quarterly filings. Also trigger when the user has an existing research thesis and new quarterly data arrives, or says \"update it with the latest results\". Produces a single institutional briefing covering P&L diff, balance sheet & cash flow quality, operational KPIs, positive/negative surprises, new growth triggers, growth-hampering events, new products/verticals, capacity additions, concall reconciliation, forward guidance (always extracted via forward-guidance-extractor and folded into this same report), and valuation reset at live CMP — rendered as BOTH a single interactive HTML widget AND a Drive-shareable PDF from the same DTO.",
       "aliases": [
         "diff decks",
         "compare presentations",
@@ -361,7 +361,7 @@
     },
     {
       "name": "tweet-investor-playbook",
-      "description": "Distil a public investor's tweet corpus into an institutional-grade investment playbook. Use whenever the user uploads a tweet dump (JSON, CSV, NDJSON, or raw text) of an investor / fund manager / market commentator and asks to \"analyse their tweets\", \"extract their investment style\", \"build a playbook from their tweets\", \"what does X tweet about stocks\", \"distil their thinking\", \"rate their stock picks\", or \"what's their hit rate\". Also trigger when the user provides a folder of tweet exports from any handle and asks for actionable investment insights, recurring themes, quoted heuristics, or a track-record audit. Output is a self-contained interactive HTML widget with five tabs — Insights, Quotes, Playbook, Track Record (with live price cross-verification), and What Could Be Wrong — plus a Markdown source for archival.",
+      "description": "Distil a public investor's tweet corpus into an institutional-grade investment playbook. Use whenever the user uploads a tweet dump (JSON, CSV, NDJSON, or raw text) of an investor / fund manager / market commentator and asks to \"analyse their tweets\", \"extract their investment style\", \"build a playbook from their tweets\", \"what does X tweet about stocks\", \"distil their thinking\", \"rate their stock picks\", or \"what's their hit rate\". Also trigger when the user provides a folder of tweet exports from any handle and asks for actionable investment insights, recurring themes, quoted heuristics, or a track-record audit. Output is a self-contained interactive HTML widget with five tabs — Insights, Quotes, Playbook, Track Record (with live price cross-verification), and What Could Be Wrong — plus a Markdown source for archival and a Drive-shareable PDF rendered from the same widget.",
       "aliases": [
         "tweet playbook",
         "investor tweets",
@@ -732,6 +732,19 @@
       "modules": [
         "scripts/metrics/track_invocation.py"
       ]
+    },
+    {
+      "name": "ipo-subscription-ranker",
+      "description": "Daily IPO subscription-quality ranker. Scans IPOPlatform's Closed IPOs + Live Subscription Status pages for IPOs listing the next trading day, merges QIB/sHNI/bHNI/NII/RII/Total subscription figures, computes a deterministic subscription quality score and rank, runs the full drhp-ipo-analysis DRHP/RHP deep-dive on the top 3, and emails a digest (full ranked table + top-3 rationale + DRHP verdicts). Use for \"IPO subscription digest\", \"which IPOs listing tomorrow are worth a look\", \"rank today's IPOs by subscription quality\", or when the daily-ipo-subscription-analysis-stockmarket scheduled task runs.",
+      "aliases": [
+        "ipo subscription digest",
+        "rank ipos by subscription",
+        "ipo subscription ranker",
+        "which ipos listing tomorrow",
+        "ipo subscription quality"
+      ],
+      "entry": null,
+      "modules": []
     }
   ],
   "classes": [

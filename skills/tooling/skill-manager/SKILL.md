@@ -21,7 +21,49 @@ Whenever the user asks to create or modify a skill, adhere to the following blue
 4. **Update the Registry**:
    - Always add, update, or remove the entry for the skill in the registry file (`skills/registry.json`) to track its `skill_md`, `scripts`, `references`, etc.
    - Run `yarn registries:generate` to regenerate the workflow dependencies registry files.
-5. **Data persistence (MANDATORY if the skill stores anything)**: any skill that
+5. **Secrets/env resolution (MANDATORY for any script that reads an API key,
+   password, or token)**: per `skills/_shared/conventions.md` §2, secrets and
+   configuration must be pulled from the unified Env abstraction —
+   `packages/jobs-runtime/lib/env.js`'s `loadEnv()` — never by parsing `.env`
+   manually and never by assuming `process.env.X` is already populated by
+   whatever shell/scheduler invokes the script. Concretely, every generated or
+   modified Node script under `packages/jobs-runtime/` (or anywhere that reads
+   a secret) must:
+   ```js
+   const { loadEnv, argValue } = require('./lib/env'); // adjust relative path
+   // ... at the top of main(), before any process.env.<SECRET> read:
+   loadEnv(argValue(process.argv, '--env-file', null));
+   ```
+   `loadEnv()` resolves, in order, an explicit `--env-file` path → `COWORK_ENV`
+   → the repo-root `.env` — and never overwrites a value already set in
+   `process.env`, so it's safe to call unconditionally even when the real
+   Cowork/production runtime already injects the secret another way. This bug
+   class is easy to miss because the script runs fine in local dev (where a
+   shell may have `.env` sourced already) and only fails silently — e.g.
+   `sendHtmlEmail` returning `{status:'skipped', reason:'GOOGLE_APP_PASSWORD not
+   set'}` instead of throwing — in a sandboxed/Cowork run where nothing sourced
+   `.env` first. Treat a generated script that reads a secret without calling
+   `loadEnv()` first as non-conformant, the same way an unconformant DB write is
+   treated in the data-persistence rule below. See any of `dealsDigest.js`,
+   `watchlistUpdater.js`, or `insightValidator.js` in `packages/jobs-runtime/`
+   for the established call-site pattern.
+6. **Register the Claude-account thin router (MANDATORY when adding a
+   brand-new skill)**: this repo's `skills/*` is the single source of truth for
+   skill *logic* — every skill also needs a thin *router* skill saved to the
+   Claude account (via `save_skill`) so it appears in `available_skills` and
+   can be invoked directly (e.g. `/skill-name`). The router has NO logic of its
+   own: it locates the local checkout (or falls back to the GitHub raw URL),
+   reads the real `SKILL.md` from `skills/registry.json`'s entry, and executes
+   its instructions exactly — see any existing router (e.g.
+   `cowork-task-architect`, `drhp-ipo-analysis`) for the exact boilerplate to
+   copy. When you only *edit* an existing skill's logic, edit the repo file —
+   never hand-edit the router's routing logic. Only a genuinely new skill
+   needs a new router created. Forgetting this step is why a skill can exist
+   correctly in the repo (with a working `SKILL.md`, registry entry, and
+   companion scripts) yet never actually be reachable as `/skill-name` from a
+   Claude Cowork/Code session — always check `available_skills` after adding a
+   skill and create the router if it's missing.
+7. **Data persistence (MANDATORY if the skill stores anything)**: any skill that
    persists data must comply with [docs/DATA_RULES.md](docs/DATA_RULES.md)
    (companion: `docs/DATA_ECOSYSTEM.md`, `skills/_shared/conventions.md` §3, §5–8).
    **"Database"/"DB" in a user's request always means Google Drive** — the
@@ -46,7 +88,7 @@ Whenever the user asks to create or modify a skill, adhere to the following blue
    `StorageService.touchedFiles()` / the `data:push` `↑` lines, never from
    memory). A generated skill that stores data without these elements is
    non-conformant — fix before delivering.
-6. **Announcement/notes caching (MANDATORY if the skill reads corporate
+8. **Announcement/notes caching (MANDATORY if the skill reads corporate
    announcements or writes to the shared notes DB via
    `packages/jobs-runtime/watchlistInsights.js`)**: this shared pipeline
    (used today by `announcement-insights`, `watchlist-insights`, and

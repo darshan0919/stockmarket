@@ -186,20 +186,34 @@ Domain fields: `cmp`, `marketCap`, `capCategory`, `sector`, `snapshot`,
 
 Then render:
 
-- **Default: inline markdown response.** Sufficient for most uses — this
-  mirrors fundamental-shift-scanner's "quick pulse-check" default when the
-  ask is conversational ("what's changed with X").
-- **1-page PDF when the user wants a shareable conviction note** (the old
-  growth-triggers-1pager deliverable): follow `skills/_shared/pdf-design-guide.md`
-  for the palette/component vocabulary, generate via the two-step pipeline
-  (`resolve.sh rerating-catalysts --input data.json --output report.html`
-  then `resolve.sh render-pdf --html report.html --pdf
-  data/rerating-catalysts/<Company>_Output.pdf`). If content spills past 1
-  page, cut catalyst body text first, then drop to 5 catalysts — never drop
-  the "what's in the price" section.
-- **HTML widget** if the user wants something visual but not a file — same
-  card-based severity layout as `watchlist-catalyst-scanner` (HIGH CONVICTION
-  catalysts get stronger visual treatment).
+- **Quick pulse-check (conversational, no file):** if the ask is a narrow
+  conversational question ("what's changed with X this week", a single
+  catalyst lookup) and the DTO is small (1-2 catalysts, no widget rendered),
+  an inline markdown response is sufficient on its own — this mirrors
+  fundamental-shift-scanner's old "quick pulse-check" default. Nothing else
+  in this skill counts as "quick" — a full catalyst note or an HTML widget
+  is a report, and reports always get the PDF companion below.
+- **Every other run — HTML widget AND a 1-page PDF, always, from the same
+  DTO.** Do not gate the PDF on the user asking for a shareable file; a
+  Drive link is what makes the note forwardable outside the chat session,
+  and per `output-dto-standard` the render is free once the DTO exists —
+  skipping it only because nobody explicitly asked defeats the point of
+  persisting the DTO in the first place (same reasoning as
+  `quarterly-result-analysis`'s Phase 4). Render the widget with the
+  card-based severity layout used by `watchlist-catalyst-scanner` (HIGH
+  CONVICTION catalysts get stronger visual treatment), and render the PDF
+  via `skills/_shared/pdf-design-guide.md`'s palette/component vocabulary
+  through the two-step pipeline (`resolve.sh rerating-catalysts --input
+  data.json --output report.html` then `resolve.sh render-pdf --html
+  report.html --pdf data/rerating-catalysts/<Company>_Output.pdf`). If
+  content spills past 1 page, cut catalyst body text first, then drop to 5
+  catalysts — never drop the "what's in the price" section. Mention the
+  PDF's path/Drive link in the closing text so the user doesn't have to ask
+  for a file separately.
+- If the PDF render tooling is genuinely unavailable in the current
+  environment (e.g. a sandbox without the render pipeline installed), say so
+  explicitly and offer to render it on request — do not silently drop the
+  PDF and present only the widget as if that satisfied the requirement.
 
 Close every run with the files-touched manifest (conventions §9) and the
 token-optimization suggestion (conventions §11).

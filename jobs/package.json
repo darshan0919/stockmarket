@@ -34,6 +34,12 @@
     "capture-conversation": "yarn workspace @stock/jobs-runtime capture-conversation",
     "order-book-extract": "yarn workspace @stock/jobs-runtime order-book-extract",
     "order-book-company": "yarn workspace @stock/jobs-runtime order-book-company",
-    "fetch-concall-notes": "yarn workspace @stock/jobs-runtime fetch-concall-notes"
+    "fetch-concall-notes": "yarn workspace @stock/jobs-runtime fetch-concall-notes",
+    "ipo-subscription-scan": "yarn workspace @stock/jobs-runtime ipo-subscription-scan",
+    "ipo-digest-email": "yarn workspace @stock/jobs-runtime ipo-digest-email",
+    "ipo-backtest": "yarn workspace @stock/jobs-runtime ipo-backtest",
+    "ipo-history-cache": "yarn workspace @stock/jobs-runtime ipo-history-cache",
+    "nse-ipo-history-fetcher": "yarn workspace @stock/jobs-runtime nse-ipo-history-fetcher",
+    "bse-ipo-history-fetcher": "yarn workspace @stock/jobs-runtime bse-ipo-history-fetcher"
   }
 }

@@ -47,6 +47,12 @@ const SINGLE_FILE_COLLECTIONS = [
   'validation',
   'conversations',
   'prompts',
+  // ipos: per-IPO subscription-quality state (ipo-subscription-ranker skill,
+  // daily-ipo-subscription-analysis-stockmarket job). Not company-scoped (a
+  // pre-listing/just-listed IPO usually has no companyId yet), so unlike
+  // `companies` it is NOT threaded through LINK_KIND/rebuildLinks — see
+  // docs/DATA_RULES.md §3 justification in that skill's SKILL.md.
+  'ipos',
 ];
 const LINK_CAP = 200; // max event/note/insight ids kept on a company object
 const LOCK_STALE_MS = 5 * 60 * 1000;
@@ -678,6 +684,40 @@ function cachePath(name) {
   return path.join(DIRS.cache(), name);
 }
 
+/**
+ * Resolve a locally-written data/ artifact (PDF, HTML, etc.) to its Drive-shareable
+ * URL, by reading the driveId that `scripts/data.js push` recorded in
+ * `_meta/sync-state.json` (see that script's header for the sync-state shape).
+ *
+ * Any skill that hands a rendered PDF's path to a user-facing surface (email,
+ * widget, report) MUST call this instead of embedding the local repo-relative
+ * path directly — a local `data/...` path is meaningless to the recipient (it
+ * only exists on whichever machine ran the skill), while the Drive URL opens
+ * for anyone with access to the shared `StockMarket/data/v2` folder. If the
+ * file hasn't been pushed yet (no sync-state entry), returns `null` so the
+ * caller can fall back to *not* showing a broken link rather than a wrong one.
+ *
+ * @param {string} relPath - path relative to `dataRoot()`, e.g.
+ *   `"drhp-ipo-analysis/AnawilWireEngineering_Output.pdf"` or
+ *   `"assets/quarterly-result-analysis/Foo_Q1_FY26.pdf"`. A path that still
+ *   has a leading `data/` (common when copy-pasted from a local absolute path)
+ *   is normalized automatically.
+ * @returns {string|null} `https://drive.google.com/file/d/<id>/view` or null.
+ */
+function resolveDriveUrl(relPath) {
+  if (!relPath) return null;
+  const norm = relPath.replace(/^.*?\bdata\//, '').replace(/^\/+/, '');
+  let state;
+  try {
+    state = JSON.parse(fs.readFileSync(path.join(DIRS.meta(), 'sync-state.json'), 'utf8'));
+  } catch {
+    return null;
+  }
+  const entry = state && state.files && state.files[norm];
+  if (!entry || !entry.driveId) return null;
+  return `https://drive.google.com/file/d/${entry.driveId}/view`;
+}
+
 module.exports = {
   dataRoot,
   init,
@@ -703,6 +743,7 @@ module.exports = {
   assetPath,
   runPath,
   cachePath,
+  resolveDriveUrl,
   touchedFiles,
   trackTouched, // run manifest (docs/DATA_RULES.md §8)
   withLock,

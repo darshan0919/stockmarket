@@ -42,6 +42,9 @@ data/
   events-YYYY-MM.json   # monthly event partitions: gainer | deal | tweet | announcement | watchlist-sync
                         #   | order-win | order-book-declared | order-book-sync (see docs/ORDER_BOOK_EXTRACTION.md)
   validation.json       # insight-validation ledger records
+  ipos.json             # per-IPO subscription-quality state (ipo-subscription-ranker skill,
+                        #   daily-ipo-subscription-analysis-stockmarket job); id = ipo_<ipoPlatformId>,
+                        #   not company-scoped (pre-listing IPOs usually have no companyId yet)
   cache/                # heavy regenerable derivables: company-master.json, bse-scrip-codes.json, extracts
   assets/               # rendered PDF/HTML, flat: <reportId>.pdf|.html (regenerable from DTOs)
   runs/                 # per-run raw dumps + full run DTOs — synced, kept locally (full mirror)

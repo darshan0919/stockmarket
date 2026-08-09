@@ -7,7 +7,8 @@ description: >
   industry", "who owns the bottleneck", "map the chain for X", "where is value
   migrating", "which part of the chain has the moat", or when sector-research-deepdive /
   investment-thesis-engine (Theme pillar) needs a value-chain module. Output is a
-  structured note (MD or HTML widget) ending with a 10-year positioning verdict.
+  structured note (MD or HTML widget, plus a Drive-shareable PDF when rendered as a widget)
+  ending with a 10-year positioning verdict.
 ---
 
 # Value Chain Analysis
@@ -39,9 +40,11 @@ per-transaction unit economics per stage instead of stage margins.
 ## Output
 
 **Persist the JSON DTO first.** Before writing the stage-by-stage table or rendering the
-widget, write `data/agent-outputs/{Industry}_value_chain.json` — a top-level array
-with one record per named company that appears in the chain (each stage names actual
-companies; every named company gets its own record). Each record MUST carry the standard
+widget, persist via `db.saveReport(dto)` (`packages/jobs-runtime/lib/db.js`, type
+`value-chain`) — NOT a hand-placed file under `data/agent-outputs/`; this is what makes the
+DTO Drive-mirrored and re-readable by the PDF step below. A top-level array with one record
+per named company that appears in the chain (each stage names actual companies; every named
+company gets its own record). Each record MUST carry the standard
 envelope from `skills/tooling/output-dto-standard/SKILL.md` — `companyId` (canonical
 `EXCH:SYMBOL` where the company is listed; if unlisted/private, use the company name as a
 best-effort id and note it's unlisted), `creationTime`, `modifiedTime`,
@@ -59,6 +62,11 @@ table and diagram below are a render of this JSON, not an independently drafted 
   decade — and why?"** followed by **"What could be wrong with this analysis?"**
 - If the company being researched sits in a weak node, say so plainly — this feeds the
   Theme pillar of `investment-thesis-engine`.
+- **PDF artifact.** Whenever the diagram-style summary is rendered as an HTML widget (not
+  the plain ASCII-chain fallback), also render a PDF from the same DTO — see
+  [`skills/_shared/pdf-artifact-step.md`](../../_shared/pdf-artifact-step.md). Save to
+  `data/assets/value-chain-analysis/<Industry>_ValueChain.pdf` and end with
+  `node packages/jobs-runtime/scripts/data.js push` so it's Drive-shareable.
 
 Optional NotebookLM-style variant: condense into 5–6 slide-sized sections (use `pptx`
 skill) explaining the chain, where the moat sits, and any special tech — visuals over text.

@@ -3,10 +3,10 @@
 
 /**
  * Persist quarterly-result-extractor's per-company output (fetch manifest +
- * income-statement signal scan + tone/guidance/strategic excerpts) as a
- * durable DB record, so a later, separate invocation of
- * quarterly-result-analysis can read it without depending on the same /tmp
- * files or session still existing.
+ * income-statement signal scan + headline financial snapshot +
+ * tone/guidance/strategic/KPI excerpts) as a durable DB record, so a later,
+ * separate invocation of quarterly-result-analysis can read it without
+ * depending on the same /tmp files or session still existing.
  *
  * Saves ONE record, ALWAYS -- including a genuine "results not out yet"
  * outcome (manifest.notYetOut). This lets quarterly-result-analysis tell
@@ -17,6 +17,7 @@
  * Usage:
  *   node save_result_documents.js --manifest <manifest.json> \
  *     --signals <income_statement_signals.json> \
+ *     --headline <headline_financials.json> \
  *     --excerpts <excerpts.json> \
  *     [--model-used claude-sonnet-5]     # only if Step 3 involved LLM judgment beyond recall
  */
@@ -24,11 +25,12 @@ const fs = require('fs');
 const db = require('../../../../packages/jobs-runtime/lib/db.js');
 
 function parseArgs(argv) {
-  const out = { manifest: null, signals: null, excerpts: null, creator: 'quarterly-result-extractor' };
+  const out = { manifest: null, signals: null, headline: null, excerpts: null, creator: 'quarterly-result-extractor' };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--manifest') out.manifest = argv[++i];
     else if (a === '--signals') out.signals = argv[++i];
+    else if (a === '--headline') out.headline = argv[++i];
     else if (a === '--excerpts') out.excerpts = argv[++i];
     else if (a === '--creator') out.creator = argv[++i];
   }
@@ -52,6 +54,7 @@ function main() {
   }
   const manifest = JSON.parse(fs.readFileSync(args.manifest, 'utf8'));
   const signals = readJsonIfExists(args.signals);
+  const headline = readJsonIfExists(args.headline);
   const excerpts = readJsonIfExists(args.excerpts);
   const today = new Date().toISOString().slice(0, 10);
 
@@ -65,10 +68,17 @@ function main() {
     transcriptMissing: !!manifest.transcriptMissing,
     notYetOut: !!manifest.notYetOut,
     incomeStatementSignals: signals || null,
+    // Always-on Revenue/EBITDA-margin/PAT/tax/EPS backbone -- the KPI-strip
+    // source, unfiltered by materiality (see compute_headline_financials.js).
+    headlineFinancials: headline ? headline.cards || [] : [],
     toneExcerpts: excerpts ? excerpts.toneExcerpts || [] : [],
     guidanceExcerpts: excerpts ? excerpts.guidanceExcerpts || [] : [],
     strategicExcerpts: excerpts ? excerpts.strategicExcerpts || [] : [],
     possiblyDropped: excerpts ? excerpts.possiblyDropped || [] : [],
+    // Candidate operational/governance KPIs (ROCE, volume growth, related-party,
+    // inventory-build swing, etc.) outside the P&L scan's reach -- recall only,
+    // final KPI-strip selection happens in quarterly-result-analysis Phase 2.
+    kpiExcerpts: excerpts ? excerpts.kpiExcerpts || [] : [],
     excerptsPending: !excerpts && !manifest.notYetOut,
     summary: manifest.notYetOut
       ? `Results not yet filed for ${manifest.ticker}`

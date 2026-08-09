@@ -116,7 +116,8 @@ rejected at write time.
 - Stagger ≥ 30 min from any existing job; ≥ 60 min from any job writing the same
   collection (current slots: watchlist-insights 08:04, drive-sync 09:08,
   watchlist-sync 16:31, insight-validation 17:31, gainers-signal 18:37,
-  deals-digest 19:36; weekly Sat 10:04).
+  deals-digest 19:36, daily-ipo-subscription-analysis 20:11 (only job writing
+  `ipos.json` — no 60-min collection constraint applies); weekly Sat 10:04).
 - The job's last step is `data:push`; never the legacy offload semantics
   (upload-then-delete is retired).
 

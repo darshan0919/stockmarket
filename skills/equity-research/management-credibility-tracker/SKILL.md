@@ -164,7 +164,13 @@ When called from `equity-research-master`:
 
 When called standalone:
 
-- Render both HTML widget AND optionally a PDF via the parameter `output_format="both"`
+- Render both the HTML widget AND the PDF, always — this is a shareable credibility
+  scoreboard, exactly the kind of output that needs a durable link outside the session, so
+  the PDF step above is not optional here despite the `output_format="both"` parameter name
+  suggesting a choice. If the render-pdf pipeline is genuinely unavailable in the current
+  environment, say so explicitly in the closing text rather than silently returning only the
+  widget — see `skills/_shared/pdf-artifact-step.md`'s "If the render pipeline is
+  unavailable" section.
 
 ## Pitfalls
 

@@ -144,6 +144,47 @@ describe('company links', () => {
   });
 });
 
+describe('ipos collection', () => {
+  const mkIpo = (over = {}) => ({
+    id: 'ipo_4462',
+    type: 'ipo-subscription',
+    creator: 'ipo-subscription-ranker',
+    date: '2026-08-09',
+    ipoPlatformId: '4462',
+    companyName: 'Anawil Wire and Engineering Limited',
+    subscriptionQualityScore: 2.243,
+    subscriptionQualityTier: 'STRONG',
+    rank: 1,
+    ...over,
+  });
+
+  test('same logical IPO re-scanned twice dedupes to one record (id = ipo_<ipoPlatformId>)', () => {
+    const s1 = db.upsertMany('ipos', [mkIpo()]);
+    const s2 = db.upsertMany('ipos', [mkIpo()]);
+    expect(s1.inserted).toBe(1);
+    expect(s2.inserted).toBe(0);
+    expect(s2.unchanged).toBe(1);
+    expect(fs.existsSync(path.join(tmpRoot, 'ipos.json'))).toBe(true);
+    const stored = JSON.parse(fs.readFileSync(path.join(tmpRoot, 'ipos.json'), 'utf8'));
+    expect(Object.keys(stored)).toHaveLength(1);
+  });
+
+  test('a later-day re-scan (updated subscription figures) updates in place, preserves creationTime', () => {
+    db.upsertMany('ipos', [mkIpo()]);
+    const before = db.get('ipos', 'ipo_4462');
+    db.upsertMany('ipos', [mkIpo({ subscriptionQualityScore: 2.5, subscriptionQualityTier: 'STRONG' })]);
+    const after = db.get('ipos', 'ipo_4462');
+    expect(after.subscriptionQualityScore).toBe(2.5);
+    expect(after.creationTime).toBe(before.creationTime);
+  });
+
+  test('envelope enforcement — a record without creator is rejected', () => {
+    expect(() => db.upsertMany('ipos', [mkIpo({ creator: undefined })])).toThrow(
+      /creator is required/
+    );
+  });
+});
+
 describe('conversations', () => {
   const mkConv = (over = {}) => ({
     id: 'conv_cloud_abc12345',

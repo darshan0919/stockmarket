@@ -49,9 +49,14 @@ async function main() {
     pdfPaths: {},
   };
 
-  // 1. PPT + Result, latest quarter
+  // 1. PPT + Result, latest quarter only. lastN:1 is mandatory here: without it,
+  // fetchDocuments returns every historical PPT/Result filing sorted newest-first,
+  // and the manifest-building loop below overwrites pdfPaths[type] on each iterate
+  // -- last-in-array wins, which is the OLDEST doc, not the latest. (Found + fixed
+  // 2026-08-09: was silently returning a 2+ year stale Result/PPT.)
   const ppRes = await fetchDocuments(args.ticker, {
     types: ['PPT', 'Result'],
+    lastN: 1,
     outputDir: args.outDir,
   });
   for (const doc of ppRes.fetched || []) {
@@ -66,8 +71,12 @@ async function main() {
     const resolved = await resolver.singleCompanyQuarter(args.ticker);
     if (resolved && !resolved.error) {
       latestQuarter = resolved.quarter;
+      // Same last-wins-in-iteration hazard as the PPT/Result fetch above:
+      // without lastN:1 this returns every historical Transcript and the
+      // loop below keeps the oldest, not the newest.
       const tRes = await fetchDocuments(args.ticker, {
         types: ['Transcript'],
+        lastN: 1,
         outputDir: args.outDir,
       });
       for (const doc of tRes.fetched || []) {

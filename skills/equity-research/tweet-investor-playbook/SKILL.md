@@ -1,6 +1,6 @@
 ---
 name: tweet-investor-playbook
-description: Distil a public investor's tweet corpus into an institutional-grade investment playbook. Use whenever the user uploads a tweet dump (JSON, CSV, NDJSON, or raw text) of an investor / fund manager / market commentator and asks to "analyse their tweets", "extract their investment style", "build a playbook from their tweets", "what does X tweet about stocks", "distil their thinking", "rate their stock picks", or "what's their hit rate". Also trigger when the user provides a folder of tweet exports from any handle and asks for actionable investment insights, recurring themes, quoted heuristics, or a track-record audit. Output is a self-contained interactive HTML widget with five tabs — Insights, Quotes, Playbook, Track Record (with live price cross-verification), and What Could Be Wrong — plus a Markdown source for archival.
+description: Distil a public investor's tweet corpus into an institutional-grade investment playbook. Use whenever the user uploads a tweet dump (JSON, CSV, NDJSON, or raw text) of an investor / fund manager / market commentator and asks to "analyse their tweets", "extract their investment style", "build a playbook from their tweets", "what does X tweet about stocks", "distil their thinking", "rate their stock picks", or "what's their hit rate". Also trigger when the user provides a folder of tweet exports from any handle and asks for actionable investment insights, recurring themes, quoted heuristics, or a track-record audit. Output is a self-contained interactive HTML widget with five tabs — Insights, Quotes, Playbook, Track Record (with live price cross-verification), and What Could Be Wrong — plus a Markdown source for archival and a Drive-shareable PDF rendered from the same widget.
 ---
 
 # Tweet Investor Playbook
@@ -161,6 +161,26 @@ End the section with a one-line **Confidence in this playbook**: High / Medium /
 Use `assets/widget_template.html` as the shell. Populate the `<script id="playbook-data" type="application/json">` block with the synthesised JSON. The widget is self-contained — no external scripts, no fetch calls. Vanilla JS only.
 
 Save the widget to `/mnt/project/data/agent-outputs/<handle>_investor_playbook.html` and the Markdown source to `/mnt/project/data/agent-outputs/<handle>_investor_playbook.md`. Call `present_files` with the HTML first.
+
+### Phase 5 — Render the PDF artifact
+
+Unlike most institutional-widget skills, this one's HTML is already self-contained
+(`:root` defines its own CSS variables, no host `visualize` tokens needed — see
+`assets/widget_template.html`), so there's no separate hex-color rebuild step: pass the
+SAME saved HTML from Phase 4 straight to `render-pdf` (Puppeteer executes the widget's
+vanilla JS and prints the resulting DOM, same content the user sees inline):
+
+```bash
+bash ./skills/_shared/resolve.sh render-pdf --html /mnt/project/data/agent-outputs/<handle>_investor_playbook.html \
+  --pdf "data/assets/tweet-investor-playbook/<handle>_InvestorPlaybook.pdf" \
+  --title "<handle> — Investor Playbook"
+```
+
+End the run with `node packages/jobs-runtime/scripts/data.js push` so the PDF is
+Drive-shareable, and mention its path/Drive link alongside the widget and Markdown source
+when calling `present_files`. See
+[`skills/_shared/pdf-artifact-step.md`](../../_shared/pdf-artifact-step.md) for the general
+version of this step (most skills need the hex-rebuild this one skips).
 
 ## Strict methodological rules
 

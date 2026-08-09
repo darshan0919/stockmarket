@@ -4,10 +4,13 @@ description: >
   Stage 1 of the 2-skill quarterly-result pipeline: fetches the latest PPT +
   Result + Transcript (and the prior quarter's Transcript, for narrative-shift
   comparison) for an Indian listed company from Stockscans, runs the
-  deterministic income-statement-signals scan against the Result filing, and
-  a cheap/recall-first excerpt pass over the Transcript+PPT that pulls out
-  every passage plausibly relevant to tone, guidance, or strategic
-  commentary — without judging what it MEANS. Persists ONE durable DB record
+  deterministic income-statement-signals scan against the Result filing,
+  always computes the unfiltered headline financial snapshot (Revenue/EBITDA
+  margin/PAT/tax rate/EPS, QoQ+YoY — the KPI-strip backbone), and a
+  cheap/recall-first excerpt pass over the Transcript+PPT that pulls out
+  every passage plausibly relevant to tone, guidance, strategic commentary,
+  or an operational/governance KPI — without judging what it MEANS. Persists
+  ONE durable DB record
   per company (type quarterly-result-documents) so quarterly-result-analysis
   can read it without re-fetching or re-running the same scan. Use for
   "fetch this quarter's result documents for X", "pull the latest result +
@@ -106,6 +109,27 @@ re-derive the arithmetic.
 the actual Result filing via `documentsFetcher.js`, never web search or
 news-article summaries.
 
+## Step 2.5 — Headline financial snapshot (script, zero LLM)
+
+```bash
+node skills/equity-research/quarterly-result-extractor/scripts/compute_headline_financials.js \
+  --current "${DOCS_DIR}/current_period.json" \
+  --prior-q "${DOCS_DIR}/prior_q_period.json" \
+  --prior-y "${DOCS_DIR}/prior_y_period.json" \
+  > "${DOCS_DIR}/headline_financials.json"
+```
+
+This is the KPI-strip's deterministic backbone — restoring the "bird's-eye
+view of key metrics" earlier sessions of `quarterly-result-analysis` used to
+show at the top of the report. It reuses the SAME three period P&L snapshots
+already parsed for Step 2 (current quarter, prior quarter, same quarter
+prior year) but, unlike Step 2, applies NO materiality filter: Revenue,
+EBITDA margin, PAT, effective tax rate, and EPS are always computed and
+returned, QoQ and YoY, because the reader wants to see the standard numbers
+regardless of whether they're "interesting" — Step 2 answers "what's
+unusual", this step answers "what are the 4-5 numbers everyone checks
+first". The two are complementary; don't collapse one into the other.
+
 ## Step 3 — Cheap, recall-first excerpt pass (cheap-tier reasoning, NO external API calls)
 
 "Cheap model" means the same thing it means in `guidance-document-extractor`:
@@ -129,6 +153,14 @@ Read the Transcript + PPT text and pull out every passage relevant to:
   simple keyword/topic diff between this quarter's excerpts and the prior
   transcript's excerpts (topics mentioned there, absent here); flag as
   `possiblyDropped`, don't editorialise on why.
+- **Quantified operational/governance KPIs outside the P&L** — anything with
+  a number that Step 2.5 can't reach because it isn't a P&L line: ROCE/ROE,
+  volume or utilisation growth (actual or guided), related-party transaction
+  amounts flagged as at-risk, working-capital/inventory-build swings called
+  out in commentary, order book, capacity utilisation. Capture the number
+  with its comparison basis (prior period value, or the guided figure it's
+  being measured against) verbatim — this is recall, not selection; don't
+  decide yet whether it belongs in the final KPI strip.
 
 Same explicit permissiveness rules as `guidance-document-extractor` Step 2:
 don't judge explicit-vs-directional, don't compute anything, keep dense
@@ -136,7 +168,7 @@ sections as one excerpt, keep nearby historical numbers if they're the base
 value for a forward figure.
 
 Output: `${DOCS_DIR}/excerpts.json` —
-`{ticker, quarter, toneExcerpts: [...], guidanceExcerpts: [...], strategicExcerpts: [...], possiblyDropped: [...]}`.
+`{ticker, quarter, toneExcerpts: [...], guidanceExcerpts: [...], strategicExcerpts: [...], possiblyDropped: [...], kpiExcerpts: [{label, value, comparison, source}]}`.
 
 ## Step 4 — Persist to DB (script, no LLM)
 
@@ -144,6 +176,7 @@ Output: `${DOCS_DIR}/excerpts.json` —
 node skills/equity-research/quarterly-result-extractor/scripts/save_result_documents.js \
   --manifest "${DOCS_DIR}/manifest.json" \
   --signals "${DOCS_DIR}/income_statement_signals.json" \
+  --headline "${DOCS_DIR}/headline_financials.json" \
   --excerpts "${DOCS_DIR}/excerpts.json"
 ```
 
@@ -169,8 +202,9 @@ must be able to do its job from the DB record alone.
 quarterly-result-extractor/
 ├── SKILL.md
 └── scripts/
-    ├── fetch_result_documents.js   (Step 1)
-    └── save_result_documents.js    (Step 4)
+    ├── fetch_result_documents.js       (Step 1)
+    ├── compute_headline_financials.js  (Step 2.5)
+    └── save_result_documents.js        (Step 4)
 ```
 
 ## Related skills
