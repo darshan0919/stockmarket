@@ -206,13 +206,31 @@ python3 skills/equity-research/pead-surprise-ranker/scripts/build_pead_workbook.
   --ranked /tmp/pead_ranked.json \
   --excluded /tmp/pead_excluded.json \
   --methodology /tmp/pead_methodology.txt \
-  --out /tmp/PEAD_Ranking_<batch>_<date>.xlsx
+  --out /tmp/PEAD_Ranking_<batch>_<date>.xlsx \
+  --guidance-dtos /tmp/pead_guidance_dtos.json
 ```
 
-Produces three sheets: **PEAD Ranking** (sorted table, tier-colour-coded),
-**No Visibility (Excluded)**, **Methodology & Caveats**. This is a pure
-template render of the JSON from Steps 1-3 — never hand-edit the xlsx or add
-a row that isn't in the source JSON.
+Produces three sheets: **PEAD Ranking**, **No Visibility (Excluded)**,
+**Methodology & Caveats**. This is a pure template render of the JSON from
+Steps 1-3 — never hand-edit the xlsx or add a row that isn't in the source
+JSON.
+
+**Always pass `--guidance-dtos`** (added 2026-08-09) when this run was chained
+from `forward-guidance-extractor` — assemble `/tmp/pead_guidance_dtos.json` as
+the array of full `forward-guidance` DTOs read in Step 1 (the same objects
+`db.readReport(id)` returned; `[{...db.readReport(r.id)} for r in fg_reports]`).
+With it, **PEAD Ranking becomes one row per guidance line item** (company-level
+columns — Rank, Score, Thesis, PAT Lever, etc. — repeat down every row for
+that company) and gains every column the standalone Forward Guidance workbook
+has (Metric Category, Metric, Period Guided, Guidance display, Base Period,
+Management Quote, Source, Derived Field). This exists so the user only has to
+open ONE sheet instead of cross-referencing PEAD Ranking against the separate
+Forward Guidance workbook by hand — do not skip this flag when the DTOs are
+available just to save a build-script argument; it is the whole point of
+running Phase 6 chained rather than standalone. If a ranked company has no
+matching DTO (came from a sector-model/annotation-only tier, or the batch
+wasn't chained from forward-guidance-extractor), it still gets exactly one row
+with the guidance columns blank — never an error.
 
 ## Step 5 — Persist + finish
 

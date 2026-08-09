@@ -94,11 +94,25 @@ conflate them:
    final output's "No Visibility" / exclusion list with reason "no
    Transcript/PPT/Result found for {quarter} (attempted, genuinely
    unavailable)" — this is real information, not a gap in the pipeline.
+4. **`extractionFailed` is set (non-null)** — a fourth case, distinct from
+   all three above, added 2026-08-09 after the NSE:REDTAPE incident: the
+   relevance-filter model DID run and DID produce output, but that output was
+   syntactically invalid JSON that `save_guidance_documents.js` could not
+   parse even after its auto-repair pass (see that script's
+   `parseJsonWithRepair`). This is NOT "genuinely no guidance" (case 3) and
+   NOT "never run" (case 1) — it's a recoverable data-quality failure.
+   `excerptsPending` will still read `true` for these, so check
+   `extractionFailed` specifically before concluding a `true`-pending record
+   means "attempted, nothing found." Surface these to the user by name
+   ("N companies have unparseable relevance-filter output — re-run
+   `guidance-document-extractor` for just these tickers") rather than folding
+   them into the silent "No Visibility" exclusion list, since re-running
+   Stage 1's relevance-filter step (not Stage 2/3) is what actually fixes it.
 
 This distinction is the entire point of always persisting a record even on a
 "nothing found" outcome (see `guidance-document-extractor`'s Step 4) — a
-missing record and an empty-but-attempted record must never be treated the
-same way.
+missing record, an empty-but-attempted record, and an attempted-but-corrupted
+record must never be treated the same way.
 
 Two failure modes this design still guards against, same as before:
 1. **Hallucinated guidance.** An LLM asked to fill "300 companies x 15

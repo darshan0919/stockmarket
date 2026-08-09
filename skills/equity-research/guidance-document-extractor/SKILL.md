@@ -172,6 +172,20 @@ If Step 2 hasn't been run for some companies yet, still run Step 4 with
 excerpts are saved with `excerptsPending: true`, distinct from a genuine
 "attempted, nothing found" `found: {all false}` record.
 
+**If Step 2's model output a syntactically invalid excerpts file** (confirmed
+root cause of the 2026-08-09 NSE:REDTAPE incident — a missing opening quote
+before a `"context"` key), Step 4 no longer silently drops it. It first tries
+an auto-repair pass (`parseJsonWithRepair` inside `save_guidance_documents.js`
+— fixes missing key quotes and trailing commas, the two shapes actually seen
+so far, without pulling in an external `jsonrepair` dependency) and, if that
+also fails, saves the record anyway with `extractionFailed: "<reason>"` set
+and `excerptsPending: true`, and prints the failure to stderr so it's visible
+in the run output rather than a silent gap. This is a fourth, distinct case
+from the three in `forward-guidance-extractor`'s smart-check — see that
+skill's SKILL.md, case 4 — and should be re-run by fixing the source excerpts
+file (or re-running just Step 2/3 for that company), not treated as
+"genuinely no guidance."
+
 ## Validated 2026-08-06 — real improvement, not yet perfect
 
 Piloted end-to-end on NSE:IFBIND (the company that produced a 0/7 total miss

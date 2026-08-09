@@ -26,6 +26,45 @@ const fs = require('fs');
 const path = require('path');
 const db = require('../../../../packages/jobs-runtime/lib/db.js');
 
+/**
+ * Best-effort repair for the common ways an LLM-authored relevance-filter
+ * JSON file comes out syntactically invalid (confirmed root cause of the
+ * 2026-08-09 NSE:REDTAPE incident: a missing opening quote before a
+ * `"context"` key, e.g. `context": "..."` instead of `"context": "..."`).
+ * No external dependency (jsonrepair) is pulled in here deliberately -- this
+ * repo's yarn cache has cross-platform (darwin-built cache artifacts synced
+ * into a linux sandbox) EPERM issues that make an ad-hoc `yarn add` unsafe to
+ * run unattended (confirmed 2026-08-09) -- these are the handful of concrete
+ * failure shapes actually seen from the relevance-filter model, applied as
+ * targeted, auditable regex passes rather than a black-box repair library.
+ * Returns { ok: true, value } on success (parsed, possibly after repair) or
+ * { ok: false, error, attemptedRepair } on failure -- NEVER throws, and NEVER
+ * silently returns null so the caller can always tell what happened.
+ */
+function parseJsonWithRepair(raw) {
+  try {
+    return { ok: true, value: JSON.parse(raw), repaired: false };
+  } catch (originalError) {
+    // Pass 1: missing opening quote before a bare `key": ` pattern, e.g.
+    //   context": "..."   ->   "context": "..."
+    // Only matches keys preceded by whitespace/`{`/`,` and not already quoted.
+    let repaired = raw.replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_]*)(":\s*)/g, '$1"$2$3');
+    // Pass 2: trailing commas before a closing } or ] (also common in
+    // hand-truncated/streamed LLM JSON).
+    repaired = repaired.replace(/,(\s*[}\]])/g, '$1');
+    try {
+      const value = JSON.parse(repaired);
+      return { ok: true, value, repaired: true };
+    } catch (repairError) {
+      return {
+        ok: false,
+        error: originalError.message,
+        attemptedRepairError: repairError.message,
+      };
+    }
+  }
+}
+
 function parseArgs(argv) {
   const out = { manifest: null, excerptsDir: null, creator: 'guidance-document-extractor' };
   for (let i = 0; i < argv.length; i++) {
@@ -51,15 +90,30 @@ function main() {
   const today = new Date().toISOString().slice(0, 10);
 
   const saved = [];
+  const parseFailures = []; // loud-surfacing list (SKILL.md fix, 2026-08-09 REDTAPE incident)
   for (const entry of manifest) {
     let excerpts = null;
+    let extractionFailed = null;
+    let excerptsRepaired = false;
     if (args.excerptsDir) {
       const p = path.join(args.excerptsDir, `${safeName(entry.ticker)}_relevant_excerpts.json`);
       if (fs.existsSync(p)) {
-        try {
-          excerpts = JSON.parse(fs.readFileSync(p, 'utf8'));
-        } catch (e) {
-          excerpts = null;
+        const result = parseJsonWithRepair(fs.readFileSync(p, 'utf8'));
+        if (result.ok) {
+          excerpts = result.value;
+          excerptsRepaired = result.repaired;
+        } else {
+          // Previously: silently `excerpts = null`, which left excerptsPending
+          // permanently true with no indication WHY -- a company could sit
+          // "stuck" indefinitely with no signal to re-run or investigate.
+          // Now: surface it loudly, both on stderr (so the invoking run sees
+          // it immediately) and inside the persisted DTO itself, so any later
+          // consumer (forward-guidance-extractor's smart-check, a human
+          // reviewing the DB) can tell "relevance-filter ran and produced
+          // unparseable JSON" apart from "genuinely no guidance found".
+          extractionFailed = `Invalid JSON from relevance filter, repair attempt also failed: ${result.error} (repair error: ${result.attemptedRepairError})`;
+          console.error(`[save_guidance_documents] PARSE FAILURE for ${entry.ticker}: ${extractionFailed}`);
+          parseFailures.push({ companyId: entry.companyId || entry.ticker, path: p, error: extractionFailed });
         }
       }
     }
@@ -75,22 +129,37 @@ function main() {
       textPaths: entry.textPaths,
       retriedPriorQuarter: !!entry.retriedPriorQuarter,
       excerpts: excerpts ? excerpts.excerpts || [] : [],
-      excerptsPending: args.excerptsDir ? !excerpts : true, // true = relevance-filter step hasn't run/saved yet
+      // Still true (relevance-filter step hasn't produced usable output yet)
+      // both when the file is simply absent AND when it exists but failed to
+      // parse even after repair -- extractionFailed is what now tells these
+      // two cases apart, instead of both looking identically "pending".
+      excerptsPending: args.excerptsDir ? !excerpts : true,
+      excerptsRepaired, // true if valid only after the auto-repair pass -- worth a look even though it saved the run
+      extractionFailed, // null on success; a human-readable reason string when parsing genuinely failed
       scanRow: entry.scanRow || null,
       // no LLM involvement in THIS record's authorship (fetch is pure script;
       // excerpts, if present, were authored by the cheap-model filter pass
       // and that model should be attributed by whatever writes --excerpts-dir,
       // not invented here) -- explicitly no `modelUsed` on the fetch-only path.
-      summary: anyFound
+      summary: extractionFailed
+        ? `Relevance-filter output for ${entry.quarter} failed to parse: ${extractionFailed}`
+        : anyFound
         ? `Fetched: ${Object.entries(entry.found).filter(([, v]) => v).map(([k]) => k).join('+')} for ${entry.quarter}`
         : `No Transcript/PPT/Result found for ${entry.quarter} (attempted, genuinely unavailable)`,
       contextUsed: [],
     };
     const id = db.saveReport(dto);
-    saved.push({ companyId: dto.companyId, id, anyFound });
+    saved.push({ companyId: dto.companyId, id, anyFound, extractionFailed: !!extractionFailed });
   }
 
-  console.log(JSON.stringify({ saved: saved.length, records: saved }, null, 2));
+  if (parseFailures.length > 0) {
+    console.error(
+      `\n[save_guidance_documents] ${parseFailures.length} compan${parseFailures.length === 1 ? 'y' : 'ies'} had unparseable relevance-filter JSON even after auto-repair -- these are saved with extractionFailed set, NOT silently dropped. Fix the source file and re-run save_guidance_documents.js for just that company, or re-run the relevance-filter step:`
+    );
+    for (const f of parseFailures) console.error(`  - ${f.companyId}: ${f.path}`);
+  }
+
+  console.log(JSON.stringify({ saved: saved.length, records: saved, parseFailures }, null, 2));
 }
 
 main();
