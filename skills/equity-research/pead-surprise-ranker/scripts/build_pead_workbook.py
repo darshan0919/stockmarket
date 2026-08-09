@@ -15,27 +15,41 @@ Usage:
     --out PEAD_Ranking_<date>.xlsx \
     [--guidance-dtos forward_guidance_dtos.json]
 
-`--guidance-dtos` (added 2026-08-09, so the user only has to look at one
-sheet instead of cross-referencing the separate Forward Guidance workbook):
-an array of the underlying `forward-guidance` report DTOs this ranking was
-built from (the same `{companyId, quarter, guidance:[...]}` objects
+`--guidance-dtos` (added 2026-08-09, revised same day after feedback that a
+one-row-per-metric PEAD sheet produced duplicate-looking company rows): an
+array of the underlying `forward-guidance` report DTOs this ranking was built
+from (the same `{companyId, quarter, guidance:[...]}` objects
 `forward-guidance-extractor`'s Phase 3/4 already assembles). When supplied,
-the "PEAD Ranking" sheet becomes ONE ROW PER GUIDANCE LINE ITEM (company-level
-columns -- Rank, Score, Thesis, etc. -- repeat down every row for that
-company) rather than one row per company, and gains every column the
-standalone Forward Guidance workbook has (Metric Category, Metric, Period
-Guided, Guidance display, Base Period, Management Quote, Source, Derived
-Field, Stale flag). Companies with no matching DTO (or none passed) fall back
-to the prior one-row-per-company rendering with guidance columns left blank --
-never an error, since not every PEAD run necessarily has a paired
-forward-guidance batch to hand.
+this workbook gains a FOURTH sheet, "Forward Guidance" -- built by literally
+reusing `forward-guidance-extractor/scripts/build_guidance_workbook.py`'s own
+`build_guidance_sheet()` (imported, not re-implemented, per
+conventions.md #17) -- so the user has the full guidance-line-item detail one
+tab away without a second file to open, while "PEAD Ranking" itself STAYS one
+row per company (no repeated/duplicate-looking rows). Omit the flag and the
+workbook is just the original three sheets.
 """
 import argparse
 import json
+import os
+import sys
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
+
+# Reuse forward-guidance-extractor's own sheet builder for the optional
+# "Forward Guidance" tab -- imported, not re-implemented, per
+# skills/_shared/conventions.md #17 ("never think or write the same thing
+# twice"). Sibling skill directory, so path-inserted rather than a package
+# import.
+_FGE_SCRIPTS_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "..", "forward-guidance-extractor", "scripts"
+)
+sys.path.insert(0, _FGE_SCRIPTS_DIR)
+from build_guidance_workbook import (  # noqa: E402
+    build_guidance_sheet,
+    _scan_columns_present as _fge_scan_columns_present,
+)
 
 HEADER_FILL = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
 HEADER_FONT = Font(color="FFFFFF", bold=True)
@@ -73,43 +87,14 @@ def _scan_columns_present(records):
     return ordered
 
 
-# Forward-guidance line-item columns, matching forward-guidance-extractor's
-# own build_guidance_workbook.py GUIDANCE_COLUMNS 1:1 (minus Company/Ticker/
-# Quarter, which are already the PEAD sheet's own leading columns) -- kept in
-# sync deliberately so a user who has seen the standalone Forward Guidance
-# workbook recognises the same fields here.
-GUIDANCE_ITEM_HEADERS = [
-    "Metric Category", "Metric", "Period Guided",
-    "Guidance (Absolute (Relative %))", "Base Period Referenced",
-    "Management Quote", "Guidance Source", "Derived Field",
-]
-
-
-def _guidance_item_row(item):
-    return [
-        item.get("metric_category", ""),
-        item.get("metric", ""),
-        item.get("period_guided", ""),
-        item.get("display", ""),
-        item.get("base_period", "") or "",
-        item.get("quote", ""),
-        item.get("source", ""),
-        item.get("derived_field", ""),
-    ]
-
-
-def build_ranked_sheet(ws, ranked, guidance_by_ticker=None):
-    guidance_by_ticker = guidance_by_ticker or {}
+def build_ranked_sheet(ws, ranked):
     scan_cols = _scan_columns_present(ranked)
-    company_headers = [
+    headers = [
         "Rank", "Ticker", "Company", "Sector", "Visibility Tier", "Composite Score",
         "Revenue Guidance", "Margin / Margin Direction", "PAT Lever",
         "Evidence Strength", "Thesis / Why it might beat", "Key Assumptions (explicit)",
         "Score Breakdown",
-    ]
-    has_guidance = any(r["ticker"] in guidance_by_ticker for r in ranked)
-    headers = company_headers + scan_cols + (GUIDANCE_ITEM_HEADERS if has_guidance else [])
-    n_company_cols = len(company_headers) + len(scan_cols)
+    ] + scan_cols
     for i, h in enumerate(headers, 1):
         c = ws.cell(row=1, column=i, value=h)
         c.fill = HEADER_FILL
@@ -117,9 +102,8 @@ def build_ranked_sheet(ws, ranked, guidance_by_ticker=None):
         c.alignment = Alignment(wrap_text=True, vertical="top")
 
     row = 2
-    n_data_rows = 0
     for rank, r in enumerate(ranked, 1):
-        company_vals = [
+        vals = [
             rank, r["ticker"], r.get("name", ""), r.get("sector", ""), r.get("tier"),
             r.get("composite_score"),
             r.get("rev_guided") or "(none disclosed)",
@@ -130,33 +114,19 @@ def build_ranked_sheet(ws, ranked, guidance_by_ticker=None):
             "; ".join(r.get("assumptions") or []),
             " | ".join(r.get("score_breakdown") or []),
         ] + [(r.get("scan_cols") or {}).get(c, "") for c in scan_cols]
-
-        items = guidance_by_ticker.get(r["ticker"]) or []
-        # One row per guidance line item, company columns repeated down each
-        # row -- if there's no matching forward-guidance DTO for this ticker,
-        # still emit exactly one row (company columns only, guidance columns
-        # blank) so every ranked company appears at least once.
-        rows_for_company = items if items else [None]
-        for item in rows_for_company:
-            vals = company_vals + (_guidance_item_row(item) if item else [""] * len(GUIDANCE_ITEM_HEADERS))
-            for i, v in enumerate(vals, 1):
-                if not has_guidance and i > n_company_cols:
-                    continue
-                cell = ws.cell(row=row, column=i, value=v)
-                cell.alignment = Alignment(wrap_text=True, vertical="top")
-                if i == 5:
-                    fill = TIER_FILL.get(r.get("tier"), "FFFFFF")
-                    cell.fill = PatternFill(start_color=fill, end_color=fill, fill_type="solid")
-            row += 1
-            n_data_rows += 1
+        for i, v in enumerate(vals, 1):
+            cell = ws.cell(row=row, column=i, value=v)
+            cell.alignment = Alignment(wrap_text=True, vertical="top")
+            if i == 5:
+                fill = TIER_FILL.get(r.get("tier"), "FFFFFF")
+                cell.fill = PatternFill(start_color=fill, end_color=fill, fill_type="solid")
+        row += 1
 
     widths = [5, 14, 26, 20, 8, 9, 32, 32, 20, 12, 45, 40, 45] + [16] * len(scan_cols)
-    if has_guidance:
-        widths += [16, 20, 14, 26, 16, 55, 12, 12]
     for i, w in enumerate(widths, 1):
         ws.column_dimensions[get_column_letter(i)].width = w
     ws.freeze_panes = "A2"
-    return n_data_rows
+    return row - 2
 
 
 def build_excluded_sheet(ws, excluded):
@@ -204,7 +174,8 @@ def main():
         "--guidance-dtos",
         required=False,
         help="Optional: array of forward-guidance report DTOs ({companyId, guidance:[...]}) "
-        "to fold each company's guidance line items directly into the PEAD Ranking sheet.",
+        "rendered as a 4th 'Forward Guidance' tab in this same workbook (one tab away from "
+        "PEAD Ranking, which stays one row per company either way).",
     )
     args = ap.parse_args()
 
@@ -212,18 +183,10 @@ def main():
     excluded = json.load(open(args.excluded))
     methodology_lines = [l.rstrip("\n") for l in open(args.methodology)]
 
-    guidance_by_ticker = {}
-    if args.guidance_dtos:
-        dtos = json.load(open(args.guidance_dtos))
-        for dto in dtos:
-            ticker = dto.get("companyId")
-            if ticker:
-                guidance_by_ticker[ticker] = dto.get("guidance") or []
-
     wb = Workbook()
     ws1 = wb.active
     ws1.title = "PEAD Ranking"
-    n_ranked = build_ranked_sheet(ws1, ranked, guidance_by_ticker)
+    n_ranked = build_ranked_sheet(ws1, ranked)
 
     ws2 = wb.create_sheet("No Visibility (Excluded)")
     n_excluded = build_excluded_sheet(ws2, excluded)
@@ -231,8 +194,18 @@ def main():
     ws3 = wb.create_sheet("Methodology & Caveats")
     build_methodology_sheet(ws3, methodology_lines)
 
+    n_guidance_rows = None
+    if args.guidance_dtos:
+        guidance_dtos = json.load(open(args.guidance_dtos))
+        ws4 = wb.create_sheet("Forward Guidance")
+        fge_scan_cols = _fge_scan_columns_present(guidance_dtos)
+        n_guidance_rows = build_guidance_sheet(ws4, guidance_dtos, fge_scan_cols)
+
     wb.save(args.out)
-    print(json.dumps({"path": args.out, "ranked_rows": n_ranked, "excluded_rows": n_excluded}))
+    result = {"path": args.out, "ranked_rows": n_ranked, "excluded_rows": n_excluded}
+    if n_guidance_rows is not None:
+        result["forward_guidance_rows"] = n_guidance_rows
+    print(json.dumps(result))
 
 
 if __name__ == "__main__":

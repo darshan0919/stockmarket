@@ -219,18 +219,17 @@ JSON.
 from `forward-guidance-extractor` — assemble `/tmp/pead_guidance_dtos.json` as
 the array of full `forward-guidance` DTOs read in Step 1 (the same objects
 `db.readReport(id)` returned; `[{...db.readReport(r.id)} for r in fg_reports]`).
-With it, **PEAD Ranking becomes one row per guidance line item** (company-level
-columns — Rank, Score, Thesis, PAT Lever, etc. — repeat down every row for
-that company) and gains every column the standalone Forward Guidance workbook
-has (Metric Category, Metric, Period Guided, Guidance display, Base Period,
-Management Quote, Source, Derived Field). This exists so the user only has to
-open ONE sheet instead of cross-referencing PEAD Ranking against the separate
-Forward Guidance workbook by hand — do not skip this flag when the DTOs are
-available just to save a build-script argument; it is the whole point of
-running Phase 6 chained rather than standalone. If a ranked company has no
-matching DTO (came from a sector-model/annotation-only tier, or the batch
-wasn't chained from forward-guidance-extractor), it still gets exactly one row
-with the guidance columns blank — never an error.
+With it, the workbook gains a 4th tab, **"Forward Guidance"** — built by
+reusing `forward-guidance-extractor`'s own `build_guidance_sheet()`, so it's
+byte-identical in structure to that skill's standalone output. **"PEAD
+Ranking" itself always stays one row per company** — an earlier version of
+this flag exploded it to one row per guidance metric (company columns
+repeated down every row), which read as duplicate company rows and was
+reverted the same day after user feedback; don't reintroduce that shape. The
+one-sheet-only ask is satisfied by putting Forward Guidance a tab away in the
+SAME FILE, not by merging the two tables into one. Omit the flag and the
+workbook is just the original three sheets (PEAD Ranking / No Visibility /
+Methodology).
 
 ## Step 5 — Persist + finish
 
