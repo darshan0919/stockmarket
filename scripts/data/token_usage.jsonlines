@@ -58,3 +58,5 @@
 {"timestamp": "2026-08-09T10:31:56.930104Z", "name": "watchlist-sync-stockmarket", "type": "task", "model": "gemini-2.5-pro", "estimated_input_tokens": 500, "estimated_output_tokens": 666, "files_read": 0, "context_chars": 0}
 {"timestamp": "2026-08-09T14:32:40.451959Z", "name": "weekly-gainers-digest", "type": "task", "model": "antigravity-gemini-2.5-pro", "estimated_input_tokens": 500, "estimated_output_tokens": 666, "files_read": 0, "context_chars": 0}
 {"timestamp": "2026-08-09T14:33:45.020564Z", "name": "daily-deals-digest", "type": "task", "model": "gemini-2.5-pro", "estimated_input_tokens": 500, "estimated_output_tokens": 666, "files_read": 0, "context_chars": 0}
+{"timestamp": "2026-08-09T14:40:42.485555Z", "name": "daily-gainers-digest", "type": "task", "model": "gemini-2.5-pro", "estimated_input_tokens": 500, "estimated_output_tokens": 666, "files_read": 0, "context_chars": 0}
+{"timestamp": "2026-08-09T14:42:42.681062Z", "name": "near-highs-digest", "type": "task", "model": "gemini-2.5-pro", "estimated_input_tokens": 500, "estimated_output_tokens": 666, "files_read": 0, "context_chars": 0}

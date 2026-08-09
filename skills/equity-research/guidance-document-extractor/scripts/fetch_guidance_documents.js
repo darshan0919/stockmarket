@@ -110,35 +110,50 @@ async function scanAllPages(client, watchlistId, quarterYyyymm, { announcementTy
   // concurrency.js's own warning about exactly this). Bound the in-flight
   // fan-out instead of parallelizing all 40 unconditionally; still far
   // faster than one-at-a-time for the common case of a handful of pages.
-  const FAN_OUT = 8;
-  const pageIndices = Array.from({ length: MAX_PAGES }, (_, i) => i);
-  const fetched = await mapWithConcurrency(pageIndices, FAN_OUT, async (page) => {
-    const offset = page * PAGE_SIZE;
-    const res = await client.scanAnnouncements({
-      scan: {
-        scanId: DEFAULT_SCAN_ID,
-        scanName: DEFAULT_SCAN_NAME,
-        filters: [], index: [], industry: [],
-        watchlistIds: [watchlistId],
-        searchFilters,
-        announcementType,
-        alerts: false,
-        searchMode: 'full',
-        companyIds: [],
-        companyFilters: [],
-      },
-      offset,
-      quarterDate: quarterYyyymm,
-    });
-    return res.announcements || res.documents || res.items || [];
-  });
-
   const out = [];
-  for (const result of fetched) {
-    if (!result.ok) throw result.error;
-    const anns = result.value;
+  for (let page = 0; page < MAX_PAGES; page++) {
+    let retries = 5;
+    let delay = 1000;
+    let success = false;
+    let anns = [];
+    while (retries >= 0 && !success) {
+      await new Promise(r => setTimeout(r, delay));
+      const offset = page * PAGE_SIZE;
+      try {
+        const payload = {
+          scan: {
+            scanId: DEFAULT_SCAN_ID,
+            scanName: DEFAULT_SCAN_NAME,
+            filters: [], index: [], industry: [],
+            watchlistIds: [watchlistId],
+            searchFilters,
+            announcementType,
+            alerts: false,
+            searchMode: 'full',
+            companyIds: [],
+            companyFilters: [],
+          },
+          offset,
+          quarterDate: quarterYyyymm,
+        };
+        const res = await client.scanAnnouncements(payload);
+        anns = res.announcements || res.documents || res.items || [];
+        success = true;
+      } catch (e) {
+        if (e.response && e.response.status === 429 && retries > 0) {
+          retries--;
+          delay *= 2;
+          console.warn(`429 on page ${page}, retrying in ${delay}ms...`);
+        } else {
+          throw e;
+        }
+      }
+    }
+    
     out.push(...anns);
-    if (anns.length < PAGE_SIZE) break; // short page = genuinely the last page
+    if (anns.length < PAGE_SIZE) {
+      break; // short page = genuinely the last page
+    }
   }
   return out;
 }
