@@ -126,6 +126,59 @@ class NseClient {
   }
 
   /**
+   * Historical bulk deals for a date range (NOT the same as {@link getLargeDeals},
+   * which only returns TODAY's snapshot). Endpoint CONFIRMED live 2026-08-10
+   * — lives in the `historicalOR` namespace (same family as
+   * {@link getPriceVolumeDeliverable}'s `generateSecurityWiseHistoricalData`),
+   * not a plain `/historical/bulk-deals` route as originally guessed (that
+   * pattern 503s). Discovered by probing `/historicalOR/bulk-block-short-deals`
+   * (which 500s with no/wrong params — a live-but-param-sensitive route,
+   * distinct from a dead 404 route) with an `optionType` param instead of `type`.
+   * Row fields (prefixed `BD_`, unlike {@link getLargeDeals}'s unprefixed
+   * fields — these are two different NSE backends for overlapping data):
+   * { BD_DT_DATE (DD-MON-YYYY), BD_DT_ORDER (ISO timestamp), BD_SYMBOL,
+   * BD_SCRIP_NAME, BD_CLIENT_NAME, BD_BUY_SELL ('BUY'|'SELL'), BD_QTY_TRD,
+   * BD_TP_WATP (trade price), BD_REMARKS }. No ₹ value field — compute as
+   * BD_QTY_TRD × BD_TP_WATP. See `docs/nse-bse-historical-deals-api.md`.
+   * @param {string} fromDate - DD-MM-YYYY
+   * @param {string} toDate   - DD-MM-YYYY
+   * @param {string} [symbol] - Optional single-symbol filter; omit for all symbols.
+   * @returns {Promise<Array>}
+   */
+  async getHistoricalBulkDeals(fromDate, toDate, symbol) {
+    const params = { optionType: 'bulk_deals', from: fromDate, to: toDate };
+    if (symbol) params.symbol = symbol.toUpperCase();
+    const res = await this.session.get('/historicalOR/bulk-block-short-deals', {
+      params,
+      referer: `${NSE_HOME_URL}market-data/bulk-deals`,
+      symbol,
+      timeout: 30000,
+    });
+    return res.data?.data || [];
+  }
+
+  /**
+   * Historical block deals for a date range — same endpoint family as
+   * {@link getHistoricalBulkDeals}, `optionType=block_deals`. Confirmed live
+   * 2026-08-10; see that method's doc comment for the discovery path.
+   * @param {string} fromDate - DD-MM-YYYY
+   * @param {string} toDate   - DD-MM-YYYY
+   * @param {string} [symbol]
+   * @returns {Promise<Array>}
+   */
+  async getHistoricalBlockDeals(fromDate, toDate, symbol) {
+    const params = { optionType: 'block_deals', from: fromDate, to: toDate };
+    if (symbol) params.symbol = symbol.toUpperCase();
+    const res = await this.session.get('/historicalOR/bulk-block-short-deals', {
+      params,
+      referer: `${NSE_HOME_URL}market-data/block-deals`,
+      symbol,
+      timeout: 30000,
+    });
+    return res.data?.data || [];
+  }
+
+  /**
    * SAST Regulation 29(1)/29(2) disclosures (substantial acquisitions).
    * Endpoint verified 04-Jul-2026: /api/corporate-sast-reg29?index=equities
    * Row fields: symbol, company, acquirerName, acqSaleType (Acquisition|Sale),

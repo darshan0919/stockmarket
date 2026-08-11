@@ -47,21 +47,44 @@ full breakdown):
 3. Merges Total/QIB/sHNI/bHNI/NII/RII/Employee/Shareholder subscription figures onto
    each universe IPO (joined by IPOPlatform's numeric id).
 4. Fetches each universe IPO's detail page once to recover a "Read RHP"/"Read DRHP"
-   link if IPOPlatform has one published.
+   link if IPOPlatform has one published, AND (2026-08-11) the `retailSharesOffered`
+   figure from that same page's "Share Allocation" block
+   (`parseRetailSharesOffered()`) — used to compute `retailFloatCr` below.
 5. Computes TWO scores per IPO — `listingScore`/`listingTier` (predicts listing-day
    gain) and `cagrScore`/`cagrTier`/`cagrConfidence` (predicts longer-run daily-CAGR
    performance) — per
    [`references/ipo_ranking_framework.md`](references/ipo_ranking_framework.md)'s
    "Dual-score system" section. **Do not recompute or second-guess either score by
    reasoning about the raw multiples yourself; the formulas are the source of
-   truth.** `rank`/`ranked[]` order is by `listingScore`; `top3[]` selection uses
-   `combinedScore = listingScore × 0.7 + cagrScore × 0.3` (2026-08-09).
-6. Persists one record per IPO to the `ipos` collection (`db.upsertMany('ipos', ...)`,
-   id = `ipo_<ipoPlatformId>`) and prints the ranked DTO (`ranked[]`, `top3[]`) to
-   stdout / the `--out` file.
+   truth.** `rank`/`ranked[]` order is by `listingScore`.
+6. **Retail-float filter (2026-08-11 ask).** Computes `retailFloatCr = retailSharesOffered
+   × issuePrice / 1e7` per IPO and flags `retailFloatFiltered: true` for anything below
+   `RETAIL_FLOAT_FILTER_CR` (₹50cr — the constant in `ipoSubscriptionScanner.js`, change
+   it there, not here, if the threshold is ever revised). "Retail float" here means the
+   ₹ value of shares reserved for Individual/Retail Investors specifically — NOT the
+   total issue size and NOT post-listing free float; see that constant's neighboring
+   comment for the full definition and why it can't be back-derived from the Closed-IPOs/
+   Subscription-Status tables alone. `top3[]` selection (`combinedScore = listingScore ×
+   0.7 + cagrScore × 0.3`, 2026-08-09) is computed ONLY over IPOs where
+   `retailFloatFiltered` is false — a filtered IPO never enters `top3[]` regardless of how
+   high its score is, and therefore never reaches Phase 2's `drhp-ipo-analysis` pass
+   either. Filtered IPOs still appear in `ranked[]` (the full table) so the daily
+   universe never silently shrinks — only the top3/DRHP research spend does. If the
+   detail-page scrape didn't yield a retail-shares figure, the IPO is flagged
+   `retailFloatUnknown: true` and is **NOT** filtered (fail open, not closed — an
+   unmeasured float must never be treated as "confirmed small"); call this out in the
+   Phase 3 narrative if it happens rather than letting it pass silently.
+7. Persists one record per IPO to the `ipos` collection (`db.upsertMany('ipos', ...)`,
+   id = `ipo_<ipoPlatformId>`, including `retailFloatCr`/`retailFloatFiltered`/
+   `retailFloatUnknown`) and prints the ranked DTO (`ranked[]`, `top3[]`,
+   `retailFloatExcludedCount`) to stdout / the `--out` file.
 
 If the universe is empty (`universeSize: 0` — no IPOs list tomorrow), skip straight to
 Phase 4 with a "nothing listing tomorrow" email — do not fabricate a top-3 section.
+Same if every IPO in the universe gets retail-float-filtered (`top3.length === 0` but
+`universeSize > 0`) — the email's own logic already renders "all N IPOs excluded on
+retail-float grounds" for that case (`ipoDigestEmail.js`), don't invent a top-3
+narrative to fill the gap.
 
 **`drhpLink` is best-effort, verify before trusting it.** IPOPlatform's "Read RHP"
 anchor sometimes resolves to a grey-market-premium tracker page instead of the actual
@@ -74,8 +97,11 @@ Emerge / BSE SME / SEBI filing) to locate the real RHP.
 
 ### Phase 2 — `drhp-ipo-analysis` on the top 3
 
-For each of `top3[]` (fewer if the universe has fewer than 3 IPOs — never pad with a
-4th-ranked IPO to force a top 3), run the
+For each of `top3[]` (fewer if the universe has fewer than 3 IPOs, OR if fewer than 3
+survive the Phase 1 retail-float filter — never pad with a 4th-ranked/filtered-out IPO
+to force a top 3, and never run this phase for an IPO with `retailFloatFiltered: true`
+even if you personally think its fundamentals look interesting — that judgment call
+was already made deterministically in Phase 1, not here), run the
 [`drhp-ipo-analysis`](../drhp-ipo-analysis/SKILL.md) skill with the verified RHP/DRHP
 link (or detail page URL as a last resort — that skill can resolve official filing
 links from a company/exchange page). This produces the full 10(+8)-section subscription-
@@ -94,7 +120,11 @@ write:
 
 - `rankingSummary` — 1-3 sentences on today's batch as a whole (e.g. broad-based
   strength vs one outlier vs a thin/weak day). If the universe has 1 IPO, say that
-  plainly rather than manufacturing a comparison.
+  plainly rather than manufacturing a comparison. If `retailFloatExcludedCount > 0`,
+  mention it here too (e.g. "the only other IPO listing tomorrow, X, was excluded from
+  Top 3 on retail-float grounds (₹Ycr, below the ₹50cr threshold)") — the email's
+  full-table already flags this visually, but the summary line is where a reader who
+  only skims the top gets the same context.
 - Per top-3 IPO: `rationale` (why it ranks where it does — reference the specific
   category imbalance/strength, not just "high score"), `subscriptionView` (the
   `drhp-ipo-analysis` verdict from Phase 2 if it ran, else the scanner's
@@ -104,9 +134,18 @@ write:
   must happen first).
 
 Assemble this into the narrative JSON shape documented in `ipoDigestEmail.js`'s
-header and write it to `data/runs/ipo_subscription_narrative_<DATE>.json` (a run
-artifact — regenerable from this run's reasoning, not a `notes`/`reports` record on
-its own).
+header — **`{"rankingSummary": "...", "byIpoId": {"<ipoId>": {"rationale": "...",
+"subscriptionView": "...", "drhpReportUrl": "..."}}}`, a `byIpoId` object keyed by
+each IPO's numeric `ipoId` string, NOT a flat `top3`/`ranked` array.** This is an
+easy shape to get wrong because it looks like it should mirror the scanner DTO's own
+`top3[]` array — it must not. `ipoDigestEmail.js` reads `narrative.byIpoId[ipoId]`
+directly for each top-3 card's rationale, subscription view, and DRHP PDF link; if
+this is a flat array instead, every one of those goes silently missing from the
+email (fixed 2026-08-11 with a `normalizeNarrative()` recovery-with-warning
+fallback in that file, but don't rely on the fallback — write it in the correct
+shape the first time). Write this to
+`data/runs/ipo_subscription_narrative_<DATE>.json` (a run artifact — regenerable
+from this run's reasoning, not a `notes`/`reports` record on its own).
 
 If a top-3 IPO's company can be resolved to a companyId (it will not yet have an
 NSE/BSE symbol before actually listing — this is normal, not an error), additionally

@@ -32,6 +32,13 @@ different.
 `--top-n` is fixed at 20 by design (see Step 1) — not exposed as a CLI override the
 way gainers-signal's is, since the count is a dedupe outcome, not a raw universe size.
 
+**Trust the API's list as-is** (same discipline as gainers-signal): the Volume
+Rocketing scan is server-sorted by Volume and this skill never locally re-sorts or
+re-derives which names belong on it — Step 1's dedupe against gainers-signal is a
+skip-and-continue over the API's own order, not a re-rank. Two fetches minutes apart
+can legitimately return different names as live data moves; that's expected, not a
+signal something's broken.
+
 ## Ordering — run this AFTER gainers-signal for the same market date
 
 The dedupe in Step 1 reads that day's `gainers_raw_{YYYYMMDD}.json`. If gainers-signal

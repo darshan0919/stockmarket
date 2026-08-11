@@ -53,6 +53,17 @@ const SINGLE_FILE_COLLECTIONS = [
   // `companies` it is NOT threaded through LINK_KIND/rebuildLinks — see
   // docs/DATA_RULES.md §3 justification in that skill's SKILL.md.
   'ipos',
+  // supportive-investors / unsupportive-investors: cross-IPO investor
+  // registries (anchor-bulk-deal-tracker script) — the same underlying
+  // anchor-investor-reappeared-in-a-bulk-deal match, split by which side of
+  // the deal the investor was on (BUY -> supportive, SELL -> unsupportive).
+  // Keyed by INVESTOR identity, not company — genuinely a new entity class
+  // (DATA_RULES.md §3: no existing collection is investor-scoped; an
+  // investor's evidence spans many companyIds, so it doesn't fit as a single
+  // company's `notes`/`events` entry either). See DATA_ECOSYSTEM.md §1 for the
+  // record shape and docs/nse-bse-historical-deals-api.md for how it's built.
+  'supportive-investors',
+  'unsupportive-investors',
 ];
 const LINK_CAP = 200; // max event/note/insight ids kept on a company object
 const LOCK_STALE_MS = 5 * 60 * 1000;

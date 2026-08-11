@@ -41,6 +41,7 @@ tweet-investor-playbook.
 | fundamental-shift-scanner / watchlist-catalyst-scanner | filings via Stockscans                                                      | scan verdicts → `reports.json` (type=scan) or `events-*.json`                |
 | ipo-subscription-ranker                                 | IPOPlatform closed/subscription-status HTML (re-fetchable, live-updated)     | per-IPO merged subscription + deterministic rank score → **new collection** `ipos.json` (type=ipo-subscription; not company-scoped — see §3 justification below); top-3 DRHP/RHP analyses reuse `drhp-ipo-analysis`'s existing `reports.json` path; ranking rationale note → `notes.json` if a companyId can be resolved, else left on the `ipos` record only |
 | ipo-backtest (`packages/jobs-runtime/ipoBacktest.js`, ad-hoc — not a scheduled job) | IPOPlatform performance-tracker API + each IPO's permanent subscription detail page (both re-fetchable, historical figures don't change once an IPO closes) | per-window backtest DTO (scored IPOs + Pearson correlations + tier-bucket + quintile-spread stats vs actual listing gain / current CMP performance) → **existing `reports.json`** collection, new `type=ipo-scoring-backtest` (no new collection needed — fits DATA_RULES §2's "Analysis/report DTO" row). `companyIds[]` resolved from each IPO's now-live NSE/BSE symbol, so it also links into `companies.json` like any multi-company report. |
+| anchor-bulk-deal-tracker (`packages/jobs-runtime/anchorBulkDealTracker.js`, ad-hoc — not a scheduled job) | IPOPlatform performance-tracker index + subscription-detail pages, chittorgarh.com anchor-investor table, NSE/BSE historical bulk/block deals, investorgain.com GMP history (all re-fetchable) | per-window tracker DTO → **existing `reports.json`**, `type=anchor-bulk-deal-tracker` (companyIds resolved from each IPO's NSE/BSE symbol). Anchor investors who reappeared as an NSE/BSE bulk/block-deal counterparty within the listing window are additionally upserted into **new collections** `supportive-investors.json` (BUY side, type=supportive-investor) / `unsupportive-investors.json` (SELL side, type=unsupportive-investor) — neither is company-scoped, an investor's evidence spans many companies, so neither fits as a per-company `notes`/`events` entry — see DATA_RULES §3 justification below. |
 
 ## D. State & ledgers (always store — not regenerable)
 
@@ -60,6 +61,20 @@ tweet-investor-playbook.
   known, a future run may backfill `companyId` on the record and a note into
   `notes.json`, at which point it becomes discoverable via `buildCompanyContext`
   like any other company-scoped record).
+
+- anchor-bulk-deal-tracker → `supportive-investors.json` / `unsupportive-investors.json`
+  (DATA_RULES §3 new-collection justification: the entity here is an INVESTOR, not a
+  company or a dated occurrence — no existing collection is investor-keyed.
+  `companies.json` assumes one companyId per record; an investor's evidence spans many
+  companies across many runs, so it can't be a company's `state.<skill>` either. Two
+  collections rather than a `stance` field on one, because they're queried independently
+  — "is X a known supportive investor" and "is X a known unsupportive investor" are
+  different questions with different registries, not a filter on one list; the same
+  investor can appear in BOTH if it's bought into one IPO's window and sold into
+  another's. Records grow across runs — a later run's evidence for the same investor
+  (matched by normalized canonicalName) is merged into the existing record's
+  `evidence[]`/`companyIds[]`, never overwritten — so re-running the tracker for an
+  overlapping window is idempotent rather than duplicating evidence).
 
 ## E. Reference / heavy derivables → `cache/` (regenerable, kept for speed)
 

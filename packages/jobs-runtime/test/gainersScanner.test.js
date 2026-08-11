@@ -35,6 +35,41 @@ describe('pure date helpers', () => {
   });
 });
 
+describe('resolveMarketDate', () => {
+  // 2026-08-10 is a Monday, 2026-08-07 the prior Friday.
+  const monday = new Date(Date.UTC(2026, 7, 10));
+
+  test('before settlement (8 AM IST default run) falls back to lastTradingDay', () => {
+    const eightAmIst = new Date(Date.UTC(2026, 7, 10, 2, 30)); // 08:00 IST
+    expect(g.istHour(eightAmIst)).toBe(8);
+    expect(g.resolveMarketDate(monday, eightAmIst).toISOString().slice(0, 10)).toBe(
+      '2026-08-07'
+    );
+  });
+
+  test('at/after settlement on a trading day resolves to today', () => {
+    const elevenPmIst = new Date(Date.UTC(2026, 7, 10, 17, 52)); // 23:52 IST — the bug's repro case
+    expect(g.istHour(elevenPmIst)).toBe(23);
+    expect(g.resolveMarketDate(monday, elevenPmIst).toISOString().slice(0, 10)).toBe(
+      '2026-08-10'
+    );
+  });
+
+  test('right at the settlement hour boundary resolves to today', () => {
+    const sixPmIst = new Date(Date.UTC(2026, 7, 10, 12, 30)); // 18:00 IST exactly
+    expect(g.istHour(sixPmIst)).toBe(18);
+    expect(g.resolveMarketDate(monday, sixPmIst).toISOString().slice(0, 10)).toBe('2026-08-10');
+  });
+
+  test('a weekend run still falls back regardless of hour', () => {
+    const saturday = new Date(Date.UTC(2026, 7, 8)); // 2026-08-08 is a Saturday
+    const saturdayNightIst = new Date(Date.UTC(2026, 7, 8, 17, 52)); // 23:52 IST Saturday
+    expect(g.resolveMarketDate(saturday, saturdayNightIst).toISOString().slice(0, 10)).toBe(
+      '2026-08-07'
+    ); // prior Friday
+  });
+});
+
 describe('filterNoise', () => {
   test('drops routine compliance, keeps material', () => {
     const anns = [

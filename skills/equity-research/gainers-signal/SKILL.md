@@ -49,6 +49,14 @@ node "$SCAN" --top-n 100              # one-off wider pull (default is 50)
 Writes `data/runs/gainers_raw_{YYYYMMDD}.json`. If it yields 0 gainers (holiday / API
 issue), send a "no signals today" email and stop.
 
+**Trust the API's list as-is.** The scan is server-sorted (`orderBy: 'Returns 1D',
+order: 'desc'`) and this scanner never locally re-sorts or re-derives membership —
+Steps 1-2 only *layer analysis* on top of whatever the API returns (quality filters,
+delivery, announcements, tiering), they don't second-guess which names belong on it.
+Two fetches minutes apart can legitimately return different names — that's live data
+moving, not a bug to chase. The one thing genuinely worth trusting less is the market
+*date* label the scanner stamps on that list — see the `resolveMarketDate` note next.
+
 **API efficiency.** The announcements endpoint **ignores `scan.companyIds`** — verified
 live, a request naming two tickers returns unrelated ones. So the scanner creates a
 throwaway watchlist holding the whole universe and scans by `watchlistIds`, which DOES

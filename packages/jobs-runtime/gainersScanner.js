@@ -126,6 +126,44 @@ function istToday(now = new Date()) {
   return new Date(Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate()));
 }
 
+/** IST hour-of-day (0-23) for `now`. */
+function istHour(now = new Date()) {
+  const ist = new Date(now.getTime() + (5 * 60 + 30) * 60 * 1000);
+  return ist.getUTCHours();
+}
+
+/**
+ * NSE/BSE close at 15:30 IST; the scan/delivery/announcement APIs this scanner
+ * reads from settle a couple of hours after that. Before this hour on a trading
+ * day, that day's own session isn't out yet.
+ */
+const DATA_SETTLED_IST_HOUR = 18; // 6 PM IST
+
+/**
+ * Resolves the market date `main()` should scan for, given `now`. This is the
+ * one function both gainers-signal (default 8 AM run) and volume-rocketing
+ * (chained after it) should call — every other date helper here is a pure
+ * building block for this one.
+ *
+ * Before market close + settlement on a trading day (the 8 AM default run is
+ * always in this window), today's own session has no data yet, so this falls
+ * back to `lastTradingDay`. At/after `DATA_SETTLED_IST_HOUR` on a trading day
+ * — e.g. a manual re-run late in the evening — today IS the market date;
+ * `lastTradingDay` was previously used unconditionally here, which meant an
+ * 11 PM IST run on a Monday silently reported Friday's data as "today's"
+ * signal instead of Monday's.
+ *
+ * NOTE: this only skips weekends, not exchange holidays (Diwali, Republic
+ * Day, etc.) — there is no holiday calendar wired in yet, so a run on an NSE
+ * holiday will still incorrectly treat that day as tradable. Flagged, not
+ * fixed, here — a future fix needs a holiday source, not just more date math.
+ */
+function resolveMarketDate(today, now = new Date()) {
+  const isWeekday = today.getUTCDay() !== 0 && today.getUTCDay() !== 6;
+  if (isWeekday && istHour(now) >= DATA_SETTLED_IST_HOUR) return today;
+  return lastTradingDay(today);
+}
+
 function pick(raw, ...keys) {
   for (const k of keys) {
     const v = raw[k];
@@ -1020,8 +1058,9 @@ async function main({
   tagVolumeRocketing = dtoKind === 'gainers_raw',
 } = {}) {
   const ss = clients.stockscans;
-  const today = istToday();
-  const mDate = marketDate || lastTradingDay(today);
+  const runNow = new Date();
+  const today = istToday(runNow);
+  const mDate = marketDate || resolveMarketDate(today, runNow);
   const runTs = istNowIso();
   const mDateStr = mDate.toISOString().slice(0, 10);
   log(`[gainers_scanner] market_date=${mDateStr}  run_ts=${runTs}\n`);
@@ -1302,6 +1341,9 @@ module.exports = {
   quarterDate,
   lastTradingDay,
   istToday,
+  istHour,
+  resolveMarketDate,
+  DATA_SETTLED_IST_HOUR,
   filterNoise,
   sectorBreadth,
   applyQualityFilters,

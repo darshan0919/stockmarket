@@ -39,7 +39,8 @@
     "ipo-backtest": "node ipoBacktest.js",
     "ipo-history-cache": "node ipoHistoryCache.js",
     "nse-ipo-history-fetcher": "node nseIpoHistoryFetcher.js",
-    "bse-ipo-history-fetcher": "node bseIpoHistoryFetcher.js"
+    "bse-ipo-history-fetcher": "node bseIpoHistoryFetcher.js",
+    "anchor-bulk-deal-tracker": "node anchorBulkDealTracker.js"
   },
   "dependencies": {
     "@stock/api": "workspace:*",

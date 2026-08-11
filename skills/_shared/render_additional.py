@@ -89,6 +89,79 @@ def _render_kv_table(d: dict) -> str:
     )
     return f'<table><tr><th>Field</th><th class="r">Value</th></tr>{rows}</table>'
 
+_SUB_X_LABELS = [
+    ("qib_x", "QIB"),
+    ("nii_x", "Non-Institutional Buyers"),
+    ("b_hni_x", "&nbsp;&nbsp;- bNII (bids above &#8377;10L)"),
+    ("s_hni_x", "&nbsp;&nbsp;- sNII (bids below &#8377;10L)"),
+    ("rii_x", "Retail Individual Investors (RIIs)"),
+    ("total_x", "Total"),
+]
+
+
+def _fmt_x(v) -> str:
+    if v is None:
+        return "—"
+    try:
+        return f"{float(v):.2f}x"
+    except (TypeError, ValueError):
+        return _esc(v)
+
+
+def _render_subscription(d: dict) -> str:
+    """Dedicated layout for the ipo-subscription `additional.subscription` shape
+    (see drhp-ipo-analysis/SKILL.md's DTO schema). Two-column split: left half is
+    the category-wise subscription table (readable labels, `x` suffixed onto the
+    value — never onto the field name), right half is the judgment fields
+    (Insight / Listing Score / Cagr Score / Source). `citation_url` is deliberately
+    dropped — `source` already says where the figures came from."""
+    rows = ""
+    if d.get("anchor_participated") is not None:
+        anchor_val = "Participated" if d.get("anchor_participated") else "Did not participate"
+        rows += f'<tr><td>Anchor Investors</td><td class="r mono">{_esc(anchor_val)}</td></tr>'
+    for key, label in _SUB_X_LABELS:
+        if key not in d:
+            continue
+        total_row = key == "total_x"
+        cell = f'<td class="r mono"><strong>{_fmt_x(d[key])}</strong></td>' if total_row else f'<td class="r mono">{_fmt_x(d[key])}</td>'
+        label_cell = f'<td><strong>{label}</strong></td>' if total_row else f'<td>{label}</td>'
+        rows += f'<tr>{label_cell}{cell}</tr>'
+    left = f'<table><tr><th>Category</th><th class="r">Subscription</th></tr>{rows}</table>'
+
+    # Each block carries its own margin-bottom rather than relying on flex `gap`
+    # (weasyprint's flexbox gap support is unreliable and was overlapping blocks).
+    right_parts = []
+    if d.get("insight"):
+        right_parts.append(f'<div class="hl hl-b" style="margin:0 0 6px 0;">{_esc(d["insight"])}</div>')
+    if d.get("listing_score") is not None:
+        tier = f' &middot; {_esc(d.get("listing_tier"))}' if d.get("listing_tier") else ""
+        right_parts.append(
+            f'<div class="kpi" style="margin-bottom:6px;"><div class="label">Listing Score</div>'
+            f'<div class="subnum" style="font-size:11px; color:#1a1a1a;">{_esc(d["listing_score"])}{tier}</div></div>'
+        )
+    if d.get("cagr_score") is not None:
+        tier = f' &middot; {_esc(d.get("cagr_tier"))}' if d.get("cagr_tier") else ""
+        conf = f' ({_esc(d.get("cagr_confidence"))} confidence)' if d.get("cagr_confidence") else ""
+        right_parts.append(
+            f'<div class="kpi" style="margin-bottom:6px;"><div class="label">Cagr Score</div>'
+            f'<div class="subnum" style="font-size:11px; color:#1a1a1a;">{_esc(d["cagr_score"])}{tier}{conf}</div></div>'
+        )
+    if d.get("source"):
+        as_of = f', as of {_esc(d.get("as_of"))}' if d.get("as_of") else ""
+        right_parts.append(
+            f'<div class="kpi" style="margin-bottom:0;"><div class="label">Source</div>'
+            f'<div class="subnum" style="font-size:10px; color:#1a1a1a;">{_esc(d["source"])}{as_of}</div></div>'
+        )
+    right = "".join(right_parts)
+
+    return (
+        '<table style="border:none; margin:0;"><tr>'
+        f'<td style="width:50%; vertical-align:top; padding:0 8px 0 0; border:none;">{left}</td>'
+        f'<td style="width:50%; vertical-align:top; padding:0 0 0 8px; border:none;">{right}</td>'
+        '</tr></table>'
+    )
+
+
 def _render_scenario(d: dict) -> str:
     # e.g. {"bear": "...", "base": "...", "bull": "..."} or any small dict of scalar prose —
     # rendered as an equal-width comparison grid rather than a 2-col kv table.
@@ -149,6 +222,10 @@ def render_value(value, key_label: str | None = None) -> str:
 
     if isinstance(value, dict):
         forced = str(value.get("type", "")).lower()
+        if forced == "ipo_subscription" or (
+            not forced and "qib_x" in value and "total_x" in value and "rii_x" in value
+        ):
+            return _render_subscription(value)
         if forced == "scenario":
             return _render_scenario(value)
         if forced == "callout":

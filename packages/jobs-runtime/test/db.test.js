@@ -185,6 +185,94 @@ describe('ipos collection', () => {
   });
 });
 
+describe('supportive-investors collection', () => {
+  const mkInvestor = (over = {}) => ({
+    id: 'investor_carnelian_a1b2c3d4',
+    type: 'supportive-investor',
+    creator: 'anchor-bulk-deal-tracker',
+    canonicalName: 'CARNELIAN',
+    companyIds: ['NSE:CMLL'],
+    evidence: [
+      {
+        companyId: 'NSE:CMLL',
+        companyName: 'Caliber Mining and Logistics Limited',
+        listingDate: '2026-07-24',
+        matchScore: 1,
+        dealDate: '24-JUL-2026',
+      },
+    ],
+    ...over,
+  });
+
+  test('same investor upserted twice dedupes to one record', () => {
+    const s1 = db.upsertMany('supportive-investors', [mkInvestor()]);
+    const s2 = db.upsertMany('supportive-investors', [mkInvestor()]);
+    expect(s1.inserted).toBe(1);
+    expect(s2.unchanged).toBe(1);
+    expect(fs.existsSync(path.join(tmpRoot, 'supportive-investors.json'))).toBe(true);
+  });
+
+  test('a later run appending a new company to the same investor updates in place, preserves creationTime', () => {
+    db.upsertMany('supportive-investors', [mkInvestor()]);
+    const before = db.get('supportive-investors', 'investor_carnelian_a1b2c3d4');
+    db.upsertMany('supportive-investors', [
+      mkInvestor({
+        companyIds: ['NSE:CMLL', 'NSE:ANAWIL'],
+        evidence: [
+          ...mkInvestor().evidence,
+          { companyId: 'NSE:ANAWIL', companyName: 'Anawil Wire and Engineering Limited', listingDate: '2026-08-10', matchScore: 1, dealDate: '10-AUG-2026' },
+        ],
+      }),
+    ]);
+    const after = db.get('supportive-investors', 'investor_carnelian_a1b2c3d4');
+    expect(after.companyIds).toEqual(['NSE:CMLL', 'NSE:ANAWIL']);
+    expect(after.evidence).toHaveLength(2);
+    expect(after.creationTime).toBe(before.creationTime);
+  });
+
+  test('envelope enforcement — a record without creator is rejected', () => {
+    expect(() => db.upsertMany('supportive-investors', [mkInvestor({ creator: undefined })])).toThrow(
+      /creator is required/
+    );
+  });
+});
+
+describe('unsupportive-investors collection', () => {
+  const mkInvestor = (over = {}) => ({
+    id: 'investor_shine-star_x1y2z3',
+    type: 'unsupportive-investor',
+    creator: 'anchor-bulk-deal-tracker',
+    canonicalName: 'SHINE STAR',
+    companyIds: ['NSE:GSPCROP'],
+    evidence: [
+      {
+        companyId: 'NSE:GSPCROP',
+        companyName: 'GSP Crop Science Limited',
+        listingDate: '2026-03-24',
+        matchScore: 1,
+        dealBuySell: 'SELL',
+        dealDate: '24-MAR-2026',
+      },
+    ],
+    ...over,
+  });
+
+  test('same investor upserted twice dedupes to one record, distinct file from supportive-investors', () => {
+    const s1 = db.upsertMany('unsupportive-investors', [mkInvestor()]);
+    const s2 = db.upsertMany('unsupportive-investors', [mkInvestor()]);
+    expect(s1.inserted).toBe(1);
+    expect(s2.unchanged).toBe(1);
+    expect(fs.existsSync(path.join(tmpRoot, 'unsupportive-investors.json'))).toBe(true);
+    expect(fs.existsSync(path.join(tmpRoot, 'supportive-investors.json'))).toBe(false);
+  });
+
+  test('envelope enforcement — a record without creator is rejected', () => {
+    expect(() => db.upsertMany('unsupportive-investors', [mkInvestor({ creator: undefined })])).toThrow(
+      /creator is required/
+    );
+  });
+});
+
 describe('conversations', () => {
   const mkConv = (over = {}) => ({
     id: 'conv_cloud_abc12345',

@@ -406,6 +406,51 @@ worth wiring into the score.
   explicit weights argument; it is no longer what the live scanner actually scores
   with.
 
+## Retail float filter (2026-08-11)
+
+Added at explicit user request after reviewing the 2026-08-10 Aegeus Technologies run:
+"filter out all the IPOs if the retail float is less than ₹50cr — don't consider them
+in top 3 & don't generate rhp analysis for them." This is a **hard gate on Phase
+2 spend**, not a scoring input — it doesn't touch `listingScore`/`cagrScore`/
+`combinedScore` at all, it only decides which IPOs are *eligible* for `top3[]`
+selection (and therefore for the expensive `drhp-ipo-analysis` deep-dive) after
+scoring/ranking has already happened.
+
+**Definition**: "retail float" = `retailSharesOffered × issuePrice`, where
+`retailSharesOffered` is the share count reserved for Individual/Retail Investors
+specifically (SME terminology; equivalent to RII on a mainboard issue), scraped from
+the IPOPlatform detail page's "Share Allocation" block (`Retail Shares Offered:` row —
+verified byte-for-byte against Aegeus Technologies' own RHP Capital Structure table,
+676,800 shares in both sources). This is deliberately **not**:
+- the total issue size (`issueSizeCr` — includes QIB/HNI/Market-Maker portions too);
+- post-listing public float (all shares tradeable after lock-in expiry — a completely
+  different, much larger number computed from the lock-in schedule, not from the
+  Offer Document's category reservation table).
+
+**Why this can't be derived from the two tables the scanner already had**: the Closed
+IPOs table has `issueSizeCr` (total ₹) with no category split; the Subscription Status
+table has category-wise subscription *multiples* (e.g. `riiX: 25.59`) with no
+underlying share count or ₹ value — a multiple alone can't recover the denominator it
+was applied to. Only the per-IPO detail page's "Share Allocation" block carries the
+actual retail share count.
+
+**Threshold**: ₹50cr, a user-set judgment call (not backtested/empirically derived
+the way the scoring weights are) — the reasoning is that IPOs with a very small retail
+allocation are structurally harder for a retail investor to get a meaningful allotment
+in even if they wanted to apply, so spending a full DRHP-analysis pass on them has
+lower payoff than on an IPO where retail actually has room to participate. Revisit
+this number if it turns out to be systematically excluding IPOs worth analyzing (e.g.
+by checking, over a few months, whether filtered-out IPOs' listing-day gains were
+meaningfully different from included ones) — the same kind of empirical check this doc
+already recommends for the STRONG/MODERATE/WEAK/POOR tier cutoffs.
+
+**Fail-open on unknown float**: if the detail-page scrape doesn't yield a
+`Retail Shares Offered:` match (markup change, fetch error), the IPO is flagged
+`retailFloatUnknown: true` and is treated as NOT filtered — an unmeasured retail float
+must never be silently treated as "confirmed below ₹50cr." This mirrors the general
+principle elsewhere in this framework (e.g. `cagrConfidence`) of surfacing data gaps
+explicitly rather than letting a null silently become a negative judgment.
+
 ## What the LLM narrative step should NOT do
 
 - Don't restate the raw multiples the email table already shows — say what they

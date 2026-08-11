@@ -8,7 +8,7 @@ archives, or opens outside this session. Don't replace one with the other — do
 Reference this file from a skill's SKILL.md with one line ("PDF artifact: see
 `skills/_shared/pdf-artifact-step.md`, save to `data/assets/<skill-name>/`") instead of
 copy-pasting the steps below — if this step's mechanics change, they should change in one
-place, not in every skill that uses it (`skills/_shared/conventions.md` §17).
+place, not in every skill that uses it (`skills/_shared/conventions.md` §18).
 
 ## Why a separate HTML build, not a screenshot of the widget
 
@@ -50,15 +50,24 @@ hand-written HTML documents will, eventually.
 
 ## If the render pipeline is unavailable
 
-If `render-pdf` (Puppeteer/Chrome) is genuinely unavailable in the current environment —
-missing binary, launch failure, no `render-pdf` tooling on the path — that is a blocker to
-state explicitly in the closing text ("PDF not rendered — render pipeline unavailable in
-this session"), not a reason to quietly finish with only the widget. A widget that requires
+`render-pdf` (`skills/tooling/render-pdf/SKILL.md`) documents a Puppeteer→WeasyPrint fallback
+chain specifically because "Puppeteer/Chrome unavailable" is no longer a dead end — a
+Puppeteer/Chromium launch failure (confirmed reproducible on ARM64 sandboxes: the downloaded
+Chrome binary is x86-64 and won't execute, and there's no root access to install a system
+Chromium as an alternative) is a signal to fall through to WeasyPrint (`pip install weasyprint
+--break-system-packages`, substitute the HTML's `var(--token)` CSS custom properties for the
+literal hex values in `pdf-design-guide.md`'s palette, then `HTML(string=...).write_pdf(...)`),
+not a reason to stop. Retry once with a direct call into the underlying render function (see
+`stock-api/src/utils/pdfRenderer.js`'s `renderPdf()`) before falling back — a missing
+`yarn`/CLI wrapper is not the same thing as a missing pipeline — then fall back to WeasyPrint
+before concluding the PDF genuinely can't be produced.
+
+Only if BOTH the Puppeteer path and the WeasyPrint fallback fail is that a genuine blocker to
+state explicitly in the closing text ("PDF not rendered — render pipeline unavailable in this
+session, both Puppeteer and the WeasyPrint fallback failed: <reason>"). A widget that requires
 re-opening this session to view again is not a substitute for a Drive-shareable file, and
 presenting it as the final output without flagging the gap reads to the user as if the PDF
-requirement was satisfied when it wasn't. Retry once with a direct call into the underlying
-render function (see `stock-api/src/utils/pdfRenderer.js`'s `renderPdf()`) before concluding
-it's unavailable — a missing `yarn`/CLI wrapper is not the same thing as a missing pipeline.
+requirement was satisfied when it wasn't.
 
 ## What NOT to do
 

@@ -221,6 +221,45 @@ function parseDrhpLink(html) {
   return m ? m[1] : null;
 }
 
+// ── Retail Shares Offered (detail page "Share Allocation" block) ───────────
+// IPOPlatform's per-IPO detail page (already fetched above for parseDrhpLink)
+// carries a category share-count breakdown under `<h2>Share Allocation</h2>`
+// as a series of `<span>Retail Shares Offered:</span><span class="idv2-row-
+// value">676,800</span>`-style rows — this is the ONLY place the actual
+// retail (Individual Investor) reservation share count is published; neither
+// the Closed IPOs table nor the Subscription Status table carries it (they
+// only have `issueSizeCr`, the TOTAL issue value, and category-wise
+// subscription MULTIPLES, not category-wise share counts) — so it cannot be
+// reliably back-derived from those two tables alone (SME market-maker
+// reservation % and the QIB/NII/Retail split both vary per issue). Verified
+// live against Aegeus Technologies (2026-08-10 run) — this exact label/markup
+// pairing round-tripped to the RHP's own Capital Structure table value
+// (676,800 shares) so it's a trustworthy primary source, not a proxy.
+function parseRetailSharesOffered(html) {
+  const m = html.match(
+    /Retail Shares Offered:\s*<\/span>\s*<span[^>]*>\s*([\d,]+)\s*<\/span>/i
+  );
+  if (!m) return null;
+  const n = toNum(m[1]);
+  return Number.isFinite(n) ? n : null;
+}
+
+// ── Retail float filter (2026-08-11 ask) ────────────────────────────────────
+// "Retail float" = the ₹ value of shares reserved for Individual/Retail
+// Investors (NOT the whole issue size, NOT post-listing free float) —
+// `retailSharesOffered * issuePrice`. IPOs below this threshold are still
+// scanned, scored, ranked, and shown in the full table (so nothing
+// disappears from the daily universe silently), but are EXCLUDED from `top3`
+// selection and therefore never get a `drhp-ipo-analysis` deep-dive — see
+// `scan()` below and `ipo-subscription-ranker/SKILL.md` Phase 2's guard.
+const RETAIL_FLOAT_FILTER_CR = 50;
+
+function computeRetailFloatCr(rec) {
+  const price = toNum(String(rec.issuePriceRaw || '').replace(/[₹\s]/g, ''));
+  if (rec.retailSharesOffered == null || price == null) return null;
+  return Math.round(((rec.retailSharesOffered * price) / 1e7) * 100) / 100;
+}
+
 // ── Deterministic Subscription Quality Score(s) ─────────────────────────────
 // Formula lives in ./lib/ipoScoring.js — shared with ipoBacktest.js /
 // ipoWeightFinder.js so a historical backtest and the live daily scan can
@@ -258,9 +297,18 @@ async function scan({ date } = {}) {
     universe.map(async (ipo) => {
       try {
         const html = await fetchHtml(ipo.detailUrl);
-        return { ipoId: ipo.ipoId, drhpLink: parseDrhpLink(html) };
+        return {
+          ipoId: ipo.ipoId,
+          drhpLink: parseDrhpLink(html),
+          retailSharesOffered: parseRetailSharesOffered(html),
+        };
       } catch (e) {
-        return { ipoId: ipo.ipoId, drhpLink: null, detailFetchError: String(e.message || e) };
+        return {
+          ipoId: ipo.ipoId,
+          drhpLink: null,
+          retailSharesOffered: null,
+          detailFetchError: String(e.message || e),
+        };
       }
     })
   );
@@ -271,6 +319,17 @@ async function scan({ date } = {}) {
     const detail = detailById[ipo.ipoId] || {};
     const rec = { ...ipo, ...sub, ...detail };
     rec.reviewUrl = ipo.detailUrl ? ipo.detailUrl.replace('/ipo/', '/ipo/review/') : null;
+    rec.retailFloatCr = computeRetailFloatCr(rec);
+    // Fail OPEN, not closed, when the detail-page scrape didn't yield a
+    // retail-shares figure (site markup change, fetch error, etc.): an
+    // unknown retail float does not get excluded from top3/DRHP just because
+    // it couldn't be measured — that would silently and incorrectly treat a
+    // scrape failure as "too small." Instead it's flagged via
+    // `retailFloatUnknown` so the gap is visible in the DTO/logs, and the
+    // email/narrative step can call it out rather than the IPO just
+    // vanishing from top3 with no explanation.
+    rec.retailFloatUnknown = rec.retailFloatCr == null;
+    rec.retailFloatFiltered = rec.retailFloatCr != null && rec.retailFloatCr < RETAIL_FLOAT_FILTER_CR;
     const dual = computeDualScores(rec);
     rec.listingScore = dual.listingScore;
     rec.listingTier = dual.listingTier;
@@ -309,7 +368,16 @@ async function scan({ date } = {}) {
 
   // Top 3 chosen on BOTH scores (2026-08-09 ask), not listingScore alone —
   // highest combined average, tie-broken by whichever basis is stronger.
-  const top3 = merged
+  // Retail-float filter (2026-08-11 ask, RETAIL_FLOAT_FILTER_CR above):
+  // IPOs with retailFloatCr < ₹50cr are EXCLUDED from top3 (and therefore
+  // never get a drhp-ipo-analysis deep-dive) even if their score would
+  // otherwise rank them in — but they stay in `ranked`/the full table, so
+  // the daily universe never silently shrinks, only the top3/DRHP spend
+  // does. An IPO with `retailFloatUnknown: true` (scrape didn't yield a
+  // figure) is NOT excluded — see the fail-open comment on that field above.
+  const top3Eligible = merged.filter((r) => !r.retailFloatFiltered);
+  const retailFloatExcludedCount = merged.length - top3Eligible.length;
+  const top3 = top3Eligible
     .slice()
     .sort((a, b) => b.combinedScore - a.combinedScore || b.listingScore - a.listingScore)
     .slice(0, 3);
@@ -325,6 +393,8 @@ async function scan({ date } = {}) {
     universeSize: universe.length,
     matchedWithSubscription: universe.length - unmatched.length,
     unmatchedIpoIds: unmatched,
+    retailFloatFilterCr: RETAIL_FLOAT_FILTER_CR,
+    retailFloatExcludedCount,
     ranked: merged,
     top3,
   };
@@ -348,6 +418,11 @@ function toRecords(dto) {
     issueSizeCr: r.issueSizeCr,
     issuePriceRaw: r.issuePriceRaw,
     merchantBanker: r.merchantBanker,
+    retailSharesOffered: r.retailSharesOffered ?? null,
+    retailFloatCr: r.retailFloatCr ?? null,
+    retailFloatUnknown: !!r.retailFloatUnknown,
+    retailFloatFiltered: !!r.retailFloatFiltered,
+    retailFloatFilterCr: RETAIL_FLOAT_FILTER_CR,
     subscription: {
       status: r.status || null,
       anchorParticipated: !!r.anchorParticipated,
@@ -401,11 +476,24 @@ module.exports = {
   parseClosedIpos,
   parseSubscriptionStatus,
   parseDrhpLink,
+  parseRetailSharesOffered,
+  computeRetailFloatCr,
+  RETAIL_FLOAT_FILTER_CR,
   computeSubscriptionScore,
   tierFor,
   parseIpoPlatformDate,
   scan,
   toRecords,
+  // Shared dependency-free HTML/date/HTTP helpers — exported so other
+  // IPOPlatform-scraping scripts (e.g. anchorBulkDealTracker.js) reuse the
+  // same parsing primitives instead of re-deriving them (conventions.md §17).
+  fetchHtml,
+  stripTags,
+  extractTableRows,
+  firstHref,
+  ipoIdFromUrl,
+  toNum,
+  UA,
 };
 
 if (require.main === module) {

@@ -45,6 +45,14 @@ data/
   ipos.json             # per-IPO subscription-quality state (ipo-subscription-ranker skill,
                         #   daily-ipo-subscription-analysis-stockmarket job); id = ipo_<ipoPlatformId>,
                         #   not company-scoped (pre-listing IPOs usually have no companyId yet)
+  supportive-investors.json # investor registry (anchor-bulk-deal-tracker script); id = investor_<...>_<hash>,
+                        #   keyed by canonicalName (chittorgarh Group Entity when available, else the
+                        #   anchor-investor name), not company-scoped; each record's `evidence[]` grows
+                        #   across runs (an anchor investor who reappeared BUYING more in an NSE/BSE bulk
+                        #   or block deal within the listing window) and `companyIds[]` lists every
+                        #   company that evidence touches
+  unsupportive-investors.json # same shape/keying as supportive-investors.json, mirror case: an anchor
+                        #   investor who reappeared SELLING within the listing window
   cache/                # heavy regenerable derivables: company-master.json, bse-scrip-codes.json, extracts
   assets/               # rendered PDF/HTML, flat: <reportId>.pdf|.html (regenerable from DTOs)
   runs/                 # per-run raw dumps + full run DTOs — synced, kept locally (full mirror)

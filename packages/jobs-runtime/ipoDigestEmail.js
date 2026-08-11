@@ -18,7 +18,9 @@
  *                the former.
  *   --narrative  Optional. LLM-authored commentary the ipo-subscription-ranker
  *                skill writes AFTER reading the DTO — never re-derives numbers,
- *                only adds judgment/prose. Shape:
+ *                only adds judgment/prose. REQUIRED shape (this is the only
+ *                shape this file reads — see `normalizeNarrative()` below,
+ *                which is the single, strict parsing chokepoint):
  *                {
  *                  "modelUsed": "claude-sonnet-5",
  *                  "rankingSummary": "1-3 sentence read on today's batch",
@@ -48,6 +50,20 @@
  *                }
  *                Missing/absent narrative is fine — the email still ships with
  *                just the data table (never block sending on the LLM step).
+ *
+ *                COMMON MISTAKE (bug fixed 2026-08-11, see git history): a
+ *                caller writes `narrative.top3` as a flat array of
+ *                `{ipoId, rationale, drhpReportUrl, ...}` objects instead of
+ *                the keyed `byIpoId` object above — this file used to read
+ *                `n.byIpoId[rec.ipoId]` directly and silently got `undefined`
+ *                for every IPO when that happened, so the rationale AND the
+ *                DRHP PDF link both went missing from the email with zero
+ *                error or warning. `normalizeNarrative()` now defends against
+ *                exactly this: if `byIpoId` is absent but `top3`/`ranked` is a
+ *                flat array carrying `ipoId`, it re-keys that array into
+ *                `byIpoId` automatically AND prints a stderr warning so the
+ *                shape mismatch is visible in the run log even though the
+ *                email itself still renders correctly either way.
  *
  * Usage:
  *   node ipoDigestEmail.js --dto <path> [--narrative <path>] [--to email]
@@ -80,18 +96,47 @@ function fmtX(v) {
   return v == null ? '—' : `${v.toFixed(2)}x`;
 }
 
-const TIER_COLOR = {
-  STRONG: '#1b5e20',
-  MODERATE: '#e65100',
-  WEAK: '#b71c1c',
-  POOR: '#616161',
+function fmtScore(v) {
+  return v == null ? '—' : v.toFixed(3);
+}
+
+// Palette per skills/_shared/pdf-design-guide.md — flat institutional tones,
+// reused here (as inline styles, since email clients don't reliably support
+// <style> blocks) rather than the ad-hoc indigo scheme this card used before.
+const PDF_TONE = {
+  g: { bg: '#eaf3de', fg: '#27500a', border: '#a9cf8a' }, // green — confirmed/positive
+  r: { bg: '#fcebeb', fg: '#791f1f', border: '#ecaaa9' }, // red — highest materiality
+  y: { bg: '#faeeda', fg: '#633806', border: '#eec27e' }, // amber — caveat/watchlist
+  b: { bg: '#e6f1fb', fg: '#0c447c', border: '#a7cdec' }, // blue — informational
 };
 
-function tierChip(tier) {
-  const color = TIER_COLOR[tier] || '#616161';
-  return `<span style="display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:bold;color:#fff;background:${color}">${esc(
-    tier || '—'
+// STRONG is the ceiling tier — no better label exists above it — so map it to
+// green; MODERATE/WEAK/POOR step down through amber to red per the guide's
+// signal-tone table (never invent a 5th ad-hoc color for a 4-tier scale).
+const TIER_TONE = { STRONG: 'g', MODERATE: 'y', WEAK: 'y', POOR: 'r' };
+
+function chip(text, tone) {
+  const t = PDF_TONE[tone] || PDF_TONE.b;
+  return `<span style="display:inline-block;font-family:monospace;font-size:9px;font-weight:600;letter-spacing:0.02em;padding:2.5px 7px;border-radius:3px;background:${t.bg};color:${t.fg}">${esc(
+    text
   )}</span>`;
+}
+
+function tierChip(tier) {
+  return chip(tier || '—', TIER_TONE[tier] || 'b');
+}
+
+// Small field/value stat cell — mono uppercase label over the value, matching
+// the `.kpi`/`.label`/`.bignum` pattern in pdf-design-guide.md so the card
+// reads as a compact stat grid instead of a run-on line of bolded labels.
+function statCell(label, value, opts = {}) {
+  const valueStyle = opts.mono !== false ? 'font-family:monospace' : '';
+  return `<td style="padding:6px 10px;background:#f5f4f0;vertical-align:top">
+    <div style="font-family:monospace;font-size:8px;text-transform:uppercase;letter-spacing:0.05em;color:#888;margin-bottom:2px">${esc(
+      label
+    )}</div>
+    <div style="font-size:13px;font-weight:600;color:#1a1a1a;${valueStyle}">${value}</div>
+  </td>`;
 }
 
 function top3Card(rec, narrative) {
@@ -102,54 +147,86 @@ function top3Card(rec, narrative) {
   // Drive-shareable URL that `node scripts/data.js push` recorded — never
   // email a bare local path, the recipient can't open it.
   const drhpDriveUrl = n.drhpReportUrl ? resolveDriveUrl(n.drhpReportUrl) : null;
+  const listingTier = rec.listingTier || rec.subscriptionQualityTier;
+
+  const subChips = [
+    ['TOTAL', rec.totalSubscriptionX],
+    ['QIB', rec.qibX],
+    ['sHNI', rec.sHniX],
+    ['bHNI', rec.bHniX],
+    ['NII', rec.niiX],
+    ['RII', rec.riiX],
+  ]
+    .map(
+      ([label, v]) =>
+        `<span style="display:inline-block;margin:2px 6px 2px 0;font-size:11px"><span style="font-family:monospace;font-size:8.5px;text-transform:uppercase;color:#888">${label}</span> <span style="font-family:monospace;font-weight:600">${fmtX(
+          v
+        )}</span></span>`
+    )
+    .join('');
+
   return `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;border:1px solid #c5cae9;border-radius:4px;overflow:hidden">
-    <tr><td style="background:#e8eaf6;padding:10px 14px">
-      <span style="font-family:Arial,sans-serif;font-size:15px;font-weight:bold;color:#1a237e">#${rec.rank} — <a href="${esc(
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;border:0.5px solid #ccc;border-radius:4px;overflow:hidden;border-collapse:separate">
+    <tr><td style="border-bottom:2.5px solid #111;padding:9px 12px">
+      <span style="font-family:monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:#888">RANK #${
+        rec.rank
+      } · ${esc(rec.ipoType)} · ${esc(rec.exchange)} · LISTS ${esc(rec.listingDate)}</span><br/>
+      <a href="${esc(
         rec.reviewUrl || rec.detailUrl
-      )}" style="color:#1a237e;text-decoration:none">${esc(rec.companyName)}</a></span>
-      &nbsp; ${tierChip(rec.listingTier || rec.subscriptionQualityTier)}
-      &nbsp; <span style="font-family:Arial,sans-serif;font-size:12px;color:#3949ab">${esc(
-        rec.ipoType
-      )} · ${esc(rec.exchange)} · lists ${esc(rec.listingDate)}</span>
+      )}" style="font-family:Arial,sans-serif;font-size:15px;font-weight:600;color:#111;text-decoration:none">${esc(
+        rec.companyName
+      )}</a>
+      &nbsp; ${tierChip(listingTier)}
+      ${n.subscriptionView ? `&nbsp; ${chip(n.subscriptionView, 'b')}` : ''}
     </td></tr>
-    <tr><td style="padding:10px 14px;font-family:Arial,sans-serif;font-size:13px;color:#212121">
-      <b>Listing score:</b> ${rec.listingScore ?? rec.subscriptionQualityScore ?? '—'} &nbsp;|&nbsp;
-      <b>CAGR score:</b> ${rec.cagrScore ?? '—'} ${tierChip(rec.cagrTier)}${
-        rec.cagrConfidence === 'LOW'
-          ? ' <span style="color:#b71c1c;font-size:11px">(low confidence — small/SME issue)</span>'
-          : ''
-      } &nbsp;|&nbsp;
-      <b>Total:</b> ${fmtX(rec.totalSubscriptionX)} &nbsp;
-      <b>QIB:</b> ${fmtX(rec.qibX)} &nbsp;
-      <b>sHNI:</b> ${fmtX(rec.sHniX)} &nbsp;
-      <b>bHNI:</b> ${fmtX(rec.bHniX)} &nbsp;
-      <b>NII:</b> ${fmtX(rec.niiX)} &nbsp;
-      <b>RII:</b> ${fmtX(rec.riiX)} &nbsp;
-      <b>Anchor:</b> ${rec.anchorParticipated ? 'Yes' : 'No'}
+    <tr><td style="padding:0">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+        <tr>
+          ${statCell(
+            'Listing score',
+            `${fmtScore(rec.listingScore ?? rec.subscriptionQualityScore)} <span style="font-family:Arial,sans-serif;font-weight:400;font-size:10px;color:#666">(≥0.9=STRONG*)</span>`
+          )}
+          ${statCell(
+            'CAGR score',
+            `${fmtScore(rec.cagrScore)} ${tierChip(rec.cagrTier)}`
+          )}
+          ${statCell('Anchor participated', rec.anchorParticipated ? chip('YES', 'g') : chip('NO', 'y'), { mono: false })}
+        </tr>
+      </table>
+    </td></tr>
+    <tr><td style="padding:9px 12px 4px">${subChips}</td></tr>
+    ${
+      n.rationale
+        ? `<tr><td style="padding:0 12px 9px"><div style="background:#e6f1fb;border-left:3px solid #3a85c9;border-radius:3px;padding:7px 10px;font-family:Arial,sans-serif;font-size:11.5px;line-height:1.5;color:#0a2752">${esc(
+            n.rationale
+          )}</div></td></tr>`
+        : `<tr><td style="padding:0 12px 9px;font-family:Arial,sans-serif;font-size:11px;color:#999">Ranking narrative pending.</td></tr>`
+    }
+    <tr><td style="padding:0 12px 11px;font-family:Arial,sans-serif;font-size:11px">
+      <a href="${esc(rec.reviewUrl || rec.detailUrl)}" style="color:#0c447c">IPOPlatform review</a>
+      ${rec.drhpLink ? ` &nbsp;·&nbsp; <a href="${esc(rec.drhpLink)}" style="color:#0c447c">RHP/Prospectus</a>` : ''}
       ${
-        n.rationale
-          ? `<div style="margin-top:8px">${esc(n.rationale)}</div>`
-          : '<div style="margin-top:8px;color:#757575">Ranking narrative pending.</div>'
+        drhpDriveUrl
+          ? ` &nbsp;·&nbsp; <a href="${esc(drhpDriveUrl)}" style="color:#0c447c;font-weight:700">&#128196; Full DRHP/RHP analysis (PDF)</a>`
+          : n.drhpReportUrl
+            ? ` &nbsp;·&nbsp; ${chip('DRHP PDF pending Drive sync', 'y')}`
+            : ''
       }
-      <div style="margin-top:8px">
-        ${n.subscriptionView ? `<b>View:</b> ${esc(n.subscriptionView)} &nbsp;` : ''}
-        <a href="${esc(rec.reviewUrl || rec.detailUrl)}" style="color:#3949ab">IPOPlatform review</a>
-        ${rec.drhpLink ? ` &nbsp;·&nbsp; <a href="${esc(rec.drhpLink)}" style="color:#3949ab">RHP/Prospectus</a>` : ''}
-        ${
-          drhpDriveUrl
-            ? ` &nbsp;·&nbsp; <a href="${esc(drhpDriveUrl)}" style="color:#3949ab;font-weight:bold">Full DRHP/RHP analysis (PDF)</a>`
-            : n.drhpReportUrl
-              ? ` &nbsp;·&nbsp; <span style="color:#b71c1c;font-size:11px">DRHP/RHP analysis PDF pending Drive sync</span>`
-              : ''
-        }
-      </div>
     </td></tr>
   </table>`;
 }
 
+function fmtCr(v) {
+  return v == null ? '—' : `₹${v.toFixed(1)}cr`;
+}
+
 function fullTableRow(rec) {
-  return `<tr>
+  const retailNote = rec.retailFloatFiltered
+    ? ` ${chip('< ₹50cr', 'y')}`
+    : rec.retailFloatUnknown
+      ? ' <span style="color:#999;font-size:9px">(unk.)</span>'
+      : '';
+  return `<tr${rec.retailFloatFiltered ? ' style="opacity:0.6"' : ''}>
     <td style="border-bottom:1px solid #e0e0e0;padding:4px 6px">${rec.rank}</td>
     <td style="border-bottom:1px solid #e0e0e0;padding:4px 6px"><a href="${esc(
       rec.reviewUrl || rec.detailUrl
@@ -157,6 +234,9 @@ function fullTableRow(rec) {
     <td style="border-bottom:1px solid #e0e0e0;padding:4px 6px">${esc(rec.ipoType)}</td>
     <td style="border-bottom:1px solid #e0e0e0;padding:4px 6px">${esc(rec.exchange)}</td>
     <td style="border-bottom:1px solid #e0e0e0;padding:4px 6px">${esc(rec.listingDate)}</td>
+    <td style="border-bottom:1px solid #e0e0e0;padding:4px 6px;text-align:right">${fmtCr(
+      rec.retailFloatCr
+    )}${retailNote}</td>
     <td style="border-bottom:1px solid #e0e0e0;padding:4px 6px;text-align:right">${fmtX(
       rec.totalSubscriptionX
     )}</td>
@@ -191,14 +271,62 @@ function fullTableRow(rec) {
   </tr>`;
 }
 
-function renderHtml(dto, narrative) {
+/**
+ * Strict, single chokepoint for parsing the narrative file — see the module
+ * header's "COMMON MISTAKE" note. Callers (this skill's own Phase 3, or a
+ * hand-run) are supposed to write `narrative.byIpoId` keyed by ipoId, but a
+ * flat `top3`/`ranked` array carrying `ipoId` per entry is an easy mistake to
+ * make (it mirrors the scanner DTO's own shape) and previously failed
+ * silently — the email shipped with no rationale and no DRHP PDF link and
+ * nothing in the logs said why. This function is the only place in the file
+ * allowed to read `narrative.byIpoId`/`narrative.top3`/`narrative.ranked`
+ * directly; every other function receives the already-normalized per-IPO
+ * entry via `byId[ipoId]`.
+ */
+function normalizeNarrative(narrative) {
   const n = narrative || {};
+  if (n.byIpoId && Object.keys(n.byIpoId).length) return n;
+
+  const flatArrays = [n.top3, n.ranked].filter(Array.isArray);
+  const byIpoId = {};
+  let recovered = 0;
+  for (const arr of flatArrays) {
+    for (const entry of arr) {
+      if (entry && entry.ipoId != null && !byIpoId[entry.ipoId]) {
+        byIpoId[entry.ipoId] = entry;
+        recovered++;
+      }
+    }
+  }
+  if (recovered > 0) {
+    console.warn(
+      `[ipoDigestEmail] narrative.byIpoId was missing/empty — recovered ${recovered} ` +
+        `entr${recovered === 1 ? 'y' : 'ies'} from a flat top3/ranked array instead. This ` +
+        `narrative file was written in the wrong shape (see this script's header "COMMON ` +
+        `MISTAKE" note) — fix the writer (ipo-subscription-ranker Phase 3) so this warning ` +
+        `stops appearing; the recovery here is a safety net, not the intended path.`
+    );
+    return { ...n, byIpoId };
+  }
+  if (flatArrays.some((a) => a.length)) {
+    console.warn(
+      '[ipoDigestEmail] narrative.top3/ranked present but no entries carried a matching ' +
+        '`ipoId` field — narrative could not be recovered, email will ship with no ' +
+        'per-IPO rationale/DRHP link.'
+    );
+  }
+  return n;
+}
+
+function renderHtml(dto, narrative) {
+  const n = normalizeNarrative(narrative);
   const byId = n.byIpoId || {};
   const top3 = dto.top3 || [];
   const headCols = [
-    'Rank', 'Company', 'Type', 'Exchange', 'Listing', 'Total', 'QIB', 'sHNI', 'bHNI', 'NII', 'RII',
+    'Rank', 'Company', 'Type', 'Exchange', 'Listing', 'Retail Float', 'Total', 'QIB', 'sHNI', 'bHNI', 'NII', 'RII',
     'Listing Score', 'Listing Tier', 'CAGR Score', 'CAGR Tier', 'Combined (0.7L+0.3C)',
   ];
+  const retailFloatFilterCr = dto.retailFloatFilterCr ?? 50;
 
   return `<!doctype html>
 <html><body style="margin:0;padding:0;background:#f5f5f5">
@@ -216,10 +344,21 @@ function renderHtml(dto, narrative) {
       : ''
   }
   ${
+    dto.retailFloatExcludedCount > 0
+      ? `<div style="background:#faeeda;border-left:3px solid #ef9f27;padding:7px 10px;margin-bottom:14px;font-size:12px;color:#633806">
+          ${dto.retailFloatExcludedCount} IPO${dto.retailFloatExcludedCount === 1 ? '' : 's'} excluded from
+          Top 3 / DRHP analysis — retail float below the ₹${retailFloatFilterCr}cr threshold (see
+          "Retail Float" column in the full list below, marked ${chip('< ₹50cr', 'y')}).
+        </div>`
+      : ''
+  }
+  ${
     top3.length
       ? `<h3 style="color:#1a237e;margin:18px 0 8px">Top ${top3.length} by subscription quality</h3>` +
         top3.map((rec) => top3Card(rec, byId[rec.ipoId])).join('')
-      : '<div style="color:#757575">No IPOs listing on the target date matched this run\'s universe.</div>'
+      : dto.universeSize > 0 && dto.retailFloatExcludedCount >= dto.universeSize
+        ? `<div style="color:#757575">All ${dto.universeSize} IPO(s) in today's universe were excluded from Top 3 — retail float below the ₹${retailFloatFilterCr}cr threshold. See the full list below for the scores/multiples anyway.</div>`
+        : '<div style="color:#757575">No IPOs listing on the target date matched this run\'s universe.</div>'
   }
   ${
     dto.ranked.length
@@ -229,30 +368,73 @@ function renderHtml(dto, narrative) {
             .map(
               (h) =>
                 `<th style="border-bottom:2px solid #9fa8da;padding:5px 6px${
-                  ['Total', 'QIB', 'sHNI', 'bHNI', 'NII', 'RII', 'Listing Score', 'CAGR Score', 'Combined (0.7L+0.3C)'].includes(h)
+                  ['Retail Float', 'Total', 'QIB', 'sHNI', 'bHNI', 'NII', 'RII', 'Listing Score', 'CAGR Score', 'Combined (0.7L+0.3C)'].includes(h)
                     ? ';text-align:right'
                     : ''
                 }">${h}</th>`
             )
             .join('')}</tr>
           ${dto.ranked.map(fullTableRow).join('')}
-        </table>`
+        </table>
+        <div style="font-size:10px;color:#999;margin-top:4px">Rows dimmed + tagged ${chip(
+          '< ₹50cr',
+          'y'
+        )} were excluded from Top 3/DRHP analysis on retail-float grounds; "(unk.)" means the retail-share figure could not be scraped for that IPO this run (not excluded, since an unknown float is not assumed to be a small one).</div>`
       : ''
   }
-  <div style="margin-top:20px;font-size:11px;color:#9e9e9e">
+  <div style="margin-top:20px;padding:10px 12px;background:#f5f4f0;border-radius:4px;font-size:11px;color:#444;line-height:1.6">
+    <div style="font-family:monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:#888;margin-bottom:5px">How to read the scores</div>
+    Each IPO gets two scores, both on the <b>same unbounded scale</b> — not a 0-1 or
+    0-10 bounded score, but a weighted blend of <code>log10(1+subscription multiple)</code>
+    across QIB/sHNI/bHNI/NII/RII/Total (so a 100x QIB print doesn't swamp the score the
+    way a raw multiple would), plus a +0.05 bonus if Anchor Investors participated.
+    <b>Listing Score</b> predicts listing-day gain; <b>CAGR Score</b> predicts longer-run
+    daily-CAGR performance and is the noisier, less discriminating of the two (r 0.12-0.21
+    vs 0.21-0.38 for listing gain across an 837-IPO backtest) — treat it as directional,
+    not precise. Both are empirically weighted on that same merged
+    IPOPlatform+NSE+BSE historical sample (see <code>ipoWeightFinder.js</code>).
+    Each score maps to one of 4 tiers — <b>STRONG is the top/best tier, there is no
+    tier above it</b>:
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:6px 0;border-collapse:collapse;font-size:10.5px">
+      <tr>
+        <td style="padding:3px 10px 3px 0">${chip('STRONG', 'g')}</td>
+        <td style="padding:3px 10px 3px 0">score &ge; 0.90</td>
+        <td style="padding:3px 0;color:#666">roughly a well-subscribed blended read, &ge;~7x-equivalent</td>
+      </tr>
+      <tr>
+        <td style="padding:3px 10px 3px 0">${chip('MODERATE', 'y')}</td>
+        <td style="padding:3px 10px 3px 0">0.55 &ndash; 0.90</td>
+        <td style="padding:3px 0;color:#666">decent but not standout, &asymp;2.5x&ndash;7x-equivalent</td>
+      </tr>
+      <tr>
+        <td style="padding:3px 10px 3px 0">${chip('WEAK', 'y')}</td>
+        <td style="padding:3px 10px 3px 0">0.30 &ndash; 0.55</td>
+        <td style="padding:3px 0;color:#666">thin coverage, &asymp;1x&ndash;2.5x-equivalent</td>
+      </tr>
+      <tr>
+        <td style="padding:3px 10px 3px 0">${chip('POOR', 'r')}</td>
+        <td style="padding:3px 10px 3px 0">&lt; 0.30</td>
+        <td style="padding:3px 0;color:#666">under-subscribed on a blended basis</td>
+      </tr>
+    </table>
+    *The "~Nx-equivalent" figures above are a rough single-category sanity-check
+    (solving <code>log10(1+x)</code> for the threshold score), not a literal
+    subscription multiple — the real score blends 5 weighted categories plus the
+    anchor bonus, so an actual IPO's tier depends on its full category mix, not one
+    number alone. Full formula + weights + tier thresholds:
+    <code>skills/equity-research/ipo-subscription-ranker/references/ipo_ranking_framework.md</code>
+    (tier cutoffs live in <code>packages/jobs-runtime/lib/ipoScoring.js</code>'s
+    <code>tierFor()</code>). Top-3 selection uses Combined Score = Listing Score &times;
+    0.7 + CAGR Score &times; 0.3 (listing gain is the stronger, better-validated signal,
+    so it dominates the blend).
+  </div>
+  <div style="margin-top:10px;font-size:11px;color:#9e9e9e">
     Source: ipoplatform.com (closed IPOs + live subscription status) — cross-verified
     against Chittorgarh.com's published methodology (same data pipeline; both correctly
     exclude Anchor and Market Maker allocations from NII/HNI/Total denominators). NSE's
     own per-IPO data is used only as a secondary/fallback source, never for this daily
     ranking. See references/ipo_data_sources.md if these numbers ever look inconsistent
-    with another IPO-tracking site. Two scores per IPO: Listing Score (predicts
-    listing-day gain) and CAGR Score (predicts longer-run daily-CAGR performance) — both
-    empirically weighted on a merged IPOPlatform+NSE+BSE historical sample (837 IPOs, see
-    ipoWeightFinder.js). Top-3 chosen on Combined Score = Listing Score × 0.7 + CAGR Score
-    × 0.3 (listing gain is the stronger, better-validated signal, so it dominates the
-    blend). Scoring formula:
-    skills/equity-research/ipo-subscription-ranker/references/ipo_ranking_framework.md
-    and references/ipo_data_sources.md.
+    with another IPO-tracking site.
     ${n.modelUsed ? `Narrative by ${esc(n.modelUsed)}.` : ''}
   </div>
 </div>

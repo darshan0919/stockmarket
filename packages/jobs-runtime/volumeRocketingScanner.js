@@ -67,7 +67,8 @@ async function main({
   log = (m) => process.stderr.write(m),
   topN = TARGET_COUNT,
 } = {}) {
-  const mDate = marketDate || gainersScanner.lastTradingDay(gainersScanner.istToday());
+  const now = new Date();
+  const mDate = marketDate || gainersScanner.resolveMarketDate(gainersScanner.istToday(now), now);
   const mDateStr = mDate.toISOString().slice(0, 10);
   return gainersScanner.main({
     marketDate: mDate,

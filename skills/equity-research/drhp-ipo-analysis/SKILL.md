@@ -164,6 +164,7 @@ _from_, only a single hand-written document that was both the data and the layou
        "anchor_investors": {"allocation_price_inr": num, "bidding_date": "...", "total_raised_inr_cr": num, "allottees": [{"name": "...", "pct_of_anchor_book": num}], "quality_assessment": "MARQUEE|MIXED|BOUTIQUE_LESSER_KNOWN", "source": "web-search, not DRHP-native", "citation_url": "..."},
        "post_listing_trading": {"checked": bool, "source": "nse-bse-api|websearch-fallback|unverifiable", "bulk_block_deals": [{"date": "...", "exchange": "NSE|BSE", "buyer": "...", "seller": "...", "qty": num, "price_inr": num}], "note": "state explicitly if unverifiable rather than omitting"},
        "subscription": {
+         "type": "ipo_subscription",
          "checked": true, "source": "ipoplatform", "as_of": "...",
          "anchor_participated": bool, "total_x": num, "qib_x": num, "s_hni_x": num, "b_hni_x": num, "nii_x": num, "rii_x": num,
          "listing_score": num, "listing_tier": "STRONG|MODERATE|WEAK|POOR",
@@ -185,6 +186,17 @@ _from_, only a single hand-written document that was both the data and the layou
    `order_book_as_of` stay top-level since the renderer already has a dedicated slot for them.
    If these sections earn dedicated, better-laid-out treatment later, that's a `render_drhp.py`
    enhancement to do deliberately — not a reason to skip populating them now.
+
+   `additional.subscription` is the one exception with a hand-written layout:
+   `skills/_shared/render_additional.py`'s `_render_subscription()` (triggered by
+   `"type": "ipo_subscription"`, with a shape-based fallback if that key is ever omitted)
+   renders it as a two-column split — left half a compact category table (QIB / Non-
+   Institutional Buyers with bNII/sNII sub-rows / RII / Total, each value `x`-suffixed, e.g.
+   `164.56x`, never the field name), right half the judgment fields (Insight, Listing Score,
+   Cagr Score, Source). `citation_url` stays in the DTO (never delete a fact) but is
+   intentionally not rendered — `source`/`as_of` already say where the numbers came from, so
+   repeating the URL wastes space the generic kv-table layout was burning through before this
+   dedicated renderer existed.
 
    `additional` (any JSON shape — see
    [`skills/tooling/output-dto-standard/SKILL.md`](../../tooling/output-dto-standard/SKILL.md))
