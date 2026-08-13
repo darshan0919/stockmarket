@@ -89,6 +89,20 @@ function main() {
   const manifest = JSON.parse(fs.readFileSync(args.manifest, 'utf8'));
   const today = new Date().toISOString().slice(0, 10);
 
+  // SAFETY CHECK (2026-08-12): Prevent saving incomplete extraction runs
+  // If --excerpts-dir is provided but no excerpt files exist, this likely means
+  // Step 2 (cheap-model extraction) failed or was skipped. Abort rather than
+  // persisting records that will sit stuck with excerptsPending=true forever.
+  if (args.excerptsDir && fs.existsSync(args.excerptsDir)) {
+    const excerptFiles = fs.readdirSync(args.excerptsDir).filter(f => f.endsWith('.json'));
+    if (excerptFiles.length === 0) {
+      console.error('[FATAL] --excerpts-dir was provided but contains NO excerpt files.');
+      console.error('This likely means Step 2 (excerpt extraction) did not complete.');
+      console.error('Do not persist incomplete records — re-run the extraction and try again.');
+      process.exit(1);
+    }
+  }
+
   const saved = [];
   const parseFailures = []; // loud-surfacing list (SKILL.md fix, 2026-08-09 REDTAPE incident)
   for (const entry of manifest) {

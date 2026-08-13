@@ -721,6 +721,46 @@ class StockscansClient {
       throw e;
     }
   }
+
+  /**
+   * Results scan with filters and date filtering — powers the /result-scans page
+   * with advanced filtering capability. Unlike {@link resultsDocuments}, this
+   * endpoint supports:
+   * - `resultDate` filter to fetch results filed on a specific date
+   * - Custom scan filters (e.g., EPS Growth, Market Cap thresholds)
+   * - Full pagination support (response includes offset management)
+   *
+   * Confirmed by live testing (2026-08-11):
+   * - Payload must include `scan` object with `filters` array (can be empty)
+   * - `resultDate` in YYYY-MM-DD format filters to results filed that day
+   * - Response includes `data.results` array with company records
+   * - Paginates via `offset` parameter (can determine page size by response count)
+   *
+   * @param {Object} payload - Full payload shape:
+   *   {
+   *     scan: {
+   *       filters: [{left: string, sign: string, right: number|string}, ...],
+   *       index: [],
+   *       industry: [],
+   *       watchlistIds: []
+   *     },
+   *     order: 'desc'|'asc',
+   *     orderBy: string (e.g. "Last Result Date"),
+   *     offset: number,
+   *     resultDate: 'YYYY-MM-DD',
+   *     searchCompany: '',
+   *     documentType: ''
+   *   }
+   * @param {Object} [opts]
+   * @param {string} [opts.referer]
+   * @returns {Promise<{data: {results: Array}, status: number, message?: string}>}
+   */
+  async resultsScan(payload, { referer = `${BASE_URL}/result-scans` } = {}) {
+    const { data } = await this.http.post(`${BASE_URL}/api/company/results/scan`, payload, {
+      headers: this._headers(referer),
+    });
+    return data;
+  }
 }
 
 /**

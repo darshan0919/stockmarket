@@ -55,11 +55,30 @@ Either:
 - `--tickers NSE:A,NSE:B` or `--tickers-file companies.json` — an explicit
   list, `scanRow` is `null` for these.
 
-## Step 1 — Bulk fetch (script, zero LLM)
+## Orchestration: All Steps in One Invocation (REQUIRED)
+
+**CRITICAL FIX (2026-08-12):** The skill now uses an orchestrator that runs **ALL 4 steps in sequence**.
+Previously, Step 2 (excerpt extraction) could be skipped, leaving records with `excerpts: []` and
+`excerptsPending: true` forever. This is now impossible — Step 2 is mandatory and always executes.
 
 ```bash
 export STOCKSCANS_AUTH_TOKEN="$(grep '^STOCKSCANS_AUTH_TOKEN' .env | cut -d= -f2-)"
 
+# Run the complete pipeline (all 4 steps: fetch → extract → validate → persist)
+node skills/equity-research/guidance-document-extractor/scripts/orchestrate_extraction.js \
+  --scan-url "https://www.stockscans.in/scans/saved/<id>"
+```
+
+The orchestrator guarantees:
+- Step 1 (Fetch): Always runs first
+- Step 2 (Extract): **NOW MANDATORY** — always runs, never skipped
+- Step 3 (Validate): Always validates excerpts
+- Step 4 (Persist): Always persists with excerpts included
+
+## Step 1 — Bulk fetch (script, zero LLM)
+
+```bash
+# This is called BY the orchestrator, not directly
 node skills/equity-research/guidance-document-extractor/scripts/fetch_guidance_documents.js \
   --scan-url "https://www.stockscans.in/scans/saved/<id>" \
   --out-dir /tmp/guidance_docs > /tmp/guidance_fetch_manifest.json

@@ -21,7 +21,17 @@ judging what the quarter's disclosures actually MEAN for the thesis.
 - User uploads any combination of: quarterly investor presentation, concall transcript, results PDF, and asks for interpretation
 - User says any variant of: "analyse this quarter", "what changed", "post-result note", "result interpretation", "quarterly snapshot", "what's improving / what can go wrong", "what is management signalling"
 - User provides only a Stockscans ticker plus result-day intent — see "Smart DB-availability check" below for how document acquisition is handled
+- Scheduled daily job invocation with `--companyId NSE:X --date YYYY-MM-DD` — analysis is scoped to a specific extraction date (see **Input** below)
 - Another skill needs a single-quarter interpretive layer (e.g., to bolt onto a multi-quarter analysis)
+
+## Input
+
+**For interactive use:**
+- Upload result PDF / concall transcript / investor PPT, or provide a ticker
+
+**For scheduled daily jobs:**
+- `--companyId NSE:X` — the company to analyze
+- `--date YYYY-MM-DD` — the extraction date (scopes DB lookup to records created for that date)
 
 ## How this differs from neighbouring skills
 
@@ -55,9 +65,22 @@ If the user uploaded files directly, skip straight to Phase 1 and use those
 files instead of the DB record (this remains the fastest path when the
 documents are already in hand).
 
-Otherwise — the user gave only a ticker — look up `quarterly-result-extractor`'s
-persisted record: `db.find('reports', {type: 'quarterly-result-documents', companyId})`,
-then `db.readReport(id)` for the full body. Three distinct cases:
+Otherwise — the user gave only a ticker (or ticker + date for scheduled jobs) — look up 
+`quarterly-result-extractor`'s persisted record. Query logic depends on context:
+
+**If `--date YYYY-MM-DD` was provided (scheduled job):**
+```
+db.find('reports', {type: 'quarterly-result-documents', companyId, date: YYYY-MM-DD})
+```
+This scopes the lookup to extraction records created for that specific date (the daily job pipeline).
+
+**If no `--date` provided (interactive use):**
+```
+db.find('reports', {type: 'quarterly-result-documents', companyId})
+```
+This finds the most recent extraction record regardless of date.
+
+Then `db.readReport(id)` for the full body. Three distinct cases:
 
 1. **No record at all.** `quarterly-result-extractor` was never run for this
    company. Auto-invoke it now (this skill's whole "give me a ticker, get a

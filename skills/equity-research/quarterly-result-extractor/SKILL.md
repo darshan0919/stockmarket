@@ -43,19 +43,29 @@ DB).
 
 ## Input
 
-`--ticker NSE:X` (single company; this skill is company-scoped, unlike the
+`--companyId NSE:X` — single company (this skill is company-scoped, unlike the
 batch-oriented guidance pipeline — quarterly interpretation is normally
 requested one company at a time).
+
+**Optional parameters:**
+- `--date YYYY-MM-DD` — scope extraction to a specific date (for daily scheduled jobs). 
+  When provided, fetches documents filed on that exact date instead of the latest quarter.
+  Defaults to the current/latest quarter if omitted.
 
 ## Step 1 — Fetch documents (script, zero LLM)
 
 ```bash
+# Standard usage (latest quarter):
 export STOCKSCANS_AUTH_TOKEN="$(grep '^STOCKSCANS_AUTH_TOKEN' .env | cut -d= -f2-)"
-TICKER="NSE:SWARAJENG"            # replace with the actual ticker
-SAFE=$(echo "$TICKER" | tr ':' '_')
+COMPANY_ID="NSE:SWARAJENG"
+SAFE=$(echo "$COMPANY_ID" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_qra_docs"
 node skills/equity-research/quarterly-result-extractor/scripts/fetch_result_documents.js \
-  --ticker "$TICKER" --out-dir "$DOCS_DIR" > "${DOCS_DIR}/manifest.json"
+  --companyId "$COMPANY_ID" --out-dir "$DOCS_DIR" > "${DOCS_DIR}/manifest.json"
+
+# Scheduled task usage (specific date):
+node skills/equity-research/quarterly-result-extractor/scripts/fetch_result_documents.js \
+  --companyId "$COMPANY_ID" --date "2026-08-10" --out-dir "$DOCS_DIR" > "${DOCS_DIR}/manifest.json"
 ```
 
 `fetch_result_documents.js` wraps `documentsFetcher.js` (`fetchDocuments()`)
@@ -63,18 +73,21 @@ and `get-concall-transcript-url.js` (`ConcallTranscriptResolver`) — the same
 two primitives the old single-skill Phase 1 called inline, now behind one
 script instead of ad-hoc bash:
 
-1. PPT + Result, latest quarter, straight from Stockscans (`fetchDocuments`
-   with `types: ['PPT', 'Result']`, `startDate`/`endDate` = current quarter).
-2. Latest Transcript: resolved via `ConcallTranscriptResolver` first (guaranteed
+1. **Date-scoped behavior:** If `--date` is provided, fetches documents filed on that 
+   specific date; otherwise fetches the latest quarter's documents.
+2. PPT + Result, straight from Stockscans (`fetchDocuments`
+   with `types: ['PPT', 'Result']`, `startDate`/`endDate` = either the specific
+   date window or current quarter).
+3. Latest Transcript: resolved via `ConcallTranscriptResolver` first (guaranteed
    to exist for every reported quarter now), then downloaded through
    `fetchDocuments` if resolution succeeds. On resolver `error` with PPT/Result
    also empty, results genuinely aren't out yet — stop and say so. On resolver
    `error` with PPT/Result present, proceed without a transcript and set
    `transcriptMissing: true` in the manifest — don't fail the whole fetch.
-3. The PRIOR quarter's Transcript (`--last-n 2` semantics), for the
+4. The PRIOR quarter's Transcript (`--last-n 2` semantics), for the
    narrative-shift comparison `quarterly-result-analysis` needs. Which of
-   the two returned entries is "prior" depends on whether step 2's resolver
-   call succeeded for the newest quarter — see the script's inline comment;
+   the two returned entries is "prior" depends on whether the resolver
+   call succeeded for the target quarter — see the script's inline comment;
    this logic moved verbatim from the old Phase 1, it did not change.
 
 Output: `manifest.json` — `{ticker, companyId, quarter, found: {PPT, Result, Transcript, PriorTranscript}, transcriptMissing, pdfPaths}`.
@@ -182,8 +195,12 @@ node skills/equity-research/quarterly-result-extractor/scripts/save_result_docum
 
 Saves ONE `quarterly-result-documents` report via `db.saveReport()`, envelope
 per `docs/DATA_RULES.md` §4 (`id`, `creationTime`, `modifiedTime`,
-`creator: "quarterly-result-extractor"`, `companyId`, `date`). Always save,
-including a genuine "nothing found" record when results aren't out yet —
+`creator: "quarterly-result-extractor"`, `companyId`, `date`). The `date` field
+is set to:
+- The `--date` parameter value if provided (scoped extraction for scheduled jobs)
+- The extracted document's filing date otherwise (for interactive/manual runs)
+
+Always save, including a genuine "nothing found" record when results aren't out yet —
 this is what lets `quarterly-result-analysis` tell "never run" apart from
 "run, results genuinely not filed" the same way `forward-guidance-extractor`
 does for the guidance pipeline. No `modelUsed` field unless Step 3 ran on an

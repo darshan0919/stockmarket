@@ -74,11 +74,33 @@ first thing to check is whether that DB record's excerpts actually captured
 the relevant passages, not whether this stage's reasoning missed something
 already in front of it.
 
+## Input Parameters
+
+**For interactive use:**
+- Stockscans saved-scan URL or explicit ticker list
+
+**For scheduled daily jobs:**
+- `--date YYYY-MM-DD` — scope DB queries to extraction records created for that date
+  (allows the morning forward-guidance job to only process documents fetched the previous night)
+
 ## Smart DB-availability check (read this before Phase 1)
 
 For each company being processed, first look up its `guidance-documents`
-report: `db.find('reports', {type: 'guidance-documents', companyId})`, then
-`db.readReport(id)` for the full body. Three distinct cases -- do not
+report. Query logic depends on context:
+
+**If `--date YYYY-MM-DD` was provided (scheduled job):**
+```
+db.find('reports', {type: 'guidance-documents', companyId, date: YYYY-MM-DD})
+```
+This scopes the lookup to document-extraction records created for that specific date.
+
+**If no `--date` provided (interactive use):**
+```
+db.find('reports', {type: 'guidance-documents', companyId})
+```
+This finds the most recent guidance-documents record regardless of date.
+
+Then `db.readReport(id)` for the full body. Three distinct cases -- do not
 conflate them:
 
 1. **No record at all** — `guidance-document-extractor` was never run for
