@@ -31,6 +31,7 @@ function dataRoot() {
 const DIRS = {
   reports: () => path.join(dataRoot(), 'reports'),
   conversations: () => path.join(dataRoot(), 'conversations'),
+  learnystLessons: () => path.join(dataRoot(), 'learnyst-lessons'),
   assets: () => path.join(dataRoot(), 'assets'),
   runs: () => path.join(dataRoot(), 'runs'),
   cache: () => path.join(dataRoot(), 'cache'),
@@ -64,6 +65,14 @@ const SINGLE_FILE_COLLECTIONS = [
   // record shape and docs/nse-bse-historical-deals-api.md for how it's built.
   'supportive-investors',
   'unsupportive-investors',
+  // learnyst-lessons: slim index for AI-transcript records of Learnyst course
+  // videos (learnyst-transcript-refresh job/script). Genuinely a new entity
+  // class (DATA_RULES.md §3): not company-scoped (personal course content,
+  // not stock research), doesn't fit reports/notes/events. Two-file pattern
+  // like `reports` — full transcript body lives in learnyst-lessons/<id>.json
+  // (tens of KB each across hundreds of lessons), this file holds only the
+  // slim index. Written via saveLearnystTranscript() below, never directly.
+  'learnyst-lessons',
 ];
 const LINK_CAP = 200; // max event/note/insight ids kept on a company object
 const LOCK_STALE_MS = 5 * 60 * 1000;
@@ -618,6 +627,63 @@ function readReport(id) {
   return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
 }
 
+/**
+ * Save a Learnyst course-video transcript: full DTO body (transcript text +
+ * raw API response) → learnyst-lessons/<id>.json, slim index entry →
+ * learnyst-lessons.json. Mirrors saveReport()'s two-file pattern for the same
+ * reason (transcript bodies are tens of KB each, hundreds of lessons — folding
+ * into one file would make every save rewrite a multi-MB collection).
+ * `dto` must include creator, type ("learnyst-transcript"), courseId, lessonId
+ * — NOT company-scoped (personal course content), so no linkToCompanies call.
+ */
+function saveLearnystTranscript(dto) {
+  ensureEnvelope(dto, { kind: 'lyt', scope: dto.courseId, discriminator: String(dto.lessonId) });
+  init();
+  const bodyPath = path.join(DIRS.learnystLessons(), `${dto.id}.json`);
+  withLock('learnyst-lesson-bodies', () => {
+    writeFileAtomic(bodyPath, dto);
+  });
+  const {
+    id,
+    type,
+    creator,
+    creationTime,
+    modifiedTime,
+    courseId,
+    courseTitle,
+    sectionId,
+    lessonId,
+    lessonTitle,
+    lessonType,
+    durationSeconds,
+    fetchedAt,
+  } = dto;
+  upsertMany('learnyst-lessons', [
+    {
+      id,
+      type,
+      creator,
+      creationTime,
+      modifiedTime,
+      courseId,
+      courseTitle,
+      sectionId,
+      lessonId,
+      lessonTitle,
+      lessonType,
+      durationSeconds,
+      fetchedAt,
+      body: `learnyst-lessons/${id}.json`,
+    },
+  ]);
+  return dto.id;
+}
+
+function readLearnystTranscript(id) {
+  const p = path.join(DIRS.learnystLessons(), `${id}.json`);
+  return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
+}
+
 /** Append market events (gainer|deal|tweet|announcement|watchlist-sync records). */
 function appendEvents(records, { creator } = {}) {
   for (const r of records) {
@@ -740,6 +806,8 @@ module.exports = {
   find,
   saveReport,
   readReport,
+  saveLearnystTranscript,
+  readLearnystTranscript,
   saveConversation,
   readConversation,
   savePrompt,

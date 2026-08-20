@@ -55,7 +55,7 @@ const NEVER_SYNC = (rel) =>
   // any reports/rpt_artifact-migration_*.json is an orphan (do not sync)
   /^reports\/rpt_artifact-migration_.*\.json$/.test(rel);
 const IS_COLLECTION = (rel) =>
-  /^(companies|reports|notes|theses|validation|conversations|prompts|ipos|supportive-investors|unsupportive-investors|events-\d{4}-\d{2})\.json$/.test(
+  /^(companies|reports|notes|theses|validation|conversations|prompts|ipos|supportive-investors|unsupportive-investors|learnyst-lessons|events-\d{4}-\d{2})\.json$/.test(
     rel
   );
 
@@ -76,6 +76,37 @@ function saveState(state) {
 
 const sha256 = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 const md5 = (file) => crypto.createHash('md5').update(fs.readFileSync(file)).digest('hex');
+
+// ── reporting helpers ────────────────────────────────────────────────────────
+// "skipped" is the expected steady-state outcome (file already matches last
+// sync) — not a failure. These helpers turn the flat counters into a
+// folder-level breakdown so a run is easy to sanity-check at a glance.
+
+/** rel path -> top-level bucket, e.g. "learnyst-lessons/x.json" -> "learnyst-lessons/" */
+function bucketOf(rel) {
+  const slash = rel.indexOf('/');
+  return slash === -1 ? rel : `${rel.slice(0, slash)}/`;
+}
+
+function tally(rels) {
+  const byBucket = {};
+  for (const rel of rels) {
+    const b = bucketOf(rel);
+    byBucket[b] = (byBucket[b] || 0) + 1;
+  }
+  return byBucket;
+}
+
+function printBreakdown(label, rels, sample = 5) {
+  if (!rels.length) return;
+  const byBucket = tally(rels);
+  const lines = Object.entries(byBucket)
+    .sort((a, b) => b[1] - a[1])
+    .map(([b, n]) => `${b} (${n})`);
+  console.log(`[data ${label}] by folder: ${lines.join(', ')}`);
+  rels.slice(0, sample).forEach((r) => console.log(`  ${label === 'push' ? '↑' : '↓'} ${r}`));
+  if (rels.length > sample) console.log(`  … and ${rels.length - sample} more`);
+}
 
 function walkLocal() {
   const root = db.dataRoot();
@@ -156,6 +187,9 @@ async function push({ dryRun }) {
     skipped = 0,
     merged = 0;
   const errors = [];
+  const uploadedRels = [];
+  const mergedRels = [];
+  const skippedAlreadyOnDrive = []; // adopted-not-reuploaded (interrupted-push recovery)
 
   for (const rel of locals) {
     const abs = path.join(root, rel);
@@ -184,16 +218,21 @@ async function push({ dryRun }) {
       };
       if (!dryRun) saveState(state);
       skipped++;
+      skippedAlreadyOnDrive.push(rel);
       continue;
     }
 
     try {
       if (IS_COLLECTION(rel) && remoteDrifted) {
         // Both sides may have changed → merge before uploading (no data loss).
-        if (!dryRun && (await mergeFromDrive(drive, rel))) merged++;
+        if (!dryRun && (await mergeFromDrive(drive, rel))) {
+          merged++;
+          mergedRels.push(rel);
+        }
       }
       if (dryRun) {
         uploaded++;
+        uploadedRels.push(rel);
         continue;
       }
       const res = await uploadFile(drive, DRIVE_ROOT, rel, abs);
@@ -204,7 +243,7 @@ async function push({ dryRun }) {
         syncedAt: new Date().toISOString(),
       };
       uploaded++;
-      console.log(`[data push] ↑ ${rel}`); // per-file manifest (docs/DATA_RULES.md §8)
+      uploadedRels.push(rel);
       if (!dryRun) saveState(state); // incremental — interrupted pushes resume, never re-upload
     } catch (e) {
       errors.push(`${rel}: ${e.message}`);
@@ -224,9 +263,24 @@ async function push({ dryRun }) {
     saveState(state);
   }
 
+  const alreadySynced = skipped - skippedAlreadyOnDrive.length;
   console.log(
     `[data push] uploaded=${uploaded} merged=${merged} skipped=${skipped}${dryRun ? ' (dry-run)' : ''}`
   );
+  console.log(
+    `[data push]   of ${skipped} skipped: ${alreadySynced} unchanged since last sync, ` +
+      `${skippedAlreadyOnDrive.length} already present on Drive with identical content (adopted, not re-uploaded)`
+  );
+  printBreakdown('push', uploadedRels);
+  if (mergedRels.length) {
+    console.log(`[data push] merged collections (both sides changed): ${mergedRels.join(', ')}`);
+  }
+  if (uploaded === 0 && merged === 0) {
+    console.log(
+      '[data push] nothing to upload — every local file already matched the last-known Drive state. ' +
+        'This is expected on a re-run right after a clean sync; it is not a failure.'
+    );
+  }
   if (errors.length) {
     console.error(`[data push] ${errors.length} error(s) — NOT pruning those files:`);
     errors.forEach((e) => console.error(`  - ${e}`));
@@ -242,6 +296,9 @@ async function pull({ dryRun }) {
   let downloaded = 0,
     mergedN = 0,
     skipped = 0;
+  const downloadedRels = [];
+  const mergedRels = [];
+  const conflictRels = [];
 
   for (const f of remote) {
     const rel = f.driveRel;
@@ -262,17 +319,22 @@ async function pull({ dryRun }) {
     }
 
     if (IS_COLLECTION(rel) && localChanged) {
-      if (await mergeFromDrive(drive, rel)) mergedN++;
+      if (await mergeFromDrive(drive, rel)) {
+        mergedN++;
+        mergedRels.push(rel);
+      }
     } else {
       if (localChanged && localExists) {
         // Non-mergeable conflict: keep the local version as evidence, Drive wins.
         fs.copyFileSync(abs, `${abs}.local-conflict.${Date.now()}`);
+        conflictRels.push(rel);
         console.error(
           `[data pull] CONFLICT (non-collection): ${rel} — local copy saved as *.local-conflict.*`
         );
       }
       await downloadFile(drive, DRIVE_ROOT, rel, abs);
       downloaded++;
+      downloadedRels.push(rel);
     }
     state.files[rel] = {
       sha256: sha256(abs),
@@ -286,6 +348,21 @@ async function pull({ dryRun }) {
   console.log(
     `[data pull] downloaded=${downloaded} merged=${mergedN} skipped=${skipped}${dryRun ? ' (dry-run)' : ''}`
   );
+  printBreakdown('pull', downloadedRels);
+  if (mergedRels.length) {
+    console.log(`[data pull] merged collections (both sides changed): ${mergedRels.join(', ')}`);
+  }
+  if (conflictRels.length) {
+    console.log(
+      `[data pull] ${conflictRels.length} non-collection conflict(s), Drive won, local saved as *.local-conflict.*: ${conflictRels.join(', ')}`
+    );
+  }
+  if (downloaded === 0 && mergedN === 0) {
+    console.log(
+      `[data pull] nothing new — all ${skipped} Drive-tracked files already matched local state. ` +
+        'This is expected right after a push from this same machine; it is not a failure.'
+    );
+  }
 }
 
 async function status() {

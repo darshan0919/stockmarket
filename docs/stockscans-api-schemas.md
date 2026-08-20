@@ -329,13 +329,138 @@ needed. Use `stock-api/bin/get-concall-transcript-url.js`:
 
 ---
 
+## POST /api/company/scans/run
+
+Client method: `runScan(payload, scanId)`. Confirmed live 2026-08-20 —
+built for `stock-api/bin/sync-company-sector-industry.js` (the sector/industry
+company-master sync).
+
+**Request:**
+
+```json
+{
+  "ratiosType": "Default",
+  "timePeriod": "Latest",
+  "scan": {
+    "filters": [],
+    "index": [],
+    "industry": [],
+    "tags": [],
+    "scanName": "Scan Name",
+    "scanDescription": "Scan Description",
+    "watchlistIds": []
+  },
+  "watchlistIds": [],
+  "order": "desc",
+  "orderBy": "Market Capitalization",
+  "offset": 0
+}
+```
+
+Notes:
+
+- Paginates in steps of **50** (`offset`). `total` IS trustworthy for this
+  endpoint (confirmed: `offset:50` returned `start:51,end:100`; an offset
+  near the tail of a 6472-company universe returned exactly
+  `total - offset` rows) — the *opposite* of `scanAnnouncements`'s
+  self-inflating `total` (§16 in `skills/_shared/conventions.md`); safe to
+  use `total` here to compute the full page count.
+- `scan.scanName`/`scan.scanDescription` appear to be free-text placeholders
+  accepted for any ad-hoc (non-saved) scan, not validated against a real
+  saved scan — similar to the `scanId`/`scanName` placeholder pattern noted
+  for `scanAnnouncements`.
+- As of 2026-08-20 this returns the full market universe: `total: 6475`.
+- **Rate limit is real and tight, and the ban is long-lived — plan around
+  it.** Live-tested: ~40-90 requests (independent of concurrency —
+  triggered both at concurrency 5/300ms-apart and concurrency 1/1s-apart)
+  returned HTTP 429, and the ban was NOT a short burst window — a single
+  isolated probe request still got 429 at +60s and +240s after the trip,
+  clearing only around +8-9 minutes later. Any new caller of this endpoint
+  should fetch sequentially with ~1s between requests (not concurrently) and
+  implement exponential-backoff retry on 429 with a ceiling long enough to
+  ride out a multi-minute ban (`withRateLimitRetry` in
+  `sync-company-sector-industry.js` is the reference implementation — 8
+  attempts, 2s base, doubling, ~8.5min cumulative ceiling).
+
+**Response:**
+
+```json
+{
+  "table": {
+    "0": ["companyId", "Name", "Market Capitalization", "...", "Pledged Percentage", "Industry", "Sector"],
+    "1": ["NSE:RELIANCE", "Reliance Industries Ltd", 1774115.34, "...", 0, "Refineries", "Refineries"],
+    "2": ["NSE:BHARTIARTL", "Bharti Airtel Ltd", "...", 0, "Telecom Services", "Telecom-Service"]
+  },
+  "total": 6475,
+  "start": 1,
+  "end": 50,
+  "order": "desc",
+  "orderBy": "Market Capitalization",
+  "subscription": "..."
+}
+```
+
+`table` is a JS array **serialized as an object** keyed `"0".."N"` (not a
+real JSON array) — `table["0"]` is the 35-column header (column NAMES, for
+`ratiosType: "Default"`), and `table["1"]..table["N"]` are POSITIONAL
+data-row arrays in the same column order for that page. Confirmed column
+indices (0-based): `companyId` = 0, `Name` = 1, ..., **`Industry` = 33**,
+**`Sector` = 34** (the last two columns). `Industry` is the granular
+classification, `Sector` the broader grouping (e.g. HDFC Bank: Industry
+`"Banks - Private"`, Sector `"Banks"`; Bharti Airtel: Industry
+`"Telecom Services"`, Sector `"Telecom-Service"`) — do not assume they match
+just because some rows (e.g. Reliance: both `"Refineries"`) happen to. The
+full column order for `ratiosType: "Default"`:
+
+```
+0  companyId
+1  Name
+2  Market Capitalization
+3  CFO To PAT
+4  Debt To Equity
+5  Change In FII Holdings Latest Quarter
+6  FII Holdings
+7  Price To Earnings
+8  PEG
+9  Days From Result
+10 Returns Since Result
+11 Price To Sales
+12 Returns 1D
+13 Returns 1W
+14 Industry PE Median
+15 Revenue Growth TTM
+16 PAT Growth TTM
+17 Current Ratio
+18 ROE
+19 ROA
+20 ROCE
+21 ROE Median 3 Years
+22 ROCE Median 3 Years
+23 Price To Book Value
+24 Asset Turnover
+25 Free Cash Flow
+26 Net Cash Flow
+27 Promoter Holdings
+28 DII Holdings
+29 PAT Growth QoQ
+30 PAT Growth YoY
+31 PAT Growth 3 Years
+32 Pledged Percentage
+33 Industry
+34 Sector
+```
+
+Column order/count is tied to `ratiosType: "Default"` — a different
+`ratiosType` (e.g. `"Performance"`, used elsewhere in this codebase for
+`watchlistTable`) may return a different column set; re-confirm indices
+live before reusing this table for another `ratiosType`.
+
+---
+
 ## Other endpoints (reference only, not yet used by any consumer skill)
 
 Brief pointers — expand with full schemas here as they get exercised live:
 
-- `POST /api/company/scans/run` — `runScan(payload, scanId)`, full scan
-  payload (offset, filters, index, industry, watchlistIds — same shape
-  family as the scan endpoints above).
 - `GET /api/user/saved-scans/{scanId}` — `getScanMetadata(scanId)`, the
   saved-scan definition (filters, tags, name).
 - `POST /api/company/announcements/statistics` — `announcementStatistics(payload)`.

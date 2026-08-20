@@ -37,6 +37,7 @@
     "save-concall-transcript": "node bin/save-concall-transcript.js",
     "sector-research-deepdive": "node bin/sector-research-deepdive.js",
     "stock-documents-fetcher": "node bin/stock-documents-fetcher.js",
+    "sync-company-sector-industry": "node bin/sync-company-sector-industry.js",
     "tweet-investor-playbook": "node bin/tweet-investor-playbook.js",
     "watchlist-catalyst-scanner": "node bin/watchlist-catalyst-scanner.js"
   },

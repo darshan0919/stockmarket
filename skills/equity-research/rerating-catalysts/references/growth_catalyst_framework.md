@@ -106,6 +106,89 @@ policy → industry structure/S-curve → balance-sheet deleveraging → governa
   own CDMO example) carries a different (lower) rate-of-change-of-perception than a theme
   in year 1–2. Note theme maturity explicitly — it changes how much re-rating juice is left.
 
+## 5a. The J-curve lifecycle — stage the catalyst, don't just list it
+
+A catalyst identified via §2 sits somewhere on a path: **Trigger → Capacity/
+Operating Leverage → Revenue Acceleration → Margin Expansion → PAT/EPS
+Acceleration → Re-rating**. A real J-curve is usually visible in this
+sequence *before* PAT fully explodes — the earlier in the path you can name
+where a company sits, the more of the re-rating is still ahead rather than
+already in the price.
+
+Classify the company (or the specific catalyst thread) into one of three
+stages, and say which stage explicitly in the synthesis — this is a
+one-line addition to 3b/3f, not a separate section:
+
+| Stage | What it looks like | Market's read |
+| --- | --- | --- |
+| **1. Base Building** | Revenue may still look normal. New plant/product/customer/order book win, or debt reduction, is underway but not yet in the P&L. | Market usually ignores this stage — low crowding, highest asymmetry if the thesis is right. |
+| **2. Inflection** | Revenue growth starts improving, capacity utilisation rises, orders convert into sales, management commentary shifts from "we expect" to "we are seeing." | Often the best risk/reward stage — the "new" fact is now confirmable, not just guided. |
+| **3. Acceleration** | Revenue +20-30%+, EBITDA +30-50%+, PAT +40-70%+, ROCE improving, debt falling, and critically **PAT growth > EBITDA growth > Revenue growth** (operating + financial leverage compounding together). | Consensus is catching up; re-rating is partly or mostly underway. |
+
+Use the growth-rate ordering (PAT growth > EBITDA growth > Revenue growth) as
+a quick check on whether a company claiming "Acceleration" actually has
+operating leverage showing up, or whether PAT is being flattered by
+something below the EBITDA line (which routes back to §5b below).
+
+## 5b. Beware of fake J-curves — a PAT jump alone means nothing
+
+A 200-300%+ PAT jump is not itself a catalyst. Before crediting any PAT
+acceleration as Stage 3, check whether it is actually coming from the
+operating business or from one of these — every one of them should already
+surface via the mandatory Income Statement Signal Scan (Phase 2), but name
+the fake-J-curve check explicitly as the reason you're running that scan:
+
+- Low base (prior-year quarter was depressed — check YoY off a clean base, not just the weakest comp)
+- Inventory gain / commodity mark-up
+- Exceptional income (asset sale, insurance claim, one-off settlement)
+- Tax reversal or unusually low effective tax rate for the quarter
+- One-off order (lumpy, non-repeating contract) mistaken for a run-rate
+- Other income spike (treasury income, dividend from a subsidiary, forex gain)
+- Forex gain (translation or transaction gain that reverses next quarter)
+- Temporary commodity benefit (input cost tailwind that is cyclical, not structural)
+
+The standing question through all of this: **is the core business truly
+accelerating, or is the P&L just accelerating this quarter?** If a catalyst's
+PAT contribution traces to any item on this list, tag it non-recurring in 3b
+(consistent with the existing Income Statement Signal Scan instruction) and
+do not let it upgrade the company's J-curve stage.
+
+## 5c. Quick J-curve scorecard (fast triage, not a substitute for 3b)
+
+When scanning a company (especially across a watchlist rather than a single
+deep dive), a 9-point checklist gives a fast read on where it sits before
+committing to the full catalyst writeup. Score 1 point each: sector tailwind,
+revenue acceleration, strong demand visibility, new capacity/product/customer,
+capacity utilisation rising, margin expansion potential, debt/interest
+falling, ROCE improving, better guidance/estimate upgrades.
+
+`0-3: Story only` / `4-6: Emerging inflection` / `7-8: Strong candidate` /
+`9: Exceptional setup — sanity-check valuation before chasing`. This
+scorecard is a triage gate for `watchlist-catalyst-scanner`-style scans across
+many names, not a replacement for the full ranked catalyst list in 3b — a
+single-company deep dive still needs the full 3a-3f writeup regardless of
+score.
+
+## 5d. Leading vs. lagging signals — order matters
+
+Two sequencing facts are the highest-value early tells, worth flagging
+prominently whenever present even if nothing else in the document set has
+changed: **order book grows before revenue grows**, and **new capacity gets
+commissioned before the sales ramp shows up**. Both mean the P&L confirmation
+is still ahead, not behind — this is what makes Stage 1/2 catalysts (§5a)
+higher information content than a Stage 3 catalyst the market has already
+seen play out in trailing numbers.
+
+## 5e. Timing discipline for "what's in the price" (3d)
+
+Missing the first 15-20% of a re-rating move is an acceptable cost of
+requiring confirmation before writing HIGH CONVICTION — don't let 3d imply
+the ideal entry was at the Trigger stage with zero confirmation. The
+framing to use in 3d: the sweet spot is when the forward path has become
+more predictable (Stage 2, sometimes early Stage 3) but consensus estimates
+have not yet been revised to reflect it — not the earliest possible moment,
+and not after Stage 3 is fully priced in.
+
 ## 6. What this framework explicitly is NOT
 
 - Not a valuation call. Cheapness/expensiveness (trailing PE) is deliberately de-emphasised

@@ -53,6 +53,12 @@ data/
                         #   company that evidence touches
   unsupportive-investors.json # same shape/keying as supportive-investors.json, mirror case: an anchor
                         #   investor who reappeared SELLING within the listing window
+  learnyst-lessons.json # index of fetched Learnyst course-video AI transcripts
+                        #   (learnyst-transcript-refresh job); id = lyt_learnyst-transcript-refresh_<courseId>_<hash8(lessonId)>,
+                        #   not company-scoped (personal course content, not stock research)
+  learnyst-lessons/<id>.json # full transcript body (timestamped + plain text + raw API
+                        #   response; id-named, same two-file pattern as reports/ — bodies
+                        #   run tens of KB each across hundreds of lessons)
   cache/                # heavy regenerable derivables: company-master.json, bse-scrip-codes.json, extracts
   assets/               # rendered PDF/HTML, flat: <reportId>.pdf|.html (regenerable from DTOs)
   runs/                 # per-run raw dumps + full run DTOs — synced, kept locally (full mirror)

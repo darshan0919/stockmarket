@@ -98,10 +98,11 @@ Read `references/growth_catalyst_framework.md` in full before analysing — it
 defines the "new" taxonomy (new base creation, new industry cycle, new
 management change, new corporate action, new capex, new value-added mix, new
 geography, new warrants, new deleveraging, etc.), the new-vs-confirmation
-discipline, and the quantification/conviction rules. Apply it uniformly
-across all four document sets fetched in Phase 1 — an announcement, a
-transcript line, and a PPT slide are just three different containers for the
-same kind of "new" fact.
+discipline, the quantification/conviction rules, and (§5a-5e) the J-curve
+lifecycle staging, fake-J-curve checklist, and leading/lagging signal
+discipline. Apply it uniformly across all four document sets fetched in
+Phase 1 — an announcement, a transcript line, and a PPT slide are just three
+different containers for the same kind of "new" fact.
 
 Walk every document and, for anything that isn't routine (AGM notices, book
 closures, record dates, routine board-meeting intimations — same NOISE list as
@@ -130,6 +131,15 @@ EBITDA/unit trend across the 4 quarters, debt/finance-cost trajectory across
 the 4 transcripts, and theme-maturity (is this a year-1 S-curve or a year-6
 theme?).
 
+**J-curve staging (framework §5a-§5d).** For the company overall — and, when
+they diverge, for the lead catalyst specifically — classify the current
+stage as Base Building / Inflection / Acceleration. Check whether disclosed
+growth follows PAT growth > EBITDA growth > Revenue growth (true operating +
+financial leverage) before calling a company "Acceleration" stage on PAT
+optics alone, and flag explicitly if order-book growth or capacity
+commissioning is running ahead of revenue (a leading signal worth calling
+out even absent a P&L confirmation yet).
+
 **Income Statement Signal Scan (mandatory).** When the EBITDA/unit or margin trend across the 4 quarters shows expansion, run `skills/_shared/income-statement-signals.md` on each quarter (QoQ and YoY) rather than checking inventory gains alone — Other Income spikes, tax-rate swings, and exceptional items are equally capable of manufacturing a fake margin trend. **Sourcing rule:** pull every relevant P&L line and PBT for each of the 4 quarters from the actual Result filings via `stock-documents-fetcher`, not from concall/PPT summaries. If a quarter's margin strength is driven by an item that clears the shared scan's materiality bar, do not list it as a margin/mix catalyst in the 3b ranking — flag it as non-recurring instead.
 
 ### Phase 3 — Synthesize
@@ -140,10 +150,15 @@ Mgn | ROE | ROCE | Debt | PE (TTM) | Div Yield`.
 
 **3b. Re-rating catalysts (5–8, ranked)** — per catalyst: name, 2–3 sentence
 body, "new" category tag(s), new-vs-confirmation flag, quantified impact,
-timeline, conviction tag, forward marker. Rank per framework §4: capacity/
-capex → new product/geography → M&A/corporate action → management/promoter
-change → margin/mix (value-added products) → regulation/policy → industry
-structure/S-curve → balance-sheet deleveraging → governance.
+timeline, conviction tag, forward marker, and **J-curve stage** (Base
+Building / Inflection / Acceleration, per framework §5a). Rank per framework
+§4: capacity/capex → new product/geography → M&A/corporate action →
+management/promoter change → margin/mix (value-added products) →
+regulation/policy → industry structure/S-curve → balance-sheet deleveraging
+→ governance. Any catalyst whose PAT contribution traces to a fake-J-curve
+item (framework §5b — low base, inventory gain, exceptional income, tax
+reversal, one-off order, other-income spike, forex gain, temporary commodity
+benefit) is tagged non-recurring here, not ranked as a margin/mix catalyst.
 
 **3c. This week's announcement flow** — the last-7-day scan folded in as its
 own subsection (what `fundamental-shift-scanner` used to output standalone):
@@ -151,7 +166,10 @@ signal items not already covered as a full catalyst above, noise filtered out
 (one line), and — if the week was quiet — say so plainly rather than padding.
 
 **3d. What's in the price** — 2–3 lines: consensus view vs. where the
-incremental EPS-perception surprise sits.
+incremental EPS-perception surprise sits, framed per framework §5e (the
+sweet spot is Stage 2/early Stage 3 confirmation before consensus catches
+up — not the earliest possible Trigger-stage entry, and not a fully-priced
+Stage 3 story).
 
 **3e. Key risks (3–4)** — execution/regulatory/commodity/demand/balance-sheet/
 concentration, each with a mitigant or probability qualifier.

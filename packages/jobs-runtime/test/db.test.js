@@ -144,6 +144,70 @@ describe('company links', () => {
   });
 });
 
+describe('saveLearnystTranscript (learnyst-lessons collection)', () => {
+  const mkTranscriptDto = (over = {}) => ({
+    id: db.makeId('lyt', 'learnyst-transcript-refresh', '145316', undefined, '2172995'),
+    type: 'learnyst-transcript',
+    creator: 'learnyst-transcript-refresh',
+    courseId: '145316',
+    courseTitle: 'Level 3 How to Value a Company & Portfolio Creation!',
+    sectionId: 340917,
+    lessonId: 2172995,
+    lessonTitle: 'What you will Learn in this Course? Intro',
+    lessonType: 1,
+    durationSeconds: 108,
+    contentPath: '110998/9e918ecf.../b3ead4f4b1dea70f0ca08cd2c3478ffe',
+    fetchedAt: '2026-08-20T19:57:52.564Z',
+    transcriptTimestamped: '[00:00:00] Hi Investors and welcome...',
+    transcriptPlain: 'Hi Investors and welcome...',
+    rawResponse: { success: true, data: { '00:00:00': 'Hi Investors and welcome...' } },
+    ...over,
+  });
+
+  test('writes body + slim index; is NOT company-scoped (no companies.json link)', () => {
+    const id = db.saveLearnystTranscript(mkTranscriptDto());
+    const body = db.readLearnystTranscript(id);
+    expect(body.transcriptPlain).toBe('Hi Investors and welcome...');
+    expect(body.rawResponse.data['00:00:00']).toBeTruthy();
+
+    const idx = db.get('learnyst-lessons', id);
+    expect(idx.body).toBe(`learnyst-lessons/${id}.json`);
+    expect(idx.lessonTitle).toBe('What you will Learn in this Course? Intro');
+    // slim index must not carry the heavy fields
+    expect(idx.transcriptTimestamped).toBeUndefined();
+    expect(idx.rawResponse).toBeUndefined();
+
+    // no company link — this is personal course content, not stock research
+    expect(db.find('companies', {}).length).toBe(0);
+  });
+
+  test('same lesson saved twice -> same id -> 1 record (dedup, cache-first correctness)', () => {
+    const dto1 = mkTranscriptDto();
+    const dto2 = mkTranscriptDto({ fetchedAt: '2026-08-27T00:00:00.000Z' }); // simulates a later re-run
+    const id1 = db.saveLearnystTranscript(dto1);
+    const id2 = db.saveLearnystTranscript(dto2);
+    expect(id1).toBe(id2);
+
+    const all = db.find('learnyst-lessons', {});
+    expect(all).toHaveLength(1);
+    // second write updates the existing record rather than duplicating it
+    expect(db.get('learnyst-lessons', id1).fetchedAt).toBe('2026-08-27T00:00:00.000Z');
+  });
+
+  test('different courseId or lessonId -> different id (no false-positive dedup)', () => {
+    const idA = db.saveLearnystTranscript(mkTranscriptDto());
+    const idB = db.saveLearnystTranscript(mkTranscriptDto({ id: undefined, lessonId: 2110384 }));
+    expect(idA).not.toBe(idB);
+    expect(db.find('learnyst-lessons', {})).toHaveLength(2);
+  });
+
+  test('rejects a transcript record without creator (envelope enforcement)', () => {
+    expect(() => db.saveLearnystTranscript(mkTranscriptDto({ creator: undefined }))).toThrow(
+      /creator/
+    );
+  });
+});
+
 describe('ipos collection', () => {
   const mkIpo = (over = {}) => ({
     id: 'ipo_4462',

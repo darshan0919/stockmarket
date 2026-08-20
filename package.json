@@ -56,8 +56,10 @@
     "data:push": "yarn workspace @stock/jobs-runtime data:push",
     "data:pull": "yarn workspace @stock/jobs-runtime data:pull",
     "data:status": "yarn workspace @stock/jobs-runtime data:status",
+    "data:sync": "yarn data:push && yarn data:pull && echo 'Sync complete' && yarn data:status",
     "monthly-sales-tracker": "node scripts/skills/monthly-sales-tracker/run.js",
-    "find-stray-artifacts": "node scripts/find_stray_artifacts.js"
+    "find-stray-artifacts": "node scripts/find_stray_artifacts.js",
+    "learnyst-transcript-refresh": "yarn workspace @stock/jobs learnyst-transcript-refresh"
   },
   "devDependencies": {
     "@duckdb/node-api": "^1.5.4-r.1",
