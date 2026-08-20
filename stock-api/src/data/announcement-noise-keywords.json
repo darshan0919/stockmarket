@@ -13,8 +13,10 @@
     "Tax Deduction On Dividend",
     "Dividend",
     "Credit Rating",
-    "Change in Management"
+    "Change in Management",
+    "Change in Directorate",
+    "ESG"
   ],
   "descriptionKeywordsToIgnore": [],
-  "updatedAt": "2026-08-20T08:34:31.164Z"
+  "updatedAt": "2026-08-20T08:40:32.422Z"
 }
