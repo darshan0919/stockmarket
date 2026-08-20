@@ -64,7 +64,9 @@ async function fetchResultsForDate(client, dateStr) {
     const response = await client.resultsScan(payload);
 
     if (response.status !== 200 && response.status !== undefined) {
-      throw new Error(`API returned status ${response.status}: ${response.message || 'Unknown error'}`);
+      throw new Error(
+        `API returned status ${response.status}: ${response.message || 'Unknown error'}`
+      );
     }
 
     const companies = response.data?.results || [];
@@ -126,7 +128,9 @@ async function fetchAllResultsPages(client, dateStr, pageSize = 50) {
       const response = await client.resultsScan(payload);
 
       if (response.status !== 200 && response.status !== undefined) {
-        throw new Error(`API returned status ${response.status}: ${response.message || 'Unknown error'}`);
+        throw new Error(
+          `API returned status ${response.status}: ${response.message || 'Unknown error'}`
+        );
       }
 
       const companies = response.data?.results || [];

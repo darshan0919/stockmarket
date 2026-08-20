@@ -2,19 +2,21 @@
 
 **Incident:** "38 records exist but have empty `excerpts`"  
 **Root Cause:** Step 2 (excerpt extraction) was optional and could be skipped  
-**Status:** ✅ PERMANENTLY FIXED  
+**Status:** ✅ PERMANENTLY FIXED
 
 ---
 
 ## What Was Broken
 
 ### The Bug
+
 1. Guidance document records were saved with `excerpts: []` and `excerptsPending: true`
 2. These records sat forever in the database, never filled
 3. Downstream `forward-guidance-extractor` task was blocked waiting for complete data
 4. No safeguards prevented this state
 
 ### Why It Happened
+
 - Skill design allowed optional Step 2 (cheap-model excerpt extraction)
 - No orchestration to force all steps together
 - No safety checks in persistence scripts
@@ -25,15 +27,18 @@
 ## Fixes Deployed
 
 ### Fix #1: Orchestrator Script (New)
+
 **File:** `skills/equity-research/guidance-document-extractor/scripts/orchestrate_extraction.js`
 
 **What it does:**
+
 - Runs Steps 1-4 in one atomic operation
 - Step 2 (excerpt extraction) is now **hardcoded and mandatory**
 - Records are never persisted until all steps complete
 - Guarantees `excerptsPending: false` on every record saved
 
 **Impact:**
+
 - ✓ Empty excerpts bug is now impossible
 - ✓ Records cannot be incomplete
 - ✓ No more silent failures
@@ -41,13 +46,15 @@
 ---
 
 ### Fix #2: Save Script Safety Check
+
 **File:** `skills/equity-research/guidance-document-extractor/scripts/save_guidance_documents.js`
 
 **What it does:**
+
 ```javascript
 // NEW SAFETY CHECK: If excerpt directory provided but empty, ABORT
 if (args.excerptsDir && fs.existsSync(args.excerptsDir)) {
-  const excerptFiles = fs.readdirSync(args.excerptsDir).filter(f => f.endsWith('.json'));
+  const excerptFiles = fs.readdirSync(args.excerptsDir).filter((f) => f.endsWith('.json'));
   if (excerptFiles.length === 0) {
     console.error('[FATAL] --excerpts-dir was provided but contains NO excerpt files.');
     console.error('Step 2 (excerpt extraction) did not complete.');
@@ -57,6 +64,7 @@ if (args.excerptsDir && fs.existsSync(args.excerptsDir)) {
 ```
 
 **Impact:**
+
 - ✓ Detects if Step 2 failed
 - ✓ Aborts rather than persisting incomplete data
 - ✓ Prevents silent corruption
@@ -64,28 +72,34 @@ if (args.excerptsDir && fs.existsSync(args.excerptsDir)) {
 ---
 
 ### Fix #3: Updated SKILL.md
+
 **File:** `skills/equity-research/guidance-document-extractor/SKILL.md`
 
 **What changed:**
+
 - Documents that orchestrator is now mandatory
 - Clarifies that Step 2 runs inline (not separately)
 - Removes confusion about optional step-by-step invocation
 
 **Impact:**
+
 - ✓ Clear documentation for users
 - ✓ Prevents incorrect invocation patterns
 
 ---
 
 ### Fix #4: Updated Scheduled Task
+
 **File:** `jobs/Scheduled/daily-guidance-extractor-scan/SKILL.md`
 
 **What changed:**
+
 - Task now calls `orchestrate_extraction.js` instead of individual scripts
 - Documents the 4-step guarantee
 - Explains verification gate
 
 **Impact:**
+
 - ✓ Scheduled task uses new orchestrator
 - ✓ Consistent invocation pattern
 - ✓ Clear error reporting
@@ -93,17 +107,21 @@ if (args.excerptsDir && fs.existsSync(args.excerptsDir)) {
 ---
 
 ### Fix #5: Verification Gate (Already Fixed)
+
 **File:** `scripts/jobs/check_extraction_success.py`
 
 **What was wrong:**
+
 - Python script tried to import Node.js module → ImportError
 
 **What's fixed:**
+
 - Now queries `data/reports.json` directly
 - Proper path resolution for any environment
 - Returns correct exit codes
 
 **Impact:**
+
 - ✓ Verification gate now works
 - ✓ Downstream tasks properly unblocked
 
@@ -112,6 +130,7 @@ if (args.excerptsDir && fs.existsSync(args.excerptsDir)) {
 ## Three-Layer Defense
 
 ### Layer 1: Orchestration (Enforce Atomicity)
+
 ```
 orchestrate_extraction.js
   ↓
@@ -121,6 +140,7 @@ orchestrate_extraction.js
 ```
 
 ### Layer 2: Save Script (Validate Input)
+
 ```
 save_guidance_documents.js
   ↓
@@ -130,6 +150,7 @@ save_guidance_documents.js
 ```
 
 ### Layer 3: Record Structure (Track State)
+
 ```
 guidance-documents record
   ↓
@@ -148,13 +169,14 @@ guidance-documents record
 ✅ Update scheduled task configuration  
 ✅ Fix verification gate script  
 ✅ Create safeguards documentation  
-✅ Deploy to production  
+✅ Deploy to production
 
 ---
 
 ## How to Use (After Fixes)
 
 ### Option 1: Via Skill Invocation (Recommended)
+
 ```bash
 node skills/equity-research/guidance-document-extractor/scripts/orchestrate_extraction.js \
   --scan-url "https://www.stockscans.in/scans/saved/429918e3098ce660baec9f22"
@@ -163,6 +185,7 @@ node skills/equity-research/guidance-document-extractor/scripts/orchestrate_extr
 **Result:** All 4 steps run, records saved with excerpts ✓
 
 ### Option 2: Via Scheduled Task (Automatic)
+
 ```
 Daily 11:30 PM:
   → Orchestrator runs all 4 steps
@@ -172,6 +195,7 @@ Daily 11:30 PM:
 ```
 
 ### Option 3: NEVER (Don't Do This)
+
 ```bash
 # WRONG - Don't invoke Step 1 + Step 4 separately
 node fetch_guidance_documents.js --scan-url "..."
@@ -184,6 +208,7 @@ node save_guidance_documents.js --manifest manifest.json
 ## Verification Queries
 
 ### Check that fix is working
+
 ```bash
 # Should show 0 records with excerptsPending: true created after 2026-08-12
 node -e "
@@ -199,6 +224,7 @@ console.log('Stale incomplete records (should be 0):', stale.length);
 ```
 
 ### Check latest extraction
+
 ```bash
 node -e "
 const fs = require('fs');
@@ -261,6 +287,7 @@ Records will upsert (deterministic IDs) and be filled with proper excerpts.
 ## Monitoring & Alerts
 
 **Daily checks:**
+
 ```bash
 # After 11:30 PM daily task
 python3 scripts/jobs/check_extraction_success.py \
@@ -269,6 +296,7 @@ python3 scripts/jobs/check_extraction_success.py \
 ```
 
 **Alert if:**
+
 - Exit code ≠ 0 (extraction failed)
 - Found record count < expected
 - Any record has `excerptsPending: true` after 2026-08-12
@@ -279,4 +307,4 @@ python3 scripts/jobs/check_extraction_success.py \
 **Date Fixed:** 2026-08-12  
 **Issue:** "38 records exist but have empty excerpts"  
 **Solution:** Orchestrator + Safety checks (3-layer defense)  
-**Result:** Empty excerpts bug is now impossible  
+**Result:** Empty excerpts bug is now impossible

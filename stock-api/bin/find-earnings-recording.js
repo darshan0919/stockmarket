@@ -168,7 +168,10 @@ function buildQuarterLabels({ fiscalYear, fiscalPeriod }) {
  * @param {(message: string) => void} [opts.onWarning]
  * @returns {Promise<Map<string, {found:false,ticker:string}|{found:true,ticker:string,announcement:Object,pdfUrl:string,pdfPath:string,labelConfirmed:boolean}>>}
  */
-async function findRecordingAnnouncementsBulk(entries, { outDir = process.cwd(), client, onWarning = () => { } } = {}) {
+async function findRecordingAnnouncementsBulk(
+  entries,
+  { outDir = process.cwd(), client, onWarning = () => {} } = {}
+) {
   const c = client || new StockscansClient();
   if (!client) await c.validateAuth();
 
@@ -223,14 +226,16 @@ async function findRecordingAnnouncementsBulk(entries, { outDir = process.cwd(),
     const quarter = quarterByTicker.get(ticker);
     const labels = quarter ? buildQuarterLabels(quarter) : [];
     const labelMatches = labels.length
-      ? matches.filter((a) => labels.some((l) => `${a.title || ''} ${a.description || ''}`.toUpperCase().includes(l)))
+      ? matches.filter((a) =>
+          labels.some((l) => `${a.title || ''} ${a.description || ''}`.toUpperCase().includes(l))
+        )
       : [];
     const pool = labelMatches.length ? labelMatches : matches;
     const labelConfirmed = labelMatches.length > 0;
     if (!labelConfirmed && labels.length) {
       onWarning(
         `${ticker}: found a "recording" announcement but none of its title/description mention ${labels.join('/')} — ` +
-        `taking the newest match anyway, but verify it's actually for the intended quarter before transcribing it.`
+          `taking the newest match anyway, but verify it's actually for the intended quarter before transcribing it.`
       );
     }
     const announcement = [...pool].sort(
@@ -239,14 +244,18 @@ async function findRecordingAnnouncementsBulk(entries, { outDir = process.cwd(),
     downloadTargets.push({ ticker, announcement, labelConfirmed });
   }
 
-  const downloads = await mapWithConcurrency(downloadTargets, DOWNLOAD_CONCURRENCY, async ({ ticker, announcement }) => {
-    const pdfUrl = c.s3PdfUrl(announcement.ssUrl);
-    const buf = await withRetry(() => c.fetchPdf(pdfUrl));
-    const safeTicker = ticker.replace(/[^a-z0-9]/gi, '_');
-    const pdfPath = path.join(outDir, `${safeTicker}_recording_announcement.pdf`);
-    fs.writeFileSync(pdfPath, buf);
-    return { ticker, announcement, pdfUrl, pdfPath };
-  });
+  const downloads = await mapWithConcurrency(
+    downloadTargets,
+    DOWNLOAD_CONCURRENCY,
+    async ({ ticker, announcement }) => {
+      const pdfUrl = c.s3PdfUrl(announcement.ssUrl);
+      const buf = await withRetry(() => c.fetchPdf(pdfUrl));
+      const safeTicker = ticker.replace(/[^a-z0-9]/gi, '_');
+      const pdfPath = path.join(outDir, `${safeTicker}_recording_announcement.pdf`);
+      fs.writeFileSync(pdfPath, buf);
+      return { ticker, announcement, pdfUrl, pdfPath };
+    }
+  );
 
   for (let i = 0; i < downloadTargets.length; i++) {
     const { ticker, labelConfirmed } = downloadTargets[i];
@@ -279,4 +288,9 @@ if (require.main === module) {
   });
 }
 
-module.exports = { main, findRecordingAnnouncement, findRecordingAnnouncementsBulk, buildQuarterLabels };
+module.exports = {
+  main,
+  findRecordingAnnouncement,
+  findRecordingAnnouncementsBulk,
+  buildQuarterLabels,
+};

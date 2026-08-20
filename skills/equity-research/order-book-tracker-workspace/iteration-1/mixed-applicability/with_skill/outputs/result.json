@@ -1,10 +1,7 @@
 {
   "generatedAt": "2026-07-31",
   "skill": "order-book-tracker",
-  "requested": [
-    "NSE:POWERMECH",
-    "NSE:PERSISTENT"
-  ],
+  "requested": ["NSE:POWERMECH", "NSE:PERSISTENT"],
   "summary": {
     "withOrderBook": [
       {
@@ -87,9 +84,7 @@
             "endDate": "2029-06-20",
             "basis": "duration-from-filing-date",
             "sourceText": "36 Months",
-            "allDurations": [
-              "36 Months"
-            ]
+            "allDurations": ["36 Months"]
           },
           "ssUrl": "kd0wf6ijoyj1ei9dkbu1zsna.pdf",
           "confidence": "medium",
@@ -118,9 +113,7 @@
             "endDate": "2028-10-27",
             "basis": "duration-from-filing-date",
             "sourceText": "30 months",
-            "allDurations": [
-              "30 months"
-            ]
+            "allDurations": ["30 months"]
           },
           "ssUrl": "p7swv2pxfnpq8wglpintsh2n.pdf",
           "confidence": "medium",

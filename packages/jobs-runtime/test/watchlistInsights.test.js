@@ -132,7 +132,7 @@ describe('gatherInwindowRaw (pagination + 24h window)', () => {
 });
 
 describe('deterministic default window (anchor floor + resumable cursor)', () => {
-  test('anchor floor is the previous calendar day\'s 8AM IST, regardless of same-day delay', () => {
+  test("anchor floor is the previous calendar day's 8AM IST, regardless of same-day delay", () => {
     const onTime = new Date('2026-08-04T02:35:00.000Z'); // ~8:05 AM IST
     const delayed = new Date('2026-08-04T08:30:00.000Z'); // ~2:00 PM IST, same day
     const expectedFloor = new Date('2026-08-03T02:30:00.000Z').getTime(); // Aug 3, 8:00 AM IST
@@ -140,9 +140,11 @@ describe('deterministic default window (anchor floor + resumable cursor)', () =>
     expect(wi.defaultWindowFloorMs(delayed)).toBe(expectedFloor);
   });
 
-  test('mostRecentEightAmIstMs rolls back to yesterday when now is before today\'s 8AM IST', () => {
+  test("mostRecentEightAmIstMs rolls back to yesterday when now is before today's 8AM IST", () => {
     const beforeEight = new Date('2026-08-04T01:00:00.000Z'); // ~6:30 AM IST
-    expect(wi.mostRecentEightAmIstMs(beforeEight)).toBe(new Date('2026-08-03T02:30:00.000Z').getTime());
+    expect(wi.mostRecentEightAmIstMs(beforeEight)).toBe(
+      new Date('2026-08-03T02:30:00.000Z').getTime()
+    );
   });
 
   test('windowCursorKey is order-independent', () => {
@@ -209,7 +211,9 @@ describe('deterministic default window (anchor floor + resumable cursor)', () =>
     const dir = path.join(TMP, 'window-no-pending');
     process.env.DATA_V2_DIR = dir;
     try {
-      await expect(wi.cmdCommitWindow('never-fetched-id')).rejects.toThrow(/no matching pending window/);
+      await expect(wi.cmdCommitWindow('never-fetched-id')).rejects.toThrow(
+        /no matching pending window/
+      );
     } finally {
       process.env.DATA_V2_DIR = TMP;
     }
@@ -243,7 +247,9 @@ describe('shared raw-PDF-text cache (Tier 1 — unconditionally shared across ca
   });
 
   test('different URLs hash to different cache paths', () => {
-    expect(wi.pdfCachePath('https://a.example/1.pdf')).not.toBe(wi.pdfCachePath('https://a.example/2.pdf'));
+    expect(wi.pdfCachePath('https://a.example/1.pdf')).not.toBe(
+      wi.pdfCachePath('https://a.example/2.pdf')
+    );
   });
 });
 
@@ -257,10 +263,14 @@ describe('usecase scoping (Tier 2 — insight cache is skill+depth specific)', (
 
   test('usecaseMatchesPrefix matches exact and "prefix:variant" forms only', () => {
     expect(wi.usecaseMatchesPrefix('announcement-insights', 'announcement-insights')).toBe(true);
-    expect(wi.usecaseMatchesPrefix('announcement-insights:deep', 'announcement-insights')).toBe(true);
+    expect(wi.usecaseMatchesPrefix('announcement-insights:deep', 'announcement-insights')).toBe(
+      true
+    );
     expect(wi.usecaseMatchesPrefix('gainers-signal:quick', 'announcement-insights')).toBe(false);
     // Must not false-positive on a prefix that merely starts with the same characters.
-    expect(wi.usecaseMatchesPrefix('announcement-insights-v2:deep', 'announcement-insights')).toBe(false);
+    expect(wi.usecaseMatchesPrefix('announcement-insights-v2:deep', 'announcement-insights')).toBe(
+      false
+    );
   });
 
   test('legacy processedAnnouncements-only records (pre-usecase data) still count as processed for announcement-insights', async () => {
@@ -280,7 +290,9 @@ describe('usecase scoping (Tier 2 — insight cache is skill+depth specific)', (
       stockscans.scanAnnouncements = jest
         .fn()
         .mockResolvedValueOnce({
-          announcements: [{ companyId: 'NSE:LEGACY', title: 'X', ssUrl: 'legacy.pdf', createdAt: recent }],
+          announcements: [
+            { companyId: 'NSE:LEGACY', title: 'X', ssUrl: 'legacy.pdf', createdAt: recent },
+          ],
         })
         .mockResolvedValue({ announcements: [] });
 
@@ -305,7 +317,12 @@ describe('usecase scoping (Tier 2 — insight cache is skill+depth specific)', (
       const { stockscans } = require('@stock/api');
       stockscans.validateAuth = jest.fn().mockResolvedValue(true);
       const recent = new Date(Date.now() - 3600 * 1000).toISOString();
-      const ann = { companyId: 'NSE:SHARED', title: 'Some update', ssUrl: 'shared.pdf', createdAt: recent };
+      const ann = {
+        companyId: 'NSE:SHARED',
+        title: 'Some update',
+        ssUrl: 'shared.pdf',
+        createdAt: recent,
+      };
       stockscans.scanAnnouncements = jest
         .fn()
         .mockResolvedValueOnce({ announcements: [ann] })

@@ -35,11 +35,7 @@ const { mapWithConcurrency } = require('@stock/api/utils/concurrency');
 const { argValue, loadEnv } = require('./lib/env');
 const { fetchPerformanceWindow } = require('./ipoBacktest');
 const { bestMatch, normalizeInvestorName } = require('./lib/fuzzyMatch');
-const {
-  fetchAnchorInvestors,
-  fetchDealsWindow,
-  dealStance,
-} = require('./anchorBulkDealTracker');
+const { fetchAnchorInvestors, fetchDealsWindow, dealStance } = require('./anchorBulkDealTracker');
 
 // The 7 Ardee Industries anchors — matched against both the anchor's own
 // name and its chittorgarh Group Entity (whichever is present), same
@@ -93,7 +89,11 @@ async function run({ fromYmd, toYmd, window = 2, concurrency = 10 } = {}) {
   const bseClient = bse;
   const today = todayIstUtcDate();
 
-  const rawUniverse = await fetchPerformanceWindow({ fromDate: fromYmd, toDate: toYmd, ipoType: 'all' });
+  const rawUniverse = await fetchPerformanceWindow({
+    fromDate: fromYmd,
+    toDate: toYmd,
+    ipoType: 'all',
+  });
   const universe = rawUniverse
     .filter((row) => row.ipo_year && row.chittorgarh_slug && row.id)
     .map((row) => ({
@@ -109,7 +109,9 @@ async function run({ fromYmd, toYmd, window = 2, concurrency = 10 } = {}) {
       cmpGainPct: toINRNumber(row.cmp_percentage),
     }));
 
-  console.error(`[targetedAnchorHistory] ${universe.length} IPOs in window; fetching anchor tables...`);
+  console.error(
+    `[targetedAnchorHistory] ${universe.length} IPOs in window; fetching anchor tables...`
+  );
 
   const anchorResults = await mapWithConcurrency(universe, concurrency, async (ipo) => {
     const { anchorInvestors } = await fetchAnchorInvestors(ipo);
@@ -129,7 +131,9 @@ async function run({ fromYmd, toYmd, window = 2, concurrency = 10 } = {}) {
     }
   });
 
-  console.error(`[targetedAnchorHistory] ${hits.length} anchor-instance hits across ${new Set(hits.map((h) => h.ipo.companyId)).size} IPOs; checking bulk/block deal reappearance...`);
+  console.error(
+    `[targetedAnchorHistory] ${hits.length} anchor-instance hits across ${new Set(hits.map((h) => h.ipo.companyId)).size} IPOs; checking bulk/block deal reappearance...`
+  );
 
   const byIpo = new Map();
   for (const h of hits) {
@@ -142,7 +146,11 @@ async function run({ fromYmd, toYmd, window = 2, concurrency = 10 } = {}) {
     const listingDate = ymdToUtcDate(grp.ipo.listingDate);
     const requestedEnd = addDays(listingDate, Math.max(0, window - 1));
     const windowEnd = requestedEnd > today ? today : requestedEnd;
-    const dealsRows = await fetchDealsWindow(listingDate, windowEnd, { nseClient, bseClient, warnings: { add: (w) => warnings.push(w) } });
+    const dealsRows = await fetchDealsWindow(listingDate, windowEnd, {
+      nseClient,
+      bseClient,
+      warnings: { add: (w) => warnings.push(w) },
+    });
     const companyRows = dealsRows.filter((row) => {
       if (grp.ipo.nseSymbol && row.symbol && row.source.startsWith('nse')) {
         return row.symbol.toUpperCase() === grp.ipo.nseSymbol.toUpperCase();
@@ -155,7 +163,9 @@ async function run({ fromYmd, toYmd, window = 2, concurrency = 10 } = {}) {
     const clientNames = companyRows.map((r) => r.clientName).filter(Boolean);
     return grp.anchors.map((h) => {
       const byName = bestMatch(h.anchor.name, clientNames, 0.85);
-      const byGroup = h.anchor.groupEntity ? bestMatch(h.anchor.groupEntity, clientNames, 0.85) : null;
+      const byGroup = h.anchor.groupEntity
+        ? bestMatch(h.anchor.groupEntity, clientNames, 0.85)
+        : null;
       const match = byGroup && (!byName || byGroup.score > byName.score) ? byGroup : byName;
       const dealRow = match ? companyRows[match.index] : null;
       return {
@@ -180,7 +190,8 @@ async function run({ fromYmd, toYmd, window = 2, concurrency = 10 } = {}) {
   });
 
   const byTarget = {};
-  for (const t of TARGET_INVESTORS) byTarget[t] = { total: 0, supportive: 0, unsupportive: 0, noReappearance: 0, instances: [] };
+  for (const t of TARGET_INVESTORS)
+    byTarget[t] = { total: 0, supportive: 0, unsupportive: 0, noReappearance: 0, instances: [] };
   for (const rec of records) {
     const b = byTarget[rec.target];
     b.total++;
@@ -206,7 +217,9 @@ async function main() {
   const fromYmd = argValue('--from');
   const toYmd = argValue('--to');
   if (!fromYmd || !toYmd) {
-    console.error('Usage: node targetedAnchorHistory.js --from YYYY-MM-DD --to YYYY-MM-DD [--window N] [--concurrency 10] [--out <path>]');
+    console.error(
+      'Usage: node targetedAnchorHistory.js --from YYYY-MM-DD --to YYYY-MM-DD [--window N] [--concurrency 10] [--out <path>]'
+    );
     process.exit(1);
   }
   const window = parseInt(argValue('--window') || '2', 10);

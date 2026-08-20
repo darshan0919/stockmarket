@@ -608,9 +608,7 @@ async function getNeverFilterSymbols() {
   try {
     const data = await stockscans.watchlistTable(NEVER_FILTER_WATCHLIST_ID);
     const rows = (data.table || []).slice(1); // row[0] = headers
-    return new Set(
-      rows.map((r) => String(r[0]).split(':').pop().toUpperCase()).filter(Boolean)
-    );
+    return new Set(rows.map((r) => String(r[0]).split(':').pop().toUpperCase()).filter(Boolean));
   } catch (e) {
     console.error(`Warning: could not fetch never-filter watchlist: ${e.message}`);
     return new Set();
@@ -685,13 +683,9 @@ async function groupAndTop10ByNetValue(rows, topN = TOP_N, neverFilterSymbols = 
   // keeps material disclosures visible while still suppressing genuinely
   // tiny activity.
   allGroups = allGroups.filter(
-    (g) =>
-      Math.abs(g.netValue) >= 5000000 ||
-      neverFilterSymbols.has(String(g.symbol).toUpperCase())
+    (g) => Math.abs(g.netValue) >= 5000000 || neverFilterSymbols.has(String(g.symbol).toUpperCase())
   );
-  allGroups.sort(
-    (a, b) => Math.abs(b.netValue) - Math.abs(a.netValue)
-  );
+  allGroups.sort((a, b) => Math.abs(b.netValue) - Math.abs(a.netValue));
   const top10 = allGroups.slice(0, topN);
 
   // Re-add any never-filter symbols that made it past the threshold filter
@@ -702,9 +696,7 @@ async function groupAndTop10ByNetValue(rows, topN = TOP_N, neverFilterSymbols = 
       top10.push(g);
     }
   }
-  top10.sort(
-    (a, b) => Math.abs(b.netValue) - Math.abs(a.netValue)
-  );
+  top10.sort((a, b) => Math.abs(b.netValue) - Math.abs(a.netValue));
 
   await Promise.all(
     top10.map(async (g) => {
@@ -717,7 +709,7 @@ async function groupAndTop10ByNetValue(rows, topN = TOP_N, neverFilterSymbols = 
       if (g.nseTicker) {
         try {
           nseData = await nse.getSymbolData(g.nseTicker);
-        } catch { }
+        } catch {}
       }
 
       if (nseData?.metaData?.companyName) g.companyName = nseData.metaData.companyName;
@@ -756,12 +748,13 @@ function tableHtml(title, headers, rowsHtml, note) {
   return `
   <h3 style="margin:24px 0 6px;font-family:Arial,sans-serif;color:#1a237e">${title}</h3>
   ${note ? `<p style="margin:0 0 8px;font:12px Arial;color:#666">${note}</p>` : ''}
-  ${rowsHtml.length
+  ${
+    rowsHtml.length
       ? `<table cellpadding="6" cellspacing="0" border="0" style="border-collapse:collapse;font:13px Arial;width:100%;white-space:nowrap">
        <tr style="background:#e8eaf6;text-align:left">${headers.map((h) => `<th style="border-bottom:2px solid #9fa8da">${h}</th>`).join('')}</tr>
        ${rowsHtml.join('\n')}</table>`
       : '<p style="font:13px Arial;color:#999">No records.</p>'
-    }`;
+  }`;
 }
 
 function td(v, right, wrap) {

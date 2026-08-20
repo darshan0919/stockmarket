@@ -172,7 +172,9 @@ describe('ipos collection', () => {
   test('a later-day re-scan (updated subscription figures) updates in place, preserves creationTime', () => {
     db.upsertMany('ipos', [mkIpo()]);
     const before = db.get('ipos', 'ipo_4462');
-    db.upsertMany('ipos', [mkIpo({ subscriptionQualityScore: 2.5, subscriptionQualityTier: 'STRONG' })]);
+    db.upsertMany('ipos', [
+      mkIpo({ subscriptionQualityScore: 2.5, subscriptionQualityTier: 'STRONG' }),
+    ]);
     const after = db.get('ipos', 'ipo_4462');
     expect(after.subscriptionQualityScore).toBe(2.5);
     expect(after.creationTime).toBe(before.creationTime);
@@ -220,7 +222,13 @@ describe('supportive-investors collection', () => {
         companyIds: ['NSE:CMLL', 'NSE:ANAWIL'],
         evidence: [
           ...mkInvestor().evidence,
-          { companyId: 'NSE:ANAWIL', companyName: 'Anawil Wire and Engineering Limited', listingDate: '2026-08-10', matchScore: 1, dealDate: '10-AUG-2026' },
+          {
+            companyId: 'NSE:ANAWIL',
+            companyName: 'Anawil Wire and Engineering Limited',
+            listingDate: '2026-08-10',
+            matchScore: 1,
+            dealDate: '10-AUG-2026',
+          },
         ],
       }),
     ]);
@@ -231,9 +239,9 @@ describe('supportive-investors collection', () => {
   });
 
   test('envelope enforcement — a record without creator is rejected', () => {
-    expect(() => db.upsertMany('supportive-investors', [mkInvestor({ creator: undefined })])).toThrow(
-      /creator is required/
-    );
+    expect(() =>
+      db.upsertMany('supportive-investors', [mkInvestor({ creator: undefined })])
+    ).toThrow(/creator is required/);
   });
 });
 
@@ -267,9 +275,9 @@ describe('unsupportive-investors collection', () => {
   });
 
   test('envelope enforcement — a record without creator is rejected', () => {
-    expect(() => db.upsertMany('unsupportive-investors', [mkInvestor({ creator: undefined })])).toThrow(
-      /creator is required/
-    );
+    expect(() =>
+      db.upsertMany('unsupportive-investors', [mkInvestor({ creator: undefined })])
+    ).toThrow(/creator is required/);
   });
 });
 

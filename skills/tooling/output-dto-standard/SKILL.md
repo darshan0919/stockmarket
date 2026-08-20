@@ -42,11 +42,12 @@ synthesis, classification-by-prompt, or writing (as opposed to deterministic cod
 arithmetic, sorting, regex/keyword matching, template rendering, API/file I/O), the
 record MUST also carry:
 
-| Field | Type | Meaning |
-|---|---|---|
+| Field       | Type   | Meaning                                                                                                                                         |
+| ----------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | `modelUsed` | string | The exact model string that generated the LLM-authored content in this record, e.g. `"claude-sonnet-5"`, `"claude-opus-5"`, `"gemini-2.5-pro"`. |
 
 Rules:
+
 - **Pure-script records carry no `modelUsed` field at all** — don't write `null` or
   `"none"`, just omit it. Example: `gainersClassifier.js` in `gainers-signal` is 100%
   deterministic (keyword/threshold rules, Jaccard similarity, no API call) — its event
@@ -68,7 +69,7 @@ Rules:
   `skills/tooling/cowork-task-architect/SKILL.md` for how this is wired for scheduled
   tasks specifically.
 - Where a pipeline calls more than one model for different LLM sub-steps that land in
-  the *same* record (e.g. Sonnet drafts, Opus reviews), use an array:
+  the _same_ record (e.g. Sonnet drafts, Opus reviews), use an array:
   `"modelUsed": ["claude-sonnet-5", "claude-opus-5"]` rather than picking one arbitrarily.
 
 ## The `additional` field — escape hatch for nuance the schema didn't anticipate

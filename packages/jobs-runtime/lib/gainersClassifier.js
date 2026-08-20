@@ -540,7 +540,12 @@ function classify(g, sectorCatalystIndustries, novelty, extra = {}) {
   // corroborating evidence for the move, same spirit as a STRONG announcement,
   // but weighted lower since it explains sentiment rather than a discrete event.
   const concall = g.concall;
-  if (concall && concall.sentiment && typeof concall.recentWithinDays === 'number' && concall.recentWithinDays <= 7) {
+  if (
+    concall &&
+    concall.sentiment &&
+    typeof concall.recentWithinDays === 'number' &&
+    concall.recentWithinDays <= 7
+  ) {
     if (concall.sentiment === 'Bullish') {
       score += 1.5;
       reasons.push(
@@ -553,7 +558,9 @@ function classify(g, sectorCatalystIndustries, novelty, extra = {}) {
       );
     } else if (concall.sentiment === 'Bearish') {
       score -= 1;
-      reasons.push(`bearish concall filed ${concall.recentWithinDays}d ago — cuts against the move`);
+      reasons.push(
+        `bearish concall filed ${concall.recentWithinDays}d ago — cuts against the move`
+      );
     }
   }
 
@@ -899,10 +906,7 @@ function main({
     };
   });
 
-  const seedPath = path.join(
-    RUNS_DIR,
-    `${seedPrefix}_${marketDate.replace(/-/g, '')}.json`
-  );
+  const seedPath = path.join(RUNS_DIR, `${seedPrefix}_${marketDate.replace(/-/g, '')}.json`);
   fs.writeFileSync(
     seedPath,
     JSON.stringify(

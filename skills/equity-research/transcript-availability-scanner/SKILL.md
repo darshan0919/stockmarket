@@ -61,7 +61,7 @@ yarn workspace @stock/api get-latest-concall-transcript --bulk-file <companies.j
 a script/one-liner, not by hand-typing many entries. If the caller doesn't
 know the right quarter to ask for, **do not assume the current-quarter
 default is what they want** — a watchlist of "upcoming results" companies (no
-Q_FY_ filed yet) should be re-run with the PRIOR completed quarter explicitly,
+Q*FY* filed yet) should be re-run with the PRIOR completed quarter explicitly,
 since `latestCompletedQuarter()` can point at a quarter nobody has reported
 yet. Detect this cheaply: if `--bulk-file` with no `quarter` per-entry comes
 back 100% `results-not-out`, retry the whole batch with the quarter before
@@ -78,6 +78,7 @@ python3 skills/equity-research/forward-guidance-extractor/scripts/classify_trans
 (Reused directly from `forward-guidance-extractor` — do not fork a second
 copy of this bucketing logic; both skills read the exact same `status`
 vocabulary from the same underlying API.) Output:
+
 - `available` — transcript body already in `data/reports/<id>.json`.
 - `fetchable` — Stockscans has the official Transcript filed, not yet cached;
   `document.ssUrl` is included so the caller can download it directly.

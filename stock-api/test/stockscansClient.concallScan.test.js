@@ -31,7 +31,11 @@ const LIVE_FIXTURE = {
       true,
       47.9,
       1,
-      ['▼ Yield 20.93% → 17.93%', '▲ Active customers +1.63 lakh', '▲ Belstar Microfinance returns to profit'],
+      [
+        '▼ Yield 20.93% → 17.93%',
+        '▲ Active customers +1.63 lakh',
+        '▲ Belstar Microfinance returns to profit',
+      ],
       'l0fyxca960154mtwtev1ok2t.pdf',
     ],
     [
@@ -45,7 +49,11 @@ const LIVE_FIXTURE = {
       true,
       56,
       2,
-      ['▲ Gold loan AUM +112%', '● FY27 guidance revision deferred', '▲ Credit costs 1.87% → 1.54%'],
+      [
+        '▲ Gold loan AUM +112%',
+        '● FY27 guidance revision deferred',
+        '▲ Credit costs 1.87% → 1.54%',
+      ],
       'qu7ifxpflh34fqrzkr3wlnx9.pdf',
     ],
     [
@@ -59,7 +67,11 @@ const LIVE_FIXTURE = {
       true,
       48.9,
       3,
-      ['▲ $2.6bn annualized AI revenue', '▲ $800mn SKF mega deal', '▼ Wage hikes → 130bps margin hit'],
+      [
+        '▲ $2.6bn annualized AI revenue',
+        '▲ $800mn SKF mega deal',
+        '▼ Wage hikes → 130bps margin hit',
+      ],
       null,
     ],
   ],

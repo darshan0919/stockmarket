@@ -987,10 +987,14 @@ function IgnoreKeywordInput({ label, placeholder, value, keywords, onChange, onS
       <div className="mt-2 flex flex-wrap gap-2 min-h-[28px]">
         {keywords.length > 0 ? (
           keywords.map((keyword) => (
-            <span key={keyword} className="badge badge-outline gap-1 py-3">
+            <span
+              key={keyword}
+              className="badge badge-outline gap-1 h-auto min-h-[1.75rem] py-1 px-2 whitespace-normal text-left leading-snug"
+            >
               {keyword}
               <button
                 type="button"
+                className="shrink-0"
                 onClick={() => onRemove(keyword)}
                 aria-label={`Remove ignore keyword ${keyword}`}
               >

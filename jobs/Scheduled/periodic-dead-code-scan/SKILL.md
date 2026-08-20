@@ -4,13 +4,17 @@ description: Periodic Dead Code & Coding Practice Scan — weekly scan for dead 
 ---
 
 ## Context
+
 Weekly monorepo dead code audit. The companion script scans workspaces (`screener-api`, `screener-web`, `stock-api`, `cloud-utils`, `packages/jobs-runtime`), scheduled tasks, and skills for unreferenced source files, unused package dependencies, obsolete temporary scripts, and hardcoded absolute path violations.
 
 ## Output DTO
+
 The script syncs task action items directly into `data/tasks.json` with the prefix `"Dead Code:"` and updates `DEAD_CODE_ACTION_ITEMS.md`.
 
 ## Execution Plan
+
 Call the following exact script:
+
 1. Execute script (bash): `yarn dead-code:scan`
 2. Read the summary stdout output and report: total items found, category breakdown, and updated `data/tasks.json` count.
 3. If the script exits non-zero, surface the exact error in your report.

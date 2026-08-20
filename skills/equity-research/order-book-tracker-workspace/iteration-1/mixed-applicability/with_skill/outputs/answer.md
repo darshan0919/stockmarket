@@ -4,10 +4,10 @@ Only one of the two names has an order book to report. Power Mech is an EPC
 contractor and discloses one; Persistent Systems is an IT services firm and
 does not — that's a property of the business, not a hole in the data.
 
-| Company        | Unexecuted order book | Base (concall)          | Added since | Status                   |
-| -------------- | --------------------- | ----------------------- | ----------- | ------------------------ |
-| NSE:POWERMECH  | **₹17,384 Cr**        | ₹15,898 Cr (Q4FY26)     | +₹1,486 Cr  | Resolved                 |
-| NSE:PERSISTENT | n/a                   | —                       | —           | Doesn't disclose one      |
+| Company        | Unexecuted order book | Base (concall)      | Added since | Status               |
+| -------------- | --------------------- | ------------------- | ----------- | -------------------- |
+| NSE:POWERMECH  | **₹17,384 Cr**        | ₹15,898 Cr (Q4FY26) | +₹1,486 Cr  | Resolved             |
+| NSE:PERSISTENT | n/a                   | —                   | —           | Doesn't disclose one |
 
 ---
 
@@ -25,13 +25,13 @@ three months.
  17,383.82  current unexecuted order book (₹ Cr)
 ```
 
-| Date       | Order                                                                | Value (₹ Cr) | Units   | Execution by |
-| ---------- | -------------------------------------------------------------------- | ------------ | ------- | ------------ |
-| 2026-06-20 | JSW Thermal Energy — civil & structural, BTG area, 2x800 MW thermal    | 1,008.90     | —       | 2029-06-20   |
-| 2026-06-03 | Adani Infrastructure Management Services — KPI/O&M services            | 66.26        | —       | not stated   |
-| 2026-04-27 | South Western Railway — Vande Bharat sleeper depot, Thanisandra        | 5.00         | —       | 2028-10-27   |
-| 2026-04-10 | Maha Mumbai Metro Operation Corp — metro O&M                           | 296.44       | 19.54 Km | not stated  |
-| 2026-04-01 | Hindustan Zinc — comprehensive O&M                                     | 109.22       | 91.5 MW | not stated   |
+| Date       | Order                                                               | Value (₹ Cr) | Units    | Execution by |
+| ---------- | ------------------------------------------------------------------- | ------------ | -------- | ------------ |
+| 2026-06-20 | JSW Thermal Energy — civil & structural, BTG area, 2x800 MW thermal | 1,008.90     | —        | 2029-06-20   |
+| 2026-06-03 | Adani Infrastructure Management Services — KPI/O&M services         | 66.26        | —        | not stated   |
+| 2026-04-27 | South Western Railway — Vande Bharat sleeper depot, Thanisandra     | 5.00         | —        | 2028-10-27   |
+| 2026-04-10 | Maha Mumbai Metro Operation Corp — metro O&M                        | 296.44       | 19.54 Km | not stated   |
+| 2026-04-01 | Hindustan Zinc — comprehensive O&M                                  | 109.22       | 91.5 MW  | not stated   |
 
 **Execution window:** Apr-2026 → Jun-2029, but stated on only **2 of the 5**
 wins. Three filings gave no duration, so treat that window as indicative

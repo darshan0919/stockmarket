@@ -197,13 +197,13 @@ afterEach(() => {
 
 ### File Mocks
 
-****mocks**/fileMock.js**:
+\***\*mocks**/fileMock.js\*\*:
 
 ```javascript
 module.exports = 'test-file-stub';
 ```
 
-****mocks**/styleMock.js**:
+\***\*mocks**/styleMock.js\*\*:
 
 ```javascript
 module.exports = {};

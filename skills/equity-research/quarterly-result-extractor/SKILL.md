@@ -48,7 +48,8 @@ batch-oriented guidance pipeline — quarterly interpretation is normally
 requested one company at a time).
 
 **Optional parameters:**
-- `--date YYYY-MM-DD` — scope extraction to a specific date (for daily scheduled jobs). 
+
+- `--date YYYY-MM-DD` — scope extraction to a specific date (for daily scheduled jobs).
   When provided, fetches documents filed on that exact date instead of the latest quarter.
   Defaults to the current/latest quarter if omitted.
 
@@ -73,7 +74,7 @@ and `get-concall-transcript-url.js` (`ConcallTranscriptResolver`) — the same
 two primitives the old single-skill Phase 1 called inline, now behind one
 script instead of ad-hoc bash:
 
-1. **Date-scoped behavior:** If `--date` is provided, fetches documents filed on that 
+1. **Date-scoped behavior:** If `--date` is provided, fetches documents filed on that
    specific date; otherwise fetches the latest quarter's documents.
 2. PPT + Result, straight from Stockscans (`fetchDocuments`
    with `types: ['PPT', 'Result']`, `startDate`/`endDate` = either the specific
@@ -197,6 +198,7 @@ Saves ONE `quarterly-result-documents` report via `db.saveReport()`, envelope
 per `docs/DATA_RULES.md` §4 (`id`, `creationTime`, `modifiedTime`,
 `creator: "quarterly-result-extractor"`, `companyId`, `date`). The `date` field
 is set to:
+
 - The `--date` parameter value if provided (scoped extraction for scheduled jobs)
 - The extracted document's filing date otherwise (for interactive/manual runs)
 

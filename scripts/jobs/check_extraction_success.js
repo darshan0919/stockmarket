@@ -116,10 +116,7 @@ async function checkDbRecords(collectionName, dateStr) {
       const fs = require('fs');
 
       // Try to read the reports.json file directly
-      const reportPath = path.join(
-        __dirname,
-        '../../data/reports.json'
-      );
+      const reportPath = path.join(__dirname, '../../data/reports.json');
 
       if (!fs.existsSync(reportPath)) {
         return {

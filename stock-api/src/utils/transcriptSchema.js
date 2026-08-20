@@ -150,7 +150,13 @@ function parseSpeakerLabeledText(text) {
   if (!hasAnySpeaker) {
     // No speaker structure detected anywhere — preserve the original
     // conservative behavior rather than returning an empty transcript.
-    return blocks.map((block, i) => ({ i, speaker: null, speakerRole: 'unknown', time: null, text: block }));
+    return blocks.map((block, i) => ({
+      i,
+      speaker: null,
+      speakerRole: 'unknown',
+      time: null,
+      text: block,
+    }));
   }
 
   return segments;

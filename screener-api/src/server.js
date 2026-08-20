@@ -50,7 +50,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Start server with automatic port switching if needed
-const PREFERRED_PORT = parseInt(process.env.PORT) || 5000;
+const PREFERRED_PORT = parseInt(process.env.PORT) || 5001;
 
 (async () => {
   try {

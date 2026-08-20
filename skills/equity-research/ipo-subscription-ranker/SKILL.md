@@ -5,7 +5,7 @@ description: Daily IPO subscription-quality ranker. Scans IPOPlatform's Closed I
 
 # IPO Subscription Ranker
 
-Ranks the IPOs listing tomorrow by the *quality* of their subscription (not just the
+Ranks the IPOs listing tomorrow by the _quality_ of their subscription (not just the
 headline multiple), and fast-tracks the top 3 into a full `drhp-ipo-analysis`
 subscription-decision read — so the daily email answers both "which of tomorrow's
 listings had real institutional conviction" and "should I actually apply/hold."
@@ -21,12 +21,12 @@ narrative that goes in the email. Everything else, every run, comes from the scr
 
 ## Architecture (script-first, per `skills/tooling/cowork-task-architect/SKILL.md`)
 
-| Step | What                                                                 | Who               |
-| ---- | --------------------------------------------------------------------- | ----------------- |
-| 1    | Scrape + filter + merge + score + persist `ipos` collection           | Script (Extraction) |
-| 2    | Full DRHP/RHP analysis for the top 3                                  | `drhp-ipo-analysis` skill (LLM) |
-| 3    | Ranking narrative (1-3 sentences + per-IPO rationale)                 | This skill (LLM, judgment) |
-| 4    | Render HTML + send email                                              | Script (deterministic render) |
+| Step | What                                                        | Who                             |
+| ---- | ----------------------------------------------------------- | ------------------------------- |
+| 1    | Scrape + filter + merge + score + persist `ipos` collection | Script (Extraction)             |
+| 2    | Full DRHP/RHP analysis for the top 3                        | `drhp-ipo-analysis` skill (LLM) |
+| 3    | Ranking narrative (1-3 sentences + per-IPO rationale)       | This skill (LLM, judgment)      |
+| 4    | Render HTML + send email                                    | Script (deterministic render)   |
 
 ## Workflow
 
@@ -36,6 +36,7 @@ narrative that goes in the email. Everything else, every run, comes from the scr
 node packages/jobs-runtime/ipoSubscriptionScanner.js \
   --out data/runs/ipo_subscription_<DATE>.json
 ```
+
 (Fallback: `https://raw.githubusercontent.com/darshan0919/stockmarket/main/packages/jobs-runtime/ipoSubscriptionScanner.js`)
 
 This does everything deterministic in one pass (see the script's own header for the
@@ -58,14 +59,14 @@ full breakdown):
    reasoning about the raw multiples yourself; the formulas are the source of
    truth.** `rank`/`ranked[]` order is by `listingScore`.
 6. **Retail-float filter (2026-08-11 ask).** Computes `retailFloatCr = retailSharesOffered
-   × issuePrice / 1e7` per IPO and flags `retailFloatFiltered: true` for anything below
+× issuePrice / 1e7` per IPO and flags `retailFloatFiltered: true` for anything below
    `RETAIL_FLOAT_FILTER_CR` (₹50cr — the constant in `ipoSubscriptionScanner.js`, change
    it there, not here, if the threshold is ever revised). "Retail float" here means the
    ₹ value of shares reserved for Individual/Retail Investors specifically — NOT the
    total issue size and NOT post-listing free float; see that constant's neighboring
    comment for the full definition and why it can't be back-derived from the Closed-IPOs/
    Subscription-Status tables alone. `top3[]` selection (`combinedScore = listingScore ×
-   0.7 + cagrScore × 0.3`, 2026-08-09) is computed ONLY over IPOs where
+0.7 + cagrScore × 0.3`, 2026-08-09) is computed ONLY over IPOs where
    `retailFloatFiltered` is false — a filtered IPO never enters `top3[]` regardless of how
    high its score is, and therefore never reaches Phase 2's `drhp-ipo-analysis` pass
    either. Filtered IPOs still appear in `ranked[]` (the full table) so the daily
@@ -161,6 +162,7 @@ required step.
 ```bash
 yarn data:push
 ```
+
 (Fallback if `yarn` is unavailable: `node packages/jobs-runtime/scripts/data.js push`
 — same idempotent Drive push, just invoked directly.)
 
@@ -179,6 +181,7 @@ node packages/jobs-runtime/ipoDigestEmail.js \
   --dto data/runs/ipo_subscription_<DATE>.json \
   --narrative data/runs/ipo_subscription_narrative_<DATE>.json
 ```
+
 (Fallback: `https://raw.githubusercontent.com/darshan0919/stockmarket/main/packages/jobs-runtime/ipoDigestEmail.js`)
 
 Pure render + `sendHtmlEmail` — no content decisions happen here (per

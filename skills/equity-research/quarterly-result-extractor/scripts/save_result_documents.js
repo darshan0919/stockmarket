@@ -25,7 +25,13 @@ const fs = require('fs');
 const db = require('../../../../packages/jobs-runtime/lib/db.js');
 
 function parseArgs(argv) {
-  const out = { manifest: null, signals: null, headline: null, excerpts: null, creator: 'quarterly-result-extractor' };
+  const out = {
+    manifest: null,
+    signals: null,
+    headline: null,
+    excerpts: null,
+    creator: 'quarterly-result-extractor',
+  };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--manifest') out.manifest = argv[++i];
@@ -49,7 +55,9 @@ function readJsonIfExists(p) {
 function main() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.manifest) {
-    console.error('Usage: save_result_documents.js --manifest <manifest.json> [--signals <file>] [--excerpts <file>]');
+    console.error(
+      'Usage: save_result_documents.js --manifest <manifest.json> [--signals <file>] [--excerpts <file>]'
+    );
     process.exit(1);
   }
   const manifest = JSON.parse(fs.readFileSync(args.manifest, 'utf8'));
@@ -82,7 +90,10 @@ function main() {
     excerptsPending: !excerpts && !manifest.notYetOut,
     summary: manifest.notYetOut
       ? `Results not yet filed for ${manifest.ticker}`
-      : `Fetched ${Object.entries(manifest.found || {}).filter(([, v]) => v).map(([k]) => k).join('+')} for ${manifest.quarter || 'latest quarter'}`,
+      : `Fetched ${Object.entries(manifest.found || {})
+          .filter(([, v]) => v)
+          .map(([k]) => k)
+          .join('+')} for ${manifest.quarter || 'latest quarter'}`,
     contextUsed: [],
     // no modelUsed: Step 1/2/4 are pure script, Step 3 is recall-first
     // excerpting (not judgment) -- see SKILL.md's cheap-tier note. Pass

@@ -55,6 +55,7 @@ Available high-level agentic skills defined in the project:
 | N/A | `N/A` | find a skill, is there a skill that can, discover skills, install a skill |
 | [scripts/metrics/analyze_token_usage.py](scripts/metrics/analyze_token_usage.py) | `scripts/metrics/analyze_token_usage.py` | token usage analysis, weekly token usage, cost reduction recommendations, model selection FinOps |
 | N/A | `N/A` | ipo subscription digest, rank ipos by subscription, ipo subscription ranker, which ipos listing tomorrow, ipo subscription quality |
+| N/A | `N/A` | post close insights, post-close scan, after hours announcement scan, nightly announcement digest |
 
 ---
 
@@ -119,6 +120,8 @@ Instantiable classes for DI or custom configurations:
   - `getPriceVolumeDeliverable()`
   - `getDeliveryBhavcopy()`
   - `getLargeDeals()`
+  - `getHistoricalBulkDeals()`
+  - `getHistoricalBlockDeals()`
   - `getSastReg29()`
   - `getInsiderFilings()`
   - `fetchArchiveXml()`
@@ -163,7 +166,6 @@ Instantiable classes for DI or custom configurations:
   - `prices()`
   - `ohlcv()`
   - `documents()`
-  - `resultsDocuments()`
   - `resultsDocumentsMap()`
   - `growthCatalysts()`
   - `businessOverview()`
@@ -180,6 +182,7 @@ Instantiable classes for DI or custom configurations:
   - `s3PdfUrl()`
   - `fetchPdf()`
   - `validateAuth()`
+  - `resultsScan()`
 
 ### HttpClient
 - **Source File**: [stock-api/src/http/HttpClient.js](stock-api/src/http/HttpClient.js)

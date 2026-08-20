@@ -168,7 +168,9 @@ async function fetchOne(issue, cookie) {
   const url = `https://www.nseindia.com/api/ipo-detail?symbol=${encodeURIComponent(issue.symbol)}&series=${encodeURIComponent(series)}`;
   const j = await fetchWithRetry(url, cookie);
   const bidDetails = j.bidDetails || [];
-  const hasRealData = bidDetails.some((r) => parseFloat(r.noOfsharesBid || r.noOfshareBid || '0') > 0);
+  const hasRealData = bidDetails.some(
+    (r) => parseFloat(r.noOfsharesBid || r.noOfshareBid || '0') > 0
+  );
   const parsed = hasRealData ? parseNseBidDetails(bidDetails) : null;
   return {
     symbol: issue.symbol,
@@ -261,7 +263,9 @@ async function main() {
   const limitArg = argValue(argv, '--limit', null);
   const concurrency = parseInt(argValue(argv, '--concurrency', '2'), 10);
   const force = argv.includes('--force');
-  const securityTypes = argValue(argv, '--security-types', DEFAULT_SECURITY_TYPES.join(',')).split(',');
+  const securityTypes = argValue(argv, '--security-types', DEFAULT_SECURITY_TYPES.join(',')).split(
+    ','
+  );
 
   const result = await build({
     limit: limitArg ? parseInt(limitArg, 10) : null,

@@ -263,10 +263,7 @@ const CATEGORY_RULES = [
       'presentation to analysts',
     ],
   ],
-  [
-    'annual_report',
-    ['annual report', 'integrated annual report', "annual report and accounts"],
-  ],
+  ['annual_report', ['annual report', 'integrated annual report', 'annual report and accounts']],
   ['general', []],
 ];
 
@@ -314,7 +311,12 @@ const SUPPORTING_CATEGORIES = new Set(['credit_rating', 'regulatory', 'buyback',
  * `tags.includes('high_conviction')` as a "read this one" flag independent of
  * the `significance` bucket.
  */
-const HIGH_CONVICTION_CATEGORIES = new Set(['demerger', 'merger', 'acquisition', 'management_change']);
+const HIGH_CONVICTION_CATEGORIES = new Set([
+  'demerger',
+  'merger',
+  'acquisition',
+  'management_change',
+]);
 
 /**
  * STRONG categories that are CALENDAR-DRIVEN rather than genuine surprises.
@@ -391,15 +393,18 @@ const HEAVY_DOCUMENT_CATEGORIES = new Set([
 ]);
 
 const HEAVY_DOCUMENT_SKIP_REASONS = {
-  results: 'Full results/financial-statement filing — quarterly-result-analysis and ' +
+  results:
+    'Full results/financial-statement filing — quarterly-result-analysis and ' +
     'pre-pead-scanner own this document; re-parsing it here would spend thinking time ' +
     'on tables instead of insight synthesis.',
-  concall_transcript: 'Full earnings-call transcript — concall-analysis / ' +
+  concall_transcript:
+    'Full earnings-call transcript — concall-analysis / ' +
     'concall-transcript-extractor own this; typically 15-40+ pages of verbatim Q&A.',
-  investor_presentation: 'Full investor/analyst presentation — equity-research-extraction ' +
+  investor_presentation:
+    'Full investor/analyst presentation — equity-research-extraction ' +
     'and stock-report own this; typically 20-60+ slides.',
-  annual_report: 'Full annual report — annual-report-analysis owns this; typically ' +
-    '100-300+ pages.',
+  annual_report:
+    'Full annual report — annual-report-analysis owns this; typically ' + '100-300+ pages.',
 };
 
 function isHeavyDocumentCategory(category) {

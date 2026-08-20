@@ -36,17 +36,34 @@ const OUT_JSON = path.join(ROOT_DIR, 'data', 'runs', `stray_artifacts_${dateStam
 // Directories we never walk into — build output, deps, vcs, and the one
 // place these files are SUPPOSED to live (data/ is gitignored wholesale).
 const SKIP_DIRS = new Set([
-  'node_modules', '.git', '.next', 'dist', 'build', 'coverage',
-  'data', '.yarn', '.cache',
+  'node_modules',
+  '.git',
+  '.next',
+  'dist',
+  'build',
+  'coverage',
+  'data',
+  '.yarn',
+  '.cache',
 ]);
 
 // Extensions that are almost never legitimate source/config/docs in this repo
 // and are the usual signature of a skill run dumping its output in the wrong
 // place. Extend this list as new skill output formats appear.
 const ARTIFACT_EXT = new Set([
-  '.pdf', '.docx', '.pptx', '.xlsx', '.xls',
-  '.mp3', '.mp4', '.webm', '.wav', '.m4a',
-  '.zip', '.tar', '.gz',
+  '.pdf',
+  '.docx',
+  '.pptx',
+  '.xlsx',
+  '.xls',
+  '.mp3',
+  '.mp4',
+  '.webm',
+  '.wav',
+  '.m4a',
+  '.zip',
+  '.tar',
+  '.gz',
 ]);
 
 // Extensions that ARE legitimate as source/docs, but become suspicious when
@@ -64,8 +81,13 @@ const REPORT_NAME_PATTERN =
 // Repo-root files that are known-good and must never be flagged, even though
 // their extension is in AMBIGUOUS_EXT.
 const ROOT_ALLOWLIST = new Set([
-  'README.md', 'QUICKSTART.md', 'PROMPT.md', 'DEAD_CODE_ACTION_ITEMS.md',
-  'package.json', 'skills-lock.json', 'yarn.lock',
+  'README.md',
+  'QUICKSTART.md',
+  'PROMPT.md',
+  'DEAD_CODE_ACTION_ITEMS.md',
+  'package.json',
+  'skills-lock.json',
+  'yarn.lock',
 ]);
 
 // Path segments where artifact-looking files are expected on purpose
@@ -91,14 +113,16 @@ function classify(relPath, ext) {
   if (['.mp3', '.mp4', '.webm', '.wav', '.m4a', '.zip', '.tar', '.gz'].includes(ext)) {
     return {
       bucket: 'runs-or-delete',
-      reason: 'raw/regenerable download (audio/video/archive) — should not be persisted at all; if needed transiently, use data/runs/',
+      reason:
+        'raw/regenerable download (audio/video/archive) — should not be persisted at all; if needed transiently, use data/runs/',
       suggestedAction: `mv "${relPath}" data/runs/  # or delete outright — it is re-downloadable`,
     };
   }
   if (['.pdf', '.docx', '.pptx', '.xlsx', '.xls'].includes(ext)) {
     return {
       bucket: 'assets',
-      reason: 'rendered final artifact (report/deck/model) — belongs in data/assets/<skill>/, produced as a template render of a JSON DTO',
+      reason:
+        'rendered final artifact (report/deck/model) — belongs in data/assets/<skill>/, produced as a template render of a JSON DTO',
       suggestedAction: `mv "${relPath}" data/assets/misc/  # or into the producing skill's data/assets/<skill>/ dir`,
     };
   }

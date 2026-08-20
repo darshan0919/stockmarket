@@ -92,7 +92,10 @@ two explicit steps:
 ```js
 const { createResearchReport } = require('<repo_root>/stock-api/src/generators/generateReport.js');
 // Convenience wrapper: writes the DTO then renders from it in one call.
-await createResearchReport(companyName, ticker, reportMarkdown, outputPath, { companyId: ticker, modelUsed: 'claude-sonnet-5' });
+await createResearchReport(companyName, ticker, reportMarkdown, outputPath, {
+  companyId: ticker,
+  modelUsed: 'claude-sonnet-5',
+});
 ```
 
 Or call the two steps explicitly if you want to inspect/edit the DTO between writing and

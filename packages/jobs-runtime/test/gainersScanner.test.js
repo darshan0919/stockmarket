@@ -42,17 +42,13 @@ describe('resolveMarketDate', () => {
   test('before settlement (8 AM IST default run) falls back to lastTradingDay', () => {
     const eightAmIst = new Date(Date.UTC(2026, 7, 10, 2, 30)); // 08:00 IST
     expect(g.istHour(eightAmIst)).toBe(8);
-    expect(g.resolveMarketDate(monday, eightAmIst).toISOString().slice(0, 10)).toBe(
-      '2026-08-07'
-    );
+    expect(g.resolveMarketDate(monday, eightAmIst).toISOString().slice(0, 10)).toBe('2026-08-07');
   });
 
   test('at/after settlement on a trading day resolves to today', () => {
     const elevenPmIst = new Date(Date.UTC(2026, 7, 10, 17, 52)); // 23:52 IST — the bug's repro case
     expect(g.istHour(elevenPmIst)).toBe(23);
-    expect(g.resolveMarketDate(monday, elevenPmIst).toISOString().slice(0, 10)).toBe(
-      '2026-08-10'
-    );
+    expect(g.resolveMarketDate(monday, elevenPmIst).toISOString().slice(0, 10)).toBe('2026-08-10');
   });
 
   test('right at the settlement hour boundary resolves to today', () => {
@@ -338,7 +334,11 @@ describe('normaliseGainer companyId sanitization', () => {
   });
 
   test('leaves an unsuffixed ticker untouched', () => {
-    const out = g.normaliseGainer({ companyId: 'NSE:TATASTEEL', 'Returns 1D': 1, 'Market Capitalization': 1 });
+    const out = g.normaliseGainer({
+      companyId: 'NSE:TATASTEEL',
+      'Returns 1D': 1,
+      'Market Capitalization': 1,
+    });
     expect(out.ticker).toBe('NSE:TATASTEEL');
   });
 });
@@ -443,14 +443,40 @@ describe('fetchConcallSentiment', () => {
       pages: [
         {
           rows: [
-            ['1', 'NSE:AAA', 'AAA Ltd', 'Tech', '2026-07-30T10:00:00+05:30', null, 1, true, 50, 3, [], null],
+            [
+              '1',
+              'NSE:AAA',
+              'AAA Ltd',
+              'Tech',
+              '2026-07-30T10:00:00+05:30',
+              null,
+              1,
+              true,
+              50,
+              3,
+              [],
+              null,
+            ],
           ],
           next: 1,
           quarter: '202606',
         },
         {
           rows: [
-            ['2', 'NSE:BBB', 'BBB Ltd', 'Tech', '2026-07-29T10:00:00+05:30', null, 1, true, 60, 4, [], null],
+            [
+              '2',
+              'NSE:BBB',
+              'BBB Ltd',
+              'Tech',
+              '2026-07-29T10:00:00+05:30',
+              null,
+              1,
+              true,
+              60,
+              4,
+              [],
+              null,
+            ],
           ],
           next: null,
           quarter: '202606',
@@ -495,7 +521,13 @@ describe('daily aggregation of hourly candles', () => {
       ['2026-07-30T10:15:00', 108, 112, 107, 111, 3000],
     ]);
     expect(daily).toHaveLength(2);
-    expect(daily[0]).toMatchObject({ date: '2026-07-29', open: 100, high: 110, low: 99, close: 108 });
+    expect(daily[0]).toMatchObject({
+      date: '2026-07-29',
+      open: 100,
+      high: 110,
+      low: 99,
+      close: 108,
+    });
     expect(daily[0].volume).toBe(3000); // summed, not last
     expect(daily[1].close).toBe(111);
   });

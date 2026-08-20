@@ -14,21 +14,21 @@
  *   node render-report.js --ticker NSE:TMPV
  */
 
-const fs   = require('fs');
+const fs = require('fs');
 const path = require('path');
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const fmt  = (n) => n == null ? 'N/A' : Math.round(n).toLocaleString('en-IN');
-const fmtK = (n) => n == null ? 'N/A' : (n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n));
-const pct  = (n) => n == null ? '—'   : `${Number(n).toFixed(1)}%`;
-const crFmt= (n) => n == null ? 'N/A' : `₹${fmt(n)} Cr`;
+const fmt = (n) => (n == null ? 'N/A' : Math.round(n).toLocaleString('en-IN'));
+const fmtK = (n) => (n == null ? 'N/A' : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n));
+const pct = (n) => (n == null ? '—' : `${Number(n).toFixed(1)}%`);
+const crFmt = (n) => (n == null ? 'N/A' : `₹${fmt(n)} Cr`);
 
 function r2Color(r2) {
-  if (r2 >= 0.75) return '#22c55e';  // green
-  if (r2 >= 0.50) return '#f59e0b';  // amber
-  return '#ef4444';                   // red
+  if (r2 >= 0.75) return '#22c55e'; // green
+  if (r2 >= 0.5) return '#f59e0b'; // amber
+  return '#ef4444'; // red
 }
 
 function sigColor(n) {
@@ -40,44 +40,55 @@ function sigColor(n) {
 function buildChartData(records, ticker) {
   const isMM = ticker && ticker.includes('M&M');
   const validRecords = records.filter((r) => r.month && r.year);
-  validRecords.sort((a, b) => a.year !== b.year ? a.year - b.year : a.month - b.month);
+  validRecords.sort((a, b) => (a.year !== b.year ? a.year - b.year : a.month - b.month));
 
   if (isMM) {
     return {
-      labels:       validRecords.map((r) => r.date_label),
-      pv_domestic:  validRecords.map((r) => r.suv_domestic ?? null),
-      pv_exports:   validRecords.map((r) => r.exports       ?? null),
-      ev:           validRecords.map((r) => r.tractor_total ?? null),
-      total:        validRecords.map((r) => r.auto_total    ?? null),
+      labels: validRecords.map((r) => r.date_label),
+      pv_domestic: validRecords.map((r) => r.suv_domestic ?? null),
+      pv_exports: validRecords.map((r) => r.exports ?? null),
+      ev: validRecords.map((r) => r.tractor_total ?? null),
+      total: validRecords.map((r) => r.auto_total ?? null),
       _series_labels: ['SUV Domestic', 'Exports', 'Tractors', 'Auto Total'],
     };
   }
   return {
-    labels:      validRecords.map((r) => r.date_label),
+    labels: validRecords.map((r) => r.date_label),
     pv_domestic: validRecords.map((r) => r.pv_domestic ?? null),
-    pv_exports:  validRecords.map((r) => r.pv_ib ?? r.pv_exports ?? null),
-    ev:          validRecords.map((r) => r.ev           ?? null),
-    total:       validRecords.map((r) => r.pv_total ?? r.total ?? null),
+    pv_exports: validRecords.map((r) => r.pv_ib ?? r.pv_exports ?? null),
+    ev: validRecords.map((r) => r.ev ?? null),
+    total: validRecords.map((r) => r.pv_total ?? r.total ?? null),
     _series_labels: ['PV Domestic', 'PV Exports', 'Electric Vehicles', 'Total'],
   };
 }
 
 // ── HTML template ─────────────────────────────────────────────────────────────
 function renderHtml(ticker, salesData, prediction) {
-  const records       = salesData.records || [];
-  const chartData     = buildChartData(records, ticker);
-  const seriesLabels  = chartData._series_labels || ['PV Domestic', 'PV Exports', 'Electric Vehicles', 'Total'];
-  const isMM          = ticker && ticker.includes('M&M');
-  const models        = prediction.models || {};
-  const monthlyPreds  = prediction.monthly_predictions || [];
-  const trainingData  = prediction.quarterly_training_data || [];
-  const latestPred    = monthlyPreds[monthlyPreds.length - 1] || null;
+  const records = salesData.records || [];
+  const chartData = buildChartData(records, ticker);
+  const seriesLabels = chartData._series_labels || [
+    'PV Domestic',
+    'PV Exports',
+    'Electric Vehicles',
+    'Total',
+  ];
+  const isMM = ticker && ticker.includes('M&M');
+  const models = prediction.models || {};
+  const monthlyPreds = prediction.monthly_predictions || [];
+  const trainingData = prediction.quarterly_training_data || [];
+  const latestPred = monthlyPreds[monthlyPreds.length - 1] || null;
 
-  const now    = new Date().toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
-  const title  = `${ticker.replace('NSE:', '')} Monthly Sales & Financial Predictor`;
+  const now = new Date().toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+  const title = `${ticker.replace('NSE:', '')} Monthly Sales & Financial Predictor`;
 
   // Quarterly correlation table rows
-  const corrRows = trainingData.map((d) => `
+  const corrRows = trainingData
+    .map(
+      (d) => `
     <tr${d.outlier ? ' class="outlier"' : ''}>
       <td>${d.quarter}</td>
       <td>${fmt(d.total_units)}</td>
@@ -85,10 +96,14 @@ function renderHtml(ticker, salesData, prediction) {
       <td>${crFmt(d.op)}</td>
       <td>${crFmt(d.pat)}</td>
       ${d.outlier ? `<td class="chip red">⚠ ${d.note || 'Outlier'}</td>` : '<td>—</td>'}
-    </tr>`).join('');
+    </tr>`
+    )
+    .join('');
 
   // Monthly predictions section
-  const predCards = monthlyPreds.map((p) => `
+  const predCards = monthlyPreds
+    .map(
+      (p) => `
     <div class="pred-card">
       <div class="pred-month">${p.month_name} ${p.year}</div>
       <div class="pred-units">
@@ -98,9 +113,10 @@ function renderHtml(ticker, salesData, prediction) {
       <div class="pred-breakdown">
         <span class="breakdown-item">${isMM ? 'SUV' : 'PV'} Dom <strong>${fmt(p.domestic ?? p.suv_domestic)}</strong></span>
         <span class="breakdown-item">Exp <strong>${fmt(p.exports)}</strong></span>
-        ${isMM
-          ? `<span class="breakdown-item">CV Dom <strong>${fmt(p.cv_domestic)}</strong></span>`
-          : `<span class="breakdown-item">EV <strong>${fmt(p.ev)}</strong></span>`
+        ${
+          isMM
+            ? `<span class="breakdown-item">CV Dom <strong>${fmt(p.cv_domestic)}</strong></span>`
+            : `<span class="breakdown-item">EV <strong>${fmt(p.ev)}</strong></span>`
         }
       </div>
       <div class="kpi-row">
@@ -120,10 +136,12 @@ function renderHtml(ticker, salesData, prediction) {
         </div>
       </div>
       <div class="pred-note">⚡ ${p.confidence}</div>
-    </div>`).join('');
+    </div>`
+    )
+    .join('');
 
   const chartDataJson = JSON.stringify(chartData);
-  const modelsJson    = JSON.stringify(models);
+  const modelsJson = JSON.stringify(models);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -418,7 +436,9 @@ tr:hover td { background: rgba(59,130,246,0.04); }
   </section>
 
   <!-- ── Monthly Predictions ─────────────────────────────────────────────── -->
-  ${monthlyPreds.length > 0 ? `
+  ${
+    monthlyPreds.length > 0
+      ? `
   <section class="section">
     <div class="section-title">Standalone Monthly Financial Estimates</div>
     <div class="pred-grid">
@@ -429,7 +449,9 @@ tr:hover td { background: rgba(59,130,246,0.04); }
       These are indicative projections, not full-quarter forecasts.
     </p>
   </section>
-  ` : ''}
+  `
+      : ''
+  }
 
   <!-- ── Regression Models ──────────────────────────────────────────────── -->
   <section class="section">
@@ -438,7 +460,9 @@ tr:hover td { background: rgba(59,130,246,0.04); }
   </section>
 
   <!-- ── Quarterly Correlation Table ────────────────────────────────────── -->
-  ${trainingData.length > 0 ? `
+  ${
+    trainingData.length > 0
+      ? `
   <section class="section">
     <div class="section-title">Quarterly Correlation Data (Training Set)</div>
     <div class="table-wrap">
@@ -455,7 +479,9 @@ tr:hover td { background: rgba(59,130,246,0.04); }
       </table>
     </div>
   </section>
-  ` : ''}
+  `
+      : ''
+  }
 
 </main>
 
@@ -602,28 +628,37 @@ async function main() {
   }
 
   const tickerIdx = argv.indexOf('--ticker');
-  if (tickerIdx === -1) { console.error('--ticker required'); process.exit(1); }
-  const ticker    = argv[tickerIdx + 1];
-  const doOpen    = argv.includes('--open');
+  if (tickerIdx === -1) {
+    console.error('--ticker required');
+    process.exit(1);
+  }
+  const ticker = argv[tickerIdx + 1];
+  const doOpen = argv.includes('--open');
   const safeTicker = ticker.replace(/[^A-Za-z0-9]+/g, '_');
-  const runDir     = path.join(REPO_ROOT, 'data', 'runs', 'monthly-sales-tracker', safeTicker);
+  const runDir = path.join(REPO_ROOT, 'data', 'runs', 'monthly-sales-tracker', safeTicker);
 
   const salesFile = path.join(runDir, 'sales_data.json');
-  const predFile  = path.join(runDir, 'prediction.json');
+  const predFile = path.join(runDir, 'prediction.json');
 
   console.log(`\n🎨 Report Renderer`);
   console.log(`   Ticker: ${ticker}`);
 
-  if (!fs.existsSync(salesFile)) { console.error(`Missing: ${salesFile}`); process.exit(1); }
-  if (!fs.existsSync(predFile))  { console.error(`Missing: ${predFile}`);  process.exit(1); }
+  if (!fs.existsSync(salesFile)) {
+    console.error(`Missing: ${salesFile}`);
+    process.exit(1);
+  }
+  if (!fs.existsSync(predFile)) {
+    console.error(`Missing: ${predFile}`);
+    process.exit(1);
+  }
 
-  const salesData  = JSON.parse(fs.readFileSync(salesFile, 'utf8'));
-  const prediction = JSON.parse(fs.readFileSync(predFile,  'utf8'));
+  const salesData = JSON.parse(fs.readFileSync(salesFile, 'utf8'));
+  const prediction = JSON.parse(fs.readFileSync(predFile, 'utf8'));
 
   const html = renderHtml(ticker, salesData, prediction);
 
   const dateStr = new Date().toISOString().slice(0, 10);
-  const outDir  = path.join(REPO_ROOT, 'data', 'assets', 'monthly-sales-tracker');
+  const outDir = path.join(REPO_ROOT, 'data', 'assets', 'monthly-sales-tracker');
   fs.mkdirSync(outDir, { recursive: true });
   const outFile = path.join(outDir, `${safeTicker}_sales_report_${dateStr}.html`);
   fs.writeFileSync(outFile, html);
@@ -632,7 +667,9 @@ async function main() {
 
   if (doOpen) {
     const { exec } = require('child_process');
-    exec(`open "${outFile}"`, (e) => { if (e) console.warn('Could not auto-open:', e.message); });
+    exec(`open "${outFile}"`, (e) => {
+      if (e) console.warn('Could not auto-open:', e.message);
+    });
   }
 
   console.log('\n── Token-optimization note ─────────────────────────────────────────');
@@ -643,7 +680,10 @@ async function main() {
 }
 
 if (require.main === module) {
-  main().catch((e) => { console.error('Fatal:', e); process.exit(1); });
+  main().catch((e) => {
+    console.error('Fatal:', e);
+    process.exit(1);
+  });
 }
 
 module.exports = { renderHtml, buildChartData };

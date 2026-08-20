@@ -26,4 +26,4 @@ writing this insight (not a summary — the archetypes and pitfalls matter). The
    peer multiples, execution risk, a demerger that never gets recognized)?
 7. **What to watch next** — one concrete, DATED catalyst (NCLT hearing date, record
    date, expected listing quarter, next concall).
-significance floor: medium. Tag `high_conviction`.
+   significance floor: medium. Tag `high_conviction`.

@@ -39,6 +39,7 @@ Consistency matters more than sophistication — screen every day/week.
 
 Pick the RIGHT multiple per segment based on what's actually knowable about
 its earnings:
+
 - **P/E** — when earnings are normalized, no exceptional items. Growth is the
   key driver of the multiple (high growth → high P/E, all else equal).
 - **P/B (price-to-book)** — for cyclicals whose asset base is stable across

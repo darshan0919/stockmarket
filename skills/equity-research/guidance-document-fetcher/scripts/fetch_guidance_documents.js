@@ -38,12 +38,21 @@ const path = require('path');
 const { execSync } = require('child_process');
 const { StockscansClient } = require('../../../../stock-api/src/clients/StockscansClient.js');
 const { fetchDocuments } = require('../../../../stock-api/src/fetchers/documentsFetcher.js');
-const { latestCompletedQuarter, parseQuarterString } = require('../../../../stock-api/src/utils/fiscalQuarter.js');
+const {
+  latestCompletedQuarter,
+  parseQuarterString,
+} = require('../../../../stock-api/src/utils/fiscalQuarter.js');
 
 const DEFAULT_TYPES = ['Transcript', 'PPT', 'Result'];
 
 function parseArgs(argv) {
-  const out = { tickers: null, tickersFile: null, quarter: null, types: DEFAULT_TYPES, outDir: '/tmp/guidance_docs' };
+  const out = {
+    tickers: null,
+    tickersFile: null,
+    quarter: null,
+    types: DEFAULT_TYPES,
+    outDir: '/tmp/guidance_docs',
+  };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--tickers') out.tickers = argv[++i].split(',').map((s) => s.trim());
@@ -64,7 +73,9 @@ async function findAndFetchOne(client, ticker, quarterYyyymm, types, outDir) {
   const found = {};
   const matches = {};
   for (const t of types) {
-    const hit = (documents || []).find((d) => d.documentType === t && d.date === quarterYyyymm && d.ssUrl);
+    const hit = (documents || []).find(
+      (d) => d.documentType === t && d.date === quarterYyyymm && d.ssUrl
+    );
     found[t] = !!hit;
     if (hit) matches[t] = hit;
   }
@@ -99,7 +110,9 @@ async function findAndFetchOne(client, ticker, quarterYyyymm, types, outDir) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.tickers && !args.tickersFile) {
-    console.error('Usage: fetch_guidance_documents.js (--tickers NSE:A,NSE:B | --tickers-file companies.json) [--quarter Q4FY26] [--types Transcript,PPT,Result] [--out-dir <dir>]');
+    console.error(
+      'Usage: fetch_guidance_documents.js (--tickers NSE:A,NSE:B | --tickers-file companies.json) [--quarter Q4FY26] [--types Transcript,PPT,Result] [--out-dir <dir>]'
+    );
     process.exit(1);
   }
 
@@ -119,7 +132,13 @@ async function main() {
   for (const entry of entries) {
     const usedDefault = !entry.quarter;
     let quarter = entry.quarter ? parseQuarterString(entry.quarter) : latest;
-    let { found, textPaths } = await findAndFetchOne(client, entry.ticker, quarter.yyyymm, args.types, args.outDir);
+    let { found, textPaths } = await findAndFetchOne(
+      client,
+      entry.ticker,
+      quarter.yyyymm,
+      args.types,
+      args.outDir
+    );
     let retriedPriorQuarter = false;
 
     // If nothing at all was found AND the quarter was defaulted (not
@@ -133,7 +152,13 @@ async function main() {
       const priorStr = `${priorPeriod}FY${String(priorYear).slice(-2)}`;
       try {
         const priorQuarter = parseQuarterString(priorStr);
-        const retry = await findAndFetchOne(client, entry.ticker, priorQuarter.yyyymm, args.types, args.outDir);
+        const retry = await findAndFetchOne(
+          client,
+          entry.ticker,
+          priorQuarter.yyyymm,
+          args.types,
+          args.outDir
+        );
         if (Object.values(retry.found).some(Boolean)) {
           found = retry.found;
           textPaths = retry.textPaths;

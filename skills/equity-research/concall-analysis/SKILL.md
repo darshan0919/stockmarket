@@ -50,7 +50,7 @@ Handle its output:
 
 - On success (`ssUrl`/`documentUrl` present) → download/read the document at
   `documentUrl` (`stock-documents-fetcher` / `fetch_documents.py -t
-  Transcript --last-n 1`, or fetch `documentUrl` directly).
+Transcript --last-n 1`, or fetch `documentUrl` directly).
 - On `error` → that quarter's results likely aren't out yet, or the
   transcript genuinely isn't filed (rare) — tell the user no transcript is
   available yet.

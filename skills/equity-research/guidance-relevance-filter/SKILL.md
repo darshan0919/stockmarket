@@ -68,6 +68,7 @@ similar.
 
 **Explicit permissiveness rules (read these twice — they're the point of
 this skill):**
+
 - Do NOT decide whether the number is "real" guidance vs. a historical
   actual, an analyst's number, or vague talk. If it has a number and a
   forward-period cue anywhere nearby, extract it. The next stage sorts this
@@ -141,6 +142,7 @@ filing.
 
 Piloted end-to-end on NSE:IFBIND (the company that produced a 0/7 total miss
 under the old "cheap model does full extraction directly" design):
+
 - The recall-first filter pass captured **71 of 71** forward-guidance signal
   keyword windows in the raw transcript (100% per `check_excerpt_coverage.py`),
   compressing an 82KB transcript to a 12.6KB excerpt file (~85% size

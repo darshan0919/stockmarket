@@ -89,7 +89,13 @@ function main() {
 
   const id = db.saveReport(dto);
   const touched = db.touchedFiles ? db.touchedFiles() : [];
-  console.log(JSON.stringify({ id, ticker: args.ticker, quarter: args.quarter, touchedFiles: touched }, null, 2));
+  console.log(
+    JSON.stringify(
+      { id, ticker: args.ticker, quarter: args.quarter, touchedFiles: touched },
+      null,
+      2
+    )
+  );
 }
 
 main();

@@ -19,12 +19,12 @@ Run the companion detector before or alongside the knip pass — it's a much che
 node scripts/find_stray_artifacts.js
 ```
 
-This walks the repo (skipping `node_modules`, `.git`, and `data/` — `data/` is where these files are *supposed* to live, per `docs/DATA_RULES.md`) looking for two things:
+This walks the repo (skipping `node_modules`, `.git`, and `data/` — `data/` is where these files are _supposed_ to live, per `docs/DATA_RULES.md`) looking for two things:
 
 - Files with artifact extensions (`.pdf`, `.docx`, `.pptx`, `.xlsx`, `.mp3`, `.mp4`, `.webm`, `.wav`, `.zip`, ...) anywhere outside `data/`.
 - Files at the repo root, or matching a known skill-report naming convention (e.g. `TICKER_FilingsDiff.html`, `Company_DRHP_Analysis.md`), that aren't on a small allowlist of legitimate root docs.
 
-Each finding is tagged `[TRACKED — was committed]` or `[untracked]` and classified into a DATA_RULES bucket (`assets` for rendered reports, `runs-or-delete` for raw/regenerable downloads) with a concrete `mv`/`git rm --cached` fix. Full output also lands in `data/runs/stray_artifacts_<date>.json` for auditing.
+Each finding is tagged `[TRACKED — was committed]` or `[untracked]` and classified into a DATA*RULES bucket (`assets` for rendered reports, `runs-or-delete` for raw/regenerable downloads) with a concrete `mv`/`git rm --cached` fix. Full output also lands in `data/runs/stray_artifacts*<date>.json` for auditing.
 
 Treat every `[TRACKED]` hit as higher priority than ordinary dead code — it means a binary or one-off report is sitting in git history, not just the working tree. For those, run the suggested `git rm --cached` first, then move the file per its `suggestedAction`, then extend `.gitignore` if the location is likely to recur (see the "Stray generated artifacts" block already in `.gitignore` for the pattern to follow).
 

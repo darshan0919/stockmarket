@@ -22,11 +22,11 @@
  */
 
 const { execSync, spawnSync } = require('child_process');
-const fs   = require('fs');
+const fs = require('fs');
 const path = require('path');
 
-const REPO_ROOT  = path.resolve(__dirname, '..', '..', '..');
-const SKILL_DIR  = __dirname;
+const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
+const SKILL_DIR = __dirname;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function step(n, label) {
@@ -70,13 +70,16 @@ Options:
   }
 
   const tickerIdx = argv.indexOf('--ticker');
-  if (tickerIdx === -1) { console.error('Error: --ticker is required'); process.exit(1); }
-  const ticker         = argv[tickerIdx + 1];
-  const skipDownload   = argv.includes('--skip-download');
+  if (tickerIdx === -1) {
+    console.error('Error: --ticker is required');
+    process.exit(1);
+  }
+  const ticker = argv[tickerIdx + 1];
+  const skipDownload = argv.includes('--skip-download');
   const excludeOutliers = argv.includes('--exclude-outliers');
-  const doOpen         = argv.includes('--open');
-  const annIdx         = argv.indexOf('--announcements');
-  const annFile        = annIdx !== -1 ? argv[annIdx + 1] : null;
+  const doOpen = argv.includes('--open');
+  const annIdx = argv.indexOf('--announcements');
+  const annFile = annIdx !== -1 ? argv[annIdx + 1] : null;
 
   const safeTicker = ticker.replace(/[^A-Za-z0-9]+/g, '_');
 
@@ -115,7 +118,7 @@ Options:
 
   // ── Summary ───────────────────────────────────────────────────────────────
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-  const outDir  = path.join(REPO_ROOT, 'data', 'assets', 'monthly-sales-tracker');
+  const outDir = path.join(REPO_ROOT, 'data', 'assets', 'monthly-sales-tracker');
   const reports = fs.existsSync(outDir)
     ? fs.readdirSync(outDir).filter((f) => f.startsWith(safeTicker) && f.endsWith('.html'))
     : [];
@@ -131,4 +134,7 @@ Options:
   console.log('    node run.js --ticker NSE:TMCV');
 }
 
-main().catch((e) => { console.error('Fatal:', e); process.exit(1); });
+main().catch((e) => {
+  console.error('Fatal:', e);
+  process.exit(1);
+});

@@ -33,6 +33,7 @@ anchor rules. Build the workbook with the `xlsx` skill conventions.
 - Year-0 (latest FY) financials + TTM: Revenue, COGS/expenses, EBITDA, D&A, Interest, Tax, PAT.
 
 **Income Statement Signal Scan (mandatory) on the Year-0 base.** Before using Year-0/TTM EBITDA, margin, or PAT as the projection base, run `skills/_shared/income-statement-signals.md` against QoQ and YoY baselines — a base inflated by inventory gains, a one-off Other Income item, a tax-rate reversal, or an unflagged exceptional item overstates every forward year identically, not just the inventory case. **Sourcing rule:** pull every relevant P&L line and PBT/PAT from the actual latest Result filing via `stock-documents-fetcher` — do not rely on Screener/MasterData summary rows alone. If any line/combination clears the shared scan's materiality bar and materially explains Year-0 PBT growth, normalize the base (strip the non-recurring component) before running the model and say so explicitly in the Executive Summary.
+
 - Latest concall transcript (and prior one if available) for: growth guidance, margin
   outlook, capex/initiatives, risk factors.
 - Reuse existing artifacts (corpus extracts, `[TICKER]_Concall.txt`, MasterData.xlsx) before

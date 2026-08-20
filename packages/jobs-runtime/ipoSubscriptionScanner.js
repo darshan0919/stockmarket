@@ -43,8 +43,7 @@ const dbV2 = require('./lib/db');
 
 const CLOSED_URL = 'https://www.ipoplatform.com/ipo/closed';
 const SUBSCRIPTION_URL = 'https://www.ipoplatform.com/ipo/subscription-status';
-const UA =
-  'Mozilla/5.0 (compatible; StockmarketIpoScanner/1.0; contact: djplearner@gmail.com)';
+const UA = 'Mozilla/5.0 (compatible; StockmarketIpoScanner/1.0; contact: djplearner@gmail.com)';
 const CREATOR = 'ipo-subscription-ranker';
 
 // ── CLI helpers ──────────────────────────────────────────────────────────────
@@ -80,11 +79,23 @@ function fmtYmd(d) {
 
 // IPOPlatform renders dates like "12 Aug 2026" — normalize to YYYY-MM-DD.
 const MONTHS = {
-  jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
-  jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12',
+  jan: '01',
+  feb: '02',
+  mar: '03',
+  apr: '04',
+  may: '05',
+  jun: '06',
+  jul: '07',
+  aug: '08',
+  sep: '09',
+  oct: '10',
+  nov: '11',
+  dec: '12',
 };
 function parseIpoPlatformDate(text) {
-  const m = String(text || '').trim().match(/(\d{1,2})\s+([A-Za-z]{3})\w*\s+(\d{4})/);
+  const m = String(text || '')
+    .trim()
+    .match(/(\d{1,2})\s+([A-Za-z]{3})\w*\s+(\d{4})/);
   if (!m) return null;
   const [, dd, mon, yyyy] = m;
   const mm = MONTHS[mon.toLowerCase().slice(0, 3)];
@@ -140,7 +151,9 @@ function ipoIdFromUrl(url) {
 }
 
 function toNum(text) {
-  const cleaned = String(text || '').replace(/[,x]/gi, '').trim();
+  const cleaned = String(text || '')
+    .replace(/[,x]/gi, '')
+    .trim();
   if (!cleaned || cleaned === '-') return null;
   const v = parseFloat(cleaned);
   return Number.isFinite(v) ? v : null;
@@ -162,7 +175,9 @@ function parseClosedIpos(html) {
       return {
         ipoId,
         detailUrl: href,
-        companyName: stripTags(nameCell).replace(/IPO Review Report.*/i, '').trim(),
+        companyName: stripTags(nameCell)
+          .replace(/IPO Review Report.*/i, '')
+          .trim(),
         ipoType: stripTags(cells[1]),
         openCloseDate: stripTags(cells[2]),
         listingDate: parseIpoPlatformDate(stripTags(cells[3])),
@@ -236,9 +251,7 @@ function parseDrhpLink(html) {
 // pairing round-tripped to the RHP's own Capital Structure table value
 // (676,800 shares) so it's a trustworthy primary source, not a proxy.
 function parseRetailSharesOffered(html) {
-  const m = html.match(
-    /Retail Shares Offered:\s*<\/span>\s*<span[^>]*>\s*([\d,]+)\s*<\/span>/i
-  );
+  const m = html.match(/Retail Shares Offered:\s*<\/span>\s*<span[^>]*>\s*([\d,]+)\s*<\/span>/i);
   if (!m) return null;
   const n = toNum(m[1]);
   return Number.isFinite(n) ? n : null;
@@ -329,7 +342,8 @@ async function scan({ date } = {}) {
     // email/narrative step can call it out rather than the IPO just
     // vanishing from top3 with no explanation.
     rec.retailFloatUnknown = rec.retailFloatCr == null;
-    rec.retailFloatFiltered = rec.retailFloatCr != null && rec.retailFloatCr < RETAIL_FLOAT_FILTER_CR;
+    rec.retailFloatFiltered =
+      rec.retailFloatCr != null && rec.retailFloatCr < RETAIL_FLOAT_FILTER_CR;
     const dual = computeDualScores(rec);
     rec.listingScore = dual.listingScore;
     rec.listingTier = dual.listingTier;
@@ -363,7 +377,9 @@ async function scan({ date } = {}) {
   merged.forEach((r, i) => {
     r.rank = i + 1;
     r.combinedScore =
-      Math.round((r.listingScore * LISTING_WEIGHT_IN_COMBINED + r.cagrScore * CAGR_WEIGHT_IN_COMBINED) * 1000) / 1000;
+      Math.round(
+        (r.listingScore * LISTING_WEIGHT_IN_COMBINED + r.cagrScore * CAGR_WEIGHT_IN_COMBINED) * 1000
+      ) / 1000;
   });
 
   // Top 3 chosen on BOTH scores (2026-08-09 ask), not listingScore alone —
@@ -382,9 +398,7 @@ async function scan({ date } = {}) {
     .sort((a, b) => b.combinedScore - a.combinedScore || b.listingScore - a.listingScore)
     .slice(0, 3);
 
-  const unmatched = universe
-    .filter((ipo) => !subById[ipo.ipoId])
-    .map((ipo) => ipo.ipoId);
+  const unmatched = universe.filter((ipo) => !subById[ipo.ipoId]).map((ipo) => ipo.ipoId);
 
   return {
     date: fmtYmd(runDate),

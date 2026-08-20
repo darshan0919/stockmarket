@@ -504,7 +504,8 @@ async function cmdFetchAnnouncements(watchlistIdsArg, client = stockscans) {
     const co = NotesDb.getCompany(notes, companyId);
     const processedByUsecase = (co && co.processedByUsecase) || {};
     let alreadyProcessedForThisUsecase = Object.entries(processedByUsecase).some(
-      ([usecase, ids]) => usecaseMatchesPrefix(usecase, usecasePrefix) && (ids || []).includes(annId)
+      ([usecase, ids]) =>
+        usecaseMatchesPrefix(usecase, usecasePrefix) && (ids || []).includes(annId)
     );
     // Back-compat bridge: THIS specific announcement may have been marked
     // processed before usecase-scoping existed, in which case it's in the
@@ -590,7 +591,11 @@ async function readOrFetchPdfMeta(url) {
   const cachePath = pdfCachePath(url);
   const cached = StorageService.readJson(cachePath);
   if (cached && typeof cached.text === 'string') {
-    return { text: cached.text, numPages: cached.numPages ?? null, isHeavyParse: Boolean(cached.isHeavyParse) };
+    return {
+      text: cached.text,
+      numPages: cached.numPages ?? null,
+      isHeavyParse: Boolean(cached.isHeavyParse),
+    };
   }
   const buf = await stockscans.fetchPdf(url, 60000);
   const { text, numPages } = await pdfToTextWithMeta(buf);
@@ -676,7 +681,8 @@ async function cmdAddNote(noteJsonStr) {
     // section (>4 pages, NOT a skip-listed category) without a second
     // PDF fetch or a separate log file. See watchlist-insights' SKILL.md.
     const numPages = Number.isFinite(noteData.numPages) ? noteData.numPages : null;
-    const isHeavyParse = noteData.isHeavyParse === true || (typeof numPages === 'number' && numPages > 4);
+    const isHeavyParse =
+      noteData.isHeavyParse === true || (typeof numPages === 'number' && numPages > 4);
     if (isHeavyParse && !tags.includes('heavy_parse')) tags.push('heavy_parse');
     const entry = {
       id: NotesDb.uuid(),
@@ -701,7 +707,14 @@ async function cmdAddNote(noteJsonStr) {
   co.modifiedTime = co.lastUpdated; // output-dto-standard envelope field
   await db.save(notes);
   process.stdout.write(
-    JSON.stringify({ status: 'ok', companyId: payload.companyId, noteId, usecase: noteData ? noteData.usecase || defaultUsecase(noteData.category, noteData.depth) : null })
+    JSON.stringify({
+      status: 'ok',
+      companyId: payload.companyId,
+      noteId,
+      usecase: noteData
+        ? noteData.usecase || defaultUsecase(noteData.category, noteData.depth)
+        : null,
+    })
   );
 }
 
@@ -845,13 +858,18 @@ async function collectDigest(client, watchlistIds, windowHours = DEFAULT_WINDOW_
       // Rendered as a separate digest section so insight-validation can review
       // whether that category deserves its own skip rule.
       isHeavyParse: Boolean(note && note.isHeavyParse),
-      numPages: note ? note.numPages ?? null : null,
+      numPages: note ? (note.numPages ?? null) : null,
     });
   }
   return digest;
 }
 
-function buildDigestHtml(digest, windowHours = DEFAULT_WINDOW_HOURS, watchlistIds = [], heavySkips = []) {
+function buildDigestHtml(
+  digest,
+  windowHours = DEFAULT_WINDOW_HOURS,
+  watchlistIds = [],
+  heavySkips = []
+) {
   const dateStr = ist.nowIstDate();
   const buckets = { high: [], medium: [], low: [] };
   for (const d of digest) {
@@ -1006,7 +1024,11 @@ async function cmdCommitWindow(watchlistIdsArg) {
   };
   await StorageService.saveJson(WINDOW_CURSOR_PATH, cursor);
   process.stdout.write(
-    JSON.stringify({ status: 'ok', watchlistKey: key, lastCommittedAtIso: cursor[key].lastCommittedAtIso })
+    JSON.stringify({
+      status: 'ok',
+      watchlistKey: key,
+      lastCommittedAtIso: cursor[key].lastCommittedAtIso,
+    })
   );
 }
 

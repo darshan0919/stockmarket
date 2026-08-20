@@ -76,6 +76,7 @@ Pull live CMP and market cap from at least two independent sources (screener.in 
 Every consecutive-filings-diff run has a concall transcript in hand by this point (from Phase 0/2), which is exactly the input `forward-guidance-extractor` needs — so always invoke that skill's Phase 1–3 for the current ticker/quarter rather than re-deriving guidance ad hoc inside this skill. Two things this buys you: the zero-assumption discipline (explicit, quantified guidance only — no "we expect to grow" rows) already lives in that skill's script pipeline, and a company that gets diffed today has its guidance persisted for the next quarter's walk-the-talk comparison for free.
 
 Concretely:
+
 1. Run `forward-guidance-extractor`'s Phase 1 (`classify_transcript_status.py`) against the same ticker/quarter — it will be an instant `available` hit since the transcript is already in `data/reports/` from this skill's own Phase 0/2.
 2. Run that skill's Phase 2 (reasoning — read the transcript once, reuse the same read from Phase 2 above rather than re-reading it) to produce the guidance items, then its Phase 3 script (`compute_guidance_value.py`) to resolve absolute/relative values.
 3. Persist via that skill's Phase 4 (`save_forward_guidance.js`) exactly as `forward-guidance-extractor/SKILL.md` specifies — this skill does not invent its own persistence path for guidance data.

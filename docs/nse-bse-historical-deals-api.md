@@ -25,7 +25,7 @@ at a missing/misnamed param. Swapping the guessed `type` param for
 - `GET https://www.nseindia.com/api/historicalOR/bulk-block-short-deals?optionType=bulk_deals&from=DD-MM-YYYY&to=DD-MM-YYYY[&symbol=SYM]`
   (`optionType=block_deals` for block deals; same path, same params otherwise)
 - Response: `{ data: [ { BD_DT_DATE, BD_DT_ORDER, BD_SYMBOL, BD_SCRIP_NAME,
-  BD_CLIENT_NAME, BD_BUY_SELL, BD_QTY_TRD, BD_TP_WATP, BD_REMARKS } ] }`.
+BD_CLIENT_NAME, BD_BUY_SELL, BD_QTY_TRD, BD_TP_WATP, BD_REMARKS } ] }`.
   `BD_DT_DATE` is `DD-MON-YYYY` (e.g. `03-AUG-2026`); `BD_DT_ORDER` is a full
   ISO timestamp, one calendar day earlier at 18:30 UTC (`T-1 18:30Z` = trade
   date's own midnight IST — an NSE timezone-encoding quirk, not a data bug).
@@ -121,6 +121,7 @@ IPOPlatform's own anchor table). A trailing "Total" summary row in the same
 of the data rows' 7 — filtered out by requiring `cells.length >= 7 && cells[0]`.
 
 **What I did NOT verify (real gaps in this POC, not resolved yet):**
+
 - No chittorgarh equivalent was found for IPOPlatform's paginated
   `main-board/index` JSON API (the backbone of `fetchPerformanceWindow` —
   date-windowed, auto-paginating, ~90 structured fields per IPO including

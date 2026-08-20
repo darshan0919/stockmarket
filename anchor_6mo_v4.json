@@ -12100,8 +12100,5 @@
     }
   },
   "warnings": [],
-  "touchedFiles": [
-    "supportive-investors.json",
-    "unsupportive-investors.json"
-  ]
+  "touchedFiles": ["supportive-investors.json", "unsupportive-investors.json"]
 }

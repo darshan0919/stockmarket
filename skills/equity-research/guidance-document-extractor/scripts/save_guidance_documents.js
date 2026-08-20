@@ -83,7 +83,9 @@ function safeName(ticker) {
 function main() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.manifest) {
-    console.error('Usage: save_guidance_documents.js --manifest <fetch-output.json> [--excerpts-dir <dir>]');
+    console.error(
+      'Usage: save_guidance_documents.js --manifest <fetch-output.json> [--excerpts-dir <dir>]'
+    );
     process.exit(1);
   }
   const manifest = JSON.parse(fs.readFileSync(args.manifest, 'utf8'));
@@ -94,7 +96,7 @@ function main() {
   // Step 2 (cheap-model extraction) failed or was skipped. Abort rather than
   // persisting records that will sit stuck with excerptsPending=true forever.
   if (args.excerptsDir && fs.existsSync(args.excerptsDir)) {
-    const excerptFiles = fs.readdirSync(args.excerptsDir).filter(f => f.endsWith('.json'));
+    const excerptFiles = fs.readdirSync(args.excerptsDir).filter((f) => f.endsWith('.json'));
     if (excerptFiles.length === 0) {
       console.error('[FATAL] --excerpts-dir was provided but contains NO excerpt files.');
       console.error('This likely means Step 2 (excerpt extraction) did not complete.');
@@ -126,8 +128,14 @@ function main() {
           // reviewing the DB) can tell "relevance-filter ran and produced
           // unparseable JSON" apart from "genuinely no guidance found".
           extractionFailed = `Invalid JSON from relevance filter, repair attempt also failed: ${result.error} (repair error: ${result.attemptedRepairError})`;
-          console.error(`[save_guidance_documents] PARSE FAILURE for ${entry.ticker}: ${extractionFailed}`);
-          parseFailures.push({ companyId: entry.companyId || entry.ticker, path: p, error: extractionFailed });
+          console.error(
+            `[save_guidance_documents] PARSE FAILURE for ${entry.ticker}: ${extractionFailed}`
+          );
+          parseFailures.push({
+            companyId: entry.companyId || entry.ticker,
+            path: p,
+            error: extractionFailed,
+          });
         }
       }
     }
@@ -158,8 +166,11 @@ function main() {
       summary: extractionFailed
         ? `Relevance-filter output for ${entry.quarter} failed to parse: ${extractionFailed}`
         : anyFound
-        ? `Fetched: ${Object.entries(entry.found).filter(([, v]) => v).map(([k]) => k).join('+')} for ${entry.quarter}`
-        : `No Transcript/PPT/Result found for ${entry.quarter} (attempted, genuinely unavailable)`,
+          ? `Fetched: ${Object.entries(entry.found)
+              .filter(([, v]) => v)
+              .map(([k]) => k)
+              .join('+')} for ${entry.quarter}`
+          : `No Transcript/PPT/Result found for ${entry.quarter} (attempted, genuinely unavailable)`,
       contextUsed: [],
     };
     const id = db.saveReport(dto);

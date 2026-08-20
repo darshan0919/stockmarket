@@ -94,7 +94,8 @@ const dbV2 = require('./lib/db');
 const { mapWithConcurrency } = require('@stock/api/utils/concurrency');
 
 const CACHE_FILE = 'bse-ipo-history.json';
-const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36';
+const UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36';
 const BASE_HEADERS = {
   'User-Agent': UA,
   accept: 'application/json, text/plain, */*',
@@ -177,7 +178,9 @@ function mergeCell(primary, secondary) {
 }
 
 function xOf(c) {
-  return c && c.offered != null && c.offered > 0 && c.bid != null ? Math.round((c.bid / c.offered) * 10000) / 10000 : null;
+  return c && c.offered != null && c.offered > 0 && c.bid != null
+    ? Math.round((c.bid / c.offered) * 10000) / 10000
+    : null;
 }
 
 /**
@@ -195,8 +198,14 @@ function parseBseBidDetails(table1, table2) {
 
   const totalRow1 = (table1 || []).find((r) => r.col2 === 'Total');
   const totalRow2 = (table2 || []).find((r) => r.col2 === 'Total');
-  const total1 = { offered: totalRow1 ? num(totalRow1.col3) : null, bid: totalRow1 ? num(totalRow1.col4) : null };
-  const total2 = { offered: totalRow2 ? num(totalRow2.col3) : null, bid: totalRow2 ? num(totalRow2.col4) : null };
+  const total1 = {
+    offered: totalRow1 ? num(totalRow1.col3) : null,
+    bid: totalRow1 ? num(totalRow1.col4) : null,
+  };
+  const total2 = {
+    offered: totalRow2 ? num(totalRow2.col3) : null,
+    bid: totalRow2 ? num(totalRow2.col4) : null,
+  };
 
   // Prefer table1 (_PAR_bbnew_ng) values where present, fall back to table2 (_ng).
   const qib = mergeCell(cellFor(bySr1, '1'), cellFor(bySr2, '1'));
@@ -342,7 +351,11 @@ async function main() {
   const concurrency = parseInt(argValue(argv, '--concurrency', '2'), 10);
   const force = argv.includes('--force');
 
-  const result = await build({ limit: limitArg ? parseInt(limitArg, 10) : null, concurrency, force });
+  const result = await build({
+    limit: limitArg ? parseInt(limitArg, 10) : null,
+    concurrency,
+    force,
+  });
   console.log(JSON.stringify(result, null, 2));
 }
 

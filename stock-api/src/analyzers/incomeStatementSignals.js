@@ -81,7 +81,7 @@ const LINES = [
     key: 'otherIncome',
     label: 'Other Income',
     bar: (d, ctx) =>
-      (ctx.pbt && Math.abs(d.value) / Math.abs(ctx.pbt) > 0.10) ||
+      (ctx.pbt && Math.abs(d.value) / Math.abs(ctx.pbt) > 0.1) ||
       (d.qoqPct != null && Math.abs(d.qoqPct) > 50) ||
       (d.yoyPct != null && Math.abs(d.yoyPct) > 50),
     note: 'Classify composition (treasury/interest, FV gain, forex, one-off) before citing.',
@@ -107,7 +107,9 @@ const LINES = [
   {
     key: 'otherExpenses',
     label: 'Other expenses',
-    bar: (d) => (d.yoyPct != null && Math.abs(d.yoyPct) > 15) || (d.qoqPct != null && Math.abs(d.qoqPct) > 15),
+    bar: (d) =>
+      (d.yoyPct != null && Math.abs(d.yoyPct) > 15) ||
+      (d.qoqPct != null && Math.abs(d.qoqPct) > 15),
   },
   {
     key: 'ebitdaMarginBps',
@@ -117,7 +119,9 @@ const LINES = [
   {
     key: 'depreciation',
     label: 'Depreciation & Amortisation',
-    bar: (d) => (d.yoyPct != null && Math.abs(d.yoyPct) > 15) || (d.qoqPct != null && Math.abs(d.qoqPct) > 15),
+    bar: (d) =>
+      (d.yoyPct != null && Math.abs(d.yoyPct) > 15) ||
+      (d.qoqPct != null && Math.abs(d.qoqPct) > 15),
   },
   {
     key: 'interest',
@@ -143,7 +147,9 @@ const LINES = [
   {
     key: 'minorityInterest',
     label: 'Minority interest / share of associates',
-    bar: (d) => (d.yoyPct != null && Math.abs(d.yoyPct) > 15) || (d.qoqPct != null && Math.abs(d.qoqPct) > 15),
+    bar: (d) =>
+      (d.yoyPct != null && Math.abs(d.yoyPct) > 15) ||
+      (d.qoqPct != null && Math.abs(d.qoqPct) > 15),
   },
 ];
 
@@ -260,7 +266,16 @@ function writeCache(companyId, period, result) {
   const tmp = `${f}.tmp.${process.pid}`;
   fs.writeFileSync(
     tmp,
-    JSON.stringify({ companyId: sanitizeCompanyId(companyId), period, computedAt: new Date().toISOString(), ...result }, null, 2)
+    JSON.stringify(
+      {
+        companyId: sanitizeCompanyId(companyId),
+        period,
+        computedAt: new Date().toISOString(),
+        ...result,
+      },
+      null,
+      2
+    )
   );
   fs.renameSync(tmp, f);
 }

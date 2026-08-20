@@ -188,6 +188,17 @@ def _key_overlap_ratio(dicts: list) -> float:
     return sum(inter_scores) / len(inter_scores)
 
 
+def _render_cell(v) -> str:
+    """Render one table cell. Scalars are escaped inline; non-scalar values (a
+    nested list of dicts, e.g. dot_connections' `evidence` field) are recursed
+    through render_value instead of being naively stringified — a bare _esc()
+    on a list/dict produced Python's repr() in the cell, which is the failure
+    mode this helper exists to fix."""
+    if _is_scalar(v):
+        return _esc(v)
+    return render_value(v)
+
+
 def _render_list_table(items: list) -> str:
     cols = []
     for it in items:
@@ -197,7 +208,7 @@ def _render_list_table(items: list) -> str:
     header = "".join(f'<th>{_esc(c).replace("_"," ").title()}</th>' for c in cols)
     rows = ""
     for it in items:
-        cells = "".join(f'<td>{_esc(it.get(c))}</td>' for c in cols)
+        cells = "".join(f'<td>{_render_cell(it.get(c))}</td>' for c in cols)
         rows += f'<tr>{cells}</tr>'
     return f'<table><tr>{header}</tr>{rows}</table>'
 

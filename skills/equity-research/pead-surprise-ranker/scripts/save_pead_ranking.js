@@ -32,7 +32,8 @@ function parseArgs(argv) {
     else if (a === '--batch-name') out.batchName = argv[++i];
     else if (a === '--ranked-file') out.rankedFile = argv[++i];
     else if (a === '--excluded-file') out.excludedFile = argv[++i];
-    else if (a === '--guidance-report-ids') out.guidanceReportIds = argv[++i].split(',').filter(Boolean);
+    else if (a === '--guidance-report-ids')
+      out.guidanceReportIds = argv[++i].split(',').filter(Boolean);
     else if (a === '--xlsx-path') out.xlsxPath = argv[++i];
     else if (a === '--model') out.model = argv[++i];
   }
@@ -67,7 +68,13 @@ function main() {
   };
 
   const id = db.saveReport(dto);
-  console.log(JSON.stringify({ id, companyCount: companyIds.length, touchedFiles: db.touchedFiles() }, null, 2));
+  console.log(
+    JSON.stringify(
+      { id, companyCount: companyIds.length, touchedFiles: db.touchedFiles() },
+      null,
+      2
+    )
+  );
 }
 
 main();

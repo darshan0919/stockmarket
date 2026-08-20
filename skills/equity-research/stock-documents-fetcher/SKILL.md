@@ -7,7 +7,7 @@ description: Fetches official company documents (earnings call transcripts, inve
 
 Pulls official filings for Indian-listed companies (NSE/BSE) from Stockscans and saves them as PDFs in a directory of your choosing, alongside a `manifest.json` that downstream skills can consume.
 
-**⚠️ CORRECTED 2026-08-02 — the Python CLI scripts described below (`stock-api/python/fetchers/fetch_documents.py` / `fetch_announcements.py`) DO NOT EXIST in this repo.** There is no `stock-api/python/` directory at all. The registry's `entry` (`stock-api/bin/stock-documents-fetcher.js`) is also currently an unfinished stub (`// TODO: implement actual parsing and logic here` — prints an empty `{ok:true,outputs:[],warnings:[]}` and does nothing). **The real, working implementation is a pair of Node.js modules** — see "Actual working usage" below, added after live-testing the real fetch path. The rest of this file (flags, date semantics, manifest shape, failure modes) still accurately describes the *real* JS functions' behavior — only the invocation mechanism (Python CLI vs. `require()`) and the auth resolution (see corrected Authtoken section) were wrong.
+**⚠️ CORRECTED 2026-08-02 — the Python CLI scripts described below (`stock-api/python/fetchers/fetch_documents.py` / `fetch_announcements.py`) DO NOT EXIST in this repo.** There is no `stock-api/python/` directory at all. The registry's `entry` (`stock-api/bin/stock-documents-fetcher.js`) is also currently an unfinished stub (`// TODO: implement actual parsing and logic here` — prints an empty `{ok:true,outputs:[],warnings:[]}` and does nothing). **The real, working implementation is a pair of Node.js modules** — see "Actual working usage" below, added after live-testing the real fetch path. The rest of this file (flags, date semantics, manifest shape, failure modes) still accurately describes the _real_ JS functions' behavior — only the invocation mechanism (Python CLI vs. `require()`) and the auth resolution (see corrected Authtoken section) were wrong.
 
 There are two endpoints behind this skill:
 
@@ -25,17 +25,19 @@ There is no ready-made CLI wrapper on disk — call the module function directly
 ```js
 // e.g. /tmp/fetch_docs.js — use an ABSOLUTE path to documentsFetcher.js,
 // a relative require('./stock-api/...') only works if cwd is the repo root.
-const { fetchDocuments } = require('/absolute/path/to/stockmarket/stock-api/src/fetchers/documentsFetcher.js');
+const {
+  fetchDocuments,
+} = require('/absolute/path/to/stockmarket/stock-api/src/fetchers/documentsFetcher.js');
 (async () => {
   const res = await fetchDocuments('NSE:YASHO', {
-    types: ['PPT', 'Result', 'Transcript'],   // omit for all 4 types
-    startDate: '202606',                       // YYYYMM, see date semantics below
+    types: ['PPT', 'Result', 'Transcript'], // omit for all 4 types
+    startDate: '202606', // YYYYMM, see date semantics below
     endDate: '202606',
     outputDir: '/tmp/yasho_docs',
-    listOnly: false,                            // true = preview, no download
+    listOnly: false, // true = preview, no download
   });
-  console.log(JSON.stringify(res.fetched, null, 2));   // downloaded docs
-  console.log(JSON.stringify(res.skipped, null, 2));   // failures, with `reason`
+  console.log(JSON.stringify(res.fetched, null, 2)); // downloaded docs
+  console.log(JSON.stringify(res.skipped, null, 2)); // failures, with `reason`
 })();
 ```
 

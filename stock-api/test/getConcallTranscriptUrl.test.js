@@ -7,7 +7,13 @@ const {
 
 /** Minimal fake StockscansClient — only the methods the resolver calls. */
 function fakeClient(overrides = {}) {
-  const calls = { documents: [], resultsDocuments: [], scanAnnouncements: [], createWatchlist: [], deleteWatchlist: [] };
+  const calls = {
+    documents: [],
+    resultsDocuments: [],
+    scanAnnouncements: [],
+    createWatchlist: [],
+    deleteWatchlist: [],
+  };
   return {
     calls,
     async documents(companyId) {
@@ -22,7 +28,9 @@ function fakeClient(overrides = {}) {
     },
     async scanAnnouncements(payload) {
       calls.scanAnnouncements.push(payload);
-      return overrides.scanAnnouncements ? overrides.scanAnnouncements(payload) : { announcements: [], total: 0 };
+      return overrides.scanAnnouncements
+        ? overrides.scanAnnouncements(payload)
+        : { announcements: [], total: 0 };
     },
     async createWatchlist(name, companyIds) {
       calls.createWatchlist.push({ name, companyIds });
@@ -130,8 +138,18 @@ describe('ConcallTranscriptResolver.multiCompanyLatestQuarter (scenario 2)', () 
     });
 
     expect(results).toEqual([
-      { companyId: 'NSE:A', quarter: '202606', ssUrl: 'a-ss', documentUrl: 'https://www.stockscans.in/document/a-ss' },
-      { companyId: 'NSE:B', quarter: '202606', ssUrl: 'b-ss', documentUrl: 'https://www.stockscans.in/document/b-ss' },
+      {
+        companyId: 'NSE:A',
+        quarter: '202606',
+        ssUrl: 'a-ss',
+        documentUrl: 'https://www.stockscans.in/document/a-ss',
+      },
+      {
+        companyId: 'NSE:B',
+        quarter: '202606',
+        ssUrl: 'b-ss',
+        documentUrl: 'https://www.stockscans.in/document/b-ss',
+      },
       { companyId: 'NSE:C', quarter: '202606', error: 'no Transcript filed yet this quarter' },
     ]);
   });
@@ -142,9 +160,17 @@ describe('ConcallTranscriptResolver.multiCompanyLatestQuarter (scenario 2)', () 
       resultsDocuments: ({ offset }) => {
         calls += 1;
         if (offset === 0) {
-          return { documents: [{ companyId: 'NSE:A', transcriptSsUrl: 'a-ss' }], total: 2, quarterDate: '202606' };
+          return {
+            documents: [{ companyId: 'NSE:A', transcriptSsUrl: 'a-ss' }],
+            total: 2,
+            quarterDate: '202606',
+          };
         }
-        return { documents: [{ companyId: 'NSE:B', transcriptSsUrl: 'b-ss' }], total: 2, quarterDate: '202606' };
+        return {
+          documents: [{ companyId: 'NSE:B', transcriptSsUrl: 'b-ss' }],
+          total: 2,
+          quarterDate: '202606',
+        };
       },
     });
     const resolver = new ConcallTranscriptResolver({ client });
@@ -227,12 +253,29 @@ describe('ConcallTranscriptResolver.multiCompanyHistoricalQuarter (scenario 3)',
     });
     const resolver = new ConcallTranscriptResolver({ client });
 
-    const results = await resolver.multiCompanyHistoricalQuarter(['NSE:A', 'NSE:B', 'NSE:C'], '202606');
+    const results = await resolver.multiCompanyHistoricalQuarter(
+      ['NSE:A', 'NSE:B', 'NSE:C'],
+      '202606'
+    );
 
     expect(results).toEqual([
-      { companyId: 'NSE:A', quarter: '202606', ssUrl: 'a-ss', documentUrl: 'https://www.stockscans.in/document/a-ss' },
-      { companyId: 'NSE:B', quarter: '202606', ssUrl: 'b-ss', documentUrl: 'https://www.stockscans.in/document/b-ss' },
-      { companyId: 'NSE:C', quarter: '202606', error: 'no Earnings Call transcript found for this quarter' },
+      {
+        companyId: 'NSE:A',
+        quarter: '202606',
+        ssUrl: 'a-ss',
+        documentUrl: 'https://www.stockscans.in/document/a-ss',
+      },
+      {
+        companyId: 'NSE:B',
+        quarter: '202606',
+        ssUrl: 'b-ss',
+        documentUrl: 'https://www.stockscans.in/document/b-ss',
+      },
+      {
+        companyId: 'NSE:C',
+        quarter: '202606',
+        error: 'no Earnings Call transcript found for this quarter',
+      },
     ]);
     expect(client.calls.deleteWatchlist).toEqual(['wl-123']);
   });

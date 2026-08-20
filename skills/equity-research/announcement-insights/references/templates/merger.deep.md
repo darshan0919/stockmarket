@@ -18,4 +18,4 @@ Produce:
    too); realistic close-date range given the approval stage.
 6. **Bear case + what to watch next** — one dated catalyst (regulatory hearing,
    shareholder vote date, expected close quarter).
-significance floor: medium. Tag `high_conviction`.
+   significance floor: medium. Tag `high_conviction`.

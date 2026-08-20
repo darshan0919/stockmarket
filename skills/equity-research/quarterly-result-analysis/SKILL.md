@@ -27,9 +27,11 @@ judging what the quarter's disclosures actually MEAN for the thesis.
 ## Input
 
 **For interactive use:**
+
 - Upload result PDF / concall transcript / investor PPT, or provide a ticker
 
 **For scheduled daily jobs:**
+
 - `--companyId NSE:X` — the company to analyze
 - `--date YYYY-MM-DD` — the extraction date (scopes DB lookup to records created for that date)
 
@@ -65,19 +67,23 @@ If the user uploaded files directly, skip straight to Phase 1 and use those
 files instead of the DB record (this remains the fastest path when the
 documents are already in hand).
 
-Otherwise — the user gave only a ticker (or ticker + date for scheduled jobs) — look up 
+Otherwise — the user gave only a ticker (or ticker + date for scheduled jobs) — look up
 `quarterly-result-extractor`'s persisted record. Query logic depends on context:
 
 **If `--date YYYY-MM-DD` was provided (scheduled job):**
+
 ```
 db.find('reports', {type: 'quarterly-result-documents', companyId, date: YYYY-MM-DD})
 ```
+
 This scopes the lookup to extraction records created for that specific date (the daily job pipeline).
 
 **If no `--date` provided (interactive use):**
+
 ```
 db.find('reports', {type: 'quarterly-result-documents', companyId})
 ```
+
 This finds the most recent extraction record regardless of date.
 
 Then `db.readReport(id)` for the full body. Three distinct cases:

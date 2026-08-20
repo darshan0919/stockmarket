@@ -156,7 +156,12 @@ function buildAnnouncementScanBody({
  * @param {number} [opts.maxPages=DEFAULT_MAX_PAGES]
  * @returns {Promise<Array>} flattened announcements across all pages needed (NOT necessarily all matches — see cap/early-exit above)
  */
-async function scanAllPages(client, scanBody, quarterDate, { stopWhenFoundFor, maxPages = DEFAULT_MAX_PAGES } = {}) {
+async function scanAllPages(
+  client,
+  scanBody,
+  quarterDate,
+  { stopWhenFoundFor, maxPages = DEFAULT_MAX_PAGES } = {}
+) {
   const pageIndices = Array.from({ length: maxPages }, (_, i) => i);
 
   const fetched = await mapWithConcurrency(pageIndices, maxPages, async (page) => {
@@ -262,7 +267,9 @@ async function scanAnnouncementsForCompanies({
     const created = await withRetry(() => client.createWatchlist(tempName, companyIds));
     watchlistId = created.watchlistId;
     if (!watchlistId) {
-      onWarning(`createWatchlist for ${companyIds.length} companies returned no watchlistId — treating as unconfirmed.`);
+      onWarning(
+        `createWatchlist for ${companyIds.length} companies returned no watchlistId — treating as unconfirmed.`
+      );
       return [];
     }
     return await scanAllPages(

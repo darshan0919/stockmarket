@@ -77,9 +77,11 @@ already in front of it.
 ## Input Parameters
 
 **For interactive use:**
+
 - Stockscans saved-scan URL or explicit ticker list
 
 **For scheduled daily jobs:**
+
 - `--date YYYY-MM-DD` — scope DB queries to extraction records created for that date
   (allows the morning forward-guidance job to only process documents fetched the previous night)
 
@@ -89,15 +91,19 @@ For each company being processed, first look up its `guidance-documents`
 report. Query logic depends on context:
 
 **If `--date YYYY-MM-DD` was provided (scheduled job):**
+
 ```
 db.find('reports', {type: 'guidance-documents', companyId, date: YYYY-MM-DD})
 ```
+
 This scopes the lookup to document-extraction records created for that specific date.
 
 **If no `--date` provided (interactive use):**
+
 ```
 db.find('reports', {type: 'guidance-documents', companyId})
 ```
+
 This finds the most recent guidance-documents record regardless of date.
 
 Then `db.readReport(id)` for the full body. Three distinct cases -- do not
@@ -137,6 +143,7 @@ missing record, an empty-but-attempted record, and an attempted-but-corrupted
 record must never be treated the same way.
 
 Two failure modes this design still guards against, same as before:
+
 1. **Hallucinated guidance.** An LLM asked to fill "300 companies x 15
    metrics" in one pass will pattern-complete blanks with plausible-sounding
    numbers. The fix is procedural: extraction happens ONE company at a time
@@ -161,12 +168,12 @@ base values -- everything this skill does) on a Haiku-class model against 4
 already-processed transcripts, with the Sonnet-class extraction already on
 file as ground truth:
 
-| Ticker | Sonnet items | Haiku items | Recall |
-|---|---|---|---|
-| NSE:GULPOLY | 11 | 5 | 45% |
-| NSE:SUPRAJIT | 8 | 2 | 25% |
-| NSE:IFBIND | 7 | **0** | **0%** |
-| NSE:CARRARO | 2 | 1 | 50% |
+| Ticker       | Sonnet items | Haiku items | Recall |
+| ------------ | ------------ | ----------- | ------ |
+| NSE:GULPOLY  | 11           | 5           | 45%    |
+| NSE:SUPRAJIT | 8            | 2           | 25%    |
+| NSE:IFBIND   | 7            | **0**       | **0%** |
+| NSE:CARRARO  | 2            | 1           | 50%    |
 
 NSE:IFBIND was a silent, total miss on exactly the item this skill exists to
 catch (a directly-quantified INR150cr cost-initiative PAT lever), reported
@@ -188,6 +195,7 @@ cost, still consider having this stage read the RAW document directly
 ## Inputs
 
 Same input shape as `guidance-document-extractor` -- either:
+
 - `--scan-url <https://www.stockscans.in/scans/saved/...>` — resolve the
   scan's companies (same `resolveUniverse()` call as the fetch stage, so the
   same `scanRow` data — Market Cap, P/E, CFO/PAT, "Change in FII Holdings
@@ -219,13 +227,13 @@ the call, and vice versa. Note which source each item came from
 
 Cover these metric groups, but only where a number is actually said:
 
-| Category | Metrics |
-|---|---|
-| Top Line | Revenue / Sales / Volume |
-| Margins | EBITDA margin, Gross Profit margin, Operating Profit margin, Net Profit margin |
-| Bottom Line | PAT, EPS |
-| Balance Sheet | Debt, Depreciation, Tax, Cash flow |
-| Key Metrics | Capacity, Utilisation, Order Book, ROCE, ROE, ROA |
+| Category      | Metrics                                                                        |
+| ------------- | ------------------------------------------------------------------------------ |
+| Top Line      | Revenue / Sales / Volume                                                       |
+| Margins       | EBITDA margin, Gross Profit margin, Operating Profit margin, Net Profit margin |
+| Bottom Line   | PAT, EPS                                                                       |
+| Balance Sheet | Debt, Depreciation, Tax, Cash flow                                             |
+| Key Metrics   | Capacity, Utilisation, Order Book, ROCE, ROE, ROA                              |
 
 For every guidance statement found, produce one JSON item matching the schema
 documented at the top of `scripts/compute_guidance_value.py`:
@@ -248,6 +256,7 @@ documented at the top of `scripts/compute_guidance_value.py`:
 ```
 
 **Zero-assumption rule -- this is the whole point of the skill:**
+
 - Only extract statements with `"confidence": "explicit"` -- a specific number,
   percentage, or range tied to a specific period, stated by MANAGEMENT (not
   an analyst's paraphrase an excerpt happened to capture -- if the excerpt
@@ -378,6 +387,7 @@ This skill processes hundreds of companies per run, so token spend compounds
 fast even after Stages 1-2 have already cut most of the raw-document cost.
 At the end of every run, look back at what actually happened and suggest
 concretely, based on THIS run's evidence, one or more of:
+
 - How much smaller Stage 2's excerpt files were than the raw documents
   (compression ratio) -- if it's low for a specific company, that's worth
   flagging back to `guidance-relevance-filter`'s prompt tuning, not silently
@@ -401,7 +411,7 @@ is the one most likely to run at real scale.
 
 - **Margins are already a %, don't relative-ize them into nonsense.** A
   "we expect EBITDA margin of 18%, up from 16%" is `absolute_value: 18,
-  absolute_unit: "%"` with the DELTA expressed as basis points in the quote,
+absolute_unit: "%"` with the DELTA expressed as basis points in the quote,
   not run through the revenue-style relative-growth formula.
 - **Ranges.** "18-20% growth" -- extract as a range in the `quote`, and put the
   midpoint (19%) in `relative_pct` with the full range preserved in the quote

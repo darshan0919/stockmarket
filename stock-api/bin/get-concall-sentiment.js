@@ -110,7 +110,10 @@ async function main() {
     process.stderr.write('Usage: get-concall-sentiment.js --companies NSE:A,NSE:B [--debug-raw]\n');
     process.exit(1);
   }
-  const companyIds = companiesArg.split(',').map((s) => s.trim()).filter(Boolean);
+  const companyIds = companiesArg
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
   const resolver = new ConcallSentimentResolver();
   try {
     const out = await resolver.forCompanies(companyIds, { debugRaw });

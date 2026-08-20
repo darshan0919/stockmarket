@@ -18,7 +18,7 @@ judgment — it belongs in a script, not in an LLM reasoning pass. Every line/co
 check in this document is implemented deterministically in
 `stock-api/src/analyzers/incomeStatementSignals.js`. Calling skills MUST call
 `getOrCompute(companyId, period, lineData, context)` from that module rather than asking
-the model to compute or eyeball percentage moves — the model's job starts *after* the
+the model to compute or eyeball percentage moves — the model's job starts _after_ the
 script returns, reasoning only over the short list of lines/combinations that already
 cleared the materiality bar (what they mean, how to phrase them, which verdict tag they
 earn), never re-deriving whether or by how much a line moved.
@@ -61,58 +61,58 @@ Each entry: what to ask, and the materiality bar below which the line is noise a
 NOT be reported.
 
 1. **Revenue / Net Sales** — decompose volume vs. price/mix where disclosed or inferable
-   from segment data. *Bar: >5% deviation from the trailing-4Q growth trend, either
-   direction.*
+   from segment data. _Bar: >5% deviation from the trailing-4Q growth trend, either
+   direction._
 2. **Other Income** — classify the composition: treasury/interest income (recurring),
    fair-value/mark-to-market gains, forex gains, or a genuine one-off (asset sale, insurance
-   claim, government grant, tax refund). *Bar: >10% of PBT, or a QoQ/YoY jump >50%.* When it
+   claim, government grant, tax refund). _Bar: >10% of PBT, or a QoQ/YoY jump >50%._ When it
    clears the bar, always state its Rs Cr contribution to PBT growth explicitly — this is
    the single most common way a "beat" gets manufactured.
 3. **Cost of materials consumed / Purchases of stock-in-trade** — RM cost as % of sales,
    checked against the input-price/commodity trend and against revenue growth (volume vs.
-   price effect). *Bar: >150bps swing in RM-cost-as-%-of-sales, QoQ or YoY.*
+   price effect). _Bar: >150bps swing in RM-cost-as-%-of-sales, QoQ or YoY._
 4. **Changes in inventories of finished goods, WIP and stock-in-trade** — negative value =
    inventory build-up = a cost tailwind (margin-inflating, non-recurring); positive value =
-   drawdown = a cost headwind. *Bar: the QoQ/YoY swing in this line explains >30-40%
-   (directionally) of the period's PBT growth.* When it clears the bar, tag the associated
+   drawdown = a cost headwind. _Bar: the QoQ/YoY swing in this line explains >30-40%
+   (directionally) of the period's PBT growth._ When it clears the bar, tag the associated
    margin strength `TEMPORARY`/inventory-gain-driven, never `SUSTAINABLE`.
 5. **Employee benefit expense** — growth vs. revenue growth (operating leverage vs. cost
-   creep); watch for one-off ESOP charges, severance, or wage-hike step-ups. *Bar: employee
-   cost growth diverging from revenue growth by >10 percentage points.*
+   creep); watch for one-off ESOP charges, severance, or wage-hike step-ups. _Bar: employee
+   cost growth diverging from revenue growth by >10 percentage points._
 6. **Other expenses** — the residual "everything else" bucket; check filing notes for
    disclosed one-offs (litigation, write-offs, forex loss/gain, provisions written back/up).
-   *Bar: >15% QoQ/YoY move with no corresponding revenue/scale explanation.*
+   _Bar: >15% QoQ/YoY move with no corresponding revenue/scale explanation._
 7. **EBITDA / Operating Profit and OPM%** — sanity-check the margin move against lines 3–6:
    does the sum of RM/inventory/employee/other-expense moves actually explain the OPM delta?
    If not, something is misclassified, hidden in a sub-line, or a segment mix-shift is at
-   play. *Bar: >100bps OPM move, QoQ or YoY.*
+   play. _Bar: >100bps OPM move, QoQ or YoY._
 8. **Depreciation & Amortisation** — a step-change signals fresh capex being capitalized;
-   cross-check against known capex/capacity-commissioning commentary. *Bar: >15% QoQ/YoY
-   jump not explained by the known capex timeline.*
+   cross-check against known capex/capacity-commissioning commentary. _Bar: >15% QoQ/YoY
+   jump not explained by the known capex timeline._
 9. **Finance costs / Interest** — direction should track the gross-debt trend and the rate
    cycle. A decline despite flat/rising debt implies refinancing or a rate benefit; a rise
-   despite falling debt implies a rate reset or new working-capital borrowing. *Bar: >10%
-   move inconsistent with the balance-sheet debt trend.*
+   despite falling debt implies a rate reset or new working-capital borrowing. _Bar: >10%
+   move inconsistent with the balance-sheet debt trend._
 10. **Exceptional / Extraordinary items** — always restate PAT ex-exceptional and state
     explicitly whether the headline PAT figure being discussed includes or excludes it.
-    *Bar: any non-zero value is reportable — this line exists specifically to be called
-    out, it is never noise.*
+    _Bar: any non-zero value is reportable — this line exists specifically to be called
+    out, it is never noise._
 11. **Profit Before Tax (PBT) — bridge check** — does Revenue + Other Income −
     (COGS + Inventory-line + Employee + Other Expenses + D&A + Interest) ± Exceptional
     reconcile to reported PBT within rounding? A mismatch flags an undisclosed
     reclassification or missing line.
 12. **Tax expense / effective tax rate** — swings from deferred-tax reversals, MAT credit
     utilization, a new tax-regime election, or a one-off settlement move PAT without any
-    operating change. *Bar: >300bps effective-rate swing, QoQ or YoY.*
+    operating change. _Bar: >300bps effective-rate swing, QoQ or YoY._
 13. **Profit After Tax (PAT) / Net Profit** — the headline number, but never read in
     isolation: state which 2–3 lines above explain the bulk (>60–70%) of the YoY/QoQ PAT
     delta before citing the PAT growth figure as a standalone fact.
 14. **EPS** — check basic vs. diluted divergence; recent equity dilution (QIP, warrants,
-    ESOP conversion) can shrink per-share earnings even when PAT is flat or growing. *Bar:
-    diluted/basic gap wider than 3%.*
+    ESOP conversion) can shrink per-share earnings even when PAT is flat or growing. _Bar:
+    diluted/basic gap wider than 3%._
 15. **Minority interest / share of profit from associates** (consolidated statements only) —
     a swing here can move consolidated PAT with no change at the core/standalone business
-    level. *Bar: >15% QoQ/YoY move.*
+    level. _Bar: >15% QoQ/YoY move._
 
 ## Combination reads (holistic — check together, not line-by-line)
 
@@ -150,8 +150,8 @@ broad-based/operating") rather than omitting the check silently.
 - Default to **QoQ** for detecting an inflection (a trend starting, accelerating, or
   reversing) and for exceptional/one-off items, which are inherently sequential events.
 - When QoQ and YoY tell different stories, report both and say so explicitly rather than
-  picking one — e.g.: *"YoY OPM is flat, but QoQ margin fell 180bps sequentially on RM cost
-  pressure — worth flagging as an emerging headwind not yet visible in the YoY comparison."*
+  picking one — e.g.: _"YoY OPM is flat, but QoQ margin fell 180bps sequentially on RM cost
+  pressure — worth flagging as an emerging headwind not yet visible in the YoY comparison."_
 
 ## How to cite this scan from a calling skill
 

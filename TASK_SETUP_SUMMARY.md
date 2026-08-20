@@ -1,6 +1,7 @@
 # Daily Results & Guidance Extraction Pipeline Setup
 
 ## Overview
+
 Created a robust nightly pipeline for quarterly results and guidance extraction with strict dependency gates. Each downstream task only runs if its upstream extraction succeeded.
 
 ---
@@ -8,6 +9,7 @@ Created a robust nightly pipeline for quarterly results and guidance extraction 
 ## Tasks Created / Updated
 
 ### 1. Daily Quarterly Result Extraction
+
 **Schedule:** 1:00 AM daily  
 **Taskid:** `daily-quarterly-result-extraction`
 
@@ -17,6 +19,7 @@ Created a robust nightly pipeline for quarterly results and guidance extraction 
 - Verifies success before allowing downstream analysis task to run
 
 ### 2. Daily Quarterly Result Analysis (GATED)
+
 **Schedule:** 1:15 AM daily  
 **Taskid:** `daily-quarterly-result-analysis`
 
@@ -27,6 +30,7 @@ Created a robust nightly pipeline for quarterly results and guidance extraction 
 - Renders interactive widget + PDF (saved to Drive)
 
 ### 3. Daily Guidance Document Extraction (UPDATED)
+
 **Schedule:** 11:30 PM daily  
 **Taskid:** `daily-guidance-extractor-scan`
 
@@ -36,6 +40,7 @@ Created a robust nightly pipeline for quarterly results and guidance extraction 
 - Verifies success before allowing forward-guidance task to run
 
 ### 4. Daily Forward Guidance with PEAD (UPDATED & GATED)
+
 **Schedule:** 11:45 PM daily  
 **Taskid:** `daily-forward-guidance-with-pead`
 
@@ -49,9 +54,11 @@ Created a robust nightly pipeline for quarterly results and guidance extraction 
 ## Companion Scripts Created
 
 ### 1. `/scripts/jobs/daily_results_extractor.js`
+
 Fetches companies that filed results on a given date using the **centralized StockscansClient** with the `resultsScan()` method.
 
 **Features:**
+
 - Uses the quality filters from your cURL example:
   - EPS Growth YoY >= 40%
   - Market Capitalization >= 300 Cr
@@ -61,6 +68,7 @@ Fetches companies that filed results on a given date using the **centralized Sto
 - Added `resultsScan()` method to `StockscansClient` for this endpoint
 
 **Usage:**
+
 ```bash
 node daily_results_extractor.js --date 2026-08-10
 node daily_results_extractor.js  # Defaults to yesterday
@@ -69,15 +77,18 @@ node daily_results_extractor.js  # Defaults to yesterday
 **Output:** JSON manifest with list of companies `{date, count, pageCount, companies[], status}`
 
 ### 2. `/scripts/jobs/check_extraction_success.js`
+
 Verifies that extraction records were persisted to DB. Used as a gate before downstream analysis.
 
 **Usage:**
+
 ```bash
 node check_extraction_success.js --collection quarterly-result-documents --date 2026-08-11
 node check_extraction_success.js --collection guidance-documents --date 2026-08-11
 ```
 
 **Exit Codes:**
+
 - `0` = Success (records found, analysis task can proceed)
 - `1` = Failure (no records, analysis task will not run)
 
@@ -96,7 +107,7 @@ node check_extraction_success.js --collection guidance-documents --date 2026-08-
          forward-guidance-extractor + PEAD ranking
          ↓
          Persisted to DB + Drive
-         
+
 ---
 
 1:00 AM → daily_results_extractor script (fetch yesterday's results)
@@ -118,21 +129,25 @@ node check_extraction_success.js --collection guidance-documents --date 2026-08-
 ## Key Features
 
 ### Dependency Gates
+
 - **Forward-guidance-extractor** will NOT run if guidance-document-extractor fails
 - **Quarterly-result-analysis** will NOT run if quarterly-result-extractor fails
 - Gates prevent cascading failures and wasted computation
 
 ### Idempotent Extraction
+
 - All scripts handle re-runs gracefully
 - DB records use deterministic IDs, so updates merge automatically
 - Safe to rerun same day without duplication
 
 ### Date Handling
+
 - Results extraction uses **previous day's date** (yesterday)
 - Guidance extraction uses **today's date** (more recent documents)
 - Allows time for results/documents to be filed and indexed
 
 ### Data Persistence
+
 - All extraction records persisted to DB with:
   - Deterministic `id` (companyId + date + type)
   - `creationTime`, `modifiedTime`, `creator` envelope
@@ -167,6 +182,7 @@ All three skills have been updated to accept and use the `--date YYYY-MM-DD` par
    - Maintains backward compatibility with date-agnostic queries (interactive mode)
 
 ### Changes Made
+
 - Updated SKILL.md frontmatter descriptions (if needed) to reflect date-parameter support
 - Added date-scoped query patterns to all three skills' DB-lookup sections
 - Documented backward compatibility: all skills still work in interactive mode without `--date`
@@ -177,18 +193,23 @@ All three skills have been updated to accept and use the `--date YYYY-MM-DD` par
 ## Troubleshooting
 
 ### Forward-guidance task doesn't run at 11:45 PM
+
 **Check:** Did the 11:30 PM guidance-extractor check pass?
+
 ```bash
 cat /Users/darshanpatel/Desktop/Cowork/Scheduled/daily-guidance-extractor-scan/logs/latest.log
 ```
 
 ### Quarterly-result-analysis doesn't run at 1:15 AM
+
 **Check:** Did the 1:00 AM results-extractor check pass?
+
 ```bash
 cat /Users/darshanpatel/Desktop/Cowork/Scheduled/daily-quarterly-result-extraction/logs/latest.log
 ```
 
 ### Check DB records manually
+
 ```bash
 # Inside the repo, run:
 node -e "
@@ -223,11 +244,13 @@ console.log(JSON.stringify(recs, null, 2));
 ## Implementation Notes
 
 ### StockscansClient Enhancement
+
 - Added `resultsScan(payload, opts)` method to the centralized client
 - Supports full filter array + date filtering + pagination
 - Available for reuse by any other skill/script that needs filtered results scans
 
 ### Why JavaScript Over Python
+
 - Reuses existing StockscansClient (single source of truth for Stockscans API)
 - Consistent with repo's stock-api codebase
 - No separate auth/token handling — uses the client's existing auth layer
@@ -236,6 +259,7 @@ console.log(JSON.stringify(recs, null, 2));
 ## Cost Optimization Tips
 
 **For Next Run:**
+
 1. The `check_extraction_success.js` script runs zero-token DB queries — reuse it as a template for any other gate checks
 2. Pagination in `daily_results_extractor.js` is concurrent (not sequential) — pages are fetched in parallel to minimize latency
 3. Batch all 4-8 company extractions into one parallel run rather than sequential — reduces wall-clock time significantly

@@ -19,30 +19,30 @@ PDF text, notes DB, email) — it's shared with `announcement-insights`, not dup
 
 ## Parameters
 
-| Param            | Default                       | Meaning                                                                                                                                                                                                                                 |
-| ---------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `watchlistIds`   | _(required, caller-supplied)_ | comma-separated watchlist IDs, e.g. Near Highs + Radar + Upcoming Results. The job is agnostic of which watchlists it scans — the calling skill/task always supplies this.                                                              |
+| Param            | Default                             | Meaning                                                                                                                                                                                                                                                                                                                                                                   |
+| ---------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `watchlistIds`   | _(required, caller-supplied)_       | comma-separated watchlist IDs, e.g. Near Highs + Radar + Upcoming Results. The job is agnostic of which watchlists it scans — the calling skill/task always supplies this.                                                                                                                                                                                                |
 | `--window-hours` | _deterministic default (see below)_ | **explicit override only** for `fetch-announcements` / `build-digest` / `send-digest` — use it for a deliberate wider catch-up (e.g. `--window-hours 72` after a known multi-day outage). Leave it unset for the normal daily run: the default window is resolved automatically (never a plain "last 24h"), so you should not need this flag just because a run was late. |
-| `email`          | on                            | run `send-digest` at the end (off = just update notes)                                                                                                                                                                                  |
-| company filter   | none                          | on demand, process only a given `companyId`                                                                                                                                                                                             |
+| `email`          | on                                  | run `send-digest` at the end (off = just update notes)                                                                                                                                                                                                                                                                                                                    |
+| company filter   | none                                | on demand, process only a given `companyId`                                                                                                                                                                                                                                                                                                                               |
 
 ### Why the default window isn't just "last 24h"
 
 This job runs on a daily ~8AM IST schedule, but the run itself might fire late, fail
 outright, or get triggered manually hours or days after that. A plain rolling 24h
 window silently drops whatever fell in the gap: a run delayed to 2PM only looks back
-to 2PM the day before, missing the 8AM–2PM slice the *previous* day's on-time run
+to 2PM the day before, missing the 8AM–2PM slice the _previous_ day's on-time run
 already covered by the time it looked back 24h from its own (earlier) invocation.
 
 With no `--window-hours` flag, `fetch-announcements`/`build-digest`/`send-digest` now
 resolve the window deterministically instead:
 
-1. **Anchor floor** — the window never starts later than the *previous calendar day's*
+1. **Anchor floor** — the window never starts later than the _previous calendar day's_
    8AM IST, regardless of what time the run actually fires. A same-day delay just
    produces a longer (safe — see below) window, not a gap.
 2. **Resumable cursor** — `commit-window <watchlistIds>` persists the exact windowEnd
    a healthy run used, in `cache/watchlist-insights-cursor.json`. If that cursor is
-   *older* than the anchor floor (one or more entire scheduled runs were missed or
+   _older_ than the anchor floor (one or more entire scheduled runs were missed or
    failed), the window reaches back to the cursor instead — covering the full gap,
    however many days long, not just one extra day.
 
@@ -93,7 +93,7 @@ For EACH item, first check `item.heavyDocument` (already computed deterministica
 **If `heavyDocument` is true — SKIP, don't call `announcement-insights` at all:**
 
 1. `run log-heavy-skip '<json>'` with `{companyId, name, title, category,
-   heavyDocumentSkipReason, announcementId, date}` (all fields already present on the
+heavyDocumentSkipReason, announcementId, date}` (all fields already present on the
    fetch-announcements item — pass them straight through).
 2. `run mark-processed "<companyId>" "<announcementId>" "heavy-doc-skip"` — the explicit
    `heavy-doc-skip` usecase (NOT the `announcement-insights` default) matters here: this

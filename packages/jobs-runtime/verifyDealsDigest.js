@@ -98,15 +98,14 @@ function findNeverFilterMisses(rawRows, top10Groups, neverFilterSymbols) {
       companyName: r.companyName,
       exchange: r.exchange,
     });
-    const bareTicker = String(identity.nseTicker || identity.bseTicker || identity.displaySymbol || '')
-      .toUpperCase();
+    const bareTicker = String(
+      identity.nseTicker || identity.bseTicker || identity.displaySymbol || ''
+    ).toUpperCase();
     if (neverFilterSymbols.has(bareTicker)) inRaw.add(bareTicker);
   }
   if (!inRaw.size) return [];
 
-  const inOutput = new Set(
-    (top10Groups || []).map((g) => String(g.symbol || '').toUpperCase())
-  );
+  const inOutput = new Set((top10Groups || []).map((g) => String(g.symbol || '').toUpperCase()));
   return [...inRaw].filter((sym) => !inOutput.has(sym));
 }
 
@@ -138,7 +137,9 @@ async function main() {
   }
 
   if (!digest) {
-    flag(`No digest snapshot found at ${jsonPath} — dealsDigest.js may not have run for ${dateLabel} yet.`);
+    flag(
+      `No digest snapshot found at ${jsonPath} — dealsDigest.js may not have run for ${dateLabel} yet.`
+    );
     console.log(JSON.stringify(report, null, 2));
     return report;
   }
@@ -185,10 +186,9 @@ async function main() {
     ...findNeverFilterMisses(digest.insider?.rows, digest.insider10, neverFilterSymbols),
   ];
   if (neverFilterMisses.length) {
-    flag(
-      'Never-filter watchlist company present in raw fetch but missing from digest output',
-      [...new Set(neverFilterMisses)]
-    );
+    flag('Never-filter watchlist company present in raw fetch but missing from digest output', [
+      ...new Set(neverFilterMisses),
+    ]);
   }
 
   // 4. company-master.json staleness.

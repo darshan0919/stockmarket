@@ -18,6 +18,7 @@
      - `page`, `limit`: echo back for frontend reference
 
 4. **Example Implementation (in Express):**
+
    ```js
    app.get('/api/stocks/search', async (req, res) => {
      const { q, page = 1, limit = 10 } = req.query;

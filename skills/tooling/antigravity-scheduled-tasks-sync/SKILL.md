@@ -8,12 +8,15 @@ description: Sync ALL repository scheduled jobs (jobs/Scheduled/) and repository
 This skill enforces 100% synchronization between all repository job definitions under `jobs/Scheduled/`, all repository skills under `skills/`, and the Antigravity UI Sidecars & Global Skills.
 
 ## Mandatory Rule
+
 Whenever scheduled tasks, job prompts, equity-research skills, or tooling skills are added, modified, or updated in the repository, you MUST run:
+
 ```bash
 yarn antigravity:sync
 ```
 
 This command automatically:
+
 1. **Scans ALL `jobs/Scheduled/` jobs**:
    - Updates Antigravity UI Scheduled Tasks sidecars (`~/.gemini/config/sidecars/{sidecarFolder}/sidecar.json`) with full prompt text & schedules.
    - Syncs Scheduled Task skills to `~/.gemini/config/skills/`.

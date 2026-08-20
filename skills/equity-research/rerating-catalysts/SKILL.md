@@ -22,7 +22,7 @@ description: >-
 
 # Re-rating Catalysts
 
-> A business re-rates when the market's perception of its *future* earnings
+> A business re-rates when the market's perception of its _future_ earnings
 > changes — and that perception shift is never abstract. It always traces
 > back to something specific and NEW: a capex commissioning, an order-book
 > jump, a management change, a warrant issue, a regulation. Your job is to
@@ -54,15 +54,15 @@ type but not another.
 
 ## How this differs from neighbouring skills
 
-| If you need... | Route to |
-|---|---|
-| Multi-company (watchlist) daily catalyst alerts | `watchlist-catalyst-scanner` |
-| Full single-quarter result interpretation (3-basket) | `quarterly-result-analysis` |
-| Forensic red-flag / accounting-quality scan | `forensic-accounting` |
-| Quarter-over-quarter deck diff reconciled with concall | `consecutive-filings-diff` |
-| 3-year model / bear-base-bull IRR | `financial-model` |
-| Technical/stage/relative-strength timing read | `stage2-catalyst-analysis` |
-| **Forward-looking, "new"-framework re-rating catalysts for ONE company** | **THIS SKILL** |
+| If you need...                                                           | Route to                     |
+| ------------------------------------------------------------------------ | ---------------------------- |
+| Multi-company (watchlist) daily catalyst alerts                          | `watchlist-catalyst-scanner` |
+| Full single-quarter result interpretation (3-basket)                     | `quarterly-result-analysis`  |
+| Forensic red-flag / accounting-quality scan                              | `forensic-accounting`        |
+| Quarter-over-quarter deck diff reconciled with concall                   | `consecutive-filings-diff`   |
+| 3-year model / bear-base-bull IRR                                        | `financial-model`            |
+| Technical/stage/relative-strength timing read                            | `stage2-catalyst-analysis`   |
+| **Forward-looking, "new"-framework re-rating catalysts for ONE company** | **THIS SKILL**               |
 
 ## Workflow
 
@@ -108,7 +108,7 @@ closures, record dates, routine board-meeting intimations — same NOISE list as
 the old fundamental-shift-scanner), extract:
 
 1. **What literally happened** — one sentence, sourced, dated: `[Source:
-   Transcript Q4FY26 / PPT / Result / BSE filing, DD-Mon-YYYY]`.
+Transcript Q4FY26 / PPT / Result / BSE filing, DD-Mon-YYYY]`.
 2. **Which "new" category** it falls under (§2 of the framework doc) — a fact
    can carry more than one tag.
 3. **New or confirmation** — cross-check against the prior quarter's
@@ -204,8 +204,8 @@ Then render:
   CONVICTION catalysts get stronger visual treatment), and render the PDF
   via `skills/_shared/pdf-design-guide.md`'s palette/component vocabulary
   through the two-step pipeline (`resolve.sh rerating-catalysts --input
-  data.json --output report.html` then `resolve.sh render-pdf --html
-  report.html --pdf data/rerating-catalysts/<Company>_Output.pdf`). If
+data.json --output report.html` then `resolve.sh render-pdf --html
+report.html --pdf data/rerating-catalysts/<Company>_Output.pdf`). If
   content spills past 1 page, cut catalyst body text first, then drop to 5
   catalysts — never drop the "what's in the price" section. Mention the
   PDF's path/Drive link in the closing text so the user doesn't have to ask

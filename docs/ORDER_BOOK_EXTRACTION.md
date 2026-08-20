@@ -336,10 +336,10 @@ Some issuers never state an order value at all. WABAG answers SEBI annexure
 row (g) with a size _class_ — "Mega Order \*" — and prints a grid in the
 footer defining what each class means:
 
-| Order Classification         | Small   | Medium   | Large    | Major        | Mega        |
-| ---------------------------- | ------- | -------- | -------- | ------------ | ----------- |
-| Domestic (in INR Crores)     | Upto 100 | 100–250 | 250–600  | 600–1,000    | Above 1,000 |
-| International (in USD Mn)    | Upto 10  | 10–30   | 30–75    | 75–150       | Above 150   |
+| Order Classification      | Small    | Medium  | Large   | Major     | Mega        |
+| ------------------------- | -------- | ------- | ------- | --------- | ----------- |
+| Domestic (in INR Crores)  | Upto 100 | 100–250 | 250–600 | 600–1,000 | Above 1,000 |
+| International (in USD Mn) | Upto 10  | 10–30   | 30–75   | 75–150    | Above 150   |
 
 Refusing a figure is correct here, but reporting nothing throws away the one
 thing the filing does say. So the class and the grid are read together:

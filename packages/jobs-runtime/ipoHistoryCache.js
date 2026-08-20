@@ -113,7 +113,10 @@ function seedDetailFromExistingReports() {
       // empty-but-"parsed" page) if we see the same IPO more than once.
       const existing = seed[r.ipoPlatformId];
       const hasCategory = r.qibX != null || r.totalSubscriptionX != null;
-      if (!existing || (hasCategory && existing.qibX == null && existing.totalSubscriptionX == null)) {
+      if (
+        !existing ||
+        (hasCategory && existing.qibX == null && existing.totalSubscriptionX == null)
+      ) {
         seed[r.ipoPlatformId] = {
           qibX: r.qibX ?? null,
           sHniX: r.sHniX ?? null,
@@ -186,7 +189,9 @@ async function build({ fromDate, toDate, ipoType, refreshDetail, force, concurre
 
   const eligibleForDetail = rows.filter((r) => (r.ipo_year || '') >= DETAIL_CUTOVER_DATE);
   const toFetch = refreshDetail
-    ? eligibleForDetail.filter((r) => force || !(cache.byIpoPlatformId[r.id] && cache.byIpoPlatformId[r.id].detail))
+    ? eligibleForDetail.filter(
+        (r) => force || !(cache.byIpoPlatformId[r.id] && cache.byIpoPlatformId[r.id].detail)
+      )
     : [];
 
   let fetchedCount = 0;
@@ -216,7 +221,11 @@ async function build({ fromDate, toDate, ipoType, refreshDetail, force, concurre
     } else if (!detail && seed[row.id]) {
       detail = seed[row.id];
     } else if (!detail && (row.ipo_year || '') < DETAIL_CUTOVER_DATE) {
-      detail = { subscriptionDataParsed: false, preCutover: true, detailSource: 'skipped:pre-cutover' };
+      detail = {
+        subscriptionDataParsed: false,
+        preCutover: true,
+        detailSource: 'skipped:pre-cutover',
+      };
     }
     cache.byIpoPlatformId[row.id] = {
       ...indexRec,
@@ -241,9 +250,15 @@ async function build({ fromDate, toDate, ipoType, refreshDetail, force, concurre
 function status() {
   const cache = loadCache();
   const all = Object.values(cache.byIpoPlatformId);
-  const withDetail = all.filter((r) => r.detail && r.detail.subscriptionDataParsed && r.detail.qibX != null);
+  const withDetail = all.filter(
+    (r) => r.detail && r.detail.subscriptionDataParsed && r.detail.qibX != null
+  );
   const withTotalOnly = all.filter(
-    (r) => r.detail && r.detail.subscriptionDataParsed && r.detail.qibX == null && r.totalSubscriptionX != null
+    (r) =>
+      r.detail &&
+      r.detail.subscriptionDataParsed &&
+      r.detail.qibX == null &&
+      r.totalSubscriptionX != null
   );
   const preCutover = all.filter((r) => r.detail && r.detail.preCutover);
   const withPerf = all.filter((r) => r.listingGainPct != null);
@@ -292,7 +307,14 @@ async function main() {
   console.log(JSON.stringify(status(), null, 2));
 }
 
-module.exports = { build, status, loadCache, saveCache, seedDetailFromExistingReports, DETAIL_CUTOVER_DATE };
+module.exports = {
+  build,
+  status,
+  loadCache,
+  saveCache,
+  seedDetailFromExistingReports,
+  DETAIL_CUTOVER_DATE,
+};
 
 if (require.main === module) {
   main().catch((e) => {

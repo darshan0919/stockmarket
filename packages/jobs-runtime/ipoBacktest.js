@@ -79,8 +79,7 @@ const { mapWithConcurrency } = require('@stock/api/utils/concurrency');
 const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
 
 const PERFORMANCE_API = 'https://www.ipoplatform.com/main-board/index';
-const UA =
-  'Mozilla/5.0 (compatible; StockmarketIpoBacktest/1.0; contact: djplearner@gmail.com)';
+const UA = 'Mozilla/5.0 (compatible; StockmarketIpoBacktest/1.0; contact: djplearner@gmail.com)';
 const CREATOR = 'ipo-scoring-backtest';
 const PAGE_SIZE = 100;
 
@@ -410,7 +409,9 @@ function suggestWeights(records, outcomeField) {
   const suggested = {};
   for (const field of fields) {
     suggested[field] =
-      sumFloored > 0 ? Math.round(((floored[field] / sumFloored) * totalBudget + Number.EPSILON) * 1000) / 1000 : null;
+      sumFloored > 0
+        ? Math.round(((floored[field] / sumFloored) * totalBudget + Number.EPSILON) * 1000) / 1000
+        : null;
   }
   return {
     outcomeField,
@@ -419,7 +420,7 @@ function suggestWeights(records, outcomeField) {
     suggestedWeights: sumFloored > 0 ? suggested : null,
     note:
       sumFloored > 0
-        ? 'Simple correlation-proportional suggestion — see this function\'s header for the multivariate-regression caveat before adopting.'
+        ? "Simple correlation-proportional suggestion — see this function's header for the multivariate-regression caveat before adopting."
         : 'No category had a positive correlation with this outcome in this sample — insufficient signal to suggest a re-weighting (check sample size / re-run with a larger window).',
   };
 }
@@ -486,10 +487,18 @@ async function backtest({ fromDate, toDate, ipoType, concurrency, limit, indexOn
   // comparable across a --index-only 10-year run and a granular ~10-month run.
   const results = indexOnly
     ? universe.map((row) => ({ ok: true, value: scoreRowFromIndexOnly(row, toDate) }))
-    : await mapWithConcurrency(universe, concurrency, async (row) => scoreRowWithDetailFetch(row, toDate));
+    : await mapWithConcurrency(universe, concurrency, async (row) =>
+        scoreRowWithDetailFetch(row, toDate)
+      );
 
   const records = results.map((r, i) =>
-    r.ok ? r.value : { ipoPlatformId: universe[i].id, companyName: universe[i].company_name, error: String(r.error) }
+    r.ok
+      ? r.value
+      : {
+          ipoPlatformId: universe[i].id,
+          companyName: universe[i].company_name,
+          error: String(r.error),
+        }
   );
   const scored = records.filter((r) => r.subscriptionQualityScore != null);
   const unparsed = records.filter((r) => r.subscriptionQualityScore == null);
@@ -721,7 +730,8 @@ function toReportDto(result, { modelUsed } = {}) {
     }, score-vs-listing-gain r=${
       result.summary.correlations.vsListingGain.subscriptionQualityScore?.pearsonR ?? 'n/a'
     }, score-vs-currentPerformanceDailyCagr r=${
-      result.summary.correlations.vsCurrentPerformanceDailyCagr.subscriptionQualityScore?.pearsonR ?? 'n/a'
+      result.summary.correlations.vsCurrentPerformanceDailyCagr.subscriptionQualityScore
+        ?.pearsonR ?? 'n/a'
     }.`,
     ...(modelUsed ? { modelUsed } : {}),
     fromDate: result.fromDate,

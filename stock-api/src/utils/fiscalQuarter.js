@@ -118,9 +118,7 @@ function parseQuarterString(str) {
 
   const m = s.toUpperCase().match(/^Q([1-4])FY(\d{2,4})$/);
   if (!m) {
-    throw new Error(
-      `Invalid quarter format "${str}" — expected Q1FY27, Q4FY26, 202606, etc.`
-    );
+    throw new Error(`Invalid quarter format "${str}" — expected Q1FY27, Q4FY26, 202606, etc.`);
   }
 
   const fiscalPeriod = `Q${m[1]}`;
@@ -144,4 +142,9 @@ function parseQuarterString(str) {
   };
 }
 
-module.exports = { latestCompletedQuarter, parseQuarterString, QUARTER_END_MONTH, calendarToQuarter };
+module.exports = {
+  latestCompletedQuarter,
+  parseQuarterString,
+  QUARTER_END_MONTH,
+  calendarToQuarter,
+};

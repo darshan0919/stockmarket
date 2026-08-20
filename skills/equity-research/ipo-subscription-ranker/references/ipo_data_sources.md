@@ -21,21 +21,21 @@ front-ends (and a fourth, investorgain, for GMP).
 Chittorgarh's subscription-status page for a closed IPO publishes the full offered/bid/
 amount breakdown per category with explicit footnotes on what's included:
 
-> *"the portion of anchor investors (or market makers) is not included in the total
-> number of shares offered"* and *"Market Maker portion is not included to NII/HNI."*
+> _"the portion of anchor investors (or market makers) is not included in the total
+> number of shares offered"_ and _"Market Maker portion is not included to NII/HNI."_
 
 Verified example — Anawil Wire & Engineering (SME, closed 2026-08-05):
 
-| Category | Shares Offered | Shares Bid | Multiple |
-|---|---|---|---|
-| Anchor | 18,75,600 | 18,75,600 | 1x |
-| Market Maker | 3,31,200 | 3,31,200 | 1x |
-| QIB (Ex Anchor) | 12,50,800 | 20,58,34,800 | 164.56x |
-| NII (= bNII+sNII) | 9,38,400 | 21,89,88,000 | 233.36x |
-| bNII (>₹10L) | 6,25,600 | 18,07,37,200 | 288.90x |
-| sNII (<₹10L) | 3,12,800 | 3,82,50,800 | 122.29x |
-| Retail | 21,89,600 | 22,82,05,600 | 104.22x |
-| **Total** | **43,78,800** | **65,30,28,400** | **149.13x** |
+| Category          | Shares Offered | Shares Bid       | Multiple    |
+| ----------------- | -------------- | ---------------- | ----------- |
+| Anchor            | 18,75,600      | 18,75,600        | 1x          |
+| Market Maker      | 3,31,200       | 3,31,200         | 1x          |
+| QIB (Ex Anchor)   | 12,50,800      | 20,58,34,800     | 164.56x     |
+| NII (= bNII+sNII) | 9,38,400       | 21,89,88,000     | 233.36x     |
+| bNII (>₹10L)      | 6,25,600       | 18,07,37,200     | 288.90x     |
+| sNII (<₹10L)      | 3,12,800       | 3,82,50,800      | 122.29x     |
+| Retail            | 21,89,600      | 22,82,05,600     | 104.22x     |
+| **Total**         | **43,78,800**  | **65,30,28,400** | **149.13x** |
 
 All multiples check out exactly as `Shares Bid / Shares Offered`. **This is the accepted,
 publicly-cited methodology** (used by news outlets, brokers, and every retail-facing IPO
@@ -56,7 +56,7 @@ backtesting IPOs that closed weeks/months ago).
 
 For the same Anawil IPO, this page reports: QIB 164.56x (✓ matches), sNII 122.29x
 (✓ matches), Retail 104.22x (✓ matches) — but **bNII 189.24x, NII 172.75x, Total 138.72x**,
-all *understated* relative to Chittorgarh's numbers. Root cause, found by comparing the
+all _understated_ relative to Chittorgarh's numbers. Root cause, found by comparing the
 offered-share denominators: the detail page's bNII "Shares Offered" is 9,56,800, vs
 Chittorgarh's 6,25,600 — a difference of exactly 3,31,200, the Market Maker allocation.
 **IPOPlatform's detail-page parser folds the Market Maker quota into bNII's denominator**,
@@ -99,11 +99,11 @@ Key findings, all verified against Chittorgarh's ANAWIL numbers:
    work on NSE's own data** — tested and falsified live (2026-08-09): NSE's Total already
    equals QIB+NII+Retail exactly (residual = 0), and NII's sub-splits sum to NII exactly
    (residual = 0). The 331,200-share Market Maker gap only becomes visible when diffed
-   against an *external* reference (Chittorgarh's Total), which defeats using NSE alone.
+   against an _external_ reference (Chittorgarh's Total), which defeats using NSE alone.
 5. **The Market Maker (and Anchor) quantity IS derivable from NSE's own response**,
    just not via arithmetic — it's in `issueInfo.dataList`'s "Issue Size" prose field:
-   *"...Offer for Sale of up to 13,00,800 Equity Shares (Including Market Maker portion of
-   3,31,200 Equity Shares and Anchor Allocation of 18,75,600 Equity Shares)"* — regex-
+   _"...Offer for Sale of up to 13,00,800 Equity Shares (Including Market Maker portion of
+   3,31,200 Equity Shares and Anchor Allocation of 18,75,600 Equity Shares)"_ — regex-
    extractable, and both figures matched Chittorgarh exactly on ANAWIL.
 6. **A cleaner alternative to regex exists and is what this repo actually uses**:
    IPOPlatform's performance-tracker index API (`fetchPerformanceWindow()` in
@@ -156,8 +156,8 @@ same-origin-ish check).
 #3, sub-category `offered` (`col3`) is frequently blank while `bid` (`col4`) is populated —
 e.g. Aether Industries had solid QIB/Retail/Total figures but its NII row showed `bid: 0`
 (evidently a stale/partial BSE snapshot for that one category, not a universal gap). Per
-explicit user instruction (2026-08-09): *"we need to skip only the ones which don't have
-any data at all... consider partial or full data as per respective investor category."*
+explicit user instruction (2026-08-09): _"we need to skip only the ones which don't have
+any data at all... consider partial or full data as per respective investor category."_
 `bseIpoHistoryFetcher.js::parseBseBidDetails()` therefore computes every category
 (QIB/NII/bHNI/sHNI/Retail/Employee/Shareholder/Total) independently and leaves any single
 category `null` when its own offered-or-bid data is missing, rather than nulling the whole
@@ -191,11 +191,11 @@ archival lookups, so it's easy to miss without a specific pointer (as happened h
 
 ## Decision matrix — which source for which use case
 
-| Use case | Skill | Source | Rationale |
-|---|---|---|---|
-| Bulk daily scan / ranking | `ipo-subscription-ranker` | **IPOPlatform only** (live "subscription-status" table) | Validated byte-for-byte correct against Chittorgarh's published methodology; easy, fast, scales to many IPOs/day without per-symbol NSE/BSE cookie/rate-limit handling. NSE as fallback only if IPOPlatform data is missing/incomplete for a given IPO. |
-| Single-IPO report | `drhp-ipo-analysis` | **IPOPlatform primary**, NSE as fallback/extra-granularity | Same reasoning — IPOPlatform's live table is the validated-correct, low-friction source for a freshly-closed IPO (which is always what this skill is scoring). NSE only needed if IPOPlatform genuinely lacks the data for that specific IPO. |
-| Weight-finding (`ipoWeightFinder.js`) | secondary, not user-facing | **IPOPlatform + NSE + BSE merged** | IPOPlatform's granular data only exists from ~2025-09-24 (n≈137, too thin to fit 5 category weights confidently). NSE reaches back to 2012 (NSE-listed only); BSE reaches back to 2010 (fills in BSE-only/SME issues NSE never lists). Market Maker is deliberately NOT corrected out of the NSE-derived training records (per explicit instruction — directional correlation goal, not absolute accuracy) but IS corrected for BSE records (bNII fix above, cheap to apply and already validated). See `ipoWeightFinder.js::loadFlatRecords()`'s header for the exact 4-provenance join logic (`ipoplatform` / `nse-selfcomputed` / `nse-x-platform-offered` / `bse`). |
+| Use case                              | Skill                      | Source                                                     | Rationale                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------------------------- | -------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bulk daily scan / ranking             | `ipo-subscription-ranker`  | **IPOPlatform only** (live "subscription-status" table)    | Validated byte-for-byte correct against Chittorgarh's published methodology; easy, fast, scales to many IPOs/day without per-symbol NSE/BSE cookie/rate-limit handling. NSE as fallback only if IPOPlatform data is missing/incomplete for a given IPO.                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Single-IPO report                     | `drhp-ipo-analysis`        | **IPOPlatform primary**, NSE as fallback/extra-granularity | Same reasoning — IPOPlatform's live table is the validated-correct, low-friction source for a freshly-closed IPO (which is always what this skill is scoring). NSE only needed if IPOPlatform genuinely lacks the data for that specific IPO.                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Weight-finding (`ipoWeightFinder.js`) | secondary, not user-facing | **IPOPlatform + NSE + BSE merged**                         | IPOPlatform's granular data only exists from ~2025-09-24 (n≈137, too thin to fit 5 category weights confidently). NSE reaches back to 2012 (NSE-listed only); BSE reaches back to 2010 (fills in BSE-only/SME issues NSE never lists). Market Maker is deliberately NOT corrected out of the NSE-derived training records (per explicit instruction — directional correlation goal, not absolute accuracy) but IS corrected for BSE records (bNII fix above, cheap to apply and already validated). See `ipoWeightFinder.js::loadFlatRecords()`'s header for the exact 4-provenance join logic (`ipoplatform` / `nse-selfcomputed` / `nse-x-platform-offered` / `bse`). |
 
 ## Disclaimer text (bulk/scale outputs)
 

@@ -15,13 +15,13 @@
 
 'use strict';
 
-const fs   = require('fs');
+const fs = require('fs');
 const path = require('path');
 
-const REPO_ROOT  = path.resolve(__dirname, '../../..');
-const DATA_DIR   = path.join(REPO_ROOT, 'data/runs/monthly-sales-tracker/NSE_DEEDEV');
+const REPO_ROOT = path.resolve(__dirname, '../../..');
+const DATA_DIR = path.join(REPO_ROOT, 'data/runs/monthly-sales-tracker/NSE_DEEDEV');
 const ASSETS_DIR = path.join(REPO_ROOT, 'data/assets/monthly-sales-tracker');
-const TODAY      = new Date().toISOString().slice(0, 10);
+const TODAY = new Date().toISOString().slice(0, 10);
 
 // ── Load data ─────────────────────────────────────────────────────────────────
 const salesFile = path.join(DATA_DIR, 'sales_data.json');
@@ -29,15 +29,15 @@ if (!fs.existsSync(salesFile)) {
   console.error('sales_data.json not found. Run extract-deedev-orders.py first.');
   process.exit(1);
 }
-const data    = JSON.parse(fs.readFileSync(salesFile, 'utf8'));
-const records = data.records.filter(r => r.execution != null);
+const data = JSON.parse(fs.readFileSync(salesFile, 'utf8'));
+const records = data.records.filter((r) => r.execution != null);
 
 // Quarter helpers
 function fiscalQuarter(month, year) {
-  if ([4,5,6].includes(month))      return { q: 1, fy: year + 1 };
-  if ([7,8,9].includes(month))      return { q: 2, fy: year + 1 };
-  if ([10,11,12].includes(month))   return { q: 3, fy: year + 1 };
-  return                                   { q: 4, fy: year };
+  if ([4, 5, 6].includes(month)) return { q: 1, fy: year + 1 };
+  if ([7, 8, 9].includes(month)) return { q: 2, fy: year + 1 };
+  if ([10, 11, 12].includes(month)) return { q: 3, fy: year + 1 };
+  return { q: 4, fy: year };
 }
 
 // ── Build quarterly rollups ───────────────────────────────────────────────────
@@ -45,32 +45,32 @@ const byQuarter = {};
 for (const r of records) {
   const { q, fy } = fiscalQuarter(r.month, r.year);
   const key = `Q${q}FY${String(fy).slice(-2)}`;
-  if (!byQuarter[key]) byQuarter[key] = { q, fy, key, months: [], exec: 0, inflow: 0, closing_ob: null };
+  if (!byQuarter[key])
+    byQuarter[key] = { q, fy, key, months: [], exec: 0, inflow: 0, closing_ob: null };
   byQuarter[key].months.push(r);
-  byQuarter[key].exec   += r.execution || 0;
+  byQuarter[key].exec += r.execution || 0;
   byQuarter[key].inflow += r.order_inflow || 0;
   // Use latest closing OB in the quarter
   if (r.closing_order_book != null) byQuarter[key].closing_ob = r.closing_order_book;
 }
-const quarters = Object.values(byQuarter)
-  .sort((a, b) => a.fy !== b.fy ? a.fy - b.fy : a.q - b.q);
+const quarters = Object.values(byQuarter).sort((a, b) => (a.fy !== b.fy ? a.fy - b.fy : a.q - b.q));
 
 // ── Chart data ────────────────────────────────────────────────────────────────
-const labels     = records.map(r => r.date_label);
-const execData   = records.map(r => r.execution);
-const inflowData = records.map(r => r.order_inflow);
-const obData     = records.map(r => r.closing_order_book);
-const cumExecData = records.map(r => r.cum_executed_fy);
+const labels = records.map((r) => r.date_label);
+const execData = records.map((r) => r.execution);
+const inflowData = records.map((r) => r.order_inflow);
+const obData = records.map((r) => r.closing_order_book);
+const cumExecData = records.map((r) => r.cum_executed_fy);
 
 // Quarterly chart data
-const qLabels = quarters.map(q => q.key);
-const qExec   = quarters.map(q => +q.exec.toFixed(2));
-const qInflow = quarters.map(q => +q.inflow.toFixed(2));
-const qOB     = quarters.map(q => q.closing_ob != null ? +q.closing_ob.toFixed(2) : null);
+const qLabels = quarters.map((q) => q.key);
+const qExec = quarters.map((q) => +q.exec.toFixed(2));
+const qInflow = quarters.map((q) => +q.inflow.toFixed(2));
+const qOB = quarters.map((q) => (q.closing_ob != null ? +q.closing_ob.toFixed(2) : null));
 
 // ── Current month summary ─────────────────────────────────────────────────────
-const latest  = records[records.length - 1];
-const prev    = records[records.length - 2];
+const latest = records[records.length - 1];
+const prev = records[records.length - 2];
 const execYoY = null; // no year-ago data in current set
 
 function pct(a, b) {
@@ -78,13 +78,13 @@ function pct(a, b) {
   return (((a - b) / Math.abs(b)) * 100).toFixed(1);
 }
 
-const execMoM   = pct(latest.execution, prev?.execution);
+const execMoM = pct(latest.execution, prev?.execution);
 const inflowMoM = pct(latest.order_inflow, prev?.order_inflow);
 
 // Q1FY27 so far (Apr + May + Jun 2026)
-const q1fy27 = quarters.find(q => q.key === 'Q1FY27');
-const q1fy26 = quarters.find(q => q.key === 'Q1FY26');
-const q1yoy  = q1fy27 && q1fy26 ? pct(q1fy27.exec, q1fy26.exec) : null;
+const q1fy27 = quarters.find((q) => q.key === 'Q1FY27');
+const q1fy26 = quarters.find((q) => q.key === 'Q1FY26');
+const q1yoy = q1fy27 && q1fy26 ? pct(q1fy27.exec, q1fy26.exec) : null;
 
 // ── Annualised run-rate ───────────────────────────────────────────────────────
 // Last 6 months execution annualised
@@ -92,11 +92,11 @@ const last6 = records.slice(-6).reduce((s, r) => s + (r.execution || 0), 0);
 const runRate = ((last6 / 6) * 12).toFixed(0);
 
 // ── Book-to-bill (last 6 months) ─────────────────────────────────────────────
-const last6Exec  = records.slice(-6).reduce((s, r) => s + (r.execution || 0), 0);
-const last6Inf   = records.slice(-6).reduce((s, r) => s + (r.order_inflow || 0), 0);
+const last6Exec = records.slice(-6).reduce((s, r) => s + (r.execution || 0), 0);
+const last6Inf = records.slice(-6).reduce((s, r) => s + (r.order_inflow || 0), 0);
 const bookToBill = last6Exec > 0 ? (last6Inf / last6Exec).toFixed(2) : null;
 
-const json = s => JSON.stringify(s);
+const json = (s) => JSON.stringify(s);
 
 // ── HTML ──────────────────────────────────────────────────────────────────────
 const html = `<!DOCTYPE html>
@@ -378,7 +378,9 @@ const html = `<!DOCTYPE html>
           </tr>
         </thead>
         <tbody>
-          ${records.map((r, i) => `
+          ${records
+            .map(
+              (r, i) => `
             <tr class="${i === records.length - 1 ? 'latest-row' : ''}">
               <td>
                 ${r.date_label}
@@ -391,7 +393,9 @@ const html = `<!DOCTYPE html>
               <td style="color:var(--green);">${r.closing_order_book != null ? r.closing_order_book.toFixed(2) : '—'}</td>
               <td style="color:var(--muted);">${r.cum_executed_fy != null ? r.cum_executed_fy.toFixed(2) : '—'}</td>
             </tr>
-          `).join('')}
+          `
+            )
+            .join('')}
         </tbody>
       </table>
     </div>
@@ -415,10 +419,11 @@ const html = `<!DOCTYPE html>
           </tr>
         </thead>
         <tbody>
-          ${quarters.map((q, i) => {
-            const b2b = q.exec > 0 ? (q.inflow / q.exec).toFixed(2) : '—';
-            const isLatest = i === quarters.length - 1;
-            return `
+          ${quarters
+            .map((q, i) => {
+              const b2b = q.exec > 0 ? (q.inflow / q.exec).toFixed(2) : '—';
+              const isLatest = i === quarters.length - 1;
+              return `
               <tr class="${isLatest ? 'latest-row' : ''}">
                 <td class="${isLatest ? 'q-highlight' : ''}">${q.key}</td>
                 <td>${q.months.length}/3</td>
@@ -428,7 +433,8 @@ const html = `<!DOCTYPE html>
                 <td style="color:${+b2b >= 1 ? 'var(--green)' : 'var(--red)'};">${b2b}x</td>
               </tr>
             `;
-          }).join('')}
+            })
+            .join('')}
         </tbody>
       </table>
     </div>
@@ -617,6 +623,6 @@ console.log(`\n✅ Report: ${outFile}`);
 
 // Open in browser
 const { exec } = require('child_process');
-exec(`open "${outFile}"`, err => {
+exec(`open "${outFile}"`, (err) => {
   if (err) console.log('   (open manually)');
 });

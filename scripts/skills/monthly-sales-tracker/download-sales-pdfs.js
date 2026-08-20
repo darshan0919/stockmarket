@@ -33,10 +33,7 @@ require('dotenv').config({ path: path.join(REPO_ROOT, '.env') });
 const { stockscans } = require(path.join(REPO_ROOT, 'stock-api', 'src', 'index.js'));
 
 // ── Announcement filter ────────────────────────────────────────────────────────
-const SALES_PATTERNS = [
-  /monthly sales/i,
-  /press release.*monthly/i,
-];
+const SALES_PATTERNS = [/monthly sales/i, /press release.*monthly/i];
 
 function isSalesAnnouncement(ann) {
   const text = `${ann.title || ''} ${ann.description || ''}`;
@@ -178,14 +175,7 @@ Options:
 
   // Safe ticker for directory name (NSE:TMPV → NSE_TMPV)
   const safeTicker = ticker.replace(/[^A-Za-z0-9]+/g, '_');
-  const outDir = path.join(
-    REPO_ROOT,
-    'data',
-    'runs',
-    'monthly-sales-tracker',
-    safeTicker,
-    'pdfs'
-  );
+  const outDir = path.join(REPO_ROOT, 'data', 'runs', 'monthly-sales-tracker', safeTicker, 'pdfs');
 
   console.log(`\n📥 Monthly Sales PDF Downloader`);
   console.log(`   Ticker : ${ticker}`);

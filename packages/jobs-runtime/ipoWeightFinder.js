@@ -89,14 +89,17 @@ function round4(x) {
 function nseFallbackFromRaw(nseRec, sharesOfferedRaw) {
   if (!nseRec || !nseRec.parsed || !nseRec.parsed.raw || !sharesOfferedRaw) return null;
   const raw = nseRec.parsed.raw;
-  const div = (bidObj, offered) => (bidObj && bidObj.bid != null && offered ? round4(bidObj.bid / offered) : null);
+  const div = (bidObj, offered) =>
+    bidObj && bidObj.bid != null && offered ? round4(bidObj.bid / offered) : null;
   const qibX = div(raw.qib, sharesOfferedRaw.qibExAnchor);
   const niiX = div(raw.nii, sharesOfferedRaw.nii);
   const bHniX = div(raw.bnii, sharesOfferedRaw.bNii);
   const sHniX = div(raw.snii, sharesOfferedRaw.sNii);
   const riiX = div(raw.retail, sharesOfferedRaw.retail);
   const totalOffered =
-    sharesOfferedRaw.qibExAnchor != null && sharesOfferedRaw.nii != null && sharesOfferedRaw.retail != null
+    sharesOfferedRaw.qibExAnchor != null &&
+    sharesOfferedRaw.nii != null &&
+    sharesOfferedRaw.retail != null
       ? sharesOfferedRaw.qibExAnchor + sharesOfferedRaw.nii + sharesOfferedRaw.retail
       : null;
   const totalSubscriptionX = div(raw.total, totalOffered);
@@ -179,7 +182,14 @@ function loadFlatRecords() {
 
     if (d.qibX != null) {
       subscriptionSource = 'ipoplatform';
-      granular = { qibX: d.qibX, sHniX: d.sHniX, bHniX: d.bHniX, niiX: d.niiX, riiX: d.riiX, totalSubscriptionX: d.totalSubscriptionX };
+      granular = {
+        qibX: d.qibX,
+        sHniX: d.sHniX,
+        bHniX: d.bHniX,
+        niiX: d.niiX,
+        riiX: d.riiX,
+        totalSubscriptionX: d.totalSubscriptionX,
+      };
     } else if (rec.companyId && rec.companyId.startsWith('NSE:')) {
       const symbol = rec.companyId.slice(4);
       const nseRec = nseCache.bySymbol[symbol];
@@ -210,7 +220,9 @@ function loadFlatRecords() {
       const bseRec = findBseMatch(bseNameIndex, rec.companyName, rec.listingDate);
       if (bseRec && bseRec.parsed) {
         const p = bseRec.parsed;
-        const hasAny = [p.qibX, p.sHniX, p.bHniX, p.niiX, p.riiX, p.totalSubscriptionX].some((v) => v != null);
+        const hasAny = [p.qibX, p.sHniX, p.bHniX, p.niiX, p.riiX, p.totalSubscriptionX].some(
+          (v) => v != null
+        );
         if (hasAny) {
           subscriptionSource = 'bse';
           granular = {
@@ -240,19 +252,25 @@ function loadFlatRecords() {
       currentPerformanceDailyCagrPct: rec.currentPerformanceDailyCagrPct,
       currentPerformanceWeeklyCagrPct: rec.currentPerformanceWeeklyCagrPct,
       subscriptionSource,
-      qibX: granular ? granular.qibX ?? null : null,
-      sHniX: granular ? granular.sHniX ?? null : null,
-      bHniX: granular ? granular.bHniX ?? null : null,
-      niiX: granular ? granular.niiX ?? null : null,
-      riiX: granular ? granular.riiX ?? null : null,
-      totalSubscriptionX: granular ? granular.totalSubscriptionX ?? null : null,
+      qibX: granular ? (granular.qibX ?? null) : null,
+      sHniX: granular ? (granular.sHniX ?? null) : null,
+      bHniX: granular ? (granular.bHniX ?? null) : null,
+      niiX: granular ? (granular.niiX ?? null) : null,
+      riiX: granular ? (granular.riiX ?? null) : null,
+      totalSubscriptionX: granular ? (granular.totalSubscriptionX ?? null) : null,
       anchorParticipated: !!d.anchorParticipated,
     };
-    const hasAnyGranular = [flat.qibX, flat.sHniX, flat.bHniX, flat.niiX, flat.riiX, flat.totalSubscriptionX].some(
-      (v) => v != null
-    );
+    const hasAnyGranular = [
+      flat.qibX,
+      flat.sHniX,
+      flat.bHniX,
+      flat.niiX,
+      flat.riiX,
+      flat.totalSubscriptionX,
+    ].some((v) => v != null);
     flat.subscriptionQualityScore = hasAnyGranular ? computeSubscriptionScore(flat) : null;
-    flat.subscriptionQualityTier = flat.subscriptionQualityScore != null ? tierFor(flat.subscriptionQualityScore) : null;
+    flat.subscriptionQualityTier =
+      flat.subscriptionQualityScore != null ? tierFor(flat.subscriptionQualityScore) : null;
     out.push(flat);
   }
   return out;
@@ -294,15 +312,27 @@ function sizeMarketCapAnalysis(eligible) {
   const splitSample = {
     smallIssues: {
       n: smallIssues.length,
-      medianIssueSizeCr: smallIssues.length ? smallIssues[Math.floor(smallIssues.length / 2)].issueSizeCr : null,
+      medianIssueSizeCr: smallIssues.length
+        ? smallIssues[Math.floor(smallIssues.length / 2)].issueSizeCr
+        : null,
       scoreVsListingGain: pearsonReport(smallIssues, 'subscriptionQualityScore', 'listingGainPct'),
-      scoreVsDailyCagr: pearsonReport(smallIssues, 'subscriptionQualityScore', 'currentPerformanceDailyCagrPct'),
+      scoreVsDailyCagr: pearsonReport(
+        smallIssues,
+        'subscriptionQualityScore',
+        'currentPerformanceDailyCagrPct'
+      ),
     },
     largeIssues: {
       n: largeIssues.length,
-      medianIssueSizeCr: largeIssues.length ? largeIssues[Math.floor(largeIssues.length / 2)].issueSizeCr : null,
+      medianIssueSizeCr: largeIssues.length
+        ? largeIssues[Math.floor(largeIssues.length / 2)].issueSizeCr
+        : null,
       scoreVsListingGain: pearsonReport(largeIssues, 'subscriptionQualityScore', 'listingGainPct'),
-      scoreVsDailyCagr: pearsonReport(largeIssues, 'subscriptionQualityScore', 'currentPerformanceDailyCagrPct'),
+      scoreVsDailyCagr: pearsonReport(
+        largeIssues,
+        'subscriptionQualityScore',
+        'currentPerformanceDailyCagrPct'
+      ),
     },
   };
 
@@ -343,7 +373,13 @@ function run() {
   const sizeAnalysis = sizeMarketCapAnalysis(eligible);
 
   const result = {
-    id: dbV2.makeId('rpt', CREATOR, 'global', new Date().toISOString().slice(0, 10), 'full-database'),
+    id: dbV2.makeId(
+      'rpt',
+      CREATOR,
+      'global',
+      new Date().toISOString().slice(0, 10),
+      'full-database'
+    ),
     type: 'ipo-weight-optimization',
     creator: CREATOR,
     date: new Date().toISOString().slice(0, 10),

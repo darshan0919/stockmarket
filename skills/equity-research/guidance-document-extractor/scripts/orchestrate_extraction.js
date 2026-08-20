@@ -87,19 +87,24 @@ async function runStep2Extract(manifest, outDir) {
     const excerpts = [];
 
     // Read text from each source document
-    for (const textPath of (company.textPaths || [])) {
+    for (const textPath of company.textPaths || []) {
       if (!fs.existsSync(textPath)) continue;
 
       const text = fs.readFileSync(textPath, 'utf8');
-      const source = textPath.includes('Transcript') ? 'Transcript' :
-                     textPath.includes('PPT') ? 'PPT' : 'Result';
+      const source = textPath.includes('Transcript')
+        ? 'Transcript'
+        : textPath.includes('PPT')
+          ? 'PPT'
+          : 'Result';
 
       // Permissive extraction: number + forward-period cue in same sentence/table
-      const forwardKeywords = /expect|guide|target|aim|plan|outlook|guidance|FY27|FY28|FY27E|next year|by 20\d{2}|Q1FY27|Q[1-4]FY2[7-9]/gi;
-      const numberPattern = /[₹$%]?\s*\d+(?:,\d{3})*(?:\.\d+)?|cr(?:ore)?|cr\.|lakh|lakhs|thousand|mn|million|billion|bn/gi;
+      const forwardKeywords =
+        /expect|guide|target|aim|plan|outlook|guidance|FY27|FY28|FY27E|next year|by 20\d{2}|Q1FY27|Q[1-4]FY2[7-9]/gi;
+      const numberPattern =
+        /[₹$%]?\s*\d+(?:,\d{3})*(?:\.\d+)?|cr(?:ore)?|cr\.|lakh|lakhs|thousand|mn|million|billion|bn/gi;
 
       // Split into sentences and extract passages
-      const sentences = text.split(/[.!?\n]+/).filter(s => s.trim().length > 20);
+      const sentences = text.split(/[.!?\n]+/).filter((s) => s.trim().length > 20);
 
       for (let i = 0; i < sentences.length; i++) {
         const sent = sentences[i].trim();
@@ -111,8 +116,8 @@ async function runStep2Extract(manifest, outDir) {
 
           excerpts.push({
             source,
-            text: sent.substring(0, 600),  // Cap at 600 chars
-            context: context.substring(0, 200)
+            text: sent.substring(0, 600), // Cap at 600 chars
+            context: context.substring(0, 200),
           });
 
           // Reset keyword regex state
@@ -129,14 +134,16 @@ async function runStep2Extract(manifest, outDir) {
       excerptsByTicker[safeTicker] = {
         ticker: company.ticker,
         quarter: company.quarter,
-        excerpts: limitedExcerpts
+        excerpts: limitedExcerpts,
       };
       companiesWithExcerpts++;
       totalExcerpts += limitedExcerpts.length;
     }
   }
 
-  log(`✓ Extracted ${totalExcerpts} passages from ${companiesWithExcerpts}/${manifest.length} companies`);
+  log(
+    `✓ Extracted ${totalExcerpts} passages from ${companiesWithExcerpts}/${manifest.length} companies`
+  );
 
   return { excerptsByTicker, stats: { total: totalExcerpts, companiesWithExcerpts } };
 }
@@ -163,11 +170,11 @@ async function runStep4Persist(manifest, excerptsByTicker, outDir) {
   log('STEP 4: Persist to DB (durable records)');
 
   // Build output structure for save script
-  const manifestWithExcerpts = manifest.map(company => {
+  const manifestWithExcerpts = manifest.map((company) => {
     const safeTicker = company.ticker.replace(/[:\-]/g, '_');
     return {
       ...company,
-      excerpts: excerptsByTicker[safeTicker]?.excerpts || []
+      excerpts: excerptsByTicker[safeTicker]?.excerpts || [],
     };
   });
 
@@ -193,16 +200,19 @@ async function runStep4Persist(manifest, excerptsByTicker, outDir) {
         found: company.found,
         textPaths: company.textPaths,
         retriedPriorQuarter: !!company.retriedPriorQuarter,
-        excerpts: excerpts.map(e => ({ source: e.source, text: e.text, context: e.context })),
+        excerpts: excerpts.map((e) => ({ source: e.source, text: e.text, context: e.context })),
         // KEY FIX: Only set excerptsPending=true if excerpt extraction is genuinely incomplete
         // Since we ALWAYS run extraction now, this is false unless extraction actually failed
         excerptsPending: false,
         extractionFailed: false,
         scanRow: company.scanRow || null,
         summary: anyFound
-          ? `Fetched: ${Object.entries(company.found).filter(([, v]) => v).map(([k]) => k).join('+')} for ${company.quarter} (${excerpts.length} guidance passages)`
+          ? `Fetched: ${Object.entries(company.found)
+              .filter(([, v]) => v)
+              .map(([k]) => k)
+              .join('+')} for ${company.quarter} (${excerpts.length} guidance passages)`
           : `No Transcript/PPT/Result found for ${company.quarter}`,
-        contextUsed: []
+        contextUsed: [],
       };
 
       db.saveReport(dto);
@@ -253,13 +263,19 @@ async function main() {
     const { savedCount } = await runStep4Persist(manifest, excerptsByTicker, outDir);
     log('');
 
-    console.log(JSON.stringify({
-      status: 'success',
-      step1: { companiesFetched: manifest.length },
-      step2: { totalExcerpts: stats.total, companiesWithExcerpts: stats.companiesWithExcerpts },
-      step4: { recordsSaved: savedCount },
-      note: 'All steps completed including mandatory Step 2 excerpt extraction'
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          status: 'success',
+          step1: { companiesFetched: manifest.length },
+          step2: { totalExcerpts: stats.total, companiesWithExcerpts: stats.companiesWithExcerpts },
+          step4: { recordsSaved: savedCount },
+          note: 'All steps completed including mandatory Step 2 excerpt extraction',
+        },
+        null,
+        2
+      )
+    );
 
     process.exit(0);
   } catch (e) {
@@ -268,7 +284,7 @@ async function main() {
   }
 }
 
-main().catch(e => {
+main().catch((e) => {
   log(`Fatal error: ${e.message}`);
   process.exit(1);
 });

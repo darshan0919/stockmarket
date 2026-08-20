@@ -3,7 +3,7 @@
 **Date:** 2026-08-12  
 **Issue:** "38 records exist but have empty excerpts"  
 **Root Cause:** Step 2 (excerpt extraction) was optional and could be skipped  
-**Status:** ✅ FULLY DEPLOYED  
+**Status:** ✅ FULLY DEPLOYED
 
 ---
 
@@ -11,27 +11,28 @@
 
 ### New Files (Fixes)
 
-| File | Purpose | Status |
-|------|---------|--------|
+| File                                                                       | Purpose                                                | Status   |
+| -------------------------------------------------------------------------- | ------------------------------------------------------ | -------- |
 | `skills/.../guidance-document-extractor/scripts/orchestrate_extraction.js` | **NEW:** Orchestrator that runs all 4 steps atomically | ✅ Ready |
-| `skills/.../guidance-document-extractor/EXTRACTION_SAFEGUARDS.md` | **NEW:** Documentation of 3-layer defense system | ✅ Ready |
-| `GUIDANCE_EXTRACTION_FIXES.md` | **NEW:** Complete guide to all fixes deployed | ✅ Ready |
-| `jobs/Scheduled/daily-guidance-extractor-scan/SKILL.md` | **NEW:** Updated task configuration using orchestrator | ✅ Ready |
-| `DEPLOYMENT_SUMMARY_2026_08_12.md` | **NEW:** This file — deployment status | ✅ Ready |
+| `skills/.../guidance-document-extractor/EXTRACTION_SAFEGUARDS.md`          | **NEW:** Documentation of 3-layer defense system       | ✅ Ready |
+| `GUIDANCE_EXTRACTION_FIXES.md`                                             | **NEW:** Complete guide to all fixes deployed          | ✅ Ready |
+| `jobs/Scheduled/daily-guidance-extractor-scan/SKILL.md`                    | **NEW:** Updated task configuration using orchestrator | ✅ Ready |
+| `DEPLOYMENT_SUMMARY_2026_08_12.md`                                         | **NEW:** This file — deployment status                 | ✅ Ready |
 
 ### Modified Files (Safety Checks)
 
-| File | Change | Impact |
-|------|--------|--------|
-| `skills/.../guidance-document-extractor/SKILL.md` | Added orchestration requirement section | Documentation clarity |
+| File                                                                        | Change                                          | Impact                               |
+| --------------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------ |
+| `skills/.../guidance-document-extractor/SKILL.md`                           | Added orchestration requirement section         | Documentation clarity                |
 | `skills/.../guidance-document-extractor/scripts/save_guidance_documents.js` | Added safety check for empty excerpts directory | Prevents incomplete data persistence |
-| `scripts/jobs/check_extraction_success.py` | Fixed Python/Node import error (previous fix) | Gate verification now works |
+| `scripts/jobs/check_extraction_success.py`                                  | Fixed Python/Node import error (previous fix)   | Gate verification now works          |
 
 ---
 
 ## Three-Layer Defense System
 
 ### Layer 1: Orchestration (Prevents Skip)
+
 ```javascript
 orchestrate_extraction.js runs:
   1. Fetch (Step 1) ✓
@@ -39,24 +40,29 @@ orchestrate_extraction.js runs:
   3. Validate (Step 3) ✓
   4. Persist (Step 4) ✓
 ```
+
 **Guarantee:** Cannot skip Step 2. Records never incomplete.
 
 ### Layer 2: Validation (Prevents Corruption)
+
 ```javascript
 save_guidance_documents.js checks:
   if (excerpts-dir provided but empty) {
     abort("Step 2 extraction did not complete")
   }
 ```
+
 **Guarantee:** Won't persist incomplete data.
 
 ### Layer 3: State Tracking (Prevents Silent Failure)
+
 ```javascript
 Records always have:
   excerptsPending: false  // NEW: Extraction guaranteed to have run
   vs.
   excerptsPending: true   // OLD: Should not happen anymore
 ```
+
 **Guarantee:** Can detect stale incomplete records.
 
 ---
@@ -64,6 +70,7 @@ Records always have:
 ## How It Works: The Fix
 
 ### Before (Broken)
+
 ```
 daily-guidance-extractor-scan (11:30 PM)
   ↓
@@ -82,6 +89,7 @@ daily-guidance-extractor-scan (11:30 PM)
 ```
 
 ### After (Fixed)
+
 ```
 daily-guidance-extractor-scan (11:30 PM)
   ↓
@@ -108,6 +116,7 @@ daily-guidance-extractor-scan (11:30 PM)
 ## Verification: Empty Excerpts Bug is Fixed
 
 ### Query: Confirm No Stale Records
+
 ```bash
 node -e "
 const fs = require('fs');
@@ -126,6 +135,7 @@ console.log('Expected: 0');
 ```
 
 ### Query: Confirm Latest Records Are Complete
+
 ```bash
 node -e "
 const fs = require('fs');
@@ -167,7 +177,9 @@ console.log('Expected: 32+ companies, 400+ excerpts');
 ## Changes Required by Teams
 
 ### For Scheduled Task Runners
+
 **Action:** Update task configuration to use orchestrator
+
 ```bash
 # OLD (don't use):
 node fetch_guidance_documents.js ...
@@ -178,7 +190,9 @@ node orchestrate_extraction.js --scan-url "..."
 ```
 
 ### For Users Invoking Skill
+
 **Action:** Use orchestrator, not individual steps
+
 ```bash
 # OLD (don't do):
 node fetch_guidance_documents.js --scan-url "..."
@@ -191,7 +205,9 @@ node orchestrate_extraction.js --scan-url "..."
 ```
 
 ### For Downstream Tasks
+
 **Action:** No changes needed
+
 ```
 forward-guidance-extractor will now receive complete records
 (This is automatic once upstream task uses orchestrator)
@@ -202,6 +218,7 @@ forward-guidance-extractor will now receive complete records
 ## Testing the Fix
 
 ### Test 1: Orchestrator Runs All Steps
+
 ```bash
 cd /Users/darshanpatel/code/stockmarket
 
@@ -221,6 +238,7 @@ node skills/equity-research/guidance-document-extractor/scripts/orchestrate_extr
 ```
 
 ### Test 2: Verification Gate Works
+
 ```bash
 python3 scripts/jobs/check_extraction_success.py \
   --collection guidance-documents \
@@ -236,6 +254,7 @@ python3 scripts/jobs/check_extraction_success.py \
 ```
 
 ### Test 3: Safety Check Catches Incomplete Runs
+
 ```bash
 # Try to save without excerpts
 node skills/equity-research/guidance-document-extractor/scripts/save_guidance_documents.js \
@@ -253,6 +272,7 @@ node skills/equity-research/guidance-document-extractor/scripts/save_guidance_do
 ## Rollback Plan (If Needed)
 
 **If orchestrator has critical bug:**
+
 1. Revert to individual script invocation (old way)
 2. Manually run steps in order:
    - `node fetch_guidance_documents.js --scan-url "..." > manifest.json`
@@ -267,6 +287,7 @@ node skills/equity-research/guidance-document-extractor/scripts/save_guidance_do
 ## Monitoring After Deployment
 
 ### Daily Automated Checks
+
 ```bash
 # After 11:30 PM task runs
 python3 scripts/jobs/check_extraction_success.py \
@@ -277,6 +298,7 @@ python3 scripts/jobs/check_extraction_success.py \
 **Alert if exit code ≠ 0**
 
 ### Weekly Manual Verification
+
 ```bash
 # Verify no stale incomplete records
 node -e "
@@ -314,7 +336,7 @@ if (stale.length > 0) {
 **Testing Status:** ✅ Verified locally  
 **Risk Level:** LOW (additive, maintains backward compatibility)  
 **Rollback Risk:** LOW (can revert to individual scripts)  
-**Production Ready:** ✅ YES  
+**Production Ready:** ✅ YES
 
 ---
 

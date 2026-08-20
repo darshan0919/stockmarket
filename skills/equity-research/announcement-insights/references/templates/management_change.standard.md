@@ -1,4 +1,4 @@
-CATEGORY: management_change  [HIGH CONVICTION]
+CATEGORY: management_change [HIGH CONVICTION]
 Extract: role, incumbent name, effective date, stated reason (resignation / retirement /
 removal / term-end), and successor if named. FLAG governance risk explicitly if a
 CEO/CFO/MD or independent director leaves before term end with no successor named, if

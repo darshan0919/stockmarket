@@ -69,7 +69,9 @@
     const tables = Array.from(document.querySelectorAll('table'));
     return tables.filter((t) => {
       const head = (t.querySelector('thead')?.innerText || '').replace(/\s+/g, ' ').trim();
-      return /Shareholder/i.test(head) && /Type/i.test(head) && /Date/i.test(head) && /Value/i.test(head);
+      return (
+        /Shareholder/i.test(head) && /Type/i.test(head) && /Date/i.test(head) && /Value/i.test(head)
+      );
     });
   }
 
@@ -190,7 +192,11 @@
           target = null;
           break;
         }
-        if (target.getAttribute('role') === 'button' || getComputedStyle(target).cursor === 'pointer') break;
+        if (
+          target.getAttribute('role') === 'button' ||
+          getComputedStyle(target).cursor === 'pointer'
+        )
+          break;
         target = target.parentElement;
       }
       if (!target || target.hasAttribute(AUTOCLICK_ATTR)) continue;
@@ -198,7 +204,10 @@
       try {
         target.click();
       } catch (err) {
-        console.warn('[Intraday Deal Filter] auto-click of Load All failed (harmless, will retry on next poll):', err);
+        console.warn(
+          '[Intraday Deal Filter] auto-click of Load All failed (harmless, will retry on next poll):',
+          err
+        );
       }
     }
   }
@@ -318,13 +327,17 @@
   }
 
   function init() {
-    chrome.storage.local.get(['idf_enabled', 'idf_threshold_pct', 'idf_remove_all_samedays'], (res) => {
-      thresholdPct = Number.isFinite(Number(res.idf_threshold_pct)) && res.idf_threshold_pct !== undefined
-        ? Number(res.idf_threshold_pct)
-        : DEFAULT_THRESHOLD_PCT;
-      removeAllSameDay = res.idf_remove_all_samedays !== false; // default true
-      applyEnabledState(res.idf_enabled);
-    });
+    chrome.storage.local.get(
+      ['idf_enabled', 'idf_threshold_pct', 'idf_remove_all_samedays'],
+      (res) => {
+        thresholdPct =
+          Number.isFinite(Number(res.idf_threshold_pct)) && res.idf_threshold_pct !== undefined
+            ? Number(res.idf_threshold_pct)
+            : DEFAULT_THRESHOLD_PCT;
+        removeAllSameDay = res.idf_remove_all_samedays !== false; // default true
+        applyEnabledState(res.idf_enabled);
+      }
+    );
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area !== 'local') return;
       if (Object.prototype.hasOwnProperty.call(changes, 'idf_enabled')) {

@@ -20,11 +20,11 @@ scripts already produced.
 
 ## Parameters (optional)
 
-| Param     | Default          | Meaning                                                       |
-| --------- | ---------------- | ------------------------------------------------------------- |
-| `date`    | last trading day | market date (`--date YYYY-MM-DD`) for the scanner             |
-| `email`   | on               | set off to build the briefing without sending                 |
-| `--top-n` | `50`             | size of the gainers universe pulled by the scanner            |
+| Param     | Default          | Meaning                                            |
+| --------- | ---------------- | -------------------------------------------------- |
+| `date`    | last trading day | market date (`--date YYYY-MM-DD`) for the scanner  |
+| `email`   | on               | set off to build the briefing without sending      |
+| `--top-n` | `50`             | size of the gainers universe pulled by the scanner |
 
 ## Setup
 
@@ -51,11 +51,11 @@ issue), send a "no signals today" email and stop.
 
 **Trust the API's list as-is.** The scan is server-sorted (`orderBy: 'Returns 1D',
 order: 'desc'`) and this scanner never locally re-sorts or re-derives membership —
-Steps 1-2 only *layer analysis* on top of whatever the API returns (quality filters,
+Steps 1-2 only _layer analysis_ on top of whatever the API returns (quality filters,
 delivery, announcements, tiering), they don't second-guess which names belong on it.
 Two fetches minutes apart can legitimately return different names — that's live data
 moving, not a bug to chase. The one thing genuinely worth trusting less is the market
-*date* label the scanner stamps on that list — see the `resolveMarketDate` note next.
+_date_ label the scanner stamps on that list — see the `resolveMarketDate` note next.
 
 **API efficiency.** The announcements endpoint **ignores `scan.companyIds`** — verified
 live, a request naming two tickers returns unrelated ones. So the scanner creates a
@@ -74,7 +74,7 @@ Price history uses `ohlcv(tf='1h')` aggregated to daily — the older `prices()`
 now 404s for every ticker, and `tf='1d'` is rejected with HTTP 400.
 
 **Step ordering matters.** Price history is fetched BEFORE the quality filter, because
-the gainers scan table has no `Close` column and BSE delivery *value* is derived from a
+the gainers scan table has no `Close` column and BSE delivery _value_ is derived from a
 close price. Without it, BSE names had a null delivery value that sailed straight
 through the ₹5 Cr `min_delivery_value_cr` floor — micro-caps delivering ₹0.08 Cr were
 passing a ₹5 Cr filter and consuming top-20 research slots. Don't reorder these.
@@ -93,8 +93,8 @@ Each announcement is stamped by `lib/announcementTaxonomy.js` with:
   **ROUTINE** (everything else, plus paperwork that merely wraps a real event —
   "newspaper publication of results" and "board meeting intimation to consider results"
   are not results)
-- **scheduled vs unscheduled** — `results` and `dividend` are STRONG but *calendar-
-  driven*: in results season nearly every gainer has filed one, so they earn less
+- **scheduled vs unscheduled** — `results` and `dividend` are STRONG but _calendar-
+  driven_: in results season nearly every gainer has filed one, so they earn less
   automatic credit than an unscheduled surprise (order win, SAST, QIP, M&A, capacity).
   Observed live: without this split, 14 of 38 names reached the top tier essentially
   because they had filed Q1 results. What makes an earnings move actionable is the
@@ -121,8 +121,7 @@ Schema confirmed live 2026-08-01 (see `docs/stockscans-api-schemas.md` →
 "POST /api/company/concall-scan" for the full row layout). Response envelope
 is `{rows, next, quarter, subscription}`; `next` is a plain offset cursor
 (not offset/total). `concall.recentWithinDays` is computed from row index 4
-(the concall/result date) at fetch time, so the classifier's 7-day gate (Step
-2) is live and real, not a stub. Indices 0, 5, 6, 7, 11 are read but not yet
+(the concall/result date) at fetch time, so the classifier's 7-day gate (Step 2) is live and real, not a stub. Indices 0, 5, 6, 7, 11 are read but not yet
 load-bearing anywhere — confirm their meaning against a second live
 company/quarter before a future change starts relying on one of them.
 
@@ -164,7 +163,7 @@ What it computes, and why each exists:
   loses a point; a mix of new and repeat is left alone. It nudges, it doesn't dominate.
 - **`volumeRocketing`** — boolean, always present. True when this same name ALSO
   clears the `volume-rocketing` skill's filter that day (`Volume >= 2.5 * Volume SMA
-  5D` AND `Market Capitalization >= 300` Cr AND `Returns 1D >= 1`). Computed by the scanner
+5D` AND `Market Capitalization >= 300` Cr AND `Returns 1D >= 1`). Computed by the scanner
   (`gainersScanner.js` Step 1f) via a live membership check against the Volume
   Rocketing scan — not by re-deriving the 5D SMA locally, so the badge can never
   drift from what `volume-rocketing` itself would select. This does not run
@@ -199,7 +198,7 @@ the signals JSON can never produce a dead/wrong stockscans.in URL:
 ```js
 const { stockscansLink } = require('@stock/cloud-utils');
 // e.g. inside the ACT block, WATCH table row, or NOTED line:
-stockscansLink(s.name, s.ticker) // -> <a href="https://www.stockscans.in/company/NSE:XYZ" ...>Company Name</a>
+stockscansLink(s.name, s.ticker); // -> <a href="https://www.stockscans.in/company/NSE:XYZ" ...>Company Name</a>
 ```
 
 1. **Lead (2-3 sentences).** The single most important thing first. If there's a
@@ -214,7 +213,7 @@ stockscansLink(s.name, s.ticker) // -> <a href="https://www.stockscans.in/compan
    as `62% · ₹80 Cr delivered of ₹129 Cr traded`, streak if >1, then the remaining
    `evidence[]` lines. Link the PDF. If Step 3b ran for this name, add one line —
    e.g. `Concall: Bullish (quality 82/100), filed 3d ago — guided 18-20% FY27
-   revenue growth` — after the trigger, not instead of it. If `volumeRocketing` is
+revenue growth` — after the trigger, not instead of it. If `volumeRocketing` is
    true, append a small `⚡ Vol 2.5x` badge next to the tier badge — it tells the
    reader this name is independently confirmed by a volume-surge filter, not just
    price and delivery.
@@ -292,7 +291,7 @@ For each of the 20:
    here since this step is a time-boxed batch pass over 20 companies — EXCEPT if
    `category` is one of the four HIGH_CONVICTION_CATEGORIES
    (`demerger`/`merger`/`acquisition`/`management_change`), in which case use `--depth
-   standard` (not `quick`) even in this batch context: per `announcement-insights`'
+standard` (not `quick`) even in this batch context: per `announcement-insights`'
    playbook, these categories are disproportionately alpha-dense relative to their
    frequency and are exactly the kind of thing this scan should not shortcut. Reserve
    full `--depth deep` for when the user asks you to follow up on one of these 20
@@ -301,12 +300,12 @@ For each of the 20:
    the short "unexplained delivery-backed move" note: the delivery facts, the streak, the
    sector context, and what would confirm or kill the thesis. Two or three sentences is
    the right length. Fabricated causation is worse than an honest blank.
-3b. **If `needs_transcript_research` is true** (Step 1f flagged a Bullish/Optimistic
+   3b. **If `needs_transcript_research` is true** (Step 1f flagged a Bullish/Optimistic
    concall) — pull the transcript and extract its forward guidance, since a bullish
    concall filed the same week as the move is corroborating evidence a title-only
    announcement scan can't see:
    - Resolve the latest transcript via `stock-api/bin/get-latest-concall-transcript.js
-     --bulk '[{"ticker":"<companyId>"}]'` (DB-first; only downloads if not already in
+--bulk '[{"ticker":"<companyId>"}]'` (DB-first; only downloads if not already in
      `data/reports/`) — do NOT use the retired `concall-transcript-extractor` skill
      (superseded, see `skills/_shared/conventions.md` §12).
    - Run `forward-guidance-extractor`'s Phase 2 extraction reasoning (or the full
@@ -328,6 +327,7 @@ For each of the 20:
    move that lines up with an already-flagged growth catalyst is "known", not a surprise,
    and should be said so.
 5. **Save the DTO:**
+
    ```
    db.saveReport({ creator: 'gainers-signal', type: 'gainers-trigger-research',
      date: market_date, companyId, modelUsed: '<the model writing this>',
@@ -338,6 +338,7 @@ For each of the 20:
        : null,
      ...narrative })
    ```
+
    - `linkage` must be one of `explained` / `unexplained` / `mismatched` (same
      discipline as the email).
    - `concallCorroboration` is only populated when Step 3b actually ran (i.e. only
@@ -348,6 +349,7 @@ For each of the 20:
      script-only `gainer` events.
    - `contextUsed` = ids from `buildCompanyContext()`'s `availableIds` the write-up
      actually drew on (empty array if the bundle was empty).
+
 6. These link into `companies.json` automatically via `db.saveReport` → `linkToCompanies`,
    creating a lazy stub for tickers with no prior entry — itself worth flagging ("no
    company-master coverage yet").

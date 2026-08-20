@@ -51,6 +51,7 @@ Client method: `scanAnnouncements(payload, opts)`. Confirmed live 2026-07-31.
 ```
 
 Notes:
+
 - **`scan.scanId` / `scan.scanName` are REQUIRED on every call, even ad-hoc
   ones — CORRECTED 2026-08-06.** Omitting them returns HTTP 400
   `{"message":"Field required","status":"error"}`. Earlier text in this doc
@@ -125,9 +126,7 @@ endpoints' shape):
   "watchlistIds": [],
   "resultTiers": [],
   "sentimentTiers": [],
-  "filters": [
-    { "left": "Market Capitalization", "sign": ">=", "right": "100" }
-  ],
+  "filters": [{ "left": "Market Capitalization", "sign": ">=", "right": "100" }],
   "q": "",
   "offset": 0
 }
@@ -142,10 +141,24 @@ throwaway-watchlist pattern (`createWatchlist` / `deleteWatchlist`, paired in
 ```json
 {
   "rows": [
-    ["24769", "NSE:MUTHOOTFIN", "Muthoot Finance Ltd", "Finance & Investments - Gold Loan",
-     "2026-08-01T16:00:00+05:30", "as-6dfa623c9445593ab0bdab05.pdf", 1, true, 47.9, 1,
-     ["▼ Yield 20.93% → 17.93%", "▲ Active customers +1.63 lakh", "▲ Belstar Microfinance returns to profit"],
-     "l0fyxca960154mtwtev1ok2t.pdf"]
+    [
+      "24769",
+      "NSE:MUTHOOTFIN",
+      "Muthoot Finance Ltd",
+      "Finance & Investments - Gold Loan",
+      "2026-08-01T16:00:00+05:30",
+      "as-6dfa623c9445593ab0bdab05.pdf",
+      1,
+      true,
+      47.9,
+      1,
+      [
+        "▼ Yield 20.93% → 17.93%",
+        "▲ Active customers +1.63 lakh",
+        "▲ Belstar Microfinance returns to profit"
+      ],
+      "l0fyxca960154mtwtev1ok2t.pdf"
+    ]
   ],
   "next": 50,
   "quarter": "202606",
@@ -155,27 +168,28 @@ throwaway-watchlist pattern (`createWatchlist` / `deleteWatchlist`, paired in
 
 `next` is the offset to pass on the following call, or `null` when exhausted
 (confirmed: a 50-ticker watchlist returned `next: 50` on page 1, then 0 rows
-+ `next: null` on page 2 at offset 50 — this is a plain offset cursor, not an
-offset/total comparison; do not paginate any other way). `quarter` is the
-same `"YYYYMM"` shape as `resultsDocuments`'s `quarterDate`.
+
+- `next: null` on page 2 at offset 50 — this is a plain offset cursor, not an
+  offset/total comparison; do not paginate any other way). `quarter` is the
+  same `"YYYYMM"` shape as `resultsDocuments`'s `quarterDate`.
 
 Each row is a **positional array of 12 elements** (confirmed live across ~65
 rows spanning large-caps and midcaps):
 
-| Index | Field | Notes |
-|---|---|---|
-| 0 | internal id | numeric string, e.g. `"24769"` — purpose unconfirmed, unused |
-| 1 | `companyId` | e.g. `"NSE:MUTHOOTFIN"` |
-| 2 | company name | |
-| 3 | industry/category label | |
-| 4 | concall/result date | ISO datetime with `+05:30` offset — **this is the "how recent" field**; `gainers-signal`'s 7-day check computes `recentWithinDays` from it |
-| 5 | PDF filename slug | e.g. `"as-6dfa....pdf"` — likely the results PPT/announcement doc, not yet resolved to a full URL; unused |
-| 6 | small integer | always `1` in every observed row — meaning unconfirmed, unused |
-| 7 | boolean | always `true` in every observed row — meaning unconfirmed, unused |
-| 8 | `resultQualityScore` | number, 0-100, nullable (null observed for ABB, Urban Company) |
-| 9 | `sentiment` | enum 0-4, see mapping below |
-| 10 | `highlights` | `string[]`, typically 3 items, each prefixed `▲`/`▼`/`●` |
-| 11 | PDF filename slug | nullable — likely the transcript ssUrl; not yet cross-checked against `documents(companyId)`, unused |
+| Index | Field                   | Notes                                                                                                                                      |
+| ----- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 0     | internal id             | numeric string, e.g. `"24769"` — purpose unconfirmed, unused                                                                               |
+| 1     | `companyId`             | e.g. `"NSE:MUTHOOTFIN"`                                                                                                                    |
+| 2     | company name            |                                                                                                                                            |
+| 3     | industry/category label |                                                                                                                                            |
+| 4     | concall/result date     | ISO datetime with `+05:30` offset — **this is the "how recent" field**; `gainers-signal`'s 7-day check computes `recentWithinDays` from it |
+| 5     | PDF filename slug       | e.g. `"as-6dfa....pdf"` — likely the results PPT/announcement doc, not yet resolved to a full URL; unused                                  |
+| 6     | small integer           | always `1` in every observed row — meaning unconfirmed, unused                                                                             |
+| 7     | boolean                 | always `true` in every observed row — meaning unconfirmed, unused                                                                          |
+| 8     | `resultQualityScore`    | number, 0-100, nullable (null observed for ABB, Urban Company)                                                                             |
+| 9     | `sentiment`             | enum 0-4, see mapping below                                                                                                                |
+| 10    | `highlights`            | `string[]`, typically 3 items, each prefixed `▲`/`▼`/`●`                                                                                   |
+| 11    | PDF filename slug       | nullable — likely the transcript ssUrl; not yet cross-checked against `documents(companyId)`, unused                                       |
 
 Indices 0, 5, 6, 7, 11 are parsed by nothing in this codebase today — if a
 future caller needs one, confirm its exact meaning against a second live
@@ -213,6 +227,7 @@ bulk helper `resultsDocumentsMap({documentType})`. Confirmed live 2026-07-26.
 ```
 
 Notes:
+
 - **No historical-quarter override.** Passing `quarterDate`/`quarter` in the
   body returns HTTP 400 "Extra inputs are not permitted" — this endpoint
   always reflects whatever quarter Stockscans currently considers "in
@@ -306,11 +321,11 @@ Superseded the deprecated `concall-transcript-extractor` skill (see
 Transcript document for every reported quarter, so no fallback waterfall is
 needed. Use `stock-api/bin/get-concall-transcript-url.js`:
 
-| Scenario | Endpoint | Notes |
-|---|---|---|
-| 1 company, any quarter | `documents(companyId)` | filter `documentType==='Transcript' && date===quarter` |
-| N companies, latest quarter | `resultsDocuments({documentType:'Transcript', watchlistIds})` | throwaway watchlist, paginate |
-| N companies, historical quarter | `scanAnnouncements({scan:{watchlistIds,...}, quarterDate})` | throwaway watchlist, paginate |
+| Scenario                        | Endpoint                                                      | Notes                                                  |
+| ------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------ |
+| 1 company, any quarter          | `documents(companyId)`                                        | filter `documentType==='Transcript' && date===quarter` |
+| N companies, latest quarter     | `resultsDocuments({documentType:'Transcript', watchlistIds})` | throwaway watchlist, paginate                          |
+| N companies, historical quarter | `scanAnnouncements({scan:{watchlistIds,...}, quarterDate})`   | throwaway watchlist, paginate                          |
 
 ---
 
@@ -341,7 +356,7 @@ Brief pointers — expand with full schemas here as they get exercised live:
 - `GET /api/company/prices/{ticker}` — `prices(ticker)`.
 - `GET /api/company/ohlcv/{ticker}` — `ohlcv(ticker, {tf, before})`, rows
   `[isoTimestamp, open, high, low, close, volume]`, paginate via `hasMore`
-  + `before`.
+  - `before`.
 - `GET /api/company/growth-catalysts/{companyId}` — `growthCatalysts(companyId)`,
   AI-synthesized report `{finalReport, dateLabel, toc}`.
 - `GET /api/company/business-overview/{companyId}` — `businessOverview(companyId)`,

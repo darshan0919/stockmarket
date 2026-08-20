@@ -147,10 +147,18 @@ describe('concall sentiment corroboration', () => {
 
   it('awards +1 for Optimistic and -1 for Bearish', () => {
     const optimistic = run(
-      gainer({ delivPct: 30, delivValueCr: 40, concall: { sentiment: 'Optimistic', recentWithinDays: 5 } })
+      gainer({
+        delivPct: 30,
+        delivValueCr: 40,
+        concall: { sentiment: 'Optimistic', recentWithinDays: 5 },
+      })
     );
     const bearish = run(
-      gainer({ delivPct: 30, delivValueCr: 40, concall: { sentiment: 'Bearish', recentWithinDays: 5 } })
+      gainer({
+        delivPct: 30,
+        delivValueCr: 40,
+        concall: { sentiment: 'Bearish', recentWithinDays: 5 },
+      })
     );
     const baseline = run(gainer({ delivPct: 30, delivValueCr: 40 }));
 
@@ -161,7 +169,11 @@ describe('concall sentiment corroboration', () => {
 
   it('does NOT credit a bullish concall older than 7 days', () => {
     const stale = run(
-      gainer({ delivPct: 30, delivValueCr: 40, concall: { sentiment: 'Bullish', recentWithinDays: 8 } })
+      gainer({
+        delivPct: 30,
+        delivValueCr: 40,
+        concall: { sentiment: 'Bullish', recentWithinDays: 8 },
+      })
     );
     const baseline = run(gainer({ delivPct: 30, delivValueCr: 40 }));
     expect(stale.score).toBeCloseTo(baseline.score);
@@ -172,7 +184,11 @@ describe('concall sentiment corroboration', () => {
     // Guards the "stays inert until a real number exists" design — a concall
     // whose date we couldn't parse must never silently count as recent.
     const unknownAge = run(
-      gainer({ delivPct: 30, delivValueCr: 40, concall: { sentiment: 'Bullish', recentWithinDays: null } })
+      gainer({
+        delivPct: 30,
+        delivValueCr: 40,
+        concall: { sentiment: 'Bullish', recentWithinDays: null },
+      })
     );
     const baseline = run(gainer({ delivPct: 30, delivValueCr: 40 }));
     expect(unknownAge.score).toBeCloseTo(baseline.score);
@@ -186,7 +202,11 @@ describe('concall sentiment corroboration', () => {
 
   it('Neutral/Cautious sentiment neither helps nor hurts the score', () => {
     const neutral = run(
-      gainer({ delivPct: 30, delivValueCr: 40, concall: { sentiment: 'Neutral', recentWithinDays: 2 } })
+      gainer({
+        delivPct: 30,
+        delivValueCr: 40,
+        concall: { sentiment: 'Neutral', recentWithinDays: 2 },
+      })
     );
     const baseline = run(gainer({ delivPct: 30, delivValueCr: 40 }));
     expect(neutral.score).toBeCloseTo(baseline.score);

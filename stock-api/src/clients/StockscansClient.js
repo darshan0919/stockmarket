@@ -388,10 +388,20 @@ class StockscansClient {
    *   get-concall-transcript-url.js scenario 2)
    * @returns {Promise<{documents: Array, total: number, quarterDate: string}>}
    */
-  async resultsDocuments({ offset = 0, documentType = '', searchCompany = '', watchlistIds = [] } = {}) {
+  async resultsDocuments({
+    offset = 0,
+    documentType = '',
+    searchCompany = '',
+    watchlistIds = [],
+  } = {}) {
     const { data } = await this.http.post(
       `${BASE_URL}/api/company/results/documents`,
-      { scan: { filters: [], index: [], industry: [], watchlistIds }, offset, searchCompany, documentType },
+      {
+        scan: { filters: [], index: [], industry: [], watchlistIds },
+        offset,
+        searchCompany,
+        documentType,
+      },
       { headers: this._headers(`${BASE_URL}/result-scans`) }
     );
     return data;

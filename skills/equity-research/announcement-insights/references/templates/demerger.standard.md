@@ -1,4 +1,4 @@
-CATEGORY: demerger  [HIGH CONVICTION]
+CATEGORY: demerger [HIGH CONVICTION]
 Extract: which segment(s) are being demerged, the resulting company name(s),
 share-exchange ratio (e.g. 1:1), record date if set, and each entity's core
 business post-split. State the market's likely re-rating rationale (which

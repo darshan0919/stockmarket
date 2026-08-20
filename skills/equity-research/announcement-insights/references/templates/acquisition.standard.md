@@ -1,4 +1,4 @@
-CATEGORY: acquisition  [HIGH CONVICTION]
+CATEGORY: acquisition [HIGH CONVICTION]
 Extract: target name & business, stake % acquired, deal value & structure (cash /
 stock / earn-out), valuation multiple (EV/revenue or EV/EBITDA) if computable —
 compare to the acquirer's own trading multiple to judge accretion/dilution — funding

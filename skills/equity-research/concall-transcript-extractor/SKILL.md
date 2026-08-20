@@ -1,6 +1,6 @@
 ---
-name: "concall-transcript-extractor"
-description: "DEPRECATED 2026-07-31 — do not use for new work. Stockscans now guarantees an official Transcript document for every reported quarter, so the Perplexity/recording/NotebookLM fallback waterfall this skill implements is no longer needed. All consumer skills now resolve transcripts directly via stock-api/bin/get-concall-transcript-url.js (see skills/_shared/conventions.md §12). Kept only for historical reference — never invoke or route to this skill."
+name: 'concall-transcript-extractor'
+description: 'DEPRECATED 2026-07-31 — do not use for new work. Stockscans now guarantees an official Transcript document for every reported quarter, so the Perplexity/recording/NotebookLM fallback waterfall this skill implements is no longer needed. All consumer skills now resolve transcripts directly via stock-api/bin/get-concall-transcript-url.js (see skills/_shared/conventions.md §12). Kept only for historical reference — never invoke or route to this skill.'
 ---
 
 # Concall Transcript Extractor — DEPRECATED
@@ -16,6 +16,7 @@ The content below is preserved for reference only.
 **Canonical transcript source for all skills.** Any skill that needs a concall transcript — for any quarter, any company — MUST call this script instead of fetching the transcript itself. The DB-first waterfall ensures no duplicate network calls and a consistent storage schema.
 
 Entrypoint:
+
 ```bash
 # Single company — latest completed quarter (auto-computed)
 yarn workspace @stock/api get-latest-concall-transcript <TICKER> [--out-dir <dir>] [--force]
@@ -70,12 +71,15 @@ Quarter math: `parseQuarterString()` in the same file handles `Q{N}FY{YY}` → `
 Before any network call, reads `data/reports.json` (local index) and looks for a `concall-transcript-early` record where `companyId === ticker` and `id` contains `yyyymm`. If found, prints `{"status": "db-hit", id, summary, ...}` and stops — no auth, no API calls, instant.
 
 **⚠️ CRITICAL — verify DB hit is real before trusting it.** The index can have stale entries pointing to deleted files. Always verify:
+
 ```bash
 ls data/reports/ | grep -E "FCL|STYL"   # substitute ticker
 ```
+
 If the file doesn't exist on disk, the DB entry is stale. Use `--force` to bypass and re-fetch.
 
 Use `--force` any time:
+
 - DB shows a hit but actual file is missing
 - User explicitly says "force rerun" or "transcript was deleted"
 - You suspect a previous run wrote a bad/empty transcript
@@ -93,6 +97,7 @@ Same source as Tier 1 (map lookup or `documents()`) — if a `Transcript` docume
 This IS a verbatim, speaker-attributed transcript — not just audio. When this tier hits, no further transcription step is needed.
 
 Confirmed live 2026-07-24 against `NSE:STLTECH` / `STLTECH.NS`. This uses an unofficial, undocumented Perplexity web-app API — treat it as fragile:
+
 - Requires a full authenticated Cookie session (`PERPLEXITY_COOKIES` in `.env`). Cloudflare `cf_clearance` is short-lived; expect this tier to go stale between runs. Script logs `perplexitySkipReason` and falls through to tier 4 — not a hard failure.
 - Refresh: log into perplexity.ai/finance in browser, DevTools → Network, find a transcript request, copy `cookie` header → `PERPLEXITY_COOKIES`, and `x-pplx-account` → `PERPLEXITY_ACCOUNT_ID`.
 - BSE-only tickers throw; resolve NSE symbol first or accept fall-through to tier 4.
@@ -103,7 +108,7 @@ On success, saves via `saveTranscript()` (`source: "perplexity-quartr"`) and pri
 
 Only reached if tier 3 fails or the event/transcript isn't on Perplexity. In single-company mode, the script already ran `findRecordingAnnouncement()` internally — `recording` in its output contains the result. In bulk mode, this is deferred and resolved for all fallen-through companies in one batched pass via `findRecordingAnnouncementsBulk()` (see the bulk-mode section above) after every entry has run tiers 0-3.
 
-**Bug fixed 2026-07-26 — the scan window and the target quarter are not the same thing.** The deferred bulk search used to pass the target period's own `yyyymm` as the scan's `quarterDate` — wrong, per the same "quarterDate = release date" rule covered above (a live test caught this directly: a company's search returned a *different, older* quarter's recording that happened to share the scan window, not the actual quarter being asked for). Fixed by routing through `computeReleaseQuarterDate()` uniformly. As a second line of defense — because even the right scan window can contain more than one "recording"-keyword match for a company (late filers, multiple recent calls) — `findRecordingAnnouncementsBulk()` now also checks whether a candidate announcement's own title/description names the target quarter (`buildQuarterLabels()`: `"Q1FY27"`, `"Q1 FY27"`, `"Q1FY2027"`, etc.) and prefers a labeled match over just the newest keyword hit. If nothing in the scan window names the quarter explicitly, it still falls back to the newest match (a `labelConfirmed: false` flag and a warning), rather than reporting nothing found — companies are inconsistent about labeling, so absence of a label isn't proof it's the wrong quarter, just lower confidence. **Always check `recording.labelConfirmed` before transcribing a Tier-4 recording** — `false` means verify it's actually for the intended quarter (read the PDF) before spending the NotebookLM cycle on it.
+**Bug fixed 2026-07-26 — the scan window and the target quarter are not the same thing.** The deferred bulk search used to pass the target period's own `yyyymm` as the scan's `quarterDate` — wrong, per the same "quarterDate = release date" rule covered above (a live test caught this directly: a company's search returned a _different, older_ quarter's recording that happened to share the scan window, not the actual quarter being asked for). Fixed by routing through `computeReleaseQuarterDate()` uniformly. As a second line of defense — because even the right scan window can contain more than one "recording"-keyword match for a company (late filers, multiple recent calls) — `findRecordingAnnouncementsBulk()` now also checks whether a candidate announcement's own title/description names the target quarter (`buildQuarterLabels()`: `"Q1FY27"`, `"Q1 FY27"`, `"Q1FY2027"`, etc.) and prefers a labeled match over just the newest keyword hit. If nothing in the scan window names the quarter explicitly, it still falls back to the newest match (a `labelConfirmed: false` flag and a warning), rather than reporting nothing found — companies are inconsistent about labeling, so absence of a label isn't proof it's the wrong quarter, just lower confidence. **Always check `recording.labelConfirmed` before transcribing a Tier-4 recording** — `false` means verify it's actually for the intended quarter (read the PDF) before spending the NotebookLM cycle on it.
 
 If `recording.found` is `false`: nothing more to do automatically; tell the user.
 
@@ -116,11 +121,13 @@ Most bulk runs never reach this point — the current-quarter map and Perplexity
 #### STEP 1 — Find and download every pending recording
 
 **Load Chrome MCP tools first** (one ToolSearch call):
+
 ```
 ToolSearch: select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__navigate,mcp__claude-in-chrome__javascript_tool,mcp__claude-in-chrome__read_page,mcp__claude-in-chrome__computer,mcp__claude-in-chrome__file_upload
 ```
 
 For each company with `recording.found: true` in the bulk output, read its PDF (`Read` tool — renders PDFs natively) and look for the recording link:
+
 - **Direct `.mp3`/`.mp4` URL**: download directly with bash, no browser needed:
   ```bash
   curl -L -o recordings/NSE_FCL_Q1FY27.mp3 "https://company.com/path/to/recording.mp3"
@@ -132,6 +139,7 @@ For each company with `recording.found: true` in the bulk output, read its PDF (
 e.g. `NSE_FCL_202606.mp3`, `NSE_STYL_202606.mp3` — download all of them before moving to Step 2, so the whole batch can be uploaded together.
 
 **Also pass `STOCKSCANS_AUTH_TOKEN` explicitly** when running node scripts — `.env` is not always auto-loaded:
+
 ```bash
 STOCKSCANS_AUTH_TOKEN="$(grep STOCKSCANS_AUTH_TOKEN .env | cut -d= -f2-)" node stock-api/bin/...
 ```
@@ -141,9 +149,11 @@ STOCKSCANS_AUTH_TOKEN="$(grep STOCKSCANS_AUTH_TOKEN .env | cut -d= -f2-)" node s
 #### STEP 2 — Upload all recordings to NotebookLM together
 
 Navigate to the "Con Call: Automated Transcript" notebook:
+
 ```
 navigate: https://notebooklm.google.com
 ```
+
 Find and open "Con Call: Automated Transcript" from the notebook list, OR navigate directly if you have the URL from a previous session.
 
 **Upload every downloaded audio file in one action** — NotebookLM's file picker supports multi-select, and each file becomes its own separate source. This turns what used to be N round-trips through "Add sources → upload → wait for processing" into one, with only the per-source report generation (Step 3) still needing to loop.
@@ -159,9 +169,15 @@ The file input in NotebookLM is aria-hidden and zero-sized. You CANNOT use `file
 const input = document.querySelector('input[type="file"]');
 input.multiple = true;
 Object.assign(input.style, {
-  position: 'fixed', top: '200px', left: '200px',
-  width: '200px', height: '50px', opacity: '1',
-  zIndex: '99999', display: 'block', visibility: 'visible'
+  position: 'fixed',
+  top: '200px',
+  left: '200px',
+  width: '200px',
+  height: '50px',
+  opacity: '1',
+  zIndex: '99999',
+  display: 'block',
+  visibility: 'visible',
 });
 let el = input.parentElement;
 while (el && el !== document.body) {
@@ -169,7 +185,7 @@ while (el && el !== document.body) {
   el = el.parentElement;
 }
 input.setAttribute('aria-label', 'Upload audio file');
-'exposed'
+('exposed');
 ```
 
 4. Run `read_page` with `filter: "interactive"` — find the ref for the now-visible file input (look for `aria-label: "Upload audio file"` or similar).
@@ -185,11 +201,13 @@ Verify the sources panel shows one entry per uploaded file and the chat footer r
 Still one report per company — NotebookLM's report generation is source-scoped, so batching the upload doesn't collapse this loop, only the upload/wait step. For each source in turn:
 
 **Select only that source** (deselect the rest — a report generated against multiple selected sources would blend transcripts together):
+
 ```js
 // Deselect all sources first, then check only the target one
 const checkboxes = document.querySelectorAll('[class*="source"] input[type="checkbox"]');
 // Only the target source should be checked
 ```
+
 The chat footer shows "N sources" — confirm it says "1 source" before generating.
 
 Do NOT use the chat box (it truncates). Use **Studio → Reports**.
@@ -197,7 +215,7 @@ Do NOT use the chat box (it truncates). Use **Studio → Reports**.
 1. Click **"Studio"** tab (right panel).
 2. Click **"Reports"** card.
 3. Click **"Create Your Own"** (custom report option — NOT pre-built templates).
-4. In the prompt field, type **exactly** the prompt below — **do NOT use the old short prompt** (`"create comprehensive verbatim transcript"`). Confirmed live 2026-07-27: the short prompt makes NotebookLM produce a *strategic analysis report* (narrative prose, metric tables, "So What?" investor framing, section headers like "Market Dynamics and Competitive Positioning") instead of a transcript — same total length in the ballpark of a real transcript, so it's easy to mistake for one at a glance, but it is NOT speaker-attributed continuous dialogue. Always use this prompt instead (validated live, produces genuine per-turn verbatim with named speakers and timestamps):
+4. In the prompt field, type **exactly** the prompt below — **do NOT use the old short prompt** (`"create comprehensive verbatim transcript"`). Confirmed live 2026-07-27: the short prompt makes NotebookLM produce a _strategic analysis report_ (narrative prose, metric tables, "So What?" investor framing, section headers like "Market Dynamics and Competitive Positioning") instead of a transcript — same total length in the ballpark of a real transcript, so it's easy to mistake for one at a glance, but it is NOT speaker-attributed continuous dialogue. Always use this prompt instead (validated live, produces genuine per-turn verbatim with named speakers and timestamps):
    ```
    Please transcribe the uploaded audio source into a verbatim, continuous transcript.
    Follow these strict constraints:
@@ -218,7 +236,7 @@ Do NOT use the chat box (it truncates). Use **Studio → Reports**.
 5. Click **Generate** (or Submit).
 6. Poll with `screenshot` every ~20s until the report body appears (takes 2–5 min for a 60-min call).
 
-**Even with this stricter prompt, NotebookLM still isn't 100% obedient** — confirmed live it still inserted a title line and a handful of narrative "bridge" sentences between sections (e.g. *"This transition from high-level strategic positioning effectively links..."*), directly violating its own "Output ONLY the transcript text" instruction. Don't try to prompt-engineer this away further before checking `transcriptSchema.js` first — the schema-level parser (`parseSpeakerLabeledText()`) is the right place to guard against this, not the prompt: it now recognizes and drops non-dialogue blocks (report titles, section headers, narrative connective prose) instead of keeping them as bogus `speaker: null` segments, and consumes standalone `[HH:MM:SS]` lines as the *next* real segment's `time` rather than emitting them as their own segment. If a saved transcript ever shows `speaker: null` segments mixed into real dialogue, or a segment whose "speaker" is obviously a title/heading (not a name), that parser has regressed — don't just re-prompt NotebookLM.
+**Even with this stricter prompt, NotebookLM still isn't 100% obedient** — confirmed live it still inserted a title line and a handful of narrative "bridge" sentences between sections (e.g. _"This transition from high-level strategic positioning effectively links..."_), directly violating its own "Output ONLY the transcript text" instruction. Don't try to prompt-engineer this away further before checking `transcriptSchema.js` first — the schema-level parser (`parseSpeakerLabeledText()`) is the right place to guard against this, not the prompt: it now recognizes and drops non-dialogue blocks (report titles, section headers, narrative connective prose) instead of keeping them as bogus `speaker: null` segments, and consumes standalone `[HH:MM:SS]` lines as the _next_ real segment's `time` rather than emitting them as their own segment. If a saved transcript ever shows `speaker: null` segments mixed into real dialogue, or a segment whose "speaker" is obviously a title/heading (not a name), that parser has regressed — don't just re-prompt NotebookLM.
 
 **Extracting the report text back out of the page** also isn't as simple as the SOP historically implied. Two things that don't work in an unattended/non-interactive session: (1) the report's own "Copy" button copies to the OS clipboard, but reading it back requires `mcp__computer-use__read_clipboard`, which needs an interactive one-time permission dialog that has no one to approve it here; (2) reading `element.innerText` via `javascript_tool` works, but the tool's return value is truncated to roughly 1000 characters — pulling a 10-30K-character transcript out 900 characters at a time is impractically slow. **What works**: click into the page's own chat input (a real `<textarea>`), send the native OS paste keystroke (`key: "cmd+v"`) after copying the report, then read that textarea's `.value` via `javascript_tool` (`document.activeElement.value`) — the DOM value itself has no such truncation. For a value still too large for one readable response, stash it in `location.hash` via `history.replaceState(null, '', '#' + encodeURIComponent(text))` and read the full hash back from `tabs_context_mcp`'s reported tab URL — URL length isn't subject to the same ~1000-char return-value truncation. `URL.createObjectURL` + a triggered `<a download>` click also works to produce a real file, but it lands in the OS Downloads folder, which isn't reachable from this session's sandboxed bash — only use that path if the user is present to move the file themselves.
 
@@ -235,11 +253,13 @@ Once the report is generated and shown in the right panel:
 1. Click inside the report body area.
 2. Press **⌘A** (Select All), then **⌘C** (Copy).
 3. Read clipboard:
+
 ```
 mcp__computer-use__read_clipboard
 ```
 
 Save to file immediately:
+
 ```bash
 cat > recordings/NSE_FCL_202606_transcript.txt << 'EOF'
 [paste clipboard content here]
@@ -258,29 +278,33 @@ Repeat Steps 3-5 for each remaining source before moving on to cleanup — one r
 // Step A: Identify which more_vert button belongs to the report
 // (not the chat ⋮ — that's the last one; the report ⋮ is inside artifact-header)
 const buttons = Array.from(document.querySelectorAll('button'));
-const moreVerts = buttons.filter(b => b.textContent.trim() === 'more_vert');
+const moreVerts = buttons.filter((b) => b.textContent.trim() === 'more_vert');
 // Verify: moreVerts.map((b,i) => `${i}: ${b.closest('[class*="artifact-header"]') ? 'REPORT' : b.parentElement?.className?.slice(0,40)}`).join('\n')
 // The one whose closest ancestor has 'artifact-header' is the report button
 
 // Step B: Click it
-moreVerts[N].click();   // N = index of the report ⋮ button
+moreVerts[N].click(); // N = index of the report ⋮ button
 ```
 
 Then immediately (without taking a screenshot first which would close the menu):
+
 ```js
 // Step C: Wait, then click Delete from the overlay
-await new Promise(r => setTimeout(r, 500));
+await new Promise((r) => setTimeout(r, 500));
 const overlayContainer = document.querySelector('.cdk-overlay-container');
 const allItems = Array.from(overlayContainer.querySelectorAll('*'));
-const deleteLeaf = allItems.find(el => el.textContent.trim() === 'Delete' && el.children.length === 0);
+const deleteLeaf = allItems.find(
+  (el) => el.textContent.trim() === 'Delete' && el.children.length === 0
+);
 if (deleteLeaf) deleteLeaf.click();
 ```
 
 A **"Delete Report?"** confirmation dialog will appear. Confirm by clicking Delete button in the overlay:
+
 ```js
 const overlay = document.querySelector('.cdk-overlay-container');
 const btns = Array.from(overlay.querySelectorAll('button'));
-const del = btns.find(b => b.textContent.trim() === 'Delete');
+const del = btns.find((b) => b.textContent.trim() === 'Delete');
 if (del) del.click();
 ```
 
@@ -295,22 +319,25 @@ For each uploaded source (by index in the sources panel, 0 = first):
 ```js
 // Open source ⋮ menu (source buttons are at indices 0,1,... chat ⋮ is the last one)
 const buttons = Array.from(document.querySelectorAll('button'));
-const moreVerts = buttons.filter(b => b.textContent.trim() === 'more_vert');
-moreVerts[0].click();   // First source
-await new Promise(r => setTimeout(r, 500));
+const moreVerts = buttons.filter((b) => b.textContent.trim() === 'more_vert');
+moreVerts[0].click(); // First source
+await new Promise((r) => setTimeout(r, 500));
 
 // Click "Remove source"
 const overlay = document.querySelector('.cdk-overlay-container');
 const allEls = Array.from(overlay.querySelectorAll('*'));
-const removeEl = allEls.find(el => el.textContent.trim() === 'Remove source' && el.children.length === 0);
+const removeEl = allEls.find(
+  (el) => el.textContent.trim() === 'Remove source' && el.children.length === 0
+);
 if (removeEl) removeEl.click();
 ```
 
 Confirmation dialog appears — click Delete:
+
 ```js
 const overlay = document.querySelector('.cdk-overlay-container');
 const btns = Array.from(overlay.querySelectorAll('button'));
-const del = btns.find(b => b.textContent.trim() === 'Delete');
+const del = btns.find((b) => b.textContent.trim() === 'Delete');
 if (del) del.click();
 ```
 
@@ -339,6 +366,7 @@ STOCKSCANS_AUTH_TOKEN="$(grep STOCKSCANS_AUTH_TOKEN .env | cut -d= -f2-)" \
 ```
 
 This may time out (>45s) but is idempotent — verify completion via sync state:
+
 ```bash
 cat data/_meta/sync-state.json | python3 -c "
 import json,sys; d=json.load(sys.stdin)
@@ -347,6 +375,7 @@ matches = {k:v for k,v in files.items() if 'TICKER' in k}
 print(json.dumps(matches, indent=2))
 "
 ```
+
 If `syncedAt` appears for the report file, the push succeeded even if the process timed out.
 
 ---
@@ -356,16 +385,19 @@ If `syncedAt` appears for the report file, the push succeeded even if the proces
 **All skills that need a concall transcript must call `get-latest-concall-transcript.js` first, check `status`, and read the transcript from the DB.** Never fetch transcripts independently.
 
 ### Latest quarter (most common):
+
 ```bash
 yarn workspace @stock/api get-latest-concall-transcript NSE:TICKER
 ```
 
 ### Specific quarter:
+
 ```bash
 yarn workspace @stock/api get-latest-concall-transcript NSE:TICKER --quarter Q1FY27
 ```
 
 ### Bulk fetch (for multi-quarter or multi-company skills):
+
 ```bash
 yarn workspace @stock/api get-latest-concall-transcript --bulk \
   '[{"ticker":"NSE:X","quarter":"Q4FY26"},{"ticker":"NSE:Y","quarter":"Q1FY27"}]'
@@ -417,7 +449,13 @@ Every saved transcript has the same content shape regardless of which tier produ
   "summary": "Verbatim earnings-call transcript for NSE:STLTECH (202606), sourced from Quartr (via Perplexity Finance), speaker-attributed. 116 segments, 14 speakers, ~8198 words.",
   "contextUsed": ["cmp_NSE:STLTECH"],
   "segments": [
-    { "i": 0, "speaker": "Operator", "speakerRole": "operator", "time": 0.1, "text": "Good day, welcome to..." }
+    {
+      "i": 0,
+      "speaker": "Operator",
+      "speakerRole": "operator",
+      "time": 0.1,
+      "text": "Good day, welcome to..."
+    }
   ],
   "fullText": "Operator: Good day, welcome to...\n\n...",
   "participants": [{ "name": "Operator", "role": "operator" }],
@@ -426,6 +464,7 @@ Every saved transcript has the same content shape regardless of which tier produ
 ```
 
 Field notes:
+
 - **`segments`** — source of truth; per-speaker turns in order. Use for per-speaker analysis.
 - **`fullText`** — derived from segments; use when you want the whole transcript as a single string to pass to an LLM.
 - **`speaker`/`time`** can be `null` (NotebookLM tier gives no attribution/timing). Never fabricated.

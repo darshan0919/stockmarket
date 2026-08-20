@@ -11,7 +11,7 @@ The Bulk/Block Deals table mixes two very different things:
 2. Same-day intraday churn by prop desks / HFTs (e.g. arbitrage or
    market-making firms like NK Securities Research, Microcurves Trading, QE
    Securities LLP, Junomoneta Finsol, AlphaGrep Securities) who buy and sell
-   on the *same day* — net effect on the free float is small-to-zero, but it
+   on the _same day_ — net effect on the free float is small-to-zero, but it
    still shows up as rows of "big money" activity, which is noise for
    fundamental/technical reads.
 
@@ -31,8 +31,8 @@ For every row in the table:
 5. Whether the group counts as intraday depends on a popup-configurable
    toggle:
    - **"Remove all same-day Buy+Sell traders" (default ON)** — any group with
-     both a Buy and a Sell that day is treated as intraday, *regardless of
-     the ratio*. This is the broadest, simplest rule: if you traded both ways
+     both a Buy and a Sell that day is treated as intraday, _regardless of
+     the ratio_. This is the broadest, simplest rule: if you traded both ways
      the same day, you're an intraday trader for this purpose.
    - **Off** — falls back to the ratio test: the group counts as intraday
      only if `ratio` is at or below a configurable **threshold %** (default
@@ -60,7 +60,7 @@ finds on each poll (`clickLoadAllControls()`), so the full history is visible
 and classifiable without the user ever needing to click it. This control
 turned out to be a plain `<div>` with no button semantics, not a
 `<button>`/`<a role="button">` — an earlier version's selector matched the
-wrong element, and clicking *that* threw inside stockscans' own click
+wrong element, and clicking _that_ threw inside stockscans' own click
 handler, which is why auto-clicking was initially avoided. The fix walks up
 from the "Load All" text node to the nearest ancestor with `role="button"`
 or CSS `cursor: pointer` (i.e. the actual clickable target a real click would
@@ -128,7 +128,7 @@ version was loaded last, which can look confusingly like a regression.
 
 - **CSS class names**: row parsing uses table position (columns 0–4), not
   the hashed CSS-module class names, so it should survive stockscans style
-  rebuilds — but a *column reorder* would break it silently.
+  rebuilds — but a _column reorder_ would break it silently.
 - **"Load All" selector**: `clickLoadAllControls()` matches by the literal
   text "Load All"/"Show All" and walks up the DOM for a clickable ancestor.
   If stockscans renames the control or restructures its markup so no

@@ -2,7 +2,7 @@
   "skills": [
     {
       "name": "concall-transcript-extractor",
-      "description": "DEPRECATED 2026-07-31 — do not use for new work. Stockscans now guarantees an official Transcript document for every reported quarter, so the Perplexity/recording/NotebookLM fallback waterfall this skill implements is no longer needed. All consumer skills now resolve transcripts directly via stock-api/bin/get-concall-transcript-url.js (see skills/_shared/conventions.md §12). Kept only for historical reference — never invoke or route to this skill.",
+      "description": "'DEPRECATED 2026-07-31 — do not use for new work. Stockscans now guarantees an official Transcript document for every reported quarter, so the Perplexity/recording/NotebookLM fallback waterfall this skill implements is no longer needed. All consumer skills now resolve transcripts directly via stock-api/bin/get-concall-transcript-url.js (see skills/_shared/conventions.md §12). Kept only for historical reference — never invoke or route to this skill.'",
       "aliases": [
         "concall transcript early",
         "transcribe earnings call recording",
@@ -206,7 +206,7 @@
     },
     {
       "name": "drhp-ipo-analysis",
-      "description": "Institutional-grade analysis of Draft Red Herring Prospectus (DRHP) and Red Herring Prospectus (RHP) documents for upcoming Indian IPOs. Extracts and analyses 10 critical sections — business overview, industry, objects of issue, 3-year financials, cash flow, risk factors, promoter & management, related party transactions, peer comparison & valuation, and red flags. Use whenever the user uploads a DRHP / RHP PDF, asks \"should I subscribe to X IPO\", \"analyse this DRHP\", \"is this IPO fairly priced\", or provides a SEBI / NSE / BSE link to a prospectus document. Outputs a multi-page institutional PDF flagging governance concerns, fraud risks, and valuation justification — designed for an IPO subscription decision.",
+      "description": "Institutional-grade DRHP/RHP analysis for Indian IPOs. Pulls straightforward public facts (GMP, subscription, 3-year financials, KPIs, peer comparison, objects of issue, lock-in schedule, key dates, anchor investors) from investorgain.com / chittorgarh.com / ipoplatform.com by link-citation, not by re-deriving them from the document. Then reads the RHP (DRHP only if no RHP exists yet) for what those platforms don't carry — non-obvious, dot-connecting analysis: capex-vs-CWIP reconciliation, RPT-vs-promoter-compensation patterns, litigation, customer-concentration trend, moat quality, lock-in-vs-valuation supply overhang, red flags. Use when the user uploads a DRHP/RHP PDF, asks \"should I subscribe to X IPO\", \"analyse this DRHP\", \"is this IPO fairly priced\", or gives a SEBI/NSE/BSE/IPO-platform link. Outputs a multi-page institutional PDF flagging governance concerns, fraud risks, and valuation — for a subscription or post-listing entry decision.",
       "aliases": [
         "drhp",
         "ipo analysis",
@@ -745,6 +745,18 @@
       ],
       "entry": null,
       "modules": []
+    },
+    {
+      "name": "post-close-scan-insights",
+      "description": "Nightly post-market-close corporate-announcement digest for a fixed ad-hoc Stockscans scan (mid/small-cap, price above 200DMA, meaningful retail holding, liquid) — fetches every announcement filed after that day's 3:30 PM IST close, drops routine noise, reads each PDF, writes an actionable quantified insight per category, and emails a digest grouped by significance (high/medium/low). Invoke with defaults for the nightly 2 AM run, or on demand with an explicit --window-hours override to re-run a specific evening's post-close activity.",
+      "aliases": [
+        "post close insights",
+        "post-close scan",
+        "after hours announcement scan",
+        "nightly announcement digest"
+      ],
+      "entry": null,
+      "modules": []
     }
   ],
   "classes": [
@@ -815,6 +827,8 @@
         "getPriceVolumeDeliverable",
         "getDeliveryBhavcopy",
         "getLargeDeals",
+        "getHistoricalBulkDeals",
+        "getHistoricalBlockDeals",
         "getSastReg29",
         "getInsiderFilings",
         "fetchArchiveXml",
@@ -865,7 +879,6 @@
         "prices",
         "ohlcv",
         "documents",
-        "resultsDocuments",
         "resultsDocumentsMap",
         "growthCatalysts",
         "businessOverview",
@@ -881,7 +894,8 @@
         "savedScans",
         "s3PdfUrl",
         "fetchPdf",
-        "validateAuth"
+        "validateAuth",
+        "resultsScan"
       ]
     },
     {

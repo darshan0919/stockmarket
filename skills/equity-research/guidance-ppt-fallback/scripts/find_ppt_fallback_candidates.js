@@ -34,7 +34,9 @@ function parseArgs(argv) {
     else if (a === '--force') out.force = true;
   }
   if (!out.quarter) {
-    console.error('Usage: find_ppt_fallback_candidates.js --quarter Q4FY26 [--tickers NSE:A,NSE:B] [--force]');
+    console.error(
+      'Usage: find_ppt_fallback_candidates.js --quarter Q4FY26 [--tickers NSE:A,NSE:B] [--force]'
+    );
     process.exit(1);
   }
   return out;

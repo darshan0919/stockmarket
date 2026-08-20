@@ -64,7 +64,9 @@ const KNOWN_SERIES_SUFFIXES = ['BE', 'BZ', 'BL', 'SM', 'ST', 'IL', 'GC', 'BT'];
 const SERIES_SUFFIX_RE = new RegExp(`-(?:${KNOWN_SERIES_SUFFIXES.join('|')})$`, 'i');
 
 function sanitizeSymbol(symbol) {
-  return String(symbol || '').trim().replace(SERIES_SUFFIX_RE, '');
+  return String(symbol || '')
+    .trim()
+    .replace(SERIES_SUFFIX_RE, '');
 }
 
 function stockscansUrl(symbol, exchange = 'NSE') {

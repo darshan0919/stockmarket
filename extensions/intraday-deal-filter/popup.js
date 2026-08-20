@@ -22,7 +22,9 @@ function setStatus(msg, isError) {
 // this key via chrome.storage.onChanged and hide/show rows accordingly. ---
 function renderToggle(enabled) {
   toggleEl.checked = enabled;
-  toggleLabelEl.textContent = enabled ? 'Filtering intraday deals' : 'Filtering off — showing all deals';
+  toggleLabelEl.textContent = enabled
+    ? 'Filtering intraday deals'
+    : 'Filtering off — showing all deals';
 }
 
 chrome.storage.local.get('idf_enabled', (res) => {
@@ -82,12 +84,14 @@ function toExportShape(watchlist) {
 function render(watchlist) {
   const entries = Object.values(watchlist).sort((a, b) => b.occurrences - a.occurrences);
   if (!entries.length) {
-    listEl.innerHTML = '<div class="empty">No intraday traders detected yet.<br/>Browse a company\'s Shareholdings tab.</div>';
+    listEl.innerHTML =
+      '<div class="empty">No intraday traders detected yet.<br/>Browse a company\'s Shareholdings tab.</div>';
     return;
   }
   const rows = entries
     .map(
-      (e) => `<tr><td>${e.shareholder}</td><td>${e.occurrences}</td><td>${Object.keys(e.companies).join(', ')}</td></tr>`
+      (e) =>
+        `<tr><td>${e.shareholder}</td><td>${e.occurrences}</td><td>${Object.keys(e.companies).join(', ')}</td></tr>`
     )
     .join('');
   listEl.innerHTML = `<table><thead><tr><th>Shareholder</th><th>#</th><th>Companies</th></tr></thead><tbody>${rows}</tbody></table>`;
@@ -109,9 +113,8 @@ document.getElementById('exportBtn').addEventListener('click', async () => {
   const data = toExportShape(watchlist);
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-  chrome.downloads.download(
-    { url, filename: 'hft-watchlist.json', saveAs: false },
-    () => setStatus('Downloaded hft-watchlist.json')
+  chrome.downloads.download({ url, filename: 'hft-watchlist.json', saveAs: false }, () =>
+    setStatus('Downloaded hft-watchlist.json')
   );
 });
 

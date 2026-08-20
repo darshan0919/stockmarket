@@ -55,10 +55,16 @@ const fs = require('fs');
 const { StockscansClient } = require('../src/clients/StockscansClient.js');
 const { PerplexityClient, toPerplexityTicker } = require('../src/clients/PerplexityClient.js');
 const { latestCompletedQuarter, parseQuarterString } = require('../src/utils/fiscalQuarter.js');
-const { findRecordingAnnouncement, findRecordingAnnouncementsBulk } = require('./find-earnings-recording.js');
+const {
+  findRecordingAnnouncement,
+  findRecordingAnnouncementsBulk,
+} = require('./find-earnings-recording.js');
 const { saveTranscript } = require('./save-concall-transcript.js');
 const { mapWithConcurrency } = require('../src/utils/concurrency.js');
-const { scanAnnouncementsForCompanies, computeReleaseQuarterDate } = require('../src/utils/bulkAnnouncementScan.js');
+const {
+  scanAnnouncementsForCompanies,
+  computeReleaseQuarterDate,
+} = require('../src/utils/bulkAnnouncementScan.js');
 
 // Bulk-mode fan-out for the Perplexity tier (no bulk API exists there, so we
 // bound concurrency instead of firing 1000 requests at once or awaiting them
@@ -74,9 +80,12 @@ function parseArgs(argv) {
     const a = argv[i];
     if (a === '--out-dir') out.outDir = argv[++i];
     else if (a === '--force') out.force = true;
-    else if (a === '--quarter') out.quarter = argv[++i]; // e.g. Q1FY27
-    else if (a === '--bulk') out.bulk = JSON.parse(argv[++i]); // inline JSON array
-    else if (a === '--bulk-file') out.bulk = JSON.parse(fs.readFileSync(argv[++i], 'utf8')); // file path
+    else if (a === '--quarter')
+      out.quarter = argv[++i]; // e.g. Q1FY27
+    else if (a === '--bulk')
+      out.bulk = JSON.parse(argv[++i]); // inline JSON array
+    else if (a === '--bulk-file')
+      out.bulk = JSON.parse(fs.readFileSync(argv[++i], 'utf8')); // file path
     else rest.push(a);
   }
   out.ticker = rest[0] || null;
@@ -97,9 +106,7 @@ function findInDb(ticker, yyyymm) {
     return (
       entries.find(
         (r) =>
-          r.type === 'concall-transcript-early' &&
-          r.companyId === ticker &&
-          r.id.includes(yyyymm)
+          r.type === 'concall-transcript-early' && r.companyId === ticker && r.id.includes(yyyymm)
       ) || null
     );
   } catch {
@@ -192,7 +199,9 @@ async function resolveHistoricalEntries(entries, { client, force, onWarning }) {
         onWarning: (msg) => onWarning(`[historical ${yyyymm}] ${msg}`),
       });
     } catch (err) {
-      onWarning(`[historical ${yyyymm}] bulk scan threw unexpectedly: ${err.message} — falling back to per-company documents() for all ${tickers.length} companies in this quarter.`);
+      onWarning(
+        `[historical ${yyyymm}] bulk scan threw unexpectedly: ${err.message} — falling back to per-company documents() for all ${tickers.length} companies in this quarter.`
+      );
     }
 
     const foundByTicker = new Map();
@@ -239,7 +248,12 @@ async function resolveHistoricalEntries(entries, { client, force, onWarning }) {
         }
       } catch (err) {
         onWarning(`[historical ${e.ticker}] documents() fallback check failed: ${err.message}`);
-        results.set(e.ticker, { status: 'error', ticker: e.ticker, quarter: e.quarter, error: `historical transcript check failed: ${err.message}` });
+        results.set(e.ticker, {
+          status: 'error',
+          ticker: e.ticker,
+          quarter: e.quarter,
+          error: `historical transcript check failed: ${err.message}`,
+        });
       }
     }
   }
@@ -316,7 +330,11 @@ async function tryPerplexity(ticker, quarter) {
  * @param {{outDir: string, force: boolean, client?: object}} opts
  * @returns {Promise<object>} - result object (never throws; errors are returned as {status:"error"})
  */
-async function fetchOne(ticker, quarter, { outDir, force, client: sharedClient, resultsMap, deferTier4 = false } = {}) {
+async function fetchOne(
+  ticker,
+  quarter,
+  { outDir, force, client: sharedClient, resultsMap, deferTier4 = false } = {}
+) {
   try {
     // ── Tier 0: already in our DB? ─────────────────────────────────────────
     const existing = !force && findInDb(ticker, quarter.yyyymm);
@@ -360,7 +378,9 @@ async function fetchOne(ticker, quarter, { outDir, force, client: sharedClient, 
       const doc = resultsMap.byCompanyId.get(ticker);
       if (doc) {
         result = doc.resultSsUrl ? doc : null;
-        transcript = doc.transcriptSsUrl ? { documentType: 'Transcript', ssUrl: doc.transcriptSsUrl, date: quarter.yyyymm } : null;
+        transcript = doc.transcriptSsUrl
+          ? { documentType: 'Transcript', ssUrl: doc.transcriptSsUrl, date: quarter.yyyymm }
+          : null;
       } else {
         ({ result, transcript } = await checkStockscansDocuments(client, ticker, quarter.yyyymm));
       }
@@ -443,7 +463,9 @@ async function main() {
   // ── Bulk mode ─────────────────────────────────────────────────────────────
   if (bulk) {
     if (!Array.isArray(bulk) || bulk.length === 0) {
-      console.error('--bulk / --bulk-file must be a non-empty JSON array of {ticker, quarter?} objects');
+      console.error(
+        '--bulk / --bulk-file must be a non-empty JSON array of {ticker, quarter?} objects'
+      );
       process.exit(1);
     }
 
@@ -474,7 +496,11 @@ async function main() {
       }
       try {
         const q = entry.quarter ? parseQuarterString(entry.quarter) : latest;
-        entries.push({ ticker: entry.ticker, quarter: q, isHistorical: q.yyyymm !== latest.yyyymm });
+        entries.push({
+          ticker: entry.ticker,
+          quarter: q,
+          isHistorical: q.yyyymm !== latest.yyyymm,
+        });
         results.push(null); // placeholder, filled in below
       } catch (e) {
         results.push({ status: 'error', ticker: entry.ticker, error: e.message });
@@ -499,12 +525,22 @@ async function main() {
       }
     }
 
-    const fetchResults = await mapWithConcurrency(currentQuarterEntries, BULK_CONCURRENCY, async (e) => {
-      // deferTier4: don't let each company independently call the
-      // announcements() search — collect the ones that need it below and
-      // resolve them in one batched pass via findRecordingAnnouncementsBulk.
-      return fetchOne(e.ticker, e.quarter, { outDir, force, client, resultsMap, deferTier4: true });
-    });
+    const fetchResults = await mapWithConcurrency(
+      currentQuarterEntries,
+      BULK_CONCURRENCY,
+      async (e) => {
+        // deferTier4: don't let each company independently call the
+        // announcements() search — collect the ones that need it below and
+        // resolve them in one batched pass via findRecordingAnnouncementsBulk.
+        return fetchOne(e.ticker, e.quarter, {
+          outDir,
+          force,
+          client,
+          resultsMap,
+          deferTier4: true,
+        });
+      }
+    );
 
     const currentQuarterResultByTicker = new Map();
     for (let i = 0; i < currentQuarterEntries.length; i++) {
@@ -512,7 +548,9 @@ async function main() {
       const settled = fetchResults[i];
       currentQuarterResultByTicker.set(
         e.ticker,
-        settled.ok ? settled.value : { status: 'error', ticker: e.ticker, quarter: e.quarter, error: settled.error.message }
+        settled.ok
+          ? settled.value
+          : { status: 'error', ticker: e.ticker, quarter: e.quarter, error: settled.error.message }
       );
     }
 
@@ -535,11 +573,17 @@ async function main() {
         // company's OLDER quarter's recording). Must use
         // computeReleaseQuarterDate() here too, same as the historical path.
         recordingMap = await findRecordingAnnouncementsBulk(
-          pendingTier4.map((r) => ({ ticker: r.ticker, quarterDate: computeReleaseQuarterDate(r.quarter.yyyymm), quarter: r.quarter })),
+          pendingTier4.map((r) => ({
+            ticker: r.ticker,
+            quarterDate: computeReleaseQuarterDate(r.quarter.yyyymm),
+            quarter: r.quarter,
+          })),
           { outDir, client, onWarning: (msg) => warnings.push(`[tier4] ${msg}`) }
         );
       } catch (err) {
-        warnings.push(`[tier4] Bulk recording search failed entirely: ${err.message}. All ${pendingTier4.length} pending entries reported as not-found — verify manually if needed.`);
+        warnings.push(
+          `[tier4] Bulk recording search failed entirely: ${err.message}. All ${pendingTier4.length} pending entries reported as not-found — verify manually if needed.`
+        );
       }
       for (const r of pendingTier4) {
         const recording = recordingMap.get(r.ticker) || { found: false, ticker: r.ticker };
@@ -570,9 +614,16 @@ async function main() {
           onWarning: (msg) => warnings.push(msg),
         });
       } catch (err) {
-        warnings.push(`Historical-quarter resolution failed entirely: ${err.message}. All ${historicalEntries.length} historical entries reported as errors.`);
+        warnings.push(
+          `Historical-quarter resolution failed entirely: ${err.message}. All ${historicalEntries.length} historical entries reported as errors.`
+        );
         for (const e of historicalEntries) {
-          historicalResultByTicker.set(e.ticker, { status: 'error', ticker: e.ticker, quarter: e.quarter, error: err.message });
+          historicalResultByTicker.set(e.ticker, {
+            status: 'error',
+            ticker: e.ticker,
+            quarter: e.quarter,
+            error: err.message,
+          });
         }
       }
     }
@@ -584,7 +635,9 @@ async function main() {
     for (let i = 0; i < results.length; i++) {
       const e = entries[i];
       if (!e) continue; // pre-existing parse/validation error already in results[i]
-      results[i] = e.isHistorical ? historicalResultByTicker.get(e.ticker) : currentQuarterResultByTicker.get(e.ticker);
+      results[i] = e.isHistorical
+        ? historicalResultByTicker.get(e.ticker)
+        : currentQuarterResultByTicker.get(e.ticker);
     }
 
     console.log(JSON.stringify(results, null, 2));

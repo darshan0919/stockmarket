@@ -88,7 +88,7 @@ function readJson(p) {
 function esc(s) {
   return String(s == null ? '' : s).replace(
     /[&<>"']/g,
-    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
   );
 }
 
@@ -186,10 +186,7 @@ function top3Card(rec, narrative) {
             'Listing score',
             `${fmtScore(rec.listingScore ?? rec.subscriptionQualityScore)} <span style="font-family:Arial,sans-serif;font-weight:400;font-size:10px;color:#666">(≥0.9=STRONG*)</span>`
           )}
-          ${statCell(
-            'CAGR score',
-            `${fmtScore(rec.cagrScore)} ${tierChip(rec.cagrTier)}`
-          )}
+          ${statCell('CAGR score', `${fmtScore(rec.cagrScore)} ${tierChip(rec.cagrTier)}`)}
           ${statCell('Anchor participated', rec.anchorParticipated ? chip('YES', 'g') : chip('NO', 'y'), { mono: false })}
         </tr>
       </table>
@@ -323,8 +320,23 @@ function renderHtml(dto, narrative) {
   const byId = n.byIpoId || {};
   const top3 = dto.top3 || [];
   const headCols = [
-    'Rank', 'Company', 'Type', 'Exchange', 'Listing', 'Retail Float', 'Total', 'QIB', 'sHNI', 'bHNI', 'NII', 'RII',
-    'Listing Score', 'Listing Tier', 'CAGR Score', 'CAGR Tier', 'Combined (0.7L+0.3C)',
+    'Rank',
+    'Company',
+    'Type',
+    'Exchange',
+    'Listing',
+    'Retail Float',
+    'Total',
+    'QIB',
+    'sHNI',
+    'bHNI',
+    'NII',
+    'RII',
+    'Listing Score',
+    'Listing Tier',
+    'CAGR Score',
+    'CAGR Tier',
+    'Combined (0.7L+0.3C)',
   ];
   const retailFloatFilterCr = dto.retailFloatFilterCr ?? 50;
 
@@ -368,7 +380,18 @@ function renderHtml(dto, narrative) {
             .map(
               (h) =>
                 `<th style="border-bottom:2px solid #9fa8da;padding:5px 6px${
-                  ['Retail Float', 'Total', 'QIB', 'sHNI', 'bHNI', 'NII', 'RII', 'Listing Score', 'CAGR Score', 'Combined (0.7L+0.3C)'].includes(h)
+                  [
+                    'Retail Float',
+                    'Total',
+                    'QIB',
+                    'sHNI',
+                    'bHNI',
+                    'NII',
+                    'RII',
+                    'Listing Score',
+                    'CAGR Score',
+                    'Combined (0.7L+0.3C)',
+                  ].includes(h)
                     ? ';text-align:right'
                     : ''
                 }">${h}</th>`
@@ -454,7 +477,9 @@ async function main() {
   const dryRun = argv.includes('--dry-run');
 
   if (!dtoPath) {
-    console.error('Usage: ipoDigestEmail.js --dto <path> [--narrative <path>] [--to email] [--dry-run] [--out <html-path>]');
+    console.error(
+      'Usage: ipoDigestEmail.js --dto <path> [--narrative <path>] [--to email] [--dry-run] [--out <html-path>]'
+    );
     process.exit(1);
   }
 
@@ -469,7 +494,8 @@ async function main() {
 
   let sendResult = { status: 'skipped', reason: 'dry-run' };
   if (!dryRun) {
-    const universeLabel = dto.top3 && dto.top3.length ? ` — top pick: ${dto.top3[0].companyName}` : '';
+    const universeLabel =
+      dto.top3 && dto.top3.length ? ` — top pick: ${dto.top3[0].companyName}` : '';
     sendResult = await sendHtmlEmail({
       subject: `IPO Subscription Digest ${dto.date} (listing ${dto.listingDateFilter})${universeLabel}`,
       htmlBody: html,

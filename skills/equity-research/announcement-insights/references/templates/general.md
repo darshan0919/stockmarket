@@ -1,6 +1,7 @@
 CATEGORY: general (uncategorized)
 No category-specific extraction checklist exists yet for this announcement's actual
 subject matter — that does NOT lower the bar, it changes the method:
+
 1. Read the PDF fully and identify the single most decision-relevant fact; quantify it.
 2. Cross-reference this company's notes DB (`get-company-notes`) for continuity —
    does this confirm, extend, or contradict a prior note?

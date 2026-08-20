@@ -73,7 +73,9 @@ function effectiveTaxRatePct(snap) {
 function main() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.current) {
-    console.error('Usage: compute_headline_financials.js --current <file> [--prior-q <file>] [--prior-y <file>]');
+    console.error(
+      'Usage: compute_headline_financials.js --current <file> [--prior-q <file>] [--prior-y <file>]'
+    );
     process.exit(1);
   }
   const current = readJsonIfExists(args.current);
@@ -89,7 +91,14 @@ function main() {
   const revYoY = pctChange(current.revenue, priorY && priorY.revenue);
   const revQoQ = pctChange(current.revenue, priorQ && priorQ.revenue);
   if (revYoY != null || revQoQ != null) {
-    cards.push({ key: 'revenue', label: 'Revenue', value: current.revenue, unit: 'Rs Cr', yoyPct: revYoY, qoqPct: revQoQ });
+    cards.push({
+      key: 'revenue',
+      label: 'Revenue',
+      value: current.revenue,
+      unit: 'Rs Cr',
+      yoyPct: revYoY,
+      qoqPct: revQoQ,
+    });
   }
 
   const marginNow = ebitdaMarginPct(current);
@@ -111,7 +120,14 @@ function main() {
   const patYoY = pctChange(current.pat, priorY && priorY.pat);
   const patQoQ = pctChange(current.pat, priorQ && priorQ.pat);
   if (patYoY != null || patQoQ != null) {
-    cards.push({ key: 'pat', label: 'PAT', value: current.pat, unit: 'Rs Cr', yoyPct: patYoY, qoqPct: patQoQ });
+    cards.push({
+      key: 'pat',
+      label: 'PAT',
+      value: current.pat,
+      unit: 'Rs Cr',
+      yoyPct: patYoY,
+      qoqPct: patQoQ,
+    });
   }
 
   const taxNow = effectiveTaxRatePct(current);

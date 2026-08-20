@@ -12,16 +12,48 @@ const TARGET_SKILL_CATEGORIES = ['equity-research', 'tooling'];
 
 // Overrides map for known sidecar UI display names, folder names, and default cron schedules
 const SIDECAR_OVERRIDES = {
-  'daily-deals-digest': { sidecarFolder: 'dealsdigest', displayName: 'Deals Digest', cron: '0 20 * * *' },
-  'daily-gainers-digest': { sidecarFolder: 'dailygainersdigest', displayName: 'Daily Gainers Digest', cron: '0 20 * * *' },
-  'weekly-gainers-digest': { sidecarFolder: 'weeklygainersdigest', displayName: 'Weekly Gainers Digest', cron: '0 20 * * 0' },
-  'near-highs-digest': { sidecarFolder: 'nearhighsdigest', displayName: 'Near Highs Digest', cron: '0 20 * * *' },
-  'periodic-dead-code-scan': { sidecarFolder: 'dead-code-tasks', displayName: 'Dead Code Tasks', cron: '0 9 * * 0' },
-  'watchlist-sync-stockmarket': { sidecarFolder: 'watchlist-sync', displayName: 'Watchlist Sync', cron: '0 16 * * *' },
-  'upload-stock-reports-to-google-drive': { sidecarFolder: 'data-sync', displayName: 'Data Sync', cron: '0 1 * * *' },
+  'daily-deals-digest': {
+    sidecarFolder: 'dealsdigest',
+    displayName: 'Deals Digest',
+    cron: '0 20 * * *',
+  },
+  'daily-gainers-digest': {
+    sidecarFolder: 'dailygainersdigest',
+    displayName: 'Daily Gainers Digest',
+    cron: '0 20 * * *',
+  },
+  'weekly-gainers-digest': {
+    sidecarFolder: 'weeklygainersdigest',
+    displayName: 'Weekly Gainers Digest',
+    cron: '0 20 * * 0',
+  },
+  'near-highs-digest': {
+    sidecarFolder: 'nearhighsdigest',
+    displayName: 'Near Highs Digest',
+    cron: '0 20 * * *',
+  },
+  'periodic-dead-code-scan': {
+    sidecarFolder: 'dead-code-tasks',
+    displayName: 'Dead Code Tasks',
+    cron: '0 9 * * 0',
+  },
+  'watchlist-sync-stockmarket': {
+    sidecarFolder: 'watchlist-sync',
+    displayName: 'Watchlist Sync',
+    cron: '0 16 * * *',
+  },
+  'upload-stock-reports-to-google-drive': {
+    sidecarFolder: 'data-sync',
+    displayName: 'Data Sync',
+    cron: '0 1 * * *',
+  },
   // 21:00 — after the 20:00 digests, which write the same events collection,
   // and late enough that the day's exchange filings have been disseminated.
-  'order-book-sync-stockmarket': { sidecarFolder: 'order-book-sync', displayName: 'Order Book Sync', cron: '0 21 * * *' },
+  'order-book-sync-stockmarket': {
+    sidecarFolder: 'order-book-sync',
+    displayName: 'Order Book Sync',
+    cron: '0 21 * * *',
+  },
 };
 
 function parseSkillMd(filePath) {
@@ -70,7 +102,9 @@ function copyRecursiveSync(src, dest) {
 }
 
 function syncScheduledTasks() {
-  console.log('\n🔄 [1/2] Syncing ALL Repository Scheduled Jobs (jobs/Scheduled/) -> Antigravity Sidecars & Global Skills...');
+  console.log(
+    '\n🔄 [1/2] Syncing ALL Repository Scheduled Jobs (jobs/Scheduled/) -> Antigravity Sidecars & Global Skills...'
+  );
 
   if (!fs.existsSync(SIDECARS_DIR)) fs.mkdirSync(SIDECARS_DIR, { recursive: true });
   if (!fs.existsSync(GLOBAL_SKILLS_DIR)) fs.mkdirSync(GLOBAL_SKILLS_DIR, { recursive: true });
@@ -132,7 +166,9 @@ function syncScheduledTasks() {
     syncedJobSkills++;
   }
 
-  console.log(`✅ Synchronized ${syncedSidecars} UI Sidecars and ${syncedJobSkills} Scheduled Task Skills.`);
+  console.log(
+    `✅ Synchronized ${syncedSidecars} UI Sidecars and ${syncedJobSkills} Scheduled Task Skills.`
+  );
 }
 
 function syncCategorySkills(categoryDir) {
@@ -162,7 +198,9 @@ function syncCategorySkills(categoryDir) {
 }
 
 function syncAllSkills() {
-  console.log('\n🔄 [2/2] Syncing Equity Research & Tooling Repository Skills -> Antigravity Global Skills...');
+  console.log(
+    '\n🔄 [2/2] Syncing Equity Research & Tooling Repository Skills -> Antigravity Global Skills...'
+  );
   let totalSynced = 0;
 
   for (const category of TARGET_SKILL_CATEGORIES) {
@@ -172,7 +210,9 @@ function syncAllSkills() {
     totalSynced += categoryCount;
   }
 
-  console.log(`✅ Synchronized ${totalSynced} Equity Research & Tooling Skills to ~/.gemini/config/skills/`);
+  console.log(
+    `✅ Synchronized ${totalSynced} Equity Research & Tooling Skills to ~/.gemini/config/skills/`
+  );
 }
 
 function main() {

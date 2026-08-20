@@ -1315,6 +1315,18 @@
         "which ipos listing tomorrow",
         "ipo subscription quality"
       ]
+    },
+    "post-close-scan-insights": {
+      "skill_md": "skills/equity-research/post-close-scan-insights/SKILL.md",
+      "entry": null,
+      "references": [],
+      "shared": [],
+      "aliases": [
+        "post close insights",
+        "post-close scan",
+        "after hours announcement scan",
+        "nightly announcement digest"
+      ]
     }
   }
 }

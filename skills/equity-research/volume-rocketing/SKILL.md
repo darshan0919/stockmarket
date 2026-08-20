@@ -24,10 +24,10 @@ different.
 
 ## Parameters (optional)
 
-| Param     | Default          | Meaning                                                       |
-| --------- | ---------------- | ------------------------------------------------------------- |
-| `date`    | last trading day | market date (`--date YYYY-MM-DD`) for the scanner             |
-| `email`   | on               | set off to build the briefing without sending                 |
+| Param   | Default          | Meaning                                           |
+| ------- | ---------------- | ------------------------------------------------- |
+| `date`  | last trading day | market date (`--date YYYY-MM-DD`) for the scanner |
+| `email` | on               | set off to build the briefing without sending     |
 
 `--top-n` is fixed at 20 by design (see Step 1) — not exposed as a CLI override the
 way gainers-signal's is, since the count is a dedupe outcome, not a raw universe size.
@@ -68,9 +68,9 @@ Writes `data/runs/volume_rocketing_raw_{YYYYMMDD}.json`. Internally this calls
 `gainersScanner.main()` with a `universeFetcher` that:
 
 1. Calls `gainersScanner.fetchVolumeRocketing(client)` — a `POST
-   /api/company/scans/run` against Stockscans scan id `50f6d1a6f885626f8244a239`
+/api/company/scans/run` against Stockscans scan id `50f6d1a6f885626f8244a239`
    ("Volume Rocketing": `Volume >= 2.5 * Volume SMA 5D` AND `Market Capitalization >=
-   300` AND `Returns 1D >= 1`), `orderBy: 'Volume', order: 'desc'` — results arrive
+300` AND `Returns 1D >= 1`), `orderBy: 'Volume', order: 'desc'` — results arrive
    pre-sorted by the API, no local re-sort needed.
 2. Loads `gainers_raw_{YYYYMMDD}.json` (same market date) and builds the set of
    tickers gainers-signal already picked that day.
@@ -105,7 +105,7 @@ clusters, and novelty assessment. Only the labels differ:
 
 - reads `volume_rocketing_raw_{YYYYMMDD}.json`
 - writes events with `type: "volume-rocket"` (not `"gainer"`) and `creator:
-  "volume-rocketing"`
+"volume-rocketing"`
 - writes `data/runs/volume_rocketing_insights_{YYYYMMDD}.json` (the DTO — envelope
   per `skills/tooling/output-dto-standard/SKILL.md`: `companyId`, `creationTime`,
   `modifiedTime`, `creator: "volume-rocketing"` on every signal record)

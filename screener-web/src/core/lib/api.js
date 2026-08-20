@@ -9,7 +9,7 @@
 import axios from 'axios';
 
 /** @constant {string} API_URL - Backend API base URL */
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
 /** Trailing-slash-free base for building absolute browser URLs (iframe, new tab) */
 const API_BASE_TRIMMED = API_URL.replace(/\/+$/, '');
 if (process.env.NODE_ENV !== 'production') {

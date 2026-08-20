@@ -183,8 +183,8 @@ export default function BalanceSheet({ symbol }) {
               filings. Quarterly XBRL documents contain P&L and Cash Flow statements only.
             </p>
             <p className="text-sm opacity-60 mb-4">
-              We&apos;re working on integrating annual report data to show Balance Sheet information. In
-              the meantime, you can view the official reports on NSE.
+              We&apos;re working on integrating annual report data to show Balance Sheet
+              information. In the meantime, you can view the official reports on NSE.
             </p>
             <a
               href={`https://www.nseindia.com/get-quotes/equity?symbol=${symbol}`}

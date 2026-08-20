@@ -41,7 +41,7 @@ Whenever the user asks to create or modify a skill, adhere to the following blue
    class is easy to miss because the script runs fine in local dev (where a
    shell may have `.env` sourced already) and only fails silently — e.g.
    `sendHtmlEmail` returning `{status:'skipped', reason:'GOOGLE_APP_PASSWORD not
-   set'}` instead of throwing — in a sandboxed/Cowork run where nothing sourced
+set'}` instead of throwing — in a sandboxed/Cowork run where nothing sourced
    `.env` first. Treat a generated script that reads a secret without calling
    `loadEnv()` first as non-conformant, the same way an unconformant DB write is
    treated in the data-persistence rule below. See any of `dealsDigest.js`,
@@ -49,14 +49,14 @@ Whenever the user asks to create or modify a skill, adhere to the following blue
    for the established call-site pattern.
 6. **Register the Claude-account thin router (MANDATORY when adding a
    brand-new skill)**: this repo's `skills/*` is the single source of truth for
-   skill *logic* — every skill also needs a thin *router* skill saved to the
+   skill _logic_ — every skill also needs a thin _router_ skill saved to the
    Claude account (via `save_skill`) so it appears in `available_skills` and
    can be invoked directly (e.g. `/skill-name`). The router has NO logic of its
    own: it locates the local checkout (or falls back to the GitHub raw URL),
    reads the real `SKILL.md` from `skills/registry.json`'s entry, and executes
    its instructions exactly — see any existing router (e.g.
    `cowork-task-architect`, `drhp-ipo-analysis`) for the exact boilerplate to
-   copy. When you only *edit* an existing skill's logic, edit the repo file —
+   copy. When you only _edit_ an existing skill's logic, edit the repo file —
    never hand-edit the router's routing logic. Only a genuinely new skill
    needs a new router created. Forgetting this step is why a skill can exist
    correctly in the repo (with a working `SKILL.md`, registry entry, and

@@ -18,7 +18,9 @@
 const fs = require('fs');
 const path = require('path');
 const { fetchDocuments } = require('../../../../stock-api/src/fetchers/documentsFetcher.js');
-const { ConcallTranscriptResolver } = require('../../../../stock-api/bin/get-concall-transcript-url.js');
+const {
+  ConcallTranscriptResolver,
+} = require('../../../../stock-api/bin/get-concall-transcript-url.js');
 
 function parseArgs(argv) {
   const out = { ticker: null, outDir: null };

@@ -132,11 +132,14 @@ for the same reason (cross-company hallucination risk at scale):
   "pat_lever": "opex_leverage",
   "evidence": "medium-high",
   "thesis": "One or two sentences: why this setup could beat, citing the strongest evidence (order book coverage, capacity commissioning, a quantified cost lever).",
-  "assumptions": ["Any gap you had to work around, stated explicitly, e.g. 'FY26 base margin not given, expansion direction confirmed but bps delta not computable'"]
+  "assumptions": [
+    "Any gap you had to work around, stated explicitly, e.g. 'FY26 base margin not given, expansion direction confirmed but bps delta not computable'"
+  ]
 }
 ```
 
 Field vocabulary (the scoring script in Step 2 only recognises these):
+
 - `tier`: `1` (quarter-specific) / `2` (FY-specific) / `3` (sector-model or
   partial guidance) / `4` (no usable guidance — but if truly Tier 4, put the
   company in the excluded list instead of annotating it here).
@@ -184,6 +187,7 @@ had guidance vs. were excluded, the scoring rule summary, any sector models
 applied (name which companies, what inputs were used, what was NOT available
 and therefore not modelled), and a **self-audit** — per `conventions.md`
 "what could be wrong with this" is not optional here:
+
 - How stale is the guidance relative to today (a Q4 concall read months after
   the call missed intervening events)?
 - Does this ranking include street/consensus estimates or historical

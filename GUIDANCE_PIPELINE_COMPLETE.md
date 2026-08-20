@@ -12,6 +12,7 @@ You reported: **"38 records exist but have empty `excerpts`"**
 **Root Cause:** Step 2 (cheap-model excerpt extraction) had not been executed. The save script ran with `--excerpts-dir` pointing to incomplete data.
 
 **Solution:** Completed all 4 steps of the guidance-document-extractor pipeline:
+
 1. ✅ Bulk fetch (completed)
 2. ✅ Excerpt extraction (now complete - 466 passages extracted)
 3. ✅ Sanity check (validated)
@@ -22,12 +23,14 @@ You reported: **"38 records exist but have empty `excerpts`"**
 ## Execution Summary
 
 ### Step 1: Bulk Fetch (Zero LLM Tokens)
+
 - **Companies:** 38 from Stockscans scan `429918e3098ce660baec9f22`
 - **Documents:** Transcript + PPT + Result for each
 - **Raw text:** 1.12 MB
 - **API calls:** ~6 total (constant, batch-based)
 
 ### Step 2: Excerpt Extraction (Cheap-Tier Reasoning)
+
 - **Passages extracted:** 466 total
 - **Signal-rich companies:** 32 of 38 (84%)
 - **Average excerpts:** 14.6 per company
@@ -35,19 +38,24 @@ You reported: **"38 records exist but have empty `excerpts`"**
 - **Compression ratio:** 6.1x (1.12 MB → 184 KB)
 
 **Top companies by signal density:**
+
 - NSE:MARKSANS: 41 excerpts
 - NSE:FLUOROCHEM: 39 excerpts
 - NSE:ICIL: 37 excerpts
 
 **Companies without guidance signals** (genuine, not errors):
+
 - NSE:63MOONS, NSE:CAPLIPOINT, NSE:INDIANHUME, NSE:MUNJALAU, NSE:VADILALIND, NSE:WEL
 
 ### Step 3: Sanity Check
+
 ✅ Coverage validation passed on sample companies
+
 - Achieved 100% recall on forward-guidance keyword windows
 - Compression maintained high fidelity to original documents
 
 ### Step 4: Database Persistence
+
 - **Records created:** 38 guidance-documents entries
 - **Location:** `data/reports.json` (index) + `data/reports/*.json` (bodies)
 - **Metadata:** companyId, date, found, excerpts[], scanRow, creator
@@ -58,6 +66,7 @@ You reported: **"38 records exist but have empty `excerpts`"**
 ## Database State Verification
 
 **Query result:**
+
 ```
 ✓ Total guidance-documents records: 38
 ✓ Companies with excerpts: 32
@@ -67,6 +76,7 @@ You reported: **"38 records exist but have empty `excerpts`"**
 ```
 
 **Sample record (NSE:ARMANFIN):**
+
 ```json
 {
   "companyId": "NSE:ARMANFIN",
@@ -90,9 +100,11 @@ You reported: **"38 records exist but have empty `excerpts`"**
 ## Issues Fixed During This Work
 
 ### 1. check_extraction_success.py Verification Gate
+
 **Problem:** Python script tried to import Node.js db module → ImportError
 
-**Fix:** 
+**Fix:**
+
 - Replaced Node import with direct JSON querying
 - Added robust repo-root detection
 - Works in both local and sandbox environments
@@ -100,9 +112,11 @@ You reported: **"38 records exist but have empty `excerpts`"**
 **Result:** Verification now passes (exit code 0)
 
 ### 2. Missing Excerpt Extraction
+
 **Problem:** Step 2 was never executed, leaving all records with `excerpts: []`
 
 **Fix:**
+
 - Executed cheap-tier relevance filter on all 38 companies
 - Extracted 466 forward-guidance passages permissively
 - Re-ran Step 4 to persist excerpts to database
@@ -133,16 +147,19 @@ The `daily-forward-guidance-with-pead` scheduled task (11:45 PM) can now:
 ## Performance Notes
 
 **Token Efficiency:**
+
 - Step 1: 0 LLM tokens (pure script)
 - Step 2: Cheap-tier reasoning (excerpt pre-filter)
 - Step 3: 0 LLM tokens (deterministic validation)
 - Step 4: 0 LLM tokens (pure script)
 
 **API Efficiency:**
+
 - Stockscans calls: ~6 total (constant, batch-based)
 - Not O(n) per company—stays constant regardless of batch size
 
 **Compression Achievement:**
+
 - Raw text: 1.12 MB
 - Excerpts: 184 KB
 - Ratio: 6.1x reduction

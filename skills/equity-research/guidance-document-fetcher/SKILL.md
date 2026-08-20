@@ -61,6 +61,7 @@ per-entry is optional; omitted entries default to `latestCompletedQuarter()`.
 For a single ad-hoc ticker, `--tickers NSE:A,NSE:B` works without a file.
 
 Output (stdout): one JSON object per ticker —
+
 ```json
 {
   "ticker": "NSE:RATEGAIN",

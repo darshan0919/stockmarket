@@ -242,7 +242,9 @@ function parseAnchorInvestors(html) {
 async function fetchAnchorInvestors(ipo) {
   if (ipo.chittorgarhId) {
     try {
-      const cgHtml = await fetchHtml(chittorgarhDetailUrl(ipo.chittorgarhId, ipo.chittorgarhSlugHint));
+      const cgHtml = await fetchHtml(
+        chittorgarhDetailUrl(ipo.chittorgarhId, ipo.chittorgarhSlugHint)
+      );
       const cgAnchors = parseChittorgarhAnchorInvestors(cgHtml);
       if (cgAnchors.length > 0) return { anchorInvestors: cgAnchors, anchorSource: 'chittorgarh' };
     } catch {
@@ -280,7 +282,8 @@ async function fetchSubscriptionMultiples(ipo) {
     employeeX: sub.employeeX ?? null,
     shareholderX: sub.shareholderX ?? null,
     totalSubscriptionX: sub.totalSubscriptionX ?? null,
-    otherCategories: sub.otherCategories && Object.keys(sub.otherCategories).length ? sub.otherCategories : null,
+    otherCategories:
+      sub.otherCategories && Object.keys(sub.otherCategories).length ? sub.otherCategories : null,
     subscriptionDataParsed: !!sub._parsed,
   };
 }
@@ -417,30 +420,22 @@ async function fetchDealsWindow(fromDate, toDate, { nseClient, bseClient, warnin
   const bseTo = fmtDdMmYyyySlash(toDate);
 
   const [nseBulk, nseBlock, bseBulk, bseBlock] = await Promise.all([
-    nseClient
-      .getHistoricalBulkDeals(nseFrom, nseTo)
-      .catch((e) => {
-        warnings.add(`NSE bulk-deals fetch failed for ${nseFrom}..${nseTo}: ${e.message}`);
-        return [];
-      }),
-    nseClient
-      .getHistoricalBlockDeals(nseFrom, nseTo)
-      .catch((e) => {
-        warnings.add(`NSE block-deals fetch failed for ${nseFrom}..${nseTo}: ${e.message}`);
-        return [];
-      }),
-    bseClient
-      .getBulkBlockDeals('bulk', bseFrom, bseTo)
-      .catch((e) => {
-        warnings.add(`BSE bulk-deals fetch failed for ${bseFrom}..${bseTo}: ${e.message}`);
-        return [];
-      }),
-    bseClient
-      .getBulkBlockDeals('block', bseFrom, bseTo)
-      .catch((e) => {
-        warnings.add(`BSE block-deals fetch failed for ${bseFrom}..${bseTo}: ${e.message}`);
-        return [];
-      }),
+    nseClient.getHistoricalBulkDeals(nseFrom, nseTo).catch((e) => {
+      warnings.add(`NSE bulk-deals fetch failed for ${nseFrom}..${nseTo}: ${e.message}`);
+      return [];
+    }),
+    nseClient.getHistoricalBlockDeals(nseFrom, nseTo).catch((e) => {
+      warnings.add(`NSE block-deals fetch failed for ${nseFrom}..${nseTo}: ${e.message}`);
+      return [];
+    }),
+    bseClient.getBulkBlockDeals('bulk', bseFrom, bseTo).catch((e) => {
+      warnings.add(`BSE bulk-deals fetch failed for ${bseFrom}..${bseTo}: ${e.message}`);
+      return [];
+    }),
+    bseClient.getBulkBlockDeals('block', bseFrom, bseTo).catch((e) => {
+      warnings.add(`BSE block-deals fetch failed for ${bseFrom}..${bseTo}: ${e.message}`);
+      return [];
+    }),
   ]);
 
   return [
@@ -483,7 +478,8 @@ function dealStance(buySell) {
 function investorSlug(canonicalName) {
   const base = normalizeInvestorName(canonicalName).toLowerCase().replace(/\s+/g, '-').slice(0, 50);
   let hash = 0;
-  for (let i = 0; i < canonicalName.length; i++) hash = (hash * 31 + canonicalName.charCodeAt(i)) | 0;
+  for (let i = 0; i < canonicalName.length; i++)
+    hash = (hash * 31 + canonicalName.charCodeAt(i)) | 0;
   return `${base || 'investor'}_${Math.abs(hash).toString(36)}`;
 }
 
@@ -590,7 +586,8 @@ function crossCheckInvestorRegistry(ipos, investorRecords, threshold, label) {
         [`matched${label}Investor`]: rec.canonicalName,
         matchScore: match.score,
         matchedOn: match === byGroup ? 'groupEntity' : 'anchorName',
-        [`${label[0].toLowerCase()}${label.slice(1)}InvestorCompanyCount`]: (rec.companyIds || []).length,
+        [`${label[0].toLowerCase()}${label.slice(1)}InvestorCompanyCount`]: (rec.companyIds || [])
+          .length,
       });
     }
     return { ...ipo, [outField]: found };
@@ -639,7 +636,9 @@ function crossReferenceIpo(ipo, anchorInvestors, dealsRows, threshold) {
     // higher (IPOPlatform-sourced anchors have no groupEntity, so this is a
     // no-op fallback to the plain-name match for those).
     const byName = bestMatch(anchor.name, clientNames, threshold);
-    const byGroup = anchor.groupEntity ? bestMatch(anchor.groupEntity, clientNames, threshold) : null;
+    const byGroup = anchor.groupEntity
+      ? bestMatch(anchor.groupEntity, clientNames, threshold)
+      : null;
     const match = byGroup && (!byName || byGroup.score > byName.score) ? byGroup : byName;
     if (!match) continue;
     const dealRow = companyRows[match.index];
@@ -731,7 +730,11 @@ async function trackWindow({
   const nseClient = nse;
   const bseClient = bse;
 
-  const rawUniverse = await fetchPerformanceWindow({ fromDate: fromYmd, toDate: toYmd, ipoType: 'all' });
+  const rawUniverse = await fetchPerformanceWindow({
+    fromDate: fromYmd,
+    toDate: toYmd,
+    ipoType: 'all',
+  });
   const universe = rawUniverse
     .filter((row) => row.ipo_year && row.chittorgarh_slug && row.id)
     .map((row) => ({
@@ -790,7 +793,9 @@ async function trackWindow({
   subResults.forEach((r, i) => {
     if (r.ok) withAnchors[i].subscription = r.value;
     else {
-      warnings.add(`Subscription-detail fetch failed for ${withAnchors[i].companyName}: ${r.error.message}`);
+      warnings.add(
+        `Subscription-detail fetch failed for ${withAnchors[i].companyName}: ${r.error.message}`
+      );
       withAnchors[i].subscription = null;
     }
   });
@@ -860,12 +865,18 @@ async function trackWindow({
   const existingSupportive = persist ? dbV2.find('supportive-investors', {}) : [];
   const existingUnsupportive = persist ? dbV2.find('unsupportive-investors', {}) : [];
   const supportiveRecords = buildInvestorRecords(ipoWithMatch, existingSupportive, 'supportive');
-  const unsupportiveRecords = buildInvestorRecords(ipoWithMatch, existingUnsupportive, 'unsupportive');
+  const unsupportiveRecords = buildInvestorRecords(
+    ipoWithMatch,
+    existingUnsupportive,
+    'unsupportive'
+  );
   let supportivePersistStats = { inserted: 0, updated: 0, unchanged: 0 };
   let unsupportivePersistStats = { inserted: 0, updated: 0, unchanged: 0 };
   if (persist) {
-    if (supportiveRecords.length) supportivePersistStats = dbV2.upsertMany('supportive-investors', supportiveRecords);
-    if (unsupportiveRecords.length) unsupportivePersistStats = dbV2.upsertMany('unsupportive-investors', unsupportiveRecords);
+    if (supportiveRecords.length)
+      supportivePersistStats = dbV2.upsertMany('supportive-investors', supportiveRecords);
+    if (unsupportiveRecords.length)
+      unsupportivePersistStats = dbV2.upsertMany('unsupportive-investors', unsupportiveRecords);
   }
 
   let unmatchedWithAnchorData = crossCheckInvestorRegistry(
@@ -894,13 +905,20 @@ async function trackWindow({
       reappearanceRatePctOfAnchorIpos: withAnchors.length
         ? Math.round((ipoWithMatch.length / withAnchors.length) * 1000) / 10
         : null,
-      matchedSupportiveInvestorCount: ipoWithMatch.reduce((n, r) => n + r.matchedSupportiveCount, 0),
-      matchedUnsupportiveInvestorCount: ipoWithMatch.reduce((n, r) => n + r.matchedUnsupportiveCount, 0),
+      matchedSupportiveInvestorCount: ipoWithMatch.reduce(
+        (n, r) => n + r.matchedSupportiveCount,
+        0
+      ),
+      matchedUnsupportiveInvestorCount: ipoWithMatch.reduce(
+        (n, r) => n + r.matchedUnsupportiveCount,
+        0
+      ),
       iposWithSupportiveInvestorAsAnchorButNoReappearance: unmatchedWithAnchorData.filter(
         (r) => r.supportiveInvestorsPresentAsAnchor && r.supportiveInvestorsPresentAsAnchor.length
       ).length,
       iposWithUnsupportiveInvestorAsAnchorButNoReappearance: unmatchedWithAnchorData.filter(
-        (r) => r.unsupportiveInvestorsPresentAsAnchor && r.unsupportiveInvestorsPresentAsAnchor.length
+        (r) =>
+          r.unsupportiveInvestorsPresentAsAnchor && r.unsupportiveInvestorsPresentAsAnchor.length
       ).length,
     },
     matchedIpos: ipoWithMatch,
@@ -927,9 +945,17 @@ async function trackWindow({
 // source of truth, this is always regenerable from it, never hand-edited) ──
 
 function escapeHtml(s) {
-  return String(s ?? '').replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  }[c]));
+  return String(s ?? '').replace(
+    /[&<>"']/g,
+    (c) =>
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      })[c]
+  );
 }
 function fmtNum(n) {
   return n === null || n === undefined ? '—' : Intl.NumberFormat('en-IN').format(n);
@@ -940,7 +966,12 @@ function fmtPct(n) {
 function fmtDateLong(ymd) {
   if (!ymd) return '—';
   const d = new Date(`${ymd}T00:00:00Z`);
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  return d.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
 }
 function isBuy(side) {
   return ['BUY', 'B', 'P'].includes(String(side || '').toUpperCase());
@@ -969,7 +1000,10 @@ function subscriptionGrid(sub) {
     return '<p class="match-meta" style="padding:8px 0;">Subscription multiples not published for this IPO.</p>';
   }
   const cells = SUB_FIELDS.filter(([, key]) => sub[key] !== null && sub[key] !== undefined)
-    .map(([label, key]) => `<div><span class="gain-label">${label}</span><span class="gain-val" style="font-size:13px;">${fmtX(sub[key])}</span></div>`)
+    .map(
+      ([label, key]) =>
+        `<div><span class="gain-label">${label}</span><span class="gain-val" style="font-size:13px;">${fmtX(sub[key])}</span></div>`
+    )
     .join('');
   return `<div class="gains" style="grid-template-columns:repeat(4,1fr);">${cells}</div>`;
 }
@@ -992,13 +1026,25 @@ function renderHtml(dto) {
     ['IPOs in window', fmtNum(s.iposInWindow)],
     ['Had anchor round', fmtNum(s.iposWithAnchorData)],
     ['Anchor reappeared', fmtNum(s.iposWithAnchorReappearingInBulkDeal)],
-    ['Reappearance rate', s.reappearanceRatePctOfAnchorIpos === null ? '—' : `${s.reappearanceRatePctOfAnchorIpos}%`],
-    ['Supportive investor seen, no reappearance', fmtNum(s.iposWithSupportiveInvestorAsAnchorButNoReappearance)],
-    ['Unsupportive investor seen, no reappearance', fmtNum(s.iposWithUnsupportiveInvestorAsAnchorButNoReappearance)],
+    [
+      'Reappearance rate',
+      s.reappearanceRatePctOfAnchorIpos === null ? '—' : `${s.reappearanceRatePctOfAnchorIpos}%`,
+    ],
+    [
+      'Supportive investor seen, no reappearance',
+      fmtNum(s.iposWithSupportiveInvestorAsAnchorButNoReappearance),
+    ],
+    [
+      'Unsupportive investor seen, no reappearance',
+      fmtNum(s.iposWithUnsupportiveInvestorAsAnchorButNoReappearance),
+    ],
   ];
 
-  const matchedRows = (dto.matchedIpos || []).map((ipo) => {
-    const matches = (ipo.matches || []).map((x) => `
+  const matchedRows = (dto.matchedIpos || [])
+    .map((ipo) => {
+      const matches = (ipo.matches || [])
+        .map(
+          (x) => `
       <div class="match">
         <div class="match-head">
           <p class="match-name">${escapeHtml(x.anchorInvestorName)}</p>
@@ -1009,16 +1055,18 @@ function renderHtml(dto) {
           <span class="${x.matchScore < 0.95 ? 'weak' : 'muted'}">(score ${x.matchScore}${x.matchScore < 0.95 ? ', weak match' : ''})</span>
         </p>
         <p class="match-meta">${escapeHtml(x.dealSource)} · ${fmtNum(x.dealQty)} shares at ₹${x.dealPrice} · ${escapeHtml(x.dealDate)}</p>
-      </div>`).join('');
+      </div>`
+        )
+        .join('');
 
-    const gains = `
+      const gains = `
       <div class="gains">
         <div><span class="gain-label">Listing gain</span><span class="gain-val">${fmtPct(ipo.listingGainPct)}</span></div>
         <div><span class="gain-label">GMP gain</span><span class="gain-val">${fmtPct(ipo.gmpGainPct)}${ipo.gmpDate ? ` <span class="muted">(${fmtDateLong(ipo.gmpDate)})</span>` : ''}</span></div>
         <div><span class="gain-label">CMP gain</span><span class="gain-val">${fmtPct(ipo.cmpGainPct)}</span></div>
       </div>`;
 
-    return `
+      return `
       <div class="card" data-search="${escapeHtml((ipo.companyName + ' ' + (ipo.nseSymbol || '') + ' ' + (ipo.matches || []).map((x) => x.anchorInvestorName + ' ' + (x.anchorGroupEntity || '')).join(' ')).toLowerCase())}">
         <button class="head" type="button">
           <div class="head-left">
@@ -1038,13 +1086,17 @@ function renderHtml(dto) {
           ${matches}
         </div>
       </div>`;
-  }).join('');
+    })
+    .join('');
 
-  const otherRows = (dto.unmatchedIposWithAnchorData || []).map((ipo) => {
-    const supportive = (ipo.supportiveInvestorsPresentAsAnchor || []);
-    const unsupportive = (ipo.unsupportiveInvestorsPresentAsAnchor || []);
-    const supportiveHtml = supportive.length
-      ? supportive.map((x) => `
+  const otherRows = (dto.unmatchedIposWithAnchorData || [])
+    .map((ipo) => {
+      const supportive = ipo.supportiveInvestorsPresentAsAnchor || [];
+      const unsupportive = ipo.unsupportiveInvestorsPresentAsAnchor || [];
+      const supportiveHtml = supportive.length
+        ? supportive
+            .map(
+              (x) => `
         <div class="match">
           <div class="match-head">
             <p class="match-name">${escapeHtml(x.anchorInvestorName)}</p>
@@ -1053,10 +1105,14 @@ function renderHtml(dto) {
           <p class="match-sub">matches known supportive investor <span class="hl">${escapeHtml(x.matchedSupportiveInvestor)}</span>
             <span class="${x.matchScore < 0.95 ? 'weak' : 'muted'}">(score ${x.matchScore}, seen supportive in ${x.supportiveInvestorCompanyCount} other IPO${x.supportiveInvestorCompanyCount === 1 ? '' : 's'})</span>
           </p>
-        </div>`).join('')
-      : '<p class="match-meta" style="padding:8px 0;">None of this IPO\'s anchors are in the supportive-investor registry.</p>';
-    const unsupportiveHtml = unsupportive.length
-      ? unsupportive.map((x) => `
+        </div>`
+            )
+            .join('')
+        : '<p class="match-meta" style="padding:8px 0;">None of this IPO\'s anchors are in the supportive-investor registry.</p>';
+      const unsupportiveHtml = unsupportive.length
+        ? unsupportive
+            .map(
+              (x) => `
         <div class="match">
           <div class="match-head">
             <p class="match-name">${escapeHtml(x.anchorInvestorName)}</p>
@@ -1065,10 +1121,12 @@ function renderHtml(dto) {
           <p class="match-sub">matches known unsupportive investor <span class="hl">${escapeHtml(x.matchedUnsupportiveInvestor)}</span>
             <span class="${x.matchScore < 0.95 ? 'weak' : 'muted'}">(score ${x.matchScore}, seen unsupportive in ${x.unsupportiveInvestorCompanyCount} other IPO${x.unsupportiveInvestorCompanyCount === 1 ? '' : 's'})</span>
           </p>
-        </div>`).join('')
-      : '<p class="match-meta" style="padding:8px 0;">None of this IPO\'s anchors are in the unsupportive-investor registry.</p>';
+        </div>`
+            )
+            .join('')
+        : '<p class="match-meta" style="padding:8px 0;">None of this IPO\'s anchors are in the unsupportive-investor registry.</p>';
 
-    return `
+      return `
       <div class="card" data-search="${escapeHtml((ipo.companyName + ' ' + (ipo.nseSymbol || '')).toLowerCase())}">
         <button class="head" type="button">
           <div class="head-left">
@@ -1089,7 +1147,8 @@ function renderHtml(dto) {
           ${unsupportiveHtml}
         </div>
       </div>`;
-  }).join('');
+    })
+    .join('');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1202,7 +1261,9 @@ async function main() {
   const fromYmd = argValue('--from');
   const toYmd = argValue('--to');
   if (!fromYmd || !toYmd) {
-    console.error('Usage: node anchorBulkDealTracker.js --from YYYY-MM-DD --to YYYY-MM-DD [--window N] [--threshold 0.85] [--concurrency 6] [--out <path>] [--no-persist]');
+    console.error(
+      'Usage: node anchorBulkDealTracker.js --from YYYY-MM-DD --to YYYY-MM-DD [--window N] [--threshold 0.85] [--concurrency 6] [--out <path>] [--no-persist]'
+    );
     process.exit(1);
   }
   const windowDays = parseInt(argValue('--window') || '2', 10);
@@ -1211,7 +1272,14 @@ async function main() {
   const outPath = argValue('--out');
   const persist = !process.argv.includes('--no-persist');
 
-  const dto = await trackWindow({ fromYmd, toYmd, window: windowDays, threshold, concurrency, persist });
+  const dto = await trackWindow({
+    fromYmd,
+    toYmd,
+    window: windowDays,
+    threshold,
+    concurrency,
+    persist,
+  });
   const json = JSON.stringify({ ...dto, touchedFiles: dbV2.touchedFiles() }, null, 2);
   const html = renderHtml(dto);
 

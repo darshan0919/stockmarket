@@ -186,7 +186,9 @@ function normaliseGainer(raw) {
   // API calls, and stockscans.in URLs for the rest of this gainer's lifetime
   // in the pipeline. See stock-api/src/utils/companyId.js.
   const ticker = sanitizeCompanyId(
-    String(pick(raw, 'companyId', 'ticker', 'nse_code', 'symbol', 'Ticker', 'NSE Code') || '').trim()
+    String(
+      pick(raw, 'companyId', 'ticker', 'nse_code', 'symbol', 'Ticker', 'NSE Code') || ''
+    ).trim()
   );
   return {
     ticker,
@@ -535,7 +537,11 @@ async function fetchVolumeRocketing(client = stockscans) {
  * on its own candidates without running the rest of the Volume Rocketing pipeline. */
 async function fetchVolumeRocketingTickers(client = stockscans) {
   const rows = await fetchVolumeRocketing(client);
-  return new Set(rows.map((r) => sanitizeCompanyId(String(pick(r, 'companyId', 'ticker', 'symbol') || '').trim())).filter(Boolean));
+  return new Set(
+    rows
+      .map((r) => sanitizeCompanyId(String(pick(r, 'companyId', 'ticker', 'symbol') || '').trim()))
+      .filter(Boolean)
+  );
 }
 
 async function fetchRetailHoldings(tickers, client = stockscans) {
@@ -844,7 +850,9 @@ async function paginateAnnouncements(tickers, marketDate, client, sleep, watchli
       try {
         return extractPage(await client.scanAnnouncements(buildPayload(pageIdx * pageSize)));
       } catch (e) {
-        process.stderr.write(`[WARN] announcements fetch failed (offset=${pageIdx * pageSize}): ${e.message}\n`);
+        process.stderr.write(
+          `[WARN] announcements fetch failed (offset=${pageIdx * pageSize}): ${e.message}\n`
+        );
         return null; // treated as "stop here" below, same as the old code letting an error break the loop
       }
     });

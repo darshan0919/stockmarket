@@ -4,7 +4,7 @@ Reference for the deterministic `subscriptionQualityScore` computed in
 `packages/jobs-runtime/ipoSubscriptionScanner.js` (`computeSubscriptionScore`) and for
 the judgment-layer narrative the `ipo-subscription-ranker` skill writes on top of it.
 The formula and its weights live in code; this document is the citation trail for
-*why* those weights were chosen, and the read the LLM step should apply when writing
+_why_ those weights were chosen, and the read the LLM step should apply when writing
 per-IPO rationale (never just repeat the raw multiples).
 
 ## Source basis
@@ -71,7 +71,7 @@ with weak QIB should NOT outrank a more QIB-heavy, lower-headline-multiple IPO.
 
 Anchor investors bid a day ahead of the public issue at a fixed price with a lock-in,
 so anchor book quality is a genuine pre-commitment signal, not retroactive
-subscription noise. The scanner only captures *whether* anchors participated
+subscription noise. The scanner only captures _whether_ anchors participated
 (boolean, from IPOPlatform's summary column) — the skill's LLM step should upgrade
 this to a qualitative read (marquee vs boutique allottees) only for the top-3 IPOs
 that get a full `drhp-ipo-analysis` pass, per that skill's §17 "Anchor Investors"
@@ -164,6 +164,7 @@ supported as a **short-horizon (listing-day) signal** — that's what the daily
 ranker's email should be understood to predict. Its power as a **longer-horizon
 investment-quality signal is real but much weaker** (r≈0.11, not r≈0.6). Two concrete
 follow-ups this suggests, neither implemented yet:
+
 1. The `ipo-subscription-ranker` skill's per-IPO `subscriptionView` language should
    not imply long-term investment merit from the subscription score alone — that
    judgment call belongs to `drhp-ipo-analysis`'s fundamentals-based verdict, not this
@@ -191,12 +192,12 @@ or ≤3.5x at the 14-day floor (weekly), nowhere near annual's up-to-122x expone
 Re-running the same granular window (2025-10-10..2026-08-09, n=149) confirms this is
 a real improvement, not just a different number:
 
-| Outcome metric | n retained | composite-score r |
-| --- | --- | --- |
-| raw current performance (no time norm) | 149 | not meaningful (holding-period confound) |
-| annualized (90d floor, ±500% clip) | 73 | 0.12 |
-| **daily CAGR (3d floor, no clip)** | **148** | **0.29** |
-| **weekly CAGR (14d floor, no clip)** | **132** | **0.36** |
+| Outcome metric                         | n retained | composite-score r                        |
+| -------------------------------------- | ---------- | ---------------------------------------- |
+| raw current performance (no time norm) | 149        | not meaningful (holding-period confound) |
+| annualized (90d floor, ±500% clip)     | 73         | 0.12                                     |
+| **daily CAGR (3d floor, no clip)**     | **148**    | **0.29**                                 |
+| **weekly CAGR (14d floor, no clip)**   | **132**    | **0.36**                                 |
 
 Both daily and weekly keep far more sample than annualized and need no clip — either
 is a legitimate default outcome metric for weight-tuning work; keep annualized only
@@ -256,13 +257,13 @@ two is itself a robustness signal, and after the fix they do agree closely.
 From the same window, restricted to the 132 IPOs held ≥14 days (the common,
 apples-to-apples sample both bases now use):
 
-| Category | Current weight | Suggested (daily basis) | Suggested (weekly basis) |
-| --- | --- | --- | --- |
-| QIB | 0.40 | 0.321 | 0.325 |
-| bNII | 0.14 | 0.21 | 0.207 |
-| sNII | 0.11 | 0.164 | 0.163 |
-| RII | 0.20 | 0.138 | 0.137 |
-| Total Subscription | 0.15 | 0.168 | 0.167 |
+| Category           | Current weight | Suggested (daily basis) | Suggested (weekly basis) |
+| ------------------ | -------------- | ----------------------- | ------------------------ |
+| QIB                | 0.40           | 0.321                   | 0.325                    |
+| bNII               | 0.14           | 0.21                    | 0.207                    |
+| sNII               | 0.11           | 0.164                   | 0.163                    |
+| RII                | 0.20           | 0.138                   | 0.137                    |
+| Total Subscription | 0.15           | 0.168                   | 0.167                    |
 
 The two bases now agree to within 0.004 on every category — strong confirmation the
 underlying relationship is real and not an artifact of which time-scale was used.
@@ -287,12 +288,12 @@ discrepancy that looked like a competing finding has been ruled out as an artifa
 
 ## Score → tier mapping
 
-| Score range | Tier       |
-| ----------- | ---------- |
-| ≥ 0.90      | STRONG     |
-| 0.55 – 0.89 | MODERATE   |
-| 0.30 – 0.54 | WEAK       |
-| < 0.30      | POOR       |
+| Score range | Tier     |
+| ----------- | -------- |
+| ≥ 0.90      | STRONG   |
+| 0.55 – 0.89 | MODERATE |
+| 0.30 – 0.54 | WEAK     |
+| < 0.30      | POOR     |
 
 Thresholds are a first pass, not empirically back-tested against this market's actual
 listing-day return distribution. **Recommended follow-up**: once
@@ -346,12 +347,12 @@ IPOPlatform+NSE+BSE merged sample, see `ipo_data_sources.md` for the full source
 history and `ipoWeightFinder.js` for the join logic):
 
 | Category           | Original (hand-set) | Listing-gain basis | Daily-CAGR basis |
-| ------------------- | -------------------- | ------------------- | ------------------ |
-| QIB                 | 0.40                 | 0.233                | 0.285               |
-| bHNI                | 0.14                 | 0.229                | 0.183               |
-| sHNI                | 0.11                 | 0.236                | 0.176               |
-| RII                 | 0.20                 | 0.129                | 0.164               |
-| Total Subscription  | 0.15                 | 0.173                | 0.191               |
+| ------------------ | ------------------- | ------------------ | ---------------- |
+| QIB                | 0.40                | 0.233              | 0.285            |
+| bHNI               | 0.14                | 0.229              | 0.183            |
+| sHNI               | 0.11                | 0.236              | 0.176            |
+| RII                | 0.20                | 0.129              | 0.164            |
+| Total Subscription | 0.15                | 0.173              | 0.191            |
 
 Listing-gain-basis correlations (r) are moderate across every category (0.21–0.38) —
 weaker than the original n=137 estimate (r 0.49–0.73) but more trustworthy, since the
@@ -412,7 +413,7 @@ Added at explicit user request after reviewing the 2026-08-10 Aegeus Technologie
 "filter out all the IPOs if the retail float is less than ₹50cr — don't consider them
 in top 3 & don't generate rhp analysis for them." This is a **hard gate on Phase
 2 spend**, not a scoring input — it doesn't touch `listingScore`/`cagrScore`/
-`combinedScore` at all, it only decides which IPOs are *eligible* for `top3[]`
+`combinedScore` at all, it only decides which IPOs are _eligible_ for `top3[]`
 selection (and therefore for the expensive `drhp-ipo-analysis` deep-dive) after
 scoring/ranking has already happened.
 
@@ -422,6 +423,7 @@ specifically (SME terminology; equivalent to RII on a mainboard issue), scraped 
 the IPOPlatform detail page's "Share Allocation" block (`Retail Shares Offered:` row —
 verified byte-for-byte against Aegeus Technologies' own RHP Capital Structure table,
 676,800 shares in both sources). This is deliberately **not**:
+
 - the total issue size (`issueSizeCr` — includes QIB/HNI/Market-Maker portions too);
 - post-listing public float (all shares tradeable after lock-in expiry — a completely
   different, much larger number computed from the lock-in schedule, not from the
@@ -429,7 +431,7 @@ verified byte-for-byte against Aegeus Technologies' own RHP Capital Structure ta
 
 **Why this can't be derived from the two tables the scanner already had**: the Closed
 IPOs table has `issueSizeCr` (total ₹) with no category split; the Subscription Status
-table has category-wise subscription *multiples* (e.g. `riiX: 25.59`) with no
+table has category-wise subscription _multiples_ (e.g. `riiX: 25.59`) with no
 underlying share count or ₹ value — a multiple alone can't recover the denominator it
 was applied to. Only the per-IPO detail page's "Share Allocation" block carries the
 actual retail share count.
@@ -454,7 +456,7 @@ explicitly rather than letting a null silently become a negative judgment.
 ## What the LLM narrative step should NOT do
 
 - Don't restate the raw multiples the email table already shows — say what they
-  *mean* (e.g. "QIB conviction without matching RII enthusiasm suggests smart money
+  _mean_ (e.g. "QIB conviction without matching RII enthusiasm suggests smart money
   sees value the crowd hasn't priced in yet, or vice versa").
 - Don't treat a high score as a subscribe/buy call on its own — subscription quality
   is a demand signal, not a valuation or governance one. The `drhp-ipo-analysis` pass

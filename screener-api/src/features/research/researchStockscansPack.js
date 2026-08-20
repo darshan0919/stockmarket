@@ -142,7 +142,8 @@ const FAN_OUT = 8;
 async function fetchAllPagesStockScans(companyId, searchQuery) {
   const first = await searchCompanyAnnouncements({ companyId, search: searchQuery, offset: 0 });
   const page1 = Array.isArray(first.data) ? first.data : [];
-  const limit = typeof first.meta.limit === 'number' && first.meta.limit > 0 ? first.meta.limit : 30;
+  const limit =
+    typeof first.meta.limit === 'number' && first.meta.limit > 0 ? first.meta.limit : 30;
 
   if (page1.length === 0 || page1.length < limit) return page1;
 

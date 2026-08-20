@@ -9,7 +9,7 @@ worth writing about and what to skip.
 
 A stock's return ≈ f(perception of the theme/sector) × (earnings growth) × (rate of change
 of perception about that earnings growth). Three separate levers, and the market moves on
-the *rate of change* far more than on the absolute level. A business can have identical
+the _rate of change_ far more than on the absolute level. A business can have identical
 fundamentals to last quarter and still re-rate hard if the market's read on **future**
 earnings power just changed — that's the re-rating event this skill exists to catch.
 
@@ -26,22 +26,22 @@ is **NEW** in this business, and where is it headed. Every catalyst worth flaggi
 to one or more of these "new" categories. When reading transcripts/PPTs/results/
 announcements, actively hunt for these words and their synonyms, not just financial ratios:
 
-| Category | What to look for | Signature phrase to grep for |
-|---|---|---|
-| New base creation | A step-change in the revenue/earnings base itself (new hospital, new store format, new geography, acquisition-driven scale jump) | "new base", "scaled up", integration of acquired entity |
-| New industry cycle | An entire sub-sector inflecting (regulatory unlock, new product category becoming mainstream) | "options in commodities", "S-curve", "penetration crossing X%" |
-| New management change | Promoter/management change, especially a stronger acquirer taking control | "acquired controlling stake", "new promoter", "board reconstitution" |
-| New corporate action | Merger, demerger, JV, stake sale/purchase | "scheme of arrangement", "demerger", "JV agreement" |
-| New capex / capacity | Brownfield/greenfield expansion, new product line via capex | "under construction", "commissioning", "phase 2", "KMTPA/MW added" |
-| New age of business / new way of doing business | Business model pivot (services→platform, principal→asset-light) | "asset-light", "platform model", "marketplace" |
-| New market creation | A market that didn't functionally exist before (new derivative product, new financing structure) | "introduced", "first-of-its-kind", "launched in India" |
-| New regulations | Tariff/anti-dumping/PLI/emission norms that reshape competitive economics | "anti-dumping duty", "PLI scheme", "import substitution" |
-| New value-added products / mix shift | Move up the value chain into higher-margin SKUs | "value-added", "premiumisation", "mix shift towards" |
-| New business verticals | Adjacent vertical entered from an existing base | "entered the segment", "diversifying into" |
-| New geographies | Export/new-market expansion | "export share", "new geography", "international foray" |
-| New acquisitions | M&A that changes scale or capability | "acquired", "consolidation" |
-| New warrant / preferential issues | Promoter putting skin in the game at a locked-in price | "convertible warrants", "preferential allotment to promoter" |
-| New balance-sheet deleveraging | Debt paydown freeing up P&L (lower finance cost = direct EPS accretion) | "debt repayment", "net debt reduction", "finance cost declined" |
+| Category                                        | What to look for                                                                                                                 | Signature phrase to grep for                                         |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| New base creation                               | A step-change in the revenue/earnings base itself (new hospital, new store format, new geography, acquisition-driven scale jump) | "new base", "scaled up", integration of acquired entity              |
+| New industry cycle                              | An entire sub-sector inflecting (regulatory unlock, new product category becoming mainstream)                                    | "options in commodities", "S-curve", "penetration crossing X%"       |
+| New management change                           | Promoter/management change, especially a stronger acquirer taking control                                                        | "acquired controlling stake", "new promoter", "board reconstitution" |
+| New corporate action                            | Merger, demerger, JV, stake sale/purchase                                                                                        | "scheme of arrangement", "demerger", "JV agreement"                  |
+| New capex / capacity                            | Brownfield/greenfield expansion, new product line via capex                                                                      | "under construction", "commissioning", "phase 2", "KMTPA/MW added"   |
+| New age of business / new way of doing business | Business model pivot (services→platform, principal→asset-light)                                                                  | "asset-light", "platform model", "marketplace"                       |
+| New market creation                             | A market that didn't functionally exist before (new derivative product, new financing structure)                                 | "introduced", "first-of-its-kind", "launched in India"               |
+| New regulations                                 | Tariff/anti-dumping/PLI/emission norms that reshape competitive economics                                                        | "anti-dumping duty", "PLI scheme", "import substitution"             |
+| New value-added products / mix shift            | Move up the value chain into higher-margin SKUs                                                                                  | "value-added", "premiumisation", "mix shift towards"                 |
+| New business verticals                          | Adjacent vertical entered from an existing base                                                                                  | "entered the segment", "diversifying into"                           |
+| New geographies                                 | Export/new-market expansion                                                                                                      | "export share", "new geography", "international foray"               |
+| New acquisitions                                | M&A that changes scale or capability                                                                                             | "acquired", "consolidation"                                          |
+| New warrant / preferential issues               | Promoter putting skin in the game at a locked-in price                                                                           | "convertible warrants", "preferential allotment to promoter"         |
+| New balance-sheet deleveraging                  | Debt paydown freeing up P&L (lower finance cost = direct EPS accretion)                                                          | "debt repayment", "net debt reduction", "finance cost declined"      |
 
 If a document mentions none of the above and is purely routine (AGM notice, book closure,
 record date, share transfer), it is noise — say so briefly and move on (same discipline as
@@ -52,7 +52,7 @@ record date, share transfer), it is noise — say so briefly and move on (same d
 Markets re-rate disproportionately on **new** information, not confirmation of guided
 information. When working through a transcript/PPT/announcement:
 
-- Cross-reference against the *previous* transcript/PPT in the same document set. If
+- Cross-reference against the _previous_ transcript/PPT in the same document set. If
   management guided a number last quarter and this quarter's filing simply repeats or
   executes on it, that's **confirmation** (lower incremental information content — still
   worth noting for the EPS-accrual math, but don't call it a fresh catalyst).
@@ -95,7 +95,7 @@ policy → industry structure/S-curve → balance-sheet deleveraging → governa
   only — do not restate as if newly computed unless verified against current data): warrant
   issuances have historically preceded above-average forward returns versus the broad
   market, with meaningfully higher hit-rates over 3–5 year holding periods. Treat this as a
-  *prior* that raises the burden of explanation when a warrant/preferential issue appears in
+  _prior_ that raises the burden of explanation when a warrant/preferential issue appears in
   the document set — don't treat it as license to skip verifying the specific company's own
   balance sheet and growth trajectory.
 - **Debt-to-EBITDA / finance cost trend**: a company retiring debt on schedule is running a

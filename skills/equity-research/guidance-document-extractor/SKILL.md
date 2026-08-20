@@ -43,6 +43,7 @@ resolution), §14 (dummy/throwaway-watchlist pattern for bulk lookups), §15
 ## Input
 
 Either:
+
 - `--scan-url <https://www.stockscans.in/scans/saved/...>` — resolves the
   saved scan's full company universe via `resolveUniverse()` (liquidity gate
   OFF: this pipeline wants every company the scan returns, e.g. an "upcoming
@@ -70,6 +71,7 @@ node skills/equity-research/guidance-document-extractor/scripts/orchestrate_extr
 ```
 
 The orchestrator guarantees:
+
 - Step 1 (Fetch): Always runs first
 - Step 2 (Extract): **NOW MANDATORY** — always runs, never skipped
 - Step 3 (Validate): Always validates excerpts
@@ -126,6 +128,7 @@ row as a forward-looking reference: a named future period (FY27, Q1FY27,
 "Outlook"/"Guidance"/"FY27E"/similar.
 
 **Explicit permissiveness rules (read twice — this is the point of Step 2):**
+
 - Do NOT judge explicit-vs-directional, real-vs-historical, or
   management-vs-analyst here. If it has a number and a forward-period cue
   nearby, extract it — the next stage (forward-guidance-extractor) makes
@@ -150,8 +153,8 @@ Output one JSON array per company to
   "ticker": "NSE:X",
   "quarter": "Q4FY26",
   "excerpts": [
-    {"source": "Transcript", "text": "...", "context": "..."},
-    {"source": "PPT", "text": "...", "context": "Slide 14, 'Outlook'"}
+    { "source": "Transcript", "text": "...", "context": "..." },
+    { "source": "PPT", "text": "...", "context": "Slide 14, 'Outlook'" }
   ]
 }
 ```

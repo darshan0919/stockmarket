@@ -1,6 +1,7 @@
 ═══════════════════════════════════════════════════════════════════════════════
 INSIGHT GENERATION — GLOBAL RULES (apply to EVERY announcement, every category)
 ═══════════════════════════════════════════════════════════════════════════════
+
 1. READ THE ACTUAL PDF FIRST. Run `read-pdf <pdfUrl>` and base the insight on the
    document body. NEVER write an insight from the title/description alone — that is
    the #1 quality failure. If the PDF is empty/404/unparseable, say so explicitly
@@ -13,17 +14,17 @@ INSIGHT GENERATION — GLOBAL RULES (apply to EVERY announcement, every category
    `deep`/`quick` variants):
    (a) What happened — with the extracted numbers.
    (b) Why it matters — shareholder impact, direction (positive/negative/neutral)
-       AND magnitude.
+   AND magnitude.
    (c) Connection to prior notes — trend, consistency, or contradiction vs this
-       company's earlier notes.
+   company's earlier notes.
    (d) What to watch next — one concrete, monitorable point.
 4. CLASSIFY significance: high | medium | low | routine.
-     high   — M&A, large capex, major order win (>10% of revenue), regulatory
-              action, management change, equity dilution, change of control.
-     medium — strategic subsidiaries, smaller acquisitions, analyst/investor meets,
-              new product launches, credit-rating changes, capacity commissioning.
-     low    — minor disclosures, press releases with limited new information.
-     routine— passed the noise filter but carries no real signal (state why).
+   high — M&A, large capex, major order win (>10% of revenue), regulatory
+   action, management change, equity dilution, change of control.
+   medium — strategic subsidiaries, smaller acquisitions, analyst/investor meets,
+   new product launches, credit-rating changes, capacity commissioning.
+   low — minor disclosures, press releases with limited new information.
+   routine— passed the noise filter but carries no real signal (state why).
 5. TAG from: capex, order_win, acquisition, merger, demerger, subsidiary,
    management_change, equity_dilution, debt, credit_rating, capacity,
    international_expansion, regulatory, dividend, buyback, agm_outcome, concall,

@@ -43,12 +43,12 @@ OLS linear regression, and predicts the latest month's financials.
 All deterministic work is done by companion scripts; this skill only
 orchestrates and synthesizes.
 
-| Step | Script | What it does |
-|------|--------|-------------|
-| 1 | `download-sales-pdfs.js` | Fetch press-release PDFs from Stockscans |
-| 2 | `extract-sales-data.py`  | Extract PV Dom / PV Exp / EV / Total per month |
-| 3 | `predict-financials.js`  | OLS regression + monthly financial estimate |
-| 4 | `render-report.js`       | Self-contained HTML report with Chart.js |
+| Step | Script                   | What it does                                   |
+| ---- | ------------------------ | ---------------------------------------------- |
+| 1    | `download-sales-pdfs.js` | Fetch press-release PDFs from Stockscans       |
+| 2    | `extract-sales-data.py`  | Extract PV Dom / PV Exp / EV / Total per month |
+| 3    | `predict-financials.js`  | OLS regression + monthly financial estimate    |
+| 4    | `render-report.js`       | Self-contained HTML report with Chart.js       |
 
 All scripts live in: `scripts/skills/monthly-sales-tracker/`
 
@@ -92,12 +92,12 @@ yarn monthly-sales-tracker --ticker NSE:TMCV
 
 ## Output files
 
-| File | Description |
-|------|-------------|
-| `data/runs/monthly-sales-tracker/<ticker>/pdfs/*.pdf` | Downloaded press-release PDFs |
-| `data/runs/monthly-sales-tracker/<ticker>/sales_data.json` | Extracted monthly unit series |
-| `data/runs/monthly-sales-tracker/<ticker>/prediction.json` | Regression models + monthly predictions |
-| `data/assets/monthly-sales-tracker/<ticker>_sales_report_<date>.html` | Final interactive report |
+| File                                                                  | Description                             |
+| --------------------------------------------------------------------- | --------------------------------------- |
+| `data/runs/monthly-sales-tracker/<ticker>/pdfs/*.pdf`                 | Downloaded press-release PDFs           |
+| `data/runs/monthly-sales-tracker/<ticker>/sales_data.json`            | Extracted monthly unit series           |
+| `data/runs/monthly-sales-tracker/<ticker>/prediction.json`            | Regression models + monthly predictions |
+| `data/assets/monthly-sales-tracker/<ticker>_sales_report_<date>.html` | Final interactive report                |
 
 ---
 
@@ -143,6 +143,7 @@ When invoked from chat:
    - If NO or stale: run full pipeline
 
 2. Run the pipeline:
+
    ```bash
    yarn monthly-sales-tracker --ticker <TICKER> --open
    ```

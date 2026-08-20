@@ -25,6 +25,7 @@ The `daily-forward-guidance-with-pead` scheduled task failed because:
 **Purpose:** Run all 4 steps in ONE invocation, making Step 2 impossible to skip.
 
 **Mechanism:**
+
 ```javascript
 // Step 2 is now hardcoded into the orchestrator
 async function runStep2Extract(manifest, outDir) {
@@ -33,19 +34,21 @@ async function runStep2Extract(manifest, outDir) {
 }
 
 // All steps run in sequence:
-await runStep1Fetch(args);          // Fetch
-await runStep2Extract(manifest);    // Extract (MANDATORY)
-await runStep3Validate(excerpts);   // Validate
-await runStep4Persist(manifest);    // Persist (with excerpts)
+await runStep1Fetch(args); // Fetch
+await runStep2Extract(manifest); // Extract (MANDATORY)
+await runStep3Validate(excerpts); // Validate
+await runStep4Persist(manifest); // Persist (with excerpts)
 ```
 
 **Usage:**
+
 ```bash
 # This invokes the orchestrator, which ensures Step 2 runs
 node orchestrate_extraction.js --scan-url "..."
 ```
 
 **Guarantees:**
+
 - ✓ Step 2 always executes (can't be skipped)
 - ✓ Records are never persisted until Step 2 completes
 - ✓ `excerptsPending: false` is guaranteed when records are saved
@@ -59,10 +62,11 @@ node orchestrate_extraction.js --scan-url "..."
 **Purpose:** Prevent saving incomplete runs where Step 2 failed.
 
 **Mechanism:**
+
 ```javascript
 // NEW SAFETY CHECK (2026-08-12)
 if (args.excerptsDir && fs.existsSync(args.excerptsDir)) {
-  const excerptFiles = fs.readdirSync(args.excerptsDir).filter(f => f.endsWith('.json'));
+  const excerptFiles = fs.readdirSync(args.excerptsDir).filter((f) => f.endsWith('.json'));
   if (excerptFiles.length === 0) {
     // ABORT: No excerpt files found, Step 2 probably failed
     console.error('[FATAL] --excerpts-dir was provided but contains NO excerpt files.');
@@ -73,6 +77,7 @@ if (args.excerptsDir && fs.existsSync(args.excerptsDir)) {
 ```
 
 **Effect:**
+
 - If `--excerpts-dir` is provided but empty → **ABORT** (don't persist incomplete data)
 - If `--excerpts-dir` is not provided → Persist with `excerptsPending: true` (expected for direct script invocation)
 - If excerpts provided → Persist normally with `excerptsPending: false`
@@ -86,13 +91,14 @@ if (args.excerptsDir && fs.existsSync(args.excerptsDir)) {
 **Purpose:** Distinguish between "extraction never ran" vs "extraction ran but found nothing".
 
 **Logic:**
+
 ```javascript
 // OLD (buggy):
-excerptsPending: args.excerptsDir ? !excerpts : true
+excerptsPending: args.excerptsDir ? !excerpts : true;
 // Result: Could be true even when excerpt extraction was attempted
 
 // NEW (fixed):
-excerptsPending: false  // Always false when orchestrator runs (Step 2 is mandatory)
+excerptsPending: false; // Always false when orchestrator runs (Step 2 is mandatory)
 ```
 
 **States in database:**
@@ -107,6 +113,7 @@ excerptsPending: false  // Always false when orchestrator runs (Step 2 is mandat
 ## Prevention: How the Fix Works
 
 ### Scenario 1: Normal Orchestrated Run (NEW)
+
 ```
 orchestrate_extraction.js --scan-url "..."
   → Step 1: Fetch (fetch_guidance_documents.js)
@@ -117,6 +124,7 @@ orchestrate_extraction.js --scan-url "..."
 ```
 
 ### Scenario 2: Manual Step-by-Step Run (OLD, now safer)
+
 ```
 # Someone tries to run steps manually
 node fetch_guidance_documents.js --scan-url "..."
@@ -127,6 +135,7 @@ node save_guidance_documents.js --manifest manifest.json
 ```
 
 ### Scenario 3: Deprecated Flow (prevented)
+
 ```
 # OLD: Calling save script without excerpt extraction
 node save_guidance_documents.js --manifest manifest.json
@@ -156,6 +165,7 @@ node save_guidance_documents.js --manifest manifest.json
 ### Alert Conditions
 
 **Alert if:**
+
 1. Any new `guidance-documents` record has `excerptsPending: true` (should not happen)
 2. Save script fails with "No excerpt files found" (Step 2 crashed)
 3. Downstream `forward-guidance-extractor` task skips companies due to empty excerpts
@@ -181,12 +191,14 @@ console.log('Stale incomplete records:', stale.length);
 ## Root Cause Analysis
 
 **Why this happened:**
+
 1. Skill architecture allowed optional Step 2
 2. No enforcement that steps run together
 3. No safety gates in save scripts
 4. Downstream task just silently skipped incomplete companies
 
 **Why it's now fixed:**
+
 1. Orchestrator forces all steps together
 2. Save script aborts on incomplete runs
 3. Records cannot be saved incomplete

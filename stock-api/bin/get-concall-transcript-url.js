@@ -47,7 +47,12 @@ class ConcallTranscriptResolver {
       (d) => d.documentType === 'Transcript' && (!quarter || d.date === quarter) && d.ssUrl
     );
     if (!hit) return { companyId, quarter, error: 'no Transcript document found for this quarter' };
-    return { companyId, quarter: hit.date, ssUrl: hit.ssUrl, documentUrl: toDocumentUrl(hit.ssUrl) };
+    return {
+      companyId,
+      quarter: hit.date,
+      ssUrl: hit.ssUrl,
+      documentUrl: toDocumentUrl(hit.ssUrl),
+    };
   }
 
   /** Scenario 2: many companies, latest reported quarter only. */
@@ -56,7 +61,7 @@ class ConcallTranscriptResolver {
       const byCompanyId = new Map();
       let offset = 0;
       let quarterDate = null;
-      for (; ;) {
+      for (;;) {
         const page = await this.client.resultsDocuments({
           offset,
           documentType: 'Transcript',
@@ -93,7 +98,7 @@ class ConcallTranscriptResolver {
     return this._withThrowawayWatchlist(companyIds, async (watchlistId) => {
       const byCompanyId = new Map();
       let offset = 0;
-      for (; ;) {
+      for (;;) {
         const page = await this.client.scanAnnouncements({
           scan: {
             filters: [],
@@ -121,8 +126,18 @@ class ConcallTranscriptResolver {
       }
       return companyIds.map((companyId) => {
         const doc = byCompanyId.get(companyId);
-        if (!doc) return { companyId, quarter: quarterDate, error: 'no Earnings Call transcript found for this quarter' };
-        return { companyId, quarter: quarterDate, ssUrl: doc.ssUrl, documentUrl: toDocumentUrl(doc.ssUrl) };
+        if (!doc)
+          return {
+            companyId,
+            quarter: quarterDate,
+            error: 'no Earnings Call transcript found for this quarter',
+          };
+        return {
+          companyId,
+          quarter: quarterDate,
+          ssUrl: doc.ssUrl,
+          documentUrl: toDocumentUrl(doc.ssUrl),
+        };
       });
     });
   }
@@ -133,7 +148,7 @@ class ConcallTranscriptResolver {
     try {
       return await fn(watchlistId);
     } finally {
-      await this.client.deleteWatchlist(watchlistId).catch(() => { });
+      await this.client.deleteWatchlist(watchlistId).catch(() => {});
     }
   }
 }
@@ -154,12 +169,17 @@ async function main() {
   if (company) {
     result = await resolver.singleCompanyQuarter(company, quarter);
   } else if (companies) {
-    const companyIds = companies.split(',').map((s) => s.trim()).filter(Boolean);
+    const companyIds = companies
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
     result = quarter
       ? await resolver.multiCompanyHistoricalQuarter(companyIds, quarter)
       : await resolver.multiCompanyLatestQuarter(companyIds);
   } else {
-    console.error('Usage: --company <id> [--quarter <Q>] | --companies <id,id,...> [--quarter <Q>]');
+    console.error(
+      'Usage: --company <id> [--quarter <Q>] | --companies <id,id,...> [--quarter <Q>]'
+    );
     process.exit(1);
   }
 

@@ -17,4 +17,4 @@ Produce:
    gates, integration risk flagged by management or inferable from the deal structure.
 6. **Bear case + what to watch next** — one dated catalyst (close date, first
    post-acquisition quarter to show consolidated numbers).
-significance floor: medium. Tag `high_conviction`.
+   significance floor: medium. Tag `high_conviction`.

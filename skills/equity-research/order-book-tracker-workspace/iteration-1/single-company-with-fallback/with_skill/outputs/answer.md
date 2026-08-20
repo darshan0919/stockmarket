@@ -2,28 +2,28 @@
 
 **₹17,200 Cr** is the number VA Tech Wabag declared at its **Q4FY26 (Mar-26) concall**. Since
 then it has announced **five order wins**, and here is the honest complication: **not one of them
-states a rupee value.** Every WABAG filing discloses only its SEBI size *band* — "Medium",
+states a rupee value.** Every WABAG filing discloses only its SEBI size _band_ — "Medium",
 "Large", "Mega" — so there is no clean number to add.
 
 Adding the band midpoints would invent precision the company never gave, so the arithmetic below
 is a **range**, not a total:
 
-| Declared / added                     | ₹ Cr                     |
-| ------------------------------------ | ------------------------ |
-| Base — Q4FY26 concall backlog        | 17,200                   |
-| 5 wins since, at band floors         | +2,177                   |
-| 5 wins since, at band ceilings       | +3,896                   |
-| **Indicative book today**            | **≈19,400 – 21,100**     |
+| Declared / added               | ₹ Cr                 |
+| ------------------------------ | -------------------- |
+| Base — Q4FY26 concall backlog  | 17,200               |
+| 5 wins since, at band floors   | +2,177               |
+| 5 wins since, at band ceilings | +3,896               |
+| **Indicative book today**      | **≈19,400 – 21,100** |
 
 ### The five wins since the Mar-26 concall
 
-| Date       | Order                                                        | Disclosed size          | Capacity | EPC done by |
-| ---------- | ------------------------------------------------------------ | ----------------------- | -------- | ----------- |
-| 2026-05-22 | Delhi Jal Board — Mitraon WWTP (DBO)                          | Medium: ₹100–250 Cr     | 17 MGD   | Feb-2028    |
-| 2026-06-09 | Ajman Sewage Biorefinery Ph-3, UAE (consortium-led)           | Large intl: $30–75 mn   | 60 MLD   | Jun-2028    |
-| 2026-06-19 | Kuwait MEWRE — Doha SWRO Stage II (JV with HEISCO)            | **Mega intl: >$150 mn** | 272 MLD  | Jun-2029    |
-| 2026-07-01 | City of Vienna — Donauinsel Water Works expansion, Austria    | Large intl: $30–75 mn   | ~86 MLD  | 2030        |
-| 2026-07-20 | BWSSB — Byramangala + Bellandur STP/TTP, Bengaluru (DBO)      | Large: ₹250–600 Cr      | 185 MLD  | Jul-2029    |
+| Date       | Order                                                      | Disclosed size          | Capacity | EPC done by |
+| ---------- | ---------------------------------------------------------- | ----------------------- | -------- | ----------- |
+| 2026-05-22 | Delhi Jal Board — Mitraon WWTP (DBO)                       | Medium: ₹100–250 Cr     | 17 MGD   | Feb-2028    |
+| 2026-06-09 | Ajman Sewage Biorefinery Ph-3, UAE (consortium-led)        | Large intl: $30–75 mn   | 60 MLD   | Jun-2028    |
+| 2026-06-19 | Kuwait MEWRE — Doha SWRO Stage II (JV with HEISCO)         | **Mega intl: >$150 mn** | 272 MLD  | Jun-2029    |
+| 2026-07-01 | City of Vienna — Donauinsel Water Works expansion, Austria | Large intl: $30–75 mn   | ~86 MLD  | 2030        |
+| 2026-07-20 | BWSSB — Byramangala + Bellandur STP/TTP, Bengaluru (DBO)   | Large: ₹250–600 Cr      | 185 MLD  | Jul-2029    |
 
 Total new capacity **~680 MLD**. USD bands converted at ₹87/$.
 
@@ -47,14 +47,14 @@ Two things extend the runway well past the EPC dates:
 - **The book was already long.** Management put the existing ₹17,200 Cr at **over four years of
   revenue coverage**, which squares with a book-to-bill of roughly **4.4x** against ~₹3,950 Cr of
   FY26 revenue (PAT ₹371 Cr at a 9.4% margin). Note that ₹6,500 Cr of that book — about 40% — is
-  O&M stretching up to 20 years, so the *EPC* runway is meaningfully shorter than 4.4x implies.
+  O&M stretching up to 20 years, so the _EPC_ runway is meaningfully shorter than 4.4x implies.
 
 ### What to be careful about
 
 - **The wins are bands, not numbers.** Anyone quoting a precise post-win order book for WABAG is
   extrapolating. The Q1FY27 concall should reset the base with a real figure.
 - **Kuwait and Ajman are shared.** Both are JV/consortium contracts and the bands describe the
-  *whole contract*. WABAG's own booked share is undisclosed and lower — possibly much lower.
+  _whole contract_. WABAG's own booked share is undisclosed and lower — possibly much lower.
 - **Nothing has been burned off.** The ₹17,200 Cr base is net of execution as of 31-Mar-26, but
   the four months since are not deducted. At WABAG's run-rate that is roughly ₹1,000–1,300 Cr of
   revenue already executed, which offsets a good part of the new wins. The true figure sits
@@ -79,7 +79,7 @@ bugs were fixed:
    `million` is mapped as an INR scale. Foreign-currency amounts are now skipped rather than
    silently mis-converted.
 3. **A GST demand counted as an order win.** "Intimation For Receipt Of Order From GST
-   Authorities" matched the order-win title pattern, adding a ₹6.47 Cr *tax liability* to the
+   Authorities" matched the order-win title pattern, adding a ₹6.47 Cr _tax liability_ to the
    order book. Regulatory and judicial orders are now excluded, and the event has been retracted
    (marked, not deleted).
 

@@ -89,6 +89,7 @@ Step 4: If consolidated lacks multi-year P&L, also navigate to:
 - **Key Ratios** (ALL years visible): Debtor Days, Inventory Days, Days Payable, Cash Conversion Cycle, Working Capital Days, ROCE %
 
 **Income Statement Signal Scan (mandatory).** Before writing any margin/PAT commentary from the Income Statement, run the full line-by-line + combination scan in `skills/_shared/income-statement-signals.md` against both QoQ and YoY baselines — inventory gains are just one of 15 lines/combinations checked (Other Income composition, RM-cost moves, employee-cost leverage, exceptional items, tax-rate swings, EPS dilution, etc.) rather than genuine operating improvement. **Sourcing rule:** pull every P&L line from the actual quarterly Result filing via `stock-documents-fetcher` (`documentsFetcher.js`/`StockscansClient.documents()`), not from Screener's summary tables which omit several of these lines. Report only what clears the shared scan's materiality bar, ranked by contribution to the PBT/PAT delta, rather than reciting every line — if nothing clears the bar, say so in one line.
+
 - **Shareholding Pattern** (latest quarter): Promoter %, FII %, DII %, Public %, Promoter pledge %
 - **Market data at top of page**: CMP, Market Cap, 52-week high/low, P/E, Forward PE, P/B, EV/EBITDA, Enterprise Value, Dividend Yield, Book Value per share, Face Value, ROCE, ROE, Debt, Debt-to-equity, Interest Coverage, Current ratio
 

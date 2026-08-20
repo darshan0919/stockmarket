@@ -20,4 +20,4 @@ Produce:
 5. **Bear case + what to watch next** — one dated catalyst (next concall where the
    new leadership's plan should be articulated, or the successor's expected joining
    date).
-significance floor: medium. Tag `high_conviction`.
+   significance floor: medium. Tag `high_conviction`.

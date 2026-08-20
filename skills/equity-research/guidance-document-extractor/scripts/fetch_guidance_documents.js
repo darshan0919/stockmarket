@@ -40,7 +40,10 @@ const path = require('path');
 const { execSync } = require('child_process');
 const { resolveUniverse } = require('../../../../stock-api/src/analyzers/runScan.js');
 const { StockscansClient } = require('../../../../stock-api/src/clients/StockscansClient.js');
-const { latestCompletedQuarter, parseQuarterString } = require('../../../../stock-api/src/utils/fiscalQuarter.js');
+const {
+  latestCompletedQuarter,
+  parseQuarterString,
+} = require('../../../../stock-api/src/utils/fiscalQuarter.js');
 const { stockscans } = require('../../../../stock-api/src/index.js');
 const { mapWithConcurrency } = require('../../../../stock-api/src/utils/concurrency.js');
 
@@ -71,8 +74,12 @@ const TYPE_DESC_PREFIX = {
 
 function parseArgs(argv) {
   const out = {
-    scanUrl: null, tickers: null, tickersFile: null, quarter: null,
-    types: ['Transcript', 'PPT', 'Result'], outDir: '/tmp/guidance_docs',
+    scanUrl: null,
+    tickers: null,
+    tickersFile: null,
+    quarter: null,
+    types: ['Transcript', 'PPT', 'Result'],
+    outDir: '/tmp/guidance_docs',
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -104,7 +111,12 @@ function safeName(ticker) {
  * over the results IN ORDER, reproducing exactly what the old sequential
  * loop would have returned.
  */
-async function scanAllPages(client, watchlistId, quarterYyyymm, { announcementType, searchFilters }) {
+async function scanAllPages(
+  client,
+  watchlistId,
+  quarterYyyymm,
+  { announcementType, searchFilters }
+) {
   // MAX_PAGES (40) is a generous safety cap, rarely actually needed -- firing
   // that many requests at once risks a 429 from Stockscans (see
   // concurrency.js's own warning about exactly this). Bound the in-flight
@@ -117,14 +129,16 @@ async function scanAllPages(client, watchlistId, quarterYyyymm, { announcementTy
     let success = false;
     let anns = [];
     while (retries >= 0 && !success) {
-      await new Promise(r => setTimeout(r, delay));
+      await new Promise((r) => setTimeout(r, delay));
       const offset = page * PAGE_SIZE;
       try {
         const payload = {
           scan: {
             scanId: DEFAULT_SCAN_ID,
             scanName: DEFAULT_SCAN_NAME,
-            filters: [], index: [], industry: [],
+            filters: [],
+            index: [],
+            industry: [],
             watchlistIds: [watchlistId],
             searchFilters,
             announcementType,
@@ -149,7 +163,7 @@ async function scanAllPages(client, watchlistId, quarterYyyymm, { announcementTy
         }
       }
     }
-    
+
     out.push(...anns);
     if (anns.length < PAGE_SIZE) {
       break; // short page = genuinely the last page
@@ -162,7 +176,8 @@ async function scanAllPages(client, watchlistId, quarterYyyymm, { announcementTy
 async function bulkResolveDocs(client, companyIds, quarterYyyymm, types) {
   const byType = {};
   const { watchlistId } = await client.createWatchlist(
-    `guidance-doc-extractor-${Date.now()}`, companyIds
+    `guidance-doc-extractor-${Date.now()}`,
+    companyIds
   );
   try {
     for (const t of types) {
@@ -226,11 +241,13 @@ async function resolveEntries(args) {
     // scan (e.g. "upcoming results"), not just the tradeable-liquid subset;
     // the scan itself already encodes whatever selection the user wants.
     const universe = await resolveUniverse(args.scanUrl, { liquidityGate: false });
-    return universe.companies.map((row) => {
-      const companyId =
-        row.companyId || row['Company Id'] || row.Symbol || row['NSE Symbol'] || row.symbol;
-      return { ticker: companyId, quarter: args.quarter || null, scanRow: row };
-    }).filter((e) => e.ticker);
+    return universe.companies
+      .map((row) => {
+        const companyId =
+          row.companyId || row['Company Id'] || row.Symbol || row['NSE Symbol'] || row.symbol;
+        return { ticker: companyId, quarter: args.quarter || null, scanRow: row };
+      })
+      .filter((e) => e.ticker);
   }
   if (args.tickersFile) {
     const raw = JSON.parse(fs.readFileSync(args.tickersFile, 'utf8'));
@@ -244,7 +261,7 @@ async function main() {
   if (!args.scanUrl && !args.tickers && !args.tickersFile) {
     console.error(
       'Usage: fetch_guidance_documents.js (--scan-url <url> | --tickers NSE:A,NSE:B | --tickers-file companies.json) ' +
-      '[--quarter Q4FY26] [--types Transcript,PPT,Result] [--out-dir <dir>]'
+        '[--quarter Q4FY26] [--types Transcript,PPT,Result] [--out-dir <dir>]'
     );
     process.exit(1);
   }
@@ -275,7 +292,11 @@ async function main() {
     const needsRetry = [];
     for (const { entry, usedDefault } of items) {
       const { found, textPaths, any } = await downloadAndConvert(
-        entry.ticker, yyyymm, byType, args.types, args.outDir
+        entry.ticker,
+        yyyymm,
+        byType,
+        args.types,
+        args.outDir
       );
       if (!any && usedDefault) {
         needsRetry.push(entry);
@@ -285,7 +306,8 @@ async function main() {
           companyId: entry.ticker,
           quarter: `${quarter.fiscalPeriod}FY${String(quarter.fiscalYear).slice(-2)}`,
           quarterYyyymm: yyyymm,
-          found, textPaths,
+          found,
+          textPaths,
           retriedPriorQuarter: false,
           scanRow: entry.scanRow || null,
         });
@@ -304,17 +326,27 @@ async function main() {
       try {
         const priorQuarter = parseQuarterString(priorStr);
         const retryIds = needsRetry.map((e) => e.ticker);
-        const retryByType = await bulkResolveDocs(client, retryIds, priorQuarter.yyyymm, args.types);
+        const retryByType = await bulkResolveDocs(
+          client,
+          retryIds,
+          priorQuarter.yyyymm,
+          args.types
+        );
         for (const entry of needsRetry) {
           const { found, textPaths } = await downloadAndConvert(
-            entry.ticker, priorQuarter.yyyymm, retryByType, args.types, args.outDir
+            entry.ticker,
+            priorQuarter.yyyymm,
+            retryByType,
+            args.types,
+            args.outDir
           );
           perCompany.set(entry.ticker, {
             ticker: entry.ticker,
             companyId: entry.ticker,
             quarter: `${priorQuarter.fiscalPeriod}FY${String(priorQuarter.fiscalYear).slice(-2)}`,
             quarterYyyymm: priorQuarter.yyyymm,
-            found, textPaths,
+            found,
+            textPaths,
             retriedPriorQuarter: true,
             scanRow: entry.scanRow || null,
           });

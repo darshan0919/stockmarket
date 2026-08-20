@@ -70,10 +70,12 @@ For each candidate, download that quarter's PPT via the same
 `forward-guidance-extractor` both use — do not re-implement fetching:
 
 ```js
-const { fetchDocuments } = require('/absolute/path/to/stockmarket/stock-api/src/fetchers/documentsFetcher.js');
+const {
+  fetchDocuments,
+} = require('/absolute/path/to/stockmarket/stock-api/src/fetchers/documentsFetcher.js');
 const res = await fetchDocuments('<TICKER>', {
   types: ['PPT'],
-  startDate: '<yyyymm>',   // the candidate's quarter yyyymm
+  startDate: '<yyyymm>', // the candidate's quarter yyyymm
   endDate: '<yyyymm>',
   outputDir: '/tmp/<safe_ticker>_ppt',
 });

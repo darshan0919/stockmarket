@@ -23,12 +23,12 @@ drift out of sync. Now there is exactly one place templates live
 
 ## Inputs
 
-| Param        | Required | Meaning                                                                                          |
-| ------------ | -------- | -------------------------------------------------------------------------------------------------- |
-| `pdfUrl`     | yes      | the announcement PDF to read                                                                       |
-| `category`   | yes      | one of the categories below (an orchestrator usually supplies this via `categoriseAnnouncement`)   |
-| `companyId`  | yes      | for notes-DB context lookup and (if saving) note persistence                                       |
-| `depth`      | no       | `quick` \| `standard` (default) \| `deep` — see Depth below                                        |
+| Param       | Required | Meaning                                                                                          |
+| ----------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `pdfUrl`    | yes      | the announcement PDF to read                                                                     |
+| `category`  | yes      | one of the categories below (an orchestrator usually supplies this via `categoriseAnnouncement`) |
+| `companyId` | yes      | for notes-DB context lookup and (if saving) note persistence                                     |
+| `depth`     | no       | `quick` \| `standard` (default) \| `deep` — see Depth below                                      |
 
 If you (the caller) don't already know the category, run it through
 `categoriseAnnouncement()` (`packages/jobs-runtime/lib/announcementTaxonomy.js`) first —
@@ -150,7 +150,7 @@ run insight-template "<category>" --depth deep         # full framework, HIGH_CO
 (`demerger`, `merger`, `acquisition`, `management_change`), and the three
 **HEAVY-DOCUMENT** categories that most orchestrators skip entirely rather than
 template (`concall_transcript`, `investor_presentation`, `annual_report`) — plus
-`results`, which is both STRONG/SCHEDULED *and* heavy-document; see Step 0.
+`results`, which is both STRONG/SCHEDULED _and_ heavy-document; see Step 0.
 
 **Sourcing rule (applies to the Income Statement Signal Scan below and to all `results`-category insights):** fetch the underlying Result filing via `stock-documents-fetcher`'s `documentsFetcher.js`/`StockscansClient.documents()` API, not web search — several P&L lines (Changes in inventories, the Other Income break-up, the tax-rate reconciliation) rarely appear in news summaries.
 
@@ -196,6 +196,7 @@ month), say so in the insight's last sentence — that's the signal
 ```bash
 echo '<json>' | run add-note
 ```
+
 Payload: `{companyId, ticker, name, businessSummary?, note:{type:"announcement",
 announcementId, announcementTitle, pdfUrl, insight, significance, tags, category,
 announcementDescription, usecase:"announcement-insights:<depth>",
