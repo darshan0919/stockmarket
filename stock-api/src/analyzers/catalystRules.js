@@ -12,6 +12,85 @@ const THRESHOLDS = {
   ret_1w_high: 12.0,
 };
 
+// ── J-curve scorecard (Stage 2 of the scale funnel — skills/_shared/scale-funnel-pattern.md) ──
+//
+// rerating-catalysts' 9-point quick scorecard (references/growth_catalyst_framework.md
+// §5c) is defined there as an LLM-judged checklist. This is the "compute what's
+// mechanically derivable" half of that stage: of the 9 points, only what's
+// actually present on today's scan-table columns (Market Capitalization,
+// Revenue, Returns 1D/1W, CRS Vs Nifty 500 25D — see resolveUniverse/scanRow)
+// can be scored without reading any filing text. The remaining points
+// (sector tailwind, strong demand visibility, new capacity/product/customer,
+// margin expansion potential, better guidance/estimate upgrades) genuinely
+// require reading a transcript/PPT/announcement and are NOT computed here —
+// they stay judgment calls for whichever cheap-or-flagship pass reads the
+// text (Stage 1's excerpt file, or rerating-catalysts' own Stage 3 read).
+// Do not treat computedJCurveScore as the full 9-point score; it is a
+// partial, mechanically-honest subset (see `scored` / `maxScored` on the
+// returned object for exactly how many of the 9 points this function can
+// actually answer from scan-row data alone).
+const JCURVE_COMPUTABLE_POINTS = [
+  'revenueAcceleration', // from scan Returns/Revenue trend if available
+  'debtInterestFalling', // requires a debt/finance-cost trend column — not on today's scan row
+  'rocedImproving', // requires an ROCE column — not on today's scan row
+];
+
+/**
+ * Compute the mechanically-derivable subset of the J-curve scorecard from a
+ * single scan row. Returns null (not zero) for any point the scan row simply
+ * doesn't carry the data for — a null point must not silently count as "no",
+ * since that would misrepresent an unscored point as a scored miss.
+ *
+ * @param {object} company — one row from resolveUniverse()/scanRow, e.g.
+ *   {'Market Capitalization', Revenue, 'Returns 1D', 'Returns 1W', 'CRS Vs Nifty 500 25D', ...}
+ * @returns {{points: object, scored: number, maxScored: number, totalPossible: number}}
+ */
+function computeJCurveScore(company) {
+  const points = {
+    // Point 1: revenue acceleration — proxy via sustained relative strength
+    // (CRS vs Nifty 500, 25-day) rather than an actual revenue-growth column,
+    // which the scan table does not carry today. This is a WEAK proxy —
+    // price relative strength correlates with, but is not, revenue
+    // acceleration — flag it as such in any output that surfaces this score.
+    revenueAccelerationProxy: null,
+    // Point 7: debt/interest falling — needs a debt or finance-cost trend
+    // column; not present on today's scan row.
+    debtInterestFalling: null,
+    // Point 8: ROCE improving — needs an ROCE column; not present today.
+    rocedImproving: null,
+  };
+
+  const crs = company['CRS Vs Nifty 500 25D'];
+  if (crs !== undefined && crs !== null) {
+    // A sustained positive 25-day relative-strength reading is a (weak, but
+    // non-zero) proxy for "the market is pricing in accelerating
+    // fundamentals" — score 1 if clearly positive, 0 if clearly negative,
+    // null if too close to call. This intentionally does NOT claim to
+    // measure revenue growth directly.
+    if (crs > 5) points.revenueAccelerationProxy = 1;
+    else if (crs < -5) points.revenueAccelerationProxy = 0;
+  }
+
+  const scoredEntries = Object.values(points).filter((v) => v !== null);
+  const scored = scoredEntries.reduce((sum, v) => sum + v, 0);
+  const maxScored = scoredEntries.length;
+
+  return {
+    points,
+    scored,
+    maxScored,
+    totalPossible: 9,
+    note:
+      'Partial score — only points computable from today\'s scan-row columns are ' +
+      'filled in; the remaining 6-8 points (sector tailwind, demand visibility, new ' +
+      'capacity/product/customer, margin expansion potential, better guidance/estimate ' +
+      'upgrades, and true revenue acceleration once a real growth column exists) require ' +
+      'reading filing text and are deliberately left for the Stage 1 excerpt pass / ' +
+      'Stage 3 rerating-catalysts read (see references/growth_catalyst_framework.md §5c ' +
+      'in rerating-catalysts and skills/_shared/scale-funnel-pattern.md).',
+  };
+}
+
 const MARQUEE_GLOBAL = [
   'microsoft',
   'apple',
@@ -812,5 +891,6 @@ module.exports = {
   findNames,
   classify,
   priceVolumeAlerts,
+  computeJCurveScore,
   THRESHOLDS,
 };

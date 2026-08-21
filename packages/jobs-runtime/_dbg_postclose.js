@@ -126,8 +126,8 @@ function authHeaders() {
 }
 
 async function cmdFetchScan(argv) {
-  loadEnv(argValue('--env-file', argv));
-  const windowHoursArg = argValue('--window-hours', argv);
+  loadEnv(argValue(argv, '--env-file', null));
+  const windowHoursArg = argValue(argv, '--window-hours', null);
   const now = new Date();
   const cutoffUtc = windowHoursArg
     ? new Date(now.getTime() - Number(windowHoursArg) * 60 * 60 * 1000)
@@ -256,11 +256,11 @@ function buildDigestHtml(insights, { cutoffIstHuman, runIstHuman }) {
 }
 
 async function cmdSendDigest(argv) {
-  loadEnv(argValue('--env-file', argv));
+  loadEnv(argValue(argv, '--env-file', null));
   const file = argv[0];
   if (!file) throw new Error('send-digest requires an insights JSON array file path');
   const insights = JSON.parse(fs.readFileSync(file, 'utf8'));
-  const cutoffIstHuman = argValue('--cutoff-human', argv) || '';
+  const cutoffIstHuman = argValue(argv, '--cutoff-human', '');
   const runIstHuman = ist.nowIstHuman();
   const html = buildDigestHtml(insights, { cutoffIstHuman, runIstHuman });
   const highCount = insights.filter((i) => i.significance === 'high').length;
@@ -285,7 +285,4 @@ async function main() {
   await fn(rest);
 }
 
-main().catch((err) => {
-  process.stderr.write(JSON.stringify({ error: err.message }) + '\n');
-  process.exit(1);
-});
+main().catch((err) => { console.error(err.stack); process.exit(1); });

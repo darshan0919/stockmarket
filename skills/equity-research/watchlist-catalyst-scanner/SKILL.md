@@ -101,3 +101,28 @@ All bars live in `THRESHOLDS`; marquee lists in `MARQUEE_GLOBAL`,
 `MARQUEE_INDIA`, `MARQUEE_INVESTORS`, `TRENDING_TECH`; noise in `NOISE_PAT`.
 When the user says "too noisy" → raise bars / extend NOISE_PAT; "missed X" →
 inspect the raw JSON (`n_raw` announcements) and add a pattern.
+
+## Related: this skill IS the scale-funnel front door for rerating-catalysts
+
+This scanner implements Stages 0-2 of
+[`skills/_shared/scale-funnel-pattern.md`](../../_shared/scale-funnel-pattern.md)
+(deterministic pre-filter + classification, zero-to-cheap tokens) for
+announcement-driven catalysts across the whole watchlist. `rerating-catalysts`
+is the Stage-3 (flagship-model) analyzer this scanner should hand HIGH
+alerts off to, rather than anyone invoking `rerating-catalysts` directly
+across all ~51 companies.
+
+`catalystRules.js`'s `computeJCurveScore(company)` is wired into
+`scanCatalysts.js`: every alert in `catalyst_alerts_YYYYMMDD.json` carries a
+`jcurve` field, and the JSON's top-level `jcurveByCompany` map covers every
+scanned company (including ones with zero alerts this window). This is
+deliberately a PARTIAL score — of `rerating-catalysts`' 9-point scorecard
+(`references/growth_catalyst_framework.md` §5c in that skill), only a
+relative-strength proxy for revenue acceleration is computable from today's
+scan-row columns; the rest return `null` (not `0`) until richer columns
+(debt trend, ROCE, margin) are available on the scan table, or until a
+reader escalates to a full `rerating-catalysts` run for the real read.
+Do not treat a low `jcurve.scored` as a reason to suppress an alert —
+severity from `classify()` stays the primary triage signal; `jcurve` is a
+secondary cross-check surfaced in the HTML as a small purple chip on each
+card.

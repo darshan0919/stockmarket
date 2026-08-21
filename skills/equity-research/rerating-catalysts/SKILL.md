@@ -64,6 +64,51 @@ type but not another.
 | Technical/stage/relative-strength timing read                            | `stage2-catalyst-analysis`   |
 | **Forward-looking, "new"-framework re-rating catalysts for ONE company** | **THIS SKILL**               |
 
+**Running this across many companies (not one):** this skill is intentionally
+company-scoped and expensive (4 transcripts + 4 results + 2 PPTs read at
+flagship-model depth) — do not invoke it directly across a watchlist or scan
+of hundreds of names. Three scripts implement the scale funnel described in
+[`skills/_shared/scale-funnel-pattern.md`](../../_shared/scale-funnel-pattern.md)
+so this skill's Phase 1-3 only ever runs on genuine survivors:
+
+- **Stage 0 (zero-LLM pre-filter):**
+  [`scripts/prefilter_rerating_candidates.js`](scripts/prefilter_rerating_candidates.js)
+  — given a Stockscans saved-scan URL or a ticker list, diffs each company
+  against its last `rerating-catalysts` DB report (`db.find('reports',
+  {companyId, type: 'rerating-catalysts'})`) and drops companies with no new
+  filings and no price/volume flag since that report. First-run companies
+  (no prior report) always pass through. Run this FIRST on any batch —
+  everything downstream only touches its `candidate: true` output.
+- **Stage 1 (zero-LLM recall pass):**
+  [`scripts/extract_rerating_signatures.py`](scripts/extract_rerating_signatures.py)
+  — once Phase 1 has fetched a candidate company's documents into its
+  scratch dir, run this against `manifest.json` before Phase 2's flagship
+  read. It regex-matches the "new"-category signature phrases already
+  tabulated in `references/growth_catalyst_framework.md` §2, plus a
+  generic number-near-forward-cue check, and reports a compression ratio
+  (raw chars vs. excerpt chars). Treat its output as a fast orientation
+  pass, not a substitute for reading the full text in Phase 2 — this
+  script's regex bank is deliberately over-inclusive (cheap false
+  positives) since a missed catalyst is far more costly than an extra
+  passage to skim.
+- **Stage 2 (partial computed scorecard):**
+  `computeJCurveScore()` in
+  [`stock-api/src/analyzers/catalystRules.js`](../../../stock-api/src/analyzers/catalystRules.js)
+  — computes whichever of the framework §5c 9-point scorecard is
+  mechanically derivable from a scan row (today: a relative-strength proxy
+  for revenue acceleration only; debt/ROCE trend points return `null`,
+  not `0`, until those columns exist on the scan table). `scanCatalysts.js`
+  attaches this to every `watchlist-catalyst-scanner` alert and to a
+  `jcurveByCompany` map in its JSON output — **read this map before
+  deciding which candidates from Stage 0 are worth escalating**, but do not
+  treat a low partial score as a "skip" signal on its own; it is missing
+  more than half the real 9 points by design.
+
+Stage 3 is this skill's own Phase 1-4, run only on the names that survive
+Stages 0-2. None of this changes what a single-company, directly-requested
+run of this skill does — the funnel only matters when the caller is
+iterating over many companies.
+
 ## Workflow
 
 ### Phase 1 — Document acquisition
@@ -235,6 +280,23 @@ report.html --pdf data/rerating-catalysts/<Company>_Output.pdf`). If
 
 Close every run with the files-touched manifest (conventions §9) and the
 token-optimization suggestion (conventions §11).
+
+## File tree
+
+```
+rerating-catalysts/
+├── SKILL.md
+├── references/
+│   └── growth_catalyst_framework.md
+└── scripts/
+    ├── prefilter_rerating_candidates.js   (Stage 0 — zero-LLM pre-filter for batch runs)
+    └── extract_rerating_signatures.py     (Stage 1 — zero-LLM recall pass for a single candidate)
+```
+
+`computeJCurveScore()` (Stage 2) lives in
+`stock-api/src/analyzers/catalystRules.js` alongside `watchlist-catalyst-scanner`'s
+`classify()`, since it operates on the same scan-row shape and is consumed by
+that skill's `scanCatalysts.js`, not by this skill directly.
 
 ## Conventions
 

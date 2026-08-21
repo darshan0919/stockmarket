@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { stockscans } = require('../index');
-const { classify, priceVolumeAlerts } = require('./catalystRules');
+const { classify, priceVolumeAlerts, computeJCurveScore } = require('./catalystRules');
 const { resolveUniverse } = require('./runScan');
 
 const SEV_ORDER = { HIGH: 0, RISK: 1, MEDIUM: 2 };
@@ -38,6 +38,11 @@ function renderHtml(alerts, meta) {
       ? `<a class="pdf" href="${escapeHtml(stockscans.s3PdfUrl(a.pdf))}" target="_blank">filing PDF ↗</a>`
       : '';
 
+    let jcurve = '';
+    if (a.jcurve && a.jcurve.maxScored > 0) {
+      jcurve = `<span class="chip jcurve" title="${escapeHtml(a.jcurve.note)}">J-curve proxy ${a.jcurve.scored}/${a.jcurve.maxScored} scored (of 9 total — rest needs a filing read)</span>`;
+    }
+
     return `
         <div class="card sev-${sev}" data-sev="${sev}">
           <div class="row1">
@@ -50,7 +55,7 @@ function renderHtml(alerts, meta) {
           <div class="title">${escapeHtml(a.title)}</div>
           <div class="why">${escapeHtml(a.why)} ${val}</div>
           <div class="desc">${escapeHtml(a.description)}</div>
-          <div class="row2">${chips}${pdf}</div>
+          <div class="row2">${chips}${jcurve}${pdf}</div>
         </div>`;
   });
 
@@ -83,6 +88,7 @@ padding:14px 16px;margin:12px 0;border-left-width:4px}
 .desc{color:var(--mut);font-size:12.5px;margin-top:6px}
 .row2{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .chip{background:rgba(59,130,246,.12);color:#3b82f6;font-size:11px;padding:2px 8px;border-radius:10px}
+.chip.jcurve{background:rgba(168,85,247,.12);color:#a855f7}
 .pdf{margin-left:auto;font-size:12px;color:#3b82f6;text-decoration:none}
 </style></head><body>
 <h1>Watchlist Catalyst Alerts</h1>
@@ -142,6 +148,18 @@ async function scanCatalysts(scanId, options = {}) {
   const byId = {};
   for (const c of companies) if (c.companyId) byId[c.companyId] = c;
 
+  // J-curve scorecard (Stage 2 of the scale funnel, skills/_shared/scale-funnel-pattern.md)
+  // — computed once per company from scan-row data alone. This is a PARTIAL
+  // score (see computeJCurveScore's `note`); it surfaces alongside each
+  // alert so a reader triaging the daily briefing can see which companies
+  // are worth escalating to a full rerating-catalysts read without that
+  // being the only signal — severity (HIGH/MEDIUM/RISK) from classify()
+  // remains the primary triage signal, this is a secondary cross-check.
+  const jcurveByCompany = {};
+  for (const c of companies) {
+    if (c.companyId) jcurveByCompany[c.companyId] = computeJCurveScore(c);
+  }
+
   const raw = [];
   const ids = Object.keys(byId);
   for (let i = 0; i < ids.length; i += batch) {
@@ -162,7 +180,10 @@ async function scanCatalysts(scanId, options = {}) {
     seen.add(key);
 
     const a = classify(ann, byId[ann.companyId] || {});
-    if (a) rawAlerts.push(a);
+    if (a) {
+      a.jcurve = jcurveByCompany[a.companyId] || null;
+      rawAlerts.push(a);
+    }
   }
 
   const byk = {};
@@ -229,10 +250,19 @@ async function scanCatalysts(scanId, options = {}) {
   const jpath = path.join(outputDir, `catalyst_alerts_${tag}.json`);
   const hpath = path.join(outputDir, `catalyst_alerts_${tag}.html`);
 
-  fs.writeFileSync(jpath, JSON.stringify({ meta, alerts }, null, 1), 'utf-8');
+  // jcurveByCompany is exposed alongside alerts (not just embedded per-alert)
+  // so a downstream consumer -- e.g. rerating-catalysts' Stage 0 pre-filter,
+  // or a future "escalate HIGH + high-jcurve names to a full read" step --
+  // can read every company's partial score even for companies with zero
+  // announcement-driven alerts this window.
+  fs.writeFileSync(
+    jpath,
+    JSON.stringify({ meta, alerts, jcurveByCompany }, null, 1),
+    'utf-8'
+  );
   fs.writeFileSync(hpath, renderHtml(alerts, meta), 'utf-8');
 
-  return { meta, alerts, jpath, hpath };
+  return { meta, alerts, jcurveByCompany, jpath, hpath };
 }
 
 module.exports = {
