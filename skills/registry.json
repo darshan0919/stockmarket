@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "description": "Stockmarket monorepo \u2014 Claude skills registry",
+  "description": "Stockmarket monorepo — Claude skills registry",
   "base_url": "https://raw.githubusercontent.com/darshan0919/stockmarket/main",
   "_note": "Source of truth for generating registry.json and invoker tables.",
   "shared": [
@@ -11,7 +11,7 @@
   ],
   "skills": {
     "concall-transcript-extractor": {
-      "_deprecated": "2026-07-31: superseded by stock-api/bin/get-concall-transcript-url.js \u2014 Stockscans now guarantees an official Transcript per quarter, no fallback waterfall needed. Not called by any current skill; kept for reference only.",
+      "_deprecated": "2026-07-31: superseded by stock-api/bin/get-concall-transcript-url.js — Stockscans now guarantees an official Transcript per quarter, no fallback waterfall needed. Not called by any current skill; kept for reference only.",
       "skill_md": "skills/equity-research/concall-transcript-extractor/SKILL.md",
       "entry": "stock-api/bin/get-latest-concall-transcript.js",
       "mode": "bundle",
@@ -1327,6 +1327,29 @@
         "after hours announcement scan",
         "nightly announcement digest"
       ]
+    },
+    "concept-transcript-integrator": {
+      "skill_md": "skills/tooling/concept-transcript-integrator/SKILL.md",
+      "entry": null,
+      "mode": "clone",
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "docs/DATA_RULES.md",
+        "docs/learnyst-api-schemas.md",
+        "skills/tooling/output-dto-standard/SKILL.md"
+      ],
+      "aliases": [
+        "learn from transcripts and update skills",
+        "integrate learnyst lessons into skills",
+        "go through the transcripts on",
+        "read the lessons about",
+        "apply this concept to our skills",
+        "update our skills with what SOIC teaches about",
+        "learn from soic lessons",
+        "digest transcripts into a skill"
+      ],
+      "modules": []
     }
   }
 }

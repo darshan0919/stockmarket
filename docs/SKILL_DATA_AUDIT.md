@@ -29,6 +29,17 @@ tweet-investor-playbook.
 - Same as A but DTO carries `companyIds[]` (and/or `sector`) instead of single `companyId`.
   pre-pead-scanner ranking snapshot is an LLM+data composite → store as report DTO.
 
+## B2. Meta-skills that persist a run record (not company-scoped)
+
+concept-transcript-integrator (`skills/tooling/concept-transcript-integrator/`) — reads
+Learnyst lesson transcripts for a concept (reusing the `learnyst-lessons.json` cache
+populated by `learnyst-transcript-refresh`, never re-implementing the fetch), digests
+them, and edits target equity-research skill files. Its own run record → **existing
+`reports.json`**, `type=concept-integration` (DATA_RULES §2 "prefer existing collection"
+— no new collection). Not company-scoped: `lessonsUsed`/`lessonsSkipped` (Learnyst
+lesson ids), `targetSkillsUpdated`, `filesChanged`, `digestSummary` (LLM-authored →
+carries `modelUsed`). No `companyId`/`companyIds`, so no `companies.json` link.
+
 ## C. Scheduled event/signal jobs
 
 | Skill                                                                                                     | Regenerable inputs (don't store)                                                                                                                                                               | LLM/derived output (store)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |

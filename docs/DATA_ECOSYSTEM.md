@@ -32,7 +32,10 @@ cowork-task-architect enforce it).
 ```
 data/
   companies.json        # PRIMARY DB — company metadata objects, keyed by companyId
-  reports.json          # index of all analysis reports (metadata + summary + links)
+  reports.json          # index of all analysis reports (metadata + summary + links);
+                        #   type=concept-integration (concept-transcript-integrator skill)
+                        #   is not company-scoped — a record of which Learnyst lessons were
+                        #   digested for a concept and which skill files were updated as a result
   reports/<id>.json     # full report DTO bodies (LLM outputs; one flat dir, id-named)
   conversations.json    # index of captured stockmarket chats (metadata + summary + companyIds + links)
   conversations/<id>.json # full chat DTO bodies (turn-by-turn transcript; id-named) — see docs/CONVERSATION_CAPTURE_PLAN.md
