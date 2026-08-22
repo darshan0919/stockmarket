@@ -28,10 +28,21 @@ Credibility adjustment: add +0.5 to W if credibility ≥ +2; subtract 0.5 if ≤
 | 3.5 – 4.9 | REDUCE                               |
 | < 3.5     | SELL (holding) / AVOID (no position) |
 
+## Scoring the Valuation pillar
+
+Score against the **sector-appropriate metric**, not an implicit P/E assumption — look up
+the company's sector in `_shared/sector-valuation-kpis.md` (usually inherited from
+`financial-model`'s Valuation sheet or `equity-research-deepdive` §16, per that file's
+"How to classify a company" section) before judging cheap/fair/expensive. A bank scored
+cheap on P/E while rich on P/B (or vice versa) is being scored on the wrong axis. Before
+scoring a low pillar value as "genuinely cheap," run the shared file's over-earning/cycle
+check — a beaten-down multiple on margins still near a multi-year high is not the same
+signal as a beaten-down multiple on margins already at a cyclical trough.
+
 ## Modifiers (after base signal)
 
-- **Valuation brake:** if Valuation pillar ≤ 3 (euphoric pricing), cap at HOLD regardless of W
-  — "don't overpay, ever".
+- **Valuation brake:** if Valuation pillar ≤ 3 (euphoric pricing on the sector-appropriate
+  metric), cap at HOLD regardless of W — "don't overpay, ever".
 - **Trigger decay:** if all HIGH-conviction triggers are `done` or `derailed` and no new ones
   added for 2 quarters, downgrade one notch (thesis exhausted).
 - **Technical overlay (timing only, never thesis):** Stage 2 confirmed may upgrade

@@ -148,7 +148,11 @@ Best on this dimension = company with CFO/PAT >0.85 AND Net debt/EBITDA <2x AND 
 
 This dimension answers: "At current price, which company offers the best risk/reward?"
 
-### Per-company extraction (live, from Screener.in / Stockscans)
+**Before building the table below, look up the peer set's sector in `_shared/sector-valuation-kpis.md`.** The P/E-centric table that follows is the right shape for sectors where P/E genuinely is the primary metric (IT services, FMCG, most industrials). It is the WRONG shape for sectors with a different primary metric — forcing P/E/EV-EBITDA columns onto a bank peer table (which needs P/B + ROE + ROA + credit-cost) or a real-estate peer table (which needs Market Cap/Pre-sales + EV/Imputed-EBITDA, since P&L-based multiples are structurally misleading for developers — see the file) produces a table that looks complete but compares the wrong thing. Swap in the sector-appropriate metric set from the shared file as the PRIMARY columns, and keep P/E/EV-EBITDA/P-B as secondary/context columns only.
+
+If the peer set spans more than one sector (a cross-sector comparison), pick a common denominator that's fair to both (e.g. EV/EBITDA if one side is capital-intensive) and explicitly flag the mismatch in the writeup rather than silently forcing one sector's preferred metric onto the other.
+
+### Per-company extraction (live, from Screener.in / Stockscans) — default shape for P/E-primary sectors
 
 | Metric                               | Source                            | Notes                              |
 | ------------------------------------ | --------------------------------- | ---------------------------------- |
@@ -182,17 +186,23 @@ This dimension answers: "At current price, which company offers the best risk/re
 | 1Y price perf       | +24%      | +12%      | -8%       |
 ```
 
+### Sector-alternate shape (banks/NBFCs/financials example)
+
+For financials, replace the P/E-centric table above with: CMP, Market Cap, P/B, ROE, ROA, GNPA/NNPA, Credit Cost (% AUM), NIM, 5Y P/B median + percentile, and (if available) forward P/B off projected book-value growth. A bank trading below peer P/B despite a rising ROE/ROA trend is the equivalent "PEG <0.7" setup for this sector. See `_shared/sector-valuation-kpis.md` for the full Banks/NBFC/SFB rows and other sector shapes (real estate, cement, hospitals, pharma, platforms, etc.) — build the analogous table for whichever sector the peer set is actually in.
+
 ### What to flag
 
-- P/E percentile >75th: at expensive end of historical range; needs to deliver to justify
-- PEG >2: growth doesn't justify multiple
+- P/E percentile >75th (or the sector-equivalent metric's percentile): at expensive end of historical range; needs to deliver to justify
+- PEG >2: growth doesn't justify multiple. Keep the general PEG discipline in mind: below ~1.5–2x is the usual ceiling, with FMCG/consumer names alone getting a wider allowance (up to ~1.67x) for more forecastable earnings — see the file's §General valuation techniques
 - PEG <0.7 + HIGH credibility + HIGH management guidance + BS health: setup
 - 1Y outperformance + multiple expansion: re-rating already done; less upside
-- 1Y underperformance + multiple compression + stable fundamentals: contrarian setup
+- 1Y underperformance + multiple compression + stable fundamentals: contrarian setup — but first run the shared file's "over-earning/cycle check" (8-10yr margin history) to confirm the compression isn't actually a reversion from an unsustainably high margin
+- Before declaring any company "cheap," strip one-off P&L items from its PAT (per the shared file) and check whether it's mid-way through a capex cycle (trailing P/E looks artificially rich or, less often, artificially cheap pre-ramp) — a "cheap" multiple on a distorted PAT base is not a real signal
+- A rich-looking trailing multiple paired with a much cheaper Price/Cash-Flow signals depreciation-heavy capex or hidden operating leverage rather than genuine overvaluation — check both before flagging "expensive"
 
 ### Winner declaration
 
-Best on this dimension = company with PEG <1 AND P/E in 30-60th percentile of 5Y range AND fundamentals consistent (Dim 2-3 healthy).
+Best on this dimension = company with the sector-appropriate metric (PEG <1 and P/E in 30-60th percentile of 5Y range for P/E-primary sectors; P/B below peer median at converging/superior ROE-ROA for financials; etc — see `_shared/sector-valuation-kpis.md`) AND fundamentals consistent (Dim 2-3 healthy).
 
 ---
 

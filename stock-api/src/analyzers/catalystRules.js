@@ -91,6 +91,60 @@ function computeJCurveScore(company) {
   };
 }
 
+// ── J-Curve Inflection tag (rerating-catalysts framework §5f) ──
+//
+// This is DELIBERATELY separate from computeJCurveScore above — the two
+// answer different questions (see growth_catalyst_framework.md §5f's own
+// note: §5c's 9-point scorecard is a broad, generic inflection-story triage
+// gate; §5f's tag is the narrower, PAT-growth-threshold-anchored question of
+// whether a company's print actually shows the bucket-3 hyper-growth SHAPE).
+// Conflating them into one function would misrepresent what each is
+// actually measuring.
+//
+// §5f's rubric needs three inputs a scan row does not carry: (1) PAT growth
+// sourced from an actual Result filing, not a scan-table column, (2) a named
+// "new" trigger identified by reading the transcript/PPT/announcement text,
+// (3) a fake-J-curve / structural-vs-cyclical check that requires reading
+// multiple quarters of P&L detail. None of that is available at scan-row
+// scale. This function therefore does NOT compute the tag — assigning
+// STRONG/MODERATE/WEAK/NONE is Phase 3g's job inside rerating-catalysts
+// itself, reading the real documents. What this function DOES do is the
+// same honest, partial-scoring pattern as computeJCurveScore: flag whether
+// today's scan row even carries a PAT-growth column that could feed check 1,
+// so a batch caller (watchlist-catalyst-scanner) can decide which candidates
+// are worth escalating to a full rerating-catalysts Phase 3g read, without
+// pretending to have computed the tag itself.
+function jCurvePatThresholdHint(company) {
+  const patGrowthKeys = ['PAT Growth YoY', 'PAT Growth QoQ', 'Net Profit Growth YoY'];
+  for (const key of patGrowthKeys) {
+    const v = company[key];
+    if (v !== undefined && v !== null && !Number.isNaN(Number(v))) {
+      const num = Number(v);
+      return {
+        available: true,
+        column: key,
+        value: num,
+        clearsThreshold: num > 30,
+        note:
+          'Scan-row PAT growth column found — this alone is NOT the §5f tag (still needs ' +
+          'the named-trigger and not-fake checks from a document read), but a value here ' +
+          'above 30% is worth escalating to a full rerating-catalysts run for the J-Curve ' +
+          'Inflection tag.',
+      };
+    }
+  }
+  return {
+    available: false,
+    column: null,
+    value: null,
+    clearsThreshold: null,
+    note:
+      'No PAT-growth column on today\'s scan row — §5f check 1 cannot be pre-screened ' +
+      'mechanically; the J-Curve Inflection tag can only be computed inside a full ' +
+      'rerating-catalysts Phase 3g read against the actual Result filing.',
+  };
+}
+
 const MARQUEE_GLOBAL = [
   'microsoft',
   'apple',
@@ -892,5 +946,6 @@ module.exports = {
   classify,
   priceVolumeAlerts,
   computeJCurveScore,
+  jCurvePatThresholdHint,
   THRESHOLDS,
 };

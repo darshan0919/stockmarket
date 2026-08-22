@@ -141,13 +141,18 @@ duty, a PLI scheme detail) — a targeted search, cited.
 
 Read `references/growth_catalyst_framework.md` in full before analysing — it
 defines the "new" taxonomy (new base creation, new industry cycle, new
-management change, new corporate action, new capex, new value-added mix, new
-geography, new warrants, new deleveraging, etc.), the new-vs-confirmation
-discipline, the quantification/conviction rules, and (§5a-5e) the J-curve
-lifecycle staging, fake-J-curve checklist, and leading/lagging signal
-discipline. Apply it uniformly across all four document sets fetched in
-Phase 1 — an announcement, a transcript line, and a PPT slide are just three
-different containers for the same kind of "new" fact.
+management change, new corporate action, new capex, new de-bottlenecking, new
+value-chain position, new molecule commercialization, new value-added mix,
+new geography, new warrants, new deleveraging, etc.), the three-bucket growth
+taxonomy (§1b — steady/fast/hyper-growth), the new-vs-confirmation
+discipline, the structural-vs-cyclical checklist (§3b), sector-level context
+(§4b), the quantification/conviction rules, and (§5a-5g) the J-curve
+lifecycle staging, fake-J-curve checklist, the **J-Curve Inflection tag
+rubric (§5f — mandatory, see Phase 3g below)**, leading/lagging signal
+discipline, and GARP entry discipline (§5g). Apply it uniformly across all
+four document sets fetched in Phase 1 — an announcement, a transcript line,
+and a PPT slide are just three different containers for the same kind of
+"new" fact.
 
 Walk every document and, for anything that isn't routine (AGM notices, book
 closures, record dates, routine board-meeting intimations — same NOISE list as
@@ -191,7 +196,10 @@ out even absent a P&L confirmation yet).
 
 **3a. Company snapshot** — 3–4 lines (business, value-chain position,
 moat/commodity, promoter %) + 8-column KPI table: `FY Rev | FY PAT | EBITDA
-Mgn | ROE | ROCE | Debt | PE (TTM) | Div Yield`.
+Mgn | ROE | ROCE | Debt | PE (TTM) | Div Yield`. Name which growth bucket
+(framework §1b: steady/normal, fast-growth/scaling, or hyper-growth/J-curve)
+the company's recent trajectory falls into — one clause is enough, it sets up
+3g below.
 
 **3b. Re-rating catalysts (5–8, ranked)** — per catalyst: name, 2–3 sentence
 body, "new" category tag(s), new-vs-confirmation flag, quantified impact,
@@ -214,17 +222,35 @@ signal items not already covered as a full catalyst above, noise filtered out
 incremental EPS-perception surprise sits, framed per framework §5e (the
 sweet spot is Stage 2/early Stage 3 confirmation before consensus catches
 up — not the earliest possible Trigger-stage entry, and not a fully-priced
-Stage 3 story).
+Stage 3 story). Layer in the lightweight GARP checks from framework §5g
+(credit rating report if available, SOTP gut-check for multi-segment names,
+PEG as a sanity check) — this is not a substitute for `financial-model`, just
+enough to say whether the catalyst identified in 3b looks already priced in.
 
 **3e. Key risks (3–4)** — execution/regulatory/commodity/demand/balance-sheet/
 concentration, each with a mitigant or probability qualifier.
 
 **3f. So-what verdict** (3–6 sentences) — does this document set, taken
-together, change how the market should price forward EPS? Does it warrant
+together, change how the market should price forward EPS? Note sector-level
+context per framework §4b (is the sector itself inflecting, flat, or
+degrowing) rather than scoring the company in isolation. Does it warrant
 escalating to `consecutive-filings-diff`, `financial-model`, or
 `investment-thesis-engine`? If Darshan holds a documented thesis on file
 (from `buildCompanyContext`), does this support/contradict/sit orthogonal to
 it?
+
+**3g. J-Curve Inflection tag (mandatory, computed last).** Apply framework
+§5f's four-input rubric — (1) PAT growth > 30% YoY in the latest quarter,
+ideally with revenue ≥ 15-20% too, sourced from actual Result filings per
+Phase 2's sourcing rule; (2) a specific, named "new" trigger from §2/§1b that
+plausibly explains the move; (3) the move survives the §5b fake-J-curve check
+and the §3b structural-vs-cyclical checklist; (4) which J-curve stage (§5a)
+it's in — to assign **STRONG / MODERATE / WEAK / NONE**, with a one-sentence
+reason naming the trigger and the quarter. This tag is computed from 3b/3c's
+already-extracted catalysts and 3a's KPI table — it is a synthesis step, not
+a new document read. A `NONE` tag is a normal, common outcome (most quarters
+for most companies) — say so plainly rather than stretching the evidence to
+avoid it.
 
 ### Phase 4 — Persist the JSON DTO, then render
 
@@ -242,10 +268,14 @@ Envelope fields (mandatory): `id`, `companyId` (canonical `EXCH:SYMBOL`),
 call here is LLM judgment, not scripted), `date`, `contextUsed`.
 
 Domain fields: `cmp`, `marketCap`, `capCategory`, `sector`, `snapshot`,
+`growthBucket` (framework §1b: `steady` / `fast-growth` / `hyper-growth`),
 `kpiHeaders`/`kpiValues`, `catalysts[]` (each with `name`, `body`,
 `newCategory[]`, `newVsConfirmation`, `impact`, `timeline`, `conviction`,
 `forwardMarker`, `sources[]`), `weeklyFlow` (`dateRangeStart`, `dateRangeEnd`,
-`signalItems[]`, `noiseItems[]`), `whatsInThePrice`, `risks[]`, `verdict`.
+`signalItems[]`, `noiseItems[]`), `whatsInThePrice`, `risks[]`, `verdict`,
+**`jCurveTag` (`STRONG`/`MODERATE`/`WEAK`/`NONE`, per framework §5f — mandatory,
+never omit even when `NONE`), `jCurveReason`** (one sentence naming the
+trigger and quarter, or the failed check for a `NONE` tag).
 
 Then render:
 
@@ -253,26 +283,35 @@ Then render:
   conversational question ("what's changed with X this week", a single
   catalyst lookup) and the DTO is small (1-2 catalysts, no widget rendered),
   an inline markdown response is sufficient on its own — this mirrors
-  fundamental-shift-scanner's old "quick pulse-check" default. Nothing else
-  in this skill counts as "quick" — a full catalyst note or an HTML widget
-  is a report, and reports always get the PDF companion below.
+  fundamental-shift-scanner's old "quick pulse-check" default. Even here,
+  lead the response with the `jCurveTag`/`jCurveReason` line before the
+  catalyst detail — the tag is required regardless of output format, not
+  just in the full widget/PDF path. Nothing else in this skill counts as
+  "quick" — a full catalyst note or an HTML widget is a report, and reports
+  always get the PDF companion below.
 - **Every other run — HTML widget AND a 1-page PDF, always, from the same
   DTO.** Do not gate the PDF on the user asking for a shareable file; a
   Drive link is what makes the note forwardable outside the chat session,
   and per `output-dto-standard` the render is free once the DTO exists —
   skipping it only because nobody explicitly asked defeats the point of
   persisting the DTO in the first place (same reasoning as
-  `quarterly-result-analysis`'s Phase 4). Render the widget with the
-  card-based severity layout used by `watchlist-catalyst-scanner` (HIGH
-  CONVICTION catalysts get stronger visual treatment), and render the PDF
-  via `skills/_shared/pdf-design-guide.md`'s palette/component vocabulary
-  through the two-step pipeline (`resolve.sh rerating-catalysts --input
-data.json --output report.html` then `resolve.sh render-pdf --html
-report.html --pdf data/rerating-catalysts/<Company>_Output.pdf`). If
-  content spills past 1 page, cut catalyst body text first, then drop to 5
-  catalysts — never drop the "what's in the price" section. Mention the
-  PDF's path/Drive link in the closing text so the user doesn't have to ask
-  for a file separately.
+  `quarterly-result-analysis`'s Phase 4). **Render the `jCurveTag` as a
+  prominent badge at the very top of both the widget and the PDF, above the
+  3a company snapshot** — a colored badge (e.g. green/STRONG, amber/MODERATE,
+  grey/WEAK, muted/NONE per `skills/_shared/pdf-design-guide.md`'s severity
+  palette) with the `jCurveReason` sentence directly beneath it. This is the
+  first thing a reader sees, before the KPI table. Render the rest of the
+  widget with the card-based severity layout used by
+  `watchlist-catalyst-scanner` (HIGH CONVICTION catalysts get stronger visual
+  treatment), and render the PDF via `skills/_shared/pdf-design-guide.md`'s
+  palette/component vocabulary through the two-step pipeline (`resolve.sh
+  rerating-catalysts --input data.json --output report.html` then
+  `resolve.sh render-pdf --html report.html --pdf
+  data/rerating-catalysts/<Company>_Output.pdf`). If content spills past 1
+  page, cut catalyst body text first, then drop to 5 catalysts — never drop
+  the "what's in the price" section, and never drop the top-of-report
+  J-Curve badge. Mention the PDF's path/Drive link in the closing text so
+  the user doesn't have to ask for a file separately.
 - If the PDF render tooling is genuinely unavailable in the current
   environment (e.g. a sandbox without the render pipeline installed), say so
   explicitly and offer to render it on request — do not silently drop the
@@ -293,10 +332,14 @@ rerating-catalysts/
     └── extract_rerating_signatures.py     (Stage 1 — zero-LLM recall pass for a single candidate)
 ```
 
-`computeJCurveScore()` (Stage 2) lives in
+`computeJCurveScore()` (Stage 2, framework §5c's 9-point scorecard) and
+`jCurvePatThresholdHint()` (a scan-row pre-screen for framework §5f's PAT-growth
+gate — NOT the §5f tag itself, which only Phase 3g computes) both live in
 `stock-api/src/analyzers/catalystRules.js` alongside `watchlist-catalyst-scanner`'s
-`classify()`, since it operates on the same scan-row shape and is consumed by
-that skill's `scanCatalysts.js`, not by this skill directly.
+`classify()`, since they operate on the same scan-row shape and are consumed by
+that skill's `scanCatalysts.js`, not by this skill directly. Keep them as two
+separate functions — they answer the two distinct questions framework §5f's
+own note distinguishes; do not merge them.
 
 ## Conventions
 
@@ -310,7 +353,17 @@ matters).
 ## Pitfalls
 
 - **Don't reduce to a valuation call.** Framework §6 — cheapness/expensiveness
-  is out of scope here; that's `financial-model`'s job.
+  is out of scope here; that's `financial-model`'s job. Framework §5g's GARP
+  checks are a lightweight "is this already priced in" sanity pass for 3d,
+  not a substitute — don't let 3d expand into a full valuation writeup.
+- **Don't skip the J-Curve Inflection tag, and don't let it default to a
+  vague middle ground.** Framework §5f's rubric is designed to resolve to one
+  of four tags from checkable evidence already in 3a-3c — if the evidence is
+  genuinely mixed, say so in the reason sentence rather than defaulting to
+  MODERATE as a hedge. `NONE` is a legitimate, common, non-negative result.
+- **Don't confuse the §5f J-Curve tag with the §5c 9-point scorecard.** They
+  answer different questions (see framework §5f's own note) — both appear in
+  the report, but only §5f's tag goes at the top as the badge.
 - **Don't quantify without a source.** Undisclosed values stay "awaiting
   disclosure," never estimated.
 - **Don't treat "Board Meeting Intimation" as signal.** Wait for the outcome

@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { stockscans } = require('../index');
-const { classify, priceVolumeAlerts, computeJCurveScore } = require('./catalystRules');
+const { classify, priceVolumeAlerts, computeJCurveScore, jCurvePatThresholdHint } = require('./catalystRules');
 const { resolveUniverse } = require('./runScan');
 
 const SEV_ORDER = { HIGH: 0, RISK: 1, MEDIUM: 2 };
@@ -156,8 +156,18 @@ async function scanCatalysts(scanId, options = {}) {
   // being the only signal — severity (HIGH/MEDIUM/RISK) from classify()
   // remains the primary triage signal, this is a secondary cross-check.
   const jcurveByCompany = {};
+  // §5f J-Curve Inflection tag pre-screen — deliberately a separate map from
+  // jcurveByCompany above (the two are different rubrics, see catalystRules.js's
+  // jCurvePatThresholdHint doc comment). This only flags whether today's scan
+  // row even carries a PAT-growth column worth escalating for a full
+  // rerating-catalysts Phase 3g read; it never assigns STRONG/MODERATE/WEAK/
+  // NONE itself.
+  const jcurveThresholdHintByCompany = {};
   for (const c of companies) {
-    if (c.companyId) jcurveByCompany[c.companyId] = computeJCurveScore(c);
+    if (c.companyId) {
+      jcurveByCompany[c.companyId] = computeJCurveScore(c);
+      jcurveThresholdHintByCompany[c.companyId] = jCurvePatThresholdHint(c);
+    }
   }
 
   const raw = [];
@@ -182,6 +192,7 @@ async function scanCatalysts(scanId, options = {}) {
     const a = classify(ann, byId[ann.companyId] || {});
     if (a) {
       a.jcurve = jcurveByCompany[a.companyId] || null;
+      a.jcurveThresholdHint = jcurveThresholdHintByCompany[a.companyId] || null;
       rawAlerts.push(a);
     }
   }
@@ -250,19 +261,21 @@ async function scanCatalysts(scanId, options = {}) {
   const jpath = path.join(outputDir, `catalyst_alerts_${tag}.json`);
   const hpath = path.join(outputDir, `catalyst_alerts_${tag}.html`);
 
-  // jcurveByCompany is exposed alongside alerts (not just embedded per-alert)
-  // so a downstream consumer -- e.g. rerating-catalysts' Stage 0 pre-filter,
-  // or a future "escalate HIGH + high-jcurve names to a full read" step --
-  // can read every company's partial score even for companies with zero
-  // announcement-driven alerts this window.
+  // jcurveByCompany and jcurveThresholdHintByCompany are exposed alongside
+  // alerts (not just embedded per-alert) so a downstream consumer -- e.g.
+  // rerating-catalysts' Stage 0 pre-filter, or a future "escalate HIGH +
+  // high-jcurve names to a full read" step -- can read every company's
+  // partial score/hint even for companies with zero announcement-driven
+  // alerts this window. Remember these are two different rubrics (§5c vs
+  // §5f in growth_catalyst_framework.md) -- don't merge them into one field.
   fs.writeFileSync(
     jpath,
-    JSON.stringify({ meta, alerts, jcurveByCompany }, null, 1),
+    JSON.stringify({ meta, alerts, jcurveByCompany, jcurveThresholdHintByCompany }, null, 1),
     'utf-8'
   );
   fs.writeFileSync(hpath, renderHtml(alerts, meta), 'utf-8');
 
-  return { meta, alerts, jcurveByCompany, jpath, hpath };
+  return { meta, alerts, jcurveByCompany, jcurveThresholdHintByCompany, jpath, hpath };
 }
 
 module.exports = {

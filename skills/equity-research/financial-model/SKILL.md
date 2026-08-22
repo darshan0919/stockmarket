@@ -89,17 +89,32 @@ from the first write.
 3. **Concall Insights** — management guidance on growth, margin trend expectations, key
    initiatives and impact, industry outlook — each with a verbatim quote + date.
 4. **Assumptions** (editable, BLUE font, yellow-highlighted section):
-   Revenue growth Y1/Y2/Y3, COGS %, OpEx %, D&A %, tax rate, Bear/Base/Bull exit P/E.
+   Revenue growth Y1/Y2/Y3, COGS %, OpEx %, D&A %, tax rate, Bear/Base/Bull exit multiple.
+   **Look up the company's sector in `_shared/sector-valuation-kpis.md` before picking which
+   exit multiple to model** — exit P/E is right for IT services/FMCG/most industrials, but
+   use exit EV/EBITDA for capital-intensive sectors (cement, hospitals, hotels — depreciation
+   can dwarf P/E-based earnings), exit P/B for banks/NBFCs/financials (model book-value
+   growth off ROE, not EPS off P/E), and Market-Cap/Pre-sales or EV/Imputed-EBITDA for real
+   estate (P&L-based exits are structurally misleading there — see the file for why). For a
+   conglomerate, build the Valuation sheet as SOTP (each segment its own exit multiple from
+   the shared file, summed) rather than one blended exit multiple.
    Each assumption gets a one-line rationale, e.g. "Growth Y1 30%: management guided
    25–30% (Q4 FY26 concall), order book +42% YoY". Include an AI-vs-Custom toggle cell.
 5. **Income Statement** — Y0→Y3 full P&L (Revenue → COGS → GP → OpEx → EBITDA → D&A →
    EBIT → Interest → PBT → Tax → PAT), formulas wired to the blue cells. Black = formula,
    green = cross-reference. Zero formula errors.
 6. **Margins** — gross/EBITDA/EBIT/PAT margins across years.
-7. **Valuation** — FY+3 EPS × exit P/E per scenario; IRR from today's MCap; probability
-   weights per scenario → expected value. Anchor current P/E to Screener (never calculated).
-8. **Peer Comparison** (when peers given) — P/E, ROCE, ROE, margins FROM SCREENER,
-   valuation gap vs peers, growth comparison.
+7. **Valuation** — FY+3 EPS × exit multiple (P/E, or the sector-appropriate alternative
+   per Sheet 4's lookup) per scenario; IRR from today's MCap; probability weights per
+   scenario → expected value. Anchor current multiple to Screener (never calculated). Before
+   trusting the anchor multiple, run the shared file's over-earning/cycle check (is current
+   margin near a multi-year high or low?) and strip any one-off P&L items from the anchor
+   PAT — an un-stripped one-off can make the "current P/E" anchor look cheaper than the
+   underlying run-rate business.
+8. **Peer Comparison** (when peers given) — the sector-appropriate metric set from
+   `_shared/sector-valuation-kpis.md` (P/E/ROCE/ROE/margins FROM SCREENER for P/E-primary
+   sectors; P/B+ROE+ROA+credit-cost for financials; EV/ton for cement; etc), valuation
+   gap vs peers, growth comparison.
 9. **Investment Thesis** — bull catalysts (probability + timeline), bear risks (impact),
    key monitorables to track quarterly. This sheet feeds `investment-thesis-engine`
    (valuation pillar + monitorables) — keep the monitorables machine-readable

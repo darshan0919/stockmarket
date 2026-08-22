@@ -59,7 +59,9 @@ Porter's 5 Forces (brief, specific); industry trends (pricing, demand, regulatio
 
 ## §3 Peer Comparison (CRITICAL)
 
-Table with 4–6 closest listed peers across: Market Cap, Revenue, 3Y Rev CAGR, EBITDA Mgn, PAT Mgn, ROE, ROCE, P/E (TTM), EV/EBITDA, P/B, D/E. Then: where better/worse; premium/discount justified?
+Table with 4–6 closest listed peers across: Market Cap, Revenue, 3Y Rev CAGR, EBITDA Mgn, PAT Mgn, ROE, ROCE, D/E, plus the **sector-appropriate valuation column(s)** — look up the company's sector in `_shared/sector-valuation-kpis.md` first (e.g. P/B + ROE/ROA for a bank, EV/ton for cement, Market Cap/Pre-sales or EV/Imputed-EBITDA for real estate — not P/E, which is structurally misleading for a real-estate developer). Report P/E and EV/EBITDA as secondary/context columns only when the sector table doesn't call for them as primary. Then: where better/worse; premium/discount justified?
+
+For a conglomerate or holding company, don't force a single blended multiple onto the peer table — see the "How to classify a company" section at the top of `_shared/sector-valuation-kpis.md` (SOTP for conglomerates, NAV+discount for holdcos).
 
 ## §4 Product & Revenue Concentration
 
@@ -111,7 +113,15 @@ Three scenarios with EXPLICIT assumptions — Bull / Base / Bear. Each: growth r
 
 ## §16 Valuation Analysis
 
-Current multiples (P/E, EV/EBITDA, P/B, P/S); 5Y historical range (high/low/median — table); peer comp (ref §3); DCF if data permits (state assumptions); what's priced in at CMP; margin of safety.
+**Look up the company's sector in `_shared/sector-valuation-kpis.md` first** and lead with the sector-appropriate primary metric(s) — not a fixed P/E/EV-EBITDA/P-B/P-S set for every company. Examples: banks lead on P/B + ROE/ROA/credit-cost; real estate on Market Cap/Pre-sales and EV/Imputed-EBITDA (P&L-based multiples are structurally misleading here — see the file for why); cement on EV/ton (never P/E); hospitals on EV/EBITDA + ARPOB/occupancy, with SOTP by segment for multi-format chains; platforms on volume/churn ahead of trailing PAT; pharma split by CDMO-vs-generic hierarchy; agrochemicals checked for regulated-vs-spot-market export mix, not just P/E level.
+
+Report the fixed P/E/EV-EBITDA/P/B/P/S set as secondary/context columns when the sector table calls for a different primary metric, rather than dropping them — they're still useful cross-checks, just not the lead.
+
+Before trusting any point-in-time multiple, run the file's "over-earning/cycle check" (8–10yr margin history — is the current margin near a multi-year high or low?) and, for growth/high-multiple names, the "rate sensitivity" note (terminal value is disproportionately rate-sensitive).
+
+Then: 5Y historical range of the sector-appropriate metric (high/low/median — table); peer comp (ref §3); DCF if data permits (state assumptions — note `_shared/sector-valuation-kpis.md` also carries Samit Vartak's stated view that duration-of-growth and the investor's own required-return are more sensitive valuation levers than the DCF's precision suggests, worth a sanity-check line); what's priced in at CMP; margin of safety.
+
+Apply the general cross-sector diagnostics from the same file where relevant: strip one-off P&L items before computing any multiple; check for a mid-capex operating-leverage distortion (rebuild forward P/E off guided capacity ramp rather than trailing earnings); check public float before trusting an apparently stable multiple; and don't mistake a cheap headline multiple for a value opportunity without a specific catalyst ("value remains value indefinitely until a genuine catalyst appears").
 
 ## §17 Investment Verdict
 

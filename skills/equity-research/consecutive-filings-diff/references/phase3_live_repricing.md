@@ -65,6 +65,8 @@ Document every assumption. "FY+1 PAT ₹680 Cr" is a number; "FY+1 PAT ₹680 Cr
 
 Use the terminal value / framework multiples that have been established for the sector. If none has been established, consult the user or build one using these default anchors:
 
+**If the sector isn't one of the anchors below, check `_shared/sector-valuation-kpis.md` first** — it covers ~24 additional sectors (banks, NBFCs, cement, real estate, hospitals, pharma CDMO/generic, platforms, FMCG, chemicals, agrochemicals, etc.) with primary valuation metric + supporting KPIs + benchmark ranges, plus general cross-sector diagnostics (over-earning/cycle check, one-off stripping, mid-capex distortion, PEG discipline). Note that several of those sectors don't use P/E or EV/EBITDA at all as the primary metric (e.g. real estate uses Market Cap/Pre-sales or EV/Imputed-EBITDA, banks use P/B) — the scenario ladder in Step 4 below should be built on that sector's actual primary metric, not forced into a P/E table.
+
 - **Solar EPC (India):** 22–26x FY+1 P/E in hypergrowth phase
 - **Integrated solar OEM:** 22–25x FY+1 P/E
 - **Pure module OEM:** 14–18x FY+1 P/E

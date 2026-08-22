@@ -27,6 +27,16 @@ without needing a model call at all. It is intentionally over-inclusive
 still reads full context around every hit and is the one that decides
 new-vs-confirmation, quantification, conviction, and J-curve stage.
 
+2026-08 update: added signature phrases for four new §2 catalyst categories
+(de-bottlenecking, order-book step-change/retendering, value-chain position
+climbing, molecule/product commercialization) and a third, independent regex
+pass (find_jcurve_pat_threshold_passages / PAT_GROWTH_RE) that flags PAT-
+growth-percentage passages >=30% as candidates for framework §5f's J-Curve
+Inflection tag -- this does NOT compute the tag itself (that is Phase 3g's
+job, reading the actual Result filing, per the framework's own sourcing
+rule), it only orients the flagship pass to where a qualifying number might
+be sitting in a transcript/PPT excerpt.
+
 Usage:
   python3 extract_rerating_signatures.py \
       --texts Transcript_Q1FY27.txt=Transcript,PPT_Q1FY27.txt=PPT,Result_Q1FY27.txt=Result \
@@ -66,6 +76,10 @@ SIGNATURE_PHRASES = {
     "New management change": [r"acquired controlling stake", r"new promoter", r"board reconstitution"],
     "New corporate action": [r"scheme of arrangement", r"demerger", r"jv agreement", r"joint venture agreement"],
     "New capex / capacity": [r"under construction", r"commissioning", r"phase\s*2", r"kmtpa", r"\bmw\b added", r"capacity expansion", r"greenfield", r"brownfield"],
+    "New de-bottlenecking": [r"de-?bottleneck(ing)?"],
+    "New order-book step-change": [r"re-?tender(ing)?", r"order book.{0,40}(cr|crore)"],
+    "New value-chain position": [r"moved up the value chain", r"backward integrat", r"\bodm\b", r"now supplying"],
+    "New molecule/product commercialization": [r"commercial(i[sz]ation|ised?|ized?) launch", r"commercial(i[sz]ation)\b"],
     "New age of business": [r"asset-?light", r"platform model", r"marketplace"],
     "New market creation": [r"first-?of-?its-?kind", r"launched in india", r"introduced"],
     "New regulations": [r"anti-?dumping duty", r"pli scheme", r"import substitution", r"production linked incentive"],
@@ -83,6 +97,19 @@ SIGNATURE_PHRASES = {
 # also contain a signature phrase in the same sentence.
 NUMBER_RE = re.compile(r"(?:rs\.?|inr|₹|\$|usd)\s*[\d,]+(?:\.\d+)?\s*(?:cr|crore|lakh|lacs?|million|mn|billion|bn)?|\b\d{1,3}(?:\.\d+)?\s*%", re.I)
 FORWARD_CUE_RE = re.compile(r"\bfy2[5-9]\b|\bq[1-4]fy2[5-9]\b|next year|by fy2[5-9]|expect|guide|target|aim to|plan to reach|going forward|outlook", re.I)
+
+# A THIRD, independent pass specifically for framework §5f check 1 (the
+# J-Curve Inflection tag's literal quantitative gate: PAT growth > 30% YoY,
+# ideally with revenue growth >= 15-20% too). This does not decide the tag --
+# that stays Phase 3g's job, reading the actual Result filing -- it only
+# flags passages worth the flagship pass's attention so a >=30%-looking PAT
+# print in a transcript/PPT/result excerpt isn't missed on a fast skim.
+PAT_GROWTH_RE = re.compile(
+    r"\bpat\b.{0,60}\b(3[0-9]|[4-9]\d|\d{3,})(?:\.\d+)?\s*%|"
+    r"\bnet profit\b.{0,60}\b(3[0-9]|[4-9]\d|\d{3,})(?:\.\d+)?\s*%|"
+    r"\bprofit after tax\b.{0,60}\b(3[0-9]|[4-9]\d|\d{3,})(?:\.\d+)?\s*%",
+    re.I,
+)
 
 CONTEXT_CHARS = 220
 
@@ -117,6 +144,19 @@ def find_quantified_forward_passages(text):
     return hits
 
 
+def find_jcurve_pat_threshold_passages(text):
+    hits = []
+    for m in re.finditer(PAT_GROWTH_RE, text):
+        start = max(0, m.start() - CONTEXT_CHARS)
+        end = min(len(text), m.end() + CONTEXT_CHARS)
+        hits.append({
+            "category": "J-Curve threshold candidate (PAT growth >=30%, framework §5f)",
+            "phrase": m.group(0),
+            "context": text[start:end].strip(),
+        })
+    return hits
+
+
 def dedupe(hits):
     seen = set()
     out = []
@@ -132,7 +172,11 @@ def dedupe(hits):
 def process_source(path_, source_type):
     with open(path_, "r", errors="ignore") as f:
         text = f.read()
-    hits = find_excerpts(text, SIGNATURE_PHRASES) + find_quantified_forward_passages(text)
+    hits = (
+        find_excerpts(text, SIGNATURE_PHRASES)
+        + find_quantified_forward_passages(text)
+        + find_jcurve_pat_threshold_passages(text)
+    )
     hits = dedupe(hits)
     excerpt_chars = sum(len(h["context"]) for h in hits)
     return {
