@@ -37,17 +37,69 @@ code, not a second copy of the logic.
 | `--window-hours`   | deterministic (see below)                  | explicit override — use for a deliberate re-run of a specific past evening. Leave unset for the nightly run. |
 | `email`            | on                                         | run `send-digest` at the end (off = just persist notes)                                                     |
 
-### Why the window is "since the most recent 3:30 PM IST close", not a resumable cursor
+### Resumable cursor (added 2026-08-23 — corrects an earlier design assumption)
 
-`watchlist-insights` uses a resumable cursor (`cache/watchlist-insights-cursor.json`)
-because a missed/late run there could silently create a multi-day gap. This skill is
-simpler by design: it runs once nightly at ~2 AM IST, a few hours after that same day's
-3:30 PM close — there is no earlier same-day run whose gap it needs to protect against. If
-a nightly run is genuinely missed (the scheduled task itself fails to fire), catch up
-explicitly with `--window-hours 34` (or however many hours cover the gap) rather than
-silently auto-expanding — same reasoning as `watchlist-insights`' "cursor stale beyond 30
-days is an error, not a silent backfill", just without needing the cursor machinery for
-the common case.
+This skill originally shipped WITHOUT a resumable cursor, reasoning that "it runs once
+nightly, a few hours after that same day's close — there's no earlier same-day run whose
+gap it needs to protect against." That reasoning missed a real case: a run CAN fire on a
+Saturday or Sunday (a manual catch-up, or the schedule changing), and without a cursor the
+very next scheduled run would recompute its window from the trading-day floor alone
+(see below) and re-fetch/re-process everything the weekend run already handled. Re-reading
+the same PDFs and re-asking the model to judge the same announcements' significance is
+exactly the repeated work `skills/_shared/conventions.md` §17 says to design out.
+
+So this skill now uses the SAME resumable-cursor pattern as `watchlist-insights`
+(`cache/post-close-scan-insights-cursor.json` + a `commit-window` command), simplified
+since there's only one fixed scan universe here (no per-watchlist cursor key needed):
+- **Step 1's `fetch-scan`** resolves its actual cutoff as the LATER of the trading-day
+  floor (last real trading day's 3:30 PM close) and the last-committed cursor — a
+  committed cursor means "everything up to here is already handled," so the cutoff must
+  never move earlier than that or it re-fetches already-processed announcements. It also
+  writes a pending-window marker recording this run's own invocation time.
+- **After a run is confirmed healthy** (Step 4's `send-digest` succeeds, or with `email`
+  off, Step 3's `mark-processed`/`add-note` calls all complete cleanly), call
+  `run commit-window` to durably advance the cursor to that pending marker's timestamp.
+  **Never commit after a partially-failed run** — that would permanently drop whatever
+  didn't get processed, since the next run's window would no longer reach back far enough
+  to see it.
+- If a nightly run is genuinely missed entirely (the scheduled task itself fails to fire
+  for one or more full days), catch up explicitly with `--window-hours <n>` covering the
+  real gap, then still call `commit-window` afterward to reset the cursor — same as
+  `watchlist-insights`' "cursor stale beyond 30 days is an error, not a silent backfill"
+  (this skill uses the identical 30-day safety cap).
+
+**Weekend AND holiday handling (weekends fixed 2026-08-23, holidays fixed 2026-08-23):**
+the trading-day FLOOR half of `resolveCutoffUtc` (i.e. `defaultCutoffUtc`) means the most
+recent REAL NSE/BSE trading day's close — not literally "yesterday's", and not just "the
+last weekday's." It calls the shared `packages/jobs-runtime/lib/tradingCalendar.js` module
+(`lastTradingDayOnOrBefore`), which walks back over both weekends and NSE trading
+holidays, so:
+- The Sunday-night/Monday ~2 AM run correctly reaches back to the prior **Friday** 3:30 PM
+  close, picking up everything filed Friday evening plus any weekend filings (NCLT orders
+  and SAST disclosures do land on non-trading days) that a plain "yesterday" cutoff would
+  otherwise silently drop.
+- The morning after ANY NSE trading holiday (Diwali, Republic Day, Holi, etc.) correctly
+  reaches back to the last real trading day before the holiday, not the holiday itself —
+  the identical failure mode as the weekend gap, just triggered by a different calendar.
+- A run that happened to fire on a non-trading day (Saturday, Sunday, or a holiday)
+  computes the SAME floor as the next Mon-Fri run would — it's the cursor (see above),
+  not the floor, that then actually determines whether that weekend run's own results get
+  reused or re-covered.
+
+`tradingCalendar.js` sources the holiday list from NSE's public holiday-master API
+(`https://www.nseindia.com/api/holiday-master?type=trading`, "CM"/capital-market segment),
+cached per-year at `data/cache/trading-holidays-<year>.json` — a normal nightly run reads
+the cache and makes no network call; the module re-fetches when the cache is missing OR
+older than 7 days (added 2026-08-23 — NSE occasionally revises its published holiday list
+mid-year, e.g. last-minute regional election-day additions, so a once-a-year refresh could
+sit on a stale correction for months). **Fail-open by design**: if the NSE fetch fails and
+there's no usable cache, every day is treated as tradable (equivalent to the old
+weekend-only behavior) rather than the run erroring out — a warning is printed to logs
+either way, so check for `[tradingCalendar]` warnings if a Monday/post-holiday digest ever
+looks thin. `gainersScanner.js` has an identical, longer-standing "weekends only, no
+holiday calendar" gap (flagged in its own comments, never fixed) — `tradingCalendar.js` is
+written to be reusable there too if that gets prioritized, so as not to re-solve this a
+third time.
 
 ## Setup
 
@@ -72,14 +124,17 @@ different from a network block).
 ## Step 1 — Fetch the post-close window
 
 ```bash
-run fetch-scan                          # deterministic "since yesterday's 3:30 PM IST close" — normal nightly run
-run fetch-scan --window-hours 34        # explicit catch-up after a missed run
+run fetch-scan                          # since max(last-trading-day's 3:30PM IST close, last-committed cursor) — normal nightly run
+run fetch-scan --window-hours 34        # explicit catch-up after a missed run (bypasses both the floor and the cursor)
 ```
 
 Paginates the fixed ad-hoc scan (30/call, per the documented `announcements/scan`
 convention — see `docs/stockscans-api-schemas.md`) until it crosses the cutoff, since
 results are returned newest-first. Returns `{cutoffUtc, quarterDate, totalFetched,
-inWindow}`. Save `inWindow` to a file for the next step.
+inWindow}`. Save `inWindow` to a file for the next step. Also writes a pending-window
+marker (`cache/post-close-scan-insights-pending-window.json`) that Step 5's
+`commit-window` reads back — don't call `fetch-scan` again mid-run for the same cycle, or
+the pending marker will point at the later call's window instead.
 
 ## Step 2 — Filter noise, then categorise
 
@@ -171,16 +226,26 @@ nonzero so it's visible without opening the email.
 If `email` param is off, skip this step — the notes are already durably persisted by
 Step 3's `add-note` calls regardless of whether a digest is sent.
 
-## Step 5 — Offload & cleanup (MANDATORY, even on partial failure)
+## Step 5 — Commit the window cursor, then offload & cleanup
 
 ```bash
+run commit-window       # ONLY after Step 4 (or Step 3, if email is off) completed cleanly
 yarn data:push
 ```
 
-Idempotent push of everything under `data/` to Google Drive (`StockMarket/data/v2`).
-Push-only — nothing under `data/` is ever deleted. The run is not complete until this has
-run, same as every other data-writing skill in this repo (`skills/_shared/conventions.md`
-§6).
+**`commit-window` first, and only on a healthy run.** It durably advances
+`cache/post-close-scan-insights-cursor.json` to Step 1's own recorded windowEnd, so the
+NEXT run's `fetch-scan` starts exactly where this one left off instead of re-covering
+ground already processed (see "Resumable cursor" above). Skip this call if ANYTHING in
+Steps 1-4 errored or was left incomplete — an uncommitted cursor just means the next run's
+window is a little wider (safe, dedup'd via `mark-processed`); a wrongly-committed one
+after a partial failure permanently drops whatever didn't get processed.
+
+`yarn data:push` is MANDATORY even on partial failure (unlike `commit-window`, which is
+conditional) — idempotent push of everything under `data/` to Google Drive
+(`StockMarket/data/v2`). Push-only — nothing under `data/` is ever deleted. The run is not
+complete until this has run, same as every other data-writing skill in this repo
+(`skills/_shared/conventions.md` §6).
 
 ## Rules
 

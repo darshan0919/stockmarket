@@ -277,15 +277,29 @@ function normalizeIgnoreText(value) {
     .toLowerCase();
 }
 
+// Mirrors @stock-api/utils/announcementNoiseFilter's keywordToRegExp: a `*` in
+// the keyword matches any run of characters (e.g. `notice of * agm` matches
+// "Notice Of 41St AGM", "Notice Of 50Th AGM"); every other character is
+// escaped, so a keyword with no `*` behaves like the previous plain substring
+// check.
+function keywordToRegExp(keyword) {
+  const escapeRegExp = (segment) => segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = String(keyword || '')
+    .split('*')
+    .map(escapeRegExp)
+    .join('.*');
+  return new RegExp(pattern, 'i');
+}
+
 function clientShouldIgnoreAnnouncement(announcement, ignoredKeywords) {
   const title = normalizeIgnoreText(announcement?.title || announcement?.highlightedTitle);
   const titleHit = (ignoredKeywords?.titleKeywordsToIgnore || []).some((kw) =>
-    title.includes(kw.toLowerCase())
+    keywordToRegExp(kw).test(title)
   );
   if (titleHit) return true;
   const description = normalizeIgnoreText(announcement?.description);
   return (ignoredKeywords?.descriptionKeywordsToIgnore || []).some((kw) =>
-    description.includes(kw.toLowerCase())
+    keywordToRegExp(kw).test(description)
   );
 }
 
@@ -887,7 +901,8 @@ function KeywordBuilder({
               <h3 className="text-sm font-semibold">Ignore announcements</h3>
               <p className="text-xs text-base-content/50">
                 Applies to every scan — remove rows when the selected field contains one of these
-                keywords.
+                keywords. Use * as a wildcard, e.g. &ldquo;notice of * agm&rdquo; matches
+                &ldquo;Notice of 41st AGM&rdquo;.
               </p>
             </div>
             <button
@@ -964,48 +979,66 @@ function TokenPanel({ title, empty, tone, items, renderItem, onRemove, itemKey =
 }
 
 function IgnoreKeywordInput({ label, placeholder, value, keywords, onChange, onSubmit, onRemove }) {
+  const [open, setOpen] = useState(false);
   return (
     <div className="rounded-lg border border-base-300 bg-base-200/50 p-3">
-      <label className="text-xs text-base-content/50">{label}</label>
-      <div className="mt-1 flex rounded-lg border border-base-300 bg-base-100 focus-within:border-secondary/60">
-        <input
-          className="input input-sm flex-1 border-0 focus:outline-none bg-transparent"
-          placeholder={placeholder}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              onSubmit();
-            }
-          }}
-        />
-        <button type="button" className="btn btn-sm btn-outline rounded-l-none" onClick={onSubmit}>
-          Add
-        </button>
-      </div>
-      <div className="mt-2 flex flex-wrap gap-2 min-h-[28px]">
-        {keywords.length > 0 ? (
-          keywords.map((keyword) => (
-            <span
-              key={keyword}
-              className="badge badge-outline gap-1 h-auto min-h-[1.75rem] py-1 px-2 whitespace-normal text-left leading-snug"
+      <button
+        type="button"
+        className="flex items-center gap-2 w-full text-left"
+        onClick={() => setOpen((prev) => !prev)}
+        aria-expanded={open}
+      >
+        <ChevronIcon className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <label className="text-xs text-base-content/50 cursor-pointer">{label}</label>
+        <span className="text-[11px] text-base-content/40">({keywords.length})</span>
+      </button>
+      {open && (
+        <>
+          <div className="mt-1 flex rounded-lg border border-base-300 bg-base-100 focus-within:border-secondary/60">
+            <input
+              className="input input-sm flex-1 border-0 focus:outline-none bg-transparent"
+              placeholder={placeholder}
+              value={value}
+              onChange={(event) => onChange(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  onSubmit();
+                }
+              }}
+            />
+            <button
+              type="button"
+              className="btn btn-sm btn-outline rounded-l-none"
+              onClick={onSubmit}
             >
-              {keyword}
-              <button
-                type="button"
-                className="shrink-0"
-                onClick={() => onRemove(keyword)}
-                aria-label={`Remove ignore keyword ${keyword}`}
-              >
-                <XIcon className="w-3 h-3" />
-              </button>
-            </span>
-          ))
-        ) : (
-          <span className="text-xs text-base-content/40">No ignore keywords</span>
-        )}
-      </div>
+              Add
+            </button>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2 min-h-[28px]">
+            {keywords.length > 0 ? (
+              keywords.map((keyword) => (
+                <span
+                  key={keyword}
+                  className="badge badge-outline gap-1 h-auto min-h-[1.75rem] py-1 px-2 whitespace-normal text-left leading-snug"
+                >
+                  {keyword}
+                  <button
+                    type="button"
+                    className="shrink-0"
+                    onClick={() => onRemove(keyword)}
+                    aria-label={`Remove ignore keyword ${keyword}`}
+                  >
+                    <XIcon className="w-3 h-3" />
+                  </button>
+                </span>
+              ))
+            ) : (
+              <span className="text-xs text-base-content/40">No ignore keywords</span>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1027,14 +1060,26 @@ function ScanFilters({ scan, metadata, quarterDate, onScanChange, onQuarterChang
     setUnsaved();
   };
 
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
   return (
     <div className="finance-card overflow-hidden">
-      <div className="p-4 border-b border-base-300 bg-base-200/40 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        <div>
-          <h2 className="text-sm font-semibold">Filters & Universe</h2>
-          <p className="text-xs text-base-content/50 mt-0.5">
-            {activeUniverseLabels(scan).join(' / ')}
-          </p>
+      <button
+        type="button"
+        className="w-full p-4 border-b border-base-300 bg-base-200/40 flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-left"
+        onClick={() => setFiltersOpen((prev) => !prev)}
+        aria-expanded={filtersOpen}
+      >
+        <div className="flex items-center gap-2">
+          <ChevronIcon
+            className={`w-4 h-4 flex-none transition-transform ${filtersOpen ? 'rotate-180' : ''}`}
+          />
+          <div>
+            <h2 className="text-sm font-semibold">Filters & Universe</h2>
+            <p className="text-xs text-base-content/50 mt-0.5">
+              {activeUniverseLabels(scan).join(' / ')}
+            </p>
+          </div>
         </div>
         <div className="text-xs text-base-content/50">
           {pluralize(scan.filters.length, 'financial filter')} /{' '}
@@ -1043,140 +1088,142 @@ function ScanFilters({ scan, metadata, quarterDate, onScanChange, onQuarterChang
             'universe tag'
           )}
         </div>
-      </div>
+      </button>
 
-      <div className="p-4 space-y-4">
-        {scan.companyFilters.length > 0 && (
-          <div className="mb-3 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning-content">
-            StockScans disables industry, index and watchlist tags when company filters are
-            selected.
-          </div>
-        )}
+      {filtersOpen && (
+        <div className="p-4 space-y-4">
+          {scan.companyFilters.length > 0 && (
+            <div className="mb-3 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning-content">
+              StockScans disables industry, index and watchlist tags when company filters are
+              selected.
+            </div>
+          )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
-          <Dropdown
-            label="Industry"
-            multiple
-            searchable
-            options={metadata.industryList || []}
-            values={scan.industry}
-            disabled={scan.companyFilters.length > 0}
-            placeholder="All industries"
-            onChange={(next) => updateListValue('industry', next)}
-          />
-          <Dropdown
-            label="Index"
-            multiple
-            searchable
-            options={metadata.indexList || []}
-            values={scan.index}
-            disabled={scan.companyFilters.length > 0}
-            placeholder="All indices"
-            onChange={(next) => updateListValue('index', next)}
-          />
-          <Dropdown
-            label="Watchlist"
-            multiple
-            searchable
-            options={watchlistOptions}
-            values={scan.watchlistIds}
-            disabled={scan.companyFilters.length > 0 || watchlists.length === 0}
-            placeholder="No watchlist"
-            empty="No StockScans watchlists"
-            onChange={(next) => updateListValue('watchlistIds', next)}
-          />
-          <Dropdown
-            label="Type"
-            options={metadata.announcementTypes || ['All']}
-            value={scan.announcementType}
-            onChange={(nextType) => {
-              onScanChange({ ...scan, announcementType: nextType });
-              setUnsaved();
-            }}
-          />
-          <Dropdown
-            label="Quarter"
-            searchable
-            options={(metadata.quarterDates || []).map((value) => ({
-              value,
-              label: quarterLabel(value),
-            }))}
-            value={quarterDate}
-            onChange={(nextQuarter) => {
-              onQuarterChange(nextQuarter);
-              setUnsaved();
-            }}
-          />
-        </div>
-
-        <div className="rounded-xl border border-base-300 bg-base-100 p-3">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold">Financial filters</h3>
-            <button
-              type="button"
-              className="btn btn-sm btn-outline gap-1"
-              onClick={() =>
-                updateFilters([
-                  ...scan.filters,
-                  { left: 'Market Capitalization', sign: '>=', right: '1000' },
-                ])
-              }
-            >
-              <PlusIcon />
-              Add filter
-            </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+            <Dropdown
+              label="Industry"
+              multiple
+              searchable
+              options={metadata.industryList || []}
+              values={scan.industry}
+              disabled={scan.companyFilters.length > 0}
+              placeholder="All industries"
+              onChange={(next) => updateListValue('industry', next)}
+            />
+            <Dropdown
+              label="Index"
+              multiple
+              searchable
+              options={metadata.indexList || []}
+              values={scan.index}
+              disabled={scan.companyFilters.length > 0}
+              placeholder="All indices"
+              onChange={(next) => updateListValue('index', next)}
+            />
+            <Dropdown
+              label="Watchlist"
+              multiple
+              searchable
+              options={watchlistOptions}
+              values={scan.watchlistIds}
+              disabled={scan.companyFilters.length > 0 || watchlists.length === 0}
+              placeholder="No watchlist"
+              empty="No StockScans watchlists"
+              onChange={(next) => updateListValue('watchlistIds', next)}
+            />
+            <Dropdown
+              label="Type"
+              options={metadata.announcementTypes || ['All']}
+              value={scan.announcementType}
+              onChange={(nextType) => {
+                onScanChange({ ...scan, announcementType: nextType });
+                setUnsaved();
+              }}
+            />
+            <Dropdown
+              label="Quarter"
+              searchable
+              options={(metadata.quarterDates || []).map((value) => ({
+                value,
+                label: quarterLabel(value),
+              }))}
+              value={quarterDate}
+              onChange={(nextQuarter) => {
+                onQuarterChange(nextQuarter);
+                setUnsaved();
+              }}
+            />
           </div>
 
-          <div className="space-y-2">
-            {scan.filters.map((filter, index) => (
-              <div
-                key={`${filter.left}-${index}`}
-                className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_110px_minmax(120px,0.7fr)_40px] gap-2"
+          <div className="rounded-xl border border-base-300 bg-base-100 p-3">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold">Financial filters</h3>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline gap-1"
+                onClick={() =>
+                  updateFilters([
+                    ...scan.filters,
+                    { left: 'Market Capitalization', sign: '>=', right: '1000' },
+                  ])
+                }
               >
-                <Dropdown
-                  options={FILTER_FIELDS}
-                  value={filter.left}
-                  searchable
-                  onChange={(nextField) => {
-                    const next = [...scan.filters];
-                    next[index] = { ...filter, left: nextField };
-                    updateFilters(next);
-                  }}
-                />
-                <Dropdown
-                  options={SIGNS}
-                  value={filter.sign}
-                  onChange={(nextSign) => {
-                    const next = [...scan.filters];
-                    next[index] = { ...filter, sign: nextSign };
-                    updateFilters(next);
-                  }}
-                />
-                <input
-                  className="input input-sm input-bordered h-9 bg-base-100"
-                  value={filter.right}
-                  onChange={(event) => {
-                    const next = [...scan.filters];
-                    next[index] = { ...filter, right: event.target.value };
-                    updateFilters(next);
-                  }}
-                />
-                <IconButton
-                  label="Remove filter"
-                  onClick={() => updateFilters(scan.filters.filter((_, i) => i !== index))}
+                <PlusIcon />
+                Add filter
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {scan.filters.map((filter, index) => (
+                <div
+                  key={`${filter.left}-${index}`}
+                  className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_110px_minmax(120px,0.7fr)_40px] gap-2"
                 >
-                  <XIcon />
-                </IconButton>
-              </div>
-            ))}
-            {scan.filters.length === 0 && (
-              <div className="rounded-lg border border-dashed border-base-300 px-3 py-4 text-sm text-base-content/50">
-                No financial filters added.
-              </div>
-            )}
+                  <Dropdown
+                    options={FILTER_FIELDS}
+                    value={filter.left}
+                    searchable
+                    onChange={(nextField) => {
+                      const next = [...scan.filters];
+                      next[index] = { ...filter, left: nextField };
+                      updateFilters(next);
+                    }}
+                  />
+                  <Dropdown
+                    options={SIGNS}
+                    value={filter.sign}
+                    onChange={(nextSign) => {
+                      const next = [...scan.filters];
+                      next[index] = { ...filter, sign: nextSign };
+                      updateFilters(next);
+                    }}
+                  />
+                  <input
+                    className="input input-sm input-bordered h-9 bg-base-100"
+                    value={filter.right}
+                    onChange={(event) => {
+                      const next = [...scan.filters];
+                      next[index] = { ...filter, right: event.target.value };
+                      updateFilters(next);
+                    }}
+                  />
+                  <IconButton
+                    label="Remove filter"
+                    onClick={() => updateFilters(scan.filters.filter((_, i) => i !== index))}
+                  >
+                    <XIcon />
+                  </IconButton>
+                </div>
+              ))}
+              {scan.filters.length === 0 && (
+                <div className="rounded-lg border border-dashed border-base-300 px-3 py-4 text-sm text-base-content/50">
+                  No financial filters added.
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -1208,7 +1255,11 @@ function AnnouncementCard({ announcement }) {
           )}
         </div>
         {announcement.description && (
-          <p className="text-sm text-base-content/60 mt-3 line-clamp-2">
+          <p
+            className={`text-sm text-base-content/60 mt-3 ${
+              snippets.length > 0 ? 'line-clamp-2' : ''
+            }`}
+          >
             {announcement.description}
           </p>
         )}
@@ -1637,7 +1688,7 @@ function IgnoredAnnouncementsWidget({ data }) {
         <h2 className="text-sm font-semibold">Ignored Announcements</h2>
         <p className="text-xs text-base-content/50 mt-0.5">Categorized by keyword</p>
       </div>
-      <div className="overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-6">
         {Object.keys(data.title).length > 0 && (
           <div>
             <h3 className="text-xs font-semibold uppercase text-secondary mb-3 border-b border-base-200 pb-1">
@@ -1798,7 +1849,7 @@ export default function AnnouncementScansPage() {
     results.announcements.forEach((ann) => {
       const title = normalizeIgnoreText(ann?.title || ann?.highlightedTitle);
       const titleHit = (ignoredKeywords?.titleKeywordsToIgnore || []).find((kw) =>
-        title.includes(kw.toLowerCase())
+        keywordToRegExp(kw).test(title)
       );
 
       if (titleHit) {
@@ -1813,7 +1864,7 @@ export default function AnnouncementScansPage() {
       } else {
         const description = normalizeIgnoreText(ann?.description);
         const descHit = (ignoredKeywords?.descriptionKeywordsToIgnore || []).find((kw) => {
-          return description.includes(kw.toLowerCase());
+          return keywordToRegExp(kw).test(description);
         });
 
         if (descHit) {

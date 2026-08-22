@@ -20,6 +20,7 @@
  *   filter-noise <fetch-scan.json>  -> {kept, dropped} after noise-keyword filter
  *   categorise <filter-noise kept>  -> adds {category, heavyDocument, pdfUrl}
  *   send-digest <insights.json>     -> emails a significance-grouped HTML digest
+ *   commit-window                   -> durably advances the resumable window cursor (call after a healthy run)
  */
 
 const fs = require('fs');
@@ -28,6 +29,7 @@ const { StockscansAuth } = require('../../stock-api/src/auth/stockscansAuth');
 const { sendHtmlEmail } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
 const ist = require('./lib/ist');
+const tradingCalendar = require('./lib/tradingCalendar');
 const {
   shouldIgnoreAnnouncement,
   matchedNoiseKeyword,
@@ -82,25 +84,83 @@ function currentQuarterDate(date = new Date()) {
 }
 
 /**
- * Deterministic window: "since the most recent 3:30 PM IST market close
- * strictly before now". Run nightly at ~2 AM IST, this is always yesterday's
- * close (a ~10.5h window) — NOT a resumable cursor (see skill's Params
- * table for why this is intentionally simpler than watchlist-insights'
- * cursor pattern: a single nightly run close to market close leaves little
- * room for the multi-day-gap failure mode that pattern guards against; if a
- * run is missed entirely, re-run manually with --window-hours to cover the
- * gap explicitly rather than silently auto-expanding).
+ * Deterministic FLOOR: "since the most recent 3:30 PM IST market close
+ * strictly before now". This is the anchor floor, not the final answer — see
+ * `resolveCutoffUtc` below, which also consults the resumable cursor so a
+ * run never re-fetches announcements an earlier run already committed.
+ *
+ * "Most recent 3:30 PM IST market close" means the most recent REAL trading
+ * day's close — not just "yesterday", and not just "the last weekday".
+ * Two separate non-trading-day gaps would otherwise cause a silent skip:
+ *   - Weekends (fixed 2026-08-23): Monday's ~2 AM run naively looks back to
+ *     only Sunday 3:30 PM, missing everything filed Friday evening through
+ *     the weekend (weekend NCLT orders and SAST disclosures do land on
+ *     non-trading days).
+ *   - NSE/BSE trading holidays (fixed 2026-08-23): the morning after ANY
+ *     midweek holiday has the identical problem — e.g. a run on the day
+ *     after Diwali looks back to the holiday's 3:30 PM instead of the prior
+ *     trading day's.
+ * `tradingCalendar.lastTradingDayOnOrBefore` (backed by NSE's public
+ * holiday-master API, cached in `data/cache/trading-holidays-<year>.json`,
+ * refreshed weekly) walks back over both weekends AND holidays, so every
+ * calendar day's run resolves to the same last-real-trading-day close a
+ * human would expect.
  */
-function defaultCutoffUtc(now = new Date()) {
+async function defaultCutoffUtc(now = new Date()) {
   const d = ist.istDate(now);
   const today1530 = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 15, 30, 0));
   let cutoffIst = today1530;
   if (d.getTime() < today1530.getTime()) {
     cutoffIst = new Date(today1530.getTime() - 24 * 60 * 60 * 1000);
   }
+  // Walk back over weekends AND holidays so the cutoff always lands on the
+  // most recent real-trading-day close, not merely "yesterday's" or "the
+  // last weekday's".
+  cutoffIst = await tradingCalendar.lastTradingDayOnOrBefore(cutoffIst);
   // cutoffIst is a UTC-typed Date holding IST wall-clock fields (istDate's
   // convention) — convert back to a real UTC instant.
   return new Date(cutoffIst.getTime() - (5 * 60 + 30) * 60 * 1000);
+}
+
+// RESUMABLE CURSOR (added 2026-08-23, ported to the shared module
+// 2026-08-23) — same pattern as watchlist-insights' WINDOW_CURSOR_PATH,
+// applied here because the original "no cursor needed" reasoning turned out
+// to be wrong: this skill DOES have same-cycle runs close enough together to
+// double-process. Concretely — if a run ever fires on a Saturday or Sunday
+// (e.g. a manual catch-up, or the schedule changes), it commits a cursor at
+// Saturday-evening's actual fetch boundary. Without a cursor, Monday's run
+// would recompute its window from `defaultCutoffUtc` alone (Friday's close)
+// and re-fetch/re-process everything Saturday's run already handled —
+// harmless in that `mark-processed` dedupes at the announcement level, but
+// wasteful (re-reads PDFs, re-asks the model to judge significance) and the
+// exact kind of repeated work `skills/_shared/conventions.md` §17 says to
+// design out, not tolerate. See `lib/windowCursor.js` for the shared,
+// reusable version of this — this is now the SECOND consumer (after
+// watchlist-insights) proving out the extraction, and the STANDARD pattern
+// any new recurring job with expensive per-item processing should reach for
+// from the start rather than re-deriving. commit-window is called only
+// after a run's digest send succeeds (see skill's Step 4/5) — never on a
+// partial failure, so a failed run's un-processed announcements stay
+// reachable by the next run instead of being silently dropped.
+const windowCursor = require('./lib/windowCursor')('post-close-scan-insights');
+
+/**
+ * Resolve this run's actual cutoff via the shared cursor module: the LATER
+ * of the anchor floor (`defaultCutoffUtc` — last real trading day's 3:30 PM
+ * close) and the last-committed cursor, if any and if not stale beyond the
+ * safety cap. "Later" is correct here because a committed cursor means
+ * "everything up to here is already handled" — moving the cutoff any
+ * earlier than that would re-fetch already-processed announcements, which
+ * is exactly the double-processing this cursor exists to prevent. If the
+ * cursor is somehow OLDER than the anchor floor (e.g. a genuinely missed
+ * multi-day run, or a first-ever run with a stale seed), the anchor floor
+ * wins instead — the floor is never allowed to widen this job's window past
+ * "since last trading day's close" on its own; use --window-hours for that.
+ */
+async function resolveCutoffUtc(now, windowHoursArg) {
+  const floorMs = (await defaultCutoffUtc(now)).getTime();
+  const startMs = await windowCursor.resolveWindowStartMs({ now, floorMs, windowHoursArg });
+  return new Date(startMs);
 }
 
 function parseAnnDateToUtc(str) {
@@ -129,9 +189,7 @@ async function cmdFetchScan(argv) {
   loadEnv(argValue('--env-file', argv));
   const windowHoursArg = argValue('--window-hours', argv);
   const now = new Date();
-  const cutoffUtc = windowHoursArg
-    ? new Date(now.getTime() - Number(windowHoursArg) * 60 * 60 * 1000)
-    : defaultCutoffUtc(now);
+  const cutoffUtc = await resolveCutoffUtc(now, windowHoursArg);
   const quarterDate = currentQuarterDate(now);
 
   const all = [];
@@ -165,9 +223,36 @@ async function cmdFetchScan(argv) {
     if (crossedCutoff) break; // results are newest-first — safe to stop once we've seen an out-of-window item
   }
 
+  // Record this fetch's windowEnd (= this invocation's "now", not the
+  // cutoff) as the pending marker — commit-window reads it back so the
+  // cursor advances to exactly what THIS run actually covered, never to
+  // "now" recomputed at commit time (which could silently skip anything
+  // filed in between fetch and commit).
+  await windowCursor.savePendingWindow({
+    windowEndMs: now.getTime(),
+    extra: { committedForCutoffMs: cutoffUtc.getTime() },
+  });
+
   process.stdout.write(
     JSON.stringify({ cutoffUtc: cutoffUtc.toISOString(), quarterDate, totalFetched: all.length, inWindow }, null, 2)
   );
+}
+
+/**
+ * Durably advance the resumable window cursor to the exact windowEnd that
+ * the most recent `fetch-scan` call used (read from the pending-window
+ * marker it wrote — never "now", which would silently skip anything
+ * published between that fetch and this commit). Call this only once a run
+ * is confirmed healthy — i.e. after Step 4's send-digest succeeds (or,
+ * with `email` off, after Step 3's mark-processed/add-note calls all
+ * complete without error) — same rule as watchlist-insights' commit-window:
+ * committing after a partially-failed run would permanently drop whatever
+ * didn't get processed, since the next run's window would no longer reach
+ * back far enough to see it.
+ */
+async function cmdCommitWindow() {
+  const cursor = await windowCursor.commitWindow();
+  process.stdout.write(JSON.stringify({ status: 'ok', lastCommittedAtIso: cursor.lastCommittedAtIso }, null, 2));
 }
 
 function cmdFilterNoise(argv) {
@@ -276,6 +361,7 @@ async function main() {
     'filter-noise': cmdFilterNoise,
     categorise: cmdCategorise,
     'send-digest': cmdSendDigest,
+    'commit-window': cmdCommitWindow,
   };
   const fn = commands[cmd];
   if (!fn) {

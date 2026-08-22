@@ -157,6 +157,13 @@ const DATA_SETTLED_IST_HOUR = 18; // 6 PM IST
  * Day, etc.) — there is no holiday calendar wired in yet, so a run on an NSE
  * holiday will still incorrectly treat that day as tradable. Flagged, not
  * fixed, here — a future fix needs a holiday source, not just more date math.
+ * A holiday source now exists: `lib/tradingCalendar.js` (built 2026-08-23 for
+ * `postCloseScanInsights.js`'s identical gap) fetches+caches NSE's public
+ * holiday-master API and exposes `isTradingDay`/`lastTradingDayOnOrBefore`.
+ * Wiring it in here would require making `resolveMarketDate` (and its
+ * caller) async — not done as part of that fix since it was scoped to
+ * post-close-scan-insights only; reuse it here rather than re-deriving a
+ * second holiday calendar if/when this gets prioritized.
  */
 function resolveMarketDate(today, now = new Date()) {
   const isWeekday = today.getUTCDay() !== 0 && today.getUTCDay() !== 6;

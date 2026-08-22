@@ -1,7 +1,6 @@
 {
   "titleKeywordsToIgnore": [
     "BRSR",
-    "Annual General Meeting",
     "Earnings Call Transcript",
     "Annual Report",
     "Investor Presentation",
@@ -16,8 +15,12 @@
     "Change in Management",
     "Change in Directorate",
     "ESG",
-    "Resignation"
+    "Resignation",
+    "agm*of the company",
+    "notice*agm",
+    "intimation*agm",
+    "Annual General Meeting"
   ],
   "descriptionKeywordsToIgnore": [],
-  "updatedAt": "2026-08-21T04:11:34.238Z"
+  "updatedAt": "2026-08-22T23:47:09.613Z"
 }

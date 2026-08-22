@@ -103,13 +103,31 @@ function saveNoiseKeywords(payload = {}) {
 }
 
 /**
+ * Compile an ignore keyword into a case-insensitive substring-matching RegExp.
+ * A `*` in the keyword matches any run of characters (e.g. `notice of * agm`
+ * matches "Notice Of 41St AGM", "Notice Of 50Th AGM"); every other character
+ * is escaped, so a keyword with no `*` behaves exactly like the previous
+ * plain `.includes()` check.
+ * @param {string} keyword
+ * @returns {RegExp}
+ */
+function keywordToRegExp(keyword) {
+  const escapeRegExp = (segment) => segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = String(keyword || '')
+    .split('*')
+    .map(escapeRegExp)
+    .join('.*');
+  return new RegExp(pattern, 'i');
+}
+
+/**
  * @param {string} title
  * @param {string[]} titleKeywordsToIgnore
  * @returns {string|null} the matched keyword, or null
  */
 function matchedTitleKeyword(title, titleKeywordsToIgnore) {
   const haystack = normalizeText(title);
-  return (titleKeywordsToIgnore || []).find((kw) => haystack.includes(kw.toLowerCase())) || null;
+  return (titleKeywordsToIgnore || []).find((kw) => keywordToRegExp(kw).test(haystack)) || null;
 }
 
 /**
@@ -120,7 +138,7 @@ function matchedTitleKeyword(title, titleKeywordsToIgnore) {
 function matchedDescriptionKeyword(description, descriptionKeywordsToIgnore) {
   const haystack = normalizeText(description);
   return (
-    (descriptionKeywordsToIgnore || []).find((kw) => haystack.includes(kw.toLowerCase())) || null
+    (descriptionKeywordsToIgnore || []).find((kw) => keywordToRegExp(kw).test(haystack)) || null
   );
 }
 
@@ -157,6 +175,7 @@ module.exports = {
   NOISE_KEYWORDS_PATH,
   normalizeText,
   normalizeKeywordList,
+  keywordToRegExp,
   loadNoiseKeywords,
   saveNoiseKeywords,
   shouldIgnoreAnnouncement,
