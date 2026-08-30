@@ -362,7 +362,7 @@ Notes:
 - Paginates in steps of **50** (`offset`). `total` IS trustworthy for this
   endpoint (confirmed: `offset:50` returned `start:51,end:100`; an offset
   near the tail of a 6472-company universe returned exactly
-  `total - offset` rows) — the *opposite* of `scanAnnouncements`'s
+  `total - offset` rows) — the _opposite_ of `scanAnnouncements`'s
   self-inflating `total` (§16 in `skills/_shared/conventions.md`); safe to
   use `total` here to compute the full page count.
 - `scan.scanName`/`scan.scanDescription` appear to be free-text placeholders
@@ -387,8 +387,24 @@ Notes:
 ```json
 {
   "table": {
-    "0": ["companyId", "Name", "Market Capitalization", "...", "Pledged Percentage", "Industry", "Sector"],
-    "1": ["NSE:RELIANCE", "Reliance Industries Ltd", 1774115.34, "...", 0, "Refineries", "Refineries"],
+    "0": [
+      "companyId",
+      "Name",
+      "Market Capitalization",
+      "...",
+      "Pledged Percentage",
+      "Industry",
+      "Sector"
+    ],
+    "1": [
+      "NSE:RELIANCE",
+      "Reliance Industries Ltd",
+      1774115.34,
+      "...",
+      0,
+      "Refineries",
+      "Refineries"
+    ],
     "2": ["NSE:BHARTIARTL", "Bharti Airtel Ltd", "...", 0, "Telecom Services", "Telecom-Service"]
   },
   "total": 6475,

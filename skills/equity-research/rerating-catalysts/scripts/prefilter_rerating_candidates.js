@@ -52,7 +52,9 @@
  */
 const path = require('path');
 const { resolveUniverse } = require('../../../../stock-api/src/analyzers/runScan.js');
-const { fetchAnnouncements } = require('../../../../stock-api/src/fetchers/announcementsFetcher.js');
+const {
+  fetchAnnouncements,
+} = require('../../../../stock-api/src/fetchers/announcementsFetcher.js');
 const db = require('../../../../packages/jobs-runtime/lib/db.js');
 
 const PRICE_RET_1D = 7.0;
@@ -121,8 +123,10 @@ async function evaluateCompany(companyId, scanRow) {
   if (scanRow) {
     const r1d = scanRow['Returns 1D'];
     const r1w = scanRow['Returns 1W'];
-    if ((r1d !== undefined && Math.abs(r1d) >= PRICE_RET_1D) ||
-        (r1w !== undefined && Math.abs(r1w) >= PRICE_RET_1W)) {
+    if (
+      (r1d !== undefined && Math.abs(r1d) >= PRICE_RET_1D) ||
+      (r1w !== undefined && Math.abs(r1w) >= PRICE_RET_1W)
+    ) {
       priceFlag = { ret1d: r1d, ret1w: r1w };
     }
   }

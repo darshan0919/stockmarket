@@ -30,15 +30,12 @@
  *   data/deals_digest/{date}_deals.json  (raw + top10 per category)
  */
 
-const fs = require('fs');
-const path = require('path');
-const { nse, bse } = require('@stock/api');
+const { nse, bse, stockscans } = require('@stock/api');
 const { loadEnv, argValue } = require('./lib/env');
 const { sendHtmlEmail, stockscansUrl } = require('@stock/cloud-utils');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const dbV2 = require('./lib/db');
 const { tagEntityTypes, ENTITY_TYPE_LABELS } = require('./lib/entityClassifier');
-const { stockscans } = require('@stock/api');
 const {
   loadCompanyMaster: cmLoad,
   findByTicker: cmFindByTicker,
@@ -52,7 +49,7 @@ const {
 // groupAndTop10ByNetValue — if they show up in a category's raw rows, they
 // stay in that category's output regardless of rank/value. Requested after
 // the 28-Jul-2026 run silently skipped Gandhar Oil (below both cutoffs).
-const NEVER_FILTER_WATCHLIST_ID = '72e883fd788a4039780be18c';
+const NEVER_FILTER_WATCHLIST_ID = '7ca0e1a60c3fd0d8b1ab61ce';
 
 // Both overridable via CLI flags on main() (see bottom of file), same pattern as the
 // existing --max-xbrl: `--top-n <n>` (default 10), `--sast-quote-limit <n>` (default 40).
@@ -354,16 +351,36 @@ async function fetchSast(targetIst, sastQuoteLimit = SAST_QUOTE_LIMIT) {
   // correctly scoped — filter defensively on `timestamp` instead, matching
   // what screener.in/trades/sast shows for the day. Fixed 2026-07-25: the
   // previous acquirerDate-based filter zeroed out every row, every day.
+  //
+  // Fixed AGAIN 2026-08-24: the 2026-07-25 fix above replaced the broken
+  // field but kept a broken comparison — it built `filingDate` via
+  // `new Date("21-AUG-2026")` and read it back with UTC getters, while `t`
+  // was built via LOCAL getters off `targetIst`. `new Date(dateString)`'s
+  // parse behavior for a bare date (no time/zone) is itself ambiguous across
+  // engines/configs — in THIS runtime it parses as LOCAL midnight (server
+  // TZ=IST, offset -330), so converting back with UTC getters rolls the date
+  // back a day; a server running in UTC would hit the mirror-image bug the
+  // other way. Either way, every row failed the date match, every day, with
+  // zero errors logged. Confirmed live: NSE's SAST endpoint itself was
+  // healthy and returned real rows (e.g. a Siyaram Silk Mills Reg 29(2)
+  // filing for 21-Aug-2026) that this filter discarded silently for 5+
+  // consecutive days (Aug 20-24), including SAST activity on
+  // VADILALIND/PARADEEP/STLTECH/JUSTDIAL that a same-night
+  // post-close-scan-insights run separately confirmed existed.
+  // Fix: reuse parseNseDate() (already used elsewhere in this file), which
+  // manually parses "DD-Mon-YYYY" into Y/M/D integers via the local `Date`
+  // constructor — no string-to-Date parsing ambiguity, no UTC/local mixing.
+  // Compare Y/M/D integers directly against targetIst's own Y/M/D.
   const rows = raw
     .filter((r) => {
       if (!r.timestamp) return false;
       const datePart = r.timestamp.split(' ')[0]; // "24-Jul-2026"
-      const filingDate = new Date(datePart.toUpperCase());
-      const t = new Date(targetIst.getFullYear(), targetIst.getMonth(), targetIst.getDate());
+      const filingDate = parseNseDate(datePart);
+      if (!filingDate) return false;
       return (
-        filingDate.getUTCFullYear() === t.getFullYear() &&
-        filingDate.getUTCMonth() === t.getMonth() &&
-        filingDate.getUTCDate() === t.getDate()
+        filingDate.getFullYear() === targetIst.getFullYear() &&
+        filingDate.getMonth() === targetIst.getMonth() &&
+        filingDate.getDate() === targetIst.getDate()
       );
     })
     .map((r) => {

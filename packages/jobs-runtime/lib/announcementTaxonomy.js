@@ -49,6 +49,35 @@ const CATEGORY_RULES = [
     ],
   ],
   [
+    // Fundraise BEFORE shareholding_change: a preferential allotment/warrant
+    // issue to a promoter or strategic investor is fundamentally a capital
+    // event (new shares/warrants created, dilutive), even though the filing
+    // text inevitably also uses shareholding-change vocabulary ("acquirer",
+    // "acquisition of shares") to describe the allottee. Without this
+    // ordering, shareholding_change's broad 'acquirer'/'acquisition of
+    // shares' keywords steal the first-match on preferential-issue filings,
+    // mislabeling a fundraise as a mere SAST/stake-change disclosure (see
+    // the ZEEL preferential-warrant-to-promoter case, 2026-08-27 —
+    // categorised shareholding_change despite the substance being a 17.9%
+    // dilutive capital infusion, exactly the miscategorisation this
+    // ordering comment already warned about at the top of this file).
+    'fundraise',
+    [
+      'qip',
+      'qualified institutional placement',
+      'preferential allotment',
+      'preferential issue',
+      'ncd',
+      'non-convertible debenture',
+      'warrant',
+      'rights issue',
+      'fund rais',
+      'raising of fund',
+      'private placement',
+      'issue of securities',
+    ],
+  ],
+  [
     'shareholding_change',
     [
       'sast',
@@ -87,23 +116,6 @@ const CATEGORY_RULES = [
       'rating upgrade',
       'rating downgrade',
       'rating watch',
-    ],
-  ],
-  [
-    'fundraise',
-    [
-      'qip',
-      'qualified institutional placement',
-      'preferential allotment',
-      'preferential issue',
-      'ncd',
-      'non-convertible debenture',
-      'warrant',
-      'rights issue',
-      'fund rais',
-      'raising of fund',
-      'private placement',
-      'issue of securities',
     ],
   ],
   [

@@ -111,13 +111,30 @@ Before fetching anything, check `category` against `HEAVY_DOCUMENT_CATEGORIES`
 run read-pdf-with-meta "<pdfUrl>"
 ```
 
-Returns `{text, numPages, isHeavyParse}` (`isHeavyParse: true` when `numPages > 4`;
-`numPages` is `null`, not `false`, when it couldn't be derived — treat that as unknown
-rather than "not heavy"). Transparently cache-backed (Tier 1, see above) — if any caller
-already fetched this exact PDF URL today, this returns instantly from cache instead of
-re-fetching/re-parsing. Never write an insight from the title/description alone. If
-the PDF is empty/404/unparseable, say so explicitly in the insight, then fall back to
-the description. If `isHeavyParse` came back true for a NON-skip-listed category (i.e.
+Returns `{text, numPages, isHeavyParse, ocrFailed}` (`isHeavyParse: true` when
+`numPages > 4`; `numPages` is `null`, not `false`, when it couldn't be derived — treat
+that as unknown rather than "not heavy"). Transparently cache-backed (Tier 1, see
+above) — if any caller already fetched this exact PDF URL today, this returns instantly
+from cache instead of re-fetching/re-parsing. Never write an insight from the
+title/description alone.
+
+**`ocrFailed: true` is a hard stop, not a routine/empty result.** It means the PDF's
+text layer AND OCR fallback both came back near-empty — most often a scanned/image-only
+filing (common for SAST disclosures, board resolutions with wet-ink signatures, or
+certain regional-language filings). This is NOT the same as "the announcement genuinely
+has no content" and must never be silently `mark-processed`'d as routine — doing so
+means the announcement was never actually read (a nightly run made exactly this mistake
+on 2026-08-24, marking 4 SAST filings "routine" from title/description alone because
+their PDF text came back blank; manual OCR after the fact showed 2 of them were a
+governance-relevant pledge release and an intra-promoter-group share transfer). When
+`ocrFailed` is true: say so explicitly in the insight/skip reason, and if the category
+or title suggests something non-trivial, flag it back to the caller for
+follow-up/manual review rather than defaulting to routine. If the PDF is genuinely
+404/unparseable for a different reason (not scanned, just broken), say that explicitly
+too, then fall back to the description as a last resort — never blend the fallback
+silently into a routine skip.
+
+If `isHeavyParse` came back true for a NON-skip-listed category (i.e.
 this category wasn't supposed to be heavy but the actual document turned out to be —
 happens with e.g. a lengthy `regulatory` order or a `capacity`-commissioning filing with
 a bundled technical annexure), report `numPages` back to your caller — `watchlist-insights`
@@ -198,9 +215,15 @@ echo '<json>' | run add-note
 ```
 
 Payload: `{companyId, ticker, name, businessSummary?, note:{type:"announcement",
-announcementId, announcementTitle, pdfUrl, insight, significance, tags, category,
-announcementDescription, usecase:"announcement-insights:<depth>",
+announcementId, announcementTitle, pdfUrl, insight, headline, thesisChain,
+epsImpact, significance, tags, category, announcementDescription,
+usecase:"announcement-insights:<depth>",
 modelUsed:"<the model you are running as right now>"}}`.
+
+`headline`/`thesisChain`/`epsImpact` are the structured what-happened → EPS-impact
+fields defined in `_global.md` rule 3.5 — populate them for every note (a `null`
+`epsImpact` is a valid, expected outcome when no EPS linkage is honestly
+derivable; `headline` and `thesisChain` still apply even then).
 
 `usecase` is what makes this note distinguishable from a DIFFERENT depth's or a
 DIFFERENT skill's note on the same announcement (see "Caching" above) — always pass it
@@ -222,8 +245,9 @@ no `companyId`/persistence intent, skip this step and just answer in chat/output
 
 ## Output contract
 
-A single insight object: `{insight, significance, tags, category, high_conviction,
-numPages, isHeavyParse}` (`high_conviction: true` iff `category` is in
+A single insight object: `{insight, headline, thesisChain, epsImpact, significance,
+tags, category, high_conviction, numPages, isHeavyParse}` (`high_conviction: true`
+iff `category` is in
 `HIGH_CONVICTION_CATEGORIES`, regardless of whether the caller asked for `deep` —
 orchestrators should surface this flag independent of the `significance` bucket, e.g.
 in a digest email's subject line or a dedicated "high-conviction" section).

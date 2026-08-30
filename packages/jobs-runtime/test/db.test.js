@@ -206,6 +206,136 @@ describe('saveLearnystTranscript (learnyst-lessons collection)', () => {
       /creator/
     );
   });
+
+  test('defaults transcriptSource to "learnyst" in the slim index when unset', () => {
+    const id = db.saveLearnystTranscript(mkTranscriptDto());
+    expect(db.get('learnyst-lessons', id).transcriptSource).toBe('learnyst');
+    expect(db.get('learnyst-lessons', id).youtubeVideoId).toBeNull();
+  });
+
+  test('a YouTube-sourced lesson (no content_path) records transcriptSource + youtubeVideoId in the slim index', () => {
+    const id = db.saveLearnystTranscript(
+      mkTranscriptDto({
+        id: undefined,
+        lessonId: 999001,
+        contentPath: null,
+        rawResponse: null,
+        transcriptSource: 'youtube',
+        youtubeVideoId: 'PHe0bXAIuk0',
+        captionKind: 'asr',
+        captionLang: 'en',
+        rawCues: [{ start: '00:00:00', text: 'Hi Investors and welcome...' }],
+      })
+    );
+    const body = db.readLearnystTranscript(id);
+    expect(body.transcriptSource).toBe('youtube');
+    expect(body.youtubeVideoId).toBe('PHe0bXAIuk0');
+
+    const idx = db.get('learnyst-lessons', id);
+    expect(idx.transcriptSource).toBe('youtube');
+    expect(idx.youtubeVideoId).toBe('PHe0bXAIuk0');
+  });
+
+  test('a checked-but-no-captions YouTube lesson records captionKind: none in the slim index (cached, not re-probed)', () => {
+    const id = db.saveLearnystTranscript(
+      mkTranscriptDto({
+        id: undefined,
+        lessonId: 999002,
+        contentPath: null,
+        rawResponse: null,
+        transcriptSource: 'youtube',
+        youtubeVideoId: 'zzz999QQQ',
+        captionKind: 'none',
+        captionLang: null,
+        transcriptTimestamped: null,
+        transcriptPlain: null,
+        rawCues: null,
+      })
+    );
+    const idx = db.get('learnyst-lessons', id);
+    expect(idx.captionKind).toBe('none');
+    expect(idx.transcriptSource).toBe('youtube');
+  });
+});
+
+describe('saveYoutubeTranscript (youtube-transcripts collection)', () => {
+  const mkTranscriptDto = (over = {}) => ({
+    id: db.makeId('ytt', 'youtube-transcript-refresh', 'UC_soicfinance', undefined, 'abc123XYZ'),
+    type: 'youtube-transcript',
+    creator: 'youtube-transcript-refresh',
+    channelId: 'UC_soicfinance',
+    channelHandle: '@SOICfinance',
+    channelTitle: 'SOIC Finance',
+    videoId: 'abc123XYZ',
+    videoTitle: 'How to Read a Balance Sheet',
+    publishedAt: '2026-08-01T10:00:00Z',
+    captionLang: 'en',
+    captionKind: 'asr',
+    fetchedAt: '2026-08-20T19:57:52.564Z',
+    transcriptTimestamped: '[00:00:00] Hi Investors and welcome...',
+    transcriptPlain: 'Hi Investors and welcome...',
+    rawCues: [{ start: '00:00:00', text: 'Hi Investors and welcome...' }],
+    ...over,
+  });
+
+  test('writes body + slim index; is NOT company-scoped (no companies.json link)', () => {
+    const id = db.saveYoutubeTranscript(mkTranscriptDto());
+    const body = db.readYoutubeTranscript(id);
+    expect(body.transcriptPlain).toBe('Hi Investors and welcome...');
+    expect(body.rawCues.length).toBe(1);
+
+    const idx = db.get('youtube-transcripts', id);
+    expect(idx.body).toBe(`youtube-transcripts/${id}.json`);
+    expect(idx.videoTitle).toBe('How to Read a Balance Sheet');
+    // slim index must not carry the heavy fields
+    expect(idx.transcriptTimestamped).toBeUndefined();
+    expect(idx.rawCues).toBeUndefined();
+
+    // no company link — this is channel content, not stock research
+    expect(db.find('companies', {}).length).toBe(0);
+  });
+
+  test('same video saved twice -> same id -> 1 record (dedup, cache-first correctness)', () => {
+    const dto1 = mkTranscriptDto();
+    const dto2 = mkTranscriptDto({ fetchedAt: '2026-08-27T00:00:00.000Z' }); // simulates a later re-run
+    const id1 = db.saveYoutubeTranscript(dto1);
+    const id2 = db.saveYoutubeTranscript(dto2);
+    expect(id1).toBe(id2);
+
+    const all = db.find('youtube-transcripts', {});
+    expect(all).toHaveLength(1);
+    // second write updates the existing record rather than duplicating it
+    expect(db.get('youtube-transcripts', id1).fetchedAt).toBe('2026-08-27T00:00:00.000Z');
+  });
+
+  test('different channelId or videoId -> different id (no false-positive dedup)', () => {
+    const idA = db.saveYoutubeTranscript(mkTranscriptDto());
+    const idB = db.saveYoutubeTranscript(mkTranscriptDto({ id: undefined, videoId: 'zzz999QQQ' }));
+    expect(idA).not.toBe(idB);
+    expect(db.find('youtube-transcripts', {})).toHaveLength(2);
+  });
+
+  test('rejects a transcript record without creator (envelope enforcement)', () => {
+    expect(() => db.saveYoutubeTranscript(mkTranscriptDto({ creator: undefined }))).toThrow(
+      /creator/
+    );
+  });
+
+  test('a checked-but-no-captions video records captionKind: none in the slim index (cached, not re-probed)', () => {
+    const id = db.saveYoutubeTranscript(
+      mkTranscriptDto({
+        id: undefined,
+        videoId: 'zzz999QQQ',
+        captionKind: 'none',
+        captionLang: null,
+        transcriptTimestamped: null,
+        transcriptPlain: null,
+        rawCues: null,
+      })
+    );
+    const idx = db.get('youtube-transcripts', id);
+    expect(idx.captionKind).toBe('none');
+  });
 });
 
 describe('ipos collection', () => {

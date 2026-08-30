@@ -1,0 +1,8 @@
+{
+  "skill": "announcement-info-classifier",
+  "prompts": [
+    "Is this acquisition announcement from [company] actually new, or was it already flagged on recent concalls?",
+    "I read that [company] is expanding capacity -- paste ssUrl -- how much of this is new info vs already known from their PPT?",
+    "Classify this management-change filing into new/known/follow-up for [ticker]."
+  ]
+}

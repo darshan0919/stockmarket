@@ -101,6 +101,28 @@ function copyRecursiveSync(src, dest) {
   }
 }
 
+function getProjectId() {
+  const projectsDir = path.join(os.homedir(), '.gemini/config/projects');
+  if (!fs.existsSync(projectsDir)) return undefined;
+  const repoUri = 'file://' + path.resolve(__dirname, '../');
+  const files = fs.readdirSync(projectsDir);
+  for (const file of files) {
+    if (file.endsWith('.json')) {
+      try {
+        const data = JSON.parse(fs.readFileSync(path.join(projectsDir, file), 'utf8'));
+        if (data.projectResources && data.projectResources.resources) {
+          for (const res of data.projectResources.resources) {
+            if (res.gitFolder && res.gitFolder.folderUri === repoUri) {
+              return data.id;
+            }
+          }
+        }
+      } catch (err) {}
+    }
+  }
+  return undefined;
+}
+
 function syncScheduledTasks() {
   console.log(
     '\n🔄 [1/2] Syncing ALL Repository Scheduled Jobs (jobs/Scheduled/) -> Antigravity Sidecars & Global Skills...'
@@ -115,6 +137,7 @@ function syncScheduledTasks() {
   });
 
   let syncedSidecars = 0;
+  const syncedFolders = [];
   let syncedJobSkills = 0;
 
   for (const jobFolder of jobFolders) {
@@ -152,18 +175,49 @@ function syncScheduledTasks() {
     // 1. Sync UI Sidecar
     const sidecarPayload = {
       builtin: 'schedule',
-      restartPolicy: 'always',
+      restart_policy: 'always',
+      projectId: getProjectId(),
+      project_id: getProjectId(),
+      workspace_uris: ['file://' + require('path').resolve(__dirname, '../')],
       args: [cronToUse, 'agentapi', 'new-conversation', parsed.promptText],
-      displayName: displayName,
+      display_name: displayName,
     };
 
     fs.writeFileSync(sidecarFilePath, JSON.stringify(sidecarPayload, null, 2) + '\n', 'utf8');
     syncedSidecars++;
+    syncedFolders.push(sidecarFolder);
 
     // 2. Sync Global Skill (~/.gemini/config/skills/<taskName>/SKILL.md) — OUTWARD ONLY
     const globalSkillDir = path.join(GLOBAL_SKILLS_DIR, taskName);
     copyRecursiveSync(path.join(JOBS_DIR, jobFolder), globalSkillDir);
     syncedJobSkills++;
+  }
+
+  // Update ~/.gemini/config/config.json with the projectId
+  const configPath = path.join(os.homedir(), '.gemini/config/config.json');
+  if (fs.existsSync(configPath)) {
+    try {
+      const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      const projId = getProjectId();
+      if (projId) {
+        if (!configData.sidecars) configData.sidecars = {};
+
+        // Ensure every folder we synced is registered
+        const sidecarDirs = syncedFolders;
+        for (const dir of sidecarDirs) {
+          // If it exists in config, update it. If not, add it.
+          if (!configData.sidecars[dir]) {
+            configData.sidecars[dir] = { enabled: true };
+          }
+          configData.sidecars[dir].projectId = projId;
+        }
+        fs.writeFileSync(configPath, JSON.stringify(configData, null, 2) + '\n', 'utf8');
+        console.log('Synced Folders:', syncedFolders);
+console.log('✅ Linked all sidecars to project ID: ' + projId + ' in config.json');
+      }
+    } catch (e) {
+      console.error('Error updating config.json:', e);
+    }
   }
 
   console.log(

@@ -15,9 +15,6 @@ import json
 import os
 from datetime import datetime
 
-# Add repo to path for db access
-sys.path.insert(0, "/Users/darshanpatel/code/stockmarket/packages/jobs-runtime")
-
 def check_db_records(collection_name, date_str):
     """
     Check if records were persisted to the DB for the given date.

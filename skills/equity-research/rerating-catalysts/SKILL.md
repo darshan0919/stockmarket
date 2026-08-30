@@ -75,7 +75,7 @@ so this skill's Phase 1-3 only ever runs on genuine survivors:
   [`scripts/prefilter_rerating_candidates.js`](scripts/prefilter_rerating_candidates.js)
   — given a Stockscans saved-scan URL or a ticker list, diffs each company
   against its last `rerating-catalysts` DB report (`db.find('reports',
-  {companyId, type: 'rerating-catalysts'})`) and drops companies with no new
+{companyId, type: 'rerating-catalysts'})`) and drops companies with no new
   filings and no price/volume flag since that report. First-run companies
   (no prior report) always pass through. Run this FIRST on any batch —
   everything downstream only touches its `candidate: true` output.
@@ -305,9 +305,9 @@ Then render:
   `watchlist-catalyst-scanner` (HIGH CONVICTION catalysts get stronger visual
   treatment), and render the PDF via `skills/_shared/pdf-design-guide.md`'s
   palette/component vocabulary through the two-step pipeline (`resolve.sh
-  rerating-catalysts --input data.json --output report.html` then
+rerating-catalysts --input data.json --output report.html` then
   `resolve.sh render-pdf --html report.html --pdf
-  data/rerating-catalysts/<Company>_Output.pdf`). If content spills past 1
+data/rerating-catalysts/<Company>_Output.pdf`). If content spills past 1
   page, cut catalyst body text first, then drop to 5 catalysts — never drop
   the "what's in the price" section, and never drop the top-of-report
   J-Curve badge. Mention the PDF's path/Drive link in the closing text so

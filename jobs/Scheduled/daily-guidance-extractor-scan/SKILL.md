@@ -14,8 +14,6 @@ Run the guidance-document-extractor skill daily at 11:30 PM to bulk-fetch and ex
 ### Step 1: Run Orchestrator (Fetch + Extract + Validate + Persist)
 
 ```bash
-cd /Users/darshanpatel/code/stockmarket
-
 export STOCKSCANS_AUTH_TOKEN="$(grep '^STOCKSCANS_AUTH_TOKEN' .env | cut -d= -f2-)"
 
 node skills/equity-research/guidance-document-extractor/scripts/orchestrate_extraction.js \
@@ -44,7 +42,7 @@ node skills/equity-research/guidance-document-extractor/scripts/orchestrate_extr
 ### Step 2: Verify Extraction Success
 
 ```bash
-python3 /Users/darshanpatel/code/stockmarket/scripts/jobs/check_extraction_success.py \
+python3 scripts/jobs/check_extraction_success.py \
   --collection guidance-documents \
   --date $(date +%Y-%m-%d)
 ```
@@ -74,7 +72,7 @@ The downstream task will:
 ### Step 4: Track Invocation
 
 ```bash
-python3 /Users/darshanpatel/code/stockmarket/scripts/metrics/track_invocation.py \
+python3 scripts/metrics/track_invocation.py \
   --name daily-guidance-extractor-scan \
   --type task \
   --model haiku \

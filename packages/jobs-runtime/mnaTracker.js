@@ -140,7 +140,9 @@ async function runMnaTracker({ windowHoursArg = null } = {}) {
 
   const floorMs = now.getTime() - FLOOR_LOOKBACK_MS;
   const startMs = await windowCursor.resolveWindowStartMs({ now, floorMs, windowHoursArg });
-  console.log(`Fetching M&A announcements since ${new Date(startMs).toISOString()} (floor: ${new Date(floorMs).toISOString()}).`);
+  console.log(
+    `Fetching M&A announcements since ${new Date(startMs).toISOString()} (floor: ${new Date(floorMs).toISOString()}).`
+  );
 
   try {
     const items = await fetchNewAnnouncements(client, startMs, now);
@@ -148,7 +150,10 @@ async function runMnaTracker({ windowHoursArg = null } = {}) {
 
     if (items.length > 0) {
       const combinedText = items
-        .map((i) => `[${i.companyName || i.ticker || i.companyId}] ${i.title || i.subject}\n${i.description}`)
+        .map(
+          (i) =>
+            `[${i.companyName || i.ticker || i.companyId}] ${i.title || i.subject}\n${i.description}`
+        )
         .join('\n\n');
       console.log('Generating AI Insights for M&A...');
       const insights = await callAnthropic(buildMnaPrompt(combinedText));
@@ -171,7 +176,9 @@ async function runMnaTracker({ windowHoursArg = null } = {}) {
     console.log('M&A Tracker completed successfully.');
   } catch (err) {
     console.error('Failed to run M&A Tracker:', err.message);
-    console.error('Cursor NOT committed — next run will retry this same window (plus whatever is new since).');
+    console.error(
+      'Cursor NOT committed — next run will retry this same window (plus whatever is new since).'
+    );
   }
 }
 

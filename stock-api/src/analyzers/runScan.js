@@ -2,7 +2,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const { stockscans } = require('../index');
+const { StockscansClient } = require('../clients/StockscansClient');
+const stockscans = new StockscansClient();
 
 function parseScanId(arg) {
   const m = arg.match(/\/scans\/saved\/([a-f0-9]{24})/);

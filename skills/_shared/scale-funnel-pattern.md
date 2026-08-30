@@ -32,8 +32,8 @@ passage that plausibly matters (a number near a forward-period cue, a
 signature phrase from a taxonomy table, a KPI outside the P&L) without
 judging what it means. `guidance-document-extractor` Step 2 and
 `quarterly-result-extractor` Step 3 both do exactly this, and both are
-explicit that "cheap model" means *whichever agent is already running the
-skill does this itself, or spawns a cheap-tier subagent* — it does NOT mean
+explicit that "cheap model" means _whichever agent is already running the
+skill does this itself, or spawns a cheap-tier subagent_ — it does NOT mean
 a separately-billed call to an external provider's API using a stored key.
 The point isn't which model executes it; it's that the JOB is recall
 (complete but undiscriminating), not judgment, so it tolerates a
@@ -123,7 +123,7 @@ watchlist-scale or scan-scale invocations, not a single conviction note.
   `scanCatalysts.js` attaches `computeJCurveScore()`'s output to every alert
   and to a `jcurveByCompany` map in its JSON output.
 - `rerating-catalysts` — a second, independent worked example of Stages
-  0-2 for a *different* trigger (its own last-run DB record, not the
+  0-2 for a _different_ trigger (its own last-run DB record, not the
   announcement scan):
   `scripts/prefilter_rerating_candidates.js` (Stage 0 — diffs each company
   against its last `rerating-catalysts` report), `scripts/extract_rerating_signatures.py`

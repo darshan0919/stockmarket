@@ -595,19 +595,21 @@ async function readOrFetchPdfMeta(url) {
       text: cached.text,
       numPages: cached.numPages ?? null,
       isHeavyParse: Boolean(cached.isHeavyParse),
+      ocrFailed: Boolean(cached.ocrFailed),
     };
   }
   const buf = await stockscans.fetchPdf(url, 60000);
-  const { text, numPages } = await pdfToTextWithMeta(buf);
+  const { text, numPages, ocrFailed } = await pdfToTextWithMeta(buf);
   const isHeavyParse = typeof numPages === 'number' && numPages > HEAVY_PARSE_PAGE_THRESHOLD;
   await StorageService.saveJson(cachePath, {
     pdfUrl: url,
     text,
     numPages,
     isHeavyParse,
+    ocrFailed: Boolean(ocrFailed),
     fetchedAtIso: new Date().toISOString(),
   });
-  return { text, numPages, isHeavyParse };
+  return { text, numPages, isHeavyParse, ocrFailed: Boolean(ocrFailed) };
 }
 
 async function cmdReadPdf(url) {
@@ -633,8 +635,14 @@ async function cmdReadPdfWithMeta(url) {
     process.stdout.write(JSON.stringify({ text: '', numPages: null, isHeavyParse: false }));
     return;
   }
-  const { text, numPages, isHeavyParse } = await readOrFetchPdfMeta(url);
-  process.stdout.write(JSON.stringify({ text, numPages, isHeavyParse }));
+  const { text, numPages, isHeavyParse, ocrFailed } = await readOrFetchPdfMeta(url);
+  // ocrFailed: true means the PDF's text layer AND OCR both came back near-empty
+  // (scanned document, OCR binaries unavailable, or a genuinely corrupt page image).
+  // Callers (announcement-insights, watchlist-insights, post-close-scan-insights)
+  // MUST treat this as "could not read this document" and escalate/flag it — never
+  // silently fall through to a routine mark-processed the way a real empty-body
+  // announcement would. See cloud-utils/src/pdfText.js ocrPdf() history.
+  process.stdout.write(JSON.stringify({ text, numPages, isHeavyParse, ocrFailed }));
 }
 
 function cmdGetCompanyNotes(companyId) {
@@ -692,6 +700,18 @@ async function cmdAddNote(noteJsonStr) {
       announcementTitle: noteData.announcementTitle ?? null,
       pdfUrl: noteData.pdfUrl ?? null,
       insight: noteData.insight || '',
+      // headline: one crisp line combining "what happened" + "how it affects
+      // future EPS" (or the strongest available forward-looking read if no
+      // EPS link exists) — see _global.md rule 3.5. thesisChain: ordered
+      // causal steps ["this happened", "so this", ..., "so this will happen
+      // to EPS, by <timeline>"], same underlying reasoning as `insight`, just
+      // structured so a renderer never has to re-derive it from prose.
+      // epsImpact is null when the announcement genuinely has no derivable
+      // EPS linkage (e.g. a routine investor-meet reschedule) — that's a
+      // valid, expected outcome, not a missing field.
+      headline: noteData.headline || '',
+      thesisChain: Array.isArray(noteData.thesisChain) ? noteData.thesisChain : [],
+      epsImpact: noteData.epsImpact || null,
       significance,
       tags,
       category: noteData.category || '',

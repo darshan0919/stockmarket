@@ -12,12 +12,27 @@
 const GMAIL_USER = 'djplearner@gmail.com';
 
 /**
+ * @typedef {Object} EmailAttachment
+ * @property {string} [filename] - Attachment filename (cosmetic for cid-referenced inline images).
+ * @property {Buffer|string} content - Raw content (Buffer for binary, e.g. image bytes).
+ * @property {string} [contentType] - MIME type, e.g. 'image/png'.
+ * @property {string} [cid] - Content-ID: reference it in htmlBody as `<img src="cid:THIS_VALUE">`.
+ *   Gmail's inbound HTML sanitizer strips `data:` URIs from `<img src>` entirely (confirmed
+ *   2026-08-27 — a base64 PNG/SVG data-URI icon silently lost its `src` attribute in the
+ *   actual rendered inbox even though it worked in every local HTML render). A `cid:`
+ *   reference to a real MIME attachment is the only reliable way to inline a small icon
+ *   without hosting it externally. See https://nodemailer.com/message/attachments/ (cid).
+ */
+
+/**
  * @param {Object} opts
  * @param {string} opts.subject
  * @param {string} opts.htmlBody
  * @param {string} [opts.to=GMAIL_USER]
  * @param {string} [opts.sender=GMAIL_USER]
  * @param {string} [opts.appPassword] - Defaults to process.env.GOOGLE_APP_PASSWORD.
+ * @param {EmailAttachment[]} [opts.attachments] - Passed through to nodemailer as-is;
+ *   use `cid` entries for images referenced inline in htmlBody (see EmailAttachment).
  * @returns {Promise<{status:'sent',to:string}|{status:'skipped',reason:string}|{status:'error',error:string}>}
  */
 async function sendHtmlEmail({
@@ -26,6 +41,7 @@ async function sendHtmlEmail({
   to = GMAIL_USER,
   sender = GMAIL_USER,
   appPassword,
+  attachments,
 } = {}) {
   const pwd = appPassword || process.env.GOOGLE_APP_PASSWORD || '';
   if (!pwd) return { status: 'skipped', reason: 'GOOGLE_APP_PASSWORD not set' };
@@ -45,7 +61,9 @@ async function sendHtmlEmail({
       secure: true,
       auth: { user: sender, pass: pwd },
     });
-    await transport.sendMail({ from: sender, to, subject, html: htmlBody });
+    const mail = { from: sender, to, subject, html: htmlBody };
+    if (Array.isArray(attachments) && attachments.length) mail.attachments = attachments;
+    await transport.sendMail(mail);
     return { status: 'sent', to };
   } catch (exc) {
     return { status: 'error', error: String(exc && exc.message ? exc.message : exc) };

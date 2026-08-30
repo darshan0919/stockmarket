@@ -81,7 +81,7 @@ function computeJCurveScore(company) {
     maxScored,
     totalPossible: 9,
     note:
-      'Partial score — only points computable from today\'s scan-row columns are ' +
+      "Partial score — only points computable from today's scan-row columns are " +
       'filled in; the remaining 6-8 points (sector tailwind, demand visibility, new ' +
       'capacity/product/customer, margin expansion potential, better guidance/estimate ' +
       'upgrades, and true revenue acceleration once a real growth column exists) require ' +
@@ -139,7 +139,7 @@ function jCurvePatThresholdHint(company) {
     value: null,
     clearsThreshold: null,
     note:
-      'No PAT-growth column on today\'s scan row — §5f check 1 cannot be pre-screened ' +
+      "No PAT-growth column on today's scan row — §5f check 1 cannot be pre-screened " +
       'mechanically; the J-Curve Inflection tag can only be computed inside a full ' +
       'rerating-catalysts Phase 3g read against the actual Result filing.',
   };

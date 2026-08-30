@@ -7,18 +7,48 @@ const { execFileSync } = require('child_process');
 
 const MAX_CHARS = 8000;
 
-/** OCR a scanned PDF (lazy tesseract.js). Returns '' if unavailable. */
-async function ocrPdf() {
-  // OCR requires heavyweight optional deps (tesseract.js + rendering). When they
-  // aren't installed we degrade exactly like the Python (returns ''), so SAST-scan
-  // PDFs simply fall back to the description rather than crashing.
+/**
+ * OCR a scanned (image-only) PDF via the system `pdftoppm` (poppler) + `tesseract`
+ * CLIs. Returns '' if either binary is unavailable or OCR fails — the caller treats
+ * that as "no OCR text available," NOT as "this document has no content" (see
+ * pdfToTextWithMeta's ocrAttempted/ocrFailed flags below, which the caller must
+ * surface rather than silently falling back to the announcement description).
+ *
+ * This was previously stubbed to always return '' regardless of what was installed
+ * (a lazy `require.resolve('tesseract.js')` that always failed because tesseract.js
+ * was never an actual dependency) — every scanned/image-only announcement PDF
+ * silently degraded to empty text with no signal that OCR was even attempted.
+ * Fixed 2026-08-24 after a post-close-scan-insights run marked 4 SAST disclosure
+ * PDFs "routine" without ever reading their (non-empty, OCR-able) content.
+ */
+function ocrPdf(buf) {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'wi_ocr_'));
+  const pdfPath = path.join(tmpDir, 'doc.pdf');
+  const imgPrefix = path.join(tmpDir, 'page');
   try {
-    // eslint-disable-next-line global-require
-    require.resolve('tesseract.js');
+    fs.writeFileSync(pdfPath, buf);
+    execFileSync('pdftoppm', ['-png', '-r', '150', pdfPath, imgPrefix], { stdio: 'pipe' });
+    const pages = fs
+      .readdirSync(tmpDir)
+      .filter((f) => f.startsWith('page') && f.endsWith('.png'))
+      .sort();
+    if (pages.length === 0) return '';
+    const texts = pages.map((f) => {
+      try {
+        return execFileSync('tesseract', [path.join(tmpDir, f), 'stdout'], {
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'pipe'],
+        });
+      } catch {
+        return '';
+      }
+    });
+    return texts.join('\n\n');
   } catch {
     return '';
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   }
-  return ''; // image rasterization path intentionally omitted unless deps are present
 }
 
 /** Fallback: pdftotext CLI (poppler) if present. Returns '' if unavailable/fails. */
@@ -81,16 +111,25 @@ async function pdfToText(buf) {
  */
 async function pdfToTextWithMeta(buf) {
   let { text, numPages } = await extractTextLayer(buf);
+  let isScannedDocument = false;
+  let ocrFailed = false;
   if (text.trim().length < 80) {
-    const ocr = await ocrPdf(buf);
+    const ocr = ocrPdf(buf);
     if (ocr.trim().length > text.trim().length) {
       text = `[OCR-extracted — scanned PDF]\n${ocr}`;
+      isScannedDocument = true;
+    } else {
+      // Text layer was near-empty AND OCR produced nothing usable (binaries
+      // missing, or a genuinely blank/corrupt page image). This is NOT the
+      // same as "short document" — callers must not treat it as "read, nothing
+      // there" and must escalate rather than defaulting to routine/mark-processed.
+      ocrFailed = text.trim().length < 20;
     }
   }
   if (text.length > MAX_CHARS) {
     text = `${text.slice(0, MAX_CHARS)}\n\n[... truncated — original length: ${text.length} chars]`;
   }
-  return { text, numPages };
+  return { text, numPages, isScannedDocument, ocrFailed };
 }
 
 module.exports = { pdfToText, pdfToTextWithMeta };

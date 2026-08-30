@@ -44,7 +44,11 @@ if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
 }
 
-const PROCESSED_FILES_PATH = path.join(db.dataRoot(), 'cache', 'weekly-ppt-insights-processed-files.json');
+const PROCESSED_FILES_PATH = path.join(
+  db.dataRoot(),
+  'cache',
+  'weekly-ppt-insights-processed-files.json'
+);
 
 /** Returns a Set of fileIds already summarized in a prior successful run. */
 function loadProcessedFileIds() {
@@ -171,7 +175,9 @@ async function run({ force = false } = {}) {
     }
 
     if (newPdfs.length === 0) {
-      console.log('No new PPTs since the last successful run — skipping parse and LLM call entirely.');
+      console.log(
+        'No new PPTs since the last successful run — skipping parse and LLM call entirely.'
+      );
       console.log('Weekly PPT Insights pipeline completed (no-op).');
       return;
     }
@@ -216,7 +222,9 @@ async function run({ force = false } = {}) {
     console.log('Weekly PPT Insights pipeline completed.');
   } catch (error) {
     console.error('Error running pipeline:', error);
-    console.error('Processed-file cursor NOT updated — next run will retry any files not yet confirmed summarized.');
+    console.error(
+      'Processed-file cursor NOT updated — next run will retry any files not yet confirmed summarized.'
+    );
   }
 }
 

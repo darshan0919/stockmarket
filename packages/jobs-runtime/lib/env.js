@@ -31,15 +31,18 @@ function loadEnv(explicitPath) {
   return path;
 }
 
-/** Read --flag value from argv (returns null if absent). */
+/** Read --flag value from argv (supports both `--flag value` and `--flag=value`, returns null if absent). */
 function argValue(flag, argv = process.argv) {
+  const prefix = flag.endsWith('=') ? flag : `${flag}=`;
+  const eqArg = argv.find((a) => a.startsWith(prefix));
+  if (eqArg) return eqArg.slice(prefix.length);
   const i = argv.indexOf(flag);
   return i >= 0 ? argv[i + 1] : null;
 }
 
-/** Is a boolean flag present in argv? */
+/** Is a boolean flag present in argv? (supports both `--flag` and `--flag=...`) */
 function hasFlag(flag, argv = process.argv) {
-  return argv.includes(flag);
+  return argv.includes(flag) || argv.some((a) => a.startsWith(`${flag}=`));
 }
 
 module.exports = { loadEnv, argValue, hasFlag };

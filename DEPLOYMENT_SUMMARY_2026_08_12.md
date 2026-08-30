@@ -220,8 +220,7 @@ forward-guidance-extractor will now receive complete records
 ### Test 1: Orchestrator Runs All Steps
 
 ```bash
-cd /Users/darshanpatel/code/stockmarket
-
+# Run from repo root
 export STOCKSCANS_AUTH_TOKEN="$(grep '^STOCKSCANS_AUTH_TOKEN' .env | cut -d= -f2-)"
 
 node skills/equity-research/guidance-document-extractor/scripts/orchestrate_extraction.js \

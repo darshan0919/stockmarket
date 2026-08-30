@@ -16,8 +16,8 @@
  *
  * Usage:
  *   node sync-company-sector-industry.js [--dry-run] [--concurrency 1] [--page-delay-ms 5000] [--reset-cache]
- *   For manual terminal run:
- *   cd /Users/darshanpatel/code/stockmarket && node stock-api/bin/sync-company-sector-industry.js
+ *   For manual terminal run (from repo root):
+ *   yarn sync-company-sector-industry
  *
  * Output (stdout, JSON): a summary object with partial results on interrupt.
  *
@@ -62,12 +62,19 @@ function loadCache() {
 // Save progress to cache
 function saveCache(cache) {
   ensureCacheDir();
-  fs.writeFileSync(CACHE_FILE, JSON.stringify({
-    lastOffset: cache.lastOffset,
-    totalServers: cache.totalServers,
-    fetchedOffsets: Array.from(cache.fetchedOffsets),
-    timestamp: new Date().toISOString(),
-  }, null, 2));
+  fs.writeFileSync(
+    CACHE_FILE,
+    JSON.stringify(
+      {
+        lastOffset: cache.lastOffset,
+        totalServers: cache.totalServers,
+        fetchedOffsets: Array.from(cache.fetchedOffsets),
+        timestamp: new Date().toISOString(),
+      },
+      null,
+      2
+    )
+  );
 }
 
 // Clear cache
@@ -106,7 +113,7 @@ function sleep(ms) {
  * @param {Function} fn - async thunk to run
  * @param {Object} [opts] - { retries=8, baseDelayMs=2000, log }
  */
-async function withRateLimitRetry(fn, { retries = 8, baseDelayMs = 2000, log = () => { } } = {}) {
+async function withRateLimitRetry(fn, { retries = 8, baseDelayMs = 2000, log = () => {} } = {}) {
   for (let attempt = 0; ; attempt++) {
     try {
       return await fn();
@@ -183,7 +190,7 @@ function normalizeRow(row) {
  */
 async function fetchAllCompanies(
   client,
-  { concurrency = 1, pageDelayMs = 8000, cache = {}, log = () => { } } = {}
+  { concurrency = 1, pageDelayMs = 8000, cache = {}, log = () => {} } = {}
 ) {
   // Page 0 — learn the real `total`
   const firstResp = await withRateLimitRetry(() => client.runScan(scanPayload(0)), { log });
@@ -215,7 +222,9 @@ async function fetchAllCompanies(
   }
 
   if (remainingOffsets.length > 0) {
-    log(`resuming from offset ${cache.lastOffset || 0}, ${remainingOffsets.length} page(s) remaining...`);
+    log(
+      `resuming from offset ${cache.lastOffset || 0}, ${remainingOffsets.length} page(s) remaining...`
+    );
   }
 
   for (let i = 0; i < remainingOffsets.length; i += concurrency) {
@@ -266,7 +275,12 @@ async function main() {
   }
 
   log('fetching company universe from /api/company/scans/run ...');
-  const { rows, total, pagesFetched, cache: updatedCache } = await fetchAllCompanies(client, {
+  const {
+    rows,
+    total,
+    pagesFetched,
+    cache: updatedCache,
+  } = await fetchAllCompanies(client, {
     concurrency,
     pageDelayMs,
     cache,
@@ -293,8 +307,8 @@ async function main() {
 
   log(
     `normalized ${normalized.length} unique companies ` +
-    `(dropped ${droppedNoId} rows with no companyId, ` +
-    `${missingSectorOrIndustry} missing sector/industry)`
+      `(dropped ${droppedNoId} rows with no companyId, ` +
+      `${missingSectorOrIndustry} missing sector/industry)`
   );
 
   let stats = { inserted: 0, updated: 0, unchanged: 0 };

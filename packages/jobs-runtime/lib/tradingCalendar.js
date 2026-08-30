@@ -45,7 +45,20 @@ function cacheFileFor(year) {
 
 function parseNseDate(tradingDate) {
   // "26-Jan-2026" -> Date at UTC midnight of that IST calendar date.
-  const MONTHS = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+  const MONTHS = {
+    Jan: 0,
+    Feb: 1,
+    Mar: 2,
+    Apr: 3,
+    May: 4,
+    Jun: 5,
+    Jul: 6,
+    Aug: 7,
+    Sep: 8,
+    Oct: 9,
+    Nov: 10,
+    Dec: 11,
+  };
   const m = String(tradingDate).match(/^(\d{2})-([A-Za-z]{3})-(\d{4})$/);
   if (!m) return null;
   const [, dd, mon, yyyy] = m;
@@ -74,7 +87,9 @@ async function fetchAndCacheYear(year) {
   }
   const segmentList = res.data && res.data[SEGMENT];
   if (!Array.isArray(segmentList)) {
-    console.warn('[tradingCalendar] NSE holiday-master response missing expected "CM" segment array');
+    console.warn(
+      '[tradingCalendar] NSE holiday-master response missing expected "CM" segment array'
+    );
     return null;
   }
   const isoDates = [];
@@ -88,7 +103,13 @@ async function fetchAndCacheYear(year) {
       description: row.description || null,
     });
   }
-  const record = { year, fetchedAtUtc: new Date().toISOString(), source: NSE_HOLIDAY_URL, segment: SEGMENT, holidays: isoDates };
+  const record = {
+    year,
+    fetchedAtUtc: new Date().toISOString(),
+    source: NSE_HOLIDAY_URL,
+    segment: SEGMENT,
+    holidays: isoDates,
+  };
   try {
     fs.mkdirSync(path.dirname(cacheFileFor(year)), { recursive: true });
     fs.writeFileSync(cacheFileFor(year), JSON.stringify(record, null, 2));
@@ -144,7 +165,9 @@ async function getHolidaySet(year) {
     if (refreshed) {
       set = refreshed;
     } else if (set) {
-      console.warn(`[tradingCalendar] weekly refresh for ${year} failed — continuing with cache last fetched ${new Date(cached.fetchedAtMs).toISOString()}.`);
+      console.warn(
+        `[tradingCalendar] weekly refresh for ${year} failed — continuing with cache last fetched ${new Date(cached.fetchedAtMs).toISOString()}.`
+      );
     }
   }
 
@@ -196,7 +219,9 @@ async function lastTradingDayOnOrBefore(date) {
     if (await isTradingDay(cursor)) return cursor;
     cursor = new Date(cursor.getTime() - 24 * 60 * 60 * 1000);
   }
-  console.warn('[tradingCalendar] lastTradingDayOnOrBefore exhausted 10-day lookback — returning weekend-adjusted date without full holiday check');
+  console.warn(
+    '[tradingCalendar] lastTradingDayOnOrBefore exhausted 10-day lookback — returning weekend-adjusted date without full holiday check'
+  );
   return cursor;
 }
 

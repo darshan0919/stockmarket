@@ -2,8 +2,14 @@
 
 const fs = require('fs');
 const path = require('path');
-const { stockscans } = require('../index');
-const { classify, priceVolumeAlerts, computeJCurveScore, jCurvePatThresholdHint } = require('./catalystRules');
+const { StockscansClient } = require('../clients/StockscansClient');
+const stockscans = new StockscansClient();
+const {
+  classify,
+  priceVolumeAlerts,
+  computeJCurveScore,
+  jCurvePatThresholdHint,
+} = require('./catalystRules');
 const { resolveUniverse } = require('./runScan');
 
 const SEV_ORDER = { HIGH: 0, RISK: 1, MEDIUM: 2 };

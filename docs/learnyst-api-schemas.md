@@ -6,15 +6,15 @@ Single source of truth for every Learnyst endpoint `learnystTranscriptRefresh.js
 — **all three endpoints below are confirmed live**, not guessed from docs
 (Learnyst has none public for this).
 
-Auth: a single JWT (`LEARNYST_AUTH_TOKEN`) issued on login to the Learnyst
+Auth: a single JWT (`LEARNYST_<KEY>_AUTH_TOKEN`, e.g. `LEARNYST_SOIC_AUTH_TOKEN`) issued on login to the Learnyst
 school, reused across all three endpoints below — **but the header NAME
 differs per endpoint**, confirmed from the HAR, not assumed:
 
-| Endpoint | Header name |
-|---|---|
-| GraphQL `ShowBundleCourses` (apig.learnyst.com/learn) | `authorization: Bearer <token>` |
+| Endpoint                                                        | Header name                         |
+| --------------------------------------------------------------- | ----------------------------------- |
+| GraphQL `ShowBundleCourses` (apig.learnyst.com/learn)           | `authorization: Bearer <token>`     |
 | REST course detail (apig.learnyst.com/learner/v17/courses/{id}) | `lystauthorization: Bearer <token>` |
-| Transcript fetch (ai-api.learnyst.com/api/transcript-data) | `authorization: Bearer <token>` |
+| Transcript fetch (ai-api.learnyst.com/api/transcript-data)      | `authorization: Bearer <token>`     |
 
 The token is a JWT with a real `exp` claim (decode it — e.g. on jwt.io — to
 check expiry). It is tied to a logged-in browser session, so it WILL expire;
@@ -22,6 +22,42 @@ there is no known longer-lived API key for this Learnyst tenant. A 401/403
 from any of these three endpoints means the token needs manual refresh (log
 into the school in Chrome, DevTools → Network → copy a fresh `authorization`
 or `lystauthorization` header value from any request).
+
+## Multi-site config (`soic`, `chartitude`, and beyond)
+
+Learnyst is a white-label platform — every membership (`learn.soic.in`,
+`learn.chartitude.com`, any future one) is a separate "school" with its own
+`school_id`, `bundle_id`, and auth token, but identical endpoint shapes.
+`school_id`/`bundle_id`/`origin` identify a fixed membership rather than
+varying per deployment, so they're baked into a `SITE_DEFAULTS` table in
+`learnystTranscriptRefresh.js` (not `.env`) once discovered; only the auth
+token — which does expire — is a required `LEARNYST_<KEY>_AUTH_TOKEN` env var
+(see `.env.example`). `learnystTranscriptRefresh.js` runs every site listed
+in `LEARNYST_SITE_KEYS` that's fully configured (auth token set, and a
+schoolId/bundleId available from `SITE_DEFAULTS` or an env override), or one
+via `--site <key>`; a site missing either is skipped with a clear reason
+rather than erroring. Adding a new membership tomorrow is a config +
+one-time `SITE_DEFAULTS` entry, never a code path change.
+
+To find `school_id`, `bundle_id`, and the auth token for a **new** site
+(e.g. `chartitude`):
+
+1. Log into that school's site in Chrome (e.g. `https://learn.chartitude.com`)
+   and open the membership/bundle page (e.g.
+   `/learn/home/Chartitude-Membership`).
+2. DevTools → Network, filter for `apig.learnyst.com` or `ai-api.learnyst.com`.
+3. Find the `ShowBundleCourses` GraphQL request (POST to
+   `apig.learnyst.com/learn`) — its request body's `query` string has
+   `schoolId: "<id>"` and `showBundleCourses(..., id: "<bundle id>")` baked
+   in (see §1 below); copy both.
+4. Copy the `authorization` header value from that same request (drop
+   `"Bearer "`) — that's the token for `LEARNYST_<KEY>_AUTH_TOKEN` (goes in
+   `.env`).
+5. Add `schoolId`, `bundleId`, and `origin` (the site's base URL) to that
+   site's entry in the `SITE_DEFAULTS` table in `learnystTranscriptRefresh.js`
+   — not `.env` (see the comment above `SITE_DEFAULTS` for why). Until then,
+   `LEARNYST_<KEY>_SCHOOL_ID`/`LEARNYST_<KEY>_BUNDLE_ID`/`LEARNYST_<KEY>_ORIGIN`
+   env vars work as a temporary override.
 
 ---
 
@@ -75,10 +111,11 @@ keep that shape.
 ```
 
 Notes:
+
 - `courseType: 1` = a real course/module with lessons. Other values exist —
   confirmed `courseType: 11` = an external community link (e.g. a Telegram
   group), `lessonCount: null`, no lessons to fetch. Filter to `courseType ===
-  1` before crawling further; anything else is not a video course.
+1` before crawling further; anything else is not a video course.
 - `id` is the numeric course id used in endpoint #2 below.
 
 ---
@@ -106,7 +143,13 @@ the object has ~60 top-level fields; only these are used:
   "title": "Level 3 How to Value a Company & Portfolio Creation!",
   "seo_title": "how-to-value-a-company",
   "sections": [
-    { "id": 340917, "title": "How to Value Companies", "course_id": 145316, "position": 0, "resource_section_id": 340917 }
+    {
+      "id": 340917,
+      "title": "How to Value Companies",
+      "course_id": 145316,
+      "position": 0,
+      "resource_section_id": 340917
+    }
   ],
   "lessons": [
     {
@@ -129,6 +172,7 @@ relationship to the course — progress, billing) — deliberately dropped by
 `fetchModuleLessons()`, never persisted.
 
 Field notes:
+
 - `lesson_type: 1` = video lesson (has a transcript). Other confirmed values:
   `5` = quiz, `9` = article/HTML lesson. Neither has a transcript to fetch —
   recorded as skipped, not an error.
@@ -138,6 +182,18 @@ Field notes:
   `lesson_data` array may also include non-video tracks (PDFs, etc, other
   `src_type` values) — always pick `src_type === 2` (fall back to the first
   entry if none matches, for robustness against a future lesson shape).
+- `src_type: 5` = the lesson's video is hosted **externally on YouTube**, not
+  on Learnyst — the entry has a plain YouTube URL in `src`
+  (`youtube.com/watch?v=...`, `youtu.be/...`, or `youtube.com/embed/...`) and
+  **no `content_path`**, so endpoint #3 has nothing to fetch. Confirmed live
+  2026-08-27 across several lessons (mostly in Hindi-language and technical-
+  analysis modules). `learnystTranscriptRefresh.js` handles this by falling
+  back to `youtubeTranscriptRefresh.js`'s yt-dlp pipeline
+  (`extractYoutubeVideoId()` / `fetchTranscriptViaYtDlp()` — see
+  docs/youtube-api-schemas.md) instead of treating it as a fetch failure. The
+  resulting `learnyst-lessons` record is tagged `transcriptSource: 'youtube'`
+  and `youtubeVideoId` (vs the default `'learnyst'` for a normal
+  `content_path` fetch).
 
 ---
 
@@ -189,8 +245,8 @@ shows up in a run's summary.
 
 Not documented by Learnyst; empirically no 429s were observed testing ~15
 lesson fetches with 1.5s between transcript calls and 10s between modules
-(see `learnystTranscriptRefresh.js` `LEARNYST_REQUEST_DELAY_MS` /
-`LEARNYST_MODULE_DELAY_MS`). Treat the transcript endpoint (#3, called once
+(see `learnystTranscriptRefresh.js` `LEARNYST_<KEY>_REQUEST_DELAY_MS` /
+`LEARNYST_<KEY>_MODULE_DELAY_MS`). Treat the transcript endpoint (#3, called once
 per lesson — can be 700+ calls for a full membership) as the highest-risk one
 for undocumented limits; the other two are called at most once per module
 (15-ish calls for the current SOIC Membership).

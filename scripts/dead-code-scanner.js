@@ -24,6 +24,10 @@ const WORKSPACES = [
 // File extensions to analyze
 const ANALYZED_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx', '.json', '.md', '.py', '.sh'];
 
+// .env.example is the source of truth for declared env var names (`.env`
+// itself is gitignored/secret, never read here) — used by Category E below.
+const ENV_EXAMPLE_FILE = path.join(ROOT_DIR, '.env.example');
+
 // Helper to recursively collect files
 function getAllFiles(dirPath, arrayOfFiles = []) {
   if (!fs.existsSync(dirPath)) return arrayOfFiles;
@@ -245,6 +249,44 @@ function runDeadCodeScanner() {
           priority: 'Medium',
         });
       }
+    }
+  });
+
+  // --- Category E: Env vars declared in .env.example but only used by tests ---
+  // Real-world case this catches: a `.env.example`/`.env` var whose only
+  // literal appearance anywhere in the repo is in a *.test.js/*.spec.js file
+  // (or nowhere at all) — i.e. something a test asserts about but production
+  // code never actually reads, per "if something is only used by tests then
+  // it's not really needed."
+  const envExampleContent = readFileSafe(ENV_EXAMPLE_FILE);
+  const declaredEnvVars = new Set(
+    Array.from(envExampleContent.matchAll(/^\s*#?\s*([A-Z][A-Z0-9_]{3,})=/gm)).map((m) => m[1])
+  );
+  declaredEnvVars.forEach((varName) => {
+    let usedInRealSource = false;
+    let usedInTestOnly = false;
+    fileContentsMap.forEach((content, relPath) => {
+      if (relPath === '.env.example' || relPath === '.env') return;
+      const isTestFile = /\.(test|spec)\.js$/i.test(relPath);
+      const re = new RegExp(`\\b${varName}\\b`);
+      if (!re.test(content)) return;
+      if (isTestFile) usedInTestOnly = true;
+      else usedInRealSource = true;
+    });
+    if (!usedInRealSource) {
+      actionItems.push({
+        category: 'Env Var Unused Outside Tests',
+        title: `Verify whether ${varName} is actually needed`,
+        file: '.env.example',
+        detail:
+          `'${varName}' is declared in .env.example but the literal name never appears in ` +
+          `any non-test source file${usedInTestOnly ? ' — only in a *.test.js/*.spec.js file' : ''}. ` +
+          'It may be genuinely unused, OR it may be read via a dynamically-built name ' +
+          '(e.g. `` `PREFIX_${key}_SUFFIX` ``) that a literal grep cannot see — verify before ' +
+          'removing it from .env/.env.example and any test that references it.',
+        action: `[VERIFY] ${varName} usage, then remove from .env/.env.example if genuinely unused`,
+        priority: 'Low',
+      });
     }
   });
 

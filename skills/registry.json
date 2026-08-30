@@ -1026,6 +1026,33 @@
         "stock-api/src/analyzers/incomeStatementSignals.js"
       ]
     },
+    "announcement-info-classifier": {
+      "skill_md": "skills/equity-research/announcement-info-classifier/SKILL.md",
+      "entry": null,
+      "references": [
+        "skills/equity-research/announcement-info-classifier/references/soic-new-info-framework.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/equity-research/announcement-insights/SKILL.md",
+        "packages/jobs-runtime/lib/announcementTaxonomy.js",
+        "packages/jobs-runtime/watchlistInsights.js",
+        "packages/jobs-runtime/lib/companyContext.js",
+        "skills/equity-research/investment-thesis-engine/references/thesis_schema.md",
+        "docs/stockscans-api-schemas.md"
+      ],
+      "aliases": [
+        "is this new information",
+        "was this already known",
+        "already priced in",
+        "new vs known",
+        "does this deserve a re-rating",
+        "new information framework",
+        "separate new from known",
+        "follow up announcement",
+        "info classifier"
+      ]
+    },
     "guidance-ppt-fallback": {
       "skill_md": "skills/equity-research/guidance-ppt-fallback/SKILL.md",
       "entry": null,
@@ -1320,7 +1347,16 @@
       "skill_md": "skills/equity-research/post-close-scan-insights/SKILL.md",
       "entry": null,
       "references": [],
-      "shared": [],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/equity-research/announcement-insights/SKILL.md",
+        "skills/equity-research/announcement-info-classifier/SKILL.md",
+        "packages/jobs-runtime/lib/announcementTaxonomy.js",
+        "packages/jobs-runtime/watchlistInsights.js",
+        "packages/jobs-runtime/lib/tradingCalendar.js",
+        "stock-api/src/utils/announcementNoiseFilter.js",
+        "docs/stockscans-api-schemas.md"
+      ],
       "aliases": [
         "post close insights",
         "post-close scan",

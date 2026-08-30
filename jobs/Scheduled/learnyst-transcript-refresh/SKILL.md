@@ -1,29 +1,43 @@
 ---
 name: learnyst-transcript-refresh
-description: Learnyst Transcript Refresh — fetches AI transcripts for new video lessons across Darshan's SOIC Membership, cache-first
+description: Learnyst Transcript Refresh — fetches AI transcripts for new video lessons across all configured Learnyst memberships (SOIC, Chartitude, ...), cache-first
 ---
 
 ## Context
 
 Weekly refresh of AI-generated transcripts for Darshan's Learnyst course
-video library (SOIC Membership, school 110998, bundle 97666, ~15 modules).
-Cache-first: only lessons not already in the `learnyst-lessons` collection
-get fetched, so a run with no new content is a near-no-op. Personal course
-content, not stock-research data — no company scoping.
+video libraries — every site configured via `LEARNYST_<KEY>_*` env vars (see
+`.env.example` and `docs/learnyst-api-schemas.md`), currently SOIC Membership
+(school 110998, bundle 97666, ~15 modules) and Chartitude Membership
+(learn.chartitude.com). The script (`learnystTranscriptRefresh.js`,
+`packages/jobs-runtime/`) loops over every configured site in one run and
+prints a combined summary; a site with no auth token set is skipped, not
+errored — adding a new membership later needs only new env vars, not a
+change to this task. Cache-first: only lessons not already in the
+`learnyst-lessons` collection get fetched, so a run with no new content
+across all sites is a near-no-op. Personal course content, not stock-research
+data — no company scoping.
 
 ## Execution Plan
 
 Call the following exact script:
 
-1. Execute script (bash): `yarn learnyst-transcript-refresh`
-2. Read the JSON run summary the script prints to stdout and report:
-   `lessonsFetched` (new this run) vs `lessonsCachedSkipped` (already had),
-   `modulesProcessed`, any `modulesFailed`/`lessonsFailed` entries, and the
-   "Files touched" list the script prints (per DATA_RULES.md §7 — sourced
-   from `db.touchedFiles()`, do not reconstruct from memory).
+1. Execute script (bash): `yarn learnyst-transcript-refresh` (runs every
+   configured site in one process — do not pass `--site` unless the user
+   explicitly asked to refresh only one membership).
+2. Read the combined JSON run summary the script prints to stdout and
+   report: `sitesProcessed`, `lessonsFetched` (new this run) vs
+   `lessonsCachedSkipped` (already had), `modulesProcessed`, any
+   `modulesFailed`/`lessonsFailed` entries (each now tagged with its `site`),
+   and the "Files touched" list the script prints (per DATA*RULES.md §7 —
+   sourced from `db.touchedFiles()`, do not reconstruct from memory). Also
+   note any "Skipping site ..." lines (missing auth token, or missing
+   schoolId/bundleId — e.g. Chartitude until its bundle id is discovered and
+   added to `SITE_DEFAULTS`, see docs/learnyst-api-schemas.md) — that's an
+   unconfigured site, not a failure.
 3. If any failure in `lessonsFailed`/`modulesFailed` contains "authentication
-   failed" / "LEARNYST_AUTH_TOKEN is likely expired", stop and clearly flag
-   in the report that the token needs manual refresh (see
+   failed" / "LEARNYST\_<KEY>\_AUTH_TOKEN is likely expired", stop and clearly
+   flag in the report which site's token needs manual refresh (see
    `docs/learnyst-api-schemas.md` — DevTools steps) rather than retrying.
 4. Execute: `yarn data:push` (idempotent, push-only — docs/DATA_RULES.md §5).
 5. End the report with a one-line token/cost-reduction suggestion for next

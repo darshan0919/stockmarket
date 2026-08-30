@@ -93,7 +93,9 @@ function currentQuarterDate(date = new Date()) {
  */
 function defaultCutoffUtc(now = new Date()) {
   const d = ist.istDate(now);
-  const today1530 = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 15, 30, 0));
+  const today1530 = new Date(
+    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 15, 30, 0)
+  );
   let cutoffIst = today1530;
   if (d.getTime() < today1530.getTime()) {
     cutoffIst = new Date(today1530.getTime() - 24 * 60 * 60 * 1000);
@@ -166,7 +168,11 @@ async function cmdFetchScan(argv) {
   }
 
   process.stdout.write(
-    JSON.stringify({ cutoffUtc: cutoffUtc.toISOString(), quarterDate, totalFetched: all.length, inWindow }, null, 2)
+    JSON.stringify(
+      { cutoffUtc: cutoffUtc.toISOString(), quarterDate, totalFetched: all.length, inWindow },
+      null,
+      2
+    )
   );
 }
 
@@ -186,7 +192,10 @@ function cmdFilterNoise(argv) {
 
 function cmdCategorise(argv) {
   const file = argv[0];
-  if (!file) throw new Error('categorise requires a filter-noise output JSON file path (or {kept:[...]} shape)');
+  if (!file)
+    throw new Error(
+      'categorise requires a filter-noise output JSON file path (or {kept:[...]} shape)'
+    );
   const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
   const items = raw.kept || raw;
   const out = items.map((item) => {
@@ -215,12 +224,17 @@ const SIG_META = {
 };
 
 function esc(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  return String(s == null ? '' : s).replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
+  );
 }
 
 function buildDigestHtml(insights, { cutoffIstHuman, runIstHuman }) {
   const order = { high: 0, medium: 1, low: 2 };
-  const sorted = [...insights].sort((a, b) => (order[a.significance] ?? 3) - (order[b.significance] ?? 3));
+  const sorted = [...insights].sort(
+    (a, b) => (order[a.significance] ?? 3) - (order[b.significance] ?? 3)
+  );
   const groups = { high: [], medium: [], low: [] };
   for (const it of sorted) (groups[it.significance] || (groups[it.significance] = [])).push(it);
 
@@ -266,7 +280,9 @@ async function cmdSendDigest(argv) {
   const highCount = insights.filter((i) => i.significance === 'high').length;
   const subject = `Post-Close Insights — ${ist.nowIstDate()}${highCount ? ` (${highCount} high-conviction)` : ''}`;
   const result = await sendHtmlEmail({ subject, htmlBody: html });
-  process.stdout.write(JSON.stringify({ status: result.status || 'sent', subject, count: insights.length }, null, 2));
+  process.stdout.write(
+    JSON.stringify({ status: result.status || 'sent', subject, count: insights.length }, null, 2)
+  );
 }
 
 async function main() {
@@ -279,10 +295,15 @@ async function main() {
   };
   const fn = commands[cmd];
   if (!fn) {
-    process.stderr.write(`Usage: postCloseScanInsights.js <${Object.keys(commands).join('|')}> [args]\n`);
+    process.stderr.write(
+      `Usage: postCloseScanInsights.js <${Object.keys(commands).join('|')}> [args]\n`
+    );
     process.exit(1);
   }
   await fn(rest);
 }
 
-main().catch((err) => { console.error(err.stack); process.exit(1); });
+main().catch((err) => {
+  console.error(err.stack);
+  process.exit(1);
+});

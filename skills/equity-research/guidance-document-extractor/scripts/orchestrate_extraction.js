@@ -55,10 +55,19 @@ async function runStep1Fetch(args) {
   const manifestPath = path.join(outDir, 'manifest.json');
 
   try {
-    const cmd = `cd ${repoRoot} && node ${path.join(skillRoot, 'scripts', 'fetch_guidance_documents.js')} --scan-url "${args.scanUrl}" --out-dir "${outDir}"`;
-    execSync(cmd, { stdio: 'pipe', env: { ...process.env, STOCKSCANS_AUTH_TOKEN: token } });
+    const targetArg = args.scanUrl
+      ? `--scan-url "${args.scanUrl}"`
+      : `--tickers "${args.tickerList}"`;
+    const cmd = `node "${path.join(skillRoot, 'scripts', 'fetch_guidance_documents.js')}" ${targetArg} --out-dir "${outDir}"`;
+    const stdout = execSync(cmd, {
+      cwd: repoRoot,
+      stdio: ['inherit', 'pipe', 'inherit'],
+      env: { ...process.env, STOCKSCANS_AUTH_TOKEN: token },
+      maxBuffer: 50 * 1024 * 1024,
+    });
 
-    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    fs.writeFileSync(manifestPath, stdout);
+    const manifest = JSON.parse(stdout.toString('utf8'));
     log(`✓ Fetched ${manifest.length} companies`);
 
     return { manifest, outDir, manifestPath };
@@ -71,7 +80,7 @@ async function runStep1Fetch(args) {
 async function runStep2Extract(manifest, outDir) {
   log('STEP 2: Excerpt extraction (cheap-tier reasoning)');
 
-  if (manifest.length === 0) {
+  if (!manifest || manifest.length === 0) {
     log('✓ No companies to extract (0 in manifest)');
     return { excerptsByTicker: {}, stats: { total: 0, withExcerpts: 0 } };
   }
@@ -83,12 +92,19 @@ async function runStep2Extract(manifest, outDir) {
   let companiesWithExcerpts = 0;
 
   for (const company of manifest) {
-    const safeTicker = company.ticker.replace(/[:\-]/g, '_');
+    const safeTicker = (company.ticker || company.companyId || '').replace(/[:\-]/g, '_');
     const excerpts = [];
 
+    const textPaths =
+      typeof company.textPaths === 'object' && company.textPaths !== null
+        ? Array.isArray(company.textPaths)
+          ? company.textPaths
+          : Object.values(company.textPaths)
+        : [];
+
     // Read text from each source document
-    for (const textPath of company.textPaths || []) {
-      if (!fs.existsSync(textPath)) continue;
+    for (const textPath of textPaths) {
+      if (!textPath || !fs.existsSync(textPath)) continue;
 
       const text = fs.readFileSync(textPath, 'utf8');
       const source = textPath.includes('Transcript')
@@ -99,9 +115,9 @@ async function runStep2Extract(manifest, outDir) {
 
       // Permissive extraction: number + forward-period cue in same sentence/table
       const forwardKeywords =
-        /expect|guide|target|aim|plan|outlook|guidance|FY27|FY28|FY27E|next year|by 20\d{2}|Q1FY27|Q[1-4]FY2[7-9]/gi;
+        /expect|guide|target|aim|plan|outlook|guidance|FY27|FY28|FY27E|next year|by 20\d{2}|Q1FY27|Q[1-4]FY2[7-9]/i;
       const numberPattern =
-        /[₹$%]?\s*\d+(?:,\d{3})*(?:\.\d+)?|cr(?:ore)?|cr\.|lakh|lakhs|thousand|mn|million|billion|bn/gi;
+        /[₹$%]?\s*\d+(?:,\d{3})*(?:\.\d+)?|cr(?:ore)?|cr\.|lakh|lakhs|thousand|mn|million|billion|bn/i;
 
       // Split into sentences and extract passages
       const sentences = text.split(/[.!?\n]+/).filter((s) => s.trim().length > 20);
@@ -119,10 +135,6 @@ async function runStep2Extract(manifest, outDir) {
             text: sent.substring(0, 600), // Cap at 600 chars
             context: context.substring(0, 200),
           });
-
-          // Reset keyword regex state
-          forwardKeywords.lastIndex = 0;
-          numberPattern.lastIndex = 0;
         }
       }
     }

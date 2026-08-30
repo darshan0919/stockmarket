@@ -38,7 +38,7 @@ skills/
 │   ├── data-verification.md
 │   ├── income-statement-signals.md
 │   └── pdf_utils.py                # ReportLab helpers, palettes, table builder
-├── equity-research/                # company/sector research skills (54)
+├── equity-research/                # company/sector research skills (55)
 │   ├── stock-documents-fetcher/    # CORE — fetches Stockscans documents (Annual Report/PPT/Result/Transcript)
 │   ├── concall-analysis/
 │   ├── concall-transcript-extractor/
@@ -74,6 +74,7 @@ skills/
 │   ├── insight-validation/
 │   ├── gainers-signal/
 │   ├── announcement-insights/
+│   ├── announcement-info-classifier/
 │   ├── announcement-keyword-explorer/
 │   ├── transcript-availability-scanner/
 │   ├── stage2-catalyst-analysis/

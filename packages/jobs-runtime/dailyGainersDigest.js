@@ -102,7 +102,7 @@ async function main() {
       watchlistIds: [],
       filters: [
         { left: 'Market Capitalization', sign: '>=', right: '500' },
-        { left: 'Returns 1D', sign: '>=', right: '5' },
+        { left: 'Returns 1D', sign: '>=', right: '4' },
       ],
       alertFrequency: null,
     },

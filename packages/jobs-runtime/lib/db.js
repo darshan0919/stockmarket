@@ -32,6 +32,7 @@ const DIRS = {
   reports: () => path.join(dataRoot(), 'reports'),
   conversations: () => path.join(dataRoot(), 'conversations'),
   learnystLessons: () => path.join(dataRoot(), 'learnyst-lessons'),
+  youtubeTranscripts: () => path.join(dataRoot(), 'youtube-transcripts'),
   assets: () => path.join(dataRoot(), 'assets'),
   runs: () => path.join(dataRoot(), 'runs'),
   cache: () => path.join(dataRoot(), 'cache'),
@@ -73,6 +74,15 @@ const SINGLE_FILE_COLLECTIONS = [
   // (tens of KB each across hundreds of lessons), this file holds only the
   // slim index. Written via saveLearnystTranscript() below, never directly.
   'learnyst-lessons',
+  // youtube-transcripts: slim index for caption transcripts of YouTube channel
+  // videos (youtube-transcript-refresh script). Same justification as
+  // learnyst-lessons above (DATA_RULES.md §3): genuinely a new entity class,
+  // not company-scoped (channel content, not stock research), doesn't fit
+  // reports/notes/events. Two-file pattern like learnyst-lessons — full
+  // transcript body lives in youtube-transcripts/<id>.json, this file holds
+  // only the slim index. Written via saveYoutubeTranscript() below, never
+  // directly.
+  'youtube-transcripts',
 ];
 const LINK_CAP = 200; // max event/note/insight ids kept on a company object
 const LOCK_STALE_MS = 5 * 60 * 1000;
@@ -649,6 +659,7 @@ function saveLearnystTranscript(dto) {
     creator,
     creationTime,
     modifiedTime,
+    site,
     courseId,
     courseTitle,
     sectionId,
@@ -657,6 +668,9 @@ function saveLearnystTranscript(dto) {
     lessonType,
     durationSeconds,
     fetchedAt,
+    transcriptSource,
+    youtubeVideoId,
+    captionKind,
   } = dto;
   upsertMany('learnyst-lessons', [
     {
@@ -665,6 +679,10 @@ function saveLearnystTranscript(dto) {
       creator,
       creationTime,
       modifiedTime,
+      // Which configured Learnyst site/membership this lesson came from
+      // (e.g. 'soic', 'chartitude') — defaults to 'soic' for records written
+      // before multi-site support existed. See learnystTranscriptRefresh.js.
+      site: site || 'soic',
       courseId,
       courseTitle,
       sectionId,
@@ -673,6 +691,19 @@ function saveLearnystTranscript(dto) {
       lessonType,
       durationSeconds,
       fetchedAt,
+      // 'learnyst' (default) or 'youtube' — a lesson whose video is hosted
+      // externally on YouTube, no content_path, transcript fetched via
+      // youtubeTranscriptRefresh.js's yt-dlp pipeline instead of Learnyst's
+      // AI transcript API. See extractYoutubeVideoId() in
+      // learnystTranscriptRefresh.js.
+      transcriptSource: transcriptSource || 'learnyst',
+      youtubeVideoId: youtubeVideoId || null,
+      // 'manual'|'asr' for a successful YouTube fetch, 'none' if the video
+      // was checked and confirmed to have no usable captions (cached so a
+      // future run doesn't re-probe it — learnystTranscriptRefresh.js's
+      // cache-first check reads this field), null for a Learnyst-sourced
+      // lesson (transcriptSource: 'learnyst').
+      captionKind: captionKind || null,
       body: `learnyst-lessons/${id}.json`,
     },
   ]);
@@ -681,6 +712,66 @@ function saveLearnystTranscript(dto) {
 
 function readLearnystTranscript(id) {
   const p = path.join(DIRS.learnystLessons(), `${id}.json`);
+  return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
+}
+
+/**
+ * Save a YouTube video caption transcript: full DTO body (transcript text +
+ * raw caption track events) → youtube-transcripts/<id>.json, slim index entry
+ * → youtube-transcripts.json. Mirrors saveLearnystTranscript()'s two-file
+ * pattern for the same reason (transcript bodies are tens of KB each, many
+ * videos per channel — folding into one file would make every save rewrite a
+ * multi-MB collection).
+ * `dto` must include creator, type ("youtube-transcript"), channelId,
+ * videoId — NOT company-scoped (channel content), so no linkToCompanies call.
+ */
+function saveYoutubeTranscript(dto) {
+  ensureEnvelope(dto, { kind: 'ytt', scope: dto.channelId, discriminator: String(dto.videoId) });
+  init();
+  const bodyPath = path.join(DIRS.youtubeTranscripts(), `${dto.id}.json`);
+  withLock('youtube-transcript-bodies', () => {
+    writeFileAtomic(bodyPath, dto);
+  });
+  const {
+    id,
+    type,
+    creator,
+    creationTime,
+    modifiedTime,
+    channelId,
+    channelHandle,
+    channelTitle,
+    videoId,
+    videoTitle,
+    publishedAt,
+    captionLang,
+    captionKind,
+    fetchedAt,
+  } = dto;
+  upsertMany('youtube-transcripts', [
+    {
+      id,
+      type,
+      creator,
+      creationTime,
+      modifiedTime,
+      channelId,
+      channelHandle,
+      channelTitle,
+      videoId,
+      videoTitle,
+      publishedAt,
+      captionLang,
+      captionKind,
+      fetchedAt,
+      body: `youtube-transcripts/${id}.json`,
+    },
+  ]);
+  return dto.id;
+}
+
+function readYoutubeTranscript(id) {
+  const p = path.join(DIRS.youtubeTranscripts(), `${id}.json`);
   return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
 }
 
@@ -808,6 +899,8 @@ module.exports = {
   readReport,
   saveLearnystTranscript,
   readLearnystTranscript,
+  saveYoutubeTranscript,
+  readYoutubeTranscript,
   saveConversation,
   readConversation,
   savePrompt,

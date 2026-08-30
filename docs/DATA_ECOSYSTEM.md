@@ -56,12 +56,22 @@ data/
                         #   company that evidence touches
   unsupportive-investors.json # same shape/keying as supportive-investors.json, mirror case: an anchor
                         #   investor who reappeared SELLING within the listing window
-  learnyst-lessons.json # index of fetched Learnyst course-video AI transcripts
+  learnyst-lessons.json # index of fetched Learnyst course-video transcripts
                         #   (learnyst-transcript-refresh job); id = lyt_learnyst-transcript-refresh_<courseId>_<hash8(lessonId)>,
-                        #   not company-scoped (personal course content, not stock research)
+                        #   not company-scoped (personal course content, not stock research).
+                        #   transcriptSource='learnyst' (Learnyst's AI transcript API, the
+                        #   default) or 'youtube' (video externally hosted on YouTube, no
+                        #   content_path — fetched via youtubeTranscriptRefresh.js's yt-dlp
+                        #   pipeline instead, see docs/learnyst-api-schemas.md src_type:5 note)
   learnyst-lessons/<id>.json # full transcript body (timestamped + plain text + raw API
                         #   response; id-named, same two-file pattern as reports/ — bodies
                         #   run tens of KB each across hundreds of lessons)
+  youtube-transcripts.json # index of fetched YouTube video caption transcripts
+                        #   (youtube-transcript-refresh script); id = ytt_youtube-transcript-refresh_<channelId>_<hash8(videoId)>,
+                        #   not company-scoped (channel course/commentary content, not stock research)
+  youtube-transcripts/<id>.json # full transcript body (timestamped + plain text + raw
+                        #   caption track events; id-named, same two-file pattern as
+                        #   reports/ and learnyst-lessons/)
   cache/                # heavy regenerable derivables: company-master.json, bse-scrip-codes.json, extracts
   assets/               # rendered PDF/HTML, flat: <reportId>.pdf|.html (regenerable from DTOs)
   runs/                 # per-run raw dumps + full run DTOs — synced, kept locally (full mirror)

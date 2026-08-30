@@ -35,11 +35,6 @@ const { BseClient, parseBseSmartSearchHtml } = require('./clients/BseClient');
 const { ScreenerAuth } = require('./auth/screenerAuth');
 const { ScreenerClient, SCREENER_BASE_URL } = require('./clients/ScreenerClient');
 
-const generators = require('./generators');
-const analyzers = require('./analyzers');
-const { fetchEventReactionMetrics } = require('./orchestration/eventReactionMetrics');
-const { fetchReactionCandles } = require('./fetchers/reactionCandlesFetcher');
-
 // Convenience singletons (lazy auth → token resolved per request).
 // One shared NseSession backs both the price-action client and any low-level
 // transport callers (e.g. backend adapters) so they share a single cookie jar.
@@ -72,6 +67,14 @@ module.exports = {
   STOCKSCANS_BASE_URL,
   S3_BASE_URL,
   SCREENER_BASE_URL,
+};
+
+const generators = require('./generators');
+const analyzers = require('./analyzers');
+const { fetchEventReactionMetrics } = require('./orchestration/eventReactionMetrics');
+const { fetchReactionCandles } = require('./fetchers/reactionCandlesFetcher');
+
+Object.assign(module.exports, {
   // Generators
   ...generators,
   // Analyzers
@@ -79,4 +82,4 @@ module.exports = {
   // Event-reaction-signals orchestration
   fetchEventReactionMetrics,
   fetchReactionCandles,
-};
+});

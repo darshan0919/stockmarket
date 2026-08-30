@@ -41,11 +41,13 @@
     "nse-ipo-history-fetcher": "node nseIpoHistoryFetcher.js",
     "bse-ipo-history-fetcher": "node bseIpoHistoryFetcher.js",
     "anchor-bulk-deal-tracker": "node anchorBulkDealTracker.js",
-    "learnyst-transcript-refresh": "node learnystTranscriptRefresh.js"
+    "learnyst-transcript-refresh": "node learnystTranscriptRefresh.js",
+    "youtube-transcript-refresh": "node youtubeTranscriptRefresh.js"
   },
   "dependencies": {
     "@stock/api": "workspace:*",
-    "@stock/cloud-utils": "workspace:*"
+    "@stock/cloud-utils": "workspace:*",
+    "googleapis": "^148.0.0"
   },
   "devDependencies": {
     "jest": "^30.2.0"

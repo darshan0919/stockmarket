@@ -142,7 +142,7 @@ Using the Phase 3 digest, edit the target skill file(s) directly:
   `skills/_shared/*.md` if genuinely shared across skills — check first whether an
   existing shared file should be extended instead of a new one created, per
   conventions.md rule 17's "never think or write the same thing twice").
-- Changes to *when/how* a skill uses that framework → the skill's own `SKILL.md`
+- Changes to _when/how_ a skill uses that framework → the skill's own `SKILL.md`
   (phase instructions, DTO fields, render instructions) — this is what makes the
   learning actually load-bearing rather than a reference nobody reads.
 - Any new deterministic threshold/pattern-matching logic the digest surfaces (like

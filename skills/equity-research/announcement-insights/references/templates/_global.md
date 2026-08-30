@@ -18,6 +18,47 @@ INSIGHT GENERATION — GLOBAL RULES (apply to EVERY announcement, every category
    (c) Connection to prior notes — trend, consistency, or contradiction vs this
    company's earlier notes.
    (d) What to watch next — one concrete, monitorable point.
+3.5. HEADLINE + THESIS CHAIN + EPS IMPACT (structured fields, in addition to the
+   `insight` prose above — same underlying analysis, not a second research pass):
+   - `headline`: ONE crisp line combining what happened + how it plausibly
+     changes future EPS. Fragment style, not a full sentence with a subject and
+     verb clause for each half — e.g. "₹65cr share-swap dilutes FY27 EPS ~2%"
+     not "The company announced a share swap which is expected to..." If no EPS
+     link can honestly be derived (routine disclosures, investor-meet reschedules,
+     procedural filings), the headline states the strongest forward-looking read
+     available instead — do not force an EPS claim that isn't supported by the
+     document. Never fabricate a number to fill this field.
+   - `thesisChain`: an ordered array of short causal steps, each one clause,
+     reading like a chain of "this happened → this → this → this will happen to
+     EPS": step 1 is the fact from the filing, each subsequent step is the
+     direct consequence of the one before it, and the LAST step — only when
+     genuinely derivable — states the EPS/earnings effect with a timeline (e.g.
+     "adds ~₹4cr annualised PAT from Q2FY27" or "no EPS impact expected before
+     FY28 commissioning"). 3-5 steps is typical; use fewer for a simple filing
+     rather than padding. If the chain cannot honestly reach an EPS conclusion,
+     end it at the last step you can actually support (e.g. "strengthens
+     bargaining position with X supplier" ) rather than inventing a forced final
+     step — a shorter, honest chain beats a longer, speculative one. Do NOT
+     prefix steps 2+ with "so"/"so that"/"and so" — every renderer joins the
+     array with an arrow (→) between steps, which already carries that
+     causal/sequential meaning; writing "so" as well is a redundant restatement
+     of what the arrow already says. Write each step as a bare clause: "EPS is
+     mechanically diluted ~4.7%", not "so EPS is mechanically diluted ~4.7%".
+   - `epsImpact`: `null` when no EPS linkage is derivable (this is a valid,
+     expected outcome for most `general`/`investor_meet`/procedural
+     announcements — do not force a number). When derivable:
+     `{direction: "positive"|"negative"|"neutral", magnitude: "<free text, e.g.
+     '~2% dilution' or '~₹4cr annualised PAT'>", timeline: "<free text, e.g. 'from
+     Q2FY27' or 'FY28 onward'>", confidence: "high"|"medium"|"low"}`. `confidence`
+     reflects how directly the filing supports the number — a disclosed rupee
+     figure with a stated date is `high`; a qualitative directional read with no
+     hard number is `low`.
+   - These three fields are ADDITIVE to steps (a)-(d) above — they don't replace
+     the prose `insight`, they give a renderer (email digest, widget, PDF) a
+     structured hook so it never has to re-summarize or re-derive the causal
+     chain from a paragraph. Populate them for every note, including `routine`/
+     `low` significance ones (a short chain and a `headline` still apply even
+     when `epsImpact` ends up `null`).
 4. CLASSIFY significance: high | medium | low | routine.
    high — M&A, large capex, major order win (>10% of revenue), regulatory
    action, management change, equity dilution, change of control.

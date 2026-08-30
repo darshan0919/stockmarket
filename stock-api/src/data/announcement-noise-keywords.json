@@ -19,8 +19,13 @@
     "agm*of the company",
     "notice*agm",
     "intimation*agm",
-    "Annual General Meeting"
+    "Annual General Meeting",
+    "Allotment of ESOP",
+    "Intimation Of Board Meeting",
+    "Postal Ballot",
+    "AGM",
+    "Investors/Analysts Call"
   ],
   "descriptionKeywordsToIgnore": [],
-  "updatedAt": "2026-08-22T23:47:09.613Z"
+  "updatedAt": "2026-08-23T21:20:02.883Z"
 }
