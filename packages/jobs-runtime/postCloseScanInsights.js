@@ -48,6 +48,7 @@ const {
   HEAVY_DOCUMENT_CATEGORIES,
   HIGH_CONVICTION_CATEGORIES,
 } = require('./lib/announcementTaxonomy');
+const { NotesDb } = require('./lib/notesDb');
 
 const BASE_URL = 'https://www.stockscans.in';
 const PAGE_SIZE = 30; // documented convention (see bulkAnnouncementScan.js) — not the response's self-inflating `total`
@@ -194,13 +195,25 @@ async function resolveCutoffUtc(now, windowHoursArg) {
   return new Date(startMs);
 }
 
+// NOTE (2026-08-31 fix): `createdAt` from the Stockscans announcements/scan
+// API is a bare ISO datetime (no `Z`, no offset, e.g.
+// "2026-08-30T23:37:29.983221") but is ALREADY IN UTC, not IST — verified
+// empirically: an item's createdAt was ~10 minutes ahead of the real
+// wall-clock UTC time at fetch time, which is only consistent with the
+// field being UTC already. The previous version of this function (and the
+// shared `ist.parseCreatedAtMs` helper other jobs-runtime scripts use) both
+// assumed a bare timestamp meant IST and subtracted 5:30, which shifted
+// every `createdAt` 5.5 hours further into the past than reality — enough
+// to push genuinely in-window (post-cutoff) items below the cutoff and
+// silently drop them. `ann.date` (the separate coarse "YYYY-MM-DD" field,
+// if ever used instead) may still be IST-only and unaffected by this fix.
 function parseAnnDateToUtc(str) {
   if (!str) return null;
   if (/[+-]\d{2}:\d{2}$/.test(str) || /Z$/.test(str)) return new Date(str);
   const m = String(str).match(/(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})/);
   if (m) {
     const [, y, mo, dd, h, mi, s] = m.map(Number);
-    return new Date(Date.UTC(y, mo - 1, dd, h, mi, s) - (5 * 60 + 30) * 60 * 1000);
+    return new Date(Date.UTC(y, mo - 1, dd, h, mi, s));
   }
   return new Date(str);
 }
@@ -227,7 +240,14 @@ async function cmdFetchScan(argv) {
   const inWindow = [];
   let offset = 0;
   let page = 0;
+  let consecutiveZeroPages = 0;
   const MAX_PAGES = 80; // safety cap, not a trust boundary — see stop conditions below
+  // Number of consecutive zero-in-window pages required before trusting
+  // we've genuinely walked past the cutoff. >1 because a single page has
+  // been observed to come back entirely out-of-window even when newer
+  // in-window items exist elsewhere in the result set (API ordering is not
+  // reliably newest-first) — see 2026-08-31 incident.
+  const CONSECUTIVE_ZERO_PAGES_TO_STOP = 2;
 
   while (page < MAX_PAGES) {
     const payload = { scan: DEFAULT_SCAN, offset, quarterDate };
@@ -239,19 +259,32 @@ async function cmdFetchScan(argv) {
     if (!items.length) break;
     all.push(...items);
 
-    let crossedCutoff = false;
+    let pageInWindowCount = 0;
     for (const item of items) {
       const dt = parseAnnDateToUtc(item.createdAt || item.date);
       if (dt && dt.getTime() >= cutoffUtc.getTime()) {
         inWindow.push({ ...item, __parsedUtc: dt.toISOString() });
-      } else {
-        crossedCutoff = true;
+        pageInWindowCount += 1;
       }
     }
     offset += items.length;
     page += 1;
     if (items.length < PAGE_SIZE) break; // short page = last page
-    if (crossedCutoff) break; // results are newest-first — safe to stop once we've seen an out-of-window item
+    // Do NOT stop on the first out-of-window item within a page — the API's
+    // newest-first ordering has been observed to be unreliable (a page can
+    // contain zero in-window items even though later/earlier pages do, see
+    // 2026-08-31 incident where offset=0 returned 30 items all older than
+    // cutoff despite newer items existing in the true universe). A single
+    // zero-in-window page is NOT sufficient evidence we've walked past the
+    // cutoff — require CONSECUTIVE_ZERO_PAGES_TO_STOP in a row before
+    // trusting it, so one unlucky/misordered page can't silently truncate
+    // the whole window to empty.
+    if (pageInWindowCount === 0) {
+      consecutiveZeroPages += 1;
+      if (consecutiveZeroPages >= CONSECUTIVE_ZERO_PAGES_TO_STOP) break;
+    } else {
+      consecutiveZeroPages = 0;
+    }
   }
 
   // Record this fetch's windowEnd (= this invocation's "now", not the
@@ -306,6 +339,36 @@ function cmdFilterNoise(argv) {
   process.stdout.write(JSON.stringify({ kept, dropped }, null, 2));
 }
 
+// `ssUrl` IS the announcementId convention used everywhere else in this
+// codebase (see watchlistInsights.js announcementId()) — the PDF's storage
+// key never changes across re-fetches, so it's a stable dedupe key.
+function isAlreadyProcessed(notes, companyId, announcementId) {
+  const co = notes.companies && notes.companies[companyId];
+  if (!co) return false;
+  if ((co.processedAnnouncements || []).includes(announcementId)) return true;
+  const byUsecase = co.processedByUsecase || {};
+  return Object.entries(byUsecase).some(
+    ([usecase, ids]) =>
+      usecase.startsWith(ANNOUNCEMENT_INSIGHTS_USECASE_PREFIX) &&
+      (ids || []).includes(announcementId)
+  );
+}
+
+// 2026-08-31 fix: this command previously had NO memory of prior runs at
+// all — it just categorised whatever fetch-scan/filter-noise handed it, with
+// zero check against the notes DB's processedAnnouncements/processedByUsecase
+// state. That meant the ONLY thing preventing a re-processed (duplicate)
+// announcement-insights note for the same announcementId was the orchestrating
+// agent remembering to check manually before calling add-note — nothing
+// enforced it in code. Confirmed in production: NSE:STLTECH/VARROC/RAMRAT
+// each ended up with two near-identical announcement-insights:standard notes
+// for the exact same announcementId, ~4 hours apart, because a later run
+// re-selected and re-processed an announcement that was already fully
+// processed and marked. Every categorised item now carries `alreadyProcessed`
+// so callers (and any orchestrator) have a deterministic, code-enforced
+// signal to skip re-processing rather than relying on memory across runs.
+const ANNOUNCEMENT_INSIGHTS_USECASE_PREFIX = 'announcement-insights';
+
 function cmdCategorise(argv) {
   const file = argv[0];
   if (!file)
@@ -314,8 +377,10 @@ function cmdCategorise(argv) {
     );
   const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
   const items = raw.kept || raw;
+  const notes = new NotesDb().load();
   const out = items.map((item) => {
     const category = categoriseAnnouncement(item.title, item.description);
+    const announcementId = item.ssUrl;
     return {
       companyId: item.companyId,
       name: item.name,
@@ -324,6 +389,7 @@ function cmdCategorise(argv) {
       category,
       heavyDocument: HEAVY_DOCUMENT_CATEGORIES.has(category),
       highConviction: HIGH_CONVICTION_CATEGORIES.has(category),
+      alreadyProcessed: isAlreadyProcessed(notes, item.companyId, announcementId),
       ssUrl: item.ssUrl,
       pdfUrl: `${BASE_URL}/document/${item.ssUrl}`,
       createdAt: item.createdAt,
@@ -722,7 +788,129 @@ function computeRankScore(it) {
   return score;
 }
 
-function buildDigestHtml(insights, { cutoffIstHuman, runIstHuman, stats }) {
+// Shared dedupe key: prefer the real announcementId (stable across runs —
+// see watchlistInsights.js's announcementId(), which IS the note's ssUrl),
+// falling back to companyId+insight text only for the rare note that predates
+// announcementId being stored at all. Factored out so cmdSendDigest and
+// cmdResendWithMarketData can never drift into two different definitions of
+// "same announcement" — see the 2026-09 duplicate-entry bug below for why
+// that drift is exactly what let duplicates slip through resend-with-market-data.
+function insightDedupeKey(it) {
+  return it.announcementId ? `${it.companyId}::${it.announcementId}` : `${it.companyId}::${it.insight}`;
+}
+
+// 2026-09 fix: resend-with-market-data previously read notes straight from
+// db.find('notes', {date, type:'announcement'}) with ZERO dedup, so any
+// duplicate note already sitting in the DB (the exact STLTECH/VARROC/RAMRAT-
+// style duplicates the 2026-08-31 `alreadyProcessed` fix stops from being
+// CREATED going forward) would still be re-rendered as two separate cards on
+// every resend, forever — the categorise-level fix only prevents new
+// duplicates, it doesn't clean up ones already persisted. Both send-digest
+// and resend-with-market-data now route through this one function so a
+// pre-existing duplicate note is silently collapsed (first-seen wins) rather
+// than requiring a manual data cleanup pass.
+function dedupeInsights(insights) {
+  const seen = new Set();
+  const out = [];
+  for (const it of insights) {
+    const key = insightDedupeKey(it);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(it);
+  }
+  return out;
+}
+
+// Per-company thesis-card clubbing (2026-09): when the same company has
+// multiple distinct announcements surviving into one digest (e.g. an
+// acquisition update PLUS a shareholding-change filing the same evening),
+// render ONE card per company instead of one per announcement — a reader
+// scanning the digest cares about "what's the state of play on this
+// company tonight," not "how many separate filings happened to hit the
+// wire." Card-level significance/score use the HIGHEST-scoring individual
+// announcement (so a company with one high-conviction item and three
+// routine ones still surfaces in the High section) — see scoring notes
+// inline below.
+function groupInsightsByCompany(insights) {
+  const bySig = { high: 0, medium: 1, low: 2 };
+  const byCompany = new Map();
+  for (const it of insights) {
+    const key = it.companyId || it.name || '';
+    if (!byCompany.has(key)) byCompany.set(key, []);
+    byCompany.get(key).push(it);
+  }
+
+  const grouped = [];
+  for (const items of byCompany.values()) {
+    if (items.length === 1) {
+      grouped.push(items[0]);
+      continue;
+    }
+    // Rank each sub-item by (significance rank, then computeRankScore) so
+    // "highest scoring announcement" matches the exact ordering the digest
+    // already uses to sort cards within a significance bucket — no second,
+    // divergent notion of "highest" gets introduced here.
+    const bySeverityThenScore = [...items].sort((a, b) => {
+      const sigDiff = (bySig[a.significance] ?? 3) - (bySig[b.significance] ?? 3);
+      if (sigDiff !== 0) return sigDiff;
+      return computeRankScore(b) - computeRankScore(a);
+    });
+    const primary = bySeverityThenScore[0];
+
+    // Combine headlines/thesis chains from every sub-item, de-duplicated by
+    // normalized text so two announcements that happen to restate the same
+    // fact (e.g. a board-outcome filing followed by a press-release repeating
+    // it) don't double the same line in the combined card.
+    const seenLines = new Set();
+    const combinedChain = [];
+    for (const it of bySeverityThenScore) {
+      const steps = Array.isArray(it.thesisChain) && it.thesisChain.length
+        ? it.thesisChain
+        : String(it.insight || '').split(/(?<=[.!?])\s+/).filter(Boolean);
+      for (const step of steps) {
+        const norm = String(step).trim().toLowerCase().replace(/\s+/g, ' ');
+        if (!norm || seenLines.has(norm)) continue;
+        seenLines.add(norm);
+        combinedChain.push(step);
+      }
+    }
+
+    // Merge tags (unique, primary's tags first so high_conviction etc. stay
+    // prominent), and collect every distinct sub-announcement's PDF link so
+    // the reader can still reach each original filing, not just the
+    // highest-scoring one's.
+    const tagSet = new Set();
+    for (const it of bySeverityThenScore) {
+      for (const t of Array.isArray(it.tags) ? it.tags : []) tagSet.add(t);
+    }
+    const subLinks = bySeverityThenScore
+      .filter((it) => it.pdfUrl)
+      .map((it) => ({ pdfUrl: it.pdfUrl, category: it.category, announcementId: it.announcementId }));
+
+    grouped.push({
+      ...primary,
+      headline: primary.headline || undefined,
+      thesisChain: combinedChain,
+      tags: [...tagSet],
+      // Card keeps the primary (highest-scoring) item's significance,
+      // category chip, epsImpact, marketData, infoClassification, and
+      // pdfUrl/link-button — those are per-thesis judgments that don't
+      // average meaningfully across unrelated filings; only the narrative
+      // body (thesisChain) and tags are combined. subAnnouncementCount lets
+      // the header note "+N more filings" without changing the score.
+      subAnnouncementCount: items.length,
+      subLinks,
+    });
+  }
+  return grouped;
+}
+
+function buildDigestHtml(rawInsights, { cutoffIstHuman, runIstHuman, stats }) {
+  // Dedupe first (defends against any duplicate note already in the DB —
+  // see dedupeInsights above), THEN club by company — clubbing on
+  // undeduped input would just combine duplicate text into the same card
+  // instead of dropping it.
+  const insights = groupInsightsByCompany(dedupeInsights(rawInsights));
   const order = { high: 0, medium: 1, low: 2 };
   const sorted = [...insights].sort((a, b) => {
     const sigDiff = (order[a.significance] ?? 3) - (order[b.significance] ?? 3);
@@ -785,12 +973,32 @@ function buildDigestHtml(insights, { cutoffIstHuman, runIstHuman, stats }) {
           // same string (companyId IS the ticker, there's no separate name).
           const displayName =
             it.name && it.name !== it.companyId ? `${it.name} (${it.companyId})` : it.companyId;
+          // Clubbed-card affordances (see groupInsightsByCompany): a "+N
+          // more filings" badge next to the category chip, and one small
+          // link per additional sub-announcement's original PDF beyond the
+          // primary one already covered by linkBtn — so combining cards
+          // never loses a reader's ability to open any individual filing.
+          const extraCount = (it.subAnnouncementCount || 1) - 1;
+          const multiBadge = extraCount > 0
+            ? `<span style="display:inline-block;vertical-align:middle;font-size:10px;font-weight:600;color:#475467;background:#f2f4f7;border:1px solid #d0d5dd;border-radius:999px;padding:2px 8px;margin-left:6px;white-space:nowrap;">+${extraCount} more filing${extraCount > 1 ? 's' : ''}</span>`
+            : '';
+          const extraLinksHtml =
+            extraCount > 0 && Array.isArray(it.subLinks) && it.subLinks.length > 1
+              ? `<div style="margin-top:6px;font-size:11px;">${it.subLinks
+                  .filter((l) => l.pdfUrl !== it.pdfUrl)
+                  .map(
+                    (l) =>
+                      `<a href="${esc(l.pdfUrl)}" target="_blank" style="color:#475467;text-decoration:underline;margin-right:10px;">${esc(toTitleCase(l.category))} filing</a>`
+                  )
+                  .join('')}</div>`
+              : '';
           return `
         <div style="background:#fff;border:1px solid #eaecf0;border-radius:8px;padding:14px 16px;margin-bottom:10px;">
           <div style="display:flex;justify-content:space-between;flex-wrap:wrap;">
             <div style="font-weight:700;font-size:13.5px;margin-right:10px;line-height:20px;">${stockscansLink(displayName, it.companyId, 'NSE', '#101828')}</div>
             <div style="white-space:nowrap;line-height:20px;">
               <span style="display:inline-block;vertical-align:middle;font-size:10.5px;font-weight:700;font-family:monospace;letter-spacing:0.03em;background:${tone.chipBg};color:${tone.chipFg};border-radius:3px;padding:2px 7px;white-space:nowrap;">${esc(toTitleCase(it.category))}</span>
+              ${multiBadge}
               ${linkBtn}
             </div>
           </div>
@@ -800,6 +1008,7 @@ function buildDigestHtml(insights, { cutoffIstHuman, runIstHuman, stats }) {
           ${epsHtml}
           ${tagsHtml ? `<div style="margin-top:9px;">${tagsHtml}</div>` : ''}
           ${infoClassHtml}
+          ${extraLinksHtml}
         </div>`;
         })
         .join('');
@@ -816,19 +1025,76 @@ function buildDigestHtml(insights, { cutoffIstHuman, runIstHuman, stats }) {
 
   return `<!DOCTYPE html><html><body style="font-family:-apple-system,Helvetica,Arial,sans-serif;background:#f9fafb;padding:24px;color:#101828;">
     <h2 style="margin:0 0 4px;">Post-Close Announcement Insights</h2>
-    <p style="color:#667085;font-size:13px;margin:0 0 20px;">Window: ${esc(cutoffIstHuman)} &rarr; ${esc(runIstHuman)} &nbsp;&middot;&nbsp; ${insights.length} insight(s)</p>
+    <p style="color:#667085;font-size:13px;margin:0 0 20px;">Window: ${esc(cutoffIstHuman)} &rarr; ${esc(runIstHuman)} &nbsp;&middot;&nbsp; ${insights.length} compan${insights.length === 1 ? 'y' : 'ies'} (${rawInsights.length} filing${rawInsights.length === 1 ? '' : 's'})</p>
     ${sections || '<p style="color:#667085;">No non-routine announcements in this window.</p>'}
     ${buildStatsFooterHtml(stats)}
   </body></html>`;
+}
+
+// Pull every already-persisted announcement-insights note whose createdAt
+// falls at/after `cutoffMs`, across ALL companies in the notes DB — not just
+// the ones this specific run freshly processed. This is what lets the
+// digest include announcements that were already read/insighted by an
+// earlier run today (e.g. a manual re-run, or watchlist-insights covering
+// the same company) instead of only showing whatever this invocation's own
+// insights-array file happened to contain. Only announcement-insights notes
+// are eligible (usecase starts with "announcement-insights") — routine/
+// noise-filtered items never got a note in the first place (per skill
+// design: mark-processed with no add-note), so this can't accidentally
+// resurrect noise.
+function collectCachedNotesSinceCutoff(cutoffMs) {
+  const notesDb = new NotesDb();
+  const notes = notesDb.load();
+  const out = [];
+  for (const [companyId, co] of Object.entries(notes.companies || {})) {
+    for (const n of co.notes || []) {
+      const usecase = n.usecase || '';
+      if (!usecase.startsWith('announcement-insights')) continue;
+      const createdMs = ist.parseCreatedAtMs(n.createdAt || n.date || '');
+      if (createdMs === null || createdMs < cutoffMs) continue;
+      if (!n.insight) continue; // no insight text = nothing worth rendering
+      out.push({
+        companyId,
+        name: co.name || companyId,
+        category: n.category || '',
+        significance: n.significance || 'low',
+        pdfUrl: n.pdfUrl || null,
+        headline: n.headline || '',
+        thesisChain: n.thesisChain || [],
+        epsImpact: n.epsImpact || null,
+        tags: n.tags || [],
+        insight: n.insight,
+        announcementId: n.announcementId || null,
+        createdAt: n.createdAt || null,
+      });
+    }
+  }
+  return out;
 }
 
 async function cmdSendDigest(argv) {
   loadEnv(argValue('--env-file', argv));
   const file = argv[0];
   if (!file) throw new Error('send-digest requires an insights JSON array file path');
-  const insights = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const freshInsights = JSON.parse(fs.readFileSync(file, 'utf8'));
   const cutoffIstHuman = argValue('--cutoff-human', argv) || '';
   const runIstHuman = ist.nowIstHuman();
+
+  // Merge in cached notes since the resolved cutoff so the email always
+  // reflects every candidate announcement since the last trading day's close,
+  // even ones a prior run today already processed and cached — not just
+  // whatever this invocation's own insights-array file contains. Dedupe via
+  // the shared insightDedupeKey/dedupeInsights helpers (announcementId, or
+  // companyId+insight text for pre-announcementId notes) so a note that's
+  // BOTH freshly passed in AND already in the notes DB doesn't render twice.
+  // buildDigestHtml also runs this same dedup internally (belt-and-braces
+  // against any future caller that skips it), so this pass mainly exists to
+  // keep the reported `insights.length`/subject-line highCount accurate to
+  // what's actually deduped, not just what buildDigestHtml renders.
+  const now = new Date();
+  const cutoffUtc = await resolveCutoffUtc(now, argValue('--window-hours', argv));
+  const cachedInsights = collectCachedNotesSinceCutoff(cutoffUtc.getTime());
+  const insights = dedupeInsights([...freshInsights, ...cachedInsights]);
   // --stats-file <path>: optional JSON {total, insights, highConviction,
   // heavyDocSkipped, routine, ocrFailed, noiseDropped} — the orchestrating
   // skill assembles this across Steps 1-3 (it's the only place that has
@@ -837,7 +1103,12 @@ async function cmdSendDigest(argv) {
   const statsFile = argValue('--stats-file', argv);
   const stats = statsFile ? JSON.parse(fs.readFileSync(statsFile, 'utf8')) : null;
   const html = buildDigestHtml(insights, { cutoffIstHuman, runIstHuman, stats });
-  const highCount = insights.filter((i) => i.significance === 'high').length;
+  // Compute subject-line/reported counts from the SAME grouped-by-company
+  // view buildDigestHtml actually renders (not the pre-grouping filing-level
+  // `insights`) — otherwise a company with 2 "high" filings that collapse
+  // into 1 card would inflate highCount/count past what the email shows.
+  const groupedForCount = groupInsightsByCompany(insights);
+  const highCount = groupedForCount.filter((i) => i.significance === 'high').length;
   const subject = `Post-Close Insights — ${ist.nowIstDate()}${highCount ? ` (${highCount} high-conviction)` : ''}`;
   // cid-attach the expand icon (see EXPAND_ICON_CID/EXPAND_ICON_PNG_BASE64
   // above) only when at least one card actually references it, so a
@@ -855,7 +1126,16 @@ async function cmdSendDigest(argv) {
     : undefined;
   const result = await sendHtmlEmail({ subject, htmlBody: html, attachments });
   process.stdout.write(
-    JSON.stringify({ status: result.status || 'sent', subject, count: insights.length }, null, 2)
+    JSON.stringify(
+      {
+        status: result.status || 'sent',
+        subject,
+        count: groupedForCount.length,
+        filingCount: insights.length,
+      },
+      null,
+      2
+    )
   );
 }
 
@@ -1011,6 +1291,14 @@ async function cmdResendWithMarketData(argv) {
       epsImpact: n.epsImpact,
       tags: n.tags,
       pdfUrl: n.pdfUrl,
+      // Carry announcementId through so dedupeInsights (invoked inside
+      // buildDigestHtml) can use its strong per-filing key instead of
+      // falling back to companyId+insight text — this field was previously
+      // dropped here, which is part of why a genuinely duplicate note (two
+      // DB entries, same announcementId, from the pre-2026-08-31 gap) could
+      // still slip past a weaker text-based dedupe if either copy's insight
+      // text had drifted even slightly between the two runs that created them.
+      announcementId: n.announcementId || null,
       marketData: {
         returns1d: m.returns1d != null ? m.returns1d : null,
         deliveryPct: d.available ? d.deliv_per : null,
@@ -1023,7 +1311,15 @@ async function cmdResendWithMarketData(argv) {
   const cutoffIstHuman = `Re-send of ${dateArg}'s post-close digest, with end-of-day market data`;
   const runIstHuman = ist.nowIstHuman();
   const html = buildDigestHtml(insights, { cutoffIstHuman, runIstHuman, stats: null });
-  const highCount = insights.filter((i) => i.significance === 'high').length;
+  // Same grouped-count fix as cmdSendDigest: report card-level counts (what
+  // the email actually shows), not raw per-filing note counts. Also route
+  // through dedupeInsights explicitly here (not just inside buildDigestHtml)
+  // so a resend of a date whose notes DB contains legacy duplicates (from
+  // before the 2026-08-31 alreadyProcessed fix existed) reports the true,
+  // deduped ticker/company count rather than the raw db.find() row count.
+  const dedupedForCount = dedupeInsights(insights);
+  const groupedForCount = groupInsightsByCompany(dedupedForCount);
+  const highCount = groupedForCount.filter((i) => i.significance === 'high').length;
   const subject = `Post-Close Insights — ${dateArg} (with market data)${highCount ? ` (${highCount} high-conviction)` : ''}`;
   const needsIcon = insights.some((i) => i.pdfUrl);
   const attachments = needsIcon
@@ -1042,7 +1338,10 @@ async function cmdResendWithMarketData(argv) {
       {
         status: result.status || 'sent',
         subject,
-        count: insights.length,
+        count: groupedForCount.length,
+        filingCount: dedupedForCount.length,
+        rawNoteCount: insights.length,
+        duplicatesCollapsed: insights.length - dedupedForCount.length,
         tickersWithDelivery: Object.values(deliveryByTicker).filter((d) => d.available).length,
         tickersWithReturns: Object.values(marketByTicker).filter((m) => m.returns1d != null).length,
         tickersWithVolRatio: Object.values(volRatioByTicker).filter((v) => v != null).length,

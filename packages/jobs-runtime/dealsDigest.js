@@ -387,6 +387,19 @@ async function fetchSast(targetIst, sastQuoteLimit = SAST_QUOTE_LIMIT) {
       const acq = num(r.noOfShareAcq);
       const sale = num(r.noOfShareSale);
       const shares = (acq || 0) + (sale || 0);
+      // NSE's row gives post-holding % (totAftShare) and the %-of-capital
+      // MOVED in this filing (totAcqShare/totSaleShare), but never the
+      // pre-holding % directly. Derive it the same way the disclosure PDF's
+      // "Before the acquisition/disposal" row does: after ± the delta moved
+      // (subtract for a sale — holding was higher before a sale went out;
+      // add for an acquisition — holding was lower before shares came in).
+      const pctAfter = num(r.totAftShare);
+      const pctDelta = num(r.acqSaleType === 'Sale' ? r.totSaleShare : r.totAcqShare);
+      const pctBefore =
+        pctAfter != null && pctDelta != null
+          ? Math.round((r.acqSaleType === 'Sale' ? pctAfter + pctDelta : pctAfter - pctDelta) * 100) /
+            100
+          : null;
       return {
         exchange: 'NSE',
         symbol: r.symbol,
@@ -395,6 +408,7 @@ async function fetchSast(targetIst, sastQuoteLimit = SAST_QUOTE_LIMIT) {
         side: r.acqSaleType,
         regType: r.regType,
         shares: shares || null,
+        pctBefore,
         pctPost: r.totAftShare ?? null,
         timestamp: r.timestamp,
         attachment: r.attachement || null,
@@ -422,7 +436,53 @@ async function fetchSast(targetIst, sastQuoteLimit = SAST_QUOTE_LIMIT) {
   for (const r of rows) {
     if (r.shares && prices[r.symbol]) r.value = r.shares * prices[r.symbol];
   }
-  out.rows = rows;
+
+  // Dedupe re-filed/re-transmitted disclosures of the SAME underlying
+  // transaction. NSE's Reg 29 index can carry the identical disclosure
+  // twice under different application_no's — e.g. the acquirer/seller's
+  // own letter straight to NSE, followed a day later by the target
+  // company's covering-letter re-transmission of the SAME signed
+  // disclosure to both BSE+NSE (confirmed live for RUBICON on
+  // 01-Sep-2026: General Atlantic's 1.4cr-share sale filed once at 11:56
+  // via application_no 176083, then again at 14:39 via 176326 — same
+  // seller, same shares, same signed date, different attachment
+  // PDF/filename/submitter). application_no/timestamp/attachment differ
+  // across re-filings by construction, so they can't be part of the key.
+  //
+  // The identifying fact of a SAST transaction is the entity's holding
+  // trajectory: which % they held BEFORE and which % they held AFTER.
+  // Two genuinely separate real transactions by the same entity cannot
+  // land on the identical before-%/after-% pair — any second real trade
+  // necessarily starts from a different "before" (wherever the first
+  // trade left them) or ends at a different "after". So: same acquirer +
+  // same side + same pctBefore + same pctAfter ⇒ same transaction,
+  // filed twice.
+  //
+  // This correctly does NOT collapse Lloyds Metals' two real same-day
+  // pledges of 2,00,00,000 shares each (same share count, which is why
+  // they looked suspicious) by two different pledgors routed through the
+  // same SBICAP Trustee: pledge 1 was NIL%→3.55%, pledge 2 was
+  // 3.55%→7.10% — before/after both differ, so they key apart correctly.
+  // Keep the EARLIEST-filed row of each dup group (closest to the
+  // original disclosure).
+  const seenSast = new Map();
+  for (const r of rows) {
+    const key = [
+      r.symbol,
+      // Strip trailing punctuation/whitespace noise ("Pte. Ltd" vs
+      // "Pte. Ltd.") so the same acquirer name filed slightly differently
+      // across a re-transmission doesn't defeat the dedup key.
+      String(r.acquirer || '').trim().toLowerCase().replace(/[.\s]+$/, ''),
+      r.side,
+      r.pctBefore,
+      r.pctPost,
+    ].join('|');
+    const existing = seenSast.get(key);
+    if (!existing || String(r.timestamp) < String(existing.timestamp)) {
+      seenSast.set(key, r);
+    }
+  }
+  out.rows = [...seenSast.values()];
   return out;
 }
 

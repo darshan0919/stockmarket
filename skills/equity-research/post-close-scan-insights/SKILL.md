@@ -183,6 +183,18 @@ flag recurring instances to `insight-validation`/`skill-manager` as candidates f
 
 For EACH item from Step 2's output:
 
+**If `alreadyProcessed` is true — skip immediately, do NOT call `announcement-insights` or
+`add-note`.** This flag (added 2026-08-31) is computed deterministically by `categorise`
+itself against the notes DB's `processedAnnouncements`/`processedByUsecase` state — it
+means an earlier run (this skill, a re-run, or any other `announcement-insights` caller)
+already has a note for this exact `announcementId`. Before this flag existed, nothing
+enforced this check in code — it relied entirely on the orchestrating agent remembering to
+look it up manually before writing a note, and that gap produced real duplicate notes in
+production (e.g. NSE:STLTECH/VARROC/RAMRAT each got two near-identical
+`announcement-insights:standard` notes for the same announcementId from two different
+runs). Do not re-derive this check yourself from `get-company-notes` — trust the flag; it's
+already correct and cheaper than a second lookup.
+
 **If `heavyDocument` is true — skip, don't call `announcement-insights` at all:**
 
 ```bash
@@ -325,10 +337,25 @@ run send-digest <insights-array.json> --cutoff-human "<human-readable window sta
 Build `<insights-array.json>` from every `add-note` payload's `note` object across this
 run (one array entry per processed, non-heavy, non-routine announcement — significance,
 category, companyId, insight text, plus `infoClassification` on the Step 3.5 top-5).
-`send-digest` groups by `significance` (high/medium/low, high first) and emails via the
-shared `sendHtmlEmail` helper (`@stock/cloud-utils` — same email pipe every other
-jobs-runtime script uses, secrets via `loadEnv()`, never hand-rolled SMTP). Subject line
-flags the high-conviction count when nonzero so it's visible without opening the email.
+
+**`send-digest` does NOT only render this run's own array.** Before building the HTML it
+re-resolves the same cutoff this run's `fetch-scan` used (last trading day's 3:30 PM IST
+close, walked back over weekends/holidays), then queries the notes DB for every
+`announcement-insights:*` note — across ALL companies, not just ones this invocation
+touched — whose `createdAt` falls at/after that cutoff, and merges those in (deduped by
+`announcementId`, or by companyId+insight text as a fallback). This is deliberate: the
+email is meant to be a complete picture of every candidate announcement since the last
+close through execution time, including ones a prior run today (or another skill sharing
+the same `announcement-insights` cache) already processed and cached — not just whatever
+happened to be freshly processed in this specific invocation. Only notes that already have
+insight text are pulled in this way; routine/noise-filtered announcements (mark-processed
+with no add-note) are never resurrected, since they never had a note to begin with.
+
+`send-digest` groups the merged set by `significance` (high/medium/low, high first) and
+emails via the shared `sendHtmlEmail` helper (`@stock/cloud-utils` — same email pipe every
+other jobs-runtime script uses, secrets via `loadEnv()`, never hand-rolled SMTP). Subject
+line flags the high-conviction count when nonzero so it's visible without opening the
+email.
 
 **Within a significance bucket, cards are further ranked by a deterministic score**
 (`computeRankScore` in `postCloseScanInsights.js`) — `significance` alone still spans a
