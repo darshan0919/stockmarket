@@ -1,11 +1,13 @@
 const fs = require('fs');
 const { stockscansLink } = require('./cloud-utils/src/emailService.js');
 
-const d = JSON.parse(fs.readFileSync('./data/runs/volume_rocketing_insights_20260901.json', 'utf8'));
+const d = JSON.parse(
+  fs.readFileSync('./data/runs/volume_rocketing_insights_20260901.json', 'utf8')
+);
 const marketDate = d.market_date;
 const signals = d.signals;
-const watch = signals.filter(s => s.tier === 'WATCH');
-const noted = signals.filter(s => s.tier === 'NOTED');
+const watch = signals.filter((s) => s.tier === 'WATCH');
+const noted = signals.filter((s) => s.tier === 'NOTED');
 
 // no gainers-signal overlap this run: dedupe against 31 gainers-signal tickers, 0 skipped
 const skippedCount = 0;
@@ -34,8 +36,14 @@ function notedLine(s) {
   return `${stockscansLink(s.name, s.ticker, s.ticker.split(':')[0], '#c7cad1')} +${s.return_1d}%`;
 }
 
-const watchRows = watch.sort((a,b)=>b.conviction_score-a.conviction_score).map(watchRow).join('\n');
-const notedLines = noted.sort((a,b)=>b.return_1d-a.return_1d).map(notedLine).join(' · ');
+const watchRows = watch
+  .sort((a, b) => b.conviction_score - a.conviction_score)
+  .map(watchRow)
+  .join('\n');
+const notedLines = noted
+  .sort((a, b) => b.return_1d - a.return_1d)
+  .map(notedLine)
+  .join(' · ');
 
 const html = `
 <div style="background:#0f1117;color:#e8e8ec;font-family:-apple-system,Segoe UI,Roboto,sans-serif;padding:24px;max-width:720px;margin:0 auto;">

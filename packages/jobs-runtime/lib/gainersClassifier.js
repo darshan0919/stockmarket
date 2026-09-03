@@ -656,6 +656,36 @@ function selectResearchTargets(signals, perAxis = RESEARCH_TOP_N_PER_AXIS) {
   ];
 }
 
+/**
+ * The top N names by DELIVERY VALUE — the list that gets a `rerating-catalysts`
+ * EPS-thesis brief (see skills/equity-research/_shared/scan-signal-pipeline.md
+ * §EPS thesis).
+ *
+ * Deliberately a SEPARATE selection from selectResearchTargets() above, on a
+ * single axis, because it answers a different question. That function picks 20
+ * names across two axes to spread trigger research over both "high-conviction
+ * accumulation in small caps" (delivery %) and "where the real money went"
+ * (delivery ₹ Cr). This one picks the 10 names where the most rupees actually
+ * committed, full stop — Darshan's rule, and the right one for this purpose:
+ * a re-rating thesis costs real document reads to build, so the budget should
+ * go where the market itself put the most money, not where a ratio looked
+ * flattering on a thin float.
+ *
+ * Sorting is on the same delivery-value key the email sorts by, so the top of
+ * the ACT section and the set of names carrying an EPS thesis line up rather
+ * than being two unrelated orderings the reader has to reconcile.
+ */
+const RERATING_TOP_N = 10;
+
+function selectReratingTargets(signals, topN = RERATING_TOP_N) {
+  return [...signals]
+    .filter((s) => typeof s.delivery_value_cr === 'number')
+    .sort(
+      (a, b) => b.delivery_value_cr - a.delivery_value_cr || (b.return_1d || 0) - (a.return_1d || 0)
+    )
+    .slice(0, topN);
+}
+
 function main({
   // Reuse hooks for sibling classifiers (e.g. volumeRocketingClassifier.js) that
   // want this exact tiering/conviction logic against a differently-named raw scan.
@@ -736,6 +766,21 @@ function main({
       delivery_pct: d.available ? d.pct : null,
       delivery_value_cr: d.available ? d.valueCr : null,
       traded_value_cr: d.tradedValueCr,
+      // Delivery value as a percentage of market cap (added 2026-09-03).
+      // The only size-normalised delivery measure on the record: ₹80 Cr
+      // delivered is an enormous day for a ₹400 Cr micro-cap (20% of the whole
+      // company traded for keeps) and a rounding error for a ₹40,000 Cr
+      // large-cap. Neither of the two axes above can say that on its own, and
+      // it is what makes a list mixing both sizes comparable. Computed here,
+      // in the script, rather than in the email renderer or by the model —
+      // it is arithmetic over two fields already on the record (conventions
+      // §17), so exactly one place should own it and every consumer reads the
+      // same number. null (never 0) when either input is missing: a company we
+      // could not measure must not rank as one we measured and found empty.
+      delivery_value_pct_of_mcap:
+        d.available && d.valueCr != null && g.market_cap_cr > 0
+          ? Math.round((d.valueCr / g.market_cap_cr) * 100 * 10000) / 10000
+          : null,
       streak: streak.streak,
       streak_prior_dates: streak.priorDates,
       sector_cluster: cluster ? { tier: cluster.tier, count: cluster.qualified_count } : null,
@@ -807,13 +852,25 @@ function main({
         tier: s.tier,
         delivery_pct: s.delivery_pct,
         delivery_value_cr: s.delivery_value_cr,
+        delivery_value_pct_of_mcap: s.delivery_value_pct_of_mcap,
       })),
     ann_api_available: gainers.some((g) => (g.ann_count || 0) > 0),
     price_api_available: gainers.some(
       (g) => g.price_signals && g.price_signals.error === undefined
     ),
     sector_catalysts: sectorCatalysts,
-    signals,
+    // Sorted by delivery value descending (2026-09-03, Darshan's rule) so the
+    // DTO's own order already IS the email's order — the renderer sorts each
+    // tier section the same way, but a consumer reading this file directly
+    // (insight-validation, a manual eyeball, a future skill) should not have to
+    // know that to see the list in the order that matters. Names with no
+    // delivery measurement sort last rather than as zero.
+    signals: [...signals].sort((a, b) => {
+      const av = typeof a.delivery_value_cr === 'number' ? a.delivery_value_cr : -Infinity;
+      const bv = typeof b.delivery_value_cr === 'number' ? b.delivery_value_cr : -Infinity;
+      if (av !== bv) return bv - av;
+      return (b.return_1d || 0) - (a.return_1d || 0);
+    }),
   };
 
   // Canonical store: one event record per signal (deterministic ids — re-runs upsert).
@@ -842,6 +899,7 @@ function main({
   // Each entry carries its STRONG announcements with resolved `pdfUrl`s, so the
   // research step needs zero additional Stockscans calls to know what to read.
   const targets = selectResearchTargets(signals);
+  const reratingTargets = selectReratingTargets(signals);
   const rawByTicker = Object.fromEntries(gainers.map((g) => [g.ticker, g]));
   const researchCompanies = targets.map((s) => {
     const cid = normalizeCompanyId(s.companyId);
@@ -867,6 +925,7 @@ function main({
       industry: s.industry,
       delivery_pct: s.delivery_pct,
       delivery_value_cr: s.delivery_value_cr,
+      delivery_value_pct_of_mcap: s.delivery_value_pct_of_mcap,
       traded_value_cr: s.traded_value_cr,
       streak: s.streak,
       streak_prior_dates: s.streak_prior_dates,
@@ -902,6 +961,23 @@ function main({
           category: a.category_derived,
           pdfUrl: a.pdfUrl,
         })),
+      // Days 8-14 — outside the scoring window, but the WHY resolution ladder's
+      // rung 1 reads these before concluding "no discoverable trigger" (see
+      // skills/equity-research/_shared/scan-signal-pipeline.md §WHY). Carried
+      // through the seed so the research step never has to re-fetch a window
+      // the scanner already paid for. `days_ago` rides along so the WHY text can
+      // say "filed 9 days ago" rather than implying it happened today — an
+      // older filing explaining today's delivery is a legitimate and common
+      // answer, but only if the lag is stated.
+      prior_week_announcements: (raw.announcements_prior_week || []).map((a) => ({
+        date: a.date,
+        days_ago: a.days_ago,
+        subject: a.subject,
+        category: a.category_derived,
+        category_label: a.category_label,
+        strength: a.strength || taxonomy.announcementStrength(a),
+        pdfUrl: a.pdfUrl,
+      })),
       context,
     };
   });
@@ -917,6 +993,13 @@ function main({
         selection_rule: `top ${RESEARCH_TOP_N_PER_AXIS} by delivery %, then top ${RESEARCH_TOP_N_PER_AXIS} by delivery value (₹ Cr) excluding the first list`,
         sector_clusters: clusters,
         companies: researchCompanies,
+        // The subset that additionally gets a rerating-catalysts EPS-thesis
+        // brief (top 10 by delivery value — see selectReratingTargets above).
+        // Emitted as a plain companyId list rather than a second copy of each
+        // company object: everything the brief step needs is already in
+        // `companies[]`, and a second copy is a second thing to keep in sync.
+        rerating_targets: reratingTargets.map((s) => normalizeCompanyId(s.companyId)),
+        rerating_selection_rule: `top ${RERATING_TOP_N} by delivery value (₹ Cr)`,
       },
       null,
       2
@@ -952,6 +1035,7 @@ module.exports = {
   computeStreak,
   buildSectorClusters,
   selectResearchTargets,
+  selectReratingTargets,
   main,
   // thresholds (exported so tests assert against the definition, not a copy)
   HIGH_DELIVERY_PCT,
@@ -962,6 +1046,7 @@ module.exports = {
   SECTOR_CLUSTER_MIN,
   SECTOR_SUPER_CLUSTER_MIN,
   RESEARCH_TOP_N_PER_AXIS,
+  RERATING_TOP_N,
 };
 
 if (require.main === module) {

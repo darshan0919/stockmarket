@@ -17,7 +17,10 @@ description: >-
   results recap. Auto-fetches the last 7 days of announcements, last 4
   concall transcripts, last 4 quarterly results, and last 2 investor PPTs when
   given only a ticker. Supersedes fundamental-shift-scanner and
-  growth-triggers-1pager — do not use those skills for new work.
+  growth-triggers-1pager — do not use those skills for new work. Also exposes
+  `--mode brief`: a cached, render-free EPS-thesis-only variant that other
+  skills (gainers-signal, volume-rocketing) call per company without paying for
+  a full document re-read or a PDF render.
 ---
 
 # Re-rating Catalysts
@@ -108,6 +111,116 @@ Stage 3 is this skill's own Phase 1-4, run only on the names that survive
 Stages 0-2. None of this changes what a single-company, directly-requested
 run of this skill does — the funnel only matters when the caller is
 iterating over many companies.
+
+## Modes — `full` (default) and `brief`
+
+This skill runs in one of two modes. Everything documented from "Workflow"
+onward describes `full`, which is what a direct request for a catalyst note,
+1-pager, or "why will this re-rate" gets, and which is unchanged.
+
+**`--mode brief`** (added 2026-09-03) is a cached, render-free variant built
+for one specific caller shape: another skill that needs _the EPS thesis for
+this company, right now, cheaply_, as one component of its own output.
+`gainers-signal` and `volume-rocketing` each call it for their top 10 names by
+delivery value, every trading morning.
+
+What brief mode returns — and nothing else:
+
+```json
+{
+  "companyId": "NSE:XYZ",
+  "jCurveTag": "STRONG|MODERATE|WEAK|NONE",
+  "jCurveReason": "one sentence naming the trigger and the quarter",
+  "thesis": "one or two sentences: what changes forward EPS, quantified and timed",
+  "catalysts": [{ "name": "...", "conviction": "...", "timeline": "..." }],
+  "sourceFilingIds": ["<stable ids of every document this brief drew on>"],
+  "builtAt": "ISO",
+  "modelUsed": "...",
+  "contextUsed": ["..."]
+}
+```
+
+No HTML widget, no PDF, no `db.saveReport` of a full report DTO. Those exist to
+make a standalone note forwardable; a brief is a field on someone else's email
+card, and rendering a PDF nobody opens for 20 companies a day is pure waste.
+The brief IS persisted — to the cache below, which is what makes tomorrow cheap.
+
+### Why brief mode is cached, and what invalidates it
+
+Naively, 10 names × 2 skills × every trading day is ~20 full document
+acquisitions daily — 14 days of announcements, 4 transcripts, 4 results and 2
+PPTs each. Almost all of it would be re-reading documents already read: these
+scans surface the same liquid mid-caps repeatedly, and a transcript read in
+June says the same thing in July. Darshan's requirement is explicit — the skill
+must "not re-process already processed corporate filings and reuse the extract
+& insights from already processed filings". That is `skills/_shared/conventions.md`
+§17(a) applied at two levels, because two different things are worth not redoing:
+
+- **Filing-level** (`data/cache/rerating-catalysts/filings/`) — the catalyst
+  signature extracted FROM one document, keyed by its stable Stockscans id.
+  A document is read **once, ever**, by whichever company's run reaches it
+  first; every later run reuses the extract. This crosses company boundaries
+  and skill boundaries — a transcript is a transcript regardless of which scan
+  surfaced the name.
+- **Company-level** (`data/cache/rerating-catalysts/briefs/`) — the synthesised
+  brief. Synthesis is the expensive judgment, and it only needs redoing when
+  the underlying document set actually changed.
+
+`scripts/brief_cache.js` owns both. It plans and stores; it never calls a model.
+
+```bash
+BC=skills/equity-research/rerating-catalysts/scripts/brief_cache.js
+
+# Which of these names need rebuilding, and which serve straight from cache?
+node "$BC" plan --tickers NSE:A,NSE:B,NSE:C          # -> { serve: [...], build: [...] }
+
+# Per-document extract reuse, during a rebuild:
+node "$BC" get-filing --id <announcementId>          # -> extract | {miss:true}
+node "$BC" put-filing --id <announcementId> --file extract.json
+
+# Persist the finished brief:
+node "$BC" put --ticker NSE:A --file brief.json
+```
+
+A cached brief is reused when **both** hold: (a) nothing new has been filed for
+the company since it was built, and (b) it is under 30 days old. (a) is the real
+test and is **not** reimplemented — `plan` calls Stage 0's own
+`newFilingsSince()` from `prefilter_rerating_candidates.js`, so there is exactly
+one definition of "has anything changed" in this skill. (b) exists because "no
+new filing" is not the same as "still true": a thesis resting on capacity guided
+for Q3FY27 decays as Q3FY27 approaches unconfirmed, and no filing event marks
+that. If the filing check errors, `plan` assumes changed and rebuilds — serving
+a stale thesis silently is the one outcome this design exists to prevent.
+
+### Running brief mode
+
+1. `node "$BC" plan --tickers <the caller's list>`.
+2. Everything in `serve[]` is done — hand it back as-is. It already carries
+   `cacheHit: true` and `asOf`, and callers render `asOf` so a reader can always
+   see how old a thesis is. **Do not re-derive or re-word a served brief**; the
+   point of the cache is that two runs on the same evidence produce the same
+   thesis, not two differently-phrased ones (conventions §17(b)).
+3. For each entry in `build[]`, run Phase 1-3 **narrowed**:
+   - Phase 1 fetches only what is missing. Check `get-filing` for every document
+     id before reading it; `cachedFilingIds` on the build entry already lists
+     what is on disk. After a single new announcement, a rebuild should cost one
+     PDF read, not a full re-acquisition.
+   - `put-filing` every document you DO read, immediately after extracting it —
+     before synthesis, so a run that dies mid-way still banks the reads it paid
+     for.
+   - Phase 2 applies the same "new" lens (`references/growth_catalyst_framework.md`),
+     over cached extracts plus the new ones together.
+   - Phase 3 produces only 3b (ranked catalysts), 3g (the J-curve tag), and the
+     one-to-two-sentence EPS thesis. Skip 3a/3c/3d/3e/3f — the caller's card has
+     no room for them and nobody reads them there.
+   - Phase 4 is replaced by `put --ticker ... --file brief.json`. No widget, no PDF.
+4. Report cache hits vs rebuilds in the run's closing manifest — it is the
+   number that tells you whether the caching is actually working.
+
+**Brief mode never lowers the evidence bar.** A tag still comes from framework
+§5f's rubric against real filings, `NONE` is still a normal outcome, and an
+undisclosed number is still "awaiting disclosure". Cheaper means fewer documents
+re-read, never a thesis guessed from a title.
 
 ## Workflow
 
@@ -329,7 +442,8 @@ rerating-catalysts/
 │   └── growth_catalyst_framework.md
 └── scripts/
     ├── prefilter_rerating_candidates.js   (Stage 0 — zero-LLM pre-filter for batch runs)
-    └── extract_rerating_signatures.py     (Stage 1 — zero-LLM recall pass for a single candidate)
+    ├── extract_rerating_signatures.py     (Stage 1 — zero-LLM recall pass for a single candidate)
+    └── brief_cache.js                     (--mode brief: filing + company caches, plan/get/put)
 ```
 
 `computeJCurveScore()` (Stage 2, framework §5c's 9-point scorecard) and
@@ -376,6 +490,13 @@ matters).
   noise and the 4 transcripts/results/PPTs show no new "new" facts beyond
   what a prior run already captured, say so in 2-3 sentences and stop —
   padding erodes trust in every other output this skill produces.
+- **Don't let brief mode's cache serve a thesis whose evidence moved.** The
+  invalidation is a filing check plus an age bound, and both matter — if you
+  find yourself reasoning "nothing important has happened, I'll reuse it"
+  without running `plan`, you have replaced a checkable rule with a guess.
+  Equally, don't rebuild a brief `plan` says to serve: a rebuild that produces
+  a differently-worded thesis from identical evidence is exactly the silent
+  disagreement conventions §17(a) exists to prevent.
 - **SAST/PIT filings never imply direction from the title alone** — open the
   PDF before characterising a promoter/insider stake change as bullish or
   bearish.

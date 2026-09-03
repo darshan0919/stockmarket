@@ -2,7 +2,9 @@ const path = require('path');
 const db = require('./packages/jobs-runtime/lib/db.js');
 const fs = require('fs');
 
-const seed = JSON.parse(fs.readFileSync('./data/runs/volume_rocketing_research_seed_20260901.json', 'utf8'));
+const seed = JSON.parse(
+  fs.readFileSync('./data/runs/volume_rocketing_research_seed_20260901.json', 'utf8')
+);
 const marketDate = seed.market_date;
 
 function sentimentCredit(concall) {
@@ -14,10 +16,14 @@ function sentimentCredit(concall) {
 let saved = [];
 for (const c of seed.companies) {
   const concallNote = c.concall ? sentimentCredit(c.concall) : null;
-  const highlightsLine = c.concall && c.concall.highlights ? c.concall.highlights.join(' | ') : null;
+  const highlightsLine =
+    c.concall && c.concall.highlights ? c.concall.highlights.join(' | ') : null;
 
-  const summary = `${c.name} (${c.ticker}) +${c.return_1d}% on ${marketDate} with no STRONG filings found (announcements API rate-limited that day, 0 pages returned) — unexplained delivery-backed move. Delivery ${c.delivery_pct}% / Rs.${c.delivery_value_cr} Cr of Rs.${c.traded_value_cr} Cr traded, streak ${c.streak}.` +
-    (concallNote ? ` Concall corroboration: ${concallNote}${highlightsLine ? ' — ' + highlightsLine : ''}.` : ' No recent concall data available.');
+  const summary =
+    `${c.name} (${c.ticker}) +${c.return_1d}% on ${marketDate} with no STRONG filings found (announcements API rate-limited that day, 0 pages returned) — unexplained delivery-backed move. Delivery ${c.delivery_pct}% / Rs.${c.delivery_value_cr} Cr of Rs.${c.traded_value_cr} Cr traded, streak ${c.streak}.` +
+    (concallNote
+      ? ` Concall corroboration: ${concallNote}${highlightsLine ? ' — ' + highlightsLine : ''}.`
+      : ' No recent concall data available.');
 
   const dto = {
     creator: 'volume-rocketing',
@@ -32,11 +38,13 @@ for (const c of seed.companies) {
     trigger_quantified: null,
     linkage: 'unexplained',
     contextUsed: [],
-    concallCorroboration: c.concall ? {
-      sentiment: c.concall.sentiment,
-      resultQualityScore: c.concall.resultQualityScore,
-      guidanceHighlights: c.concall.highlights || [],
-    } : null,
+    concallCorroboration: c.concall
+      ? {
+          sentiment: c.concall.sentiment,
+          resultQualityScore: c.concall.resultQualityScore,
+          guidanceHighlights: c.concall.highlights || [],
+        }
+      : null,
     conviction: c.conviction,
     conviction_reasons: c.conviction_reasons,
     delivery_pct: c.delivery_pct,

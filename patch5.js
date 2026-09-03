@@ -13,7 +13,7 @@ if (!code.includes('const syncedFolders = [];')) {
   );
   code = code.replace(
     "// Only link sidecars managed by this sync run\\n        const sidecarDirs = fs.readdirSync(JOBS_DIR).map(f => f.replace(/\\.[^/.]+$/, '').toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-'));",
-    "const sidecarDirs = syncedFolders;"
+    'const sidecarDirs = syncedFolders;'
   );
   fs.writeFileSync(file, code);
 }

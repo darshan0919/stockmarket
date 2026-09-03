@@ -1,5 +1,6 @@
-'use strict';
-
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 const ltr = require('../learnystTranscriptRefresh');
 
 describe('learnystTranscriptRefresh', () => {
@@ -13,6 +14,7 @@ describe('learnystTranscriptRefresh', () => {
         '--skip',
         '201',
         '--force',
+        '--skip-attachments',
         '--module-delay-ms',
         '5000',
         '--lesson-limit',
@@ -22,8 +24,16 @@ describe('learnystTranscriptRefresh', () => {
       expect(args.only.has('102')).toBe(true);
       expect(args.skip.has('201')).toBe(true);
       expect(args.force).toBe(true);
+      expect(args.skipAttachments).toBe(true);
+      expect(args.attachmentsOnly).toBe(false);
       expect(args.moduleDelayMsOverride).toBe('5000');
       expect(args.lessonLimit).toBe(3);
+    });
+
+    test('parses --attachments-only flag', () => {
+      const args = ltr.parseArgs(['node', 'learnystTranscriptRefresh.js', '--attachments-only']);
+      expect(args.attachmentsOnly).toBe(true);
+      expect(args.skipAttachments).toBe(false);
     });
 
     test('defaults when flags not provided', () => {
@@ -31,6 +41,8 @@ describe('learnystTranscriptRefresh', () => {
       expect(args.only).toBeNull();
       expect(args.skip).toBeNull();
       expect(args.force).toBe(false);
+      expect(args.skipAttachments).toBe(false);
+      expect(args.attachmentsOnly).toBe(false);
       expect(args.moduleDelayMsOverride).toBeNull();
       expect(args.lessonLimit).toBeNull();
     });
@@ -155,11 +167,13 @@ describe('learnystTranscriptRefresh', () => {
       expect(id).toMatch(/^lyt_learnyst-transcript-refresh_97666__/);
     });
 
-    test('namespaces the id scope by siteKey for non-soic sites', () => {
+    test('namespaces the id scope by siteKey for non-soic sites, and aliases chartist to chartitude', () => {
       const soicId = ltr.lessonRecordId(12345, 999, 'soic');
       const chartitudeId = ltr.lessonRecordId(12345, 999, 'chartitude');
+      const chartistId = ltr.lessonRecordId(12345, 999, 'chartist');
       expect(soicId).toMatch(/^lyt_learnyst-transcript-refresh_12345__/);
       expect(chartitudeId).toMatch(/^lyt_learnyst-transcript-refresh_chartitude:12345__/);
+      expect(chartistId).toBe(chartitudeId);
       expect(soicId).not.toBe(chartitudeId);
     });
 
@@ -304,8 +318,17 @@ describe('learnystTranscriptRefresh', () => {
       expect(error).toMatch(/AUTH_TOKEN/);
     });
 
-    test('loadSites skips unconfigured sites and reports the reason', () => {
+    test('loadSites defaults to soic only (chartitude/chartist disabled by default)', () => {
       process.env.LEARNYST_SOIC_AUTH_TOKEN = 'soic-token';
+      const skipped = [];
+      const sites = ltr.loadSites({ site: null }, (key, reason) => skipped.push({ key, reason }));
+      expect(sites.map((s) => s.key)).toEqual(['soic']);
+      expect(skipped).toHaveLength(0);
+    });
+
+    test('loadSites skips unconfigured sites when explicitly requested via LEARNYST_SITE_KEYS', () => {
+      process.env.LEARNYST_SOIC_AUTH_TOKEN = 'soic-token';
+      process.env.LEARNYST_SITE_KEYS = 'soic,chartitude';
       // chartitude has no auth token set in this test, so it's skipped.
       const skipped = [];
       const sites = ltr.loadSites({ site: null }, (key, reason) => skipped.push({ key, reason }));
@@ -315,11 +338,227 @@ describe('learnystTranscriptRefresh', () => {
       expect(skipped[0].reason).toMatch(/AUTH_TOKEN/);
     });
 
-    test('--site restricts to exactly one site', () => {
+    test('--site restricts to exactly one site, and supports "chartist" as an alias for "chartitude"', () => {
       process.env.LEARNYST_CHARTITUDE_AUTH_TOKEN = 'chartitude-token';
       process.env.LEARNYST_CHARTITUDE_BUNDLE_ID = '999';
-      const sites = ltr.loadSites({ site: 'chartitude' }, () => {});
-      expect(sites.map((s) => s.key)).toEqual(['chartitude']);
+      const sites1 = ltr.loadSites({ site: 'chartitude' }, () => {});
+      expect(sites1.map((s) => s.key)).toEqual(['chartitude']);
+
+      const sites2 = ltr.loadSites({ site: 'chartist' }, () => {});
+      expect(sites2.map((s) => s.key)).toEqual(['chartitude']);
+      expect(sites2[0].bundleId).toBe('999');
+    });
+  });
+
+  describe('withRetry', () => {
+    test('does not retry when error message is "Transcript not found"', async () => {
+      let calls = 0;
+      const fn = jest.fn().mockImplementation(async () => {
+        calls++;
+        throw new Error('Transcript not found');
+      });
+
+      await expect(ltr.withRetry(fn, { maxRetries: 4, label: 'test' })).rejects.toThrow(
+        'Transcript not found'
+      );
+      expect(calls).toBe(1);
+    });
+
+    test('does not retry when error message contains "HTTP 404: Transcript not found"', async () => {
+      let calls = 0;
+      const fn = jest.fn().mockImplementation(async () => {
+        calls++;
+        throw new Error('HTTP 404: Transcript not found');
+      });
+
+      await expect(ltr.withRetry(fn, { maxRetries: 4, label: 'test' })).rejects.toThrow(
+        'HTTP 404: Transcript not found'
+      );
+      expect(calls).toBe(1);
+    });
+
+    test('does not retry on HTTP 401 / HTTP 403 auth errors', async () => {
+      let calls = 0;
+      const fn = jest.fn().mockImplementation(async () => {
+        calls++;
+        throw new Error('HTTP 401: Unauthorized');
+      });
+
+      await expect(ltr.withRetry(fn, { maxRetries: 4, label: 'test' })).rejects.toThrow(
+        /authentication failed/
+      );
+      expect(calls).toBe(1);
+    });
+  });
+
+  describe('extractAttachments', () => {
+    test('correctly extracts attachment and generates exact URL for lesson 5234038', () => {
+      const lesson = {
+        id: 5234038,
+        title: '30.08.26 Market Signals',
+        pdf_file_name: JSON.stringify([
+          {
+            src: 'New_age_modern_monopolies_lyst1788246279479.pdf',
+            src_type: 50,
+            state: 4,
+            src_id: 447486,
+            url: 'gs://learnyst-content-upload/schools/110998/courses/259901/lessons/5234038/New_age_modern_monopolies_lyst1788246279479.pdf',
+            size: 0,
+            content_id: '0/0',
+            content_path:
+              '110998/059b2aea49016dec72cac0ed72e31bba/ffd424b48b90ec3b5b918ab4f344a633/922591e048cd54845c61620d0fe937c9',
+            content_path_extn: '0/0',
+          },
+        ]),
+      };
+
+      const { attachments, externalLinks } = ltr.extractAttachments(lesson, {
+        attachmentCdnBase: 'https://download-cdn-g.learnyst.com/v6/schools',
+      });
+
+      expect(attachments).toHaveLength(1);
+      expect(externalLinks).toHaveLength(0);
+
+      const att = attachments[0];
+      expect(att.src).toBe('New_age_modern_monopolies_lyst1788246279479.pdf');
+      expect(att.srcType).toBe(50);
+      expect(att.downloadUrl).toBe(
+        'https://download-cdn-g.learnyst.com/v6/schools/110998/059b2aea49016dec72cac0ed72e31bba/ffd424b48b90ec3b5b918ab4f344a633/922591e048cd54845c61620d0fe937c9/resources/New_age_modern_monopolies_lyst1788246279479.pdf'
+      );
+      expect(att.localPath).toBe(
+        path.join(
+          'assets',
+          'learnyst-attachments',
+          'New_age_modern_monopolies_lyst1788246279479.pdf'
+        )
+      );
+    });
+
+    test('extracts multiple attachments including PDFs and external web links', () => {
+      const lesson = {
+        id: 2569889,
+        title: 'Class 3 | Finding Multibaggers',
+        pdf_file_name: JSON.stringify([
+          {
+            src: 'How_to_Find_Multibaggers_lyst3315.pdf',
+            src_type: 50,
+            content_path: '110998/hash1/hash2/hash3',
+          },
+          {
+            src: 'Match_The_Following_lyst9191.pdf',
+            src_type: 50,
+            content_path: '110998/hash4/hash5/hash6',
+          },
+          {
+            src: '',
+            src_type: 51,
+            url: 'https://www.screener.in/user/145178/',
+          },
+        ]),
+      };
+
+      const { attachments, externalLinks } = ltr.extractAttachments(lesson);
+      expect(attachments).toHaveLength(2);
+      expect(attachments[0].src).toBe('How_to_Find_Multibaggers_lyst3315.pdf');
+      expect(attachments[1].src).toBe('Match_The_Following_lyst9191.pdf');
+      expect(externalLinks).toHaveLength(1);
+      expect(externalLinks[0].url).toBe('https://www.screener.in/user/145178/');
+    });
+
+    test('handles non-PDF file attachments (e.g. .xlsx)', () => {
+      const lesson = {
+        id: 3551855,
+        title: 'Resources',
+        pdf_file_name: JSON.stringify([
+          {
+            src: 'SOIC_Screneer_Sheet_lyst1734596456228.xlsx',
+            src_type: 50,
+            content_path: '110998/hashA/hashB/hashC',
+          },
+        ]),
+      };
+
+      const { attachments } = ltr.extractAttachments(lesson);
+      expect(attachments).toHaveLength(1);
+      expect(attachments[0].src).toBe('SOIC_Screneer_Sheet_lyst1734596456228.xlsx');
+      expect(attachments[0].downloadUrl).toContain('SOIC_Screneer_Sheet_lyst1734596456228.xlsx');
+    });
+
+    test('handles empty, null, or invalid pdf_file_name gracefully', () => {
+      expect(ltr.extractAttachments({})).toEqual({ attachments: [], externalLinks: [] });
+      expect(ltr.extractAttachments({ pdf_file_name: null })).toEqual({
+        attachments: [],
+        externalLinks: [],
+      });
+      expect(ltr.extractAttachments({ pdf_file_name: '[]' })).toEqual({
+        attachments: [],
+        externalLinks: [],
+      });
+      expect(ltr.extractAttachments({ pdf_file_name: 'not json' })).toHaveProperty('error');
+    });
+  });
+
+  describe('downloadAttachmentFile', () => {
+    let tmpDir;
+    beforeEach(() => {
+      tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ltr-att-test-'));
+    });
+    afterEach(() => {
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch (_ignore) {
+        // ignore cleanup error
+      }
+    });
+
+    test('downloads and saves file atomically', async () => {
+      const targetFile = path.join(tmpDir, 'test.pdf');
+      const fakeContent = 'Mock PDF binary content here';
+
+      const originalFetch = global.fetch;
+      global.fetch = jest.fn().mockImplementation(async () => ({
+        ok: true,
+        status: 200,
+        body: new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode(fakeContent));
+            controller.close();
+          },
+        }),
+      }));
+
+      try {
+        const { sizeBytes } = await ltr.downloadAttachmentFile(
+          'https://download-cdn-g.learnyst.com/sample.pdf',
+          targetFile,
+          { maxRetries: 1 }
+        );
+        expect(sizeBytes).toBe(Buffer.byteLength(fakeContent));
+        expect(fs.existsSync(targetFile)).toBe(true);
+        expect(fs.readFileSync(targetFile, 'utf8')).toBe(fakeContent);
+      } finally {
+        global.fetch = originalFetch;
+      }
+    });
+
+    test('fails and cleans up on HTTP error', async () => {
+      const targetFile = path.join(tmpDir, 'fail.pdf');
+      const originalFetch = global.fetch;
+      global.fetch = jest.fn().mockImplementation(async () => ({
+        ok: false,
+        status: 404,
+      }));
+
+      try {
+        await expect(
+          ltr.downloadAttachmentFile('https://download-cdn-g.learnyst.com/fail.pdf', targetFile, {
+            maxRetries: 0,
+          })
+        ).rejects.toThrow(/HTTP 404/);
+        expect(fs.existsSync(targetFile)).toBe(false);
+      } finally {
+        global.fetch = originalFetch;
+      }
     });
   });
 });

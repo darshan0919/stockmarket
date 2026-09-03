@@ -200,7 +200,9 @@
         "competitive dynamics"
       ],
       "entry": "stock-api/bin/sector-research-deepdive.js",
-      "modules": ["stock-api/src/generators/generateSectorReport.js"]
+      "modules": [
+        "stock-api/src/generators/generateSectorReport.js"
+      ]
     },
     {
       "name": "drhp-ipo-analysis",
@@ -215,11 +217,13 @@
         "prospectus analysis"
       ],
       "entry": "stock-api/bin/drhp-ipo-analysis.js",
-      "modules": ["stock-api/src/generators/generateDrhpPdf.js"]
+      "modules": [
+        "stock-api/src/generators/generateDrhpPdf.js"
+      ]
     },
     {
       "name": "quarterly-result-analysis",
-      "description": "Stage 2 (flagship model) of the 2-skill quarterly-result pipeline — industry-agnostic single-quarter result interpretation for Indian listed companies, reading quarterly-result-extractor's persisted DB record (fetched documents + deterministic income-statement signal scan + recall-first tone/guidance/strategic excerpts) and applying the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist. Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks \"analyse this quarter\", \"what changed this quarter\", \"is the business getting better\", \"what's management signalling\", \"result analysis\", \"quarterly snapshot\", \"post-result note\", or provides a Stockscans ticker with result-day intent. Auto-invokes quarterly-result-extractor when given only a ticker and no DB record exists yet. Output is BOTH an interactive briefing widget AND a Drive-shareable PDF (same underlying DTO), opening with a bird's-eye KPI strip (Revenue/EBITDA margin/PAT/tax rate/EPS and other decision-relevant metrics, each with a comparison subtext), tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), multi-year deep dives (use equity-research-deepdive), or raw document fetching without interpretation (use quarterly-result-extractor directly).",
+      "description": "Stage 2 (flagship model) of the 2-skill quarterly-result pipeline — industry-agnostic single-quarter result interpretation for Indian listed companies, reading quarterly-result-extractor's persisted DB record (fetched documents + deterministic income-statement signal scan + recall-first tone/guidance/strategic excerpts) and applying the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist. Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks \"analyse this quarter\", \"what changed this quarter\", \"is the business getting better\", \"what's management signalling\", \"result analysis\", \"quarterly snapshot\", \"post-result note\", or provides a Stockscans ticker with result-day intent. Auto-invokes quarterly-result-extractor when given only a ticker and no DB record exists yet. Also supports single-statement quality modes via `--statement income|balance-sheet|cashflow` (comma-separable): a lean, bulk-safe path that grades ONE financial statement CLEAN/WATCH/STRAINED/RED-FLAG from its deterministic signal scan and skips the transcript, tone work, widget and PDF entirely — use it for \"income statement quality only\", \"is the balance sheet clean\", \"check cash conversion\", \"run this across today's results\", or any bulk screen across many companies' results. Output is BOTH an interactive briefing widget AND a Drive-shareable PDF (same underlying DTO), opening with a bird's-eye KPI strip (Revenue/EBITDA margin/PAT/tax rate/EPS and other decision-relevant metrics, each with a comparison subtext), tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), multi-year deep dives (use equity-research-deepdive), or raw document fetching without interpretation (use quarterly-result-extractor directly).",
       "aliases": [
         "quarterly results",
         "result analysis",
@@ -227,10 +231,19 @@
         "quarterly snapshot",
         "post result note",
         "q result",
-        "results analysis"
+        "results analysis",
+        "income statement quality",
+        "balance sheet quality",
+        "cash flow quality",
+        "statement quality"
       ],
       "entry": "stock-api/bin/quarterly-result-analysis.js",
-      "modules": ["stock-api/src/fetchers/documentsFetcher.js"]
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js",
+        "stock-api/src/analyzers/incomeStatementSignals.js",
+        "stock-api/src/analyzers/balanceSheetSignals.js",
+        "stock-api/src/analyzers/cashflowSignals.js"
+      ]
     },
     {
       "name": "consecutive-filings-diff",
@@ -245,7 +258,9 @@
         "reprice after results"
       ],
       "entry": "stock-api/bin/consecutive-filings-diff.js",
-      "modules": ["stock-api/src/fetchers/documentsFetcher.js"]
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js"
+      ]
     },
     {
       "name": "pre-pead-scanner",
@@ -364,7 +379,9 @@
         "track record tweets"
       ],
       "entry": "stock-api/bin/tweet-investor-playbook.js",
-      "modules": ["stock-api/src/analyzers/parseTweetDump.js"]
+      "modules": [
+        "stock-api/src/analyzers/parseTweetDump.js"
+      ]
     },
     {
       "name": "announcement-keyword-explorer",
@@ -378,7 +395,9 @@
         "expand keyword search"
       ],
       "entry": "stock-api/bin/announcement-keyword-explorer.js",
-      "modules": ["stock-api/src/fetchers/announcementScanner.js"]
+      "modules": [
+        "stock-api/src/fetchers/announcementScanner.js"
+      ]
     },
     {
       "name": "stock-report",
@@ -424,7 +443,7 @@
     },
     {
       "name": "gainers-signal",
-      "description": "Daily gainers ACTIONABILITY signal — pre-compute gainers + quality filters + dual-axis delivery (% and ₹ Cr) + bulk announcements (scanner), deterministically tier each into ACT / WATCH / NOTED with streaks and delivery-confirmed sector clusters (classifier), research the top-20 triggers from announcement PDFs, then email a tiered briefing. Invoke with defaults for the 8 AM run, or pass a specific market date on demand.",
+      "description": "Daily gainers ACTIONABILITY signal — pre-compute gainers + quality filters + dual-axis delivery (% and ₹ Cr) + market cap + delivery-as-%-of-mcap + 14-day announcements (scanner), deterministically tier each into ACT / WATCH / NOTED with streaks and delivery-confirmed sector clusters (classifier), research the top-20 triggers from announcement PDFs, attach a cached rerating-catalysts EPS thesis to the top 10 by delivery value, resolve a WHY for every name via the filing → info-classifier → catalyst → concall → sector ladder, then email a Thesis Card briefing sorted by delivery value. Invoke with defaults for the 8 AM run, or pass a specific market date on demand.",
       "aliases": [
         "gainers signal",
         "top gainers",
@@ -434,7 +453,12 @@
         "8am gainers run"
       ],
       "entry": null,
-      "modules": []
+      "modules": [
+        "packages/jobs-runtime/lib/thesisCardEmail.js",
+        "packages/jobs-runtime/scanSignalEmail.js",
+        "packages/jobs-runtime/lib/gainersClassifier.js",
+        "skills/equity-research/rerating-catalysts/scripts/brief_cache.js"
+      ]
     },
     {
       "name": "order-book-tracker",
@@ -524,9 +548,14 @@
     {
       "name": "render-pdf",
       "description": "Utility to render HTML into a standardized PDF using Puppeteer. Operates in clone mode to manage the Chromium dependency.",
-      "aliases": ["render pdf", "html to pdf"],
+      "aliases": [
+        "render pdf",
+        "html to pdf"
+      ],
       "entry": "stock-api/bin/render-pdf.js",
-      "modules": ["stock-api/src/utils/pdfRenderer.js"]
+      "modules": [
+        "stock-api/src/utils/pdfRenderer.js"
+      ]
     },
     {
       "name": "investment-thesis-engine",
@@ -712,7 +741,9 @@
         "model selection FinOps"
       ],
       "entry": "scripts/metrics/analyze_token_usage.py",
-      "modules": ["scripts/metrics/track_invocation.py"]
+      "modules": [
+        "scripts/metrics/track_invocation.py"
+      ]
     },
     {
       "name": "ipo-subscription-ranker",
@@ -729,7 +760,7 @@
     },
     {
       "name": "post-close-scan-insights",
-      "description": "Nightly post-market-close corporate-announcement digest for a fixed ad-hoc Stockscans scan (mid/small-cap, price above 200DMA, meaningful retail holding, liquid) — fetches every announcement filed after that day's 3:30 PM IST close, drops routine noise, reads each PDF, writes an actionable quantified insight per category, and emails a digest grouped by significance (high/medium/low). Invoke with defaults for the nightly 2 AM run, or on demand with an explicit --window-hours override to re-run a specific evening's post-close activity.",
+      "description": "Full-day corporate-filing signal engine for the \"Signals - DND\" saved Stockscans announcement scan — runs in several slots across the trading day (mid-session, late session, post-close, evening, night sweep), each covering its own non-overlapping window off a shared resumable cursor so nothing is re-read and no email repeats itself. Fetches the scan's announcements, drops routine noise, reads each PDF, writes a quantified thesis note per filing with an explicit J-curve / PAT-vs-EPS read, runs the strongest items through announcement-info-classifier for a NEW/KNOWN/FOLLOW-UP verdict, scores everything on a deterministic 5-level signal scale (S1-S5, 0-100), and emails a Thesis Card digest per slot plus a market-validated day recap. Closes the loop the next trading day by validating each thesis against actual delivery-backed price action and feeding what it learns back into the prompt. Invoke with --slot for a scheduled run, or with --window-hours for an explicit catch-up over a specific past window.",
       "aliases": [
         "post close insights",
         "post-close scan",
@@ -737,7 +768,68 @@
         "nightly announcement digest"
       ],
       "entry": null,
+      "modules": [
+        "packages/jobs-runtime/lib/thesisCardEmail.js"
+      ]
+    },
+    {
+      "name": "ask-soic",
+      "description": "Answer a free-text investing/framework question by searching SOIC's own teaching corpus — Learnyst membership course transcripts and SOIC YouTube channel transcripts — and synthesizing a direct answer with citations back to the specific course/lesson/video (and timestamp). Use whenever the user asks \"what does SOIC say about X\", \"how does SOIC think about Y\", \"ask SOIC about Z\", \"did SOIC ever teach/cover X\", \"find the lesson where SOIC explains X\", or asks an investing/framework question and wants it answered the SOIC way rather than from general knowledge. NOT for company-specific research (that's the equity-research skills) and NOT for durably changing another skill's instructions based on lesson content (that's concept-transcript-integrator) — ask-soic is a one-off lookup-and-answer tool.",
+      "aliases": [
+        "ask soic",
+        "what does soic say about",
+        "how does soic think about",
+        "did soic teach",
+        "soic lesson on",
+        "find the lesson where soic explains",
+        "soic framework for",
+        "what does soic teach about"
+      ],
+      "entry": "skills/tooling/ask-soic/scripts/search_soic.py",
       "modules": []
+    },
+    {
+      "name": "volume-rocketing",
+      "description": "Daily volume-surge signal — sibling to gainers-signal, identical output UX. Pulls the Stockscans \"Volume Rocketing\" scan (Volume >= 2.5x its own 5D SMA, Market Cap >= 300 Cr, Returns 1D >= 1, sorted desc by Volume), skips any name already covered by that day's gainers-signal run, takes the next 20 names, then runs the identical pipeline: quality filters, dual-axis delivery, market cap, delivery-as-%-of-mcap, 14-day announcements, ACT/WATCH/NOTED tiering, top-20 trigger research, cached rerating-catalysts EPS theses for the top 10 by delivery value, the WHY resolution ladder, and a Thesis Card email sorted by delivery value. Invoke with defaults for the 8 AM run (after gainers-signal), or pass a specific market date on demand.",
+      "aliases": [
+        "volume rocketing",
+        "volume surge signal",
+        "volume rocket scan",
+        "8am volume rocketing run",
+        "volume breakout signal",
+        "volume surge gainers"
+      ],
+      "entry": null,
+      "modules": [
+        "packages/jobs-runtime/lib/thesisCardEmail.js",
+        "packages/jobs-runtime/scanSignalEmail.js",
+        "packages/jobs-runtime/lib/gainersClassifier.js",
+        "skills/equity-research/rerating-catalysts/scripts/brief_cache.js"
+      ]
+    },
+    {
+      "name": "quarterly-result-extractor",
+      "description": ">",
+      "aliases": [
+        "fetch quarterly result documents",
+        "quarterly result extractor",
+        "pull result and transcript",
+        "extract result data"
+      ],
+      "entry": null,
+      "modules": [
+        "skills/equity-research/quarterly-result-extractor/scripts/fetch_result_documents.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/compute_headline_financials.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/save_result_documents.js",
+        "stock-api/src/fetchers/documentsFetcher.js",
+        "stock-api/bin/get-concall-transcript-url.js",
+        "stock-api/src/analyzers/incomeStatementSignals.js",
+        "stock-api/src/utils/pdfUtils.js",
+        "packages/jobs-runtime/lib/db.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/extract_statements.js",
+        "stock-api/src/analyzers/balanceSheetSignals.js",
+        "stock-api/src/analyzers/cashflowSignals.js"
+      ]
     }
   ],
   "classes": [
@@ -766,12 +858,23 @@
     {
       "name": "ScreenerAuth",
       "file": "stock-api/src/auth/screenerAuth.js",
-      "methods": ["_envFile", "_resolve", "cookieHeader", "headers", "isConfigured"]
+      "methods": [
+        "_envFile",
+        "_resolve",
+        "cookieHeader",
+        "headers",
+        "isConfigured"
+      ]
     },
     {
       "name": "StockscansAuth",
       "file": "stock-api/src/auth/stockscansAuth.js",
-      "methods": ["_readFromEnvFile", "_warnLegacy", "getToken", "headers"]
+      "methods": [
+        "_readFromEnvFile",
+        "_warnLegacy",
+        "getToken",
+        "headers"
+      ]
     },
     {
       "name": "BseClient",
@@ -811,12 +914,21 @@
     {
       "name": "PerplexityClient",
       "file": "stock-api/src/clients/PerplexityClient.js",
-      "methods": ["earningsEvents", "transcript"]
+      "methods": [
+        "earningsEvents",
+        "transcript"
+      ]
     },
     {
       "name": "ScreenerClient",
       "file": "stock-api/src/clients/ScreenerClient.js",
-      "methods": ["_slug", "companyPage", "_throttle", "companyPageWithFallback", "validateAuth"]
+      "methods": [
+        "_slug",
+        "companyPage",
+        "_throttle",
+        "companyPageWithFallback",
+        "validateAuth"
+      ]
     },
     {
       "name": "StockscansClient",
@@ -862,12 +974,25 @@
     {
       "name": "HttpClient",
       "file": "stock-api/src/http/HttpClient.js",
-      "methods": ["_headers", "get", "post", "put", "delete"]
+      "methods": [
+        "_headers",
+        "get",
+        "post",
+        "put",
+        "delete"
+      ]
     },
     {
       "name": "NseSession",
       "file": "stock-api/src/http/nseSession.js",
-      "methods": ["clearCache", "_mergeSetCookie", "warmup", "getCookies", "headers", "get"]
+      "methods": [
+        "clearCache",
+        "_mergeSetCookie",
+        "warmup",
+        "getCookies",
+        "headers",
+        "get"
+      ]
     },
     {
       "name": "SimpleTemplate",
@@ -937,6 +1062,31 @@
   ],
   "utilities": [
     {
+      "name": "compute",
+      "file": "stock-api/src/analyzers/balanceSheetSignals.js",
+      "description": "Exported from balanceSheetSignals.js"
+    },
+    {
+      "name": "getOrCompute",
+      "file": "stock-api/src/analyzers/balanceSheetSignals.js",
+      "description": "Exported from balanceSheetSignals.js"
+    },
+    {
+      "name": "readCache",
+      "file": "stock-api/src/analyzers/balanceSheetSignals.js",
+      "description": "Exported from balanceSheetSignals.js"
+    },
+    {
+      "name": "writeCache",
+      "file": "stock-api/src/analyzers/balanceSheetSignals.js",
+      "description": "Exported from balanceSheetSignals.js"
+    },
+    {
+      "name": "derive",
+      "file": "stock-api/src/analyzers/balanceSheetSignals.js",
+      "description": "Exported from balanceSheetSignals.js"
+    },
+    {
       "name": "extractValueCrore",
       "file": "stock-api/src/analyzers/catalystRules.js",
       "description": "Exported from catalystRules.js"
@@ -953,6 +1103,16 @@
     },
     {
       "name": "priceVolumeAlerts",
+      "file": "stock-api/src/analyzers/catalystRules.js",
+      "description": "Exported from catalystRules.js"
+    },
+    {
+      "name": "computeJCurveScore",
+      "file": "stock-api/src/analyzers/catalystRules.js",
+      "description": "Exported from catalystRules.js"
+    },
+    {
+      "name": "jCurvePatThresholdHint",
       "file": "stock-api/src/analyzers/catalystRules.js",
       "description": "Exported from catalystRules.js"
     },
@@ -1050,26 +1210,6 @@
       "name": "classifySignal",
       "file": "stock-api/src/analyzers/eventReactionSignals.js",
       "description": "Exported from eventReactionSignals.js"
-    },
-    {
-      "name": "compute",
-      "file": "stock-api/src/analyzers/incomeStatementSignals.js",
-      "description": "Exported from incomeStatementSignals.js"
-    },
-    {
-      "name": "getOrCompute",
-      "file": "stock-api/src/analyzers/incomeStatementSignals.js",
-      "description": "Exported from incomeStatementSignals.js"
-    },
-    {
-      "name": "readCache",
-      "file": "stock-api/src/analyzers/incomeStatementSignals.js",
-      "description": "Exported from incomeStatementSignals.js"
-    },
-    {
-      "name": "writeCache",
-      "file": "stock-api/src/analyzers/incomeStatementSignals.js",
-      "description": "Exported from incomeStatementSignals.js"
     },
     {
       "name": "evaluateCatalystRules",
@@ -1488,6 +1628,11 @@
     },
     {
       "name": "normalizeKeywordList",
+      "file": "stock-api/src/utils/announcementNoiseFilter.js",
+      "description": "Exported from announcementNoiseFilter.js"
+    },
+    {
+      "name": "keywordToRegExp",
       "file": "stock-api/src/utils/announcementNoiseFilter.js",
       "description": "Exported from announcementNoiseFilter.js"
     },

@@ -18,7 +18,7 @@ INSIGHT GENERATION — GLOBAL RULES (apply to EVERY announcement, every category
    (c) Connection to prior notes — trend, consistency, or contradiction vs this
    company's earlier notes.
    (d) What to watch next — one concrete, monitorable point.
-3.5. HEADLINE + THESIS CHAIN + EPS IMPACT (structured fields, in addition to the
+   3.5. HEADLINE + THESIS CHAIN + EPS IMPACT (structured fields, in addition to the
    `insight` prose above — same underlying analysis, not a second research pass):
    - `headline`: ONE crisp line combining what happened + how it plausibly
      changes future EPS. Fragment style, not a full sentence with a subject and
@@ -48,8 +48,8 @@ INSIGHT GENERATION — GLOBAL RULES (apply to EVERY announcement, every category
      expected outcome for most `general`/`investor_meet`/procedural
      announcements — do not force a number). When derivable:
      `{direction: "positive"|"negative"|"neutral", magnitude: "<free text, e.g.
-     '~2% dilution' or '~₹4cr annualised PAT'>", timeline: "<free text, e.g. 'from
-     Q2FY27' or 'FY28 onward'>", confidence: "high"|"medium"|"low"}`. `confidence`
+'~2% dilution' or '~₹4cr annualised PAT'>", timeline: "<free text, e.g. 'from
+Q2FY27' or 'FY28 onward'>", confidence: "high"|"medium"|"low"}`. `confidence`
      reflects how directly the filing supports the number — a disclosed rupee
      figure with a stated date is `high`; a qualitative directional read with no
      hard number is `low`.

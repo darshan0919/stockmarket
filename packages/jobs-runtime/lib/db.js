@@ -671,6 +671,7 @@ function saveLearnystTranscript(dto) {
     transcriptSource,
     youtubeVideoId,
     captionKind,
+    attachments,
   } = dto;
   upsertMany('learnyst-lessons', [
     {
@@ -704,6 +705,7 @@ function saveLearnystTranscript(dto) {
       // cache-first check reads this field), null for a Learnyst-sourced
       // lesson (transcriptSource: 'learnyst').
       captionKind: captionKind || null,
+      attachmentCount: Array.isArray(attachments) ? attachments.length : 0,
       body: `learnyst-lessons/${id}.json`,
     },
   ]);
@@ -851,6 +853,20 @@ function cachePath(name) {
   init();
   return path.join(DIRS.cache(), name);
 }
+function learnystAttachmentPath(filename) {
+  init();
+  const dir = path.join(DIRS.assets(), 'learnyst-attachments');
+  fs.mkdirSync(dir, { recursive: true });
+  return path.join(dir, filename);
+}
+function hasLearnystAttachment(filename) {
+  const p = path.join(DIRS.assets(), 'learnyst-attachments', filename);
+  try {
+    return fs.existsSync(p) && fs.statSync(p).size > 0;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Resolve a locally-written data/ artifact (PDF, HTML, etc.) to its Drive-shareable
@@ -915,6 +931,8 @@ module.exports = {
   assetPath,
   runPath,
   cachePath,
+  learnystAttachmentPath,
+  hasLearnystAttachment,
   resolveDriveUrl,
   touchedFiles,
   trackTouched, // run manifest (docs/DATA_RULES.md §8)

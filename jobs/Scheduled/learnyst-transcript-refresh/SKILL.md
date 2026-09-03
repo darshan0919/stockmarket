@@ -1,11 +1,12 @@
 ---
 name: learnyst-transcript-refresh
-description: Learnyst Transcript Refresh — fetches AI transcripts for new video lessons across all configured Learnyst memberships (SOIC, Chartitude, ...), cache-first
+description: Learnyst Transcript & Attachment Refresh — fetches AI transcripts and lesson attachments (PDFs, spreadsheets) across all configured Learnyst memberships (SOIC, Chartitude, ...), cache-first
 ---
 
 ## Context
 
-Weekly refresh of AI-generated transcripts for Darshan's Learnyst course
+Weekly refresh of AI-generated transcripts and downloadable attachments
+(presentation slide PDFs, Excel models, etc.) for Darshan's Learnyst course
 video libraries — every site configured via `LEARNYST_<KEY>_*` env vars (see
 `.env.example` and `docs/learnyst-api-schemas.md`), currently SOIC Membership
 (school 110998, bundle 97666, ~15 modules) and Chartitude Membership
@@ -13,10 +14,11 @@ video libraries — every site configured via `LEARNYST_<KEY>_*` env vars (see
 `packages/jobs-runtime/`) loops over every configured site in one run and
 prints a combined summary; a site with no auth token set is skipped, not
 errored — adding a new membership later needs only new env vars, not a
-change to this task. Cache-first: only lessons not already in the
-`learnyst-lessons` collection get fetched, so a run with no new content
-across all sites is a near-no-op. Personal course content, not stock-research
-data — no company scoping.
+change to this task. Cache-first: only lessons and attachments not already
+cached get fetched (attachments saved to `data/assets/learnyst-attachments/`),
+so a run with no new content across all sites is a near-no-op. Personal course
+content, not stock-research data — no company scoping. Supports
+`--skip-attachments` and `--attachments-only` CLI flags.
 
 ## Execution Plan
 
@@ -27,14 +29,13 @@ Call the following exact script:
    explicitly asked to refresh only one membership).
 2. Read the combined JSON run summary the script prints to stdout and
    report: `sitesProcessed`, `lessonsFetched` (new this run) vs
-   `lessonsCachedSkipped` (already had), `modulesProcessed`, any
-   `modulesFailed`/`lessonsFailed` entries (each now tagged with its `site`),
-   and the "Files touched" list the script prints (per DATA*RULES.md §7 —
-   sourced from `db.touchedFiles()`, do not reconstruct from memory). Also
-   note any "Skipping site ..." lines (missing auth token, or missing
-   schoolId/bundleId — e.g. Chartitude until its bundle id is discovered and
-   added to `SITE_DEFAULTS`, see docs/learnyst-api-schemas.md) — that's an
-   unconfigured site, not a failure.
+   `lessonsCachedSkipped` (already had), `attachmentsDownloaded` vs
+   `attachmentsCachedSkipped`, `modulesProcessed`, any
+   `modulesFailed`/`lessonsFailed`/`attachmentsFailed` entries (each tagged
+   with its `site`), and the "Files touched" list the script prints (per
+   DATA_RULES.md §7 — sourced from `db.touchedFiles()`, do not reconstruct
+   from memory). Also note any "Skipping site ..." lines (missing auth token,
+   or missing schoolId/bundleId) — that's an unconfigured site, not a failure.
 3. If any failure in `lessonsFailed`/`modulesFailed` contains "authentication
    failed" / "LEARNYST\_<KEY>\_AUTH_TOKEN is likely expired", stop and clearly
    flag in the report which site's token needs manual refresh (see

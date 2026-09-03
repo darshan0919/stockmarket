@@ -756,6 +756,381 @@ async function validateGainersPicks(sourceDate, clients = { nse }) {
   return { sourceDate: isoD, skipped: false, validationDate: isoD2, records };
 }
 
+// Minimal HTML escape for the post-close section's table cells. This file's
+// older sections interpolate values that are all numeric or from a fixed
+// vocabulary, so it never needed one; the post-close records carry free-text
+// category names and proposal prose, which must not be able to break the
+// email's markup.
+function esc(v) {
+  return String(v == null ? '' : v).replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// POST-CLOSE THESIS VALIDATION (D+1) — third validation source, added
+// 2026-09-04.
+//
+// WHY THIS LIVES HERE rather than in post-close-scan-insights' own job. That
+// skill needed "check each thesis against the next market day's actual price
+// action and learn from it" — which is, structurally, the thing this file
+// already does twice (watchlist notes at D, gainers-signal HIGH picks at
+// D+2). Building a third copy would mean a third NSE bhavcopy parser, a third
+// delivery-backed/noise classifier and a third ledger, all drifting apart
+// while claiming to measure the same thing. Per
+// skills/_shared/conventions.md §17 this is one more SOURCE for an existing
+// validator, not a new validator.
+//
+// WHY D+1 (and not D, or D+2). The announcements this validates are filed
+// mostly AFTER the 15:30 close (48% land between 15:30 and 19:00). So the
+// source day's own price action happened BEFORE the filing existed and cannot
+// possibly reflect it — validating at D would be measuring noise and calling
+// it a result. The next trading session is the first market in which the
+// thesis is falsifiable at all. D+2 (gainers-signal's choice) is right for a
+// momentum signal that needs room to play out, but for "did the market agree
+// this filing mattered" the first session is the cleanest read, before
+// unrelated news accumulates.
+//
+// WHAT COUNTS AS AGREEMENT — three things, deliberately kept separate:
+//
+//   1. DIRECTION: did the stock move the way the thesis' epsImpact.direction
+//      implied? A `positive` epsImpact followed by a fall is a directional
+//      miss regardless of how well-argued the note was.
+//   2. STRUCTURE: was the move delivery-backed (real participation) or a thin
+//      intraday blip? Reuses this file's own `structuralSignal`, so
+//      "STRONG/MODERATE vs WEAK/NOISE" means exactly what it means for the
+//      watchlist source. A correct direction on a NOISE move is not a
+//      validated thesis; it is a coin flip that landed.
+//   3. CALIBRATION: was the SIZE of the reaction consistent with the tier we
+//      assigned? An S1 that the market ignored and an S5 that moved 9% on
+//      heavy delivery are both calibration errors, in opposite directions,
+//      and the second is the more valuable finding — it points at signals the
+//      scoring is systematically under-reading.
+//
+// Keeping them separate is the point: collapsing them into one pass/fail hides
+// which part of the process was wrong, and the whole reason to run this is to
+// know which part to fix.
+const POSTCLOSE_TIER_EXPECTED_MOVE_PCT = { 1: 4.0, 2: 2.5, 3: 1.5, 4: 0.75, 5: 0 };
+
+function loadPostCloseNotes(isoDate) {
+  // Same query cmdResendWithMarketData uses, so both read the identical set.
+  const notes = dbV2.find('notes', { date: isoDate, type: 'announcement' });
+  return notes.filter(
+    (n) => String(n.usecase || '').startsWith('announcement-insights') && n.insight
+  );
+}
+
+function loadPostCloseLedger() {
+  return dbV2.find('validation', {
+    type: 'postclose-followup',
+    since: '1900-01-01',
+    sort: 'date',
+  });
+}
+
+function savePostCloseLedger(records) {
+  dbV2.appendValidations(
+    records.map((r) => ({
+      ...r,
+      type: 'postclose-followup',
+      creator: r.creator || 'insight-validation',
+      date: r.date || r.sourceDate,
+    }))
+  );
+}
+
+/**
+ * Validate one trading day's post-close theses against the NEXT trading day.
+ * Returns {sourceDate, validationDate, skipped, records[], summary}.
+ */
+async function validatePostCloseTheses(sourceDate, clients = { nse }) {
+  const isoD = sourceDate.toISOString().slice(0, 10);
+  const notes = loadPostCloseNotes(isoD);
+  if (!notes.length) {
+    return { sourceDate: isoD, skipped: true, reason: 'no_postclose_notes' };
+  }
+
+  const d1 = nextTradingDays(sourceDate, 1)[0];
+  const isoD1 = d1.toISOString().slice(0, 10);
+  const nowIso = new Date().toISOString();
+
+  const symbols = [...new Set(notes.map((n) => toSymbol(n.companyId)).filter(Boolean))];
+  // Baseline for the delivery/volume structural read, anchored on D+1 (the
+  // day being measured) — same helper and same window the watchlist source
+  // uses, so a "STRONG" here means the same thing as a "STRONG" there.
+  let baselines = {};
+  try {
+    baselines = await buildBaselines(symbols, d1, BASELINE_DAYS, clients.nse);
+  } catch (e) {
+    process.stderr.write(`[WARN] postclose baselines failed: ${e.message}\n`);
+  }
+
+  const d1Csv = await fetchDeliveryCsv(d1, clients.nse);
+  const d1Day = d1Csv ? parseDelivery(d1Csv) : {};
+
+  const records = [];
+  for (const n of notes) {
+    const sym = toSymbol(n.companyId);
+    const dInfo = await deliveryForDate(sym, sourceDate, clients.nse);
+    const row = d1Day[sym];
+
+    let d1Return = null;
+    let structural = null;
+    if (row && dInfo && dInfo.close) {
+      d1Return = round(((row.close - dInfo.close) / dInfo.close) * 100, 2);
+      const base = baselines[sym];
+      if (base) {
+        structural = structuralSignal({ ...row, ret: d1Return }, base);
+      }
+    }
+
+    const tier = Number.isFinite(n.signalTier)
+      ? n.signalTier
+      : // Notes written before signalTier was persisted: recover it from the
+        // renderer's own scorer rather than guessing, so old and new notes are
+        // graded on one scale.
+        (() => {
+          try {
+            return require('./lib/thesisCardEmail').signalTierFor(n).tier;
+          } catch (e) {
+            return null;
+          }
+        })();
+
+    const expectedDir = n.epsImpact && n.epsImpact.direction ? n.epsImpact.direction : null;
+    let directionVerdict = 'not_assessable';
+    if (d1Return !== null && expectedDir) {
+      if (expectedDir === 'neutral') {
+        directionVerdict = Math.abs(d1Return) < 1.5 ? 'agreed' : 'moved_anyway';
+      } else {
+        const impliedUp = expectedDir === 'positive';
+        directionVerdict = impliedUp === d1Return >= 0 ? 'agreed' : 'disagreed';
+      }
+    }
+
+    const label = structural ? structural.label : null;
+    const deliveryBacked = label === 'STRONG' || label === 'MODERATE';
+    const expectedMove = tier ? POSTCLOSE_TIER_EXPECTED_MOVE_PCT[tier] : null;
+    let calibration = 'not_assessable';
+    if (d1Return !== null && expectedMove !== null && expectedMove !== undefined) {
+      const mag = Math.abs(d1Return);
+      if (mag >= expectedMove) calibration = 'met';
+      else if (tier && tier <= 2) calibration = 'over_rated';
+      else calibration = 'below_expectation';
+      // The finding worth hunting: a low tier that moved hard on real
+      // delivery means the SCORING under-read a genuine signal — far more
+      // actionable than an over-rated top-tier item, because it names a class
+      // of announcement the funnel is systematically discounting.
+      if (tier && tier >= 4 && mag >= 3 && deliveryBacked) calibration = 'under_rated';
+    }
+
+    // A thesis is only "validated" when direction AND structure agree. See the
+    // three-axis note above for why a correct direction on a NOISE move does
+    // not count.
+    const validated = directionVerdict === 'agreed' && deliveryBacked;
+
+    records.push({
+      companyId: n.companyId,
+      creationTime: nowIso,
+      modifiedTime: nowIso,
+      creator: 'insight-validation',
+      sourceDate: isoD,
+      validationDate: isoD1,
+      announcementId: n.announcementId || null,
+      category: n.category || '',
+      significance: n.significance || '',
+      signalTier: tier,
+      signalScore: Number.isFinite(n.signalScore) ? n.signalScore : null,
+      jCurveCandidate: !!(n.jCurve && n.jCurve.isCandidate),
+      expectedDirection: expectedDir,
+      epsConfidence: n.epsImpact ? n.epsImpact.confidence || null : null,
+      d1Return,
+      deliveryPct: structural ? structural.deliv_per : row ? round(row.deliv_per, 1) : null,
+      volSpike: structural ? structural.vol_spike : null,
+      structuralLabel: label,
+      deliveryBacked,
+      directionVerdict,
+      calibration,
+      validated,
+      note:
+        d1Return === null
+          ? 'D or D+1 price/delivery data unavailable (bhavcopy not published, or symbol is BSE-only and absent from the NSE delivery file) — not counted either way.'
+          : null,
+    });
+  }
+
+  const assessable = records.filter((r) => r.d1Return !== null);
+  const summary = {
+    theses: records.length,
+    assessable: assessable.length,
+    validated: records.filter((r) => r.validated).length,
+    directionAgreed: records.filter((r) => r.directionVerdict === 'agreed').length,
+    directionDisagreed: records.filter((r) => r.directionVerdict === 'disagreed').length,
+    deliveryBacked: records.filter((r) => r.deliveryBacked).length,
+    overRated: records.filter((r) => r.calibration === 'over_rated').length,
+    underRated: records.filter((r) => r.calibration === 'under_rated').length,
+    avgAbsMove: assessable.length
+      ? round(assessable.reduce((sum, r) => sum + Math.abs(r.d1Return), 0) / assessable.length, 2)
+      : null,
+  };
+
+  return { sourceDate: isoD, validationDate: isoD1, skipped: false, records, summary };
+}
+
+/**
+ * Per-(tier, category) hit rates accumulated across every validated day — the
+ * part that actually feeds learning back. A single day's 8 theses tell you
+ * almost nothing; the same category showing a 20% direction hit rate over
+ * thirty samples is a concrete instruction to change how that category is
+ * judged (or to stop writing insights for it at all).
+ *
+ * Proposals are PROPOSALS — printed and emailed for review, never
+ * auto-applied, same discipline as makeProposals() above.
+ */
+function postCloseProposals(ledger, minSamples = 8) {
+  const byCategory = {};
+  const byTier = {};
+  for (const r of ledger) {
+    if (r.d1Return === null || r.d1Return === undefined) continue;
+    const c = (byCategory[r.category || 'unknown'] ||= { n: 0, agreed: 0, backed: 0, absSum: 0 });
+    c.n += 1;
+    if (r.directionVerdict === 'agreed') c.agreed += 1;
+    if (r.deliveryBacked) c.backed += 1;
+    c.absSum += Math.abs(r.d1Return);
+    const t = (byTier[r.signalTier || 'unknown'] ||= { n: 0, agreed: 0, absSum: 0 });
+    t.n += 1;
+    if (r.directionVerdict === 'agreed') t.agreed += 1;
+    t.absSum += Math.abs(r.d1Return);
+  }
+  const proposals = [];
+  for (const [cat, st] of Object.entries(byCategory)) {
+    if (st.n < minSamples) continue;
+    const hit = st.agreed / st.n;
+    const backedRate = st.backed / st.n;
+    const avgAbs = st.absSum / st.n;
+    if (hit <= 0.35) {
+      proposals.push({
+        kind: 'direction_miscall',
+        category: cat,
+        samples: st.n,
+        hitRate: round(hit * 100, 1),
+        proposal:
+          `'${cat}' theses called direction correctly only ${round(hit * 100, 1)}% of the time over ${st.n} samples. ` +
+          `Either the EPS-direction reasoning for this category is inverted (check the PAT-vs-EPS rule — a fundraise ` +
+          `read as dilutive when it is actually deleveraging-accretive produces exactly this), or the category is not ` +
+          `directionally predictable at D+1 and its epsImpact.direction should be set 'neutral' rather than guessed.`,
+      });
+    }
+    if (backedRate <= 0.2 && avgAbs < 1.0) {
+      proposals.push({
+        kind: 'candidate_noise_keyword',
+        category: cat,
+        samples: st.n,
+        proposal:
+          `'${cat}' moved an average of ${round(avgAbs, 2)}% with only ${round(backedRate * 100, 1)}% delivery-backed ` +
+          `over ${st.n} samples — the market consistently does not react. Candidate for the noise-keyword list ` +
+          `(stock-api/src/utils/announcementNoiseFilter.js), which would save a PDF read and a model call per instance. ` +
+          `Confirm none of the samples were individually material before proposing this to skill-manager.`,
+      });
+    }
+  }
+  for (const [tier, st] of Object.entries(byTier)) {
+    if (st.n < minSamples || tier === 'unknown') continue;
+    const avgAbs = st.absSum / st.n;
+    const expected = POSTCLOSE_TIER_EXPECTED_MOVE_PCT[Number(tier)];
+    if (expected && avgAbs < expected * 0.5) {
+      proposals.push({
+        kind: 'tier_over_scored',
+        tier: Number(tier),
+        samples: st.n,
+        proposal:
+          `S${tier} averaged a ${round(avgAbs, 2)}% absolute D+1 move over ${st.n} samples against a ${expected}% ` +
+          `expectation — this tier is scoring higher than the market's reaction supports. Review the band weights in ` +
+          `computeSignalScore (lib/thesisCardEmail.js) rather than adjusting per-note judgment.`,
+      });
+    }
+    if (Number(tier) >= 4 && expected !== undefined && avgAbs >= 2.0) {
+      proposals.push({
+        kind: 'tier_under_scored',
+        tier: Number(tier),
+        samples: st.n,
+        proposal:
+          `S${tier} averaged a ${round(avgAbs, 2)}% absolute D+1 move over ${st.n} samples — the market reacts more to ` +
+          `this tier than its score implies. Look for a category or evidence pattern concentrated in these samples that ` +
+          `computeSignalScore has no weight for; this is the most valuable class of finding here, because it names a ` +
+          `signal the funnel is systematically discounting.`,
+      });
+    }
+  }
+  return proposals;
+}
+
+function renderPostCloseValidationSection(run, proposals) {
+  if (!run || run.skipped) {
+    return `<div style="margin-top:28px;padding-top:14px;border-top:1px solid #eaecf0;">
+      <h3 style="margin:0 0 6px;font-size:15px;">📐 Post-Close Thesis Validation (D+1)</h3>
+      <p style="font-size:12px;color:#667085;margin:0;">Skipped — ${esc(String((run && run.reason) || 'no run'))}.</p>
+    </div>`;
+  }
+  const s = run.summary;
+  const hitRate = s.assessable ? round((s.directionAgreed / s.assessable) * 100, 1) : null;
+  const rows = run.records
+    .slice()
+    .sort((a, b) => (a.signalTier || 9) - (b.signalTier || 9))
+    .map((r) => {
+      const retColor = r.d1Return === null ? '#667085' : r.d1Return >= 0 ? '#067647' : '#b42318';
+      const vColor = r.validated
+        ? '#067647'
+        : r.directionVerdict === 'disagreed'
+          ? '#b42318'
+          : '#b54708';
+      const vLabel = r.validated
+        ? '✔ validated'
+        : r.directionVerdict === 'disagreed'
+          ? '✘ direction miss'
+          : r.d1Return === null
+            ? '– no data'
+            : '~ unconfirmed';
+      return `<tr>
+        <td style="padding:5px 8px;border-bottom:1px solid #f2f4f7;font-size:11.5px;"><b>${esc(r.companyId)}</b></td>
+        <td style="padding:5px 8px;border-bottom:1px solid #f2f4f7;font-size:11px;color:#475467;">${esc(r.category)}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #f2f4f7;font-size:11px;font-family:monospace;">S${r.signalTier || '?'}${r.signalScore != null ? ` (${r.signalScore})` : ''}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #f2f4f7;font-size:11px;font-family:monospace;color:#475467;">${esc(r.expectedDirection || '—')}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #f2f4f7;font-size:11px;font-family:monospace;color:${retColor};"><b>${r.d1Return === null ? '—' : `${r.d1Return > 0 ? '+' : ''}${r.d1Return}%`}</b></td>
+        <td style="padding:5px 8px;border-bottom:1px solid #f2f4f7;font-size:11px;font-family:monospace;color:#475467;">${esc(r.structuralLabel || '—')}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #f2f4f7;font-size:11px;color:${vColor};font-weight:600;">${vLabel}</td>
+      </tr>`;
+    })
+    .join('');
+  const propHtml = (proposals || []).length
+    ? `<div style="margin-top:12px;background:#fffaeb;border:1px solid #fec84b;border-radius:8px;padding:10px 14px;">
+        <div style="font-size:11px;font-weight:700;color:#b54708;text-transform:uppercase;margin-bottom:6px;">Proposed refinements (review only — never auto-applied)</div>
+        <ul style="margin:0;padding-left:18px;font-size:12px;color:#475467;line-height:1.55;">
+          ${proposals.map((p) => `<li style="margin-bottom:5px;"><b>${esc(p.kind)}</b> — ${esc(p.proposal)}</li>`).join('')}
+        </ul>
+      </div>`
+    : '';
+  return `<div style="margin-top:28px;padding-top:14px;border-top:1px solid #eaecf0;">
+    <h3 style="margin:0 0 4px;font-size:15px;">📐 Post-Close Thesis Validation (D+1)</h3>
+    <p style="font-size:12px;color:#667085;margin:0 0 10px;">
+      Theses filed ${esc(run.sourceDate)} vs price action on ${esc(run.validationDate)} &middot;
+      ${s.assessable}/${s.theses} assessable &middot;
+      direction hit rate <b>${hitRate === null ? '—' : `${hitRate}%`}</b> &middot;
+      ${s.validated} validated (direction + delivery-backed) &middot;
+      avg abs move ${s.avgAbsMove === null ? '—' : `${s.avgAbsMove}%`} &middot;
+      ${s.overRated} over-rated / ${s.underRated} under-rated
+    </p>
+    <table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #eaecf0;border-radius:8px;">
+      <tr style="background:#f9fafb;">
+        ${['Company', 'Category', 'Tier', 'Implied', 'D+1', 'Structure', 'Verdict'].map((h) => `<th style="padding:6px 8px;text-align:left;font-size:10px;text-transform:uppercase;color:#667085;letter-spacing:0.03em;border-bottom:1px solid #eaecf0;">${h}</th>`).join('')}
+      </tr>
+      ${rows}
+    </table>
+    ${propHtml}
+  </div>`;
+}
+
 function upsertGainersLedger(run) {
   const existing = loadGainersLedger();
   const key = (r) => `${r.companyId}|${r.sourceDate}`;
@@ -1476,7 +1851,28 @@ async function cmdRun(baselineDays = BASELINE_DAYS, sectorMcapFloor = SECTOR_MCA
     gainersRun = { skipped: true, reason: `error: ${e.message}` };
   }
 
-  const emailHtml = buildEmail(run, props, qr) + '\n' + renderGainersValidationSection(gainersRun);
+  // Post-close thesis D+1 follow-up — third source, runs as part of the
+  // normal daily flow. Source date is the PREVIOUS trading day, because D+1
+  // (today) is the session being measured and its bhavcopy must already exist.
+  let postCloseRun = null;
+  let postCloseProps = [];
+  try {
+    const pcSourceDate = tradingDaysAgo(ist.istDate(), 1);
+    postCloseRun = await validatePostCloseTheses(pcSourceDate);
+    if (!postCloseRun.skipped) {
+      savePostCloseLedger(postCloseRun.records);
+      postCloseProps = postCloseProposals(loadPostCloseLedger());
+    }
+  } catch (e) {
+    postCloseRun = { skipped: true, reason: `error: ${e.message}` };
+  }
+
+  const emailHtml =
+    buildEmail(run, props, qr) +
+    '\n' +
+    renderGainersValidationSection(gainersRun) +
+    '\n' +
+    renderPostCloseValidationSection(postCloseRun, postCloseProps);
   const mail = await sendEmail(emailHtml);
   const qrSug =
     Object.values(qr.insightQuality.byCategory || {}).reduce(
@@ -1611,12 +2007,27 @@ function cmdShowLedger() {
   process.stdout.write(JSON.stringify(loadLedger(), null, 2));
 }
 
+/**
+ * Debug/on-demand: run the post-close D+1 thesis validation for a given source
+ * date (default: the previous trading day, matching what cmdRun does).
+ * `sourceDate` is the day the announcements were FILED, not the day being
+ * measured — the session measured is the next trading day after it.
+ */
+async function cmdValidatePostClose(sourceDateArg) {
+  const sourceDate = sourceDateArg ? dateFromIso(sourceDateArg) : tradingDaysAgo(ist.istDate(), 1);
+  const run = await validatePostCloseTheses(sourceDate);
+  if (!run.skipped) savePostCloseLedger(run.records);
+  const props = run.skipped ? [] : postCloseProposals(loadPostCloseLedger());
+  process.stdout.write(JSON.stringify({ ...run, proposals: props }, null, 2));
+}
+
 const COMMANDS = {
   run: [cmdRun, 0],
   'fetch-delivery': [cmdFetchDelivery, 1],
   score: [cmdScore, 1],
   'show-ledger': [cmdShowLedger, 0],
   'validate-gainers': [cmdValidateGainers, 1],
+  'validate-post-close': [cmdValidatePostClose, 1],
 };
 
 async function runCli(argv) {

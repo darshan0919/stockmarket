@@ -7,7 +7,8 @@
  * Pre-computes all deterministic inputs for the daily gainers prompt:
  *   1. Top 50 gainers (Stockscans scan)              → @stock/api StockscansClient
  *   2. Quality filters (mcap / delivery / retail)
- *   3. 7-day announcements (batched)
+ *   3. 14-day announcements (batched; only the last 7d feed scoring — see
+ *      announcementCutoffMs)
  *   4. Industry-breadth scans
  *   5. Price history + price-action signals          → StockscansClient.ohlcv(tf=1h)
  *   6. Per-symbol delivery: NSE live + BSE position   → NseClient / BseClient
@@ -692,16 +693,80 @@ function parseCreatedMs(str) {
   return Number.isNaN(t) ? null : t;
 }
 
-/** Cutoff epoch ms = (marketDate - 7d) at 00:00 IST. */
-function announcementCutoffMs(marketDate) {
+/**
+ * ── Two announcement windows, one fetch (2026-09-03) ────────────────────────
+ *
+ * `ANN_FETCH_DAYS` (14) is how far back announcements are FETCHED.
+ * `ANN_SCORING_DAYS` (7) is how far back an announcement may INFLUENCE the
+ * classifier's conviction score and tiering.
+ *
+ * Why they differ. Darshan's complaint that started this: the WHY section of
+ * the gainers/volume-rocketing emails was empty for most companies, because a
+ * 7-day window means most gainers on most days have filed nothing at all, and
+ * the report had nothing to say. Widening the window to 14 days gives the WHY
+ * step real material to work with — an order win filed 9 days ago that the
+ * market is only now delivering into is exactly the kind of thing the old
+ * window threw away.
+ *
+ * But widening the SCORING window too would silently move every ACT/WATCH/NOTED
+ * boundary overnight, and make today's tiers non-comparable with every tier
+ * this repo has recorded since the skill shipped — streaks, novelty
+ * assessments, and insight-validation's D+2 follow-ups all read past `gainer`
+ * events on the assumption the bar hasn't moved. A UX/content refactor should
+ * not quietly re-tune the model underneath it. So scoring stays at 7 days and
+ * days 8-14 are strictly WHY-section evidence.
+ *
+ * Every announcement is therefore stamped with `days_ago` and
+ * `in_scoring_window`, and the classifier filters on the latter. That keeps the
+ * rule visible in the data rather than implicit in whichever cutoff a given
+ * consumer happened to recompute — if the two windows are ever deliberately
+ * merged, one constant changes and every consumer follows.
+ */
+const ANN_FETCH_DAYS = 14;
+const ANN_SCORING_DAYS = 7;
+
+/** Cutoff epoch ms = (marketDate - N days) at 00:00 IST. */
+function announcementCutoffMs(marketDate, days = ANN_FETCH_DAYS) {
   const y = marketDate.getUTCFullYear();
   const mo = marketDate.getUTCMonth();
-  const d = marketDate.getUTCDate() - 7;
+  const d = marketDate.getUTCDate() - days;
   return Date.UTC(y, mo, d, 0, 0, 0) - (5 * 60 + 30) * 60 * 1000;
 }
 
 /**
- * Fetch last 7 days of announcements for all tickers. → { ticker: [ann] }
+ * Stamp each announcement with how old it is relative to the market date, and
+ * whether it falls inside the scoring window. Pure arithmetic over a field
+ * already on the record (conventions §17) — computed once here so no consumer
+ * re-derives a cutoff and drifts.
+ *
+ * `days_ago` is null when the filing carries no parseable date; such an
+ * announcement is treated as OUTSIDE the scoring window (conservative: an
+ * undated filing must not be able to lift a name into ACT), but is still
+ * available to the WHY step, which can read the PDF and see the date itself.
+ */
+function stampAnnouncementAge(anns, marketDate) {
+  const mDateMs = Date.UTC(
+    marketDate.getUTCFullYear(),
+    marketDate.getUTCMonth(),
+    marketDate.getUTCDate(),
+    0,
+    0,
+    0
+  );
+  return (anns || []).map((a) => {
+    const t = parseCreatedMs(a.createdAt || a.date);
+    const daysAgo = t == null ? null : Math.max(0, Math.round((mDateMs - t) / 86400000));
+    return {
+      ...a,
+      days_ago: daysAgo,
+      in_scoring_window: daysAgo != null && daysAgo <= ANN_SCORING_DAYS,
+    };
+  });
+}
+
+/**
+ * Fetch last ANN_FETCH_DAYS (14) days of announcements for all tickers.
+ * → { ticker: [ann] }
  *
  * ── Why a throwaway watchlist ────────────────────────────────────────────────
  * The announcements endpoint IGNORES `scan.companyIds` — verified live: a request
@@ -1173,10 +1238,18 @@ async function main({
   }
 
   // 2. Announcements
-  log('[2/7] Fetching 7-day announcements …\n');
+  log('[2/7] Fetching 14-day announcements (7d scoring window) …\n');
   const annRawMap = await fetchAnnouncementsBatch(tickers, mDate, ss, sleep, log);
   const annMeta = annRawMap._meta || { pages: 0, truncated: false, serverFiltered: false };
-  const annMap = Object.fromEntries(Object.entries(annRawMap).map(([t, a]) => [t, filterNoise(a)]));
+  // Noise-filter, then stamp each surviving announcement with its age and
+  // whether it falls in the 7-day scoring window (see stampAnnouncementAge).
+  // Order matters only for cost: filtering first means we don't date-stamp
+  // announcements we're about to discard.
+  const annMap = Object.fromEntries(
+    Object.entries(annRawMap)
+      .filter(([t]) => t !== '_meta')
+      .map(([t, a]) => [t, stampAnnouncementAge(filterNoise(a), mDate)])
+  );
 
   // 2b. Concall sentiment (bullish/optimistic transcript within the last 7 days
   // can explain price momentum the same way a STRONG announcement does — see
@@ -1227,7 +1300,16 @@ async function main({
     // BSE delivery values exist in time to be filtered on. Reused here, not refetched.
     const paSigs = priceSignalsByTicker.get(g.ticker) || { error: 'not fetched' };
     const delivery = deliveryMapAll[g.ticker] || {};
+    // `annRaw` is the FULL 14-day set (WHY-section material). `annScoring` is
+    // the 7-day subset the classifier is allowed to score on — see
+    // announcementCutoffMs's note on why these two windows differ. Every
+    // aggregate the classifier consumes (`ann_count`, `has_material_ann`,
+    // `ann_strength`, `ann_categories`, `strong_announcements`) is computed
+    // from `annScoring` so this widening cannot move a single tier boundary;
+    // the extra week reaches the WHY step through `announcements` /
+    // `announcements_recent_14d` instead.
     const annRaw = annMap[g.ticker] || [];
+    const annScoring = annRaw.filter((a) => a.in_scoring_window);
 
     enriched.push({
       ticker: g.ticker,
@@ -1245,15 +1327,33 @@ async function main({
       // need a membership-vs-absence special case; false when tagVolumeRocketing was
       // off or the cross-check failed (logged above, not silently dropped).
       volumeRocketing: volumeRocketingTickers.has(g.ticker),
-      announcements: annRaw,
-      ann_count: annRaw.length,
-      has_material_ann: hasMaterialAnnouncement(annRaw),
-      // Strongest announcement category present in the 7-day window, plus the
-      // categories themselves — this is what the classifier links to the price
-      // action ("+9.4% on a STRONG order_book filing" vs "+9.4% on nothing").
-      ann_strength: taxonomy.strongestOf(annRaw),
-      ann_categories: [...new Set(annRaw.map((a) => a.category_derived).filter(Boolean))],
-      strong_announcements: annRaw.filter((a) => a.strength === 'STRONG'),
+      // The 7-day scoring set. `announcements` keeps its original meaning and
+      // contents for every existing consumer (classifier, insight-validation,
+      // the research seed's announcements_to_read) — nothing downstream of the
+      // scoring window sees any change from the 14-day fetch.
+      announcements: annScoring,
+      ann_count: annScoring.length,
+      has_material_ann: hasMaterialAnnouncement(annScoring),
+      // Strongest announcement category present in the 7-day scoring window,
+      // plus the categories themselves — this is what the classifier links to
+      // the price action ("+9.4% on a STRONG order_book filing" vs "+9.4% on
+      // nothing").
+      ann_strength: taxonomy.strongestOf(annScoring),
+      ann_categories: [...new Set(annScoring.map((a) => a.category_derived).filter(Boolean))],
+      strong_announcements: annScoring.filter((a) => a.strength === 'STRONG'),
+      // The full 14-day set, scoring window included, each entry carrying
+      // `days_ago` / `in_scoring_window`. This is what the WHY resolution
+      // ladder reads (see skills/equity-research/_shared/scan-signal-pipeline.md
+      // §WHY): an order win filed 9 days ago that the market is only now
+      // delivering into is precisely the explanation the old 7-day-only view
+      // discarded, leaving the WHY cell blank and the reader unable to tell
+      // "nothing happened" from "we didn't look far enough back".
+      announcements_recent_14d: annRaw,
+      // Days 8-14 only — the incremental material this widening bought,
+      // separated out so the WHY step (and any future evaluation of whether the
+      // widening was worth its cost) can see exactly what it contributed
+      // without re-deriving the split.
+      announcements_prior_week: annRaw.filter((a) => !a.in_scoring_window),
       price_signals: paSigs,
       delivery: {
         available: delivery.available || false,

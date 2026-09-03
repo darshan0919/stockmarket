@@ -397,8 +397,9 @@ async function fetchSast(targetIst, sastQuoteLimit = SAST_QUOTE_LIMIT) {
       const pctDelta = num(r.acqSaleType === 'Sale' ? r.totSaleShare : r.totAcqShare);
       const pctBefore =
         pctAfter != null && pctDelta != null
-          ? Math.round((r.acqSaleType === 'Sale' ? pctAfter + pctDelta : pctAfter - pctDelta) * 100) /
-            100
+          ? Math.round(
+              (r.acqSaleType === 'Sale' ? pctAfter + pctDelta : pctAfter - pctDelta) * 100
+            ) / 100
           : null;
       return {
         exchange: 'NSE',
@@ -472,7 +473,10 @@ async function fetchSast(targetIst, sastQuoteLimit = SAST_QUOTE_LIMIT) {
       // Strip trailing punctuation/whitespace noise ("Pte. Ltd" vs
       // "Pte. Ltd.") so the same acquirer name filed slightly differently
       // across a re-transmission doesn't defeat the dedup key.
-      String(r.acquirer || '').trim().toLowerCase().replace(/[.\s]+$/, ''),
+      String(r.acquirer || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[.\s]+$/, ''),
       r.side,
       r.pctBefore,
       r.pctPost,

@@ -1,7 +1,6 @@
 {
   "titleKeywordsToIgnore": [
     "BRSR",
-    "Earnings Call Transcript",
     "Annual Report",
     "Investor Presentation",
     "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
@@ -24,8 +23,11 @@
     "Intimation Of Board Meeting",
     "Postal Ballot",
     "AGM",
-    "Investors/Analysts Call"
+    "Investors/Analysts Call",
+    "Environmental Social And Governance Rating",
+    "Transcript",
+    "PPT"
   ],
   "descriptionKeywordsToIgnore": [],
-  "updatedAt": "2026-08-23T21:20:02.883Z"
+  "updatedAt": "2026-09-03T22:19:44.487Z"
 }

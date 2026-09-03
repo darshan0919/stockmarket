@@ -7,6 +7,10 @@ description: >
   deterministic income-statement-signals scan against the Result filing,
   always computes the unfiltered headline financial snapshot (Revenue/EBITDA
   margin/PAT/tax rate/EPS, QoQ+YoY — the KPI-strip backbone), and a
+  locates the balance sheet and cash flow statement in whichever document
+  carries them (Result filing or PPT), normalizes and staleness-checks them
+  (SEBI requires both only half-yearly, so Q1/Q3 filings usually repeat or omit
+  them) and runs their signal scans, plus a
   cheap/recall-first excerpt pass over the Transcript+PPT that pulls out
   every passage plausibly relevant to tone, guidance, strategic commentary,
   or an operational/governance KPI — without judging what it MEANS. Persists
@@ -144,6 +148,97 @@ regardless of whether they're "interesting" — Step 2 answers "what's
 unusual", this step answers "what are the 4-5 numbers everyone checks
 first". The two are complementary; don't collapse one into the other.
 
+## Step 2.6 — Balance sheet + cash flow: locate, normalize, staleness-check (script, zero LLM)
+
+```bash
+node skills/equity-research/quarterly-result-extractor/scripts/extract_statements.js \
+  --companyId "$COMPANY_ID" \
+  --result-text "${DOCS_DIR}/result.txt" \
+  --ppt-text "${DOCS_DIR}/ppt.txt" \
+  --prior-statements "${DOCS_DIR}/prior_statements.json" \
+  --quarter-end "2026-09-30" \
+  > "${DOCS_DIR}/statements.json"
+```
+
+The income statement is the easy one: every Result filing carries one, always
+for the quarter just ended. The other two statements are not like that in
+India, and this step exists because of the difference. **SEBI LODR Reg 33(3)
+requires a statement of assets and liabilities and a statement of cash flows
+only as at / for the half-year**, filed as notes to the half-yearly results —
+so a Q1 or Q3 filing normally carries neither, an investor PPT in those
+quarters often shows a balance sheet that is simply the last published one
+repeated, and cash-flow figures when present are cumulative (H1 year-to-date
+or full-year), never a single quarter.
+
+Analysing a repeated statement as if it were new is the worst failure
+available here — a confident write-up about numbers that did not move — so
+that judgment is made deterministically, not by a model reading raw PDF text.
+The script looks in the **Result filing first, then the PPT** (either may carry
+them, and the PPT sometimes carries a fresher or more readable version),
+prefers the consolidated statement over the standalone one where both appear,
+normalizes labelled rows onto the schemas the two analyzers consume, captures
+the filing's own printed comparative column as the prior-period snapshot, and
+returns a status per statement:
+
+| Status         | Meaning                                            | What the downstream skill does                                                   |
+| -------------- | -------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `fresh`        | A genuinely new statement for this period          | Analyse it                                                                       |
+| `stale-repeat` | Numerically identical to the one already on record | Say so in one line, don't analyse                                                |
+| `stale-asof`   | `as at` date precedes this quarter's end           | Say so in one line, don't analyse                                                |
+| `absent`       | Neither document carries it                        | Report "not disclosed this quarter" — compliance-normal in Q1/Q3, not a red flag |
+
+Staleness is detected by fingerprinting the normalized numeric vector, so it
+survives a re-parse in a different row order and needs no model in the loop.
+Pass `--prior-statements` pointing at the previous `quarterly-result-documents`
+record's `statementAvailability` fingerprints (or omit it on a first run).
+
+Any row the label map could not assign comes back in `unmatched[]` rather than
+being silently dropped — filings use inconsistent labels, and a line that might
+be material deserves a look rather than a shrug. Assigning that small residue
+is the only part of this step that needs judgment; do it here (cheap tier, same
+rule as Step 3) before running the scans below, and only for rows whose value
+is large enough to matter.
+
+Then run the two signal scans — the same Extraction-First contract as Step 2,
+and skipped entirely for any statement not marked `fresh`:
+
+```bash
+node -e "
+const bs = require('./stock-api/src/analyzers/balanceSheetSignals.js');
+const st = require('${DOCS_DIR}/statements.json');
+if (st.analysable.balanceSheet) {
+  console.log(JSON.stringify(bs.getOrCompute(companyId, bsPeriod, st.balanceSheet.current, st.balanceSheet.priorColumn, bsContext)));
+}
+" > "${DOCS_DIR}/balance_sheet_signals.json"
+
+node -e "
+const cf = require('./stock-api/src/analyzers/cashflowSignals.js');
+const st = require('${DOCS_DIR}/statements.json');
+if (st.analysable.cashflow) {
+  console.log(JSON.stringify(cf.getOrCompute(companyId, cfPeriod, st.cashflow.current, st.cashflow.priorColumn, cfContext)));
+}
+" > "${DOCS_DIR}/cashflow_signals.json"
+```
+
+Both follow the full frameworks in
+[`skills/_shared/balance-sheet-signals.md`](../../_shared/balance-sheet-signals.md)
+and [`skills/_shared/cashflow-signals.md`](../../_shared/cashflow-signals.md),
+are cached by `getOrCompute` the same way the P&L scan is, and return only what
+cleared a materiality bar. Two context rules matter more here than they do for
+the P&L:
+
+- Key the cache `period` by the **statement's own date/window** (`2026H1`,
+  `2026FY`), not the quarter being discussed — the same H1 statement is
+  legitimately re-read from Q3's filing, and keying by date makes that a cache
+  hit instead of a second scan of identical numbers.
+- Every context figure handed to `cashflowSignals` (`ebitdaForPeriod`,
+  `patForPeriod`, `revenueForPeriod`, `taxChargeForPeriod`,
+  `financeCostForPeriod`) must cover **exactly** the window the cash-flow
+  statement covers. A half-year cash flow set against full-year P&L figures
+  makes every conversion ratio silently wrong. Same for
+  `balanceSheetSignals`'s `revenueAnnualised`/`cogsAnnualised`, which are
+  annualised precisely so the day-counts mean what they normally mean.
+
 ## Step 3 — Cheap, recall-first excerpt pass (cheap-tier reasoning, NO external API calls)
 
 "Cheap model" means the same thing it means in `guidance-document-extractor`:
@@ -191,7 +286,10 @@ node skills/equity-research/quarterly-result-extractor/scripts/save_result_docum
   --manifest "${DOCS_DIR}/manifest.json" \
   --signals "${DOCS_DIR}/income_statement_signals.json" \
   --headline "${DOCS_DIR}/headline_financials.json" \
-  --excerpts "${DOCS_DIR}/excerpts.json"
+  --excerpts "${DOCS_DIR}/excerpts.json" \
+  --statements "${DOCS_DIR}/statements.json" \
+  --bs-signals "${DOCS_DIR}/balance_sheet_signals.json" \
+  --cf-signals "${DOCS_DIR}/cashflow_signals.json"
 ```
 
 Saves ONE `quarterly-result-documents` report via `db.saveReport()`, envelope
@@ -201,6 +299,13 @@ is set to:
 
 - The `--date` parameter value if provided (scoped extraction for scheduled jobs)
 - The extracted document's filing date otherwise (for interactive/manual runs)
+
+The record carries `statementAvailability` (per-statement found/source/as-at/
+staleness verdict) alongside the normalized `balanceSheet`/`cashflow` snapshots
+and their signal scans. Always save the availability block even when both
+statements are `absent` — a stored "not disclosed this quarter" is what lets
+`quarterly-result-analysis` answer a balance-sheet question without re-fetching
+the documents to discover there was nothing there.
 
 Always save, including a genuine "nothing found" record when results aren't out yet —
 this is what lets `quarterly-result-analysis` tell "never run" apart from
@@ -223,6 +328,7 @@ quarterly-result-extractor/
 └── scripts/
     ├── fetch_result_documents.js       (Step 1)
     ├── compute_headline_financials.js  (Step 2.5)
+    ├── extract_statements.js           (Step 2.6 — BS/CF locate + normalize + staleness)
     └── save_result_documents.js        (Step 4)
 ```
 

@@ -213,7 +213,7 @@ function syncScheduledTasks() {
         }
         fs.writeFileSync(configPath, JSON.stringify(configData, null, 2) + '\n', 'utf8');
         console.log('Synced Folders:', syncedFolders);
-console.log('✅ Linked all sidecars to project ID: ' + projId + ' in config.json');
+        console.log('✅ Linked all sidecars to project ID: ' + projId + ' in config.json');
       }
     } catch (e) {
       console.error('Error updating config.json:', e);

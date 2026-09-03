@@ -26,7 +26,7 @@
 const fs = require('fs');
 const axios = require('axios');
 const { StockscansAuth } = require('../../stock-api/src/auth/stockscansAuth');
-const { sendHtmlEmail, stockscansLink } = require('@stock/cloud-utils');
+const { sendHtmlEmail } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
 const ist = require('./lib/ist');
 const tradingCalendar = require('./lib/tradingCalendar');
@@ -69,25 +69,43 @@ const PAGE_SIZE = 30; // documented convention (see bulkAnnouncementScan.js) —
 // curve shorthand) at 28x27 @ ~4x density for retina sharpness at the
 // rendered 12x12 display size. Regenerate if the icon design changes:
 //   node -e "require('sharp')(Buffer.from(SVG_STRING), {density:300}).resize(28,27).png().toBuffer().then(b => console.log(b.toString('base64')))"
-const EXPAND_ICON_CID = 'expand-icon';
-const EXPAND_ICON_PNG_BASE64 =
-  'iVBORw0KGgoAAAANSUhEUgAAABwAAAAbCAYAAABvCO8sAAAACXBIWXMAAC4jAAAuIwF4pT92AAAB9UlEQVRIie2WQUsVURTHp1RaZBIYrQIXbmtRUi4fGHPO+HiY8865hCQIkueML9wVEVjzQURcuAsVgiKqTYt0UUHtokXfoFSKQlyo3Kczb3oqM+/N1CI68F8M9575cf/33HOv4+SMcrXWhyxvgPQzkrw/UqyrwPoKSO/GiejLFTAyDST304QkwcjI5BmbBxRMIutuJpFuO6VS2Amsi5mTYsm8BZZMrRtI17LmOcgy2zpMd4EljNxxx8dPA+nrTMC69/vL3QQKKmCmB9Lk+sFFx3FOJPcyK9RB1p2Djxd5C8i7NdODrO/SgNGGPs8NpOAysnz9K8C63STrjf/Jjz8GrK+M9FuioJ65fnAeWN8WDrTn9zcY6VPPmzllx0o3Js4272kuoOdPXUXWjQZMVgZEupJzro/e6UXSD/HBbxcIRq+lwaKojMk5IJ1DI/faAh6ykXW5GWaM6QCjj5D1QRiGJxvJLQJtNSZhyLJ01Mq8qpajOa4JhtoCHir9Y2A2kHQsdqAaUMtAz799wba/hI2PbeM/bj7mBbokg1lhhQCjn3istTRYYcBWAv8D8Z+1FFi/Hwx8irp8MUB5GAONusmBl4kG/Mt2kiKEjbtxy94YMXDYyCVg/dnOyy2T7A3RHN5N6QeSBWT5iCxf8sq+BIHkCVRltJm1B8bvvqa7dbSrAAAAAElFTkSuQmCC';
+// (EXPAND_ICON_CID / EXPAND_ICON_PNG_BASE64 now imported from lib/thesisCardEmail.js
+// below — the icon belongs with the renderer that references it.)
 
-// Deterministic default scan — the same ad-hoc universe used for the first
-// manual run of this workflow (2026-08-19): mid/small-cap, price above its
-// 200DMA, meaningful retail holding, liquid. Override by passing a full scan
-// object via --scan-file if a different universe is ever wanted; the skill
-// itself does not expose per-run scan editing since the nightly task always
-// uses this fixed universe.
-const DEFAULT_SCAN = {
-  scanId: 'd5e2faa4cbed469c8624ce29',
-  scanName: 'Test',
+// ── Scan universe: resolved LIVE from the user's saved announcement-scans ──
+//
+// Until 2026-09-04 this file hardcoded a literal `DEFAULT_SCAN` object — a
+// snapshot of the ad-hoc filter set used for the very first manual run
+// (2026-08-19). That snapshot immediately started drifting: Darshan tunes
+// this universe in the Stockscans UI (mcap ceiling, institutional-holding
+// floor, liquidity), and every tune silently failed to reach the nightly
+// job because the job was reading a copy frozen in source. The universe is
+// the user's decision, not the code's — so the code now asks for it.
+//
+// SOURCE OF TRUTH: `GET /api/user/announcement-scans`, the saved-scan named
+// `SCAN_SOURCE_NAME`. Confirmed live 2026-09-04: the response is
+// `{announcementScans: [{scanId, scanName, filters, industry, index,
+// watchlistIds, searchFilters, announcementType, alerts, searchMode,
+// companyIds}], subscription}` — note it does NOT include `companyFilters`,
+// which `announcements/scan` expects, so it is defaulted in below.
+const SCAN_SOURCE_NAME = 'Signals - DND';
+const SCAN_CACHE_PATH = 'cache/post-close-scan-insights-scan.json';
+
+// LAST-RESORT frozen fallback, used ONLY when both the API and the cache are
+// unavailable. This is deliberately the CURRENT (2026-09-04) shape of the
+// "Signals - DND" saved scan, not the old `Test` scan, so a fallback run
+// still scans approximately the right universe rather than a year-old one.
+// It is NOT the source of truth and must never be edited to "change the
+// universe" — edit the saved scan in Stockscans instead.
+const FALLBACK_SCAN = {
+  scanId: '7e07567f7867028e90a6e368',
+  scanName: SCAN_SOURCE_NAME,
   filters: [
     { left: 'Market Capitalization', sign: '>=', right: '300' },
-    { left: 'Market Capitalization', sign: '<', right: '50000' },
-    { left: 'Close Price', sign: '>=', right: 'EMA 200D' },
     { left: 'Retail Holdings * Market Capitalization', sign: '>=', right: '5000' },
-    { left: 'Volume SMA 20D * SMA 20D', sign: '>=', right: '50000000' },
+    { left: 'Close Price', sign: '>=', right: 'EMA 200D' },
+    { left: 'FII Holdings + DII Holdings', sign: '>=', right: '0' },
+    { left: 'Market Capitalization', sign: '<', right: '70000' },
   ],
   industry: [],
   index: [],
@@ -99,6 +117,112 @@ const DEFAULT_SCAN = {
   companyIds: [],
   companyFilters: [],
 };
+
+// Normalise a saved-scan record into the exact shape
+// `POST /api/company/announcements/scan` accepts. `scanId`/`scanName` are
+// REQUIRED by that endpoint (see docs/stockscans-api-schemas.md — omitting
+// them is a hard 400), and `companyFilters` is absent from the saved-scan
+// response but expected by the scan endpoint, so both are filled in here
+// rather than at each call site.
+function normaliseSavedScan(saved) {
+  return {
+    scanId: saved.scanId,
+    scanName: saved.scanName,
+    filters: saved.filters || [],
+    industry: saved.industry || [],
+    index: saved.index || [],
+    watchlistIds: saved.watchlistIds || [],
+    searchFilters: saved.searchFilters || [],
+    announcementType: saved.announcementType || 'All',
+    alerts: saved.alerts === true,
+    searchMode: saved.searchMode || 'quick',
+    companyIds: saved.companyIds || [],
+    companyFilters: saved.companyFilters || [],
+  };
+}
+
+/**
+ * Resolve this run's scan universe, newest-first with two degradations, so a
+ * transient Stockscans outage narrows correctness rather than failing the
+ * whole night:
+ *
+ *   1. LIVE — GET /api/user/announcement-scans, pick `SCAN_SOURCE_NAME`.
+ *      On success the resolved scan is written to `SCAN_CACHE_PATH` so the
+ *      next degraded run has something recent to fall back to, and so the
+ *      run report can show exactly which filter set was used.
+ *   2. CACHE — the last successfully-resolved copy. Still the user's real
+ *      filters, just possibly a few days stale; the returned `source` says
+ *      so, and the skill surfaces that in the run report (a silently stale
+ *      universe is the failure mode this whole change exists to remove).
+ *   3. FALLBACK — the frozen literal above. Loud, last resort.
+ *
+ * Returns `{scan, source, resolvedAtIso, scanName, filterCount}` — never
+ * just the scan, because every caller needs to be able to REPORT which of
+ * the three it got.
+ */
+async function resolveScan() {
+  const StorageService = require('@stock/cloud-utils').StorageService;
+  try {
+    const { data } = await axios.get(`${BASE_URL}/api/user/announcement-scans`, {
+      headers: authHeaders(),
+      timeout: 30000,
+    });
+    const list = Array.isArray(data)
+      ? data
+      : data.announcementScans || data.scans || data.data || [];
+    const saved = list.find((s) => String(s.scanName || s.name || '').trim() === SCAN_SOURCE_NAME);
+    if (!saved) {
+      // A missing scan is NOT a network problem — it means the scan was
+      // renamed or deleted, which the user needs to know about explicitly
+      // rather than have papered over by a cache hit. Name every scan we
+      // DID see, so the fix (rename it back, or update SCAN_SOURCE_NAME) is
+      // obvious from the error alone.
+      throw new Error(
+        `saved announcement-scan "${SCAN_SOURCE_NAME}" not found. Available: ` +
+          list.map((s) => JSON.stringify(s.scanName || s.name)).join(', ')
+      );
+    }
+    const scan = normaliseSavedScan(saved);
+    const resolved = {
+      scan,
+      source: 'live',
+      resolvedAtIso: new Date().toISOString(),
+      scanName: scan.scanName,
+      filterCount: scan.filters.length,
+    };
+    StorageService.init();
+    await StorageService.saveJson(SCAN_CACHE_PATH, resolved);
+    return resolved;
+  } catch (err) {
+    process.stderr.write(`[WARN] live scan resolution failed: ${err.message}\n`);
+    try {
+      StorageService.init();
+      const cached = StorageService.readJson(SCAN_CACHE_PATH);
+      if (cached && cached.scan && (cached.scan.filters || []).length) {
+        process.stderr.write(
+          `[WARN] falling back to cached scan resolved ${cached.resolvedAtIso}\n`
+        );
+        return { ...cached, source: 'cache', cacheResolvedAtIso: cached.resolvedAtIso };
+      }
+    } catch (e) {
+      process.stderr.write(`[WARN] scan cache unreadable: ${e.message}\n`);
+    }
+    process.stderr.write('[WARN] falling back to the FROZEN in-source scan definition\n');
+    return {
+      scan: FALLBACK_SCAN,
+      source: 'fallback',
+      resolvedAtIso: new Date().toISOString(),
+      scanName: FALLBACK_SCAN.scanName,
+      filterCount: FALLBACK_SCAN.filters.length,
+    };
+  }
+}
+
+async function cmdResolveScan() {
+  loadEnv();
+  const resolved = await resolveScan();
+  process.stdout.write(JSON.stringify(resolved, null, 2));
+}
 
 function currentQuarterDate(date = new Date()) {
   // Same "next calendar quarter from filing date" semantics documented in
@@ -195,25 +319,68 @@ async function resolveCutoffUtc(now, windowHoursArg) {
   return new Date(startMs);
 }
 
-// NOTE (2026-08-31 fix): `createdAt` from the Stockscans announcements/scan
-// API is a bare ISO datetime (no `Z`, no offset, e.g.
-// "2026-08-30T23:37:29.983221") but is ALREADY IN UTC, not IST — verified
-// empirically: an item's createdAt was ~10 minutes ahead of the real
-// wall-clock UTC time at fetch time, which is only consistent with the
-// field being UTC already. The previous version of this function (and the
-// shared `ist.parseCreatedAtMs` helper other jobs-runtime scripts use) both
-// assumed a bare timestamp meant IST and subtracted 5:30, which shifted
-// every `createdAt` 5.5 hours further into the past than reality — enough
-// to push genuinely in-window (post-cutoff) items below the cutoff and
-// silently drop them. `ann.date` (the separate coarse "YYYY-MM-DD" field,
-// if ever used instead) may still be IST-only and unaffected by this fix.
+// TIMEZONE OF `createdAt` — CORRECTED 2026-09-04. Read this before touching it.
+//
+// The Stockscans `announcements/scan` API returns `createdAt` as a bare ISO
+// datetime with no zone marker (e.g. "2026-09-04T01:10:10.809903"). A
+// 2026-08-31 change to this file concluded that bare field was already UTC
+// and parsed it as such. That conclusion was WRONG — it was drawn from a
+// single observation ("createdAt looked ~10 minutes ahead of wall-clock UTC")
+// that is also consistent with several other explanations. The field is IST.
+//
+// Re-verified 2026-09-04 on a 1,014-announcement unfiltered sample, three
+// independent ways, all agreeing:
+//
+//   1. `createdAt`'s own calendar date equals the separate coarse `date`
+//      field for 1013/1014 items (99.9%). Under the UTC reading — i.e.
+//      shifting createdAt by +5:30 to get an IST date — that agreement
+//      collapses to 204/1014 (20%). The API would not ship a `date` field
+//      that disagrees with its own `createdAt` on 80% of rows.
+//   2. The newest `createdAt` in the sample was 2026-09-04T01:10:10, fetched
+//      when wall-clock UTC was 2026-09-03T22:59. Under the UTC reading that
+//      is a timestamp 2h11m in the FUTURE, which is impossible. Under the
+//      IST reading it is 3h19m in the past — consistent.
+//   3. Under the IST reading, filing activity clusters 09:00-01:00 IST and
+//      goes silent 01:10-09:00 IST, which is what an Indian exchange filing
+//      feed actually looks like. Under the UTC reading the same data claims
+//      the market files most heavily at 23:00-06:30 IST and files NOTHING
+//      during the 09:15-15:30 session — not credible.
+//
+// Why the direction of the old bug matters: parsing an IST timestamp as UTC
+// places every announcement 5.5 hours LATER than it really happened. Against
+// a "since last close" cutoff that is over-inclusive (items appear newer, so
+// more of them clear the cutoff) rather than lossy — which is why it never
+// produced an obviously-empty digest and went unnoticed. But it also means
+// the resumable cursor was advancing to boundaries that did not correspond
+// to real filing times, so "everything up to here is handled" was not
+// actually true at the claimed instant. Correctness of the multi-slot
+// intraday windows (see the slot design in the skill) depends entirely on
+// this being right, which is why it is fixed here rather than tolerated.
+//
+// `ist.parseCreatedAtMs`, used by other jobs-runtime scripts, makes the
+// SAME bare-timestamp assumption for note `createdAt` values — but those are
+// written by this repo via `ist.nowIstIso()` (genuinely IST), so that helper
+// is correct for its own inputs and is deliberately left alone.
+const IST_OFFSET_MS = (5 * 60 + 30) * 60 * 1000;
+
 function parseAnnDateToUtc(str) {
   if (!str) return null;
+  // An explicit zone marker is authoritative — trust it and don't shift.
   if (/[+-]\d{2}:\d{2}$/.test(str) || /Z$/.test(str)) return new Date(str);
   const m = String(str).match(/(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})/);
   if (m) {
-    const [, y, mo, dd, h, mi, s] = m.map(Number);
-    return new Date(Date.UTC(y, mo - 1, dd, h, mi, s));
+    const [, y, mo, dd, h, mi, sec] = m.map(Number);
+    // Bare = IST wall clock -> subtract the offset to get the real instant.
+    return new Date(Date.UTC(y, mo - 1, dd, h, mi, sec) - IST_OFFSET_MS);
+  }
+  // Date-only "YYYY-MM-DD" (the coarse `date` field) — treat as IST midnight,
+  // the most conservative reading: it can only make an item look OLDER than
+  // it is, so a same-day item is never wrongly excluded from a window that
+  // starts before that midnight.
+  const dOnly = String(str).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dOnly) {
+    const [, y, mo, dd] = dOnly.map(Number);
+    return new Date(Date.UTC(y, mo - 1, dd) - IST_OFFSET_MS);
   }
   return new Date(str);
 }
@@ -229,12 +396,40 @@ function authHeaders() {
   };
 }
 
+/**
+ * SLOTS (added 2026-09-04). This job now runs several times a trading day —
+ * during the session as well as after it — instead of once at 2 AM. `--slot`
+ * is a LABEL, not a separate cursor: all slots deliberately share ONE cursor,
+ * because they are consecutive slices of the same continuous stream. A run at
+ * 12:30 should start exactly where the 09:45 run stopped, and per-slot
+ * cursors would each independently reach back to the trading-day floor and
+ * re-cover the same ground — the precise rework this cursor exists to
+ * prevent. The label only steers how the window is described to the reader
+ * (email subject, digest header) so consecutive digests are distinguishable
+ * in an inbox rather than five identically-titled mails.
+ *
+ * See the skill's "Slot schedule" section for the slot times and the
+ * heatmap evidence behind them.
+ */
+const SLOT_LABELS = {
+  'pre-open': 'Pre-open (overnight + early filings)',
+  'mid-session': 'Mid-session',
+  'late-session': 'Late session',
+  'post-close': 'Post-close',
+  night: 'Late evening / night',
+  adhoc: 'Ad-hoc run',
+};
+
 async function cmdFetchScan(argv) {
   loadEnv(argValue('--env-file', argv));
   const windowHoursArg = argValue('--window-hours', argv);
+  const slot = argValue('--slot', argv) || 'adhoc';
   const now = new Date();
   const cutoffUtc = await resolveCutoffUtc(now, windowHoursArg);
   const quarterDate = currentQuarterDate(now);
+  // Resolve the universe from the user's saved scan (see resolveScan) rather
+  // than a literal frozen in this file.
+  const resolvedScan = await resolveScan();
 
   const all = [];
   const inWindow = [];
@@ -250,7 +445,7 @@ async function cmdFetchScan(argv) {
   const CONSECUTIVE_ZERO_PAGES_TO_STOP = 2;
 
   while (page < MAX_PAGES) {
-    const payload = { scan: DEFAULT_SCAN, offset, quarterDate };
+    const payload = { scan: resolvedScan.scan, offset, quarterDate };
     const { data } = await axios.post(`${BASE_URL}/api/company/announcements/scan`, payload, {
       headers: authHeaders(),
       timeout: 30000,
@@ -294,12 +489,33 @@ async function cmdFetchScan(argv) {
   // filed in between fetch and commit).
   await windowCursor.savePendingWindow({
     windowEndMs: now.getTime(),
-    extra: { committedForCutoffMs: cutoffUtc.getTime() },
+    extra: { committedForCutoffMs: cutoffUtc.getTime(), slot },
   });
 
   process.stdout.write(
     JSON.stringify(
-      { cutoffUtc: cutoffUtc.toISOString(), quarterDate, totalFetched: all.length, inWindow },
+      {
+        cutoffUtc: cutoffUtc.toISOString(),
+        // Human-readable window bounds in IST, so the skill never has to do
+        // its own timezone arithmetic to fill --cutoff-human (getting that
+        // wrong silently mislabels the email's own claimed window).
+        windowStartIstHuman: ist.nowIstHuman(cutoffUtc),
+        windowEndIstHuman: ist.nowIstHuman(),
+        slot,
+        slotLabel: SLOT_LABELS[slot] || slot,
+        // Which universe actually got scanned, and whether it came from the
+        // live saved scan, a stale cache, or the frozen fallback. The skill
+        // MUST surface a non-'live' source in its run report — a silently
+        // stale universe is exactly what switching to the API was meant to
+        // eliminate, and a cache/fallback run has quietly reintroduced it.
+        scanSource: resolvedScan.source,
+        scanName: resolvedScan.scanName,
+        scanFilterCount: resolvedScan.filterCount,
+        scanResolvedAtIso: resolvedScan.resolvedAtIso,
+        quarterDate,
+        totalFetched: all.length,
+        inWindow,
+      },
       null,
       2
     )
@@ -399,637 +615,27 @@ function cmdCategorise(argv) {
   process.stdout.write(JSON.stringify(out, null, 2));
 }
 
-const SIG_META = {
-  high: { label: 'High significance', color: '#b42318', bg: '#fef3f2', border: '#fda29b' },
-  medium: { label: 'Medium significance', color: '#b54708', bg: '#fffaeb', border: '#fec84b' },
-  low: { label: 'Low significance', color: '#344054', bg: '#f9fafb', border: '#d0d5dd' },
-};
-
-// Tone system mirrors skills/_shared/pdf-design-guide.md's g/r/y/b palette
-// (translated to inline styles since email clients strip <style> blocks —
-// no CSS classes, every color must be inline per company convention). Card
-// left-border + category chip use SIG_TONE (by significance, the dimension
-// that actually matters for "should I read this"); category-chip label text
-// still names the category so two same-tone categories stay distinguishable.
-const SIG_TONE = {
-  high: { chipBg: '#fcebeb', chipFg: '#791f1f', border: '#e24b4a' },
-  medium: { chipBg: '#faeeda', chipFg: '#633806', border: '#ef9f27' },
-  low: { chipBg: '#e6f1fb', chipFg: '#0c447c', border: '#3a85c9' },
-};
-
-const TAG_CHIP = { bg: '#f2f4f7', fg: '#475467', border: '#d0d5dd' };
-
-function esc(s) {
-  return String(s == null ? '' : s).replace(
-    /[&<>"']/g,
-    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
-  );
-}
-
-// Category/tag values are stored snake_case ("shareholding_change") since
-// that's the taxonomy's canonical machine-readable form (announcementTaxonomy.js),
-// but the digest is a human-facing email — render them as "Shareholding
-// Change" (every word capitalised, underscores to spaces) rather than raw
-// snake_case or the old all-caps/monospace look.
-function toTitleCase(s) {
-  return String(s == null ? '' : s)
-    .replace(/_/g, ' ')
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join(' ');
-}
-
-function tagPillsHtml(tags) {
-  if (!Array.isArray(tags) || !tags.length) return '';
-  return tags
-    .map(
-      (t) =>
-        `<span style="display:inline-block;font-size:10px;font-family:monospace;background:${TAG_CHIP.bg};color:${TAG_CHIP.fg};border:1px solid ${TAG_CHIP.border};border-radius:3px;padding:1.5px 6px;margin:0 4px 4px 0;">${esc(toTitleCase(t))}</span>`
-    )
-    .join('');
-}
-
-// Color-codes the numeric/date substance inside a thesis-chain step so the
-// reader can spot the load-bearing fact without parsing the sentence — NOT
-// the card border/chip (that already carries the significance tone). Escapes
-// first, then wraps matches in the escaped string so `&amp;`-style entities
-// never get re-matched or mangled. Three highlight classes, kept semantically
-// distinct per pdf-design-guide.md's "color the direction that matters, not
-// literal up/down": money/percentage amounts (amber — the quantum), dates/
-// timelines (blue — the when), explicit EPS/PAT/margin deltas (green if the
-// step's own wording reads positive, red if negative — a plain regex can't
-// know direction reliably, so this only fires on an explicit +/- sign or an
-// unambiguous up/down verb immediately adjacent to the number).
-function highlightFacts(escapedText) {
-  let out = escapedText;
-  // Money amounts: ₹/Rs/Rs. followed by a number+cr/lakh/crore, or a bare
-  // "12.5cr"/"₹500cr" style token.
-  out = out.replace(
-    /((?:₹|Rs\.?\s?)\s?[\d,]+(?:\.\d+)?\s?(?:cr|crore|lakh|lac|L|Cr)\b)/g,
-    '<span style="color:#854f0b;font-weight:600;">$1</span>'
-  );
-  // Percentages.
-  out = out.replace(
-    /(\(?[+-]?[\d.]+%\)?)/g,
-    '<span style="color:#854f0b;font-weight:600;">$1</span>'
-  );
-  // Explicit signed deltas not already caught above (e.g. "+2%" handled;
-  // "up 2%"/"down 2%" phrasing gets its own directional color).
-  out = out.replace(
-    /\b(up|higher|increase[sd]?|grow[sn]?|beat)\b([^<.,;]{0,28}?\d[^<.,;]{0,10})/gi,
-    '<span style="color:#0f6e56;font-weight:600;">$1$2</span>'
-  );
-  out = out.replace(
-    /\b(down|lower|decrease[sd]?|declin\w*|dilut\w*|miss(?:e[sd])?)\b([^<.,;]{0,28}?\d[^<.,;]{0,10})/gi,
-    '<span style="color:#a32d2d;font-weight:600;">$1$2</span>'
-  );
-  // Dates / quarter-year timelines: FY27, Q2FY27, "Aug 2026", "from FY28".
-  out = out.replace(
-    /\b((?:Q[1-4]\s?)?FY\s?\d{2,4}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2},?\s+\d{4}|\d{4}-\d{2,4})\b/g,
-    '<span style="color:#0c447c;font-weight:600;">$1</span>'
-  );
-  return out;
-}
-
-const EPS_TONE = {
-  positive: { bg: '#eaf3de', fg: '#27500a', border: '#a9cf8a', icon: '▲' },
-  negative: { bg: '#fcebeb', fg: '#791f1f', border: '#ecaaa9', icon: '▼' },
-  neutral: { bg: '#e6f1fb', fg: '#0c447c', border: '#a7cdec', icon: '●' },
-};
-
-// Tone for the NEW/KNOWN/FOLLOW_UP claim chips rendered by
-// infoClassificationHtml() below — NEW is the attention-getting color
-// (this is the bucket that actually moves the market on surprise, per
-// announcement-info-classifier's own framing), KNOWN is deliberately muted
-// (already-priced-in, low reader attention needed), FOLLOW_UP sits between.
-const INFO_CLASS_TONE = {
-  NEW: { bg: '#fef3f2', fg: '#b42318', border: '#fda29b' },
-  FOLLOW_UP: { bg: '#fffaeb', fg: '#b54708', border: '#fec84b' },
-  KNOWN: { bg: '#f9fafb', fg: '#667085', border: '#d0d5dd' },
-};
-
-// Renders the "Returns 1D / Delivery % / Traded Delivery Value / Vol-vs-7D-Avg"
-// market-data line used by resend-with-market-data (see cmdResendWithMarketData
-// below) — same visual family as epsImpactHtml's chip, colored green/red by
-// return sign like gainers-signal does. `it.marketData` is
-// `{returns1d, deliveryPct, deliveryValueCr, volRatio7d}` (any field may be
-// null when NSE/BSE/Stockscans had no data for that ticker — rendered as "—",
-// never fabricated).
-// Uses vertical-align:middle + explicit &nbsp;-separated spacing rather than
-// flexbox gap, per this file's Gmail-sanitizer findings above (gap/align-items
-// get silently stripped from inline styles in received mail).
-function marketDataHtml(marketData) {
-  if (!marketData) return '';
-  const { returns1d, deliveryPct, deliveryValueCr, volRatio7d } = marketData;
-  if (returns1d == null && deliveryPct == null && deliveryValueCr == null && volRatio7d == null)
-    return '';
-  const fmtPct = (v) => (v == null ? '—' : `${v > 0 ? '+' : ''}${v.toFixed(2)}%`);
-  const fmtCr = (v) => (v == null ? '—' : `₹${v.toFixed(1)} Cr`);
-  const retColor = returns1d == null ? '#475467' : returns1d >= 0 ? '#067647' : '#b42318';
-  // Same >=2.0x threshold gainersScanner.js's vol_spike boolean uses, just
-  // against a 7-day (pre-announcement-day) window instead of its 20-day one —
-  // colored so a volume spike alongside the announcement is visually obvious.
-  const volColor = volRatio7d == null ? '#475467' : volRatio7d >= 2.0 ? '#b42318' : '#475467';
-  return (
-    `<div style="margin-top:8px;font-size:11.5px;font-family:monospace;color:#475467;">` +
-    `<span style="display:inline-block;vertical-align:middle;">Returns 1D: <b style="color:${retColor};">${fmtPct(returns1d)}</b></span>` +
-    `<span style="display:inline-block;vertical-align:middle;margin-left:12px;">Delivery: <b>${deliveryPct == null ? '—' : deliveryPct.toFixed(1) + '%'}</b></span>` +
-    `<span style="display:inline-block;vertical-align:middle;margin-left:12px;">Delivery Value: <b>${fmtCr(deliveryValueCr)}</b></span>` +
-    `<span style="display:inline-block;vertical-align:middle;margin-left:12px;">Vol/7D-Avg: <b style="color:${volColor};">${volRatio7d == null ? '—' : volRatio7d.toFixed(2) + 'x'}</b></span>` +
-    `</div>`
-  );
-}
-
-function epsImpactHtml(epsImpact) {
-  if (!epsImpact || !epsImpact.direction) return '';
-  const tone = EPS_TONE[epsImpact.direction] || EPS_TONE.neutral;
-  const parts = [esc(epsImpact.magnitude || '')];
-  if (epsImpact.timeline) parts.push(esc(epsImpact.timeline));
-  const detail = parts.filter(Boolean).join(' &middot; ');
-  const confidence = epsImpact.confidence
-    ? ` <span style="opacity:0.7;">(${esc(epsImpact.confidence)} confidence)</span>`
-    : '';
-  return `<div style="display:inline-block;font-size:11.5px;font-weight:600;background:${tone.bg};color:${tone.fg};border:1px solid ${tone.border};border-radius:4px;padding:3px 9px;margin-top:8px;">${tone.icon} EPS impact: ${detail}${confidence}</div>`;
-}
-
-// Renders the causal chain "this happened -> so this -> so this -> EPS
-// impact" the user asked for. Falls back to a single-step chain built from
-// the plain `insight` string when a note predates the thesisChain field
-// (older cached notes) so old and new notes render consistently rather than
-// the digest silently losing the body for anything generated before this
-// schema existed.
-function thesisChainHtml(it) {
-  const steps = Array.isArray(it.thesisChain) && it.thesisChain.length
-    ? it.thesisChain
-    : String(it.insight || '')
-        .split(/(?<=[.!?])\s+/)
-        .filter(Boolean);
-  if (!steps.length) return '';
-  return steps
-    .map((step, i) => {
-      // The arrow (added below for i>0) already implies causation/sequence —
-      // strip a redundant leading "so"/"so that"/"and so" from non-first
-      // steps rather than showing "-> so X" (defensive: covers both new
-      // notes, which the _global.md prompt now tells not to prefix this way,
-      // and older cached notes generated before that instruction existed).
-      const cleanedStep =
-        i === 0 ? step : String(step).replace(/^\s*(?:and\s+)?so(?:\s+that)?\s+/i, '');
-      const escaped = highlightFacts(esc(cleanedStep));
-      const arrow =
-        i === 0
-          ? ''
-          : '<span style="color:#98a2b3;margin-right:6px;">&rarr;</span>';
-      return `<div style="font-size:13px;line-height:1.6;color:#344054;margin-top:${i === 0 ? '8' : '4'}px;">${arrow}${escaped}</div>`;
-    })
-    .join('');
-}
-
-
-// Renders the NEW/KNOWN/FOLLOW_UP breakdown attached by Step 3.5 (top-5
-// info-classified items only — see the SKILL.md) as `it.infoClassification`
-// = `{claims: [{claim, bucket, priorSource}], verdict, baselineCoverage}`.
-// Absent on every other card (the classifier only runs on 5 items a night),
-// so this returns '' and the card renders exactly as it did before this
-// field existed — same "old notes render fine" guarantee thesisChainHtml
-// above already gives for its own optional field.
-// Deliberately compact: a one-line verdict banner plus a claims list capped
-// at 4 rows (a card is already dense with headline/chain/EPS/tags; the full
-// per-claim citation detail lives in the persisted note, not the email) —
-// if there are more than 4 claims, the last row says how many were omitted
-// rather than silently truncating without saying so.
-const INFO_CLASS_MAX_CLAIMS_SHOWN = 4;
-
-function infoClassificationHtml(infoClassification) {
-  if (!infoClassification || !Array.isArray(infoClassification.claims)) return '';
-  const { claims, verdict, baselineCoverage } = infoClassification;
-  if (!claims.length && !verdict) return '';
-
-  const bucketChip = (bucket) => {
-    const key = String(bucket || '').toUpperCase().replace(/[\s-]+/g, '_');
-    const tone = INFO_CLASS_TONE[key] || INFO_CLASS_TONE.KNOWN;
-    const label = key === 'FOLLOW_UP' ? 'FOLLOW-UP' : key;
-    return `<span style="display:inline-block;vertical-align:middle;font-size:9.5px;font-weight:700;font-family:monospace;letter-spacing:0.03em;background:${tone.bg};color:${tone.fg};border:1px solid ${tone.border};border-radius:3px;padding:1px 6px;margin-right:6px;white-space:nowrap;">${esc(label)}</span>`;
-  };
-
-  const shown = claims.slice(0, INFO_CLASS_MAX_CLAIMS_SHOWN);
-  const omitted = claims.length - shown.length;
-  const claimRows = shown
-    .map((c) => {
-      const src = c.priorSource
-        ? ` <span style="color:#98a2b3;">(${esc(c.priorSource)})</span>`
-        : '';
-      return `<div style="font-size:11.5px;line-height:1.6;color:#475467;margin-top:3px;">${bucketChip(c.bucket)}${esc(c.claim || '')}${src}</div>`;
-    })
-    .join('');
-  const omittedRow =
-    omitted > 0
-      ? `<div style="font-size:11px;color:#98a2b3;margin-top:3px;">+ ${omitted} more claim(s) — see saved note</div>`
-      : '';
-
-  const thin = baselineCoverage && baselineCoverage.thinBaseline;
-  const thinBadge = thin
-    ? ` <span style="font-size:10px;font-weight:700;color:#b54708;">(THIN BASELINE)</span>`
-    : '';
-
-  return `
-    <div style="margin-top:10px;padding-top:9px;border-top:1px dashed #eaecf0;">
-      <div style="font-size:11px;font-weight:700;color:#667085;text-transform:uppercase;letter-spacing:0.02em;">Info classification${thinBadge}</div>
-      ${verdict ? `<div style="font-size:12.5px;font-weight:600;color:#101828;margin-top:4px;">${esc(verdict)}</div>` : ''}
-      ${claimRows}
-      ${omittedRow}
-    </div>`;
-}
-
-// Pictorial run-summary footer: one tile per funnel stage so the whole
-// night's routing outcome is graspable at a glance without reading every
-// insight card. `stats` is caller-supplied (the orchestrating skill run,
-// not this script, is the only place that knows the full funnel — see
-// STATS_TILES below for the expected shape) since fetch-scan/filter-noise/
-// categorise/send-digest are separate process invocations with no shared
-// in-memory state. Added 2026-08-24 per Darshan's request: "mention the
-// count for each category at the footer... total 26, insights 11, ocr
-// failed 3, routine 5 etc, pictorial UI, single glance."
-const STATS_TILES = [
-  { key: 'total', icon: '📋', label: 'Total in window', color: '#344054' },
-  { key: 'insights', icon: '✍️', label: 'Insights written', color: '#1b5e20' },
-  { key: 'highConviction', icon: '🔥', label: 'High-conviction', color: '#b42318' },
-  { key: 'heavyDocSkipped', icon: '📄', label: 'Heavy-doc skipped', color: '#667085' },
-  { key: 'routine', icon: '💤', label: 'Routine (no note)', color: '#98a2b3' },
-  { key: 'ocrFailed', icon: '⚠️', label: 'OCR failed / unread', color: '#b54708' },
-  { key: 'noiseDropped', icon: '🧹', label: 'Noise-filtered out', color: '#98a2b3' },
-];
-
-function buildStatsFooterHtml(stats) {
-  if (!stats || typeof stats !== 'object') return '';
-  const tiles = STATS_TILES.filter(
-    (t) => stats[t.key] !== undefined && stats[t.key] !== null
-  );
-  if (!tiles.length) return '';
-  const cells = tiles
-    .map(
-      (t) => `
-      <td style="padding:0 6px;text-align:center;vertical-align:top;">
-        <div style="background:#fff;border:1px solid #eaecf0;border-radius:10px;padding:12px 10px;min-width:84px;">
-          <div style="font-size:22px;line-height:1;">${t.icon}</div>
-          <div style="font-size:20px;font-weight:700;color:${t.color};margin-top:6px;">${esc(stats[t.key])}</div>
-          <div style="font-size:10px;font-weight:600;color:#667085;text-transform:uppercase;letter-spacing:0.02em;margin-top:2px;">${esc(t.label)}</div>
-        </div>
-      </td>`
-    )
-    .join('');
-  // OCR-failed tile gets a visible warning strip when non-zero, since that
-  // count means "these announcements were never actually read" — the exact
-  // failure mode this footer exists to make impossible to miss (2026-08-24).
-  const ocrWarning =
-    stats.ocrFailed > 0
-      ? `<p style="font-size:12px;color:#b54708;background:#fffaeb;border:1px solid #fec84b;border-radius:8px;padding:8px 12px;margin:12px 0 0;">⚠️ ${esc(stats.ocrFailed)} announcement(s) could not be read (scanned PDF, OCR unavailable) and are NOT reflected as routine — flagged for manual follow-up.</p>`
-      : '';
-  return `
-    <div style="margin-top:32px;border-top:1px solid #eaecf0;padding-top:16px;">
-      <div style="font-size:12px;font-weight:600;color:#667085;text-transform:uppercase;letter-spacing:0.02em;margin-bottom:10px;">Run summary</div>
-      <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;border-spacing:6px 0;"><tr>${cells}</tr></table>
-      ${ocrWarning}
-    </div>`;
-}
-
-// Within-bucket ranking score (Step "sort within significance" — added
-// 2026-08-30 per Darshan's request that cards not just group by
-// significance but also rank within a bucket, since "high" alone still
-// spans a wide range of how much attention an item deserves). Purely
-// additive and deterministic from fields already on the note payload — no
-// LLM call, no extra fetch; this is exactly the kind of pure-logic scoring
-// that belongs in the script per skills/_shared/conventions.md §17, not a
-// second judgment pass by the model.
+// ── Card rendering lives in lib/thesisCardEmail.js ─────────────────────────
+// The entire card/chip/highlight/footer/grouping layer that used to live here
+// moved to `lib/thesisCardEmail.js` on 2026-09-03, unchanged, when Darshan
+// asked for gainers-signal and volume-rocketing to use this same Thesis Card
+// UX. Three copies of the Gmail-quirk knowledge baked into that markup (cid:
+// icons, no flexbox, inline styles only) is exactly the duplication
+// `skills/_shared/conventions.md` §17 forbids, so there is now one renderer
+// and three callers. This file keeps only what is specific to a post-close
+// ANNOUNCEMENT scan: fetching to a cutoff, noise-filtering, categorising,
+// routing heavy documents, and the notes-DB merge below.
 //
-// Four components, each contributing an independent, capped amount so no
-// single signal can dominate silently and the total is easy to reason
-// about at a glance (0-100 nominal ceiling on the initial send; the resend
-// pass adds a fifth, market-reaction component on top — see
-// MARKET_REACTION_WEIGHT below):
-//
-//   1. Category (0-30): `high_conviction` is the taxonomy's OWN judgment
-//      that this category structurally deserves deep attention
-//      (demerger/merger/acquisition/management_change) — worth a flat,
-//      large weight since it's a considered classification, not a proxy.
-//   2. EPS-impact confidence (0-25): how directly the filing supports a
-//      quantified number, per announcement-insights' own confidence
-//      rubric (a disclosed rupee figure with a stated date is `high`; a
-//      qualitative read with no hard number is `low`). A concretely
-//      quantified item is more actionable than a vaguely-worded one at
-//      the same significance level.
-//   3. EPS-impact direction (0-10): a non-neutral directional call
-//      (positive or negative) still beats "no EPS linkage at all" even
-//      when magnitude/confidence is soft, since direction alone is a
-//      usable signal.
-//   4. Info-classification NEW-ness (0-35, only present on the ~5 items
-//      Step 3.5 actually classifies): the fraction of claims bucketed
-//      NEW, scaled to 35. This directly operationalizes the SOIC "new
-//      information" framework this whole classifier exists for — within
-//      the same significance bucket, an announcement that's mostly
-//      genuinely NEW information should outrank one that's mostly
-//      KNOWN/restated, even if both got tagged the same significance by
-//      announcement-insights (which judges the EVENT's importance, not
-//      how much of today's filing is actually new information about it).
-//      Items with no infoClassification (the other ~95% of cards, since
-//      this only runs on the nightly top 5) score 0 here — unaffected,
-//      falls back to components 1-3 exactly as before this field existed.
-const EPS_CONFIDENCE_WEIGHT = { high: 25, medium: 15, low: 8 };
-
-// Market-reaction refinement — ONLY available on the resend-with-market-data
-// pass (marketData is null/absent on the initial nightly send, see
-// cmdResendWithMarketData's Step 4 above), so the initial email's order is
-// fully reproducible from the note payload alone, while the morning resend
-// can re-rank using what the market actually did overnight. Two capped
-// sub-components so a single extreme value (e.g. a thinly-traded stock's
-// noisy 1D return) can't swing the ranking on its own:
-//   - |returns1d| scaled at 2 points per 1%, capped at 12 (i.e. maxes out
-//     at a +/-6% move) — magnitude of reaction, not direction, since both a
-//     surprise beat and a surprise miss are "the market found this
-//     significant."
-//   - volRatio7d >= 2.0x (the same threshold marketDataHtml's own coloring
-//     uses to flag a volume spike) contributes a flat 8 — confirms the
-//     price move was on real participation, not a thin/illiquid blip.
-const MARKET_REACTION_RETURN_CAP = 12;
-const MARKET_REACTION_VOLUME_SPIKE_BONUS = 8;
-
-function computeRankScore(it) {
-  let score = 0;
-
-  if (it.high_conviction || it.highConviction) score += 30;
-
-  const eps = it.epsImpact;
-  if (eps && eps.confidence) {
-    score += EPS_CONFIDENCE_WEIGHT[String(eps.confidence).toLowerCase()] || 0;
-  }
-  if (eps && eps.direction) {
-    score += eps.direction === 'neutral' ? 3 : 10;
-  }
-
-  const ic = it.infoClassification;
-  if (ic && Array.isArray(ic.claims) && ic.claims.length) {
-    const newCount = ic.claims.filter(
-      (c) => String(c.bucket || '').toUpperCase() === 'NEW'
-    ).length;
-    score += (newCount / ic.claims.length) * 35;
-  }
-
-  const md = it.marketData;
-  if (md) {
-    if (typeof md.returns1d === 'number') {
-      score += Math.min(Math.abs(md.returns1d) * 2, MARKET_REACTION_RETURN_CAP);
-    }
-    if (typeof md.volRatio7d === 'number' && md.volRatio7d >= 2.0) {
-      score += MARKET_REACTION_VOLUME_SPIKE_BONUS;
-    }
-  }
-
-  return score;
-}
-
-// Shared dedupe key: prefer the real announcementId (stable across runs —
-// see watchlistInsights.js's announcementId(), which IS the note's ssUrl),
-// falling back to companyId+insight text only for the rare note that predates
-// announcementId being stored at all. Factored out so cmdSendDigest and
-// cmdResendWithMarketData can never drift into two different definitions of
-// "same announcement" — see the 2026-09 duplicate-entry bug below for why
-// that drift is exactly what let duplicates slip through resend-with-market-data.
-function insightDedupeKey(it) {
-  return it.announcementId ? `${it.companyId}::${it.announcementId}` : `${it.companyId}::${it.insight}`;
-}
-
-// 2026-09 fix: resend-with-market-data previously read notes straight from
-// db.find('notes', {date, type:'announcement'}) with ZERO dedup, so any
-// duplicate note already sitting in the DB (the exact STLTECH/VARROC/RAMRAT-
-// style duplicates the 2026-08-31 `alreadyProcessed` fix stops from being
-// CREATED going forward) would still be re-rendered as two separate cards on
-// every resend, forever — the categorise-level fix only prevents new
-// duplicates, it doesn't clean up ones already persisted. Both send-digest
-// and resend-with-market-data now route through this one function so a
-// pre-existing duplicate note is silently collapsed (first-seen wins) rather
-// than requiring a manual data cleanup pass.
-function dedupeInsights(insights) {
-  const seen = new Set();
-  const out = [];
-  for (const it of insights) {
-    const key = insightDedupeKey(it);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push(it);
-  }
-  return out;
-}
-
-// Per-company thesis-card clubbing (2026-09): when the same company has
-// multiple distinct announcements surviving into one digest (e.g. an
-// acquisition update PLUS a shareholding-change filing the same evening),
-// render ONE card per company instead of one per announcement — a reader
-// scanning the digest cares about "what's the state of play on this
-// company tonight," not "how many separate filings happened to hit the
-// wire." Card-level significance/score use the HIGHEST-scoring individual
-// announcement (so a company with one high-conviction item and three
-// routine ones still surfaces in the High section) — see scoring notes
-// inline below.
-function groupInsightsByCompany(insights) {
-  const bySig = { high: 0, medium: 1, low: 2 };
-  const byCompany = new Map();
-  for (const it of insights) {
-    const key = it.companyId || it.name || '';
-    if (!byCompany.has(key)) byCompany.set(key, []);
-    byCompany.get(key).push(it);
-  }
-
-  const grouped = [];
-  for (const items of byCompany.values()) {
-    if (items.length === 1) {
-      grouped.push(items[0]);
-      continue;
-    }
-    // Rank each sub-item by (significance rank, then computeRankScore) so
-    // "highest scoring announcement" matches the exact ordering the digest
-    // already uses to sort cards within a significance bucket — no second,
-    // divergent notion of "highest" gets introduced here.
-    const bySeverityThenScore = [...items].sort((a, b) => {
-      const sigDiff = (bySig[a.significance] ?? 3) - (bySig[b.significance] ?? 3);
-      if (sigDiff !== 0) return sigDiff;
-      return computeRankScore(b) - computeRankScore(a);
-    });
-    const primary = bySeverityThenScore[0];
-
-    // Combine headlines/thesis chains from every sub-item, de-duplicated by
-    // normalized text so two announcements that happen to restate the same
-    // fact (e.g. a board-outcome filing followed by a press-release repeating
-    // it) don't double the same line in the combined card.
-    const seenLines = new Set();
-    const combinedChain = [];
-    for (const it of bySeverityThenScore) {
-      const steps = Array.isArray(it.thesisChain) && it.thesisChain.length
-        ? it.thesisChain
-        : String(it.insight || '').split(/(?<=[.!?])\s+/).filter(Boolean);
-      for (const step of steps) {
-        const norm = String(step).trim().toLowerCase().replace(/\s+/g, ' ');
-        if (!norm || seenLines.has(norm)) continue;
-        seenLines.add(norm);
-        combinedChain.push(step);
-      }
-    }
-
-    // Merge tags (unique, primary's tags first so high_conviction etc. stay
-    // prominent), and collect every distinct sub-announcement's PDF link so
-    // the reader can still reach each original filing, not just the
-    // highest-scoring one's.
-    const tagSet = new Set();
-    for (const it of bySeverityThenScore) {
-      for (const t of Array.isArray(it.tags) ? it.tags : []) tagSet.add(t);
-    }
-    const subLinks = bySeverityThenScore
-      .filter((it) => it.pdfUrl)
-      .map((it) => ({ pdfUrl: it.pdfUrl, category: it.category, announcementId: it.announcementId }));
-
-    grouped.push({
-      ...primary,
-      headline: primary.headline || undefined,
-      thesisChain: combinedChain,
-      tags: [...tagSet],
-      // Card keeps the primary (highest-scoring) item's significance,
-      // category chip, epsImpact, marketData, infoClassification, and
-      // pdfUrl/link-button — those are per-thesis judgments that don't
-      // average meaningfully across unrelated filings; only the narrative
-      // body (thesisChain) and tags are combined. subAnnouncementCount lets
-      // the header note "+N more filings" without changing the score.
-      subAnnouncementCount: items.length,
-      subLinks,
-    });
-  }
-  return grouped;
-}
-
-function buildDigestHtml(rawInsights, { cutoffIstHuman, runIstHuman, stats }) {
-  // Dedupe first (defends against any duplicate note already in the DB —
-  // see dedupeInsights above), THEN club by company — clubbing on
-  // undeduped input would just combine duplicate text into the same card
-  // instead of dropping it.
-  const insights = groupInsightsByCompany(dedupeInsights(rawInsights));
-  const order = { high: 0, medium: 1, low: 2 };
-  const sorted = [...insights].sort((a, b) => {
-    const sigDiff = (order[a.significance] ?? 3) - (order[b.significance] ?? 3);
-    if (sigDiff !== 0) return sigDiff;
-    // Secondary key, within the same significance bucket: higher rank
-    // score first (descending) — see computeRankScore above. A stable
-    // sort (Array.prototype.sort is stable per spec since ES2019) keeps
-    // ties in their original relative order rather than reshuffling them
-    // run to run.
-    return computeRankScore(b) - computeRankScore(a);
-  });
-  const groups = { high: [], medium: [], low: [] };
-  for (const it of sorted) (groups[it.significance] || (groups[it.significance] = [])).push(it);
-
-  const sections = ['high', 'medium', 'low']
-    .filter((sig) => groups[sig] && groups[sig].length)
-    .map((sig) => {
-      const meta = SIG_META[sig];
-      const tone = SIG_TONE[sig] || SIG_TONE.low;
-      const cards = groups[sig]
-        .map((it) => {
-          // Drop any tag that duplicates the category chip already shown in
-          // the header (e.g. category=fundraise + tags=[fundraise,...] used
-          // to render "fundraise" twice on the same card) — the chip already
-          // says it, the tag row should only add NEW information.
-          const dedupedTags = Array.isArray(it.tags)
-            ? it.tags.filter((t) => t !== it.category)
-            : it.tags;
-          const tagsHtml = tagPillsHtml(dedupedTags);
-          const headline = it.headline
-            ? highlightFacts(esc(it.headline))
-            : highlightFacts(esc(String(it.insight || '').split(/(?<=[.!?])\s+/)[0] || ''));
-          const chainHtml = thesisChainHtml(it);
-          const epsHtml = epsImpactHtml(it.epsImpact);
-          const marketHtml = marketDataHtml(it.marketData);
-          const infoClassHtml = infoClassificationHtml(it.infoClassification);
-          // Icon-only link button to the original filing, sitting in the
-          // header row next to the category tag rather than as a full-width
-          // footer link — the header is where the reader's eye already is.
-          // References the icon via `cid:` (see EXPAND_ICON_CID above) — a
-          // real MIME-attached image, not a data: URI, since Gmail strips
-          // data: URIs from <img src> entirely (confirmed by direct DOM
-          // inspection of the live rendered email). No border/background
-          // chrome — just the icon.
-          // Gmail's sanitizer strips flexbox alignment props (align-items,
-          // gap) from inline styles — confirmed by inspecting the live
-          // rendered DOM's computed style (both came back "normal"/0 despite
-          // being set in the sent HTML). display:flex alone survives but
-          // does nothing without align-items, so the icon defaulted to
-          // vertical-align:baseline and looked like it was "hanging" above
-          // the text line. Fixed by dropping flexbox entirely for this small
-          // icon: inline-block + vertical-align:middle on BOTH the category
-          // pill and the icon is the one alignment mechanism Gmail reliably
-          // honors (it's table/inline layout, not flex).
-          const linkBtn = it.pdfUrl
-            ? `<a href="${esc(it.pdfUrl)}" target="_blank" title="View original filing" style="display:inline-block;vertical-align:middle;width:14px;height:14px;margin-left:8px;line-height:0;text-decoration:none;"><img src="cid:${EXPAND_ICON_CID}" width="14" height="14" alt="View filing" style="display:inline-block;vertical-align:middle;"/></a>`
-            : '';
-          // Display name: only append "(companyId)" when a distinct human
-          // name exists — otherwise "NSE:ZEEL (NSE:ZEEL)" duplicates the
-          // same string (companyId IS the ticker, there's no separate name).
-          const displayName =
-            it.name && it.name !== it.companyId ? `${it.name} (${it.companyId})` : it.companyId;
-          // Clubbed-card affordances (see groupInsightsByCompany): a "+N
-          // more filings" badge next to the category chip, and one small
-          // link per additional sub-announcement's original PDF beyond the
-          // primary one already covered by linkBtn — so combining cards
-          // never loses a reader's ability to open any individual filing.
-          const extraCount = (it.subAnnouncementCount || 1) - 1;
-          const multiBadge = extraCount > 0
-            ? `<span style="display:inline-block;vertical-align:middle;font-size:10px;font-weight:600;color:#475467;background:#f2f4f7;border:1px solid #d0d5dd;border-radius:999px;padding:2px 8px;margin-left:6px;white-space:nowrap;">+${extraCount} more filing${extraCount > 1 ? 's' : ''}</span>`
-            : '';
-          const extraLinksHtml =
-            extraCount > 0 && Array.isArray(it.subLinks) && it.subLinks.length > 1
-              ? `<div style="margin-top:6px;font-size:11px;">${it.subLinks
-                  .filter((l) => l.pdfUrl !== it.pdfUrl)
-                  .map(
-                    (l) =>
-                      `<a href="${esc(l.pdfUrl)}" target="_blank" style="color:#475467;text-decoration:underline;margin-right:10px;">${esc(toTitleCase(l.category))} filing</a>`
-                  )
-                  .join('')}</div>`
-              : '';
-          return `
-        <div style="background:#fff;border:1px solid #eaecf0;border-radius:8px;padding:14px 16px;margin-bottom:10px;">
-          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;">
-            <div style="font-weight:700;font-size:13.5px;margin-right:10px;line-height:20px;">${stockscansLink(displayName, it.companyId, 'NSE', '#101828')}</div>
-            <div style="white-space:nowrap;line-height:20px;">
-              <span style="display:inline-block;vertical-align:middle;font-size:10.5px;font-weight:700;font-family:monospace;letter-spacing:0.03em;background:${tone.chipBg};color:${tone.chipFg};border-radius:3px;padding:2px 7px;white-space:nowrap;">${esc(toTitleCase(it.category))}</span>
-              ${multiBadge}
-              ${linkBtn}
-            </div>
-          </div>
-          ${headline ? `<div style="font-size:14.5px;font-weight:600;line-height:1.45;color:#101828;margin-top:9px;">${headline}</div>` : ''}
-          ${marketHtml}
-          ${chainHtml}
-          ${epsHtml}
-          ${tagsHtml ? `<div style="margin-top:9px;">${tagsHtml}</div>` : ''}
-          ${infoClassHtml}
-          ${extraLinksHtml}
-        </div>`;
-        })
-        .join('');
-      return `
-      <div style="margin-bottom:28px;">
-        <div style="border-bottom:2px solid ${meta.border};padding-bottom:6px;margin-bottom:12px;">
-          <span style="font-size:15px;font-weight:700;color:${meta.color};text-transform:uppercase;">${meta.label}</span>
-          <span style="font-size:12px;font-weight:600;color:${meta.color};background:${meta.bg};border:1px solid ${meta.border};border-radius:999px;padding:2px 10px;margin-left:8px;">${groups[sig].length}</span>
-        </div>
-        ${cards}
-      </div>`;
-    })
-    .join('');
-
-  return `<!DOCTYPE html><html><body style="font-family:-apple-system,Helvetica,Arial,sans-serif;background:#f9fafb;padding:24px;color:#101828;">
-    <h2 style="margin:0 0 4px;">Post-Close Announcement Insights</h2>
-    <p style="color:#667085;font-size:13px;margin:0 0 20px;">Window: ${esc(cutoffIstHuman)} &rarr; ${esc(runIstHuman)} &nbsp;&middot;&nbsp; ${insights.length} compan${insights.length === 1 ? 'y' : 'ies'} (${rawInsights.length} filing${rawInsights.length === 1 ? '' : 's'})</p>
-    ${sections || '<p style="color:#667085;">No non-routine announcements in this window.</p>'}
-    ${buildStatsFooterHtml(stats)}
-  </body></html>`;
-}
+// Nothing about the rendered email changed in that move — the extraction was
+// verified byte-identical against a fixture render before and after.
+const {
+  buildDigestHtml,
+  dedupeInsights,
+  groupInsightsByCompany,
+  EXPAND_ICON_CID,
+  EXPAND_ICON_PNG_BASE64,
+  signalTierFor,
+} = require('./lib/thesisCardEmail');
 
 // Pull every already-persisted announcement-insights note whose createdAt
 // falls at/after `cutoffMs`, across ALL companies in the notes DB — not just
@@ -1084,7 +690,7 @@ async function cmdSendDigest(argv) {
   // reflects every candidate announcement since the last trading day's close,
   // even ones a prior run today already processed and cached — not just
   // whatever this invocation's own insights-array file contains. Dedupe via
-  // the shared insightDedupeKey/dedupeInsights helpers (announcementId, or
+  // the shared insightDedupeKey/dedupeInsights helpers (lib/thesisCardEmail.js) (announcementId, or
   // companyId+insight text for pre-announcementId notes) so a note that's
   // BOTH freshly passed in AND already in the notes DB doesn't render twice.
   // buildDigestHtml also runs this same dedup internally (belt-and-braces
@@ -1098,18 +704,42 @@ async function cmdSendDigest(argv) {
   // --stats-file <path>: optional JSON {total, insights, highConviction,
   // heavyDocSkipped, routine, ocrFailed, noiseDropped} — the orchestrating
   // skill assembles this across Steps 1-3 (it's the only place that has
-  // visibility into every funnel stage; see STATS_TILES above). Omit the
+  // visibility into every funnel stage; see STATS_TILES in lib/thesisCardEmail.js). Omit the
   // flag and the digest renders exactly as before (no footer).
   const statsFile = argValue('--stats-file', argv);
   const stats = statsFile ? JSON.parse(fs.readFileSync(statsFile, 'utf8')) : null;
-  const html = buildDigestHtml(insights, { cutoffIstHuman, runIstHuman, stats });
+  // --slot <name>: label only (see SLOT_LABELS / cmdFetchScan) — it changes
+  // how this window is described in the subject and header so five digests a
+  // day are distinguishable in an inbox, and changes nothing about which
+  // notes are selected.
+  const slot = argValue('--slot', argv) || 'adhoc';
+  const slotLabel = SLOT_LABELS[slot] || slot;
+  // --knowledge-gaps <file>: optional JSON array of
+  // {topic, whyItMattered, resolvedVia} the run had to reason outside the
+  // knowledge base for (see the skill's "Knowledge-base gaps" step).
+  const gapsFile = argValue('--knowledge-gaps', argv);
+  const knowledgeGaps = gapsFile ? JSON.parse(fs.readFileSync(gapsFile, 'utf8')) : null;
+  const html = buildDigestHtml(insights, {
+    cutoffIstHuman,
+    runIstHuman,
+    stats,
+    slotLabel,
+    title: `Announcement Signals — ${slotLabel}`,
+    knowledgeGaps,
+  });
   // Compute subject-line/reported counts from the SAME grouped-by-company
   // view buildDigestHtml actually renders (not the pre-grouping filing-level
   // `insights`) — otherwise a company with 2 "high" filings that collapse
   // into 1 card would inflate highCount/count past what the email shows.
   const groupedForCount = groupInsightsByCompany(insights);
-  const highCount = groupedForCount.filter((i) => i.significance === 'high').length;
-  const subject = `Post-Close Insights — ${ist.nowIstDate()}${highCount ? ` (${highCount} high-conviction)` : ''}`;
+  // Subject reports the S1+S2 count rather than the raw `high` label count —
+  // the tiers are what the email is now organised by, so the subject should
+  // agree with the sections rather than quote a dimension the body no longer
+  // groups on.
+  const topTierCount = groupedForCount.filter((i) => signalTierFor(i).tier <= 2).length;
+  const subject =
+    `[${slotLabel}] Announcement Signals — ${ist.nowIstDate()}` +
+    `${topTierCount ? ` (${topTierCount} S1/S2)` : ''}`;
   // cid-attach the expand icon (see EXPAND_ICON_CID/EXPAND_ICON_PNG_BASE64
   // above) only when at least one card actually references it, so a
   // digest with zero pdfUrls doesn't carry a dangling unused attachment.
@@ -1130,8 +760,14 @@ async function cmdSendDigest(argv) {
       {
         status: result.status || 'sent',
         subject,
+        slot,
         count: groupedForCount.length,
         filingCount: insights.length,
+        tierCounts: groupedForCount.reduce((acc, i) => {
+          const t = signalTierFor(i);
+          acc[t.code] = (acc[t.code] || 0) + 1;
+          return acc;
+        }, {}),
       },
       null,
       2
@@ -1209,7 +845,9 @@ async function cmdResendWithMarketData(argv) {
     if (data.table) {
       const table = data.table;
       const headers = table[0] || [];
-      companies = table.slice(1).map((row) => Object.fromEntries(headers.map((h, i) => [h, row[i]])));
+      companies = table
+        .slice(1)
+        .map((row) => Object.fromEntries(headers.map((h, i) => [h, row[i]])));
     } else {
       companies = data.companies || data.data || (Array.isArray(data) ? data : []);
     }
@@ -1221,6 +859,13 @@ async function cmdResendWithMarketData(argv) {
       marketByTicker[ticker] = {
         returns1d: toFloat(pick(raw, 'Returns 1D', 'return_1d', 'returnOneDay', '1DReturn')),
         close_price: toFloat(pick(raw, 'Close', 'close', 'lastPrice', 'price')),
+        // Market cap comes along for free in the same scan response (same
+        // `pick` aliases gainersScanner.js normaliseGainer uses) and is what
+        // makes delivery VALUE interpretable — see the delivery/mcap note in
+        // Step 4 below.
+        market_cap_cr: toFloat(
+          pick(raw, 'Market Capitalization', 'market_cap', 'marketCap', 'mcap')
+        ),
       };
     }
   } finally {
@@ -1299,18 +944,50 @@ async function cmdResendWithMarketData(argv) {
       // still slip past a weaker text-based dedupe if either copy's insight
       // text had drifted even slightly between the two runs that created them.
       announcementId: n.announcementId || null,
+      // Delivery %, delivery value and volume ratio were already here. Market
+      // cap and delivery-value-as-%-of-mcap are added (2026-09-04) for the
+      // same reason gainers-signal added them to its own metric line: an
+      // absolute delivery figure is not comparable across the market cap
+      // range this scan spans (₹300cr to ₹70,000cr). ₹40cr of delivery is
+      // conviction in a ₹500cr company and rounding error in a ₹40,000cr one,
+      // so the percentage-of-mcap column is the one that actually says whether
+      // real money moved on the announcement. Both axes are shown together,
+      // never one alone — delivery % alone misleads at both ends of the range
+      // (see the gainers-signal SKILL.md discussion of exactly this).
       marketData: {
         returns1d: m.returns1d != null ? m.returns1d : null,
         deliveryPct: d.available ? d.deliv_per : null,
         deliveryValueCr: d.available ? d.deliv_value_cr : null,
         volRatio7d: volRatioByTicker[cid] != null ? volRatioByTicker[cid] : null,
+        marketCapCr: m.market_cap_cr != null ? m.market_cap_cr : null,
+        // Computed here rather than in the renderer so the value is on the
+        // note payload and can be sorted/audited, and so a missing input
+        // yields null (not 0) — a company we could not measure must never
+        // sort as though we measured it and found nothing.
+        deliveryValuePctOfMcap:
+          d.available && d.deliv_value_cr != null && m.market_cap_cr > 0
+            ? Math.round((d.deliv_value_cr / m.market_cap_cr) * 10000) / 100
+            : null,
       },
     };
   });
 
-  const cutoffIstHuman = `Re-send of ${dateArg}'s post-close digest, with end-of-day market data`;
+  const cutoffIstHuman = `Full day ${dateArg}, all slots, with settled end-of-day market data`;
   const runIstHuman = ist.nowIstHuman();
-  const html = buildDigestHtml(insights, { cutoffIstHuman, runIstHuman, stats: null });
+  // The resend is deliberately the ONE email that spans the whole day rather
+  // than a single slot's window: the intraday slot digests each cover their
+  // own non-overlapping window (that's what keeps them free of repetition),
+  // so nothing else in the day gives a consolidated view. Here that view is
+  // worth the repetition, because it is re-ranked by what the market actually
+  // did — the same set of announcements ordered by a genuinely new dimension,
+  // not the same list sent twice.
+  const html = buildDigestHtml(insights, {
+    cutoffIstHuman,
+    runIstHuman,
+    stats: null,
+    slotLabel: 'Day recap · market-validated',
+    title: 'Announcement Signals — Day Recap',
+  });
   // Same grouped-count fix as cmdSendDigest: report card-level counts (what
   // the email actually shows), not raw per-filing note counts. Also route
   // through dedupeInsights explicitly here (not just inside buildDigestHtml)
@@ -1319,8 +996,10 @@ async function cmdResendWithMarketData(argv) {
   // deduped ticker/company count rather than the raw db.find() row count.
   const dedupedForCount = dedupeInsights(insights);
   const groupedForCount = groupInsightsByCompany(dedupedForCount);
-  const highCount = groupedForCount.filter((i) => i.significance === 'high').length;
-  const subject = `Post-Close Insights — ${dateArg} (with market data)${highCount ? ` (${highCount} high-conviction)` : ''}`;
+  const topTierCount = groupedForCount.filter((i) => signalTierFor(i).tier <= 2).length;
+  const subject =
+    `[Day recap] Announcement Signals — ${dateArg} (market-validated)` +
+    `${topTierCount ? ` (${topTierCount} S1/S2)` : ''}`;
   const needsIcon = insights.some((i) => i.pdfUrl);
   const attachments = needsIcon
     ? [
@@ -1345,6 +1024,8 @@ async function cmdResendWithMarketData(argv) {
         tickersWithDelivery: Object.values(deliveryByTicker).filter((d) => d.available).length,
         tickersWithReturns: Object.values(marketByTicker).filter((m) => m.returns1d != null).length,
         tickersWithVolRatio: Object.values(volRatioByTicker).filter((v) => v != null).length,
+        tickersWithMcap: Object.values(marketByTicker).filter((m) => m.market_cap_cr != null)
+          .length,
       },
       null,
       2
@@ -1355,6 +1036,7 @@ async function cmdResendWithMarketData(argv) {
 async function main() {
   const [cmd, ...rest] = process.argv.slice(2);
   const commands = {
+    'resolve-scan': cmdResolveScan,
     'fetch-scan': cmdFetchScan,
     'filter-noise': cmdFilterNoise,
     categorise: cmdCategorise,
@@ -1372,7 +1054,18 @@ async function main() {
   await fn(rest);
 }
 
-main().catch((err) => {
-  process.stderr.write(JSON.stringify({ error: err.message }) + '\n');
-  process.exit(1);
-});
+// Exported for tests only (the CLI dispatch above is the real entrypoint).
+// parseAnnDateToUtc's IST-vs-UTC behaviour is the single most consequential
+// assumption in this file — see its own comment block — so it is testable
+// rather than only observable through a live API call.
+module.exports = { parseAnnDateToUtc, normaliseSavedScan, SCAN_SOURCE_NAME, FALLBACK_SCAN };
+
+// Guarded so requiring this module (for its exports, or from a test) does not
+// run the CLI and exit — same pattern gainersScanner.js uses, noted at the top
+// of this file.
+if (require.main === module) {
+  main().catch((err) => {
+    process.stderr.write(JSON.stringify({ error: err.message }) + '\n');
+    process.exit(1);
+  });
+}

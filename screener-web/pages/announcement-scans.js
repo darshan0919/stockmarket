@@ -1665,6 +1665,59 @@ function TrendingModal({ metadata, activeKeywords, onSelect, onRemove, onCreateS
   );
 }
 
+/**
+ * Resolves the primary URL for viewing an announcement document or company page.
+ * @param {Object} item - Announcement item
+ * @returns {string|null} URL to redirect/view document
+ */
+function getAnnouncementUrl(item) {
+  if (!item) return null;
+  return (
+    item.attachmentUrl ||
+    item.attchmntFile ||
+    (item.ssUrl
+      ? `https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/${item.ssUrl}`
+      : null) ||
+    (item.companyId
+      ? `https://www.stockscans.in/company/${encodeURIComponent(item.companyId)}/standalone#reports`
+      : null)
+  );
+}
+
+/**
+ * Renders an ignored announcement item with text content and open document button.
+ * @param {Object} props
+ * @param {Object} props.item - Announcement item
+ * @param {React.ReactNode} props.content - Displayed title or description text
+ */
+function IgnoredAnnouncementItem({ item, content }) {
+  const url = getAnnouncementUrl(item);
+  return (
+    <li className="text-xs border-l-2 border-base-300 pl-2 py-1 flex items-start justify-between gap-2 group">
+      <div className="min-w-0 flex-1">
+        {(item.name || item.symbol) && (
+          <div className="font-semibold text-secondary text-[11px] truncate mb-0.5">
+            {item.name || item.symbol}
+          </div>
+        )}
+        <div className="text-base-content/80 break-words leading-relaxed">{content}</div>
+      </div>
+      {url && (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn-xs btn-ghost btn-square flex-none text-base-content/50 hover:text-secondary"
+          title="Open announcement"
+          aria-label={`Open announcement for ${item.title || item.name || item.symbol || 'document'}`}
+        >
+          <ExternalLinkIcon className="w-3.5 h-3.5" />
+        </a>
+      )}
+    </li>
+  );
+}
+
 function IgnoredAnnouncementsWidget({ data }) {
   const hasData = Object.keys(data.title).length > 0 || Object.keys(data.description).length > 0;
 
@@ -1702,9 +1755,11 @@ function IgnoredAnnouncementsWidget({ data }) {
                   </div>
                   <ul className="space-y-2">
                     {items.map((item, idx) => (
-                      <li key={idx} className="text-xs border-l-2 border-base-300 pl-2 py-1">
-                        {item.title || item.highlightedTitle}
-                      </li>
+                      <IgnoredAnnouncementItem
+                        key={idx}
+                        item={item}
+                        content={item.title || item.highlightedTitle}
+                      />
                     ))}
                   </ul>
                 </div>
@@ -1726,9 +1781,7 @@ function IgnoredAnnouncementsWidget({ data }) {
                   </div>
                   <ul className="space-y-2">
                     {items.map((item, idx) => (
-                      <li key={idx} className="text-xs border-l-2 border-base-300 pl-2 py-1">
-                        {item.description}
-                      </li>
+                      <IgnoredAnnouncementItem key={idx} item={item} content={item.description} />
                     ))}
                   </ul>
                 </div>

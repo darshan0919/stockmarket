@@ -61,8 +61,8 @@ coverage is thin, concall attendance is low, and PPTs are barely read. That mean
   gesture in the general direction justifies FOLLOW-UP at most.
 - **False NEW from thin lookback.** The inverse failure — see the "What could be wrong"
   section in the main SKILL.md. A claim isn't NEW just because your 4-concall,
-  1-PPT, 24-month-announcement search didn't find it; it's NEW *relative to that
-  baseline*, and the baseline's completeness must always be reported alongside the
+  1-PPT, 24-month-announcement search didn't find it; it's NEW _relative to that
+  baseline_, and the baseline's completeness must always be reported alongside the
   verdict.
 - **Category-anchoring.** Do not let `announcement-insights`' `HIGH_CONVICTION` /
   `significance` flags bias the claim-level read. Read the baseline first, form the

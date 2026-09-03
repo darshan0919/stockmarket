@@ -25,12 +25,12 @@ rather than left to a one-off judgment call buried inside a longer report.
 
 ## Inputs
 
-| Param              | Required | Meaning                                                                                                   |
-| ------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
-| announcement        | yes      | a PDF URL, a Stockscans `ssUrl`, a company name + announcement title, or a specific quoted news sentence |
-| companyId           | yes      | resolved ticker (e.g. `NSE:SWARAJENG`) — see Step 1 if the user only gave a name                        |
-| lookbackConcalls    | no       | how many recent concalls to check (default 4)                                                              |
-| lookbackAnnouncements | no     | how far back to search the full announcement archive (default: no cap — `searchMode: "full"`, see Step 3) |
+| Param                 | Required | Meaning                                                                                                   |
+| --------------------- | -------- | --------------------------------------------------------------------------------------------------------- |
+| announcement          | yes      | a PDF URL, a Stockscans `ssUrl`, a company name + announcement title, or a specific quoted news sentence  |
+| companyId             | yes      | resolved ticker (e.g. `NSE:SWARAJENG`) — see Step 1 if the user only gave a name                          |
+| lookbackConcalls      | no       | how many recent concalls to check (default 4)                                                             |
+| lookbackAnnouncements | no       | how far back to search the full announcement archive (default: no cap — `searchMode: "full"`, see Step 3) |
 
 If the user pastes only a sentence ("X is acquiring Y for ₹200 Cr") with no PDF/link,
 treat that sentence itself as the announcement text for Step 2 onward, and note in the
@@ -149,7 +149,7 @@ mistake same-day (or next-day) companion filings for prior disclosure.** Two fai
 modes to guard against, both caught in a live run of this skill:
 
 - **Note-creation timestamp is not filing date.** The notes DB's `creationTime` records
-  when *this pipeline processed* the document, not when the company filed it — a batch
+  when _this pipeline processed_ the document, not when the company filed it — a batch
   job or retry can log a note 30+ hours after the underlying filing. Always read the
   actual filing date from the PDF/announcement body itself (the letter's dateline, e.g.
   "August 28, 2026") before concluding one filing preceded another. A same-day board
@@ -158,11 +158,11 @@ modes to guard against, both caught in a live run of this skill:
 - **Companion filings on the SAME calendar day (or filed together after-hours, spilling
   into the next day) are not a prior baseline — they are the SAME disclosure event.**
   When building the "already known" baseline, exclude from KNOWN-source consideration any
-  announcement for the same company whose *actual filing date* is within 1 calendar day
+  announcement for the same company whose _actual filing date_ is within 1 calendar day
   of the announcement being classified. A press release restating a same-day board
-  filing is not confirmation of old news — it *is* the news, just distributed through a
+  filing is not confirmation of old news — it _is_ the news, just distributed through a
   second document; if the announcement being classified is one of a same-day cluster and
-  no source *older* than that cluster mentions the claim, the claim is NEW (or FOLLOW-UP
+  no source _older_ than that cluster mentions the claim, the claim is NEW (or FOLLOW-UP
   against a genuinely older baseline), never KNOWN-via-the-companion-filing.
 
 Concretely: when scanning 3a/3b/3c/3d for a prior mention, discard any hit whose own
@@ -217,8 +217,8 @@ real work in.
   than 1 calendar day before the announcement being classified** (see Step 3e) — a
   same-day or next-day companion filing is never a valid KNOWN citation, since it's the
   same disclosure event, not prior knowledge.
-- **FOLLOW-UP** — a partial/graduated case: something was flagged as a *possibility* or
-  *direction* (management said "we are exploring inorganic opportunities in this
+- **FOLLOW-UP** — a partial/graduated case: something was flagged as a _possibility_ or
+  _direction_ (management said "we are exploring inorganic opportunities in this
   segment," a prior order win's execution milestone, a previously-announced buyback's
   next tranche) and today's filing is the next concrete step in a sequence that was
   already visible, but with new specifics (the actual counterparty, the actual price,
@@ -228,8 +228,7 @@ real work in.
   confirming what was already fully specified → KNOWN.
 
 Every claim gets exactly one bucket. Don't force a single verdict for the whole
-announcement when it contains a mix (this is common — see the order-win example in Step
-2) — bucket the claims individually, then roll up.
+announcement when it contains a mix (this is common — see the order-win example in Step 2) — bucket the claims individually, then roll up.
 
 ### Signal-strength verdict (the point of doing this at all)
 
@@ -267,7 +266,11 @@ field:
 {
   "infoClassification": {
     "claims": [
-      {"claim": "...", "bucket": "NEW|KNOWN|FOLLOW_UP", "priorSource": "Q1FY27 concall, 2026-07-15" }
+      {
+        "claim": "...",
+        "bucket": "NEW|KNOWN|FOLLOW_UP",
+        "priorSource": "Q1FY27 concall, 2026-07-15"
+      }
     ],
     "verdict": "one-line signal-strength read",
     "baselineCoverage": {
@@ -276,7 +279,11 @@ field:
       "announcementLookbackMonths": 24,
       "thinBaseline": false,
       "excludedSameDayFilings": [
-        {"announcementId": "...", "filingDate": "2026-08-28", "reason": "companion filing, same disclosure event as the announcement being classified"}
+        {
+          "announcementId": "...",
+          "filingDate": "2026-08-28",
+          "reason": "companion filing, same disclosure event as the announcement being classified"
+        }
       ]
     },
     "modelUsed": "<the model you are running as right now>"

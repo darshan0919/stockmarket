@@ -85,6 +85,10 @@
  * DevTools.
  */
 
+const fs = require('fs');
+const path = require('path');
+const { pipeline } = require('stream/promises');
+const { Readable } = require('stream');
 const db = require('./lib/db');
 const { loadEnv, hasFlag, argValue } = require('./lib/env');
 // Reused, not reimplemented (conventions.md §7/§17): the yt-dlp caption
@@ -96,11 +100,21 @@ const youtubeRefresh = require('./youtubeTranscriptRefresh');
 const DEFAULT_USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
 
-// Sites processed when neither --site nor LEARNYST_SITE_KEYS is given. Add a
-// new key here (or just set LEARNYST_SITE_KEYS) once its env vars exist —
-// loadSiteConfig() below reads everything else from LEARNYST_<KEY>_* env, no
-// further code change needed for a new Learnyst-hosted course/membership.
-const DEFAULT_SITE_KEYS = ['soic', 'chartitude'];
+// Sites processed when neither --site nor LEARNYST_SITE_KEYS is given.
+// By default only SOIC is processed; Chartitude / Chartist is disabled by
+// default and can be opted into via `--site chartitude` (or `--site chartist`)
+// or by setting LEARNYST_SITE_KEYS.
+const DEFAULT_SITE_KEYS = ['soic'];
+
+const SITE_ALIASES = {
+  chartist: 'chartitude',
+};
+
+function canonicalSiteKey(key) {
+  if (!key) return key;
+  const lower = String(key).trim().toLowerCase();
+  return SITE_ALIASES[lower] || lower;
+}
 
 // A site's school id / bundle id / origin identify a specific fixed
 // membership, not something that varies per deployment or expires like the
@@ -122,7 +136,8 @@ const SITE_DEFAULTS = {
  * caller skips it rather than erroring, so a repo with only some sites fully
  * set up still runs cleanly. Otherwise returns `{ config }`.
  */
-function loadSiteConfig(key) {
+function loadSiteConfig(rawKey) {
+  const key = canonicalSiteKey(rawKey);
   const upperKey = key.toUpperCase();
   const env = (suffix) => process.env[`LEARNYST_${upperKey}_${suffix}`];
   const defaults = SITE_DEFAULTS[key] || {};
@@ -151,6 +166,8 @@ function loadSiteConfig(key) {
       coursesApiBase: env('COURSES_API_BASE') || 'https://apig.learnyst.com/learner/v17/courses',
       transcriptApiBase:
         env('TRANSCRIPT_API_BASE') || 'https://ai-api.learnyst.com/api/transcript-data',
+      attachmentCdnBase:
+        env('ATTACHMENT_CDN_BASE') || 'https://download-cdn-g.learnyst.com/v6/schools',
       origin,
       referer: env('REFERER') || (origin ? `${origin}/` : undefined),
       userAgent: process.env.LEARNYST_USER_AGENT || DEFAULT_USER_AGENT,
@@ -170,10 +187,10 @@ function loadSiteConfig(key) {
  */
 function loadSites(args, onSkipped) {
   const keys = args.site
-    ? [args.site]
+    ? [canonicalSiteKey(args.site)]
     : (process.env.LEARNYST_SITE_KEYS || DEFAULT_SITE_KEYS.join(','))
         .split(',')
-        .map((s) => s.trim())
+        .map((s) => canonicalSiteKey(s.trim()))
         .filter(Boolean);
   const sites = [];
   for (const key of keys) {
@@ -243,6 +260,8 @@ function parseArgs(argv) {
       : null,
     force: hasFlag('--force', argv),
     recheckNoCaptions: hasFlag('--recheck-no-captions', argv),
+    skipAttachments: hasFlag('--skip-attachments', argv),
+    attachmentsOnly: hasFlag('--attachments-only', argv),
     moduleDelayMsOverride: argValue('--module-delay-ms', argv),
     lessonDelayMsOverride: argValue('--lesson-delay-ms', argv),
     lessonLimit: argValue('--lesson-limit', argv) ? Number(argValue('--lesson-limit', argv)) : null,
@@ -265,6 +284,11 @@ async function withRetry(fn, { maxRetries, label }) {
           `${label}: authentication failed (${err.message}). Its LEARNYST_<KEY>_AUTH_TOKEN is likely ` +
             'expired — get a fresh one from Chrome DevTools while logged into that site (see docs/learnyst-api-schemas.md).'
         );
+      }
+      // If transcript is not found, retrying immediately won't help — fail fast without retrying.
+      // Deliberately not cached so future runs can check again if the transcript is added later.
+      if (/transcript not found/i.test(err.message)) {
+        throw err;
       }
       if (attempt < maxRetries) {
         const backoff = 2000 * Math.pow(2, attempt);
@@ -443,14 +467,154 @@ async function fetchTranscript(cfg, contentPath) {
         },
       });
       const text = await res.text();
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${text.slice(0, 300)}`);
+      if (!res.ok) {
+        try {
+          const errJson = JSON.parse(text);
+          if (errJson && errJson.message) {
+            throw new Error(errJson.message);
+          }
+        } catch (parseErr) {
+          if (
+            parseErr.message &&
+            !parseErr.message.startsWith('Unexpected') &&
+            !parseErr.message.startsWith('Expected')
+          ) {
+            throw parseErr;
+          }
+        }
+        throw new Error(`HTTP ${res.status}: ${text.slice(0, 300)}`);
+      }
+      let json;
       try {
-        return JSON.parse(text);
+        json = JSON.parse(text);
       } catch {
         throw new Error(`Response was not valid JSON: ${text.slice(0, 300)}`);
       }
+      if (json && (json.success === false || !json.data) && json.message) {
+        throw new Error(json.message);
+      }
+      return json;
     },
     { maxRetries: cfg.maxRetries, label: `${cfg.key}:fetchTranscript` }
+  );
+}
+
+/**
+ * Extract downloadable attachments and external resource links from a
+ * lesson's `pdf_file_name` JSON string.
+ *
+ * `src_type: 50` entries are downloadable files (PDFs, XLSX workbooks, etc.)
+ * with a `content_path` and `src` filename. Download URL:
+ *   ${attachmentCdnBase}/${content_path}/resources/${src}
+ * (Confirmed live 2026-09-04 for both SOIC and Chartitude).
+ *
+ * `src_type: 51` entries are external web links (Google Docs, Zoom links,
+ * Screener URLs) with a `url` and no `content_path`.
+ *
+ * Returns `{ attachments: [...], externalLinks: [] }`.
+ */
+function extractAttachments(lesson, cfg = {}) {
+  if (!lesson || !lesson.pdf_file_name) {
+    return { attachments: [], externalLinks: [] };
+  }
+  let parsed;
+  try {
+    parsed =
+      typeof lesson.pdf_file_name === 'string'
+        ? JSON.parse(lesson.pdf_file_name)
+        : lesson.pdf_file_name;
+  } catch (err) {
+    return {
+      attachments: [],
+      externalLinks: [],
+      error: `pdf_file_name is not valid JSON: ${err.message}`,
+    };
+  }
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    return { attachments: [], externalLinks: [] };
+  }
+
+  const cdnBase =
+    (cfg && cfg.attachmentCdnBase) || 'https://download-cdn-g.learnyst.com/v6/schools';
+  const attachments = [];
+  const externalLinks = [];
+
+  for (const item of parsed) {
+    if (!item || typeof item !== 'object') continue;
+    if (item.content_path && item.src) {
+      const cleanPath = String(item.content_path).replace(/^schools\//, '');
+      const downloadUrl = `${cdnBase}/${cleanPath}/resources/${encodeURI(item.src)}`;
+      attachments.push({
+        src: item.src,
+        srcType: item.src_type ?? 50,
+        contentPath: item.content_path,
+        downloadUrl,
+        localPath: path.join('assets', 'learnyst-attachments', item.src),
+        sizeBytes: item.size || null,
+        state: item.state ?? null,
+        srcId: item.src_id ?? null,
+      });
+    } else if (item.url) {
+      externalLinks.push({
+        src: item.src || null,
+        srcType: item.src_type ?? 51,
+        url: item.url,
+        srcId: item.src_id ?? null,
+      });
+    }
+  }
+
+  return { attachments, externalLinks };
+}
+
+/**
+ * Download an attachment file from Learnyst CDN directly to disk via streaming,
+ * using an atomic tmp-file + rename protocol so partial downloads are never left.
+ */
+async function downloadAttachmentFile(
+  url,
+  destPath,
+  { maxRetries = 4, label = 'downloadAttachment' } = {}
+) {
+  const tmpPath = `${destPath}.tmp.${process.pid}.${Date.now()}`;
+  return withRetry(
+    async () => {
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'user-agent': DEFAULT_USER_AGENT,
+          accept: '*/*',
+        },
+      });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: failed to download attachment from ${url}`);
+      }
+      const dir = path.dirname(destPath);
+      fs.mkdirSync(dir, { recursive: true });
+      const fileStream = fs.createWriteStream(tmpPath);
+      try {
+        await pipeline(Readable.fromWeb(res.body), fileStream);
+      } catch (err) {
+        try {
+          fs.unlinkSync(tmpPath);
+        } catch (_ignore) {
+          // ignore unlink error
+        }
+        throw err;
+      }
+      const stat = fs.statSync(tmpPath);
+      if (stat.size === 0) {
+        try {
+          fs.unlinkSync(tmpPath);
+        } catch (_ignore) {
+          // ignore unlink error
+        }
+        throw new Error(`Downloaded attachment from ${url} was 0 bytes`);
+      }
+      fs.renameSync(tmpPath, destPath);
+      return { sizeBytes: stat.size };
+    },
+    { maxRetries, label }
   );
 }
 
@@ -463,7 +627,8 @@ async function fetchTranscript(cfg, contentPath) {
  * support was added stay valid — a course/lesson id pair is namespaced by
  * site only when it isn't the legacy default.
  */
-function lessonRecordId(courseId, lessonId, siteKey = 'soic') {
+function lessonRecordId(courseId, lessonId, rawSiteKey = 'soic') {
+  const siteKey = canonicalSiteKey(rawSiteKey);
   const scope = siteKey === 'soic' ? String(courseId) : `${siteKey}:${courseId}`;
   return db.makeId('lyt', 'learnyst-transcript-refresh', scope, undefined, String(lessonId));
 }
@@ -505,11 +670,14 @@ function buildTranscriptDto({
   captionKind,
   captionLang,
   youtubeTranscript,
+  attachments = [],
+  externalLinks = [],
 }) {
   const isYoutube = !!youtubeVideoId;
   const { timestamped, plain } = isYoutube
     ? youtubeTranscript || { timestamped: null, plain: null }
     : transcriptTexts(apiResponse);
+  const transcriptSource = isYoutube ? 'youtube' : contentPath ? 'learnyst' : 'none';
   return {
     id: lessonRecordId(courseId, lesson.id, siteKey),
     type: 'learnyst-transcript',
@@ -521,15 +689,17 @@ function buildTranscriptDto({
     lessonId: lesson.id,
     lessonTitle: lesson.title,
     lessonType: lesson.lesson_type,
-    durationSeconds: lesson.duration,
+    durationSeconds: lesson.duration || null,
     contentPath: contentPath || null,
-    transcriptSource: isYoutube ? 'youtube' : 'learnyst',
+    transcriptSource,
     youtubeVideoId: youtubeVideoId || null,
     captionKind: captionKind || null,
     captionLang: captionLang || null,
     fetchedAt: new Date().toISOString(),
     transcriptTimestamped: timestamped,
     transcriptPlain: plain,
+    attachments,
+    externalLinks,
     rawResponse: isYoutube ? null : apiResponse,
     rawCues: isYoutube && youtubeTranscript ? youtubeTranscript.cues : null,
   };
@@ -563,6 +733,9 @@ async function main() {
     lessonsYoutubeNoCaptions: 0,
     lessonsYoutubeNoCaptionsCachedSkipped: 0,
     lessonsFailed: [],
+    attachmentsDownloaded: 0,
+    attachmentsCachedSkipped: 0,
+    attachmentsFailed: [],
   };
 
   for (const cfg of sites) {
@@ -583,6 +756,11 @@ async function main() {
     combinedSummary.lessonsFailed.push(
       ...summary.lessonsFailed.map((l) => ({ site: cfg.key, ...l }))
     );
+    combinedSummary.attachmentsDownloaded += summary.attachmentsDownloaded || 0;
+    combinedSummary.attachmentsCachedSkipped += summary.attachmentsCachedSkipped || 0;
+    combinedSummary.attachmentsFailed.push(
+      ...(summary.attachmentsFailed || []).map((a) => ({ site: cfg.key, ...a }))
+    );
   }
 
   console.log('\n=== Run summary (all sites) ===');
@@ -590,7 +768,11 @@ async function main() {
   console.log('\nFiles touched:');
   for (const f of db.touchedFiles()) console.log(`  ${f}`);
 
-  if (combinedSummary.modulesFailed.length || combinedSummary.lessonsFailed.length) {
+  if (
+    combinedSummary.modulesFailed.length ||
+    combinedSummary.lessonsFailed.length ||
+    combinedSummary.attachmentsFailed.length
+  ) {
     process.exitCode = 1;
   }
 }
@@ -625,6 +807,9 @@ async function runSite(cfg, args) {
     lessonsYoutubeNoCaptions: 0,
     lessonsYoutubeNoCaptionsCachedSkipped: 0,
     lessonsFailed: [],
+    attachmentsDownloaded: 0,
+    attachmentsCachedSkipped: 0,
+    attachmentsFailed: [],
   };
 
   // Lazy, once-per-run check: only probe for yt-dlp if a lesson actually
@@ -651,19 +836,53 @@ async function runSite(cfg, args) {
     let moduleHadFetches = false;
     try {
       const courseData = await fetchModuleLessons(cfg, mod.id);
-      let videoLessons = courseData.lessons.filter(isVideoLesson);
-      const nonVideoLessons = courseData.lessons.filter((l) => !isVideoLesson(l));
-      summary.lessonsNonVideoSkipped += nonVideoLessons.length;
-      if (args.lessonLimit) videoLessons = videoLessons.slice(0, args.lessonLimit);
+      let candidateLessons = courseData.lessons.filter(
+        (l) => isVideoLesson(l) || extractAttachments(l, cfg).attachments.length > 0
+      );
+      const nonActionableLessons = courseData.lessons.filter(
+        (l) => !isVideoLesson(l) && extractAttachments(l, cfg).attachments.length === 0
+      );
+      summary.lessonsNonVideoSkipped += nonActionableLessons.length;
+      if (args.lessonLimit) candidateLessons = candidateLessons.slice(0, args.lessonLimit);
 
-      for (const [j, lesson] of videoLessons.entries()) {
-        const label = `  [${j + 1}/${videoLessons.length}] ${lesson.id} — ${lesson.title}`;
+      for (const [j, lesson] of candidateLessons.entries()) {
+        const isVideo = isVideoLesson(lesson);
+        const { attachments, externalLinks } = extractAttachments(lesson, cfg);
+        const hasAttachments = attachments.length > 0;
+        const label = `  [${j + 1}/${candidateLessons.length}] ${lesson.id} — ${lesson.title}`;
 
         const cached = alreadyFetched(mod.id, lesson.id, cfg.key);
         const cachedNoCaptions = cached && cached.captionKind === 'none';
-        if (cached && !args.force && !(cachedNoCaptions && args.recheckNoCaptions)) {
-          if (cachedNoCaptions) {
-            console.log(`${label}: no captions (checked previously), skipping`);
+
+        const transcriptNeeded =
+          isVideo &&
+          !args.attachmentsOnly &&
+          (!cached || args.force || (cachedNoCaptions && args.recheckNoCaptions));
+
+        // Determine which attachments need download
+        const missingAttachments = [];
+        if (!args.skipAttachments && hasAttachments) {
+          for (const att of attachments) {
+            if (!args.force && db.hasLearnystAttachment(att.src)) {
+              const destPath = db.learnystAttachmentPath(att.src);
+              try {
+                const stat = fs.statSync(destPath);
+                att.sizeBytes = stat.size;
+                att.downloadedAt = stat.mtime.toISOString();
+              } catch (_statErr) {
+                // ignore stat error
+              }
+              summary.attachmentsCachedSkipped++;
+            } else {
+              missingAttachments.push(att);
+            }
+          }
+        }
+
+        // If neither transcript nor attachments need fetching, we can skip
+        if (!transcriptNeeded && missingAttachments.length === 0) {
+          if (isVideo && cachedNoCaptions) {
+            console.log(`${label}: no captions (checked previously), attachments cached, skipping`);
             summary.lessonsYoutubeNoCaptionsCachedSkipped++;
           } else {
             console.log(`${label}: already cached, skipping`);
@@ -674,6 +893,66 @@ async function runSite(cfg, args) {
 
         moduleHadFetches = true;
 
+        // Download missing attachments
+        if (missingAttachments.length > 0) {
+          for (const att of missingAttachments) {
+            const destPath = db.learnystAttachmentPath(att.src);
+            console.log(`${label}: downloading attachment ${att.src}...`);
+            try {
+              const { sizeBytes } = await downloadAttachmentFile(att.downloadUrl, destPath, {
+                maxRetries: cfg.maxRetries,
+                label: `${cfg.key}:downloadAttachment(${att.src})`,
+              });
+              att.sizeBytes = sizeBytes;
+              att.downloadedAt = new Date().toISOString();
+              summary.attachmentsDownloaded++;
+              console.log(
+                `${label}: downloaded attachment ${att.src} (${Math.round(sizeBytes / 1024)} KB)`
+              );
+            } catch (attErr) {
+              console.error(
+                `${label}: FAILED to download attachment ${att.src} — ${attErr.message}`
+              );
+              summary.attachmentsFailed.push({
+                courseId: mod.id,
+                lessonId: lesson.id,
+                src: att.src,
+                url: att.downloadUrl,
+                error: attErr.message,
+              });
+            }
+          }
+        }
+
+        // If transcript is not needed (already cached or attachments-only or non-video),
+        // update the cached/new record with attachment metadata
+        if (!transcriptNeeded) {
+          if (cached) {
+            const existing = db.readLearnystTranscript(cached.id);
+            if (existing) {
+              existing.attachments = attachments;
+              existing.externalLinks = externalLinks;
+              db.saveLearnystTranscript(existing);
+              console.log(`${label}: updated attachments for cached lesson`);
+            }
+          } else if (!isVideo && hasAttachments) {
+            const dto = buildTranscriptDto({
+              siteKey: cfg.key,
+              courseId: mod.id,
+              courseTitle: mod.title,
+              sectionId: lesson.section_id,
+              lesson,
+              attachments,
+              externalLinks,
+            });
+            db.saveLearnystTranscript(dto);
+            console.log(`${label}: saved non-video lesson attachments`);
+          }
+          if (j < candidateLessons.length - 1) await sleep(cfg.requestDelayMs);
+          continue;
+        }
+
+        // Transcript fetching for video lessons
         const { contentPath, error } = extractContentPath(lesson);
         const youtubeVideoId = contentPath ? null : extractYoutubeVideoId(lesson);
 
@@ -713,6 +992,8 @@ async function runSite(cfg, args) {
               captionKind: result.captionKind || 'none',
               captionLang: result.captionLang || null,
               youtubeTranscript: result.captionKind ? result : null,
+              attachments,
+              externalLinks,
             });
             if (result.captionKind) {
               summary.lessonsFetchedViaYoutube++;
@@ -722,7 +1003,7 @@ async function runSite(cfg, args) {
               summary.lessonsYoutubeNoCaptions++;
             }
           } else {
-            console.log(`${label}: fetching...`);
+            console.log(`${label}: fetching transcript...`);
             const apiResponse = await fetchTranscript(cfg, contentPath);
             dto = buildTranscriptDto({
               siteKey: cfg.key,
@@ -732,6 +1013,8 @@ async function runSite(cfg, args) {
               lesson,
               contentPath,
               apiResponse,
+              attachments,
+              externalLinks,
             });
           }
           db.saveLearnystTranscript(dto);
@@ -746,7 +1029,7 @@ async function runSite(cfg, args) {
           summary.lessonsFailed.push({ courseId: mod.id, lessonId: lesson.id, error: err.message });
         }
 
-        if (j < videoLessons.length - 1) await sleep(cfg.requestDelayMs);
+        if (j < candidateLessons.length - 1) await sleep(cfg.requestDelayMs);
       }
 
       summary.modulesProcessed++;
@@ -770,12 +1053,17 @@ module.exports = {
   loadSiteConfig,
   loadSites,
   DEFAULT_SITE_KEYS,
+  SITE_ALIASES,
+  canonicalSiteKey,
   parseArgs,
+  withRetry,
   fetchBundleModules,
   fetchModuleLessons,
   extractContentPath,
   extractYoutubeVideoId,
   parseYoutubeVideoId,
+  extractAttachments,
+  downloadAttachmentFile,
   transcriptTexts,
   fetchTranscript,
   lessonRecordId,

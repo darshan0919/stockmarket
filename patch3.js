@@ -38,8 +38,8 @@ const configUpdateLogic = `
 `;
 
 code = code.replace(
-  "console.log(\n    `✅ Synchronized ${syncedSidecars} UI Sidecars",
-  configUpdateLogic + "\n  console.log(\n    `✅ Synchronized ${syncedSidecars} UI Sidecars"
+  'console.log(\n    `✅ Synchronized ${syncedSidecars} UI Sidecars',
+  configUpdateLogic + '\n  console.log(\n    `✅ Synchronized ${syncedSidecars} UI Sidecars'
 );
 
 fs.writeFileSync(file, code);

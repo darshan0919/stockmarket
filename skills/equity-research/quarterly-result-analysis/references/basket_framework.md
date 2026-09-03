@@ -67,16 +67,55 @@ For each margin trigger, label sustainability:
 
 ## 1C. Capex, Balance Sheet & Cash Flow
 
-Analyse only items that affect future earnings power. Do _not_ duplicate a forensic-accounting scan.
+**Run both statement scans first — this sub-section is evidence-led, not commentary-led.** For
+years this sub-section was a list of things to look for in the concall, which meant the balance
+sheet and cash flow got discussed only when management chose to raise them. That is backwards:
+the two statements say things management does not, and a quarter where working capital quietly
+absorbed the entire operating profit reads identically to a clean one if you only listen to the
+call.
 
-- capex plans (Rs Cr committed, FY split, projects named)
+So when `statementAvailability` marks a statement `fresh`, read its pre-computed scan in full —
+[`_shared/balance-sheet-signals.md`](../../../_shared/balance-sheet-signals.md) (21 checks:
+gearing, receivable/inventory/payable days, the working-capital cycle, CWIP, asset turns,
+goodwill, loans and advances, the net-worth bridge, contingent liabilities, dilution, liquidity,
+implied cost of debt, promoter pledge) and
+[`_shared/cashflow-signals.md`](../../../_shared/cashflow-signals.md) (14 checks: CFO sign,
+CFO/EBITDA, CFO/PAT, the working-capital drag and which line caused it, cash tax vs charge,
+capex intensity, free cash flow, non-core outflows, the funding identity, payout cover,
+financing mix, interest paid and received, the cash bridge). Consider every check, including
+what the scan reports as _skipped_ — a ratio that cannot be computed because a line was not
+disclosed is a disclosure finding, not a null.
+
+**When a statement is not `fresh`, say which and why in one line and move on.** SEBI LODR Reg
+33(3) requires both statements only half-yearly, so in Q1/Q3 the honest sentence is "no balance
+sheet or cash flow statement was filed this quarter (half-yearly requirement); the last one on
+record is as at <date>" — not silence, and not a reconstruction from the annual report.
+
+**Then select for this sub-section on the Basket 1 criterion:** what affects future earnings
+power. A cleared signal that changes the earnings trajectory or the capital base belongs here;
+a cleared signal that is a governance or accounting-quality concern belongs in Basket 2 with a
+severity; a `high`-severity combination flag belongs in Basket 2 _and_ earns an explicit
+"escalate to `forensic-accounting`" line. Report each finding once — see the cross-statement
+rule below.
+
+Alongside the scan output, the commentary-side items that give the numbers their context:
+
+- capex plans (Rs Cr committed, FY split, projects named) — reconcile against the CWIP line and
+  the cash-flow capex figure; a capex plan the cash flow does not show is a plan, not a spend
 - utilization (current % vs target % at full ramp)
-- deleveraging (gross debt trajectory, net debt/EBITDA target)
-- working capital (DSO / inventory days vs trailing trend)
-- free cash flow (FCF/EBITDA conversion if available)
-- receivables / inventory (any management commentary on quality)
+- deleveraging (gross debt trajectory, net debt/EBITDA target) — against the scan's gearing read
+- working capital (management's explanation for what the days actually did)
+- free cash flow and its funding — the scan gives the identity; the call gives the intent
+- receivables / inventory (management commentary on quality, set against the days)
 - interest cost trend (effective rate vs prior, headroom from rate cuts)
-- ROCE improvement potential (driver: margin, asset turn, or leverage)
+- ROCE improvement potential — name the driver: margin, asset turn, or leverage. The scan's
+  working-capital-days and asset-turns readings are what make "asset turn" a claim rather than
+  a guess
+
+**Cross-statement rule (mandatory).** Rising receivable days (balance sheet) and weak CFO/PAT
+conversion (cash flow) are one finding seen twice; so are the P&L's "changes in inventories",
+the balance sheet's inventory days, and the cash flow's working-capital line. Write each once,
+citing both statements, per `conventions.md` §17.
 
 **The single most important question in this sub-section:** _Can capital allocation accelerate future earnings, and is management's stated plan internally consistent with the cash flow capability?_
 

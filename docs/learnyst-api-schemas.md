@@ -15,6 +15,7 @@ differs per endpoint**, confirmed from the HAR, not assumed:
 | GraphQL `ShowBundleCourses` (apig.learnyst.com/learn)           | `authorization: Bearer <token>`     |
 | REST course detail (apig.learnyst.com/learner/v17/courses/{id}) | `lystauthorization: Bearer <token>` |
 | Transcript fetch (ai-api.learnyst.com/api/transcript-data)      | `authorization: Bearer <token>`     |
+| Attachment CDN (download-cdn-g.learnyst.com/v6/schools/...)     | None (public CDN asset)             |
 
 The token is a JWT with a real `exp` claim (decode it — e.g. on jwt.io — to
 check expiry). It is tied to a logged-in browser session, so it WILL expire;
@@ -238,6 +239,55 @@ shape above has been observed live. If a future response doesn't match, it
 will surface as `transcriptTimestamped: null` in the saved record (silent
 data-loss risk) rather than a hard error — worth revisiting if that ever
 shows up in a run's summary.
+
+---
+
+## 4. GET download-cdn-g.learnyst.com/v6/schools/{content_path}/resources/{src}
+
+Downloads binary lesson attachments (presentation slides as PDF, Excel financial sheets, etc.). Confirmed live 2026-09-04 across SOIC (school 110998) and Chartitude (school 166281).
+
+**URL Structure:**
+
+```
+GET https://download-cdn-g.learnyst.com/v6/schools/{content_path}/resources/{src}
+```
+
+**Variables source:**
+Extracted from the `pdf_file_name` field returned on lesson objects in endpoint #2 (`fetchModuleLessons`):
+`pdf_file_name` is a JSON string encoding an array of attachment/link descriptors:
+
+```json
+[
+  {
+    "src": "New_age_modern_monopolies_lyst1788246279479.pdf",
+    "src_type": 50,
+    "state": 4,
+    "src_id": 447486,
+    "url": "gs://learnyst-content-upload/schools/110998/courses/259901/lessons/5234038/New_age_modern_monopolies_lyst1788246279479.pdf",
+    "size": 0,
+    "content_id": "0/0",
+    "content_path": "110998/059b2aea49016dec72cac0ed72e31bba/ffd424b48b90ec3b5b918ab4f344a633/922591e048cd54845c61620d0fe937c9",
+    "content_path_extn": "0/0"
+  }
+]
+```
+
+Field semantics:
+
+- `src_type: 50` = downloadable binary attachment (PDF, XLSX, etc.). Always carries both `content_path` and `src`.
+- `src_type: 51` = external resource link (e.g. Google Docs, Zoom webinar registration, Screener user profiles). Carries `url` but no `content_path`.
+- `content_path` = `<school_id>/<hash1>/<hash2>/<hash3>`. Note: starts with the numeric school ID.
+- `src` = unique asset filename on CDN (e.g. `New_age_modern_monopolies_lyst1788246279479.pdf`, `SOIC_Screneer_Sheet_lyst1734596456228.xlsx`).
+
+**Headers & Auth:**
+
+- No auth header required (`download-cdn-g.learnyst.com` is backed by Google Cloud CDN / UploadServer).
+- Uses standard User-Agent header.
+
+**Response:**
+
+- Binary stream (`content-disposition: attachment`, `content-type: application/pdf`, `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`, etc.).
+- Persisted locally under `data/assets/learnyst-attachments/<src>`, synced to Google Drive (`data/v2/assets/learnyst-attachments/`).
 
 ---
 

@@ -1,0 +1,266 @@
+{
+  "fullDays": [
+    "2026-08-31",
+    "2026-09-01",
+    "2026-09-02",
+    "2026-09-03"
+  ],
+  "buckets": [
+    {
+      "bucket": "00:00",
+      "avgPerDay": 15.5,
+      "sharePct": 0.9,
+      "cumPct": 0.9
+    },
+    {
+      "bucket": "00:30",
+      "avgPerDay": 0.2,
+      "sharePct": 0.0,
+      "cumPct": 0.9
+    },
+    {
+      "bucket": "01:00",
+      "avgPerDay": 0.2,
+      "sharePct": 0.0,
+      "cumPct": 0.9
+    },
+    {
+      "bucket": "01:30",
+      "avgPerDay": 0.2,
+      "sharePct": 0.0,
+      "cumPct": 1.0
+    },
+    {
+      "bucket": "02:00",
+      "avgPerDay": 0.5,
+      "sharePct": 0.0,
+      "cumPct": 1.0
+    },
+    {
+      "bucket": "06:30",
+      "avgPerDay": 0.2,
+      "sharePct": 0.0,
+      "cumPct": 1.0
+    },
+    {
+      "bucket": "07:00",
+      "avgPerDay": 1.0,
+      "sharePct": 0.1,
+      "cumPct": 1.1
+    },
+    {
+      "bucket": "07:30",
+      "avgPerDay": 0.2,
+      "sharePct": 0.0,
+      "cumPct": 1.1
+    },
+    {
+      "bucket": "08:00",
+      "avgPerDay": 0.8,
+      "sharePct": 0.0,
+      "cumPct": 1.1
+    },
+    {
+      "bucket": "08:30",
+      "avgPerDay": 1.8,
+      "sharePct": 0.1,
+      "cumPct": 1.2
+    },
+    {
+      "bucket": "09:00",
+      "avgPerDay": 3.2,
+      "sharePct": 0.2,
+      "cumPct": 1.4
+    },
+    {
+      "bucket": "09:30",
+      "avgPerDay": 6.5,
+      "sharePct": 0.4,
+      "cumPct": 1.8
+    },
+    {
+      "bucket": "10:00",
+      "avgPerDay": 8.8,
+      "sharePct": 0.5,
+      "cumPct": 2.3
+    },
+    {
+      "bucket": "10:30",
+      "avgPerDay": 24.5,
+      "sharePct": 1.5,
+      "cumPct": 3.8
+    },
+    {
+      "bucket": "11:00",
+      "avgPerDay": 22.0,
+      "sharePct": 1.3,
+      "cumPct": 5.1
+    },
+    {
+      "bucket": "11:30",
+      "avgPerDay": 29.2,
+      "sharePct": 1.7,
+      "cumPct": 6.8
+    },
+    {
+      "bucket": "12:00",
+      "avgPerDay": 36.5,
+      "sharePct": 2.2,
+      "cumPct": 9.0
+    },
+    {
+      "bucket": "12:30",
+      "avgPerDay": 36.5,
+      "sharePct": 2.2,
+      "cumPct": 11.1
+    },
+    {
+      "bucket": "13:00",
+      "avgPerDay": 37.8,
+      "sharePct": 2.2,
+      "cumPct": 13.4
+    },
+    {
+      "bucket": "13:30",
+      "avgPerDay": 26.8,
+      "sharePct": 1.6,
+      "cumPct": 15.0
+    },
+    {
+      "bucket": "14:00",
+      "avgPerDay": 27.0,
+      "sharePct": 1.6,
+      "cumPct": 16.6
+    },
+    {
+      "bucket": "14:30",
+      "avgPerDay": 38.2,
+      "sharePct": 2.3,
+      "cumPct": 18.8
+    },
+    {
+      "bucket": "15:00",
+      "avgPerDay": 53.2,
+      "sharePct": 3.2,
+      "cumPct": 22.0
+    },
+    {
+      "bucket": "15:30",
+      "avgPerDay": 70.5,
+      "sharePct": 4.2,
+      "cumPct": 26.2
+    },
+    {
+      "bucket": "16:00",
+      "avgPerDay": 86.2,
+      "sharePct": 5.1,
+      "cumPct": 31.3
+    },
+    {
+      "bucket": "16:30",
+      "avgPerDay": 100.5,
+      "sharePct": 6.0,
+      "cumPct": 37.2
+    },
+    {
+      "bucket": "17:00",
+      "avgPerDay": 112.2,
+      "sharePct": 6.7,
+      "cumPct": 43.9
+    },
+    {
+      "bucket": "17:30",
+      "avgPerDay": 128.5,
+      "sharePct": 7.6,
+      "cumPct": 51.5
+    },
+    {
+      "bucket": "18:00",
+      "avgPerDay": 125.5,
+      "sharePct": 7.4,
+      "cumPct": 58.9
+    },
+    {
+      "bucket": "18:30",
+      "avgPerDay": 192.5,
+      "sharePct": 11.4,
+      "cumPct": 70.3
+    },
+    {
+      "bucket": "19:00",
+      "avgPerDay": 105.0,
+      "sharePct": 6.2,
+      "cumPct": 76.6
+    },
+    {
+      "bucket": "19:30",
+      "avgPerDay": 82.5,
+      "sharePct": 4.9,
+      "cumPct": 81.5
+    },
+    {
+      "bucket": "20:00",
+      "avgPerDay": 56.2,
+      "sharePct": 3.3,
+      "cumPct": 84.8
+    },
+    {
+      "bucket": "20:30",
+      "avgPerDay": 39.2,
+      "sharePct": 2.3,
+      "cumPct": 87.1
+    },
+    {
+      "bucket": "21:00",
+      "avgPerDay": 37.2,
+      "sharePct": 2.2,
+      "cumPct": 89.3
+    },
+    {
+      "bucket": "21:30",
+      "avgPerDay": 88.2,
+      "sharePct": 5.2,
+      "cumPct": 94.5
+    },
+    {
+      "bucket": "22:00",
+      "avgPerDay": 47.5,
+      "sharePct": 2.8,
+      "cumPct": 97.4
+    },
+    {
+      "bucket": "22:30",
+      "avgPerDay": 20.0,
+      "sharePct": 1.2,
+      "cumPct": 98.5
+    },
+    {
+      "bucket": "23:00",
+      "avgPerDay": 12.0,
+      "sharePct": 0.7,
+      "cumPct": 99.3
+    },
+    {
+      "bucket": "23:30",
+      "avgPerDay": 12.5,
+      "sharePct": 0.7,
+      "cumPct": 100.0
+    }
+  ],
+  "_meta": {
+    "purpose": "Evidence behind the slot times in references/slot-schedule.md. Regenerate before changing slot times.",
+    "source": "POST /api/company/announcements/scan, unfiltered (scanId 59822b15a2859d183df3770d / scanName Recordings used as the required placeholder scan identity per docs/stockscans-api-schemas.md)",
+    "sampleFetched": 6810,
+    "sampleUnique": 6756,
+    "sampleUsed": 6750,
+    "fullTradingDaysUsed": [
+      "2026-08-31",
+      "2026-09-01",
+      "2026-09-02",
+      "2026-09-03"
+    ],
+    "timezone": "Buckets are IST 30-minute, left-closed. createdAt read as IST (see parseAnnDateToUtc).",
+    "caveat": "Four consecutive days Mon-Thu. Sufficient for the hour-of-day shape (driven by session and filing deadlines, stable week to week); NOT sufficient for day-of-week claims. Friday and month/quarter-end are plausibly heavier and are not in this sample. The 18:30 spike is partly exchange ingestion batching, not purely filer choice - still the right time to collect, but do not read it as \"companies choose 18:30\".",
+    "generatedAtIso": "2026-09-04"
+  }
+}

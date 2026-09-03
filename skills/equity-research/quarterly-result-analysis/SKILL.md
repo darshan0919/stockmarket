@@ -1,6 +1,6 @@
 ---
 name: quarterly-result-analysis
-description: Stage 2 (flagship model) of the 2-skill quarterly-result pipeline — industry-agnostic single-quarter result interpretation for Indian listed companies, reading quarterly-result-extractor's persisted DB record (fetched documents + deterministic income-statement signal scan + recall-first tone/guidance/strategic excerpts) and applying the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist. Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks "analyse this quarter", "what changed this quarter", "is the business getting better", "what's management signalling", "result analysis", "quarterly snapshot", "post-result note", or provides a Stockscans ticker with result-day intent. Auto-invokes quarterly-result-extractor when given only a ticker and no DB record exists yet. Output is BOTH an interactive briefing widget AND a Drive-shareable PDF (same underlying DTO), opening with a bird's-eye KPI strip (Revenue/EBITDA margin/PAT/tax rate/EPS and other decision-relevant metrics, each with a comparison subtext), tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), multi-year deep dives (use equity-research-deepdive), or raw document fetching without interpretation (use quarterly-result-extractor directly).
+description: Stage 2 (flagship model) of the 2-skill quarterly-result pipeline — industry-agnostic single-quarter result interpretation for Indian listed companies, reading quarterly-result-extractor's persisted DB record (fetched documents + deterministic income-statement signal scan + recall-first tone/guidance/strategic excerpts) and applying the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist. Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks "analyse this quarter", "what changed this quarter", "is the business getting better", "what's management signalling", "result analysis", "quarterly snapshot", "post-result note", or provides a Stockscans ticker with result-day intent. Auto-invokes quarterly-result-extractor when given only a ticker and no DB record exists yet. Also supports single-statement quality modes via `--statement income|balance-sheet|cashflow` (comma-separable): a lean, bulk-safe path that grades ONE financial statement CLEAN/WATCH/STRAINED/RED-FLAG from its deterministic signal scan and skips the transcript, tone work, widget and PDF entirely — use it for "income statement quality only", "is the balance sheet clean", "check cash conversion", "run this across today's results", or any bulk screen across many companies' results. Output is BOTH an interactive briefing widget AND a Drive-shareable PDF (same underlying DTO), opening with a bird's-eye KPI strip (Revenue/EBITDA margin/PAT/tax rate/EPS and other decision-relevant metrics, each with a comparison subtext), tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), multi-year deep dives (use equity-research-deepdive), or raw document fetching without interpretation (use quarterly-result-extractor directly).
 ---
 
 # Quarterly Result Analysis
@@ -23,6 +23,9 @@ judging what the quarter's disclosures actually MEAN for the thesis.
 - User provides only a Stockscans ticker plus result-day intent — see "Smart DB-availability check" below for how document acquisition is handled
 - Scheduled daily job invocation with `--companyId NSE:X --date YYYY-MM-DD` — analysis is scoped to a specific extraction date (see **Input** below)
 - Another skill needs a single-quarter interpretive layer (e.g., to bolt onto a multi-quarter analysis)
+- User asks for one statement's quality only — "income statement quality", "is the balance
+  sheet clean", "how is cash conversion", "did working capital blow out" — or wants a screen run
+  across many companies' results at once; that is `--statement` mode, Phase 0.1
 
 ## Input
 
@@ -35,18 +38,25 @@ judging what the quarter's disclosures actually MEAN for the thesis.
 - `--companyId NSE:X` — the company to analyze
 - `--date YYYY-MM-DD` — the extraction date (scopes DB lookup to records created for that date)
 
+**Statement-quality modes (lean, bulk-safe):**
+
+- `--statement income|balance-sheet|cashflow` — comma-separable. Grades ONE statement instead
+  of producing the full 3-basket note. Accepts many companies (repeated `--companyId`, a comma
+  list, or a Stockscans saved-scan URL). See Phase 0.1 below.
+
 ## How this differs from neighbouring skills
 
-| If you need...                                                      | Route to                         |
-| ------------------------------------------------------------------- | -------------------------------- |
-| Raw document fetch + signal scan, no interpretation                 | `quarterly-result-extractor`     |
-| Two-quarter forensic diff with repricing                            | `consecutive-filings-diff`       |
-| Concall transcript-only deep / brief / multi-Q                      | `concall-analysis`               |
-| Full 15-40 page deep dive across years                              | `equity-research-deepdive`       |
-| 1-page conviction note with growth triggers                         | `growth-triggers-1pager`         |
-| 3-year fraud / accounting quality scan                              | `forensic-accounting`            |
-| Walk-the-talk credibility scoring (4-8 calls)                       | `management-credibility-tracker` |
-| **"What does THIS quarter mean for the thesis?" interpretive note** | **THIS SKILL**                   |
+| If you need...                                                               | Route to                           |
+| ---------------------------------------------------------------------------- | ---------------------------------- |
+| Raw document fetch + signal scan, no interpretation                          | `quarterly-result-extractor`       |
+| Two-quarter forensic diff with repricing                                     | `consecutive-filings-diff`         |
+| Concall transcript-only deep / brief / multi-Q                               | `concall-analysis`                 |
+| Full 15-40 page deep dive across years                                       | `equity-research-deepdive`         |
+| 1-page conviction note with growth triggers                                  | `growth-triggers-1pager`           |
+| 3-year fraud / accounting quality scan                                       | `forensic-accounting`              |
+| Walk-the-talk credibility scoring (4-8 calls)                                | `management-credibility-tracker`   |
+| A graded quality read on ONE statement, or a bulk screen across many results | **THIS SKILL**, `--statement` mode |
+| **"What does THIS quarter mean for the thesis?" interpretive note**          | **THIS SKILL**                     |
 
 The defining feature: this skill produces an _interpretation_, not an extraction. It looks at one quarter of disclosures and answers "so what?" If the user is asking for a forensic diff, a transcript deep dive, or a multi-year report, route there instead.
 
@@ -60,6 +70,38 @@ Follow [`_shared/conventions.md`](../_shared/conventions.md). Particularly:
 - §6 Conviction taxonomy — Structural / Cyclical / Temporary applied to every observation here
 
 ## Workflow — 4 phases
+
+### Phase 0.1 — Mode check (read first)
+
+If `--statement` was passed, this run is a **statement-quality run**, not a quarterly note. Open
+[`references/statement_quality_modes.md`](references/statement_quality_modes.md) and follow it
+instead of Phases 1.5-4 below. Phase 0 (DB availability) and Phase 1 (reading the extractor's
+record) still apply — the mode reads the same record, it just uses a different slice of it and
+produces a different artifact.
+
+What the mode does and doesn't do, in one line each, because the whole value of the mode is
+what it leaves out:
+
+- **Reads:** the requested statement's normalized snapshot and its pre-computed signal scan
+  (`incomeStatementSignals` / `balanceSheetSignals` / `cashflowSignals`), plus
+  `statementAvailability` for the staleness verdict.
+- **Skips:** the transcript entirely, tone classification, narrative-shift tracking, the
+  3-basket framework, the KPI strip, the monitoring checklist, the widget, and the PDF.
+- **Produces:** one graded verdict per company per statement (`CLEAN` / `WATCH` / `STRAINED` /
+  `RED-FLAG`) with 3-8 ranked findings, persisted as a `statement-quality` report.
+
+This exists so the skill can be run across every result filed on a given evening as a _filter_ —
+the names that come back `STRAINED`/`RED-FLAG`, or `CLEAN` with an improving trend, are the ones
+that then earn a full note. That economy holds only while the mode stays out of the transcript
+and off the render path, and only while every delta and ratio comes from the analyzer scripts
+rather than being reasoned out in the run. Both rules are in the reference file; they are the
+mode, not decoration on it.
+
+Balance-sheet and cash-flow modes have one hard precondition the income mode does not: **SEBI
+LODR Reg 33(3) requires those two statements only half-yearly**, so a Q1/Q3 filing usually omits
+them and a PPT in those quarters usually repeats the last published one. Act on
+`statementAvailability.<statement>.status` — analyse only `fresh`; for `absent`, `stale-repeat`
+or `stale-asof`, say so in one line and stop rather than analysing numbers that did not move.
 
 ### Phase 0 — Smart DB-availability check (read before Phase 1)
 
@@ -126,6 +168,13 @@ uploaded files directly, extract the same shape ad hoc):
 - `possiblyDropped` — topics present in the prior transcript's excerpts but
   absent from this quarter's; feeds the "change vs prior quarters"
   sub-section directly.
+- `statementAvailability` — per-statement (balance sheet, cash flow) found/source/as-at-date
+  and staleness verdict from the extractor's Step 2.6. In the full note this decides whether
+  Basket 1C can say anything at all about the balance sheet and cash flow this quarter; in a
+  statement mode it is the gate described in Phase 0.1.
+- `balanceSheet` / `cashflow` + `balanceSheetSignals` / `cashflowSignals` — the normalized
+  snapshots and their pre-computed scans, present only when the statement was `fresh`. Same
+  contract as `incomeStatementSignals`: reason over what cleared the bar, never re-derive it.
 - `found` / `transcriptMissing` — if `transcriptMissing: true`, flag the gap
   explicitly in the Management basket rather than skipping it silently (same
   rule as before the split).
@@ -242,6 +291,19 @@ After the widget renders, write 2-3 short paragraphs outside it. Lead each with 
 
 **Income Statement Signal Scan (mandatory).** When assessing revenue/margin/profit performance for the period (Basket 1B — Margin & Profitability Triggers), run the full line-by-line + combination scan in `skills/_shared/income-statement-signals.md` against both QoQ and YoY baselines — it covers every P&L line (Other Income composition, RM cost, the inventory-gains check, employee cost vs. revenue, D&A/interest step-ups, exceptional items, tax-rate swings, EPS dilution) plus the holistic combination reads, with a materiality bar so the write-up stays terse. See `references/basket_framework.md` §1B for how this feeds the `SUSTAINABLE`/`CYCLICAL`/`TEMPORARY` tags. A quarter's "blockbuster" result must be explicitly flagged in the verdict chips (e.g. `INVENTORY-GAIN DRIVEN`, `TAX-RATE DRIVEN`, `NON-OPERATING BEAT`) whenever a non-structural driver clears the materiality bar — never buried in a sub-bullet. **Sourcing rule:** every P&L line traces back to the actual quarterly Result filing — this skill reads that scan pre-computed from `quarterly-result-extractor`'s DB record (Phase 1), it does not re-fetch or re-derive it from web search or news-article summaries; web search may only add qualitative color on top of figures already sourced this way. Report only what clears the materiality bar in the shared scan, ranked by contribution to the PBT/PAT delta; if nothing clears the bar, say so in one line.
 
+**Balance Sheet & Cash Flow Signal Scans (mandatory when the statements are fresh).** Basket 1C
+reads both scans in full from the extractor's record — `balanceSheetSignals` and
+`cashflowSignals`, per `skills/_shared/balance-sheet-signals.md` and
+`skills/_shared/cashflow-signals.md`. Same contract as the P&L scan: the scripts have already
+computed every ratio, day-count and threshold test, so reason only over what cleared the bar
+(and check the `skipped` array for lines that could not be computed because they were not
+disclosed — that is itself a finding). Two things are specific to these statements. First,
+availability: SEBI LODR Reg 33(3) requires both only half-yearly, so when
+`statementAvailability` reports `absent`, `stale-repeat` or `stale-asof`, state that in one line
+and analyse nothing — a confident write-up about a repeated statement is worse than no write-up.
+Second, dedup: rising receivable days and weak CFO/PAT conversion are one finding seen from two
+statements, so report it once with both numbers rather than twice in different words.
+
 **Avoid number-repetition.** The investor presentation already contains the numbers. This skill is for interpretation, not summary. If you find yourself listing "revenue Rs X Cr, EBITDA Rs Y Cr, PAT Rs Z Cr" — stop. State only the numbers that change the thesis.
 
 **Track what management _stopped_ saying.** If a topic that dominated three prior calls (e.g., "exports will scale to 20%") is silent this quarter — that is a yellow flag. The Management basket's "Change vs prior quarters" sub-section is where this lives; `quarterly-result-extractor`'s `possiblyDropped` field is the starting point, not the final word — verify against the prior transcript excerpts before calling something dropped.
@@ -253,12 +315,27 @@ After the widget renders, write 2-3 short paragraphs outside it. Lead each with 
 ## Pitfalls
 
 - **Don't reflow the concall.** This skill is _not_ `concall-analysis`. If the user wants a transcript deep dive, route there. Here, the concall is _one_ of three input sources, used for tone, guidance, and dodged-question signals — not for sentence-by-sentence extraction.
-- **Don't build a forensic accounting view.** That's `forensic-accounting`'s job. Here, balance sheet & cash flow appear inside Basket 1 only when they affect future earnings power (e.g., deleveraging unlocking ROCE), not as a red-flag scan.
+- **Don't skip the balance sheet and cash flow because the call didn't mention them.** Both scans run whenever the statements are `fresh` (Basket 1C) — the two statements say things management does not, and a quarter where working capital absorbed the entire operating profit reads identically to a clean one if you only listen to the call. What stays out of scope is the multi-year fraud scan: `forensic-accounting` owns that. The dividing line is horizon, not statement — a `high`-severity combination flag here is escalated by name, not investigated in place.
 - **Don't skip the monitoring checklist.** It is the most valuable section for a PM who reads the note today and needs to know what data points to check next quarter. 6-10 items, every one with a number threshold and horizon.
 - **Don't let "tone" become editorialising.** "Management seemed nervous" without quotation evidence is hallucination. Every tone label needs one short verbatim quote.
 - **Don't conflate cyclical recovery with structural improvement.** A steel company's margin expanding because HRC prices rose is _cyclical_. The same company shifting 30% of volumes to value-added speciality grades is _structural_. Tag carefully.
 
 ## Outputs
+
+### Statement-quality runs (`--statement`)
+
+One persisted `statement-quality` DTO per company per statement, plus the inline graded blocks
+(and, for a batch, the one ranked worst-first table) described in
+[`references/statement_quality_modes.md`](references/statement_quality_modes.md). **No widget
+and no PDF by default**, which is a deliberate narrowing of `conventions.md` §18: that rule
+exists so a _report_ the user will want to reopen and forward is never left as ephemeral chat
+output, and a forty-name screen whose purpose is to pick which companies deserve a real note is
+not that artifact — the durable record is the DTO, which is Drive-mirrored and re-readable, and
+each graded name can be promoted to a full note (with its PDF) on demand. Render a PDF in this
+mode only when the user asks for one, or when a single company grades `RED-FLAG` and the output
+is going to be forwarded as a finding in its own right.
+
+### Full runs (default, no `--statement`)
 
 Two artifacts, both from the same Phase 2.5 DTO, every run:
 

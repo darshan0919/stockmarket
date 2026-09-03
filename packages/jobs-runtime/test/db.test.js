@@ -256,6 +256,45 @@ describe('saveLearnystTranscript (learnyst-lessons collection)', () => {
     expect(idx.captionKind).toBe('none');
     expect(idx.transcriptSource).toBe('youtube');
   });
+
+  test('records attachmentCount in slim index and preserves attachments in full body', () => {
+    const attachments = [
+      {
+        src: 'Lecture_Notes_lyst12345.pdf',
+        srcType: 50,
+        contentPath: '110998/hash1/hash2/hash3',
+        downloadUrl:
+          'https://download-cdn-g.learnyst.com/v6/schools/110998/hash1/hash2/hash3/resources/Lecture_Notes_lyst12345.pdf',
+        localPath: 'assets/learnyst-attachments/Lecture_Notes_lyst12345.pdf',
+        sizeBytes: 1048576,
+      },
+    ];
+    const id = db.saveLearnystTranscript(
+      mkTranscriptDto({
+        id: undefined,
+        lessonId: 999003,
+        attachments,
+      })
+    );
+    const body = db.readLearnystTranscript(id);
+    expect(body.attachments).toEqual(attachments);
+
+    const idx = db.get('learnyst-lessons', id);
+    expect(idx.attachmentCount).toBe(1);
+  });
+
+  test('learnystAttachmentPath and hasLearnystAttachment helpers operate correctly', () => {
+    const filename = 'test_doc_lyst9999.pdf';
+    const filePath = db.learnystAttachmentPath(filename);
+    expect(filePath).toContain(path.join('assets', 'learnyst-attachments', filename));
+    expect(db.hasLearnystAttachment(filename)).toBe(false);
+
+    fs.writeFileSync(filePath, 'dummy content');
+    expect(db.hasLearnystAttachment(filename)).toBe(true);
+
+    fs.unlinkSync(filePath);
+    expect(db.hasLearnystAttachment(filename)).toBe(false);
+  });
 });
 
 describe('saveYoutubeTranscript (youtube-transcripts collection)', () => {

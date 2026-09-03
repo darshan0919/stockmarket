@@ -6,7 +6,8 @@
   "shared": [
     "skills/_shared/conventions.md",
     "stock-api/src/utils/pdfUtils.js",
-    "skills/_shared/data-verification.md"
+    "skills/_shared/data-verification.md",
+    "skills/equity-research/_shared/scan-signal-pipeline.md"
   ],
   "skills": {
     "concall-transcript-extractor": {
@@ -278,16 +279,28 @@
       "skill_md": "skills/equity-research/quarterly-result-analysis/SKILL.md",
       "entry": "stock-api/bin/quarterly-result-analysis.js",
       "mode": "bundle",
-      "modules": ["stock-api/src/fetchers/documentsFetcher.js"],
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js",
+        "stock-api/src/analyzers/incomeStatementSignals.js",
+        "stock-api/src/analyzers/balanceSheetSignals.js",
+        "stock-api/src/analyzers/cashflowSignals.js"
+      ],
       "references": [
         "skills/equity-research/quarterly-result-analysis/references/basket_framework.md",
         "skills/equity-research/quarterly-result-analysis/references/monitoring_checklist_patterns.md",
-        "skills/equity-research/quarterly-result-analysis/references/tone_taxonomy.md"
+        "skills/equity-research/quarterly-result-analysis/references/tone_taxonomy.md",
+        "skills/equity-research/quarterly-result-analysis/references/statement_quality_modes.md"
       ],
       "assets": [
         "skills/equity-research/quarterly-result-analysis/assets/result_widget_template.html"
       ],
-      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "stock-api/src/utils/pdfUtils.js",
+        "skills/_shared/income-statement-signals.md",
+        "skills/_shared/balance-sheet-signals.md",
+        "skills/_shared/cashflow-signals.md"
+      ],
       "aliases": [
         "quarterly results",
         "result analysis",
@@ -295,7 +308,11 @@
         "quarterly snapshot",
         "post result note",
         "q result",
-        "results analysis"
+        "results analysis",
+        "income statement quality",
+        "balance sheet quality",
+        "cash flow quality",
+        "statement quality"
       ]
     },
     "consecutive-filings-diff": {
@@ -535,8 +552,17 @@
     "gainers-signal": {
       "skill_md": "skills/equity-research/gainers-signal/SKILL.md",
       "entry": null,
-      "references": [],
-      "shared": [],
+      "references": ["skills/equity-research/_shared/scan-signal-pipeline.md"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/tooling/output-dto-standard/SKILL.md",
+        "skills/equity-research/_shared/scan-signal-pipeline.md",
+        "skills/equity-research/rerating-catalysts/SKILL.md",
+        "skills/equity-research/announcement-info-classifier/SKILL.md",
+        "skills/equity-research/announcement-insights/SKILL.md",
+        "packages/jobs-runtime/lib/announcementTaxonomy.js",
+        "packages/jobs-runtime/watchlistInsights.js"
+      ],
       "aliases": [
         "gainers signal",
         "top gainers",
@@ -544,6 +570,12 @@
         "gainer classification",
         "conviction signals",
         "8am gainers run"
+      ],
+      "modules": [
+        "packages/jobs-runtime/lib/thesisCardEmail.js",
+        "packages/jobs-runtime/scanSignalEmail.js",
+        "packages/jobs-runtime/lib/gainersClassifier.js",
+        "skills/equity-research/rerating-catalysts/scripts/brief_cache.js"
       ]
     },
     "order-book-tracker": {
@@ -876,12 +908,91 @@
       "skill_md": "skills/equity-research/post-close-scan-insights/SKILL.md",
       "entry": null,
       "references": [],
-      "shared": [],
+      "shared": ["packages/jobs-runtime/lib/thesisCardEmail.js"],
       "aliases": [
         "post close insights",
         "post-close scan",
         "after hours announcement scan",
         "nightly announcement digest"
+      ],
+      "modules": ["packages/jobs-runtime/lib/thesisCardEmail.js"]
+    },
+    "ask-soic": {
+      "skill_md": "skills/tooling/ask-soic/SKILL.md",
+      "entry": "skills/tooling/ask-soic/scripts/search_soic.py",
+      "mode": "clone",
+      "modules": [],
+      "references": [],
+      "shared": ["skills/_shared/conventions.md"],
+      "aliases": [
+        "ask soic",
+        "what does soic say about",
+        "how does soic think about",
+        "did soic teach",
+        "soic lesson on",
+        "find the lesson where soic explains",
+        "soic framework for",
+        "what does soic teach about"
+      ]
+    },
+    "volume-rocketing": {
+      "skill_md": "skills/equity-research/volume-rocketing/SKILL.md",
+      "entry": null,
+      "references": ["skills/equity-research/_shared/scan-signal-pipeline.md"],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/tooling/output-dto-standard/SKILL.md",
+        "skills/equity-research/_shared/scan-signal-pipeline.md",
+        "skills/equity-research/rerating-catalysts/SKILL.md",
+        "skills/equity-research/announcement-info-classifier/SKILL.md",
+        "skills/equity-research/announcement-insights/SKILL.md",
+        "packages/jobs-runtime/lib/announcementTaxonomy.js",
+        "packages/jobs-runtime/watchlistInsights.js"
+      ],
+      "aliases": [
+        "volume rocketing",
+        "volume surge signal",
+        "volume rocket scan",
+        "8am volume rocketing run",
+        "volume breakout signal",
+        "volume surge gainers"
+      ],
+      "modules": [
+        "packages/jobs-runtime/lib/thesisCardEmail.js",
+        "packages/jobs-runtime/scanSignalEmail.js",
+        "packages/jobs-runtime/lib/gainersClassifier.js",
+        "skills/equity-research/rerating-catalysts/scripts/brief_cache.js"
+      ]
+    },
+    "quarterly-result-extractor": {
+      "skill_md": "skills/equity-research/quarterly-result-extractor/SKILL.md",
+      "entry": null,
+      "mode": "clone",
+      "modules": [
+        "skills/equity-research/quarterly-result-extractor/scripts/fetch_result_documents.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/compute_headline_financials.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/save_result_documents.js",
+        "stock-api/src/fetchers/documentsFetcher.js",
+        "stock-api/bin/get-concall-transcript-url.js",
+        "stock-api/src/analyzers/incomeStatementSignals.js",
+        "stock-api/src/utils/pdfUtils.js",
+        "packages/jobs-runtime/lib/db.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/extract_statements.js",
+        "stock-api/src/analyzers/balanceSheetSignals.js",
+        "stock-api/src/analyzers/cashflowSignals.js"
+      ],
+      "references": [],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/_shared/income-statement-signals.md",
+        "skills/_shared/balance-sheet-signals.md",
+        "skills/_shared/cashflow-signals.md"
+      ],
+      "aliases": [
+        "fetch quarterly result documents",
+        "quarterly result extractor",
+        "pull result and transcript",
+        "extract result data"
       ]
     }
   }
