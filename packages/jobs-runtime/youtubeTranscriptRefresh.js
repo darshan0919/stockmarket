@@ -2,9 +2,12 @@
 'use strict';
 
 /**
- * YouTube Transcript Refresh — fetches caption transcripts for every public
- * video uploaded to a YouTube channel (default: SOIC Finance, @SOICfinance),
- * storing them in the `youtube-transcripts` collection (docs/DATA_ECOSYSTEM.md §1).
+ * YouTube Transcript Refresh — fetches caption transcripts for public videos
+ * uploaded to YouTube channels (defaults: SOIC Finance @SOICfinance and
+ * Dr. Anil Lamba @AnilLamba), storing them in the `youtube-transcripts`
+ * collection (docs/DATA_ECOSYSTEM.md §1).
+ *
+ * Scales to process multiple channels one by one in a single run.
  *
  * This is unrelated to stock-research data (channel commentary/course
  * content, not company-scoped) — no `companyId`/`buildCompanyContext`
@@ -12,7 +15,7 @@
  *
  * Two-stage pipeline, documented in full at docs/youtube-api-schemas.md:
  *   1. YouTube Data API v3 (`channels.list` + `playlistItems.list`) —
- *      resolve the channel handle to a channel id + uploads playlist, then
+ *      resolve the channel handle or URL to a channel id + uploads playlist, then
  *      paginate every video in it. Auth: prefers a plain `YOUTUBE_API_KEY`
  *      when set (simplest). Falls back to OAuth2 with the same credentials
  *      already configured for Google Drive (`GOOGLE_CLIENT_ID`/
@@ -43,8 +46,9 @@
  * this pipeline, so no `modelUsed` is ever set on the records it writes.
  *
  * Usage:
- *   node youtubeTranscriptRefresh.js [--channel-handle @SOICfinance]
- *     [--channel-id UC...] [--only ID,ID] [--skip ID,ID] [--force]
+ *   node youtubeTranscriptRefresh.js [--channels @SOICfinance,@AnilLamba]
+ *     [--channel-handle @AnilLamba] [--channel-id UC...]
+ *     [--only ID,ID] [--skip ID,ID] [--force]
  *     [--recheck-no-captions] [--limit N] [--request-delay-ms N]
  *     [--env-file <path>]
  *
@@ -59,7 +63,7 @@
  *   GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET + GOOGLE_REFRESH_TOKEN (fallback —
  *   reuses the Drive OAuth2 credentials, requires youtube.readonly consent) —
  *   one of the two is required.
- *   YOUTUBE_CHANNEL_HANDLE (default SOICfinance), YOUTUBE_CAPTION_LANG
+ *   YOUTUBE_CHANNEL_HANDLES (default SOICfinance,AnilLamba), YOUTUBE_CAPTION_LANG
  *   (default en), YOUTUBE_ALLOW_AUTO_CAPTIONS (default true),
  *   YOUTUBE_REQUEST_DELAY_MS (default 4000), YOUTUBE_MAX_RETRIES (default 4),
  *   YOUTUBE_YTDLP_COOKIES_FROM_BROWSER (unset by default — set to e.g.
@@ -72,13 +76,71 @@ const { loadEnv, hasFlag, argValue } = require('./lib/env');
 
 // ── Config ───────────────────────────────────────────────────────────────────
 
+const DEFAULT_CHANNEL_HANDLES = ['SOICfinance', 'AnilLamba'];
+
+/**
+ * Normalizes a channel handle string or URL into a clean handle (without leading @).
+ * Handles:
+ *   - "SOICfinance" -> "SOICfinance"
+ *   - "@SOICfinance" -> "SOICfinance"
+ *   - "https://www.youtube.com/@AnilLamba" -> "AnilLamba"
+ *   - "https://youtube.com/@AnilLamba/videos" -> "AnilLamba"
+ *   - "https://www.youtube.com/c/AnilLamba" -> "AnilLamba"
+ *
+ * @param {string} input
+ * @returns {string} Clean handle without leading '@'
+ */
+function normalizeChannelHandle(input) {
+  if (!input || typeof input !== 'string') return '';
+  let str = input.trim();
+  if (/^https?:\/\//i.test(str)) {
+    try {
+      const u = new URL(str);
+      const parts = u.pathname.split('/').filter(Boolean);
+      const handlePart = parts.find((p) => p.startsWith('@'));
+      if (handlePart) {
+        str = handlePart;
+      } else if (parts[0] === 'c' || parts[0] === 'user' || parts[0] === 'channel') {
+        str = parts[1] || parts[0];
+      } else if (parts.length > 0) {
+        str = parts[0];
+      }
+    } catch {
+      // ignore URL parsing error, fallback to regex
+    }
+  }
+  return str.replace(/^@/, '').replace(/\/.*$/, '').trim();
+}
+
+/**
+ * Parses comma-separated channel handles or URLs from an env var string.
+ * @param {string|undefined} envVal
+ * @returns {string[]|null}
+ */
+function parseChannelsEnv(envVal) {
+  if (!envVal || typeof envVal !== 'string') return null;
+  const list = envVal
+    .split(',')
+    .map((s) => normalizeChannelHandle(s))
+    .filter(Boolean);
+  return list.length > 0 ? list : null;
+}
+
 function loadConfig() {
+  const envChannels =
+    parseChannelsEnv(process.env.YOUTUBE_CHANNEL_HANDLES) ||
+    parseChannelsEnv(process.env.YOUTUBE_CHANNELS) ||
+    parseChannelsEnv(process.env.YOUTUBE_CHANNEL_HANDLE);
+
+  const channelHandles = envChannels || [...DEFAULT_CHANNEL_HANDLES];
+
   return {
     apiKey: process.env.YOUTUBE_API_KEY,
     googleClientId: process.env.GOOGLE_CLIENT_ID,
     googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
     googleRefreshToken: process.env.GOOGLE_REFRESH_TOKEN,
-    channelHandle: process.env.YOUTUBE_CHANNEL_HANDLE || 'SOICfinance',
+    channelHandles,
+    channelHandle: channelHandles[0] || 'SOICfinance',
     captionLang: process.env.YOUTUBE_CAPTION_LANG || 'en',
     allowAutoCaptions: process.env.YOUTUBE_ALLOW_AUTO_CAPTIONS !== 'false',
     requestDelayMs: Number(process.env.YOUTUBE_REQUEST_DELAY_MS || 4000),
@@ -144,10 +206,62 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Reads all values matching a flag from argv (e.g. `--flag a --flag b` or `--flag=a`).
+ * @param {string} flag
+ * @param {string[]} argv
+ * @returns {string[]}
+ */
+function argValues(flag, argv = process.argv) {
+  const values = [];
+  const prefix = flag.endsWith('=') ? flag : `${flag}=`;
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a.startsWith(prefix)) {
+      values.push(a.slice(prefix.length));
+    } else if (a === flag && i + 1 < argv.length && !argv[i + 1].startsWith('--')) {
+      values.push(argv[i + 1]);
+    }
+  }
+  return values;
+}
+
+/**
+ * Splits comma-separated values in an array of strings into a flat array of non-empty strings.
+ * @param {string[]} rawValues
+ * @returns {string[]}
+ */
+function parseChannelList(rawValues) {
+  const out = [];
+  for (const raw of rawValues) {
+    if (!raw) continue;
+    for (const part of raw.split(',')) {
+      const trimmed = part.trim();
+      if (trimmed) out.push(trimmed);
+    }
+  }
+  return out;
+}
+
 function parseArgs(argv) {
+  const handleArgs = [
+    ...argValues('--channel-handle', argv),
+    ...argValues('--channel-handles', argv),
+    ...argValues('--channels', argv),
+  ];
+  const parsedHandles = parseChannelList(handleArgs);
+  const channelHandles =
+    parsedHandles.length > 0 ? parsedHandles.map(normalizeChannelHandle).filter(Boolean) : null;
+
+  const idArgs = [...argValues('--channel-id', argv), ...argValues('--channel-ids', argv)];
+  const parsedIds = parseChannelList(idArgs);
+  const channelIds = parsedIds.length > 0 ? parsedIds : null;
+
   return {
-    channelHandle: argValue('--channel-handle', argv),
-    channelId: argValue('--channel-id', argv),
+    channelHandle: channelHandles ? channelHandles[0] : null,
+    channelHandles,
+    channelId: channelIds ? channelIds[0] : null,
+    channelIds,
     only: argValue('--only', argv)
       ? new Set(
           argValue('--only', argv)
@@ -237,6 +351,7 @@ async function fetchChannel(cfg, youtube, query, label) {
   return {
     channelId: item.id,
     channelTitle: item.snippet && item.snippet.title,
+    customUrl: item.snippet && item.snippet.customUrl,
     uploadsPlaylistId: item.contentDetails.relatedPlaylists.uploads,
     // `statistics.videoCount` is the channel's total PUBLIC video count
     // (per YouTube Data API v3 docs).
@@ -246,7 +361,7 @@ async function fetchChannel(cfg, youtube, query, label) {
 }
 
 async function resolveChannel(cfg, youtube, handle) {
-  const cleanHandle = handle.replace(/^@/, '');
+  const cleanHandle = normalizeChannelHandle(handle);
   const channel = await fetchChannel(
     cfg,
     youtube,
@@ -499,35 +614,49 @@ function buildTranscriptDto({
 
 // ── Main orchestration ──────────────────────────────────────────────────────
 
-async function main() {
-  loadEnv(argValue('--env-file', process.argv));
-  const cfg = loadConfig();
-
-  let youtube, authMode;
-  try {
-    ({ youtube, mode: authMode } = createYoutubeClient(cfg));
-    await checkYtDlpAvailable(cfg);
-  } catch (err) {
-    console.error(err.message);
-    process.exitCode = 1;
-    return;
-  }
-
-  const args = parseArgs(process.argv);
-  if (args.requestDelayMsOverride) cfg.requestDelayMs = Number(args.requestDelayMsOverride);
-  const handle = args.channelHandle || cfg.channelHandle;
+/**
+ * Refreshes transcripts for all videos of a single channel.
+ *
+ * @param {Object} opts
+ * @param {Object} opts.cfg - Loaded configuration
+ * @param {Object} opts.youtube - YouTube API client
+ * @param {{ type: 'handle'|'id', value: string }} opts.target - Channel descriptor
+ * @param {Object} opts.args - Parsed CLI arguments
+ * @param {number} [opts.channelIndex=0] - 0-based index of this channel in the run
+ * @param {number} [opts.totalChannels=1] - Total channels being processed in this run
+ * @returns {Promise<Object>} Channel summary stats
+ */
+async function refreshChannelTranscripts({
+  cfg,
+  youtube,
+  target,
+  args,
+  channelIndex = 0,
+  totalChannels = 1,
+}) {
+  const channelLabel = target.type === 'id' ? target.value : `@${target.value}`;
+  console.log(`\n============================================================`);
+  console.log(`Channel [${channelIndex + 1}/${totalChannels}]: ${channelLabel}`);
+  console.log(`============================================================`);
 
   console.log(
-    `Auth mode: ${authMode === 'oauth2' ? 'OAuth2 (Drive credentials reused)' : 'API key'}`
+    target.type === 'id'
+      ? `Resolving channel id ${target.value}...`
+      : `Resolving channel handle @${target.value}...`
   );
-  console.log(
-    args.channelId
-      ? `Resolving channel id ${args.channelId}...`
-      : `Resolving channel handle @${handle.replace(/^@/, '')}...`
-  );
-  const channel = args.channelId
-    ? await fetchChannelById(cfg, youtube, args.channelId)
-    : await resolveChannel(cfg, youtube, handle);
+
+  const channel =
+    target.type === 'id'
+      ? await fetchChannelById(cfg, youtube, target.value)
+      : await resolveChannel(cfg, youtube, target.value);
+
+  const channelHandle =
+    channel.customUrl ||
+    (target.type === 'handle'
+      ? `@${target.value}`
+      : channel.channelTitle
+        ? `@${channel.channelTitle}`
+        : null);
 
   console.log(`Channel: ${channel.channelTitle || channel.channelId} (${channel.channelId})`);
   if (channel.videoCount != null) {
@@ -539,9 +668,16 @@ async function main() {
   });
   if (args.only) videos = videos.filter((v) => args.only.has(v.videoId));
   if (args.skip) videos = videos.filter((v) => !args.skip.has(v.videoId));
-  console.log(`${videos.length} video(s) to process.`);
+  console.log(
+    `${videos.length} video(s) to process for ${channel.channelTitle || channel.channelId}.`
+  );
 
   const summary = {
+    channelId: channel.channelId,
+    channelTitle: channel.channelTitle,
+    channelHandle,
+    totalVideos: channel.videoCount,
+    videosListed: videos.length,
     videosFetched: 0,
     videosCachedSkipped: 0,
     videosNoCaptionsCachedSkipped: 0,
@@ -550,7 +686,7 @@ async function main() {
   };
 
   for (const [i, video] of videos.entries()) {
-    const label = `[${i + 1}/${videos.length}] ${video.videoId} — ${video.title}`;
+    const label = `[${channelIndex + 1}/${totalChannels}][${i + 1}/${videos.length}] ${video.videoId} — ${video.title}`;
 
     const cached = alreadyFetched(channel.channelId, video.videoId);
     const cachedNoCaptions = cached && cached.captionKind === 'none';
@@ -570,7 +706,7 @@ async function main() {
       const result = await fetchTranscriptViaYtDlp(cfg, video.videoId);
       const dto = buildTranscriptDto({
         channelId: channel.channelId,
-        channelHandle: handle,
+        channelHandle,
         channelTitle: channel.channelTitle,
         video,
         captionKind: result.captionKind || 'none',
@@ -596,17 +732,112 @@ async function main() {
     if (i < videos.length - 1) await sleep(cfg.requestDelayMs);
   }
 
+  return summary;
+}
+
+// ── Main orchestration ──────────────────────────────────────────────────────
+
+async function main() {
+  loadEnv(argValue('--env-file', process.argv));
+  const cfg = loadConfig();
+
+  let youtube, authMode;
+  try {
+    ({ youtube, mode: authMode } = createYoutubeClient(cfg));
+    await checkYtDlpAvailable(cfg);
+  } catch (err) {
+    console.error(err.message);
+    process.exitCode = 1;
+    return;
+  }
+
+  const args = parseArgs(process.argv);
+  if (args.requestDelayMsOverride) cfg.requestDelayMs = Number(args.requestDelayMsOverride);
+
+  console.log(
+    `Auth mode: ${authMode === 'oauth2' ? 'OAuth2 (Drive credentials reused)' : 'API key'}`
+  );
+
+  let targets = [];
+  if (args.channelIds && args.channelIds.length > 0) {
+    targets = args.channelIds.map((id) => ({ type: 'id', value: id }));
+  } else if (args.channelHandles && args.channelHandles.length > 0) {
+    targets = args.channelHandles.map((h) => ({
+      type: 'handle',
+      value: normalizeChannelHandle(h),
+    }));
+  } else {
+    targets = cfg.channelHandles.map((h) => ({
+      type: 'handle',
+      value: normalizeChannelHandle(h),
+    }));
+  }
+
+  console.log(`Processing ${targets.length} channel(s) one by one:`);
+  for (const [idx, t] of targets.entries()) {
+    console.log(`  ${idx + 1}. ${t.type === 'id' ? t.value : '@' + t.value}`);
+  }
+
+  const globalSummary = {
+    channelsTotal: targets.length,
+    channelsCompleted: 0,
+    channelsFailed: [],
+    videosFetched: 0,
+    videosCachedSkipped: 0,
+    videosNoCaptionsCachedSkipped: 0,
+    videosNoCaptions: 0,
+    videosFailed: [],
+    byChannel: [],
+  };
+
+  for (const [idx, target] of targets.entries()) {
+    try {
+      const channelSummary = await refreshChannelTranscripts({
+        cfg,
+        youtube,
+        target,
+        args,
+        channelIndex: idx,
+        totalChannels: targets.length,
+      });
+
+      globalSummary.channelsCompleted++;
+      globalSummary.videosFetched += channelSummary.videosFetched;
+      globalSummary.videosCachedSkipped += channelSummary.videosCachedSkipped;
+      globalSummary.videosNoCaptionsCachedSkipped += channelSummary.videosNoCaptionsCachedSkipped;
+      globalSummary.videosNoCaptions += channelSummary.videosNoCaptions;
+      globalSummary.videosFailed.push(...channelSummary.videosFailed);
+      globalSummary.byChannel.push(channelSummary);
+    } catch (err) {
+      console.error(
+        `\nChannel [${idx + 1}/${targets.length}] ${target.value} FAILED: ${err.message}`
+      );
+      globalSummary.channelsFailed.push({
+        target: target.value,
+        type: target.type,
+        error: err.message,
+      });
+    }
+
+    if (idx < targets.length - 1) {
+      console.log(`\nWaiting ${cfg.requestDelayMs}ms before next channel...`);
+      await sleep(cfg.requestDelayMs);
+    }
+  }
+
   console.log('\n=== Run summary ===');
-  console.log(JSON.stringify(summary, null, 2));
+  console.log(JSON.stringify(globalSummary, null, 2));
   console.log('\nFiles touched:');
   for (const f of db.touchedFiles()) console.log(`  ${f}`);
 
-  if (summary.videosFailed.length) {
+  if (globalSummary.videosFailed.length > 0 || globalSummary.channelsFailed.length > 0) {
     process.exitCode = 1;
   }
 }
 
 module.exports = {
+  DEFAULT_CHANNEL_HANDLES,
+  normalizeChannelHandle,
   loadConfig,
   createYoutubeClient,
   isInsufficientScopeError,
@@ -621,6 +852,7 @@ module.exports = {
   videoRecordId,
   alreadyFetched,
   buildTranscriptDto,
+  refreshChannelTranscripts,
   main,
   sleep,
 };

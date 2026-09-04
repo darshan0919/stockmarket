@@ -1,460 +1,1210 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Task Tracker</title>
-<style>
-  :root {
-    --bg: #0f0f11; --surface: #1a1a1f; --border: #2a2a33;
-    --accent: #7c6af7; --accent-dim: #4a3fb5;
-    --text: #e4e4f0; --muted: #666680;
-    --green: #4ade80; --yellow: #facc15; --red: #f87171;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg); color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    min-height: 100vh; padding: 40px 20px;
-  }
-  .container { max-width: 680px; margin: 0 auto; }
-
-  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-  h1 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; }
-
-  .status { display: flex; align-items: center; gap: 8px; }
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); transition: background .3s; }
-  .status-dot.local  { background: var(--green); }
-  .status-dot.github { background: var(--yellow); }
-  .status-dot.error  { background: var(--red); }
-  .status-label { font-size: .75rem; color: var(--muted); }
-
-  .connect-btn {
-    background: var(--surface); border: 1px solid var(--border);
-    color: var(--text); border-radius: 7px; padding: 6px 12px;
-    font-size: .8rem; cursor: pointer; transition: border-color .2s;
-  }
-  .connect-btn:hover { border-color: var(--accent); }
-
-  .banner {
-    border-radius: 8px; padding: 10px 14px; font-size: .8rem;
-    margin-bottom: 20px; display: none;
-  }
-  .banner.visible { display: flex; align-items: center; gap: 10px; }
-  .banner.warn { background: rgba(250,204,21,.08); border: 1px solid rgba(250,204,21,.3); color: var(--yellow); }
-  .banner.info { background: rgba(124,106,247,.08); border: 1px solid rgba(124,106,247,.3); color: var(--accent); }
-
-  .add-form { display: flex; gap: 10px; margin-bottom: 24px; }
-  .add-form input {
-    flex: 1; background: var(--surface); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 14px; color: var(--text);
-    font-size: .95rem; outline: none; transition: border-color .2s;
-  }
-  .add-form input:focus { border-color: var(--accent); }
-  .add-form input::placeholder { color: var(--muted); }
-
-  .btn {
-    background: var(--accent); color: #fff; border: none;
-    border-radius: 8px; padding: 10px 18px; font-size: .9rem;
-    font-weight: 500; cursor: pointer; transition: background .2s; white-space: nowrap;
-  }
-  .btn:hover { background: var(--accent-dim); }
-  .btn:disabled { opacity: .35; cursor: not-allowed; }
-
-  .toolbar { display: flex; gap: 8px; margin-bottom: 18px; align-items: center; }
-  .filter-btn {
-    background: none; border: 1px solid var(--border); color: var(--muted);
-    border-radius: 6px; padding: 5px 12px; font-size: .8rem;
-    cursor: pointer; transition: all .2s;
-  }
-  .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(124,106,247,.1); }
-  .stats { font-size: .8rem; color: var(--muted); margin-left: auto; }
-
-  .task-list { display: flex; flex-direction: column; gap: 8px; }
-  .task-item {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 10px; padding: 13px 16px;
-    display: flex; align-items: center; gap: 12px;
-    transition: border-color .2s, opacity .2s;
-    animation: fadeIn .15s ease;
-  }
-  .task-item:hover { border-color: #3a3a47; }
-  .task-item.done { opacity: .5; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
-
-  .checkbox {
-    width: 20px; height: 20px; border-radius: 6px;
-    border: 2px solid var(--border); background: none;
-    cursor: pointer; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    transition: all .15s; color: transparent; font-size: 13px;
-  }
-  .checkbox.checked { background: var(--accent); border-color: var(--accent); color: #fff; }
-
-  .task-title {
-    flex: 1; font-size: .95rem; line-height: 1.4; word-break: break-word;
-    cursor: text; outline: none;
-  }
-  .task-item.editing { border-color: var(--accent); }
-  .task-item.done .task-title:not(:focus) { text-decoration: line-through; color: var(--muted); }
-  .task-meta { font-size: .72rem; color: var(--muted); white-space: nowrap; }
-
-  .del-btn {
-    background: none; border: none; color: var(--muted);
-    cursor: pointer; font-size: 1rem; padding: 2px 4px;
-    border-radius: 4px; opacity: 0; transition: opacity .15s, color .15s;
-  }
-  .task-item:hover .del-btn { opacity: 1; }
-  .del-btn:hover { color: var(--red); }
-
-  .empty { text-align: center; color: var(--muted); padding: 48px 0; font-size: .9rem; }
-</style>
-</head>
-<body>
-<div class="container">
-  <header>
-    <h1>Tasks</h1>
-    <div class="status">
-      <span class="status-dot" id="dot"></span>
-      <span class="status-label" id="statusLabel">—</span>
-      <button class="connect-btn" id="connectBtn" style="display:none">📁 Connect folder</button>
-    </div>
-  </header>
-
-  <div class="banner warn" id="banner">
-    <span id="bannerMsg"></span>
-    <button class="connect-btn" id="bannerConnectBtn">📁 Connect folder</button>
-  </div>
-
-  <form class="add-form" id="addForm">
-    <input type="text" id="taskInput" placeholder="Add a task…" autocomplete="off" maxlength="200">
-    <button class="btn" type="submit" id="addBtn">Add</button>
-  </form>
-
-  <div class="toolbar">
-    <button class="filter-btn active" data-filter="all">All</button>
-    <button class="filter-btn" data-filter="active">Active</button>
-    <button class="filter-btn" data-filter="done">Done</button>
-    <span class="stats" id="stats"></span>
-  </div>
-
-  <div class="task-list" id="taskList"></div>
-</div>
-
-<script>
-// ─── Config ────────────────────────────────────────────────────────────────
-const GITHUB_RAW = 'https://raw.githubusercontent.com/darshan0919/stockmarket/main/data/tasks.json';
-const IDB_KEY    = 'tasks-dir-handle';   // key to persist FileSystemDirectoryHandle
-const FILE_NAME  = 'tasks.json';
-
-// ─── State ─────────────────────────────────────────────────────────────────
-let tasks = [];
-let filter = 'all';
-let dirHandle = null;   // FileSystemDirectoryHandle when connected
-let mode = 'init';      // 'local' | 'github' | 'error'
-
-// ─── Task schema ───────────────────────────────────────────────────────────
-const makeTask = title => ({
-  id: crypto.randomUUID(),
-  title: title.trim(),
-  completed: false,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  // future: priority, dueDate, tags, notes, assignee …
-});
-
-// ─── IndexedDB helpers (persist dir handle) ────────────────────────────────
-const idb = {
-  open: () => new Promise((res, rej) => {
-    const req = indexedDB.open('task-tracker', 1);
-    req.onupgradeneeded = e => e.target.result.createObjectStore('kv');
-    req.onsuccess = e => res(e.target.result);
-    req.onerror   = e => rej(e);
-  }),
-  get: async key => {
-    const db = await idb.open();
-    return new Promise((res, rej) => {
-      const tx = db.transaction('kv', 'readonly');
-      const r  = tx.objectStore('kv').get(key);
-      r.onsuccess = () => res(r.result);
-      r.onerror   = e => rej(e);
-    });
-  },
-  set: async (key, val) => {
-    const db = await idb.open();
-    return new Promise((res, rej) => {
-      const tx = db.transaction('kv', 'readwrite');
-      tx.objectStore('kv').put(val, key);
-      tx.oncomplete = res;
-      tx.onerror    = rej;
-    });
-  },
-};
-
-// ─── File System Access API ────────────────────────────────────────────────
-async function connectFolder(fromUser = false) {
-  try {
-    let handle;
-    if (fromUser) {
-      handle = await window.showDirectoryPicker({ mode: 'readwrite', startIn: 'documents' });
-      await idb.set(IDB_KEY, handle);
-    } else {
-      handle = await idb.get(IDB_KEY);
-      if (!handle) return false;
-      // verify permission is still granted
-      const perm = await handle.queryPermission({ mode: 'readwrite' });
-      if (perm === 'denied') return false;
-      if (perm === 'prompt') {
-        const req = await handle.requestPermission({ mode: 'readwrite' });
-        if (req !== 'granted') return false;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task & Rules Tracker</title>
+    <style>
+      :root {
+        --bg: #0f0f11;
+        --surface: #17171c;
+        --surface-card: #1f1f26;
+        --border: #2b2b36;
+        --border-hover: #3d3d4e;
+        --accent: #7c6af7;
+        --accent-dim: #5446c7;
+        --accent-glow: rgba(124, 106, 247, 0.15);
+        --text: #e5e5f0;
+        --muted: #7b7b94;
+        --muted-light: #a5a5bc;
+        --green: #4ade80;
+        --green-bg: rgba(74, 222, 128, 0.12);
+        --yellow: #facc15;
+        --yellow-bg: rgba(250, 204, 21, 0.12);
+        --red: #f87171;
+        --red-bg: rgba(248, 113, 113, 0.12);
+        --blue: #38bdf8;
+        --blue-bg: rgba(56, 189, 248, 0.12);
+        --purple: #c084fc;
+        --purple-bg: rgba(192, 132, 252, 0.12);
+        --teal: #2dd4bf;
+        --teal-bg: rgba(45, 212, 191, 0.12);
+        --orange: #fb923c;
+        --orange-bg: rgba(251, 146, 60, 0.12);
       }
-    }
-    dirHandle = handle;
-    return true;
-  } catch { return false; }
-}
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        min-height: 100vh;
+        padding: 32px 24px 60px;
+        -webkit-font-smoothing: antialiased;
+      }
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
 
-async function readLocalFile() {
-  const fh   = await dirHandle.getFileHandle(FILE_NAME, { create: true });
-  const file = await fh.getFile();
-  const text = await file.text();
-  return text ? JSON.parse(text) : { version: 1, tasks: [] };
-}
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+        gap: 14px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      h1 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .header-badge {
+        background: var(--surface-card);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        color: var(--muted-light);
+      }
 
-async function writeLocalFile(data) {
-  const fh     = await dirHandle.getFileHandle(FILE_NAME, { create: true });
-  const writer = await fh.createWritable();
-  await writer.write(JSON.stringify(data, null, 2));
-  await writer.close();
-}
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--surface);
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--muted);
+        transition: background 0.3s;
+      }
+      .status-dot.local {
+        background: var(--green);
+        box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+      }
+      .status-dot.github {
+        background: var(--yellow);
+      }
+      .status-dot.error {
+        background: var(--red);
+      }
+      .status-label {
+        font-size: 0.75rem;
+        color: var(--muted-light);
+        font-weight: 500;
+      }
 
-// ─── Data loading ──────────────────────────────────────────────────────────
-async function load() {
-  // 1. Try saved directory handle
-  const connected = await connectFolder(false);
-  if (connected) {
-    try {
-      const data = await readLocalFile();
-      tasks = data.tasks || [];
-      setMode('local');
-      return;
-    } catch {}
-  }
+      .connect-btn {
+        background: var(--surface-card);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 7px 14px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .connect-btn:hover {
+        border-color: var(--accent);
+        color: #fff;
+        transform: translateY(-1px);
+      }
 
-  // 2. GitHub fallback (read-only)
-  try {
-    const r = await fetch(GITHUB_RAW + '?_=' + Date.now());
-    if (r.ok) {
-      const data = await r.json();
-      tasks = data.tasks || [];
-      setMode('github');
-      return;
-    }
-  } catch {}
+      .banner {
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-size: 0.82rem;
+        margin-bottom: 24px;
+        display: none;
+      }
+      .banner.visible {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .banner.warn {
+        background: rgba(250, 204, 21, 0.08);
+        border: 1px solid rgba(250, 204, 21, 0.3);
+        color: var(--yellow);
+      }
+      .banner.info {
+        background: rgba(124, 106, 247, 0.08);
+        border: 1px solid rgba(124, 106, 247, 0.3);
+        color: var(--accent);
+      }
 
-  tasks = [];
-  setMode('error');
-}
+      /* Two Column Grid */
+      .board-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+        align-items: start;
+      }
+      @media (max-width: 980px) {
+        .board-grid {
+          grid-template-columns: 1fr;
+          gap: 40px;
+        }
+      }
 
-async function save() {
-  if (mode !== 'local') return;
-  await writeLocalFile({ version: 1, tasks });
-}
+      .column {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 22px;
+        display: flex;
+        flex-direction: column;
+        min-height: 520px;
+      }
 
-// ─── UI ────────────────────────────────────────────────────────────────────
-function setMode(m) {
-  mode = m;
-  const dot    = document.getElementById('dot');
-  const lbl    = document.getElementById('statusLabel');
-  const banner = document.getElementById('banner');
-  const bannerMsg = document.getElementById('bannerMsg');
-  const addBtn = document.getElementById('addBtn');
-  const connectBtn = document.getElementById('connectBtn');
+      .col-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      .col-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .col-title {
+        font-size: 1.15rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .col-pill {
+        font-size: 0.72rem;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: var(--surface-card);
+        border: 1px solid var(--border);
+        color: var(--muted-light);
+        font-weight: 500;
+      }
+      .col-subtitle {
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-top: -10px;
+        margin-bottom: 16px;
+        line-height: 1.4;
+      }
 
-  dot.className = 'status-dot ' + m;
-  connectBtn.style.display = m === 'local' ? 'none' : '';
+      .add-form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+      .add-row {
+        display: flex;
+        gap: 8px;
+      }
+      .add-form input,
+      .add-form select,
+      .add-form textarea {
+        background: var(--surface-card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 9px 12px;
+        color: var(--text);
+        font-size: 0.88rem;
+        outline: none;
+        transition: border-color 0.2s;
+        font-family: inherit;
+      }
+      .add-form input:focus,
+      .add-form select:focus,
+      .add-form textarea:focus {
+        border-color: var(--accent);
+      }
+      .add-form input::placeholder,
+      .add-form textarea::placeholder {
+        color: var(--muted);
+      }
+      .add-form select {
+        cursor: pointer;
+      }
 
-  if (m === 'local') {
-    lbl.textContent = 'synced to ' + FILE_NAME;
-    banner.classList.remove('visible');
-    addBtn.disabled = false;
-  } else if (m === 'github') {
-    lbl.textContent = 'github (read-only)';
-    bannerMsg.textContent = 'Read-only — connect the project\'s data/ folder to enable edits.';
-    banner.classList.add('visible');
-    addBtn.disabled = true;
-  } else {
-    lbl.textContent = 'offline';
-    bannerMsg.textContent = 'Could not load tasks. Connect the data/ folder.';
-    banner.classList.add('visible');
-    addBtn.disabled = true;
-  }
-}
+      .btn {
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+      .btn:hover {
+        background: var(--accent-dim);
+        transform: translateY(-1px);
+      }
+      .btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none;
+      }
 
-const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const fmt = iso => iso ? new Date(iso).toLocaleDateString('en-IN', { day:'numeric', month:'short' }) : '';
+      .toolbar {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .filter-btn {
+        background: var(--surface-card);
+        border: 1px solid var(--border);
+        color: var(--muted-light);
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .filter-btn:hover {
+        border-color: var(--border-hover);
+        color: var(--text);
+      }
+      .filter-btn.active {
+        border-color: var(--accent);
+        color: #fff;
+        background: var(--accent-dim);
+      }
+      .stats {
+        font-size: 0.76rem;
+        color: var(--muted-light);
+        margin-left: auto;
+      }
 
-const sorted = arr => [...arr].sort((a, b) => a.completed - b.completed);
+      /* Lists */
+      .item-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
 
-function visible() {
-  if (filter === 'active') return sorted(tasks.filter(t => !t.completed));
-  if (filter === 'done')   return sorted(tasks.filter(t =>  t.completed));
-  return sorted(tasks);
-}
+      /* Task Item */
+      .task-item {
+        background: var(--surface-card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.2s;
+        animation: fadeIn 0.15s ease;
+      }
+      .task-item:hover {
+        border-color: var(--border-hover);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+      .task-item.done {
+        opacity: 0.55;
+      }
+      .task-item.editing {
+        border-color: var(--accent);
+        background: #23232c;
+      }
 
-function render() {
-  const list  = document.getElementById('taskList');
-  const stats = document.getElementById('stats');
-  const done  = tasks.filter(t => t.completed).length;
-  stats.textContent = `${done}/${tasks.length} done`;
+      .checkbox {
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
+        border: 2px solid var(--border);
+        background: none;
+        cursor: pointer;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+        color: transparent;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .checkbox.checked {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
 
-  const show = visible();
-  if (!show.length) {
-    list.innerHTML = `<div class="empty">${tasks.length === 0 ? 'No tasks yet.' : 'Nothing here.'}</div>`;
-    return;
-  }
-  list.innerHTML = show.map(t => `
+      .task-title {
+        flex: 1;
+        font-size: 0.92rem;
+        line-height: 1.4;
+        word-break: break-word;
+        cursor: text;
+        outline: none;
+      }
+      .task-item.done .task-title:not(:focus) {
+        text-decoration: line-through;
+        color: var(--muted);
+      }
+      .task-meta {
+        font-size: 0.7rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .del-btn {
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 0.95rem;
+        padding: 4px 6px;
+        border-radius: 4px;
+        opacity: 0;
+        transition: all 0.15s;
+      }
+      .task-item:hover .del-btn,
+      .rule-card:hover .del-btn {
+        opacity: 1;
+      }
+      .del-btn:hover {
+        color: var(--red);
+        background: rgba(248, 113, 113, 0.1);
+      }
+
+      /* Rule Card */
+      .rule-card {
+        background: var(--surface-card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        transition: all 0.2s;
+        animation: fadeIn 0.15s ease;
+        position: relative;
+      }
+      .rule-card:hover {
+        border-color: var(--border-hover);
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+      }
+      .rule-card.inactive {
+        opacity: 0.5;
+        border-style: dashed;
+      }
+      .rule-card.editing {
+        border-color: var(--accent);
+        background: #23232c;
+      }
+
+      .rule-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .rule-header-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .category-pill {
+        font-size: 0.68rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 2px 7px;
+        border-radius: 4px;
+        border: 1px solid transparent;
+      }
+      .category-pill.code-quality {
+        color: var(--purple);
+        background: var(--purple-bg);
+        border-color: rgba(192, 132, 252, 0.3);
+      }
+      .category-pill.architecture {
+        color: var(--blue);
+        background: var(--blue-bg);
+        border-color: rgba(56, 189, 248, 0.3);
+      }
+      .category-pill.quality {
+        color: var(--green);
+        background: var(--green-bg);
+        border-color: rgba(74, 222, 128, 0.3);
+      }
+      .category-pill.safety {
+        color: var(--red);
+        background: var(--red-bg);
+        border-color: rgba(248, 113, 113, 0.3);
+      }
+      .category-pill.api {
+        color: var(--orange);
+        background: var(--orange-bg);
+        border-color: rgba(251, 146, 60, 0.3);
+      }
+      .category-pill.data-layer {
+        color: var(--teal);
+        background: var(--teal-bg);
+        border-color: rgba(45, 212, 191, 0.3);
+      }
+      .category-pill.documentation {
+        color: var(--muted-light);
+        background: rgba(255, 255, 255, 0.06);
+        border-color: var(--border);
+      }
+      .category-pill.rules-sync {
+        color: var(--accent);
+        background: var(--accent-glow);
+        border-color: var(--accent-dim);
+      }
+
+      .toggle-active-btn {
+        background: none;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 0.68rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+        color: var(--muted-light);
+      }
+      .toggle-active-btn.active {
+        background: var(--green-bg);
+        color: var(--green);
+        border-color: rgba(74, 222, 128, 0.3);
+      }
+      .toggle-active-btn.inactive {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--muted);
+      }
+
+      .rule-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text);
+        line-height: 1.4;
+        outline: none;
+        cursor: text;
+      }
+      .rule-desc {
+        font-size: 0.82rem;
+        color: var(--muted-light);
+        line-height: 1.5;
+        outline: none;
+        cursor: text;
+        word-break: break-word;
+      }
+      .rule-desc:empty:before {
+        content: 'Add a description / guidance for this rule…';
+        color: var(--muted);
+        font-style: italic;
+      }
+
+      .rule-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.7rem;
+        color: var(--muted);
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        padding-top: 6px;
+        margin-top: 4px;
+      }
+      .rule-id {
+        font-family: monospace;
+        opacity: 0.8;
+      }
+
+      .empty {
+        text-align: center;
+        color: var(--muted);
+        padding: 42px 0;
+        font-size: 0.88rem;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="brand">
+          <h1>Task & Rules Tracker</h1>
+          <span class="header-badge">Stock Screener Monorepo</span>
+        </div>
+        <div class="header-actions">
+          <div class="status">
+            <span class="status-dot" id="dot"></span>
+            <span class="status-label" id="statusLabel">—</span>
+          </div>
+          <button class="connect-btn" id="connectBtn" style="display: none">
+            📁 Connect data/ folder
+          </button>
+        </div>
+      </header>
+
+      <div class="banner warn" id="banner">
+        <span id="bannerMsg"></span>
+        <button class="connect-btn" id="bannerConnectBtn">📁 Connect folder</button>
+      </div>
+
+      <div class="board-grid">
+        <!-- LEFT COLUMN: Action Tasks -->
+        <div class="column" id="tasksColumn">
+          <div class="col-header">
+            <div class="col-title-wrap">
+              <span class="col-title">Tasks</span>
+              <span class="col-pill" id="taskCountBadge">0</span>
+            </div>
+          </div>
+          <div class="col-subtitle">Project action items, research tasks, and sprint goals.</div>
+
+          <form class="add-form" id="addTaskForm">
+            <div class="add-row">
+              <input
+                type="text"
+                id="taskInput"
+                placeholder="Add a new task…"
+                autocomplete="off"
+                maxlength="240"
+                style="flex: 1"
+              />
+              <button class="btn" type="submit" id="addTaskBtn">Add Task</button>
+            </div>
+          </form>
+
+          <div class="toolbar">
+            <button class="filter-btn active" data-taskfilter="all">All</button>
+            <button class="filter-btn" data-taskfilter="active">Active</button>
+            <button class="filter-btn" data-taskfilter="done">Done</button>
+            <span class="stats" id="taskStats">0/0 done</span>
+          </div>
+
+          <div class="item-list" id="taskList"></div>
+        </div>
+
+        <!-- RIGHT COLUMN: Development Rules (Permanent) -->
+        <div class="column" id="rulesColumn">
+          <div class="col-header">
+            <div class="col-title-wrap">
+              <span class="col-title">Development Rules</span>
+              <span
+                class="col-pill"
+                style="border-color: rgba(124, 106, 247, 0.4); color: var(--purple)"
+                >Permanent</span
+              >
+            </div>
+            <span class="header-badge" style="font-size: 0.7rem">Linked to AGENTS.md</span>
+          </div>
+          <div class="col-subtitle">
+            Permanent code writing rules honoured across Claude, Cursor, and Antigravity.
+          </div>
+
+          <form class="add-form" id="addRuleForm">
+            <div class="add-row">
+              <input
+                type="text"
+                id="ruleTitleInput"
+                placeholder="Rule title (e.g. Clean Code: Less Lines)…"
+                autocomplete="off"
+                maxlength="150"
+                style="flex: 2"
+              />
+              <select id="ruleCategorySelect" style="flex: 1">
+                <option value="Code Quality">Code Quality</option>
+                <option value="Architecture">Architecture</option>
+                <option value="Quality">Quality</option>
+                <option value="Safety">Safety</option>
+                <option value="API">API</option>
+                <option value="Data Layer">Data Layer</option>
+                <option value="Documentation">Documentation</option>
+                <option value="Rules Sync">Rules Sync</option>
+              </select>
+            </div>
+            <div class="add-row">
+              <input
+                type="text"
+                id="ruleDescInput"
+                placeholder="Guidance/Principle description (optional)…"
+                autocomplete="off"
+                maxlength="300"
+                style="flex: 1"
+              />
+              <button class="btn" type="submit" id="addRuleBtn">Add Rule</button>
+            </div>
+          </form>
+
+          <div class="toolbar">
+            <button class="filter-btn active" data-rulefilter="all">All</button>
+            <button class="filter-btn" data-rulefilter="active">Active</button>
+            <button class="filter-btn" data-rulefilter="inactive">Inactive</button>
+            <span class="stats" id="ruleStats">0 active rules</span>
+          </div>
+
+          <div class="item-list" id="ruleList"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ─── Config ────────────────────────────────────────────────────────────────
+      const GITHUB_RAW =
+        'https://raw.githubusercontent.com/darshan0919/stockmarket/main/data/tasks.json';
+      const IDB_KEY = 'tasks-dir-handle';
+      const FILE_NAME = 'tasks.json';
+
+      // ─── State ─────────────────────────────────────────────────────────────────
+      let tasks = [];
+      let rules = [];
+      let taskFilter = 'all';
+      let ruleFilter = 'all';
+      let dirHandle = null;
+      let mode = 'init'; // 'local' | 'github' | 'error'
+
+      // ─── Task & Rule Schemas ───────────────────────────────────────────────────
+      const makeTask = (title) => ({
+        id: crypto.randomUUID(),
+        title: title.trim(),
+        completed: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
+      const makeRule = (title, category = 'Code Quality', description = '') => ({
+        id:
+          'rule-' +
+          (title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '')
+            .slice(0, 30) || crypto.randomUUID().slice(0, 8)),
+        title: title.trim(),
+        category: category.trim() || 'Code Quality',
+        description: description.trim(),
+        active: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
+      // ─── IndexedDB helpers ─────────────────────────────────────────────────────
+      const idb = {
+        open: () =>
+          new Promise((res, rej) => {
+            const req = indexedDB.open('task-tracker', 1);
+            req.onupgradeneeded = (e) => e.target.result.createObjectStore('kv');
+            req.onsuccess = (e) => res(e.target.result);
+            req.onerror = (e) => rej(e);
+          }),
+        get: async (key) => {
+          const db = await idb.open();
+          return new Promise((res, rej) => {
+            const tx = db.transaction('kv', 'readonly');
+            const r = tx.objectStore('kv').get(key);
+            r.onsuccess = () => res(r.result);
+            r.onerror = (e) => rej(e);
+          });
+        },
+        set: async (key, val) => {
+          const db = await idb.open();
+          return new Promise((res, rej) => {
+            const tx = db.transaction('kv', 'readwrite');
+            tx.objectStore('kv').put(val, key);
+            tx.oncomplete = res;
+            tx.onerror = rej;
+          });
+        },
+      };
+
+      // ─── File System Access API ────────────────────────────────────────────────
+      async function connectFolder(fromUser = false) {
+        try {
+          let handle;
+          if (fromUser) {
+            handle = await window.showDirectoryPicker({ mode: 'readwrite', startIn: 'documents' });
+            await idb.set(IDB_KEY, handle);
+          } else {
+            handle = await idb.get(IDB_KEY);
+            if (!handle) return false;
+            const perm = await handle.queryPermission({ mode: 'readwrite' });
+            if (perm === 'denied') return false;
+            if (perm === 'prompt') {
+              const req = await handle.requestPermission({ mode: 'readwrite' });
+              if (req !== 'granted') return false;
+            }
+          }
+          dirHandle = handle;
+          return true;
+        } catch {
+          return false;
+        }
+      }
+
+      async function readLocalFile() {
+        const fh = await dirHandle.getFileHandle(FILE_NAME, { create: true });
+        const file = await fh.getFile();
+        const text = await file.text();
+        return text ? JSON.parse(text) : { version: 1, tasks: [], rules: [] };
+      }
+
+      async function writeLocalFile(data) {
+        const fh = await dirHandle.getFileHandle(FILE_NAME, { create: true });
+        const writer = await fh.createWritable();
+        await writer.write(JSON.stringify(data, null, 2));
+        await writer.close();
+      }
+
+      // ─── Data Loading & Saving ─────────────────────────────────────────────────
+      async function load() {
+        // 1. Try local directory handle
+        const connected = await connectFolder(false);
+        if (connected) {
+          try {
+            const data = await readLocalFile();
+            tasks = data.tasks || [];
+            rules = data.rules || [];
+            setMode('local');
+            return;
+          } catch {}
+        }
+
+        // 2. GitHub fallback (read-only)
+        try {
+          const r = await fetch(GITHUB_RAW + '?_=' + Date.now());
+          if (r.ok) {
+            const data = await r.json();
+            tasks = data.tasks || [];
+            rules = data.rules || [];
+            setMode('github');
+            return;
+          }
+        } catch {}
+
+        // 3. Relative path fetch (when served over localhost HTTP)
+        try {
+          const r = await fetch('../../data/tasks.json?_=' + Date.now());
+          if (r.ok) {
+            const data = await r.json();
+            tasks = data.tasks || [];
+            rules = data.rules || [];
+            setMode('github');
+            return;
+          }
+        } catch {}
+
+        tasks = [];
+        rules = [];
+        setMode('error');
+      }
+
+      async function save() {
+        if (mode !== 'local') return;
+        await writeLocalFile({ version: 1, tasks, rules });
+      }
+
+      // ─── Mode & Status UI ──────────────────────────────────────────────────────
+      function setMode(m) {
+        mode = m;
+        const dot = document.getElementById('dot');
+        const lbl = document.getElementById('statusLabel');
+        const banner = document.getElementById('banner');
+        const bannerMsg = document.getElementById('bannerMsg');
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        const addRuleBtn = document.getElementById('addRuleBtn');
+        const connectBtn = document.getElementById('connectBtn');
+
+        dot.className = 'status-dot ' + m;
+        connectBtn.style.display = m === 'local' ? 'none' : '';
+
+        const editable = m === 'local';
+        if (addTaskBtn) addTaskBtn.disabled = !editable;
+        if (addRuleBtn) addRuleBtn.disabled = !editable;
+
+        if (m === 'local') {
+          lbl.textContent = 'synced to ' + FILE_NAME;
+          banner.classList.remove('visible');
+        } else if (m === 'github') {
+          lbl.textContent = 'github (read-only)';
+          bannerMsg.textContent =
+            "Read-only mode — connect the project's data/ folder to enable live edits.";
+          banner.classList.add('visible');
+        } else {
+          lbl.textContent = 'offline';
+          bannerMsg.textContent = 'Could not load data. Connect the project data/ folder.';
+          banner.classList.add('visible');
+        }
+      }
+
+      // ─── Helpers ───────────────────────────────────────────────────────────────
+      const esc = (s) =>
+        (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const fmt = (iso) =>
+        iso ? new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '';
+      const catClass = (cat) => (cat || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+      // ─── Render Tasks ──────────────────────────────────────────────────────────
+      function renderTasks() {
+        const list = document.getElementById('taskList');
+        const stats = document.getElementById('taskStats');
+        const countBadge = document.getElementById('taskCountBadge');
+        const done = tasks.filter((t) => t.completed).length;
+
+        stats.textContent = `${done}/${tasks.length} done`;
+        countBadge.textContent = `${tasks.length}`;
+
+        let show = [...tasks];
+        if (taskFilter === 'active') show = show.filter((t) => !t.completed);
+        if (taskFilter === 'done') show = show.filter((t) => t.completed);
+        show.sort((a, b) => a.completed - b.completed);
+
+        if (!show.length) {
+          list.innerHTML = `<div class="empty">${tasks.length === 0 ? 'No tasks yet. Add one above!' : 'No tasks match current filter.'}</div>`;
+          return;
+        }
+
+        list.innerHTML = show
+          .map(
+            (t) => `
     <div class="task-item${t.completed ? ' done' : ''}" data-id="${t.id}">
-      <button class="checkbox${t.completed ? ' checked' : ''}" data-id="${t.id}">${t.completed ? '✓' : ''}</button>
-      <span class="task-title" data-edit="${t.id}" spellcheck="false">${esc(t.title)}</span>
+      <button class="checkbox${t.completed ? ' checked' : ''}" data-id="${t.id}" title="Toggle complete">${t.completed ? '✓' : ''}</button>
+      <span class="task-title" data-taskedit="${t.id}" spellcheck="false">${esc(t.title)}</span>
       <span class="task-meta">${fmt(t.createdAt)}</span>
-      <button class="del-btn" data-del="${t.id}">✕</button>
-    </div>`).join('');
-}
+      <button class="del-btn" data-taskdel="${t.id}" title="Delete task">✕</button>
+    </div>
+  `
+          )
+          .join('');
+      }
 
-// ─── Events ────────────────────────────────────────────────────────────────
-async function handleConnect() {
-  const ok = await connectFolder(true);
-  if (!ok) return;
-  // try to read existing file in chosen dir
-  try {
-    const data = await readLocalFile();
-    tasks = data.tasks || [];
-  } catch { tasks = []; }
-  setMode('local');
-  render();
-}
+      // ─── Render Rules ──────────────────────────────────────────────────────────
+      function renderRules() {
+        const list = document.getElementById('ruleList');
+        const stats = document.getElementById('ruleStats');
+        const activeCount = rules.filter((r) => r.active !== false).length;
 
-document.getElementById('connectBtn').addEventListener('click', handleConnect);
-document.getElementById('bannerConnectBtn').addEventListener('click', handleConnect);
+        stats.textContent = `${activeCount}/${rules.length} active`;
 
-document.getElementById('addForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const inp = document.getElementById('taskInput');
-  const title = inp.value.trim();
-  if (!title || mode !== 'local') return;
-  tasks.unshift(makeTask(title));
-  inp.value = '';
-  render();
-  await save();
-});
+        let show = [...rules];
+        if (ruleFilter === 'active') show = show.filter((r) => r.active !== false);
+        if (ruleFilter === 'inactive') show = show.filter((r) => r.active === false);
 
-document.getElementById('taskList').addEventListener('click', async e => {
-  if (mode !== 'local') return;
+        if (!show.length) {
+          list.innerHTML = `<div class="empty">${rules.length === 0 ? 'No permanent rules registered.' : 'No rules match filter.'}</div>`;
+          return;
+        }
 
-  const cb = e.target.closest('.checkbox');
-  if (cb) {
-    e.preventDefault();
-    const t = tasks.find(t => t.id === cb.dataset.id);
-    if (t) { t.completed = !t.completed; t.updatedAt = new Date().toISOString(); }
-    render(); await save(); return;
-  }
+        list.innerHTML = show
+          .map((r) => {
+            const isActive = r.active !== false;
+            const cClass = catClass(r.category);
+            return `
+      <div class="rule-card${isActive ? '' : ' inactive'}" data-ruleid="${r.id}">
+        <div class="rule-top">
+          <div class="rule-header-left">
+            <span class="category-pill ${cClass}">${esc(r.category || 'Rule')}</span>
+            <button class="toggle-active-btn ${isActive ? 'active' : 'inactive'}" data-ruletoggle="${r.id}">
+              ${isActive ? '● Active' : '○ Inactive'}
+            </button>
+          </div>
+          <button class="del-btn" data-ruledel="${r.id}" title="Delete rule">✕</button>
+        </div>
+        <div class="rule-title" data-ruleedittitle="${r.id}" spellcheck="false">${esc(r.title)}</div>
+        <div class="rule-desc" data-ruleeditdesc="${r.id}" spellcheck="false">${esc(r.description || '')}</div>
+        <div class="rule-footer">
+          <span class="rule-id">#${esc(r.id)}</span>
+          <span>${fmt(r.updatedAt || r.createdAt)}</span>
+        </div>
+      </div>
+    `;
+          })
+          .join('');
+      }
 
-  const db = e.target.closest('.del-btn');
-  if (db) {
-    tasks = tasks.filter(t => t.id !== db.dataset.del);
-    render(); await save();
-  }
-});
+      function render() {
+        renderTasks();
+        renderRules();
+      }
 
-// ─── Inline edit ──────────────────────────────────────────────────────────
-function startEdit(span) {
-  if (span.contentEditable === 'true') return; // already editing
-  const t = tasks.find(t => t.id === span.dataset.edit);
-  if (!t) return;
+      // ─── Event Handlers ────────────────────────────────────────────────────────
+      async function handleConnect() {
+        const ok = await connectFolder(true);
+        if (!ok) return;
+        try {
+          const data = await readLocalFile();
+          tasks = data.tasks || [];
+          rules = data.rules || [];
+        } catch {
+          tasks = [];
+          rules = [];
+        }
+        setMode('local');
+        render();
+      }
 
-  span._original = t.title;
-  span.contentEditable = 'true';
-  span.closest('.task-item').classList.add('editing');
-  span.focus();
+      document.getElementById('connectBtn').addEventListener('click', handleConnect);
+      document.getElementById('bannerConnectBtn').addEventListener('click', handleConnect);
 
-  // place caret at click position (browser handles it); fallback: end of text
-  if (!getSelection().rangeCount || !span.contains(getSelection().anchorNode)) {
-    const range = document.createRange();
-    range.selectNodeContents(span);
-    range.collapse(false);
-    getSelection().removeAllRanges();
-    getSelection().addRange(range);
-  }
-}
+      // Add Task
+      document.getElementById('addTaskForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const inp = document.getElementById('taskInput');
+        const title = inp.value.trim();
+        if (!title || mode !== 'local') return;
+        tasks.unshift(makeTask(title));
+        inp.value = '';
+        renderTasks();
+        await save();
+      });
 
-async function commitEdit(span) {
-  if (span.contentEditable !== 'true') return;
-  span.contentEditable = 'false';
-  span.closest('.task-item').classList.remove('editing');
+      // Add Rule
+      document.getElementById('addRuleForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const titleInp = document.getElementById('ruleTitleInput');
+        const catSelect = document.getElementById('ruleCategorySelect');
+        const descInp = document.getElementById('ruleDescInput');
+        const title = titleInp.value.trim();
+        if (!title || mode !== 'local') return;
 
-  const t = tasks.find(t => t.id === span.dataset.edit);
-  if (!t) return;
-  const val = span.textContent.trim();
-  if (!val) {
-    span.textContent = span._original; // revert empty
-  } else if (val !== span._original) {
-    t.title = val;
-    t.updatedAt = new Date().toISOString();
-    await save();
-  }
-}
+        const category = catSelect.value || 'Code Quality';
+        const desc = descInp.value.trim();
 
-// Activate on click (only on the title span, not checkbox/delete)
-document.getElementById('taskList').addEventListener('click', e => {
-  if (mode !== 'local') return;
-  const span = e.target.closest('.task-title[data-edit]');
-  if (span) { e.stopPropagation(); startEdit(span); }
-});
+        rules.push(makeRule(title, category, desc));
+        titleInp.value = '';
+        descInp.value = '';
+        renderRules();
+        await save();
+      });
 
-// Commit on blur (fires when focus leaves the span for any reason)
-document.getElementById('taskList').addEventListener('blur', e => {
-  const span = e.target.closest
-    ? e.target.closest('.task-title[data-edit]')
-    : null;
-  if (span) commitEdit(span);
-}, true);
+      // Task interactions (Check, Delete)
+      document.getElementById('taskList').addEventListener('click', async (e) => {
+        if (mode !== 'local') return;
 
-// Enter = commit, Escape = revert
-document.getElementById('taskList').addEventListener('keydown', e => {
-  const span = e.target.closest?.('.task-title[data-edit]');
-  if (!span || span.contentEditable !== 'true') return;
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    span.blur();
-  }
-  if (e.key === 'Escape') {
-    span.textContent = span._original;
-    span.contentEditable = 'false';
-    span.closest('.task-item').classList.remove('editing');
-  }
-});
+        const cb = e.target.closest('.checkbox');
+        if (cb) {
+          e.preventDefault();
+          const t = tasks.find((t) => t.id === cb.dataset.id);
+          if (t) {
+            t.completed = !t.completed;
+            t.updatedAt = new Date().toISOString();
+            renderTasks();
+            await save();
+          }
+          return;
+        }
 
-document.querySelectorAll('.filter-btn').forEach(btn =>
-  btn.addEventListener('click', () => {
-    filter = btn.dataset.filter;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    render();
-  })
-);
+        const db = e.target.closest('[data-taskdel]');
+        if (db) {
+          tasks = tasks.filter((t) => t.id !== db.dataset.taskdel);
+          renderTasks();
+          await save();
+        }
+      });
 
-// ─── Init ──────────────────────────────────────────────────────────────────
-(async () => {
-  // File System Access API supported?
-  if (!window.showDirectoryPicker) {
-    // degrade: GitHub read-only only
-    document.getElementById('connectBtn').style.display = 'none';
-    document.getElementById('bannerConnectBtn').style.display = 'none';
-  }
-  await load();
-  render();
-})();
-</script>
-</body>
+      // Rule interactions (Toggle active, Delete)
+      document.getElementById('ruleList').addEventListener('click', async (e) => {
+        if (mode !== 'local') return;
+
+        const toggleBtn = e.target.closest('[data-ruletoggle]');
+        if (toggleBtn) {
+          e.preventDefault();
+          const r = rules.find((r) => r.id === toggleBtn.dataset.ruletoggle);
+          if (r) {
+            r.active = r.active === false ? true : false;
+            r.updatedAt = new Date().toISOString();
+            renderRules();
+            await save();
+          }
+          return;
+        }
+
+        const db = e.target.closest('[data-ruledel]');
+        if (db) {
+          rules = rules.filter((r) => r.id !== db.dataset.ruledel);
+          renderRules();
+          await save();
+        }
+      });
+
+      // ─── Inline Editing for Tasks ──────────────────────────────────────────────
+      function startInlineEdit(span, fieldName = 'title') {
+        if (span.contentEditable === 'true') return;
+        span._original = span.textContent;
+        span.contentEditable = 'true';
+        span.closest('.task-item, .rule-card')?.classList.add('editing');
+        span.focus();
+
+        if (!getSelection().rangeCount || !span.contains(getSelection().anchorNode)) {
+          const range = document.createRange();
+          range.selectNodeContents(span);
+          range.collapse(false);
+          getSelection().removeAllRanges();
+          getSelection().addRange(range);
+        }
+      }
+
+      async function commitInlineEdit(span) {
+        if (span.contentEditable !== 'true') return;
+        span.contentEditable = 'false';
+        span.closest('.task-item, .rule-card')?.classList.remove('editing');
+
+        const taskId = span.dataset.taskedit;
+        if (taskId) {
+          const t = tasks.find((t) => t.id === taskId);
+          if (!t) return;
+          const val = span.textContent.trim();
+          if (!val) span.textContent = span._original;
+          else if (val !== span._original) {
+            t.title = val;
+            t.updatedAt = new Date().toISOString();
+            await save();
+          }
+          return;
+        }
+
+        const ruleTitleId = span.dataset.ruleedittitle;
+        if (ruleTitleId) {
+          const r = rules.find((r) => r.id === ruleTitleId);
+          if (!r) return;
+          const val = span.textContent.trim();
+          if (!val) span.textContent = span._original;
+          else if (val !== span._original) {
+            r.title = val;
+            r.updatedAt = new Date().toISOString();
+            await save();
+          }
+          return;
+        }
+
+        const ruleDescId = span.dataset.ruleeditdesc;
+        if (ruleDescId) {
+          const r = rules.find((r) => r.id === ruleDescId);
+          if (!r) return;
+          const val = span.textContent.trim();
+          if (val !== span._original) {
+            r.description = val;
+            r.updatedAt = new Date().toISOString();
+            await save();
+          }
+          return;
+        }
+      }
+
+      // Click to edit
+      document.addEventListener('click', (e) => {
+        if (mode !== 'local') return;
+        const target = e.target.closest(
+          '[data-taskedit], [data-ruleedittitle], [data-ruleeditdesc]'
+        );
+        if (target) {
+          e.stopPropagation();
+          startInlineEdit(target);
+        }
+      });
+
+      // Blur to commit
+      document.addEventListener(
+        'blur',
+        (e) => {
+          const target = e.target.closest?.(
+            '[data-taskedit], [data-ruleedittitle], [data-ruleeditdesc]'
+          );
+          if (target) commitInlineEdit(target);
+        },
+        true
+      );
+
+      // Keydown: Enter commits (unless Shift+Enter in desc), Escape reverts
+      document.addEventListener('keydown', (e) => {
+        const span = e.target.closest?.(
+          '[data-taskedit], [data-ruleedittitle], [data-ruleeditdesc]'
+        );
+        if (!span || span.contentEditable !== 'true') return;
+
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          span.blur();
+        }
+        if (e.key === 'Escape') {
+          span.textContent = span._original;
+          span.contentEditable = 'false';
+          span.closest('.task-item, .rule-card')?.classList.remove('editing');
+        }
+      });
+
+      // Filter buttons
+      document.querySelectorAll('[data-taskfilter]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          taskFilter = btn.dataset.taskfilter;
+          document
+            .querySelectorAll('[data-taskfilter]')
+            .forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderTasks();
+        });
+      });
+
+      document.querySelectorAll('[data-rulefilter]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          ruleFilter = btn.dataset.rulefilter;
+          document
+            .querySelectorAll('[data-rulefilter]')
+            .forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderRules();
+        });
+      });
+
+      // ─── Init ──────────────────────────────────────────────────────────────────
+      (async () => {
+        if (!window.showDirectoryPicker) {
+          document.getElementById('connectBtn').style.display = 'none';
+          document.getElementById('bannerConnectBtn').style.display = 'none';
+        }
+        await load();
+        render();
+      })();
+    </script>
+  </body>
 </html>

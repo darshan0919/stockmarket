@@ -1,9 +1,12 @@
 ---
 description: Frontend-specific rules for Next.js React development
-globs: ["frontend/**/*"]
+globs: ["frontend/**/*", "screener-web/**/*"]
 ---
 
 # Frontend Development Rules
+
+> Canonical, tool-agnostic rules live in [`AGENTS.md`](../../AGENTS.md).
+> Key workspaces: `screener-web/` (primary Next.js 14 web app), `frontend/` (legacy).
 
 ## Directory Structure
 

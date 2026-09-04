@@ -6,25 +6,44 @@ globs: ['**/*']
 # Stock Screener Project Rules
 
 > Canonical, tool-agnostic rules live in [`AGENTS.md`](../../AGENTS.md) — read
-> that first. This file adds Cursor-specific detail (templates, file-location
-> tables) on top of it; don't restate `AGENTS.md` content here.
+> that first. This file provides Cursor-specific guidance while maintaining
+> 100% parity with repo-wide standards.
 
 ## Project Overview
 
-This is a full-stack stock market analysis application with:
+This is a full-stack Indian stock-market research platform and monorepo (Yarn 3):
 
-- **Backend**: Express.js REST API with MongoDB (`backend/`)
-- **Frontend**: Next.js 14 React application (`frontend/`)
-- **Documentation**: Comprehensive docs in `docs/`
+- **`screener-web/`**: Next.js 14 React application (primary screener UI)
+- **`screener-api/`**: Express.js REST service layer
+- **`stock-api/`**: Exchange, Stockscans, and corporate filing API services
+- **`packages/jobs-runtime/`**: Shared data, environment, and job-scheduling runtime (`lib/db.js`)
+- **`skills/`**: Agent skills (equity research, concall analysis, forensic accounting)
+- **`jobs/Scheduled/`**: Scheduled digests, scanners, and background workers
+- **`backend/` & `frontend/`**: Legacy service & client workspaces
+- **`docs/`**: Architecture, API reference, testing, and data ecosystem guides
+
+## Permanent Development Rules (Mirroring AGENTS.md & data/tasks.json)
+
+Every code change in Cursor MUST strictly observe the permanent rules:
+
+1. **Clean Code**: Reusability first, modularity, minimal code, zero session debris. Always check shared utilities (`packages/jobs-runtime/lib/`, `stock-api/src/utils/`) before writing new code.
+2. **Workspace Facade Pattern**: `package.json` is the only invocation surface. Always run scripts via `yarn <script>`, never via raw `node path/to/script.js`.
+3. **Data Layer Chokepoint**: Never write files under `data/` directly; only `packages/jobs-runtime/lib/db.js` persists data. `data/` is gitignored.
+4. **Mandatory Quality Sweep**: Format (`yarn format`), lint (`yarn lint`), and test (`yarn test`). Run `yarn quality` before completion.
+5. **API Integrations**: Fully typed with JSDoc (`@param`, `@returns`, `@typedef`), documented in `docs/*-api-schemas.md`, modular by provider, never duplicated.
+6. **Documentation Coverage**: Discoverable docs for every script, API, skill, and workflow in the same change.
+7. **Safety Rails**: Never git commit or push directly; leave working tree unstaged for user review. Never use git commands that write to the repository.
+8. **Multi-Platform Rules Parity**: Rules across Cursor, Claude, and Antigravity are kept in sync with `AGENTS.md`. Verify with `yarn rules:check`.
 
 ## Documentation Requirements
 
 ### MANDATORY: Update documentation for every change
 
 1. **For new features/functions**: Add JSDoc comments and update relevant docs in `docs/`
-2. **For API changes**: Update `docs/API_REFERENCE.md`
+2. **For API changes**: Update `docs/API_REFERENCE.md` and `docs/<provider>-api-schemas.md`
 3. **For architecture changes**: Update `docs/ARCHITECTURE.md`
-4. **For new components**: Document props and usage in component file
+4. **For runnable scripts**: Document in the nearest `README.md`
+5. **For new components**: Document props and usage in component file
 
 ### JSDoc Template
 
@@ -37,7 +56,7 @@ This is a full-stack stock market analysis application with:
  *
  * @example
  * // Usage example
- * functionName(param)
+ * functionName(param);
  *
  * @see {@link docs/path/to/doc.md} for detailed documentation
  */
@@ -47,9 +66,9 @@ This is a full-stack stock market analysis application with:
 
 ### MANDATORY: Add tests for every change
 
-1. **Backend tests**: Place in `__tests__/` folder next to source file
-2. **Frontend tests**: Place in `__tests__/` folder next to source file
-3. **Test naming**: `[filename].test.js`
+1. **Unit tests**: Place in `__tests__/` folder next to source file
+2. **Test naming**: `[filename].test.js`
+3. **Run tests**: `yarn test` from repo root
 
 ### Test File Template
 
@@ -81,42 +100,32 @@ describe('ModuleName', () => {
 });
 ```
 
-## Code Formatting
+## Code Formatting & Quality
 
-- **Prettier** is configured - run `npm run format` before committing
-- Configuration: `.prettierrc` in project root
+- **Prettier & ESLint**: Run `yarn format` and `yarn lint:fix`
+- **Pre-submit Verification**: Run `yarn quality` (runs `rules:check`, `format:check`, `lint`, and `test`)
 
 ## Key File Locations
 
-| Purpose        | Backend                  | Frontend          |
-| -------------- | ------------------------ | ----------------- |
-| Entry point    | `server.js`              | `pages/_app.js`   |
-| API routes     | `routes/*.js`            | N/A               |
-| Business logic | `controllers/*.js`       | N/A               |
-| Data models    | `models/*.js`            | N/A               |
-| External APIs  | `api/*.js`               | `lib/api.js`      |
-| Utilities      | `utils/*.js`             | `lib/utils/*.js`  |
-| Components     | N/A                      | `components/*.js` |
-| Custom hooks   | N/A                      | `lib/hooks/*.js`  |
-| Tests          | `tests/`, `*/__tests__/` | `*/__tests__/`    |
-
-## Code Navigation Tips
-
-- **Main documentation index**: `docs/README.md`
-- **API documentation**: `docs/API_REFERENCE.md`
-- **Architecture overview**: `docs/ARCHITECTURE.md`
-- **Backend guide**: `docs/backend/README.md`
-- **Frontend guide**: `docs/frontend/README.md`
-- **Testing guide**: `docs/TESTING.md`
+| Purpose            | Active Workspace               | Key Paths                                         |
+| ------------------ | ------------------------------ | ------------------------------------------------- |
+| Web Application    | `screener-web/`                | `pages/`, `src/features/`, `src/core/components/` |
+| REST API           | `screener-api/`                | `src/routes/`, `src/controllers/`, `server.js`    |
+| Stock / Filings    | `stock-api/`                   | `src/api/`, `src/utils/`                          |
+| Jobs Runtime & DB  | `packages/jobs-runtime/`       | `lib/db.js`, `lib/env.js`                         |
+| Skills             | `skills/`                      | `equity-research/`, `tooling/`, `registry.json`   |
+| Scheduled Tasks    | `jobs/Scheduled/`              | Task directories with `SKILL.md`                  |
+| Documentation      | `docs/`                        | `README.md`, `ARCHITECTURE.md`, `DATA_RULES.md`   |
+| Tasks & Dev Rules  | `tools/tasks/`, `data/`        | `tools/tasks/index.html`, `data/tasks.json`       |
 
 ## Browser Tips
 
-- Whenever navigating to: https://www.stockscans.in/ Use credentials from backend/.env -> GMAIL_USERNAME & GMAIL_PASSWORD
+- Whenever navigating to: `https://www.stockscans.in/` use credentials from `backend/.env` -> `GMAIL_USERNAME` & `GMAIL_PASSWORD`
 
-## Before Submitting Changes
+## Before Submitting Changes Checklist
 
-1. ✅ Run `npm run format` in both backend and frontend
-2. ✅ Run `npm test` in both backend and frontend
-3. ✅ Update relevant documentation
-4. ✅ Add/update tests for changes
-5. ✅ Verify no linter errors
+1. ✅ Run `yarn quality` (verifies rules sync, formatting, linting, and tests)
+2. ✅ Respect Workspace Facade: invoke all operations via `yarn <script>`
+3. ✅ Never write directly under `data/` (use `packages/jobs-runtime/lib/db.js`)
+4. ✅ Update relevant documentation and API schemas
+5. ✅ Leave working tree unstaged — never `git commit` or `git push`

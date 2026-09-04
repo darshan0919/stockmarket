@@ -1,9 +1,13 @@
 ---
-description: Backend-specific rules for Express.js API development
-globs: ["backend/**/*"]
+description: Backend-specific rules for Express.js API development and services
+globs: ["backend/**/*", "screener-api/**/*", "stock-api/**/*", "packages/jobs-runtime/**/*"]
 ---
 
 # Backend Development Rules
+
+> Canonical, tool-agnostic rules live in [`AGENTS.md`](../../AGENTS.md).
+> Key workspaces: `screener-api/` (main API), `stock-api/` (data services),
+> `packages/jobs-runtime/` (jobs runtime & DB access), `backend/` (legacy).
 
 ## Directory Structure
 

@@ -5,12 +5,13 @@ This file is a legacy fallback for Cursor versions that don't read
 new rule content here**, it will drift:
 
 1. [`AGENTS.md`](AGENTS.md) — canonical, tool-agnostic repo rules (mandatory
-   formatting/testing/docs/data-layer requirements, project overview).
+   formatting/testing/docs/data-layer requirements, permanent development rules,
+   and multi-platform parity).
 2. [`.cursor/rules/`](.cursor/rules/) — Cursor-native glob-scoped rules:
    `general.mdc`, `backend.mdc`, `frontend.mdc`, `testing.mdc`,
    `documentation.mdc`, `jira.mdc`. These are picked up automatically per
-   file glob and contain the code templates (controller/component/test
-   boilerplate) that used to live in this file.
+   file glob and contain code templates and workspace-specific guidance.
 
 Read `AGENTS.md` first, then whichever `.cursor/rules/*.mdc` matches the
-files you're editing.
+files you're editing. Verify rule synchronization anytime rules change with
+`yarn rules:check`.

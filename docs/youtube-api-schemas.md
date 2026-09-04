@@ -11,7 +11,7 @@ Single source of truth for every YouTube endpoint `youtubeTranscriptRefresh.js`
 The official `captions.download` endpoint (YouTube Data API v3) is **not**
 used here — it requires OAuth2 as the video's owner/channel manager, which
 only works for videos in the authenticated user's own channel. Fetching a
-transcript for someone else's public channel (e.g. `@SOICfinance`) is not
+transcript for someone else's public channel (e.g. `@SOICfinance`, `@AnilLamba`) is not
 possible through the official captions API, so this pipeline uses the same
 unofficial caption-track approach as widely-used libraries like
 `youtube-transcript`/`youtube-transcript-api`.
@@ -41,7 +41,7 @@ if no API key is set. That OAuth2 path requires:
 
 ## 1. GET youtube.googleapis.com/youtube/v3/channels (`forHandle`)
 
-Resolves a channel handle (e.g. `@SOICfinance`) to its channel id and its
+Resolves a channel handle (e.g. `@SOICfinance` or `@AnilLamba`) to its channel id and its
 "uploads" playlist id (every channel has one auto-generated playlist
 containing all its public uploads in reverse-chronological order).
 
@@ -54,10 +54,12 @@ GET https://www.googleapis.com/youtube/v3/channels
     &key=<YOUTUBE_API_KEY>
 ```
 
-`forHandle` takes the handle **without** the leading `@`. Alternatively
-`forUsername` (legacy custom URLs) or `id` (a known channel id, `UC...`) can
-be passed instead — the script accepts a raw channel id via `--channel-id` to
-skip this lookup entirely.
+`forHandle` takes the handle **without** the leading `@`. Full URLs (e.g.
+`https://www.youtube.com/@AnilLamba`) are automatically parsed and normalized.
+Alternatively `forUsername` (legacy custom URLs) or `id` (a known channel id, `UC...`) can
+be passed instead — the script accepts raw channel ids via `--channel-id` / `--channel-ids` to
+skip this lookup entirely. Multiple channels can be supplied via `--channels @SOICfinance,@AnilLamba`
+or `YOUTUBE_CHANNEL_HANDLES`.
 
 **Response:**
 

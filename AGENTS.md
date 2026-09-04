@@ -46,7 +46,7 @@ Start at [`docs/README.md`](docs/README.md) for the documentation index and
 7. **Follow existing patterns.** Don't introduce a new abstraction, styling
    approach, or state-management pattern when one already exists in the file
    you're touching or its neighbors — match what's there.
-8. Quick pre-submit sweep: `yarn quality` (format:check + lint + test).
+8. Quick pre-submit sweep: `yarn quality` (rules:check + format:check + lint + test).
 
 Backend- and frontend-specific structure, templates, and checklists:
 [`.cursor/rules/backend.mdc`](.cursor/rules/backend.mdc) ·
@@ -204,12 +204,33 @@ Every AI coding tool used on this repo loads its own conventionally-named
 file first; each of those is a thin pointer back to this document plus
 whatever is genuinely tool-specific:
 
-| Tool                        | Entry point                                                             | Tool-specific content                                  |
-| --------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
-| Claude Code / Claude Cowork | [`CLAUDE.md`](CLAUDE.md)                                                | session/runtime notes only                             |
-| Cursor                      | [`.cursorrules`](.cursorrules), [`.cursor/rules/*.mdc`](.cursor/rules/) | glob-scoped rules (backend/frontend/testing/docs/jira) |
-| Antigravity / Gemini        | [`.gemini/rules/*.md`](.gemini/rules/)                                  | Antigravity sidecar/skill sync mechanics               |
+| Tool                        | Entry point                                                                | Tool-specific content                                  |
+| --------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Claude Code / Claude Cowork | [`CLAUDE.md`](CLAUDE.md)                                                   | session/runtime notes only                             |
+| Cursor                      | [`.cursorrules`](.cursorrules), [`.cursor/rules/*.mdc`](.cursor/rules/)    | glob-scoped rules (backend/frontend/testing/docs/jira) |
+| Antigravity / Gemini        | [`.gemini/rules/*.md`](.gemini/rules/), [`.agents/rules/`](.agents/rules/) | Antigravity sidecar/skill sync mechanics & rules       |
 
 If you're adding a new mandatory rule, add it here first, then (only if a
 tool needs a glob-scoped or mechanism-specific variant) add a short pointer
 in the relevant tool file — never restate the rule body twice.
+
+## 12. Permanent Development Rules & Multi-Platform Parity
+
+There are core development principles that are **permanent** across all AI coding sessions. These rules are registered in [`data/tasks.json`](data/tasks.json) under the `rules` array, visualized and managed in the Task & Rules Tracker ([`tools/tasks/index.html`](tools/tasks/index.html)), and enforced across all AI agents:
+
+1. **Clean Code**: Reusability first, modularity, minimal code, zero session debris. Always check shared utilities (`packages/jobs-runtime/lib/`, `stock-api/src/utils/`) before writing new code.
+2. **Workspace Facade Pattern**: `package.json` is the only invocation surface. Always run scripts via `yarn <script>`, never via raw `node path/to/script.js`.
+3. **Data Layer Chokepoint**: Never write files under `data/` directly; only `packages/jobs-runtime/lib/db.js` persists data. `data/` is gitignored.
+4. **Mandatory Quality Sweep**: Always format (`yarn format`), lint (`yarn lint`), and test (`yarn test`) before completing changes.
+5. **API Integrations**: Fully typed with JSDoc (`@param`, `@returns`, `@typedef`), documented in `docs/*-api-schemas.md`, modular by provider, never duplicated.
+6. **Documentation Coverage**: Discoverable documentation for every script, API, skill, scheduled task, and workflow in the same change.
+7. **Safety Rails**: Never git commit or push directly; leave working tree unstaged for user review. Never use git commands that write to the repository.
+8. **Multi-Platform Rules Parity**: The rule files across Claude (`CLAUDE.md`), Cursor (`.cursorrules`, `.cursor/rules/*.mdc`), and Antigravity (`.gemini/rules/*.md`, `.agents/rules/*.md`) must stay 100% in sync with `AGENTS.md`. Run `yarn rules:sync` when modifying rules, and verify with `yarn rules:check`.
+
+### Future sync enforcement
+
+Whenever modifying or adding any coding rule:
+
+- Edit `AGENTS.md` first as the single source of truth.
+- Run `yarn rules:sync` to ensure platform entry points (`CLAUDE.md`, `.cursor/rules/general.mdc`, `.cursorrules`, `.gemini/rules/`, `.agents/rules/`) and `data/tasks.json` remain in sync.
+- Pre-submit sweep (`yarn quality`) automatically runs `yarn rules:check` to prevent any drift between platforms.

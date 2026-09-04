@@ -18,6 +18,104 @@ describe('youtubeTranscriptRefresh', () => {
     test('defaults recheckNoCaptions to false when not provided', () => {
       const args = ytr.parseArgs(['node', 'youtubeTranscriptRefresh.js']);
       expect(args.recheckNoCaptions).toBe(false);
+      expect(args.channelHandles).toBeNull();
+      expect(args.channelIds).toBeNull();
+    });
+
+    test('parses single channel handle and normalizes leading @', () => {
+      const args = ytr.parseArgs([
+        'node',
+        'youtubeTranscriptRefresh.js',
+        '--channel-handle',
+        '@AnilLamba',
+      ]);
+      expect(args.channelHandle).toBe('AnilLamba');
+      expect(args.channelHandles).toEqual(['AnilLamba']);
+    });
+
+    test('parses full YouTube channel URL into clean handle', () => {
+      const args = ytr.parseArgs([
+        'node',
+        'youtubeTranscriptRefresh.js',
+        '--channel-handle',
+        'https://www.youtube.com/@AnilLamba',
+      ]);
+      expect(args.channelHandle).toBe('AnilLamba');
+      expect(args.channelHandles).toEqual(['AnilLamba']);
+    });
+
+    test('parses multiple channels from comma-separated --channels flag', () => {
+      const args = ytr.parseArgs([
+        'node',
+        'youtubeTranscriptRefresh.js',
+        '--channels',
+        '@SOICfinance,https://www.youtube.com/@AnilLamba',
+      ]);
+      expect(args.channelHandle).toBe('SOICfinance');
+      expect(args.channelHandles).toEqual(['SOICfinance', 'AnilLamba']);
+    });
+
+    test('parses multiple repeated --channel-handle flags', () => {
+      const args = ytr.parseArgs([
+        'node',
+        'youtubeTranscriptRefresh.js',
+        '--channel-handle',
+        '@SOICfinance',
+        '--channel-handle',
+        '@AnilLamba',
+      ]);
+      expect(args.channelHandles).toEqual(['SOICfinance', 'AnilLamba']);
+    });
+
+    test('parses multiple channel IDs via --channel-id and --channel-ids', () => {
+      const args = ytr.parseArgs([
+        'node',
+        'youtubeTranscriptRefresh.js',
+        '--channel-id',
+        'UC_1111',
+        '--channel-ids',
+        'UC_2222,UC_3333',
+      ]);
+      expect(args.channelId).toBe('UC_1111');
+      expect(args.channelIds).toEqual(['UC_1111', 'UC_2222', 'UC_3333']);
+    });
+  });
+
+  describe('normalizeChannelHandle', () => {
+    test('normalizes plain handle, handle with @, and full URLs', () => {
+      expect(ytr.normalizeChannelHandle('SOICfinance')).toBe('SOICfinance');
+      expect(ytr.normalizeChannelHandle('@SOICfinance')).toBe('SOICfinance');
+      expect(ytr.normalizeChannelHandle('https://www.youtube.com/@AnilLamba')).toBe('AnilLamba');
+      expect(ytr.normalizeChannelHandle('https://youtube.com/@AnilLamba/videos')).toBe('AnilLamba');
+      expect(ytr.normalizeChannelHandle('https://www.youtube.com/c/AnilLamba')).toBe('AnilLamba');
+      expect(ytr.normalizeChannelHandle('')).toBe('');
+      expect(ytr.normalizeChannelHandle(null)).toBe('');
+    });
+  });
+
+  describe('loadConfig', () => {
+    const origEnv = process.env;
+    beforeEach(() => {
+      process.env = { ...origEnv };
+      delete process.env.YOUTUBE_CHANNEL_HANDLES;
+      delete process.env.YOUTUBE_CHANNELS;
+      delete process.env.YOUTUBE_CHANNEL_HANDLE;
+    });
+    afterAll(() => {
+      process.env = origEnv;
+    });
+
+    test('defaults channelHandles to SOICfinance and AnilLamba', () => {
+      const cfg = ytr.loadConfig();
+      expect(cfg.channelHandles).toEqual(['SOICfinance', 'AnilLamba']);
+      expect(cfg.channelHandle).toBe('SOICfinance');
+    });
+
+    test('respects YOUTUBE_CHANNEL_HANDLES env var', () => {
+      process.env.YOUTUBE_CHANNEL_HANDLES = '@AnilLamba,@SOICfinance';
+      const cfg = ytr.loadConfig();
+      expect(cfg.channelHandles).toEqual(['AnilLamba', 'SOICfinance']);
+      expect(cfg.channelHandle).toBe('AnilLamba');
     });
   });
 

@@ -269,10 +269,17 @@ function syncAllSkills() {
   );
 }
 
+function syncRules() {
+  console.log('\n🔄 [3/3] Syncing Multi-Platform Rules...');
+  const { execSync } = require('child_process');
+  execSync(`node "${path.resolve(__dirname, 'sync-rules.js')}" --fix`, { stdio: 'inherit' });
+}
+
 function main() {
   syncScheduledTasks();
   syncAllSkills();
-  console.log('\n🎉 Antigravity Tasks & Skills Synchronization Complete!\n');
+  syncRules();
+  console.log('\n🎉 Antigravity Tasks, Skills & Rules Synchronization Complete!\n');
 }
 
 main();
