@@ -69,7 +69,7 @@ and none is to be added.
 
 ## Judgment — the part that isn't scripted
 
-The table is generated; the *read* is yours. In the email, lead with what
+The table is generated; the _read_ is yours. In the email, lead with what
 changed, not with the fact that the job ran. A single company's YoY spike is
 usually noise or a small base; two or three companies in the same sector moving
 the same way in the same month is a signal. Say which of the two you're looking

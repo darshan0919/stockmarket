@@ -6,7 +6,7 @@
 
 ## Overview
 
-The backend is an Express.js REST API server that provides stock market data by integrating with NSE India, BSE India, and Gemini AI APIs.
+The backend is an Express.js REST API server that provides stock market data by integrating with NSE India and BSE India APIs.
 
 ## Directory Structure
 
@@ -14,10 +14,7 @@ The backend is an Express.js REST API server that provides stock market data by 
 backend/
 ├── api/                    # External API integrations
 │   ├── nseIndiaApi.js     # NSE India API client
-│   ├── bseIndiaApi.js     # BSE India API client
-│   ├── geminiApi.js       # Gemini AI integration
-│   ├── orderParser.js     # PDF order parsing
-│   └── orderbookBaselineParser.js  # Orderbook calculations
+│   └── bseIndiaApi.js     # BSE India API client
 ├── config/
 │   └── database.js        # MongoDB connection
 ├── controllers/            # Request handlers
@@ -36,12 +33,7 @@ backend/
 │   ├── PriceHistory.js
 │   ├── Fundamental.js
 │   ├── Watchlist.js
-│   ├── Orderbook.js
-│   └── ModelResponse.js
-├── prompts/                # AI prompts
-│   ├── earning_call.txt
-│   ├── order_extraction.txt
-│   └── orderbook_baseline.txt
+│   └── Orderbook.js
 ├── routes/                 # API routes
 │   ├── stocks.js
 │   ├── screener.js
@@ -92,7 +84,6 @@ backend/
 | --------- | -------------------------------------- | --------------------- |
 | NSE India | [nseIndiaApi.js](./api/nseIndiaApi.md) | NSE India integration |
 | BSE India | [bseIndiaApi.js](./api/bseIndiaApi.md) | BSE India integration |
-| Gemini AI | [geminiApi.js](./api/geminiApi.md)     | AI analysis           |
 
 ## Development
 
@@ -133,7 +124,6 @@ yarn workspace stock-screener-backend format:check
 | `PORT`                                 | No       | Server port (default: 5000)                              |
 | `MONGODB_URI`                          | Yes      | MongoDB connection string                                |
 | `NODE_ENV`                             | No       | Environment (development/production)                     |
-| `GEMINI_API_KEY`                       | Yes      | Google Gemini API key                                    |
 | `TWITTER_AUTH_TOKEN`                   | Yes\*    | `auth_token` cookie for x.com GraphQL (Tweet Downloader) |
 | `TWITTER_CSRF_TOKEN`                   | Yes\*    | `ct0` cookie / `x-csrf-token` for x.com GraphQL          |
 | `TWITTER_USER_BY_SCREEN_NAME_QUERY_ID` | Yes\*    | GraphQL query id for handle → user id lookup             |

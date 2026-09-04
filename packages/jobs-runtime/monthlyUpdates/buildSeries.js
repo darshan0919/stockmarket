@@ -77,9 +77,12 @@ function buildCompanySeries(parsedRecords) {
     // reclassifications our history wouldn't know about — and fall back to the
     // series only when the filing didn't state one.
     const yoyBaseFromSeries = byPeriod.get(addMonths(latest.period, -12));
-    const yoyBase = latest.priorYearValue !== null && latest.priorYearValue !== undefined
-      ? latest.priorYearValue
-      : (yoyBaseFromSeries ? yoyBaseFromSeries.value : null);
+    const yoyBase =
+      latest.priorYearValue !== null && latest.priorYearValue !== undefined
+        ? latest.priorYearValue
+        : yoyBaseFromSeries
+          ? yoyBaseFromSeries.value
+          : null;
 
     // QoQ on a monthly series = latest 3 months vs the preceding 3 months,
     // which is the like-for-like comparison; a single month vs a single month
@@ -115,8 +118,17 @@ function buildCompanySeries(parsedRecords) {
     // Normalise the unit and classify what kind of quantity this is, so the
     // UI can refuse to compare things that aren't comparable (see
     // normalizeUnit.js for why the raw labels can't be trusted on their own).
-    const u = normalizeUnit(latest.unit, { companyId: entry.companyId, scope: latest.scope, notes: latest.notes });
-    const periodType = classifyPeriodType({ scope: latest.scope, metricName: latest.metricName, notes: latest.notes, cadence });
+    const u = normalizeUnit(latest.unit, {
+      companyId: entry.companyId,
+      scope: latest.scope,
+      notes: latest.notes,
+    });
+    const periodType = classifyPeriodType({
+      scope: latest.scope,
+      metricName: latest.metricName,
+      notes: latest.notes,
+      cadence,
+    });
 
     out.push({
       companyId: entry.companyId,
@@ -130,7 +142,10 @@ function buildCompanySeries(parsedRecords) {
       // Comparable base value: the printed figure expressed in the family's
       // base unit (Rs cr for currency, tonnes for volume). Null when the unit
       // couldn't be resolved — better absent than silently wrong.
-      canonicalValue: u.multiplier !== null && latest.value !== null ? Number((latest.value * u.multiplier).toPrecision(12)) : null,
+      canonicalValue:
+        u.multiplier !== null && latest.value !== null
+          ? Number((latest.value * u.multiplier).toPrecision(12))
+          : null,
       periodType,
       isFlow: periodType !== 'stock',
       metricName: latest.metricName,
@@ -143,14 +158,24 @@ function buildCompanySeries(parsedRecords) {
       isMonthly,
       momPct: isMonthly && prevMonth ? pct(latest.value, prevMonth.value) : null,
       yoyPct: pct(latest.value, yoyBase),
-      yoyBasis: latest.priorYearValue !== null && latest.priorYearValue !== undefined ? 'filing-stated' : (yoyBaseFromSeries ? 'series' : null),
+      yoyBasis:
+        latest.priorYearValue !== null && latest.priorYearValue !== undefined
+          ? 'filing-stated'
+          : yoyBaseFromSeries
+            ? 'series'
+            : null,
       qoqPct: qoq,
-      qoqBasis: isMonthly ? '3m-rollup' : (cadence === 3 ? 'consecutive-quarters' : null),
+      qoqBasis: isMonthly ? '3m-rollup' : cadence === 3 ? 'consecutive-quarters' : null,
       quarterSum: isMonthly && last3.length === 3 ? sum(last3) : null,
       priorQuarterSum: isMonthly && prev3.length === 3 ? sum(prev3) : null,
       months: series.length,
       segments: latest.segments,
-      series: series.map((s) => ({ period: s.period, value: s.value, confidence: s.confidence, ssUrl: s.ssUrl })),
+      series: series.map((s) => ({
+        period: s.period,
+        value: s.value,
+        confidence: s.confidence,
+        ssUrl: s.ssUrl,
+      })),
     });
   }
 

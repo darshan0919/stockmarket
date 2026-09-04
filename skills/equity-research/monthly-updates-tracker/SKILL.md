@@ -16,12 +16,12 @@ sortable growth table and a set of trend charts.
 
 Four passes, and the split between them is the point:
 
-| Pass | Who does it | Where |
-|---|---|---|
-| 1. Fetch + text-extract | script | `packages/jobs-runtime/monthlyUpdates/fetchUpdates.js`, `pdfText.js` |
-| 2. Slice numeric region | script | `tableSlice.js` |
-| 3. **Read the table** | **the agent running this skill** | batch files under `data/runs/monthly-updates-batches/` |
-| 4. Series, growth, render, publish | script | `buildSeries.js`, `persist.js`, `renderApp.js` |
+| Pass                               | Who does it                      | Where                                                                |
+| ---------------------------------- | -------------------------------- | -------------------------------------------------------------------- |
+| 1. Fetch + text-extract            | script                           | `packages/jobs-runtime/monthlyUpdates/fetchUpdates.js`, `pdfText.js` |
+| 2. Slice numeric region            | script                           | `tableSlice.js`                                                      |
+| 3. **Read the table**              | **the agent running this skill** | batch files under `data/runs/monthly-updates-batches/`               |
+| 4. Series, growth, render, publish | script                           | `buildSeries.js`, `persist.js`, `renderApp.js`                       |
 
 **Pass 3 never calls a model API.** There is no API key in this pipeline and
 none should be added — `modelClient.js` is a deliberate tombstone recording
@@ -102,7 +102,7 @@ Flags: `--months N` (default 15), `--max-day N` (default 3), `--force`.
   stored history can't know about. Falls back to the same month in our history.
   `yoyBasis` records which was used.
 - **Cadence matters.** Not every filer in this scan is monthly — banks, NBFCs
-  and several retailers file *quarterly* updates through the same announcement
+  and several retailers file _quarterly_ updates through the same announcement
   categories. `buildSeries.js` detects cadence from the median gap between
   periods; for a quarterly filer MoM is suppressed and QoQ becomes
   latest-quarter-vs-previous. Summing three quarterly points as if they were

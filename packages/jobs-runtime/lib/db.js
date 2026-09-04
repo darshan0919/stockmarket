@@ -867,6 +867,20 @@ function hasLearnystAttachment(filename) {
     return false;
   }
 }
+function learnystVideoPath(filename) {
+  init();
+  const dir = path.join(DIRS.assets(), 'learnyst-videos');
+  fs.mkdirSync(dir, { recursive: true });
+  return path.join(dir, filename);
+}
+function hasLearnystVideo(filename) {
+  const p = path.join(DIRS.assets(), 'learnyst-videos', filename);
+  try {
+    return fs.existsSync(p) && fs.statSync(p).size > 0;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Resolve a locally-written data/ artifact (PDF, HTML, etc.) to its Drive-shareable
@@ -933,6 +947,8 @@ module.exports = {
   cachePath,
   learnystAttachmentPath,
   hasLearnystAttachment,
+  learnystVideoPath,
+  hasLearnystVideo,
   resolveDriveUrl,
   touchedFiles,
   trackTouched, // run manifest (docs/DATA_RULES.md §8)

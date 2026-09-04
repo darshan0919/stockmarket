@@ -10,26 +10,27 @@ The Stock Market AI Ecosystem is a full-stack, platform-agnostic suite for advan
 
 ## Quick Links
 
-| Document                                                  | Description                                                                             |
-| --------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| [Vision & Roadmap](./VISION_AND_ROADMAP.md)               | Project philosophy, goals, and roadmap                                                  |
-| [Architecture](./ARCHITECTURE.md)                         | System design and component overview                                                    |
-| [Data Ecosystem v2](./DATA_ECOSYSTEM.md)                  | Flat JSON collections in `data/` ↔ Drive `StockMarket/data/v2` — design, envelope, sync |
-| [Data Rules](./DATA_RULES.md)                             | MANDATORY checklist for any skill/job that persists data or adds a collection/type      |
-| [Skill Data Audit](./SKILL_DATA_AUDIT.md)                 | Per-skill classification: what each skill needs, generates, and stores                  |
-| [API Reference](./API_REFERENCE.md)                       | Complete REST API documentation                                                         |
-| [Backend Guide](./backend/README.md)                      | Backend development guide                                                               |
-| [Frontend Guide](./frontend/README.md)                    | Frontend development guide                                                              |
-| [Testing Guide](./TESTING.md)                             | Testing strategies and conventions                                                      |
-| [Contributing](./CONTRIBUTING.md)                         | Contribution guidelines                                                                 |
-| [Stockscans API Schemas](./stockscans-api-schemas.md)     | Stockscans endpoint payload/response contracts                                          |
-| [Anthropic API Schemas](./anthropic-api-schemas.md)       | Anthropic Messages API contract used by jobs-runtime digests                            |
-| [Order Book Extraction](./ORDER_BOOK_EXTRACTION.md)       | Order-book scraping/parsing pipeline                                                    |
-| [Model Cost Orchestration](./MODEL_COST_ORCHESTRATION.md) | Model selection and cost strategy across skills/jobs                                    |
-| [Skills doc](./SKILLS.md)                                 | How the `skills/` framework works                                                       |
-| [`screener-api/` README](../screener-api/README.md)       | Newer API service (see also `stock-api/README.md`)                                      |
-| [`stock-api/` README](../stock-api/README.md)             | Shared external-API clients + skill CLI entry points                                    |
-| [`screener-web/` README](../screener-web/README.md)       | Newer frontend                                                                          |
+| Document                                                    | Description                                                                             |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| [Vision & Roadmap](./VISION_AND_ROADMAP.md)                 | Project philosophy, goals, and roadmap                                                  |
+| [Architecture](./ARCHITECTURE.md)                           | System design and component overview                                                    |
+| [Data Ecosystem v2](./DATA_ECOSYSTEM.md)                    | Flat JSON collections in `data/` ↔ Drive `StockMarket/data/v2` — design, envelope, sync |
+| [Data Rules](./DATA_RULES.md)                               | MANDATORY checklist for any skill/job that persists data or adds a collection/type      |
+| [Skill Data Audit](./SKILL_DATA_AUDIT.md)                   | Per-skill classification: what each skill needs, generates, and stores                  |
+| [API Reference](./API_REFERENCE.md)                         | Complete REST API documentation                                                         |
+| [Backend Guide](./backend/README.md)                        | Backend development guide                                                               |
+| [Frontend Guide](./frontend/README.md)                      | Frontend development guide                                                              |
+| [Testing Guide](./TESTING.md)                               | Testing strategies and conventions                                                      |
+| [Contributing](./CONTRIBUTING.md)                           | Contribution guidelines                                                                 |
+| [Stockscans API Schemas](./stockscans-api-schemas.md)       | Stockscans endpoint payload/response contracts                                          |
+| [Anthropic API Schemas](./anthropic-api-schemas.md)         | Anthropic Messages API contract used by jobs-runtime digests                            |
+| [Order Book Extraction](./ORDER_BOOK_EXTRACTION.md)         | Order-book scraping/parsing pipeline                                                    |
+| [Model Cost Orchestration](./MODEL_COST_ORCHESTRATION.md)   | Model selection and cost strategy across skills/jobs                                    |
+| [Skills doc](./SKILLS.md)                                   | How the `skills/` framework works                                                       |
+| [`screener-api/` README](../screener-api/README.md)         | Newer API service (see also `stock-api/README.md`)                                      |
+| [`stock-api/` README](../stock-api/README.md)               | Shared external-API clients + skill CLI entry points                                    |
+| [`screener-web/` README](../screener-web/README.md)         | Newer frontend                                                                          |
+| [Dependency Tree Visualizer](../scripts/dependency-tree.js) | Visual multi-path dependency tree diagram generator for any variable or file            |
 
 > **Note**: several docs below aren't yet cross-linked from a Quick Links row
 > because their scope is narrower or they're partially superseded —
@@ -130,7 +131,6 @@ yarn dev
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/stockmarket
 NODE_ENV=development
-GEMINI_API_KEY=<your-gemini-api-key>
 ALPHA_VANTAGE_API_KEY=<your-alphavantage-key>
 FMP_API_KEY=<your-fmp-key>
 ```

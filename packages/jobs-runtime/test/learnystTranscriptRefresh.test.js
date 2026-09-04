@@ -36,6 +36,19 @@ describe('learnystTranscriptRefresh', () => {
       expect(args.skipAttachments).toBe(false);
     });
 
+    test('parses --video and --quality flags', () => {
+      const args = ltr.parseArgs([
+        'node',
+        'learnystTranscriptRefresh.js',
+        '--video',
+        '1223728',
+        '--quality',
+        'mq',
+      ]);
+      expect(args.videoLessonId).toBe('1223728');
+      expect(args.quality).toBe('MQ');
+    });
+
     test('defaults when flags not provided', () => {
       const args = ltr.parseArgs(['node', 'learnystTranscriptRefresh.js']);
       expect(args.only).toBeNull();
@@ -43,6 +56,8 @@ describe('learnystTranscriptRefresh', () => {
       expect(args.force).toBe(false);
       expect(args.skipAttachments).toBe(false);
       expect(args.attachmentsOnly).toBe(false);
+      expect(args.videoLessonId).toBeNull();
+      expect(args.quality).toBe('HQ');
       expect(args.moduleDelayMsOverride).toBeNull();
       expect(args.lessonLimit).toBeNull();
     });
@@ -558,6 +573,114 @@ describe('learnystTranscriptRefresh', () => {
         expect(fs.existsSync(targetFile)).toBe(false);
       } finally {
         global.fetch = originalFetch;
+      }
+    });
+  });
+
+  describe('sanitizeVideoFilename', () => {
+    test('sanitizes titles with special characters, punctuation, and spaces', () => {
+      expect(ltr.sanitizeVideoFilename('Class 1: Intro to Valuation & P/E!')).toBe(
+        'Class_1__Intro_to_Valuation___P_E_'
+      );
+      expect(ltr.sanitizeVideoFilename('')).toBe('lesson');
+      expect(ltr.sanitizeVideoFilename(null)).toBe('lesson');
+    });
+  });
+
+  describe('resolveLearnystVideoUrls', () => {
+    test('resolves full video track URLs and audio track URL from lesson_data', () => {
+      const lesson = {
+        id: 1223728,
+        lesson_data: JSON.stringify([
+          {
+            src_type: 2,
+            content_path: '110998/hashA/hashB/hashC',
+            content_path_extn: '0/enb13daa4730367c',
+          },
+        ]),
+      };
+
+      const res = ltr.resolveLearnystVideoUrls(lesson, {
+        streamingCdnBase: 'https://streaming-cdn-g.learnyst.com/v6/schools',
+      });
+
+      expect(res).not.toHaveProperty('error');
+      expect(res.contentPath).toBe('110998/hashA/hashB/hashC');
+      expect(res.videoUrl).toBe(
+        'https://streaming-cdn-g.learnyst.com/v6/schools/110998/hashA/hashB/hashC/enb13daa4730367c/sdrm/cbcs/audio_video/vHQStream.mp4'
+      );
+      expect(res.audioUrl).toBe(
+        'https://streaming-cdn-g.learnyst.com/v6/schools/110998/hashA/hashB/hashC/enb13daa4730367c/sdrm/cbcs/audio_video/aStream.mp4'
+      );
+      expect(res.tracks.HQ).toContain('vHQStream.mp4');
+      expect(res.tracks.MQ).toContain('vMQStream.mp4');
+      expect(res.tracks.AQ).toContain('vAQStream.mp4');
+      expect(res.tracks.LQ).toContain('vLQStream.mp4');
+      expect(res.tracks.audio).toContain('aStream.mp4');
+    });
+
+    test('handles content_path_extn without slash and strips schools/ prefix from content_path', () => {
+      const lesson = {
+        id: 1223728,
+        lesson_data: JSON.stringify([
+          {
+            src_type: 2,
+            content_path: 'schools/110998/hashA/hashB/hashC',
+            content_path_extn: 'rawToken123',
+          },
+        ]),
+      };
+
+      const res = ltr.resolveLearnystVideoUrls(lesson);
+      expect(res.videoUrl).toBe(
+        'https://streaming-cdn-g.learnyst.com/v6/schools/110998/hashA/hashB/hashC/rawToken123/sdrm/cbcs/audio_video/vHQStream.mp4'
+      );
+    });
+
+    test('returns error for missing or malformed lesson_data or missing content_path', () => {
+      expect(ltr.resolveLearnystVideoUrls({})).toHaveProperty('error');
+      expect(ltr.resolveLearnystVideoUrls({ lesson_data: 'invalid json' })).toHaveProperty('error');
+      expect(ltr.resolveLearnystVideoUrls({ lesson_data: '[]' })).toHaveProperty('error');
+      expect(
+        ltr.resolveLearnystVideoUrls({ lesson_data: JSON.stringify([{ src_type: 2 }]) })
+      ).toHaveProperty('error');
+    });
+  });
+
+  describe('checkFfmpegAvailable', () => {
+    test('returns true when ffmpeg is available', async () => {
+      const available = await ltr.checkFfmpegAvailable();
+      expect(available).toBe(true);
+    });
+
+    test('throws when non-existent binary path is passed', async () => {
+      await expect(ltr.checkFfmpegAvailable('non_existent_ffmpeg_bin_12345')).rejects.toThrow(
+        /ffmpeg is not available/
+      );
+    });
+  });
+
+  describe('downloadLessonVideo', () => {
+    test('skips download if video already exists in db cache and force is false', async () => {
+      const db = require('../lib/db');
+      const spyHas = jest.spyOn(db, 'hasLearnystVideo').mockReturnValue(true);
+      const spyPath = jest
+        .spyOn(db, 'learnystVideoPath')
+        .mockReturnValue('/tmp/fake-lesson-video.mp4');
+
+      try {
+        const lesson = {
+          id: 99999,
+          title: 'Sample Video Lesson',
+          lesson_data: JSON.stringify([{ src_type: 2, content_path: 'path' }]),
+        };
+
+        const result = await ltr.downloadLessonVideo({}, lesson, { force: false });
+        expect(result.skipped).toBe(true);
+        expect(result.filename).toBe('99999_Sample_Video_Lesson.mp4');
+      } finally {
+        spyHas.mockRestore();
+        spyPath.mockRestore();
       }
     });
   });

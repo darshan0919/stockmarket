@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { triggerDataUpdate, clearOrderbookCache } = require('./adminController');
+const { triggerDataUpdate } = require('./adminController');
 
 /**
  * Admin routes
@@ -8,7 +8,5 @@ const { triggerDataUpdate, clearOrderbookCache } = require('./adminController');
  */
 
 router.get('/data/update', triggerDataUpdate);
-router.delete('/cache/orderbook/:symbol', clearOrderbookCache);
-router.delete('/cache/orderbook', clearOrderbookCache);
 
 module.exports = router;

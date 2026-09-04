@@ -201,10 +201,29 @@ a stale thesis silently is the one outcome this design exists to prevent.
    point of the cache is that two runs on the same evidence produce the same
    thesis, not two differently-phrased ones (conventions §17(b)).
 3. For each entry in `build[]`, run Phase 1-3 **narrowed**:
-   - Phase 1 fetches only what is missing. Check `get-filing` for every document
-     id before reading it; `cachedFilingIds` on the build entry already lists
-     what is on disk. After a single new announcement, a rebuild should cost one
-     PDF read, not a full re-acquisition.
+   - Phase 1 fetches only what is missing, and checks TWO caches before any read:
+     first `get-filing` for this skill's own extract of that document
+     (`cachedFilingIds` on the build entry already lists what is on disk), then
+     the shared Filing Extract store:
+
+     ```bash
+     node -e "const d=require('<repo>/packages/jobs-runtime/lib/docExtracts'); \
+       console.log(JSON.stringify(d.get('<profile>','<pdfUrl>')))"
+     ```
+
+     The second one matters because `document-preprocessor` extracts documents
+     on arrival for the whole standing universe, so by the time a brief is asked
+     for, this company's recent filings have usually already been read — by a
+     cheap agent, hours earlier, off the critical path. Count these as
+     `briefExtractHits` and report them; the scan pipeline raised its brief set
+     from 10 to 20 companies on the strength of this saving, and that number is
+     the evidence for whether the raise was actually paid for.
+
+     A shared extract is a set of verified, page-anchored FACTS, not a thesis —
+     use it as the document read, then apply Phase 2's "new" lens yourself. After
+     a single new announcement, a rebuild should cost one PDF read at most, and
+     often none.
+
    - `put-filing` every document you DO read, immediately after extracting it —
      before synthesis, so a run that dies mid-way still banks the reads it paid
      for.
@@ -214,6 +233,7 @@ a stale thesis silently is the one outcome this design exists to prevent.
      one-to-two-sentence EPS thesis. Skip 3a/3c/3d/3e/3f — the caller's card has
      no room for them and nobody reads them there.
    - Phase 4 is replaced by `put --ticker ... --file brief.json`. No widget, no PDF.
+
 4. Report cache hits vs rebuilds in the run's closing manifest — it is the
    number that tells you whether the caching is actually working.
 

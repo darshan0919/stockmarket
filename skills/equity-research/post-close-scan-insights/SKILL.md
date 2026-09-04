@@ -190,16 +190,53 @@ near-identical notes for the same `announcementId` from two runs ~4h apart).
 Trust the flag; don't re-derive it from `get-company-notes`, which is both
 redundant and slower.
 
-**`heavyDocument: true` → skip, don't call `announcement-insights`:**
+**`heavyDocument: true` → check for a Filing Extract before skipping.**
+
+The four heavy categories (`results`, `concall_transcript`,
+`investor_presentation`, `annual_report`) used to be skipped unread, always —
+**438 documents over 21 days, mean 21/day, none of them read** (results 205,
+PPT 125, transcript 86, AR 20; measured 2026-09-04). Those are the documents that
+carry the thesis, and skipping them is the single biggest hole in this scan's
+coverage.
+
+The `document-preprocessor` pipeline now extracts them ahead of time. So:
+
+```bash
+node -e "const d=require('<repo>/packages/jobs-runtime/lib/docExtracts'); \
+  console.log(JSON.stringify(d.get('<profile>','<pdfUrl>')))"
+# profile: results→'result', concall_transcript→'transcript',
+#          investor_presentation→'ppt', annual_report→'annual_report'
+```
+
+**Extract exists → write a SIGNAL-GRADE note, not a full analysis.** One or two
+sentences of what materially changed, quantified from the extract's own fields:
+a beat/miss against the prior period, guidance that moved, capex or capacity
+added, order book up or down. Set `significance` as usual, attach
+`extractEvidence` (Step 6), and tag `heavy_doc_signal`.
+
+**Depth stays with the specialist skills — this is a boundary, not a shortcut.**
+`quarterly-result-analysis`, `concall-analysis` and `annual-report-analysis` own
+these document types. A full read here would duplicate them and, worse, two
+skills reading one Result PDF can publish different numbers for the same quarter —
+exactly what conventions §17 exists to prevent. So the note says what changed and
+names the skill that should go deeper; it does not attempt the 3-basket read, the
+12-section transcript analysis, or a governance verdict. Add
+`followUp: "<specialist-skill>"` to the note so the hand-off is explicit.
+
+Cite the extract's `quote` and `page` for every number you state, and if its
+`confidence` is `low`, say so in the note rather than presenting a lead as a fact.
+
+**No extract → skip exactly as before:**
 
 ```bash
 runwi log-heavy-skip '<json: {companyId, name, title, category, heavyDocumentSkipReason, announcementId, date}>'
 runwi mark-processed "<companyId>" "<announcementId>" "heavy-doc-skip"
 ```
 
-Same four categories as `watchlist-insights` (`results`,
-`concall_transcript`, `investor_presentation`, `annual_report`) — full
-rationale in that skill's Step 2, not repeated here.
+Report both counts separately in the run report (`heavyDocSignalRead` vs
+`heavyDocSkipped`). The ratio between them is how you tell whether the
+pre-processing queue is keeping up — a skip count that stays high means the
+extractor isn't reaching these documents, not that they stopped arriving.
 
 **Otherwise, run `announcement-insights`' Steps 1-4** exactly as documented
 (`read-pdf-with-meta` → `get-company-notes` → `insight-template` → judge →
@@ -243,11 +280,27 @@ Once Step 4 has produced this run's full `add-note` payload set, select up to 5
 and run `announcement-info-classifier`'s Steps 3-4 on each, so the digest
 carries not just "what happened" but "how much of this is actually new."
 
-**Selection: by signal score, descending, up to 5.** Rank by the deterministic
-`signalScore` (see Step 6), take the top 5. If fewer than 5 non-routine items
-exist, classify however many qualify — don't pad, don't skip the step because
-the count is under 5. Zero non-routine items means zero classifications: a
-normal quiet window, not an error.
+**Selection: by signal score, descending — rank-driven, not a fixed count.**
+
+The cap was 5 because each classification rebuilt a baseline from 4 concalls, a
+PPT and ~400 archived announcements. With a Company Baseline Card on disk
+(`buildBaselines.js`, read at that skill's Step 3.0) that build is a dated lookup
+against `claimIndex`, and the cap is no longer paying for anything.
+
+Take every non-routine item whose `signalScore` clears the S3 boundary (35), in
+descending order. **Cap the run at 15 while the change beds in** and report how
+many qualified versus how many were classified — if the two diverge consistently,
+raise it; if D+1 validation quality falls, lower it. Do not remove the cap
+entirely until the validation ledger has confirmed a fortnight of stable quality
+at 15 (see the plan's §6 — that ledger is currently dark and restoring it is a
+precondition, not a formality).
+
+An item whose company has NO baseline card falls back to the old six-source
+build, so it still costs what it used to. Prefer carded companies when the cap
+binds, and say how many items were deferred for want of a card — that number is
+the pre-processing queue's backlog seen from the other end.
+
+Zero non-routine items means zero classifications: a normal quiet window.
 
 **Reuse this run's own Step 4 read — don't call `announcement-insights` again.**
 Each selected item already has its base read (`insight`, `headline`,
@@ -289,6 +342,16 @@ Cards are grouped and ranked by a deterministic **0-100 signal score** mapped to
 score is rendered on every card as a chip (`S2 High · 75/100`). Computed by
 `computeSignalScore`/`signalTierFor` in `lib/thesisCardEmail.js`. Nothing to
 pass — it derives from fields already on the note payload.
+
+**Attach `extractEvidence` whenever a Filing Extract backed the note.** The
+scorer reads `{amountPctOfMcap, claimNovelty, guidanceChanged, confidence}` and
+these are the strongest inputs it has, because they are facts read off the filing
+rather than a label applied to it. `amountPctOfMcap` is the stated amount as a
+percentage of market cap — never the absolute rupee figure, since ₹40cr is
+transformative for a ₹400cr company and rounding for a ₹40,000cr one.
+`claimNovelty` comes from the baseline card's `claimIndex`
+(`new`/`known`/`follow_up`). A `low`-confidence extract contributes at half
+weight automatically; don't compensate by inflating `significance`.
 
 **You still judge `significance` as `high`/`medium`/`low`/`routine`, exactly as
 before** — the extra resolution is derived, not asked for. Asking a model for
@@ -355,6 +418,8 @@ commands are separate process invocations with no shared state):
   "routine": 7, // mark-processed calls with NO preceding add-note
   "ocrFailed": 1, // read-pdf-with-meta returned ocrFailed:true
   "insights": 6, // add-note calls
+  "heavyDocSignalRead": 4, // heavy docs read from a Filing Extract (Step 3)
+  "heavyDocsDeferredNoCard": 2, // items not classified for want of a baseline card
   "highConviction": 1, // of those, high_conviction true
   "infoClassified": 5, // Step 5 classifications run
   "knowledgeGaps": 1 // entries in the knowledge-gaps file

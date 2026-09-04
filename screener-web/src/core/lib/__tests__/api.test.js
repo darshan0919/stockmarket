@@ -175,18 +175,6 @@ describe('API Client', () => {
 
       expect(axios.get).toHaveBeenCalledWith('/result-transcript/RELIANCE');
     });
-
-    it('should call analyzeTranscript with symbol and attachment', async () => {
-      axios.post.mockResolvedValue({ data: { success: true } });
-
-      await transcriptAPI.analyzeTranscript('RELIANCE', 'Q1FY24.pdf');
-
-      expect(axios.post).toHaveBeenCalledWith(
-        '/result-transcript/RELIANCE/analyze',
-        { attachmentName: 'Q1FY24.pdf' },
-        { timeout: 200000 }
-      );
-    });
   });
 
   describe('ordersAPI', () => {
@@ -204,38 +192,6 @@ describe('API Client', () => {
       await ordersAPI.getBySymbol('RELIANCE');
 
       expect(axios.get).toHaveBeenCalledWith('/orders/RELIANCE?limit=50');
-    });
-
-    it('should call getFullParsed with extended timeout', async () => {
-      axios.get.mockResolvedValue({ data: { success: true } });
-
-      await ordersAPI.getFullParsed('RELIANCE', 30);
-
-      expect(axios.get).toHaveBeenCalledWith('/orders/RELIANCE/full?limit=30', {
-        timeout: 180000,
-      });
-    });
-
-    it('should call parsePdf with extended timeout', async () => {
-      axios.post.mockResolvedValue({ data: { success: true } });
-
-      await ordersAPI.parsePdf('RELIANCE', 'http://example.com/order.pdf');
-
-      expect(axios.post).toHaveBeenCalledWith(
-        '/orders/RELIANCE/parse-pdf',
-        { attachmentUrl: 'http://example.com/order.pdf' },
-        { timeout: 120000 }
-      );
-    });
-
-    it('should call getOrderbook with extended timeout', async () => {
-      axios.get.mockResolvedValue({ data: { success: true } });
-
-      await ordersAPI.getOrderbook('RELIANCE');
-
-      expect(axios.get).toHaveBeenCalledWith('/orders/RELIANCE/orderbook', {
-        timeout: 300000,
-      });
     });
   });
 

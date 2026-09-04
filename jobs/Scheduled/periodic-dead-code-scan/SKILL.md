@@ -18,7 +18,7 @@ Call the following exact script:
 1. Execute script (bash): `yarn dead-code:scan`
 2. Read the summary stdout output and report: total items found, category breakdown, and updated `data/tasks.json` count.
 3. If the script exits non-zero, surface the exact error in your report.
-
-Do NOT run any logic, calculations, or file modifications directly. Your only job is to orchestrate the script above exactly as specified and report its output.
+4. Once done with generating the "Dead Code:" tasks, complete them. Make any necessary refactors and code changes. Commit the changes with "DEAD_CODE: " as the prefix.
+5. For all the "Dead Code:" tasks that were completed, mark them as complete in `data/tasks.json`. If any tasks are pending i will check them manually.
 
 Final step (every run, per `skills/tooling/cowork-task-architect/SKILL.md`): execute `python scripts/metrics/track_invocation.py --name periodic-dead-code-scan --type task --model <the exact model executing this run, e.g. claude-sonnet-5>`. No `modelUsed` needed — purely scripted static analysis, no LLM judgment.

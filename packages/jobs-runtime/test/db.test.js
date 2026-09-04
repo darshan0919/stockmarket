@@ -295,6 +295,19 @@ describe('saveLearnystTranscript (learnyst-lessons collection)', () => {
     fs.unlinkSync(filePath);
     expect(db.hasLearnystAttachment(filename)).toBe(false);
   });
+
+  test('learnystVideoPath and hasLearnystVideo helpers operate correctly', () => {
+    const filename = '12345_test_video.mp4';
+    const filePath = db.learnystVideoPath(filename);
+    expect(filePath).toContain(path.join('assets', 'learnyst-videos', filename));
+    expect(db.hasLearnystVideo(filename)).toBe(false);
+
+    fs.writeFileSync(filePath, 'dummy video content');
+    expect(db.hasLearnystVideo(filename)).toBe(true);
+
+    fs.unlinkSync(filePath);
+    expect(db.hasLearnystVideo(filename)).toBe(false);
+  });
 });
 
 describe('saveYoutubeTranscript (youtube-transcripts collection)', () => {

@@ -169,10 +169,35 @@ bundle and `novelty`, and save one DTO per company. Never write a trigger from a
 title alone: the title says "Award of Order", the PDF says ₹512 Cr from NTPC
 over 30 months, and only the second is actionable.
 
-**Cost control.** The expensive part is PDF reads, not the 20 companies. If a
-run would exceed ~30 PDFs, prioritise ACT tier, then SUPER_STRONG cluster
-members, then the rest — and say which were deferred rather than silently
-dropping them.
+**Check for a Filing Extract before reading any PDF.**
+
+```bash
+node -e "const d=require('<repo>/packages/jobs-runtime/lib/docExtracts'); \
+  console.log(JSON.stringify(d.get('announcement','<pdfUrl>')))"
+```
+
+An extract carries the facts the category templates ask for — amount,
+counterparty, dates, share counts — each with a verbatim quote and page, already
+verified against the document's own text. Where one exists, write the trigger
+from it and skip the read entirely. Where it doesn't, read the PDF as before.
+
+Report the split (`extractHits` vs `pdfReads`) in the stats footer. That ratio is
+how you know the pre-processing queue is keeping ahead of the scan; a low hit rate
+means the queue needs to run more often, not that the skills need to read more.
+
+**Cost control, and the cap.** With extracts serving most reads the binding
+constraint moves off PDF count, so the research set widens: **take up to 30
+companies** rather than 20 when the seed offers them, and keep the ~30-PDF ceiling
+as a safety valve on the _uncached_ reads only. If that valve binds, prioritise
+ACT tier, then SUPER_STRONG cluster members, then the rest — and say which were
+deferred rather than silently dropping them.
+
+**Attach `extractEvidence`** to every card an extract backed:
+`{amountPctOfMcap, claimNovelty, guidanceChanged, confidence}` — the stated amount
+as a percentage of market cap (never the absolute figure), novelty from the
+company's baseline card `claimIndex`, and the extract's own confidence. The
+deterministic scorer reads these directly, which is what lets a wider candidate
+set still be ranked on facts rather than on adjectives.
 
 ---
 
@@ -202,20 +227,57 @@ so the reader can weigh the answer accordingly.
    the market did not already know" — a filing whose every claim buckets KNOWN
    is a _worse_ explanation for a delivery-backed move than no filing at all,
    and should be reported as `mismatched`, not dressed up as explained.
-   Cap this at the ACT tier plus any WATCH name where a filing exists and the
-   move is otherwise unexplained; a baseline build touches 4 concalls, a PPT and
-   a full announcement history, so it is not free.
+   Formerly capped at the ACT tier because a baseline build touched 4 concalls, a
+   PPT and a full announcement history. With a Company Baseline Card on disk that
+   build is a dated `claimIndex` lookup, so **extend this rung to every ACT and
+   WATCH name with a filing and an otherwise-unexplained move.** A company with no
+   card still costs the old six-source build — prefer carded companies when time
+   is short, and say how many were deferred for want of one.
 
-3. **`catalyst`** — no filing in 14 days, but the company is one of the top 10
-   and its `rerating-catalysts` brief (Step 6) surfaced a live catalyst that
-   plausibly accounts for accumulation. Cite the catalyst and its brief date.
-   This rung is why Steps 5 and 6 are ordered as they are: **run Step 6 first**
-   so the briefs exist when the ladder reaches this rung.
+3. **`catalyst`** — no filing in 14 days, but a live catalyst plausibly accounts
+   for accumulation. Two sources, checked in this order:
 
-4. **`concall`** — `needs_transcript_research` is set and the transcript carries
-   a concrete forward-guidance number. Concall sentiment is corroborating
-   evidence, never a standalone trigger: "Bullish concall" alone is not a WHY
-   without either a filing or a specific guidance figure behind it.
+   a. **Stockscans' own growth-catalyst report**, free and available for ANY name
+   in the run, not just the top 10: call
+   `buildCompanyContext(companyId, { stockscans: true })` and read
+   `stockscans.growthCatalysts` (plus `businessOverview` for what the company
+   actually does, and `concallNotes` for the latest quarter's summary). This is
+   Stockscans' own AI-synthesized research, carried verbatim from a local cache
+   that `yarn stockscans:warm` fills on a schedule — it costs zero document
+   reads and zero fetches on this path. Cite it as
+   `stockscans:<companyId>` in `contextUsed`, and quote
+   `growthCatalystsAsOf` so the reader can see how old the report is.
+
+   Two honesty rules. **Coverage is partial** — a company with no
+   `growthCatalysts` on file is common and means "Stockscans doesn't cover this
+   one", never "this company has no catalysts"; drop to rung 4 rather than
+   concluding anything from the absence. And **it is Stockscans' text, not
+   ours** — say so, and never present it as this run's own analysis.
+
+   `stockscans: null` means the cache was never warmed (or is stale) for this
+   company. That is a miss, not a finding: it says nothing about the company,
+   and the ladder simply continues to (b).
+
+   b. **The company's `rerating-catalysts` brief** (Step 6), for the top 10 by
+   delivery value. Cite the catalyst and its brief date. This is why Steps 5
+   and 6 are ordered as they are: **run Step 6 first** so the briefs exist when
+   the ladder reaches this rung.
+
+   (a) before (b) because (a) is free and universal while (b) is expensive and
+   covers ten names — but (b) is the stronger evidence where both exist, being
+   built from this company's actual filings. When they disagree, say so and
+   prefer (b).
+
+4. **`concall`** — the latest concall carries a concrete forward-guidance number.
+   Check `stockscans.concallNotes` from rung 3a FIRST (it is already in hand, it
+   names the quarter in `concallNotesQuarter`, and it is Stockscans' condensation
+   of that quarter's call); only fall through to reading the transcript itself when
+   `needs_transcript_research` is set AND the notes don't answer the question.
+   Concall sentiment is corroborating evidence, never a standalone trigger:
+   "Bullish concall" alone is not a WHY without either a filing or a specific
+   guidance figure behind it — and a guidance number quoted from the notes must
+   carry its quarter, since a stale figure presented as current is worse than
+   no answer.
 
 5. **`sector`** — the name is in a delivery-confirmed sector cluster and nothing
    company-specific explains it. The cluster IS the answer; say so plainly
@@ -266,6 +328,13 @@ For each `build[]` entry, invoke `rerating-catalysts --mode brief` (see that
 skill's "Modes" section) — narrowed Phase 1-3, filing-level cache checked before
 every document read, `put-filing` immediately after each read, `put` the finished
 brief. No widget, no PDF.
+
+**Raise the brief set to the top 20 by delivery value** (was 10). A brief's cost
+was dominated by re-reading the company's filings; `rerating-catalysts --mode brief`
+now checks the Filing Extract store before every document read, so the marginal
+brief is much cheaper. Report `epsBriefs`, `briefCacheHits` AND `briefExtractHits`
+so all three sources of that saving stay visible — if `briefExtractHits` is near
+zero the widening has not actually been paid for and the count should go back to 10.
 
 **The cache is shared across both skills, keyed by company, not by scan.** A name
 in both scans on the same day gets one brief, and both emails show the identical
@@ -365,9 +434,12 @@ keys render a tile:
   "act": 3,
   "watch": 9,
   "noted": 19,
-  "researched": 20,
-  "epsBriefs": 10,
+  "researched": 30,
+  "extractHits": 22,
+  "pdfReads": 8,
+  "epsBriefs": 20,
   "briefCacheHits": 7,
+  "briefExtractHits": 9,
   "dedupedFromGainers": 6
 }
 ```
@@ -395,7 +467,10 @@ kept; nothing is deleted. The run is not complete until this has run.
 - **Token-optimization suggestion** (conventions §11) — end every run with a
   concrete, evidence-based suggestion based on what actually happened: brief
   cache hit rate, how many PDF reads were cache hits, whether the 14-day window
-  earned its cost this run.
+  earned its cost this run, and the Stockscans-context hit rate (how many names
+  the free rung-3a lookup answered vs. how many fell through for want of a warm
+  cache — a low rate means `yarn stockscans:warm` needs to run more often, which
+  is a scheduling fix, not a reason to read more documents).
 - Do NOT re-fetch or re-compute what the scripts produced, and do NOT hand-write
   email HTML.
 - Cite actual numbers everywhere. Delivery is always reported as **% AND ₹ Cr

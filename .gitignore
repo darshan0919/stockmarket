@@ -109,3 +109,7 @@ packages/cowork-jobs/process_watchlist.js
 
 /tmp/
 tmp_*
+stock_documents/
+a.out
+_gs_*
+anchor_6mo_v4*

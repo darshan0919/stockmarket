@@ -48,11 +48,10 @@ function countDigits(s) {
  * without it, multi-column rows collapse into an unparseable stream.
  */
 async function extractTextLayer(pdfPath) {
-  const { stdout } = await execFileAsync(
-    'pdftotext',
-    ['-layout', '-q', pdfPath, '-'],
-    { timeout: TEXT_TIMEOUT_MS, maxBuffer: 32 * 1024 * 1024 }
-  );
+  const { stdout } = await execFileAsync('pdftotext', ['-layout', '-q', pdfPath, '-'], {
+    timeout: TEXT_TIMEOUT_MS,
+    maxBuffer: 32 * 1024 * 1024,
+  });
   return stdout || '';
 }
 
@@ -66,10 +65,24 @@ async function extractViaOcr(pdfPath, { maxPages = 6, dpi = 200 } = {}) {
   try {
     await execFileAsync(
       'pdftoppm',
-      ['-png', '-gray', '-r', String(dpi), '-f', '1', '-l', String(maxPages), pdfPath, path.join(tmpDir, 'pg')],
+      [
+        '-png',
+        '-gray',
+        '-r',
+        String(dpi),
+        '-f',
+        '1',
+        '-l',
+        String(maxPages),
+        pdfPath,
+        path.join(tmpDir, 'pg'),
+      ],
       { timeout: OCR_TIMEOUT_MS }
     );
-    const pages = fs.readdirSync(tmpDir).filter((f) => f.endsWith('.png')).sort();
+    const pages = fs
+      .readdirSync(tmpDir)
+      .filter((f) => f.endsWith('.png'))
+      .sort();
     const out = [];
     for (const p of pages) {
       const { stdout } = await execFileAsync(
@@ -83,7 +96,11 @@ async function extractViaOcr(pdfPath, { maxPages = 6, dpi = 200 } = {}) {
   } finally {
     // Best-effort cleanup of a scratch dir OUTSIDE data/ — the no-delete rule
     // in DATA_RULES §5 governs the data mirror, not an os.tmpdir() workspace.
-    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (_) { /* non-fatal */ }
+    try {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    } catch (_) {
+      /* non-fatal */
+    }
   }
 }
 
@@ -112,4 +129,10 @@ async function extractPdfText(pdfPath, { allowOcr = true } = {}) {
   }
 }
 
-module.exports = { extractPdfText, extractTextLayer, extractViaOcr, countDigits, MIN_DIGITS_FOR_TEXT_LAYER };
+module.exports = {
+  extractPdfText,
+  extractTextLayer,
+  extractViaOcr,
+  countDigits,
+  MIN_DIGITS_FOR_TEXT_LAYER,
+};

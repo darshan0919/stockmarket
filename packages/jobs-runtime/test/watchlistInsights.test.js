@@ -31,8 +31,8 @@ describe('categoriseAnnouncement (first match wins)', () => {
 describe('noise filter', () => {
   test('matches insignificant keywords', () => {
     expect(wi.isNoise('Closure of Trading Window', '')).toBe(true);
-    expect(wi.matchedNoiseKeyword('Intimation of Record Date', '')).toBe(
-      'intimation of record date'
+    expect(wi.matchedNoiseKeyword('Closure of Trading Window', '')).toBe(
+      'Closure of Trading Window'
     );
     expect(wi.isNoise('Bagging large order', 'EPC win')).toBe(false);
   });

@@ -47,6 +47,30 @@ const SIDECAR_OVERRIDES = {
     displayName: 'Data Sync',
     cron: '0 1 * * *',
   },
+  // Every 30 min through the filing day. This job drains the pre-processing
+  // queue, and its whole value is being AHEAD of the post-close slots — the
+  // 18:30 pass in particular, since 48% of a day's filings land in the window
+  // the 19:15 slot covers. The sync script's default (`0 20 * * *`, once at
+  // 20:00) would have put it AFTER the slot it exists to feed, i.e. useful to
+  // nobody, which is exactly why it needs an explicit entry here.
+  // A run with an empty queue is a few file reads, so the cadence is cheap; if
+  // per-session overhead ever proves material, drop to hourly (`0 9-23 * * *`)
+  // rather than trimming the evening passes.
+  'document-preprocessing': {
+    sidecarFolder: 'document-preprocessing',
+    displayName: 'Document Preprocessing',
+    cron: '*/30 9-23 * * *',
+  },
+  // Every 3 hours, offset to :15 so it never collides with the preprocessing
+  // runs at :00/:30 — both hit the same Stockscans endpoints, and those
+  // endpoints rate-limit hard (429 observed at modest concurrency). Small,
+  // frequent runs are the documented way to fill this cache; raising the
+  // per-run limit does not make the backfill faster, it just buys 429s.
+  'stockscans-context-warm': {
+    sidecarFolder: 'stockscans-context-warm',
+    displayName: 'Stockscans Context Warm',
+    cron: '15 */3 * * *',
+  },
   // 21:00 — after the 20:00 digests, which write the same events collection,
   // and late enough that the day's exchange filings have been disseminated.
   'order-book-sync-stockmarket': {
@@ -121,6 +145,36 @@ function getProjectId() {
     }
   }
   return undefined;
+}
+
+/**
+ * Updates the sidecars section of Antigravity's configData object.
+ * Existing sidecars persist their enabled state (whether true or false).
+ * Newly discovered sidecars are initialized with enabled: false (disabled by default).
+ *
+ * @param {Record<string, any>} configData - The parsed Antigravity config.json object.
+ * @param {string[]} syncedFolders - Array of sidecar folder names that were synced.
+ * @param {string} [projId] - Optional Antigravity project ID to associate with sidecars.
+ * @returns {Record<string, any>} The modified configData object.
+ */
+function updateSidecarsConfig(configData, syncedFolders, projId) {
+  if (!configData.sidecars) {
+    configData.sidecars = {};
+  }
+
+  for (const dir of syncedFolders) {
+    if (!configData.sidecars[dir]) {
+      configData.sidecars[dir] = { enabled: false };
+    } else if (typeof configData.sidecars[dir].enabled !== 'boolean') {
+      configData.sidecars[dir].enabled = false;
+    }
+
+    if (projId) {
+      configData.sidecars[dir].projectId = projId;
+    }
+  }
+
+  return configData;
 }
 
 function syncScheduledTasks() {
@@ -199,21 +253,13 @@ function syncScheduledTasks() {
     try {
       const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
       const projId = getProjectId();
+      updateSidecarsConfig(configData, syncedFolders, projId);
+      fs.writeFileSync(configPath, JSON.stringify(configData, null, 2) + '\n', 'utf8');
+      console.log('Synced Folders:', syncedFolders);
       if (projId) {
-        if (!configData.sidecars) configData.sidecars = {};
-
-        // Ensure every folder we synced is registered
-        const sidecarDirs = syncedFolders;
-        for (const dir of sidecarDirs) {
-          // If it exists in config, update it. If not, add it.
-          if (!configData.sidecars[dir]) {
-            configData.sidecars[dir] = { enabled: true };
-          }
-          configData.sidecars[dir].projectId = projId;
-        }
-        fs.writeFileSync(configPath, JSON.stringify(configData, null, 2) + '\n', 'utf8');
-        console.log('Synced Folders:', syncedFolders);
         console.log('✅ Linked all sidecars to project ID: ' + projId + ' in config.json');
+      } else {
+        console.log('✅ Registered sidecars in config.json');
       }
     } catch (e) {
       console.error('Error updating config.json:', e);
@@ -282,4 +328,17 @@ function main() {
   console.log('\n🎉 Antigravity Tasks, Skills & Rules Synchronization Complete!\n');
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  updateSidecarsConfig,
+  parseSkillMd,
+  titleCase,
+  getProjectId,
+  syncScheduledTasks,
+  syncAllSkills,
+  syncRules,
+  main,
+};

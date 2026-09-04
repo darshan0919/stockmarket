@@ -57,6 +57,8 @@
  *   node learnystTranscriptRefresh.js [--site KEY] [--only ID,ID] [--skip ID,ID]
  *     [--force] [--recheck-no-captions] [--module-delay-ms N]
  *     [--lesson-delay-ms N] [--lesson-limit N] [--env-file <path>]
+ *     [--skip-attachments] [--attachments-only]
+ *     [--video <lessonId>] [--quality <HQ|MQ|AQ|LQ>]
  *
  * A YouTube-hosted lesson with no usable captions is cached too
  * (`captionKind: 'none'`), not just skipped in-memory — so it isn't
@@ -89,6 +91,9 @@ const fs = require('fs');
 const path = require('path');
 const { pipeline } = require('stream/promises');
 const { Readable } = require('stream');
+const { execFile } = require('child_process');
+const { promisify } = require('util');
+const execFileAsync = promisify(execFile);
 const db = require('./lib/db');
 const { loadEnv, hasFlag, argValue } = require('./lib/env');
 // Reused, not reimplemented (conventions.md §7/§17): the yt-dlp caption
@@ -99,6 +104,8 @@ const youtubeRefresh = require('./youtubeTranscriptRefresh');
 
 const DEFAULT_USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
+
+const DEFAULT_FFMPEG_PATH = process.env.FFMPEG_PATH || 'ffmpeg';
 
 // Sites processed when neither --site nor LEARNYST_SITE_KEYS is given.
 // By default only SOIC is processed; Chartitude / Chartist is disabled by
@@ -168,6 +175,8 @@ function loadSiteConfig(rawKey) {
         env('TRANSCRIPT_API_BASE') || 'https://ai-api.learnyst.com/api/transcript-data',
       attachmentCdnBase:
         env('ATTACHMENT_CDN_BASE') || 'https://download-cdn-g.learnyst.com/v6/schools',
+      streamingCdnBase:
+        env('STREAMING_CDN_BASE') || 'https://streaming-cdn-g.learnyst.com/v6/schools',
       origin,
       referer: env('REFERER') || (origin ? `${origin}/` : undefined),
       userAgent: process.env.LEARNYST_USER_AGENT || DEFAULT_USER_AGENT,
@@ -262,6 +271,8 @@ function parseArgs(argv) {
     recheckNoCaptions: hasFlag('--recheck-no-captions', argv),
     skipAttachments: hasFlag('--skip-attachments', argv),
     attachmentsOnly: hasFlag('--attachments-only', argv),
+    videoLessonId: argValue('--video', argv) || null,
+    quality: (argValue('--quality', argv) || 'HQ').toUpperCase(),
     moduleDelayMsOverride: argValue('--module-delay-ms', argv),
     lessonDelayMsOverride: argValue('--lesson-delay-ms', argv),
     lessonLimit: argValue('--lesson-limit', argv) ? Number(argValue('--lesson-limit', argv)) : null,
@@ -618,6 +629,320 @@ async function downloadAttachmentFile(
   );
 }
 
+/**
+ * Verify ffmpeg is installed and callable.
+ * @param {string} [ffmpegPath]
+ * @returns {Promise<boolean>}
+ */
+async function checkFfmpegAvailable(ffmpegPath = DEFAULT_FFMPEG_PATH) {
+  try {
+    await execFileAsync(ffmpegPath, ['-version']);
+    return true;
+  } catch (err) {
+    throw new Error(`ffmpeg is not available at '${ffmpegPath}': ${err.message}`);
+  }
+}
+
+/**
+ * Sanitize a lesson title for safe filesystem naming.
+ * @param {string} [title]
+ * @returns {string}
+ */
+function sanitizeVideoFilename(title) {
+  if (!title) return 'lesson';
+  return String(title)
+    .replace(/[^\w\s.-]/g, '_')
+    .trim()
+    .replace(/\s+/g, '_')
+    .slice(0, 80);
+}
+
+/**
+ * Resolve streaming video and audio CDN URLs for a Learnyst-hosted video lesson.
+ *
+ * Streaming CDN URL pattern (confirmed live 2026-09-04):
+ *   https://streaming-cdn-g.learnyst.com/v6/schools/{content_path}/{p}/sdrm/cbcs/audio_video/
+ * where {p} is extracted from `content_path_extn` (e.g. '0/enb13daa4730367c' -> 'enb13daa4730367c').
+ *
+ * Media tracks:
+ *   - Video: vHQStream.mp4 (High Quality), vMQStream.mp4, vAQStream.mp4, vLQStream.mp4
+ *   - Audio: aStream.mp4
+ *
+ * @param {Object} lesson Lesson object with lesson_data JSON
+ * @param {Object} [cfg] Site configuration containing streamingCdnBase
+ * @returns {{ videoUrl: string, audioUrl: string, tracks: Object, contentPath: string } | { error: string }}
+ */
+function resolveLearnystVideoUrls(lesson, cfg = {}) {
+  let parsed;
+  try {
+    parsed = JSON.parse((lesson && lesson.lesson_data) || '[]');
+  } catch (err) {
+    return { error: `lesson_data is not valid JSON: ${err.message}` };
+  }
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    return { error: 'lesson_data has no entries' };
+  }
+  const videoEntry = parsed.find((e) => e.src_type === LEARNYST_VIDEO_SRC_TYPE) || parsed[0];
+  if (!videoEntry.content_path) {
+    return { error: 'no content_path on video entry' };
+  }
+
+  const cleanPath = String(videoEntry.content_path).replace(/^schools\//, '');
+  const extn = String(videoEntry.content_path_extn || '');
+  const p = extn.includes('/') ? extn.split('/')[1] : extn;
+  const cdnBase =
+    (cfg && cfg.streamingCdnBase) || 'https://streaming-cdn-g.learnyst.com/v6/schools';
+  const prefix = `${cdnBase}/${cleanPath}/${p ? `${p}/` : ''}sdrm/cbcs/audio_video`;
+
+  const tracks = {
+    HQ: `${prefix}/vHQStream.mp4`,
+    MQ: `${prefix}/vMQStream.mp4`,
+    AQ: `${prefix}/vAQStream.mp4`,
+    LQ: `${prefix}/vLQStream.mp4`,
+    audio: `${prefix}/aStream.mp4`,
+  };
+
+  return {
+    videoUrl: tracks.HQ,
+    audioUrl: tracks.audio,
+    tracks,
+    contentPath: videoEntry.content_path,
+  };
+}
+
+/**
+ * Download a lesson's video stream losslessly to disk via ffmpeg (for Learnyst-hosted)
+ * or yt-dlp (for YouTube-hosted).
+ *
+ * Cache-first: skips if destination file already exists and is non-empty, unless force is true.
+ * Output path: data/assets/learnyst-videos/<lessonId>_<title>.mp4
+ *
+ * @param {Object} cfg Site config
+ * @param {Object} lesson Lesson object
+ * @param {Object} [options]
+ * @param {boolean} [options.force=false] Force redownload even if cached
+ * @param {string} [options.quality='HQ'] Video quality (HQ, MQ, AQ, LQ)
+ * @param {string} [options.ffmpegPath] Path to ffmpeg binary
+ * @returns {Promise<{ filename: string, localPath: string, sizeBytes: number, skipped?: boolean, isYoutube: boolean, quality: string }>}
+ */
+async function downloadLessonVideo(
+  cfg,
+  lesson,
+  { force = false, quality = 'HQ', ffmpegPath = DEFAULT_FFMPEG_PATH } = {}
+) {
+  const cleanTitle = sanitizeVideoFilename(lesson.title);
+  const filename = `${lesson.id}_${cleanTitle}.mp4`;
+  const destPath = db.learnystVideoPath(filename);
+
+  if (!force && db.hasLearnystVideo(filename)) {
+    let sizeBytes = null;
+    try {
+      sizeBytes = fs.statSync(destPath).size;
+    } catch (_err) {
+      // ignore stat error
+    }
+    return {
+      filename,
+      localPath: destPath,
+      sizeBytes,
+      skipped: true,
+      isYoutube: !!extractYoutubeVideoId(lesson),
+      quality,
+    };
+  }
+
+  const youtubeVideoId = extractYoutubeVideoId(lesson);
+  const tmpPath = `${destPath}.tmp.${process.pid}.${Date.now()}.mp4`;
+  const dir = path.dirname(destPath);
+  fs.mkdirSync(dir, { recursive: true });
+
+  if (youtubeVideoId) {
+    const ytCfg = youtubeRefresh.loadConfig();
+    await youtubeRefresh.checkYtDlpAvailable(ytCfg);
+    const ytDlpPath = (ytCfg && ytCfg.ytDlpPath) || 'yt-dlp';
+    const ytdlpArgs = [
+      '-f',
+      'bv*+ba/b',
+      '--merge-output-format',
+      'mp4',
+      '-o',
+      tmpPath,
+      `https://www.youtube.com/watch?v=${youtubeVideoId}`,
+    ];
+    try {
+      await execFileAsync(ytDlpPath, ytdlpArgs, { maxBuffer: 10 * 1024 * 1024 });
+      const stat = fs.statSync(tmpPath);
+      if (stat.size === 0) throw new Error('Downloaded YouTube video was 0 bytes');
+      fs.renameSync(tmpPath, destPath);
+      return {
+        filename,
+        localPath: destPath,
+        sizeBytes: stat.size,
+        isYoutube: true,
+        quality,
+      };
+    } catch (err) {
+      try {
+        if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
+      } catch (_ignore) {
+        // ignore cleanup error
+      }
+      throw new Error(`Failed to download YouTube video (${youtubeVideoId}): ${err.message}`);
+    }
+  }
+
+  // Learnyst streaming CDN
+  await checkFfmpegAvailable(ffmpegPath);
+  const resolved = resolveLearnystVideoUrls(lesson, cfg);
+  if (resolved.error) {
+    throw new Error(`Cannot resolve Learnyst video stream: ${resolved.error}`);
+  }
+
+  const normQuality = String(quality || 'HQ').toUpperCase();
+  const videoUrl = resolved.tracks[normQuality] || resolved.videoUrl;
+  const audioUrl = resolved.audioUrl;
+
+  const ffmpegArgs = ['-y', '-i', videoUrl, '-i', audioUrl, '-c', 'copy', '-f', 'mp4', tmpPath];
+
+  try {
+    await execFileAsync(ffmpegPath, ffmpegArgs, { maxBuffer: 10 * 1024 * 1024 });
+    const stat = fs.statSync(tmpPath);
+    if (stat.size === 0) throw new Error('Muxed video was 0 bytes');
+    fs.renameSync(tmpPath, destPath);
+    return {
+      filename,
+      localPath: destPath,
+      sizeBytes: stat.size,
+      isYoutube: false,
+      quality: normQuality,
+    };
+  } catch (err) {
+    try {
+      if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
+    } catch (_ignore) {
+      // ignore cleanup error
+    }
+    throw new Error(`Failed to mux Learnyst video stream via ffmpeg: ${err.message}`);
+  }
+}
+
+/**
+ * Handle on-demand video download for a single target lesson ID across configured sites.
+ *
+ * @param {Object} args Parsed CLI arguments
+ * @param {Array<Object>} sites Configured site objects
+ * @returns {Promise<Object>} Download result
+ */
+async function downloadSingleLessonVideo(args, sites) {
+  const targetLessonId = String(args.videoLessonId).trim();
+  console.log(`\n=== Single Lesson Video Download: Lesson ${targetLessonId} ===`);
+
+  let targetSiteCfg = null;
+  let targetCourseId = null;
+  let targetLesson = null;
+
+  // Try finding courseId and site from cached collection for instant jump
+  const cachedLessons = db.loadFile(db.collectionFile('learnyst-lessons')) || {};
+  for (const [id, entry] of Object.entries(cachedLessons)) {
+    if (entry && (String(entry.lessonId) === targetLessonId || id.endsWith(`_${targetLessonId}`))) {
+      targetCourseId = entry.courseId;
+      targetSiteCfg = sites.find((s) => s.key === entry.site) || sites[0];
+      break;
+    }
+  }
+
+  // If found in cache, fetch that specific module's lessons directly
+  if (targetSiteCfg && targetCourseId) {
+    try {
+      const courseData = await fetchModuleLessons(targetSiteCfg, targetCourseId);
+      targetLesson = (courseData.lessons || []).find((l) => String(l.id) === targetLessonId);
+    } catch (err) {
+      console.warn(`Warning: failed to fetch cached course ${targetCourseId}: ${err.message}`);
+    }
+  }
+
+  // If not found yet, search across modules of all active sites
+  if (!targetLesson) {
+    console.log(`Searching for lesson ${targetLessonId} across configured sites and modules...`);
+    for (const cfg of sites) {
+      const bundle = await fetchBundleModules(cfg);
+      const modules = (bundle.bundleCourses || []).filter(
+        (m) => m.courseType === VIDEO_COURSE_TYPE
+      );
+      for (const mod of modules) {
+        try {
+          const courseData = await fetchModuleLessons(cfg, mod.id);
+          const found = (courseData.lessons || []).find((l) => String(l.id) === targetLessonId);
+          if (found) {
+            targetLesson = found;
+            targetSiteCfg = cfg;
+            targetCourseId = mod.id;
+            break;
+          }
+        } catch (_err) {
+          // ignore module fetch error during search
+        }
+      }
+      if (targetLesson) break;
+    }
+  }
+
+  if (!targetLesson) {
+    throw new Error(
+      `Lesson ${targetLessonId} could not be found in any configured Learnyst module.`
+    );
+  }
+
+  console.log(
+    `Found lesson: "${targetLesson.title}" (ID: ${targetLesson.id}, Course: ${targetCourseId}, Site: ${targetSiteCfg.key})`
+  );
+
+  if (!isVideoLesson(targetLesson)) {
+    throw new Error(
+      `Lesson ${targetLessonId} is not a video lesson (no video stream or YouTube URL found).`
+    );
+  }
+
+  const result = await downloadLessonVideo(targetSiteCfg, targetLesson, {
+    force: args.force,
+    quality: args.quality,
+  });
+
+  if (result.skipped) {
+    console.log(
+      `\nVideo already cached: ${result.localPath} (${
+        result.sizeBytes ? `${Math.round(result.sizeBytes / 1024 / 1024)} MB` : 'cached'
+      })`
+    );
+  } else {
+    console.log(
+      `\nSuccessfully downloaded video: ${result.localPath} (${Math.round(
+        result.sizeBytes / 1024 / 1024
+      )} MB)`
+    );
+  }
+
+  // Update cached transcript DTO with video metadata if present
+  const recordId = lessonRecordId(targetCourseId, targetLesson.id, targetSiteCfg.key);
+  const existing = db.readLearnystTranscript(recordId);
+  if (existing) {
+    existing.video = {
+      filename: result.filename,
+      localPath: result.localPath,
+      sizeBytes: result.sizeBytes,
+      quality: result.quality,
+      downloadedAt: new Date().toISOString(),
+    };
+    db.saveLearnystTranscript(existing);
+    console.log(`Updated lesson record ${recordId} with video metadata.`);
+  }
+
+  console.log('\nFiles touched:');
+  for (const f of db.touchedFiles()) console.log(`  ${f}`);
+
+  return result;
+}
+
 // ── Persistence (learnyst-lessons collection — see db.js saveLearnystTranscript) ──
 
 /**
@@ -719,6 +1044,16 @@ async function main() {
         : 'No Learnyst sites fully configured. See .env.example.'
     );
     process.exitCode = 1;
+    return;
+  }
+
+  if (args.videoLessonId) {
+    try {
+      await downloadSingleLessonVideo(args, sites);
+    } catch (err) {
+      console.error(`\nVideo download FAILED: ${err.message}`);
+      process.exitCode = 1;
+    }
     return;
   }
 
@@ -1069,6 +1404,12 @@ module.exports = {
   lessonRecordId,
   alreadyFetched,
   buildTranscriptDto,
+  DEFAULT_FFMPEG_PATH,
+  checkFfmpegAvailable,
+  sanitizeVideoFilename,
+  resolveLearnystVideoUrls,
+  downloadLessonVideo,
+  downloadSingleLessonVideo,
   runSite,
   main,
   VIDEO_COURSE_TYPE,

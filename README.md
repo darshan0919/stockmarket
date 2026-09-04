@@ -18,7 +18,7 @@ By wrapping around and enhancing existing third-party APIs (NSE, BSE, Stockscans
 - **Platform-Agnostic Architecture**: Designed to seamlessly integrate cross-platform tools, bridging web interfaces, automated background jobs, and AI agents.
 - **Robust Database Management (Minimal Resources)**: Leveraging highly optimized data pipelines (`@stock/jobs` and `cowork-jobs`), the system syncs, offloads, and manages massive datasets without overwhelming local or cloud resources.
 - **Enhanced Third-Party APIs**: We wrap existing APIs (NSE, BSE, AlphaVantage) and augment them with AI and custom caching layers to deliver enriched insights faster.
-- **Automated AI Insights**: Wrapping around LLMs (like Gemini) to parse earnings calls, orderbooks, and generate actionable insights automatically.
+- **Automated AI Insights**: Wrapping around LLMs and skills to parse filings, extract catalysts, and generate actionable insights automatically.
 
 ## 🚀 Achievements & Roadmap
 
@@ -287,6 +287,8 @@ crontab -e
 - `yarn dev` — Backend + frontend dev servers in one terminal
 - `yarn test` — Run backend tests, then frontend tests
 - `yarn format` — Prettier in backend, then frontend
+- `yarn dead-code:scan` — Scan monorepo for unreferenced files, committed stray artifacts, and coding practice violations
+- `yarn dep:tree <target>` — Generate visual dependency tree diagram (HTML, Mermaid, text) for any given variable or file across direct imports, skills, scheduled jobs, and scripts
 - `yarn cowork:data:*` — Various data pipeline and sync jobs (e.g., `sync`, `offload`, `pull`)
 
 ### Backend (`yarn workspace stock-screener-backend <script>`)

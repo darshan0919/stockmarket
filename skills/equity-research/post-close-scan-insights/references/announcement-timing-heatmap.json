@@ -1,10 +1,5 @@
 {
-  "fullDays": [
-    "2026-08-31",
-    "2026-09-01",
-    "2026-09-02",
-    "2026-09-03"
-  ],
+  "fullDays": ["2026-08-31", "2026-09-01", "2026-09-02", "2026-09-03"],
   "buckets": [
     {
       "bucket": "00:00",
@@ -253,12 +248,7 @@
     "sampleFetched": 6810,
     "sampleUnique": 6756,
     "sampleUsed": 6750,
-    "fullTradingDaysUsed": [
-      "2026-08-31",
-      "2026-09-01",
-      "2026-09-02",
-      "2026-09-03"
-    ],
+    "fullTradingDaysUsed": ["2026-08-31", "2026-09-01", "2026-09-02", "2026-09-03"],
     "timezone": "Buckets are IST 30-minute, left-closed. createdAt read as IST (see parseAnnDateToUtc).",
     "caveat": "Four consecutive days Mon-Thu. Sufficient for the hour-of-day shape (driven by session and filing deadlines, stable week to week); NOT sufficient for day-of-week claims. Friday and month/quarter-end are plausibly heavier and are not in this sample. The 18:30 spike is partly exchange ingestion batching, not purely filer choice - still the right time to collect, but do not read it as \"companies choose 18:30\".",
     "generatedAtIso": "2026-09-04"

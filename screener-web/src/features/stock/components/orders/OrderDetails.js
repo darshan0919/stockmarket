@@ -7,14 +7,11 @@
 import { formatCurrency, formatCapacity, formatDate, timeAgo } from './orderUtils';
 
 /**
- * Table row displaying a single order with parsed details (amount, capacity, customer, etc.).
+ * Table row displaying a single order with details (amount, capacity, customer, etc.).
  * @param {Object} props
- * @param {Object} props.order - Order with order_details from AI parsing
- * @param {function} props.onParsePdf - Handler to parse PDF when not yet parsed
- * @param {boolean} props.isParsing - Whether this order is currently being parsed
- * @param {boolean} [props.showParseButton=true] - Whether to show Parse PDF button
+ * @param {Object} props.order - Order object
  */
-export default function OrderRow({ order, onParsePdf, isParsing, showParseButton = true }) {
+export default function OrderRow({ order }) {
   const {
     order_details,
     announcement_date,
@@ -72,7 +69,7 @@ export default function OrderRow({ order, onParsePdf, isParsing, showParseButton
 
       <td className="whitespace-nowrap text-right">
         <div className="flex items-center justify-end gap-2">
-          {pdf_parsed ? (
+          {pdf_parsed && (
             <span className="inline-flex items-center gap-1 text-xs text-success">
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -83,52 +80,7 @@ export default function OrderRow({ order, onParsePdf, isParsing, showParseButton
               </svg>
               {confidence_score ? `${(confidence_score * 100).toFixed(0)}%` : 'Parsed'}
             </span>
-          ) : showParseButton && attachment_url ? (
-            <button
-              onClick={() => onParsePdf(order)}
-              disabled={isParsing}
-              className="btn btn-secondary btn-xs"
-            >
-              {isParsing ? (
-                <>
-                  <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                    />
-                  </svg>
-                  Parsing...
-                </>
-              ) : (
-                <>
-                  <svg
-                    className="w-3.5 h-3.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                  Parse PDF
-                </>
-              )}
-            </button>
-          ) : null}
-
+          )}
           {attachment_url && (
             <a
               href={attachment_url}

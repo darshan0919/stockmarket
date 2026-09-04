@@ -10,11 +10,9 @@ Author aid, not investment advice. Written 2026-07-17.
 
 ## 0. Key facts this plan rests on (verified)
 
-- **Gemini is already integrated.** `screener-api/src/core/api/geminiClient.js` calls
-  `gemini-2.5-flash` with SHA-256 prompt-hash caching (`ModelResponse` cache) and already
-  parses PDFs (earnings-call transcripts via `geminiApi.js`, order PDFs via
-  `orderParser.js`/`orderbookBaselineParser.js`). `GEMINI_API_KEY` is in `.env`. So the
-  Gemini pipe is not greenfield — extend it, don't build it.
+- **Legacy Gemini client removed.** The legacy `screener-api/src/core/api/geminiClient.js`,
+  `geminiApi.js`, and `orderParser.js` in `screener-api` have been decommissioned and removed.
+  External LLM integrations follow the architecture described in `PREPROCESSING_PIPELINE_PLAN.md`.
 - **Gemini 2.5 Flash capability fit:** 1,048,576-token (~1M) context; Google positions it
   for "long-context summaries, multimodal understanding, light reasoning, structured
   extraction, high-volume text workflows." PDFs are read natively (1 page ≈ 1 image).
@@ -149,6 +147,29 @@ bleed today. Move reading to Gemini (1M context, per-page PDF billing), hand Cla
 JSON of facts + quotes, and let Claude do only the part you actually pay it for — the read.
 
 ## 4. Orchestration & the Gemini↔Claude handoff
+
+> **SUPERSEDED ON MECHANISM (2026-09-04) — read this before implementing anything below.**
+>
+> This section's mechanism — `packages/jobs-runtime/lib/gemini.js`, a thin client
+> calling the Gemini API with the stored `GEMINI_API_KEY` — **must not be built.**
+> The routing _logic_ in §1–§3 stands; how the cheap tier is invoked does not.
+>
+> The standing rule (Darshan, 2026-09-04, consistent with
+> `skills/equity-research/guidance-document-extractor/SKILL.md` Step 2): **no job or
+> skill in this repo calls an LLM provider's API with a stored key.** Cheap-tier work
+> is a SKILL run by a scheduled JOB, written so it needs no heavy reasoning model, and
+> executed by whichever agent is cheapest at the time — Gemini via the Antigravity
+> sidecars (`yarn antigravity:sync`), a cheap-tier Cowork task, or anything else.
+> "Cheap model" describes the JOB, not a vendor.
+>
+> This is not pedantry about keys. It makes the cheap tier vendor-portable (re-point
+> the sidecar, change no repo code), keeps every model invocation visible as a
+> scheduled run rather than buried in a library call, and means a model swap can never
+> silently change a judgment inside a skill's reasoning loop.
+>
+> The concrete design that replaces this section is
+> [`PREPROCESSING_PIPELINE_PLAN.md`](PREPROCESSING_PIPELINE_PLAN.md).
+> `screener-api/src/core/api/geminiClient.js` is untouched by this note and out of scope.
 
 You do not need a message bus. The filesystem/Drive JSON you already use _is_ the bus.
 

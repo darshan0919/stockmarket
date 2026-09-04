@@ -41,78 +41,76 @@ skill's instructions reference it.
 
 20. **Company names in any HTML email MUST be rendered via `stockscansLink()` (`@stock/cloud-utils`), never as plain/bold text.** Every email-producing skill in this repo displays company names — digest cards, tables, footers — and a user reading on mobile expects to tap straight through to the company's Stockscans page from any of them. `stockscansLink(name, symbol, exchange, color)` already handles HTML-escaping and the `EXCH:SYMBOL` vs bare-symbol cases (see `cloud-utils/src/emailService.js`); call it directly rather than hand-rolling `<a href=...>` or, worse, dropping the anchor and rendering `esc(companyId)` as inert text. This was missed once in `postCloseScanInsights.js` (fixed 2026-08-26) despite `watchlistInsights.js` already doing it correctly right next to it in the same package — when adding or reviewing any new email-building code, actively diff it against the nearest sibling skill's email builder (same package, same digest-card shape) rather than writing the HTML from scratch; a plain, unlinked `${esc(it.companyId)}` or `${it.name}` next to a card title is the exact signature of this miss and should be caught at review, not by the user a second time.
 
-
 21. **Every `add-note` call MUST set `sourceSkill` to the exact orchestrating skill's
-own name -- never rely on a shared-layer default, and never conflate it with `creator`
-or `usecase`.** `packages/jobs-runtime/lib/notesDb.js`'s `save()` persists a legacy
-envelope field, `creator`, that it silently defaults to `'watchlist-insights'` whenever
-a note doesn't set it (kept for backward compatibility -- do not remove or change this
-default, other code may depend on it). Every current caller of `watchlistInsights.js
+    own name -- never rely on a shared-layer default, and never conflate it with `creator`
+    or `usecase`.** `packages/jobs-runtime/lib/notesDb.js`'s `save()` persists a legacy
+    envelope field, `creator`, that it silently defaults to `'watchlist-insights'` whenever
+    a note doesn't set it (kept for backward compatibility -- do not remove or change this
+    default, other code may depend on it). Every current caller of `watchlistInsights.js
 add-note` (`watchlist-insights`, `announcement-insights`, `announcement-info-classifier`,
-`post-close-scan-insights`) leaves `creator` unset on the notes it writes, so before this
-convention existed EVERY note from EVERY one of these skills was silently mislabeled as
-having come from `watchlist-insights` -- a real bug that caused a genuine misdiagnosis
-(a session inspecting `notes.json`, seeing `creator: "watchlist-insights"` on
-high-significance notes, and wrongly concluding a different, newly-reworked skill hadn't
-run yet, when it very likely had). `usecase` is not a substitute either -- it is
-deliberately SHARED/cache-scoped across orchestrators at the same depth
-(`"announcement-insights:standard"` etc., see the `announcement-insights` SKILL.md's
-"Caching" section) so two skills reading the same announcement at the same depth land in
-one cache bucket; repurposing it for attribution would break that sharing. The fix:
-`cmdAddNote` in `watchlistInsights.js` now REQUIRES a `sourceSkill` field on
-`payload.note` and throws if it's missing -- there is no default, deliberately, because a
-silent default is exactly how this bug happened the first time. `notesDb.js` persists it
-verbatim (it flows through the existing `...n` spread in `save()` and `...rec` spread in
-`load()`) and never touches it. **When creating or editing ANY skill that writes through
-this shared note-persistence path (`add-note`, or `NotesDb`/`notesDb.js` directly),
-`skill-manager` MUST verify the skill's SKILL.md instructs setting `sourceSkill`
-explicitly to that skill's own name on every `add-note` payload, and must not consider
-the skill "done" until it does** (see `skills/tooling/skill-manager/SKILL.md`'s
-Announcement/notes-caching section, which cross-references this rule). Historical notes
-written before this convention are NOT backfilled -- this is forward-looking only; do not
-attempt to reconstruct historical attribution from `creator`, timestamps, or any other
-proxy. Separately: this same "shared persistence layer silently defaults an attribution
-field so every caller looks like the first/original caller" shape may exist elsewhere --
-`packages/jobs-runtime/lib/db.js`'s generic envelope also defaults `creator` in some
-paths. That has NOT been audited or fixed as part of this convention (out of scope here),
-but is flagged as the same class of footgun; treat a `creator`-only envelope on any
-shared collection as a signal to check whether real attribution needs its own explicit,
-non-defaulted field before assuming `creator` tells you who actually wrote a record.
-
+    `post-close-scan-insights`) leaves `creator` unset on the notes it writes, so before this
+    convention existed EVERY note from EVERY one of these skills was silently mislabeled as
+    having come from `watchlist-insights` -- a real bug that caused a genuine misdiagnosis
+    (a session inspecting `notes.json`, seeing `creator: "watchlist-insights"` on
+    high-significance notes, and wrongly concluding a different, newly-reworked skill hadn't
+    run yet, when it very likely had). `usecase` is not a substitute either -- it is
+    deliberately SHARED/cache-scoped across orchestrators at the same depth
+    (`"announcement-insights:standard"` etc., see the `announcement-insights` SKILL.md's
+    "Caching" section) so two skills reading the same announcement at the same depth land in
+    one cache bucket; repurposing it for attribution would break that sharing. The fix:
+    `cmdAddNote` in `watchlistInsights.js` now REQUIRES a `sourceSkill` field on
+    `payload.note` and throws if it's missing -- there is no default, deliberately, because a
+    silent default is exactly how this bug happened the first time. `notesDb.js` persists it
+    verbatim (it flows through the existing `...n` spread in `save()` and `...rec` spread in
+    `load()`) and never touches it. **When creating or editing ANY skill that writes through
+    this shared note-persistence path (`add-note`, or `NotesDb`/`notesDb.js` directly),
+    `skill-manager` MUST verify the skill's SKILL.md instructs setting `sourceSkill`
+    explicitly to that skill's own name on every `add-note` payload, and must not consider
+    the skill "done" until it does** (see `skills/tooling/skill-manager/SKILL.md`'s
+    Announcement/notes-caching section, which cross-references this rule). Historical notes
+    written before this convention are NOT backfilled -- this is forward-looking only; do not
+    attempt to reconstruct historical attribution from `creator`, timestamps, or any other
+    proxy. Separately: this same "shared persistence layer silently defaults an attribution
+    field so every caller looks like the first/original caller" shape may exist elsewhere --
+    `packages/jobs-runtime/lib/db.js`'s generic envelope also defaults `creator` in some
+    paths. That has NOT been audited or fixed as part of this convention (out of scope here),
+    but is flagged as the same class of footgun; treat a `creator`-only envelope on any
+    shared collection as a signal to check whether real attribution needs its own explicit,
+    non-defaulted field before assuming `creator` tells you who actually wrote a record.
 
 22. **A record's write-timestamp lives in `creationTime`/`modifiedTime` ONLY — never a
-second, independently-computed field for the same purpose.** `lib/db.js`'s
-`ensureEnvelope()` (called by every `appendNotes`/`upsertMany`) already sets
-`creationTime` once and bumps `modifiedTime` on real content changes, as ISO 8601 with
-an explicit `+05:30` offset via `nowIstIso()` -- this is already timezone-unambiguous and
-exactly what this doc and `docs/DATA_ECOSYSTEM.md` require. The bug this convention
-closes: `packages/jobs-runtime/watchlistInsights.js`'s `cmdAddNote` used to ALSO compute
-its own `createdAt: ist.nowIstIso()` on every note entry -- a second, independent call, a
-few milliseconds apart from `ensureEnvelope`'s `creationTime`, with no documented
-authority relationship between the two. Every downstream reader (`notesDb.js`'s
-`load()`/sort/`buildNoteIndex`, `insightValidator.js`'s D+1 validation) read THAT field,
-not the canonical envelope one. Two competing, undocumented, drifting timestamps on the
-same record is precisely why an earlier investigation into a set of high-significance
-notes could not establish "no reliable timestamp proved which" run actually wrote them --
-not because the timestamps lacked timezone info (they didn't; both were already
-IST-with-offset), but because there were two of them and neither was marked authoritative.
-Fixed: `cmdAddNote` no longer sets `createdAt` on a note entry; `creationTime` (set once,
-by `ensureEnvelope`, at persist time) is the single source of truth, and every reader
-(`notesDb.js`, `insightValidator.js`) now reads it first. A defensive `|| n.createdAt`
-fallback remains in a few spots for records that somehow bypass `ensureEnvelope`, but as
-of this fix 100% of existing note records already carry `creationTime` (verified: 0 of
-2094), so this is not a real migration path, just a safety net. **This is forward-looking
-only -- the notes originally investigated were written before this fix existed, so this
-convention does not and cannot retroactively resolve which run wrote them.** Separately,
-and NOT the same bug: `ann.createdAt` on an announcement/tweet/Stockscans-sourced object
-means the external source's OWN filing/post timestamp, inherited from the upstream API
-field name -- that is legitimate domain data about what the record describes, not a
-competing write-timestamp field, and this convention does not touch it, rename it, or
-apply to it. The rule is specifically: never invent a second field for "when did WE
-create/modify this record" alongside `creationTime`/`modifiedTime`; a `createdAt` that
-answers a different question ("when did the external thing happen") on a different kind
-of object is unaffected. See `skills/tooling/output-dto-standard/SKILL.md` for the
-canonical envelope spec update and `skills/tooling/skill-manager/SKILL.md` for the
-standing check this becomes part of.
+    second, independently-computed field for the same purpose.** `lib/db.js`'s
+    `ensureEnvelope()` (called by every `appendNotes`/`upsertMany`) already sets
+    `creationTime` once and bumps `modifiedTime` on real content changes, as ISO 8601 with
+    an explicit `+05:30` offset via `nowIstIso()` -- this is already timezone-unambiguous and
+    exactly what this doc and `docs/DATA_ECOSYSTEM.md` require. The bug this convention
+    closes: `packages/jobs-runtime/watchlistInsights.js`'s `cmdAddNote` used to ALSO compute
+    its own `createdAt: ist.nowIstIso()` on every note entry -- a second, independent call, a
+    few milliseconds apart from `ensureEnvelope`'s `creationTime`, with no documented
+    authority relationship between the two. Every downstream reader (`notesDb.js`'s
+    `load()`/sort/`buildNoteIndex`, `insightValidator.js`'s D+1 validation) read THAT field,
+    not the canonical envelope one. Two competing, undocumented, drifting timestamps on the
+    same record is precisely why an earlier investigation into a set of high-significance
+    notes could not establish "no reliable timestamp proved which" run actually wrote them --
+    not because the timestamps lacked timezone info (they didn't; both were already
+    IST-with-offset), but because there were two of them and neither was marked authoritative.
+    Fixed: `cmdAddNote` no longer sets `createdAt` on a note entry; `creationTime` (set once,
+    by `ensureEnvelope`, at persist time) is the single source of truth, and every reader
+    (`notesDb.js`, `insightValidator.js`) now reads it first. A defensive `|| n.createdAt`
+    fallback remains in a few spots for records that somehow bypass `ensureEnvelope`, but as
+    of this fix 100% of existing note records already carry `creationTime` (verified: 0 of
+    2094), so this is not a real migration path, just a safety net. **This is forward-looking
+    only -- the notes originally investigated were written before this fix existed, so this
+    convention does not and cannot retroactively resolve which run wrote them.** Separately,
+    and NOT the same bug: `ann.createdAt` on an announcement/tweet/Stockscans-sourced object
+    means the external source's OWN filing/post timestamp, inherited from the upstream API
+    field name -- that is legitimate domain data about what the record describes, not a
+    competing write-timestamp field, and this convention does not touch it, rename it, or
+    apply to it. The rule is specifically: never invent a second field for "when did WE
+    create/modify this record" alongside `creationTime`/`modifiedTime`; a `createdAt` that
+    answers a different question ("when did the external thing happen") on a different kind
+    of object is unaffected. See `skills/tooling/output-dto-standard/SKILL.md` for the
+    canonical envelope spec update and `skills/tooling/skill-manager/SKILL.md` for the
+    standing check this becomes part of.
 
 These conventions ensure that skills can execute in any environment: Cowork, Antigravity, local terminal, or Claude web.

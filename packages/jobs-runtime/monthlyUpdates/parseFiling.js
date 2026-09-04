@@ -78,7 +78,11 @@ function cacheDir() {
 }
 
 function cacheFileFor(ssUrl) {
-  const key = crypto.createHash('sha1').update(`${ssUrl}|${PROMPT_VERSION}`).digest('hex').slice(0, 16);
+  const key = crypto
+    .createHash('sha1')
+    .update(`${ssUrl}|${PROMPT_VERSION}`)
+    .digest('hex')
+    .slice(0, 16);
   return path.join(cacheDir(), `${key}.json`);
 }
 
@@ -125,7 +129,10 @@ function coerce(row, rec) {
     segments: Array.isArray(row.segments)
       ? row.segments
           .slice(0, 6)
-          .map((s) => ({ name: String(s && s.name ? s.name : '').slice(0, 60), value: num(s && s.value) }))
+          .map((s) => ({
+            name: String(s && s.name ? s.name : '').slice(0, 60),
+            value: num(s && s.value),
+          }))
           .filter((s) => s.name && s.value !== null)
       : [],
     confidence: ['high', 'medium', 'low'].includes(row.confidence) ? row.confidence : 'low',
@@ -254,7 +261,11 @@ function ingestParsedBatch(batch, rows) {
   }
 
   const missing = [...byUrl.keys()].map((u) => ({ ssUrl: u, reason: 'no row returned' }));
-  return { accepted, rejected: rejected.concat(missing), stats: { accepted: accepted.length, rejected: rejected.length + missing.length } };
+  return {
+    accepted,
+    rejected: rejected.concat(missing),
+    stats: { accepted: accepted.length, rejected: rejected.length + missing.length },
+  };
 }
 
 /** Everything parsed so far, for the series builder. */
@@ -266,7 +277,9 @@ function loadAllParsed() {
     try {
       const j = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
       if (isCacheable(j)) out.push(j);
-    } catch (_) { /* skip unreadable entry */ }
+    } catch (_) {
+      /* skip unreadable entry */
+    }
   }
   return out;
 }

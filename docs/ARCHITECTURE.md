@@ -29,12 +29,12 @@
 │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────────────┘
                                 │
-        ┌───────────────────────┼───────────────────────┐
-        ▼                       ▼                       ▼
-┌───────────────┐      ┌───────────────┐      ┌───────────────┐
-│   NSE India   │      │   BSE India   │      │  Gemini AI    │
-│     API       │      │     API       │      │     API       │
-└───────────────┘      └───────────────┘      └───────────────┘
+        ┌───────────────────────┴───────────────────────┐
+        ▼                                               ▼
+┌───────────────┐                               ┌───────────────┐
+│   NSE India   │                               │   BSE India   │
+│     API       │                               │     API       │
+└───────────────┘                               └───────────────┘
 ```
 
 ## Component Details
@@ -159,17 +159,13 @@ MongoDB schemas using Mongoose:
 | `Fundamental`        | `Fundamental.js`        | Fundamental metrics                     |
 | `Watchlist`          | `Watchlist.js`          | User watchlist entries                  |
 | `Orderbook`          | `Orderbook.js`          | Parsed orderbook data                   |
-| `ModelResponse`      | `ModelResponse.js`      | Cached AI responses                     |
 
 #### External APIs (`backend/api/`)
 
-| API Module                | File                         | External Service                       |
-| ------------------------- | ---------------------------- | -------------------------------------- |
-| `nseIndiaApi`             | `nseIndiaApi.js`             | NSE India (upcoming results, cookies)  |
-| `bseIndiaApi`             | `bseIndiaApi.js`             | BSE India (scrip codes, announcements) |
-| `geminiApi`               | `geminiApi.js`               | Google Gemini AI (transcript analysis) |
-| `orderParser`             | `orderParser.js`             | PDF order parsing                      |
-| `orderbookBaselineParser` | `orderbookBaselineParser.js` | Orderbook baseline calculation         |
+| API Module    | File             | External Service                       |
+| ------------- | ---------------- | -------------------------------------- |
+| `nseIndiaApi` | `nseIndiaApi.js` | NSE India (upcoming results, cookies)  |
+| `bseIndiaApi` | `bseIndiaApi.js` | BSE India (scrip codes, announcements) |
 
 #### Utilities (`backend/utils/`)
 
@@ -210,22 +206,6 @@ Stock page loads → QuarterlyResults → stockAPI.getQuarterlyResults()
                                            Return formatted data → UI
 ```
 
-#### 3. AI Transcript Analysis Flow
-
-```
-User clicks analyze → TranscriptTab → transcriptAPI.analyzeTranscript()
-                                                    ↓
-                                           /api/result-transcript/:symbol/analyze
-                                                    ↓
-                                           Check ModelResponse cache
-                                                    ↓
-                                    If not cached: geminiApi.geminiResultAnalysis()
-                                                    ↓
-                                           Gemini API → Parse response
-                                                    ↓
-                                           Cache in ModelResponse → Return → UI
-```
-
 ## Database Schema Overview
 
 ```
@@ -253,13 +233,12 @@ User clicks analyze → TranscriptTab → transcriptAPI.analyzeTranscript()
 │ volume           │     │ roe/roce         │
 └──────────────────┘     └──────────────────┘
 
-┌──────────────────┐     ┌──────────────────┐
-│    Watchlist     │     │  ModelResponse   │
-├──────────────────┤     ├──────────────────┤
-│ symbol           │     │ attachment_name  │
-│ added_at         │     │ prompt (hash)    │
-└──────────────────┘     │ response         │
-                         └──────────────────┘
+┌──────────────────┐
+│    Watchlist     │
+├──────────────────┤
+│ symbol           │
+│ added_at         │
+└──────────────────┘
 ```
 
 ## External API Integration
@@ -282,13 +261,6 @@ User clicks analyze → TranscriptTab → transcriptAPI.analyzeTranscript()
   - `/PeerSmartSearch` - Stock search
   - `/AnnSubCategoryGetData` - Announcements
   - `/Corpforthresults` - Upcoming results
-
-### Gemini AI API
-
-- **Base URL**: `https://generativelanguage.googleapis.com/v1beta`
-- **Authentication**: API key
-- **Usage**: Earnings call transcript analysis
-- **Prompts**: Stored in `backend/prompts/`
 
 ## Error Handling
 

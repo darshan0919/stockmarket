@@ -33,6 +33,7 @@ const tradingCalendar = require('./lib/tradingCalendar');
 const db = require('./lib/db');
 const { stockscans } = require('@stock/api');
 const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
+const { withRetry } = require('@stock/api/utils/concurrency');
 // resend-with-market-data (see cmdResendWithMarketData) reuses gainers-signal's
 // already-proven NSE/BSE delivery lookup rather than re-implementing it — same
 // "never think or write the same thing twice" rule as everywhere else in this
@@ -420,17 +421,27 @@ const SLOT_LABELS = {
   adhoc: 'Ad-hoc run',
 };
 
-async function cmdFetchScan(argv) {
-  loadEnv(argValue('--env-file', argv));
-  const windowHoursArg = argValue('--window-hours', argv);
-  const slot = argValue('--slot', argv) || 'adhoc';
-  const now = new Date();
-  const cutoffUtc = await resolveCutoffUtc(now, windowHoursArg);
-  const quarterDate = currentQuarterDate(now);
-  // Resolve the universe from the user's saved scan (see resolveScan) rather
-  // than a literal frozen in this file.
-  const resolvedScan = await resolveScan();
-
+/**
+ * Paginate the resolved scan back to `cutoffUtc` and return everything in window.
+ *
+ * Extracted from `cmdFetchScan` so a second consumer — `preprocessQueue.js` —
+ * can walk the same universe with the same tolerant stop condition WITHOUT
+ * re-implementing it and without triggering `cmdFetchScan`'s cursor side effect.
+ * That side effect is the reason a simple shell-out would be wrong: `fetch-scan`
+ * writes the pending-window marker `commit-window` reads back, and a second
+ * caller invoking it would silently repoint post-close's cursor at the wrong
+ * window (the skill's own docs warn "don't call fetch-scan twice for the same
+ * cycle"). Pagination is a fact about the API; the cursor is post-close's state.
+ * Only the first belongs to both callers — conventions §17.
+ *
+ * Returns `pagesFetched` and `hitPageCap` alongside the results. The cap is a
+ * safety stop, but stopping at it means the window was TRUNCATED — and a silently
+ * truncated window makes a run's absences meaningless in exactly the way this
+ * skill's own rules warn about. Callers must surface `hitPageCap`, not ignore it.
+ *
+ * @returns {Promise<{all: Array, inWindow: Array, pagesFetched: number, hitPageCap: boolean}>}
+ */
+async function paginateScanToCutoff({ scan, cutoffUtc, quarterDate }) {
   const all = [];
   const inWindow = [];
   let offset = 0;
@@ -445,11 +456,20 @@ async function cmdFetchScan(argv) {
   const CONSECUTIVE_ZERO_PAGES_TO_STOP = 2;
 
   while (page < MAX_PAGES) {
-    const payload = { scan: resolvedScan.scan, offset, quarterDate };
-    const { data } = await axios.post(`${BASE_URL}/api/company/announcements/scan`, payload, {
-      headers: authHeaders(),
-      timeout: 30000,
-    });
+    const payload = { scan, offset, quarterDate };
+    // Retry on 429/5xx with backoff. Stockscans rate-limits this endpoint, and
+    // an unretried throw here aborts the whole pagination — losing a window
+    // rather than pausing for it. That mattered little when one job called this
+    // a few times a day; `preprocessQueue.js` now walks the same scan every 30
+    // minutes, so a transient 429 must be a pause, not a failed run.
+    const { data } = await withRetry(
+      () =>
+        axios.post(`${BASE_URL}/api/company/announcements/scan`, payload, {
+          headers: authHeaders(),
+          timeout: 30000,
+        }),
+      { retries: 3, baseDelayMs: 1500 }
+    );
     const items = data.announcements || data.documents || data.items || [];
     if (!items.length) break;
     all.push(...items);
@@ -481,6 +501,26 @@ async function cmdFetchScan(argv) {
       consecutiveZeroPages = 0;
     }
   }
+
+  return { all, inWindow, pagesFetched: page, hitPageCap: page >= MAX_PAGES };
+}
+
+async function cmdFetchScan(argv) {
+  loadEnv(argValue('--env-file', argv));
+  const windowHoursArg = argValue('--window-hours', argv);
+  const slot = argValue('--slot', argv) || 'adhoc';
+  const now = new Date();
+  const cutoffUtc = await resolveCutoffUtc(now, windowHoursArg);
+  const quarterDate = currentQuarterDate(now);
+  // Resolve the universe from the user's saved scan (see resolveScan) rather
+  // than a literal frozen in this file.
+  const resolvedScan = await resolveScan();
+
+  const { all, inWindow } = await paginateScanToCutoff({
+    scan: resolvedScan.scan,
+    cutoffUtc,
+    quarterDate,
+  });
 
   // Record this fetch's windowEnd (= this invocation's "now", not the
   // cutoff) as the pending marker — commit-window reads it back so the
@@ -1058,7 +1098,14 @@ async function main() {
 // parseAnnDateToUtc's IST-vs-UTC behaviour is the single most consequential
 // assumption in this file — see its own comment block — so it is testable
 // rather than only observable through a live API call.
-module.exports = { parseAnnDateToUtc, normaliseSavedScan, SCAN_SOURCE_NAME, FALLBACK_SCAN };
+module.exports = {
+  parseAnnDateToUtc,
+  normaliseSavedScan,
+  resolveScan,
+  paginateScanToCutoff,
+  SCAN_SOURCE_NAME,
+  FALLBACK_SCAN,
+};
 
 // Guarded so requiring this module (for its exports, or from a test) does not
 // run the CLI and exit — same pattern gainersScanner.js uses, noted at the top

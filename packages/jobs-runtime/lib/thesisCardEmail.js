@@ -575,6 +575,59 @@ const EPS_CONFIDENCE_WEIGHT = { high: 25, medium: 15, low: 8 };
 const MARKET_REACTION_RETURN_CAP = 12;
 const MARKET_REACTION_VOLUME_SPIKE_BONUS = 8;
 
+// ── EXTRACT-DERIVED EVIDENCE (added 2026-09-04, plan §1.3) ────────────────
+//
+// The pre-processing pipeline gives this scorer something it never had: facts
+// read straight off the filing — a stated rupee figure, whether the claim is new
+// against the company's own baseline card, whether guidance moved. Before, the
+// score was computed almost entirely from a model's coarse `significance` label
+// plus category conviction.
+//
+// Why that matters more than the token saving. At the scale this is built for,
+// a deterministic score becomes the gatekeeper deciding which ~50 names out of
+// ~1,400 get flagship attention. A gatekeeper reading a model's adjective is a
+// weaker instrument than one reading the actual number in the filing. This block
+// is what turns "the top 20 of whatever the scan surfaced" into "the top N of
+// everything filed, ranked on extracted facts".
+//
+// Three deliberate constraints:
+//
+//  1. Everything is OPTIONAL. Absent `extractEvidence` scores exactly as before,
+//     so cards written before the pipeline existed stay comparable with new ones
+//     and no historical note is orphaned.
+//  2. A `confidence: 'low'` extract (L1 skipped, or L2 raised a bound issue)
+//     contributes at HALF weight. It is a lead, not a fact, and it must never be
+//     able to drive a card's position on its own.
+//  3. Amount is scored RELATIVE TO MARKET CAP, never absolutely. ₹40cr is
+//     transformative for a ₹400cr company and rounding for a ₹40,000cr one —
+//     the identical argument the delivery-value columns already make elsewhere
+//     in this file. An absolute rupee weight would systematically promote
+//     large-caps for doing ordinary things.
+const EXTRACT_AMOUNT_MAX = 14; // a deal worth >=10% of market cap earns all of it
+const EXTRACT_NOVELTY_NEW = 12;
+const EXTRACT_NOVELTY_KNOWN = -10; // already disclosed: actively less interesting
+const EXTRACT_GUIDANCE_CHANGED = 10;
+
+function extractEvidenceScore(ev) {
+  if (!ev || typeof ev !== 'object') return 0;
+  let s = 0;
+
+  if (typeof ev.amountPctOfMcap === 'number' && Number.isFinite(ev.amountPctOfMcap)) {
+    s += Math.min(Math.max(ev.amountPctOfMcap, 0) / 10, 1) * EXTRACT_AMOUNT_MAX;
+  }
+
+  const novelty = String(ev.claimNovelty || '').toLowerCase();
+  if (novelty === 'new') s += EXTRACT_NOVELTY_NEW;
+  else if (novelty === 'known') s += EXTRACT_NOVELTY_KNOWN;
+  // 'follow_up' scores 0: a known direction with genuinely new specifics is
+  // neither a surprise nor already priced, and pretending otherwise in either
+  // direction is worse than staying neutral.
+
+  if (ev.guidanceChanged === true) s += EXTRACT_GUIDANCE_CHANGED;
+
+  return String(ev.confidence || '').toLowerCase() === 'low' ? s / 2 : s;
+}
+
 function computeRankScore(it) {
   let score = 0;
 
@@ -593,6 +646,8 @@ function computeRankScore(it) {
     const newCount = ic.claims.filter((c) => String(c.bucket || '').toUpperCase() === 'NEW').length;
     score += (newCount / ic.claims.length) * 35;
   }
+
+  score += extractEvidenceScore(it.extractEvidence);
 
   const md = it.marketData;
   if (md) {
@@ -675,6 +730,15 @@ const SIGNIFICANCE_BAND = {
 // card to the top of the band its evidence earned rather than promoting it out
 // of that band. What the market did is confirmation, not new evidence about
 // the filing.
+//
+// UNCHANGED at 65 despite `extractEvidenceScore` adding up to 36 more points, and
+// that is a decision rather than an oversight. 65 is the realistic ceiling for an
+// item scored WITHOUT the rare bonuses; the ratio is clamped to 1.0, so an item
+// carrying both a big info-classification bonus and strong extract evidence tops
+// out its band instead of being rewarded twice for the same underlying strength.
+// Raising the divisor to accommodate the new weights would instead DEMOTE every
+// card written before the pipeline existed, silently re-ranking a year of history
+// against a yardstick it was never measured on.
 const RANK_SCORE_NOMINAL_MAX = 65;
 
 // Five tiers, strongest first. `min` is inclusive. Labels are short enough to
@@ -1613,6 +1677,7 @@ const SCAN_STATS_TILES = [
 ];
 
 module.exports = {
+  extractEvidenceScore,
   // Primitives — shared by both card modes.
   esc,
   toTitleCase,

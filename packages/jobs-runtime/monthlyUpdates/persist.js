@@ -77,7 +77,8 @@ function buildDto(series, meta = {}) {
       source: 'Stockscans saved announcement scan "Monthly Updates" (0b85d5ecbd43531ee2f10213)',
       cohort: 'announcements filed on day 1-3 of a month',
       extraction: 'pdftotext -layout, tesseract OCR fallback',
-      parse: 'agent-read (no model API); growth computed deterministically in JS from stored levels',
+      parse:
+        'agent-read (no model API); growth computed deterministically in JS from stored levels',
       ...meta,
     },
   };
@@ -90,7 +91,13 @@ function persistAll({ dryRun = false } = {}) {
   if (dryRun) return { dto, series, eventStats: null };
   const ev = persistEvents(parsed);
   const saved = db.saveReport(dto);
-  return { dto, series, eventStats: ev, reportId: saved && saved.id ? saved.id : dto.id, touched: db.touchedFiles() };
+  return {
+    dto,
+    series,
+    eventStats: ev,
+    reportId: saved && saved.id ? saved.id : dto.id,
+    touched: db.touchedFiles(),
+  };
 }
 
 module.exports = { persistAll, persistEvents, buildDto, EVENT_TYPE, REPORT_TYPE, CREATOR };

@@ -83,7 +83,7 @@ Expected: `{"success":true,"data":{"quarters":[],"message":"No quarterly results
 #### Backend Not Starting?
 
 ```bash
-cd /Users/darshan.patel/code/personal/stockmarket/backend
+cd backend
 node server.js
 # Check logs for errors
 ```
@@ -107,7 +107,7 @@ node server.js
 
 5. **Restart Next.js dev server:**
    ```bash
-   cd /Users/darshan.patel/code/personal/stockmarket/frontend
+   cd frontend
    # Kill existing process
    lsof -ti:3000 | xargs kill
    # Restart

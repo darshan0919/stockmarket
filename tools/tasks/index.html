@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Task & Rules Tracker</title>
+    <title>Task & Roadmap Tracker</title>
     <style>
       :root {
         --bg: #0f0f11;
@@ -31,6 +31,8 @@
         --teal-bg: rgba(45, 212, 191, 0.12);
         --orange: #fb923c;
         --orange-bg: rgba(251, 146, 60, 0.12);
+        --indigo: #818cf8;
+        --indigo-bg: rgba(129, 140, 248, 0.12);
       }
       * {
         box-sizing: border-box;
@@ -84,6 +86,7 @@
         display: flex;
         align-items: center;
         gap: 12px;
+        flex-wrap: wrap;
       }
       .status {
         display: flex;
@@ -117,7 +120,7 @@
         font-weight: 500;
       }
 
-      .connect-btn {
+      .action-btn {
         background: var(--surface-card);
         border: 1px solid var(--border);
         color: var(--text);
@@ -127,11 +130,24 @@
         font-weight: 500;
         cursor: pointer;
         transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
       }
-      .connect-btn:hover {
+      .action-btn:hover {
         border-color: var(--accent);
         color: #fff;
         transform: translateY(-1px);
+      }
+      .rules-btn {
+        border-color: rgba(124, 106, 247, 0.4);
+        background: rgba(124, 106, 247, 0.08);
+        color: #c4bbfb;
+      }
+      .rules-btn:hover {
+        background: var(--accent-dim);
+        color: #fff;
+        border-color: var(--accent);
       }
 
       .banner {
@@ -395,6 +411,7 @@
         transition: all 0.15s;
       }
       .task-item:hover .del-btn,
+      .workflow-card:hover .del-btn,
       .rule-card:hover .del-btn {
         opacity: 1;
       }
@@ -403,7 +420,8 @@
         background: rgba(248, 113, 113, 0.1);
       }
 
-      /* Rule Card */
+      /* Workflow & Rule Card */
+      .workflow-card,
       .rule-card {
         background: var(--surface-card);
         border: 1px solid var(--border);
@@ -414,32 +432,23 @@
         gap: 8px;
         transition: all 0.2s;
         animation: fadeIn 0.15s ease;
-        position: relative;
       }
+      .workflow-card:hover,
       .rule-card:hover {
         border-color: var(--border-hover);
         box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
       }
-      .rule-card.inactive {
-        opacity: 0.5;
-        border-style: dashed;
-      }
+      .workflow-card.editing,
       .rule-card.editing {
         border-color: var(--accent);
         background: #23232c;
       }
 
-      .rule-top {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 10px;
-      }
-      .rule-header-left {
+      .card-top {
         display: flex;
         align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 10px;
       }
 
       .category-pill {
@@ -461,10 +470,20 @@
         background: var(--blue-bg);
         border-color: rgba(56, 189, 248, 0.3);
       }
+      .category-pill.scaling {
+        color: var(--orange);
+        background: var(--orange-bg);
+        border-color: rgba(251, 146, 60, 0.3);
+      }
       .category-pill.quality {
         color: var(--green);
         background: var(--green-bg);
         border-color: rgba(74, 222, 128, 0.3);
+      }
+      .category-pill.performance {
+        color: var(--yellow);
+        background: var(--yellow-bg);
+        border-color: rgba(250, 204, 21, 0.3);
       }
       .category-pill.safety {
         color: var(--red);
@@ -492,28 +511,7 @@
         border-color: var(--accent-dim);
       }
 
-      .toggle-active-btn {
-        background: none;
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        padding: 2px 6px;
-        font-size: 0.68rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.15s;
-        color: var(--muted-light);
-      }
-      .toggle-active-btn.active {
-        background: var(--green-bg);
-        color: var(--green);
-        border-color: rgba(74, 222, 128, 0.3);
-      }
-      .toggle-active-btn.inactive {
-        background: rgba(255, 255, 255, 0.04);
-        color: var(--muted);
-      }
-
-      .rule-title {
+      .card-title {
         font-size: 0.95rem;
         font-weight: 600;
         color: var(--text);
@@ -521,7 +519,7 @@
         outline: none;
         cursor: text;
       }
-      .rule-desc {
+      .card-desc {
         font-size: 0.82rem;
         color: var(--muted-light);
         line-height: 1.5;
@@ -529,13 +527,13 @@
         cursor: text;
         word-break: break-word;
       }
-      .rule-desc:empty:before {
-        content: 'Add a description / guidance for this rule…';
+      .card-desc:empty:before {
+        content: 'Add guidance or recurring workflow details…';
         color: var(--muted);
         font-style: italic;
       }
 
-      .rule-footer {
+      .card-footer {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -545,9 +543,80 @@
         padding-top: 6px;
         margin-top: 4px;
       }
-      .rule-id {
+      .card-id {
         font-family: monospace;
         opacity: 0.8;
+      }
+
+      /* Modal Overlay */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+        animation: fadeIn 0.2s ease;
+      }
+      .modal-overlay.open {
+        display: flex;
+      }
+      .modal-dialog {
+        background: #15151a;
+        border: 1px solid var(--border-hover);
+        border-radius: 16px;
+        width: 100%;
+        max-width: 800px;
+        max-height: 88vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+      }
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+      }
+      .modal-header h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .modal-close-btn {
+        background: none;
+        border: none;
+        color: var(--muted-light);
+        font-size: 1.3rem;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 6px;
+      }
+      .modal-close-btn:hover {
+        color: #fff;
+        background: var(--surface-card);
+      }
+
+      .modal-body {
+        padding: 24px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .modal-desc {
+        font-size: 0.84rem;
+        color: var(--muted-light);
+        line-height: 1.5;
       }
 
       .empty {
@@ -572,15 +641,16 @@
     <div class="container">
       <header>
         <div class="brand">
-          <h1>Task & Rules Tracker</h1>
+          <h1>Task & Roadmap Tracker</h1>
           <span class="header-badge">Stock Screener Monorepo</span>
         </div>
         <div class="header-actions">
+          <button class="action-btn rules-btn" id="openRulesBtn">📜 Development Rules</button>
           <div class="status">
             <span class="status-dot" id="dot"></span>
             <span class="status-label" id="statusLabel">—</span>
           </div>
-          <button class="connect-btn" id="connectBtn" style="display: none">
+          <button class="action-btn" id="connectBtn" style="display: none">
             📁 Connect data/ folder
           </button>
         </div>
@@ -588,7 +658,7 @@
 
       <div class="banner warn" id="banner">
         <span id="bannerMsg"></span>
-        <button class="connect-btn" id="bannerConnectBtn">📁 Connect folder</button>
+        <button class="action-btn" id="bannerConnectBtn">📁 Connect folder</button>
       </div>
 
       <div class="board-grid">
@@ -626,21 +696,85 @@
           <div class="item-list" id="taskList"></div>
         </div>
 
-        <!-- RIGHT COLUMN: Development Rules (Permanent) -->
-        <div class="column" id="rulesColumn">
+        <!-- RIGHT COLUMN: Product Development Roadmap (Recurring Workflows) -->
+        <div class="column" id="roadmapColumn">
           <div class="col-header">
             <div class="col-title-wrap">
-              <span class="col-title">Development Rules</span>
+              <span class="col-title">Product Roadmap</span>
               <span
                 class="col-pill"
-                style="border-color: rgba(124, 106, 247, 0.4); color: var(--purple)"
-                >Permanent</span
+                style="border-color: rgba(56, 189, 248, 0.4); color: var(--blue)"
+                >Workflows</span
               >
             </div>
-            <span class="header-badge" style="font-size: 0.7rem">Linked to AGENTS.md</span>
+            <span class="header-badge" style="font-size: 0.7rem" id="roadmapCountBadge"
+              >0 workflows</span
+            >
           </div>
           <div class="col-subtitle">
-            Permanent code writing rules honoured across Claude, Cursor, and Antigravity.
+            Recurring workflows and ongoing milestones as part of the product development roadmap.
+          </div>
+
+          <form class="add-form" id="addWorkflowForm">
+            <div class="add-row">
+              <input
+                type="text"
+                id="workflowTitleInput"
+                placeholder="Workflow title (e.g. Review code time to time)…"
+                autocomplete="off"
+                maxlength="150"
+                style="flex: 2"
+              />
+              <select id="workflowCategorySelect" style="flex: 1">
+                <option value="Architecture">Architecture</option>
+                <option value="Scaling">Scaling</option>
+                <option value="Code Quality">Code Quality</option>
+                <option value="Quality">Quality</option>
+                <option value="Performance">Performance</option>
+                <option value="Data Layer">Data Layer</option>
+              </select>
+            </div>
+            <div class="add-row">
+              <input
+                type="text"
+                id="workflowDescInput"
+                placeholder="Guidance/Recurring workflow notes (optional)…"
+                autocomplete="off"
+                maxlength="300"
+                style="flex: 1"
+              />
+              <button class="btn" type="submit" id="addWorkflowBtn">Add Workflow</button>
+            </div>
+          </form>
+
+          <div class="toolbar">
+            <button class="filter-btn active" data-workflowfilter="all">All</button>
+            <span class="stats" id="workflowStats">0 workflows registered</span>
+          </div>
+
+          <div class="item-list" id="workflowList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Development Rules -->
+    <div class="modal-overlay" id="rulesModal">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2>
+            <span>📜 Development Rules</span>
+            <span
+              class="col-pill"
+              style="border-color: rgba(124, 106, 247, 0.4); color: var(--purple)"
+              >Permanent</span
+            >
+          </h2>
+          <button class="modal-close-btn" id="closeRulesBtn" title="Close">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-desc">
+            Permanent software development rules and coding standards. Directly linked to
+            <strong>AGENTS.md §12</strong> and honoured across Claude, Cursor, and Antigravity.
           </div>
 
           <form class="add-form" id="addRuleForm">
@@ -648,7 +782,7 @@
               <input
                 type="text"
                 id="ruleTitleInput"
-                placeholder="Rule title (e.g. Clean Code: Less Lines)…"
+                placeholder="Rule title (e.g. Clean Code: Zero Debris)…"
                 autocomplete="off"
                 maxlength="150"
                 style="flex: 2"
@@ -668,7 +802,7 @@
               <input
                 type="text"
                 id="ruleDescInput"
-                placeholder="Guidance/Principle description (optional)…"
+                placeholder="Rule principle / guidance description (optional)…"
                 autocomplete="off"
                 maxlength="300"
                 style="flex: 1"
@@ -677,11 +811,8 @@
             </div>
           </form>
 
-          <div class="toolbar">
-            <button class="filter-btn active" data-rulefilter="all">All</button>
-            <button class="filter-btn" data-rulefilter="active">Active</button>
-            <button class="filter-btn" data-rulefilter="inactive">Inactive</button>
-            <span class="stats" id="ruleStats">0 active rules</span>
+          <div class="toolbar" style="margin-bottom: 8px">
+            <span class="stats" id="ruleStats">0 rules registered</span>
           </div>
 
           <div class="item-list" id="ruleList"></div>
@@ -698,17 +829,33 @@
 
       // ─── State ─────────────────────────────────────────────────────────────────
       let tasks = [];
+      let roadmap = [];
       let rules = [];
       let taskFilter = 'all';
-      let ruleFilter = 'all';
+      let workflowFilter = 'all';
       let dirHandle = null;
       let mode = 'init'; // 'local' | 'github' | 'error'
 
-      // ─── Task & Rule Schemas ───────────────────────────────────────────────────
+      // ─── Schemas ───────────────────────────────────────────────────────────────
       const makeTask = (title) => ({
         id: crypto.randomUUID(),
         title: title.trim(),
         completed: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
+      const makeWorkflow = (title, category = 'Architecture', description = '') => ({
+        id:
+          'wf-' +
+          (title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '')
+            .slice(0, 30) || crypto.randomUUID().slice(0, 8)),
+        title: title.trim(),
+        category: category.trim() || 'Architecture',
+        description: description.trim(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -724,7 +871,6 @@
         title: title.trim(),
         category: category.trim() || 'Code Quality',
         description: description.trim(),
-        active: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -786,7 +932,7 @@
         const fh = await dirHandle.getFileHandle(FILE_NAME, { create: true });
         const file = await fh.getFile();
         const text = await file.text();
-        return text ? JSON.parse(text) : { version: 1, tasks: [], rules: [] };
+        return text ? JSON.parse(text) : { version: 1, tasks: [], roadmap: [], rules: [] };
       }
 
       async function writeLocalFile(data) {
@@ -804,6 +950,7 @@
           try {
             const data = await readLocalFile();
             tasks = data.tasks || [];
+            roadmap = data.roadmap || [];
             rules = data.rules || [];
             setMode('local');
             return;
@@ -816,6 +963,7 @@
           if (r.ok) {
             const data = await r.json();
             tasks = data.tasks || [];
+            roadmap = data.roadmap || [];
             rules = data.rules || [];
             setMode('github');
             return;
@@ -828,6 +976,7 @@
           if (r.ok) {
             const data = await r.json();
             tasks = data.tasks || [];
+            roadmap = data.roadmap || [];
             rules = data.rules || [];
             setMode('github');
             return;
@@ -835,13 +984,14 @@
         } catch {}
 
         tasks = [];
+        roadmap = [];
         rules = [];
         setMode('error');
       }
 
       async function save() {
         if (mode !== 'local') return;
-        await writeLocalFile({ version: 1, tasks, rules });
+        await writeLocalFile({ version: 1, tasks, roadmap, rules });
       }
 
       // ─── Mode & Status UI ──────────────────────────────────────────────────────
@@ -852,6 +1002,7 @@
         const banner = document.getElementById('banner');
         const bannerMsg = document.getElementById('bannerMsg');
         const addTaskBtn = document.getElementById('addTaskBtn');
+        const addWorkflowBtn = document.getElementById('addWorkflowBtn');
         const addRuleBtn = document.getElementById('addRuleBtn');
         const connectBtn = document.getElementById('connectBtn');
 
@@ -860,6 +1011,7 @@
 
         const editable = m === 'local';
         if (addTaskBtn) addTaskBtn.disabled = !editable;
+        if (addWorkflowBtn) addWorkflowBtn.disabled = !editable;
         if (addRuleBtn) addRuleBtn.disabled = !editable;
 
         if (m === 'local') {
@@ -918,42 +1070,73 @@
           .join('');
       }
 
-      // ─── Render Rules ──────────────────────────────────────────────────────────
-      function renderRules() {
-        const list = document.getElementById('ruleList');
-        const stats = document.getElementById('ruleStats');
-        const activeCount = rules.filter((r) => r.active !== false).length;
+      // ─── Render Roadmap Workflows ──────────────────────────────────────────────
+      function renderRoadmap() {
+        const list = document.getElementById('workflowList');
+        const stats = document.getElementById('workflowStats');
+        const countBadge = document.getElementById('roadmapCountBadge');
 
-        stats.textContent = `${activeCount}/${rules.length} active`;
+        stats.textContent = `${roadmap.length} workflows registered`;
+        countBadge.textContent = `${roadmap.length} workflows`;
 
-        let show = [...rules];
-        if (ruleFilter === 'active') show = show.filter((r) => r.active !== false);
-        if (ruleFilter === 'inactive') show = show.filter((r) => r.active === false);
+        let show = [...roadmap];
+        if (workflowFilter !== 'all') {
+          show = show.filter(
+            (w) => (w.category || '').toLowerCase() === workflowFilter.toLowerCase()
+          );
+        }
 
         if (!show.length) {
-          list.innerHTML = `<div class="empty">${rules.length === 0 ? 'No permanent rules registered.' : 'No rules match filter.'}</div>`;
+          list.innerHTML = `<div class="empty">${roadmap.length === 0 ? 'No roadmap workflows yet. Add recurring workflows above!' : 'No workflows match filter.'}</div>`;
           return;
         }
 
         list.innerHTML = show
+          .map((w) => {
+            const cClass = catClass(w.category);
+            return `
+      <div class="workflow-card" data-workflowid="${w.id}">
+        <div class="card-top">
+          <span class="category-pill ${cClass}">${esc(w.category || 'Workflow')}</span>
+          <button class="del-btn" data-workflowdel="${w.id}" title="Delete workflow">✕</button>
+        </div>
+        <div class="card-title" data-workflowedittitle="${w.id}" spellcheck="false">${esc(w.title)}</div>
+        <div class="card-desc" data-workfloweditdesc="${w.id}" spellcheck="false">${esc(w.description || '')}</div>
+        <div class="card-footer">
+          <span class="card-id">#${esc(w.id)}</span>
+          <span>${fmt(w.updatedAt || w.createdAt)}</span>
+        </div>
+      </div>
+    `;
+          })
+          .join('');
+      }
+
+      // ─── Render Development Rules (Inside Modal) ──────────────────────────────
+      function renderRules() {
+        const list = document.getElementById('ruleList');
+        const stats = document.getElementById('ruleStats');
+
+        stats.textContent = `${rules.length} development rules`;
+
+        if (!rules.length) {
+          list.innerHTML = `<div class="empty">No development rules registered.</div>`;
+          return;
+        }
+
+        list.innerHTML = rules
           .map((r) => {
-            const isActive = r.active !== false;
             const cClass = catClass(r.category);
             return `
-      <div class="rule-card${isActive ? '' : ' inactive'}" data-ruleid="${r.id}">
-        <div class="rule-top">
-          <div class="rule-header-left">
-            <span class="category-pill ${cClass}">${esc(r.category || 'Rule')}</span>
-            <button class="toggle-active-btn ${isActive ? 'active' : 'inactive'}" data-ruletoggle="${r.id}">
-              ${isActive ? '● Active' : '○ Inactive'}
-            </button>
-          </div>
+      <div class="rule-card" data-ruleid="${r.id}">
+        <div class="card-top">
+          <span class="category-pill ${cClass}">${esc(r.category || 'Rule')}</span>
           <button class="del-btn" data-ruledel="${r.id}" title="Delete rule">✕</button>
         </div>
-        <div class="rule-title" data-ruleedittitle="${r.id}" spellcheck="false">${esc(r.title)}</div>
-        <div class="rule-desc" data-ruleeditdesc="${r.id}" spellcheck="false">${esc(r.description || '')}</div>
-        <div class="rule-footer">
-          <span class="rule-id">#${esc(r.id)}</span>
+        <div class="card-title" data-ruleedittitle="${r.id}" spellcheck="false">${esc(r.title)}</div>
+        <div class="card-desc" data-ruleeditdesc="${r.id}" spellcheck="false">${esc(r.description || '')}</div>
+        <div class="card-footer">
+          <span class="card-id">#${esc(r.id)}</span>
           <span>${fmt(r.updatedAt || r.createdAt)}</span>
         </div>
       </div>
@@ -964,6 +1147,7 @@
 
       function render() {
         renderTasks();
+        renderRoadmap();
         renderRules();
       }
 
@@ -974,9 +1158,11 @@
         try {
           const data = await readLocalFile();
           tasks = data.tasks || [];
+          roadmap = data.roadmap || [];
           rules = data.rules || [];
         } catch {
           tasks = [];
+          roadmap = [];
           rules = [];
         }
         setMode('local');
@@ -985,6 +1171,18 @@
 
       document.getElementById('connectBtn').addEventListener('click', handleConnect);
       document.getElementById('bannerConnectBtn').addEventListener('click', handleConnect);
+
+      // Modal Open / Close
+      const rulesModal = document.getElementById('rulesModal');
+      document.getElementById('openRulesBtn').addEventListener('click', () => {
+        rulesModal.classList.add('open');
+      });
+      document.getElementById('closeRulesBtn').addEventListener('click', () => {
+        rulesModal.classList.remove('open');
+      });
+      rulesModal.addEventListener('click', (e) => {
+        if (e.target === rulesModal) rulesModal.classList.remove('open');
+      });
 
       // Add Task
       document.getElementById('addTaskForm').addEventListener('submit', async (e) => {
@@ -995,6 +1193,25 @@
         tasks.unshift(makeTask(title));
         inp.value = '';
         renderTasks();
+        await save();
+      });
+
+      // Add Workflow
+      document.getElementById('addWorkflowForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const titleInp = document.getElementById('workflowTitleInput');
+        const catSelect = document.getElementById('workflowCategorySelect');
+        const descInp = document.getElementById('workflowDescInput');
+        const title = titleInp.value.trim();
+        if (!title || mode !== 'local') return;
+
+        const category = catSelect.value || 'Architecture';
+        const desc = descInp.value.trim();
+
+        roadmap.push(makeWorkflow(title, category, desc));
+        titleInp.value = '';
+        descInp.value = '';
+        renderRoadmap();
         await save();
       });
 
@@ -1042,22 +1259,21 @@
         }
       });
 
-      // Rule interactions (Toggle active, Delete)
-      document.getElementById('ruleList').addEventListener('click', async (e) => {
+      // Workflow interactions (Delete)
+      document.getElementById('workflowList').addEventListener('click', async (e) => {
         if (mode !== 'local') return;
 
-        const toggleBtn = e.target.closest('[data-ruletoggle]');
-        if (toggleBtn) {
-          e.preventDefault();
-          const r = rules.find((r) => r.id === toggleBtn.dataset.ruletoggle);
-          if (r) {
-            r.active = r.active === false ? true : false;
-            r.updatedAt = new Date().toISOString();
-            renderRules();
-            await save();
-          }
-          return;
+        const db = e.target.closest('[data-workflowdel]');
+        if (db) {
+          roadmap = roadmap.filter((w) => w.id !== db.dataset.workflowdel);
+          renderRoadmap();
+          await save();
         }
+      });
+
+      // Rule interactions (Delete)
+      document.getElementById('ruleList').addEventListener('click', async (e) => {
+        if (mode !== 'local') return;
 
         const db = e.target.closest('[data-ruledel]');
         if (db) {
@@ -1067,12 +1283,12 @@
         }
       });
 
-      // ─── Inline Editing for Tasks ──────────────────────────────────────────────
-      function startInlineEdit(span, fieldName = 'title') {
+      // ─── Inline Editing ────────────────────────────────────────────────────────
+      function startInlineEdit(span) {
         if (span.contentEditable === 'true') return;
         span._original = span.textContent;
         span.contentEditable = 'true';
-        span.closest('.task-item, .rule-card')?.classList.add('editing');
+        span.closest('.task-item, .workflow-card, .rule-card')?.classList.add('editing');
         span.focus();
 
         if (!getSelection().rangeCount || !span.contains(getSelection().anchorNode)) {
@@ -1087,8 +1303,9 @@
       async function commitInlineEdit(span) {
         if (span.contentEditable !== 'true') return;
         span.contentEditable = 'false';
-        span.closest('.task-item, .rule-card')?.classList.remove('editing');
+        span.closest('.task-item, .workflow-card, .rule-card')?.classList.remove('editing');
 
+        // Task title
         const taskId = span.dataset.taskedit;
         if (taskId) {
           const t = tasks.find((t) => t.id === taskId);
@@ -1103,6 +1320,36 @@
           return;
         }
 
+        // Workflow title
+        const wfTitleId = span.dataset.workflowedittitle;
+        if (wfTitleId) {
+          const w = roadmap.find((w) => w.id === wfTitleId);
+          if (!w) return;
+          const val = span.textContent.trim();
+          if (!val) span.textContent = span._original;
+          else if (val !== span._original) {
+            w.title = val;
+            w.updatedAt = new Date().toISOString();
+            await save();
+          }
+          return;
+        }
+
+        // Workflow description
+        const wfDescId = span.dataset.workfloweditdesc;
+        if (wfDescId) {
+          const w = roadmap.find((w) => w.id === wfDescId);
+          if (!w) return;
+          const val = span.textContent.trim();
+          if (val !== span._original) {
+            w.description = val;
+            w.updatedAt = new Date().toISOString();
+            await save();
+          }
+          return;
+        }
+
+        // Rule title
         const ruleTitleId = span.dataset.ruleedittitle;
         if (ruleTitleId) {
           const r = rules.find((r) => r.id === ruleTitleId);
@@ -1117,6 +1364,7 @@
           return;
         }
 
+        // Rule description
         const ruleDescId = span.dataset.ruleeditdesc;
         if (ruleDescId) {
           const r = rules.find((r) => r.id === ruleDescId);
@@ -1135,7 +1383,7 @@
       document.addEventListener('click', (e) => {
         if (mode !== 'local') return;
         const target = e.target.closest(
-          '[data-taskedit], [data-ruleedittitle], [data-ruleeditdesc]'
+          '[data-taskedit], [data-workflowedittitle], [data-workfloweditdesc], [data-ruleedittitle], [data-ruleeditdesc]'
         );
         if (target) {
           e.stopPropagation();
@@ -1148,17 +1396,24 @@
         'blur',
         (e) => {
           const target = e.target.closest?.(
-            '[data-taskedit], [data-ruleedittitle], [data-ruleeditdesc]'
+            '[data-taskedit], [data-workflowedittitle], [data-workfloweditdesc], [data-ruleedittitle], [data-ruleeditdesc]'
           );
           if (target) commitInlineEdit(target);
         },
         true
       );
 
-      // Keydown: Enter commits (unless Shift+Enter in desc), Escape reverts
+      // Keydown: Enter commits (unless Shift+Enter), Escape reverts or closes modal
       document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (rulesModal.classList.contains('open')) {
+            rulesModal.classList.remove('open');
+            return;
+          }
+        }
+
         const span = e.target.closest?.(
-          '[data-taskedit], [data-ruleedittitle], [data-ruleeditdesc]'
+          '[data-taskedit], [data-workflowedittitle], [data-workfloweditdesc], [data-ruleedittitle], [data-ruleeditdesc]'
         );
         if (!span || span.contentEditable !== 'true') return;
 
@@ -1169,7 +1424,7 @@
         if (e.key === 'Escape') {
           span.textContent = span._original;
           span.contentEditable = 'false';
-          span.closest('.task-item, .rule-card')?.classList.remove('editing');
+          span.closest('.task-item, .workflow-card, .rule-card')?.classList.remove('editing');
         }
       });
 
@@ -1185,14 +1440,14 @@
         });
       });
 
-      document.querySelectorAll('[data-rulefilter]').forEach((btn) => {
+      document.querySelectorAll('[data-workflowfilter]').forEach((btn) => {
         btn.addEventListener('click', () => {
-          ruleFilter = btn.dataset.rulefilter;
+          workflowFilter = btn.dataset.workflowfilter;
           document
-            .querySelectorAll('[data-rulefilter]')
+            .querySelectorAll('[data-workflowfilter]')
             .forEach((b) => b.classList.remove('active'));
           btn.classList.add('active');
-          renderRules();
+          renderRoadmap();
         });
       });
 

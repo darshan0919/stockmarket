@@ -14,12 +14,24 @@
 const fs = require('fs');
 const path = require('path');
 
-const PALETTE = ['#0c447c', '#5bad3a', '#ef9f27', '#e24b4a', '#3a85c9', '#791f1f', '#27500a', '#633806'];
+const PALETTE = [
+  '#0c447c',
+  '#5bad3a',
+  '#ef9f27',
+  '#e24b4a',
+  '#3a85c9',
+  '#791f1f',
+  '#27500a',
+  '#633806',
+];
 
 function esc(s) {
   return String(s === null || s === undefined ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function css() {

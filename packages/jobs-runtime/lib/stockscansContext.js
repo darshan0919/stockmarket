@@ -17,6 +17,15 @@ const fs = require('fs');
 const path = require('path');
 const db = require('./db');
 const { stockscans } = require('@stock/api');
+const { withRetry } = require('@stock/api/utils/concurrency');
+
+// Stockscans rate-limits these AI-report endpoints (observed 429 under a few
+// hundred sequential warm requests, 2026-09-04). Retrying with backoff HERE
+// rather than in the caller matters: `fetchStockscansContext` swallows per-source
+// errors by design, so a caller wrapping the whole function can't retry an
+// individual source — by the time it sees the bundle, the 429 has already been
+// converted into an error entry.
+const RETRY = { retries: 3, baseDelayMs: 1200 };
 
 const DEFAULT_TTL_DAYS = 7;
 
@@ -26,6 +35,61 @@ function safeName(companyId) {
 
 function cacheFile(companyId) {
   return path.join(db.cachePath('stockscans-context'), `${safeName(companyId)}.json`);
+}
+
+/**
+ * Strip Stockscans' report markup so a consumer gets plain prose.
+ *
+ * The AI-report endpoints return light annotation markup that is meaningful in
+ * their own UI and noise everywhere else: `{{bid:N}}` bullet anchors, `{+ ... +}`
+ * highlight spans, and `[6][7][12]` transcript-citation refs. Stripping is a
+ * deterministic transform, so it belongs here rather than being re-derived (and
+ * re-derived slightly differently) by each consuming skill — conventions §17.
+ *
+ * The CACHE always stores the raw `finalReport` verbatim; this is applied at read
+ * time by callers that want prose. Never store the stripped form — the citation
+ * refs are the only thing tying a claim back to a transcript line, and a cache
+ * that has thrown them away cannot get them back without a refetch.
+ *
+ * @param {string|null} finalReport
+ * @returns {string|null}
+ */
+function plainText(finalReport) {
+  if (typeof finalReport !== 'string') return null;
+  return finalReport
+    .replace(/\{\{bid:\d+\}\}/g, '')
+    .replace(/\{\+(.*?)\+\}/gs, '$1')
+    .replace(/\[\d+\](?:\[\d+\])*/g, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+}
+
+/**
+ * Classify a failed source fetch as a genuine "not covered" vs a transport
+ * failure. This distinction is load-bearing, not cosmetic.
+ *
+ * Stockscans answers an unrecognized/uncovered companyId with HTTP 200 and a null
+ * `finalReport` rather than a 4xx — a real, cacheable fact ("this company has no
+ * growth-catalyst report"). A 429/5xx/timeout is the opposite: it tells us nothing
+ * about the company, and caching it would record "no research exists" for
+ * `ttlDays`, which every read path would then serve with full confidence.
+ *
+ * That is the worst failure mode this module can have — an empty bundle that
+ * looks authoritative — and it is not hypothetical: warming a few hundred
+ * companies tripped Stockscans' rate limiter, and before this fix every
+ * rate-limited company would have been cached as "no research available" for a
+ * week (observed 2026-09-04).
+ *
+ * @returns {'empty'|'transport'}
+ */
+function classifyError(err) {
+  if (!err) return 'empty';
+  const status = err.response && err.response.status;
+  if (status && status >= 400) return 'transport';
+  if (err.code || /timeout|socket|network|ECONN|ETIMEDOUT/i.test(err.message || '')) {
+    return 'transport';
+  }
+  return 'transport';
 }
 
 function readCache(companyId, ttlDays) {
@@ -47,6 +111,34 @@ function writeCache(companyId, bundle) {
   const tmp = `${file}.tmp.${process.pid}`;
   fs.writeFileSync(tmp, JSON.stringify(bundle, null, 2));
   fs.renameSync(tmp, file);
+}
+
+/**
+ * SYNCHRONOUS, cache-only read of a company's Stockscans bundle. Never touches
+ * the network and never throws.
+ *
+ * This is the entry point for callers on a hot path — `buildCompanyContext()`
+ * is synchronous by contract and every company-scoped skill calls it, so it
+ * cannot be made to await an HTTP round trip per company without changing every
+ * caller. The split is deliberate: `warmStockscansContext.js` (a scheduled job)
+ * does the fetching ahead of time, and read paths get a cache hit or nothing.
+ *
+ * A miss is a normal, expected outcome (company not yet warmed, or the bundle
+ * aged past `ttlDays`) — callers degrade to whatever they did before, they do
+ * not fetch as a fallback.
+ *
+ * @param {string} companyId
+ * @param {Object} [opts]
+ * @param {number} [opts.ttlDays=DEFAULT_TTL_DAYS] treat an older bundle as a miss
+ * @returns {Object|null} the cached bundle, or null on miss/stale/corrupt
+ */
+function readCached(companyId, { ttlDays = DEFAULT_TTL_DAYS } = {}) {
+  try {
+    const cached = readCache(companyId, ttlDays);
+    return cached ? { ...cached, fromCache: true } : null;
+  } catch (_) {
+    return null;
+  }
 }
 
 /**
@@ -83,8 +175,7 @@ async function fetchStockscansContext(
   };
 
   await Promise.all([
-    client
-      .growthCatalysts(companyId)
+    withRetry(() => client.growthCatalysts(companyId), RETRY)
       .then((r) => {
         // Stockscans returns HTTP 200 with a null finalReport for unrecognized
         // companyIds rather than a 4xx — treat an empty report as a soft
@@ -92,20 +183,23 @@ async function fetchStockscansContext(
         if (!r || !r.finalReport) {
           errors.push({
             source: 'growth-catalysts',
+            kind: 'empty',
             message: 'empty finalReport (unrecognized companyId or not covered)',
           });
           return;
         }
         bundle.growthCatalysts = { finalReport: r.finalReport, dateLabel: r.dateLabel, toc: r.toc };
       })
-      .catch((e) => errors.push({ source: 'growth-catalysts', message: e.message })),
+      .catch((e) =>
+        errors.push({ source: 'growth-catalysts', kind: classifyError(e), message: e.message })
+      ),
 
-    client
-      .businessOverview(companyId)
+    withRetry(() => client.businessOverview(companyId), RETRY)
       .then((r) => {
         if (!r || !r.finalReport) {
           errors.push({
             source: 'business-overview',
+            kind: 'empty',
             message: 'empty finalReport (unrecognized companyId or not covered)',
           });
           return;
@@ -116,16 +210,21 @@ async function fetchStockscansContext(
           toc: r.toc,
         };
       })
-      .catch((e) => errors.push({ source: 'business-overview', message: e.message })),
+      .catch((e) =>
+        errors.push({ source: 'business-overview', kind: classifyError(e), message: e.message })
+      ),
 
-    client
-      .latestTranscript(companyId)
+    withRetry(() => client.latestTranscript(companyId), RETRY)
       .then(async (t) => {
         if (!t) {
-          errors.push({ source: 'concall-notes', message: 'no Transcript document on file' });
+          errors.push({
+            source: 'concall-notes',
+            kind: 'empty',
+            message: 'no Transcript document on file',
+          });
           return;
         }
-        const cn = await client.concallNotes(companyId, t.ssUrl);
+        const cn = await withRetry(() => client.concallNotes(companyId, t.ssUrl), RETRY);
         bundle.concallNotes = {
           finalReport: cn.finalReport,
           date: cn.date,
@@ -133,11 +232,20 @@ async function fetchStockscansContext(
           sourceSsUrl: t.ssUrl,
         };
       })
-      .catch((e) => errors.push({ source: 'concall-notes', message: e.message })),
+      .catch((e) =>
+        errors.push({ source: 'concall-notes', kind: classifyError(e), message: e.message })
+      ),
   ]);
 
-  writeCache(companyId, bundle);
+  // Only cache a bundle we can stand behind. A transport failure on ANY source
+  // means this bundle understates what Stockscans has, and writing it would make
+  // that understatement authoritative for `ttlDays` (see classifyError). Return it
+  // to the caller — which can report and retry — but do not persist it.
+  const transportFailures = bundle.errors.filter((e) => e.kind === 'transport');
+  bundle.cached = transportFailures.length === 0;
+  bundle.transportFailures = transportFailures.map((e) => e.source);
+  if (bundle.cached) writeCache(companyId, bundle);
   return { ...bundle, fromCache: false };
 }
 
-module.exports = { fetchStockscansContext, DEFAULT_TTL_DAYS };
+module.exports = { fetchStockscansContext, readCached, plainText, DEFAULT_TTL_DAYS };

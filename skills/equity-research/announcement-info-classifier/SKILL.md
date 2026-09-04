@@ -71,11 +71,80 @@ already-known capacity expansion AND disclose a genuinely new customer name).
 
 ## Step 3 — Build the "already known" baseline
 
+### Step 3.0 — Read the company's Baseline Card FIRST
+
+```bash
+node -e "console.log(JSON.stringify(require('<repo>/packages/jobs-runtime/buildBaselines').readCard('<companyId>')))"
+```
+
+`data/cache/company-baselines/<companyId>.json`, built by `yarn baselines:build`
+from the pre-processed Filing Extracts. It is the whole of Step 3 pre-assembled:
+
+| Card field                                                                                         | Replaces                                                           |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `claimIndex[]` — `{fingerprint, category, counterparty, amountCr, firstSeen, lastSeen, sources[]}` | 3c's full announcement-archive walk                                |
+| `guidanceLedger[]` — dated, quoted guidance from every extracted transcript                        | 3a's four concalls                                                 |
+| `commitments[]` — targets/capex/capacity with the date they were stated                            | 3b's PPT read                                                      |
+| `latestConcallNotes` + `businessOverview` + `growthCatalysts`                                      | Stockscans' own synthesis, free                                    |
+| `baselineCoverage`                                                                                 | what the card actually covers — read this before trusting the rest |
+
+**`claimIndex` is what makes this step cheap.** "Was this already known?" becomes
+a dated lookup instead of six document fetches — which is the specific change that
+lets this skill run across a night's whole filing set rather than five items.
+
+Match a claim against `claimIndex` by category + counterparty, then check
+`firstSeen`. Note the fingerprints bucket amounts by order of magnitude on
+purpose: a follow-up filing routinely restates the same deal at a slightly
+different figure, and exact matching would file those as unrelated claims, making
+a known deal look new every time it is mentioned. A bucket match means "the same
+claim, plausibly" — you still read both source records and judge whether the delta
+is material. **Grouping is mechanical; judging is yours.**
+
+**Three things the card does NOT do, and must not be read as doing:**
+
+- **`baselineCoverage.thin: true` means the split you are about to write is
+  unreliable.** Say so in the output, exactly as this skill already requires for a
+  thin baseline — a NEW verdict off a card with no concalls and no PPT may just be
+  incomplete lookback, and suppressing a real signal that way is the expensive
+  direction of error.
+- **A missing card (`null`) is a MISS, not a finding.** It says nothing about the
+  company. Fall through to 3a-3d below and build the baseline the old way.
+- **The card never says whether guidance was met.** `guidanceLedger[].status` is
+  always `"open"` — a script stamping met/missed would be inventing
+  `management-credibility-tracker`'s verdict.
+
+**Step 3e's same-day exclusion still applies, and the card makes it easy:** every
+`claimIndex` entry carries `firstSeen`, so discarding hits within
+[announcement_date − 1 day, announcement_date + 1 day] is a date comparison. Do it —
+the rule matters more here than anywhere, because a card built from a same-day
+cluster would otherwise let a filing serve as its own alibi.
+
+### Step 3.1 — Fill the gaps the card leaves
+
+Fetch below ONLY what the card didn't cover — typically the older three concalls
+when `baselineCoverage.concalls < 4`, or everything when the card is missing.
+State in `baselineCoverage` which sources came from the card and which were
+fetched, so a reader can tell how the baseline was assembled.
+
 Four sources, all queried for the SAME companyId, run in parallel where independent:
 
 **3a. Last N concalls (default 4).** Prefer the AI-synthesized notes endpoint over
 re-reading full transcripts — it's already condensed and this classification doesn't need
-verbatim quotes the way `concall-analysis` does:
+verbatim quotes the way `concall-analysis` does.
+
+**Free first move, before any of the fetches below:** call
+`buildCompanyContext(companyId, { stockscans: true })` (you are calling
+`buildCompanyContext` anyway for 3d — just pass the flag) and read its `stockscans`
+block. It carries the LATEST concall's notes, Stockscans' business overview, and its
+growth-catalyst report, served from a local cache with no network call and no document
+read. That covers the most recent quarter of 3a and a good deal of 3b's ground for free,
+so the fetches below are only needed for the quarters it doesn't reach.
+
+Two limits, both of which must be stated rather than assumed away: it is the LATEST
+concall only (`concallNotesQuarter` names which), so the older three still come from the
+loop below; and `stockscans: null` means the cache was never warmed for this company —
+a miss that says nothing about the company, not evidence of a thin baseline. Record what
+it did and didn't cover in `baselineCoverage` either way.
 
 ```
 StockscansClient.documents(companyId)          # list Transcript docs, filter documentType==='Transcript'

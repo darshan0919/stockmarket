@@ -3,7 +3,7 @@
 > **Document Type**: API Documentation  
 > **Base URL**: `http://localhost:5000/api`  
 > **Code Reference**: `backend/routes/`, `backend/controllers/`  
-> **Shared Modules**: `backend/utils/nseHelpers.js` (NSE utilities), `backend/api/geminiClient.js` (AI client)  
+> **Shared Modules**: `backend/utils/nseHelpers.js` (NSE utilities)  
 > **Last Updated**: 2026-01-02
 
 ## Overview
@@ -517,11 +517,11 @@ GET /api/upcoming-results?page={page}&limit={limit}
 > **Route File**: `backend/routes/orders.js`  
 > **Controller**: `backend/controllers/ordersController.js`  
 > **Service**: `backend/services/ordersService.js`  
-> **Shared Modules**: `backend/utils/nseHelpers.js` (NSE utilities), `backend/api/geminiClient.js` (AI client)
+> **Shared Modules**: `backend/utils/nseHelpers.js` (NSE utilities)
 
-### Get Orders by Symbol (Non-AI Mode)
+### Get Orders by Symbol
 
-**NEW**: Fetch raw order announcements without AI processing. This is the default mode for fast, cost-effective access to order announcements.
+Fetch raw order announcements. This mode provides fast, cost-effective access to order announcements.
 
 ```http
 GET /api/orders/{symbol}?limit={number}
@@ -567,173 +567,6 @@ GET /api/orders/{symbol}?limit={number}
 - 💰 No API costs
 - 📄 Direct PDF links
 - 🔍 Filters NSE announcements for order-related subjects
-
-### Get Orders with Full AI Parsing
-
-Fetch and parse all order announcements using Gemini AI.
-
-```http
-GET /api/orders/{symbol}/full?limit={number}
-```
-
-| Parameter | Type   | Required | Default | Description                        |
-| --------- | ------ | -------- | ------- | ---------------------------------- |
-| `symbol`  | string | Yes      | -       | Stock symbol                       |
-| `limit`   | number | No       | 20      | Maximum number of orders (max: 30) |
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "symbol": "LTIM",
-    "total_orders": 20,
-    "orders_with_parsed_values": 15,
-    "total_order_value_crores": 1234.56,
-    "orders": [
-      {
-        "id": "...",
-        "announcement_date": "2025-11-17",
-        "order_details": {
-          "order_value": {
-            "value_in_crore_inr": 123.45,
-            "currency": "INR",
-            "unit": "Crore"
-          },
-          "customer_name": "Global Tech Corp",
-          "customer_type": "Private",
-          "order_type": "New Contract",
-          "project_description": "Digital transformation project...",
-          "timeline": "24 months"
-        },
-        "pdf_parsed": true,
-        "confidence_score": 0.95,
-        "from_cache": true,
-        "parse_time_ms": 50
-      }
-    ],
-    "timing": {
-      "total_request_time_ms": 2500,
-      "nse_fetch_time_ms": 300,
-      "pdf_parsing_time_ms": 2200,
-      "average_parse_time_ms": 110
-    },
-    "cache_stats": {
-      "cache_hits": 18,
-      "cache_misses": 2,
-      "cache_hit_rate": 90
-    }
-  }
-}
-```
-
-**Code Reference:**
-
-- Controller: `backend/controllers/ordersController.js`
-- AI Parser: `backend/api/orderParser.js:parseOrderFromPdf()`
-- Shared AI Client: `backend/api/geminiClient.js:parsePdfWithGemini()`
-- Prompt: `backend/prompts/order_extraction.txt`
-
-### Parse Individual PDF
-
-Parse a specific order announcement PDF.
-
-```http
-POST /api/orders/{symbol}/parse-pdf
-```
-
-**Request Body:**
-
-```json
-{
-  "attachmentUrl": "https://nsearchives.nseindia.com/corporate/..."
-}
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "symbol": "LTIM",
-    "attachment_url": "...",
-    "parsed_data": {
-      "extraction_success": true,
-      "confidence_score": 0.92,
-      "order_details": {
-        "order_value": { "value_in_crore_inr": 123.45 },
-        "customer_name": "...",
-        "project_description": "..."
-      }
-    }
-  }
-}
-```
-
-### Get Orderbook
-
-Get accumulated order book with baseline from annual reports + new orders.
-
-```http
-GET /api/orders/{symbol}/orderbook
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "symbol": "RELIANCE",
-    "orderbook_summary": {
-      "baseline_order_book_crores": 5000,
-      "baseline_as_of_date": "2024-12-31",
-      "baseline_reporting_period": "Q3 FY24",
-      "baseline_source": "Investor Presentation",
-      "baseline_document": "Q3 FY24 Results Presentation",
-      "new_orders_since_baseline_crores": 500,
-      "new_orders_count": 5,
-      "accumulated_order_book_crores": 5500,
-      "calculation_note": "Accumulated = Baseline + New Orders. Does not subtract executed orders."
-    },
-    "order_inflow": {
-      "period": "Q3 FY24",
-      "value_crores": 800
-    },
-    "order_book_commentary": "Strong order intake in defense sector...",
-    "segment_breakdown": [
-      {
-        "segment_name": "Defense",
-        "value_crores": 3000
-      },
-      {
-        "segment_name": "Infrastructure",
-        "value_crores": 2000
-      }
-    ],
-    "new_orders": [
-      // Array of parsed order announcements
-    ],
-    "timing": { "total_request_time_ms": 5000 },
-    "cache_stats": {
-      "cache_hits": 5,
-      "cache_misses": 0,
-      "cache_hit_rate": 100,
-      "baseline_from_cache": true
-    }
-  }
-}
-```
-
-**Code Reference:**
-
-- Controller: `backend/controllers/ordersController.js`
-- Baseline Parser: `backend/api/orderbookBaselineParser.js:getOrderbookBaseline()`
-- Shared AI Client: `backend/api/geminiClient.js:parsePdfWithGemini()`
-- NSE Helpers: `backend/utils/nseHelpers.js` (date parsing, headers)
-- Prompt: `backend/prompts/orderbook_baseline.txt`
 
 ### Download All Order PDFs (ZIP)
 
@@ -785,41 +618,6 @@ POST /api/orders/{symbol}/download-quarter
 ```http
 GET /api/result-transcript/{symbol}
 ```
-
-### Analyze Transcript
-
-Analyze earnings call transcript using Gemini AI.
-
-```http
-POST /api/result-transcript/{symbol}/analyze
-```
-
-**Request Body:**
-
-```json
-{
-  "attachmentName": "EarningsCall_Q1FY24.pdf"
-}
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "analysis": "Detailed AI analysis of the earnings call...",
-    "key_points": ["Point 1", "Point 2"],
-    "sentiment": "positive"
-  }
-}
-```
-
-**Code Reference:**
-
-- AI Integration: `backend/api/geminiApi.js:geminiResultAnalysis()`
-- Shared AI Client: `backend/api/geminiClient.js:parsePdfWithGemini()`
-- Prompt: `backend/prompts/earning_call.txt`
 
 ---
 
@@ -1195,8 +993,7 @@ Content-Type: application/json
 ## Admin APIs
 
 > **Route File**: `backend/routes/admin.js`  
-> **Controller**: `backend/controllers/adminController.js`  
-> **Model**: `backend/models/ModelResponse.js` (cache storage)
+> **Controller**: `backend/controllers/adminController.js`
 
 ### Trigger Data Update
 
@@ -1217,34 +1014,6 @@ GET /api/admin/data/update
 **Code Reference:**
 
 - Function: `triggerDataUpdate()` in `backend/controllers/adminController.js`
-
-### Clear Orderbook Cache
-
-Clear AI model cache for order book parsing. If symbol provided, clears cache for that symbol only. If no symbol, clears all orderbook-related cache.
-
-```http
-DELETE /api/admin/cache/orderbook
-DELETE /api/admin/cache/orderbook/{symbol}
-```
-
-| Parameter | Type   | Required | Description                                                   |
-| --------- | ------ | -------- | ------------------------------------------------------------- |
-| `symbol`  | string | No       | Stock symbol - if provided, clears cache for that symbol only |
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "message": "Cleared 5 cached responses for RELIANCE",
-  "deletedCount": 5
-}
-```
-
-**Code Reference:**
-
-- Function: `clearOrderbookCache()` in `backend/controllers/adminController.js`
-- Model: `backend/models/ModelResponse.js`
 
 ---
 

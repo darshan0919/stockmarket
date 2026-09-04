@@ -1,5 +1,4 @@
 const { getResultAnnoucement } = require('../../core/api/bseIndiaApi');
-const { geminiResultAnalysis } = require('../../core/api/geminiApi');
 
 const getResultTranscript = async (req, res, next) => {
   try {
@@ -14,31 +13,6 @@ const getResultTranscript = async (req, res, next) => {
   }
 };
 
-const analyzeTranscript = async (req, res, next) => {
-  try {
-    const { symbol } = req.params;
-    const { attachmentName } = req.body;
-
-    if (!attachmentName) {
-      return res.status(400).json({
-        success: false,
-        error: 'Attachment name is required',
-      });
-    }
-
-    const data = await geminiResultAnalysis(attachmentName);
-    data.url = `https://www.bseindia.com/xml-data/corpfiling/AttachHis/${attachmentName}`;
-
-    res.json({
-      success: true,
-      data: data,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
 module.exports = {
   getResultTranscript,
-  analyzeTranscript,
 };

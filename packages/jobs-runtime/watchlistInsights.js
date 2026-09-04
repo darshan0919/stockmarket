@@ -581,14 +581,19 @@ async function cmdFetchAnnouncements(watchlistIdsArg, client = stockscans) {
 // that doesn't know or care about announcementIds at all.
 const HEAVY_PARSE_PAGE_THRESHOLD = 4;
 
-function pdfCachePath(url) {
+function pdfCachePath(url, full = false) {
   const hash = crypto.createHash('sha256').update(url).digest('hex').slice(0, 32);
-  return `cache/pdf-text/${hash}.json`;
+  // Full-text reads get their OWN cache key. The two are different artifacts of
+  // the same document — a truncated 8K excerpt and the whole thing — and letting
+  // them share a slot means whichever ran first silently answers for the other.
+  // A heavy-document extractor served the announcement path's 8K excerpt is the
+  // exact failure this separation prevents.
+  return full ? `cache/pdf-text-full/${hash}.json` : `cache/pdf-text/${hash}.json`;
 }
 
-async function readOrFetchPdfMeta(url) {
+async function readOrFetchPdfMeta(url, { full = false } = {}) {
   StorageService.init();
-  const cachePath = pdfCachePath(url);
+  const cachePath = pdfCachePath(url, full);
   const cached = StorageService.readJson(cachePath);
   if (cached && typeof cached.text === 'string') {
     return {
@@ -596,10 +601,15 @@ async function readOrFetchPdfMeta(url) {
       numPages: cached.numPages ?? null,
       isHeavyParse: Boolean(cached.isHeavyParse),
       ocrFailed: Boolean(cached.ocrFailed),
+      truncated: Boolean(cached.truncated),
+      originalChars: cached.originalChars ?? null,
     };
   }
   const buf = await stockscans.fetchPdf(url, 60000);
-  const { text, numPages, ocrFailed } = await pdfToTextWithMeta(buf);
+  const { text, numPages, ocrFailed, truncated, originalChars } = await pdfToTextWithMeta(
+    buf,
+    full ? { maxChars: Infinity } : {}
+  );
   const isHeavyParse = typeof numPages === 'number' && numPages > HEAVY_PARSE_PAGE_THRESHOLD;
   await StorageService.saveJson(cachePath, {
     pdfUrl: url,
@@ -607,9 +617,18 @@ async function readOrFetchPdfMeta(url) {
     numPages,
     isHeavyParse,
     ocrFailed: Boolean(ocrFailed),
+    truncated: Boolean(truncated),
+    originalChars: originalChars ?? null,
     fetchedAtIso: new Date().toISOString(),
   });
-  return { text, numPages, isHeavyParse, ocrFailed: Boolean(ocrFailed) };
+  return {
+    text,
+    numPages,
+    isHeavyParse,
+    ocrFailed: Boolean(ocrFailed),
+    truncated: Boolean(truncated),
+    originalChars: originalChars ?? null,
+  };
 }
 
 async function cmdReadPdf(url) {
@@ -630,19 +649,30 @@ async function cmdReadPdf(url) {
  * when it couldn't be derived (poppler-CLI fallback) — treat that as unknown,
  * not as "not heavy". Shares the same cache as read-pdf (see readOrFetchPdfMeta).
  */
-async function cmdReadPdfWithMeta(url) {
+async function cmdReadPdfWithMeta(url, ...rest) {
+  // `--full` reads the WHOLE document instead of the default 8000-char excerpt.
+  // Heavy-document profiles (result/transcript/ppt/annual_report) must pass it:
+  // without it an annual report returns its covering letter, and every downstream
+  // check still reports success because the excerpt it verified against IS the
+  // text it was given (observed 2026-09-04 across 40 extracts).
+  const full = rest.includes('--full');
   if (!url || url === 'null') {
-    process.stdout.write(JSON.stringify({ text: '', numPages: null, isHeavyParse: false }));
+    process.stdout.write(
+      JSON.stringify({ text: '', numPages: null, isHeavyParse: false, truncated: false })
+    );
     return;
   }
-  const { text, numPages, isHeavyParse, ocrFailed } = await readOrFetchPdfMeta(url);
+  const { text, numPages, isHeavyParse, ocrFailed, truncated, originalChars } =
+    await readOrFetchPdfMeta(url, { full });
   // ocrFailed: true means the PDF's text layer AND OCR both came back near-empty
   // (scanned document, OCR binaries unavailable, or a genuinely corrupt page image).
   // Callers (announcement-insights, watchlist-insights, post-close-scan-insights)
   // MUST treat this as "could not read this document" and escalate/flag it — never
   // silently fall through to a routine mark-processed the way a real empty-body
   // announcement would. See cloud-utils/src/pdfText.js ocrPdf() history.
-  process.stdout.write(JSON.stringify({ text, numPages, isHeavyParse, ocrFailed }));
+  process.stdout.write(
+    JSON.stringify({ text, numPages, isHeavyParse, ocrFailed, truncated, originalChars })
+  );
 }
 
 function cmdGetCompanyNotes(companyId) {
@@ -710,9 +740,9 @@ async function cmdAddNote(noteJsonStr) {
     if (!noteData.sourceSkill) {
       throw new Error(
         "add-note payload.note is missing required field 'sourceSkill' " +
-          "(the exact skill name orchestrating this note, e.g. " +
+          '(the exact skill name orchestrating this note, e.g. ' +
           "'post-close-scan-insights'). This field is mandatory and is never " +
-          "defaulted — see skills/_shared/conventions.md §21."
+          'defaulted — see skills/_shared/conventions.md §21.'
       );
     }
     const entry = {
@@ -1094,7 +1124,9 @@ async function cmdCommitWindow(watchlistIdsArg) {
 const COMMANDS = {
   'fetch-announcements': [cmdFetchAnnouncements, 1],
   'read-pdf': [cmdReadPdf, 1],
-  'read-pdf-with-meta': [cmdReadPdfWithMeta, 1],
+  // arity 2 so the optional `--full` flag reaches cmdReadPdfWithMeta; with arity
+  // 1 the arg slice dropped it and every heavy read silently stayed truncated.
+  'read-pdf-with-meta': [cmdReadPdfWithMeta, 2],
   'get-company-notes': [cmdGetCompanyNotes, 1],
   'add-note': [cmdAddNote, 0],
   'mark-processed': [cmdMarkProcessed, 3],

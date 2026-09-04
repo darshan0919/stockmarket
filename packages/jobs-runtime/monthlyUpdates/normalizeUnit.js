@@ -27,24 +27,42 @@
 // (currency base = Rs crore; volume base = tonnes).
 const UNIT_MAP = [
   // ── currency, base = Rs crore ──────────────────────────────────────────
-  [/^(rs\.?\s*)?(in\s*)?lakh\s*crore$/i,            { family: 'currency', canonical: 'Rs cr', multiplier: 100000 }],
-  [/^(rs\.?\s*)?(in\s*)?(crore|cr|crores)$/i,        { family: 'currency', canonical: 'Rs cr', multiplier: 1 }],
-  [/^(rs\.?\s*)?(in\s*)?(bn|billion)$/i,             { family: 'currency', canonical: 'Rs cr', multiplier: 100 }],
-  [/^(rs\.?\s*)?(in\s*)?(mn|million)$/i,             { family: 'currency', canonical: 'Rs cr', multiplier: 0.1 }],
-  [/^(rs\.?\s*)?(in\s*)?(lakh|lac|lacs|lakhs)$/i,    { family: 'currency', canonical: 'Rs cr', multiplier: 0.01 }],
-  [/^(rs|inr|rupees?)$/i,                            { family: 'currency', canonical: 'Rs cr', multiplier: 1e-7 }],
-  [/^usd\s*(mn|million)$/i,                          { family: 'currency', canonical: 'USD mn', multiplier: 1 }],
+  [
+    /^(rs\.?\s*)?(in\s*)?lakh\s*crore$/i,
+    { family: 'currency', canonical: 'Rs cr', multiplier: 100000 },
+  ],
+  [
+    /^(rs\.?\s*)?(in\s*)?(crore|cr|crores)$/i,
+    { family: 'currency', canonical: 'Rs cr', multiplier: 1 },
+  ],
+  [
+    /^(rs\.?\s*)?(in\s*)?(bn|billion)$/i,
+    { family: 'currency', canonical: 'Rs cr', multiplier: 100 },
+  ],
+  [
+    /^(rs\.?\s*)?(in\s*)?(mn|million)$/i,
+    { family: 'currency', canonical: 'Rs cr', multiplier: 0.1 },
+  ],
+  [
+    /^(rs\.?\s*)?(in\s*)?(lakh|lac|lacs|lakhs)$/i,
+    { family: 'currency', canonical: 'Rs cr', multiplier: 0.01 },
+  ],
+  [/^(rs|inr|rupees?)$/i, { family: 'currency', canonical: 'Rs cr', multiplier: 1e-7 }],
+  [/^usd\s*(mn|million)$/i, { family: 'currency', canonical: 'USD mn', multiplier: 1 }],
 
   // ── volume, base = tonnes ──────────────────────────────────────────────
   // "MT" is genuinely ambiguous in these filings: NMDC prints "(in MT)" but
   // means MILLION tonnes. Resolved per-company below, not by the label alone.
-  [/^(mmt|million\s*tonnes?|million\s*ton(ne)?s?|mn\s*t)$/i, { family: 'volume', canonical: 'tonnes', multiplier: 1e6 }],
-  [/^(tonnes?|tons?|te)$/i,                          { family: 'volume', canonical: 'tonnes', multiplier: 1 }],
-  [/^mt$/i,                                          { family: 'volume', canonical: 'tonnes', multiplier: 1, ambiguous: true }],
+  [
+    /^(mmt|million\s*tonnes?|million\s*ton(ne)?s?|mn\s*t)$/i,
+    { family: 'volume', canonical: 'tonnes', multiplier: 1e6 },
+  ],
+  [/^(tonnes?|tons?|te)$/i, { family: 'volume', canonical: 'tonnes', multiplier: 1 }],
+  [/^mt$/i, { family: 'volume', canonical: 'tonnes', multiplier: 1, ambiguous: true }],
 
   // ── counts / energy ────────────────────────────────────────────────────
-  [/^(units?|nos\.?|numbers?|vehicles?)$/i,          { family: 'count', canonical: 'units', multiplier: 1 }],
-  [/^mw$/i,                                          { family: 'energy', canonical: 'MW', multiplier: 1 }],
+  [/^(units?|nos\.?|numbers?|vehicles?)$/i, { family: 'count', canonical: 'units', multiplier: 1 }],
+  [/^mw$/i, { family: 'energy', canonical: 'MW', multiplier: 1 }],
 ];
 
 // Companies whose "MT" means million tonnes. NMDC's filings print "(in MT)"
@@ -71,7 +89,12 @@ function normalizeUnit(raw, ctx = {}) {
 
   for (const [re, def] of UNIT_MAP) {
     if (re.test(candidate)) {
-      const out = { raw: s || null, family: def.family, canonicalUnit: def.canonical, multiplier: def.multiplier };
+      const out = {
+        raw: s || null,
+        family: def.family,
+        canonicalUnit: def.canonical,
+        multiplier: def.multiplier,
+      };
       if (def.ambiguous) {
         if (MT_MEANS_MILLION.has(ctx.companyId) || /million/i.test(hay)) {
           out.multiplier = 1e6;
@@ -84,7 +107,13 @@ function normalizeUnit(raw, ctx = {}) {
       return out;
     }
   }
-  return { raw: s || null, family: 'unknown', canonicalUnit: s || null, multiplier: null, uncertain: true };
+  return {
+    raw: s || null,
+    family: 'unknown',
+    canonicalUnit: s || null,
+    multiplier: null,
+    uncertain: true,
+  };
 }
 
 /**
@@ -96,7 +125,11 @@ function normalizeUnit(raw, ctx = {}) {
 function classifyPeriodType({ scope, metricName, notes, cadence } = {}) {
   const hay = `${scope || ''} ${metricName || ''} ${notes || ''}`.toLowerCase();
   // Point-in-time balances — a level, not a flow.
-  if (/\b(aum|assets under management|deposits?|advances|total business|loan book|outstanding|balance|gross npa|branches?)\b/.test(hay)) {
+  if (
+    /\b(aum|assets under management|deposits?|advances|total business|loan book|outstanding|balance|gross npa|branches?)\b/.test(
+      hay
+    )
+  ) {
     return 'stock';
   }
   if (/\b(fy\s?\d|full[- ]year|annual|12m|year to date|ytd)\b/.test(hay)) return 'year-flow';

@@ -76,14 +76,20 @@ function buildScan() {
  */
 async function scanQuarter(client, quarterDate) {
   const scan = buildScan();
-  const first = await withRetry(() => client.scanAnnouncements({ scan, offset: 0, quarterDate }), RETRY_OPTS);
+  const first = await withRetry(
+    () => client.scanAnnouncements({ scan, offset: 0, quarterDate }),
+    RETRY_OPTS
+  );
   const firstItems = first.announcements || first.documents || first.items || [];
   if (firstItems.length < PAGE_SIZE) return firstItems;
 
   const offsets = [];
   for (let p = 1; p < MAX_PAGES; p++) offsets.push(p * PAGE_SIZE);
   const settled = await mapWithConcurrency(offsets, SCAN_CONCURRENCY, async (offset) => {
-    const r = await withRetry(() => client.scanAnnouncements({ scan, offset, quarterDate }), RETRY_OPTS);
+    const r = await withRetry(
+      () => client.scanAnnouncements({ scan, offset, quarterDate }),
+      RETRY_OPTS
+    );
     return r.announcements || r.documents || r.items || [];
   });
 
@@ -157,7 +163,9 @@ async function getAnnouncementText(client, ann, { force = false } = {}) {
     try {
       const hit = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
       if (hit && hit.text) return { ...hit, cached: true };
-    } catch (_) { /* corrupt cache entry — fall through and re-derive */ }
+    } catch (_) {
+      /* corrupt cache entry — fall through and re-derive */
+    }
   }
 
   const tmpDir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'mu-pdf-'));
@@ -180,7 +188,11 @@ async function getAnnouncementText(client, ann, { force = false } = {}) {
     fs.writeFileSync(cacheFile, JSON.stringify(record));
     return { ...record, cached: false };
   } finally {
-    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (_) { /* non-fatal */ }
+    try {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    } catch (_) {
+      /* non-fatal */
+    }
   }
 }
 
@@ -188,13 +200,21 @@ async function getAnnouncementText(client, ann, { force = false } = {}) {
  * Full extraction pass.
  * @returns {Promise<{announcements:Array, texts:Array, stats:Object}>}
  */
-async function extractMonthlyUpdates(client, { months = 15, maxDayOfMonth = 3, force = false, quarters = null } = {}) {
+async function extractMonthlyUpdates(
+  client,
+  { months = 15, maxDayOfMonth = 3, force = false, quarters = null } = {}
+) {
   const qs = quarters || quarterDatesForLastMonths(months);
-  const settledQuarters = await mapWithConcurrency(qs, QUARTER_CONCURRENCY, (q) => scanQuarter(client, q));
+  const settledQuarters = await mapWithConcurrency(qs, QUARTER_CONCURRENCY, (q) =>
+    scanQuarter(client, q)
+  );
   const quarterErrors = [];
   const pages = settledQuarters.map((res, i) => {
     if (res && res.ok) return res.value || [];
-    quarterErrors.push({ quarterDate: qs[i], error: res && res.error ? res.error.message : 'unknown' });
+    quarterErrors.push({
+      quarterDate: qs[i],
+      error: res && res.error ? res.error.message : 'unknown',
+    });
     return [];
   });
   const all = dedupe(pages.flat());
@@ -224,8 +244,10 @@ async function extractMonthlyUpdates(client, { months = 15, maxDayOfMonth = 3, f
     // Surfaced, never swallowed: a failed quarter means the window is
     // incomplete, and a caller that persists a partial history would bake a
     // permanent hole into the trend charts.
-    console.warn(`[monthly-updates] ${quarterErrors.length} quarter(s) failed to scan:`,
-      quarterErrors.map((q) => `${q.quarterDate} (${q.error})`).join(', '));
+    console.warn(
+      `[monthly-updates] ${quarterErrors.length} quarter(s) failed to scan:`,
+      quarterErrors.map((q) => `${q.quarterDate} (${q.error})`).join(', ')
+    );
   }
 
   return {

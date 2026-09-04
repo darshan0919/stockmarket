@@ -44,6 +44,7 @@ const fs = require('fs');
 const path = require('path');
 const { sendHtmlEmail } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
+const db = require('./lib/db');
 const {
   buildScanSignalEmail,
   dedupeInsights,
@@ -150,6 +151,52 @@ function writeOut(argv, html, dto) {
   return out;
 }
 
+/**
+ * Persist the resolved WHY for every name in this run as a run artifact.
+ *
+ * Why this exists. `summarise()` below has always REPORTED `why_coverage_pct`,
+ * computed from the content overlay — a /tmp file that is gone by the next run.
+ * The overlay is also the only place the resolved WHY ever lived: the shared
+ * pipeline's Step 4 asks the orchestrating agent to store `why` on its
+ * `gainers-trigger-research` DTO, and across 487 persisted DTOs it is null in
+ * every single one (measured 2026-09-04), while `linkage` — written by the same
+ * step — is present on 94% of them. So the number was being reported each run
+ * and never retained, and `insight-validation`'s documented D+2 scoring of the
+ * ladder's accuracy had nothing to read.
+ *
+ * A prompt asking more firmly would not fix that; a script writing it down does.
+ * The renderer already holds every resolved WHY at this point, so persisting them
+ * here costs nothing and depends on no agent remembering. This is a run artifact
+ * derived from the renderer's own inputs, NOT a write into the research DTO —
+ * the email layer has no business mutating research records (conventions §3/§5).
+ *
+ * @returns {string|null} path written, or null if there was nothing to write
+ */
+function writeWhyLedger(merged, dto, prefix) {
+  const marketDate = String(dto.market_date || '');
+  if (!marketDate || !prefix) return null;
+  const rows = merged.map((s) => ({
+    companyId: s.companyId,
+    tier: s.tier || null,
+    linkage: s.linkage || null,
+    // Normalise the two accepted shapes (bare string, or {text, basis, sources})
+    // to one, so a consumer never has to branch on which the agent happened to use.
+    why:
+      s.why == null
+        ? null
+        : typeof s.why === 'string'
+          ? { text: s.why, basis: null, sources: [] }
+          : { text: s.why.text || null, basis: s.why.basis || null, sources: s.why.sources || [] },
+  }));
+  const file = path.join(
+    db.runPath ? path.join(db.dataRoot(), 'runs') : '/tmp',
+    `${prefix}_why_${marketDate.replace(/-/g, '')}.json`
+  );
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, JSON.stringify({ market_date: marketDate, rows }, null, 2));
+  return file;
+}
+
 function summarise(merged, dto, extra = {}) {
   const counts = merged.reduce((acc, s) => {
     const t = String(s.tier || 'NOTED').toUpperCase();
@@ -177,11 +224,28 @@ function summarise(merged, dto, extra = {}) {
   };
 }
 
+/**
+ * Recover the run's file prefix (`gainers` / `volume_rocketing`) from the
+ * --insights path, so the WHY ledger lands beside that run's other artifacts
+ * with the same naming. Returns null for an unrecognised name rather than
+ * inventing a prefix — an unnamed ledger is worse than no ledger.
+ */
+function runPrefix(argv) {
+  const base = path.basename(argValue('--insights', argv) || '');
+  const m = base.match(/^(.*)_insights_\d{8}\.json$/);
+  return m ? m[1] : null;
+}
+
 function cmdRender(argv) {
   const { html, dto, merged } = buildHtml(argv);
   const out = writeOut(argv, html, dto);
+  const whyLedger = writeWhyLedger(merged, dto, runPrefix(argv));
   process.stdout.write(
-    JSON.stringify({ status: 'rendered', html: out, ...summarise(merged, dto) }, null, 2) + '\n'
+    JSON.stringify(
+      { status: 'rendered', html: out, whyLedger, ...summarise(merged, dto) },
+      null,
+      2
+    ) + '\n'
   );
 }
 
@@ -193,6 +257,7 @@ async function cmdSend(argv) {
   loadEnv(argValue('--env-file', argv));
   const { html, dto, merged } = buildHtml(argv);
   const out = writeOut(argv, html, dto);
+  const whyLedger = writeWhyLedger(merged, dto, runPrefix(argv));
 
   const subject =
     argValue('--subject', argv) ||
@@ -215,7 +280,7 @@ async function cmdSend(argv) {
   const result = await sendHtmlEmail({ subject, htmlBody: html, attachments });
   process.stdout.write(
     JSON.stringify(
-      { status: result.status || 'sent', subject, html: out, ...summarise(merged, dto) },
+      { status: result.status || 'sent', subject, html: out, whyLedger, ...summarise(merged, dto) },
       null,
       2
     ) + '\n'

@@ -5,6 +5,10 @@ const os = require('os');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
+// Default cap for the SHORT-announcement path this module was originally written
+// for (a Reg-30 filing is a few thousand chars; 8000 was never a constraint there).
+// It is a hard constraint for anything longer, so callers that genuinely need a
+// whole document pass `maxChars` explicitly — see pdfToTextWithMeta.
 const MAX_CHARS = 8000;
 
 /**
@@ -106,10 +110,21 @@ async function pdfToText(buf) {
  * doesn't expose one). Used by watchlist-insights to flag PDFs that needed
  * heavy parsing (>4 pages) even though their category wasn't skip-listed —
  * see HEAVY_DOCUMENT_CATEGORIES in packages/jobs-runtime/lib/announcementTaxonomy.js.
+ * Truncation is the sharp edge here. The default 8000-char cap suits the short
+ * announcements this was built for, but silently decapitates a long document: an
+ * annual report read at the default returns its covering letter and nothing else
+ * (observed 2026-09-04 — 8,000 chars returned from a 951,309-char filing, so the
+ * RPT tables, contingent liabilities and auditor notes were never in the text a
+ * downstream extractor was handed). Pass `maxChars: Infinity` when the whole
+ * document is the point, and ALWAYS check `truncated` on the result rather than
+ * assuming a returned string is complete.
+ *
  * @param {Buffer} buf
- * @returns {Promise<{text: string, numPages: number|null}>}
+ * @param {Object} [opts]
+ * @param {number} [opts.maxChars=8000] cap; pass Infinity for the whole document
+ * @returns {Promise<{text, numPages, isScannedDocument, ocrFailed, truncated, originalChars}>}
  */
-async function pdfToTextWithMeta(buf) {
+async function pdfToTextWithMeta(buf, { maxChars = MAX_CHARS } = {}) {
   let { text, numPages } = await extractTextLayer(buf);
   let isScannedDocument = false;
   let ocrFailed = false;
@@ -126,10 +141,15 @@ async function pdfToTextWithMeta(buf) {
       ocrFailed = text.trim().length < 20;
     }
   }
-  if (text.length > MAX_CHARS) {
-    text = `${text.slice(0, MAX_CHARS)}\n\n[... truncated — original length: ${text.length} chars]`;
+  // `truncated` and `originalChars` are returned explicitly so a caller can never
+  // mistake a decapitated document for a complete one. The marker line inside the
+  // text was the only previous signal, and nothing read it.
+  const originalChars = text.length;
+  const truncated = originalChars > maxChars;
+  if (truncated) {
+    text = `${text.slice(0, maxChars)}\n\n[... truncated — original length: ${originalChars} chars]`;
   }
-  return { text, numPages, isScannedDocument, ocrFailed };
+  return { text, numPages, isScannedDocument, ocrFailed, truncated, originalChars };
 }
 
 module.exports = { pdfToText, pdfToTextWithMeta };

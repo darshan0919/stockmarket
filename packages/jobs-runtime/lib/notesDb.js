@@ -235,10 +235,16 @@ class NotesDb {
         const entry = (index[aid] ||= { byUsecase: {}, latest: null });
         const prevForUsecase = entry.byUsecase[usecase];
         const nTime = n.creationTime || n.createdAt || '';
-        if (!prevForUsecase || nTime > (prevForUsecase[0].creationTime || prevForUsecase[0].createdAt || '')) {
+        if (
+          !prevForUsecase ||
+          nTime > (prevForUsecase[0].creationTime || prevForUsecase[0].createdAt || '')
+        ) {
           entry.byUsecase[usecase] = [n, co];
         }
-        if (!entry.latest || nTime > (entry.latest[0].creationTime || entry.latest[0].createdAt || '')) {
+        if (
+          !entry.latest ||
+          nTime > (entry.latest[0].creationTime || entry.latest[0].createdAt || '')
+        ) {
           entry.latest = [n, co];
         }
       }

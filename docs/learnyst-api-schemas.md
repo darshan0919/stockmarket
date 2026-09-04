@@ -16,6 +16,7 @@ differs per endpoint**, confirmed from the HAR, not assumed:
 | REST course detail (apig.learnyst.com/learner/v17/courses/{id}) | `lystauthorization: Bearer <token>` |
 | Transcript fetch (ai-api.learnyst.com/api/transcript-data)      | `authorization: Bearer <token>`     |
 | Attachment CDN (download-cdn-g.learnyst.com/v6/schools/...)     | None (public CDN asset)             |
+| Video Streaming CDN (streaming-cdn-g.learnyst.com/v6/schools/.) | None (public CDN media stream)      |
 
 The token is a JWT with a real `exp` claim (decode it — e.g. on jwt.io — to
 check expiry). It is tied to a logged-in browser session, so it WILL expire;
@@ -288,6 +289,51 @@ Field semantics:
 
 - Binary stream (`content-disposition: attachment`, `content-type: application/pdf`, `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`, etc.).
 - Persisted locally under `data/assets/learnyst-attachments/<src>`, synced to Google Drive (`data/v2/assets/learnyst-attachments/`).
+
+---
+
+## 5. GET streaming-cdn-g.learnyst.com/v6/schools/{content_path}/{p}/sdrm/cbcs/audio_video/
+
+Streams Learnyst video and audio tracks for video lessons. Confirmed live 2026-09-04 across SOIC (school 110998) and Chartitude (school 166281).
+
+**URL Structure:**
+
+```
+Base prefix:
+https://streaming-cdn-g.learnyst.com/v6/schools/{clean_content_path}/{p}/sdrm/cbcs/audio_video/
+```
+
+Where:
+
+- `{clean_content_path}` is extracted from `lesson.lesson_data` entry where `src_type === 2` (`content_path`, stripped of leading `schools/`).
+- `{p}` is derived from `content_path_extn` (e.g. `0/enb13daa4730367c` -> `enb13daa4730367c`). If no slash is present, the raw string is used.
+
+**Media Tracks:**
+
+| Track    | Quality / Type             | Resource Filename |
+| :------- | :------------------------- | :---------------- |
+| Video HQ | High Quality (e.g. 1080p)  | `vHQStream.mp4`   |
+| Video MQ | Medium Quality (e.g. 720p) | `vMQStream.mp4`   |
+| Video AQ | Auto / Adaptive Quality    | `vAQStream.mp4`   |
+| Video LQ | Low Quality (e.g. 360p)    | `vLQStream.mp4`   |
+| Audio    | Audio stream               | `aStream.mp4`     |
+
+**Headers & Auth:**
+
+- No auth header required (`streaming-cdn-g.learnyst.com` serves direct media chunks).
+
+**Lossless Muxing Protocol:**
+Because video and audio are distributed on separate CDN tracks, `learnystTranscriptRefresh.js` uses `ffmpeg` in stream copy mode (`-c copy`) to mux both streams into a single lossless MP4 container in seconds without re-encoding:
+
+```bash
+ffmpeg -y -i <videoUrl> -i <audioUrl> -c copy <destPath>
+```
+
+**YouTube-hosted Video Lessons (`src_type: 5`):**
+If `lesson.lesson_data` specifies `src_type: 5` (or a YouTube URL in `src`), the video is hosted on YouTube rather than Learnyst's streaming CDN. The downloader extracts the YouTube video ID and executes `yt-dlp` (`-f "bv*+ba/b" --merge-output-format mp4`).
+
+**Storage Location:**
+Persisted locally under `data/assets/learnyst-videos/<lessonId>_<sanitizedTitle>.mp4`, accessible via `db.learnystVideoPath()` and synced to Google Drive (`data/v2/assets/learnyst-videos/`).
 
 ---
 

@@ -4,8 +4,110 @@
  * @module components/stock/orders/OrderAnnouncements
  */
 
-import { formatDate, timeAgo } from './orderUtils';
+import {
+  formatDate,
+  timeAgo,
+  formatCurrency,
+  getCurrentFiscalQuarter,
+  isInCurrentQuarter,
+} from './orderUtils';
 import OrderDownloads from './OrderDownloads';
+
+/**
+ * Order inflow summary cards (total and current quarter).
+ * @param {Object} props
+ * @param {Object[]} props.orders - Orders with parsed values
+ * @param {number} props.totalValue - Total order value sum
+ */
+export function OrderInflowSummary({ orders = [], totalValue = 0 }) {
+  const currentQuarter = getCurrentFiscalQuarter();
+
+  const currentQuarterOrders = orders.filter((order) =>
+    isInCurrentQuarter(order.announcement_date)
+  );
+
+  const currentQuarterValue = currentQuarterOrders.reduce((sum, order) => {
+    return sum + (order.order_details?.order_value?.value_in_crore_inr || 0);
+  }, 0);
+
+  const currentQuarterCount = currentQuarterOrders.filter(
+    (o) => o.order_details?.order_value?.value_in_crore_inr
+  ).length;
+
+  if (!totalValue && !currentQuarterValue) return null;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="card bg-primary text-primary-content shadow-lg">
+        <div className="card-body p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
+                <h4 className="text-sm font-semibold uppercase tracking-wider">
+                  Total Order Inflow
+                </h4>
+              </div>
+              <div className="text-3xl font-bold">{formatCurrency(totalValue || 0)}</div>
+              <p className="text-primary-content/70 text-xs mt-1">From all parsed announcements</p>
+            </div>
+            <div className="hidden sm:block">
+              <svg
+                className="w-14 h-14 text-primary-content/20"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card bg-success text-success-content shadow-lg">
+        <div className="card-body p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                  />
+                </svg>
+                <h4 className="text-sm font-semibold uppercase tracking-wider">
+                  {currentQuarter.periodLabel} Inflow
+                </h4>
+              </div>
+              <div className="text-3xl font-bold">{formatCurrency(currentQuarterValue)}</div>
+              <p className="text-success-content/70 text-xs mt-1">
+                {currentQuarterCount} order{currentQuarterCount !== 1 ? 's' : ''} this quarter
+              </p>
+            </div>
+            <div className="hidden sm:block">
+              <svg
+                className="w-14 h-14 text-success-content/20"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /**
  * Banner showing latest earnings call transcript and unannounced quarter info.
