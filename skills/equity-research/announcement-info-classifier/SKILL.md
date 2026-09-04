@@ -260,7 +260,11 @@ echo '<json>' | run add-note
 ```
 
 Payload: everything `announcement-insights` Step 4 specifies, plus an `infoClassification`
-field:
+field. Set `sourceSkill: "announcement-info-classifier"` (NOT `"announcement-insights"`,
+even though this call reuses that step's base payload shape) — `sourceSkill` records
+which SKILL.md is actually orchestrating this specific note, and here that's this skill,
+not the one whose payload template you're borrowing. `add-note` throws if `sourceSkill`
+is missing (see `skills/_shared/conventions.md` §21).
 
 ```json
 {

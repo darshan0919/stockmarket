@@ -755,14 +755,25 @@ function signalTierFor(it) {
  * wrong, the number is the thing to argue with, and a tier label alone would
  * hide the disagreement.
  */
+// Chip shows only the score, out of 10 — the level NAME already sits on the
+// section's group header (see buildDigestHtml), so repeating it on every card
+// in that group added nothing, and the tier CODE (S1..S5) was internal
+// bookkeeping the reader had no use for. The number is what makes two cards
+// in the same group comparable and keeps the ranking auditable: if a card's
+// position looks wrong, the number is what you argue with.
+//
+// Scaled 0-10 (one decimal) rather than the underlying 0-100, per Darshan's
+// ask — the tooltip still documents where the number comes from, since the
+// scaling factor by itself doesn't explain the score's composition.
 function signalScoreChipHtml(it) {
   const t = signalTierFor(it);
+  const scaled = (t.score / 10).toFixed(1);
   return (
     `<span style="display:inline-block;vertical-align:middle;font-size:10.5px;font-weight:700;` +
     `background:${t.bg};color:${t.color};border:1px solid ${t.border};border-radius:4px;` +
     `padding:2px 7px;margin-left:6px;white-space:nowrap;" ` +
-    `title="Signal strength ${t.code} (${t.label}) — deterministic 0-100 score from significance, category conviction, EPS-impact confidence, NEW-information share and (on resend) market reaction">` +
-    `${t.code} ${esc(t.label)} &middot; ${t.score}/100</span>`
+    `title="Signal strength ${scaled}/10 (internally ${t.code} ${t.label}) — deterministic score from significance, category conviction, EPS-impact confidence, NEW-information share and (on resend) market reaction">` +
+    `${scaled}/10</span>`
   );
 }
 
@@ -933,8 +944,11 @@ function buildDigestHtml(
 
   const sections = SIGNAL_TIERS.filter((t) => groups[t.tier] && groups[t.tier].length)
     .map((tierMeta) => {
+      // The group header carries the level NAME only (e.g. "High"), not the
+      // internal S1..S5 code — Darshan's ask, and it also removes the one
+      // remaining place a reader saw the "S1/S2/S3" vocabulary at all.
       const meta = {
-        label: `${tierMeta.code} · ${tierMeta.label}`,
+        label: tierMeta.label,
         color: tierMeta.color,
         bg: tierMeta.bg,
         border: tierMeta.border,

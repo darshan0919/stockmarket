@@ -207,6 +207,15 @@ rationale in that skill's Step 2, not repeated here.
 on top. Depth: `deep` for the four `HIGH_CONVICTION_CATEGORIES`, `standard`
 otherwise.
 
+**Set `sourceSkill: "post-close-scan-insights"` on every `add-note` payload
+this step writes** — NOT `"announcement-insights"`, even though you're
+following that skill's Step 4 payload template verbatim. `sourceSkill` records
+who is actually orchestrating this run (this skill, right now); `usecase`
+stays `"announcement-insights:<depth>"` exactly as that step specifies,
+unchanged — the two fields answer different questions (see
+`skills/_shared/conventions.md` §21) and neither should be inferred from the
+other. `add-note` throws if `sourceSkill` is missing, so this is not optional.
+
 Routine items that survived the noise filter but are genuinely uninteresting
 on read: just `runwi mark-processed "<companyId>" "<announcementId>"` and move
 on. No insight, no heavy-skip log. Count these — they are the `routine` stat.
@@ -264,7 +273,9 @@ Step 5 `add-note` separately. One note per announcement with a richer payload,
 not two competing note records for the same filing. Keep
 `usecase: "announcement-insights:<depth>"` as Step 4 set it; do not switch to
 `announcement-info-classifier:standard`, which is for standalone invocations
-and would break this run's note dedup/cache scoping.
+and would break this run's note dedup/cache scoping. Likewise keep
+`sourceSkill: "post-close-scan-insights"` as Step 4 already set it — folding in
+the classifier's output doesn't change who orchestrated the note.
 
 This step costs real time and tokens per item (a baseline build touches 4
 concalls, a PPT and a full history scan) — which is exactly why it is capped at

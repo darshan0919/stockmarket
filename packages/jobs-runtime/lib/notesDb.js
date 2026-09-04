@@ -68,17 +68,29 @@ class NotesDb {
         continue;
       }
       // Recompose the note shape the jobs expect (tolerate migrated records).
+      // `creationTime` is the ONE canonical "when was this note written"
+      // field (set by lib/db.js's ensureEnvelope, never computed a second
+      // time by any caller as of the sourceSkill/timestamp fixes -- see
+      // skills/_shared/conventions.md §21/§22). Every note record ever
+      // persisted through appendNotes carries it (verified empirically:
+      // 0 of 2094 existing note records lack creationTime), so this does
+      // NOT need a createdAt fallback for correctness -- it's kept as a
+      // defensive no-op only in case a record somehow reaches this path
+      // without going through ensureEnvelope.
       co.notes.push({
         ...rec,
         insight: rec.insight || rec.text,
         announcementId: rec.announcementId || rec.sourceAnnouncement,
-        createdAt: rec.createdAt || rec.creationTime,
       });
     }
 
     for (const co of Object.values(notes.companies)) {
       delete co._bsTime;
-      co.notes.sort((a, b) => String(a.createdAt || '').localeCompare(String(b.createdAt || '')));
+      co.notes.sort((a, b) =>
+        String(a.creationTime || a.createdAt || '').localeCompare(
+          String(b.creationTime || b.createdAt || '')
+        )
+      );
       const c = companies[co.companyId];
       if (c) {
         co.ticker = co.ticker || c.nseTicker || String(co.companyId).split(':')[1] || '';
@@ -111,12 +123,26 @@ class NotesDb {
 
     for (const [cid, co] of Object.entries(notes.companies || {})) {
       for (const n of co.notes || []) {
+        // sourceSkill (which SKILL.md orchestrated this note, e.g.
+        // "post-close-scan-insights") is persisted VERBATIM — never defaulted,
+        // never overwritten. `creator` below is a legacy envelope field kept
+        // for backward compatibility with any code still reading it, and it
+        // must NOT be conflated with attribution: this same silent
+        // `creator: n.creator || 'watchlist-insights'` default is exactly the
+        // bug that made every caller's notes look like they came from
+        // watchlist-insights regardless of who actually ran. See
+        // skills/_shared/conventions.md §21 and watchlistInsights.js's
+        // cmdAddNote, which now REQUIRES sourceSkill on every note and throws
+        // if it's missing, so a note reaching this point should always carry
+        // one — but this layer still does not invent one if it's absent.
         noteRecords.push({
           ...n,
           companyId: cid,
           type: n.type || n.category || 'insight',
           creator: n.creator || 'watchlist-insights',
-          date: String(n.date || n.createdAt || n.creationTime || '').slice(0, 10) || undefined,
+          date: String(n.date || n.creationTime || n.createdAt || '').slice(0, 10) || undefined,
+          // creationTime is canonical; the `|| n.createdAt` fallback is
+          // defensive only (no live record needs it -- see load() above).
           creationTime: n.creationTime || n.createdAt,
           text: n.text || n.insight,
           announcementId: n.announcementId || n.sourceAnnouncement,
@@ -208,10 +234,11 @@ class NotesDb {
         const usecase = n.usecase || NotesDb.LEGACY_USECASE;
         const entry = (index[aid] ||= { byUsecase: {}, latest: null });
         const prevForUsecase = entry.byUsecase[usecase];
-        if (!prevForUsecase || (n.createdAt || '') > (prevForUsecase[0].createdAt || '')) {
+        const nTime = n.creationTime || n.createdAt || '';
+        if (!prevForUsecase || nTime > (prevForUsecase[0].creationTime || prevForUsecase[0].createdAt || '')) {
           entry.byUsecase[usecase] = [n, co];
         }
-        if (!entry.latest || (n.createdAt || '') > (entry.latest[0].createdAt || '')) {
+        if (!entry.latest || nTime > (entry.latest[0].creationTime || entry.latest[0].createdAt || '')) {
           entry.latest = [n, co];
         }
       }

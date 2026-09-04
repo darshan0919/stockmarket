@@ -35,6 +35,21 @@ these four fields, always:
 These four fields live inside the record itself, alongside whatever domain-specific
 fields the skill needs (e.g. `primary_driver`, `conviction`, `verdict`, `d2Return`, ...).
 
+`creationTime`/`modifiedTime` are the ONLY write-timestamp fields a record carries.
+Never add a second, independently-computed field for "when was this created/modified" —
+e.g. a `createdAt`/`updatedAt` set by your own `nowIstIso()` call alongside the
+`creationTime` that `db.js`'s `ensureEnvelope()` already sets. Two timestamps answering
+the same question, computed at two slightly different instants, is worse than one: it
+made a set of notes' provenance genuinely unprovable in a real investigation (see
+`skills/_shared/conventions.md` §22). This does NOT forbid a `createdAt`-named field that
+means something else entirely — e.g. an announcement or tweet object's own upstream
+filing/post timestamp, sourced from an external API and echoed through unchanged. That is
+legitimate domain data about the thing the record describes, not a competing envelope
+field, and is unaffected by this rule. The distinction that matters: does this field
+answer "when did WE write this record" (must be `creationTime`/`modifiedTime`, no
+alternate name, no second computation) or "when did the external thing this record is
+ABOUT happen" (any name, any source, entirely separate)?
+
 ## `modelUsed` — required whenever an LLM produced (part of) this record
 
 If any part of a record's content was produced by an LLM doing reasoning, judgement,

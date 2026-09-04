@@ -64,7 +64,8 @@
     "learnyst-transcript-refresh": "yarn workspace @stock/jobs learnyst-transcript-refresh",
     "youtube-transcript-refresh": "yarn workspace @stock/jobs youtube-transcript-refresh",
     "learning-resources-refresh": "yarn learnyst-transcript-refresh; yarn youtube-transcript-refresh",
-    "sync-company-sector-industry": "yarn workspace @stock/api sync-company-sector-industry"
+    "sync-company-sector-industry": "yarn workspace @stock/api sync-company-sector-industry",
+    "monthly-updates": "yarn workspace @stock/jobs-runtime monthly-updates"
   },
   "devDependencies": {
     "@duckdb/node-api": "^1.5.4-r.1",

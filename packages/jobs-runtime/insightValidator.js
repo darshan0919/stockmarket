@@ -477,7 +477,10 @@ function latestNotesFile() {
     let version = notes.meta.lastRun || '';
     for (const co of Object.values(notes.companies)) {
       for (const n of co.notes || []) {
-        const t = n.modifiedTime || n.createdAt || '';
+        // creationTime is canonical; createdAt fallback is defensive only
+        // (see notesDb.js load()/save() -- every live note record already
+        // carries creationTime).
+        const t = n.modifiedTime || n.creationTime || n.createdAt || '';
         if (t > version) version = t;
       }
     }
@@ -527,7 +530,10 @@ function insightsFromNotes(notes) {
         significance: n.significance,
         tags: n.tags || [],
         category: categoryFromNote(n),
-        createdAt: n.createdAt || '',
+        // Derived DTO field kept as `createdAt` for this function's own
+        // callers/sort below -- sourced from the note's canonical
+        // `creationTime`, not a second independently-computed timestamp.
+        createdAt: n.creationTime || n.createdAt || '',
       });
     }
   }
@@ -2076,6 +2082,7 @@ module.exports = {
   sectorAttribution,
   median,
   categoryFromTags,
+  insightsFromNotes,
   makeProposals,
   titleInfoDensity,
   qualityReviewInsights,

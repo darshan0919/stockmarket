@@ -692,9 +692,46 @@ async function cmdAddNote(noteJsonStr) {
     const isHeavyParse =
       noteData.isHeavyParse === true || (typeof numPages === 'number' && numPages > 4);
     if (isHeavyParse && !tags.includes('heavy_parse')) tags.push('heavy_parse');
+    // sourceSkill: which SKILL.md actually orchestrated this note — e.g.
+    // "post-close-scan-insights", "watchlist-insights", "announcement-insights",
+    // "announcement-info-classifier". This is DELIBERATELY separate from both
+    // `creator` (a legacy envelope field that lib/notesDb.js's save() path
+    // still defaults to 'watchlist-insights' for backward compatibility — do
+    // NOT read that field to determine attribution) and `usecase` (deliberately
+    // SHARED/cache-scoped across orchestrators at the same depth, e.g.
+    // "announcement-insights:standard", so multiple skills reading the same
+    // announcement share one cache entry — it answers "which cache bucket",
+    // not "who wrote this"). Every caller of add-note MUST pass this
+    // explicitly; there is no default, on purpose — a caller that omits it is
+    // a bug in that skill's SKILL.md, not something this function should
+    // silently paper over the way `creator` was silently defaulted before
+    // (that silent default is exactly the bug this field exists to prevent
+    // recurring — see skills/_shared/conventions.md §21).
+    if (!noteData.sourceSkill) {
+      throw new Error(
+        "add-note payload.note is missing required field 'sourceSkill' " +
+          "(the exact skill name orchestrating this note, e.g. " +
+          "'post-close-scan-insights'). This field is mandatory and is never " +
+          "defaulted — see skills/_shared/conventions.md §21."
+      );
+    }
     const entry = {
       id: NotesDb.uuid(),
-      createdAt: ist.nowIstIso(),
+      // NOTE: no `createdAt` here, deliberately. The canonical "when was this
+      // note written" timestamp is `creationTime`, set exactly once by
+      // lib/db.js's ensureEnvelope() inside appendNotes() when this record is
+      // persisted below (via db.save -> NotesDb.save -> db.appendNotes). A
+      // second, independently-computed `createdAt` used to live here too --
+      // it drifted from `creationTime` by however long the request took, and
+      // having two competing "write time" fields on the same record (neither
+      // documented as authoritative) is exactly what made a set of notes'
+      // provenance unprovable in an earlier investigation (see
+      // skills/_shared/conventions.md §22). `creationTime`/`modifiedTime` are
+      // the ONLY write-timestamp fields a note carries now. (This is
+      // unrelated to `ann.createdAt` elsewhere in this file, which is the
+      // Stockscans API's own filing-time field on ANNOUNCEMENT objects, not a
+      // note-write timestamp -- that field is correct and untouched.)
+      sourceSkill: noteData.sourceSkill,
       type: noteData.type || 'manual',
       announcementId: noteData.announcementId ?? null,
       announcementTitle: noteData.announcementTitle ?? null,

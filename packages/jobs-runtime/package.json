@@ -42,7 +42,8 @@
     "bse-ipo-history-fetcher": "node bseIpoHistoryFetcher.js",
     "anchor-bulk-deal-tracker": "node anchorBulkDealTracker.js",
     "learnyst-transcript-refresh": "node learnystTranscriptRefresh.js",
-    "youtube-transcript-refresh": "node youtubeTranscriptRefresh.js"
+    "youtube-transcript-refresh": "node youtubeTranscriptRefresh.js",
+    "monthly-updates": "node monthlyUpdates/cli.js"
   },
   "dependencies": {
     "@stock/api": "workspace:*",

@@ -117,7 +117,12 @@ to surface for a human to catch and correct via `skill-manager`.
 
 **Otherwise, run the full `announcement-insights` skill** (its SKILL.md Steps 0-4:
 heavy-doc re-check → read-pdf-with-meta → get-company-notes → fetch template by
-category+depth → add-note), then `run mark-processed "<companyId>" "<announcementId>" "<usecase>"`
+category+depth → add-note — but set `sourceSkill: "watchlist-insights"` on the payload,
+NOT `"announcement-insights"`: `sourceSkill` records which SKILL.md is actually
+orchestrating this run, which is this skill here, even though you're following
+`announcement-insights`' own Step 4 payload template to build it; `add-note` throws if
+`sourceSkill` is missing, see `skills/_shared/conventions.md` §21), then
+`run mark-processed "<companyId>" "<announcementId>" "<usecase>"`
 using the EXACT SAME `usecase` string you passed to `add-note`
 (`"announcement-insights:<depth>"`) — this is what lets a future run recognize the
 announcement as already handled for THIS specific depth, without ever confusing it with

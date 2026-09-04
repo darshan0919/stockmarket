@@ -417,6 +417,120 @@ describe('notes DB round-trip', () => {
   });
 });
 
+describe('cmdAddNote sourceSkill attribution (regression for the creator-mislabeling bug)', () => {
+  test('throws when sourceSkill is missing from the note payload', async () => {
+    const dir = path.join(TMP, 'attribution-missing');
+    process.env.DATA_V2_DIR = dir;
+    try {
+      await expect(
+        wi.cmdAddNote(
+          JSON.stringify({
+            companyId: 'NSE:ATTR1',
+            note: {
+              announcementId: 'attr1.pdf',
+              insight: 'no sourceSkill here',
+              significance: 'high',
+              usecase: 'announcement-insights:standard',
+              // sourceSkill intentionally omitted
+            },
+          })
+        )
+      ).rejects.toThrow(/sourceSkill/);
+    } finally {
+      process.env.DATA_V2_DIR = TMP;
+    }
+  });
+
+  test('persists sourceSkill verbatim, independent of usecase and creator', async () => {
+    const dir = path.join(TMP, 'attribution-present');
+    process.env.DATA_V2_DIR = dir;
+    try {
+      await wi.cmdAddNote(
+        JSON.stringify({
+          companyId: 'NSE:ATTR2',
+          note: {
+            announcementId: 'attr2.pdf',
+            insight: 'orchestrated by post-close-scan-insights',
+            significance: 'high',
+            usecase: 'announcement-insights:standard',
+            sourceSkill: 'post-close-scan-insights',
+          },
+        })
+      );
+      const notes = new NotesDb().load();
+      const co = NotesDb.getCompany(notes, 'NSE:ATTR2');
+      const note = co.notes.find((n) => n.announcementId === 'attr2.pdf');
+      expect(note.sourceSkill).toBe('post-close-scan-insights');
+      // usecase stays exactly what the caller set — unaffected by sourceSkill.
+      expect(note.usecase).toBe('announcement-insights:standard');
+    } finally {
+      process.env.DATA_V2_DIR = TMP;
+    }
+  });
+});
+
+describe('note timestamp is single-source (regression for the two-competing-timestamps bug)', () => {
+  test('a freshly-added note has no independently-computed createdAt drifting from creationTime', async () => {
+    const dir = path.join(TMP, 'timestamp-single-source');
+    process.env.DATA_V2_DIR = dir;
+    try {
+      await wi.cmdAddNote(
+        JSON.stringify({
+          companyId: 'NSE:TS1',
+          note: {
+            announcementId: 'ts1.pdf',
+            insight: 'timestamp regression check',
+            significance: 'high',
+            usecase: 'announcement-insights:standard',
+            sourceSkill: 'watchlist-insights',
+          },
+        })
+      );
+      const notes = new NotesDb().load();
+      const co = NotesDb.getCompany(notes, 'NSE:TS1');
+      const note = co.notes.find((n) => n.announcementId === 'ts1.pdf');
+      // creationTime is the canonical write-timestamp, set once by
+      // ensureEnvelope() -- cmdAddNote no longer computes its own createdAt.
+      expect(note.creationTime).toBeTruthy();
+      expect(note.creationTime).toMatch(/\+05:30$/);
+      // No second, independently-computed timestamp field should exist on a
+      // freshly-written note.
+      expect(note.createdAt).toBeUndefined();
+    } finally {
+      process.env.DATA_V2_DIR = TMP;
+    }
+  });
+
+  test("insightValidator's date-bucketing reads a note's canonical creationTime", () => {
+    // insightsFromNotes() (insightValidator.js) builds a local DTO whose own
+    // `createdAt` field must be SOURCED from the note's creationTime, not a
+    // second competing timestamp -- this is what the D+1 post-close
+    // validation buckets by.
+    const iv = require('../insightValidator');
+    const notes = {
+      companies: {
+        'NSE:TS2': {
+          name: 'Test Co',
+          notes: [
+            {
+              id: 'n1',
+              type: 'announcement',
+              significance: 'high',
+              tags: [],
+              announcementTitle: 'x',
+              creationTime: '2026-09-04T09:00:00+05:30',
+              // no createdAt at all -- must still work off creationTime.
+            },
+          ],
+        },
+      },
+    };
+    const insights = iv.insightsFromNotes(notes);
+    expect(insights).toHaveLength(1);
+    expect(insights[0].createdAt).toBe('2026-09-04T09:00:00+05:30');
+  });
+});
+
 describe('cmdFetchAnnouncements end-to-end (mock client + temp notes)', () => {
   test('drops noise + already-processed, tags category', async () => {
     const { stockscans } = require('@stock/api');

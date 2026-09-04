@@ -59,6 +59,7 @@ Available high-level agentic skills defined in the project:
 | [skills/tooling/ask-soic/scripts/search_soic.py](skills/tooling/ask-soic/scripts/search_soic.py) | `skills/tooling/ask-soic/scripts/search_soic.py` | ask soic, what does soic say about, how does soic think about, did soic teach, soic lesson on, find the lesson where soic explains, soic framework for, what does soic teach about |
 | N/A | `N/A` | volume rocketing, volume surge signal, volume rocket scan, 8am volume rocketing run, volume breakout signal, volume surge gainers |
 | N/A | `N/A` | fetch quarterly result documents, quarterly result extractor, pull result and transcript, extract result data |
+| [packages/jobs-runtime/monthlyUpdates/cli.js](packages/jobs-runtime/monthlyUpdates/cli.js) | `packages/jobs-runtime/monthlyUpdates/cli.js` | monthly updates, monthly sales numbers, monthly business update, auto sales for the month, monthly volume tracker, who reported monthly numbers, monthly sales tracker, refresh the monthly updates page, monthly volumes trend, compare monthly sales, 1st of month sales numbers, auto volumes, tractor volumes |
 
 ---
 

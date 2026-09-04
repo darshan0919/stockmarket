@@ -115,6 +115,41 @@ set'}` instead of throwing — in a sandboxed/Cowork run where nothing sourced
    pipeline, bake both of these rules into it explicitly rather than assuming
    the model will infer them.
 
+9. **`sourceSkill` attribution is MANDATORY on every `add-note` call (not optional,
+   not something to add "if there's time") — this is a standing gate, checked on every
+   skill you create or edit that touches this pipeline, not a one-time fix.** Before
+   considering ANY skill "done" if its SKILL.md instructs calling
+   `watchlistInsights.js add-note` (directly, or by following another skill's
+   `add-note` step, e.g. reusing `announcement-insights`' Step 4 template), verify its
+   SKILL.md explicitly tells the model to set `sourceSkill` on the note payload to that
+   skill's OWN name — never to `usecase`'s value, never omitted so it falls through to
+   a shared default. `cmdAddNote` in `watchlistInsights.js` enforces this at the code
+   level (it throws if `sourceSkill` is missing), so a skill whose SKILL.md forgets this
+   will fail loudly at runtime rather than silently mislabeling notes — but you should
+   still catch it at authoring time, not leave it to the first failed run. Full
+   rationale and the exact bug this prevents recurring: `skills/_shared/conventions.md`
+   §21 — read it before wiring any new skill into this pipeline. `sourceSkill` and
+   `usecase` answer different questions and must never be set from each other: `usecase`
+   is who shares a cache bucket (previous point), `sourceSkill` is who actually wrote
+   this specific note.
+
+10. **Never let a skill invent its own write-timestamp field alongside `creationTime`/
+    `modifiedTime`.** Before considering ANY skill "done" if it writes records through
+    `lib/db.js` (`add-note`, `appendEvents`, `upsertMany`, or any other write path),
+    verify its SKILL.md and any script it references do NOT separately compute and store
+    a `createdAt`/`updatedAt`-style field for "when was this record created/modified" --
+    `creationTime`/`modifiedTime`, set once by `ensureEnvelope()` at persist time, are the
+    only fields that answer that question. This is the exact same class of bug as the
+    `sourceSkill` gate above (a shared layer already tracks something correctly; a caller
+    re-derives its own competing copy instead of trusting it), and it caused a real
+    provenance failure -- see `skills/_shared/conventions.md` §22 for the full story. A
+    field named `createdAt` is still fine when it means something else entirely -- an
+    externally-sourced object's own upstream timestamp (an announcement's filing time, a
+    tweet's post time) is legitimate domain data, not a competing envelope field; the test
+    is whether the field is answering "when did we write this record" (must be
+    `creationTime`/`modifiedTime`, full stop) or "when did the external thing happen"
+    (anything goes, it's not this rule's concern).
+
 At a high level, the process of creating a skill goes like this:
 
 - Decide what you want the skill to do and roughly how it should do it

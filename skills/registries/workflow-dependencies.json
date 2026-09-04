@@ -830,6 +830,39 @@
         "stock-api/src/analyzers/balanceSheetSignals.js",
         "stock-api/src/analyzers/cashflowSignals.js"
       ]
+    },
+    {
+      "name": "monthly-updates-tracker",
+      "description": "Tracks month-on-month sales/volume disclosures from Indian listed companies (autos, tractors, metals, retail, NBFCs) that file \"monthly business update\" announcements on the 1st-3rd of each month, and publishes them as an interactive QoQ/YoY table plus 12-month trend charts. Use whenever the user says \"monthly updates\", \"monthly sales numbers\", \"auto sales for <month>\", \"who reported monthly numbers\", \"monthly volume tracker\", \"refresh the monthly updates page\", or when the monthly-business-updates scheduled job fires on the 1st. Also use to answer \"how are <company>'s monthly volumes trending\" or \"compare monthly sales of X and Y\". NOT for quarterly results (that's quarterly-result-analysis) or for one-off announcement reads (announcement-insights).",
+      "aliases": [
+        "monthly updates",
+        "monthly sales numbers",
+        "monthly business update",
+        "auto sales for the month",
+        "monthly volume tracker",
+        "who reported monthly numbers",
+        "monthly sales tracker",
+        "refresh the monthly updates page",
+        "monthly volumes trend",
+        "compare monthly sales",
+        "1st of month sales numbers",
+        "auto volumes",
+        "tractor volumes"
+      ],
+      "entry": "packages/jobs-runtime/monthlyUpdates/cli.js",
+      "modules": [
+        "packages/jobs-runtime/monthlyUpdates/fetchUpdates.js",
+        "packages/jobs-runtime/monthlyUpdates/pdfText.js",
+        "packages/jobs-runtime/monthlyUpdates/tableSlice.js",
+        "packages/jobs-runtime/monthlyUpdates/parseFiling.js",
+        "packages/jobs-runtime/monthlyUpdates/buildSeries.js",
+        "packages/jobs-runtime/monthlyUpdates/persist.js",
+        "packages/jobs-runtime/monthlyUpdates/renderApp.js",
+        "packages/jobs-runtime/lib/db.js",
+        "stock-api/src/clients/StockscansClient.js",
+        "stock-api/src/utils/concurrency.js",
+        "stock-api/src/utils/companyId.js"
+      ]
     }
   ],
   "classes": [

@@ -72,6 +72,12 @@ needed something else entirely.
   3rd argument, so a different skill's own dedup check (via `--usecase-prefix` on
   `fetch-announcements`) never mistakes "announcement-insights already looked at this"
   for "I already looked at this," or vice versa.
+- **`usecase` is NOT attribution — `sourceSkill` is.** Because `usecase` is deliberately
+  shared across orchestrators at the same depth (previous bullet), it can never answer
+  "which skill actually wrote this note" — that's a separate, mandatory `sourceSkill`
+  field on every `add-note` payload, set to the literal orchestrating skill's own name
+  (e.g. `"announcement-insights"`, `"post-close-scan-insights"`), never to `usecase`'s
+  value. `add-note` throws if it's missing. See `skills/_shared/conventions.md` §21.
 
 **Never let a cache hit disappear from a human-facing output.** If a caller's own
 skip-check (`fetch-announcements`'s usecase-scoped dedup) means an announcement isn't
@@ -217,7 +223,7 @@ echo '<json>' | run add-note
 Payload: `{companyId, ticker, name, businessSummary?, note:{type:"announcement",
 announcementId, announcementTitle, pdfUrl, insight, headline, thesisChain,
 epsImpact, significance, tags, category, announcementDescription,
-usecase:"announcement-insights:<depth>",
+usecase:"announcement-insights:<depth>", sourceSkill:"announcement-insights",
 modelUsed:"<the model you are running as right now>"}}`.
 
 `headline`/`thesisChain`/`epsImpact` are the structured what-happened → EPS-impact
@@ -232,6 +238,13 @@ for `insight-template`) rather than relying on the field's default, which only e
 for backward compatibility with callers written before this convention existed. Then
 call `mark-processed <companyId> <announcementId> <that same usecase>` so your caller's
 own dedup check stays correctly scoped.
+
+`sourceSkill` is a DIFFERENT field with a DIFFERENT job — it records which SKILL.md
+actually orchestrated this note (here, always the literal string `"announcement-insights"`,
+even when `usecase` is shared with another depth/skill), so a human or script can later
+answer "who actually wrote this note" with zero ambiguity. Never omit it and never
+derive it from `usecase` — `add-note` will reject a payload missing it (see
+`skills/_shared/conventions.md` §21 for why this exists).
 
 `add-note` deterministically enforces a **significance floor of `medium`** and a
 `high_conviction` tag for any HIGH_CONVICTION_CATEGORIES note — this is a code-level

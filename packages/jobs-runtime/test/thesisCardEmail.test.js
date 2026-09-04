@@ -376,10 +376,17 @@ describe('signal strength: 5 tiers derived from significance + evidence', () => 
     expect(mins).toEqual([...mins].sort((a, b) => b - a));
   });
 
-  test('chip shows both the tier and the raw number', () => {
+  test('chip shows only the /10 score — no tier code, no level name on the card', () => {
+    // Darshan's ask (2026-09-04): the level name already sits on the section's
+    // group header, so the card itself should show just the number, scaled
+    // 0-10 with one decimal (allowing "10.0" at the top of the scale), not
+    // the internal S1..S5 vocabulary.
     const html = signalScoreChipHtml({ significance: 'high', epsImpact: hardEps });
-    expect(html).toMatch(/S[12]/);
-    expect(html).toMatch(/\d+\/100/);
+    expect(html).toMatch(/^\s*<span[^>]*>\d{1,2}\.\d\/10<\/span>\s*$/);
+    // The tier code may still live in the tooltip's title attribute (useful
+    // for auditing), but must never appear in the chip's VISIBLE text.
+    const visibleText = html.match(/>([^<]*)<\/span>$/)[1];
+    expect(visibleText).not.toMatch(/S[1-5]/);
   });
 });
 
@@ -429,7 +436,13 @@ describe('digest: tiers drive sections, and the footer agrees with the body', ()
     expect(html).toContain('Signal strength');
     expect(html).toContain('Post-close');
     // One section header per distinct tier present, and each card carries a score.
-    expect((html.match(/\/100/g) || []).length).toBe(items.length);
+    // The tooltip also mentions "X.X/10" in its title text, so count only the
+    // visible chip content (">X.X/10</span>" or ">10.0/10</span>"), not every
+    // occurrence.
+    expect((html.match(/>\d{1,2}\.\d\/10<\/span>/g) || []).length).toBe(items.length);
+    // Section headers show the level name (e.g. "High significance" or the
+    // tier's own label), never the internal S1..S5 code.
+    expect(html).not.toMatch(/>S[1-5]\s*&middot;/);
   });
 
   test('knowledge-gap strip renders, and an unresolved gap is flagged as such', () => {
