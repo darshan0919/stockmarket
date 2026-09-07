@@ -1,11 +1,24 @@
 'use strict';
 
+const os = require('os');
+const fs = require('fs');
+const path = require('path');
+
+// Point the notes DB at a temp dir BEFORE requiring the module (paths bind at
+// load, same pattern as test/watchlistInsights.test.js) — needed for the
+// collectCachedNotesSinceCutoff regression suite below, which writes real
+// notes through lib/db.js and must not touch the repo's own data/notes.json.
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'pcsi-'));
+process.env.DATA_V2_DIR = TMP;
+
 const {
   parseAnnDateToUtc,
   normaliseSavedScan,
   SCAN_SOURCE_NAME,
   FALLBACK_SCAN,
+  collectCachedNotesSinceCutoff,
 } = require('../postCloseScanInsights');
+const db = require('../lib/db');
 
 // ── The timezone assumption ────────────────────────────────────────────────
 //
@@ -114,5 +127,86 @@ describe('FALLBACK_SCAN: the last-resort frozen copy', () => {
 
   test('normalises to itself — it is already in endpoint shape', () => {
     expect(normaliseSavedScan(FALLBACK_SCAN)).toEqual(FALLBACK_SCAN);
+  });
+});
+
+// ── collectCachedNotesSinceCutoff: regression for the createdAt/creationTime
+// digest-emptying bug (found 2026-09-07, fixed 2026-09-08) ────────────────
+//
+// This function used to key its cutoff filter off `n.createdAt`, a field
+// that stopped being written to note records once the schema moved to
+// creationTime-only. Every note written after that migration therefore
+// failed `ist.parseCreatedAtMs(n.createdAt || n.date || '')` silently (it
+// fell through to `n.date`, which notes never carry either, so the parse
+// returned null and the note was dropped) — a full post-close run that
+// wrote 42 real insight notes sent a digest with a count of 0. These tests
+// pin the fixed behavior directly against lib/db.js's real appendNotes(), so
+// a future change that reintroduces a second timestamp field is caught here
+// rather than only being visible as an empty production email.
+describe('collectCachedNotesSinceCutoff: single-timestamp schema regression', () => {
+  test('a freshly-appended note (creationTime only, no createdAt) is found when its creationTime is after the cutoff', () => {
+    db.appendNotes([
+      {
+        companyId: 'NSE:CCT1',
+        creator: 'post-close-scan-insights',
+        sourceSkill: 'post-close-scan-insights',
+        usecase: 'announcement-insights:standard',
+        type: 'announcement',
+        announcementId: 'cct1.pdf',
+        insight: 'Something happened at CCT1.',
+        significance: 'medium',
+        category: 'order_book',
+      },
+    ]);
+
+    const farPast = Date.parse('2020-01-01T00:00:00Z');
+    const out = collectCachedNotesSinceCutoff(farPast);
+    const match = out.find((i) => i.companyId === 'NSE:CCT1');
+    expect(match).toBeTruthy();
+    expect(match.insight).toBe('Something happened at CCT1.');
+    // The output DTO itself carries the note's real creationTime forward
+    // (not a `createdAt` key) — see the function's own comment on why this
+    // key was renamed as part of the fix.
+    expect(match.creationTime).toBeTruthy();
+    expect(match.createdAt).toBeUndefined();
+  });
+
+  test('a note is excluded once the cutoff moves past its creationTime', () => {
+    db.appendNotes([
+      {
+        companyId: 'NSE:CCT2',
+        creator: 'post-close-scan-insights',
+        sourceSkill: 'post-close-scan-insights',
+        usecase: 'announcement-insights:standard',
+        type: 'announcement',
+        announcementId: 'cct2.pdf',
+        insight: 'Old news at CCT2.',
+        significance: 'low',
+        category: 'general',
+      },
+    ]);
+
+    const farFuture = Date.parse('2099-01-01T00:00:00Z');
+    const out = collectCachedNotesSinceCutoff(farFuture);
+    expect(out.find((i) => i.companyId === 'NSE:CCT2')).toBeUndefined();
+  });
+
+  test('a note with no insight text is never surfaced, regardless of timestamp', () => {
+    db.appendNotes([
+      {
+        companyId: 'NSE:CCT3',
+        creator: 'post-close-scan-insights',
+        sourceSkill: 'post-close-scan-insights',
+        usecase: 'announcement-insights:standard',
+        type: 'announcement',
+        announcementId: 'cct3.pdf',
+        significance: 'routine',
+        category: 'general',
+      },
+    ]);
+
+    const farPast = Date.parse('2020-01-01T00:00:00Z');
+    const out = collectCachedNotesSinceCutoff(farPast);
+    expect(out.find((i) => i.companyId === 'NSE:CCT3')).toBeUndefined();
   });
 });

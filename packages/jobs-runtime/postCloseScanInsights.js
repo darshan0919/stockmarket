@@ -692,7 +692,7 @@ const {
   signalTierFor,
 } = require('./lib/thesisCardEmail');
 
-// Pull every already-persisted announcement-insights note whose createdAt
+// Pull every already-persisted announcement-insights note whose creationTime
 // falls at/after `cutoffMs`, across ALL companies in the notes DB — not just
 // the ones this specific run freshly processed. This is what lets the
 // digest include announcements that were already read/insighted by an
@@ -703,6 +703,17 @@ const {
 // noise-filtered items never got a note in the first place (per skill
 // design: mark-processed with no add-note), so this can't accidentally
 // resurrect noise.
+//
+// FIXED 2026-09-08: this used to read `n.createdAt`, a field that stopped
+// being written to note records once the schema moved to creationTime-only
+// (2026-09-07) — every note written since then silently failed the `=== null`
+// check below and got dropped, so every digest sent after that migration
+// rendered ZERO insights regardless of how many were actually written that
+// run (caught in production: a full post-close run produced 42 notes, and
+// this function returned none of them). `creationTime` is the note schema's
+// one and only write-timestamp field now — see lib/db.js's appendNotes(),
+// which deletes any stray `createdAt` at the write chokepoint, and
+// notesDb.js's load(), which strips it from legacy records on read.
 function collectCachedNotesSinceCutoff(cutoffMs) {
   const notesDb = new NotesDb();
   const notes = notesDb.load();
@@ -711,7 +722,7 @@ function collectCachedNotesSinceCutoff(cutoffMs) {
     for (const n of co.notes || []) {
       const usecase = n.usecase || '';
       if (!usecase.startsWith('announcement-insights')) continue;
-      const createdMs = ist.parseCreatedAtMs(n.createdAt || n.date || '');
+      const createdMs = ist.parseCreatedAtMs(n.creationTime || n.date || '');
       if (createdMs === null || createdMs < cutoffMs) continue;
       if (!n.insight) continue; // no insight text = nothing worth rendering
       out.push({
@@ -726,7 +737,7 @@ function collectCachedNotesSinceCutoff(cutoffMs) {
         tags: n.tags || [],
         insight: n.insight,
         announcementId: n.announcementId || null,
-        createdAt: n.createdAt || null,
+        creationTime: n.creationTime || null,
       });
     }
   }
@@ -1130,6 +1141,7 @@ module.exports = {
   paginateScanToCutoff,
   SCAN_SOURCE_NAME,
   FALLBACK_SCAN,
+  collectCachedNotesSinceCutoff,
 };
 
 // Guarded so requiring this module (for its exports, or from a test) does not

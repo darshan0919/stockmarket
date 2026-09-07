@@ -371,12 +371,16 @@ describe('notes DB round-trip', () => {
     db.initRun();
     const notes = db.load();
     const co = NotesDb.ensureCompany(notes, 'NSE:Z', 'NSE:Z', 'Zeta');
+    // No `createdAt` is authored here on purpose: creationTime is the note
+    // schema's single write-timestamp field, set once by lib/db.js's
+    // ensureEnvelope() inside save() -> appendNotes(). A caller constructing
+    // its own timestamp would be exactly the two-competing-timestamps bug
+    // this file's other describe block guards against.
     co.notes.push({
       id: NotesDb.uuid(),
       announcementId: 'z.pdf',
       insight: 'hi',
       significance: 'high',
-      createdAt: '2026-06-27T10:00:00+05:30',
     });
     db.save(notes);
 
@@ -387,6 +391,10 @@ describe('notes DB round-trip', () => {
     expect(idx['z.pdf'].latest[0].insight).toBe('hi');
     // No explicit usecase was set on this note → falls into the legacy bucket.
     expect(idx['z.pdf'].byUsecase[NotesDb.LEGACY_USECASE][0].insight).toBe('hi');
+    // Single-timestamp schema: creationTime was stamped by save(), and no
+    // createdAt key exists anywhere on the reloaded record.
+    expect(idx['z.pdf'].latest[0].creationTime).toBeTruthy();
+    expect(idx['z.pdf'].latest[0].createdAt).toBeUndefined();
   });
 
   test('a company touched only via mark-processed (no note at all) survives a reload', async () => {

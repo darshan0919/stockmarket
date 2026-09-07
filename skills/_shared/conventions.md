@@ -96,12 +96,38 @@ add-note` (`watchlist-insights`, `announcement-insights`, `announcement-info-cla
     IST-with-offset), but because there were two of them and neither was marked authoritative.
     Fixed: `cmdAddNote` no longer sets `createdAt` on a note entry; `creationTime` (set once,
     by `ensureEnvelope`, at persist time) is the single source of truth, and every reader
-    (`notesDb.js`, `insightValidator.js`) now reads it first. A defensive `|| n.createdAt`
-    fallback remains in a few spots for records that somehow bypass `ensureEnvelope`, but as
-    of this fix 100% of existing note records already carry `creationTime` (verified: 0 of
-    2094), so this is not a real migration path, just a safety net. **This is forward-looking
+    (`notesDb.js`, `insightValidator.js`) now reads it first. **This is forward-looking
     only -- the notes originally investigated were written before this fix existed, so this
-    convention does not and cannot retroactively resolve which run wrote them.** Separately,
+    convention does not and cannot retroactively resolve which run wrote them.**
+
+    2026-09-08 follow-up (this was NOT a harmless leftover field): a `|| n.createdAt`
+    fallback was left in several readers "just in case," on the assumption that every live
+    note record already carried `creationTime` and the fallback would never actually fire.
+    That assumption was correct for those readers -- but `packages/jobs-runtime/
+    postCloseScanInsights.js`'s `collectCachedNotesSinceCutoff` (the function that feeds the
+    post-close digest email) was written the OTHER way around: it read `n.createdAt` ONLY,
+    with no `creationTime` fallback at all. Since `cmdAddNote` stopped setting `createdAt` by
+    design, every note written after the 2026-09-07 fix silently failed that function's
+    timestamp parse and was dropped -- a production run on 2026-09-07 wrote 42 real insight
+    notes and the digest email reported a count of 0, with no error or warning anywhere in
+    the pipeline. The lesson: introducing a "canonical field, defensive fallback to the old
+    one" pattern does not, by itself, guarantee every reader was updated consistently -- a
+    reader that skips straight to the OLD field with no fallback at all is invisible to a
+    field-presence check on the data (the data looked fine; 1931 legacy records genuinely did
+    have both fields, always equal) and only shows up as a functional break in whatever
+    consumes that specific reader's output. Fully fixed 2026-09-08: `data/notes.json`'s
+    redundant `createdAt` key was migrated away entirely (`scripts/
+    migrateCreatedAtToCreationTime.js` -- verified 0 of 1931 records disagreed with
+    `creationTime` before stripping, so no data was lost), `lib/db.js`'s `appendNotes()` now
+    deletes any stray `createdAt` at the single write chokepoint every note passes through
+    (so the field is structurally impossible to reintroduce, not just discouraged by
+    convention), and `collectCachedNotesSinceCutoff` now reads `creationTime`. A record's
+    schema has exactly one write-timestamp pair, full stop -- no defensive fallback field is
+    kept anywhere in the note schema going forward, because a fallback path that only some
+    readers implement is worse than no fallback at all: it hides the inconsistency instead of
+    surfacing it. Regression tests: `test/db.test.js` (`appendNotes: single-timestamp
+    schema`), `test/postCloseScanInsights.test.js` (`collectCachedNotesSinceCutoff:
+    single-timestamp schema regression`). Separately,
     and NOT the same bug: `ann.createdAt` on an announcement/tweet/Stockscans-sourced object
     means the external source's OWN filing/post timestamp, inherited from the upstream API
     field name -- that is legitimate domain data about what the record describes, not a

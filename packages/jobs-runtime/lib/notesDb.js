@@ -71,14 +71,19 @@ class NotesDb {
       // `creationTime` is the ONE canonical "when was this note written"
       // field (set by lib/db.js's ensureEnvelope, never computed a second
       // time by any caller as of the sourceSkill/timestamp fixes -- see
-      // skills/_shared/conventions.md §21/§22). Every note record ever
-      // persisted through appendNotes carries it (verified empirically:
-      // 0 of 2094 existing note records lack creationTime), so this does
-      // NOT need a createdAt fallback for correctness -- it's kept as a
-      // defensive no-op only in case a record somehow reaches this path
-      // without going through ensureEnvelope.
+      // skills/_shared/conventions.md §21/§22). appendNotes() now deletes any
+      // `createdAt` key at write time (the 2026-09-08 fix), so no LIVE record
+      // should carry one -- but `data/notes.json` may still hold pre-fix
+      // records until the one-off migration (scripts/migrateCreatedAtToCreationTime.js)
+      // runs. Stripping it here too, on read, means a caller of load() never
+      // sees the field even before that migration completes, and this spread
+      // can never resurrect it into a freshly re-saved record either (see
+      // appendNotes' own comment on why the write-side chokepoint alone
+      // wasn't enough -- load() -> save() round-trips whatever load() handed
+      // back).
+      const { createdAt: _legacyCreatedAt, ...recWithoutLegacyTimestamp } = rec;
       co.notes.push({
-        ...rec,
+        ...recWithoutLegacyTimestamp,
         insight: rec.insight || rec.text,
         announcementId: rec.announcementId || rec.sourceAnnouncement,
       });
@@ -86,11 +91,7 @@ class NotesDb {
 
     for (const co of Object.values(notes.companies)) {
       delete co._bsTime;
-      co.notes.sort((a, b) =>
-        String(a.creationTime || a.createdAt || '').localeCompare(
-          String(b.creationTime || b.createdAt || '')
-        )
-      );
+      co.notes.sort((a, b) => String(a.creationTime || '').localeCompare(String(b.creationTime || '')));
       const c = companies[co.companyId];
       if (c) {
         co.ticker = co.ticker || c.nseTicker || String(co.companyId).split(':')[1] || '';
@@ -140,10 +141,15 @@ class NotesDb {
           companyId: cid,
           type: n.type || n.category || 'insight',
           creator: n.creator || 'watchlist-insights',
-          date: String(n.date || n.creationTime || n.createdAt || '').slice(0, 10) || undefined,
-          // creationTime is canonical; the `|| n.createdAt` fallback is
-          // defensive only (no live record needs it -- see load() above).
-          creationTime: n.creationTime || n.createdAt,
+          date: String(n.date || n.creationTime || '').slice(0, 10) || undefined,
+          // creationTime is the ONE canonical write-timestamp (set once by
+          // ensureEnvelope on first insert, preserved by db.js's upsert on
+          // every later re-save -- see lib/db.js). No `createdAt` fallback:
+          // appendNotes() (lib/db.js) deletes that key outright before this
+          // record ever reaches ensureEnvelope, and load() above already
+          // strips it from any legacy record before it gets here as `n`, so
+          // there is nothing left to fall back to.
+          creationTime: n.creationTime,
           text: n.text || n.insight,
           announcementId: n.announcementId || n.sourceAnnouncement,
         });
@@ -234,17 +240,11 @@ class NotesDb {
         const usecase = n.usecase || NotesDb.LEGACY_USECASE;
         const entry = (index[aid] ||= { byUsecase: {}, latest: null });
         const prevForUsecase = entry.byUsecase[usecase];
-        const nTime = n.creationTime || n.createdAt || '';
-        if (
-          !prevForUsecase ||
-          nTime > (prevForUsecase[0].creationTime || prevForUsecase[0].createdAt || '')
-        ) {
+        const nTime = n.creationTime || '';
+        if (!prevForUsecase || nTime > (prevForUsecase[0].creationTime || '')) {
           entry.byUsecase[usecase] = [n, co];
         }
-        if (
-          !entry.latest ||
-          nTime > (entry.latest[0].creationTime || entry.latest[0].createdAt || '')
-        ) {
+        if (!entry.latest || nTime > (entry.latest[0].creationTime || '')) {
           entry.latest = [n, co];
         }
       }

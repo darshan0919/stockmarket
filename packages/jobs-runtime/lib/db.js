@@ -797,6 +797,20 @@ function appendNotes(notes) {
   if (!Array.isArray(notes)) notes = [notes];
   for (const note of notes) {
     if (!note.companyId) throw new Error('notes require companyId');
+    // Single-timestamp schema enforcement (see skills/_shared/conventions.md
+    // §22 and the 2026-09-08 createdAt/creationTime incident): a note record
+    // has exactly one write-timestamp field, `creationTime` (set once, below,
+    // by ensureEnvelope) plus `modifiedTime`. `createdAt` used to be a second,
+    // independently-computed timestamp that silently stopped being set after
+    // the 2026-09-07 migration to creationTime-only, which broke every reader
+    // still keyed on it (collectCachedNotesSinceCutoff emptied every digest).
+    // Deleting it here — the single chokepoint every note write passes
+    // through — means a `createdAt` key can never re-enter the schema again,
+    // whether from a caller that still constructs one, or from data loaded
+    // from disk and passed back through save() unchanged (notesDb.js load()/
+    // save() spread the note object, so a lingering field round-trips
+    // forever unless stripped at the write boundary).
+    if ('createdAt' in note) delete note.createdAt;
     ensureEnvelope(note, { kind: 'note', discriminator: note.text || note.summary || '' });
   }
   const stats = upsertMany('notes', notes);

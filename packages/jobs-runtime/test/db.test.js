@@ -43,6 +43,46 @@ describe('envelope', () => {
   });
 });
 
+// Regression for the 2026-09-07/08 createdAt/creationTime incident: a note
+// record used to be able to carry BOTH `creationTime` (canonical, set here)
+// AND a second, independently-sourced `createdAt` that a caller (or a
+// load()->save() round-trip of an old on-disk record) had attached. Once a
+// reader (postCloseScanInsights.js's collectCachedNotesSinceCutoff) was
+// written against `createdAt` instead of `creationTime`, every note saved
+// after `createdAt` stopped being populated silently vanished from digests.
+// appendNotes() is the single chokepoint every note write passes through, so
+// enforcing "no createdAt key, ever" here is what makes a second competing
+// timestamp field structurally impossible to reintroduce.
+describe('appendNotes: single-timestamp schema (no createdAt, ever)', () => {
+  test('a note saved without createdAt gets exactly one timestamp pair: creationTime + modifiedTime', () => {
+    db.appendNotes([
+      { companyId: 'NSE:TS1', creator: 'test', type: 'announcement', insight: 'hi' },
+    ]);
+    const stored = db.find('notes', { companyId: 'NSE:TS1' })[0];
+    expect(stored.creationTime).toBeTruthy();
+    expect(stored.modifiedTime).toBeTruthy();
+    expect(stored.createdAt).toBeUndefined();
+  });
+
+  test('a note saved WITH a stray createdAt has it stripped before persisting', () => {
+    db.appendNotes([
+      {
+        companyId: 'NSE:TS2',
+        creator: 'test',
+        type: 'announcement',
+        insight: 'hi',
+        createdAt: '2020-01-01T00:00:00+05:30',
+      },
+    ]);
+    const stored = db.find('notes', { companyId: 'NSE:TS2' })[0];
+    expect(stored.createdAt).toBeUndefined();
+    expect(stored.creationTime).toBeTruthy();
+    // The stray value must not have leaked into creationTime either — the
+    // real write time (now) is what gets stamped, never the caller's guess.
+    expect(stored.creationTime).not.toBe('2020-01-01T00:00:00+05:30');
+  });
+});
+
 describe('companyId sanitization (ensureEnvelope + find)', () => {
   test('ensureEnvelope strips a series suffix from record.companyId', () => {
     const rec = db.ensureEnvelope(mkEvent({ companyId: 'NSE:SWARAJENG-BE' }), {
