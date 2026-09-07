@@ -32,8 +32,17 @@ TICKER="NSE:SWARAJENG"            # replace with actual
 SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_forensic_docs"
 
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t "Annual Report" --last-n 3 -o "$DOCS_DIR"
+# Real implementation is a Node module, not a Python CLI — see
+# stock-documents-fetcher/SKILL.md "Actual working usage" (corrected 2026-08-02).
+# Before reading a fetched PDF's text, check the shared Filing Extract
+# store first (docs/REUSE_ARCHITECTURE_PLAN.md §4.1):
+#   node -e "const {resolveFilingContent}=require('./packages/jobs-runtime/lib/resolveFilingContent'); \
+#     console.log(JSON.stringify(resolveFilingContent({sourceUrl:'<pdfUrl>', profile:'<profile>'})))"
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['Annual Report'], lastN: 3, outputDir: '$DOCS_DIR' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 ```
 
 Read `$DOCS_DIR/manifest.json` to confirm. If only 1–2 ARs are available (e.g., recent IPO), proceed but flag in the output that trend analysis is limited.

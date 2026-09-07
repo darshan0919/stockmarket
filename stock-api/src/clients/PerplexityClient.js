@@ -33,6 +33,17 @@ class PerplexityClient {
   }
 
   /**
+   * Set (or clear) the job name this client's HttpClient instance attributes
+   * outbound calls to for API-usage auditing. Call once at script startup —
+   * this mutates the client's own HttpClient instance, not any shared/global
+   * state. See HttpClient.js's header and StockscansClient.js's setJobName.
+   * @param {string|null} jobName
+   */
+  setJobName(jobName) {
+    this.http.jobName = jobName || null;
+  }
+
+  /**
    * List earnings events for a company. CONFIRMED LIVE 2026-07-24 (STLTECH.NS)
    * — Cloudflare returns a 403 challenge page without a valid cookie session
    * (tested with zero cookies first: 403 "Just a moment..."), so despite the

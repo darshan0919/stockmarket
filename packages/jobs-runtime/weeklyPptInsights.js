@@ -34,7 +34,6 @@ const path = require('path');
 const https = require('https');
 const pdf = require('pdf-parse');
 const { loadEnv } = require('./lib/env');
-const { callAnthropic } = require('./lib/anthropicClient');
 const db = require('./lib/db');
 
 loadEnv(path.join(__dirname, '../../.env'));
@@ -119,8 +118,22 @@ function downloadFile(url, dest) {
  * @param {string} text - Combined extracted text from the week's PPTs.
  * @returns {string} Prompt ready to pass to `callAnthropic`.
  */
-function buildWeeklyPptPrompt(text) {
-  return `You are a financial analyst. Summarize the following extracted text from weekly market presentations into these categories:
+/**
+ * Synthesis is no longer done by this script (conventions.md §24 — no
+ * script in this repo may call an LLM provider API directly; that was
+ * `lib/anthropicClient.js`'s job and it has been removed). The expensive
+ * work this job's cursor guards is the download+PDF-parse above, which
+ * stays here per §17; "summarize into these categories" is now an
+ * AGENT-executed instruction — see writePendingSynthesis below.
+ */
+function writePendingSynthesis(text) {
+  const runsDir = path.join(db.dataRoot(), 'runs');
+  fs.mkdirSync(runsDir, { recursive: true });
+  const outPath = path.join(runsDir, 'weekly-ppt-insights-pending-synthesis.md');
+  const body = `# Weekly PPT Insights — pending synthesis
+
+This is an AGENT step (not a script LLM call — see conventions.md §24). Summarize the
+extracted text below into these categories:
 1. Macro Developments & Sector Rotation
 2. Order Book Updates
 3. Financials (Banks and NBFCs)
@@ -128,9 +141,16 @@ function buildWeeklyPptPrompt(text) {
 5. Interesting DRHPs/IPOs
 6. Technical Setups & Scans
 
-Text:
-${text.substring(0, 80000)} // Truncating to avoid massive token usage for now
+Save the summary to \`data/runs/latest_stockscans_insights.md\` and then record this
+run's observed token usage via:
+  yarn record-token-usage --job <job-name> --input <n> --output <n>
+
+## Extracted text
+
+${text.substring(0, 80000)}
 `;
+  fs.writeFileSync(outPath, body);
+  return outPath;
 }
 
 async function run({ force = false } = {}) {
@@ -202,15 +222,8 @@ async function run({ force = false } = {}) {
       }
     }
 
-    console.log('Generating AI Insights...');
-    const insights = await callAnthropic(buildWeeklyPptPrompt(combinedText));
-
-    if (insights) {
-      const outPath = path.join(db.dataRoot(), 'runs', 'latest_stockscans_insights.md');
-      fs.mkdirSync(path.dirname(outPath), { recursive: true });
-      fs.writeFileSync(outPath, insights);
-      console.log(`Saved insights to ${outPath}`);
-    }
+    const pendingPath = writePendingSynthesis(combinedText);
+    console.log(`Wrote pending synthesis for an agent to pick up: ${pendingPath}`);
 
     // Commit only after the summarization call above completed without
     // throwing — an error before this line leaves processedFileIds

@@ -532,7 +532,7 @@ describe('note timestamp is single-source (regression for the two-competing-time
 });
 
 describe('cmdFetchAnnouncements end-to-end (mock client + temp notes)', () => {
-  test('drops noise + already-processed, tags category', async () => {
+  test('tags noise (never drops) + already-processed, tags category', async () => {
     const { stockscans } = require('@stock/api');
     stockscans.validateAuth = jest.fn().mockResolvedValue(true);
     const now = Date.now();
@@ -563,10 +563,19 @@ describe('cmdFetchAnnouncements end-to-end (mock client + temp notes)', () => {
     await wi.cmdFetchAnnouncements('wl-1,wl-2', stockscans);
     spy.mockRestore();
 
+    // Fixed 2026-09-05: a noise-keyword match used to be dropped here before
+    // this array was even returned — the same title-based pre-read exclusion
+    // that made gainers-signal miss real triggers live. It now stays in the
+    // array, tagged, so watchlist-insights' Step 2 still gets a chance to
+    // read it rather than never seeing it at all.
     const out = JSON.parse(captured);
-    expect(out).toHaveLength(1);
-    expect(out[0].companyId).toBe('NSE:ORDER');
-    expect(out[0].category).toBe('order_book');
-    expect(out[0].pdfUrl).toBe('https://s3.example/docs/order.pdf');
+    expect(out).toHaveLength(2);
+    const order = out.find((a) => a.companyId === 'NSE:ORDER');
+    const noise = out.find((a) => a.companyId === 'NSE:NOISE');
+    expect(order.category).toBe('order_book');
+    expect(order.pdfUrl).toBe('https://s3.example/docs/order.pdf');
+    expect(order.noiseFlagged).toBe(false);
+    expect(noise.noiseFlagged).toBe(true);
+    expect(noise.noiseKeyword).toMatch(/trading window/i);
   });
 });

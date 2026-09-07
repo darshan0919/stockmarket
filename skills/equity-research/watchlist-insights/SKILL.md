@@ -1,6 +1,6 @@
 ---
 name: watchlist-insights
-description: Daily watchlist corporate-announcement insights — fetch new non-routine announcements across the Near Highs + Radar watchlists, read each PDF, write an actionable quantified insight per category into the notes DB, and email the full 24h digest. Deliberately skips heavy dedicated-workflow documents (earnings results, concall transcripts, investor presentations, annual reports) rather than PDF-parsing them, logging every skip with its reason for visibility. Invoke with defaults for the 8 AM run, or on demand to re-process a company.
+description: Daily watchlist corporate-announcement insights — fetch new announcements across the Near Highs + Radar watchlists, read each one's PDF (strength/materiality is never decided from title/description alone — see "Strength is never judged from a title" in scan-signal-pipeline.md), write an actionable quantified insight per category into the notes DB, and email the full 24h digest. Deliberately skips heavy dedicated-workflow documents (earnings results, concall transcripts, investor presentations, annual reports) rather than PDF-parsing them, logging every skip with its reason for visibility — that is a document-TYPE routing decision, not a materiality judgment. Invoke with defaults for the 8 AM run, or on demand to re-process a company.
 ---
 
 # Watchlist Daily Insights
@@ -73,8 +73,27 @@ run fetch-announcements "$WATCHLIST_IDS"                      # deterministic de
 run fetch-announcements "$WATCHLIST_IDS" --window-hours 72     # explicit override, e.g. a deliberate wider catch-up
 ```
 
-Returns a JSON array of new, non-routine, unprocessed announcements — each with a
-`category` and `pdfUrl`. (Routine noise is already dropped and logged for the validator.)
+Returns a JSON array of new, unprocessed announcements — each with a `category`,
+`pdfUrl`, and a provisional (title/description-only, see
+`skills/equity-research/_shared/scan-signal-pipeline.md` "Strength is never
+judged from a title") `noiseFlagged`/`noiseKeyword` pair. **Fixed 2026-09-05:
+noise-keyword matches used to be dropped here before this array was even
+returned — they now stay in the array, tagged, and logged for the validator.**
+Do not skip a `noiseFlagged: true` item without processing it the same way as
+any other — the keyword list is a title guess, not a read, and the whole point
+of this fix is that a title guess is never sufficient grounds to exclude an
+announcement from analysis.
+
+**Significance, and the review layer.** `lib/announcementTaxonomy.js` also
+emits `significance` (VERY_HIGH / HIGH / NORMAL) — "does this plausibly change
+the market's model of future EPS?", a separate axis from `strength`. Any filing
+on the EPS-accretion / J-curve path (capacity incl. store additions,
+deleveraging, margin expansion, order book, fundraise, corporate actions, the
+four primary documents, and result-date anticipation) is VERY_HIGH by default.
+For those — and for any ROUTINE verdict that looks wrong against what the stock
+did — run [`announcement-taxonomy`](../announcement-taxonomy/SKILL.md), which
+reasons over the filing independently, compares against the script, and records
+mismatches so the classifier improves. Its verdict wins over the script's.
 This also records the exact window this call used (`cache/watchlist-insights-pending-window.json`)
 so Step 4's `commit-window` can later advance the cursor to precisely that windowEnd.
 "Unprocessed" here means unprocessed under the `announcement-insights` usecase family

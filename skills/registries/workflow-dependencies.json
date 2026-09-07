@@ -1,6 +1,25 @@
 {
   "skills": [
     {
+      "name": "announcement-taxonomy",
+      "description": "The reasoning layer over the deterministic announcement classifier — reads a filing, judges independently whether it sits on the EPS-accretion / J-curve / re-rating path (SOIC growth-catalyst framework), compares that judgment to what `lib/announcementTaxonomy.js` computed, and writes every disagreement back as a learned rule so the script gets better over time. Use when classifying a filing's SIGNIFICANCE (not just its category), when a scan's classification looks wrong, when asked \"is this filing actually a big deal / does this justify a re-rating\", or as the review layer any announcement-consuming skill (gainers-signal, volume-rocketing, watchlist-insights, post-close-scan-insights) calls before trusting a script verdict on a high-stakes name. Also run standalone as a weekly audit of the taxonomy's accuracy (`status`, `promote-rule --auto`).",
+      "aliases": [
+        "announcement taxonomy",
+        "classify this filing",
+        "significance of this announcement",
+        "is this filing a big deal",
+        "EPS accretion filing",
+        "J-curve filing",
+        "re-rating filing",
+        "taxonomy accuracy",
+        "taxonomy mismatch",
+        "improve announcement rules",
+        "strength of announcement"
+      ],
+      "entry": "skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js",
+      "modules": ["skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js"]
+    },
+    {
       "name": "concall-transcript-extractor",
       "description": "'DEPRECATED 2026-07-31 — do not use for new work. Stockscans now guarantees an official Transcript document for every reported quarter, so the Perplexity/recording/NotebookLM fallback waterfall this skill implements is no longer needed. All consumer skills now resolve transcripts directly via stock-api/bin/get-concall-transcript-url.js (see skills/_shared/conventions.md §12). Kept only for historical reference — never invoke or route to this skill.'",
       "aliases": [
@@ -485,7 +504,7 @@
     },
     {
       "name": "watchlist-insights",
-      "description": "Daily watchlist corporate-announcement insights — fetch new non-routine announcements across the Near Highs + Radar watchlists, read each PDF, write an actionable quantified insight per category into the notes DB, and email the full 24h digest. Deliberately skips heavy dedicated-workflow documents (earnings results, concall transcripts, investor presentations, annual reports) rather than PDF-parsing them, logging every skip with its reason for visibility. Invoke with defaults for the 8 AM run, or on demand to re-process a company.",
+      "description": "Daily watchlist corporate-announcement insights — fetch new announcements across the Near Highs + Radar watchlists, read each one's PDF (strength/materiality is never decided from title/description alone — see \"Strength is never judged from a title\" in scan-signal-pipeline.md), write an actionable quantified insight per category into the notes DB, and email the full 24h digest. Deliberately skips heavy dedicated-workflow documents (earnings results, concall transcripts, investor presentations, annual reports) rather than PDF-parsing them, logging every skip with its reason for visibility — that is a document-TYPE routing decision, not a materiality judgment. Invoke with defaults for the 8 AM run, or on demand to re-process a company.",
       "aliases": [
         "watchlist insights",
         "daily insights",
@@ -743,7 +762,7 @@
     },
     {
       "name": "post-close-scan-insights",
-      "description": "Full-day corporate-filing signal engine for the \"Signals - DND\" saved Stockscans announcement scan — runs in several slots across the trading day (mid-session, late session, post-close, evening, night sweep), each covering its own non-overlapping window off a shared resumable cursor so nothing is re-read and no email repeats itself. Fetches the scan's announcements, drops routine noise, reads each PDF, writes a quantified thesis note per filing with an explicit J-curve / PAT-vs-EPS read, runs the strongest items through announcement-info-classifier for a NEW/KNOWN/FOLLOW-UP verdict, scores everything on a deterministic 5-level signal scale (S1-S5, 0-100), and emails a Thesis Card digest per slot plus a market-validated day recap. Closes the loop the next trading day by validating each thesis against actual delivery-backed price action and feeding what it learns back into the prompt. Invoke with --slot for a scheduled run, or with --window-hours for an explicit catch-up over a specific past window.",
+      "description": "Full-day corporate-filing signal engine for the \"Signals - DND\" saved Stockscans announcement scan — runs in several slots across the trading day (mid-session, late session, post-close, evening, night sweep), each covering its own non-overlapping window off a shared resumable cursor so nothing is re-read and no email repeats itself. Fetches the scan's announcements, tags (never drops) title-only noise hints, reads every non-heavy-document PDF — strength/materiality is decided from that read, never from the title alone — writes a quantified thesis note per filing with an explicit J-curve / PAT-vs-EPS read, runs the strongest items through announcement-info-classifier for a NEW/KNOWN/FOLLOW-UP verdict, scores everything on a deterministic 5-level signal scale (S1-S5, 0-100), and emails a Thesis Card digest per slot plus a market-validated day recap. Closes the loop the next trading day by validating each thesis against actual delivery-backed price action and feeding what it learns back into the prompt. Invoke with --slot for a scheduled run, or with --window-hours for an explicit catch-up over a specific past window.",
       "aliases": [
         "post close insights",
         "post-close scan",

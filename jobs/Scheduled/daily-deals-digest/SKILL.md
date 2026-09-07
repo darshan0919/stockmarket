@@ -15,7 +15,9 @@ The script writes the canonical JSON DTO to `the events collection (type=`deal`)
 
 Call the following exact scripts, in order:
 
-1. Execute script (bash): `yarn deals-digest`
+1. Execute script (bash): `yarn deals-digest --job daily-deals-digest`
+   (the `--job` flag attributes this run's outbound API calls to the `daily-deals-digest`
+   job for the API-usage audit — see `skills/_shared/conventions.md` §23.)
    Optional flags (defaults shown match today's behavior — omit them for the normal scheduled run):
    `--top-n <n>` (default 10, companies per category), `--sast-quote-limit <n>` (default 40, max
    symbols priced for the SAST value estimate), `--max-xbrl <n>` (default 600), `--date YYYY-MM-DD`,

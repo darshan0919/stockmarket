@@ -47,6 +47,8 @@
     "mna-tracker": "yarn workspace @stock/jobs mna-tracker",
     "gainers-scanner": "yarn workspace @stock/jobs gainers-scanner",
     "stockscans:warm": "yarn workspace @stock/jobs-runtime stockscans:warm",
+    "record-token-usage": "yarn workspace @stock/jobs-runtime record-token-usage",
+    "cursor-health": "yarn workspace @stock/jobs-runtime cursor-health",
     "preprocess:queue": "yarn workspace @stock/jobs-runtime preprocess:queue",
     "preprocess:backfill": "yarn workspace @stock/jobs-runtime preprocess:backfill",
     "preprocess:persist": "yarn workspace @stock/jobs-runtime preprocess:persist",

@@ -7,7 +7,7 @@ Follow the `order-book-tracker` skill (stockmarket/skills/equity-research/order-
 
 Run it in **sync mode**:
 
-1. `yarn order-book-sync` — refreshes every company on the Radar watchlist. This is cache-first, so companies with no new concall and no new filings cost nothing.
+1. `yarn order-book-sync --job order-book-sync-stockmarket` — refreshes every company on the Radar watchlist. This is cache-first, so companies with no new concall and no new filings cost nothing. (The `--job` flag attributes this run's outbound API calls to the `order-book-sync-stockmarket` job for the API-usage audit — see `skills/_shared/conventions.md` §23.)
 2. Work the `needsAttention` list the run reports, following the skill's "Resolving what the scripts could not" section. Resolve each item once and record it, so it never comes back:
    - `needsLlmFallback` on the base → read the bullets in `llmFallbackPrompt` and call `recordLlmResolution`.
    - `pendingLlmFallback` announcements → read the cached PDF text and call `recordAnnouncementResolution`.

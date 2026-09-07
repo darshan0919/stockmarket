@@ -7,6 +7,8 @@ Follow the `document-preprocessor` skill
 (`stockmarket/skills/equity-research/document-preprocessor/SKILL.md`) — read it
 from the local mounted repo path first.
 
+Before doing anything else, run `export STOCKMARKET_JOB_NAME=document-preprocessing` in the same shell/subshell that will run the commands below — this attributes any outbound API/PDF-fetch calls made via `read-pdf-with-meta` (which goes through the instrumented `watchlistInsights.js`) to the `document-preprocessing` job for the API-usage audit — see `skills/_shared/conventions.md` §23.
+
 **This job needs no heavy reasoning model.** Every step is transcription against
 a rigid schema, verified by a script. Schedule it on the cheapest agent
 available; it is written specifically so that is safe. If a future change to a

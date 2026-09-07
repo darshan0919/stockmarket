@@ -1,0 +1,3757 @@
+Date: September 01, 2026
+To
+BSE Limited
+Phiroze
+Jeejeebhoy
+Towers Dalal Street
+Mumbai – 400001
+Scrip Code: 531595
+
+National
+Stock
+Exchange of India
+Limited
+5th Floor, Exchange
+Plaza, Bandra (East)
+Mumbai – 400051
+Scrip Code: CGCL
+
+India
+International
+Exchange
+(IFSC)
+Limited
+1st Floor, Unit No. 101,
+The Signature, Building
+no. 13B, Road 1C, Zone
+1, GIFT SEZ, GIFT City,
+Gandhinagar,
+Gujarat – 382355
+
+NSE IFSC Limited,
+Unit No.1201,
+Brigade International
+Financial Centre,
+12th floor, Block-14,
+Road 1C, Zone -1,
+GIFT SEZ, Gandhinagar,
+Gujarat - 382355
+
+Subject: Disclosure under Regulation 30 & 51 and other applicable provisions of the Securities and
+Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015,
+as amended from time to time (“LODR Regulations”).
+Dear Ma’am/Sir,
+Pursuant to Regulation 30 & 51 and other applicable provisions of the LODR Regulations, we enclose
+the roadshow/investor presentation for the meeting with an investor scheduled on September 01, 2026.
+The roadshow/investor presentation is available at the following link:
+https://www.capriloans.in/cms/investor-presentation/FY%202026%20%202027/Roadshow%20Presentation/Investor%20Presentation%20%20%20/Capri-Global-InvestorPresentation-Sep-2026.pdf
+No unpublished price sensitive information is mentioned in the aforesaid roadshow/investor
+presentation.
+This intimation was received by the Company on September 01, 2026, at 06:09 A.M. (IST) and is also
+uploaded on the Company’s website at www.capriloans.in.
+You are requested to kindly take the above information on record.
+Thanking you.
+Yours faithfully,
+For and on behalf of Capri Global Capital Limited
+
+Yashesh Bhatt
+Company Secretary & Compliance Officer
+Membership No. 20491
+
+Capri Global Capital Limited
+Investor Presentation
+
+September 2026
+
+Transaction Summary
+Issuer
+
+Capri Global Capital Limited
+
+Issue
+
+Fixed rate, Senior Secured US$ bonds
+
+Expected Issuer Rating
+
+BB- (stable outlook) Fitch / Ba3 (stable outlook) Moody’s
+
+Size
+
+US$ Benchmark
+
+Tenor
+
+WAL [3Y]
+
+Coupon
+
+[ ]% p.a. payable semi-annually
+
+Security
+
+A first ranking pari passu charge (by way of hypothecation) over all standard Receivables, book debts, principal amounts and interest, costs, charges etc.
+(including loan book, coupon, premium and/or any default/penal interest, un- encumbered cash and bank balance, investment made by the Issuer in mutual
+funds/debt securities/bonds, term deposits with banks, etc.) owing to or receivable by the Issuer, both present and future (other than the Excluded
+Receivables), in respect of certain securities/loans/inter-corporate deposits subscribed to/given/placed by the Issuer, and all benefit, rights, interest, claims and
+demands of the Issuer in, to or in respect of all the aforesaid amounts, both present and future.
+
+Format
+
+144A/ RegS; fixed rate, senior secured US$ bonds; drawdown off US$ 1bn GMTN Program
+
+Use of Proceeds
+
+For activities as may be permitted under the RBI regulations such as onward lending, in accordance with the approvals granted by the RBI from time to time in
+this relation (if applicable) and in accordance with the ECB Guidelines and other applicable laws
+
+Maintenance Covenants
+
+• NNPA to not exceed 5%
+• Minimum Capital Adequacy Ratio of 15% in line with RBI guidelines
+• Minimum Security Coverage Ratio equal to or greater than 1.0x with security comprising of standard assets at all times
+
+Denomination
+
+$[200k] and, in excess thereof, integral multiples of [1k]
+
+Listing
+
+India International Exchange (ISFC) Limited and NSE IFSC Limited
+
+Governing Law
+
+English Law
+
+Joint Global Coordinators and
+Joint Book Runner
+
+Barclays, Citigroup, DB (B&D), Emirates NBD, UBS
+
+2
+
+Table of Content
+1
+
+Company Overview
+
+4
+
+2
+
+Product Overview
+
+16
+
+3
+
+Technology, Data Science and AI
+
+23
+
+4
+
+Balance Sheet and ALM
+
+26
+
+5
+
+Financial Highlights
+
+31
+
+6
+
+Corporate Governance
+
+38
+
+7
+
+Appendix
+
+43
+
+1 Company Overview
+
+Capri Global Capital – Company Overview
+
+Key Highlights
+
+Product Offerings
+
+➢ Retail focused & Granular Portfolio
+
+➢ Fully Secured & Diversified Loan book
+MSME Loan
+
+Insurance
+Distribution
+
+➢ Catering Unbanked and Underserved segment
+Micro LAP
+
+➢ Self Employed & Salaried customers
+
+AUM
+₹401 Bn*
+
+➢ Semi-Urban & Rural presence- Tier 2/3/4 cities
+
+Retail
+Construction
+Finance
+
+Housing
+Loan
+
+➢ Advanced in house developed tech and data science capabilities
+
+Car Loan
+Distribution
+
+Gold Loan
+
+➢ Completely in-house data driven collections process
+
+Note: * as on 30th June 2026
+
+5
+
+Capri Global Capital - Journey
+CAPRI 1.0: Establishing the bedrock for multifold growth
+(₹ Bn)
+
+Demonetisation
+
+NBFC Crisis
+
+CAPRI 2.0: Cementing leadership through Tech & AI
+Covid
+
+CAGR 52.8%
+
+AUM
+Branches
+400
+300
+
+229
+
+200
+100
+0
+
+FY Ending
+
+401
+
+366
+
+48
+
+66
+
+103
+
+157
+
+0
+
+4
+
+18
+
+40
+
+Inception
+
+4
+
+38
+
+87
+
+90
+
+117
+
+736
+
+935
+
+1,111
+
+1,429
+
+1,433
+
+2011
+
+2013
+
+2017
+
+2020
+
+2021
+
+2022
+
+2023
+
+2024
+
+2025
+
+2026
+
+Q1 FY27
+
+Execution track record - launched, built and scaled 4 new businesses in last 5 years
+Business
+Developments
+Capital
+Raising
+Event
+Technology
+Developments
+
+Construction
+Finance
+
+MSME
+Loans
+
+Housing
+Finance
+
+Co-Lending
+Car Loan
+Distribution
+
+Gold
+Loans
+
+₹ 4.5 bn
+QIP
+
+Insurance
+Distribution
+
+Micro LAP
+
+₹ 14.4 bn
+Rights Issue
+
+Credit Rating –
+Fitch (BB-),
+Moody’s (Ba3)
+
+₹ 20.0 bn
+QIP
+
+Foundation & Institutionalization
+
+Platform Scale & AI Enablement
+
+AI Native & Cognitive Era
+
+Tech blueprint established and tech team
+onboarded
+
+Swarnim LOS, Oracle Flexcube LMS; Orion LOS,
+Spark sales app, Pegasus collection app
+
+AI integrated across lifecycle –
+customer, credit and collections
+6
+
+Becoming Fast-Growing NBFC Platform with Strong Fundamentals
+Scale, profitability, asset-quality discipline and capital strength create a solid foundation for the next phase of growth
+₹401,108mn
+Growth at Scale
+
+Pan-India Distribution
+
+Efficient Liability Franchise
+
+Healthy Asset Quality
+
+Strong Profitability
+
+All figures are as of 30th June unless specified
+Note: (1) Standalone, (2) Includes Debt Securities, (3) PAT as of March’26: ₹ 9,492Mn
+
+₹75,655 mn
+
+13,931
+
+1,433
+
+20 (States & UTs)
+
+755K+
+
+40 | 11
+
+₹276,297 Mn
+
+3.7x | 24.7%(1)
+
+1.1% / 0.6%
+
+0.72%
+
+GNPA / NNPA
+
+Credit Cost / Avg.
+assets
+
+43.3%
+
+8.2% / 9.6%
+
+₹ 3,533 Mn
+
+4.1% / 19.1%
+
+AUM
+
+60% YoY
+
+Branches
+
+Lenders | Co-lending
+partners
+
+spreads / NIM
+
+Net worth (FY26)
+
+Geographical spread
+
+Borrowings(2)
+
+PAT
+
+Employees
+
+Customers
+
+D/E | CRAR^
+
+Provision coverage for
+Stage 3
+
+RoAA / RoAE
+
+7
+
+Product Summary
+Segment-wise Product Characteristics and Lending Framework
+SECURITY
+Pledge of Gold Ornaments
+
+LTV
+~73.35%
+
+Yield
+~19.07%
+
+ATS¹ ₹mn
+~0.19
+
+Tenor
+Up to 3y
+
+CUSTOMER PROFILE
+Individuals incl. small business owners, salaried,
+women, farmers
+
+SECURITY
+First & exclusive charge on property
+
+LTV
+~44.88%
+
+Yield
+~17.62%
+
+ATS¹ ₹mn
+~1.19
+
+Tenor
+Up to 15y
+
+CUSTOMER PROFILE
+Small manufacturing units, traders & other
+businesses in Tier 2/3 cities
+
+Construction Finance
+Affordable & budget
+residential projects
+
+SECURITY
+Construction-linked disbursements
+& escrow-based repayments
+
+Cover
+>1.50x
+
+Yield
+~18.28%
+
+ATS¹ ₹mn
+~217.58
+
+Tenor
+Up to 7y
+
+CUSTOMER PROFILE
+Small & mid-sized real estate developers
+
+Housing Finance
+(CGHFL)
+
+SECURITY
+First & exclusive charge on
+mortgage property
+
+LTV
+~56.78%
+
+Yield
+~13.58%
+
+ATS¹ ₹mn
+~1.95
+
+Tenor
+Up to 25y
+
+CUSTOMER PROFILE
+Small manufacturing units, traders & other
+businesses in Tier 2/3 cities
+
+Car Loan Distribution
+
+MODEL
+Fee-based distribution (off-book)
+
+NATURE
+Distribution / fee income
+
+MODEL
+Fee-based distribution (off-book)
+
+NATURE
+
+Gold Loan
+
+FEE BUSINESS
+
+LENDING PRODUCTS
+
+Loan against Gold Jewellery
+
+MSME Loan
+
+Loan against property (LAP) &
+Micro-LAP
+
+New vehicle financing
+
+Insurance Distribution
+Distribution of insurance
+products
+
+¹ ATS at the balance sheet date on Non-GAAP basis
+*All data points as of 30-June-26
+
+Distribution / fee income
+
+CUSTOMER PROFILE
+Urban middle class
+
+CUSTOMER PROFILE
+Mid-income group; cross-sold to lending
+customers
+
+8
+
+AUM Growth
+Consolidated AUM Up ~52% during FY24-Q1FY27
+AUM Break Up (₹ mn)
+CAGR*
+156,540
+
+228,601
+
+366,237
+
+401,108
+
+2.0%
+
+0.9%
+
+0.1%
+
+0.0%
+
+16.7%
+
+18.1%
+
+15.6%
+
+15.8%
+
+26.9%
+
+22.8%
+
+22.3%
+
+32.1%
+
+FY24
+
+48%
+
+19.5%
+
+20.3%
+
+32%
+
+35.2%
+
+23.1%
+
+FY25
+MSME
+
+52%
+
+Gold
+
+Housing
+
+46.3%
+
+47.8%
+
+17.7%
+
+16.9%
+
+FY26
+
+Q1FY27
+
+Construction Finance
+
+113%
+
+14%
+
+Others
+
+With gold steadily rising as a share of AUM, the portfolio now carries a stronger, low-volatility anchor.
+
+Note: *CAGR FY24-Q1FY27.
+MSME AUM includes Micro LAP (Loan against property); MSME, Gold, and Housing AUM values are inclusive of co-lending and securitization AUM; Others include Indirect Lending, Small Business Loans and Employee Loans
+
+9
+
+Diversified Business by Product and Geography…
+Hedged against Cyclical Risks
+Product Diversification – Entering into New Segments
+
+Geographical Diversification – Entering into New Markets2
+
+Gold constitutes the largest portfolio share (~47.8%)
+
+Top 3 regions constitute ~50% of the Portfolio in Q1 FY27
+
+19.5%
+
+16.9%
+
+18.5%
+
+20.1%
+
+0.0%
+
+AUM
+(Q1FY27)
+
+AUM
+(Q1 FY27)
+
+9.9%
+
+15.8%
+
+15.3%
+
+10.6%
+11.2%
+
+47.8%
+MSME Loan
+
+Gold Loan
+
+Housing Loan
+
+CF
+
+Others1
+
+14.5%
+
+Rajasthan
+
+Gujarat
+
+Madhya Pradesh
+
+Uttar Pradesh
+
+Delhi-NCR
+
+Others
+
+Maharashtra
+
+Capri Global's product and geographical diversification provides hedge against macroeconomic cycles leading to sustainable business model
+
+Note: 1. Others include Indirect Lending, Small Business Loans and Employee loans, 2 Includes MSME Loans, Micro LAP, Housing Loans, Gold Loans and Retail Construction Finance AUM
+
+10
+
+…Delivered through Deep and Extensive Branch Network
+Significant Investments in Branch Expansion - Rapidly Growing with Deeper Penetration across States
+➢ Total branch network of 1,433 branches
+10
+
+➢ Dedicated tech center in Gurgaon, Noida and Mumbai
+
+108
+
+06
+
+25
+
+74
+168
+
+01
+137
+
+131
+
+01
+
+11
+
+102
+
+12
+
+48
+
+117
+
+59
+
+01
+01
+
+01
+
+51
+
+1
+33
+
+98
+
+01
+
+14
+
+45
+
+38
+
+05
+09
+
+27
+
+26
+
+11
+
+Gold Loan Branches
+1000 Branches in 16 States & UTs
+No. of Branches
+
+60
+
+MSME, Housing Finance, CF &
+Car Loan Distribution
+433 Branches in 18 States & UTs
+
+No. of Branches
+
+Significant upside through economies of scale and productivity improvement from existing network capacity
+Note: As of 30th June 2026
+
+11
+
+Board of Directors
+Distinguished and Qualified Board Comprised Majorly of Independent Directors
+Lingam Venkata
+Prabhakar
+
+Rajesh Sharma
+
+Ajit Mohan Sharan
+
+Nupur Mukherjee
+
+Shishir Priyadarshi
+
+Subramanian
+Ranganathan
+
+Chairperson &
+Independent Director
+
+Managing
+Director
+
+Independent
+Director
+
+Independent
+Director
+
+Independent
+Director
+
+Independent
+Director
+
+Ex-MD & CEO Canara
+Bank and ex-ED Punjab
+National Bank
+
+Promoter & MD
+
+IAS - Batch 1979
+
+Ex Global Head, Data
+Technologies at
+Standard Chartered
+Bank and Barclays
+
+Ex-IAS officer from UP
+cadre
+
+Ex- Citicorp, Edelweiss
+Group
+
+Rich experience in
+banking and finance,
+AMCs, insurance
+companies
+
+Around 25 years of
+experience in finance
+sector
+
+Over 3 decades of
+experience in varied
+aspects of public
+administration
+
+Expertise in datadriven, cloud, AI and
+ESG, PMP
+
+Director World Trade
+Organization
+
+Experience in finance
+and management
+
+5 Independent Directors with expertise in Banking, Finance, Risk management, IT and Public Policy
+8 Board committees to ensure oversight – Risk Management, Audit, IT Strategy, Customer Service, CSR, Stakeholder Relationship, , Wilful Defaulter
+Review, Nomination and Remuneration
+Note: CSR: Corporate Social Responsibility, ESG: Environmental, Social and Governance
+
+12
+
+Way Ahead: Strategic Initiatives to Drive Scale…
+Key initiatives
+• Offer customized products to underserved high growth markets and focus on revenue diversification
+Diversify our Product Offerings
+
+• Scale and expand product suite
+
+Geographic Expansion and Deepening
+our Presence
+
+• Open new branches in existing and new states to expand across Telangana, Karnataka, TN, AP, Odisha, UP
+
+Leverage Technology & Analytics for
+Operational Excellence
+
+• Leverage tech & data science leadership – implement Agentic AI tools for cost efficiency, productivity, customer experience
+
+Leverage customer base to drive fee
+income and cross-selling
+
+Diversify borrowings for effective
+liability management
+
+• Deepen presence through expanded branch network
+
+• Increase sales productivity across MSME/HL/Gold
+
+• Cross-sell loan products to large and rapidly growing customer base
+• Scale existing verticals to increase fee income – Insurance, Car Loan distribution and other new verticals
+
+• Diversification of borrowings – raise NCD/CP; widen lender base; reduce cost of funds
+• Strengthen and grow co-lending partnerships
+
+13
+
+… to Deliver Strong Returns…
+Key levers for RoE expansion
+
+Growth
+Opportunity
+
+Drive AUM
+growth through
+new markets,
+customer
+
++
+
+Margin
+Expansion
+
+Increase in
+share of high
+yield products;
+liability
+
+segments and
+
+management
+
+partnerships
+
+through co-
+
+lending
+
++
+
+High Quality
+Fee Income
+
+Expansion of
+Car Loan
+origination and
+Insurance
+businesses
+
++
+
+Cost Efficiency
+
+Operating
+leverage from
+existing network;
+productivity
+improvement
+through tech &
+
++
+
+Underwriting
+Efficiency
+
+Reduction in
+credit costs
+through data
+science &
+analytics
+
+AI
+
+14
+
+Summary Highlights
+
+Retail Led Business: Strong retail focus with >84% retail AUM and ~100% secured loan book; 17.47% yield, 9.63% NIM.
+
+Track Record of Execution Excellence: Delivered ~52% AUM CAGR*; 1,433 branches across 20 states & UTs
+
+Diversified Business Mix: MSME (including Micro LAP), Affordable Housing & Gold Loans driving growth
+
+Healthy Asset Quality: Long vintage with business model resilient through macro events; GNPA amongst industry top quartile.
+Adequate provisioning. High collection efficiency.
+
+Disciplined Collections: Leveraging AI & data analytics for real time monitoring and process efficiency; In-house
+
+Well Capitalized Balance sheet: CRAR stands at 24.7% and Debt-to-Equity at 3.7x
+
+Note: All data as of 30 June 2026; *CAGR from FY24 – Q1FY27
+
+15
+
+2 Product Overview
+
+Gold Loans | Retail Focused with Granular and Secured Loan Book
+Geographical Distribution
+
+AUM (₹ mn)
+
+4%
+
+6%
+20%
+
+7%
+
+Rajasthan
+Uttar Pradesh
+Madhya Pradesh
+Gujarat
+
+8%
+
+191,785
+
+169,646
+
+Haryana
+
+80,422
+
+18% Maharashtra
+
+11%
+
+Delhi
+
+34,910
+
+Uttarakhand
+FY24
+
+FY25
+
+FY26
+
+12%
+
+Q1FY27
+
+WHO ARE OUR CUSTOMERS?1
+
+Led by
+by End-to-End
+end-to-end
+Led
+digital journey
+journey
+digital
+
+➢ Small business owners, Salaried individuals, Women
+entrepreneurs & Small and marginal farmers
+
+➢ 67.5% of the customer with <₹70K disbursement amount
+➢ 77.4% of the customers’ annual family income is less than ₹0.5
+million
+
+14%
+
+Others
+
+WHAT OUR CUSTOMERS NEED?
+➢ Transparent, timely and hassle-free customer experience
+➢ Medical exigency, short term financial requirements, business
+expansion, seasonal business working capital requirements
+➢ Safety and security of pledge jewellery
+
+KEY STATISTICS
+
+659K+
+
+~INR 0.19 mn
+
+~73.35%
+
+~19.07%
+
+16
+
+~5,667
+
+No. of customers
+
+Portfolio ATS
+
+Portfolio LTV
+
+Portfolio Yield
+
+States/UTs Present
+
+Employees
+
+*All data points as of 30-Jun-26
+Note: 1. As of March’26
+
+17
+
+MSME Loans | Retail Focused with Granular and Secured Loan Book
+Geographical Distribution
+
+AUM (₹ mn)
+
+Rajasthan
+
+67,801
+
+64,874
+50,174
+
+4%
+
+52,789
+
+3% 2% 1%
+3%
+
+Madhya Pradesh
+Gujarat
+
+5%
+
+38%
+
+Andhra Pradesh
+Delhi NCR
+Telangana
+
+22%
+FY24
+
+FY25
+
+FY26
+
+Uttar Pradesh and
+Uttrakhand
+Maharashtra
+
+Q1FY27
+22%
+
+WHO ARE OUR CUSTOMERS?1
+➢ Self Employed Non-Professional (SENP) and underserved
+e.g. Provision stores, retail outlets, manufacturing workshops etc.
+
+Transforming Business
+Loans with advanced
+technology
+
+➢ Focus on Tier 2, 3, 4 Cities
+➢ 46.6% of our customers’ annual family income is less than ₹1
+million
+
+others
+
+WHAT OUR CUSTOMERS NEED?
+➢ Working capital, purchase of equipment and vehicles
+➢ Faster TAT and minimum business disruption for loan process
+➢ Customized solutions
+
+➢ 97% is SENP
+
+KEY STATISTICS
+
+54K+
+
+~INR1.19 mn ~44.88%
+
+~17.62%
+
+12
+
+~3,464
+
+No. of customers
+
+Portfolio ATS
+
+Portfolio Yield
+
+States/UTs Present
+
+Employees
+
+*All data points as of 30-Jun-26; MSME includes Micro Lap
+Note: 1. As of March’26
+
+Portfolio LTV
+
+18
+
+Affordable Housing Loans | Retail Focused with Granular and Secured Loan Book
+Geographical Distribution
+
+AUM (₹ mn)
+3%
+
+78,142
+
+74,458
+
+3% 4%
+
+Rajasthan
+22%
+
+6%
+
+Madhya Pradesh
+Delhi NCR
+
+52,019
+
+Gujarat
+
+9%
+
+42,091
+
+Maharashtra
+Uttar Pradesh
+Karnataka
+
+13%
+
+FY24
+
+FY25
+
+FY26
+
+Q1FY27
+
+22%
+
+Offering Affordable
+Housing Loans with
+advanced technology
+
+Others
+
+18%
+
+WHO ARE OUR CUSTOMERS?1
+
+Telangana
+
+WHAT OUR CUSTOMERS NEED?
+
+➢ Underserved – SENP & formal salaried customers
+
+➢ Home/Plot purchase, extension, renovation, Home equity
+
+➢ Majorly First-time home buyers located in Tier 2 and 3 cities
+
+➢ Faster TAT and minimum business disruption for loan process
+
+➢ 48.7% of our customers’ annual family income is less than ₹1
+million
+
+➢ Customized solutions
+
+➢ 74.1% is SENP
+
+KEY STATISTICS
+
+40K+
+
+~INR1.95 mn ~56.78%
+
+~13.58%
+
+11
+
+~2,483
+
+No. of customers
+
+Portfolio ATS
+
+Portfolio Yield
+
+States/UTs Present
+
+Employees
+
+*All data points as of 30-June-26
+Note: 1. As of March’26
+
+Portfolio LTV
+
+19
+
+Retail Construction Finance | Retail Focused with Granular and Secured Loan Book
+Strong Asset Cover and Attractive Yields
+Geographical Distribution
+
+AUM (₹ mn)
+7%
+63,315
+
+57,081
+
+1% 0%
+
+Maharashtra
+
+Gujarat
+
+12%
+
+33%
+
+41,329
+
+Delhi NCR
+Karnataka
+
+26,213
+
+Telangana
+
+12%
+
+Tamil Nadu
+Andhra Pradesh
+FY24
+
+FY25
+
+FY26
+
+Q1FY27
+
+WHO ARE OUR CUSTOMERS?
+
+High yield segment
+with low opex
+
+21%
+
+14%
+
+Others
+
+WHAT OUR CUSTOMERS NEED?
+
+➢ Small & mid-sized real estate developers in Metro and Tier 1
+cities
+
+➢ Financing required by builders for construction of affordable
+homes
+
+➢ Large developers, looking for tailored solutions and faster
+turnaround
+
+➢ Flexible and construction linked financing options
+
+KEY STATISTICS
+
+291
+
+~INR217.58 mn
+
+>1.50x
+
+~18.28%
+
+10
+
+~98
+
+Live Accounts
+
+Portfolio ATS
+
+Asset Cover
+
+Portfolio Yield
+
+States/UTs Present
+
+Employees
+
+*All data points as of 30-June-26
+
+20
+
+Insurance Distribution
+Complementary Asset Light Income Streams
+Strategic Partnerships with 22 Insurance Companies
+
+9
+
+9
+
+4
+
+Life Insurance
+Companies
+
+General Insurance
+Companies
+
+Health Insurance
+Companies
+
+• Property Cover
+• Private Car & 2-Wheeler
+
+• Retail & Group Health
+• Hospi Daily Cash
+• CI
+• EMI Protect
+
+• Life Insurance
+• Credit Life Cover
+• Term Plan
+
+*CI: Critical Illness; PA: Personal Accident
+
+Digital Innovation & Service Excellence
+
+✓ Real Time Policy Issuance through digital consent
+Policy Buy & Compare portal for sales team with multiple product
+
+Customer Sourcing and On-Boarding
+Insurance Product offering to Loan customers as embedded
+
+✓ product
+
+✓ offering
+
+✓ Digital customer on-boarding journey
+
+Cross-Selling of Health and Motor Insurance for penetration in tier
+
+✓ II, III, IV cities and rural area
+
+✓ Dedicated claims desk - pre & post service
+
+✓
+
+Insurance Ki Pathashalla – insurance product and process education
+initiative
+
+Suitable product offerings WhatsApp links with 2-click buying
+
+✓ journey
+
+21
+
+Car Loan Origination | Complementary Asset Light Income Streams
+14.6% from Increase in the Value of Loan Originations
+
+Pan-India coverage through presence
+in 821 locations in 30 States & UTs2
+
+Loan Originations (₹ mn)
+105,519
+
+02
+15
+
+14
+
+114,569
+
+Partner Banks &
+financial
+institutions
+
+97,415
+
+04
+
+26
+
+36
+
+04
+04
+
+23
+04
+80
+
+32,829
+
+FY24
+
+FY25
+
+FY26
+
+Q1FY27
+
+₹ 763mn
+Gross fee
+income
+(Q1FY27)
+
+₹ 321mn
+
+1.03
+
+1.05
+
+1.08
+
+1.20
+
+Net fee income
+(Q1FY27)
+
+03
+
+27
+
+52
+
+01
+29
+
+69
+16
+
+Average Ticket Size (₹ mn) *
+
+09
+
+39
+
+62
+
+17
+
+57
+
+02
+
+03
+05
+05
+
+24
+417
+
+01
+44
+75
+34
+
+1,598
+FY24
+
+FY25
+
+FY26
+
+Q1FY27
+
+43
+
+Employees
+
+* ATS = Originations by Value / Originations by Volume
+*Average Ticket Size = Originations by Value / Originations by Volume
+2. As of June 30th 2026
+
+No. of Branches
+22
+
+3 Technology, Data Science and AI
+
+Capri Global has In-house Developed Advanced Technology Platform
+Significant Investment in Advanced Technology and Data Analytics Capabilities
+Dedicated 190+ member onroll team, committed to
+
+Efficiently designed system
+
+1
+
+5
+
+delivering advanced solutions
+
+End to end developed in-house
+– low maintenance costs
+
+architecture - customizable
+and scalable platform
+
+2
+
+6
+
+Fully integrated workflow and
+
+digital loan journey – geared
+
+Compliance with regulatory
+changes –Agile and Adaptable
+
+Highest information security
+
+3
+
+7
+
+towards faster TAT
+
+sensitive customer data
+
+Developing Generative AI
+
+Sophisticated dashboards for
+performance monitoring - higher
+productivity & cost efficiency
+
+standards – Encryption of
+
+4
+
+8
+
+capabilities for process
+automation
+24
+
+Complete Suite of Applications for End-to-end Digital Journey of Mortgage Loans
+1
+
+2
+
+Customer Onboarding
+Lead Generation
+
+3
+
+Credit Underwriting
+Loan Processing
+
+Disbursement &
+Customer Engagement
+Digital Disbursement
+
+✓
+
+Pegasus App – Route
+optimization, schedule field
+visits, live agent tracking and
+collection status
+
+✓
+
+Incentive Gamification
+
+Capri Loans App – loan
+documents, service requests,
+payments, loan top ups
+
+✓
+
+AI Powered Call Center
+Analytics
+
+AI chatbot – Capri AI-Dost
+
+✓
+
+ML driven models – EWS, Sloppy
+Payer & NPA prediction Model
+
+✓
+
+In-house Orion LOS - Single
+window loan approval workflow
+
+✓
+
+Esign & E-stamping
+
+✓
+
+Leado Portal: Tele Calling Unit
+
+✓
+
+Central Processing Unit document validation
+
+✓
+
+Biometric & face
+authentication
+
+✓
+
+Capri Business Partner App:
+DSA & Connectors
+
+✓
+
+Whatsapp Integrated query
+module
+
+✓
+
+Lead Management Portal: Multichannel aggregation
+
+✓
+
+Athena App – Income & collateral
+assessment; geotagging
+
+✓
+
+Sentinel 3.0 - Scorecard &
+Business Rule Engine (BRE)
+
+✓
+
+Risk-based Pricing
+
+✓
+
+TAT Monitoring - comprehensive
+dashboards
+
+e-NACH Registration
+
+Customer Engagement
+
+Technical verification - - Daedalus
+App for collateral evaluation
+
+✓
+
+AI Led Digital Collection
+
+✓
+
+Spark Mobility App: Direct Sales
+Team
+
+✓
+
+Collections & Legal
+
+Pegasus Collection Dashboard –
+real time collection monitoring by
+channel, geography and
+individuals
+
+✓
+
+✓
+
+4
+
+✓
+
+25
+
+4 Balance Sheet and ALM
+
+Robust Balance Sheet and Efficient Liability Management…
+Comfortable Liquidity Position
+Consolidated Net worth (INR mn)
+
+Capital Adequacy – CRAR (%)
+
+75,655
+
+30.5
+
+71,212
+26.9
+
+26.6
+
+27.8
+
+27.7
+
+25.9
+
+24.7
+
+22.8
+
+42,194
+37,659
+
+FY24
+
+FY25
+
+FY26
+
+CGCL (Standalone)
+
+Q1FY27
+
+FY24
+
+FY25
+
+FY26
+
+Q1 FY27
+
+CGHFL
+
+CRAR remains comfortably above the minimum regulatory requirement of 15% across all periods
+27
+
+Asset-Liability Position - CGCL Standalone
+Maintains minimum 3 months of liquidity coverage at any given point
+450,000
+400,000
+350,000
+300,000
+
+120,000
+
+412,703
+
+No
+
+100,592
+
+Maturity risk
+(Cumulative net inflow for all
+buckets)
+
+79,569
+
+343,920
+86,705
+
+310,953
+
+342,656
+
+100,000
+
+80,000
+
+257,215
+250,000
+
+70,047
+
+210,361
+
+200,000
+
+60,000
+
+172,492
+
+150,000
+
+40,000
+
+100,000
+50,000
+
+92,923
+
+23,009
+
+20,000
+
+42,542
+19,532
+
+-
+
+-
+
+upto 1 month
+
+>1-12 months
+
+Cumulative Inflow
+
+1-3 years
+
+3-5 years
+
+Cumulative Outflow
+
+>5 years
+
+Mismatch
+
+INR Mn
+
+Upto 1 month
+
+> 1-12 months
+
+1-3 years
+
+3-5 years
+
+> 5 years
+
+Total Inflow
+
+42,542
+
+1,29,951
+
+1,38,461
+
+32,966
+
+68,783
+
+Total Outflow
+
+19,532
+
+73,391
+
+1,17,438
+
+46,854
+
+85,441
+
+Cumulative Mismatch
+
+23,009
+
+79,570
+
+1,00,592
+
+86,705
+
+70,047
+
+Note – Data ending Q1FY27
+
+28
+
+Enhanced Borrowing Mix
+Widening lender base and increase in share of market borrowings
+Diversified Borrowing Profile (₹ mn)
+2%
+1%
+3%
+6%
+12%
+
+1%
+4%
+7%
+5%
+
+83%
+
+1%
+
+Consolidated Borrowings Break-up (₹ mn)
+5%
+4%
+2%
+3%
+
+1%
+
+4%
+5%
+3%
+
+104,069
+
+155,768
+
+320
+
+2%
+10%
+
+11%
+
+276,297
+
+241,121
+
+57,511
+
+310
+51,785
+
+270
+
+76%
+
+75%
+
+73%
+
+37,852
+
+330
+
+218,466
+
+189,026
+
+32,633
+117,646
+71,107
+
+FY24
+
+FY25
+
+FY26
+
+Q1 FY27
+
+Banks
+
+Other fin. institutions
+
+NHB
+
+Cash credit facility
+
+Inter corporate deposits
+
+NCD
+
+CP
+
+Loan Against Security
+
+FY24
+
+FY25
+CGCL Standalone
+
+FY26
+CGHFL Standalone
+
+Q1FY27
+CLCPPL
+
+Borrowings comprised NCDs and CPs and Bank Term Loans/Refinance
+Relationship with 40 Lenders across Public & Private Sector Banks and Financial Institutions; Added 5 new lenders in Q1 FY27
+Note: CGHFL – Capri Global Housing Finance Ltd., CLCPPL – Capri Loans Car Platform Pvt. Ltd.
+
+29
+
+Co-lending with 11 Partner Banks
+Additional Funding Source & High RoE Accretion
+
+1
+
+CGCL retains 20-30%
+while co-lending
+partners (CLPs) retain
+the balance
+
+2
+
+CGCL earns spread and
+loan servicing fee on
+the co-lending loans
+
+Co-Lending AUM (INR mn) (% of overall)
+77,833
+
+3
+
+Additional source of
+funds while conserving
+capital and boost RoE
+
+Co-lending income^ (INR mn) (% of non-interest income)
+3,640
+
+81,262
+
+42.2%
+
+80,000
+
+21.3%
+70,000
+
+20.3%
+
+17.8%
+
+3,000
+26.5%
+
+60,000
+
+53,686
+
+50,000
+
+11.7%
+
+40,798
+
+4
+
+Diversification of
+borrowings
+
+56,486
+
+2,000
+
+32.9%
+
+30.4%
+
+1,651
+
+40,000
+
+30,000
+
+18,306
+
+24,810
+
+20,000
+
+10,000
+
+9,582
+
+10,749
+
+6,674
+3,185
+8,446
+
+5,963
+10,025
+
+14,566
+
+14,026
+
+FY24
+
+FY25
+
+FY26
+
+Q1 FY27
+
+0
+
+MSME
+
+Housing
+
+Gold
+
+Co-lending AUM/Con. AUM
+
+Note: ^Net gain on derecognition of financial instruments; Co-lending AUM includes direct assignment
+
+1,000
+0
+
+651
+
+1,018
+
+FY24
+Co-Lending Income
+
+FY25
+
+FY26
+
+Q1FY27
+
+As a % of non-interest income
+
+30
+
+5 Financial Highlights
+
+Strong Segmental Yields
+Robust Yields Sustained Alongside AUM Growth
+Gold Loans (%)
+
+MSME (%)
+19.9%
+
+19.1%
+
+18.6%
+16.8%
+
+FY24
+
+FY25
+
+FY26
+
+15.9%
+
+Q1 FY27
+
+Housing Finance (%)
+12.7%
+
+12.7%
+
+FY24
+
+FY25
+
+FY24
+
+17.3%
+
+17.6%
+
+FY26
+
+Q1 FY27
+
+15.4%
+
+FY25
+
+Construction Finance (%)
+13.1%
+
+FY26
+
+13.6%
+
+Q1 FY27
+
+17.8%
+
+17.5%
+
+17.8%
+
+FY24
+
+FY25
+
+FY26
+
+Average balances are calculated as the avg of the opening balance at the start of the relevant fiscal year and the closing balance as at half year end and year end in the relevant FY.
+
+18.3%
+
+Q1 FY27
+32
+
+Yield and Margins
+Sustained Yield growth supported by Efficient Pricing
+Yield and Cost of Funds (%)
+
+Net Interest Margins (%)1
+9.6%
+17.5%
+
+16.2%
+
+8.8%
+
+16.1%
+
+15.1%
+
+9.0%
+
+9.6%
+
+FY24
+
+FY25
+Cost of Funds
+
+9.0%
+
+FY26
+
+8.5%
+
+8.5%
+
+FY24
+
+FY25
+
+8.9%
+
+Q1 FY27
+
+Yield on Avg. Total Int. earning assets
+
+Note: Cost of Funds = Finance costs (net off lease liability) / Avg. Total Interest-Bearing Liabilities
+Yield on Avg. Interest-Earning Loans = Interest earned on loans / Avg. Interest-earning Loans
+
+FY26
+
+Q1 FY27
+
+NIM %
+Note: Calculated using Net Interest Income / Avg. Total Interest-Earning Assets
+
+Note: 1. Net Interest Income excludes Int. Expense on Lease Liabilities, Interest Earning Assets include Bank Balances excluding Cash, Net Advances and Investments
+
+33
+
+Financial Highlights
+High share of non-interest income
+Net Interest Income1 (₹ mn)
+
+Non-Interest Income^ (₹ mn)
+20,331
+
+13,637
+10,195
+
+7,459
+
+3,837
+
+5,019
+
+8,620
+
+2,145
+
+45%
+
+48%
+
+47%
+
+43%
+
+33%
+
+42%
+
+43%
+
+19%
+
+11%
+
+14%
+
+27%
+28%
+
+FY24
+
+FY25
+
+FY26
+
+Q1 FY27
+
+FY24
+Net Car Loan Fee
+
+Credit Costs (₹ mn)
+
+FY26
+Other Non-interest Income
+
+Q1FY27
+
+Cost-Income2 (%)
+1,895
+
+0.7%
+
+FY25
+Co-Lending Income
+
+0.8%
+
+0.7%
+
+0.6%
+913
+
+0.7%
+
+0.7%
+0.6%
+
+1,008
+
+7.3%
+
+5.9%
+
+0.5%
+
+0.4%
+
+622
+
+67%
+
+4.9%
+
+4.5%
+
+50%
+
+45%
+
+FY26
+
+Q1 FY27
+
+61%
+
+0.3%
+
+0.2%
+
+0.1%
+
+0.0%
+
+FY24
+
+FY25
+
+FY26
+
+Credit Cost
+
+Credit cost/Avg. assets
+
+Q1FY27
+
+FY24
+
+FY25
+
+Cost/Income
+
+Cost (excl fee & commission cost) / AAuM
+
+^Adjusted for Car Loan Origination (CLO) Commission Expense
+
+1.Net Interest Income excludes Int. Expense on Lease Liabilities, 2. Cost-Income = Operating Expenses (excluding fees and commission expense) / Net income;
+
+34
+
+Financial Highlights
+Improving Return Metrics
+Operating Profit (₹ mn)1
+
+Operating Expense (₹ mn)2
+14,470
+
+7,341
+4,569
+3.4%
+
+FY24
+
+5.4%
+
+FY25
+Operating Profit
+
+FY26
+
+20%
+8%
+12%
+
+19%
+7%
+10%
+
+21%
+6%
+9%
+
+61%
+
+60%
+
+64%
+
+64%
+
+FY24
+
+FY25
+
+FY26
+
+Q1 FY27
+
+5,321
+1.5%
+
+4.1%
+
+20%
+9%
+11%
+
+Q1 FY27
+
+as a % of Avg. Total Assets
+
+Employee Cost
+
+Fee & Commission
+
+Other Opex
+
+CRAR3 | RoAA | RoAE (%)
+
+Profit After Tax (₹ mn)
+9,491
+
+26.6%
+
+22.8%
+
+25.9%
+
+16.5%
+
+4,785
+
+24.7%
+
+19.1%
+
+11.8%
+
+3,533
+
+2,794
+
+FY24
+
+D&A
+
+7.6%
+
+FY25
+
+FY26
+
+Q1 FY27
+
+2.1%
+
+2.7%
+
+3.6%
+
+4.1%
+
+FY24
+
+FY25
+
+FY26
+
+Q1 FY27
+
+RoAE
+Note: 1. Operating Profit is before working capital changes, 2. Other Opex includes lease liability and excludes impairment of financial instruments, 3. As per CGCL standalone
+
+RoAA
+
+CRAR
+35
+
+Prudent Provisioning and Healthy Asset Quality
+Healthy Asset Quality and Adequate Provisioning
+NPA (%)
+
+PCR (%)
+
+1.9%
+
+45.2%
+41.7%
+
+41.2%
+
+43.3%
+
+~35%^
+Login to Sanction ratio
+(Superior Customer
+Selection)
+
+1.5%
+
+1.1%
+
+1.1%
+
+0.9%
+
+0.9%
+
+~100.0%
+
+0.6%
+
+0.5%
+
+Secured loans
+(Collateral cushion)
+FY24
+
+FY25
+
+Gross
+
+FY26
+
+Q1 FY27
+
+FY24
+
+FY25
+
+FY26
+
+Q1 FY27
+
+Net
+
+Healthy Asset Quality (GNPA/NNPA/PCR)*
+
+3.1% / 1.7% / 45.6%
+
+1.2% / 0.8% / 36.9%
+
+0.4% / 0.3% / 19.0%
+
+0.7% / 0.2% / 70.5%
+
+MSME Loan
+
+Housing Loan
+
+Gold Loan
+
+Construction Finance
+
+Note: * June 2026; ^For MSME Loan, Housing Loan as of March 31st
+
+36
+
+Supported by Segmental NPAs
+Improving trends in MSME and Gold loan segments
+Gold Loan
+
+MSME Loan
+GNPA
+
+NNPA
+
+GNPA
+4.0%
+
+1.0%
+
+4.0%
+
+0.8%
+
+0.8%
+
+0.7%
+
+NNPA
+
+3.0%
+
+0.3%
+
+0.4%
+
+2.2%
+
+0.3%
+
+2.1%
+
+3.1%
+
+1.7%
+
+1.7%
+
+FY26
+
+Q1 FY27
+
+0.2%
+FY24
+
+FY25
+
+FY26
+
+Q1 FY27
+
+Housing Finance
+
+FY24
+
+GNPA
+
+NNPA
+
+0.8%
+
+FY25
+
+NNPA
+
+1.0%
+
+1.4%
+1.0%
+
+0.7%
+
+FY25
+
+Retail Construction Finance
+GNPA
+
+1.2%
+
+FY24
+
+0.7%
+FY26
+
+1.2%
+
+0.7%
+0.2%
+
+0.8%
+0.2%
+Q1 FY27
+
+FY24
+
+0.1%
+FY25
+
+0.3%
+
+0.2%
+
+0.1%
+FY26
+
+Q1 FY27
+37
+
+6
+
+Corporate Governance
+
+Experienced and Stable Management Team (1/2)
+Experienced and Stable Management with over 20 years of avg. experience
+CORPORATE FUNCTIONS
+Divya Sutar
+
+Kishore Lodha
+
+Sanjeev Srivastava
+
+President & ED- Business Strategy
+
+Chief Financial Officer
+
+Ex-Viteos Capital Markets & XL
+Dynamics
+Total Exp: 26Y+
+
+Ex-UGRO Finance, Hinduja Finance,
+SREI Infra Finance
+Total Exp: 23Y+
+
+Chief Risk Officer
+
+Tarun Aggarwal
+
+Vinay Surana
+
+Group Chief Technology Officer
+
+Group Head of Treasury
+
+Ex-Paytm, Adobe System, Quad
+Analytix, Expedia
+Total Exp: 20Y+
+
+Ex-Axis Bank
+Total Exp: 21Y+
+
+Varun Malhotra
+Chief Technology Officer
+
+Abhishek Yadav
+
+Ex-BYJUS, Policy Bazaar, Affle
+Total Exp: 17Y+
+
+Ex- ANZ Bank, L&T Fin, Yes Bank, Axis
+Bank, Kotak Bank
+Total Exp: 23Y+
+
+Chief Compliance Officer
+
+Ex-IIFL Finance
+Total Exp: 25Y+
+
+Ignatius Kaitha
+Chief HR Officer
+Ex-IndusInd Bank, HSBC, MBA
+Work Experience: 20+ yrs
+
+Jinisha Sharma
+Principal–ESG & Impact Investments
+M.B.A., University of Vermont, U.S.A.
+Total Exp: 7Y+
+
+Yashesh Bhatt
+Company Secretary
+
+Hardik Doshi
+
+Zoheb Sheikh
+
+Ex-L&T Fin., TATA Housing, M&M
+Total Exp: 20Y+
+
+Head-Corp Fin & Investor Relations
+
+Head of Internal Audit
+
+Ex-Kotak IB, Deutsche Bank
+Total Exp: 15Y+
+
+Ex-Kotak Bank, Reliance Securities
+Total Exp: 16Y+
+
+39
+
+Experienced and Stable Management Team (2/2)
+Veteran Business Heads with over 25 years of avg. experience
+RETAIL BUSINESS
+
+RETAIL CONSTRUCTION FINANCE
+
+FEE BASED BUSINESS
+
+Vijay Kumar Gattani
+Chief Business Officer - CF
+
+Rohit Chugh
+Business Head – Insurance
+Distribution
+
+Ex-IIFL, GE Money, HDFC Bank, BCA
+Total Exp: 20Y+
+
+Ex-Goldman Sachs, ICICI Bank
+Total Exp: 21Y+
+
+Ex- Star Health, SBI GI, Tata AIG
+Total Exp: 27Y+
+
+Abhishek Sinha
+
+Bhaskarla Keshav Kumar
+Director – Monitoring –
+Construction Finance
+
+Amit Setia
+
+Ravish Gupta
+Chief Business Officer — Gold Loan
+
+Chief Business Officer — MSME & ML
+Ex Bajaj Housing Finance Ltd., Bajaj
+Finance Ltd., Tata Capital Ltd.
+Total Exp: 22Y+
+
+Ex-AGM, SBI
+Total Exp: 40Y+
+
+Chief Business Officer – Car Loan
+Distribution
+Ex-Reliance Capital, Dhanlaxmi Bank
+Total Exp: 20Y+
+
+Credit
+Munish Jain
+
+Vaibhav Shah
+
+Ajay Manglunia
+
+Chief Business Officer – Home Loan
+
+Head Credit – MSME and Micro LAP
+
+ED – Fixed Income Markets
+
+Ex-Shriram Housing, GE Money,
+DHFL
+Total Exp: 20Y+
+
+Ex-AUSFB, DCB Bank, IIFL, HDFC
+Bank, ICICI Ban
+Total Exp: 23Y+
+
+Ex- JM Financial, Edelweiss, InCred
+Total Exp: 30Y+
+
+40
+
+Strong Corporate Governance Framework
+Board of Directors
+
+Risk Management
+Committee
+
+Nomination &
+Remuneration
+
+Board Credit
+Committee
+5 Independent Board of Directors including
+one woman Director
+
+Information Security
+
+Audit Committee
+
+Asset Liability
+Committee
+
+Environmental,
+Social &
+Governance
+
+CSR
+
+Stakeholder
+Relationship
+Committee
+
+COMMITTEES
+
+Separate Chairman and Managing Director
+
+Zero Disciplinary Actions
+
+CRO
+
+HIA
+
+Operational Risk Committee
+
+Internal Audit
+
+CCO
+
+BUSINESS HEAD
+
+Compliance
+
+Credit Policy Committee
+
+For Corruption and Complaints related to Conflict of Interest
+against Directors or KMPs
+
+Training & Awareness Programs
+On ESG Principles conducted for Board of Directors and KMPs
+Note: As on 31-Mar-26
+41
+
+ESG Snapshot & Ratings
+Environmental (E)
+
+23% Reduction of
+E-Waste Compared
+To FY2023-24
+
+~500+Kg of waste
+Recycled and Reused
+
+15,300 KL of water
+Harvesting Capacity
+created through Desilting,
+check Dams and Bunds
+
+₹6.8 Crore Government
+Investments Supported
+1,924 Households and
+created 225 Hectares of
+Water Harvesting
+Capacity
+
+2.61 Lac Pages saved by
+MSME and Housing
+Business Through Digital
+Initiatives
+
+Social (S)
+
+15,519 Beneficiaries
+Reached Including
+13,287 Women
+
+Zero Facilities in our
+operations
+
+100 Training Sessions
+Conducted be befitting
+8,179 individuals across 80
+villages
+
+681 SHGs Formed for
+Community Strengthening
+and Institution Building
+
+1,20,000 Women Impacted
+through our livelihood
+development program
+
+Governance (G)
+
+Received Second-Party Opinion (SPO)
+rated “Good” by Sustainable Fitch for
+Company’s Sustainable Financing
+Framework (SFF)
+
+100% DEI training for
+senior management
+
+Name of the ESG
+Rating Provider
+
+Ratings
+
+SES ESG Research
+Private Limited
+
+75 (B+)
+
+NSE Sustainability
+Ratings & Analytics
+Limited
+
+69
+
+CRISIL ESG Ratings &
+Analytics Limited
+
+64 (Strong)
+
+Standard & Poor’s (S&P)
+Dow Jones Sustainability
+Indices (DJSI) Corporate
+Sustainability
+Assessment
+
+70 (Industry
+Average 30)
+
+5 out of 6 Independent
+Directors
+
+Zero cases of
+Discrimination and
+Harassment
+
+Zero Cases of Money
+Laundering, Insider
+Trading and Conflict of
+Interest
+
+Zero Cases of
+Cybersecurity Breaches
+or Threats
+
+42
+
+7
+
+Appendix
+
+Shareholding
+Ownership Structure & Capital Position
+Institutional
+Investors
+
+Other Public
+Shareholders, 13.5%
+
+Corporate Structure4
+Capri Global Capital
+Limited
+
+Institutional
+Shareholders,
+26.6%
+
+100%
+
+Promoter Group,
+59.9%
+
+Capri Global Housing
+Finance Ltd.
+
+100%
+
+Capri Loans Car Platform
+Private Limited (CLCPPL)
+
+Shareholding as at the end of FY26
+
+₹ 219 Bn
+
+₹ 75.7Bn
+
+₹ 962.2mn
+
+₹1
+
+US$ 2.3bn2
+Market capitalisation1
+
+Cons. Net worth3 (FY26)
+
+Paid-up Equity
+
+Face Value
+
+Note: 1. Market capitalization BSE on 30th June’26, 2. FX (USD/INR): 95, 3. not adjusted for DTAs, 4. Capri Global Capital Markets Pvt. Ltd., Capri Global Securities Pvt. Ltd. and Capri Global insurance Brokers Pvt. Ltd. are subsidiaries incorporated in FY 2026.
+
+44
+
+RoAA Tree
+Calculated as % of Average Assets (%)
+
+2024
+
+2025
+
+2026
+
+Q1 FY27
+
+Interest income
+
+13.5%
+
+14.5%
+
+13.9%
+
+15.3%
+
+Interest expenses
+
+6.0%
+
+6.9%
+
+6.3%
+
+6.7%
+
+Net Interest Income (A)
+
+7.6%
+
+7.6%
+
+7.6%
+
+8.6%
+
+Non-Interest Income (net of fee and commission) (B)
+
+2.9%
+
+2.8%
+
+3.2%
+
+2.5%
+
+Net income (C) = (A) + (B)
+
+10.4%
+
+10.4%
+
+10.8%
+
+11.1%
+
+Employee expenses
+
+4.6%
+
+4.1%
+
+3.8%
+
+3.5%
+
+Other expenses
+
+2.4%
+
+2.2%
+
+1.6%
+
+1.5%
+
+Operating expense (D) (excluding fee and commission
+expense)
+
+7.0%
+
+6.3%
+
+5.4%
+
+5.0%
+
+Operating profit (E) = (C) – (D)
+
+3.4%
+
+4.1%
+
+5.4%
+
+6.1%
+
+ECL provisions
+
+0.5%
+
+0.4%
+
+0.6%
+
+1.0%
+
+Write-offs
+
+0.2%
+
+0.2%
+
+0.1%
+
+(0.3)%
+
+Provisions (F)
+
+0.7%
+
+0.6%
+
+0.7%
+
+0.7%
+
+Profit before tax (G) = (E) – (F)
+
+2.7%
+
+3.5%
+
+4.7%
+
+5.4%
+
+Taxes
+
+0.6%
+
+0.9%
+
+1.2%
+
+1.4%
+
+Profit after tax (RoAA)
+
+2.1%
+
+2.7%
+
+3.6%
+
+4.1%
+
+45
+
+Consolidated Income Statement
+Annual Comparison
+
+All figures in ₹ mn except stated otherwise
+
+Profit and Loss A/C
+
+FY 24
+
+FY 25
+
+FY 26
+
+Q1 FY27
+
+Revenue from operations
+
+23,129
+
+32,475
+
+47,311
+
+15,765
+
+Other Income
+
+13
+
+33
+
+109
+
+47
+
+Total Income
+
+23,142
+
+32,508
+
+47,420
+
+15,812
+
+Finance costs
+
+8,359
+
+12,736
+
+17,298
+
+5,865
+
+Fees and commission expense
+
+1,093
+
+1,444
+
+1,540
+
+442
+
+Impairment on financial assets
+
+913
+
+1,008
+
+1,895
+
+621
+
+Employee benefits expenses
+
+6,237
+
+7,430
+
+10,087
+
+3,014
+
+Depreciation and amortisation
+
+879
+
+1,017
+
+1,096
+
+288
+
+Other expenses
+
+2,005
+
+2,540
+
+2,930
+
+882
+
+Total Expenses
+
+19,486
+
+26,175
+
+34,846
+
+11,112
+
+Profit Before Tax
+
+3,656
+
+6,333
+
+12,574
+
+4,700
+
+Tax
+
+862
+
+1,548
+
+3,083
+
+1,166
+
+Profit After Tax
+
+2,794
+
+4,785
+
+9,492
+
+3,534
+
+46
+
+Consolidated Balance Sheet
+Annual Comparison
+All figures in ₹ mn except stated otherwise
+Balance Sheet
+
+FY24
+
+FY25
+
+FY26
+
+Q1 FY27
+
+825
+
+825
+
+962
+
+962
+
+Reserves and surplus
+
+37,541
+
+42,216
+
+71,073
+
+74,692
+
+Total Equity
+
+38,366
+
+43,041
+
+72,035
+
+75,655
+
+Borrowings
+
+104,069
+
+155,768
+
+241,121
+
+276,297
+
+Other liabilities and provisions
+
+9,062
+
+9,504
+
+13,604
+
+12,217
+
+151,497
+
+208,313
+
+326,760
+
+364,169
+
+Cash and bank balances
+
+6,746
+
+15,312
+
+21,229
+
+29,466
+
+Investments
+
+2,162
+
+1,604
+
+12,361
+
+10,796
+
+Assets under financing activities
+
+134,212
+
+182,515
+
+281,499
+
+312,855
+
+Other assets
+
+8,377
+
+8,882
+
+11,671
+
+11,052
+
+Total assets
+
+151,497
+
+208,313
+
+326,760
+
+364,169
+
+Liabilities
+Paid-up equity
+
+Total liabilities
+
+Assets
+
+47
+
+Disclaimer (1/3)
+NOT FOR RELEASE, PUBLICATION OR DISTRIBUTION, DIRECTLY OR INDIRECTLY, IN OR INTO THE UNITED STATES, EXCEPT TO “QUALIFIED INSTITUTIONAL BUYERS” (AS DEFINED IN RULE 144A UNDER THE U.S. SECURITIES ACT OF
+1933, AS AMENDED) OR IN ANY OTHER JURISDICTION IN WHICH SUCH RELEASE, PUBLICATION OR DISTRIBUTION WOULD BE PROHIBITED BY APPLICABLE LAW.
+This presentation and the accompanying slides (the “presentation”) contain selected information about the activities of Capri Global Capital Limited (the “Company”) and its subsidiaries and affiliates (together, the “Group”) as at
+the date of the presentation. It does not purport to present a comprehensive overview of the Group or contain all the information necessary to evaluate an investment in the Company.
+This presentation should be read in its entirety. This presentation remains the property of the Company and on request must be returned and any copies destroyed. This presentation is for information purposes only and is not a
+prospectus, disclosure document or other offering document under any law, nor does it form part of, and should not be construed as, any present or future invitation, recommendation or offer to purchase, sell or subscribe for any
+securities of the Company or the Group or an inducement to enter into investment activity in any jurisdiction. No part of this presentation nor the fact of its distribution should form the basis of, or be relied on in connection with, any
+contract or commitment or investment decision whatsoever. If there is any subsequent offering of any security of the Company, it will be made pursuant to a separate and distinct offering documentation. Any decision to purchase
+securities in the context of an offering of securities (if any) should be made solely on the basis of information contained in the offering documentation published in relation to such offering.
+The Company makes no representation or warranty as to the accuracy or completeness of any information contained herein, including any estimates or projections, and nothing contained herein should be relied upon as a promise or
+a representation regarding future events or performance.
+This presentation is being communicated only to selected persons who have professional experience in matters relating to investments (including those falling within the definition of “investment professionals” as defined in the
+Financial Services and Markets Act 2000 (Financial Promotion) Order 2005 (as amended or replaced) and other persons to whom it may otherwise be lawfully communicated) for information purposes only and does not constitute a
+recommendation or advice regarding any securities of the Company or the Group.
+Other persons should not rely or act upon this presentation or any of its contents.
+
+The contents of this presentation are strictly confidential. By viewing or accessing the presentation, you acknowledge and agree that (i) the information contained herein is strictly confidential and (ii) the information is intended for
+the recipient only and, except with the prior written consent of the Company and Barclays, Citigroup, Deutsche Bank, Emirates NBD Bank, and UBS (together, the “Joint Bookrunners”), (a) the information shall not be disclosed,
+reproduced or distributed in any way to anyone else and (b) no part of these materials may be retained and taken away following this presentation and the participants must return this presentation and all other materials
+provided in connection herewith to the Company at the completion of the presentation. The distribution of this presentation in certain jurisdictions may be restricted by law and recipients should inform themselves about and observe
+any such restrictions. In particular, this presentation may not be transmitted or distributed, directly or indirectly, in or into Canada or Japan.
+Hong Kong Securities and Futures Commission Code of Conduct (Paragraph 21 – Bookbuilding and Placing Activities) – In the context of any offering of securities, certain of the Joint Bookrunners and other intermediaries are
+“capital markets intermediaries” (together, the “CMIs”) subject to Paragraph 21 of the Code of Conduct for Persons Licensed by or Registered with the Securities and Futures Commission (the “SFC Code”). Associated Orders and
+Proprietary Orders: Prospective investors who are the directors, employees or major shareholders of the Company, a CMI or its group companies would be considered under the SFC Code as having an association with the
+Company, the relevant CMI or the relevant group company. Prospective investors associated with the Company or a CMI (including any of its group companies) should specifically disclose whether they have any such association to a
+CMI and the Joint Bookrunners (and such CMI and the Joint Bookrunners may be required to pass such information to the Company and certain other CMIs) when placing an order for such securities and should disclose, at the same
+time, if such orders may negatively impact the price discovery process in relation to the offering.
+Prospective investors who do not disclose their associations are deemed not to be so associated. Where prospective investors disclose such associations but do not disclose that such order may negatively impact the price discovery
+process in relation to the offering, such order is hereby deemed not to negatively impact the price discovery process in relation to the offering.
+
+48
+
+Disclaimer (2/3)
+If a prospective investor is an asset management arm affiliated with a CMI, such prospective investor should indicate when placing an order if it is for a fund or portfolio where such CMI or its group company has more than 50%
+interest, in which case it will be classified as a “proprietary order” and subject to appropriate handling by CMIs in accordance with the SFC Code and should disclose, at the same time, if such “proprietary order” may negatively
+impact the price discovery process in relation to the offering. Prospective investors who do not indicate this information when placing an order are hereby deemed to confirm that their order is not such a “proprietary order”. If a
+prospective investor is otherwise affiliated with a CMI, such that its order may be considered to be a “proprietary order” (pursuant to the SFC Code), such prospective investor should indicate to such CMI and the Joint Bookrunners
+when placing such order. Prospective investors who do not indicate this information when placing an order are hereby deemed to confirm that their order is not such a “proprietary order”. Where prospective investors disclose such
+information but do not disclose that such “proprietary order” may negatively impact the price discovery process in relation to the offering, such “proprietary order” is hereby deemed not to negatively impact the price discovery
+process in relation to the offering.
+Order Book Transparency: Prospective investors should ensure, and by placing an order prospective investors are deemed to confirm, that orders placed with a CMI are bona fide, are not inflated and do not constitute duplicated
+orders (i.e. two or more corresponding or identical orders placed via two or more CMIs). In addition, any other CMIs (including private banks) submitting orders with the Joint Bookrunners should disclose the identities of all investors
+when submitting orders with the Joint Bookrunners. When placing an order, private banks should disclose, at the same time, if such order is placed other than on a “principal” basis (whereby it is deploying its own balance sheet for
+onward selling to investors). Private banks who do not provide such disclosure are hereby deemed to be placing their order on such a “principal” basis. Otherwise, such order may be considered to be an omnibus order (see further
+below) pursuant to the SFC Code. Private banks should be aware that placing an order on a “principal” basis may require the relevant Joint Bookrunners to categorise it as a proprietary order and apply the “proprietary orders”
+requirements of the SFC Code to such order. In the case of omnibus orders placed with the Joint Bookrunners, CMIs (including private banks) that are subject to the SFC Code should, at the same time, disclose underlying investor
+information (name, unique identification number, whether the underlying investor has any associations and whether any underlying investor order is a “proprietary order” and/or a duplicate order) in the format and to the relevant
+recipients indicated to such CMIs (including private banks) by the Joint Bookrunners at the relevant time. Failure to provide such information may result in that order being rejected. In sharing such underlying investor information,
+which may be personal and/or confidential in nature, CMIs (including private banks) (i) should take appropriate steps to safeguard the transmission of such information; (ii) are deemed to have obtained the necessary consents to
+disclose such information; and (iii) are deemed to have authorised the collection, disclosure, use and transfer of such information by the Joint Bookrunners, other CMIs and/or any other third parties as may be required by the SFC
+Code. In addition, prospective investors should be aware that certain information may be disclosed by the Joint Bookrunners and other CMIs which is personal and/or confidential in nature to the prospective investor. By placing an
+order with the Joint Bookrunners, prospective investors are deemed to have authorised the collection, disclosure, use and transfer of such information by the Joint Bookrunners to the Company, certain other CMIs, relevant regulators
+and/or any other third parties as may be required by the SFC Code, it being understood and agreed that such information shall only be used in connection with the offering.
+No EEA PRIIPs KID or UK PRIIPs KID/CCI product summary – No EEA PRIIPs key information document (KID) or UK PRIIPs KID/CCI product summary has been prepared as not available to retail in EEA or UK.
+This presentation does not constitute or form part of any offer to purchase, a solicitation of an offer to purchase, an offer to sell or an invitation or solicitation of an offer to sell, issue or subscribe for, securities in or into the United
+States or in any other jurisdiction. No securities mentioned herein have been, or will be, registered under the U.S. Securities Act, or any state securities laws or other jurisdiction of the United States and no such securities may be
+offered or sold in or into the United States absent registration or an applicable exemption from, or in a transaction not subject to, the registration requirements under the U.S. Securities Act and any applicable state or local
+securities laws of the United States.
+This presentation has not been, and will not be, filed or registered as a prospectus, statement in lieu of prospectus, information memorandum, placement memorandum, private placement offer cum application letter, offering circular,
+offering memorandum, or other offering document under the Companies Act, 2013, the Securities and Exchange Board of India (Issue of Capital and Disclosure Requirements) Regulations, 2018, the Securities and Exchange Board of
+India (Issue and Listing of Non-Convertible Securities) Regulations, 2021, the International Financial Services Centres Authority (Listing) Regulations, 2024, or any other applicable Indian law, with any Registrar of Companies, the
+Securities and Exchange Board of India ("SEBI"), the Reserve Bank of India, the International Financial Services Centres Authority, any Indian stock exchange, or any other statutory or regulatory body in India, except for any
+information mandatorily required to be disclosed under the Securities and Exchange Board of India (Prohibition of Insider Trading) Regulations, 2015, as amended, or under any listing agreement with an Indian stock exchange
+pursuant to the Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015 or the International Financial Services Centres Authority (Listing) Regulations, 2024.
+
+49
+
+Disclaimer (3/3)
+This presentation has not been, and will not be, reviewed or approved by any regulatory authority in India (including SEBI, the International Financial Services Centres Authority, and any Registrar of Companies) or by any Indian
+stock exchange. The securities mentioned herein have not been, and will not be, offered, sold, resold, pledged, delivered, distributed, or transferred, directly or indirectly, in India or to any person resident in India, whether as
+principal or agent, in circumstances that would constitute an advertisement, invitation, offer, or solicitation to subscribe for or purchase any securities, whether by way of public offer or private placement, under the Companies Act,
+2013 or any other applicable Indian law.
+This presentation has been prepared by the Company based on information and data which the Company considers reliable, but none of the Company and the Joint Bookrunners makes any representation or warranty, express or
+implied, as to and no reliance should be placed on, the fairness, accuracy, completeness or correctness of the information contained herein or any statement made in this presentation. Opinions and estimates constitute the sole
+judgement of the Company as of the date of this presentation and are subject to change without notice. The presentation has not been independently verified. The Company, each member of the Group, the Joint Bookrunners and
+their respective affiliates, directors, employees, advisers and representatives do not accept any liability for any facts made in or omitted from this presentation. To the maximum extent permitted by law, the Company, each member
+of the Group, the Joint Bookrunners and their respective affiliates, directors, employees, advisers and representatives disclaim all liability and responsibility (including without limitation any liability arising from negligence or
+otherwise) for any direct or indirect loss or damage, howsoever arising, which may be suffered by any recipient through use of or reliance on anything contained in or omitted from or otherwise arising in connection with this
+presentation.
+The information contained in, and the statements made in, this presentation should be considered in the context of the circumstances prevailing at the time. There is no obligation to update, modify or amend such information or
+statements or to otherwise notify any recipient if any information or statement set forth herein, changes or subsequently becomes inaccurate or outdated. The information and any opinions contained in this document is provided as at
+the date of this document and is subject to change without notice.
+Any prospective investor that intends to deal in any existing or prospective securities of the Company is required to make its own independent investigation and appraisal of the business and financial condition of the Group and the
+nature of the securities at the time of such dealing to the extent they deem it necessary and make their own investment, hedging and trading decisions based upon their own judgement and advice from such advisers as they deem
+necessary and not upon any view expressed in this presentation. Any securities or financial instruments mentioned herein may not be suitable for all prospective investors. No one has been authorised to give any information or to
+make any representations other than those contained in this presentation, and if given or made, such information or representations must not be relied upon as having been authorised by the Company, the Joint Bookrunners or their
+respective affiliates. The information in this presentation does not constitute financial advice (nor investment, tax, accounting or legal advice) and does not take into account a prospective investor’s individual investment objectives,
+including the merits and risks involved in an investment in the Company or its securities, or a prospective investor’s financial situation, tax position or particular needs.
+Past performance information in this presentation should not be relied upon as an indication of (and is not an indicator of) future performance. This presentation contains “forward-looking statements”. Such forward-looking
+statements involve known and unknown risks, uncertainties and other important factors beyond the Company’s control that could cause the actual results, performance or achievements of any member of the Group to be materially
+different from future results, performance or achievements expressed or implied by such forward-looking statements. Forward-looking statements contained in this presentation regarding past trends or activities should not be taken
+as a representation that such trends or activities will continue in the future. Similarly, statements about market and industry trends are based on interpretations of current market conditions which are also subject to change. The
+Company has no obligation to update or revise any forward-looking statements, whether as a result of new information, future events or otherwise. Attendees are cautioned not to place undue reliance on forward looking
+statements. No representation, warranty or assurance (express or implied) is given that the occurrence of the events expressed or implied in any forward-looking statements in this presentation will actually occur.
+This presentation contains data sourced from and the views of independent third parties. In replicating such data in this document, none of the Company and the Joint Bookrunners makes any representation, whether express or
+implied, as to the accuracy of such data. The replication of any third party views in this document should not necessarily be treated as an indication that the Company or the Joint Bookrunners agrees with or concurs with such views.
+A rating is not a recommendation to buy, sell or hold securities and may be subject to revision, suspension, reduction or withdrawal at any time by the relevant rating agencies. The significance of each rating should be analysed
+independently from any other rating.
+By participating in this presentation, attendees agree to be bound by the foregoing limitations.
+50
+
+51
+
+

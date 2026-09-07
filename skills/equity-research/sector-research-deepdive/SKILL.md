@@ -71,8 +71,17 @@ For Indian listed companies, if the user has provided a Stockscans ticker for an
 TICKER="NSE:DMART"           # example — replace per company
 SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_sector_docs"
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t Transcript PPT --last-n 4 -o "$DOCS_DIR"
+# Real implementation is a Node module, not a Python CLI — see
+# stock-documents-fetcher/SKILL.md "Actual working usage" (corrected 2026-08-02).
+# Before reading a fetched PDF's text, check the shared Filing Extract
+# store first (docs/REUSE_ARCHITECTURE_PLAN.md §4.1):
+#   node -e "const {resolveFilingContent}=require('./packages/jobs-runtime/lib/resolveFilingContent'); \
+#     console.log(JSON.stringify(resolveFilingContent({sourceUrl:'<pdfUrl>', profile:'<profile>'})))"
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['Transcript', 'PPT'], lastN: 4, outputDir: '$DOCS_DIR' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 ```
 
 ### Phase 3 — Analysis & structuring

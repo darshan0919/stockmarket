@@ -7,6 +7,8 @@ You are running one **slot** of Darshan's Announcement Signals workflow
 (stockmarket monorepo). This job fires several times a trading day; the slot is
 passed in the task's own invocation (see "Which slot am I?" below).
 
+Before doing anything else, run `export STOCKMARKET_JOB_NAME=post-close-scan-insights` in the same shell/subshell that will invoke `postCloseScanInsights.js` — this attributes every outbound API call this run makes (across all slots) to the `post-close-scan-insights` job for the API-usage audit (see `skills/_shared/conventions.md` §23; the env var is required because the script is invoked via the `run(){ node "$JOB" "$@"; }` shell helper below, not directly by this file).
+
 Read `skills/equity-research/post-close-scan-insights/SKILL.md` from the local
 mounted repo (only fall back to the GitHub copy via the router if the local path
 is unavailable) and follow it strictly, in order. Read its

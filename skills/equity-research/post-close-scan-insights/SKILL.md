@@ -1,6 +1,6 @@
 ---
 name: post-close-scan-insights
-description: Full-day corporate-filing signal engine for the "Signals - DND" saved Stockscans announcement scan — runs in several slots across the trading day (mid-session, late session, post-close, evening, night sweep), each covering its own non-overlapping window off a shared resumable cursor so nothing is re-read and no email repeats itself. Fetches the scan's announcements, drops routine noise, reads each PDF, writes a quantified thesis note per filing with an explicit J-curve / PAT-vs-EPS read, runs the strongest items through announcement-info-classifier for a NEW/KNOWN/FOLLOW-UP verdict, scores everything on a deterministic 5-level signal scale (S1-S5, 0-100), and emails a Thesis Card digest per slot plus a market-validated day recap. Closes the loop the next trading day by validating each thesis against actual delivery-backed price action and feeding what it learns back into the prompt. Invoke with --slot for a scheduled run, or with --window-hours for an explicit catch-up over a specific past window.
+description: Full-day corporate-filing signal engine for the "Signals - DND" saved Stockscans announcement scan — runs in several slots across the trading day (mid-session, late session, post-close, evening, night sweep), each covering its own non-overlapping window off a shared resumable cursor so nothing is re-read and no email repeats itself. Fetches the scan's announcements, tags (never drops) title-only noise hints, reads every non-heavy-document PDF — strength/materiality is decided from that read, never from the title alone — writes a quantified thesis note per filing with an explicit J-curve / PAT-vs-EPS read, runs the strongest items through announcement-info-classifier for a NEW/KNOWN/FOLLOW-UP verdict, scores everything on a deterministic 5-level signal scale (S1-S5, 0-100), and emails a Thesis Card digest per slot plus a market-validated day recap. Closes the loop the next trading day by validating each thesis against actual delivery-backed price action and feeding what it learns back into the prompt. Invoke with --slot for a scheduled run, or with --window-hours for an explicit catch-up over a specific past window.
 ---
 
 # Post-Close Scan Insights
@@ -152,12 +152,26 @@ single page came back entirely out-of-window while newer in-window items
 existed elsewhere — 2026-08-31 incident). One unlucky page must not truncate a
 whole window to empty.
 
-## Step 2 — Filter noise, then categorise
+## Step 2 — Tag noise, then categorise
 
 ```bash
-run filter-noise <fetch-scan-output.json>     # -> {kept, dropped}
-run categorise <filter-noise-output.json>     # -> [{companyId, category, heavyDocument, highConviction, alreadyProcessed, pdfUrl, ...}]
+run filter-noise <fetch-scan-output.json>     # -> {kept, dropped: []}
+run categorise <filter-noise-output.json>     # -> [{companyId, category, heavyDocument, highConviction, alreadyProcessed, noiseFlagged, noiseKeyword, pdfUrl, ...}]
 ```
+
+**Fixed 2026-09-05 — `filter-noise` no longer drops anything.** It used to
+route a keyword match straight to `dropped` and out of the pipeline before
+anyone read the PDF — a title/description-based exclusion of exactly the kind
+that made gainers-signal miss real triggers on 2026-09-04 (PC Jeweller's
+debt-clearance update, Jindal Worldwide's showroom-rollout press release — see
+`skills/equity-research/_shared/scan-signal-pipeline.md` "Strength is never
+judged from a title"). Every item now comes back in `kept`, tagged
+`noiseFlagged`/`noiseKeyword`; `dropped` is always `[]`. **Process a
+`noiseFlagged: true` item exactly like any other** — read its PDF, run it
+through the same Step 3/4 pipeline, and let the actual content (not the title
+guess) decide whether it produces a note. The keyword list is still useful as
+a title-only hint (these ARE usually pure boilerplate: IEPF unclaimed
+dividend, trading-window closure, ESOP allotment), but a hint is not a read.
 
 Both reuse the SAME shared modules `watchlist-insights` uses —
 `stock-api/src/utils/announcementNoiseFilter.js` (keyword lists, one shared
@@ -168,8 +182,23 @@ company filtered or categorised one way by `watchlist-insights` must never get
 a different answer here just because a different skill read the same document.
 Both are asking the same objective question about the same taxonomy.
 
-Record `dropped.length` — it is the `noiseDropped` (keyword-filtered) footer
-stat, and one of the numbers Darshan reads the footer for.
+**Significance, and the review layer.** `categorise` items now also carry
+`significance` (VERY_HIGH / HIGH / NORMAL) from the shared taxonomy — a second
+axis from `strength`, answering "does this plausibly change the market's model
+of future EPS?". Everything on the EPS-accretion / J-curve path is VERY_HIGH
+(capacity incl. store additions, deleveraging, margin expansion, order book,
+fundraise, corporate actions, result/PPT/concall/AR, and result-date
+anticipation). Route those — plus anything whose script verdict looks wrong
+against the day's price action — through
+[`announcement-taxonomy`](../announcement-taxonomy/SKILL.md) before the S1-S5
+scoring step: it reasons over the filing independently, its verdict overrides
+the script's, and each disagreement it records makes the script better. Run its
+`promote-rule --auto` once per slot, not per filing.
+
+Record `kept.filter(i => i.noiseFlagged).length` — it replaces the old
+`dropped.length` as the `noiseDropped` footer stat (kept the same field name
+for continuity with historical footers, even though nothing is actually
+dropped anymore — see the funnel-reconciliation note in Step 7).
 
 **Known taxonomy gaps exist** — a bare `"PPT <Month> <Year>"` title, generic
 `"Scheme of Arrangement"` language, and a generic `"Press Release"` title all
@@ -412,7 +441,7 @@ commands are separate process invocations with no shared state):
 ```json
 {
   "total": 41, // inWindow.length from Step 1
-  "noiseDropped": 9, // filter-noise dropped.length — the keyword filter
+  "noiseDropped": 9, // kept.filter(i => i.noiseFlagged).length — title-only hint, NOT excluded from processing (see Step 2)
   "alreadyProcessed": 4, // categorise items with alreadyProcessed:true
   "heavyDocSkipped": 5, // log-heavy-skip calls
   "routine": 7, // mark-processed calls with NO preceding add-note
@@ -573,11 +602,14 @@ prompt gets tuned into a broken one.
   `docs/DATA_RULES.md` §7): end every run listing every collection touched
   (record counts), every `cache/`/`runs/` file, and the `data:push` `↑ <file>`
   lines.
-- **One PDF at a time; no title-only insights.** Every meaningful, non-heavy,
-  non-routine announcement gets its PDF read and a quantified insight. If a
-  window returns an unusually large `inWindow` set, say so in the run report
-  rather than silently truncating which announcements get read — an unreported
-  truncation makes the digest's absences meaningless.
+- **One PDF at a time; no title-only insights, and no title-only exclusions.**
+  Every non-heavy-document announcement gets its PDF read and a quantified
+  insight — including `noiseFlagged` ones (see Step 2: the keyword list is a
+  hint, not a verdict). A category or strength label is never final until the
+  PDF has actually been opened. If a window returns an unusually large
+  `inWindow` set, say so in the run report rather than silently truncating
+  which announcements get read — an unreported truncation makes the digest's
+  absences meaningless.
 - **Report the scan source.** If `scanSource` is not `live`, that goes in the
   run report prominently.
 - **Every note carries `usecase: "announcement-insights:<depth>"`** — same

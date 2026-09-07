@@ -28,6 +28,8 @@ const axios = require('axios');
 const { StockscansAuth } = require('../../stock-api/src/auth/stockscansAuth');
 const { sendHtmlEmail } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
+const apiUsageTracker = require('./lib/apiUsageTracker');
+const { resolveJobName } = require('./lib/scriptJobName');
 const ist = require('./lib/ist');
 const tradingCalendar = require('./lib/tradingCalendar');
 const db = require('./lib/db');
@@ -581,18 +583,26 @@ async function cmdCommitWindow() {
   );
 }
 
+// Tag-and-keep, never drop: this used to route a title/description keyword
+// match straight to `dropped` and out of the pipeline for good — the same
+// pre-read exclusion mechanism that made gainers-signal miss PC Jeweller's
+// debt-clearance update and Jindal Worldwide's showroom-rollout press release
+// on 2026-09-04 (see announcementTaxonomy.js's `filterNoise` doc comment).
+// Every item now stays in `kept` with `noiseFlagged`/`noiseKeyword` set, so
+// `cmdCategorise` and the actual read/insight step downstream still see it.
+// `dropped` is kept as an EMPTY array for backward compatibility with any
+// caller destructuring `{kept, dropped}` — nothing is ever pushed there
+// anymore, since nothing is dropped pre-read. A reader who wants "how many
+// were noise-flagged" should count `kept.filter(i => i.noiseFlagged)` instead.
 function cmdFilterNoise(argv) {
   const file = argv[0];
   if (!file) throw new Error('filter-noise requires a fetch-scan output JSON file path');
   const { inWindow } = JSON.parse(fs.readFileSync(file, 'utf8'));
-  const kept = [];
-  const dropped = [];
-  for (const item of inWindow) {
+  const kept = inWindow.map((item) => {
     const match = matchedNoiseKeyword(item);
-    if (match) dropped.push({ ...item, __droppedReason: match });
-    else kept.push(item);
-  }
-  process.stdout.write(JSON.stringify({ kept, dropped }, null, 2));
+    return { ...item, noiseFlagged: !!match, noiseKeyword: match || null };
+  });
+  process.stdout.write(JSON.stringify({ kept, dropped: [] }, null, 2));
 }
 
 // `ssUrl` IS the announcementId convention used everywhere else in this
@@ -646,6 +656,11 @@ function cmdCategorise(argv) {
       heavyDocument: HEAVY_DOCUMENT_CATEGORIES.has(category),
       highConviction: HIGH_CONVICTION_CATEGORIES.has(category),
       alreadyProcessed: isAlreadyProcessed(notes, item.companyId, announcementId),
+      // Carried through from filter-noise — title-only, provisional. See that
+      // command's doc comment: flagged items are still processed, never
+      // silently excluded pre-read.
+      noiseFlagged: !!item.noiseFlagged,
+      noiseKeyword: item.noiseKeyword || null,
       ssUrl: item.ssUrl,
       pdfUrl: `${BASE_URL}/document/${item.ssUrl}`,
       createdAt: item.createdAt,
@@ -794,7 +809,12 @@ async function cmdSendDigest(argv) {
         },
       ]
     : undefined;
-  const result = await sendHtmlEmail({ subject, htmlBody: html, attachments });
+  const result = await sendHtmlEmail({
+    subject,
+    htmlBody: html,
+    attachments,
+    jobName: stockscans.http.jobName,
+  });
   process.stdout.write(
     JSON.stringify(
       {
@@ -1051,7 +1071,12 @@ async function cmdResendWithMarketData(argv) {
         },
       ]
     : undefined;
-  const result = await sendHtmlEmail({ subject, htmlBody: html, attachments });
+  const result = await sendHtmlEmail({
+    subject,
+    htmlBody: html,
+    attachments,
+    jobName: stockscans.http.jobName,
+  });
   process.stdout.write(
     JSON.stringify(
       {
@@ -1111,8 +1136,12 @@ module.exports = {
 // run the CLI and exit — same pattern gainersScanner.js uses, noted at the top
 // of this file.
 if (require.main === module) {
-  main().catch((err) => {
-    process.stderr.write(JSON.stringify({ error: err.message }) + '\n');
-    process.exit(1);
-  });
+  const jobName = resolveJobName('post-close-scan-insights');
+  stockscans.setJobName(jobName);
+  main()
+    .catch((err) => {
+      process.stderr.write(JSON.stringify({ error: err.message }) + '\n');
+      process.exit(1);
+    })
+    .finally(() => apiUsageTracker.flush(jobName));
 }

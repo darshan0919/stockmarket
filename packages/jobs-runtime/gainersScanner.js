@@ -27,8 +27,16 @@ const path = require('path');
 const { stockscans, nse, bse, S3_BASE_URL } = require('@stock/api');
 const taxonomy = require('./lib/announcementTaxonomy');
 const { loadEnv, argValue } = require('./lib/env');
+const apiUsageTracker = require('./lib/apiUsageTracker');
+const { resolveJobName } = require('./lib/scriptJobName');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const { sendHtmlEmail } = require('@stock/cloud-utils');
+const docExtracts = require('./lib/docExtracts');
+// Lazy/late require of watchlistInsights' readOrFetchPdfMeta — see
+// classifyAnnouncementsByContent for why this is required inside the function
+// rather than at module load (avoids paying watchlistInsights.js's own
+// module-init cost for callers of this file that never classify by content,
+// e.g. unit tests that stub the network layer entirely).
 const dbV2 = require('./lib/db');
 const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
 const { mapWithConcurrency } = require('@stock/api/utils/concurrency');
@@ -213,10 +221,28 @@ function normaliseGainer(raw) {
   };
 }
 
+/**
+ * Tag (never DROP) announcements matching NOISE_KEYWORDS — pure administrative
+ * boilerplate (trading-window closure, IEPF unclaimed dividend, ESOP allotment,
+ * scrutinizer reports, corrigenda) that exchanges mandate regardless of any
+ * business event. This used to `.filter()` these out entirely before anyone
+ * ever saw them — a title/description-based exclusion of exactly the kind that
+ * caused real triggers (debt clearance, showroom rollout, monthly sales) to
+ * disappear on 2026-09-04. Fixed: every announcement stays in the list and in
+ * `announcements_recent_14d`; `noiseFlagged` only skips it from the PDF-fetch
+ * queue below (§classifyAnnouncementsByContent) as a cost optimisation, on the
+ * theory that these specific keyword hits describe filing TYPES with no
+ * document content to read (a trading-window-closure notice has no PDF body
+ * worth parsing) rather than a judgment about what the filing MEANS. If any of
+ * these keywords turns out to have false-positived on a real event, that is
+ * now visible in the data (`noiseFlagged: true` on a real entry) instead of
+ * silently vanishing — flag it and the keyword list should be tightened.
+ */
 function filterNoise(anns) {
-  return anns.filter((a) => {
+  return anns.map((a) => {
     const combined = `${a.subject} ${a.description}`.toLowerCase();
-    return !NOISE_KEYWORDS.some((kw) => combined.includes(kw));
+    const noiseFlagged = NOISE_KEYWORDS.some((kw) => combined.includes(kw));
+    return { ...a, noiseFlagged };
   });
 }
 
@@ -1098,6 +1124,112 @@ async function fetchConcallSentiment(tickers, client = stockscans) {
   return map;
 }
 
+// Heavy documents this scanner still reads in full text for content
+// classification — deliberately NOT the same set watchlist-insights skips.
+// `results` stays IN (gainers-signal's actionability signal specifically
+// needs the beat/miss from the results filing itself — see this skill's
+// SKILL.md). Only the three genuinely-verbose, dedicated-workflow document
+// types are excluded from the PDF-fetch queue below, on cost grounds alone
+// (concall-analysis/equity-research-extraction/annual-report-analysis own
+// deep reads of these) — NOT on a strength/materiality judgment.
+const CONTENT_CLASSIFY_SKIP_CATEGORIES = new Set([
+  'concall_transcript',
+  'investor_presentation',
+  'annual_report',
+]);
+
+/**
+ * Read-before-judging pass: for every (non-noise-flagged, non-skip-category)
+ * announcement across the qualified universe, resolve its REAL text — a served
+ * Filing Extract if one exists, else a live PDF fetch+parse (cached via
+ * watchlistInsights' shared `pdf-text` cache so a document read once by any
+ * skill is never re-fetched by another) — and overwrite the provisional
+ * title-only `strength`/`category_derived` with `taxonomy.annotateFromContent`.
+ *
+ * This is the fix for the 2026-09-04 misses: PC Jeweller's debt-clearance
+ * update, Jindal Worldwide's showroom-rollout press release, and SML
+ * Mahindra's monthly-sales update were all real triggers hiding behind titles
+ * that carried no STRONG-category keyword. Titles/descriptions may still be
+ * used to ORDER this queue (cheap wins first) but must never again be used to
+ * decide an announcement isn't worth reading at all.
+ *
+ * Bounded concurrency (`PDF_FETCH_CONCURRENCY`) because this now fetches every
+ * in-window announcement for every qualified gainer, not just the ones a
+ * title-based filter had already called STRONG — a deliberate cost increase
+ * traded for not missing real triggers again. Report `contentClassified`,
+ * `contentFromExtractCache`, `contentFromLiveFetch`, `contentFetchFailed` in
+ * the run's stats footer so the cost is visible, not just paid silently.
+ */
+const PDF_FETCH_CONCURRENCY = 6;
+
+async function classifyAnnouncementsByContent(annMap, qualifiedTickers, { log = () => {} } = {}) {
+  const { readOrFetchPdfMeta } = require('./watchlistInsights');
+  const { mapWithConcurrency } = require('@stock/api/utils/concurrency');
+  const jobs = [];
+  for (const ticker of qualifiedTickers) {
+    for (const ann of annMap[ticker] || []) {
+      if (ann.noiseFlagged) continue; // see filterNoise's doc comment — filing TYPE has no body to read
+      if (CONTENT_CLASSIFY_SKIP_CATEGORIES.has(ann.category_derived)) continue;
+      if (!ann.pdfUrl) {
+        ann.strengthSource = 'content_unavailable';
+        continue;
+      }
+      jobs.push(ann);
+    }
+  }
+  const stats = {
+    contentClassified: 0,
+    contentFromExtractCache: 0,
+    contentFromLiveFetch: 0,
+    contentFetchFailed: 0,
+  };
+  await mapWithConcurrency(jobs, PDF_FETCH_CONCURRENCY, async (ann) => {
+    try {
+      const extract = docExtracts.get('announcement', ann.pdfUrl);
+      let bodyText = null;
+      if (extract && extract.data) {
+        // The Filing Extract schema (skills/equity-research/document-preprocessor/
+        // references/profiles.md §announcement) has no raw-text field — it's
+        // structured facts, not a document dump. Reassemble a text surrogate
+        // from every field CATEGORY_RULES/MATERIALITY_PATTERNS can match
+        // against, so a served extract is exactly as useful as a live read for
+        // classification purposes without re-fetching the PDF.
+        const { category_hint, facts = {}, stated_rationale, verbatim_quotes = [] } = extract.data;
+        bodyText = [
+          category_hint,
+          facts.amount_inr_cr ? `₹${facts.amount_inr_cr} crore` : '',
+          facts.counterparty,
+          facts.pct_of_capital ? `${facts.pct_of_capital}%` : '',
+          stated_rationale,
+          ...verbatim_quotes.map((q) => q && q.text),
+        ]
+          .filter(Boolean)
+          .join(' ');
+        stats.contentFromExtractCache += 1;
+      } else {
+        const { text } = await readOrFetchPdfMeta(ann.pdfUrl);
+        bodyText = text || null;
+        stats.contentFromLiveFetch += 1;
+      }
+      taxonomy.annotateFromContent(ann, bodyText);
+      stats.contentClassified += 1;
+    } catch (e) {
+      // Fetch failure must NOT silently fall back to the title-only verdict as
+      // if it were final — annotateFromContent(ann, null) marks it explicitly
+      // unverified so a downstream reader/consumer can see the gap.
+      taxonomy.annotateFromContent(ann, null);
+      ann.contentFetchError = e.message;
+      stats.contentFetchFailed += 1;
+    }
+  });
+  log(
+    `      → content-classified ${stats.contentClassified}/${jobs.length} announcements ` +
+      `(${stats.contentFromExtractCache} from extract cache, ${stats.contentFromLiveFetch} live fetch, ` +
+      `${stats.contentFetchFailed} failed)\n`
+  );
+  return stats;
+}
+
 function hasMaterialAnnouncement(anns) {
   // Retained for backward compatibility with consumers of the raw JSON, but it is
   // now derived from the shared taxonomy rather than a private keyword list.
@@ -1124,6 +1256,12 @@ async function main({
   sleep = defaultSleep,
   log = (m) => process.stderr.write(m),
   topN = DEFAULT_TOP_N,
+  // API-usage audit: the job name this run should be attributed to, passed
+  // through to sendHtmlEmail() so the footer renders THIS run's summary —
+  // an explicit param, not read from any shared/global state. Optional: a
+  // caller that never set jobName on its client (e.g. a test using a stub
+  // client) simply gets no footer, never an error.
+  jobName,
   // Reuse hooks for sibling scanners (e.g. volumeRocketingScanner.js) that share
   // every step below except "what is the universe" and "what do we call it".
   //   universeFetcher(client, topN) -> raw scan rows (same shape fetchTopGainers returns)
@@ -1153,6 +1291,7 @@ async function main({
     await sendHtmlEmail({
       subject: `Daily Gainers Signal - ❌ Auth Failed [${mDateStr}]`,
       htmlBody: `<p><b>Time:</b> ${runTs}</p><p><b>Error:</b> ${e.message}</p><p>Please update STOCKSCANS_AUTH_TOKEN in .env.</p>`,
+      jobName,
     });
     throw e;
   }
@@ -1250,6 +1389,16 @@ async function main({
       .filter(([t]) => t !== '_meta')
       .map(([t, a]) => [t, stampAnnouncementAge(filterNoise(a), mDate)])
   );
+
+  // 2a. Read-before-judging: overwrite every announcement's provisional
+  // title-only strength with a content-verified one. `tickers` here is
+  // already the QUALITY-FILTERED set (§1e above), so this pass reads every
+  // 14-day announcement for the ~20-50 names that actually made this run's
+  // universe — not the full unfiltered market. See classifyAnnouncementsByContent's
+  // doc comment for why this replaced a title-based STRONG/SUPPORTING/ROUTINE
+  // gate that missed real triggers on 2026-09-04.
+  log('[2a/7] Reading announcements before classifying strength …\n');
+  const contentClassifyStats = await classifyAnnouncementsByContent(annMap, tickers, { log });
 
   // 2b. Concall sentiment (bullish/optimistic transcript within the last 7 days
   // can explain price momentum the same way a STRONG announcement does — see
@@ -1417,6 +1566,12 @@ async function main({
     // "announcements incomplete" rather than "no filings found" — those are very
     // different claims and conflating them is how a signal report misleads.
     announcements_meta: annMeta,
+    // Read-before-judging pass stats (§2a) — how many announcements got a
+    // content-verified strength vs. how many still only have the provisional
+    // title-only one (contentFetchFailed / content_unavailable). A caller
+    // reporting `ann_strength`/`strong_announcements` downstream should treat
+    // anything not covered here as UNVERIFIED, not as confirmed ROUTINE.
+    content_classification_meta: contentClassifyStats,
     // `available: false` here (fetchConcallSentiment threw) must read in the email
     // as "concall sentiment unavailable today" — never silently as "no bullish
     // concalls found", which is a different, misleading claim.
@@ -1498,6 +1653,11 @@ module.exports = {
 
 if (require.main === module) {
   loadEnv(argValue('--env-file'));
+  // API-usage audit: jobName is resolved once and passed explicitly to every
+  // consumer below (the stockscans client's HttpClient instance, and flush())
+  // — never a shared/global "active job" (see lib/apiUsageTracker.js's header).
+  const jobName = resolveJobName('daily-gainers-signal-stockmarket');
+  stockscans.setJobName(jobName);
   // v2: no wrap-around Drive sync — run `yarn data:push` (scripts/data.js) after the job.
   (async () => {
     const dateArg = argValue('--date');
@@ -1507,7 +1667,8 @@ if (require.main === module) {
     if (!Number.isFinite(topN) || topN <= 0) {
       throw new Error(`--top-n must be a positive number, got "${topNArg}"`);
     }
-    const output = await main({ marketDate, topN });
+    const output = await main({ marketDate, topN, jobName });
+    apiUsageTracker.flush(jobName);
     process.stdout.write(JSON.stringify(output));
   })().catch((e) => {
     console.error(e.message);

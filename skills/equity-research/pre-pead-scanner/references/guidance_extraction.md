@@ -74,8 +74,13 @@ Fetch the previous 2–4 transcripts and watch how the _same_ guidance moved acr
 - **Silent flags** — items disclosed in a filing but never raised by management or analysts on the call. Surface them; they're often where the surprise hides.
 
 ```bash
-python3 stock-api/python/fetchers/fetch_documents.py "<companyId>" \
-    -t Transcript --last-n 4 -o "/tmp/pead/${SAFE}_docs"
+# Real implementation is a Node module, not a Python CLI — see
+# stock-documents-fetcher/SKILL.md "Actual working usage" (corrected 2026-08-02).
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('<companyId>', { types: ['Transcript'], lastN: 4, outputDir: '/tmp/pead/${SAFE}_docs' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 ```
 
 ## The capability tier (deliverability leg)

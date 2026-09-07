@@ -49,8 +49,10 @@ yarn workspace @stock/api get-concall-transcript-url --company "$TICKER"
 Handle its output:
 
 - On success (`ssUrl`/`documentUrl` present) → download/read the document at
-  `documentUrl` (`stock-documents-fetcher` / `fetch_documents.py -t
-Transcript --last-n 1`, or fetch `documentUrl` directly).
+  `documentUrl` (`stock-documents-fetcher`'s `fetchDocuments(ticker, {types:
+  ['Transcript'], lastN: 1, outputDir})` — see its SKILL.md "Actual working
+  usage"; the once-documented Python CLI does not exist — or fetch
+  `documentUrl` directly).
 - On `error` → that quarter's results likely aren't out yet, or the
   transcript genuinely isn't filed (rare) — tell the user no transcript is
   available yet.
@@ -63,9 +65,16 @@ SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_concall_docs"
 N=4  # 4-8 for multi-quarter; 1 per peer for multi-peer
 
-# Step 1: list available official transcripts — manifest only, no downloads yet
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t Transcript --last-n $N --list-only -o "$DOCS_DIR"
+# Step 1: list available official transcripts — manifest only, no downloads yet.
+# fetchDocuments({listOnly:true}) returns {matched} and writes no manifest file
+# itself — write one ourselves in the shape Step 2 below expects.
+mkdir -p "$DOCS_DIR"
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['Transcript'], lastN: $N, listOnly: true }).then((r) => {
+  require('fs').writeFileSync('$DOCS_DIR/manifest.json', JSON.stringify(r.matched));
+});
+"
 
 # Step 2: bulk DB check for all quarters in the manifest
 BULK=$(python3 -c "
@@ -78,9 +87,20 @@ yarn workspace @stock/api get-latest-concall-transcript --bulk "$BULK"
 
 # Step 3: for "db-hit"/"saved" entries — read fullText from data/reports/<id>.json (no PDF download)
 
-# Step 4: for "official-transcript-exists" entries — download ONLY those PDFs
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t Transcript -o "$DOCS_DIR" --start-date "$YYYYMM" --end-date "$YYYYMM"
+# Step 4: for "official-transcript-exists" entries — download ONLY those PDFs.
+# Before reading a downloaded PDF's text, check the shared Filing Extract
+# store (docs/REUSE_ARCHITECTURE_PLAN.md §4.1) — a cheap agent may have
+# already extracted this transcript's guidance for the daily pipeline:
+#   node -e "const {resolveFilingContent}=require('./packages/jobs-runtime/lib/resolveFilingContent'); \
+#     console.log(JSON.stringify(resolveFilingContent({sourceUrl:'<pdfUrl>', profile:'transcript'})))"
+# `source: 'extract-cache'` still requires this skill's own tone/dodge/
+# contradiction judgment on top — the extract is facts, not the analysis —
+# but it saves the PDF fetch and the manual quote-pulling pass.
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['Transcript'], outputDir: '$DOCS_DIR', startDate: '$YYYYMM', endDate: '$YYYYMM' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 # After reading each downloaded PDF, save its text to DB (see below) so future runs skip the download
 ```
 

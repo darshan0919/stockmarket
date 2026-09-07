@@ -27,11 +27,57 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const db = require('./db');
+const extractionQualityCounter = require('./extractionQualityCounter');
+const { resolveJobName } = require('./scriptJobName');
 
 const SCHEMA_VERSION = 1;
 
 /** Profiles, in the order they are meant to ship (plan §4 P1). */
 const PROFILES = ['announcement', 'result', 'transcript', 'ppt', 'annual_report'];
+
+/**
+ * Per-profile schema versions (docs/REUSE_ARCHITECTURE_PLAN.md §4.5).
+ *
+ * `SCHEMA_VERSION` above is a leftover flat stamp from before any profile's
+ * schema had actually changed after launch; it still gets written for
+ * backward compatibility, but staleness rejection reads THIS map instead,
+ * because a schema change to one profile (e.g. annual_report's `sourceUnit`/
+ * `consolidated` fields, added 2026-09-06 following calibration) must not
+ * silently invalidate every OTHER profile's cache too.
+ *
+ * Bump a profile's number here whenever `profiles.md`'s schema for it
+ * changes in a way that adds/renames a field a consumer would rely on —
+ * the same day you edit profiles.md, not later. `resolveFilingContent()`
+ * treats any stored record whose `profileSchemaVersions[profile]` is older
+ * than the number here as a miss, forcing re-extraction rather than serving
+ * a shape that no longer matches what the profile promises.
+ *
+ * Versions start at 1 as of 2026-09-06 for every profile, INCLUDING
+ * annual_report — the two schema changes made to it during calibration
+ * (both before this map existed) were handled manually via `__invalidated`,
+ * which was the correct tool for a pre-launch calibration cycle. This map
+ * is what replaces that manual step going forward.
+ */
+const PROFILE_SCHEMA_VERSIONS = {
+  announcement: 1,
+  result: 1,
+  transcript: 1,
+  ppt: 1,
+  // Bumped 2026-09-06 (docs/REUSE_ARCHITECTURE_PLAN.md §4.2): profiles.md's
+  // `auditor` schema gained `firm`/`appointedDate` for forensic-accounting's
+  // Manpasand-pattern (sudden auditor change) check. Every annual_report
+  // extract stored before this bump lacks those two fields — this bump is
+  // what makes resolveFilingContent() correctly treat them as stale rather
+  // than silently handing a caller an `auditor` object two fields short of
+  // what profiles.md now promises. Direct docExtracts.get() callers are
+  // UNAFFECTED (that lookup has no staleness check) — only the
+  // resolveFilingContent() path enforces this, by design.
+  annual_report: 2,
+};
+
+function declaredSchemaVersion(profile) {
+  return PROFILE_SCHEMA_VERSIONS[profile] ?? 1;
+}
 
 // ── TWO SWITCHES, NOT ONE: SHADOW vs SERVED ──────────────────────────────
 //
@@ -173,6 +219,23 @@ function has(profile, sourceUrl) {
 }
 
 /**
+ * True only for a record that exists AND is still marked `__invalidated`
+ * (e.g. extracted under a schema/instruction set later found to be wrong —
+ * see docs re: the truncation bug and the 2026-09-06 annual_report calibration
+ * FAIL). The queue treats an invalidated record as "not yet extracted" so a
+ * bad batch can be re-queued and overwritten by `put()` without needing a
+ * file delete, which the Cowork mount forbids anyway.
+ */
+function isInvalidated(profile, sourceUrl) {
+  try {
+    const rec = JSON.parse(fs.readFileSync(file(profile, sourceUrl), 'utf8'));
+    return !!(rec && rec.__invalidated);
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
  * Read an extract. A SHADOW profile's extracts are invisible here by design —
  * they exist for calibration and nothing else, so a consuming skill asking for
  * one gets `null` (an ordinary cache miss it already knows how to handle) rather
@@ -210,6 +273,11 @@ function put(profile, sourceUrl, extract) {
   }
   const { isL1Rejection } = require('./verifyExtract');
   const rejected = isL1Rejection(extract.verification.l1);
+  extractionQualityCounter.record(resolveJobName('unknown-job'), {
+    profile,
+    l1Status: extract.verification.l1.status,
+    confidence: extract.confidence,
+  });
   const target = rejected
     ? path.join(
         db.cachePath(path.join('doc-extracts', '_rejected', String(profile))),
@@ -219,6 +287,11 @@ function put(profile, sourceUrl, extract) {
 
   const record = {
     schemaVersion: SCHEMA_VERSION,
+    // Per-profile version at write time — see PROFILE_SCHEMA_VERSIONS above.
+    // Stamped even though today's value is 1 for every profile, so the very
+    // next profiles.md schema bump has a baseline to compare against instead
+    // of every already-stored record silently reading as "version undefined".
+    profileSchemaVersion: declaredSchemaVersion(profile),
     profile,
     sourceUrl,
     sourceHash: sourceHash(sourceUrl),
@@ -272,6 +345,8 @@ function stats() {
 module.exports = {
   SCHEMA_VERSION,
   PROFILES,
+  PROFILE_SCHEMA_VERSIONS,
+  declaredSchemaVersion,
   isEnabled,
   isServed,
   isShadow,
@@ -283,6 +358,7 @@ module.exports = {
   dir,
   file,
   has,
+  isInvalidated,
   get,
   put,
   stats,

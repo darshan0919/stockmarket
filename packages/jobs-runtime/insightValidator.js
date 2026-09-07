@@ -21,6 +21,8 @@ const { nse, stockscans } = require('@stock/api');
 const { sendHtmlEmail, stockscansLink } = require('@stock/cloud-utils');
 const { NotesDb } = require('./lib/notesDb');
 const { loadEnv, argValue } = require('./lib/env');
+const apiUsageTracker = require('./lib/apiUsageTracker');
+const { resolveJobName } = require('./lib/scriptJobName');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const dbV2 = require('./lib/db');
 const ist = require('./lib/ist');
@@ -1802,7 +1804,11 @@ function renderQualitySection(qr) {
 }
 
 async function sendEmail(html) {
-  return sendHtmlEmail({ subject: `🔎 Insight Validation — ${ist.nowIstHuman()}`, htmlBody: html });
+  return sendHtmlEmail({
+    subject: `🔎 Insight Validation — ${ist.nowIstHuman()}`,
+    htmlBody: html,
+    jobName: stockscans.http.jobName,
+  });
 }
 
 // ── Commands ──────────────────────────────────────────────────────────────────
@@ -2101,9 +2107,13 @@ module.exports = {
 
 if (require.main === module) {
   loadEnv(argValue('--env-file'));
+  const jobName = resolveJobName('watchlist-insight-validation-stockmarket');
+  stockscans.setJobName(jobName);
   // v2: no wrap-around Drive sync — run `yarn data:push` (scripts/data.js) after the job.
-  runCli(process.argv.slice(2)).catch((e) => {
-    process.stderr.write(JSON.stringify({ error: e.message, command: 'cli' }));
-    process.exit(1);
-  });
+  runCli(process.argv.slice(2))
+    .catch((e) => {
+      process.stderr.write(JSON.stringify({ error: e.message, command: 'cli' }));
+      process.exit(1);
+    })
+    .finally(() => apiUsageTracker.flush(jobName));
 }

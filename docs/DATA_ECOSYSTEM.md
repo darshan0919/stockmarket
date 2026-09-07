@@ -42,7 +42,7 @@ data/
   notes.json            # all company notes (watchlist-insights, manual, validation follow-ups)
   theses.json           # current thesis per company
   thesis-history.jsonl  # append-only thesis deltas
-  events-YYYY-MM.json   # monthly event partitions: gainer | deal | tweet | announcement | watchlist-sync
+  events-YYYY-MM.json   # monthly event partitions: gainer | deal | tweet | announcement | watchlist-sync | api_usage_summary
                         #   | order-win | order-book-declared | order-book-sync (see docs/ORDER_BOOK_EXTRACTION.md)
   validation.json       # insight-validation ledger records
   ipos.json             # per-IPO subscription-quality state (ipo-subscription-ranker skill,

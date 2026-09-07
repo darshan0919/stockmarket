@@ -22,11 +22,20 @@ TICKER="NSE:SWARAJENG"            # replace with actual ticker
 SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_deepdive_docs"
 
-# 5 ARs + 4 quarters each of concalls, presentations, results
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t "Annual Report" Transcript PPT Result \
-    --last-n 4 \
-    -o "$DOCS_DIR"
+# 5 ARs + 4 quarters each of concalls, presentations, results.
+# Real implementation is a Node module, not a Python CLI — see
+# stock-documents-fetcher/SKILL.md "Actual working usage" (corrected 2026-08-02).
+# Before reading a fetched PDF's text, check the shared Filing Extract
+# store first (docs/REUSE_ARCHITECTURE_PLAN.md §4.1) — document-preprocessor
+# may already have a verified extract for this exact document:
+#   node -e "const {resolveFilingContent}=require('./packages/jobs-runtime/lib/resolveFilingContent'); \
+#     console.log(JSON.stringify(resolveFilingContent({sourceUrl:'<pdfUrl>', profile:'<profile>'})))"
+# profile mapping: Annual Report->annual_report, Transcript->transcript, PPT->ppt, Result->result.
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['Annual Report', 'Transcript', 'PPT', 'Result'], lastN: 4, outputDir: '$DOCS_DIR' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 ```
 
 One pass fetches all four types (4 each = up to 16 PDFs). Then treat every file in `$DOCS_DIR` identically to an uploaded PDF. Use `$DOCS_DIR/manifest.json` to identify documents by `documentType` and `date` for targeted `grep`/`sed` extraction — this avoids running `pdftotext` blindly on 16 files.
@@ -41,8 +50,11 @@ minor one.
 For annual reports specifically, run `--last-n 5` separately (5 years > 4 quarters of depth):
 
 ```bash
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t "Annual Report" --last-n 5 -o "$DOCS_DIR"
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['Annual Report'], lastN: 5, outputDir: '$DOCS_DIR' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 ```
 
 #### Phase 1b — PDF text extraction

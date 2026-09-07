@@ -34,6 +34,9 @@
  */
 
 const { loadEnv, argValue, hasFlag } = require('./lib/env');
+const apiUsageTracker = require('./lib/apiUsageTracker');
+const { resolveJobName } = require('./lib/scriptJobName');
+const { stockscans } = require('@stock/api');
 
 // The Radar watchlist — the curated set worth tracking order books for.
 const RADAR_WATCHLIST_ID = '7ca0e1a60c3fd0d8b1ab61ce';
@@ -184,6 +187,8 @@ module.exports = { main, companyIdsFromTable, mapLimit, RADAR_WATCHLIST_ID };
 
 if (require.main === module) {
   loadEnv(argValue('--env-file'));
+  const jobName = resolveJobName('order-book-sync-stockmarket');
+  stockscans.setJobName(jobName);
   const companiesArg = argValue('--companies');
   main({
     watchlistId: argValue('--watchlist-id') || undefined,
@@ -199,5 +204,6 @@ if (require.main === module) {
     .catch((e) => {
       console.error(e.message);
       process.exit(1);
-    });
+    })
+    .finally(() => apiUsageTracker.flush(jobName));
 }

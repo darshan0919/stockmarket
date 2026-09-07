@@ -9,28 +9,49 @@
  */
 
 const { StockscansClient } = require('@stock/api');
+const fs = require('fs');
 const path = require('path');
 const { loadEnv } = require('./lib/env');
-const { callAnthropic } = require('./lib/anthropicClient');
+const apiUsageTracker = require('./lib/apiUsageTracker');
+const { resolveJobName } = require('./lib/scriptJobName');
+const db = require('./lib/db');
 
 loadEnv(path.join(__dirname, '../../.env'));
 
 /**
- * Build the order-book-insights prompt for a batch of announcement text.
- * @param {string} text - Combined announcement subjects/descriptions.
- * @returns {string} Prompt ready to pass to `callAnthropic`.
+ * Synthesis is no longer done by this script (conventions.md §24 —
+ * NO script in this repo may call an LLM provider API directly; that was
+ * `lib/anthropicClient.js`'s job and it has been removed). Extraction
+ * (fetching + combining the announcement text below) stays here per §17;
+ * the "extract order wins, contract values, and winning company from this
+ * batch" step is now an AGENT-executed instruction, run by reading the
+ * pending-synthesis file this script writes and following the prompt text
+ * embedded in it — see `writePendingSynthesis` below.
  */
-function buildOrderBookPrompt(text) {
-  return `You are a financial analyst tracking order books. Extract all specific order wins, contracts awarded, and LOAs from the following announcements. Detail the client name, order value (if any), and the company winning the order:
+function writePendingSynthesis(text) {
+  const runsDir = path.join(db.dataRoot(), 'runs');
+  fs.mkdirSync(runsDir, { recursive: true });
+  const outPath = path.join(runsDir, 'order-book-digest-pending-synthesis.md');
+  const body = `# Order Book Digest — pending synthesis
 
-Announcements:
+This is an AGENT step (not a script LLM call — see conventions.md §24). Read the
+announcements below and extract every specific order win, contract awarded, or LOA:
+for each, name the client, the order value (if any), and the company winning the
+order. Then record this run's observed token usage via:
+  yarn record-token-usage --job <job-name> --input <n> --output <n>
+
+## Announcements
+
 ${text.substring(0, 80000)}
 `;
+  fs.writeFileSync(outPath, body);
+  return outPath;
 }
 
-async function runOrderBookDigest() {
+async function runOrderBookDigest({ jobName = null } = {}) {
   console.log('Starting Order Book Digest...');
   const client = new StockscansClient();
+  client.setJobName(jobName);
 
   const payload = {
     scan: {
@@ -61,13 +82,8 @@ async function runOrderBookDigest() {
       const combinedText = items
         .map((i) => `[${i.companyName || i.ticker}] ${i.subject}\n${i.description}`)
         .join('\n\n');
-      console.log('Generating AI Insights for Order Book...');
-      const insights = await callAnthropic(buildOrderBookPrompt(combinedText));
-      if (insights) {
-        console.log('\n--- Order Book Insights ---\n');
-        console.log(insights);
-        console.log('\n---------------------------\n');
-      }
+      const pendingPath = writePendingSynthesis(combinedText);
+      console.log(`Wrote pending synthesis for an agent to pick up: ${pendingPath}`);
     }
     console.log('Order Book Digest completed successfully.');
   } catch (err) {
@@ -76,7 +92,10 @@ async function runOrderBookDigest() {
 }
 
 if (require.main === module) {
-  runOrderBookDigest().catch(console.error);
+  const jobName = resolveJobName('manual-order-book-digest');
+  runOrderBookDigest({ jobName })
+    .catch(console.error)
+    .finally(() => apiUsageTracker.flush(jobName));
 }
 
 module.exports = { runOrderBookDigest };

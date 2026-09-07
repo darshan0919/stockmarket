@@ -46,6 +46,8 @@ const { sendHtmlEmail, stockscansLink } = require('@stock/cloud-utils');
 const { NotesDb } = require('./lib/notesDb');
 const { pdfToTextWithMeta } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
+const apiUsageTracker = require('./lib/apiUsageTracker');
+const { resolveJobName } = require('./lib/scriptJobName');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const ist = require('./lib/ist');
 const {
@@ -428,6 +430,7 @@ async function gatherInwindowRaw(
     await sendHtmlEmail({
       subject: `Watchlist Insights - ❌ Auth Failed`,
       htmlBody: `<p><b>Time:</b> ${ist.nowIstHuman()}</p><p><b>Error:</b> ${errorMsg}</p><p>Please update STOCKSCANS_AUTH_TOKEN in .env.</p>`,
+      jobName: stockscans.http.jobName,
     });
     throw e;
   }
@@ -495,10 +498,22 @@ async function cmdFetchAnnouncements(watchlistIdsArg, client = stockscans) {
     const annId = announcementId(ann);
     const pdfUrl = ssUrl ? `${S3_BASE_URL}${ssUrl}` : '';
 
+    // Log-and-flag, never drop: this used to `continue` here, permanently
+    // excluding a noise-keyword-matched announcement from `results` before
+    // watchlist-insights ever got a chance to read it — the same title/
+    // description-based exclusion that made gainers-signal miss real triggers
+    // on 2026-09-04 (see announcementTaxonomy.js's `filterNoise` doc comment
+    // for the sibling fix). The noise-keyword list is genuinely reliable for
+    // its intended targets (IEPF unclaimed dividend, trading-window closure,
+    // ESOP allotment, scrutinizer reports) — pure exchange-mandated boilerplate
+    // with no business content — but "genuinely reliable" is still a title
+    // guess, not a read, so the item stays in `results` with `noiseFlagged:
+    // true` and Step 2 of the skill still has the option to look at it. Only
+    // the log call (for insight-validation's false-positive review) is
+    // unconditional now.
     const noiseKw = matchedNoiseKeyword(title, description);
     if (noiseKw !== null) {
       await logIgnoredAnnouncement(ann, noiseKw);
-      continue;
     }
 
     const co = NotesDb.getCompany(notes, companyId);
@@ -549,6 +564,12 @@ async function cmdFetchAnnouncements(watchlistIdsArg, client = stockscans) {
       // watchlist-insights' SKILL.md Step 2.
       heavyDocument,
       heavyDocumentSkipReason: heavyDocument ? heavyDocumentSkipReason(category) : null,
+      // Title/description-only signal, provisional — see the fix note above
+      // `matchedNoiseKeyword` call. `category` itself is also title-only at
+      // this point; announcement-insights' actual read is what finalizes
+      // what this filing means, not this field.
+      noiseFlagged: noiseKw !== null,
+      noiseKeyword: noiseKw,
       hasNotes: co !== null,
       noteCount: co ? (co.notes || []).length : 0,
     });
@@ -856,7 +877,10 @@ function cmdInitNotes() {
 }
 
 async function sendHtml(htmlBody, subject = `📊 Watchlist Insights — ${ist.nowIstHuman()}`) {
-  return sendHtmlEmail({ subject, htmlBody });
+  // jobName comes from whatever this process's require.main block already set
+  // on the shared stockscans client (see below) — read from that instance,
+  // never a second/ambient global (see apiUsageCounter.js's header).
+  return sendHtmlEmail({ subject, htmlBody, jobName: stockscans.http.jobName });
 }
 
 async function cmdSendSummary(htmlBody) {
@@ -1206,9 +1230,13 @@ module.exports = {
 
 if (require.main === module) {
   loadEnv(argValue('--env-file'));
+  const jobName = resolveJobName('watchlist-daily-insights-stockmarket');
+  stockscans.setJobName(jobName);
   // v2: no wrap-around Drive sync — run `yarn data:push` (scripts/data.js) after the job.
-  runCli(process.argv.slice(2)).catch((e) => {
-    process.stderr.write(JSON.stringify({ error: e.message, command: 'cli' }));
-    process.exit(1);
-  });
+  runCli(process.argv.slice(2))
+    .catch((e) => {
+      process.stderr.write(JSON.stringify({ error: e.message, command: 'cli' }));
+      process.exit(1);
+    })
+    .finally(() => apiUsageTracker.flush(jobName));
 }

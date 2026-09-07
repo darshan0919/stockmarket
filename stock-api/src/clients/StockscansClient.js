@@ -29,6 +29,18 @@ class StockscansClient {
     this.s3BaseUrl = S3_BASE_URL;
   }
 
+  /**
+   * Set (or clear) the job name this client's HttpClient instance attributes
+   * outbound calls to for API-usage auditing. Call once at script startup —
+   * this mutates the client's own HttpClient instance, not any shared/global
+   * state, so it is safe even if multiple StockscansClient instances exist
+   * in the same process for different purposes. See HttpClient.js's header.
+   * @param {string|null} jobName
+   */
+  setJobName(jobName) {
+    this.http.jobName = jobName || null;
+  }
+
   _headers(referer, optional = false) {
     return this.auth.headers({ referer, userAgent: this.http.userAgent, optional });
   }

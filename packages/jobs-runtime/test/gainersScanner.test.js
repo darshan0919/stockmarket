@@ -67,15 +67,25 @@ describe('resolveMarketDate', () => {
 });
 
 describe('filterNoise', () => {
-  test('drops routine compliance, keeps material', () => {
+  // filterNoise used to DROP administrative-boilerplate announcements outright
+  // based on a title/description keyword match — exactly the kind of pre-read
+  // exclusion that caused real triggers (PC Jeweller's debt-clearance update,
+  // Jindal Worldwide's showroom-rollout press release) to disappear on
+  // 2026-09-04. Fixed: it now TAGS `noiseFlagged` and keeps every item, so
+  // nothing is silently hidden from the raw 14-day list — only the PDF-fetch
+  // queue in classifyAnnouncementsByContent skips noise-flagged items, as a
+  // cost optimisation on filing TYPE, not a materiality judgment.
+  test('tags routine compliance as noiseFlagged, keeps every item', () => {
     const anns = [
       { subject: 'Closure of Trading Window', description: '' },
       { subject: 'Bagged a large order', description: 'EPC contract win' },
       { subject: 'Regulation 74 certificate', description: '' },
     ];
     const out = g.filterNoise(anns);
-    expect(out).toHaveLength(1);
-    expect(out[0].subject).toMatch(/order/i);
+    expect(out).toHaveLength(3);
+    expect(out.find((a) => /order/i.test(a.subject)).noiseFlagged).toBe(false);
+    expect(out.find((a) => /trading window/i.test(a.subject)).noiseFlagged).toBe(true);
+    expect(out.find((a) => /regulation 74/i.test(a.subject)).noiseFlagged).toBe(true);
   });
 });
 

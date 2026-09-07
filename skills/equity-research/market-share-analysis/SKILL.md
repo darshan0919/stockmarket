@@ -75,8 +75,17 @@ TICKER="NSE:<SYMBOL>"
 SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_msa_docs"
 
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t "Annual Report" PPT --last-n 2 -o "$DOCS_DIR"
+# Real implementation is a Node module, not a Python CLI — see
+# stock-documents-fetcher/SKILL.md "Actual working usage" (corrected 2026-08-02).
+# Before reading a fetched PDF's text, check the shared Filing Extract
+# store first (docs/REUSE_ARCHITECTURE_PLAN.md §4.1):
+#   node -e "const {resolveFilingContent}=require('./packages/jobs-runtime/lib/resolveFilingContent'); \
+#     console.log(JSON.stringify(resolveFilingContent({sourceUrl:'<pdfUrl>', profile:'<profile>'})))"
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['Annual Report', 'PPT'], lastN: 2, outputDir: '$DOCS_DIR' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 ```
 
 Parallelise across all players (run all fetches in one turn, then `wait`). After fetching, read `manifest.json` per ticker. ARs give audited segment revenue; investor presentations sometimes give market share claims (always `[R]`-tagged with caution — companies overstate).

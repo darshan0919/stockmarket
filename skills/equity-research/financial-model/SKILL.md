@@ -49,8 +49,10 @@ SAFE=$(echo "$TICKER" | tr ':' '_')
 # Latest quarter — DB-first waterfall
 yarn workspace @stock/api get-latest-concall-transcript "$TICKER"
 # "db-hit"/"saved" → read fullText from data/reports/<id>.json (no download needed)
-# "official-transcript-exists" → download via fetch_documents.py, then save to DB:
-#   python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" -t Transcript --last-n 1 -o /tmp/${SAFE}_docs
+# "official-transcript-exists" → download via stock-documents-fetcher, then save to DB
+#   (real implementation is a Node module, not a Python CLI — see
+#   stock-documents-fetcher/SKILL.md "Actual working usage", corrected 2026-08-02):
+#   node -e "require('./stock-api/src/fetchers/documentsFetcher.js').fetchDocuments('$TICKER', {types:['Transcript'], lastN:1, outputDir:'/tmp/${SAFE}_docs'}).then(r=>console.log(JSON.stringify(r.fetched)))"
 #   <read the PDF, write verbatim text to /tmp/${SAFE}_<yyyymm>_transcript.txt>
 #   yarn workspace @stock/api save-concall-transcript "$TICKER" "$YYYYMM" /tmp/${SAFE}_${YYYYMM}_transcript.txt
 # "results-not-out" → use prior quarter instead (run again with --quarter <prior>)

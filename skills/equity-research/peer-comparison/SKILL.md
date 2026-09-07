@@ -52,14 +52,26 @@ for T in "${TICKERS[@]}"; do
     DOCS_DIR="$ROOT/$SAFE"
     mkdir -p "$DOCS_DIR"
 
-    python3 stock-api/python/fetchers/fetch_documents.py "$T" \
-        -t "Annual Report" --last-n 2 -o "$DOCS_DIR" &
-    python3 stock-api/python/fetchers/fetch_documents.py "$T" \
-        -t Transcript --last-n 2 -o "$DOCS_DIR" &
-    python3 stock-api/python/fetchers/fetch_documents.py "$T" \
-        -t PPT --last-n 2 -o "$DOCS_DIR" &
+    # Real implementation is a Node module, not a Python CLI — see
+    # stock-documents-fetcher/SKILL.md "Actual working usage" (corrected 2026-08-02).
+    node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$T', { types: ['Annual Report', 'Transcript', 'PPT'], lastN: 2, outputDir: '$DOCS_DIR' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+" &
 done
 wait
+```
+
+Before reading any fetched PDF's text, check the shared Filing Extract store
+first (`docs/REUSE_ARCHITECTURE_PLAN.md` §4.1) — across a peer set this matters
+more than usual, since the same document-preprocessor pipeline that reads the
+daily universe has likely already extracted several of these peers' recent
+filings:
+
+```bash
+node -e "const {resolveFilingContent}=require('./packages/jobs-runtime/lib/resolveFilingContent'); \
+  console.log(JSON.stringify(resolveFilingContent({sourceUrl:'<pdfUrl>', profile:'<profile>'})))"
 ```
 
 After fetching, read `manifest.json` per company. If the Transcript type came

@@ -20,6 +20,8 @@ const path = require('path');
 const { stockscans } = require('@stock/api');
 const { sendHtmlEmail } = require('@stock/cloud-utils');
 const { loadEnv, hasFlag, argValue } = require('./lib/env');
+const apiUsageTracker = require('./lib/apiUsageTracker');
+const { resolveJobName } = require('./lib/scriptJobName');
 
 /**
  * Lazily resolve the saved-scan helper (lives in the `screener-api` package).
@@ -280,6 +282,7 @@ async function main({
       await sendHtmlEmail({
         subject: 'StockScans Watchlist Update - ❌ Auth Failed',
         htmlBody: `<p><b>Time:</b> ${now}</p><p><b>Error:</b> ${e.message}</p><p>Please update STOCKSCANS_AUTH_TOKEN in .env.</p>`,
+        jobName: client.http.jobName,
       });
     }
     throw e;
@@ -299,6 +302,7 @@ async function main({
         htmlBody:
           `<p><b>Time:</b> ${now}</p><p><b>Stage:</b> Scan fetch failed</p>` +
           `<p><b>Error:</b> ${e.message}</p><p>Watchlist was <b>NOT modified</b>.</p>`,
+        jobName: client.http.jobName,
       });
     }
     throw e;
@@ -336,6 +340,7 @@ async function main({
         htmlBody:
           `<p><b>Time:</b> ${now}</p><p><b>Stage:</b> Current watchlist fetch failed</p>` +
           `<p><b>Error:</b> ${e.message}</p><p>Watchlist was <b>NOT modified</b>.</p>`,
+        jobName: client.http.jobName,
       });
     }
     throw e;
@@ -384,6 +389,7 @@ async function main({
         `<p><b>Time:</b> ${now}</p><p><b>Stage:</b> Watchlist add/delete failed</p>` +
         `<p><b>Error:</b> ${e.message}</p><p>To add: <b>${itemsToAdd.length}</b> | ` +
         `To remove: <b>${itemsToRemove.length}</b> — watchlist may be <b>partially updated</b>.</p>`,
+      jobName: client.http.jobName,
     });
     throw e;
   }
@@ -402,6 +408,7 @@ async function main({
       `<tr><td style="padding:4px 12px 4px 0"><b>Desired Final Count</b></td><td>${desiredIds.size}</td></tr>` +
       `<tr><td style="padding:4px 12px 4px 0"><b>Added</b></td><td>${itemsToAdd.length}</td></tr>` +
       `<tr><td style="padding:4px 12px 4px 0"><b>Removed</b></td><td>${itemsToRemove.length}</td></tr></table>`,
+    jobName: client.http.jobName,
   });
 
   log(`\n${'='.repeat(55)}`);
@@ -429,6 +436,8 @@ module.exports = {
 // CLI entry
 if (require.main === module) {
   loadEnv(argValue('--env-file'));
+  const jobName = resolveJobName('watchlist-sync-stockmarket');
+  stockscans.setJobName(jobName);
   main({
     dryRun: hasFlag('--dry-run'),
     scanId: argValue('--scan-id') || undefined,
@@ -436,8 +445,10 @@ if (require.main === module) {
     scanName: argValue('--scan-name') || undefined,
     watchlistName: argValue('--watchlist-name') || undefined,
     radarId: argValue('--radar-id') || undefined,
-  }).catch((e) => {
-    console.error(e.message);
-    process.exit(1);
-  });
+  })
+    .catch((e) => {
+      console.error(e.message);
+      process.exit(1);
+    })
+    .finally(() => apiUsageTracker.flush(jobName));
 }

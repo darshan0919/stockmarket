@@ -32,6 +32,8 @@
 
 const { nse, bse, stockscans } = require('@stock/api');
 const { loadEnv, argValue } = require('./lib/env');
+const apiUsageTracker = require('./lib/apiUsageTracker');
+const { resolveJobName } = require('./lib/scriptJobName');
 const { sendHtmlEmail, stockscansUrl } = require('@stock/cloud-utils');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const dbV2 = require('./lib/db');
@@ -1114,6 +1116,7 @@ async function main() {
       subject: `📊 Deals Digest ${dateLabel} — Bulk/Block/SAST/Insider top ${topN} companies by value`,
       htmlBody: htmlBody,
       to: process.env.DEALS_DIGEST_TO || undefined,
+      jobName: stockscans.http.jobName,
     });
   }
 
@@ -1165,10 +1168,14 @@ async function main() {
 }
 
 if (require.main === module) {
-  main().catch((e) => {
-    console.error('dealsDigest failed:', e);
-    process.exit(1);
-  });
+  const jobName = resolveJobName('daily-deals-digest');
+  stockscans.setJobName(jobName);
+  main()
+    .catch((e) => {
+      console.error('dealsDigest failed:', e);
+      process.exit(1);
+    })
+    .finally(() => apiUsageTracker.flush(jobName));
 }
 
 module.exports = {

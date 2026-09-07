@@ -123,3 +123,76 @@ Every Category A/B skill benefits from: identity, thesis, last N reports (same c
 any type), notes, last 90d events, validation verdicts, and recent captured conversations
 (chat history about the company). Today none of them read prior outputs (each starts cold)
 — the single biggest reuse win of v2.
+
+## G. Cross-cutting: API-usage audit (every API-calling scheduled job)
+
+Every scheduled job (a `jobs/Scheduled/<name>` directory — the actual 1:1 unit with a cron
+schedule and a single outbound email) that makes outbound HTTP calls (StockscansClient,
+ScreenerClient, PerplexityClient — all route through `stock-api/src/http/HttpClient.js`,
+the single instrumented choke point; NseClient/BseClient do NOT — see the caveat below)
+is tracked once the job resolves its own name and passes it explicitly to the client(s)
+it uses via `client.setJobName('<job-name>')`.
+
+**Attribution is JOB-level, not skill-level (revised 2026-09-06).** Many jobs-runtime
+scripts back MULTIPLE registry.json skills, and some skills are in turn invoked by
+MULTIPLE scheduled jobs (`watchlistInsights.js` backs `gainers-signal`,
+`volume-rocketing`, `announcement-insights`, and more; `postCloseScanInsights.js` is
+invoked by five separate `post-close-scan-insights` time-slot runs plus the distinct
+`post-close-day-recap` job) — skill-level attribution was ambiguous for exactly the
+scripts most in need of auditing. The job is the unambiguous unit: it owns the cron
+schedule and the one email the audit footer rides on.
+
+**No shared/global "active job" anywhere (revised again 2026-09-06, per review).** An
+earlier version of this feature had a single module-level `setActiveJob()`/`isActive()`
+in `apiUsageTracker.js`, read implicitly by every recorded call. That was fine for two
+DIFFERENT scheduled jobs (each is a separate `node script.js` process — no
+fork/worker_threads/cluster — so they never actually shared that module state), but a
+SINGLE process handling more than one logical run internally (nested requires, sequential
+sub-jobs, or two concurrent async calls) could have a second `setActiveJob()` silently
+clobber the first run's still-in-flight counts. Fixed by making the counter itself keyed
+by job (`@stock/cloud-utils/src/apiUsageCounter.js`'s `Map<job, Map<api, counts>>`) and
+requiring every function (`record`, `getSummary`, `flush`, `appendApiUsageFooter`) to take
+the job name as an EXPLICIT argument — concurrent/nested recording is correct by
+construction, not by convention. `HttpClient` holds `jobName` as INSTANCE state (set at
+construction, or mutated via a client's own `setJobName()`), never a shared/global — two
+`HttpClient` instances (even for two different jobs, even used concurrently in one
+process) never interfere with each other.
+
+A job's own `SKILL.md` is the only file that knows its own `jobs/Scheduled/<name>`
+identity, but most jobs don't call an instrumented script directly — they say "follow
+the `<x>` skill", and the actual `node`/`yarn` invocation lives several layers deep
+inside that shared skill's own SKILL.md. So each job's SKILL.md claims its identity via
+`export STOCKMARKET_JOB_NAME=<job-directory-name>` as its first orchestration step — an
+env var propagates through every layer of shell function/subshell indirection for free,
+with zero changes needed to the shared skill files in between. The script then resolves
+that env var via `packages/jobs-runtime/lib/scriptJobName.js`'s `resolveJobName` (order:
+env var → explicit `--job` flag → the script's own default for a direct/manual run) into
+a plain local `jobName` variable, and passes it explicitly to `client.setJobName(jobName)`
+and `apiUsageTracker.flush(jobName)` — never storing it in any shared/ambient state. A job
+that invokes its script directly (e.g. `daily-deals-digest`'s `yarn deals-digest`,
+`order-book-sync-stockmarket`'s `yarn order-book-sync`) instead passes `--job <job-name>`
+inline on that command.
+
+- **Generate**: per-run call counts grouped by API (stockscans/screener/perplexity today
+  — see the NSE/BSE caveat below), with ok/failed split.
+- **Store**: `events-YYYY-MM.json`, `type: api_usage_summary`, one record per job run
+  (`creator`/`job` = the job directory name, `date` = IST run date, `byApi`, `totalCalls`)
+  via `apiUsageTracker.flush(jobName)` — call this once near the end of the script's run
+  (after `data:push` is a good spot), passing the SAME jobName string the script resolved
+  at startup. This is a `type` inside the existing `events` collection, not a new
+  collection (DATA_RULES §2).
+- **Email footer**: a script passes its resolved `jobName` on the `sendHtmlEmail({ ...,
+  jobName })` call it already makes, and the footer (`emailService.js`'s
+  `appendApiUsageFooter`) renders THAT job's summary from the shared counter — no
+  per-digest-HTML-builder change needed; this is why the footer shows up on all 18+
+  existing scheduled emails with just one added line per `sendHtmlEmail` call site.
+- **Do NOT store**: raw request/response bodies (regenerable, and would balloon `events`);
+  per-request timestamps (only the run-level rollup is kept — the point is cost/volume
+  auditing, not a request log).
+- **Known gap (NOT fixed by this feature): NSE and BSE calls are NOT tracked.**
+  `stock-api/src/http/nseSession.js` and `bseHttp.js` use raw `axios`/`fetch` directly —
+  neither goes through `HttpClient`, so a job that only calls `nse`/`bse` (e.g.
+  `corpActionsDigest.js`, `anchorBulkDealTracker.js`) always flushes zero calls today,
+  even though it resolves and passes a jobName for forward-compatibility. Extending
+  coverage to NSE/BSE needs its own instrumentation pass on those two transport modules —
+  out of scope here, flagged so it isn't mistaken for "NSE/BSE calls are free."

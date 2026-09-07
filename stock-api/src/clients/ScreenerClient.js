@@ -27,6 +27,17 @@ class ScreenerClient {
   }
 
   /**
+   * Set (or clear) the job name this client's HttpClient instance attributes
+   * outbound calls to for API-usage auditing. Call once at script startup —
+   * this mutates the client's own HttpClient instance, not any shared/global
+   * state. See HttpClient.js's header and StockscansClient.js's setJobName.
+   * @param {string|null} jobName
+   */
+  setJobName(jobName) {
+    this.http.jobName = jobName || null;
+  }
+
+  /**
    * Resolve a company URL slug. Screener uses the NSE/BSE symbol as the slug
    * (e.g. `ARE&M`, `PGEL`). `consolidated` toggles the consol vs standalone view
    * — Indian analysts model consolidated, so default to it and fall back.

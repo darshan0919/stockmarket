@@ -27,9 +27,18 @@ TICKER="NSE:BSE"                  # replace with actual ticker
 SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_diff_docs"
 
-# Two most recent investor presentations (prior quarter + latest quarter)
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t PPT --last-n 2 -o "$DOCS_DIR"
+# Two most recent investor presentations (prior quarter + latest quarter).
+# Real implementation is a Node module, not a Python CLI — see
+# stock-documents-fetcher/SKILL.md "Actual working usage" (corrected 2026-08-02).
+# Before reading a fetched PDF's text, check the shared Filing Extract
+# store first (docs/REUSE_ARCHITECTURE_PLAN.md §4.1):
+#   node -e "const {resolveFilingContent}=require('./packages/jobs-runtime/lib/resolveFilingContent'); \
+#     console.log(JSON.stringify(resolveFilingContent({sourceUrl:'<pdfUrl>', profile:'<profile>'})))"
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['PPT'], lastN: 2, outputDir: '$DOCS_DIR' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 
 # Latest concall transcript — this skill's core trigger ("update the thesis
 # with the latest concall") fires right after a results drop. Resolve the
@@ -49,8 +58,11 @@ rather than fabricating reconciliation).
 If the company does not publish investor presentations (manifest returns 0 PPT documents), use the two most recent `Result` filings as a substitute:
 
 ```bash
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t Result --last-n 2 -o "$DOCS_DIR"
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['Result'], lastN: 2, outputDir: '$DOCS_DIR' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 ```
 
 Confirm with the user which documents will be used as the two comparison points before starting Phase 1.

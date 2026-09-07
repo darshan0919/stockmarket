@@ -188,7 +188,10 @@ async function buildQueue({ windowHoursArg, profileFilter }) {
     if (!sourceUrl || seen.has(sourceUrl)) continue;
     seen.add(sourceUrl);
 
-    if (docExtracts.has(profile, sourceUrl)) {
+    // An invalidated record (e.g. extracted under an instruction set later
+    // found to be wrong) does not count as "already extracted" — it must be
+    // re-queued so the next extraction pass can overwrite it via put().
+    if (docExtracts.has(profile, sourceUrl) && !docExtracts.isInvalidated(profile, sourceUrl)) {
       stats.alreadyExtracted += 1;
       continue;
     }

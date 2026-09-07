@@ -29,28 +29,47 @@ mkdir -p "$RESEARCH_ROOT/Annual_Reports" \
          "$RESEARCH_ROOT/Credit_Rating_Reports" \
          "$RESEARCH_ROOT/Events_Announcements"
 
-# Core standardised filings — fetch 5 ARs, 8 quarters of concalls + decks + results
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t "Annual Report" --last-n 5 -o "$RESEARCH_ROOT/Annual_Reports"
+# Core standardised filings — fetch 5 ARs, 8 quarters of concalls + decks + results.
+# Real implementation is a Node module, not a Python CLI — see
+# stock-documents-fetcher/SKILL.md "Actual working usage" (corrected 2026-08-02).
+# Before reading a fetched PDF's text, check the shared Filing Extract
+# store first (docs/REUSE_ARCHITECTURE_PLAN.md §4.1):
+#   node -e "const {resolveFilingContent}=require('./packages/jobs-runtime/lib/resolveFilingContent'); \
+#     console.log(JSON.stringify(resolveFilingContent({sourceUrl:'<pdfUrl>', profile:'<profile>'})))"
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['Annual Report'], lastN: 5, outputDir: '$RESEARCH_ROOT/Annual_Reports' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t Transcript --last-n 8 -o "$RESEARCH_ROOT/Concalls"
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['Transcript'], lastN: 8, outputDir: '$RESEARCH_ROOT/Concalls' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 
 # Backfill the latest quarter if it's not officially filed yet — the fetch
 # above only returns OFFICIAL Transcript documents
 yarn workspace @stock/api get-latest-concall-transcript "$TICKER"
 
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t PPT --last-n 8 -o "$RESEARCH_ROOT/Investor_Presentations"
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['PPT'], lastN: 8, outputDir: '$RESEARCH_ROOT/Investor_Presentations' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 
 # Optional: pull credit-rating and events announcements
-python3 stock-api/python/fetchers/fetch_announcements.py "$TICKER" \
-    --search 'rating|outlook|downgrade|upgrade|watch' \
-    --max-pages 10 -o "$RESEARCH_ROOT/Credit_Rating_Reports"
+node -e "
+const { fetchAnnouncements } = require('./stock-api/src/fetchers/announcementsFetcher.js');
+fetchAnnouncements('$TICKER', { search: 'rating|outlook|downgrade|upgrade|watch', maxPages: 10, outputDir: '$RESEARCH_ROOT/Credit_Rating_Reports' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 
-python3 stock-api/python/fetchers/fetch_announcements.py "$TICKER" \
-    --search 'merger|acquisition|demerger|delisting|buyback|dividend|capex|order' \
-    --max-pages 10 -o "$RESEARCH_ROOT/Events_Announcements"
+node -e "
+const { fetchAnnouncements } = require('./stock-api/src/fetchers/announcementsFetcher.js');
+fetchAnnouncements('$TICKER', { search: 'merger|acquisition|demerger|delisting|buyback|dividend|capex|order', maxPages: 10, outputDir: '$RESEARCH_ROOT/Events_Announcements' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 ```
 
 After running, each folder will also contain a `manifest.json`. Use the manifest to confirm what was downloaded before starting extraction — if any critical type returned 0 documents, note it in the extraction output rather than silently producing an empty file.

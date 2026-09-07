@@ -11,6 +11,8 @@ This run does NOT fetch announcements, read any PDF, or write any new insight �
 it reloads the day's already-persisted notes and re-presents them with market
 data. If you find yourself reading a filing, you are running the wrong job.
 
+Before doing anything else, run `export STOCKMARKET_JOB_NAME=post-close-day-recap` in the same shell/subshell that will invoke `postCloseScanInsights.js` — this attributes this run's outbound API calls to the `post-close-day-recap` job (distinct from the slot digests above, even though both use the same underlying script) for the API-usage audit — see `skills/_shared/conventions.md` §23.
+
 1. Resolve `packages/jobs-runtime/postCloseScanInsights.js` per the skill's
    "Setup" section (`skills/equity-research/post-close-scan-insights/SKILL.md`).
 2. Run `resend-with-market-data` with no `--date` (defaults to today IST).

@@ -20,6 +20,8 @@ const fs = require('fs');
 const path = require('path');
 const { stockscans, nse, bse } = require('@stock/api');
 const { loadEnv, argValue } = require('./lib/env');
+const apiUsageTracker = require('./lib/apiUsageTracker');
+const { resolveJobName } = require('./lib/scriptJobName');
 const dbV2 = require('./lib/db');
 const gainersScanner = require('./gainersScanner');
 
@@ -66,6 +68,9 @@ async function main({
   sleep,
   log = (m) => process.stderr.write(m),
   topN = TARGET_COUNT,
+  // API-usage audit: threaded straight through to gainersScanner.main's own
+  // jobName param (see that file for why — an explicit arg, never shared state).
+  jobName,
 } = {}) {
   const now = new Date();
   const mDate = marketDate || gainersScanner.resolveMarketDate(gainersScanner.istToday(now), now);
@@ -76,6 +81,7 @@ async function main({
     sleep,
     log,
     topN,
+    jobName,
     universeFetcher: makeVolumeRocketingUniverseFetcher(mDateStr),
     dtoKind: 'volume_rocketing_raw',
     tagVolumeRocketing: false, // this IS the Volume Rocketing pipeline; no need to self-tag
@@ -86,10 +92,13 @@ module.exports = { main, loadGainersTickers, makeVolumeRocketingUniverseFetcher,
 
 if (require.main === module) {
   loadEnv(argValue('--env-file'));
+  const jobName = resolveJobName('daily-volume-rocketing-signal-stockmarket');
+  stockscans.setJobName(jobName);
   (async () => {
     const dateArg = argValue('--date');
     const marketDate = dateArg ? new Date(`${dateArg}T00:00:00Z`) : undefined;
-    const output = await main({ marketDate });
+    const output = await main({ marketDate, jobName });
+    apiUsageTracker.flush(jobName);
     process.stdout.write(JSON.stringify(output));
   })().catch((e) => {
     console.error(e.message);

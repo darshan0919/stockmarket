@@ -24,6 +24,8 @@
     "mna-tracker": "node mnaTracker.js",
     "gainers-scanner": "node gainersScanner.js",
     "stockscans:warm": "node warmStockscansContext.js",
+    "record-token-usage": "node recordTokenUsage.js",
+    "cursor-health": "node cursorHealth.js",
     "preprocess:queue": "node preprocessQueue.js",
     "preprocess:backfill": "node preprocessQueue.js backfill",
     "preprocess:persist": "node preprocessPersist.js",

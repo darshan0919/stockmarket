@@ -87,6 +87,8 @@ const { nse, bse } = require('@stock/api');
 const { mapWithConcurrency } = require('@stock/api/utils/concurrency');
 const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
 const { argValue, loadEnv } = require('./lib/env');
+const apiUsageTracker = require('./lib/apiUsageTracker');
+const { resolveJobName } = require('./lib/scriptJobName');
 const { fetchHtml, stripTags } = require('./ipoSubscriptionScanner');
 const { fetchPerformanceWindow, parseSubscriptionDetail } = require('./ipoBacktest');
 const { bestMatch, normalizeInvestorName } = require('./lib/fuzzyMatch');
@@ -1322,8 +1324,15 @@ module.exports = {
 };
 
 if (require.main === module) {
-  main().catch((e) => {
-    console.error(e && e.stack ? e.stack : e);
-    process.exit(1);
-  });
+  // NOTE: this script only calls nse/bse, which do NOT route through the
+  // instrumented HttpClient (raw axios/fetch — see corpActionsDigest.js's
+  // identical note). jobName is still resolved and flushed for
+  // forward-compatibility, but today it will always flush zero calls.
+  const jobName = resolveJobName('manual-anchor-bulk-deal-tracker');
+  main()
+    .catch((e) => {
+      console.error(e && e.stack ? e.stack : e);
+      process.exit(1);
+    })
+    .finally(() => apiUsageTracker.flush(jobName));
 }

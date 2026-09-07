@@ -31,10 +31,20 @@ TICKER="NSE:SWARAJENG"
 SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_credibility_docs"
 
-# Step 1: list available official transcripts — no download yet, just the manifest
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t Transcript --last-n 8 --list-only -o "$DOCS_DIR"
-# Produces $DOCS_DIR/manifest.json: [{date:"202606", ssUrl:"...", filename:"...", path:"..."}, ...]
+# Step 1: list available official transcripts — no download yet, just the manifest.
+# Real implementation is a Node module, not a Python CLI — see
+# stock-documents-fetcher/SKILL.md "Actual working usage" (corrected 2026-08-02).
+# fetchDocuments({listOnly:true}) returns {matched} and writes NO manifest file —
+# write one ourselves in the same shape downstream steps here expect.
+mkdir -p "$DOCS_DIR"
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['Transcript'], lastN: 8, listOnly: true }).then((r) => {
+  require('fs').writeFileSync('$DOCS_DIR/manifest.json', JSON.stringify(r.matched));
+});
+"
+# Produces $DOCS_DIR/manifest.json: [{date:"202606", ssUrl:"...", documentType:"Transcript", ...}, ...]
+# (filename/path are populated only once a document is actually downloaded — Step 4 below)
 
 # Step 2: check our DB for every quarter in the manifest (instant, no network)
 # Build a JSON array from the manifest dates, then run --bulk
@@ -49,9 +59,18 @@ yarn workspace @stock/api get-latest-concall-transcript --bulk "$BULK"
 # Step 3: for entries with status "db-hit" or "saved" — transcript is already
 # in data/reports/<id>.json. Read fullText directly; skip PDF download.
 
-# Step 4: for entries with status "official-transcript-exists" — download ONLY those
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t Transcript -o "$DOCS_DIR" --start-date "$YYYYMM" --end-date "$YYYYMM"
+# Step 4: for entries with status "official-transcript-exists" — download ONLY those.
+# Before reading the downloaded PDF's text, check the shared Filing Extract
+# store first (docs/REUSE_ARCHITECTURE_PLAN.md §4.1/§4.4) — a cheap agent may
+# already have extracted this exact transcript's guidance for the daily
+# pipeline, in which case its `guidance[]` can be read directly and the PDF
+# read skipped entirely (see rerating-catalysts/SKILL.md Phase 1 for the exact
+# resolveFilingContent() call and the profile mapping: transcript -> "transcript"):
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['Transcript'], outputDir: '$DOCS_DIR', startDate: '$YYYYMM', endDate: '$YYYYMM' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 # Then read the downloaded PDF and save its text to DB (see "Save after read" below)
 
 # Step 5: resolve the official Transcript URL for the most recent quarter
@@ -60,8 +79,11 @@ yarn workspace @stock/api get-concall-transcript-url --company "$TICKER"
 # On "error" the transcript genuinely isn't filed yet (rare) — treat as unavailable
 
 # Also pull the latest annual report for the long-form Vision/Strategy guidance
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t "Annual Report" --last-n 1 -o "$DOCS_DIR"
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['Annual Report'], lastN: 1, outputDir: '$DOCS_DIR' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 ```
 
 **Save after read (mandatory for every downloaded PDF transcript):** After reading
@@ -81,7 +103,27 @@ yarn workspace @stock/api save-concall-transcript "$TICKER" "$YYYYMM" \
 If only 4-5 transcripts are available (recent IPO), proceed but flag in the
 output that the credibility window is short.
 
-### Phase 2 — Guidance extraction (delegate to concall-analysis)
+### Phase 2 — Guidance extraction (check the shared extract before delegating)
+
+**Fixed 2026-09-06 (`docs/REUSE_ARCHITECTURE_PLAN.md` §4.2):** before delegating
+a quarter to `concall-analysis`, check whether that transcript already has a
+SERVED `transcript` Filing Extract — `document-preprocessor` may have already
+extracted and verified its `guidance[]` (quoted guidance statements, speaker,
+page) for the daily pipeline, in which case re-deriving the same facts via a
+full `concall-analysis` run is duplicated work:
+
+```bash
+node -e "const {resolveFilingContent}=require('./packages/jobs-runtime/lib/resolveFilingContent'); \
+  console.log(JSON.stringify(resolveFilingContent({sourceUrl:'<pdfUrl>', profile:'transcript'})))"
+```
+
+`source: 'extract-cache'` → use `.data.guidance[]` directly for that quarter;
+this skill's own job (the walk-the-talk comparison and +1/0/-1 scoring) is
+unaffected either way — only the guidance-extraction *step* changes source.
+`source: 'miss'` (not yet extracted for this quarter, or the profile's schema
+changed since) → fall back to `concall-analysis` unchanged, exactly as below.
+Never skip a quarter just because its extract is missing — the fallback is
+mandatory reading, not optional convenience.
 
 This skill **does not re-implement** concall extraction. Call `concall-analysis` in `multi-quarter` mode and consume its output:
 

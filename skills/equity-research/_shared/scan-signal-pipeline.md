@@ -21,6 +21,94 @@ described twice, drifted, and the two emails stopped matching.
 
 ---
 
+## Strength is never judged from a title — always from the read (2026-09-05)
+
+**No announcement's STRONG/SUPPORTING/ROUTINE strength, and no decision to
+exclude it from analysis, may be finalized from its title/description alone.**
+Every announcement in the scoring window gets its real content resolved — a
+served Filing Extract, or a live PDF fetch+parse — before a strength verdict
+is reported to a reader or used to decide what gets researched.
+
+This was not always true, and the gap was live and costly: on 2026-09-04,
+`gainersScanner.js` title-classified PC Jeweller's "Update On Clearance Of
+Outstanding Debt" as ROUTINE (no `fundraise`/`results` keyword in the title),
+Jindal Worldwide's "Press Release / Media Release" as ROUTINE (the title
+carries zero category signal — the body announced a 100-showroom EV retail
+rollout), and SML Mahindra's "Monthly Business Updates" as ROUTINE (the title
+can't show the +40% YoY volume figure inside). All three were genuine triggers
+for that day's gainers and never got read. Separately, `filterNoise()` and
+`watchlistInsights.js`'s `matchedNoiseKeyword` check used to **drop**
+keyword-matched announcements outright before anyone saw them — the same
+class of bug, one step earlier in the pipeline.
+
+The fix, load-bearing across every consumer of `lib/announcementTaxonomy.js`:
+
+- `taxonomy.annotate(ann)` (title/description only) is now explicitly
+  **provisional** — it sets `strengthSource: 'title'` and exists only to give
+  a pre-read sort order (fetch the plausibly-cheap wins first when bandwidth
+  is genuinely bounded). No caller may treat its `.strength` as final.
+- `taxonomy.annotateFromContent(ann, bodyText)` is the **only** function
+  allowed to set a final verdict, and it requires the real text — a served
+  Filing Extract's structured fields, or a live PDF read via
+  `readOrFetchPdfMeta` (shared `pdf-text` cache, so one skill's read serves
+  every other). It sets `strengthSource: 'content'`; if `bodyText` couldn't be
+  obtained it sets `strengthSource: 'content_unavailable'` rather than
+  silently keeping the title guess as if it were verified.
+- `filterNoise()` (gainers-signal/volume-rocketing) and the noise-keyword
+  checks in `watchlistInsights.js`/`postCloseScanInsights.js` now **tag**
+  (`noiseFlagged: true`) instead of dropping. Nothing is silently excluded
+  from the 14-day list or the digest queue pre-read; the flag is a cost hint
+  for the PDF-fetch queue (skip fetching a "Closure of Trading Window"
+  notice's PDF — the filing TYPE itself has no body worth reading), never a
+  materiality judgment.
+- `gainersScanner.js`'s new Step 2a (`classifyAnnouncementsByContent`) runs
+  this read-then-classify pass over every non-noise-flagged, non-heavy-document
+  announcement for the run's quality-filtered universe — not just the ones a
+  title guess had already called STRONG — and reports
+  `content_classification_meta` (`contentClassified`, `contentFromExtractCache`,
+  `contentFromLiveFetch`, `contentFetchFailed`) so the cost is visible.
+
+### The reasoning review layer (`announcement-taxonomy`)
+
+Content-based classification fixes the class of miss where a keyword existed
+but the title didn't carry it. It does not fix the class where **no keyword
+exists at all**, or where the call is about MAGNITUDE (a ₹2 Cr capex on a
+₹5,000 Cr base is `capacity`/VERY_HIGH by category and trivial in fact). That
+is what [`../announcement-taxonomy/SKILL.md`](../announcement-taxonomy/SKILL.md)
+is for: it reads the filing, judges it independently against the SOIC
+growth-catalyst framework, compares its verdict to the script's, and writes
+every disagreement back as a learned rule so the script absorbs each class of
+miss permanently.
+
+The script now emits a **second axis** alongside `strength`:
+`significance` (VERY_HIGH / HIGH / NORMAL) — does this filing plausibly change
+the market's model of FUTURE EPS? VERY_HIGH covers the EPS-accretion / J-curve
+set: capacity (store/showroom additions included), deleveraging, margin
+expansion, order book, fundraise, the four corporate actions, the four primary
+documents (result/PPT/concall/AR), and `anticipation` (a result date, for a
+company that guided strongly last quarter). Where the script cannot resolve
+significance alone it emits `reasoningCheck` naming the exact question.
+
+When to invoke it from this pipeline: **always** for anything the script tags
+`significance: VERY_HIGH` or that carries a `reasoningCheck` and is feeding an
+ACT card or an email; **always** for a ROUTINE/general verdict on a name with a
+large delivery-backed move that day (that combination — nothing found, yet real
+money moved — is the 2026-09-04 failure signature); and on a **~1-in-5 sample**
+of the remaining ROUTINE filings, which is what keeps the learning loop fed
+with misses nobody flagged. Run `promote-rule --auto` once at the end of the
+run, not per announcement.
+
+**Cost, stated plainly.** This is a real increase over the old STRONG-only
+gate — every 14-day announcement for the qualified universe now gets a fetch
+or an extract-cache hit, not just the pre-filtered subset. The Filing Extract
+Store is what keeps this affordable long-run (`yarn stockscans:warm` /
+`document-preprocessor`'s standing queue pre-builds extracts off the daily
+critical path); a low `contentFromExtractCache` hit rate in the stats footer
+means the preprocessing queue isn't keeping ahead of this scan's universe and
+should run more often — the same diagnostic Step 4's `extractHits` ratio
+already gave you, now covering the classification pass too, not just the
+top-20 research reads.
+
 ## The bar: actionability, not information
 
 A name is worth the reader's attention only when a real-world CAUSE (a strong
@@ -440,9 +528,18 @@ keys render a tile:
   "epsBriefs": 20,
   "briefCacheHits": 7,
   "briefExtractHits": 9,
-  "dedupedFromGainers": 6
+  "dedupedFromGainers": 6,
+  "contentClassified": 118,
+  "contentFromExtractCache": 22,
+  "contentFromLiveFetch": 90,
+  "contentFetchFailed": 6
 }
 ```
+
+The last four keys are `content_classification_meta` from Step 2a (see "Strength
+is never judged from a title" above) — report them whenever present so a low
+extract-cache hit rate is visible in the same place as the other cache-health
+numbers.
 
 ---
 

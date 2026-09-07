@@ -16,6 +16,8 @@ const fs = require('fs');
 const path = require('path');
 const { nse, bse, nseSession } = require('@stock/api');
 const { loadEnv, argValue } = require('./lib/env');
+const apiUsageTracker = require('./lib/apiUsageTracker');
+const { resolveJobName } = require('./lib/scriptJobName');
 const { sendHtmlEmail, stockscansUrl } = require('@stock/cloud-utils');
 
 // We will fetch Screener data to get market caps (for sorting/display).
@@ -374,10 +376,20 @@ async function main() {
 }
 
 if (require.main === module) {
-  main().catch((e) => {
-    console.error('corpActionsDigest failed:', e);
-    process.exit(1);
-  });
+  // NOTE: this script only calls nse/bse, which do NOT route through the
+  // instrumented HttpClient (see stock-api/src/http/nseSession.js and
+  // bseHttp.js — raw axios/fetch, a separate pre-existing gap from this
+  // audit feature, not something job-level attribution can fix on its own).
+  // jobName is still resolved and flushed for forward-compatibility (the day
+  // NSE/BSE gain HttpClient instrumentation, this script needs no further
+  // change), but today it will always flush zero calls.
+  const jobName = resolveJobName('manual-corp-actions-digest');
+  main()
+    .catch((e) => {
+      console.error('corpActionsDigest failed:', e);
+      process.exit(1);
+    })
+    .finally(() => apiUsageTracker.flush(jobName));
 }
 
 module.exports = { main };

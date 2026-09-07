@@ -119,6 +119,79 @@ function fingerprint({ category, counterparty, amount }) {
     .replace(/\s+/g, ' ');
 }
 
+/**
+ * Fuzzy name match for the capex guided-vs-actual join below. Same
+ * length-weighted shared-word approach as preprocessCalibrate.js's
+ * `similarity()` (found necessary there 2026-09-06: a plain shared-word
+ * ratio over-weights short/common words like "plant", "expansion", "unit" —
+ * "Capacity expansion at Unit 3" would otherwise falsely out-score its own
+ * true match against "Capacity expansion at Unit 2"). Reused here rather than
+ * reimplemented because it is the same problem shape: matching a guided
+ * project name (from a PPT/result) against an actual project name (from an
+ * annual report), where both carry heavy boilerplate around one or two
+ * distinguishing words.
+ */
+function nameSimilarity(a, b) {
+  if (!a || !b) return 0;
+  const la = String(a).toLowerCase();
+  const lb = String(b).toLowerCase();
+  if (la === lb) return 1;
+  if (la.includes(lb) || lb.includes(la)) return 0.9;
+  const wordsA = la.split(/\W+/).filter(Boolean);
+  const wordsB = lb.split(/\W+/).filter(Boolean);
+  if (!wordsA.length || !wordsB.length) return 0;
+  const setA = new Set(wordsA);
+  const setB = new Set(wordsB);
+  const weightOf = (w) => (w.length <= 4 ? 0.3 : 1);
+  let sharedWeight = 0;
+  let totalWeight = 0;
+  for (const w of setA) totalWeight += weightOf(w);
+  for (const w of setB) if (!setA.has(w)) totalWeight += weightOf(w);
+  for (const w of setA) if (setB.has(w)) sharedWeight += weightOf(w);
+  return totalWeight ? sharedWeight / totalWeight : 0;
+}
+
+// Below this, a guided/actual pair is "no match found", not a coincidental
+// low-similarity pairing — same threshold preprocessCalibrate.js uses for the
+// identical reason.
+const CAPEX_MATCH_THRESHOLD = 0.34;
+
+/**
+ * Join each guided capex commitment (from a PPT/result's targets/capex_pipeline)
+ * to its best-matching ACTUAL commercialisation record (from an annual
+ * report's `capex_commercialisation[]`), by project-name similarity only.
+ *
+ * This is Tier 2 (docs/REUSE_ARCHITECTURE_PLAN.md §4.2) — a fact-only JOIN
+ * across two already-extracted documents, never a verdict. It answers "here
+ * is what was guided, and here is what the AR later said actually happened"
+ * — whether that gap is concerning, on-track, or a walk-the-talk miss is
+ * entirely `annual-report-analysis` / `management-credibility-tracker`'s
+ * judgment, made by reading `guided`/`actual` side by side. Unmatched guided
+ * commitments (`actual: null`) are themselves informative — a capex still
+ * awaiting its first AR mention since it was guided — and are returned as-is,
+ * not hidden.
+ */
+function buildCapexTimeline(commitments, actuals) {
+  const pool = actuals.map((item, idx) => ({ item, idx, used: false }));
+  return commitments.map((guided) => {
+    let best = null;
+    let bestScore = 0;
+    for (const p of pool) {
+      if (p.used) continue;
+      const score = nameSimilarity(guided.what, p.item.project);
+      if (score > bestScore) {
+        bestScore = score;
+        best = p;
+      }
+    }
+    if (best && bestScore >= CAPEX_MATCH_THRESHOLD) {
+      best.used = true;
+      return { guided, actual: best.item, matchScore: Number(bestScore.toFixed(2)) };
+    }
+    return { guided, actual: null, matchScore: 0 };
+  });
+}
+
 function buildCard(companyId, extracts) {
   const sorted = [...extracts].sort((a, b) =>
     String(b.documentDate || b.extractedAt).localeCompare(String(a.documentDate || a.extractedAt))
@@ -126,6 +199,7 @@ function buildCard(companyId, extracts) {
 
   const guidanceLedger = [];
   const commitments = [];
+  const capexActuals = [];
   const claimIndex = new Map();
   const kpiHistory = { orderBookCr: [], capacity: [], ebitdaMarginPct: [] };
   const sourceDocs = [];
@@ -172,6 +246,25 @@ function buildCard(companyId, extracts) {
       });
     }
 
+    // capex_commercialisation is annual_report-profile-only (profiles.md) and
+    // carries no amount — it's the ACTUAL-side status check ("did this
+    // guided/committed capex actually get commercialised") that
+    // buildCapexTimeline() below joins against the PPT/result-side
+    // commitments[] by project-name similarity, per
+    // docs/REUSE_ARCHITECTURE_PLAN.md §4.2.
+    for (const c of d.capex_commercialisation || []) {
+      const project = c.project || null;
+      if (!project) continue;
+      capexActuals.push({
+        project,
+        status: c.status || null,
+        statedOn: when,
+        source: `${e.profile} ${when || ''}`.trim(),
+        quote: (c.quote && c.quote.text) || null,
+        page: (c.quote && c.quote.page) || null,
+      });
+    }
+
     if (d.order_book && typeof d.order_book.value_inr_cr === 'number') {
       kpiHistory.orderBookCr.push({
         value: d.order_book.value_inr_cr,
@@ -213,6 +306,8 @@ function buildCard(companyId, extracts) {
     }
   }
 
+  const capexTimeline = buildCapexTimeline(commitments, capexActuals);
+
   const ss = stockscansContext.readCached(companyId);
   const concallCount = sorted.filter((e) => e.profile === 'transcript').length;
   const hasPpt = sorted.some((e) => e.profile === 'ppt');
@@ -225,6 +320,7 @@ function buildCard(companyId, extracts) {
     sourceDocs,
     guidanceLedger,
     commitments,
+    capexTimeline,
     claimIndex: [...claimIndex.values()],
     kpiHistory,
     businessOverview: ss
@@ -332,4 +428,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { buildCard, readCard, cardFile, fingerprint, CARD_VERSION };
+module.exports = { buildCard, readCard, cardFile, fingerprint, CARD_VERSION, nameSimilarity, buildCapexTimeline };

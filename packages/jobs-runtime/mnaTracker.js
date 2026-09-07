@@ -29,10 +29,13 @@
  * are newest-first; stop once a page crosses the window-start).
  */
 
+const fs = require('fs');
 const path = require('path');
 const { StockscansClient } = require('@stock/api');
 const { loadEnv } = require('./lib/env');
-const { callAnthropic } = require('./lib/anthropicClient');
+const apiUsageTracker = require('./lib/apiUsageTracker');
+const { resolveJobName } = require('./lib/scriptJobName');
+const db = require('./lib/db');
 const ist = require('./lib/ist');
 const windowCursor = require('./lib/windowCursor')('mna-tracker');
 
@@ -73,12 +76,33 @@ function parseAnnDateToUtc(str) {
  * @param {string} text - Combined announcement subjects/descriptions.
  * @returns {string} Prompt ready to pass to `callAnthropic`.
  */
-function buildMnaPrompt(text) {
-  return `You are a financial analyst tracking M&A activities. Extract and summarize all Mergers, Demergers, Acquisitions, Spin-offs, and Amalgamations from the following announcements. Focus on identifying the target companies, the deal values (if any), and most importantly, the "Strategic Rationale" behind each move:
+/**
+ * Synthesis is no longer done by this script (conventions.md §24 — no
+ * script in this repo may call an LLM provider API directly; that was
+ * `lib/anthropicClient.js`'s job and it has been removed). Extraction
+ * (the resumable-cursor fetch above) stays here per §17; "extract deal
+ * terms and strategic rationale" is now an AGENT-executed instruction —
+ * see writePendingSynthesis below.
+ */
+function writePendingSynthesis(text) {
+  const runsDir = path.join(db.dataRoot(), 'runs');
+  fs.mkdirSync(runsDir, { recursive: true });
+  const outPath = path.join(runsDir, 'mna-tracker-pending-synthesis.md');
+  const body = `# M&A Tracker — pending synthesis
 
-Announcements:
+This is an AGENT step (not a script LLM call — see conventions.md §24). Extract and
+summarize all Mergers, Demergers, Acquisitions, Spin-offs, and Amalgamations from the
+announcements below. Focus on the target companies, the deal values (if any), and
+most importantly the "Strategic Rationale" behind each move. Then record this run's
+observed token usage via:
+  yarn record-token-usage --job <job-name> --input <n> --output <n>
+
+## Announcements
+
 ${text.substring(0, 80000)}
 `;
+  fs.writeFileSync(outPath, body);
+  return outPath;
 }
 
 /**
@@ -133,9 +157,10 @@ async function fetchNewAnnouncements(client, cutoffMs, now = new Date()) {
   return inWindow;
 }
 
-async function runMnaTracker({ windowHoursArg = null } = {}) {
+async function runMnaTracker({ windowHoursArg = null, jobName = null } = {}) {
   console.log('Starting M&A Tracker...');
   const client = new StockscansClient();
+  client.setJobName(jobName);
   const now = new Date();
 
   const floorMs = now.getTime() - FLOOR_LOOKBACK_MS;
@@ -155,15 +180,10 @@ async function runMnaTracker({ windowHoursArg = null } = {}) {
             `[${i.companyName || i.ticker || i.companyId}] ${i.title || i.subject}\n${i.description}`
         )
         .join('\n\n');
-      console.log('Generating AI Insights for M&A...');
-      const insights = await callAnthropic(buildMnaPrompt(combinedText));
-      if (insights) {
-        console.log('\n--- M&A Insights ---\n');
-        console.log(insights);
-        console.log('\n--------------------\n');
-      }
+      const pendingPath = writePendingSynthesis(combinedText);
+      console.log(`Wrote pending synthesis for an agent to pick up: ${pendingPath}`);
     } else {
-      console.log('Nothing new to summarize — skipping the LLM call.');
+      console.log('Nothing new to summarize — skipping.');
     }
 
     // Commit only after the fetch+summarize path completed without error —
@@ -187,7 +207,10 @@ if (require.main === module) {
     const i = process.argv.indexOf('--window-hours');
     return i >= 0 ? process.argv[i + 1] : null;
   })();
-  runMnaTracker({ windowHoursArg }).catch(console.error);
+  const jobName = resolveJobName('manual-mna-tracker');
+  runMnaTracker({ windowHoursArg, jobName })
+    .catch(console.error)
+    .finally(() => apiUsageTracker.flush(jobName));
 }
 
 module.exports = { runMnaTracker };

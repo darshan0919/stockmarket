@@ -4,7 +4,16 @@ This is the operational heart of the skill. SKILL.md gives the one-line summary 
 
 Underlying thesis: a scan tells you _who_ reports next; this workflow tells you _which of them is set up to surprise, in a way you can trade_. That means four things, checked across the steps: a surprise is coming (your estimate diverges from street **and** guidance), the company can deliver it (evidence, not tone), it isn't already priced (valuation), and it's tradeable (historical drift).
 
-Commands below show `python3 /tmp/run_scan.py` and `python3 stock-api/python/fetchers/fetch_documents.py` as the invocation shape the runtime uses; when running from the JS package directly, the equivalents are `resolveUniverse()` / `postEventReturns()` in `stock-api/src/analyzers/`. Use whichever the environment exposes — the logic and the JSON shapes are identical.
+Commands below show `python3 /tmp/run_scan.py` as the invocation shape the runtime
+uses for the universe/returns analyzers; when running from the JS package
+directly, the equivalents are `resolveUniverse()` / `postEventReturns()` in
+`stock-api/src/analyzers/`. Use whichever the environment exposes — the logic
+and the JSON shapes are identical. **Document fetches below use the real
+`fetchDocuments()` Node module** (`stock-api/src/fetchers/documentsFetcher.js`)
+— the `stock-api/python/fetchers/fetch_documents.py` CLI shown in earlier
+drafts of this file does not exist on disk; see
+`stock-documents-fetcher/SKILL.md` "Actual working usage" (corrected
+2026-08-02).
 
 ## Preflight — verify session tokens BEFORE running (do not skip)
 
@@ -41,8 +50,11 @@ A "pre-results" thesis is void the moment a company reports. The freshest signal
 Confirm via the documents API — a brand-new `Result` document dated to the quarter about to be reported means results are out:
 
 ```bash
-python3 stock-api/python/fetchers/fetch_documents.py "<companyId>" \
-    -t Result --last-n 1 --list-only
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('<companyId>', { types: ['Result'], lastN: 1, listOnly: true })
+  .then((r) => console.log(JSON.stringify(r.matched)));
+"
 ```
 
 If the latest `Result` date corresponds to the quarter about to be reported (e.g. a `202603` result when scanning for Q4 FY26), exclude it. Record every exclusion with its reason.
@@ -52,8 +64,11 @@ If the latest `Result` date corresponds to the quarter about to be reported (e.g
 The whole method rests on management's most recent guidance. Check for a transcript AND an investor PPT dated to the **previous** quarter (the one already reported):
 
 ```bash
-python3 stock-api/python/fetchers/fetch_documents.py "<companyId>" \
-    -t Transcript,PPT --last-n 2 --list-only
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('<companyId>', { types: ['Transcript', 'PPT'], lastN: 2, listOnly: true })
+  .then((r) => console.log(JSON.stringify(r.matched)));
+"
 ```
 
 Decision rule:
@@ -75,16 +90,27 @@ yarn workspace @stock/api get-latest-concall-transcript "$TICKER"
 # - "official-transcript-exists" → fall through: download only the transcript PDF below
 # - "needs-recording-pipeline" → proceed with PPT only; flag missing transcript in output
 
-# For transcripts NOT already in DB, download and save to DB after reading:
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t Transcript --last-n 1 -o "/tmp/pead/${SAFE}_docs"
+# For transcripts NOT already in DB, download and save to DB after reading.
+# Before reading the downloaded PDF's text, check the shared Filing Extract
+# store first (docs/REUSE_ARCHITECTURE_PLAN.md §4.1) — document-preprocessor
+# may already have this transcript's verified guidance[]:
+#   node -e "const {resolveFilingContent}=require('./packages/jobs-runtime/lib/resolveFilingContent'); \
+#     console.log(JSON.stringify(resolveFilingContent({sourceUrl:'<pdfUrl>', profile:'transcript'})))"
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['Transcript'], lastN: 1, outputDir: '/tmp/pead/${SAFE}_docs' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 # After reading the downloaded PDF — save text to DB so the next scan run is instant:
 # yarn workspace @stock/api save-concall-transcript "$TICKER" "$YYYYMM" \
 #     /tmp/pead/${SAFE}_${YYYYMM}_transcript.txt --fiscal-year "$FY" --fiscal-period "$QN"
 
 # PPT always fetched directly (no DB caching for PPTs)
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t PPT --last-n 1 -o "/tmp/pead/${SAFE}_docs"
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['PPT'], lastN: 1, outputDir: '/tmp/pead/${SAFE}_docs' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 ```
 
 Convert to text (`pdftotext -layout`; OCR image-PPTs via `pdftoppm -r 150` + `tesseract` in batches of four pages). Extraction mechanics are in `guidance_extraction.md`. You MUST read both the concall and the PPT, not only the concall.

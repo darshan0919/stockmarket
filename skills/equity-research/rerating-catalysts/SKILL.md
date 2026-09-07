@@ -207,9 +207,15 @@ a stale thesis silently is the one outcome this design exists to prevent.
      the shared Filing Extract store:
 
      ```bash
-     node -e "const d=require('<repo>/packages/jobs-runtime/lib/docExtracts'); \
-       console.log(JSON.stringify(d.get('<profile>','<pdfUrl>')))"
+     node -e "const {resolveFilingContent}=require('<repo>/packages/jobs-runtime/lib/resolveFilingContent'); \
+       console.log(JSON.stringify(resolveFilingContent({sourceUrl:'<pdfUrl>', profile:'<profile>'})))"
      ```
+
+     (This replaced a direct `docExtracts.get()` call 2026-09-06 — same lookup,
+     but `resolveFilingContent()` additionally rejects a record whose schema is
+     older than what `profiles.md` currently declares, so a profile schema
+     change can never silently hand this skill a stale-shaped extract; see
+     `docs/REUSE_ARCHITECTURE_PLAN.md` §4.5.)
 
      The second one matters because `document-preprocessor` extracts documents
      on arrival for the whole standing universe, so by the time a brief is asked
@@ -261,6 +267,34 @@ Per `skills/_shared/conventions.md` §6, none of these downloaded PDFs are
 persisted under `<repo>/data/` — write everything to a scratch dir
 (`/tmp/<safe_ticker>_rerating/`) and read `manifest.json` to identify which
 file is which before extracting text (`pdftotext -f 1 -l <PAGES> <file>.pdf out.txt`).
+
+**Check the shared Filing Extract store BEFORE running `pdftotext` on anything**
+(`docs/REUSE_ARCHITECTURE_PLAN.md` §4.4) — `full` mode had no caching at all
+until this was added, so a same-morning re-invocation on an unchanged company
+re-fetched and re-read every document from scratch. For each document the
+manifest identifies, resolve its `pdfUrl` and profile
+(`result`→Financial Results, `transcript`→Earnings Call, `ppt`→Presentation,
+`announcement`→everything else — same mapping `preprocessQueue.js`'s
+`profileFor()` uses) and call:
+
+```bash
+node -e "const {resolveFilingContent}=require('<repo>/packages/jobs-runtime/lib/resolveFilingContent');   console.log(JSON.stringify(resolveFilingContent({sourceUrl:'<pdfUrl>', profile:'<profile>'})))"
+```
+
+`source: 'extract-cache'` means `document-preprocessor` already read this
+document — often hours earlier, off the critical path, by a cheap agent — and
+`.data` is a verified, page-anchored set of FACTS for it. Use that as the
+document's read and skip `pdftotext` for it entirely; Phase 2's "new" lens
+still runs over the extract exactly as it would over freshly-parsed text — a
+cached extract is a faster route to the same facts, never a shortcut on the
+judgment. `source: 'miss'` (`not-yet-extracted` or `stale-schema`, the latter
+meaning `profiles.md`'s schema changed since this document was extracted) means
+fall back to today's `pdftotext` flow unchanged — this check is purely
+additive and never blocks on pre-processing coverage. Report
+`extractCacheHits` / `extractCacheMisses` per run in the closing manifest,
+the same way brief mode already reports `briefExtractHits` — it is the number
+that shows whether a same-day re-run on an unchanged company got materially
+cheaper.
 
 Also call `buildCompanyContext(companyId)` (per conventions §8) before
 analysis — weigh any prior thesis, notes, or validated catalysts already on

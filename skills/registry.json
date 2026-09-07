@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "description": "Stockmarket monorepo \u2014 Claude skills registry",
+  "description": "Stockmarket monorepo — Claude skills registry",
   "base_url": "https://raw.githubusercontent.com/darshan0919/stockmarket/main",
   "_note": "Source of truth for generating registry.json and invoker tables.",
   "shared": [
@@ -11,8 +11,36 @@
     "skills/equity-research/_shared/scan-signal-pipeline.md"
   ],
   "skills": {
+    "announcement-taxonomy": {
+      "skill_md": "skills/equity-research/announcement-taxonomy/SKILL.md",
+      "entry": "skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js",
+      "references": [
+        "skills/equity-research/rerating-catalysts/references/growth_catalyst_framework.md"
+      ],
+      "shared": [
+        "skills/_shared/conventions.md",
+        "skills/equity-research/_shared/scan-signal-pipeline.md",
+        "packages/jobs-runtime/lib/announcementTaxonomy.js",
+        "packages/jobs-runtime/lib/docExtracts.js",
+        "packages/jobs-runtime/watchlistInsights.js"
+      ],
+      "aliases": [
+        "announcement taxonomy",
+        "classify this filing",
+        "significance of this announcement",
+        "is this filing a big deal",
+        "EPS accretion filing",
+        "J-curve filing",
+        "re-rating filing",
+        "taxonomy accuracy",
+        "taxonomy mismatch",
+        "improve announcement rules",
+        "strength of announcement"
+      ],
+      "modules": ["skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js"]
+    },
     "concall-transcript-extractor": {
-      "_deprecated": "2026-07-31: superseded by stock-api/bin/get-concall-transcript-url.js \u2014 Stockscans now guarantees an official Transcript per quarter, no fallback waterfall needed. Not called by any current skill; kept for reference only.",
+      "_deprecated": "2026-07-31: superseded by stock-api/bin/get-concall-transcript-url.js — Stockscans now guarantees an official Transcript per quarter, no fallback waterfall needed. Not called by any current skill; kept for reference only.",
       "skill_md": "skills/equity-research/concall-transcript-extractor/SKILL.md",
       "entry": "stock-api/bin/get-latest-concall-transcript.js",
       "mode": "bundle",

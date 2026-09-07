@@ -184,6 +184,48 @@ do not treat a chart axis label as a stated target.
 
 For `page` in quotes, use the slide number.
 
+### `kpis` is a highlights slide, not the whole deck (calibration finding, 2026-09-06)
+
+A calibration run against real decks found two independent readers disagreeing on
+`kpis` count by 2-10x on every single document (25 items vs 190, 17 vs 165,
+9 vs 27, and so on, with no exceptions across 14 decks) — not because either
+reader was sloppy, but because the schema never said how exhaustive to be. One
+reader treated every number on every slide as a KPI; the other extracted only the
+handful on the "highlights" or "at a glance" slide near the front.
+
+The overwhelming source of the gap is investor decks' back-of-deck appendix: a
+multi-year or multi-quarter P&L/balance-sheet trend table (revenue, EBITDA, PAT,
+margins, working capital, each broken out by FY23/FY24/FY25/FY26, sometimes with
+20-50 such cells on a single slide). That table is real data, but it is not a
+KPI callout — it is the deck's version of a financial-statements page, and
+exploding every line-item×year cell into a separate `kpis` entry is what drove
+the disagreement (one deck alone had 94 of its 194 reference `kpis` come from
+three appendix slides).
+
+**`kpis` is for the deck's own headline metrics** — the numbers the company chose
+to put on its "highlights," "at a glance," "key metrics," or title/cover slide as
+the top-line summary of the period, typically 5-15 items per deck (AUM, revenue,
+growth %, margin, branch/customer count, and similar single-period callouts).
+Do NOT walk a multi-year financial-statement or trend-table slide and extract
+every cell — if a slide has more than ~2 years/quarters of the same line item
+laid out as a table, that is out of scope for `kpis` entirely (it is not
+`capacity` or `targets` either; leave it out of the schema, `misc` catch-alls
+included — this profile is not the place to transcribe a financial-statements
+appendix). When genuinely unsure whether a number belongs, prefer leaving it out
+over including it — an incomplete `kpis` list downstream-merges fine; a
+kitchen-sink one does not.
+
+### `capacity` vs `kpis` (calibration finding, 2026-09-06)
+
+`capacity` is specifically physical/operational scale: branch count, plant
+capacity (MTPA, Sq Ft), rig count, distribution locations — a "how much
+infrastructure do we have" line, whether current or planned. The same
+calibration run found the cheap extractor returning `capacity: []` while
+putting branch/location counts into `kpis` instead (or missing them entirely).
+If a highlights-slide number describes physical footprint or installed/planned
+capacity, it belongs in `capacity`, not `kpis`, even though it is also a
+"key metric" in the colloquial sense.
+
 ---
 
 ## `annual_report`
@@ -194,13 +236,13 @@ often scanned, table-dense. Ship it last, and expect a lower confidence rate.
 ```jsonc
 {
   "fy": "FY26",
-  "related_party_transactions": [ {"party": "...", "relationship": "...", "nature": "...", "amount_inr_cr": null, "page": null} ],
-  "contingent_liabilities": [ {"nature": "...", "amount_inr_cr": null, "page": null} ],
-  "auditor": {"opinion": "...", "qualifications": [], "emphasis_of_matter": [], "page": null},
-  "remuneration": [ {"name": "...", "role": "...", "amount_inr_cr": null, "page": null} ],
+  "related_party_transactions": [ {"party": "...", "relationship": "...", "nature": "...", "amount_inr_cr": null, "sourceUnit": "cr|lakh|million", "consolidated": true, "page": null} ],
+  "contingent_liabilities": [ {"nature": "...", "amount_inr_cr": null, "sourceUnit": "cr|lakh|million", "consolidated": true, "page": null} ],
+  "auditor": {"firm": "...", "appointedDate": "...", "opinion": "...", "qualifications": [], "emphasis_of_matter": [], "page": null},
+  "remuneration": [ {"name": "...", "role": "...", "amount_inr_cr": null, "sourceUnit": "cr|lakh|million", "page": null} ],
   "capex_commercialisation": [ {"project": "...", "status": "...", "quote": {...}} ],
   "kmp_changes": [ {"name": "...", "role": "...", "change": "appointed|resigned", "date": null, "quote": {...}} ],
-  "misc_expenses": [ {"line": "...", "amount_inr_cr": null, "page": null} ],
+  "misc_expenses": [ {"line": "...", "amount_inr_cr": null, "sourceUnit": "cr|lakh|million", "page": null} ],
   "verbatim_quotes": [ {"text": "...", "page": 1} ]
 }
 ```
@@ -209,3 +251,83 @@ Extract the tables as printed. Do not total them, do not compute
 remuneration-as-%-of-PAT, do not judge whether an RPT is concerning — every one
 of those is `annual-report-analysis`'s job, and doing them here both duplicates
 that skill and launders a judgment through a schema.
+
+### Find the table, not the cross-reference (calibration finding, 2026-09-06)
+
+An annual report almost always mentions related-party transactions and
+remuneration in the Directors' Report first, and that mention is usually a
+cross-reference, not the data itself — e.g. "details are set out in Note
+12(ii)(a) of the ... Financial Statements" or "Members may refer to the notes
+to accounts." A calibration run against real filings found the extractor
+stopping at this first mention and reporting `related_party_transactions: []`
+and `remuneration: []`, when the actual numeric table existed later in the
+document — sometimes under a completely different heading ("Related Party
+Disclosures," "Disclosure of Related Parties," a numbered note like "Note 35")
+and sometimes in more than one place (a "transactions during the year" table
+AND a separate "year-end balances" table, both legitimate, both extractable).
+
+Before writing `related_party_transactions: []`, `remuneration: []`, or
+`contingent_liabilities: []`, do a second pass: search the document for every
+occurrence of "related part", "remuneration", "contingent liabilit", "KMP", and
+"key managerial personnel" — not just the first hit — and confirm none of them
+lead to a table with named parties and rupee figures. Only report an empty
+array when that second pass is done and genuinely finds nothing. A one-line
+cross-reference to a note is a signal to keep looking, not a place to stop.
+
+### State the unit you read, every time (calibration finding, 2026-09-06)
+
+Indian annual reports report figures in Crores, Lakhs, or Millions
+interchangeably — sometimes a single filing uses different units in different
+notes. The schema field is always `amount_inr_cr`, so convert before writing
+it (1 cr = 100 lakh = 10 million), but record what you actually read via
+`sourceUnit` so a wrong conversion is traceable instead of silently baked in.
+A calibration run found a filing reporting "(All amounts are in INR Millions
+unless otherwise stated)" where the extracted crore figures could not be
+traced back to the actual note — get the unit right before you divide or
+multiply; when a table itself has no unit line nearby, search backward from
+the table for "In Rs. Lakhs", "In ` Crores", or "All amounts are in INR
+Millions" rather than assuming the schema's own unit.
+
+### Standalone vs consolidated (calibration finding, 2026-09-06)
+
+Most annual reports carry BOTH a standalone and a consolidated set of
+financial statements, each with its own related-party-transactions and
+contingent-liabilities notes — and the two legitimately report different
+figures (a consolidated contingent liability is typically larger, since it
+includes subsidiaries). Default to the **consolidated** figures and set
+`consolidated: true`; if the filing has no consolidated statements (a
+standalone-only company), set `consolidated: false` and note it in
+`verbatim_quotes`. Never mix a standalone RPT table with a consolidated
+contingent-liabilities table in the same extract without marking which is
+which — a downstream reader comparing two companies' numbers needs to know
+they are the same kind of figure.
+
+### Auditor firm and appointment date (added 2026-09-06, docs/REUSE_ARCHITECTURE_PLAN.md §4.2)
+
+`auditor.firm` and `auditor.appointedDate` are new fields — extract them as
+printed, never computed or inferred. `forensic-accounting`'s Manpasand-pattern
+check (a sudden, unexplained auditor change is one of the four documented
+Indian fraud patterns this skill screens for) currently re-reads 2-3
+consecutive annual reports by hand just to see whether the auditor firm
+changed year over year. Once every annual_report extract carries `firm` and
+`appointedDate`, that comparison becomes a diff across cached extracts instead
+of a fresh read each time — the fact (which firm, since when) lives here; the
+JUDGMENT (is this change suspicious, does it fit the fraud pattern) stays
+entirely in `forensic-accounting` and is never computed by this pipeline.
+
+- `firm` — the auditor's name exactly as printed (e.g. "S. C. Varma and Co.",
+  "KNAV CPA LLP"). For a joint-auditor filing, use a single string joining
+  both names as printed — do not silently pick one.
+- `appointedDate` — the date of appointment/reappointment AS PRINTED in the
+  filing (a board-meeting date, an AGM date, or a tenure statement like "for a
+  period of 5 years from FY24") — do not compute a tenure length or a
+  "years since appointment" figure; that arithmetic is `forensic-accounting`'s
+  job once it has two or more years of `appointedDate` values to compare.
+  `null` when the filing does not state it (common for a long-tenured auditor
+  whose original appointment predates the report by many years).
+
+This is a genuine schema change — `PROFILE_SCHEMA_VERSIONS.annual_report` in
+`packages/jobs-runtime/lib/docExtracts.js` bumped to 2 alongside it, so
+`resolveFilingContent()` treats every extract stored before this change as
+stale and routes it back through extraction rather than silently handing a
+caller an `auditor` object with no `firm`/`appointedDate` fields.

@@ -27,10 +27,19 @@ TICKER="NSE:SWARAJENG"            # replace with actual ticker
 SAFE=$(echo "$TICKER" | tr ':' '_')
 DOCS_DIR="/tmp/${SAFE}_triggers_docs"
 
-python3 stock-api/python/fetchers/fetch_documents.py "$TICKER" \
-    -t "Annual Report" Transcript PPT Result \
-    --last-n 2 \
-    -o "$DOCS_DIR"
+# Real implementation is a Node module, not a Python CLI — see
+# stock-documents-fetcher/SKILL.md "Actual working usage" (corrected 2026-08-02).
+# Before reading a fetched PDF's text, check the shared Filing Extract
+# store first (docs/REUSE_ARCHITECTURE_PLAN.md §4.1) — document-preprocessor
+# may already have a verified extract for this exact document:
+#   node -e "const {resolveFilingContent}=require('./packages/jobs-runtime/lib/resolveFilingContent'); \
+#     console.log(JSON.stringify(resolveFilingContent({sourceUrl:'<pdfUrl>', profile:'<profile>'})))"
+# profile mapping: Annual Report->annual_report, Transcript->transcript, PPT->ppt, Result->result.
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('$TICKER', { types: ['Annual Report', 'Transcript', 'PPT', 'Result'], lastN: 2, outputDir: '$DOCS_DIR' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 
 # The most recent Transcript above is the primary source for current
 # guidance. If the bulk fetch missed the latest quarter, resolve it directly

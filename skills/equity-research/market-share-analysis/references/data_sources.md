@@ -158,8 +158,13 @@ Acceptable responses, in priority order:
 When this skill needs primary documents for the top 5-10 listed players, use:
 
 ```bash
-python3 stock-api/python/fetchers/fetch_documents.py "NSE:TICKER" \
-    -t "Annual Report" PPT --last-n 2 -o /tmp/<industry>_msa_docs/
+# Real implementation is a Node module, not a Python CLI — see
+# stock-documents-fetcher/SKILL.md "Actual working usage" (corrected 2026-08-02).
+node -e "
+const { fetchDocuments } = require('./stock-api/src/fetchers/documentsFetcher.js');
+fetchDocuments('NSE:TICKER', { types: ['Annual Report', 'PPT'], lastN: 2, outputDir: '/tmp/<industry>_msa_docs/' })
+  .then((r) => console.log(JSON.stringify(r.fetched)));
+"
 ```
 
 Fetch in parallel across all tickers (launch all subprocesses in one turn, then `wait`). After fetching, read each `$DOCS_DIR/manifest.json` to route documents to extraction.

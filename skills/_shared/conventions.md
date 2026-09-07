@@ -113,4 +113,256 @@ add-note` (`watchlist-insights`, `announcement-insights`, `announcement-info-cla
     canonical envelope spec update and `skills/tooling/skill-manager/SKILL.md` for the
     standing check this becomes part of.
 
+23. **API-usage audit is MANDATORY for any scheduled job whose skill makes outbound HTTP
+    calls — attribution is JOB-level, and jobName is an EXPLICIT ARGUMENT everywhere, never
+    a shared/global "active job" (revised 2026-09-06, twice — see below).** StockscansClient,
+    ScreenerClient and PerplexityClient are built on the shared `HttpClient`
+    (`stock-api/src/http/HttpClient.js`), the single instrumented choke point for outbound
+    HTTP for those three clients (NseClient/BseClient bypass HttpClient entirely — raw
+    axios/fetch — so NSE/BSE calls are NOT tracked; a known gap, not something job-level
+    attribution fixes). `HttpClient` holds `jobName` as INSTANCE state — set at construction
+    (`new HttpClient({ jobName })`) or mutated via a client's own `setJobName(jobName)` — and
+    records every request/response into `@stock/cloud-utils`'s `apiUsageCounter`, which is
+    itself keyed by job (`Map<job, Map<api, counts>>`), a no-op for any instance with no
+    jobName. The dimension is the JOB (a `jobs/Scheduled/<name>` directory — the 1:1 unit
+    with a cron schedule and one outbound email), not the skill: many jobs-runtime scripts
+    back multiple registry.json skills, and some skills are in turn invoked by multiple jobs
+    (`watchlistInsights.js` alone backs `gainers-signal`, `volume-rocketing`,
+    `announcement-insights`, and is invoked by `watchlist-daily-insights-stockmarket`,
+    `daily-gainers-signal-stockmarket`, `daily-volume-rocketing-signal-stockmarket`, and
+    `document-preprocessing`) — skill-level attribution silently merged or misattributed
+    exactly the runs most in need of auditing.
+
+    **There is no `setActiveJob()`/`isActive()`/"current job" anywhere in this design.** An
+    earlier version had exactly that — one module-level active-job global in
+    `apiUsageTracker.js` — which was safe across DIFFERENT scheduled jobs (each is its own
+    `node script.js` process; no fork/worker_threads/cluster means no two jobs ever actually
+    share that module state) but NOT safe within a single process handling more than one
+    logical run (nested requires — e.g. `postCloseScanInsights.js` requiring functions out of
+    `watchlistInsights.js` — sequential sub-jobs, or two concurrent async calls): a second
+    `setActiveJob()` call could silently clobber the first run's still-in-flight counts. Fixed
+    by keying the counter itself by job and requiring every function (`record`, `getSummary`,
+    `flush`, `appendApiUsageFooter`) to take the job name as an explicit argument — concurrent
+    or nested recording is correct by construction, not by convention. This does NOT mean
+    threading `jobName` as a parameter through every one of the ~40 endpoint methods on
+    StockscansClient/ScreenerClient/PerplexityClient (that would be a much larger, riskier
+    change for a scenario — one client instance shared across two concurrently-running jobs —
+    that cannot happen today, since clients aren't shared across processes): `jobName` lives
+    on the HttpClient/client instance, set once, explicitly, at the top of that process's own
+    `main()`/`require.main` block.
+
+    Every job's own `SKILL.md` MUST claim its identity as the FIRST orchestration step,
+    before invoking anything: `export STOCKMARKET_JOB_NAME=<job-directory-name>` in the
+    same shell/subshell that will invoke the routed skill's scripts (most jobs say "follow
+    the `<x>` skill" and the real `node`/`yarn` call happens several layers deep inside that
+    shared skill's own SKILL.md — an env var propagates through every layer for free, with
+    zero changes needed to the shared skill file). A job that invokes its script directly
+    (no shared-skill indirection — e.g. `daily-deals-digest`'s `yarn deals-digest`,
+    `order-book-sync-stockmarket`'s `yarn order-book-sync`) instead passes `--job
+    <job-directory-name>` inline on that command. See
+    `packages/jobs-runtime/lib/scriptJobName.js`'s `resolveJobName` for the full resolution
+    order (env var → `--job` flag → the script's own documented default for a direct/manual
+    run — same "explicit, never a silent default" principle as §21's `sourceSkill`).
+
+    On the script side: any script's `main()`/`require.main` block that will use a
+    StockscansClient/ScreenerClient/PerplexityClient MUST resolve `const jobName =
+    resolveJobName('<default-job-name>')` once, call `<client>.setJobName(jobName)` before
+    the first client call (or construct with `new HttpClient({ jobName })` directly), and
+    call `apiUsageTracker.flush(jobName)` once near the end of the run (after `data:push` is
+    a good spot) to persist the run's summary as an `events` record (`type:
+    api_usage_summary`, keyed by `job` — a `type` on the existing collection, not a new one,
+    per DATA_RULES §2). Any `sendHtmlEmail({...})` call the script makes MUST also pass that
+    same `jobName` so the footer (`cloud-utils/emailService.js`'s `appendApiUsageFooter`)
+    renders THIS run's summary — this is why the footer shows up on every scheduled digest
+    with just one added line per `sendHtmlEmail` call site, not a rewrite of the email HTML
+    builder. When creating or reviewing ANY scheduled job whose routed skill calls
+    StockscansClient/ScreenerClient/PerplexityClient, `skill-manager` MUST verify (a) the
+    job's own SKILL.md sets `STOCKMARKET_JOB_NAME` (or passes `--job`) as its first step, and
+    (b) the script resolves it into a local `jobName` and threads it explicitly to
+    `setJobName`/`flush`/`sendHtmlEmail` — never storing it in a module-level or otherwise
+    shared variable that isn't scoped to that one `require.main` block. See
+    `docs/SKILL_DATA_AUDIT.md` §G for the full spec, including the NSE/BSE coverage gap.
+
+24. **No script in this repo may call an LLM provider API directly — ever. Every
+    job/skill run must self-report its own token usage as the substitute for what
+    a script-side API call would have measured automatically.** This formalizes
+    Darshan's 2026-09-04 ruling (see the `preprocessing-pipeline-plan` project
+    memory: "No LLM provider API keys, ever, in any job/skill workflow" — that
+    ruling blocked a planned `lib/gemini.js` stored-key client before it was ever
+    built) and extends it to close the one surviving instance: `lib/anthropicClient.js`
+    called `ANTHROPIC_API_KEY` directly from three scripts (`orderBookDigest.js`,
+    `mnaTracker.js`, `weeklyPptInsights.js`) to generate "AI Insights" from a batch
+    of extracted announcement/PDF text. Removed 2026-09-07. Each of those three
+    scripts now stops at Extraction (§17) — it writes the combined text to
+    `data/runs/<script>-pending-synthesis.md` with the synthesis instructions
+    embedded as a prompt for whoever reads it next — and the "extract X from this
+    batch" step that used to be a `callAnthropic()` call is now an AGENT-executed
+    instruction, run the next time a session (interactive or a scheduled Cowork
+    task) picks up that pending-synthesis file. This is the same Extraction/
+    Analysis split §17 already mandates for every other skill; these three scripts
+    were simply the last ones still doing the Analysis half as a raw script API
+    call instead of handing it to the agent.
+
+    **The consequence: this repo has NO automatic token-usage instrumentation.**
+    §23's `apiUsageTracker` can count HTTP calls automatically because `HttpClient`
+    sits on every outbound request. There is no equivalent choke point for LLM
+    tokens — by design, since no script calls an LLM API — so the only source of
+    a token number is the AGENT observing its own consumption for a run and
+    self-reporting it. **This self-reporting step already exists and is already
+    wired into ~30 job SKILL.md files** — do not add a second, separate reporting
+    step; fix or extend this one. `cowork-task-architect/SKILL.md`'s task template
+    mandates it as the literal final step of every scheduled task: `python
+    scripts/metrics/track_invocation.py --name <task-name> --type task --model
+    <the exact model executing this run>` (an equivalent `--type skill` form
+    exists for direct skill invocations, and `--files`/`--output-words` let it
+    estimate input/output size from what was actually read/written). Every
+    LLM-authored DTO the run writes must also set that same model string as
+    `modelUsed` (`skills/tooling/output-dto-standard/SKILL.md`).
+
+    `track_invocation.py`'s ESTIMATE is a base-prompt-tokens constant plus
+    `context_chars / 4` for input, `output_words / 0.75` for output — a rough
+    heuristic, not a metered number, but self-reported-and-estimated beats
+    unmeasured every time; do not hold out for exact counts before recording.
+
+    **What was actually broken (fixed 2026-09-07):** `track_invocation.py` wrote
+    its log entries to `data/token_usage.jsonlines` directly — bypassing
+    `lib/db.js` entirely (a §3/§6 violation: all persistent data must go through
+    db.js) — and that file did not exist anywhere in the repo despite the script
+    being wired into ~30 SKILL.md files as a mandatory final step. Fixed by
+    keeping `track_invocation.py`'s exact CLI (`--name`/`--type`/`--model`/
+    `--files`/`--output-words` — none of the ~30 existing call sites needed to
+    change) but having it shell out to `node packages/jobs-runtime/
+    recordTokenUsage.js --job <name> --input <n> --output <n> --model <model>
+    --note <how estimated>`, which persists through `lib/db.js` the same way
+    §23's `apiUsageTracker` already does for API-call counts — one canonical
+    events-backed pipeline instead of a script writing to an unread file.
+    `recordTokenUsage.js` resolves its own job name the standard way (§23's
+    `STOCKMARKET_JOB_NAME` → `--job` → documented-default order via
+    `lib/scriptJobName.js`) and is available as a direct entry point too, for
+    any future script that wants to self-report without going through
+    `track_invocation.py`'s estimation heuristic (e.g. a caller with an exact
+    token count already in hand).
+
+    Persistence mirrors §23 exactly: `packages/jobs-runtime/lib/tokenUsageCounter.js`
+    (job-keyed `Map`, no ambient "active job" global — same design as
+    `apiUsageCounter.js`) feeds `lib/tokenUsageTracker.js`, whose `flush(jobName)`
+    persists one `events` record per run (`type: token_usage_summary`, keyed by
+    `job`, carrying `byModel: {model: {calls, inputTokens, outputTokens}}` and
+    `totalTokens`) via `lib/db.js` — a new `type` inside the existing `events`
+    collection, per DATA_RULES §2, not a new collection. `scripts/metrics/
+    analyze_token_usage.py` (also rewritten 2026-09-07 — the previous version
+    read the same dead `data/token_usage.jsonlines` path, so fixing only the
+    producer or only the consumer would still have left them disconnected)
+    reads these records directly out of the sharded `data/events-YYYY-MM.json`
+    files the same way any other events consumer would, aggregates the last 7
+    days by job, and feeds the `token-usage-analyzer` skill for the weekly
+    review. When creating a NEW job/skill, `skill-manager` MUST verify its
+    SKILL.md's final step calls `track_invocation.py` (or `recordTokenUsage.js`
+    directly) — treat a job with real runs in the window but zero
+    `token_usage_summary` records the same way an untracked API-usage job would
+    be treated under §23: a visibility gap to close, not something to assume is
+    fine because nothing broke.
+
+25. **Four more job-level metrics, wired the same way as §23/§24 — all flushed
+    automatically from `recordTokenUsage.js`'s existing final-step call site,
+    so none of this required touching any job's SKILL.md.** These exist to
+    de-bottleneck the pipeline (find the actual constraint — slow runs,
+    wasted re-fetches, silent delivery failures, drifting extraction quality,
+    or a stuck cursor — instead of guessing), not to add reporting for its
+    own sake. Each follows the same Counter/Tracker split as tokenUsage/
+    apiUsage/cacheUsage: an in-memory, dependency-free `*Counter.js`
+    (`Map<job, ...>`, no ambient "active job" global — every call takes
+    `job`/`jobName` explicitly, per the §23/§24 fix for the earlier
+    shared-global clobbering bug) plus a `*Tracker.js` wrapping it with a
+    `flush(jobName, opts)` that persists one `events` record via `lib/db.js`
+    and resets that job's in-memory bucket.
+
+    - **Run duration.** `tokenUsageTracker.flush(jobName, {date, note,
+      durationMs})` now accepts an optional `durationMs`, persisted onto the
+      SAME `token_usage_summary` record (not a new event type — duration is
+      a property of the run that record already represents, not a separate
+      metric) only when it's a finite, non-negative number. `record-token-
+      usage`'s CLI accepts `--duration-ms`, and `track_invocation.py`
+      accepts and passes through `--duration-ms` the same way. Left `null`/
+      absent for a caller that doesn't measure it — this is additive, not a
+      new requirement on every SKILL.md.
+
+    - **Extraction-cache hit/miss.** `lib/cacheUsageCounter.js` /
+      `lib/cacheUsageTracker.js` (`type: cache_usage_summary`, `byCache:
+      {name: {hits, misses, hitRate}}`). Instrumented at
+      `lib/resolveFilingContent.js` — the actual "check before you fetch"
+      choke point every document-touching skill calls first, NOT
+      `docExtracts.get()` directly, because `resolveFilingContent()` is what
+      consumers actually call. Four outcomes are recorded, and a Tier-1
+      stale-schema miss (`extract-cache-stale-schema`) is deliberately kept
+      SEPARATE from a plain Tier-1 miss (`extract-cache`, hit: false) — the
+      extraction work already happened for a stale-schema record, it just
+      needs a version-bumped re-run, which is a materially cheaper fix than
+      "this document was never processed" and would be hidden by lumping
+      the two together.
+
+    - **Email delivery outcome.** `deliveryUsageCounter.js` lives in
+      `cloud-utils` (not `jobs-runtime`), mirroring where `emailService.js`
+      itself lives — `cloud-utils` has no dependency on `jobs-runtime`, so a
+      counter needed by code inside it can't live in the package that
+      depends on it. `lib/deliveryUsageTracker.js` (jobs-runtime-side, since
+      `db.js` persistence is jobs-runtime-only) wraps it and flushes `type:
+      delivery_summary` (`sent`, `skipped`, `error`, `total`,
+      `bySkipReason`). Instrumented at all four return paths of
+      `sendHtmlEmail()` in `cloud-utils/src/emailService.js` — a job whose
+      digest silently stopped landing in an inbox (bad `GOOGLE_APP_PASSWORD`,
+      an SMTP error) is otherwise invisible; this makes the failure a number
+      that accumulates instead of a support ticket days later.
+
+    - **Extraction-quality time series.** `lib/extractionQualityCounter.js` /
+      `lib/extractionQualityTracker.js` (`type: calibration_summary`,
+      `source: 'production-writes'` — deliberately the same event-type name
+      the manual `preprocessCalibrate.js cmdScore` gate already uses, since
+      both answer "is this profile's extraction trustworthy right now," just
+      from different inputs: one from every real production write, one from
+      an occasional hand-curated reference run). Instrumented at
+      `docExtracts.js`'s `put()`, not at the manual calibration script,
+      because `put()` runs on every real write while the manual gate only
+      runs when someone remembers to invoke it — a live signal beats a
+      periodic spot-check for catching drift as it happens. Tracks pass /
+      reject_fail / reject_truncated_source / confidence_high /
+      confidence_low counts per profile. This is the direct, permanent fix
+      for the failure mode the `preprocessing-truncation-bug` project memory
+      describes: an 8000-char truncation cap silently starved 42 heavy-doc
+      extracts for weeks while every one still passed L1 verification
+      (L1 verifies quotes against the cached, already-truncated text, not
+      the source document) — a rising `reject_truncated_source` or falling
+      `confidence_high` rate now shows up in the weekly numbers instead of
+      being discovered by accident.
+
+    - **Cursor staleness.** `packages/jobs-runtime/cursorHealth.js` (`yarn
+      cursor-health`, or `yarn workspace @stock/jobs-runtime cursor-health`
+      from the repo root) is a standalone check, NOT an `events`-collection
+      metric — it reads `data/cache/*-cursor*.json` directly (the
+      `windowCursor.js` files themselves already carry `lastCommittedAtMs`)
+      and compares each job's last-committed time against an expected
+      cadence. There is no machine-readable cron schedule anywhere in this
+      repo — cadence is documented only as prose under each Scheduled job's
+      "## Cadence" heading — so `CURSOR_CADENCE_HOURS` in that script is an
+      explicit, hand-maintained map sourced from that prose, not a parser of
+      it. **Update it the same day a job's cadence section changes** — same
+      discipline this repo already asks for with `PROFILE_SCHEMA_VERSIONS`
+      in `docExtracts.js`. A cursor with no entry is reported as `unmapped`
+      (a coverage gap in the script itself), never silently treated as
+      passing. It also flags a `-pending-window` marker left uncommitted for
+      more than 24h — `savePendingWindow` without a following
+      `commitWindow` means a run started and never finished healthily,
+      which is invisible from the cursor file alone (the cursor still shows
+      the last SUCCESSFUL commit, not that the most recent run got stuck).
+      Exits non-zero on any stale/unreadable cursor or uncommitted pending
+      window, so it can be wired into a scheduled health-check job the same
+      way any other CLI script in this repo is.
+
+    All five pieces (duration, cache hit/miss, delivery outcome, extraction
+    quality, cursor staleness) were built with the same rigor as §23/§24:
+    unit tests for each counter and tracker, wiring tests at the actual
+    instrumentation choke point (`resolveFilingContent.js`, `emailService.js`,
+    `docExtracts.js`), and a full-suite regression run after each change —
+    not just "it compiled."
+
 These conventions ensure that skills can execute in any environment: Cowork, Antigravity, local terminal, or Claude web.

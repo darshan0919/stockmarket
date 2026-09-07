@@ -3,6 +3,8 @@ name: watchlist-insight-validation-stockmarket
 description: Signal Validation — validate latest watchlist notes, update ledger + proposals, email summary
 ---
 
+Before doing anything else, run `export STOCKMARKET_JOB_NAME=watchlist-insight-validation-stockmarket` in the same shell/subshell that will invoke the skill's scripts — this attributes every outbound API call this run makes to the `watchlist-insight-validation-stockmarket` job for the API-usage audit (see `skills/_shared/conventions.md` §23; the env var is required because this job's scripts are invoked several layers deep inside the shared skill below, not directly by this file).
+
 Follow the `insight-validation` skill (stockmarket/skills/equity-research/insight-validation/SKILL.md) — read it from the local mounted repo path first; only fall back to the GitHub-hosted copy via `github-skill-invoker` if the local path is unavailable.
 
 This run now also validates `gainers-signal`'s HIGH-conviction picks from 2 trading days
