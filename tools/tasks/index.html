@@ -340,10 +340,8 @@
         background: var(--surface-card);
         border: 1px solid var(--border);
         border-radius: 10px;
-        padding: 12px 14px;
         display: flex;
-        align-items: center;
-        gap: 12px;
+        flex-direction: column;
         transition: all 0.2s;
         animation: fadeIn 0.15s ease;
       }
@@ -352,11 +350,44 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
       }
       .task-item.done {
-        opacity: 0.55;
+        opacity: 0.65;
       }
       .task-item.editing {
         border-color: var(--accent);
         background: #23232c;
+      }
+
+      .task-header {
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+      }
+
+      .expand-btn {
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 0.58rem;
+        width: 16px;
+        height: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border-radius: 4px;
+        transition: all 0.15s;
+        flex-shrink: 0;
+      }
+      .expand-btn:hover {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .expand-btn.hidden {
+        visibility: hidden;
+        pointer-events: none;
       }
 
       .checkbox {
@@ -374,6 +405,7 @@
         color: transparent;
         font-size: 12px;
         font-weight: 700;
+        padding: 0;
       }
       .checkbox.checked {
         background: var(--accent);
@@ -397,6 +429,186 @@
         font-size: 0.7rem;
         color: var(--muted);
         white-space: nowrap;
+      }
+
+      .add-subtask-btn {
+        background: rgba(124, 106, 247, 0.08);
+        border: 1px dashed rgba(124, 106, 247, 0.35);
+        color: var(--accent);
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        padding: 2px 7px;
+        cursor: pointer;
+        transition: all 0.15s;
+        opacity: 0.65;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .task-item:hover .add-subtask-btn {
+        opacity: 1;
+      }
+      .add-subtask-btn:hover {
+        background: var(--accent-dim);
+        border-color: var(--accent);
+        border-style: solid;
+        color: #fff;
+        transform: translateY(-1px);
+      }
+
+      .subtask-badge {
+        font-size: 0.68rem;
+        padding: 2px 6px;
+        border-radius: 999px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--muted-light);
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.15s;
+      }
+      .subtask-badge:hover {
+        border-color: var(--border-hover);
+        color: var(--text);
+      }
+      .subtask-badge.all-done {
+        background: var(--teal-bg);
+        border-color: rgba(45, 212, 191, 0.3);
+        color: var(--teal);
+      }
+
+      /* Subtasks Section */
+      .subtasks-container {
+        margin: 0 14px 12px 40px;
+        padding-left: 12px;
+        border-left: 2px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .subtask-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 6px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.02);
+        transition: all 0.15s;
+      }
+      .subtask-row:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .subtask-row.done {
+        opacity: 0.55;
+      }
+      .subtask-row.editing {
+        background: #252530;
+      }
+      .subtask-checkbox {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        border: 1.5px solid var(--border-hover);
+        background: none;
+        cursor: pointer;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+        color: transparent;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 0;
+      }
+      .subtask-checkbox.checked {
+        background: var(--teal);
+        border-color: var(--teal);
+        color: #0f0f11;
+      }
+      .subtask-title {
+        flex: 1;
+        font-size: 0.82rem;
+        line-height: 1.35;
+        word-break: break-word;
+        cursor: text;
+        outline: none;
+      }
+      .subtask-row.done .subtask-title:not(:focus) {
+        text-decoration: line-through;
+        color: var(--muted);
+      }
+      .subtask-del-btn {
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 0.8rem;
+        padding: 2px 5px;
+        border-radius: 4px;
+        opacity: 0;
+        transition: all 0.15s;
+        line-height: 1;
+      }
+      .subtask-row:hover .subtask-del-btn {
+        opacity: 1;
+      }
+      .subtask-del-btn:hover {
+        color: var(--red);
+        background: rgba(248, 113, 113, 0.1);
+      }
+
+      .add-subtask-box {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 4px;
+        animation: fadeIn 0.15s ease;
+      }
+      .subtask-input {
+        background: var(--surface);
+        border: 1px solid var(--border-hover);
+        border-radius: 6px;
+        padding: 6px 10px;
+        color: var(--text);
+        font-size: 0.8rem;
+        outline: none;
+        flex: 1;
+        font-family: inherit;
+        transition: border-color 0.2s;
+      }
+      .subtask-input:focus {
+        border-color: var(--accent);
+      }
+      .subtask-actions {
+        display: flex;
+        gap: 4px;
+      }
+      .subtask-btn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--muted-light);
+        border-radius: 6px;
+        padding: 5px 9px;
+        font-size: 0.74rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .subtask-btn:hover {
+        border-color: var(--border-hover);
+        color: var(--text);
+      }
+      .subtask-btn.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .subtask-btn.primary:hover {
+        background: var(--accent-dim);
       }
 
       .del-btn {
@@ -835,9 +1047,20 @@
       let workflowFilter = 'all';
       let dirHandle = null;
       let mode = 'init'; // 'local' | 'github' | 'error'
+      const openSubtaskForms = new Set();
+      const collapsedTasks = new Set();
 
       // ─── Schemas ───────────────────────────────────────────────────────────────
       const makeTask = (title) => ({
+        id: crypto.randomUUID(),
+        title: title.trim(),
+        completed: false,
+        subtasks: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
+      const makeSubtask = (title) => ({
         id: crypto.randomUUID(),
         title: title.trim(),
         completed: false,
@@ -991,8 +1214,12 @@
 
       async function save() {
         if (mode !== 'local') return;
+        if (!dirHandle) return;
         await writeLocalFile({ version: 1, tasks, roadmap, rules });
       }
+
+      window.setMode = setMode;
+      window.render = render;
 
       // ─── Mode & Status UI ──────────────────────────────────────────────────────
       function setMode(m) {
@@ -1042,8 +1269,17 @@
         const stats = document.getElementById('taskStats');
         const countBadge = document.getElementById('taskCountBadge');
         const done = tasks.filter((t) => t.completed).length;
+        const totalSubtasks = tasks.reduce((acc, t) => acc + (t.subtasks?.length || 0), 0);
+        const doneSubtasks = tasks.reduce(
+          (acc, t) => acc + (t.subtasks?.filter((s) => s.completed).length || 0),
+          0
+        );
 
-        stats.textContent = `${done}/${tasks.length} done`;
+        if (totalSubtasks > 0) {
+          stats.textContent = `${done}/${tasks.length} done • ${doneSubtasks}/${totalSubtasks} subtasks`;
+        } else {
+          stats.textContent = `${done}/${tasks.length} done`;
+        }
         countBadge.textContent = `${tasks.length}`;
 
         let show = [...tasks];
@@ -1057,16 +1293,73 @@
         }
 
         list.innerHTML = show
-          .map(
-            (t) => `
-    <div class="task-item${t.completed ? ' done' : ''}" data-id="${t.id}">
-      <button class="checkbox${t.completed ? ' checked' : ''}" data-id="${t.id}" title="Toggle complete">${t.completed ? '✓' : ''}</button>
-      <span class="task-title" data-taskedit="${t.id}" spellcheck="false">${esc(t.title)}</span>
-      <span class="task-meta">${fmt(t.createdAt)}</span>
-      <button class="del-btn" data-taskdel="${t.id}" title="Delete task">✕</button>
-    </div>
-  `
-          )
+          .map((t) => {
+            const subtasks = Array.isArray(t.subtasks) ? t.subtasks : [];
+            const hasSubtasks = subtasks.length > 0;
+            const subtasksDone = subtasks.filter((s) => s.completed).length;
+            const isCollapsed = collapsedTasks.has(t.id);
+            const isFormOpen = openSubtaskForms.has(t.id);
+            const allSubtasksDone = hasSubtasks && subtasksDone === subtasks.length;
+
+            const subtaskBadge = hasSubtasks
+              ? `<span class="subtask-badge${allSubtasksDone ? ' all-done' : ''}" data-taskbadge="${t.id}" title="${subtasksDone} of ${subtasks.length} subtasks completed. Click to ${isCollapsed ? 'expand' : 'collapse'}.">${subtasksDone}/${subtasks.length}</span>`
+              : '';
+
+            const subtasksSection =
+              !isCollapsed && (hasSubtasks || isFormOpen)
+                ? `
+              <div class="subtasks-container">
+                ${subtasks
+                  .map(
+                    (s) => `
+                  <div class="subtask-row${s.completed ? ' done' : ''}" data-subtask-id="${s.id}">
+                    <button class="subtask-checkbox${s.completed ? ' checked' : ''}" data-subtask-toggle="${t.id}:${s.id}" title="Toggle subtask">${s.completed ? '✓' : ''}</button>
+                    <span class="subtask-title" data-subtaskedit="${t.id}:${s.id}" spellcheck="false">${esc(s.title)}</span>
+                    <button class="subtask-del-btn" data-subtask-del="${t.id}:${s.id}" title="Delete subtask">✕</button>
+                  </div>
+                `
+                  )
+                  .join('')}
+                ${
+                  isFormOpen
+                    ? `
+                  <div class="add-subtask-box">
+                    <input
+                      type="text"
+                      class="subtask-input"
+                      id="subtask-input-${t.id}"
+                      data-parent-id="${t.id}"
+                      placeholder="Subtask title (Enter to save, Esc to cancel)…"
+                      autocomplete="off"
+                      maxlength="200"
+                    />
+                    <div class="subtask-actions">
+                      <button class="subtask-btn primary" data-subtask-submit="${t.id}">Add</button>
+                      <button class="subtask-btn" data-subtask-cancel="${t.id}">Cancel</button>
+                    </div>
+                  </div>
+                `
+                    : ''
+                }
+              </div>
+            `
+                : '';
+
+            return `
+              <div class="task-item${t.completed ? ' done' : ''}" data-id="${t.id}">
+                <div class="task-header">
+                  <button class="expand-btn${hasSubtasks ? '' : ' hidden'}" data-taskexpand="${t.id}" title="${isCollapsed ? 'Expand subtasks' : 'Collapse subtasks'}">${isCollapsed ? '▶' : '▼'}</button>
+                  <button class="checkbox${t.completed ? ' checked' : ''}" data-id="${t.id}" title="Toggle complete">${t.completed ? '✓' : ''}</button>
+                  <span class="task-title" data-taskedit="${t.id}" spellcheck="false">${esc(t.title)}</span>
+                  ${subtaskBadge}
+                  <button class="add-subtask-btn" data-addsubtask="${t.id}" title="Add a subtask">+ subtask</button>
+                  <span class="task-meta">${fmt(t.createdAt)}</span>
+                  <button class="del-btn" data-taskdel="${t.id}" title="Delete task">✕</button>
+                </div>
+                ${subtasksSection}
+              </div>
+            `;
+          })
           .join('');
       }
 
@@ -1234,16 +1527,39 @@
         await save();
       });
 
-      // Task interactions (Check, Delete)
+      // ─── Subtask Operations ───────────────────────────────────────────────────
+      async function handleAddSubtask(taskId, title) {
+        const cleanTitle = (title || '').trim();
+        if (!cleanTitle || mode !== 'local') return;
+        const t = tasks.find((t) => t.id === taskId);
+        if (!t) return;
+        if (!Array.isArray(t.subtasks)) {
+          t.subtasks = [];
+        }
+        t.subtasks.push(makeSubtask(cleanTitle));
+        t.updatedAt = new Date().toISOString();
+        await save();
+        renderTasks();
+        const nextInput = document.getElementById(`subtask-input-${taskId}`);
+        if (nextInput) {
+          nextInput.focus();
+        }
+      }
+
+      // Task interactions (Check, Delete, Subtasks)
       document.getElementById('taskList').addEventListener('click', async (e) => {
         if (mode !== 'local') return;
 
-        const cb = e.target.closest('.checkbox');
-        if (cb) {
+        // Subtask Checkbox Toggle
+        const subtaskCb = e.target.closest('[data-subtask-toggle]');
+        if (subtaskCb) {
           e.preventDefault();
-          const t = tasks.find((t) => t.id === cb.dataset.id);
-          if (t) {
-            t.completed = !t.completed;
+          const [taskId, subtaskId] = subtaskCb.dataset.subtaskToggle.split(':');
+          const t = tasks.find((t) => t.id === taskId);
+          const s = t?.subtasks?.find((s) => s.id === subtaskId);
+          if (s) {
+            s.completed = !s.completed;
+            s.updatedAt = new Date().toISOString();
             t.updatedAt = new Date().toISOString();
             renderTasks();
             await save();
@@ -1251,11 +1567,113 @@
           return;
         }
 
+        // Subtask Delete
+        const subtaskDel = e.target.closest('[data-subtask-del]');
+        if (subtaskDel) {
+          e.preventDefault();
+          const [taskId, subtaskId] = subtaskDel.dataset.subtaskDel.split(':');
+          const t = tasks.find((t) => t.id === taskId);
+          if (t && Array.isArray(t.subtasks)) {
+            t.subtasks = t.subtasks.filter((s) => s.id !== subtaskId);
+            t.updatedAt = new Date().toISOString();
+            renderTasks();
+            await save();
+          }
+          return;
+        }
+
+        // Add Subtask button (opens inline form)
+        const addSubtaskBtn = e.target.closest('[data-addsubtask]');
+        if (addSubtaskBtn) {
+          e.preventDefault();
+          const taskId = addSubtaskBtn.dataset.addsubtask;
+          openSubtaskForms.add(taskId);
+          collapsedTasks.delete(taskId);
+          renderTasks();
+          const input = document.getElementById(`subtask-input-${taskId}`);
+          if (input) input.focus();
+          return;
+        }
+
+        // Inline Subtask Submit
+        const subtaskSubmit = e.target.closest('[data-subtask-submit]');
+        if (subtaskSubmit) {
+          e.preventDefault();
+          const taskId = subtaskSubmit.dataset.subtaskSubmit;
+          const input = document.getElementById(`subtask-input-${taskId}`);
+          if (input) {
+            await handleAddSubtask(taskId, input.value);
+          }
+          return;
+        }
+
+        // Inline Subtask Cancel
+        const subtaskCancel = e.target.closest('[data-subtask-cancel]');
+        if (subtaskCancel) {
+          e.preventDefault();
+          const taskId = subtaskCancel.dataset.subtaskCancel;
+          openSubtaskForms.delete(taskId);
+          renderTasks();
+          return;
+        }
+
+        // Expand / Collapse Subtasks
+        const expandBtn = e.target.closest('[data-taskexpand], [data-taskbadge]');
+        if (expandBtn) {
+          e.preventDefault();
+          const taskId = expandBtn.dataset.taskexpand || expandBtn.dataset.taskbadge;
+          if (collapsedTasks.has(taskId)) {
+            collapsedTasks.delete(taskId);
+          } else {
+            collapsedTasks.add(taskId);
+          }
+          renderTasks();
+          return;
+        }
+
+        // Parent Task Checkbox
+        const cb = e.target.closest('.checkbox');
+        if (cb) {
+          e.preventDefault();
+          const t = tasks.find((t) => t.id === cb.dataset.id);
+          if (t) {
+            t.completed = !t.completed;
+            t.updatedAt = new Date().toISOString();
+            if (t.completed && Array.isArray(t.subtasks)) {
+              t.subtasks.forEach((s) => {
+                s.completed = true;
+                s.updatedAt = t.updatedAt;
+              });
+            }
+            renderTasks();
+            await save();
+          }
+          return;
+        }
+
+        // Parent Task Delete
         const db = e.target.closest('[data-taskdel]');
         if (db) {
           tasks = tasks.filter((t) => t.id !== db.dataset.taskdel);
+          openSubtaskForms.delete(db.dataset.taskdel);
+          collapsedTasks.delete(db.dataset.taskdel);
           renderTasks();
           await save();
+        }
+      });
+
+      // Subtask Input Keydown
+      document.getElementById('taskList').addEventListener('keydown', async (e) => {
+        const input = e.target.closest('.subtask-input');
+        if (!input) return;
+        const taskId = input.dataset.parentId;
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          await handleAddSubtask(taskId, input.value);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          openSubtaskForms.delete(taskId);
+          renderTasks();
         }
       });
 
@@ -1288,7 +1706,9 @@
         if (span.contentEditable === 'true') return;
         span._original = span.textContent;
         span.contentEditable = 'true';
-        span.closest('.task-item, .workflow-card, .rule-card')?.classList.add('editing');
+        span
+          .closest('.task-item, .subtask-row, .workflow-card, .rule-card')
+          ?.classList.add('editing');
         span.focus();
 
         if (!getSelection().rangeCount || !span.contains(getSelection().anchorNode)) {
@@ -1303,7 +1723,27 @@
       async function commitInlineEdit(span) {
         if (span.contentEditable !== 'true') return;
         span.contentEditable = 'false';
-        span.closest('.task-item, .workflow-card, .rule-card')?.classList.remove('editing');
+        span
+          .closest('.task-item, .subtask-row, .workflow-card, .rule-card')
+          ?.classList.remove('editing');
+
+        // Subtask title
+        const subtaskEditId = span.dataset.subtaskedit;
+        if (subtaskEditId) {
+          const [taskId, subtaskId] = subtaskEditId.split(':');
+          const t = tasks.find((t) => t.id === taskId);
+          const s = t?.subtasks?.find((s) => s.id === subtaskId);
+          if (!s) return;
+          const val = span.textContent.trim();
+          if (!val) span.textContent = span._original;
+          else if (val !== span._original) {
+            s.title = val;
+            s.updatedAt = new Date().toISOString();
+            t.updatedAt = new Date().toISOString();
+            await save();
+          }
+          return;
+        }
 
         // Task title
         const taskId = span.dataset.taskedit;
@@ -1383,7 +1823,7 @@
       document.addEventListener('click', (e) => {
         if (mode !== 'local') return;
         const target = e.target.closest(
-          '[data-taskedit], [data-workflowedittitle], [data-workfloweditdesc], [data-ruleedittitle], [data-ruleeditdesc]'
+          '[data-taskedit], [data-subtaskedit], [data-workflowedittitle], [data-workfloweditdesc], [data-ruleedittitle], [data-ruleeditdesc]'
         );
         if (target) {
           e.stopPropagation();
@@ -1396,7 +1836,7 @@
         'blur',
         (e) => {
           const target = e.target.closest?.(
-            '[data-taskedit], [data-workflowedittitle], [data-workfloweditdesc], [data-ruleedittitle], [data-ruleeditdesc]'
+            '[data-taskedit], [data-subtaskedit], [data-workflowedittitle], [data-workfloweditdesc], [data-ruleedittitle], [data-ruleeditdesc]'
           );
           if (target) commitInlineEdit(target);
         },
@@ -1413,7 +1853,7 @@
         }
 
         const span = e.target.closest?.(
-          '[data-taskedit], [data-workflowedittitle], [data-workfloweditdesc], [data-ruleedittitle], [data-ruleeditdesc]'
+          '[data-taskedit], [data-subtaskedit], [data-workflowedittitle], [data-workfloweditdesc], [data-ruleedittitle], [data-ruleeditdesc]'
         );
         if (!span || span.contentEditable !== 'true') return;
 
@@ -1424,7 +1864,9 @@
         if (e.key === 'Escape') {
           span.textContent = span._original;
           span.contentEditable = 'false';
-          span.closest('.task-item, .workflow-card, .rule-card')?.classList.remove('editing');
+          span
+            .closest('.task-item, .subtask-row, .workflow-card, .rule-card')
+            ?.classList.remove('editing');
         }
       });
 

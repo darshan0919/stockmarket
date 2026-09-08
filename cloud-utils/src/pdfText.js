@@ -11,6 +11,29 @@ const { execFileSync } = require('child_process');
 // whole document pass `maxChars` explicitly — see pdfToTextWithMeta.
 const MAX_CHARS = 8000;
 
+// Hard wall-clock caps on the OCR subprocesses. `execFileSync` with no
+// `timeout` blocks forever if the child hangs — confirmed live 2026-09-08: a
+// gainers-signal run stuck indefinitely on ONE 7.5MB PDF during Step 2a's
+// per-announcement content classification, silently blocking every other
+// document behind it in the same batch (mapWithConcurrency awaits the whole
+// batch before anything downstream sees progress). Rendering pages
+// (`pdftoppm`) and reading each one (`tesseract`) are bounded separately so a
+// many-page scan degrades to "OCR failed for this document" — caught by the
+// existing try/catch and surfaced via `ocrFailed`/`content_unavailable`
+// (see scan-signal-pipeline.md's "Strength is never judged from a title") —
+// rather than hanging the process that would otherwise report that finding.
+const PDFTOPPM_TIMEOUT_MS = 25000;
+const TESSERACT_TIMEOUT_MS = 20000;
+// Belt-and-suspenders cap on pdfToTextWithMeta as a whole (text-layer parse +
+// OCR fallback combined). Comfortably above PDFTOPPM_TIMEOUT_MS + a few
+// TESSERACT_TIMEOUT_MS page-reads, so it should never fire ahead of the more
+// specific subprocess timeouts above under normal OCR — it exists for the
+// residual risk in `pdf-parse` itself (pure JS/WASM, no subprocess for
+// `timeout` to bound), which is a plausible second hang source given the
+// "Cannot load @napi-rs/canvas" degraded-path warning observed alongside the
+// 2026-09-08 incident.
+const OVERALL_EXTRACTION_TIMEOUT_MS = 90000;
+
 /**
  * OCR a scanned (image-only) PDF via the system `pdftoppm` (poppler) + `tesseract`
  * CLIs. Returns '' if either binary is unavailable or OCR fails — the caller treats
@@ -31,7 +54,10 @@ function ocrPdf(buf) {
   const imgPrefix = path.join(tmpDir, 'page');
   try {
     fs.writeFileSync(pdfPath, buf);
-    execFileSync('pdftoppm', ['-png', '-r', '150', pdfPath, imgPrefix], { stdio: 'pipe' });
+    execFileSync('pdftoppm', ['-png', '-r', '150', pdfPath, imgPrefix], {
+      stdio: 'pipe',
+      timeout: PDFTOPPM_TIMEOUT_MS,
+    });
     const pages = fs
       .readdirSync(tmpDir)
       .filter((f) => f.startsWith('page') && f.endsWith('.png'))
@@ -42,8 +68,12 @@ function ocrPdf(buf) {
         return execFileSync('tesseract', [path.join(tmpDir, f), 'stdout'], {
           encoding: 'utf8',
           stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: TESSERACT_TIMEOUT_MS,
         });
       } catch {
+        // Timeout (SIGTERM) or a genuine tesseract failure on this one page —
+        // both degrade to "no text from this page" rather than propagating,
+        // so a single bad page doesn't sink pages that DID OCR successfully.
         return '';
       }
     });
@@ -60,7 +90,7 @@ function pdftotextCli(buf) {
   const tmp = path.join(os.tmpdir(), `wi_${Date.now()}_${Math.random().toString(36).slice(2)}.pdf`);
   fs.writeFileSync(tmp, buf);
   try {
-    return execFileSync('pdftotext', [tmp, '-'], { encoding: 'utf8' });
+    return execFileSync('pdftotext', [tmp, '-'], { encoding: 'utf8', timeout: PDFTOPPM_TIMEOUT_MS });
   } catch {
     return '';
   } finally {
@@ -125,6 +155,37 @@ async function pdfToText(buf) {
  * @returns {Promise<{text, numPages, isScannedDocument, ocrFailed, truncated, originalChars}>}
  */
 async function pdfToTextWithMeta(buf, { maxChars = MAX_CHARS } = {}) {
+  return Promise.race([
+    _pdfToTextWithMetaInner(buf, maxChars),
+    new Promise((resolve) =>
+      setTimeout(
+        () =>
+          resolve({
+            text: '',
+            numPages: null,
+            isScannedDocument: false,
+            // Distinguishable from a "tried OCR and got nothing" ocrFailed —
+            // this means the WHOLE extraction (including the plain text-layer
+            // path) never finished at all within budget. See
+            // OVERALL_EXTRACTION_TIMEOUT_MS's header comment for the incident
+            // this guards against: pdf-parse (pure JS, no subprocess to time
+            // out at the execFileSync layer) is a second, independent place
+            // this module could in principle hang, and a caller iterating a
+            // batch of documents (gainersScanner's classifyAnnouncementsByContent)
+            // must never have ONE stuck document block every other document
+            // behind it in the same batch.
+            ocrFailed: true,
+            truncated: false,
+            originalChars: 0,
+            extractionTimedOut: true,
+          }),
+        OVERALL_EXTRACTION_TIMEOUT_MS
+      )
+    ),
+  ]);
+}
+
+async function _pdfToTextWithMetaInner(buf, maxChars) {
   let { text, numPages } = await extractTextLayer(buf);
   let isScannedDocument = false;
   let ocrFailed = false;

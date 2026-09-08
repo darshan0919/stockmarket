@@ -397,6 +397,51 @@ describe('notes DB round-trip', () => {
     expect(idx['z.pdf'].latest[0].createdAt).toBeUndefined();
   });
 
+  test("a company blob's lastUpdated self-heals from the persisted companies.json modifiedTime on reload (not a second, drifting field)", async () => {
+    // Regression guard for the company-level equivalent of the note-level
+    // createdAt/creationTime bug: cmdAddNote/cmdMarkProcessed used to also
+    // set an in-memory `co.modifiedTime` alongside `co.lastUpdated`, kept
+    // "in sync" by convention. Neither ever actually persisted (save()'s
+    // companyUpserts payload only carries id/creator/nseTicker/name/state —
+    // see notesDb.js's save()) — the REAL, persisted `modifiedTime` on the
+    // company record is set independently by lib/db.js's ensureEnvelope()
+    // inside that same save() call, and load() re-derives `lastUpdated` from
+    // that real value every time. This test pins that self-healing behavior
+    // directly: a fresh load() must reflect the company record's actual
+    // persisted modifiedTime, not whatever an earlier in-memory write set.
+    const dir = path.join(TMP, 'rt-lastupdated');
+    const db = new NotesDb(dir);
+    const dbLib = require('../lib/db');
+    // companies.json keys each record by `id` (the companyId), NOT a
+    // `companyId` field — db.find('companies', {companyId: ...}) would
+    // silently match nothing, since that filter shape targets companyId-
+    // tagged collections like notes/events, not this one.
+    const readCompanyRecord = (id) => dbLib.loadFile(dbLib.collectionFile('companies'))[id];
+
+    const notes = db.load();
+    NotesDb.ensureCompany(notes, 'NSE:LU1', 'NSE:LU1', 'LastUpdatedCo');
+    await db.save(notes);
+
+    const reloaded1 = db.load();
+    const persistedModifiedTime1 = readCompanyRecord('NSE:LU1').modifiedTime;
+    expect(NotesDb.getCompany(reloaded1, 'NSE:LU1').lastUpdated).toBe(persistedModifiedTime1);
+
+    // Mutate again (mark-processed style) and re-save — the real
+    // companies.json modifiedTime should move, and a fresh load() must
+    // track it, not a stale in-memory value from before this save.
+    // nowIstIso() has second-level resolution, so the wait must cross a
+    // whole second boundary for the two timestamps to be guaranteed distinct.
+    await new Promise((r) => setTimeout(r, 1100));
+    const co2 = NotesDb.getCompany(reloaded1, 'NSE:LU1');
+    co2.processedAnnouncements.push('x.pdf');
+    await db.save(reloaded1);
+
+    const reloaded2 = db.load();
+    const persistedModifiedTime2 = readCompanyRecord('NSE:LU1').modifiedTime;
+    expect(persistedModifiedTime2).not.toBe(persistedModifiedTime1);
+    expect(NotesDb.getCompany(reloaded2, 'NSE:LU1').lastUpdated).toBe(persistedModifiedTime2);
+  });
+
   test('a company touched only via mark-processed (no note at all) survives a reload', async () => {
     // Regression test for a real bug found while building usecase-scoping:
     // load() used to seed notes.companies ONLY from note records, so a

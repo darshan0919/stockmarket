@@ -812,6 +812,59 @@ function stampAnnouncementAge(anns, marketDate) {
  * Falls back to the old market-wide sweep if the watchlist can't be created, since
  * a slow scan beats no announcements at all.
  */
+/**
+ * Reads a checkpointed announcement fetch for THIS market date, if one
+ * exists and it represents a genuine success (`_meta.fetchFailed` false).
+ * Returns null on any miss/corruption/mismatch — callers always have a
+ * clean "must fetch" fallback rather than needing to reason about partial
+ * checkpoint state themselves.
+ * @param {string} cachePath
+ * @param {(m: string) => void} log
+ * @returns {Object|null}
+ */
+function readAnnouncementCheckpoint(cachePath, log) {
+  try {
+    if (!fs.existsSync(cachePath)) return null;
+    const raw = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+    if (!raw || !raw._meta || raw._meta.fetchFailed) return null;
+    const results = raw.results || {};
+    Object.defineProperty(results, '_meta', { value: raw._meta, enumerable: false });
+    log(
+      `      → resumed from checkpoint (${cachePath}) — ${raw._meta.pages} page(s), skipping re-fetch\n`
+    );
+    return results;
+  } catch (e) {
+    log(`[WARN] announcement checkpoint unreadable (${e.message}) — will re-fetch\n`);
+    return null;
+  }
+}
+
+/**
+ * Persists a fetch (success OR failure — see readAnnouncementCheckpoint's
+ * fetchFailed check for why a failed one is never served back) so a re-run
+ * for the same market date can skip the network round-trip. Best-effort:
+ * a write failure here must never fail the job, since the in-memory result
+ * is already usable this run regardless.
+ * @param {string} cachePath
+ * @param {Object} annRawMap - carries a non-enumerable `_meta`.
+ * @param {(m: string) => void} log
+ */
+function writeAnnouncementCheckpoint(cachePath, annRawMap, log) {
+  try {
+    fs.mkdirSync(path.dirname(cachePath), { recursive: true });
+    const results = Object.fromEntries(
+      Object.entries(annRawMap).filter(([k]) => k !== '_meta')
+    );
+    fs.writeFileSync(
+      cachePath,
+      JSON.stringify({ results, _meta: annRawMap._meta || null }),
+      'utf8'
+    );
+  } catch (e) {
+    log(`[WARN] failed to write announcement checkpoint: ${e.message}\n`);
+  }
+}
+
 async function fetchAnnouncementsBatch(
   tickers,
   marketDate,
@@ -922,12 +975,29 @@ async function paginateAnnouncements(tickers, marketDate, client, sleep, watchli
 
   // Page 1 (sequential — needed to learn pageSize and to fast-path-exit the
   // common single-page case without ever considering parallel fetch).
+  //
+  // A page-1 failure (HTTP 429 most commonly — see docs/DATA_RULES.md and
+  // 2026-09-08 incident) used to silently become `page1 = []`, which is
+  // byte-for-byte indistinguishable from "we asked and there truly are no
+  // announcements" — exactly the failure mode the pipeline doc's "Strength is
+  // never judged from a title" section calls out for content classification,
+  // just one step earlier: an empty result caused by a rate limit must never
+  // be reported as a clean empty result, because every downstream consumer
+  // (classifier tiering, the WHY ladder) treats `pages:0` as "we checked, and
+  // there's nothing" rather than "we don't know". `HttpClient` now retries
+  // 429s internally with backoff (see stock-api/src/http/HttpClient.js), so
+  // reaching this catch at all means retries were exhausted — a real,
+  // reportable failure, not a transient blip to paper over.
   let page1;
+  let page1Failed = false;
   try {
     page1 = extractPage(await client.scanAnnouncements(buildPayload(0)));
   } catch (e) {
-    process.stderr.write(`[WARN] announcements fetch failed (offset=0): ${e.message}\n`);
+    process.stderr.write(
+      `[WARN] announcements fetch failed (offset=0) after retries: ${e.message}\n`
+    );
     page1 = [];
+    page1Failed = true;
   }
 
   const allPages = [page1];
@@ -1003,9 +1073,17 @@ async function paginateAnnouncements(tickers, marketDate, client, sleep, watchli
       break;
     }
   }
-  log(`      → ${pages} announcement page(s)${truncated ? ' (TRUNCATED)' : ''}\n`);
+  log(
+    `      → ${pages} announcement page(s)${truncated ? ' (TRUNCATED)' : ''}${page1Failed ? ' (FETCH FAILED — treat as UNKNOWN, not empty)' : ''}\n`
+  );
   Object.defineProperty(results, '_meta', {
-    value: { pages, truncated, serverFiltered: !!watchlistId },
+    // `fetchFailed: true` means page 1 itself never succeeded — `pages: 0` in
+    // this case is NOT "we checked and there's nothing", it's "we don't know".
+    // Callers (gainersScanner's caller, the classifier, the WHY ladder) must
+    // treat this differently from a genuine empty day: do not silently score
+    // `ann_count: 0` / `has_material_ann: false` as fact, and the run report
+    // must surface this rather than letting the pipeline read as "quiet day".
+    value: { pages, truncated, serverFiltered: !!watchlistId, fetchFailed: page1Failed },
     enumerable: false,
   });
   return results;
@@ -1377,9 +1455,35 @@ async function main({
   }
 
   // 2. Announcements
+  //
+  // Checkpointed: this fetch shares the same Stockscans account/session as
+  // everything else in the job, and the announcements endpoint specifically
+  // has been observed to enforce a multi-minute cooldown after a 429 (see
+  // 2026-09-08 incident) — long enough that a single process can burn through
+  // an entire job's wall-clock budget on Step 2a's PDF classification before
+  // ever reaching Step 8. Persisting a successful fetch to
+  // `data/cache/gainers-scanner/announcements_<marketDate>.json` means a
+  // second invocation for the same market date (after a crash/timeout further
+  // downstream) doesn't have to re-fetch and re-risk the rate limit — it
+  // resumes straight into classification. Never served across DIFFERENT
+  // market dates, and never served if the previous fetch itself failed
+  // (`fetchFailed`) — a checkpoint of "we don't know" would just enshrine the
+  // same unknown as if it were an answer.
   log('[2/7] Fetching 14-day announcements (7d scoring window) …\n');
-  const annRawMap = await fetchAnnouncementsBatch(tickers, mDate, ss, sleep, log);
-  const annMeta = annRawMap._meta || { pages: 0, truncated: false, serverFiltered: false };
+  const annCachePath = dbV2.cachePath(
+    `gainers-scanner/announcements_${mDate.toISOString().slice(0, 10)}.json`
+  );
+  let annRawMap = readAnnouncementCheckpoint(annCachePath, log);
+  if (!annRawMap) {
+    annRawMap = await fetchAnnouncementsBatch(tickers, mDate, ss, sleep, log);
+    writeAnnouncementCheckpoint(annCachePath, annRawMap, log);
+  }
+  const annMeta = annRawMap._meta || {
+    pages: 0,
+    truncated: false,
+    serverFiltered: false,
+    fetchFailed: true,
+  };
   // Noise-filter, then stamp each surviving announcement with its age and
   // whether it falls in the 7-day scoring window (see stampAnnouncementAge).
   // Order matters only for cost: filtering first means we don't date-stamp

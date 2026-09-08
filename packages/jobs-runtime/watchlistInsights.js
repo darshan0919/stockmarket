@@ -811,8 +811,24 @@ async function cmdAddNote(noteJsonStr) {
     co.notes.push(entry);
     noteId = entry.id;
   }
+  // `co.lastUpdated` here is purely an in-memory bookkeeping value for the
+  // rest of THIS process — save() below persists a company record via
+  // db.upsertMany('companies', ...), which does not even include this field
+  // (see notesDb.js's save(): the companyUpserts payload only carries id/
+  // creator/nseTicker/name/state), so nothing written here ever reaches
+  // companies.json directly. The real, persisted `modifiedTime` on the
+  // company record is set independently by lib/db.js's ensureEnvelope()
+  // inside that same save() call. load() (notesDb.js) re-derives
+  // `co.lastUpdated` from that real, persisted `modifiedTime` on every
+  // fresh load, which is what every other command (a separate CLI
+  // invocation, per skills/_shared/conventions.md's one-command-per-process
+  // pattern) actually reads. A second `co.modifiedTime` field used to be
+  // set here too, kept "in sync" with `co.lastUpdated` by convention rather
+  // than being structurally impossible to diverge — the exact same shape as
+  // the note-level createdAt/creationTime bug (see §22) even though it never
+  // actually manifested as one here (nothing persists or reads it). Removed
+  // rather than left as a latent trap for a future refactor.
   co.lastUpdated = ist.nowIstIso();
-  co.modifiedTime = co.lastUpdated; // output-dto-standard envelope field
   await db.save(notes);
   process.stdout.write(
     JSON.stringify({
@@ -846,8 +862,12 @@ async function cmdMarkProcessed(companyId, annId, usecase = ANNOUNCEMENT_INSIGHT
   co.processedByUsecase ||= {};
   const bucket = (co.processedByUsecase[usecase] ||= []);
   if (!bucket.includes(annId)) bucket.push(annId);
+  // See cmdAddNote's comment above on why only `lastUpdated` is set here: it
+  // is in-memory-only bookkeeping for this process; the persisted
+  // `modifiedTime` on the company record is set independently by
+  // lib/db.js's ensureEnvelope() inside save(), and load() re-derives
+  // `lastUpdated` from that real value on every fresh load.
   co.lastUpdated = ist.nowIstIso();
-  co.modifiedTime = co.lastUpdated; // output-dto-standard envelope field
   await db.save(notes);
   process.stdout.write(JSON.stringify({ status: 'ok', usecase }));
 }

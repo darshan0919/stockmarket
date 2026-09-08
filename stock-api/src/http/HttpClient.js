@@ -64,8 +64,22 @@ class HttpClient {
    *   this instance's calls to for API-usage auditing. Omit for an untracked/ad-hoc call
    *   (tracking simply no-ops). Lives on the instance, not any shared/global state.
    * @param {import('axios').AxiosInstance} [opts.axiosInstance] - Override (for tests).
+   * @param {number} [opts.max429Retries=3] - Max retries on HTTP 429 before giving up
+   *   and letting the error propagate. Set to 0 to disable (old behavior).
+   * @param {number} [opts.retryBaseDelayMs=2000] - Base delay for the 429 backoff.
+   *   Actual wait is `retryBaseDelayMs * 2^attempt` (plus jitter), honoring a
+   *   `Retry-After` response header (seconds or HTTP-date) when present.
+   * @param {(ms: number) => Promise<void>} [opts.sleep] - Injectable delay fn (for tests).
    */
-  constructor({ timeout = 30000, userAgent, jobName, axiosInstance } = {}) {
+  constructor({
+    timeout = 30000,
+    userAgent,
+    jobName,
+    axiosInstance,
+    max429Retries = 3,
+    retryBaseDelayMs = 2000,
+    sleep,
+  } = {}) {
     this.timeout = timeout;
     this.jobName = jobName || null;
     this.userAgent =
@@ -73,6 +87,59 @@ class HttpClient {
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
         '(KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36';
     this.axios = axiosInstance || axios.create();
+    this.max429Retries = max429Retries;
+    this.retryBaseDelayMs = retryBaseDelayMs;
+    this._sleep = sleep || ((ms) => new Promise((r) => setTimeout(r, ms)));
+  }
+
+  /**
+   * Delay to wait before retry attempt `attempt` (0-indexed) on a 429,
+   * honoring the server's `Retry-After` header when present (seconds, or an
+   * HTTP-date) — a server telling us exactly how long to wait should always
+   * win over our own guess. Falls back to exponential backoff with jitter:
+   * `retryBaseDelayMs * 2^attempt` up to a 15s jitter band, capped at 2 min
+   * so a misbehaving header/backoff never stalls a job indefinitely.
+   * @param {number} attempt
+   * @param {import('axios').AxiosResponse} [response]
+   * @returns {number} ms
+   */
+  _retryDelayMs(attempt, response) {
+    const retryAfter = response && response.headers && response.headers['retry-after'];
+    if (retryAfter) {
+      const asSeconds = Number(retryAfter);
+      if (Number.isFinite(asSeconds)) return Math.min(asSeconds * 1000, 120000);
+      const asDate = Date.parse(retryAfter);
+      if (!Number.isNaN(asDate)) return Math.min(Math.max(asDate - Date.now(), 0), 120000);
+    }
+    const backoff = this.retryBaseDelayMs * 2 ** attempt;
+    const jitter = Math.random() * 15000;
+    return Math.min(backoff + jitter, 120000);
+  }
+
+  /**
+   * Runs `fn` (one axios call), retrying on HTTP 429 up to `max429Retries`
+   * times with backoff. Any other error, or exhausting retries, rethrows the
+   * original axios error unchanged — callers that already catch/log errors
+   * (every client in this repo does) need no changes to benefit from this.
+   * @param {string} url - for logging only.
+   * @param {() => Promise<import('axios').AxiosResponse>} fn
+   */
+  async _withRetry(url, fn) {
+    let attempt = 0;
+    for (;;) {
+      try {
+        return await fn();
+      } catch (err) {
+        const status = err && err.response && err.response.status;
+        if (status !== 429 || attempt >= this.max429Retries) throw err;
+        const delay = this._retryDelayMs(attempt, err.response);
+        process.stderr.write(
+          `[HttpClient] 429 from ${url} — retry ${attempt + 1}/${this.max429Retries} in ${Math.round(delay / 1000)}s\n`
+        );
+        await this._sleep(delay);
+        attempt += 1;
+      }
+    }
   }
 
   /** @param {Object} [headers] */
@@ -96,12 +163,14 @@ class HttpClient {
    */
   async get(url, { params, headers, timeout, responseType } = {}) {
     try {
-      const res = await this.axios.get(url, {
-        params,
-        headers: this._headers(headers),
-        timeout: timeout ?? this.timeout,
-        responseType,
-      });
+      const res = await this._withRetry(url, () =>
+        this.axios.get(url, {
+          params,
+          headers: this._headers(headers),
+          timeout: timeout ?? this.timeout,
+          responseType,
+        })
+      );
       this._track(url, true);
       return res;
     } catch (err) {
@@ -118,10 +187,12 @@ class HttpClient {
    */
   async post(url, body, { headers, timeout } = {}) {
     try {
-      const res = await this.axios.post(url, body, {
-        headers: this._headers(headers),
-        timeout: timeout ?? this.timeout,
-      });
+      const res = await this._withRetry(url, () =>
+        this.axios.post(url, body, {
+          headers: this._headers(headers),
+          timeout: timeout ?? this.timeout,
+        })
+      );
       this._track(url, true);
       return res;
     } catch (err) {
@@ -138,10 +209,12 @@ class HttpClient {
    */
   async put(url, body, { headers, timeout } = {}) {
     try {
-      const res = await this.axios.put(url, body, {
-        headers: this._headers(headers),
-        timeout: timeout ?? this.timeout,
-      });
+      const res = await this._withRetry(url, () =>
+        this.axios.put(url, body, {
+          headers: this._headers(headers),
+          timeout: timeout ?? this.timeout,
+        })
+      );
       this._track(url, true);
       return res;
     } catch (err) {
@@ -160,11 +233,13 @@ class HttpClient {
    */
   async delete(url, { headers, timeout, data } = {}) {
     try {
-      const res = await this.axios.delete(url, {
-        headers: this._headers(headers),
-        timeout: timeout ?? this.timeout,
-        data,
-      });
+      const res = await this._withRetry(url, () =>
+        this.axios.delete(url, {
+          headers: this._headers(headers),
+          timeout: timeout ?? this.timeout,
+          data,
+        })
+      );
       this._track(url, true);
       return res;
     } catch (err) {

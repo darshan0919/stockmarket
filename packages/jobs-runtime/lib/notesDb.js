@@ -195,12 +195,25 @@ class NotesDb {
     notes.companies ||= {};
     if (!notes.companies[companyId]) {
       const now = nowIstIso();
+      // `creationTime`/`lastUpdated` here are in-memory-only placeholders for
+      // this blob (`notes.companies[cid]`, the recomposed view load() builds
+      // -- NOT the persisted company record). save() -> db.upsertMany
+      // ('companies', ...) sets the real, persisted `creationTime`/
+      // `modifiedTime` independently via lib/db.js's ensureEnvelope(), and
+      // load() re-derives `lastUpdated` from that real `modifiedTime` on
+      // every fresh load (see `co.lastUpdated = c.modifiedTime || ...`
+      // below). No separate `modifiedTime` is set here on purpose: a field
+      // that isn't the note-record schema's canonical timestamp, kept
+      // "in sync" with a differently-named field by convention rather than
+      // structurally impossible to diverge, is exactly the shape of the
+      // createdAt/creationTime bug documented in
+      // skills/_shared/conventions.md §22 -- not repeating it here even
+      // though this particular field never actually persisted or drifted.
       notes.companies[companyId] = {
         companyId,
         ticker,
         name,
         creationTime: now,
-        modifiedTime: now,
         creator: 'watchlist-insights',
         lastUpdated: now,
         businessSummary: '',
