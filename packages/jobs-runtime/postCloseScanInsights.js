@@ -18,7 +18,11 @@
  * Commands:
  *   fetch-scan [--window-hours N]   -> JSON array of raw announcements since cutoff
  *   filter-noise <fetch-scan.json>  -> {kept, dropped} after noise-keyword filter
- *   categorise <filter-noise kept>  -> adds {category, heavyDocument, pdfUrl}
+ *   categorise <filter-noise kept>  -> adds {category, heavyDocument, pdfUrl,
+ *                                       isDuplicateLead, duplicateOf, duplicateGroupSize}
+ *                                      (see groupDuplicateFilings — same-day/same-company
+ *                                      companion filings are tagged, never dropped; only
+ *                                      the group's lead should get a full PDF read)
  *   send-digest <insights.json>     -> emails a significance-grouped HTML digest
  *   commit-window                   -> durably advances the resumable window cursor (call after a healthy run)
  */
@@ -52,6 +56,7 @@ const {
   HIGH_CONVICTION_CATEGORIES,
 } = require('./lib/announcementTaxonomy');
 const { NotesDb } = require('./lib/notesDb');
+const { nameSimilarity } = require('./lib/fuzzyMatch');
 
 const BASE_URL = 'https://www.stockscans.in';
 const PAGE_SIZE = 30; // documented convention (see bulkAnnouncementScan.js) — not the response's self-inflating `total`
@@ -635,6 +640,152 @@ function isAlreadyProcessed(notes, companyId, announcementId) {
 // signal to skip re-processing rather than relying on memory across runs.
 const ANNOUNCEMENT_INSIGHTS_USECASE_PREFIX = 'announcement-insights';
 
+// ── Same-day companion/duplicate filing grouping ───────────────────────────
+//
+// Added 2026-09-13 per a run-report finding: across a 246-item categorised
+// batch, roughly 15-20% of PDF reads were exact-duplicate or same-day
+// companion filings for one underlying event (a board-outcome Reg 30 filing,
+// its own press release, and an investor-presentation restating the same
+// numbers, all filed within hours of each other; or the literal same
+// announcement re-ingested under a second `ssUrl`). `mark-processed`/
+// `alreadyProcessed` do NOT catch this — that check is keyed on
+// announcementId and only prevents a duplicate WRITE; by the time an item is
+// known to be a duplicate this way, the PDF has already been fetched and an
+// LLM call has already produced the (discarded) second insight. Tagging
+// duplicates HERE, before any PDF is read, is what actually saves the cost
+// (see skills/_shared/conventions.md §17's "not a substitute" note on
+// mark-processed).
+//
+// Grouping key: same companyId + same calendar `date` (the field this
+// pipeline already carries, not a re-derived filing timestamp) + title/
+// description similarity above threshold, via the same nameSimilarity()
+// Jaro-Winkler/token-overlap matcher `fuzzyMatch.js` already uses for
+// investor-name matching (conventions.md §17 — reuse, don't reimplement a
+// second string-similarity function for a narrower case of the same
+// problem). Same-day is a deliberate, conservative choice: cross-day
+// "sequel" filings (a follow-up tranche next week, a scheduled next
+// concession-milestone months later) are NOT duplicates of the earlier one
+// and must still each get their own read — this groups only same-day noise,
+// mirroring the info-classifier's own Step 3e same-day exclusion rule
+// (skills/equity-research/announcement-info-classifier/SKILL.md), which
+// exists for the identical underlying reason (a same-day companion filing is
+// the SAME disclosure event, not a second one).
+//
+// Tag-and-keep, never drop (same discipline as filter-noise above): every
+// item stays in the output. Only the group's LEAD item (earliest `createdAt`
+// within the group; ties broken by array order) gets `isDuplicateLead: true`
+// and should get the normal full PDF-read treatment. Every other member gets
+// `duplicateOf: <lead's ssUrl>` and `isDuplicateLead: false` — the orchestrator
+// (or a future automated Step 3) should route these straight to
+// `mark-processed` with a `duplicate-of-existing-note`-style usecase, no PDF
+// read, no LLM call, citing the lead's insight rather than re-deriving one.
+// A human/agent reviewing the run can still override a bad grouping by
+// reading the flagged item anyway — this tags a strong hint, it does not
+// silently make the routing decision unreviewable.
+// Deliberately looser than fuzzyMatch.js's own 0.85 default (tuned for short
+// investor/entity names, which are near-fully-overlapping strings when they
+// match at all). Filing titles are longer and more heterogeneous — a board
+// outcome, its press release, and an investor deck describing the same event
+// routinely share only their substantive tail (counterparty, deal type)
+// after scheduling/regulatory scaffolding is stripped, so token overlap on
+// that shared tail is what should trigger a match here, not near-verbatim
+// text. Calibrated against real same-day companion pairs from the
+// 2026-09-13 run (see the paired tests in test/postCloseScanInsights.test.js)
+// — 0.6 groups the true companions in that run without also grouping the
+// two same-day/same-company/different-event pairs also drawn from it.
+const DUPLICATE_TITLE_SIMILARITY_THRESHOLD = 0.6;
+
+// Strip boilerplate that companion filings routinely differ on even when
+// describing the identical event: regulation/section preamble ("Announcement
+// under Regulation 30 (LODR)-X" vs "Disclosure Under Regulation 30 Of SEBI
+// Listing Regulations 2015"), and meeting-scheduling scaffolding ("Outcome Of
+// Board Meeting Held On <date>" vs "Press Release" vs "Investor
+// Presentation") — none of that boilerplate carries the event's identity;
+// the counterparty/deal-type words after it do. Leaving either category in
+// suppresses genuine similarity on the part that actually matters.
+const FILING_BOILERPLATE_RE =
+  /\b(announcement|disclosure|outcome|intimation|press|release|investor|presentation|proceedings?|scrutinizer'?s?|report|meeting|held|considered?|consider|clarification|regarding)\b|\bunder\b|\bon\b|\bof\b|\bfor\b|\bthe\b|\bat\b|\bto\b|\bboard\b|\bregulation\s*\d+[a-z]?\b|\bsebi\b|\blisting\s*regulations?\b|\(lodr\)|\b(?:january|february|march|april|may|june|july|august|september|october|november|december)\b|\d{1,4}\b/gi;
+
+function normaliseFilingTitle(title, description) {
+  const combined = `${title || ''} ${description || ''}`;
+  return combined.replace(FILING_BOILERPLATE_RE, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function groupDuplicateFilings(items) {
+  // Bucket by companyId + calendar date first — never compare titles across
+  // different companies or different days, so this stays O(n · bucket size)
+  // rather than O(n²) over the whole batch.
+  const buckets = new Map();
+  items.forEach((item, idx) => {
+    const key = `${item.companyId}|${item.date || ''}`;
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(idx);
+  });
+
+  // Sort each bucket's indices by createdAt ascending BEFORE clustering, so
+  // the first index visited in a cluster (and therefore its lead) is
+  // genuinely the earliest-filed item — the one that should get the full
+  // PDF read, since it's the first disclosure of the event, not whichever
+  // happened to appear first in the fetch-scan page order. Items with an
+  // unparseable/missing createdAt sort last (their own read is unaffected;
+  // they just can't claim lead status over a dated sibling).
+  for (const indices of buckets.values()) {
+    indices.sort((a, b) => {
+      const ta = Date.parse(items[a].createdAt || '') || Infinity;
+      const tb = Date.parse(items[b].createdAt || '') || Infinity;
+      return ta - tb;
+    });
+  }
+
+  // group[i] = the index of item i's lead (itself, if it IS the lead).
+  const leadOfIndex = new Array(items.length);
+
+  for (const indices of buckets.values()) {
+    // Within a same-company/same-day bucket, greedily cluster by title
+    // similarity — a lead "claims" every later item that clears the
+    // threshold against IT specifically (not against every other member),
+    // which keeps a bucket with two genuinely distinct events (e.g. an AGM
+    // outcome AND an unrelated order win filed the same day) from being
+    // incorrectly merged into one group just because a third, actually
+    // similar filing sits between them in the array.
+    const claimed = new Set();
+    for (const i of indices) {
+      if (claimed.has(i)) continue;
+      leadOfIndex[i] = i; // i is a lead until proven otherwise
+      claimed.add(i);
+      const leadNorm = normaliseFilingTitle(items[i].title, items[i].description);
+      if (!leadNorm) continue;
+      for (const j of indices) {
+        if (claimed.has(j)) continue;
+        const otherNorm = normaliseFilingTitle(items[j].title, items[j].description);
+        if (!otherNorm) continue;
+        if (nameSimilarity(leadNorm, otherNorm) >= DUPLICATE_TITLE_SIMILARITY_THRESHOLD) {
+          leadOfIndex[j] = i;
+          claimed.add(j);
+        }
+      }
+    }
+  }
+
+  // Group sizes, for the `duplicateGroupSize` field (lets a caller see "this
+  // lead is standing in for N filings" without a second pass).
+  const groupSize = new Map();
+  leadOfIndex.forEach((leadIdx) => {
+    groupSize.set(leadIdx, (groupSize.get(leadIdx) || 0) + 1);
+  });
+
+  return items.map((item, idx) => {
+    const leadIdx = leadOfIndex[idx];
+    const isLead = leadIdx === idx;
+    return {
+      ...item,
+      isDuplicateLead: isLead,
+      duplicateOf: isLead ? null : items[leadIdx].ssUrl,
+      duplicateGroupSize: groupSize.get(leadIdx) || 1,
+    };
+  });
+}
+
 function cmdCategorise(argv) {
   const file = argv[0];
   if (!file)
@@ -644,7 +795,7 @@ function cmdCategorise(argv) {
   const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
   const items = raw.kept || raw;
   const notes = new NotesDb().load();
-  const out = items.map((item) => {
+  const categorised = items.map((item) => {
     const category = categoriseAnnouncement(item.title, item.description);
     const announcementId = item.ssUrl;
     return {
@@ -667,6 +818,7 @@ function cmdCategorise(argv) {
       date: item.date,
     };
   });
+  const out = groupDuplicateFilings(categorised);
   process.stdout.write(JSON.stringify(out, null, 2));
 }
 
@@ -1142,6 +1294,9 @@ module.exports = {
   SCAN_SOURCE_NAME,
   FALLBACK_SCAN,
   collectCachedNotesSinceCutoff,
+  normaliseFilingTitle,
+  groupDuplicateFilings,
+  DUPLICATE_TITLE_SIMILARITY_THRESHOLD,
 };
 
 // Guarded so requiring this module (for its exports, or from a test) does not

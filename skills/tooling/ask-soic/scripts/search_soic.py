@@ -266,7 +266,13 @@ def main():
         sys.exit(1)
 
     learnyst_index = load_json(learnyst_index_path)
-    youtube_index = load_json(youtube_index_path)
+    all_youtube_index = load_json(youtube_index_path)
+    youtube_index = {
+        k: v for k, v in all_youtube_index.items()
+        if v.get("channelHandle") in ("SOICfinance", "SOIC")
+        or v.get("channelTitle") == "SOIC"
+        or v.get("channelId") == "UCB7GnQlJPIL6rBBqEoX87vA"
+    }
 
     cache_path = os.path.join(args.data_root, "cache", "ask-soic", "index.json")
     index = load_or_build_index(args.data_root, cache_path, learnyst_index, youtube_index, args.reindex)

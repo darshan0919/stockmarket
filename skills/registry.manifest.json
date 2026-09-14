@@ -963,6 +963,46 @@
         "what does soic teach about"
       ]
     },
+    "ask-anil-lamba": {
+      "skill_md": "skills/tooling/ask-anil-lamba/SKILL.md",
+      "entry": "skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py",
+      "mode": "clone",
+      "modules": [],
+      "references": [],
+      "shared": ["skills/_shared/conventions.md"],
+      "aliases": [
+        "ask anil lamba",
+        "what does anil lamba say about",
+        "how does anil lamba explain",
+        "romancing the balance sheet",
+        "anil lamba on working capital",
+        "anil lamba on marginal costing",
+        "anil lamba contribution margin",
+        "anil lamba leverage",
+        "profit can destroy business",
+        "why more profit equals less cash"
+      ]
+    },
+    "ask-expert": {
+      "skill_md": "skills/tooling/ask-expert/SKILL.md",
+      "entry": "skills/tooling/ask-expert/scripts/search_expert.py",
+      "mode": "clone",
+      "modules": [
+        "skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py",
+        "skills/tooling/ask-soic/scripts/search_soic.py"
+      ],
+      "references": [],
+      "shared": ["skills/_shared/conventions.md"],
+      "aliases": [
+        "ask expert",
+        "what do experts say about",
+        "ask financial experts",
+        "compare soic and anil lamba",
+        "anil lamba vs soic",
+        "expert opinion on",
+        "corporate finance vs equity investing"
+      ]
+    },
     "volume-rocketing": {
       "skill_md": "skills/equity-research/volume-rocketing/SKILL.md",
       "entry": null,

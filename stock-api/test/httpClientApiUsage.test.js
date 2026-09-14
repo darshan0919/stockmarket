@@ -25,7 +25,11 @@ describe('HttpClient API-usage tracking (jobName lives on the instance, no share
 
   function fakeAxios({ getOk = true } = {}) {
     return {
-      get: getOk ? async () => ({ data: {} }) : async () => { throw new Error('boom'); },
+      get: getOk
+        ? async () => ({ data: {} })
+        : async () => {
+            throw new Error('boom');
+          },
       post: async () => ({ data: {} }),
       put: async () => ({ data: {} }),
       delete: async () => ({ data: {} }),
@@ -38,7 +42,7 @@ describe('HttpClient API-usage tracking (jobName lives on the instance, no share
     expect(apiUsageCounter.activeJobs()).toEqual([]);
   });
 
-  test('records a successful GET under the derived api label, for this instance\'s jobName', async () => {
+  test("records a successful GET under the derived api label, for this instance's jobName", async () => {
     const http = new HttpClient({
       jobName: 'daily-gainers-signal-stockmarket',
       axiosInstance: fakeAxios(),
@@ -86,7 +90,7 @@ describe('HttpClient API-usage tracking (jobName lives on the instance, no share
     expect(apiUsageCounter.totalCalls('job-b')).toBe(1);
   });
 
-  test('mutating jobName on an existing instance (e.g. via a client\'s setJobName) changes future attribution', async () => {
+  test("mutating jobName on an existing instance (e.g. via a client's setJobName) changes future attribution", async () => {
     const http = new HttpClient({ axiosInstance: fakeAxios() });
     await http.get('https://api.stockscans.in/untracked');
     expect(apiUsageCounter.activeJobs()).toEqual([]);

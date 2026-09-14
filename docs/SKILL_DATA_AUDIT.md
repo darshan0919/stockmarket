@@ -182,7 +182,7 @@ inline on that command.
   at startup. This is a `type` inside the existing `events` collection, not a new
   collection (DATA_RULES §2).
 - **Email footer**: a script passes its resolved `jobName` on the `sendHtmlEmail({ ...,
-  jobName })` call it already makes, and the footer (`emailService.js`'s
+jobName })` call it already makes, and the footer (`emailService.js`'s
   `appendApiUsageFooter`) renders THAT job's summary from the shared counter — no
   per-digest-HTML-builder change needed; this is why the footer shows up on all 18+
   existing scheduled emails with just one added line per `sendHtmlEmail` call site.

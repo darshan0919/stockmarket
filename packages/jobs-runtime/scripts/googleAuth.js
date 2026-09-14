@@ -120,7 +120,9 @@ function waitForAuthCode(port) {
       const error = url.searchParams.get('error');
       res.writeHead(200, { 'Content-Type': 'text/html' });
       if (code) {
-        res.end('<html><body><h2>Authorized.</h2>You can close this tab and return to the terminal.</body></html>');
+        res.end(
+          '<html><body><h2>Authorized.</h2>You can close this tab and return to the terminal.</body></html>'
+        );
       } else {
         res.end(
           `<html><body><h2>Something went wrong${error ? `: ${error}` : ''}.</h2>Return to the terminal.</body></html>`
@@ -201,7 +203,9 @@ async function main() {
     if (hasFlag('--no-write')) {
       console.log('\nSuccess. Paste this into the repo root .env (replacing the existing line):\n');
       console.log(`GOOGLE_REFRESH_TOKEN=${tokens.refresh_token}`);
-      console.log('\nGOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET are unchanged -- only the refresh token was reissued.');
+      console.log(
+        '\nGOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET are unchanged -- only the refresh token was reissued.'
+      );
       console.log('\nThen verify with:  yarn data:status\n');
       return;
     }
@@ -219,7 +223,9 @@ async function main() {
     const { backupPath } = writeRefreshTokenToEnv(resolvedEnvPath, tokens.refresh_token);
     console.log(`\nSuccess. GOOGLE_REFRESH_TOKEN written to ${resolvedEnvPath}.`);
     console.log(`Previous .env backed up to ${backupPath}.`);
-    console.log('GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET are unchanged -- only the refresh token was reissued.');
+    console.log(
+      'GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET are unchanged -- only the refresh token was reissued.'
+    );
 
     // Quick live verification in a fresh process (this process already has
     // the old value cached in process.env via loadEnv, so re-checking here

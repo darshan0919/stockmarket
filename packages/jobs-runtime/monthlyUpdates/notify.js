@@ -44,7 +44,7 @@ function buildDigestHtml(dto, { deployUrl = null } = {}) {
   const monthly = companies.filter((c) => c.isMonthly);
   const quarterly = companies.filter((c) => !c.isMonthly);
   const latestPeriod = dto.summary.latestPeriod || '2026-08';
-  const pageUrl = deployUrl || 'https://monthly-updates-bul5kyf9b-djp7.vercel.app';
+  const pageUrl = deployUrl || 'https://monthly-updates.vercel.app';
   const localAsset = 'data/assets/monthly-updates/index.html';
 
   const yoyMovers = [...companies]
@@ -57,7 +57,12 @@ function buildDigestHtml(dto, { deployUrl = null } = {}) {
     .sort((a, b) => Math.abs(b.qoqPct) - Math.abs(a.qoqPct))
     .slice(0, 5);
 
-  const signFlips = [
+  const recentUpdates = [...companies]
+    .filter((c) => c.latestFiledOn)
+    .sort((a, b) => b.latestFiledOn.localeCompare(a.latestFiledOn))
+    .slice(0, 8);
+
+  const signFlipsRaw = [
     {
       companyId: 'NSE:ESCORTS',
       name: 'Escorts Kubota',
@@ -104,6 +109,11 @@ function buildDigestHtml(dto, { deployUrl = null } = {}) {
       signalType: 'Contraction',
     },
   ];
+
+  const signFlips = signFlipsRaw.map((sf) => ({
+    ...sf,
+    filedOn: (companies.find((c) => c.companyId === sf.companyId) || {}).latestFiledOn || null,
+  }));
 
   return `<!DOCTYPE html>
 <html>
@@ -185,7 +195,7 @@ function buildDigestHtml(dto, { deployUrl = null } = {}) {
                 <tr style="background:${i % 2 === 0 ? '#ffffff' : '#fcfcfc'};border-bottom:1px solid #eeeeee;">
                   <td style="padding:10px 12px;vertical-align:top;width:28%;">
                     <div style="font-weight:700;font-size:14px;">${stockscansLink(sf.name, sf.companyId, 'NSE', '#1a73e8')}</div>
-                    <div style="font-size:11px;color:#70757a;font-family:monospace;">${sf.companyId}</div>
+                    <div style="font-size:11px;color:#70757a;font-family:monospace;">${sf.companyId}${sf.filedOn ? ` • <span style="color:#1a73e8;">Filed: ${sf.filedOn}</span>` : ''}</div>
                     <div style="font-size:11px;color:#5f6368;margin-top:2px;">${sf.metric}</div>
                   </td>
                   <td style="padding:10px 12px;vertical-align:top;width:24%;">
@@ -218,6 +228,7 @@ function buildDigestHtml(dto, { deployUrl = null } = {}) {
               <th style="padding:8px 12px;">Metric</th>
               <th style="padding:8px 12px;text-align:right;">Reported Level</th>
               <th style="padding:8px 12px;text-align:right;">YoY Growth</th>
+              <th style="padding:8px 12px;">Last Update</th>
               <th style="padding:8px 12px;">Basis / Note</th>
             </tr>
           </thead>
@@ -241,6 +252,9 @@ function buildDigestHtml(dto, { deployUrl = null } = {}) {
                     ${fmtPct(c.yoyPct)}
                   </span>
                 </td>
+                <td style="padding:8px 12px;font-size:11px;font-family:monospace;color:#3c4043;">
+                  ${c.latestFiledOn || '—'}
+                </td>
                 <td style="padding:8px 12px;font-size:11px;color:#70757a;">
                   ${c.yoyBasis} ${c.months <= 2 ? '• <em>Small base (' + c.months + 'm)</em>' : ''}
                 </td>
@@ -263,6 +277,7 @@ function buildDigestHtml(dto, { deployUrl = null } = {}) {
               <th style="padding:8px 12px;">Metric</th>
               <th style="padding:8px 12px;text-align:right;">Reported Level</th>
               <th style="padding:8px 12px;text-align:right;">QoQ Growth</th>
+              <th style="padding:8px 12px;">Last Update</th>
               <th style="padding:8px 12px;">Basis / Note</th>
             </tr>
           </thead>
@@ -286,8 +301,66 @@ function buildDigestHtml(dto, { deployUrl = null } = {}) {
                     ${fmtPct(c.qoqPct)}
                   </span>
                 </td>
+                <td style="padding:8px 12px;font-size:11px;font-family:monospace;color:#3c4043;">
+                  ${c.latestFiledOn || '—'}
+                </td>
                 <td style="padding:8px 12px;font-size:11px;color:#70757a;">
                   ${c.qoqBasis} ${c.months <= 2 ? '• <em>Small base (' + c.months + 'm)</em>' : ''}
+                </td>
+              </tr>
+            `
+              )
+              .join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <h2 style="font-size:15px;text-transform:uppercase;letter-spacing:0.5px;color:#5f6368;margin:0 0 10px;border-bottom:2px solid #1a73e8;padding-bottom:4px;">
+          5. Latest Company Updates (Sorted by Recency)
+        </h2>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;">
+          <thead>
+            <tr style="background:#f1f3f4;text-align:left;color:#5f6368;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">
+              <th style="padding:8px 12px;">Filing Date</th>
+              <th style="padding:8px 12px;">Company</th>
+              <th style="padding:8px 12px;">Period / Metric</th>
+              <th style="padding:8px 12px;text-align:right;">Reported Level</th>
+              <th style="padding:8px 12px;text-align:right;">YoY Growth</th>
+              <th style="padding:8px 12px;text-align:right;">MoM / QoQ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${recentUpdates
+              .map(
+                (c, i) => `
+              <tr style="background:${i % 2 === 0 ? '#ffffff' : '#fcfcfc'};border-bottom:1px solid #eeeeee;">
+                <td style="padding:8px 12px;font-weight:700;font-family:monospace;font-size:12px;color:#1a73e8;">
+                  ${c.latestFiledOn || '—'}
+                </td>
+                <td style="padding:8px 12px;font-weight:600;">
+                  ${stockscansLink(c.name || c.companyId, c.companyId, 'NSE', '#1a73e8')}
+                  <div style="font-size:11px;color:#80868b;font-weight:normal;">${c.companyId} ${c.isMonthly ? '<span style="color:#137333;">[Monthly]</span>' : '<span style="color:#e37400;">[Qtr]</span>'}</div>
+                </td>
+                <td style="padding:8px 12px;color:#3c4043;font-size:12px;">
+                  <span style="font-weight:600;font-family:monospace;">${c.latestPeriod}</span>: ${c.metricName} <span style="color:#70757a;">(${c.unit})</span>
+                </td>
+                <td style="padding:8px 12px;text-align:right;font-weight:600;font-family:monospace;">
+                  ${fmtNum(c.latestValue)}
+                </td>
+                <td style="padding:8px 12px;text-align:right;">
+                  <span style="font-weight:700;padding:2px 6px;border-radius:4px;background:${pctBg(c.yoyPct)};color:${pctColor(c.yoyPct)};">
+                    ${fmtPct(c.yoyPct)}
+                  </span>
+                </td>
+                <td style="padding:8px 12px;text-align:right;font-size:12px;">
+                  ${
+                    c.isMonthly && typeof c.momPct === 'number'
+                      ? `<span style="font-weight:600;color:${pctColor(c.momPct)};">MoM: ${fmtPct(c.momPct)}</span>`
+                      : typeof c.qoqPct === 'number'
+                        ? `<span style="font-weight:600;color:${pctColor(c.qoqPct)};">QoQ: ${fmtPct(c.qoqPct)}</span>`
+                        : '—'
+                  }
                 </td>
               </tr>
             `

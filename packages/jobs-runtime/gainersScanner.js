@@ -852,9 +852,7 @@ function readAnnouncementCheckpoint(cachePath, log) {
 function writeAnnouncementCheckpoint(cachePath, annRawMap, log) {
   try {
     fs.mkdirSync(path.dirname(cachePath), { recursive: true });
-    const results = Object.fromEntries(
-      Object.entries(annRawMap).filter(([k]) => k !== '_meta')
-    );
+    const results = Object.fromEntries(Object.entries(annRawMap).filter(([k]) => k !== '_meta'));
     fs.writeFileSync(
       cachePath,
       JSON.stringify({ results, _meta: annRawMap._meta || null }),

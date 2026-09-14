@@ -252,7 +252,37 @@ function buildCard(companyId, extracts) {
     // buildCapexTimeline() below joins against the PPT/result-side
     // commitments[] by project-name similarity, per
     // docs/REUSE_ARCHITECTURE_PLAN.md §4.2.
-    for (const c of d.capex_commercialisation || []) {
+    //
+    // Defensive normalisation added 2026-09-13: the documented schema
+    // (profiles.md) is an array of `{project, status, quote}`, but at least 8
+    // real extracts in the corpus (NSE:CARTRADE, NSE:BEML, and 6 others —
+    // confirmed live) carry a single summary OBJECT instead
+    // (`{cwip_balance_inr_cr, summary, quote}`), not an array — schema drift
+    // from whatever extraction pass produced them, upstream of this file. The
+    // un-guarded `for...of` on a plain object threw `object is not iterable`
+    // and silently aborted buildCard for EVERY company after the first one
+    // hit in `--tickers`-less batch order — 8 companies never got a card at
+    // all, and any company alphabetically after one of these 8 in a given
+    // batch run never got rebuilt either (the crash exits `main()` entirely
+    // rather than skipping the one bad company). Wrap the legacy shape into
+    // a one-item array so its `summary`/`quote` still reach the card instead
+    // of being silently dropped, and skip (never throw) on any other
+    // non-array shape so a future extraction-schema surprise degrades this
+    // one field instead of blocking every card after it in the batch.
+    const capexCommercialisationRaw = d.capex_commercialisation;
+    const capexCommercialisationList = Array.isArray(capexCommercialisationRaw)
+      ? capexCommercialisationRaw
+      : capexCommercialisationRaw && typeof capexCommercialisationRaw === 'object'
+        ? [
+            {
+              project:
+                capexCommercialisationRaw.project || capexCommercialisationRaw.summary || null,
+              status: capexCommercialisationRaw.status || null,
+              quote: capexCommercialisationRaw.quote || null,
+            },
+          ]
+        : [];
+    for (const c of capexCommercialisationList) {
       const project = c.project || null;
       if (!project) continue;
       capexActuals.push({
@@ -389,10 +419,34 @@ function main() {
     return;
   }
 
+  // Per-company try/catch, added 2026-09-13. Before this, one company whose
+  // extract didn't match the documented shape (found live: 8 companies whose
+  // annual_report extract carried `capex_commercialisation` as a summary
+  // OBJECT instead of the documented array — see the capex_commercialisation
+  // fix in buildCard above) crashed `buildCard` with an unguarded exception,
+  // which propagated straight out of this loop and up to main()'s own
+  // try/catch, which just logs `[baselines] fatal: ...` and exits 1 —
+  // discarding every card for every company not yet reached in `stale`'s
+  // iteration order, not just the one that actually failed. Confirmed live:
+  // of 99 companies with extracts on disk, only 1 card existed before this
+  // fix, because the batch aborted on the first bad company every single
+  // time `yarn baselines:build` ran with no `--tickers` filter. A card
+  // builder that can be silently blocked by one company's malformed extract
+  // is worse than useless for a nightly/on-demand batch job — it must
+  // degrade to "skip this one, log it, keep going," never "abort everything
+  // after this point."
   const built = [];
+  const failed = [];
   let thin = 0;
   for (const id of stale) {
-    const card = buildCard(id, byCompany.get(id));
+    let card;
+    try {
+      card = buildCard(id, byCompany.get(id));
+    } catch (e) {
+      failed.push({ companyId: id, error: e.message });
+      process.stderr.write(`[baselines] skipped ${id}: ${e.message}\n`);
+      continue;
+    }
     writeCard(id, card);
     if (card.baselineCoverage.thin) thin += 1;
     built.push({
@@ -410,6 +464,8 @@ function main() {
         companiesWithExtracts: byCompany.size,
         rebuilt: built.length,
         thinBaselines: thin,
+        failedCount: failed.length,
+        failed: failed.slice(0, 40),
         cardDir: cardDir(),
         built: built.slice(0, 40),
       },
@@ -428,4 +484,12 @@ if (require.main === module) {
   }
 }
 
-module.exports = { buildCard, readCard, cardFile, fingerprint, CARD_VERSION, nameSimilarity, buildCapexTimeline };
+module.exports = {
+  buildCard,
+  readCard,
+  cardFile,
+  fingerprint,
+  CARD_VERSION,
+  nameSimilarity,
+  buildCapexTimeline,
+};

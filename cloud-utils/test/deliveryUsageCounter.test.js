@@ -32,8 +32,14 @@ describe('deliveryUsageCounter (job-keyed, no shared "active job" global — mir
   });
 
   test('buckets repeated skip/error reasons into a count, not a list of strings', () => {
-    deliveryUsageCounter.record('some-job', { status: 'skipped', reason: 'GOOGLE_APP_PASSWORD not set' });
-    deliveryUsageCounter.record('some-job', { status: 'skipped', reason: 'GOOGLE_APP_PASSWORD not set' });
+    deliveryUsageCounter.record('some-job', {
+      status: 'skipped',
+      reason: 'GOOGLE_APP_PASSWORD not set',
+    });
+    deliveryUsageCounter.record('some-job', {
+      status: 'skipped',
+      reason: 'GOOGLE_APP_PASSWORD not set',
+    });
     deliveryUsageCounter.record('some-job', { status: 'error', reason: 'ECONNREFUSED' });
 
     const summary = deliveryUsageCounter.getSummary('some-job');

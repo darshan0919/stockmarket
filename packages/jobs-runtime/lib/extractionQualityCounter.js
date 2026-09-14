@@ -69,7 +69,9 @@ function getSummary(job) {
     byProfile[profile] = {
       ...e,
       passRate: e.total ? Number((e.pass / e.total).toFixed(4)) : null,
-      truncatedSourceRate: e.total ? Number((e.reject_truncated_source / e.total).toFixed(4)) : null,
+      truncatedSourceRate: e.total
+        ? Number((e.reject_truncated_source / e.total).toFixed(4))
+        : null,
       confidenceLowRate: e.total ? Number((e.confidence_low / e.total).toFixed(4)) : null,
     };
   }

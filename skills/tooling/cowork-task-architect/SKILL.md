@@ -33,7 +33,20 @@ Ask the user (or infer from context):
 
 1. What should this task _do_ end-to-end?
 2. What data/files/APIs does it need to touch?
-3. Based on the requirements, figure out exactly which APIs, companion scripts, or skills need to be created.
+3. **Platform-reuse check (do this before designing any new logic):** this
+   repo is a proprietary wrapper on top of Stockscans, Screener.in, NSE/BSE,
+   YouTube, and Learnyst — not a re-implementation of what those platforms
+   already do natively. For every piece of analysis/derivation the task
+   needs (a signal, a score, a summary, a classification), ask first: does
+   Stockscans (or Screener/NSE/BSE/YouTube/Learnyst) already compute and
+   serve this? If yes, call it through the existing typed client and use its
+   output directly rather than building new derivation logic from raw data.
+   See `skills/_shared/conventions.md` item 10 and the project-memory file
+   `stockscans_platform_capabilities.md` for the current inventory of what
+   Stockscans alone already provides. Only build new logic for the parts a
+   platform genuinely doesn't cover, or where going deeper than the
+   platform's native feature is the explicit point of the task.
+4. Based on the requirements, figure out exactly which APIs, companion scripts, or skills need to be created.
 
 ### Step 2 — Create them and place them in the stockmarket project
 

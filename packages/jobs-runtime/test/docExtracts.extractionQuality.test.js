@@ -88,7 +88,11 @@ describe('docExtracts.put() — extraction-quality recording (conventions.md §2
       verification: { l1: { status: 'pass', checked: 2 } },
     });
 
-    expect(extractionQualityCounter.getSummary('preprocess-transcripts').byProfile.transcript.pass).toBe(1);
-    expect(Object.keys(extractionQualityCounter.getSummary('preprocess-annual-reports').byProfile)).toHaveLength(0);
+    expect(
+      extractionQualityCounter.getSummary('preprocess-transcripts').byProfile.transcript.pass
+    ).toBe(1);
+    expect(
+      Object.keys(extractionQualityCounter.getSummary('preprocess-annual-reports').byProfile)
+    ).toHaveLength(0);
   });
 });

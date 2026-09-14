@@ -789,6 +789,42 @@
       "modules": []
     },
     {
+      "name": "ask-anil-lamba",
+      "description": "Answer a free-text corporate finance, business management, or accounting question by searching Dr. Anil Lamba's teaching corpus — YouTube video transcripts from the @AnilLamba channel (author of 'Romancing the Balance Sheet') — and synthesizing a direct answer with citations back to the specific video and timestamped watch URL. Use whenever the user asks \"what does Anil Lamba say about X\", \"how does Anil Lamba explain Y\", \"ask Anil Lamba about Z\", \"Romancing the Balance Sheet concepts\", or asks about reading balance sheets, working capital cycles, profit vs cash flow (\"why more profit equals less cash\" / \"profit can destroy business\"), marginal costing and contribution margin, break-even analysis, operating and financial leverage, debt traps and borrowing decisions, capex and IRR, or corporate finance literacy for non-finance executives. NOT for public equity stock picking or sector deep dives (that's ask-soic / equity-research skills) — ask-anil-lamba is a lookup-and-answer tool for Dr. Anil Lamba's operational and corporate finance frameworks.",
+      "aliases": [
+        "ask anil lamba",
+        "what does anil lamba say about",
+        "how does anil lamba explain",
+        "romancing the balance sheet",
+        "anil lamba on working capital",
+        "anil lamba on marginal costing",
+        "anil lamba contribution margin",
+        "anil lamba leverage",
+        "profit can destroy business",
+        "why more profit equals less cash"
+      ],
+      "entry": "skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py",
+      "modules": []
+    },
+    {
+      "name": "ask-expert",
+      "description": "Orchestrate financial, business, and investing questions by consulting both Dr. Anil Lamba (author of 'Romancing the Balance Sheet' — corporate finance, balance sheet literacy, working capital, marginal costing, leverage) and SOIC (School of Intrinsic Compounding — equity research, stock valuation, sector analysis, growth catalysts, public market compounding). Use whenever the user asks broad investing or business questions, asks \"what do the experts say about X\", \"how should I think about debt/cash/growth/profit\", \"compare Anil Lamba and SOIC on Y\", or asks questions spanning operational financial management and public equity investing. Synthesizes harmonious learnings into a cohesive operational + investment framework, and explicitly isolates, contrasts, and explains conflicting or diverging viewpoints with citations and timestamped deep links.",
+      "aliases": [
+        "ask expert",
+        "what do experts say about",
+        "ask financial experts",
+        "compare soic and anil lamba",
+        "anil lamba vs soic",
+        "expert opinion on",
+        "corporate finance vs equity investing"
+      ],
+      "entry": "skills/tooling/ask-expert/scripts/search_expert.py",
+      "modules": [
+        "skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py",
+        "skills/tooling/ask-soic/scripts/search_soic.py"
+      ]
+    },
+    {
       "name": "volume-rocketing",
       "description": "Daily volume-surge signal — sibling to gainers-signal, identical output UX. Pulls the Stockscans \"Volume Rocketing\" scan (Volume >= 2.5x its own 5D SMA, Market Cap >= 300 Cr, Returns 1D >= 1, sorted desc by Volume), skips any name already covered by that day's gainers-signal run, takes the next 20 names, then runs the identical pipeline: quality filters, dual-axis delivery, market cap, delivery-as-%-of-mcap, 14-day announcements, ACT/WATCH/NOTED tiering, top-20 trigger research, cached rerating-catalysts EPS theses for the top 10 by delivery value, the WHY resolution ladder, and a Thesis Card email sorted by delivery value. Invoke with defaults for the 8 AM run (after gainers-signal), or pass a specific market date on demand.",
       "aliases": [
@@ -936,17 +972,25 @@
     {
       "name": "PerplexityClient",
       "file": "stock-api/src/clients/PerplexityClient.js",
-      "methods": ["earningsEvents", "transcript"]
+      "methods": ["setJobName", "earningsEvents", "transcript"]
     },
     {
       "name": "ScreenerClient",
       "file": "stock-api/src/clients/ScreenerClient.js",
-      "methods": ["_slug", "companyPage", "_throttle", "companyPageWithFallback", "validateAuth"]
+      "methods": [
+        "setJobName",
+        "_slug",
+        "companyPage",
+        "_throttle",
+        "companyPageWithFallback",
+        "validateAuth"
+      ]
     },
     {
       "name": "StockscansClient",
       "file": "stock-api/src/clients/StockscansClient.js",
       "methods": [
+        "setJobName",
         "_headers",
         "runScan",
         "getScanMetadata",
@@ -987,7 +1031,16 @@
     {
       "name": "HttpClient",
       "file": "stock-api/src/http/HttpClient.js",
-      "methods": ["_headers", "get", "post", "put", "delete"]
+      "methods": [
+        "_retryDelayMs",
+        "_withRetry",
+        "_headers",
+        "_track",
+        "get",
+        "post",
+        "put",
+        "delete"
+      ]
     },
     {
       "name": "NseSession",
@@ -1043,6 +1096,11 @@
       "name": "paragraphsToText",
       "file": "stock-api/src/clients/PerplexityClient.js",
       "description": "Exported from PerplexityClient.js"
+    },
+    {
+      "name": "apiLabelFor",
+      "file": "stock-api/src/http/HttpClient.js",
+      "description": "Exported from HttpClient.js"
     },
     {
       "name": "buildBseUrl",

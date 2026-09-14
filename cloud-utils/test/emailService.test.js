@@ -1,6 +1,12 @@
 'use strict';
 
-const { stockscansUrl, stockscansLink, sanitizeSymbol, appendApiUsageFooter, sendHtmlEmail } = require('../src/emailService');
+const {
+  stockscansUrl,
+  stockscansLink,
+  sanitizeSymbol,
+  appendApiUsageFooter,
+  sendHtmlEmail,
+} = require('../src/emailService');
 const apiUsageCounter = require('../src/apiUsageCounter');
 const deliveryUsageCounter = require('../src/deliveryUsageCounter');
 
@@ -101,7 +107,7 @@ describe('appendApiUsageFooter (jobName is an explicit argument, no global)', ()
     expect(html.indexOf('API usage')).toBeLessThan(html.indexOf('</body>'));
   });
 
-  test('only renders the requested job\'s summary, even if another job also has counts', () => {
+  test("only renders the requested job's summary, even if another job also has counts", () => {
     apiUsageCounter.record('job-a', { api: 'stockscans', ok: true });
     apiUsageCounter.record('job-b', { api: 'nse', ok: true });
 
@@ -120,7 +126,10 @@ describe('appendApiUsageFooter (jobName is an explicit argument, no global)', ()
 
   test('appends the footer even when the body has no closing tag', () => {
     apiUsageCounter.record('daily-gainers-signal-stockmarket', { api: 'stockscans', ok: true });
-    const html = appendApiUsageFooter('<div>no body tag here</div>', 'daily-gainers-signal-stockmarket');
+    const html = appendApiUsageFooter(
+      '<div>no body tag here</div>',
+      'daily-gainers-signal-stockmarket'
+    );
     expect(html).toContain('<div>no body tag here</div>');
     expect(html).toContain('API usage — daily-gainers-signal-stockmarket');
   });
@@ -159,4 +168,3 @@ describe('sendHtmlEmail — deliveryUsageCounter wiring (conventions.md §25)', 
     expect(deliveryUsageCounter.activeJobs()).toEqual([]);
   });
 });
-

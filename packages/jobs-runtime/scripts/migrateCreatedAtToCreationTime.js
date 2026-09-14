@@ -113,7 +113,11 @@ function main() {
 
   if (!withCreatedAt) {
     console.log(
-      JSON.stringify({ status: 'no-op', reason: 'no records carry createdAt already', totalRecords: ids.length })
+      JSON.stringify({
+        status: 'no-op',
+        reason: 'no records carry createdAt already',
+        totalRecords: ids.length,
+      })
     );
     return;
   }

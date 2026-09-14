@@ -149,6 +149,21 @@
         color: #fff;
         border-color: var(--accent);
       }
+      .roadmap-toggle-btn {
+        border-color: rgba(56, 189, 248, 0.35);
+        background: rgba(56, 189, 248, 0.08);
+        color: #7dd3fc;
+      }
+      .roadmap-toggle-btn:hover {
+        border-color: var(--blue);
+        color: #fff;
+      }
+      .roadmap-toggle-btn.active {
+        background: rgba(56, 189, 248, 0.2);
+        border-color: var(--blue);
+        color: #fff;
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+      }
 
       .banner {
         border-radius: 8px;
@@ -180,6 +195,12 @@
         grid-template-columns: 1fr 1fr;
         gap: 32px;
         align-items: start;
+        transition: all 0.25s ease;
+      }
+      .board-grid.roadmap-hidden {
+        grid-template-columns: 1fr;
+        max-width: 1000px;
+        margin: 0 auto;
       }
       @media (max-width: 980px) {
         .board-grid {
@@ -196,6 +217,9 @@
         display: flex;
         flex-direction: column;
         min-height: 520px;
+      }
+      .column.hidden {
+        display: none !important;
       }
 
       .col-header {
@@ -738,6 +762,7 @@
         outline: none;
         cursor: text;
         word-break: break-word;
+        white-space: pre-wrap;
       }
       .card-desc:empty:before {
         content: 'Add guidance or recurring workflow details…';
@@ -857,6 +882,13 @@
           <span class="header-badge">Stock Screener Monorepo</span>
         </div>
         <div class="header-actions">
+          <button
+            class="action-btn roadmap-toggle-btn"
+            id="toggleRoadmapBtn"
+            title="Toggle Product Roadmap visibility"
+          >
+            🗺️ Show Roadmap
+          </button>
           <button class="action-btn rules-btn" id="openRulesBtn">📜 Development Rules</button>
           <div class="status">
             <span class="status-dot" id="dot"></span>
@@ -873,7 +905,7 @@
         <button class="action-btn" id="bannerConnectBtn">📁 Connect folder</button>
       </div>
 
-      <div class="board-grid">
+      <div class="board-grid roadmap-hidden" id="boardGrid">
         <!-- LEFT COLUMN: Action Tasks -->
         <div class="column" id="tasksColumn">
           <div class="col-header">
@@ -909,7 +941,7 @@
         </div>
 
         <!-- RIGHT COLUMN: Product Development Roadmap (Recurring Workflows) -->
-        <div class="column" id="roadmapColumn">
+        <div class="column hidden" id="roadmapColumn">
           <div class="col-header">
             <div class="col-title-wrap">
               <span class="col-title">Product Roadmap</span>
@@ -1010,16 +1042,21 @@
                 <option value="Rules Sync">Rules Sync</option>
               </select>
             </div>
-            <div class="add-row">
-              <input
-                type="text"
+            <div class="add-row" style="align-items: flex-start">
+              <textarea
                 id="ruleDescInput"
-                placeholder="Rule principle / guidance description (optional)…"
-                autocomplete="off"
-                maxlength="300"
-                style="flex: 1"
-              />
-              <button class="btn" type="submit" id="addRuleBtn">Add Rule</button>
+                placeholder="Rule principle / guidance description (supports multiple lines)…"
+                rows="4"
+                style="flex: 1; min-height: 85px; resize: vertical; line-height: 1.5"
+              ></textarea>
+              <button
+                class="btn"
+                type="submit"
+                id="addRuleBtn"
+                style="align-self: flex-start; padding: 10px 18px"
+              >
+                Add Rule
+              </button>
             </div>
           </form>
 
@@ -1047,6 +1084,7 @@
       let workflowFilter = 'all';
       let dirHandle = null;
       let mode = 'init'; // 'local' | 'github' | 'error'
+      let showRoadmap = false;
       const openSubtaskForms = new Set();
       const collapsedTasks = new Set();
 
@@ -1220,6 +1258,7 @@
 
       window.setMode = setMode;
       window.render = render;
+      window.setRoadmapVisible = setRoadmapVisible;
 
       // ─── Mode & Status UI ──────────────────────────────────────────────────────
       function setMode(m) {
@@ -1465,6 +1504,31 @@
       document.getElementById('connectBtn').addEventListener('click', handleConnect);
       document.getElementById('bannerConnectBtn').addEventListener('click', handleConnect);
 
+      // Roadmap Visibility Toggle (hidden by default)
+      function setRoadmapVisible(visible) {
+        showRoadmap = visible;
+        const roadmapCol = document.getElementById('roadmapColumn');
+        const boardGrid = document.getElementById('boardGrid');
+        const toggleBtn = document.getElementById('toggleRoadmapBtn');
+        if (!roadmapCol || !boardGrid || !toggleBtn) return;
+
+        if (visible) {
+          roadmapCol.classList.remove('hidden');
+          boardGrid.classList.remove('roadmap-hidden');
+          toggleBtn.classList.add('active');
+          toggleBtn.textContent = '🗺️ Hide Roadmap';
+        } else {
+          roadmapCol.classList.add('hidden');
+          boardGrid.classList.add('roadmap-hidden');
+          toggleBtn.classList.remove('active');
+          toggleBtn.textContent = '🗺️ Show Roadmap';
+        }
+      }
+
+      document.getElementById('toggleRoadmapBtn').addEventListener('click', () => {
+        setRoadmapVisible(!showRoadmap);
+      });
+
       // Modal Open / Close
       const rulesModal = document.getElementById('rulesModal');
       document.getElementById('openRulesBtn').addEventListener('click', () => {
@@ -1525,6 +1589,14 @@
         descInp.value = '';
         renderRules();
         await save();
+      });
+
+      // Cmd+Enter / Ctrl+Enter shortcut to submit rule from textarea
+      document.getElementById('ruleDescInput').addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+          e.preventDefault();
+          document.getElementById('addRuleBtn').click();
+        }
       });
 
       // ─── Subtask Operations ───────────────────────────────────────────────────
@@ -1809,7 +1881,7 @@
         if (ruleDescId) {
           const r = rules.find((r) => r.id === ruleDescId);
           if (!r) return;
-          const val = span.textContent.trim();
+          const val = (span.innerText !== undefined ? span.innerText : span.textContent).trim();
           if (val !== span._original) {
             r.description = val;
             r.updatedAt = new Date().toISOString();
@@ -1858,6 +1930,13 @@
         if (!span || span.contentEditable !== 'true') return;
 
         if (e.key === 'Enter' && !e.shiftKey) {
+          if (span.classList.contains('card-desc')) {
+            if (e.metaKey || e.ctrlKey) {
+              e.preventDefault();
+              span.blur();
+            }
+            return;
+          }
           e.preventDefault();
           span.blur();
         }

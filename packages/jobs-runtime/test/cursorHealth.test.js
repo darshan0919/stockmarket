@@ -90,8 +90,14 @@ describe('cursorHealth (conventions.md §25 — Task 5)', () => {
     const freshMs = nowMs - 1 * 60 * 60 * 1000;
     const staleMs = nowMs - 200 * 60 * 60 * 1000;
     writeCursor('watchlist-insights-cursor.json', {
-      'combo-a': { lastCommittedAtMs: freshMs, lastCommittedAtIso: new Date(freshMs).toISOString() },
-      'combo-b': { lastCommittedAtMs: staleMs, lastCommittedAtIso: new Date(staleMs).toISOString() },
+      'combo-a': {
+        lastCommittedAtMs: freshMs,
+        lastCommittedAtIso: new Date(freshMs).toISOString(),
+      },
+      'combo-b': {
+        lastCommittedAtMs: staleMs,
+        lastCommittedAtIso: new Date(staleMs).toISOString(),
+      },
     });
 
     const results = cursorHealth.checkOne('watchlist-insights-cursor.json', { nowMs });
@@ -114,7 +120,10 @@ describe('cursorHealth (conventions.md §25 — Task 5)', () => {
     const staleOpenedMs = nowMs - 48 * 60 * 60 * 1000;
     fs.writeFileSync(
       path.join(db.cachePath('.'), 'document-preprocessing-pending-window.json'),
-      JSON.stringify({ windowEndMs: staleOpenedMs, createdAtIso: new Date(staleOpenedMs).toISOString() })
+      JSON.stringify({
+        windowEndMs: staleOpenedMs,
+        createdAtIso: new Date(staleOpenedMs).toISOString(),
+      })
     );
 
     const [result] = cursorHealth.checkPendingWindows({ nowMs });

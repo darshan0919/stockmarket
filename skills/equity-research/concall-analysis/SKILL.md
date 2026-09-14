@@ -50,7 +50,7 @@ Handle its output:
 
 - On success (`ssUrl`/`documentUrl` present) → download/read the document at
   `documentUrl` (`stock-documents-fetcher`'s `fetchDocuments(ticker, {types:
-  ['Transcript'], lastN: 1, outputDir})` — see its SKILL.md "Actual working
+['Transcript'], lastN: 1, outputDir})` — see its SKILL.md "Actual working
   usage"; the once-documented Python CLI does not exist — or fetch
   `documentUrl` directly).
 - On `error` → that quarter's results likely aren't out yet, or the

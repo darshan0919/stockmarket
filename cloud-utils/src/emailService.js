@@ -112,7 +112,10 @@ async function sendHtmlEmail({
 } = {}) {
   const pwd = appPassword || process.env.GOOGLE_APP_PASSWORD || '';
   if (!pwd) {
-    deliveryUsageCounter.record(jobName, { status: 'skipped', reason: 'GOOGLE_APP_PASSWORD not set' });
+    deliveryUsageCounter.record(jobName, {
+      status: 'skipped',
+      reason: 'GOOGLE_APP_PASSWORD not set',
+    });
     return { status: 'skipped', reason: 'GOOGLE_APP_PASSWORD not set' };
   }
 

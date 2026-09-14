@@ -75,7 +75,10 @@
     "youtube-transcript-refresh": "yarn workspace @stock/jobs youtube-transcript-refresh",
     "learning-resources-refresh": "yarn learnyst-transcript-refresh; yarn youtube-transcript-refresh",
     "sync-company-sector-industry": "yarn workspace @stock/api sync-company-sector-industry",
-    "monthly-updates": "yarn workspace @stock/jobs-runtime monthly-updates"
+    "monthly-updates": "yarn workspace @stock/jobs-runtime monthly-updates",
+    "ask-soic:search": "python3 skills/tooling/ask-soic/scripts/search_soic.py",
+    "ask-anil-lamba:search": "python3 skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py",
+    "ask-expert:search": "python3 skills/tooling/ask-expert/scripts/search_expert.py"
   },
   "devDependencies": {
     "@duckdb/node-api": "^1.5.4-r.1",

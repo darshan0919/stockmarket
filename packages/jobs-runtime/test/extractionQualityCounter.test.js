@@ -8,20 +8,36 @@ describe('extractionQualityCounter (job-keyed, no shared "active job" global —
   });
 
   test('a falsy job is a silent no-op', () => {
-    extractionQualityCounter.record(null, { profile: 'announcement', l1Status: 'pass', confidence: 'high' });
+    extractionQualityCounter.record(null, {
+      profile: 'announcement',
+      l1Status: 'pass',
+      confidence: 'high',
+    });
     expect(extractionQualityCounter.activeJobs()).toEqual([]);
   });
 
   test('accumulates pass/reject/confidence counts grouped by profile, computing rates', () => {
     const job = 'document-preprocessing';
-    extractionQualityCounter.record(job, { profile: 'annual_report', l1Status: 'pass', confidence: 'high' });
-    extractionQualityCounter.record(job, { profile: 'annual_report', l1Status: 'pass', confidence: 'high' });
+    extractionQualityCounter.record(job, {
+      profile: 'annual_report',
+      l1Status: 'pass',
+      confidence: 'high',
+    });
+    extractionQualityCounter.record(job, {
+      profile: 'annual_report',
+      l1Status: 'pass',
+      confidence: 'high',
+    });
     extractionQualityCounter.record(job, {
       profile: 'annual_report',
       l1Status: 'truncated_source',
       confidence: 'low',
     });
-    extractionQualityCounter.record(job, { profile: 'annual_report', l1Status: 'fail', confidence: 'low' });
+    extractionQualityCounter.record(job, {
+      profile: 'annual_report',
+      l1Status: 'fail',
+      confidence: 'low',
+    });
 
     const summary = extractionQualityCounter.getSummary(job);
     const ar = summary.byProfile.annual_report;
@@ -38,7 +54,11 @@ describe('extractionQualityCounter (job-keyed, no shared "active job" global —
 
   test('separate profiles under the same job never mix', () => {
     const job = 'document-preprocessing';
-    extractionQualityCounter.record(job, { profile: 'announcement', l1Status: 'pass', confidence: 'high' });
+    extractionQualityCounter.record(job, {
+      profile: 'announcement',
+      l1Status: 'pass',
+      confidence: 'high',
+    });
     extractionQualityCounter.record(job, { profile: 'ppt', l1Status: 'fail', confidence: 'low' });
 
     const summary = extractionQualityCounter.getSummary(job);
@@ -59,8 +79,16 @@ describe('extractionQualityCounter (job-keyed, no shared "active job" global —
   });
 
   test('two jobs recording concurrently never interfere with each other', () => {
-    extractionQualityCounter.record('job-a', { profile: 'announcement', l1Status: 'pass', confidence: 'high' });
-    extractionQualityCounter.record('job-b', { profile: 'result', l1Status: 'fail', confidence: 'low' });
+    extractionQualityCounter.record('job-a', {
+      profile: 'announcement',
+      l1Status: 'pass',
+      confidence: 'high',
+    });
+    extractionQualityCounter.record('job-b', {
+      profile: 'result',
+      l1Status: 'fail',
+      confidence: 'low',
+    });
 
     const summaryA = extractionQualityCounter.getSummary('job-a');
     const summaryB = extractionQualityCounter.getSummary('job-b');

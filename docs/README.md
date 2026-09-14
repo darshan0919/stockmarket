@@ -24,6 +24,7 @@ The Stock Market AI Ecosystem is a full-stack, platform-agnostic suite for advan
 | [Contributing](./CONTRIBUTING.md)                           | Contribution guidelines                                                                 |
 | [Stockscans API Schemas](./stockscans-api-schemas.md)       | Stockscans endpoint payload/response contracts                                          |
 | [Anthropic API Schemas](./anthropic-api-schemas.md)         | Anthropic Messages API contract used by jobs-runtime digests                            |
+| [Google Drive API Schemas](./google-drive-api-schemas.md)   | Google Drive API v3 sync contracts used by cloud-utils and jobs-runtime                 |
 | [Order Book Extraction](./ORDER_BOOK_EXTRACTION.md)         | Order-book scraping/parsing pipeline                                                    |
 | [Model Cost Orchestration](./MODEL_COST_ORCHESTRATION.md)   | Model selection and cost strategy across skills/jobs                                    |
 | [Skills doc](./SKILLS.md)                                   | How the `skills/` framework works                                                       |

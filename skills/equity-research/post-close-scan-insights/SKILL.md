@@ -156,8 +156,30 @@ whole window to empty.
 
 ```bash
 run filter-noise <fetch-scan-output.json>     # -> {kept, dropped: []}
-run categorise <filter-noise-output.json>     # -> [{companyId, category, heavyDocument, highConviction, alreadyProcessed, noiseFlagged, noiseKeyword, pdfUrl, ...}]
+run categorise <filter-noise-output.json>     # -> [{companyId, category, heavyDocument, highConviction, alreadyProcessed, noiseFlagged, noiseKeyword, pdfUrl, isDuplicateLead, duplicateOf, duplicateGroupSize, ...}]
 ```
+
+**Added 2026-09-13 — `categorise` also tags same-day companion/duplicate
+filings, tag-and-keep (never drop), same discipline as noise-flagging above.**
+A run-report finding: roughly 15-20% of PDF reads in a 246-item batch were
+exact-duplicate or same-day companion filings for one underlying event (a
+board-outcome Reg 30 filing, its own press release, and an investor
+presentation restating the same numbers, filed within hours of each other).
+`alreadyProcessed`/`mark-processed` do NOT catch this — that check is keyed on
+`announcementId` and only prevents a duplicate _write_; by the time an item is
+known to be a duplicate that way, the PDF has already been read and an LLM
+call has already produced the (discarded) second insight. `groupDuplicateFilings`
+(`postCloseScanInsights.js`) tags this BEFORE any PDF is read: same
+`companyId` + same calendar `date` + title/description similarity above
+threshold (via `fuzzyMatch.js`'s `nameSimilarity`, after stripping
+regulation/meeting-scaffolding boilerplate — see the function's own
+comments for the calibration). The group's earliest-filed item gets
+`isDuplicateLead: true`; every other member gets `isDuplicateLead: false` and
+`duplicateOf: <lead's ssUrl>`. **Same-day only, deliberately** — a next-tranche
+or next-milestone filing days or weeks later is a real, separate event and
+must still get its own read; this groups only same-day noise, mirroring
+`announcement-info-classifier`'s own Step 3e same-day exclusion rule for the
+identical underlying reason.
 
 **Fixed 2026-09-05 — `filter-noise` no longer drops anything.** It used to
 route a keyword match straight to `dropped` and out of the pipeline before
@@ -207,6 +229,26 @@ mis-categorise in ways that matter. See `references/routing-rules.md`.
 ## Step 3 — Route each item
 
 For EACH item from Step 2:
+
+**`isDuplicateLead: false` → route to the lead's insight, no PDF read.** Cite
+the lead item (`duplicateOf`'s `ssUrl`) rather than re-deriving a second
+insight from scratch:
+
+```bash
+runwi mark-processed "<companyId>" "<announcementId>" "duplicate-of-existing-note"
+```
+
+If the lead was itself judged `routine` (no note), a duplicate follower is
+routine too — no add-note either way. Check this flag BEFORE `alreadyProcessed`
+below: a same-day companion is usually a _fresh_ announcement in the notes DB
+sense (different `announcementId`, never seen before), so `alreadyProcessed`
+alone will not catch it — that check only fires on a literal repeat of the
+exact same `announcementId` across runs, not a same-day sibling filing with
+its own new id. Spot-check a flagged item occasionally rather than trusting
+it blindly forever — this tags a strong hint from title/description
+similarity, not a certainty, and a genuinely distinct same-day event can in
+principle share enough vocabulary to false-positive; reading the flagged
+item anyway costs nothing beyond what would have been spent regardless.
 
 **`alreadyProcessed: true` → skip immediately.** Do not call
 `announcement-insights`, do not `add-note`. Computed deterministically by
@@ -443,6 +485,7 @@ commands are separate process invocations with no shared state):
   "total": 41, // inWindow.length from Step 1
   "noiseDropped": 9, // kept.filter(i => i.noiseFlagged).length — title-only hint, NOT excluded from processing (see Step 2)
   "alreadyProcessed": 4, // categorise items with alreadyProcessed:true
+  "duplicateCollapsed": 3, // categorise items with isDuplicateLead:false — routed to the lead's insight, no PDF read (see Step 2/3)
   "heavyDocSkipped": 5, // log-heavy-skip calls
   "routine": 7, // mark-processed calls with NO preceding add-note
   "ocrFailed": 1, // read-pdf-with-meta returned ocrFailed:true
@@ -458,8 +501,14 @@ commands are separate process invocations with no shared state):
 Every key is optional — **omit a key entirely rather than passing `0`** when you
 genuinely didn't track that stage; the footer only draws tiles for keys present.
 `total` should reconcile against the rest (`noiseDropped + alreadyProcessed +
-heavyDocSkipped + routine + insights` ≈ `total`); if it doesn't, say so in the
-run report rather than quietly shipping numbers that don't add up.
+duplicateCollapsed + heavyDocSkipped + routine + insights` ≈ `total`); if it
+doesn't, say so in the run report rather than quietly shipping numbers that
+don't add up. `duplicateCollapsed` is the direct measure of how much this run's
+PDF-read/LLM-call budget the same-day companion-filing pre-pass saved — report
+it alongside `insights` in the token-optimization suggestion (§11) so a
+consistently high count is visible evidence the pre-pass is earning its keep,
+and a consistently low or zero count is evidence the threshold in
+`DUPLICATE_TITLE_SIMILARITY_THRESHOLD` needs revisiting.
 
 The **per-tier counts (S1-S5) are computed by the renderer from the cards it
 actually draws**, not passed in — a hand-counted footer drifting from the

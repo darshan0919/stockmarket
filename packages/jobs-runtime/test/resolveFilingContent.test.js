@@ -44,7 +44,10 @@ afterEach(() => {
 
 describe('resolveFilingContent — Tier 1 (sourceUrl + profile)', () => {
   test('miss when nothing has been extracted for this document', () => {
-    const r = resolveFilingContent({ sourceUrl: 'https://x/never-seen.pdf', profile: 'announcement' });
+    const r = resolveFilingContent({
+      sourceUrl: 'https://x/never-seen.pdf',
+      profile: 'announcement',
+    });
     expect(r).toEqual({
       source: 'miss',
       reason: 'not-yet-extracted',
@@ -64,7 +67,9 @@ describe('resolveFilingContent — Tier 1 (sourceUrl + profile)', () => {
   });
 
   test('throws when profile is omitted alongside sourceUrl', () => {
-    expect(() => resolveFilingContent({ sourceUrl: 'https://x/a.pdf' })).toThrow(/profile is required/);
+    expect(() => resolveFilingContent({ sourceUrl: 'https://x/a.pdf' })).toThrow(
+      /profile is required/
+    );
   });
 
   test('throws on an unknown profile name', () => {
@@ -209,10 +214,17 @@ describe('resolveFilingContent — cache-usage recording (conventions.md §25)',
     // Force a version bump so the just-written record reads as stale.
     const written = docExtracts.get('announcement', 'https://x/stale.pdf');
     written.profileSchemaVersion = -1;
-    require('fs').writeFileSync(docExtracts.file('announcement', 'https://x/stale.pdf'), JSON.stringify(written));
+    require('fs').writeFileSync(
+      docExtracts.file('announcement', 'https://x/stale.pdf'),
+      JSON.stringify(written)
+    );
     resolveFilingContent({ sourceUrl: 'https://x/stale.pdf', profile: 'announcement' });
     const summary = cacheUsageCounter.getSummary('test-job');
-    expect(summary.byCache['extract-cache-stale-schema']).toEqual({ hits: 0, misses: 1, hitRate: 0 });
+    expect(summary.byCache['extract-cache-stale-schema']).toEqual({
+      hits: 0,
+      misses: 1,
+      hitRate: 0,
+    });
     expect(summary.byCache['extract-cache']).toBeUndefined();
   });
 
@@ -224,7 +236,10 @@ describe('resolveFilingContent — cache-usage recording (conventions.md §25)',
   }
 
   test('records a hit for a baseline-cache Tier 2 lookup, a miss when no card exists', () => {
-    writeCardFixtureForCacheTest('NSE:ABC', { companyId: 'NSE:ABC', builtAt: '2026-09-01T00:00:00.000Z' });
+    writeCardFixtureForCacheTest('NSE:ABC', {
+      companyId: 'NSE:ABC',
+      builtAt: '2026-09-01T00:00:00.000Z',
+    });
     resolveFilingContent({ companyId: 'NSE:ABC' });
     resolveFilingContent({ companyId: 'NSE:NOCARD' });
     const summary = cacheUsageCounter.getSummary('test-job');

@@ -59,6 +59,8 @@ Available high-level agentic skills defined in the project:
 | N/A                                                                                                                                                | `N/A`                                                                     | ipo subscription digest, rank ipos by subscription, ipo subscription ranker, which ipos listing tomorrow, ipo subscription quality                                                                                                                                                                                                                                          |
 | N/A                                                                                                                                                | `N/A`                                                                     | post close insights, post-close scan, after hours announcement scan, nightly announcement digest                                                                                                                                                                                                                                                                            |
 | [skills/tooling/ask-soic/scripts/search_soic.py](skills/tooling/ask-soic/scripts/search_soic.py)                                                   | `skills/tooling/ask-soic/scripts/search_soic.py`                          | ask soic, what does soic say about, how does soic think about, did soic teach, soic lesson on, find the lesson where soic explains, soic framework for, what does soic teach about                                                                                                                                                                                          |
+| [skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py](skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py)                           | `skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py`              | ask anil lamba, what does anil lamba say about, how does anil lamba explain, romancing the balance sheet, anil lamba on working capital, anil lamba on marginal costing, anil lamba contribution margin, anil lamba leverage, profit can destroy business, why more profit equals less cash                                                                                 |
+| [skills/tooling/ask-expert/scripts/search_expert.py](skills/tooling/ask-expert/scripts/search_expert.py)                                           | `skills/tooling/ask-expert/scripts/search_expert.py`                      | ask expert, what do experts say about, ask financial experts, compare soic and anil lamba, anil lamba vs soic, expert opinion on, corporate finance vs equity investing                                                                                                                                                                                                     |
 | N/A                                                                                                                                                | `N/A`                                                                     | volume rocketing, volume surge signal, volume rocket scan, 8am volume rocketing run, volume breakout signal, volume surge gainers                                                                                                                                                                                                                                           |
 | N/A                                                                                                                                                | `N/A`                                                                     | fetch quarterly result documents, quarterly result extractor, pull result and transcript, extract result data                                                                                                                                                                                                                                                               |
 | [packages/jobs-runtime/monthlyUpdates/cli.js](packages/jobs-runtime/monthlyUpdates/cli.js)                                                         | `packages/jobs-runtime/monthlyUpdates/cli.js`                             | monthly updates, monthly sales numbers, monthly business update, auto sales for the month, monthly volume tracker, who reported monthly numbers, monthly sales tracker, refresh the monthly updates page, monthly volumes trend, compare monthly sales, 1st of month sales numbers, auto volumes, tractor volumes                                                           |
@@ -146,6 +148,7 @@ Instantiable classes for DI or custom configurations:
 
 - **Source File**: [stock-api/src/clients/PerplexityClient.js](stock-api/src/clients/PerplexityClient.js)
 - **Key Methods**:
+  - `setJobName()`
   - `earningsEvents()`
   - `transcript()`
 
@@ -153,6 +156,7 @@ Instantiable classes for DI or custom configurations:
 
 - **Source File**: [stock-api/src/clients/ScreenerClient.js](stock-api/src/clients/ScreenerClient.js)
 - **Key Methods**:
+  - `setJobName()`
   - `_slug()`
   - `companyPage()`
   - `_throttle()`
@@ -163,6 +167,7 @@ Instantiable classes for DI or custom configurations:
 
 - **Source File**: [stock-api/src/clients/StockscansClient.js](stock-api/src/clients/StockscansClient.js)
 - **Key Methods**:
+  - `setJobName()`
   - `_headers()`
   - `runScan()`
   - `getScanMetadata()`
@@ -203,7 +208,10 @@ Instantiable classes for DI or custom configurations:
 
 - **Source File**: [stock-api/src/http/HttpClient.js](stock-api/src/http/HttpClient.js)
 - **Key Methods**:
+  - `_retryDelayMs()`
+  - `_withRetry()`
   - `_headers()`
+  - `_track()`
   - `get()`
   - `post()`
   - `put()`
@@ -262,6 +270,7 @@ Core singletons and client functions for interacting with external platforms:
 | `parseBseSmartSearchHtml` | [stock-api/src/clients/BseClient.js](stock-api/src/clients/BseClient.js)               | Exported from BseClient.js        |
 | `toPerplexityTicker`      | [stock-api/src/clients/PerplexityClient.js](stock-api/src/clients/PerplexityClient.js) | Exported from PerplexityClient.js |
 | `paragraphsToText`        | [stock-api/src/clients/PerplexityClient.js](stock-api/src/clients/PerplexityClient.js) | Exported from PerplexityClient.js |
+| `apiLabelFor`             | [stock-api/src/http/HttpClient.js](stock-api/src/http/HttpClient.js)                   | Exported from HttpClient.js       |
 | `buildBseUrl`             | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                         | Exported from bseHttp.js          |
 | `bseGetText`              | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                         | Exported from bseHttp.js          |
 | `bseGetJson`              | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                         | Exported from bseHttp.js          |

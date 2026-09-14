@@ -17,6 +17,8 @@ const {
   SCAN_SOURCE_NAME,
   FALLBACK_SCAN,
   collectCachedNotesSinceCutoff,
+  normaliseFilingTitle,
+  groupDuplicateFilings,
 } = require('../postCloseScanInsights');
 const db = require('../lib/db');
 
@@ -208,5 +210,146 @@ describe('collectCachedNotesSinceCutoff: single-timestamp schema regression', ()
     const farPast = Date.parse('2020-01-01T00:00:00Z');
     const out = collectCachedNotesSinceCutoff(farPast);
     expect(out.find((i) => i.companyId === 'NSE:CCT3')).toBeUndefined();
+  });
+});
+
+// ── groupDuplicateFilings: same-day companion-filing pre-pass ─────────────
+//
+// Added 2026-09-13 after a run report found ~15-20% of PDF reads across a
+// 246-item batch were exact-duplicate or same-day companion filings (a
+// board-outcome Reg 30 filing, its own press release, and an investor deck
+// restating the same numbers). `alreadyProcessed`/`mark-processed` cannot
+// catch this — that check is keyed on announcementId and only prevents a
+// duplicate WRITE, after the PDF has already been read and an LLM call has
+// already produced the (discarded) second insight. These tests pin the
+// grouping behaviour against real title pairs pulled from that run.
+describe('normaliseFilingTitle: strips filing boilerplate without erasing the event', () => {
+  test('two Reg-30 preambles that differ in wording normalise close together', () => {
+    const a = normaliseFilingTitle(
+      'Announcement under Regulation 30 (LODR)-Change in Directorate',
+      ''
+    );
+    const b = normaliseFilingTitle(
+      'Disclosure Under Regulation 30 Of SEBI Listing Regulations 2015',
+      'General - Change in Directorate'
+    );
+    // Boilerplate ("Announcement under Regulation 30...", "Disclosure Under...
+    // SEBI Listing Regulations 2015") is stripped from both; what survives is
+    // the shared event text ("Change in Directorate").
+    expect(a).toMatch(/change in directorate/i);
+    expect(b).toMatch(/change in directorate/i);
+  });
+
+  test('empty title and description normalises to an empty string, not a crash', () => {
+    expect(normaliseFilingTitle('', '')).toBe('');
+    expect(normaliseFilingTitle(null, undefined)).toBe('');
+  });
+});
+
+describe('groupDuplicateFilings: tags companions without dropping any item', () => {
+  const base = (over) => ({
+    companyId: 'NSE:CEIGALL',
+    name: 'Ceigall India Ltd',
+    title: 'Outcome Of Board Meeting',
+    description: '',
+    category: 'acquisition',
+    ssUrl: 'lead.pdf',
+    createdAt: '2026-09-13T10:00:00',
+    date: '2026-09-13',
+    ...over,
+  });
+
+  test('never changes the item count — tag-and-keep, same discipline as filter-noise', () => {
+    const items = [
+      base({ ssUrl: 'a.pdf' }),
+      base({ ssUrl: 'b.pdf', title: 'Outcome Of Board Meeting - Press Release' }),
+      base({ ssUrl: 'c.pdf', companyId: 'NSE:OTHER', title: 'Completely unrelated filing' }),
+    ];
+    const out = groupDuplicateFilings(items);
+    expect(out.length).toBe(items.length);
+  });
+
+  test('two same-day, same-company filings describing the same board outcome group together', () => {
+    // Real pair from the 2026-09-13 run: a board-outcome note and a same-day
+    // press-release companion for the identical Ceigall/REC transmission-SPV
+    // acquisition, filed hours apart.
+    const items = [
+      base({
+        ssUrl: 'board-outcome.pdf',
+        createdAt: '2026-09-13T09:15:00',
+        title: 'Outcome Of Board Meeting Held On September 13 2026 - Acquisition of JKJTL',
+      }),
+      base({
+        ssUrl: 'press-release.pdf',
+        createdAt: '2026-09-13T11:40:00',
+        title: 'Press Release - Acquisition of JKJTL',
+      }),
+    ];
+    const out = groupDuplicateFilings(items);
+    const lead = out.find((i) => i.isDuplicateLead);
+    const follower = out.find((i) => !i.isDuplicateLead);
+    expect(lead).toBeTruthy();
+    expect(follower).toBeTruthy();
+    // The earlier-filed item (by createdAt) is the lead.
+    expect(lead.ssUrl).toBe('board-outcome.pdf');
+    expect(follower.duplicateOf).toBe('board-outcome.pdf');
+    expect(follower.duplicateGroupSize).toBe(2);
+    expect(lead.duplicateGroupSize).toBe(2);
+  });
+
+  test('same company, same day, but a genuinely different event stays ungrouped', () => {
+    const items = [
+      base({ ssUrl: 'agm.pdf', title: 'Proceedings Of AGM Held On September 13 2026' }),
+      base({ ssUrl: 'order-win.pdf', title: 'Company wins Rs 46 crore railway order from NFR' }),
+    ];
+    const out = groupDuplicateFilings(items);
+    expect(out.every((i) => i.isDuplicateLead)).toBe(true);
+    expect(out.every((i) => i.duplicateOf === null)).toBe(true);
+  });
+
+  test('same title, same company, but different calendar days are never grouped', () => {
+    // A next-tranche/next-milestone filing is a real, separate event even
+    // when the title text is nearly identical — only same-day companions are
+    // companion filings.
+    const items = [
+      base({ ssUrl: 'tranche1.pdf', date: '2026-09-01', createdAt: '2026-09-01T10:00:00' }),
+      base({ ssUrl: 'tranche2.pdf', date: '2026-09-13', createdAt: '2026-09-13T10:00:00' }),
+    ];
+    const out = groupDuplicateFilings(items);
+    expect(out.every((i) => i.isDuplicateLead)).toBe(true);
+  });
+
+  test('different companies, same day, identical title text are never grouped', () => {
+    const items = [
+      base({ ssUrl: 'x.pdf', companyId: 'NSE:AAA', title: 'Closure of Trading Window' }),
+      base({ ssUrl: 'y.pdf', companyId: 'NSE:BBB', title: 'Closure of Trading Window' }),
+    ];
+    const out = groupDuplicateFilings(items);
+    expect(out.every((i) => i.isDuplicateLead)).toBe(true);
+  });
+
+  test('a three-filing same-day cluster (board outcome + press release + investor deck) collapses to one lead', () => {
+    const items = [
+      base({
+        ssUrl: '1.pdf',
+        createdAt: '2026-09-13T09:00:00',
+        title: 'Outcome Of Board Meeting - Arya Wellness Acquisition',
+      }),
+      base({
+        ssUrl: '2.pdf',
+        createdAt: '2026-09-13T09:30:00',
+        title: 'Press release confirms Arya Wellness Acquisition',
+      }),
+      base({
+        ssUrl: '3.pdf',
+        createdAt: '2026-09-13T10:15:00',
+        title: 'Investor deck for Arya Wellness Acquisition',
+      }),
+    ];
+    const out = groupDuplicateFilings(items);
+    const leads = out.filter((i) => i.isDuplicateLead);
+    expect(leads.length).toBe(1);
+    expect(leads[0].ssUrl).toBe('1.pdf');
+    expect(out.filter((i) => i.duplicateOf === '1.pdf').length).toBe(2);
   });
 });

@@ -97,6 +97,11 @@ function tally(rels) {
   return byBucket;
 }
 
+function formatSize(bytes) {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${Math.ceil(bytes / 1024)} KB`;
+}
+
 function printBreakdown(label, rels, sample = 5) {
   if (!rels.length) return;
   const byBucket = tally(rels);
@@ -235,9 +240,11 @@ async function push({ dryRun }) {
         uploadedRels.push(rel);
         continue;
       }
+      const fileSize = fs.statSync(abs).size;
+      console.log(`[data push] ↑ ${rel} (${formatSize(fileSize)})`);
       const res = await uploadFile(drive, DRIVE_ROOT, rel, abs);
       state.files[rel] = {
-        sha256: sha256(abs),
+        sha256: hash,
         driveId: res.id,
         // driveModifiedTime refreshed in the single post-push listing below
         syncedAt: new Date().toISOString(),

@@ -93,7 +93,10 @@ skills/
 │   ├── antigravity-scheduled-tasks-sync/
 │   ├── token-usage-analyzer/
 │   ├── render-pdf/
-│   └── output-dto-standard/         # a written standard, not an invocable skill
+│   ├── output-dto-standard/         # a written standard, not an invocable skill
+│   ├── ask-soic/                    # lookup & answer tool for SOIC teaching corpus
+│   ├── ask-anil-lamba/              # lookup & answer tool for Dr. Anil Lamba corpus
+│   └── ask-expert/                  # multi-expert orchestrator (Anil Lamba + SOIC)
 └── development/                     # generic engineering-practice skills (Cursor/Claude Code, not Claude Web)
     ├── api-design/
     ├── api-documentation/

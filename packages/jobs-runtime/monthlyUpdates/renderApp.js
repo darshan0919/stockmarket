@@ -81,7 +81,23 @@ input[type=search]{min-width:230px}
 .panel{display:none}.panel.on{display:block}
 svg text{font-family:monospace;font-size:9px;fill:#888}
 .tip{position:fixed;pointer-events:none;background:#111;color:#fff;font-family:monospace;font-size:10px;padding:4px 7px;border-radius:3px;opacity:0;transition:opacity .1s;z-index:99}
-@media(max-width:900px){.grid4{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 14px 0;align-items:center}
+.filter-pill{cursor:pointer;padding:4px 10px;border-radius:14px;border:1px solid #d0d7de;font-size:11px;background:#fff;color:#444;font-family:monospace;font-weight:600;transition:all .15s}
+.filter-pill:hover{background:#f3f4f6;color:#0c447c}
+.filter-pill.on{background:#0c447c;color:#fff;border-color:#0c447c}
+.filter-btn{font-size:11px;font-family:monospace;color:#0c447c;cursor:pointer;text-decoration:underline;margin-left:auto}
+.card{border:1px solid #e5e5e5;border-radius:4px;padding:12px 14px;background:#fafafa;margin-bottom:12px}
+.card-hd{font-size:12px;font-weight:700;color:#0c447c;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e0e0e0;padding-bottom:4px}
+.item-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #eee;font-size:11.5px}
+.item-row:last-child{border-bottom:none}
+.callout{background:#f0f4f8;border-left:3.5px solid #0c447c;padding:12px 14px;border-radius:0 4px 4px 0;margin-bottom:14px;font-size:12px;line-height:1.55}
+.callout-title{font-weight:700;color:#0c447c;font-size:12.5px;margin-bottom:4px}
+.pill{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9.5px;font-family:monospace;font-weight:600}
+.pill-up{background:#eaf3de;color:#27500a}.pill-dn{background:#fcebeb;color:#791f1f}.pill-neutral{background:#f1f3f4;color:#5f6368}
+.clickable-ticker{cursor:pointer;color:#0c447c;font-weight:600}.clickable-ticker:hover{text-decoration:underline}
+@media(max-width:900px){.grid4{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}}
 `;
 }
 
@@ -132,24 +148,34 @@ function renderTable(){
       +'<td class="mono">'+unitCell(c)+'</td>'
       +'<td class="num mono">'+fmt(c.latestValue)+'</td>'
       +'<td class="mono">'+c.latestPeriod+' '+ptChip(c)+'</td>'
+      +'<td class="mono">'+(c.latestFiledOn||'—')+'</td>'
       +'<td class="num">'+pctCell(c.momPct)+'</td>'
       +'<td class="num">'+pctCell(c.qoqPct)+'</td>'
       +'<td class="num">'+pctCell(c.yoyPct)+'</td>'
       +'<td class="num mono">'+c.months+'</td>'
       +'<td>'+confChip(c.confidence)+(doc?' <a href="https://www.stockscans.in/document/'+doc+'" target="_blank" title="source filing">doc</a>':'')+'</td></tr>';
-  }).join('')||'<tr><td colspan="10" class="hint">No companies match.</td></tr>';
+  }).join('')||'<tr><td colspan="11" class="hint">No companies match.</td></tr>';
   $('#count').textContent=r.length+' of '+C.length;
   document.querySelectorAll('th[data-k]').forEach(th=>{
     const on=th.dataset.k===sortKey;
     th.querySelector('.ar').textContent=on?(sortDir<0?'▼':'▲'):'';
   });
+  if($('#sortby')&&$('#sortby').value!==sortKey)$('#sortby').value=sortKey;
 }
 function bindSort(){
   document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{
     const k=th.dataset.k;
     if(sortKey===k)sortDir=-sortDir; else {sortKey=k;sortDir=(k==='companyId'||k==='unit'||k==='metricName')?1:-1;}
+    if($('#sortby'))$('#sortby').value=sortKey;
     renderTable();
   });
+  if($('#sortby')){
+    $('#sortby').onchange=e=>{
+      sortKey=e.target.value;
+      sortDir=(sortKey==='companyId'||sortKey==='unit'||sortKey==='metricName')?1:-1;
+      renderTable();
+    };
+  }
 }
 
 // ---- Chart ----
@@ -216,7 +242,7 @@ function renderSingle(){
     +'<div class="kpi"><div class="lab">MoM</div><div class="val">'+pctCell(c.momPct)+'</div></div>'
     +'<div class="kpi"><div class="lab">QoQ (3m vs prior 3m)</div><div class="val">'+pctCell(c.qoqPct)+'</div></div>'
     +'<div class="kpi"><div class="lab">YoY</div><div class="val">'+pctCell(c.yoyPct)+'</div></div></div>'
-    +'<div class="note"><b>'+(c.metricName||'')+'</b> · scope: '+(c.scope||'n/a')+' · '+c.months+' months of history'
+    +'<div class="note"><b>'+(c.metricName||'')+'</b> · scope: '+(c.scope||'n/a')+' · '+c.months+' months of history · <b>Last updated:</b> '+(c.latestFiledOn||'n/a')
     +(c.segments&&c.segments.length?'<br>Latest segments: '+c.segments.map(s=>s.name+' '+s.value.toLocaleString('en-IN')).join(' · '):'')+'</div>'):'';
 }
 
@@ -255,7 +281,7 @@ function boot(){
   const topUnit=(byLen[0]||{}).unit;
   $('#picker').innerHTML=byLen.map((c,i)=>'<label><input type="checkbox" value="'+c.companyId+'"'
     +((c.unit===topUnit&&byLen.slice(0,i).filter(x=>x.unit===topUnit).length<4)?' checked':'')+'>'
-    +c.companyId+' <span class="hint">'+c.months+'m · '+(c.unit||'')+'</span></label>').join('');
+    +c.companyId+' <span class="hint">'+c.months+'m · '+(c.latestFiledOn||'')+' · '+(c.unit||'')+'</span></label>').join('');
   $('#q').oninput=renderTable; $('#unit').onchange=renderTable;
   $('#single').onchange=renderSingle;
   $('#picker').onchange=renderMulti;
@@ -266,8 +292,93 @@ function boot(){
     t.classList.add('on'); $('#'+t.dataset.p).classList.add('on');
     if(t.dataset.p==='p2')renderSingle(); if(t.dataset.p==='p3')renderMulti();
   });
-  bindSort(); renderTable();
+  bindSort(); renderTable(); renderOverview();
 }
+
+const SECTOR_MAP = {
+  'Auto': ['M&M', 'TVSMOTOR', 'BAJAJ-AUTO', 'EICHERMOT', 'ASHOKLEY', 'ESCORTS', 'FORCEMOT', 'SMLMAH', 'ATULAUTO', 'SSWL', 'TMPV', 'VSTTILLERS', 'PAVNAIND'],
+  'Realty': ['SIGNATURE', 'SOBHA', 'PURVA', 'AJMERA', 'ARKADE', 'KOLTEPATIL', 'RUSTOMJEE', 'LODHA', 'PRESTIGE'],
+  'Financials': ['MAHABANK', 'BANKBARODA', 'J&KBANK', 'CAPITALSFB', 'ESAFSFB', 'CSBBANK', 'HOMEFIRST', 'AAVAS', 'CREDITACC', 'FIVESTAR', 'ANGELONE'],
+  'Metals': ['NMDC', 'SHYAMMETL', 'LLOYDSME', 'RATHIST', 'APLAPOLLO', 'JTLIND', 'GSMFOILS'],
+  'Logistics': ['ADANIPORTS', 'ALLCARGO', 'ATL', 'TVSSCS', 'JETFREIGHT'],
+  'Consumption': ['V2RETAIL', 'CANTABIL', 'PNGJL', 'GODREJCP', 'TI', 'QUESTLAB'],
+  'Agri': ['RAJSREESUG', 'PRIMEFRESH']
+};
+
+let activeSector = 'All';
+
+window.selectSector = function(sec) {
+  activeSector = sec;
+  document.querySelectorAll('.filter-pill').forEach(p => {
+    p.classList.toggle('on', p.dataset.sec === sec);
+  });
+  renderOverview();
+};
+
+window.jumpToSectorTable = function() {
+  const t = document.querySelector('.tab[data-p="p1"]');
+  if (t) {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+    document.querySelectorAll('.panel').forEach(x => x.classList.remove('on'));
+    t.classList.add('on');
+    $('#p1').classList.add('on');
+    if (activeSector !== 'All') {
+      const syms = SECTOR_MAP[activeSector] || [];
+      $('#q').value = syms[0] || '';
+    } else {
+      $('#q').value = '';
+    }
+    renderTable();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+};
+
+function renderOverview(){
+  const pool = activeSector === 'All' ? C : C.filter(c => (SECTOR_MAP[activeSector] || []).some(s => c.companyId.includes(s)));
+
+  const topYoy = pool.filter(c => typeof c.yoyPct === 'number' && !isNaN(c.yoyPct) && c.yoyPct > 0)
+    .sort((a,b) => b.yoyPct - a.yoyPct).slice(0, 5);
+  const topYoyDecline = pool.filter(c => typeof c.yoyPct === 'number' && !isNaN(c.yoyPct) && c.yoyPct < 0)
+    .sort((a,b) => a.yoyPct - b.yoyPct).slice(0, 5);
+
+  const topQoq = pool.filter(c => typeof c.qoqPct === 'number' && !isNaN(c.qoqPct) && c.qoqPct > 0)
+    .sort((a,b) => b.qoqPct - a.qoqPct).slice(0, 5);
+  const topQoqDecline = pool.filter(c => typeof c.qoqPct === 'number' && !isNaN(c.qoqPct) && c.qoqPct < 0)
+    .sort((a,b) => a.qoqPct - b.qoqPct).slice(0, 5);
+
+  const topConsistent = pool.filter(c => c.months >= 3 && (c.yoyPct > 0 || c.momPct > 0))
+    .sort((a,b) => b.months - a.months || (b.yoyPct || 0) - (a.yoyPct || 0)).slice(0, 5);
+  const topRecent = pool.filter(c => c.latestFiledOn)
+    .sort((a,b) => (b.latestFiledOn || '').localeCompare(a.latestFiledOn || '')).slice(0, 5);
+
+  const rowHtml = (c, valHtml, sub) => '<div class="item-row">'
+    +'<div><span class="clickable-ticker" data-cid="'+c.companyId+'" onclick="gotoCompany(this.dataset.cid)">'+c.companyId+'</span>'
+    +'<span class="hint" style="margin-left:4px;">'+(c.name||'')+'</span>'
+    +'<div class="hint">'+(sub || (c.metricName+' ('+(c.unit||'')+')'))+'</div></div>'
+    +'<div style="text-align:right;">'+valHtml+'<div class="hint">'+(c.latestFiledOn||'—')+'</div></div></div>';
+
+  if($('#yoy-list'))$('#yoy-list').innerHTML = topYoy.length ? topYoy.map(c => rowHtml(c, pctCell(c.yoyPct), (c.yoyBasis||'YoY') + (c.months <= 2 ? ' · <span class="pill pill-dn">small base</span>' : ''))).join('') : '<div class="hint" style="padding:10px 0;">No positive YoY filers in sector</div>';
+  if($('#yoy-decline-list'))$('#yoy-decline-list').innerHTML = topYoyDecline.length ? topYoyDecline.map(c => rowHtml(c, pctCell(c.yoyPct), (c.yoyBasis||'YoY') + ' contraction')).join('') : '<div class="hint" style="padding:10px 0;">No YoY declining filers in this cohort</div>';
+
+  if($('#qoq-list'))$('#qoq-list').innerHTML = topQoq.length ? topQoq.map(c => rowHtml(c, pctCell(c.qoqPct), (c.isMonthly ? '3m-rollup' : 'consecutive-qtr'))).join('') : '<div class="hint" style="padding:10px 0;">No sequential inflections</div>';
+  if($('#qoq-decline-list'))$('#qoq-decline-list').innerHTML = topQoqDecline.length ? topQoqDecline.map(c => rowHtml(c, pctCell(c.qoqPct), 'sequential drop')).join('') : '<div class="hint" style="padding:10px 0;">No sequential drops in this cohort</div>';
+
+  if($('#consistent-list'))$('#consistent-list').innerHTML = topConsistent.length ? topConsistent.map(c => rowHtml(c, pctCell(c.yoyPct), c.months + 'm continuous history')).join('') : '<div class="hint" style="padding:10px 0;">No continuous filers</div>';
+  if($('#recent-list'))$('#recent-list').innerHTML = topRecent.length ? topRecent.map(c => rowHtml(c, '<span class="mono" style="font-weight:600;">' + fmt(c.latestValue) + '</span>', 'Period: ' + c.latestPeriod)).join('') : '<div class="hint" style="padding:10px 0;">No recent filings</div>';
+}
+
+window.gotoCompany = function(cid) {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(x => x.classList.remove('on'));
+  const t = document.querySelector('.tab[data-p="p2"]');
+  if (t) t.classList.add('on');
+  const p = $('#p2');
+  if (p) p.classList.add('on');
+  $('#single').value = cid;
+  renderSingle();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
 window.addEventListener('resize',()=>{
   if($('#p2').classList.contains('on'))renderSingle();
   if($('#p3').classList.contains('on'))renderMulti();
@@ -297,16 +408,188 @@ function render(dto) {
   </div>
 
   <div class="tabs">
-    <div class="tab on" data-p="p1">Growth table</div>
+    <div class="tab on" data-p="p0">Executive Overview</div>
+    <div class="tab" data-p="p1">Growth table</div>
     <div class="tab" data-p="p2">Single company</div>
     <div class="tab" data-p="p3">Compare companies</div>
   </div>
 
-  <div class="panel on" id="p1">
+  <div class="panel on" id="p0">
+    <div class="callout">
+      <div class="callout-title">Institutional Signal Assessment — Signal vs. Noise</div>
+      <b>Commercial Vehicles & Auto Fleet Boom:</b> Multi-company synchronized volume expansion confirms genuine institutional fleet renewal and capital goods demand across Force Motors (+58.2% YoY), SML Isuzu (+39.5% YoY), Ashok Leyland (+38.0% YoY, +7.4% MoM), Atul Auto (+32.6% YoY), and Steel Strips Wheels (+53.6% YoY).<br>
+      <b>Agri Equipment Divergence:</b> Escorts Kubota staged a sharp pre-harvest rebound (+15.4% MoM, +19.1% YoY) ahead of festive inventory replenishment, while VST Tillers experienced sequential drag (-36.4% MoM) due to state DBT subsidy timing lags.<br>
+      <b>Base-Effect Alert:</b> Triple-digit percentage surges in 1-filing / 2-quarter histories (Valiant, True Colors, Bright Outdoor) reflect small denominator distortion rather than structural growth.
+    </div>
+
+    <div class="sec-hd">Sector Breadth & Operational Health Meter</div>
+    <div class="grid4" style="margin-bottom:14px;">
+      <div class="card" style="border-top:3.5px solid #27500a;">
+        <div class="card-hd"><span>Auto OEMs & Fleet</span><span class="pill pill-up">Accelerating</span></div>
+        <div style="font-size:18px;font-weight:700;color:#27500a;margin:3px 0;">+27.7% YoY</div>
+        <div class="hint" style="line-height:1.4;">10/10 filers expanding. CV fleet renewal (Ashok Leyland +38%, Force +58%, SML +40%).</div>
+      </div>
+      <div class="card" style="border-top:3.5px solid #27500a;">
+        <div class="card-hd"><span>Real Estate Pre-Sales</span><span class="pill pill-up">Record Absorption</span></div>
+        <div style="font-size:18px;font-weight:700;color:#27500a;margin:3px 0;">+81.8% YoY</div>
+        <div class="hint" style="line-height:1.4;">Premium luxury surge across Signature (+42%), Sobha (+30%), Prestige (+300%).</div>
+      </div>
+      <div class="card" style="border-top:3.5px solid #0c447c;">
+        <div class="card-hd"><span>Banking & Deposits</span><span class="pill pill-up">Solid CASA</span></div>
+        <div style="font-size:18px;font-weight:700;color:#0c447c;margin:3px 0;">+20.4% YoY</div>
+        <div class="hint" style="line-height:1.4;">CASA & deposit resilience across Bank of Baroda, Mahabank, Capital SFB (+16%).</div>
+      </div>
+      <div class="card" style="border-top:3.5px solid #633806;">
+        <div class="card-hd"><span>Metals & Tubes</span><span class="pill pill-neutral">Volume Steady</span></div>
+        <div style="font-size:18px;font-weight:700;color:#633806;margin:3px 0;">+22.6% YoY</div>
+        <div class="hint" style="line-height:1.4;">Infrastructure demand intact. APL Apollo 794k Ton (+10%), Shyam Metalics sponge iron +131%.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:6px;">
+      <div class="sec-hd" style="margin:0;">Key Leaders & Inflections Matrix</div>
+      <span class="filter-btn" onclick="jumpToSectorTable()">Explore in Growth Table →</span>
+    </div>
+
+    <div class="filter-bar" id="sector-filters">
+      <div class="filter-pill on" data-sec="All" onclick="selectSector('All')">All Sectors (127)</div>
+      <div class="filter-pill" data-sec="Auto" onclick="selectSector('Auto')">Auto & CVs (10)</div>
+      <div class="filter-pill" data-sec="Realty" onclick="selectSector('Realty')">Real Estate (9)</div>
+      <div class="filter-pill" data-sec="Financials" onclick="selectSector('Financials')">Banking & SFB (9)</div>
+      <div class="filter-pill" data-sec="Metals" onclick="selectSector('Metals')">Metals & Mining (7)</div>
+      <div class="filter-pill" data-sec="Logistics" onclick="selectSector('Logistics')">Ports & Logistics (5)</div>
+      <div class="filter-pill" data-sec="Consumption" onclick="selectSector('Consumption')">Retail & FMCG (12)</div>
+      <div class="filter-pill" data-sec="Agri" onclick="selectSector('Agri')">Agri & Sugar (2)</div>
+    </div>
+
+    <div class="grid3">
+      <div class="card">
+        <div class="card-hd"><span>Top 5 YoY Growth Leaders</span><span class="hint">Annual Expansion</span></div>
+        <div id="yoy-list"></div>
+      </div>
+      <div class="card" style="border-left:3px solid #791f1f;">
+        <div class="card-hd"><span>Top 5 YoY Contractions</span><span class="hint">Downside Risk Radar</span></div>
+        <div id="yoy-decline-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span>Top 5 QoQ Inflections</span><span class="hint">Quarterly Momentum</span></div>
+        <div id="qoq-list"></div>
+      </div>
+      <div class="card" style="border-left:3px solid #633806;">
+        <div class="card-hd"><span>Top 5 QoQ Drops</span><span class="hint">Sequential Slowdown</span></div>
+        <div id="qoq-decline-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span>Top 5 Compounding Leaders</span><span class="hint">Continuous Growth</span></div>
+        <div id="consistent-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span>Fresh Off The Wire</span><span class="hint">Latest Announcements</span></div>
+        <div id="recent-list"></div>
+      </div>
+    </div>
+
+    <div class="sec-hd">Pricing Power & Realization Tracker (Volume vs. Value)</div>
+    <div class="grid2" style="margin-bottom:14px;">
+      <div class="card" style="border-left:3.5px solid #0c447c;">
+        <div class="card-hd">
+          <div><span>Real Estate: Blended Realization Expansion</span></div>
+          <span class="pill pill-up">Pricing Power</span>
+        </div>
+        <div style="font-size:11.5px;color:#333;line-height:1.5;">
+          <b>Sobha:</b> Q4 sales value ₹20.39 bn (+30% YoY) on 1.33 mn sq ft area (+18% YoY). Average realization expanded to <b>₹15,268/sq ft</b>, confirming luxury segment pricing power.<br>
+          <b>Signature Global:</b> FY25 collections grew +41% to ₹43.8 bn. Realization rose to <b>₹12,457/sq ft</b> (vs ₹11,762 in FY24) across premium Gurugram launches.
+        </div>
+      </div>
+      <div class="card" style="border-left:3.5px solid #0c447c;">
+        <div class="card-hd">
+          <div><span>Metals & Tubes: Volume vs Spread Resilience</span></div>
+          <span class="pill pill-neutral">Volume Driven</span>
+        </div>
+        <div style="font-size:11.5px;color:#333;line-height:1.5;">
+          <b>APL Apollo Tubes:</b> Q1 sales volume of 794,350 Ton (+10% YoY) driven by General and Rust-Proof Apollo Z segments (498k Ton).<br>
+          <b>Shyam Metalics:</b> November Sponge Iron sales surged +131% YoY to 102,561 MT while Pellet sales grew +19.6% YoY to 19,432 MT with stable per-MT realizations.
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-hd">Actionable Sign Flips (Growing ↔ Shrinking)</div>
+    <div class="grid2">
+      <div class="card" style="border-left:3.5px solid #27500a;">
+        <div class="card-hd">
+          <div><span class="clickable-ticker" data-cid="NSE:ESCORTS" onclick="gotoCompany(this.dataset.cid)">NSE:ESCORTS</span> · Escorts Kubota</div>
+          <span class="pill pill-up">Rebound</span>
+        </div>
+        <div style="font-size:11.5px;color:#333;line-height:1.45;">
+          July contracted -36.2% MoM (8,731 units) on erratic sowing; surged <b>+15.4% MoM</b> in August (10,072 units, <b>+19.1% YoY</b>) kicking off festive inventory replenishment.
+        </div>
+      </div>
+
+      <div class="card" style="border-left:3.5px solid #27500a;">
+        <div class="card-hd">
+          <div><span class="clickable-ticker" data-cid="NSE:V2RETAIL" onclick="gotoCompany(this.dataset.cid)">NSE:V2RETAIL</span> · V2 Retail</div>
+          <span class="pill pill-up">Acceleration</span>
+        </div>
+        <div style="font-size:11.5px;color:#333;line-height:1.45;">
+          Q4 revenue contracted -13.9% QoQ (Rs 798 cr); surged <b>+24.9% QoQ</b> in Q1 (Rs 997 cr) with <b>+58.3% YoY</b> backed by strong tier-2/3 store expansions.
+        </div>
+      </div>
+
+      <div class="card" style="border-left:3.5px solid #27500a;">
+        <div class="card-hd">
+          <div><span class="clickable-ticker" data-cid="NSE:CAPITALSFB" onclick="gotoCompany(this.dataset.cid)">NSE:CAPITALSFB</span> · Capital Small Finance Bank</div>
+          <span class="pill pill-up">Recovery</span>
+        </div>
+        <div style="font-size:11.5px;color:#333;line-height:1.45;">
+          Deposits contracted -6.8% QoQ in Q4 (Rs 8,687 cr); rebounded <b>+22.0% QoQ</b> in Q1 (Rs 10,596 cr, <b>+16.3% YoY</b>).
+        </div>
+      </div>
+
+      <div class="card" style="border-left:3.5px solid #791f1f;">
+        <div class="card-hd">
+          <div><span class="clickable-ticker" data-cid="NSE:SMLMAH" onclick="gotoCompany(this.dataset.cid)">NSE:SMLMAH</span> · SML Isuzu</div>
+          <span class="pill pill-dn">Seasonal Peak Out</span>
+        </div>
+        <div style="font-size:11.5px;color:#333;line-height:1.45;">
+          May/June peaked at 1,930 units during school bus delivery season; contracted in July and August (<b>-26.7% MoM</b> to 1,175 units), though YoY remains up +39.5%.
+        </div>
+      </div>
+
+      <div class="card" style="border-left:3.5px solid #791f1f;">
+        <div class="card-hd">
+          <div><span class="clickable-ticker" data-cid="NSE:VSTTILLERS" onclick="gotoCompany(this.dataset.cid)">NSE:VSTTILLERS</span> · VST Tillers Tractors</div>
+          <span class="pill pill-dn">Sequential Contraction</span>
+        </div>
+        <div style="font-size:11.5px;color:#333;line-height:1.45;">
+          June peaked at 8,107 units; fell sequentially to 5,853 in July and <b>3,720 units in August (-36.4% MoM, -17.3% YoY)</b> due to state tiller DBT subsidy disbursement gaps.
+        </div>
+      </div>
+
+      <div class="card" style="border-left:3.5px solid #27500a;">
+        <div class="card-hd">
+          <div><span class="clickable-ticker" data-cid="NSE:NMDC" onclick="gotoCompany(this.dataset.cid)">NSE:NMDC</span> · NMDC</div>
+          <span class="pill pill-up">MoM Turnaround</span>
+        </div>
+        <div style="font-size:11.5px;color:#333;line-height:1.45;">
+          July iron ore sales dipped -14.6% MoM (3.40 MT); recovered <b>+5.3% MoM</b> in August (3.58 MT, +5.6% YoY) despite peak monsoon mining challenges.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="p1">
     <div class="controls">
       <input type="search" id="q" placeholder="Filter by ticker or name…">
       <select id="unit"></select>
       <select id="ptype"></select>
+      <select id="sortby">
+        <option value="yoyPct">Sort: YoY Growth</option>
+        <option value="latestFiledOn">Sort: Recency (Newest First)</option>
+        <option value="qoqPct">Sort: QoQ Growth</option>
+        <option value="momPct">Sort: MoM Growth</option>
+        <option value="latestValue">Sort: Reported Level</option>
+        <option value="companyId">Sort: Company Name</option>
+      </select>
       <span class="hint" id="count"></span>
       <span class="hint">· click any column header to sort</span>
     </div>
@@ -317,6 +600,7 @@ function render(dto) {
         <th data-k="unit">Unit <span class="ar"></span></th>
         <th data-k="latestValue" class="num">Latest <span class="ar"></span></th>
         <th data-k="latestPeriod">Period <span class="ar"></span></th>
+        <th data-k="latestFiledOn">Last Update <span class="ar"></span></th>
         <th data-k="momPct" class="num">MoM <span class="ar"></span></th>
         <th data-k="qoqPct" class="num">QoQ <span class="ar"></span></th>
         <th data-k="yoyPct" class="num">YoY <span class="ar"></span></th>

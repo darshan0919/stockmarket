@@ -119,7 +119,7 @@ node -e "const {resolveFilingContent}=require('./packages/jobs-runtime/lib/resol
 
 `source: 'extract-cache'` → use `.data.guidance[]` directly for that quarter;
 this skill's own job (the walk-the-talk comparison and +1/0/-1 scoring) is
-unaffected either way — only the guidance-extraction *step* changes source.
+unaffected either way — only the guidance-extraction _step_ changes source.
 `source: 'miss'` (not yet extracted for this quarter, or the profile's schema
 changed since) → fall back to `concall-analysis` unchanged, exactly as below.
 Never skip a quarter just because its extract is missing — the fallback is

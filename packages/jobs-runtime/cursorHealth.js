@@ -101,8 +101,10 @@ function checkOne(filename, { nowMs }) {
   const cadenceHours = CURSOR_CADENCE_HOURS[parsed.jobName];
   const results = [];
   for (const { subKey, rec } of subRecords) {
-    const lastCommittedAtMs = rec && Number.isFinite(rec.lastCommittedAtMs) ? rec.lastCommittedAtMs : null;
-    const ageHours = lastCommittedAtMs != null ? (nowMs - lastCommittedAtMs) / (60 * 60 * 1000) : null;
+    const lastCommittedAtMs =
+      rec && Number.isFinite(rec.lastCommittedAtMs) ? rec.lastCommittedAtMs : null;
+    const ageHours =
+      lastCommittedAtMs != null ? (nowMs - lastCommittedAtMs) / (60 * 60 * 1000) : null;
     let status;
     if (lastCommittedAtMs == null) {
       status = 'unreadable';
@@ -175,23 +177,31 @@ function main() {
   const uncommittedPending = pendingResults.filter((r) => r.status === 'uncommitted');
 
   if (jsonOut) {
-    console.log(JSON.stringify({ cursors: cursorResults, pendingWindows: pendingResults }, null, 2));
+    console.log(
+      JSON.stringify({ cursors: cursorResults, pendingWindows: pendingResults }, null, 2)
+    );
   } else {
     console.log('Cursor health check (conventions.md §25)');
     console.log('='.repeat(60));
     for (const r of cursorResults) {
       const label = r.key ? `${r.jobName} [${r.key}]` : r.jobName;
-      const badge = { ok: 'OK', stale: 'STALE', unmapped: 'UNMAPPED', unreadable: 'UNREADABLE' }[r.status];
+      const badge = { ok: 'OK', stale: 'STALE', unmapped: 'UNMAPPED', unreadable: 'UNREADABLE' }[
+        r.status
+      ];
       console.log(
         `[${badge}] ${label} — last committed ${r.lastCommittedAtIso || 'never'}` +
-          (r.ageHours != null ? ` (${r.ageHours}h ago${r.cadenceHours ? `, cadence cap ${r.cadenceHours}h` : ''})` : '')
+          (r.ageHours != null
+            ? ` (${r.ageHours}h ago${r.cadenceHours ? `, cadence cap ${r.cadenceHours}h` : ''})`
+            : '')
       );
     }
     if (pendingResults.length) {
       console.log('');
       console.log('Pending (uncommitted) windows:');
       for (const r of pendingResults) {
-        console.log(`[${r.status === 'ok' ? 'OK' : 'UNCOMMITTED'}] ${r.file} — opened ${r.windowEndCreatedAtIso || 'unknown'} (${r.ageHours}h ago)`);
+        console.log(
+          `[${r.status === 'ok' ? 'OK' : 'UNCOMMITTED'}] ${r.file} — opened ${r.windowEndCreatedAtIso || 'unknown'} (${r.ageHours}h ago)`
+        );
       }
     }
     console.log('');
@@ -215,4 +225,10 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { listCursorFiles, parseCursorFilename, checkOne, checkPendingWindows, CURSOR_CADENCE_HOURS };
+module.exports = {
+  listCursorFiles,
+  parseCursorFilename,
+  checkOne,
+  checkPendingWindows,
+  CURSOR_CADENCE_HOURS,
+};

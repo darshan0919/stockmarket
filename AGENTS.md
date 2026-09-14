@@ -79,6 +79,17 @@ conventions doc §13. This requirement is expanded in full in §4 below.
 Every external API integration (Stockscans, NSE/BSE, or any future provider)
 must satisfy all of the following before it's considered done:
 
+0. **Reuse the platform's own feature before building analysis logic.** This
+   repo is a proprietary wrapper on top of Stockscans, Screener.in, NSE/BSE,
+   YouTube, and Learnyst — not a re-implementation of what those platforms
+   already do. Before writing any new signal, score, summary, or
+   classification, check whether the upstream provider already computes and
+   serves it natively (e.g. Stockscans' own Management Sentiment/Result
+   Quality/Congrats Index, Forensic Report, Guidance Report, Research AI,
+   Scan Matching/Compare, or its keyword library) and call that through the
+   existing typed client instead of re-deriving an equivalent result from raw
+   data. Full detail and current inventory: `skills/_shared/conventions.md`
+   item 10, and the project-memory reference `stockscans_platform_capabilities.md`.
 1. **Reuse before writing.** Before adding a new client/wrapper, check for an
    existing one for that provider — `stock-api/src/api/`, `backend/api/`,
    `screener-api/src/**/api/`, and `docs/*-api-schemas.md` for the doc index.

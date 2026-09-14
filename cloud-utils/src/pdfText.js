@@ -90,7 +90,10 @@ function pdftotextCli(buf) {
   const tmp = path.join(os.tmpdir(), `wi_${Date.now()}_${Math.random().toString(36).slice(2)}.pdf`);
   fs.writeFileSync(tmp, buf);
   try {
-    return execFileSync('pdftotext', [tmp, '-'], { encoding: 'utf8', timeout: PDFTOPPM_TIMEOUT_MS });
+    return execFileSync('pdftotext', [tmp, '-'], {
+      encoding: 'utf8',
+      timeout: PDFTOPPM_TIMEOUT_MS,
+    });
   } catch {
     return '';
   } finally {

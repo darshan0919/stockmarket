@@ -45,7 +45,11 @@ describe('tokenUsageCounter (job-keyed, no shared "active job" global — mirror
       inputTokens: 1500,
       outputTokens: 300,
     });
-    expect(summary.byModel['claude-haiku-5']).toEqual({ calls: 1, inputTokens: 2000, outputTokens: 50 });
+    expect(summary.byModel['claude-haiku-5']).toEqual({
+      calls: 1,
+      inputTokens: 2000,
+      outputTokens: 50,
+    });
   });
 
   test('defaults a missing model label to "agent-session"', () => {
@@ -61,9 +65,21 @@ describe('tokenUsageCounter (job-keyed, no shared "active job" global — mirror
     // Regression test for the same bug class apiUsageCounter guards against:
     // interleaved record() calls for two different jobs must land in two
     // separate buckets, never merge or clobber.
-    tokenUsageCounter.record('job-a', { model: 'claude-sonnet-5', inputTokens: 100, outputTokens: 10 });
-    tokenUsageCounter.record('job-b', { model: 'claude-haiku-5', inputTokens: 50, outputTokens: 5 });
-    tokenUsageCounter.record('job-a', { model: 'claude-sonnet-5', inputTokens: 200, outputTokens: 20 });
+    tokenUsageCounter.record('job-a', {
+      model: 'claude-sonnet-5',
+      inputTokens: 100,
+      outputTokens: 10,
+    });
+    tokenUsageCounter.record('job-b', {
+      model: 'claude-haiku-5',
+      inputTokens: 50,
+      outputTokens: 5,
+    });
+    tokenUsageCounter.record('job-a', {
+      model: 'claude-sonnet-5',
+      inputTokens: 200,
+      outputTokens: 20,
+    });
 
     const summaryA = tokenUsageCounter.getSummary('job-a');
     const summaryB = tokenUsageCounter.getSummary('job-b');

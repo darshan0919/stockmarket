@@ -13,7 +13,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { Readable } = require('stream');
+const { pipeline } = require('stream');
 
 const DEFAULT_ROOT_PATH = 'StockMarket/data/v2';
 
@@ -60,13 +60,87 @@ function createDriveClient(opts = {}) {
 }
 
 /**
- * Helper to get AbortSignal for a 30-second timeout.
- * Prevents Drive API from hanging indefinitely (I3).
+ * @typedef {Object} DriveFileEntry
+ * @property {string} id - Google Drive file ID
+ * @property {string} name - File name
+ * @property {string} driveRel - Relative path within root
+ * @property {number} size - File size in bytes
+ * @property {string} modifiedTime - ISO modified timestamp
+ * @property {string|null} md5 - MD5 checksum if available
  */
-function getTimeoutOptions() {
+
+/**
+ * @typedef {Object} DriveUploadResult
+ * @property {string} id - Google Drive file ID
+ * @property {string} name - File name
+ * @property {string} action - 'created' | 'updated'
+ */
+
+/**
+ * @typedef {Object} DriveFileInfo
+ * @property {string} id - Google Drive file ID
+ * @property {number} size - File size in bytes
+ * @property {string} modifiedTime - ISO modified timestamp
+ */
+
+/**
+ * Helper to get AbortSignal with a configurable timeout.
+ * Prevents Drive API from hanging indefinitely (I3).
+ *
+ * @param {number} [timeoutMs=30000] - timeout in milliseconds
+ * @returns {{ signal: AbortSignal }}
+ */
+function getTimeoutOptions(timeoutMs = 30000) {
   const controller = new AbortController();
-  setTimeout(() => controller.abort(new Error('Drive API timeout')), 30000).unref();
+  setTimeout(
+    () => controller.abort(new Error(`Drive API timeout after ${timeoutMs}ms`)),
+    timeoutMs
+  ).unref();
   return { signal: controller.signal };
+}
+
+/**
+ * Calculate appropriate upload timeout in milliseconds based on file size.
+ * Allows minimum 120s base plus time budget at 100 KB/s transfer rate,
+ * ensuring large media/attachments (150MB - 350MB+) do not abort prematurely.
+ *
+ * @param {string} filePath - path to local file
+ * @param {number} [explicitTimeoutMs] - explicit timeout override in milliseconds
+ * @returns {number} timeout in milliseconds
+ */
+function getUploadTimeoutMs(filePath, explicitTimeoutMs) {
+  if (explicitTimeoutMs && explicitTimeoutMs > 0) return explicitTimeoutMs;
+  if (process.env.DRIVE_UPLOAD_TIMEOUT_MS) {
+    const parsed = parseInt(process.env.DRIVE_UPLOAD_TIMEOUT_MS, 10);
+    if (!Number.isNaN(parsed) && parsed > 0) return parsed;
+  }
+  try {
+    const stat = fs.statSync(filePath);
+    // Base 2 minutes + 1 second per 100 KB (equiv to minimum ~100 KB/s upload rate)
+    const minBytesPerSec = 100 * 1024;
+    const transferMs = Math.ceil((stat.size / minBytesPerSec) * 1000);
+    return Math.max(120000, transferMs);
+  } catch {
+    return 120000;
+  }
+}
+
+/**
+ * Calculate appropriate download timeout in milliseconds based on file size.
+ *
+ * @param {number} [sizeBytes] - file size in bytes from Drive metadata
+ * @param {number} [explicitTimeoutMs] - explicit timeout override in milliseconds
+ * @returns {number} timeout in milliseconds
+ */
+function getDownloadTimeoutMs(sizeBytes, explicitTimeoutMs) {
+  if (explicitTimeoutMs && explicitTimeoutMs > 0) return explicitTimeoutMs;
+  if (process.env.DRIVE_DOWNLOAD_TIMEOUT_MS) {
+    const parsed = parseInt(process.env.DRIVE_DOWNLOAD_TIMEOUT_MS, 10);
+    if (!Number.isNaN(parsed) && parsed > 0) return parsed;
+  }
+  const minBytesPerSec = 200 * 1024; // 200 KB/s download allowance
+  const transferMs = Math.ceil(((sizeBytes || 0) / minBytesPerSec) * 1000);
+  return Math.max(120000, transferMs);
 }
 
 /**
@@ -168,9 +242,11 @@ async function ensureFolder(drive, folderPath) {
  * @param {string} rootPath - Drive root folder path (e.g. 'StockMarket/data/v2')
  * @param {string} driveRel - relative path within the root (e.g. 'gainers/2026/06/26/gainers_raw.json')
  * @param {string} localPath - absolute local file path
- * @returns {Promise<{id: string, name: string, action: string}>}
+ * @param {object} [opts] - optional settings
+ * @param {number} [opts.timeoutMs] - explicit timeout override in milliseconds
+ * @returns {Promise<DriveUploadResult>}
  */
-async function uploadFile(drive, rootPath, driveRel, localPath) {
+async function uploadFile(drive, rootPath, driveRel, localPath, opts = {}) {
   const dir = path.posix.dirname(driveRel);
   const name = path.posix.basename(driveRel);
   const fullDir = dir && dir !== '.' ? `${rootPath}/${dir}` : rootPath;
@@ -195,6 +271,7 @@ async function uploadFile(drive, rootPath, driveRel, localPath) {
   const media = {
     body: fs.createReadStream(localPath),
   };
+  const uploadTimeoutMs = getUploadTimeoutMs(localPath, opts.timeoutMs);
 
   if (existing.data.files && existing.data.files.length > 0) {
     // Update existing file
@@ -205,7 +282,7 @@ async function uploadFile(drive, rootPath, driveRel, localPath) {
         media,
         fields: 'id, name',
       },
-      getTimeoutOptions()
+      getTimeoutOptions(uploadTimeoutMs)
     );
     return { id: res.data.id, name: res.data.name, action: 'updated' };
   }
@@ -220,7 +297,7 @@ async function uploadFile(drive, rootPath, driveRel, localPath) {
       media,
       fields: 'id, name',
     },
-    getTimeoutOptions()
+    getTimeoutOptions(uploadTimeoutMs)
   );
   return { id: res.data.id, name: res.data.name, action: 'created' };
 }
@@ -232,36 +309,47 @@ async function uploadFile(drive, rootPath, driveRel, localPath) {
  * @param {string} rootPath - Drive root folder path
  * @param {string} driveRel - relative path within the root
  * @param {string} localPath - absolute local destination
+ * @param {object} [opts] - optional settings
+ * @param {number} [opts.timeoutMs] - explicit timeout override in milliseconds
  * @returns {Promise<boolean>} - true if file was downloaded, false if not found
  */
-async function downloadFile(drive, rootPath, driveRel, localPath) {
-  const fileId = await findFileId(drive, rootPath, driveRel);
-  if (!fileId) return false;
+async function downloadFile(drive, rootPath, driveRel, localPath, opts = {}) {
+  const fileInfo = await findFileInfo(drive, rootPath, driveRel);
+  if (!fileInfo) return false;
 
+  const downloadTimeoutMs = getDownloadTimeoutMs(fileInfo.size, opts.timeoutMs);
   const res = await drive.files.get(
-    { fileId, alt: 'media' },
-    { responseType: 'stream', ...getTimeoutOptions() }
+    { fileId: fileInfo.id, alt: 'media' },
+    { responseType: 'stream', ...getTimeoutOptions(downloadTimeoutMs) }
   );
 
   fs.mkdirSync(path.dirname(localPath), { recursive: true });
 
   return new Promise((resolve, reject) => {
     const ws = fs.createWriteStream(localPath);
-    res.data.pipe(ws);
-    ws.on('finish', () => resolve(true));
-    ws.on('error', reject);
+    pipeline(res.data, ws, (err) => {
+      if (err) {
+        try {
+          if (fs.existsSync(localPath)) fs.unlinkSync(localPath);
+        } catch (_ignored) {
+          // Ignore unlink errors during cleanup
+        }
+        return reject(err);
+      }
+      resolve(true);
+    });
   });
 }
 
 /**
- * Find a file's Drive ID by its relative path.
+ * Find a file's info on Drive by its relative path.
  *
- * @param {object} drive
- * @param {string} rootPath
- * @param {string} driveRel
- * @returns {Promise<string|null>}
+ * @param {object} drive - googleapis drive client
+ * @param {string} rootPath - Drive root folder path
+ * @param {string} driveRel - relative path within the root
+ * @returns {Promise<DriveFileInfo|null>}
  */
-async function findFileId(drive, rootPath, driveRel) {
+async function findFileInfo(drive, rootPath, driveRel) {
   const dir = path.posix.dirname(driveRel);
   const name = path.posix.basename(driveRel);
   const fullDir = dir && dir !== '.' ? `${rootPath}/${dir}` : rootPath;
@@ -283,13 +371,34 @@ async function findFileId(drive, rootPath, driveRel) {
   const res = await drive.files.list(
     {
       q: query,
-      fields: 'files(id)',
+      fields: 'files(id, size, modifiedTime)',
       pageSize: 1,
     },
     getTimeoutOptions()
   );
 
-  return res.data.files && res.data.files.length > 0 ? res.data.files[0].id : null;
+  if (res.data.files && res.data.files.length > 0) {
+    const f = res.data.files[0];
+    return {
+      id: f.id,
+      size: parseInt(f.size || '0', 10),
+      modifiedTime: f.modifiedTime,
+    };
+  }
+  return null;
+}
+
+/**
+ * Find a file's Drive ID by its relative path.
+ *
+ * @param {object} drive - googleapis drive client
+ * @param {string} rootPath - Drive root folder path
+ * @param {string} driveRel - relative path within the root
+ * @returns {Promise<string|null>}
+ */
+async function findFileId(drive, rootPath, driveRel) {
+  const fileInfo = await findFileInfo(drive, rootPath, driveRel);
+  return fileInfo ? fileInfo.id : null;
 }
 
 /**
@@ -456,6 +565,8 @@ module.exports = {
   ensureFolder,
   uploadFile,
   downloadFile,
+  findFileInfo,
+  findFileId,
 
   listAllFiles,
   findFolderId,
@@ -463,4 +574,8 @@ module.exports = {
   renameFile,
   isApiConfigured,
   clearFolderCache,
+
+  getTimeoutOptions,
+  getUploadTimeoutMs,
+  getDownloadTimeoutMs,
 };

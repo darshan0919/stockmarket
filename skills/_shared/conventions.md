@@ -391,4 +391,44 @@ add-note` (`watchlist-insights`, `announcement-insights`, `announcement-info-cla
     `docExtracts.js`), and a full-suite regression run after each change —
     not just "it compiled."
 
+10. **Platform-reuse-first: this repo is a wrapper, not a re-implementation.**
+    Think of this whole codebase as a proprietary layer on top of a small set
+    of upstream platforms — Stockscans, Screener.in, NSE/BSE, YouTube, and
+    Learnyst (SOIC membership) today, with more providers possibly added
+    later. Before writing ANY new analysis/derivation logic — a new signal, a
+    new score, a new summary, a new classification, a new report section — the
+    first question is always: **does one of these platforms already compute
+    and serve this natively?** If yes, call it through the existing typed
+    client (§4 of `AGENTS.md`) and use its output directly; do not re-derive
+    an equivalent number or verdict from raw data the repo already has, even
+    if that raw data is already flowing through the skill. Concretely, before
+    building new logic, check whether Stockscans already has it — its own
+    Concall Scans give Management Sentiment/Result Quality/a Congrats Index,
+    its Company Reports give a Forensic Report (score/10, severity-tagged)
+    and a Guidance Report (Delivered/On track/Partial/Pending/Missed per
+    commitment), its Research AI does cited cross-filing Q&A, its Stock Scans
+    screener has "Scan Matching" and "Compare" (Added/Retained/Removed)
+    primitives, and its Announcement Scans ships a maintained ~370-phrase
+    keyword library — before a new skill/job hand-rolls the equivalent from
+    scratch. The same check applies to Screener.in (financial ratios/exports),
+    NSE/BSE (raw filings/announcements), YouTube (management interviews,
+    already covered by Stockscans' Interview Scans feed), and Learnyst
+    (SOIC's own teaching corpus, already indexed by `ask-soic`). A native
+    platform feature is fair game to use as a cross-check, a faster first-pass
+    filter, or a fallback when this repo's own deeper version is stale or
+    unavailable — but reach for it before building a parallel implementation,
+    not after. This does not forbid building something genuinely deeper than
+    what a platform offers (e.g. `forensic-accounting`'s 9-section pattern
+    match against 4 named fraud cases goes well past Stockscans' single
+    Forensic Report score) — it forbids re-deriving, from scratch, a result a
+    platform already computes and exposes. See the project-memory reference
+    file `stockscans_platform_capabilities.md` for the current inventory of
+    what Stockscans alone already provides, with notes on which repo skills
+    already overlap it; consult it (and the equivalent for Screener/NSE/BSE if
+    one exists) at the start of any new skill/job's design step, not after
+    the implementation is already written. `cowork-task-architect` Step 1 and
+    `skill-manager`'s new-skill review both enforce this check explicitly —
+    see those files for the exact question to ask before scoping a new
+    skill/job.
+
 These conventions ensure that skills can execute in any environment: Cowork, Antigravity, local terminal, or Claude web.

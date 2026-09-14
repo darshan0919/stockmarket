@@ -111,17 +111,90 @@ function titleCase(str) {
     .join(' ');
 }
 
-function copyRecursiveSync(src, dest) {
-  const exists = fs.existsSync(src);
-  const stats = exists && fs.statSync(src);
-  const isDirectory = exists && stats.isDirectory();
-  if (isDirectory) {
-    if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
-    fs.readdirSync(src).forEach((childItemName) => {
-      copyRecursiveSync(path.join(src, childItemName), path.join(dest, childItemName));
-    });
-  } else {
-    fs.copyFileSync(src, dest);
+/**
+ * Writes a MINIMAL router SKILL.md into Antigravity's Global Skills dir, instead of
+ * copying the skill's full content/scripts/references there. The router's only job is
+ * to point Antigravity at the single source of truth (the stockmarket repo's
+ * skills/registry.json + the real SKILL.md), local-first with a GitHub raw-content
+ * fallback. This keeps each entry in ~/.gemini/config/skills/ a few hundred bytes
+ * instead of the full skill bundle, which is what was blowing Antigravity's
+ * "Customization token budget" (skills were being stored in full, not routed).
+ *
+ * Mirrors the pattern already used for the Claude-account custom skills (thin router ->
+ * skills/registry.json -> repo SKILL.md, local checkout preferred, GitHub raw as
+ * fallback) — see skills/tooling/skill-manager/SKILL.md for that side of the pattern.
+ *
+ * @param {string} skillName - Registry/skill identifier (matches the repo skill's
+ *   frontmatter `name` and its key/derived name in skills/registry.json).
+ * @param {string} description - The real description pulled from the repo SKILL.md
+ *   frontmatter. Never weakened or shortened — Antigravity uses it to decide when to
+ *   trigger the router.
+ * @param {string} skillMdRepoPath - Repo-relative path to the real SKILL.md (e.g.
+ *   "skills/equity-research/rerating-catalysts/SKILL.md"), used to build both the
+ *   local-checkout read path and the GitHub raw fallback URL.
+ * @param {string} destDir - Absolute path to the Antigravity global skill folder for
+ *   this skill (e.g. ~/.gemini/config/skills/<skill-name>/).
+ */
+function writeRouterSkill(skillName, description, skillMdRepoPath, destDir) {
+  if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+
+  const repoRoot = path.resolve(__dirname, '../');
+  const githubRawBase = 'https://raw.githubusercontent.com/darshan0919/stockmarket/main';
+
+  const routerContent = `---
+name: ${skillName}
+description: ${description}
+---
+
+Router for the "${skillName}" skill. This router has NO logic of its own — it is a thin
+pointer into the stockmarket monorepo, which is the single source of truth. Never add
+workflow logic here; if the routed skill needs to change, edit it in the repo, not this
+file (and re-run \`yarn antigravity:sync\` — that regenerates this router only, it never
+needs hand-editing).
+
+## Resolve the skill (local-first, GitHub fallback)
+
+1. **Local repo check.** Look for the stockmarket monorepo checkout on this machine
+   (check the currently open workspace folder, then common locations such as
+   \`${repoRoot}\`). Confirm it's the right repo by the presence of \`skills/registry.json\`
+   at its root.
+   - If found, read \`skills/registry.json\` from that local checkout and look up the
+     \`"${skillName}"\` entry (or read the file directly at
+     \`skills/registry.json\` -> \`skills["${skillName}"].skill_md\`, which should resolve to
+     \`${skillMdRepoPath}\`). Read that SKILL.md directly from the local checkout. Also read
+     any files listed in that entry's \`shared\` / \`references\` arrays as its SKILL.md
+     instructs.
+   - If the registry entry's \`mode\` is \`bundle\`, run the compiled skill from the local
+     checkout at \`stock-api/dist-skills/${skillName}.cjs\` (no need to fetch remotely).
+   - If \`mode\` is \`clone\`, run scripts directly from the local checkout.
+2. **GitHub fallback.** Only if no local stockmarket checkout is available, or the local
+   SKILL.md is missing/unreadable, fetch from GitHub instead, and say so explicitly
+   ("local repo not found, fetching skill from GitHub"):
+   - Registry: \`${githubRawBase}/skills/registry.json\`
+   - SKILL.md: \`${githubRawBase}/${skillMdRepoPath}\`
+   - For \`bundle\` mode, fetch \`stock-api/dist-skills/${skillName}.cjs\` from the same base
+     URL.
+   - For \`clone\` mode, shallow-clone \`https://github.com/darshan0919/stockmarket.git\` and
+     run from there.
+   - A branch other than \`main\` can be requested explicitly by the user ("use branch dev").
+
+## Execute
+
+Follow the fetched SKILL.md's instructions exactly. Any data-persistence rules it
+references (e.g. \`docs/DATA_RULES.md\`) take precedence over anything implied here.
+`;
+
+  const destFile = path.join(destDir, 'SKILL.md');
+  fs.writeFileSync(destFile, routerContent, 'utf8');
+
+  // Clear out any stale full-content files a previous (pre-router) sync may have left
+  // behind in this folder, so old bundled scripts/references don't linger alongside
+  // the router and keep inflating the customization payload.
+  for (const entry of fs.readdirSync(destDir)) {
+    if (entry !== 'SKILL.md') {
+      const p = path.join(destDir, entry);
+      fs.rmSync(p, { recursive: true, force: true });
+    }
   }
 }
 
@@ -179,7 +252,7 @@ function updateSidecarsConfig(configData, syncedFolders, projId) {
 
 function syncScheduledTasks() {
   console.log(
-    '\n🔄 [1/2] Syncing ALL Repository Scheduled Jobs (jobs/Scheduled/) -> Antigravity Sidecars & Global Skills...'
+    '\n🔄 [1/2] Syncing ALL Repository Scheduled Jobs (jobs/Scheduled/) -> Antigravity Sidecars ONLY...'
   );
 
   if (!fs.existsSync(SIDECARS_DIR)) fs.mkdirSync(SIDECARS_DIR, { recursive: true });
@@ -192,7 +265,7 @@ function syncScheduledTasks() {
 
   let syncedSidecars = 0;
   const syncedFolders = [];
-  let syncedJobSkills = 0;
+  let prunedJobSkillDirs = 0;
 
   for (const jobFolder of jobFolders) {
     const jobSkillPath = path.join(JOBS_DIR, jobFolder, 'SKILL.md');
@@ -241,10 +314,20 @@ function syncScheduledTasks() {
     syncedSidecars++;
     syncedFolders.push(sidecarFolder);
 
-    // 2. Sync Global Skill (~/.gemini/config/skills/<taskName>/SKILL.md) — OUTWARD ONLY
-    const globalSkillDir = path.join(GLOBAL_SKILLS_DIR, taskName);
-    copyRecursiveSync(path.join(JOBS_DIR, jobFolder), globalSkillDir);
-    syncedJobSkills++;
+    // NOTE: scheduled jobs are ONLY mapped to sidecars (above), never also written to
+    // ~/.gemini/config/skills/. A scheduled job is invoked by Antigravity's scheduler via
+    // its sidecar, not looked up as an ad-hoc skill — writing it to both places duplicated
+    // the same content under two different names and inflated the customization payload
+    // for no benefit. Repository skills (skills/equity-research, skills/tooling) are the
+    // only things synced to Global Skills — see syncAllSkills() below.
+
+    // If a stale skills/<taskName> entry exists from a previous sync (pre-fix), remove it
+    // so the two stores don't keep drifting duplicate/orphaned copies of the same job.
+    const staleJobSkillDir = path.join(GLOBAL_SKILLS_DIR, taskName);
+    if (fs.existsSync(staleJobSkillDir)) {
+      fs.rmSync(staleJobSkillDir, { recursive: true, force: true });
+      prunedJobSkillDirs++;
+    }
   }
 
   // Update ~/.gemini/config/config.json with the projectId
@@ -266,9 +349,12 @@ function syncScheduledTasks() {
     }
   }
 
-  console.log(
-    `✅ Synchronized ${syncedSidecars} UI Sidecars and ${syncedJobSkills} Scheduled Task Skills.`
-  );
+  if (prunedJobSkillDirs > 0) {
+    console.log(
+      `🧹 Removed ${prunedJobSkillDirs} stale scheduled-task entr${prunedJobSkillDirs === 1 ? 'y' : 'ies'} from Global Skills (jobs live only in Sidecars now).`
+    );
+  }
+  console.log(`✅ Synchronized ${syncedSidecars} UI Sidecars.`);
 }
 
 function syncCategorySkills(categoryDir) {
@@ -288,7 +374,12 @@ function syncCategorySkills(categoryDir) {
         const skillName = parsed && parsed.name ? parsed.name : item;
 
         const globalSkillDir = path.join(GLOBAL_SKILLS_DIR, skillName);
-        copyRecursiveSync(itemPath, globalSkillDir);
+        const skillMdRepoPath = path
+          .relative(path.resolve(__dirname, '../'), skillMdPath)
+          .split(path.sep)
+          .join('/');
+        // MINIMAL router only — never the full skill bundle. See writeRouterSkill().
+        writeRouterSkill(skillName, parsed && parsed.description, skillMdRepoPath, globalSkillDir);
         synced++;
       }
     }
@@ -334,6 +425,7 @@ if (require.main === module) {
 
 module.exports = {
   updateSidecarsConfig,
+  writeRouterSkill,
   parseSkillMd,
   titleCase,
   getProjectId,

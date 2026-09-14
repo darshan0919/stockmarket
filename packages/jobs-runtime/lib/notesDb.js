@@ -91,7 +91,9 @@ class NotesDb {
 
     for (const co of Object.values(notes.companies)) {
       delete co._bsTime;
-      co.notes.sort((a, b) => String(a.creationTime || '').localeCompare(String(b.creationTime || '')));
+      co.notes.sort((a, b) =>
+        String(a.creationTime || '').localeCompare(String(b.creationTime || ''))
+      );
       const c = companies[co.companyId];
       if (c) {
         co.ticker = co.ticker || c.nseTicker || String(co.companyId).split(':')[1] || '';

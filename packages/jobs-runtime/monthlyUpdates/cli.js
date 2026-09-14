@@ -188,8 +188,11 @@ function cmdDeploy() {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
     });
-    const url = (stdout.match(/https:\/\/\S+\.vercel\.app/g) || []).pop() || null;
-    console.log(JSON.stringify({ deployed: true, url, project }, null, 2));
+    const aliasMatch = stdout.match(/Aliased\s+(https:\/\/\S+\.vercel\.app)/i);
+    const fixedUrl = aliasMatch ? aliasMatch[1] : `https://${project}.vercel.app`;
+    const deploymentUrl = (stdout.match(/https:\/\/\S+\.vercel\.app/g) || []).pop() || null;
+    const url = fixedUrl || deploymentUrl;
+    console.log(JSON.stringify({ deployed: true, url, deploymentUrl, project }, null, 2));
     return url;
   } catch (e) {
     // A missing CLI / not-logged-in is an operator action, not a code bug —

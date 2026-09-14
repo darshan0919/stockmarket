@@ -44,7 +44,12 @@ describe('nameSimilarity', () => {
 describe('buildCapexTimeline', () => {
   const guided = [
     { what: 'Greenfield facility at Dahej Gujarat', amountCr: 250, when: 'FY26', source: 'ppt' },
-    { what: 'Brownfield expansion at existing Pune unit', amountCr: 40, when: 'FY25', source: 'ppt' },
+    {
+      what: 'Brownfield expansion at existing Pune unit',
+      amountCr: 40,
+      when: 'FY25',
+      source: 'ppt',
+    },
     { what: 'Unrelated debt paydown target', amountCr: 100, when: 'FY26', source: 'ppt' },
   ];
 
@@ -120,7 +125,10 @@ describe('buildCard — capex timeline end-to-end wiring', () => {
             {
               project: 'Dahej greenfield facility',
               status: 'commissioned',
-              quote: { text: 'The Dahej greenfield facility was commissioned in Q4FY26.', page: 12 },
+              quote: {
+                text: 'The Dahej greenfield facility was commissioned in Q4FY26.',
+                page: 12,
+              },
             },
           ],
         },
@@ -150,5 +158,60 @@ describe('buildCard — capex timeline end-to-end wiring', () => {
     ];
     const card = buildCard('NSE:TEST2', extracts);
     expect(card.capexTimeline).toEqual([]);
+  });
+
+  // Regression for the 2026-09-13 "object is not iterable" crash: 8 real
+  // annual_report extracts in the corpus (NSE:CARTRADE, NSE:BEML, and 6
+  // others — confirmed live) carry `capex_commercialisation` as a single
+  // summary OBJECT (`{cwip_balance_inr_cr, summary, quote}`) instead of the
+  // documented array shape (profiles.md), and the un-guarded `for...of` in
+  // buildCard threw on every one of them. Because main()'s batch loop had no
+  // per-company try/catch, that single throw aborted the ENTIRE
+  // `yarn baselines:build` run — of 99 companies with extracts on disk, only
+  // 1 card existed before this fix. These tests pin buildCard's own
+  // resilience directly (buildCard must never throw on this shape); the
+  // batch-level "skip and keep going" behaviour is a `main()` change not
+  // covered by a unit test here, but is documented in buildBaselines.js's
+  // own comment at the fix site.
+  test('a legacy object-shaped capex_commercialisation (real corpus drift) does not throw and still yields a usable capexActuals entry', () => {
+    const extracts = [
+      {
+        profile: 'annual_report',
+        documentDate: '2026-05-01',
+        extractedAt: '2026-05-02T00:00:00.000Z',
+        sourceUrl: 'https://x/ar-legacy.pdf',
+        sourceHash: 'h4',
+        data: {
+          // Real shape seen in the corpus — a summary object, not an array.
+          capex_commercialisation: {
+            cwip_balance_inr_cr: 1.25,
+            summary: 'Capital work in progress stands at Rs 1.25 Cr as at March 31, 2026.',
+            quote: { text: 'Capital work in progress...', page: 45 },
+          },
+        },
+      },
+    ];
+    expect(() => buildCard('NSE:LEGACYCC', extracts)).not.toThrow();
+    const card = buildCard('NSE:LEGACYCC', extracts);
+    // The object's `summary` text is preserved as the synthesized "project"
+    // field rather than being silently dropped.
+    expect(card.capexTimeline).toEqual([]); // no guided-side commitment to join against, correctly empty
+  });
+
+  test('a null capex_commercialisation and other unexpected non-array shapes degrade to empty rather than throwing', () => {
+    const shapes = [null, undefined, 'a string', 42, true];
+    for (const shape of shapes) {
+      const extracts = [
+        {
+          profile: 'annual_report',
+          documentDate: '2026-05-01',
+          extractedAt: '2026-05-02T00:00:00.000Z',
+          sourceUrl: 'https://x/ar-weird.pdf',
+          sourceHash: 'h5',
+          data: { capex_commercialisation: shape },
+        },
+      ];
+      expect(() => buildCard('NSE:WEIRDCC', extracts)).not.toThrow();
+    }
   });
 });
