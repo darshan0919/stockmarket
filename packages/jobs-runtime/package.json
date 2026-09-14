@@ -9,6 +9,8 @@
     "data:push": "node scripts/data.js push",
     "data:pull": "node scripts/data.js pull",
     "data:status": "node scripts/data.js status",
+    "data:consolidate": "node scripts/migrateToShardedJsonl.js",
+    "data:prune-remote": "node scripts/pruneRemoteOrphans.js",
     "data:migrate": "node scripts/migrateToV2.js",
     "data:rebuild-links": "node scripts/rebuildLinks.js",
     "data:auth": "node scripts/googleAuth.js",

@@ -47,6 +47,7 @@ const NEVER_SYNC = (rel) =>
   rel.startsWith('_meta/') ||
   rel.includes('.tmp.') ||
   rel.includes('.corrupt.') ||
+  rel.includes('.local-conflict.') ||
   path.basename(rel) === '.env' ||
   path.basename(rel) === '.DS_Store' ||
   // local backup/scratch files must never mirror to Drive
@@ -55,7 +56,7 @@ const NEVER_SYNC = (rel) =>
   // any reports/rpt_artifact-migration_*.json is an orphan (do not sync)
   /^reports\/rpt_artifact-migration_.*\.json$/.test(rel);
 const IS_COLLECTION = (rel) =>
-  /^(companies|reports|notes|theses|validation|conversations|prompts|ipos|supportive-investors|unsupportive-investors|learnyst-lessons|youtube-transcripts|events-\d{4}-\d{2})\.json$/.test(
+  /^(companies|reports|notes|theses|validation|conversations|prompts|ipos|supportive-investors|unsupportive-investors|learnyst-lessons|youtube-transcripts|events-\d{4}(-\d{2})?)\.json$/.test(
     rel
   );
 
@@ -242,11 +243,12 @@ async function push({ dryRun }) {
       }
       const fileSize = fs.statSync(abs).size;
       console.log(`[data push] ↑ ${rel} (${formatSize(fileSize)})`);
-      const res = await uploadFile(drive, DRIVE_ROOT, rel, abs);
+      const fileId = remoteEntry?.id || st?.driveId;
+      const res = await uploadFile(drive, DRIVE_ROOT, rel, abs, { fileId });
       state.files[rel] = {
         sha256: hash,
         driveId: res.id,
-        // driveModifiedTime refreshed in the single post-push listing below
+        driveModifiedTime: res.modifiedTime,
         syncedAt: new Date().toISOString(),
       };
       uploaded++;

@@ -178,7 +178,7 @@ describe('company links', () => {
     });
     expect(db.readReport(id).sections.tone).toBe('positive');
     const idx = db.get('reports', id);
-    expect(idx.body).toBe(`reports/${id}.json`);
+    expect(idx.body).toBe('reports/reports-2026-07.jsonl');
     expect(idx.sections).toBeUndefined(); // index is slim
     expect(db.get('companies', 'NSE:SWARAJENG').links.reports).toContain(id);
   });
@@ -211,7 +211,7 @@ describe('saveLearnystTranscript (learnyst-lessons collection)', () => {
     expect(body.rawResponse.data['00:00:00']).toBeTruthy();
 
     const idx = db.get('learnyst-lessons', id);
-    expect(idx.body).toBe(`learnyst-lessons/${id}.json`);
+    expect(idx.body).toBe('learnyst-lessons/course_145316.jsonl');
     expect(idx.lessonTitle).toBe('What you will Learn in this Course? Intro');
     // slim index must not carry the heavy fields
     expect(idx.transcriptTimestamped).toBeUndefined();
@@ -377,7 +377,7 @@ describe('saveYoutubeTranscript (youtube-transcripts collection)', () => {
     expect(body.rawCues.length).toBe(1);
 
     const idx = db.get('youtube-transcripts', id);
-    expect(idx.body).toBe(`youtube-transcripts/${id}.json`);
+    expect(idx.body).toBe('youtube-transcripts/soicfinance_2026.jsonl');
     expect(idx.videoTitle).toBe('How to Read a Balance Sheet');
     // slim index must not carry the heavy fields
     expect(idx.transcriptTimestamped).toBeUndefined();
@@ -595,7 +595,7 @@ describe('conversations', () => {
     const id = db.saveConversation(mkConv());
     expect(id).toBe('conv_cloud_abc12345');
     const idx = db.get('conversations', id);
-    expect(idx.body).toBe(`conversations/${id}.json`);
+    expect(idx.body).toBe('conversations/conversations-2026-07.jsonl');
     expect(idx.artifactCount).toBe(1);
     expect(idx.turns).toBeUndefined(); // index is slim, no turns
     expect(idx.questions).toBeUndefined(); // questions live only in the body

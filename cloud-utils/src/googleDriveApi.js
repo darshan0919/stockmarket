@@ -244,9 +244,38 @@ async function ensureFolder(drive, folderPath) {
  * @param {string} localPath - absolute local file path
  * @param {object} [opts] - optional settings
  * @param {number} [opts.timeoutMs] - explicit timeout override in milliseconds
- * @returns {Promise<DriveUploadResult>}
  */
 async function uploadFile(drive, rootPath, driveRel, localPath, opts = {}) {
+  let fileId = opts.fileId;
+  const media = {
+    body: fs.createReadStream(localPath),
+  };
+  const uploadTimeoutMs = getUploadTimeoutMs(localPath, opts.timeoutMs);
+
+  if (fileId) {
+    try {
+      const res = await drive.files.update(
+        {
+          fileId,
+          media,
+          fields: 'id, name, modifiedTime',
+        },
+        getTimeoutOptions(uploadTimeoutMs)
+      );
+      return {
+        id: res.data.id,
+        name: res.data.name,
+        modifiedTime: res.data.modifiedTime,
+        action: 'updated',
+      };
+    } catch (err) {
+      if (err.status !== 404 && err.code !== 404) {
+        throw err;
+      }
+      // If 404, fileId no longer valid on remote; fall through to folder check & list/create
+    }
+  }
+
   const dir = path.posix.dirname(driveRel);
   const name = path.posix.basename(driveRel);
   const fullDir = dir && dir !== '.' ? `${rootPath}/${dir}` : rootPath;
@@ -268,23 +297,23 @@ async function uploadFile(drive, rootPath, driveRel, localPath, opts = {}) {
     getTimeoutOptions()
   );
 
-  const media = {
-    body: fs.createReadStream(localPath),
-  };
-  const uploadTimeoutMs = getUploadTimeoutMs(localPath, opts.timeoutMs);
-
   if (existing.data.files && existing.data.files.length > 0) {
     // Update existing file
-    const fileId = existing.data.files[0].id;
+    fileId = existing.data.files[0].id;
     const res = await drive.files.update(
       {
         fileId,
         media,
-        fields: 'id, name',
+        fields: 'id, name, modifiedTime',
       },
       getTimeoutOptions(uploadTimeoutMs)
     );
-    return { id: res.data.id, name: res.data.name, action: 'updated' };
+    return {
+      id: res.data.id,
+      name: res.data.name,
+      modifiedTime: res.data.modifiedTime,
+      action: 'updated',
+    };
   }
 
   // Create new file
@@ -295,11 +324,16 @@ async function uploadFile(drive, rootPath, driveRel, localPath, opts = {}) {
         parents: [folderId],
       },
       media,
-      fields: 'id, name',
+      fields: 'id, name, modifiedTime',
     },
     getTimeoutOptions(uploadTimeoutMs)
   );
-  return { id: res.data.id, name: res.data.name, action: 'created' };
+  return {
+    id: res.data.id,
+    name: res.data.name,
+    modifiedTime: res.data.modifiedTime,
+    action: 'created',
+  };
 }
 
 /**
@@ -419,7 +453,7 @@ async function listAllFiles(drive, rootPath) {
         {
           q: `'${folderId}' in parents and trashed = false`,
           fields: 'nextPageToken, files(id, name, mimeType, size, modifiedTime, md5Checksum)',
-          pageSize: 100,
+          pageSize: 1000,
           pageToken,
         },
         getTimeoutOptions()

@@ -20,6 +20,16 @@ const path = require('path');
 const crypto = require('crypto');
 const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
 const { nowIstIso } = require('./ist');
+const {
+  JsonlStore,
+  timePartitioner,
+  quarterlyPartitioner,
+  annualPartitioner,
+  domainPartitioner,
+  youtubeChannelPartitioner,
+  singlePartitioner,
+  extractYearMonth,
+} = require('./jsonlStore');
 
 // ── Roots ────────────────────────────────────────────────────────────────────
 
@@ -240,10 +250,10 @@ function withLock(name, fn) {
 function collectionFile(collection, { date } = {}) {
   if (collection === 'events') {
     const d = date || nowIstIso().slice(0, 10);
-    const ym = String(d).slice(0, 7); // YYYY-MM
-    if (!/^\d{4}-\d{2}$/.test(ym))
-      throw new Error(`events need a valid date (YYYY-MM-DD), got: ${date}`);
-    return path.join(dataRoot(), `events-${ym}.json`);
+    const yr = String(d).slice(0, 4); // YYYY
+    if (!/^\d{4}$/.test(yr))
+      throw new Error(`events need a valid date (YYYY-MM-DD or YYYY), got: ${date}`);
+    return path.join(dataRoot(), `events-${yr}.json`);
   }
   if (!SINGLE_FILE_COLLECTIONS.includes(collection)) {
     throw new Error(`Unknown collection: ${collection}`);
@@ -431,18 +441,18 @@ function find(collection, filter = {}) {
 function eventFilesInRange({ date, since } = {}) {
   const root = dataRoot();
   if (!fs.existsSync(root)) return [];
-  let months = fs
+  let years = fs
     .readdirSync(root)
-    .filter((f) => /^events-\d{4}-\d{2}\.json$/.test(f))
+    .filter((f) => /^events-\d{4}\.json$/.test(f))
     .sort();
   if (date) {
-    months = months.filter((f) => f === `events-${String(date).slice(0, 7)}.json`);
+    years = years.filter((f) => f === `events-${String(date).slice(0, 4)}.json`);
   } else if (since) {
-    months = months.filter((f) => f.slice(7, 14) >= String(since).slice(0, 7));
+    years = years.filter((f) => f.slice(7, 11) >= String(since).slice(0, 4));
   } else {
-    months = months.slice(-3); // default window: last 3 partitions
+    years = years.slice(-2); // default window: last 2 annual partitions
   }
-  return months.map((f) => path.join(root, f));
+  return years.map((f) => path.join(root, f));
 }
 
 // ── Company links (derived; rebuildable via scripts/rebuildLinks.js) ─────────
@@ -498,18 +508,76 @@ function linkToCompanies(records) {
 
 // ── High-level helpers (what skills actually call) ───────────────────────────
 
+let _reportsStore = null;
+function getReportsStore() {
+  if (!_reportsStore) {
+    _reportsStore = new JsonlStore({
+      baseDir: DIRS.reports(),
+      partitioner: quarterlyPartitioner({ filePrefix: 'reports-' }),
+      lockPrefix: 'reports',
+      withLock,
+      trackTouched,
+    });
+  }
+  return _reportsStore;
+}
+
+let _conversationsStore = null;
+function getConversationsStore() {
+  if (!_conversationsStore) {
+    _conversationsStore = new JsonlStore({
+      baseDir: DIRS.conversations(),
+      partitioner: annualPartitioner({ filePrefix: 'conversations-' }),
+      lockPrefix: 'conversations',
+      withLock,
+      trackTouched,
+    });
+  }
+  return _conversationsStore;
+}
+
+let _learnystStore = null;
+function getLearnystStore() {
+  if (!_learnystStore) {
+    _learnystStore = new JsonlStore({
+      baseDir: DIRS.learnystLessons(),
+      partitioner: singlePartitioner('soic.jsonl'),
+      lockPrefix: 'learnyst',
+      withLock,
+      trackTouched,
+    });
+  }
+  return _learnystStore;
+}
+
+let _youtubeStore = null;
+function getYoutubeStore() {
+  if (!_youtubeStore) {
+    _youtubeStore = new JsonlStore({
+      baseDir: DIRS.youtubeTranscripts(),
+      partitioner: youtubeChannelPartitioner(),
+      lockPrefix: 'youtube',
+      withLock,
+      trackTouched,
+    });
+  }
+  return _youtubeStore;
+}
+
 /**
- * Save an analysis report: full DTO body → reports/<id>.json, slim index entry →
- * reports.json, id linked into companies.json. `dto` must include creator, type,
- * date, companyId or companyIds, and SHOULD include summary (string) + contextUsed[].
+ * Save an analysis report: full DTO body → reports/reports-YYYY-MM.jsonl, slim
+ * index entry → reports.json, id linked into companies.json. `dto` must include
+ * creator, type, date, companyId or companyIds, and SHOULD include summary
+ * (string) + contextUsed[].
  */
 function saveReport(dto) {
   ensureEnvelope(dto, { kind: 'rpt', discriminator: dto.type });
   init();
-  const bodyPath = path.join(DIRS.reports(), `${dto.id}.json`);
-  withLock('report-bodies', () => {
-    writeFileAtomic(bodyPath, dto);
-  });
+  const store = getReportsStore();
+  const body = dto._body ? { ...dto, ...dto._body } : dto;
+  delete body._body;
+  store.set(dto.id, body, dto.date);
+  const q = extractQuarter(dto.date) || extractQuarter(dto.id) || 'unknown';
   const {
     id,
     type,
@@ -536,7 +604,7 @@ function saveReport(dto) {
       ...(modelUsed !== undefined ? { modelUsed } : {}),
       summary: summary || null,
       contextUsed: contextUsed || [],
-      body: `reports/${id}.json`,
+      body: `reports/reports-${q}.jsonl`,
     },
   ]);
   linkToCompanies(dto);
@@ -544,7 +612,7 @@ function saveReport(dto) {
 }
 
 /**
- * Save a captured chat: full DTO body (incl. turns) → conversations/<id>.json,
+ * Save a captured chat: full DTO body (incl. turns) → conversations/conversations-YYYY-MM.jsonl,
  * slim index entry → conversations.json, id linked into companies.json.
  * `dto` must include creator (= "conversation-capture"), type ("cowork"|"cloud"),
  * date, and SHOULD include companyIds[], title, summary, tags[], artifacts[].
@@ -558,10 +626,9 @@ function saveConversation(dto) {
   const turns = (dto._body && dto._body.turns) || dto.turns || [];
   const body = { ...dto, turns };
   delete body._body;
-  const bodyPath = path.join(DIRS.conversations(), `${dto.id}.json`);
-  withLock('conversation-bodies', () => {
-    writeFileAtomic(bodyPath, body);
-  });
+  const store = getConversationsStore();
+  store.set(dto.id, body, dto.date);
+  const yr = extractYear(dto.date) || extractYear(dto.id) || '2026';
   const {
     id,
     type,
@@ -597,7 +664,7 @@ function saveConversation(dto) {
       // processed this conversation. Capture sets it true on an update; the
       // enrichment job clears it back to false once re-processed.
       dirty: !!dirty,
-      body: `conversations/${id}.json`,
+      body: `conversations/conversations-${yr}.jsonl`,
     },
   ]);
   linkToCompanies(dto);
@@ -605,8 +672,20 @@ function saveConversation(dto) {
 }
 
 function readConversation(id) {
-  const p = path.join(DIRS.conversations(), `${id}.json`);
-  return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
+  const store = getConversationsStore();
+  const direct = store.get(id);
+  if (direct) return direct;
+  const idx = get('conversations', id);
+  if (idx && idx.body && idx.body.endsWith('.jsonl')) {
+    const partitionName = path.basename(idx.body);
+    const map = store._loadPartition(partitionName);
+    if (map.has(id)) return map.get(id);
+  }
+  for (const part of store.listPartitions()) {
+    const map = store._loadPartition(part);
+    if (map.has(id)) return map.get(id);
+  }
+  return null;
 }
 
 /**
@@ -633,26 +712,34 @@ function savePrompts(dtos) {
 }
 
 function readReport(id) {
-  const p = path.join(DIRS.reports(), `${id}.json`);
-  return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
+  const store = getReportsStore();
+  const direct = store.get(id);
+  if (direct) return direct;
+  const idx = get('reports', id);
+  if (idx && idx.body && idx.body.endsWith('.jsonl')) {
+    const partitionName = path.basename(idx.body);
+    const map = store._loadPartition(partitionName);
+    if (map.has(id)) return map.get(id);
+  }
+  for (const part of store.listPartitions()) {
+    const map = store._loadPartition(part);
+    if (map.has(id)) return map.get(id);
+  }
+  return null;
 }
 
 /**
  * Save a Learnyst course-video transcript: full DTO body (transcript text +
- * raw API response) → learnyst-lessons/<id>.json, slim index entry →
- * learnyst-lessons.json. Mirrors saveReport()'s two-file pattern for the same
- * reason (transcript bodies are tens of KB each, hundreds of lessons — folding
- * into one file would make every save rewrite a multi-MB collection).
+ * raw API response) → learnyst-lessons/soic.jsonl, slim index entry →
+ * learnyst-lessons.json.
  * `dto` must include creator, type ("learnyst-transcript"), courseId, lessonId
  * — NOT company-scoped (personal course content), so no linkToCompanies call.
  */
 function saveLearnystTranscript(dto) {
   ensureEnvelope(dto, { kind: 'lyt', scope: dto.courseId, discriminator: String(dto.lessonId) });
   init();
-  const bodyPath = path.join(DIRS.learnystLessons(), `${dto.id}.json`);
-  withLock('learnyst-lesson-bodies', () => {
-    writeFileAtomic(bodyPath, dto);
-  });
+  const store = getLearnystStore();
+  store.set(dto.id, dto, { courseId: dto.courseId });
   const {
     id,
     type,
@@ -680,9 +767,6 @@ function saveLearnystTranscript(dto) {
       creator,
       creationTime,
       modifiedTime,
-      // Which configured Learnyst site/membership this lesson came from
-      // (e.g. 'soic', 'chartitude') — defaults to 'soic' for records written
-      // before multi-site support existed. See learnystTranscriptRefresh.js.
       site: site || 'soic',
       courseId,
       courseTitle,
@@ -692,48 +776,58 @@ function saveLearnystTranscript(dto) {
       lessonType,
       durationSeconds,
       fetchedAt,
-      // 'learnyst' (default) or 'youtube' — a lesson whose video is hosted
-      // externally on YouTube, no content_path, transcript fetched via
-      // youtubeTranscriptRefresh.js's yt-dlp pipeline instead of Learnyst's
-      // AI transcript API. See extractYoutubeVideoId() in
-      // learnystTranscriptRefresh.js.
       transcriptSource: transcriptSource || 'learnyst',
       youtubeVideoId: youtubeVideoId || null,
-      // 'manual'|'asr' for a successful YouTube fetch, 'none' if the video
-      // was checked and confirmed to have no usable captions (cached so a
-      // future run doesn't re-probe it — learnystTranscriptRefresh.js's
-      // cache-first check reads this field), null for a Learnyst-sourced
-      // lesson (transcriptSource: 'learnyst').
       captionKind: captionKind || null,
       attachmentCount: Array.isArray(attachments) ? attachments.length : 0,
-      body: `learnyst-lessons/${id}.json`,
+      body: 'learnyst-lessons/soic.jsonl',
     },
   ]);
   return dto.id;
 }
 
 function readLearnystTranscript(id) {
-  const p = path.join(DIRS.learnystLessons(), `${id}.json`);
-  return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
+  const store = getLearnystStore();
+  const idx = get('learnyst-lessons', id);
+  const courseId = idx ? idx.courseId : null;
+  const direct = store.get(id, { courseId });
+  if (direct) return direct;
+  if (idx && idx.body && idx.body.endsWith('.jsonl')) {
+    const partitionName = path.basename(idx.body);
+    const map = store._loadPartition(partitionName);
+    if (map.has(id)) return map.get(id);
+  }
+  for (const part of store.listPartitions()) {
+    const map = store._loadPartition(part);
+    if (map.has(id)) return map.get(id);
+  }
+  return null;
 }
 
 /**
  * Save a YouTube video caption transcript: full DTO body (transcript text +
- * raw caption track events) → youtube-transcripts/<id>.json, slim index entry
- * → youtube-transcripts.json. Mirrors saveLearnystTranscript()'s two-file
- * pattern for the same reason (transcript bodies are tens of KB each, many
- * videos per channel — folding into one file would make every save rewrite a
- * multi-MB collection).
+ * raw caption track events) → youtube-transcripts/<channel>.jsonl, slim index entry
+ * → youtube-transcripts.json.
  * `dto` must include creator, type ("youtube-transcript"), channelId,
  * videoId — NOT company-scoped (channel content), so no linkToCompanies call.
  */
 function saveYoutubeTranscript(dto) {
   ensureEnvelope(dto, { kind: 'ytt', scope: dto.channelId, discriminator: String(dto.videoId) });
   init();
-  const bodyPath = path.join(DIRS.youtubeTranscripts(), `${dto.id}.json`);
-  withLock('youtube-transcript-bodies', () => {
-    writeFileAtomic(bodyPath, dto);
+  const store = getYoutubeStore();
+  store.set(dto.id, dto, {
+    channelHandle: dto.channelHandle,
+    channelTitle: dto.channelTitle,
+    publishedAt: dto.publishedAt,
   });
+  const ch = dto.channelHandle || dto.channelTitle || 'misc';
+  const slug = String(ch)
+    .toLowerCase()
+    .replace(/^@/, '')
+    .replace(/[^a-z0-9]/g, '')
+    .trim();
+  const partitionName = `${slug || 'misc'}.jsonl`;
+
   const {
     id,
     type,
@@ -766,15 +860,27 @@ function saveYoutubeTranscript(dto) {
       captionLang,
       captionKind,
       fetchedAt,
-      body: `youtube-transcripts/${id}.json`,
+      body: `youtube-transcripts/${partitionName}`,
     },
   ]);
   return dto.id;
 }
 
 function readYoutubeTranscript(id) {
-  const p = path.join(DIRS.youtubeTranscripts(), `${id}.json`);
-  return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
+  const store = getYoutubeStore();
+  const idx = get('youtube-transcripts', id);
+  const direct = store.get(id, idx);
+  if (direct) return direct;
+  if (idx && idx.body && idx.body.endsWith('.jsonl')) {
+    const partitionName = path.basename(idx.body);
+    const map = store._loadPartition(partitionName);
+    if (map.has(id)) return map.get(id);
+  }
+  for (const part of store.listPartitions()) {
+    const map = store._loadPartition(part);
+    if (map.has(id)) return map.get(id);
+  }
+  return null;
 }
 
 /** Append market events (gainer|deal|tweet|announcement|watchlist-sync records). */

@@ -109,49 +109,120 @@ def build_index(data_root, learnyst_index, youtube_index):
             df[t] = df.get(t, 0) + 1
 
     learnyst_dir = os.path.join(data_root, "learnyst-lessons")
-    for rec_id, rec in learnyst_index.items():
-        if rec.get("lessonType") != 1:
-            continue  # skip quizzes/articles — no transcript body
-        body_path = os.path.join(learnyst_dir, f"{rec_id}.json")
-        if not os.path.exists(body_path):
-            continue
-        body = load_json(body_path)
-        plain = body.get("transcriptPlain") or ""
-        if not plain.strip():
-            continue
-        tokens = tokenize(plain)
-        add_doc(
-            rec_id,
-            "learnyst",
-            tokens,
-            {
-                "title": rec.get("lessonTitle"),
-                "collection": rec.get("courseTitle"),
-                "timestamped": body.get("transcriptTimestamped") or "",
-            },
-        )
+    if os.path.exists(learnyst_dir):
+        # Read from partitioned .jsonl files first
+        for fname in sorted(os.listdir(learnyst_dir)):
+            if fname.endswith(".jsonl"):
+                p = os.path.join(learnyst_dir, fname)
+                with open(p, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if not line.strip():
+                            continue
+                        try:
+                            body = json.loads(line)
+                            rec_id = body.get("id")
+                            if not rec_id:
+                                continue
+                            rec = learnyst_index.get(rec_id, {})
+                            if rec.get("lessonType") and rec.get("lessonType") != 1:
+                                continue
+                            plain = body.get("transcriptPlain") or ""
+                            if not plain.strip():
+                                continue
+                            tokens = tokenize(plain)
+                            add_doc(
+                                rec_id,
+                                "learnyst",
+                                tokens,
+                                {
+                                    "title": rec.get("lessonTitle") or body.get("lessonTitle"),
+                                    "collection": rec.get("courseTitle") or body.get("courseTitle"),
+                                    "timestamped": body.get("transcriptTimestamped") or "",
+                                },
+                            )
+                        except Exception:
+                            pass
+        # Also check loose json files if any exist
+        for rec_id, rec in learnyst_index.items():
+            if rec_id in docs:
+                continue
+            if rec.get("lessonType") != 1:
+                continue
+            body_path = os.path.join(learnyst_dir, f"{rec_id}.json")
+            if not os.path.exists(body_path):
+                continue
+            body = load_json(body_path)
+            plain = body.get("transcriptPlain") or ""
+            if not plain.strip():
+                continue
+            tokens = tokenize(plain)
+            add_doc(
+                rec_id,
+                "learnyst",
+                tokens,
+                {
+                    "title": rec.get("lessonTitle"),
+                    "collection": rec.get("courseTitle"),
+                    "timestamped": body.get("transcriptTimestamped") or "",
+                },
+            )
 
     youtube_dir = os.path.join(data_root, "youtube-transcripts")
-    for rec_id, rec in youtube_index.items():
-        body_path = os.path.join(youtube_dir, f"{rec_id}.json")
-        if not os.path.exists(body_path):
-            continue
-        body = load_json(body_path)
-        plain = body.get("transcriptPlain") or ""
-        if not plain.strip():
-            continue
-        tokens = tokenize(plain)
-        add_doc(
-            rec_id,
-            "youtube",
-            tokens,
-            {
-                "title": rec.get("videoTitle"),
-                "collection": rec.get("channelTitle"),
-                "videoId": rec.get("videoId"),
-                "timestamped": body.get("transcriptTimestamped") or "",
-            },
-        )
+    if os.path.exists(youtube_dir):
+        # Read from partitioned .jsonl files first
+        for fname in sorted(os.listdir(youtube_dir)):
+            if fname.endswith(".jsonl"):
+                p = os.path.join(youtube_dir, fname)
+                with open(p, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if not line.strip():
+                            continue
+                        try:
+                            body = json.loads(line)
+                            rec_id = body.get("id")
+                            if not rec_id:
+                                continue
+                            rec = youtube_index.get(rec_id, {})
+                            plain = body.get("transcriptPlain") or ""
+                            if not plain.strip():
+                                continue
+                            tokens = tokenize(plain)
+                            add_doc(
+                                rec_id,
+                                "youtube",
+                                tokens,
+                                {
+                                    "title": rec.get("videoTitle") or body.get("videoTitle"),
+                                    "collection": rec.get("channelTitle") or body.get("channelTitle"),
+                                    "videoId": rec.get("videoId") or body.get("videoId"),
+                                    "timestamped": body.get("transcriptTimestamped") or "",
+                                },
+                            )
+                        except Exception:
+                            pass
+        # Also check loose json files if any exist
+        for rec_id, rec in youtube_index.items():
+            if rec_id in docs:
+                continue
+            body_path = os.path.join(youtube_dir, f"{rec_id}.json")
+            if not os.path.exists(body_path):
+                continue
+            body = load_json(body_path)
+            plain = body.get("transcriptPlain") or ""
+            if not plain.strip():
+                continue
+            tokens = tokenize(plain)
+            add_doc(
+                rec_id,
+                "youtube",
+                tokens,
+                {
+                    "title": rec.get("videoTitle"),
+                    "collection": rec.get("channelTitle"),
+                    "videoId": rec.get("videoId"),
+                    "timestamped": body.get("transcriptTimestamped") or "",
+                },
+            )
 
     n_docs = len(docs)
     idf = {t: math.log(1 + n_docs / dfreq) for t, dfreq in df.items()}

@@ -61,8 +61,24 @@ def main():
             skipped.append({"id": rec["id"], "reason": f"body file not found at {body_path} (not yet fetched — consider a learnyst-transcript-refresh run)"})
             continue
 
-        with open(body_path, "r", encoding="utf-8") as f:
-            body = json.load(f)
+        if body_path.endswith('.jsonl'):
+            body = None
+            with open(body_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    if not line.strip():
+                        continue
+                    try:
+                        row = json.loads(line)
+                        if row.get('id') == rec['id']:
+                            body = row
+                    except Exception:
+                        pass
+            if not body:
+                skipped.append({'id': rec['id'], 'reason': f'record not found in {body_path}'})
+                continue
+        else:
+            with open(body_path, 'r', encoding='utf-8') as f:
+                body = json.load(f)
 
         text = body.get("transcriptPlain")
         if not text:
