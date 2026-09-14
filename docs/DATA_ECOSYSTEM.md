@@ -32,68 +32,41 @@ cowork-task-architect enforce it).
 ```
 data/
   companies.json        # PRIMARY DB — company metadata objects, keyed by companyId
-  reports.json          # index of all analysis reports (metadata + summary + links);
-                        #   type=concept-integration (concept-transcript-integrator skill)
-                        #   is not company-scoped — a record of which Learnyst lessons were
-                        #   digested for a concept and which skill files were updated as a result
-  reports/<id>.json     # full report DTO bodies (LLM outputs; one flat dir, id-named)
+  reports.json          # index of all analysis reports (metadata + summary + links)
+  reports/reports-YYYY-Q*.jsonl # quarterly report bodies (50-150 KB per record, ~4-7 MB per quarter)
   conversations.json    # index of captured stockmarket chats (metadata + summary + companyIds + links)
-  conversations/<id>.json # full chat DTO bodies (turn-by-turn transcript; id-named) — see docs/CONVERSATION_CAPTURE_PLAN.md
+  conversations/conversations-YYYY.jsonl # annual chat transcript bodies (~8 MB per year)
   notes.json            # all company notes (watchlist-insights, manual, validation follow-ups)
   theses.json           # current thesis per company
   thesis-history.jsonl  # append-only thesis deltas
-  events-YYYY-MM.json   # monthly event partitions: gainer | deal | tweet | announcement | watchlist-sync | api_usage_summary
-                        #   | order-win | order-book-declared | order-book-sync (see docs/ORDER_BOOK_EXTRACTION.md)
+  events-YYYY.json      # annual event partitions (~1-3 MB per year)
   validation.json       # insight-validation ledger records
-  ipos.json             # per-IPO subscription-quality state (ipo-subscription-ranker skill,
-                        #   daily-ipo-subscription-analysis-stockmarket job); id = ipo_<ipoPlatformId>,
-                        #   not company-scoped (pre-listing IPOs usually have no companyId yet)
-  supportive-investors.json # investor registry (anchor-bulk-deal-tracker script); id = investor_<...>_<hash>,
-                        #   keyed by canonicalName (chittorgarh Group Entity when available, else the
-                        #   anchor-investor name), not company-scoped; each record's `evidence[]` grows
-                        #   across runs (an anchor investor who reappeared BUYING more in an NSE/BSE bulk
-                        #   or block deal within the listing window) and `companyIds[]` lists every
-                        #   company that evidence touches
-  unsupportive-investors.json # same shape/keying as supportive-investors.json, mirror case: an anchor
-                        #   investor who reappeared SELLING within the listing window
+  ipos.json             # per-IPO subscription-quality state
+  supportive-investors.json # investor registry (anchor-bulk-deal-tracker script)
+  unsupportive-investors.json # investor registry mirror (selling)
   learnyst-lessons.json # index of fetched Learnyst course-video transcripts
-                        #   (learnyst-transcript-refresh job); id = lyt_learnyst-transcript-refresh_<courseId>_<hash8(lessonId)>,
-                        #   not company-scoped (personal course content, not stock research).
-                        #   transcriptSource='learnyst' (Learnyst's AI transcript API, the
-                        #   default) or 'youtube' (video externally hosted on YouTube, no
-                        #   content_path — fetched via youtubeTranscriptRefresh.js's yt-dlp
-                        #   pipeline instead, see docs/learnyst-api-schemas.md src_type:5 note)
-  learnyst-lessons/<id>.json # full transcript body (timestamped + plain text + raw API
-                        #   response; id-named, same two-file pattern as reports/ — bodies
-                        #   run tens of KB each across hundreds of lessons)
+  learnyst-lessons/soic.jsonl # all course transcripts in a single stream per creator (~86 MB)
   youtube-transcripts.json # index of fetched YouTube video caption transcripts
-                        #   (youtube-transcript-refresh script); id = ytt_youtube-transcript-refresh_<channelId>_<hash8(videoId)>,
-                        #   not company-scoped (channel course/commentary content, not stock research)
-  youtube-transcripts/<id>.json # full transcript body (timestamped + plain text + raw
-                        #   caption track events; id-named, same two-file pattern as
-                        #   reports/ and learnyst-lessons/)
-  cache/                # heavy regenerable derivables: company-master.json, bse-scrip-codes.json, extracts
+  youtube-transcripts/<channel>.jsonl # channel transcripts in a single stream (e.g. anillamba.jsonl, soicfinance.jsonl)
+  cache/                # structured cache stores:
+                        #   Heavy (> 10 MB): 16 hex shards (e.g. pdf-text/shard_<hex>.jsonl, doc-extracts/<cat>/shard_<hex>.jsonl)
+                        #   Light (< 5 MB): single JSONLs (e.g. context.jsonl, baselines.jsonl, reactions.jsonl, notes.jsonl, announcements.jsonl)
   assets/               # rendered PDF/HTML, flat: <reportId>.pdf|.html (regenerable from DTOs)
-  runs/                 # per-run raw dumps + full run DTOs — synced, kept locally (full mirror)
+  runs/                 # annual run streams (e.g. gainers-raw-YYYY.jsonl, digest-YYYY.jsonl)
   _meta/
     sync-state.json     # per-file contentHash + lastPush/lastPull — dedup + idempotency
     checkpoints/        # pre-mutation snapshots (crash recovery), kept indefinitely
-                        # (not pruned — see §5: no file-deletion handling in the
-                        # write path; Cowork sandbox mounts forbid deleting a file
-                        # once written, so an inline prune-via-delete could abort
-                        # a save)
 ```
 
-Why `reports/` bodies are separate files while everything else is single-file: report
-DTOs are 50–150 KB each; folding them into `reports.json` would make every save rewrite
-a multi-MB file (corruption blast radius + full re-upload per sync). `reports.json` is
-the collection; bodies are linked by id — consistent with "linking defines nesting".
-Everything else (companies, notes, events, validation, theses) is small records →
-single file per collection. `conversations/` follows the same two-file pattern as
-`reports/` for the same reason: full chat transcripts are large, so the slim index lives
-in `conversations.json` and the turn-by-turn body in `conversations/<id>.json`
-(written via `db.saveConversation`; id prefix `conv` links into companies.json and
-`buildCompanyContext`).
+Partitioning rationale:
+
+- **100 KB – 10 MB Sweet Spot Rule**: Individual tiny files (< 100 KB) create excessive HTTP round-trip overhead on Google Drive API (each file sync incurs 300–800ms API latency). Conversely, single massive files (> 20 MB) increase mutation blast radius and upload time.
+- `reports/` partitions quarterly into `reports-YYYY-Q*.jsonl` (~4–7 MB each).
+- `conversations/` partitions annually into `conversations-YYYY.jsonl` (~8 MB each).
+- `events` partitions annually into `events-YYYY.json` (~1–3 MB each).
+- `learnyst-lessons/` & `youtube-transcripts/` store complete transcripts in single creator/channel streams (`soic.jsonl`, `anillamba.jsonl`, `soicfinance.jsonl`).
+- `runs/` partitions daily dumps into annual streams (`runs/<prefix>-YYYY.jsonl`).
+- `cache/` routes via `@stock/cloud-utils` StorageService: heavy stores (> 10 MB) shard into 16 deterministic hex buckets (`shard_0.jsonl`..`shard_f.jsonl`), while light stores (< 5 MB) consolidate into single JSONL files (`context.jsonl`, `baselines.jsonl`, etc.).
 
 ## 2. Object envelope (every object, every collection)
 
@@ -225,7 +198,7 @@ tag. Any historical report is re-renderable; assets are never a source of truth.
 ## 8. Known risks (reviewed)
 
 - Single-file collections are whole-file writes → lock + atomic rename is mandatory;
-  events partitioned monthly and notes/validation records kept slim to bound file size.
+  events partitioned annually and notes/validation records kept slim to bound file size.
 - `events-*.json` company links capped in `companies.json` to stop unbounded growth;
   full history retrievable by scanning partitions on `companyId` (rare path).
 - Record-level merge assumes clocks sane across machines — `modifiedTime` from one
@@ -234,3 +207,40 @@ tag. Any historical report is re-renderable; assets are never a source of truth.
 - Kite master has BSE-only rows / null NSE tickers → alias dedup in migration, one
   canonical id per company.
 - Drive API quota during migration → batched, checkpointed, resumable.
+
+## 9. Partitioning Architecture & The 100 KB – 10 MB Sweet Spot Rule
+
+To prevent Google Drive sync latency bottlenecks caused by thousands of small files, all collections, cache directories, and run outputs follow strict sizing and partitioning rules:
+
+### Sizing Principles:
+
+- **Optimal File Size**: Target **100 KB – 10 MB** per synced file.
+- Files `< 100 KB` incur unacceptable API round-trip latency overhead (each file takes 300–800ms to verify/push).
+- Files `> 10 MB` trigger automatic storage strategy threshold alerts during sync to partition them before they grow unwieldy.
+
+### Partitioning Matrix:
+
+| Store Category                | Partitioning Strategy | Target File Format                                             | Typical File Size |
+| ----------------------------- | --------------------- | -------------------------------------------------------------- | ----------------- |
+| **Reports**                   | Quarterly             | `reports/reports-YYYY-Q*.jsonl`                                | 2–5 MB            |
+| **Conversations**             | Annual                | `conversations/conversations-YYYY.jsonl`                       | ~8 MB             |
+| **Events**                    | Annual                | `events-YYYY.json`                                             | 20 KB – 9 MB      |
+| **Course Lessons (> 10 MB)**  | 16 Hex Shards         | `learnyst-lessons/shard_<hex>.jsonl` (`md5(id)[0]`)            | 3–8 MB per shard  |
+| **Video Transcripts (>10MB)** | 16 Hex Shards         | `youtube-transcripts/shard_<hex>.jsonl` (`md5(id)[0]`)         | 1–4 MB per shard  |
+| **Heavy Cache (> 10 MB)**     | 16 Hex Shards         | `cache/<store>/shard_<hex>.jsonl` (`pdf-text`, `monthly-text`) | 1–3 MB per shard  |
+| **Light Cache (< 10 MB)**     | Single JSONL          | `cache/<store>/<store>.jsonl` (e.g. `parsed`, `annual_report`) | 50 KB – 3 MB      |
+| **Daily Run Dumps**           | Annual Streams        | `runs/<prefix>-YYYY.jsonl`                                     | 500 KB – 5 MB     |
+| **Research Seeds**            | Dated Daily Dumps     | `runs/*_research_seed_YYYYMMDD.json`                           | 7–10 MB           |
+
+### Automated Threshold Advisor & Size Monitoring:
+
+- Both `yarn data:status` and `yarn data:push` (as well as `yarn data:thresholds`) automatically audit the repository against the **10 MB ceiling**.
+- If any single JSONL/JSON store crosses 10 MB, an alert is printed with the exact command to migrate to 16-hex shards or time partitioning.
+- If an existing 16-hex sharded store has a combined size `< 10 MB`, an optimization advisory is printed suggesting consolidation to a single JSONL file via `yarn data:consolidate-light`.
+
+### Adaptive Parallel Uploading:
+
+`scripts/data.js push` uses an adaptive concurrent worker pool:
+
+- **Maximum Concurrency**: Up to 16 parallel upload workers.
+- **In-Flight Payload Cap**: Throttled dynamically so total in-flight file size never exceeds **25 MB** across all concurrent workers. This prevents memory spikes and network starvation on large payloads.

@@ -306,11 +306,33 @@ def best_excerpt(timestamped_text, plain_text, query_tokens, window_sentences=3)
 
 def load_body_for_excerpt(data_root, source, doc_id, meta):
     """Re-read the body only for docs we're actually returning (top-N), to
-    avoid holding all ~1100 full transcripts in memory during scoring."""
+    avoid holding all full transcripts in memory during scoring."""
     sub = "learnyst-lessons" if source == "learnyst" else "youtube-transcripts"
+    body_rel = meta.get("body") if meta else None
+    if body_rel and os.path.exists(os.path.join(data_root, body_rel)):
+        shard_path = os.path.join(data_root, body_rel)
+    else:
+        shard = hashlib.md5(str(doc_id).encode("utf-8")).hexdigest()[0].lower()
+        shard_path = os.path.join(data_root, sub, f"shard_{shard}.jsonl")
+
+    if os.path.exists(shard_path):
+        with open(shard_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                try:
+                    row = json.loads(line)
+                    if row.get("id") == doc_id:
+                        return row.get("transcriptTimestamped") or "", row.get("transcriptPlain") or ""
+                except Exception:
+                    pass
+
+    # Fallback to loose json if exists
     path = os.path.join(data_root, sub, f"{doc_id}.json")
-    body = load_json(path)
-    return body.get("transcriptTimestamped") or "", body.get("transcriptPlain") or ""
+    if os.path.exists(path):
+        body = load_json(path)
+        return body.get("transcriptTimestamped") or "", body.get("transcriptPlain") or ""
+    return "", ""
 
 
 def main():

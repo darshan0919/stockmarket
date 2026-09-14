@@ -42,16 +42,16 @@ function trackTouched(absPath) {
 
 const crypto = require('crypto');
 
-function md5Shard(str) {
+function _md5Shard(str) {
   return crypto.createHash('md5').update(String(str)).digest('hex')[0].toLowerCase();
 }
 
 function parseShardedPath(localRelPath) {
   const rel = String(localRelPath).replace(/\\/g, '/').replace(/^\/+/, '');
 
-  // 1. Sharded cache stores with MD5 hex keys
+  // 1. Sharded cache stores with MD5 hex keys (heavy stores > 10 MB)
   const mHex = rel.match(
-    /^cache\/(pdf-text|pdf-text-full|monthly-updates-text|monthly-updates-parsed)\/([0-9a-fA-F]+)\.json$/
+    /^cache\/(pdf-text|pdf-text-full|monthly-updates-text)\/([0-9a-fA-F]+)\.json$/
   );
   if (mHex) {
     const folder = mHex[1];
@@ -60,61 +60,93 @@ function parseShardedPath(localRelPath) {
     return { folder, key, shardRelPath: `cache/${folder}/shard_${shard}.jsonl` };
   }
 
-  // cache/doc-extracts/<category>/<hex>.json
+  // cache/doc-extracts/<category>/<hex>.json -> cache/doc-extracts/<category>.jsonl
   const mDoc = rel.match(/^cache\/doc-extracts\/([^/]+)\/([0-9a-fA-F]+)\.json$/);
   if (mDoc) {
     const category = mDoc[1];
     const key = mDoc[2];
-    const shard = key[0].toLowerCase();
-    return { folder: `doc-extracts/${category}`, key, shardRelPath: `cache/doc-extracts/${category}/shard_${shard}.jsonl` };
+    return {
+      folder: `doc-extracts/${category}`,
+      key,
+      shardRelPath: `cache/doc-extracts/${category}.jsonl`,
+    };
   }
 
-  // 2. High-cardinality stores sharded by md5(key)[0]
-  const mTickerShard = rel.match(
+  // cache/monthly-updates-parsed/<key>.json -> cache/monthly-updates-parsed/parsed.jsonl
+  const mParsed = rel.match(/^cache\/monthly-updates-parsed\/([0-9a-fA-F]+)\.json$/);
+  if (mParsed) {
+    return {
+      folder: 'monthly-updates-parsed',
+      key: mParsed[1],
+      shardRelPath: 'cache/monthly-updates-parsed/parsed.jsonl',
+    };
+  }
+
+  // 2. Light single-JSONL cache stores (< 5 MB total volume)
+  const mSingleStore = rel.match(
     /^cache\/(stockscans-context|company-baselines|event-reaction)\/([^/]+)\.json$/
   );
-  if (mTickerShard) {
-    const folder = mTickerShard[1];
-    const key = mTickerShard[2];
-    const shard = md5Shard(key);
-    return { folder, key, shardRelPath: `cache/${folder}/shard_${shard}.jsonl` };
+  if (mSingleStore) {
+    const folder = mSingleStore[1];
+    const key = mSingleStore[2];
+    const filename =
+      folder === 'stockscans-context'
+        ? 'context.jsonl'
+        : folder === 'company-baselines'
+          ? 'baselines.jsonl'
+          : 'reactions.jsonl';
+    return { folder, key, shardRelPath: `cache/${folder}/${filename}` };
   }
 
-  // cache/rerating-catalysts/<subfolder>/<id>.json
+  // cache/rerating-catalysts/<subfolder>/<id>.json -> cache/rerating-catalysts/<subfolder>.jsonl
   const mCatalyst = rel.match(/^cache\/rerating-catalysts\/([^/]+)\/([^/]+)\.json$/);
   if (mCatalyst) {
     const subfolder = mCatalyst[1];
     const key = mCatalyst[2];
-    const shard = md5Shard(key);
-    return { folder: `rerating-catalysts/${subfolder}`, key, shardRelPath: `cache/rerating-catalysts/${subfolder}/shard_${shard}.jsonl` };
+    return {
+      folder: `rerating-catalysts/${subfolder}`,
+      key,
+      shardRelPath: `cache/rerating-catalysts/${subfolder}.jsonl`,
+    };
   }
 
-  // 3. Per-ticker JSONL stores
+  // cache/order-announcements/<ticker>/<key>.json -> cache/order-announcements/announcements.jsonl
   const mOrder = rel.match(/^cache\/order-announcements\/([^/]+)\/([^/]+)\.json$/);
   if (mOrder) {
     const ticker = mOrder[1];
-    const key = mOrder[2];
-    const safeTicker = ticker.replace(/[^a-zA-Z0-9_:-]/g, '_');
-    return { folder: 'order-announcements', key, shardRelPath: `cache/order-announcements/${safeTicker}.jsonl` };
+    const key = `${ticker}/${mOrder[2]}`;
+    return {
+      folder: 'order-announcements',
+      key,
+      shardRelPath: 'cache/order-announcements/announcements.jsonl',
+    };
   }
 
+  // cache/concall-notes/<ticker>/<quarter>.json -> cache/concall-notes/notes.jsonl
   const mConcall = rel.match(/^cache\/concall-notes\/([^/]+)\/([^/]+)\.json$/);
   if (mConcall) {
     const ticker = mConcall[1];
-    const key = mConcall[2];
-    const safeTicker = ticker.replace(/[^a-zA-Z0-9_:-]/g, '_');
-    return { folder: 'concall-notes', key, shardRelPath: `cache/concall-notes/${safeTicker}.jsonl` };
+    const key = `${ticker}/${mConcall[2]}`;
+    return { folder: 'concall-notes', key, shardRelPath: 'cache/concall-notes/notes.jsonl' };
   }
 
   // 4. Single JSONL stores
   const mScanner = rel.match(/^cache\/gainers-scanner\/([^/]+)\.json$/);
   if (mScanner && !mScanner[1].endsWith('.jsonl') && mScanner[1] !== 'scanner') {
-    return { folder: 'gainers-scanner', key: mScanner[1], shardRelPath: 'cache/gainers-scanner/scanner.jsonl' };
+    return {
+      folder: 'gainers-scanner',
+      key: mScanner[1],
+      shardRelPath: 'cache/gainers-scanner/scanner.jsonl',
+    };
   }
 
   const mMonthScan = rel.match(/^cache\/monthly-updates-scan\/([^/]+)\.json$/);
   if (mMonthScan && !mMonthScan[1].endsWith('.jsonl') && mMonthScan[1] !== 'scans') {
-    return { folder: 'monthly-updates-scan', key: mMonthScan[1], shardRelPath: 'cache/monthly-updates-scan/scans.jsonl' };
+    return {
+      folder: 'monthly-updates-scan',
+      key: mMonthScan[1],
+      shardRelPath: 'cache/monthly-updates-scan/scans.jsonl',
+    };
   }
 
   // 5. Daily run dumps in runs/

@@ -18,33 +18,28 @@
 const fs = require('fs');
 const path = require('path');
 const db = require('./db');
+const { StorageService } = require('@stock/cloud-utils');
 
 function safeName(companyId) {
   return String(companyId || '').replace(/[^A-Za-z0-9:_-]+/g, '_');
 }
 
-function dir(companyId) {
+function _dir(companyId) {
   return path.join(db.cachePath('concall-notes'), safeName(companyId));
 }
 
-function file(companyId, date) {
-  return path.join(dir(companyId), `${date}.json`);
+function _file(companyId, date) {
+  return path.join(_dir(companyId), `${date}.json`);
 }
 
 /** True if we already have this company+quarter on disk. */
 function has(companyId, date) {
-  return fs.existsSync(file(companyId, date));
+  return get(companyId, date) !== null;
 }
 
 /** Read a stored bundle, or null if not present. */
 function get(companyId, date) {
-  const f = file(companyId, date);
-  if (!fs.existsSync(f)) return null;
-  try {
-    return JSON.parse(fs.readFileSync(f, 'utf8'));
-  } catch (_) {
-    return null; // corrupt entry — treat as a miss, caller may refetch
-  }
+  return StorageService.readJson(`cache/concall-notes/${safeName(companyId)}/${date}.json`);
 }
 
 /**
@@ -53,16 +48,14 @@ function get(companyId, date) {
  *   fetchedAt, source: 'live'|'manual' }
  */
 function save(companyId, date, bundle) {
-  const d = dir(companyId);
-  fs.mkdirSync(d, { recursive: true });
-  const f = file(companyId, date);
-  const tmp = `${f}.tmp.${process.pid}`;
-  fs.writeFileSync(
-    tmp,
-    JSON.stringify({ companyId, date, fetchedAt: new Date().toISOString(), ...bundle }, null, 2)
-  );
-  fs.renameSync(tmp, f);
-  return f;
+  const rel = `cache/concall-notes/${safeName(companyId)}/${date}.json`;
+  StorageService.saveJson(rel, {
+    companyId,
+    date,
+    fetchedAt: new Date().toISOString(),
+    ...bundle,
+  });
+  return path.join(db.dataRoot(), rel);
 }
 
 /**
@@ -89,20 +82,45 @@ function saveOrderBook(companyId, date, orderBookResult) {
 
 /** List every quarter we hold on file for a company, sorted oldest→newest. */
 function listQuarters(companyId) {
-  const d = dir(companyId);
-  if (!fs.existsSync(d)) return [];
-  return fs
-    .readdirSync(d)
-    .filter((f) => f.endsWith('.json') && !f.includes('.tmp.'))
-    .map((f) => f.replace(/\.json$/, ''))
-    .sort();
+  const single = path.join(db.cachePath('concall-notes'), 'notes.jsonl');
+  if (!fs.existsSync(single)) return [];
+  try {
+    const lines = fs.readFileSync(single, 'utf8').split('\n');
+    const safeComp = safeName(companyId);
+    const quarters = new Set();
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const rec = JSON.parse(line.trim());
+      if (rec.companyId === companyId || (rec._key && rec._key.startsWith(safeComp + '/'))) {
+        if (rec.date) quarters.add(String(rec.date));
+      }
+    }
+    return Array.from(quarters).sort();
+  } catch (_) {
+    return [];
+  }
 }
 
 /** Every company directory currently cached (for corpus-wide mining scripts). */
 function listCompanies() {
-  const root = db.cachePath('concall-notes');
-  if (!fs.existsSync(root)) return [];
-  return fs.readdirSync(root).filter((f) => fs.statSync(path.join(root, f)).isDirectory());
+  const single = path.join(db.cachePath('concall-notes'), 'notes.jsonl');
+  if (!fs.existsSync(single)) return [];
+  try {
+    const lines = fs.readFileSync(single, 'utf8').split('\n');
+    const companies = new Set();
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const rec = JSON.parse(line.trim());
+      if (rec.companyId) {
+        companies.add(safeName(rec.companyId));
+      } else if (rec._key) {
+        companies.add(rec._key.split('/')[0]);
+      }
+    }
+    return Array.from(companies).sort();
+  } catch (_) {
+    return [];
+  }
 }
 
 module.exports = {

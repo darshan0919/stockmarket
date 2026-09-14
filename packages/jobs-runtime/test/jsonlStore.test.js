@@ -32,6 +32,32 @@ describe('jsonlStore', () => {
       expect(extractYearMonth(null)).toBeNull();
     });
 
+    test('quarterlyPartitioner routes to quarterly files', () => {
+      const { quarterlyPartitioner, extractQuarter } = require('../lib/jsonlStore');
+      expect(extractQuarter('2026-09-14')).toBe('2026-Q3');
+      expect(extractQuarter('2026-01-05')).toBe('2026-Q1');
+      const p = quarterlyPartitioner({ filePrefix: 'reports-' });
+      expect(p('rpt_1', null, '2026-09-14')).toBe('reports-2026-Q3.jsonl');
+      expect(p('rpt_2', { date: '2026-04-10' }, null)).toBe('reports-2026-Q2.jsonl');
+    });
+
+    test('annualPartitioner routes to annual files', () => {
+      const { annualPartitioner, extractYear } = require('../lib/jsonlStore');
+      expect(extractYear('2026-09-14')).toBe('2026');
+      const p = annualPartitioner({ filePrefix: 'conversations-' });
+      expect(p('conv_1', null, '2026-09-14')).toBe('conversations-2026.jsonl');
+      expect(p('conv_2', { date: '2025-11-20' }, null)).toBe('conversations-2025.jsonl');
+    });
+
+    test('youtubeChannelPartitioner and singlePartitioner route properly', () => {
+      const { youtubeChannelPartitioner, singlePartitioner } = require('../lib/jsonlStore');
+      const ytP = youtubeChannelPartitioner();
+      expect(ytP('ytt_1', { channelHandle: '@soicfinance' }, null)).toBe('soicfinance.jsonl');
+      expect(ytP('ytt_2', { channelTitle: 'Anil Lamba' }, null)).toBe('anillamba.jsonl');
+      const sP = singlePartitioner('soic.jsonl');
+      expect(sP('lyt_1', null, null)).toBe('soic.jsonl');
+    });
+
     test('timePartitioner uses hint, record, or id to determine partition', () => {
       const p = timePartitioner({ filePrefix: 'reports-' });
       expect(p('rpt_1', null, '2026-09-14')).toBe('reports-2026-09.jsonl');
@@ -46,6 +72,20 @@ describe('jsonlStore', () => {
       expect(p('3fe89', null, null)).toBe('shard_3.jsonl');
       expect(p(null, null, 'f9e0')).toBe('shard_f.jsonl');
       expect(p('XYZ', null, null)).toBe('shard_0.jsonl');
+    });
+
+    test('hashPartitioner with md5: true computes MD5 bucket 0-f for any arbitrary ID', () => {
+      const p = hashPartitioner({ filePrefix: 'shard_', md5: true });
+      const crypto = require('crypto');
+      const testIds = [
+        'lyt_145316_4243641',
+        'ytt_UCB7GnQlJPIL6rBBqEoX87vA_r1kQd3oNsmA',
+        'custom_id',
+      ];
+      for (const id of testIds) {
+        const expectedShard = crypto.createHash('md5').update(id).digest('hex')[0];
+        expect(p(id, null, null)).toBe(`shard_${expectedShard}.jsonl`);
+      }
     });
 
     test('domainPartitioner invokes custom keyFn', () => {

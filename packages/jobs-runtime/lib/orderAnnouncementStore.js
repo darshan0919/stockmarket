@@ -14,9 +14,10 @@
 const fs = require('fs');
 const path = require('path');
 const db = require('./db');
+const { StorageService } = require('@stock/cloud-utils');
 const { safeName } = require('./concallNotesStore');
 
-function dir(companyId) {
+function _dir(companyId) {
   return path.join(db.cachePath('order-announcements'), safeName(companyId));
 }
 
@@ -28,22 +29,18 @@ function keyFor(ssUrl, date) {
   return base.replace(/[^A-Za-z0-9_-]+/g, '_');
 }
 
-function file(companyId, ssUrl, date) {
-  return path.join(dir(companyId), `${keyFor(ssUrl, date)}.json`);
+function _file(companyId, ssUrl, date) {
+  return path.join(_dir(companyId), `${keyFor(ssUrl, date)}.json`);
 }
 
 function has(companyId, ssUrl, date) {
-  return fs.existsSync(file(companyId, ssUrl, date));
+  return get(companyId, ssUrl, date) !== null;
 }
 
 function get(companyId, ssUrl, date) {
-  const f = file(companyId, ssUrl, date);
-  if (!fs.existsSync(f)) return null;
-  try {
-    return JSON.parse(fs.readFileSync(f, 'utf8'));
-  } catch (_) {
-    return null;
-  }
+  return StorageService.readJson(
+    `cache/order-announcements/${safeName(companyId)}/${keyFor(ssUrl, date)}.json`
+  );
 }
 
 /**
@@ -53,32 +50,41 @@ function get(companyId, ssUrl, date) {
  *   needsLlmFallback, processedAt }
  */
 function save(companyId, ssUrl, date, record) {
-  const d = dir(companyId);
-  fs.mkdirSync(d, { recursive: true });
-  const f = file(companyId, ssUrl, date);
-  const tmp = `${f}.tmp.${process.pid}`;
-  fs.writeFileSync(
-    tmp,
-    JSON.stringify(
-      { companyId, ssUrl, date, processedAt: new Date().toISOString(), ...record },
-      null,
-      2
-    )
-  );
-  fs.renameSync(tmp, f);
-  return f;
+  const rel = `cache/order-announcements/${safeName(companyId)}/${keyFor(ssUrl, date)}.json`;
+  StorageService.saveJson(rel, {
+    companyId,
+    ssUrl,
+    date,
+    processedAt: new Date().toISOString(),
+    ...record,
+  });
+  return path.join(db.dataRoot(), rel);
+}
+
+function loadAllRecords(companyId) {
+  const single = path.join(db.cachePath('order-announcements'), 'announcements.jsonl');
+  if (!fs.existsSync(single)) return [];
+  try {
+    const lines = fs.readFileSync(single, 'utf8').split('\n');
+    const safeComp = safeName(companyId);
+    const out = [];
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const rec = JSON.parse(line.trim());
+      if (rec.companyId === companyId || (rec._key && rec._key.startsWith(safeComp + '/'))) {
+        out.push(rec);
+      }
+    }
+    return out;
+  } catch (_) {
+    return [];
+  }
 }
 
 /** Every processed announcement id (ssUrl-derived key) for a company — the dedup set. */
 function processedKeys(companyId) {
-  const d = dir(companyId);
-  if (!fs.existsSync(d)) return new Set();
-  return new Set(
-    fs
-      .readdirSync(d)
-      .filter((f) => f.endsWith('.json') && !f.includes('.tmp.'))
-      .map((f) => f.replace(/\.json$/, ''))
-  );
+  const records = loadAllRecords(companyId);
+  return new Set(records.map((r) => keyFor(r.ssUrl, r.date)));
 }
 
 /**
@@ -89,15 +95,10 @@ function processedKeys(companyId) {
  * this list permanently.
  */
 function unresolved(companyId) {
-  const d = dir(companyId);
-  if (!fs.existsSync(d)) return [];
-  const out = [];
-  for (const f of fs.readdirSync(d)) {
-    if (!f.endsWith('.json') || f.includes('.tmp.')) continue;
-    const rec = JSON.parse(fs.readFileSync(path.join(d, f), 'utf8'));
-    if (rec.needsLlmFallback) out.push(rec);
-  }
-  return out.sort((a, b) => String(a.date).localeCompare(b.date));
+  const records = loadAllRecords(companyId);
+  return records
+    .filter((r) => r.needsLlmFallback)
+    .sort((a, b) => String(a.date).localeCompare(b.date));
 }
 
 /** A skill calls this after an LLM resolves a needsLlmFallback announcement. Permanent, cached, never re-asked. */

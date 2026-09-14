@@ -154,10 +154,7 @@ describe('resolveFilingContent — Tier 2 (companyId only)', () => {
   });
 
   function writeCardFixture(companyId, card) {
-    const f = buildBaselines.cardFile(companyId);
-    fs.mkdirSync(path.dirname(f), { recursive: true });
-    fs.writeFileSync(f, JSON.stringify(card, null, 2));
-    return f;
+    return buildBaselines.writeCard(companyId, card);
   }
 
   test('hit returns the baseline card and builtAt', () => {
@@ -229,10 +226,7 @@ describe('resolveFilingContent — cache-usage recording (conventions.md §25)',
   });
 
   function writeCardFixtureForCacheTest(companyId, card) {
-    const f = buildBaselines.cardFile(companyId);
-    fs.mkdirSync(path.dirname(f), { recursive: true });
-    fs.writeFileSync(f, JSON.stringify(card, null, 2));
-    return f;
+    return buildBaselines.writeCard(companyId, card);
   }
 
   test('records a hit for a baseline-cache Tier 2 lookup, a miss when no card exists', () => {

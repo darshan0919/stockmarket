@@ -13,9 +13,9 @@
  * daily-changing state, so re-fetching on every run would be wasteful.
  */
 
-const fs = require('fs');
 const path = require('path');
 const db = require('./db');
+const { StorageService } = require('@stock/cloud-utils');
 const { stockscans } = require('@stock/api');
 const { withRetry } = require('@stock/api/utils/concurrency');
 
@@ -33,7 +33,7 @@ function safeName(companyId) {
   return String(companyId || '').replace(/[^A-Za-z0-9:_-]+/g, '_');
 }
 
-function cacheFile(companyId) {
+function _cacheFile(companyId) {
   return path.join(db.cachePath('stockscans-context'), `${safeName(companyId)}.json`);
 }
 
@@ -93,24 +93,17 @@ function classifyError(err) {
 }
 
 function readCache(companyId, ttlDays) {
-  const file = cacheFile(companyId);
-  if (!fs.existsSync(file)) return null;
-  try {
-    const cached = JSON.parse(fs.readFileSync(file, 'utf8'));
-    const ageMs = Date.now() - new Date(cached.fetchedAt).getTime();
-    if (!Number.isFinite(ageMs) || ageMs > ttlDays * 864e5) return null;
-    return cached;
-  } catch (_) {
-    return null; // corrupt/unreadable cache entry — treat as a miss, refetch
-  }
+  const rel = `cache/stockscans-context/${safeName(companyId)}.json`;
+  const cached = StorageService.readJson(rel);
+  if (!cached) return null;
+  const ageMs = Date.now() - new Date(cached.fetchedAt).getTime();
+  if (!Number.isFinite(ageMs) || ageMs > ttlDays * 864e5) return null;
+  return cached;
 }
 
 function writeCache(companyId, bundle) {
-  const file = cacheFile(companyId);
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const tmp = `${file}.tmp.${process.pid}`;
-  fs.writeFileSync(tmp, JSON.stringify(bundle, null, 2));
-  fs.renameSync(tmp, file);
+  const rel = `cache/stockscans-context/${safeName(companyId)}.json`;
+  StorageService.saveJson(rel, bundle);
 }
 
 /**

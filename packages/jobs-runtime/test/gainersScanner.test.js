@@ -223,12 +223,9 @@ describe('main() orchestration (mocked clients)', () => {
     expect(out.gainers[0].price_signals.close).toBe(200);
     expect(out.gainers[0].delivery.deliv_per).toBe(60);
     // file written
-    const written = JSON.parse(
-      fs.readFileSync(
-        path.join(process.env.DATA_V2_DIR, 'runs', 'gainers_raw_20260626.json'),
-        'utf8'
-      )
-    );
+    const { StorageService } = require('@stock/cloud-utils');
+    const written = StorageService.readJson('runs/gainers_raw_20260626.json');
+    expect(written).not.toBeNull();
     expect(written.total_gainers).toBe(1);
   });
 });

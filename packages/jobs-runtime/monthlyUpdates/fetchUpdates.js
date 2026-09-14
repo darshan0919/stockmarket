@@ -16,6 +16,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const db = require('../lib/db.js');
+const { StorageService } = require('@stock/cloud-utils');
 const { mapWithConcurrency, withRetry } = require('../../../stock-api/src/utils/concurrency.js');
 const { sanitizeCompanyId } = require('../../../stock-api/src/utils/companyId.js');
 const {
@@ -88,14 +89,12 @@ function getFilterHash(filters = SEARCH_FILTERS) {
     .slice(0, 10);
 }
 
-function scanCacheDir() {
-  const dir = db.cachePath('monthly-updates-scan');
-  fs.mkdirSync(dir, { recursive: true });
-  return dir;
+function scanCacheRel(quarterDate, filterHash) {
+  return `cache/monthly-updates-scan/${quarterDate}_${filterHash}.json`;
 }
 
 function scanCacheFile(quarterDate, filterHash) {
-  return path.join(scanCacheDir(), `${quarterDate}_${filterHash}.json`);
+  return path.join(db.cachePath('monthly-updates-scan'), `${quarterDate}_${filterHash}.json`);
 }
 
 function getCurrentQuarterDate(now = new Date()) {
@@ -108,10 +107,9 @@ function isClosedQuarter(quarterDate, now = new Date()) {
 }
 
 function readScanCache(quarterDate, filterHash, now = new Date(), ttlMs = 12 * 3600 * 1000) {
-  const file = scanCacheFile(quarterDate, filterHash);
-  if (!fs.existsSync(file)) return null;
+  const rel = scanCacheRel(quarterDate, filterHash);
   try {
-    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const data = StorageService.readJson(rel);
     if (!data || !Array.isArray(data.items)) return null;
     if (isClosedQuarter(quarterDate, now)) return data.items;
     if (data.cachedAt && Date.now() - new Date(data.cachedAt).getTime() < ttlMs) {
@@ -123,8 +121,8 @@ function readScanCache(quarterDate, filterHash, now = new Date(), ttlMs = 12 * 3
   }
 }
 
-function writeScanCache(quarterDate, filterHash, items) {
-  const file = scanCacheFile(quarterDate, filterHash);
+async function writeScanCache(quarterDate, filterHash, items) {
+  const rel = scanCacheRel(quarterDate, filterHash);
   const data = {
     quarterDate,
     filterHash,
@@ -132,7 +130,8 @@ function writeScanCache(quarterDate, filterHash, items) {
     count: items.length,
     items,
   };
-  fs.writeFileSync(file, JSON.stringify(data));
+  StorageService.init();
+  await StorageService.saveJson(rel, data);
 }
 
 function chunkArray(arr, size) {
@@ -217,7 +216,7 @@ async function scanQuarter(
     allChunkItems.push(...items);
   }
   const deduped = dedupe(allChunkItems);
-  writeScanCache(quarterDate, filterHash, deduped);
+  await writeScanCache(quarterDate, filterHash, deduped);
   return { items: deduped, cached: false };
 }
 
@@ -266,13 +265,11 @@ function cacheKeyFor(ssUrl) {
  * definition and simply re-derived on a miss.
  */
 async function getAnnouncementText(client, ann, { force = false } = {}) {
-  const dir = db.cachePath('monthly-updates-text');
-  fs.mkdirSync(dir, { recursive: true });
-  const cacheFile = path.join(dir, `${cacheKeyFor(ann.ssUrl)}.json`);
+  const relPath = `cache/monthly-updates-text/${cacheKeyFor(ann.ssUrl)}.json`;
 
-  if (!force && fs.existsSync(cacheFile)) {
+  if (!force) {
     try {
-      const hit = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+      const hit = StorageService.readJson(relPath);
       if (hit && hit.text) return { ...hit, cached: true };
     } catch (_) {
       /* corrupt cache entry — fall through and re-derive */
@@ -296,7 +293,8 @@ async function getAnnouncementText(client, ann, { force = false } = {}) {
       text: res.text,
       extractedAt: new Date().toISOString(),
     };
-    fs.writeFileSync(cacheFile, JSON.stringify(record));
+    StorageService.init();
+    await StorageService.saveJson(relPath, record);
     return { ...record, cached: false };
   } finally {
     try {

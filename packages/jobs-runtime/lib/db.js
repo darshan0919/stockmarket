@@ -22,13 +22,11 @@ const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
 const { nowIstIso } = require('./ist');
 const {
   JsonlStore,
-  timePartitioner,
   quarterlyPartitioner,
   annualPartitioner,
-  domainPartitioner,
-  youtubeChannelPartitioner,
-  singlePartitioner,
-  extractYearMonth,
+  hashPartitioner,
+  extractQuarter,
+  extractYear,
 } = require('./jsonlStore');
 
 // ── Roots ────────────────────────────────────────────────────────────────────
@@ -541,7 +539,7 @@ function getLearnystStore() {
   if (!_learnystStore) {
     _learnystStore = new JsonlStore({
       baseDir: DIRS.learnystLessons(),
-      partitioner: singlePartitioner('soic.jsonl'),
+      partitioner: hashPartitioner({ filePrefix: 'shard_', md5: true }),
       lockPrefix: 'learnyst',
       withLock,
       trackTouched,
@@ -555,7 +553,7 @@ function getYoutubeStore() {
   if (!_youtubeStore) {
     _youtubeStore = new JsonlStore({
       baseDir: DIRS.youtubeTranscripts(),
-      partitioner: youtubeChannelPartitioner(),
+      partitioner: hashPartitioner({ filePrefix: 'shard_', md5: true }),
       lockPrefix: 'youtube',
       withLock,
       trackTouched,
@@ -739,7 +737,9 @@ function saveLearnystTranscript(dto) {
   ensureEnvelope(dto, { kind: 'lyt', scope: dto.courseId, discriminator: String(dto.lessonId) });
   init();
   const store = getLearnystStore();
-  store.set(dto.id, dto, { courseId: dto.courseId });
+  store.set(dto.id, dto, dto.id);
+  const shard = crypto.createHash('md5').update(String(dto.id)).digest('hex')[0].toLowerCase();
+  const partitionName = `shard_${shard}.jsonl`;
   const {
     id,
     type,
@@ -780,7 +780,7 @@ function saveLearnystTranscript(dto) {
       youtubeVideoId: youtubeVideoId || null,
       captionKind: captionKind || null,
       attachmentCount: Array.isArray(attachments) ? attachments.length : 0,
-      body: 'learnyst-lessons/soic.jsonl',
+      body: `learnyst-lessons/${partitionName}`,
     },
   ]);
   return dto.id;
@@ -788,10 +788,9 @@ function saveLearnystTranscript(dto) {
 
 function readLearnystTranscript(id) {
   const store = getLearnystStore();
-  const idx = get('learnyst-lessons', id);
-  const courseId = idx ? idx.courseId : null;
-  const direct = store.get(id, { courseId });
+  const direct = store.get(id, id);
   if (direct) return direct;
+  const idx = get('learnyst-lessons', id);
   if (idx && idx.body && idx.body.endsWith('.jsonl')) {
     const partitionName = path.basename(idx.body);
     const map = store._loadPartition(partitionName);
@@ -806,7 +805,7 @@ function readLearnystTranscript(id) {
 
 /**
  * Save a YouTube video caption transcript: full DTO body (transcript text +
- * raw caption track events) → youtube-transcripts/<channel>.jsonl, slim index entry
+ * raw caption track events) → youtube-transcripts/shard_<hex>.jsonl, slim index entry
  * → youtube-transcripts.json.
  * `dto` must include creator, type ("youtube-transcript"), channelId,
  * videoId — NOT company-scoped (channel content), so no linkToCompanies call.
@@ -815,18 +814,9 @@ function saveYoutubeTranscript(dto) {
   ensureEnvelope(dto, { kind: 'ytt', scope: dto.channelId, discriminator: String(dto.videoId) });
   init();
   const store = getYoutubeStore();
-  store.set(dto.id, dto, {
-    channelHandle: dto.channelHandle,
-    channelTitle: dto.channelTitle,
-    publishedAt: dto.publishedAt,
-  });
-  const ch = dto.channelHandle || dto.channelTitle || 'misc';
-  const slug = String(ch)
-    .toLowerCase()
-    .replace(/^@/, '')
-    .replace(/[^a-z0-9]/g, '')
-    .trim();
-  const partitionName = `${slug || 'misc'}.jsonl`;
+  store.set(dto.id, dto, dto.id);
+  const shard = crypto.createHash('md5').update(String(dto.id)).digest('hex')[0].toLowerCase();
+  const partitionName = `shard_${shard}.jsonl`;
 
   const {
     id,
@@ -868,9 +858,9 @@ function saveYoutubeTranscript(dto) {
 
 function readYoutubeTranscript(id) {
   const store = getYoutubeStore();
-  const idx = get('youtube-transcripts', id);
-  const direct = store.get(id, idx);
+  const direct = store.get(id, id);
   if (direct) return direct;
+  const idx = get('youtube-transcripts', id);
   if (idx && idx.body && idx.body.endsWith('.jsonl')) {
     const partitionName = path.basename(idx.body);
     const map = store._loadPartition(partitionName);

@@ -14,6 +14,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 /**
  * Extract YYYY-MM from date string or ID containing YYYY-MM-DD or YYYYMM.
@@ -137,13 +138,22 @@ function timePartitioner(opts = {}) {
  * Key-prefix hash partitioner (16 shards 0-f by default).
  * @param {object} [opts]
  * @param {string} [opts.filePrefix='shard_']
+ * @param {boolean} [opts.md5=false] When true, computes MD5 hash of key/id to determine shard [0-f]
  * @returns {(id: string, record: object|null, hint: object|string|null) => string}
  */
 function hashPartitioner(opts = {}) {
   const filePrefix = opts.filePrefix || 'shard_';
+  const useMd5 = !!opts.md5;
   return (id, record, hint) => {
-    const key = (typeof hint === 'string' ? hint : null) || (record && record.key) || id || '';
-    const cleanKey = String(key).toLowerCase().replace(/[^0-9a-f]/g, '');
+    const key =
+      (typeof hint === 'string' ? hint : null) || (record && (record.key || record.id)) || id || '';
+    if (useMd5) {
+      const shard = crypto.createHash('md5').update(String(key)).digest('hex')[0].toLowerCase();
+      return `${filePrefix}${shard}.jsonl`;
+    }
+    const cleanKey = String(key)
+      .toLowerCase()
+      .replace(/[^0-9a-f]/g, '');
     const shard = cleanKey.length > 0 ? cleanKey[0] : '0';
     return `${filePrefix}${shard}.jsonl`;
   };
@@ -173,12 +183,13 @@ function domainPartitioner(opts = {}) {
  */
 function youtubeChannelPartitioner() {
   return (id, record, hint) => {
-    const channelId =
-      (hint && hint.channelId) ||
-      (record && record.channelId) ||
-      (hint && typeof hint === 'string' ? hint : '') ||
+    const raw =
+      (hint && (hint.channelHandle || hint.channelTitle || hint.channelId)) ||
+      (record && (record.channelHandle || record.channelTitle || record.channelId)) ||
+      (typeof hint === 'string' ? hint : '') ||
       '';
-    if (channelId.includes('UC5mK0-K-r3KET0kifn-mJMg') || channelId.toLowerCase().includes('anil')) {
+    const s = String(raw).toLowerCase();
+    if (s.includes('uc5mk0-k-r3ket0kifn-mjmg') || s.includes('anil') || s.includes('lamba')) {
       return 'anillamba.jsonl';
     }
     return 'soicfinance.jsonl';

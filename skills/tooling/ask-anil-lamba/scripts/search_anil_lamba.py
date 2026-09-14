@@ -91,25 +91,59 @@ def build_index(data_root, lamba_index):
             df[t] = df.get(t, 0) + 1
 
     youtube_dir = os.path.join(data_root, "youtube-transcripts")
-    for rec_id, rec in lamba_index.items():
-        body_path = os.path.join(youtube_dir, f"{rec_id}.json")
-        if not os.path.exists(body_path):
-            continue
-        body = load_json(body_path)
-        plain = body.get("transcriptPlain") or ""
-        if not plain.strip():
-            continue
-        tokens = tokenize(plain)
-        add_doc(
-            rec_id,
-            tokens,
-            {
-                "title": rec.get("videoTitle"),
-                "collection": rec.get("channelTitle") or "Dr. Anil Lamba",
-                "videoId": rec.get("videoId"),
-                "timestamped": body.get("transcriptTimestamped") or "",
-            },
-        )
+    if os.path.exists(youtube_dir):
+        for fname in sorted(os.listdir(youtube_dir)):
+            if fname.endswith(".jsonl"):
+                p = os.path.join(youtube_dir, fname)
+                with open(p, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if not line.strip():
+                            continue
+                        try:
+                            body = json.loads(line)
+                            rec_id = body.get("id")
+                            if not rec_id or rec_id not in lamba_index:
+                                continue
+                            rec = lamba_index[rec_id]
+                            plain = body.get("transcriptPlain") or ""
+                            if not plain.strip():
+                                continue
+                            tokens = tokenize(plain)
+                            add_doc(
+                                rec_id,
+                                tokens,
+                                {
+                                    "title": rec.get("videoTitle") or body.get("videoTitle"),
+                                    "collection": rec.get("channelTitle") or body.get("channelTitle") or "Dr. Anil Lamba",
+                                    "videoId": rec.get("videoId") or body.get("videoId"),
+                                    "timestamped": body.get("transcriptTimestamped") or "",
+                                    "body": f"youtube-transcripts/{fname}",
+                                },
+                            )
+                        except Exception:
+                            pass
+        # Fallback to loose json files if any exist
+        for rec_id, rec in lamba_index.items():
+            if rec_id in docs:
+                continue
+            body_path = os.path.join(youtube_dir, f"{rec_id}.json")
+            if not os.path.exists(body_path):
+                continue
+            body = load_json(body_path)
+            plain = body.get("transcriptPlain") or ""
+            if not plain.strip():
+                continue
+            tokens = tokenize(plain)
+            add_doc(
+                rec_id,
+                tokens,
+                {
+                    "title": rec.get("videoTitle"),
+                    "collection": rec.get("channelTitle") or "Dr. Anil Lamba",
+                    "videoId": rec.get("videoId"),
+                    "timestamped": body.get("transcriptTimestamped") or "",
+                },
+            )
 
     n_docs = len(docs)
     idf = {t: math.log(1 + n_docs / dfreq) for t, dfreq in df.items()}
@@ -188,10 +222,31 @@ def best_excerpt(timestamped_text, plain_text, query_tokens):
     return None, " ".join(window).strip()[:600]
 
 
-def load_body_for_excerpt(data_root, doc_id):
+def load_body_for_excerpt(data_root, doc_id, meta=None):
+    body_rel = meta.get("body") if meta else None
+    if body_rel and os.path.exists(os.path.join(data_root, body_rel)):
+        shard_path = os.path.join(data_root, body_rel)
+    else:
+        shard = hashlib.md5(str(doc_id).encode("utf-8")).hexdigest()[0].lower()
+        shard_path = os.path.join(data_root, "youtube-transcripts", f"shard_{shard}.jsonl")
+
+    if os.path.exists(shard_path):
+        with open(shard_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                try:
+                    row = json.loads(line)
+                    if row.get("id") == doc_id:
+                        return row.get("transcriptTimestamped") or "", row.get("transcriptPlain") or ""
+                except Exception:
+                    pass
+
     path = os.path.join(data_root, "youtube-transcripts", f"{doc_id}.json")
-    body = load_json(path)
-    return body.get("transcriptTimestamped") or "", body.get("transcriptPlain") or ""
+    if os.path.exists(path):
+        body = load_json(path)
+        return body.get("transcriptTimestamped") or "", body.get("transcriptPlain") or ""
+    return "", ""
 
 
 def main():
@@ -244,7 +299,7 @@ def main():
     for score, doc_id in top_scores:
         doc = index["docs"][doc_id]
         meta = doc["meta"]
-        timestamped, plain = load_body_for_excerpt(args.data_root, doc_id)
+        timestamped, plain = load_body_for_excerpt(args.data_root, doc_id, meta)
         ts, excerpt = best_excerpt(timestamped, plain, query_tokens)
 
         citation = f"Dr. Anil Lamba YouTube · {meta.get('title')}"

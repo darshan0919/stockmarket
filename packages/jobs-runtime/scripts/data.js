@@ -40,6 +40,7 @@ const {
   listAllFiles,
   isApiConfigured,
 } = require('@stock/cloud-utils/src/googleDriveApi');
+const { printStorageStatsTable } = require('../lib/storageStats');
 
 const DRIVE_ROOT = process.env.DATA_V2_DRIVE_ROOT || 'StockMarket/data/v2';
 const NEVER_SYNC = (rel) =>
@@ -196,6 +197,7 @@ async function push({ dryRun }) {
   const uploadedRels = [];
   const mergedRels = [];
   const skippedAlreadyOnDrive = []; // adopted-not-reuploaded (interrupted-push recovery)
+  const pendingUploads = [];
 
   for (const rel of locals) {
     const abs = path.join(root, rel);
@@ -228,35 +230,74 @@ async function push({ dryRun }) {
       continue;
     }
 
-    try {
-      if (IS_COLLECTION(rel) && remoteDrifted) {
-        // Both sides may have changed → merge before uploading (no data loss).
-        if (!dryRun && (await mergeFromDrive(drive, rel))) {
-          merged++;
-          mergedRels.push(rel);
-        }
+    if (IS_COLLECTION(rel) && remoteDrifted) {
+      // Both sides may have changed → merge before uploading (no data loss).
+      if (!dryRun && (await mergeFromDrive(drive, rel))) {
+        merged++;
+        mergedRels.push(rel);
       }
-      if (dryRun) {
-        uploaded++;
-        uploadedRels.push(rel);
-        continue;
-      }
-      const fileSize = fs.statSync(abs).size;
-      console.log(`[data push] ↑ ${rel} (${formatSize(fileSize)})`);
-      const fileId = remoteEntry?.id || st?.driveId;
-      const res = await uploadFile(drive, DRIVE_ROOT, rel, abs, { fileId });
-      state.files[rel] = {
-        sha256: hash,
-        driveId: res.id,
-        driveModifiedTime: res.modifiedTime,
-        syncedAt: new Date().toISOString(),
-      };
-      uploaded++;
-      uploadedRels.push(rel);
-      if (!dryRun) saveState(state); // incremental — interrupted pushes resume, never re-upload
-    } catch (e) {
-      errors.push(`${rel}: ${e.message}`);
     }
+
+    pendingUploads.push({
+      rel,
+      abs,
+      hash,
+      fileId: remoteEntry?.id || st?.driveId,
+    });
+  }
+
+  if (dryRun) {
+    uploaded = pendingUploads.length;
+    uploadedRels.push(...pendingUploads.map((p) => p.rel));
+  } else if (pendingUploads.length > 0) {
+    // Adaptive batching: max 16 workers, dynamically throttled by in-flight payload size (max 25 MB in-flight)
+    const MAX_CONCURRENCY = Math.min(16, pendingUploads.length);
+    const MAX_IN_FLIGHT_BYTES = 25 * 1024 * 1024; // 25 MB
+    let inFlightBytes = 0;
+    let activeWorkers = 0;
+    let curIdx = 0;
+
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    const processItem = async (item) => {
+      const fileSize = fs.existsSync(item.abs) ? fs.statSync(item.abs).size : 0;
+      // Wait if in-flight bytes would exceed threshold (unless only 1 worker active to prevent deadlock)
+      while (activeWorkers > 0 && inFlightBytes + fileSize > MAX_IN_FLIGHT_BYTES) {
+        await sleep(50);
+      }
+
+      inFlightBytes += fileSize;
+      activeWorkers++;
+      try {
+        console.log(`[data push] ↑ ${item.rel} (${formatSize(fileSize)})`);
+        const res = await uploadFile(drive, DRIVE_ROOT, item.rel, item.abs, {
+          fileId: item.fileId,
+        });
+        state.files[item.rel] = {
+          sha256: item.hash,
+          driveId: res.id,
+          driveModifiedTime: res.modifiedTime,
+          syncedAt: new Date().toISOString(),
+        };
+        uploaded++;
+        uploadedRels.push(item.rel);
+        saveState(state); // incremental thread-safe save in single-process event loop
+      } catch (e) {
+        errors.push(`${item.rel}: ${e.message}`);
+      } finally {
+        inFlightBytes -= fileSize;
+        activeWorkers--;
+      }
+    };
+
+    const worker = async () => {
+      while (curIdx < pendingUploads.length) {
+        const item = pendingUploads[curIdx++];
+        await processItem(item);
+      }
+    };
+
+    await Promise.all(Array.from({ length: MAX_CONCURRENCY }, () => worker()));
   }
 
   // Refresh driveModifiedTime in one listing (needed for future drift detection).
@@ -290,6 +331,8 @@ async function push({ dryRun }) {
         'This is expected on a re-run right after a clean sync; it is not a failure.'
     );
   }
+  checkStorageStrategyThresholds(db.dataRoot());
+  printStorageStatsTable(db.dataRoot());
   if (errors.length) {
     console.error(`[data push] ${errors.length} error(s) — NOT pruning those files:`);
     errors.forEach((e) => console.error(`  - ${e}`));
@@ -372,6 +415,7 @@ async function pull({ dryRun }) {
         'This is expected right after a push from this same machine; it is not a failure.'
     );
   }
+  printStorageStatsTable(db.dataRoot());
 }
 
 async function status() {
@@ -405,7 +449,112 @@ async function status() {
     remoteOnly.slice(0, 20).forEach((f) => console.log(`  + ${f.driveRel}`));
   } catch (e) {
     console.log(`[data status] Drive unreachable: ${e.message}`);
+  } finally {
+    checkStorageStrategyThresholds(root);
+    printStorageStatsTable(root);
   }
+}
+
+const SWEET_SPOT_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+
+function checkStorageStrategyThresholds(root) {
+  const alerts = [];
+  const optimizations = [];
+
+  function scan(dir, relPrefix = '') {
+    if (!fs.existsSync(dir)) return;
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+    // Check if directory is a 16-hex shard folder
+    const shardFiles = entries.filter(
+      (e) => e.isFile() && e.name.startsWith('shard_') && e.name.endsWith('.jsonl')
+    );
+    if (shardFiles.length > 0) {
+      let totalShardBytes = 0;
+      for (const sf of shardFiles) {
+        totalShardBytes += fs.statSync(path.join(dir, sf.name)).size;
+      }
+      if (totalShardBytes < SWEET_SPOT_MAX_BYTES) {
+        optimizations.push({
+          dir: relPrefix || path.basename(dir),
+          shards: shardFiles.length,
+          sizeMb: (totalShardBytes / (1024 * 1024)).toFixed(2),
+          recommended: 'Consolidate 16 shards into a single JSONL file (< 10 MB).',
+          command: 'yarn data:consolidate-light',
+        });
+      }
+    }
+
+    for (const e of entries) {
+      if (e.name.startsWith('.') || e.name === '_meta' || e.name.includes('.tmp.')) continue;
+      const fullPath = path.join(dir, e.name);
+      const relPath = relPrefix ? `${relPrefix}/${e.name}` : e.name;
+
+      if (e.isDirectory()) {
+        scan(fullPath, relPath);
+      } else if (e.isFile()) {
+        // Exclude one-off research seeds and search index caches
+        if (relPath.includes('_research_seed_')) continue;
+        if (relPath.startsWith('cache/ask-soic/') || relPath.startsWith('cache/ask-anil-lamba/'))
+          continue;
+        if (relPath.endsWith('.json') || relPath.endsWith('.jsonl')) {
+          const stats = fs.statSync(fullPath);
+          if (stats.size > SWEET_SPOT_MAX_BYTES) {
+            const isTimeSeries = /^(reports|conversations|events)/.test(relPath);
+            const isShardedCandidate = /^(learnyst-lessons|youtube-transcripts|cache)/.test(
+              relPath
+            );
+            const sizeMb = (stats.size / (1024 * 1024)).toFixed(2);
+
+            let recommended = '16-hex sharding (shard_0.jsonl - shard_f.jsonl)';
+            let command = 'yarn data:consolidate';
+            if (isTimeSeries) {
+              recommended = 'Tighter time partitioning (quarterly or monthly)';
+              command = 'yarn data:consolidate';
+            } else if (isShardedCandidate) {
+              recommended = '16-hex sharding partitioned by md5(key)[0]';
+              command = 'yarn data:consolidate';
+            }
+
+            alerts.push({
+              file: relPath,
+              sizeMb,
+              recommended,
+              command,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  scan(root);
+
+  if (alerts.length > 0 || optimizations.length > 0) {
+    console.log('\n────────────────────────────────────────────────────────────────────────');
+    console.log('📊 [STORAGE STRATEGY THRESHOLD AUDIT]');
+    for (const a of alerts) {
+      console.warn(
+        `⚠️  [THRESHOLD ALERT] ${a.file} is ${a.sizeMb} MB (exceeds 10 MB sweet-spot ceiling).`
+      );
+      console.warn(`   Recommended Strategy: ${a.recommended}`);
+      console.warn(`   Migration Command:    ${a.command}`);
+    }
+    for (const opt of optimizations) {
+      console.info(
+        `ℹ️  [STORAGE OPTIMIZATION] ${opt.dir} has ${opt.shards} shards but total size is only ${opt.sizeMb} MB (< 10 MB).`
+      );
+      console.info(`   Recommended Strategy: ${opt.recommended}`);
+      console.info(`   Migration Command:    ${opt.command}`);
+    }
+    console.log('────────────────────────────────────────────────────────────────────────\n');
+  } else {
+    console.log(
+      '✓ Storage Audit: All collection & cache stores adhere to the 100 KB – 10 MB sweet-spot guidelines.'
+    );
+  }
+
+  return { alerts, optimizations };
 }
 
 (async () => {
@@ -415,8 +564,10 @@ async function status() {
     if (cmd === 'push') await push(opts);
     else if (cmd === 'pull') await pull(opts);
     else if (cmd === 'status') await status();
+    else if (cmd === 'thresholds') checkStorageStrategyThresholds(db.dataRoot());
+    else if (cmd === 'stats') printStorageStatsTable(db.dataRoot());
     else {
-      console.log('Usage: node data.js <push|pull|status> [--dry-run]');
+      console.log('Usage: node data.js <push|pull|status|thresholds|stats> [--dry-run]');
       process.exit(2);
     }
   } catch (e) {

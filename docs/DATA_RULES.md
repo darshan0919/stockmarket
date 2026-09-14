@@ -154,3 +154,23 @@ SKILL.md / job prompt MUST:
 
 A generated skill that stores data without these elements is non-conformant —
 fix it before delivering.
+
+## 9. Sizing & Partitioning Checklist (100 KB – 10 MB Sweet Spot)
+
+Whenever designing or modifying a persistent store, cache directory, or run dump:
+
+1. **Target the 100 KB – 10 MB Sweet Spot**:
+   - Never write loose per-item/per-entity files (< 100 KB) into synced folders.
+   - High file count destroys sync performance via Google Drive API per-call overhead.
+2. **Partitioning Rules**:
+   - **Store Volume < 10 MB**: Single JSONL file (`<store>.jsonl`). Examples: `notes.jsonl`, `announcements.jsonl`, `baselines.jsonl`, `context.jsonl`, `reactions.jsonl`, `parsed.jsonl`, `doc-extracts/<cat>.jsonl`.
+   - **Store Volume > 10 MB**: 16 Hex Shards (`shard_0.jsonl`..`shard_f.jsonl`) deterministically routed by `md5(id)[0]`. Examples: `learnyst-lessons`, `youtube-transcripts`, `pdf-text`, `pdf-text-full`, `monthly-updates-text`.
+   - **Time-Series Collections**: Quarterly JSONL (`reports-YYYY-Q*.jsonl`) or Annual (`events-YYYY.json`, `conversations-YYYY.jsonl`, `runs/<prefix>-YYYY.jsonl`).
+3. **Automated Threshold Monitoring**:
+   - Every `yarn data:status`, `yarn data:push`, and `yarn data:thresholds` run automatically audits store sizes against the 10 MB ceiling.
+   - If any single JSONL/JSON crosses 10 MB, it alerts with recommended sharding commands.
+   - If a 16-hex sharded store has combined size `< 10 MB`, it recommends consolidating to a single JSONL file via `yarn data:consolidate-light`.
+4. **Choke Point Enforcement**:
+   - Collections must ONLY be accessed via `packages/jobs-runtime/lib/db.js`.
+   - Cache stores must ONLY be accessed via `@stock/cloud-utils` `StorageService.readJson` / `saveJson`.
+   - Never access cache files via direct `fs.readFileSync`/`fs.writeFileSync` bypassing `StorageService`.

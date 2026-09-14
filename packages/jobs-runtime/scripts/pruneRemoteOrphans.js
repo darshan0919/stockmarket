@@ -19,6 +19,7 @@
 const fs = require('fs');
 const path = require('path');
 const db = require('../lib/db');
+const { extractQuarter, extractYear } = require('../lib/jsonlStore');
 const { loadEnv, hasFlag } = require('../lib/env');
 loadEnv();
 
@@ -32,41 +33,125 @@ const DRIVE_ROOT = process.env.DATA_V2_DRIVE_ROOT || 'StockMarket/data/v2';
 
 const CANDIDATE_PATTERNS = [
   /^reports\/rpt_.*\.json$/,
+  /^reports\/reports-\d{4}-\d{2}\.jsonl$/,
   /^conversations\/conv_.*\.json$/,
+  /^conversations\/conversations-\d{4}-\d{2}\.jsonl$/,
+  /^events-\d{4}-\d{2}\.json$/,
   /^learnyst-lessons\/lyt_.*\.json$/,
+  /^learnyst-lessons\/course_.*\.jsonl$/,
+  /^learnyst-lessons\/soic\.jsonl$/,
   /^youtube-transcripts\/ytt_.*\.json$/,
+  /^youtube-transcripts\/.*_\d{4}\.jsonl$/,
+  /^youtube-transcripts\/(soicfinance|anillamba)\.jsonl$/,
   /^cache\/pdf-text\/[0-9a-fA-F]+\.json$/,
   /^cache\/pdf-text-full\/[0-9a-fA-F]+\.json$/,
   /^cache\/monthly-updates-text\/[0-9a-fA-F]+\.json$/,
   /^cache\/monthly-updates-parsed\/[0-9a-fA-F]+\.json$/,
+  /^cache\/monthly-updates-parsed\/shard_.*\.jsonl$/,
+  /^cache\/doc-extracts\/[^/]+\/[0-9a-fA-F]+\.json$/,
+  /^cache\/doc-extracts\/[^/]+\/shard_.*\.jsonl$/,
+  /^cache\/(stockscans-context|company-baselines|event-reaction)\/[^/]+\.json$/,
+  /^cache\/rerating-catalysts\/[^/]+\/[^/]+\.json$/,
+  /^cache\/order-announcements\/[^/]+\/[^/]+\.json$/,
+  /^cache\/order-announcements\/[A-Z0-9_:-]+\.jsonl$/,
+  /^cache\/concall-notes\/[^/]+\/[^/]+\.json$/,
+  /^cache\/concall-notes\/[A-Z0-9_:-]+\.jsonl$/,
+  /^cache\/(stockscans-context|company-baselines|event-reaction|order-announcements|concall-notes)\/shard_.*\.jsonl$/,
+  /^cache\/rerating-catalysts\/[^/]+\/shard_.*\.jsonl$/,
+  /^cache\/gainers-scanner\/[^/]+\.json$/,
+  /^cache\/monthly-updates-scan\/[^/]+\.json$/,
+  /^runs\/(gainers_raw|gainers_insights|gainers_why|volume_rocketing_raw|volume_rocketing_insights|digest|ipo_subscription)_\d{8}\.json$/,
   /^runs\/monthly-updates-batches\/batch_.*$/,
 ];
 
 function isCandidateOrphan(driveRel) {
-  // Never match .jsonl files or primary indexes
-  if (driveRel.endsWith('.jsonl')) return false;
-  if (/^(reports|conversations|learnyst-lessons|youtube-transcripts)\.json$/.test(driveRel)) return false;
+  // Heavy 16-hex sharded stores are permanent:
+  if (driveRel.startsWith('cache/pdf-text/shard_')) return false;
+  if (driveRel.startsWith('cache/pdf-text-full/shard_')) return false;
+  if (driveRel.startsWith('cache/monthly-updates-text/shard_')) return false;
+  if (driveRel.startsWith('learnyst-lessons/shard_')) return false;
+  if (driveRel.startsWith('youtube-transcripts/shard_')) return false;
+
+  // Single JSONLs are target replacements:
+  if (driveRel === 'cache/monthly-updates-parsed/parsed.jsonl') return false;
+  if (/^cache\/doc-extracts\/[^/]+\.jsonl$/.test(driveRel)) return false;
+  if (/^reports\/reports-\d{4}-Q\d\.jsonl$/.test(driveRel)) return false;
+  if (/^conversations\/conversations-\d{4}\.jsonl$/.test(driveRel)) return false;
+  if (/^events-\d{4}\.json$/.test(driveRel)) return false;
+  if (/^(reports|conversations|learnyst-lessons|youtube-transcripts)\.json$/.test(driveRel))
+    return false;
   if (driveRel === 'runs/monthly-updates-batches/batches.json') return false;
+  if (driveRel === 'cache/stockscans-context/context.jsonl') return false;
+  if (driveRel === 'cache/company-baselines/baselines.jsonl') return false;
+  if (driveRel === 'cache/event-reaction/reactions.jsonl') return false;
+  if (driveRel === 'cache/order-announcements/announcements.jsonl') return false;
+  if (driveRel === 'cache/concall-notes/notes.jsonl') return false;
+  if (driveRel === 'cache/rerating-catalysts/briefs.jsonl') return false;
+  if (driveRel === 'cache/rerating-catalysts/filings.jsonl') return false;
+  if (driveRel === 'cache/gainers-scanner/scanner.jsonl') return false;
+  if (driveRel === 'cache/monthly-updates-scan/scans.jsonl') return false;
 
   return CANDIDATE_PATTERNS.some((re) => re.test(driveRel));
 }
 
 function expectedReplacement(driveRel) {
   if (driveRel.startsWith('reports/')) {
-    const m1 = driveRel.match(/(\d{4})-(\d{2})/);
-    if (m1) return `reports/reports-${m1[1]}-${m1[2]}.jsonl`;
-    const m2 = driveRel.match(/(\d{4})(\d{2})/);
-    if (m2) return `reports/reports-${m2[1]}-${m2[2]}.jsonl`;
-    return 'reports/reports-*.jsonl';
+    const q = extractQuarter(driveRel) || '2026-Q3';
+    return `reports/reports-${q}.jsonl`;
   }
   if (driveRel.startsWith('conversations/')) {
-    return 'conversations/conversations-*.jsonl';
+    const yr = extractYear(driveRel) || '2026';
+    return `conversations/conversations-${yr}.jsonl`;
+  }
+  if (/^events-\d{4}-\d{2}\.json$/.test(driveRel)) {
+    const yr = driveRel.slice(7, 11);
+    return `events-${yr}.json`;
   }
   if (driveRel.startsWith('learnyst-lessons/')) {
-    return 'learnyst-lessons/course_*.jsonl';
+    return 'learnyst-lessons/shard_0.jsonl';
   }
   if (driveRel.startsWith('youtube-transcripts/')) {
-    return 'youtube-transcripts/*.jsonl';
+    return 'youtube-transcripts/shard_0.jsonl';
+  }
+  if (driveRel.startsWith('cache/doc-extracts/')) {
+    const m = driveRel.match(/^cache\/doc-extracts\/([^/]+)/);
+    return m ? `cache/doc-extracts/${m[1]}.jsonl` : null;
+  }
+  if (driveRel.startsWith('cache/stockscans-context/')) {
+    return 'cache/stockscans-context/context.jsonl';
+  }
+  if (driveRel.startsWith('cache/company-baselines/')) {
+    return 'cache/company-baselines/baselines.jsonl';
+  }
+  if (driveRel.startsWith('cache/event-reaction/')) {
+    return 'cache/event-reaction/reactions.jsonl';
+  }
+  if (driveRel.startsWith('cache/rerating-catalysts/')) {
+    if (driveRel.includes('brief')) return 'cache/rerating-catalysts/briefs.jsonl';
+    if (driveRel.includes('filing')) return 'cache/rerating-catalysts/filings.jsonl';
+    return 'cache/rerating-catalysts/briefs.jsonl';
+  }
+  if (driveRel.startsWith('cache/order-announcements/')) {
+    return 'cache/order-announcements/announcements.jsonl';
+  }
+  if (driveRel.startsWith('cache/concall-notes/')) {
+    return 'cache/concall-notes/notes.jsonl';
+  }
+  if (driveRel.startsWith('cache/gainers-scanner/')) {
+    return 'cache/gainers-scanner/scanner.jsonl';
+  }
+  if (driveRel.startsWith('cache/monthly-updates-scan/')) {
+    return 'cache/monthly-updates-scan/scans.jsonl';
+  }
+  if (driveRel.startsWith('runs/')) {
+    const m = driveRel.match(
+      /^runs\/(gainers_raw|gainers_insights|gainers_why|volume_rocketing_raw|volume_rocketing_insights|digest|ipo_subscription)_(\d{4})\d{4}\.json$/
+    );
+    if (m) {
+      const type = m[1].replace(/_/g, '-');
+      const yr = m[2];
+      return `runs/${type}-${yr}.jsonl`;
+    }
   }
   if (driveRel.startsWith('cache/pdf-text/')) {
     const hex = path.basename(driveRel, '.json')[0].toLowerCase();
@@ -81,8 +166,7 @@ function expectedReplacement(driveRel) {
     return `cache/monthly-updates-text/shard_${hex}.jsonl`;
   }
   if (driveRel.startsWith('cache/monthly-updates-parsed/')) {
-    const hex = path.basename(driveRel, '.json')[0].toLowerCase();
-    return `cache/monthly-updates-parsed/shard_${hex}.jsonl`;
+    return 'cache/monthly-updates-parsed/parsed.jsonl';
   }
   if (driveRel.startsWith('runs/monthly-updates-batches/')) {
     return 'runs/monthly-updates-batches/batches.jsonl';
@@ -94,7 +178,9 @@ async function run() {
   const isExecute = hasFlag('--execute');
   const isDryRun = hasFlag('--dry-run') || !isExecute;
 
-  console.log(`[data:prune-remote] Mode: ${isDryRun ? 'DRY-RUN (audit only)' : 'EXECUTE (trashing remote orphans)'}`);
+  console.log(
+    `[data:prune-remote] Mode: ${isDryRun ? 'DRY-RUN (audit only)' : 'EXECUTE (trashing remote orphans)'}`
+  );
 
   if (isApiConfigured && !isApiConfigured()) {
     console.log('[data:prune-remote] Google Drive API is not configured. Aborting.');
@@ -122,7 +208,9 @@ async function run() {
     if (replacement && replacement.includes('*')) {
       // Wildcard check (e.g. course_*.jsonl or channel_*.jsonl)
       const folder = replacement.split('/')[0];
-      const matchingRemote = remoteFiles.some((rf) => rf.driveRel.startsWith(`${folder}/`) && rf.driveRel.endsWith('.jsonl'));
+      const matchingRemote = remoteFiles.some(
+        (rf) => rf.driveRel.startsWith(`${folder}/`) && rf.driveRel.endsWith('.jsonl')
+      );
       replacementReady = matchingRemote;
     } else if (replacement) {
       // Exact replacement check on Drive
@@ -139,8 +227,12 @@ async function run() {
   console.log(`\n[data:prune-remote] Analysis:`);
   console.log(`  - Candidate remote orphans verified for pruning: ${orphans.length}`);
   if (missingReplacement.length > 0) {
-    console.warn(`  - SKIPPED (replacement .jsonl not yet confirmed on Drive): ${missingReplacement.length}`);
-    missingReplacement.slice(0, 5).forEach((m) => console.warn(`      * ${m.file} (needs ${m.expected})`));
+    console.warn(
+      `  - SKIPPED (replacement .jsonl not yet confirmed on Drive): ${missingReplacement.length}`
+    );
+    missingReplacement
+      .slice(0, 5)
+      .forEach((m) => console.warn(`      * ${m.file} (needs ${m.expected})`));
   }
 
   if (orphans.length === 0) {
@@ -154,7 +246,9 @@ async function run() {
   if (orphans.length > 10) console.log(`  ... and ${orphans.length - 10} more`);
 
   if (isDryRun) {
-    console.log('\n[data:prune-remote] DRY RUN COMPLETE. Run with `--execute` to trash remote orphans.');
+    console.log(
+      '\n[data:prune-remote] DRY RUN COMPLETE. Run with `--execute` to trash remote orphans.'
+    );
     return;
   }
 
@@ -189,7 +283,9 @@ async function run() {
   const workers = Array.from({ length: Math.min(CONCURRENCY, orphans.length) }, () => worker());
   await Promise.all(workers);
 
-  console.log(`\n[data:prune-remote] Remote pruning complete: ${trashedCount} trashed, ${errorCount} errors.`);
+  console.log(
+    `\n[data:prune-remote] Remote pruning complete: ${trashedCount} trashed, ${errorCount} errors.`
+  );
 
   // Purge sync-state.json entries
   const statePath = path.join(db.dataRoot(), '_meta', 'sync-state.json');

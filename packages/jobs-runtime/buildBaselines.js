@@ -31,6 +31,7 @@ const fs = require('fs');
 const path = require('path');
 const { loadEnv, argValue } = require('./lib/env');
 const db = require('./lib/db');
+const { StorageService } = require('@stock/cloud-utils');
 const docExtracts = require('./lib/docExtracts');
 const stockscansContext = require('./lib/stockscansContext');
 const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
@@ -48,20 +49,13 @@ function cardFile(companyId) {
 }
 
 function readCard(companyId) {
-  try {
-    return JSON.parse(fs.readFileSync(cardFile(companyId), 'utf8'));
-  } catch (_) {
-    return null;
-  }
+  return StorageService.readJson(`cache/company-baselines/${safeName(companyId)}.json`);
 }
 
 function writeCard(companyId, card) {
-  const f = cardFile(companyId);
-  fs.mkdirSync(path.dirname(f), { recursive: true });
-  const tmp = `${f}.tmp.${process.pid}`;
-  fs.writeFileSync(tmp, JSON.stringify(card, null, 2));
-  fs.renameSync(tmp, f);
-  return f;
+  const rel = `cache/company-baselines/${safeName(companyId)}.json`;
+  StorageService.saveJson(rel, card);
+  return path.join(db.dataRoot(), rel);
 }
 
 /**
@@ -487,6 +481,7 @@ if (require.main === module) {
 module.exports = {
   buildCard,
   readCard,
+  writeCard,
   cardFile,
   fingerprint,
   CARD_VERSION,
