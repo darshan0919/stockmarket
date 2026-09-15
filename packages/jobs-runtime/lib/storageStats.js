@@ -209,6 +209,9 @@ function getCollectionStorageStats(dataRoot = db.dataRoot()) {
   const runsSeeds = getDirStats(path.join(root, 'runs'), (f) => f.includes('_research_seed_'));
   addRow('runs/research-seeds', 'Runs', runsSeeds.bytes, runsSeeds.count, 'Dated Daily Dumps');
 
+  // Sort by totalBytes descending so heaviest stores appear first
+  stats.sort((a, b) => b.totalBytes - a.totalBytes);
+
   return stats;
 }
 
@@ -235,10 +238,12 @@ function renderStorageStatsTable(stats) {
 
   const header = `│ ${padR('Collection', colW.collection)} │ ${padR('Scope', colW.scope)} │ ${padL('Total Size', colW.totalSize)} │ ${padL('File Count', colW.fileCount)} │ ${padR('Storage Design', colW.storageDesign)} │`;
 
+  const sorted = [...stats].sort((a, b) => b.totalBytes - a.totalBytes);
+
   let grandBytes = 0;
   let grandFiles = 0;
 
-  const rows = stats.map((r) => {
+  const rows = sorted.map((r) => {
     grandBytes += r.totalBytes;
     grandFiles += r.fileCount;
     const fileCountStr = r.fileCount === 1 ? '1 file' : `${r.fileCount} files`;

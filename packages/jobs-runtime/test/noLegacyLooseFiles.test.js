@@ -53,11 +53,6 @@ describe('Zero loose files & clean cutover verification', () => {
       'cache/pdf-text',
       'cache/pdf-text-full',
       'cache/monthly-updates-text',
-      'cache/monthly-updates-parsed',
-      'cache/doc-extracts/annual_report',
-      'cache/doc-extracts/ppt',
-      'cache/doc-extracts/announcement',
-      'cache/doc-extracts/_calibration',
     ];
 
     for (const c of cacheDirs) {
@@ -73,6 +68,11 @@ describe('Zero loose files & clean cutover verification', () => {
 
   test('only designated .jsonl files exist in single cache directories', () => {
     const singleDirs = [
+      { dir: 'cache/monthly-updates-parsed', expected: ['parsed.jsonl'] },
+      {
+        dir: 'cache/doc-extracts',
+        expected: ['annual_report.jsonl', 'ppt.jsonl', 'announcement.jsonl', '_calibration.jsonl'],
+      },
       { dir: 'cache/gainers-scanner', expected: ['scanner.jsonl'] },
       { dir: 'cache/monthly-updates-scan', expected: ['scans.jsonl'] },
       { dir: 'cache/stockscans-context', expected: ['context.jsonl'] },

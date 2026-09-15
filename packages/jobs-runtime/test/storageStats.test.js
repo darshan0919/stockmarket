@@ -46,6 +46,11 @@ describe('storageStats library', () => {
       expect(scopes.has('Transcripts')).toBe(true);
       expect(scopes.has('Cache')).toBe(true);
       expect(scopes.has('Runs')).toBe(true);
+
+      // Verify sorted by totalBytes descending
+      for (let i = 0; i < stats.length - 1; i++) {
+        expect(stats[i].totalBytes).toBeGreaterThanOrEqual(stats[i + 1].totalBytes);
+      }
     });
   });
 

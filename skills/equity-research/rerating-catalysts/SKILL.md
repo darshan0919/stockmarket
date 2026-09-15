@@ -359,6 +359,98 @@ out even absent a P&L confirmation yet).
 
 **Income Statement Signal Scan (mandatory).** When the EBITDA/unit or margin trend across the 4 quarters shows expansion, run `skills/_shared/income-statement-signals.md` on each quarter (QoQ and YoY) rather than checking inventory gains alone — Other Income spikes, tax-rate swings, and exceptional items are equally capable of manufacturing a fake margin trend. **Sourcing rule:** pull every relevant P&L line and PBT for each of the 4 quarters from the actual Result filings via `stock-documents-fetcher`, not from concall/PPT summaries. If a quarter's margin strength is driven by an item that clears the shared scan's materiality bar, do not list it as a margin/mix catalyst in the 3b ranking — flag it as non-recurring instead.
 
+### Phase 2.5 — Price-Volume Spike Days (mandatory, full mode only)
+
+**What this answers.** Beyond the last-7-day announcement flow (Phase 2/3c),
+did this stock have any day in the recent past where it gained sharply on
+volume that was genuinely abnormal for it — and if so, is there a
+discoverable reason? A gap-up on 5x normal volume that nothing in the 7-day
+announcement window explains is itself a re-rating-relevant fact (early
+accumulation ahead of news, or a filing lag the 7-day window missed) and
+belongs in the report even when Phase 2's document set is otherwise quiet.
+
+Skipped in `--mode brief` — brief mode is the cached, no-widget EPS-thesis
+path other skills call at scale (Step 6 of the shared scan-signal pipeline),
+and this sub-section's own fetch/read cost has no cheap-cache path yet (no
+filing-level cache entry to reuse the way brief mode reuses `brief_cache.js`).
+
+**Step A — find the spike days (script, deterministic).**
+
+```bash
+node -e "
+const { NseClient } = require('<repo>/stock-api/src/clients/NseClient.js');
+const { findRecentSpikeDays } = require('<repo>/stock-api/src/analyzers/priceSpikeSignals.js');
+const nse = new NseClient();
+findRecentSpikeDays(nse, '<EXCH:SYMBOL>', { lookbackDays: 30 }).then(r => console.log(JSON.stringify(r, null, 2)));
+"
+```
+
+A "spike day" is a 1-day close-to-close gain ≥ 5% on volume ≥ 2x the trailing
+31-calendar-day median volume (both thresholds are explicit params on
+`findSpikeDays` — tune per company liquidity if a name is unusually noisy or
+quiet; state if you do). The 31-day window is a *calendar* window, not a
+trading-day count, so it tracks "this month's typical volume" regardless of
+how many sessions fell in it — see the module's docblock for the exact
+inclusion rule. Default lookback is the trailing 30 calendar days; widen it
+(`lookbackDays`) if the user asks for a longer look-back explicitly. Zero
+spike days is a legitimate, common outcome — say so in one line in 3c and
+move on; do not pad.
+
+**Step B — assemble WHY candidates (script, deterministic).** For each spike
+day, fetch the announcements in the window ending on the spike date (default
+3 calendar days back — an announcement disseminated AFTER the spike cannot
+explain it and is excluded, but one filed a few days before delivery-backed
+buying shows up is a legitimate, common lag per the shared pipeline's rung-1
+rule):
+
+```bash
+node skills/equity-research/rerating-catalysts/scripts/matchSpikeAnnouncements.js '<EXCH:SYMBOL>' '<spikeDays-json-array>'
+```
+
+This returns each spike day's candidate announcements, provisionally
+annotated (`taxonomy.annotate()` — title/description only, `strengthSource:
+'title'`). **This is a sort hint, never a verdict** — identical to the
+doctrine in `skills/equity-research/_shared/scan-signal-pipeline.md`
+("Strength is never judged from a title — always from the read"), which this
+sub-section deliberately reuses rather than re-deriving its own rule.
+
+**Step C — resolve WHY (judgment, mandatory).** Walk the same six-rung ladder
+`scan-signal-pipeline.md` Step 5 defines, per spike day:
+
+1. **`filing`** — a candidate from Step B, content-verified (check
+   `resolveFilingContent({sourceUrl, profile:'announcement'})` first for a
+   served Filing Extract; otherwise fetch and read the PDF, then call
+   `taxonomy.annotateFromContent(ann, bodyText)` for the final verdict — never
+   report a Step B title-only `strength` as final), plausibly accounts for
+   the move. State how many days before the spike it was filed if not
+   same-day.
+2. **`classified`** — a filing exists but it's unclear whether its claims were
+   already known to the market; run `announcement-info-classifier` on it.
+3. **`catalyst`** — no filing explains it, but `stockscans.growthCatalysts`
+   (from `buildCompanyContext`, already fetched in Phase 1) or this same run's
+   own Phase 3b catalyst list plausibly does.
+4. **`concall`** — the latest concall (already fetched in Phase 1) carries a
+   concrete forward-guidance number timed near the spike.
+5. **`sector`** — a sector-wide move, if known; otherwise skip.
+6. **`none`** — genuinely nothing found. This is a real, expected finding for
+   many spike days — state it plainly rather than stretching Step B's weakest
+   candidate into a forced explanation.
+
+Record `linkage` (`explained` / `unexplained` / `mismatched`) per spike day
+using the same three-way definition as the shared pipeline. A ROUTINE-titled
+filing that turns out, on content read, to be the actual trigger (e.g. an
+"Outcome of Investor Meet" filing whose PDF is the transcript of an
+above-expectations earnings call) is `explained` via rung 1, not `mismatched`
+— `mismatched` is reserved for a filing that demonstrably does NOT fit the
+move (a routine disclosure alongside a large unexplained gain).
+
+**Output.** Each spike day becomes one entry in the DTO's new `spikeDays[]`
+array (see Phase 4 below) and folds into 3c as its own labelled subsection
+("Price-Volume Spike Days") — do not silently merge it into the 7-day
+announcement flow, since a spike day can fall outside that window and its
+WHY-ladder rung is a distinct piece of information from a plain signal/noise
+tag.
+
 ### Phase 3 — Synthesize
 
 **3a. Company snapshot** — 3–4 lines (business, value-chain position,
@@ -439,7 +531,11 @@ Domain fields: `cmp`, `marketCap`, `capCategory`, `sector`, `snapshot`,
 `kpiHeaders`/`kpiValues`, `catalysts[]` (each with `name`, `body`,
 `newCategory[]`, `newVsConfirmation`, `impact`, `timeline`, `conviction`,
 `forwardMarker`, `sources[]`), `weeklyFlow` (`dateRangeStart`, `dateRangeEnd`,
-`signalItems[]`, `noiseItems[]`), `whatsInThePrice`, `risks[]`, `verdict`,
+`signalItems[]`, `noiseItems[]`), `spikeDays[]` (Phase 2.5, full mode only —
+each entry: `date`, `returnPct`, `volumeMultiple`, `medianVolume`, `whyBasis`
+(`filing`/`classified`/`catalyst`/`concall`/`sector`/`none`), `whyDetail`,
+`linkage` (`explained`/`unexplained`/`mismatched`), `sources[]`; empty array
+when zero spike days were found, never omitted), `whatsInThePrice`, `risks[]`, `verdict`,
 **`jCurveTag` (`STRONG`/`MODERATE`/`WEAK`/`NONE`, per framework §5f — mandatory,
 never omit even when `NONE`), `jCurveReason`** (one sentence naming the
 trigger and quarter, or the failed check for a `NONE` tag).
@@ -497,8 +593,16 @@ rerating-catalysts/
 └── scripts/
     ├── prefilter_rerating_candidates.js   (Stage 0 — zero-LLM pre-filter for batch runs)
     ├── extract_rerating_signatures.py     (Stage 1 — zero-LLM recall pass for a single candidate)
-    └── brief_cache.js                     (--mode brief: filing + company caches, plan/get/put)
+    ├── brief_cache.js                     (--mode brief: filing + company caches, plan/get/put)
+    └── matchSpikeAnnouncements.js         (Phase 2.5 — WHY-candidate assembly for spike days)
 ```
+
+`stock-api/src/analyzers/priceSpikeSignals.js` (Phase 2.5 — spike-day detection:
+`median`, `computeDailyMetrics`, `findSpikeDays`, `findRecentSpikeDays`) lives
+alongside `priceMetrics.js`/`eventReactionSignals.js`, not under this skill's
+own `scripts/`, since it depends only on `NseClient` and is a generic
+price/volume analyzer other skills could reuse — the same placement reasoning
+as `catalystRules.js` below.
 
 `computeJCurveScore()` (Stage 2, framework §5c's 9-point scorecard) and
 `jCurvePatThresholdHint()` (a scan-row pre-screen for framework §5f's PAT-growth
