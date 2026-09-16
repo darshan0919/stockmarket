@@ -49,7 +49,8 @@ describe('StockscansClient.resultsDocuments', () => {
 
     await client.resultsDocuments({});
 
-    expect(http.calls[0].url).toBe('https://www.stockscans.in/api/company/results/documents');
+    // Path migrated 2026-09-16: old `company/results/documents` 404s now.
+    expect(http.calls[0].url).toBe('https://www.stockscans.in/api/scans/result/documents');
     expect(http.calls[0].opts.headers.referer).toBe('https://www.stockscans.in/result-scans');
   });
 });

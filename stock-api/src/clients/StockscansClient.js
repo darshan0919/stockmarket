@@ -49,13 +49,40 @@ class StockscansClient {
 
   /**
    * Run a saved/ad-hoc scan.
-   * @param {Object} payload - Full scan payload (offset, filters, …).
+   *
+   * PATH MIGRATED 2026-09-16 (Stockscans backend refactor — see
+   * `docs/stockscans-api-schemas.md` §"Migration notes 2026-09-16"): old path
+   * `POST /api/company/scans/run` now 404s. New path is
+   * `POST /api/scans/stock/run`, confirmed live via captured browser traffic
+   * (Network tab on stockscans.in/scans, re-running a saved scan). The
+   * REQUEST SHAPE also changed — it's no longer a flat `{offset, filters, …}`
+   * payload; the scan definition is now nested under a `scan` object matching
+   * the saved-scan record shape (`scanId`, `scanName`, `scanDescription`,
+   * `industry`, `index`, `tags`, `watchlistIds`, `filters`, `alertFrequency`),
+   * plus top-level `ratiosType`, `timePeriod`, `watchlistIds`, `order`,
+   * `orderBy`, `offset`. Response shape (array-of-rows `table`) is unchanged.
+   * @param {Object} payload - New shape: `{ratiosType, timePeriod, scan:
+   *   {scanId, scanName, scanDescription, industry, index, tags,
+   *   watchlistIds, filters, alertFrequency}, watchlistIds, order, orderBy,
+   *   offset}`. Callers migrating from the old flat shape must wrap their
+   *   scan-definition fields (`filters`/`industry`/`index`/`watchlistIds`)
+   *   inside `scan`, and supply `ratiosType`/`timePeriod`/`order`/`orderBy`
+   *   (defaults below cover the common case).
    * @param {string} [scanId] - Used to build the Referer.
    * @returns {Promise<Object>}
    */
   async runScan(payload, scanId = '') {
     const referer = scanId ? `${BASE_URL}/scans/saved/${scanId}` : `${BASE_URL}/scans`;
-    const { data } = await this.http.post(`${BASE_URL}/api/company/scans/run`, payload, {
+    const body = {
+      ratiosType: 'Default',
+      timePeriod: 'Latest',
+      order: 'asc',
+      orderBy: 'Market Capitalization',
+      offset: 0,
+      watchlistIds: [],
+      ...payload,
+    };
+    const { data } = await this.http.post(`${BASE_URL}/api/scans/stock/run`, body, {
       headers: this._headers(referer),
     });
     return data;
@@ -63,16 +90,24 @@ class StockscansClient {
 
   /**
    * Fetch a saved scan's metadata.
+   *
+   * PATH MIGRATED 2026-09-16: old path `GET /api/user/saved-scans/{scanId}`
+   * now 404s. New path `GET /api/scans/stock/saved/{scanId}`, confirmed live
+   * (mirrors {@link savedScans}'s `user/saved-scans` → `scans/stock/saved`
+   * migration). Response shape unchanged (`{scanId, scanName,
+   * scanDescription, industry, index, tags, watchlistIds, filters,
+   * alertFrequency}`).
    * @param {string} scanId
    * @returns {Promise<Object>}
    */
   async getScanMetadata(scanId) {
     // The saved-scan *definition* (filters, tags, name) lives at the user
-    // saved-scans endpoint. The older `/api/company/scans/metadata` path returns
-    // only generic index/industry lists — not a scan definition — so callers
-    // that need the filters (runScan, catalyst/keyword scanners) must use this.
+    // saved-scans endpoint. The older `/api/company/scans/metadata` /
+    // `/api/scans/stock/metadata` path returns only generic index/industry
+    // lists — not a scan definition — so callers that need the filters
+    // (runScan, catalyst/keyword scanners) must use this.
     const { data } = await this.http.get(
-      `${BASE_URL}/api/user/saved-scans/${encodeURIComponent(scanId)}`,
+      `${BASE_URL}/api/scans/stock/saved/${encodeURIComponent(scanId)}`,
       { headers: this._headers(`${BASE_URL}/scans/saved/${scanId}`) }
     );
     return data;
@@ -81,13 +116,26 @@ class StockscansClient {
   // ── Announcements ───────────────────────────────────────────────────────────
 
   /**
-   * Announcement scan across companies/keywords/quarter. See
-   * `docs/stockscans-api-schemas.md` §"POST /api/company/announcements/scan"
-   * for the full payload shape (confirmed live 2026-07-31) — notably the
-   * quarter filter is a top-level `quarterDate` ("YYYYMM", e.g. "202609"),
-   * NOT a per-item `date`/`documentType` field inside `scan`. `scan.filters`
-   * is required (defaults to `[]`); `scan.watchlistIds` is the standard way
-   * to scope to an arbitrary companyId list via a throwaway watchlist.
+   * Announcement scan across companies/keywords/quarter.
+   *
+   * PATH MIGRATED 2026-09-16: old path `POST /api/company/announcements/scan`
+   * now 404s. New path `POST /api/scans/announcement/search` — CONFIRMED LIVE
+   * via captured browser traffic (Network tab, stockscans.in Announcement
+   * Scans page): as of this refactor, Stockscans merged the old
+   * `scan`/`search` distinction into ONE endpoint. Calling it with
+   * `scan.searchFilters: []` (no keywords) returns the plain announcement
+   * feed for the scan — exactly the old `scanAnnouncements` behavior; calling
+   * it with `scan.searchFilters: ['some keyword']` is the old
+   * `searchAnnouncements` behavior. See {@link searchAnnouncements}, which is
+   * now a thin wrapper over this same endpoint.
+   *
+   * Request/response shape is otherwise UNCHANGED from the pre-migration
+   * schema documented in `docs/stockscans-api-schemas.md` — quarter filter is
+   * still the top-level `quarterDate` ("YYYYMM", e.g. "202609"), NOT a
+   * per-item `date`/`documentType` field inside `scan`. `scan.filters` is
+   * required (defaults to `[]`); `scan.watchlistIds` is the standard way to
+   * scope to an arbitrary companyId list via a throwaway watchlist. Response
+   * key is `announcements` (confirmed live).
    * @param {Object} payload
    * @param {Object} [opts]
    * @param {string} [opts.referer] - Override the Referer header.
@@ -98,7 +146,7 @@ class StockscansClient {
     payload,
     { referer = `${BASE_URL}/watchlists`, optionalAuth = false } = {}
   ) {
-    const { data } = await this.http.post(`${BASE_URL}/api/company/announcements/scan`, payload, {
+    const { data } = await this.http.post(`${BASE_URL}/api/scans/announcement/search`, payload, {
       headers: this._headers(referer, optionalAuth),
     });
     return data;
@@ -106,6 +154,12 @@ class StockscansClient {
 
   /**
    * Announcement-scan keyword/company match statistics.
+   *
+   * PATH MIGRATED 2026-09-16: old path
+   * `POST /api/company/announcements/statistics` now 404s. New path
+   * `POST /api/scans/announcement/statistics` — CONFIRMED LIVE, same request
+   * shape (the pre-migration `scan` object) and same response shape
+   * (`{totalMatches, totalCompanies, companyData, keywords}`).
    * @param {Object} payload
    * @param {Object} [opts]
    * @param {string} [opts.referer]
@@ -114,7 +168,7 @@ class StockscansClient {
    */
   async announcementStatistics(payload, { referer = `${BASE_URL}/`, optionalAuth = false } = {}) {
     const { data } = await this.http.post(
-      `${BASE_URL}/api/company/announcements/statistics`,
+      `${BASE_URL}/api/scans/announcement/statistics`,
       payload,
       { headers: this._headers(referer, optionalAuth) }
     );
@@ -123,28 +177,45 @@ class StockscansClient {
 
   /**
    * Announcements for a single company.
-   * @param {Object} payload
+   *
+   * PATH MIGRATED 2026-09-16: old path
+   * `POST /api/company/announcements/company` now 404s. As of this refactor,
+   * Stockscans MERGED the single-company and bulk-company announcement
+   * endpoints into one: `POST /api/company/fundamentals/announcements` —
+   * CONFIRMED LIVE with the exact same `{companyIds, offset}` payload
+   * {@link announcements} (bulk) uses; a single-company call is just
+   * `companyIds: [oneId]`. This method is now a thin wrapper delegating to
+   * {@link announcements} — kept separate only for call-site clarity/naming,
+   * not because the underlying request differs. Response key is
+   * `companyAnnouncements` (confirmed live) — same as before.
+   * @param {Object} payload - Must include `companyIds` (array, may be a single id) and `offset`.
    * @param {Object} [opts]
    * @param {string} [opts.referer]
    * @param {boolean} [opts.optionalAuth=false]
    * @returns {Promise<Object>}
    */
-  async companyAnnouncements(payload, { referer = `${BASE_URL}/`, optionalAuth = false } = {}) {
+  async companyAnnouncements(payload, { referer, optionalAuth = false } = {}) {
+    const companyIds = (payload.companyIds || []).map(sanitizeCompanyId);
+    const finalReferer = referer || `${BASE_URL}/company/${companyIds[0] || ''}`;
     const { data } = await this.http.post(
-      `${BASE_URL}/api/company/announcements/company`,
-      payload,
-      { headers: this._headers(referer, optionalAuth) }
+      `${BASE_URL}/api/company/fundamentals/announcements`,
+      { companyIds, offset: payload.offset || 0 },
+      { headers: this._headers(finalReferer, optionalAuth) }
     );
     return data;
   }
 
   /**
-   * Paginated corporate announcements for one or more companies. Distinct
-   * from {@link companyAnnouncements}, which posts to `/announcements/company`
-   * and returned HTTP 400 for a plain `{companyIds, offset}` payload as of
-   * 2026-07 live testing (order-book-pipeline work) — this hits the endpoint
-   * documented in stock-documents-fetcher's api_details.md and used by
-   * fetch_announcements.py, confirmed working with the same payload shape.
+   * Paginated corporate announcements for one or more companies.
+   *
+   * PATH MIGRATED 2026-09-16: old path `POST /api/company/announcements` now
+   * 404s. New path `POST /api/company/fundamentals/announcements` —
+   * CONFIRMED LIVE with the same `{companyIds, offset}` payload shape and the
+   * same `companyAnnouncements` response key. As of this refactor, this is
+   * now the SAME endpoint {@link companyAnnouncements} calls (Stockscans
+   * merged what used to be two separate single-company/bulk routes) — kept
+   * as a distinct method here only because callers use `announcements(ids,
+   * offset)`'s positional-args signature, not because the request differs.
    * @param {string[]} companyIds
    * @param {number} [offset=0] - paginates in steps of 30
    * @returns {Promise<{companyAnnouncements: Array, offset: number, limit: number}>}
@@ -152,7 +223,7 @@ class StockscansClient {
   async announcements(companyIds, offset = 0) {
     companyIds = (companyIds || []).map(sanitizeCompanyId);
     const { data } = await this.http.post(
-      `${BASE_URL}/api/company/announcements`,
+      `${BASE_URL}/api/company/fundamentals/announcements`,
       { companyIds, offset },
       { headers: this._headers(`${BASE_URL}/company/${companyIds[0]}`) }
     );
@@ -161,11 +232,19 @@ class StockscansClient {
 
   /**
    * Announcement-scan metadata (index/industry lists).
+   *
+   * PATH MIGRATED 2026-09-16: old path `GET /api/company/scans/metadata` now
+   * 404s. New path `GET /api/scans/stock/metadata` — CONFIRMED LIVE, same
+   * response shape (`{indexList, industryList, …}`). Despite the "stock"
+   * segment in the new path, this is still the generic index/industry
+   * metadata used for announcement-scan filter dropdowns, not a stock-scan-
+   * specific endpoint — Stockscans appears to have consolidated metadata
+   * lookups under `scans/stock/metadata` regardless of which scan type calls it.
    * @param {Object} [opts] - { referer, optionalAuth }
    * @returns {Promise<Object>}
    */
   async scanMetadata({ referer = `${BASE_URL}/`, optionalAuth = false } = {}) {
-    const { data } = await this.http.get(`${BASE_URL}/api/company/scans/metadata`, {
+    const { data } = await this.http.get(`${BASE_URL}/api/scans/stock/metadata`, {
       headers: this._headers(referer, optionalAuth),
     });
     return data;
@@ -203,11 +282,16 @@ class StockscansClient {
 
   /**
    * The user's saved announcement scans. Auth required.
+   *
+   * PATH MIGRATED 2026-09-16: old path `GET /api/user/announcement-scans`
+   * now 404s. New path `GET /api/scans/announcement/saved` — CONFIRMED LIVE
+   * (read-only, live-probed), same response shape (`{announcementScans: [...]}`).
+   *
    * @param {Object} [opts] - { referer }
    * @returns {Promise<Object>}
    */
   async savedAnnouncementScans({ referer = `${BASE_URL}/` } = {}) {
-    const { data } = await this.http.get(`${BASE_URL}/api/user/announcement-scans`, {
+    const { data } = await this.http.get(`${BASE_URL}/api/scans/announcement/saved`, {
       headers: this._headers(referer),
     });
     return data;
@@ -215,11 +299,20 @@ class StockscansClient {
 
   /**
    * Create/save an announcement scan (PUT). Auth required.
+   *
+   * PATH MIGRATED 2026-09-16: old path `PUT /api/user/announcement-scans`
+   * now 404s. New path `PUT /api/scans/announcement/saved` — path taken
+   * directly from the user-confirmed migration map; NOT live-tested since
+   * this is a mutating call against the real account. Payload/response
+   * shape assumed unchanged (mirrors the read-only `savedAnnouncementScans`
+   * rename pattern) — verify against a real save before relying on it in a
+   * new caller.
+   *
    * @param {Object} payload @param {Object} [opts] - { referer }
    * @returns {Promise<Object>}
    */
   async saveAnnouncementScan(payload, { referer = `${BASE_URL}/` } = {}) {
-    const { data } = await this.http.put(`${BASE_URL}/api/user/announcement-scans`, payload, {
+    const { data } = await this.http.put(`${BASE_URL}/api/scans/announcement/saved`, payload, {
       headers: this._headers(referer),
     });
     return data;
@@ -227,12 +320,19 @@ class StockscansClient {
 
   /**
    * Reorder the user's saved announcement scans (PUT …/order). Auth required.
+   *
+   * PATH MIGRATED 2026-09-16: old path
+   * `PUT /api/user/announcement-scans/order` now 404s. New path
+   * `PUT /api/scans/announcement/saved/order` — from the user-confirmed
+   * migration map; NOT live-tested (mutating). Payload/response shape
+   * assumed unchanged.
+   *
    * @param {string[]} scanIds @param {Object} [opts] - { referer }
    * @returns {Promise<Object>}
    */
   async reorderAnnouncementScans(scanIds, { referer = `${BASE_URL}/` } = {}) {
     const { data } = await this.http.put(
-      `${BASE_URL}/api/user/announcement-scans/order`,
+      `${BASE_URL}/api/scans/announcement/saved/order`,
       { scanIds },
       { headers: this._headers(referer) }
     );
@@ -241,12 +341,19 @@ class StockscansClient {
 
   /**
    * Delete a saved announcement scan by id (DELETE). Auth required.
+   *
+   * PATH MIGRATED 2026-09-16: old path
+   * `DELETE /api/user/announcement-scans/{scanId}` now 404s. New path
+   * `DELETE /api/scans/announcement/saved/{scanId}` — from the
+   * user-confirmed migration map; NOT live-tested (mutating). Response
+   * shape assumed unchanged.
+   *
    * @param {string} scanId @param {Object} [opts] - { referer }
    * @returns {Promise<Object>}
    */
   async deleteAnnouncementScan(scanId, { referer = `${BASE_URL}/` } = {}) {
     const { data } = await this.http.delete(
-      `${BASE_URL}/api/user/announcement-scans/${encodeURIComponent(scanId)}`,
+      `${BASE_URL}/api/scans/announcement/saved/${encodeURIComponent(scanId)}`,
       { headers: this._headers(referer) }
     );
     return data;
@@ -254,13 +361,23 @@ class StockscansClient {
 
   /**
    * Search announcements by free text.
+   *
+   * PATH MIGRATED 2026-09-16: old path `POST /api/company/announcements/search`
+   * now 404s. Stockscans merged this into the same endpoint as
+   * {@link scanAnnouncements} — `POST /api/scans/announcement/search` — with
+   * `scan.searchFilters` populated (non-empty) signaling search behavior vs.
+   * `scanAnnouncements`'s empty-array scan behavior. This method is now a
+   * thin wrapper: callers should prefer {@link scanAnnouncements} directly
+   * with `scan.searchFilters` set, but this is kept for backward
+   * compatibility with existing call sites.
+   *
    * @param {Object} payload
    * @param {Object} [opts]
    * @param {string} [opts.referer] - Override the Referer header (e.g. a company page).
    * @returns {Promise<Object>}
    */
   async searchAnnouncements(payload, { referer = `${BASE_URL}/` } = {}) {
-    const { data } = await this.http.post(`${BASE_URL}/api/company/announcements/search`, payload, {
+    const { data } = await this.http.post(`${BASE_URL}/api/scans/announcement/search`, payload, {
       headers: this._headers(referer),
     });
     return data;
@@ -283,13 +400,21 @@ class StockscansClient {
 
   /**
    * Card details / fundamental metrics — batch POST for one or more companyIds.
+   *
+   * PATH MIGRATED 2026-09-16: old path `POST /api/company/card-details` now
+   * 404s. New path `POST /api/home/card-details` — CONFIRMED LIVE, same
+   * `{companyIds}` request shape and same response shape (`cardData` keyed
+   * by companyId, each with a `prices` intraday array plus `metaRatios` — the
+   * intraday `prices` array is new/more prominent in the live response than
+   * previously documented, worth double-checking any caller that only reads
+   * `metaRatios` still gets what it needs).
    * @param {string[]|string} companyIds - e.g. ['NSE:RELIANCE'] (a single id is wrapped).
    * @returns {Promise<Object>} Raw response; metrics live under `data.cardData[companyId].metaRatios`.
    */
   async cardDetails(companyIds) {
     const ids = (Array.isArray(companyIds) ? companyIds : [companyIds]).map(sanitizeCompanyId);
     const { data } = await this.http.post(
-      `${BASE_URL}/api/company/card-details`,
+      `${BASE_URL}/api/home/card-details`,
       { companyIds: ids },
       { headers: this._headers(`${BASE_URL}/`) }
     );
@@ -319,6 +444,18 @@ class StockscansClient {
    * 2026-07-10 11:47 candle captured Elecon's board-meeting result reaction
    * (515 → 485, ~6% down move, volume 331 → 129k), matching the NSE-verified
    * 11:47:44 announcement time.
+   *
+   * PATH MIGRATED 2026-09-16: old path `GET /api/company/ohlcv/{ticker}` now
+   * 404s. New path `GET /api/charts/ohlcv/{ticker}` — CONFIRMED LIVE.
+   * **The `tf` enum also changed** — the old `'1d'` value now returns
+   * `400 {"message":"Input should be '1m', '2m', '3m', '5m', '10m', '15m',
+   * '30m', '1h', '2h', '4h', '1D', '1W' or '1M'"}`. Daily is now `'1D'`
+   * (capital D), and new intermediate values (`2m`, `3m`, `10m`, `2h`, `4h`)
+   * plus weekly/monthly (`1W`, `1M`) were added. `'1m'`/`'5m'`/`'15m'`/`'1h'`
+   * are unchanged. Response is gzip-compressed by the server (handled
+   * transparently by this client's underlying HttpClient/axios — no special
+   * handling needed here) and the shape is otherwise unchanged: `{companyId,
+   * name, exchange, tf, prices: [[date, o, h, l, c, v], …], hasMore}`.
    * Auth: requires STOCKSCANS_AUTH_TOKEN (the `authtoken` cookie) — same as the
    * rest of this client. No extra headers (e.g. x-sync-source) were required in
    * testing despite appearing in a browser-captured request.
@@ -327,19 +464,19 @@ class StockscansClient {
    * further back in history.
    * @param {string} ticker - e.g. "NSE:ELECON".
    * @param {Object} [opts]
-   * @param {'1m'|'5m'|'15m'|'1h'|'1d'} [opts.tf='1m']
+   * @param {'1m'|'2m'|'3m'|'5m'|'10m'|'15m'|'30m'|'1h'|'2h'|'4h'|'1D'|'1W'|'1M'} [opts.tf='1m']
    * @param {string} [opts.before] - ISO timestamp (no 'Z'), e.g.
    *   "2026-07-03T10:23:00" — fetch candles strictly before this point.
    * @returns {Promise<{companyId:string,name:string,exchange:string,tf:string,
    *   prices:Array<[string,number,number,number,number,number]>,hasMore:boolean}>}
-   *   prices rows are [isoTimestamp, open, high, low, close, volume].
+   *   prices rows are [isoTimestamp (or date for 1D/1W/1M), open, high, low, close, volume].
    */
   async ohlcv(ticker, { tf = '1m', before } = {}) {
     ticker = sanitizeCompanyId(ticker);
     const params = { tf };
     if (before) params.before = before;
     const { data } = await this.http.get(
-      `${BASE_URL}/api/company/ohlcv/${encodeURIComponent(ticker)}`,
+      `${BASE_URL}/api/charts/ohlcv/${encodeURIComponent(ticker)}`,
       {
         params,
         headers: this._headers(`${BASE_URL}/charts/${encodeURIComponent(ticker)}`),
@@ -350,6 +487,11 @@ class StockscansClient {
 
   /**
    * Official company documents (AR / concall / PPT / results).
+   *
+   * PATH MIGRATED 2026-09-16: old path `GET /api/company/documents/{id}` now
+   * 404s. New path `GET /api/company/fundamentals/documents/{id}` —
+   * CONFIRMED LIVE, same response shape (`{companyId, documents: [{date,
+   * documentType, ssUrl, hasNotes}, …]}`).
    * @param {string} companyId
    * @returns {Promise<Object>}
    */
@@ -358,9 +500,10 @@ class StockscansClient {
     // suffix from raw feed data would otherwise 404 or silently return the
     // wrong company's documents. See stock-api/src/utils/companyId.js.
     companyId = sanitizeCompanyId(companyId);
-    const { data } = await this.http.get(`${BASE_URL}/api/company/documents/${companyId}`, {
-      headers: this._headers(`${BASE_URL}/company/${companyId}`),
-    });
+    const { data } = await this.http.get(
+      `${BASE_URL}/api/company/fundamentals/documents/${companyId}`,
+      { headers: this._headers(`${BASE_URL}/company/${companyId}`) }
+    );
     return data;
   }
 
@@ -391,6 +534,10 @@ class StockscansClient {
    *   since the call volume depends on how many companies filed this
    *   quarter market-wide, not on how many the caller asked about.
    *
+   * PATH MIGRATED 2026-09-16: old path `POST /api/company/results/documents`
+   * now 404s. New path `POST /api/scans/result/documents` — CONFIRMED LIVE,
+   * same request body and response shape (`{documents, total, quarterDate}`).
+   *
    * @param {Object} [opts]
    * @param {number} [opts.offset=0] - paginates in steps of 50
    * @param {string} [opts.documentType=''] - '', 'Result', 'PPT', or 'Transcript'
@@ -407,7 +554,7 @@ class StockscansClient {
     watchlistIds = [],
   } = {}) {
     const { data } = await this.http.post(
-      `${BASE_URL}/api/company/results/documents`,
+      `${BASE_URL}/api/scans/result/documents`,
       {
         scan: { filters: [], index: [], industry: [], watchlistIds },
         offset,
@@ -456,13 +603,26 @@ class StockscansClient {
   /**
    * AI-synthesized growth-catalyst report for a company (ready-made research
    * context — no synthesis needed on our side).
+   *
+   * PATH MIGRATED 2026-09-16: old path
+   * `GET /api/company/growth-catalysts/{id}` now 404s. New path
+   * `GET /api/company/reports/growth-catalysts/{id}` — CONFIRMED LIVE, same
+   * response shape (`{finalReport, dateLabel, toc}`). Note: this endpoint (like
+   * {@link businessOverview} and {@link concallNotes}) is served by a
+   * different backend (`server: uvicorn`, i.e. Python/FastAPI) than the
+   * Next.js-fronted endpoints — it occasionally returned a bare `401 {}` in
+   * testing that cleared on retry within ~1.5s, which looked like an auth
+   * failure but was NOT (same token, same headers, succeeded moments later on
+   * an unmodified retry) — treat a 401 from this specific endpoint as
+   * possibly transient/rate-limit-like and retry once before treating it as a
+   * real auth failure.
    * @param {string} companyId
    * @returns {Promise<{finalReport: string, dateLabel: string, toc: Array<{id, text}>}>}
    */
   async growthCatalysts(companyId) {
     companyId = sanitizeCompanyId(companyId);
     const { data } = await this.http.get(
-      `${BASE_URL}/api/company/growth-catalysts/${encodeURIComponent(companyId)}`,
+      `${BASE_URL}/api/company/reports/growth-catalysts/${encodeURIComponent(companyId)}`,
       { headers: this._headers(`${BASE_URL}/company/${companyId}`) }
     );
     return data;
@@ -471,13 +631,18 @@ class StockscansClient {
   /**
    * AI-synthesized business-overview report for a company (ready-made research
    * context — no synthesis needed on our side).
+   *
+   * PATH MIGRATED 2026-09-16: old path
+   * `GET /api/company/business-overview/{id}` now 404s. New path
+   * `GET /api/company/reports/business-overview/{id}` — CONFIRMED LIVE, same
+   * response shape (`{finalReport, dateLabel, toc}`).
    * @param {string} companyId
    * @returns {Promise<{finalReport: string, dateLabel: string, toc: Array<{id, text}>}>}
    */
   async businessOverview(companyId) {
     companyId = sanitizeCompanyId(companyId);
     const { data } = await this.http.get(
-      `${BASE_URL}/api/company/business-overview/${encodeURIComponent(companyId)}`,
+      `${BASE_URL}/api/company/reports/business-overview/${encodeURIComponent(companyId)}`,
       { headers: this._headers(`${BASE_URL}/company/${companyId}`) }
     );
     return data;
@@ -487,6 +652,13 @@ class StockscansClient {
    * AI-synthesized notes from a single concall transcript. `ssUrl` is the
    * transcript document's id — see {@link documents} (filter
    * `documentType === 'Transcript'`) or {@link latestTranscript}.
+   *
+   * PATH MIGRATED 2026-09-16: old path
+   * `GET /api/company/concall-notes/{id}/{ssUrl}` now 404s. New path
+   * `GET /api/scans/concall/notes/{id}/{ssUrl}` — CONFIRMED LIVE, same
+   * response shape (`{finalReport, date, companyName, bullets}`). Like
+   * {@link growthCatalysts}, occasionally returned a transient bare `401 {}`
+   * that cleared on retry — see that method's doc note.
    * @param {string} companyId
    * @param {string} ssUrl
    * @returns {Promise<{finalReport: string, date: string, companyName: string, bullets: Object}>}
@@ -494,7 +666,7 @@ class StockscansClient {
   async concallNotes(companyId, ssUrl) {
     companyId = sanitizeCompanyId(companyId);
     const { data } = await this.http.get(
-      `${BASE_URL}/api/company/concall-notes/${encodeURIComponent(companyId)}/${encodeURIComponent(ssUrl)}`,
+      `${BASE_URL}/api/scans/concall/notes/${encodeURIComponent(companyId)}/${encodeURIComponent(ssUrl)}`,
       { headers: this._headers(`${BASE_URL}/company/${companyId}`) }
     );
     return data;
@@ -522,8 +694,15 @@ class StockscansClient {
   }
 
   /**
-   * Concall sentiment/quality scan — powers the /concall-scans page. Confirmed
-   * live 2026-08-01 (throwaway watchlist of 50 real tickers, `resultsDocuments`
+   * Concall sentiment/quality scan — powers the /concall-scans page.
+   *
+   * PATH MIGRATED 2026-09-16: old path `POST /api/company/concall-scan` now
+   * 404s. New path `POST /api/scans/concall/run` — CONFIRMED LIVE with the
+   * unmodified pre-migration payload shape, and the response shape below
+   * (`{rows, next, quarter, subscription}`, 12-element positional rows) is
+   * UNCHANGED — a direct path swap, no payload/response migration needed.
+   *
+   * Confirmed live 2026-08-01 (throwaway watchlist of 50 real tickers, `resultsDocuments`
    * transcript set). Response: `{rows: [...], next, quarter, subscription}` —
    * NOT `records`/`data`/`items` as originally guessed. `next` is the offset to
    * pass on the following call, or `null` when exhausted (confirmed with a
@@ -566,7 +745,7 @@ class StockscansClient {
    * @returns {Promise<{rows: Array<Array>, next: number|null, quarter: string, subscription: string}>}
    */
   async concallScan(payload, { referer = `${BASE_URL}/concall-scans`, optionalAuth = false } = {}) {
-    const { data } = await this.http.post(`${BASE_URL}/api/company/concall-scan`, payload, {
+    const { data } = await this.http.post(`${BASE_URL}/api/scans/concall/run`, payload, {
       headers: this._headers(referer, optionalAuth),
     });
     return data;
@@ -699,10 +878,15 @@ class StockscansClient {
 
   /**
    * The authenticated user's saved scans.
+   *
+   * PATH MIGRATED 2026-09-16: old path `GET /api/user/saved-scans` now
+   * 404s. New path `GET /api/scans/stock/saved` — CONFIRMED LIVE, same
+   * response shape (`{scans: [...]}`).
+   *
    * @returns {Promise<Object>} Raw response (a bare array or `{ scans: [...] }`).
    */
   async savedScans() {
-    const { data } = await this.http.get(`${BASE_URL}/api/user/saved-scans`, {
+    const { data } = await this.http.get(`${BASE_URL}/api/scans/stock/saved`, {
       headers: this._headers(`${BASE_URL}/scans/saved`),
     });
     return data;
@@ -755,8 +939,16 @@ class StockscansClient {
    * Confirmed by live testing (2026-08-11):
    * - Payload must include `scan` object with `filters` array (can be empty)
    * - `resultDate` in YYYY-MM-DD format filters to results filed that day
-   * - Response includes `data.results` array with company records
    * - Paginates via `offset` parameter (can determine page size by response count)
+   *
+   * PATH MIGRATED 2026-09-16: old path `POST /api/company/results/scan` now
+   * 404s. New path `POST /api/scans/result/run` — CONFIRMED LIVE, same
+   * request payload shape. BREAKING RESPONSE CHANGE: the old `data.results`
+   * array is gone — the response now returns a top-level `resultTables` key
+   * instead. Any caller reading `response.data.results` (or similar) must be
+   * updated to read `response.resultTables`. See
+   * scripts/jobs/daily_results_extractor.js, which was updated alongside
+   * this change.
    *
    * @param {Object} payload - Full payload shape:
    *   {
@@ -775,10 +967,10 @@ class StockscansClient {
    *   }
    * @param {Object} [opts]
    * @param {string} [opts.referer]
-   * @returns {Promise<{data: {results: Array}, status: number, message?: string}>}
+   * @returns {Promise<{resultTables: Array, status: number, message?: string}>}
    */
   async resultsScan(payload, { referer = `${BASE_URL}/result-scans` } = {}) {
-    const { data } = await this.http.post(`${BASE_URL}/api/company/results/scan`, payload, {
+    const { data } = await this.http.post(`${BASE_URL}/api/scans/result/run`, payload, {
       headers: this._headers(referer),
     });
     return data;

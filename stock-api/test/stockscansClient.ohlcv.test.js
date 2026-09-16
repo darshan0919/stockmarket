@@ -23,7 +23,8 @@ describe('StockscansClient.ohlcv', () => {
     const data = await client.ohlcv('NSE:ELECON');
 
     expect(http.calls).toHaveLength(1);
-    expect(http.calls[0].url).toBe('https://www.stockscans.in/api/company/ohlcv/NSE%3AELECON');
+    // Path migrated 2026-09-16: old `company/ohlcv/{ticker}` 404s now.
+    expect(http.calls[0].url).toBe('https://www.stockscans.in/api/charts/ohlcv/NSE%3AELECON');
     expect(http.calls[0].opts.params).toEqual({ tf: '1m' });
     expect(http.calls[0].opts.headers.cookie).toBe('authtoken=tok');
     expect(http.calls[0].opts.headers.referer).toBe(
@@ -40,5 +41,20 @@ describe('StockscansClient.ohlcv', () => {
     await client.ohlcv('NSE:ELECON', { tf: '5m', before: '2026-07-03T10:23:00' });
 
     expect(http.calls[0].opts.params).toEqual({ tf: '5m', before: '2026-07-03T10:23:00' });
+  });
+
+  test('supports the post-2026-09-16 capitalized day/week/month tf values', async () => {
+    const http = fakeHttp({ prices: [], hasMore: false });
+    process.env.STOCKSCANS_AUTH_TOKEN = 'tok';
+    const client = new StockscansClient({ http });
+
+    await client.ohlcv('NSE:ELECON', { tf: '1D' });
+    expect(http.calls[0].opts.params).toEqual({ tf: '1D' });
+
+    await client.ohlcv('NSE:ELECON', { tf: '1W' });
+    expect(http.calls[1].opts.params).toEqual({ tf: '1W' });
+
+    await client.ohlcv('NSE:ELECON', { tf: '1M' });
+    expect(http.calls[2].opts.params).toEqual({ tf: '1M' });
   });
 });

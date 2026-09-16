@@ -84,7 +84,30 @@ async function fetchAllResultsPages(client, dateStr, pageSize = 50) {
         );
       }
 
-      const companies = response.data?.results || [];
+      // BREAKING CHANGE (Stockscans path migration, 2026-09-16): the old flat
+      // `response.data.results` array is gone. The new `resultsScan` response
+      // (`POST /api/scans/result/run`) returns a top-level `resultTables`
+      // array instead, with each record shaped
+      // `{companyId, metaRatios: {Name, ...}, resultTable: {C, S},
+      // documents: [{ssUrl, documentType, hasNotes}, ...]}` — confirmed via
+      // screener-api/src/features/results/declaredResultsController.js,
+      // which already consumes this same `resultTables` key against a
+      // sibling Stockscans endpoint. `documentType` values are NOT
+      // independently live-confirmed here; matched against the same
+      // 'Result'/'PPT'/'Transcript' vocabulary used by
+      // StockscansClient#resultsDocuments (see its JSDoc) — verify against
+      // a live run before trusting silently.
+      const companies = (response.resultTables || []).map((table) => {
+        const docs = table.documents || [];
+        const findDoc = (type) => docs.find((d) => d.documentType === type);
+        return {
+          companyId: table.companyId,
+          Name: table.metaRatios?.Name,
+          resultSsUrl: findDoc('Result')?.ssUrl,
+          pptSsUrl: findDoc('PPT')?.ssUrl,
+          transcriptSsUrl: findDoc('Transcript')?.ssUrl,
+        };
+      });
       if (!companies.length) {
         hasMore = false;
         break;

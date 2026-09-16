@@ -29,7 +29,10 @@ describe('StockscansClient companyId sanitization', () => {
 
     await client.documents('NSE:SOMECO-BE');
 
-    expect(http.calls[0].url).toBe('https://www.stockscans.in/api/company/documents/NSE:SOMECO');
+    // Path migrated 2026-09-16: old `company/documents/{id}` 404s now.
+    expect(http.calls[0].url).toBe(
+      'https://www.stockscans.in/api/company/fundamentals/documents/NSE:SOMECO'
+    );
   });
 
   test('growthCatalysts() and businessOverview() strip the suffix', async () => {

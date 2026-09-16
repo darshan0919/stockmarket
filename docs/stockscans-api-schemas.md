@@ -23,9 +23,97 @@ Recording), not just concalls.
 
 ---
 
-## POST /api/company/announcements/scan
+## Migration notes 2026-09-16
 
-Client method: `scanAnnouncements(payload, opts)`. Confirmed live 2026-07-31.
+Stockscans re-organized nearly every endpoint under new path prefixes on this
+date (old paths all 404 now). This was a **path-and-consolidation** refactor,
+not a rewrite — payload/response shapes are unchanged for the large majority
+of endpoints. Every path below has been updated in place in this doc and in
+`StockscansClient.js`'s JSDoc; this section only calls out what's
+non-obvious. See `StockscansClient.js` for the definitive per-method
+reference (path + confirmed/unconfirmed status + full payload notes).
+
+**Renaming pattern** (old → new prefix):
+
+- `company/X` → `company/reports/X` (`business-overview`, `growth-catalysts`)
+  or `company/fundamentals/X` (`announcements`, `documents`)
+- `company/scans/X` → `scans/stock/X` (`metadata`, `run`) or
+  `scans/announcement/X` (`statistics`, merged `search`) or
+  `scans/concall/X` (`run`, `notes`) or `scans/result/X` (`run`, `documents`)
+- `user/X` → `scans/stock/saved` (was `user/saved-scans`) or
+  `scans/announcement/saved` (was `user/announcement-scans`)
+- `company/card-details` → `home/card-details`
+- `company/ohlcv/{ticker}` → `charts/ohlcv/{ticker}`
+
+**Endpoint consolidations** (two old endpoints merged into one):
+
+- `scanAnnouncements` (old `company/announcements/scan`) and
+  `searchAnnouncements` (old `company/announcements/search`) now both hit
+  `POST /api/scans/announcement/search`. Differentiated only by whether
+  `scan.searchFilters` is empty (`[]` → scan behavior, matches old
+  `scanAnnouncements`) or populated (keyword array → search behavior,
+  matches old `searchAnnouncements`). `searchAnnouncements` is kept as a
+  thin wrapper for backward compatibility with existing call sites.
+- `companyAnnouncements` (old `company/announcements/company`, single
+  company) and `announcements` (old `company/announcements`, bulk) now both
+  hit `POST /api/company/fundamentals/announcements` with the identical
+  `{companyIds, offset}` request shape — a single-company call is just
+  `companyIds: [oneId]`.
+
+**Real DTO/behavior changes** (not just a path swap):
+
+- **`resultsScan`** (new path `POST /api/scans/result/run`): the response's
+  `data.results` array is **gone**. Replaced by a top-level `resultTables`
+  array. Each record is now `{companyId, metaRatios: {Name, ...},
+  resultTable: {C, S}, documents: [{ssUrl, documentType, hasNotes}, ...]}` —
+  a nested shape, not the old flat per-company record. The only in-repo
+  caller, `scripts/jobs/daily_results_extractor.js`, has been updated to
+  read `response.resultTables` and derive `resultSsUrl`/`pptSsUrl`/
+  `transcriptSsUrl` by matching `documents[].documentType` against
+  `'Result'`/`'PPT'`/`'Transcript'`. That `documentType` matching was NOT
+  independently live-verified against this exact endpoint (it mirrors the
+  vocabulary confirmed for `resultsDocuments`, a sibling endpoint) —
+  spot-check against a live run before trusting it further downstream. See
+  also `screener-api/src/features/results/declaredResultsController.js`,
+  which independently calls a related (but not identical) Stockscans
+  endpoint, `POST /api/company/scan-company-results`, and already consumes
+  this same `resultTables` shape — used as the confirmation source for the
+  record structure.
+- **`ohlcv`**: the `tf` query-param enum changed from all-lowercase to
+  capitalized day/week/month values, and gained two new granularities.
+  Confirmed live enum (from a 400 error message):
+  `'1m', '2m', '3m', '5m', '10m', '15m', '30m', '1h', '2h', '4h', '1D', '1W', '1M'`
+  — old callers passing lowercase `'1d'` must switch to `'1D'` (also now
+  `'1W'`/`'1M'`, previously unavailable).
+- **`cardDetails`**: response now has a more prominent `prices` intraday
+  candle array per company, alongside the existing `metaRatios`. Additive,
+  not breaking.
+
+**Transient-401 quirk** (not a path/DTO change, but a live-testing finding
+worth flagging): the two endpoints served by Stockscans' separate
+`uvicorn`/FastAPI backend — `growthCatalysts` (`company/reports/
+growth-catalysts/{id}`) and `concallNotes` (`scans/concall/notes/{id}/
+{ssUrl}`) — occasionally return a 401 that clears on an immediate retry
+(~1.5s later) with zero change to the request or token. Treat as
+retry-worthy rate-limiting-like behavior, not a real auth failure.
+
+**Not live-tested (mutating, unverified path-only change assumed safe):**
+`saveAnnouncementScan` (PUT), `reorderAnnouncementScans` (PUT),
+`deleteAnnouncementScan` (DELETE) — new paths taken directly from a
+user-provided migration map, not independently probed, since probing would
+mutate the real account's saved scans. Verify against a real call before
+depending on them in a new caller.
+
+---
+
+## POST /api/scans/announcement/search
+
+Client method: `scanAnnouncements(payload, opts)`. Confirmed live 2026-07-31
+(original `company/announcements/scan` path); path migrated 2026-09-16 to
+`scans/announcement/search` — CONFIRMED LIVE via captured browser traffic,
+same request/response shape. This endpoint is now also where
+`searchAnnouncements` routes (see Migration notes above) — differentiated by
+`scan.searchFilters`.
 
 **Request:**
 
@@ -109,9 +197,12 @@ Response envelope is one of `{announcements: [...], total}` /
 
 ---
 
-## POST /api/company/concall-scan
+## POST /api/scans/concall/run
 
 Client method: `concallScan(payload, opts)`. **Confirmed live 2026-08-01**
+(original `company/concall-scan` path); path migrated 2026-09-16 to
+`scans/concall/run` — CONFIRMED LIVE, pure path swap, zero payload/response
+changes.
 (throwaway watchlist of 50 real tickers drawn from `resultsDocuments`'s
 current-quarter Transcript set — see `stock-api/test/stockscansClient.concallScan.test.js`
 for the recorded fixture this doc's schema is checked against).
@@ -210,10 +301,12 @@ user-provided mapping:
 
 ---
 
-## POST /api/company/results/documents
+## POST /api/scans/result/documents
 
 Client method: `resultsDocuments({offset, documentType, searchCompany, watchlistIds})`,
-bulk helper `resultsDocumentsMap({documentType})`. Confirmed live 2026-07-26.
+bulk helper `resultsDocumentsMap({documentType})`. Confirmed live 2026-07-26
+(original `company/results/documents` path); path migrated 2026-09-16 to
+`scans/result/documents` — CONFIRMED LIVE, same request/response shape.
 
 **Request:**
 
@@ -264,9 +357,11 @@ Notes:
 
 ---
 
-## GET /api/company/documents/{companyId}
+## GET /api/company/fundamentals/documents/{companyId}
 
 Client method: `documents(companyId)`, convenience wrapper `latestTranscript(companyId)`.
+Path migrated 2026-09-16 from `company/documents/{companyId}` — CONFIRMED
+LIVE, same response shape.
 
 **Response:**
 
@@ -329,11 +424,14 @@ needed. Use `stock-api/bin/get-concall-transcript-url.js`:
 
 ---
 
-## POST /api/company/scans/run
+## POST /api/scans/stock/run
 
 Client method: `runScan(payload, scanId)`. Confirmed live 2026-08-20 —
 built for `stock-api/bin/sync-company-sector-industry.js` (the sector/industry
-company-master sync).
+company-master sync). Path migrated 2026-09-16 from `company/scans/run` to
+`scans/stock/run` — CONFIRMED LIVE via captured browser traffic. The request
+body now wraps filters inside a nested `scan` object (see below) rather than
+the flat top-level shape used pre-migration.
 
 **Request:**
 
@@ -475,39 +573,78 @@ live before reusing this table for another `ratiosType`.
 
 ## Other endpoints (reference only, not yet used by any consumer skill)
 
-Brief pointers — expand with full schemas here as they get exercised live:
+Brief pointers — expand with full schemas here as they get exercised live.
+Paths below are the post-2026-09-16-migration paths; see Migration notes
+above for what each replaced.
 
-- `GET /api/user/saved-scans/{scanId}` — `getScanMetadata(scanId)`, the
-  saved-scan definition (filters, tags, name).
-- `POST /api/company/announcements/statistics` — `announcementStatistics(payload)`.
-- `POST /api/company/announcements/company` — `companyAnnouncements(payload)`.
-- `POST /api/company/announcements` — `announcements(companyIds, offset)`,
-  paginates in steps of 30, `{companyAnnouncements, offset, limit}`.
-- `GET /api/company/scans/metadata` — `scanMetadata()`, index/industry lists.
+- `GET /api/scans/stock/saved/{scanId}` — `getScanMetadata(scanId)`, the
+  saved-scan definition (filters, tags, name). Path migrated from
+  `user/saved-scans/{scanId}` — CONFIRMED LIVE, same response shape.
+- `POST /api/scans/announcement/statistics` — `announcementStatistics(payload)`.
+  Path migrated from `company/announcements/statistics` — CONFIRMED LIVE,
+  same payload/response shape.
+- `POST /api/company/fundamentals/announcements` — `companyAnnouncements(payload)`
+  AND `announcements(companyIds, offset)` (bulk) — now the SAME endpoint
+  (see Migration notes: consolidation). Path migrated from
+  `company/announcements/company` / `company/announcements` respectively.
+  Request shape `{companyIds, offset}`; response `{companyAnnouncements, offset, limit}`.
+- `GET /api/scans/stock/metadata` — `scanMetadata()`, index/industry lists.
+  Path migrated from `company/scans/metadata` — CONFIRMED LIVE. Despite the
+  "stock" segment, still serves generic metadata used for announcement-scan
+  filters too.
 - `GET /api/company/search` — `companySearch(query, {type})` /
-  `searchCompany(query)`, ticker/name → companyId autocomplete.
-- `GET /api/user/watchlists` — `watchlistsList({view})`.
-- `GET /api/user/announcement-scans` — `savedAnnouncementScans()`.
-- `PUT /api/user/announcement-scans` — `saveAnnouncementScan(payload)`.
-- `PUT /api/user/announcement-scans/order` — `reorderAnnouncementScans(scanIds)`.
-- `DELETE /api/user/announcement-scans/{scanId}` — `deleteAnnouncementScan(scanId)`.
-- `POST /api/company/announcements/search` — `searchAnnouncements(payload)`.
-- `POST /api/company/card-details` — `cardDetails(companyIds)`, metrics under
-  `data.cardData[companyId].metaRatios`.
-- `GET /api/company/prices/{ticker}` — `prices(ticker)`.
-- `GET /api/company/ohlcv/{ticker}` — `ohlcv(ticker, {tf, before})`, rows
+  `searchCompany(query)`, ticker/name → companyId autocomplete. Unaffected
+  by the migration.
+- `GET /api/user/watchlists` — `watchlistsList({view})`. Unaffected by the
+  migration.
+- `GET /api/scans/announcement/saved` — `savedAnnouncementScans()`. Path
+  migrated from `user/announcement-scans` — CONFIRMED LIVE, same response
+  shape (`{announcementScans: [...]}`).
+- `PUT /api/scans/announcement/saved` — `saveAnnouncementScan(payload)`. Path
+  migrated from `user/announcement-scans`. NOT live-tested (mutating) — see
+  Migration notes.
+- `PUT /api/scans/announcement/saved/order` — `reorderAnnouncementScans(scanIds)`.
+  Path migrated from `user/announcement-scans/order`. NOT live-tested
+  (mutating) — see Migration notes.
+- `DELETE /api/scans/announcement/saved/{scanId}` — `deleteAnnouncementScan(scanId)`.
+  Path migrated from `user/announcement-scans/{scanId}`. NOT live-tested
+  (mutating) — see Migration notes.
+- `POST /api/scans/announcement/search` — `searchAnnouncements(payload)`. Now
+  the same endpoint as `scanAnnouncements` (see Migration notes). Path
+  migrated from `company/announcements/search`.
+- `POST /api/home/card-details` — `cardDetails(companyIds)`, metrics under
+  `data.cardData[companyId].metaRatios`. Path migrated from
+  `company/card-details` — CONFIRMED LIVE. Response now also carries a more
+  prominent `prices` intraday-candle array per company.
+- `GET /api/company/prices/{ticker}` — `prices(ticker)`. Legacy/superseded by
+  `ohlcv`; zero call sites in this repo (confirmed via dead-code scan) —
+  left unmigrated intentionally.
+- `GET /api/charts/ohlcv/{ticker}` — `ohlcv(ticker, {tf, before})`, rows
   `[isoTimestamp, open, high, low, close, volume]`, paginate via `hasMore`
-  - `before`.
-- `GET /api/company/growth-catalysts/{companyId}` — `growthCatalysts(companyId)`,
-  AI-synthesized report `{finalReport, dateLabel, toc}`.
-- `GET /api/company/business-overview/{companyId}` — `businessOverview(companyId)`,
-  same shape as growth-catalysts.
-- `GET /api/company/concall-notes/{companyId}/{ssUrl}` — `concallNotes(companyId, ssUrl)`,
-  AI-synthesized notes `{finalReport, date, companyName, bullets}`.
+  - `before`. Path migrated from `company/ohlcv/{ticker}` — CONFIRMED LIVE.
+  `tf` enum changed (see Migration notes): now
+  `'1m','2m','3m','5m','10m','15m','30m','1h','2h','4h','1D','1W','1M'`
+  (capitalized day/week/month, two new granularities).
+- `GET /api/company/reports/growth-catalysts/{companyId}` — `growthCatalysts(companyId)`,
+  AI-synthesized report `{finalReport, dateLabel, toc}`. Path migrated from
+  `company/growth-catalysts/{companyId}` — CONFIRMED LIVE. Served by
+  Stockscans' `uvicorn`/FastAPI backend — see Migration notes' transient-401
+  quirk.
+- `GET /api/company/reports/business-overview/{companyId}` — `businessOverview(companyId)`,
+  same shape as growth-catalysts. Path migrated from
+  `company/business-overview/{companyId}` — CONFIRMED LIVE.
+- `GET /api/scans/concall/notes/{companyId}/{ssUrl}` — `concallNotes(companyId, ssUrl)`,
+  AI-synthesized notes `{finalReport, date, companyName, bullets}`. Path
+  migrated from `company/concall-notes/{companyId}/{ssUrl}` — CONFIRMED
+  LIVE. Same `uvicorn` backend and transient-401 quirk as `growthCatalysts`.
 - `POST /api/user/watchlists/table` — `watchlistTable(watchlistId, opts)`.
+  Unaffected by the migration.
 - `POST /api/user/watchlists/company-ids/replace` — `replaceWatchlist(watchlistId, companyIds)`.
+  Unaffected by the migration.
 - `PUT /api/user/watchlists/company-ids` — `updateWatchlist(watchlistId, action, companyIds)`,
-  `action` is `'add'|'delete'`.
+  `action` is `'add'|'delete'`. Unaffected by the migration.
 - `GET /scans/saved/{scanId}` — `savedScanPageHtml(scanId)`, raw HTML (Next.js
-  RSC payload embeds the scan definition).
-- `GET /api/user/saved-scans` — `savedScans()`.
+  RSC payload embeds the scan definition). Unaffected by the migration (not
+  an `/api/` path).
+- `GET /api/scans/stock/saved` — `savedScans()`. Path migrated from
+  `user/saved-scans` — CONFIRMED LIVE, same response shape (`{scans: [...]}`).

@@ -102,7 +102,8 @@ describe('StockscansClient.concallScan', () => {
     await client.concallScan(payload);
 
     expect(http.calls).toHaveLength(1);
-    expect(http.calls[0].url).toBe('https://www.stockscans.in/api/company/concall-scan');
+    // Path migrated 2026-09-16: old `company/concall-scan` 404s now.
+    expect(http.calls[0].url).toBe('https://www.stockscans.in/api/scans/concall/run');
     expect(http.calls[0].payload).toEqual(payload);
     expect(http.calls[0].opts.headers.referer).toBe('https://www.stockscans.in/concall-scans');
   });
