@@ -1,6 +1,6 @@
 'use strict';
 
-const { wrapHtml, markdownToHtml } = require('../utils/pdfRenderer');
+const { wrapHtml } = require('../utils/pdfRenderer');
 const { INSTITUTIONAL_LIGHT, formatInlineMarkdown } = require('../utils/pdfUtils');
 
 function _convictionColor(tag) {
@@ -27,7 +27,6 @@ function _triggerParagraph(num, trig) {
 
 function _kpiTable(headers, values) {
   if (!headers || !values) return '';
-  const n = headers.length;
   let html = `<table style="width: 100%; border-collapse: collapse; font-size: 7pt; text-align: center; border: 0.5pt solid ${INSTITUTIONAL_LIGHT.border}; margin-bottom: 4mm;">`;
 
   html += `<tr>`;

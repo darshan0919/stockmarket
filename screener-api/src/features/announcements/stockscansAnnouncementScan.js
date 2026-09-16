@@ -8,8 +8,6 @@ const { getAuthToken } = require('../../core/api/stockscansAuth');
 const { stockscans } = require('@stock/api');
 const { STOCKSCANS_ASSETS_BASE, ymdToNseDisplay } = require('./stockscansAnnouncements');
 
-const STOCKSCANS_ANNOUNCEMENTS_SCAN_URL =
-  'https://www.stockscans.in/api/company/announcements/scan';
 const STOCKSCANS_ANNOUNCEMENT_SCANS_REFERER = 'https://www.stockscans.in/announcement-scans';
 
 /** StockScans validates `companyFilters` with max length 10 per announcement scan request */
@@ -48,30 +46,6 @@ function previousQuarterDate(quarterDate) {
     month = QUARTER_END_MONTHS[idx - 1];
   }
   return `${year}${String(month).padStart(2, '0')}`;
-}
-
-/**
- * Parse comma/space/newline-separated company ids; bare symbols become `NSE:{SYMBOL}`.
- * @param {string} raw - User paste input
- * @returns {string[]} Unique normalized ids in input order
- */
-function parseCompanyIdInput(raw) {
-  if (!raw || typeof raw !== 'string') return [];
-  const tokens = raw
-    .split(/[\s,;]+/)
-    .map((t) => t.trim())
-    .filter(Boolean);
-  const seen = new Set();
-  const out = [];
-  for (const token of tokens) {
-    const upper = token.toUpperCase();
-    const id = upper.includes(':') ? upper : `NSE:${upper}`;
-    if (!seen.has(id)) {
-      seen.add(id);
-      out.push(id);
-    }
-  }
-  return out;
 }
 
 /**

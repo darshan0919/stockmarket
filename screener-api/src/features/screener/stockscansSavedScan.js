@@ -7,9 +7,6 @@
 const { getAuthToken } = require('../../core/api/stockscansAuth');
 const { stockscans } = require('@stock/api');
 
-const STOCKSCANS_SCANS_RUN_URL = 'https://www.stockscans.in/api/company/scans/run';
-const STOCKSCANS_SAVED_SCAN_PAGE = 'https://www.stockscans.in/scans/saved';
-
 /** @typedef {Object} StockScansScanDefinition */
 
 /**

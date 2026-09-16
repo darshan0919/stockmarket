@@ -88,7 +88,7 @@ After running, each folder will also contain a `manifest.json`. Use the manifest
 
 Single canonical prompt: [`prompts/unified_master.txt`](prompts/unified_master.txt). Runs all 5 tasks in order; ends with `EXTRACTION COMPLETE` summary.
 
-Synced copy at `backend/prompts/institutional-equity/unified_master.txt` for the app API — keep wording aligned when edited.
+Synced copy at `screener-api/prompts/institutional-equity/unified_master.txt` for the app API — keep wording aligned when edited.
 
 ## Output DTO standard — scope note
 

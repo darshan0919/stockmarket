@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described the deleted `backend/` Express service. Its real, current equivalent is `screener-api/` (Express + Mongoose, restructured into `src/core/` + `src/features/`) — see `docs/API_REFERENCE.md`, `docs/ARCHITECTURE.md`, and `screener-api/README.md` for the current picture. See `docs/README.md` for the current documentation index.
+
+---
+
 # Backend Documentation
 
 > **Code Location**: `backend/`  

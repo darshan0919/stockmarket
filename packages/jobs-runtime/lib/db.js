@@ -780,6 +780,18 @@ function saveLearnystTranscript(dto) {
       youtubeVideoId: youtubeVideoId || null,
       captionKind: captionKind || null,
       attachmentCount: Array.isArray(attachments) ? attachments.length : 0,
+      // Slim-index consumers (e.g. concept-transcript-integrator's
+      // find_concept_lessons.py) previously had to drop into the full
+      // per-lesson shard record just to check whether a downloaded
+      // attachment (like a PDF deck) exists for a lesson, because this
+      // index only exposed the bare count. hasAttachments + attachmentPaths
+      // surface just enough to answer "is there a downloaded file, and
+      // where" without pulling the full attachments[] (src/contentPath/
+      // downloadUrl/sizeBytes/state/downloadedAt) into the slim index.
+      hasAttachments: Array.isArray(attachments) && attachments.length > 0,
+      attachmentPaths: Array.isArray(attachments)
+        ? attachments.map((a) => a && a.localPath).filter(Boolean)
+        : [],
       body: `learnyst-lessons/${partitionName}`,
     },
   ]);

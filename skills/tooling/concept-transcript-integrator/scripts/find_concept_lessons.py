@@ -34,12 +34,23 @@ Exactly one of --keywords / --lesson-titles must be given.
 
 Output: JSON array to stdout, one object per matched lesson:
   {id, courseId, courseTitle, sectionId, lessonId, lessonTitle, lessonType,
-   durationSeconds, fetchedAt, body}
+   durationSeconds, fetchedAt, attachmentCount, hasAttachments,
+   attachmentPaths, body}
 (the exact slim-index shape already in learnyst-lessons.json — this script
 adds nothing, just filters). lessonType != 1 (non-video: quiz=5, article=9)
 entries are INCLUDED in the output but flagged with "hasTranscript": false
 so the caller can decide whether to skip them (mirrors the job's own
 VIDEO_LESSON_TYPE convention — see docs/learnyst-api-schemas.md).
+
+Note on attachments: hasAttachments (bool) and attachmentPaths (repo-relative
+localPath list, e.g. "assets/learnyst-attachments/<file>.pdf") are surfaced
+directly in this slim index — do NOT conclude "no attachment" from a missing/
+absent field on an old record, and never drop into the raw per-lesson shard
+file (data/learnyst-lessons/shard_X.jsonl) just to check whether a lesson has
+a downloaded PDF/attachment; check attachmentPaths/hasAttachments here first.
+(Records written before this field was added will show attachmentCount but
+not hasAttachments/attachmentPaths — re-run learnyst-transcript-refresh or
+fall back to the shard record only for those older entries.)
 
 Exit code 0 with an empty JSON array `[]` is a valid "no matches" result —
 the caller (SKILL.md Phase 1) is responsible for deciding what to do next

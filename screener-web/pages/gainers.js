@@ -2,7 +2,6 @@ import Head from 'next/head';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { marketAPI } from '../src/core/lib/api';
 import StockTable, { ColumnPicker, useColumnState } from '../src/core/components/shared/StockTable';
-import { formatDate } from '../src/core/lib/utils/formatters';
 
 const BUCKETS = [
   { value: 'allSec', label: 'All Securities' },
@@ -16,7 +15,7 @@ const AUTO_REFRESH_MS = 30_000;
 
 export default function Gainers() {
   const [rows, setRows] = useState([]);
-  const [meta, setMeta] = useState({ timestamp: null, bucket: 'allSec', count: 0 });
+  const [_meta, setMeta] = useState({ timestamp: null, bucket: 'allSec', count: 0 });
   const [bucket, setBucket] = useState('allSec');
   const [exchange, setExchange] = useState('nse');
   const { hiddenCols, toggleColumn, setGroupVisible } = useColumnState();

@@ -2,30 +2,38 @@
 
 > **Document Type**: Technical Architecture  
 > **Code Reference**: Root project structure  
-> **Last Updated**: 2025-02-28
+> **Last Updated**: 2026-09-16
 
-## High-Level Architecture
+This document covers the `screener-api` + `screener-web` web app specifically
+— the smaller, secondary piece of the repo. The larger part of the system —
+`skills/` (79+ equity-research Claude Agent Skills) and `jobs/Scheduled/`
+running on the separate "Data Ecosystem v2" JSON-collection data layer — is
+documented in `skills/README.md` and `docs/DATA_ECOSYSTEM.md`, not here.
+
+## High-Level Architecture (screener-api / screener-web)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              FRONTEND (Next.js)                              │
+│                         screener-web (Next.js)                               │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
 │  │   Pages     │  │  Components │  │    Hooks    │  │    API Client       │ │
-│  │  /pages/*   │  │/components/*│  │ /lib/hooks  │  │    /lib/api.js      │ │
+│  │  /pages/*   │  │/src/features│  │/src/core/lib│  │ /src/core/lib/api.js│ │
+│  │             │  │  /*/components│  │  /hooks   │  │                     │ │
 │  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────────┬──────────┘ │
 │         └────────────────┴────────────────┴───────────────────┬┘            │
 └────────────────────────────────────────────────────────────────┼────────────┘
                                                                  │ HTTP/REST
 ┌────────────────────────────────────────────────────────────────┼────────────┐
-│                              BACKEND (Express.js)              │            │
+│                         screener-api (Express.js)               │            │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────┴──────────┐ │
 │  │   Routes    │  │ Controllers │  │   Models    │  │    Middleware      │ │
-│  │  /routes/*  │──▶│/controllers│──▶│  /models/*  │  │   /middleware/*    │ │
+│  │*Routes.js   │──▶│*Controller.js│──▶│ (per-feature│  │ src/core/middleware│ │
+│  │(per feature)│  │ (per feature)│  │  Mongoose)  │  │                     │ │
 │  └─────────────┘  └──────┬──────┘  └──────┬──────┘  └────────────────────┘ │
 │                          │                │                                 │
 │  ┌─────────────┐  ┌──────┴──────┐  ┌──────┴──────┐  ┌────────────────────┐ │
 │  │    Utils    │  │  External   │  │  Database   │  │     Scripts        │ │
-│  │  /utils/*   │  │ APIs /api/* │  │   MongoDB   │  │    /scripts/*      │ │
+│  │core/utils/* │  │ APIs core/api/* │   MongoDB   │  │    /scripts/*      │ │
 │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────────────┘
                                 │
@@ -39,9 +47,9 @@
 
 ## Component Details
 
-### Frontend Layer
+### screener-web Layer
 
-#### Pages (`frontend/pages/`)
+#### Pages (`screener-web/pages/`)
 
 | File                | Purpose                        | Route            |
 | ------------------- | ------------------------------ | ---------------- |
@@ -49,26 +57,33 @@
 | `stock/[symbol].js` | Stock detail page              | `/stock/:symbol` |
 | `screener.js`       | Stock screening tool           | `/screener`      |
 | `watchlist.js`      | User's watchlist               | `/watchlist`     |
+| `results.js`        | Declared/upcoming results dashboard | `/results` |
+| `announcement-scans.js` | Corporate announcement scans | `/announcement-scans` |
+| `gainers.js`        | Top-gainers live tracker       | `/gainers`       |
 
 #### Styling & Theming
 
-- **DaisyUI**: Component library (Tailwind CSS plugin) for semantic components (cards, buttons, alerts, etc.)
-- **Theme Toggle**: Light/dark mode in Header, persisted via `localStorage`
-- **globals.css**: Minimal—DaisyUI handles base styles; only scrollbar and reset overrides remain
-- **Semantic Classes**: Uses DaisyUI `text-success`/`text-error` (replaced legacy `.text-positive`/`.text-negative`)
+- **Tailwind CSS**: Utility-first styling
+- **globals.css**: Global style overrides
+- **Semantic Classes**: `text-positive`/`text-negative` conventions for price change
 
-#### Components (`frontend/components/`)
+#### Components (`screener-web/src/`)
 
-**Common Components** (`components/common/`):
+**Common Components** (`src/core/components/common/`):
 | Component | File | Purpose |
 |-----------|------|---------|
 | `Header` | `Header.js` | Navigation header with search |
 | `SearchBar` | `SearchBar.js` | Stock search with autocomplete |
-| `Table` | `Table.js` | Generic data table |
 | `Modal` | `Modal.js` | Modal dialog wrapper |
 | `LoadingSpinner` | `LoadingSpinner.js` | Loading indicator |
+| `Snackbar` | `Snackbar.js` | Toast/snackbar notifications |
 
-**Stock Components** (`components/stock/`):
+**Shared Components** (`src/core/components/shared/`):
+| Component | File | Purpose |
+|-----------|------|---------|
+| `StockTable` | `StockTable.js` | Generic stock data table |
+
+**Stock Feature Components** (`src/features/stock/components/`):
 | Component | File | Purpose |
 |-----------|------|---------|
 | `StockHeader` | `StockHeader.js` | Stock title and price |
@@ -76,17 +91,19 @@
 | `BalanceSheet` | `BalanceSheet.js` | Balance sheet display |
 | `CashFlows` | `CashFlows.js` | Cash flow statement |
 | `ChartTab` | `ChartTab.js` | Price chart |
+| `DeliveryVolumeChartTab` | `DeliveryVolumeChartTab.js` | Delivery/volume chart |
 | `TechnicalTab` | `TechnicalTab.js` | Technical indicators |
 | `FundamentalsTab` | `FundamentalsTab.js` | Fundamental metrics |
-| `OrdersTab` | `orders/OrdersTab.js` | Orders tab with sub-views |
-| `OrderBookView` | `orders/OrderBookView.js` | Order book summary and inflows |
+| `FinancialsTab` / `FinancialResults` | `FinancialsTab.js` / `FinancialResults.js` | Financial statements |
+| `AnnouncementsTab` | `AnnouncementsTab.js` | Corporate announcements |
+| `ResearchPipelineTab` | `ResearchPipelineTab.js` | Research pipeline integration |
+| `TranscriptTab` | `TranscriptTab.js` | Earnings call analysis |
+| `OrdersTab` (two variants) | `OrdersTab.js`, `orders/OrdersTab.js` | Orders tab with sub-views |
 | `OrderAnnouncements` | `orders/OrderAnnouncements.js` | Order announcements |
-| `OrderDetails` | `orders/OrderDetails.js` | Order row/details |
 | `QuarterView` | `orders/QuarterView.js` | Quarter-wise order view |
 | `OrderDownloads` | `orders/OrderDownloads.js` | Order PDF downloads |
-| `TranscriptTab` | `TranscriptTab.js` | Earnings call analysis |
 
-#### API Client (`frontend/lib/api.js`)
+#### API Client (`screener-web/src/core/lib/api.js`)
 
 Centralized Axios instance with interceptors:
 
@@ -97,22 +114,22 @@ Centralized Axios instance with interceptors:
 - **transcriptAPI**: AI analysis
 - **ordersAPI**: Orderbook data
 
-#### Utilities (`frontend/lib/utils/`)
+#### Utilities (`screener-web/src/core/lib/utils/`)
 
 | Utility    | File            | Purpose                                                                 |
-| ---------- | --------------- | ----------------------------------------------------------------------- |
+| ---------- | --------------- | ------------------------------------------------------------------------ |
 | Formatters | `formatters.js` | Consolidated formatting (currency, price, quarter date, change %, etc.) |
 
-#### Custom Hooks (`frontend/lib/hooks/`)
+#### Custom Hooks (`screener-web/src/core/lib/hooks/`)
 
 | Hook           | File              | Purpose                       |
 | -------------- | ----------------- | ----------------------------- |
 | `useMarket`    | `useMarket.js`    | Market data with auto-refresh |
 | `useWatchlist` | `useWatchlist.js` | Watchlist state management    |
 
-### Backend Layer
+### screener-api Layer
 
-#### Server Entry (`backend/server.js`)
+#### Server Entry (`screener-api/src/server.js`)
 
 Express server setup with:
 
@@ -121,60 +138,72 @@ Express server setup with:
 - Route mounting
 - Error handling middleware
 
-#### Routes (`backend/routes/`)
+#### Routes (`screener-api/src/features/*/*Routes.js`)
 
-| Route File            | Base Path                | Purpose                |
-| --------------------- | ------------------------ | ---------------------- |
-| `stocks.js`           | `/api/stocks`            | Stock operations       |
-| `screener.js`         | `/api/screener`          | Stock screening        |
-| `watchlist.js`        | `/api/watchlist`         | Watchlist management   |
-| `market.js`           | `/api/market`            | Market data            |
-| `orders.js`           | `/api/orders`            | Order/orderbook data   |
-| `announcements.js`    | `/api/announcements`     | Company announcements  |
-| `resultTranscript.js` | `/api/result-transcript` | AI transcript analysis |
-| `upcomingResult.js`   | `/api/upcoming-results`  | Upcoming result dates  |
-| `admin.js`            | `/api/admin`             | Admin operations       |
+| Route File                  | Base Path                | Purpose                |
+| ---------------------------- | ------------------------ | ---------------------- |
+| `stock/stocksRoutes.js`      | `/api/stocks`            | Stock operations       |
+| `screener/screenerRoutes.js` | `/api/screener`          | Stock screening        |
+| `watchlist/watchlistRoutes.js` | `/api/watchlist`       | Watchlist management   |
+| `market/marketRoutes.js`     | `/api/market`            | Market data            |
+| `orders/ordersRoutes.js`     | `/api/orders`            | Order/orderbook data   |
+| `announcements/announcementsRoutes.js` | `/api/announcements` | Company announcements |
+| `results/resultTranscriptRoutes.js` | `/api/result-transcript` | AI transcript analysis |
+| `results/upcomingResultRoutes.js` | `/api/upcoming-results` | Upcoming result dates |
+| `results/declaredResultsRoutes.js` | `/api/declared-results` | Declared results dashboard |
+| `admin/adminRoutes.js`       | `/api/admin`             | Admin operations       |
+| `twitter/twitterRoutes.js`   | `/api/twitter`           | Tweet export           |
+| `research/researchPipelineRoutes.js` | `/api/research`  | Research pipeline integration |
 
-#### Controllers (`backend/controllers/`)
+#### Controllers (`screener-api/src/features/*/*Controller.js`)
 
 | Controller                   | File                            | Key Functions                                            |
-| ---------------------------- | ------------------------------- | -------------------------------------------------------- |
-| `stockController`            | `stockController.js`            | `searchStocks`, `getStockDetails`, `getQuarterlyResults` |
-| `screenerController`         | `screenerController.js`         | `runScreener`                                            |
-| `watchlistController`        | `watchlistController.js`        | `getWatchlist`, `addToWatchlist`, `removeFromWatchlist`  |
-| `marketController`           | `marketController.js`           | `getMarketIndices`, `getMarketStats`                     |
-| `resultTranscriptController` | `resultTranscriptController.js` | `getTranscripts`, `analyzeTranscript`                    |
-| `upcomingResult`             | `upcomingResult.js`             | `getUpcomingResults`                                     |
+| ----------------------------- | -------------------------------- | -------------------------------------------------------- |
+| `stockController`            | `stock/stockController.js`            | `searchStocks`, `getStockDetails`, `getQuarterlyResults` |
+| `screenerController`         | `screener/screenerController.js`      | `runScreener`                                            |
+| `watchlistController`        | `watchlist/watchlistController.js`    | `getWatchlist`, `addToWatchlist`, `removeFromWatchlist`  |
+| `marketController`           | `market/marketController.js`          | `getMarketIndices`, `getMarketStats`                     |
+| `resultTranscriptController` | `results/resultTranscriptController.js` | `getTranscripts`, `analyzeTranscript`                  |
+| `upcomingResultController`   | `results/upcomingResultController.js` | `getUpcomingResults`                                     |
+| `declaredResultsController`  | `results/declaredResultsController.js` | `getDeclaredResults`, `getFilterOptions`, `downloadTranscriptNotes` |
+| `ordersController`           | `orders/ordersController.js`          | Orderbook fetch/parse/download                            |
+| `announcementsController`    | `announcements/announcementsController.js` | Announcement search/download                        |
+| `adminController`            | `admin/adminController.js`            | Admin/data-update endpoints                                |
+| `twitterController`          | `twitter/twitterController.js`        | Tweet export                                                |
 
-#### Models (`backend/models/`)
+#### Models (`screener-api/src/features/*/`, colocated with each feature)
 
-MongoDB schemas using Mongoose:
+MongoDB schemas using Mongoose — these are the only Mongoose models that
+currently exist in the repo (no `FinancialStatement` or `Orderbook` models):
 
-| Model                | File                    | Purpose                                 |
-| -------------------- | ----------------------- | --------------------------------------- |
-| `Stock`              | `Stock.js`              | Stock basic info (symbol, name, sector) |
-| `QuarterlyResult`    | `QuarterlyResult.js`    | Quarterly financial results             |
-| `FinancialStatement` | `FinancialStatement.js` | Annual financial statements             |
-| `PriceHistory`       | `PriceHistory.js`       | Historical price data                   |
-| `Fundamental`        | `Fundamental.js`        | Fundamental metrics                     |
-| `Watchlist`          | `Watchlist.js`          | User watchlist entries                  |
-| `Orderbook`          | `Orderbook.js`          | Parsed orderbook data                   |
+| Model             | File                              | Purpose                                 |
+| ------------------ | ---------------------------------- | --------------------------------------- |
+| `Stock`            | `stock/Stock.js`                   | Stock basic info (symbol, name, sector) |
+| `QuarterlyResult`  | `results/QuarterlyResult.js`       | Quarterly financial results             |
+| `PriceHistory`     | `stock/PriceHistory.js`            | Historical price data                   |
+| `Fundamental`      | `stock/Fundamental.js`             | Fundamental metrics                     |
+| `Watchlist`        | `watchlist/Watchlist.js`           | User watchlist entries                  |
 
-#### External APIs (`backend/api/`)
+#### External APIs (`screener-api/src/core/api/`)
 
 | API Module    | File             | External Service                       |
-| ------------- | ---------------- | -------------------------------------- |
+| -------------- | ------------------ | -------------------------------------- |
 | `nseIndiaApi` | `nseIndiaApi.js` | NSE India (upcoming results, cookies)  |
 | `bseIndiaApi` | `bseIndiaApi.js` | BSE India (scrip codes, announcements) |
+| `stockscansAuth` | `stockscansAuth.js` | Stockscans authentication            |
 
-#### Utilities (`backend/utils/`)
+#### Utilities (`screener-api/src/core/utils/`)
 
 | Utility               | File                     | Functions                                                       |
-| --------------------- | ------------------------ | --------------------------------------------------------------- |
+| ----------------------- | -------------------------- | ----------------------------------------------------------------- |
 | `technicalIndicators` | `technicalIndicators.js` | `calculateSMA`, `calculateEMA`, `calculateRSI`, `calculateMACD` |
-| `validators`          | `validators.js`          | Joi schemas for request validation                              |
-| `dataFetcher`         | `dataFetcher.js`         | Alpha Vantage and FMP API calls                                 |
 | `xbrlParser`          | `xbrlParser.js`          | XBRL financial data parsing                                     |
+| `nseHelpers`          | `nseHelpers.js`          | Shared NSE utilities                                             |
+| `portUtils`           | `portUtils.js`           | Dev-server port auto-selection                                  |
+
+Request validation (Joi schemas) is defined inline per-controller rather
+than in a separate `validators.js` file. There is no `dataFetcher.js`
+(Alpha Vantage/FMP calls, if used, live inside the relevant feature).
 
 ### Data Flow Examples
 
@@ -264,13 +293,13 @@ Stock page loads → QuarterlyResults → stockAPI.getQuarterlyResults()
 
 ## Error Handling
 
-### Backend Error Middleware (`backend/middleware/errorHandler.js`)
+### screener-api Error Middleware (`screener-api/src/core/middleware/errorHandler.js`)
 
 - Catches all unhandled errors
 - Returns consistent error format
 - Logs errors for debugging
 
-### Frontend Error Handling
+### screener-web Error Handling
 
 - Axios interceptors for API errors
 - Try-catch in async operations

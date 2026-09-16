@@ -3,7 +3,7 @@ name: daily-tweet-signals-stockmarket
 description: Daily Tweet Signals — X list capture to conviction signals email
 ---
 
-Run the daily tweet-signals pipeline for Darshan's "Indian Market Updates" X list (listId 2051640128133885987), following stockmarket/skills/equity-research/tweet-signals/SKILL.md (read it from the local mounted repo path first; only fall back to the GitHub-hosted copy via github-skill-invoker if the local path is unavailable).
+Run the daily tweet-signals pipeline for Darshan's "Indian Market Updates" X list (listId 2051640128133885987), following stockmarket/skills/equity-research/tweet-signals/SKILL.md (read it from the local mounted repo path).
 
 Summary of what that skill does (the SKILL.md is the source of truth — follow it, this is just context):
 

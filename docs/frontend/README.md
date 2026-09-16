@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described the deleted `frontend/` Next.js app. Its real, current equivalent is `screener-web/` (restructured into `src/core/` + `src/features/`) — see `docs/ARCHITECTURE.md` and `screener-web/README.md` for the current picture. See `docs/README.md` for the current documentation index.
+
+---
+
 # Frontend Documentation
 
 > **Code Location**: `frontend/`  

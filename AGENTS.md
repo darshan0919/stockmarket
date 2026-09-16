@@ -14,9 +14,9 @@ per tool (e.g. Cursor's glob-scoped `.mdc` rules).
 
 Stock Screener is a full-stack Indian stock-market research platform:
 
-- **`backend/`** — Express.js REST API + MongoDB (legacy/simple screener)
-- **`frontend/`** — Next.js 14 React app
-- **`stock-api/`, `screener-api/`, `screener-web/`** — newer service layer
+- **`screener-api/`** — Express.js REST API + MongoDB (screener/watchlist/stock-cache web-app data)
+- **`screener-web/`** — Next.js 14 React app
+- **`stock-api/`** — shared external-API clients (Stockscans/NSE/BSE) + skill CLI entry points
 - **`packages/jobs-runtime/`** — the shared data/env/job-scheduling runtime
 - **`skills/`** — Claude Agent Skills (equity research, forensic accounting,
   concall analysis, etc.) — see `skills/README.md`
@@ -91,8 +91,9 @@ must satisfy all of the following before it's considered done:
    data. Full detail and current inventory: `skills/_shared/conventions.md`
    item 10, and the project-memory reference `stockscans_platform_capabilities.md`.
 1. **Reuse before writing.** Before adding a new client/wrapper, check for an
-   existing one for that provider — `stock-api/src/api/`, `backend/api/`,
-   `screener-api/src/**/api/`, and `docs/*-api-schemas.md` for the doc index.
+   existing one for that provider — `stock-api/src/api/`,
+   `screener-api/src/core/api/`, `screener-api/src/features/**/`, and
+   `docs/*-api-schemas.md` for the doc index.
    Extend the existing client with a new method; do not create a second
    client, a second base-URL constant, or a second auth/retry/cache layer for
    a provider that already has one. If you find two wrappers already exist
@@ -132,9 +133,9 @@ root or in the relevant workspace — and invoked that way, not via a raw
 
 - **Adding a runnable script**: add a `"name": "node path/to/script.js"`
   entry to the nearest `package.json` (workspace-level if the script belongs
-  to `backend/`, `frontend/`, `stock-api/`, etc.; root-level if it's cross-
-  cutting, following the existing `yarn <workspace> <script>` pattern used
-  for jobs). Give it a name that matches what it does, consistent with
+  to `screener-api/`, `screener-web/`, `stock-api/`, etc.; root-level if it's
+  cross-cutting, following the existing `yarn <workspace> <script>` pattern
+  used for jobs). Give it a name that matches what it does, consistent with
   existing entries (`daily-gainers-digest`, `dead-code:scan`,
   `antigravity:sync`, etc.).
 - **Invoking a script** — in docs, other scripts, skill instructions, CI
@@ -159,7 +160,7 @@ updated in the **same change** that introduces or modifies it:
 
 | What                                                                                    | Where it's documented                                                                                                                                                       |
 | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Runnable script / `package.json` command                                                | One line in the nearest `README.md` (or `docs/backend/README.md` / `docs/frontend/README.md` quick-reference table) — what it does, when to run it, what it touches         |
+| Runnable script / `package.json` command                                                | One line in the nearest `README.md` (`screener-api/README.md` / `screener-web/README.md` for those workspaces) — what it does, when to run it, what it touches         |
 | External API integration                                                                | `docs/<provider>-api-schemas.md` per §4 above                                                                                                                               |
 | Skill (`skills/*`)                                                                      | `SKILL.md` (already required by the skills framework) + an entry in `skills/registry.json` and `skills/README.md`'s directory listing                                       |
 | Scheduled task / job (`jobs/Scheduled/`, cron-driven scripts)                           | What it does and its schedule, in the task definition itself plus a pointer from `docs/README.md` or the relevant workspace doc if it's not self-evident from the task name |

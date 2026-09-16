@@ -36,18 +36,18 @@ cd /path/to/stockmarket
 
 yarn install
 
-# Backend env
-cat > backend/.env << 'EOF'
+# Root .env (see .env.example for the full list)
+cat >> .env << 'EOF'
 MONGO_URL=mongodb://localhost:27017/stock-screener
-PORT=5000
+PORT=5001
 NODE_ENV=development
 EOF
 
-# Frontend env
-echo "NEXT_PUBLIC_API_URL=http://localhost:5000/api" > frontend/.env.local
+# screener-web env
+echo "NEXT_PUBLIC_API_URL=http://localhost:5001/api" > screener-web/.env.local
 
 # Seed database (takes 2-3 minutes), first run only
-node backend/scripts/fetchData.js
+yarn seed
 ```
 
 ### Step 3: Run the app (one terminal)
@@ -56,9 +56,9 @@ node backend/scripts/fetchData.js
 yarn dev
 ```
 
-✅ Backend: http://localhost:5000 — Frontend: http://localhost:3000
+✅ Backend (screener-api): http://localhost:5001 — Frontend (screener-web): http://localhost:3000
 
-To run only one app: `yarn workspace stock-screener-backend dev` or `yarn workspace stock-screener-frontend dev`.
+To run only one app: `yarn workspace screener-api dev` or `yarn workspace screener-web dev`.
 
 ### Step 4: Access Application
 
@@ -105,28 +105,27 @@ brew services start mongodb-community  # macOS
 ### Port Already in Use
 
 ```bash
-# Backend (port 5000)
-# Edit backend/.env and change PORT=5001
+# screener-api (default port 5001)
+# Edit the root .env and change PORT=5002 (or another free port)
 
-# Frontend (port 3000)
-yarn workspace stock-screener-frontend dev -- -p 3001
+# screener-web (port 3000)
+yarn workspace screener-web dev -- -p 3001
 ```
 
 ### No Stocks Showing
 
 ```bash
 # Re-run the seed script
-cd backend
-node scripts/fetchData.js
+yarn seed
 ```
 
 ### API Connection Error
 
 Check that:
 
-1. Backend is running on port 5000
-2. Frontend .env.local has: `NEXT_PUBLIC_API_URL=http://localhost:5000/api`
-3. Restart frontend after changing .env.local
+1. `screener-api` is running (port 5001 by default)
+2. `screener-web/.env.local` has: `NEXT_PUBLIC_API_URL=http://localhost:5001/api`
+3. Restart `screener-web` after changing `.env.local`
 
 ## Testing the Application
 
@@ -155,22 +154,10 @@ Check that:
 
 ## Daily Updates
 
-To update stock prices daily:
-
-```bash
-cd backend
-node scripts/updateData.js
-```
-
-Automate with cron (optional):
-
-```bash
-# Edit crontab
-crontab -e
-
-# Add this line (runs daily at 6 PM)
-0 18 * * * cd /path/to/stockmarket/screener-api && node scripts/updateData.js
-```
+The web app's data is refreshed by re-running the seed/fetch scripts under
+`screener-api/scripts/`. For the research/skills side of the repo (the
+bulk of daily automation), see the scheduled jobs under `jobs/Scheduled/`
+and `yarn data:sync` — see `docs/DATA_ECOSYSTEM.md`.
 
 ## Sample Stocks Included
 
@@ -204,8 +191,8 @@ net stop MongoDB                     # Windows
 ## Need Help?
 
 - Check main README.md for detailed documentation
-- Review API documentation in backend/README.md
-- See frontend/README.md for component details
+- Review API documentation in `docs/API_REFERENCE.md`
+- See `screener-api/README.md` and `screener-web/README.md` for workspace-specific details
 
 ---
 

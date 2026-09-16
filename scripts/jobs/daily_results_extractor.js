@@ -39,55 +39,6 @@ function argValue(argv, key, defaultVal = null) {
  * @param {string} dateStr - Date in YYYY-MM-DD format
  * @returns {Promise<{date, count, companies, status, error?}>}
  */
-async function fetchResultsForDate(client, dateStr) {
-  const payload = {
-    scan: {
-      // Filters from the user's cURL example: EPS Growth YoY >= 40%, Market Cap >= 300 Cr, EPS Growth QoQ >= 5%
-      filters: [
-        { left: 'EPS Growth YoY', sign: '>=', right: '40' },
-        { left: 'Market Capitalization', sign: '>=', right: '300' },
-        { left: 'EPS Growth QoQ', sign: '>=', right: '5' },
-      ],
-      index: [],
-      industry: [],
-      watchlistIds: [],
-    },
-    order: 'desc',
-    orderBy: 'Last Result Date',
-    offset: 0,
-    resultDate: dateStr,
-    searchCompany: '',
-    documentType: '',
-  };
-
-  try {
-    const response = await client.resultsScan(payload);
-
-    if (response.status !== 200 && response.status !== undefined) {
-      throw new Error(
-        `API returned status ${response.status}: ${response.message || 'Unknown error'}`
-      );
-    }
-
-    const companies = response.data?.results || [];
-
-    return {
-      date: dateStr,
-      count: companies.length,
-      companies,
-      status: 'success',
-    };
-  } catch (error) {
-    return {
-      date: dateStr,
-      count: 0,
-      companies: [],
-      status: 'error',
-      error: error.message,
-    };
-  }
-}
-
 /**
  * Paginate through all results for a given date.
  * Fetches all pages concurrently to avoid sequential delays.

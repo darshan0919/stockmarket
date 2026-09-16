@@ -19,7 +19,6 @@ This is a full-stack Indian stock-market research platform and monorepo (Yarn 3)
 - **`packages/jobs-runtime/`**: Shared data, environment, and job-scheduling runtime (`lib/db.js`)
 - **`skills/`**: Agent skills (equity research, concall analysis, forensic accounting)
 - **`jobs/Scheduled/`**: Scheduled digests, scanners, and background workers
-- **`backend/` & `frontend/`**: Legacy service & client workspaces
 - **`docs/`**: Architecture, API reference, testing, and data ecosystem guides
 
 ## Permanent Development Rules (Mirroring AGENTS.md & data/tasks.json)
@@ -120,7 +119,7 @@ describe('ModuleName', () => {
 
 ## Browser Tips
 
-- Whenever navigating to: `https://www.stockscans.in/` use credentials from `backend/.env` -> `GMAIL_USERNAME` & `GMAIL_PASSWORD`
+- Whenever navigating to: `https://www.stockscans.in/`, authenticate using `STOCKSCANS_AUTH_TOKEN` from the root `.env` (see `.env.example`) — Stockscans auth moved to a token scheme; the old `backend/.env` gmail-credential login (`GMAIL_USERNAME`/`GMAIL_PASSWORD`) no longer exists.
 
 ## Before Submitting Changes Checklist
 

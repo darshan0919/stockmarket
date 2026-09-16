@@ -187,7 +187,7 @@ function captureOne(conv, opts = {}) {
 }
 
 // ── ingest sources ────────────────────────────────────────────────────────────
-function ingestCloudFile(file, opts) {
+function ingestCloudFile(file) {
   const arr = JSON.parse(fs.readFileSync(file, 'utf8'));
   const convs = Array.isArray(arr) ? arr : [arr];
   return convs.map((c) => ({ conv: c, source: 'cloud' }));

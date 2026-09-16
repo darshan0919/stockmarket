@@ -63,37 +63,6 @@ function fmt(d, sep) {
   return [dd, mm, d.getFullYear()].join(sep);
 }
 
-function parseNseDate(s) {
-  if (!s || s === '-') return null;
-  const MONTHS = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  const m = /^(\d{2})-([A-Za-z]{3})-(\d{4})/.exec(String(s).trim());
-  if (!m) return null;
-  const mon = MONTHS.findIndex((x) => x.toLowerCase() === m[2].toLowerCase());
-  return mon < 0 ? null : new Date(Number(m[3]), mon, Number(m[1]));
-}
-
-function parseBseDate(s) {
-  if (!s || s === '-') return null;
-  const parts = s.split('/');
-  if (parts.length === 3) {
-    return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
-  }
-  return null;
-}
-
 function crores(v) {
   if (v === null || v === undefined) return '—';
   return `₹${(v / 1e7).toLocaleString('en-IN', { maximumFractionDigits: 2 })} cr`;

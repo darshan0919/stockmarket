@@ -3,7 +3,7 @@ name: order-book-sync-stockmarket
 description: Order Book Sync — refresh the unexecuted order book and new order wins for every Radar watchlist company
 ---
 
-Follow the `order-book-tracker` skill (stockmarket/skills/equity-research/order-book-tracker/SKILL.md) — read it from the local mounted repo path first; only fall back to the GitHub-hosted copy via `github-skill-invoker` if the local path is unavailable.
+Follow the `order-book-tracker` skill (stockmarket/skills/equity-research/order-book-tracker/SKILL.md) — read it from the local mounted repo path.
 
 Run it in **sync mode**:
 

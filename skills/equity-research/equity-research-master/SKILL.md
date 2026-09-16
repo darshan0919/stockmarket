@@ -89,9 +89,9 @@ wait   # wait for all background fetches to complete
 # filed it yet (the 8-quarter Concalls fetch above only gets official filings)
 yarn workspace @stock/api get-latest-concall-transcript "$TICKER"
 
-# Screener MasterData.xlsx — still via local backend (not on Stockscans)
-cd backend && npm start &
-# [fetch Screener export per existing backend API]
+# Screener MasterData.xlsx — still via local screener-api (not on Stockscans)
+yarn workspace screener-api dev &
+# [fetch Screener export per existing screener-api endpoint]
 ```
 
 Each folder will contain a `manifest.json` after fetching. Read the manifests
@@ -102,7 +102,7 @@ pass in Step 2 picks up the newest quarter too.
 
 **2 — Single extraction pass.** `GET /api/research-pipeline/prompts/unified_master?company=<name>&ticker=<TICKER>`; apply once → 5 `.txt` files (AR / Concall / InvestorPres / RatingReports / Events). See [`equity-research-extraction`](../data-extraction/SKILL.md).
 
-**3 — Compute shared schemas** (`stock-api/python/orchestration/orchestrate.py compute-schemas --ticker [TICKER]`) → `_cache/schemas.json`:
+**3 — Compute shared schemas** (`yarn workspace stock-api orchestrate compute-schemas --ticker [TICKER]`) → `_cache/schemas.json`:
 
 - `kpi_table` (revenue, EBITDA, PAT, margins, ROCE, ROE) → Tabs 0, 4, 5
 - `valuation_ladder` (TTM P/E, FY+1 P/E, peer median, DCF PT) → Tabs 0, 8, 9
@@ -132,7 +132,7 @@ record-level envelope fields at its top level:
 }
 ```
 
-`orchestrate.py compute-schemas` should read any pre-existing `_cache/schemas.json`
+`orchestrate.js compute-schemas` should read any pre-existing `_cache/schemas.json`
 first (to preserve `creationTime` across re-runs), then write the envelope fields plus
 the five compute fields above in one file. Phase 6 (Render) treats `_cache/schemas.json`
 — not live re-computation — as the sole source of the numbers it injects into
@@ -147,7 +147,7 @@ re-render, don't patch the HTML directly.
 
 **5 — Pre-generation gate.** Emit the **PRE-GENERATION BRIEF** from [`equity-research-dashboard`](../dashboard-generation/SKILL.md), extended with a Tab 15 row. Wait for `GENERATE`.
 
-**6 — Render.** Base = `backend/prompts/institutional-equity/dashboard_master_v4.txt`. Inject narrative fragments + append Tab 15 from [`templates/tab15_qoq_diff.html`](templates/tab15_qoq_diff.html). Project B non-negotiables apply unchanged (single HTML, ASCII minus, CSS vars in both themes, `getElementById('tab-N')`, Chart.js 4.4.1, `---------` for missing).
+**6 — Render.** Base = `screener-api/prompts/institutional-equity/dashboard_master_v4.txt`. Inject narrative fragments + append Tab 15 from [`templates/tab15_qoq_diff.html`](templates/tab15_qoq_diff.html). Project B non-negotiables apply unchanged (single HTML, ASCII minus, CSS vars in both themes, `getElementById('tab-N')`, Chart.js 4.4.1, `---------` for missing).
 
 **7 — Publish.** `POST /api/stocks/:symbol/research-dashboard`.
 
@@ -179,7 +179,7 @@ Missing `_Estimates.txt` → omit Tab 6 and renumber (per dashboard rule).
 ## Files
 
 - `SKILL.md` — this file
-- `stock-api/python/orchestration/orchestrate.py` — `acquire` / `compute-schemas` / `publish` subcommands
+- `stock-api/bin/orchestrate.js` — `acquire` / `compute-schemas` / `publish` subcommands (run via `yarn workspace stock-api orchestrate <subcommand>`)
 - `templates/tab15_qoq_diff.html` — Tab 15 fragment
 
 ## Troubleshooting

@@ -7,6 +7,9 @@ const SCRATCH_DIR =
   '/Users/darshan.patel/.gemini/antigravity/brain/b3891b9a-1382-4ca7-9979-0e969ae76f94/scratch';
 
 const knipFiles = ['screener-api-knip.txt', 'screener-web-knip.txt', 'jobs-knip.txt'];
+// Produced by SKILL.md Step 1b: `npx eslint ... --rule '{"no-unused-vars":"error"}' -f json`.
+// JSON, not the default stylish/text format — see that step for why.
+const eslintUnusedVarsFile = 'eslint-unused-vars.json';
 
 function searchPattern(pattern) {
   try {
@@ -89,6 +92,38 @@ function parseKnipOutput(filePath) {
   return results;
 }
 
+/**
+ * Parse SKILL.md Step 1b's `eslint -f json --rule '{"no-unused-vars":"error"}'` output into a
+ * flat list of dead-local-binding findings. Unlike knip's candidates (file/dependency/export
+ * names needing a follow-up `git grep` to confirm), ESLint's own AST scope analysis for
+ * `no-unused-vars` is already the ground truth for "is this binding referenced again in this
+ * file" — there is nothing to cross-validate here, which is why this path skips
+ * `searchPattern()` entirely and writes straight into `verified.unusedLocalBindings`.
+ *
+ * Deliberately narrow to `ruleId === 'no-unused-vars'`: Step 1b's `--rule` flag only turns that
+ * one rule on, but stays defensive in case a future run broadens the ruleset and pipes it through
+ * this same file without updating this parser.
+ */
+function parseEslintUnusedVars(filePath) {
+  const raw = fs.readFileSync(filePath, 'utf-8');
+  const results = JSON.parse(raw); // ESLint's -f json is an array of per-file result objects.
+  const findings = [];
+  for (const fileResult of results) {
+    const relFile = path.relative(PROJECT_ROOT, fileResult.filePath);
+    for (const msg of fileResult.messages || []) {
+      if (msg.ruleId !== 'no-unused-vars') continue;
+      const bindingMatch = msg.message.match(/^'([^']+)'/);
+      findings.push({
+        file: relFile,
+        line: msg.line,
+        binding: bindingMatch ? bindingMatch[1] : null,
+        message: msg.message,
+      });
+    }
+  }
+  return findings;
+}
+
 // Output DTO Standard envelope: this skill is about dead CODE, not companies, so
 // `companyId` is a semantic stretch here — we reuse it to carry the unique identifier
 // of the flagged record (file path / dependency name / export name), per
@@ -108,6 +143,7 @@ function runVerification() {
     unusedFiles: [],
     unusedDependencies: [],
     unusedExports: [],
+    unusedLocalBindings: [],
   };
 
   const allCandidates = {
@@ -153,6 +189,31 @@ function runVerification() {
     if (hits.length <= 1) {
       verified.unusedExports.push({ export: exp, ...withEnvelope(exp, now) });
     }
+  }
+
+  // Step 1b's findings need no `searchPattern()` cross-validation (see parseEslintUnusedVars's
+  // doc comment) — ESLint's own scope analysis is already the ground truth. Missing the file
+  // entirely is treated as "step wasn't run" and reported as zero findings, not an error, so a
+  // partial dead-code-scanner run (e.g. knip-only, for a quick pass) still produces valid JSON.
+  const eslintPath = path.join(SCRATCH_DIR, eslintUnusedVarsFile);
+  if (fs.existsSync(eslintPath)) {
+    const bindings = parseEslintUnusedVars(eslintPath);
+    console.log(`Found ${bindings.length} dead local bindings via ESLint no-unused-vars...`);
+    for (const b of bindings) {
+      const companyId = `${b.file}:${b.line}:${b.binding || 'unknown'}`;
+      verified.unusedLocalBindings.push({
+        binding: b.binding,
+        file: b.file,
+        line: b.line,
+        message: b.message,
+        ...withEnvelope(companyId, now),
+      });
+    }
+  } else {
+    console.log(
+      `No ${eslintUnusedVarsFile} found — skipping dead-local-binding check. ` +
+        'Run SKILL.md Step 1b first for a complete scan.'
+    );
   }
 
   fs.writeFileSync(

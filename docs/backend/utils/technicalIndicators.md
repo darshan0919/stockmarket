@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `backend/utils/technicalIndicators.js`. The real, current equivalent is `screener-api/src/core/utils/technicalIndicators.js`. See `docs/README.md` for the current documentation index.
+
+---
+
 # Technical Indicators Utility
 
 > **File**: `backend/utils/technicalIndicators.js`  

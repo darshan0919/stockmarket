@@ -11,7 +11,7 @@
  *
  * @see GET /api/stocks/:symbol/delivery-volume
  */
-import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { stockAPI } from '../../../core/lib/api';
 
 // TradingView default volume colors

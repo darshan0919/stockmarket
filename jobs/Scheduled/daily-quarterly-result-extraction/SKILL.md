@@ -19,7 +19,7 @@ Run `quarterly-result-extractor` daily at 1:00 AM for all companies that filed r
 
    **Output:** JSON manifest with list of companies `{date, count, pageCount, companies[], status}`.
 
-2. For each company returned from Step 1, execute skill: `skills/equity-research/quarterly-result-extractor/SKILL.md` (local mounted repo path — only fall back to the GitHub-hosted copy via `github-skill-invoker` if the local path is unavailable).
+2. For each company returned from Step 1, execute skill: `skills/equity-research/quarterly-result-extractor/SKILL.md` (local mounted repo path).
 
    **Parameters:** Pass each companyId from Step 1 as `--companyId <NSE:SYMBOL>`.
 

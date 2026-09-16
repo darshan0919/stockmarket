@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `backend/utils/xbrlParser.js`. The real, current equivalent is `screener-api/src/core/utils/xbrlParser.js`. See `docs/README.md` for the current documentation index.
+
+---
+
 # XBRL Parser
 
 Parses XBRL XML documents from NSE/BSE to extract quarterly financial data. Maps XBRL field names to internal schema.

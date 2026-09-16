@@ -3,7 +3,7 @@
  * @file frontend/components/common/__tests__/LoadingSpinner.test.js
  */
 
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import LoadingSpinner from '../LoadingSpinner';
 
 describe('LoadingSpinner', () => {

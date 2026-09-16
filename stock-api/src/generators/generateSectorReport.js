@@ -34,11 +34,6 @@ async function createSectorReport(sectorName, subTheme, reportMarkdown, outputPa
   subtitleParts.push(new Date().toLocaleString('en-GB', { month: 'long', year: 'numeric' }));
 
   const subtitle = subtitleParts.join(' | ');
-  let headerText = `${sectorName} — Sector Deep Dive`;
-  if (subTheme) headerText += ` | ${subTheme}`;
-
-  const footerLeft =
-    'Internal — for investment conviction building; not a published recommendation.';
 
   // Override some wrapHtml styles with classification
   // modelUsed (skills/tooling/output-dto-standard/SKILL.md): this report is entirely

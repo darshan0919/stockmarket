@@ -1,5 +1,5 @@
 const { computeMetrics, hhiClassification } = require('../src/analyzers/computeConcentration');
-const { extractValueCrore, classify, THRESHOLDS } = require('../src/analyzers/catalystRules');
+const { extractValueCrore, classify } = require('../src/analyzers/catalystRules');
 const { sniffAndParse } = require('../src/analyzers/parseTweetDump');
 
 describe('computeConcentration', () => {

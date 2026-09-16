@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `frontend/lib/hooks/useWatchlist.js`. The real, current equivalent is `screener-web/src/core/lib/hooks/useWatchlist.js`. See `docs/README.md` for the current documentation index.
+
+---
+
 # useWatchlist Hook
 
 Manages user's stock watchlist. Fetches list, add/remove symbols, check membership.

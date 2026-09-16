@@ -81,7 +81,7 @@ wtt-extension/
 ├── sidepanel.html      # Side panel HTML shell
 ├── sidepanel.js        # Side panel logic — pipeline, Claude calls, rendering
 ├── sidepanel.css       # Side panel styles (dark theme)
-├── utils.js            # Shared utilities (dateToQuarter, qtrSort)
+├── utils.js            # Shared utilities (dateToQuarter)
 ├── icons/              # Extension icons (16, 48, 128px)
 ├── README.md           # This file
 └── IMPLEMENTATION.md   # Detailed technical documentation

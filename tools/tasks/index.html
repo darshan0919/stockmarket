@@ -585,6 +585,61 @@
         background: rgba(248, 113, 113, 0.1);
       }
 
+      /* Note toggle (task/subtask review notes, e.g. dead-code-scanner's
+         "don't complete blindly" caution) */
+      .note-toggle-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 0.72rem;
+        padding: 2px 5px;
+        border-radius: 4px;
+        line-height: 1;
+        flex-shrink: 0;
+        color: var(--muted);
+        transition: all 0.15s;
+      }
+      .note-toggle-btn:hover {
+        color: var(--yellow);
+        background: var(--yellow-bg);
+      }
+      .note-toggle-btn.open {
+        color: var(--yellow);
+      }
+      .task-header .note-toggle-btn,
+      .subtask-row .note-toggle-btn {
+        opacity: 0.55;
+      }
+      .task-item:hover .note-toggle-btn,
+      .subtask-row:hover .note-toggle-btn,
+      .note-toggle-btn.open {
+        opacity: 1;
+      }
+      .note-panel {
+        font-size: 0.78rem;
+        line-height: 1.5;
+        color: var(--yellow);
+        background: var(--yellow-bg);
+        border: 1px solid rgba(250, 204, 21, 0.3);
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin: 2px 14px 8px 40px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .subtask-note-panel {
+        font-size: 0.76rem;
+        line-height: 1.5;
+        color: var(--yellow);
+        background: var(--yellow-bg);
+        border: 1px solid rgba(250, 204, 21, 0.3);
+        border-radius: 6px;
+        padding: 6px 9px;
+        margin: 0 0 2px 24px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
       .add-subtask-box {
         display: flex;
         align-items: center;
@@ -1087,6 +1142,10 @@
       let showRoadmap = false;
       const openSubtaskForms = new Set();
       const collapsedTasks = new Set();
+      // Which tasks/subtasks currently have their note panel expanded.
+      // Keyed as 'task:<id>' or 'subtask:<taskId>:<subtaskId>' so task and
+      // subtask ids can never collide in the same Set.
+      const openNotes = new Set();
 
       // ─── Schemas ───────────────────────────────────────────────────────────────
       const makeTask = (title) => ({
@@ -1094,6 +1153,7 @@
         title: title.trim(),
         completed: false,
         subtasks: [],
+        note: '',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -1102,6 +1162,7 @@
         id: crypto.randomUUID(),
         title: title.trim(),
         completed: false,
+        note: '',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -1344,20 +1405,41 @@
               ? `<span class="subtask-badge${allSubtasksDone ? ' all-done' : ''}" data-taskbadge="${t.id}" title="${subtasksDone} of ${subtasks.length} subtasks completed. Click to ${isCollapsed ? 'expand' : 'collapse'}.">${subtasksDone}/${subtasks.length}</span>`
               : '';
 
+            const taskNoteKey = `task:${t.id}`;
+            const taskHasNote = !!(t.note && t.note.trim());
+            const taskNoteOpen = openNotes.has(taskNoteKey);
+            const taskNoteToggle = taskHasNote
+              ? `<button class="note-toggle-btn${taskNoteOpen ? ' open' : ''}" data-note-toggle="${taskNoteKey}" title="${taskNoteOpen ? 'Hide' : 'Show'} review note">📝</button>`
+              : '';
+            const taskNotePanel =
+              taskHasNote && taskNoteOpen ? `<div class="note-panel">${esc(t.note)}</div>` : '';
+
             const subtasksSection =
               !isCollapsed && (hasSubtasks || isFormOpen)
                 ? `
               <div class="subtasks-container">
                 ${subtasks
-                  .map(
-                    (s) => `
+                  .map((s) => {
+                    const subNoteKey = `subtask:${t.id}:${s.id}`;
+                    const subHasNote = !!(s.note && s.note.trim());
+                    const subNoteOpen = openNotes.has(subNoteKey);
+                    const subNoteToggle = subHasNote
+                      ? `<button class="note-toggle-btn${subNoteOpen ? ' open' : ''}" data-note-toggle="${subNoteKey}" title="${subNoteOpen ? 'Hide' : 'Show'} review note">📝</button>`
+                      : '';
+                    const subNotePanel =
+                      subHasNote && subNoteOpen
+                        ? `<div class="subtask-note-panel">${esc(s.note)}</div>`
+                        : '';
+                    return `
                   <div class="subtask-row${s.completed ? ' done' : ''}" data-subtask-id="${s.id}">
                     <button class="subtask-checkbox${s.completed ? ' checked' : ''}" data-subtask-toggle="${t.id}:${s.id}" title="Toggle subtask">${s.completed ? '✓' : ''}</button>
                     <span class="subtask-title" data-subtaskedit="${t.id}:${s.id}" spellcheck="false">${esc(s.title)}</span>
+                    ${subNoteToggle}
                     <button class="subtask-del-btn" data-subtask-del="${t.id}:${s.id}" title="Delete subtask">✕</button>
                   </div>
-                `
-                  )
+                  ${subNotePanel}
+                `;
+                  })
                   .join('')}
                 ${
                   isFormOpen
@@ -1391,10 +1473,12 @@
                   <button class="checkbox${t.completed ? ' checked' : ''}" data-id="${t.id}" title="Toggle complete">${t.completed ? '✓' : ''}</button>
                   <span class="task-title" data-taskedit="${t.id}" spellcheck="false">${esc(t.title)}</span>
                   ${subtaskBadge}
+                  ${taskNoteToggle}
                   <button class="add-subtask-btn" data-addsubtask="${t.id}" title="Add a subtask">+ subtask</button>
                   <span class="task-meta">${fmt(t.createdAt)}</span>
                   <button class="del-btn" data-taskdel="${t.id}" title="Delete task">✕</button>
                 </div>
+                ${taskNotePanel}
                 ${subtasksSection}
               </div>
             `;
@@ -1620,6 +1704,18 @@
 
       // Task interactions (Check, Delete, Subtasks)
       document.getElementById('taskList').addEventListener('click', async (e) => {
+        // Note panel show/hide — pure UI state, not persisted, so this works
+        // in read-only (github/error) mode too, unlike edits/toggles below.
+        const noteToggle = e.target.closest('[data-note-toggle]');
+        if (noteToggle) {
+          e.preventDefault();
+          const key = noteToggle.dataset.noteToggle;
+          if (openNotes.has(key)) openNotes.delete(key);
+          else openNotes.add(key);
+          renderTasks();
+          return;
+        }
+
         if (mode !== 'local') return;
 
         // Subtask Checkbox Toggle

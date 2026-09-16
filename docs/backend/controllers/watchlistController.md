@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `backend/controllers/watchlistController.js`. The real, current equivalent is `screener-api/src/features/watchlist/watchlistController.js` — see `docs/API_REFERENCE.md`. See `docs/README.md` for the current documentation index.
+
+---
+
 # Watchlist Controller
 
 Manages user watchlist: add/remove stocks, list watchlist with enriched data (price, fundamentals).

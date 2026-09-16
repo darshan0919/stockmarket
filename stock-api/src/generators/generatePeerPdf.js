@@ -68,7 +68,7 @@ function _verdictSection(verdict) {
   ];
 
   let tableHtml = `<table style="width: 100%; border-collapse: collapse; font-size: 9pt; font-family: Helvetica, sans-serif; border: 0.5pt solid ${INSTITUTIONAL_LIGHT.border};">`;
-  rows.forEach((r, idx) => {
+  rows.forEach((r) => {
     tableHtml += `<tr>`;
     tableHtml += `<td style="width: 5cm; background-color: ${INSTITUTIONAL_LIGHT.primary}; color: #fff; font-weight: bold; border: 0.5pt solid ${INSTITUTIONAL_LIGHT.border}; padding: 6px 8px; vertical-align: top;">${formatInlineMarkdown(r[0])}</td>`;
     tableHtml += `<td style="background-color: ${INSTITUTIONAL_LIGHT.tint}; border: 0.5pt solid ${INSTITUTIONAL_LIGHT.border}; padding: 6px 8px; vertical-align: top;">${formatInlineMarkdown(r[1])}</td>`;
@@ -123,7 +123,6 @@ async function createPeerComparisonPdf(data) {
 
   const title = data.title || 'Peer Comparison';
   const subtitle = data.date || '';
-  const headerText = title;
 
   // modelUsed (skills/tooling/output-dto-standard/SKILL.md): entirely LLM-authored
   // analysis, no separate JSON DTO — caller passes data.model_used through to the

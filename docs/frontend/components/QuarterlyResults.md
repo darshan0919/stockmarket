@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `frontend/components/stock/QuarterlyResults.js`. The real, current equivalent is `screener-web/src/features/stock/components/QuarterlyResults.js`. See `docs/README.md` for the current documentation index.
+
+---
+
 # QuarterlyResults Component
 
 Displays quarterly financial results in a horizontal scrollable table. Supports consolidated/standalone toggle and shows YoY/QoQ growth metrics.

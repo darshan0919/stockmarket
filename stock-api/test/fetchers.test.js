@@ -1,10 +1,6 @@
-const { normaliseType, docYyyymm, parseDateFilter } = require('../src/fetchers/documentsFetcher');
+const { normaliseType, docYyyymm } = require('../src/fetchers/documentsFetcher');
 const { inDateRange } = require('../src/fetchers/announcementsFetcher');
-const {
-  lastNQuarterDates,
-  tokenize,
-  extractNgrams,
-} = require('../src/fetchers/announcementScanner');
+const { lastNQuarterDates, extractNgrams } = require('../src/fetchers/announcementScanner');
 
 describe('documentsFetcher', () => {
   it('normaliseType', () => {

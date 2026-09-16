@@ -697,7 +697,6 @@ async function validateGainersPicks(sourceDate, clients = { nse }) {
   const records = [];
   for (const sig of highSignals) {
     const sym = sig.ticker || sig.companyId;
-    const dInfo = { close: undefined, deliv_per: sig.delivery && sig.delivery.deliv_per };
     // Prefer the raw delivery/price captured at signal time if present; else re-fetch D.
     let dClose = null;
     let dDelivPer = sig.delivery && sig.delivery.available ? sig.delivery.deliv_per : null;
@@ -1676,7 +1675,6 @@ const VERDICT_BADGE = {
 const signed = (x, dp) => `${x >= 0 ? '+' : ''}${x.toFixed(dp)}`;
 
 function buildEmail(run, props, qr) {
-  const d = run.date;
   const rows = [...run.results].sort(
     (a, b) => Math.abs(b.live_return_1d || 0) - Math.abs(a.live_return_1d || 0)
   );

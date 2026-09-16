@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `backend/api/bseIndiaApi.js`. The real, current equivalent is `screener-api/src/core/api/bseIndiaApi.js` — see `docs/ARCHITECTURE.md` and `docs/API_REFERENCE.md`. See `docs/README.md` for the current documentation index.
+
+---
+
 # BSE India API
 
 Client for BSE India public APIs. Fetches scrip codes, result announcements, upcoming results, and company info.

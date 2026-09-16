@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `frontend/components/stock/StockHeader.js`. The real, current equivalent is `screener-web/src/features/stock/components/StockHeader.js`. See `docs/README.md` for the current documentation index.
+
+---
+
 # StockHeader Component
 
 Stock detail page header showing name, symbol, sector, industry, price, market cap, and watchlist toggle.

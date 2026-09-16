@@ -16,7 +16,7 @@ const DEFAULT_MAX_TOKENS = 4096;
 const CLAUDE_TIMEOUT_MS = 120_000;
 const MAX_RETRIES = 1;
 
-// dateToQuarter() and qtrSort() are provided by utils.js (loaded before this file)
+// dateToQuarter() is provided by utils.js (loaded before this file)
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let S = {

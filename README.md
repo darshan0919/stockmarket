@@ -56,14 +56,14 @@ By wrapping around and enhancing existing third-party APIs (NSE, BSE, Stockscans
 
 ## Tech Stack
 
-### Backend
+### `screener-api` (Express API)
 
 - **Node.js** + **Express.js** - REST API
-- **MongoDB** + **Mongoose** - Database
+- **MongoDB** + **Mongoose** - Database for the web app's own screener/watchlist/stock-cache data
 - **Axios** - External API calls
 - **Joi** - Input validation
 
-### Frontend
+### `screener-web` (Next.js frontend)
 
 - **Next.js 14** - React framework
 - **React 18** - UI library
@@ -71,31 +71,46 @@ By wrapping around and enhancing existing third-party APIs (NSE, BSE, Stockscans
 - **Recharts** - Data visualization
 - **Axios** - API client
 
+### Skills & jobs (the bulk of the repo's value today)
+
+- **`skills/`** - 79+ Claude Agent Skills for Indian equity research (concall
+  analysis, forensic accounting, DRHP/IPO analysis, quarterly-result
+  analysis, etc.) — run via Claude Code/Cowork, not the web stack. See
+  `skills/README.md`.
+- **`jobs/Scheduled/`** - scheduled automation jobs (digests, trackers,
+  scanners) that delegate to `packages/jobs-runtime/`.
+- **Data Ecosystem v2** - flat JSON collections under `data/`, accessed only
+  through `packages/jobs-runtime/lib/db.js`, mirrored to Google Drive. See
+  `docs/DATA_ECOSYSTEM.md` and `docs/DATA_RULES.md`. This is separate from
+  the MongoDB layer above — MongoDB backs `screener-api`'s own transactional
+  features (screener runs, watchlist), while the Data Ecosystem backs
+  research/skills data.
+
 ## Project Structure
 
 ```
 stockmarket/
-├── package.json         # Yarn 3 workspaces root (yarn install, yarn dev)
-├── yarn.lock            # Pinned dependency tree (commit this file)
-├── .yarnrc.yml          # Yarn Berry settings (node_modules linker)
-├── backend/
-│   ├── config/           # Database configuration
-│   ├── models/           # Mongoose schemas
-│   ├── routes/           # API routes
-│   ├── controllers/      # Business logic
-│   ├── utils/           # Helper functions
-│   ├── scripts/         # Data fetching scripts
-│   ├── middleware/      # Error handling
-│   └── server.js        # Express server
-├── frontend/
-│   ├── pages/           # Next.js pages
-│   ├── components/      # React components
-│   ├── lib/            # API client & utilities
-│   ├── styles/         # CSS files
-│   └── public/         # Static assets
-├── packages/
-│   ├── stock-api/       # Centralized API clients (Stockscans, NSE, BSE)
-│   └── jobs/     # Automated data pipelines and cron jobs
+├── package.json          # Yarn 3 workspaces root (yarn install, yarn dev)
+├── yarn.lock             # Pinned dependency tree (commit this file)
+├── .yarnrc.yml            # Yarn Berry settings (node_modules linker)
+├── screener-api/          # Express REST API (workspace: screener-api)
+│   ├── src/core/          # config (Mongo), shared api clients, middleware, utils
+│   ├── src/features/      # one folder per feature: stock, screener, watchlist,
+│   │                       # market, orders, announcements, results, admin, twitter, research
+│   │   └── .../*Routes.js, *Controller.js, and Mongoose models (e.g. stock/Stock.js)
+│   ├── scripts/           # data-fetch scripts (fetchData.js, etc.)
+│   └── src/server.js      # Express entry point
+├── screener-web/          # Next.js 14 frontend (workspace: screener-web)
+│   ├── pages/              # Next.js pages
+│   ├── src/core/           # shared components, API client (lib/api.js), hooks
+│   └── src/features/       # dashboard, screener, results, stock feature components
+├── stock-api/             # shared external-API clients (Stockscans/NSE/BSE) + skill CLI entry points
+├── cloud-utils/           # Google Drive/Gmail integration shared across workspaces
+├── packages/jobs-runtime/ # shared data/env/job-scheduling runtime (db.js is the only writer to data/)
+├── jobs/                  # scheduled-task definitions (delegate to packages/jobs-runtime)
+├── skills/                # Claude Agent Skills (equity research, tooling, dev) — see skills/README.md
+├── data/                  # flat JSON collections ("Data Ecosystem v2") — gitignored, see docs/DATA_ECOSYSTEM.md
+├── docs/                  # Documentation
 └── README.md
 ```
 
@@ -122,32 +137,33 @@ cd stockmarket
 yarn install
 ```
 
-This installs every dependency for the root package, `backend`, and `frontend` (Yarn workspaces).
+This installs every dependency for the root package and all workspaces
+(`screener-api`, `screener-web`, `stock-api`, `jobs`, `cloud-utils`,
+`packages/jobs-runtime`) in one Yarn 3 install.
 
 #### 2. Configure environment
 
-**Backend** — create `backend/.env` (see values your deployment needs), for example:
+There is a single root `.env` (see `.env.example` for the full list of keys —
+Mongo URL, port, third-party API keys, Google Drive/skills credentials, etc.),
+for example:
 
 ```bash
-cat > backend/.env << EOF
+cat >> .env << EOF
 MONGO_URL=mongodb://localhost:27017/stock-screener
-PORT=5000
-ALPHA_VANTAGE_API_KEY=your_api_key_here
-FMP_API_KEY=your_api_key_here
-NODE_ENV=development
+PORT=5001
 EOF
 ```
 
-**Frontend** — point the app at the API:
+**screener-web** — point the app at the API (`screener-web/.env.local`):
 
 ```bash
-echo "NEXT_PUBLIC_API_URL=http://localhost:5000/api" > frontend/.env.local
+echo "NEXT_PUBLIC_API_URL=http://localhost:5001/api" > screener-web/.env.local
 ```
 
 #### 3. Seed the database (optional, first run)
 
 ```bash
-node backend/scripts/fetchData.js
+yarn seed
 ```
 
 #### 4. Run the full stack in development
@@ -158,13 +174,15 @@ From the **repository root**:
 yarn dev
 ```
 
-This starts the Express API (nodemon) and Next.js (`next dev`) together. Backend defaults to `http://localhost:5000`, frontend to `http://localhost:3000`.
+This starts `screener-api` (nodemon) and `screener-web` (`next dev`) together
+via `concurrently`. `screener-api` defaults to port `5001` (auto-picks the
+next free port if taken), `screener-web` to `http://localhost:3000`.
 
 To run a single workspace:
 
 ```bash
-yarn workspace stock-screener-backend dev
-yarn workspace stock-screener-frontend dev
+yarn workspace screener-api dev
+yarn workspace screener-web dev
 ```
 
 ### Accessing the Application
@@ -172,9 +190,12 @@ yarn workspace stock-screener-frontend dev
 Open your browser and go to:
 
 - **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:5000/api
+- **Backend API**: http://localhost:5001/api
 
 ## API Endpoints
+
+`screener-api` routes live under `screener-api/src/features/<feature>/`. Key
+examples (see `docs/API_REFERENCE.md` for the full reference):
 
 ### Stock APIs
 
@@ -237,46 +258,32 @@ Open your browser and go to:
 
 ## Data Management
 
-### Initial Data Population
+There are two separate data layers in this repo — don't confuse them:
 
-The `scripts/fetchData.js` script seeds the database with 20 sample Indian stocks and generates:
+1. **MongoDB** — backs `screener-api`'s own screener/watchlist/stock-cache
+   features (the web app you run with `yarn dev`).
+2. **Data Ecosystem v2** — flat JSON collections under `data/`, used by
+   `skills/` and `jobs/`, accessed only through
+   `packages/jobs-runtime/lib/db.js` and mirrored to Google Drive. See
+   `docs/DATA_ECOSYSTEM.md` and `docs/DATA_RULES.md` for the authoritative
+   description.
 
-- 5 years of daily price history
-- Latest fundamental metrics
-- 4 quarters of financial statements
+### Initial Data Population (MongoDB / web app)
+
+`screener-api/scripts/fetchData.js` seeds the database with sample Indian
+stocks and generates price history, fundamentals, and financial statements:
 
 ```bash
-cd backend
-node scripts/fetchData.js
+yarn seed
 ```
 
-You can also use the comprehensive data pipelines provided by `@stock/jobs` to sync data with real APIs.
+### Data Ecosystem sync (skills/jobs data)
 
 ```bash
-yarn cowork:data:init
-yarn cowork:data:sync
-```
-
-### Daily Data Updates
-
-Run the update script to refresh prices and fundamentals:
-
-```bash
-cd backend
-node scripts/updateData.js
-```
-
-To automate daily updates, set up a cron job:
-
-```bash
-# Edit crontab
-crontab -e
-
-# Add this line to run daily at 6:00 PM IST (legacy updates)
-0 18 * * * cd /path/to/stockmarket/screener-api && node scripts/updateData.js
-
-# Add this line to run data offloading daily at 8:30 PM (cowork jobs)
-30 20 * * * cd /path/to/stockmarket && yarn cowork:data:offload
+yarn data:push        # push local data/ to Google Drive
+yarn data:pull        # pull latest from Google Drive
+yarn data:sync        # push, then pull, then print status
+yarn data:status      # sync status
 ```
 
 ## Available Scripts
@@ -284,23 +291,30 @@ crontab -e
 ### Root (repository)
 
 - `yarn install` — Install all workspace dependencies (uses `yarn.lock`)
-- `yarn dev` — Backend + frontend dev servers in one terminal
-- `yarn test` — Run backend tests, then frontend tests
-- `yarn format` — Prettier in backend, then frontend
+- `yarn dev` — `screener-api` + `screener-web` dev servers together (via `concurrently`)
+- `yarn build` — Production build of `screener-web`
+- `yarn start` — `screener-api` + `screener-web` production servers together
+- `yarn seed` — Seed MongoDB via `screener-api/scripts/fetchData.js`
+- `yarn test` — Run `screener-api` tests, then `screener-web` tests
+- `yarn format` / `yarn format:check` — Prettier across the repo
+- `yarn lint` / `yarn lint:fix` — ESLint across the repo
+- `yarn quality` — Pre-submit sweep: `rules:check` + `format:check` + `lint` + `test`
 - `yarn dead-code:scan` — Scan monorepo for unreferenced files, committed stray artifacts, and coding practice violations
 - `yarn dep:tree <target>` — Generate visual dependency tree diagram (HTML, Mermaid, text) for any given variable or file across direct imports, skills, scheduled jobs, and scripts
-- `yarn cowork:data:*` — Various data pipeline and sync jobs (e.g., `sync`, `offload`, `pull`)
+- `yarn data:push` / `yarn data:pull` / `yarn data:sync` / `yarn data:status` — Data Ecosystem v2 sync with Google Drive (see above)
+- `yarn rules:check` / `yarn rules:sync` — verify/fix parity between `AGENTS.md` and the tool-specific rule files (`CLAUDE.md`, `.cursor/rules/*.mdc`, `.gemini/rules/*.md`)
 
-### Backend (`yarn workspace stock-screener-backend <script>`)
+### screener-api (`yarn workspace screener-api <script>`)
 
-- `yarn workspace stock-screener-backend start` — Production server
-- `yarn workspace stock-screener-backend dev` — Development with nodemon
+- `yarn workspace screener-api start` — Production server
+- `yarn workspace screener-api dev` — Development with nodemon
+- `yarn workspace screener-api test` — Jest tests
 
-### Frontend (`yarn workspace stock-screener-frontend <script>`)
+### screener-web (`yarn workspace screener-web <script>`)
 
-- `yarn workspace stock-screener-frontend dev` — Next.js dev server
-- `yarn workspace stock-screener-frontend build` — Production build
-- `yarn workspace stock-screener-frontend start` — Production server
+- `yarn workspace screener-web dev` — Next.js dev server
+- `yarn workspace screener-web build` — Production build
+- `yarn workspace screener-web start` — Production server
 
 ## Sample Stocks Included
 
@@ -340,21 +354,21 @@ The application comes pre-seeded with 20 major Indian stocks:
 ### MongoDB Connection Error
 
 - Ensure MongoDB is running: `mongod` or `brew services start mongodb-community`
-- Check MONGO_URL in backend/.env
+- Check `MONGO_URL` in the root `.env`
 
 ### Port Already in Use
 
-- Backend (5000): Change PORT in backend/.env
-- Frontend (3000): Use `yarn workspace stock-screener-frontend dev -- -p 3001`
+- `screener-api` (default 5001): change `PORT` in the root `.env`, or let it auto-pick the next free port
+- `screener-web` (3000): `yarn workspace screener-web dev -- -p 3001`
 
 ### No Data in Application
 
-- Run the seed script: `node backend/scripts/fetchData.js`
+- Run the seed script: `yarn seed`
 
 ### API Errors
 
-- Check backend server is running on port 5000
-- Verify NEXT_PUBLIC_API_URL in frontend/.env.local
+- Check the `screener-api` server is running (port 5001 by default)
+- Verify `NEXT_PUBLIC_API_URL` in `screener-web/.env.local`
 
 ## Performance Notes
 

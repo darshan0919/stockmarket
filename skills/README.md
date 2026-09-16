@@ -4,12 +4,19 @@ All Claude AI skills for the stockmarket monorepo, managed as version-controlled
 
 ## How it works
 
-1. **`github-skill-invoker`** is the only skill installed locally in Claude Web
-2. It reads `registry.json` from this directory at runtime
-3. Fetches the target skill's `SKILL.md` + support files from GitHub raw URLs
-4. Executes the skill with user-provided parameters
+Skills are invoked directly from the locally-mounted repo checkout (Cowork
+sessions, or any environment with this repo cloned) — there is no remote
+fetch-and-execute meta-skill anymore. The old `github-skill-invoker` +
+`stock-api/dist-skills/*.cjs` bundle architecture (for Claude Web sessions
+with no local checkout) was retired 2026-09-16: confirmed unused, deleted.
 
-**To update a skill:** Edit the files in this repo → commit → push. Changes are live on the next Claude invocation. No reinstall needed.
+1. Claude reads a skill's `SKILL.md` directly from `skills/<category>/<skill-name>/SKILL.md` in the mounted repo.
+2. `registry.json` (and `registry.manifest.json`/`skills/registries/`) still document each skill's entry points, shared files, and references for discovery/dependency-mapping purposes.
+3. A skill that needs to run a compiled entry point does so via `skills/_shared/resolve.sh <skill-name>`, which resolves to `stock-api/bin/<skill-name>.js` in the local checkout — falling back to a shallow `git clone` into `/tmp/sm-clone` only if no local checkout is mounted (see `resolve.sh` for the exact fallback chain).
+
+**To update a skill:** Edit the files in this repo. Changes are live on the
+next invocation from any session with the repo mounted — no build/publish
+step required.
 
 **To add a new skill:**
 
@@ -19,7 +26,7 @@ All Claude AI skills for the stockmarket monorepo, managed as version-controlled
 3. Add an entry to `registry.json` (and, if it should also show up in
    `skills/registries/DEPENDENCIES.md`, to `registry.manifest.json`, then run
    `yarn registries:generate`).
-4. Done — the invoker will find it automatically.
+4. Done.
 
 ## Directory structure
 
@@ -30,18 +37,17 @@ regenerate it rather than hand-editing entries one at a time.
 ```
 skills/
 ├── README.md                       # this file
-├── registry.json                   # skill name → file paths + aliases map (read by github-skill-invoker at runtime)
+├── registry.json                   # skill name → file paths + aliases map (skill discovery/dependency-mapping)
 ├── registry.manifest.json          # hand-maintained source for skills/registries/DEPENDENCIES.md
 ├── registries/                     # generated: DEPENDENCIES.md, workflow-dependencies.json (yarn registries:generate)
 ├── _shared/                        # shared across all skills (single source of truth)
 │   ├── conventions.md              # mandatory skill/job conventions — data layer, API docs, deterministic execution
 │   ├── data-verification.md
 │   ├── income-statement-signals.md
-│   └── pdf_utils.py                # ReportLab helpers, palettes, table builder
-├── equity-research/                # company/sector research skills (55)
+│   └── pdf-design-guide.md          # institutional palette/typography spec (implemented by stock-api/src/utils/pdfUtils.js)
+├── equity-research/                # company/sector research skills (51)
 │   ├── stock-documents-fetcher/    # CORE — fetches Stockscans documents (Annual Report/PPT/Result/Transcript)
 │   ├── concall-analysis/
-│   ├── concall-transcript-extractor/
 │   ├── forensic-accounting/
 │   ├── equity-research-deepdive/
 │   ├── equity-research-extraction/
@@ -58,6 +64,7 @@ skills/
 │   ├── drhp-ipo-analysis/
 │   ├── annual-report-analysis/
 │   ├── quarterly-result-analysis/
+│   ├── quarterly-result-extractor/
 │   ├── consecutive-filings-diff/
 │   ├── financial-model/
 │   ├── pre-pead-scanner/
@@ -73,23 +80,30 @@ skills/
 │   ├── watchlist-sync/
 │   ├── insight-validation/
 │   ├── gainers-signal/
+│   ├── volume-rocketing/
 │   ├── announcement-insights/
 │   ├── announcement-info-classifier/
 │   ├── announcement-keyword-explorer/
+│   ├── announcement-taxonomy/
+│   ├── document-preprocessor/
+│   ├── post-close-scan-insights/
 │   ├── transcript-availability-scanner/
 │   ├── stage2-catalyst-analysis/
 │   ├── stock-report/
 │   ├── monthly-sales-tracker/
+│   ├── monthly-updates-tracker/
 │   ├── order-book-tracker/
+│   ├── order-book-tracker-workspace/
+│   ├── ipo-subscription-ranker/
 │   ├── tweet-signals/
 │   └── tweet-investor-playbook/
 ├── tooling/                         # meta-skills that operate on this repo itself
-│   ├── github-skill-invoker/        # the meta-skill (install this one in Claude Web)
 │   ├── find-skills/
 │   ├── skill-manager/
 │   ├── review-proposals/
 │   ├── cowork-task-architect/
 │   ├── conversation-capture/
+│   ├── concept-transcript-integrator/
 │   ├── antigravity-scheduled-tasks-sync/
 │   ├── token-usage-analyzer/
 │   ├── render-pdf/
@@ -116,26 +130,6 @@ skills/
     └── vercel-react-best-practices/
 ```
 
-## Important: repo must be public (or use a proxy)
-
-Claude's `web_fetch` cannot pass auth headers, so raw GitHub URLs must be publicly accessible.
-
-**Option A (recommended):** Keep this `skills/` directory in a public repo (or a public subfolder via GitHub Pages). Your backend/frontend code can stay in a separate private repo.
-
-**Option B:** Set up a read-only Cloudflare Worker proxy that injects a GitHub token. Point `base_url` in `registry.json` to the proxy URL.
-
-## Updating base_url
-
-After forking/cloning this repo, update the `base_url` in `registry.json`:
-
-```json
-{
-  "base_url": "https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/skills"
-}
-```
-
-Also update the registry URL in `github-skill-invoker/SKILL.md`.
-
 ## Script caching (/tmp)
 
 Python scripts are cached to `/tmp/` at the start of each Claude session:
@@ -146,7 +140,7 @@ Python scripts are cached to `/tmp/` at the start of each Claude session:
 
 ## Shared files
 
-`_shared/conventions.md` and `stock-api/python/utils/pdf_utils.py` were previously duplicated inside each skill's own `_shared/` directory. After the migration, `conventions.md` lives in `skills/_shared/` and `pdf_utils.py` lives in `stock-api/python/utils/`. Skills reference them via their absolute or relative paths.
+`_shared/conventions.md` and the shared PDF palette/helpers were previously duplicated inside each skill's own `_shared/` directory. After the migration, `conventions.md` lives in `skills/_shared/`; the PDF helpers were later ported from Python/ReportLab to `stock-api/src/utils/pdfUtils.js` (puppeteer-based HTML rendering — see `skills/_shared/pdf-design-guide.md` for the palette spec). Skills reference them via their absolute or relative paths.
 
 **Do not edit the per-skill `_shared/` copies** — they are legacy and will be removed in a future cleanup pass. Edit the root `_shared/` files only.
 

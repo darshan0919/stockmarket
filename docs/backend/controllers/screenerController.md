@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `backend/controllers/screenerController.js`. The real, current equivalent is `screener-api/src/features/screener/screenerController.js` — see `docs/API_REFERENCE.md`. See `docs/README.md` for the current documentation index.
+
+---
+
 # Screener Controller
 
 Runs stock screening with filters on market cap, sector, industry, and fundamental ratios (P/E, P/B, ROE, ROCE, etc.).

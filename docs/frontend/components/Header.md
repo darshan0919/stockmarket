@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `frontend/components/common/Header.js`. The real, current equivalent is `screener-web/src/core/components/common/Header.js`. See `docs/README.md` for the current documentation index.
+
+---
+
 # Header Component
 
 > **Component**: `Header`  

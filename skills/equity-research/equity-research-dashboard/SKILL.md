@@ -71,7 +71,7 @@ from it via the master prompt below — the HTML generation step is a template p
 
 ## Full prompt
 
-See `prompts/dashboard_master_v4.txt` in this skill (duplicate: `backend/prompts/institutional-equity/dashboard_master_v4.txt`).
+See `prompts/dashboard_master_v4.txt` in this skill (duplicate: `screener-api/prompts/institutional-equity/dashboard_master_v4.txt`).
 
 ## Non-negotiables (checklist)
 

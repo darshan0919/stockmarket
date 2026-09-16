@@ -40,9 +40,10 @@ yarn workspace @stock/api announcement-keyword-explorer \
   --output /tmp/keyword_explorer_output.json
 ```
 
-(This is a `bundle`-mode skill per the registry — when invoked via the
-github-skill-invoker meta-skill from outside the local repo, run the cached
-`/tmp/announcement-keyword-explorer.cjs` the same way instead.)
+(When invoked from a session with no local repo checkout, use
+`skills/_shared/resolve.sh announcement-keyword-explorer` instead, which
+shallow-clones the repo into `/tmp/sm-clone` and runs the same script from
+there.)
 
 **Auth:** The script (via the shared `StockscansAuth` class) auto-resolves the
 authtoken via, in order:

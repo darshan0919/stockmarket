@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `backend/api/nseIndiaApi.js`. The real, current equivalent is `screener-api/src/core/api/nseIndiaApi.js` — see `docs/ARCHITECTURE.md` and `docs/API_REFERENCE.md`. See `docs/README.md` for the current documentation index.
+
+---
+
 # NSE India API Module
 
 > **File**: `backend/api/nseIndiaApi.js`  

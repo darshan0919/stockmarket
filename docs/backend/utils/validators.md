@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `backend/utils/validators.js`. There is no standalone `validators.js` in `screener-api` today — Joi validation schemas are defined inline per-controller under `screener-api/src/features/*/`. This doc no longer maps to a real file; kept for historical reference only. See `docs/README.md` for the current documentation index.
+
+---
+
 # Validators
 
 Joi validation schemas for request validation. Used by routes/middleware to validate screener filters, stock symbols, and search queries.

@@ -229,7 +229,7 @@ management-credibility-tracker/
 ├── SKILL.md                                 (this file)
 ├── _shared/
 │   ├── conventions.md                       (linked)
-│   └── pdf_utils.py                         (shared)
+│   └── pdfUtils.js                          (linked — stock-api/src/utils/, shared institutional palette)
 ├── references/
 │   ├── credibility_framework.md             (full scoring rubric + case studies)
 │   └── case_study_calibration.md            (the 4 reference patterns in detail)

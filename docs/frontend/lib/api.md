@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `frontend/lib/api.js`. The real, current equivalent is `screener-web/src/core/lib/api.js`. See `docs/README.md` for the current documentation index.
+
+---
+
 # API Client
 
 > **File**: `frontend/lib/api.js`  

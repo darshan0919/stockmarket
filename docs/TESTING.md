@@ -1,55 +1,52 @@
 # Testing Guide
 
 > **Document Type**: Testing Documentation  
-> **Last Updated**: 2024-12-31
+> **Last Updated**: 2026-09-16
 
 ## Overview
 
-This project uses Jest as the testing framework for both backend and frontend code.
+This project uses Jest as the testing framework for both `screener-api` and `screener-web` code.
 
 ## Test Structure
 
 ```
 stockmarket/
-├── backend/
-│   ├── tests/                          # Backend tests
-│   │   └── stockController.test.js
-│   ├── api/__tests__/                  # API module tests
-│   ├── utils/__tests__/                # Utility tests
+├── screener-api/
+│   ├── src/features/*/__tests__/       # Feature tests (controllers, etc.)
+│   ├── scripts/__tests__/              # Script tests
 │   └── jest.config.js
-└── frontend/
-    ├── components/
-    │   └── stock/__tests__/            # Component tests
-    │       └── QuarterlyResults.test.js
-    ├── lib/__tests__/                  # Hook and utility tests
+└── screener-web/
+    ├── src/features/stock/components/__tests__/  # Component tests
+    │   └── QuarterlyResults.test.js
+    ├── src/core/lib/hooks/__tests__/   # Hook and utility tests
     ├── jest.config.js
     └── jest.setup.js
 ```
 
 ## Running Tests
 
-### Backend
+### screener-api
 
 ```bash
 # From repository root (recommended)
-yarn workspace stock-screener-backend test
-yarn workspace stock-screener-backend test:watch
+yarn workspace screener-api test
+yarn workspace screener-api test:watch
 
-# Or from backend/
-cd backend && yarn test
-cd backend && yarn test:watch
+# Or from screener-api/
+cd screener-api && yarn test
+cd screener-api && yarn test:watch
 ```
 
-### Frontend
+### screener-web
 
 ```bash
 # From repository root (recommended)
-yarn workspace stock-screener-frontend test
-yarn workspace stock-screener-frontend test:watch
+yarn workspace screener-web test
+yarn workspace screener-web test:watch
 
-# Or from frontend/
-cd frontend && yarn test
-cd frontend && yarn test:watch
+# Or from screener-web/
+cd screener-web && yarn test
+cd screener-web && yarn test:watch
 ```
 
 ### All workspaces (root)
@@ -58,33 +55,42 @@ cd frontend && yarn test:watch
 yarn test
 ```
 
-## Backend Testing
+## screener-api Testing
 
-### Configuration (`backend/jest.config.js`)
+### Configuration (`screener-api/jest.config.js`)
 
 ```javascript
 module.exports = {
   testEnvironment: 'node',
+  coveragePathIgnorePatterns: ['/node_modules/'],
   testMatch: ['**/tests/**/*.test.js', '**/__tests__/**/*.test.js'],
   collectCoverageFrom: [
     'controllers/**/*.js',
     'utils/**/*.js',
     'api/**/*.js',
+    'middleware/**/*.js',
     '!**/node_modules/**',
+    '!**/__tests__/**',
   ],
   testTimeout: 20000,
   verbose: true,
 };
 ```
 
+> Note: the `collectCoverageFrom` globs above are the literal current
+> contents of `screener-api/jest.config.js` and predate the `src/core` +
+> `src/features` restructure — they no longer match real source paths.
+> Coverage collection is effectively a no-op until this config is updated;
+> this is a pre-existing gap, not something this doc invents a fix for.
+
 ### Writing Controller Tests
 
 ```javascript
-// backend/tests/exampleController.test.js
+// screener-api/src/features/example/__tests__/exampleController.test.js
 
 const request = require('supertest');
 const express = require('express');
-const router = require('../routes/example');
+const router = require('../exampleRoutes');
 
 // Mock dependencies
 jest.mock('../models/Example');
@@ -130,7 +136,7 @@ describe('Example Controller', () => {
 ### Writing Utility Tests
 
 ```javascript
-// backend/utils/__tests__/technicalIndicators.test.js
+// screener-api/src/core/utils/__tests__/technicalIndicators.test.js
 
 const { calculateSMA, calculateEMA, calculateRSI } = require('../technicalIndicators');
 
@@ -161,7 +167,7 @@ describe('Technical Indicators', () => {
 ### Writing API Integration Tests
 
 ```javascript
-// backend/api/__tests__/nseIndiaApi.test.js
+// screener-api/src/core/api/__tests__/nseIndiaApi.test.js
 
 const axios = require('axios');
 const { upcomingResults, formatDate, getNseCookies } = require('../nseIndiaApi');
@@ -197,9 +203,9 @@ describe('NSE India API', () => {
 });
 ```
 
-## Frontend Testing
+## screener-web Testing
 
-### Configuration (`frontend/jest.config.js`)
+### Configuration (`screener-web/jest.config.js`)
 
 ```javascript
 const nextJest = require('next/jest');
@@ -223,13 +229,13 @@ module.exports = createJestConfig(customJestConfig);
 ### Writing Component Tests
 
 ```javascript
-// frontend/components/__tests__/SearchBar.test.js
+// screener-web/src/core/components/common/__tests__/SearchBar.test.js
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useRouter } from 'next/router';
-import SearchBar from '../common/SearchBar';
-import { stockAPI } from '../../lib/api';
+import SearchBar from '../SearchBar';
+import { stockAPI } from '../../../lib/api';
 
 // Mock dependencies
 jest.mock('next/router', () => ({
@@ -310,7 +316,7 @@ describe('SearchBar', () => {
 ### Writing Hook Tests
 
 ```javascript
-// frontend/lib/hooks/__tests__/useMarket.test.js
+// screener-web/src/core/lib/hooks/__tests__/useMarket.test.js
 
 import { renderHook, waitFor } from '@testing-library/react';
 import { useMarket } from '../useMarket';
@@ -360,7 +366,7 @@ describe('useMarket', () => {
 ### Writing Utility Tests
 
 ```javascript
-// frontend/lib/utils/__tests__/formatters.test.js
+// screener-web/src/core/lib/utils/__tests__/formatters.test.js
 
 import {
   formatCurrency,
@@ -467,13 +473,13 @@ jest.mock('next/router', () => ({
 ### Viewing Coverage Reports
 
 ```bash
-# Backend
-yarn workspace stock-screener-backend test
-open backend/coverage/lcov-report/index.html
+# screener-api
+yarn workspace screener-api test
+open screener-api/coverage/lcov-report/index.html
 
-# Frontend
-yarn workspace stock-screener-frontend test
-open frontend/coverage/lcov-report/index.html
+# screener-web
+yarn workspace screener-web test
+open screener-web/coverage/lcov-report/index.html
 ```
 
 ### Coverage Thresholds

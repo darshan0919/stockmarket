@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `backend/controllers/declaredResultsController.js`. The real, current equivalent is `screener-api/src/features/results/declaredResultsController.js` — see `docs/API_REFERENCE.md`. See `docs/README.md` for the current documentation index.
+
+---
+
 # Declared Results Controller
 
 Fetches declared quarterly results from StockScans API with filters. Supports transcript notes download.

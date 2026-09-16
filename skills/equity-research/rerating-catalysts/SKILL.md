@@ -310,16 +310,39 @@ Read `references/growth_catalyst_framework.md` in full before analysing — it
 defines the "new" taxonomy (new base creation, new industry cycle, new
 management change, new corporate action, new capex, new de-bottlenecking, new
 value-chain position, new molecule commercialization, new value-added mix,
-new geography, new warrants, new deleveraging, etc.), the three-bucket growth
-taxonomy (§1b — steady/fast/hyper-growth), the new-vs-confirmation
-discipline, the structural-vs-cyclical checklist (§3b), sector-level context
-(§4b), the quantification/conviction rules, and (§5a-5g) the J-curve
-lifecycle staging, fake-J-curve checklist, the **J-Curve Inflection tag
-rubric (§5f — mandatory, see Phase 3g below)**, leading/lagging signal
-discipline, and GARP entry discipline (§5g). Apply it uniformly across all
-four document sets fetched in Phase 1 — an announcement, a transcript line,
-and a PPT slide are just three different containers for the same kind of
-"new" fact.
+new geography, new warrants, new deleveraging, etc. — §2, also nameable via
+the **CATALYST mnemonic** appended to §4: Capex, Acquisitions, Turnaround,
+Approvals, Large orders, Year Zero, Switch, Theme), the three-bucket growth
+taxonomy (§1b — steady/fast/hyper-growth), concave-vs-convex (§1c), Train
+A/B/C catalyst timing (§1d), young-vs-old momentum (§1e), the Weinstein
+technical stage overlay (§1f, with a literal 2-5-week golden-cross
+operationalization), the new-vs-confirmation discipline, the
+structural-vs-cyclical checklist (§3b), sector-level context (§4b), the TGPV
+Theme→Growth→Promoter→Valuation sequencing (§4c) and its dated sector/
+case-study appendix (§4d — EMS value-chain margins, shipbuilding policy
+package, KRN capacity-ramp template, data-centre super-cycle, "Switch"
+case studies; all flagged for freshness re-verification), the
+quantification/conviction rules, and (§5a-5j) the J-curve lifecycle staging,
+fake-J-curve checklist, the **J-Curve Inflection tag rubric (§5f — mandatory,
+see Phase 3g below)**, leading/lagging signal discipline, GARP entry
+discipline (§5g), theme relative-strength screening (§5h), **the "Potential J
+Curve" capstone StockScans screen (§5i — a ready-to-use literal filter recipe
+for this skill's exact subject matter; useful when the user wants candidate
+NAMES rather than a single-company read, or wants their own StockScans watch
+cross-checked against this skill's own bar)**, and a further literal
+screener-recipe appendix (§5j — Turnaround/Breakout Earnings, Consistent NPM,
+Movers with Volume, Volume Rocketing, Order Book/Acquisitions/Bulk-Block-Deal
+monitoring). Apply it uniformly across all four document sets fetched in
+Phase 1 — an announcement, a transcript line, and a PPT slide are just three
+different containers for the same kind of "new" fact.
+
+**§5i/§5j are screening tools, not part of this skill's own single-company
+Phase 2/3 read** — they feed the Stage 0/Scanning end of the funnel (see
+"Running this across many companies" above), not the flagship synthesis
+itself. Cite them in 3f when relevant (e.g. "this name would also clear the
+Potential J Curve screen: OPM/PAT/revenue gates all pass") but do not treat
+passing §5i's screen as a substitute for 3g's own §5f rubric — a §5i pass is
+a prompt to investigate, never itself a STRONG tag.
 
 Walk every document and, for anything that isn't routine (AGM notices, book
 closures, record dates, routine board-meeting intimations — same NOISE list as
@@ -636,6 +659,13 @@ matters).
 - **Don't confuse the §5f J-Curve tag with the §5c 9-point scorecard.** They
   answer different questions (see framework §5f's own note) — both appear in
   the report, but only §5f's tag goes at the top as the badge.
+- **Don't confuse a §5i "Potential J Curve" screen pass with the §5f tag
+  either.** §5i is a literal StockScans filter recipe (revenue/PAT/OPM/
+  price-reaction/technical gates) meant to generate scan CANDIDATES — it has
+  no fake-J-curve check (§5b), no structural-vs-cyclical check (§3b), and no
+  named-trigger requirement, so a name clearing §5i can still resolve to
+  WEAK or NONE once 3g actually reads the filings. Never report "clears the
+  Potential J Curve screen" as if it were equivalent to a STRONG tag.
 - **Don't quantify without a source.** Undisclosed values stay "awaiting
   disclosure," never estimated.
 - **Don't treat "Board Meeting Intimation" as signal.** Wait for the outcome

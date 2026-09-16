@@ -7,9 +7,8 @@
 const fs = require('fs');
 const path = require('path');
 const { PassThrough } = require('stream');
-const axios = require('axios');
 const archiver = require('archiver');
-const { NSE_HEADERS, parseNseDate } = require('../../core/utils/nseHelpers');
+const { parseNseDate } = require('../../core/utils/nseHelpers');
 const { getCorporateAnnouncements } = require('../../core/api/nseIndiaApi');
 const { ensureRepoDownloadsRoot } = require('../../core/utils/repoDownloads');
 const { searchCompanyAnnouncements } = require('./stockscansAnnouncements');

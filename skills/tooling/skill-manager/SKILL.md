@@ -157,7 +157,7 @@ At a high level, the process of creating a skill goes like this:
 - Create a few test prompts and run claude-with-access-to-the-skill on them
 - Help the user evaluate the results both qualitatively and quantitatively
   - While the runs happen in the background, draft some quantitative evals if there aren't any (if there are some, you can either use as is or modify if you feel something needs to change about them). Then explain them to the user (or if they already existed, explain the ones that already exist)
-  - Use the `stock-api/python/skill_manager/generate_review.py` script to show the user the results for them to look at, and also let them look at the quantitative metrics
+  - Generate a static HTML review page (see Step 4 below) to show the user the results for them to look at, and also let them look at the quantitative metrics
 - Rewrite the skill based on feedback from the user's evaluation of the results (and also if there are any glaring flaws that become apparent from the quantitative benchmarks)
 - Repeat until you're satisfied
 - Expand the test set and try again at larger scale
@@ -223,7 +223,7 @@ skill-name/
 │   ├── YAML frontmatter (name, description required)
 │   └── Markdown instructions
 └── Bundled Resources (optional)
-    ├── stock-api/python/<skill-name>/    - Executable code for deterministic/repetitive tasks
+    ├── scripts/    - Executable code for deterministic/repetitive tasks
     ├── references/ - Docs loaded into context as needed
     └── assets/     - Files used in output (templates, icons, fonts)
 ```
@@ -382,33 +382,19 @@ Once all runs are done:
 
 1. **Grade each run** — spawn a grader subagent (or grade inline) that reads `agents/grader.md` and evaluates each assertion against the outputs. Save results to `grading.json` in each run directory. The grading.json expectations array must use the fields `text`, `passed`, and `evidence` (not `name`/`met`/`details` or other variants) — the viewer depends on these exact field names. For assertions that can be checked programmatically, write and run a script rather than eyeballing it — scripts are faster, more reliable, and can be reused across iterations.
 
-2. **Aggregate into benchmark** — run the aggregation script from the skill-creator directory:
-
-   ```bash
-   python stock-api/python/skill_manager/aggregate_benchmark.py <workspace>/iteration-N --skill-name <name>
-   ```
-
-   This produces `benchmark.json` and `benchmark.md` with pass_rate, time, and tokens for each configuration, with mean ± stddev and the delta. If generating benchmark.json manually, see `references/schemas.md` for the exact schema the viewer expects.
+2. **Aggregate into benchmark** — no aggregation script ships with this skill (the Python backend that used to live at `stock-api/python/skill_manager/` was removed from the repo and never replaced). Compute `benchmark.json` and `benchmark.md` yourself: read each run's `grading.json` and `timing.json`, compute pass_rate, mean time, and mean tokens (with stddev) per configuration, and the delta between each with_skill run and its baseline. See `references/schemas.md` for the exact `benchmark.json` schema the viewer expects, and write the JSON directly to match it.
    Put each with_skill version before its baseline counterpart.
 
 3. **Do an analyst pass** — read the benchmark data and surface patterns the aggregate stats might hide. See `agents/analyzer.md` (the "Analyzing Benchmark Results" section) for what to look for — things like assertions that always pass regardless of skill (non-discriminating), high-variance evals (possibly flaky), and time/token tradeoffs.
 
-4. **Launch the viewer** with both qualitative outputs and quantitative data:
+4. **Launch the viewer** with both qualitative outputs and quantitative data. There is no longer a script that generates this for you (see note above) — build the review page yourself from `assets/eval_review.html`:
 
-   ```bash
-   nohup python stock-api/python/skill_manager/generate_review.py \
-     <workspace>/iteration-N \
-     --skill-name "my-skill" \
-     --benchmark <workspace>/iteration-N/benchmark.json \
-     > /dev/null 2>&1 &
-   VIEWER_PID=$!
-   ```
+   - Read `assets/eval_review.html` as your template — it already renders the "Outputs" and "Benchmark" tabs, prev/next navigation, and the feedback textbox described below.
+   - Populate it with this iteration's data: prompts, outputs (rendered inline where possible), previous iteration's output and feedback (iteration 2+), formal grades from `grading.json` (if graded), and the `benchmark.json` you computed in step 4.2.
+   - Write the populated HTML to a static file (e.g. `<workspace>/iteration-N/review.html`) and tell the user to open it in their browser. In an environment with a display and `webbrowser`-equivalent access, you may open it automatically; otherwise just hand the user the path/link.
+   - Feedback is downloaded as `feedback.json` when the user clicks "Submit All Reviews" inside the page — no server is required. After they download it, have them place (or you copy) `feedback.json` into the workspace directory so the next iteration can pick it up.
 
-   For iteration 2+, also pass `--previous-workspace <workspace>/iteration-<N-1>`.
-
-   **Cowork / headless environments:** If `webbrowser.open()` is not available or the environment has no display, use `--static <output_path>` to write a standalone HTML file instead of starting a server. Feedback will be downloaded as a `feedback.json` file when the user clicks "Submit All Reviews". After download, copy `feedback.json` into the workspace directory for the next iteration to pick up.
-
-Note: please use generate_review.py to create the viewer; there's no need to write custom HTML.
+Note: build the viewer from `assets/eval_review.html`, filled in with this run's data — don't invent a different HTML structure from scratch.
 
 5. **Tell the user** something like: "I've opened the results in your browser. There are two tabs — 'Outputs' lets you click through each test case and leave feedback, 'Benchmark' shows the quantitative comparison. When you're done, come back here and let me know."
 
@@ -468,7 +454,7 @@ This is the heart of the loop. You've run the test cases, the user has reviewed 
 
 3. **Explain the why.** Try hard to explain the **why** behind everything you're asking the model to do. Today's LLMs are _smart_. They have good theory of mind and when given a good harness can go beyond rote instructions and really make things happen. Even if the feedback from the user is terse or frustrated, try to actually understand the task and why the user is writing what they wrote, and what they actually wrote, and then transmit this understanding into the instructions. If you find yourself writing ALWAYS or NEVER in all caps, or using super rigid structures, that's a yellow flag — if possible, reframe and explain the reasoning so that the model understands why the thing you're asking for is important. That's a more humane, powerful, and effective approach.
 
-4. **Look for repeated work across test cases.** Read the transcripts from the test runs and notice if the subagents all independently wrote similar helper scripts or took the same multi-step approach to something. If all 3 test cases resulted in the subagent writing a `create_docx.py` or a `build_chart.py`, that's a strong signal the skill should bundle that script. Write it once, put it in the appropriate backend directory (e.g., `stock-api/python/<skill-name>/`), and tell the skill to use it. This saves every future invocation from reinventing the wheel.
+4. **Look for repeated work across test cases.** Read the transcripts from the test runs and notice if the subagents all independently wrote similar helper scripts or took the same multi-step approach to something. If all 3 test cases resulted in the subagent writing a `create_docx.py` or a `build_chart.py`, that's a strong signal the skill should bundle that script. Write it once, put it in the skill's own `scripts/` directory, and tell the skill to use it. This saves every future invocation from reinventing the wheel.
 
 This task is pretty important (we are trying to create billions a year in economic value here!) and your thinking time is not the blocker; take your time and really mull things over. I'd suggest writing a draft revision and then looking at it anew and making improvements. Really do your best to get into the head of the user and understand what they want and need.
 
@@ -542,24 +528,19 @@ This step matters — bad eval queries lead to bad descriptions.
 
 ### Step 3: Run the optimization loop
 
-Tell the user: "This will take some time — I'll run the optimization loop in the background and check on it periodically."
+Tell the user: "This will take some time — I'll run the optimization loop myself and check in with updates."
 
-Save the eval set to the workspace, then run in the background:
+There is no longer a standalone script that runs this loop (see note above) — drive it yourself, directly:
 
-```bash
-python stock-api/python/skill_manager/run_loop.py \
-  --eval-set <path-to-trigger-eval.json> \
-  --skill-path <path-to-skill> \
-  --model <model-id-powering-this-session> \
-  --max-iterations 5 \
-  --verbose
-```
+1. Save the eval set to the workspace, then split it into 60% train / 40% held-out test (keep the split fixed across iterations so scores are comparable).
+2. Evaluate the current description: for each train-set query, decide (as Claude would when browsing `available_skills`) whether this skill's name+description would trigger on that query — run each query 3 times if the decision could be borderline, to get a reliable trigger rate. Score should-trigger queries that fire and should-not-trigger queries that don't as correct.
+3. Based on what failed, propose an improved description, explaining your reasoning.
+4. Re-evaluate the new description on both train and test sets the same way.
+5. Repeat up to 5 iterations, or stop early once test-set score stops improving.
+6. Track results per iteration (description text, train score, test score) and report them to the user in a simple table or the static HTML viewer described above — reuse `assets/eval_review.html`'s structure if convenient, or a plain markdown table.
+7. Select the final description by test score, not train score, to avoid overfitting to the examples you iterated on.
 
-Use the model ID from your system prompt (the one powering the current session) so the triggering test matches what the user actually experiences.
-
-While it runs, periodically tail the output to give the user updates on which iteration it's on and what the scores look like.
-
-This handles the full optimization loop automatically. It splits the eval set into 60% train and 40% held-out test, evaluates the current description (running each query 3 times to get a reliable trigger rate), then calls Claude to propose improvements based on what failed. It re-evaluates each new description on both train and test, iterating up to 5 times. When it's done, it opens an HTML report in the browser showing the results per iteration and returns JSON with `best_description` — selected by test score rather than train score to avoid overfitting.
+Give the user periodic updates as you go through iterations, since this can take a while.
 
 ### How skill triggering works
 
@@ -575,11 +556,7 @@ Take `best_description` from the JSON output and update the skill's SKILL.md fro
 
 ### Package and Present (only if `present_files` tool is available)
 
-Check whether you have access to the `present_files` tool. If you don't, skip this step. If you do, package the skill and present the .skill file to the user:
-
-```bash
-python stock-api/python/skill_manager/package_skill.py <path/to/skill-folder>
-```
+Check whether you have access to the `present_files` tool. If you don't, skip this step. If you do, package the skill yourself — there is no longer a packaging script (see note above): zip the skill folder's contents (SKILL.md plus any `agents/`, `assets/`, `references/`, `scripts/` subdirectories) into a single archive and rename it with a `.skill` extension, e.g. `zip -r my-skill.skill <path/to/skill-folder>` run from inside the folder so paths inside the zip are relative, not absolute. Skip any `__pycache__`, `.DS_Store`, or other junk files.
 
 After packaging, direct the user to the resulting `.skill` file path so they can install it.
 
@@ -601,7 +578,7 @@ In Claude.ai, the core workflow is the same (draft → test → review → impro
 
 **Blind comparison**: Requires subagents. Skip it.
 
-**Packaging**: The `package_skill.py` script works anywhere with Python and a filesystem. On Claude.ai, you can run it and the user can download the resulting `.skill` file.
+**Packaging**: Zipping the skill folder into a `.skill` file works anywhere with shell access and a filesystem. On Claude.ai, you can do this yourself and the user can download the resulting `.skill` file.
 
 **Updating an existing skill**: The user might be asking you to update an existing skill, not create a new one. In this case:
 
@@ -616,11 +593,11 @@ In Claude.ai, the core workflow is the same (draft → test → review → impro
 If you're in Cowork, the main things to know are:
 
 - You have subagents, so the main workflow (spawn test cases in parallel, run baselines, grade, etc.) all works. (However, if you run into severe problems with timeouts, it's OK to run the test prompts in series rather than parallel.)
-- You don't have a browser or display, so when generating the eval viewer, use `--static <output_path>` to write a standalone HTML file instead of starting a server. Then proffer a link that the user can click to open the HTML in their browser.
-- For whatever reason, the Cowork setup seems to disincline Claude from generating the eval viewer after running the tests, so just to reiterate: whether you're in Cowork or in Claude Code, after running tests, you should always generate the eval viewer for the human to look at examples before revising the skill yourself and trying to make corrections, using `generate_review.py` (not writing your own boutique html code). Sorry in advance but I'm gonna go all caps here: GENERATE THE EVAL VIEWER _BEFORE_ evaluating inputs yourself. You want to get them in front of the human ASAP!
+- You don't have a browser or display, so write the review page (from `assets/eval_review.html`, populated with this run's data) as a standalone static HTML file, then proffer a link that the user can click to open it in their browser.
+- Whether you're in Cowork or in Claude Code, after running tests, you should always generate the eval viewer for the human to look at examples before revising the skill yourself and trying to make corrections. Sorry in advance but I'm gonna go all caps here: GENERATE THE EVAL VIEWER _BEFORE_ evaluating inputs yourself. You want to get them in front of the human ASAP!
 - Feedback works differently: since there's no running server, the viewer's "Submit All Reviews" button will download `feedback.json` as a file. You can then read it from there (you may have to request access first).
-- Packaging works — `package_skill.py` just needs Python and a filesystem.
-- Description optimization (`run_loop.py` / `run_eval.py`) should work in Cowork just fine since it uses `claude -p` via subprocess, not a browser, but please save it until you've fully finished making the skill and the user agrees it's in good shape.
+- Packaging works — zipping the skill folder into a `.skill` file just needs shell access and a filesystem.
+- Description optimization (the loop described above) works fine in Cowork since you run it yourself rather than shelling out to anything, but please save it until you've fully finished making the skill and the user agrees it's in good shape.
 - **Updating an existing skill**: The user might be asking you to update an existing skill, not create a new one. Follow the update guidance in the claude.ai section above.
 
 ---
@@ -645,11 +622,11 @@ Repeating one more time the core loop here for emphasis:
 - Draft or edit the skill
 - Run claude-with-access-to-the-skill on test prompts
 - With the user, evaluate the outputs:
-  - Create benchmark.json and run `stock-api/python/skill_manager/generate_review.py` to help the user review them
+  - Create benchmark.json and build the review page from `assets/eval_review.html` to help the user review them
   - Run quantitative evals
 - Repeat until you and the user are satisfied
 - Package the final skill and return it to the user.
 
-Please add steps to your TodoList, if you have such a thing, to make sure you don't forget. If you're in Cowork, please specifically put "Create evals JSON and run `stock-api/python/skill_manager/generate_review.py` so human can review test cases" in your TodoList to make sure it happens.
+Please add steps to your TodoList, if you have such a thing, to make sure you don't forget. If you're in Cowork, please specifically put "Create evals JSON and build the review page from assets/eval_review.html so human can review test cases" in your TodoList to make sure it happens.
 
 Good luck!

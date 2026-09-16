@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `frontend/lib/utils/formatters.js`. The real, current equivalent is `screener-web/src/core/lib/utils/formatters.js`. See `docs/README.md` for the current documentation index.
+
+---
+
 # Formatters
 
 Utility functions for formatting numbers, currencies, dates, and percentages in the frontend. Uses Indian locale (en-IN).

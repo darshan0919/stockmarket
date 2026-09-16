@@ -199,15 +199,14 @@ describe('useHook', () => {
 ## Running Tests
 
 ```bash
-# Backend
-cd backend
-npm test              # Run all tests
-npm run test:watch    # Watch mode
+# screener-api (from repo root)
+yarn workspace screener-api test
 
-# Frontend
-cd frontend
-npm test              # Run all tests
-npm run test:watch    # Watch mode
+# screener-web (from repo root)
+yarn workspace screener-web test
+
+# Both, in sequence
+yarn test
 ```
 
 ## Test Coverage Thresholds

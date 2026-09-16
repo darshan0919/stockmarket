@@ -1,11 +1,9 @@
 const request = require('supertest');
 const express = require('express');
 const stockRoutes = require('../src/features/stock/stocksRoutes');
-const Stock = require('../src/features/stock/Stock');
 
 const QuarterlyResult = require('../src/features/results/QuarterlyResult');
 const xbrlParser = require('../src/core/utils/xbrlParser');
-const axios = require('axios');
 const {
   getQuoteEquity,
   getCorporatesFinancialResults,
@@ -42,7 +40,7 @@ const app = express();
 app.use(express.json());
 app.use('/api/stocks', stockRoutes);
 // Error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   res.status(500).json({
     success: false,
     error: err.message || 'Internal server error',

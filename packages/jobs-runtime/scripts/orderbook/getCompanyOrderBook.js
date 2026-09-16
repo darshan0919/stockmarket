@@ -41,7 +41,6 @@
 const { loadEnv, argValue, hasFlag } = require('../../lib/env');
 loadEnv(argValue('--env-file'));
 const { stockscans } = require('@stock/api');
-const concallStore = require('../../lib/concallNotesStore');
 const annStore = require('../../lib/orderAnnouncementStore');
 const ledger = require('../../lib/orderBookLedger');
 const {

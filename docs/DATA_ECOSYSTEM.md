@@ -171,9 +171,13 @@ Idempotent by construction, no duplicates:
 
 ## 6. Render pipeline
 
-`compute → DTO (reports/<id>.json) → scripts/render.js <id> [--pdf] → assets/<id>.html|pdf`.
-Templates live in `templates/` (git). Rendered files embed `sourceDto: <id>` in a meta
-tag. Any historical report is re-renderable; assets are never a source of truth.
+`compute → DTO (reports/<id>.json) → render → assets/<id>.html|pdf`. There is no
+standalone `scripts/render.js` — HTML rendering is per-skill (each skill builds its
+own HTML from the DTO), and PDF output goes through the `render-pdf` skill
+(`bash ./skills/_shared/resolve.sh render-pdf --html <input.html> --pdf <output.pdf>`,
+Puppeteer-based, see `skills/tooling/render-pdf/SKILL.md`). Templates live in
+`templates/` (git) where a skill uses one. Rendered files embed `sourceDto: <id>` in a
+meta tag. Any historical report is re-renderable; assets are never a source of truth.
 
 ## 7. Migration (big-bang, ordered)
 

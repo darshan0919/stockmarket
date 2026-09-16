@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `backend/controllers/resultTranscriptController.js`. The real, current equivalent is `screener-api/src/features/results/resultTranscriptController.js` — see `docs/API_REFERENCE.md`. See `docs/README.md` for the current documentation index.
+
+---
+
 # Result Transcript Controller
 
 Fetches earnings call transcript announcements from BSE.

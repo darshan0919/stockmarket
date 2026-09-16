@@ -109,9 +109,7 @@ export default function StockDetails() {
     basic_info,
     price_info,
     fundamentals,
-    latest_financial,
     price_history_5y = [],
-    nse_data,
   } = stockData;
 
   const latestPrice =

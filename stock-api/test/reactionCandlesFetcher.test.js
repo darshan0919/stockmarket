@@ -117,8 +117,7 @@ describe('fetchTier', () => {
 
 describe('fetchReactionCandles', () => {
   it('answers all four windows in exactly 3 API calls (one per tier) for a same-day recent event', async () => {
-    const now = Date.parse('2026-07-10T06:20:00.000Z'); // ~ 11:50 IST
-    const eventTimestamp = '2026-07-10T11:47:46+05:30'; // ~2min before "now" fixture below is irrelevant; fetchTier uses Date.now()
+    const eventTimestamp = '2026-07-10T11:47:46+05:30'; // ~2min before "now"; fetchTier uses Date.now()
     // fakeStockscans has data from well before the event through "now".
     const eventMs = Date.parse(eventTimestamp);
     const ss = fakeStockscans({

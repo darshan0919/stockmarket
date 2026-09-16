@@ -29,12 +29,6 @@ const THRESHOLDS = {
 // partial, mechanically-honest subset (see `scored` / `maxScored` on the
 // returned object for exactly how many of the 9 points this function can
 // actually answer from scan-row data alone).
-const JCURVE_COMPUTABLE_POINTS = [
-  'revenueAcceleration', // from scan Returns/Revenue trend if available
-  'debtInterestFalling', // requires a debt/finance-cost trend column — not on today's scan row
-  'rocedImproving', // requires an ROCE column — not on today's scan row
-];
-
 /**
  * Compute the mechanically-derivable subset of the J-curve scorecard from a
  * single scan row. Returns null (not zero) for any point the scan row simply

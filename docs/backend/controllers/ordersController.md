@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `backend/controllers/ordersController.js`. The real, current equivalent is `screener-api/src/features/orders/ordersController.js` — see `docs/API_REFERENCE.md`. See `docs/README.md` for the current documentation index.
+
+---
+
 # Orders Controller
 
 HTTP handlers for order-related endpoints. Fetches order announcements from NSE and provides download and quarter grouping features.

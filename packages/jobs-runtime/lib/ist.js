@@ -33,21 +33,6 @@ function nowIstDate(date = new Date()) {
   return `${String(d.getUTCDate()).padStart(2, '0')} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
-/** File-name timestamp "dd-mm-yy_hh-mm-ss_AM/PM" IST. */
-function notesTimestamp(date = new Date()) {
-  const d = istDate(date);
-  const dd = String(d.getUTCDate()).padStart(2, '0');
-  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const yy = String(d.getUTCFullYear()).slice(-2);
-  let h = d.getUTCHours();
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  const hh = String(h).padStart(2, '0');
-  const min = String(d.getUTCMinutes()).padStart(2, '0');
-  const ss = String(d.getUTCSeconds()).padStart(2, '0');
-  return `${dd}-${mm}-${yy}_${hh}-${min}-${ss}_${ampm}`;
-}
-
 /** YYYYMMDD in IST (validation log naming). */
 function istYmd(date = new Date()) {
   const d = istDate(date);

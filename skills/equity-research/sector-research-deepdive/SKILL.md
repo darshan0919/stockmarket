@@ -150,7 +150,7 @@ create_sector_report(
 )
 ```
 
-Script: [`stock-api/src/generators/generateSectorReport.js`](stock-api/src/generators/generateSectorReport.js). Uses palette/helpers from `../stock-api/python/utils/pdf_utils.py`.  
+Script: [`stock-api/src/generators/generateSectorReport.js`](stock-api/src/generators/generateSectorReport.js). Uses palette/helpers from [`stock-api/src/utils/pdfUtils.js`](../../../stock-api/src/utils/pdfUtils.js).  
 Fallback: `pandoc report.md -o report.pdf --pdf-engine=weasyprint` if reportlab errors out.
 
 After generation, run a self-audit: re-read the PDF for (a) any number flagged `[Unverified]` that slipped into a non-tentative sentence, (b) any company section that opens with CMP/Mcap/P/E, (c) any "strong moat" / "great management" claim without a mechanism. Fix and regenerate.

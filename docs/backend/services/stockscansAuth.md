@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `backend/services/stockscansAuth.js`. The real, current equivalent is `screener-api/src/core/api/stockscansAuth.js` — see `docs/API_REFERENCE.md`. See `docs/README.md` for the current documentation index.
+
+---
+
 # StockScans Auth Service
 
 Authentication service for StockScans API. Provides token retrieval and authenticated HTTP client.

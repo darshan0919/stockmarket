@@ -104,18 +104,6 @@ function countPdfsInDir(dir) {
 }
 
 /**
- * @param {string} upperSymbol
- * @returns {import('fs').Stats | null}
- */
-function statIfExists(filePath) {
-  try {
-    return fs.statSync(filePath);
-  } catch {
-    return null;
-  }
-}
-
-/**
  * Write PDF buffer to dir; if filename exists, append _2, _3, ...
  * @param {string} dir
  * @param {string} filename

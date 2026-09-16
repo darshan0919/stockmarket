@@ -96,7 +96,7 @@ const getMarketStats = async (req, res, next) => {
  * delivery-to-trade ratio, P/E, 1-week change).
  * GET /api/market/top-gainers?count=20&bucket=allSec&enrich=true
  */
-const getTopGainersHandler = async (req, res, next) => {
+const getTopGainersHandler = async (req, res, _next) => {
   try {
     const { count, bucket, exchange } = req.query;
     const enrich = req.query.enrich !== 'false';

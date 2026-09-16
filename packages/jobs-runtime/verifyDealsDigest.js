@@ -43,7 +43,7 @@
 
 const { loadEnv, argValue } = require('./lib/env');
 const StorageService = require('@stock/cloud-utils').StorageService;
-const { loadCompanyMaster, normalizeName: cmNormalizeName } = require('./lib/companyMaster');
+const { loadCompanyMaster } = require('./lib/companyMaster');
 const {
   resolveCompanyIdentity,
   getNeverFilterSymbols,

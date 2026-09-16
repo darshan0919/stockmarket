@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `frontend/lib/hooks/useMarket.js`. The real, current equivalent is `screener-web/src/core/lib/hooks/useMarket.js`. See `docs/README.md` for the current documentation index.
+
+---
+
 # useMarket Hook
 
 Fetches and manages market indices data. Auto-refreshes every 5 minutes.

@@ -41,43 +41,6 @@
         "skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js"
       ]
     },
-    "concall-transcript-extractor": {
-      "_deprecated": "2026-07-31: superseded by stock-api/bin/get-concall-transcript-url.js — Stockscans now guarantees an official Transcript per quarter, no fallback waterfall needed. Not called by any current skill; kept for reference only.",
-      "skill_md": "skills/equity-research/concall-transcript-extractor/SKILL.md",
-      "entry": "stock-api/bin/get-latest-concall-transcript.js",
-      "mode": "bundle",
-      "modules": [
-        "stock-api/bin/find-earnings-recording.js",
-        "stock-api/bin/save-concall-transcript.js",
-        "stock-api/src/utils/fiscalQuarter.js",
-        "stock-api/src/utils/transcriptSchema.js",
-        "stock-api/src/utils/concurrency.js",
-        "stock-api/src/clients/PerplexityClient.js",
-        "stock-api/src/auth/perplexityAuth.js",
-        "stock-api/src/clients/StockscansClient.js",
-        "packages/jobs-runtime/lib/db.js",
-        "stock-api/src/utils/bulkAnnouncementScan.js",
-        "stock-api/src/http/HttpClient.js"
-      ],
-      "references": [],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
-      "aliases": [
-        "concall transcript early",
-        "transcribe earnings call recording",
-        "recording of conference call",
-        "transcript before official filing",
-        "notebooklm transcript",
-        "perplexity earnings transcript",
-        "verbatim transcript from recording",
-        "concall transcript extractor",
-        "latest quarter transcript",
-        "bulk transcript fetch",
-        "transcripts for multiple companies",
-        "historical quarter transcript"
-      ]
-    },
     "review-proposals": {
       "skill_md": "skills/tooling/review-proposals/SKILL.md",
       "entry": null,
@@ -583,7 +546,6 @@
       "shared": [
         "skills/_shared/conventions.md",
         "skills/_shared/pdf-design-guide.md",
-        "skills/equity-research/management-credibility-tracker/_shared/conventions.md",
         "skills/tooling/output-dto-standard/SKILL.md",
         "skills/equity-research/stock-documents-fetcher/SKILL.md",
         "skills/_shared/income-statement-signals.md",
@@ -668,12 +630,12 @@
       "modules": [
         "stock-api/src/fetchers/documentsFetcher.js",
         "stock-api/src/fetchers/announcementsFetcher.js",
-        "stock-api/python/orchestration/orchestrate.py"
+        "stock-api/bin/orchestrate.js"
       ],
       "scripts": [
         "stock-api/src/fetchers/documentsFetcher.js",
         "stock-api/src/fetchers/announcementsFetcher.js",
-        "stock-api/python/orchestration/orchestrate.py"
+        "stock-api/bin/orchestrate.js"
       ],
       "references": [],
       "templates": [
@@ -885,32 +847,17 @@
     "skill-manager": {
       "skill_md": "skills/tooling/skill-manager/SKILL.md",
       "entry": null,
-      "modules": [
-        "stock-api/python/skill_manager/__init__.py",
-        "stock-api/python/skill_manager/aggregate_benchmark.py",
-        "stock-api/python/skill_manager/generate_report.py",
-        "stock-api/python/skill_manager/generate_review.py",
-        "stock-api/python/skill_manager/improve_description.py",
-        "stock-api/python/skill_manager/package_skill.py",
-        "stock-api/python/skill_manager/quick_validate.py",
-        "stock-api/python/skill_manager/run_eval.py",
-        "stock-api/python/skill_manager/run_loop.py",
-        "stock-api/python/skill_manager/utils.py"
+      "modules": [],
+      "scripts": [],
+      "references": [
+        "skills/tooling/skill-manager/references/schemas.md"
       ],
-      "scripts": [
-        "stock-api/python/skill_manager/__init__.py",
-        "stock-api/python/skill_manager/aggregate_benchmark.py",
-        "stock-api/python/skill_manager/generate_report.py",
-        "stock-api/python/skill_manager/generate_review.py",
-        "stock-api/python/skill_manager/improve_description.py",
-        "stock-api/python/skill_manager/package_skill.py",
-        "stock-api/python/skill_manager/quick_validate.py",
-        "stock-api/python/skill_manager/run_eval.py",
-        "stock-api/python/skill_manager/run_loop.py",
-        "stock-api/python/skill_manager/utils.py"
+      "shared": [
+        "skills/tooling/skill-manager/agents/grader.md",
+        "skills/tooling/skill-manager/agents/comparator.md",
+        "skills/tooling/skill-manager/agents/analyzer.md",
+        "skills/tooling/skill-manager/assets/eval_review.html"
       ],
-      "references": [],
-      "shared": [],
       "aliases": [
         "skill manager",
         "create skill",

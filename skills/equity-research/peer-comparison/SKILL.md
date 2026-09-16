@@ -164,7 +164,7 @@ peer-comparison/
 ├── SKILL.md                                 (this file)
 ├── _shared/
 │   ├── conventions.md                       (linked)
-│   └── pdf_utils.py                         (shared)
+│   └── pdfUtils.js                          (linked — stock-api/src/utils/, shared institutional palette)
 ├── references/
 │   └── comparison_dimensions.md             (full extraction list per dimension)
 └── scripts/

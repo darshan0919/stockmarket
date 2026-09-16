@@ -105,7 +105,7 @@ yarn format
  * const sma = calculateSMA(prices, 3);
  * // Returns: [20, 30, 40]
  *
- * @see {@link docs/backend/utils/technicalIndicators.md} for detailed documentation
+ * @see {@link screener-api/src/core/utils/technicalIndicators.js} for the real implementation
  */
 function calculateSMA(prices, period) {
   // Implementation
@@ -204,30 +204,29 @@ Before submitting a PR, ensure:
 
 ## File Organization
 
-### Adding New Backend Feature
+### Adding a New screener-api Feature
 
 ```
-backend/
-├── routes/newFeature.js           # Route definitions
-├── controllers/newFeatureController.js  # Business logic
-├── models/NewModel.js             # Data model (if needed)
-├── tests/newFeature.test.js       # Tests
-└── utils/newHelper.js             # Helper functions (if needed)
+screener-api/src/features/newFeature/
+├── newFeatureRoutes.js       # Route definitions
+├── newFeatureController.js   # Business logic
+├── NewModel.js                # Mongoose model (if needed)
+└── __tests__/
+    └── newFeatureController.test.js  # Tests
 ```
 
-### Adding New Frontend Component
+Shared/cross-feature utilities go in `screener-api/src/core/utils/`.
+
+### Adding a New screener-web Component
 
 ```
-frontend/
-├── components/
-│   └── newFeature/
-│       ├── NewComponent.js        # Component
-│       └── __tests__/
-│           └── NewComponent.test.js  # Tests
-└── lib/
-    └── hooks/
-        └── useNewFeature.js       # Custom hook (if needed)
+screener-web/src/features/newFeature/components/
+├── NewComponent.js        # Component
+└── __tests__/
+    └── NewComponent.test.js  # Tests
 ```
+
+Shared hooks go in `screener-web/src/core/lib/hooks/useNewFeature.js`.
 
 ## Code Review Guidelines
 

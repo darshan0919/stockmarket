@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `backend/controllers/marketController.js`. The real, current equivalent is `screener-api/src/features/market/marketController.js` — see `docs/API_REFERENCE.md`. See `docs/README.md` for the current documentation index.
+
+---
+
 # Market Controller
 
 Provides market indices overview and aggregate statistics. Uses mock index data and calculates sector performance from price history.

@@ -1,6 +1,9 @@
 # Skill Data Audit — what each skill needs, generates, and should store
 
-Basis for `docs/DATA_ECOSYSTEM.md`. Audited 2026-07-08 from all 39 SKILL.md files +
+Basis for `docs/DATA_ECOSYSTEM.md`. Audited 2026-07-08 from all 39 SKILL.md files that
+existed at that date (the repo has since grown to 79+ SKILL.md files as of 2026-09 — this
+audit was not re-run against the newer skills, so treat it as a snapshot of the original
+set, not current coverage) +
 runtime libs (`packages/jobs-runtime/*`). Storage rule applied: **DB stores only
 metadata, links, and LLM/analyst outputs. Anything regenerable at runtime via
 script/API is NOT stored** (exception: heavy + frequently-read derivables → `cache/`).
@@ -114,7 +117,7 @@ conversation-capture (weekly job + migration). See `docs/CONVERSATION_CAPTURE_PL
 ## F. Tooling skills (no DB writes)
 
 render-pdf (pure DTO→asset function), skill-manager, find-skills, cowork-task-architect,
-token-usage-analyzer, github-skill-invoker, output-dto-standard, stock-documents-fetcher
+token-usage-analyzer, output-dto-standard, stock-documents-fetcher
 (fetch-only; downloads are transient).
 
 ## Cross-skill context needs (drives `buildCompanyContext`)

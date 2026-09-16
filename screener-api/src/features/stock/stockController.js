@@ -1,6 +1,6 @@
 const Stock = require('./Stock');
 const QuarterlyResult = require('../results/QuarterlyResult');
-const { calculateAllIndicators, calculateSMA } = require('../../core/utils/technicalIndicators');
+const { calculateAllIndicators } = require('../../core/utils/technicalIndicators');
 const { fetchAndStoreQuarterlyResults } = require('../../../scripts/balanceSheetDataFetcher');
 const { fetchStockDetails } = require('../../../scripts/stockDetailsFetcher');
 const { getStockScripCode } = require('../../core/api/bseIndiaApi');
@@ -284,6 +284,12 @@ const getStockTechnicals = async (req, res, next) => {
 const getStockFinancials = async (req, res, next) => {
   try {
     const { symbol } = req.params;
+    // quarters: the documented `?quarters=N` query param (see JSDoc above) is
+    // parsed but never used to limit/slice the returned financials — the
+    // response always returns however many quarters the underlying fetch
+    // produces. Flagging rather than wiring it through, since that's a
+    // functional fix beyond a lint cleanup.
+    // eslint-disable-next-line no-unused-vars
     const quarters = parseInt(req.query.quarters) || 4;
 
     // Try to find stock in database
@@ -454,7 +460,7 @@ function formatQuarterForResponse(quarter) {
  * Get quarterly financial results with XBRL parsing and caching
  * GET /api/stocks/:symbol/quarterly
  */
-const getQuarterlyResults = async (req, res, next) => {
+const getQuarterlyResults = async (req, res, _next) => {
   const { symbol } = req.params;
   const upperSymbol = symbol.toUpperCase();
   const { force_refresh } = req.query; // ?force_refresh=true to bypass cache

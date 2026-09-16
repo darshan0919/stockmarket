@@ -22,6 +22,14 @@ out/
 dist/
 build/
 
+# Compiled Python bytecode — never source, always host-specific (the
+# compiler bakes the absolute source path in as a string constant). Found 8
+# of these committed to git with no ignore rule at all (2026-09-16) — a
+# dead-code-scanner false-positive class (misread as "hardcoded path" text).
+__pycache__/
+*.pyc
+*.pyo
+
 # Logs
 *.log
 npm-debug.log*
@@ -55,8 +63,11 @@ downloads/
 
 # Concall recordings (raw audio/video downloads + derived transcripts) —
 # regenerable from source, must not be committed. Per DATA_RULES §1, transient
-# raw material like this belongs in data/runs/ if it must persist at all; this
-# top-level dir is a working scratch area for concall-transcript-extractor.
+# raw material like this belongs in data/runs/ if it must persist at all. Was
+# the working scratch area for concall-transcript-extractor, deleted
+# 2026-09-16 (deprecated, superseded by get-concall-transcript-url.js, which
+# resolves official transcripts directly and never needs this directory) —
+# rule kept so the pattern is still ignored if anything reintroduces it.
 recordings/
 
 # Uploaded research dashboards (per-symbol HTML)

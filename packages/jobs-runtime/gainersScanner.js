@@ -1328,6 +1328,12 @@ function istNowIso(date = new Date()) {
 async function main({
   marketDate,
   clients = { stockscans, nse, bse },
+  // outputDir: accepted but not read anywhere in this function body. A test
+  // (gainersScanner.test.js:213) passes it expecting write isolation to a temp
+  // dir, but all writes actually go through dbV2.dataRoot()-derived paths, not
+  // this param. Flagging rather than deleting: removing it silently makes that
+  // test's intent even less visible without fixing the underlying gap.
+  // eslint-disable-next-line no-unused-vars
   outputDir = OUTPUT_DIR,
   sleep = defaultSleep,
   log = (m) => process.stderr.write(m),

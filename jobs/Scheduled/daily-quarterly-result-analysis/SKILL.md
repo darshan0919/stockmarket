@@ -14,7 +14,7 @@ Run `quarterly-result-analysis` daily at 1:15 AM for all companies that had resu
    **Purpose:** Verify that `quarterly-result-extractor` persisted records successfully.
    **If this fails (exit code 1):** STOP immediately. Do not proceed to Step 2. Log the failure and exit.
 
-2. For each company in yesterday's `quarterly-result-documents` records, execute skill: `skills/equity-research/quarterly-result-analysis/SKILL.md` (local mounted repo path — only fall back to the GitHub-hosted copy via `github-skill-invoker` if the local path is unavailable).
+2. For each company in yesterday's `quarterly-result-documents` records, execute skill: `skills/equity-research/quarterly-result-analysis/SKILL.md` (local mounted repo path).
 
    **Parameters:** Pass each companyId as `--companyId <NSE:SYMBOL>`.
 

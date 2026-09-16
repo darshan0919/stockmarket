@@ -124,7 +124,7 @@ writeReportDto(ticker, companyName, ticker, reportMarkdown, dtoPath);
 await createResearchReportFromDto(dtoPath, outputPath);
 ```
 
-Uses shared palette/helpers from `../stock-api/python/utils/pdf_utils.py`. Fallback:
+Uses shared palette/helpers from [`stock-api/src/utils/pdfUtils.js`](../../../stock-api/src/utils/pdfUtils.js). Fallback:
 `pandoc report.md -o report.pdf --pdf-engine=weasyprint` (in the fallback path, still
 write `{TICKER}_deepdive.json` first with the same envelope fields before invoking pandoc).
 

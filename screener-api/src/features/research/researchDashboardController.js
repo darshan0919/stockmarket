@@ -77,7 +77,7 @@ function getResearchDashboard(req, res) {
 /**
  * POST /api/stocks/:symbol/research-dashboard
  */
-function postResearchDashboard(req, res, next) {
+function postResearchDashboard(req, res, _next) {
   const { sym } = dashboardPathForSymbol(req.params.symbol);
   if (!sym) {
     return res.status(400).json({ success: false, error: 'Invalid symbol' });

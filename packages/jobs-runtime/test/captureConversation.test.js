@@ -82,7 +82,6 @@ describe('captureConversation.captureOne', () => {
   });
 
   test('saves stock conversation raw-first, links company, dedups on re-run', () => {
-    const c = () => require('../scripts/captureConversation'); // fresh ref
     const r1 = cap.captureOne(cloudConv(), { source: 'cloud', now: NOW });
     expect(r1.status).toBe('saved');
     expect(r1.companyIds).toContain('NSE:SWARAJENG');

@@ -174,7 +174,7 @@ bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "data/marke
 
 See [`stock-api/src/generators/generateMarketShareHtml.js`](stock-api/src/generators/generateMarketShareHtml.js).
 
-The HTML widget is the only shipped renderer. If a printed committee version is later needed, the same `data` dict can be adapted into `peer-comparison`'s ReportLab pipeline (`../stock-api/python/utils/pdf_utils.py` carries the same palette) — that's a one-off adaptation, not a built-in path.
+The HTML widget is the only shipped renderer. If a printed committee version is later needed, the same `data` dict can be adapted into `peer-comparison`'s PDF pipeline (`../../../stock-api/src/utils/pdfUtils.js` carries the same palette) — that's a one-off adaptation, not a built-in path.
 
 ### Phase 6 — Present
 
@@ -215,7 +215,7 @@ market-share-analysis/
 ├── SKILL.md                                  (this file)
 ├── _shared/
 │   ├── conventions.md                        (linked — citation, FY, R/D/E discipline)
-│   └── pdf_utils.py                          (shared institutional palette)
+│   └── pdfUtils.js                           (linked — shared institutional palette, stock-api/src/utils/)
 ├── references/
 │   ├── framework_9parts.md                   (the full 9-part framework, expanded)
 │   ├── data_sources.md                       (where to find TAM, MCA, BSE data by sector type)

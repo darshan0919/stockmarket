@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `backend/services/ordersService.js`. The real, current equivalent is `screener-api/src/features/orders/ordersService.js` — see `docs/API_REFERENCE.md`. See `docs/README.md` for the current documentation index.
+
+---
+
 # Orders Service
 
 Business logic for NSE order announcements. Fetches and filters announcements, finds transcripts.

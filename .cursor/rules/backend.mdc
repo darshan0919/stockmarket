@@ -1,27 +1,40 @@
 ---
 description: Backend-specific rules for Express.js API development and services
-globs: ["backend/**/*", "screener-api/**/*", "stock-api/**/*", "packages/jobs-runtime/**/*"]
+globs: ["screener-api/**/*", "stock-api/**/*", "packages/jobs-runtime/**/*"]
 ---
 
 # Backend Development Rules
 
 > Canonical, tool-agnostic rules live in [`AGENTS.md`](../../AGENTS.md).
 > Key workspaces: `screener-api/` (main API), `stock-api/` (data services),
-> `packages/jobs-runtime/` (jobs runtime & DB access), `backend/` (legacy).
+> `packages/jobs-runtime/` (jobs runtime & DB access). The original
+> `backend/` workspace was deleted from the repo — `screener-api/` is its
+> real, current equivalent.
 
 ## Directory Structure
 
 ```
-backend/
-├── api/           # External API integrations
-├── controllers/   # Request handlers (business logic)
-├── middleware/    # Express middleware
-├── models/        # Mongoose schemas
-├── routes/        # API route definitions
-├── scripts/       # Data fetching scripts
-├── tests/         # Integration tests
-├── utils/         # Utility functions
-└── server.js      # Application entry
+screener-api/
+├── src/
+│   ├── core/
+│   │   ├── api/           # External API integrations (NSE, BSE, Stockscans auth)
+│   │   ├── config/        # Database configuration (Mongo)
+│   │   ├── middleware/    # Express middleware (errorHandler, etc.)
+│   │   └── utils/         # Utility functions
+│   ├── features/          # One folder per feature, each with its own
+│   │   │                  # *Routes.js, *Controller.js, and Mongoose models
+│   │   ├── stock/
+│   │   ├── screener/
+│   │   ├── watchlist/
+│   │   ├── market/
+│   │   ├── orders/
+│   │   ├── announcements/
+│   │   ├── results/
+│   │   ├── admin/
+│   │   ├── twitter/
+│   │   └── research/
+│   └── server.js          # Application entry
+└── scripts/                # Data fetching scripts
 ```
 
 ## Adding New API Endpoints
@@ -29,10 +42,10 @@ backend/
 ### Step 1: Create Route
 
 ```javascript
-// backend/routes/newFeature.js
+// screener-api/src/features/newFeature/newFeatureRoutes.js
 const express = require('express');
 const router = express.Router();
-const { handler } = require('../controllers/newFeatureController');
+const { handler } = require('./newFeatureController');
 
 /**
  * @route GET /api/new-feature
@@ -47,12 +60,12 @@ module.exports = router;
 ### Step 2: Create Controller
 
 ```javascript
-// backend/controllers/newFeatureController.js
+// screener-api/src/features/newFeature/newFeatureController.js
 
 /**
  * Handler description
  * GET /api/new-feature
- * 
+ *
  * @see {@link docs/API_REFERENCE.md#new-feature} for API documentation
  */
 const handler = async (req, res, next) => {
@@ -70,13 +83,13 @@ module.exports = { handler };
 ### Step 3: Register Route in server.js
 
 ```javascript
-app.use('/api/new-feature', require('./routes/newFeature'));
+app.use('/api/new-feature', require('./features/newFeature/newFeatureRoutes'));
 ```
 
 ### Step 4: Add Tests
 
 ```javascript
-// backend/controllers/__tests__/newFeatureController.test.js
+// screener-api/src/features/newFeature/__tests__/newFeatureController.test.js
 // Follow testing conventions in docs/TESTING.md
 ```
 
@@ -88,12 +101,11 @@ app.use('/api/new-feature', require('./routes/newFeature'));
 ## Mongoose Model Template
 
 ```javascript
-// backend/models/NewModel.js
+// screener-api/src/features/newFeature/NewModel.js
 const mongoose = require('mongoose');
 
 /**
  * NewModel Schema
- * @see {@link docs/backend/models/NewModel.md} for documentation
  */
 const newModelSchema = new mongoose.Schema({
   field: {
@@ -115,18 +127,16 @@ module.exports = mongoose.model('NewModel', newModelSchema);
 ## Utility Function Template
 
 ```javascript
-// backend/utils/newUtil.js
+// screener-api/src/core/utils/newUtil.js
 
 /**
  * Utility function description
- * 
+ *
  * @param {Type} param - Description
  * @returns {ReturnType} Description
- * 
+ *
  * @example
  * const result = utilFunction(input);
- * 
- * @see {@link docs/backend/utils/newUtil.md} for documentation
  */
 function utilFunction(param) {
   // Implementation
@@ -144,7 +154,7 @@ const handler = async (req, res, next) => {
   try {
     // Implementation
   } catch (error) {
-    next(error); // Handled by middleware/errorHandler.js
+    next(error); // Handled by src/core/middleware/errorHandler.js
   }
 };
 ```
@@ -153,16 +163,16 @@ const handler = async (req, res, next) => {
 
 When adding new external API:
 
-1. Create file in `backend/api/`
-2. Document API details (base URL, auth, rate limits)
+1. Create file in `screener-api/src/core/api/`
+2. Document API details (base URL, auth, rate limits) in `docs/<provider>-api-schemas.md`
 3. Add caching if appropriate
-4. Add tests in `backend/api/__tests__/`
+4. Add tests in `screener-api/src/core/api/__tests__/`
 
 ## Environment Variables
 
 Document new env vars in:
-- `.env.example` (create if doesn't exist)
-- `docs/backend/README.md`
+- `.env.example` (root of repo — single shared `.env`, not per-workspace)
+- `docs/API_REFERENCE.md` (per-endpoint auth requirements)
 
 ## Testing Checklist
 

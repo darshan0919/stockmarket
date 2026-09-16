@@ -164,18 +164,17 @@ needs hand-editing).
      \`${skillMdRepoPath}\`). Read that SKILL.md directly from the local checkout. Also read
      any files listed in that entry's \`shared\` / \`references\` arrays as its SKILL.md
      instructs.
-   - If the registry entry's \`mode\` is \`bundle\`, run the compiled skill from the local
-     checkout at \`stock-api/dist-skills/${skillName}.cjs\` (no need to fetch remotely).
-   - If \`mode\` is \`clone\`, run scripts directly from the local checkout.
+   - Any compiled entry point the skill needs is run via
+     \`skills/_shared/resolve.sh <skill-name>\` from the local checkout, which resolves to
+     \`stock-api/bin/<skill-name>.js\` directly (no separate bundle step).
 2. **GitHub fallback.** Only if no local stockmarket checkout is available, or the local
    SKILL.md is missing/unreadable, fetch from GitHub instead, and say so explicitly
    ("local repo not found, fetching skill from GitHub"):
    - Registry: \`${githubRawBase}/skills/registry.json\`
    - SKILL.md: \`${githubRawBase}/${skillMdRepoPath}\`
-   - For \`bundle\` mode, fetch \`stock-api/dist-skills/${skillName}.cjs\` from the same base
-     URL.
-   - For \`clone\` mode, shallow-clone \`https://github.com/darshan0919/stockmarket.git\` and
-     run from there.
+   - Shallow-clone \`https://github.com/darshan0919/stockmarket.git\` into a temp dir and
+     run \`skills/_shared/resolve.sh <skill-name>\` from there — it resolves to
+     \`stock-api/bin/<skill-name>.js\` in the clone.
    - A branch other than \`main\` can be requested explicitly by the user ("use branch dev").
 
 ## Execute

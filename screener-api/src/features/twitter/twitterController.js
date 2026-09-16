@@ -8,7 +8,6 @@ const {
   getTwitterGraphqlAuthFromEnv,
   fetchUserByScreenName,
   fetchAllUserTweetsGraphql,
-  graphqlErrorMessage,
 } = require('../../core/utils/twitterGraphql');
 
 /** Cap pagination to avoid runaway requests */
@@ -25,36 +24,6 @@ function normalizeHandle(raw) {
   return String(raw ?? '')
     .trim()
     .replace(/^@+/, '');
-}
-
-/**
- * Parse Twitter/X error payload into a message string (legacy v2 + GraphQL).
- * @param {unknown} data
- * @param {number} status
- * @returns {string}
- */
-function twitterErrorMessage(data, status) {
-  const gqlMsg = graphqlErrorMessage(data, status);
-  if (gqlMsg !== `X GraphQL error (${status})`) return gqlMsg;
-
-  if (!data || typeof data !== 'object') {
-    return `Twitter API error (${status})`;
-  }
-  const d = /** @type {Record<string, unknown>} */ (data);
-  if (typeof d.detail === 'string' && d.detail) return d.detail;
-  const errors = d.errors;
-  if (Array.isArray(errors) && errors.length > 0) {
-    const first = errors[0];
-    if (
-      first &&
-      typeof first === 'object' &&
-      typeof (/** @type {{detail?:string}} */ (first).detail) === 'string'
-    ) {
-      return /** @type {{detail:string}} */ (first).detail;
-    }
-  }
-  if (typeof d.title === 'string' && d.title) return d.title;
-  return `Twitter API error (${status})`;
 }
 
 /**

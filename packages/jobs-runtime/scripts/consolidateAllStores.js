@@ -339,7 +339,7 @@ async function run() {
     if (fs.existsSync(lIdxFile)) {
       try {
         const idx = JSON.parse(fs.readFileSync(lIdxFile, 'utf8'));
-        for (const [id, rec] of Object.entries(idx)) {
+        for (const rec of Object.values(idx)) {
           rec.body = 'learnyst-lessons/soic.jsonl';
         }
         fs.writeFileSync(lIdxFile, JSON.stringify(idx, null, 2) + '\n', 'utf8');

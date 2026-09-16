@@ -6,8 +6,8 @@ This document outlines the architecture and execution contracts for autonomous a
 
 All skills resolve their execution environment using a standard contract:
 
-- **Local First**: If the project is in-context (e.g., Cursor, local terminal), the skill will execute the local file at `stock-api/bin/<skill>.js`.
-- **Remote Fallback**: If the project is not local (e.g., running from a web UI), the skill expects `github-skill-invoker` to have fetched it (either as a bundle or cloned sandbox) to `/tmp/`, and executes it from there.
+- **Local First**: If the project is in-context (e.g., Cursor, local terminal, Cowork), the skill will execute the local file at `stock-api/bin/<skill>.js`.
+- **Remote Fallback**: If the project is not local (no mounted checkout), `resolve.sh` shallow-clones the repo into `/tmp/sm-clone` and executes `stock-api/bin/<skill>.js` from there. (The earlier bundle-mode fallback via `github-skill-invoker` fetching `stock-api/dist-skills/*.cjs` to `/tmp/` was retired 2026-09-16 — confirmed unused, deleted along with the `dist-skills/` folder.)
 
 Every `SKILL.md` uses this standard invocation:
 
@@ -24,18 +24,18 @@ Secrets are decentralized and **Drive-resident**.
 - The `env.js` shim automatically fetches `_secrets/.env.age` from Google Drive, decrypts it, and caches it to `/tmp/.env` for the session.
 - **Never** commit `.env` or `_secrets/` files.
 
-## 3. Data Storage (`DataStore.js`)
+## 3. Data Storage (`packages/jobs-runtime/lib/db.js`)
 
-Data is structured in a "files-as-a-lakehouse" model, with all reads/writes passing through the `DataStore` abstraction:
+Data is structured as flat, id-keyed JSON collections (Data Ecosystem v2 — see docs/DATA_ECOSYSTEM.md), with all reads/writes passing through the `db.js` abstraction — it is the only module permitted to touch `data/*.json` directly (per `skills/_shared/conventions.md`):
 
-- Formats: Parquet (for tabular), JSON (for state/notes), CSV (legacy).
+- Format: single-file JSON collections, one per data type, envelope-enforced (id, creationTime, modifiedTime, creator, modelUsed).
 - Storage Location: `data/` locally, mirrored to Google Drive `StockMarket/data/v2/`.
-- Preflight: Data operations will not hang; an `AbortController` handles timeouts.
+- Durability: tmp-file + rename writes, per-collection advisory lockfiles, pre-mutation checkpoints with auto-restore on corrupt JSON.
 - All data synchronization goes through `packages/jobs-runtime/scripts/data.js` (`yarn data:push` / `data:pull`) over `googleDriveApi.js` — see docs/DATA_ECOSYSTEM.md.
 
 ## 4. Node Execution Context
 
-- Python execution paths are deprecated and archived in `stock-api/legacy/`.
+- The repo's earlier Python execution paths (`stock-api/python/...`) were removed outright, not archived — some were migrated to Node equivalents (e.g. `stock-api/bin/orchestrate.js`), others had no replacement built and were simply deleted along with the skills/scripts that depended on them.
 - All automation must run via Node (`stock-api/bin/*.js`).
 - Scripts and skills read configuration purely from environment variables and command-line flags.
 
@@ -43,5 +43,5 @@ Data is structured in a "files-as-a-lakehouse" model, with all reads/writes pass
 
 1. Create a CLI entrypoint at `stock-api/bin/<skill-name>.js`.
 2. Add `<skill-name>/SKILL.md` inside the `skills/` directory using the `resolve.sh` block.
-3. Update `skills/registry.manifest.json` with the new entry and its mode (`bundle` or `clone`).
-4. Run `node scripts/gen-registry.js` to regenerate the `registry.json` and `github-skill-invoker` configurations.
+3. Update `skills/registry.manifest.json` with the new entry, including its `mode` (`bundle` or `clone`, per `resolve.sh`'s local-first/remote-fallback contract in §1), plus `skill_md`, `entry`, `modules`/`scripts`, `references`, `shared`, `aliases`.
+4. Run `yarn registries:generate` (`node scripts/build/generate-registries.js`) to regenerate `skills/registries/workflow-dependencies.json` and `DEPENDENCIES.md`. `skills/registry.json` itself is hand-maintained alongside `registry.manifest.json`, not auto-generated — update both by hand.

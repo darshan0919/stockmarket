@@ -220,7 +220,6 @@ function flattenTable(runResp) {
 async function resolveUniverse(scanArg, options = {}) {
   const {
     jsonOut,
-    listOnly = false,
     // Liquidity gate — on by default; the whole point of the scanner is a
     // tradeable surprise. Pass `liquidityGate:false` to inspect the raw universe.
     liquidityGate = true,

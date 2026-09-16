@@ -2,7 +2,7 @@
 
 Audience: **anything that creates or modifies a skill, scheduled job, or runtime
 script that persists data** — including meta-skills (`skill-manager`,
-`cowork-task-architect`, `github-skill-invoker`-fetched skills) and humans.
+`cowork-task-architect`) and humans.
 These rules are the enforcement companion to `docs/DATA_ECOSYSTEM.md` (design) and
 `docs/SKILL_DATA_AUDIT.md` (per-skill classification). If a new skill/job you are
 authoring persists ANYTHING, it must comply with every rule below — and its SKILL.md

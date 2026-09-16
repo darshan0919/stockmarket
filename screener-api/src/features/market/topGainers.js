@@ -350,9 +350,6 @@ const getTopGainers = async ({
   return payload;
 };
 
-/** Clear the in-memory cache (used by tests). */
-const clearTopGainersCache = () => cache.clear();
-
 module.exports = {
   getTopGainers,
 

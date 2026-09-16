@@ -150,7 +150,7 @@ forensic-accounting/
 ├── SKILL.md                                 (this file)
 ├── _shared/
 │   ├── conventions.md                       (linked from library)
-│   └── pdf_utils.py                         (shared)
+│   └── pdfUtils.js                          (linked — stock-api/src/utils/, shared institutional palette)
 ├── references/
 │   ├── forensic_master_prompt.md            (the 9-section framework, full text)
 │   ├── forensic_extraction.md               (grep/sed patterns for AR section extraction)

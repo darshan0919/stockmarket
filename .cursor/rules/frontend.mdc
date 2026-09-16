@@ -1,29 +1,32 @@
 ---
 description: Frontend-specific rules for Next.js React development
-globs: ["frontend/**/*", "screener-web/**/*"]
+globs: ["screener-web/**/*"]
 ---
 
 # Frontend Development Rules
 
 > Canonical, tool-agnostic rules live in [`AGENTS.md`](../../AGENTS.md).
-> Key workspaces: `screener-web/` (primary Next.js 14 web app), `frontend/` (legacy).
+> Key workspace: `screener-web/` (Next.js 14 web app). The original
+> `frontend/` workspace was deleted from the repo — `screener-web/` is its
+> real, current equivalent.
 
 ## Directory Structure
 
 ```
-frontend/
-├── components/       # React components
-│   ├── common/      # Reusable components
-│   ├── dashboard/   # Dashboard widgets
-│   ├── screener/    # Screener components
-│   └── stock/       # Stock detail components
-├── lib/             # Utilities and hooks
-│   ├── api.js       # API client
-│   ├── hooks/       # Custom React hooks
-│   └── utils/       # Helper functions
-├── pages/           # Next.js pages
-├── public/          # Static assets
-└── styles/          # CSS styles
+screener-web/
+├── pages/                # Next.js pages
+├── src/
+│   ├── core/
+│   │   ├── components/   # Reusable components
+│   │   │   ├── common/   # Header, SearchBar, Modal, LoadingSpinner, Snackbar
+│   │   │   └── shared/   # StockTable, etc.
+│   │   └── lib/          # Utilities and hooks
+│   │       ├── api.js    # API client
+│   │       ├── hooks/    # Custom React hooks
+│   │       └── utils/    # Helper functions (formatters, etc.)
+│   └── features/         # dashboard/, screener/, results/, stock/ — each with its own components/
+├── public/               # Static assets
+└── styles/               # CSS styles
 ```
 
 ## Adding New Components
@@ -31,21 +34,19 @@ frontend/
 ### Component Template
 
 ```javascript
-// frontend/components/category/NewComponent.js
+// screener-web/src/features/category/components/NewComponent.js
 import { useState, useEffect } from 'react';
 
 /**
  * NewComponent - Brief description
- * 
+ *
  * @param {Object} props
  * @param {string} props.requiredProp - Description
  * @param {string} [props.optionalProp] - Description
  * @returns {JSX.Element}
- * 
+ *
  * @example
  * <NewComponent requiredProp="value" />
- * 
- * @see {@link docs/frontend/components/NewComponent.md} for documentation
  */
 export default function NewComponent({ requiredProp, optionalProp = 'default' }) {
   const [state, setState] = useState(null);
@@ -70,14 +71,13 @@ export default function NewComponent({ requiredProp, optionalProp = 'default' })
 ### Component Test Template
 
 ```javascript
-// frontend/components/category/__tests__/NewComponent.test.js
+// screener-web/src/features/category/components/__tests__/NewComponent.test.js
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import NewComponent from '../NewComponent';
 
 /**
  * Unit tests for NewComponent
- * @see {@link docs/frontend/components/NewComponent.md} for documentation
  */
 describe('NewComponent', () => {
   it('renders correctly', () => {
@@ -104,20 +104,18 @@ describe('NewComponent', () => {
 ### Hook Template
 
 ```javascript
-// frontend/lib/hooks/useNewHook.js
+// screener-web/src/core/lib/hooks/useNewHook.js
 import { useState, useEffect } from 'react';
 import { someAPI } from '../api';
 
 /**
  * Custom hook description
- * 
+ *
  * @param {Type} param - Description
  * @returns {Object} { data, loading, error, refresh }
- * 
+ *
  * @example
  * const { data, loading, error } = useNewHook(param);
- * 
- * @see {@link docs/frontend/hooks/useNewHook.md} for documentation
  */
 export function useNewHook(param) {
   const [data, setData] = useState(null);
@@ -152,7 +150,7 @@ export function useNewHook(param) {
 When adding new API endpoints to `lib/api.js`:
 
 ```javascript
-// In frontend/lib/api.js
+// In screener-web/src/core/lib/api.js
 
 export const newAPI = {
   /**

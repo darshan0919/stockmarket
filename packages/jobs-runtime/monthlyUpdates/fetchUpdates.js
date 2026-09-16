@@ -73,7 +73,6 @@ const MAX_SEARCH_FILTERS_PER_CHUNK = 10;
 // limit. Quarters are fetched one at a time; within a quarter, pages go 3-wide.
 const SCAN_CONCURRENCY = 3;
 const PDF_CONCURRENCY = 4;
-const QUARTER_CONCURRENCY = 1;
 
 const RETRY_OPTS = { retries: 6, baseDelayMs: 2000 };
 
@@ -309,9 +308,14 @@ async function getAnnouncementText(client, ann, { force = false } = {}) {
  * Full extraction pass.
  * @returns {Promise<{announcements:Array, texts:Array, stats:Object}>}
  */
+// maxDayOfMonth: accepted (cli.js:64 passes it explicitly) but never forwarded
+// to filterReportingDays(), which has its own separate maxDayOfMonth=3 default
+// and is itself never called from this function. A CLI user's --max-day flag
+// is silently ignored today; flagging rather than wiring it through, since
+// that's a functional fix beyond a lint cleanup.
 async function extractMonthlyUpdates(
   client,
-  { months = 15, maxDayOfMonth = 3, force = false, quarters = null } = {}
+  { months = 15, maxDayOfMonth = 3, force = false, quarters = null } = {} // eslint-disable-line no-unused-vars
 ) {
   const qs = quarters || quarterDatesForLastMonths(months);
   let scanCacheHits = 0;

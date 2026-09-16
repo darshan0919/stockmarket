@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `backend/utils/nseHelpers.js`. The real, current equivalent is `screener-api/src/core/utils/nseHelpers.js`. See `docs/README.md` for the current documentation index.
+
+---
+
 # NSE Helpers
 
 Shared utilities for NSE India API: date parsing, headers, and announcement filtering. Used by orders, announcements, and orderbook parsers.

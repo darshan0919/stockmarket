@@ -5,7 +5,7 @@
  */
 
 import axios from 'axios';
-import api, {
+import {
   stockAPI,
   screenerAPI,
   watchlistAPI,

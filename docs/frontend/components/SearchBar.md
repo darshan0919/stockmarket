@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `frontend/components/common/SearchBar.js`. The real, current equivalent is `screener-web/src/core/components/common/SearchBar.js`. See `docs/README.md` for the current documentation index.
+
+---
+
 # SearchBar Component
 
 > **Component**: `SearchBar`  

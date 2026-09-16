@@ -87,8 +87,6 @@ const EXEC_CONTEXT_RE =
 const QTY_RE =
   /\b([\d][\d,]*\.?\d*)\s*(MWh|kWh|GWh|MVA|MWp|MW|GW|KLPD|TPA|MTPA|Kms|Km|MT|Tonnes|Tonne|Units|Nos|Sets|Coaches|Wagons|Rakes)\b/gi;
 
-const DATE_DOTTED_RE = /\b(\d{1,2})[.\-/](\d{1,2})[.\-/](20\d{2})\b/g;
-
 const DAYS_PER = { day: 1, week: 7, month: 30.44, year: 365.25 };
 
 /**

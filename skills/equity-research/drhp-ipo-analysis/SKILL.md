@@ -349,7 +349,7 @@ drhp-ipo-analysis/
 ├── SKILL.md                                 (this file)
 ├── _shared/
 │   ├── conventions.md                       (linked)
-│   └── pdf_utils.py                         (shared)
+│   └── pdfUtils.js                          (linked — stock-api/src/utils/, shared institutional palette)
 ├── references/
 │   ├── drhp_10section.md                    (full 19-section framework — filename kept for
 │                                                git-history continuity; content covers all 19)

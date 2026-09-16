@@ -118,7 +118,7 @@ mkdir -p data/growth-triggers-1pager
 bash ./skills/_shared/resolve.sh render-pdf --html report.html --pdf "data/growth-triggers-1pager/<Company>_Output.pdf"
 ```
 
-Script at [`stock-api/src/generators/generatePdf.js`](stock-api/src/generators/generatePdf.js). Shares palette/helpers with `../stock-api/python/utils/pdf_utils.py`. **PDF must fit on 1 page.** If it spills: cut trigger body text, not triggers. Drop to 5 triggers if still tight.
+Script at [`stock-api/src/generators/generatePdf.js`](stock-api/src/generators/generatePdf.js). Shares palette/helpers with [`stock-api/src/utils/pdfUtils.js`](../../../stock-api/src/utils/pdfUtils.js). **PDF must fit on 1 page.** If it spills: cut trigger body text, not triggers. Drop to 5 triggers if still tight.
 
 ## Conventions & pitfalls
 

@@ -1001,7 +1001,6 @@ function buildDigestHtml(
   watchlistIds = [],
   heavySkips = []
 ) {
-  const dateStr = ist.nowIstDate();
   const buckets = { high: [], medium: [], low: [] };
   for (const d of digest) {
     const sig = (d.significance || 'low').toLowerCase();

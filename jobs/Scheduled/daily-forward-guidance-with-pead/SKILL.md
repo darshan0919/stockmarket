@@ -14,7 +14,7 @@ Run the `forward-guidance-extractor` skill daily at 11:45 PM to extract manageme
    **Purpose:** Verify that `guidance-document-extractor` persisted records successfully.
    **If this fails (exit code 1):** STOP immediately. Do not proceed to Step 2. Log the failure and exit.
 
-2. Execute skill: `skills/equity-research/forward-guidance-extractor/SKILL.md` (local mounted repo path — only fall back to the GitHub-hosted copy via `github-skill-invoker` if the local path is unavailable).
+2. Execute skill: `skills/equity-research/forward-guidance-extractor/SKILL.md` (local mounted repo path).
 
    **Parameters for the skill:**
    - Scan URL: `https://www.stockscans.in/scans/saved/429918e3098ce660baec9f22`

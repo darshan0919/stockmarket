@@ -1,3 +1,7 @@
+> **HISTORICAL / LEGACY DOC.** This described `backend/controllers/stockController.js`. The real, current equivalent is `screener-api/src/features/stock/stockController.js` — see `docs/API_REFERENCE.md`. See `docs/README.md` for the current documentation index.
+
+---
+
 # Stock Controller
 
 Handles stock search, details, technicals, financials, and quarterly results. NSE JSON calls go through `backend/api/nseIndiaApi.js` (cookie session + retry); search falls back to MongoDB on API failure.

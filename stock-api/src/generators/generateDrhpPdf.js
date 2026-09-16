@@ -186,7 +186,6 @@ async function createDrhpPdf(data) {
 
   const title = `${data.company_name || ''} — DRHP / IPO Analysis`;
   const subtitle = `${data.issue_type || ''} • Filing ${data.filing_date || ''}`;
-  const headerText = title;
 
   // modelUsed (skills/tooling/output-dto-standard/SKILL.md): the source DTO
   // (data/reports/<id>.json, per drhp-ipo-analysis SKILL.md Phase 4) carries

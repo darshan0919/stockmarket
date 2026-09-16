@@ -27,14 +27,23 @@ if [ "$MODE" = "local" ]; then
 fi
 
 if [ "$MODE" = "remote" ]; then
-  # Check if bundle or clone is in /tmp
-  if [ -f "/tmp/$SKILL_NAME.cjs" ]; then
-    ENTRY="/tmp/$SKILL_NAME.cjs"
-  elif [ -f "/tmp/sm-clone/stock-api/bin/$SKILL_NAME.js" ]; then
+  # Bundle mode (stock-api/dist-skills/*.cjs + the github-skill-invoker meta-
+  # skill that fetched it to /tmp) was retired 2026-09-16 — no local checkout
+  # is mounted, so shallow-clone the repo instead and run its real bin/*.js
+  # source. See skills/tooling/render-pdf/SKILL.md's clone-mode section for
+  # the canonical form of this same fallback used elsewhere in the repo.
+  if [ -f "/tmp/sm-clone/stock-api/bin/$SKILL_NAME.js" ]; then
     ENTRY="/tmp/sm-clone/stock-api/bin/$SKILL_NAME.js"
   else
-    echo "Error: remote entrypoint for $SKILL_NAME not found in /tmp. Did github-skill-invoker fetch it?"
-    exit 1
+    if [ ! -d /tmp/sm-clone ]; then
+      git clone --depth 1 https://github.com/darshan0919/stockmarket.git /tmp/sm-clone
+      (cd /tmp/sm-clone/stock-api && npm ci)
+    fi
+    ENTRY="/tmp/sm-clone/stock-api/bin/$SKILL_NAME.js"
+    if [ ! -f "$ENTRY" ]; then
+      echo "Error: remote entrypoint for $SKILL_NAME not found at $ENTRY after cloning."
+      exit 1
+    fi
   fi
 fi
 

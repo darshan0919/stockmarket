@@ -17,38 +17,8 @@
         "strength of announcement"
       ],
       "entry": "skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js",
-      "modules": ["skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js"]
-    },
-    {
-      "name": "concall-transcript-extractor",
-      "description": "'DEPRECATED 2026-07-31 — do not use for new work. Stockscans now guarantees an official Transcript document for every reported quarter, so the Perplexity/recording/NotebookLM fallback waterfall this skill implements is no longer needed. All consumer skills now resolve transcripts directly via stock-api/bin/get-concall-transcript-url.js (see skills/_shared/conventions.md §12). Kept only for historical reference — never invoke or route to this skill.'",
-      "aliases": [
-        "concall transcript early",
-        "transcribe earnings call recording",
-        "recording of conference call",
-        "transcript before official filing",
-        "notebooklm transcript",
-        "perplexity earnings transcript",
-        "verbatim transcript from recording",
-        "concall transcript extractor",
-        "latest quarter transcript",
-        "bulk transcript fetch",
-        "transcripts for multiple companies",
-        "historical quarter transcript"
-      ],
-      "entry": "stock-api/bin/get-latest-concall-transcript.js",
       "modules": [
-        "stock-api/bin/find-earnings-recording.js",
-        "stock-api/bin/save-concall-transcript.js",
-        "stock-api/src/utils/fiscalQuarter.js",
-        "stock-api/src/utils/transcriptSchema.js",
-        "stock-api/src/utils/concurrency.js",
-        "stock-api/src/clients/PerplexityClient.js",
-        "stock-api/src/auth/perplexityAuth.js",
-        "stock-api/src/clients/StockscansClient.js",
-        "packages/jobs-runtime/lib/db.js",
-        "stock-api/src/utils/bulkAnnouncementScan.js",
-        "stock-api/src/http/HttpClient.js"
+        "skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js"
       ]
     },
     {
@@ -219,7 +189,9 @@
         "competitive dynamics"
       ],
       "entry": "stock-api/bin/sector-research-deepdive.js",
-      "modules": ["stock-api/src/generators/generateSectorReport.js"]
+      "modules": [
+        "stock-api/src/generators/generateSectorReport.js"
+      ]
     },
     {
       "name": "drhp-ipo-analysis",
@@ -234,7 +206,9 @@
         "prospectus analysis"
       ],
       "entry": "stock-api/bin/drhp-ipo-analysis.js",
-      "modules": ["stock-api/src/generators/generateDrhpPdf.js"]
+      "modules": [
+        "stock-api/src/generators/generateDrhpPdf.js"
+      ]
     },
     {
       "name": "quarterly-result-analysis",
@@ -273,7 +247,9 @@
         "reprice after results"
       ],
       "entry": "stock-api/bin/consecutive-filings-diff.js",
-      "modules": ["stock-api/src/fetchers/documentsFetcher.js"]
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js"
+      ]
     },
     {
       "name": "pre-pead-scanner",
@@ -376,7 +352,7 @@
       "modules": [
         "stock-api/src/fetchers/documentsFetcher.js",
         "stock-api/src/fetchers/announcementsFetcher.js",
-        "stock-api/python/orchestration/orchestrate.py"
+        "stock-api/bin/orchestrate.js"
       ]
     },
     {
@@ -392,7 +368,9 @@
         "track record tweets"
       ],
       "entry": "stock-api/bin/tweet-investor-playbook.js",
-      "modules": ["stock-api/src/analyzers/parseTweetDump.js"]
+      "modules": [
+        "stock-api/src/analyzers/parseTweetDump.js"
+      ]
     },
     {
       "name": "announcement-keyword-explorer",
@@ -406,7 +384,9 @@
         "expand keyword search"
       ],
       "entry": "stock-api/bin/announcement-keyword-explorer.js",
-      "modules": ["stock-api/src/fetchers/announcementScanner.js"]
+      "modules": [
+        "stock-api/src/fetchers/announcementScanner.js"
+      ]
     },
     {
       "name": "stock-report",
@@ -541,25 +521,19 @@
         "manage skills"
       ],
       "entry": null,
-      "modules": [
-        "stock-api/python/skill_manager/__init__.py",
-        "stock-api/python/skill_manager/aggregate_benchmark.py",
-        "stock-api/python/skill_manager/generate_report.py",
-        "stock-api/python/skill_manager/generate_review.py",
-        "stock-api/python/skill_manager/improve_description.py",
-        "stock-api/python/skill_manager/package_skill.py",
-        "stock-api/python/skill_manager/quick_validate.py",
-        "stock-api/python/skill_manager/run_eval.py",
-        "stock-api/python/skill_manager/run_loop.py",
-        "stock-api/python/skill_manager/utils.py"
-      ]
+      "modules": []
     },
     {
       "name": "render-pdf",
       "description": "Utility to render HTML into a standardized PDF using Puppeteer. Operates in clone mode to manage the Chromium dependency.",
-      "aliases": ["render pdf", "html to pdf"],
+      "aliases": [
+        "render pdf",
+        "html to pdf"
+      ],
       "entry": "stock-api/bin/render-pdf.js",
-      "modules": ["stock-api/src/utils/pdfRenderer.js"]
+      "modules": [
+        "stock-api/src/utils/pdfRenderer.js"
+      ]
     },
     {
       "name": "investment-thesis-engine",
@@ -642,7 +616,7 @@
     },
     {
       "name": "dead-code-scanner",
-      "description": "Run static analysis and rigorously cross-validate the results to find and report truly unused files, dead exports, and unused dependencies in the project. Trigger this skill whenever the user asks to find dead code, clean up unused files, find unused dependencies, or look for dead files in the codebase.",
+      "description": "Run static analysis and rigorously cross-validate the results to find and report truly unused files, dead exports, dead local variables/constants, and unused dependencies in the project. Trigger this skill whenever the user asks to find dead code, clean up unused files, find unused dependencies, or look for dead files in the codebase.",
       "aliases": [
         "dead code",
         "dead code scanner",
@@ -713,7 +687,7 @@
     },
     {
       "name": "antigravity-scheduled-tasks-sync",
-      "description": "Sync ALL repository scheduled jobs (jobs/Scheduled/) and repository skills (skills/equity-research & tooling) with Antigravity UI Sidecars (~/.gemini/config/sidecars/) and Global Skills (~/.gemini/config/skills/).",
+      "description": "Sync repository scheduled jobs (jobs/Scheduled/) to Antigravity Sidecars ONLY, and repository skills (skills/equity-research & tooling) to Antigravity Global Skills ONLY, as minimal routers — never full copies, and never both destinations for the same item.",
       "aliases": [
         "sync antigravity",
         "sync scheduled tasks",
@@ -745,7 +719,9 @@
         "model selection FinOps"
       ],
       "entry": "scripts/metrics/analyze_token_usage.py",
-      "modules": ["scripts/metrics/track_invocation.py"]
+      "modules": [
+        "scripts/metrics/track_invocation.py"
+      ]
     },
     {
       "name": "ipo-subscription-ranker",
@@ -770,7 +746,9 @@
         "nightly announcement digest"
       ],
       "entry": null,
-      "modules": ["packages/jobs-runtime/lib/thesisCardEmail.js"]
+      "modules": [
+        "packages/jobs-runtime/lib/thesisCardEmail.js"
+      ]
     },
     {
       "name": "ask-soic",
@@ -927,12 +905,23 @@
     {
       "name": "ScreenerAuth",
       "file": "stock-api/src/auth/screenerAuth.js",
-      "methods": ["_envFile", "_resolve", "cookieHeader", "headers", "isConfigured"]
+      "methods": [
+        "_envFile",
+        "_resolve",
+        "cookieHeader",
+        "headers",
+        "isConfigured"
+      ]
     },
     {
       "name": "StockscansAuth",
       "file": "stock-api/src/auth/stockscansAuth.js",
-      "methods": ["_readFromEnvFile", "_warnLegacy", "getToken", "headers"]
+      "methods": [
+        "_readFromEnvFile",
+        "_warnLegacy",
+        "getToken",
+        "headers"
+      ]
     },
     {
       "name": "BseClient",
@@ -972,7 +961,11 @@
     {
       "name": "PerplexityClient",
       "file": "stock-api/src/clients/PerplexityClient.js",
-      "methods": ["setJobName", "earningsEvents", "transcript"]
+      "methods": [
+        "setJobName",
+        "earningsEvents",
+        "transcript"
+      ]
     },
     {
       "name": "ScreenerClient",
@@ -1045,7 +1038,14 @@
     {
       "name": "NseSession",
       "file": "stock-api/src/http/nseSession.js",
-      "methods": ["clearCache", "_mergeSetCookie", "warmup", "getCookies", "headers", "get"]
+      "methods": [
+        "clearCache",
+        "_mergeSetCookie",
+        "warmup",
+        "getCookies",
+        "headers",
+        "get"
+      ]
     },
     {
       "name": "SimpleTemplate",
@@ -1408,6 +1408,26 @@
       "name": "toIsoDate",
       "file": "stock-api/src/analyzers/priceMetrics.js",
       "description": "Exported from priceMetrics.js"
+    },
+    {
+      "name": "median",
+      "file": "stock-api/src/analyzers/priceSpikeSignals.js",
+      "description": "Exported from priceSpikeSignals.js"
+    },
+    {
+      "name": "computeDailyMetrics",
+      "file": "stock-api/src/analyzers/priceSpikeSignals.js",
+      "description": "Exported from priceSpikeSignals.js"
+    },
+    {
+      "name": "findSpikeDays",
+      "file": "stock-api/src/analyzers/priceSpikeSignals.js",
+      "description": "Exported from priceSpikeSignals.js"
+    },
+    {
+      "name": "findRecentSpikeDays",
+      "file": "stock-api/src/analyzers/priceSpikeSignals.js",
+      "description": "Exported from priceSpikeSignals.js"
     },
     {
       "name": "parseScanId",

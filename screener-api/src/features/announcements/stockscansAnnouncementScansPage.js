@@ -14,13 +14,6 @@ const {
 
 const STOCKSCANS_ORIGIN = 'https://www.stockscans.in';
 const STOCKSCANS_ANNOUNCEMENT_SCANS_PAGE = `${STOCKSCANS_ORIGIN}/announcement-scans`;
-const ANNOUNCEMENT_SCAN_URL = `${STOCKSCANS_ORIGIN}/api/company/announcements/scan`;
-const ANNOUNCEMENT_STATISTICS_URL = `${STOCKSCANS_ORIGIN}/api/company/announcements/statistics`;
-const ANNOUNCEMENT_COMPANY_URL = `${STOCKSCANS_ORIGIN}/api/company/announcements/company`;
-const SCAN_METADATA_URL = `${STOCKSCANS_ORIGIN}/api/company/scans/metadata`;
-const COMPANY_SEARCH_URL = `${STOCKSCANS_ORIGIN}/api/company/search`;
-const WATCHLISTS_URL = `${STOCKSCANS_ORIGIN}/api/user/watchlists`;
-const SAVED_ANNOUNCEMENT_SCANS_URL = `${STOCKSCANS_ORIGIN}/api/user/announcement-scans`;
 
 const DEFAULT_ANNOUNCEMENT_SCAN = {
   scanId: '',

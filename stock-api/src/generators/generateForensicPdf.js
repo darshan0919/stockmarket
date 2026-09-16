@@ -258,7 +258,6 @@ async function createForensicPdf(data) {
 
   const title = `${data.company_name || ''} — Forensic Accounting Review`;
   const subtitle = `${data.ticker || ''} • ${data.date || ''} • Period: ${data.fy_range || ''}`;
-  const headerText = title;
 
   // modelUsed (skills/tooling/output-dto-standard/SKILL.md): LLM-authored forensic
   // analysis, no separate JSON DTO — pass data.model_used through.

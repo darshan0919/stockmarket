@@ -1,10 +1,10 @@
 # API Reference
 
 > **Document Type**: API Documentation  
-> **Base URL**: `http://localhost:5000/api`  
-> **Code Reference**: `backend/routes/`, `backend/controllers/`  
-> **Shared Modules**: `backend/utils/nseHelpers.js` (NSE utilities)  
-> **Last Updated**: 2026-01-02
+> **Base URL**: `http://localhost:5001/api` (screener-api; port auto-picks the next free one if 5001 is taken)  
+> **Code Reference**: `screener-api/src/features/*/*Routes.js`, `screener-api/src/features/*/*Controller.js`  
+> **Shared Modules**: `screener-api/src/core/utils/nseHelpers.js` (NSE utilities)  
+> **Last Updated**: 2026-09-16
 
 ## Overview
 
@@ -31,8 +31,8 @@ Error responses:
 
 ## Stock APIs
 
-> **Route File**: `backend/routes/stocks.js`  
-> **Controller**: `backend/controllers/stockController.js`
+> **Route File**: `screener-api/src/features/stock/stocksRoutes.js`  
+> **Controller**: `screener-api/src/features/stock/stockController.js`
 
 ### Search Stocks
 
@@ -72,8 +72,8 @@ GET /api/stocks/search?q={query}&page={page}&limit={limit}
 
 **Code Reference:**
 
-- Function: `searchStocks()` in `backend/controllers/stockController.js:19-134`
-- Uses NSE India autocomplete via `backend/api/nseIndiaApi.js` (`searchAutocomplete`, cookie session); database fallback on failure
+- Function: `searchStocks()` in `screener-api/src/features/stock/stockController.js:19-134`
+- Uses NSE India autocomplete via `screener-api/src/core/api/nseIndiaApi.js` (`searchAutocomplete`, cookie session); database fallback on failure
 
 ---
 
@@ -135,8 +135,8 @@ GET /api/stocks/{symbol}
 
 **Code Reference:**
 
-- Function: `getStockDetails()` in `backend/controllers/stockController.js`
-- Uses `backend/scripts/stockDetailsFetcher.js`
+- Function: `getStockDetails()` in `screener-api/src/features/stock/stockController.js`
+- Uses `screener-api/scripts/stockDetailsFetcher.js`
 
 ---
 
@@ -194,10 +194,10 @@ GET /api/stocks/{symbol}/quarterly?force_refresh={boolean}
 
 **Code Reference:**
 
-- Function: `getQuarterlyResults()` in `backend/controllers/stockController.js:448-544`
+- Function: `getQuarterlyResults()` in `screener-api/src/features/stock/stockController.js:448-544`
 - Helper: `calculateGrowthMetrics()` at line 285-383
 - Helper: `formatQuarterForResponse()` at line 388-442
-- Data Fetcher: `backend/scripts/balanceSheetDataFetcher.js`
+- Data Fetcher: `screener-api/scripts/balanceSheetDataFetcher.js`
 
 ---
 
@@ -230,8 +230,8 @@ GET /api/stocks/{symbol}/technicals
 
 **Code Reference:**
 
-- Function: `getStockTechnicals()` in `backend/controllers/stockController.js:169-219`
-- Calculations: `backend/utils/technicalIndicators.js`
+- Function: `getStockTechnicals()` in `screener-api/src/features/stock/stockController.js:169-219`
+- Calculations: `screener-api/src/core/utils/technicalIndicators.js`
 
 ---
 
@@ -280,14 +280,14 @@ GET /api/stocks/{symbol}/financials?quarters={number}
 
 **Code Reference:**
 
-- Function: `getStockFinancials()` in `backend/controllers/stockController.js:225-278`
+- Function: `getStockFinancials()` in `screener-api/src/features/stock/stockController.js:225-278`
 
 ---
 
 ## Screener APIs
 
-> **Route File**: `backend/routes/screener.js`  
-> **Controller**: `backend/controllers/screenerController.js`
+> **Route File**: `screener-api/src/features/screener/screenerRoutes.js`  
+> **Controller**: `screener-api/src/features/screener/screenerController.js`
 
 ### Run Screener
 
@@ -354,15 +354,15 @@ POST /api/screener/run
 
 **Code Reference:**
 
-- Function: `runScreener()` in `backend/controllers/screenerController.js:8-150`
-- Validation: `backend/utils/validators.js:screenerFiltersSchema`
+- Function: `runScreener()` in `screener-api/src/features/screener/screenerController.js:8-150`
+- Validation: `screener-api/src/core/utils/validators.js:screenerFiltersSchema`
 
 ---
 
 ## Watchlist APIs
 
-> **Route File**: `backend/routes/watchlist.js`  
-> **Controller**: `backend/controllers/watchlistController.js`
+> **Route File**: `screener-api/src/features/watchlist/watchlistRoutes.js`  
+> **Controller**: `screener-api/src/features/watchlist/watchlistController.js`
 
 ### Get Watchlist
 
@@ -418,8 +418,8 @@ DELETE /api/watchlist/{symbol}
 
 ## Market APIs
 
-> **Route File**: `backend/routes/market.js`  
-> **Controller**: `backend/controllers/marketController.js`
+> **Route File**: `screener-api/src/features/market/marketRoutes.js`  
+> **Controller**: `screener-api/src/features/market/marketController.js`
 
 ### Get Market Indices
 
@@ -454,7 +454,7 @@ GET /api/market/indices
 
 **Code Reference:**
 
-- Function: `getMarketIndices()` in `backend/controllers/marketController.js:8-69`
+- Function: `getMarketIndices()` in `screener-api/src/features/market/marketController.js:8-69`
 
 ### Get Market Stats
 
@@ -478,8 +478,8 @@ GET /api/market/stats
 
 ## Upcoming Results APIs
 
-> **Route File**: `backend/routes/upcomingResult.js`  
-> **Controller**: `backend/controllers/upcomingResult.js`
+> **Route File**: `screener-api/src/features/results/upcomingResultRoutes.js`  
+> **Controller**: `screener-api/src/features/results/upcomingResultController.js`
 
 ### Get Upcoming Results
 
@@ -508,16 +508,16 @@ GET /api/upcoming-results?page={page}&limit={limit}
 
 **Code Reference:**
 
-- Uses: `backend/api/nseIndiaApi.js:upcomingResults()`
+- Uses: `screener-api/src/core/api/nseIndiaApi.js:upcomingResults()`
 
 ---
 
 ## Orders APIs
 
-> **Route File**: `backend/routes/orders.js`  
-> **Controller**: `backend/controllers/ordersController.js`  
-> **Service**: `backend/services/ordersService.js`  
-> **Shared Modules**: `backend/utils/nseHelpers.js` (NSE utilities)
+> **Route File**: `screener-api/src/features/orders/ordersRoutes.js`  
+> **Controller**: `screener-api/src/features/orders/ordersController.js`  
+> **Service**: `screener-api/src/features/orders/ordersService.js`  
+> **Shared Modules**: `screener-api/src/core/utils/nseHelpers.js` (NSE utilities)
 
 ### Get Orders by Symbol
 
@@ -610,8 +610,8 @@ POST /api/orders/{symbol}/download-quarter
 
 ## Transcript APIs
 
-> **Route File**: `backend/routes/resultTranscript.js`  
-> **Controller**: `backend/controllers/resultTranscriptController.js`
+> **Route File**: `screener-api/src/features/results/resultTranscriptRoutes.js`  
+> **Controller**: `screener-api/src/features/results/resultTranscriptController.js`
 
 ### Get Transcripts
 
@@ -623,8 +623,8 @@ GET /api/result-transcript/{symbol}
 
 ## Declared Results APIs
 
-> **Route File**: `backend/routes/declaredResults.js`  
-> **Controller**: `backend/controllers/declaredResultsController.js`
+> **Route File**: `screener-api/src/features/results/declaredResultsRoutes.js`  
+> **Controller**: `screener-api/src/features/results/declaredResultsController.js`
 
 Get declared quarterly results from companies with financial data, growth metrics, and document links.
 
@@ -743,7 +743,7 @@ POST /api/declared-results
 
 **Code Reference:**
 
-- Function: `getDeclaredResults()` in `backend/controllers/declaredResultsController.js`
+- Function: `getDeclaredResults()` in `screener-api/src/features/results/declaredResultsController.js`
 - Proxies data from StockScans API
 
 ---
@@ -787,7 +787,7 @@ GET /api/declared-results/filters
 
 **Code Reference:**
 
-- Function: `getFilterOptions()` in `backend/controllers/declaredResultsController.js`
+- Function: `getFilterOptions()` in `screener-api/src/features/results/declaredResultsController.js`
 
 ---
 
@@ -867,22 +867,22 @@ POST /api/declared-results/download-notes
 
 **Code Reference:**
 
-- Function: `downloadTranscriptNotes()` in `backend/controllers/declaredResultsController.js`
-- Auth Service: `backend/services/stockscansAuth.js`
+- Function: `downloadTranscriptNotes()` in `screener-api/src/features/results/declaredResultsController.js`
+- Auth Service: `screener-api/src/core/api/stockscansAuth.js`
 
 **Related:**
 
-- See `loginToStockScans()` in `backend/services/stockscansAuth.js` for authentication flow
-- Frontend implementation in `frontend/pages/results.js` (handleDownloadAllNotes)
+- See `loginToStockScans()` in `screener-api/src/core/api/stockscansAuth.js` for authentication flow
+- Frontend implementation in `screener-web/pages/results.js` (handleDownloadAllNotes)
 
 ---
 
 ## Announcements APIs
 
-> **Route File**: `backend/routes/announcements.js`  
-> **Controller**: `backend/controllers/announcementsController.js`  
+> **Route File**: `screener-api/src/features/announcements/announcementsRoutes.js`  
+> **Controller**: `screener-api/src/features/announcements/announcementsController.js`  
 > **Upstream**: StockScans `POST /api/company/announcements/search` (proxied server-side)  
-> **Auth**: Set `STOCKSCANS_AUTH_TOKEN` in backend `.env` (same JWT as the `authtoken` cookie on stockscans.in)
+> **Auth**: Set `STOCKSCANS_AUTH_TOKEN` in the root `.env` (same JWT as the `authtoken` cookie on stockscans.in)
 
 ### Get Announcements by Symbol
 
@@ -938,8 +938,8 @@ GET /api/announcements/{symbol}?search={optional}&offset={optional}&provider={op
 
 **Code Reference:**
 
-- Function: `getAnnouncements()` in `backend/controllers/announcementsController.js`
-- Client: `backend/services/stockscansAnnouncements.js`
+- Function: `getAnnouncements()` in `screener-api/src/features/announcements/announcementsController.js`
+- Client: `screener-api/src/features/announcements/stockscansAnnouncements.js`
 - PDF ZIP download uses public S3 URLs for StockScans attachments; NSE headers are still used for legacy NSE PDF URLs if present.
 
 ### Download announcement PDFs (ZIP)
@@ -958,7 +958,7 @@ Content-Type: application/json
 
 **Response:** `application/zip` stream. Filename pattern: `{SYMBOL}_announcements_{optionalSearch}_{YYYY-MM-DD}.zip` (search segment omitted when `search` is empty).
 
-**Code Reference:** `downloadAnnouncements()` in `backend/controllers/announcementsController.js`
+**Code Reference:** `downloadAnnouncements()` in `screener-api/src/features/announcements/announcementsController.js`
 
 ### Download latest concall transcripts (ZIP)
 
@@ -984,16 +984,16 @@ Content-Type: application/json
 
 **Code Reference:**
 
-- `downloadLatestConcalls()` in `backend/controllers/announcementsController.js`
-- `fetchCompanyIdsFromSavedScanUrl()` in `backend/services/stockscansSavedScan.js`
-- `resolveLatestEarningsCalls()` in `backend/services/stockscansAnnouncementScan.js`
+- `downloadLatestConcalls()` in `screener-api/src/features/announcements/announcementsController.js`
+- `fetchCompanyIdsFromSavedScanUrl()` in `screener-api/src/features/screener/stockscansSavedScan.js`
+- `resolveLatestEarningsCalls()` in `screener-api/src/features/announcements/stockscansAnnouncementScan.js`
 
 ---
 
 ## Admin APIs
 
-> **Route File**: `backend/routes/admin.js`  
-> **Controller**: `backend/controllers/adminController.js`
+> **Route File**: `screener-api/src/features/admin/adminRoutes.js`  
+> **Controller**: `screener-api/src/features/admin/adminController.js`
 
 ### Trigger Data Update
 
@@ -1013,18 +1013,18 @@ GET /api/admin/data/update
 
 **Code Reference:**
 
-- Function: `triggerDataUpdate()` in `backend/controllers/adminController.js`
+- Function: `triggerDataUpdate()` in `screener-api/src/features/admin/adminController.js`
 
 ---
 
 ## X (Twitter) APIs
 
-> **Route File**: `backend/routes/twitter.js`  
-> **Controller**: `backend/controllers/twitterController.js`
+> **Route File**: `screener-api/src/features/twitter/twitterRoutes.js`  
+> **Controller**: `screener-api/src/features/twitter/twitterController.js`
 
-Exports tweets for a public handle within a UTC lookback window using **x.com internal GraphQL** (`UserByScreenName` + `UserTweets`) on the server. Requires a **logged-in browser session** copied into `backend/.env` (same cookies/headers as the x.com web app).
+Exports tweets for a public handle within a UTC lookback window using **x.com internal GraphQL** (`UserByScreenName` + `UserTweets`) on the server. Requires a **logged-in browser session** copied into `the root .env` (same cookies/headers as the x.com web app).
 
-### Environment (`# TWEETER` in `backend/.env`)
+### Environment (`# TWEETER` in `the root .env`)
 
 | Variable                               | Required | Description                                                                  |
 | -------------------------------------- | -------- | ---------------------------------------------------------------------------- |
@@ -1092,7 +1092,7 @@ Content-Type: application/json
 
 The dashboard **Tweet Downloader** posts to this route and saves `data` as a prettified `.json` file in the browser.
 
-**Code reference:** `fetchTweetsForDownload()` in `backend/controllers/twitterController.js`
+**Code reference:** `fetchTweetsForDownload()` in `screener-api/src/features/twitter/twitterController.js`
 
 ---
 
@@ -1114,4 +1114,4 @@ Currently no rate limiting is implemented. For production:
 
 ## CORS
 
-CORS is enabled for all origins in development. For production, configure specific origins in `backend/server.js`.
+CORS is enabled for all origins in development. For production, configure specific origins in `screener-api/src/server.js`.

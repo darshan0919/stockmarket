@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { stockAPI } from '../../../core/lib/api';
 import LoadingSpinner from '../../../core/components/common/LoadingSpinner';
-import { formatLargeNumber, formatPercentage } from '../../../core/lib/utils/formatters';
+import { formatPercentage } from '../../../core/lib/utils/formatters';
 import _isNil from 'lodash/isNil';
 
 export default function QuarterlyResults({ symbol }) {

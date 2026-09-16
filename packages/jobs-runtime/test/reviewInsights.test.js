@@ -98,7 +98,6 @@ describe('reviewInsights', () => {
 
   test('--commit advances the ledger so the next delta is empty', () => {
     seed();
-    const l0 = rev.loadLedger();
     expect(rev.buildPacket().counts.delta.notes).toBe(2);
     // simulate commit
     const now = new Date().toISOString();

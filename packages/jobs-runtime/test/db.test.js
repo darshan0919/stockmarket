@@ -321,6 +321,22 @@ describe('saveLearnystTranscript (learnyst-lessons collection)', () => {
 
     const idx = db.get('learnyst-lessons', id);
     expect(idx.attachmentCount).toBe(1);
+    expect(idx.hasAttachments).toBe(true);
+    expect(idx.attachmentPaths).toEqual(['assets/learnyst-attachments/Lecture_Notes_lyst12345.pdf']);
+  });
+
+  test('hasAttachments/attachmentPaths are falsy/empty when no attachments', () => {
+    const id = db.saveLearnystTranscript(
+      mkTranscriptDto({
+        id: undefined,
+        lessonId: 999004,
+        attachments: [],
+      })
+    );
+    const idx = db.get('learnyst-lessons', id);
+    expect(idx.attachmentCount).toBe(0);
+    expect(idx.hasAttachments).toBe(false);
+    expect(idx.attachmentPaths).toEqual([]);
   });
 
   test('learnystAttachmentPath and hasLearnystAttachment helpers operate correctly', () => {

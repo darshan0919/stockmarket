@@ -5,9 +5,14 @@ transcript, 2026-07), extended 2026-08 with 9 further Learnyst lessons specifica
 growth-catalyst and J-curve identification: "Find J-Curve Exploding Stocks", "Identifying/
 Growth Catalysts with StockScans" (two course shells, same session), "Part 1/2 Spotting
 Growth Businesses", "How to Spot Growing Sectors?", "Fastest Growing Companies" (two
-sessions), and "Growth at Reasonable Price & Ask Me Anything". This is the interpretive
-lens `rerating-catalysts` applies to every document it reads. It is a reference, not a
-checklist to recite — use it to decide what's worth writing about and what to skip.
+sessions), and "Growth at Reasonable Price & Ask Me Anything". Extended again 2026-09-15
+with the "13.09.26 Spotting J Curve" / "13.09.26 Masterclass on Screening — Spotting 'J
+Curves'" Learnyst lessons — two recording cuts of a single live theory session (the
+promised live scan-build was deferred by the instructor to an unrecorded "2.0" follow-up
+session, not present in either transcript) — see §1c-§1f and §5h below for what it added.
+This is the interpretive lens `rerating-catalysts` applies to every document it reads. It
+is a reference, not a checklist to recite — use it to decide what's worth writing about and
+what to skip.
 
 ## 1. The core thesis: why re-rating happens
 
@@ -42,6 +47,87 @@ capacity doubling or a new segment launch (bucket 3, genuine J-curve). Don't let
 number alone drive the bucket call — trace it to a specific trigger (§2's "new"
 categories) before deciding which bucket applies. See §5f for the literal quantitative
 screening threshold and the resulting J-Curve Inflection tag.
+
+## 1c. Concave vs. convex — a sharper lens on "how much upside is actually uncapped"
+
+A companion question to the bucket call above (§1b): is the underlying activity concave
+or convex? **Concave** = capped upside with a roughly symmetric or capped downside (a
+fixed deposit; a 100x-PE mega-cap; a bank already holding 15% share of its system with no
+runway left to take more share — growing at system pace only). **Convex** = uncapped
+upside with contained downside — the setup this framework is actually hunting for. Convex
+situations require "a big shock that changes the company's scale," and read differently
+depending on the base: a ₹600cr-revenue company landing a large new contract at a
+materially higher margin than its base business is convex; the same contract landing on a
+₹50,000cr base is not (base-effect logic, §3b, applies here too). Source: Nassim Taleb's
+concave/convex framing (Antifragile), adapted to stock-picking. Use this as a quick
+sanity-check alongside the bucket classification — a bucket-3 call on a company with no
+identifiable convex trigger (just a big number) is more likely a base-effect illusion than
+a real J-curve.
+
+## 1d. Train A / B / C — timing a catalyst, not just identifying one
+
+Once a "new" trigger (§2) is identified, ask where the stock sits relative to when that
+trigger actually shows up in the P&L:
+
+- **Train A — stagnant, no visible catalyst yet.** The thesis is a story, not a confirmed
+  timeline (e.g., "cement consolidation is coming" with no near-term date). Buying here is
+  closest to "hope investing" — defensible only as a small, explicitly time-stopped
+  position, never a core holding.
+- **Train B — catalyst within sight.** A specific, dated trigger is roughly ~6 months or
+  less from commercializing (a capex nearing commissioning, a segment inflection the
+  company has guided to a specific quarter). This is close to §5a's Stage 1→2 boundary.
+- **Train C — already moving.** The trigger has just landed and is visible in the numbers
+  or order book now (e.g., a PLI-driven order book stepping from ~₹1-2,000cr to ~₹6,000cr
+  in one disclosure). Closest to §5a's Stage 2.
+
+**Preference ordering: C > B > A.** A portfolio-construction rule of thumb from the source
+material: skew a growth-catalyst portfolio roughly 80% into Train B/C names, with at most
+15-20% in Train A, and only with a strict time-based stop (exit if the promised catalyst
+hasn't shown up within the timeframe originally used to justify the position). This is a
+portfolio-construction heuristic, not a per-company scoring input — note it in 3f as
+sizing/allocation context, not as part of the §5f tag computation.
+
+## 1e. Young vs. old momentum — the same trailing number means different things
+
+Two companies can show similar trailing growth and still carry very different forward
+odds depending on *how recently* that growth started:
+
+- A company stagnant for ~12 quarters that inflects in quarter 13 has **young momentum** —
+  the growth story is fresh, and if upgrade cycles (per the empirical pattern cited below)
+  typically run 8-12 quarters, most of the cycle is still ahead.
+- A company that has grown well for ~12 quarters and shows its first deceleration in
+  quarter 13 has **old momentum** — even though the trailing-12-quarter picture may look
+  similar to the first case, this one is closer to the end of an upgrade cycle than the
+  start of one.
+
+Empirical anchors cited in the source material (treat as directional priors, not fixed
+rules): upgrade (growth) cycles tend to run **8-12 quarters**; downgrade (deceleration)
+cycles tend to persist **~2-2.5 years** until a company finds a new pivot. Practical use:
+when two candidates clear §5f's quantitative bar similarly, prefer the one earlier in its
+growth cycle (young momentum) over one that has already compounded for several years (old
+momentum, closer to Stage 3/Weinstein Stage 3 distribution — see §1f).
+
+## 1f. Weinstein-style stage analysis — a technical overlay, not a replacement for §5a
+
+§5a stages a catalyst using fundamentals (revenue/margin/PAT sequencing). A complementary,
+purely technical/volume-based 4-stage model (Stan Weinstein, *Secrets for Profiting in
+Bull and Bear Markets*; see also O'Neill's *How to Make Money in Stocks* and Minervini's
+*Trade Like a Stock Market Wizard*) is worth overlaying when a chart is available:
+
+| Weinstein Stage | Technical signature |
+| --- | --- |
+| **1. Base** | Sideways price action, no clear trend, "smart money" quietly accumulating |
+| **2. Breakout** | Sharp move up on heavy volume — often coincides with bulk/block deals |
+| **3. Distribution** | Price still elevated but rate of change slows, churn increases |
+| **4. Downtrend** | Sustained decline, mass exit |
+
+This is a technical lens, not a substitute for §5a's fundamentals-driven Base Building /
+Inflection / Acceleration staging — the two often but don't always align (a stock can be
+fundamentally in Stage 2 Inflection while its chart is still technically in Weinstein Stage
+1 Base, which is arguably the highest-asymmetry overlap to look for). Technical
+stage/relative-strength timing work of this kind belongs primarily to `stage2-catalyst-
+analysis` per this framework's own §6 scope boundary — cite the Weinstein stage here only
+as a one-line corroborating/contradicting note in 3d, not as a full technical workup.
 
 ## 2. "New" is the master keyword
 
@@ -187,6 +273,30 @@ Before finalizing 3b's ranking, spend one pass on sector-level context:
    extended period — sector context is not a secondary consideration, weigh it explicitly
    in 3f rather than treating the company-level catalysts as sufficient on their own.
 
+## 4c. The TGPV funnel — Theme → Growth → Promoter → Valuation, in that order
+
+A named four-step prioritization sequence that formalizes the "top-down sequencing"
+already described in §4b.1, worth citing explicitly because the order is the point:
+
+1. **Theme** — identify a relatively strong theme first (via relative-strength index/scan
+   comparisons — see §5h below for the specific screening pattern).
+2. **Growth** — confirm an actual growth inflection/catalyst exists within that theme
+   (this is where §1-§5g of this framework does its work).
+3. **Promoter** — check promoter/management quality (ethical track record, concalls
+   actually happening, no red flags per `forensic-accounting`/`management-credibility-
+   tracker`) — only after theme and growth clear.
+4. **Valuation** — cheapness/expensiveness is deliberately checked LAST, not first. A high
+   trailing P/E cited as a reason to skip a name without doing the theme/growth/promoter
+   work first is "a cheap way to avoid doing the work," not a valid screen.
+
+This restates and sharpens this framework's existing §6 stance ("not a valuation call") —
+TGPV gives it an explicit sequencing name and puts a promoter-quality gate between growth
+and valuation that wasn't previously named as a distinct step. An informal, anecdotal
+claim from the same source material (an internal, methodology-undisclosed "backtest") put
+theme/sector/stock-selection return attribution at roughly 60%/20%/20% — cite this only as
+a directional prior for why Theme is weighted first, never as a validated statistic, and
+say so explicitly if it's referenced in a report.
+
 ## 5. Screening heuristics worth citing when scanning across a company's document set
 
 - **Order-book jump**: if disclosed order book has stepped up materially quarter over
@@ -233,6 +343,18 @@ Use the growth-rate ordering (PAT growth > EBITDA growth > Revenue growth) as
 a quick check on whether a company claiming "Acceleration" actually has
 operating leverage showing up, or whether PAT is being flattered by
 something below the EBITDA line (which routes back to §5b below).
+
+**Worked examples of stage transitions (illustrative, verify against current numbers
+before citing):** DMart's PAT growth decelerating from its earlier high rate into
+high-single/low-double digits after quick-commerce entrants pressured its category —
+a live example of a Stage 3 (Acceleration) company sliding back toward Stage 1 as a
+structural threat (not just a base-effect slowdown) emerged; contrast with Trent's
+Stage 2 breakout driven by the Zudio format launch, followed by its own Stage 3
+distribution and Stage 4 drawdown phase roughly a year later — a full lifecycle loop in
+one name. Bajaj Finance is a useful anchoring-bias caution alongside this: it traded at
+~7x P/B "expensive" for most of 2010-2019 and still re-rated further from there — a
+reminder that §5g's PEG/valuation checks should inform sizing, not be used to dismiss a
+Stage 1/2 company solely because it "looks expensive" relative to its own history.
 
 ## 5b. Beware of fake J-curves — a PAT jump alone means nothing
 
@@ -382,12 +504,62 @@ replace `financial-model`:
    Roughly 1.0-1.6x reads as reasonable in the source material's own worked examples; well
    above that with an unconfirmed (Trigger/Base-Building stage) catalyst is a signal that
    the market may already be pricing in more than what's actually confirmed yet — flag
-   this explicitly in 3d rather than silently omitting a valuation view.
+   this explicitly in 3d rather than silently omitting a valuation view. **Caution on the
+   growth input**: most platform-computed PEG ratios (Screener, Stockscans, brokerage
+   sheets) use *trailing* 3-year growth in the denominator, not forward growth — for a
+   company mid-J-curve where forward growth is expected to differ materially from trailing
+   growth, a platform PEG number is measuring the wrong thing. Recompute PEG using your own
+   forward (next 2-3 year) growth estimate from §1b/§5a's staging work rather than citing a
+   platform PEG figure at face value.
 4. **Shareholding-pattern trend as a corroborating (not a primary) signal** — rising FII/
    DII holding alongside the catalyst is a "smart money" corroboration; note that a
    promoter-holding decline via a QIP-to-repay-debt is a fundamentally different, less
    bearish signal than one via open-market selling — don't collapse the two into a single
    "promoter selling" flag without checking which it is.
+
+## 5h. Theme relative-strength screening pattern (custom index + 30-week EMA)
+
+A concrete, repeatable pattern for §4b/§4c's "identify the theme first" step, worth using
+whenever two or more candidate themes need to be ranked before drilling into individual
+companies:
+
+1. Build a **custom index** for a theme that has no standard Nifty sub-index (e.g., an
+   "Affordable Housing Finance" or "Diagnostics" basket) using Stockscans' custom-index
+   tool — most niche themes worth screening won't have an off-the-shelf index.
+2. Plot it against **Nifty 500 relative strength**, on a **weekly** timeframe, with a
+   **30-week EMA** overlay. The source material notes this deliberately uses 30 weeks
+   rather than the textbook 40-week EMA specifically to catch signals earlier — treat 40-
+   week as the conservative/textbook default and 30-week as a faster, noisier variant, not
+   a strict replacement.
+3. Compare candidate themes pairwise (e.g., Diagnostics vs. Housing Finance; Private
+   Banks vs. Hospitals) — the theme showing relative-strength outperformance (line trending
+   above its 30-week EMA and above the Nifty 500 comparison) is the one to prioritize per
+   TGPV's ordering (§4c).
+4. Once a theme is selected, use a **Results scan filtered by industry** (e.g., Pharma
+   API/CRAMS) to rank companies within it by reported PAT growth, then for each outlier
+   open the chart (stage-analysis read, §1f), the investor PPT, and the concall/transcript
+   summary to verify the "why" before it goes on a watchlist — this operationalizes the
+   existing "screen for PAT-growth spikes → verify via concall" heuristic above.
+
+Note the scope of what this actually gives you: a process for ranking themes and spotting
+PAT-growth outliers within a chosen theme — not a parameterized StockScans scan with exact
+filter fields/operators/cutoffs (the source lesson explicitly deferred the live scan-build
+to a follow-up session that hasn't been captured yet). Treat steps 1-4 as a manual
+workflow until/unless a scripted version of the custom-index comparison exists.
+
+Two additional numeric screening anchors from the same source, useful as rough banding
+rather than hard cutoffs:
+
+- **Retail sweet-spot market cap: ~₹2,500cr–₹20,000cr.** Below this, information
+  availability is thin and technicals/relative-strength reads become unreliable ("one buyer
+  or seller moves the technicals" in true micro/SME caps). Re-rating speed is reported to
+  improve once a company crosses roughly **₹6,000-7,000cr**, the rough threshold where
+  mutual funds become able to participate.
+- **Active-investing hurdle rate**: a commonly cited target for justifying active stock-
+  picking over an index fund is **~1.5x the index's return** over a 5-7 year horizon (e.g.,
+  aiming for ~22-23% if the index does ~15%) — useful as a gut-check for whether a
+  catalyst-driven thesis is actually worth the concentration risk versus just holding an
+  index/mutual fund.
 
 ## 6. What this framework explicitly is NOT
 
@@ -416,6 +588,11 @@ against the current cycle, don't treat as immutable rules)
 | Bucket 3 — hyper-growth/J-curve      | 30-80%+ (sometimes 100%+), ~1-3 years                                                                                                                                                        | §1b classification                                                                                        |
 | PEG "reasonable" range               | ~1.0-1.6x                                                                                                                                                                                    | §5g GARP check — a final sanity check once a catalyst clears §5f                                          |
 | Warrant/preferential-issue base rate | Historically higher hit-rate and above-average forward returns over 3-5yr holds (illustrative prior from the source webinar's own backtest — do not restate as a freshly-computed statistic) | §5 screening heuristics — raises the burden of explanation, doesn't replace checking the specific company |
+| Train A/B/C portfolio allocation     | ~80% in Train B/C, ~15-20% in Train A (with a strict time-stop)                                                                                                                              | §1d — portfolio sizing/allocation context, not a per-company scoring input                                |
+| Young-momentum growth cycle          | Upgrade cycles ~8-12 quarters; downgrade cycles ~2-2.5 years (empirical prior, not a rule)                                                                                                   | §1e — preferring recently-inflected over already-mature growth when two candidates otherwise tie           |
+| Retail sweet-spot market cap         | ~₹2,500cr-₹20,000cr; re-rating speed reportedly improves past ~₹6,000-7,000cr (MF-eligibility threshold)                                                                                     | §5h — banding for where relative-strength/technical screens are considered reliable                        |
+| Active-investing hurdle rate         | ~1.5x the benchmark index's return over 5-7 years                                                                                                                                            | §5h — gut-check for whether a catalyst thesis justifies concentration risk vs. an index/mutual fund         |
+| Theme/sector/stock return attribution | ~60% theme / 20% sector / 20% stock-picking (anecdotal, methodology undisclosed — cite as a directional prior only, never as a validated statistic)                                          | §4c TGPV — rationale for weighting Theme first, not a number to restate as fact                            |
 
 These are priors from the source material, not hard-coded pass/fail gates for anything
 outside §5f's specific tag logic — cite them as directional benchmarks in 3b/3d/3f, and

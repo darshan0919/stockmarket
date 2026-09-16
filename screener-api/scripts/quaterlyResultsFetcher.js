@@ -16,7 +16,7 @@ const getLastQuatersRevenueGrowthMetrics = async (symbol, numberOfQuaters) => {
   const quarterlyData = [];
   lastResults.forEach((quarter) => {
     const prevYearQuarter = results.find(
-      (q, i) =>
+      (q) =>
         q.quarter === quarter.quarter &&
         q.fiscal_year === quarter.fiscal_year - 1 &&
         q.consolidated === quarter.consolidated
@@ -30,7 +30,7 @@ const getLastQuatersRevenueGrowthMetrics = async (symbol, numberOfQuaters) => {
     }
 
     const prevQuarter = results.find(
-      (q, i) =>
+      (q) =>
         q.consolidated === quarter.consolidated &&
         (q.fiscal_year === quarter.fiscal_year
           ? q.quarter === quarter.quarter - 1

@@ -85,7 +85,7 @@ describe('saveOrderWins', () => {
   test('falls back to the ledger deltaCr when valueCr is absent', () => {
     // The ledger's applied-announcement entries only carry deltaCr; reading
     // valueCr alone wrote every event as "₹undefined Cr".
-    const { valueCr, ...ledgerShaped } = WIN;
+    const { valueCr: _valueCr, ...ledgerShaped } = WIN;
     obEvents.saveOrderWins('NSE:GGG', [ledgerShaped]);
     const [rec] = obEvents.findOrderWins('NSE:GGG');
     expect(rec.valueCr).toBe(2977);

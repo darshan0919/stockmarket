@@ -278,6 +278,32 @@ function extractDirectDependencies(content, sourceFile, allFiles) {
   const dynamicImportRegex = /import\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g;
   // 4. child_process exec/spawn/fork
   const execRegex = /(?:execSync|exec|execFile|spawn|fork)\s*\(\s*['"`]([^'"`]+)['"`]/g;
+  // 5. multi-line named imports/exports: `import {\n  a,\n  b,\n} from '...'`.
+  // The per-line scan below can't see the `from '...'` clause when it's on a
+  // different physical line than the `import {` keyword — this is a common,
+  // valid ES module style (Prettier wraps long named-import lists this way)
+  // that was silently invisible to the per-line regex, producing false
+  // "unreferenced" results for files only ever imported with this style.
+  const multiLineImportRegex =
+    /(?:import|export)\s*\{[^}]*?\}\s*from\s*['"`]([^'"`]+)['"`]/gs;
+  let mlMatch;
+  while ((mlMatch = multiLineImportRegex.exec(content)) !== null) {
+    const specifier = mlMatch[1];
+    // Skip if this was already a single-line match (has no newline in the
+    // matched span) — the per-line loop below already covers that case and
+    // reports the correct line number; only multi-line spans need this pass.
+    if (!mlMatch[0].includes('\n')) continue;
+    const lineNum = content.slice(0, mlMatch.index).split('\n').length;
+    const res = resolveImportPath(specifier, sourceFile, allFiles);
+    deps.push({
+      target: res.resolved,
+      specifier,
+      line: lineNum,
+      type: res.isExternal ? 'external' : 'import',
+      isExternal: res.isExternal,
+      snippet: mlMatch[0].split('\n')[0].trim() + ' ... (multi-line import)',
+    });
+  }
 
   lines.forEach((lineText, idx) => {
     const lineNum = idx + 1;
@@ -2213,4 +2239,5 @@ module.exports = {
   renderMermaid,
   renderInteractiveHtml,
   resolveTarget,
+  WORKSPACE_PACKAGES,
 };

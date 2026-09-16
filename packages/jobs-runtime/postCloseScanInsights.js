@@ -46,10 +46,7 @@ const { withRetry } = require('@stock/api/utils/concurrency');
 // file. gainersScanner.js gates its own CLI auto-invocation behind
 // `require.main === module`, so requiring it here for its exports is inert.
 const { fetchDeliveryPerSymbol, fetchPrices, pick, toFloat } = require('./gainersScanner');
-const {
-  shouldIgnoreAnnouncement,
-  matchedNoiseKeyword,
-} = require('../../stock-api/src/utils/announcementNoiseFilter');
+const { matchedNoiseKeyword } = require('../../stock-api/src/utils/announcementNoiseFilter');
 const {
   categoriseAnnouncement,
   HEAVY_DOCUMENT_CATEGORIES,

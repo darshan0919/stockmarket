@@ -10,6 +10,10 @@
  * @param {string} d - Date in YYYYMM format
  * @returns {string} Quarter label like "Q2FY25", or the raw date if month doesn't match
  */
+// dateToQuarter is loaded via <script> tag ahead of sidepanel.js/content.js,
+// which call it as a shared global; no import/require for eslint's
+// single-file analysis to see.
+// eslint-disable-next-line no-unused-vars
 function dateToQuarter(d) {
   const yr = parseInt(d.slice(0, 4));
   const mo = parseInt(d.slice(4, 6));
@@ -19,19 +23,4 @@ function dateToQuarter(d) {
   if (mo === 12) return `Q3FY${fy2(yr + 1)}`;
   if (mo === 3) return `Q4FY${fy2(yr)}`;
   return d;
-}
-
-/**
- * Compare two quarter labels for sorting (newest first).
- * Converts "Q1FY26" to a sortable number: FY*10 + Q.
- * @param {string} a - Quarter label
- * @param {string} b - Quarter label
- * @returns {number} Negative if a is newer, positive if b is newer
- */
-function qtrSort(a, b) {
-  const parse = (q) => {
-    const m = q.match(/Q(\d)FY(\d+)/);
-    return m ? parseInt(m[2]) * 10 + parseInt(m[1]) : 0;
-  };
-  return parse(b) - parse(a);
 }
