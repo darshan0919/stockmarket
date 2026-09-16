@@ -34,7 +34,10 @@ const { normalizePvd } = require('./priceMetrics');
  * @returns {number}
  */
 function median(arr) {
-  const vals = arr.filter(Number.isFinite).slice().sort((a, b) => a - b);
+  const vals = arr
+    .filter(Number.isFinite)
+    .slice()
+    .sort((a, b) => a - b);
   if (!vals.length) return NaN;
   const mid = Math.floor(vals.length / 2);
   return vals.length % 2 === 0 ? (vals[mid - 1] + vals[mid]) / 2 : vals[mid];
@@ -194,7 +197,13 @@ async function findRecentSpikeDays(
     allDays: inWindow,
     fetchedFrom: fmt(from),
     fetchedTo: fmt(to),
-    params: { lookbackDays, medianWindowDays, gainThresholdPct, volumeMultipleThreshold, minSampleSize },
+    params: {
+      lookbackDays,
+      medianWindowDays,
+      gainThresholdPct,
+      volumeMultipleThreshold,
+      minSampleSize,
+    },
   };
 }
 

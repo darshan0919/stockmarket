@@ -49,11 +49,7 @@ describe('Zero loose files & clean cutover verification', () => {
   });
 
   test('only shard_*.jsonl files exist in sharded cache directories', () => {
-    const cacheDirs = [
-      'cache/pdf-text',
-      'cache/pdf-text-full',
-      'cache/monthly-updates-text',
-    ];
+    const cacheDirs = ['cache/pdf-text', 'cache/pdf-text-full', 'cache/monthly-updates-text'];
 
     for (const c of cacheDirs) {
       const dir = path.join(root, c);

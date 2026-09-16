@@ -639,9 +639,7 @@
       "entry": null,
       "modules": [],
       "scripts": [],
-      "references": [
-        "skills/tooling/skill-manager/references/schemas.md"
-      ],
+      "references": ["skills/tooling/skill-manager/references/schemas.md"],
       "shared": [
         "skills/tooling/skill-manager/agents/grader.md",
         "skills/tooling/skill-manager/agents/comparator.md",

@@ -105,12 +105,7 @@ export default function StockDetails() {
     );
   }
 
-  const {
-    basic_info,
-    price_info,
-    fundamentals,
-    price_history_5y = [],
-  } = stockData;
+  const { basic_info, price_info, fundamentals, price_history_5y = [] } = stockData;
 
   const latestPrice =
     price_info?.last_price ||

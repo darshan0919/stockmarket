@@ -411,7 +411,7 @@ findRecentSpikeDays(nse, '<EXCH:SYMBOL>', { lookbackDays: 30 }).then(r => consol
 A "spike day" is a 1-day close-to-close gain ≥ 5% on volume ≥ 2x the trailing
 31-calendar-day median volume (both thresholds are explicit params on
 `findSpikeDays` — tune per company liquidity if a name is unusually noisy or
-quiet; state if you do). The 31-day window is a *calendar* window, not a
+quiet; state if you do). The 31-day window is a _calendar_ window, not a
 trading-day count, so it tracks "this month's typical volume" regardless of
 how many sessions fell in it — see the module's docblock for the exact
 inclusion rule. Default lookback is the trailing 30 calendar days; widen it

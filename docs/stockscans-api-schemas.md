@@ -65,7 +65,7 @@ reference (path + confirmed/unconfirmed status + full payload notes).
 - **`resultsScan`** (new path `POST /api/scans/result/run`): the response's
   `data.results` array is **gone**. Replaced by a top-level `resultTables`
   array. Each record is now `{companyId, metaRatios: {Name, ...},
-  resultTable: {C, S}, documents: [{ssUrl, documentType, hasNotes}, ...]}` —
+resultTable: {C, S}, documents: [{ssUrl, documentType, hasNotes}, ...]}` —
   a nested shape, not the old flat per-company record. The only in-repo
   caller, `scripts/jobs/daily_results_extractor.js`, has been updated to
   read `response.resultTables` and derive `resultSsUrl`/`pptSsUrl`/
@@ -622,9 +622,9 @@ above for what each replaced.
 - `GET /api/charts/ohlcv/{ticker}` — `ohlcv(ticker, {tf, before})`, rows
   `[isoTimestamp, open, high, low, close, volume]`, paginate via `hasMore`
   - `before`. Path migrated from `company/ohlcv/{ticker}` — CONFIRMED LIVE.
-  `tf` enum changed (see Migration notes): now
-  `'1m','2m','3m','5m','10m','15m','30m','1h','2h','4h','1D','1W','1M'`
-  (capitalized day/week/month, two new granularities).
+    `tf` enum changed (see Migration notes): now
+    `'1m','2m','3m','5m','10m','15m','30m','1h','2h','4h','1D','1W','1M'`
+    (capitalized day/week/month, two new granularities).
 - `GET /api/company/reports/growth-catalysts/{companyId}` — `growthCatalysts(companyId)`,
   AI-synthesized report `{finalReport, dateLabel, toc}`. Path migrated from
   `company/growth-catalysts/{companyId}` — CONFIRMED LIVE. Served by

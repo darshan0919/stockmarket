@@ -630,7 +630,8 @@ function traceApiUsageFromUi(apiFiles, uiRoots, fileContentsMap, adjacency, allF
 
 // ── 5. data/ collection-level reachability ──────────────────────────────────
 
-const DATA_LAYER_FILES_PATTERN = /(^|\/)(db|jsonlStore|notesDb|concallNotesStore|orderAnnouncementStore|companyMaster|storageStats|orderBookEvents|tradingCalendar|windowCursor)\.js$/;
+const DATA_LAYER_FILES_PATTERN =
+  /(^|\/)(db|jsonlStore|notesDb|concallNotesStore|orderAnnouncementStore|companyMaster|storageStats|orderBookEvents|tradingCalendar|windowCursor)\.js$/;
 
 /**
  * A file counts as "going through the data layer" if it requires/imports
@@ -644,8 +645,12 @@ function findDataLayerConsumers(allFiles, fileContentsMap) {
     if (!CODE_EXTENSIONS.includes(ext)) return;
     if (DATA_LAYER_FILES_PATTERN.test(f)) return; // the layer itself, not a consumer
     const content = fileContentsMap.get(f) || '';
-    if (/require\(['"`].*\/(lib\/)?(db|jsonlStore|notesDb|concallNotesStore|orderAnnouncementStore|companyMaster|storageStats)['"`]\)/.test(content) ||
-        /@stock\/jobs-runtime/.test(content)) {
+    if (
+      /require\(['"`].*\/(lib\/)?(db|jsonlStore|notesDb|concallNotesStore|orderAnnouncementStore|companyMaster|storageStats)['"`]\)/.test(
+        content
+      ) ||
+      /@stock\/jobs-runtime/.test(content)
+    ) {
       consumers.push(f);
     }
   });
@@ -669,7 +674,12 @@ function findDataLayerConsumers(allFiles, fileContentsMap) {
  * before), the fix broadens WHICH code is searched to everything reachable
  * from a real entry point, not just files that happen to require db.js.
  */
-function analyzeDataDirectory(allFiles, fileContentsMap, dataRoot = 'data', extraReferenceText = '') {
+function analyzeDataDirectory(
+  allFiles,
+  fileContentsMap,
+  dataRoot = 'data',
+  extraReferenceText = ''
+) {
   const dataEntries = allFiles
     .filter((f) => f.startsWith(dataRoot + '/'))
     .map((f) => f.slice(dataRoot.length + 1).split('/')[0])
@@ -732,15 +742,22 @@ function analyzeDataDirectory(allFiles, fileContentsMap, dataRoot = 'data', extr
     const escapeRe = (s) => s.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
     const baseRegex = new RegExp(`['"\`]${escapeRe(base)}['"\`]`);
     const fullEntryRegex = new RegExp(`['"\`]${escapeRe(entry)}['"\`]`);
-    const dataPathPrefixRegex = new RegExp(`(?<![\\w-])${escapeRe(dataRoot)}/${escapeRe(entry)}(?:[/'"\`\\s]|$)`);
-    const dataPathPrefixBaseRegex = new RegExp(`(?<![\\w-])${escapeRe(dataRoot)}/${escapeRe(base)}(?:[/'"\`\\s]|$)`);
+    const dataPathPrefixRegex = new RegExp(
+      `(?<![\\w-])${escapeRe(dataRoot)}/${escapeRe(entry)}(?:[/'"\`\\s]|$)`
+    );
+    const dataPathPrefixBaseRegex = new RegExp(
+      `(?<![\\w-])${escapeRe(dataRoot)}/${escapeRe(base)}(?:[/'"\`\\s]|$)`
+    );
     if (
       baseRegex.test(combined) ||
       (entry !== base && fullEntryRegex.test(combined)) ||
       dataPathPrefixRegex.test(combined) ||
       (entry !== base && dataPathPrefixBaseRegex.test(combined))
     ) {
-      referenced.push({ entry, reason: `collection name '${base}' (or exact filename/path '${entry}') used in reachable code` });
+      referenced.push({
+        entry,
+        reason: `collection name '${base}' (or exact filename/path '${entry}') used in reachable code`,
+      });
     } else {
       hangingNodes.push({
         entry,
@@ -971,7 +988,8 @@ function buildReachabilityReport(rootDir = ROOT_DIR, excludePaths = null) {
     if (isBuildOutputPath(f)) {
       buildOutputUnreachable.push({
         file: f,
-        reason: 'Compiled/generated build output, not source — excluded from actionable dead-code list.',
+        reason:
+          'Compiled/generated build output, not source — excluded from actionable dead-code list.',
       });
       return;
     }
@@ -1004,7 +1022,8 @@ function buildReachabilityReport(rootDir = ROOT_DIR, excludePaths = null) {
     if (!isReached) {
       deadFiles.push({
         file: f,
-        reason: 'Not reachable from any skill, scheduled job, package.json script, or UI entry point.',
+        reason:
+          'Not reachable from any skill, scheduled job, package.json script, or UI entry point.',
       });
     }
   });
@@ -1040,7 +1059,9 @@ function buildReachabilityReport(rootDir = ROOT_DIR, excludePaths = null) {
   // in this repo, so it's checked everywhere except runner-invoked configs.
   const SCRATCH_DIR_MD_PREFIXES = ['tmp/', '_to_delete/', 'recordings/', '.scratch_probe/'];
   const isScratchDirPath = (f) =>
-    SCRATCH_DIR_MD_PREFIXES.some((p) => f.startsWith(p)) || /^tmp_[^/]*\//.test(f) || /^tmp_[^/]*$/.test(f);
+    SCRATCH_DIR_MD_PREFIXES.some((p) => f.startsWith(p)) ||
+    /^tmp_[^/]*\//.test(f) ||
+    /^tmp_[^/]*$/.test(f);
 
   const reachableTextBlob = Array.from(reached.keys())
     .map((f) => fileContentsMap.get(f) || '')
@@ -1074,8 +1095,19 @@ function buildReachabilityReport(rootDir = ROOT_DIR, excludePaths = null) {
     if (isRunnerInvokedConfigPath(f)) return; // tool config by basename, scoped to a real root
     if (path.basename(f) === 'package.json') return; // every package.json is a root already
     if (ext === '.md' && !isScratchDirPath(f)) return; // narrative documentation, not dead code
-    if (!isNonCodeFileReferenced(f, reachableTextBlob, genericBasenames, allFiles, reachableCodeTextBlob)) {
-      nonCodeDead.push({ file: f, reason: 'Non-code file path/name not referenced by any reachable code.' });
+    if (
+      !isNonCodeFileReferenced(
+        f,
+        reachableTextBlob,
+        genericBasenames,
+        allFiles,
+        reachableCodeTextBlob
+      )
+    ) {
+      nonCodeDead.push({
+        file: f,
+        reason: 'Non-code file path/name not referenced by any reachable code.',
+      });
     }
   });
 
@@ -1089,7 +1121,9 @@ function buildReachabilityReport(rootDir = ROOT_DIR, excludePaths = null) {
   return {
     stats: {
       totalFiles: allFiles.length + dataFiles.length,
-      codeFilesScanned: allFiles.filter((f) => PARSEABLE_EXTENSIONS.has(path.extname(f).toLowerCase())).length,
+      codeFilesScanned: allFiles.filter((f) =>
+        PARSEABLE_EXTENSIONS.has(path.extname(f).toLowerCase())
+      ).length,
       entryRootCount: allRoots.size,
       reachedCount: reached.size,
       deadFileCount: deadFiles.length,

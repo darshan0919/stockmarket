@@ -9,6 +9,6 @@
 ## 📊 Summary Breakdown
 
 | Category | Flagged Items | Priority |
-| :--- | :---: | :---: |
+| :------- | :-----------: | :------: |
 
 ✨ **No dead code or coding practice violations found across the monorepo!**

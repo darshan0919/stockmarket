@@ -184,7 +184,11 @@ function rollUpDeadFolders(deadSet, allFiles) {
     .map((dir) => {
       const files = dirToAllFiles.get(dir).slice().sort();
       files.forEach((f) => coveredFiles.add(f));
-      return { dir, files, sampleReason: `all ${files.length} files under this folder are unreferenced.` };
+      return {
+        dir,
+        files,
+        sampleReason: `all ${files.length} files under this folder are unreferenced.`,
+      };
     })
     // Report the biggest folders first — most actionable at a glance.
     .sort((a, b) => b.files.length - a.files.length);
@@ -545,7 +549,7 @@ function deriveReviewNote(item) {
       'a file read via a dynamically-built path, a browser-extension/client-side ' +
       'consumer, or a third-party tool convention. Verify by hand (or ask Darshan) ' +
       'before completing; if genuinely unsure, leave it pending and flag it for ' +
-      'Darshan\'s review rather than guessing.'
+      "Darshan's review rather than guessing."
     );
   }
   return (
@@ -605,9 +609,7 @@ function updateTasksJson(actionItems, timestamp) {
 
   const otherTasks = existingTasks.filter((t) => t.title !== parentTitle);
   const existingParent = existingTasks.find((t) => t.title === parentTitle);
-  const existingSubtaskMap = new Map(
-    (existingParent?.subtasks || []).map((st) => [st.title, st])
-  );
+  const existingSubtaskMap = new Map((existingParent?.subtasks || []).map((st) => [st.title, st]));
 
   const activeSubtaskTitles = new Set();
   const newSubtasks = actionItems.map((item) => {

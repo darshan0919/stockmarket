@@ -90,7 +90,7 @@ sizing/allocation context, not as part of the §5f tag computation.
 ## 1e. Young vs. old momentum — the same trailing number means different things
 
 Two companies can show similar trailing growth and still carry very different forward
-odds depending on *how recently* that growth started:
+odds depending on _how recently_ that growth started:
 
 - A company stagnant for ~12 quarters that inflects in quarter 13 has **young momentum** —
   the growth story is fresh, and if upgrade cycles (per the empirical pattern cited below)
@@ -110,16 +110,16 @@ momentum, closer to Stage 3/Weinstein Stage 3 distribution — see §1f).
 ## 1f. Weinstein-style stage analysis — a technical overlay, not a replacement for §5a
 
 §5a stages a catalyst using fundamentals (revenue/margin/PAT sequencing). A complementary,
-purely technical/volume-based 4-stage model (Stan Weinstein, *Secrets for Profiting in
-Bull and Bear Markets*; see also O'Neill's *How to Make Money in Stocks* and Minervini's
-*Trade Like a Stock Market Wizard*) is worth overlaying when a chart is available:
+purely technical/volume-based 4-stage model (Stan Weinstein, _Secrets for Profiting in
+Bull and Bear Markets_; see also O'Neill's _How to Make Money in Stocks_ and Minervini's
+_Trade Like a Stock Market Wizard_) is worth overlaying when a chart is available:
 
-| Weinstein Stage | Technical signature |
-| --- | --- |
-| **1. Base** | Sideways price action, no clear trend, "smart money" quietly accumulating |
-| **2. Breakout** | Sharp move up on heavy volume — often coincides with bulk/block deals |
-| **3. Distribution** | Price still elevated but rate of change slows, churn increases |
-| **4. Downtrend** | Sustained decline, mass exit |
+| Weinstein Stage     | Technical signature                                                       |
+| ------------------- | ------------------------------------------------------------------------- |
+| **1. Base**         | Sideways price action, no clear trend, "smart money" quietly accumulating |
+| **2. Breakout**     | Sharp move up on heavy volume — often coincides with bulk/block deals     |
+| **3. Distribution** | Price still elevated but rate of change slows, churn increases            |
+| **4. Downtrend**    | Sustained decline, mass exit                                              |
 
 This is a technical lens, not a substitute for §5a's fundamentals-driven Base Building /
 Inflection / Acceleration staging — the two often but don't always align (a stock can be
@@ -284,7 +284,7 @@ already described in §4b.1, worth citing explicitly because the order is the po
    (this is where §1-§5g of this framework does its work).
 3. **Promoter** — check promoter/management quality (ethical track record, concalls
    actually happening, no red flags per `forensic-accounting`/`management-credibility-
-   tracker`) — only after theme and growth clear.
+tracker`) — only after theme and growth clear.
 4. **Valuation** — cheapness/expensiveness is deliberately checked LAST, not first. A high
    trailing P/E cited as a reason to skip a name without doing the theme/growth/promoter
    work first is "a cheap way to avoid doing the work," not a valid screen.
@@ -506,7 +506,7 @@ replace `financial-model`:
    the market may already be pricing in more than what's actually confirmed yet — flag
    this explicitly in 3d rather than silently omitting a valuation view. **Caution on the
    growth input**: most platform-computed PEG ratios (Screener, Stockscans, brokerage
-   sheets) use *trailing* 3-year growth in the denominator, not forward growth — for a
+   sheets) use _trailing_ 3-year growth in the denominator, not forward growth — for a
    company mid-J-curve where forward growth is expected to differ materially from trailing
    growth, a platform PEG number is measuring the wrong thing. Recompute PEG using your own
    forward (next 2-3 year) growth estimate from §1b/§5a's staging work rather than citing a
@@ -579,20 +579,20 @@ rather than hard cutoffs:
 
 against the current cycle, don't treat as immutable rules)
 
-| Threshold                            | Value                                                                                                                                                                                        | Used for                                                                                                  |
-| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| J-curve PAT growth screen            | > 30% YoY in a quarter                                                                                                                                                                       | §5f check 1 — the literal quantitative gate for the J-Curve Inflection tag                                |
-| "Buoyant growth" pairing             | Revenue ≥ 15-20% AND PAT ≥ 20% simultaneously                                                                                                                                                | Strengthens §5f check 1 — both accelerating together is a stronger signal than PAT alone                  |
-| Bucket 1 — steady/normal             | 10-15% growth                                                                                                                                                                                | §1b classification                                                                                        |
-| Bucket 2 — fast growth/scaling       | 20-30%+ growth, sustained 3-10 years                                                                                                                                                         | §1b classification                                                                                        |
-| Bucket 3 — hyper-growth/J-curve      | 30-80%+ (sometimes 100%+), ~1-3 years                                                                                                                                                        | §1b classification                                                                                        |
-| PEG "reasonable" range               | ~1.0-1.6x                                                                                                                                                                                    | §5g GARP check — a final sanity check once a catalyst clears §5f                                          |
-| Warrant/preferential-issue base rate | Historically higher hit-rate and above-average forward returns over 3-5yr holds (illustrative prior from the source webinar's own backtest — do not restate as a freshly-computed statistic) | §5 screening heuristics — raises the burden of explanation, doesn't replace checking the specific company |
-| Train A/B/C portfolio allocation     | ~80% in Train B/C, ~15-20% in Train A (with a strict time-stop)                                                                                                                              | §1d — portfolio sizing/allocation context, not a per-company scoring input                                |
-| Young-momentum growth cycle          | Upgrade cycles ~8-12 quarters; downgrade cycles ~2-2.5 years (empirical prior, not a rule)                                                                                                   | §1e — preferring recently-inflected over already-mature growth when two candidates otherwise tie           |
-| Retail sweet-spot market cap         | ~₹2,500cr-₹20,000cr; re-rating speed reportedly improves past ~₹6,000-7,000cr (MF-eligibility threshold)                                                                                     | §5h — banding for where relative-strength/technical screens are considered reliable                        |
-| Active-investing hurdle rate         | ~1.5x the benchmark index's return over 5-7 years                                                                                                                                            | §5h — gut-check for whether a catalyst thesis justifies concentration risk vs. an index/mutual fund         |
-| Theme/sector/stock return attribution | ~60% theme / 20% sector / 20% stock-picking (anecdotal, methodology undisclosed — cite as a directional prior only, never as a validated statistic)                                          | §4c TGPV — rationale for weighting Theme first, not a number to restate as fact                            |
+| Threshold                             | Value                                                                                                                                                                                        | Used for                                                                                                  |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| J-curve PAT growth screen             | > 30% YoY in a quarter                                                                                                                                                                       | §5f check 1 — the literal quantitative gate for the J-Curve Inflection tag                                |
+| "Buoyant growth" pairing              | Revenue ≥ 15-20% AND PAT ≥ 20% simultaneously                                                                                                                                                | Strengthens §5f check 1 — both accelerating together is a stronger signal than PAT alone                  |
+| Bucket 1 — steady/normal              | 10-15% growth                                                                                                                                                                                | §1b classification                                                                                        |
+| Bucket 2 — fast growth/scaling        | 20-30%+ growth, sustained 3-10 years                                                                                                                                                         | §1b classification                                                                                        |
+| Bucket 3 — hyper-growth/J-curve       | 30-80%+ (sometimes 100%+), ~1-3 years                                                                                                                                                        | §1b classification                                                                                        |
+| PEG "reasonable" range                | ~1.0-1.6x                                                                                                                                                                                    | §5g GARP check — a final sanity check once a catalyst clears §5f                                          |
+| Warrant/preferential-issue base rate  | Historically higher hit-rate and above-average forward returns over 3-5yr holds (illustrative prior from the source webinar's own backtest — do not restate as a freshly-computed statistic) | §5 screening heuristics — raises the burden of explanation, doesn't replace checking the specific company |
+| Train A/B/C portfolio allocation      | ~80% in Train B/C, ~15-20% in Train A (with a strict time-stop)                                                                                                                              | §1d — portfolio sizing/allocation context, not a per-company scoring input                                |
+| Young-momentum growth cycle           | Upgrade cycles ~8-12 quarters; downgrade cycles ~2-2.5 years (empirical prior, not a rule)                                                                                                   | §1e — preferring recently-inflected over already-mature growth when two candidates otherwise tie          |
+| Retail sweet-spot market cap          | ~₹2,500cr-₹20,000cr; re-rating speed reportedly improves past ~₹6,000-7,000cr (MF-eligibility threshold)                                                                                     | §5h — banding for where relative-strength/technical screens are considered reliable                       |
+| Active-investing hurdle rate          | ~1.5x the benchmark index's return over 5-7 years                                                                                                                                            | §5h — gut-check for whether a catalyst thesis justifies concentration risk vs. an index/mutual fund       |
+| Theme/sector/stock return attribution | ~60% theme / 20% sector / 20% stock-picking (anecdotal, methodology undisclosed — cite as a directional prior only, never as a validated statistic)                                          | §4c TGPV — rationale for weighting Theme first, not a number to restate as fact                           |
 
 These are priors from the source material, not hard-coded pass/fail gates for anything
 outside §5f's specific tag logic — cite them as directional benchmarks in 3b/3d/3f, and

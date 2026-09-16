@@ -7,7 +7,7 @@ description: Run static analysis and rigorously cross-validate the results to fi
 
 A skill that automates finding truly dead code, files, and dependencies in the stockmarket project by running `knip` static analysis, an ESLint `no-unused-vars` pass, and filtering false positives with a rigorous global text search (`git grep`). It also catches a related but distinct smell: downloads and generated artifacts (rendered reports, raw concall audio, scraped PDFs) that a skill run wrote to the wrong place instead of `data/` — see `docs/DATA_RULES.md` §1 — where they risk being committed by accident.
 
-**Why both knip AND ESLint are required, not just one.** `knip` operates entirely at the module boundary — files, exports, package dependencies, unresolved imports. It has no visibility into a variable that's declared and dead *within* a file but never exported: that class of dead code is invisible to knip by design, not a knip bug. Caught live on 2026-09-16: `stockscansAnnouncementScansPage.js` had seven `const` URL strings (`ANNOUNCEMENT_SCAN_URL` and siblings) — each referenced exactly once, on its own declaration line, real leftovers from before the file was refactored to route calls through `@stock/api`'s `StockscansClient` — that a knip-only scan reported as completely clean. ESLint's `no-unused-vars` rule catches exactly this, and the repo's `.eslintrc.js` already has it configured — it just wasn't part of this skill's workflow. Skipping this step silently narrows "dead code" to "dead exports," which is a materially smaller claim than what the skill's name promises.
+**Why both knip AND ESLint are required, not just one.** `knip` operates entirely at the module boundary — files, exports, package dependencies, unresolved imports. It has no visibility into a variable that's declared and dead _within_ a file but never exported: that class of dead code is invisible to knip by design, not a knip bug. Caught live on 2026-09-16: `stockscansAnnouncementScansPage.js` had seven `const` URL strings (`ANNOUNCEMENT_SCAN_URL` and siblings) — each referenced exactly once, on its own declaration line, real leftovers from before the file was refactored to route calls through `@stock/api`'s `StockscansClient` — that a knip-only scan reported as completely clean. ESLint's `no-unused-vars` rule catches exactly this, and the repo's `.eslintrc.js` already has it configured — it just wasn't part of this skill's workflow. Skipping this step silently narrows "dead code" to "dead exports," which is a materially smaller claim than what the skill's name promises.
 
 ## Core Blueprint
 
@@ -85,7 +85,7 @@ The verification script generates a JSON file (e.g. `verified_dead_code.json`) c
 - `unusedDependencies`: Dependencies confirmed as truly unused.
 - `unusedExports`: Exported functions/variables that are not imported outside of their defining file.
 - `unusedLocalBindings`: Local `const`/`let`/`var` declarations ESLint's `no-unused-vars` flagged —
-  dead *within* a file, never exported, therefore invisible to knip's import-graph model. Kept as
+  dead _within_ a file, never exported, therefore invisible to knip's import-graph model. Kept as
   its own array rather than folded into `unusedExports` because the two are structurally different
   findings (module-graph vs. single-file scope) with different fixes (delete the export vs. delete
   the whole declaration).

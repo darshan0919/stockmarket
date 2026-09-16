@@ -388,7 +388,6 @@ Once all runs are done:
 3. **Do an analyst pass** — read the benchmark data and surface patterns the aggregate stats might hide. See `agents/analyzer.md` (the "Analyzing Benchmark Results" section) for what to look for — things like assertions that always pass regardless of skill (non-discriminating), high-variance evals (possibly flaky), and time/token tradeoffs.
 
 4. **Launch the viewer** with both qualitative outputs and quantitative data. There is no longer a script that generates this for you (see note above) — build the review page yourself from `assets/eval_review.html`:
-
    - Read `assets/eval_review.html` as your template — it already renders the "Outputs" and "Benchmark" tabs, prev/next navigation, and the feedback textbox described below.
    - Populate it with this iteration's data: prompts, outputs (rendered inline where possible), previous iteration's output and feedback (iteration 2+), formal grades from `grading.json` (if graded), and the `benchmark.json` you computed in step 4.2.
    - Write the populated HTML to a static file (e.g. `<workspace>/iteration-N/review.html`) and tell the user to open it in their browser. In an environment with a display and `webbrowser`-equivalent access, you may open it automatically; otherwise just hand the user the path/link.

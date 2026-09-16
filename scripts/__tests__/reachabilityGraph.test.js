@@ -92,10 +92,7 @@ describe('reachability-graph', () => {
     test('resolves package.json script tokens relative to the package dir', () => {
       const allFiles = ['screener-api/package.json', 'screener-api/src/server.js'];
       const fileContentsMap = new Map([
-        [
-          'screener-api/package.json',
-          JSON.stringify({ scripts: { start: 'node src/server.js' } }),
-        ],
+        ['screener-api/package.json', JSON.stringify({ scripts: { start: 'node src/server.js' } })],
       ]);
       const roots = discoverPackageScriptRoots(allFiles, fileContentsMap);
       expect(roots.has('screener-api/package.json')).toBe(true);
@@ -216,7 +213,7 @@ describe('reachability-graph', () => {
       expect(roots.size).toBe(0);
     });
 
-    test('treats `find <dir> -path \'*<path>\'` dynamic-discovery patterns as a reference', () => {
+    test("treats `find <dir> -path '*<path>'` dynamic-discovery patterns as a reference", () => {
       // Reproduces a real confirmed false positive: volumeRocketingScanner.js
       // is never invoked via a direct `node <path>` call anywhere — it's
       // located dynamically via `find /sessions -path
@@ -416,13 +413,13 @@ describe('reachability-graph', () => {
 
   describe('findDataLayerConsumers', () => {
     test('identifies a file as a data-layer consumer when it requires db.js directly', () => {
-      const allFiles = ['packages/jobs-runtime/lib/db.js', 'packages/jobs-runtime/gainersScanner.js'];
+      const allFiles = [
+        'packages/jobs-runtime/lib/db.js',
+        'packages/jobs-runtime/gainersScanner.js',
+      ];
       const fileContentsMap = new Map([
         ['packages/jobs-runtime/lib/db.js', '// the data layer itself'],
-        [
-          'packages/jobs-runtime/gainersScanner.js',
-          `const db = require('./lib/db');`,
-        ],
+        ['packages/jobs-runtime/gainersScanner.js', `const db = require('./lib/db');`],
       ]);
       const consumers = findDataLayerConsumers(allFiles, fileContentsMap);
       expect(consumers).toContain('packages/jobs-runtime/gainersScanner.js');
@@ -540,8 +537,14 @@ describe('reachability-graph', () => {
       // "metadata/_tmpfoo" must NOT satisfy a reference check for "data/_tmp".
       const allFiles = ['data/_tmp', 'packages/jobs-runtime/lib/db.js'];
       const fileContentsMap = new Map([['packages/jobs-runtime/lib/db.js', '// data layer']]);
-      const extraReferenceText = 'see metadata/_tmpfoo/bar and data/_tmp2/baz for unrelated scratch dirs';
-      const { hangingNodes } = analyzeDataDirectory(allFiles, fileContentsMap, 'data', extraReferenceText);
+      const extraReferenceText =
+        'see metadata/_tmpfoo/bar and data/_tmp2/baz for unrelated scratch dirs';
+      const { hangingNodes } = analyzeDataDirectory(
+        allFiles,
+        fileContentsMap,
+        'data',
+        extraReferenceText
+      );
       expect(hangingNodes.some((h) => h.entry === '_tmp')).toBe(true);
     });
   });
@@ -558,10 +561,10 @@ describe('reachability-graph', () => {
       // read as "referenced" purely because some unrelated
       // extensions/foo/manifest.json is mentioned elsewhere in the codebase.
       const genericBasenames = new Set(['manifest.json']);
-      const blob = "requires extensions/wtt-extension/manifest.json for the popup";
-      expect(isNonCodeFileReferenced('tmp/qra_docs/NSE_AKUMS/manifest.json', blob, genericBasenames)).toBe(
-        false
-      );
+      const blob = 'requires extensions/wtt-extension/manifest.json for the popup';
+      expect(
+        isNonCodeFileReferenced('tmp/qra_docs/NSE_AKUMS/manifest.json', blob, genericBasenames)
+      ).toBe(false);
       // A full-path match for a generic basename still counts.
       const blobWithFullPath = "path: 'tmp/qra_docs/NSE_AKUMS/manifest.json'";
       expect(
@@ -608,7 +611,7 @@ describe('reachability-graph', () => {
         'screener-api/other-prompts/unified_master.txt',
       ];
       // Directory name never appears verbatim anywhere — must stay unreferenced.
-      const blob = "nothing relevant here";
+      const blob = 'nothing relevant here';
       expect(
         isNonCodeFileReferenced(
           'screener-api/prompts/institutional-equity/unified_master.txt',
@@ -644,7 +647,13 @@ describe('reachability-graph', () => {
         'to create a .env.local file as a setup step, but never inside any actual code.';
       const codeBlob = 'const x = 1; // totally unrelated code, nothing path-related here';
       expect(
-        isNonCodeFileReferenced('frontend/.env.local', fullBlob, genericBasenames, allFiles, codeBlob)
+        isNonCodeFileReferenced(
+          'frontend/.env.local',
+          fullBlob,
+          genericBasenames,
+          allFiles,
+          codeBlob
+        )
       ).toBe(false);
 
       // Sanity check the positive case still works when the pairing DOES
@@ -715,7 +724,10 @@ describe('reachability-graph', () => {
     beforeEach(() => {
       tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'reachability-e2e-test-'));
       fs.writeFileSync(path.join(tmpRoot, '.gitignore'), 'scratch_output/\n');
-      fs.writeFileSync(path.join(tmpRoot, 'package.json'), JSON.stringify({ name: 'fixture', scripts: {} }));
+      fs.writeFileSync(
+        path.join(tmpRoot, 'package.json'),
+        JSON.stringify({ name: 'fixture', scripts: {} })
+      );
 
       // A real skill root, so the entry-root machinery has something to work with.
       fs.mkdirSync(path.join(tmpRoot, 'skills', 'demo'), { recursive: true });
@@ -727,8 +739,14 @@ describe('reachability-graph', () => {
       // The gitignored scratch directory — never mentioned anywhere, never
       // imported, never referenced by path or basename in any reachable file.
       fs.mkdirSync(path.join(tmpRoot, 'scratch_output'), { recursive: true });
-      fs.writeFileSync(path.join(tmpRoot, 'scratch_output', 'leftover_run_1.json'), '{"data": true}');
-      fs.writeFileSync(path.join(tmpRoot, 'scratch_output', 'leftover_run_2.json'), '{"data": true}');
+      fs.writeFileSync(
+        path.join(tmpRoot, 'scratch_output', 'leftover_run_1.json'),
+        '{"data": true}'
+      );
+      fs.writeFileSync(
+        path.join(tmpRoot, 'scratch_output', 'leftover_run_2.json'),
+        '{"data": true}'
+      );
     });
 
     afterEach(() => {

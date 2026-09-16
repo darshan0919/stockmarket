@@ -30,7 +30,9 @@
  * No LLM calls here (conventions §24) — fetch + provisional classify only.
  */
 
-const { fetchAnnouncements } = require('../../../../stock-api/src/fetchers/announcementsFetcher.js');
+const {
+  fetchAnnouncements,
+} = require('../../../../stock-api/src/fetchers/announcementsFetcher.js');
 const taxonomy = require('../../../../packages/jobs-runtime/lib/announcementTaxonomy.js');
 
 /**

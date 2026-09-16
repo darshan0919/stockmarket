@@ -16,7 +16,7 @@ automation), which run via Claude Code/Cowork. The `screener-api` +
 ## Quick Links
 
 | Document                                                    | Description                                                                             |
-| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | [Vision & Roadmap](./VISION_AND_ROADMAP.md)                 | Project philosophy, goals, and roadmap                                                  |
 | [Architecture](./ARCHITECTURE.md)                           | System design and component overview                                                    |
 | [Data Ecosystem v2](./DATA_ECOSYSTEM.md)                    | Flat JSON collections in `data/` ↔ Drive `StockMarket/data/v2` — design, envelope, sync |
@@ -189,7 +189,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5001/api
 ## API Endpoints Quick Reference
 
 | Endpoint                         | Method          | Description                  |
-| --------------------------------- | --------------- | ----------------------------- |
+| -------------------------------- | --------------- | ---------------------------- |
 | `/api/stocks/search`             | GET             | Search stocks by symbol/name |
 | `/api/stocks/:symbol`            | GET             | Get stock details            |
 | `/api/stocks/:symbol/quarterly`  | GET             | Get quarterly results        |

@@ -51,15 +51,15 @@ documented in `skills/README.md` and `docs/DATA_ECOSYSTEM.md`, not here.
 
 #### Pages (`screener-web/pages/`)
 
-| File                | Purpose                        | Route            |
-| ------------------- | ------------------------------ | ---------------- |
-| `index.js`          | Dashboard with market overview | `/`              |
-| `stock/[symbol].js` | Stock detail page              | `/stock/:symbol` |
-| `screener.js`       | Stock screening tool           | `/screener`      |
-| `watchlist.js`      | User's watchlist               | `/watchlist`     |
-| `results.js`        | Declared/upcoming results dashboard | `/results` |
-| `announcement-scans.js` | Corporate announcement scans | `/announcement-scans` |
-| `gainers.js`        | Top-gainers live tracker       | `/gainers`       |
+| File                    | Purpose                             | Route                 |
+| ----------------------- | ----------------------------------- | --------------------- |
+| `index.js`              | Dashboard with market overview      | `/`                   |
+| `stock/[symbol].js`     | Stock detail page                   | `/stock/:symbol`      |
+| `screener.js`           | Stock screening tool                | `/screener`           |
+| `watchlist.js`          | User's watchlist                    | `/watchlist`          |
+| `results.js`            | Declared/upcoming results dashboard | `/results`            |
+| `announcement-scans.js` | Corporate announcement scans        | `/announcement-scans` |
+| `gainers.js`            | Top-gainers live tracker            | `/gainers`            |
 
 #### Styling & Theming
 
@@ -117,7 +117,7 @@ Centralized Axios instance with interceptors:
 #### Utilities (`screener-web/src/core/lib/utils/`)
 
 | Utility    | File            | Purpose                                                                 |
-| ---------- | --------------- | ------------------------------------------------------------------------ |
+| ---------- | --------------- | ----------------------------------------------------------------------- |
 | Formatters | `formatters.js` | Consolidated formatting (currency, price, quarter date, change %, etc.) |
 
 #### Custom Hooks (`screener-web/src/core/lib/hooks/`)
@@ -140,65 +140,65 @@ Express server setup with:
 
 #### Routes (`screener-api/src/features/*/*Routes.js`)
 
-| Route File                  | Base Path                | Purpose                |
-| ---------------------------- | ------------------------ | ---------------------- |
-| `stock/stocksRoutes.js`      | `/api/stocks`            | Stock operations       |
-| `screener/screenerRoutes.js` | `/api/screener`          | Stock screening        |
-| `watchlist/watchlistRoutes.js` | `/api/watchlist`       | Watchlist management   |
-| `market/marketRoutes.js`     | `/api/market`            | Market data            |
-| `orders/ordersRoutes.js`     | `/api/orders`            | Order/orderbook data   |
-| `announcements/announcementsRoutes.js` | `/api/announcements` | Company announcements |
-| `results/resultTranscriptRoutes.js` | `/api/result-transcript` | AI transcript analysis |
-| `results/upcomingResultRoutes.js` | `/api/upcoming-results` | Upcoming result dates |
-| `results/declaredResultsRoutes.js` | `/api/declared-results` | Declared results dashboard |
-| `admin/adminRoutes.js`       | `/api/admin`             | Admin operations       |
-| `twitter/twitterRoutes.js`   | `/api/twitter`           | Tweet export           |
-| `research/researchPipelineRoutes.js` | `/api/research`  | Research pipeline integration |
+| Route File                             | Base Path                | Purpose                       |
+| -------------------------------------- | ------------------------ | ----------------------------- |
+| `stock/stocksRoutes.js`                | `/api/stocks`            | Stock operations              |
+| `screener/screenerRoutes.js`           | `/api/screener`          | Stock screening               |
+| `watchlist/watchlistRoutes.js`         | `/api/watchlist`         | Watchlist management          |
+| `market/marketRoutes.js`               | `/api/market`            | Market data                   |
+| `orders/ordersRoutes.js`               | `/api/orders`            | Order/orderbook data          |
+| `announcements/announcementsRoutes.js` | `/api/announcements`     | Company announcements         |
+| `results/resultTranscriptRoutes.js`    | `/api/result-transcript` | AI transcript analysis        |
+| `results/upcomingResultRoutes.js`      | `/api/upcoming-results`  | Upcoming result dates         |
+| `results/declaredResultsRoutes.js`     | `/api/declared-results`  | Declared results dashboard    |
+| `admin/adminRoutes.js`                 | `/api/admin`             | Admin operations              |
+| `twitter/twitterRoutes.js`             | `/api/twitter`           | Tweet export                  |
+| `research/researchPipelineRoutes.js`   | `/api/research`          | Research pipeline integration |
 
 #### Controllers (`screener-api/src/features/*/*Controller.js`)
 
-| Controller                   | File                            | Key Functions                                            |
-| ----------------------------- | -------------------------------- | -------------------------------------------------------- |
-| `stockController`            | `stock/stockController.js`            | `searchStocks`, `getStockDetails`, `getQuarterlyResults` |
-| `screenerController`         | `screener/screenerController.js`      | `runScreener`                                            |
-| `watchlistController`        | `watchlist/watchlistController.js`    | `getWatchlist`, `addToWatchlist`, `removeFromWatchlist`  |
-| `marketController`           | `market/marketController.js`          | `getMarketIndices`, `getMarketStats`                     |
-| `resultTranscriptController` | `results/resultTranscriptController.js` | `getTranscripts`, `analyzeTranscript`                  |
-| `upcomingResultController`   | `results/upcomingResultController.js` | `getUpcomingResults`                                     |
-| `declaredResultsController`  | `results/declaredResultsController.js` | `getDeclaredResults`, `getFilterOptions`, `downloadTranscriptNotes` |
-| `ordersController`           | `orders/ordersController.js`          | Orderbook fetch/parse/download                            |
-| `announcementsController`    | `announcements/announcementsController.js` | Announcement search/download                        |
-| `adminController`            | `admin/adminController.js`            | Admin/data-update endpoints                                |
-| `twitterController`          | `twitter/twitterController.js`        | Tweet export                                                |
+| Controller                   | File                                       | Key Functions                                                       |
+| ---------------------------- | ------------------------------------------ | ------------------------------------------------------------------- |
+| `stockController`            | `stock/stockController.js`                 | `searchStocks`, `getStockDetails`, `getQuarterlyResults`            |
+| `screenerController`         | `screener/screenerController.js`           | `runScreener`                                                       |
+| `watchlistController`        | `watchlist/watchlistController.js`         | `getWatchlist`, `addToWatchlist`, `removeFromWatchlist`             |
+| `marketController`           | `market/marketController.js`               | `getMarketIndices`, `getMarketStats`                                |
+| `resultTranscriptController` | `results/resultTranscriptController.js`    | `getTranscripts`, `analyzeTranscript`                               |
+| `upcomingResultController`   | `results/upcomingResultController.js`      | `getUpcomingResults`                                                |
+| `declaredResultsController`  | `results/declaredResultsController.js`     | `getDeclaredResults`, `getFilterOptions`, `downloadTranscriptNotes` |
+| `ordersController`           | `orders/ordersController.js`               | Orderbook fetch/parse/download                                      |
+| `announcementsController`    | `announcements/announcementsController.js` | Announcement search/download                                        |
+| `adminController`            | `admin/adminController.js`                 | Admin/data-update endpoints                                         |
+| `twitterController`          | `twitter/twitterController.js`             | Tweet export                                                        |
 
 #### Models (`screener-api/src/features/*/`, colocated with each feature)
 
 MongoDB schemas using Mongoose — these are the only Mongoose models that
 currently exist in the repo (no `FinancialStatement` or `Orderbook` models):
 
-| Model             | File                              | Purpose                                 |
-| ------------------ | ---------------------------------- | --------------------------------------- |
-| `Stock`            | `stock/Stock.js`                   | Stock basic info (symbol, name, sector) |
-| `QuarterlyResult`  | `results/QuarterlyResult.js`       | Quarterly financial results             |
-| `PriceHistory`     | `stock/PriceHistory.js`            | Historical price data                   |
-| `Fundamental`      | `stock/Fundamental.js`             | Fundamental metrics                     |
-| `Watchlist`        | `watchlist/Watchlist.js`           | User watchlist entries                  |
+| Model             | File                         | Purpose                                 |
+| ----------------- | ---------------------------- | --------------------------------------- |
+| `Stock`           | `stock/Stock.js`             | Stock basic info (symbol, name, sector) |
+| `QuarterlyResult` | `results/QuarterlyResult.js` | Quarterly financial results             |
+| `PriceHistory`    | `stock/PriceHistory.js`      | Historical price data                   |
+| `Fundamental`     | `stock/Fundamental.js`       | Fundamental metrics                     |
+| `Watchlist`       | `watchlist/Watchlist.js`     | User watchlist entries                  |
 
 #### External APIs (`screener-api/src/core/api/`)
 
-| API Module    | File             | External Service                       |
-| -------------- | ------------------ | -------------------------------------- |
-| `nseIndiaApi` | `nseIndiaApi.js` | NSE India (upcoming results, cookies)  |
-| `bseIndiaApi` | `bseIndiaApi.js` | BSE India (scrip codes, announcements) |
-| `stockscansAuth` | `stockscansAuth.js` | Stockscans authentication            |
+| API Module       | File                | External Service                       |
+| ---------------- | ------------------- | -------------------------------------- |
+| `nseIndiaApi`    | `nseIndiaApi.js`    | NSE India (upcoming results, cookies)  |
+| `bseIndiaApi`    | `bseIndiaApi.js`    | BSE India (scrip codes, announcements) |
+| `stockscansAuth` | `stockscansAuth.js` | Stockscans authentication              |
 
 #### Utilities (`screener-api/src/core/utils/`)
 
 | Utility               | File                     | Functions                                                       |
-| ----------------------- | -------------------------- | ----------------------------------------------------------------- |
+| --------------------- | ------------------------ | --------------------------------------------------------------- |
 | `technicalIndicators` | `technicalIndicators.js` | `calculateSMA`, `calculateEMA`, `calculateRSI`, `calculateMACD` |
 | `xbrlParser`          | `xbrlParser.js`          | XBRL financial data parsing                                     |
-| `nseHelpers`          | `nseHelpers.js`          | Shared NSE utilities                                             |
+| `nseHelpers`          | `nseHelpers.js`          | Shared NSE utilities                                            |
 | `portUtils`           | `portUtils.js`           | Dev-server port auto-selection                                  |
 
 Request validation (Joi schemas) is defined inline per-controller rather

@@ -284,8 +284,7 @@ function extractDirectDependencies(content, sourceFile, allFiles) {
   // valid ES module style (Prettier wraps long named-import lists this way)
   // that was silently invisible to the per-line regex, producing false
   // "unreferenced" results for files only ever imported with this style.
-  const multiLineImportRegex =
-    /(?:import|export)\s*\{[^}]*?\}\s*from\s*['"`]([^'"`]+)['"`]/gs;
+  const multiLineImportRegex = /(?:import|export)\s*\{[^}]*?\}\s*from\s*['"`]([^'"`]+)['"`]/gs;
   let mlMatch;
   while ((mlMatch = multiLineImportRegex.exec(content)) !== null) {
     const specifier = mlMatch[1];

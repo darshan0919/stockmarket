@@ -67,8 +67,8 @@ describe('StockscansClient.resultsScan', () => {
     expect(result.resultTables).toHaveLength(1);
     expect(result.data).toBeUndefined();
     expect(result.resultTables[0].companyId).toBe('NSE:SIRCA');
-    expect(result.resultTables[0].documents.find((d) => d.documentType === 'Transcript').ssUrl).toBe(
-      'transcript-ghi.pdf'
-    );
+    expect(
+      result.resultTables[0].documents.find((d) => d.documentType === 'Transcript').ssUrl
+    ).toBe('transcript-ghi.pdf');
   });
 });

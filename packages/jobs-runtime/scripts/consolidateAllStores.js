@@ -35,13 +35,11 @@ const path = require('path');
 const crypto = require('crypto');
 const db = require('../lib/db');
 const StorageService = require('@stock/cloud-utils').StorageService;
-const {
-  extractQuarter,
-  extractYear,
-} = require('../lib/jsonlStore');
+const { extractQuarter, extractYear } = require('../lib/jsonlStore');
 
 const sha256 = (str) => crypto.createHash('sha256').update(String(str)).digest('hex');
-const md5Shard = (str) => crypto.createHash('md5').update(String(str)).digest('hex')[0].toLowerCase();
+const md5Shard = (str) =>
+  crypto.createHash('md5').update(String(str)).digest('hex')[0].toLowerCase();
 
 function dataRoot() {
   return db.dataRoot();
@@ -67,7 +65,9 @@ async function run() {
   const isExecute = args.includes('--execute');
   const isDryRun = args.includes('--dry-run') || !isExecute;
 
-  console.log(`[data:consolidate] Mode: ${isDryRun ? 'DRY-RUN (audit only)' : 'EXECUTE (consolidating stores)'}`);
+  console.log(
+    `[data:consolidate] Mode: ${isDryRun ? 'DRY-RUN (audit only)' : 'EXECUTE (consolidating stores)'}`
+  );
 
   const root = dataRoot();
   const unlinks = [];
@@ -89,7 +89,9 @@ async function run() {
     : [];
 
   // Events
-  const monthlyEventFiles = fs.readdirSync(root).filter((f) => /^events-\d{4}-\d{2}\.json$/.test(f));
+  const monthlyEventFiles = fs
+    .readdirSync(root)
+    .filter((f) => /^events-\d{4}-\d{2}\.json$/.test(f));
 
   // Learnyst courses
   const learnystDir = path.join(root, 'learnyst-lessons');
@@ -121,22 +123,47 @@ async function run() {
     return res;
   };
 
-  const docExtractFiles = listDirFiles('cache/doc-extracts', (f) => f.endsWith('.json') && !f.startsWith('shard_'));
-  const stockscansFiles = listDirFiles('cache/stockscans-context', (f) => f.endsWith('.json') && !f.startsWith('shard_'));
-  const baselineFiles = listDirFiles('cache/company-baselines', (f) => f.endsWith('.json') && !f.startsWith('shard_'));
-  const eventReactionFiles = listDirFiles('cache/event-reaction', (f) => f.endsWith('.json') && !f.startsWith('shard_'));
-  const reratingFiles = listDirFiles('cache/rerating-catalysts', (f) => f.endsWith('.json') && !f.startsWith('shard_'));
+  const docExtractFiles = listDirFiles(
+    'cache/doc-extracts',
+    (f) => f.endsWith('.json') && !f.startsWith('shard_')
+  );
+  const stockscansFiles = listDirFiles(
+    'cache/stockscans-context',
+    (f) => f.endsWith('.json') && !f.startsWith('shard_')
+  );
+  const baselineFiles = listDirFiles(
+    'cache/company-baselines',
+    (f) => f.endsWith('.json') && !f.startsWith('shard_')
+  );
+  const eventReactionFiles = listDirFiles(
+    'cache/event-reaction',
+    (f) => f.endsWith('.json') && !f.startsWith('shard_')
+  );
+  const reratingFiles = listDirFiles(
+    'cache/rerating-catalysts',
+    (f) => f.endsWith('.json') && !f.startsWith('shard_')
+  );
   const orderAnnFiles = listDirFiles('cache/order-announcements', (f) => f.endsWith('.json'));
   const concallNoteFiles = listDirFiles('cache/concall-notes', (f) => f.endsWith('.json'));
-  const gainersScannerFiles = listDirFiles('cache/gainers-scanner', (f) => f.endsWith('.json') && f !== 'scanner.jsonl');
-  const monthlyScanFiles = listDirFiles('cache/monthly-updates-scan', (f) => f.endsWith('.json') && f !== 'scans.jsonl');
+  const gainersScannerFiles = listDirFiles(
+    'cache/gainers-scanner',
+    (f) => f.endsWith('.json') && f !== 'scanner.jsonl'
+  );
+  const monthlyScanFiles = listDirFiles(
+    'cache/monthly-updates-scan',
+    (f) => f.endsWith('.json') && f !== 'scans.jsonl'
+  );
 
   // Runs daily dumps
   const runsDir = path.join(root, 'runs');
   const runDumpFiles = fs.existsSync(runsDir)
-    ? fs.readdirSync(runsDir).filter((f) =>
-        /^(gainers_raw|gainers_insights|gainers_why|volume_rocketing_raw|volume_rocketing_insights|digest|ipo_subscription)_\d{8}\.json$/.test(f)
-      )
+    ? fs
+        .readdirSync(runsDir)
+        .filter((f) =>
+          /^(gainers_raw|gainers_insights|gainers_why|volume_rocketing_raw|volume_rocketing_insights|digest|ipo_subscription)_\d{8}\.json$/.test(
+            f
+          )
+        )
     : [];
 
   console.log(`  - reports monthly files:         ${monthlyReportFiles.length}`);
@@ -180,7 +207,9 @@ async function run() {
   }
 
   if (isDryRun) {
-    console.log('\n[data:consolidate] DRY RUN COMPLETE. Run with `--execute` to perform consolidation.');
+    console.log(
+      '\n[data:consolidate] DRY RUN COMPLETE. Run with `--execute` to perform consolidation.'
+    );
     return;
   }
 
@@ -234,7 +263,10 @@ async function run() {
   }
   for (const [targetFile, recs] of quarterlyReports) {
     const targetAbs = path.join(reportsDir, targetFile);
-    const lines = Array.from(recs.values()).map((r) => JSON.stringify(r)).join('\n') + '\n';
+    const lines =
+      Array.from(recs.values())
+        .map((r) => JSON.stringify(r))
+        .join('\n') + '\n';
     fs.writeFileSync(targetAbs, lines, 'utf8');
     console.log(`  ✓ Wrote ${recs.size} reports to ${targetFile}`);
   }
@@ -272,7 +304,10 @@ async function run() {
   }
   for (const [targetFile, recs] of annualConvs) {
     const targetAbs = path.join(convDir, targetFile);
-    const lines = Array.from(recs.values()).map((r) => JSON.stringify(r)).join('\n') + '\n';
+    const lines =
+      Array.from(recs.values())
+        .map((r) => JSON.stringify(r))
+        .join('\n') + '\n';
     fs.writeFileSync(targetAbs, lines, 'utf8');
     console.log(`  ✓ Wrote ${recs.size} conversations to ${targetFile}`);
   }
@@ -331,7 +366,10 @@ async function run() {
   }
   if (allLearnyst.size > 0) {
     const soicAbs = path.join(learnystDir, 'soic.jsonl');
-    const lines = Array.from(allLearnyst.values()).map((r) => JSON.stringify(r)).join('\n') + '\n';
+    const lines =
+      Array.from(allLearnyst.values())
+        .map((r) => JSON.stringify(r))
+        .join('\n') + '\n';
     fs.writeFileSync(soicAbs, lines, 'utf8');
     console.log(`  ✓ Consolidated ${allLearnyst.size} lessons into soic.jsonl`);
     // Update learnyst-lessons.json index
@@ -360,7 +398,11 @@ async function run() {
       if (!line.trim()) continue;
       try {
         const rec = JSON.parse(line.trim());
-        if (f.startsWith('anillamba') || rec.channelId?.includes('UC5mK0-K-r3KET0kifn-mJMg') || rec.channelHandle?.includes('anil')) {
+        if (
+          f.startsWith('anillamba') ||
+          rec.channelId?.includes('UC5mK0-K-r3KET0kifn-mJMg') ||
+          rec.channelHandle?.includes('anil')
+        ) {
           anilYt.set(rec.id, rec);
         } else {
           soicYt.set(rec.id, rec);
@@ -371,7 +413,9 @@ async function run() {
   if (anilYt.size > 0) {
     fs.writeFileSync(
       path.join(ytDir, 'anillamba.jsonl'),
-      Array.from(anilYt.values()).map((r) => JSON.stringify(r)).join('\n') + '\n',
+      Array.from(anilYt.values())
+        .map((r) => JSON.stringify(r))
+        .join('\n') + '\n',
       'utf8'
     );
     console.log(`  ✓ Consolidated ${anilYt.size} videos into anillamba.jsonl`);
@@ -379,7 +423,9 @@ async function run() {
   if (soicYt.size > 0) {
     fs.writeFileSync(
       path.join(ytDir, 'soicfinance.jsonl'),
-      Array.from(soicYt.values()).map((r) => JSON.stringify(r)).join('\n') + '\n',
+      Array.from(soicYt.values())
+        .map((r) => JSON.stringify(r))
+        .join('\n') + '\n',
       'utf8'
     );
     console.log(`  ✓ Consolidated ${soicYt.size} videos into soicfinance.jsonl`);
@@ -404,7 +450,11 @@ async function run() {
   }
 
   // F. Consolidate cache stores
-  function consolidateToHexShards(baseDirRel, files, extractKey = (f) => path.basename(f, '.json')) {
+  function consolidateToHexShards(
+    baseDirRel,
+    files,
+    extractKey = (f) => path.basename(f, '.json')
+  ) {
     const shards = new Map();
     const dirAbs = path.join(root, baseDirRel);
     for (const f of files) {
@@ -423,11 +473,16 @@ async function run() {
     for (const [shardRel, records] of shards) {
       const absShard = path.join(dirAbs, shardRel);
       fs.mkdirSync(path.dirname(absShard), { recursive: true });
-      const lines = Array.from(records.values()).map((r) => JSON.stringify(r)).join('\n') + '\n';
+      const lines =
+        Array.from(records.values())
+          .map((r) => JSON.stringify(r))
+          .join('\n') + '\n';
       fs.writeFileSync(absShard, lines, 'utf8');
     }
     if (files.length > 0) {
-      console.log(`  ✓ Consolidated ${files.length} files in ${baseDirRel} across ${shards.size} shards`);
+      console.log(
+        `  ✓ Consolidated ${files.length} files in ${baseDirRel} across ${shards.size} shards`
+      );
     }
   }
 
@@ -450,11 +505,16 @@ async function run() {
     for (const [targetRel, records] of tickers) {
       const absTarget = path.join(dirAbs, targetRel);
       fs.mkdirSync(path.dirname(absTarget), { recursive: true });
-      const lines = Array.from(records.values()).map((r) => JSON.stringify(r)).join('\n') + '\n';
+      const lines =
+        Array.from(records.values())
+          .map((r) => JSON.stringify(r))
+          .join('\n') + '\n';
       fs.writeFileSync(absTarget, lines, 'utf8');
     }
     if (files.length > 0) {
-      console.log(`  ✓ Consolidated ${files.length} files in ${baseDirRel} across ${tickers.size} per-ticker JSONLs`);
+      console.log(
+        `  ✓ Consolidated ${files.length} files in ${baseDirRel} across ${tickers.size} per-ticker JSONLs`
+      );
     }
   }
 
@@ -472,7 +532,10 @@ async function run() {
     }
     if (records.size > 0) {
       const absTarget = path.join(dirAbs, targetFileName);
-      const lines = Array.from(records.values()).map((r) => JSON.stringify(r)).join('\n') + '\n';
+      const lines =
+        Array.from(records.values())
+          .map((r) => JSON.stringify(r))
+          .join('\n') + '\n';
       fs.writeFileSync(absTarget, lines, 'utf8');
       console.log(`  ✓ Consolidated ${files.length} files in ${baseDirRel} into ${targetFileName}`);
     }
@@ -494,7 +557,9 @@ async function run() {
     const fileAbs = path.join(runsDir, f);
     try {
       const data = JSON.parse(fs.readFileSync(fileAbs, 'utf8'));
-      const m = f.match(/^(gainers_raw|gainers_insights|gainers_why|volume_rocketing_raw|volume_rocketing_insights|digest|ipo_subscription)_(\d{4})\d{4}\.json$/);
+      const m = f.match(
+        /^(gainers_raw|gainers_insights|gainers_why|volume_rocketing_raw|volume_rocketing_insights|digest|ipo_subscription)_(\d{4})\d{4}\.json$/
+      );
       if (m) {
         const prefix = m[1].replace(/_/g, '-');
         const year = m[2];
@@ -508,11 +573,16 @@ async function run() {
   }
   for (const [targetRel, records] of runsStreams) {
     const absTarget = path.join(runsDir, targetRel);
-    const lines = Array.from(records.values()).map((r) => JSON.stringify(r)).join('\n') + '\n';
+    const lines =
+      Array.from(records.values())
+        .map((r) => JSON.stringify(r))
+        .join('\n') + '\n';
     fs.writeFileSync(absTarget, lines, 'utf8');
   }
   if (runDumpFiles.length > 0) {
-    console.log(`  ✓ Consolidated ${runDumpFiles.length} runs daily dumps into ${runsStreams.size} annual streams`);
+    console.log(
+      `  ✓ Consolidated ${runDumpFiles.length} runs daily dumps into ${runsStreams.size} annual streams`
+    );
   }
 
   // 3. Cryptographic Parity Verification
@@ -583,7 +653,9 @@ async function run() {
     }
   }
 
-  console.log(`[data:consolidate] Verification results: ${verified} verified, ${mismatches} mismatches`);
+  console.log(
+    `[data:consolidate] Verification results: ${verified} verified, ${mismatches} mismatches`
+  );
 
   if (mismatches > 0) {
     console.error('[!] Verification failed. Aborting unlinking of legacy files.');
@@ -620,7 +692,9 @@ async function run() {
   cleanEmptyDirs(path.join(root, 'cache', 'order-announcements'));
   cleanEmptyDirs(path.join(root, 'cache', 'concall-notes'));
 
-  console.log(`[data:consolidate] Successfully unlinked ${unlinkedCount} files and cleaned sync-state.json.`);
+  console.log(
+    `[data:consolidate] Successfully unlinked ${unlinkedCount} files and cleaned sync-state.json.`
+  );
   console.log('[data:consolidate] Complete.');
 }
 
