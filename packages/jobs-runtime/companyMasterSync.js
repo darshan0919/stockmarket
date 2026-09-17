@@ -21,6 +21,8 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const { loadEnv, argValue, hasFlag } = require('./lib/env');
+const { syncStockscansCompanies } = require('./lib/stockscansCompanySync');
 
 // Data Ecosystem v2: write to data/cache/ (synced by scripts/data.js push).
 const OUT_DIR = path.join(require('./lib/db').dataRoot(), 'cache');
@@ -75,16 +77,45 @@ function fetchText(url) {
 }
 
 async function main() {
-  const dryRun = process.argv.includes('--dry-run');
+  loadEnv(argValue('--env-file'));
+  const dryRun = hasFlag('--dry-run');
+  const skipStockscans = hasFlag('--skip-stockscans');
+  const resetCache = hasFlag('--reset-cache');
+  const concurrency = Number(argValue('--concurrency') || 1);
+  const pageDelayMs = Number(argValue('--page-delay-ms') || 5000);
+  const maxPages = Number(argValue('--max-pages') || Infinity);
 
-  console.error('Fetching Kite instruments dump...');
+  let stockscansSummary = null;
+  if (!skipStockscans) {
+    console.error('Phase 1: Syncing Stockscans company universe & sectors/industries...');
+    try {
+      stockscansSummary = await syncStockscansCompanies({
+        dryRun,
+        resetCache,
+        concurrency,
+        pageDelayMs,
+        maxPages,
+      });
+    } catch (e) {
+      console.error(
+        `Warning: Stockscans company sync failed (${e.message}). Proceeding with Kite instruments sync...`
+      );
+    }
+  } else {
+    console.error('Phase 1: Skipping Stockscans company sync (--skip-stockscans).');
+  }
+
+  console.error('Phase 2: Fetching Kite instruments dump...');
   const csv = await fetchText(INSTRUMENTS_URL);
   const lines = csv.split('\n').filter(Boolean);
   const header = parseCsvLine(lines[0]);
   const col = Object.fromEntries(header.map((h, i) => [h.trim(), i]));
 
-  const nseByName = new Map(); // normalizedName -> {ticker, rawName}
-  const bseByName = new Map(); // normalizedName -> {scripCode, rawName}
+  const nseByName = new Map(); // normalizedName -> {ticker, rawName, norm}
+  const bseByName = new Map(); // normalizedName -> {scripCode, bseSymbol, rawName, norm}
+  const nseBySymbol = new Map(); // ticker -> {ticker, rawName, norm}
+  const bseBySymbol = new Map(); // tradingsymbol -> {scripCode, bseSymbol, rawName, norm}
+  const bseByScripCode = new Map(); // scripCode -> {scripCode, bseSymbol, rawName, norm}
 
   for (let i = 1; i < lines.length; i++) {
     const p = parseCsvLine(lines[i]);
@@ -100,25 +131,51 @@ async function main() {
     if (!norm) continue;
 
     if (exchange === 'NSE') {
-      if (!nseByName.has(norm)) nseByName.set(norm, { ticker: tradingsymbol, rawName: name });
+      const entry = { ticker: tradingsymbol, rawName: name, norm };
+      if (!nseByName.has(norm)) nseByName.set(norm, entry);
+      if (tradingsymbol && !nseBySymbol.has(tradingsymbol.toUpperCase())) {
+        nseBySymbol.set(tradingsymbol.toUpperCase(), entry);
+      }
     } else if (exchange === 'BSE') {
-      // Kite's BSE rows carry BOTH a numeric scrip code (exchange_token) and
-      // a tradingsymbol — and that BSE tradingsymbol is very often the same
-      // alpha ticker as the NSE one (e.g. "AQYLON", "GEOJITFSL", "NOVARTIND"
-      // all match across exchanges). BSE's own bulk/block-deal feed reports
-      // this alpha tradingsymbol (not the numeric scrip code, not the full
-      // legal name) as its `scripname` — verified 2026-07-30 when AQYLON's
-      // BSE bulk-deal rows carried `symbol: "AQYLON"` while its insider PIT
-      // filing on the same day carried the full legal name "Aqylon Nexus
-      // Limited". Without indexing this BSE tradingsymbol too, bulk/block
-      // deals for a dual-listed stock resolve to two different identities
-      // (one via the NSE ticker, one falling through to a raw "AQYLON"
-      // name-key that doesn't match "AQYLON NEXUS" in the master) and the
-      // digest shows the same stock as two separate rows.
+      const entry = {
+        scripCode: String(exchangeToken),
+        bseSymbol: tradingsymbol,
+        rawName: name,
+        norm,
+      };
       if (!bseByName.has(norm)) {
-        bseByName.set(norm, { scripCode: exchangeToken, bseSymbol: tradingsymbol, rawName: name });
+        bseByName.set(norm, entry);
+      }
+      if (tradingsymbol && !bseBySymbol.has(tradingsymbol.toUpperCase())) {
+        bseBySymbol.set(tradingsymbol.toUpperCase(), entry);
+      }
+      if (exchangeToken && !bseByScripCode.has(String(exchangeToken))) {
+        bseByScripCode.set(String(exchangeToken), entry);
       }
     }
+  }
+
+  // Load companies.json (Data Ecosystem v2 primary metadata collection)
+  const db = require('./lib/db');
+  const COMPANIES_FILE = db.collectionFile('companies');
+  let companiesJson = {};
+  if (fs.existsSync(COMPANIES_FILE)) {
+    try {
+      companiesJson = db.loadFile(COMPANIES_FILE);
+    } catch (e) {
+      console.error(`Warning: could not load ${COMPANIES_FILE}: ${e.message}`);
+    }
+  }
+
+  const compByNse = new Map();
+  const compByBse = new Map();
+  const compByNorm = new Map();
+  for (const [id, c] of Object.entries(companiesJson)) {
+    const nseT = (c.nseTicker || (id.startsWith('NSE:') ? id.slice(4) : null) || '').toUpperCase();
+    const bseC = c.bseScripCode || (id.startsWith('BSE:') ? id.slice(4) : null) || '';
+    if (nseT) compByNse.set(nseT, c);
+    if (bseC) compByBse.set(String(bseC), c);
+    if (c.name) compByNorm.set(normalizeName(c.name), c);
   }
 
   // Load existing file to preserve keywords across syncs.
@@ -134,53 +191,11 @@ async function main() {
     (existing.companies || []).map((c) => [normalizeName(c.companyName), c])
   );
 
-  // Kite's `name` column is truncated to a fixed width, and NSE and BSE feed
-  // rows for the SAME company are truncated to DIFFERENT widths (e.g. Geojit
-  // Financial Services: NSE row name = "GEOJIT FINANCIAL SER L", BSE row name
-  // = "GEOJIT FINANCIAL SERVICES LIMI" — 22 vs 31 chars, verified 2026-07-30).
-  // An exact normalizedName match therefore misses this pair entirely and
-  // companyMasterSync used to emit two orphan records (NSE-only + BSE-only)
-  // for one real dual-listed company, which in turn broke dealsDigest's
-  // cross-exchange insider-filing dedup for that stock. Fix: after exact
-  // matching, do a second pass pairing any still-unmatched NSE/BSE norms
-  // where one is a prefix of the other (both truncations of the same longer
-  // name) and the shared prefix is long enough (>=8 chars) to be a safe
-  // signal rather than a coincidence.
-  // NSE and BSE both abbreviate/truncate the raw name to a fixed width, but
-  // they cut at different points AND sometimes abbreviate whole words rather
-  // than hard-truncating mid-string (e.g. Geojit Financial Services: NSE =
-  // "GEOJIT FINANCIAL SER L", BSE = "GEOJIT FINANCIAL SERVICES LIMI" — "SER"
-  // is a word-abbreviation of "SERVICES", not a character-truncation of it).
-  // A plain longer.startsWith(shorter) check misses this, so compare
-  // token-by-token: same token count, the first two tokens must match
-  // EXACTLY (a strong anchor so we don't accidentally fuse two different
-  // companies that merely start with the same word), and every remaining
-  // token pair must be an exact match or one token a prefix of the other.
+  const usedBseScripCodes = new Set();
   const usedBseNorms = new Set();
   const bseNormList = [...bseByName.keys()];
   const bseTokensByNorm = new Map(bseNormList.map((n) => [n, n.split(' ').filter(Boolean)]));
 
-  // NOTE: token counts frequently DON'T match even for the same company —
-  // "DR LAL PATH LABS" (4 tokens) vs "DR LAL PATHLABS" (3 tokens, no space
-  // before "LABS"), or "CCL PRODUCTS I" (extra trailing "I", an abbreviated
-  // "INDIA" survivor after suffix-stripping removed the rest of the word) vs
-  // "CCL PRODUCTS" (2 tokens) — both verified 2026-07-30. But an anchor of
-  // "first two tokens match exactly" is NOT enough on its own: "INDIAN
-  // RAILWAY FIN CORP L" (IRFC) and "INDIAN RAILWAY CATERING AND TO" (IRCTC)
-  // both start with "INDIAN RAILWAY" and are completely different companies
-  // — verified false-positive during testing. So: anchor on the first two
-  // tokens (rejects unrelated companies like "RELIANCE INDUSTRIES" vs
-  // "RELIANCE POWER" outright), then require the REMAINING tokens to also be
-  // compatible — checked positionally (each pair equal or one a
-  // prefix of the other, same as the anchor logic) with a couple of narrow,
-  // safe allowances for the token-count mismatches actually observed: a
-  // dangling trailing 1-2 char token on the longer side (an abbreviation
-  // remnant like "I"/"L"), or adjacent tokens on the longer side collapsing
-  // (no separator) to match the shorter side's token count (handles the
-  // "PATH LABS" vs "PATHLABS" split-word case). This rejects IRFC/IRCTC
-  // (remaining "FIN CORP L" vs "CATERING AND TO" — first pair "FIN" isn't a
-  // prefix of "CATERING" —) while still accepting Geojit, CCL Products, and
-  // Dr Lal Pathlabs.
   function positionalPrefixCompatible(a, b) {
     if (a.length !== b.length) return false;
     for (let i = 0; i < a.length; i++) {
@@ -235,47 +250,113 @@ async function main() {
     return null;
   }
 
-  const allNorms = new Set([...nseByName.keys(), ...bseByName.keys()]);
   const companies = [];
-  const consumedBseNormsFromExactPass = new Set(
-    [...nseByName.keys()].filter((n) => bseByName.has(n))
-  );
-  for (const n of consumedBseNormsFromExactPass) usedBseNorms.add(n);
 
-  for (const norm of allNorms) {
-    if (usedBseNorms.has(norm) && !nseByName.has(norm) && bseByName.has(norm)) {
-      // This BSE norm was already consumed as the truncation-match partner of
-      // an NSE norm processed earlier in this same loop — skip so it isn't
-      // also emitted as a standalone BSE-only record.
-      continue;
-    }
+  // Pass 1: Process all NSE listed equities and pair with BSE counterparts
+  for (const [ticker, nse] of nseBySymbol) {
+    let bse = null;
 
-    let nse = nseByName.get(norm);
-    let bse = bseByName.get(norm);
-
-    if (nse && !bse) {
-      const matchedBseNorm = findTruncationMatch(norm);
-      if (matchedBseNorm) {
-        bse = bseByName.get(matchedBseNorm);
-        usedBseNorms.add(matchedBseNorm);
+    // 1a. Check known pairing from companies.json
+    const compRecord = compByNse.get(ticker);
+    if (compRecord && compRecord.bseScripCode) {
+      const scripStr = String(compRecord.bseScripCode);
+      if (bseByScripCode.has(scripStr)) {
+        bse = bseByScripCode.get(scripStr);
       }
     }
 
-    const rawName = (nse && nse.rawName) || (bse && bse.rawName);
-    const nseTicker = nse ? nse.ticker : null;
-    const bseTicker = bse ? bse.scripCode : null;
-    const bseSymbol = bse ? bse.bseSymbol || null : null;
-    const companyId = nseTicker ? `NSE:${nseTicker}` : `BSE:${bseTicker}`;
+    // 1b. Check exact trading symbol match (e.g. NPST, RELIANCE, TCS)
+    if (!bse && bseBySymbol.has(ticker)) {
+      const candidate = bseBySymbol.get(ticker);
+      if (!usedBseScripCodes.has(candidate.scripCode)) {
+        bse = candidate;
+      }
+    }
 
-    const prior = existingByNorm.get(norm);
-    const keywords = prior && Array.isArray(prior.keywords) ? prior.keywords : [];
+    // 1c. Check exact normalized name match
+    if (!bse && bseByName.has(nse.norm)) {
+      const candidate = bseByName.get(nse.norm);
+      if (!usedBseScripCodes.has(candidate.scripCode)) {
+        bse = candidate;
+      }
+    }
+
+    // 1d. Check token prefix / truncation match
+    if (!bse) {
+      const matchedBseNorm = findTruncationMatch(nse.norm);
+      if (matchedBseNorm) {
+        const candidate = bseByName.get(matchedBseNorm);
+        if (candidate && !usedBseScripCodes.has(candidate.scripCode)) {
+          bse = candidate;
+        }
+      }
+    }
+
+    if (bse) {
+      usedBseScripCodes.add(bse.scripCode);
+      usedBseNorms.add(bse.norm);
+    }
+
+    const nseTicker = nse.ticker;
+    const bseTicker = bse ? bse.scripCode : compRecord ? compRecord.bseScripCode || null : null;
+    const bseSymbol = bse ? bse.bseSymbol : null;
+    const cleanName = compRecord ? compRecord.name : compByNorm.get(nse.norm)?.name || null;
+    const rawName = nse.rawName || (bse && bse.rawName);
+    const companyName = cleanName || rawName;
+
+    const prior =
+      existingByNorm.get(nse.norm) ||
+      (cleanName ? existingByNorm.get(normalizeName(cleanName)) : null);
+    const keywords = [
+      ...new Set([
+        ...(prior && Array.isArray(prior.keywords) ? prior.keywords : []),
+        ...(compRecord && Array.isArray(compRecord.keywords) ? compRecord.keywords : []),
+      ]),
+    ];
 
     companies.push({
-      companyId,
+      companyId: `NSE:${nseTicker}`,
       nseTicker,
       bseTicker,
       bseSymbol,
-      companyName: rawName,
+      companyName,
+      cleanName,
+      sector: compRecord ? compRecord.sector || null : null,
+      industry: compRecord ? compRecord.industry || null : null,
+      rawNseName: nse.rawName,
+      rawBseName: bse ? bse.rawName : null,
+      keywords,
+    });
+  }
+
+  // Pass 2: Add remaining BSE-only equities (not paired with any NSE equity)
+  for (const [scripCode, bse] of bseByScripCode) {
+    if (usedBseScripCodes.has(scripCode)) continue;
+
+    const compRecord = compByBse.get(scripCode) || compByNorm.get(bse.norm);
+    const cleanName = compRecord ? compRecord.name : null;
+    const companyName = cleanName || bse.rawName;
+    const prior =
+      existingByNorm.get(bse.norm) ||
+      (cleanName ? existingByNorm.get(normalizeName(cleanName)) : null);
+    const keywords = [
+      ...new Set([
+        ...(prior && Array.isArray(prior.keywords) ? prior.keywords : []),
+        ...(compRecord && Array.isArray(compRecord.keywords) ? compRecord.keywords : []),
+      ]),
+    ];
+
+    companies.push({
+      companyId: `BSE:${scripCode}`,
+      nseTicker: null,
+      bseTicker: scripCode,
+      bseSymbol: bse.bseSymbol || null,
+      companyName,
+      cleanName,
+      sector: compRecord ? compRecord.sector || null : null,
+      industry: compRecord ? compRecord.industry || null : null,
+      rawNseName: null,
+      rawBseName: bse.rawName,
       keywords,
     });
   }
@@ -284,16 +365,60 @@ async function main() {
 
   const output = {
     generatedAt: new Date().toISOString(),
-    source: 'kite-instruments-public-csv',
+    source: skipStockscans
+      ? 'kite-instruments-public-csv+companies-json'
+      : 'stockscans-scans+kite-instruments-public-csv+companies-json',
     totalCompanies: companies.length,
     nseListed: companies.filter((c) => c.nseTicker).length,
+    dualListed: companies.filter((c) => c.nseTicker && c.bseTicker).length,
     bseOnly: companies.filter((c) => !c.nseTicker && c.bseTicker).length,
+    withSectorIndustry: companies.filter((c) => c.sector || c.industry).length,
     companies,
   };
 
   if (dryRun) {
-    console.log(JSON.stringify({ status: 'dry-run', ...output, companies: undefined }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          status: 'dry-run',
+          ...output,
+          companies: undefined,
+          stockscans: stockscansSummary,
+        },
+        null,
+        2
+      )
+    );
     return;
+  }
+
+  // Backfill missing bseScripCode into companies.json if found during sync
+  let companiesDirty = false;
+  if (fs.existsSync(COMPANIES_FILE)) {
+    for (const c of Object.values(companiesJson)) {
+      const nseT = (
+        c.nseTicker ||
+        (c.id && c.id.startsWith('NSE:') ? c.id.slice(4) : null) ||
+        ''
+      ).toUpperCase();
+      if (nseT && !c.bseScripCode) {
+        const paired = companies.find((m) => m.nseTicker === nseT);
+        if (paired && paired.bseTicker) {
+          c.bseScripCode = paired.bseTicker;
+          if (!c.aliases) c.aliases = [];
+          const bseAlias = `BSE:${paired.bseTicker}`;
+          if (!c.aliases.includes(bseAlias)) c.aliases.push(bseAlias);
+          c.modifiedTime = require('./lib/ist').nowIstIso();
+          companiesDirty = true;
+        }
+      }
+    }
+    if (companiesDirty) {
+      db.withLock('companies', () => {
+        db.writeFileAtomic(COMPANIES_FILE, companiesJson);
+      });
+      console.error('Enriched companies.json with newly paired BSE scrip codes.');
+    }
   }
 
   fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -305,7 +430,10 @@ async function main() {
         outPath: OUT_PATH,
         totalCompanies: companies.length,
         nseListed: output.nseListed,
+        dualListed: output.dualListed,
         bseOnly: output.bseOnly,
+        withSectorIndustry: output.withSectorIndustry,
+        stockscans: stockscansSummary,
       },
       null,
       2

@@ -47,6 +47,12 @@ describe('stockscansUrl', () => {
     expect(stockscansUrl('')).toBe('');
     expect(stockscansUrl(null)).toBe('');
   });
+
+  test('returns empty string when symbol or exchange-prefixed ticker contains whitespace', () => {
+    expect(stockscansUrl('Network People Services Technologies Ltd')).toBe('');
+    expect(stockscansUrl('BSE:Network People Services Technologies Ltd')).toBe('');
+    expect(stockscansUrl('NSE:Some Invalid Ticker')).toBe('');
+  });
 });
 
 describe('stockscansLink', () => {
@@ -70,6 +76,15 @@ describe('stockscansLink', () => {
 
   test('falls back to plain name (no link) when symbol is missing', () => {
     expect(stockscansLink('No Symbol Co', '')).toBe('No Symbol Co');
+  });
+
+  test('falls back to plain name (no link) when symbol has whitespace/invalid ticker', () => {
+    expect(
+      stockscansLink(
+        'Network People Services Technologies Ltd',
+        'BSE:Network People Services Technologies Ltd'
+      )
+    ).toBe('Network People Services Technologies Ltd');
   });
 });
 

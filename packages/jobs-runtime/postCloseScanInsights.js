@@ -39,6 +39,7 @@ const tradingCalendar = require('./lib/tradingCalendar');
 const db = require('./lib/db');
 const { stockscans } = require('@stock/api');
 const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
+const { resolveCompanyId } = require('./lib/companyMaster');
 const { withRetry } = require('@stock/api/utils/concurrency');
 // resend-with-market-data (see cmdResendWithMarketData) reuses gainers-signal's
 // already-proven NSE/BSE delivery lookup rather than re-implementing it — same
@@ -168,7 +169,13 @@ function normaliseSavedScan(saved) {
 async function resolveScan() {
   const StorageService = require('@stock/cloud-utils').StorageService;
   try {
-    const { data } = await axios.get(`${BASE_URL}/api/user/announcement-scans`, {
+    // PATH MIGRATED 2026-09-16: old path `GET /api/user/announcement-scans`
+    // now 404s. New path `GET /api/scans/announcement/saved` — see
+    // StockscansClient.js#savedAnnouncementScans (CONFIRMED LIVE) and
+    // docs/stockscans-api-schemas.md. This script duplicates a raw axios call
+    // instead of using the shared client (conventions.md §17 debt — flagged,
+    // not fixed here) but the URL itself must track the migration.
+    const { data } = await axios.get(`${BASE_URL}/api/scans/announcement/saved`, {
       headers: authHeaders(),
       timeout: 30000,
     });
@@ -466,9 +473,14 @@ async function paginateScanToCutoff({ scan, cutoffUtc, quarterDate }) {
     // rather than pausing for it. That mattered little when one job called this
     // a few times a day; `preprocessQueue.js` now walks the same scan every 30
     // minutes, so a transient 429 must be a pause, not a failed run.
+    // PATH MIGRATED 2026-09-16: old path `POST /api/company/announcements/scan`
+    // now 404s. New path `POST /api/scans/announcement/search` — see
+    // StockscansClient.js#scanAnnouncements (CONFIRMED LIVE) and
+    // docs/stockscans-api-schemas.md. Payload/response shape unchanged
+    // (`scan.searchFilters: []` here selects plain-scan behavior).
     const { data } = await withRetry(
       () =>
-        axios.post(`${BASE_URL}/api/company/announcements/scan`, payload, {
+        axios.post(`${BASE_URL}/api/scans/announcement/search`, payload, {
           headers: authHeaders(),
           timeout: 30000,
         }),
@@ -1072,9 +1084,13 @@ async function cmdResendWithMarketData(argv) {
       companies = data.companies || data.data || (Array.isArray(data) ? data : []);
     }
     for (const raw of companies) {
-      const ticker = sanitizeCompanyId(
-        String(pick(raw, 'companyId', 'ticker', 'nse_code', 'symbol', 'Ticker', 'NSE Code') || '')
+      const rawTicker = String(
+        pick(raw, 'companyId', 'ticker', 'nse_code', 'symbol', 'Ticker', 'NSE Code') || ''
       );
+      const rawName = String(pick(raw, 'name', 'companyName', 'Company Name', 'Name') || '');
+      const ticker =
+        resolveCompanyId({ symbol: rawTicker, companyName: rawName }, { fallback: false }) ||
+        sanitizeCompanyId(rawTicker);
       if (!ticker) continue;
       marketByTicker[ticker] = {
         returns1d: toFloat(pick(raw, 'Returns 1D', 'return_1d', 'returnOneDay', '1DReturn')),

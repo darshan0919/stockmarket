@@ -77,6 +77,7 @@ const dbV2 = require('./lib/db');
 const { computeSubscriptionScore, tierFor, SCORE_WEIGHTS } = require('./lib/ipoScoring');
 const { mapWithConcurrency } = require('@stock/api/utils/concurrency');
 const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
+const { resolveCompanyId } = require('./lib/companyMaster');
 
 const PERFORMANCE_API = 'https://www.ipoplatform.com/main-board/index';
 const UA = 'Mozilla/5.0 (compatible; StockmarketIpoBacktest/1.0; contact: djplearner@gmail.com)';
@@ -600,11 +601,20 @@ function baseRecordFields(row) {
     exchange: row.exchange,
     listingDate: row.ipo_year,
     cmpUpdateDate: row.cmp_update_date || null,
-    companyId: row.nse_script_symbol
-      ? sanitizeCompanyId(`NSE:${row.nse_script_symbol}`)
-      : row.bse_script_code
-        ? sanitizeCompanyId(`BSE:${row.bse_script_code}`)
-        : null,
+    companyId:
+      resolveCompanyId(
+        {
+          symbol: row.nse_script_symbol || row.bse_script_code,
+          companyName: row.company_name,
+          exchange: row.exchange,
+        },
+        { fallback: false }
+      ) ||
+      (row.nse_script_symbol
+        ? sanitizeCompanyId(`NSE:${row.nse_script_symbol}`)
+        : row.bse_script_code
+          ? sanitizeCompanyId(`BSE:${row.bse_script_code}`)
+          : null),
     // Confirmed 2026-08-09: both fields live directly on the performance-tracker
     // index API row (no separate "ipo" dashboard endpoint needed) — free to carry
     // through on EVERY record, full history, zero extra network cost. `ipo_size`

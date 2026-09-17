@@ -54,4 +54,62 @@ function sanitizeCompanyId(id) {
   return s.replace(SUFFIX_RE, '');
 }
 
-module.exports = { sanitizeCompanyId, KNOWN_SERIES_SUFFIXES };
+let _companyMaster = undefined;
+function getCompanyMaster() {
+  if (_companyMaster !== undefined) return _companyMaster;
+  try {
+    _companyMaster = require('../../../packages/jobs-runtime/lib/companyMaster');
+  } catch (_) {
+    try {
+      _companyMaster = require('@stock/jobs-runtime/lib/companyMaster');
+    } catch (__) {
+      _companyMaster = null;
+    }
+  }
+  return _companyMaster;
+}
+
+/**
+ * Resolve any company input to canonical companyId via companyMaster.
+ * @param {string|Object} input
+ * @param {Object} [opts]
+ * @returns {string|null}
+ */
+function resolveCompanyId(input, opts) {
+  const cm = getCompanyMaster();
+  if (cm && typeof cm.resolveCompanyId === 'function') {
+    return cm.resolveCompanyId(input, opts);
+  }
+  return sanitizeCompanyId(
+    typeof input === 'string' ? input : input?.symbol || input?.companyId || ''
+  );
+}
+
+/**
+ * Resolve company identity record via companyMaster.
+ * @param {Object} opts
+ * @returns {Object}
+ */
+function resolveCompanyIdentity(opts) {
+  const cm = getCompanyMaster();
+  if (cm && typeof cm.resolveCompanyIdentity === 'function') {
+    return cm.resolveCompanyIdentity(opts);
+  }
+  const s = sanitizeCompanyId(opts?.symbol || opts?.companyId || '');
+  return {
+    key: s,
+    displaySymbol: s,
+    companyName: opts?.companyName || opts?.company || s,
+    nseTicker: null,
+    bseTicker: null,
+    companyId: s || null,
+    isDualListed: false,
+  };
+}
+
+module.exports = {
+  sanitizeCompanyId,
+  KNOWN_SERIES_SUFFIXES,
+  resolveCompanyId,
+  resolveCompanyIdentity,
+};

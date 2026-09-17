@@ -302,6 +302,7 @@ yarn data:status      # sync status
 - `yarn dead-code:scan` — Scan monorepo for unreferenced files, committed stray artifacts, and coding practice violations
 - `yarn dep:tree <target>` — Generate visual dependency tree diagram (HTML, Mermaid, text) for any given variable or file across direct imports, skills, scheduled jobs, and scripts
 - `yarn data:push` / `yarn data:pull` / `yarn data:sync` / `yarn data:status` — Data Ecosystem v2 sync with Google Drive (see above)
+- `yarn company-master-sync` — Sync and reconcile the company master DB (`cache/company-master.json`) combining Stockscans company universe (sector/industry classifications), Kite instruments dump, and `companies.json` metadata. Scheduled daily at 10 PM.
 - `yarn rules:check` / `yarn rules:sync` — verify/fix parity between `AGENTS.md` and the tool-specific rule files (`CLAUDE.md`, `.cursor/rules/*.mdc`, `.gemini/rules/*.md`)
 
 ### screener-api (`yarn workspace screener-api <script>`)

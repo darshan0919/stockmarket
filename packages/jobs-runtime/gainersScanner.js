@@ -38,6 +38,7 @@ const docExtracts = require('./lib/docExtracts');
 // module-init cost for callers of this file that never classify by content,
 // e.g. unit tests that stub the network layer entirely).
 const dbV2 = require('./lib/db');
+const companyMaster = require('./lib/companyMaster');
 const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
 const { mapWithConcurrency } = require('@stock/api/utils/concurrency');
 
@@ -637,7 +638,19 @@ async function fetchDeliveryPerSymbol(gainers, { nseClient = nse, bseClient = bs
         const sym = ticker.slice(4).toUpperCase();
         let scrip = cache[sym];
         if (!scrip) {
-          scrip = await bseClient.getScripCode(sym);
+          if (/^\d+$/.test(sym)) {
+            scrip = sym;
+          } else {
+            const masterRec =
+              companyMaster.findByBseTicker(sym) ||
+              companyMaster.findByTicker(sym) ||
+              companyMaster.findByScripCode(sym);
+            if (masterRec && masterRec.bseTicker) {
+              scrip = String(masterRec.bseTicker);
+            } else {
+              scrip = await bseClient.getScripCode(sym);
+            }
+          }
           if (scrip) {
             cache[sym] = scrip;
             cacheDirty = true;

@@ -78,6 +78,13 @@ const SIDECAR_OVERRIDES = {
     displayName: 'Order Book Sync',
     cron: '0 21 * * *',
   },
+  // 22:00 (10:00 PM) daily — refreshes Kite instruments, reconciles NSE/BSE
+  // mappings, overlays companies.json, and backfills missing scrip codes.
+  'daily-company-master-sync': {
+    sidecarFolder: 'company-master-sync',
+    displayName: 'Company Master Sync',
+    cron: '0 22 * * *',
+  },
 };
 
 function parseSkillMd(filePath) {
@@ -234,6 +241,12 @@ function updateSidecarsConfig(configData, syncedFolders, projId) {
     configData.sidecars = {};
   }
 
+  for (const k of Object.keys(configData.sidecars)) {
+    if (!syncedFolders.includes(k)) {
+      delete configData.sidecars[k];
+    }
+  }
+
   for (const dir of syncedFolders) {
     if (!configData.sidecars[dir]) {
       configData.sidecars[dir] = { enabled: false };
@@ -348,9 +361,28 @@ function syncScheduledTasks() {
     }
   }
 
+  // Prune any orphaned/deprecated sidecar directory in SIDECARS_DIR
+  let prunedSidecarDirs = 0;
+  if (fs.existsSync(SIDECARS_DIR)) {
+    for (const d of fs.readdirSync(SIDECARS_DIR)) {
+      if (!syncedFolders.includes(d) && !d.startsWith('.')) {
+        const orphanDir = path.join(SIDECARS_DIR, d);
+        if (fs.statSync(orphanDir).isDirectory()) {
+          fs.rmSync(orphanDir, { recursive: true, force: true });
+          prunedSidecarDirs++;
+        }
+      }
+    }
+  }
+
   if (prunedJobSkillDirs > 0) {
     console.log(
       `🧹 Removed ${prunedJobSkillDirs} stale scheduled-task entr${prunedJobSkillDirs === 1 ? 'y' : 'ies'} from Global Skills (jobs live only in Sidecars now).`
+    );
+  }
+  if (prunedSidecarDirs > 0) {
+    console.log(
+      `🧹 Removed ${prunedSidecarDirs} deprecated/orphaned sidecar director${prunedSidecarDirs === 1 ? 'y' : 'ies'}.`
     );
   }
   console.log(`✅ Synchronized ${syncedSidecars} UI Sidecars.`);

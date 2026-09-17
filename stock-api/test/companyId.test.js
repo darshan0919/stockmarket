@@ -1,6 +1,11 @@
 'use strict';
 
-const { sanitizeCompanyId, KNOWN_SERIES_SUFFIXES } = require('../src/utils/companyId');
+const {
+  sanitizeCompanyId,
+  KNOWN_SERIES_SUFFIXES,
+  resolveCompanyId,
+  resolveCompanyIdentity,
+} = require('../src/utils/companyId');
 
 describe('sanitizeCompanyId', () => {
   test('strips a known dash-separated series suffix', () => {
@@ -43,5 +48,18 @@ describe('sanitizeCompanyId', () => {
     for (const suffix of KNOWN_SERIES_SUFFIXES) {
       expect(sanitizeCompanyId(`NSE:FOO-${suffix}`)).toBe('NSE:FOO');
     }
+  });
+});
+
+describe('resolveCompanyId and resolveCompanyIdentity', () => {
+  test('resolveCompanyId resolves dual-listed or unmapped tickers', () => {
+    expect(resolveCompanyId('RELIANCE')).toBe('NSE:RELIANCE');
+    expect(resolveCompanyId('NSE:INFY-BE')).toBe('NSE:INFY');
+  });
+
+  test('resolveCompanyIdentity returns structured object', () => {
+    const res = resolveCompanyIdentity({ symbol: 'RELIANCE' });
+    expect(res).toHaveProperty('companyId');
+    expect(res).toHaveProperty('key');
   });
 });

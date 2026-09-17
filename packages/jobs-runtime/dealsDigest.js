@@ -38,13 +38,7 @@ const { sendHtmlEmail, stockscansUrl } = require('@stock/cloud-utils');
 const StorageService = require('@stock/cloud-utils').StorageService;
 const dbV2 = require('./lib/db');
 const { tagEntityTypes, ENTITY_TYPE_LABELS } = require('./lib/entityClassifier');
-const {
-  loadCompanyMaster: cmLoad,
-  findByTicker: cmFindByTicker,
-  findByScripCode: cmFindByScripCode,
-  findByBseTicker: cmFindByBseTicker,
-  normalizeName: cmNormalizeName,
-} = require('./lib/companyMaster');
+const { resolveCompanyIdentity } = require('./lib/companyMaster');
 
 // Companies on this Stockscans watchlist must never be dropped from the
 // digest by the ₹5cr net-value threshold or the top-N cutoff in
@@ -156,65 +150,8 @@ function parseNseDate(s) {
  *  - Novartis miss: unrelated bug (see fetchInsider), but reinforced that
  *    identity resolution needs to be a single, testable place rather than
  *    ad hoc string comparisons scattered through this file.
- *
- * Resolution order:
- *   1. NSE ticker lookup (`shared/companyMaster`, sourced from Kite
- *      instruments + reconciled truncation-merge in companyMasterSync.js).
- *   2. BSE scrip-code lookup, when the row carries a numeric scrip code.
- *   3. companyMaster's own normalizeName() on the company/display name —
- *      still returns a good cross-exchange-stable key even when the master
- *      has no ticker/scrip record for this company at all (e.g. RMCL/Radha
- *      Madhav Corp isn't in Kite's instruments dump — verified 2026-07-30 —
- *      so master lookups (1) and (2) both miss it, but normalizeName still
- *      collapses "RADHA MADHAV CORPORATION LIMITED" and "Radha Madhav
- *      Corporation Ltd" to the same key).
- *
- * Returns { key, displaySymbol, companyName, nseTicker, bseTicker }.
+ * (resolveCompanyIdentity is imported from ./lib/companyMaster)
  */
-function resolveCompanyIdentity({ symbol, company, companyName, exchange }) {
-  const name = companyName || company || symbol || '';
-  let rec = null;
-
-  if (exchange === 'NSE' && symbol) {
-    rec = cmFindByTicker(symbol);
-  }
-  if (!rec && exchange === 'BSE' && symbol && /^\d+$/.test(String(symbol).trim())) {
-    rec = cmFindByScripCode(symbol);
-  }
-  if (!rec && exchange === 'BSE' && symbol && !/^\d+$/.test(String(symbol).trim())) {
-    // BSE bulk/block-deal rows report BSE's own alpha tradingsymbol as
-    // `scripname` (e.g. "AQYLON") rather than the numeric scrip code or the
-    // full legal name — try that before falling through to name matching.
-    rec = cmFindByBseTicker(symbol);
-  }
-  if (!rec && name) {
-    // BSE bulk/block rows key off `scripname` text rather than a numeric
-    // scrip code, so neither lookup above fires. Fall back to an EXACT
-    // normalized-name match against the master's name index (deliberately
-    // exact, not the substring/keyword scan companyMaster's findInText()
-    // does elsewhere — a substring match here risks silently merging two
-    // unrelated companies whose short normalized names happen to be
-    // contained in one another, which would be worse than the missed dedup
-    // this whole change is meant to fix).
-    try {
-      const master = cmLoad();
-      rec = master._byNormName.get(cmNormalizeName(name)) || null;
-    } catch {
-      rec = null;
-    }
-  }
-
-  const key = rec ? rec.companyId : `NAME:${cmNormalizeName(name)}`;
-  const displaySymbol = (rec && (rec.nseTicker || rec.bseTicker)) || symbol || name;
-
-  return {
-    key,
-    displaySymbol,
-    companyName: (rec && rec.companyName) || name,
-    nseTicker: rec ? rec.nseTicker : null,
-    bseTicker: rec ? rec.bseTicker : null,
-  };
-}
 
 function num(x) {
   if (x === null || x === undefined || x === '' || x === '-') return null;
@@ -516,11 +453,9 @@ async function fetchInsider(targetIst, maxXbrl) {
     return out;
   }
 
-  const originals = filings.filter(
-    (f) => f.xmlFileName && (f.typeOfSubmission || 'Original') === 'Original'
-  );
-  out.totalFilings = originals.length;
-  const todo = originals.slice(0, maxXbrl);
+  const validFilings = filings.filter((f) => f.xmlFileName);
+  out.totalFilings = validFilings.length;
+  const todo = validFilings.slice(0, maxXbrl);
 
   let i = 0;
   const results = [];
@@ -600,11 +535,12 @@ async function fetchInsider(targetIst, maxXbrl) {
       const val = num(b.Fld_SecurityValue) || 0;
       if (!qty || !val) continue;
 
-      const bseKey = resolveCompanyIdentity({
-        symbol: b.Fld_ScripCode,
+      const bseIdentity = resolveCompanyIdentity({
+        symbol: String(b.Fld_ScripCode),
         companyName: b.Companyname,
         exchange: 'BSE',
-      }).key;
+      });
+      const bseKey = bseIdentity.key;
       const nseMatch = results.some(
         (r) =>
           r.exchange === 'NSE' &&
@@ -615,24 +551,6 @@ async function fetchInsider(targetIst, maxXbrl) {
         continue;
       }
 
-      // NOTE: we intentionally do NOT also skip dual-listed-on-NSE symbols
-      // here just because isAvailableOnNSE() says the company trades on NSE.
-      // That used to be the second dedup gate, on the assumption that any
-      // dual-listed company's insider filing would always also show up in
-      // the NSE corporates-pit-gg feed the same day. It doesn't: NSE and BSE
-      // disclose PIT filings independently and one exchange can legitimately
-      // lag or altogether miss a same-day filing the other has (verified
-      // 2026-07-30 — Novartis India's ₹1,377cr promoter stake-sale filing
-      // was on BSE only; NSE's feed never carried it that day). Gating on
-      // isAvailableOnNSE silently dropped the row instead of keeping the one
-      // real filing we have. The nseMatch name check above is the only
-      // dedup we need: it already skips this row when NSE truly reported the
-      // same filing that day.
-      // Same "release/revoke of pledge counts toward net value like a buy"
-      // rule as the NSE XBRL path above — checked across both the
-      // transaction-type and mode fields since BSE splits the signal across
-      // Fld_TransactionType ("Revoke") and ModeOfAquisation ("Revocation Of
-      // Pledge") depending on the filing.
       const pledgeReleaseRe = /(revoke|release).*pledge|pledge.*(revoke|release)/i;
       const isPledgeRelease =
         pledgeReleaseRe.test(b.Fld_TransactionType || '') ||
@@ -643,8 +561,8 @@ async function fetchInsider(targetIst, maxXbrl) {
         isPledgeRelease;
       results.push({
         exchange: 'BSE',
-        symbol: b.Companyname || String(b.Fld_ScripCode),
-        company: b.Companyname,
+        symbol: bseIdentity.displaySymbol || String(b.Fld_ScripCode),
+        company: bseIdentity.companyName || b.Companyname,
         person: b.Fld_PromoterName || null,
         personCount: 1,
         category: b.Fld_PersonCatgName || null,
@@ -664,17 +582,38 @@ async function fetchInsider(targetIst, maxXbrl) {
     out.errors.push(`BSE InsiderTrade15/w: ${e.message}`);
   }
 
-  // Deduplicate cross-listed filings (same person, side, qty, value)
-  const uniqueResults = [];
-  const seenKeys = new Set();
-  for (const r of results) {
-    const p = String(r.person || '')
-      .substring(0, 15)
+  // Deduplicate cross-listed / re-transmitted filings (same company, person, side, qty)
+  function normalizePersonName(name) {
+    return String(name || '')
+      .replace(/\s*\((?:REVISED|REVISION|AMENDED|AMENDMENT|CORRECTED|ORIGINAL)\b[^\)]*\)/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim()
       .toLowerCase();
-    const key = `${p}_${r.side}_${r.qty}_${r.value}`;
-    if (!seenKeys.has(key)) {
-      seenKeys.add(key);
+  }
+
+  const uniqueResults = [];
+  const seenKeys = new Map();
+  for (const r of results) {
+    const p = normalizePersonName(r.person);
+    const idKey =
+      r.companyId ||
+      resolveCompanyIdentity({ symbol: r.symbol, companyName: r.company, exchange: r.exchange })
+        .key;
+    const key = `${idKey}_${p}_${r.side}_${r.qty}`;
+    const existing = seenKeys.get(key);
+    if (!existing) {
+      seenKeys.set(key, r);
       uniqueResults.push(r);
+    } else {
+      // If this row is a revision or later broadcast, update existing
+      const isRevision =
+        /\brevised\b/i.test(r.person || '') ||
+        String(r.broadcast || '') > String(existing.broadcast || '');
+      if (isRevision) {
+        const idx = uniqueResults.indexOf(existing);
+        if (idx !== -1) uniqueResults[idx] = r;
+        seenKeys.set(key, r);
+      }
     }
   }
 
@@ -725,6 +664,7 @@ async function groupAndTop10ByNetValue(rows, topN = TOP_N, neverFilterSymbols = 
         companyName: identity.companyName,
         nseTicker: identity.nseTicker,
         bseTicker: identity.bseTicker,
+        companyId: identity.companyId,
         netValue: 0,
         grossValue: 0,
         deals: [],
@@ -864,6 +804,14 @@ function renderEmail(dateLabel, digest, topN = TOP_N) {
     return ` <span style="font-size:10px;padding:1px 5px;border-radius:8px;color:#fff;background:${meta.color}">${meta.label}</span>`;
   };
 
+  const companyStockscansUrl = (g, r) => {
+    if (g.nseTicker) return stockscansUrl(g.nseTicker, 'NSE');
+    if (g.companyId && g.companyId.startsWith('NSE:')) return stockscansUrl(g.companyId);
+    if (g.bseTicker) return stockscansUrl(g.bseTicker, 'BSE');
+    if (g.companyId && g.companyId.startsWith('BSE:')) return stockscansUrl(g.companyId);
+    return stockscansUrl(g.symbol, r?.exchange || 'NSE');
+  };
+
   const dealRows = (groups) =>
     groups.flatMap((g, gIdx) =>
       g.deals.map((r, idx) => {
@@ -872,8 +820,12 @@ function renderEmail(dateLabel, digest, topN = TOP_N) {
         const numCol = isFirst
           ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee">${gIdx + 1}</td>`
           : '';
+        const url = companyStockscansUrl(g, r);
+        const nameLink = url
+          ? `<a href="${url}" style="text-decoration:none;color:#1a237e"><b>${esc(g.companyName || g.symbol)}</b></a>`
+          : `<b>${esc(g.companyName || g.symbol)}</b>`;
         const symCol = isFirst
-          ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee"><a href="${stockscansUrl(g.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(g.companyName || g.symbol)}</b></a> <span style="color:#888">${esc(r.exchange)}</span></td>`
+          ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee">${nameLink} <span style="color:#888">${esc(r.exchange)}</span></td>`
           : '';
         const netCol = isFirst
           ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right;color:${netColor(g.netValue)}"><b>${crores(g.netValue)}</b></td>`
@@ -893,8 +845,12 @@ function renderEmail(dateLabel, digest, topN = TOP_N) {
         const numCol = isFirst
           ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee">${gIdx + 1}</td>`
           : '';
+        const url = companyStockscansUrl(g, r);
+        const nameLink = url
+          ? `<a href="${url}" style="text-decoration:none;color:#1a237e"><b>${esc(g.companyName || g.symbol)}</b></a>`
+          : `<b>${esc(g.companyName || g.symbol)}</b>`;
         const symCol = isFirst
-          ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee"><a href="${stockscansUrl(g.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(g.companyName || g.symbol)}</b></a></td>`
+          ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee">${nameLink}</td>`
           : '';
         const netCol = isFirst
           ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee;text-align:right;color:${netColor(g.netValue)}"><b>${crores(g.netValue)}</b></td>`
@@ -914,8 +870,12 @@ function renderEmail(dateLabel, digest, topN = TOP_N) {
         const numCol = isFirst
           ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee">${gIdx + 1}</td>`
           : '';
+        const url = companyStockscansUrl(g, r);
+        const nameLink = url
+          ? `<a href="${url}" style="text-decoration:none;color:#1a237e"><b>${esc(g.companyName || g.symbol)}</b></a>`
+          : `<b>${esc(g.companyName || g.symbol)}</b>`;
         const symCol = isFirst
-          ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee"><a href="${stockscansUrl(g.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(g.companyName || g.symbol)}</b></a></td>`
+          ? `<td rowspan="${rs}" style="border-bottom:1px solid #eee">${nameLink}</td>`
           : '';
         // "Pledge Revoke"/"release of pledge" legs now feed netValue just
         // like buy/sell (see fetchInsider) — count them as an actual
@@ -973,8 +933,14 @@ function applyDtoEnvelope(digest) {
   const now = new Date().toISOString();
   for (const key of ['bulk10', 'block10', 'sast10', 'insider10']) {
     for (const g of digest[key] || []) {
-      const exch = (g.deals && g.deals[0] && g.deals[0].exchange) || 'NSE';
-      g.companyId = g.companyId || `${exch}:${g.symbol}`;
+      if (!g.companyId) {
+        if (g.nseTicker) g.companyId = `NSE:${g.nseTicker}`;
+        else if (g.bseTicker) g.companyId = `BSE:${g.bseTicker}`;
+        else {
+          const exch = (g.deals && g.deals[0] && g.deals[0].exchange) || 'NSE';
+          g.companyId = `${exch}:${g.symbol}`;
+        }
+      }
       g.creationTime = g.creationTime || now;
       g.modifiedTime = now;
       g.creator = DEALS_DIGEST_CREATOR;
@@ -1077,34 +1043,39 @@ async function main() {
   addRows(bulkBlock.block, 'block');
   addRows(sast.rows, 'sast');
   addRows(insider.rows, 'insider');
-  const { findInText } = require('./lib/companyMaster');
-  const dealEvents = dealRows.map((r) => ({
-    ...r,
-    type: 'deal',
-    date: isoDate,
-    companyId:
-      r.companyId ||
-      (r.symbol ? `NSE:${String(r.symbol).toUpperCase()}` : null) ||
-      (() => {
-        try {
-          const hit = findInText(r.companyName || r.company || r.name || '');
-          return hit ? hit.companyId : null;
-        } catch (_) {
-          return null;
-        }
-      })(),
-    creator: 'daily-deals-digest',
-    summary: [
-      r.subtype,
-      r.symbol || r.companyName || r.company,
-      r.client || r.clientName || r.acquirer || r.personName,
-      r.qty || r.quantity,
-      r.price || r.avgPrice,
-    ]
-      .filter(Boolean)
-      .join(' | ')
-      .slice(0, 300),
-  }));
+  const dealEvents = dealRows.map((r) => {
+    let companyId = r.companyId;
+    if (!companyId) {
+      try {
+        const ident = resolveCompanyIdentity({
+          symbol: r.symbol,
+          company: r.company || r.name,
+          companyName: r.companyName,
+          exchange: r.exchange,
+        });
+        companyId = ident.companyId;
+      } catch (_) {
+        companyId = null;
+      }
+    }
+    return {
+      ...r,
+      type: 'deal',
+      date: isoDate,
+      companyId,
+      creator: 'daily-deals-digest',
+      summary: [
+        r.subtype,
+        r.symbol || r.companyName || r.company,
+        r.client || r.clientName || r.acquirer || r.personName,
+        r.qty || r.quantity,
+        r.price || r.avgPrice,
+      ]
+        .filter(Boolean)
+        .join(' | ')
+        .slice(0, 300),
+    };
+  });
   if (dealEvents.length) dbV2.appendEvents(dealEvents);
 
   const htmlBody = renderEmail(dateLabel, digest, topN);

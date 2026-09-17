@@ -122,6 +122,27 @@ must satisfy all of the following before it's considered done:
    skills, jobs). Provider-specific logic (auth, base URL, rate limits,
    retries, pagination) lives once in that client — callers pass parameters
    and get typed results, they don't reimplement request-building.
+5. **Never call a third-party API directly — always through its client
+   class.** No file outside a provider's own client module (e.g.
+   `stock-api/src/clients/StockscansClient.js`) may contain a hardcoded
+   third-party URL, or call `fetch(...)`, `axios.get/post/put/delete(...)`,
+   `https.request(...)`, or any other raw HTTP call against that provider's
+   domain — not even "just this once" for a one-off script, a digest job, or
+   a prototype. This includes constructing a request URL from a base-URL
+   string plus a hand-built path, not just a fully-literal URL. Add a method
+   to the existing client (per item 1 above) and call that instead, even if
+   it feels like overkill for a single call site. The entire reason this
+   rule exists: when Stockscans restructured its API paths on 2026-09-16,
+   three `packages/jobs-runtime` digest scripts and one `screener-api`
+   controller had each reimplemented their own `fetch`/`axios` call against
+   a hardcoded Stockscans URL instead of using `StockscansClient` — so the
+   migration had to be done five times (once correctly in the client, four
+   more times hunting down and fixing silent duplicates) instead of once.
+   One client file per provider, updated once, is the entire point of item 4
+   above; a stray direct call anywhere else defeats it. If you're writing a
+   quick script and reaching for `fetch`/`axios` against a URL that isn't
+   `localhost` or a repo-internal service, stop and check whether a client
+   for that provider already exists first.
 
 ## 5. Workspace Facade Pattern — package.json is the only invocation surface
 
@@ -234,10 +255,11 @@ There are core development principles that are **permanent** across all AI codin
 2. **Workspace Facade Pattern**: `package.json` is the only invocation surface. Always run scripts via `yarn <script>`, never via raw `node path/to/script.js`.
 3. **Data Layer Chokepoint**: Never write files under `data/` directly; only `packages/jobs-runtime/lib/db.js` persists data. `data/` is gitignored.
 4. **Mandatory Quality Sweep**: Always format (`yarn format`), lint (`yarn lint`), and test (`yarn test`) before completing changes.
-5. **API Integrations**: Fully typed with JSDoc (`@param`, `@returns`, `@typedef`), documented in `docs/*-api-schemas.md`, modular by provider, never duplicated.
+5. **API Integrations**: Fully typed with JSDoc (`@param`, `@returns`, `@typedef`), documented in `docs/*-api-schemas.md`, modular by provider, never duplicated. Never call a third-party API directly (`fetch`/`axios`/`https.request` against its domain) from anywhere outside that provider's own client class — always add a method to the existing client and call that instead, so a future path/schema migration is a one-file fix.
 6. **Documentation Coverage**: Discoverable documentation for every script, API, skill, scheduled task, and workflow in the same change.
 7. **Safety Rails**: Never git commit or push directly; leave working tree unstaged for user review. Never use git commands that write to the repository.
 8. **Multi-Platform Rules Parity**: The rule files across Claude (`CLAUDE.md`), Cursor (`.cursorrules`, `.cursor/rules/*.mdc`), and Antigravity (`.gemini/rules/*.md`, `.agents/rules/*.md`) must stay 100% in sync with `AGENTS.md`. Run `yarn rules:sync` when modifying rules, and verify with `yarn rules:check`.
+9. **Company Master Chokepoint (`company-master.json`)**: All scripts, skills, jobs, and sidecars that map company names, BSE scrip codes, BSE symbols, or NSE tickers to canonical `companyId` (`EXCH:SYMBOL`) must rely on `company-master.json` as the single source of truth via `packages/jobs-runtime/lib/companyMaster.js` (`resolveCompanyId`, `resolveCompanyIdentity`) or `@stock/api/utils/companyId`. Scripts may perform custom string operations, sanitization, or fallback to their own discovery mechanisms if unmapped, but `company-master.json` must always be consulted first. Never maintain duplicate or ad-hoc company mapping stores.
 
 ### Future sync enforcement
 

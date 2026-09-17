@@ -665,11 +665,26 @@ class StockscansClient {
    */
   async concallNotes(companyId, ssUrl) {
     companyId = sanitizeCompanyId(companyId);
-    const { data } = await this.http.get(
-      `${BASE_URL}/api/scans/concall/notes/${encodeURIComponent(companyId)}/${encodeURIComponent(ssUrl)}`,
-      { headers: this._headers(`${BASE_URL}/company/${companyId}`) }
-    );
+    const { data } = await this.http.get(this.concallNotesUrl(companyId, ssUrl), {
+      headers: this._headers(`${BASE_URL}/company/${companyId}`),
+    });
     return data;
+  }
+
+  /**
+   * The raw notes-endpoint URL for a single concall transcript — same
+   * endpoint {@link concallNotes} calls server-side, exposed here so callers
+   * that need a plain navigable URL (e.g. a frontend "open notes" link) can
+   * get one without reconstructing the path themselves. Keeping the actual
+   * path segment (`scans/concall/notes`) in this one method means a future
+   * Stockscans path migration only has to change it here.
+   * @param {string} companyId
+   * @param {string} ssUrl
+   * @returns {string}
+   */
+  concallNotesUrl(companyId, ssUrl) {
+    companyId = sanitizeCompanyId(companyId);
+    return `${BASE_URL}/api/scans/concall/notes/${encodeURIComponent(companyId)}/${encodeURIComponent(ssUrl)}`;
   }
 
   /**

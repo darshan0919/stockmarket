@@ -2,30 +2,31 @@
 'use strict';
 
 const fs = require('fs');
+const { stockscans } = require('@stock/api');
 const { sendHtmlEmail } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
 const { cachePath } = require('./lib/db');
+const apiUsageTracker = require('./lib/apiUsageTracker');
+const { resolveJobName } = require('./lib/scriptJobName');
 
-const getHeaders = (authToken) => ({
-  accept: 'application/json',
-  'accept-language': 'en-US,en;q=0.9',
-  'content-type': 'application/json',
-  cookie: `_ga=GA1.1.923358363.1766992983; authtoken=${authToken}; lastLayout=7e0f8a1d63c1dacad645ffab; theme=light; _clck=n576cg%5E2%5Eg7o%5E0%5E2189; _ga_6GLNXH796V=GS2.1.s1783858803$o886$g1$t1783860950$j45$l0$h0; _clsk=wdey55%5E1783860951450%5E10%5E1%5Ey.clarity.ms%2Fcollect`,
-  origin: 'https://www.stockscans.in',
-  priority: 'u=1, i',
-  referer: 'https://www.stockscans.in/scans/saved/7f7e2d4044f428e69254ce31',
-  'sec-ch-ua': '"Not;A=Brand";v="8", "Chromium";v="150", "Google Chrome";v="150"',
-  'sec-ch-ua-mobile': '?0',
-  'sec-ch-ua-platform': '"macOS"',
-  'sec-fetch-dest': 'empty',
-  'sec-fetch-mode': 'cors',
-  'sec-fetch-site': 'same-origin',
-  'user-agent':
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
-  'x-sync-source': 'vizcbbsxmrhsr8un',
-});
-
-async function runScan(payload, authToken) {
+/**
+ * Paginate StockscansClient#runScan to completion for this digest's saved
+ * scan. Was a hand-rolled `fetch()` against a hardcoded
+ * `stockscans.in/api/company/scans/run` URL + a manually-built headers
+ * object — including a stale, hardcoded browser session cookie
+ * (`_ga`/`_clck`/`_clsk` values captured from a one-off Chrome DevTools
+ * session, unrelated to and redundant with the real `authtoken` auth) that
+ * had nothing to do with authenticating the request. That path 404s since
+ * Stockscans' 2026-09-16 refactor (now `POST /api/scans/stock/run`) and
+ * duplicated logic StockscansClient#runScan already owns. Routing through
+ * the shared client means any future Stockscans path/DTO change is a
+ * one-file fix (see AGENTS.md "no direct third-party API calls" rule).
+ *
+ * @param {Object} payload - `{ratiosType, timePeriod, scan, watchlistIds,
+ *   order, orderBy, offset}` — same shape this file already builds in main().
+ * @param {string} [scanId] - forwarded to StockscansClient#runScan for the Referer header.
+ */
+async function runScan(payload, scanId) {
   let allRows = [];
   let header = null;
   let offset = 0;
@@ -34,20 +35,14 @@ async function runScan(payload, authToken) {
   // eslint-disable-next-line no-constant-condition
   while (true) {
     payload.offset = offset;
-    const res = await fetch('https://www.stockscans.in/api/company/scans/run', {
-      method: 'POST',
-      headers: getHeaders(authToken),
-      body: JSON.stringify(payload),
-    });
+    const data = await stockscans.runScan(payload, scanId);
+    const table = data.table;
+    if (!table || table.length <= 1) break;
 
-    if (!res.ok) throw new Error(`API Error: ${res.status}`);
-    const json = await res.json();
-    if (!json.table || json.table.length <= 1) break;
+    if (!header) header = table[0];
+    allRows.push(...table.slice(1));
 
-    if (!header) header = json.table[0];
-    allRows.push(...json.table.slice(1));
-
-    if (offset + limit >= json.total) break;
+    if (offset + limit >= data.total) break;
     offset += limit;
   }
 
@@ -112,7 +107,7 @@ async function main() {
     offset: 0,
   };
 
-  const { header, rows } = await runScan(payload, process.env.STOCKSCANS_AUTH_TOKEN);
+  const { header, rows } = await runScan(payload, payload.scan.scanId);
   if (!header) {
     console.log('No data returned');
     return;
@@ -224,9 +219,13 @@ async function main() {
 }
 
 if (require.main === module) {
-  main().catch((e) => {
-    console.error('dailyGainersDigest failed:', e);
-    process.exit(1);
-  });
+  const jobName = resolveJobName('daily-gainers-digest');
+  stockscans.setJobName(jobName);
+  main()
+    .catch((e) => {
+      console.error('dailyGainersDigest failed:', e);
+      process.exit(1);
+    })
+    .finally(() => apiUsageTracker.flush(jobName));
 }
 module.exports = { main };

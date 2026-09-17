@@ -19,6 +19,7 @@ const { loadEnv, argValue } = require('./lib/env');
 const apiUsageTracker = require('./lib/apiUsageTracker');
 const { resolveJobName } = require('./lib/scriptJobName');
 const { sendHtmlEmail, stockscansUrl } = require('@stock/cloud-utils');
+const { resolveCompanyIdentity } = require('./lib/companyMaster');
 
 // We will fetch Screener data to get market caps (for sorting/display).
 async function getScreenerData(symbol) {
@@ -164,14 +165,25 @@ function deduplicateEvents(events, dateField) {
   const seen = new Set();
 
   for (const ev of events) {
-    // Basic deduplication: similar symbol prefix + similar purpose
-    const sym = String(ev.symbol).substring(0, 5).toLowerCase();
-    const purp = String(ev.purpose).substring(0, 15).toLowerCase();
+    const ident = resolveCompanyIdentity({
+      symbol: ev.symbol,
+      company: ev.company,
+      companyName: ev.companyName,
+      exchange: ev.exchange,
+    });
+    const cid = ident.companyId || ident.key;
+    const purp = String(ev.purpose || '')
+      .substring(0, 15)
+      .toLowerCase();
     const d = ev[dateField] || '';
-    const key = `${sym}_${d}_${purp}`;
+    const key = `${cid}_${d}_${purp}`;
 
     if (!seen.has(key)) {
       seen.add(key);
+      if (ident.companyName) ev.companyName = ident.companyName;
+      if (ident.companyId) ev.companyId = ident.companyId;
+      if (ident.nseTicker) ev.nseTicker = ident.nseTicker;
+      if (ident.bseTicker) ev.bseTicker = ident.bseTicker;
       unique.push(ev);
     }
   }
@@ -182,19 +194,30 @@ async function enrichWithMarketCap(events) {
   // Fetch market cap for each event
   await Promise.all(
     events.map(async (ev) => {
+      const ident = resolveCompanyIdentity({
+        symbol: ev.symbol,
+        company: ev.company,
+        companyName: ev.companyName,
+        exchange: ev.exchange,
+      });
+      if (ident.companyName && !ev.companyName) ev.companyName = ident.companyName;
+      if (ident.companyId) ev.companyId = ident.companyId;
+
+      const nseSymbol = ident.nseTicker || (ev.exchange === 'NSE' ? ev.symbol : null);
       let nseData = null;
       try {
-        if (ev.exchange === 'NSE') {
-          nseData = await nse.getSymbolData(ev.symbol);
+        if (nseSymbol) {
+          nseData = await nse.getSymbolData(nseSymbol);
         }
       } catch {}
 
-      ev.companyName = nseData?.metaData?.companyName || ev.company || ev.symbol;
+      ev.companyName =
+        nseData?.metaData?.companyName || ident.companyName || ev.company || ev.symbol;
       ev.marketCap = nseData?.tradeInfo?.totalMarketCap || null;
       ev.latestPrice = nseData?.priceInfo?.lastPrice || nseData?.priceInfo?.close || null;
 
       if (!ev.marketCap || !ev.latestPrice || ev.companyName === ev.symbol) {
-        const scr = await getScreenerData(ev.symbol);
+        const scr = await getScreenerData(nseSymbol || ev.symbol);
         if (scr) {
           if (!ev.marketCap && scr.marketCap) ev.marketCap = scr.marketCap;
           if (!ev.latestPrice && scr.latestPrice) ev.latestPrice = scr.latestPrice;
@@ -244,7 +267,10 @@ function td(v, right, wrap) {
 function renderEmail(dateLabel, digest) {
   const divRowHtml = (events, dateField) =>
     events.map((r, i) => {
-      const symCol = `<a href="${stockscansUrl(r.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(r.companyName || r.symbol)}</b></a> <span style="color:#888">${esc(r.exchange)}</span>`;
+      const url = r.companyId
+        ? stockscansUrl(r.companyId)
+        : stockscansUrl(r.symbol, r.exchange || 'NSE');
+      const symCol = `<a href="${url}" style="text-decoration:none;color:#1a237e"><b>${esc(r.companyName || r.symbol)}</b></a> <span style="color:#888">${esc(r.exchange)}</span>`;
       const y = r.dividendYield !== null ? r.dividendYield.toFixed(2) + '%' : '—';
       const d = esc(r[dateField] || '—');
       const divVal = r.dividendAmount !== null ? `₹${r.dividendAmount}` : '—';
@@ -253,7 +279,10 @@ function renderEmail(dateLabel, digest) {
 
   const rowHtml = (events, dateField) =>
     events.map((r, i) => {
-      const symCol = `<a href="${stockscansUrl(r.symbol, r.exchange || 'NSE')}" style="text-decoration:none;color:#1a237e"><b>${esc(r.companyName || r.symbol)}</b></a> <span style="color:#888">${esc(r.exchange)}</span>`;
+      const url = r.companyId
+        ? stockscansUrl(r.companyId)
+        : stockscansUrl(r.symbol, r.exchange || 'NSE');
+      const symCol = `<a href="${url}" style="text-decoration:none;color:#1a237e"><b>${esc(r.companyName || r.symbol)}</b></a> <span style="color:#888">${esc(r.exchange)}</span>`;
       const mcapCol = `<b>${crores(r.marketCap)}</b>`;
       const d = esc(r[dateField] || '—');
       const p = esc(r.purpose || '—');

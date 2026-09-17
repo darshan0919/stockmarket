@@ -4,15 +4,31 @@
  * @see {@link docs/API_REFERENCE.md#declared-results-apis} for API docs
  */
 
-const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-const { getAuthToken, createAuthenticatedClient } = require('../../core/api/stockscansAuth');
+const { stockscans } = require('@stock/api');
+const { getAuthToken } = require('../../core/api/stockscansAuth');
 const { ensureRepoDownloadsRoot } = require('../../core/utils/repoDownloads');
 
-const STOCKSCANS_API_URL = 'https://www.stockscans.in/api/company/scan-company-results';
+// This controller previously hit `company/scan-company-results` and
+// `company/get-concall-notes` directly via raw axios, bypassing
+// StockscansClient — those payload/response shapes are identical to
+// StockscansClient#resultsScan (POST /api/scans/result/run) and
+// StockscansClient#concallNotes (GET /api/scans/concall/notes/{id}/{ssUrl})
+// respectively, so both calls now route through the shared client instead
+// of duplicating request-building logic here. See AGENTS.md's "no direct
+// third-party API calls" rule — StockscansClient.js is the only file that
+// should know Stockscans' URLs.
+//
+// `notesUrl` is still exposed to the frontend as a plain URL string for two
+// reasons: (1) screener-web/results.js opens it directly in a new browser
+// tab (TranscriptNotesBadge), which needs a real navigable URL, not a
+// client-method call; (2) downloadTranscriptNotes below accepts it back
+// from the frontend to know which document to fetch server-side. We build
+// it via StockscansClient#concallNotesUrl (not by hand-rolling
+// `stockscans.in/...` here) so the path segment still only lives in one
+// file if Stockscans moves it again.
 const STOCKSCANS_ASSETS_URL = 'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs';
-const STOCKSCANS_NOTES_API_URL = 'https://www.stockscans.in/api/company/get-concall-notes';
 
 /**
  * Get declared quarterly results with filters
@@ -56,30 +72,9 @@ const getDeclaredResults = async (req, res, next) => {
       documentType,
     };
 
-    // Get auth token for StockScans API
-    let authToken;
-    try {
-      authToken = getAuthToken();
-    } catch (err) {
-      // Continue without auth token - some requests may work without it
-      authToken = null;
-    }
-
-    // Make request to StockScans API with authentication
-    const headers = {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    };
-    if (authToken) {
-      headers.Cookie = `authtoken=${authToken}`;
-    }
-
-    const response = await axios.post(STOCKSCANS_API_URL, payload, {
-      headers,
-      timeout: 30000,
-    });
-
-    const data = response.data;
+    // Auth is handled internally by StockscansClient (StockscansAuth reads
+    // STOCKSCANS_AUTH_TOKEN); no need to resolve or attach it here.
+    const data = await stockscans.resultsScan(payload);
 
     // Transform the data for our frontend
     const transformedResults = (data.resultTables || []).map((result) => {
@@ -92,20 +87,18 @@ const getDeclaredResults = async (req, res, next) => {
       const financialData = resultTable.C || resultTable.S || [];
       const dataSource = resultTable.C ? 'Consolidated' : 'Standalone';
 
-      // Transform documents with full URLs
-      // Transcript Notes use a different API endpoint
-      // Other documents (Transcript, PPT, Result) use S3 assets URL
+      // Transform documents with full URLs.
+      // Other documents (Transcript, PPT, Result) use the S3 assets URL;
+      // Transcript Notes use StockscansClient#concallNotesUrl (still a real
+      // navigable URL — screener-web opens it directly in a new tab).
       const transformedDocs = (documents || []).map((doc) => {
         let fullUrl = null;
         let notesUrl = null;
 
         if (doc.ssUrl) {
-          // All documents except notes use the S3 assets URL
           fullUrl = `${STOCKSCANS_ASSETS_URL}/${doc.ssUrl}`;
-
-          // If document has notes, add the notes URL
           if (doc.hasNotes) {
-            notesUrl = `${STOCKSCANS_NOTES_API_URL}/${companyId}/${doc.ssUrl}`;
+            notesUrl = stockscans.concallNotesUrl(companyId, doc.ssUrl);
           }
         }
 
@@ -242,10 +235,12 @@ const downloadTranscriptNotes = async (req, res, next) => {
       });
     }
 
-    // Get auth token from environment
-    let authToken;
+    // Confirm auth is actually configured before starting the batch (auth
+    // itself is applied per-request by StockscansClient/StockscansAuth —
+    // this is just an early, clear failure instead of N silent per-item
+    // failures below).
     try {
-      authToken = getAuthToken();
+      getAuthToken();
       console.log('Using StockScans auth token from environment');
     } catch (err) {
       return res.status(500).json({
@@ -253,9 +248,6 @@ const downloadTranscriptNotes = async (req, res, next) => {
         error: err.message,
       });
     }
-
-    // Create authenticated axios client
-    const authClient = createAuthenticatedClient(authToken);
 
     const downloadDir = path.join(ensureRepoDownloadsRoot(), quarterDate);
     if (!fs.existsSync(downloadDir)) {
@@ -287,16 +279,18 @@ const downloadTranscriptNotes = async (req, res, next) => {
           `Downloading notes for ${symbol} (${name}) - ${documentType || 'unknown'} ${date || ''}...`
         );
 
-        // Fetch the notes content using authenticated client
-        const response = await authClient.get(notesUrl, {
-          responseType: 'json', // Notes API returns JSON
-        });
+        // notesUrl is StockscansClient#concallNotesUrl's output
+        // (.../notes/{companyId}/{ssUrl}) — recover ssUrl from its last path
+        // segment rather than re-parsing/re-hitting the URL directly, so
+        // the actual request still goes through StockscansClient#concallNotes.
+        const ssUrl = decodeURIComponent(notesUrl.split('/').pop());
+        const notesData = await stockscans.concallNotes(companyId, ssUrl);
 
         // Save to file with unique name (include date to handle multiple docs per company)
         const dateStr = date || 'undated';
         const fileName = `${symbol}_${dateStr}_notes.json`;
         const filePath = path.join(downloadDir, fileName);
-        fs.writeFileSync(filePath, JSON.stringify(response.data, null, 2));
+        fs.writeFileSync(filePath, JSON.stringify(notesData, null, 2));
 
         downloadResults.push({
           companyId,

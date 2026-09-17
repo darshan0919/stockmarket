@@ -55,6 +55,7 @@ const {
   shouldIgnoreAnnouncement: sharedShouldIgnoreAnnouncement,
   matchedNoiseKeyword: sharedMatchedNoiseKeyword,
 } = require('@stock/api/utils/announcementNoiseFilter');
+const { resolveCompanyId } = require('./lib/companyMaster');
 
 // Data Ecosystem v2: notes → notes collection (via NotesDb→lib/db.js),
 // ignored-announcements log → data/cache/ (regenerable review aid).
@@ -256,9 +257,17 @@ async function logIgnoredAnnouncement(ann, matchedKw) {
 
   let existing = StorageService.readJson(logPath) || [];
   const title = ann.title || ann.subject || ann.headline || '';
+  const name = ann.name || ann.companyName || '';
+  const companyId =
+    resolveCompanyId(
+      { symbol: ann.companyId || ann.ticker, companyName: name },
+      { fallback: false }
+    ) ||
+    ann.companyId ||
+    '';
   existing.push({
-    companyId: ann.companyId || '',
-    name: ann.name || ann.companyName || '',
+    companyId,
+    name,
     title,
     description: String(ann.description || '').slice(0, 300),
     matchedKeyword: matchedKw,
@@ -489,8 +498,14 @@ async function cmdFetchAnnouncements(watchlistIdsArg, client = stockscans) {
   const allRaw = await gatherInwindowRaw(client, now, watchlistIds, windowHours);
   const results = [];
   for (const ann of allRaw) {
-    const companyId = ann.companyId || '';
     const name = ann.name || ann.companyName || '';
+    const companyId =
+      resolveCompanyId(
+        { symbol: ann.companyId || ann.ticker, companyName: name },
+        { fallback: false }
+      ) ||
+      ann.companyId ||
+      '';
     const title = ann.title || ann.subject || ann.headline || '';
     const dateStr = ann.date || ann.createdAt || '';
     const ssUrl = ann.ssUrl || '';

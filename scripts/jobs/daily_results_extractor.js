@@ -13,6 +13,7 @@
 const path = require('path');
 const { StockscansClient } = require('../../stock-api/src/clients/StockscansClient');
 const { StockscansAuth } = require('../../stock-api/src/auth/stockscansAuth');
+const { resolveCompanyId } = require('../../packages/jobs-runtime/lib/companyMaster');
 
 /**
  * Get yesterday's date in YYYY-MM-DD format.
@@ -163,7 +164,13 @@ async function main() {
 
     // Transform companies to include normalized companyId for downstream processing
     const companies = result.allCompanies.map((company) => ({
-      companyId: company.companyId || company.Name, // fallback to Name if companyId missing
+      companyId:
+        resolveCompanyId(
+          { symbol: company.companyId, companyName: company.Name },
+          { fallback: false }
+        ) ||
+        company.companyId ||
+        company.Name,
       name: company.Name,
       resultDate: dateStr,
       ssUrl: company.resultSsUrl,

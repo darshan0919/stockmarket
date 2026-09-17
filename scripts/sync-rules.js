@@ -102,6 +102,7 @@ function runVerification() {
           'rule-api-integrations',
           'rule-safety-rails',
           'rule-platform-sync',
+          'rule-company-master',
         ];
         const existingIds = new Set(data.rules.map((r) => r.id));
         for (const reqId of requiredRuleIds) {

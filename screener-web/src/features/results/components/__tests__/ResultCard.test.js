@@ -91,8 +91,9 @@ describe('ResultCard', () => {
         hasNotes: true,
         fullUrl:
           'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/transcript.pdf',
-        notesUrl:
-          'https://www.stockscans.in/api/company/get-concall-notes/NSE:SIRCA/transcript.pdf',
+        // Shape produced by StockscansClient#concallNotesUrl post-2026-09-16
+        // migration (old path was .../api/company/get-concall-notes/...).
+        notesUrl: 'https://www.stockscans.in/api/scans/concall/notes/NSE%3ASIRCA/transcript.pdf',
       },
     ],
   };

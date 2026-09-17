@@ -439,4 +439,9 @@ usage`'s CLI accepts `--duration-ms`, and `track_invocation.py`
     see those files for the exact question to ask before scoping a new
     skill/job.
 
+27. **Single Source of Truth for Company Mapping (`company-master.json`):**
+    All scripts, skills, jobs, and sidecars that map company names, BSE scrip codes, BSE symbols, or NSE tickers to canonical `companyId` (`EXCH:SYMBOL`) must use `company-master.json` as their single source of truth via `packages/jobs-runtime/lib/companyMaster.js` (`resolveCompanyId`, `resolveCompanyIdentity`, `loadCompanyMaster`) or `@stock/api/utils/companyId` (`resolveCompanyId`, `resolveCompanyIdentity`).
+    Scripts are permitted to perform custom string operations, sanitization, fuzzy matching, or fallback to their own discovery mechanisms (e.g. searching an external API or retaining original inputs) if a direct match is not found in `company-master.json`. However, `company-master.json` must always be consulted first. No parallel company mapping tables, ad-hoc JSON stores, or duplicate mapping caches may be maintained.
+
 These conventions ensure that skills can execute in any environment: Cowork, Antigravity, local terminal, or Claude web.
+

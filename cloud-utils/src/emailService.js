@@ -170,8 +170,13 @@ function stockscansUrl(symbol, exchange = 'NSE') {
   if (!symbol) return '';
   const clean = sanitizeSymbol(symbol);
   if (clean.includes(':')) {
-    return `https://www.stockscans.in/company/${clean}`;
+    const parts = clean.split(':');
+    const exch = (parts[0] || 'NSE').toUpperCase();
+    const ticker = parts.slice(1).join(':').trim();
+    if (!ticker || /\s/.test(ticker)) return '';
+    return `https://www.stockscans.in/company/${exch}:${ticker}`;
   }
+  if (/\s/.test(clean)) return '';
   return `https://www.stockscans.in/company/${exchange}:${clean}`;
 }
 
@@ -181,7 +186,9 @@ function stockscansLink(name, symbol, exchange = 'NSE', color = 'inherit') {
     /[&<>"]/g,
     (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]
   );
-  return `<a href="${stockscansUrl(symbol, exchange)}" style="text-decoration:none;color:${color}" target="_blank">${safeName}</a>`;
+  const url = stockscansUrl(symbol, exchange);
+  if (!url) return safeName;
+  return `<a href="${url}" style="text-decoration:none;color:${color}" target="_blank">${safeName}</a>`;
 }
 
 module.exports = {

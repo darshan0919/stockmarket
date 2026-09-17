@@ -36,6 +36,7 @@ const windowCursorFactory = require('./lib/windowCursor');
 const taxonomy = require('./lib/announcementTaxonomy');
 const { matchedNoiseKeyword } = require('@stock/api/utils/announcementNoiseFilter');
 const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
+const { resolveCompanyId } = require('./lib/companyMaster');
 const { resolveScan, paginateScanToCutoff, parseAnnDateToUtc } = require('./postCloseScanInsights');
 
 const BASE_URL = 'https://www.stockscans.in';
@@ -202,7 +203,11 @@ async function buildQueue({ windowHoursArg, profileFilter }) {
       category,
       sourceUrl,
       announcementId: a.ssUrl || null,
-      companyId: sanitizeCompanyId(a.companyId || ''),
+      companyId:
+        resolveCompanyId(
+          { symbol: a.companyId || a.ticker, companyName: a.name },
+          { fallback: false }
+        ) || sanitizeCompanyId(a.companyId || ''),
       name: a.name || null,
       title: a.title || null,
       description: a.description || null,

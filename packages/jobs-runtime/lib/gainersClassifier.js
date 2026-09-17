@@ -11,7 +11,9 @@ const path = require('path');
 const db = require('./db');
 const { buildCompanyContext } = require('./companyContext');
 const taxonomy = require('./announcementTaxonomy');
+const { resolveCompanyId } = require('./companyMaster');
 const { sanitizeCompanyId } = require('@stock/api/utils/companyId');
+const StorageService = require('@stock/cloud-utils').StorageService;
 
 const RUNS_DIR = path.join(db.dataRoot(), 'runs');
 
@@ -34,19 +36,45 @@ const SECTOR_SUPER_CLUSTER_MIN = 4; // >=4 = "super strong", per the user's rule
 
 const RESEARCH_TOP_N_PER_AXIS = 10; // 10 by delivery %, 10 by delivery value = 20
 
+// BUGFIX (2026-09-17): the 2026-09-15 "data sync optimizations" migration
+// (StorageService's parseShardedPath) moved runs/gainers_raw_*.json into a
+// sharded runs/gainers-raw-{YYYY}.jsonl store — StorageService.saveJson()
+// silently appends to the shard instead of writing the loose file this
+// function used to glob for with readdirSync. That left latestRaw() throwing
+// "No gainers_raw_*.json" on every run since the migration, for both
+// gainers-signal and volume-rocketing (same classifier, different rawPrefix).
+// Fix: read via StorageService (which already knows how to resolve the
+// sharded path) for the requested/most-recent date, falling back to the old
+// loose-file glob only for pre-migration data that was never migrated.
 function latestRaw(runsDir = RUNS_DIR, rawPrefix = 'gainers_raw') {
-  if (!fs.existsSync(runsDir)) {
-    throw new Error(`No such directory: ${runsDir}`);
+  // Try the sharded store first, walking back from today — the shard is
+  // keyed by exact date, not "most recent file", so we have to probe.
+  for (let back = 0; back <= 7; back++) {
+    const d = new Date();
+    d.setDate(d.getDate() - back);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const rel = `runs/${rawPrefix}_${yyyy}${mm}${dd}.json`;
+    const found = StorageService.readJson(rel);
+    if (found) return { __shardedRel: rel, __data: found };
   }
-  const re = new RegExp(`^${rawPrefix}_\\d{8}\\.json$`);
-  const files = fs
-    .readdirSync(runsDir)
-    .filter((f) => re.test(f))
-    .sort(); // lexical sort works for YYYYMMDD
-  if (files.length === 0) {
-    throw new Error(`No ${rawPrefix}_*.json in ${runsDir}`);
+
+  // Fall back to legacy loose files (pre-migration data, if any remains).
+  if (fs.existsSync(runsDir)) {
+    const re = new RegExp(`^${rawPrefix}_\\d{8}\\.json$`);
+    const files = fs
+      .readdirSync(runsDir)
+      .filter((f) => re.test(f))
+      .sort(); // lexical sort works for YYYYMMDD
+    if (files.length > 0) {
+      return path.join(runsDir, files[files.length - 1]);
+    }
   }
-  return path.join(runsDir, files[files.length - 1]);
+
+  throw new Error(
+    `No ${rawPrefix}_*.json found in the last 7 days (sharded store runs/${rawPrefix.replace(/_/g, '-')}-*.jsonl) or in ${runsDir}`
+  );
 }
 
 /**
@@ -228,6 +256,8 @@ function normalizeCompanyId(id) {
   // shared series-suffix sanitizer ("-BE"/"-SM"/etc — see
   // stock-api/src/utils/companyId.js) so callers get both fixes from one place.
   const deprefixed = String(id || '').replace(/^(NSE|BSE):(NSE|BSE):/, '$2:');
+  const resolved = resolveCompanyId(deprefixed, { fallback: false });
+  if (resolved) return resolved;
   return sanitizeCompanyId(deprefixed);
 }
 
@@ -695,10 +725,15 @@ function main({
   eventType = 'gainer',
   creator = 'gainers-signal',
 } = {}) {
-  const rawPath = latestRaw(RUNS_DIR, rawPrefix);
-  console.error(`[classifier] reading ${path.basename(rawPath)}`);
+  const rawResult = latestRaw(RUNS_DIR, rawPrefix);
+  const raw =
+    typeof rawResult === 'string'
+      ? JSON.parse(fs.readFileSync(rawResult, 'utf8'))
+      : rawResult.__data;
+  console.error(
+    `[classifier] reading ${typeof rawResult === 'string' ? path.basename(rawResult) : rawResult.__shardedRel}`
+  );
 
-  const raw = JSON.parse(fs.readFileSync(rawPath, 'utf8'));
   const marketDate = raw.market_date;
   const gainers = raw.gainers || [];
   const indSummary = raw.industry_summary || {};
@@ -880,7 +915,13 @@ function main({
       ...s,
       type: eventType,
       date: marketDate,
-      companyId: s.companyId || `NSE:${String(s.ticker).toUpperCase()}`,
+      companyId:
+        resolveCompanyId(
+          { symbol: s.companyId || s.ticker, companyName: s.name },
+          { fallback: false }
+        ) ||
+        s.companyId ||
+        `NSE:${String(s.ticker).toUpperCase()}`,
       creator: s.creator || creator,
       summary: `${s.ticker} +${s.return_1d}% — ${s.primary_driver} (${s.conviction})`,
     }));

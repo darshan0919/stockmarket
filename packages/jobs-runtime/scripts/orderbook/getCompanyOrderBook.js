@@ -41,6 +41,7 @@
 const { loadEnv, argValue, hasFlag } = require('../../lib/env');
 loadEnv(argValue('--env-file'));
 const { stockscans } = require('@stock/api');
+const { resolveCompanyId } = require('../../lib/companyMaster');
 const annStore = require('../../lib/orderAnnouncementStore');
 const ledger = require('../../lib/orderBookLedger');
 const {
@@ -397,6 +398,7 @@ async function processNewAnnouncements(companyId, sinceDate, { client } = {}) {
  * @param {boolean} [opts.forceRecompute] - re-judge a cached base verdict
  */
 async function getCompanyOrderBook(companyId, { persist = true, client, forceRecompute } = {}) {
+  companyId = resolveCompanyId(companyId) || companyId;
   const baseResult = await ensureBase(companyId, { forceRecompute });
   if (!baseResult.ok) return { companyId, ok: false, ...baseResult };
 

@@ -92,7 +92,10 @@ const { resolveJobName } = require('./lib/scriptJobName');
 const { fetchHtml, stripTags } = require('./ipoSubscriptionScanner');
 const { fetchPerformanceWindow, parseSubscriptionDetail } = require('./ipoBacktest');
 const { bestMatch, normalizeInvestorName } = require('./lib/fuzzyMatch');
-const { normalizeName: normalizeCompanyName } = require('./lib/companyMaster');
+const {
+  normalizeName: normalizeCompanyName,
+  resolveCompanyId,
+} = require('./lib/companyMaster');
 const dbV2 = require('./lib/db');
 
 const CREATOR = 'anchor-bulk-deal-tracker';
@@ -486,6 +489,14 @@ function investorSlug(canonicalName) {
 }
 
 function ipoCompanyId(ipo) {
+  const resolved = resolveCompanyId(
+    {
+      symbol: ipo.nseSymbol || ipo.bseScripCode,
+      companyName: ipo.companyName,
+    },
+    { fallback: false }
+  );
+  if (resolved) return resolved;
   if (ipo.nseSymbol) return sanitizeCompanyId(`NSE:${ipo.nseSymbol}`);
   if (ipo.bseScripCode) return sanitizeCompanyId(`BSE:${ipo.bseScripCode}`);
   return null;
@@ -607,17 +618,36 @@ function crossCheckInvestorRegistry(ipos, investorRecords, threshold, label) {
  */
 function crossReferenceIpo(ipo, anchorInvestors, dealsRows, threshold) {
   const companyNorm = normalizeCompanyName(ipo.companyName);
+  const ipoCid = ipoCompanyId(ipo);
   const companyRows = dealsRows.filter((row) => {
-    // Prefer an exact symbol/scrip-code match when the index row gave us one
-    // (this IPO's NSE symbol / BSE scrip code) — far more precise than name
-    // matching, and immune to punctuation/suffix drift between sources.
-    if (ipo.nseSymbol && row.symbol && row.source.startsWith('nse')) {
+    // 1. Canonical companyId match from company-master (unifies cross-exchange deals)
+    if (ipoCid && row.symbol) {
+      const rowExchange =
+        row.source && row.source.startsWith('nse')
+          ? 'NSE'
+          : row.source && row.source.startsWith('bse')
+            ? 'BSE'
+            : undefined;
+      const rowCid = resolveCompanyId(
+        {
+          symbol: row.symbol,
+          companyName: row.companyName,
+          exchange: rowExchange,
+        },
+        { fallback: false }
+      );
+      if (rowCid && rowCid === ipoCid) return true;
+    }
+
+    // 2. Exact symbol/scrip-code match when the index row gave us one
+    if (ipo.nseSymbol && row.symbol && row.source && row.source.startsWith('nse')) {
       return row.symbol.toUpperCase() === ipo.nseSymbol.toUpperCase();
     }
-    if (ipo.bseScripCode && row.symbol && row.source.startsWith('bse')) {
+    if (ipo.bseScripCode && row.symbol && row.source && row.source.startsWith('bse')) {
       return String(row.symbol) === String(ipo.bseScripCode);
     }
-    // Fallback: normalized company-name containment (newly-listed SME issues
+
+    // 3. Fallback: normalized company-name containment (newly-listed SME issues
     // sometimes have a null nse_script_symbol/bse_script_code in the index
     // for the first few days post-listing).
     const rowNameNorm = normalizeCompanyName(row.companyName || '');

@@ -32,6 +32,7 @@ const {
 } = require('../analyzers/eventReactionSignals');
 const { computeReactionMetrics } = require('../analyzers/eventReactionSignals');
 const { fetchReactionCandles } = require('../fetchers/reactionCandlesFetcher');
+const { resolveCompanyIdentity } = require('../utils/companyId');
 
 /** NSE wants DD-MM-YYYY; BSE wants YYYYMMDD. */
 function fmtNse(d) {
@@ -68,13 +69,15 @@ async function fetchEventReactionMetrics(clients, symbol, category, opts = {}) {
   const from = start ? new Date(start) : new Date(now.getTime() - lookbackDays * 86400000);
   const to = end ? new Date(end) : now;
 
+  const resolvedBseScrip =
+    bseScripCode || resolveCompanyIdentity({ symbol, exchange: 'NSE' })?.bseTicker;
   const [nseRows, scripCode] = await Promise.all([
     nse.getCorporateAnnouncements(fmtNse(from), fmtNse(to), symbol),
-    bseScripCode ? Promise.resolve(bseScripCode) : bse.getScripCode(symbol),
+    resolvedBseScrip ? Promise.resolve(resolvedBseScrip) : bse.getScripCode(symbol),
   ]);
 
   const bseRows = scripCode ? await bse.getAnnouncements(scripCode, fmtBse(from), fmtBse(to)) : [];
-  const apiCalls = { announcements: 2 + (bseScripCode ? 0 : 1) };
+  const apiCalls = { announcements: 2 + (resolvedBseScrip ? 0 : 1) };
 
   const events = mergeAnnouncements(nseRows, bseRows);
 
