@@ -92,10 +92,7 @@ const { resolveJobName } = require('./lib/scriptJobName');
 const { fetchHtml, stripTags } = require('./ipoSubscriptionScanner');
 const { fetchPerformanceWindow, parseSubscriptionDetail } = require('./ipoBacktest');
 const { bestMatch, normalizeInvestorName } = require('./lib/fuzzyMatch');
-const {
-  normalizeName: normalizeCompanyName,
-  resolveCompanyId,
-} = require('./lib/companyMaster');
+const { normalizeName: normalizeCompanyName, resolveCompanyId } = require('./lib/companyMaster');
 const dbV2 = require('./lib/db');
 
 const CREATOR = 'anchor-bulk-deal-tracker';

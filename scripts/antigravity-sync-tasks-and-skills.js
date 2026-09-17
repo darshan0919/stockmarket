@@ -85,6 +85,43 @@ const SIDECAR_OVERRIDES = {
     displayName: 'Company Master Sync',
     cron: '0 22 * * *',
   },
+  // Delivery Volume Tracker — 7 slots across the trading day (10:10, 11:10, 12:10,
+  // 13:10, 14:10, 15:10 IST snapshots, and 16:10 IST final snapshot-then-report).
+  'delivery-volume-tracker': {
+    sidecarFolder: 'delivery-volume-tracker',
+    displayName: 'Delivery Volume Tracker - 10:10',
+    cron: '10 10 * * *',
+  },
+  'delivery-volume-tracker-1110': {
+    sidecarFolder: 'delivery-volume-tracker-1110',
+    displayName: 'Delivery Volume Tracker - 11:10',
+    cron: '10 11 * * *',
+  },
+  'delivery-volume-tracker-1210': {
+    sidecarFolder: 'delivery-volume-tracker-1210',
+    displayName: 'Delivery Volume Tracker - 12:10',
+    cron: '10 12 * * *',
+  },
+  'delivery-volume-tracker-1310': {
+    sidecarFolder: 'delivery-volume-tracker-1310',
+    displayName: 'Delivery Volume Tracker - 13:10',
+    cron: '10 13 * * *',
+  },
+  'delivery-volume-tracker-1410': {
+    sidecarFolder: 'delivery-volume-tracker-1410',
+    displayName: 'Delivery Volume Tracker - 14:10',
+    cron: '10 14 * * *',
+  },
+  'delivery-volume-tracker-1510': {
+    sidecarFolder: 'delivery-volume-tracker-1510',
+    displayName: 'Delivery Volume Tracker - 15:10',
+    cron: '10 15 * * *',
+  },
+  'delivery-volume-tracker-final': {
+    sidecarFolder: 'delivery-volume-tracker-final',
+    displayName: 'Delivery Volume Tracker - Final (16:10)',
+    cron: '10 16 * * *',
+  },
 };
 
 function parseSkillMd(filePath) {

@@ -47,7 +47,7 @@ const { withRetry } = require('@stock/api/utils/concurrency');
 // file. gainersScanner.js gates its own CLI auto-invocation behind
 // `require.main === module`, so requiring it here for its exports is inert.
 const { fetchDeliveryPerSymbol, fetchPrices, pick, toFloat } = require('./gainersScanner');
-const { matchedNoiseKeyword } = require('../../stock-api/src/utils/announcementNoiseFilter');
+const { checkAndLogNoise } = require('./lib/noiseKeywordFilter');
 const {
   categoriseAnnouncement,
   HEAVY_DOCUMENT_CATEGORIES,
@@ -96,6 +96,78 @@ const PAGE_SIZE = 30; // documented convention (see bulkAnnouncementScan.js) —
 // which `announcements/scan` expects, so it is defaulted in below.
 const SCAN_SOURCE_NAME = 'Signals - DND';
 const SCAN_CACHE_PATH = 'cache/post-close-scan-insights-scan.json';
+
+// ── Per-step timing log ─────────────────────────────────────────────────────
+//
+// Added 2026-09-17 after a post-close run's Step 3 (the orchestrating skill's
+// per-item read-pdf-with-meta/add-note loop, driven by the agent, not this
+// script) took ~155 minutes for a 96-item batch with no visibility into WHERE
+// the time went. This script's own commands (fetch-scan/filter-noise/
+// categorise/send-digest/commit-window) are comparatively fast and were never
+// the suspected bottleneck, but there was no actual measurement on record —
+// every run report's timing was reconstructed after the fact from subagent
+// wall-clock totals, which conflates "PDF fetch network wait" with "LLM
+// reasoning/tool-call overhead" and can't tell a future run which one grew.
+//
+// This appends ONE line per CLI command invocation to
+// `data/runs/post-close-scan-insights-timings-<YYYYMMDD>.jsonl` — a plain,
+// append-only, human-greppable log, not a new `events`-collection type,
+// because this is diagnostic/ephemeral (a running list a person tails while
+// debugging a slow night) rather than analytical output another skill reads
+// (that's what `token_usage_summary`'s `durationMs` — §25 of
+// skills/_shared/conventions.md — already covers at whole-run granularity).
+// Kept deliberately dumb: append a line at command start under a queued flag,
+// then append the real result line covering start->end. If a command crashes
+// mid-flight, the run log still shows which step was in progress and for how
+// long before the crash, which is exactly the information a hung/timed-out
+// step needs to be diagnosable after the fact.
+function timingLogPath() {
+  const d = new Date();
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `runs/post-close-scan-insights-timings-${y}${m}${day}.jsonl`;
+}
+
+function appendTimingLine(obj) {
+  try {
+    const dataRoot = require('path').join(__dirname, '..', '..', 'data');
+    const fsSync = require('fs');
+    const full = require('path').join(dataRoot, timingLogPath());
+    fsSync.mkdirSync(require('path').dirname(full), { recursive: true });
+    fsSync.appendFileSync(full, JSON.stringify(obj) + '\n', 'utf8');
+  } catch {
+    // Timing is diagnostic only — never let a logging failure fail the run.
+  }
+}
+
+/**
+ * Wrap a CLI command with start/end timing, printed to STDERR (never stdout —
+ * every command's stdout is JSON the orchestrating skill parses, and mixing a
+ * timing line into that would break every downstream `JSON.parse`) and
+ * appended to the timing log file for a later cross-step comparison.
+ */
+async function withStepTiming(stepName, fn) {
+  const startedAtIso = new Date().toISOString();
+  const t0 = Date.now();
+  process.stderr.write(`[timing] ${stepName} started at ${startedAtIso}\n`);
+  appendTimingLine({ step: stepName, event: 'start', atIso: startedAtIso });
+  let status = 'ok';
+  try {
+    const result = await fn();
+    return result;
+  } catch (err) {
+    status = 'error';
+    throw err;
+  } finally {
+    const tookMs = Date.now() - t0;
+    const finishedAtIso = new Date().toISOString();
+    process.stderr.write(
+      `[timing] ${stepName} ${status} in ${tookMs}ms (${(tookMs / 1000).toFixed(1)}s)\n`
+    );
+    appendTimingLine({ step: stepName, event: 'end', status, tookMs, atIso: finishedAtIso });
+  }
+}
 
 // LAST-RESORT frozen fallback, used ONLY when both the API and the cache are
 // unavailable. This is deliberately the CURRENT (2026-09-04) shape of the
@@ -608,15 +680,62 @@ async function cmdCommitWindow() {
 // caller destructuring `{kept, dropped}` — nothing is ever pushed there
 // anymore, since nothing is dropped pre-read. A reader who wants "how many
 // were noise-flagged" should count `kept.filter(i => i.noiseFlagged)` instead.
-function cmdFilterNoise(argv) {
+// Reverted 2026-09-17 (Darshan's explicit correction) — `announcement-noise-
+// keywords` is a curated, app-editable PRE-FILTER (things Darshan has decided
+// are never worth a read at all: AGM/EGM notices, postal ballots, dividend/
+// record-date mechanics, credit-rating routine updates, and similar) and must
+// actually DROP a match before any PDF is fetched, not merely tag it.
+//
+// This command briefly (2026-09-05 through 2026-09-17) stopped dropping
+// anything at all — every keyword match was tagged `noiseFlagged: true` and
+// still sent through the full PDF-read/insight pipeline. That change was a
+// scope error: the incident that motivated it (see
+// skills/equity-research/_shared/scan-signal-pipeline.md "Strength is never
+// judged from a title") was actually three TAXONOMY misclassifications
+// (`gainersScanner.js` guessing ROUTINE from a title with no category
+// keyword in it — PC Jeweller's debt-clearance update, Jindal Worldwide's
+// showroom-rollout press release, SML Mahindra's monthly volume update — none
+// of which matched any noise keyword at all). Fixing that by ALSO disabling
+// the noise-keyword pre-filter conflated two different layers: the taxonomy's
+// automatic, best-effort category-to-strength guess (genuinely unreliable
+// from a title alone, and correctly still governed by "read before judging
+// strength" at that layer) versus this curated exclusion list (a deliberate,
+// human-maintained "never worth reading" list, edited via the app, that
+// existed and worked correctly before 2026-09-05). Confirmed live 2026-09-17:
+// NSE:MIDHANI's "Change in Directorate" (a routine MoD nominee-director
+// rotation) and NSE:LOKESHMACH's "Change in Management" (an operational VP
+// hire, not a board change) both correctly matched keywords already in this
+// list, got flagged, and were STILL fully read/judged/digested anyway under
+// the interim "never skip" behavior — exactly the outcome Darshan's
+// curated list exists to prevent.
+//
+// "Never judge strength from a title alone" remains fully in force — it now
+// applies ONLY at the taxonomy/categorisation step (Step 2's `categorise`),
+// which still tags `noiseFlagged`/`noiseKeyword` for observability but no
+// longer determines what gets dropped here.
+//
+// Uses the SAME `checkAndLogNoise` helper (`lib/noiseKeywordFilter.js`)
+// `watchlistInsights.js`'s `cmdFetchAnnouncements` uses — one "match, log,
+// decide" policy shared by both scripts rather than two copies drifting
+// apart (conventions.md §17). This also closes a gap this command used to
+// have on its own: before, a post-close drop was silent (no audit-log entry
+// at all), while watchlist-insights' drop always logged to
+// `cache/ignored-announcements_<date>.json`. Both scripts' drops now land in
+// the SAME log, so a false-positive review only has one place to check
+// regardless of which skill made the call.
+async function cmdFilterNoise(argv) {
   const file = argv[0];
   if (!file) throw new Error('filter-noise requires a fetch-scan output JSON file path');
   const { inWindow } = JSON.parse(fs.readFileSync(file, 'utf8'));
-  const kept = inWindow.map((item) => {
-    const match = matchedNoiseKeyword(item);
-    return { ...item, noiseFlagged: !!match, noiseKeyword: match || null };
-  });
-  process.stdout.write(JSON.stringify({ kept, dropped: [] }, null, 2));
+  const kept = [];
+  const dropped = [];
+  for (const item of inWindow) {
+    const check = await checkAndLogNoise(item);
+    const tagged = { ...item, noiseFlagged: check.drop, noiseKeyword: check.keyword };
+    if (check.drop) dropped.push(tagged);
+    else kept.push(tagged);
+  }
+  process.stdout.write(JSON.stringify({ kept, dropped }, null, 2));
 }
 
 // `ssUrl` IS the announcementId convention used everywhere else in this
@@ -816,9 +935,12 @@ function cmdCategorise(argv) {
       heavyDocument: HEAVY_DOCUMENT_CATEGORIES.has(category),
       highConviction: HIGH_CONVICTION_CATEGORIES.has(category),
       alreadyProcessed: isAlreadyProcessed(notes, item.companyId, announcementId),
-      // Carried through from filter-noise — title-only, provisional. See that
-      // command's doc comment: flagged items are still processed, never
-      // silently excluded pre-read.
+      // Carried through from filter-noise. Since 2026-09-17, filter-noise
+      // DROPS a keyword match before this step ever sees it — so these two
+      // fields will always be false/null on everything categorise receives
+      // now. Kept on the shape (rather than removed) for footer/reporting
+      // continuity and because a caller that bypasses filter-noise and calls
+      // categorise directly on raw fetch-scan output still gets the tag.
       noiseFlagged: !!item.noiseFlagged,
       noiseKeyword: item.noiseKeyword || null,
       ssUrl: item.ssUrl,
@@ -1292,7 +1414,7 @@ async function main() {
     );
     process.exit(1);
   }
-  await fn(rest);
+  await withStepTiming(cmd, () => fn(rest));
 }
 
 // Exported for tests only (the CLI dispatch above is the real entrypoint).
@@ -1310,6 +1432,7 @@ module.exports = {
   normaliseFilingTitle,
   groupDuplicateFilings,
   DUPLICATE_TITLE_SIMILARITY_THRESHOLD,
+  cmdFilterNoise,
 };
 
 // Guarded so requiring this module (for its exports, or from a test) does not

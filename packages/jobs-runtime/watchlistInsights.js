@@ -56,6 +56,8 @@ const {
   matchedNoiseKeyword: sharedMatchedNoiseKeyword,
 } = require('@stock/api/utils/announcementNoiseFilter');
 const { resolveCompanyId } = require('./lib/companyMaster');
+const { mapWithConcurrency } = require('../../stock-api/src/utils/concurrency');
+const { logIgnoredAnnouncement, checkAndLogNoise } = require('./lib/noiseKeywordFilter');
 
 // Data Ecosystem v2: notes → notes collection (via NotesDb→lib/db.js),
 // ignored-announcements log → data/cache/ (regenerable review aid).
@@ -250,31 +252,11 @@ function matchedNoiseKeyword(title, description) {
   return match ? match.keyword : null;
 }
 
-async function logIgnoredAnnouncement(ann, matchedKw) {
-  StorageService.init();
-  const dateStr = ist.istYmd(); // YYYYMMDD
-  const logPath = `cache/ignored-announcements_${dateStr}.json`;
-
-  let existing = StorageService.readJson(logPath) || [];
-  const title = ann.title || ann.subject || ann.headline || '';
-  const name = ann.name || ann.companyName || '';
-  const companyId =
-    resolveCompanyId(
-      { symbol: ann.companyId || ann.ticker, companyName: name },
-      { fallback: false }
-    ) ||
-    ann.companyId ||
-    '';
-  existing.push({
-    companyId,
-    name,
-    title,
-    description: String(ann.description || '').slice(0, 300),
-    matchedKeyword: matchedKw,
-    createdAt: ann.createdAt || '',
-  });
-  await StorageService.saveJson(logPath, existing, false);
-}
+// logIgnoredAnnouncement moved to lib/noiseKeywordFilter.js (2026-09-17) —
+// postCloseScanInsights.js needed the identical "match, log, drop" policy,
+// and duplicating it per-script is exactly what conventions.md §17 forbids.
+// Imported at the top of this file; kept as the same name so every existing
+// call site below is unchanged.
 
 /**
  * Log a heavy-document skip (results/concall_transcript/investor_presentation/
@@ -513,23 +495,35 @@ async function cmdFetchAnnouncements(watchlistIdsArg, client = stockscans) {
     const annId = announcementId(ann);
     const pdfUrl = ssUrl ? `${S3_BASE_URL}${ssUrl}` : '';
 
-    // Log-and-flag, never drop: this used to `continue` here, permanently
-    // excluding a noise-keyword-matched announcement from `results` before
-    // watchlist-insights ever got a chance to read it — the same title/
-    // description-based exclusion that made gainers-signal miss real triggers
-    // on 2026-09-04 (see announcementTaxonomy.js's `filterNoise` doc comment
-    // for the sibling fix). The noise-keyword list is genuinely reliable for
-    // its intended targets (IEPF unclaimed dividend, trading-window closure,
-    // ESOP allotment, scrutinizer reports) — pure exchange-mandated boilerplate
-    // with no business content — but "genuinely reliable" is still a title
-    // guess, not a read, so the item stays in `results` with `noiseFlagged:
-    // true` and Step 2 of the skill still has the option to look at it. Only
-    // the log call (for insight-validation's false-positive review) is
-    // unconditional now.
-    const noiseKw = matchedNoiseKeyword(title, description);
-    if (noiseKw !== null) {
-      await logIgnoredAnnouncement(ann, noiseKw);
-    }
+    // Reverted 2026-09-17 (Darshan's explicit correction, applied here to
+    // match the identical fix in postCloseScanInsights.js's cmdFilterNoise —
+    // see that file's doc comment for the full incident writeup). This used
+    // to `continue` here, dropping a noise-keyword match before
+    // watchlist-insights ever read it. Between 2026-09-05 and 2026-09-17 that
+    // was changed to log-and-flag-but-keep, on the reasoning that the
+    // keyword list is "still just a title guess" — but `announcement-noise-
+    // keywords` is a curated, app-editable PRE-FILTER Darshan maintains for
+    // announcement types that are never worth reading at all (IEPF unclaimed
+    // dividend, trading-window closure, ESOP allotment, AGM/EGM notices,
+    // postal ballots, analyst/investor-meet intimations, dividend/record-date
+    // mechanics, credit-rating routine updates), a different and more
+    // trustworthy signal than the automatic, title-only category/strength
+    // guess `categoriseAnnouncement()` makes below (which correctly still
+    // requires an actual read before its strength is trusted — see
+    // skills/equity-research/_shared/scan-signal-pipeline.md "Strength is
+    // never judged from a title"). The 2026-09-05 fix's motivating incident
+    // (gainersScanner.js title-classifying PC Jeweller/Jindal Worldwide/SML
+    // Mahindra as ROUTINE) never involved a noise-keyword match — conflating
+    // the two layers was a scope error, confirmed live 2026-09-17 in
+    // post-close-scan-insights (NSE:MIDHANI's "Change in Directorate" and
+    // NSE:LOKESHMACH's "Change in Management" both correctly matched an
+    // existing keyword, got flagged, and were still fully read/digested
+    // anyway). The log call remains unconditional either way — it is the
+    // false-positive audit trail Darshan reviews to catch an over-broad
+    // keyword before it costs something material, and that value doesn't
+    // depend on whether the match also drops the item.
+    const noiseCheck = await checkAndLogNoise(ann);
+    if (noiseCheck.drop) continue;
 
     const co = NotesDb.getCompany(notes, companyId);
     const processedByUsecase = (co && co.processedByUsecase) || {};
@@ -579,12 +573,13 @@ async function cmdFetchAnnouncements(watchlistIdsArg, client = stockscans) {
       // watchlist-insights' SKILL.md Step 2.
       heavyDocument,
       heavyDocumentSkipReason: heavyDocument ? heavyDocumentSkipReason(category) : null,
-      // Title/description-only signal, provisional — see the fix note above
-      // `matchedNoiseKeyword` call. `category` itself is also title-only at
-      // this point; announcement-insights' actual read is what finalizes
-      // what this filing means, not this field.
-      noiseFlagged: noiseKw !== null,
-      noiseKeyword: noiseKw,
+      // A noise-keyword match `continue`s above, before this push — so
+      // noiseFlagged/noiseKeyword are always false/null on anything that
+      // reaches here. Kept on the result shape (rather than removed) for
+      // continuity with any caller/report that reads these fields, same
+      // reasoning as postCloseScanInsights.js's cmdCategorise.
+      noiseFlagged: false,
+      noiseKeyword: null,
       hasNotes: co !== null,
       noteCount: co ? (co.notes || []).length : 0,
     });
@@ -708,6 +703,75 @@ async function cmdReadPdfWithMeta(url, ...rest) {
   // announcement would. See cloud-utils/src/pdfText.js ocrPdf() history.
   process.stdout.write(
     JSON.stringify({ text, numPages, isHeavyParse, ocrFailed, truncated, originalChars })
+  );
+}
+
+/**
+ * prefetch-pdfs <urlsJsonFile> [--concurrency N] [--full]
+ *
+ * Warms the shared Tier-1 pdf-text cache (readOrFetchPdfMeta) for a whole
+ * batch of URLs CONCURRENTLY, before the orchestrating skill starts its
+ * sequential read-judge-write loop over each item. This exists because a
+ * single cold PDF fetch against Stockscans has been observed taking 30-60+
+ * seconds (no CDN warm cache for a just-filed document, no client retry) —
+ * with post-close-scan-insights' post-close slot routinely needing 80+ fresh
+ * reads in one run, a strictly one-at-a-time `read-pdf-with-meta` loop pays
+ * that full network latency 80+ times in series, which is the dominant cost
+ * in a slow Step 3 (confirmed 2026-09-17: a single cold fetch exceeded 60s;
+ * a 96-item batch's Step 3 took ~155 minutes wall-clock, of which a large,
+ * variable fraction was pure sequential PDF-fetch wait).
+ *
+ * Uses the SAME `readOrFetchPdfMeta`/`pdfCachePath` as `read-pdf-with-meta` —
+ * this is a concurrency wrapper around that exact function, not a second
+ * fetch/parse implementation (conventions.md §17: never think or write the
+ * same thing twice). After this command returns, every URL's text is already
+ * in `cache/pdf-text/` (or `cache/pdf-text-full/` with `--full`), so the
+ * orchestrator's subsequent per-item `read-pdf-with-meta` calls are all cache
+ * hits — fast, and safe to keep sequential since the judgment/write step for
+ * each item still needs to happen one at a time regardless.
+ *
+ * `--concurrency` defaults to 8, matching this repo's existing convention
+ * (conventions.md §16: "8-10 concurrent is a reasonable default against
+ * Stockscans"). A single URL's fetch failure does not abort the batch —
+ * mapWithConcurrency's per-item ok/error shape means the rest still warm the
+ * cache; the orchestrator's own per-item read-pdf-with-meta call will simply
+ * pay the cold-fetch cost again for whichever URLs failed to prefetch.
+ *
+ * Prints a JSON summary: {requested, ok, failed, tookMs, failedUrls: [...]}.
+ */
+async function cmdPrefetchPdfs(urlsFile, ...rest) {
+  const full = rest.includes('--full');
+  const concurrencyArg = argValue('--concurrency', rest);
+  const concurrency = concurrencyArg ? Math.max(1, parseInt(concurrencyArg, 10)) : 8;
+  const urls = JSON.parse(fs.readFileSync(urlsFile, 'utf8'));
+  if (!Array.isArray(urls)) {
+    throw new Error('prefetch-pdfs expects a JSON array of URLs in the given file');
+  }
+  const startedAt = Date.now();
+  const results = await mapWithConcurrency(urls, concurrency, async (url) => {
+    if (!url) return { skipped: true };
+    await readOrFetchPdfMeta(url, { full });
+    return { url };
+  });
+  const failed = [];
+  let ok = 0;
+  results.forEach((r, i) => {
+    if (r.ok) ok += 1;
+    else failed.push({ url: urls[i], error: String(r.error && r.error.message) });
+  });
+  process.stdout.write(
+    JSON.stringify(
+      {
+        requested: urls.length,
+        ok,
+        failed: failed.length,
+        concurrency,
+        tookMs: Date.now() - startedAt,
+        failedUrls: failed,
+      },
+      null,
+      2
+    )
   );
 }
 
@@ -1185,6 +1249,8 @@ const COMMANDS = {
   // arity 2 so the optional `--full` flag reaches cmdReadPdfWithMeta; with arity
   // 1 the arg slice dropped it and every heavy read silently stayed truncated.
   'read-pdf-with-meta': [cmdReadPdfWithMeta, 2],
+  // arity 3 so both --concurrency <n> and --full reach cmdPrefetchPdfs.
+  'prefetch-pdfs': [cmdPrefetchPdfs, 3],
   'get-company-notes': [cmdGetCompanyNotes, 1],
   'add-note': [cmdAddNote, 0],
   'mark-processed': [cmdMarkProcessed, 3],
@@ -1207,6 +1273,53 @@ function readStdin() {
   }
 }
 
+// ── Per-command timing log (shared across every caller of this file) ────────
+//
+// Added 2026-09-17. `watchlistInsights.js` backs several skills'
+// per-announcement loops (`watchlist-insights`, `announcement-insights`,
+// `post-close-scan-insights`, `gainers-signal`) that shell out to this CLI
+// ONE COMMAND PER PROCESS, dozens to a hundred-plus times in a single run —
+// each `read-pdf-with-meta` call is a separate `node watchlistInsights.js`
+// invocation. A slow run (e.g. post-close-scan-insights' Step 3 taking ~155
+// minutes for 96 items on 2026-09-17) previously had no per-command timing
+// at all, so there was no way to tell — after the fact, or while it's still
+// running — how much of that was PDF-fetch network wait (confirmed capable
+// of 30-60+s per COLD document against Stockscans, no CDN warm cache for a
+// just-filed document) versus LLM reasoning/tool-call round-trips.
+//
+// Appends one line per invocation to
+// `data/runs/watchlist-insights-cli-timings-<YYYYMMDD>.jsonl` — same shape
+// and same reasoning as postCloseScanInsights.js's own `withStepTiming`
+// (diagnostic/ephemeral, not a new `events`-collection type; §25 of
+// conventions.md already covers whole-run duration separately). A caller
+// tailing this file mid-run (`tail -f`) sees exactly which command is
+// in flight and for how long, which is what a hung/slow cold PDF fetch
+// needs to be diagnosable WHILE it's happening, not just after the fact.
+function cliTimingLogPath() {
+  const d = new Date();
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return path.join(
+    __dirname,
+    '..',
+    '..',
+    'data',
+    'runs',
+    `watchlist-insights-cli-timings-${y}${m}${day}.jsonl`
+  );
+}
+
+function appendCliTimingLine(obj) {
+  try {
+    const full = cliTimingLogPath();
+    fs.mkdirSync(path.dirname(full), { recursive: true });
+    fs.appendFileSync(full, JSON.stringify(obj) + '\n', 'utf8');
+  } catch {
+    // Timing is diagnostic only — never let a logging failure fail the run.
+  }
+}
+
 async function runCli(argv) {
   const cmd = argv[0];
   if (!cmd || !COMMANDS[cmd]) {
@@ -1220,9 +1333,34 @@ async function runCli(argv) {
   // stdin-or-arg commands
   if ((cmd === 'add-note' || cmd === 'send-summary') && !argv[1]) args = [readStdin()];
   else if (cmd === 'add-note' || cmd === 'send-summary') args = [argv[1]];
+  // First positional arg only (e.g. the PDF URL / companyId), truncated —
+  // enough to identify which item was slow in the log without dumping an
+  // entire note JSON payload into a timing line.
+  const argSummary = args[0] != null ? String(args[0]).slice(0, 120) : null;
+  const t0 = Date.now();
+  const jobNameForLog = process.env.STOCKMARKET_JOB_NAME || null;
   try {
     await fn(...args);
+    const tookMs = Date.now() - t0;
+    appendCliTimingLine({
+      command: cmd,
+      arg: argSummary,
+      job: jobNameForLog,
+      tookMs,
+      status: 'ok',
+      atIso: new Date().toISOString(),
+    });
   } catch (e) {
+    const tookMs = Date.now() - t0;
+    appendCliTimingLine({
+      command: cmd,
+      arg: argSummary,
+      job: jobNameForLog,
+      tookMs,
+      status: 'error',
+      error: e.message,
+      atIso: new Date().toISOString(),
+    });
     process.stderr.write(JSON.stringify({ error: e.message, command: cmd }));
     process.exit(1);
   }
@@ -1249,6 +1387,7 @@ module.exports = {
   windowCursorKey,
   cmdMarkProcessed,
   cmdAddNote,
+  cmdPrefetchPdfs,
   defaultUsecase,
   usecaseMatchesPrefix,
   pickDigestNote,

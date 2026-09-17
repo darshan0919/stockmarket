@@ -26,6 +26,8 @@ automation), which run via Claude Code/Cowork. The `screener-api` +
 | [Testing Guide](./TESTING.md)                               | Testing strategies and conventions                                                      |
 | [Contributing](./CONTRIBUTING.md)                           | Contribution guidelines                                                                 |
 | [Stockscans API Schemas](./stockscans-api-schemas.md)       | Stockscans endpoint payload/response contracts                                          |
+| [NSE API Schemas](./nse-api-schemas.md)                     | NSE announcements and historical deals contracts                                        |
+| [BSE API Schemas](./bse-api-schemas.md)                     | BSE market-wide SAST and bulk/block deals contracts                                     |
 | [Anthropic API Schemas](./anthropic-api-schemas.md)         | Anthropic Messages API contract used by jobs-runtime digests                            |
 | [Google Drive API Schemas](./google-drive-api-schemas.md)   | Google Drive API v3 sync contracts used by cloud-utils and jobs-runtime                 |
 | [Order Book Extraction](./ORDER_BOOK_EXTRACTION.md)         | Order-book scraping/parsing pipeline                                                    |

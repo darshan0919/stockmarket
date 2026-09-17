@@ -73,16 +73,37 @@ run fetch-announcements "$WATCHLIST_IDS"                      # deterministic de
 run fetch-announcements "$WATCHLIST_IDS" --window-hours 72     # explicit override, e.g. a deliberate wider catch-up
 ```
 
-Returns a JSON array of new, unprocessed announcements — each with a `category`,
-`pdfUrl`, and a provisional (title/description-only, see
+Returns a JSON array of new, unprocessed announcements — each with a
+`category` and `pdfUrl`. **Reverted 2026-09-17 (Darshan's explicit
+correction, applied here to match the identical fix in
+`post-close-scan-insights`): a genuine `announcement-noise-keywords` match is
+dropped again before this array is returned — it never reaches this step at
+all.** Between 2026-09-05 and 2026-09-17 this command stopped dropping
+anything, on the reasoning that the keyword list was "just a title guess" —
+but `announcement-noise-keywords`
+(`stock-api/src/data/announcement-noise-keywords.json`) is a curated,
+app-editable PRE-FILTER Darshan maintains for announcement types that are
+never worth reading at all (IEPF unclaimed dividend, trading-window closure,
+ESOP allotment, AGM/EGM notices, postal ballots, analyst/investor-meet
+intimations, dividend/record-date mechanics, credit-rating routine updates),
+a different and more trustworthy signal than the automatic, title-only
+category/strength guess `categoriseAnnouncement()` makes (see
 `skills/equity-research/_shared/scan-signal-pipeline.md` "Strength is never
-judged from a title") `noiseFlagged`/`noiseKeyword` pair. **Fixed 2026-09-05:
-noise-keyword matches used to be dropped here before this array was even
-returned — they now stay in the array, tagged, and logged for the validator.**
-Do not skip a `noiseFlagged: true` item without processing it the same way as
-any other — the keyword list is a title guess, not a read, and the whole point
-of this fix is that a title guess is never sufficient grounds to exclude an
-announcement from analysis.
+judged from a title" — that rule is about the taxonomy's category guess, and
+remains fully in force at that layer: a category/strength verdict is never
+final until the PDF has actually been read). The 2026-09-05 fix's motivating
+incident (`gainersScanner.js` title-classifying PC Jeweller/Jindal
+Worldwide/SML Mahindra as ROUTINE) never involved a noise-keyword match at
+all — conflating the two layers was a scope error, confirmed live 2026-09-17
+in `post-close-scan-insights` (NSE:MIDHANI's "Change in Directorate" and
+NSE:LOKESHMACH's "Change in Management" both correctly matched an existing
+keyword, got flagged, and were still fully read/digested anyway under the
+interim behavior). Every match is still logged to
+`cache/ignored-announcements_<YYYYMMDD>.json` regardless of the drop — that
+log is the false-positive audit trail for catching an over-broad keyword
+before tuning the list, and its value doesn't depend on whether the match
+also excludes the item. `noiseFlagged`/`noiseKeyword` no longer appear on
+anything this command returns, since a match never survives to be tagged.
 
 **Significance, and the review layer.** `lib/announcementTaxonomy.js` also
 emits `significance` (VERY_HIGH / HIGH / NORMAL) — "does this plausibly change

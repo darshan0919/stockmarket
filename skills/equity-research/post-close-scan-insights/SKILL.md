@@ -160,7 +160,12 @@ run categorise <filter-noise-output.json>     # -> [{companyId, category, heavyD
 ```
 
 **Added 2026-09-13 — `categorise` also tags same-day companion/duplicate
-filings, tag-and-keep (never drop), same discipline as noise-flagging above.**
+filings, tag-and-keep (never drop).** Unlike a Step 2 noise-keyword match
+(a real, curated exclusion — see above), a duplicate-group follower is a
+genuine, non-routine announcement that simply restates a sibling filing's
+content; dropping it outright would lose the record entirely rather than
+route it to the lead's already-written insight, which is why this stays
+tag-and-keep even though noise-keyword matching does not.
 A run-report finding: roughly 15-20% of PDF reads in a 246-item batch were
 exact-duplicate or same-day companion filings for one underlying event (a
 board-outcome Reg 30 filing, its own press release, and an investor
@@ -181,19 +186,42 @@ must still get its own read; this groups only same-day noise, mirroring
 `announcement-info-classifier`'s own Step 3e same-day exclusion rule for the
 identical underlying reason.
 
-**Fixed 2026-09-05 — `filter-noise` no longer drops anything.** It used to
-route a keyword match straight to `dropped` and out of the pipeline before
-anyone read the PDF — a title/description-based exclusion of exactly the kind
-that made gainers-signal miss real triggers on 2026-09-04 (PC Jeweller's
-debt-clearance update, Jindal Worldwide's showroom-rollout press release — see
-`skills/equity-research/_shared/scan-signal-pipeline.md` "Strength is never
-judged from a title"). Every item now comes back in `kept`, tagged
-`noiseFlagged`/`noiseKeyword`; `dropped` is always `[]`. **Process a
-`noiseFlagged: true` item exactly like any other** — read its PDF, run it
-through the same Step 3/4 pipeline, and let the actual content (not the title
-guess) decide whether it produces a note. The keyword list is still useful as
-a title-only hint (these ARE usually pure boilerplate: IEPF unclaimed
-dividend, trading-window closure, ESOP allotment), but a hint is not a read.
+**Reverted 2026-09-17 (Darshan's explicit correction) — `filter-noise` DROPS
+a keyword match again, before any PDF is read.** Between 2026-09-05 and
+2026-09-17 this command stopped dropping anything — every keyword match was
+tagged `noiseFlagged: true` but still sent through the full read/judge/write
+pipeline. That change conflated two different layers: `announcement-noise-
+keywords` (`stock-api/src/data/announcement-noise-keywords.json`) is a
+curated, app-editable PRE-FILTER — a list Darshan maintains of announcement
+types that are never worth reading at all (AGM/EGM notices, postal ballots,
+analyst/investor-meet intimations, dividend/record-date mechanics, ESOP
+allotments, credit-rating routine updates, trading-window closures, and
+similar) — versus the taxonomy's automatic, best-effort category-to-strength
+guess (see "Strength is never judged from a title" in
+`skills/equity-research/_shared/scan-signal-pipeline.md`), which is genuinely
+unreliable from a title alone and correctly still requires a real read before
+any strength verdict. The 2026-09-05 fix's motivating incident (PC Jeweller's
+debt-clearance update, Jindal Worldwide's showroom-rollout press release,
+SML Mahindra's monthly volume update all mis-classified ROUTINE by
+`gainersScanner.js`'s title-only taxonomy guess) never involved a noise-
+keyword match at all — none of those three titles matched anything in this
+skill's keyword list. Disabling the keyword pre-filter to fix a taxonomy
+problem was a scope error, confirmed live 2026-09-17: NSE:MIDHANI's "Change
+in Directorate" (a routine MoD nominee-director rotation) and
+NSE:LOKESHMACH's "Change in Management" (an operational VP hire, not a board
+change) both correctly matched keywords already in the list, got flagged,
+and were still fully read/judged/digested anyway — the exact outcome the
+curated list exists to prevent.
+
+**"Never judge strength from a title alone" is still fully in force — it now
+applies ONLY at Step 2's `categorise` (the taxonomy layer), never at this
+pre-filter.** A `filter-noise` keyword match is a deliberate exclusion
+Darshan configured; a `categorise` category guess is an automatic,
+unreliable-until-read classification. Do not re-conflate the two again — if
+a genuinely material announcement is ever found hiding behind a matched
+noise keyword, the fix is to tune the keyword list (it's editable via the
+app; overly broad entries like `Clarification`/`Dividend` should be narrowed
+if they start catching something material, not to disable dropping again).
 
 Both reuse the SAME shared modules `watchlist-insights` uses —
 `stock-api/src/utils/announcementNoiseFilter.js` (keyword lists, one shared
@@ -217,16 +245,67 @@ scoring step: it reasons over the filing independently, its verdict overrides
 the script's, and each disagreement it records makes the script better. Run its
 `promote-rule --auto` once per slot, not per filing.
 
-Record `kept.filter(i => i.noiseFlagged).length` — it replaces the old
-`dropped.length` as the `noiseDropped` footer stat (kept the same field name
-for continuity with historical footers, even though nothing is actually
-dropped anymore — see the funnel-reconciliation note in Step 7).
+Record the `noiseDropped` footer stat from `filter-noise`'s own
+`dropped.length` (Step 2, above `categorise`) — since the 2026-09-17 revert,
+`categorise` never sees a noise-keyword match at all (it was excluded one
+step earlier), so `noiseFlagged`/`noiseKeyword` on anything `categorise`
+returns will always be `false`/`null`. Don't re-derive `noiseDropped` from
+`categorise`'s output.
 
 **Known taxonomy gaps exist** — a bare `"PPT <Month> <Year>"` title, generic
 `"Scheme of Arrangement"` language, and a generic `"Press Release"` title all
 mis-categorise in ways that matter. See `references/routing-rules.md`.
 
 ## Step 3 — Route each item
+
+**Prefetch first: warm the PDF cache concurrently before the sequential
+per-item loop below.** A single cold PDF fetch against Stockscans has been
+measured taking 30-60+ seconds (no CDN warm cache for a just-filed document,
+no client retry) — confirmed live 2026-09-17. Reading 80+ PDFs one at a time
+via `read-pdf-with-meta` therefore pays that full network latency 80+ times
+in series, which was the dominant, previously-unmeasured cost behind a
+96-item run's Step 3 taking ~155 minutes. Before starting the per-item loop,
+collect every non-followers, non-`alreadyProcessed` lead's `pdfUrl` (skip
+`heavyDocument: true` items here — Step 3's heavy-doc branch checks for a
+Filing Extract first, which is a different cache) into a JSON array file and
+run:
+
+```bash
+runwi prefetch-pdfs <pdf-urls.json> --concurrency 8
+```
+
+This uses the SAME shared `cache/pdf-text/` Tier-1 cache `read-pdf-with-meta`
+reads from — it is a concurrency wrapper around that exact function (Fixed
+`mapWithConcurrency`, `stock-api/src/utils/concurrency.js`), not a second
+fetch implementation. After it returns, every subsequent `read-pdf-with-meta`
+call in the per-item loop below is a cache hit (milliseconds, not seconds). A
+single URL's fetch failure does not abort the batch — check `failedUrls` in
+the command's JSON summary and expect those specific items to still pay the
+cold-fetch cost (and possibly the same slowness) when the per-item loop
+reaches them; report a non-empty `failedUrls` in the run report rather than
+silently retrying them here.
+
+**Per-step timing is now logged automatically — read it back for the run
+report.** Every `postCloseScanInsights.js` command writes a stderr progress
+line and a JSONL entry to
+`data/runs/post-close-scan-insights-timings-<YYYYMMDD>.jsonl`
+(`{step, event, atIso}` on start, `{step, event, status, tookMs, atIso}` on
+end). Every `watchlistInsights.js` CLI command (`read-pdf-with-meta`,
+`add-note`, `mark-processed`, `get-company-notes`, `prefetch-pdfs`, etc.)
+does the same to
+`data/runs/watchlist-insights-cli-timings-<YYYYMMDD>.jsonl`
+(`{command, arg, job, tookMs, status, atIso}`, `arg` truncated to 120 chars —
+usually the pdfUrl or companyId, enough to identify which item was slow).
+Both are plain append-only logs, not a new `events`-collection type (§25 of
+conventions.md already covers whole-run duration at coarser granularity) —
+tail them mid-run to see which command is in flight, and at the end of a run,
+sum `tookMs` grouped by `command`/`step` to report which stage actually ate
+the wall-clock time, rather than reconstructing it after the fact from a
+subagent's total duration (which conflates PDF-fetch wait with LLM reasoning
+time and can't tell a future run which one grew). Include a one-line summary
+of this breakdown in every run's final report from now on — e.g. "82
+read-pdf-with-meta calls, cache-hit median 12ms / cache-miss median 34s,
+total PDF-fetch wall time 9m40s out of Step 3's Xm total."
 
 For EACH item from Step 2:
 
@@ -483,7 +562,7 @@ commands are separate process invocations with no shared state):
 ```json
 {
   "total": 41, // inWindow.length from Step 1
-  "noiseDropped": 9, // kept.filter(i => i.noiseFlagged).length — title-only hint, NOT excluded from processing (see Step 2)
+  "noiseDropped": 9, // filter-noise output's dropped.length — a real, additive exclusion again since 2026-09-17 (see Step 2's "Reverted 2026-09-17" note): these never reach categorise/Step 3 at all
   "alreadyProcessed": 4, // categorise items with alreadyProcessed:true
   "duplicateCollapsed": 3, // categorise items with isDuplicateLead:false — routed to the lead's insight, no PDF read (see Step 2/3)
   "heavyDocSkipped": 5, // log-heavy-skip calls
@@ -651,14 +730,18 @@ prompt gets tuned into a broken one.
   `docs/DATA_RULES.md` §7): end every run listing every collection touched
   (record counts), every `cache/`/`runs/` file, and the `data:push` `↑ <file>`
   lines.
-- **One PDF at a time; no title-only insights, and no title-only exclusions.**
-  Every non-heavy-document announcement gets its PDF read and a quantified
-  insight — including `noiseFlagged` ones (see Step 2: the keyword list is a
-  hint, not a verdict). A category or strength label is never final until the
-  PDF has actually been opened. If a window returns an unusually large
-  `inWindow` set, say so in the run report rather than silently truncating
-  which announcements get read — an unreported truncation makes the digest's
-  absences meaningless.
+- **One PDF at a time; no title-only insights from the taxonomy layer.**
+  Every non-heavy-document announcement that SURVIVES the Step 2
+  `filter-noise` pre-filter gets its PDF read and a quantified insight — the
+  taxonomy's `category`/strength guess is never final until the PDF has
+  actually been opened (see Step 2's "Reverted 2026-09-17" note for why this
+  is scoped to the taxonomy layer, not the noise-keyword pre-filter). A
+  genuine `announcement-noise-keywords` match IS a title-only exclusion, by
+  design — that list is Darshan's curated "never worth reading" set, applied
+  BEFORE this rule's scope begins. If a window returns an unusually large
+  post-filter `inWindow` set, say so in the run report rather than silently
+  truncating which announcements get read — an unreported truncation makes
+  the digest's absences meaningless.
 - **Report the scan source.** If `scanSource` is not `live`, that goes in the
   run report prominently.
 - **Every note carries `usecase: "announcement-insights:<depth>"`** — same

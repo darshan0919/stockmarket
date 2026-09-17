@@ -19,6 +19,7 @@ const {
   collectCachedNotesSinceCutoff,
   normaliseFilingTitle,
   groupDuplicateFilings,
+  cmdFilterNoise,
 } = require('../postCloseScanInsights');
 const db = require('../lib/db');
 
@@ -259,7 +260,7 @@ describe('groupDuplicateFilings: tags companions without dropping any item', () 
     ...over,
   });
 
-  test('never changes the item count — tag-and-keep, same discipline as filter-noise', () => {
+  test('never changes the item count — tag-and-keep (unlike filter-noise, which drops a noise-keyword match; see cmdFilterNoise)', () => {
     const items = [
       base({ ssUrl: 'a.pdf' }),
       base({ ssUrl: 'b.pdf', title: 'Outcome Of Board Meeting - Press Release' }),
@@ -351,5 +352,85 @@ describe('groupDuplicateFilings: tags companions without dropping any item', () 
     expect(leads.length).toBe(1);
     expect(leads[0].ssUrl).toBe('1.pdf');
     expect(out.filter((i) => i.duplicateOf === '1.pdf').length).toBe(2);
+  });
+});
+
+describe('cmdFilterNoise: announcement-noise-keywords is a real pre-filter, not a tag', () => {
+  // Reverted 2026-09-17 (Darshan's explicit correction). Confirmed live the
+  // same day: NSE:MIDHANI's "Change in Directorate" and NSE:LOKESHMACH's
+  // "Change in Management" both matched an existing keyword, got flagged,
+  // and were still fully read/digested anyway under the interim
+  // tag-and-keep behavior this test now guards against regressing to.
+  function writeFetchScanFixture(items) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pcsi-filter-noise-'));
+    const file = path.join(dir, 'fetch-scan-out.json');
+    fs.writeFileSync(file, JSON.stringify({ inWindow: items }));
+    return file;
+  }
+
+  async function runFilterNoise(items) {
+    const file = writeFetchScanFixture(items);
+    let captured = '';
+    const spy = jest.spyOn(process.stdout, 'write').mockImplementation((s) => {
+      captured += s;
+      return true;
+    });
+    // cmdFilterNoise is async since it now awaits checkAndLogNoise's audit-log
+    // write per item (lib/noiseKeywordFilter.js) — must be awaited here or
+    // the stdout capture below races the write and reads an empty string.
+    await cmdFilterNoise([file]);
+    spy.mockRestore();
+    return JSON.parse(captured);
+  }
+
+  test('a genuine noise-keyword match is dropped, not merely tagged', async () => {
+    const out = await runFilterNoise([
+      {
+        companyId: 'NSE:MIDHANI',
+        name: 'Mishra Dhatu Nigam Ltd',
+        title: 'Announcement under Regulation 30 (LODR)-Change in Directorate',
+        description:
+          'Change in Directorate - Appointment and tenure end of Government Nominee Director.',
+      },
+      {
+        companyId: 'NSE:LOKESHMACH',
+        name: 'Lokesh Machines Ltd',
+        title: 'Announcement under Regulation 30 (LODR)-Change in Management',
+        description: 'Change in Management - Appointment of Mr. G Ranganath as VP - Operations.',
+      },
+      {
+        companyId: 'NSE:ORDER',
+        name: 'Some Order Company',
+        title: 'Bagging of large order',
+        description: 'EPC win worth Rs 200cr',
+      },
+    ]);
+    expect(out.kept.length).toBe(1);
+    expect(out.kept[0].companyId).toBe('NSE:ORDER');
+    expect(out.dropped.length).toBe(2);
+    const droppedIds = out.dropped.map((i) => i.companyId).sort();
+    expect(droppedIds).toEqual(['NSE:LOKESHMACH', 'NSE:MIDHANI']);
+    // Every dropped item still carries the matched keyword for the run
+    // report / false-positive audit trail — dropping and reporting are not
+    // mutually exclusive.
+    for (const item of out.dropped) {
+      expect(item.noiseFlagged).toBe(true);
+      expect(item.noiseKeyword).toBeTruthy();
+    }
+  });
+
+  test('a non-matching item is kept and carries noiseFlagged:false', async () => {
+    const out = await runFilterNoise([
+      {
+        companyId: 'NSE:ORDER',
+        name: 'Some Order Company',
+        title: 'Bagging of large order',
+        description: 'EPC win worth Rs 200cr',
+      },
+    ]);
+    expect(out.kept.length).toBe(1);
+    expect(out.dropped.length).toBe(0);
+    expect(out.kept[0].noiseFlagged).toBe(false);
+    expect(out.kept[0].noiseKeyword).toBe(null);
   });
 });

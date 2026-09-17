@@ -585,7 +585,7 @@ describe('note timestamp is single-source (regression for the two-competing-time
 });
 
 describe('cmdFetchAnnouncements end-to-end (mock client + temp notes)', () => {
-  test('tags noise (never drops) + already-processed, tags category', async () => {
+  test('drops a noise-keyword match, tags category on survivors', async () => {
     const { stockscans } = require('@stock/api');
     stockscans.validateAuth = jest.fn().mockResolvedValue(true);
     const now = Date.now();
@@ -616,19 +616,20 @@ describe('cmdFetchAnnouncements end-to-end (mock client + temp notes)', () => {
     await wi.cmdFetchAnnouncements('wl-1,wl-2', stockscans);
     spy.mockRestore();
 
-    // Fixed 2026-09-05: a noise-keyword match used to be dropped here before
-    // this array was even returned — the same title-based pre-read exclusion
-    // that made gainers-signal miss real triggers live. It now stays in the
-    // array, tagged, so watchlist-insights' Step 2 still gets a chance to
-    // read it rather than never seeing it at all.
+    // Reverted 2026-09-17 (Darshan's explicit correction — see the doc
+    // comment above the `matchedNoiseKeyword` call in cmdFetchAnnouncements):
+    // `announcement-noise-keywords` is a curated pre-filter and must drop a
+    // match before this array is even returned, same as it did before the
+    // 2026-09-05 change conflated it with the taxonomy's separate "never
+    // judge strength from a title alone" rule (which still applies, but only
+    // to the category/strength guess on items that survive this filter).
     const out = JSON.parse(captured);
-    expect(out).toHaveLength(2);
+    expect(out).toHaveLength(1);
     const order = out.find((a) => a.companyId === 'NSE:ORDER');
     const noise = out.find((a) => a.companyId === 'NSE:NOISE');
     expect(order.category).toBe('order_book');
     expect(order.pdfUrl).toBe('https://s3.example/docs/order.pdf');
     expect(order.noiseFlagged).toBe(false);
-    expect(noise.noiseFlagged).toBe(true);
-    expect(noise.noiseKeyword).toMatch(/trading window/i);
+    expect(noise).toBeUndefined();
   });
 });

@@ -192,6 +192,61 @@ class NseClient {
    * @param {string} [index='equities'] - 'equities' | 'sme'
    * @returns {Promise<Array>}
    */
+  /**
+   * @typedef {Object} NseCorporateAnnouncement
+   * @property {string} symbol - NSE ticker symbol
+   * @property {string} desc - Announcement subject/description (e.g. 'Disclosure under SEBI Takeover Regulations')
+   * @property {string} sm_name - Company name
+   * @property {string} sm_isin - ISIN code
+   * @property {string|null} smIndustry - Industry name if available
+   * @property {string} an_dt - Announcement date & time (DD-Mon-YYYY HH:mm:ss)
+   * @property {string} sort_date - ISO-like sort date (YYYY-MM-DD HH:mm:ss)
+   * @property {string} attchmntText - Filing synopsis or covering note text
+   * @property {string} attchmntFile - Absolute URL to attached PDF/filing
+   * @property {string} fileSize - Human-readable attachment file size
+   * @property {string} exchdisstime - Exchange dissemination timestamp
+   * @property {boolean} hasXbrl - Whether XBRL data was submitted with filing
+   * @property {string} seq_id - Filing sequence identifier
+   */
+
+  /**
+   * Corporate announcements feed across NSE index buckets or for a single symbol.
+   * Endpoint: /api/corporate-announcements?index=equities|sme&from_date=DD-MM-YYYY&to_date=DD-MM-YYYY
+   * Supports either an options object or positional (fromDate, toDate, symbol).
+   *
+   * @param {Object|string} [optionsOrFromDate] - Options object { fromDate, toDate, symbol, index } OR fromDate string (DD-MM-YYYY)
+   * @param {string} [toDate] - DD-MM-YYYY
+   * @param {string} [symbol] - Optional single-symbol filter
+   * @returns {Promise<NseCorporateAnnouncement[]>}
+   */
+  async getCorporateAnnouncements(optionsOrFromDate, toDate, symbol) {
+    let fromDate;
+    let index = 'equities';
+    let sym = symbol;
+
+    if (optionsOrFromDate && typeof optionsOrFromDate === 'object') {
+      fromDate = optionsOrFromDate.fromDate;
+      toDate = optionsOrFromDate.toDate;
+      index = optionsOrFromDate.index || 'equities';
+      sym = optionsOrFromDate.symbol || sym;
+    } else {
+      fromDate = optionsOrFromDate;
+    }
+
+    const params = { index };
+    if (fromDate) params.from_date = fromDate;
+    if (toDate) params.to_date = toDate;
+    if (sym) params.symbol = String(sym).toUpperCase();
+
+    const res = await this.session.get('/corporate-announcements', {
+      params,
+      referer: `${NSE_HOME_URL}companies-listing/corporate-filings-announcements`,
+      symbol: sym,
+      timeout: 30000,
+    });
+    return Array.isArray(res.data) ? res.data : res.data?.data || [];
+  }
+
   async getSastReg29(fromDate, toDate, index = 'equities') {
     const res = await this.session.get('/corporate-sast-reg29', {
       params: { index, from_date: fromDate, to_date: toDate },
@@ -288,35 +343,6 @@ class NseClient {
     const res = await this.session.get('/corporate-board-meetings', {
       params,
       referer: `${NSE_HOME_URL}companies-listing/corporate-filings-board-meetings`,
-      timeout: 30000,
-    });
-    return Array.isArray(res.data) ? res.data : res.data?.data || [];
-  }
-
-  /**
-   * Corporate announcements (results, concalls/investor meets, order wins, press
-   * releases, etc.) with second-precision timestamps.
-   * Endpoint verified live 10-Jul-2026: /api/corporate-announcements — confirmed
-   * against Elecon Engineering's actual "Outcome of Board Meeting" (results) at
-   * 11:47:44 IST same day.
-   * Row fields of interest: symbol, desc (category — filter on this, e.g.
-   * "Financial Results", "Outcome of Board Meeting", "Analysts/Institutional
-   * Investor Meet/Con. Call Updates", "Award of Order(s)/Contract(s)"), an_dt
-   * (submission time), exchdisstime (exchange dissemination time — use this as
-   * the canonical event timestamp, both 'DD-Mon-YYYY HH:mm:ss').
-   * @param {string} fromDate - DD-MM-YYYY
-   * @param {string} toDate   - DD-MM-YYYY
-   * @param {string} [symbol] - Optional single-symbol filter (also passed to the
-   *   session for cookie warmup so the first call for a symbol is more reliable).
-   * @returns {Promise<Array>}
-   */
-  async getCorporateAnnouncements(fromDate, toDate, symbol) {
-    const params = { index: 'equities', from_date: fromDate, to_date: toDate };
-    if (symbol) params.symbol = symbol.toUpperCase();
-    const res = await this.session.get('/corporate-announcements', {
-      params,
-      referer: `${NSE_HOME_URL}companies-listing/corporate-filings-announcements`,
-      symbol,
       timeout: 30000,
     });
     return Array.isArray(res.data) ? res.data : res.data?.data || [];

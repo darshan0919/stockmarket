@@ -266,6 +266,56 @@ class BseClient {
       return [];
     }
   }
+
+  /**
+   * @typedef {Object} BseSastAnnouncement
+   * @property {number} SCRIP_CD - BSE scrip code
+   * @property {string} SLONGNAME - Company long name
+   * @property {string} SUBCATNAME - Subcategory name (e.g. 'Disclosures under Reg. 29(2) of SEBI (SAST) Regulations, 2011')
+   * @property {string} HEADLINE - Headline text containing acquirer/seller details
+   * @property {string} NEWSSUB - Subject line
+   * @property {string} DissemDT - Canonical event dissemination timestamp (ISO)
+   * @property {string|null} ATTACHMENTNAME - Attachment PDF filename
+   * @property {string|null} NSURL - BSE stock URL
+   * @property {number} TotalPageCnt - Total available pages for this query
+   */
+
+  /**
+   * Market-wide SAST / Takeover announcements from BSE (AnnSubCategoryGetData/w).
+   * Unscoped across all BSE-listed scrips when strscrip is empty.
+   * Discovered 17-Sep-2026: category 'Insider Trading / SAST' returns all Reg 29/31/10 disclosures.
+   * @param {string} fromDate - YYYYMMDD
+   * @param {string} toDate   - YYYYMMDD
+   * @param {Object} [opts]
+   * @param {number} [opts.pageNo=1]
+   * @returns {Promise<BseSastAnnouncement[]>}
+   */
+  async getSastAnnouncements(fromDate, toDate, { pageNo = 1 } = {}) {
+    try {
+      const res = await bseGetJson('AnnSubCategoryGetData/w', {
+        params: {
+          pageno: pageNo,
+          strCat: 'Insider Trading / SAST',
+          subcategory: '-1',
+          strPrevDate: fromDate,
+          strToDate: toDate,
+          strSearch: 'P',
+          strscrip: '',
+          strType: 'C',
+        },
+        timeout: BSE_REQUEST_TIMEOUT_MS,
+      });
+      const rows = res?.Table || [];
+      // Filter for SAST/Takeover regulations, suppressing generic trading window closures
+      return rows.filter((r) =>
+        /Reg\.\s*(?:29|31|10)|sast|takeover/i.test(r.SUBCATNAME || r.NEWSSUB || '')
+      );
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn('BSE getSastAnnouncements failed:', error.message);
+      return [];
+    }
+  }
 }
 
 module.exports = { BseClient, parseBseSmartSearchHtml };
