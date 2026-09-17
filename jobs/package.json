@@ -42,6 +42,7 @@
     "nse-ipo-history-fetcher": "yarn workspace @stock/jobs-runtime nse-ipo-history-fetcher",
     "bse-ipo-history-fetcher": "yarn workspace @stock/jobs-runtime bse-ipo-history-fetcher",
     "learnyst-transcript-refresh": "yarn workspace @stock/jobs-runtime learnyst-transcript-refresh",
+    "learnyst-compress-audio": "yarn workspace @stock/jobs-runtime learnyst-compress-audio",
     "youtube-transcript-refresh": "yarn workspace @stock/jobs-runtime youtube-transcript-refresh",
     "delivery-volume-snapshot": "yarn workspace @stock/jobs-runtime delivery-volume-snapshot",
     "delivery-volume-report": "yarn workspace @stock/jobs-runtime delivery-volume-report",

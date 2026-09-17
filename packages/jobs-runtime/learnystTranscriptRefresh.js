@@ -111,7 +111,7 @@ const DEFAULT_FFMPEG_PATH = process.env.FFMPEG_PATH || 'ffmpeg';
 // By default only SOIC is processed; Chartitude / Chartist is disabled by
 // default and can be opted into via `--site chartitude` (or `--site chartist`)
 // or by setting LEARNYST_SITE_KEYS.
-const DEFAULT_SITE_KEYS = ['soic'];
+const DEFAULT_SITE_KEYS = ['soic', 'chartitude'];
 
 const SITE_ALIASES = {
   chartist: 'chartitude',
@@ -272,6 +272,14 @@ function parseArgs(argv) {
     skipAttachments: hasFlag('--skip-attachments', argv),
     attachmentsOnly: hasFlag('--attachments-only', argv),
     videoLessonId: argValue('--video', argv) || null,
+    audioLessonId: (
+      argValue('--audio', argv) ||
+      argValue('--compress-audio', argv) ||
+      ''
+    ).startsWith('--')
+      ? null
+      : argValue('--audio', argv) || argValue('--compress-audio', argv) || null,
+    compressAudio: hasFlag('--compress-audio', argv) || hasFlag('--audio', argv),
     quality: (argValue('--quality', argv) || 'HQ').toUpperCase(),
     moduleDelayMsOverride: argValue('--module-delay-ms', argv),
     lessonDelayMsOverride: argValue('--lesson-delay-ms', argv),
@@ -833,19 +841,27 @@ async function downloadLessonVideo(
  * @param {Array<Object>} sites Configured site objects
  * @returns {Promise<Object>} Download result
  */
-async function downloadSingleLessonVideo(args, sites) {
-  const targetLessonId = String(args.videoLessonId).trim();
-  console.log(`\n=== Single Lesson Video Download: Lesson ${targetLessonId} ===`);
-
+/**
+ * Look up a lesson across active Learnyst sites and modules.
+ * Checks existing cached collection first for instant jump, then searches bundle courses.
+ *
+ * @param {string|number} targetLessonId
+ * @param {Array<Object>} sites
+ * @returns {Promise<{ lesson: Object|null, siteCfg: Object|null, courseId: string|null, courseTitle: string|null }>}
+ */
+async function resolveLessonAcrossSites(targetLessonId, sites) {
+  const targetIdStr = String(targetLessonId).trim();
   let targetSiteCfg = null;
   let targetCourseId = null;
+  let targetCourseTitle = null;
   let targetLesson = null;
 
   // Try finding courseId and site from cached collection for instant jump
   const cachedLessons = db.loadFile(db.collectionFile('learnyst-lessons')) || {};
   for (const [id, entry] of Object.entries(cachedLessons)) {
-    if (entry && (String(entry.lessonId) === targetLessonId || id.endsWith(`_${targetLessonId}`))) {
+    if (entry && (String(entry.lessonId) === targetIdStr || id.endsWith(`_${targetIdStr}`))) {
       targetCourseId = entry.courseId;
+      targetCourseTitle = entry.courseTitle;
       targetSiteCfg = sites.find((s) => s.key === entry.site) || sites[0];
       break;
     }
@@ -855,7 +871,8 @@ async function downloadSingleLessonVideo(args, sites) {
   if (targetSiteCfg && targetCourseId) {
     try {
       const courseData = await fetchModuleLessons(targetSiteCfg, targetCourseId);
-      targetLesson = (courseData.lessons || []).find((l) => String(l.id) === targetLessonId);
+      targetCourseTitle = courseData.title || targetCourseTitle;
+      targetLesson = (courseData.lessons || []).find((l) => String(l.id) === targetIdStr);
     } catch (err) {
       console.warn(`Warning: failed to fetch cached course ${targetCourseId}: ${err.message}`);
     }
@@ -863,7 +880,6 @@ async function downloadSingleLessonVideo(args, sites) {
 
   // If not found yet, search across modules of all active sites
   if (!targetLesson) {
-    console.log(`Searching for lesson ${targetLessonId} across configured sites and modules...`);
     for (const cfg of sites) {
       const bundle = await fetchBundleModules(cfg);
       const modules = (bundle.bundleCourses || []).filter(
@@ -872,11 +888,12 @@ async function downloadSingleLessonVideo(args, sites) {
       for (const mod of modules) {
         try {
           const courseData = await fetchModuleLessons(cfg, mod.id);
-          const found = (courseData.lessons || []).find((l) => String(l.id) === targetLessonId);
+          const found = (courseData.lessons || []).find((l) => String(l.id) === targetIdStr);
           if (found) {
             targetLesson = found;
             targetSiteCfg = cfg;
             targetCourseId = mod.id;
+            targetCourseTitle = courseData.title || mod.title;
             break;
           }
         } catch (_err) {
@@ -887,23 +904,113 @@ async function downloadSingleLessonVideo(args, sites) {
     }
   }
 
-  if (!targetLesson) {
+  return {
+    lesson: targetLesson,
+    siteCfg: targetSiteCfg,
+    courseId: targetCourseId,
+    courseTitle: targetCourseTitle,
+  };
+}
+
+/**
+ * Compress a downloaded lesson video to an optimized audio track (AAC in M4A, 64kbps mono).
+ * Output path: data/assets/learnyst-audio/<lessonId>_<title>.m4a
+ *
+ * @param {Object} lesson Lesson object
+ * @param {string} videoPath Path to source video file
+ * @param {Object} [options]
+ * @param {boolean} [options.force=false]
+ * @param {string} [options.ffmpegPath]
+ * @returns {Promise<{ filename: string, localPath: string, sizeBytes: number, skipped: boolean }>}
+ */
+async function compressLessonAudio(
+  lesson,
+  videoPath,
+  { force = false, ffmpegPath = DEFAULT_FFMPEG_PATH } = {}
+) {
+  if (!videoPath || !fs.existsSync(videoPath)) {
+    throw new Error(`Cannot compress audio: source video does not exist at '${videoPath}'`);
+  }
+  const cleanTitle = sanitizeVideoFilename(lesson.title);
+  const filename = `${lesson.id}_${cleanTitle}.m4a`;
+  const destPath = db.learnystAudioPath(filename);
+
+  if (!force && db.hasLearnystAudio(filename)) {
+    let sizeBytes = null;
+    try {
+      sizeBytes = fs.statSync(destPath).size;
+    } catch (_err) {
+      // ignore
+    }
+    return {
+      filename,
+      localPath: destPath,
+      sizeBytes,
+      skipped: true,
+    };
+  }
+
+  await checkFfmpegAvailable(ffmpegPath);
+  const dir = path.dirname(destPath);
+  fs.mkdirSync(dir, { recursive: true });
+
+  const tmpPath = `${destPath}.tmp.${process.pid}.${Date.now()}.m4a`;
+  const ffmpegArgs = ['-y', '-i', videoPath, '-vn', '-c:a', 'copy', tmpPath];
+
+  try {
+    await execFileAsync(ffmpegPath, ffmpegArgs, { maxBuffer: 10 * 1024 * 1024 });
+    const stat = fs.statSync(tmpPath);
+    if (stat.size === 0) throw new Error('Compressed audio was 0 bytes');
+    fs.renameSync(tmpPath, destPath);
+    return {
+      filename,
+      localPath: destPath,
+      sizeBytes: stat.size,
+      skipped: false,
+    };
+  } catch (err) {
+    try {
+      if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
+    } catch (_ignore) {
+      // ignore cleanup error
+    }
+    throw new Error(`Failed to compress video to audio via ffmpeg: ${err.message}`);
+  }
+}
+
+/**
+ * Handle on-demand video download for a single target lesson ID across configured sites.
+ *
+ * @param {Object} args Parsed CLI arguments
+ * @param {Array<Object>} sites Configured site objects
+ * @returns {Promise<Object>} Download result
+ */
+async function downloadSingleLessonVideo(args, sites) {
+  const targetLessonId = String(args.videoLessonId).trim();
+  console.log(`\n=== Single Lesson Video Download: Lesson ${targetLessonId} ===`);
+
+  const { lesson, siteCfg, courseId, courseTitle } = await resolveLessonAcrossSites(
+    targetLessonId,
+    sites
+  );
+
+  if (!lesson) {
     throw new Error(
       `Lesson ${targetLessonId} could not be found in any configured Learnyst module.`
     );
   }
 
   console.log(
-    `Found lesson: "${targetLesson.title}" (ID: ${targetLesson.id}, Course: ${targetCourseId}, Site: ${targetSiteCfg.key})`
+    `Found lesson: "${lesson.title}" (ID: ${lesson.id}, Course: ${courseId}, Site: ${siteCfg.key})`
   );
 
-  if (!isVideoLesson(targetLesson)) {
+  if (!isVideoLesson(lesson)) {
     throw new Error(
       `Lesson ${targetLessonId} is not a video lesson (no video stream or YouTube URL found).`
     );
   }
 
-  const result = await downloadLessonVideo(targetSiteCfg, targetLesson, {
+  const result = await downloadLessonVideo(siteCfg, lesson, {
     force: args.force,
     quality: args.quality,
   });
@@ -922,25 +1029,143 @@ async function downloadSingleLessonVideo(args, sites) {
     );
   }
 
-  // Update cached transcript DTO with video metadata if present
-  const recordId = lessonRecordId(targetCourseId, targetLesson.id, targetSiteCfg.key);
-  const existing = db.readLearnystTranscript(recordId);
-  if (existing) {
-    existing.video = {
-      filename: result.filename,
-      localPath: result.localPath,
-      sizeBytes: result.sizeBytes,
-      quality: result.quality,
-      downloadedAt: new Date().toISOString(),
-    };
-    db.saveLearnystTranscript(existing);
-    console.log(`Updated lesson record ${recordId} with video metadata.`);
+  // Update cached transcript DTO with video metadata
+  const recordId = lessonRecordId(courseId, lesson.id, siteCfg.key);
+  let dto = db.readLearnystTranscript(recordId);
+  if (!dto) {
+    const cp = extractContentPath(lesson);
+    dto = buildTranscriptDto({
+      siteKey: siteCfg.key,
+      courseId,
+      courseTitle: courseTitle || null,
+      sectionId: lesson.section_id || null,
+      lesson,
+      contentPath: cp && cp.contentPath ? cp.contentPath : null,
+      apiResponse: null,
+    });
+    dto.transcriptSource = 'pending';
   }
+
+  dto.video = {
+    filename: result.filename,
+    localPath: result.localPath,
+    sizeBytes: result.sizeBytes,
+    quality: result.quality,
+    downloadedAt: new Date().toISOString(),
+  };
+  dto.videoPath = result.localPath;
+  db.saveLearnystTranscript(dto);
+  console.log(`Updated lesson record ${recordId} with video metadata.`);
 
   console.log('\nFiles touched:');
   for (const f of db.touchedFiles()) console.log(`  ${f}`);
 
   return result;
+}
+
+/**
+ * Compress downloaded video(s) into lightweight audio files (AAC M4A, 64kbps mono),
+ * and attach both videoPath and audioPath to the lesson's transcript DTO in db.js.
+ *
+ * @param {Object} args CLI arguments
+ * @param {Array<Object>} sites Configured Learnyst sites
+ */
+async function runAudioCompression(args, sites) {
+  const targetId = args.audioLessonId ? String(args.audioLessonId).trim() : null;
+  console.log(`\n=== Learnyst Audio Compression ===`);
+
+  const videoDir = path.join(db.dataRoot(), 'assets', 'learnyst-videos');
+  if (!fs.existsSync(videoDir)) {
+    throw new Error(`Video directory '${videoDir}' does not exist.`);
+  }
+
+  const allVideoFiles = fs
+    .readdirSync(videoDir)
+    .filter((f) => f.endsWith('.mp4') && !f.startsWith('.'));
+
+  if (!allVideoFiles.length) {
+    console.log('No downloaded Learnyst videos found to compress.');
+    return;
+  }
+
+  let filesToProcess = [];
+  if (targetId) {
+    filesToProcess = allVideoFiles.filter((f) => f.startsWith(`${targetId}_`));
+    if (!filesToProcess.length) {
+      throw new Error(`No downloaded video found for lesson ID ${targetId} in ${videoDir}`);
+    }
+  } else {
+    filesToProcess = allVideoFiles;
+  }
+
+  console.log(`Processing ${filesToProcess.length} video(s) for audio compression...`);
+
+  for (const videoFile of filesToProcess) {
+    const videoPath = path.join(videoDir, videoFile);
+    const lessonIdMatch = videoFile.match(/^(\d+)_/);
+    if (!lessonIdMatch) continue;
+    const lessonId = lessonIdMatch[1];
+
+    console.log(`\n--- Compressing Lesson ${lessonId} (${videoFile}) ---`);
+    const resolved = await resolveLessonAcrossSites(lessonId, sites);
+    if (!resolved || !resolved.lesson) {
+      console.warn(`Could not resolve lesson metadata for ID ${lessonId}, skipping.`);
+      continue;
+    }
+
+    const { lesson, siteCfg, courseId, courseTitle } = resolved;
+    const videoStat = fs.statSync(videoPath);
+    const audioResult = await compressLessonAudio(lesson, videoPath, {
+      force: args.force,
+    });
+
+    console.log(
+      audioResult.skipped
+        ? `Audio already cached: ${audioResult.localPath} (${Math.round((audioResult.sizeBytes || 0) / 1024 / 1024)} MB)`
+        : `Successfully compressed audio: ${audioResult.localPath} (${Math.round(audioResult.sizeBytes / 1024 / 1024)} MB)`
+    );
+
+    // Attach both videoPath and audioPath to lesson DTO
+    const recordId = lessonRecordId(courseId, lesson.id, siteCfg.key);
+    let dto = db.readLearnystTranscript(recordId);
+    if (!dto) {
+      const cp = extractContentPath(lesson);
+      dto = buildTranscriptDto({
+        siteKey: siteCfg.key,
+        courseId,
+        courseTitle: courseTitle || null,
+        sectionId: lesson.section_id || null,
+        lesson,
+        contentPath: cp && cp.contentPath ? cp.contentPath : null,
+        apiResponse: null,
+      });
+      dto.transcriptSource = 'pending';
+    }
+
+    dto.video = {
+      filename: videoFile,
+      localPath: videoPath,
+      sizeBytes: videoStat.size,
+      quality: dto.video?.quality || 'HQ',
+      downloadedAt: dto.video?.downloadedAt || new Date().toISOString(),
+    };
+    dto.videoPath = videoPath;
+
+    dto.audio = {
+      filename: audioResult.filename,
+      localPath: audioResult.localPath,
+      sizeBytes: audioResult.sizeBytes,
+      format: 'm4a',
+      compressedAt: new Date().toISOString(),
+    };
+    dto.audioPath = audioResult.localPath;
+
+    db.saveLearnystTranscript(dto);
+    console.log(`Attached videoPath and audioPath to lesson record ${recordId}.`);
+  }
+
+  console.log('\nFiles touched:');
+  for (const f of db.touchedFiles()) console.log(`  ${f}`);
 }
 
 // ── Persistence (learnyst-lessons collection — see db.js saveLearnystTranscript) ──
@@ -1052,6 +1277,16 @@ async function main() {
       await downloadSingleLessonVideo(args, sites);
     } catch (err) {
       console.error(`\nVideo download FAILED: ${err.message}`);
+      process.exitCode = 1;
+    }
+    return;
+  }
+
+  if (args.audioLessonId || args.compressAudio) {
+    try {
+      await runAudioCompression(args, sites);
+    } catch (err) {
+      console.error(`\nAudio compression FAILED: ${err.message}`);
       process.exitCode = 1;
     }
     return;
@@ -1410,6 +1645,9 @@ module.exports = {
   resolveLearnystVideoUrls,
   downloadLessonVideo,
   downloadSingleLessonVideo,
+  compressLessonAudio,
+  resolveLessonAcrossSites,
+  runAudioCompression,
   runSite,
   main,
   VIDEO_COURSE_TYPE,

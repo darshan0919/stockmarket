@@ -262,16 +262,26 @@ function collectionFile(collection, { date } = {}) {
 function checkpoint(file) {
   if (!fs.existsSync(file)) return;
   fs.mkdirSync(DIRS.checkpoints(), { recursive: true });
-  const name = `${path.basename(file, '.json')}.${Date.now()}.json`;
+  const prefix = `${path.basename(file, '.json')}.`;
+  const name = `${prefix}${Date.now()}.json`;
   fs.copyFileSync(file, path.join(DIRS.checkpoints(), name));
-  // No pruning here by design: checkpoints/, like the rest of data/, is kept as a
-  // full local mirror rather than deleted from (see docs/DATA_ECOSYSTEM.md §5 — push
-  // never deletes local files). Deleting old checkpoints previously used fs.rmSync,
-  // which throws EPERM in the Cowork sandbox (mounted repo folders there forbid
-  // deleting a file once written) and would abort the entire save() that triggered
-  // it. If checkpoints/ ever needs bounding, do it out-of-band (a separate,
-  // best-effort maintenance script the user runs locally) — never inline in the
-  // write path, so a save can never fail because a delete failed.
+
+  // Prune prior checkpoints for this collection to bound storage.
+  // Deletion is best-effort with try/catch so sandbox EPERM never aborts save().
+  try {
+    const existing = fs
+      .readdirSync(DIRS.checkpoints())
+      .filter((f) => f.startsWith(prefix) && f !== name);
+    for (const oldFile of existing) {
+      try {
+        fs.unlinkSync(path.join(DIRS.checkpoints(), oldFile));
+      } catch (_) {
+        // ignore delete failure (e.g. sandbox permissions)
+      }
+    }
+  } catch (_) {
+    // ignore readdir failure
+  }
 }
 
 function latestCheckpoint(file) {
@@ -792,6 +802,8 @@ function saveLearnystTranscript(dto) {
       attachmentPaths: Array.isArray(attachments)
         ? attachments.map((a) => a && a.localPath).filter(Boolean)
         : [],
+      videoPath: (dto.video && dto.video.localPath) || dto.videoPath || null,
+      audioPath: (dto.audio && dto.audio.localPath) || dto.audioPath || null,
       body: `learnyst-lessons/${partitionName}`,
     },
   ]);
@@ -1003,6 +1015,20 @@ function hasLearnystVideo(filename) {
     return false;
   }
 }
+function learnystAudioPath(filename) {
+  init();
+  const dir = path.join(DIRS.assets(), 'learnyst-audio');
+  fs.mkdirSync(dir, { recursive: true });
+  return path.join(dir, filename);
+}
+function hasLearnystAudio(filename) {
+  const p = path.join(DIRS.assets(), 'learnyst-audio', filename);
+  try {
+    return fs.existsSync(p) && fs.statSync(p).size > 0;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Resolve a locally-written data/ artifact (PDF, HTML, etc.) to its Drive-shareable
@@ -1071,6 +1097,8 @@ module.exports = {
   hasLearnystAttachment,
   learnystVideoPath,
   hasLearnystVideo,
+  learnystAudioPath,
+  hasLearnystAudio,
   resolveDriveUrl,
   touchedFiles,
   trackTouched, // run manifest (docs/DATA_RULES.md §8)

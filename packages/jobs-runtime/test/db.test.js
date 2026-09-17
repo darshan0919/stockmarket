@@ -727,6 +727,15 @@ describe('durability', () => {
       db.appendNote({ companyId: 'NSE:TITAN', creator: 'user', text: 'hello' })
     ).not.toThrow();
   });
+
+  test('prunes prior checkpoints when creating a new checkpoint', () => {
+    db.appendNote({ companyId: 'NSE:INFY', creator: 'user', text: 'note 1' });
+    db.appendNote({ companyId: 'NSE:INFY', creator: 'user', text: 'note 2' });
+    db.appendNote({ companyId: 'NSE:INFY', creator: 'user', text: 'note 3' });
+    const cpDir = path.join(tmpRoot, '_meta', 'checkpoints');
+    const noteCheckpoints = fs.readdirSync(cpDir).filter((f) => f.startsWith('notes.'));
+    expect(noteCheckpoints.length).toBe(1);
+  });
 });
 
 describe('thesis', () => {

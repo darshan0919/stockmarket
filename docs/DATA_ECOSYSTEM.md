@@ -23,9 +23,10 @@ cowork-task-architect enforce it).
    forbid deleting a file once written (EPERM), so any inline `fs.unlink`/`fs.rmSync`/
    `fs.rm` used for cleanup or pruning can abort the operation that triggered it.
    `data/` is a kept, ever-growing local mirror by design (§5) — this applies to
-   _everything_ under it, including `_meta/checkpoints/`, not just the top-level
-   collections. If a directory ever needs bounding, do it out-of-band (a separate
-   maintenance script the user runs locally, never inline in a skill/job's write path).
+   _everything_ under it, not just the top-level collections. Checkpoints in
+   `_meta/checkpoints/` are automatically bounded on write (best-effort pruning of
+   prior snapshots of the same collection with EPERM suppression) and can be pruned
+   out-of-band anytime via `yarn data:prune-checkpoints`.
 
 ## 1. Layout (flat)
 
@@ -55,7 +56,7 @@ data/
   runs/                 # annual run streams (e.g. gainers-raw-YYYY.jsonl, digest-YYYY.jsonl)
   _meta/
     sync-state.json     # per-file contentHash + lastPush/lastPull — dedup + idempotency
-    checkpoints/        # pre-mutation snapshots (crash recovery), kept indefinitely
+    checkpoints/        # pre-mutation snapshots (crash recovery); latest kept, prunable via yarn data:prune-checkpoints
 ```
 
 Partitioning rationale:
