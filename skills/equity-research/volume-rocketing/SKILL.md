@@ -1,6 +1,7 @@
 ---
 name: volume-rocketing
-description: Daily volume-surge signal — sibling to gainers-signal, identical output UX. Pulls the Stockscans "Volume Rocketing" scan (Volume >= 2.5x its own 5D SMA, Market Cap >= 300 Cr, Returns 1D >= 1, sorted desc by Volume), skips any name already covered by that day's gainers-signal run, takes the next 20 names, then runs the identical pipeline: quality filters, dual-axis delivery, market cap, delivery-as-%-of-mcap, 14-day announcements, ACT/WATCH/NOTED tiering, top-20 trigger research, cached rerating-catalysts EPS theses for the top 10 by delivery value, the WHY resolution ladder, and a Thesis Card email sorted by delivery value. Invoke with defaults for the 8 AM run (after gainers-signal), or pass a specific market date on demand.
+description: >-
+  Daily volume-surge signal — sibling to gainers-signal, identical output UX. Pulls the Stockscans "Volume Rocketing" scan (Volume >= 2.5x its own 5D SMA, Market Cap >= 300 Cr, Returns 1D >= 1, sorted desc by Volume), skips any name already covered by that day's gainers-signal run, takes the next 20 names, then runs the identical pipeline: quality filters, dual-axis delivery, market cap, delivery-as-%-of-mcap, 14-day announcements, ACT/WATCH/NOTED tiering, top-20 trigger research, cached rerating-catalysts EPS theses for the top 10 by delivery value, the WHY resolution ladder, and a Thesis Card email sorted by delivery value. Invoke with defaults for the 8 AM run (after gainers-signal), or pass a specific market date on demand.
 ---
 
 # Volume Rocketing Signal

@@ -1,6 +1,7 @@
 ---
 name: quarterly-result-analysis
-description: Stage 2 (flagship model) of the 2-skill quarterly-result pipeline — industry-agnostic single-quarter result interpretation for Indian listed companies, reading quarterly-result-extractor's persisted DB record (fetched documents + deterministic income-statement signal scan + recall-first tone/guidance/strategic excerpts) and applying the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist. Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks "analyse this quarter", "what changed this quarter", "is the business getting better", "what's management signalling", "result analysis", "quarterly snapshot", "post-result note", or provides a Stockscans ticker with result-day intent. Auto-invokes quarterly-result-extractor when given only a ticker and no DB record exists yet. Also supports single-statement quality modes via `--statement income|balance-sheet|cashflow` (comma-separable): a lean, bulk-safe path that grades ONE financial statement CLEAN/WATCH/STRAINED/RED-FLAG from its deterministic signal scan and skips the transcript, tone work, widget and PDF entirely — use it for "income statement quality only", "is the balance sheet clean", "check cash conversion", "run this across today's results", or any bulk screen across many companies' results. Output is BOTH an interactive briefing widget AND a Drive-shareable PDF (same underlying DTO), opening with a bird's-eye KPI strip (Revenue/EBITDA margin/PAT/tax rate/EPS and other decision-relevant metrics, each with a comparison subtext), tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), multi-year deep dives (use equity-research-deepdive), or raw document fetching without interpretation (use quarterly-result-extractor directly).
+description: >-
+  Stage 2 (flagship model) of the 2-skill quarterly-result pipeline — industry-agnostic single-quarter result interpretation for Indian listed companies, reading quarterly-result-extractor's persisted DB record (fetched documents + deterministic income-statement signal scan + recall-first tone/guidance/strategic excerpts) and applying the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist. Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks "analyse this quarter", "what changed this quarter", "is the business getting better", "what's management signalling", "result analysis", "quarterly snapshot", "post-result note", or provides a Stockscans ticker with result-day intent. Auto-invokes quarterly-result-extractor when given only a ticker and no DB record exists yet. Also supports single-statement quality modes via `--statement income|balance-sheet|cashflow` (comma-separable): a lean, bulk-safe path that grades ONE financial statement CLEAN/WATCH/STRAINED/RED-FLAG from its deterministic signal scan and skips the transcript, tone work, widget and PDF entirely — use it for "income statement quality only", "is the balance sheet clean", "check cash conversion", "run this across today's results", or any bulk screen across many companies' results. Output is BOTH an interactive briefing widget AND a Drive-shareable PDF (same underlying DTO), opening with a bird's-eye KPI strip (Revenue/EBITDA margin/PAT/tax rate/EPS and other decision-relevant metrics, each with a comparison subtext), tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), multi-year deep dives (use equity-research-deepdive), or raw document fetching without interpretation (use quarterly-result-extractor directly).
 ---
 
 # Quarterly Result Analysis
@@ -232,7 +233,9 @@ report via `db.saveReport(dto)` (`packages/jobs-runtime/lib/db.js`) — NOT a ha
 under `data/agent-outputs/`; a `reports.json` + `reports/<id>.json` record is what makes this
 DTO Drive-mirrored and re-readable by the Phase 4 PDF step or any other skill, per
 `docs/DATA_RULES.md` §2. The DTO: `kpiStrip` (the 4-8 selected cards — `label`, `value`,
-`subtext`, `tone`), the verdict chips, Basket 1/2/3 items (each with its
+`subtext`, `tone`), `statementHealth` (three badges: `income`, `balanceSheet`, `cashflow`,
+each carrying `grade` e.g. CLEAN/WATCH/STRAINED/RED-FLAG or ABSENT, plus a 1-liner quantified `brief` with numbers),
+the verdict chips, Basket 1/2/3 items (each with its
 STRUCTURAL/CYCLICAL/TEMPORARY or HIGH/MED/LOW tag), the monitoring checklist rows
 (`kpi`, `threshold`, `horizon`, `source`), and the header fields (company, ticker,
 quarter, result date, CMP, market cap). The object MUST carry the standard envelope from
@@ -269,11 +272,12 @@ Widget structure (top to bottom):
 
 1. **Header band** — company + ticker + quarter + result date + CMP + market cap
 2. **KPI strip** — 4-8 bird's-eye headline metric cards from Phase 1.5 (`.kpi-strip`/`.kpi-card` in the template) — label, big value, colored comparison subtext
-3. **Verdict chips** — 5 to 8 single-word tags summarising the quarter (e.g. `MARGIN INFLECTION`, `EXPORT SCALE-UP`, `CAUTIOUS TONE`, `CAPEX HEAVY`)
-4. **Basket 1 — BUSINESS** — growth drivers, margins, capex/BS/CF, future triggers; each item tagged `STRUCTURAL` / `CYCLICAL` / `TEMPORARY`
-5. **Basket 2 — RISK** — business, commentary, macro; each item with severity (`HIGH` / `MED` / `LOW`)
-6. **Basket 3 — MANAGEMENT** — tone label + evidence quote · narrative shift vs prior · 3-5yr strategic build · capital allocation grade
-7. **Monitoring checklist** — table with `# | KPI | Threshold | Horizon | Source`
+3. **Statement Health Badges & 1-Liner Briefs** — Three badges (Income, Balance Sheet, Cash Flow) grading each statement (`CLEAN` / `WATCH` / `STRAINED` / `RED-FLAG` or `ABSENT (<Reason>)` when half-yearly compliance applies), accompanied by a 1-sentence quantified brief explaining the badge. This directly combines the deterministic statement-quality scans into the consolidated note.
+4. **Verdict chips** — 5 to 8 single-word tags summarising the quarter (e.g. `MARGIN INFLECTION`, `EXPORT SCALE-UP`, `CAUTIOUS TONE`, `CAPEX HEAVY`)
+5. **Basket 1 — BUSINESS** — growth drivers, margins, capex/BS/CF, future triggers; each item tagged `STRUCTURAL` / `CYCLICAL` / `TEMPORARY`
+6. **Basket 2 — RISK** — business, commentary, macro; each item with severity (`HIGH` / `MED` / `LOW`)
+7. **Basket 3 — MANAGEMENT** — tone label + evidence quote · narrative shift vs prior · 3-5yr strategic build · capital allocation grade
+8. **Monitoring checklist** — table with `# | KPI | Threshold | Horizon | Source`
 
 After the widget renders, write 2-3 short paragraphs outside it. Lead each with a bolded takeaway. These are the analytically-significant observations that need full-sentence treatment — _not_ a rehash of widget content. End with a falsifiable prediction or the specific next catalyst to watch (e.g., "Q1 FY27 result will test whether margin expansion is structural — gross margin must stay above 28% even if commodity prices reverse").
 

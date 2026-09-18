@@ -8,6 +8,14 @@ The framework is industry-agnostic. Apply every sub-section to every quarter, ev
 
 If a topic appears in only one of the three primary documents (e.g., capacity mentioned in PPT but not concall), flag it — silence in the concall about a deck disclosure is itself a signal.
 
+## Statement Quality Audits Strip
+
+Every consolidated quarterly result note opens its findings section with the deterministic **Statement Quality Audits** strip covering all three statements:
+
+- **Income Statement**: Graded `CLEAN` / `WATCH` / `STRAINED` / `RED-FLAG` based on `incomeStatementSignals.js` + a 1-sentence brief with key numbers (revenue growth, overhead leverage, non-operating items, tax rate swings).
+- **Balance Sheet**: Graded `CLEAN` / `WATCH` / `STRAINED` / `RED-FLAG` when fresh (H1/FY), or `ABSENT (Q1/Q3 COMPLIANT)` under SEBI LODR Reg 33(3) + a 1-sentence brief with key numbers (gearing, receivable days, working capital).
+- **Cash Flow Statement**: Graded `CLEAN` / `WATCH` / `STRAINED` / `RED-FLAG` when fresh (H1/FY), or `ABSENT (Q1/Q3 COMPLIANT)` under SEBI LODR Reg 33(3) + a 1-sentence brief with key numbers (CFO/EBITDA, CFO/PAT, FCF).
+
 ---
 
 # BASKET 1 — BUSINESS

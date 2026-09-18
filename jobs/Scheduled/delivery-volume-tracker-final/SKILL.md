@@ -1,15 +1,17 @@
 ---
 name: delivery-volume-tracker-final
-description: Final intraday delivery-vs-traded-volume snapshot (16:10 IST) and hourly breakdown email report for Darshan's portfolio watchlist.
+description: Intraday delivery-vs-traded-volume snapshot and hourly breakdown email report for Darshan's portfolio watchlist (Slot 8: 17:25 IST - Final NCL Settlement).
 ---
 
 ## Context
 
-Final run (16:10 IST, 7th slot of the day) of the Delivery Volume Tracker. Tracks
-whether portfolio price moves are delivery-backed (real buying/selling) or
-likely intraday/algo churn. This slot captures its own 16:10 NSE snapshot first,
-then reads back all 7 of today's snapshot records, builds the hourly breakdown
-table, and emails it.
+Tracks whether portfolio price moves are delivery-backed (real buying/selling) or
+likely intraday/algo churn. Runs 8x/day across the session (10:25, 11:25, 12:25,
+13:25, 14:25, 15:25, 16:25, 17:25 IST), all via the SAME companion script in
+`snapshot-then-report` mode: each slot captures live NSE data for every stock in
+Stockscans watchlist `838b3f7ec88e17ba127ba8a3`, persists one snapshot record per
+stock, builds the cumulative hourly breakdown table from all of today's snapshots,
+and emails the updated report to Darshan.
 
 ## Output DTO / Storage
 
@@ -26,12 +28,7 @@ pure fetch/derive/render — so no `modelUsed` is set on these records.
 Field semantics for the NSE payload (lastPrice/change/pChange/delivery fields) are
 documented in `docs/nse-symbol-data-api.md`.
 
-## Execution Plan — FINAL Run (16:10 IST, fetch + report)
-
-This slot is a real data point too — it fetches/stores its OWN NSE snapshot
-first (same as the 6 earlier slots), THEN reads back the full day (all 7
-slots) and emails. It does NOT call bare `report` mode — that would silently
-skip this slot's own data and leave the email always one hour stale.
+## Execution Plan — Slot 8 SNAPSHOT + REPORT (17:25 IST)
 
 1. Execute script (bash): `yarn delivery-volume-snapshot-then-report`
    (Fallback: fetch `packages/jobs-runtime/deliveryVolumeTracker.js` from
@@ -40,18 +37,12 @@ skip this slot's own data and leave the email always one hour stale.
    local repo path is unavailable.)
 2. Read the JSON the script prints — it has two sub-objects:
    - `snapshot`: `companiesFetched`/`companiesTotal`/`errors` for this run's
-     own 16:10 fetch.
-   - `report`: `companiesReported`, `snapshotRecordsUsed` (should be 7 per
-     stock on a normal day — one per slot), and the `email` status
-     (`sent`/`skipped`/`error`). If `email.status` is `"error"` or
-     `"skipped"`, surface the exact reason.
-3. If the script exits non-zero (e.g. no snapshot records found at all for
-   today — which happens only if EVERY snapshot including this run's own
-   failed, e.g. NSE outage), surface the exact error rather than silently
-   treating it as done. If `snapshotRecordsUsed` is present but less than 7
-   (e.g. 5 or 6), note that plainly too — it means one or more of the
-   earlier scheduled snapshot slots didn't complete, and the email will be
-   missing those hours.
+     own fetch.
+   - `report`: `companiesReported`, `snapshotRecordsUsed`, and the `email` status
+     (`sent`/`skipped`/`error`). If `email.status` is "error" or
+     "skipped", surface the exact reason.
+3. If the script exits non-zero, surface the exact error rather than silently
+   treating it as done.
 4. Files-touched manifest: report the top-level `touchedFiles` (union of the
    snapshot and report sub-steps' writes — normally just `events-<year>.json`).
 5. (FINAL STEP ALWAYS) Execute:

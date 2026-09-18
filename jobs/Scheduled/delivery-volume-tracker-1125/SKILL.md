@@ -1,16 +1,17 @@
 ---
-name: delivery-volume-tracker-1310
-description: Intraday delivery-vs-traded-volume snapshot for Darshan's portfolio watchlist (Slot 4: 13:10 IST) — captures NSE price/traded-qty/delivery-qty per stock.
+name: delivery-volume-tracker-1125
+description: Intraday delivery-vs-traded-volume snapshot and hourly breakdown email report for Darshan's portfolio watchlist (Slot 2: 11:25 IST).
 ---
 
 ## Context
 
 Tracks whether portfolio price moves are delivery-backed (real buying/selling) or
-likely intraday/algo churn. Runs 7x/day, all via the SAME companion script in two
-modes: 6 "snapshot" runs (10:10, 11:10, 12:10, 13:10, 14:10, 15:10 IST) each fetch
-live NSE data for every stock in Stockscans watchlist `838b3f7ec88e17ba127ba8a3`
-and persist one record per stock; the 7th "report" run (16:10 IST) reads back all
-of today's snapshot records, builds the hourly breakdown table, and emails it.
+likely intraday/algo churn. Runs 8x/day across the session (10:25, 11:25, 12:25,
+13:25, 14:25, 15:25, 16:25, 17:25 IST), all via the SAME companion script in
+`snapshot-then-report` mode: each slot captures live NSE data for every stock in
+Stockscans watchlist `838b3f7ec88e17ba127ba8a3`, persists one snapshot record per
+stock, builds the cumulative hourly breakdown table from all of today's snapshots,
+and emails the updated report to Darshan.
 
 ## Output DTO / Storage
 
@@ -27,37 +28,37 @@ pure fetch/derive/render — so no `modelUsed` is set on these records.
 Field semantics for the NSE payload (lastPrice/change/pChange/delivery fields) are
 documented in `docs/nse-symbol-data-api.md`.
 
-## Execution Plan — Slot 4 SNAPSHOT Run (13:10 IST)
+## Execution Plan — Slot 2 SNAPSHOT + REPORT (11:25 IST)
 
-This is Slot 4 of the 7-run daily cycle (Slots 1–6 snapshot at 10:10, 11:10, 12:10,
-13:10, 14:10, 15:10; Slot 7 snapshots and reports at 16:10).
-
-1. Execute script (bash): `yarn delivery-volume-snapshot`
+1. Execute script (bash): `yarn delivery-volume-snapshot-then-report`
    (Fallback: fetch `packages/jobs-runtime/deliveryVolumeTracker.js` from
    `https://raw.githubusercontent.com/darshan0919/stockmarket/main/packages/jobs-runtime/deliveryVolumeTracker.js`
-   and run `node deliveryVolumeTracker.js --mode snapshot` from a clone if the
+   and run `node deliveryVolumeTracker.js --mode snapshot-then-report` from a clone if the
    local repo path is unavailable.)
-2. Read the JSON the script prints to stdout and report: `companiesFetched` /
-   `companiesTotal`, and the full `errors` array if non-empty (name the specific
-   symbol that failed, not just "something failed").
-3. If the script exits non-zero, surface the exact error in your report.
-4. Files-touched manifest (per `docs/DATA_RULES.md` §7): report `touchedFiles`
-   from the script's JSON output (this run's data-root writes — normally just
-   `events-<year>.json`).
+2. Read the JSON the script prints — it has two sub-objects:
+   - `snapshot`: `companiesFetched`/`companiesTotal`/`errors` for this run's
+     own fetch.
+   - `report`: `companiesReported`, `snapshotRecordsUsed`, and the `email` status
+     (`sent`/`skipped`/`error`). If `email.status` is "error" or
+     "skipped", surface the exact reason.
+3. If the script exits non-zero, surface the exact error rather than silently
+   treating it as done.
+4. Files-touched manifest: report the top-level `touchedFiles` (union of the
+   snapshot and report sub-steps' writes — normally just `events-<year>.json`).
 5. (FINAL STEP ALWAYS) Execute:
    `python scripts/metrics/track_invocation.py --name delivery-volume-tracker --type task --model <the exact model executing this run, e.g. claude-sonnet-5>`
 
-Do NOT run any logic, calculations, data fetching, or file modifications
-directly — your only job is to orchestrate the script above and report its
-output.
+Do NOT run any logic, calculations, data fetching, filtering, sorting, or file
+modifications directly — your only job is to orchestrate the script above and
+report its output.
 
 ## Flags reference (companion script)
 
 | Flag             | Default                    | Meaning                                         |
 | ---------------- | -------------------------- | ----------------------------------------------- |
-| `--mode`         | `snapshot`                 | `snapshot`, `report`, or `snapshot-then-report` |
+| `--mode`         | `snapshot-then-report`     | `snapshot`, `report`, or `snapshot-then-report` |
 | `--watchlist-id` | `838b3f7ec88e17ba127ba8a3` | Stockscans watchlist to snapshot                |
-| `--date`         | today (IST)                | market date to report on (report mode only)     |
+| `--date`         | today (IST)                | market date to report on                        |
 | `--to`           | `djplearner@gmail.com`     | report-mode email recipient                     |
 | `--job`          | `delivery-volume-tracker`  | API-usage-audit job name (conventions §23)      |
 | `--no-email`     | off                        | report mode: compute + print, skip sending      |

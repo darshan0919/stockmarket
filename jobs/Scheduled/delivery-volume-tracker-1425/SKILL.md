@@ -1,6 +1,6 @@
 ---
-name: delivery-volume-tracker
-description: Intraday delivery-vs-traded-volume snapshot and hourly breakdown email report for Darshan's portfolio watchlist (Slot 1: 10:25 IST).
+name: delivery-volume-tracker-1425
+description: Intraday delivery-vs-traded-volume snapshot and hourly breakdown email report for Darshan's portfolio watchlist (Slot 5: 14:25 IST).
 ---
 
 ## Context
@@ -28,7 +28,7 @@ pure fetch/derive/render — so no `modelUsed` is set on these records.
 Field semantics for the NSE payload (lastPrice/change/pChange/delivery fields) are
 documented in `docs/nse-symbol-data-api.md`.
 
-## Execution Plan — Slot 1 SNAPSHOT + REPORT (10:25 IST)
+## Execution Plan — Slot 5 SNAPSHOT + REPORT (14:25 IST)
 
 1. Execute script (bash): `yarn delivery-volume-snapshot-then-report`
    (Fallback: fetch `packages/jobs-runtime/deliveryVolumeTracker.js` from

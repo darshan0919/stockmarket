@@ -85,42 +85,47 @@ const SIDECAR_OVERRIDES = {
     displayName: 'Company Master Sync',
     cron: '0 22 * * *',
   },
-  // Delivery Volume Tracker — 7 slots across the trading day (10:10, 11:10, 12:10,
-  // 13:10, 14:10, 15:10 IST snapshots, and 16:10 IST final snapshot-then-report).
+  // Delivery Volume Tracker — 8 slots across the trading day (10:25, 11:25, 12:25,
+  // 13:25, 14:25, 15:25, 16:25 [close], and 17:25 [final NCL settlement] snapshot-then-report).
   'delivery-volume-tracker': {
     sidecarFolder: 'delivery-volume-tracker',
-    displayName: 'Delivery Volume Tracker - 10:10',
-    cron: '10 10 * * *',
+    displayName: 'Delivery Volume Tracker - 10:25',
+    cron: '25 10 * * *',
   },
-  'delivery-volume-tracker-1110': {
-    sidecarFolder: 'delivery-volume-tracker-1110',
-    displayName: 'Delivery Volume Tracker - 11:10',
-    cron: '10 11 * * *',
+  'delivery-volume-tracker-1125': {
+    sidecarFolder: 'delivery-volume-tracker-1125',
+    displayName: 'Delivery Volume Tracker - 11:25',
+    cron: '25 11 * * *',
   },
-  'delivery-volume-tracker-1210': {
-    sidecarFolder: 'delivery-volume-tracker-1210',
-    displayName: 'Delivery Volume Tracker - 12:10',
-    cron: '10 12 * * *',
+  'delivery-volume-tracker-1225': {
+    sidecarFolder: 'delivery-volume-tracker-1225',
+    displayName: 'Delivery Volume Tracker - 12:25',
+    cron: '25 12 * * *',
   },
-  'delivery-volume-tracker-1310': {
-    sidecarFolder: 'delivery-volume-tracker-1310',
-    displayName: 'Delivery Volume Tracker - 13:10',
-    cron: '10 13 * * *',
+  'delivery-volume-tracker-1325': {
+    sidecarFolder: 'delivery-volume-tracker-1325',
+    displayName: 'Delivery Volume Tracker - 13:25',
+    cron: '25 13 * * *',
   },
-  'delivery-volume-tracker-1410': {
-    sidecarFolder: 'delivery-volume-tracker-1410',
-    displayName: 'Delivery Volume Tracker - 14:10',
-    cron: '10 14 * * *',
+  'delivery-volume-tracker-1425': {
+    sidecarFolder: 'delivery-volume-tracker-1425',
+    displayName: 'Delivery Volume Tracker - 14:25',
+    cron: '25 14 * * *',
   },
-  'delivery-volume-tracker-1510': {
-    sidecarFolder: 'delivery-volume-tracker-1510',
-    displayName: 'Delivery Volume Tracker - 15:10',
-    cron: '10 15 * * *',
+  'delivery-volume-tracker-1525': {
+    sidecarFolder: 'delivery-volume-tracker-1525',
+    displayName: 'Delivery Volume Tracker - 15:25',
+    cron: '25 15 * * *',
+  },
+  'delivery-volume-tracker-1625': {
+    sidecarFolder: 'delivery-volume-tracker-1625',
+    displayName: 'Delivery Volume Tracker - 16:25',
+    cron: '25 16 * * *',
   },
   'delivery-volume-tracker-final': {
     sidecarFolder: 'delivery-volume-tracker-final',
-    displayName: 'Delivery Volume Tracker - Final (16:10)',
-    cron: '10 16 * * *',
+    displayName: 'Delivery Volume Tracker - Final (17:25)',
+    cron: '25 17 * * *',
   },
 };
 
@@ -134,13 +139,55 @@ function parseSkillMd(filePath) {
 
   const fmMatch = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
   if (fmMatch) {
-    const yamlLines = fmMatch[1].split('\n');
-    for (const line of yamlLines) {
-      const nameMatch = line.match(/^name:\s*(.+)$/);
-      if (nameMatch) name = nameMatch[1].trim();
-      const descMatch = line.match(/^description:\s*(.+)$/);
-      if (descMatch) description = descMatch[1].trim();
+    try {
+      const jsYaml = require('js-yaml');
+      const parsedYaml = jsYaml.load(fmMatch[1]);
+      if (parsedYaml && typeof parsedYaml === 'object') {
+        if (parsedYaml.name) name = String(parsedYaml.name).trim();
+        if (parsedYaml.description) description = String(parsedYaml.description).trim();
+      }
+    } catch (err) {
+      // Fallback manual parser if js-yaml fails on malformed YAML
     }
+
+    if (!name || !description) {
+      const yamlLines = fmMatch[1].split('\n');
+      let capturingDesc = false;
+      let descLines = [];
+      for (const line of yamlLines) {
+        const nameMatch = line.match(/^name:\s*(.+)$/);
+        if (nameMatch) {
+          if (!name) name = nameMatch[1].trim();
+          capturingDesc = false;
+          continue;
+        }
+        const descMatch = line.match(/^description:\s*(.*)$/);
+        if (descMatch) {
+          const rest = descMatch[1].trim();
+          if (rest === '>' || rest === '>-' || rest === '|' || rest === '|-') {
+            capturingDesc = true;
+            descLines = [];
+          } else if (rest.length > 0) {
+            if (!description) description = rest;
+            capturingDesc = false;
+          }
+          continue;
+        }
+        if (capturingDesc) {
+          if (/^\s+/.test(line)) {
+            descLines.push(line.trim());
+          } else if (line.trim() === '') {
+            // empty line
+          } else {
+            capturingDesc = false;
+          }
+        }
+      }
+      if (!description && descLines.length > 0) {
+        description = descLines.join(' ');
+      }
+    }
+
     promptText = fmMatch[2].trim();
   }
 
@@ -185,9 +232,19 @@ function writeRouterSkill(skillName, description, skillMdRepoPath, destDir) {
   const repoRoot = path.resolve(__dirname, '../');
   const githubRawBase = 'https://raw.githubusercontent.com/darshan0919/stockmarket/main';
 
+  // Format description using YAML block scalar (>-) with 2-space indentation
+  // to ensure valid YAML even if description contains colons, quotes, or special characters.
+  const cleanDesc = (description || '')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .join(' ');
+  const indentedDesc = cleanDesc ? `  ${cleanDesc}` : '  ';
+
   const routerContent = `---
 name: ${skillName}
-description: ${description}
+description: >-
+${indentedDesc}
 ---
 
 Router for the "${skillName}" skill. This router has NO logic of its own — it is a thin
