@@ -8,6 +8,8 @@ const {
   getQuoteEquity,
   getCorporatesFinancialResults,
   getIntegratedFilingResults,
+  getPriceVolumeDeliverable,
+  getSymbolData,
 } = require('../src/core/api/nseIndiaApi');
 const { fetchAndStoreQuarterlyResults } = require('../scripts/balanceSheetDataFetcher');
 
@@ -23,6 +25,7 @@ jest.mock('../src/core/api/nseIndiaApi', () => ({
   getIntegratedFilingResults: jest.fn(),
   searchAutocomplete: jest.fn(),
   getPriceVolumeDeliverable: jest.fn(),
+  getSymbolData: jest.fn(),
   formatDate: jest.requireActual('../src/core/api/nseIndiaApi').formatDate,
 }));
 jest.mock('../scripts/balanceSheetDataFetcher', () => {
@@ -304,6 +307,80 @@ describe('Stock Controller - Quarterly Results', () => {
       expect(response.body).toHaveProperty('success', true);
       expect(response.body.data.quarters).toEqual([]);
       expect(response.body.data).toHaveProperty('symbol', 'INVALID');
+    });
+  });
+
+  describe('GET /api/stocks/:symbol/delivery-volume', () => {
+    it('should chunk 1-year request into 75-day windows and fetch historical data', async () => {
+      getPriceVolumeDeliverable.mockResolvedValue([]);
+      getSymbolData.mockResolvedValue(null);
+
+      const response = await request(app)
+        .get('/api/stocks/AVALON/delivery-volume?from=2025-09-19&to=2026-09-19&interval=daily')
+        .expect(200);
+
+      expect(response.body).toHaveProperty('success', true);
+      expect(response.body.data).toHaveProperty('candles');
+      // 365 days / 75 days = 5 chunks
+      expect(getPriceVolumeDeliverable).toHaveBeenCalledTimes(5);
+    });
+
+    it('should strip the last entry of generateSecurityWiseHistoricalData if date matches GetQuoteApi date, and use closePrice', async () => {
+      // Historical data includes 2026-09-17 and 2026-09-18
+      getPriceVolumeDeliverable.mockResolvedValueOnce([
+        {
+          mTIMESTAMP: '17-Sep-2026',
+          CH_OPENING_PRICE: 2200,
+          CH_TRADE_HIGH_PRICE: 2250,
+          CH_TRADE_LOW_PRICE: 2190,
+          CH_CLOSING_PRICE: 2230,
+          CH_TOT_TRADED_QTY: 100000,
+          COP_DELIV_QTY: 50000,
+          COP_DELIV_PERC: 50.0,
+        },
+        {
+          mTIMESTAMP: '18-Sep-2026',
+          CH_OPENING_PRICE: 2236.2,
+          CH_TRADE_HIGH_PRICE: 2618,
+          CH_TRADE_LOW_PRICE: 2218.3,
+          CH_CLOSING_PRICE: 2500, // old provisional or historical close
+          CH_TOT_TRADED_QTY: 4000000,
+          COP_DELIV_QTY: 1200000,
+          COP_DELIV_PERC: 30.0,
+        },
+      ]);
+
+      // GetQuoteApi returns live/final data for 18-Sep-2026 with closePrice
+      getSymbolData.mockResolvedValueOnce({
+        lastUpdateTime: '18-Sep-2026 16:00:00',
+        metaData: {
+          open: 2236.2,
+          dayHigh: 2618,
+          dayLow: 2218.3,
+          closePrice: 2537.7,
+        },
+        tradeInfo: {
+          lastPrice: 2602,
+          totalTradedVolume: 4310981,
+          deliveryquantity: 1369122,
+          deliveryToTradedQuantity: 31.76,
+          secwisedelposdate: '18-Sep-2026 00:00:00',
+        },
+      });
+
+      const response = await request(app)
+        .get('/api/stocks/AVALON/delivery-volume?from=2026-09-16&to=2026-09-18&interval=daily')
+        .expect(200);
+
+      expect(response.body).toHaveProperty('success', true);
+      const candles = response.body.data.candles;
+      // Should have exactly 2 candles (2026-09-17 and 2026-09-18), NOT 3 (no duplicate on 18th)
+      expect(candles).toHaveLength(2);
+      expect(candles[0].time).toBe('2026-09-17');
+      expect(candles[1].time).toBe('2026-09-18');
+      // Must use closePrice (2537.7) instead of lastPrice (2602)
+      expect(candles[1].close).toBe(2537.7);
+      expect(candles[1].deliveryVolume).toBe(1369122);
     });
   });
 });

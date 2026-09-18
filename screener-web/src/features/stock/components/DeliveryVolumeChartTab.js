@@ -56,6 +56,7 @@ export default function DeliveryVolumeChartTab({ symbol }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [hover, setHover] = useState(null);
+  const [candles, setCandles] = useState([]);
 
   // Build chart on mount
   useEffect(() => {
@@ -156,12 +157,13 @@ export default function DeliveryVolumeChartTab({ symbol }) {
         to: fmtDate(to),
         interval,
       });
-      const candles = resp.data?.data?.candles || [];
-      candlesRef.current = candles;
+      const candleData = resp.data?.data?.candles || [];
+      candlesRef.current = candleData;
+      setCandles(candleData);
 
       if (candleSeriesRef.current) {
         candleSeriesRef.current.setData(
-          candles.map((c) => ({
+          candleData.map((c) => ({
             time: c.time,
             open: c.open,
             high: c.high,
@@ -172,7 +174,7 @@ export default function DeliveryVolumeChartTab({ symbol }) {
       }
       if (tradedSeriesRef.current) {
         tradedSeriesRef.current.setData(
-          candles.map((c) => ({
+          candleData.map((c) => ({
             time: c.time,
             value: c.volume,
             color: c.close >= c.open ? VOL_UP_LIGHT : VOL_DOWN_LIGHT,
@@ -181,7 +183,7 @@ export default function DeliveryVolumeChartTab({ symbol }) {
       }
       if (deliverySeriesRef.current) {
         deliverySeriesRef.current.setData(
-          candles.map((c) => ({
+          candleData.map((c) => ({
             time: c.time,
             value: c.deliveryVolume,
             color: c.close >= c.open ? VOL_UP : VOL_DOWN,
@@ -211,31 +213,45 @@ export default function DeliveryVolumeChartTab({ symbol }) {
     deliverySeriesRef.current?.applyOptions({ visible: showDelivery });
   }, [showDelivery]);
 
+  const displayCandle = hover || (candles.length > 0 ? candles[candles.length - 1] : null);
+
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="join">
-          {['daily', 'weekly'].map((v) => (
-            <button
-              key={v}
-              onClick={() => setInterval(v)}
-              className={`join-item btn btn-xs ${interval === v ? 'btn-secondary' : 'btn-ghost'}`}
-            >
-              {v === 'daily' ? '1D' : '1W'}
-            </button>
-          ))}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-1.5">
+          <span className="text-2xs font-semibold uppercase tracking-wider text-base-content/50">
+            Candle:
+          </span>
+          <div className="join">
+            {['daily', 'weekly'].map((v) => (
+              <button
+                key={v}
+                onClick={() => setInterval(v)}
+                className={`join-item btn btn-xs ${interval === v ? 'btn-secondary' : 'btn-ghost'}`}
+              >
+                {v === 'daily' ? '1D' : '1W'}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="join">
-          {RANGES.map((r) => (
-            <button
-              key={r.id}
-              onClick={() => setRangeId(r.id)}
-              className={`join-item btn btn-xs ${rangeId === r.id ? 'btn-secondary' : 'btn-ghost'}`}
-            >
-              {r.id}
-            </button>
-          ))}
+
+        <div className="flex items-center gap-1.5">
+          <span className="text-2xs font-semibold uppercase tracking-wider text-base-content/50">
+            Range:
+          </span>
+          <div className="join">
+            {RANGES.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => setRangeId(r.id)}
+                className={`join-item btn btn-xs ${rangeId === r.id ? 'btn-secondary' : 'btn-ghost'}`}
+              >
+                {r.id}
+              </button>
+            ))}
+          </div>
         </div>
+
         <div className="ml-auto flex items-center gap-3 text-xs">
           <label className="flex items-center gap-1 cursor-pointer">
             <input
@@ -267,29 +283,29 @@ export default function DeliveryVolumeChartTab({ symbol }) {
         </div>
       </div>
 
-      {hover && (
+      {displayCandle && (
         <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs font-mono tabular-nums text-base-content/80">
-          <span>{hover.time}</span>
+          <span>{displayCandle.time}</span>
           <span>
-            O <b>{hover.open}</b>
+            O <b>{displayCandle.open}</b>
           </span>
           <span>
-            H <b>{hover.high}</b>
+            H <b>{displayCandle.high}</b>
           </span>
           <span>
-            L <b>{hover.low}</b>
+            L <b>{displayCandle.low}</b>
           </span>
           <span>
-            C <b>{hover.close}</b>
+            C <b>{displayCandle.close}</b>
           </span>
           <span>
-            Vol <b>{fmtNum(hover.volume)}</b>
+            Vol <b>{fmtNum(displayCandle.volume)}</b>
           </span>
           <span>
-            Deliv <b>{fmtNum(hover.deliveryVolume)}</b>
+            Deliv <b>{fmtNum(displayCandle.deliveryVolume)}</b>
           </span>
           <span>
-            Deliv% <b>{hover.deliveryPercent?.toFixed?.(2) ?? '-'}</b>
+            Deliv% <b>{displayCandle.deliveryPercent?.toFixed?.(2) ?? '-'}</b>
           </span>
         </div>
       )}

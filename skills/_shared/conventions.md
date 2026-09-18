@@ -100,48 +100,49 @@ add-note` (`watchlist-insights`, `announcement-insights`, `announcement-info-cla
     only -- the notes originally investigated were written before this fix existed, so this
     convention does not and cannot retroactively resolve which run wrote them.**
 
-                         2026-09-08 follow-up (this was NOT a harmless leftover field): a `|| n.createdAt`
-                         fallback was left in several readers "just in case," on the assumption that every live
-                         note record already carried `creationTime` and the fallback would never actually fire.
-                         That assumption was correct for those readers -- but `packages/jobs-runtime/
+                             2026-09-08 follow-up (this was NOT a harmless leftover field): a `|| n.createdAt`
+                             fallback was left in several readers "just in case," on the assumption that every live
+                             note record already carried `creationTime` and the fallback would never actually fire.
+                             That assumption was correct for those readers -- but `packages/jobs-runtime/
 
-                    postCloseScanInsights.js`'s `collectCachedNotesSinceCutoff`(the function that feeds the
+                        postCloseScanInsights.js`'s `collectCachedNotesSinceCutoff`(the function that feeds the
 
-                post-close digest email) was written the OTHER way around: it read`n.createdAt`ONLY,
-                with no`creationTime`fallback at all. Since`cmdAddNote`stopped setting`createdAt`by
-                design, every note written after the 2026-09-07 fix silently failed that function's
-                timestamp parse and was dropped -- a production run on 2026-09-07 wrote 42 real insight
-                notes and the digest email reported a count of 0, with no error or warning anywhere in
-                the pipeline. The lesson: introducing a "canonical field, defensive fallback to the old
-                one" pattern does not, by itself, guarantee every reader was updated consistently -- a
-                reader that skips straight to the OLD field with no fallback at all is invisible to a
-                field-presence check on the data (the data looked fine; 1931 legacy records genuinely did
-                have both fields, always equal) and only shows up as a functional break in whatever
-                consumes that specific reader's output. Fully fixed 2026-09-08:`data/notes.json`'s
-                redundant `createdAt` key was migrated away entirely (`scripts/
+                    post-close digest email) was written the OTHER way around: it read`n.createdAt`ONLY,
+                    with no`creationTime`fallback at all. Since`cmdAddNote`stopped setting`createdAt`by
+                    design, every note written after the 2026-09-07 fix silently failed that function's
+                    timestamp parse and was dropped -- a production run on 2026-09-07 wrote 42 real insight
+                    notes and the digest email reported a count of 0, with no error or warning anywhere in
+                    the pipeline. The lesson: introducing a "canonical field, defensive fallback to the old
+                    one" pattern does not, by itself, guarantee every reader was updated consistently -- a
+                    reader that skips straight to the OLD field with no fallback at all is invisible to a
+                    field-presence check on the data (the data looked fine; 1931 legacy records genuinely did
+                    have both fields, always equal) and only shows up as a functional break in whatever
+                    consumes that specific reader's output. Fully fixed 2026-09-08:`data/notes.json`'s
+                    redundant `createdAt` key was migrated away entirely (`scripts/
 
-            migrateCreatedAtToCreationTime.js`-- verified 0 of 1931 records disagreed with
+                migrateCreatedAtToCreationTime.js`-- verified 0 of 1931 records disagreed with
 
-        `creationTime`before stripping, so no data was lost),`lib/db.js`'s `appendNotes()`now
-        deletes any stray`createdAt`at the single write chokepoint every note passes through
-        (so the field is structurally impossible to reintroduce, not just discouraged by
-        convention), and`collectCachedNotesSinceCutoff`now reads`creationTime`. A record's
-        schema has exactly one write-timestamp pair, full stop -- no defensive fallback field is
-        kept anywhere in the note schema going forward, because a fallback path that only some
-        readers implement is worse than no fallback at all: it hides the inconsistency instead of
-        surfacing it. Regression tests: `test/db.test.js` (`appendNotes: single-timestamp
+            `creationTime`before stripping, so no data was lost),`lib/db.js`'s `appendNotes()`now
+            deletes any stray`createdAt`at the single write chokepoint every note passes through
+            (so the field is structurally impossible to reintroduce, not just discouraged by
+            convention), and`collectCachedNotesSinceCutoff`now reads`creationTime`. A record's
+            schema has exactly one write-timestamp pair, full stop -- no defensive fallback field is
+            kept anywhere in the note schema going forward, because a fallback path that only some
+            readers implement is worse than no fallback at all: it hides the inconsistency instead of
+            surfacing it. Regression tests: `test/db.test.js` (`appendNotes: single-timestamp
 
-    schema`), `test/postCloseScanInsights.test.js` (`collectCachedNotesSinceCutoff:
-    single-timestamp schema regression`). Separately,
-and NOT the same bug: `ann.createdAt`on an announcement/tweet/Stockscans-sourced object
-means the external source's OWN filing/post timestamp, inherited from the upstream API
-field name -- that is legitimate domain data about what the record describes, not a
-competing write-timestamp field, and this convention does not touch it, rename it, or
-apply to it. The rule is specifically: never invent a second field for "when did WE
-create/modify this record" alongside`creationTime`/`modifiedTime`; a `createdAt`that
-answers a different question ("when did the external thing happen") on a different kind
-of object is unaffected. See`skills/tooling/output-dto-standard/SKILL.md`for the
-canonical envelope spec update and`skills/tooling/skill-manager/SKILL.md` for the
+        schema`), `test/postCloseScanInsights.test.js` (`collectCachedNotesSinceCutoff:
+        single-timestamp schema regression`). Separately,
+
+    and NOT the same bug: `ann.createdAt`on an announcement/tweet/Stockscans-sourced object
+    means the external source's OWN filing/post timestamp, inherited from the upstream API
+    field name -- that is legitimate domain data about what the record describes, not a
+    competing write-timestamp field, and this convention does not touch it, rename it, or
+    apply to it. The rule is specifically: never invent a second field for "when did WE
+    create/modify this record" alongside`creationTime`/`modifiedTime`; a `createdAt`that
+    answers a different question ("when did the external thing happen") on a different kind
+    of object is unaffected. See`skills/tooling/output-dto-standard/SKILL.md`for the
+    canonical envelope spec update and`skills/tooling/skill-manager/SKILL.md` for the
     standing check this becomes part of.
 
 23. **API-usage audit is MANDATORY for any scheduled job whose skill makes outbound HTTP
@@ -326,83 +327,83 @@ usage`'s CLI accepts `--duration-ms`, and `track_invocation.py`
     absent for a caller that doesn't measure it — this is additive, not a
     new requirement on every SKILL.md.
 
-                                            - **Extraction-cache hit/miss.** `lib/cacheUsageCounter.js` /
-                                              `lib/cacheUsageTracker.js` (`type: cache_usage_summary`, `byCache:
+                                                    - **Extraction-cache hit/miss.** `lib/cacheUsageCounter.js` /
+                                                      `lib/cacheUsageTracker.js` (`type: cache_usage_summary`, `byCache:
 
-                                        {name: {hits, misses, hitRate}}`). Instrumented at
-                                          `lib/resolveFilingContent.js`— the actual "check before you fetch"
-                                          choke point every document-touching skill calls first, NOT
-                                         `docExtracts.get()`directly, because`resolveFilingContent()` is what
-                                          consumers actually call. Four outcomes are recorded, and a Tier-1
-                                          stale-schema miss (`extract-cache-stale-schema`) is deliberately kept
-                                          SEPARATE from a plain Tier-1 miss (`extract-cache`, hit: false) — the
-                                        extraction work already happened for a stale-schema record, it just
-                                        needs a version-bumped re-run, which is a materially cheaper fix than
-                                        "this document was never processed" and would be hidden by lumping
-                                        the two together.
+                                                {name: {hits, misses, hitRate}}`). Instrumented at
+                                                  `lib/resolveFilingContent.js`— the actual "check before you fetch"
+                                                  choke point every document-touching skill calls first, NOT
+                                                 `docExtracts.get()`directly, because`resolveFilingContent()` is what
+                                                  consumers actually call. Four outcomes are recorded, and a Tier-1
+                                                  stale-schema miss (`extract-cache-stale-schema`) is deliberately kept
+                                                  SEPARATE from a plain Tier-1 miss (`extract-cache`, hit: false) — the
+                                                extraction work already happened for a stale-schema record, it just
+                                                needs a version-bumped re-run, which is a materially cheaper fix than
+                                                "this document was never processed" and would be hidden by lumping
+                                                the two together.
 
-                                            - **Email delivery outcome.** `deliveryUsageCounter.js` lives in
-                                              `cloud-utils` (not `jobs-runtime`), mirroring where `emailService.js`
-                                              itself lives — `cloud-utils` has no dependency on `jobs-runtime`, so a
-                                              counter needed by code inside it can't live in the package that
-                                              depends on it. `lib/deliveryUsageTracker.js` (jobs-runtime-side, since
-                                              `db.js` persistence is jobs-runtime-only) wraps it and flushes `type:
+                                                    - **Email delivery outcome.** `deliveryUsageCounter.js` lives in
+                                                      `cloud-utils` (not `jobs-runtime`), mirroring where `emailService.js`
+                                                      itself lives — `cloud-utils` has no dependency on `jobs-runtime`, so a
+                                                      counter needed by code inside it can't live in the package that
+                                                      depends on it. `lib/deliveryUsageTracker.js` (jobs-runtime-side, since
+                                                      `db.js` persistence is jobs-runtime-only) wraps it and flushes `type:
 
-                                        delivery_summary` (`sent`, `skipped`, `error`, `total`,
-                                          `bySkipReason`). Instrumented at all four return paths of
-                                          `sendHtmlEmail()`in`cloud-utils/src/emailService.js`— a job whose
-                                          digest silently stopped landing in an inbox (bad`GOOGLE_APP_PASSWORD`,
-                                        an SMTP error) is otherwise invisible; this makes the failure a number
-                                        that accumulates instead of a support ticket days later.
+                                                delivery_summary` (`sent`, `skipped`, `error`, `total`,
+                                                  `bySkipReason`). Instrumented at all four return paths of
+                                                  `sendHtmlEmail()`in`cloud-utils/src/emailService.js`— a job whose
+                                                  digest silently stopped landing in an inbox (bad`GOOGLE_APP_PASSWORD`,
+                                                an SMTP error) is otherwise invisible; this makes the failure a number
+                                                that accumulates instead of a support ticket days later.
 
-                                            - **Extraction-quality time series.** `lib/extractionQualityCounter.js` /
-                                              `lib/extractionQualityTracker.js` (`type: calibration_summary`,
-                                              `source: 'production-writes'` — deliberately the same event-type name
-                                              the manual `preprocessCalibrate.js cmdScore` gate already uses, since
-                                              both answer "is this profile's extraction trustworthy right now," just
-                                              from different inputs: one from every real production write, one from
-                                              an occasional hand-curated reference run). Instrumented at
-                                              `docExtracts.js`'s `put()`, not at the manual calibration script,
-                                              because `put()` runs on every real write while the manual gate only
-                                              runs when someone remembers to invoke it — a live signal beats a
-                                              periodic spot-check for catching drift as it happens. Tracks pass /
-                                              reject_fail / reject_truncated_source / confidence_high /
-                                              confidence_low counts per profile. This is the direct, permanent fix
-                                              for the failure mode the `preprocessing-truncation-bug` project memory
-                                              describes: an 8000-char truncation cap silently starved 42 heavy-doc
-                                              extracts for weeks while every one still passed L1 verification
-                                              (L1 verifies quotes against the cached, already-truncated text, not
-                                              the source document) — a rising `reject_truncated_source` or falling
-                                              `confidence_high` rate now shows up in the weekly numbers instead of
-                                              being discovered by accident.
+                                                    - **Extraction-quality time series.** `lib/extractionQualityCounter.js` /
+                                                      `lib/extractionQualityTracker.js` (`type: calibration_summary`,
+                                                      `source: 'production-writes'` — deliberately the same event-type name
+                                                      the manual `preprocessCalibrate.js cmdScore` gate already uses, since
+                                                      both answer "is this profile's extraction trustworthy right now," just
+                                                      from different inputs: one from every real production write, one from
+                                                      an occasional hand-curated reference run). Instrumented at
+                                                      `docExtracts.js`'s `put()`, not at the manual calibration script,
+                                                      because `put()` runs on every real write while the manual gate only
+                                                      runs when someone remembers to invoke it — a live signal beats a
+                                                      periodic spot-check for catching drift as it happens. Tracks pass /
+                                                      reject_fail / reject_truncated_source / confidence_high /
+                                                      confidence_low counts per profile. This is the direct, permanent fix
+                                                      for the failure mode the `preprocessing-truncation-bug` project memory
+                                                      describes: an 8000-char truncation cap silently starved 42 heavy-doc
+                                                      extracts for weeks while every one still passed L1 verification
+                                                      (L1 verifies quotes against the cached, already-truncated text, not
+                                                      the source document) — a rising `reject_truncated_source` or falling
+                                                      `confidence_high` rate now shows up in the weekly numbers instead of
+                                                      being discovered by accident.
 
-                                            - **Cursor staleness.** `packages/jobs-runtime/cursorHealth.js` (`yarn
+                                                    - **Cursor staleness.** `packages/jobs-runtime/cursorHealth.js` (`yarn
 
-                                        cursor-health`, or `yarn workspace @stock/jobs-runtime cursor-health`      from the repo root) is a standalone check, NOT an`events`-collection
-                                          metric — it reads `data/cache/_-cursor_.json`directly (the
-                                         `windowCursor.js`files themselves already carry`lastCommittedAtMs`)
-                                          and compares each job's last-committed time against an expected
-                                          cadence. There is no machine-readable cron schedule anywhere in this
-                                          repo — cadence is documented only as prose under each Scheduled job's
-                                          "## Cadence" heading — so `CURSOR_CADENCE_HOURS`in that script is an
-                                          explicit, hand-maintained map sourced from that prose, not a parser of
-                                          it. **Update it the same day a job's cadence section changes** — same
-                                          discipline this repo already asks for with`PROFILE_SCHEMA_VERSIONS`      in`docExtracts.js`. A cursor with no entry is reported as `unmapped`      (a coverage gap in the script itself), never silently treated as
-                                          passing. It also flags a`-pending-window`marker left uncommitted for
-                                          more than 24h —`savePendingWindow`without a following
-                                         `commitWindow` means a run started and never finished healthily,
-                                        which is invisible from the cursor file alone (the cursor still shows
-                                        the last SUCCESSFUL commit, not that the most recent run got stuck).
-                                        Exits non-zero on any stale/unreadable cursor or uncommitted pending
-                                        window, so it can be wired into a scheduled health-check job the same
-                                        way any other CLI script in this repo is.
+                                                cursor-health`, or `yarn workspace @stock/jobs-runtime cursor-health`      from the repo root) is a standalone check, NOT an`events`-collection
+                                                  metric — it reads `data/cache/_-cursor_.json`directly (the
+                                                 `windowCursor.js`files themselves already carry`lastCommittedAtMs`)
+                                                  and compares each job's last-committed time against an expected
+                                                  cadence. There is no machine-readable cron schedule anywhere in this
+                                                  repo — cadence is documented only as prose under each Scheduled job's
+                                                  "## Cadence" heading — so `CURSOR_CADENCE_HOURS`in that script is an
+                                                  explicit, hand-maintained map sourced from that prose, not a parser of
+                                                  it. **Update it the same day a job's cadence section changes** — same
+                                                  discipline this repo already asks for with`PROFILE_SCHEMA_VERSIONS`      in`docExtracts.js`. A cursor with no entry is reported as `unmapped`      (a coverage gap in the script itself), never silently treated as
+                                                  passing. It also flags a`-pending-window`marker left uncommitted for
+                                                  more than 24h —`savePendingWindow`without a following
+                                                 `commitWindow` means a run started and never finished healthily,
+                                                which is invisible from the cursor file alone (the cursor still shows
+                                                the last SUCCESSFUL commit, not that the most recent run got stuck).
+                                                Exits non-zero on any stale/unreadable cursor or uncommitted pending
+                                                window, so it can be wired into a scheduled health-check job the same
+                                                way any other CLI script in this repo is.
 
-                                            All five pieces (duration, cache hit/miss, delivery outcome, extraction
-                                            quality, cursor staleness) were built with the same rigor as §23/§24:
-                                            unit tests for each counter and tracker, wiring tests at the actual
-                                            instrumentation choke point (`resolveFilingContent.js`, `emailService.js`,
-                                            `docExtracts.js`), and a full-suite regression run after each change —
-                                            not just "it compiled."
+                                                    All five pieces (duration, cache hit/miss, delivery outcome, extraction
+                                                    quality, cursor staleness) were built with the same rigor as §23/§24:
+                                                    unit tests for each counter and tracker, wiring tests at the actual
+                                                    instrumentation choke point (`resolveFilingContent.js`, `emailService.js`,
+                                                    `docExtracts.js`), and a full-suite regression run after each change —
+                                                    not just "it compiled."
 
 26. **Platform-reuse-first: this repo is a wrapper, not a re-implementation.**
     Think of this whole codebase as a proprietary layer on top of a small set

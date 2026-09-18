@@ -10,7 +10,7 @@ const {
   searchAutocomplete,
   getSymbolData,
 } = require('../../core/api/nseIndiaApi');
-const { parseNseDateToObject } = require('../../core/utils/nseHelpers');
+const { parseNseDate, parseNseDateToObject } = require('../../core/utils/nseHelpers');
 
 /**
  * Search stocks by symbol or name using NSE India API
@@ -628,12 +628,12 @@ const getDeliveryVolume = async (req, res) => {
   }
 
   try {
-    // Chunk into <= 365-day windows for NSE
+    // Chunk into <= 75-day windows for NSE (generateSecurityWiseHistoricalData silently truncates requests > ~90 calendar days to ~70 rows)
     const chunks = [];
     let cursor = new Date(fromDate);
     while (cursor <= toDate) {
       const chunkEnd = new Date(cursor);
-      chunkEnd.setDate(chunkEnd.getDate() + 364);
+      chunkEnd.setDate(chunkEnd.getDate() + 74);
       if (chunkEnd > toDate) chunkEnd.setTime(toDate.getTime());
       chunks.push([new Date(cursor), new Date(chunkEnd)]);
       cursor = new Date(chunkEnd);
@@ -664,25 +664,46 @@ const getDeliveryVolume = async (req, res) => {
 
     let candles = [...seen.values()].sort((a, b) => a.time.localeCompare(b.time));
 
-    // Append today's live candle from getSymbolData (historical API is T-1 only)
+    // Append / update today's live candle from getSymbolData (historical API is T-1 only)
     try {
       const liveData = await getSymbolData(symbol);
       if (liveData) {
-        const now = new Date();
-        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-        // Only add if today isn't already in history (market open) and data looks valid
-        const lastHistorical = candles[candles.length - 1];
-        if (lastHistorical?.time !== todayStr) {
-          const open = toNumber(liveData.metaData?.open);
-          const high = toNumber(liveData.metaData?.dayHigh);
-          const low = toNumber(liveData.metaData?.dayLow);
-          const close = toNumber(liveData.tradeInfo?.lastPrice);
-          const volume = toNumber(liveData.tradeInfo?.totalTradedVolume);
-          const deliveryVolume = toNumber(liveData.tradeInfo?.deliveryquantity);
-          const deliveryPercent = toNumber(liveData.tradeInfo?.deliveryToTradedQuantity);
-          if (open && high && low && close) {
+        const rawLiveDate = liveData.lastUpdateTime || liveData.tradeInfo?.secwisedelposdate;
+        let liveDateStr = parseNseDate(rawLiveDate);
+        if (!liveDateStr || !/^\d{4}-\d{2}-\d{2}$/.test(liveDateStr)) {
+          const now = new Date();
+          liveDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        }
+
+        const open = toNumber(liveData.metaData?.open);
+        const high = toNumber(liveData.metaData?.dayHigh);
+        const low = toNumber(liveData.metaData?.dayLow);
+        // Requirement 4: Don't use last price, use close price (fallback to lastPrice if closePrice is 0 / during market hours)
+        const close =
+          toNumber(liveData.metaData?.closePrice) || toNumber(liveData.tradeInfo?.lastPrice);
+        const volume = toNumber(liveData.tradeInfo?.totalTradedVolume);
+        const deliveryVolume = toNumber(liveData.tradeInfo?.deliveryquantity);
+        const deliveryPercent = toNumber(liveData.tradeInfo?.deliveryToTradedQuantity);
+
+        if (open && high && low && close) {
+          const lastHistorical = candles[candles.length - 1];
+          // Requirement 1: If date of data returned by GetQuoteApi is same as last date of generateSecurityWiseHistoricalData,
+          // strip the last entry from the response of generateSecurityWiseHistoricalData to prevent duplicate candle.
+          if (lastHistorical && lastHistorical.time === liveDateStr) {
+            candles.pop();
             candles.push({
-              time: todayStr,
+              time: liveDateStr,
+              open,
+              high,
+              low,
+              close,
+              volume,
+              deliveryVolume,
+              deliveryPercent,
+            });
+          } else if (!lastHistorical || lastHistorical.time < liveDateStr) {
+            candles.push({
+              time: liveDateStr,
               open,
               high,
               low,
