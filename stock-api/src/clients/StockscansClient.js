@@ -892,6 +892,30 @@ class StockscansClient {
   }
 
   /**
+   * Server-rendered company page (`/company/<EXCH:SYMBOL>`), ~400-500 KB of
+   * Next.js SSR HTML. There is NO JSON API behind its financials section --
+   * the Quarterly Results / Annual P&L tables are plain `<table>`s in this
+   * HTML (confirmed 2026-09-20), so the only way to get historical P&L is to
+   * fetch the page and parse it (see `analyzers/companyFinancials.js`, which
+   * owns the parsing; this method only fetches).
+   *
+   * @param {string} companyId - e.g. "NSE:AVALON" (series suffix stripped).
+   * @returns {Promise<string>} Raw HTML.
+   */
+  async companyPageHtml(companyId) {
+    const id = sanitizeCompanyId(companyId);
+    const headers = {
+      cookie: `authtoken=${this.auth.getToken()}`,
+      accept: 'text/html,application/xhtml+xml',
+    };
+    const { data } = await this.http.get(`${BASE_URL}/company/${encodeURIComponent(id)}`, {
+      headers,
+      timeout: 45000,
+    });
+    return typeof data === 'string' ? data : String(data);
+  }
+
+  /**
    * The authenticated user's saved scans.
    *
    * PATH MIGRATED 2026-09-16: old path `GET /api/user/saved-scans` now

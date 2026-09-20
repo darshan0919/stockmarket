@@ -37,8 +37,19 @@ Input schema per company (see SKILL.md Step 1 for the full annotation guide):
   "assumptions": ["..."]
 }
 
+Growth ranking (added 2026-09-20): if an annotation carries a `growth` block
+(written by compute_growth_deltas.py -- guidance x reported history ->
+QoQ/YoY/FYoFY growth in Revenue, Operating Profit and PAT), its
+`growth_score` (0-100, bottom-line weighted; see that script's docstring) is
+passed through and becomes the DEFAULT SORT KEY: "the guidance with the
+highest growth rates wins". The visibility composite above is unchanged and
+stays in the output as its own column (it answers a different question --
+how much of the guide is near-term/specific/evidenced -- and breaks ties).
+Companies with no computable growth_score (qualitative guidance only, actuals
+missing) sort after every scored company, by composite.
+
 Usage:
-  python3 compute_pead_score.py --in annotations.json --out ranked.json
+  python3 compute_pead_score.py --in annotations.json --out ranked.json [--sort growth|composite]
 """
 import argparse
 import json
@@ -129,22 +140,46 @@ def score_one(c):
     return round(s, 1), notes
 
 
+def sort_key(mode):
+    """growth: scored companies first by growth_score desc, then composite desc; composite: composite only."""
+    if mode == "composite":
+        return lambda r: (-r["composite_score"],)
+    return lambda r: (
+        r.get("growth_score") is None,
+        -(r.get("growth_score") or 0.0),
+        -r["composite_score"],
+    )
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--in", dest="infile", required=True)
     ap.add_argument("--out", dest="outfile", required=True)
+    ap.add_argument(
+        "--sort",
+        choices=["growth", "composite"],
+        default="growth",
+        help="default 'growth': growth_score desc (unscored last), composite as tie-break",
+    )
     args = ap.parse_args()
 
     data = json.load(open(args.infile))
     results = []
     for c in data:
         sc, notes = score_one(c)
-        results.append({**c, "composite_score": sc, "score_breakdown": notes})
-    results.sort(key=lambda x: -x["composite_score"])
+        g = c.get("growth") or {}
+        results.append({
+            **c,
+            "composite_score": sc,
+            "score_breakdown": notes,
+            "growth_score": g.get("growth_score"),
+        })
+    results.sort(key=sort_key(args.sort))
 
     json.dump(results, open(args.outfile, "w"), indent=2)
     for r in results:
-        print(f"{r['composite_score']:5.1f}  {r['ticker']:16s} {r.get('name','')}")
+        gs = r.get("growth_score")
+        print(f"growth {gs if gs is not None else '  -- ':>5}  composite {r['composite_score']:5.1f}  {r['ticker']:16s} {r.get('name','')}")
 
 
 if __name__ == "__main__":

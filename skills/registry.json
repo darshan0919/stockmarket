@@ -921,11 +921,10 @@
         "packages/jobs-runtime/lib/companyContext.js",
         "packages/jobs-runtime/lib/db.js",
         "skills/equity-research/forward-guidance-extractor/scripts/build_guidance_workbook.py",
-        "skills/equity-research/forward-guidance-extractor/scripts/classify_transcript_status.py",
         "skills/equity-research/forward-guidance-extractor/scripts/compute_guidance_value.py",
         "skills/equity-research/forward-guidance-extractor/scripts/save_forward_guidance.js",
-        "stock-api/bin/get-latest-concall-transcript.js",
-        "skills/equity-research/guidance-document-extractor/SKILL.md",
+        "stock-api/src/clients/StockscansClient.js",
+        "stock-api/src/analyzers/runScan.js",
         "skills/equity-research/pead-surprise-ranker/SKILL.md"
       ],
       "references": [
@@ -940,7 +939,9 @@
         "pull pat revenue guidance",
         "what did management guide for",
         "management outlook extraction",
-        "forward looking guidance transcripts"
+        "forward looking guidance transcripts",
+        "guidance and commitments",
+        "concall notes guidance"
       ]
     },
     "announcement-insights": {
@@ -1026,9 +1027,13 @@
       "entry": null,
       "mode": "clone",
       "modules": [
+        "skills/equity-research/pead-surprise-ranker/scripts/compute_growth_deltas.py",
         "skills/equity-research/pead-surprise-ranker/scripts/compute_pead_score.py",
         "skills/equity-research/pead-surprise-ranker/scripts/build_pead_workbook.py",
         "skills/equity-research/pead-surprise-ranker/scripts/save_pead_ranking.js",
+        "stock-api/bin/company-financials.js",
+        "stock-api/src/analyzers/companyFinancials.js",
+        "stock-api/src/clients/StockscansClient.js",
         "packages/jobs-runtime/lib/db.js"
       ],
       "references": [],
@@ -1037,10 +1042,12 @@
         "best pead bets",
         "best visibility into next quarter",
         "eps surprise ranking",
+        "guidance growth ranking",
         "guidance-based surprise screen",
         "pead ranking",
         "rank by earnings surprise potential",
         "stage 4 guidance pipeline",
+        "who is promising the most growth",
         "who might beat this quarter"
       ]
     },
@@ -1127,7 +1134,8 @@
         "stage 2 guidance pipeline",
         "cheap model guidance pre-filter",
         "recall first filter"
-      ]
+      ],
+      "_deprecated": "2026-09-20: superseded by forward-guidance-extractor's rewrite, which now fetches concall-notes and growth-catalysts directly via StockscansClient (concallNotes()/growthCatalysts(), path-migrated 2026-09-16) instead of bulk-fetching raw Transcript/PPT/Result and running a cheap-model relevance filter over them -- Stockscans' own AI synthesis now produces the Guidance & Commitments / Key Metrics tables this pipeline needed to build by hand. Not called by any current router -- forward-guidance-extractor no longer depends on it. Kept for reference / in case a future need for raw-document bulk fetch returns."
     },
     "order-book-tracker": {
       "skill_md": "skills/equity-research/order-book-tracker/SKILL.md",

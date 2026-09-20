@@ -17,7 +17,7 @@
  *   snapshot-then-report — standard mode for every scheduled run: runs
  *               snapshot for its OWN slot first, then builds the cumulative
  *               day breakdown across all slots recorded so far, and emails
- *               the updated report. Invoked 8x/day across the session:
+ *               the updated report. Invoked 8x/day on weekdays across the session:
  *               10:25, 11:25, 12:25, 13:25, 14:25, 15:25, 16:25 (close),
  *               and 17:25 (final NCL settlement).
  *

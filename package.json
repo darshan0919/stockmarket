@@ -82,6 +82,7 @@
     "find-stray-artifacts": "node scripts/find_stray_artifacts.js",
     "learnyst-transcript-refresh": "yarn workspace @stock/jobs learnyst-transcript-refresh",
     "learnyst-compress-audio": "yarn workspace @stock/jobs learnyst-compress-audio",
+    "learnyst-ocr-attachments": "yarn workspace @stock/jobs-runtime learnyst-ocr-attachments",
     "youtube-transcript-refresh": "yarn workspace @stock/jobs youtube-transcript-refresh",
     "learning-resources-refresh": "yarn learnyst-transcript-refresh; yarn youtube-transcript-refresh",
     "sync-company-sector-industry": "yarn workspace @stock/api sync-company-sector-industry",

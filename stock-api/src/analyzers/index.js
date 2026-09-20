@@ -5,6 +5,7 @@ const { computeConcentration, computeHHI } = require('./computeConcentration');
 const { parseTweetDump } = require('./parseTweetDump');
 const { runScan, resolveUniverse, applyLiquidityGate } = require('./runScan');
 const { scanCatalysts } = require('./scanCatalysts');
+const { parseCompanyPage, selectBaselines, getCompanyFinancials } = require('./companyFinancials');
 const { postEventReturns, eventReturns, driftSignature } = require('./postEventReturns');
 const {
   parseScreenerInsights,
@@ -46,6 +47,9 @@ module.exports = {
   fetchPriceMetrics,
   normalizePvd,
   scanCatalysts,
+  parseCompanyPage,
+  selectBaselines,
+  getCompanyFinancials,
   classifyEventText,
   mergeAnnouncements,
   findLatestEvent,

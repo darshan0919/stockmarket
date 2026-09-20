@@ -87,14 +87,90 @@ def _scan_columns_present(records):
     return ordered
 
 
+def _g(r, *path):
+    """Safe nested read of r['growth'][...]; None when any level is missing."""
+    cur = r.get("growth") or {}
+    for k in path:
+        if not isinstance(cur, dict):
+            return None
+        cur = cur.get(k)
+    return cur
+
+
+def _phasing(r):
+    w = _g(r, "phasing_weights")
+    return " / ".join(f"{q} {v:g}%" for q, v in w.items()) if w else ""
+
+
+def _notes(r):
+    g = r.get("growth") or {}
+    parts = [f"FLAG: {f}" for f in g.get("flags") or []] + list(g.get("assumptions") or [])
+    return " | ".join(parts)
+
+
+# (header, width, is_numeric, getter). Numeric growth columns are written as real
+# numbers (not strings) so the reader can sort/filter on any of them in Excel --
+# the sheet has an autofilter on the header row.
+GROWTH_COLUMNS = [
+    ("Growth Score (0-100)", 9, True, lambda r: r.get("growth_score")),
+    ("Growth Coverage (0-1)", 9, True, lambda r: _g(r, "growth_coverage")),
+    ("Growth Score before coverage adj.", 9, True, lambda r: _g(r, "growth_score_raw")),
+    ("Revenue QoQ %", 9, True, lambda r: _g(r, "deltas", "revenue", "qoq")),
+    ("Revenue YoY %", 9, True, lambda r: _g(r, "deltas", "revenue", "yoy")),
+    ("Revenue FYoFY %", 9, True, lambda r: _g(r, "deltas", "revenue", "fyofy")),
+    ("EBITDA / Op. Profit QoQ %", 10, True, lambda r: _g(r, "deltas", "operating_profit", "qoq")),
+    ("EBITDA / Op. Profit YoY %", 10, True, lambda r: _g(r, "deltas", "operating_profit", "yoy")),
+    ("EBITDA / Op. Profit FYoFY %", 10, True, lambda r: _g(r, "deltas", "operating_profit", "fyofy")),
+    ("PAT QoQ %", 9, True, lambda r: _g(r, "deltas", "pat", "qoq")),
+    ("PAT YoY %", 9, True, lambda r: _g(r, "deltas", "pat", "yoy")),
+    ("PAT FYoFY %", 9, True, lambda r: _g(r, "deltas", "pat", "fyofy")),
+    ("Projected Quarter", 10, False, lambda r: _g(r, "target_quarter")),
+    ("Proj. Revenue (Q, Cr)", 10, True, lambda r: _g(r, "projected_quarter", "revenue")),
+    ("Proj. EBITDA / Op. Profit (Q, Cr)", 11, True, lambda r: _g(r, "projected_quarter", "operating_profit")),
+    ("Proj. PAT (Q, Cr)", 10, True, lambda r: _g(r, "projected_quarter", "pat")),
+    ("Guided FY", 8, False, lambda r: _g(r, "guided_fy")),
+    ("Proj. Revenue (FY, Cr)", 10, True, lambda r: _g(r, "projected_fy", "revenue")),
+    ("Proj. EBITDA / Op. Profit (FY, Cr)", 11, True, lambda r: _g(r, "projected_fy", "operating_profit")),
+    ("Proj. PAT (FY, Cr)", 10, True, lambda r: _g(r, "projected_fy", "pat")),
+    ("Latest Qtr Revenue YoY % (delivered)", 11, True, lambda r: _g(r, "context", "latest_revenue_yoy_pct")),
+    ("Latest Qtr PAT YoY % (delivered)", 11, True, lambda r: _g(r, "context", "latest_pat_yoy_pct")),
+    ("Implied Remaining-Qtrs Revenue YoY %", 12, True, lambda r: _g(r, "context", "implied_remaining_revenue_yoy_pct")),
+    ("Growth Basis", 10, False, lambda r: _g(r, "basis_quality") or _g(r, "status")),
+    ("Phasing (% of remaining FY revenue)", 22, False, _phasing),
+    ("Growth Assumptions & Flags", 60, False, _notes),
+]
+
+
 def build_ranked_sheet(ws, ranked):
     scan_cols = _scan_columns_present(ranked)
-    headers = [
-        "Rank", "Ticker", "Company", "Sector", "Visibility Tier", "Composite Score",
-        "Revenue Guidance", "Margin / Margin Direction", "PAT Lever",
-        "Evidence Strength", "Thesis / Why it might beat", "Key Assumptions (explicit)",
-        "Score Breakdown",
-    ] + scan_cols
+    lead = [
+        ("Rank", 5, False, None),
+        ("Ticker", 14, False, lambda r: r["ticker"]),
+        ("Company", 26, False, lambda r: r.get("name", "")),
+        ("Sector", 20, False, lambda r: r.get("sector", "")),
+    ]
+    visibility = [
+        ("Visibility Tier", 8, False, lambda r: r.get("tier")),
+        ("Composite (Visibility) Score", 10, True, lambda r: r.get("composite_score")),
+    ]
+    text = [
+        ("Revenue Guidance", 32, False, lambda r: r.get("rev_guided") or "(none disclosed)"),
+        (
+            "Margin / Margin Direction",
+            32,
+            False,
+            lambda r: f"{r.get('margin_guided') or '(none disclosed)'}  [{r.get('margin_dir')}]",
+        ),
+        ("PAT Lever", 20, False, lambda r: r.get("pat_lever")),
+        ("Evidence Strength", 12, False, lambda r: r.get("evidence")),
+        ("Thesis / Why it might beat", 45, False, lambda r: r.get("thesis")),
+        ("Key Assumptions (explicit)", 40, False, lambda r: "; ".join(r.get("assumptions") or [])),
+        ("Score Breakdown", 45, False, lambda r: " | ".join(r.get("score_breakdown") or [])),
+    ]
+    cols = lead + GROWTH_COLUMNS + visibility + text
+    tier_col = 1 + [c[0] for c in cols].index("Visibility Tier")
+    headers = [c[0] for c in cols] + scan_cols
+
     for i, h in enumerate(headers, 1):
         c = ws.cell(row=1, column=i, value=h)
         c.fill = HEADER_FILL
@@ -103,29 +179,24 @@ def build_ranked_sheet(ws, ranked):
 
     row = 2
     for rank, r in enumerate(ranked, 1):
-        vals = [
-            rank, r["ticker"], r.get("name", ""), r.get("sector", ""), r.get("tier"),
-            r.get("composite_score"),
-            r.get("rev_guided") or "(none disclosed)",
-            f"{r.get('margin_guided') or '(none disclosed)'}  [{r.get('margin_dir')}]",
-            r.get("pat_lever"),
-            r.get("evidence"),
-            r.get("thesis"),
-            "; ".join(r.get("assumptions") or []),
-            " | ".join(r.get("score_breakdown") or []),
-        ] + [(r.get("scan_cols") or {}).get(c, "") for c in scan_cols]
+        vals = [rank if getter is None else getter(r) for (_, _, _, getter) in cols]
+        vals += [(r.get("scan_cols") or {}).get(c, "") for c in scan_cols]
         for i, v in enumerate(vals, 1):
             cell = ws.cell(row=row, column=i, value=v)
             cell.alignment = Alignment(wrap_text=True, vertical="top")
-            if i == 5:
+            if i <= len(cols) and cols[i - 1][2] and isinstance(v, (int, float)):
+                cell.number_format = "0.0"
+            if i == tier_col:
                 fill = TIER_FILL.get(r.get("tier"), "FFFFFF")
                 cell.fill = PatternFill(start_color=fill, end_color=fill, fill_type="solid")
         row += 1
 
-    widths = [5, 14, 26, 20, 8, 9, 32, 32, 20, 12, 45, 40, 45] + [16] * len(scan_cols)
+    widths = [c[1] for c in cols] + [16] * len(scan_cols)
     for i, w in enumerate(widths, 1):
         ws.column_dimensions[get_column_letter(i)].width = w
-    ws.freeze_panes = "A2"
+    ws.row_dimensions[1].height = 60
+    ws.freeze_panes = "E2"  # keep Rank/Ticker/Company/Sector visible while scrolling the growth columns
+    ws.auto_filter.ref = f"A1:{get_column_letter(len(headers))}{max(row - 1, 1)}"
     return row - 2
 
 

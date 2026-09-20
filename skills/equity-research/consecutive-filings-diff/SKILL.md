@@ -87,14 +87,39 @@ Pull live CMP and market cap from at least two independent sources (screener.in 
 
 Every consecutive-filings-diff run has a concall transcript in hand by this point (from Phase 0/2), which is exactly the input `forward-guidance-extractor` needs — so always invoke that skill's Phase 1–3 for the current ticker/quarter rather than re-deriving guidance ad hoc inside this skill. Two things this buys you: the zero-assumption discipline (explicit, quantified guidance only — no "we expect to grow" rows) already lives in that skill's script pipeline, and a company that gets diffed today has its guidance persisted for the next quarter's walk-the-talk comparison for free.
 
-Concretely:
+**2026-09-20 update:** `forward-guidance-extractor` no longer classifies a
+transcript you already hold in hand — it now fetches Stockscans' own
+AI-synthesized `concallNotes()`/`growthCatalysts()` reports directly (see
+that skill's SKILL.md), which requires the same `ssUrl` this skill's Phase 0
+already resolved but a separate API call from the raw transcript text
+Phase 2 read. Concretely:
 
-1. Run `forward-guidance-extractor`'s Phase 1 (`classify_transcript_status.py`) against the same ticker/quarter — it will be an instant `available` hit since the transcript is already in `data/reports/` from this skill's own Phase 0/2.
-2. Run that skill's Phase 2 (reasoning — read the transcript once, reuse the same read from Phase 2 above rather than re-reading it) to produce the guidance items, then its Phase 3 script (`compute_guidance_value.py`) to resolve absolute/relative values.
-3. Persist via that skill's Phase 4 (`save_forward_guidance.js`) exactly as `forward-guidance-extractor/SKILL.md` specifies — this skill does not invent its own persistence path for guidance data.
-4. Take the resulting enriched guidance array and fold it into this skill's own output DTO (see the `forwardGuidance` field below) so it renders as a section inside the SAME widget — do not produce a second, separate guidance workbook for a single-company diff run. The workbook builder (`build_guidance_workbook.py`) is for multi-company batch runs of `forward-guidance-extractor` on its own; a consecutive-filings-diff run is already scoped to one company and one quarter, so skip that step here.
+1. Call `StockscansClient.concallNotes(companyId, ssUrl)` (retry once on a
+   transient bare 401, same as `forward-guidance-extractor`'s Phase 0) using
+   the SAME `ssUrl` this skill's Phase 0/2 already resolved for the current
+   quarter's transcript — no separate transcript-availability check needed,
+   since you already know it exists. Also call
+   `StockscansClient.growthCatalysts(companyId)` for supplementary context.
+2. Run that skill's Phase 1 (reasoning — map the `Guidance & Commitments`/
+   `Key Metrics` tables onto the fixed metric taxonomy) and Phase 1b (QoQ
+   reconciliation against this company's last stored `forward-guidance` DTO,
+   if any), then its Phase 2 script (`compute_guidance_value.py`) to resolve
+   absolute/relative values.
+3. Persist via that skill's Phase 3 (`save_forward_guidance.js`) exactly as
+   `forward-guidance-extractor/SKILL.md` specifies — this skill does not
+   invent its own persistence path for guidance data.
+4. Take the resulting enriched guidance array and fold it into this skill's
+   own output DTO (see the `forwardGuidance` field below) so it renders as a
+   section inside the SAME widget — do not produce a second, separate
+   guidance workbook for a single-company diff run. The workbook builder
+   (`build_guidance_workbook.py`) is for multi-company batch runs of
+   `forward-guidance-extractor` on its own; a consecutive-filings-diff run is
+   already scoped to one company and one quarter, so skip that step here.
 
-If the transcript resolves to `missing` (no usable transcript at all), note that explicitly in the guidance section rather than fabricating rows or silently omitting the section.
+If `StockscansClient.latestTranscript(companyId)` returns `null` or
+`hasNotes: false` for the current quarter (no usable concall notes at all),
+note that explicitly in the guidance section rather than fabricating rows or
+silently omitting the section.
 
 ## Quick-start sequence
 
@@ -112,7 +137,7 @@ When this skill triggers:
 
 6. **Pull live price data.** Use the data sourcing guidance in `references/phase3_live_repricing.md`. Screener.in's quoted price is often stale by days or weeks — always verify against at least one live tick source.
 
-6b. **Always run Phase 4 — invoke `forward-guidance-extractor`.** This is not optional and not skippable even for a "quick" diff: you already have the concall transcript in hand, so the marginal cost is one extra reasoning pass, not a new fetch. Follow that skill's Phase 1–4 exactly (transcript classification → explicit-guidance extraction → absolute/relative computation → persistence), then carry its enriched guidance array into this skill's own DTO rather than building a second workbook.
+6b. **Always run Phase 4 — invoke `forward-guidance-extractor`.** This is not optional and not skippable even for a "quick" diff: you already have the transcript's `ssUrl` resolved from Phase 0, so the marginal cost is one `concallNotes()` call plus one short reasoning pass, not a new document fetch. Follow that skill's Phase 0–3 exactly (concall-notes + growth-catalysts fetch → guidance-table extraction + QoQ reconciliation → absolute/relative computation → persistence), then carry its enriched guidance array into this skill's own DTO rather than building a second workbook.
 
 7. **Write the output DTO, then render the widget from it.** Per
    `skills/tooling/output-dto-standard/SKILL.md`, the HTML widget must be reproducible
@@ -145,9 +170,10 @@ When this skill triggers:
      }
      ```
      `forwardGuidance` is the enriched array produced by `forward-guidance-extractor`'s
-     Phase 3 script (`compute_guidance_value.py`) for this same ticker/quarter — each
+     Phase 2 script (`compute_guidance_value.py`) for this same ticker/quarter — each
      item already carries `metric_category`, `metric`, `period_guided`, `display`,
-     `base_period`, `quote`, and `stale_reference` fields. Company, ticker, and quarter
+     `base_period`, `quote`, and `qoq_status` (reaffirmed/revised/new/dropped, from
+     that skill's Phase 1b reconciliation) fields. Company, ticker, and quarter
      are already fixed by this DTO's own `companyId`/`quarters` fields, so do not repeat
      them inside each guidance item or render them as columns in the widget table.
      If re-running for the same company/quarter pair, read any existing JSON first and

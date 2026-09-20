@@ -37,10 +37,11 @@ const SIDECAR_OVERRIDES = {
     displayName: 'Dead Code Tasks',
     cron: '0 9 * * 0',
   },
+  // 16:00 (4:00 PM) weekdays only — syncs Near Highs scan to watchlist after market close.
   'watchlist-sync-stockmarket': {
     sidecarFolder: 'watchlist-sync',
     displayName: 'Watchlist Sync',
-    cron: '0 16 * * *',
+    cron: '0 16 * * 1-5',
   },
   'upload-stock-reports-to-google-drive': {
     sidecarFolder: 'data-sync',
@@ -87,45 +88,46 @@ const SIDECAR_OVERRIDES = {
   },
   // Delivery Volume Tracker — 8 slots across the trading day (10:25, 11:25, 12:25,
   // 13:25, 14:25, 15:25, 16:25 [close], and 17:25 [final NCL settlement] snapshot-then-report).
+  // Runs Monday through Friday (1-5) on weekdays only.
   'delivery-volume-tracker': {
     sidecarFolder: 'delivery-volume-tracker',
     displayName: 'Delivery Volume Tracker - 10:25',
-    cron: '25 10 * * *',
+    cron: '25 10 * * 1-5',
   },
   'delivery-volume-tracker-1125': {
     sidecarFolder: 'delivery-volume-tracker-1125',
     displayName: 'Delivery Volume Tracker - 11:25',
-    cron: '25 11 * * *',
+    cron: '25 11 * * 1-5',
   },
   'delivery-volume-tracker-1225': {
     sidecarFolder: 'delivery-volume-tracker-1225',
     displayName: 'Delivery Volume Tracker - 12:25',
-    cron: '25 12 * * *',
+    cron: '25 12 * * 1-5',
   },
   'delivery-volume-tracker-1325': {
     sidecarFolder: 'delivery-volume-tracker-1325',
     displayName: 'Delivery Volume Tracker - 13:25',
-    cron: '25 13 * * *',
+    cron: '25 13 * * 1-5',
   },
   'delivery-volume-tracker-1425': {
     sidecarFolder: 'delivery-volume-tracker-1425',
     displayName: 'Delivery Volume Tracker - 14:25',
-    cron: '25 14 * * *',
+    cron: '25 14 * * 1-5',
   },
   'delivery-volume-tracker-1525': {
     sidecarFolder: 'delivery-volume-tracker-1525',
     displayName: 'Delivery Volume Tracker - 15:25',
-    cron: '25 15 * * *',
+    cron: '25 15 * * 1-5',
   },
   'delivery-volume-tracker-1625': {
     sidecarFolder: 'delivery-volume-tracker-1625',
     displayName: 'Delivery Volume Tracker - 16:25',
-    cron: '25 16 * * *',
+    cron: '25 16 * * 1-5',
   },
   'delivery-volume-tracker-final': {
     sidecarFolder: 'delivery-volume-tracker-final',
     displayName: 'Delivery Volume Tracker - Final (17:25)',
-    cron: '25 17 * * *',
+    cron: '25 17 * * 1-5',
   },
 };
 
@@ -383,7 +385,6 @@ function syncScheduledTasks() {
 
     const sidecarFolder = override.sidecarFolder || taskName.replace(/-stockmarket$/, '');
     const displayName = override.displayName || titleCase(taskName);
-    const defaultCron = override.cron || '0 20 * * *';
 
     const sidecarDirPath = path.join(SIDECARS_DIR, sidecarFolder);
     const sidecarFilePath = path.join(sidecarDirPath, 'sidecar.json');
@@ -392,9 +393,9 @@ function syncScheduledTasks() {
       fs.mkdirSync(sidecarDirPath, { recursive: true });
     }
 
-    // Preserve existing cron schedule from sidecar.json if configured
-    let cronToUse = defaultCron;
-    if (fs.existsSync(sidecarFilePath)) {
+    // Use explicit override cron if configured; otherwise preserve existing schedule from sidecar.json or fallback to default
+    let cronToUse = override.cron || '0 20 * * *';
+    if (!override.cron && fs.existsSync(sidecarFilePath)) {
       try {
         const existing = JSON.parse(fs.readFileSync(sidecarFilePath, 'utf8'));
         if (existing && Array.isArray(existing.args) && existing.args[0]) {

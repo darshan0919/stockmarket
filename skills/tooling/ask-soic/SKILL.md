@@ -128,14 +128,48 @@ e.g. how many of the transcripts you actually needed the LLM to read excerpts fr
 be worth a permanent home instead of a fresh search every time (that's the signal to
 suggest `concept-transcript-integrator` if the same question is recurring).
 
+## Attachment text (OCR cache)
+
+333 of the 545 Learnyst lessons carry PDF/slide attachments
+(`data/assets/learnyst-attachments/`, 376 files, not synced/gitignored per
+conventions.md §6 — these are local re-fetchable downloads). Their extracted
+text (text-layer read, falling back to `pdftoppm`+`tesseract` OCR for scanned
+slide decks) is cached at `data/cache/learnyst-pdf-text/<sha256(attachmentPath
+)[0:32]>.json` (sharded into 16 hex JSONL files on `data:push`, same mechanism
+as `pdf-text`/`pdf-text-full` — see `packages/jobs-runtime/lib/learnystPdfText.js`
+and `cloud-utils/src/StorageService.js`'s `parseShardedPath`).
+
+As of 2026-09-20: all 371 distinct attachments (376 attachmentPaths dedupe to
+371 unique files) have been OCR'd via `yarn learnyst-ocr-attachments` (wraps
+`packages/jobs-runtime/scripts/ocrLearnystAttachments.js`, `--max-size-mb N` /
+`--limit N` / `--offset N` / `--force` flags available for a re-run — e.g. after
+a genuine OCR-quality fix). This included 44 large files (101MB-356MB, mostly
+full webinar-recording PDFs) that were skipped in the first pass (2026-09-19)
+for cost/time reasons and picked up in a follow-up run the next day — each took
+roughly 90s-plus (dominated by disk read + pdf-parse, not page-by-page OCR,
+since most of these turned out to have a real text layer rather than being
+scanned). Of the full 371, 7 needed the OCR path (genuinely scanned/image slide
+decks), 44 came back `ocrFailed` (no usable text — a few `.xlsx`/`.docx` files
+are mislabeled with a `.pdf`-style attachment record and correctly fail PDF
+parsing), and 42 are `thin` (<40 chars — near-empty extraction, treat with the
+same caution ask-soic already applies to a marginal transcript match).
+
+**This skill does not search attachment text yet** — `search_soic.py` only
+indexes `transcriptPlain` from the two transcript stores. Reading the cache is
+currently a one-off `learnystPdfText.get(attachmentPath)` call (or a raw read of
+the sharded JSONL), not wired into the TF-IDF index. Extending `search_soic.py`
+to also index `data/cache/learnyst-pdf-text/` entries (joined back to their
+lesson via `attachmentPaths`) is the natural next step if a query keeps needing
+attachment content specifically — until then, if an answer seems like it would
+live in an attachment rather than the spoken transcript, say so rather than
+claiming the corpus has nothing on the topic, and mention the OCR cache exists
+for a manual look.
+
 ## Scope notes for v1
 
-- **Transcripts only.** The 171 Learnyst lessons that have PDF/worksheet attachments
-  are not searched or read by this skill yet — if an answer seems like it would live
-  in an attachment rather than the spoken transcript, say so rather than claiming
-  the corpus has nothing on the topic. Extending to attachment text is a natural v2
-  if transcript-only search proves insufficient on real queries (would need a PDF
-  text-extraction pass added to the script, following the `pdf` skill's approach).
+- **Transcripts indexed; attachments cached but not yet indexed** (see above) —
+  all 371 attachments are OCR'd now, but `search_soic.py` still only searches
+  the two transcript stores, not this cache.
 - **Lexical (TF-IDF), not semantic.** The search script matches on actual words used,
   not meaning — a query using very different vocabulary from how SOIC phrases the
   concept in the transcript can miss even when the topic is covered (this is why step

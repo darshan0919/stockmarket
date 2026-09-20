@@ -571,6 +571,68 @@ live before reusing this table for another `ratiosType`.
 
 ---
 
+## GET /company/{companyId} (HTML page -- NOT a JSON API)
+
+Client method: `companyPageHtml(companyId)` (fetch only). Parser:
+`stock-api/src/analyzers/companyFinancials.js` (`parseCompanyPage`,
+`getCompanyFinancials`). CLI: `yarn workspace @stock/api company-financials
+--companies NSE:X,NSE:Y`. Consumed by `pead-surprise-ranker` Step 1b.
+
+**Why HTML:** the page's Financials section has no backing JSON endpoint
+(confirmed 2026-09-20 -- the data is server-rendered Next.js SSR). The only
+source of historical quarterly/annual P&L on Stockscans is this authenticated
+page (`Cookie: authtoken=...`, `Accept: text/html`; ~400-500 KB; a raw `curl`
+may get a transient bare `401 {}` -- retry once, same as the other
+uvicorn-backed endpoints).
+
+**Structure the parser relies on** (tag names + visible text only; the CSS
+class names are hashed CSS-modules and change on every deploy -- never key
+on them). 10 `<table>`s per page, each rendered twice (mobile + desktop copy;
+the first is used):
+
+| Table (first header cell) | Columns                                                                  | Notes                                                                                  |
+| ------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| `Quarter`                 | 12 quarter-ends, oldest -> newest, e.g. `Sep 2023` ... `Jun 2026`        | the P&L used                                                                           |
+| `Financial Year` (P&L)    | `Mar 2020` ... `Mar 2026` + `TTM`; 8-13 columns depending on company age | the P&L used -- picked as the first `Financial Year` table that has Revenue + PAT rows |
+| `Financial Year` (others) | balance sheet, cash flow, ...                                            | ignored                                                                                |
+
+Row labels (label cell = 3 text nodes: mobile label, desktop label, unit):
+Revenue, Growth YoY, Expenses, Operating Profit, OPM, Other Income, Interest
+Expense, Depreciation, PBT, Tax, PAT, Growth YoY, NPM, EPS. **Banks/NBFCs
+("financial" layout)** instead show `Interest Expended`, `Financing Profit`
+and `FPM` (mapped onto the same output keys; Financing Profit is often
+NEGATIVE, so Operating-Profit growth is not comparable for them). Values:
+whole INR Cr for money rows (Indian digit grouping, e.g. `3,36,367`; `-` prefix
+for negatives), one decimal for `%` rows, INR for EPS. Consolidated view is
+the default (`activeView` marker text `Consolidated`).
+
+**Precision caveat:** money rows are rounded to whole Cr on the page, while
+the page's own `Growth YoY` % rows are computed on unrounded numbers -- for
+small companies growth re-derived from the rounded rows can differ by several
+points (e.g. AVALON Q1FY27 PAT: 35 vs 14 Cr -> 150% derived, 145.4% on the
+page). Prefer the page's growth rows when comparing to the latest quarter.
+
+**Parsed output** (`parseCompanyPage`): `{layout, basis, quarters[], years[],
+ttm, warnings[]}`; each record has `period` ("Jun 2026"), `yyyymm`, `fq`/`fy`
+("Q1FY27"/"FY26"), `fiscalYear`, `fiscalPeriod`, and the keys `revenue,
+revenue_growth_pct, expenses, operating_profit, opm_pct, other_income,
+interest, depreciation, pbt, tax, pat, pat_growth_pct, npm_pct, eps`
+(always present, `null` when the row was missing). `baselines`
+(`selectBaselines`) adds `latest_quarter`, `next_quarter`, `year_ago_quarter`,
+`latest_year_ago`, `last_fy`, `ytd_quarters`, `seasonality`. Parsing throws
+loudly if the quarterly table is absent (layout change / login wall /
+expired token) and emits `warnings` when a row's cell count does not match
+the header or when Revenue - Expenses != Operating Profit (or the PBT bridge
+fails) beyond rounding tolerance.
+
+**Verified live 2026-09-20** on NSE:AVALON, NSE:HDFCBANK, NSE:BAJFINANCE,
+NSE:IFBIND, NSE:SUPRAJIT (industrial + financial layouts, 9-13 annual
+columns, all 12 quarters). AVALON FY26 revenue 1,603 Cr matches the concall
+commitment "INR 1,603 crores (FY26) to ~INR 3,200 crores (FY29)". Cached 24h
+under `data/cache/company-financials/` via `StorageService`.
+
+---
+
 ## Other endpoints (reference only, not yet used by any consumer skill)
 
 Brief pointers — expand with full schemas here as they get exercised live.

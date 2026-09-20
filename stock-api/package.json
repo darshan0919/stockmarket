@@ -16,6 +16,7 @@
   "scripts": {
     "test": "jest",
     "announcement-keyword-explorer": "node bin/announcement-keyword-explorer.js",
+    "company-financials": "node bin/company-financials.js",
     "concall-analysis": "node bin/concall-analysis.js",
     "consecutive-filings-diff": "node bin/consecutive-filings-diff.js",
     "drhp-ipo-analysis": "node bin/drhp-ipo-analysis.js",

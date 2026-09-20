@@ -23,6 +23,10 @@ and invokes the job once per pair. Do NOT hardcode specific IDs in this skill.
 | `--watchlist-name` | `Near Highs`                            | label used in logs/email                              |
 | `--radar-id`       | `7ca0e1a60c3fd0d8b1ab61ce` (Radar)      | watchlist of companies to exclude                     |
 | `--dry-run`        | off                                     | compute + print the diff without applying or emailing |
+| `--force`          | off                                     | force run even on weekends (ordinarily Mon–Fri only)  |
+
+> **Schedule**: Runs automatically on **weekdays only (Monday–Friday at 16:00 IST)** after market close.
+> On weekends, CLI executions automatically skip unless `--force` or `--dry-run` is passed.
 
 > Any **non-default** `--scan-id` runs with that scan's OWN saved definition/filters
 > (fetched from Stockscans), not the built-in Near-High filter payload. The default scan

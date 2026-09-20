@@ -55,16 +55,28 @@ All" control is used. That data is **not** fetched over the network on
 click — it's already present in the page's client-side state and is just
 sliced to 10 rows until expanded, so there's no API call to intercept.
 
-`content.js` automatically clicks every "Load All"/"Show All" control it
-finds on each poll (`clickLoadAllControls()`), so the full history is visible
-and classifiable without the user ever needing to click it. This control
-turned out to be a plain `<div>` with no button semantics, not a
-`<button>`/`<a role="button">` — an earlier version's selector matched the
-wrong element, and clicking _that_ threw inside stockscans' own click
-handler, which is why auto-clicking was initially avoided. The fix walks up
-from the "Load All" text node to the nearest ancestor with `role="button"`
-or CSS `cursor: pointer` (i.e. the actual clickable target a real click would
-hit), which clicks cleanly.
+`content.js` automatically clicks every "Load All"/"Show All" control
+scoped specifically to the candidate Bulk/Block Deals tables
+(`clickLoadAllControls(tables)`), so the full history is visible and
+classifiable without the user ever needing to click it.
+
+To guarantee that this never triggers false-positive clicks across unrelated parts
+of the page (such as the "Download all" PDF button in StockScans' Report modal
+on `/company/*#documents` or anywhere else), several strict safeguards are enforced:
+
+1. **Scoped to deals table containers**: `clickLoadAllControls` is only invoked when
+   candidate deals tables exist in the DOM, and queries only within each deals table's
+   enclosing container (never globally across `document`).
+2. **Exact text match**: strictly checks for `/^(load\s*all|show\s*all)$/i` on trimmed
+   leaf elements; substring matching is forbidden.
+3. **Explicit download rejection**: any element, parent target, or attribute
+   (`aria-label`, `data-tip`, `title`, class) containing "download" is rejected.
+4. **Modal/Dialog immunity**: any control residing within dialogs, modals, sheets,
+   or overlays is ignored.
+
+When a valid control is found, the script walks up from the text node to the nearest
+ancestor with `role="button"` or CSS `cursor: pointer` (i.e. the actual clickable target
+a real click would hit) and clicks it once, marked by `data-idf-autoclicked`.
 
 ## Files
 

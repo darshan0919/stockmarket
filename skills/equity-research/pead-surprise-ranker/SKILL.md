@@ -2,8 +2,9 @@
 name: pead-surprise-ranker
 description: >
   Stage 3 (final, optional) of the guidance/PEAD pipeline: turns a batch of
-  forward-guidance report DTOs (from forward-guidance-extractor, Stage 2 of
-  the now-2-skill pipeline, itself fed by guidance-document-extractor) into
+  forward-guidance report DTOs (from forward-guidance-extractor, which now
+  fetches Stockscans' own concall-notes/growth-catalysts reports directly --
+  see that skill's SKILL.md) into
   a ranked PEAD (post-earnings-announcement-drift) surprise screen. Only run
   when the user explicitly asks for a ranking -- most often chained
   automatically from forward-guidance-extractor's optional Phase 6, never
@@ -22,7 +23,12 @@ description: >
   this quarter", "best PEAD bets", "rank these by earnings surprise
   potential", "which of these has the best visibility into next quarter", or
   wants a ranked table/workbook from a set of guidance
-  extractions. Always tags every input [guided]/[estimate]/[assumption] and
+  extractions. Since 2026-09-20 the ranking is ordered by GUIDED GROWTH vs
+  REPORTED HISTORY -- projected next-quarter and full-FY Revenue, EBITDA /
+  Operating Profit and PAT compared with the latest quarter (QoQ), the year-ago
+  quarter (YoY) and the previous full FY (FYoFY), bottom line weighted highest,
+  every delta its own sortable column -- so "who is promising the most growth"
+  is one sort away. Always tags every input [guided]/[estimate]/[assumption] and
   states explicit assumptions per company -- never silently invents a number
   to fill a modelling gap.
 ---
@@ -95,6 +101,38 @@ EBITDA/unit) or `[assumption]` (something you had to infer because management
 didn't state it explicitly — always name what the assumption is). Never
 present your own estimate as if it were management's number.
 
+## Ranking basis: guided growth vs. reported history (added 2026-09-20)
+
+The default sort answers "who is promising the most growth, measured against
+what they actually delivered" -- not merely "who has the most visible guide".
+For every company with quantified guidance, script-project the NEXT
+unreported quarter and the guided FY (Step 1b), and compare each of Revenue,
+EBITDA / Operating Profit (one series on Stockscans -- one column pair, not
+two) and PAT against three reported comparators:
+
+| Delta     | Projected figure        | Compared with                    |
+| --------- | ----------------------- | -------------------------------- |
+| **QoQ**   | next unreported quarter | latest reported quarter          |
+| **YoY**   | next unreported quarter | same quarter last year           |
+| **FYoFY** | guided full FY          | previous full FY (guided FY - 1) |
+
+Worked example (the user's own): guidance "revenue +20%, OPM 15%" ->
+FY Operating Profit = 1.20 x base revenue x 15%, compared with the previous
+FY's _actual_ Operating Profit -> FYoFY OP growth; the same margin applied to
+the phased quarter gives the QoQ / YoY OP growth. A margin step-up therefore
+shows up as bottom-line growth far above the revenue growth -- which is the
+point.
+
+`growth_score` (0-100, sorting aid only) weights the bottom line highest
+(PAT .40 / Operating Profit .35 / Revenue .25) and FYoFY/YoY over QoQ (.40 /
+.40 / .20; QoQ is seasonal), then shrinks it when few cells are computable
+(`growth_coverage`) so a top-line-only story can't outrank a real bottom-line
+one. Every delta is ALSO its own numeric column in the
+workbook (autofilter on) so the reader can sort by any single comparator; the
+old visibility composite stays as a separate column and the tie-break. See
+`scripts/compute_growth_deltas.py`'s docstring for the exact rules -- don't
+restate them from memory.
+
 ## Step 1 — Read guidance DTOs and annotate (LLM reasoning, one company at a time)
 
 Input: a list of tickers (or "every company that has a `forward-guidance`
@@ -138,6 +176,12 @@ for the same reason (cross-company hallucination risk at scale):
 }
 ```
 
+Add a `growth_inputs` object to the annotation when the guidance is
+quantified enough to project (revenue growth/level, and/or a margin, OP or PAT
+figure) -- Step 1b explains exactly what goes in it. Omit it for
+qualitative-only guidance (the company is still ranked, after every scored
+one, by the visibility composite).
+
 Field vocabulary (the scoring script in Step 2 only recognises these):
 
 - `tier`: `1` (quarter-specific) / `2` (FY-specific) / `3` (sector-model or
@@ -159,14 +203,76 @@ names (no transcript AND no PPT guidance, or management explicitly declined —
 `note` may carry a clearly-labelled historical-fundamentals footnote if the
 user's source data had one, but never present it as a forecast).
 
+## Step 1b — Reported history + growth deltas (script; LLM only for phasing)
+
+**1. Fetch actuals (script, cached).** Stockscans has no JSON API for
+historical P&L -- the numbers are in the server-rendered company page, which
+`company-financials` fetches and parses (12 quarters, ~7 FYs, TTM; consolidated;
+whole-Cr precision):
+
+```bash
+yarn workspace @stock/api company-financials \
+  --companies NSE:A,NSE:B,... --out /tmp/pead_actuals.json     # or --companies-file
+# add --force right after a company files new results (24h cache otherwise)
+```
+
+**2. Write `growth_inputs` per company (LLM judgment -- the ONLY LLM step here).**
+Schema in `compute_growth_deltas.py`'s docstring. Rules:
+
+- Put in only what management said: `guided_fy`; `revenue` (`growth_pct` -- the
+  midpoint of a range -- or `fy_abs_cr`); `operating_profit` (`opm_pct`,
+  `opm_delta_bps`, or EBITDA/OP `growth_pct`/`fy_abs_cr`) and `pat` if guided.
+  If margin was NOT guided, omit `operating_profit`: the script holds the
+  latest reported quarter's OPM and tags it `[assumption]`. Never fill a gap
+  with your own margin number.
+- **Multi-year guidance: distribute across YEARS first, then quarters.**
+  Year split (`revenue.year_path.cumulative_share`) follows when the capacity
+  goes live / the ramp or order book supports it -- back-ended if the plant
+  commissions late, front-loaded if capacity already exists. Quarter split
+  (`quarter_weights`, share of the REMAINING FY revenue) follows capacity
+  go-live dates first, then the company's own past seasonality (the default
+  the script uses if you give no weights is `baselines.seasonality` in the
+  actuals file -- look at it before overriding). State the reason in
+  `phasing_basis`.
+- **The more specific the guidance, the more it anchors the numbers:** a
+  quarter-specific guide (`target_quarter.revenue_cr` / `opm_pct` / `pat_cr`)
+  pins that quarter directly; an FY guide is phased; a vague multi-year
+  ambition is phased last and gets `basis: "derived"`.
+- Mark `basis: "derived"` on anything you phased or inferred; `"explicit"`
+  only when it is management's own figure for that FY.
+
+**3. Compute (script):**
+
+```bash
+python3 skills/equity-research/pead-surprise-ranker/scripts/compute_growth_deltas.py \
+  --annotations /tmp/pead_annotations.json --actuals /tmp/pead_actuals.json \
+  --out /tmp/pead_annotations_growth.json
+```
+
+Writes a `growth` block per company: projected next-quarter and FY figures,
+the nine deltas (Revenue / OP / PAT x QoQ / YoY / FYoFY), `growth_score`,
+`growth_coverage`, `basis_quality`, and every `[assumption]`/`[estimate]`/flag.
+Growth off a non-positive base is null + flagged, never a huge %.
+
+**4. Read the flags, then the `context` block (brief LLM check).** Any flag
+(stale guide, guidance already met, implausible implied OPM, small PAT base,
+missing year-ago quarter) belongs in that company's thesis/assumptions text.
+`context.implied_remaining_revenue_yoy_pct` vs `latest_revenue_yoy_pct` tells
+you whether the guide is a deceleration (possible sandbag) or a stretch.
+
 ## Step 2 — Score (script, no LLM)
 
 ```bash
 python3 skills/equity-research/pead-surprise-ranker/scripts/compute_pead_score.py \
-  --in /tmp/pead_annotations.json --out /tmp/pead_ranked.json
+  --in /tmp/pead_annotations_growth.json --out /tmp/pead_ranked.json   # --sort composite for the old order
 ```
 
-Deterministic composite (0-100, sorting aid only — the reader should always
+Default order: `growth_score` descending (companies without one -- qualitative
+guidance only, or actuals unavailable -- come after every scored company),
+composite as tie-break.
+
+Alongside the growth score, the deterministic visibility composite is kept
+(0-100, sorting aid only — the reader should always
 be pointed to the thesis/assumptions columns, not asked to trust the number
 blind): visibility tier (0-40) + margin direction (0-25) + PAT lever (-5 to
 +18) + revenue-growth magnitude (0-17, halved if `inorganic_flag`) + evidence
@@ -179,6 +285,11 @@ if its guided figure is in absolute currency terms rather than a %% (the
 revenue-growth-magnitude component can't parse it) — spot-check the Tier-1
 company specifically and flag this explicitly if it happens, don't let the
 mechanical score silently misrank the best-evidenced name.
+
+(This limitation is the visibility composite's, not the growth score's: an
+absolute-currency guide is passed to Step 1b as `revenue.fy_abs_cr` /
+`target_quarter.revenue_cr` and IS converted to growth against reported
+actuals there.)
 
 ## Step 3 — Methodology & caveats text (LLM, once per run)
 
@@ -200,6 +311,14 @@ and therefore not modelled), and a **self-audit** — per `conventions.md`
   Step 1, so it's visible without reading every row.
 - Which high scorers rely on a bps-margin calculation where the base figure
   wasn't independently re-confirmed against an actual Result filing.
+- **Growth deltas (added 2026-09-20):** how many companies' top growth cells
+  are `basis_quality: "derived"` (our phasing/assumed margin) rather than
+  management's own numbers; that PAT is always an `[estimate]` unless PAT was
+  guided; that actuals are whole-Cr rounded (small-company profit growth can
+  be off by several points), consolidated, and for banks/NBFCs only Revenue and
+  PAT are compared; that QoQ is seasonal (a Q4->Q1 dip is normal, hence its
+  low weight); that a strong YoY can be a weak-base effect; and that the
+  score's caps/weights are fixed constants, not calibrated on outcomes.
 
 Save to `/tmp/pead_methodology.txt`.
 
@@ -214,8 +333,12 @@ python3 skills/equity-research/pead-surprise-ranker/scripts/build_pead_workbook.
   --guidance-dtos /tmp/pead_guidance_dtos.json
 ```
 
-Produces three sheets: **PEAD Ranking**, **No Visibility (Excluded)**,
-**Methodology & Caveats**. This is a pure template render of the JSON from
+Produces three sheets: **PEAD Ranking** (Growth Score + Coverage, then the
+nine numeric delta columns -- Revenue / EBITDA-Op. Profit / PAT x QoQ / YoY /
+FYoFY -- projected quarter and FY figures, delivered-vs-implied context,
+growth basis, phasing and assumptions/flags, then the visibility columns;
+autofilter on, Rank/Ticker/Company/Sector frozen so any column is sortable),
+**No Visibility (Excluded)**, **Methodology & Caveats**. This is a pure template render of the JSON from
 Steps 1-3 — never hand-edit the xlsx or add a row that isn't in the source
 JSON.
 
@@ -256,14 +379,23 @@ is, since it's the one step requiring the flagship model) — call out that
 Steps 2, 4, 5 are already fully scripted and add negligible cost regardless
 of batch size.
 
+Final step (conventions.md §24 -- self-reported token usage; there is no
+automatic LLM-token instrumentation in this repo):
+
+```bash
+python3 scripts/metrics/track_invocation.py --name pead-surprise-ranker --type skill \
+  --model <exact model that ran Step 1/1b reasoning> --files <guidance DTO / actuals files read> --output-words <approx>
+```
+
 ## Dependencies
 
-- `forward-guidance-extractor` (Stage 2 of the now-2-skill pipeline) — this
-  skill consumes its `forward-guidance` DTOs, never re-extracts guidance
-  itself. If a candidate ticker has no `forward-guidance` DTO for the target
-  quarter at all, run the full upstream pipeline first
-  (`guidance-document-extractor` → `forward-guidance-extractor`) rather than
-  annotating from nothing. This skill is most commonly invoked automatically
+- `forward-guidance-extractor` — this skill consumes its `forward-guidance`
+  DTOs, never re-extracts guidance itself. If a candidate ticker has no
+  `forward-guidance` DTO for the target quarter at all, run
+  `forward-guidance-extractor` first (it fetches directly from Stockscans'
+  concall-notes/growth-catalysts endpoints now -- no separate fetch skill
+  needed) rather than annotating from nothing. This skill is most commonly
+  invoked automatically
   from inside `forward-guidance-extractor`'s optional Phase 6 — but only when
   the user explicitly asked for a ranking in the same request; it remains
   fully callable standalone too. (`guidance-document-fetcher`,
@@ -271,6 +403,9 @@ of batch size.
   `guidance-ppt-fallback` were earlier, now-deprecated designs for parts of
   that same upstream pipeline — if you land on any by an old reference, the
   current 2-skill pipeline superseded them.)
+- `stock-api/bin/company-financials.js` (+ `src/analyzers/companyFinancials.js`)
+  -- the historical-actuals fetch/parse behind Step 1b; documented in
+  `docs/stockscans-api-schemas.md` ("GET /company/{companyId}").
 - `pre-pead-scanner` (sibling, heavier) — has the full street-consensus +
   historical-drift + Screener-cross-check machinery this skill deliberately
   does NOT replicate. Point the user there if they ask for that level of
@@ -284,7 +419,8 @@ of batch size.
 pead-surprise-ranker/
 ├── SKILL.md
 └── scripts/
-    ├── compute_pead_score.py   (Step 2)
+    ├── compute_growth_deltas.py (Step 1b) + test_compute_growth_deltas.py
+    ├── compute_pead_score.py   (Step 2) + test_compute_pead_score.py
     ├── build_pead_workbook.py  (Step 4)
     └── save_pead_ranking.js    (Step 5)
 ```

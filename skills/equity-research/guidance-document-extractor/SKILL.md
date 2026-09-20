@@ -24,6 +24,15 @@ description: >
 
 # Guidance Document Extractor
 
+> **DEPRECATED 2026-09-20.** Superseded by `forward-guidance-extractor`'s
+> rewrite, which now fetches Stockscans' own `concallNotes()` and
+> `growthCatalysts()` reports directly (already AI-synthesized
+> `Guidance & Commitments` / `Key Metrics` tables, path-migrated 2026-09-16)
+> instead of this skill's bulk raw-document fetch + cheap-model relevance
+> filter. `forward-guidance-extractor` no longer depends on this skill --
+> see that skill's SKILL.md. Kept here for reference only; do not use for
+> new work.
+
 Stage 1+2 of `guidance-document-extractor` -> `forward-guidance-extractor`
 (optionally chaining `pead-surprise-ranker`). This merges what used to be two
 separate skills (`guidance-document-fetcher`, `guidance-relevance-filter`)

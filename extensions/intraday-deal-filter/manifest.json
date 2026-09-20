@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Stockscans Intraday Deal Filter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Hides same-day matched buy/sell (intraday/HFT) rows from the Bulk/Block Deals table on stockscans.in and tracks the HFTs behind them.",
 
   "permissions": ["storage", "downloads"],

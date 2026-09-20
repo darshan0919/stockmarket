@@ -4,6 +4,7 @@
  * File System Access API (directory handle is remembered across sessions).
  * @file extensions/intraday-deal-filter/popup.js
  */
+/* global chrome */
 
 const listEl = document.getElementById('list');
 const statusEl = document.getElementById('status');
@@ -37,27 +38,32 @@ toggleEl.addEventListener('change', () => {
   renderToggle(enabled);
 });
 
-// --- "Remove all same-day Buy+Sell traders" toggle (default on) + the
-// retained-shares % threshold it overrides. When the toggle is on, ANY
-// shareholder with both a Buy and a Sell on the same day is treated as
-// intraday regardless of quantity, and the threshold input is disabled
-// (greyed out) since it has no effect. ---
+// --- "Remove all same-day Buy+Sell traders" toggle is locked in disabled
+// mode (permanently on). ANY shareholder with both a Buy and a Sell on the same
+// day is treated as intraday regardless of quantity, and the threshold input
+// is disabled (greyed out). ---
 function renderThresholdRow(removeAll) {
   thresholdRowEl.classList.toggle('disabled', removeAll);
   thresholdInputEl.disabled = removeAll;
 }
 
+// Lock input in disabled mode
+removeAllToggleEl.disabled = true;
+removeAllToggleEl.checked = true;
+
 chrome.storage.local.get(['idf_remove_all_samedays', 'idf_threshold_pct'], (res) => {
-  const removeAll = res.idf_remove_all_samedays !== false; // default on
-  removeAllToggleEl.checked = removeAll;
-  renderThresholdRow(removeAll);
+  removeAllToggleEl.disabled = true;
+  removeAllToggleEl.checked = true;
+  renderThresholdRow(true);
   thresholdInputEl.value = res.idf_threshold_pct !== undefined ? res.idf_threshold_pct : 2;
+  if (res.idf_remove_all_samedays === false) {
+    chrome.storage.local.set({ idf_remove_all_samedays: true });
+  }
 });
 
 removeAllToggleEl.addEventListener('change', () => {
-  const removeAll = removeAllToggleEl.checked;
-  chrome.storage.local.set({ idf_remove_all_samedays: removeAll });
-  renderThresholdRow(removeAll);
+  removeAllToggleEl.checked = true;
+  removeAllToggleEl.disabled = true;
 });
 
 thresholdInputEl.addEventListener('change', () => {

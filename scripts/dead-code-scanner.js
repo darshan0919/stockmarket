@@ -399,9 +399,54 @@ function runDeadCodeScanner() {
     });
   });
 
+  /**
+   * Auto-actionable dead file rules per repo dead code policy:
+   * 1. Files/directories under repo-root `tmp/`
+   * 2. Legacy `data/announcement-scan-ignore-keywords.json` (superseded by stock-api noise keywords)
+   * 3. 0-byte files
+   * 4. Files starting with `tmp_*`
+   * 5. Files/directories under `jobs/data/`
+   */
+  function checkAutoActionableDeadItem(targetPath, rootDir = ROOT_DIR) {
+    const norm = (targetPath || '').replace(/\\/g, '/');
+    const base = path.basename(norm);
+
+    if (norm.startsWith('tmp/') || norm === 'tmp') {
+      return { isAuto: true, reason: 'files under repo-root tmp/ are always considered dead' };
+    }
+    if (
+      norm === 'data/announcement-scan-ignore-keywords.json' ||
+      base === 'announcement-scan-ignore-keywords.json'
+    ) {
+      return {
+        isAuto: true,
+        reason: 'superseded by stock-api/src/data/announcement-noise-keywords.json',
+      };
+    }
+    const abs = path.isAbsolute(targetPath) ? targetPath : path.join(rootDir, targetPath);
+    try {
+      if (fs.existsSync(abs) && fs.statSync(abs).isFile() && fs.statSync(abs).size === 0) {
+        return { isAuto: true, reason: '0-byte file is always considered dead' };
+      }
+    } catch (_e) {
+      // ignore fs stat error for non-existent paths
+    }
+    if (base.startsWith('tmp_') || norm.startsWith('tmp_') || norm.includes('/tmp_')) {
+      return { isAuto: true, reason: 'files starting with tmp_* are always considered dead' };
+    }
+    if (norm.startsWith('jobs/data/') || norm === 'jobs/data') {
+      return { isAuto: true, reason: 'files under jobs/data/ are always considered dead' };
+    }
+    return { isAuto: false, reason: null };
+  }
+
   const nonCodeDeadSet = new Set(reachability.nonCodeDead.map((d) => d.file));
   const nonCodeRollup = rollUpDeadFolders(nonCodeDeadSet, reachability.allFiles);
   nonCodeRollup.folders.forEach(({ dir, files }) => {
+    const autoCheck = checkAutoActionableDeadItem(dir);
+    const action = autoCheck.isAuto
+      ? `[DELETE] ${dir}/ — ${autoCheck.reason}`
+      : `[VERIFY] ${dir}/ — confirm unused, then delete or relocate`;
     actionItems.push({
       category: 'Unreferenced Non-Code File',
       title: `Investigate unreferenced folder ${dir}/ (${files.length} files, all unreferenced)`,
@@ -409,32 +454,46 @@ function runDeadCodeScanner() {
       detail:
         `Every file that exists under ${dir}/ (recursively, ${files.length} total) is not ` +
         `referenced by any reachable code. Full file list: ${files.join(', ')}`,
-      action: `[VERIFY] ${dir}/ — confirm unused, then delete or relocate`,
+      action,
       priority: 'Low',
       isFolder: true,
       fileCount: files.length,
+      isAutoActionable: autoCheck.isAuto,
+      autoReason: autoCheck.reason,
     });
   });
   nonCodeRollup.remaining.forEach((relPath) => {
     const reason = reachability.nonCodeDead.find((d) => d.file === relPath)?.reason;
+    const autoCheck = checkAutoActionableDeadItem(relPath);
+    const action = autoCheck.isAuto
+      ? `[DELETE] ${relPath} — ${autoCheck.reason}`
+      : `[VERIFY] ${relPath} — confirm unused, then delete or relocate`;
     actionItems.push({
       category: 'Unreferenced Non-Code File',
       title: `Investigate unreferenced file ${path.basename(relPath)}`,
       file: relPath,
       detail: reason,
-      action: `[VERIFY] ${relPath} — confirm unused, then delete or relocate`,
+      action,
       priority: 'Low',
+      isAutoActionable: autoCheck.isAuto,
+      autoReason: autoCheck.reason,
     });
   });
 
   reachability.dataAnalysis.hangingNodes.forEach(({ entry, path: dataPath, reason }) => {
+    const autoCheck = checkAutoActionableDeadItem(dataPath);
+    const action = autoCheck.isAuto
+      ? `[DELETE] ${dataPath} — ${autoCheck.reason}`
+      : `[VERIFY] ${dataPath} — no data-layer code references this collection name`;
     actionItems.push({
       category: 'Data Directory Hanging Node',
       title: `Verify data/${entry} is actually orphaned`,
       file: dataPath,
       detail: reason,
-      action: `[VERIFY] ${dataPath} — no data-layer code references this collection name`,
+      action,
       priority: 'Medium',
+      isAutoActionable: autoCheck.isAuto,
+      autoReason: autoCheck.reason,
     });
   });
 
@@ -538,6 +597,12 @@ const DICEY_CATEGORIES = new Set([
  * from recurring unnoticed for a *different* file).
  */
 function deriveReviewNote(item) {
+  if (item.isAutoActionable) {
+    return (
+      'High-confidence auto-actionable finding — matches repo dead code deletion rules ' +
+      `(${item.autoReason || 'auto-actionable'}). Safe to delete with confidence during dead code scan.`
+    );
+  }
   const isStructural = STRUCTURAL_ACTION_PREFIXES.some((p) => item.action.startsWith(p));
   const isDicey = DICEY_CATEGORIES.has(item.category) || !isStructural;
 
@@ -641,10 +706,12 @@ function updateTasksJson(actionItems, timestamp) {
     }
   });
 
+  const allSubtasksCompleted = newSubtasks.length > 0 && newSubtasks.every((st) => st.completed);
+
   const parentTask = {
     id: existingParent?.id || crypto.randomUUID(),
     title: parentTitle,
-    completed: false,
+    completed: allSubtasksCompleted,
     subtasks: newSubtasks,
     createdAt: existingParent?.createdAt || timestamp,
     updatedAt: timestamp,

@@ -21,6 +21,7 @@
  * they can be tracked as known intraday traders ("HFTs") across companies.
  * @file extensions/intraday-deal-filter/content.js
  */
+/* global chrome */
 (function () {
   'use strict';
 
@@ -68,7 +69,8 @@
   function findDealsTables() {
     const tables = Array.from(document.querySelectorAll('table'));
     return tables.filter((t) => {
-      const head = (t.querySelector('thead')?.innerText || '').replace(/\s+/g, ' ').trim();
+      const thead = t.querySelector('thead');
+      const head = (thead?.innerText || thead?.textContent || '').replace(/\s+/g, ' ').trim();
       return (
         /Shareholder/i.test(head) && /Type/i.test(head) && /Date/i.test(head) && /Value/i.test(head)
       );
@@ -166,48 +168,95 @@
   const AUTOCLICK_ATTR = 'data-idf-autoclicked';
 
   /**
-   * Click every "Load All"/"Show All" control on the page so intraday pairs
-   * whose second leg lives beyond the default ~10-row preview (like a Buy
-   * from months ago whose matching Sell is further down the full list) are
-   * visible immediately, without the user needing to click it themselves.
+   * Determine whether an element is a legitimate "Load All" / "Show All" control
+   * for expanding the deals table.
    *
-   * Earlier versions of this extension avoided auto-clicking because a
-   * naive `button, a[role="button"]` selector sometimes matched the wrong
-   * element and clicking it threw inside stockscans' own handler. The
-   * control is actually a plain <div> with no button semantics — walking up
-   * from the matching text node to the nearest ancestor with role="button"
-   * or CSS cursor:pointer (which is what a real click would hit) finds the
-   * correct target and clicks cleanly with no error, tested repeatedly.
+   * Strictly matches "Load All" or "Show All" (case-insensitive) and rejects
+   * any control containing "download" (such as StockScans' "Download all" reports button).
+   *
+   * @param {Element} el
+   * @returns {boolean}
+   */
+  function isLoadAllControl(el) {
+    if (!el || el.children.length !== 0) return false;
+    const text = (el.textContent || '').trim();
+    if (!text || /download/i.test(text)) return false;
+    return /^(load\s*all|show\s*all)$/i.test(text);
+  }
+
+  /**
+   * Click "Load All"/"Show All" controls specifically associated with Bulk/Block
+   * Deals tables so intraday pairs whose second leg lives beyond the default ~10-row
+   * preview (like a Buy from months ago whose matching Sell is further down the full list)
+   * are visible immediately, without the user needing to click it themselves.
+   *
+   * Scoped strictly to the containers of candidate deals tables to avoid false
+   * positives across unrelated parts of the page (such as the "Download all"
+   * button in the StockScans Report modal).
    * Guarded by AUTOCLICK_ATTR so each control is only ever clicked once per
    * page load (stockscans doesn't provide a "collapse" control back).
+   *
+   * @param {HTMLTableElement[]} [tables]
    */
-  function clickLoadAllControls() {
-    const leaves = Array.from(document.querySelectorAll('*')).filter(
-      (el) => el.children.length === 0 && /load all|show all/i.test(el.textContent || '')
-    );
-    for (const leaf of leaves) {
-      let target = leaf;
-      for (let i = 0; i < 6 && target; i++) {
-        if (target.hasAttribute(AUTOCLICK_ATTR)) {
-          target = null;
-          break;
+  function clickLoadAllControls(tables) {
+    if (!tables || !tables.length) return;
+
+    for (const table of tables) {
+      // Find the enclosing container for the table (e.g. div.wrapper)
+      const container =
+        table.closest('[class*="wrapper"]') ||
+        table.parentElement?.parentElement ||
+        table.parentElement;
+      if (!container) continue;
+
+      const leaves = Array.from(container.querySelectorAll('*')).filter(isLoadAllControl);
+
+      for (const leaf of leaves) {
+        let target = leaf;
+        for (let i = 0; i < 6 && target && target !== container; i++) {
+          if (target.hasAttribute(AUTOCLICK_ATTR)) {
+            target = null;
+            break;
+          }
+          const isClickable =
+            target.tagName === 'BUTTON' ||
+            target.getAttribute('role') === 'button' ||
+            (typeof getComputedStyle === 'function' &&
+              getComputedStyle(target)?.cursor === 'pointer');
+          if (isClickable) {
+            break;
+          }
+          target = target.parentElement;
         }
+
+        if (!target || target.hasAttribute(AUTOCLICK_ATTR)) continue;
+
+        // Extra safeguards: NEVER click anything related to downloading or dialogs/modals
+        const targetText = (target.textContent || '').trim();
+        const ariaLabel = target.getAttribute('aria-label') || '';
+        const dataTip = target.getAttribute('data-tip') || '';
+        const className = typeof target.className === 'string' ? target.className : '';
         if (
-          target.getAttribute('role') === 'button' ||
-          getComputedStyle(target).cursor === 'pointer'
-        )
-          break;
-        target = target.parentElement;
-      }
-      if (!target || target.hasAttribute(AUTOCLICK_ATTR)) continue;
-      target.setAttribute(AUTOCLICK_ATTR, '1');
-      try {
-        target.click();
-      } catch (err) {
-        console.warn(
-          '[Intraday Deal Filter] auto-click of Load All failed (harmless, will retry on next poll):',
-          err
-        );
+          /download/i.test(targetText) ||
+          /download/i.test(ariaLabel) ||
+          /download/i.test(dataTip) ||
+          /download/i.test(className) ||
+          target.closest?.(
+            '[role="dialog"], [class*="modal"], [class*="overlay"], [class*="sheet"]'
+          )
+        ) {
+          continue;
+        }
+
+        target.setAttribute(AUTOCLICK_ATTR, '1');
+        try {
+          target.click();
+        } catch (err) {
+          console.warn(
+            '[Intraday Deal Filter] auto-click of Load All failed (harmless, will retry on next poll):',
+            err
+          );
+        }
       }
     }
   }
@@ -235,10 +284,15 @@
         return;
       }
 
-      clickLoadAllControls();
+      const tables = findDealsTables();
+      if (!tables.length) {
+        // No Bulk/Block Deals tables in DOM (e.g. user is on Documents/Financials tab)
+        return;
+      }
+
+      clickLoadAllControls(tables);
 
       const symbol = getSymbol();
-      const tables = findDealsTables();
       const newDetections = [];
       let hiddenCount = 0;
 
@@ -327,6 +381,8 @@
   }
 
   function init() {
+    if (typeof chrome === 'undefined' || !chrome.storage?.local) return;
+
     chrome.storage.local.get(
       ['idf_enabled', 'idf_threshold_pct', 'idf_remove_all_samedays'],
       (res) => {
@@ -387,5 +443,18 @@
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
+  }
+
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+      clickLoadAllControls,
+      findDealsTables,
+      parseRow,
+      findIntradayGroups,
+      isLoadAllControl,
+      processTables,
+      AUTOCLICK_ATTR,
+      HIDDEN_ATTR,
+    };
   }
 })();

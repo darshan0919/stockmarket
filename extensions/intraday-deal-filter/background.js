@@ -5,6 +5,7 @@
  * shareholder name.
  * @file extensions/intraday-deal-filter/background.js
  */
+/* global chrome */
 
 const STORAGE_KEY = 'idf_hft_watchlist';
 

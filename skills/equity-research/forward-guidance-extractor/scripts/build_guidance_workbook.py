@@ -42,6 +42,7 @@ GUIDANCE_COLUMNS = [
     ("Management Quote", 60),
     ("Source", 12),
     ("Derived Field", 12),
+    ("QoQ Status", 14),
     ("Stale Guidance Flag", 16),
 ]
 
@@ -100,6 +101,7 @@ def build_guidance_sheet(ws, dtos, scan_cols):
                 item.get("quote") or "",
                 item.get("source") or "",
                 item.get("derived_field") or "none",
+                item.get("qoq_status") or "new",
                 stale or "",
             ] + scan_vals
             for col_idx, val in enumerate(values, start=1):

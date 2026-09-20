@@ -51,7 +51,7 @@ function parseShardedPath(localRelPath) {
 
   // 1. Sharded cache stores with MD5 hex keys (heavy stores > 10 MB)
   const mHex = rel.match(
-    /^cache\/(pdf-text|pdf-text-full|monthly-updates-text)\/([0-9a-fA-F]+)\.json$/
+    /^cache\/(pdf-text|pdf-text-full|monthly-updates-text|learnyst-pdf-text)\/([0-9a-fA-F]+)\.json$/
   );
   if (mHex) {
     const folder = mHex[1];

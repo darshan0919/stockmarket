@@ -18,6 +18,7 @@ const {
   computeDiff,
   companyIdsFromTable,
   fetchAllCompanies,
+  isWeekday,
   main,
   PAGE_SIZE,
 } = require('../watchlistUpdater');
@@ -98,5 +99,78 @@ describe('main --dry-run', () => {
     expect(res.add).toEqual(['A']); // desired {A,B} - current {B,OLD}
     expect(res.remove).toEqual(['OLD']);
     expect(client.updateWatchlist).not.toHaveBeenCalled();
+  });
+});
+
+describe('isWeekday', () => {
+  test('returns true for Monday through Friday (IST)', () => {
+    // 2026-09-21 is Monday (10:30 UTC is 16:00 IST)
+    expect(isWeekday(new Date('2026-09-21T10:30:00Z'))).toBe(true);
+    // 2026-09-25 is Friday
+    expect(isWeekday(new Date('2026-09-25T10:30:00Z'))).toBe(true);
+  });
+
+  test('returns false for Saturday and Sunday (IST)', () => {
+    // 2026-09-20 is Sunday
+    expect(isWeekday(new Date('2026-09-20T10:30:00Z'))).toBe(false);
+    // 2026-09-26 is Saturday
+    expect(isWeekday(new Date('2026-09-26T10:30:00Z'))).toBe(false);
+  });
+});
+
+describe('main weekdays guard', () => {
+  test('skips execution on weekend when weekdaysOnly is true and not force', async () => {
+    const client = {
+      validateAuth: jest.fn(),
+    };
+    const realDate = Date;
+    global.Date = class extends realDate {
+      constructor(...args) {
+        if (args.length) super(...args);
+        else super('2026-09-20T10:30:00Z');
+      }
+    };
+    try {
+      const res = await main({
+        client,
+        weekdaysOnly: true,
+        force: false,
+        dryRun: false,
+        log: silent,
+      });
+      expect(res).toEqual({ skipped: true, reason: 'weekend' });
+      expect(client.validateAuth).not.toHaveBeenCalled();
+    } finally {
+      global.Date = realDate;
+    }
+  });
+
+  test('runs on weekend if force is true', async () => {
+    const client = {
+      validateAuth: jest.fn().mockResolvedValue(true),
+      runScan: jest.fn().mockResolvedValue({ total: 1, table: table(['A']) }),
+      watchlistTable: jest.fn().mockResolvedValue({ table: table(['A']) }),
+      updateWatchlist: jest.fn(),
+    };
+    const realDate = Date;
+    global.Date = class extends realDate {
+      constructor(...args) {
+        if (args.length) super(...args);
+        else super('2026-09-20T10:30:00Z');
+      }
+    };
+    try {
+      const res = await main({
+        client,
+        weekdaysOnly: true,
+        force: true,
+        dryRun: true,
+        log: silent,
+      });
+      expect(res.skipped).toBeUndefined();
+      expect(client.validateAuth).toHaveBeenCalled();
+    } finally {
+      global.Date = realDate;
+    }
   });
 });

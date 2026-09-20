@@ -101,6 +101,13 @@ function nowIst(date = new Date()) {
   return `${y}-${mo}-${d} ${String(h).padStart(2, '0')}:${min} ${ampm} IST`;
 }
 
+/** Check if date is a weekday (Monday–Friday) in IST. */
+function isWeekday(date = new Date()) {
+  const ist = new Date(date.getTime() + (5 * 60 + 30) * 60 * 1000);
+  const dow = ist.getUTCDay();
+  return dow >= 1 && dow <= 5;
+}
+
 /** Extract companyIds from a scan/watchlist `table` (row 0 = headers). */
 function companyIdsFromTable(table) {
   if (!Array.isArray(table) || table.length < 2) return [];
@@ -263,6 +270,8 @@ async function main({
   radarId = DEFAULT_RADAR_WATCHLIST_ID,
   client = stockscans,
   dryRun = false,
+  weekdaysOnly = false,
+  force = false,
   log = console.log,
 } = {}) {
   const SCAN_NAME = scanName;
@@ -273,6 +282,14 @@ async function main({
   log(`\n${'='.repeat(55)}`);
   log(`  StockScans Watchlist Updater  —  ${now}${dryRun ? '  [DRY RUN]' : ''}`);
   log(`${'='.repeat(55)}`);
+
+  if (weekdaysOnly && !force && !dryRun && !isWeekday()) {
+    log(
+      `\n  [Skip] Today is not a weekday in IST — watchlist sync only runs on weekdays (Mon-Fri).`
+    );
+    log(`  Use --force to run anyway.\n`);
+    return { skipped: true, reason: 'weekend' };
+  }
   // Step 0 — validate auth
   try {
     await client.validateAuth();
@@ -427,6 +444,7 @@ module.exports = {
   computeDiff,
   companyIdsFromTable,
   nowIst,
+  isWeekday,
   DEFAULT_SCAN_ID,
   DEFAULT_WATCHLIST_ID,
   DEFAULT_RADAR_WATCHLIST_ID,
@@ -440,6 +458,8 @@ if (require.main === module) {
   stockscans.setJobName(jobName);
   main({
     dryRun: hasFlag('--dry-run'),
+    weekdaysOnly: !hasFlag('--all-days'),
+    force: hasFlag('--force'),
     scanId: argValue('--scan-id') || undefined,
     watchlistId: argValue('--watchlist-id') || undefined,
     scanName: argValue('--scan-name') || undefined,

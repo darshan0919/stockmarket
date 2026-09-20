@@ -1,12 +1,12 @@
 ---
 name: delivery-volume-tracker-1625
-description: Intraday delivery-vs-traded-volume snapshot and hourly breakdown email report for Darshan's portfolio watchlist (Slot 7: 16:25 IST - Market Close).
+description: Intraday delivery-vs-traded-volume snapshot and hourly breakdown email report for Darshan's portfolio watchlist (Slot 7: 16:25 IST, weekdays only).
 ---
 
 ## Context
 
 Tracks whether portfolio price moves are delivery-backed (real buying/selling) or
-likely intraday/algo churn. Runs 8x/day across the session (10:25, 11:25, 12:25,
+likely intraday/algo churn. Runs 8x/day across the session on weekdays (10:25, 11:25, 12:25,
 13:25, 14:25, 15:25, 16:25, 17:25 IST), all via the SAME companion script in
 `snapshot-then-report` mode: each slot captures live NSE data for every stock in
 Stockscans watchlist `838b3f7ec88e17ba127ba8a3`, persists one snapshot record per
