@@ -539,3 +539,100 @@ describe('daily aggregation of hourly candles', () => {
     expect(daily[1].close).toBe(111);
   });
 });
+
+describe('median', () => {
+  test('empty array returns null, not 0 or NaN', () => {
+    expect(g.median([])).toBeNull();
+  });
+
+  test('odd-length array returns the middle value', () => {
+    expect(g.median([3, 1, 2])).toBe(2);
+  });
+
+  test('even-length array returns the average of the two middle values', () => {
+    expect(g.median([1, 2, 3, 4])).toBe(2.5);
+  });
+});
+
+describe('fetchVolumeDeliveryRatios30d', () => {
+  const marketDate = new Date('2026-09-21T00:00:00Z');
+
+  function mkRow(dateStr, tradedQty, delivQty) {
+    return { mTIMESTAMP: dateStr, CH_TOT_TRADED_QTY: tradedQty, COP_DELIV_QTY: delivQty };
+  }
+
+  test('BSE-only ticker (no NSE: prefix) returns nulls without calling the client', async () => {
+    const client = { getPriceVolumeDeliverable: jest.fn() };
+    const r = await g.fetchVolumeDeliveryRatios30d('BSE:SOMECODE', marketDate, client);
+    expect(r).toEqual({
+      vol_ratio_30d: null,
+      deliv_vol_ratio_30d: null,
+      history_days: 0,
+      available: false,
+    });
+    expect(client.getPriceVolumeDeliverable).not.toHaveBeenCalled();
+  });
+
+  test('computes ratio against the median of PRIOR days, excluding today', async () => {
+    // Today (21-Sep-2026): volume 100, deliv 50.
+    // Prior 3 days: volumes [10, 20, 30] -> median 20; deliv [5, 10, 15] -> median 10.
+    // If today were wrongly included in the median, the median would shift and the
+    // ratio would come out different from the hand-computed 100/20=5, 50/10=5 below.
+    const rows = [
+      mkRow('21-Sep-2026', 100, 50),
+      mkRow('20-Sep-2026', 10, 5),
+      mkRow('19-Sep-2026', 30, 15),
+      mkRow('18-Sep-2026', 20, 10),
+    ];
+    const client = { getPriceVolumeDeliverable: jest.fn().mockResolvedValue(rows) };
+    const r = await g.fetchVolumeDeliveryRatios30d('NSE:TEST', marketDate, client);
+    expect(r.available).toBe(true);
+    expect(r.vol_ratio_30d).toBe(5);
+    expect(r.deliv_vol_ratio_30d).toBe(5);
+    expect(r.history_days).toBe(3);
+  });
+
+  test('reports history_days < 30 rather than padding or refusing when fewer prior rows exist', async () => {
+    const rows = [mkRow('21-Sep-2026', 100, 50), mkRow('20-Sep-2026', 40, 20)];
+    const client = { getPriceVolumeDeliverable: jest.fn().mockResolvedValue(rows) };
+    const r = await g.fetchVolumeDeliveryRatios30d('NSE:TEST', marketDate, client);
+    expect(r.available).toBe(true);
+    expect(r.history_days).toBe(1);
+    expect(r.vol_ratio_30d).toBe(2.5); // 100 / 40
+  });
+
+  test('empty response is unavailable, not a zero/false ratio', async () => {
+    const client = { getPriceVolumeDeliverable: jest.fn().mockResolvedValue([]) };
+    const r = await g.fetchVolumeDeliveryRatios30d('NSE:TEST', marketDate, client);
+    expect(r.available).toBe(false);
+    expect(r.vol_ratio_30d).toBeNull();
+  });
+
+  test('a thrown/rejected fetch is reported as unavailable with the error message, not thrown upward', async () => {
+    const client = {
+      getPriceVolumeDeliverable: jest.fn().mockRejectedValue(new Error('NSE 503')),
+    };
+    const r = await g.fetchVolumeDeliveryRatios30d('NSE:TEST', marketDate, client);
+    expect(r.available).toBe(false);
+    expect(r.error).toMatch(/503/);
+  });
+
+  test('only considers the 30 most recent prior rows even if more are returned', async () => {
+    const rows = [mkRow('21-Sep-2026', 1000, 500)];
+    // 40 prior days, all with volume 1 except one outlier of 1000 far back —
+    // outlier must be excluded from the window (30 most recent prior only).
+    for (let i = 1; i <= 40; i++) {
+      const d = new Date('2026-09-21T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() - i);
+      const dd = String(d.getUTCDate()).padStart(2, '0');
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const dateStr = `${dd}-${months[d.getUTCMonth()]}-${d.getUTCFullYear()}`;
+      const vol = i === 40 ? 99999 : 10; // outlier only on the 40th-prior day (outside the 30-window)
+      rows.push(mkRow(dateStr, vol, vol / 2));
+    }
+    const client = { getPriceVolumeDeliverable: jest.fn().mockResolvedValue(rows) };
+    const r = await g.fetchVolumeDeliveryRatios30d('NSE:TEST', marketDate, client);
+    expect(r.history_days).toBe(30);
+    expect(r.vol_ratio_30d).toBe(100); // 1000 / median(all-10s) = 1000/10 = 100, outlier excluded
+  });
+});

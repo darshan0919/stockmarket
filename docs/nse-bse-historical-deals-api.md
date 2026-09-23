@@ -143,6 +143,61 @@ of the data rows' 7 — filtered out by requiring `cells.length >= 7 && cells[0]
   substantially the same underlying data chittorgarh's HTML pages show, not
   two independent data sources that could silently disagree.
 
+## NSE `getPriceVolumeDeliverable` — daily volume + delivered-volume history (confirmed live 2026-09-22)
+
+Written alongside the gainers-signal/volume-rocketing "30-day volume/delivery
+ratio" metrics. Client method already existed
+(`NseClient.getPriceVolumeDeliverable(symbol, fromDate, toDate)`,
+`stock-api/src/clients/NseClient.js`) but its response shape was undocumented
+until now — this section closes that gap per conventions §13.
+
+- `GET https://www.nseindia.com/api/historicalOR/generateSecurityWiseHistoricalData?from=DD-MM-YYYY&to=DD-MM-YYYY&symbol=SYM&type=priceVolumeDeliverable&series=ALL`
+- Response: `Array` (or `{data: Array}`, the client handles both), one row per
+  trading day, newest first. Confirmed live 2026-09-22 against `NPST` for a
+  3-month window (`22-06-2026` to `22-09-2026`) — 64 rows returned.
+- Row fields actually used by the volume/delivery-ratio metrics:
+  - `mTIMESTAMP` — `DD-Mon-YYYY` (e.g. `21-Sep-2026`). `CH_TIMESTAMP` is also
+    present as a full ISO string but is one calendar day off in the same
+    T-1-at-18:30Z pattern documented above for `BD_DT_ORDER` — prefer
+    `mTIMESTAMP` for date-keying, not `CH_TIMESTAMP`.
+  - `CH_TOT_TRADED_QTY` — total traded volume (shares) for the day. This is
+    the field the new `vol_ratio_30d` metric divides today's value by the
+    median of.
+  - `COP_DELIV_QTY` — delivered quantity (shares) for the day. Source for
+    `deliv_vol_ratio_30d`.
+  - `COP_DELIV_PERC` — delivery % for the day (redundant with `COP_DELIV_QTY /
+    CH_TOT_TRADED_QTY`, kept by NSE for convenience; not currently consumed
+    since the scanner already derives delivery % from the live same-day NSE/BSE
+    delivery endpoints).
+  - `CH_CLOSING_PRICE`, `CH_OPENING_PRICE`, `CH_TRADE_HIGH_PRICE`,
+    `CH_TRADE_LOW_PRICE`, `VWAP` — OHLC/VWAP, unused by the ratio metrics but
+    available if a future metric needs historical daily closes without a
+    separate OHLCV call.
+  - A row may carry a `CA` array (corporate actions effective that day — e.g.
+    dividend, split) — present only on days with one, not a parse error when
+    absent.
+- **NSE-only.** This endpoint has no BSE equivalent in either client today.
+  `BseClient` only exposes `getSecurityPosition(scripCode)` — a same-day
+  snapshot (`deliverableQty`, `deliveryPct`), no date-range history. A
+  BSE-only-listed gainer (no NSE symbol) therefore cannot get `vol_ratio_30d`
+  / `deliv_vol_ratio_30d` from this endpoint — the scanner reports both as
+  `null` for that company rather than silently defaulting to 0 or falling back
+  to a shorter/different window, matching this repo's existing
+  "unmeasured ≠ zero" convention (`delivery_value_pct_of_mcap`). Building a
+  true BSE historical delivery source is a documented gap, not attempted here.
+- **Median window, and why "exclude today" matters.** The 30-day median for
+  both ratios is computed over the 30 trading-day rows immediately preceding
+  today's row (today's own `mTIMESTAMP` row is excluded from the window before
+  taking the median) — including today would let an extreme move partially
+  dilute its own baseline, understating the ratio on exactly the days it's
+  meant to flag. If fewer than 30 prior rows exist (recent listing, or the
+  `from` date requested didn't reach back far enough), the median is taken
+  over whatever prior rows are available rather than padding with nulls or
+  refusing to compute — same "smaller window is better than no answer, but
+  never presented as the full 30-day figure without saying so" posture as
+  `priceActionSignals()`'s existing `vols20` fallback
+  (`candles.length >= 21 ? slice(-21,-1) : slice(0,-1)`).
+
 ## IPOPlatform performance-tracker index (reused, not new)
 
 `fetchPerformanceWindow({fromDate, toDate, ipoType})` in `ipoBacktest.js` —

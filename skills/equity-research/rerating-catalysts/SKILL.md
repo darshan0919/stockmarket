@@ -262,6 +262,16 @@ in parallel where the underlying calls allow it, via `stock-documents-fetcher`
 2. **Last 4 concall transcripts** — `fetchDocuments(ticker, {types: ['Transcript'], lastN: 4, outputDir})`. If the bulk fetch misses the latest quarter, resolve it directly with `stock-api/bin/get-concall-transcript-url.js --company <ticker>` per `skills/_shared/conventions.md` §12.
 3. **Last 4 quarterly results** — `fetchDocuments(ticker, {types: ['Result'], lastN: 4, outputDir})`.
 4. **Last 2 investor PPTs** — `fetchDocuments(ticker, {types: ['PPT'], lastN: 2, outputDir})`.
+5. **Signal-scan history (last 3 months, zero-LLM, deterministic)** —
+   `node scripts/compute_signal_history.js --ticker <ticker> --days 90`. Counts
+   how many times this company has already surfaced as a high-tier name in
+   the two daily scans this repo runs every morning: `gainers-signal` /
+   `volume-rocketing` (ACT-tier appearances — delivery-confirmed, not just a
+   price pop) and `post-close-scan-insights` (S1/S2-tier filing notes). This
+   is read-only against the `events`/`notes` collections those skills already
+   write — this skill never re-runs or re-scores those scans itself. Feed the
+   result into Phase 3g (below); it is never fetched or read again after
+   Phase 1.
 
 Per `skills/_shared/conventions.md` §6, none of these downloaded PDFs are
 persisted under `<repo>/data/` — write everything to a scratch dir
@@ -534,6 +544,25 @@ a new document read. A `NONE` tag is a normal, common outcome (most quarters
 for most companies) — say so plainly rather than stretching the evidence to
 avoid it.
 
+**Fifth input — corroborating signal-scan history (from Phase 1 step 5).**
+Repeated ACT-tier appearances in `gainers-signal`/`volume-rocketing` or S1/S2
+notes in `post-close-scan-insights` over the trailing 3 months are the market
+independently, repeatedly paying attention to this name on delivery-confirmed
+volume or high-signal filings — that is corroborating evidence for a STRONG
+or MODERATE tag when inputs (1)-(4) already point that way, and it can be the
+deciding factor between MODERATE and STRONG on a genuinely close call. It is
+**never a standalone promoter of the tag**: a company with several high-tier
+scan appearances but no named "new" trigger this quarter (input 2 fails) is
+still WEAK or NONE — the market having noticed a stock is not itself a
+catalyst, and a repeatedly-flagged momentum name with no underlying "new" fact
+is exactly the kind of case §5b's fake-J-curve check exists to catch. Cite the
+script's `summary` line verbatim in the reason sentence when it materially
+supports the call (e.g. "STRONG — Q1FY27 capacity commissioning ahead of
+guidance; also 3x ACT in gainers-signal and 2x S1 in post-close-scan-insights
+over the trailing 90 days"). Zero appearances is a normal, common outcome and
+is not itself evidence against a tag — plenty of genuine re-ratings begin
+before delivery volume catches up.
+
 ### Phase 4 — Persist the JSON DTO, then render
 
 Per `output-dto-standard` (`skills/tooling/output-dto-standard/SKILL.md`),
@@ -617,7 +646,8 @@ rerating-catalysts/
     ├── prefilter_rerating_candidates.js   (Stage 0 — zero-LLM pre-filter for batch runs)
     ├── extract_rerating_signatures.py     (Stage 1 — zero-LLM recall pass for a single candidate)
     ├── brief_cache.js                     (--mode brief: filing + company caches, plan/get/put)
-    └── matchSpikeAnnouncements.js         (Phase 2.5 — WHY-candidate assembly for spike days)
+    ├── matchSpikeAnnouncements.js         (Phase 2.5 — WHY-candidate assembly for spike days)
+    └── compute_signal_history.js          (Phase 1 step 5 — 3-month ACT/S1/S2 scan-history lookback, feeds Phase 3g)
 ```
 
 `stock-api/src/analyzers/priceSpikeSignals.js` (Phase 2.5 — spike-day detection:
@@ -659,6 +689,10 @@ matters).
 - **Don't confuse the §5f J-Curve tag with the §5c 9-point scorecard.** They
   answer different questions (see framework §5f's own note) — both appear in
   the report, but only §5f's tag goes at the top as the badge.
+- **Don't let `compute_signal_history.js`'s appearance count promote a tag on
+  its own.** It is corroboration for inputs (1)-(4), not a fifth independent
+  gate — a momentum name with several ACT/S1 appearances and no named "new"
+  trigger this quarter is still WEAK or NONE. See 3g.
 - **Don't confuse a §5i "Potential J Curve" screen pass with the §5f tag
   either.** §5i is a literal StockScans filter recipe (revenue/PAT/OPM/
   price-reaction/technical gates) meant to generate scan CANDIDATES — it has

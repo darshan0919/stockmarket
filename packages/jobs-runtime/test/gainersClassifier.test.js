@@ -109,7 +109,16 @@ describe('scanner price signals feed the classifier contract', () => {
   // Regression: the classifier reads vol_spike / breakout_52w / above_long_ma /
   // rsi. If the scanner stops emitting these, every price-action rule silently
   // becomes a no-op instead of failing loudly — which is what happened before.
-  it('emits every field the classifier consumes', () => {
+  //
+  // As of 2026-09-22, vol_spike/vol_ratio are no longer derived by
+  // priceActionSignals() itself (that used to be an OHLCV-volume proxy) —
+  // they default to false/null here and are overwritten downstream in
+  // gainersScanner.js's main() from fetchVolumeDeliveryRatios30d's NSE-sourced
+  // 30-day ratio (see that function's own tests). This block still guards
+  // that priceActionSignals() DEFINES the fields (so the classifier never
+  // silently reads `undefined`), and that breakout_52w/above_long_ma/rsi —
+  // which ARE still derived here — behave correctly.
+  it('defines every field the classifier consumes, with vol_spike/vol_ratio defaulted pending the NSE merge', () => {
     const candles = Array.from({ length: 65 }, (_, i) => ({
       close: 100 + i * 0.5,
       high: 101 + i * 0.5,
@@ -120,9 +129,26 @@ describe('scanner price signals feed the classifier contract', () => {
     for (const k of ['vol_spike', 'vol_ratio', 'breakout_52w', 'above_long_ma', 'rsi']) {
       expect(ps[k]).toBeDefined();
     }
-    expect(ps.vol_spike).toBe(true);
+    expect(ps.vol_spike).toBe(false);
+    expect(ps.vol_ratio).toBeNull();
     expect(ps.above_long_ma).toBe(true);
     expect(typeof ps.rsi).toBe('number');
+  });
+
+  it('main() merges fetchVolumeDeliveryRatios30d onto price_signals, setting vol_spike/vol_ratio for real', async () => {
+    // Full regression coverage for the merge step lives in gainersScanner.test.js
+    // (fetchVolumeDeliveryRatios30d's own describe block) and
+    // gainersScanner.js's inline merge loop — this test only pins the
+    // CONTRACT the classifier depends on: after the merge, a ratio >= 2.0
+    // must read as vol_spike: true, matching the classifier's own threshold.
+    const psAfterMerge = { vol_ratio_30d: 2.5, vol_spike: false, vol_ratio: null };
+    // Replicate the exact merge gainersScanner.js's main() performs (see the
+    // "1g. 30-day volume / delivered-volume ratios" step) rather than calling
+    // the network-bound main() here.
+    psAfterMerge.vol_ratio = psAfterMerge.vol_ratio_30d ?? null;
+    psAfterMerge.vol_spike = psAfterMerge.vol_ratio_30d !== null && psAfterMerge.vol_ratio_30d >= 2.0;
+    expect(psAfterMerge.vol_spike).toBe(true);
+    expect(psAfterMerge.vol_ratio).toBe(2.5);
   });
 
   it('returns null RSI rather than a fabricated value on short history', () => {

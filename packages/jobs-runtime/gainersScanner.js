@@ -218,6 +218,15 @@ function normaliseGainer(raw) {
     ),
     market_cap_cr: toFloat(pick(raw, 'Market Capitalization', 'market_cap', 'marketCap', 'mcap')),
     close_price: toFloat(pick(raw, 'Close', 'close', 'lastPrice', 'price')),
+    // Price To Earnings — column 7 of the `ratiosType: 'Default'` scan table
+    // (docs/stockscans-api-schemas.md), already present in every `raw` row
+    // fetchTopGainers/fetchVolumeRocketing pull via runScan; just never picked
+    // out before. null (never 0/dflt) for a loss-making or unavailable company —
+    // a missing P/E must render as "—" downstream, not as a fabricated 0.
+    pe_ratio: (() => {
+      const v = pick(raw, 'Price To Earnings', 'price_to_earnings', 'pe_ratio', 'PE');
+      return v === null || v === undefined || v === '' || v === '-' ? null : toFloat(v, null);
+    })(),
     raw,
   };
 }
@@ -292,11 +301,6 @@ function priceActionSignals(candles) {
   const pctFromLow = l52 ? roundTo(((cp - l52) / l52) * 100, 2) : null;
   const nearBreakout = pctFromHigh !== null && Math.abs(pctFromHigh) <= 2.0;
 
-  const vols20 = volumes.length >= 21 ? volumes.slice(-21, -1) : volumes.slice(0, -1);
-  const avgVol = vols20.length ? vols20.reduce((s, v) => s + v, 0) / vols20.length : null;
-  const todayV = volumes.length ? volumes[volumes.length - 1] : null;
-  const volSpike = avgVol && todayV ? roundTo(todayV / avgVol, 2) : null;
-
   const closes20 = closes.slice(-20);
   const h20 = Math.max(...closes20);
   const l20 = Math.min(...closes20);
@@ -329,19 +333,24 @@ function priceActionSignals(candles) {
     pct_from_window_high: pctFromHigh,
     pct_from_window_low: pctFromLow,
     near_high_breakout: nearBreakout,
-    vol_spike_ratio: volSpike,
     pct_in_20d_range: pctInRange20,
     support_level_10d: supportLevel,
     pct_above_support: pctAboveSupport,
     candle_window_days: closes.length,
     // ── Derived booleans consumed by gainersClassifier ────────────────────────
-    // These exist because the classifier was written against `vol_spike`,
-    // `breakout_52w`, `above_200dma` and `rsi` — fields this function never
-    // emitted, so EVERY price-action evidence line and the whole PRICE_ACTION
-    // scoring branch silently evaluated to false. Emitting them here (rather than
-    // recomputing in the classifier) keeps one definition of each signal.
-    vol_spike: volSpike !== null && volSpike >= 2.0,
-    vol_ratio: volSpike,
+    // `vol_spike` / `vol_ratio` used to be derived from this function's own
+    // 20-day OHLCV volume window. As of 2026-09-22 they are populated
+    // downstream instead, from `vol_ratio_30d` (NSE `getPriceVolumeDeliverable`
+    // — see attachVolumeDeliveryRatios30d) once that fetch completes for a
+    // ticker — a real per-symbol delivery history rather than a total-volume
+    // proxy aggregated from hourly OHLCV. They default to `null`/`false` here
+    // and are overwritten in place for every ticker the 30d fetch covers
+    // (NSE-listed, quality-filtered). A ticker with no 30d data (BSE-only, or
+    // the fetch failed) keeps `vol_spike: false` / `vol_ratio: null` rather
+    // than silently reviving the old OHLCV estimate — "unmeasured" must never
+    // read as "measured and flat".
+    vol_spike: false,
+    vol_ratio: null,
     breakout_52w: nearBreakout,
     long_ma: longMa !== null ? roundTo(longMa, 2) : null,
     long_ma_days: longMaDays || null,
@@ -620,6 +629,72 @@ async function fetchRetailHoldings(tickers, client = stockscans) {
   return result;
 }
 
+/**
+ * Batch Market Capitalization + Price To Earnings lookup for an arbitrary set
+ * of companyIds — the `ratiosType: 'Default'` scan table (columns confirmed
+ * in docs/stockscans-api-schemas.md), scoped via `scan.companyIds` the same
+ * way fetchRetailHoldings scopes its own `ratiosType: 'Ratios'` lookup.
+ *
+ * Built for post-close-scan-insights: unlike the gainers/volume-rocketing
+ * pipelines (which already have Mcap+P/E for free on every row of their own
+ * scan), an announcement digest's companies come from a totally different
+ * scan (`Signals - DND`) that doesn't carry ratio columns, so the Mcap/P-E
+ * cells on that skill's thesis cards need their own lookup at send time.
+ * Returns `{[companyId]: {marketCapCr, peRatio}}`, both null (never 0/dflt)
+ * for a company runScan didn't return a row for or a loss-making/unavailable
+ * P/E — the digest renders "—", never a fabricated number.
+ */
+async function fetchMarketCapAndPE(companyIds, client = stockscans) {
+  const ids = [...new Set((companyIds || []).filter(Boolean))];
+  const result = Object.fromEntries(ids.map((id) => [id, { marketCapCr: null, peRatio: null }]));
+  if (!ids.length) return result;
+  const payload = {
+    ratiosType: 'Default',
+    timePeriod: 'Latest',
+    scan: {
+      filters: [{ left: 'Market Capitalization', sign: '>=', right: '0' }],
+      index: [],
+      industry: [],
+      sector: [],
+      tags: [],
+      scanName: 'Mcap+PE lookup',
+      scanDescription: '',
+      watchlistIds: [],
+      companyIds: ids,
+    },
+    watchlistIds: [],
+    order: 'desc',
+    orderBy: 'Market Capitalization',
+    offset: 0,
+  };
+  try {
+    const data = await client.runScan(payload);
+    const table = data.table;
+    if (!Array.isArray(table) || table.length < 2) return result;
+    const headers = table[0];
+    const cidIdx = headers.indexOf('companyId');
+    const mcapIdx = headers.indexOf('Market Capitalization');
+    const peIdx = headers.indexOf('Price To Earnings');
+    if (cidIdx < 0) return result;
+    for (const row of table.slice(1)) {
+      const cid = row[cidIdx];
+      if (!cid || !(cid in result)) continue;
+      const mcapVal = mcapIdx >= 0 ? row[mcapIdx] : null;
+      const peVal = peIdx >= 0 ? row[peIdx] : null;
+      result[cid] = {
+        marketCapCr:
+          mcapVal === null || mcapVal === undefined || mcapVal === '' ? null : toFloat(mcapVal, null),
+        peRatio: peVal === null || peVal === undefined || peVal === '' || peVal === '-'
+          ? null
+          : toFloat(peVal, null),
+      };
+    }
+  } catch (e) {
+    process.stderr.write(`[WARN] fetchMarketCapAndPE failed: ${e.message}\n`);
+  }
+  return result;
+}
+
 /** Delivery for all gainers (concurrent): NSE→getSymbolData, BSE→securityPosition. */
 async function fetchDeliveryPerSymbol(gainers, { nseClient = nse, bseClient = bse } = {}) {
   const cache = loadScripCache();
@@ -696,6 +771,101 @@ function aggregateToDaily(rows) {
     }
   }
   return [...byDay.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/** Median of a numeric array. Returns null for an empty array (never 0 —
+ * "no data" and "median is zero" must stay distinguishable). */
+function median(nums) {
+  if (!nums || !nums.length) return null;
+  const s = [...nums].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 === 0 ? (s[mid - 1] + s[mid]) / 2 : s[mid];
+}
+
+/** `Date` → NSE's `DD-MM-YYYY` param format. */
+function toNseDdMmYyyy(d) {
+  const dd = String(d.getUTCDate()).padStart(2, '0');
+  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const yyyy = d.getUTCFullYear();
+  return `${dd}-${mm}-${yyyy}`;
+}
+
+const VOL_DELIVERY_HISTORY_DAYS = 45; // calendar days back — comfortably covers 30 trading sessions + today, allowing for weekends/holidays.
+
+/**
+ * `vol_ratio_30d` / `deliv_vol_ratio_30d` — today's traded volume / delivered
+ * volume against the median of the preceding 30 trading sessions (today
+ * excluded from the median on purpose — see docs/nse-bse-historical-deals-api.md
+ * for why). Source: NSE `getPriceVolumeDeliverable`, one call per NSE-listed
+ * ticker, ~64 rows for a 3-month window — replaces the old OHLCV-derived
+ * `vol_spike_ratio` (2026-09-22), which only ever measured total volume and
+ * had no delivery-volume equivalent at all.
+ *
+ * NSE-only: a BSE-only ticker (no `NSE:` prefix) returns nulls rather than
+ * an approximation — see the BSE-gap note in the same doc. Returns
+ * `{ vol_ratio_30d, deliv_vol_ratio_30d, history_days }` where `history_days`
+ * is how many prior sessions actually backed the median (useful for a reader
+ * to see "the median is only over 12 days, this ticker listed recently"
+ * rather than assuming a full 30).
+ */
+async function fetchVolumeDeliveryRatios30d(ticker, marketDate, client = nse) {
+  if (!ticker || !ticker.startsWith('NSE:')) {
+    return { vol_ratio_30d: null, deliv_vol_ratio_30d: null, history_days: 0, available: false };
+  }
+  const symbol = ticker.slice('NSE:'.length);
+  try {
+    const to = new Date(marketDate);
+    const from = new Date(marketDate);
+    from.setUTCDate(from.getUTCDate() - VOL_DELIVERY_HISTORY_DAYS);
+    const rows = await client.getPriceVolumeDeliverable(
+      symbol,
+      toNseDdMmYyyy(from),
+      toNseDdMmYyyy(to)
+    );
+    if (!Array.isArray(rows) || !rows.length) {
+      return { vol_ratio_30d: null, deliv_vol_ratio_30d: null, history_days: 0, available: false };
+    }
+    // Newest first per the documented shape — today's row is rows[0] when the
+    // fetch window includes today's session; guard rather than assume.
+    const sorted = [...rows].sort((a, b) => (a.mTIMESTAMP < b.mTIMESTAMP ? 1 : -1));
+    const marketDateStr = toNseDdMmYyyy(marketDate).replace(
+      /^(\d{2})-(\d{2})-(\d{4})$/,
+      (_, d, m, y) =>
+        `${d}-${
+          ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][
+            Number(m) - 1
+          ]
+        }-${y}`
+    );
+    const todayIdx = sorted.findIndex((r) => r.mTIMESTAMP === marketDateStr);
+    const todayRow = todayIdx >= 0 ? sorted[todayIdx] : sorted[0];
+    const priorRows = todayIdx >= 0 ? sorted.slice(todayIdx + 1) : sorted.slice(1);
+    const priorRows30 = priorRows.slice(0, 30);
+
+    const todayVol = toFloat(todayRow.CH_TOT_TRADED_QTY, null);
+    const todayDeliv = toFloat(todayRow.COP_DELIV_QTY, null);
+    const medVol = median(
+      priorRows30.map((r) => toFloat(r.CH_TOT_TRADED_QTY, null)).filter((v) => v != null && v > 0)
+    );
+    const medDeliv = median(
+      priorRows30.map((r) => toFloat(r.COP_DELIV_QTY, null)).filter((v) => v != null && v > 0)
+    );
+
+    return {
+      vol_ratio_30d: medVol && todayVol != null ? roundTo(todayVol / medVol, 2) : null,
+      deliv_vol_ratio_30d: medDeliv && todayDeliv != null ? roundTo(todayDeliv / medDeliv, 2) : null,
+      history_days: priorRows30.length,
+      available: true,
+    };
+  } catch (e) {
+    return {
+      vol_ratio_30d: null,
+      deliv_vol_ratio_30d: null,
+      history_days: 0,
+      available: false,
+      error: e.message,
+    };
+  }
 }
 
 /**
@@ -1471,6 +1641,39 @@ async function main({
     }
   }
 
+  // 1g. 30-day volume / delivered-volume ratios — quality-filtered subset only
+  // (gainersFiltered, ~20-30 names), not the full 50-candidate universe. This
+  // is a per-symbol NSE call (see fetchVolumeDeliveryRatios30d), materially
+  // heavier than the OHLCV pull it replaces, so it deliberately runs after
+  // the quality filter rather than before it.
+  log('[1g/7] Fetching 30-day volume/delivery history (NSE) …\n');
+  const volDeliveryRatiosByTicker = new Map(
+    (
+      await mapLimit(gainersFiltered, 8, async (g) => [
+        g.ticker,
+        await fetchVolumeDeliveryRatios30d(g.ticker, marketDate, clients.nse),
+      ])
+    ).map(([t, r]) => [t, r])
+  );
+  const nseCovered = [...volDeliveryRatiosByTicker.values()].filter((r) => r.available).length;
+  log(
+    `      → 30d volume/delivery history for ${nseCovered}/${gainersFiltered.length} (NSE-listed only; BSE-only names report null)\n`
+  );
+  // Repoint price_signals' vol_spike/vol_ratio (classifier-consumed) onto the
+  // new NSE-sourced ratio, and attach both new named fields. Mutates the
+  // already-built priceSignalsByTicker map in place — cheaper than rebuilding
+  // it, and every consumer reads price_signals by reference from here on.
+  for (const g of gainersFiltered) {
+    const r = volDeliveryRatiosByTicker.get(g.ticker) || {};
+    const ps = priceSignalsByTicker.get(g.ticker);
+    if (!ps || ps.error !== undefined) continue;
+    ps.vol_ratio_30d = r.vol_ratio_30d ?? null;
+    ps.deliv_vol_ratio_30d = r.deliv_vol_ratio_30d ?? null;
+    ps.vol_ratio_30d_history_days = r.history_days ?? 0;
+    ps.vol_ratio = r.vol_ratio_30d ?? null;
+    ps.vol_spike = r.vol_ratio_30d !== null && r.vol_ratio_30d >= 2.0;
+  }
+
   // 2. Announcements
   //
   // Checkpointed: this fetch shares the same Stockscans account/session as
@@ -1588,6 +1791,7 @@ async function main({
       sector: g.sector,
       return_1d: g.return_1d,
       market_cap_cr: g.market_cap_cr,
+      pe_ratio: g.pe_ratio,
       close_price: g.close_price,
       retail_holding_pct: g.retail_holding_pct,
       delivery_value_cr: g.delivery_value_cr,
@@ -1745,16 +1949,21 @@ module.exports = {
   hasMaterialAnnouncement,
   HIGH_DELIVERY_PCT,
   DECENT_DELIVERY_PCT,
+  median,
+  toNseDdMmYyyy,
+  VOL_DELIVERY_HISTORY_DAYS,
 
   // api-bound
 
   fetchAnnouncementsBatch,
   aggregateToDaily,
   fetchPrices,
+  fetchVolumeDeliveryRatios30d,
   fetchTopGainers,
   fetchVolumeRocketing,
   fetchVolumeRocketingTickers,
   fetchRetailHoldings,
+  fetchMarketCapAndPE,
   fetchDeliveryPerSymbol,
   fetchIndustryScan,
   fetchConcallSentiment,

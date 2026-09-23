@@ -46,7 +46,13 @@ const { withRetry } = require('@stock/api/utils/concurrency');
 // "never think or write the same thing twice" rule as everywhere else in this
 // file. gainersScanner.js gates its own CLI auto-invocation behind
 // `require.main === module`, so requiring it here for its exports is inert.
-const { fetchDeliveryPerSymbol, fetchPrices, pick, toFloat } = require('./gainersScanner');
+const {
+  fetchDeliveryPerSymbol,
+  fetchPrices,
+  fetchMarketCapAndPE,
+  pick,
+  toFloat,
+} = require('./gainersScanner');
 const { checkAndLogNoise } = require('./lib/noiseKeywordFilter');
 const {
   categoriseAnnouncement,
@@ -55,6 +61,7 @@ const {
 } = require('./lib/announcementTaxonomy');
 const { NotesDb } = require('./lib/notesDb');
 const { nameSimilarity } = require('./lib/fuzzyMatch');
+const { syncAnnouncementSignalsWatchlist } = require('./lib/announcementSignalsWatchlistTtl');
 
 const BASE_URL = 'https://www.stockscans.in';
 const PAGE_SIZE = 30; // documented convention (see bulkAnnouncementScan.js) — not the response's self-inflating `total`
@@ -1049,7 +1056,49 @@ async function cmdSendDigest(argv) {
   const now = new Date();
   const cutoffUtc = await resolveCutoffUtc(now, argValue('--window-hours', argv));
   const cachedInsights = collectCachedNotesSinceCutoff(cutoffUtc.getTime());
-  const insights = dedupeInsights([...freshInsights, ...cachedInsights]);
+  const merged0 = dedupeInsights([...freshInsights, ...cachedInsights]);
+
+  // Mcap + P/E enrichment (Darshan's ask: show both on every post-close
+  // thesis card, not just on the evening resend-with-market-data pass).
+  // Unlike gainers-signal/volume-rocketing — whose own scan already returns
+  // Market Capitalization + Price To Earnings for free on every row (same
+  // `ratiosType: 'Default'` table, see gainersScanner.js's normaliseGainer)
+  // — this skill's scan (`Signals - DND`) carries neither, so a lightweight
+  // batch lookup is needed at send time. One call for the whole run's
+  // companyId set (not per-card), same batching discipline as
+  // fetchRetailHoldings/fetchMarketCapAndPE's own doc comment. Only fills in
+  // marketCapCr/peRatio — never overwrites delivery/volume fields the evening
+  // resend pass fills in later, and never fabricates a number: a company
+  // runScan didn't return a row for renders "—", exactly like every other
+  // metric-line cell in lib/thesisCardEmail.js.
+  const companyIdsNeedingRatios = [
+    ...new Set(
+      merged0
+        .filter((it) => !(it.marketData && it.marketData.marketCapCr != null))
+        .map((it) => it.companyId)
+        .filter(Boolean)
+    ),
+  ];
+  let ratiosByCompany = {};
+  if (companyIdsNeedingRatios.length) {
+    try {
+      ratiosByCompany = await fetchMarketCapAndPE(companyIdsNeedingRatios, stockscans);
+    } catch (e) {
+      process.stderr.write(`[WARN] fetchMarketCapAndPE failed, cards will show "—": ${e.message}\n`);
+    }
+  }
+  const insights = merged0.map((it) => {
+    const ratios = ratiosByCompany[it.companyId];
+    if (!ratios) return it;
+    return {
+      ...it,
+      marketData: {
+        ...(it.marketData || {}),
+        marketCapCr: (it.marketData && it.marketData.marketCapCr) ?? ratios.marketCapCr,
+        peRatio: (it.marketData && it.marketData.peRatio) ?? ratios.peRatio,
+      },
+    };
+  });
   // --stats-file <path>: optional JSON {total, insights, highConviction,
   // heavyDocSkipped, routine, ocrFailed, noiseDropped} — the orchestrating
   // skill assembles this across Steps 1-3 (it's the only place that has
@@ -1086,6 +1135,29 @@ async function cmdSendDigest(argv) {
   // agree with the sections rather than quote a dimension the body no longer
   // groups on.
   const topTierCount = groupedForCount.filter((i) => signalTierFor(i).tier <= 2).length;
+
+  // Announcement Signals watchlist sync (Darshan's ask, 2026-09-23): any
+  // company whose card this run scored > 6/10 (raw signalScore > 60) gets
+  // added to the "Announcement Signals" Stockscans watchlist and kept there
+  // for 7 rolling calendar days — see lib/announcementSignalsWatchlistTtl.js
+  // for the full design (same TTL/reset-on-reappearance pattern as
+  // gainersWatchlistTtl.js's "Daily Gainers" watchlist). Computed from the
+  // SAME grouped-by-company, scored view the digest itself just rendered
+  // (groupedForCount + signalTierFor), so "qualifies for the watchlist" can
+  // never disagree with what tier the email showed for that company. Wrapped
+  // in try/catch and run BEFORE the email send so a Stockscans API hiccup
+  // here never blocks the digest itself from going out — the notes are
+  // already durably persisted regardless of whether this sync succeeds.
+  let watchlistSync = null;
+  try {
+    watchlistSync = await syncAnnouncementSignalsWatchlist(
+      groupedForCount.map((i) => ({ companyId: i.companyId, signalScore: signalTierFor(i).score })),
+      { runDate: new Date(), client: stockscans, creator: 'post-close-scan-insights' }
+    );
+  } catch (e) {
+    process.stderr.write(`[WARN] syncAnnouncementSignalsWatchlist failed: ${e.message}\n`);
+  }
+
   const subject =
     `[${slotLabel}] Announcement Signals — ${ist.nowIstDate()}` +
     `${topTierCount ? ` (${topTierCount} S1/S2)` : ''}`;
@@ -1117,6 +1189,13 @@ async function cmdSendDigest(argv) {
         slot,
         count: groupedForCount.length,
         filingCount: insights.length,
+        announcementSignalsWatchlist: watchlistSync
+          ? {
+              added: watchlistSync.added,
+              removed: watchlistSync.removed,
+              activeAfter: watchlistSync.activeAfter,
+            }
+          : null,
         tierCounts: groupedForCount.reduce((acc, i) => {
           const t = signalTierFor(i);
           acc[t.code] = (acc[t.code] || 0) + 1;

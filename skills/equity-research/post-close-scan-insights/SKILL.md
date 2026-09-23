@@ -599,6 +599,34 @@ never actually read."
 If `email` is off, skip this step — Step 4's `add-note` calls already persisted
 everything.
 
+**`send-digest` also syncs the "Announcement Signals" watchlist automatically
+(Darshan's ask, 2026-09-23) — nothing for the orchestrating agent to invoke.**
+Every company whose card THIS run scored > 6/10 (raw `signalScore` > 60, i.e.
+S2 High or S1 Critical) gets added to the "Announcement Signals" Stockscans
+watchlist and kept there for 7 rolling calendar days, with the counter
+resetting on reappearance after expiry — the exact same TTL/reset design
+`gainers-signal` uses for its own "Daily Gainers" watchlist (see
+`lib/gainersWatchlistTtl.js`'s doc comment for the full rationale;
+`lib/announcementSignalsWatchlistTtl.js` is the announcement-signals sibling).
+`send-digest`'s JSON output carries an `announcementSignalsWatchlist: {added,
+removed, activeAfter}` field — report it in the run's files-touched/summary
+the same way `tierCounts` already is. A one-off backfill
+(`yarn announcement-signals-watchlist-ttl-backfill`) seeded the watchlist from
+the prior 7 days of persisted notes the first time this feature shipped; it
+does not need to run again on a normal day.
+
+Each card's thesis-card metric line also now shows **Mcap** and **P/E**
+(added 2026-09-23, right after the 1D return cell) — `send-digest` fetches
+both via a single batch `runScan` lookup
+(`gainersScanner.js`'s `fetchMarketCapAndPE`) for every companyId in the
+run that doesn't already carry them from a later `resend-with-market-data`
+pass, so the numbers appear on the very first nightly send, not just the
+evening resend. `gainers-signal`'s own cards show the identical Mcap/P-E cell
+— same formatter, same "—" convention for an unmeasured company
+(`lib/thesisCardEmail.js`'s `fmtMcapShared`/`fmtPEShared`/`metricCell`) — so a
+reader moving between the two emails sees one consistent metric-line design,
+not two.
+
 ## Step 8 — Commit the cursor, then push
 
 ```bash

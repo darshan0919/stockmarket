@@ -47,6 +47,7 @@ Exporting paths derived from fragile `find`s is what previously scattered
 | Step | What                                       | Where it's documented                    |
 | ---- | ------------------------------------------ | ---------------------------------------- |
 | 1    | `node "$SCAN"`                             | shared §Step 1 (+ scan specifics below)  |
+| 1b   | `yarn gainers-watchlist-ttl-sync`          | below — "Daily Gainers" watchlist TTL sync |
 | 2    | `node "$RUNTIME/lib/gainersClassifier.js"` | shared §Step 2                           |
 | 3    | read the research seed                     | shared §Step 3                           |
 | 4    | top-20 trigger research                    | shared §Step 4 (+ DTO shape below)       |
@@ -57,7 +58,34 @@ Exporting paths derived from fragile `find`s is what previously scattered
 
 Steps 5 and 6 are numbered in the order you RUN them, not the order the shared
 doc lists them: rung 3 of the WHY ladder reads the EPS briefs, so the briefs
-must exist first.
+must exist first. Step 1b runs right after the scanner (it reads
+`data/runs/gainers_raw_{date}.json`, the scanner's own output) — order
+relative to the classifier doesn't matter (Step 1b reads the raw file, not
+classified events), but it must come after Step 1.
+
+## "Daily Gainers" watchlist TTL sync (Step 1b)
+
+`yarn gainers-watchlist-ttl-sync` (`packages/jobs-runtime/gainersWatchlistTtlSync.js`,
+logic in `lib/gainersWatchlistTtl.js`) keeps a real, standing Stockscans
+watchlist named **"Daily Gainers"** (not the throwaway per-run kind — see
+conventions §14 — this one is user-visible and persists) in sync with the
+last 10 days of names this scan actually qualified:
+
+- Every company in today's quality-filtered `gainers` set gets added.
+- A company is removed once **10 calendar days** have passed since it was
+  (re)added.
+- If a company reappears in a later run after having dropped off (removed, or
+  never tracked), its day-counter **resets** — today becomes its new
+  `addedDate`. Reappearing while still active and within the window does NOT
+  reset the counter — only a genuine re-entry after expiry does.
+
+State lives in `companies.json` → `state.gainersWatchlistTtl` per company
+(conventions §2's documented "per-company machine state" row — no new
+collection). Local state records are never deleted (conventions §5) —
+expiry sets `active: false` and stamps `removedDate`; only the entry on the
+actual Stockscans watchlist is removed via the API. Report `added`/`removed`/
+`activeAfter` from this step's output in the run's stats footer alongside the
+other Step 1 numbers.
 
 ## What's specific to this scan
 

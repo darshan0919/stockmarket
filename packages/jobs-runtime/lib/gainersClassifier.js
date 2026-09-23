@@ -772,6 +772,7 @@ function main({
     const inEm = cls.tier === 'ACT' || cls.tier === 'WATCH';
     const nowIso = new Date().toISOString();
     const d = deliveryFacts(g);
+    const ps = g.price_signals || {};
 
     signals.push({
       // DTO envelope (skills/tooling/output-dto-standard/SKILL.md) — required on every
@@ -785,6 +786,7 @@ function main({
       industry: g.industry || '',
       return_1d: g.return_1d,
       market_cap_cr: g.market_cap_cr,
+      pe_ratio: g.pe_ratio ?? null,
       primary_driver: driver,
       conviction: conv,
       // ACT / WATCH / NOTED — the actionability tier the email is organised by.
@@ -816,6 +818,16 @@ function main({
         d.available && d.valueCr != null && g.market_cap_cr > 0
           ? Math.round((d.valueCr / g.market_cap_cr) * 100 * 10000) / 10000
           : null,
+      // Today's volume / delivered-volume vs. the 30-trading-day median of each
+      // (today excluded from the median), sourced from NSE getPriceVolumeDeliverable
+      // — see gainersScanner.js's fetchVolumeDeliveryRatios30d and
+      // docs/nse-bse-historical-deals-api.md. NSE-listed only; null for BSE-only
+      // names (never 0 — unmeasured must not read as measured-and-flat).
+      // Promoted to top level for the same reason delivery_pct/delivery_value_cr
+      // are: the email render and any downstream sort should never reach into
+      // price_signals.
+      vol_ratio_30d: ps.vol_ratio_30d ?? null,
+      deliv_vol_ratio_30d: ps.deliv_vol_ratio_30d ?? null,
       streak: streak.streak,
       streak_prior_dates: streak.priorDates,
       sector_cluster: cluster ? { tier: cluster.tier, count: cluster.qualified_count } : null,

@@ -193,6 +193,25 @@ const INFO_CLASS_TONE = {
 const DV_MCAP_NOTABLE = 1.0;
 const DV_MCAP_STRIKING = 2.5;
 
+// Shared metric-line primitives — used by BOTH marketDataHtml (post-close-
+// scan-insights) and scanMetricsHtml (gainers-signal/volume-rocketing) so the
+// two skills' thesis cards render the identical "Mcap"/"P/E" cell rather than
+// two independently-formatted copies (Darshan's ask: "ensure UI for showing
+// stats is same in both skills' thesis cards"). Same abbreviation, same
+// null-handling ("—", never a fabricated 0), same cell markup helper.
+const fmtMcapShared = (v) =>
+  typeof v !== 'number' ? '—' : v >= 1000 ? `₹${(v / 1000).toFixed(1)}k Cr` : `₹${v.toFixed(0)} Cr`;
+// P/E is unitless — one decimal, "—" for null/loss-making (a negative or
+// absent P/E is not "0", it's unmeasured-or-not-applicable, same discipline
+// as every other metric-line cell in this file). Loss-making (negative P/E)
+// gets a distinct muted-red tone since a negative multiple isn't comparable
+// to a positive one on the same number line — flagging it rather than
+// silently sorting/coloring it like an ordinary low P/E.
+const fmtPEShared = (v) => (typeof v !== 'number' ? '—' : v.toFixed(1));
+const peColorShared = (v) => (typeof v !== 'number' ? '#475467' : v < 0 ? '#b42318' : '#101828');
+const metricCell = (label, value, color) =>
+  `<span style="display:inline-block;vertical-align:middle;margin-right:12px;">${label}: <b style="color:${color || '#101828'};">${value}</b></span>`;
+
 // Uses vertical-align:middle + explicit &nbsp;-separated spacing rather than
 // flexbox gap, per this file's Gmail-sanitizer findings above (gap/align-items
 // get silently stripped from inline styles in received mail).
@@ -204,6 +223,7 @@ function marketDataHtml(marketData) {
     deliveryValueCr,
     volRatio7d,
     marketCapCr,
+    peRatio,
     deliveryValuePctOfMcap,
   } = marketData;
   if (
@@ -212,15 +232,16 @@ function marketDataHtml(marketData) {
     deliveryValueCr == null &&
     volRatio7d == null &&
     marketCapCr == null &&
+    peRatio == null &&
     deliveryValuePctOfMcap == null
   )
     return '';
   const fmtPct = (v) => (v == null ? '—' : `${v > 0 ? '+' : ''}${v.toFixed(2)}%`);
   const fmtCr = (v) => (v == null ? '—' : `₹${v.toFixed(1)} Cr`);
-  // Same abbreviation scanMetricsHtml uses, so the two metric lines read
-  // identically across the announcement digests and the daily scan emails.
-  const fmtMcap = (v) =>
-    v == null ? '—' : v >= 1000 ? `₹${(v / 1000).toFixed(1)}k Cr` : `₹${v.toFixed(0)} Cr`;
+  // Same abbreviation/formatter scanMetricsHtml uses (see metricCell/fmtMcapShared/
+  // fmtPEShared above), so the two metric lines read identically across the
+  // announcement digests and the daily scan emails.
+  const fmtMcap = fmtMcapShared;
   const retColor = returns1d == null ? '#475467' : returns1d >= 0 ? '#067647' : '#b42318';
   // Same >=2.0x threshold gainersScanner.js's vol_spike boolean uses, just
   // against a 7-day (pre-announcement-day) window instead of its 20-day one —
@@ -239,12 +260,12 @@ function marketDataHtml(marketData) {
         : deliveryValuePctOfMcap >= DV_MCAP_NOTABLE
           ? '#b54708'
           : '#475467';
-  const cell = (label, value, color) =>
-    `<span style="display:inline-block;vertical-align:middle;margin-right:12px;">${label}: <b style="color:${color || '#101828'};">${value}</b></span>`;
+  const cell = metricCell;
   return (
     `<div style="margin-top:8px;font-size:11.5px;font-family:monospace;color:#475467;line-height:1.9;">` +
     cell('1D', fmtPct(returns1d), retColor) +
     cell('Mcap', fmtMcap(marketCapCr)) +
+    cell('P/E', fmtPEShared(peRatio), peColorShared(peRatio)) +
     cell('Deliv', deliveryPct == null ? '—' : `${deliveryPct.toFixed(1)}%`) +
     cell('Deliv Val', fmtCr(deliveryValueCr)) +
     cell(
@@ -1206,12 +1227,11 @@ function deliveryValuePctOfMcap(it) {
 function scanMetricsHtml(it) {
   const fmtPct = (v) => (typeof v !== 'number' ? '—' : `${v > 0 ? '+' : ''}${v.toFixed(2)}%`);
   const fmtCr = (v) => (typeof v !== 'number' ? '—' : `₹${v.toFixed(1)} Cr`);
-  const fmtMcap = (v) =>
-    typeof v !== 'number'
-      ? '—'
-      : v >= 1000
-        ? `₹${(v / 1000).toFixed(1)}k Cr`
-        : `₹${v.toFixed(0)} Cr`;
+  // Shared with marketDataHtml (post-close-scan-insights) — see fmtMcapShared/
+  // fmtPEShared/metricCell above. Keeping both card types on the exact same
+  // formatter is what "ensure UI for showing stats is same in both skills'
+  // thesis cards" means in practice: one implementation, two callers.
+  const fmtMcap = fmtMcapShared;
 
   const ret = it.return_1d;
   const retColor = typeof ret !== 'number' ? '#475467' : ret >= 0 ? '#067647' : '#b42318';
@@ -1226,21 +1246,38 @@ function scanMetricsHtml(it) {
           ? '#b54708'
           : '#475467';
 
-  const cell = (label, value, color) =>
-    `<span style="display:inline-block;vertical-align:middle;margin-right:14px;">${label}: <b style="color:${color || '#101828'};">${value}</b></span>`;
+  const cell = metricCell;
 
   const streakCell =
     typeof it.streak === 'number' && it.streak > 1
       ? cell('Streak', `${it.streak}d`, '#b54708')
       : '';
 
+  // Volume / delivered-volume vs. their own 30-trading-day median (today
+  // excluded from the median) — see gainersScanner.js's
+  // fetchVolumeDeliveryRatios30d and docs/nse-bse-historical-deals-api.md.
+  // NSE-listed only; '—' (never "1.0x"/"0x") for a BSE-only name with no
+  // history available, same unmeasured-≠-flat convention as Deliv/Mcap.
+  // Same amber/red thresholds as Deliv/Mcap: ratio itself, not a %, so the
+  // bands read as "how many multiples of normal" rather than a percentage.
+  const fmtRatio = (v) => (typeof v !== 'number' ? '—' : `${v.toFixed(2)}x`);
+  const ratioColor = (v) =>
+    typeof v !== 'number' ? '#475467' : v >= 2.5 ? '#b42318' : v >= 1 ? '#b54708' : '#475467';
+
   return (
     `<div style="margin-top:8px;font-size:11.5px;font-family:monospace;color:#475467;line-height:1.9;">` +
     cell('1D', fmtPct(ret), retColor) +
     cell('Mcap', fmtMcap(it.market_cap_cr)) +
+    cell('P/E', fmtPEShared(it.pe_ratio), peColorShared(it.pe_ratio)) +
     cell('Deliv', typeof it.delivery_pct === 'number' ? `${it.delivery_pct.toFixed(1)}%` : '—') +
     cell('Deliv Val', fmtCr(it.delivery_value_cr)) +
     cell('Deliv/Mcap', dvPct == null ? '—' : `${dvPct.toFixed(2)}%`, dvPctColor) +
+    cell('Vol/30dMed', fmtRatio(it.vol_ratio_30d), ratioColor(it.vol_ratio_30d)) +
+    cell(
+      'DelVol/30dMed',
+      fmtRatio(it.deliv_vol_ratio_30d),
+      ratioColor(it.deliv_vol_ratio_30d)
+    ) +
     streakCell +
     `</div>`
   );

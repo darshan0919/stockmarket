@@ -532,11 +532,18 @@ keys render a tile:
   "contentClassified": 118,
   "contentFromExtractCache": 22,
   "contentFromLiveFetch": 90,
-  "contentFetchFailed": 6
+  "contentFetchFailed": 6,
+  "watchlistTtlAdded": 4,
+  "watchlistTtlRemoved": 2,
+  "watchlistTtlActiveAfter": 27
 }
 ```
 
-The last four keys are `content_classification_meta` from Step 2a (see "Strength
+`watchlistTtlAdded`/`watchlistTtlRemoved`/`watchlistTtlActiveAfter` are
+gainers-signal-only (Step 1b — see its SKILL.md; volume-rocketing does not
+run this step), from `gainersWatchlistTtlSync.js`'s own summary output.
+
+The last four keys before those are `content_classification_meta` from Step 2a (see "Strength
 is never judged from a title" above) — report them whenever present so a low
 extract-cache hit rate is visible in the same place as the other cache-health
 numbers.
