@@ -1216,20 +1216,6 @@
         "market twitter digest"
       ]
     },
-    "antigravity-scheduled-tasks-sync": {
-      "skill_md": "skills/tooling/antigravity-scheduled-tasks-sync/SKILL.md",
-      "entry": "scripts/antigravity-sync-tasks-and-skills.js",
-      "mode": "bundle",
-      "modules": [],
-      "references": [],
-      "shared": [],
-      "aliases": [
-        "sync antigravity",
-        "sync scheduled tasks",
-        "sync skills to antigravity",
-        "antigravity sidecar sync"
-      ]
-    },
     "find-skills": {
       "skill_md": "skills/tooling/find-skills/SKILL.md",
       "entry": null,

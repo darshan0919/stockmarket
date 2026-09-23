@@ -96,20 +96,67 @@ script instead of ad-hoc bash:
    this logic moved verbatim from the old Phase 1, it did not change.
 
 Output: `manifest.json` — `{ticker, companyId, quarter, found: {PPT, Result, Transcript, PriorTranscript}, transcriptMissing, pdfPaths}`.
-`pdfPaths` are downloaded PDFs, not text — run each through
-[`stock-api/src/utils/pdfUtils.js`](../../../stock-api/src/utils/pdfUtils.js)
-(the same extraction every other document-consuming skill uses) before
-Steps 2 and 3.
+`pdfPaths` are downloaded PDFs, not text — run Step 1.5 below to turn
+`pdfPaths.Result`/`pdfPaths.PPT` into text before Steps 2 and 2.6.
+
+**Correction (2026-09-23):** earlier revisions of this doc said to run
+`pdfPaths` through `stock-api/src/utils/pdfUtils.js` — that file is an
+HTML-rendering helper for building the OUTPUT pdf and has no PDF-reading
+code at all. It never did what this step needed; every prior run of this
+skill turned a Result PDF into text by an agent invoking `pdftotext -layout`
+by hand and reading the output. Step 1.5 is the actual, scripted fix.
+
+## Step 1.5 — PDF → layout-preserving text (script, zero LLM)
+
+```bash
+node skills/equity-research/quarterly-result-extractor/scripts/extract_result_text.js \
+  --result-pdf "${DOCS_DIR}/${MANIFEST_RESULT_PATH}" \
+  --ppt-pdf "${DOCS_DIR}/${MANIFEST_PPT_PATH}" \
+  --out-dir "$DOCS_DIR"
+```
+
+Writes `result.txt`/`ppt.txt` into `$DOCS_DIR` via
+`pdfToLayoutTextWithMeta()` (`cloud-utils/src/pdfText.js`), which shells out
+to `pdftotext -layout` so a filing's multi-column financial tables survive
+as column-aligned rows instead of pdf-parse's default reading-order text
+(which interleaves columns from a tabular filing into one unparseable run).
+Always reads the FULL document (`maxChars: Infinity`) — a `result`-type
+filing is a heavy profile per the standing truncation-bug rule, never the
+short-announcement 8000-char default. Prints a JSON summary with each
+source's `truncated`/`ocrFailed`/`isScannedDocument` flags; check these
+before trusting `result.txt` — a scanned/OCR'd filing or a genuinely
+unreadable PDF should stop the run rather than feed empty text downstream.
 
 ## Step 2 — Deterministic income-statement signal scan (script, zero LLM)
 
 ```bash
+node skills/equity-research/quarterly-result-extractor/scripts/extract_income_statement.js \
+  --result-text "${DOCS_DIR}/result.txt" \
+  --ppt-text "${DOCS_DIR}/ppt.txt" \
+  > "${DOCS_DIR}/income_statement.json"
+
 node -e "
+const { lineData, context } = require('${DOCS_DIR}/income_statement.json');
 const { getOrCompute } = require('./stock-api/src/analyzers/incomeStatementSignals.js');
-// lineData parsed from the Result filing text (pdfUtils.js output of manifest.pdfPaths.Result)
 console.log(JSON.stringify(getOrCompute(companyId, period, lineData, context)));
 " > "${DOCS_DIR}/income_statement_signals.json"
 ```
+
+`extract_income_statement.js` is the same locate-section /
+detect-unit-scale / parse-labelled-rows / map-to-normalized-keys pattern
+Step 2.6's `extract_statements.js` already uses for the balance sheet and
+cash flow statement, applied to the P&L: it locates the "Statement of ...
+Results" table in `result.txt` (falling back to `ppt.txt`), reads the
+current/QoQ/YoY columns Indian filings print current-period-first, and
+emits `lineData`/`context` in the exact shape `incomeStatementSignals.js`
+expects — plus a ready-to-use `headline` object for Step 2.5. This is what
+replaces hand-transcribing the P&L table (the one manual, judgment-free step
+found in the 2026-09-23 SUPRIYA run, in tension with Extraction First,
+conventions.md §17). Any row it can't map to a known label is returned in
+`unmatched[]`, never silently dropped — same residue-handling contract as
+Step 2.6. If `found: false` (table not located, or fewer than the expected
+line items parsed), fall back to reading `result.txt` directly rather than
+trusting a partially-populated `lineData`.
 
 Runs the full line-by-line + combination scan from
 [`skills/_shared/income-statement-signals.md`](../../_shared/income-statement-signals.md)
@@ -203,41 +250,52 @@ Then run the two signal scans — the same Extraction-First contract as Step 2,
 and skipped entirely for any statement not marked `fresh`:
 
 ```bash
-node -e "
-const bs = require('./stock-api/src/analyzers/balanceSheetSignals.js');
-const st = require('${DOCS_DIR}/statements.json');
-if (st.analysable.balanceSheet) {
-  console.log(JSON.stringify(bs.getOrCompute(companyId, bsPeriod, st.balanceSheet.current, st.balanceSheet.priorColumn, bsContext)));
-}
-" > "${DOCS_DIR}/balance_sheet_signals.json"
-
-node -e "
-const cf = require('./stock-api/src/analyzers/cashflowSignals.js');
-const st = require('${DOCS_DIR}/statements.json');
-if (st.analysable.cashflow) {
-  console.log(JSON.stringify(cf.getOrCompute(companyId, cfPeriod, st.cashflow.current, st.cashflow.priorColumn, cfContext)));
-}
-" > "${DOCS_DIR}/cashflow_signals.json"
+node skills/equity-research/quarterly-result-extractor/scripts/run_statement_signals.js \
+  --companyId "$COMPANY_ID" \
+  --statements "${DOCS_DIR}/statements.json" \
+  --income-statement "${DOCS_DIR}/income_statement.json" \
+  --period "2026FY" \
+  --out-dir "$DOCS_DIR"
 ```
 
-Both follow the full frameworks in
-[`skills/_shared/balance-sheet-signals.md`](../../_shared/balance-sheet-signals.md)
-and [`skills/_shared/cashflow-signals.md`](../../_shared/cashflow-signals.md),
-are cached by `getOrCompute` the same way the P&L scan is, and return only what
-cleared a materiality bar. Two context rules matter more here than they do for
-the P&L:
+Writes `balance_sheet_signals.json`/`cashflow_signals.json` into `$DOCS_DIR`.
+`--period` is the **statement's own date/window** (`2026H1`, `2026FY`), not
+the quarter being discussed — the same H1 statement is legitimately re-read
+from Q3's filing, and keying by date makes that a cache hit against
+`balanceSheetSignals.js`/`cashflowSignals.js`'s own `getOrCompute` instead of
+a second scan of identical numbers.
 
-- Key the cache `period` by the **statement's own date/window** (`2026H1`,
-  `2026FY`), not the quarter being discussed — the same H1 statement is
-  legitimately re-read from Q3's filing, and keying by date makes that a cache
-  hit instead of a second scan of identical numbers.
-- Every context figure handed to `cashflowSignals` (`ebitdaForPeriod`,
-  `patForPeriod`, `revenueForPeriod`, `taxChargeForPeriod`,
-  `financeCostForPeriod`) must cover **exactly** the window the cash-flow
-  statement covers. A half-year cash flow set against full-year P&L figures
-  makes every conversion ratio silently wrong. Same for
-  `balanceSheetSignals`'s `revenueAnnualised`/`cogsAnnualised`, which are
-  annualised precisely so the day-counts mean what they normally mean.
+**Correction (2026-09-23):** earlier revisions of this doc left `bsContext`/
+`cfContext`/`companyId`/`bsPeriod`/`cfPeriod` as free variables in two inline
+`node -e` heredocs — i.e. an agent was expected to build the context objects
+by hand each run. That's tolerable for `companyId`/period, but NOT for the
+context figures: `ebitdaForPeriod`/`patForPeriod`/`revenueForPeriod`/
+`taxChargeForPeriod` (`cashflowSignals`) and `revenueAnnualised`/
+`cogsAnnualised` (`balanceSheetSignals`) must cover **exactly** the window
+the statement covers — get that wrong and every conversion/day-count ratio
+is silently wrong, which is exactly the kind of derived-number judgment call
+conventions.md §17 says belongs in a script.
+
+`run_statement_signals.js` builds both context objects itself, from
+Step 2's `extract_income_statement.js` output — specifically its `ytd`
+field, the filing's own 4th/5th P&L columns (the cumulative YTD/FY figures a
+half-year or full-year filing prints alongside the 3 quarterly ones; Q1/Q3
+filings don't have them, which is fine, since BS/CF are never `analysable`
+in Q1/Q3 either — Reg 33(3) again). `balanceSheetSignals`'s figures are
+annualised (×2 for a September/H1 close, ×1 for a March/FY close, inferred
+from the statement's own `asOfDate` — a balance sheet is disclosed AS AT a
+date, not FOR a period, so heading language alone doesn't reliably say
+which); `cashflowSignals`'s are NOT annualised, since a cumulative cash-flow
+figure is compared against a P&L figure over the identical cumulative
+window, never a run-rate. If the YTD columns aren't found, the context
+object carries a `note` explaining why and the day-count/conversion checks
+that need it are skipped by the analyzer's own materiality gate — never
+silently guessed.
+
+Both scans follow the full frameworks in
+[`skills/_shared/balance-sheet-signals.md`](../../_shared/balance-sheet-signals.md)
+and [`skills/_shared/cashflow-signals.md`](../../_shared/cashflow-signals.md)
+and return only what cleared a materiality bar.
 
 ## Step 3 — Cheap, recall-first excerpt pass (cheap-tier reasoning, NO external API calls)
 
@@ -327,8 +385,17 @@ quarterly-result-extractor/
 ├── SKILL.md
 └── scripts/
     ├── fetch_result_documents.js       (Step 1)
+    ├── extract_result_text.js          (Step 1.5 — PDF -> layout-preserving text)
+    ├── extract_income_statement.js     (Step 2 — P&L locate + normalize -> lineData/context/ytd)
     ├── compute_headline_financials.js  (Step 2.5)
-    ├── extract_statements.js           (Step 2.6 — BS/CF locate + normalize + staleness)
+    ├── extract_statements.js           (Step 2.6a — BS/CF locate + normalize + staleness)
+    │                                     (also exports BS_HEADINGS/CF_HEADINGS, reused by
+    │                                      extract_income_statement.js's section slicer)
+    ├── run_statement_signals.js        (Step 2.6b — builds bsContext/cfContext from
+    │                                     extract_income_statement.js's `ytd`, then calls
+    │                                     balanceSheetSignals.js/cashflowSignals.js)
+    ├── __tests__/                      (extract_statements.test.js, extract_income_statement.test.js —
+    │                                     fixtures are real-filing excerpts, see file headers)
     └── save_result_documents.js        (Step 4)
 ```
 

@@ -101,6 +101,83 @@ function pdftotextCli(buf) {
   }
 }
 
+/**
+ * Layout-preserving fallback: `pdftotext -layout` (poppler). Unlike
+ * pdftotextCli() above (plain reading order), `-layout` reconstructs the
+ * page's column geometry with whitespace, which is what a multi-column
+ * financial table (a quarterly Result filing's P&L, balance sheet or cash
+ * flow statement) needs to stay parseable as "label followed by its numeric
+ * columns in filing order" — the default pdf-parse path in extractTextLayer()
+ * below routinely interleaves columns from a tabular filing into one run of
+ * text, which is unreadable as a table even though the characters are all
+ * present. extract_statements.js (Step 2.6 BS/CF parser) already depends on
+ * layout-preserving text for exactly this reason; this function is what lets
+ * the income-statement side of the pipeline (Step 2) get the same property
+ * instead of requiring a human/agent to run `pdftotext -layout` by hand and
+ * transcribe the table (see quarterly-result-extractor's
+ * extract_income_statement.js and the 2026-09-23 SUPRIYA run that surfaced
+ * this gap). Returns '' if poppler is unavailable or the PDF has no text
+ * layer (a scanned filing) — callers fall back to OCR the same way
+ * pdftotextCli() callers do.
+ */
+function pdftotextLayoutCli(buf) {
+  const tmp = path.join(
+    os.tmpdir(),
+    `wi_layout_${Date.now()}_${Math.random().toString(36).slice(2)}.pdf`
+  );
+  fs.writeFileSync(tmp, buf);
+  try {
+    return execFileSync('pdftotext', ['-layout', '-q', tmp, '-'], {
+      encoding: 'utf8',
+      timeout: PDFTOPPM_TIMEOUT_MS,
+    });
+  } catch {
+    return '';
+  } finally {
+    fs.existsSync(tmp) && fs.unlinkSync(tmp);
+  }
+}
+
+/**
+ * Table-aware sibling of pdfToTextWithMeta(): same OCR fallback and
+ * truncation-guard contract, but the text-layer path always goes through
+ * `pdftotext -layout` rather than pdf-parse, so callers get column-aligned
+ * rows instead of prose reading order. Use this (with maxChars: Infinity,
+ * per the standing heavy-profile rule below) for any `result`-type filing a
+ * script needs to parse into structured rows — pdfToTextWithMeta remains the
+ * right choice for prose reading (transcripts, PPT narrative, announcements).
+ *
+ * Heavy-profile rule (see preprocessing_truncation_bug guard #1): a
+ * `result`-type filing must be read with maxChars: Infinity. The 8000-char
+ * default below exists only for parity with pdfToTextWithMeta's signature;
+ * callers parsing a full filing must pass maxChars explicitly.
+ *
+ * @param {Buffer} buf
+ * @param {Object} [opts]
+ * @param {number} [opts.maxChars=8000] cap; pass Infinity for the whole document
+ * @returns {Promise<{text, isScannedDocument, ocrFailed, truncated, originalChars}>}
+ */
+async function pdfToLayoutTextWithMeta(buf, { maxChars = MAX_CHARS } = {}) {
+  let text = pdftotextLayoutCli(buf);
+  let isScannedDocument = false;
+  let ocrFailed = false;
+  if (text.trim().length < 80) {
+    const ocr = ocrPdf(buf);
+    if (ocr.trim().length > text.trim().length) {
+      text = `[OCR-extracted — scanned PDF]\n${ocr}`;
+      isScannedDocument = true;
+    } else {
+      ocrFailed = text.trim().length < 20;
+    }
+  }
+  const originalChars = text.length;
+  const truncated = originalChars > maxChars;
+  if (truncated) {
+    text = `${text.slice(0, maxChars)}\n\n[... truncated — original length: ${originalChars} chars]`;
+  }
+  return { text, isScannedDocument, ocrFailed, truncated, originalChars };
+}
+
 /** Extract text (+ page count when derivable) from a normal (text-layer) PDF buffer. */
 async function extractTextLayer(buf) {
   try {
@@ -216,4 +293,4 @@ async function _pdfToTextWithMetaInner(buf, maxChars) {
   return { text, numPages, isScannedDocument, ocrFailed, truncated, originalChars };
 }
 
-module.exports = { pdfToText, pdfToTextWithMeta };
+module.exports = { pdfToText, pdfToTextWithMeta, pdfToLayoutTextWithMeta };

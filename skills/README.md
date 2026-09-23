@@ -104,7 +104,6 @@ skills/
 │   ├── cowork-task-architect/
 │   ├── conversation-capture/
 │   ├── concept-transcript-integrator/
-│   ├── antigravity-scheduled-tasks-sync/
 │   ├── token-usage-analyzer/
 │   ├── render-pdf/
 │   ├── output-dto-standard/         # a written standard, not an invocable skill

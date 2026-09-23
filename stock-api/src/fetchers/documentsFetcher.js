@@ -206,7 +206,14 @@ async function fetchDocuments(ticker, options = {}) {
     skipped,
   };
 
-  const manifestPath = path.join(outDir, 'manifest.json');
+  // Namespaced (not 'manifest.json') so this internal bookkeeping file never
+  // collides with a caller's own top-level manifest.json when outputDir is shared
+  // (confirmed bug 2026-09-23: a caller doing `node wrapper.js > outDir/manifest.json`
+  // races this writeFileSync against the shell's independent fd on the identical path,
+  // producing a corrupted, unparseable file -- see quarterly-result-extractor's
+  // fetch_result_documents.js). Nothing reads this file back from disk; callers use the
+  // in-memory `manifest`/`manifestPath` return values.
+  const manifestPath = path.join(outDir, '.fetch-manifest.json');
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 
   return { fetched, skipped, manifest, manifestPath };

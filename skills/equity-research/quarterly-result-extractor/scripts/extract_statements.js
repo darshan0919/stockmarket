@@ -161,18 +161,103 @@ function parseNumberToken(tok) {
 
 const NUM_RE = /\(?-?[\d][\d,]*(?:\.\d+)?\)?|[-–—]/g;
 
+// A numbered/lettered line-item marker at the start of a row ("1  Revenue
+// from operations ...", "(a) Cost of materials consumed ...") is not part of
+// the label and, critically, is NOT the row's data — a P&L table in a Result
+// filing routinely numbers its line items this way (confirmed 2026-09-23
+// building extract_income_statement.js), and without stripping it, parseRows
+// mistook the leading "1"/"2"/etc. for the row's first (current-period) data
+// value, silently shifting every parsed number one column early. Only
+// stripped when followed by a letter or '(' so a genuine data-only row
+// (rare, but possible) is never mistaken for a numbered label.
+// Deliberately NOT `\(?[a-zA-Z0-9]{1,3}\)?` (both delimiters optional) --
+// that matched ANY short leading word, including real label text like "Net"
+// in "Net Cash generated from Operating Activities" (confirmed 2026-09-23: it
+// silently ate "Net" off cash-flow subtotal rows, breaking the CF_MAP match
+// for cfo/cfi/cff on a real filing). A bare, unparenthesized marker is only
+// ever digits ("1", "10.") or an uppercase Roman numeral ("V", "IX") in
+// practice; a parenthesized one ("(a)", "(iii)") needs its closing paren so
+// it can't be confused with a real word that merely starts with a letter.
+// `[.)|]?` (not just `[.)]?`): a corrupted PDF font can render the closing
+// paren of a numbered row marker as a pipe -- confirmed 2026-09-23 on a real
+// filing: "1|       Profit for the period/ year (5-6)" (should be "1)"). Left
+// unstripped, the leading "1" was read as the row's own first data value,
+// silently shifting every column one to the left (current-quarter PAT read
+// as the marker digit, QoQ read as what should have been current, etc.) --
+// exactly the same failure class the original ITEM_MARKER_RE fix targeted,
+// just a punctuation variant that regex didn't yet cover.
+const ITEM_MARKER_RE =
+  /^(?:\([a-zA-Z0-9]{1,3}\)|\d{1,3}[.)|\]]?|[IVXLCM]{1,4})[.)|\]]?\s+(?=[A-Za-z(])/;
+
 function parseRows(body) {
   const rows = [];
-  for (const rawLine of body.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (!line || line.length < 3) continue;
+  const rawLines = body.split(/\r?\n/);
+  // A label long enough to wrap gets a data-free line (letters, no numbers)
+  // immediately followed by a numbers-only line (the columns, indented to
+  // where they'd normally sit inline) — confirmed 2026-09-23 against a real
+  // filing: "Change in inventories of finished goods, work\n  in progress &
+  // stock in trade.\n                    219.66   (160.98) ...". Without
+  // merging these two physical lines, the row is silently dropped (no
+  // numbers on the label line) and the numbers-only line is dropped too (no
+  // label). `pendingLabel` carries a data-free label line forward one
+  // iteration so it can be re-attached to numbers that show up next.
+  // Accumulates ALL data-free label lines seen since the last data row (a
+  // wrapped label can itself wrap across more than one physical line before
+  // its numbers appear — confirmed 2026-09-23 on a real filing: "Change in
+  // inventories of finished goods, work" / "in progress & stock in trade."
+  // / "<numbers>" is 2 label lines then the data, not 1). A single-string
+  // `pendingLabel` (the first version of this fix) silently overwrote the
+  // first fragment when the second arrived, dropping "Change in inventories"
+  // and merging only "in progress & stock in trade." with the numbers.
+  let pendingLabelParts = [];
+  for (const rawLine of rawLines) {
+    let line = rawLine.trim();
+    if (!line || line.length < 3) {
+      pendingLabelParts = [];
+      continue;
+    }
+    const markerMatch = line.match(ITEM_MARKER_RE);
+    if (markerMatch) line = line.slice(markerMatch[0].length);
     // A heading like "...for the half-year ended 30th September, 2026" carries
     // numbers that are a date, not data. Dropping these prevents the heading
     // from being mapped as if it were the first matching data row.
-    if (/(ended|as\s+at|as\s+on)\b/i.test(line) && /\b(19|20)\d{2}\b/.test(line)) continue;
+    if (/(ended|as\s+at|as\s+on)\b/i.test(line) && /\b(19|20)\d{2}\b/.test(line)) {
+      pendingLabelParts = [];
+      continue;
+    }
     const nums = line.match(NUM_RE) || [];
     const parsed = nums.map(parseNumberToken).filter((v) => v != null);
-    if (!parsed.length) continue;
+    const hasLetters = /[A-Za-z]/.test(line);
+    if (!nums.length) {
+      // A line with NO numeric-looking tokens at all (not even a dash) is
+      // either a genuine sub-heading or (another) fragment of a wrapped
+      // label. Accumulate it (only if it reads like label text) in case a
+      // later line is the numbers it belongs to.
+      if (hasLetters) pendingLabelParts.push(line.trim());
+      else pendingLabelParts = [];
+      continue;
+    }
+    if (!parsed.length) {
+      // Numeric-LOOKING tokens are present but every one is a dash ("nil
+      // disclosed") -- e.g. "Purchase of Stock in Trade    -    -". This is
+      // its own complete (if uninteresting) row, NOT a label fragment:
+      // confirmed 2026-09-23 on a real filing where treating an all-dash row
+      // as "label-only" merged its label into the FOLLOWING real row's
+      // label, corrupting it. Drop it and clear any pending fragments -- a
+      // row boundary was just crossed, so a fragment held from before this
+      // line can't still belong to whatever comes next.
+      pendingLabelParts = [];
+      continue;
+    }
+    if (!hasLetters && pendingLabelParts.length) {
+      // Numbers-only line right after 1+ held label fragments -> this is
+      // that label's continuation, not a standalone (unlabelled) data row.
+      const label = pendingLabelParts.join(' ');
+      rows.push({ label, values: parsed, raw: `${label} ${line}` });
+      pendingLabelParts = [];
+      continue;
+    }
+    pendingLabelParts = [];
     // Label = text before the first numeric token.
     const firstNumIdx = line.search(/\(?-?\d/);
     const label = (firstNumIdx > 0 ? line.slice(0, firstNumIdx) : line).trim();
@@ -182,18 +267,44 @@ function parseRows(body) {
   return rows;
 }
 
-/** Units: filings state "Rs in lakhs/crores/millions" near the top. */
+/**
+ * Units: filings state "Rs in lakhs/crores/millions" near the top — but not
+ * always as a clean 2-word phrase. Confirmed 2026-09-23 against a real
+ * SUPRIYA Q4 FY26 filing: "(All amounts in Indian \"million, except as
+ * otherwise stated)" and "(All amounts in Indian ~ million, ...)" — the
+ * rupee symbol renders as a stray quote or tilde depending on the PDF's font
+ * encoding, and "Indian" sits between "in" and the unit word. `{0,2}` extra
+ * tokens tolerates that without over-matching into an unrelated sentence.
+ */
 function detectUnitScale(body) {
   const head = body.slice(0, 1500);
-  if (/in\s+lakh/i.test(head)) return { unit: 'lakh', toCr: 0.01 };
-  if (/in\s+million/i.test(head)) return { unit: 'million', toCr: 0.1 };
-  if (/in\s+crore/i.test(head)) return { unit: 'crore', toCr: 1 };
-  if (/in\s+thousand/i.test(head)) return { unit: 'thousand', toCr: 0.0001 };
+  // Proximity check rather than a fixed-token-count regex: a broken font can
+  // glue a corrupted rupee-symbol glyph directly onto the unit word with NO
+  // separating whitespace (confirmed 2026-09-23: the SAME real filing had
+  // 'in Indian "million,' — quote glued to "million", zero intervening
+  // whitespace tokens — right next to 'in Indian ~ million,' on its cash flow
+  // page, where "~" WAS its own whitespace-separated token). A word-count
+  // regex passes one phrasing and fails the other; "does 'in' appear shortly
+  // before the unit word" survives both.
+  const near = (word) => {
+    const m = new RegExp(word, 'i').exec(head);
+    if (!m) return false;
+    const before = head.slice(Math.max(0, m.index - 30), m.index);
+    return /\bin\b/i.test(before);
+  };
+  if (near('lakh')) return { unit: 'lakh', toCr: 0.01 };
+  if (near('million')) return { unit: 'million', toCr: 0.1 };
+  if (near('crore')) return { unit: 'crore', toCr: 1 };
+  if (near('thousand')) return { unit: 'thousand', toCr: 0.0001 };
   return { unit: 'unknown', toCr: null };
 }
 
 const DATE_RE =
   /(?:as\s+at|as\s+on|for\s+the\s+(?:half[-\s]?year|period|year)\s+ended)\s+([0-3]?\d)(?:st|nd|rd|th)?[\s.-]*([A-Za-z]+|\d{1,2})[\s.,-]*(\d{4})/i;
+// Month-first order ("as at March 31, 2026") — confirmed 2026-09-23 against a
+// real filing heading; the day-first DATE_RE above never matches this order.
+const DATE_RE_MONTH_FIRST =
+  /(?:as\s+at|as\s+on|for\s+the\s+(?:half[-\s]?year|period|year)\s+ended)\s+([A-Za-z]+)\s+([0-3]?\d)(?:st|nd|rd|th)?,?\s*(\d{4})/i;
 const MONTHS = {
   jan: 1,
   feb: 2,
@@ -211,14 +322,25 @@ const MONTHS = {
 
 function parseAsOfDate(body) {
   const m = body.match(DATE_RE);
-  if (!m) return null;
-  const day = parseInt(m[1], 10);
-  let month = null;
-  if (/^\d+$/.test(m[2])) month = parseInt(m[2], 10);
-  else month = MONTHS[m[2].slice(0, 3).toLowerCase()] || null;
-  const year = parseInt(m[3], 10);
-  if (!day || !month || !year) return null;
-  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  if (m) {
+    const day = parseInt(m[1], 10);
+    let month = null;
+    if (/^\d+$/.test(m[2])) month = parseInt(m[2], 10);
+    else month = MONTHS[m[2].slice(0, 3).toLowerCase()] || null;
+    const year = parseInt(m[3], 10);
+    if (day && month && year)
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+  // Try month-first order before giving up (see DATE_RE_MONTH_FIRST's comment).
+  const mf = body.match(DATE_RE_MONTH_FIRST);
+  if (mf) {
+    const month = MONTHS[mf[1].slice(0, 3).toLowerCase()] || null;
+    const day = parseInt(mf[2], 10);
+    const year = parseInt(mf[3], 10);
+    if (day && month && year)
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+  return null;
 }
 
 /** Half-year vs full-year vs quarter, inferred from the heading language. */
@@ -512,4 +634,10 @@ module.exports = {
   extractOne,
   BS_MAP,
   CF_MAP,
+  // Exported for extract_income_statement.js: the P&L section-slicer needs
+  // to stop at the same headings this file uses to find BS/CF, so a filing
+  // that runs P&L -> BS -> CF back-to-back doesn't have one section's text
+  // bleed into another's.
+  BS_HEADINGS,
+  CF_HEADINGS,
 };

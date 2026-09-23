@@ -46,8 +46,8 @@ Measured: **20–56 announcement notes/day** (`data/notes.json`, 2094 total; 97 
    we get pre-digested research for an HTTP GET. **Nothing calls it.**
    (`StockscansClient.js` L450/L465/L482.)
 2. **Antigravity already runs this repo's skills and jobs.**
-   `skills/tooling/antigravity-scheduled-tasks-sync` + `yarn antigravity:sync`
-   push `jobs/Scheduled/` and all 77+ skills into `~/.gemini/config/sidecars/`
+   `yarn antigravity:sync`
+   pushes `jobs/Scheduled/` and all 77+ skills into `~/.gemini/config/sidecars/`
    and `~/.gemini/config/skills/`. **A pre-processing skill + job needs no new
    runner** — it inherits this one, executed by whichever agent is cheapest.
 3. **`docs/MODEL_COST_ORCHESTRATION.md`** already routed extraction away from
@@ -763,7 +763,7 @@ it, "the wider net didn't cost quality" is unmeasurable.
 
 - Repo, read 2026-09-04: `skills/equity-research/{post-close-scan-insights,gainers-signal,volume-rocketing,announcement-insights,announcement-info-classifier,guidance-document-extractor}/SKILL.md`;
   `skills/equity-research/_shared/scan-signal-pipeline.md`; `skills/_shared/conventions.md`;
-  `skills/tooling/antigravity-scheduled-tasks-sync/SKILL.md`;
+  `scripts/antigravity-sync-tasks-and-skills.js`;
   `packages/jobs-runtime/lib/{stockscansContext,concallNotesStore,gainersClassifier,windowCursor,thesisCardEmail,db}.js`;
   `stock-api/src/clients/StockscansClient.js`; `docs/{MODEL_COST_ORCHESTRATION,stockscans-api-schemas}.md`.
 - Volume evidence: `data/notes.json` (2094 notes; 20–56/day recent),

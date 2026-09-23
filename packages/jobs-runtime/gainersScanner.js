@@ -632,8 +632,27 @@ async function fetchRetailHoldings(tickers, client = stockscans) {
 /**
  * Batch Market Capitalization + Price To Earnings lookup for an arbitrary set
  * of companyIds — the `ratiosType: 'Default'` scan table (columns confirmed
- * in docs/stockscans-api-schemas.md), scoped via `scan.companyIds` the same
- * way fetchRetailHoldings scopes its own `ratiosType: 'Ratios'` lookup.
+ * in docs/stockscans-api-schemas.md).
+ *
+ * BUG FIX (2026-09-23, live-confirmed): the first version of this function
+ * passed `scan.companyIds: ids` to scope the request, mirroring
+ * fetchRetailHoldings's own `ratiosType: 'Ratios'` call above. That field is
+ * silently IGNORED by `runScan` for both ratiosTypes — a live test with 3
+ * companyIds still returned the top-50 full-universe rows sorted by Market
+ * Capitalization (Reliance, Bharti Airtel, HDFC Bank, ...), so every one of
+ * this function's lookups came back null unless the requested company
+ * happened to already be in the global top 50. This is why yesterday's ask
+ * to show Mcap/P-E on post-close-scan-insights cards silently failed to take
+ * effect even though the code shipped and ran without error: no exception was
+ * thrown, the lookup just found nothing for the announcement digest's
+ * companies. `docs/stockscans-api-schemas.md` documents the fix: `scan.
+ * companyFilters` IS respected but capped at 10 unique ids server-side (HTTP
+ * 400 above that) — the documented workaround for an arbitrary-size batch is
+ * the throwaway-watchlist pattern (conventions.md §14): create a scratch
+ * watchlist with these exact companyIds, scope `scan.watchlistIds` to it, run
+ * the scan, then always delete the watchlist in a `finally` block so the
+ * account doesn't accumulate scratch watchlists. Reference implementation:
+ * `_withThrowawayWatchlist` in `stock-api/bin/get-concall-transcript-url.js`.
  *
  * Built for post-close-scan-insights: unlike the gainers/volume-rocketing
  * pipelines (which already have Mcap+P/E for free on every row of their own
@@ -648,26 +667,39 @@ async function fetchMarketCapAndPE(companyIds, client = stockscans) {
   const ids = [...new Set((companyIds || []).filter(Boolean))];
   const result = Object.fromEntries(ids.map((id) => [id, { marketCapCr: null, peRatio: null }]));
   if (!ids.length) return result;
-  const payload = {
-    ratiosType: 'Default',
-    timePeriod: 'Latest',
-    scan: {
-      filters: [{ left: 'Market Capitalization', sign: '>=', right: '0' }],
-      index: [],
-      industry: [],
-      sector: [],
-      tags: [],
-      scanName: 'Mcap+PE lookup',
-      scanDescription: '',
-      watchlistIds: [],
-      companyIds: ids,
-    },
-    watchlistIds: [],
-    order: 'desc',
-    orderBy: 'Market Capitalization',
-    offset: 0,
-  };
+
+  let watchlistId;
   try {
+    const created = await client.createWatchlist(`tmp-mcap-pe-lookup-${Date.now()}`, ids);
+    watchlistId = created && created.watchlistId;
+  } catch (e) {
+    process.stderr.write(`[WARN] fetchMarketCapAndPE createWatchlist failed: ${e.message}\n`);
+    return result;
+  }
+  if (!watchlistId) {
+    process.stderr.write('[WARN] fetchMarketCapAndPE createWatchlist returned no watchlistId\n');
+    return result;
+  }
+
+  try {
+    const payload = {
+      ratiosType: 'Default',
+      timePeriod: 'Latest',
+      scan: {
+        filters: [{ left: 'Market Capitalization', sign: '>=', right: '0' }],
+        index: [],
+        industry: [],
+        sector: [],
+        tags: [],
+        scanName: 'Mcap+PE lookup',
+        scanDescription: '',
+        watchlistIds: [watchlistId],
+      },
+      watchlistIds: [watchlistId],
+      order: 'desc',
+      orderBy: 'Market Capitalization',
+      offset: 0,
+    };
     const data = await client.runScan(payload);
     const table = data.table;
     if (!Array.isArray(table) || table.length < 2) return result;
@@ -690,7 +722,9 @@ async function fetchMarketCapAndPE(companyIds, client = stockscans) {
       };
     }
   } catch (e) {
-    process.stderr.write(`[WARN] fetchMarketCapAndPE failed: ${e.message}\n`);
+    process.stderr.write(`[WARN] fetchMarketCapAndPE runScan failed: ${e.message}\n`);
+  } finally {
+    await client.deleteWatchlist(watchlistId).catch(() => {});
   }
   return result;
 }

@@ -404,8 +404,24 @@ unchanged — the two fields answer different questions (see
 other. `add-note` throws if `sourceSkill` is missing, so this is not optional.
 
 Routine items that survived the noise filter but are genuinely uninteresting
-on read: just `runwi mark-processed "<companyId>" "<announcementId>"` and move
-on. No insight, no heavy-skip log. Count these — they are the `routine` stat.
+on read: `runwi mark-processed "<companyId>" "<announcementId>"` and move on —
+no insight, no heavy-skip log. Count these — they are the `routine` stat.
+
+**Also append the item to this run's `routine-items.json`** —
+`{companyId, name, title, category, date, announcementId, reason}`, where
+`reason` is a one-clause restatement of the judgment you just made (e.g. "AGM
+voting outcome, no new information", "routine CP redemption, treasury
+mechanics only"). This is not a second read or a new judgment call — you
+already decided the item was routine to reach this branch; the array just
+keeps that reasoning instead of discarding it, so Step 7 can show the reader
+every announcement that survived the noise filter, not only the ones that
+became a Thesis Card (Darshan's ask, 2026-09-24). Duplicate-collapsed
+followers (`isDuplicateLead: false`) do NOT get their own `routine-items.json`
+entry — they're the same event as their lead, already represented there,
+whether the lead became a card or stayed routine. Heavy-doc-skipped and
+`alreadyProcessed` items also stay out of this list — they were never
+actually read this run, and the whole point of the list is "read, no
+material signal," not "not filtered as noise."
 
 ### Standing judgment rules that override "looks routine"
 
@@ -530,12 +546,37 @@ run send-digest <insights-array.json> \
   --slot post-close \
   --cutoff-human "<windowStartIstHuman from Step 1>" \
   --stats-file <stats.json> \
+  --routine-items <routine-items.json>   # omit if this run had zero routine items
   --knowledge-gaps <gaps.json>      # omit if no gaps were hit
 ```
 
 Build `<insights-array.json>` from every `add-note` payload's `note` object
 across this run (one entry per processed, non-heavy, non-routine announcement,
-plus `infoClassification` on the Step 5 top-5).
+plus `infoClassification` on the Step 5 top-5). Build `<routine-items.json>`
+from the array Step 3 asked you to accumulate — every announcement this run
+read and judged routine.
+
+**Routine items are rendered but NOT merged into the scored Thesis Cards, and
+NOT persisted to the notes DB.** `send-digest` prints them as a separate,
+plainly-styled "Also reviewed — no material signal" list under the Thesis
+Card sections (see `buildRoutineListHtml` in `lib/thesisCardEmail.js`) —
+company, title, category, one-line reason, no score chip or tier color,
+because a routine item has no real analysis behind it and shouldn't look
+like it does. This is a deliberate, narrower guarantee than what the Thesis
+Cards above it get: **the routine list reflects only THIS run's own window**,
+not everything routed as routine since the digest's cutoff. Real insights
+merge across slots via `collectCachedNotesSinceCutoff`'s notes-DB lookup;
+routine items don't, because nothing about them is written to the notes DB
+(render-only, by design — persisting one record per routine item indefinitely
+was judged not worth the storage growth against how disposable that
+information is). Concretely: if `mid-session` reads an announcement and
+judges it routine, and `late-session` runs three hours later, `late-session`'s
+digest will NOT re-list that announcement in its "Also reviewed" section —
+only `mid-session`'s own digest ever showed it. If this inconsistency starts
+mattering in practice (a reader wants the full day's routine list, not just
+the latest slot's), the fix is switching `routine-items.json` to a
+lightweight persisted record and merging it the same way notes are — a small
+follow-up, not a redesign, should that be asked for later.
 
 **`send-digest` also merges cached notes since the resolved cutoff** — every
 `announcement-insights:*` note across ALL companies whose `createdAt` is at or

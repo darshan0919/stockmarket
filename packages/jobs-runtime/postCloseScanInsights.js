@@ -1117,6 +1117,25 @@ async function cmdSendDigest(argv) {
   // knowledge base for (see the skill's "Knowledge-base gaps" step).
   const gapsFile = argValue('--knowledge-gaps', argv);
   const knowledgeGaps = gapsFile ? JSON.parse(fs.readFileSync(gapsFile, 'utf8')) : null;
+  // --routine-items <file>: optional JSON array of
+  // {companyId, name, title, category, date, announcementId, reason} — every
+  // announcement THIS run read and judged routine (survived the Step 2
+  // noise-keyword filter, but earned no add-note). Darshan's ask
+  // (2026-09-24): the digest should show every announcement that wasn't
+  // filtered as noise, not just the ones that became a Thesis Card. Rendered
+  // as a separate compact list (see buildRoutineListHtml), never merged into
+  // the scored/tiered `insights` array — a routine item has no thesis/EPS
+  // analysis behind it, and scoring it would misrepresent that.
+  //
+  // Deliberately NOT merged with collectCachedNotesSinceCutoff's cross-slot
+  // lookup the way `insights` is above — routine items are never persisted
+  // to the notes DB (render-only, by design), so this section only ever
+  // reflects what THIS run itself routed as routine, not everything routed
+  // as routine since the digest's cutoff. See the skill's Step 7 note.
+  const routineItemsFile = argValue('--routine-items', argv);
+  const routineItems = routineItemsFile
+    ? JSON.parse(fs.readFileSync(routineItemsFile, 'utf8'))
+    : null;
   const html = buildDigestHtml(insights, {
     cutoffIstHuman,
     runIstHuman,
@@ -1124,6 +1143,7 @@ async function cmdSendDigest(argv) {
     slotLabel,
     title: `Announcement Signals — ${slotLabel}`,
     knowledgeGaps,
+    routineItems,
   });
   // Compute subject-line/reported counts from the SAME grouped-by-company
   // view buildDigestHtml actually renders (not the pre-grouping filing-level
@@ -1189,6 +1209,7 @@ async function cmdSendDigest(argv) {
         slot,
         count: groupedForCount.length,
         filingCount: insights.length,
+        routineCount: Array.isArray(routineItems) ? routineItems.length : 0,
         announcementSignalsWatchlist: watchlistSync
           ? {
               added: watchlistSync.added,
@@ -1196,6 +1217,15 @@ async function cmdSendDigest(argv) {
               activeAfter: watchlistSync.activeAfter,
             }
           : null,
+        // Observability for the Mcap/P-E enrichment above — how many companies
+        // needed the batch lookup vs. how many the lookup actually resolved.
+        // Added 2026-09-23 alongside the fetchMarketCapAndPE bug fix (the
+        // first version silently resolved to all-nulls with no error), so a
+        // future regression of the same kind shows up as a number in the run
+        // report rather than requiring another live reproduction.
+        tickersNeedingRatios: companyIdsNeedingRatios.length,
+        tickersWithMcap: Object.values(ratiosByCompany).filter((r) => r.marketCapCr != null).length,
+        tickersWithPE: Object.values(ratiosByCompany).filter((r) => r.peRatio != null).length,
         tierCounts: groupedForCount.reduce((acc, i) => {
           const t = signalTierFor(i);
           acc[t.code] = (acc[t.code] || 0) + 1;
@@ -1303,6 +1333,16 @@ async function cmdResendWithMarketData(argv) {
         market_cap_cr: toFloat(
           pick(raw, 'Market Capitalization', 'market_cap', 'marketCap', 'mcap')
         ),
+        // Price To Earnings — same column this scan's `ratiosType: 'Default'`
+        // table already carries (docs/stockscans-api-schemas.md), added
+        // alongside Mcap for the day-recap resend the same day
+        // fetchMarketCapAndPE's own bug fix restored it for the slot digests
+        // (2026-09-23) — both paths now show the same two figures, never one
+        // without the other. null (never 0) for a loss-making/unavailable P/E.
+        pe_ratio: (() => {
+          const v = pick(raw, 'Price To Earnings');
+          return v === null || v === undefined || v === '' || v === '-' ? null : toFloat(v, null);
+        })(),
       };
     }
   } finally {
@@ -1397,6 +1437,7 @@ async function cmdResendWithMarketData(argv) {
         deliveryValueCr: d.available ? d.deliv_value_cr : null,
         volRatio7d: volRatioByTicker[cid] != null ? volRatioByTicker[cid] : null,
         marketCapCr: m.market_cap_cr != null ? m.market_cap_cr : null,
+        peRatio: m.pe_ratio != null ? m.pe_ratio : null,
         // Computed here rather than in the renderer so the value is on the
         // note payload and can be sorted/audited, and so a missing input
         // yields null (not 0) — a company we could not measure must never
@@ -1468,6 +1509,7 @@ async function cmdResendWithMarketData(argv) {
         tickersWithVolRatio: Object.values(volRatioByTicker).filter((v) => v != null).length,
         tickersWithMcap: Object.values(marketByTicker).filter((m) => m.market_cap_cr != null)
           .length,
+        tickersWithPE: Object.values(marketByTicker).filter((m) => m.pe_ratio != null).length,
       },
       null,
       2

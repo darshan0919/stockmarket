@@ -221,10 +221,33 @@ function compute(lineData, context = {}) {
     });
   }
   if (byKey.changeInInventories && byKey.costOfMaterials) {
-    combinations.push({
-      flag: 'INVENTORY_GAIN_DRIVEN',
-      note: 'RM-cost improvement coincides with an inventory build — classic inventory-gain margin, tag TEMPORARY.',
-    });
+    // Direction-aware (fixed 2026-09-23): the old version fired this combination
+    // whenever BOTH lines cleared materiality, regardless of which way either one
+    // moved -- so a quarter where RM cost/sales WORSENED sharply while inventory
+    // also built up (a real case: NSE:SUPRIYA Q1 FY27) got the canned note "RM-cost
+    // improvement coincides with an inventory build", which is backwards -- RM cost
+    // did not improve, it deteriorated, and the inventory build only partly masked
+    // that deterioration. Three distinct, correctly-labelled cases now:
+    const rmWorsened =
+      (byKey.costOfMaterials.pctOfSalesQoQDeltaBps ?? 0) > 0 ||
+      (byKey.costOfMaterials.yoyPct ?? 0) > 0;
+    const inventoryBuild = (byKey.changeInInventories.value ?? 0) < 0;
+    if (rmWorsened && inventoryBuild) {
+      combinations.push({
+        flag: 'RM_COST_PRESSURE_MASKED_BY_INVENTORY_BUILD',
+        note: 'RM-cost/sales ratio worsened even with an inventory build (a profit-inflating tailwind) partly absorbing it — the underlying RM-cost pressure is worse than the reported margin already shows.',
+      });
+    } else if (!rmWorsened && inventoryBuild) {
+      combinations.push({
+        flag: 'INVENTORY_GAIN_DRIVEN',
+        note: 'RM-cost improvement coincides with an inventory build — classic inventory-gain margin, tag TEMPORARY.',
+      });
+    } else if (rmWorsened && !inventoryBuild) {
+      combinations.push({
+        flag: 'RM_COST_PRESSURE_COMPOUNDED_BY_DESTOCKING',
+        note: 'RM-cost/sales ratio worsened while inventory drew down (itself a cost headwind) — the two effects compound rather than offset.',
+      });
+    }
   }
   if (byKey.depreciation && byKey.interest) {
     combinations.push({

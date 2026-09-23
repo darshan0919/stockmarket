@@ -988,9 +988,56 @@ function groupInsightsByCompany(insights) {
   return grouped;
 }
 
+/**
+ * Compact, visually-separate list of announcements that WERE read this run
+ * but carried no material signal ("routine") — Darshan's ask (2026-09-24) so
+ * the digest shows every announcement that survived the noise-keyword filter,
+ * not just the ones that earned a full Thesis Card. Deliberately NOT styled
+ * as a card (no score chip, no tier color, no thesis chain) — a routine item
+ * has no real analysis behind it by definition, and giving it card treatment
+ * would make it look like it does. Plain grouped rows instead: company,
+ * title, category, and the one-clause reason already reached while routing
+ * it (see the SKILL's Step 3) — this reuses a judgment call already made
+ * when marking the item routine, not a new one, so there's no added PDF
+ * read or model call behind this list.
+ *
+ * `routineItems`: array of {companyId, name, title, category, date, reason}.
+ * Render-only, by design — these are NOT persisted to the notes DB (see the
+ * SKILL's Step 7 caveat), so unlike the Thesis Cards above, this section
+ * only ever reflects what THIS run itself routed as routine, not everything
+ * routed as routine since the digest's cutoff.
+ */
+function buildRoutineListHtml(routineItems) {
+  if (!Array.isArray(routineItems) || !routineItems.length) return '';
+  const rows = routineItems
+    .map((it) => {
+      const displayName =
+        it.name && it.name !== it.companyId ? `${it.name} (${it.companyId})` : it.companyId;
+      return `
+        <tr>
+          <td style="padding:7px 10px;border-bottom:1px solid #f2f4f7;font-size:12px;white-space:nowrap;">${stockscansLink(displayName, it.companyId, 'NSE', '#344054')}</td>
+          <td style="padding:7px 10px;border-bottom:1px solid #f2f4f7;font-size:12px;color:#475467;">${esc(it.title || '')}</td>
+          <td style="padding:7px 10px;border-bottom:1px solid #f2f4f7;font-size:11px;color:#98a2b3;font-family:monospace;white-space:nowrap;">${esc(toTitleCase(it.category || ''))}</td>
+          <td style="padding:7px 10px;border-bottom:1px solid #f2f4f7;font-size:12px;color:#667085;">${esc(it.reason || '')}</td>
+        </tr>`;
+    })
+    .join('');
+  return `
+    <div style="margin-top:8px;margin-bottom:20px;">
+      <div style="border-bottom:1px solid #eaecf0;padding-bottom:6px;margin-bottom:10px;">
+        <span style="font-size:13px;font-weight:700;color:#667085;text-transform:uppercase;">Also reviewed — no material signal</span>
+        <span style="font-size:11px;font-weight:600;color:#667085;background:#f9fafb;border:1px solid #eaecf0;border-radius:999px;padding:2px 9px;margin-left:8px;">${routineItems.length}</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #eaecf0;border-radius:8px;overflow:hidden;">
+        <tbody>${rows}</tbody>
+      </table>
+      <p style="color:#98a2b3;font-size:11px;margin:6px 2px 0;">Read this run, judged routine — reflects only this run's own window, not the full day (see skill Step 7).</p>
+    </div>`;
+}
+
 function buildDigestHtml(
   rawInsights,
-  { cutoffIstHuman, runIstHuman, stats, slotLabel, title, knowledgeGaps } = {}
+  { cutoffIstHuman, runIstHuman, stats, slotLabel, title, knowledgeGaps, routineItems } = {}
 ) {
   // Dedupe first (defends against any duplicate note already in the DB —
   // see dedupeInsights above), THEN club by company — clubbing on
@@ -1138,6 +1185,7 @@ function buildDigestHtml(
     <h2 style="margin:0 0 4px;">${esc(title || 'Announcement Signals')}</h2>
     <p style="color:#667085;font-size:13px;margin:0 0 20px;">${slotLabel ? `<b>${esc(slotLabel)}</b> &nbsp;&middot;&nbsp; ` : ''}Window: ${esc(cutoffIstHuman)} &rarr; ${esc(runIstHuman)} &nbsp;&middot;&nbsp; ${insights.length} compan${insights.length === 1 ? 'y' : 'ies'} (${rawInsights.length} filing${rawInsights.length === 1 ? '' : 's'})</p>
     ${sections || '<p style="color:#667085;">No non-routine announcements in this window.</p>'}
+    ${buildRoutineListHtml(routineItems)}
     ${buildStatsFooterHtml(stats, tierCounts, knowledgeGaps)}
   </body></html>`;
 }
@@ -1735,6 +1783,7 @@ module.exports = {
   groupInsightsByCompany,
   // Announcement-digest mode (post-close-scan-insights).
   buildDigestHtml,
+  buildRoutineListHtml,
   SIG_META,
   SIG_TONE,
   STATS_TILES,

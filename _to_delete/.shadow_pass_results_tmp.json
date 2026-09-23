@@ -1,0 +1,3045 @@
+{
+  "scanUrl": "https://www.stockscans.in/scans/saved/01162dec77b03a83d32fbd8c",
+  "scanName": "Sustained PEAD",
+  "generatedAt": "2026-09-23T14:21:59.397Z",
+  "total": 80,
+  "completed": 80,
+  "results": [
+    {
+      "companyId": "NSE:PAYTM",
+      "fetched": [
+        "Result",
+        "PPT"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:LAURUSLABS",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 67,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:MEESHO",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:MCX",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:APARINDS",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "PPT",
+        "reason": null,
+        "unmatchedCount": 26,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:WELCORP",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 48,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "Result",
+        "unmatchedCount": 74,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:INDOMIM",
+      "fetched": [
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": true,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 71,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:APLAPOLLO",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:STLTECH",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "Result",
+        "unmatchedCount": 62,
+        "asOfDate": "2026-06-30"
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:SYRMA",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:ACMESOLAR",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "PPT",
+        "reason": null,
+        "unmatchedCount": 9,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:REDINGTON",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 11,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "Result",
+        "unmatchedCount": 67,
+        "asOfDate": "2026-06-30"
+      },
+      "cashflow": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 48,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:URBANCO",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 53,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:HATSUN",
+      "fetched": [
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": true,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 60,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:JYOTICNC",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 50,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 11,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 9,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:MILKYMIST",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 54,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 49,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:TDPOWERSYS",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "PPT",
+        "reason": null,
+        "unmatchedCount": 15,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 52,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:FINCABLES",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 14,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:MTARTECH",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 54,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 38,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 17,
+        "asOfDate": "2026-06-30"
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:PINELABS",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "PPT",
+        "reason": null,
+        "unmatchedCount": 62,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:WELSPUNLIV",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 22,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:SHILPAMED",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 43,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:HAPPYFORGE",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 53,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 57,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:RATNAMANI",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "PPT",
+        "reason": null,
+        "unmatchedCount": 2,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 30,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:SIGMAADV",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "PPT",
+        "reason": null,
+        "unmatchedCount": 9,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:ENGINERSIN",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:ALIVUS",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 48,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:AVALON",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 53,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 22,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 32,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:TEGA",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:ACE",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 40,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 27,
+        "asOfDate": "2026-06-30"
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:TI",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "PPT",
+        "reason": null,
+        "unmatchedCount": 61,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:PCJEWELLER",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 39,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:SUDEEPPHRM",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "PPT",
+        "reason": null,
+        "unmatchedCount": 43,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 13,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:E2E",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 63,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 9,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:RKFORGE",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 65,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 14,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 67,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:KTKBANK",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:BLUESTONE",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 65,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:MANYAVAR",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "PPT",
+        "reason": null,
+        "unmatchedCount": 30,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:PVRINOX",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:QPOWER",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 56,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:CYIENT",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 136,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "BSE:ELANTAS",
+      "fetched": [
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": true,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 30,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "Result",
+        "unmatchedCount": 38,
+        "asOfDate": "2026-06-30"
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:YATHARTH",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "PPT",
+        "reason": null,
+        "unmatchedCount": 72,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:WELENT",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 10,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "BSE:ASMTEC",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "PPT",
+        "reason": null,
+        "unmatchedCount": 49,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 10,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 9,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:SMLMAH",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:MAXESTATES",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 34,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:WESTLIFE",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:UNIMECH",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 38,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:AARTIPHARM",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 27,
+        "asOfDate": "2026-06-30"
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:PAISALO",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:AXISCADES",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 34,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:CORDELIA",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:SETL",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 71,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:EBGNG",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 44,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:SUPRIYA",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:ENTERO",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 11,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 10,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:RPEL",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 23,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:CYIENTDLM",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:MANINDS",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 25,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 11,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:RAYMOND",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:OPTIEMUS",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:BLISSGVS",
+      "fetched": [
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": true,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:SAPPHIRE",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:INNOVACAP",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 30,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "BSE:TANFACIND",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "PPT",
+        "reason": null,
+        "unmatchedCount": 19,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 16,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "BSE:TIMEX",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 54,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:MBAPL",
+      "fetched": [
+        "Result",
+        "PPT"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:CENTUM",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 44,
+        "asOfDate": "2026-06-30"
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:AEROFLEX",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:RBA",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:MOREPENLAB",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:SBCL",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 58,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 85,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:FCL",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 21,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:TFCILTD",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 27,
+        "asOfDate": "2026-06-30"
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:GMMPFAUDLR",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 19,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:IOLCP",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "Result",
+        "reason": null,
+        "unmatchedCount": 18,
+        "hasYtd": true
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 11,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 14,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:JUSTDIAL",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:KRISHANA",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": false,
+        "source": null,
+        "reason": "no reliable P&L table located in either source -- either no heading/structural anchor matched, too few rows parsed, revenue/pbt missing, or the parsed totals failed the internal-consistency check (see checkInternalConsistency)",
+        "unmatchedCount": null,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    },
+    {
+      "companyId": "NSE:SSWL",
+      "fetched": [
+        "PPT",
+        "Result"
+      ],
+      "fetchSkipped": [],
+      "resultTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "pptTextMeta": {
+        "skipped": false,
+        "isScannedDocument": false,
+        "ocrFailed": false
+      },
+      "incomeStatement": {
+        "found": true,
+        "source": "PPT",
+        "reason": null,
+        "unmatchedCount": 29,
+        "hasYtd": false
+      },
+      "balanceSheet": {
+        "found": true,
+        "source": "PPT",
+        "unmatchedCount": 80,
+        "asOfDate": null
+      },
+      "cashflow": {
+        "found": false,
+        "source": null,
+        "unmatchedCount": null,
+        "asOfDate": null
+      },
+      "stage": "done"
+    }
+  ]
+}
