@@ -37,6 +37,11 @@ Instructions for Claude Code and Claude Cowork sessions working in this repo.
   the same thing twice).
 - **Safety Rails**: Never commit or push anything directly. Leave all changes
   unstaged in the working tree for the user to review and commit.
+- **Development skill packs**: `skills/development/` holds external
+  planning/productivity/code-review skills (aihero.dev + cursor/plugins
+  pstack, see `AGENTS.md` §13). Check `skills/development/README.md` before
+  planning, spec'ing, reviewing a diff, or debugging in this repo — these
+  are separate from, and don't replace, the equity-research skills.
 - Repo-wide mandatory rules (formatting, testing, docs, data layer, commit
   style) are in [`AGENTS.md`](AGENTS.md), imported above — follow those for
   every change regardless of which Claude surface (CLI, Cowork, web) you're

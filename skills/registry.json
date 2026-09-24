@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "description": "Stockmarket monorepo — Claude skills registry",
+  "description": "Stockmarket monorepo \u2014 Claude skills registry",
   "base_url": "https://raw.githubusercontent.com/darshan0919/stockmarket/main",
   "_note": "Source of truth for generating registry.json and invoker tables.",
   "shared": [
@@ -1437,6 +1437,849 @@
         "baseline cards",
         "company baseline"
       ]
+    },
+    "code-review": {
+      "skill_md": "skills/development/code-review/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "code review",
+        "review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: standards (does the code follow this repo's..."
+      ],
+      "source": "external",
+      "description": "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\"."
+    },
+    "codebase-design": {
+      "skill_md": "skills/development/codebase-design/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [
+        "skills/development/codebase-design/DEEPENING.md",
+        "skills/development/codebase-design/DESIGN-IT-TWICE.md"
+      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["codebase design", "shared vocabulary for designing deep modules"],
+      "source": "external",
+      "description": "Shared vocabulary for designing deep modules. Use when the user wants to design or improve a module's interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary."
+    },
+    "diagnosing-bugs": {
+      "skill_md": "skills/development/diagnosing-bugs/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": ["skills/development/diagnosing-bugs/scripts/hitl-loop.template.sh"],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["diagnosing bugs", "diagnosis loop for hard bugs and performance regressions"],
+      "source": "external",
+      "description": "Diagnosis loop for hard bugs and performance regressions. Use when the user says \"diagnose\"/\"debug this\", or reports something broken/throwing/failing/slow."
+    },
+    "domain-modeling": {
+      "skill_md": "skills/development/domain-modeling/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [
+        "skills/development/domain-modeling/ADR-FORMAT.md",
+        "skills/development/domain-modeling/CONTEXT-FORMAT.md"
+      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["domain modeling", "build and sharpen a project's domain model"],
+      "source": "external",
+      "description": "Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a CONTEXT.md, or recording or editing an ADR."
+    },
+    "grill-with-docs": {
+      "skill_md": "skills/development/grill-with-docs/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "grill with docs",
+        "a relentless interview to sharpen a plan or design, which also creates docs (adr's and glossary) as we go."
+      ],
+      "source": "external",
+      "description": "A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go."
+    },
+    "implement": {
+      "skill_md": "skills/development/implement/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["implement", "implement a piece of work based on a spec or set of tickets."],
+      "source": "external",
+      "description": "Implement a piece of work based on a spec or set of tickets."
+    },
+    "improve-codebase-architecture": {
+      "skill_md": "skills/development/improve-codebase-architecture/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": ["skills/development/improve-codebase-architecture/HTML-REPORT.md"],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "improve codebase architecture",
+        "scan a codebase for deepening opportunities, present them as a visual html report, then grill through whichever one you pick."
+      ],
+      "source": "external",
+      "description": "Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick."
+    },
+    "prototype": {
+      "skill_md": "skills/development/prototype/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": ["skills/development/prototype/LOGIC.md", "skills/development/prototype/UI.md"],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["prototype", "build a throwaway prototype to answer a design question"],
+      "source": "external",
+      "description": "Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, or explore what a UI should look like."
+    },
+    "research": {
+      "skill_md": "skills/development/research/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "research",
+        "investigate a question against high-trust primary sources and capture the findings as a markdown file in the repo"
+      ],
+      "source": "external",
+      "description": "Investigate a question against high-trust primary sources and capture the findings as a Markdown file in the repo. Use when the user wants a topic researched, docs or API facts gathered, or reading legwork delegated to a background agent."
+    },
+    "resolving-merge-conflicts": {
+      "skill_md": "skills/development/resolving-merge-conflicts/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "resolving merge conflicts",
+        "use when you need to resolve an in-progress git merge/rebase conflict."
+      ],
+      "source": "external",
+      "description": "Use when you need to resolve an in-progress git merge/rebase conflict."
+    },
+    "tdd": {
+      "skill_md": "skills/development/tdd/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": ["skills/development/tdd/mocking.md", "skills/development/tdd/tests.md"],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["tdd", "test-driven development"],
+      "source": "external",
+      "description": "Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions \"red-green-refactor\", or wants integration tests."
+    },
+    "to-spec": {
+      "skill_md": "skills/development/to-spec/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "to spec",
+        "turn the current conversation into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already..."
+      ],
+      "source": "external",
+      "description": "Turn the current conversation into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already discussed."
+    },
+    "to-tickets": {
+      "skill_md": "skills/development/to-tickets/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "to tickets",
+        "break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the..."
+      ],
+      "source": "external",
+      "description": "Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker (edges as text in one file per ticket locally, or native blocking links on a real tracker)."
+    },
+    "triage": {
+      "skill_md": "skills/development/triage/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [
+        "skills/development/triage/AGENT-BRIEF.md",
+        "skills/development/triage/OUT-OF-SCOPE.md"
+      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "triage",
+        "move issues and external prs through a state machine of triage roles, categorise, verify, grill if needed, and write agent-ready briefs."
+      ],
+      "source": "external",
+      "description": "Move issues and external PRs through a state machine of triage roles, categorise, verify, grill if needed, and write agent-ready briefs."
+    },
+    "wayfinder": {
+      "skill_md": "skills/development/wayfinder/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "wayfinder",
+        "plan a huge chunk of work (more than one agent session can hold) as a shared map of decision tickets on your issue tracker, and resolve..."
+      ],
+      "source": "external",
+      "description": "Plan a huge chunk of work (more than one agent session can hold) as a shared map of decision tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear."
+    },
+    "wizard": {
+      "skill_md": "skills/development/wizard/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": ["skills/development/wizard/template.sh"],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "wizard",
+        "generate an interactive bash wizard that walks a human through steps only they can perform"
+      ],
+      "source": "external",
+      "description": "Generate an interactive bash wizard that walks a human through steps only they can perform. Use when provisioning infrastructure, setting up credentials or CI secrets, walking an unfamiliar third-party dashboard, or running a one-off migration or cutover. Don't invoke this for steps the agent can perform itself."
+    },
+    "grill-me": {
+      "skill_md": "skills/development/grill-me/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["grill me", "a relentless interview to sharpen a plan or design."],
+      "source": "external",
+      "description": "A relentless interview to sharpen a plan or design."
+    },
+    "grilling": {
+      "skill_md": "skills/development/grilling/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["grilling", "grill the user relentlessly about a plan, decision, or idea"],
+      "source": "external",
+      "description": "Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking, or uses any 'grill' trigger phrases."
+    },
+    "handoff": {
+      "skill_md": "skills/development/handoff/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "handoff",
+        "compact the current conversation into a handoff document for another agent to pick up."
+      ],
+      "source": "external",
+      "description": "Compact the current conversation into a handoff document for another agent to pick up."
+    },
+    "teach": {
+      "skill_md": "skills/development/teach/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [
+        "skills/development/teach/GLOSSARY-FORMAT.md",
+        "skills/development/teach/LEARNING-RECORD-FORMAT.md",
+        "skills/development/teach/MISSION-FORMAT.md",
+        "skills/development/teach/RESOURCES-FORMAT.md"
+      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["teach", "teach the user a new skill or concept, within this workspace."],
+      "source": "external",
+      "description": "Teach the user a new skill or concept, within this workspace."
+    },
+    "to-questionnaire": {
+      "skill_md": "skills/development/to-questionnaire/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "to questionnaire",
+        "turn a decision you can't fully answer into a questionnaire for someone else to fill in."
+      ],
+      "source": "external",
+      "description": "Turn a decision you can't fully answer into a questionnaire for someone else to fill in."
+    },
+    "wait-what": {
+      "skill_md": "skills/development/wait-what/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["wait what", "stop"],
+      "source": "external",
+      "description": "Stop. That last message did not land: re-pitch it."
+    },
+    "writing-for-agents": {
+      "skill_md": "skills/development/writing-for-agents/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": ["skills/development/writing-for-agents/SKILL-MECHANICS.md"],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["writing for agents", "writing documents for agents"],
+      "source": "external",
+      "description": "Writing documents for agents. Use when creating or editing skills, or modifying AGENTS.md or CLAUDE.md."
+    },
+    "git-guardrails-claude-code": {
+      "skill_md": "skills/development/git-guardrails-claude-code/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [
+        "skills/development/git-guardrails-claude-code/scripts/block-dangerous-git.sh"
+      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "git guardrails claude code",
+        "set up claude code hooks to block dangerous git commands (push, reset --hard, clean, branch -d, etc.) before they execute"
+      ],
+      "source": "external",
+      "description": "Set up Claude Code hooks to block dangerous git commands (push, reset --hard, clean, branch -D, etc.) before they execute. Use when user wants to prevent destructive git operations, add git safety hooks, or block git push/reset in Claude Code."
+    },
+    "ps-architect": {
+      "skill_md": "skills/development/ps-architect/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [
+        "skills/development/ps-architect/references/design-red-flags.md",
+        "skills/development/ps-architect/references/rationale-template.md",
+        "skills/development/ps-architect/references/runner-prompt.md"
+      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "architect",
+        "sketch types, signatures, and module structure before code, then stay in the loop while implementation fills in"
+      ],
+      "source": "external",
+      "description": "Sketch types, signatures, and module structure before code, then stay in the loop while implementation fills in. Use for /architect, 'architect this', 'design this', or non-trivial work where jumping to code would lock in the wrong shape."
+    },
+    "ps-automate-me": {
+      "skill_md": "skills/development/ps-automate-me/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "automate me",
+        "use for \"automate me\", \"create/update/refresh my -mode skill\", \"turn/capture my preferences or working style into a skill\", or wanting..."
+      ],
+      "source": "external",
+      "description": "Use for \"automate me\", \"create/update/refresh my -mode skill\", \"turn/capture my preferences or working style into a skill\", or wanting agents to follow how the user works. Drafts or revises a personal -mode skill via create-skill + unslop, optionally pulling fresh evidence from recent transcripts."
+    },
+    "ps-blast-radius": {
+      "skill_md": "skills/development/ps-blast-radius/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "blast radius",
+        "find what a change could break somewhere else before it ships, beyond the diff, and prove the one fact it's safe because of by running real..."
+      ],
+      "source": "external",
+      "description": "Find what a change could break somewhere else before it ships, beyond the diff, and prove the one fact it's safe because of by running real code instead of writing it up. Use for 'blast radius of X', 'what could this break', or reviewing a small diff you don't trust."
+    },
+    "ps-create-verification-skill": {
+      "skill_md": "skills/development/ps-create-verification-skill/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [
+        "skills/development/ps-create-verification-skill/references/feature-map-example/README.md",
+        "skills/development/ps-create-verification-skill/references/feature-map-example/create-note.md",
+        "skills/development/ps-create-verification-skill/references/feature-map-example/search.md"
+      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "create verification skill",
+        "generate a project-local verification skill that drives your app the way a user does \u2014 any language, framework, or platform"
+      ],
+      "source": "external",
+      "description": "Generate a project-local verification skill that drives your app the way a user does \u2014 any language, framework, or platform. Use for /create-verification-skill, \"make a control skill for this repo\", or when a project has no scripted way to prove UI/CLI/service behavior."
+    },
+    "ps-figure-it-out": {
+      "skill_md": "skills/development/ps-figure-it-out/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "figure it out",
+        "design an auditable playbook when no narrower one fits: a large migration, an ambitious multi-part change, or work a human reviews after..."
+      ],
+      "source": "external",
+      "description": "Design an auditable playbook when no narrower one fits: a large migration, an ambitious multi-part change, or work a human reviews after stepping away. Scales rigor to the task, runs a hypothesis loop, and logs decisions via show-me-your-work. Use for /figure-it-out, 'figure it out', a large migration, or when no narrower playbook applies."
+    },
+    "ps-how": {
+      "skill_md": "skills/development/ps-how/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [
+        "skills/development/ps-how/references/explainer-prompt.md",
+        "skills/development/ps-how/references/explorer-prompt.md"
+      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "how",
+        "use for \"how does x work\", code walkthroughs before changing something, and placement / ownership / layering questions (\"where should this..."
+      ],
+      "source": "external",
+      "description": "Use for \"how does X work\", code walkthroughs before changing something, and placement / ownership / layering questions (\"where should this live\", \"which package owns this\", \"is this the right layer\"). Explains subsystem architecture, runtime flow, onboarding mental models. Use why for motivation."
+    },
+    "ps-interrogate": {
+      "skill_md": "skills/development/ps-interrogate/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [
+        "skills/development/ps-interrogate/references/code-quality-review.md",
+        "skills/development/ps-interrogate/references/lead-judgment.md",
+        "skills/development/ps-interrogate/references/reviewer-prompt.md",
+        "skills/development/ps-interrogate/references/rubric.md"
+      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "interrogate",
+        "use for \"interrogate\", \"adversarial review\", \"multi-model review\", \"challenge this\", \"stress test this code\", \"find blind spots\", or \"tear..."
+      ],
+      "source": "external",
+      "description": "Use for \"interrogate\", \"adversarial review\", \"multi-model review\", \"challenge this\", \"stress test this code\", \"find blind spots\", or \"tear this apart\". Multiple LLM reviewers challenge changes from independent angles."
+    },
+    "ps-maintain-verification-skill": {
+      "skill_md": "skills/development/ps-maintain-verification-skill/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "maintain verification skill",
+        "periodic pass that keeps a project's verification skill and feature map honest: parallel source readers per feature, one live session..."
+      ],
+      "source": "external",
+      "description": "Periodic pass that keeps a project's verification skill and feature map honest: parallel source readers per feature, one live session driving every feature, at most one PR of proven corrections. Use for /maintain-verification-skill or \"audit the verify skill\"."
+    },
+    "ps-no-comments": {
+      "skill_md": "skills/development/ps-no-comments/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "no comments",
+        "spawn comment sicko, fix accepted findings, and offer encodings for claimed constraints."
+      ],
+      "source": "external",
+      "description": "Spawn Comment Sicko, fix accepted findings, and offer encodings for claimed constraints."
+    },
+    "ps-recall": {
+      "skill_md": "skills/development/ps-recall/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "recall",
+        "reconstruct your recent working context from your own chat history, live state, and the shared record (user reports, prior fixes,..."
+      ],
+      "source": "external",
+      "description": "Reconstruct your recent working context from your own chat history, live state, and the shared record (user reports, prior fixes, incidents), then hand back a tight current-state brief. Use for 'recall my work on X', 'catch me up', 'what have I been working on', 'where did I leave off', before starting or resuming work."
+    },
+    "ps-reflect": {
+      "skill_md": "skills/development/ps-reflect/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [
+        "skills/development/ps-reflect/references/divergent-reviewer.md",
+        "skills/development/ps-reflect/references/judgment-reviewer.md",
+        "skills/development/ps-reflect/references/synthesizer.md",
+        "skills/development/ps-reflect/references/tooling-reviewer.md"
+      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "reflect",
+        "spawn three parallel review subagents over the active transcript, surface learnings, and route each to a concrete edit on an existing skill"
+      ],
+      "source": "external",
+      "description": "Spawn three parallel review subagents over the active transcript, surface learnings, and route each to a concrete edit on an existing skill. Use when the user says reflect."
+    },
+    "ps-show-me-your-work": {
+      "skill_md": "skills/development/ps-show-me-your-work/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [
+        "skills/development/ps-show-me-your-work/references/decision-log-template.tsv",
+        "skills/development/ps-show-me-your-work/scripts/log.sh"
+      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "show me your work",
+        "keep a reviewable decision trail for long-running or unattended work: a tsv log with one row per decision (what, why, evidence, result)"
+      ],
+      "source": "external",
+      "description": "Keep a reviewable decision trail for long-running or unattended work: a TSV log with one row per decision (what, why, evidence, result). Local by default; commit it when a reviewer needs the trail to trust the result. Use for /show-me-your-work, autonomous or multi-phase runs, or work a human reviews after stepping away."
+    },
+    "ps-tdd": {
+      "skill_md": "skills/development/ps-tdd/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "tdd",
+        "use only when the user explicitly asks for tdd, a failing test, or a regression test, or when the bug has an obvious cheap local test target"
+      ],
+      "source": "external",
+      "description": "Use only when the user explicitly asks for TDD, a failing test, or a regression test, OR when the bug has an obvious cheap local test target. Skip when the test path is unclear, expensive, integration-heavy, or not requested."
+    },
+    "ps-teach": {
+      "skill_md": "skills/development/ps-teach/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["teach", "explain a body of work plainly so a person actually understands it"],
+      "source": "external",
+      "description": "Explain a body of work plainly so a person actually understands it. Runs the `how` and `why` skills and weaves what they find into one clear explanation. Use for 'teach me this', 'help me really understand X', 'explain this change or subsystem to me'."
+    },
+    "ps-technical-writing": {
+      "skill_md": "skills/development/ps-technical-writing/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "technical writing",
+        "layered technical-writing standard: di\u00e1taxis structure, google developer style sentences, ste instruction rules, global english syntax"
+      ],
+      "source": "external",
+      "description": "Layered technical-writing standard: Di\u00e1taxis structure, Google developer style sentences, STE instruction rules, Global English syntax. Use for /technical-writing or when writing or reviewing docs, RFCs, readmes, PR descriptions, or commit messages."
+    },
+    "ps-unslop": {
+      "skill_md": "skills/development/ps-unslop/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["unslop", "cut ai tells from any writing"],
+      "source": "external",
+      "description": "Cut AI tells from any writing. Must always apply."
+    },
+    "ps-why": {
+      "skill_md": "skills/development/ps-why/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [
+        "skills/development/ps-why/references/epistemics.md",
+        "skills/development/ps-why/references/investigator-prompt.md",
+        "skills/development/ps-why/references/source-playbook.md",
+        "skills/development/ps-why/references/sources/code-archaeology.md",
+        "skills/development/ps-why/references/sources/databricks.md",
+        "skills/development/ps-why/references/sources/datadog.md",
+        "skills/development/ps-why/references/sources/incident-postmortem.md",
+        "skills/development/ps-why/references/sources/linear.md",
+        "skills/development/ps-why/references/sources/notion.md",
+        "skills/development/ps-why/references/sources/sentry.md",
+        "skills/development/ps-why/references/sources/slack.md",
+        "skills/development/ps-why/references/synthesizer-prompt.md"
+      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "why",
+        "use for 'why does x work this way', 'why we picked y', design rationale, regressions, postmortems, or data-backed thresholds"
+      ],
+      "source": "external",
+      "description": "Use for 'why does X work this way', 'why we picked Y', design rationale, regressions, postmortems, or data-backed thresholds. Discovers available MCPs and queries each evidence category (source control, issue tracker, long-form docs, real-time chat, infrastructure observability, error tracking, product analytics warehouse) in parallel, then returns a cited read on decisions and tradeoffs. Use how for runtime behavior."
+    },
+    "ps-principle-attack-the-premise": {
+      "skill_md": "skills/development/ps-principle-attack-the-premise/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle attack the premise",
+        "apply when two or more fixes that share one premise have failed the same gate"
+      ],
+      "source": "external",
+      "description": "Apply when two or more fixes that share one premise have failed the same gate. Take a census of which actors hold the imbalance before the next fix, then question the premise instead of writing another fix that assumes it."
+    },
+    "ps-principle-boundary-discipline": {
+      "skill_md": "skills/development/ps-principle-boundary-discipline/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle boundary discipline",
+        "apply when wiring validation, error handling, or framework adapters"
+      ],
+      "source": "external",
+      "description": "Apply when wiring validation, error handling, or framework adapters. Concentrate guards at system boundaries (CLI, config, network, external APIs); trust internal types and keep business logic in pure functions."
+    },
+    "ps-principle-build-the-lever": {
+      "skill_md": "skills/development/ps-principle-build-the-lever/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle build the lever",
+        "apply to any non-trivial work, not just bulk work: edits, migrations, analyses, checks"
+      ],
+      "source": "external",
+      "description": "Apply to any non-trivial work, not just bulk work: edits, migrations, analyses, checks. Build the tool that does it or proves it (codemod, script, generator, or a skill your subagents follow) instead of working by hand. The tool is the artifact a reviewer can rerun."
+    },
+    "ps-principle-encode-lessons-in-structure": {
+      "skill_md": "skills/development/ps-principle-encode-lessons-in-structure/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle encode lessons in structure",
+        "apply when you catch yourself writing the same instruction a second time, or notice a recurring correction"
+      ],
+      "source": "external",
+      "description": "Apply when you catch yourself writing the same instruction a second time, or notice a recurring correction. Encode the rule as a lint, metadata flag, runtime check, or script instead of more text."
+    },
+    "ps-principle-exhaust-the-design-space": {
+      "skill_md": "skills/development/ps-principle-exhaust-the-design-space/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle exhaust the design space",
+        "apply when facing a novel ui interaction or architectural decision with no precedent in the codebase"
+      ],
+      "source": "external",
+      "description": "Apply when facing a novel UI interaction or architectural decision with no precedent in the codebase. Build 2-3 competing prototypes and compare side by side before committing."
+    },
+    "ps-principle-experience-first": {
+      "skill_md": "skills/development/ps-principle-experience-first/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle experience first",
+        "apply when product, ux, or feature-scope tradeoffs come up"
+      ],
+      "source": "external",
+      "description": "Apply when product, UX, or feature-scope tradeoffs come up. Choose user delight over implementation convenience; ship fewer polished features over more rough ones."
+    },
+    "ps-principle-fix-root-causes": {
+      "skill_md": "skills/development/ps-principle-fix-root-causes/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["principle fix root causes", "apply when debugging"],
+      "source": "external",
+      "description": "Apply when debugging. Trace each symptom to its root cause and fix it there; reproduce first, ask why until you reach it, resist nil-check guards that silence crashes."
+    },
+    "ps-principle-foundational-thinking": {
+      "skill_md": "skills/development/ps-principle-foundational-thinking/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle foundational thinking",
+        "apply before writing logic: choosing core types and data structures, sequencing scaffold-vs-feature work, asking what concurrent actors..."
+      ],
+      "source": "external",
+      "description": "Apply before writing logic: choosing core types and data structures, sequencing scaffold-vs-feature work, asking what concurrent actors share. Get the data structures right so downstream code becomes obvious."
+    },
+    "ps-principle-guard-the-context-window": {
+      "skill_md": "skills/development/ps-principle-guard-the-context-window/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle guard the context window",
+        "apply when context is filling up: large outputs, long files, repeated reads, fan-out planning"
+      ],
+      "source": "external",
+      "description": "Apply when context is filling up: large outputs, long files, repeated reads, fan-out planning. Route bulk to subagents; keep summaries in the main thread, not raw payloads."
+    },
+    "ps-principle-laziness-protocol": {
+      "skill_md": "skills/development/ps-principle-laziness-protocol/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle laziness protocol",
+        "apply when refactoring, evaluating diff size, or tempted to add abstractions, layers, or signal threading"
+      ],
+      "source": "external",
+      "description": "Apply when refactoring, evaluating diff size, or tempted to add abstractions, layers, or signal threading. Bias toward deletion and the smallest change that solves the problem."
+    },
+    "ps-principle-make-operations-idempotent": {
+      "skill_md": "skills/development/ps-principle-make-operations-idempotent/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle make operations idempotent",
+        "apply when designing commands, lifecycle steps, or processing loops that run amid crashes, restarts, and retries"
+      ],
+      "source": "external",
+      "description": "Apply when designing commands, lifecycle steps, or processing loops that run amid crashes, restarts, and retries. Converge to the same end state regardless of partial prior runs."
+    },
+    "ps-principle-migrate-callers-then-delete-legacy-apis": {
+      "skill_md": "skills/development/ps-principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle migrate callers then delete legacy apis",
+        "apply when introducing a new internal api while old callers still exist"
+      ],
+      "source": "external",
+      "description": "Apply when introducing a new internal API while old callers still exist. Migrate callers and delete the old API in the same wave instead of preserving compatibility layers."
+    },
+    "ps-principle-minimize-reader-load": {
+      "skill_md": "skills/development/ps-principle-minimize-reader-load/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle minimize reader load",
+        "apply when reviewing or shaping code that's hard to trace"
+      ],
+      "source": "external",
+      "description": "Apply when reviewing or shaping code that's hard to trace. Count layers between question and answer, and hidden state in the reader's head; collapse one-caller wrappers and shrink mutable scope."
+    },
+    "ps-principle-model-the-domain": {
+      "skill_md": "skills/development/ps-principle-model-the-domain/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle model the domain",
+        "apply when writing stateful logic, or when code branches a lot or repeats a shape assumption across files"
+      ],
+      "source": "external",
+      "description": "Apply when writing stateful logic, or when code branches a lot or repeats a shape assumption across files. Encode the domain in a structure instead of scattered conditionals."
+    },
+    "ps-principle-never-block-on-the-human": {
+      "skill_md": "skills/development/ps-principle-never-block-on-the-human/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle never block on the human",
+        "apply when tempted to ask 'should i do x?' on reversible work"
+      ],
+      "source": "external",
+      "description": "Apply when tempted to ask 'should I do X?' on reversible work. Proceed, present the result, let the human course-correct after the fact; reserve confirmation for irreversible actions."
+    },
+    "ps-principle-outcome-oriented-execution": {
+      "skill_md": "skills/development/ps-principle-outcome-oriented-execution/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle outcome oriented execution",
+        "apply during planned rewrites and migrations with explicit phase boundaries"
+      ],
+      "source": "external",
+      "description": "Apply during planned rewrites and migrations with explicit phase boundaries. Converge on the target architecture; don't preserve smooth intermediate states with throwaway compatibility code."
+    },
+    "ps-principle-prove-it-works": {
+      "skill_md": "skills/development/ps-principle-prove-it-works/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle prove it works",
+        "apply after completing a task, before declaring done"
+      ],
+      "source": "external",
+      "description": "Apply after completing a task, before declaring done. Verify against the real artifact (run the feature, read the actual value, inspect the diff), not a proxy, self-report, or 'it compiles."
+    },
+    "ps-principle-redesign-from-first-principles": {
+      "skill_md": "skills/development/ps-principle-redesign-from-first-principles/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle redesign from first principles",
+        "apply when integrating a new requirement into an existing design"
+      ],
+      "source": "external",
+      "description": "Apply when integrating a new requirement into an existing design. Redesign as if the requirement had been a foundational assumption from day one, instead of bolting it on."
+    },
+    "ps-principle-separate-before-serializing-shared-state": {
+      "skill_md": "skills/development/ps-principle-separate-before-serializing-shared-state/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle separate before serializing shared state",
+        "apply when concurrent actors might write to the same file, branch, key, or state object"
+      ],
+      "source": "external",
+      "description": "Apply when concurrent actors might write to the same file, branch, key, or state object. Eliminate the sharing first; serialize structurally only when one shared writer is a real invariant."
+    },
+    "ps-principle-sequence-verifiable-units": {
+      "skill_md": "skills/development/ps-principle-sequence-verifiable-units/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle sequence verifiable units",
+        "apply to multi-step work (sweeps, migrations, runs of similar edits) and to how you stack commits and prs"
+      ],
+      "source": "external",
+      "description": "Apply to multi-step work (sweeps, migrations, runs of similar edits) and to how you stack commits and PRs. Break work into small units that each end in a verifiable state, check each before the next, and order delivery so the sequence proves itself to a reviewer."
+    },
+    "ps-principle-subtract-before-you-add": {
+      "skill_md": "skills/development/ps-principle-subtract-before-you-add/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle subtract before you add",
+        "apply when sequencing an addition, refactor, or rewrite"
+      ],
+      "source": "external",
+      "description": "Apply when sequencing an addition, refactor, or rewrite. Remove dead code, redundant validators, and stub references first, then build on the simpler base."
+    },
+    "ps-principle-test-behavior-not-implementation": {
+      "skill_md": "skills/development/ps-principle-test-behavior-not-implementation/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle test behavior not implementation",
+        "apply when you write, change, or keep a test"
+      ],
+      "source": "external",
+      "description": "Apply when you write, change, or keep a test. Call the code the way its users do and assert the result they observe against a literal expected value. If the test would still pass when every imported function returns undefined, rewrite the assertion or delete the test."
+    },
+    "ps-principle-type-system-discipline": {
+      "skill_md": "skills/development/ps-principle-type-system-discipline/SKILL.md",
+      "entry": null,
+      "mode": "guidance",
+      "references": [],
+      "shared": ["skills/development/README.md"],
+      "aliases": [
+        "principle type system discipline",
+        "apply when designing types, reviewing a function signature, or writing code in any statically-typed language"
+      ],
+      "source": "external",
+      "description": "Apply when designing types, reviewing a function signature, or writing code in any statically-typed language. Make illegal states unrepresentable, brand semantic primitives, parse external data at boundaries, refuse to lie to the compiler, exhaust variants, derive from authoritative schemas."
     }
   }
 }

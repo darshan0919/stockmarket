@@ -261,6 +261,55 @@ There are core development principles that are **permanent** across all AI codin
 8. **Multi-Platform Rules Parity**: The rule files across Claude (`CLAUDE.md`), Cursor (`.cursorrules`, `.cursor/rules/*.mdc`), and Antigravity (`.gemini/rules/*.md`, `.agents/rules/*.md`) must stay 100% in sync with `AGENTS.md`. Run `yarn rules:sync` when modifying rules, and verify with `yarn rules:check`.
 9. **Company Master Chokepoint (`company-master.json`)**: All scripts, skills, jobs, and sidecars that map company names, BSE scrip codes, BSE symbols, or NSE tickers to canonical `companyId` (`EXCH:SYMBOL`) must rely on `company-master.json` as the single source of truth via `packages/jobs-runtime/lib/companyMaster.js` (`resolveCompanyId`, `resolveCompanyIdentity`) or `@stock/api/utils/companyId`. Scripts may perform custom string operations, sanitization, or fallback to their own discovery mechanisms if unmapped, but `company-master.json` must always be consulted first. Never maintain duplicate or ad-hoc company mapping stores.
 
+## 13. External skill packs — planning, productivity, and code review
+
+Two external skill packs live under `skills/development/` (registered in
+`skills/registry.json` with `"source": "external"`, alongside the repo's own
+equity-research/tooling skills):
+
+- `skills/development/<name>/` — from [aihero.dev / Matt Pocock's skills](https://www.aihero.dev/skills)
+  ([github.com/mattpocock/skills](https://github.com/mattpocock/skills), MIT).
+- `skills/development/ps-<name>/` — from
+  [cursor/plugins' pstack skills](https://github.com/cursor/plugins/tree/main/pstack/skills)
+  (`ps-` prefix to avoid name collisions with the aihero pack).
+
+These are general software-engineering skills (planning/specs, TDD and
+debugging, code review, architecture/design principles, docs and knowledge
+capture) that apply repo-wide — not equity-research skills, and they do not
+touch `data/`, Stockscans, or `skills/_shared/conventions.md`'s data-layer
+rules. Full inventory, grouping, and attribution/license notes:
+[`skills/development/README.md`](skills/development/README.md) and
+[`skills/development/ATTRIBUTION.md`](skills/development/ATTRIBUTION.md).
+
+**Router rule, binding on every AI surface working in this repo** (Claude
+Code, Claude Cowork, Cursor, Antigravity/Gemini): before planning a
+non-trivial change, writing a spec/tickets, reviewing a diff or PR, debugging
+something hard, making an architecture/refactor call, resolving a merge
+conflict, or writing docs/a new skill, check
+[`skills/development/README.md`](skills/development/README.md) for a
+matching skill and open its `SKILL.md` before defaulting to ad hoc behavior.
+This is additive to — never a replacement for — the mandatory rules above
+(§2 quality gate, §5 facade pattern, §7 clean code, etc.), which still apply
+regardless of which of these skills is in use.
+
+**Wiring per tool:**
+
+- Claude Code / Claude Cowork: this section is loaded automatically via
+  `CLAUDE.md`'s `@AGENTS.md` import.
+- Cursor: [`.cursor/rules/development-skills.mdc`](.cursor/rules/development-skills.mdc)
+  points here (always-applied, like `general.mdc`).
+- Antigravity / Gemini: [`.gemini/rules/development-skills.md`](.gemini/rules/development-skills.md)
+  points here, and `yarn antigravity:sync` mirrors every skill under
+  `skills/development/` into `~/.gemini/config/skills/` the same way it
+  already does for `equity-research/` and `tooling/` (see
+  `scripts/antigravity-sync-tasks-and-skills.js`'s `TARGET_SKILL_CATEGORIES`).
+
+Adding a new skill from either pack later: copy its folder into
+`skills/development/` (prefix pstack-sourced ones `ps-`), add it to
+`skills/registry.json` with `"source": "external"`, and add one line to
+`skills/development/README.md`'s matching section — then run
+`yarn antigravity:sync && yarn dead-code:scan` per §9.
+
 ### Future sync enforcement
 
 Whenever modifying or adding any coding rule:

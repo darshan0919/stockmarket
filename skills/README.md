@@ -126,8 +126,31 @@ skills/
     ├── nodejs-backend-patterns/
     ├── tailwind-design-system/
     ├── daisyui/
-    └── vercel-react-best-practices/
+    ├── vercel-react-best-practices/
+    ├── ATTRIBUTION.md                # license/source notes for the two external packs below
+    ├── README.md                     # router: which external skill fits which situation
+    ├── <planning/spec skills>        # aihero.dev pack, unprefixed — grill-with-docs, to-spec,
+    │                                 # to-tickets, wayfinder, grill-me, grilling, to-questionnaire,
+    │                                 # codebase-design, domain-modeling
+    ├── <implementation/debug skills> # implement, tdd, diagnosing-bugs, resolving-merge-conflicts,
+    │                                 # prototype, code-review, improve-codebase-architecture
+    ├── <docs/knowledge skills>       # research, writing-for-agents, handoff, teach, wait-what,
+    │                                 # wizard, git-guardrails-claude-code
+    └── ps-<40 pstack skills>         # cursor/plugins pstack pack, `ps-`-prefixed — architect,
+                                      # blast-radius, interrogate, no-comments, unslop, tdd, teach,
+                                      # technical-writing, why, how, recall, reflect,
+                                      # show-me-your-work, automate-me, figure-it-out,
+                                      # (create|maintain)-verification-skill, and 26 principle-*
+                                      # design/code-review reference cards
 ```
+
+**External skill packs under `development/`** (imported 2026-09-24, planning/
+productivity/code-review focus, not equity-research): see
+[`skills/development/README.md`](development/README.md) for the full,
+grouped inventory and when to use each one, and
+[`skills/development/ATTRIBUTION.md`](development/ATTRIBUTION.md) for
+sources and licenses. They're registered in `registry.json` the same as any
+other skill (`"source": "external"`).
 
 ## Script caching (/tmp)
 

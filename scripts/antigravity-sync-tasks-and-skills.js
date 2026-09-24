@@ -8,7 +8,7 @@ const REPO_SKILLS_DIR = path.resolve(__dirname, '../skills');
 const JOBS_DIR = path.resolve(__dirname, '../jobs/Scheduled');
 
 // Target skill categories in the repository to sync outward to Antigravity global skills
-const TARGET_SKILL_CATEGORIES = ['equity-research', 'tooling'];
+const TARGET_SKILL_CATEGORIES = ['equity-research', 'tooling', 'development'];
 
 // Overrides map for known sidecar UI display names, folder names, and default cron schedules
 const SIDECAR_OVERRIDES = {

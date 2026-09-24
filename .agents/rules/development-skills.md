@@ -1,0 +1,17 @@
+# Development skill packs (planning / productivity / code review)
+
+Two external skill packs live under `skills/development/` — general
+software-engineering skills (planning/specs, TDD/debugging, code review,
+architecture principles, docs/knowledge capture) that apply across this
+whole monorepo, not just equity-research work. Full detail, attribution, and
+the router rule: see `AGENTS.md` §13 and `skills/development/README.md`.
+
+Before planning a non-trivial change, writing a spec/tickets, reviewing a
+diff or PR, debugging something hard, making an architecture/refactor call,
+resolving a merge conflict, or writing docs/a new skill in this repo, check
+`skills/development/README.md` for a matching skill and open its `SKILL.md`
+first.
+
+`yarn antigravity:sync` mirrors every skill under `skills/development/` into
+`~/.gemini/config/skills/` the same way it already does for
+`skills/equity-research/` and `skills/tooling/`.
