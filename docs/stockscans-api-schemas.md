@@ -301,6 +301,130 @@ user-provided mapping:
 
 ---
 
+## POST /api/scans/interview/run
+
+Client method: `interviewScan(payload, opts)`. **CONFIRMED LIVE 2026-09-25**
+(user-supplied sample, `q: "NEPHROPLUS"`, 9 rows returned).
+
+**Request:**
+
+```json
+{
+  "industry": [],
+  "index": [],
+  "watchlistIds": [],
+  "channelIds": [],
+  "q": "NEPHROPLUS",
+  "cursor": ""
+}
+```
+
+`q` is a free-text match (confirmed usage: bare ticker symbol, no exchange
+prefix) — it is a text search, not an exact companyId scope, so filter the
+returned rows' company tags (index 6 below) against the target companyId
+before trusting a match. `watchlistIds` is present on the payload (mirrors
+every other scan endpoint's shape) but scoping this endpoint via the
+throwaway-watchlist pattern (§14) has NOT been live-confirmed — `q` is the
+confirmed path.
+
+**Response:**
+
+```json
+{
+  "rows": [
+    [
+      "Y7YT7sqszzg",
+      "NephroPlus Targets 15–20% Revenue Growth: 40–50 New Clinics Every Year | Business News | ET Now",
+      "2026-09-25T11:40:11+05:30",
+      562,
+      true,
+      "ET Now",
+      [["NSE:NEPHROPLUS", "Nephrocare Health Services Ltd", true]]
+    ]
+  ],
+  "next": null,
+  "total": 9,
+  "channels": [["UCI_mwTKUhicNzFrhm33MzBQ", "ET Now"]],
+  "subscription": "Premium Plus"
+}
+```
+
+Each row is a **positional array of 7 elements**:
+
+| Index | Field         | Notes                                                              |
+| ----- | ------------- | ------------------------------------------------------------------- |
+| 0     | `videoId`     | YouTube video id — the key for `interviewDetail`                    |
+| 1     | title         |                                                                     |
+| 2     | `publishedAt` | ISO datetime with `+05:30` offset — the recency field to filter on |
+| 3     | duration      | seconds                                                             |
+| 4     | embeddable    | boolean                                                             |
+| 5     | channelName   |                                                                     |
+| 6     | companies     | `Array<[companyId, companyName, isPrimary:boolean]>`                |
+
+`next` is an **opaque cursor** (confirmed `null` when a query is fully
+satisfied in one page — the user-supplied 9-row sample had `next: null` with
+`total: 9`), not an offset — per conventions §16's exception for genuinely
+cursor-based pagination, page sequentially (pass `next` back as `cursor`)
+rather than firing pages in parallel; do not assume it is secretly
+offset-based. `total` has not been stress-tested against the
+`scanAnnouncements.total` self-inflation bug (conventions §16) — treat it as
+informational only, never as a page-count driver, same rule as everywhere
+else in this doc.
+
+---
+
+## POST /api/scans/interview/detail
+
+Client method: `interviewDetail(videoId, opts)`. **CONFIRMED LIVE
+2026-09-25** (`videoId: "Y7YT7sqszzg"`, the NephroPlus/ET Now row above).
+
+**Request:**
+
+```json
+{ "videoId": "Y7YT7sqszzg" }
+```
+
+**Response** (live-captured, not the user-supplied guess — the actual shape
+differs from a flat `takeaways: string[]`):
+
+```json
+{
+  "takeaways": [
+    [
+      "NSE:NEPHROPLUS",
+      "- **Revenue growth guidance:** NephroPlus is targeting 15% to 20% annual revenue growth ...\n- **Clinic expansion roadmap:** ...",
+      null
+    ]
+  ],
+  "video": {
+    "title": "NephroPlus Targets 15–20% Revenue Growth: 40–50 New Clinics Every Year | Business News | ET Now",
+    "channelName": "ET Now",
+    "publishedAt": "2026-09-25T11:40:11+05:30",
+    "embeddable": true
+  }
+}
+```
+
+`takeaways` is an array of `[companyId, markdownBullets, null]` — one entry
+per company the interview substantively discusses (single-company interviews
+observed to have exactly one entry; the third positional element's purpose
+is unconfirmed, always observed `null` — do not rely on it). `markdownBullets`
+is a markdown-formatted STRING (bold headers + bullet list), not structured
+JSON — parse it as prose, not as a schema. **This is a Stockscans-generated
+summary of the interview, not a verbatim transcript excerpt** — unlike a
+Filing Extract (`resolveFilingContent`), which is quote-verified against the
+source document, a takeaway is a third-party paraphrase with no page/timestamp
+anchor back to what was actually said. Any consumer (see
+`rerating-catalysts` SKILL.md) must treat a specific number quoted here with
+more caution than the same number sourced from a Result/Transcript/PPT filing
+— corroborate against a filing where possible, and cite it explicitly as
+interview commentary, not as filing-sourced.
+
+`video.publishedAt` duplicates row index 2 from `interviewScan` — either is a
+valid source for the recency check.
+
+---
+
 ## POST /api/scans/result/documents
 
 Client method: `resultsDocuments({offset, documentType, searchCompany, watchlistIds})`,

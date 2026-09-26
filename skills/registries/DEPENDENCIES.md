@@ -51,7 +51,6 @@ Available high-level agentic skills defined in the project:
 | N/A | `N/A` | announcement insights, read this filing, analyse this announcement, demerger insight, merger insight, management change insight, high conviction announcement, SOTP analysis, spin-off analysis |
 | [scripts/skills/monthly-sales-tracker/run.js](scripts/skills/monthly-sales-tracker/run.js) | `scripts/skills/monthly-sales-tracker/run.js` | monthly sales tracker, TMPV sales trend, predict monthly revenue, auto OEM monthly sales, PV domestic exports EV units, monthly unit sales prediction |
 | [packages/jobs-runtime/lib/tweetSignalsClassifier.js](packages/jobs-runtime/lib/tweetSignalsClassifier.js) | `packages/jobs-runtime/lib/tweetSignalsClassifier.js` | tweet signals, twitter signals, X list conviction briefing, daily tweet briefing, market twitter digest |
-| [scripts/antigravity-sync-tasks-and-skills.js](scripts/antigravity-sync-tasks-and-skills.js) | `scripts/antigravity-sync-tasks-and-skills.js` | sync antigravity, sync scheduled tasks, sync skills to antigravity, antigravity sidecar sync |
 | N/A | `N/A` | find a skill, is there a skill that can, discover skills, install a skill |
 | [scripts/metrics/analyze_token_usage.py](scripts/metrics/analyze_token_usage.py) | `scripts/metrics/analyze_token_usage.py` | token usage analysis, weekly token usage, cost reduction recommendations, model selection FinOps |
 | N/A | `N/A` | ipo subscription digest, rank ipos by subscription, ipo subscription ranker, which ipos listing tomorrow, ipo subscription quality |
@@ -188,6 +187,8 @@ Instantiable classes for DI or custom configurations:
   - `concallNotesUrl()`
   - `latestTranscript()`
   - `concallScan()`
+  - `interviewScan()`
+  - `interviewDetail()`
   - `watchlistTable()`
   - `replaceWatchlist()`
   - `createWatchlist()`

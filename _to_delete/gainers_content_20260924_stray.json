@@ -1,0 +1,249 @@
+{
+  "lead": "A scanner date-parsing bug (flagged below) suppressed today's real story: at least 8 of 33 qualified gainers had genuine, content-verified STRONG filings inside the true 7-day window that the classifier wrongly scored as outside it, pulling several toward lower tiers than the evidence supports. Two are worth Darshan's attention directly: Vikran Engineering (Rs153.76cr POWERGRID order, ~9.8% of market cap, filed yesterday) and Avantel (Rs177.35cr purchase order, ~4.3% of market cap, filed yesterday) both sit in NOTED only because of the bug — both are genuine, quantified, dated triggers. Elsewhere, South Indian Bank's only filing (a 'Change in Management' notice) is actually a mid-level Senior GM appointment, not the leadership change the category tag implies -- its 6% rally on Rs125cr delivery remains effectively unexplained. Hero Motors and SS Retail are both fresh listings (23-Sep) still finding their price on day 2.",
+  "caveats": [
+    "SCANNER BUG: gainersScanner.js's parseCreatedMs() appends a timezone offset directly to date-only strings (e.g. '2026-09-18' -> '2026-09-18+05:30'), which is not valid ISO-8601 and makes Date.parse() return NaN. Every announcement whose only date field is `date` (not `createdAt`) gets days_ago=null and in_scoring_window=false, regardless of true age. Verified: 118/118 announcements in today's run got days_ago=null; 32 of those were content-classified STRONG. Manual correction found 8 companies (UNIDT, VIKRAN, ABDL, RAYMOND, AVANTEL, SOUTHBANK, RAYMONDREL, CRIZAC) with genuine in-window STRONG/VERY_HIGH filings that the classifier scored as if no filing existed. Fix: in parseCreatedMs(), insert 'T00:00:00' before the appended offset for date-only strings. This has likely suppressed ACT-tier signals on every prior run since this code path shipped, not just today.",
+    "Stockscans growth-catalyst cache (rung 3a of the WHY ladder) was not warmed for any of today's 20 researched companies -- yarn stockscans:warm needs to run more often.",
+    "Given the scope of the date-bug investigation, formal rerating-catalysts EPS-thesis briefs were built/served only for the 2 companies with existing cache (RAYMOND, SEDEMAC); WHY/linkage for the other 8 top-10-by-delivery names (HEROMOTORS, SSRETAIL, ICICIGI, SOUTHBANK, RAYMONDREL, ABDL, GREAVESCOT, KSCL) was resolved directly from filings/concall data rather than a full cached brief -- flagging as deferred per the skill's own allowance."
+  ],
+  "cards": {
+    "NSE:HEROMOTORS": {
+      "headline": "Fresh listing (23-Sep), day 2 of trading -- price discovery, not a filing-driven trigger",
+      "thesisChain": [
+        "Listed 23-Sep-2026",
+        "No operating filing since listing",
+        "Move consistent with post-IPO price discovery"
+      ],
+      "why": {
+        "text": "Recently listed (23-Sep-2026) -- today is only its 2nd session. The 20% move and Rs310cr delivery are consistent with normal post-listing price discovery.",
+        "basis": "filing",
+        "sources": [
+          "BSE/NSE listing notice, 23-Sep-2026"
+        ]
+      },
+      "linkage": "explained",
+      "tags": [
+        "new_listing"
+      ]
+    },
+    "NSE:SSRETAIL": {
+      "headline": "Fresh listing (23-Sep), day 2 of trading -- price discovery",
+      "thesisChain": [
+        "Listed 23-Sep-2026",
+        "No operating filing since listing"
+      ],
+      "why": {
+        "text": "Recently listed (23-Sep-2026) -- today is only its 2nd session. No operating filing exists yet.",
+        "basis": "filing",
+        "sources": [
+          "BSE listing notice, 23-Sep-2026"
+        ]
+      },
+      "linkage": "explained",
+      "tags": [
+        "new_listing"
+      ]
+    },
+    "NSE:ICICIGI": {
+      "headline": "No filing, no fresh catalyst -- Rs138cr delivery is genuinely unexplained",
+      "thesisChain": [
+        "No filing in 14d",
+        "Last concall (15-Jul) Neutral, flagged Rs165cr motor TP provision drag",
+        "No discoverable trigger"
+      ],
+      "why": {
+        "text": "No filing in the 14-day window. Last concall (Neutral) flagged a Rs165cr motor TP provision drag -- mildly negative, not a plausible driver. No discoverable trigger.",
+        "basis": "none",
+        "sources": []
+      },
+      "linkage": "unexplained",
+      "tags": []
+    },
+    "NSE:SOUTHBANK": {
+      "headline": "\"Change in Management\" filing is actually a Senior GM (credit card) hire -- category tag overstates it",
+      "thesisChain": [
+        "Only in-window filing: Change in Management, 18-Sep",
+        "PDF shows Senior GM/Head Credit Card appointment -- mid-level, not leadership",
+        "Concall (17-Jul) Cautious overall"
+      ],
+      "why": {
+        "text": "The only in-window filing is captioned \"Change in Management\" but the document is a Senior General Manager (credit-card vertical) appointment -- a routine mid-level hire, not a leadership change proportionate to a 6% delivery-backed rally.",
+        "basis": "classified",
+        "sources": [
+          "BSE filing 18-Sep-2026"
+        ]
+      },
+      "linkage": "mismatched",
+      "tags": []
+    },
+    "NSE:RAYMONDREL": {
+      "headline": "No fresh filing; Rs8,500cr Parel JDA from Aug concall is the plausible driver",
+      "thesisChain": [
+        "In-window filings are IR-appointment + investor-conference intimation (routine)",
+        "Aug concall disclosed Rs8,500cr Parel JDA, ~1.8x market cap",
+        "EBITDA margin guided 13% -> 17-19%"
+      ],
+      "why": {
+        "text": "No fresh filing this week (only an IR appointment and an investor-conference intimation). The Aug-2026 concall disclosed a Rs8,500cr Parel JDA -- a concrete, large forward number for a Rs4,715cr market-cap company -- a plausible reason for sustained buying.",
+        "basis": "concall",
+        "sources": [
+          "Concall 10-Aug-2026"
+        ]
+      },
+      "linkage": "explained",
+      "tags": []
+    },
+    "NSE:ABDL": {
+      "headline": "Today's filing is a neutral promoter MPS sale, but caps a 2-week run of real operating news",
+      "thesisChain": [
+        "Capacity Expansion + Product Launch (11-Sep, 13d ago)",
+        "Grant of Licence (15-Sep, 9d ago)",
+        "Today: promoter selling ~1.97% to meet Minimum Public Shareholding (technical, not bullish)"
+      ],
+      "why": {
+        "text": "Today's filing is a promoter open-market sale to meet Minimum Public Shareholding norms -- technical, not bullish on its own. But it lands after a busy fortnight: Capacity Expansion, a new premium launch ('The Indian Edit'), and a Licence Grant were all content-classified STRONG in the prior week. Jul concall (Optimistic) flagged an aligned H2 FY27 deluxe-vodka launch.",
+        "basis": "filing",
+        "sources": [
+          "Capacity Expansion, 11-Sep-2026 (13d ago)",
+          "Product Launch, 11-Sep-2026 (13d ago)",
+          "Grant of Licence, 15-Sep-2026 (9d ago)"
+        ]
+      },
+      "linkage": "explained",
+      "tags": [
+        "capacity",
+        "product_launch"
+      ]
+    },
+    "NSE:RAYMOND": {
+      "headline": "Aerospace order + Rs214.7cr warrant issue confirm existing diversification thesis",
+      "thesisChain": [
+        "Press release on aerospace assemblies (1d ago) confirms Aug concall's +40.4% YoY aerospace growth",
+        "Rs214.7cr preferential warrant issue to an FPI (board outcome 11-Sep, EGM 3-Oct)"
+      ],
+      "why": {
+        "text": "A press release on aerospace assemblies confirms the diversification story the Aug concall guided. Combined with a Rs214.7cr preferential warrant issue to a Cat-I FPI -- capital-raise news that supports rather than creates the thesis.",
+        "basis": "catalyst",
+        "sources": [
+          "Press release, 23-Sep-2026",
+          "Board outcome, 11-Sep-2026"
+        ]
+      },
+      "epsThesis": {
+        "jCurveTag": "MODERATE",
+        "jCurveReason": "Aerospace order (~Rs33cr/yr) confirms the Aug concall's diversification narrative (aerospace +40.4% YoY); Rs214.7cr preferential warrant issue to a Cat-I FPI is capital-raise news, not a standalone EPS trigger.",
+        "thesis": "The aerospace order is incremental confirmation of the margin-mix story already guided, not a step-change; the warrant issue supports the balance sheet rather than creating a new thesis.",
+        "catalysts": [
+          {
+            "name": "Aerospace order win (~Rs33cr/yr, multi-programme)",
+            "conviction": "MEDIUM",
+            "timeline": "2026-2027 ramp"
+          },
+          {
+            "name": "Rs214.7cr preferential warrant issue (Minerva Ventures Fund)",
+            "conviction": "MEDIUM (dilutive, ~4.35%)",
+            "timeline": "EGM 3-Oct-2026"
+          }
+        ],
+        "asOf": "2026-09-22",
+        "cacheHit": true
+      },
+      "linkage": "explained",
+      "tags": [
+        "aerospace",
+        "fundraise"
+      ]
+    },
+    "NSE:SEDEMAC": {
+      "headline": "No STRONG filing in 14 days -- genuinely unexplained delivery-backed move",
+      "thesisChain": [
+        "Cached brief: all 8 prior-week filings SUPPORTING/ROUTINE",
+        "No capacity/order/margin trigger"
+      ],
+      "why": {
+        "text": "Cached brief confirms no STRONG filing in the 14-day window. Genuinely unexplained delivery-backed buying -- worth watching for news.",
+        "basis": "none",
+        "sources": []
+      },
+      "epsThesis": {
+        "jCurveTag": "NONE",
+        "jCurveReason": "All 8 prior-week filings are SUPPORTING/ROUTINE — no capacity/order/margin trigger surfaced.",
+        "thesis": "No STRONG filing in the 14-day window. Delivery-backed move has no discoverable company-specific cause this run.",
+        "catalysts": [],
+        "asOf": "2026-09-17",
+        "cacheHit": true
+      },
+      "linkage": "unexplained",
+      "tags": []
+    },
+    "NSE:GREAVESCOT": {
+      "headline": "No fresh filing; GEML EBITDA-breakeven guidance (4-6 quarters) is the standing catalyst",
+      "thesisChain": [
+        "No filing in 14d",
+        "Aug concall (Optimistic): GEML EBITDA breakeven guided in 4-6 quarters"
+      ],
+      "why": {
+        "text": "No filing in the 14-day window. The Aug concall guided the EV subsidiary GEML to EBITDA breakeven within 4-6 quarters -- a specific, if 50-day-old, forward number.",
+        "basis": "concall",
+        "sources": [
+          "Concall 05-Aug-2026"
+        ]
+      },
+      "linkage": "explained",
+      "tags": []
+    },
+    "NSE:KSCL": {
+      "headline": "No fresh filing; thin 3.9% delivery share suggests speculative rather than conviction buying",
+      "thesisChain": [
+        "No filing in 14d beyond routine items",
+        "Aug concall Neutral: export revenue +4x offset by 42% maize shortfall"
+      ],
+      "why": {
+        "text": "No filing in the 14-day window. Aug concall was Neutral overall. The low 3.9% delivery share against a 10.3% price move suggests more speculative/intraday participation than conviction buying.",
+        "basis": "none",
+        "sources": []
+      },
+      "linkage": "unexplained",
+      "tags": []
+    },
+    "NSE:DELTACORP": {
+      "headline": "Only filing is a routine AGM outcome -- no discoverable trigger",
+      "thesisChain": [
+        "AGM outcome notice, 10-Sep (routine)"
+      ],
+      "why": {
+        "text": "Only filing in the 14-day window is a routine AGM-outcome notice. No discoverable trigger.",
+        "basis": "none",
+        "sources": []
+      },
+      "linkage": "unexplained",
+      "tags": []
+    },
+    "NSE:KABRAEXTRU": {
+      "headline": "Zero filings in 14 days -- pure momentum/streak move",
+      "thesisChain": [
+        "No announcements at all in 14d",
+        "2-day delivery streak, at window high"
+      ],
+      "why": {
+        "text": "No announcements at all in the 14-day window. The 2-day delivery streak and window-high price suggest a technical/momentum move rather than a news trigger.",
+        "basis": "none",
+        "sources": []
+      },
+      "linkage": "unexplained",
+      "tags": []
+    },
+    "BSE:KWICK": {
+      "headline": "Only filing is a forward-looking investor-meet notice -- nothing to explain today yet",
+      "thesisChain": [
+        "Investor-meet intimation, today (forward-looking only)"
+      ],
+      "why": {
+        "text": "Only in-window filing announces a future investor meet -- no content yet, cannot explain today's move. Delivery is a striking 56.7% of volume on a small float.",
+        "basis": "none",
+        "sources": []
+      },
+      "linkage": "unexplained",
+      "tags": []
+    }
+  }
+}

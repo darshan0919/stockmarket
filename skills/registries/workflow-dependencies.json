@@ -17,7 +17,9 @@
         "strength of announcement"
       ],
       "entry": "skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js",
-      "modules": ["skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js"]
+      "modules": [
+        "skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js"
+      ]
     },
     {
       "name": "stock-documents-fetcher",
@@ -187,7 +189,9 @@
         "competitive dynamics"
       ],
       "entry": "stock-api/bin/sector-research-deepdive.js",
-      "modules": ["stock-api/src/generators/generateSectorReport.js"]
+      "modules": [
+        "stock-api/src/generators/generateSectorReport.js"
+      ]
     },
     {
       "name": "drhp-ipo-analysis",
@@ -202,7 +206,9 @@
         "prospectus analysis"
       ],
       "entry": "stock-api/bin/drhp-ipo-analysis.js",
-      "modules": ["stock-api/src/generators/generateDrhpPdf.js"]
+      "modules": [
+        "stock-api/src/generators/generateDrhpPdf.js"
+      ]
     },
     {
       "name": "quarterly-result-analysis",
@@ -241,7 +247,9 @@
         "reprice after results"
       ],
       "entry": "stock-api/bin/consecutive-filings-diff.js",
-      "modules": ["stock-api/src/fetchers/documentsFetcher.js"]
+      "modules": [
+        "stock-api/src/fetchers/documentsFetcher.js"
+      ]
     },
     {
       "name": "pre-pead-scanner",
@@ -360,7 +368,9 @@
         "track record tweets"
       ],
       "entry": "stock-api/bin/tweet-investor-playbook.js",
-      "modules": ["stock-api/src/analyzers/parseTweetDump.js"]
+      "modules": [
+        "stock-api/src/analyzers/parseTweetDump.js"
+      ]
     },
     {
       "name": "announcement-keyword-explorer",
@@ -374,7 +384,9 @@
         "expand keyword search"
       ],
       "entry": "stock-api/bin/announcement-keyword-explorer.js",
-      "modules": ["stock-api/src/fetchers/announcementScanner.js"]
+      "modules": [
+        "stock-api/src/fetchers/announcementScanner.js"
+      ]
     },
     {
       "name": "stock-report",
@@ -514,9 +526,14 @@
     {
       "name": "render-pdf",
       "description": "Utility to render HTML into a standardized PDF using Puppeteer. Operates in clone mode to manage the Chromium dependency.",
-      "aliases": ["render pdf", "html to pdf"],
+      "aliases": [
+        "render pdf",
+        "html to pdf"
+      ],
       "entry": "stock-api/bin/render-pdf.js",
-      "modules": ["stock-api/src/utils/pdfRenderer.js"]
+      "modules": [
+        "stock-api/src/utils/pdfRenderer.js"
+      ]
     },
     {
       "name": "investment-thesis-engine",
@@ -690,7 +707,9 @@
         "model selection FinOps"
       ],
       "entry": "scripts/metrics/analyze_token_usage.py",
-      "modules": ["scripts/metrics/track_invocation.py"]
+      "modules": [
+        "scripts/metrics/track_invocation.py"
+      ]
     },
     {
       "name": "ipo-subscription-ranker",
@@ -715,7 +734,9 @@
         "nightly announcement digest"
       ],
       "entry": null,
-      "modules": ["packages/jobs-runtime/lib/thesisCardEmail.js"]
+      "modules": [
+        "packages/jobs-runtime/lib/thesisCardEmail.js"
+      ]
     },
     {
       "name": "ask-soic",
@@ -877,12 +898,23 @@
     {
       "name": "ScreenerAuth",
       "file": "stock-api/src/auth/screenerAuth.js",
-      "methods": ["_envFile", "_resolve", "cookieHeader", "headers", "isConfigured"]
+      "methods": [
+        "_envFile",
+        "_resolve",
+        "cookieHeader",
+        "headers",
+        "isConfigured"
+      ]
     },
     {
       "name": "StockscansAuth",
       "file": "stock-api/src/auth/stockscansAuth.js",
-      "methods": ["_readFromEnvFile", "_warnLegacy", "getToken", "headers"]
+      "methods": [
+        "_readFromEnvFile",
+        "_warnLegacy",
+        "getToken",
+        "headers"
+      ]
     },
     {
       "name": "BseClient",
@@ -923,7 +955,11 @@
     {
       "name": "PerplexityClient",
       "file": "stock-api/src/clients/PerplexityClient.js",
-      "methods": ["setJobName", "earningsEvents", "transcript"]
+      "methods": [
+        "setJobName",
+        "earningsEvents",
+        "transcript"
+      ]
     },
     {
       "name": "ScreenerClient",
@@ -967,6 +1003,8 @@
         "concallNotesUrl",
         "latestTranscript",
         "concallScan",
+        "interviewScan",
+        "interviewDetail",
         "watchlistTable",
         "replaceWatchlist",
         "createWatchlist",
@@ -998,7 +1036,14 @@
     {
       "name": "NseSession",
       "file": "stock-api/src/http/nseSession.js",
-      "methods": ["clearCache", "_mergeSetCookie", "warmup", "getCookies", "headers", "get"]
+      "methods": [
+        "clearCache",
+        "_mergeSetCookie",
+        "warmup",
+        "getCookies",
+        "headers",
+        "get"
+      ]
     },
     {
       "name": "SimpleTemplate",

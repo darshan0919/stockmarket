@@ -12,10 +12,12 @@ description: >-
   Use for "growth triggers", "re-rating triggers", "catalyst note", "what's
   changed this week", "any recent news on X", "why will this stock re-rate",
   "growth catalyst", "conviction note", "1-pager", "is anything fundamentally
-  different about this company", or any request for a Stockscans ticker that
-  wants a forward-looking, EPS-accrual-oriented read rather than a backward
-  results recap. Auto-fetches the last 7 days of announcements, last 4
-  concall transcripts, last 4 quarterly results, and last 2 investor PPTs when
+  different about this company", "what has management been saying in recent
+  interviews", or any request for a Stockscans ticker that wants a
+  forward-looking, EPS-accrual-oriented read rather than a backward results
+  recap. Auto-fetches the last 7 days of announcements, last 4 concall
+  transcripts, last 4 quarterly results, last 2 investor PPTs, and (full mode)
+  up to the last 5 management interviews from the trailing 3 months, when
   given only a ticker. Supersedes fundamental-shift-scanner and
   growth-triggers-1pager — do not use those skills for new work. Also exposes
   `--mode brief`: a cached, render-free EPS-thesis-only variant that other
@@ -201,7 +203,13 @@ a stale thesis silently is the one outcome this design exists to prevent.
    point of the cache is that two runs on the same evidence produce the same
    thesis, not two differently-phrased ones (conventions §17(b)).
 3. For each entry in `build[]`, run Phase 1-3 **narrowed**:
-   - Phase 1 fetches only what is missing, and checks TWO caches before any read:
+   - Phase 1 fetches only what is missing, and **skips step 6 (management
+     interviews) entirely** — unlike the other four document types, an
+     interview-scan `list` call is not itself covered by a "nothing changed"
+     check the way `hasNewFilingsSince()` covers filings, so running it for
+     10 names × 2 callers a day would add API calls with no cache to absorb
+     them. If a fuller read is separately wanted for a brief-mode name, run
+     `full` mode for it directly. Otherwise checks TWO caches before any read:
      first `get-filing` for this skill's own extract of that document
      (`cachedFilingIds` on the build entry already lists what is on disk), then
      the shared Filing Extract store:
@@ -272,6 +280,28 @@ in parallel where the underlying calls allow it, via `stock-documents-fetcher`
    write — this skill never re-runs or re-scores those scans itself. Feed the
    result into Phase 3g (below); it is never fetched or read again after
    Phase 1.
+6. **Last 3 months of management interviews, capped at 5 (full mode only,
+   zero-LLM fetch, deterministic)** — via Stockscans' own Interview Scans
+   feed (conventions §26: this is a native platform capability, not something
+   to re-derive from a YouTube search):
+
+   ```bash
+   node scripts/fetch_management_interviews.js --ticker <ticker> [--months 3] [--max 5]
+   ```
+
+   Discovers interviews via `interviewScan` (`docs/stockscans-api-schemas.md`),
+   filters to rows that actually tag this companyId (the endpoint's `q` param
+   is a text match, not an exact scope), keeps only the last 3 months, sorts
+   newest-first, and hard-caps at 5 — **never read more than 5 interviews or
+   reach past the 3-month window, even if more exist**; older or excess
+   interviews are simply not fetched, not skimmed-and-discarded. For each
+   kept interview, fetches its takeaways via `interviewDetail` and caches the
+   result by `videoId` under `data/cache/rerating-catalysts/interviews/` — a
+   video's content never changes, so this cache never expires and a later run
+   (this company or any other, since the cache is keyed by videoId) never
+   re-fetches the same interview. Zero interviews in the window is a normal,
+   common outcome (many names simply don't get management airtime that
+   often) — report it plainly, same as a quiet announcement week.
 
 Per `skills/_shared/conventions.md` §6, none of these downloaded PDFs are
 persisted under `<repo>/data/` — write everything to a scratch dir
@@ -354,12 +384,33 @@ Potential J Curve screen: OPM/PAT/revenue gates all pass") but do not treat
 passing §5i's screen as a substitute for 3g's own §5f rubric — a §5i pass is
 a prompt to investigate, never itself a STRONG tag.
 
-Walk every document and, for anything that isn't routine (AGM notices, book
-closures, record dates, routine board-meeting intimations — same NOISE list as
-the old fundamental-shift-scanner), extract:
+**Management interviews (full mode, when Phase 1 step 6 found any) are a
+fifth document type read through the same "new" lens** — an interview is
+just another container for a "new" fact, same as an announcement, a
+transcript line, or a PPT slide. One caveat that does NOT apply to the other
+four document types: a Stockscans interview `takeawaysMarkdown` is a
+third-party-generated SUMMARY of what management said, not a page-anchored
+verbatim extract (unlike `resolveFilingContent()`'s Filing Extracts, which
+are quote-verified against the source document). Treat it accordingly —
+fine as the basis for a catalyst's existence and its qualitative "new"
+category, but **never cite a specific Rs Cr / % / capacity figure sourced
+only from an interview takeaway as if it were filing-verified**; corroborate
+the number against the concall transcript, PPT, or result filing already
+fetched in Phase 1 wherever possible, and if it can't be corroborated, say so
+plainly ("per management interview commentary, unconfirmed against a
+filing") rather than presenting it with filing-grade confidence. A repeated
+claim across two or more interviews in the window is still not the same as
+one filing-sourced confirmation — note the repetition, don't let it stand in
+for verification.
+
+Walk every document — including any interviews from step 6 — and, for
+anything that isn't routine (AGM notices, book closures, record dates,
+routine board-meeting intimations — same NOISE list as the old
+fundamental-shift-scanner), extract:
 
 1. **What literally happened** — one sentence, sourced, dated: `[Source:
-Transcript Q4FY26 / PPT / Result / BSE filing, DD-Mon-YYYY]`.
+Transcript Q4FY26 / PPT / Result / BSE filing / Interview — <Channel>,
+DD-Mon-YYYY]`.
 2. **Which "new" category** it falls under (§2 of the framework doc) — a fact
    can carry more than one tag.
 3. **New or confirmation** — cross-check against the prior quarter's
@@ -582,8 +633,15 @@ Domain fields: `cmp`, `marketCap`, `capCategory`, `sector`, `snapshot`,
 `growthBucket` (framework §1b: `steady` / `fast-growth` / `hyper-growth`),
 `kpiHeaders`/`kpiValues`, `catalysts[]` (each with `name`, `body`,
 `newCategory[]`, `newVsConfirmation`, `impact`, `timeline`, `conviction`,
-`forwardMarker`, `sources[]`), `weeklyFlow` (`dateRangeStart`, `dateRangeEnd`,
-`signalItems[]`, `noiseItems[]`), `spikeDays[]` (Phase 2.5, full mode only —
+`forwardMarker`, `sources[]` — a `sources[]` entry citing an interview reads
+`"Interview — <Channel>, DD-Mon-YYYY"`, same style as the other source
+types), `weeklyFlow` (`dateRangeStart`, `dateRangeEnd`, `signalItems[]`,
+`noiseItems[]`), `managementInterviews[]` (full mode only — one entry per
+interview Phase 1 step 6 kept: `videoId`, `title`, `channelName`,
+`publishedAt`, `sourceUrl`, and whether it fed a catalyst in `catalysts[]`;
+empty array when zero interviews were found in the window, never omitted —
+same "state it plainly" rule as `spikeDays[]`), `spikeDays[]` (Phase 2.5,
+full mode only —
 each entry: `date`, `returnPct`, `volumeMultiple`, `medianVolume`, `whyBasis`
 (`filing`/`classified`/`catalyst`/`concall`/`sector`/`none`), `whyDetail`,
 `linkage` (`explained`/`unexplained`/`mismatched`), `sources[]`; empty array
@@ -647,7 +705,8 @@ rerating-catalysts/
     ├── extract_rerating_signatures.py     (Stage 1 — zero-LLM recall pass for a single candidate)
     ├── brief_cache.js                     (--mode brief: filing + company caches, plan/get/put)
     ├── matchSpikeAnnouncements.js         (Phase 2.5 — WHY-candidate assembly for spike days)
-    └── compute_signal_history.js          (Phase 1 step 5 — 3-month ACT/S1/S2 scan-history lookback, feeds Phase 3g)
+    ├── compute_signal_history.js          (Phase 1 step 5 — 3-month ACT/S1/S2 scan-history lookback, feeds Phase 3g)
+    └── fetch_management_interviews.js     (Phase 1 step 6, full mode only — last 3mo/5-max interview takeaways via Stockscans Interview Scans, videoId-cached)
 ```
 
 `stock-api/src/analyzers/priceSpikeSignals.js` (Phase 2.5 — spike-day detection:
@@ -722,3 +781,14 @@ matters).
 - **SAST/PIT filings never imply direction from the title alone** — open the
   PDF before characterising a promoter/insider stake change as bullish or
   bearish.
+- **Don't treat an interview takeaway as filing-grade evidence.** It's a
+  Stockscans-generated summary, not a verified transcript excerpt — a
+  specific number quoted only in an interview takeaway gets "per management
+  interview commentary, unconfirmed against a filing," not the same
+  confidence as a number sourced from a Result/Transcript/PPT. See the
+  sourcing note in Phase 2.
+- **Don't exceed 5 interviews or reach past the 3-month window** even when
+  `interviewScan` returns more — `fetch_management_interviews.js` already
+  caps and filters deterministically; if the read set feels thin, that's the
+  ceiling working as designed, not a bug to work around by widening it
+  ad hoc.

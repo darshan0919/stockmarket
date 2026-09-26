@@ -766,6 +766,83 @@ class StockscansClient {
     return data;
   }
 
+  /**
+   * Management-interview scan — powers the /interview-scans page. Surfaces
+   * recent YouTube management interviews/appearances for a company (or a
+   * keyword search across channels), each pre-tagged with the company(s)
+   * mentioned.
+   *
+   * CONFIRMED LIVE 2026-09-25 (user-supplied sample payload/response, plus a
+   * live re-check of the paired `interviewDetail` call below against the
+   * same video). `POST /api/scans/interview/run`.
+   *
+   * @param {Object} payload - `{industry:[], index:[], watchlistIds:[],
+   *   channelIds:[], q:'<ticker symbol or free text>', cursor:''}`. `q` is a
+   *   free-text match against company tag/title — the confirmed usage is a
+   *   bare ticker symbol (no exchange prefix, e.g. `"NEPHROPLUS"` not
+   *   `"NSE:NEPHROPLUS"`); each returned row's company tags (index 6) still
+   *   need to be checked against the target companyId before trusting a
+   *   match, since `q` is a text search, not an exact scope filter. Scoping
+   *   via `watchlistIds` (the throwaway-watchlist pattern, §14) is
+   *   presumably also supported (the field exists on the payload) but is
+   *   NOT yet live-confirmed for this endpoint — confirm before relying on
+   *   it instead of `q`.
+   * @param {Object} [opts]
+   * @param {string} [opts.referer]
+   * @param {boolean} [opts.optionalAuth=false]
+   * @returns {Promise<{rows: Array<Array>, next: string|null, total: number,
+   *   channels: Array<[string,string]>, subscription: string}>} `next` is an
+   *   opaque cursor (not an offset) — per conventions §16's parallelization
+   *   exception, do NOT fire pages concurrently; page sequentially, passing
+   *   `next` back as `cursor` until it comes back `null`.
+   *
+   * Each row is a POSITIONAL ARRAY of 7 elements (confirmed live):
+   *   [0] videoId (YouTube id, e.g. "Y7YT7sqszzg")
+   *   [1] title
+   *   [2] publishedAt — ISO datetime with `+05:30` offset
+   *   [3] duration (seconds)
+   *   [4] embeddable (boolean)
+   *   [5] channelName
+   *   [6] companies — `Array<[companyId, companyName, isPrimary:boolean]>`
+   */
+  async interviewScan(payload, { referer = `${BASE_URL}/interview-scans`, optionalAuth = false } = {}) {
+    const { data } = await this.http.post(`${BASE_URL}/api/scans/interview/run`, payload, {
+      headers: this._headers(referer, optionalAuth),
+    });
+    return data;
+  }
+
+  /**
+   * Management-interview takeaways for a single video — the paired "detail"
+   * call for a `videoId` surfaced by {@link interviewScan}.
+   *
+   * CONFIRMED LIVE 2026-09-25 (`videoId: "Y7YT7sqszzg"`, a NephroPlus/ET Now
+   * interview — see `docs/stockscans-api-schemas.md`).
+   *
+   * @param {string} videoId
+   * @param {Object} [opts]
+   * @param {string} [opts.referer]
+   * @param {boolean} [opts.optionalAuth=false]
+   * @returns {Promise<{takeaways: Array<[string, string, null]>, video:
+   *   {title: string, channelName: string, publishedAt: string, embeddable:
+   *   boolean}}>} `takeaways` is an array of `[companyId, markdownBullets,
+   *   null]` — one entry per company the interview substantively discusses
+   *   (a single-company interview has one entry; the third element's
+   *   purpose is unconfirmed, always observed `null`). `markdownBullets` is
+   *   a Stockscans-generated SUMMARY of the interview, not a verbatim
+   *   transcript excerpt — treat it with the same caution as any
+   *   secondary-source paraphrase (see rerating-catalysts SKILL.md's
+   *   interview-sourcing note).
+   */
+  async interviewDetail(videoId, { referer = `${BASE_URL}/interview-scans`, optionalAuth = false } = {}) {
+    const { data } = await this.http.post(
+      `${BASE_URL}/api/scans/interview/detail`,
+      { videoId },
+      { headers: this._headers(referer, optionalAuth) }
+    );
+    return data;
+  }
+
   // ── Watchlists ──────────────────────────────────────────────────────────────
 
   /**

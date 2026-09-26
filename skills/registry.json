@@ -533,7 +533,8 @@
         "skills/equity-research/rerating-catalysts/scripts/brief_cache.js",
         "skills/equity-research/rerating-catalysts/scripts/prefilter_rerating_candidates.js",
         "stock-api/src/analyzers/priceSpikeSignals.js",
-        "skills/equity-research/rerating-catalysts/scripts/matchSpikeAnnouncements.js"
+        "skills/equity-research/rerating-catalysts/scripts/matchSpikeAnnouncements.js",
+        "skills/equity-research/rerating-catalysts/scripts/fetch_management_interviews.js"
       ]
     },
     "equity-research-extraction": {
