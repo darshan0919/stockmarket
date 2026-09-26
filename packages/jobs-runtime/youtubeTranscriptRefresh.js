@@ -3,8 +3,8 @@
 
 /**
  * YouTube Transcript Refresh — fetches caption transcripts for public videos
- * uploaded to YouTube channels (defaults: SOIC Finance @SOICfinance and
- * Dr. Anil Lamba @AnilLamba), storing them in the `youtube-transcripts`
+ * uploaded to YouTube channels (defaults: SOIC Finance @SOICfinance,
+ * Dr. Anil Lamba @AnilLamba, and StockScans @StockScans), storing them in the `youtube-transcripts`
  * collection (docs/DATA_ECOSYSTEM.md §1).
  *
  * Scales to process multiple channels one by one in a single run.
@@ -46,8 +46,8 @@
  * this pipeline, so no `modelUsed` is ever set on the records it writes.
  *
  * Usage:
- *   node youtubeTranscriptRefresh.js [--channels @SOICfinance,@AnilLamba]
- *     [--channel-handle @AnilLamba] [--channel-id UC...]
+ *   node youtubeTranscriptRefresh.js [--channels @SOICfinance,@AnilLamba,@StockScans]
+ *     [--channel-handle @StockScans] [--channel-id UC...]
  *     [--only ID,ID] [--skip ID,ID] [--force]
  *     [--recheck-no-captions] [--limit N] [--request-delay-ms N]
  *     [--env-file <path>]
@@ -63,7 +63,7 @@
  *   GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET + GOOGLE_REFRESH_TOKEN (fallback —
  *   reuses the Drive OAuth2 credentials, requires youtube.readonly consent) —
  *   one of the two is required.
- *   YOUTUBE_CHANNEL_HANDLES (default SOICfinance,AnilLamba), YOUTUBE_CAPTION_LANG
+ *   YOUTUBE_CHANNEL_HANDLES (default SOICfinance,AnilLamba,StockScans), YOUTUBE_CAPTION_LANG
  *   (default en), YOUTUBE_ALLOW_AUTO_CAPTIONS (default true),
  *   YOUTUBE_REQUEST_DELAY_MS (default 4000), YOUTUBE_MAX_RETRIES (default 4),
  *   YOUTUBE_YTDLP_COOKIES_FROM_BROWSER (unset by default — set to e.g.
@@ -76,7 +76,7 @@ const { loadEnv, hasFlag, argValue } = require('./lib/env');
 
 // ── Config ───────────────────────────────────────────────────────────────────
 
-const DEFAULT_CHANNEL_HANDLES = ['SOICfinance', 'AnilLamba'];
+const DEFAULT_CHANNEL_HANDLES = ['SOICfinance', 'AnilLamba', 'StockScans'];
 
 /**
  * Normalizes a channel handle string or URL into a clean handle (without leading @).

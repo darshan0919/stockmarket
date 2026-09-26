@@ -805,7 +805,10 @@ class StockscansClient {
    *   [5] channelName
    *   [6] companies — `Array<[companyId, companyName, isPrimary:boolean]>`
    */
-  async interviewScan(payload, { referer = `${BASE_URL}/interview-scans`, optionalAuth = false } = {}) {
+  async interviewScan(
+    payload,
+    { referer = `${BASE_URL}/interview-scans`, optionalAuth = false } = {}
+  ) {
     const { data } = await this.http.post(`${BASE_URL}/api/scans/interview/run`, payload, {
       headers: this._headers(referer, optionalAuth),
     });
@@ -834,7 +837,10 @@ class StockscansClient {
    *   secondary-source paraphrase (see rerating-catalysts SKILL.md's
    *   interview-sourcing note).
    */
-  async interviewDetail(videoId, { referer = `${BASE_URL}/interview-scans`, optionalAuth = false } = {}) {
+  async interviewDetail(
+    videoId,
+    { referer = `${BASE_URL}/interview-scans`, optionalAuth = false } = {}
+  ) {
     const { data } = await this.http.post(
       `${BASE_URL}/api/scans/interview/detail`,
       { videoId },

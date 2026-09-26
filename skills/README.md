@@ -109,7 +109,8 @@ skills/
 │   ├── output-dto-standard/         # a written standard, not an invocable skill
 │   ├── ask-soic/                    # lookup & answer tool for SOIC teaching corpus
 │   ├── ask-anil-lamba/              # lookup & answer tool for Dr. Anil Lamba corpus
-│   └── ask-expert/                  # multi-expert orchestrator (Anil Lamba + SOIC)
+│   ├── ask-stockscans/               # lookup & answer tool for StockScans YouTube tutorials
+│   └── ask-expert/                  # multi-expert orchestrator (Anil Lamba + SOIC + StockScans)
 └── development/                     # generic engineering-practice skills (Cursor/Claude Code, not Claude Web)
     ├── api-design/
     ├── api-documentation/

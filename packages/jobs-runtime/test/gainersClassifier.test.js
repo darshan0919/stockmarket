@@ -146,7 +146,8 @@ describe('scanner price signals feed the classifier contract', () => {
     // "1g. 30-day volume / delivered-volume ratios" step) rather than calling
     // the network-bound main() here.
     psAfterMerge.vol_ratio = psAfterMerge.vol_ratio_30d ?? null;
-    psAfterMerge.vol_spike = psAfterMerge.vol_ratio_30d !== null && psAfterMerge.vol_ratio_30d >= 2.0;
+    psAfterMerge.vol_spike =
+      psAfterMerge.vol_ratio_30d !== null && psAfterMerge.vol_ratio_30d >= 2.0;
     expect(psAfterMerge.vol_spike).toBe(true);
     expect(psAfterMerge.vol_ratio).toBe(2.5);
   });

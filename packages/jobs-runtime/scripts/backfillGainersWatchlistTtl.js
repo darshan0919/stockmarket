@@ -64,7 +64,9 @@ async function main() {
   // large limit is simpler and cheap at this volume (a few hundred rows).
   const events = dbV2.find('events', { type: 'gainer', limit: 100000 });
   const inWindow = events.filter((e) => e.date >= cutoff && e.date <= today);
-  log(`[backfill] ${inWindow.length} gainer events in window across ${new Set(inWindow.map((e) => e.date)).size} run-date(s)\n`);
+  log(
+    `[backfill] ${inWindow.length} gainer events in window across ${new Set(inWindow.map((e) => e.date)).size} run-date(s)\n`
+  );
 
   const byCompany = new Map();
   for (const e of inWindow) {

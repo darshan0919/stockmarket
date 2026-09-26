@@ -73,7 +73,14 @@ describe('StockscansClient.interviewScan', () => {
     const http = fakeHttp(SCAN_FIXTURE);
     const client = new StockscansClient({ http });
 
-    const payload = { industry: [], index: [], watchlistIds: [], channelIds: [], q: 'NEPHROPLUS', cursor: '' };
+    const payload = {
+      industry: [],
+      index: [],
+      watchlistIds: [],
+      channelIds: [],
+      q: 'NEPHROPLUS',
+      cursor: '',
+    };
     await client.interviewScan(payload);
 
     expect(http.calls).toHaveLength(1);

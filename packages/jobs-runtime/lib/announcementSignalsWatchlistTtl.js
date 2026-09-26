@@ -87,7 +87,9 @@ async function resolveWatchlistId(client, { log = () => {} } = {}) {
   const { watchlists = [] } = await client.watchlistsList();
   const existing = watchlists.find((w) => w.watchlistName === WATCHLIST_NAME);
   if (existing) return existing.watchlistId;
-  log(`      [announcementSignalsWatchlistTtl] "${WATCHLIST_NAME}" watchlist not found — creating it\n`);
+  log(
+    `      [announcementSignalsWatchlistTtl] "${WATCHLIST_NAME}" watchlist not found — creating it\n`
+  );
   const created = await client.createWatchlist(WATCHLIST_NAME, []);
   return created.watchlistId;
 }

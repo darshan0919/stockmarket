@@ -42,7 +42,10 @@
  * alone — see SKILL.md Phase 3g and the Pitfalls section).
  */
 const db = require('../../../../packages/jobs-runtime/lib/db.js');
-const { computeSignalScore, signalTierFor } = require('../../../../packages/jobs-runtime/lib/thesisCardEmail.js');
+const {
+  computeSignalScore,
+  signalTierFor,
+} = require('../../../../packages/jobs-runtime/lib/thesisCardEmail.js');
 
 const DEFAULT_WINDOW_DAYS = 90;
 
@@ -111,7 +114,8 @@ function main() {
   const volumeRocket = summarizeScanEvents(companyId, 'volume-rocket', since);
   const postClose = summarizePostClose(companyId, since);
 
-  const highSignalAppearances = gainers.actCount + volumeRocket.actCount + postClose.s1Count + postClose.s2Count;
+  const highSignalAppearances =
+    gainers.actCount + volumeRocket.actCount + postClose.s1Count + postClose.s2Count;
 
   const parts = [];
   if (gainers.actCount) parts.push(`${gainers.actCount}x ACT in gainers-signal`);

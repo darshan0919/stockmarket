@@ -7,10 +7,7 @@
   "results": [
     {
       "companyId": "NSE:PAYTM",
-      "fetched": [
-        "Result",
-        "PPT"
-      ],
+      "fetched": ["Result", "PPT"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -45,10 +42,7 @@
     },
     {
       "companyId": "NSE:LAURUSLABS",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -83,10 +77,7 @@
     },
     {
       "companyId": "NSE:MEESHO",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -121,10 +112,7 @@
     },
     {
       "companyId": "NSE:MCX",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -159,10 +147,7 @@
     },
     {
       "companyId": "NSE:APARINDS",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -197,10 +182,7 @@
     },
     {
       "companyId": "NSE:WELCORP",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -235,9 +217,7 @@
     },
     {
       "companyId": "NSE:INDOMIM",
-      "fetched": [
-        "Result"
-      ],
+      "fetched": ["Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -272,10 +252,7 @@
     },
     {
       "companyId": "NSE:APLAPOLLO",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -310,10 +287,7 @@
     },
     {
       "companyId": "NSE:STLTECH",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -348,10 +322,7 @@
     },
     {
       "companyId": "NSE:SYRMA",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -386,10 +357,7 @@
     },
     {
       "companyId": "NSE:ACMESOLAR",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -424,10 +392,7 @@
     },
     {
       "companyId": "NSE:REDINGTON",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -462,10 +427,7 @@
     },
     {
       "companyId": "NSE:URBANCO",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -500,9 +462,7 @@
     },
     {
       "companyId": "NSE:HATSUN",
-      "fetched": [
-        "Result"
-      ],
+      "fetched": ["Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -537,10 +497,7 @@
     },
     {
       "companyId": "NSE:JYOTICNC",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -575,10 +532,7 @@
     },
     {
       "companyId": "NSE:MILKYMIST",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -613,10 +567,7 @@
     },
     {
       "companyId": "NSE:TDPOWERSYS",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -651,10 +602,7 @@
     },
     {
       "companyId": "NSE:FINCABLES",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -689,10 +637,7 @@
     },
     {
       "companyId": "NSE:MTARTECH",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -727,10 +672,7 @@
     },
     {
       "companyId": "NSE:PINELABS",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -765,10 +707,7 @@
     },
     {
       "companyId": "NSE:WELSPUNLIV",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -803,10 +742,7 @@
     },
     {
       "companyId": "NSE:SHILPAMED",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -841,10 +777,7 @@
     },
     {
       "companyId": "NSE:HAPPYFORGE",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -879,10 +812,7 @@
     },
     {
       "companyId": "NSE:RATNAMANI",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -917,10 +847,7 @@
     },
     {
       "companyId": "NSE:SIGMAADV",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -955,10 +882,7 @@
     },
     {
       "companyId": "NSE:ENGINERSIN",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -993,10 +917,7 @@
     },
     {
       "companyId": "NSE:ALIVUS",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1031,10 +952,7 @@
     },
     {
       "companyId": "NSE:AVALON",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1069,10 +987,7 @@
     },
     {
       "companyId": "NSE:TEGA",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1107,10 +1022,7 @@
     },
     {
       "companyId": "NSE:ACE",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1145,10 +1057,7 @@
     },
     {
       "companyId": "NSE:TI",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1183,10 +1092,7 @@
     },
     {
       "companyId": "NSE:PCJEWELLER",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1221,10 +1127,7 @@
     },
     {
       "companyId": "NSE:SUDEEPPHRM",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1259,10 +1162,7 @@
     },
     {
       "companyId": "NSE:E2E",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1297,10 +1197,7 @@
     },
     {
       "companyId": "NSE:RKFORGE",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1335,10 +1232,7 @@
     },
     {
       "companyId": "NSE:KTKBANK",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1373,10 +1267,7 @@
     },
     {
       "companyId": "NSE:BLUESTONE",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1411,10 +1302,7 @@
     },
     {
       "companyId": "NSE:MANYAVAR",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1449,10 +1337,7 @@
     },
     {
       "companyId": "NSE:PVRINOX",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1487,10 +1372,7 @@
     },
     {
       "companyId": "NSE:QPOWER",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1525,10 +1407,7 @@
     },
     {
       "companyId": "NSE:CYIENT",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1563,9 +1442,7 @@
     },
     {
       "companyId": "BSE:ELANTAS",
-      "fetched": [
-        "Result"
-      ],
+      "fetched": ["Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1600,10 +1477,7 @@
     },
     {
       "companyId": "NSE:YATHARTH",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1638,10 +1512,7 @@
     },
     {
       "companyId": "NSE:WELENT",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1676,10 +1547,7 @@
     },
     {
       "companyId": "BSE:ASMTEC",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1714,10 +1582,7 @@
     },
     {
       "companyId": "NSE:SMLMAH",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1752,10 +1617,7 @@
     },
     {
       "companyId": "NSE:MAXESTATES",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1790,10 +1652,7 @@
     },
     {
       "companyId": "NSE:WESTLIFE",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1828,10 +1687,7 @@
     },
     {
       "companyId": "NSE:UNIMECH",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1866,10 +1722,7 @@
     },
     {
       "companyId": "NSE:AARTIPHARM",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1904,10 +1757,7 @@
     },
     {
       "companyId": "NSE:PAISALO",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1942,10 +1792,7 @@
     },
     {
       "companyId": "NSE:AXISCADES",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -1980,10 +1827,7 @@
     },
     {
       "companyId": "NSE:CORDELIA",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2018,10 +1862,7 @@
     },
     {
       "companyId": "NSE:SETL",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2056,10 +1897,7 @@
     },
     {
       "companyId": "NSE:EBGNG",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2094,10 +1932,7 @@
     },
     {
       "companyId": "NSE:SUPRIYA",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2132,10 +1967,7 @@
     },
     {
       "companyId": "NSE:ENTERO",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2170,10 +2002,7 @@
     },
     {
       "companyId": "NSE:RPEL",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2208,10 +2037,7 @@
     },
     {
       "companyId": "NSE:CYIENTDLM",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2246,10 +2072,7 @@
     },
     {
       "companyId": "NSE:MANINDS",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2284,10 +2107,7 @@
     },
     {
       "companyId": "NSE:RAYMOND",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2322,10 +2142,7 @@
     },
     {
       "companyId": "NSE:OPTIEMUS",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2360,9 +2177,7 @@
     },
     {
       "companyId": "NSE:BLISSGVS",
-      "fetched": [
-        "Result"
-      ],
+      "fetched": ["Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2397,10 +2212,7 @@
     },
     {
       "companyId": "NSE:SAPPHIRE",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2435,10 +2247,7 @@
     },
     {
       "companyId": "NSE:INNOVACAP",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2473,10 +2282,7 @@
     },
     {
       "companyId": "BSE:TANFACIND",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2511,10 +2317,7 @@
     },
     {
       "companyId": "BSE:TIMEX",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2549,10 +2352,7 @@
     },
     {
       "companyId": "NSE:MBAPL",
-      "fetched": [
-        "Result",
-        "PPT"
-      ],
+      "fetched": ["Result", "PPT"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2587,10 +2387,7 @@
     },
     {
       "companyId": "NSE:CENTUM",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2625,10 +2422,7 @@
     },
     {
       "companyId": "NSE:AEROFLEX",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2663,10 +2457,7 @@
     },
     {
       "companyId": "NSE:RBA",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2701,10 +2492,7 @@
     },
     {
       "companyId": "NSE:MOREPENLAB",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2739,10 +2527,7 @@
     },
     {
       "companyId": "NSE:SBCL",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2777,10 +2562,7 @@
     },
     {
       "companyId": "NSE:FCL",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2815,10 +2597,7 @@
     },
     {
       "companyId": "NSE:TFCILTD",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2853,10 +2632,7 @@
     },
     {
       "companyId": "NSE:GMMPFAUDLR",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2891,10 +2667,7 @@
     },
     {
       "companyId": "NSE:IOLCP",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2929,10 +2702,7 @@
     },
     {
       "companyId": "NSE:JUSTDIAL",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -2967,10 +2737,7 @@
     },
     {
       "companyId": "NSE:KRISHANA",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,
@@ -3005,10 +2772,7 @@
     },
     {
       "companyId": "NSE:SSWL",
-      "fetched": [
-        "PPT",
-        "Result"
-      ],
+      "fetched": ["PPT", "Result"],
       "fetchSkipped": [],
       "resultTextMeta": {
         "skipped": false,

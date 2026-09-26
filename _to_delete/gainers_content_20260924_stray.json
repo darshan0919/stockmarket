@@ -16,32 +16,21 @@
       "why": {
         "text": "Recently listed (23-Sep-2026) -- today is only its 2nd session. The 20% move and Rs310cr delivery are consistent with normal post-listing price discovery.",
         "basis": "filing",
-        "sources": [
-          "BSE/NSE listing notice, 23-Sep-2026"
-        ]
+        "sources": ["BSE/NSE listing notice, 23-Sep-2026"]
       },
       "linkage": "explained",
-      "tags": [
-        "new_listing"
-      ]
+      "tags": ["new_listing"]
     },
     "NSE:SSRETAIL": {
       "headline": "Fresh listing (23-Sep), day 2 of trading -- price discovery",
-      "thesisChain": [
-        "Listed 23-Sep-2026",
-        "No operating filing since listing"
-      ],
+      "thesisChain": ["Listed 23-Sep-2026", "No operating filing since listing"],
       "why": {
         "text": "Recently listed (23-Sep-2026) -- today is only its 2nd session. No operating filing exists yet.",
         "basis": "filing",
-        "sources": [
-          "BSE listing notice, 23-Sep-2026"
-        ]
+        "sources": ["BSE listing notice, 23-Sep-2026"]
       },
       "linkage": "explained",
-      "tags": [
-        "new_listing"
-      ]
+      "tags": ["new_listing"]
     },
     "NSE:ICICIGI": {
       "headline": "No filing, no fresh catalyst -- Rs138cr delivery is genuinely unexplained",
@@ -68,9 +57,7 @@
       "why": {
         "text": "The only in-window filing is captioned \"Change in Management\" but the document is a Senior General Manager (credit-card vertical) appointment -- a routine mid-level hire, not a leadership change proportionate to a 6% delivery-backed rally.",
         "basis": "classified",
-        "sources": [
-          "BSE filing 18-Sep-2026"
-        ]
+        "sources": ["BSE filing 18-Sep-2026"]
       },
       "linkage": "mismatched",
       "tags": []
@@ -85,9 +72,7 @@
       "why": {
         "text": "No fresh filing this week (only an IR appointment and an investor-conference intimation). The Aug-2026 concall disclosed a Rs8,500cr Parel JDA -- a concrete, large forward number for a Rs4,715cr market-cap company -- a plausible reason for sustained buying.",
         "basis": "concall",
-        "sources": [
-          "Concall 10-Aug-2026"
-        ]
+        "sources": ["Concall 10-Aug-2026"]
       },
       "linkage": "explained",
       "tags": []
@@ -109,10 +94,7 @@
         ]
       },
       "linkage": "explained",
-      "tags": [
-        "capacity",
-        "product_launch"
-      ]
+      "tags": ["capacity", "product_launch"]
     },
     "NSE:RAYMOND": {
       "headline": "Aerospace order + Rs214.7cr warrant issue confirm existing diversification thesis",
@@ -123,10 +105,7 @@
       "why": {
         "text": "A press release on aerospace assemblies confirms the diversification story the Aug concall guided. Combined with a Rs214.7cr preferential warrant issue to a Cat-I FPI -- capital-raise news that supports rather than creates the thesis.",
         "basis": "catalyst",
-        "sources": [
-          "Press release, 23-Sep-2026",
-          "Board outcome, 11-Sep-2026"
-        ]
+        "sources": ["Press release, 23-Sep-2026", "Board outcome, 11-Sep-2026"]
       },
       "epsThesis": {
         "jCurveTag": "MODERATE",
@@ -148,10 +127,7 @@
         "cacheHit": true
       },
       "linkage": "explained",
-      "tags": [
-        "aerospace",
-        "fundraise"
-      ]
+      "tags": ["aerospace", "fundraise"]
     },
     "NSE:SEDEMAC": {
       "headline": "No STRONG filing in 14 days -- genuinely unexplained delivery-backed move",
@@ -184,9 +160,7 @@
       "why": {
         "text": "No filing in the 14-day window. The Aug concall guided the EV subsidiary GEML to EBITDA breakeven within 4-6 quarters -- a specific, if 50-day-old, forward number.",
         "basis": "concall",
-        "sources": [
-          "Concall 05-Aug-2026"
-        ]
+        "sources": ["Concall 05-Aug-2026"]
       },
       "linkage": "explained",
       "tags": []
@@ -207,9 +181,7 @@
     },
     "NSE:DELTACORP": {
       "headline": "Only filing is a routine AGM outcome -- no discoverable trigger",
-      "thesisChain": [
-        "AGM outcome notice, 10-Sep (routine)"
-      ],
+      "thesisChain": ["AGM outcome notice, 10-Sep (routine)"],
       "why": {
         "text": "Only filing in the 14-day window is a routine AGM-outcome notice. No discoverable trigger.",
         "basis": "none",
@@ -220,10 +192,7 @@
     },
     "NSE:KABRAEXTRU": {
       "headline": "Zero filings in 14 days -- pure momentum/streak move",
-      "thesisChain": [
-        "No announcements at all in 14d",
-        "2-day delivery streak, at window high"
-      ],
+      "thesisChain": ["No announcements at all in 14d", "2-day delivery streak, at window high"],
       "why": {
         "text": "No announcements at all in the 14-day window. The 2-day delivery streak and window-high price suggest a technical/momentum move rather than a news trigger.",
         "basis": "none",
@@ -234,9 +203,7 @@
     },
     "BSE:KWICK": {
       "headline": "Only filing is a forward-looking investor-meet notice -- nothing to explain today yet",
-      "thesisChain": [
-        "Investor-meet intimation, today (forward-looking only)"
-      ],
+      "thesisChain": ["Investor-meet intimation, today (forward-looking only)"],
       "why": {
         "text": "Only in-window filing announces a future investor meet -- no content yet, cannot explain today's move. Delivery is a striking 56.7% of volume on a small float.",
         "basis": "none",

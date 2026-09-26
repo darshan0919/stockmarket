@@ -44,17 +44,17 @@ Exporting paths derived from fragile `find`s is what previously scattered
 
 ## Run order
 
-| Step | What                                       | Where it's documented                    |
-| ---- | ------------------------------------------ | ---------------------------------------- |
-| 1    | `node "$SCAN"`                             | shared §Step 1 (+ scan specifics below)  |
+| Step | What                                       | Where it's documented                      |
+| ---- | ------------------------------------------ | ------------------------------------------ |
+| 1    | `node "$SCAN"`                             | shared §Step 1 (+ scan specifics below)    |
 | 1b   | `yarn gainers-watchlist-ttl-sync`          | below — "Daily Gainers" watchlist TTL sync |
-| 2    | `node "$RUNTIME/lib/gainersClassifier.js"` | shared §Step 2                           |
-| 3    | read the research seed                     | shared §Step 3                           |
-| 4    | top-20 trigger research                    | shared §Step 4 (+ DTO shape below)       |
-| 5    | **EPS briefs for the top 10**              | shared §Step 6 — run this BEFORE the WHY |
-| 6    | WHY resolution ladder                      | shared §Step 5                           |
-| 7    | compose content overlay, send              | shared §Step 7 (+ labels below)          |
-| 8    | `yarn data:push`                           | shared §Step 8                           |
+| 2    | `node "$RUNTIME/lib/gainersClassifier.js"` | shared §Step 2                             |
+| 3    | read the research seed                     | shared §Step 3                             |
+| 4    | top-20 trigger research                    | shared §Step 4 (+ DTO shape below)         |
+| 5    | **EPS briefs for the top 10**              | shared §Step 6 — run this BEFORE the WHY   |
+| 6    | WHY resolution ladder                      | shared §Step 5                             |
+| 7    | compose content overlay, send              | shared §Step 7 (+ labels below)            |
+| 8    | `yarn data:push`                           | shared §Step 8                             |
 
 Steps 5 and 6 are numbered in the order you RUN them, not the order the shared
 doc lists them: rung 3 of the WHY ladder reads the EPS briefs, so the briefs

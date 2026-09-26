@@ -52,7 +52,9 @@ async function main() {
   // the path isn't sharded, so it's correct for both layouts.
   const raw = StorageService.readJson(jsonPath);
   if (!raw) {
-    log(`[gainers-watchlist-ttl-sync] could not read ${jsonPath} (resolved: ${rawPath}): not found\n`);
+    log(
+      `[gainers-watchlist-ttl-sync] could not read ${jsonPath} (resolved: ${rawPath}): not found\n`
+    );
     log('[gainers-watchlist-ttl-sync] run gainersScanner.js first — nothing to sync.\n');
     process.exitCode = 1;
     return;

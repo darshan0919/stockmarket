@@ -625,7 +625,20 @@ describe('fetchVolumeDeliveryRatios30d', () => {
       const d = new Date('2026-09-21T00:00:00Z');
       d.setUTCDate(d.getUTCDate() - i);
       const dd = String(d.getUTCDate()).padStart(2, '0');
-      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
       const dateStr = `${dd}-${months[d.getUTCMonth()]}-${d.getUTCFullYear()}`;
       const vol = i === 40 ? 99999 : 10; // outlier only on the 40th-prior day (outside the 30-window)
       rows.push(mkRow(dateStr, vol, vol / 2));

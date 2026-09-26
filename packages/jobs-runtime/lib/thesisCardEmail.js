@@ -1321,11 +1321,7 @@ function scanMetricsHtml(it) {
     cell('Deliv Val', fmtCr(it.delivery_value_cr)) +
     cell('Deliv/Mcap', dvPct == null ? '—' : `${dvPct.toFixed(2)}%`, dvPctColor) +
     cell('Vol/30dMed', fmtRatio(it.vol_ratio_30d), ratioColor(it.vol_ratio_30d)) +
-    cell(
-      'DelVol/30dMed',
-      fmtRatio(it.deliv_vol_ratio_30d),
-      ratioColor(it.deliv_vol_ratio_30d)
-    ) +
+    cell('DelVol/30dMed', fmtRatio(it.deliv_vol_ratio_30d), ratioColor(it.deliv_vol_ratio_30d)) +
     streakCell +
     `</div>`
   );

@@ -1084,7 +1084,9 @@ async function cmdSendDigest(argv) {
     try {
       ratiosByCompany = await fetchMarketCapAndPE(companyIdsNeedingRatios, stockscans);
     } catch (e) {
-      process.stderr.write(`[WARN] fetchMarketCapAndPE failed, cards will show "—": ${e.message}\n`);
+      process.stderr.write(
+        `[WARN] fetchMarketCapAndPE failed, cards will show "—": ${e.message}\n`
+      );
     }
   }
   const insights = merged0.map((it) => {

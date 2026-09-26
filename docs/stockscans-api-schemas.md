@@ -352,14 +352,14 @@ confirmed path.
 Each row is a **positional array of 7 elements**:
 
 | Index | Field         | Notes                                                              |
-| ----- | ------------- | ------------------------------------------------------------------- |
-| 0     | `videoId`     | YouTube video id — the key for `interviewDetail`                    |
-| 1     | title         |                                                                     |
+| ----- | ------------- | ------------------------------------------------------------------ |
+| 0     | `videoId`     | YouTube video id — the key for `interviewDetail`                   |
+| 1     | title         |                                                                    |
 | 2     | `publishedAt` | ISO datetime with `+05:30` offset — the recency field to filter on |
-| 3     | duration      | seconds                                                             |
-| 4     | embeddable    | boolean                                                             |
-| 5     | channelName   |                                                                     |
-| 6     | companies     | `Array<[companyId, companyName, isPrimary:boolean]>`                |
+| 3     | duration      | seconds                                                            |
+| 4     | embeddable    | boolean                                                            |
+| 5     | channelName   |                                                                    |
+| 6     | companies     | `Array<[companyId, companyName, isPrimary:boolean]>`               |
 
 `next` is an **opaque cursor** (confirmed `null` when a query is fully
 satisfied in one page — the user-supplied 9-row sample had `next: null` with

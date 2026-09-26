@@ -12,6 +12,7 @@ class TestSearchExpert(unittest.TestCase):
     def test_search_expert_modules_loaded(self):
         self.assertIsNotNone(search_expert.search_soic)
         self.assertIsNotNone(search_expert.search_anil_lamba)
+        self.assertIsNotNone(search_expert.search_stockscans)
 
     def test_search_expert_data_fetch(self):
         data_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../data"))
@@ -27,6 +28,10 @@ class TestSearchExpert(unittest.TestCase):
         soic_hits = search_expert.search_soic_corpus(data_root, "multibagger", top_n=2, force_reindex=False)
         self.assertTrue(len(soic_hits) > 0)
         self.assertEqual(soic_hits[0]["expert"], "soic")
+
+        # Test StockScans search (returns list, empty until transcripts fetched or matching mock)
+        stockscans_hits = search_expert.search_stockscans_corpus(data_root, "concall", top_n=2, force_reindex=False)
+        self.assertIsInstance(stockscans_hits, list)
 
 
 if __name__ == "__main__":

@@ -154,9 +154,7 @@ async function fetchManagementInterviews(companyId, opts = {}) {
     const cacheHit = Boolean(cached);
     if (!cached) {
       const detail = await stockscans.interviewDetail(videoId, {});
-      const entry = (detail.takeaways || []).find(
-        ([cid]) => sanitizeCompanyId(cid) === target
-      );
+      const entry = (detail.takeaways || []).find(([cid]) => sanitizeCompanyId(cid) === target);
       cached = {
         title: (detail.video && detail.video.title) || title,
         channelName: (detail.video && detail.video.channelName) || channelName,

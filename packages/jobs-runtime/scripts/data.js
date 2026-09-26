@@ -495,7 +495,11 @@ function checkStorageStrategyThresholds(root) {
       } else if (e.isFile()) {
         // Exclude one-off research seeds and search index caches
         if (relPath.includes('_research_seed_')) continue;
-        if (relPath.startsWith('cache/ask-soic/') || relPath.startsWith('cache/ask-anil-lamba/'))
+        if (
+          relPath.startsWith('cache/ask-soic/') ||
+          relPath.startsWith('cache/ask-anil-lamba/') ||
+          relPath.startsWith('cache/ask-stockscans/')
+        )
           continue;
         if (relPath.endsWith('.json') || relPath.endsWith('.jsonl')) {
           const stats = fs.statSync(fullPath);

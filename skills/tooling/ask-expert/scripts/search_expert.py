@@ -2,13 +2,13 @@
 """
 search_expert.py — Multi-expert extraction pass for the ask-expert skill.
 
-Orchestrates searches across both Dr. Anil Lamba's corporate finance corpus and
-SOIC's public market equity investing corpus.
+Orchestrates searches across Dr. Anil Lamba's corporate finance corpus,
+SOIC's public market equity investing corpus, and StockScans' platform workflows corpus.
 
 CLI Options:
     --query "<question>"
     --data-root <path-to-data>
-    --expert auto|both|anil-lamba|soic (default: auto)
+    --expert auto|all|both|anil-lamba|soic|stockscans (default: auto)
     --top <int> (default: 6 per expert)
     --reindex
 
@@ -38,6 +38,7 @@ def load_module(module_name, rel_path):
 
 search_soic = load_module("search_soic", "skills/tooling/ask-soic/scripts/search_soic.py")
 search_anil_lamba = load_module("search_anil_lamba", "skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py")
+search_stockscans = load_module("search_stockscans", "skills/tooling/ask-stockscans/scripts/search_stockscans.py")
 
 
 def search_lamba_corpus(data_root, query, top_n, force_reindex):
@@ -171,13 +172,73 @@ def search_soic_corpus(data_root, query, top_n, force_reindex):
     return results
 
 
+def search_stockscans_corpus(data_root, query, top_n, force_reindex):
+    youtube_index_path = os.path.join(data_root, "youtube-transcripts.json")
+    if not os.path.exists(youtube_index_path):
+        return []
+
+    all_youtube_index = search_stockscans.load_json(youtube_index_path)
+    stockscans_index = search_stockscans.filter_stockscans_index(all_youtube_index)
+    if not stockscans_index:
+        return []
+
+    cache_path = os.path.join(data_root, "cache", "ask-stockscans", "index.json")
+    index = search_stockscans.load_or_build_index(data_root, cache_path, stockscans_index, force_reindex)
+
+    query_tokens = search_stockscans.tokenize(query)
+    if not query_tokens:
+        return []
+
+    top_scores = search_stockscans.score_docs(index, query_tokens, top_n)
+    results = []
+    for score, doc_id in top_scores:
+        doc = index["docs"][doc_id]
+        meta = doc["meta"]
+        timestamped, plain = search_stockscans.load_body_for_excerpt(data_root, doc_id)
+        ts, excerpt = search_stockscans.best_excerpt(timestamped, plain, query_tokens)
+
+        citation = f"StockScans YouTube · {meta.get('title')}"
+        vid = meta.get("videoId")
+        url = f"https://www.youtube.com/watch?v={vid}" if vid else None
+        if url and ts:
+            try:
+                parts = [int(p) for p in ts.split(":")]
+                if len(parts) == 3:
+                    h, m, s = parts
+                    sec = h * 3600 + m * 60 + s
+                elif len(parts) == 2:
+                    m, s = parts
+                    sec = m * 60 + s
+                else:
+                    sec = parts[0]
+                url += f"&t={sec}s"
+            except (ValueError, TypeError):
+                pass
+
+        results.append(
+            {
+                "id": doc_id,
+                "expert": "stockscans",
+                "source": "youtube",
+                "score": round(score, 3),
+                "title": meta.get("title"),
+                "collection": meta.get("collection"),
+                "citation": citation,
+                "url": url,
+                "timestamp": ts,
+                "excerpt": excerpt,
+            }
+        )
+    return results
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data-root", required=True, help="path to <repo>/data")
     ap.add_argument("--query", required=True, help="free-text query")
     ap.add_argument(
         "--expert",
-        choices=["auto", "both", "anil-lamba", "soic"],
+        choices=["auto", "all", "both", "anil-lamba", "soic", "stockscans"],
         default="auto",
         help="which expert(s) to query (default: auto)",
     )
@@ -187,29 +248,60 @@ def main():
 
     lamba_results = []
     soic_results = []
+    stockscans_results = []
 
-    if args.expert in ("both", "anil-lamba", "auto"):
+    if args.expert in ("all", "both", "anil-lamba", "auto"):
         lamba_results = search_lamba_corpus(args.data_root, args.query, args.top, args.reindex)
 
-    if args.expert in ("both", "soic", "auto"):
+    if args.expert in ("all", "both", "soic", "auto"):
         soic_results = search_soic_corpus(args.data_root, args.query, args.top, args.reindex)
 
-    # In 'auto' mode, determine whether to return both or just the relevant one
+    if args.expert in ("all", "both", "stockscans", "auto"):
+        stockscans_results = search_stockscans_corpus(args.data_root, args.query, args.top, args.reindex)
+
+    # In 'auto' mode, determine whether to return multiple or just the relevant one
     mode = args.expert
     if args.expert == "auto":
-        has_lamba = len(lamba_results) > 0 and (lamba_results[0]["score"] >= 3.0 or len(soic_results) == 0)
-        has_soic = len(soic_results) > 0 and (soic_results[0]["score"] >= 3.0 or len(lamba_results) == 0)
+        has_lamba = len(lamba_results) > 0 and lamba_results[0]["score"] >= 3.0
+        has_soic = len(soic_results) > 0 and soic_results[0]["score"] >= 3.0
+        has_stockscans = len(stockscans_results) > 0 and stockscans_results[0]["score"] >= 3.0
 
-        if has_lamba and has_soic:
-            mode = "both"
-        elif has_lamba:
-            mode = "anil-lamba"
-            soic_results = []
-        elif has_soic:
-            mode = "soic"
-            lamba_results = []
+        active = []
+        if has_lamba:
+            active.append("anil-lamba")
+        if has_soic:
+            active.append("soic")
+        if has_stockscans:
+            active.append("stockscans")
+
+        if len(active) >= 2:
+            mode = "both" if len(active) == 2 else "all"
+        elif len(active) == 1:
+            mode = active[0]
+            if mode != "anil-lamba":
+                lamba_results = []
+            if mode != "soic":
+                soic_results = []
+            if mode != "stockscans":
+                stockscans_results = []
         else:
-            mode = "none"
+            candidates = [
+                ("anil-lamba", lamba_results),
+                ("soic", soic_results),
+                ("stockscans", stockscans_results),
+            ]
+            non_empty = [c for c in candidates if len(c[1]) > 0]
+            if non_empty:
+                best_expert, _ = max(non_empty, key=lambda c: c[1][0]["score"])
+                mode = best_expert
+                if mode != "anil-lamba":
+                    lamba_results = []
+                if mode != "soic":
+                    soic_results = []
+                if mode != "stockscans":
+                    stockscans_results = []
+            else:
+                mode = "none"
 
     output = {
         "query": args.query,
@@ -224,6 +316,11 @@ def main():
                 "count": len(soic_results),
                 "topScore": soic_results[0]["score"] if soic_results else 0.0,
                 "results": soic_results,
+            },
+            "stockscans": {
+                "count": len(stockscans_results),
+                "topScore": stockscans_results[0]["score"] if stockscans_results else 0.0,
+                "results": stockscans_results,
             },
         },
     }

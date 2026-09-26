@@ -715,10 +715,13 @@ async function fetchMarketCapAndPE(companyIds, client = stockscans) {
       const peVal = peIdx >= 0 ? row[peIdx] : null;
       result[cid] = {
         marketCapCr:
-          mcapVal === null || mcapVal === undefined || mcapVal === '' ? null : toFloat(mcapVal, null),
-        peRatio: peVal === null || peVal === undefined || peVal === '' || peVal === '-'
-          ? null
-          : toFloat(peVal, null),
+          mcapVal === null || mcapVal === undefined || mcapVal === ''
+            ? null
+            : toFloat(mcapVal, null),
+        peRatio:
+          peVal === null || peVal === undefined || peVal === '' || peVal === '-'
+            ? null
+            : toFloat(peVal, null),
       };
     }
   } catch (e) {
@@ -887,7 +890,8 @@ async function fetchVolumeDeliveryRatios30d(ticker, marketDate, client = nse) {
 
     return {
       vol_ratio_30d: medVol && todayVol != null ? roundTo(todayVol / medVol, 2) : null,
-      deliv_vol_ratio_30d: medDeliv && todayDeliv != null ? roundTo(todayDeliv / medDeliv, 2) : null,
+      deliv_vol_ratio_30d:
+        medDeliv && todayDeliv != null ? roundTo(todayDeliv / medDeliv, 2) : null,
       history_days: priorRows30.length,
       available: true,
     };

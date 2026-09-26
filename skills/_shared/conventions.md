@@ -327,83 +327,83 @@ usage`'s CLI accepts `--duration-ms`, and `track_invocation.py`
     absent for a caller that doesn't measure it — this is additive, not a
     new requirement on every SKILL.md.
 
-                                                            - **Extraction-cache hit/miss.** `lib/cacheUsageCounter.js` /
-                                                              `lib/cacheUsageTracker.js` (`type: cache_usage_summary`, `byCache:
+                                                                - **Extraction-cache hit/miss.** `lib/cacheUsageCounter.js` /
+                                                                  `lib/cacheUsageTracker.js` (`type: cache_usage_summary`, `byCache:
 
-                                                        {name: {hits, misses, hitRate}}`). Instrumented at
-                                                          `lib/resolveFilingContent.js`— the actual "check before you fetch"
-                                                          choke point every document-touching skill calls first, NOT
-                                                         `docExtracts.get()`directly, because`resolveFilingContent()` is what
-                                                          consumers actually call. Four outcomes are recorded, and a Tier-1
-                                                          stale-schema miss (`extract-cache-stale-schema`) is deliberately kept
-                                                          SEPARATE from a plain Tier-1 miss (`extract-cache`, hit: false) — the
-                                                        extraction work already happened for a stale-schema record, it just
-                                                        needs a version-bumped re-run, which is a materially cheaper fix than
-                                                        "this document was never processed" and would be hidden by lumping
-                                                        the two together.
+                                                            {name: {hits, misses, hitRate}}`). Instrumented at
+                                                              `lib/resolveFilingContent.js`— the actual "check before you fetch"
+                                                              choke point every document-touching skill calls first, NOT
+                                                             `docExtracts.get()`directly, because`resolveFilingContent()` is what
+                                                              consumers actually call. Four outcomes are recorded, and a Tier-1
+                                                              stale-schema miss (`extract-cache-stale-schema`) is deliberately kept
+                                                              SEPARATE from a plain Tier-1 miss (`extract-cache`, hit: false) — the
+                                                            extraction work already happened for a stale-schema record, it just
+                                                            needs a version-bumped re-run, which is a materially cheaper fix than
+                                                            "this document was never processed" and would be hidden by lumping
+                                                            the two together.
 
-                                                            - **Email delivery outcome.** `deliveryUsageCounter.js` lives in
-                                                              `cloud-utils` (not `jobs-runtime`), mirroring where `emailService.js`
-                                                              itself lives — `cloud-utils` has no dependency on `jobs-runtime`, so a
-                                                              counter needed by code inside it can't live in the package that
-                                                              depends on it. `lib/deliveryUsageTracker.js` (jobs-runtime-side, since
-                                                              `db.js` persistence is jobs-runtime-only) wraps it and flushes `type:
+                                                                - **Email delivery outcome.** `deliveryUsageCounter.js` lives in
+                                                                  `cloud-utils` (not `jobs-runtime`), mirroring where `emailService.js`
+                                                                  itself lives — `cloud-utils` has no dependency on `jobs-runtime`, so a
+                                                                  counter needed by code inside it can't live in the package that
+                                                                  depends on it. `lib/deliveryUsageTracker.js` (jobs-runtime-side, since
+                                                                  `db.js` persistence is jobs-runtime-only) wraps it and flushes `type:
 
-                                                        delivery_summary` (`sent`, `skipped`, `error`, `total`,
-                                                          `bySkipReason`). Instrumented at all four return paths of
-                                                          `sendHtmlEmail()`in`cloud-utils/src/emailService.js`— a job whose
-                                                          digest silently stopped landing in an inbox (bad`GOOGLE_APP_PASSWORD`,
-                                                        an SMTP error) is otherwise invisible; this makes the failure a number
-                                                        that accumulates instead of a support ticket days later.
+                                                            delivery_summary` (`sent`, `skipped`, `error`, `total`,
+                                                              `bySkipReason`). Instrumented at all four return paths of
+                                                              `sendHtmlEmail()`in`cloud-utils/src/emailService.js`— a job whose
+                                                              digest silently stopped landing in an inbox (bad`GOOGLE_APP_PASSWORD`,
+                                                            an SMTP error) is otherwise invisible; this makes the failure a number
+                                                            that accumulates instead of a support ticket days later.
 
-                                                            - **Extraction-quality time series.** `lib/extractionQualityCounter.js` /
-                                                              `lib/extractionQualityTracker.js` (`type: calibration_summary`,
-                                                              `source: 'production-writes'` — deliberately the same event-type name
-                                                              the manual `preprocessCalibrate.js cmdScore` gate already uses, since
-                                                              both answer "is this profile's extraction trustworthy right now," just
-                                                              from different inputs: one from every real production write, one from
-                                                              an occasional hand-curated reference run). Instrumented at
-                                                              `docExtracts.js`'s `put()`, not at the manual calibration script,
-                                                              because `put()` runs on every real write while the manual gate only
-                                                              runs when someone remembers to invoke it — a live signal beats a
-                                                              periodic spot-check for catching drift as it happens. Tracks pass /
-                                                              reject_fail / reject_truncated_source / confidence_high /
-                                                              confidence_low counts per profile. This is the direct, permanent fix
-                                                              for the failure mode the `preprocessing-truncation-bug` project memory
-                                                              describes: an 8000-char truncation cap silently starved 42 heavy-doc
-                                                              extracts for weeks while every one still passed L1 verification
-                                                              (L1 verifies quotes against the cached, already-truncated text, not
-                                                              the source document) — a rising `reject_truncated_source` or falling
-                                                              `confidence_high` rate now shows up in the weekly numbers instead of
-                                                              being discovered by accident.
+                                                                - **Extraction-quality time series.** `lib/extractionQualityCounter.js` /
+                                                                  `lib/extractionQualityTracker.js` (`type: calibration_summary`,
+                                                                  `source: 'production-writes'` — deliberately the same event-type name
+                                                                  the manual `preprocessCalibrate.js cmdScore` gate already uses, since
+                                                                  both answer "is this profile's extraction trustworthy right now," just
+                                                                  from different inputs: one from every real production write, one from
+                                                                  an occasional hand-curated reference run). Instrumented at
+                                                                  `docExtracts.js`'s `put()`, not at the manual calibration script,
+                                                                  because `put()` runs on every real write while the manual gate only
+                                                                  runs when someone remembers to invoke it — a live signal beats a
+                                                                  periodic spot-check for catching drift as it happens. Tracks pass /
+                                                                  reject_fail / reject_truncated_source / confidence_high /
+                                                                  confidence_low counts per profile. This is the direct, permanent fix
+                                                                  for the failure mode the `preprocessing-truncation-bug` project memory
+                                                                  describes: an 8000-char truncation cap silently starved 42 heavy-doc
+                                                                  extracts for weeks while every one still passed L1 verification
+                                                                  (L1 verifies quotes against the cached, already-truncated text, not
+                                                                  the source document) — a rising `reject_truncated_source` or falling
+                                                                  `confidence_high` rate now shows up in the weekly numbers instead of
+                                                                  being discovered by accident.
 
-                                                            - **Cursor staleness.** `packages/jobs-runtime/cursorHealth.js` (`yarn
+                                                                - **Cursor staleness.** `packages/jobs-runtime/cursorHealth.js` (`yarn
 
-                                                        cursor-health`, or `yarn workspace @stock/jobs-runtime cursor-health`      from the repo root) is a standalone check, NOT an`events`-collection
-                                                          metric — it reads `data/cache/_-cursor_.json`directly (the
-                                                         `windowCursor.js`files themselves already carry`lastCommittedAtMs`)
-                                                          and compares each job's last-committed time against an expected
-                                                          cadence. There is no machine-readable cron schedule anywhere in this
-                                                          repo — cadence is documented only as prose under each Scheduled job's
-                                                          "## Cadence" heading — so `CURSOR_CADENCE_HOURS`in that script is an
-                                                          explicit, hand-maintained map sourced from that prose, not a parser of
-                                                          it. **Update it the same day a job's cadence section changes** — same
-                                                          discipline this repo already asks for with`PROFILE_SCHEMA_VERSIONS`      in`docExtracts.js`. A cursor with no entry is reported as `unmapped`      (a coverage gap in the script itself), never silently treated as
-                                                          passing. It also flags a`-pending-window`marker left uncommitted for
-                                                          more than 24h —`savePendingWindow`without a following
-                                                         `commitWindow` means a run started and never finished healthily,
-                                                        which is invisible from the cursor file alone (the cursor still shows
-                                                        the last SUCCESSFUL commit, not that the most recent run got stuck).
-                                                        Exits non-zero on any stale/unreadable cursor or uncommitted pending
-                                                        window, so it can be wired into a scheduled health-check job the same
-                                                        way any other CLI script in this repo is.
+                                                            cursor-health`, or `yarn workspace @stock/jobs-runtime cursor-health`      from the repo root) is a standalone check, NOT an`events`-collection
+                                                              metric — it reads `data/cache/_-cursor_.json`directly (the
+                                                             `windowCursor.js`files themselves already carry`lastCommittedAtMs`)
+                                                              and compares each job's last-committed time against an expected
+                                                              cadence. There is no machine-readable cron schedule anywhere in this
+                                                              repo — cadence is documented only as prose under each Scheduled job's
+                                                              "## Cadence" heading — so `CURSOR_CADENCE_HOURS`in that script is an
+                                                              explicit, hand-maintained map sourced from that prose, not a parser of
+                                                              it. **Update it the same day a job's cadence section changes** — same
+                                                              discipline this repo already asks for with`PROFILE_SCHEMA_VERSIONS`      in`docExtracts.js`. A cursor with no entry is reported as `unmapped`      (a coverage gap in the script itself), never silently treated as
+                                                              passing. It also flags a`-pending-window`marker left uncommitted for
+                                                              more than 24h —`savePendingWindow`without a following
+                                                             `commitWindow` means a run started and never finished healthily,
+                                                            which is invisible from the cursor file alone (the cursor still shows
+                                                            the last SUCCESSFUL commit, not that the most recent run got stuck).
+                                                            Exits non-zero on any stale/unreadable cursor or uncommitted pending
+                                                            window, so it can be wired into a scheduled health-check job the same
+                                                            way any other CLI script in this repo is.
 
-                                                            All five pieces (duration, cache hit/miss, delivery outcome, extraction
-                                                            quality, cursor staleness) were built with the same rigor as §23/§24:
-                                                            unit tests for each counter and tracker, wiring tests at the actual
-                                                            instrumentation choke point (`resolveFilingContent.js`, `emailService.js`,
-                                                            `docExtracts.js`), and a full-suite regression run after each change —
-                                                            not just "it compiled."
+                                                                All five pieces (duration, cache hit/miss, delivery outcome, extraction
+                                                                quality, cursor staleness) were built with the same rigor as §23/§24:
+                                                                unit tests for each counter and tracker, wiring tests at the actual
+                                                                instrumentation choke point (`resolveFilingContent.js`, `emailService.js`,
+                                                                `docExtracts.js`), and a full-suite regression run after each change —
+                                                                not just "it compiled."
 
 26. **Platform-reuse-first: this repo is a wrapper, not a re-implementation.**
     Think of this whole codebase as a proprietary layer on top of a small set

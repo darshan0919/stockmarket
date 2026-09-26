@@ -166,7 +166,7 @@ until now — this section closes that gap per conventions §13.
   - `COP_DELIV_QTY` — delivered quantity (shares) for the day. Source for
     `deliv_vol_ratio_30d`.
   - `COP_DELIV_PERC` — delivery % for the day (redundant with `COP_DELIV_QTY /
-    CH_TOT_TRADED_QTY`, kept by NSE for convenience; not currently consumed
+CH_TOT_TRADED_QTY`, kept by NSE for convenience; not currently consumed
     since the scanner already derives delivery % from the live same-day NSE/BSE
     delivery endpoints).
   - `CH_CLOSING_PRICE`, `CH_OPENING_PRICE`, `CH_TRADE_HIGH_PRICE`,

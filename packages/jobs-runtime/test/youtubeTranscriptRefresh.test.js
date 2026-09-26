@@ -86,6 +86,7 @@ describe('youtubeTranscriptRefresh', () => {
       expect(ytr.normalizeChannelHandle('SOICfinance')).toBe('SOICfinance');
       expect(ytr.normalizeChannelHandle('@SOICfinance')).toBe('SOICfinance');
       expect(ytr.normalizeChannelHandle('https://www.youtube.com/@AnilLamba')).toBe('AnilLamba');
+      expect(ytr.normalizeChannelHandle('https://www.youtube.com/@StockScans')).toBe('StockScans');
       expect(ytr.normalizeChannelHandle('https://youtube.com/@AnilLamba/videos')).toBe('AnilLamba');
       expect(ytr.normalizeChannelHandle('https://www.youtube.com/c/AnilLamba')).toBe('AnilLamba');
       expect(ytr.normalizeChannelHandle('')).toBe('');
@@ -105,9 +106,9 @@ describe('youtubeTranscriptRefresh', () => {
       process.env = origEnv;
     });
 
-    test('defaults channelHandles to SOICfinance and AnilLamba', () => {
+    test('defaults channelHandles to SOICfinance, AnilLamba, and StockScans', () => {
       const cfg = ytr.loadConfig();
-      expect(cfg.channelHandles).toEqual(['SOICfinance', 'AnilLamba']);
+      expect(cfg.channelHandles).toEqual(['SOICfinance', 'AnilLamba', 'StockScans']);
       expect(cfg.channelHandle).toBe('SOICfinance');
     });
 

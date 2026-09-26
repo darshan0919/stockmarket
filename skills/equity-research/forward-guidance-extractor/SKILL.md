@@ -138,8 +138,9 @@ Three cases:
 
 ```js
 async function retryOnce(fn) {
-  try { return await fn(); }
-  catch (e) {
+  try {
+    return await fn();
+  } catch (e) {
     // concallNotes/growthCatalysts occasionally return a transient bare
     // 401 {} that clears on an unmodified retry within ~1.5s -- see
     // StockscansClient.js's doc comments on both methods. Not a real auth
@@ -200,12 +201,12 @@ the schema documented at the top of `scripts/compute_guidance_value.py`
 Cover the same metric groups as before:
 
 | Category      | Metrics                                                                        |
-| ------------- | ------------------------------------------------------------------------------- |
-| Top Line      | Revenue / Sales / Volume                                                        |
-| Margins       | EBITDA margin, Gross Profit margin, Operating Profit margin, Net Profit margin  |
-| Bottom Line   | PAT, EPS                                                                        |
-| Balance Sheet | Debt, Depreciation, Tax, Cash flow                                              |
-| Key Metrics   | Capacity, Utilisation, Order Book, ROCE, ROE, ROA                               |
+| ------------- | ------------------------------------------------------------------------------ |
+| Top Line      | Revenue / Sales / Volume                                                       |
+| Margins       | EBITDA margin, Gross Profit margin, Operating Profit margin, Net Profit margin |
+| Bottom Line   | PAT, EPS                                                                       |
+| Balance Sheet | Debt, Depreciation, Tax, Cash flow                                             |
+| Key Metrics   | Capacity, Utilisation, Order Book, ROCE, ROE, ROA                              |
 
 **Zero-assumption rule -- unchanged, still the whole point of the skill:**
 
@@ -218,7 +219,7 @@ Cover the same metric groups as before:
   `Guidance & Commitments`/`Key Metrics`, or to inform `pead-surprise-ranker`'s
   later `evidence` field — never to originate a new guidance row by itself.
 - `source` is now `"ConcallNotes"` (replaces the old `"Transcript"|"PPT"|
-  "Result"` values, since this skill no longer distinguishes those — Stockscans'
+"Result"` values, since this skill no longer distinguishes those — Stockscans'
   synthesis already merged whichever documents it drew from).
 - Range handling unchanged: "26%-30%" -> `relative_pct: 28` (midpoint), full
   range preserved verbatim in `quote`.
@@ -242,7 +243,8 @@ Before computing/persisting, look up the company's MOST RECENT prior
 
 ```js
 const db = require('packages/jobs-runtime/lib/db.js');
-const prior = db.find('reports', { type: 'forward-guidance', companyId })
+const prior = db
+  .find('reports', { type: 'forward-guidance', companyId })
   .filter((r) => r.quarter !== thisQuarter)
   .sort((a, b) => b.date.localeCompare(a.date))[0];
 ```

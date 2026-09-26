@@ -86,7 +86,9 @@ async function processCompany(companyId) {
       ocrFailed: pptTextMeta.ocrFailed || false,
     };
 
-    const resultText = resultTextMeta.written ? fs.readFileSync(resultTextMeta.written, 'utf8') : '';
+    const resultText = resultTextMeta.written
+      ? fs.readFileSync(resultTextMeta.written, 'utf8')
+      : '';
     const pptText = pptTextMeta.written ? fs.readFileSync(pptTextMeta.written, 'utf8') : '';
 
     const is = extractIncomeStatement({ resultText, pptText });
@@ -190,7 +192,9 @@ async function main() {
   let processedThisRun = 0;
   for (let i = 0; i < ids.length; i++) {
     if (Date.now() - START_TS > TIME_BUDGET_MS) {
-      log(`time budget (${TIME_BUDGET_MS}ms) reached — stopping for this invocation, ${results.length}/${ids.length} done so far`);
+      log(
+        `time budget (${TIME_BUDGET_MS}ms) reached — stopping for this invocation, ${results.length}/${ids.length} done so far`
+      );
       break;
     }
     const companyId = ids[i];

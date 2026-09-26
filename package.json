@@ -92,6 +92,7 @@
     "monthly-updates": "yarn workspace @stock/jobs-runtime monthly-updates",
     "ask-soic:search": "python3 skills/tooling/ask-soic/scripts/search_soic.py",
     "ask-anil-lamba:search": "python3 skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py",
+    "ask-stockscans:search": "python3 skills/tooling/ask-stockscans/scripts/search_stockscans.py",
     "ask-expert:search": "python3 skills/tooling/ask-expert/scripts/search_expert.py",
     "delivery-volume-snapshot": "yarn workspace @stock/jobs delivery-volume-snapshot",
     "delivery-volume-report": "yarn workspace @stock/jobs delivery-volume-report",

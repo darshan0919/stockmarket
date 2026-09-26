@@ -117,10 +117,7 @@ const REVENUE_LINE_RE_SRC =
 // header lines) -- inside the old 400-char budget the anchor simply never
 // fired, even though both structural elements were present and correctly
 // ordered.
-const IS_HEADING_ANCHOR = new RegExp(
-  `particulars[\\s\\S]{0,800}?(?:${REVENUE_LINE_RE_SRC})`,
-  'i'
-);
+const IS_HEADING_ANCHOR = new RegExp(`particulars[\\s\\S]{0,800}?(?:${REVENUE_LINE_RE_SRC})`, 'i');
 
 // Title-wording fallbacks, tried only if the anchor above finds nothing at
 // all (e.g. "Particulars" and the revenue line further apart than 800

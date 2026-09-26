@@ -66,7 +66,9 @@ async function main() {
   const cutoff = toDateStr(new Date(Date.now() - lookbackDays * 86400000));
 
   log(`[backfill] window: ${cutoff} .. ${today} (${lookbackDays} calendar days back)\n`);
-  log(`[backfill] qualifying bar: signalScore > ${SIGNAL_SCORE_THRESHOLD} (card shows "> 6.0/10")\n`);
+  log(
+    `[backfill] qualifying bar: signalScore > ${SIGNAL_SCORE_THRESHOLD} (card shows "> 6.0/10")\n`
+  );
 
   // notes.json is a single (not year-sharded) collection at this data volume
   // — an unfiltered type-scoped find() then a client-side date-string filter
@@ -100,7 +102,9 @@ async function main() {
       prev.qualifyingNotes += 1;
     }
   }
-  log(`[backfill] ${byCompany.size} unique companies cleared score > ${SIGNAL_SCORE_THRESHOLD} in window\n`);
+  log(
+    `[backfill] ${byCompany.size} unique companies cleared score > ${SIGNAL_SCORE_THRESHOLD} in window\n`
+  );
 
   // Anyone whose first-QUALIFYING date is already >= TTL_DAYS old as of today
   // is stale even before the backfill runs — include with active:false

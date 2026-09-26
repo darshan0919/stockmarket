@@ -1353,13 +1353,33 @@
         "why more profit equals less cash"
       ]
     },
+    "ask-stockscans": {
+      "skill_md": "skills/tooling/ask-stockscans/SKILL.md",
+      "entry": "skills/tooling/ask-stockscans/scripts/search_stockscans.py",
+      "mode": "clone",
+      "modules": [],
+      "references": [],
+      "shared": ["skills/_shared/conventions.md"],
+      "aliases": [
+        "ask stockscans",
+        "how to use stockscans",
+        "stockscans tutorial",
+        "stockscans research ai",
+        "stockscans concall scans",
+        "stockscans interview scans",
+        "stockscans order book scans",
+        "stockscans ipo scans",
+        "stockscans custom index"
+      ]
+    },
     "ask-expert": {
       "skill_md": "skills/tooling/ask-expert/SKILL.md",
       "entry": "skills/tooling/ask-expert/scripts/search_expert.py",
       "mode": "clone",
       "modules": [
         "skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py",
-        "skills/tooling/ask-soic/scripts/search_soic.py"
+        "skills/tooling/ask-soic/scripts/search_soic.py",
+        "skills/tooling/ask-stockscans/scripts/search_stockscans.py"
       ],
       "references": [],
       "shared": ["skills/_shared/conventions.md"],
