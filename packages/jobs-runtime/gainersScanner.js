@@ -519,6 +519,51 @@ async function fetchTopGainers(client = stockscans, topN = DEFAULT_TOP_N) {
   return companies.slice(0, topN);
 }
 
+// ── Weekly gainers scan (shared with the weekly-gainers-signal skill) ────────
+//
+// Same underlying endpoint as fetchTopGainers, sorted by `Returns 1W` instead
+// of `Returns 1D` so the universe is the market's top weekly movers rather
+// than a single session's. Platform-native sort (see
+// stockscans_platform_capabilities.md "Stock Scans" — Returns 1W is a
+// selectable server-side column) — no local weekly-return derivation needed,
+// per skills/tooling/cowork-task-architect/SKILL.md's platform-reuse-first
+// check. `weekly-gainers-digest` already proved this filter/sort combination
+// live (packages/jobs-runtime/weeklyGainersDigest.js).
+async function fetchTopWeeklyGainers(client = stockscans, topN = 20) {
+  const payload = {
+    ratiosType: 'Default',
+    timePeriod: 'Latest',
+    scan: {
+      filters: [
+        { left: 'Market Capitalization', right: '300', sign: '>=' },
+        { left: 'Returns 1W', right: '3', sign: '>=' },
+      ],
+      index: [],
+      industry: [],
+      sector: [],
+      tags: [],
+      scanName: `Top ${topN} Weekly Gainers`,
+      scanDescription: '',
+      watchlistIds: [],
+    },
+    watchlistIds: [],
+    order: 'desc',
+    orderBy: 'Returns 1W',
+    offset: 0,
+  };
+  const data = await client.runScan(payload);
+  let companies;
+  if (data.table) {
+    const table = data.table;
+    if (table.length < 2) return [];
+    const headers = table[0];
+    companies = table.slice(1).map((row) => Object.fromEntries(headers.map((h, i) => [h, row[i]])));
+  } else {
+    companies = data.companies || data.data || (Array.isArray(data) ? data : []);
+  }
+  return companies.slice(0, topN);
+}
+
 // ── Volume Rocketing scan (shared with the volume-rocketing skill) ──────────
 //
 // Same underlying endpoint as fetchTopGainers, but a distinct saved scan (Volume
@@ -934,6 +979,14 @@ async function fetchPrices(ticker, client = stockscans) {
 function parseCreatedMs(str) {
   if (!str) return null;
   let s = String(str).replace('Z', '+00:00').replace(' ', 'T');
+  // Date-only strings ("2026-09-26") have no time component — appending a
+  // timezone offset directly onto them (e.g. "2026-09-26+05:30") is not
+  // valid ISO-8601 and Date.parse silently returns NaN, which previously
+  // made every date-only announcement's days_ago null and permanently
+  // excluded it from in_scoring_window (fixed 2026-09-27, see gainers-signal
+  // run notes — this had been silently zeroing out the 7-day scoring window
+  // for every announcement across gainers-signal and volume-rocketing).
+  if (!/T/.test(s)) s += 'T00:00:00';
   const hasTz = /[+-]\d{2}:\d{2}$/.test(s);
   if (!hasTz) s += '+05:30';
   const t = Date.parse(s);
@@ -1998,6 +2051,7 @@ module.exports = {
   fetchPrices,
   fetchVolumeDeliveryRatios30d,
   fetchTopGainers,
+  fetchTopWeeklyGainers,
   fetchVolumeRocketing,
   fetchVolumeRocketingTickers,
   fetchRetailHoldings,

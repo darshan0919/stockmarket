@@ -30,6 +30,7 @@
     "order-book-sync": "node orderBookSync.js",
     "mna-tracker": "node mnaTracker.js",
     "gainers-scanner": "node gainersScanner.js",
+    "weekly-gainers-scanner": "node weeklyGainersScanner.js",
     "stockscans:warm": "node warmStockscansContext.js",
     "record-token-usage": "node recordTokenUsage.js",
     "cursor-health": "node cursorHealth.js",

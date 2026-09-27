@@ -1392,7 +1392,11 @@ function whyHtml(why) {
  * the card for the top-10-by-delivery-value names.
  *
  * `epsThesis` is `{jCurveTag, jCurveReason, thesis, catalysts[], asOf,
- * cacheHit}` as returned by rerating-catalysts --mode brief. The J-curve tag
+ * cacheHit, reportDriveUrl}` as returned by rerating-catalysts --mode brief
+ * (brief mode never sets reportDriveUrl - no PDF is rendered in that mode) or
+ * by a full rerating-catalysts run (weekly-gainers-signal), which does render
+ * a widget+PDF and sets reportDriveUrl once packages/jobs-runtime/lib/db.js's
+ * resolveDriveUrl() resolves a Drive id for it post-push. The J-curve tag
  * gets the badge treatment that skill's own widget gives it (that skill makes
  * it the first thing a reader sees, and this card should not quietly demote
  * it), the one-sentence thesis carries the actual forward-EPS argument, and up
@@ -1439,6 +1443,14 @@ function epsThesisHtml(epsThesis) {
     ? `<div style="font-size:13px;line-height:1.6;color:#344054;margin-top:5px;">${highlightFacts(esc(epsThesis.thesis))}</div>`
     : '';
 
+  // Full-report link - only set when a widget+PDF was actually rendered (full
+  // rerating-catalysts run, not --mode brief) and yarn data:push has resolved
+  // a Drive id for it. Never fabricate this link from a path; an unresolved
+  // PDF (push pending/failed) means no link, not a dead one.
+  const reportLink = epsThesis.reportDriveUrl
+    ? `<div style="margin-top:6px;"><a href="${esc(epsThesis.reportDriveUrl)}" target="_blank" style="font-size:11.5px;font-weight:700;color:#1a237e;text-decoration:none;">Full J-Curve report (PDF) →</a></div>`
+    : '';
+
   return `
     <div style="margin-top:10px;padding-top:9px;border-top:1px dashed #eaecf0;">
       <div style="font-size:11px;font-weight:700;color:#667085;text-transform:uppercase;letter-spacing:0.02em;">EPS thesis${staleness}</div>
@@ -1446,6 +1458,7 @@ function epsThesisHtml(epsThesis) {
       ${reason}
       ${thesis}
       ${catalystChips}
+      ${reportLink}
     </div>`;
 }
 

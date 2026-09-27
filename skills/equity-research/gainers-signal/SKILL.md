@@ -1,6 +1,6 @@
 ---
 name: gainers-signal
-description: Daily gainers ACTIONABILITY signal — pre-compute gainers + quality filters + dual-axis delivery (% and ₹ Cr) + market cap + delivery-as-%-of-mcap + 14-day announcements (scanner), deterministically tier each into ACT / WATCH / NOTED with streaks and delivery-confirmed sector clusters (classifier), research the top-20 triggers from announcement PDFs, attach a cached rerating-catalysts EPS thesis to the top 10 by delivery value, resolve a WHY for every name via the filing → info-classifier → catalyst → concall → sector ladder, then email a Thesis Card briefing sorted by delivery value. Invoke with defaults for the 8 AM run, or pass a specific market date on demand.
+description: Daily gainers ACTIONABILITY signal — pre-compute gainers + quality filters + dual-axis delivery (% and ₹ Cr) + market cap + delivery-as-%-of-mcap + 14-day announcements (scanner), deterministically tier each into ACT / WATCH / NOTED with streaks and delivery-confirmed sector clusters (classifier), research the top-20 triggers from announcement PDFs, attach a cached rerating-catalysts EPS thesis to the top 10 by delivery value (a FULL rerating-catalysts report with widget+PDF, Drive-linked on the card, for the top 3 by delivery value instead of a brief), resolve a WHY for every name via the filing → info-classifier → catalyst → concall → sector ladder, then email a Thesis Card briefing sorted by delivery value. Invoke with defaults for the 8 AM run, or pass a specific market date on demand.
 ---
 
 # Daily Gainers Signal
@@ -51,7 +51,7 @@ Exporting paths derived from fragile `find`s is what previously scattered
 | 2    | `node "$RUNTIME/lib/gainersClassifier.js"` | shared §Step 2                             |
 | 3    | read the research seed                     | shared §Step 3                             |
 | 4    | top-20 trigger research                    | shared §Step 4 (+ DTO shape below)         |
-| 5    | **EPS briefs for the top 10**              | shared §Step 6 — run this BEFORE the WHY   |
+| 5    | **Full reports (top 3) + EPS briefs (top 10)** | shared §Step 6 + delta below — run BEFORE the WHY |
 | 6    | WHY resolution ladder                      | shared §Step 5                             |
 | 7    | compose content overlay, send              | shared §Step 7 (+ labels below)            |
 | 8    | `yarn data:push`                           | shared §Step 8                             |
@@ -133,6 +133,54 @@ suppresses it.
 | research DTO type | `gainers-trigger-research`              |
 | email title       | `Daily Gainers Signal`                  |
 | subject           | `Daily Gainers Signal — {market_date}`  |
+
+## Step 5 delta — top 3 by delivery value get a FULL report, not a brief
+
+**"Top N" in this skill always means sorted by Deliv Val descending** — the
+same master sort the shared doc's "Sort order: delivery value, descending,
+everywhere" section already establishes for the whole pipeline. "Top 3 daily
+gainers" means the top 3 of `rerating_targets[]` (already delivery-value
+sorted per shared §Step 3), never the top 3 by `Returns 1D` rank.
+
+For those top 3, run `rerating-catalysts` in its **default `full` mode** (no
+`--mode brief`) instead of `--mode brief` — the same full Workflow
+(Phases 1-4: document acquisition, "new"-lens read, price-volume spike days,
+synthesis, persist+render) `weekly-gainers-signal` runs for its whole universe.
+That means a real HTML widget AND a 1-page PDF with the J-Curve badge, saved to
+`data/rerating-catalysts/<Company>_Output.pdf`, for those 3 names. Ranks 4-10
+(or wider, per shared §Step 6's "raise to top 20" note) keep using
+`--mode brief` exactly as before — this delta touches only the top 3.
+
+Use `brief_cache.js plan` first as usual to see what's cache-servable; for a
+top-3 name whose cache entry is brief-only (no widget/PDF on file), a fresh
+full-mode build is still required — a brief cache hit does not satisfy the
+top-3 requirement.
+
+**Push before composing the email, not just at Step 8.** `resolveDriveUrl()`
+(`packages/jobs-runtime/lib/db.js`) only returns a link once `yarn data:push`
+has synced the PDF and written its id into `cache/sync-state.json`. So after
+the 3 full reports are rendered (and before Step 7's compose/send), run
+`yarn data:push`, then for each of the 3:
+
+```bash
+node -e "const db=require('$RUNTIME/lib/db.js'); console.log(db.resolveDriveUrl('rerating-catalysts/<Company>_Output.pdf'))"
+```
+
+and attach the result as `reportDriveUrl` on that company's `epsThesis` object
+in the Step 7 content overlay — `thesisCardEmail.js` already renders a present
+`reportDriveUrl` as a "Full J-Curve report (PDF) →" link on the card (added
+for `weekly-gainers-signal`, reused here unchanged). If the link doesn't
+resolve (push race or failure), leave `reportDriveUrl` unset rather than
+fabricating a path-based URL. Step 8's closing `yarn data:push` still runs as
+usual afterward (idempotent) to catch anything written after this mid-run push.
+
+This delta is **gainers-signal-only** — `volume-rocketing` is unchanged and
+keeps `--mode brief` for its whole top-10/20 set; nothing in the shared
+`scan-signal-pipeline.md` doc changes, so this file is the only place this
+behavior lives.
+
+Report `fullReports` (should be 3), `reportCacheHits` in the stats footer
+alongside the existing `epsBriefs`/`briefCacheHits`/`briefExtractHits`.
 
 ## Step 4 research DTO
 

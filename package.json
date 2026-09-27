@@ -47,6 +47,7 @@
     "weekly-ppt-insights": "yarn workspace @stock/jobs weekly-ppt-insights",
     "mna-tracker": "yarn workspace @stock/jobs mna-tracker",
     "gainers-scanner": "yarn workspace @stock/jobs gainers-scanner",
+    "weekly-gainers-scanner": "yarn workspace @stock/jobs weekly-gainers-scanner",
     "gainers-watchlist-ttl-sync": "yarn workspace @stock/jobs-runtime gainers-watchlist-ttl-sync",
     "gainers-watchlist-ttl-backfill": "yarn workspace @stock/jobs-runtime gainers-watchlist-ttl-backfill",
     "announcement-signals-watchlist-ttl-backfill": "yarn workspace @stock/jobs-runtime announcement-signals-watchlist-ttl-backfill",
