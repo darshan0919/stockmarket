@@ -102,6 +102,7 @@ describe('monthlyUpdates recency and date features', () => {
     const res = await extractMonthlyUpdates(mockClient, {
       quarters: ['202609'],
       months: 1,
+      force: true,
     });
 
     // AGM and Investor Presentation should be dropped by noise filter

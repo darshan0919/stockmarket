@@ -40,17 +40,34 @@ function flag(name) {
 function loadTextCache() {
   const dir = db.cachePath('monthly-updates-text');
   if (!fs.existsSync(dir)) return [];
-  return fs
-    .readdirSync(dir)
-    .filter((f) => f.endsWith('.json'))
-    .map((f) => {
+  const recs = [];
+  const seen = new Set();
+  const files = fs.readdirSync(dir);
+  for (const f of files) {
+    const full = path.join(dir, f);
+    if (f.endsWith('.jsonl')) {
       try {
-        return JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
-      } catch (_) {
-        return null;
-      }
-    })
-    .filter(Boolean);
+        const lines = fs.readFileSync(full, 'utf8').split('\n');
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const r = JSON.parse(line);
+          if (r && r.ssUrl && !seen.has(r.ssUrl)) {
+            seen.add(r.ssUrl);
+            recs.push(r);
+          }
+        }
+      } catch (_) {}
+    } else if (f.endsWith('.json')) {
+      try {
+        const r = JSON.parse(fs.readFileSync(full, 'utf8'));
+        if (r && r.ssUrl && !seen.has(r.ssUrl)) {
+          seen.add(r.ssUrl);
+          recs.push(r);
+        }
+      } catch (_) {}
+    }
+  }
+  return recs;
 }
 
 async function cmdFetch() {

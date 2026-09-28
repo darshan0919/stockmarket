@@ -9,8 +9,6 @@
  *    and leading with actionable sector-vs-noise judgment.
  */
 
-const fs = require('fs');
-const path = require('path');
 const { sendHtmlEmail, stockscansLink } = require('@stock/cloud-utils');
 const { loadEnv } = require('../lib/env');
 const db = require('../lib/db');
@@ -393,12 +391,11 @@ function buildDigestHtml(dto, { deployUrl = null } = {}) {
 }
 
 async function sendMonthlyUpdatesEmail({ to = undefined, dryRun = false, deployUrl = null } = {}) {
-  const dir = path.join(db.dataRoot(), 'reports');
-  const files = fs.readdirSync(dir).filter((f) => f.startsWith('rpt_monthly-updates_'));
-  if (!files.length) throw new Error('No monthly-updates report found. Run build first.');
-  files.sort().reverse();
-  const latestFile = path.join(dir, files[0]);
-  const dto = JSON.parse(fs.readFileSync(latestFile, 'utf8'));
+  const reports = db.find('reports', { type: 'monthly-updates-tracker' });
+  if (!reports.length) throw new Error('No monthly-updates report found. Run build first.');
+  const latestMeta = reports[0];
+  const dto = db.readReport(latestMeta.id);
+  if (!dto) throw new Error(`Could not load report content for ${latestMeta.id}`);
 
   const htmlBody = buildDigestHtml(dto, { deployUrl });
   const subject = `📊 Monthly Business Updates — ${dto.summary.latestPeriod || 'Sales Tracker'} | Commercial Auto Boom, Agri Rebound`;

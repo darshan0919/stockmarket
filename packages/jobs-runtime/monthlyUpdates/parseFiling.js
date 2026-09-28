@@ -26,6 +26,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const db = require('../lib/db.js');
+const { StorageService } = require('@stock/cloud-utils');
 const { sliceNumericRegion } = require('./tableSlice.js');
 
 // Bumping this invalidates every cached parse — do it when the instructions
@@ -77,12 +78,12 @@ function cacheDir() {
   return dir;
 }
 
+function cacheKeyFor(ssUrl) {
+  return crypto.createHash('sha1').update(`${ssUrl}|${PROMPT_VERSION}`).digest('hex').slice(0, 16);
+}
+
 function cacheFileFor(ssUrl) {
-  const key = crypto
-    .createHash('sha1')
-    .update(`${ssUrl}|${PROMPT_VERSION}`)
-    .digest('hex')
-    .slice(0, 16);
+  const key = cacheKeyFor(ssUrl);
   return path.join(cacheDir(), `${key}.json`);
 }
 
@@ -104,14 +105,23 @@ function isCacheable(entry) {
 }
 
 function readCached(ssUrl) {
-  const f = cacheFileFor(ssUrl);
-  if (!fs.existsSync(f)) return null;
+  const key = cacheKeyFor(ssUrl);
+  const rel = `cache/monthly-updates-parsed/${key}.json`;
   try {
-    const hit = JSON.parse(fs.readFileSync(f, 'utf8'));
-    return isCacheable(hit) ? hit : null;
-  } catch (_) {
-    return null;
+    const hit = StorageService.readJson(rel);
+    if (hit && isCacheable(hit)) return hit;
+  } catch (_) {}
+
+  const f = cacheFileFor(ssUrl);
+  if (fs.existsSync(f)) {
+    try {
+      const hit = JSON.parse(fs.readFileSync(f, 'utf8'));
+      return isCacheable(hit) ? hit : null;
+    } catch (_) {
+      return null;
+    }
   }
+  return null;
 }
 
 /** Normalise + range-check one agent-returned row. */
@@ -228,7 +238,11 @@ function writeParsed(rec, parsed, extra = {}) {
     parsedAt: new Date().toISOString(),
     ...extra,
   };
-  if (isCacheable(out)) fs.writeFileSync(cacheFileFor(rec.ssUrl), JSON.stringify(out));
+  if (isCacheable(out)) {
+    const key = cacheKeyFor(rec.ssUrl);
+    const rel = `cache/monthly-updates-parsed/${key}.json`;
+    StorageService.saveJson(rel, out);
+  }
   return out;
 }
 
@@ -272,13 +286,33 @@ function ingestParsedBatch(batch, rows) {
 function loadAllParsed() {
   const dir = cacheDir();
   const out = [];
-  for (const f of fs.readdirSync(dir)) {
-    if (!f.endsWith('.json')) continue;
-    try {
-      const j = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
-      if (isCacheable(j)) out.push(j);
-    } catch (_) {
-      /* skip unreadable entry */
+  const seen = new Set();
+  const files = fs.existsSync(dir) ? fs.readdirSync(dir) : [];
+
+  for (const f of files) {
+    const full = path.join(dir, f);
+    if (f.endsWith('.jsonl')) {
+      try {
+        const lines = fs.readFileSync(full, 'utf8').split('\n');
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const j = JSON.parse(line);
+          const key = j.ssUrl || j._key;
+          if (isCacheable(j) && key && !seen.has(key)) {
+            seen.add(key);
+            out.push(j);
+          }
+        }
+      } catch (_) {}
+    } else if (f.endsWith('.json')) {
+      try {
+        const j = JSON.parse(fs.readFileSync(full, 'utf8'));
+        const key = j.ssUrl || j._key;
+        if (isCacheable(j) && key && !seen.has(key)) {
+          seen.add(key);
+          out.push(j);
+        }
+      } catch (_) {}
     }
   }
   return out;

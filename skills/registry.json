@@ -37,9 +37,7 @@
         "improve announcement rules",
         "strength of announcement"
       ],
-      "modules": [
-        "skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js"
-      ]
+      "modules": ["skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js"]
     },
     "review-proposals": {
       "skill_md": "skills/tooling/review-proposals/SKILL.md",
@@ -47,9 +45,7 @@
       "mode": "clone",
       "modules": [],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "review my proposals",
         "show pending proposals",
@@ -68,9 +64,7 @@
         "packages/jobs-runtime/lib/coworkTranscript.js"
       ],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "capture this chat",
         "save this conversation",
@@ -88,12 +82,8 @@
         "stock-api/src/fetchers/documentsFetcher.js",
         "stock-api/src/fetchers/announcementsFetcher.js"
       ],
-      "references": [
-        "skills/equity-research/stock-documents-fetcher/references/api_details.md"
-      ],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "references": ["skills/equity-research/stock-documents-fetcher/references/api_details.md"],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "fetch documents",
         "fetch transcripts",
@@ -181,10 +171,7 @@
       "references": [
         "skills/equity-research/equity-research-deepdive/references/research_template.md"
       ],
-      "shared": [
-        "skills/_shared/conventions.md",
-        "stock-api/src/utils/pdfUtils.js"
-      ],
+      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
       "aliases": [
         "deep dive",
         "equity deep dive",
@@ -207,10 +194,7 @@
         "stock-api/src/generators/generateGrowthTriggersPdf.js"
       ],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md",
-        "stock-api/src/utils/pdfUtils.js"
-      ],
+      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
       "aliases": [
         "growth triggers",
         "1 pager",
@@ -234,10 +218,7 @@
         "skills/equity-research/management-credibility-tracker/references/credibility_framework.md",
         "skills/equity-research/management-credibility-tracker/references/case_study_calibration.md"
       ],
-      "shared": [
-        "skills/_shared/conventions.md",
-        "stock-api/src/utils/pdfUtils.js"
-      ],
+      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
       "aliases": [
         "management credibility",
         "walk the talk",
@@ -257,13 +238,8 @@
         "stock-api/src/fetchers/documentsFetcher.js",
         "stock-api/src/generators/generatePeerPdf.js"
       ],
-      "references": [
-        "skills/equity-research/peer-comparison/references/comparison_dimensions.md"
-      ],
-      "shared": [
-        "skills/_shared/conventions.md",
-        "stock-api/src/utils/pdfUtils.js"
-      ],
+      "references": ["skills/equity-research/peer-comparison/references/comparison_dimensions.md"],
+      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
       "aliases": [
         "peer comparison",
         "compare companies",
@@ -288,10 +264,7 @@
         "skills/equity-research/market-share-analysis/references/data_sources.md",
         "skills/equity-research/market-share-analysis/references/anti_patterns.md"
       ],
-      "shared": [
-        "skills/_shared/conventions.md",
-        "stock-api/src/utils/pdfUtils.js"
-      ],
+      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
       "aliases": [
         "market share",
         "competitive landscape",
@@ -307,17 +280,12 @@
       "skill_md": "skills/equity-research/sector-research-deepdive/SKILL.md",
       "entry": "stock-api/bin/sector-research-deepdive.js",
       "mode": "bundle",
-      "modules": [
-        "stock-api/src/generators/generateSectorReport.js"
-      ],
+      "modules": ["stock-api/src/generators/generateSectorReport.js"],
       "references": [
         "skills/equity-research/sector-research-deepdive/references/research_protocol.md",
         "skills/equity-research/sector-research-deepdive/references/sector_framework.md"
       ],
-      "shared": [
-        "skills/_shared/conventions.md",
-        "stock-api/src/utils/pdfUtils.js"
-      ],
+      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
       "aliases": [
         "sector report",
         "sector deep dive",
@@ -332,17 +300,12 @@
       "skill_md": "skills/equity-research/drhp-ipo-analysis/SKILL.md",
       "entry": "stock-api/bin/drhp-ipo-analysis.js",
       "mode": "bundle",
-      "modules": [
-        "stock-api/src/generators/generateDrhpPdf.js"
-      ],
+      "modules": ["stock-api/src/generators/generateDrhpPdf.js"],
       "references": [
         "skills/equity-research/drhp-ipo-analysis/references/drhp_10section.md",
         "skills/equity-research/drhp-ipo-analysis/references/drhp_red_flags.md"
       ],
-      "shared": [
-        "skills/_shared/conventions.md",
-        "stock-api/src/utils/pdfUtils.js"
-      ],
+      "shared": ["skills/_shared/conventions.md", "stock-api/src/utils/pdfUtils.js"],
       "aliases": [
         "drhp",
         "ipo analysis",
@@ -437,19 +400,14 @@
         "stock-api/src/fetchers/documentsFetcher.js",
         "stock-api/src/analyzers/incomeStatementSignals.js"
       ],
-      "dependsOnSkills": [
-        "forward-guidance-extractor",
-        "render-pdf"
-      ],
+      "dependsOnSkills": ["forward-guidance-extractor", "render-pdf"],
       "references": [
         "skills/equity-research/consecutive-filings-diff/references/phase1_diff_framework.md",
         "skills/equity-research/consecutive-filings-diff/references/phase2_concall_reconciliation.md",
         "skills/equity-research/consecutive-filings-diff/references/phase3_live_repricing.md",
         "skills/equity-research/consecutive-filings-diff/references/writing_style.md"
       ],
-      "assets": [
-        "skills/equity-research/consecutive-filings-diff/assets/briefing_template.html"
-      ],
+      "assets": ["skills/equity-research/consecutive-filings-diff/assets/briefing_template.html"],
       "shared": [
         "skills/_shared/conventions.md",
         "skills/_shared/income-statement-signals.md",
@@ -481,12 +439,8 @@
         "skills/equity-research/pre-pead-scanner/references/forward_estimation.md",
         "skills/equity-research/pre-pead-scanner/references/scan_api.md"
       ],
-      "assets": [
-        "skills/equity-research/pre-pead-scanner/assets/briefing_template.html"
-      ],
-      "shared": [
-        "skills/_shared/income-statement-signals.md"
-      ],
+      "assets": ["skills/equity-research/pre-pead-scanner/assets/briefing_template.html"],
+      "shared": ["skills/_shared/income-statement-signals.md"],
       "aliases": [
         "pre pead",
         "pre results scanner",
@@ -594,9 +548,7 @@
       "references": [
         "skills/equity-research/equity-research-extraction/references/workflow-checklist.md"
       ],
-      "prompts": [
-        "skills/equity-research/equity-research-extraction/prompts/unified_master.txt"
-      ],
+      "prompts": ["skills/equity-research/equity-research-extraction/prompts/unified_master.txt"],
       "shared": [],
       "aliases": [
         "equity extraction",
@@ -639,9 +591,7 @@
         "stock-api/bin/orchestrate.js"
       ],
       "references": [],
-      "templates": [
-        "skills/equity-research/equity-research-master/templates/tab15_qoq_diff.html"
-      ],
+      "templates": ["skills/equity-research/equity-research-master/templates/tab15_qoq_diff.html"],
       "shared": [],
       "aliases": [
         "equity master",
@@ -658,23 +608,15 @@
       "skill_md": "skills/equity-research/tweet-investor-playbook/SKILL.md",
       "entry": "stock-api/bin/tweet-investor-playbook.js",
       "mode": "bundle",
-      "modules": [
-        "stock-api/src/analyzers/parseTweetDump.js"
-      ],
-      "dependsOnSkills": [
-        "render-pdf"
-      ],
+      "modules": ["stock-api/src/analyzers/parseTweetDump.js"],
+      "dependsOnSkills": ["render-pdf"],
       "references": [
         "skills/equity-research/tweet-investor-playbook/references/classification_taxonomy.md",
         "skills/equity-research/tweet-investor-playbook/references/synthesis_rules.md",
         "skills/equity-research/tweet-investor-playbook/references/track_record_methodology.md"
       ],
-      "assets": [
-        "skills/equity-research/tweet-investor-playbook/assets/widget_template.html"
-      ],
-      "shared": [
-        "skills/_shared/pdf-artifact-step.md"
-      ],
+      "assets": ["skills/equity-research/tweet-investor-playbook/assets/widget_template.html"],
+      "shared": ["skills/_shared/pdf-artifact-step.md"],
       "aliases": [
         "tweet playbook",
         "investor tweets",
@@ -689,9 +631,7 @@
       "skill_md": "skills/equity-research/announcement-keyword-explorer/SKILL.md",
       "entry": "stock-api/bin/announcement-keyword-explorer.js",
       "mode": "bundle",
-      "modules": [
-        "stock-api/src/fetchers/announcementScanner.js"
-      ],
+      "modules": ["stock-api/src/fetchers/announcementScanner.js"],
       "references": [],
       "shared": [],
       "aliases": [
@@ -707,9 +647,7 @@
       "skill_md": "skills/equity-research/stock-report/SKILL.md",
       "entry": null,
       "references": [],
-      "shared": [
-        "skills/_shared/income-statement-signals.md"
-      ],
+      "shared": ["skills/_shared/income-statement-signals.md"],
       "aliases": [
         "stock report",
         "equity report",
@@ -720,9 +658,7 @@
         "should I buy",
         "investment view"
       ],
-      "modules": [
-        "stock-api/src/analyzers/incomeStatementSignals.js"
-      ]
+      "modules": ["stock-api/src/analyzers/incomeStatementSignals.js"]
     },
     "watchlist-sync": {
       "skill_md": "skills/equity-research/watchlist-sync/SKILL.md",
@@ -753,9 +689,7 @@
     "gainers-signal": {
       "skill_md": "skills/equity-research/gainers-signal/SKILL.md",
       "entry": null,
-      "references": [
-        "skills/equity-research/_shared/scan-signal-pipeline.md"
-      ],
+      "references": ["skills/equity-research/_shared/scan-signal-pipeline.md"],
       "shared": [
         "skills/_shared/conventions.md",
         "skills/tooling/output-dto-standard/SKILL.md",
@@ -790,9 +724,7 @@
     "volume-rocketing": {
       "skill_md": "skills/equity-research/volume-rocketing/SKILL.md",
       "entry": null,
-      "references": [
-        "skills/equity-research/_shared/scan-signal-pipeline.md"
-      ],
+      "references": ["skills/equity-research/_shared/scan-signal-pipeline.md"],
       "shared": [
         "skills/_shared/conventions.md",
         "skills/tooling/output-dto-standard/SKILL.md",
@@ -850,9 +782,7 @@
       "entry": null,
       "modules": [],
       "scripts": [],
-      "references": [
-        "skills/tooling/skill-manager/references/schemas.md"
-      ],
+      "references": ["skills/tooling/skill-manager/references/schemas.md"],
       "shared": [
         "skills/tooling/skill-manager/agents/grader.md",
         "skills/tooling/skill-manager/agents/comparator.md",
@@ -872,15 +802,10 @@
       "skill_md": "skills/tooling/render-pdf/SKILL.md",
       "entry": "stock-api/bin/render-pdf.js",
       "mode": "clone",
-      "modules": [
-        "stock-api/src/utils/pdfRenderer.js"
-      ],
+      "modules": ["stock-api/src/utils/pdfRenderer.js"],
       "references": [],
       "shared": [],
-      "aliases": [
-        "render pdf",
-        "html to pdf"
-      ]
+      "aliases": ["render pdf", "html to pdf"]
     },
     "investment-thesis-engine": {
       "skill_md": "skills/equity-research/investment-thesis-engine/SKILL.md",
@@ -889,10 +814,7 @@
         "skills/equity-research/investment-thesis-engine/references/thesis_schema.md",
         "skills/equity-research/investment-thesis-engine/references/signal_rules.md"
       ],
-      "shared": [
-        "skills/_shared/conventions.md",
-        "skills/_shared/data-verification.md"
-      ],
+      "shared": ["skills/_shared/conventions.md", "skills/_shared/data-verification.md"],
       "aliases": [
         "investment thesis",
         "thesis engine",
@@ -924,16 +846,12 @@
         "valuation model",
         "earnings model"
       ],
-      "modules": [
-        "stock-api/src/analyzers/incomeStatementSignals.js"
-      ]
+      "modules": ["stock-api/src/analyzers/incomeStatementSignals.js"]
     },
     "value-chain-analysis": {
       "skill_md": "skills/equity-research/value-chain-analysis/SKILL.md",
       "entry": null,
-      "dependsOnSkills": [
-        "render-pdf"
-      ],
+      "dependsOnSkills": ["render-pdf"],
       "references": [],
       "shared": [
         "skills/_shared/conventions.md",
@@ -954,10 +872,7 @@
       "skill_md": "skills/equity-research/annual-report-analysis/SKILL.md",
       "entry": null,
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md",
-        "skills/_shared/data-verification.md"
-      ],
+      "shared": ["skills/_shared/conventions.md", "skills/_shared/data-verification.md"],
       "aliases": [
         "annual report analysis",
         "analyse this ar",
@@ -972,10 +887,7 @@
       "skill_md": "skills/equity-research/stage2-catalyst-analysis/SKILL.md",
       "entry": null,
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md",
-        "skills/_shared/data-verification.md"
-      ],
+      "shared": ["skills/_shared/conventions.md", "skills/_shared/data-verification.md"],
       "aliases": [
         "stage 2",
         "weinstein stage",
@@ -1019,9 +931,7 @@
       "references": [
         "skills/equity-research/forward-guidance-extractor/references/metric_taxonomy.md"
       ],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "forward guidance",
         "extract guidance",
@@ -1060,9 +970,7 @@
         "SOTP analysis",
         "spin-off analysis"
       ],
-      "modules": [
-        "stock-api/src/analyzers/incomeStatementSignals.js"
-      ]
+      "modules": ["stock-api/src/analyzers/incomeStatementSignals.js"]
     },
     "announcement-info-classifier": {
       "skill_md": "skills/equity-research/announcement-info-classifier/SKILL.md",
@@ -1103,9 +1011,7 @@
         "packages/jobs-runtime/lib/db.js"
       ],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "ppt fallback",
         "check the ppt for guidance",
@@ -1132,9 +1038,7 @@
         "packages/jobs-runtime/lib/db.js"
       ],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "best pead bets",
         "best visibility into next quarter",
@@ -1157,9 +1061,7 @@
         "skills/equity-research/forward-guidance-extractor/scripts/classify_transcript_status.py"
       ],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "transcript availability check",
         "has the transcript been filed",
@@ -1181,9 +1083,7 @@
         "stock-api/src/utils/fiscalQuarter.js"
       ],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "fetch guidance documents",
         "get the transcript and ppt",
@@ -1201,9 +1101,7 @@
         "skills/equity-research/guidance-relevance-filter/scripts/check_excerpt_coverage.py"
       ],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "relevance filter",
         "cheap model guidance pre-filter",
@@ -1227,9 +1125,7 @@
         "packages/jobs-runtime/lib/db.js"
       ],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "fetch guidance documents",
         "guidance document extractor",
@@ -1261,9 +1157,7 @@
         "stock-api/src/clients/StockscansClient.js"
       ],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "order book",
         "orderbook",
@@ -1293,9 +1187,7 @@
         "scripts/skills/monthly-sales-tracker/render-deedev-report.js"
       ],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "monthly sales tracker",
         "TMPV sales trend",
@@ -1316,9 +1208,7 @@
         "packages/jobs-runtime/lib/db.js"
       ],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "tweet signals",
         "twitter signals",
@@ -1334,20 +1224,13 @@
       "modules": [],
       "references": [],
       "shared": [],
-      "aliases": [
-        "find a skill",
-        "is there a skill that can",
-        "discover skills",
-        "install a skill"
-      ]
+      "aliases": ["find a skill", "is there a skill that can", "discover skills", "install a skill"]
     },
     "token-usage-analyzer": {
       "skill_md": "skills/tooling/token-usage-analyzer/SKILL.md",
       "entry": "scripts/metrics/analyze_token_usage.py",
       "mode": "bundle",
-      "modules": [
-        "scripts/metrics/track_invocation.py"
-      ],
+      "modules": ["scripts/metrics/track_invocation.py"],
       "references": [],
       "shared": [],
       "aliases": [
@@ -1363,9 +1246,7 @@
       "references": [
         "skills/equity-research/ipo-subscription-ranker/references/ipo_ranking_framework.md"
       ],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "ipo subscription digest",
         "rank ipos by subscription",
@@ -1440,9 +1321,7 @@
       "mode": "clone",
       "modules": [],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "ask soic",
         "what does soic say about",
@@ -1460,9 +1339,7 @@
       "mode": "clone",
       "modules": [],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "ask anil lamba",
         "what does anil lamba say about",
@@ -1482,9 +1359,7 @@
       "mode": "clone",
       "modules": [],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "ask stockscans",
         "how to use stockscans",
@@ -1507,9 +1382,7 @@
         "skills/tooling/ask-stockscans/scripts/search_stockscans.py"
       ],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md"
-      ],
+      "shared": ["skills/_shared/conventions.md"],
       "aliases": [
         "ask expert",
         "what do experts say about",
@@ -1538,10 +1411,7 @@
         "stock-api/src/utils/companyId.js"
       ],
       "references": [],
-      "shared": [
-        "skills/_shared/conventions.md",
-        "skills/_shared/pdf-design-guide.md"
-      ],
+      "shared": ["skills/_shared/conventions.md", "skills/_shared/pdf-design-guide.md"],
       "aliases": [
         "monthly updates",
         "monthly sales numbers",
@@ -1561,9 +1431,7 @@
     "document-preprocessor": {
       "skill_md": "skills/equity-research/document-preprocessor/SKILL.md",
       "entry": "packages/jobs-runtime/preprocessQueue.js",
-      "references": [
-        "skills/equity-research/document-preprocessor/references/profiles.md"
-      ],
+      "references": ["skills/equity-research/document-preprocessor/references/profiles.md"],
       "shared": [
         "skills/_shared/conventions.md",
         "packages/jobs-runtime/lib/docExtracts.js",
@@ -1596,9 +1464,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "code review",
         "review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: standards (does the code follow this repo's..."
@@ -1614,13 +1480,8 @@
         "skills/development/codebase-design/DEEPENING.md",
         "skills/development/codebase-design/DESIGN-IT-TWICE.md"
       ],
-      "shared": [
-        "skills/development/README.md"
-      ],
-      "aliases": [
-        "codebase design",
-        "shared vocabulary for designing deep modules"
-      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["codebase design", "shared vocabulary for designing deep modules"],
       "source": "external",
       "description": "Shared vocabulary for designing deep modules. Use when the user wants to design or improve a module's interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary."
     },
@@ -1628,16 +1489,9 @@
       "skill_md": "skills/development/diagnosing-bugs/SKILL.md",
       "entry": null,
       "mode": "guidance",
-      "references": [
-        "skills/development/diagnosing-bugs/scripts/hitl-loop.template.sh"
-      ],
-      "shared": [
-        "skills/development/README.md"
-      ],
-      "aliases": [
-        "diagnosing bugs",
-        "diagnosis loop for hard bugs and performance regressions"
-      ],
+      "references": ["skills/development/diagnosing-bugs/scripts/hitl-loop.template.sh"],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["diagnosing bugs", "diagnosis loop for hard bugs and performance regressions"],
       "source": "external",
       "description": "Diagnosis loop for hard bugs and performance regressions. Use when the user says \"diagnose\"/\"debug this\", or reports something broken/throwing/failing/slow."
     },
@@ -1649,13 +1503,8 @@
         "skills/development/domain-modeling/ADR-FORMAT.md",
         "skills/development/domain-modeling/CONTEXT-FORMAT.md"
       ],
-      "shared": [
-        "skills/development/README.md"
-      ],
-      "aliases": [
-        "domain modeling",
-        "build and sharpen a project's domain model"
-      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["domain modeling", "build and sharpen a project's domain model"],
       "source": "external",
       "description": "Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a CONTEXT.md, or recording or editing an ADR."
     },
@@ -1664,9 +1513,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "grill with docs",
         "a relentless interview to sharpen a plan or design, which also creates docs (adr's and glossary) as we go."
@@ -1679,13 +1526,8 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
-      "aliases": [
-        "implement",
-        "implement a piece of work based on a spec or set of tickets."
-      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["implement", "implement a piece of work based on a spec or set of tickets."],
       "source": "external",
       "description": "Implement a piece of work based on a spec or set of tickets."
     },
@@ -1693,12 +1535,8 @@
       "skill_md": "skills/development/improve-codebase-architecture/SKILL.md",
       "entry": null,
       "mode": "guidance",
-      "references": [
-        "skills/development/improve-codebase-architecture/HTML-REPORT.md"
-      ],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "references": ["skills/development/improve-codebase-architecture/HTML-REPORT.md"],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "improve codebase architecture",
         "scan a codebase for deepening opportunities, present them as a visual html report, then grill through whichever one you pick."
@@ -1710,17 +1548,9 @@
       "skill_md": "skills/development/prototype/SKILL.md",
       "entry": null,
       "mode": "guidance",
-      "references": [
-        "skills/development/prototype/LOGIC.md",
-        "skills/development/prototype/UI.md"
-      ],
-      "shared": [
-        "skills/development/README.md"
-      ],
-      "aliases": [
-        "prototype",
-        "build a throwaway prototype to answer a design question"
-      ],
+      "references": ["skills/development/prototype/LOGIC.md", "skills/development/prototype/UI.md"],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["prototype", "build a throwaway prototype to answer a design question"],
       "source": "external",
       "description": "Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, or explore what a UI should look like."
     },
@@ -1729,9 +1559,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "research",
         "investigate a question against high-trust primary sources and capture the findings as a markdown file in the repo"
@@ -1744,9 +1572,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "resolving merge conflicts",
         "use when you need to resolve an in-progress git merge/rebase conflict."
@@ -1758,17 +1584,9 @@
       "skill_md": "skills/development/tdd/SKILL.md",
       "entry": null,
       "mode": "guidance",
-      "references": [
-        "skills/development/tdd/mocking.md",
-        "skills/development/tdd/tests.md"
-      ],
-      "shared": [
-        "skills/development/README.md"
-      ],
-      "aliases": [
-        "tdd",
-        "test-driven development"
-      ],
+      "references": ["skills/development/tdd/mocking.md", "skills/development/tdd/tests.md"],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["tdd", "test-driven development"],
       "source": "external",
       "description": "Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions \"red-green-refactor\", or wants integration tests."
     },
@@ -1777,9 +1595,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "to spec",
         "turn the current conversation into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already..."
@@ -1792,9 +1608,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "to tickets",
         "break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the..."
@@ -1810,9 +1624,7 @@
         "skills/development/triage/AGENT-BRIEF.md",
         "skills/development/triage/OUT-OF-SCOPE.md"
       ],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "triage",
         "move issues and external prs through a state machine of triage roles, categorise, verify, grill if needed, and write agent-ready briefs."
@@ -1825,9 +1637,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "wayfinder",
         "plan a huge chunk of work (more than one agent session can hold) as a shared map of decision tickets on your issue tracker, and resolve..."
@@ -1839,12 +1649,8 @@
       "skill_md": "skills/development/wizard/SKILL.md",
       "entry": null,
       "mode": "guidance",
-      "references": [
-        "skills/development/wizard/template.sh"
-      ],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "references": ["skills/development/wizard/template.sh"],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "wizard",
         "generate an interactive bash wizard that walks a human through steps only they can perform"
@@ -1857,13 +1663,8 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
-      "aliases": [
-        "grill me",
-        "a relentless interview to sharpen a plan or design."
-      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["grill me", "a relentless interview to sharpen a plan or design."],
       "source": "external",
       "description": "A relentless interview to sharpen a plan or design."
     },
@@ -1872,13 +1673,8 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
-      "aliases": [
-        "grilling",
-        "grill the user relentlessly about a plan, decision, or idea"
-      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["grilling", "grill the user relentlessly about a plan, decision, or idea"],
       "source": "external",
       "description": "Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking, or uses any 'grill' trigger phrases."
     },
@@ -1887,9 +1683,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "handoff",
         "compact the current conversation into a handoff document for another agent to pick up."
@@ -1907,13 +1701,8 @@
         "skills/development/teach/MISSION-FORMAT.md",
         "skills/development/teach/RESOURCES-FORMAT.md"
       ],
-      "shared": [
-        "skills/development/README.md"
-      ],
-      "aliases": [
-        "teach",
-        "teach the user a new skill or concept, within this workspace."
-      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["teach", "teach the user a new skill or concept, within this workspace."],
       "source": "external",
       "description": "Teach the user a new skill or concept, within this workspace."
     },
@@ -1922,9 +1711,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "to questionnaire",
         "turn a decision you can't fully answer into a questionnaire for someone else to fill in."
@@ -1937,13 +1724,8 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
-      "aliases": [
-        "wait what",
-        "stop"
-      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["wait what", "stop"],
       "source": "external",
       "description": "Stop. That last message did not land: re-pitch it."
     },
@@ -1951,16 +1733,9 @@
       "skill_md": "skills/development/writing-for-agents/SKILL.md",
       "entry": null,
       "mode": "guidance",
-      "references": [
-        "skills/development/writing-for-agents/SKILL-MECHANICS.md"
-      ],
-      "shared": [
-        "skills/development/README.md"
-      ],
-      "aliases": [
-        "writing for agents",
-        "writing documents for agents"
-      ],
+      "references": ["skills/development/writing-for-agents/SKILL-MECHANICS.md"],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["writing for agents", "writing documents for agents"],
       "source": "external",
       "description": "Writing documents for agents. Use when creating or editing skills, or modifying AGENTS.md or CLAUDE.md."
     },
@@ -1971,9 +1746,7 @@
       "references": [
         "skills/development/git-guardrails-claude-code/scripts/block-dangerous-git.sh"
       ],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "git guardrails claude code",
         "set up claude code hooks to block dangerous git commands (push, reset --hard, clean, branch -d, etc.) before they execute"
@@ -1990,9 +1763,7 @@
         "skills/development/ps-architect/references/rationale-template.md",
         "skills/development/ps-architect/references/runner-prompt.md"
       ],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "architect",
         "sketch types, signatures, and module structure before code, then stay in the loop while implementation fills in"
@@ -2005,9 +1776,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "automate me",
         "use for \"automate me\", \"create/update/refresh my -mode skill\", \"turn/capture my preferences or working style into a skill\", or wanting..."
@@ -2020,9 +1789,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "blast radius",
         "find what a change could break somewhere else before it ships, beyond the diff, and prove the one fact it's safe because of by running real..."
@@ -2039,9 +1806,7 @@
         "skills/development/ps-create-verification-skill/references/feature-map-example/create-note.md",
         "skills/development/ps-create-verification-skill/references/feature-map-example/search.md"
       ],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "create verification skill",
         "generate a project-local verification skill that drives your app the way a user does — any language, framework, or platform"
@@ -2054,9 +1819,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "figure it out",
         "design an auditable playbook when no narrower one fits: a large migration, an ambitious multi-part change, or work a human reviews after..."
@@ -2072,9 +1835,7 @@
         "skills/development/ps-how/references/explainer-prompt.md",
         "skills/development/ps-how/references/explorer-prompt.md"
       ],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "how",
         "use for \"how does x work\", code walkthroughs before changing something, and placement / ownership / layering questions (\"where should this..."
@@ -2092,9 +1853,7 @@
         "skills/development/ps-interrogate/references/reviewer-prompt.md",
         "skills/development/ps-interrogate/references/rubric.md"
       ],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "interrogate",
         "use for \"interrogate\", \"adversarial review\", \"multi-model review\", \"challenge this\", \"stress test this code\", \"find blind spots\", or \"tear..."
@@ -2107,9 +1866,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "maintain verification skill",
         "periodic pass that keeps a project's verification skill and feature map honest: parallel source readers per feature, one live session..."
@@ -2122,9 +1879,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "no comments",
         "spawn comment sicko, fix accepted findings, and offer encodings for claimed constraints."
@@ -2137,9 +1892,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "recall",
         "reconstruct your recent working context from your own chat history, live state, and the shared record (user reports, prior fixes,..."
@@ -2157,9 +1910,7 @@
         "skills/development/ps-reflect/references/synthesizer.md",
         "skills/development/ps-reflect/references/tooling-reviewer.md"
       ],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "reflect",
         "spawn three parallel review subagents over the active transcript, surface learnings, and route each to a concrete edit on an existing skill"
@@ -2175,9 +1926,7 @@
         "skills/development/ps-show-me-your-work/references/decision-log-template.tsv",
         "skills/development/ps-show-me-your-work/scripts/log.sh"
       ],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "show me your work",
         "keep a reviewable decision trail for long-running or unattended work: a tsv log with one row per decision (what, why, evidence, result)"
@@ -2190,9 +1939,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "tdd",
         "use only when the user explicitly asks for tdd, a failing test, or a regression test, or when the bug has an obvious cheap local test target"
@@ -2205,13 +1952,8 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
-      "aliases": [
-        "teach",
-        "explain a body of work plainly so a person actually understands it"
-      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["teach", "explain a body of work plainly so a person actually understands it"],
       "source": "external",
       "description": "Explain a body of work plainly so a person actually understands it. Runs the `how` and `why` skills and weaves what they find into one clear explanation. Use for 'teach me this', 'help me really understand X', 'explain this change or subsystem to me'."
     },
@@ -2220,9 +1962,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "technical writing",
         "layered technical-writing standard: diátaxis structure, google developer style sentences, ste instruction rules, global english syntax"
@@ -2235,13 +1975,8 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
-      "aliases": [
-        "unslop",
-        "cut ai tells from any writing"
-      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["unslop", "cut ai tells from any writing"],
       "source": "external",
       "description": "Cut AI tells from any writing. Must always apply."
     },
@@ -2263,9 +1998,7 @@
         "skills/development/ps-why/references/sources/slack.md",
         "skills/development/ps-why/references/synthesizer-prompt.md"
       ],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "why",
         "use for 'why does x work this way', 'why we picked y', design rationale, regressions, postmortems, or data-backed thresholds"
@@ -2278,9 +2011,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle attack the premise",
         "apply when two or more fixes that share one premise have failed the same gate"
@@ -2293,9 +2024,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle boundary discipline",
         "apply when wiring validation, error handling, or framework adapters"
@@ -2308,9 +2037,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle build the lever",
         "apply to any non-trivial work, not just bulk work: edits, migrations, analyses, checks"
@@ -2323,9 +2050,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle encode lessons in structure",
         "apply when you catch yourself writing the same instruction a second time, or notice a recurring correction"
@@ -2338,9 +2063,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle exhaust the design space",
         "apply when facing a novel ui interaction or architectural decision with no precedent in the codebase"
@@ -2353,9 +2076,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle experience first",
         "apply when product, ux, or feature-scope tradeoffs come up"
@@ -2368,13 +2089,8 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
-      "aliases": [
-        "principle fix root causes",
-        "apply when debugging"
-      ],
+      "shared": ["skills/development/README.md"],
+      "aliases": ["principle fix root causes", "apply when debugging"],
       "source": "external",
       "description": "Apply when debugging. Trace each symptom to its root cause and fix it there; reproduce first, ask why until you reach it, resist nil-check guards that silence crashes."
     },
@@ -2383,9 +2099,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle foundational thinking",
         "apply before writing logic: choosing core types and data structures, sequencing scaffold-vs-feature work, asking what concurrent actors..."
@@ -2398,9 +2112,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle guard the context window",
         "apply when context is filling up: large outputs, long files, repeated reads, fan-out planning"
@@ -2413,9 +2125,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle laziness protocol",
         "apply when refactoring, evaluating diff size, or tempted to add abstractions, layers, or signal threading"
@@ -2428,9 +2138,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle make operations idempotent",
         "apply when designing commands, lifecycle steps, or processing loops that run amid crashes, restarts, and retries"
@@ -2443,9 +2151,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle migrate callers then delete legacy apis",
         "apply when introducing a new internal api while old callers still exist"
@@ -2458,9 +2164,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle minimize reader load",
         "apply when reviewing or shaping code that's hard to trace"
@@ -2473,9 +2177,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle model the domain",
         "apply when writing stateful logic, or when code branches a lot or repeats a shape assumption across files"
@@ -2488,9 +2190,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle never block on the human",
         "apply when tempted to ask 'should i do x?' on reversible work"
@@ -2503,9 +2203,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle outcome oriented execution",
         "apply during planned rewrites and migrations with explicit phase boundaries"
@@ -2518,9 +2216,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle prove it works",
         "apply after completing a task, before declaring done"
@@ -2533,9 +2229,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle redesign from first principles",
         "apply when integrating a new requirement into an existing design"
@@ -2548,9 +2242,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle separate before serializing shared state",
         "apply when concurrent actors might write to the same file, branch, key, or state object"
@@ -2563,9 +2255,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle sequence verifiable units",
         "apply to multi-step work (sweeps, migrations, runs of similar edits) and to how you stack commits and prs"
@@ -2578,9 +2268,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle subtract before you add",
         "apply when sequencing an addition, refactor, or rewrite"
@@ -2593,9 +2281,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle test behavior not implementation",
         "apply when you write, change, or keep a test"
@@ -2608,9 +2294,7 @@
       "entry": null,
       "mode": "guidance",
       "references": [],
-      "shared": [
-        "skills/development/README.md"
-      ],
+      "shared": ["skills/development/README.md"],
       "aliases": [
         "principle type system discipline",
         "apply when designing types, reviewing a function signature, or writing code in any statically-typed language"
@@ -2621,9 +2305,7 @@
     "weekly-gainers-signal": {
       "skill_md": "skills/equity-research/weekly-gainers-signal/SKILL.md",
       "entry": null,
-      "references": [
-        "skills/equity-research/_shared/scan-signal-pipeline.md"
-      ],
+      "references": ["skills/equity-research/_shared/scan-signal-pipeline.md"],
       "shared": [
         "skills/_shared/conventions.md",
         "skills/tooling/output-dto-standard/SKILL.md",

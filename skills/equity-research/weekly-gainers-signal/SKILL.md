@@ -22,10 +22,10 @@ section, the files-touched manifest) is unchanged and shared verbatim.
 ## A note on "top N"
 
 Everywhere in this skill and the shared pipeline doc, "top N" for a
-*selection within* the pipeline (research, reports, the email) always means
+_selection within_ the pipeline (research, reports, the email) always means
 sorted by **Deliv Val** descending — same convention as `gainers-signal`'s
 "top 3"/"top 10" (see that skill's "Step 5 delta" section). This does NOT
-apply to `--top-n` below, which sizes the *universe entry filter* — "top 20
+apply to `--top-n` below, which sizes the _universe entry filter_ — "top 20
 gainers of the week" is inherently a `Returns 1W` rank (that is what makes a
 name a weekly gainer at all), the same relationship `--top-n` has to
 `Returns 1D` in `gainers-signal`. Once that universe of 20 is fetched, every
@@ -35,8 +35,8 @@ distinction is documentation-only for this skill today.
 
 ## Parameters
 
-| Param     | Default          | Meaning                                                |
-| --------- | ---------------- | ------------------------------------------------------- |
+| Param     | Default          | Meaning                                                  |
+| --------- | ---------------- | -------------------------------------------------------- |
 | `date`    | last trading day | market date (`--date YYYY-MM-DD`) for the scanner        |
 | `email`   | on               | set off to `render` the briefing without sending         |
 | `--top-n` | `20`             | size of the weekly-gainers universe (NOT 50 — see below) |
@@ -151,16 +151,16 @@ research DTOs and any other writes made after the mid-run push above.
 **Event type / labels.**
 
 | Thing             | Value                                          |
-| ----------------- | ----------------------------------------------- |
-| raw file          | `weekly_gainers_raw_{YYYYMMDD}.json`             |
-| insights DTO      | `weekly_gainers_insights_{YYYYMMDD}.json`        |
-| research seed     | `weekly_gainers_research_seed_{YYYYMMDD}.json`   |
-| event type        | `weekly_gainer`                                  |
-| creator           | `weekly-gainers-signal`                          |
-| research DTO type | `weekly-gainers-trigger-research`                |
-| report DTO type   | `rerating-catalysts` (unchanged — same skill)    |
-| email title       | `Weekly Gainers Signal`                          |
-| subject           | `Weekly Gainers Signal — {market_date}`          |
+| ----------------- | ---------------------------------------------- |
+| raw file          | `weekly_gainers_raw_{YYYYMMDD}.json`           |
+| insights DTO      | `weekly_gainers_insights_{YYYYMMDD}.json`      |
+| research seed     | `weekly_gainers_research_seed_{YYYYMMDD}.json` |
+| event type        | `weekly_gainer`                                |
+| creator           | `weekly-gainers-signal`                        |
+| research DTO type | `weekly-gainers-trigger-research`              |
+| report DTO type   | `rerating-catalysts` (unchanged — same skill)  |
+| email title       | `Weekly Gainers Signal`                        |
+| subject           | `Weekly Gainers Signal — {market_date}`        |
 
 ## Step 7 — compose and send (delta from the shared doc)
 
