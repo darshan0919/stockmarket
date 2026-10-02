@@ -235,6 +235,17 @@ Save the review record to `reports` via `db.saveReport(dto)` so all audit decisi
 - `qualitativeProposals: [...]`
 - Standard envelope (`id`, `creationTime`, `modifiedTime`, `creator: 'grill-skill'`, `modelUsed`).
 
+### 🚨 The Non-Negotiable Presentation Rule: Render Full Insight Report & Debate
+
+Never present actionables, proposal confirmations, or `ask_question` prompts in isolation without rendering the rich intellectual output. The user relies on the detailed analytical report and the adversarial debate to evaluate trade-offs and make informed decisions.
+
+Before or alongside interactive confirmation prompts, the agent **MUST ALWAYS render to the user**:
+
+1. **Static Inspection Report & Metrics:** Prompt size, progressive disclosure status, detected script logic, caching audit, and KB grounding.
+2. **The Full Knowledge-Grounded Dialectic Transcript:** The complete adversarial dialogue between 🥊 The Griller and 🛡️ The Architect across all 3 rounds (with exact SOIC, Dr. Anil Lamba, and DB historical citations).
+3. **The Synthesized Skill Optimization Blueprint / RFC:** Executive summary, reasoning vs logic breakdown, model tiering matrix, script migration matrix, progressive disclosure plan, and code/prompt diffs.
+4. **Markdown Artifact Generation:** Write the complete review report as a persistent artifact in the session artifact directory (`<appDataDir>/brain/<conversation-id>/<skill-name>-grill-report.md`) with `ArtifactMetadata` so the user can easily reference and inspect the full architecture.
+
 ---
 
 ### Phase 5: Implementation & Interactive Confirmation

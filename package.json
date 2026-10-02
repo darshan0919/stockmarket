@@ -37,6 +37,7 @@
     "rules:sync": "node scripts/sync-rules.js --fix",
     "quality": "yarn rules:check && yarn format:check && yarn lint && yarn test",
     "fix": "yarn format && yarn lint:fix",
+    "pat-bridge": "yarn workspace @stock/api compute-pat-bridge",
     "deals-digest": "yarn workspace @stock/jobs deals-digest",
     "verify-deals-digest": "yarn workspace @stock/jobs verify-deals-digest",
     "daily-gainers-digest": "yarn workspace @stock/jobs daily-gainers-digest",

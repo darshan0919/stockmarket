@@ -56,7 +56,7 @@ Do NOT tag a J-curve on the announcement's own optimism. Management describing
 a project as transformational is not evidence of an elbow; sunk cost visible in
 the reported base is.
 
-### 4b — PAT growth, not EPS growth alone
+### 4b — PAT growth, not EPS growth alone (Deterministic `yarn pat-bridge`)
 
 **This is the rule most likely to be got wrong, because the intuitive read is
 backwards.** A QIP, preferential allotment or warrant issue increases the share
@@ -65,42 +65,47 @@ wrong whenever the proceeds retire debt, because interest saved lands in PAT
 with no execution risk and no revenue growth required — and net of dilution the
 EPS effect is frequently **positive**.
 
-So reason through PAT explicitly before touching EPS:
+**Never perform floating-point financial arithmetic in prompt text.** Instead,
+extract the factual parameters from the filing and run the deterministic analyzer:
 
-1. **What does PAT do?** Interest saved from debt repaid, plus any operating
-   contribution from what the money buys, minus incremental depreciation.
-   Interest saved is the highest-confidence number in this whole chain: it is
-   arithmetic on a disclosed principal at a disclosed or estimable rate.
-2. **What does the share count do?** Issue size ÷ issue price, plus any warrant
-   or convertible tranches, and note the timing — a warrant converting in
-   tranches over 18 months dilutes gradually, not on announcement.
-3. **Only then, EPS = PAT ÷ diluted shares**, and state the direction with the
-   sign you actually computed.
+```bash
+yarn pat-bridge '{"raiseAmount":800,"debtRepaid":600,"interestRate":0.11,"taxRate":0.25,"currentPat":300,"currentShares":20,"issuePrice":310}'
+# or via flags:
+# yarn pat-bridge --raise-amount 800 --debt-repaid 600 --interest-rate 11 --current-pat 300 --current-shares 20 --issue-price 310
+```
 
-A worked shape, because the arithmetic is the argument: a ₹800cr QIP where
-₹600cr retires debt at 11% saves ₹66cr of interest, ~₹49cr after tax. If the
-company earned ₹300cr PAT on 20cr shares (EPS ₹15) and issues 2.6cr new shares
-at ₹310, PAT goes to ₹349cr on 22.6cr shares — EPS ₹15.44. **Accretive, despite
-13% dilution.** Called "dilutive" on share count alone, that filing gets marked
-down when it should be marked up.
+The script deterministically computes:
 
-The same discipline applies in reverse, and it is the more common error in the
-other direction: an order win or capex announcement that grows revenue while
-adding interest and depreciation can be **PAT-negative for several quarters**
-before the J-curve elbow arrives. Say which quarters, and don't let a large
-revenue number stand in for an earnings number.
+1. **Interest saved:** `debtRepaid * interestRate` (pre-tax and post-tax at `taxRate`).
+2. **PAT Delta:** `taxAdjustedInterestSaved + operatingContribution - incrementalDepreciation`.
+3. **Dilution & Shares:** `raiseAmount / issuePrice` (or explicit `newShares`), calculating exact `dilutionPct`.
+4. **Pro-forma EPS & Direction:** Exact `oldEps`, `newEps`, `epsDelta`, `epsPctDelta`, and `isAccretive` flag.
 
-Where interest cost, debt quantum or the tax rate isn't in the filing, get them
-from `buildCompanyContext(companyId)` and the latest result note rather than
-guessing; if they genuinely aren't available, set
-`epsImpact.confidence: "low"` and say which input is missing. A stated missing
-input is useful; a confident number built on an invented interest rate is
-worse than no number.
+The worked shape: a ₹800cr QIP where ₹600cr retires debt at 11% saves ₹66cr of interest (~₹49.5cr post-tax at 25%). If the company earned ₹300cr PAT on 20cr shares (EPS ₹15) and issues 2.58cr new shares at ₹310, PAT goes to ₹349.5cr on 22.58cr shares — EPS ₹15.48. **Accretive (+3.2%), despite 12.9% dilution.** Called "dilutive" on share count alone, that filing gets marked down when it should be marked up.
 
-Record the intermediate reasoning on the note as `patBridge: {interestSaved,
-taxRate, incrementalDepreciation, operatingContribution, newShares,
-dilutionPct, patDelta, epsDelta, direction}`. It's what makes the conclusion
-auditable and what Step 8 checks against.
+The same discipline applies in reverse: an order win or capex announcement that grows revenue while adding interest and depreciation can be **PAT-negative for several quarters** before the J-curve elbow arrives. Pass `incrementalDepreciation` to verify near-term dilution.
+
+Where interest cost, debt quantum or the tax rate isn't in the filing, get them from `buildCompanyContext(companyId)` and the latest result note rather than guessing; if they genuinely aren't available, set `epsImpact.confidence: "low"` and say which input is missing. A stated missing input is useful; a confident number built on an invented interest rate is worse than no number.
+
+Attach the script's `bridge` output directly to the note payload as `patBridge`:
+
+```json
+{
+  "patBridge": {
+    "interestSaved": 66.0,
+    "taxRate": 0.25,
+    "incrementalDepreciation": 0,
+    "operatingContribution": 0,
+    "newShares": 2.581,
+    "dilutionPct": 12.9,
+    "patDelta": 49.5,
+    "epsDelta": 0.48,
+    "direction": "positive",
+    "isAccretive": true,
+    "auditSummary": "₹800 Cr raise; retires ₹600 Cr debt @ 11%; saving ₹66 Cr interest (₹49.5 Cr post-tax); PAT moves from ₹300 Cr to ₹349.5 Cr (+16.5%); dilution 12.9% (2.58 Cr new shares); EPS ₹15 -> ₹15.48 (+3.2% ACCRETIVE)"
+  }
+}
+```
 
 ### 4c — Use the knowledge base, and declare where it fell short
 

@@ -58,4 +58,5 @@ module.exports = {
   computeReactionMetrics,
   classifySignal,
   SIGNAL_THRESHOLDS,
+  computePatBridge: require('./patBridge').computePatBridge,
 };

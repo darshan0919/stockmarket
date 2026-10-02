@@ -15,6 +15,7 @@
   "type": "commonjs",
   "scripts": {
     "test": "jest",
+    "compute-pat-bridge": "node bin/compute-pat-bridge.js",
     "announcement-keyword-explorer": "node bin/announcement-keyword-explorer.js",
     "bulk-filing-scan": "node bin/bulk-filing-scan.js",
     "company-financials": "node bin/company-financials.js",
