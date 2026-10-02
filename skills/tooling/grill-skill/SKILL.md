@@ -100,10 +100,12 @@ Every review evaluates the target skill along these 6 dimensions (detailed in [r
 
 ### Phase 1: Static Inspection & Knowledge Base Grounding
 
-1. **Static Inspection:** Run the companion inspector script:
+1. **Static Inspection & KB Retrieval:** Run the unified preparation CLI:
 
    ```bash
-   node skills/tooling/grill-skill/scripts/inspect-skill.js <target-skill-name>
+   yarn skill:inspect <target-skill-name>
+   # or with domain knowledge retrieval:
+   node stock-api/bin/grill-skill.js <target-skill-name>
    ```
 
    The script extracts size, progressive disclosure, deterministic logic candidates, caching audit, and candidate reasoning tasks.
@@ -161,6 +163,7 @@ _Wait for the user's response before proceeding._
 Once the user confirms the criticality ratings, execute the self-grilling dialectic. The AI embodies two distinct personas:
 
 - 🥊 **The Griller (Adversarial Buy-Side Inquisitor):** Skeptical, quality-obsessed, domain-grounded purist. Armed with specific **SOIC lesson citations**, **Dr. Anil Lamba corporate finance rules**, and **real historical company reports from our DB**, the Griller probes why the LLM is calculating numbers instead of a script, exposes naive assumptions, and challenges how the skill handles real-world management tricks and financial traps.
+  - **Mandatory Citation Verification Gate:** The Griller persona MUST include verified timestamps, URLs, or lesson names from `search_soic.py` or `search_expert.py` for every domain challenge. Ungrounded memory citations are strictly prohibited.
 - 🛡️ **The Skill Architect (Defender):** Deeply knowledgeable about the stockmarket codebase and data layer. Defends the mission-critical reasoning confirmed by the user, concedes deterministic script candidates, and proposes exact refactoring seams.
 
 #### Round 1: Core Value, Quality & Script Migration
@@ -221,6 +224,17 @@ Exact proposed edits for `SKILL.md` and draft implementations for new scripts.
 
 2–3 test cases checking both quality improvement (richer insights) and efficiency (tokens saved).
 
+#### 7. Persist `skill-review` DTO to DB (MANDATORY per DATA_RULES.md §2)
+
+Save the review record to `reports` via `db.saveReport(dto)` so all audit decisions and RFC plans are Drive-mirrored:
+
+- `type: 'skill-review'`
+- `targetSkill: '<name>'`
+- `criticalityClassifications: [...]`
+- `scriptMigrations: [...]`
+- `qualitativeProposals: [...]`
+- Standard envelope (`id`, `creationTime`, `modifiedTime`, `creator: 'grill-skill'`, `modelUsed`).
+
 ---
 
 ### Phase 5: Implementation & Interactive Confirmation
@@ -244,6 +258,12 @@ Exact proposed edits for `SKILL.md` and draft implementations for new scripts.
    - For all non-script suggestions (changes to reasoning prompts, analytical frameworks, tolerance thresholds, model tiering changes, or new analytical rules like Q1/Q3 WC caps or evasion patterns):
    - The agent **MUST prompt the user** using `ask_question` (interactive multi-question prompt) to individually confirm whether to implement each suggestion.
    - Once the user confirms which suggestions to implement, the agent applies the prompt diffs to `SKILL.md` and related references, runs tests/formatting, and verifies synchronization.
+
+3. **Automated Action Plan Checklist:**
+   Conclude the session with a structured summary checklist:
+   - `[x]` Completed Script Migrations (with file paths and unit tests)
+   - `[x]` / `[ ]` Qualitative & Prompt Suggestions (with user confirmation status)
+   - Files touched manifest and token-optimization suggestions.
 
 ---
 

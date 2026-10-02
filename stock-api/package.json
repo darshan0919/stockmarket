@@ -28,6 +28,7 @@
     "get-concall-sentiment": "node bin/get-concall-sentiment.js",
     "get-concall-transcript-url": "node bin/get-concall-transcript-url.js",
     "get-latest-concall-transcript": "node bin/get-latest-concall-transcript.js",
+    "grill-skill": "node bin/grill-skill.js",
     "growth-triggers-1pager": "node bin/growth-triggers-1pager.js",
     "management-credibility-tracker": "node bin/management-credibility-tracker.js",
     "market-share-analysis": "node bin/market-share-analysis.js",

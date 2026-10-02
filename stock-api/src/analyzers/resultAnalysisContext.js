@@ -328,6 +328,32 @@ function computeMandatoryChips(record) {
     }
   }
 
+  // Check balance sheet working capital signals (Dr. Anil Lamba Rule: debtors & inventory vs revenue)
+  const bs = record.balanceSheetSignals;
+  if (bs && bs.material) {
+    for (const item of bs.material) {
+      if (item.id === 'receivablesVsRevenue') {
+        chips.push('WORKING-CAPITAL DRAIN (DEBTORS SPIKE)');
+      }
+      if (item.id === 'inventoryVsRevenue') {
+        chips.push('INVENTORY BLOAT');
+      }
+    }
+  }
+
+  // Check cash flow conversion signals (Operating cash flow vs reported profit)
+  const cf = record.cashflowSignals;
+  if (cf && cf.material) {
+    for (const item of cf.material) {
+      if (item.id === 'cfoToPat' || item.id === 'cfoToEbitda') {
+        chips.push('POOR CASH CONVERSION');
+      }
+      if (item.id === 'workingCapitalDrag') {
+        chips.push('WORKING-CAPITAL CASH DRAIN');
+      }
+    }
+  }
+
   return [...new Set(chips)];
 }
 

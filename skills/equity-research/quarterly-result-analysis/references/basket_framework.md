@@ -75,9 +75,19 @@ For each margin trigger, label sustainability:
 
 **One-Off Recurrence Audit (mandatory).** When management attributes margin compression to "one-off" costs (water, power, freight, FX, plant maintenance, temporary RM surge), inspect prior quarters. If "one-off" or "exceptional" operational excuses were cited in $\ge 2$ of the trailing 4 quarters, **disqualify the `TEMPORARY` tag**. Tag as `RECURRENT OPERATIONAL DRAG` and penalize the management credibility / capital allocation grade to `LOW`.
 
+**SOIC Operating Leverage & Margin Spread Rule (mandatory).** Grounded in SOIC teaching (_17.05.26 Earnings Decoded @ 01:22:07_): When top-line expands, examine the divergence between Gross Margin spread (YoY bps) and EBITDA Margin spread (YoY bps):
+
+- If Gross Margin expanded or remained steady ($\ge 0$ bps), but EBITDA Margin compressed ($\le -50$ bps), tag the driver as `OVERHEAD/SG&A DRAG` or `INTEGRATION/INVESTMENT DRAG` rather than raw material inflation. Management attributing this to "general market headwinds" is an evasion; evaluate fixed cost absorption, new capacity commercialisation costs, or wage bill expansion. If due to integration of lower-margin acquisitions or upfront plant commercialisation, evaluate EBITDA margin recovery across a 2-4 quarter integration runway.
+- If Gross Margin contracted ($\le -100$ bps), tag as `RAW MATERIAL / PRICING POWER LOSS`, indicating that input cost surges could not be passed on to counterparties.
+
 **Q1/Q3 Structural Cap Rule (Working Capital Safeguard).** In Q1/Q3 filings where Balance Sheet & Cash Flow are `ABSENT` under SEBI LODR Reg 33(3), **no margin expansion may be tagged `SUSTAINABLE` / `STRUCTURAL` unconditionally**. Tag it as `STRUCTURAL (CONDITIONAL ON H1 WORKING CAPITAL AUDIT)` because apparent operating leverage can be an illusion manufactured by swelling receivables or channel inventory (Dr. Anil Lamba: _Profit ≠ Cash_). Mandate that Item #1 in the forward Investor Monitoring Checklist tracks H1 Working Capital Days.
 
 ## 1C. Capex, Balance Sheet & Cash Flow
+
+**Dr. Anil Lamba Working Capital Drain Audit (Mandatory on Chip Trigger).** When `resultAnalysisContext.js` triggers `WORKING-CAPITAL DRAIN (DEBTORS SPIKE)`, `INVENTORY BLOAT`, or `POOR CASH CONVERSION`:
+
+- Grounded in Dr. Anil Lamba corporate finance rules (_My 2 GOLDEN Finance Rules @ 00:09:49_ and _How Vendor Credit Can Get you STUCK @ 00:01:30_): _Profit is an opinion, cash is a fact._ The LLM must not celebrate headline PAT growth if receivables growth outpaced revenue growth (debtors YoY% > revenue YoY% by $\ge 20$ percentage points) or CFO/PAT conversion ratio dropped below 0.6x.
+- Mandate an explicit audit in this sub-section: Is growth being manufactured by extending aggressive credit terms to distributors (channel stuffing)? Are unsold finished goods accumulating in inventory? If so, tag as `WORKING CAPITAL TRAP` in Basket 2 risks with `HIGH` severity.
 
 **Run both statement scans first — this sub-section is evidence-led, not commentary-led.** For
 years this sub-section was a list of things to look for in the concall, which meant the balance

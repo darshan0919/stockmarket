@@ -47,6 +47,29 @@ describe('resultAnalysisContext analyzer', () => {
     expect(chips).toContain('TAX-RATE DRIVEN');
   });
 
+  it('detects working capital drain and cash conversion chips from balance sheet and cash flow signals', () => {
+    const record = {
+      balanceSheetSignals: {
+        material: [
+          { id: 'receivablesVsRevenue', label: 'Receivables growth vs revenue growth' },
+          { id: 'inventoryVsRevenue', label: 'Inventory growth vs revenue growth' },
+        ],
+      },
+      cashflowSignals: {
+        material: [
+          { id: 'cfoToPat', label: 'CFO / PAT conversion ratio' },
+          { id: 'workingCapitalDrag', label: 'Working capital drag on operating cash flow' },
+        ],
+      },
+    };
+
+    const chips = computeMandatoryChips(record);
+    expect(chips).toContain('WORKING-CAPITAL DRAIN (DEBTORS SPIKE)');
+    expect(chips).toContain('INVENTORY BLOAT');
+    expect(chips).toContain('POOR CASH CONVERSION');
+    expect(chips).toContain('WORKING-CAPITAL CASH DRAIN');
+  });
+
   it('grades statement health correctly when balance sheet is absent for Q1/Q3', () => {
     const record = {
       incomeStatementSignals: { combinations: [] },

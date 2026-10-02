@@ -28,6 +28,7 @@
     "lint": "eslint . --ext .js,.jsx",
     "lint:fix": "eslint . --ext .js,.jsx --fix",
     "dead-code:scan": "node scripts/dead-code-scanner.js",
+    "skill:inspect": "node scripts/inspect-skill.js",
     "dep:tree": "node scripts/dependency-tree.js",
     "dep-tree": "node scripts/dependency-tree.js",
     "antigravity:sync": "node scripts/antigravity-sync-tasks-and-skills.js",
