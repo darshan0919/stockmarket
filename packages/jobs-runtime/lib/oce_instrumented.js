@@ -91,11 +91,14 @@ async function resolveOrderFacts(item, deps) {
 
   // One read of the filing text, shared by the tracker's extractor, the
   // non-standard-title fallback and the status/GST checks below.
-  const doc = await deps.readPdfText(item); console.error('MARK:after-readPdfText');
+  const doc = await deps.readPdfText(item);
+  console.error('MARK:after-readPdfText');
   const snippet = doc && doc.text ? doc.text.slice(0, PDF_SNIPPET_CHARS) : '';
 
-  let rec = annStore.get(companyId, ssUrl, date); console.error('MARK:after-annStore-get', !!rec);
-  console.error('MARK:before-if-not-rec'); if (!rec) {
+  let rec = annStore.get(companyId, ssUrl, date);
+  console.error('MARK:after-annStore-get', !!rec);
+  console.error('MARK:before-if-not-rec');
+  if (!rec) {
     rec = await deps.resolveAnnouncement(companyId, ann, date, {
       client: deps.client,
       textFn: async () => doc,
@@ -104,7 +107,8 @@ async function resolveOrderFacts(item, deps) {
     if (!rec.pdfError) annStore.save(companyId, ssUrl, date, rec);
   }
 
-  console.error('MARK:before-extraction-block'); let extraction = rec.extraction || null;
+  console.error('MARK:before-extraction-block');
+  let extraction = rec.extraction || null;
   let valueCr = null;
   let source = null;
   let confidence = null;
@@ -130,8 +134,10 @@ async function resolveOrderFacts(item, deps) {
     }
   }
 
-  console.error('MARK:before-if-extraction'); if (extraction) {
-    console.error('MARK:before-both-calc'); const both =
+  console.error('MARK:before-if-extraction');
+  if (extraction) {
+    console.error('MARK:before-both-calc');
+    const both =
       Number.isFinite(extraction.titleTierCr) && Number.isFinite(extraction.pdfTierCr)
         ? orderMetrics.reconcileValues(extraction.titleTierCr, extraction.pdfTierCr)
         : null;
@@ -149,15 +155,18 @@ async function resolveOrderFacts(item, deps) {
     notes.push(`filing could not be fetched (${rec.pdfError})`);
   }
 
-  console.error('MARK:before-statusText'); const statusText = [ann.title, ann.description, item.headline, snippet].join(' \n '); console.error('MARK:after-statusText');
+  console.error('MARK:before-statusText');
+  const statusText = [ann.title, ann.description, item.headline, snippet].join(' \n ');
+  console.error('MARK:after-statusText');
   if (
-    valueCr !== null &&
-    console.error('MARK:before-statesGstInclusive') || orderMetrics.statesGstInclusive(`${snippet} ${extraction && extraction.sourceText}`)
+    (valueCr !== null && console.error('MARK:before-statesGstInclusive')) ||
+    orderMetrics.statesGstInclusive(`${snippet} ${extraction && extraction.sourceText}`)
   ) {
     notes.push('value includes GST per the filing — ratios may read up to ~18% high');
   }
 
-  console.error('MARK:before-return'); return {
+  console.error('MARK:before-return');
+  return {
     ssUrl,
     date,
     valueCr,
@@ -222,7 +231,8 @@ async function enrichOrderCards(insights, opts = {}) {
   });
 
   // 2) Facts + per-announcement metrics.
-  const factResults = await mapC(orderItems, CONCURRENCY, (it) => resolveOrderFacts(it, deps)); console.error('MARK2:after-factResults', factResults.length);
+  const factResults = await mapC(orderItems, CONCURRENCY, (it) => resolveOrderFacts(it, deps));
+  console.error('MARK2:after-factResults', factResults.length);
   const metricsByItem = new Map();
   orderItems.forEach((it, idx) => {
     const r = factResults[idx];
@@ -238,10 +248,12 @@ async function enrichOrderCards(insights, opts = {}) {
           };
     metricsByItem.set(
       it,
-      (console.error('MARK2:before-buildOrderMetrics', it.companyId), orderMetrics.buildOrderMetrics({ facts, revenue: revenueByCompany.get(it.companyId) }))
+      (console.error('MARK2:before-buildOrderMetrics', it.companyId),
+      orderMetrics.buildOrderMetrics({ facts, revenue: revenueByCompany.get(it.companyId) }))
     );
   });
-  console.error('MARK2:after-metricsByItem-loop'); stats.orderCards = orderItems.length;
+  console.error('MARK2:after-metricsByItem-loop');
+  stats.orderCards = orderItems.length;
   stats.withRatio = [...metricsByItem.values()].filter((m) => m.ratios.ttm !== null).length;
 
   // 3) Company-level merge → top-N ranking → unexecuted book for the top few.
@@ -256,16 +268,20 @@ async function enrichOrderCards(insights, opts = {}) {
       orderMetrics.mergeOrderMetrics(items.map((it) => metricsByItem.get(it))),
     ])
   );
-  console.error('MARK2:before-selectTopCompanies'); const top = orderMetrics.selectTopCompanies(
+  console.error('MARK2:before-selectTopCompanies');
+  const top = orderMetrics.selectTopCompanies(
     [...merged.entries()].map(([companyId, metrics]) => ({ companyId, metrics })),
     topN
   );
-  console.error('MARK2:after-selectTopCompanies', JSON.stringify(top)); stats.top = top;
+  console.error('MARK2:after-selectTopCompanies', JSON.stringify(top));
+  stats.top = top;
 
-  console.error('MARK2:before-if-top-length', top.length); if (top.length) {
+  console.error('MARK2:before-if-top-length', top.length);
+  if (top.length) {
     let refreshed = new Map();
     try {
-      console.error('MARK2:before-refreshOrderLedgers'); refreshed = await require('./orderBookRollup').refreshOrderLedgers(top, {
+      console.error('MARK2:before-refreshOrderLedgers');
+      refreshed = await require('./orderBookRollup').refreshOrderLedgers(top, {
         client: deps.client,
         ensureBase: deps.ensureBase,
         processNewAnnouncements: deps.processNewAnnouncements,

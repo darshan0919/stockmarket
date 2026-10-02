@@ -798,6 +798,27 @@
         "manage skills"
       ]
     },
+    "grill-skill": {
+      "skill_md": "skills/tooling/grill-skill/SKILL.md",
+      "entry": "skills/tooling/grill-skill/scripts/inspect-skill.js",
+      "modules": ["skills/tooling/grill-skill/scripts/inspect-skill.js"],
+      "scripts": ["skills/tooling/grill-skill/scripts/inspect-skill.js"],
+      "references": [
+        "skills/tooling/grill-skill/references/grilling-rubric.md",
+        "skills/tooling/grill-skill/references/script-vs-reasoning-heuristics.md"
+      ],
+      "shared": ["skills/_shared/conventions.md"],
+      "aliases": [
+        "grill skill",
+        "grill-skill",
+        "review skill",
+        "audit skill",
+        "optimize skill",
+        "improve skill",
+        "skill review",
+        "grill a skill"
+      ]
+    },
     "render-pdf": {
       "skill_md": "skills/tooling/render-pdf/SKILL.md",
       "entry": "stock-api/bin/render-pdf.js",

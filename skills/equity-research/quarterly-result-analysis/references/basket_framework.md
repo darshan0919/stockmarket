@@ -73,6 +73,10 @@ For each margin trigger, label sustainability:
 
 **Income Statement Signal Scan (mandatory).** Before tagging a margin/profit trigger `SUSTAINABLE`, run the full scan in `skills/_shared/income-statement-signals.md` (QoQ + YoY, all 15 P&L lines plus the combination reads) — inventory gains are item 4 of that framework, alongside Other Income composition, RM-cost moves, tax-rate swings, and exceptional items, any of which can manufacture the same false-`SUSTAINABLE` read. Quantify the estimated contribution to PAT/EBITDA of whatever clears the shared scan's materiality bar, and tag the trigger `TEMPORARY` or `CYCLICAL` — never `SUSTAINABLE` — when it does. Call this out prominently in the verdict chips (e.g. `INVENTORY-GAIN DRIVEN`, `TAX-RATE DRIVEN`, `NON-OPERATING BEAT`) whenever it materially affects the headline result, distinguishing it from genuinely structural drivers (volume growth, pricing power, cost efficiency, mix improvement).
 
+**One-Off Recurrence Audit (mandatory).** When management attributes margin compression to "one-off" costs (water, power, freight, FX, plant maintenance, temporary RM surge), inspect prior quarters. If "one-off" or "exceptional" operational excuses were cited in $\ge 2$ of the trailing 4 quarters, **disqualify the `TEMPORARY` tag**. Tag as `RECURRENT OPERATIONAL DRAG` and penalize the management credibility / capital allocation grade to `LOW`.
+
+**Q1/Q3 Structural Cap Rule (Working Capital Safeguard).** In Q1/Q3 filings where Balance Sheet & Cash Flow are `ABSENT` under SEBI LODR Reg 33(3), **no margin expansion may be tagged `SUSTAINABLE` / `STRUCTURAL` unconditionally**. Tag it as `STRUCTURAL (CONDITIONAL ON H1 WORKING CAPITAL AUDIT)` because apparent operating leverage can be an illusion manufactured by swelling receivables or channel inventory (Dr. Anil Lamba: _Profit ≠ Cash_). Mandate that Item #1 in the forward Investor Monitoring Checklist tracks H1 Working Capital Days.
+
 ## 1C. Capex, Balance Sheet & Cash Flow
 
 **Run both statement scans first — this sub-section is evidence-led, not commentary-led.** For
@@ -201,6 +205,13 @@ The highest-signal section. Track:
 1. **What did management _avoid_ answering?** Note specific analyst questions where the response was vague or pivoted. Quote both Q and A.
 2. **What did they stop discussing?** Topics that dominated 2-3 prior calls and are absent now. Requires prior transcript context.
 3. **Where did confidence reduce?** Language ladder: "will" → "expect" → "endeavour to" → "depends on" is a tell.
+
+**SOIC Evasion Pattern Taxonomy (mandatory for dodged questions):**
+When citing an evasive response, classify the tactic into one of three patterns:
+
+- **Horizon Pivot:** Answering a near-term metric miss (e.g. margin decline, delay in commissioning) by deflecting to a 3-5 year TAM or broad vision.
+- **Exclusion Shelter:** Defending numbers by inventing "normalized" metrics and asking analysts to exclude recurring operational costs (FX, maintenance, logistics).
+- **Dilution Hedge:** Replacing quantitative commitments ("will deliver 22%") with soft qualitative adverbs ("healthy", "encouraging", "satisfactory").
 
 ## 2C. Industry & Macro Risks
 

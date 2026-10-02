@@ -17,12 +17,22 @@ function mark(label, t0) {
 
 (async () => {
   const t0 = Date.now();
-  const freshInsights = JSON.parse(fs.readFileSync('/sessions/rcw-01axy4cebhhf5h4xn2oxk14t/mnt/stockmarket/data/scratch/post-close-20261002-adhoc-morning/insights-array.json', 'utf8'));
+  const freshInsights = JSON.parse(
+    fs.readFileSync(
+      '/sessions/rcw-01axy4cebhhf5h4xn2oxk14t/mnt/stockmarket/data/scratch/post-close-20261002-adhoc-morning/insights-array.json',
+      'utf8'
+    )
+  );
   const cutoffUtc = new Date('2026-10-01T10:54:42.656Z');
   const cachedInsights = collectCachedNotesSinceCutoff(cutoffUtc.getTime());
   const merged0 = dedupeInsights([...freshInsights, ...cachedInsights]);
-  const orderItems = merged0.filter((i) => i && i.category === 'order_book' && i.companyId && i.announcementId);
-  mark(`orderItems: ${orderItems.length} -> ${orderItems.map((i) => i.companyId + ':' + i.announcementId).join(', ')}`, t0);
+  const orderItems = merged0.filter(
+    (i) => i && i.category === 'order_book' && i.companyId && i.announcementId
+  );
+  mark(
+    `orderItems: ${orderItems.length} -> ${orderItems.map((i) => i.companyId + ':' + i.announcementId).join(', ')}`,
+    t0
+  );
 
   const deps = {
     client: stockscans,
@@ -40,7 +50,7 @@ function mark(label, t0) {
     mapWithConcurrency,
     scanForCompanies: async (...args) => {
       const s = Date.now();
-      mark(`scanForCompanies CALLED args=${JSON.stringify(args[0]).slice(0,200)}`, s);
+      mark(`scanForCompanies CALLED args=${JSON.stringify(args[0]).slice(0, 200)}`, s);
       try {
         const r = await scanAnnouncementsForCompanies(...args);
         mark(`scanForCompanies OK`, s);
@@ -66,7 +76,10 @@ function mark(label, t0) {
   };
 
   try {
-    const r = await enrichOrderCards(merged0, { warn: (m) => process.stderr.write(`${m}\n`), deps });
+    const r = await enrichOrderCards(merged0, {
+      warn: (m) => process.stderr.write(`${m}\n`),
+      deps,
+    });
     mark(`enrichOrderCards done, stats=${JSON.stringify(r.stats)}`, t0);
   } catch (e) {
     mark(`enrichOrderCards FAILED: ${e.message}\n${e.stack}`, t0);

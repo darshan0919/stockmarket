@@ -42,6 +42,7 @@ Available high-level agentic skills defined in the project:
 | N/A                                                                                                                                                | `N/A`                                                                     | watchlist insights, daily insights, watchlist digest, corporate announcement digest                                                                                                                                                                                                                               |
 | N/A                                                                                                                                                | `N/A`                                                                     | cowork task, create task, schedule task, cowork architect, task prompt, automate in cowork, recurring task                                                                                                                                                                                                        |
 | N/A                                                                                                                                                | `N/A`                                                                     | skill manager, create skill, modify skill, delete skill, skill creator, manage skills                                                                                                                                                                                                                             |
+| [skills/tooling/grill-skill/scripts/inspect-skill.js](skills/tooling/grill-skill/scripts/inspect-skill.js)                                         | `skills/tooling/grill-skill/scripts/inspect-skill.js`                     | grill skill, grill-skill, review skill, audit skill, optimize skill, improve skill, skill review, grill a skill                                                                                                                                                                                                   |
 | [stock-api/bin/render-pdf.js](stock-api/bin/render-pdf.js)                                                                                         | `stock-api/bin/render-pdf.js`                                             | render pdf, html to pdf                                                                                                                                                                                                                                                                                           |
 | N/A                                                                                                                                                | `N/A`                                                                     | investment thesis, thesis engine, update thesis, buy hold sell signal, thesis review, recompute signal, should i still hold, living thesis, evolving thesis                                                                                                                                                       |
 | N/A                                                                                                                                                | `N/A`                                                                     | financial model, 3 year forecast, forecast model, bear base bull, irr from here, project the pnl, valuation model, earnings model                                                                                                                                                                                 |
@@ -124,6 +125,9 @@ Instantiable classes for DI or custom configurations:
   - `getSecurityPosition()`
   - `getQuoteHeader()`
   - `getBulkBlockDeals()`
+  - `getResultXbrlRows()`
+  - `getXbrlFilings()`
+  - `fetchXbrlFile()`
   - `getInsiderFilings()`
   - `getCorporateActions()`
   - `getBoardMeetings()`
@@ -144,6 +148,11 @@ Instantiable classes for DI or custom configurations:
   - `getCorporateAnnouncements()`
   - `getSastReg29()`
   - `getInsiderFilings()`
+  - `getIntegratedFilings()`
+  - `getShareholdingFilings()`
+  - `getVotingResultFilings()`
+  - `getXbrlAnnouncements()`
+  - `getBrsrFilings()`
   - `fetchArchiveXml()`
   - `getLiveVariations()`
   - `getCorporateActions()`
@@ -198,8 +207,6 @@ Instantiable classes for DI or custom configurations:
   - `concallNotesUrl()`
   - `latestTranscript()`
   - `concallScan()`
-  - `interviewScan()`
-  - `interviewDetail()`
   - `watchlistTable()`
   - `replaceWatchlist()`
   - `createWatchlist()`
@@ -280,6 +287,7 @@ Core singletons and client functions for interacting with external platforms:
 | `toPerplexityTicker`      | [stock-api/src/clients/PerplexityClient.js](stock-api/src/clients/PerplexityClient.js) | Exported from PerplexityClient.js |
 | `paragraphsToText`        | [stock-api/src/clients/PerplexityClient.js](stock-api/src/clients/PerplexityClient.js) | Exported from PerplexityClient.js |
 | `apiLabelFor`             | [stock-api/src/http/HttpClient.js](stock-api/src/http/HttpClient.js)                   | Exported from HttpClient.js       |
+| `bseGetXbrlFile`          | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                         | Exported from bseHttp.js          |
 | `buildBseUrl`             | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                         | Exported from bseHttp.js          |
 | `bseGetText`              | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                         | Exported from bseHttp.js          |
 | `bseGetJson`              | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                         | Exported from bseHttp.js          |
@@ -428,6 +436,17 @@ Helper functions and utilities for common processes (data parsing, PDF generatio
 | `scanAllPages`                  | [stock-api/src/utils/bulkAnnouncementScan.js](stock-api/src/utils/bulkAnnouncementScan.js)                     | Exported from bulkAnnouncementScan.js      |
 | `computeReleaseQuarterDate`     | [stock-api/src/utils/bulkAnnouncementScan.js](stock-api/src/utils/bulkAnnouncementScan.js)                     | Exported from bulkAnnouncementScan.js      |
 | `buildAnnouncementScanBody`     | [stock-api/src/utils/bulkAnnouncementScan.js](stock-api/src/utils/bulkAnnouncementScan.js)                     | Exported from bulkAnnouncementScan.js      |
+| `expandQuarters`                | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
+| `assertTypes`                   | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
+| `withBackoff`                   | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
+| `isRetryable`                   | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
+| `retryAfterMs`                  | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
+| `createPacer`                   | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
+| `buildScan`                     | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
+| `normalizeRow`                  | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
+| `scanUnit`                      | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
+| `runBulkScan`                   | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
+| `cleanupWatchlists`             | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
 | `sanitizeCompanyId`             | [stock-api/src/utils/companyId.js](stock-api/src/utils/companyId.js)                                           | Exported from companyId.js                 |
 | `resolveCompanyId`              | [stock-api/src/utils/companyId.js](stock-api/src/utils/companyId.js)                                           | Exported from companyId.js                 |
 | `resolveCompanyIdentity`        | [stock-api/src/utils/companyId.js](stock-api/src/utils/companyId.js)                                           | Exported from companyId.js                 |

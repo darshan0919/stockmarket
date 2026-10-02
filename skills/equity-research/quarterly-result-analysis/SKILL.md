@@ -72,6 +72,20 @@ Follow [`_shared/conventions.md`](../_shared/conventions.md). Particularly:
 
 ## Workflow — 4 phases
 
+### Phase 0.0 — Idempotency Short-Circuit Gate (Zero-Cost Exit)
+
+Before initiating analysis, verify if a completed report already exists:
+
+```bash
+node stock-api/bin/quarterly-result-analysis.js --companyId <id> [--date <YYYY-MM-DD>] --check-cache
+```
+
+If `{ cached: true }` and `--force` is not passed:
+
+1. Read the existing DTO from the response.
+2. Render the widget and surface the existing PDF Drive link immediately.
+3. Exit without invoking frontier LLM reasoning (50ms response, ₹0 spend).
+
 ### Phase 0.1 — Mode check (read first)
 
 If `--statement` was passed, this run is a **statement-quality run**, not a quarterly note. Open
@@ -150,79 +164,44 @@ rather than trusting a stale record — a same-day re-run is cheap (Step 2's
 income-statement scan is cached by `getOrCompute`, so re-running mostly
 re-checks for a newly-filed Transcript).
 
-### Phase 1 — Read the extractor's record
+### Phase 1 — Load prepared analytical context (Token-Optimized)
 
-Pull from the `quarterly-result-documents` DB record (or, if the user
-uploaded files directly, extract the same shape ad hoc):
+Run the deterministic context builder:
 
-- `incomeStatementSignals` — the pre-computed, materiality-filtered P&L scan
-  (Basket 1B feeds directly from this; see Core Principles below — do not
-  re-derive this arithmetic yourself).
-- `headlineFinancials` — the always-on Revenue/EBITDA-margin/PAT/tax-rate/EPS
-  snapshot (QoQ+YoY, unfiltered by materiality). This is the KPI-strip's
-  backbone — see Phase 1.5.
-- `toneExcerpts` / `guidanceExcerpts` / `strategicExcerpts` / `kpiExcerpts` —
-  candidate passages; this skill's job is to classify/judge/select these,
-  not to re-scan the raw transcript for them. `kpiExcerpts` are candidate
-  operational/governance KPIs (ROCE, volume growth, related-party, inventory
-  swing, etc.) outside the P&L scan's reach.
-- `possiblyDropped` — topics present in the prior transcript's excerpts but
-  absent from this quarter's; feeds the "change vs prior quarters"
-  sub-section directly.
-- `statementAvailability` — per-statement (balance sheet, cash flow) found/source/as-at-date
-  and staleness verdict from the extractor's Step 2.6. In the full note this decides whether
-  Basket 1C can say anything at all about the balance sheet and cash flow this quarter; in a
-  statement mode it is the gate described in Phase 0.1.
-- `balanceSheet` / `cashflow` + `balanceSheetSignals` / `cashflowSignals` — the normalized
-  snapshots and their pre-computed scans, present only when the statement was `fresh`. Same
-  contract as `incomeStatementSignals`: reason over what cleared the bar, never re-derive it.
-- `dataSource` / `dataProvenance` / `xbrlIssues` / `xbrlIssueSummary` — where each period's numbers
-  came from (`xbrl-nse`, `xbrl-bse`, `pdf`, `missing` for current, QoQ, YoY) and every data-quality
-  issue the extractor logged. Show the provenance in one line in the note; downgrade confidence in
-  any conclusion that rests on a period sourced from `pdf` or `missing`; list every `major` issue
-  (missing filing, sum-check failure, NSE-vs-BSE disagreement) rather than hiding it. A `null`
-  `dataSource` means a PDF-only record from before XBRL-first extraction.
-- `signalScanApplicable` / `familyMetrics` — for banks and insurers (`signalScanApplicable: false`) `revenue`
-  is total income, so skip the industrial Income Statement Signal Scan and assess the quarter from
-  `familyMetrics` (bank: NII/PPOP/provisions/GNPA/NNPA/CET1; life: premiums, solvency, expense ratio; general:
-  combined and claims ratios). Life-insurer total income is volatile because of investment mark-to-market.
-- `resultNarrative` — verbatim one-off / exceptional-item explanations and the auditor's review
-  remarks with a `qualification` flag, taken from the result PDF (XBRL has numbers only). Use it to
-  judge whether an exceptional item or a qualified/emphasis-of-matter remark changes the read; a
-  `qualified` flag is always worth a line in the Management/quality basket.
-- `found` / `transcriptMissing` — if `transcriptMissing: true`, flag the gap
-  explicitly in the Management basket rather than skipping it silently (same
-  rule as before the split).
+```bash
+node stock-api/bin/quarterly-result-analysis.js --companyId <id> [--date <YYYY-MM-DD>] --prepare
+```
+
+_(or import `buildAnalysisContext` from `@stock/api/analyzers/resultAnalysisContext`)_
+
+**Context Restriction Rule (Mandatory):**
+Do NOT ingest raw 20–40 page PDFs or full transcripts into the prompt. The LLM must reason exclusively over the structured `context` object emitted by the script:
+
+- `computedKpiCards` — pre-formatted cards with verified YoY/QoQ basis strings and baseline tone.
+- `statementHealth` — deterministic preliminary grades (`CLEAN`/`WATCH`/`STRAINED`/`RED-FLAG` or `ABSENT`) and quantified briefs.
+- `mandatoryChips` — rule-triggered chips (e.g. `INVENTORY-GAIN DRIVEN`, `NON-OPERATING BEAT`, `MARGIN INFLECTION`).
+- `toneExcerpts` / `guidanceExcerpts` / `strategicExcerpts` / `kpiExcerpts` — page-anchored candidate excerpts.
+- `possiblyDropped` — topics present in prior calls but absent in this one.
+- `statementAvailability` — per-statement availability and staleness status.
+- `resultNarrative` — exceptional items and auditor qualifications.
 
 ### Phase 1.5 — Select the KPI strip
 
 A bird's-eye view of 4-8 headline metrics, rendered as cards at the very top
 of the widget (right after the header band, before the verdict chips) so the
 reader can verify and visualise the numbers this note is about to discuss,
-before reading a word of prose. This is a judgment step — the extractor
-hands you raw numbers, not a finished strip — so it belongs here, not in
-Phase 1:
+before reading a word of prose.
 
-1. **Start from `headlineFinancials`.** These 4-5 cards (Revenue, EBITDA
-   margin, PAT, effective tax rate, EPS — each with `qoqPct`/`yoyPct` or
-   prior-period values already computed) are close to always-include: they're
-   the numbers every reader checks first. Only drop one if it's genuinely
-   uninformative this quarter (e.g. tax rate barely moved and isn't part of
-   the story).
-2. **Add 0-4 more cards from `kpiExcerpts` or the basket findings** when a
-   number is decision-relevant this quarter but isn't in the P&L snapshot —
-   ROCE, guided volume/utilisation growth, a related-party amount flagged at
-   risk, an inventory-build swing, order book. Pull the number and its
-   comparison basis verbatim from the excerpt; don't compute anything new.
-3. **Assign each card a tone**: `pos` (favorable YoY/QoQ move or a beat),
-   `neg` (risk/deterioration — e.g. a related-party exposure, a margin
-   compression), or `neutral` (guided figure or context number with no clear
-   direction, e.g. a tax-rate reset that flatters PAT without being
-   "good news"). Tone drives the subtext color in the widget — see
-   `assets/result_widget_template.html`'s `.kpi-sub-pos/-neg/-neutral`.
-4. **Every card needs a comparison** wherever one exists (`vs Rs X Cr Q1FY26`,
-   `vs 5.0% in Q4 FY26`, `guided 30%+ FY27`) — a bare number without context
-   ("EPS Rs 8.23") tells the reader nothing about whether that's good.
+The arithmetic and comparison formatting are already handled deterministically in `computedKpiCards`.
+The LLM's task in Phase 1.5 is purely **editorial selection and strategic weighting**:
+
+1. **Verify the headline cards from `computedKpiCards`**: Revenue, EBITDA margin, PAT, Effective Tax Rate, EPS.
+   Keep these headline cards unless one is completely uninformative this quarter.
+2. **Add 0-4 more operational cards from `kpiExcerpts`** when a number is decision-relevant this quarter
+   (e.g., ROCE, order book, capacity utilization, volume growth). Pull the numbers and comparison basis
+   verbatim from the excerpt.
+3. **Tone and Comparisons**: Use the pre-computed `tone` (`pos`/`neg`/`neutral`) and basis strings directly
+   to guarantee zero calculation errors.
 
 ### Phase 2 — 3-basket analysis
 
@@ -326,7 +305,15 @@ statements, so report it once with both numbers rather than twice in different w
 
 **Track what management _stopped_ saying.** If a topic that dominated three prior calls (e.g., "exports will scale to 20%") is silent this quarter — that is a yellow flag. The Management basket's "Change vs prior quarters" sub-section is where this lives; `quarterly-result-extractor`'s `possiblyDropped` field is the starting point, not the final word — verify against the prior transcript excerpts before calling something dropped.
 
-**Specific over generic.** "India GDP growth" is not a tailwind. "BS-VI emission norms forcing Tier-1 OEMs to replace legacy ICE platforms, of which 60% of our order book is for new platforms" is a tailwind. No textbook explanations.
+**One-Off Margin Recurrence Audit.** Whenever management attributes a margin shortfall or operational miss to "one-off" costs (water, power, freight, FX, plant maintenance, temporary RM spike), cross-verify against prior quarters. If "one-off" or "exceptional" excuses appeared in $\ge 2$ of the last 4 quarters, **disqualify the `TEMPORARY` tag**, flag `RECURRENT OPERATIONAL DRAG`, and downgrade management capital allocation & credibility to `LOW`. Real compounders (like TD Power) sandbag and deliver; promotional managements repeatedly lean on "one-off" excuses.
+
+**Q1/Q3 Structural Cap Rule (Working Capital Safeguard).** Under SEBI LODR Reg 33(3), balance sheet and cash flow statements are filed only half-yearly (routinely `ABSENT` in Q1 and Q3). In any quarter where `statementAvailability.balanceSheet.status` is `ABSENT`, **no margin expansion may be tagged `STRUCTURAL` unconditionally**. It may only be tagged `STRUCTURAL (CONDITIONAL ON H1 WORKING CAPITAL AUDIT)` because operating leverage without cash flow verification can mask severe working capital ballooning (Dr. Anil Lamba: _Profit ≠ Cash_). Item #1 of the forward Investor Monitoring Checklist must track H1 Working Capital Days.
+
+**SOIC Language Ladder Evasion Classification.** In Basket 2B (Management Commentary Risks), whenever identifying evasive or dodged analyst responses, mandate quoting the question-and-answer pair and classifying the evasion tactic into one of three SOIC evasion patterns:
+
+1. `Horizon Pivot`: Answering a near-term margin compression or volume miss with a 3–5 year macro vision or TAM narrative.
+2. `Exclusion Shelter`: Fabricating a "normalized" margin by stripping out routine operating costs as "non-operational".
+3. `Dilution Hedge`: Replacing quantitative guidance commitments with vague qualitative adverbs ("healthy", "encouraging", "satisfactory").
 
 **Falsifiable monitoring items only.** Every item in the forward checklist must have a number threshold and a quarter horizon. "Watch margins" is not a checklist item. "Gross margin staying above 28% in Q1 FY27" is.
 

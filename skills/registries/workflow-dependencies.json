@@ -420,7 +420,7 @@
     },
     {
       "name": "gainers-signal",
-      "description": "Daily gainers ACTIONABILITY signal — pre-compute gainers + quality filters + dual-axis delivery (% and ₹ Cr) + market cap + delivery-as-%-of-mcap + 14-day announcements (scanner), deterministically tier each into ACT / WATCH / NOTED with streaks and delivery-confirmed sector clusters (classifier), research the top-20 triggers from announcement PDFs, attach a cached rerating-catalysts EPS thesis to the top 10 by delivery value, resolve a WHY for every name via the filing → info-classifier → catalyst → concall → sector ladder, then email a Thesis Card briefing sorted by delivery value. Invoke with defaults for the 8 AM run, or pass a specific market date on demand.",
+      "description": "Daily gainers ACTIONABILITY signal — pre-compute gainers + quality filters + dual-axis delivery (% and ₹ Cr) + market cap + delivery-as-%-of-mcap + 14-day announcements (scanner), deterministically tier each into ACT / WATCH / NOTED with streaks and delivery-confirmed sector clusters (classifier), research the top-20 triggers from announcement PDFs, attach a cached rerating-catalysts EPS thesis to the top 10 by delivery value (a FULL rerating-catalysts report with widget+PDF, Drive-linked on the card, for the top 3 by delivery value instead of a brief), resolve a WHY for every name via the filing → info-classifier → catalyst → concall → sector ladder, then email a Thesis Card briefing sorted by delivery value. Invoke with defaults for the 8 AM run, or pass a specific market date on demand.",
       "aliases": [
         "gainers signal",
         "top gainers",
@@ -510,6 +510,22 @@
       ],
       "entry": null,
       "modules": []
+    },
+    {
+      "name": "grill-skill",
+      "description": ">-",
+      "aliases": [
+        "grill skill",
+        "grill-skill",
+        "review skill",
+        "audit skill",
+        "optimize skill",
+        "improve skill",
+        "skill review",
+        "grill a skill"
+      ],
+      "entry": "skills/tooling/grill-skill/scripts/inspect-skill.js",
+      "modules": ["skills/tooling/grill-skill/scripts/inspect-skill.js"]
     },
     {
       "name": "render-pdf",
@@ -827,7 +843,19 @@
         "packages/jobs-runtime/lib/db.js",
         "skills/equity-research/quarterly-result-extractor/scripts/extract_statements.js",
         "stock-api/src/analyzers/balanceSheetSignals.js",
-        "stock-api/src/analyzers/cashflowSignals.js"
+        "stock-api/src/analyzers/cashflowSignals.js",
+        "packages/jobs-runtime/lib/xbrl/parse.js",
+        "packages/jobs-runtime/lib/xbrl/issues.js",
+        "packages/jobs-runtime/lib/xbrl/resultsAdapter.js",
+        "packages/jobs-runtime/lib/xbrl/resultsResolver.js",
+        "packages/jobs-runtime/lib/xbrl/resultsFamilies.js",
+        "packages/jobs-runtime/lib/xbrl/scrip.js",
+        "stock-api/src/clients/NseClient.js",
+        "stock-api/src/clients/BseClient.js",
+        "stock-api/src/http/bseHttp.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/extract_result_xbrl.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/extract_result_narrative.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/extract_income_statement.js"
       ]
     },
     {
@@ -911,6 +939,9 @@
         "getSecurityPosition",
         "getQuoteHeader",
         "getBulkBlockDeals",
+        "getResultXbrlRows",
+        "getXbrlFilings",
+        "fetchXbrlFile",
         "getInsiderFilings",
         "getCorporateActions",
         "getBoardMeetings",
@@ -932,6 +963,11 @@
         "getCorporateAnnouncements",
         "getSastReg29",
         "getInsiderFilings",
+        "getIntegratedFilings",
+        "getShareholdingFilings",
+        "getVotingResultFilings",
+        "getXbrlAnnouncements",
+        "getBrsrFilings",
         "fetchArchiveXml",
         "getLiveVariations",
         "getCorporateActions",
@@ -985,8 +1021,6 @@
         "concallNotesUrl",
         "latestTranscript",
         "concallScan",
-        "interviewScan",
-        "interviewDetail",
         "watchlistTable",
         "replaceWatchlist",
         "createWatchlist",
@@ -1074,6 +1108,11 @@
       "name": "apiLabelFor",
       "file": "stock-api/src/http/HttpClient.js",
       "description": "Exported from HttpClient.js"
+    },
+    {
+      "name": "bseGetXbrlFile",
+      "file": "stock-api/src/http/bseHttp.js",
+      "description": "Exported from bseHttp.js"
     },
     {
       "name": "buildBseUrl",
@@ -1771,6 +1810,61 @@
       "name": "buildAnnouncementScanBody",
       "file": "stock-api/src/utils/bulkAnnouncementScan.js",
       "description": "Exported from bulkAnnouncementScan.js"
+    },
+    {
+      "name": "expandQuarters",
+      "file": "stock-api/src/utils/bulkFilingScan.js",
+      "description": "Exported from bulkFilingScan.js"
+    },
+    {
+      "name": "assertTypes",
+      "file": "stock-api/src/utils/bulkFilingScan.js",
+      "description": "Exported from bulkFilingScan.js"
+    },
+    {
+      "name": "withBackoff",
+      "file": "stock-api/src/utils/bulkFilingScan.js",
+      "description": "Exported from bulkFilingScan.js"
+    },
+    {
+      "name": "isRetryable",
+      "file": "stock-api/src/utils/bulkFilingScan.js",
+      "description": "Exported from bulkFilingScan.js"
+    },
+    {
+      "name": "retryAfterMs",
+      "file": "stock-api/src/utils/bulkFilingScan.js",
+      "description": "Exported from bulkFilingScan.js"
+    },
+    {
+      "name": "createPacer",
+      "file": "stock-api/src/utils/bulkFilingScan.js",
+      "description": "Exported from bulkFilingScan.js"
+    },
+    {
+      "name": "buildScan",
+      "file": "stock-api/src/utils/bulkFilingScan.js",
+      "description": "Exported from bulkFilingScan.js"
+    },
+    {
+      "name": "normalizeRow",
+      "file": "stock-api/src/utils/bulkFilingScan.js",
+      "description": "Exported from bulkFilingScan.js"
+    },
+    {
+      "name": "scanUnit",
+      "file": "stock-api/src/utils/bulkFilingScan.js",
+      "description": "Exported from bulkFilingScan.js"
+    },
+    {
+      "name": "runBulkScan",
+      "file": "stock-api/src/utils/bulkFilingScan.js",
+      "description": "Exported from bulkFilingScan.js"
+    },
+    {
+      "name": "cleanupWatchlists",
+      "file": "stock-api/src/utils/bulkFilingScan.js",
+      "description": "Exported from bulkFilingScan.js"
     },
     {
       "name": "sanitizeCompanyId",
