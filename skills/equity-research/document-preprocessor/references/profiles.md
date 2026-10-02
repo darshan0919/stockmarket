@@ -118,6 +118,14 @@ extraction has to come from the filing.
 }
 ```
 
+**XBRL pre-fill.** Exchanges file the result as structured XBRL, so when
+`quarterly-result-extractor/scripts/extract_result_xbrl.js` returned `source: "XBRL"` for
+a period, take `reported`/`prior_period` from it and use the PDF only for `segments`,
+`one_offs`, `auditor_note` and quotes. Run the PDF extraction for any period the XBRL run
+marks as PDF fallback (`usePdfStatements`, `provenance`). Sign convention differs by source:
+XBRL `exceptionalItems` is the effect on profit (PBT = PBT-before-exceptional + exceptional),
+so record the PDF's printed sign as-is and let the consumer reconcile.
+
 **Report the sign as printed.** A bracketed `(12.4)` in an Indian filing is
 negative — record `-12.4`. `changes_in_inventories` in particular flips sign
 between presentations and getting it wrong inverts the entire inventory-gain

@@ -127,6 +127,66 @@ source's `truncated`/`ocrFailed`/`isScannedDocument` flags; check these
 before trusting `result.txt` — a scanned/OCR'd filing or a genuinely
 unreadable PDF should stop the run rather than feed empty text downstream.
 
+## Step 1.6 — XBRL-first financials (script, zero LLM) — try this BEFORE Steps 2 and 2.6
+
+Structured exchange XBRL is the primary source for the numbers; the PDF path
+(Steps 1.5, 2, 2.6) is the fallback, never removed. Design and evidence:
+[`docs/XBRL_INTEGRATION_PLAN.md`](../../../docs/XBRL_INTEGRATION_PLAN.md).
+
+```bash
+node skills/equity-research/quarterly-result-extractor/scripts/extract_result_xbrl.js \
+  --companyId "$COMPANY_ID" \
+  --result-text "${DOCS_DIR}/result.txt" --ppt-text "${DOCS_DIR}/ppt.txt" \
+  --out-dir "$DOCS_DIR" > "${DOCS_DIR}/income_statement.json"
+```
+
+It resolves the current quarter, the prior quarter (QoQ) and the year-ago
+quarter (YoY) from earlier XBRL filings, NSE first then BSE, on one basis
+(consolidated preferred, never mixed across periods), and emits the SAME
+`lineData` / `context` / `headline` / `ytd` shapes as Step 2, plus
+`statements.json` in Step 2.6a's shape and `xbrl_issues.json`. Rules:
+
+- `found: true, source: "XBRL"` → use it as Step 2's output and continue at
+  Step 2.5 / the signal scan. `statements.json` replaces Step 2.6a's output
+  (balance sheet and cash flow are `absent` in Q1/Q3, as under Reg 33(3)).
+- `usePdfStatements: true` or `found: false` (current period has no usable
+  XBRL: InvITs/REITs and other unmapped families, stale or renamed symbols, or
+  no filing; SME-platform names ARE covered via NSE `index=sme`) → run Steps 2
+  and 2.6a on the PDF text exactly as before.
+- If the issue log has a major `EXCHANGE_DISAGREE` (NSE and BSE facts differ; a
+  power-of-ten ratio means a units error in one filing), do not trust the
+  disagreeing line: verify it against the PDF before using it.
+- Banks, life and general insurers, NBFCs and pre-2025 BSE legacy `.xml` files are mapped.
+  For banks and insurers `revenue` is TOTAL INCOME, so the output carries
+  `signalScanApplicable: false` and `familyMetrics {cur,qoq,yoy}` (bank: net interest, PPOP, provisions,
+  GNPA/NNPA/CET1; life: premiums, solvency; GI: combined ratio). Do NOT run the industrial
+  income-statement signal scan on them; reason from `familyMetrics`. Life-insurer total income swings with
+  investment mark-to-market (SBILIFE Mar-26: 5,658 Cr on investment income of -23,939 Cr) — genuine, not a bug.
+- BSE scrip is taken from `bseScripCode` on the company record; pass `--bse-scrip <code>` to override. A
+  name-search hit is logged (`FALLBACK_USED`, info) because it can be the wrong company.
+- A missing prior/year-ago period is filled per period from the PDF's printed
+  comparative column when `--result-text` is given, tagged `source: "pdf"`.
+- `provenance` says where every period came from (`xbrl-nse`, `xbrl-bse`,
+  `pdf`, `missing`); `issues` lists EVERY gap (missing filing, missing field,
+  unmapped element, sum-check failure, NSE-vs-BSE disagreement, restated
+  comparative, fallback used). Surface major issues in the report; never hide them.
+- Pass both through Step 4 (`--income-statement`) so the DB record keeps them.
+
+## Step 1.7 — One-off explanations and auditor remarks (script, zero LLM)
+
+XBRL carries numbers only. The narrative XBRL lacks always comes from the
+Result PDF text:
+
+```bash
+node skills/equity-research/quarterly-result-extractor/scripts/extract_result_narrative.js \
+  --result-text "${DOCS_DIR}/result.txt" > "${DOCS_DIR}/narrative.json"
+```
+
+Returns verbatim exceptional / one-off note paragraphs and the auditor's
+limited-review remarks with a deterministic `qualification` flag
+(`qualified` | `emphasis-of-matter` | `none-detected` | `not-found`). Pass it to
+Step 4 as `--narrative`. Interpreting these is `quarterly-result-analysis`'s job.
+
 ## Step 2 — Deterministic income-statement signal scan (script, zero LLM)
 
 ```bash
@@ -347,7 +407,9 @@ node skills/equity-research/quarterly-result-extractor/scripts/save_result_docum
   --excerpts "${DOCS_DIR}/excerpts.json" \
   --statements "${DOCS_DIR}/statements.json" \
   --bs-signals "${DOCS_DIR}/balance_sheet_signals.json" \
-  --cf-signals "${DOCS_DIR}/cashflow_signals.json"
+  --cf-signals "${DOCS_DIR}/cashflow_signals.json" \
+  --income-statement "${DOCS_DIR}/income_statement.json" \
+  --narrative "${DOCS_DIR}/narrative.json"
 ```
 
 Saves ONE `quarterly-result-documents` report via `db.saveReport()`, envelope
@@ -386,6 +448,9 @@ quarterly-result-extractor/
 └── scripts/
     ├── fetch_result_documents.js       (Step 1)
     ├── extract_result_text.js          (Step 1.5 — PDF -> layout-preserving text)
+    ├── extract_result_xbrl.js          (Step 1.6 — XBRL-first P&L/BS/CF + prior periods + issue log,
+    │                                     falls back to the PDF scripts below per period)
+    ├── extract_result_narrative.js     (Step 1.7 — one-offs + auditor remarks from the PDF text)
     ├── extract_income_statement.js     (Step 2 — P&L locate + normalize -> lineData/context/ytd)
     ├── compute_headline_financials.js  (Step 2.5)
     ├── extract_statements.js           (Step 2.6a — BS/CF locate + normalize + staleness)

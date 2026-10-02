@@ -13,6 +13,8 @@ TTM revenue on file") instead of omitting the check silently. This ratio is also
 feeds the `_global.md` significance rule (>10% of revenue = `high`) — do not classify
 significance for an order win without first computing it.
 
+_Post-close cards also get a computed ORDER block (TTM/last-FY book-to-bill, timing, top-3 unexecuted book; see `docs/ORDER_METRICS.md`). Keep the prose ratio as written; do not restate the block's numbers._
+
 **Forward quarterly revenue accretion (when an execution timeline is disclosed).** If
 the filing gives start/end dates or an explicit execution period, compute implied
 quarterly revenue = order value ÷ execution months × 3, then lay out the accretion

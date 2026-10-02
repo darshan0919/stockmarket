@@ -164,8 +164,12 @@ Notes:
   announcements (recordings, transcripts). Other values exist for other
   announcement categories (order wins, preferential issues, etc. — see
   `announcement-keyword-explorer` skill for the fuller catalog).
-  **CONFIRMED 2026-08-06: `announcementType` is a real server-side enum with
-  exactly 5 values**, matching the Stockscans UI's own filter dropdown:
+  **UPDATE 2026-09-30: `"Orders / Contracts"` is also accepted and verified live
+  (the enum is larger than the 5 values below). `quarterDate` is mandatory and
+  is the release calendar-quarter-end (YYYYMM). Bucket recall is < 100% (a
+  missed NCC aggregate letter) — do not treat it as exhaustive.**
+  **UPDATE 2026-09-30: the enum has 12 values** (full list and the bulk-listing tool: `docs/BULK_FILING_SCAN.md`).
+  **CONFIRMED 2026-08-06: `announcementType` is a real server-side enum; the original 5 values**, matching the Stockscans UI's own filter dropdown:
   `"All"`, `"Financial Results"`, `"Earnings Call"`, `"Presentation"`,
   `"Annual Report"`. An earlier probe in this doc incorrectly guessed values
   like `"Investor Presentation"` — those aren't real enum members and got

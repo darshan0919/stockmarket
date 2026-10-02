@@ -110,6 +110,8 @@ rejected at write time.
 - **End every run** with `node packages/jobs-runtime/scripts/data.js push`
   (`yarn data:push`). Push-only: keeps all local files; idempotent (sha256
   sync-state + Drive md5 adoption) — safe to re-run after interruption.
+  Local-only folders (`pdf-corpus/`, `xbrl-corpus/`: study corpora) and scratch/temp patterns are
+  excluded by `packages/jobs-runtime/lib/dataSyncPolicy.js` (`NEVER_SYNC`); add new local-only dirs there.
 
 ## 6. Scheduled jobs
 

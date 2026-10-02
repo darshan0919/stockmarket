@@ -1,0 +1,230 @@
+{
+  "companyId": "NSE:HNDFDS_TEST",
+  "period": "2026FYTEST-bs",
+  "computedAt": "2026-09-29T23:04:58.462Z",
+  "material": [
+    {
+      "id": "gearing",
+      "label": "Gross debt / net debt and gearing",
+      "grossDebt": 1050.05,
+      "grossDebtPriorPeriod": 855.4,
+      "grossDebtChangePct": 22.755436053308394,
+      "netDebt": 998.3399999999999,
+      "netDebtToEquity": 0.8568853640951692,
+      "netDebtToEquityPrior": 0.8661758434154115,
+      "direction": "leveraging",
+      "note": "Gearing is the first-order balance-sheet strength read. Falling gross debt with flat/rising net worth is the deleveraging setup that re-rates; rising debt is only acceptable if it is funding assets that will earn above the cost of capital — check against CWIP and the cash-flow scan before judging."
+    },
+    {
+      "id": "inventoryDays",
+      "label": "Inventory days",
+      "inventoryDays": 105.66067680106542,
+      "priorInventoryDays": 82.04840862468984,
+      "deltaDays": 23.61226817637558,
+      "inventories": 969.47,
+      "note": "Distinguish a deliberate build ahead of a demand season or a commodity move (temporary, often margin-positive) from stock that is not selling (structural). The P&L \"changes in inventories\" line and the cash-flow working-capital line must tell the same story."
+    },
+    {
+      "id": "payableDays",
+      "label": "Trade payable days",
+      "payableDays": 68.97419819109643,
+      "priorPayableDays": 57.106485836028185,
+      "deltaDays": 11.86771235506825,
+      "note": "Stretching payables flatters CFO for a quarter or two and is not a durable improvement; shrinking payables can mean suppliers have tightened terms — a credit-stress tell."
+    },
+    {
+      "id": "cashConversionCycle",
+      "label": "Net working capital days (receivable + inventory - payable)",
+      "cycleDays": 58.56051414009809,
+      "priorCycleDays": 42.91356031736052,
+      "deltaDays": 15.646953822737572,
+      "nwcToSalesPct": 13.911184086717604,
+      "note": "Falling working-capital days lighten the balance sheet: the same sales need less capital, so capital-employed turnover and therefore ROCE rise without any margin improvement. This is the highest-value constructive signal on this statement."
+    },
+    {
+      "id": "cwip",
+      "label": "Capital work in progress",
+      "cwip": 150.32,
+      "priorCwip": 119.11,
+      "changePct": 26.202669801024257,
+      "cwipToNetBlockPct": 11.851057623323689,
+      "stagnant": false,
+      "note": "High and RISING CWIP is future capacity — the earnings the market has not seen yet, and often the whole re-rating thesis. High and FLAT CWIP across several periods is the opposite: capital parked in something that is not being commissioned, earning nothing while it sits. The two readings look identical on a single snapshot, which is why the change matters more than the level."
+    },
+    {
+      "id": "intangibles",
+      "label": "Goodwill and intangible assets",
+      "intangibleBlock": 33.64,
+      "prior": 14.95,
+      "changePct": 125.01672240802677,
+      "pctOfNetWorth": 2.887355374738215,
+      "note": "Goodwill is the accounting record of having overpaid for an acquisition, and it is one of the four asset lines an inflated P&L can be parked in. A large goodwill block relative to net worth is a standing impairment risk; a sudden increase means an acquisition that needs its own scrutiny."
+    },
+    {
+      "id": "loansAndAdvances",
+      "label": "Loans and advances (incl. to related parties/subsidiaries)",
+      "loansAndAdvances": 0,
+      "prior": 1,
+      "changePct": -100,
+      "pctOfNetWorth": 0,
+      "note": "Loans and advances growing faster than the business is the classic route for cash to leave a listed entity for a promoter-owned unlisted one. Read alongside the related-party-transaction note and the cash-flow statement investing lines."
+    },
+    {
+      "id": "otherAssets",
+      "label": "Other current / non-current assets (residual bucket)",
+      "otherAssets": 432.71000000000004,
+      "prior": 304.33,
+      "changePct": 42.18447080471858,
+      "pctOfTotalAssets": 13.634200982446412,
+      "note": "The unnamed residual is where an asset nobody wants to label ends up. A jump with no scale explanation deserves the schedule note, not a shrug."
+    },
+    {
+      "id": "equityDilution",
+      "label": "Equity share capital (dilution)",
+      "equityShareCapital": 23.9,
+      "prior": 23.5,
+      "changePct": 1.7021276595744619,
+      "note": "A QIP, preferential issue, or warrant conversion is not good or bad on its own — it is good if the money is deployed at a return above the cost of the equity issued, and dilutive if it is not. Pair with CWIP/capex and with stated end-use."
+    }
+  ],
+  "combinations": [
+    {
+      "flag": "ASSET_SIDE_INFLATION_PATTERN",
+      "severity": "high",
+      "note": "Three or more of receivables / inventory / CWIP / goodwill / loans-and-advances are stretching at once. Because the balance sheet must balance, an overstated P&L has to come to rest in exactly these lines — this combination is the forensic pattern, not any one line alone. Escalate to `forensic-accounting` rather than resolving it inside a quarterly note."
+    },
+    {
+      "flag": "DEBT_FUNDED_CAPEX",
+      "severity": "medium",
+      "note": "Borrowings and CWIP rising together — growth is being funded by debt. Acceptable only if the project return clears the cost of debt; check the guided ROCE on the project and the commissioning timeline."
+    },
+    {
+      "flag": "EQUITY_FUNDED_EXPANSION",
+      "severity": "neutral",
+      "note": "Fresh equity issued alongside rising CWIP — judge by the return the project is expected to earn versus the price at which equity was issued, not by the dilution percentage alone."
+    }
+  ],
+  "skipped": [
+    {
+      "id": "cashAndDebtCoexist",
+      "label": "Large cash balance alongside large borrowings",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "receivableDays",
+      "label": "Trade receivable days",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "receivablesVsRevenue",
+      "label": "Receivables growth vs revenue growth",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "inventoryVsRevenue",
+      "label": "Inventory growth vs revenue growth",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "grossBlockTurns",
+      "label": "Gross block / fixed-asset turnover",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "netWorthBridge",
+      "label": "Net worth bridge (opening + PAT - dividend +/- issuance = closing)",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "balanceCheck",
+      "label": "Balance sheet balances",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "deferredTaxAssets",
+      "label": "Deferred tax assets",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "contingentLiabilities",
+      "label": "Contingent liabilities (off balance sheet)",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "liquidity",
+      "label": "Current ratio / near-term liquidity",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "impliedCostOfDebt",
+      "label": "Implied cost of debt (P&L interest / average gross debt)",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "promoterPledge",
+      "label": "Promoter share pledge",
+      "reason": "below materiality bar or not disclosed"
+    }
+  ],
+  "derived": {
+    "current": {
+      "grossDebt": 1050.05,
+      "liquidAssets": 51.709999999999994,
+      "netDebt": 998.3399999999999,
+      "netWorth": 1165.0800000000002,
+      "currentAssets": 1604.9999999999998,
+      "currentLiabilities": 1121.45,
+      "intangibleBlock": 33.64,
+      "relatedPartyish": 0,
+      "nwc": 591.37,
+      "receivableDays": 21.8740355301291,
+      "inventoryDays": 105.66067680106542,
+      "payableDays": 68.97419819109643,
+      "cashConversionDays": 58.56051414009809,
+      "debtToEquity": 0.9012685824149413,
+      "netDebtToEquity": 0.8568853640951692,
+      "currentRatio": 1.43118284363993,
+      "cwipToNetBlock": 0.11851057623323688,
+      "intangiblesToNetWorth": 0.02887355374738215,
+      "loansToNetWorth": 0,
+      "otherAssetsToTotal": 0.13634200982446412,
+      "cashToTotalAssets": 0.01629323410141443,
+      "contingentToNetWorth": null,
+      "dtaToNetWorth": 0.006360078277886497,
+      "nwcToSales": 0.13911184086717604,
+      "grossBlockTurns": null,
+      "interestCoverage": null,
+      "impliedCostOfDebtPct": null
+    },
+    "prior": {
+      "grossDebt": 855.4,
+      "liquidAssets": 83.61999999999999,
+      "netDebt": 771.78,
+      "netWorth": 891.02,
+      "currentAssets": 1264.9700000000003,
+      "currentLiabilities": 858.04,
+      "intangibleBlock": 14.95,
+      "relatedPartyish": 1,
+      "nwc": 438.1600000000001,
+      "receivableDays": 17.97163752869886,
+      "inventoryDays": 82.04840862468984,
+      "payableDays": 57.106485836028185,
+      "cashConversionDays": 42.91356031736052,
+      "debtToEquity": 0.9600233440326816,
+      "netDebtToEquity": 0.8661758434154115,
+      "currentRatio": 1.4742552794741508,
+      "cwipToNetBlock": 0.11940732423735101,
+      "intangiblesToNetWorth": 0.016778523489932886,
+      "loansToNetWorth": 0.0011223092635406612,
+      "otherAssetsToTotal": 0.12219487418340673,
+      "cashToTotalAssets": 0.03357518279241767,
+      "contingentToNetWorth": null,
+      "dtaToNetWorth": 0.00884379699670041,
+      "nwcToSales": 0.10307124844743877,
+      "grossBlockTurns": null,
+      "interestCoverage": null,
+      "impliedCostOfDebtPct": null
+    }
+  },
+  "incomplete": false
+}

@@ -20,6 +20,20 @@ Dashboard Extraction Guide. Mandatory: `skills/_shared/data-verification.md` —
 from the AR; "not found in this AR" beats inference; preserve auditor language and policy
 changes VERBATIM.
 
+**Structured XBRL first (script, zero LLM) for the parts the exchanges file as XBRL.** Before
+reading the AR PDF, run these; use the PDF for what they lack and as the fallback when
+`fallbackToPdf: true` (say so in the output, and surface `issues`):
+
+```bash
+node packages/jobs-runtime/xbrlFilings.js brsr --symbol X --n 2        # points 3, 9, 12 partly: related-party %, female wages/board, disciplinary actions, energy/water/emissions/waste (YoY)
+node packages/jobs-runtime/xbrlFilings.js governance --symbol X --n 4  # points 10, 12: board composition, committees, non-compliance flags
+node skills/equity-research/quarterly-result-extractor/scripts/extract_result_xbrl.js --companyId NSE:X   # full-year P&L/BS/CF from the Q4 (FY) result XBRL
+```
+
+BRSR values are as filed and companies mix units; `unitWarnings` lists internal
+inconsistencies. Auditor opinion, KAMs, RPT counterparties, contingent liabilities and
+remuneration detail are NOT in these XBRL filings: keep reading the AR for them.
+
 You are analysing as a world-class equity analyst. Work through all 12 points; for each,
 cite the AR section/page:
 

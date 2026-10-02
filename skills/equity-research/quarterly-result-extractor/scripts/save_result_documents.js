@@ -47,6 +47,8 @@ function parseArgs(argv) {
     else if (a === '--statements') out.statements = argv[++i];
     else if (a === '--bs-signals') out.bsSignals = argv[++i];
     else if (a === '--cf-signals') out.cfSignals = argv[++i];
+    else if (a === '--income-statement') out.incomeStatement = argv[++i];
+    else if (a === '--narrative') out.narrative = argv[++i];
     else if (a === '--creator') out.creator = argv[++i];
   }
   return out;
@@ -76,6 +78,8 @@ function main() {
   const statements = readJsonIfExists(args.statements);
   const bsSignals = readJsonIfExists(args.bsSignals);
   const cfSignals = readJsonIfExists(args.cfSignals);
+  const incomeStatement = readJsonIfExists(args.incomeStatement);
+  const narrative = readJsonIfExists(args.narrative);
   const today = new Date().toISOString().slice(0, 10);
 
   const dto = {
@@ -88,6 +92,17 @@ function main() {
     transcriptMissing: !!manifest.transcriptMissing,
     notYetOut: !!manifest.notYetOut,
     incomeStatementSignals: signals || null,
+    // XBRL-first provenance (per period: xbrl-nse | xbrl-bse | pdf | missing) and the
+    // full issue log from extract_result_xbrl.js. `null` on records produced by the
+    // PDF-only path. quarterly-result-analysis downgrades confidence when any
+    // period is not XBRL-sourced and lists every issue.
+    dataSource: incomeStatement?.source || null,
+    dataProvenance: incomeStatement?.provenance || null,
+    xbrlIssues: incomeStatement?.issues || [],
+    xbrlIssueSummary: incomeStatement?.issueSummary || null,
+    // Verbatim one-off explanations and auditor remarks from the result PDF
+    // (extract_result_narrative.js); XBRL carries numbers only.
+    resultNarrative: narrative || null,
     // Always-on Revenue/EBITDA-margin/PAT/tax/EPS backbone -- the KPI-strip
     // source, unfiltered by materiality (see compute_headline_financials.js).
     headlineFinancials: headline ? headline.cards || [] : [],

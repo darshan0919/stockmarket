@@ -48,6 +48,7 @@
  */
 
 const { stockscansLink } = require('@stock/cloud-utils');
+const { mergeOrderMetrics } = require('./orderMetrics');
 
 // User-supplied "LineExpandView" redirect/expand icon (the external-link
 // button on each card). Referenced in HTML as `cid:expand-icon` and sent as a
@@ -288,6 +289,141 @@ function epsImpactHtml(epsImpact) {
     ? ` <span style="opacity:0.7;">(${esc(epsImpact.confidence)} confidence)</span>`
     : '';
   return `<div style="display:inline-block;font-size:11.5px;font-weight:600;background:${tone.bg};color:${tone.fg};border:1px solid ${tone.border};border-radius:4px;padding:3px 9px;margin-top:8px;">${tone.icon} EPS impact: ${detail}${confidence}</div>`;
+}
+
+// ── Order-book strip (book-to-bill + execution timing + unexecuted book) ──────
+// Every figure comes from lib/orderMetrics.js via lib/orderCardEnrichment.js;
+// this function only formats. Same Gmail-safe conventions as marketDataHtml
+// (inline-block + vertical-align, no flexbox). A conditional order (L1 / LOI /
+// framework) renders greyed under "IF AWARDED" so it can't pass for a firm win.
+const fmtOrderCr = (v) =>
+  !Number.isFinite(v)
+    ? '—'
+    : v >= 1000
+      ? `₹${Math.round(v).toLocaleString('en-IN')} Cr`
+      : v >= 100
+        ? `₹${v.toFixed(0)} Cr`
+        : `₹${v.toFixed(1)} Cr`;
+const fmtRatioX = (v) => (Number.isFinite(v) ? `${v.toFixed(2)}x` : '—');
+const MONTH_ABBR = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+const fmtMonthYear = (iso) => {
+  const m = /^(\d{4})-(\d{2})/.exec(String(iso || ''));
+  return m ? `${MONTH_ABBR[+m[2] - 1]}-${m[1].slice(2)}` : '—';
+};
+// >=0.3x is the "significant order" bar from Darshan's original catalyst spec.
+const b2bColor = (v) =>
+  !Number.isFinite(v)
+    ? '#475467'
+    : v >= 0.5
+      ? '#067647'
+      : v >= 0.3
+        ? '#3b8a3e'
+        : v >= 0.1
+          ? '#b54708'
+          : '#475467';
+
+const CONDITIONAL_TAGS = {
+  l1: 'IF AWARDED (L1 bidder, not yet a firm order)',
+  loi: 'IF CONVERTED (letter of intent, not yet a firm order)',
+  framework: 'FRAMEWORK / RATE CONTRACT (no committed volume)',
+  indirect: 'GDV, NOT CONTRACT REVENUE (ratio indicative only)',
+};
+
+function orderMetricsHtml(m) {
+  if (!m || !m.order) return '';
+  const conditional = !!m.order.conditional;
+  const label = (t) =>
+    `<span style="color:#98a2b3;font-weight:700;letter-spacing:0.04em;margin-right:6px;">${t}</span>`;
+  const sep = ' &middot; ';
+  const statusTag = conditional
+    ? `<span style="color:#b54708;font-weight:700;">${esc(CONDITIONAL_TAGS[m.order.status] || 'NOT A FIRM ORDER')}</span>${sep}`
+    : '';
+  const multi = m.orderCount > 1 ? `${sep}${m.orderCount} orders` : '';
+  const rev = m.revenue;
+  const fyTag = rev && rev.lastFyLabel ? `vs ${esc(rev.lastFyLabel)}` : 'vs last FY';
+  const ttmTag = rev && rev.ttmAsOf ? `TTM to ${esc(rev.ttmAsOf)}` : 'TTM';
+
+  let line1;
+  if (m.order.valueCr === null) {
+    line1 = `${label('ORDER')}${statusTag}value not stated in the filing — book-to-bill not computable`;
+  } else if (!rev) {
+    line1 =
+      `${label('ORDER')}${statusTag}<b>${fmtOrderCr(m.order.valueCr)}</b>${multi}${sep}` +
+      `book-to-bill n/a (${esc(m.revenueUnavailableReason || 'no revenue base')})`;
+  } else {
+    line1 =
+      `${label('ORDER')}${statusTag}<b>${fmtOrderCr(m.order.valueCr)}</b>${multi}${sep}` +
+      `B2B ${ttmTag} <b style="color:${b2bColor(m.ratios.ttm)};">${fmtRatioX(m.ratios.ttm)}</b>${sep}` +
+      `${fyTag} <b>${fmtRatioX(m.ratios.lastFy)}</b>`;
+  }
+
+  let line2 = '';
+  const imp = m.impact;
+  if (m.order.valueCr !== null) {
+    if (imp && imp.available) {
+      const sched = imp.schedule;
+      const show =
+        sched.length <= 5 ? sched : [...sched.slice(0, 3), null, sched[sched.length - 1]];
+      const path = show
+        .map((s) =>
+          s ? `${esc(s.quarter)} ₹${s.revenueCr.toFixed(1)}${s.partial ? '*' : ''}` : '…'
+        )
+        .join(' → ');
+      const pct =
+        imp.pctOfAvgQtrRevenue !== null
+          ? ` (≈${imp.pctOfAvgQtrRevenue}% of avg quarterly revenue)`
+          : '';
+      line2 =
+        `${label('TIMING')}${fmtMonthYear(imp.startDate)} → ${fmtMonthYear(imp.endDate)}` +
+        `${imp.durationMonths ? ` (${imp.durationMonths}m)` : ''}` +
+        `${imp.startAssumed ? ' <span style="color:#98a2b3;">start = filing date</span>' : ''}${sep}` +
+        `≈₹${imp.runRatePerQtrCr.toFixed(1)} Cr/qtr${pct}<br/>` +
+        `<span style="margin-left:52px;color:#667085;">${path} <span style="color:#98a2b3;">(₹ Cr, straight-line; * part-quarter)</span></span>`;
+    } else if (imp) {
+      line2 = `${label('TIMING')}<span style="color:#98a2b3;">${esc(imp.note || 'not computable')}</span>`;
+    }
+  }
+
+  let line3 = '';
+  const b = m.book;
+  if (m.topRank && b) {
+    const tag = `TOP-${m.topRank} B2B`;
+    if (b.ok) {
+      const wasTxt = b.beforeCr !== b.afterCr ? ` (was ${fmtOrderCr(b.beforeCr)})` : '';
+      line3 =
+        `${label(tag)}unexecuted book <b>${fmtOrderCr(b.afterCr)}</b>${wasTxt} with this order${sep}` +
+        `<b>${fmtRatioX(b.ratios.ttm)}</b> TTM${sep}` +
+        `<b>${fmtRatioX(b.ratios.lastFy)}</b> ${fyTag}${sep}` +
+        `<span style="color:#667085;">base ${esc(b.baseQuarter)} concall + ${b.winsSinceBase} win(s); no burn-down, so reads slightly high</span>`;
+    } else {
+      line3 = `${label(tag)}<span style="color:#98a2b3;">unexecuted book not available — ${esc(b.reason || 'unknown')}</span>`;
+    }
+  }
+
+  const warnNotes = [...(m.notes || []), ...((b && b.ok && b.notes) || [])];
+  const warn = warnNotes.length
+    ? `<div style="color:#b54708;">⚠ ${warnNotes.map(esc).join(' &middot; ')}</div>`
+    : '';
+  const border = conditional ? '#d0d5dd' : '#c7d7fe';
+  const bg = conditional ? '#f9fafb' : '#f5f8ff';
+  return (
+    `<div style="margin-top:8px;padding:8px 10px;background:${bg};border:1px solid ${border};border-radius:6px;` +
+    `font-size:11.5px;font-family:monospace;color:#344054;line-height:1.75;">` +
+    `<div>${line1}</div>${line2 ? `<div>${line2}</div>` : ''}${line3 ? `<div>${line3}</div>` : ''}${warn}</div>`
+  );
 }
 
 // Renders the causal chain "this happened -> so this -> so this -> EPS
@@ -983,6 +1119,9 @@ function groupInsightsByCompany(insights) {
       // the header note "+N more filings" without changing the score.
       subAnnouncementCount: items.length,
       subLinks,
+      // One company filing several orders in a window: totals, not just the
+      // primary filing's own figure (a non-order primary keeps a sibling's metrics).
+      orderMetrics: mergeOrderMetrics(bySeverityThenScore.map((i) => i.orderMetrics)) || undefined,
     });
   }
   return grouped;
@@ -1102,6 +1241,7 @@ function buildDigestHtml(
           const chainHtml = thesisChainHtml(it);
           const epsHtml = epsImpactHtml(it.epsImpact);
           const marketHtml = marketDataHtml(it.marketData);
+          const orderHtml = orderMetricsHtml(it.orderMetrics);
           const infoClassHtml = infoClassificationHtml(it.infoClassification);
           // Icon-only link button to the original filing, sitting in the
           // header row next to the category tag rather than as a full-width
@@ -1162,6 +1302,7 @@ function buildDigestHtml(
           </div>
           ${headline ? `<div style="font-size:14.5px;font-weight:600;line-height:1.45;color:#101828;margin-top:9px;">${headline}</div>` : ''}
           ${marketHtml}
+          ${orderHtml}
           ${chainHtml}
           ${epsHtml}
           ${tagsHtml ? `<div style="margin-top:9px;">${tagsHtml}</div>` : ''}
@@ -1781,6 +1922,7 @@ module.exports = {
   thesisChainHtml,
   infoClassificationHtml,
   marketDataHtml,
+  orderMetricsHtml,
   computeSignalScore,
   signalTierFor,
   signalScoreChipHtml,

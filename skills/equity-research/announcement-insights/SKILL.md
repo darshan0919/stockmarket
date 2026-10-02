@@ -147,6 +147,36 @@ a bundled technical annexure), report `numPages` back to your caller — `watchl
 surfaces this in its digest's Heavy Parse Highlights section, which
 `insight-validation` reviews for whether that category needs its own skip rule.
 
+## Step 1.5 — Structured XBRL first (script, zero LLM) for filing types the exchanges publish as XBRL
+
+Exchanges publish some announcement types as structured XBRL (design and evidence:
+[`docs/XBRL_INTEGRATION_PLAN.md`](../../../docs/XBRL_INTEGRATION_PLAN.md)). Where one exists,
+read it INSTEAD of hand-reading the table in the PDF; the PDF from Step 1 stays the fallback
+and the source for narrative. Run this only for the categories below:
+
+| Category / announcement                                                                                                                                 | Command (`node packages/jobs-runtime/xbrlFilings.js ...`)                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `shareholding_change` (quarterly SHP)                                                                                                                   | `shareholding --symbol X --n 2` (adds a Q-o-Q diff)                                                                              |
+| voting results (`agm_egm`)                                                                                                                              | `voting --symbol X --n 1` (per-resolution votes, institutional dissent ≥ 20% flagged)                                            |
+| governance report / director or auditor change                                                                                                          | `governance --symbol X --n 2`                                                                                                    |
+| BRSR (annual sustainability report)                                                                                                                     | `brsr --symbol X --n 2` (YoY energy/water/emissions/waste, board and POSH metrics)                                               |
+| insider trades (PIT)                                                                                                                                    | `pit --symbol X --from DD-MM-YYYY --to DD-MM-YYYY`                                                                               |
+| Reg-30 event (order win, rating, litigation/penalty, KMP/auditor change, board-meeting outcome, analyst meet, capital alteration, CIRP, trading window) | `events --symbol X --from DD-MM-YYYY --to DD-MM-YYYY [--kinds credit-rating,reg30-para-b]` (`--list-kinds` prints the catalogue) |
+
+Output: `{source, fallbackToPdf, items[], issues, issueSummary}`. NSE is tried first, then BSE.
+
+- `fallbackToPdf: false` and `items` non-empty: use `items[].data` for the numbers/flags and
+  still use the PDF (Step 1) for narrative (rationale, terms, dates not in the XBRL).
+- `fallbackToPdf: true` (no XBRL on either exchange, or download/parse failure): proceed with
+  the PDF only, and say in the insight that XBRL was unavailable and why (`issues`).
+- Any `major` issue must be surfaced to the caller, never dropped silently.
+- `events` output is `{window, total, kinds{<kind>:{source, items[{ref, eventType, summary[], recordSummary[], numbersCr}]}}}`.
+  Use `summary`/`numbersCr` (order value, fine, rating) as the structured facts (Rs Cr, from the
+  filing itself); a kind with no items in the window is normal. NSE publishes XBRL only for director/KMP
+  changes, resignations and auditor resignations; every other kind comes from BSE, so an NSE-only
+  announcement type (e.g. NSE order win with no BSE twin) still needs the PDF. `--full` adds every field.
+- SAST (Reg 29) has no XBRL on either exchange; read the PDF.
+
 ## Step 2 — Load company context
 
 ```bash

@@ -539,6 +539,29 @@ materially up its band, and a vague qualitative read pins it at the floor. That
 is intentional: it rewards doing the arithmetic in 4b rather than gesturing at
 it.
 
+## Step 6b — Order cards: book-to-bill (before Step 7)
+
+Order-win cards get a deterministic ORDER block (TTM / last-FY book-to-bill,
+execution timing, and the unexecuted book for the run's top three ratios).
+Full spec: `docs/ORDER_METRICS.md`. Run the dry pre-step:
+
+```bash
+run enrich-orders <insights-array.json>
+```
+
+Read `orderCards` in the output. Only judgment items need you:
+
+- `pendingBases[]` — read each `llmFallbackPrompt`, resolve the company-wide
+  order-book total, call `recordLlmResolution(...)`.
+- `bookFailed[]` with reason "company declares no order-book total" — settled,
+  do nothing.
+- Unreadable order values — resolve from the filing text via
+  `recordAnnouncementResolution(...)`.
+
+Never estimate a number yourself into the card. `send-digest` re-runs the same
+enrichment from cache; it prints `orderCards` stats in its JSON. Do not write
+book-to-bill into thesis prose by hand — the card block carries it.
+
 ## Step 7 — Send the slot digest
 
 ```bash

@@ -1,6 +1,11 @@
 'use strict';
 
-const { bseGetText, bseGetJson, BSE_REQUEST_TIMEOUT_MS } = require('../http/bseHttp');
+const {
+  bseGetText,
+  bseGetJson,
+  bseGetXbrlFile,
+  BSE_REQUEST_TIMEOUT_MS,
+} = require('../http/bseHttp');
 
 /**
  * Parse BSE PeerSmartSearch HTML into autocomplete-shaped symbol objects.
@@ -148,6 +153,49 @@ class BseClient {
       timeout: BSE_REQUEST_TIMEOUT_MS,
     });
     return res?.Table || [];
+  }
+
+  /**
+   * Financial-result filings with XBRL file names for one scrip (history back to
+   * about FY2017-18). Rows: `{ quarter_code, XMLName, Consol_XMLName, DT_TM,
+   * audited, Industry_name }`. Throws on transport errors so callers can fall
+   * back to PDF and log ENDPOINT_CHANGE.
+   * @param {string|number} scripCode
+   * @returns {Promise<Array>}
+   */
+  async getResultXbrlRows(scripCode) {
+    const res = await bseGetJson('Corp_FinanceResult_ng_new/w', {
+      params: { SCRIP_CD: scripCode, FlagDur: 7, HFQ: '', ISUBGROUP_CODE: '', segment: 'C' },
+      timeout: BSE_REQUEST_TIMEOUT_MS,
+    });
+    return Array.isArray(res) ? res : res?.Table || res?.Data || [];
+  }
+
+  /**
+   * BSE XBRL-filings index by category flag (PIT, shareholding, voting results,
+   * governance, BRSR, credit rating, Reg-30 events). NOTE: Flag 22 ("Financial
+   * Results") is empty, use {@link BseClient#getResultXbrlRows} for results.
+   * @param {number} flag - Category flag from the BSE XBRL-filings page.
+   * @param {string} fromDate - YYYY/M/D
+   * @param {string} toDate - YYYY/M/D
+   * @param {string|number} [scripCode='']
+   * @returns {Promise<Array>}
+   */
+  async getXbrlFilings(flag, fromDate, toDate, scripCode = '') {
+    const res = await bseGetJson('GetCorXbrlDetails_ng/w', {
+      params: { Flag: flag, scripcode: scripCode, fromdate: fromDate, todate: toDate },
+      timeout: BSE_REQUEST_TIMEOUT_MS,
+    });
+    return Array.isArray(res) ? res : res?.Table || res?.Data || [];
+  }
+
+  /**
+   * Download a raw BSE XBRL/iXBRL file.
+   * @param {string} fileName - Value of `XMLName`/`Consol_XMLName`.
+   * @returns {Promise<string>}
+   */
+  async fetchXbrlFile(fileName) {
+    return bseGetXbrlFile(fileName);
   }
 
   /**

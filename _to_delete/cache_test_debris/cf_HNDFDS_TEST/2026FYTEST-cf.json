@@ -1,0 +1,171 @@
+{
+  "companyId": "NSE:HNDFDS_TEST",
+  "period": "2026FYTEST-cf",
+  "computedAt": "2026-09-29T23:04:58.465Z",
+  "material": [
+    {
+      "id": "cfoToEbitda",
+      "label": "CFO / EBITDA conversion",
+      "cfoToEbitdaPct": 27.478021978021943,
+      "priorPct": 31.230769230769194,
+      "belowFiftyPct": true,
+      "note": "The working benchmark taught by SOIC is a floor of roughly 50% CFO/EBITDA; sustained readings below it mean operating profit is not becoming cash, and the gap has to be found in working capital. Judge the level against the sector (project/EPC businesses run structurally lower than consumer) but judge the TREND against the company itself."
+    },
+    {
+      "id": "cfoToPat",
+      "label": "CFO / PAT conversion",
+      "cfoToPatPct": 67.11400389183385,
+      "priorPct": 76.27994363550962,
+      "belowEightyPct": true,
+      "note": "SOIC’s working bar for a B2B business is 80-90%+ of PAT converting to operating cash. Persistent under-conversion across several periods is the accrual-quality signal that precedes most Indian small-cap accidents; a single weak period during a growth spurt is usually working capital funding real volume."
+    },
+    {
+      "id": "workingCapitalDrag",
+      "label": "Working-capital movement as a share of operating profit",
+      "wcChangeTotal": -225.03,
+      "opProfitBeforeWCChanges": 370.23,
+      "shareOfOperatingProfitPct": -60.781136050563155,
+      "byLine": {
+        "receivables": -42.91,
+        "inventories": -195.38,
+        "payables": 83.18,
+        "other": -69.92
+      },
+      "note": "When working capital absorbs a large share of operating profit, name WHICH line did it — receivables, inventory, or payables unwinding — because the three have completely different implications, and the answer must agree with the balance-sheet days scan."
+    },
+    {
+      "id": "capexIntensity",
+      "label": "Capex vs depreciation and vs CFO",
+      "capex": 340.97,
+      "capexToDepreciation": 3.7851909413854354,
+      "capexToCfo": 3.4090181963607282,
+      "mode": "expansion",
+      "outrunningOperatingCash": true,
+      "note": "Capex above ~2x depreciation is expansion, not maintenance — it should be traceable to a stated project and to the CWIP line. Capex persistently below depreciation is a business being harvested. Capex exceeding CFO is not itself a problem; it is a question about who is funding the gap, answered by the financing section."
+    },
+    {
+      "id": "freeCashFlow",
+      "label": "Free cash flow (CFO - capex)",
+      "fcf": -240.95000000000005,
+      "priorFcf": -159.21999999999997,
+      "signSwitch": false,
+      "fcfToCfoPct": -240.90181963607282,
+      "note": "Negative free cash flow is NOT automatically a negative: a company reinvesting every rupee at a high incremental return is doing exactly what it should, and the dividend can wait. The question to answer is what the reinvestment is earning, not whether FCF is positive. What is unambiguously bad is negative FCF with no identifiable project behind it."
+    },
+    {
+      "id": "fundingGap",
+      "label": "Funding identity (capex + shareholder returns - CFO vs external funding raised)",
+      "externalFundingNeed": 240.95000000000005,
+      "netBorrowings": 199,
+      "equityRaised": 80.86,
+      "externalFundingRaised": 279.86,
+      "coveredBy": "equity",
+      "note": "Growth and dividends that operating cash cannot cover are financed by someone — debt, equity, or the cash pile. Saying WHICH, in one sentence, is usually the single most useful line in a cash-flow write-up, and it connects this statement to the gearing and dilution readings on the balance sheet."
+    },
+    {
+      "id": "financingComposition",
+      "label": "Financing mix — borrowings, equity, repayment",
+      "netBorrowings": 199,
+      "priorNetBorrowings": 169,
+      "equityRaised": 80.86,
+      "repaying": false,
+      "note": "Net repayment of borrowings out of operating cash is the deleveraging signature that shows up on the balance sheet a period later. A fresh equity raise is neutral until the end-use and its expected return are known."
+    }
+  ],
+  "combinations": [
+    {
+      "flag": "ACCRUAL_HEAVY_PROFIT",
+      "severity": "high",
+      "note": "Profit is not converting to cash and receivables are the reason. This is the same finding the balance sheet reports as rising receivable days — one phenomenon seen from two statements, so report it once, with both numbers, not twice."
+    },
+    {
+      "flag": "INVENTORY_ABSORBING_CASH",
+      "severity": "medium",
+      "note": "Inventory is absorbing the operating profit. Ask whether it is a deliberate pre-build against a named order or season — and whether the goods came back as sales returns in a later period, which is how channel stuffing eventually shows up."
+    }
+  ],
+  "skipped": [
+    {
+      "id": "cfoSign",
+      "label": "Cash flow from operations — sign and level",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "taxPaidVsCharge",
+      "label": "Cash taxes paid vs P&L tax charge",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "nonCoreInvesting",
+      "label": "Cash leaving via non-core investing (investments, loans, acquisitions)",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "shareholderReturns",
+      "label": "Dividend / buyback vs free cash flow",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "interestPaidVsCharge",
+      "label": "Interest paid (cash) vs P&L finance cost",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "interestReceivedYield",
+      "label": "Interest received vs cash and investments held",
+      "reason": "below materiality bar or not disclosed"
+    },
+    {
+      "id": "cashBridge",
+      "label": "Cash bridge (CFO + CFI + CFF = change in cash)",
+      "reason": "below materiality bar or not disclosed"
+    }
+  ],
+  "derived": {
+    "current": {
+      "wcTotal": -225.03,
+      "capexAbs": 340.97,
+      "fcf": -240.95000000000005,
+      "netBorrow": 199,
+      "shareholderReturn": 0,
+      "externalFundingNeed": 240.95000000000005,
+      "externalFundingRaised": 279.86,
+      "nonCoreOutflow": 4.72,
+      "cfoToEbitda": 0.27478021978021944,
+      "cfoToPat": 0.6711400389183385,
+      "cfoToRevenue": 0.023528360118935603,
+      "wcDragShare": -0.6078113605056316,
+      "capexToDepreciation": 3.7851909413854354,
+      "capexToCfo": 3.4090181963607282,
+      "fcfToCfo": -2.4090181963607282,
+      "payoutToFcf": 0,
+      "nonCoreShareOfInvesting": 0.01365385171685614,
+      "taxPaidVsCharge": 0.8927089508002372,
+      "interestPaidVsCharge": 0.9493317132442284,
+      "impliedCashYieldPct": null
+    },
+    "prior": {
+      "wcTotal": -158.98,
+      "capexAbs": 272.9,
+      "fcf": -159.21999999999997,
+      "netBorrow": 169,
+      "shareholderReturn": 0,
+      "externalFundingNeed": 159.21999999999997,
+      "externalFundingRaised": 288.95,
+      "nonCoreOutflow": 100.2,
+      "cfoToEbitda": 0.31230769230769195,
+      "cfoToPat": 0.7627994363550963,
+      "cfoToRevenue": 0.02674169144491701,
+      "wcDragShare": -0.5334362312518874,
+      "capexToDepreciation": 3.4228019566035366,
+      "capexToCfo": 2.4005981703026036,
+      "fcfToCfo": -1.4005981703026034,
+      "payoutToFcf": 0,
+      "nonCoreShareOfInvesting": 0.26856070758509787,
+      "taxPaidVsCharge": 0.5012843311598498,
+      "interestPaidVsCharge": 0.9092345078979344,
+      "impliedCashYieldPct": null
+    }
+  },
+  "incomplete": false
+}

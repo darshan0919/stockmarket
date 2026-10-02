@@ -32,6 +32,7 @@
 const db = require('./db');
 
 const CREATOR = 'order-book-tracker';
+const CREATOR_CARD = 'post-close-scan-insights';
 
 /** Compact human summary — what shows up in listings and digests. */
 function winSummary({ companyId, valueCr, quantities, timeline, isAggregate }) {
@@ -144,6 +145,51 @@ function saveDeclaredOrderBook(companyId, base) {
   return db.appendEvents([record], { creator: CREATOR });
 }
 
+/**
+ * Persist the book-to-bill / timing snapshot shown on an order Thesis Card.
+ *
+ * Kept as its own event type so the D+1 validation ledger can later relate
+ * "how big was this order relative to revenue" to what the stock did, without
+ * re-deriving revenue as it stood at send time (it changes every quarter).
+ * Id is derived from the filing, so a re-send updates in place.
+ *
+ * @param {Array<{companyId: string, date: string, ssUrl: string, metrics: Object}>} cards
+ * @returns {{inserted: number, updated: number, unchanged: number}}
+ */
+function saveOrderCardMetrics(cards) {
+  if (!cards || !cards.length) return { inserted: 0, updated: 0, unchanged: 0 };
+  const records = cards.map(({ companyId, date, ssUrl, metrics }) => {
+    const book = metrics.book && metrics.book.ok ? metrics.book : null;
+    return {
+      id: db.makeId('evt', CREATOR_CARD, companyId, date, `order-card|${ssUrl}`),
+      type: 'order-card-metrics',
+      date,
+      companyId,
+      creator: CREATOR_CARD,
+      summary:
+        `${companyId} order ${Number.isFinite(metrics.order.valueCr) ? `₹${metrics.order.valueCr} Cr` : 'value n/a'}` +
+        ` — B2B ${metrics.ratios.ttm ?? 'n/a'}x TTM / ${metrics.ratios.lastFy ?? 'n/a'}x last FY`,
+      ssUrl,
+      valueCr: metrics.order.valueCr,
+      orderStatus: metrics.order.status,
+      ttmRevenueCr: metrics.revenue ? metrics.revenue.ttmCr : null,
+      lastFyRevenueCr: metrics.revenue ? metrics.revenue.lastFyCr : null,
+      bookToBillTtm: metrics.ratios.ttm,
+      bookToBillLastFy: metrics.ratios.lastFy,
+      timelineStart: metrics.impact && metrics.impact.available ? metrics.impact.startDate : null,
+      timelineEnd: metrics.impact && metrics.impact.available ? metrics.impact.endDate : null,
+      runRatePerQtrCr:
+        metrics.impact && metrics.impact.available ? metrics.impact.runRatePerQtrCr : null,
+      topRank: metrics.topRank,
+      unexecutedBookAfterCr: book ? book.afterCr : null,
+      unexecutedBookTtm: book ? book.ratios.ttm : null,
+      unexecutedBookLastFy: book ? book.ratios.lastFy : null,
+      notes: metrics.notes || [],
+    };
+  });
+  return db.appendEvents(records, { creator: CREATOR_CARD });
+}
+
 /** Every order win on record for a company, newest first. Retracted ones are excluded. */
 function findOrderWins(companyId, { since, includeRetracted = false } = {}) {
   return db
@@ -161,6 +207,7 @@ function findDeclaredOrderBooks(companyId) {
 
 module.exports = {
   saveOrderWins,
+  saveOrderCardMetrics,
   retractOrderWin,
   saveDeclaredOrderBook,
   findOrderWins,

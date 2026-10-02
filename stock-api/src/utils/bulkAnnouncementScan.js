@@ -222,6 +222,7 @@ async function scanAllPages(
  * @param {string} [opts.announcementType='All']
  * @param {(message: string) => void} [opts.onWarning] - called instead of throwing
  * @param {number} [opts.maxPages] - passed through to scanAllPages (see DEFAULT_MAX_PAGES)
+ * @param {boolean} [opts.exhaustive=false] - return every match (up to maxPages), not just enough to resolve each company
  * @returns {Promise<Array>} flattened announcements (each has `companyId`) — early-exits once every company has a match, so this is "enough to resolve everyone", not "every matching announcement ever filed"
  */
 async function scanAnnouncementsForCompanies({
@@ -232,10 +233,17 @@ async function scanAnnouncementsForCompanies({
   announcementType = 'All',
   onWarning = () => {},
   maxPages,
+  exhaustive = false,
 }) {
   if (!companyIds.length) return [];
-  const stopWhenFoundFor = new Set(companyIds);
-  const pageOpts = { stopWhenFoundFor, ...(maxPages ? { maxPages } : {}) };
+  // `exhaustive` drops the "every company has one match" early exit — needed
+  // when the caller wants the full match set (order history), not merely the
+  // newest match per company.
+  const stopWhenFoundFor = exhaustive ? undefined : new Set(companyIds);
+  const pageOpts = {
+    ...(stopWhenFoundFor ? { stopWhenFoundFor } : {}),
+    ...(maxPages ? { maxPages } : {}),
+  };
 
   if (companyIds.length <= COMPANY_FILTERS_MAX) {
     try {

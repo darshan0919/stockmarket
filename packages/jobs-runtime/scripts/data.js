@@ -43,19 +43,8 @@ const {
 const { printStorageStatsTable } = require('../lib/storageStats');
 
 const DRIVE_ROOT = process.env.DATA_V2_DRIVE_ROOT || 'StockMarket/data/v2';
-const NEVER_SYNC = (rel) =>
-  rel.startsWith('.locks/') ||
-  rel.startsWith('_meta/') ||
-  rel.includes('.tmp.') ||
-  rel.includes('.corrupt.') ||
-  rel.includes('.local-conflict.') ||
-  path.basename(rel) === '.env' ||
-  path.basename(rel) === '.DS_Store' ||
-  // local backup/scratch files must never mirror to Drive
-  /(backup|\.bak|\.orig)$/i.test(rel) ||
-  // artifact records store their body in assets/, never as a reports/ body —
-  // any reports/rpt_artifact-migration_*.json is an orphan (do not sync)
-  /^reports\/rpt_artifact-migration_.*\.json$/.test(rel);
+// Local-only folders and scratch/temp patterns live in lib/dataSyncPolicy.js (unit-tested).
+const { NEVER_SYNC } = require('../lib/dataSyncPolicy');
 const IS_COLLECTION = (rel) =>
   /^(companies|reports|notes|theses|validation|conversations|prompts|ipos|supportive-investors|unsupportive-investors|learnyst-lessons|youtube-transcripts|events-\d{4}(-\d{2})?)\.json$/.test(
     rel

@@ -421,6 +421,35 @@ async function main() {
     }
   }
 
+  // Search-based bseScripCode backfill for companies the instrument-master pairing could not match
+  // (mostly BSE-listed names not in the NSE dump). Wrong-company hits are rejected by name match; NOT_FOUND
+  // and MISMATCH names are re-checked only after 30 days. Best-effort: never fails the sync.
+  if (!hasFlag('--skip-bse-scrip-search') && fs.existsSync(COMPANIES_FILE)) {
+    try {
+      const { backfillBseScrips, loadChecks, saveChecks } = require('./lib/bseScripBackfill');
+      const { BseClient } = require('../../stock-api/src/clients/BseClient.js');
+      const limit = Number(
+        argValue('--bse-scrip-limit') || process.env.BSE_SCRIP_BACKFILL_LIMIT || 2000
+      );
+      const fresh = db.loadFile(COMPANIES_FILE);
+      const r = await backfillBseScrips({
+        records: Object.values(fresh),
+        checks: loadChecks(),
+        bse: new BseClient(),
+        limit,
+        concurrency: 4,
+      });
+      if (r.updates.length) db.upsertMany('companies', r.updates);
+      saveChecks(r.checks);
+      console.error(
+        `BSE scrip backfill: ${r.stats.accepted} added, ${r.stats.mismatch} rejected as wrong company, ` +
+          `${r.stats.notFound} not on BSE, ${r.stats.error} errors (of ${r.stats.candidates} checked).`
+      );
+    } catch (e) {
+      console.error(`BSE scrip backfill skipped: ${e.message}`);
+    }
+  }
+
   fs.mkdirSync(OUT_DIR, { recursive: true });
   fs.writeFileSync(OUT_PATH, JSON.stringify(output, null, 2));
   console.log(

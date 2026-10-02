@@ -78,3 +78,59 @@ Documentation for official BSE India API endpoints integrated in `@stock/api` (`
 ```
 
 Compute trade value as `QUANTITY * PRICE`.
+
+---
+
+## XBRL endpoints (added 2026-09-30, verified live and via Chrome network capture)
+
+### Financial-result XBRL (`Corp_FinanceResult_ng_new/w`)
+
+- **Client**: `BseClient#getResultXbrlRows(scripCode)`; file download `BseClient#fetchXbrlFile(name)`.
+- **Params**: `SCRIP_CD`, `FlagDur=7`, `HFQ=''`, `ISUBGROUP_CODE=''`, `segment=C`.
+- **Rows** (history to about FY2017-18 for the scrip checked): `Scrip_cd, scrip_name, quarter_code (e.g. JQ2026-2027), audited, DT_TM, Fld_CreateDate, Industry_name, Fld_NatureOfReport, XMLName (standalone), Consol_XMLName`.
+- **Files**: `https://www.bseindia.com/XBRLFILES/<XMLName>`; needs a browser User-Agent and `Referer: https://www.bseindia.com/` (handled by `bseGetXbrlFile`).
+- **Formats**: new filings are iXBRL `.html` (`Integrated_Finance_Ind_As_*`, `..._NBFC_*`) with `in-capmkt` names, single-quoted attributes, `scale='6'` (values in millions) and `sign='-'`; older filings are plain `.xml` with `in-bse-fin` names. The parser handles both.
+- **Verified**: Hindustan Foods Q1 FY27 (scrip 519126) matches NSE on 69/69 standalone and 43/43 consolidated facts.
+
+### XBRL filings index (`GetCorXbrlDetails_ng/w`)
+
+- **Client**: `BseClient#getXbrlFilings(flag, fromDate, toDate, scripCode?)`.
+- **Params**: `Flag` (category id), `scripcode`, `fromdate`/`todate` as `YYYY/M/D`.
+- About 70 categories (PIT, shareholding, voting results, governance, BRSR, credit ratings, Reg-30 events). Flag 22 "Financial Results" returns empty; use the endpoint above for results.
+- Flag table (names inferred from file prefixes and element domains, verified by fetching sample files):
+
+  | Flag                   | Content                                                                                                  | Format                                   |
+  | ---------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+  | 1                      | Insider trading (PIT, `in-bse-co`)                                                                       | xml                                      |
+  | 6                      | Voting results (`in-bse-voting`)                                                                         | xml                                      |
+  | 8                      | Integrated governance report                                                                             | xml                                      |
+  | 44                     | Integrated governance report                                                                             | html (iXBRL)                             |
+  | 23                     | Shareholding pattern (`in-bse-shp`)                                                                      | xml                                      |
+  | 43                     | BRSR                                                                                                     | xml                                      |
+  | 24                     | Reg-30 event announcements                                                                               | xml                                      |
+  | 14                     | Credit rating                                                                                            | xml                                      |
+  | 31                     | Director/KMP resignation                                                                                 | xml                                      |
+  | 32                     | Auditor resignation                                                                                      | xml                                      |
+  | 33                     | Change in management                                                                                     | xml                                      |
+  | 28                     | Notice / resolution agenda                                                                               | xml                                      |
+  | 40                     | CIRP                                                                                                     | xml                                      |
+  | 41                     | Trading-window closure                                                                                   | xml                                      |
+  | 46                     | Orders / actions                                                                                         | xml                                      |
+  | 48-65                  | `REG30PARAB` sub-categories                                                                              | xml                                      |
+  | 22                     | "Financial Results"                                                                                      | empty, use `Corp_FinanceResult_ng_new/w` |
+  | 34                     | Prior intimation of board meeting (`PIBM`)                                                               | html                                     |
+  | 35                     | Outcome of board meeting (`BM`)                                                                          | html                                     |
+  | 47                     | Analyst/investor meet, earnings-call schedule and recordings (`SAIIM`)                                   | html                                     |
+  | 45                     | Order/contract awarded to the entity (`ABRC`); ignores the date window, filter client-side               | html                                     |
+  | 27                     | Alteration of capital (`ACR`)                                                                            | html                                     |
+  | 42                     | Loss of share certificate (`LSCI`)                                                                       | html                                     |
+  | 2                      | Annual secretarial compliance report (`ASCR`)                                                            | html                                     |
+  | 13 / 15                | Debt redemption (`RPS`) / interest (`IPS`) payment schedule                                              | xml                                      |
+  | 26 / 29                | One-time settlement (`OTS`) / CDR                                                                        | html                                     |
+  | 4, 9, 11, 16-21, 37-39 | not mapped (exchange-internal, empty, or no file URLs); see `UNMAPPED_BSE_FLAGS` in `lib/xbrl/events.js` |                                          |
+
+  Gotchas: a `todate` later than today makes the endpoint return nothing (capped in `bseDayAfter`); event files are `in-capmkt` iXBRL that contain text facts only, which `parseXbrl` now detects via `ix:nonNumeric`. The event catalogue (kinds, flags, NSE subjects) lives in `packages/jobs-runtime/lib/xbrl/events.js`.
+
+### Symbol to scrip mapping
+
+NSE symbol and BSE scrip code differ (HNDFDS is 519126); resolve with `BseClient#getScripCode`.

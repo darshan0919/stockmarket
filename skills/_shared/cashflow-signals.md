@@ -149,7 +149,7 @@ working-capital or funding anomalies this half-year") rather than omitting the c
 > requires this statement only half-yearly, and its figures are cumulative), then call
 > `getOrCompute(companyId, period, current, prior, context)` from
 > `stock-api/src/analyzers/cashflowSignals.js` — cache-checked first, with context figures
-> covering exactly the statement's own window. **Sourcing rule:** lines come from the actual
+> covering exactly the statement's own window. **Sourcing rule (XBRL first via `extract_result_xbrl.js`, PDF fallback; see `skills/_shared/income-statement-signals.md` §Sourcing):** lines come from the actual
 > filing's cash flow statement or the investor PPT when it carries a fresher one, never from a
 > collapsed summary. Reason only over `material`/`combinations`, and state the window
 > (H1 FY27 vs H1 FY26) in the write-up.

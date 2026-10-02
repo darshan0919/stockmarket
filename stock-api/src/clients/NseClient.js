@@ -277,6 +277,107 @@ class NseClient {
   }
 
   /**
+   * Integrated Filing rows for one symbol (Financials or Governance). Each row
+   * carries `xbrl`, `ixbrl`, `qe_Date`, `consolidated`, `type_Sub`
+   * (New/Revision), `broadcast_Date`. See docs/nse-api-schemas.md.
+   * @param {string} symbol
+   * @param {'Financials'|'Governance'} [kind='Financials']
+   * @param {number} [size=20]
+   * @param {'equities'|'sme'} [index='equities'] SME-platform names are only listed under `sme`.
+   * @returns {Promise<Array>}
+   */
+  async getIntegratedFilings(symbol, kind = 'Financials', size = 20, index = 'equities') {
+    const upper = String(symbol).toUpperCase();
+    const res = await this.session.get('/integrated-filing-results', {
+      params: {
+        index,
+        symbol: upper,
+        period_ended: 'all',
+        type: `Integrated Filing- ${kind}`,
+        page: 1,
+        size,
+      },
+      referer: this._quoteReferer(upper),
+      timeout: 60000,
+    });
+    return res.data?.data || [];
+  }
+
+  /**
+   * Shareholding-pattern filings for one symbol. Rows carry `xbrl` (in-bse-shp
+   * XML), `date` (quarter end), `recordId`, `typeOfSubmission`.
+   * @param {string} symbol
+   * @returns {Promise<Array>}
+   */
+  async getShareholdingFilings(symbol, index = 'equities') {
+    const upper = String(symbol).toUpperCase();
+    const res = await this.session.get('/corporate-share-holdings-master', {
+      params: { index, symbol: upper },
+      referer: this._quoteReferer(upper),
+      timeout: 30000,
+    });
+    return res.data?.data || res.data || [];
+  }
+
+  /**
+   * Voting-results filings for one symbol. Each row is `{ metadata, agendas[] }`
+   * with `metadata.vrXbrlFilename` (in-bse-voting XML).
+   * @param {string} symbol
+   * @returns {Promise<Array>}
+   */
+  async getVotingResultFilings(symbol, index = 'equities') {
+    const upper = String(symbol).toUpperCase();
+    const res = await this.session.get('/corporate-voting-results', {
+      params: { index, symbol: upper },
+      referer: this._quoteReferer(upper),
+      timeout: 30000,
+    });
+    return Array.isArray(res.data) ? res.data : res.data?.data || [];
+  }
+
+  /**
+   * Structured (XBRL) Reg-30 event announcements: `/api/XBRL-announcements`. NSE publishes only director/KMP
+   * changes, director/independent-director resignations and statutory-auditor resignations here; every row
+   * carries `subject`, `attachment` (XML, or a ZIP of PDFs for resignations), `ixbrl` (HTML), `revision`,
+   * `broadcastDateTime`. Without a symbol the feed returns the latest ~1,200 rows across the market.
+   * @param {Object} [o]
+   * @param {string} [o.symbol]
+   * @param {string} [o.fromDate] - DD-MM-YYYY
+   * @param {string} [o.toDate] - DD-MM-YYYY
+   * @param {'equities'|'sme'} [o.index='equities']
+   * @returns {Promise<Array>}
+   */
+  async getXbrlAnnouncements({ symbol, fromDate, toDate, index = 'equities' } = {}) {
+    const params = { index, type: 'announcements' };
+    if (symbol) params.symbol = String(symbol).toUpperCase();
+    if (fromDate) params.from_date = fromDate;
+    if (toDate) params.to_date = toDate;
+    const res = await this.session.get('/XBRL-announcements', {
+      params,
+      referer: `${NSE_HOME_URL}companies-listing/corporate-filings-announcements-xbrl`,
+      symbol,
+      timeout: 40000,
+    });
+    return Array.isArray(res.data) ? res.data : res.data?.data || [];
+  }
+
+  /**
+   * BRSR filings for one symbol. Rows carry `xbrlFile`, `attachmentFile`
+   * (PDF), `fyFrom`, `fyTo`, `revisionDate`.
+   * @param {string} symbol
+   * @returns {Promise<Array>}
+   */
+  async getBrsrFilings(symbol, index = 'equities') {
+    const upper = String(symbol).toUpperCase();
+    const res = await this.session.get('/corporate-bussiness-sustainabilitiy', {
+      params: { index, symbol: upper },
+      referer: this._quoteReferer(upper),
+      timeout: 30000,
+    });
+    return res.data?.data || res.data || [];
+  }
+
+  /**
    * Fetch a raw XBRL/XML document from nsearchives (no cookie warmup needed,
    * but the shared session keeps headers browser-like).
    * @param {string} url - Absolute nsearchives.nseindia.com URL.

@@ -261,8 +261,25 @@ function advanceWatermark(companyId, date) {
   return ledger;
 }
 
+/**
+ * Record when a full-history sweep last reconciled this ledger. The batched
+ * "Orders / Contracts" feed is fast but was measured (2026-09-30) to miss a
+ * filing now and then (NCC's 30-Jun-2026 monthly order letter), so a periodic
+ * unfiltered sweep is the recall backstop; this timestamp schedules it.
+ *
+ * @param {string} companyId
+ * @param {string} iso - ISO timestamp of the sweep
+ */
+function markSweep(companyId, iso) {
+  const ledger = get(companyId);
+  if (!ledger) return null;
+  ledger.lastFullSweepAt = iso;
+  return write(companyId, ledger);
+}
+
 module.exports = {
   get,
+  markSweep,
   setBase,
   clearBase,
   applyAnnouncement,

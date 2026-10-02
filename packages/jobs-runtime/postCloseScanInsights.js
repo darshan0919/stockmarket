@@ -62,6 +62,7 @@ const {
 const { NotesDb } = require('./lib/notesDb');
 const { nameSimilarity } = require('./lib/fuzzyMatch');
 const { syncAnnouncementSignalsWatchlist } = require('./lib/announcementSignalsWatchlistTtl');
+const { enrichOrderCards } = require('./lib/orderCardEnrichment');
 
 const BASE_URL = 'https://www.stockscans.in';
 const PAGE_SIZE = 30; // documented convention (see bulkAnnouncementScan.js) — not the response's self-inflating `total`
@@ -1089,7 +1090,7 @@ async function cmdSendDigest(argv) {
       );
     }
   }
-  const insights = merged0.map((it) => {
+  const insightsWithRatios = merged0.map((it) => {
     const ratios = ratiosByCompany[it.companyId];
     if (!ratios) return it;
     return {
@@ -1100,6 +1101,13 @@ async function cmdSendDigest(argv) {
         peRatio: (it.marketData && it.marketData.peRatio) ?? ratios.peRatio,
       },
     };
+  });
+  // Order-book cards: book-to-bill (TTM and vs last FY), execution timing, and —
+  // for the top-3 by TTM book-to-bill — the total unexecuted order book with the
+  // new order. Deterministic (lib/orderCardEnrichment.js); a failure degrades that
+  // card's strip with a stated reason and never blocks the send.
+  const { insights, stats: orderStats } = await enrichOrderCards(insightsWithRatios, {
+    warn: (m) => process.stderr.write(`${m}\n`),
   });
   // --stats-file <path>: optional JSON {total, insights, highConviction,
   // heavyDocSkipped, routine, ocrFailed, noiseDropped} — the orchestrating
@@ -1225,6 +1233,7 @@ async function cmdSendDigest(argv) {
         // first version silently resolved to all-nulls with no error), so a
         // future regression of the same kind shows up as a number in the run
         // report rather than requiring another live reproduction.
+        orderCards: orderStats,
         tickersNeedingRatios: companyIdsNeedingRatios.length,
         tickersWithMcap: Object.values(ratiosByCompany).filter((r) => r.marketCapCr != null).length,
         tickersWithPE: Object.values(ratiosByCompany).filter((r) => r.peRatio != null).length,
@@ -1238,6 +1247,25 @@ async function cmdSendDigest(argv) {
       2
     )
   );
+}
+
+/**
+ * `enrich-orders <insights.json>` — dry pre-step for send-digest. Runs the
+ * order-card enrichment (revenue, ratios, ledger roll-up) and prints stats
+ * WITHOUT sending anything, so the agent can resolve what needs judgment
+ * (`pendingBases[].llmFallbackPrompt` → recordLlmResolution; unreadable order
+ * values → recordAnnouncementResolution) and then run send-digest, which
+ * reuses every cached result. Same cutoff + cached-notes merge as send-digest.
+ */
+async function cmdEnrichOrders(argv) {
+  loadEnv(argValue('--env-file', argv));
+  const file = argv[0];
+  if (!file) throw new Error('enrich-orders requires an insights JSON array file path');
+  const fresh = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const cutoffUtc = await resolveCutoffUtc(new Date(), argValue('--window-hours', argv));
+  const merged = dedupeInsights([...fresh, ...collectCachedNotesSinceCutoff(cutoffUtc.getTime())]);
+  const { stats } = await enrichOrderCards(merged, { warn: (m) => process.stderr.write(`${m}\n`) });
+  process.stdout.write(`${JSON.stringify({ orderCards: stats }, null, 2)}\n`);
 }
 
 /**
@@ -1400,7 +1428,7 @@ async function cmdResendWithMarketData(argv) {
   );
 
   // Step 4 — attach marketData onto each note and re-render the digest.
-  const insights = notes.map((n) => {
+  const insightsRaw = notes.map((n) => {
     const cid = sanitizeCompanyId(n.companyId);
     const m = marketByTicker[cid] || {};
     const d = deliveryByTicker[cid] || {};
@@ -1423,6 +1451,10 @@ async function cmdResendWithMarketData(argv) {
       // still slip past a weaker text-based dedupe if either copy's insight
       // text had drifted even slightly between the two runs that created them.
       announcementId: n.announcementId || null,
+      // Needed by lib/orderCardEnrichment.js to read an order filing's facts.
+      announcementTitle: n.announcementTitle || null,
+      announcementDescription: n.announcementDescription || null,
+      date: n.date,
       // Delivery %, delivery value and volume ratio were already here. Market
       // cap and delivery-value-as-%-of-mcap are added (2026-09-04) for the
       // same reason gainers-signal added them to its own metric line: an
@@ -1450,6 +1482,12 @@ async function cmdResendWithMarketData(argv) {
             : null,
       },
     };
+  });
+
+  // Same order-book strip as the slot digests; cache-first, so a resend costs
+  // lookups, not new fetches.
+  const { insights } = await enrichOrderCards(insightsRaw, {
+    warn: (m) => process.stderr.write(`${m}\n`),
   });
 
   const cutoffIstHuman = `Full day ${dateArg}, all slots, with settled end-of-day market data`;
@@ -1528,6 +1566,7 @@ async function main() {
     categorise: cmdCategorise,
     'send-digest': cmdSendDigest,
     'commit-window': cmdCommitWindow,
+    'enrich-orders': cmdEnrichOrders,
     'resend-with-market-data': cmdResendWithMarketData,
   };
   const fn = commands[cmd];

@@ -771,7 +771,18 @@
         "skills/_shared/conventions.md",
         "skills/tooling/output-dto-standard/SKILL.md",
         "packages/jobs-runtime/lib/announcementTaxonomy.js",
-        "packages/jobs-runtime/watchlistInsights.js"
+        "packages/jobs-runtime/watchlistInsights.js",
+        "packages/jobs-runtime/lib/xbrl/parse.js",
+        "packages/jobs-runtime/lib/xbrl/issues.js",
+        "packages/jobs-runtime/lib/xbrl/filings.js",
+        "packages/jobs-runtime/lib/xbrl/filingsFetch.js",
+        "packages/jobs-runtime/lib/xbrl/events.js",
+        "packages/jobs-runtime/lib/xbrl/eventsFetch.js",
+        "packages/jobs-runtime/lib/xbrl/scrip.js",
+        "packages/jobs-runtime/xbrlFilings.js",
+        "stock-api/src/clients/NseClient.js",
+        "stock-api/src/clients/BseClient.js",
+        "stock-api/src/http/bseHttp.js"
       ],
       "aliases": [
         "announcement insights",
@@ -1002,7 +1013,19 @@
         "packages/jobs-runtime/lib/db.js",
         "skills/equity-research/quarterly-result-extractor/scripts/extract_statements.js",
         "stock-api/src/analyzers/balanceSheetSignals.js",
-        "stock-api/src/analyzers/cashflowSignals.js"
+        "stock-api/src/analyzers/cashflowSignals.js",
+        "packages/jobs-runtime/lib/xbrl/parse.js",
+        "packages/jobs-runtime/lib/xbrl/issues.js",
+        "packages/jobs-runtime/lib/xbrl/resultsAdapter.js",
+        "packages/jobs-runtime/lib/xbrl/resultsResolver.js",
+        "packages/jobs-runtime/lib/xbrl/resultsFamilies.js",
+        "packages/jobs-runtime/lib/xbrl/scrip.js",
+        "stock-api/src/clients/NseClient.js",
+        "stock-api/src/clients/BseClient.js",
+        "stock-api/src/http/bseHttp.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/extract_result_xbrl.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/extract_result_narrative.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/extract_income_statement.js"
       ],
       "references": [],
       "shared": [

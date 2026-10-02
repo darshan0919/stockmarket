@@ -1,0 +1,56 @@
+{
+  "_note": "Gold-label schema per corpus type. Each field: kind = text|number|date|enum|bool. number = plain number in the stated unit (INR crore unless noted), null when the document does not state it. Every non-null value must come with a verbatim quote from the document.",
+  "Order": {
+    "customer": { "kind": "text", "help": "Who awarded the order" },
+    "order_value": { "kind": "number", "unit": "INR crore", "help": "Total order value; convert lakh/million/USD only if the document states the INR figure, else null" },
+    "currency": { "kind": "enum", "values": ["INR", "USD", "EUR", "other", "not_stated"] },
+    "award_date": { "kind": "date", "help": "Date of award/receipt as stated; YYYY-MM-DD" },
+    "execution_timeline": { "kind": "text", "help": "Stated delivery or execution period" }
+  },
+  "Credit Rating": {
+    "agency": { "kind": "text" },
+    "instrument": { "kind": "text", "help": "Facility/instrument rated" },
+    "rated_amount": { "kind": "number", "unit": "INR crore", "help": "Total rated amount if stated" },
+    "rating": { "kind": "text", "help": "Rating symbol exactly as printed" },
+    "outlook": { "kind": "enum", "values": ["positive", "stable", "negative", "developing", "not_stated"] },
+    "action": { "kind": "enum", "values": ["assigned", "reaffirmed", "upgraded", "downgraded", "withdrawn", "other"] }
+  },
+  "KMP": {
+    "person": { "kind": "text" },
+    "designation": { "kind": "text" },
+    "event": { "kind": "enum", "values": ["appointment", "resignation", "cessation", "change_in_designation", "other"] },
+    "effective_date": { "kind": "date", "help": "YYYY-MM-DD" }
+  },
+  "Promoter Reg31": {
+    "promoter": { "kind": "text" },
+    "shares_encumbered": { "kind": "number", "unit": "shares" },
+    "pct_of_total_shares": { "kind": "number", "unit": "percent", "help": "Encumbered shares as % of total share capital" },
+    "action": { "kind": "enum", "values": ["creation", "invocation", "release", "other"] },
+    "beneficiary": { "kind": "text", "help": "Lender / entity in whose favour the encumbrance sits" }
+  },
+  "Board Outcome": {
+    "meeting_date": { "kind": "date", "help": "YYYY-MM-DD" },
+    "results_approved": { "kind": "bool", "help": "Were financial results approved at this meeting" },
+    "dividend_per_share": { "kind": "number", "unit": "INR", "help": "Null when no dividend is declared/recommended" },
+    "fundraising_approved": { "kind": "bool" },
+    "other_key_decision": { "kind": "text", "help": "Most material non-results decision, null if none" }
+  },
+  "PPT": {
+    "period": { "kind": "text", "help": "Period the deck reports, e.g. Q1 FY27" },
+    "revenue": { "kind": "number", "unit": "INR crore", "help": "Latest-quarter revenue as printed, consolidated if both shown" },
+    "ebitda": { "kind": "number", "unit": "INR crore" },
+    "pat": { "kind": "number", "unit": "INR crore" }
+  },
+  "Transcript": {
+    "call_date": { "kind": "date", "help": "YYYY-MM-DD" },
+    "lead_management_speaker": { "kind": "text", "help": "Name of the most senior company speaker" },
+    "forward_revenue_guidance": { "kind": "text", "help": "Management's stated forward revenue/growth guidance, null if none" }
+  },
+  "Annual Report": {
+    "financial_year": { "kind": "text", "help": "e.g. 2024-25" },
+    "auditor_name": { "kind": "text", "help": "Statutory auditor firm" },
+    "audit_opinion": { "kind": "enum", "values": ["unmodified", "qualified", "adverse", "disclaimer", "not_found"] },
+    "dividend_per_share": { "kind": "number", "unit": "INR", "help": "Null when none" },
+    "total_income": { "kind": "number", "unit": "INR crore", "help": "Standalone total income for the year unless only consolidated is shown" }
+  }
+}

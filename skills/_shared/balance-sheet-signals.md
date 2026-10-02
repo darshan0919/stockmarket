@@ -191,7 +191,7 @@ the check silently.
 > gearing, asset quality or capital allocation, resolve availability/staleness (SEBI requires
 > this statement only half-yearly), then call
 > `getOrCompute(companyId, period, current, prior, context)` from
-> `stock-api/src/analyzers/balanceSheetSignals.js` — cache-checked first. **Sourcing rule:**
+> `stock-api/src/analyzers/balanceSheetSignals.js` — cache-checked first. **Sourcing rule (XBRL first via `extract_result_xbrl.js`, PDF fallback; see `skills/_shared/income-statement-signals.md` §Sourcing):**
 > every line comes from the actual Result filing's statement of assets and liabilities, or the
 > investor PPT when it carries a fresher one, never from Screener's collapsed table or a news
 > summary. Reason only over the returned `material`/`combinations`, and state the comparison

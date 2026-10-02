@@ -36,7 +36,15 @@ restated after the first computation.
 
 ## Sourcing rule (mandatory)
 
-Pull every P&L line item from the actual quarterly/annual Result filing via
+**XBRL first, PDF fallback.** Run
+`node skills/equity-research/quarterly-result-extractor/scripts/extract_result_xbrl.js --companyId <id>`
+(NSE then BSE structured XBRL, with the prior quarter and year-ago quarter fetched from
+earlier filings). It emits the same `lineData`/`context` this scan consumes, per period and
+per statement, and falls back to the PDF path for any period or statement XBRL lacks
+(banks and insurers currently always fall back). Surface its `issues` (missing filings or
+fields) to your reader; never drop them. Design: `docs/XBRL_INTEGRATION_PLAN.md`.
+
+For the PDF fallback, pull every P&L line item from the actual quarterly/annual Result filing via
 `stock-documents-fetcher` (`documentsFetcher.js` / `StockscansClient.documents()`) — never
 from a news summary, Screener's collapsed multi-year table, or a concall/PPT paraphrase.
 Several of the lines below (Changes in inventories, the Other Income break-up, the tax-rate

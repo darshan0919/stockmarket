@@ -85,3 +85,25 @@ For takeover disclosures, filter where `desc === "Disclosure under SEBI Takeover
 ```
 
 Compute trade value as `BD_QTY_TRD * BD_TP_WATP`.
+
+---
+
+## XBRL filing endpoints (added 2026-09-30, verified live)
+
+All are `GET https://www.nseindia.com/api/<path>` via `NseSession`; files come from `nsearchives.nseindia.com`. Parse with `packages/jobs-runtime/lib/xbrl/parse.js`.
+
+| Client method                                          | Path                                   | Params                                                                                     | Useful row fields                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------------------------------ | -------------------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `getIntegratedFilings(symbol, 'Financials')`           | `/integrated-filing-results`           | `index=equities, symbol, period_ended=all, type=Integrated Filing- Financials, page, size` | `xbrl`, `ixbrl`, `qe_Date`, `consolidated`, `type_Sub` (New/Revision), `broadcast_Date`, `audited`                                                                                                                                                                                                                                |
+| `getIntegratedFilings(symbol, 'Governance')`           | same                                   | `type=Integrated Filing- Governance`                                                       | `xbrl`, `ixbrl`, `qe_Date`, `type_Sub`                                                                                                                                                                                                                                                                                            |
+| `getShareholdingFilings(symbol)`                       | `/corporate-share-holdings-master`     | `index, symbol`                                                                            | `xbrl` (in-bse-shp XML), `date` (quarter end), `recordId`, `typeOfSubmission`, `pr_and_prgrp`, `public_val`, `broadcastDate`                                                                                                                                                                                                      |
+| `getVotingResultFilings(symbol)`                       | `/corporate-voting-results` (singular) | `index, symbol`                                                                            | `{ metadata: { vrXbrlFilename, vrMeetingType, vrTimestamp, vrbroadcastDt, vrAttachment }, agendas[] }`                                                                                                                                                                                                                            |
+| `getXbrlAnnouncements({symbol,fromDate,toDate,index})` | `/XBRL-announcements`                  | `index=equities\|sme, type=announcements, [symbol, from_date, to_date]`                    | `subject`, `attachment` (XML, or a ZIP of PDFs for resignations), `ixbrl` (HTML), `revision`, `broadcastDateTime`. No symbol = latest ~1,200 rows market-wide. Subjects: `Change in Directors/KMP/SMP/Auditor/RTA`, `Resignation of Director/KMP/SMP`, `Resignation of Independent director`, `Resignation of Statutory Auditor`. |
+| `getBrsrFilings(symbol)`                               | `/corporate-bussiness-sustainabilitiy` | `index, symbol`                                                                            | `xbrlFile`, `attachmentFile`, `fyFrom`, `fyTo`, `revisionDate`                                                                                                                                                                                                                                                                    |
+
+Notes:
+
+- The result file family is in the XBRL file name: `INTEGRATED_FILING_INDAS`, `_BANKING`, `_LI` (life insurance), `_NBFC_INDAS`. All use the `in-capmkt` namespace but different element sets. Shareholding uses `in-bse-shp`, voting `in-bse-voting`.
+- Quarterly result XBRL holds only the current period context.
+- `/corporate-announcements` rows have `hasXbrl: true` on every row and only a PDF link, so this feed carries no XBRL link. NSE does publish event XBRL separately (next row), but only for director/KMP changes, resignations and auditor resignations.
+- `/corporates-voting-results` (plural) and `/voting-results` return 404.

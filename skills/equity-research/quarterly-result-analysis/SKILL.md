@@ -176,6 +176,20 @@ uploaded files directly, extract the same shape ad hoc):
 - `balanceSheet` / `cashflow` + `balanceSheetSignals` / `cashflowSignals` — the normalized
   snapshots and their pre-computed scans, present only when the statement was `fresh`. Same
   contract as `incomeStatementSignals`: reason over what cleared the bar, never re-derive it.
+- `dataSource` / `dataProvenance` / `xbrlIssues` / `xbrlIssueSummary` — where each period's numbers
+  came from (`xbrl-nse`, `xbrl-bse`, `pdf`, `missing` for current, QoQ, YoY) and every data-quality
+  issue the extractor logged. Show the provenance in one line in the note; downgrade confidence in
+  any conclusion that rests on a period sourced from `pdf` or `missing`; list every `major` issue
+  (missing filing, sum-check failure, NSE-vs-BSE disagreement) rather than hiding it. A `null`
+  `dataSource` means a PDF-only record from before XBRL-first extraction.
+- `signalScanApplicable` / `familyMetrics` — for banks and insurers (`signalScanApplicable: false`) `revenue`
+  is total income, so skip the industrial Income Statement Signal Scan and assess the quarter from
+  `familyMetrics` (bank: NII/PPOP/provisions/GNPA/NNPA/CET1; life: premiums, solvency, expense ratio; general:
+  combined and claims ratios). Life-insurer total income is volatile because of investment mark-to-market.
+- `resultNarrative` — verbatim one-off / exceptional-item explanations and the auditor's review
+  remarks with a `qualification` flag, taken from the result PDF (XBRL has numbers only). Use it to
+  judge whether an exceptional item or a qualified/emphasis-of-matter remark changes the read; a
+  `qualified` flag is always worth a line in the Management/quality basket.
 - `found` / `transcriptMissing` — if `transcriptMissing: true`, flag the gap
   explicitly in the Management basket rather than skipping it silently (same
   rule as before the split).
@@ -293,7 +307,7 @@ After the widget renders, write 2-3 short paragraphs outside it. Lead each with 
 
 **Interpret tone, don't quote it.** Phase 2 expects you to _classify_ management as one of six tone labels — with one short evidence quote per label. Reproducing five paragraphs of management commentary is not analysis.
 
-**Income Statement Signal Scan (mandatory).** When assessing revenue/margin/profit performance for the period (Basket 1B — Margin & Profitability Triggers), run the full line-by-line + combination scan in `skills/_shared/income-statement-signals.md` against both QoQ and YoY baselines — it covers every P&L line (Other Income composition, RM cost, the inventory-gains check, employee cost vs. revenue, D&A/interest step-ups, exceptional items, tax-rate swings, EPS dilution) plus the holistic combination reads, with a materiality bar so the write-up stays terse. See `references/basket_framework.md` §1B for how this feeds the `SUSTAINABLE`/`CYCLICAL`/`TEMPORARY` tags. A quarter's "blockbuster" result must be explicitly flagged in the verdict chips (e.g. `INVENTORY-GAIN DRIVEN`, `TAX-RATE DRIVEN`, `NON-OPERATING BEAT`) whenever a non-structural driver clears the materiality bar — never buried in a sub-bullet. **Sourcing rule:** every P&L line traces back to the actual quarterly Result filing — this skill reads that scan pre-computed from `quarterly-result-extractor`'s DB record (Phase 1), it does not re-fetch or re-derive it from web search or news-article summaries; web search may only add qualitative color on top of figures already sourced this way. Report only what clears the materiality bar in the shared scan, ranked by contribution to the PBT/PAT delta; if nothing clears the bar, say so in one line.
+**Income Statement Signal Scan (mandatory).** When assessing revenue/margin/profit performance for the period (Basket 1B — Margin & Profitability Triggers), run the full line-by-line + combination scan in `skills/_shared/income-statement-signals.md` against both QoQ and YoY baselines — it covers every P&L line (Other Income composition, RM cost, the inventory-gains check, employee cost vs. revenue, D&A/interest step-ups, exceptional items, tax-rate swings, EPS dilution) plus the holistic combination reads, with a materiality bar so the write-up stays terse. See `references/basket_framework.md` §1B for how this feeds the `SUSTAINABLE`/`CYCLICAL`/`TEMPORARY` tags. A quarter's "blockbuster" result must be explicitly flagged in the verdict chips (e.g. `INVENTORY-GAIN DRIVEN`, `TAX-RATE DRIVEN`, `NON-OPERATING BEAT`) whenever a non-structural driver clears the materiality bar — never buried in a sub-bullet. **Sourcing rule (XBRL first via `extract_result_xbrl.js`, PDF fallback; see `skills/_shared/income-statement-signals.md` §Sourcing):** every P&L line traces back to the actual quarterly Result filing — this skill reads that scan pre-computed from `quarterly-result-extractor`'s DB record (Phase 1), it does not re-fetch or re-derive it from web search or news-article summaries; web search may only add qualitative color on top of figures already sourced this way. Report only what clears the materiality bar in the shared scan, ranked by contribution to the PBT/PAT delta; if nothing clears the bar, say so in one line.
 
 **Balance Sheet & Cash Flow Signal Scans (mandatory when the statements are fresh).** Basket 1C
 reads both scans in full from the extractor's record — `balanceSheetSignals` and

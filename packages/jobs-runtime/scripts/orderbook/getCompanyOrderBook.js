@@ -166,9 +166,13 @@ async function ensureBase(companyId, { forceRecompute = false } = {}) {
  * when tier 1 already found a value, purely to pick up the timeline and
  * product quantities that metadata never carries.
  *
+ * @param {Object} [deps]
+ * @param {Object} [deps.client] - injectable Stockscans client (tests)
+ * @param {(companyId: string, ssUrl: string, date: string) => Promise<{text: string, scanned?: boolean, error?: string}>} [deps.textFn]
+ *   - alternative filing-text reader
  * @returns {Promise<Object>} the record to cache for this announcement
  */
-async function resolveAnnouncement(companyId, ann, date, { client } = {}) {
+async function resolveAnnouncement(companyId, ann, date, { client, textFn } = {}) {
   const base = { title: ann.title, description: ann.description };
 
   if (!isOrderAnnouncement(ann.title)) {
@@ -184,7 +188,11 @@ async function resolveAnnouncement(companyId, ann, date, { client } = {}) {
 
   let pdf = null;
   if (ann.ssUrl) {
-    const doc = await pdfText.fetchText(companyId, ann.ssUrl, date, { client });
+    // `textFn` lets a caller supply the filing text from another reader (the
+    // post-close pipeline's shared, OCR-capable cache) — same `{text, scanned,
+    // error}` shape as pdfText.fetchText. Default is this tracker's own reader.
+    const readDoc = textFn || ((c, u, d) => pdfText.fetchText(c, u, d, { client }));
+    const doc = await readDoc(companyId, ann.ssUrl, date);
     if (doc.error) {
       // Transient — leave it unresolved so a later run retries the fetch.
       return {
@@ -321,8 +329,18 @@ async function retryUnresolved(companyId, { client } = {}) {
   return healed;
 }
 
-/** Page through announcements newer than `sinceDate` (YYYY-MM-DD), classify+extract each, cache-first. */
-async function processNewAnnouncements(companyId, sinceDate, { client } = {}) {
+/**
+ * Page through announcements newer than `sinceDate` (YYYY-MM-DD), classify+extract each, cache-first.
+ *
+ * @param {string} companyId
+ * @param {string} sinceDate - exclusive lower bound, YYYY-MM-DD
+ * @param {Object} [opts]
+ * @param {Object} [opts.client] - injectable Stockscans client (tests)
+ * @param {Array<Object>} [opts.rows] - announcements already fetched for this
+ *   company (e.g. by the batched "Orders / Contracts" feed in
+ *   lib/orderBookRollup.js). When given, nothing is paged from Stockscans.
+ */
+async function processNewAnnouncements(companyId, sinceDate, { client, rows: prefetched } = {}) {
   const applied = [];
   const pendingLlmFallback = [];
   let offset = 0;
@@ -330,8 +348,8 @@ async function processNewAnnouncements(companyId, sinceDate, { client } = {}) {
 
   for (let page = 0; page < 20; page++) {
     // 20 pages = 600 announcements — generous ceiling
-    const data = await stockscans.announcements([companyId], offset);
-    const rows = data.companyAnnouncements || [];
+    const data = prefetched ? null : await stockscans.announcements([companyId], offset);
+    const rows = prefetched || data.companyAnnouncements || [];
     if (!rows.length) break;
 
     let hitOlder = false;
@@ -381,7 +399,7 @@ async function processNewAnnouncements(companyId, sinceDate, { client } = {}) {
       }
     }
 
-    if (hitOlder || rows.length < 30) break;
+    if (prefetched || hitOlder || rows.length < 30) break;
     offset += 30;
     await new Promise((r) => setTimeout(r, 200)); // polite pagination
   }

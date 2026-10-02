@@ -97,7 +97,15 @@
     "ask-expert:search": "python3 skills/tooling/ask-expert/scripts/search_expert.py",
     "delivery-volume-snapshot": "yarn workspace @stock/jobs delivery-volume-snapshot",
     "delivery-volume-report": "yarn workspace @stock/jobs delivery-volume-report",
-    "delivery-volume-snapshot-then-report": "yarn workspace @stock/jobs delivery-volume-snapshot-then-report"
+    "delivery-volume-snapshot-then-report": "yarn workspace @stock/jobs delivery-volume-snapshot-then-report",
+    "pdf-corpus:universe": "node scripts/pdf-corpus/build_universe.js",
+    "pdf-corpus:companies": "node scripts/pdf-corpus/select_companies.js",
+    "pdf-corpus:select-scan": "node scripts/pdf-corpus/select_from_scan.js",
+    "pdf-corpus:download": "node --env-file=.env scripts/pdf-corpus/download.js",
+    "pdf-corpus:truth": "node --env-file=.env scripts/pdf-corpus/build_truth.js",
+    "pdf-corpus:verify": "node scripts/pdf-corpus/verify.js",
+    "pdf-corpus:baseline": "node scripts/pdf-corpus/baseline.js",
+    "pdf-corpus:gold": "node scripts/pdf-corpus/gold.js"
   },
   "devDependencies": {
     "@duckdb/node-api": "^1.5.4-r.1",

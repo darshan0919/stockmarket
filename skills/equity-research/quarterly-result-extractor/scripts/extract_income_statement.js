@@ -308,7 +308,8 @@ function buildLineDataAndContext({ cur, qoq, yoy }) {
       effectiveRateDeltaBps: bps(rateCur, rateYoy),
     },
     epsDilutionGapPct: { value: epsDilutionGapPct },
-    minorityInterest: { value: null, qoq: null, yoy: null },
+    // XBRL snapshots carry `nci` (profit attributable to non-controlling interests); PDF snapshots do not.
+    minorityInterest: { value: cur.nci ?? null, qoq: qoq.nci ?? null, yoy: yoy.nci ?? null },
   };
 
   const context = {
@@ -513,6 +514,7 @@ module.exports = {
   IS_HEADINGS_FALLBACK,
   mapRows3Col,
   buildLineDataAndContext,
+  buildYtdSummary,
   extractIncomeStatement,
   locateIncomeStatementSection,
   checkInternalConsistency,

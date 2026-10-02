@@ -42,7 +42,7 @@ const XBRL_FIELD_MAP = {
   'in-bse-fin:BorrowingsNoncurrent': 'long_term_borrowings',
   'in-bse-fin:BorrowingsCurrent': 'short_term_borrowings',
   'in-bse-fin:Borrowings': 'borrowings',
-  'in-bse-fin:TradePay ables': 'trade_payables',
+  'in-bse-fin:TradePayables': 'trade_payables',
   'in-bse-fin:OtherCurrentLiabilities': 'other_current_liabilities',
   'in-bse-fin:OtherNonCurrentLiabilities': 'other_non_current_liabilities',
   'in-bse-fin:OtherNoncurrentFinancialLiabilities': 'other_non_curr_financial_liabilities',

@@ -73,7 +73,43 @@ async function bseGetJson(path, options = {}) {
   return JSON.parse(data);
 }
 
+const BSE_XBRL_FILES_URL = 'https://www.bseindia.com/XBRLFILES/';
+
+/**
+ * GET a raw XBRL/iXBRL file from BSE's XBRLFILES store (needs browser UA + Referer).
+ * @param {string} fileName - `XMLName`/`Consol_XMLName` value from BSE result rows.
+ * @param {Object} [options] - { timeout }
+ * @returns {Promise<string>}
+ */
+async function bseGetXbrlFile(fileName, { timeout = 30000 } = {}) {
+  const name = String(fileName);
+  let url;
+  if (/^https?:/i.test(name)) url = name;
+  else if (name.startsWith('/')) url = `https://www.bseindia.com${name}`;
+  else if (/^XBRL/i.test(name)) url = `https://www.bseindia.com/${name}`;
+  else url = `${BSE_XBRL_FILES_URL}${name}`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await _fetch(url, {
+      method: 'GET',
+      headers: { ...BSE_BROWSER_HEADERS, Accept: '*/*' },
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      const err = new Error(`BSE XBRL file request failed with status ${response.status}`);
+      err.status = response.status;
+      throw err;
+    }
+    return await response.text();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 module.exports = {
+  BSE_XBRL_FILES_URL,
+  bseGetXbrlFile,
   BSE_API_URL,
   BSE_REQUEST_TIMEOUT_MS,
   BSE_BROWSER_HEADERS,

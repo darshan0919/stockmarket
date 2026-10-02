@@ -15,28 +15,30 @@ automation), which run via Claude Code/Cowork. The `screener-api` +
 
 ## Quick Links
 
-| Document                                                    | Description                                                                             |
-| ----------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| [Vision & Roadmap](./VISION_AND_ROADMAP.md)                 | Project philosophy, goals, and roadmap                                                  |
-| [Architecture](./ARCHITECTURE.md)                           | System design and component overview                                                    |
-| [Data Ecosystem v2](./DATA_ECOSYSTEM.md)                    | Flat JSON collections in `data/` ↔ Drive `StockMarket/data/v2` — design, envelope, sync |
-| [Data Rules](./DATA_RULES.md)                               | MANDATORY checklist for any skill/job that persists data or adds a collection/type      |
-| [Skill Data Audit](./SKILL_DATA_AUDIT.md)                   | Per-skill classification: what each skill needs, generates, and stores                  |
-| [API Reference](./API_REFERENCE.md)                         | Complete REST API documentation (screener-api)                                          |
-| [Testing Guide](./TESTING.md)                               | Testing strategies and conventions                                                      |
-| [Contributing](./CONTRIBUTING.md)                           | Contribution guidelines                                                                 |
-| [Stockscans API Schemas](./stockscans-api-schemas.md)       | Stockscans endpoint payload/response contracts                                          |
-| [NSE API Schemas](./nse-api-schemas.md)                     | NSE announcements and historical deals contracts                                        |
-| [BSE API Schemas](./bse-api-schemas.md)                     | BSE market-wide SAST and bulk/block deals contracts                                     |
-| [Anthropic API Schemas](./anthropic-api-schemas.md)         | Anthropic Messages API contract used by jobs-runtime digests                            |
-| [Google Drive API Schemas](./google-drive-api-schemas.md)   | Google Drive API v3 sync contracts used by cloud-utils and jobs-runtime                 |
-| [Order Book Extraction](./ORDER_BOOK_EXTRACTION.md)         | Order-book scraping/parsing pipeline                                                    |
-| [Model Cost Orchestration](./MODEL_COST_ORCHESTRATION.md)   | Model selection and cost strategy across skills/jobs                                    |
-| [Skills doc](./SKILLS.md)                                   | How the `skills/` framework works                                                       |
-| [`screener-api/` README](../screener-api/README.md)         | Express REST API for the web app (see also `stock-api/README.md`)                       |
-| [`stock-api/` README](../stock-api/README.md)               | Shared external-API clients + skill CLI entry points                                    |
-| [`screener-web/` README](../screener-web/README.md)         | Next.js 14 frontend for the web app                                                     |
-| [Dependency Tree Visualizer](../scripts/dependency-tree.js) | Visual multi-path dependency tree diagram generator for any variable or file            |
+| Document                                                    | Description                                                                                                                                                                                                  |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [Bulk filing scan](./BULK_FILING_SCAN.md)                   | List filings (results, concalls, PPTs, orders, SAST, ...) for hundreds of companies via a throwaway watchlist + `announcementType`; backoff, resumable; use instead of looping `documents(companyId)` (429s) |
+| [Vision & Roadmap](./VISION_AND_ROADMAP.md)                 | Project philosophy, goals, and roadmap                                                                                                                                                                       |
+| [Architecture](./ARCHITECTURE.md)                           | System design and component overview                                                                                                                                                                         |
+| [Data Ecosystem v2](./DATA_ECOSYSTEM.md)                    | Flat JSON collections in `data/` ↔ Drive `StockMarket/data/v2` — design, envelope, sync                                                                                                                      |
+| [Data Rules](./DATA_RULES.md)                               | MANDATORY checklist for any skill/job that persists data or adds a collection/type                                                                                                                           |
+| [Skill Data Audit](./SKILL_DATA_AUDIT.md)                   | Per-skill classification: what each skill needs, generates, and stores                                                                                                                                       |
+| [API Reference](./API_REFERENCE.md)                         | Complete REST API documentation (screener-api)                                                                                                                                                               |
+| [Testing Guide](./TESTING.md)                               | Testing strategies and conventions                                                                                                                                                                           |
+| [Contributing](./CONTRIBUTING.md)                           | Contribution guidelines                                                                                                                                                                                      |
+| [Stockscans API Schemas](./stockscans-api-schemas.md)       | Stockscans endpoint payload/response contracts                                                                                                                                                               |
+| [NSE API Schemas](./nse-api-schemas.md)                     | NSE announcements and historical deals contracts                                                                                                                                                             |
+| [BSE API Schemas](./bse-api-schemas.md)                     | BSE market-wide SAST and bulk/block deals contracts                                                                                                                                                          |
+| [Anthropic API Schemas](./anthropic-api-schemas.md)         | Anthropic Messages API contract used by jobs-runtime digests                                                                                                                                                 |
+| [Google Drive API Schemas](./google-drive-api-schemas.md)   | Google Drive API v3 sync contracts used by cloud-utils and jobs-runtime                                                                                                                                      |
+| [Order Book Extraction](./ORDER_BOOK_EXTRACTION.md)         | Order-book scraping/parsing pipeline                                                                                                                                                                         |
+| [Order Metrics](./ORDER_METRICS.md)                         | Book-to-bill, execution timing and unexecuted book on order cards                                                                                                                                            |
+| [Model Cost Orchestration](./MODEL_COST_ORCHESTRATION.md)   | Model selection and cost strategy across skills/jobs                                                                                                                                                         |
+| [Skills doc](./SKILLS.md)                                   | How the `skills/` framework works                                                                                                                                                                            |
+| [`screener-api/` README](../screener-api/README.md)         | Express REST API for the web app (see also `stock-api/README.md`)                                                                                                                                            |
+| [`stock-api/` README](../stock-api/README.md)               | Shared external-API clients + skill CLI entry points                                                                                                                                                         |
+| [`screener-web/` README](../screener-web/README.md)         | Next.js 14 frontend for the web app                                                                                                                                                                          |
+| [Dependency Tree Visualizer](../scripts/dependency-tree.js) | Visual multi-path dependency tree diagram generator for any variable or file                                                                                                                                 |
 
 > **Note**: `docs/backend/` and `docs/frontend/` document the original
 > `backend/`+`frontend/` app, which was deleted from the repo — those docs

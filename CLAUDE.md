@@ -16,6 +16,9 @@ Instructions for Claude Code and Claude Cowork sessions working in this repo.
 - **Workspace Facade Pattern**: Never execute raw `node path/to/script.js`
   commands. Always invoke operations via `yarn <script>` registered in
   `package.json` (per `AGENTS.md` §5).
+- **Listing filings for many companies / quarters** (corpus building, bulk document
+  discovery, or any loop of `documents(companyId)` hitting HTTP 429): use
+  `yarn workspace @stock/api bulk-filing-scan` — see `docs/BULK_FILING_SCAN.md`.
 - **Skills**: this repo's skills live under `skills/` and are the primary way
   equity-research work gets done here (concall analysis, forensic accounting,
   quarterly-result analysis, etc.). Check `skills/registry.json` and
