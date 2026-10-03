@@ -1077,10 +1077,7 @@
       "skill_md": "skills/equity-research/transcript-availability-scanner/SKILL.md",
       "entry": null,
       "mode": "clone",
-      "modules": [
-        "stock-api/bin/get-latest-concall-transcript.js",
-        "skills/equity-research/forward-guidance-extractor/scripts/classify_transcript_status.py"
-      ],
+      "modules": ["stock-api/bin/get-latest-concall-transcript.js"],
       "references": [],
       "shared": ["skills/_shared/conventions.md"],
       "aliases": [

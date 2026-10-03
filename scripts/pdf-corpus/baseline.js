@@ -142,6 +142,15 @@ async function runOne(r, truth) {
       const truthConsolidated = truth.basis === 'consolidated';
       rec.basisMismatch = ex.consolidated !== undefined && ex.consolidated !== truthConsolidated;
       Object.assign(rec, scoreFields(truth.is, ex.raw.cur || {}));
+      rec.got = Object.fromEntries(
+        FIELDS.filter((f) => typeof (ex.raw.cur || {})[f] === 'number').map((f) => [
+          f,
+          ex.raw.cur[f],
+        ])
+      );
+      rec.want = Object.fromEntries(
+        FIELDS.filter((f) => typeof truth.is[f] === 'number').map((f) => [f, truth.is[f]])
+      );
       rec.abstained = false;
       rec.unit = ex.unit;
       const adj = unitAdjusted(truth.is, ex.raw.cur || {});

@@ -59,4 +59,5 @@ module.exports = {
   classifySignal,
   SIGNAL_THRESHOLDS,
   computePatBridge: require('./patBridge').computePatBridge,
+  computeJCurveFinancialHealth: require('./jcurveFinancialMetrics').computeJCurveFinancialHealth,
 };

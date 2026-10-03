@@ -34,6 +34,12 @@ const TESSERACT_TIMEOUT_MS = 20000;
 // 2026-09-08 incident.
 const OVERALL_EXTRACTION_TIMEOUT_MS = 90000;
 
+// `execFileSync` defaults `maxBuffer` to 1 MiB and THROWS (ENOBUFS) when stdout is larger, which
+// the catch blocks below turned into '' (= "no text layer"). Found 2026-10-03: 11 annual reports of
+// 150-590 pages (1.0-2.6 MB of layout text) came back empty and then fell through to a doomed OCR
+// attempt, although `pdftotext -layout` reads them in about a second. 256 MiB is far above any filing.
+const PDFTOTEXT_MAX_BUFFER = 256 * 1024 * 1024;
+
 /**
  * OCR a scanned (image-only) PDF via the system `pdftoppm` (poppler) + `tesseract`
  * CLIs. Returns '' if either binary is unavailable or OCR fails — the caller treats
@@ -93,6 +99,7 @@ function pdftotextCli(buf) {
     return execFileSync('pdftotext', [tmp, '-'], {
       encoding: 'utf8',
       timeout: PDFTOPPM_TIMEOUT_MS,
+      maxBuffer: PDFTOTEXT_MAX_BUFFER,
     });
   } catch {
     return '';
@@ -130,6 +137,7 @@ function pdftotextLayoutCli(buf) {
     return execFileSync('pdftotext', ['-layout', '-q', tmp, '-'], {
       encoding: 'utf8',
       timeout: PDFTOPPM_TIMEOUT_MS,
+      maxBuffer: PDFTOTEXT_MAX_BUFFER,
     });
   } catch {
     return '';

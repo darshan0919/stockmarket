@@ -9,7 +9,7 @@ never an independent source (skills/_shared/conventions.md #5, JSON-first).
 Input: a JSON array of report DTOs (the `{id, companyId, quarter, guidance:[...],
 transcriptAvailable, staleGuidanceNote, ...}` objects `save_forward_guidance.js`
 printed / that `db.get('reports', id)` would return), plus a `missing` array
-(companies with no usable transcript at all, from classify_transcript_status.py).
+(companies with no usable transcript at all, from Phase 0 exclusion list).
 
 Usage:
     python3 build_guidance_workbook.py \

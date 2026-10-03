@@ -1,0 +1,11 @@
+const fs=require('fs');const L=require('/sessions/rcw-01lfqfhuynhpxbljcbhkr4cb/mnt/stockmarket/scripts/pdf-corpus/lib.js');
+const {extractIncomeStatement}=require('/sessions/rcw-01lfqfhuynhpxbljcbhkr4cb/mnt/stockmarket/skills/equity-research/quarterly-result-extractor/scripts/extract_income_statement.js');
+const {pdfToLayoutTextWithMeta}=require('/sessions/rcw-01lfqfhuynhpxbljcbhkr4cb/mnt/stockmarket/cloud-utils/src/pdfText.js');
+(async()=>{
+const man=L.readJsonl(L.p('manifest.jsonl')).filter(r=>r.type==='Result'&&r.split==='dev'&&!r.dupOf&&r.form==='text').slice(0,120);
+const c={};const miss={};
+for(const r of man){const m=await pdfToLayoutTextWithMeta(fs.readFileSync(L.p(r.file)),{maxChars:Infinity});const ex=extractIncomeStatement({resultText:m.text});
+ if(!ex.found){miss.nf=(miss.nf||0)+1;continue;}
+ for(const u of ex.unmatched||[]){const k=u.label.toLowerCase().replace(/[^a-z ]/g,'').trim().slice(0,50);c[k]=(c[k]||0)+1;}
+ for(const f of ['tax','pat','epsBasic','otherExpenses','totalExpenses','pbt','totalIncome']) if(typeof ex.raw.cur[f]!=='number') miss[f]=(miss[f]||0)+1;}
+console.log(miss);console.log(Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,45));})();

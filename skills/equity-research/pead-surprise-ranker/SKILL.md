@@ -140,22 +140,22 @@ report for quarter Q") plus, for context, the same batch's underlying source
 data if the user supplied it (e.g. a watchlist CSV with sector/industry
 columns).
 
+**Bridge Adapter (Script):** Ingest guidance DTOs via `peadCandidateAdapter.js` to automatically pre-populate candidate annotations, `rev_guided`, `rev_guided_pct`, `margin_guided`, and initial `growth_inputs` skeletons directly from the structured DTO:
+
 ```bash
 node -e "
-const db = require('/absolute/path/to/stockmarket/packages/jobs-runtime/lib/db.js');
+const db = require('packages/jobs-runtime/lib/db.js');
+const { adaptBatch } = require('packages/jobs-runtime/lib/peadCandidateAdapter.js');
 const slim = db.find('reports', { type: 'forward-guidance' });
-for (const r of slim) {
-  const full = db.readReport(r.id);
-  if (full.quarter === '<QUARTER>') console.log(JSON.stringify(full));
-}
-" > /tmp/guidance_dtos.jsonl
+const dtos = slim.map(r => db.readReport(r.id)).filter(r => r && r.quarter === '<QUARTER>');
+const { candidates, excluded } = adaptBatch(dtos);
+require('fs').writeFileSync('/tmp/pead_annotations.json', JSON.stringify(candidates, null, 2));
+require('fs').writeFileSync('/tmp/pead_excluded.json', JSON.stringify(excluded, null, 2));
+console.log(\`Pre-populated \${candidates.length} candidates, \${excluded.length} excluded\`);
+"
 ```
 
-For each company's DTO (its `guidance` array of extracted items), read every
-item's `quote`/`display`/`period_guided` and produce ONE annotation object —
-this is the reasoning step, do it per-company, don't try to hold the whole
-batch in one pass the way forward-guidance-extractor's Phase 2 warns against
-for the same reason (cross-company hallucination risk at scale):
+The LLM now only performs the **true intellectual reasoning** per company (evaluating sandbagging, thesis synthesis, multi-year ramp milestones, and compound levers) rather than manually copying numbers or quotes:
 
 ```json
 {
@@ -167,7 +167,7 @@ for the same reason (cross-company hallucination risk at scale):
   "inorganic_flag": false,
   "margin_guided": "EBITDA margin +100bps FY27 (management '90%+ confident')",
   "margin_dir": "expansion",
-  "pat_lever": "opex_leverage",
+  "pat_lever": ["opex_leverage", "deleverage_direct"],
   "evidence": "medium-high",
   "thesis": "One or two sentences: why this setup could beat, citing the strongest evidence (order book coverage, capacity commissioning, a quantified cost lever).",
   "assumptions": [
@@ -272,12 +272,14 @@ guidance only, or actuals unavailable -- come after every scored company),
 composite as tie-break.
 
 Alongside the growth score, the deterministic visibility composite is kept
-(0-100, sorting aid only — the reader should always
-be pointed to the thesis/assumptions columns, not asked to trust the number
-blind): visibility tier (0-40) + margin direction (0-25) + PAT lever (-5 to
-+18) + revenue-growth magnitude (0-17, halved if `inorganic_flag`) + evidence
-strength (0-15). Read the script's docstring for the exact rule table before
-explaining it to the user — don't restate it from memory, it's fixed there.
+(0-100+, sorting aid only — grounded in SOIC operating leverage & Dr. Anil Lamba
+corporate finance principles): visibility tier (0-40) + margin direction (0-25) +
+PAT lever (-5 to +28; structural `opex_leverage` weighted +20, compound levers
+supported, e.g. `[opex_leverage, deleverage_direct]` capped at +28) +
+revenue-growth magnitude (0-17, halved if `inorganic_flag`) + evidence strength
+(0-15) + **QoQ upward revision bonus (+10)** for companies whose guidance was
+raised vs prior quarter. Read `compute_pead_score.py`'s docstring for the exact
+rule table before explaining it to the user — don't restate it from memory.
 
 **Known limitation to call out to the user every run:** a company with the
 single best near-term (quarter-specific) visibility can still score mid-table

@@ -6,7 +6,25 @@ description: >-
 
 # Grill Skill: Adversarial Architectural Review
 
-A relentless, self-grilling review system that stress-tests an existing skill's design. Its primary mandate is to **maximize the quality of analytical outputs** by isolating and elevating the **"true reasoning parts"**, while aggressively migrating deterministic logic to scripts, eliminating duplicate spend with multi-tier caching, and tiering models from cloud frontier down to local cheap models.
+A relentless, adversarial review system that stress-tests an existing skill's design. Its primary mandate is to **maximize the quality of analytical outputs** by isolating and elevating the **"true reasoning parts"**, while aggressively migrating deterministic logic to scripts, eliminating duplicate spend with multi-tier caching, and tiering models from cloud frontier down to local cheap models.
+
+---
+
+## 🏛️ The Core Philosophy: The Supreme Thinker Meta-Skill
+
+> **/grill-skill is the ultimate thinker meta-skill. Quality, depth, and institutional rigor mean everything; execution cost is negligible.**
+
+1. **Cost Asymmetry:**
+   - **Runtime Skills** (daily scanners, filing digests, extraction workers) run hundreds of times per month; they must be lean, deterministic, cheap, and cached.
+   - **/grill-skill** runs rarely, on high-leverage occasions when architecting or refining a skill. Spending frontier model reasoning, deep dialectic rounds, and extensive token budgets here yields compounding returns across all downstream executions.
+2. **True Value Driver:**
+   - The true output of `/grill-skill` is not cosmetic prompt editing. It comes from:
+     - **Updated Knowledge Base Grounding:** Integrating newly indexed SOIC teachings (`ask-soic`), Dr. Anil Lamba Corporate Finance principles (`ask-expert`), and real company edge cases from our database (`db.reports` / `db.notes`).
+     - **Advanced LLM Reasoning:** Leveraging frontier model intelligence to uncover subtle management evasions, accounting tricks, and thesis blindspots.
+     - **Updated Human Conviction:** Elevating the human's clarity on the core investment questions the skill asks.
+3. **Mechanics vs. Mind:**
+   - Companion scripts and caching handle deterministic mechanics (math, regex, JSON validation, immutable filings).
+   - The prompt and LLM attention budget are reserved entirely for **unconstrained, deep qualitative reasoning**.
 
 ---
 
@@ -23,12 +41,16 @@ A relentless, self-grilling review system that stress-tests an existing skill's 
 
 ---
 
-## The Primary vs. Secondary Goal
+## 🧠 The Living Thinking Ledger vs. Deterministic Idempotency
 
-| Objective                           | Priority                      | Philosophy & Execution                                                                                                                                                                                                                                         |
-| :---------------------------------- | :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Output Quality & True Reasoning** | **PRIMARY**                   | Elevate institutional rigor, demand page-anchored evidence, zero hallucinations, deep qualitative synthesis (e.g. Q&A evasion detection, promoter walk-the-talk, EPS accretion catalysts). Give the frontier model unpolluted context so it can reason deeply. |
-| **Cost Cutting & FinOps**           | **SECONDARY (Yet Essential)** | Move deterministic arithmetic, regex, sorting, and schema builds into companion scripts (Principle 17). Cache immutable documents/filings. Route verified routine tasks to cheap/local models. **Cost cutting must never compromise analytical depth.**        |
+To prevent endless re-grilling churn while keeping qualitative reasoning open to continuous learning, `/grill-skill` splits state into two planes:
+
+| Dimension                      | Deterministic Plane (Code, Math, Schemas, Invariants)                                           | Thinking Plane (Reasoning, Nuance, Domain Frameworks)                                          |
+| :----------------------------- | :---------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------- |
+| **Tracking Mechanism**         | Cryptographic Content Hash (`SHA-256`) & AST Invariant Checks.                                  | **Living Review Ledger** stored in `db.reports` (`type: 'skill-review'`).                      |
+| **On Re-run (Unchanged Code)** | **Zero churn.** Static checks verify $<500$ lines, zero inline math, and passing tests in 50ms. | **Bayesian Prior.** Previous review feedback is loaded as the baseline starting thesis.        |
+| **Handling Evolution**         | Re-verified only if source files change or unit tests fail.                                     | Re-evaluated against **newer KB transcripts, smarter models, or refined human understanding**. |
+| **Rule on Prior Feedback**     | Strict compliance with monorepo rules.                                                          | **Never written in stone.** Treated as living prior context to elevate further during re-runs. |
 
 ---
 
@@ -41,7 +63,7 @@ Every review evaluates the target skill along these 6 dimensions (detailed in [r
    - How much is orchestration (procedural piping) vs. true intellectual reasoning?
    - Is output verifiable, cited, and institutional-grade, or generic prose?
 2. **Reusability & Composability:**
-   - Can extraction logic be reused across skills (e.g. `skills/_shared/`, `packages/jobs-runtime/lib/`, `stock-api/src/utils/`)?
+   - Can extraction logic be reused across skills (`skills/_shared/`, `packages/jobs-runtime/lib/`, `stock-api/src/utils/`)?
    - Can this skill be composed cleanly into scheduled sidecars or multi-skill pipelines?
 3. **Avoid Rework & Multi-Tier Caching:**
    - Is raw document text cached unconditionally (Tier 1)?
@@ -59,10 +81,8 @@ Every review evaluates the target skill along these 6 dimensions (detailed in [r
    - High-criticality tasks get frontier cloud models (Claude 3.5 Sonnet / Opus, Gemini Pro).
    - Routine tasks (categorization, boilerplate stripping, polarity scoring) get local models (Ollama Llama 3 8B, Qwen 2.5 7B) or cheap cloud models (Gemini Flash / Flash Lite).
 7. **Domain Grounding & Knowledge Base Integration (SOIC, Anil Lamba, & DB Notes):**
-   - The Griller is not an abstract code reviewer; it is an institutional buy-side inquisitor.
-   - It actively leverages our repository's Knowledge Base:
-     - **`ask-soic` & `ask-expert`:** Queries ~1,100 SOIC transcripts (Learnyst & YouTube) and Dr. Anil Lamba's corporate finance corpus via `search_soic.py` / `search_expert.py` to challenge analytical depth against real market teachings (guidance sandbagging vs overpromising, operating leverage thresholds, working capital traps, J-curve catalysts).
-     - **Database Notes & Reports (`packages/jobs-runtime/lib/db.js`):** Inspects historical company notes (`notes`) and existing reports (`reports`) to uncover edge cases, previous analytical oversights, and real company case studies.
+   - **`ask-soic` & `ask-expert`:** Queries ~1,100 SOIC transcripts (Learnyst & YouTube) and Dr. Anil Lamba's corporate finance corpus via `search_soic.py` / `search_expert.py`.
+   - **Database Notes & Reports (`packages/jobs-runtime/lib/db.js`):** Inspects historical company notes (`notes`) and existing reports (`reports`) to uncover edge cases, previous analytical oversights, and real company case studies.
 
 ---
 
@@ -70,211 +90,196 @@ Every review evaluates the target skill along these 6 dimensions (detailed in [r
 
 ```
 ┌────────────────────────────────────────────────────────┐
-│ Phase 1: Static Inspection & Knowledge Base Grounding  │
-│ 1. Run `inspect-skill.js` to extract metrics/tasks     │
-│ 2. Query `ask-soic` / `ask-expert` for domain models   │
-│ 3. Sample DB `reports` and `notes` for real edge cases │
+│ Phase 1: Preparation, Prior Review & KB Grounding      │
+│ 1. Run `grill-skill.js`: computes SHA-256 hash         │
+│ 2. Load latest `skill-review` from DB (Prior Context)  │
+│ 3. Retrieve KB: SOIC, Anil Lamba, DB Reports           │
 └──────────────────────────┬─────────────────────────────┘
                            ▼
 ┌────────────────────────────────────────────────────────┐
-│ Phase 2: Mandatory Human Criticality Checkpoint        │
-│ 🛑 STOP & ASK: Interactive option prompt for user      │
+│ Phase 2: Round 1 — Pre-Human Exhaustive Review         │
+│ (Holistic Diagnostic Probe of Baseline State)          │
+│ • Griller vs Architect probe current skill             │
+│ • Separate true reasoning from procedural piping       │
+│ • Formulate deep domain dilemmas & options for user    │
+└──────────────────────────┬─────────────────────────────┘
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│ Phase 3: Mandatory Human Alignment Checkpoint          │
+│ 🛑 STOP & ASK: Interactive UI prompt via ask_question  │
 │ User classifies: Mission-Critical Alpha vs Context     │
 └──────────────────────────┬─────────────────────────────┘
                            ▼
 ┌────────────────────────────────────────────────────────┐
-│ Phase 3: The Knowledge-Grounded Dialectic              │
-│ The Griller (armed with SOIC/Lamba/DB) vs Architect    │
-│ Round 1: Core Value, Quality & Script Migration        │
-│ Round 2: Model Tiering, Caching & Token Reduction      │
-│ Round 3: Convergence & Settled Architecture            │
+│ Phase 4: Round 2 — Post-Human Exhaustive Review        │
+│ (Holistic Stress-Test of Target State)                 │
+│ • Incorporate human conviction into proposed design    │
+│ • Stress-test: Management evasion, accounting traps    │
+│ • Verify reasoning rigor (no hollow prompts)           │
+│ • Settle exact companion scripts, caching & diffs      │
 └──────────────────────────┬─────────────────────────────┘
                            ▼
 ┌────────────────────────────────────────────────────────┐
-│ Phase 4: Synthesized Improvement RFC & Action Plan     │
-│ Actionable Blueprint: Code diffs, Script specs, Evals  │
+│ Phase 5: Implementation, Living Ledger Update & Sync   │
+│ 1. Auto-implement deterministic companion scripts      │
+│ 2. User confirms qualitative prompt diffs              │
+│ 3. Save updated `skill-review` DTO to DB (Living Prior)│
+│ 4. Run `yarn antigravity:sync` & quality sweep         │
 └────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### Phase 1: Static Inspection & Knowledge Base Grounding
+### Phase 1: Preparation, Prior Review Retrieval & KB Grounding
 
-1. **Static Inspection & KB Retrieval:** Run the unified preparation CLI:
+1. **CLI Execution & Hash Computation:**
+   Run the unified preparation CLI:
 
    ```bash
-   yarn skill:inspect <target-skill-name>
-   # or with domain knowledge retrieval:
    node stock-api/bin/grill-skill.js <target-skill-name>
    ```
 
-   The script extracts size, progressive disclosure, deterministic logic candidates, caching audit, and candidate reasoning tasks.
+   The script automatically:
+   - Computes the deterministic `contentHash` (`SHA-256` of `SKILL.md` + `references/`).
+   - Retrieves the most recent `skill-review` report from `packages/jobs-runtime/lib/db.js` (`reports`), loading settled decisions and prior thinking rationales.
+   - Runs static inspection ([inspect-skill.js](file:///Users/darshanpatel/code/stockmarket/scripts/inspect-skill.js)) for line count, script candidates, and caching.
+   - Queries `ask-soic` (`search_soic.py`), `ask-expert` (`search_expert.py`), and historical DB reports for relevant market teachings and failure edge cases.
 
-2. **Domain Grounding & Knowledge Base Retrieval:**
-   Before forming challenges, the Griller queries the repository's Knowledge Base for domain context:
-   - **SOIC & Expert Teachings:**
-     ```bash
-     python3 skills/tooling/ask-soic/scripts/search_soic.py --query "<skill topic / core concepts>" --data-root data --top 6
-     ```
-     _(or `python3 skills/tooling/ask-expert/scripts/search_expert.py --query "<skill topic>" --expert auto --data-root data --top 6`)_
-   - **Historical DB Reports & Notes:**
-     Query `packages/jobs-runtime/lib/db.js` (`db.find('reports', {type: ...})`, `db.find('notes', ...)`) to inspect how real companies performed on these dimensions historically, identifying past analytical blindspots, common management tricks, or edge-case failures.
-
-Read the target skill's `SKILL.md`, references, companion scripts, and retrieved domain lessons thoroughly.
+2. **Re-Run Evaluation Check:**
+   - If `hashMatched === true` AND static invariants pass:
+     - Check whether new KB lessons, historical company notes, or advanced model capabilities justify re-evaluating the thinking parts.
+     - If no new domain insights or conceptual leaps are available, exit early with a clean bill of health:
+       > _"✅ Skill `<name>` was audited on `<date>` (hash `<hash>`). All 6 rubric invariants satisfied. Zero drift detected."_
+     - If new domain insights exist, proceed to Round 1 using the prior review as starting context, focusing exclusively on the elevated reasoning frontier.
 
 ---
 
-### Phase 2: Mandatory Human Criticality Checkpoint
+### Phase 2: Round 1 — Pre-Human Exhaustive Review (Holistic Baseline Probe)
 
-Before proceeding to architectural recommendations, **you MUST halt and ask the user**.
+Before halting to ask the user, the AI conducts an unsparing, holistic baseline audit embodying two personas:
+
+- 🥊 **The Griller (Adversarial Buy-Side Inquisitor):** Armed with SOIC citations, Dr. Anil Lamba rules, and past DB company reports, the Griller probes why the LLM is doing arithmetic, challenges naive assumptions, and spots gaps in real-world corporate governance detection.
+- 🛡️ **The Skill Architect (Defender):** Deeply knowledgeable about the monorepo, defends core analytical logic, concessions deterministic script candidates, and drafts modular seams.
+
+#### Core Probes in Round 1:
+
+1. **The Three Questions Test:** Exactly what 2–3 questions does the user want answered when invoking this skill? Does it answer them with quantified conviction, or drown the user in boilerplate?
+2. **True Reasoning vs. Procedural Choreography:** Where does true qualitative judgment happen (e.g. concall evasion, walk-the-talk track record, J-curve catalysts)? What is deterministic arithmetic/regex disguised as reasoning?
+3. **Domain Grounding:** Cross-reference against SOIC and Dr. Anil Lamba teachings. Why does the current prompt not enforce specific red-flag checks taught by the experts?
+4. **Formulate Grounded User Dilemmas:** Instead of a generic list of task names, construct domain-grounded dilemmas:
+   - _"Task X evaluates Capex commercialization. Dr. Anil Lamba teaches that capitalized interest without revenue ramp-up is a liquidity trap. Is catching this specific nuance **Mission-Critical Alpha** for your position sizing, or secondary background?"_
+
+---
+
+### Phase 3: Mandatory Human Alignment Checkpoint
+
+Before proceeding to architectural diffs, **you MUST halt and ask the user**.
 
 > 💡 **Interactive UI Mode (Mandatory when available):**
-> If operating in an environment with interactive UI tools (such as Antigravity's `ask_question`), **DO NOT** output a raw text list expecting the user to type answers. You **MUST** trigger an interactive prompt with single-select options for each discovered reasoning task:
+> Use Antigravity's `ask_question` tool with single-select options for each discovered reasoning task:
 >
 > - **Mission-Critical Alpha:** Core to investment thesis, signal conviction, or risk detection (Frontier models + verification).
 > - **Valuable Context:** Helpful background or secondary color (Balanced models).
 > - **Routine / Commodity:** Standard summary, boilerplate extraction, or categorization (Local/cheap models or scripts).
 >
-> If interactive UI tools are not supported in the active runtime, fall back to the markdown checkpoint below:
+> If interactive UI tools are unavailable, render the structured checkpoint below:
 
 ```markdown
 🛑 **Reasoning Criticality Checkpoint (/grill-skill)**
 
-I have inspected `<skill-name>` and identified the following candidate reasoning tasks:
+I have completed Round 1 (Pre-Human Holistic Probe) for `<skill-name>` and identified the following candidate reasoning tasks:
 
 1. **[Task Name 1]**: [Summary & context from prompt]
+   - _Domain Context:_ [SOIC / Dr. Anil Lamba relevance]
 2. **[Task Name 2]**: [Summary & context from prompt]
-3. **[Task Name 3]**: [Summary & context from prompt]
+   - _Domain Context:_ [SOIC / Dr. Anil Lamba relevance]
 
-Per the core protocol, I will not assume the business/investment importance of any reasoning task.
 👉 **Please tell me for each task:**
 
-- **Mission-Critical Alpha:** Core to investment thesis, signal conviction, or risk detection. (Must receive maximum frontier reasoning and verification).
-- **Valuable Context:** Helpful background or secondary color. (Can use balanced cloud models).
-- **Routine / Commodity:** Standard summary, boilerplate extraction, or categorization. (Candidate for cheap/local models or scripts).
+- **Mission-Critical Alpha:** Core to investment thesis, signal conviction, or risk detection.
+- **Valuable Context:** Helpful background or secondary color.
+- **Routine / Commodity:** Standard summary, boilerplate extraction, or categorization.
 ```
 
 _Wait for the user's response before proceeding._
 
 ---
 
-### Phase 3: The Knowledge-Grounded Dialectic (Challenger vs Defender)
+### Phase 4: Round 2 — Post-Human Exhaustive Review (Target State Stress-Test)
 
-Once the user confirms the criticality ratings, execute the self-grilling dialectic. The AI embodies two distinct personas:
+Once human conviction is incorporated, execute the second holistic review. This round evaluates the **entire proposed target state** end-to-end:
 
-- 🥊 **The Griller (Adversarial Buy-Side Inquisitor):** Skeptical, quality-obsessed, domain-grounded purist. Armed with specific **SOIC lesson citations**, **Dr. Anil Lamba corporate finance rules**, and **real historical company reports from our DB**, the Griller probes why the LLM is calculating numbers instead of a script, exposes naive assumptions, and challenges how the skill handles real-world management tricks and financial traps.
-  - **Mandatory Citation Verification Gate:** The Griller persona MUST include verified timestamps, URLs, or lesson names from `search_soic.py` or `search_expert.py` for every domain challenge. Ungrounded memory citations are strictly prohibited.
-- 🛡️ **The Skill Architect (Defender):** Deeply knowledgeable about the stockmarket codebase and data layer. Defends the mission-critical reasoning confirmed by the user, concedes deterministic script candidates, and proposes exact refactoring seams.
-
-#### Round 1: Core Value, Quality & Script Migration
-
-- **Q1 — Domain Value & Quality Elevation (Grounded in SOIC / Lamba / DB):**
-  How do we make the user-confirmed Mission-Critical tasks institutional-grade? The Griller must challenge the Architect using retrieved domain concepts:
-  - _"SOIC teaches in [Lesson Name @ Timestamp] that [Concept X]... Why does your skill not enforce this check?"_
-  - _"Dr. Anil Lamba emphasizes that [Rule Y]... Why does your framework allow [Z]?"_
-  - _"In our historical DB notes on [Company A], [Pattern B] occurred... How does your prompt catch this?"_
-- **Q2 — Script Migration Candidates:** What deterministic logic (math, percentages, regex, JSON formatting) is polluting the prompt and distracting the LLM?
-- **Q3 — Seam & Interface Definition:** What companion script will take over the deterministic extraction pass?
-
-#### Round 2: Model Tiering, Caching & Token Reduction
-
-- **Q4 — Model Tiering Assignment (Agent Heuristics):** Given the user's criticality ratings, what model tier does each step require? (Frontier vs Balanced vs Local).
-- **Q5 — Caching & Window Cursors:** How do we ensure zero redundant reprocessing? (`windowCursor.js`, Tier 1 raw cache, Tier 2 scoped `usecase`).
-- **Q6 — Payload Truncation & Progressive Disclosure:** How do we shrink input token context (e.g. relevance pre-filtering)?
+1. **The Reasoning Rigor & Depth Test:**
+   - Does stripping deterministic arithmetic leave the prompt truly deeper and institutional-grade, or did it leave it hollow?
+   - Ensure the frontier model is provided rich, unpolluted domain instructions, verified quotation rules, and cross-quarter consistency checks.
+2. **Adversarial Real-World Stress-Testing:**
+   - Challenge how the refactored target state handles real management tricks:
+     - _Promoter dodging:_ Deflecting analyst questions to order book while margins compress.
+     - _Working capital rot:_ Revenue growing while debtor days surge past 120 days.
+     - _Circular guidance:_ Shifting milestones from FY26 to FY27 without explanation.
+3. **FinOps & Operational Architecture:**
+   - Model Tiering Matrix: Assign model tiers based on User Criticality $\times$ Analytical Ambiguity.
+   - Two-Tier Caching: Tier 1 raw document text cached unconditionally; Tier 2 insights scoped by `usecase`.
+   - Progressive Disclosure: Verify target `SKILL.md` remains $< 500$ lines, moving specialized patterns into `references/`.
+4. **Finalized Seams & Specifications:**
+   - Exact companion script paths (`stock-api/src/analyzers/`, `packages/jobs-runtime/lib/`).
+   - JSDoc typed input/output signatures.
+   - Comprehensive unit test specifications for all migrated scripts.
 
 ---
 
-### Phase 4: Synthesized Improvement RFC & Action Plan
+### Phase 5: Implementation, Living Ledger Update & Sync
 
-Present a comprehensive **Skill Optimization Blueprint**:
+1. **Automatic Implementation of Script Migrations:**
+   - Automatically implement all accepted deterministic Script Migrations directly without blocking for human confirmation.
+   - Add companion scripts to dedicated monorepo locations:
+     - Domain analyzers: `stock-api/src/analyzers/` or `stock-api/src/utils/`.
+     - Data jobs & extractors: `packages/jobs-runtime/lib/`.
+     - CLI entry points: `stock-api/bin/<skill-name>.js` (exposed in `package.json` per Workspace Facade Pattern).
+   - Write comprehensive Jest unit tests and verify they pass (`yarn workspace @stock/api test` or `yarn test`).
 
-#### 1. Executive Summary & Value Verdict
+2. **Interactive Confirmation for Qualitative & Prompt Diffs:**
+   - For changes to reasoning prompts, analytical frameworks, or model tiering assignments:
+   - Prompt the user using `ask_question` to individually confirm each proposal.
+   - Apply confirmed diffs to `SKILL.md` and related references.
 
-- Core capability & primary questions answered.
-- Ratio of True Reasoning vs. Deterministic Logic.
-- Quality elevation summary (how the critical analysis becomes sharper).
+3. **Render Full Insight Report & Markdown Artifact:**
+   - Render the complete adversarial dialogue transcript and synthesized blueprint to the user.
+   - Write the full report as a persistent artifact: `<appDataDir>/brain/<conversation-id>/<skill-name>-grill-report.md`.
 
-#### 2. Reasoning Tasks & Model Tiering Matrix
+4. **Persist Living Thinking Ledger to DB (`db.reports`):**
+   Save the review record via `db.saveReport(dto)` so all audit decisions and qualitative rationales become the starting baseline for future runs:
 
-Mapping user-confirmed criticality to heuristic model assignments:
+   ```javascript
+   db.saveReport({
+     type: 'skill-review',
+     targetSkill: '<name>',
+     contentHash: '<sha256>',
+     status: 'SETTLED',
+     invariantsAudit: {
+       lineCount: 320,
+       scriptCandidatesRemaining: 0,
+       cachingConfigured: true,
+     },
+     settledDecisions: {
+       criticalityClassifications: [...],
+       scriptMigrations: [...],
+       qualitativeProposals: [...],
+     },
+     thinkingRationale: {
+       coreQuestionsAnswered: [...],
+       domainFrameworksIntegrated: ['SOIC J-Curve', 'Lamba Operating Leverage'],
+       openFrontiersForFuture: [...],
+     },
+     creator: 'grill-skill',
+     modelUsed: '...',
+     creationTime: new Date().toISOString(),
+   });
+   ```
 
-| Reasoning Task                    | User Criticality           | Analytical Complexity | Assigned Model Tier       | Rationale                              |
-| :-------------------------------- | :------------------------- | :-------------------- | :------------------------ | :------------------------------------- |
-| e.g. Management Dodging Detection | **Mission-Critical Alpha** | High Ambiguity        | Claude 3.5 Sonnet / Opus  | Direct signal for promoter credibility |
-| e.g. Filing Categorization        | **Routine**                | Low Ambiguity         | Local Ollama / Flash Lite | Standard multi-class labeling          |
-
-#### 3. The Logic-to-Script Migration Matrix
-
-List every operation migrating from `SKILL.md` into deterministic scripts:
-
-| Operation in Prompt       | Target Script Location                        | Inputs & Outputs                | Rationale                           |
-| :------------------------ | :-------------------------------------------- | :------------------------------ | :---------------------------------- |
-| e.g. YoY Growth & Margins | `stock-api/src/analyzers/financialMetrics.js` | Financial JSON -> Computed KPIs | Pure math; eliminates hallucination |
-
-#### 4. Caching & Cursors Architecture
-
-- Cache paths (`data/cache/...`) and `usecase` scoping.
-- `windowCursor.js` integration for recurring/scheduled tasks.
-
-#### 5. Concrete Code & Prompt Diff
-
-Exact proposed edits for `SKILL.md` and draft implementations for new scripts.
-
-#### 6. Verification & Evals Plan
-
-2–3 test cases checking both quality improvement (richer insights) and efficiency (tokens saved).
-
-#### 7. Persist `skill-review` DTO to DB (MANDATORY per DATA_RULES.md §2)
-
-Save the review record to `reports` via `db.saveReport(dto)` so all audit decisions and RFC plans are Drive-mirrored:
-
-- `type: 'skill-review'`
-- `targetSkill: '<name>'`
-- `criticalityClassifications: [...]`
-- `scriptMigrations: [...]`
-- `qualitativeProposals: [...]`
-- Standard envelope (`id`, `creationTime`, `modifiedTime`, `creator: 'grill-skill'`, `modelUsed`).
-
-### 🚨 The Non-Negotiable Presentation Rule: Render Full Insight Report & Debate
-
-Never present actionables, proposal confirmations, or `ask_question` prompts in isolation without rendering the rich intellectual output. The user relies on the detailed analytical report and the adversarial debate to evaluate trade-offs and make informed decisions.
-
-Before or alongside interactive confirmation prompts, the agent **MUST ALWAYS render to the user**:
-
-1. **Static Inspection Report & Metrics:** Prompt size, progressive disclosure status, detected script logic, caching audit, and KB grounding.
-2. **The Full Knowledge-Grounded Dialectic Transcript:** The complete adversarial dialogue between 🥊 The Griller and 🛡️ The Architect across all 3 rounds (with exact SOIC, Dr. Anil Lamba, and DB historical citations).
-3. **The Synthesized Skill Optimization Blueprint / RFC:** Executive summary, reasoning vs logic breakdown, model tiering matrix, script migration matrix, progressive disclosure plan, and code/prompt diffs.
-4. **Markdown Artifact Generation:** Write the complete review report as a persistent artifact in the session artifact directory (`<appDataDir>/brain/<conversation-id>/<skill-name>-grill-report.md`) with `ArtifactMetadata` so the user can easily reference and inspect the full architecture.
-
----
-
-### Phase 5: Implementation & Interactive Confirmation
-
-1. **Automatic Implementation of Script Migrations (Deterministic Logic):**
-   - Migrating deterministic arithmetic, ratio calculations, JSON validation, and extraction filtering from prompts to companion scripts is a **no-op architectural change** (preserves analytical behavior while eliminating token waste and calculation errors).
-   - The agent **MUST automatically implement** all accepted Script Migrations directly without blocking for human confirmation.
-   - **Architectural Rules for Companion Scripts (MANDATORY per `/skill-manager` and monorepo conventions):**
-     - **NEVER store companion scripts in the `skills/` folder** (e.g. `skills/<skill-name>/scripts/` is forbidden for core logic).
-     - **Store scripts in dedicated monorepo locations:**
-       - Domain analyzers & computational logic: `stock-api/src/analyzers/` or `stock-api/src/utils/`.
-       - Data jobs, persistence helpers, & extractors: `packages/jobs-runtime/lib/` or `packages/jobs-runtime/scripts/`.
-       - Standalone CLI entry points: `stock-api/bin/<skill-name>.js`.
-       - Workspace facade: Expose runnable entry points in `package.json` per Workspace Facade Pattern (Rule 5).
-     - **Standing Monorepo Conventions:**
-       - Call `loadEnv()` from `packages/jobs-runtime/lib/env.js` before reading any secrets/env variables (Rule 2).
-       - Route all data persistence through `packages/jobs-runtime/lib/db.js` (DATA_RULES.md).
-       - Maintain comprehensive JSDoc typing (`@param`, `@returns`, `@typedef`) on exported functions (Rule 4).
-
-2. **Interactive Confirmation for Remaining Qualitative & Prompt Suggestions:**
-   - For all non-script suggestions (changes to reasoning prompts, analytical frameworks, tolerance thresholds, model tiering changes, or new analytical rules like Q1/Q3 WC caps or evasion patterns):
-   - The agent **MUST prompt the user** using `ask_question` (interactive multi-question prompt) to individually confirm whether to implement each suggestion.
-   - Once the user confirms which suggestions to implement, the agent applies the prompt diffs to `SKILL.md` and related references, runs tests/formatting, and verifies synchronization.
-
-3. **Automated Action Plan Checklist:**
-   Conclude the session with a structured summary checklist:
-   - `[x]` Completed Script Migrations (with file paths and unit tests)
-   - `[x]` / `[ ]` Qualitative & Prompt Suggestions (with user confirmation status)
-   - Files touched manifest and token-optimization suggestions.
+5. **Synchronization & Pre-Submit Sweep:**
+   - Run `yarn antigravity:sync` to mirror updated skills.
+   - Run `yarn dead-code:scan` and `yarn format` to ensure clean repo state.
 
 ---
 
@@ -287,5 +292,5 @@ Before declaring a review complete, verify compliance with monorepo standards:
 - [x] **Data Persistence (DATA_RULES.md):** Writes route through `packages/jobs-runtime/lib/db.js`.
 - [x] **Attribution (Rule 21):** `sourceSkill` is explicitly passed on all `add-note` calls.
 - [x] **Envelope Integrity (Rule 22):** No rogue `createdAt` fields competing with `creationTime`.
-- [x] **Synchronization:** Skill registered in `skills/registry.manifest.json` and synced via `yarn antigravity:sync`.
+- [x] **Synchronization:** Synced via `yarn antigravity:sync`.
 - [x] **Rule 11:** Final response includes an evidence-based token-optimization suggestion.

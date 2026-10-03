@@ -16,11 +16,13 @@ what to skip.
 
 ## 1. The core thesis: why re-rating happens
 
-A stock's return ≈ f(perception of the theme/sector) × (earnings growth) × (rate of change
-of perception about that earnings growth). Three separate levers, and the market moves on
-the _rate of change_ far more than on the absolute level. A business can have identical
-fundamentals to last quarter and still re-rate hard if the market's read on **future**
-earnings power just changed — that's the re-rating event this skill exists to catch.
+> **Newton's First Law of Stocks (SOIC Masterclass · 13.09.26):**
+> _"Just as Newton established that a body at rest remains at rest unless acted upon by an external force, a stock which is at rest will remain at rest until or unless acted upon by a fundamental growth catalyst — something NEW."_
+
+A stock's return is governed by the twin-engine re-rating equation (SOIC · _28.06.26 Epic AI-Generated Research Reports_ @00:08:45):
+$$\Delta \text{Stock Price} \approx \Delta(\text{Sectoral Perception}) \times \Delta(\text{Market Environment}) \times \Delta(\text{EPS})$$
+
+Three separate levers, and the market moves on the **rate of change** of perception about earnings growth far more than on the absolute level. A business can have identical trailing fundamentals to last quarter and still re-rate hard if the market's read on **future** earnings power just changed — that's the re-rating event this skill exists to catch. When multiple expansion ($\text{P/E}$ re-rating) coincides with structural EPS acceleration, you unlock the **Twin-Engine of Growth**.
 
 Practical implication: don't just report "PAT grew 18% YoY." Report **why the market's
 model of FY27/FY28 earnings should change** as a result of what you just read. The EPS
@@ -344,6 +346,19 @@ a quick check on whether a company claiming "Acceleration" actually has
 operating leverage showing up, or whether PAT is being flattered by
 something below the EBITDA line (which routes back to §5b below).
 
+### Dr. Anil Lamba's Combined Leverage Framework:
+
+Real J-curve acceleration is mathematically governed by operating and financial leverage:
+
+- **Operating Leverage Multiple** = $\frac{\% \Delta \text{EBIT}}{\% \Delta \text{Sales}}$ (measures fixed-cost absorption).
+- **Financial Leverage Multiple** = $\frac{\% \Delta \text{PAT}}{\% \Delta \text{EBIT}}$ (measures debt/interest reduction impact).
+- **Combined Leverage Multiple** = $\text{Operating Leverage} \times \text{Financial Leverage} = \frac{\% \Delta \text{PAT}}{\% \Delta \text{Sales}}$.
+
+When a company scales revenue post-capex while retiring debt, a 20% increase in sales can deliver a $50-100\%+$ increase in PAT (a Combined Leverage multiple of $2.5\times - 5.0\times$).
+
+> ⚠️ **The Inverse Hazard: Operating Deleverage (SOIC · 28.12.25):**
+> Leverage works symmetrically. If fixed overheads or interest burdens are massive and sales growth decelerates or turns negative, margins collapse precipitously. Always test whether fixed costs are sustainable if volume growth slows. Compute these metrics deterministically via `computeJCurveFinancialHealth()`.
+
 **Worked examples of stage transitions (illustrative, verify against current numbers
 before citing):** DMart's PAT growth decelerating from its earlier high rate into
 high-single/low-double digits after quick-commerce entrants pressured its category —
@@ -553,13 +568,22 @@ rather than hard cutoffs:
 - **Retail sweet-spot market cap: ~₹2,500cr–₹20,000cr.** Below this, information
   availability is thin and technicals/relative-strength reads become unreliable ("one buyer
   or seller moves the technicals" in true micro/SME caps). Re-rating speed is reported to
-  improve once a company crosses roughly **₹6,000-7,000cr**, the rough threshold where
-  mutual funds become able to participate.
+  improve once a company crosses roughly **₹6,000-7,000cr**, the threshold where
+  domestic mutual funds become able to participate and take meaningful allocations.
+- **Float Scarcity & Supply/Demand Mechanics (SOIC · 28.06.26):** Re-rating accelerates exponentially
+  when a fundamental earnings catalyst coincides with tightening equity supply: buybacks,
+  shrinking share counts, promoter warrant conversions (locking in current market prices),
+  and rising institutional accumulation squeezing public float. Check for float contraction in 3d.
 - **Active-investing hurdle rate**: a commonly cited target for justifying active stock-
   picking over an index fund is **~1.5x the index's return** over a 5-7 year horizon (e.g.,
   aiming for ~22-23% if the index does ~15%) — useful as a gut-check for whether a
   catalyst-driven thesis is actually worth the concentration risk versus just holding an
   index/mutual fund.
+
+### Modular References & Screen Recipes:
+
+- **Screening Funnels:** For literal StockScans screener recipes ("Potential J Curve", Turnaround, Volume Rocketing, Order Book Step-Change), see [`references/screener_recipes.md`](screener_recipes.md).
+- **Sector Case Studies:** For detailed sector margin templates (EMS Value Chain, Shipbuilding, KRN Capacity Ramp, Data Center Optics vs Copper), see [`references/sector_case_studies.md`](sector_case_studies.md).
 
 ## 6. What this framework explicitly is NOT
 

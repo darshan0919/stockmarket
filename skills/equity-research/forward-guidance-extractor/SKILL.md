@@ -117,9 +117,21 @@ for the final output -- or directly from an explicit ticker list):
 
 ```js
 const { StockscansClient } = require('stock-api/src/clients/StockscansClient.js');
+const db = require('packages/jobs-runtime/lib/db.js');
 const client = new StockscansClient();
 
 const latest = await client.latestTranscript(companyId); // { date, documentType, ssUrl, hasNotes } | null
+
+// Short-circuit cache gate: check if current quarter's DTO already exists in DB
+if (latest && latest.date) {
+  const existing = db
+    .find('reports', { type: 'forward-guidance', companyId })
+    .find((r) => r.quarter === latest.date || r.date === latest.date);
+  if (existing && !force) {
+    // Return cached DTO in 5ms for ₹0
+    return db.readReport(existing.id);
+  }
+}
 ```
 
 Three cases:
@@ -403,11 +415,6 @@ instead). At the end of every run, report:
 forward-guidance-extractor/
 ├── SKILL.md                              (this file)
 ├── scripts/
-│   ├── classify_transcript_status.py     (legacy -- no longer used by this
-│   │                                       skill's own flow; Phase 0 now
-│   │                                       uses StockscansClient.latestTranscript()
-│   │                                       directly. Kept only in case another
-│   │                                       skill still references it.)
 │   ├── compute_guidance_value.py         (Phase 2 absolute<->relative -- unchanged)
 │   ├── save_forward_guidance.js          (Phase 3 DB write -- unchanged)
 │   └── build_guidance_workbook.py        (Phase 4 .xlsx builder -- add QoQ Status column)

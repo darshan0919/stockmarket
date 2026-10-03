@@ -278,10 +278,15 @@ material only: `data:push`/`pull`/`status` skip `data/pdf-corpus/` (`packages/jo
   (`unknown`), and many "text" PDFs carry a corrupt embedded OCR layer, so the text/scanned/hybrid classifier is too lenient.
   Run with `node scripts/pdf-corpus/baseline.js --run-id <id>`; summary with `--summarize`.
 - **Gold set (non-Result types):** 160 docs, 8 types x 20 (`gold.js select|packets|verify|queue|tiebreak|apply`), 740 fields.
-  Pass A (haiku) and pass B (sonnet) labelled independently; every quote is script-checked against the document text.
-  Pass A abstained far more (463 nulls vs 236), producing 417 disagreements; a third pass C (sonnet) auto-resolved 386
-  of them only when its own quote verified and it matched A or B (source `auto-C`). **31 fields remain for you**:
-  `data/pdf-corpus/gold/adjudicate.md`. Caveat: C and B are the same model family, so agreement is weaker evidence than
-  an independent human label; spot-check a sample of `auto-C` fields before using the gold set for a go/no-go decision.
-- **Still open before P1:** your 31 adjudications, and the Tier 3 runner for your Mac (the VM has no GPU). The decision gate
+  Pass A (haiku) and pass B (sonnet) labelled independently; every quote is script-checked against the document text. Pass A
+  abstained far more, giving 417 disagreements; a third pass C (sonnet) auto-resolved 386 (source `auto-C`), and 16 more
+  were settled by manual review against the text (`claude-reviewed`). **Defect found and fixed:** 13 docs (11 big annual
+  reports, 2 scanned) had empty text in the packet step, and long annual-report packets cut off before the auditor's report.
+  All 20 annual reports plus the 2 scanned docs were relabelled once (source `relabel-R`, pdftotext/tesseract text, quotes
+  script-verified), so those 22 docs have a single labeler, not two. **5 fields remain for you:** `gold/adjudicate.md`.
+  Caveats: pass C and B share a model family; `total_income` for several annual reports rests on weak unit evidence;
+  the "Order" stratum includes regulatory penalty/tax/NCLT orders, which the contract-order schema does not fit.
+  Production finding: `pdfToLayoutTextWithMeta(..., { maxChars: Infinity })` returned empty text for 11 annual reports of
+  150-590 pages that `pdftotext -layout` reads in full; this needs a look in `cloud-utils/src/pdfText.js`.
+- **Still open before P1:** your 5 adjudications, and the Tier 3 runner for your Mac (the VM has no GPU). The decision gate
   in §4 (priorities) applies.

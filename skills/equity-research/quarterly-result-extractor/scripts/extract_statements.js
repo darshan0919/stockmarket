@@ -115,10 +115,29 @@ function locateSection(text, headings, { maxChars = 20000, stopAt = [] } = {}) {
     while ((m = g.exec(text)) !== null) hits.push(m.index);
   }
   if (!hits.length) return null;
-  // Prefer a hit whose preceding 200 chars mention "consolidated".
+  // Prefer a CONSOLIDATED table (the investor owns the consolidated entity; also what the XBRL
+  // 'auto' basis resolves to). The old test looked only +-200 chars around the table anchor, but the
+  // title ("STATEMENT OF CONSOLIDATED AUDITED FINANCIAL RESULTS") often sits farther up, past the
+  // company name and address block (found 2026-10-03: 98 of 102 consolidated-truth baseline docs were
+  // read from the standalone table). So label each hit by the NEAREST basis word in the 1500 chars above it.
   hits.sort((a, b) => a - b);
-  const preferred =
-    hits.find((i) => CONSOLIDATED.test(text.slice(Math.max(0, i - 200), i + 200))) ?? hits[0];
+  const basisOf = (i) => {
+    const near = text.slice(Math.max(0, i - 200), i + 200);
+    if (CONSOLIDATED.test(near)) return 'consolidated';
+    const win = text.slice(Math.max(0, i - 1500), i + 100);
+    let last = null;
+    const re = /\b(standalone|consolidated)\b/gi;
+    let m;
+    while ((m = re.exec(win)) !== null) last = m;
+    if (!last) return null;
+    const ctx = win.slice(Math.max(0, last.index - 25), last.index + last[0].length + 25);
+    if (/standalone\s*(?:and|&)\s*consolidated|consolidated\s*(?:and|&)\s*standalone/i.test(ctx))
+      return null;
+    return last[1].toLowerCase();
+  };
+  const labelled = hits.map((i) => ({ i, basis: basisOf(i) }));
+  const preferred = (labelled.find((h) => h.basis === 'consolidated') || labelled[0]).i;
+  const preferredBasis = (labelled.find((h) => h.i === preferred) || {}).basis;
   let body = text.slice(preferred, preferred + maxChars);
   // Truncate at the next *other* statement heading so a balance-sheet slice
   // never swallows the cash-flow rows that follow it in the same filing.
@@ -132,7 +151,8 @@ function locateSection(text, headings, { maxChars = 20000, stopAt = [] } = {}) {
   }
   return {
     startOffset: preferred,
-    consolidated: CONSOLIDATED.test(text.slice(Math.max(0, preferred - 200), preferred + 200)),
+    consolidated: preferredBasis === 'consolidated',
+    basis: preferredBasis || 'unlabelled',
     body,
   };
 }
@@ -276,7 +296,7 @@ function parseRows(body) {
  * encoding, and "Indian" sits between "in" and the unit word. `{0,2}` extra
  * tokens tolerates that without over-matching into an unrelated sentence.
  */
-function detectUnitScale(body) {
+function detectUnitScale(body, preceding = '') {
   const head = body.slice(0, 1500);
   // Proximity check rather than a fixed-token-count regex: a broken font can
   // glue a corrupted rupee-symbol glyph directly onto the unit word with NO
@@ -296,6 +316,25 @@ function detectUnitScale(body) {
   if (near('million')) return { unit: 'million', toCr: 0.1 };
   if (near('crore')) return { unit: 'crore', toCr: 1 };
   if (near('thousand')) return { unit: 'thousand', toCr: 0.0001 };
+  // The unit is very often printed ABOVE the table ("(Rs. in Lakhs)" under the filing title or in the
+  // column-header block, found 2026-10-03: 136 of 145 baseline docs came back 'unknown' because only
+  // the body below the heading was searched). Fall back to the text just before the section, taking
+  // the match NEAREST to the table, and accept the common spellings (lacs, mn, mio, crs, InLakhs).
+  const tail = String(preceding || '');
+  if (tail) {
+    const re =
+      /\bin\s*[`₹~]?\s*(?:rs\.?|inr|₹)?\s*[`₹~]?\s*(lakhs?|lacs?|millions?|mn|mio|crores?|crs?\.?|thousands?)\b|\(\s*(?:rs\.?|inr|₹|`)?\s*(?:in\s*)?(lakhs?|lacs?|millions?|mn|mio|crores?|crs?\.?)\s*\)/gi;
+    let last = null;
+    let m;
+    while ((m = re.exec(tail)) !== null) last = m;
+    if (last) {
+      const w = (last[1] || last[2] || '').toLowerCase();
+      if (/^(lakh|lac)/.test(w)) return { unit: 'lakh', toCr: 0.01, from: 'preceding' };
+      if (/^(million|mn|mio)/.test(w)) return { unit: 'million', toCr: 0.1, from: 'preceding' };
+      if (/^cr/.test(w)) return { unit: 'crore', toCr: 1, from: 'preceding' };
+      if (/^thousand/.test(w)) return { unit: 'thousand', toCr: 0.0001, from: 'preceding' };
+    }
+  }
   return { unit: 'unknown', toCr: null };
 }
 

@@ -70,20 +70,7 @@ this retry is still zero-LLM, just a second script call.
 
 ## Step 2 — Classify (script only)
 
-```bash
-python3 skills/equity-research/forward-guidance-extractor/scripts/classify_transcript_status.py \
-  --file /tmp/bulk_result.json > /tmp/classified.json
-```
-
-(Reused directly from `forward-guidance-extractor` — do not fork a second
-copy of this bucketing logic; both skills read the exact same `status`
-vocabulary from the same underlying API.) Output:
-
-- `available` — transcript body already in `data/reports/<id>.json`.
-- `fetchable` — Stockscans has the official Transcript filed, not yet cached;
-  `document.ssUrl` is included so the caller can download it directly.
-- `missing` — nothing usable (`results-not-out`, `needs-recording-pipeline`,
-  or an outright `error`) — each entry carries a `reason`.
+_(Note: Deprecated — callers now use `StockscansClient.latestTranscript()` directly)._
 
 ## Step 3 — Hand off (no LLM here either)
 
@@ -91,25 +78,9 @@ Return `available` + `fetchable` to whichever skill invoked this one (they
 proceed to their own extraction/reasoning step), and `missing` as the honest
 exclusion list — callers must surface it, never drop it silently.
 
-If nothing downstream needs the PPT check for the `missing` bucket, stop
-here. If a caller wants the PPT fallback tier too, hand `missing` straight to
-`guidance-ppt-fallback` — that skill re-derives its own candidate list from
-the DB (`find_ppt_fallback_candidates.js`) so passing tickers through is
-optional, not required plumbing.
-
-## Token-optimization note
-
-This skill removing an LLM turn from what used to be Phase 1 of
-`forward-guidance-extractor` (and would otherwise be re-inlined into every
-other transcript-consuming skill) is itself the token-optimization win —
-report the bucket sizes (`available`/`fetchable`/`missing` counts) at the end
-of every run so the caller can see how much of the original batch was
-filtered out BEFORE any model turn was spent on it.
-
 ## File tree
 
 ```
 transcript-availability-scanner/
-└── SKILL.md   (no scripts of its own — calls stock-api/bin/get-latest-concall-transcript.js
-                 and forward-guidance-extractor/scripts/classify_transcript_status.py directly)
+└── SKILL.md   (deprecated -- superseded by StockscansClient.latestTranscript())
 ```

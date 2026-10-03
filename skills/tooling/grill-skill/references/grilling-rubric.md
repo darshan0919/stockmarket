@@ -4,12 +4,26 @@ This rubric forms the architectural lens through which `grill-skill` evaluates, 
 
 ---
 
+## 🏛️ The Supreme Thinker Philosophy & Two-Round Architecture
+
+> **/grill-skill is an unconstrained thinker meta-skill. Quality, depth, and institutional rigor mean everything; execution cost is negligible.**
+
+1. **Two Exhaustive Review Rounds:**
+   - **Round 1 (Pre-Human Holistic Probe):** Evaluates the entire baseline state holistically, grounds in SOIC/Lamba, and isolates true reasoning from mechanics to formulate deep, grounded trade-offs for the human.
+   - **Round 2 (Post-Human Holistic Stress-Test):** Evaluates the entire proposed target state holistically, stress-testing against real-world promoter tricks, accounting red flags, and ensuring prompts are institutional-grade rather than hollow.
+
+2. **The Living Thinking Ledger vs Deterministic Idempotency:**
+   - **Deterministic Parts (Code, Caching, AST Invariants):** Checked via cryptographic content hashes (`SHA-256`) and static linting. If unchanged, zero churn is guaranteed.
+   - **Thinking Parts (Qualitative Reasoning, Nuance, Mental Models):** Stored in `db.reports` (`type: 'skill-review'`) as living **Bayesian Priors**. Re-runs treat prior feedback as an intellectual launching pad—never as rigid dogma—open to continuous elevation by newer KB transcripts, smarter models, and sharper human understanding.
+
+---
+
 ## 🚨 The Non-Negotiable Rule: Criticality is User-Decided, Model Tiering is Heuristic-Decided
 
 > **NEVER judge or assume the importance/criticality of a reasoning task by yourself — ALWAYS stop and confirm with the user.**
 
 - **Why?** In Indian listed equity research and scanner systems, the value of an insight depends entirely on investment thesis conviction, position sizing, and risk asymmetry. An LLM cannot know whether detecting an ambiguous Capex timeline postponement is a dealbreaker or secondary background unless the user states it.
-- **The Mandatory Checkpoint:** During Phase 2 of any grilling session, the agent **MUST HALT** and present every discovered candidate reasoning task to the user.
+- **The Mandatory Checkpoint:** During Phase 3 of any grilling session, the agent **MUST HALT** and present every discovered candidate reasoning task to the user.
 - **The Separation of Powers:**
   1. **"How important is this reasoning task?"** $\rightarrow$ **Exclusively the User's Decision.**
   2. **"What kind of LLM model does this task require?"** $\rightarrow$ **The Agent's Heuristic Decision**, based on the User's Criticality $\times$ Analytical Ambiguity $\times$ Failure Cost.

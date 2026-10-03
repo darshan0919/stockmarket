@@ -33,5 +33,18 @@ describe('grill-skill CLI and inspection tooling', () => {
     expect(parsed.ok).toBe(true);
     expect(parsed.targetSkill).toBe('quarterly-result-analysis');
     expect(parsed.inspection).toBeDefined();
+    expect(parsed.contentHash).toBeDefined();
+    expect(typeof parsed.contentHash).toBe('string');
+    expect(parsed.contentHash.length).toBe(64);
+  });
+
+  it('computes consistent contentHash using computeSkillContentHash', () => {
+    const { computeSkillContentHash } = require('../bin/grill-skill');
+    const skillDir = path.join(REPO_ROOT, 'skills/equity-research/quarterly-result-analysis');
+    const skillMd = path.join(skillDir, 'SKILL.md');
+    const hash1 = computeSkillContentHash(skillDir, skillMd);
+    const hash2 = computeSkillContentHash(skillDir, skillMd);
+    expect(hash1).toBe(hash2);
+    expect(hash1.length).toBe(64);
   });
 });

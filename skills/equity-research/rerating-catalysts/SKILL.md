@@ -256,6 +256,13 @@ a stale thesis silently is the one outcome this design exists to prevent.
 undisclosed number is still "awaiting disclosure". Cheaper means fewer documents
 re-read, never a thesis guessed from a title.
 
+## Model Tiering Matrix (Enforced)
+
+| Task / Sub-stage                         | Classification             | Model Tier                                                                | Execution Strategy                                                                                                              |
+| :--------------------------------------- | :------------------------- | :------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------ |
+| **Tasks 1–5 (Phase 2, 2.5, 3b, 3d, 3g)** | **Mission-Critical Alpha** | **Frontier Cloud** (Claude 3.5 Sonnet / Gemini Pro)                       | Deep causal analysis of triggers, fake J-curve interrogation, 6-rung spike day explanation, and final J-Curve Inflection badge. |
+| **Task 6 (Phase 1, 3a, 3c)**             | **Routine / Commodity**    | **Cheap / Local Model / Script** (Gemini Flash Lite / Qwen 2.5 / Node.js) | Document acquisition, 8-column KPI table formatting, and routine compliance noise filtering (AGM, book closure).                |
+
 ## Workflow
 
 ### Phase 1 — Document acquisition
@@ -355,34 +362,22 @@ the **CATALYST mnemonic** appended to §4: Capex, Acquisitions, Turnaround,
 Approvals, Large orders, Year Zero, Switch, Theme), the three-bucket growth
 taxonomy (§1b — steady/fast/hyper-growth), concave-vs-convex (§1c), Train
 A/B/C catalyst timing (§1d), young-vs-old momentum (§1e), the Weinstein
-technical stage overlay (§1f, with a literal 2-5-week golden-cross
-operationalization), the new-vs-confirmation discipline, the
+technical stage overlay (§1f), the new-vs-confirmation discipline, the
 structural-vs-cyclical checklist (§3b), sector-level context (§4b), the TGPV
-Theme→Growth→Promoter→Valuation sequencing (§4c) and its dated sector/
-case-study appendix (§4d — EMS value-chain margins, shipbuilding policy
-package, KRN capacity-ramp template, data-centre super-cycle, "Switch"
-case studies; all flagged for freshness re-verification), the
-quantification/conviction rules, and (§5a-5j) the J-curve lifecycle staging,
-fake-J-curve checklist, the **J-Curve Inflection tag rubric (§5f — mandatory,
-see Phase 3g below)**, leading/lagging signal discipline, GARP entry
-discipline (§5g), theme relative-strength screening (§5h), **the "Potential J
-Curve" capstone StockScans screen (§5i — a ready-to-use literal filter recipe
-for this skill's exact subject matter; useful when the user wants candidate
-NAMES rather than a single-company read, or wants their own StockScans watch
-cross-checked against this skill's own bar)**, and a further literal
-screener-recipe appendix (§5j — Turnaround/Breakout Earnings, Consistent NPM,
-Movers with Volume, Volume Rocketing, Order Book/Acquisitions/Bulk-Block-Deal
-monitoring). Apply it uniformly across all four document sets fetched in
-Phase 1 — an announcement, a transcript line, and a PPT slide are just three
-different containers for the same kind of "new" fact.
+Theme→Growth→Promoter→Valuation sequencing (§4c), the J-curve lifecycle staging
+(§5a), fake-J-curve checklist (§5b), the **J-Curve Inflection tag rubric (§5f — mandatory,
+see Phase 3g below)**, leading/lagging signal discipline (§5d), GARP entry
+discipline (§5g), and theme relative-strength screening (§5h). For detailed sector
+templates (EMS value chain, shipbuilding, KRN capacity ramp, data centers), see
+[`references/sector_case_studies.md`](references/sector_case_studies.md). For candidate
+generation filters (Potential J Curve, Turnaround, Volume Rocketing), see
+[`references/screener_recipes.md`](references/screener_recipes.md). Apply it uniformly across
+all four document sets fetched in Phase 1 — an announcement, a transcript line, and a PPT slide
+are just three different containers for the same kind of "new" fact.
 
-**§5i/§5j are screening tools, not part of this skill's own single-company
-Phase 2/3 read** — they feed the Stage 0/Scanning end of the funnel (see
-"Running this across many companies" above), not the flagship synthesis
-itself. Cite them in 3f when relevant (e.g. "this name would also clear the
-Potential J Curve screen: OPM/PAT/revenue gates all pass") but do not treat
-passing §5i's screen as a substitute for 3g's own §5f rubric — a §5i pass is
-a prompt to investigate, never itself a STRONG tag.
+**Candidate screening filters are Stage 0 tools, not part of single-company Phase 2/3 reads** —
+see [`references/screener_recipes.md`](references/screener_recipes.md). Passing a screen is a
+prompt to investigate, never itself a STRONG tag.
 
 **Management interviews (full mode, when Phase 1 step 6 found any) are a
 fifth document type read through the same "new" lens** — an interview is
@@ -432,16 +427,28 @@ EBITDA/unit trend across the 4 quarters, debt/finance-cost trajectory across
 the 4 transcripts, and theme-maturity (is this a year-1 S-curve or a year-6
 theme?).
 
-**J-curve staging (framework §5a-§5d).** For the company overall — and, when
-they diverge, for the lead catalyst specifically — classify the current
-stage as Base Building / Inflection / Acceleration. Check whether disclosed
-growth follows PAT growth > EBITDA growth > Revenue growth (true operating +
-financial leverage) before calling a company "Acceleration" stage on PAT
-optics alone, and flag explicitly if order-book growth or capacity
-commissioning is running ahead of revenue (a leading signal worth calling
-out even absent a P&L confirmation yet).
+**J-curve staging & leverage audit (deterministic script + LLM synthesis).** Run
+`computeJCurveFinancialHealth` across the 4 quarterly Result filings to compute
+operating and financial leverage multiples and audit for fake-J-curve anomalies:
 
-**Income Statement Signal Scan (mandatory).** When the EBITDA/unit or margin trend across the 4 quarters shows expansion, run `skills/_shared/income-statement-signals.md` on each quarter (QoQ and YoY) rather than checking inventory gains alone — Other Income spikes, tax-rate swings, and exceptional items are equally capable of manufacturing a fake margin trend. **Sourcing rule (XBRL first via `extract_result_xbrl.js`, PDF fallback; see `skills/_shared/income-statement-signals.md` §Sourcing):** pull every relevant P&L line and PBT for each of the 4 quarters from the actual Result filings via `stock-documents-fetcher`, not from concall/PPT summaries. If a quarter's margin strength is driven by an item that clears the shared scan's materiality bar, do not list it as a margin/mix catalyst in the 3b ranking — flag it as non-recurring instead.
+```bash
+node -e "
+const { computeJCurveFinancialHealth } = require('<repo>/stock-api/src/analyzers/jcurveFinancialMetrics.js');
+// quarters: trailing 4-8 quarter P&L objects pulled from Result filings
+const health = computeJCurveFinancialHealth(quarters);
+console.log(JSON.stringify(health, null, 2));
+"
+```
+
+The script deterministically evaluates Dr. Anil Lamba's Combined Leverage Multiple
+($\text{Operating Leverage} \times \text{Financial Leverage} = \% \Delta \text{PAT} / \% \Delta \text{Revenue}$),
+verifies whether growth satisfies $\text{PAT growth} > \text{EBITDA growth} > \text{Revenue growth}$
+(operating + financial leverage), and flags fake J-curve triggers (low base, Other Income > 15% of PBT,
+exceptional items, tax swings). Classify the current stage as Base Building / Inflection / Acceleration.
+Feed the script's `health` object directly into Phase 3b and 3g — **never calculate growth percentages or
+division ratios in LLM prompt text**.
+
+**Income Statement Signal Scan (mandatory).** When the EBITDA/unit or margin trend across the 4 quarters shows expansion, verify against `health.fakeJCurveAudit` and `skills/_shared/income-statement-signals.md` on each quarter (QoQ and YoY) rather than checking inventory gains alone — Other Income spikes, tax-rate swings, and exceptional items are equally capable of manufacturing a fake margin trend. **Sourcing rule (XBRL first via `extract_result_xbrl.js`, PDF fallback; see `skills/_shared/income-statement-signals.md` §Sourcing):** pull every relevant P&L line and PBT for each of the 4 quarters from the actual Result filings via `stock-documents-fetcher`, not from concall/PPT summaries. If a quarter's margin strength is driven by an item that clears the shared scan's materiality bar, do not list it as a margin/mix catalyst in the 3b ranking — flag it as non-recurring instead.
 
 ### Phase 2.5 — Price-Volume Spike Days (mandatory, full mode only)
 
@@ -569,6 +576,10 @@ Stage 3 story). Layer in the lightweight GARP checks from framework §5g
 (credit rating report if available, SOTP gut-check for multi-segment names,
 PEG as a sanity check) — this is not a substitute for `financial-model`, just
 enough to say whether the catalyst identified in 3b looks already priced in.
+**Float Scarcity & Squeeze Check (SOIC · 28.06.26):** Check whether public float
+is contracting via buybacks, promoter warrant conversion (promoter locking in current
+prices for 18–36 months), or institutional accumulation crossing the ₹6,000–7,000 Cr
+threshold where mutual funds begin taking positions.
 
 **3e. Key risks (3–4)** — execution/regulatory/commodity/demand/balance-sheet/
 concentration, each with a mitigant or probability qualifier.
@@ -583,17 +594,19 @@ escalating to `consecutive-filings-diff`, `financial-model`, or
 it?
 
 **3g. J-Curve Inflection tag (mandatory, computed last).** Apply framework
-§5f's four-input rubric — (1) PAT growth > 30% YoY in the latest quarter,
-ideally with revenue ≥ 15-20% too, sourced from actual Result filings per
-Phase 2's sourcing rule; (2) a specific, named "new" trigger from §2/§1b that
-plausibly explains the move; (3) the move survives the §5b fake-J-curve check
-and the §3b structural-vs-cyclical checklist; (4) which J-curve stage (§5a)
-it's in — to assign **STRONG / MODERATE / WEAK / NONE**, with a one-sentence
-reason naming the trigger and the quarter. This tag is computed from 3b/3c's
-already-extracted catalysts and 3a's KPI table — it is a synthesis step, not
-a new document read. A `NONE` tag is a normal, common outcome (most quarters
-for most companies) — say so plainly rather than stretching the evidence to
-avoid it.
+§5f's four-input rubric — grounded in `health` from `computeJCurveFinancialHealth`:
+(1) PAT growth > 30% YoY in the latest quarter (`health.clearsPatThreshold`),
+ideally with revenue ≥ 15-20% too (`health.clearsBuoyantPairing`), confirmed by
+operating leverage (`health.operatingLeverageConfirmed`); (2) a specific, named "new"
+trigger from §2/§1b that plausibly explains the move; (3) the move survives the
+fake-J-curve audit (`health.fakeJCurveAudit` is clean: no low base, no Other Income
+distortion, no tax swings) and the §3b structural-vs-cyclical checklist; (4) which
+J-curve stage (§5a) it's in — to assign **STRONG / MODERATE / WEAK / NONE**, with a
+one-sentence reason naming the trigger, the quarter, and the leverage metrics.
+This tag is computed from 3b/3c's already-extracted catalysts and `health` — it is
+a synthesis step, not a new document read. A `NONE` tag is a normal, common outcome
+(most quarters for most companies) — say so plainly rather than stretching the evidence
+to avoid it.
 
 **Fifth input — corroborating signal-scan history (from Phase 1 step 5).**
 Repeated ACT-tier appearances in `gainers-signal`/`volume-rocketing` or S1/S2
@@ -699,7 +712,9 @@ token-optimization suggestion (conventions §11).
 rerating-catalysts/
 ├── SKILL.md
 ├── references/
-│   └── growth_catalyst_framework.md
+│   ├── growth_catalyst_framework.md   (Core "new" methodology & J-curve rubric)
+│   ├── screener_recipes.md            (StockScans filter recipes: Potential J-Curve, Turnaround, Volume)
+│   └── sector_case_studies.md         (Sector margin templates: EMS, Shipbuilding, KRN, Data Centers)
 └── scripts/
     ├── prefilter_rerating_candidates.js   (Stage 0 — zero-LLM pre-filter for batch runs)
     ├── extract_rerating_signatures.py     (Stage 1 — zero-LLM recall pass for a single candidate)
@@ -709,30 +724,30 @@ rerating-catalysts/
     └── fetch_management_interviews.js     (Phase 1 step 6, full mode only — last 3mo/5-max interview takeaways via Stockscans Interview Scans, videoId-cached)
 ```
 
+`stock-api/src/analyzers/jcurveFinancialMetrics.js` (`computeJCurveFinancialHealth`)
+lives in shared analyzers: computes Dr. Anil Lamba's Combined Leverage Multiple
+and audits Fake J-Curve flags deterministically, consumed directly by Phase 2 and 3g.
+
 `stock-api/src/analyzers/priceSpikeSignals.js` (Phase 2.5 — spike-day detection:
 `median`, `computeDailyMetrics`, `findSpikeDays`, `findRecentSpikeDays`) lives
 alongside `priceMetrics.js`/`eventReactionSignals.js`, not under this skill's
 own `scripts/`, since it depends only on `NseClient` and is a generic
-price/volume analyzer other skills could reuse — the same placement reasoning
-as `catalystRules.js` below.
+price/volume analyzer other skills could reuse.
 
 `computeJCurveScore()` (Stage 2, framework §5c's 9-point scorecard) and
 `jCurvePatThresholdHint()` (a scan-row pre-screen for framework §5f's PAT-growth
 gate — NOT the §5f tag itself, which only Phase 3g computes) both live in
 `stock-api/src/analyzers/catalystRules.js` alongside `watchlist-catalyst-scanner`'s
 `classify()`, since they operate on the same scan-row shape and are consumed by
-that skill's `scanCatalysts.js`, not by this skill directly. Keep them as two
-separate functions — they answer the two distinct questions framework §5f's
-own note distinguishes; do not merge them.
+that skill's `scanCatalysts.js`, not by this skill directly.
 
 ## Conventions
 
 Follow [`management-credibility-tracker`'s shared conventions](../management-credibility-tracker/_shared/conventions.md):
 §1 (Rs Cr, FY26 notation), §2 (citation discipline — every catalyst carries a
 source), §3 (anti-hallucination — read the actual PDF before sizing a number),
-§6 (STRUCTURAL/CYCLICAL/ONE-OFF/GOVERNANCE-SIGNAL taxonomy, useful as a
-secondary tag alongside the "new" category when a catalyst's persistence
-matters).
+§6 (STRUCTURAL/CYCLICAL/ONE-OFF/GOVERNANCE-SIGNAL taxonomy), and ensure all modified
+or newly saved reports/caches are synchronized via `yarn data:push`.
 
 ## Pitfalls
 
@@ -752,13 +767,10 @@ matters).
   its own.** It is corroboration for inputs (1)-(4), not a fifth independent
   gate — a momentum name with several ACT/S1 appearances and no named "new"
   trigger this quarter is still WEAK or NONE. See 3g.
-- **Don't confuse a §5i "Potential J Curve" screen pass with the §5f tag
-  either.** §5i is a literal StockScans filter recipe (revenue/PAT/OPM/
-  price-reaction/technical gates) meant to generate scan CANDIDATES — it has
-  no fake-J-curve check (§5b), no structural-vs-cyclical check (§3b), and no
-  named-trigger requirement, so a name clearing §5i can still resolve to
-  WEAK or NONE once 3g actually reads the filings. Never report "clears the
-  Potential J Curve screen" as if it were equivalent to a STRONG tag.
+- **Don't confuse a screener recipe pass with the §5f tag.** Candidate screening
+  recipes in [`references/screener_recipes.md`](references/screener_recipes.md)
+  (e.g. "Potential J Curve") are Stage 0 recall filters. They do NOT audit for fake
+  J-curves or causal triggers. A screen pass is never equivalent to a STRONG tag.
 - **Don't quantify without a source.** Undisclosed values stay "awaiting
   disclosure," never estimated.
 - **Don't treat "Board Meeting Intimation" as signal.** Wait for the outcome

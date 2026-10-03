@@ -185,6 +185,8 @@ const IS_MAP = [
   [/deferred\s+tax/i, 'deferredTax'],
   [/tax\s+expense/i, 'tax'],
   [/(?:profit|loss)(?:\s*\/\s*\(?loss\)?)?.*for\s+the\s+(period|quarter|year)/i, 'pat'],
+  // "Profit after tax" / "Net profit after tax" (no "for the period"), seen unmatched on 8 of 120 dev filings.
+  [/(?:net\s+)?(?:profit|loss)(?:\s*\/\s*\(?loss\)?)?.*after\s+tax/i, 'pat'],
   [/basic\b/i, 'epsBasic'],
   [/diluted\b/i, 'epsDiluted'],
 ];
@@ -439,7 +441,10 @@ function extractIncomeStatement({ resultText, pptText }) {
   ]) {
     const sec = locateIncomeStatementSection(text);
     if (!sec) continue;
-    const scale = detectUnitScale(sec.body);
+    const scale = detectUnitScale(
+      sec.body,
+      text.slice(Math.max(0, (sec.startOffset || 0) - 2500), sec.startOffset || 0)
+    );
     const rows = parseRows(sec.body);
     if (rows.length < 6) continue; // a real P&L table has well over 6 line items
     const { cur, qoq, yoy, ytdCur, ytdPrior, unmatched } = mapRows3Col(rows, IS_MAP, scale.toCr);
@@ -455,6 +460,13 @@ function extractIncomeStatement({ resultText, pptText }) {
     for (const snap of [cur, qoq, yoy, ytdCur, ytdPrior]) {
       if (snap.pbt == null && snap.pbtBeforeExceptional != null) {
         snap.pbt = snap.pbtBeforeExceptional;
+      }
+    }
+    // Many filings print "Tax expense:" as a bare heading with only Current / Deferred rows beneath it.
+    // Total tax is then their sum (same column). Applied per column so the three stay consistent.
+    for (const snap of [cur, qoq, yoy, ytdCur, ytdPrior]) {
+      if (snap.tax == null && (snap.currentTax != null || snap.deferredTax != null)) {
+        snap.tax = (snap.currentTax || 0) + (snap.deferredTax || 0);
       }
     }
     if (cur.revenue == null || cur.pbt == null) continue; // didn't actually find the table

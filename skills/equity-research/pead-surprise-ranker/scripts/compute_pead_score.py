@@ -85,10 +85,10 @@ MARGIN_SCORE = {
 }
 
 PAT_LEVER_SCORE = {
+    "opex_leverage": (20, "Operating-leverage PAT lever (structural fixed-cost spreading)"),
     "cost_program_direct": (18, "Direct, quantified cost-saving PAT lever"),
     "deleverage_direct": (18, "Direct balance-sheet deleverage PAT lever"),
-    "opex_leverage": (12, "Operating-leverage PAT lever (qualitative)"),
-    "volume_leverage": (9, "Volume/utilisation-ramp PAT lever"),
+    "volume_leverage": (12, "Volume/utilisation-ramp PAT lever"),
     "deleverage_signal": (8, "Secondary deleverage signal"),
     "cash_turn_positive": (7, "Near-term cash-turn-positive lever"),
     "capex_ramp": (-5, "Capex ramp is a near-term PAT DRAG, not a lever"),
@@ -114,10 +114,21 @@ def score_one(c):
     s += pts
     notes.append(f"{note} (+{pts})")
 
+    # PAT lever scoring: support compound levers (e.g. ['opex_leverage', 'deleverage_direct'])
     pl = c.get("pat_lever", "none_stated")
-    pts, note = PAT_LEVER_SCORE.get(pl, (0, f"PAT lever '{pl}' unrecognised, defaulted"))
-    s += pts
-    notes.append(f"{note} ({'+' if pts >= 0 else ''}{pts})")
+    if isinstance(pl, list):
+        total_pl_pts = 0
+        for item in pl:
+            pts, note = PAT_LEVER_SCORE.get(item, (0, f"PAT lever '{item}' unrecognised, defaulted"))
+            total_pl_pts += pts
+            notes.append(f"{note} ({'+' if pts >= 0 else ''}{pts})")
+        # Cap compound PAT lever benefit at 28 points
+        total_pl_pts = min(total_pl_pts, 28)
+        s += total_pl_pts
+    else:
+        pts, note = PAT_LEVER_SCORE.get(pl, (0, f"PAT lever '{pl}' unrecognised, defaulted"))
+        s += pts
+        notes.append(f"{note} ({'+' if pts >= 0 else ''}{pts})")
 
     pct = parse_pct(c.get("rev_guided_pct"), c.get("rev_guided"))
     if pct is None:
@@ -136,6 +147,12 @@ def score_one(c):
     ev_pts = EVIDENCE_SCORE.get(ev, 3)
     s += ev_pts
     notes.append(f"Evidence strength '{ev}' (+{ev_pts})")
+
+    # QoQ upward guidance revision bonus (+10 pts)
+    qoq_status = c.get("qoq_status")
+    if qoq_status == "revised":
+        s += 10.0
+        notes.append("Upward guidance revision vs prior quarter (+10.0)")
 
     return round(s, 1), notes
 
