@@ -653,14 +653,28 @@ chrome.runtime.onMessage.addListener((msg, _s, send) => {
       return true;
     case 'XCAP_VERIFY': reply(startVerify(msg.handles)); return true;
     case 'XCAP_CANCEL':
+      // Same as Pause for the data: everything already fetched is written to the KB first (rows + the
+      // contiguous part of the saved range, incl. the resume cursor) — only the *job* (user list, interval,
+      // position in the queue) is dropped, so the next Start can use a different user list / interval and
+      // continues from the saved ranges without re-fetching.
       reply(
         (async () => {
           const j = await getJob();
+          let saved = true;
           if (j) {
-            for (const h of j.handles) await clearRows(h).catch(() => {});
+            if (j.status === 'running') {
+              j.status = 'paused'; // stop an in-flight step from continuing while we write
+              await saveJob(j, { force: true });
+            }
+            await flush(j);
+            // flush() swallows write errors (rows stay buffered); keep the buffer if anything is unsaved
+            saved = !j.dirty || !j.phase;
           }
-          await chrome.storage.local.remove('job');
-          chrome.alarms.clear(RESUME);
+          if (saved) {
+            await chrome.storage.local.remove('job');
+            chrome.alarms.clear(RESUME);
+          }
+          return { ok: saved, error: saved ? null : 'KB write failed — nothing was discarded; job kept (paused). Retry Cancel or Resume.' };
         })()
       );
       return true;

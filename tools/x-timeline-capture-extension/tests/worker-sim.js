@@ -55,6 +55,19 @@ const assert = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) pro
   await send({ type: 'XCAP_CANCEL' });
   await wait(1500);
   assert(!store.job, 'cancel: job stays removed');
+  // 3a) cancel while running = pause for the data: fetched rows + resume cursor are saved, only the job is dropped
+  hostLog.length = 0;
+  pages = [1, 2, 3, 4, 5, 6].map((i) => ({ status: 200, userId: 'u', rows: [row('c' + i, 40 + i)], next: 'cc' + i }));
+  await send({ type: 'XCAP_START', handles: ['Exp'], intervalDays: 365 });
+  await wait(1800);
+  const rc = await send({ type: 'XCAP_CANCEL' });
+  await wait(1500);
+  commits = hostLog.filter((m) => m.type === 'commit');
+  const cRows = commits.reduce((n, c) => n + c.rows.length, 0);
+  assert(rc && rc.ok === true && !store.job, 'cancel(running): job dropped, ok');
+  assert(cRows >= 1, 'cancel(running): fetched rows written to the KB first (' + cRows + ' rows)');
+  const lastCov = commits.length ? commits[commits.length - 1].coverage : null;
+  assert(lastCov && lastCov.olderCursor, 'cancel(running): resume cursor saved in coverage -> ' + (lastCov && lastCov.olderCursor));
   // 3b) regression: job saved by the previous version (flat cov, no stream on phases, no counts)
   await send({ type: 'XCAP_CANCEL' });
   store.job = { id: 1, auto: false, handles: ['Exp'], intervalMs: 30 * 86400000, cov: { exp: { fromMs: Date.now() - 9e9, toMs: Date.now() - 1000, exhausted: false, olderCursor: 'oc' } },

@@ -55,3 +55,7 @@ Verify audits what the saved ranges *claim* against X and the KB. It is refused 
 - checks an "exhausted" claim against X's `statuses_count` when X returns it (silently skipped when absent) and drops the claim if the KB holds far fewer posts.
 
 Result is stored as `verify:{at,state}` in coverage (popup shows ✓ verified / ⚠ check). Cost is ~5 requests per user; if X rate-limits, Verify reports "Rate-limited, try later". Nothing is deleted; a shrunk range just means the next Start re-walks the gap.
+
+## Cancel
+
+Cancel behaves like Pause for the data: everything fetched so far is written to the KB first (rows + saved range + resume cursor). Only the *run* is dropped (user list, interval, queue position), so you can change users or interval and Start again without re-fetching. If the KB write fails, nothing is discarded and the job stays paused so you can retry.

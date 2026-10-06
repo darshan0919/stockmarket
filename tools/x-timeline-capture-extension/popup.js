@@ -162,7 +162,10 @@ $('main').onclick = async () => {
   const r = await send({ type: 'XCAP_START', handles, intervalDays: Number($('interval').value) });
   if (!r.ok) flash(r.error);
 };
-$('cancel').onclick = () => send({ type: 'XCAP_CANCEL' });
+$('cancel').onclick = async () => {
+  const r = await send({ type: 'XCAP_CANCEL' });
+  if (r && r.ok === false) flash(r.error);
+};
 $('verify').onclick = async () => {
   const handles = selected();
   if (!handles.length) return flash('Select at least one user.');
