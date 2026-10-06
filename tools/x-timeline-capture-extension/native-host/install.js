@@ -76,10 +76,13 @@ function main() {
     console.log(JSON.stringify({ extensionId, launcherPath, manifestPath, manifest }, null, 2));
     return;
   }
+  // Create the manifest dir FIRST: if it cannot be written (read-only HOME, wrong user) we must fail before
+  // touching the existing launcher, otherwise a failed run leaves a working install pointing at a wrong node.
+  fs.mkdirSync(dir, { recursive: true });
+  fs.accessSync(dir, fs.constants.W_OK);
   fs.mkdirSync(genDir, { recursive: true });
   fs.writeFileSync(launcherPath, launcher, { mode: 0o755 });
   fs.chmodSync(launcherPath, 0o755);
-  fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
   console.log(
     `Installed native host for ${browser}.\n  extension id: ${extensionId}\n  manifest:     ${manifestPath}\n  launcher:     ${launcherPath}\nNow reload the extension in chrome://extensions.`
