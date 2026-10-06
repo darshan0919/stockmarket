@@ -13,6 +13,22 @@
  * Implementation: `fs.mkdirSync` is atomic; the lock is a directory under
  * `data/cache/locks/`. A lock older than `staleMs` is presumed dead (crashed
  * process) and is broken.
+ *
+ * FIXED 2026-10-06: a stale lock whose `fs.rmdirSync` fails for a reason
+ * other than "already gone" (ENOENT) — most concretely, EPERM/EACCES when
+ * the calling process lacks delete permission on `data/cache/locks/` —
+ * used to be silently swallowed and retried with NO sleep and NO deadline
+ * check, so the loop busy-spun forever (not bounded by `timeoutMs`, which
+ * only applies to the "lock is young, just wait" branch below). Caught live
+ * via `post-close-scan-insights`: 10 stale `order-ledger:*` lock directories
+ * sat undeleted for 2-6+ days because the execution environment that hit
+ * them that day had read/write but not delete rights on the connected
+ * folder, so every run that picked one up span silently until an external
+ * timeout killed the process. `rmdirSync` now only swallows ENOENT (another
+ * waiter genuinely beat us to breaking it); any other error — a permission
+ * problem being the one actually seen in production — throws immediately
+ * with a diagnosis, so the failure is a one-line error instead of a
+ * multi-minute unexplained hang.
  */
 
 const fs = require('fs');
@@ -51,9 +67,25 @@ async function withLock(key, fn, { staleMs = 120000, timeoutMs = 60000 } = {}) {
       if (age > staleMs) {
         try {
           fs.rmdirSync(dir);
-        } catch (_) {
-          /* another waiter broke it first */
+        } catch (err) {
+          if (err.code !== 'ENOENT') {
+            // Not "someone else already broke it" — we structurally cannot
+            // remove this stale lock ourselves. Retrying would just busy-spin
+            // forever (this branch predates `deadline`/`sleep`), so fail loud
+            // and fast instead, with enough detail to fix the real cause
+            // (almost always a filesystem permission issue) rather than
+            // waiting out a silent multi-minute hang.
+            throw new Error(
+              `keyedLock: found a stale lock for "${key}" (age ${Math.round(age / 1000)}s, ` +
+                `over the ${Math.round(staleMs / 1000)}s staleness cap) but could not remove ` +
+                `it at ${dir} (${err.code || 'unknown'}: ${err.message}). This usually means ` +
+                `this process lacks delete permission on data/cache/locks/ — grant it, or ` +
+                `remove that directory manually, then retry.`
+            );
+          }
+          /* ENOENT: another waiter already broke this stale lock — fine, retry mkdir. */
         }
+        if (Date.now() > deadline) throw new Error(`keyedLock: timed out waiting for ${key}`);
         continue;
       }
       if (Date.now() > deadline) throw new Error(`keyedLock: timed out waiting for ${key}`);
