@@ -3,7 +3,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { extractResultPdf, declaredBasis } = require('../lib/pdfExtract/router');
+const { extractResultPdf, declaredBasis, applyUnitHint } = require('../lib/pdfExtract/router');
 const { scoreResultPage, rankResultPages } = require('../lib/pdfExtract/pages');
 const { MockProvider } = require('../lib/pdfExtract/tier3');
 
@@ -183,5 +183,122 @@ describe('extractResultPdf', () => {
     expect(ok.found).toBe(true);
     const no = await extractResultPdf(f, { skipTier1: true, tier3: { provider: bad } });
     expect(no.found).toBe(false);
+  });
+});
+
+describe('Tier 2 with an OCR model', () => {
+  const { normaliseOcrText, promptFor } = require('../lib/pdfExtract/ocrmodel');
+
+  test('markdown and HTML tables become parser rows', () => {
+    const md =
+      '```markdown\n| Particulars | Q1 |\n|---|---|\n| Revenue from operations | 10,000.00 |\n```';
+    const out = normaliseOcrText(md);
+    expect(out).toMatch(/Revenue from operations\s+10,000\.00/);
+    expect(out).not.toMatch(/---|\||```/);
+    const html = '<table><tr><td>Other income</td><td>500.00</td></tr></table>';
+    expect(normaliseOcrText(html)).toMatch(/Other income\s+500\.00/);
+  });
+  test('each OCR family gets its own prompt', () => {
+    expect(promptFor('glm-ocr')).toBe('Table Recognition:');
+    expect(promptFor('deepseek-ocr')).toMatch(/markdown/);
+    expect(promptFor('something-else')).toMatch(/plain text/);
+  });
+  test('router uses the OCR model for a page with no text layer and verifies the result', async () => {
+    // A page the text layer cannot read: only a header, so Tier 1 finds nothing and Tier 2 runs.
+    const f = write('ocrm.pdf', [['STATEMENT OF STANDALONE FINANCIAL RESULTS']]);
+    const md = TABLE('STATEMENT OF STANDALONE FINANCIAL RESULTS')
+      .map(
+        (l) =>
+          `| ${l
+            .trim()
+            .split(/\s{2,}/)
+            .join(' | ')} |`
+      )
+      .join('\n');
+    const seen = [];
+    const provider = new MockProvider((a) => {
+      seen.push(a);
+      return md;
+    }, 'ollama:glm-ocr');
+    provider.model = 'glm-ocr';
+    const r = await extractResultPdf(f, { ocrModel: { provider } });
+    expect(seen.length).toBeGreaterThan(0);
+    expect(seen[0].system).toBeNull();
+    expect(seen[0].images.length).toBe(1);
+    expect(r.found).toBe(true);
+    expect(r.tier).toBe(2);
+    expect(r.cur.revenue).toBeCloseTo(100, 4);
+    expect(r.tokens.local).toBeGreaterThan(0);
+  });
+  test('empty model output falls back to tesseract instead of failing', async () => {
+    const f = write('ocrm2.pdf', [['STATEMENT OF STANDALONE FINANCIAL RESULTS']]);
+    const provider = new MockProvider(() => '', 'ollama:glm-ocr');
+    const r = await extractResultPdf(f, { ocrModel: { provider } });
+    expect(r.found).toBe(false); // nothing to read, and no crash
+  });
+});
+
+describe('Tier 3 basis comes from the page heading', () => {
+  test('a model that labels a consolidated page "standalone" is overruled by the heading', async () => {
+    const f = write('basis.pdf', [TABLE('STATEMENT OF CONSOLIDATED UNAUDITED FINANCIAL RESULTS')]);
+    const provider = new MockProvider(() => ({
+      unit: 'lakh',
+      basis: 'standalone',
+      values: {
+        revenue: 10000,
+        otherIncome: 500,
+        totalIncome: 10500,
+        totalExpenses: 8000,
+        pbt: 2500,
+        tax: 600,
+        pat: 1900,
+      },
+    }));
+    const r = await extractResultPdf(f, { skipTier1: true, tier3: { provider } });
+    expect(r.found).toBe(true);
+    expect(r.basis).toBe('consolidated');
+  });
+});
+
+describe('OCR engine comparison mode', () => {
+  test('forceOcr skips the text-layer parse and reads the page through the OCR engine', async () => {
+    const f = write('force.pdf', [TABLE('STATEMENT OF STANDALONE UNAUDITED FINANCIAL RESULTS')]);
+    const text = await extractResultPdf(f, { skipTier2: true });
+    expect(text.tier).toBe(1);
+    const md = TABLE('x')
+      .map(
+        (l) =>
+          `| ${l
+            .trim()
+            .split(/\s{2,}/)
+            .join(' | ')} |`
+      )
+      .join('\n');
+    const provider = new MockProvider(() => md, 'ollama:glm-ocr');
+    const viaOcr = await extractResultPdf(f, { forceOcr: true, ocrModel: { provider } });
+    expect(viaOcr.tier).toBe(2);
+    expect(viaOcr.tokens.local).toBeGreaterThan(0);
+  });
+  test('a scan with no rankable page still gets its first pages OCR-ed', async () => {
+    const f = write('scan.pdf', [['x'], ['y'], ['z'], ['w']]);
+    const seen = [];
+    const provider = new MockProvider((a) => {
+      seen.push(a);
+      return '';
+    }, 'ollama:glm-ocr');
+    await extractResultPdf(f, { ocrModel: { provider }, scanPages: 3, ocrPages: 3 });
+    expect(seen.length).toBe(3);
+  });
+});
+
+describe('applyUnitHint', () => {
+  test('a hinted lakh unit converts values printed in lakh to crore', () => {
+    const r = applyUnitHint({ unit: 'unknown', cur: { revenue: 4904.01, pat: 934.08 } }, 'lakh');
+    expect(r.unit).toBe('lakh');
+    expect(r.cur).toEqual({ revenue: 49.0401, pat: 9.3408 });
+  });
+  test('a hinted crore unit leaves values alone; million divides by ten', () => {
+    expect(applyUnitHint({ cur: { revenue: 12.5 } }, 'crore').cur).toEqual({ revenue: 12.5 });
+    expect(applyUnitHint({ cur: { revenue: 500 } }, 'million').cur).toEqual({ revenue: 50 });
   });
 });

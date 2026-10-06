@@ -197,11 +197,24 @@ function cmdDeploy() {
       2
     )
   );
+  let isAuthenticated = false;
+  let whoamiOutput = '';
+  try {
+    whoamiOutput = execFileSync('vercel', ['whoami'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    isAuthenticated = whoamiOutput.toLowerCase().includes('logged in');
+  } catch (_) {
+    isAuthenticated = false;
+  }
+
   const project = arg('--project', process.env.MONTHLY_UPDATES_VERCEL_PROJECT || 'monthly-updates');
-  const args = ['--yes', '--prod', '--cwd', dir];
+  const args = ['--yes', '--prod'];
   if (process.env.VERCEL_TOKEN) args.push('--token', process.env.VERCEL_TOKEN);
   try {
     const stdout = execFileSync('vercel', args, {
+      cwd: dir,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -212,19 +225,28 @@ function cmdDeploy() {
     console.log(JSON.stringify({ deployed: true, url, deploymentUrl, project }, null, 2));
     return url;
   } catch (e) {
-    // A missing CLI / not-logged-in is an operator action, not a code bug —
-    // say exactly what to do rather than failing opaquely.
-    const msg = String(e.stderr || e.message || '').slice(0, 400);
-    console.error(
-      [
-        'Vercel deploy failed.',
-        msg,
-        '',
-        'Fix: install once with `npm i -g vercel`, authenticate once with `vercel login`',
-        '(or export VERCEL_TOKEN), then re-run `yarn monthly-updates deploy`.',
-        `The rendered page is already saved at: ${out}`,
-      ].join('\n')
-    );
+    const msg = String(e.stderr || e.stdout || e.message || '').slice(0, 400);
+    if (!isAuthenticated && !process.env.VERCEL_TOKEN) {
+      console.error(
+        [
+          'Vercel deploy failed: CLI is not authenticated.',
+          msg,
+          '',
+          'Fix: authenticate once with `vercel login` (or export VERCEL_TOKEN), then re-run `yarn monthly-updates deploy`.',
+          `The rendered page is already saved at: ${out}`,
+        ].join('\n')
+      );
+    } else {
+      console.error(
+        [
+          `Vercel deploy failed despite active login (${whoamiOutput}).`,
+          msg,
+          '',
+          'This is a deployment/execution error, not an auth error.',
+          `The rendered page is saved at: ${out}`,
+        ].join('\n')
+      );
+    }
     process.exitCode = 1;
     return null;
   }

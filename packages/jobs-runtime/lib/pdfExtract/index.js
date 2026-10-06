@@ -5,4 +5,6 @@ module.exports = {
   ...require('./verify'),
   ...require('./pages'),
   ...require('./tier3'),
+  ...require('./ocrmodel'),
+  ...require('./prompts'),
 };

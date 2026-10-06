@@ -46,7 +46,7 @@ const DRIVE_ROOT = process.env.DATA_V2_DRIVE_ROOT || 'StockMarket/data/v2';
 // Local-only folders and scratch/temp patterns live in lib/dataSyncPolicy.js (unit-tested).
 const { NEVER_SYNC } = require('../lib/dataSyncPolicy');
 const IS_COLLECTION = (rel) =>
-  /^(companies|reports|notes|theses|validation|conversations|prompts|ipos|supportive-investors|unsupportive-investors|learnyst-lessons|youtube-transcripts|events-\d{4}(-\d{2})?)\.json$/.test(
+  /^(companies|reports|notes|theses|validation|conversations|prompts|ipos|supportive-investors|unsupportive-investors|learnyst-lessons|youtube-transcripts|x-posts|events-\d{4}(-\d{2})?)\.json$/.test(
     rel
   );
 
@@ -487,7 +487,8 @@ function checkStorageStrategyThresholds(root) {
         if (
           relPath.startsWith('cache/ask-soic/') ||
           relPath.startsWith('cache/ask-anil-lamba/') ||
-          relPath.startsWith('cache/ask-stockscans/')
+          relPath.startsWith('cache/ask-stockscans/') ||
+          relPath.startsWith('cache/ask-x-posts/')
         )
           continue;
         if (relPath.endsWith('.json') || relPath.endsWith('.jsonl')) {

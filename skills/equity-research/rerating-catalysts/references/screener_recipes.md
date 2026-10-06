@@ -2,6 +2,7 @@
 
 These recipes originate from SOIC masterclasses:
 
+- _Class 7: Screening Non-Linear Businesses (04.10.26 / 06.10.26)_
 - _13.09.26 Masterclass on Screening — Spotting "J Curves"_
 - _12.07.26 Identifying Growth Catalysts with StockScans_
 - _08.03.26 Find J-Curve Exploding Stocks_
@@ -104,3 +105,108 @@ Monitors capital goods, defence, EPC, and railway companies where order inflow p
   - `Order Book / Letter of Award` where order value $\ge 0.3 \times$ TTM Revenue.
   - `Scheme of Arrangement / Demerger` shedding loss-making drag.
   - `Preferential Issue / Convertible Warrants` to promoters locking in current market price.
+
+---
+
+## 6. Early Stage 2 & Young Momentum Scan (SOIC Class 7 · @00:58:45)
+
+Filters for stocks transitioning from base accumulation into young Stage 2 momentum, where growth is newly accelerating and price is NOT elongated.
+
+### StockScans / Screener Recipe:
+
+```text
+Close >= WEMA(Close, 30) AND
+WEMA(Close, 30) > WEMA(Close, 30, 1) AND
+Close <= 1.30 * Low 52W + 0.20 * (High 52W - Low 52W) AND
+Sales Growth Latest Quarter YoY (%) > 15.0 AND
+Sales Growth Preceding Quarter YoY (%) > 15.0 AND
+Net Profit Growth Latest Quarter YoY (%) > 20.0 AND
+Market Capitalization (Cr) >= 500.0
+```
+
+### Analytical Intent:
+
+- **30-WEMA upward curl:** Captures early Stage 2 breakout rather than extended Stage 3 distribution.
+- **Not elongated:** Price is close to its base, avoiding chasing stocks that have already multiplied.
+- **Consecutive sales growth (>15% for 2 quarters):** Confirms top-line rate of change is structural.
+- **Case Reference:** _Rolex Rings_ (@00:59:29) — stagnant growth (~10%) for 3–4 years suddenly inflecting with mid-teens/20% forward guidance and a ₹180 Cr share buyback.
+
+---
+
+## 7. StockBee 4% Momentum Scan ("Movers and Shakers") (SOIC Class 7 · @00:58:04)
+
+A daily tactical screen to catch the early institutional accumulation footprint ("shock value" in volume and price).
+
+### StockScans Filter Query:
+
+```text
+Returns 1D (%) >= 4.0 AND
+Volume >= 2.0 * SMA(Volume, 50) AND
+Close >= 50.0 AND
+Market Capitalization (Cr) >= 300.0
+```
+
+### Analytical Intent:
+
+- Spotting the first session where a stock breaks out of a multi-week consolidation on heavy institutional volume.
+- Feed survivors into `/rerating-catalysts` Phase 2.5 to match with recent corporate announcements or concall guidance shifts.
+
+---
+
+## 8. 3-Week Volatility Contraction Pattern (VCP) (SOIC Class 7 · @01:02:37)
+
+Captures tight price coiling near 52-week highs where selling pressure has dried up, creating an asymmetric setup before Stage 2 expansion.
+
+### StockScans Filter Query:
+
+```text
+Close >= 0.85 * High 52W AND
+High 1W - Low 1W < High 2W - Low 2W AND
+High 2W - Low 2W < High 3W - Low 3W AND
+Volume <= SMA(Volume, 20) AND
+Market Capitalization (Cr) >= 500.0
+```
+
+### Analytical Intent:
+
+- Identifies Mark Minervini / Weinstein style base consolidation right before a catalyst pushes the stock into the Super Performance Zone.
+
+---
+
+## 9. Super Growth 50 (CANSLIM Earnings Acceleration) (SOIC Class 7 · @01:03:23)
+
+A high-hurdle growth filter inspired by CANSLIM, filtering the entire Indian stock universe down to ~40–50 high-velocity candidates.
+
+### StockScans Filter Query:
+
+```text
+Net Profit Growth Latest Quarter YoY (%) >= 25.0 AND
+Net Profit Growth Preceding Quarter YoY (%) >= 20.0 AND
+Sales Growth Latest Quarter YoY (%) >= 15.0 AND
+Return on Equity (%) >= 15.0 AND
+Market Capitalization (Cr) >= 500.0
+```
+
+### Analytical Intent:
+
+- Identifies true earnings leaders where quarterly EPS growth is accelerating and capital efficiency (ROE $\ge 15\%$) is verified.
+
+---
+
+## 10. Structural Deleveraging & Margin Expansion Scan (SOIC Class 7 · @01:02:37)
+
+Hunts for silent compounding machines where operating leverage (fixed overhead absorption) combines with debt retirement to generate non-linear PAT jumps.
+
+### StockScans Filter Query:
+
+```text
+Debt to Equity Ratio < Debt to Equity Ratio Preceding Year AND
+Debt to Equity Ratio <= 0.8 AND
+Operating Profit Margin Latest Quarter (%) > Operating Profit Margin Preceding Year Same Quarter (%) + 1.5 AND
+Net Profit Growth Latest Quarter YoY (%) >= 20.0 AND
+Interest Coverage Ratio >= 3.0
+```
+
+### Analytical Intent:
+
+- Mathematically validates Dr. Anil Lamba's Combined Leverage formula: sales growth + margin expansion + reduced finance costs driving explosive bottom-line accretion.

@@ -14,6 +14,10 @@
  *   router                    Tier 1 (page-level text) + Tier 2 (OCR), no model
  *   t3=<provider>[/<mode>]    the local model ALONE on the best result pages (measures the model, not the router)
  *   full=<provider>[/<mode>]  router, escalating to the model only when Tiers 1-2 fail verification
+ *   ocronly=<engine>          OCR engine comparison: skips the text-layer parse so every engine reads the same pages;
+ *                             <engine> = tesseract | <ocr model>  (e.g. ocronly=tesseract, ocronly=ollama:glm-ocr)
+ *   ocr=<ocr model|tesseract>[+<model>[/<mode>]]  router whose Tier 2 reads pages with a dedicated OCR model (e.g. ocr=ollama:glm-ocr),
+ *                             optionally followed by Tier 3 with <model>
  *   mock=parser               harness self-test: a fake "model" that replays the Tier 1 parser (no network)
  *   <provider> = ollama:<model>[@baseUrl] | openai:<model>[@baseUrl];  <mode> = text | image | both (default text)
  *
@@ -40,20 +44,72 @@ const arg = (n, d) => {
   return i === -1 ? d : process.argv[i + 1];
 };
 
+// --max-tokens N caps output per call; the default is no cap (output tokens are a reported metric instead)
+const PROV = { numPredict: Number(arg('--max-tokens', 0)) || undefined };
+
+/** "<provider spec>#chat|compact" -> {spec, style}: force a prompt style (default: chosen by model size). */
+function splitStyle(s) {
+  const m = /^(.*)#(chat|compact)$/.exec(s);
+  return m ? { spec: m[1], style: m[2] } : { spec: s, style: undefined };
+}
+
+/** "dpi=300,psm=4,prep=clean" -> options for pages.ocrPage (the engine itself is written tesseract:<options>). */
+function parseTess(str) {
+  const o = {};
+  for (const kv of String(str || '')
+    .split(',')
+    .filter(Boolean)) {
+    const [k, v] = kv.split('=');
+    if (!['dpi', 'psm', 'prep'].includes(k)) throw new Error(`bad tesseract option "${kv}"`);
+    o[k] = k === 'prep' ? v : Number(v);
+  }
+  return o;
+}
+
 function parseCandidate(spec) {
   const s = spec.trim();
   if (s === 'router') return { id: 'router', opts: {} };
+  const o = /^(ocr|ocronly)=([^+]+)(?:\+(.+))?$/.exec(s);
+  const tess = o && /^tesseract(?::(.*))?$/.exec(o[2]);
+  if (o) {
+    // ocr=<ocr model>[+<extraction model>[/mode]]: Tier 2 reads pages with the OCR model; the optional second model is Tier 3
+    // the engine 'tesseract' is the current Tier 2; ocronly= skips the text-layer parse so every engine reads the same pages
+    const opts = tess
+      ? { tesseract: parseTess(tess[1]) }
+      : { ocrModel: { provider: providerFromSpec(o[2], PROV) } };
+    if (o[1] === 'ocronly') opts.forceOcr = true;
+    if (o[3]) {
+      let rest = o[3];
+      let mode = 'text';
+      const sl = rest.lastIndexOf('/');
+      if (sl > 0 && ['text', 'image', 'both'].includes(rest.slice(sl + 1))) {
+        mode = rest.slice(sl + 1);
+        rest = rest.slice(0, sl);
+      }
+      const sp = splitStyle(rest);
+      opts.tier3 = { provider: providerFromSpec(sp.spec, PROV), mode, promptStyle: sp.style };
+    }
+    return { id: s, opts };
+  }
   const m = /^(t3|full|mock)=(.+)$/.exec(s);
   if (!m) throw new Error(`bad candidate "${s}"`);
   let [, kind, rest] = m;
   let mode = 'text';
+  // grammar: <provider>[/<mode>][#<style>]; the style is read back after the mode is removed
+  const styleM = /#(chat|compact)$/.exec(rest);
+  const styleSuffix = styleM ? styleM[0] : '';
+  if (styleM) rest = rest.slice(0, -styleSuffix.length);
   const slash = rest.lastIndexOf('/');
   if (slash > 0 && ['text', 'image', 'both'].includes(rest.slice(slash + 1))) {
     mode = rest.slice(slash + 1);
     rest = rest.slice(0, slash);
   }
-  const provider = kind === 'mock' ? parserMock() : providerFromSpec(rest);
-  return { id: s, opts: { tier3: { provider, mode }, skipTier1: kind === 't3' } };
+  const sp = { spec: rest, style: styleM ? styleM[1] : undefined };
+  const provider = kind === 'mock' ? parserMock() : providerFromSpec(sp.spec, PROV);
+  return {
+    id: s,
+    opts: { tier3: { provider, mode, promptStyle: sp.style }, skipTier1: kind === 't3' },
+  };
 }
 
 /** Fake model: replays the Tier 1 parser over the page text it is shown, "as printed" (harness self-test). */
@@ -92,6 +148,9 @@ async function runOne({ runId, cand, doc, truth, hardwareId, t0 }) {
     rec.verification = res.verification || null;
     rec.unit = res.unit || null;
     rec.basis = res.basis || null;
+    rec.promptStyle = res.promptStyle || null;
+    rec.reason = res.reason || null;
+    rec.trail = res.trail || null;
     if (res.found) {
       rec.basisMismatch = res.basis && res.basis !== 'unknown' && res.basis !== truth.basis;
       Object.assign(rec, S.scoreFields(truth.is, res.cur));
@@ -118,6 +177,10 @@ async function runOne({ runId, cand, doc, truth, hardwareId, t0 }) {
       local: res.tokens.local,
       localInput: res.tokens.localInput,
       localOutput: res.tokens.localOutput,
+      localCalls: res.tokens.localCalls,
+      localCut: res.tokens.localCut,
+      localMaxOutput: res.tokens.localMaxOutput,
+      localFailed: res.tokens.localFailed,
     };
   } catch (e) {
     rec.error = String(e.message).slice(0, 200);
@@ -155,6 +218,7 @@ async function main() {
       truth.has(r.docId) &&
       !quarantined.has(r.docId)
   );
+  if (arg('--docs', null)) docs = docs.filter((r) => arg('--docs').split(',').includes(r.docId));
   if (arg('--forms', null)) docs = docs.filter((r) => arg('--forms').split(',').includes(r.form));
   if (limit) docs = docs.slice(0, limit);
   const t0 = Date.now();

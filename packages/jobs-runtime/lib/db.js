@@ -41,6 +41,7 @@ const DIRS = {
   conversations: () => path.join(dataRoot(), 'conversations'),
   learnystLessons: () => path.join(dataRoot(), 'learnyst-lessons'),
   youtubeTranscripts: () => path.join(dataRoot(), 'youtube-transcripts'),
+  xPosts: () => path.join(dataRoot(), 'x-posts'),
   assets: () => path.join(dataRoot(), 'assets'),
   runs: () => path.join(dataRoot(), 'runs'),
   cache: () => path.join(dataRoot(), 'cache'),
@@ -91,6 +92,13 @@ const SINGLE_FILE_COLLECTIONS = [
   // only the slim index. Written via saveYoutubeTranscript() below, never
   // directly.
   'youtube-transcripts',
+  // x-posts: slim index for expert X (Twitter) posts/replies/threads/articles
+  // (x-posts importer, tools/x-timeline-capture). Same justification as
+  // youtube-transcripts (DATA_RULES.md §3): a new entity class — not
+  // company-scoped, personal knowledge-base content. Two-file pattern: full text
+  // lives in x-posts/shard_<hex>.jsonl, this file holds the slim index. Written
+  // via saveXPosts() below, never directly.
+  'x-posts',
 ];
 const LINK_CAP = 200; // max event/note/insight ids kept on a company object
 const LOCK_STALE_MS = 5 * 60 * 1000;
@@ -570,6 +578,46 @@ function getYoutubeStore() {
     });
   }
   return _youtubeStore;
+}
+
+let _xPostsStore = null;
+function getXPostsStore() {
+  if (!_xPostsStore) {
+    _xPostsStore = new JsonlStore({
+      baseDir: DIRS.xPosts(),
+      partitioner: hashPartitioner({ filePrefix: 'shard_', md5: true }),
+      lockPrefix: 'xposts',
+      withLock,
+      trackTouched,
+    });
+  }
+  return _xPostsStore;
+}
+
+/**
+ * Save expert X posts (see lib/xPosts.js buildDocs): full DTO body →
+ * x-posts/shard_<hex>.jsonl, slim index entry → x-posts.json. Deterministic id
+ * per (handle, key) — key = conversation id for posts/threads, the reply's own id for replies so re-importing the same capture upserts, never duplicates.
+ * `docs` must carry creator, type "x-post", handle, rootId. NOT company-scoped.
+ */
+function saveXPosts(docs) {
+  if (!docs.length) return { saved: 0 };
+  const { toIndexEntry } = require('./xPosts');
+  init();
+  const store = getXPostsStore();
+  const idx = [];
+  for (const dto of docs) {
+    ensureEnvelope(dto, {
+      kind: 'xp',
+      scope: String(dto.handle).toLowerCase(),
+      discriminator: String(dto.key || dto.rootId),
+    });
+    const shard = crypto.createHash('md5').update(String(dto.id)).digest('hex')[0].toLowerCase();
+    store.set(dto.id, dto, dto.id);
+    idx.push(toIndexEntry(dto, `shard_${shard}.jsonl`));
+  }
+  upsertMany('x-posts', idx);
+  return { saved: docs.length };
 }
 
 /**
@@ -1078,6 +1126,7 @@ module.exports = {
   saveLearnystTranscript,
   readLearnystTranscript,
   saveYoutubeTranscript,
+  saveXPosts,
   readYoutubeTranscript,
   saveConversation,
   readConversation,

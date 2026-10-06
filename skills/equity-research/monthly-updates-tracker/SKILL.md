@@ -84,10 +84,13 @@ Flags: `--months N` (default 15), `--max-day N` (default 3), `--force`.
    series, computes growth, writes `events` records and the report DTO, and
    renders the page to `data/assets/monthly-updates/index.html`.
 
-6. **Deploy.** `yarn monthly-updates deploy`. Needs the Vercel CLI authenticated
-   once (`npm i -g vercel && vercel login`, or a `VERCEL_TOKEN` in the env).
-   If it fails, the page is still on disk — say so rather than treating it as a
-   total failure.
+6. **Deploy.** `yarn monthly-updates deploy`. Runs `vercel --yes --prod` from
+   the asset directory. If it fails, check `vercel whoami` first. If Vercel is
+   authenticated, any failure is an execution/network/config bug that must be
+   diagnosed and fixed rather than bypassed. After deployment, always probe the
+   live URL (`curl -sI https://monthly-updates.vercel.app/`) to confirm HTTP 200
+   and that the new period is live. If Vercel CLI is genuinely unauthenticated,
+   report the local path and instructions to authenticate.
 
 7. **Push.** `yarn data:push`, then report the files-touched manifest (§9).
 

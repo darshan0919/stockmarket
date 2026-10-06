@@ -45,13 +45,17 @@ function buildDigestHtml(dto, { deployUrl = null } = {}) {
   const pageUrl = deployUrl || 'https://monthly-updates.vercel.app';
   const localAsset = 'data/assets/monthly-updates/index.html';
 
-  const yoyMovers = [...companies]
+  const latestPeriodCompanies = companies.filter(
+    (c) => c.latestPeriod === latestPeriod && c.months >= 2
+  );
+
+  const yoyMovers = [...(latestPeriodCompanies.length >= 5 ? latestPeriodCompanies : companies)]
     .filter((c) => typeof c.yoyPct === 'number' && !isNaN(c.yoyPct))
     .sort((a, b) => Math.abs(b.yoyPct) - Math.abs(a.yoyPct))
     .slice(0, 5);
 
-  const qoqMovers = [...companies]
-    .filter((c) => typeof c.qoqPct === 'number' && !isNaN(c.qoqPct))
+  const qoqMovers = [...(latestPeriodCompanies.length >= 5 ? latestPeriodCompanies : companies)]
+    .filter((c) => typeof c.qoqPct === 'number' && !isNaN(c.qoqPct) && c.companyId !== 'NSE:SOBHA')
     .sort((a, b) => Math.abs(b.qoqPct) - Math.abs(a.qoqPct))
     .slice(0, 5);
 
@@ -62,48 +66,48 @@ function buildDigestHtml(dto, { deployUrl = null } = {}) {
 
   const signFlipsRaw = [
     {
+      companyId: 'NSE:VSTTILLERS',
+      name: 'VST Tillers Tractors',
+      metric: 'Total sales quantity (units)',
+      transition: 'Shrinking → Growing (Sharp MoM & YoY Rebound)',
+      detail:
+        'August collapsed -36.4% MoM (3,720 units) on subsidy delays; surged <strong>+60.1% MoM</strong> in September to <strong>5,954 units (+32.9% YoY)</strong> on aggressive pre-festive channel filling.',
+      signalType: 'Rebound',
+    },
+    {
       companyId: 'NSE:ESCORTS',
       name: 'Escorts Kubota',
       metric: 'Tractor sales volume (units)',
-      transition: 'Shrinking → Growing (MoM Rebound)',
+      transition: 'Growing → Shrinking YoY (High Base & Calendar Shift)',
       detail:
-        'July dropped -36.2% MoM (8,731 units) on erratic monsoon sowing; surged <strong>+15.4% MoM</strong> in August (10,072 units, <strong>+19.1% YoY</strong>) kicking off festive inventory replenishment.',
-      signalType: 'Rebound',
+        'August was +19.1% YoY (10,072 units); September slipped <strong>-16.7% YoY</strong> (15,214 units) despite a strong <strong>+51.1% MoM surge</strong>, as Navratri/Puja shifted into October 2026.',
+      signalType: 'Contraction',
+    },
+    {
+      companyId: 'NSE:ASHOKLEY',
+      name: 'Ashok Leyland',
+      metric: 'Total vehicle sales (units)',
+      transition: 'Steady → Accelerating (Sequential Breakout)',
+      detail:
+        'July was sluggish and August rose +7.4% MoM; September broke out <strong>+14.3% MoM</strong> to <strong>24,049 units (+27.8% YoY)</strong> driven by robust commercial vehicle fleet demand.',
+      signalType: 'Acceleration',
     },
     {
       companyId: 'NSE:V2RETAIL',
       name: 'V2 Retail',
       metric: 'Standalone revenue (Rs cr)',
-      transition: 'Shrinking → Growing (QoQ Turnaround)',
+      transition: 'Sequential Festive Pause (QoQ Dip Ahead of Oct Surge)',
       detail:
-        'Q4 revenue dipped -13.9% QoQ (Rs 798 cr); rebounded <strong>+24.9% QoQ</strong> in Q1 (Rs 997 cr) with <strong>+58.3% YoY</strong> backed by strong tier-2/3 store expansions.',
-      signalType: 'Acceleration',
-    },
-    {
-      companyId: 'NSE:CAPITALSFB',
-      name: 'Capital Small Finance Bank',
-      metric: 'Total Deposits (Rs cr)',
-      transition: 'Shrinking → Growing (QoQ Recovery)',
-      detail:
-        'Deposits slipped -6.8% QoQ in Q4 (Rs 8,687 cr); rebounded <strong>+22.0% QoQ</strong> in Q1 (Rs 10,596 cr, <strong>+16.3% YoY</strong>).',
-      signalType: 'Rebound',
-    },
-    {
-      companyId: 'NSE:SMLMAH',
-      name: 'SML Isuzu',
-      metric: 'Total vehicle sales (units)',
-      transition: 'Growing → Shrinking (Seasonal Peak Out)',
-      detail:
-        'May/June expanded to 1,930 units on school bus peak; reversed sharply in July and August (<strong>-26.7% MoM</strong> to 1,175 units, <strong>-21.1% QoQ</strong>), though YoY remains +39.5%.',
+        'Q1 revenue was Rs 997 cr (+24.9% QoQ); Q2 dipped <strong>-9.2% QoQ</strong> to Rs 905 cr as festive purchases shifted to October Q3, while maintaining strong <strong>+28.4% YoY</strong> growth.',
       signalType: 'Contraction',
     },
     {
-      companyId: 'NSE:VSTTILLERS',
-      name: 'VST Tillers Tractors',
-      metric: 'Total sales quantity (units)',
-      transition: 'Growing → Shrinking (Sequential & YoY Drop)',
+      companyId: 'NSE:STYLEBAAZA',
+      name: 'Style Baazar',
+      metric: 'Standalone revenue (Rs cr)',
+      transition: 'Growing → Shrinking (Puja Timing Shift)',
       detail:
-        'June peaked at 8,107 units (+81.3% MoM); fell to 5,853 in July and <strong>3,720 units in August (-36.4% MoM, -17.3% YoY)</strong> due to tiller subsidy disbursement gaps.',
+        'Eastern retail faced pre-Puja timing distortion: Q2 revenue dipped <strong>-10.1% YoY</strong> (Rs 478.1 cr vs Rs 532.0 cr) with festive footfalls shifting into October.',
       signalType: 'Contraction',
     },
   ];
@@ -145,26 +149,40 @@ function buildDigestHtml(dto, { deployUrl = null } = {}) {
         </h2>
         <div style="background:#fdfdfd;border-left:4px solid #137333;padding:12px 16px;margin-bottom:12px;border-radius:0 6px 6px 0;background:#f6fbf7;">
           <div style="font-weight:700;color:#137333;font-size:14px;margin-bottom:4px;">
-            STRONG SIGNAL: Commercial Vehicles, Vans & Auto Ancillaries Booming
+            STRONG SIGNAL: Commercial Vehicles, 2W/3W & Auto Ancillaries Accelerating
           </div>
           <p style="margin:0;font-size:13px;color:#3c4043;">
-            This is <strong>not an isolated single-company spike</strong> — multi-company volume confirmation proves robust underlying commercial demand.
-            ${stockscansLink('Force Motors', 'NSE:FORCEMOT', 'NSE', '#1a73e8')} surged <strong>+58.2% YoY</strong> (3,802 units, 4th straight month of growth),
-            ${stockscansLink('Steel Strips Wheels', 'NSE:SSWL', 'NSE', '#1a73e8')} posted turnover of Rs 592.92 cr (<strong>+53.6% YoY, +3.8% MoM</strong>),
-            ${stockscansLink('SML Isuzu', 'NSE:SMLMAH', 'NSE', '#1a73e8')} delivered <strong>+39.5% YoY</strong> (1,175 units),
-            ${stockscansLink('Ashok Leyland', 'NSE:ASHOKLEY', 'NSE', '#1a73e8')} climbed to 21,038 units (<strong>+38.0% YoY, +7.4% MoM</strong>),
-            ${stockscansLink('Atul Auto', 'NSE:ATULAUTO', 'NSE', '#1a73e8')} expanded to 4,012 units (<strong>+32.6% YoY, +5.6% MoM</strong>), and
-            ${stockscansLink('TVS Motor', 'NSE:TVSMOTOR', 'NSE', '#1a73e8')} maintained massive scale with 6,16,540 units (<strong>+21.0% YoY</strong>).
+            This is <strong>not an isolated single-company spike</strong> — multi-company volume confirmation proves robust festive demand across OEMs and component suppliers.
+            ${stockscansLink('TVS Motor', 'NSE:TVSMOTOR', 'NSE', '#1a73e8')} maintained massive scale with 6,72,790 units (<strong>+24.4% YoY, +9.1% MoM, +17.7% QoQ</strong>),
+            ${stockscansLink('Ashok Leyland', 'NSE:ASHOKLEY', 'NSE', '#1a73e8')} broke out to 24,049 units (<strong>+27.8% YoY, +14.3% MoM</strong>),
+            ${stockscansLink('Steel Strips Wheels', 'NSE:SSWL', 'NSE', '#1a73e8')} posted net turnover of Rs 625.81 cr (<strong>+52.4% YoY, +5.5% MoM, +22.0% QoQ</strong>),
+            ${stockscansLink('Sedemac Mechatronics', 'NSE:SEDEMAC', 'NSE', '#1a73e8')} surged to 14,52,867 ECUs/controllers (<strong>+37.5% YoY, +31.1% QoQ</strong>),
+            ${stockscansLink('Atul Auto', 'NSE:ATULAUTO', 'NSE', '#1a73e8')} climbed to 4,104 units (<strong>+17.2% YoY, +2.3% MoM, +27.4% QoQ</strong>), and
+            ${stockscansLink('Eicher Motors (Royal Enfield)', 'NSE:EICHERMOT', 'NSE', '#1a73e8')} hit 1,33,958 motorcycles (<strong>+7.7% YoY</strong>).
+          </p>
+        </div>
+
+        <div style="background:#fdfdfd;border-left:4px solid #1a73e8;padding:12px 16px;margin-bottom:12px;border-radius:0 6px 6px 0;background:#f8faff;">
+          <div style="font-weight:700;color:#1a73e8;font-size:14px;margin-bottom:4px;">
+            STRONG SIGNAL: Steel Pipes & Structural Tubes Capacity Utilization
+          </div>
+          <p style="margin:0;font-size:13px;color:#3c4043;">
+            Synchronized volume acceleration across structural steel pipe manufacturers confirms broad infra and construction momentum:
+            ${stockscansLink('APL Apollo Tubes', 'NSE:APLAPOLLO', 'NSE', '#1a73e8')} dispatched 9,63,143 tonnes (<strong>+12.6% YoY, +29.3% QoQ</strong>),
+            ${stockscansLink('Hi-Tech Pipes', 'NSE:HITECH', 'NSE', '#1a73e8')} hit 1,65,016 MT (<strong>+31.8% YoY, +5.7% QoQ</strong>),
+            ${stockscansLink('Surya Roshni', 'NSE:SURYAROSNI', 'NSE', '#1a73e8')} delivered its highest-ever quarterly sales of 2.67 lakh tonnes (<strong>+22.5% YoY</strong>), and
+            ${stockscansLink('JTL Industries', 'NSE:JTLIND', 'NSE', '#1a73e8')} achieved 1,02,255 MT (<strong>+25.3% YoY</strong>).
           </p>
         </div>
 
         <div style="background:#fff8e1;border-left:4px solid #f9ab00;padding:12px 16px;margin-bottom:12px;border-radius:0 6px 6px 0;">
           <div style="font-weight:700;color:#b06000;font-size:14px;margin-bottom:4px;">
-            MIXED / VOLATILE: Agri Equipment Divergence & Sowing Dynamics
+            MIXED / VOLATILE: Agri Equipment Dynamics & Festive Calendar Timing
           </div>
           <p style="margin:0;font-size:13px;color:#3c4043;">
-            ${stockscansLink('Escorts Kubota', 'NSE:ESCORTS', 'NSE', '#1a73e8')} staged a sharp sequential recovery (<strong>+15.4% MoM</strong> to 10,072 units, <strong>+19.1% YoY</strong>) after July's -36% pause, indicating aggressive dealer channel filling for the harvest season. Conversely,
-            ${stockscansLink('VST Tillers', 'NSE:VSTTILLERS', 'NSE', '#1a73e8')} fell <strong>-36.4% MoM and -17.3% YoY</strong> (3,720 units vs 8,107 peak in June), sensitive to regional rain delays and state subsidy releases.
+            ${stockscansLink('VST Tillers', 'NSE:VSTTILLERS', 'NSE', '#1a73e8')} staged a sharp rebound (<strong>+60.1% MoM</strong> to 5,954 units, <strong>+32.9% YoY</strong>) following August's subsidy-related pause.
+            Meanwhile, ${stockscansLink('Escorts Kubota', 'NSE:ESCORTS', 'NSE', '#1a73e8')} surged <strong>+51.1% MoM</strong> (15,214 units) but dipped <strong>-16.7% YoY</strong> due to a high festive base last September.
+            In consumer retail, ${stockscansLink('V2 Retail', 'NSE:V2RETAIL', 'NSE', '#1a73e8')} (<strong>+28.4% YoY</strong>) and ${stockscansLink('Style Baazar', 'NSE:STYLEBAAZA', 'NSE', '#1a73e8')} (<strong>-10.1% YoY</strong>) reflect the Durga Puja calendar shift from late September 2025 to October 2026.
           </p>
         </div>
 
@@ -173,9 +191,9 @@ function buildDigestHtml(dto, { deployUrl = null } = {}) {
             NOISE / BASE-EFFECT FLAGS (Do Not Treat as Trends)
           </div>
           <p style="margin:0;font-size:13px;color:#3c4043;">
-            ${stockscansLink('Bright Outdoor Media', 'BSE:BRIGHT', 'BSE', '#1a73e8')} reported +1,058% QoQ on hoarding additions (1,800 vs 155) — lumpy asset delivery on a tiny base with only 2 quarters history.
-            ${stockscansLink('Valiant Laboratories', 'BSE:VALIANT', 'BSE', '#1a73e8')} (+164.8% YoY) and
-            ${stockscansLink('True Colors', 'BSE:TRUECOLORS', 'BSE', '#1a73e8')} (+64.8% YoY) have only 1 filing on record.
+            ${stockscansLink('Diamond Power (Diacabs)', 'NSE:DIACABS', 'NSE', '#1a73e8')} reported +30,082% YoY on its initial monthly disclosure off an empty base (1 month history).
+            ${stockscansLink('Sobha', 'NSE:SOBHA', 'NSE', '#1a73e8')} shows an artificial +60,247% QoQ jump due to a unit switch from Rs cr to Rs mn in company disclosures (true Q2 sales value: Rs 2,206 cr, <strong>+16.0% YoY</strong>).
+            ${stockscansLink('Bright Outdoor Media', 'BSE:BRIGHT', 'BSE', '#1a73e8')} (+1,058% QoQ) reflects lumpy hoarding additions on a 2-quarter base.
           </p>
         </div>
       </div>
@@ -373,8 +391,8 @@ function buildDigestHtml(dto, { deployUrl = null } = {}) {
           🔍 Data Quality & Parser Audit
         </div>
         <ul style="margin:0;padding-left:18px;font-size:12px;color:#3c4043;line-height:1.6;">
-          <li><strong>Zero-Figure Filings:</strong> 71 of 372 cached filings carried no figure (70 confirmed cover-letter/investor-meet narrative updates + 1 zero-numeric filing). This 19.1% rate matches the expected ~1-in-5 baseline.</li>
-          <li><strong>Low-Confidence / Discontinuity Flag:</strong> ${stockscansLink('Eicher Motors', 'NSE:EICHERMOT', 'NSE', '#1a73e8')} files separate releases for Royal Enfield (motorcycles) and VECV (commercial vehicles). July captured VECV (8,241 units) while August captured Royal Enfield (126,479 units), causing a spurious +1434.8% MoM jump. True Royal Enfield YoY volume grew a solid <strong>+10.9%</strong>.</li>
+          <li><strong>Zero-Figure Filings:</strong> 71 of 372 cached filings carried no figure (70 confirmed cover-letter/investor-meet narrative updates like Marico, Godrej Consumer, Nykaa, Metropolis, Arham, Lloyds Metals, Shivam, Surani + 1 zero-numeric filing). This 19.1% rate matches the expected ~1-in-5 baseline.</li>
+          <li><strong>Low-Confidence / Discontinuity Flag:</strong> ${stockscansLink('Sobha', 'NSE:SOBHA', 'NSE', '#1a73e8')} transitioned from Rs cr to Rs mn in disclosures, triggering a mathematical QoQ jump (+60,247%); real Q2 sales were Rs 2,206 cr (+16.0% YoY). ${stockscansLink('Eicher Motors', 'NSE:EICHERMOT', 'NSE', '#1a73e8')} files separate releases for Royal Enfield (motorcycles: 1,33,958 units, <strong>+7.7% YoY</strong>) and VECV (commercial vehicles: 11,396 units).</li>
           <li><strong>Multi-Unit Guardrail:</strong> Absolute sums across companies are suppressed; growth percentages are indexed with first period = 100 on the live dashboard.</li>
         </ul>
       </div>
@@ -398,7 +416,7 @@ async function sendMonthlyUpdatesEmail({ to = undefined, dryRun = false, deployU
   if (!dto) throw new Error(`Could not load report content for ${latestMeta.id}`);
 
   const htmlBody = buildDigestHtml(dto, { deployUrl });
-  const subject = `📊 Monthly Business Updates — ${dto.summary.latestPeriod || 'Sales Tracker'} | Commercial Auto Boom, Agri Rebound`;
+  const subject = `📊 Monthly Business Updates — ${dto.summary.latestPeriod || 'Sales Tracker'} | Auto OEM Surge, Steel Tubes Expansion, Agri Rebound`;
 
   if (dryRun) {
     console.log('[notify] Dry run — email not sent. Subject:', subject);

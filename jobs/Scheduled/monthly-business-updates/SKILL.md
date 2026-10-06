@@ -48,11 +48,12 @@ and none is to be added.
 
 5. **Build.** `yarn monthly-updates build`.
 
-6. **Deploy.** `yarn monthly-updates deploy`. If the Vercel CLI isn't
-   authenticated, the deploy fails but the page is still on disk at
-   `data/assets/monthly-updates/index.html` — report the local path and what
-   Darshan needs to run once (`vercel login`), and continue. A failed deploy is
-   not a failed run.
+6. **Deploy.** `yarn monthly-updates deploy`. Runs `vercel --yes --prod` from
+   the asset directory. Check `vercel whoami` if an error occurs — if already
+   authenticated, any failure is an execution bug that must be investigated and
+   fixed. Always probe `https://monthly-updates.vercel.app/` with curl to
+   verify HTTP 200 and that the new period is live. Only if genuinely unauthenticated
+   should the local path be reported with instructions to run `vercel login`.
 
 7. **Push.** `yarn data:push`.
 

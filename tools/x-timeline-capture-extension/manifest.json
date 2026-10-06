@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "X Timeline Capture (personal KB)",
+  "version": "1.1.0",
+  "description": "Give handles + start/end date; captures posts, replies, quotes and long-form notes from your logged-in X session into JSON for the stockmarket KB. Personal use; no data leaves your browser.",
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "downloads",
+    "alarms",
+    "tabs",
+    "scripting",
+    "offscreen",
+    "nativeMessaging"
+  ],
+  "host_permissions": ["https://x.com/*", "https://abs.twimg.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "X Timeline Capture"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://x.com/*"],
+      "js": ["core.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhDUOipbs3/NWXb7rWHRyqnsFRb7QwphgIM2LtbrQSL7c0JYUcjGPZG2akkVBvnk64+Ub+6EQ71bmIbhjZyT8unZCi89oMoDQOvLguFNmd2AjCOKeCZnaTvbTERzTM0FEYG8ju53ToED/XXVERiDexg5uKLWiZnaxzecVmIAl865oy/KL7PvCxy4bO8K4I7dOKVXmhdQTWdXjgzIrWe600wJN8Qgxafv8ZrJJpvEKF4C+NiUxBL9Ts3fXBDU/AHJeQ4QN+TTMuMuXUJs9g75U2J1GnJsiL7VlrrWkzt8hKFjosPw4bmRUPEW0pQ4ZHkGpJW9dtmwrG1HaAnD7wTGkDwIDAQAB"
+}

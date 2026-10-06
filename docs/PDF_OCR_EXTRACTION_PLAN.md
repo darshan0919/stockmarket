@@ -272,6 +272,12 @@ material only: `data:push`/`pull`/`status` skip `data/pdf-corpus/` (`packages/jo
 - **Result size:** about 6.8 MB per PDF on average; the 15-25 GB estimate held.
 - **Scan coverage:** the bulk listing is about 40% complete by unit (Orders and Credit Rating are complete; others cover the
   newest quarters). Enough for every minimum; finishing it only adds diversity (older quarters).
+- **P3 build status (2026-10-03):** the router, Tier 3 providers and verifier exist and are tested (62 jest tests, mocks and a local
+  mock HTTP server). Dev split, 157 docs, no model: `router-v5` serves 29.3% at 83.2% field accuracy (headline fields 90.8%),
+  0 sign flips, 1 power-of-ten error; the whole-document baseline on the same docs served 43.3% at 63.6% with 94 power-of-ten
+  errors, so the router trades coverage for correctness. Not eligible yet (needs 98%). Residual for Tier 3: 87 abstained docs
+  (48 no table located, 39 unverified) and 24 docs served on the wrong basis. No real model has been run: Tier 3 numbers are
+  unmeasured. Runbook, model tags and commands: `docs/LOCAL_MODEL_EXTRACTION.md`.
 - **Baseline (`baseline-v0`, today's pipeline = pdftotext layout + OCR-if-empty + `extractIncomeStatement`, dev split, 274 Results):**
   strict field accuracy 6.5%; abstain rate 47%; on found docs 12.2% strict, 41% once units are fixed; 710 power-of-ten
   errors, 0 sign flips; scanned PDFs 0% (100% abstain); p50 40 ms, 0 agent tokens. Main failure: undetected units

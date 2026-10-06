@@ -71,6 +71,7 @@ function isCandidateOrphan(driveRel) {
   if (driveRel.startsWith('cache/monthly-updates-text/shard_')) return false;
   if (driveRel.startsWith('learnyst-lessons/shard_')) return false;
   if (driveRel.startsWith('youtube-transcripts/shard_')) return false;
+  if (driveRel.startsWith('x-posts/shard_')) return false;
 
   // Single JSONLs are target replacements:
   if (driveRel === 'cache/monthly-updates-parsed/parsed.jsonl') return false;
@@ -78,7 +79,7 @@ function isCandidateOrphan(driveRel) {
   if (/^reports\/reports-\d{4}-Q\d\.jsonl$/.test(driveRel)) return false;
   if (/^conversations\/conversations-\d{4}\.jsonl$/.test(driveRel)) return false;
   if (/^events-\d{4}\.json$/.test(driveRel)) return false;
-  if (/^(reports|conversations|learnyst-lessons|youtube-transcripts)\.json$/.test(driveRel))
+  if (/^(reports|conversations|learnyst-lessons|youtube-transcripts|x-posts)\.json$/.test(driveRel))
     return false;
   if (driveRel === 'runs/monthly-updates-batches/batches.json') return false;
   if (driveRel === 'cache/stockscans-context/context.jsonl') return false;

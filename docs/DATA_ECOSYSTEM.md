@@ -48,6 +48,8 @@ data/
   learnyst-lessons.json # index of fetched Learnyst course-video transcripts
   learnyst-lessons/soic.jsonl # all course transcripts in a single stream per creator (~86 MB)
   youtube-transcripts.json # index of fetched YouTube video caption transcripts
+  x-posts.json             # slim index of followed experts' X posts/threads/replies (ask-expert)
+  x-posts/shard_<hex>.jsonl # full x-post docs, 16 md5 shards (see tools/x-timeline-capture)
   youtube-transcripts/<channel>.jsonl # channel transcripts in a single stream (e.g. anillamba.jsonl, soicfinance.jsonl)
   cache/                # structured cache stores:
                         #   Heavy (> 10 MB): 16 hex shards (e.g. pdf-text/shard_<hex>.jsonl, doc-extracts/<cat>/shard_<hex>.jsonl)

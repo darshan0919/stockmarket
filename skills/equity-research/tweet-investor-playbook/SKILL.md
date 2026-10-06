@@ -182,6 +182,13 @@ when calling `present_files`. See
 [`skills/_shared/pdf-artifact-step.md`](../../_shared/pdf-artifact-step.md) for the general
 version of this step (most skills need the hex-rebuild this one skips).
 
+## Recency rule (style drift)
+
+Weight the playbook towards the investor's **latest** behaviour: split the corpus into the most recent 12
+months vs earlier, report where tactics/position sizing/stock-selection rules changed, and when old and new
+rules conflict present the newer one as the current playbook and the older as "former approach (until <date>)".
+Hit-rate statistics must be shown both all-time and for the recent window.
+
 ## Strict methodological rules
 
 These are non-negotiable. Apply them throughout:

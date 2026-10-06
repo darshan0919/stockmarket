@@ -2,6 +2,8 @@
 
 Grounding references from SOIC lectures:
 
+- _Crash Course · Class 7: Screening Non-Linear Businesses (Part 2)_
+- _04.10.26 Market Signals: Non-Linear Businesses & S-Curve Frameworks_
 - _13.09.26 Spotting J Curves_
 - _12.07.26 Identifying Growth Catalysts with StockScans_
 - _08.03.26 Find J-Curve Exploding Stocks_
@@ -65,3 +67,51 @@ In EMS, top-line growth can be misleading if a company is confined to low-margin
   - Management announces divestment, shutdown, or demerger of Division B.
   - Suddenly, Division A stands alone. Reported ROCE jumps to 25%, OPM jumps to 18%, and the stock receives a double-engine re-rating (P/E expands from 12x to 25x while EPS rises due to eliminated losses).
 - **Historical Cases:** Crompton Greaves consumer demerger, Lumax Auto Technologies non-core exits, Tube Investments acquisition & turnaround playbook.
+
+---
+
+## 6. Pre-IPO & Unlisted J-Curve Lifecycle: NSE Case Study
+
+- **Catalyst Archetype:** Year Zero / Platform Non-Linearity vs. Regulatory Normalization (Y & R in C-A-T-A-L-Y-S-T).
+- **Mechanism:**
+  - _Hyper-Growth Phase (Unlisted J-Curve):_ Platform exchanges experience massive operating leverage during market retail participation booms (cash and F&O volume surges). With zero incremental delivery cost per trade, incremental revenue drops straight to the bottom line (EBITDA margin expanding beyond 70%). Market participants price the unlisted shares at an accelerating trajectory.
+  - _The Inflection & Plateau (Regulatory Ceilings):_ As market saturation sets in, regulators step in with structural measures: true-to-label fee circulars, options expiry restrictions, tighter derivative lot sizes, and algorithmic curbs.
+  - _The S-Curve Normalization:_ Volume growth normalizes from exponential (40–60%) to nominal GDP+ rates (10–12%). Operating leverage flips: compliance, technology infrastructure, and regulatory levies compress incremental margins.
+- **Analytical Takeaway:** Map whether an asset sits in early unlisted/listing hyper-growth or is facing regulatory maturity. Never confuse a structural platform bubble or one-off cyclical trading surge with perpetual non-linear compounding. When platform operating leverage tops out due to regulatory ceilings, multi-year multiple contraction inevitably follows.
+
+---
+
+## 7. Rate-of-Change Guidance Inflection: Rolex Rings Case Study
+
+- **Catalyst Archetype:** Stagnation-to-Growth Guidance Turnaround + Capital Allocation Signal (T & C in C-A-T-A-L-Y-S-T).
+- **Mechanism:**
+  - _The Stagnant Baseline:_ Company delivered modest ~8–10% revenue CAGR over 3–4 consecutive years. Export concentration in heavy commercial vehicles and customer destocking capped valuation at a depressed single-digit or low-teens P/E (10–12x). The market consensus viewed it as a cyclical commodity forging player.
+  - _The Guidance Inflection:_ Management unexpectedly shifts commentary during quarterly concall, guiding for mid-teens to 20% revenue growth for the forward 2–3 years. Drivers: diversification away from auto into industrial bearings, EV forged components, and market share gains in Europe/North America.
+  - _The Capital Allocation Confirmation:_ Concurrently, the board announces a share buyback at a premium to CMP. This confirms strong cash conversion, debt-free balance sheet health, and insider confidence that the business has troughed.
+  - _Double-Engine Re-Rating:_ When a company shifts from 8% growth to 20% growth, the market does not merely re-rate earnings; the valuation multiple expands from 12x to 22–25x. The combination of EPS inflection + multiple expansion drives swift 70–100% stock re-ratings.
+
+---
+
+## 8. Upstream Capacity Deficits & Critical Niche Bottlenecks (The "Invisible Capex" Archetype)
+
+- **Catalyst Archetype:** Industry-wide Capacity Deficit / Critical Component Scarcity (C in C-A-T-A-L-Y-S-T).
+- **Mechanism:**
+  - Traditional re-rating frameworks focus on visible internal company capex (CWIP $\to$ Gross Block). However, non-linear pricing power frequently emerges when an entire industry faces an acute upstream shortage of a critical component.
+  - _Key Critical Niche Components:_ High-voltage transformer bushings, porcelain/composite insulators, Continuously Transposed Conductors (CTC wires), semiconductor packaging substrates, and specialized High Pressure Die Casting (HPDC) structural enclosures.
+  - _The Bottleneck Dynamics:_ Global downstream OEMs (ABB, Siemens, Schneider Electric, Tier-1 Auto OEMs) cannot deliver finished multi-crore capital goods or electric drivetrains because an upstream component costing a fraction of the total bill-of-materials is unavailable.
+  - _Pricing Power Without Balance Sheet Dilution:_ Lead times stretch from 8–12 weeks to 40–70+ weeks. Established suppliers with pre-qualified production facilities gain extraordinary pricing power, passing on 100% of raw material increases plus markup. Operating margins expand by 400–800 bps, and order books swell without requiring debt-fueled equity dilution.
+- **Analytical Tell:** Look for commentary citing "lead times extending", "OEM qualification backlog", "shortage of specialized substrates/bushings", or customer prepayments to secure supply.
+
+---
+
+## 9. Inorganic Capability Leap via Strategic M&A: Granules & Lumax Auto Playbooks
+
+- **Catalyst Archetype:** Acquisitions & Strategic Alliances (A in C-A-T-A-L-Y-S-T).
+- **Mechanism:**
+  - Mid-tier commoditized manufacturers (e.g., standard paracetamol/metformin API manufacturers or basic sheet metal/lighting auto ancillaries) often face valuation ceilings of 12–15x P/E due to limited IP and customer pricing pressure.
+  - _The Inorganic Leap:_ Developing advanced R&D internally (e.g., synthetic biology, peptide synthesis, advanced automotive telematics, or CNG fuel systems) takes 5–7 years with significant execution risk. Instead, management executes an accretive bolt-on acquisition (e.g., Granules acquiring specialized peptide CDMO capabilities, or Lumax Auto Technologies acquiring IAC India / Green Fuel).
+  - _Immediate TAM & Margin Unlocking:_
+    1. The acquisition instantly unlocks multi-fold addressable market expansion into high-growth, high-margin niches (GLP-1 peptides, luxury cockpit interiors, clean fuel systems).
+    2. Consolidated EBITDA margins step up immediately by 200–350 bps.
+    3. Cross-selling to legacy OEM relationships drives rapid synergy realization.
+  - _Re-Rating Catalyst:_ The market shifts the company's classification from "commodity manufacturer" to "specialty technology/formulations player", triggering institutional P/E re-rating from 14x to 25x+.

@@ -7,12 +7,14 @@ Growth Catalysts with StockScans" (two course shells, same session), "Part 1/2 S
 Growth Businesses", "How to Spot Growing Sectors?", "Fastest Growing Companies" (two
 sessions), and "Growth at Reasonable Price & Ask Me Anything". Extended again 2026-09-15
 with the "13.09.26 Spotting J Curve" / "13.09.26 Masterclass on Screening — Spotting 'J
-Curves'" Learnyst lessons — two recording cuts of a single live theory session (the
-promised live scan-build was deferred by the instructor to an unrecorded "2.0" follow-up
-session, not present in either transcript) — see §1c-§1f and §5h below for what it added.
-This is the interpretive lens `rerating-catalysts` applies to every document it reads. It
-is a reference, not a checklist to recite — use it to decide what's worth writing about and
-what to skip.
+Curves'" Learnyst lessons (Part 1). Extended again 2026-10-06 with the live masterclass
+"Class 7: Screening Non-Linear Businesses" (Crash Course, Part 2) and "04.10.26 Market Signals"
+(accompanying `Non_Linear_Businesses.pdf` slide deck) — codifying the formal 8-letter
+**C-A-T-A-L-Y-S-T** trigger taxonomy (§4), the Super Performance Zone & 3-Step Exit Protocol
+(§1f/§5a), the Ego vs. Portfolio Loss behavioral guardrail (§3c), and expanding the screening
+funnels and case studies. This is the interpretive lens `rerating-catalysts` applies to every
+document it reads. It is a reference, not a checklist to recite — use it to decide what's worth
+writing about and what to skip.
 
 ## 1. The core thesis: why re-rating happens
 
@@ -131,6 +133,31 @@ stage/relative-strength timing work of this kind belongs primarily to `stage2-ca
 analysis` per this framework's own §6 scope boundary — cite the Weinstein stage here only
 as a one-line corroborating/contradicting note in 3d, not as a full technical workup.
 
+### The Super Performance Zone (SOIC Class 7 · 04.10.26 / 06.10.26)
+
+Non-linear J-curve winners enter an explosive **Super Performance Zone** when fundamental
+catalysts coincide with a specific technical setup:
+
+1. Price consolidates in tight bases (volatility contraction, VCP) near 52-week highs.
+2. Breaks out on heavy institutional volume (often 2.5x+ of 5-day average).
+3. The **30-weekly exponential moving average (30-WEMA)** curls upward into young Stage 2.
+4. Relative Strength (RS) versus Nifty 500 expands rapidly.
+
+### The 3-Step Exit Protocol (SOIC Class 7 · 04.10.26 / 06.10.26 @00:14:26, @00:43:14)
+
+When a non-linear run finishes, chart structure flashes objective warning signals long before
+annual audited financials show the full deterioration:
+
+1. **Lower Highs on Monthly Charts:** Price fails to make new highs and begins forming lower
+   highs on monthly candles following an operational de-rating event.
+2. **Sector Stage 4 Breakdown:** The underlying sector index breaks down into Weinstein Stage 4
+   (losing relative strength, breaking below 30-WEMA).
+3. **Monthly V-Stop Flips Negative:** The volatility stop (V-Stop) on monthly charts turns negative,
+   confirming that institutional expansion is exhausted.
+
+When these three trigger, re-rating momentum is over — flag explicitly in 3d/3f as an exit
+signal rather than continuing to hold on narrative alone (see §3c behavioral guardrail).
+
 ## 2. "New" is the master keyword
 
 Fundamental analysis, in this framework, is not accountancy — it's business analysis: what
@@ -227,7 +254,16 @@ sector are posting good growth this quarter and one isn't, the theme is intact a
 laggard has a company-specific problem; if most of the sector is degrowing together, the
 "catalyst" you're looking at is a sector cycle, not a company-specific structural change.
 
-## 4. Trigger typology and quantification (borrowed + extended from growth-triggers-1pager)
+## 3c. Behavioral guardrail — Ego vs. Portfolio Loss (SOIC Class 7 · @01:26:14)
+
+The ultimate mental flaw in growth/J-curve investing is refusing to take a loss when a thesis
+breaks — massaging one's ego rather than protecting capital. A non-linear thesis relies on a
+specific, falsifiable catalyst or rate-of-change inflection. If the catalyst fails to materialize,
+if management guidance is slashed, or if technical exit criteria trigger (monthly lower highs,
+sector Stage 4 breakdown, monthly V-Stop turning negative per §1f), exit cleanly. Never
+rationalize holding a broken growth story under the guise of "long-term compounding."
+
+## 4. Trigger typology and the C-A-T-A-L-Y-S-T Taxonomy
 
 Every catalyst must have, wherever the source discloses it:
 
@@ -240,6 +276,21 @@ Every catalyst must have, wherever the source discloses it:
 - A **"new" category tag** from the table in §2 (a catalyst can carry more than one — e.g.
   a Saudi DI-pipe Greenfield plant is simultaneously new capacity + new geography + new
   regulation-driven protection)
+
+### The C-A-T-A-L-Y-S-T Mnemonic Framework (SOIC Class 7 · 04.10.26 / 06.10.26)
+
+SOIC codifies the master triggers of non-linear re-rating into the 8-letter mnemonic **C-A-T-A-L-Y-S-T**:
+
+| Letter | Trigger Category                              | Mechanism & Core Tells                                                                                                                                                                                                                                                    | Real-World Market Examples                                                                                     |
+| :----- | :-------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------- |
+| **C**  | **Capex, Capacity & Capacity Deficits**       | (1) Greenfield/brownfield capacity commissioning unlocking volume growth; (2) **Industry capacity deficits** — demand explodes while industry capacity is choked (substrates, insulators, bushings, HPDC, CTC wires), giving intense pricing power without massive capex. | KRN Heat Exchanger capacity doubling; power transmission bushing/insulator shortages.                          |
+| **A**  | **Acquisitions & Alliances**                  | Inorganic acceleration into higher-margin capabilities, client cross-selling, or rapid geographic footprint expansion.                                                                                                                                                    | Lumax Auto Tech acquiring IAC and Green Fuel; Granules acquiring overseas peptide company ($100M target).      |
+| **T**  | **Turnaround in Earnings**                    | Stagnant or loss-making business (depressed for 10–12+ quarters) suddenly inflecting into positive operating profit or margin expansion.                                                                                                                                  | Graphite electrode pricing turnaround; new-age tech crossover from cash burn to net profit.                    |
+| **A**  | **Approvals & Actions (Policy/Regulatory)**   | Government policy interventions creating brand new domestic manufacturing ecosystems or tariff barriers.                                                                                                                                                                  | EMS component PLI, Shipbuilding indigenization policy, Semiconductor ecosystem, Quality Control Orders (QCOs). |
+| **L**  | **Large Orders**                              | Step-change order wins offering multi-year revenue visibility, moving the order book to $\ge 0.3-0.5\times$ TTM revenue.                                                                                                                                                  | Turnkey engineering contracts; BHEL cryogenic air separation units; defence missile systems.                   |
+| **Y**  | **Year Zero (New Product / Business Launch)** | Commercialization of an entirely new vertical or technology entering early S-curve ramp-up.                                                                                                                                                                               | EV charging infrastructure; precision aerospace components; lithium-ion separator lines.                       |
+| **S**  | **Switch in Strategy / Management**           | New management/promoter taking control, aggressive balance sheet deleveraging, or shedding loss-making non-core drag.                                                                                                                                                     | CG Power takeover by Tube Investments; Lumax non-core exits; corporate demergers.                              |
+| **T**  | **Theme & Tailwinds**                         | The dominant macro tide. **The 60-20-20 Rule:** 60% of returns come from Theme, 20% from Sector, and only 20% from individual stock selection.                                                                                                                            | 2010–2020 Private Banks multiplying 4–6x vs. stagnating in 2020–2025; EMS/Defence in 2023–2026.                |
 
 Rank triggers: capacity/capex → new product or geography → M&A/corporate action →
 management/promoter change → margin/mix expansion (value-added products) → regulation/

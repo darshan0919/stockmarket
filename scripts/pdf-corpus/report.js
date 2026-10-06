@@ -79,6 +79,21 @@ for (const [candidate, rows] of byCand) {
     localTokensPerDoc: ok.length
       ? Math.round(sum(ok, (r) => r.llmTokenUsage && r.llmTokenUsage.local) / ok.length)
       : 0,
+    outTokP50: S.pct(
+      ok.map((r) => (r.llmTokenUsage && r.llmTokenUsage.localOutput) || 0),
+      0.5
+    ),
+    outTokP95: S.pct(
+      ok.map((r) => (r.llmTokenUsage && r.llmTokenUsage.localOutput) || 0),
+      0.95
+    ),
+    outTokMaxCall: Math.max(
+      0,
+      ...ok.map((r) => (r.llmTokenUsage && r.llmTokenUsage.localMaxOutput) || 0)
+    ),
+    capHitCalls: sum(ok, (r) => r.llmTokenUsage && r.llmTokenUsage.localCut),
+    failedCalls: sum(ok, (r) => r.llmTokenUsage && r.llmTokenUsage.localFailed),
+    localCalls: sum(ok, (r) => r.llmTokenUsage && r.llmTokenUsage.localCalls),
     agentTokens: sum(ok, (r) => r.llmTokenUsage && r.llmTokenUsage.agent),
     msP50: S.pct(ms, 0.5),
     msP95: S.pct(ms, 0.95),
@@ -106,6 +121,11 @@ else {
       sign: o.signFlips,
       pow10: o.pow10Errors,
       localTok: o.localTokensPerDoc,
+      outP50: o.outTokP50,
+      outP95: o.outTokP95,
+      outMax: o.outTokMaxCall,
+      cut: o.capHitCalls,
+      failed: o.failedCalls,
       p50ms: o.msP50,
       p95ms: o.msP95,
       eligible: o.eligible,

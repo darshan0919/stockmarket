@@ -134,12 +134,16 @@ corepack enable
 
 ```bash
 cd stockmarket
-yarn install
+yarn setup
 ```
 
-This installs every dependency for the root package and all workspaces
-(`screener-api`, `screener-web`, `stock-api`, `jobs`, `cloud-utils`,
-`packages/jobs-runtime`) in one Yarn 3 install.
+`yarn setup` = `yarn install` (every dependency for the root package and all workspaces:
+`screener-api`, `screener-web`, `stock-api`, `jobs`, `cloud-utils`, `packages/jobs-runtime`)
+plus `yarn x-capture:install-host`, which registers the X-capture Chrome extension's native host
+(`com.stockmarket.x_kb`) so the extension can write into this repo's KB. The host step is
+best-effort (skipped on CI / unsupported OS; re-run it after moving the repo or changing Node;
+`--browser brave|edge|chromium` via `node tools/x-timeline-capture-extension/native-host/install.js`).
+Then load the unpacked extension once from `tools/x-timeline-capture-extension` in `chrome://extensions`.
 
 #### 2. Configure environment
 

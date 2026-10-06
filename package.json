@@ -17,6 +17,8 @@
   },
   "description": "Stock Screener monorepo (Yarn 3 workspaces)",
   "scripts": {
+    "setup": "yarn install && yarn x-capture:install-host",
+    "x-capture:install-host": "node tools/x-timeline-capture-extension/native-host/install.js --soft",
     "dev": "concurrently -n api,web -c cyan,magenta \"yarn workspace screener-api dev\" \"yarn workspace screener-web dev\"",
     "build": "yarn workspace screener-web build",
     "start": "concurrently -n api,web -c cyan,magenta \"yarn workspace screener-api start\" \"yarn workspace screener-web start\"",
@@ -97,6 +99,7 @@
     "ask-anil-lamba:search": "python3 skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py",
     "ask-stockscans:search": "python3 skills/tooling/ask-stockscans/scripts/search_stockscans.py",
     "ask-expert:search": "python3 skills/tooling/ask-expert/scripts/search_expert.py",
+    "x-posts:import": "node packages/jobs-runtime/scripts/importXPosts.js",
     "delivery-volume-snapshot": "yarn workspace @stock/jobs delivery-volume-snapshot",
     "delivery-volume-report": "yarn workspace @stock/jobs delivery-volume-report",
     "delivery-volume-snapshot-then-report": "yarn workspace @stock/jobs delivery-volume-snapshot-then-report",
@@ -107,7 +110,9 @@
     "pdf-corpus:truth": "node --env-file=.env scripts/pdf-corpus/build_truth.js",
     "pdf-corpus:verify": "node scripts/pdf-corpus/verify.js",
     "pdf-corpus:baseline": "node scripts/pdf-corpus/baseline.js",
-    "pdf-corpus:gold": "node scripts/pdf-corpus/gold.js"
+    "pdf-corpus:gold": "node scripts/pdf-corpus/gold.js",
+    "pdf-corpus:bench": "node scripts/pdf-corpus/bench.js",
+    "pdf-corpus:report": "node scripts/pdf-corpus/report.js"
   },
   "devDependencies": {
     "@duckdb/node-api": "^1.5.4-r.1",

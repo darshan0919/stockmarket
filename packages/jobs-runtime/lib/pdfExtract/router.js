@@ -22,8 +22,9 @@ const skillDir = path.join(
 );
 const { extractIncomeStatement } = require(path.join(skillDir, 'extract_income_statement.js'));
 const { pageTexts, rankResultPages, renderPagePng, ocrPage } = require('./pages');
+const { modelOcrPage } = require('./ocrmodel');
 const { verifyIncomeStatement, sanitizeCurrent } = require('./verify');
-const { extractWithTier3 } = require('./tier3');
+const { extractWithTier3, TO_CRORE } = require('./tier3');
 
 const SERVABLE = new Set(['verified', 'consistent']);
 
@@ -57,6 +58,17 @@ function textUnit(text) {
   return 'million';
 }
 
+/**
+ * Give a parse the unit its page named elsewhere. The parser leaves values as printed when it found no unit line, so the
+ * values are also converted to crore (the unit every consumer expects); a parse that already knew its unit is not touched.
+ */
+function applyUnitHint(got, hint) {
+  const f = TO_CRORE[hint];
+  const cur = {};
+  for (const [k, v] of Object.entries(got.cur)) cur[k] = f && f !== 1 ? +(v * f).toFixed(6) : v;
+  return { ...got, cur, unit: hint, unitFrom: 'hint' };
+}
+
 function judge(c) {
   const v = verifyIncomeStatement(c.cur);
   const unitKnown = c.unit && c.unit !== 'unknown';
@@ -86,12 +98,34 @@ function pickBest(cands) {
  * @param {object} [opts]
  * @param {{provider: object, mode?: 'text'|'image'|'both'}} [opts.tier3]
  * @param {boolean} [opts.skipTier1] force-skip Tiers 1-2 (benchmarking a model on its own)
+ * @param {boolean} [opts.forceOcr] skip the text-layer parse but run Tier 2, so OCR engines are compared on the same pages
+ * @param {number} [opts.scanPages=3] pages OCR'd when none can be ranked (scanned documents)
  * @param {number} [opts.maxPages=6] candidate pages per tier
  */
 async function extractResultPdf(file, opts = {}) {
   const t0 = Date.now();
   const maxPages = opts.maxPages || 6;
-  const tokens = { agent: 0, local: 0, localInput: 0, localOutput: 0 };
+  // measured on 30 dev docs (tess-1): 300 dpi + clean-up served 9 documents vs 3 for raw 200 dpi; needs ImageMagick, else raw
+  const tess = opts.tesseract || { dpi: 300, prep: 'clean' };
+  const tokens = {
+    agent: 0,
+    local: 0,
+    localInput: 0,
+    localOutput: 0,
+    localCalls: 0,
+    localCut: 0,
+    localMaxOutput: 0,
+    localFailed: 0,
+  };
+  const addLocal = (t, failed) => {
+    tokens.local += t.input + t.output;
+    tokens.localInput += t.input;
+    tokens.localOutput += t.output;
+    tokens.localCalls += 1;
+    if (t.cut) tokens.localCut += 1;
+    if (failed) tokens.localFailed += 1;
+    tokens.localMaxOutput = Math.max(tokens.localMaxOutput, t.output);
+  };
   const trail = [];
   const pages = pageTexts(file);
   const ranked = rankResultPages(pages, { top: maxPages });
@@ -102,13 +136,17 @@ async function extractResultPdf(file, opts = {}) {
   const withUnitHint = (got, page) => {
     if (got.unit && got.unit !== 'unknown') return got;
     const hint = textUnit(`${pages[page - 1] || ''}\n${tail(page)}`) || docUnit();
-    return hint ? { ...got, unit: hint, unitFrom: 'hint' } : got;
+    return hint ? applyUnitHint(got, hint) : got;
   };
 
+  // No page has a readable text layer (a scan), so pages cannot be ranked: read the first few. Results are usually up front.
+  const firstPages = (n) =>
+    Array.from({ length: Math.min(pages.length, n) }, (_, i) => ({ page: i + 1 }));
   const tail = (n) => (n > 1 ? pages[n - 2].slice(-1200) : '');
 
   // Tier 1
   const t1 = [];
+  let modelFailure = null; // first Tier 2/3 model failure, reported instead of a misleading 'no table located'
   let fallback = null; // a served standalone result, kept while a consolidated page that did not parse is retried
   const parsedPages = new Set();
   const pendingConsolidated = () =>
@@ -117,7 +155,7 @@ async function extractResultPdf(file, opts = {}) {
         (r) => declaredBasis(pages[r.page - 1]) === 'consolidated' && !parsedPages.has(r.page)
       )
       .map((r) => r);
-  if (!opts.skipTier1) {
+  if (!opts.skipTier1 && !opts.forceOcr) {
     for (const r of ranked) {
       const got = tier1OnText(`${tail(r.page)}\n${pages[r.page - 1]}`);
       if (got) {
@@ -140,14 +178,28 @@ async function extractResultPdf(file, opts = {}) {
   // Tier 2 (OCR) on the best pages that look like result pages
   const ocrTexts = new Map();
   const t2 = [];
-  if (!opts.skipTier1 && !opts.skipTier2) {
+  if ((!opts.skipTier1 || opts.forceOcr) && !opts.skipTier2) {
     const pend = fallback ? pendingConsolidated() : [];
-    const targets = (pend.length ? pend : ranked.length ? ranked : [{ page: 1 }]).slice(
-      0,
-      opts.ocrPages || 2
-    );
+    const targets = (
+      pend.length ? pend : ranked.length ? ranked : firstPages(opts.scanPages || 3)
+    ).slice(0, opts.ocrPages || (ranked.length ? 2 : opts.scanPages || 3));
     for (const r of targets) {
-      const text = ocrPage(file, r.page);
+      let text = '';
+      if (opts.ocrModel && opts.ocrModel.provider) {
+        const m = await modelOcrPage({
+          provider: opts.ocrModel.provider,
+          file,
+          page: r.page,
+          prompt: opts.ocrModel.prompt,
+        });
+        addLocal(m.tokens, !!m.error);
+        text = m.text;
+        if (m.error) {
+          trail.push({ tier: 2, page: r.page, reason: m.error });
+          if (!modelFailure) modelFailure = `ocr-model ${m.error}`;
+        }
+      }
+      if (!text) text = ocrPage(file, r.page, tess); // tesseract: default, and the fallback when the model returns nothing
       ocrTexts.set(r.page, text);
       const got = text ? tier1OnText(text) : null;
       if (got) t2.push(judge({ tier: 2, page: r.page, ...withUnitHint(got, r.page) }));
@@ -167,14 +219,22 @@ async function extractResultPdf(file, opts = {}) {
   if (opts.tier3 && opts.tier3.provider) {
     const mode = opts.tier3.mode || 'text';
     const pend3 = fallback ? pendingConsolidated() : [];
-    const targets = (pend3.length ? pend3 : ranked.length ? ranked : [{ page: 1 }]).slice(
+    // consolidated-headed pages first: the XBRL truth is consolidated whenever the company files it
+    const byBasis = ranked
+      .slice()
+      .sort(
+        (a, b) =>
+          (declaredBasis(pages[b.page - 1]) === 'consolidated') -
+          (declaredBasis(pages[a.page - 1]) === 'consolidated')
+      );
+    const targets = (pend3.length ? pend3 : byBasis.length ? byBasis : [{ page: 1 }]).slice(
       0,
       opts.tier3.pages || 2
     );
     for (const r of targets) {
       const pageText = pages[r.page - 1] || '';
       const ocrText =
-        ocrTexts.get(r.page) || (pageText.trim().length < 200 ? ocrPage(file, r.page) : '');
+        ocrTexts.get(r.page) || (pageText.trim().length < 200 ? ocrPage(file, r.page, tess) : '');
       const imagePng = mode === 'text' ? null : renderPagePng(file, r.page);
       const res = await extractWithTier3({
         provider: opts.tier3.provider,
@@ -184,23 +244,27 @@ async function extractResultPdf(file, opts = {}) {
         mode,
         unitHint: textUnit(`${pages[r.page - 1] || ''}\n${tail(r.page)}`),
         unitFallback: docUnit(),
+        promptStyle: opts.tier3.promptStyle,
       });
-      tokens.local += res.tokens.input + res.tokens.output;
-      tokens.localInput += res.tokens.input;
-      tokens.localOutput += res.tokens.output;
+      addLocal(res.tokens, !res.ok);
       if (res.ok)
         t3.push(
           judge({
             tier: 3,
             page: r.page,
             unit: res.unit,
-            basis: res.basis,
+            // the page heading is deterministic; the model's own basis label proved unreliable
+            basis: declaredBasis(pages[r.page - 1]) || res.basis,
             cur: res.cur,
             dropped: res.dropped,
             model: opts.tier3.provider.name,
+            promptStyle: res.promptStyle,
           })
         );
-      else trail.push({ tier: 3, page: r.page, reason: res.reason });
+      else {
+        trail.push({ tier: 3, page: r.page, reason: res.reason });
+        if (!modelFailure) modelFailure = `tier3 ${res.reason}`;
+      }
     }
     trail.push({
       tier: 3,
@@ -220,7 +284,9 @@ async function extractResultPdf(file, opts = {}) {
     ...base,
     found: false,
     abstained: true,
-    reason: all.length ? 'no candidate passed unit + L2 verification' : 'no result table located',
+    reason: all.length
+      ? 'no candidate passed unit + L2 verification'
+      : modelFailure || 'no result table located',
     bestUnserved: all.length
       ? {
           tier: all[0].tier,
@@ -249,6 +315,7 @@ async function extractResultPdf(file, opts = {}) {
       issues: c.issues,
       dropped: c.dropped,
       model: c.model,
+      promptStyle: c.promptStyle,
       trail,
       tokens,
       ms: Date.now() - t0,
@@ -256,4 +323,11 @@ async function extractResultPdf(file, opts = {}) {
   }
 }
 
-module.exports = { extractResultPdf, tier1OnText, judge, pickBest, declaredBasis };
+module.exports = {
+  extractResultPdf,
+  tier1OnText,
+  judge,
+  pickBest,
+  declaredBasis,
+  applyUnitHint,
+};

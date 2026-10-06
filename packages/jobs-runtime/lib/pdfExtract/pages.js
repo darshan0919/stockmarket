@@ -79,11 +79,55 @@ function renderPagePng(file, page, { dpi = 150, timeoutMs = 30000 } = {}) {
   }
 }
 
-/** Tesseract OCR of one page (Tier 2). `--psm 6` keeps table rows on one line. Returns '' on failure. */
-function ocrPage(file, page, { dpi = 200, timeoutMs = 60000 } = {}) {
+/**
+ * Image clean-up before Tesseract, via ImageMagick (`convert`). Returns the cleaned PNG, or the input when `convert` is missing
+ * or fails, so OCR still runs.
+ *   gray   grayscale + contrast normalise
+ *   clean  gray + deskew + binarise + erase long table rules (they are read as | _ and glue rows together)
+ */
+function prepImage(png, prep, { timeoutMs = 60000 } = {}) {
+  if (!prep || prep === 'none') return png;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pdfx_prep_'));
+  const f = (n) => path.join(dir, n);
+  const run = (args) => execFileSync('convert', args, { timeout: timeoutMs, stdio: 'pipe' });
+  try {
+    fs.writeFileSync(f('in.png'), png);
+    if (prep === 'gray') {
+      run([f('in.png'), '-colorspace', 'Gray', '-normalize', f('out.png')]);
+    } else if (prep === 'clean') {
+      run([
+        f('in.png'),
+        '-colorspace',
+        'Gray',
+        '-normalize',
+        '-deskew',
+        '40%',
+        '-threshold',
+        '60%',
+        f('base.png'),
+      ]);
+      // rules = long horizontal or vertical runs of ink; painted white over the page
+      run([f('base.png'), '-negate', '-morphology', 'Open', 'Rectangle:60x1', f('hor.png')]);
+      run([f('base.png'), '-negate', '-morphology', 'Open', 'Rectangle:1x60', f('ver.png')]);
+      run([f('hor.png'), f('ver.png'), '-compose', 'Lighten', '-composite', f('rules.png')]);
+      run([f('base.png'), f('rules.png'), '-compose', 'Lighten', '-composite', f('out.png')]);
+    } else return png;
+    return fs.readFileSync(f('out.png'));
+  } catch {
+    return png;
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+/**
+ * Tesseract OCR of one page (Tier 2). Defaults: 200 dpi, `--psm 6` (keeps table rows on one line), no clean-up.
+ * opts: {dpi, psm, prep: 'none'|'gray'|'clean'}. Returns '' on failure.
+ */
+function ocrPage(file, page, { dpi = 200, psm = 6, prep = 'none', timeoutMs = 60000 } = {}) {
   let png;
   try {
-    png = renderPagePng(file, page, { dpi, timeoutMs });
+    png = prepImage(renderPagePng(file, page, { dpi, timeoutMs }), prep, { timeoutMs });
   } catch {
     return '';
   }
@@ -93,7 +137,7 @@ function ocrPage(file, page, { dpi = 200, timeoutMs = 60000 } = {}) {
     fs.writeFileSync(img, png);
     const raw = execFileSync(
       'tesseract',
-      [img, 'stdout', '--psm', '6', '-c', 'preserve_interword_spaces=1'],
+      [img, 'stdout', '--psm', String(psm), '-c', 'preserve_interword_spaces=1'],
       {
         encoding: 'utf8',
         timeout: timeoutMs,

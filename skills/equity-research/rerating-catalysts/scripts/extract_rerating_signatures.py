@@ -72,10 +72,14 @@ import sys
 # is the source of truth for the taxonomy itself).
 SIGNATURE_PHRASES = {
     "New base creation": [r"new base", r"scaled up", r"integration of (the )?acquired"],
-    "New industry cycle": [r"options in commodities", r"s-?curve", r"penetration crossing"],
+    "New industry cycle": [r"options in commodities", r"s-?curve", r"penetration crossing", r"super performance zone", r"rate of change"],
     "New management change": [r"acquired controlling stake", r"new promoter", r"board reconstitution"],
-    "New corporate action": [r"scheme of arrangement", r"demerger", r"jv agreement", r"joint venture agreement"],
-    "New capex / capacity": [r"under construction", r"commissioning", r"phase\s*2", r"kmtpa", r"\bmw\b added", r"capacity expansion", r"greenfield", r"brownfield"],
+    "New corporate action": [r"scheme of arrangement", r"demerger", r"jv agreement", r"joint venture agreement", r"buyback"],
+    "New capex / capacity": [
+        r"under construction", r"commissioning", r"phase\s*2", r"kmtpa", r"\bmw\b added",
+        r"capacity expansion", r"greenfield", r"brownfield", r"capacity deficit", r"capacity shortage",
+        r"lead times? stretching", r"bushings?", r"substrates?", r"insulators?", r"ctc wire", r"hpdc"
+    ],
     "New de-bottlenecking": [r"de-?bottleneck(ing)?"],
     "New order-book step-change": [r"re-?tender(ing)?", r"order book.{0,40}(cr|crore)"],
     "New value-chain position": [r"moved up the value chain", r"backward integrat", r"\bodm\b", r"now supplying"],
@@ -86,8 +90,8 @@ SIGNATURE_PHRASES = {
     "New value-added mix": [r"value-?added", r"premiumi[sz]ation", r"mix shift"],
     "New business verticals": [r"entered the segment", r"diversifying into"],
     "New geographies": [r"export share", r"new geography", r"international foray"],
-    "New acquisitions": [r"\bacquired\b", r"consolidation"],
-    "New warrants / preferential issues": [r"convertible warrants?", r"preferential allotment"],
+    "New acquisitions": [r"\bacquired\b", r"consolidation", r"alliances?", r"bolt-on", r"inorganic"],
+    "New warrants / preferential issues": [r"convertible warrants?", r"preferential allotment", r"promoter warrants?", r"warrant conversion", r"float contraction", r"float scarcity"],
     "New balance-sheet deleveraging": [r"debt repayment", r"net debt reduction", r"finance cost declined", r"debt-?free"],
 }
 

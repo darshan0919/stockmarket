@@ -1,15 +1,22 @@
 ---
 name: ask-expert
-description: Orchestrate financial, business, and investing questions by consulting Dr. Anil Lamba (author of 'Romancing the Balance Sheet' — corporate finance, balance sheet literacy, working capital, marginal costing, leverage), SOIC (School of Intrinsic Compounding — equity research, stock valuation, sector analysis, growth catalysts, public market compounding), and StockScans (official tutorials on screening tools, Research AI, concall & interview scans, order book tracking, and result season prep). Use whenever the user asks broad investing or business questions, asks "what do the experts say about X", "how should I think about debt/cash/growth/profit", "compare Anil Lamba and SOIC on Y", "how to screen for high-compounder stocks on StockScans", or asks questions spanning operational financial management, public equity investing, and screening platform execution. Synthesizes harmonious learnings into a cohesive operational + investment framework, and explicitly isolates, contrasts, and explains conflicting or diverging viewpoints with citations and timestamped deep links.
+description: Orchestrate financial, business, and investing questions by consulting Dr. Anil Lamba (author of 'Romancing the Balance Sheet' — corporate finance, balance sheet literacy, working capital, marginal costing, leverage), SOIC (School of Intrinsic Compounding — equity research, stock valuation, sector analysis, growth catalysts, public market compounding), StockScans (official tutorials on screening tools, Research AI, concall & interview scans, order book tracking, and result season prep), and four followed X (Twitter) accounts — @ishmohit1 (SOIC founder, folded into SOIC), @SureshKBN, @Shashank1171, @thechartist26 — whose posts, threads, replies and articles are in the `x-posts` KB collection. Use whenever the user asks broad investing or business questions, asks "what do the experts say about X", "how should I think about debt/cash/growth/profit", "compare Anil Lamba and SOIC on Y", "how to screen for high-compounder stocks on StockScans", or asks questions spanning operational financial management, public equity investing, and screening platform execution. Synthesizes harmonious learnings into a cohesive operational + investment framework, and explicitly isolates, contrasts, and explains conflicting or diverging viewpoints with citations and timestamped deep links.
 ---
 
 # Ask Expert
 
-Orchestrates multi-expert answers across three distinct, complementary financial corpora cached in this repository:
+Orchestrates multi-expert answers across distinct, complementary financial corpora cached in this repository (three video/course corpora plus four X accounts):
 
 1. **Dr. Anil Lamba** (`ask-anil-lamba`): 197 YouTube video transcripts from `@AnilLamba` — corporate finance, balance sheet literacy, working capital cycles, profit vs cash, marginal costing, and operating/financial leverage.
 2. **SOIC** (`ask-soic`): ~1,100 teaching transcripts (545+ Learnyst course lessons + 573+ SOIC YouTube videos) — fundamental equity research, company valuation, competitive moats, concall commentary, sector deep dives, and public market compounding.
 3. **StockScans** (`ask-stockscans`): Official YouTube video tutorials from `@StockScans` — screening mechanics, Research AI synthesis, concall scans, management interview tracking, order book tracking, custom index creation, and platform capabilities.
+
+4. **X experts** (`x-posts` collection, searched by `scripts/search_xposts.py`) — short-form, dated market views:
+   - `ishmohit1` → merged into the **SOIC** expert (same person as the SOIC courses — cite as `X · @ishmohit1 · <date>`).
+   - `suresh-kbn` (@SureshKBN), `shashank` (@Shashank1171), `thechartist` (@thechartist26) → one expert each.
+   - Docs are threads / replies (with the parent post as context) / quote-tweets / standalone posts / X articles. Every hit carries a `https://x.com/<handle>/status/<id>` URL and date.
+   - **Treat tweets as dated opinion, not teaching.** Always state the post date (views age fast), say when a reply is a one-liner answering someone else's question, and never present a tweet as a recommendation or a verified call. Chart images are stored as URLs only (not read) — if a hit has `hasMedia: true` and the excerpt is thin, say the substance is likely in the attached chart.
+   - Refresh: `tools/x-timeline-capture/` → `yarn x-posts:import` (see its README). Corpus size/recency: check `data/x-posts.json` before claiming coverage.
 
 This skill synthesizes their perspectives: where they agree, it combines internal business mechanics with public market compounding and practical screening workflows into a unified framework; where their philosophies diverge or conflict, it presents both views separately and explains the root difference.
 
@@ -46,7 +53,8 @@ _(or `python3 skills/tooling/ask-expert/scripts/search_expert.py --query "..." -
 
 - `--expert auto` (default): queries all corpora and automatically determines which expert(s) have substantive coverage.
 - Use `--expert all` or `--expert both` when the user explicitly asks for comparison, conflicting viewpoints, or when the query spans multiple domains.
-- Use `--expert anil-lamba`, `--expert soic`, or `--expert stockscans` to focus on a specific expert.
+- Use `--expert anil-lamba`, `--expert soic`, `--expert stockscans`, `--expert suresh-kbn`, `--expert shashank`, or `--expert thechartist` to focus on a specific expert.
+- Output has one block per expert under `experts` (`anilLamba`, `soic`, `stockscans`, `sureshKbn`, `shashank`, `thechartist`). `soic` includes @ishmohit1 posts (`source: "x"`).
 
 ### 3. Analyze Results & Routing
 
@@ -56,11 +64,12 @@ Examine the JSON output:
 - **`mode: "anil-lamba"`**: Query is primarily operational/corporate finance. Deliver Dr. Anil Lamba's teachings with citations, noting that this is an internal business management framework.
 - **`mode: "soic"`**: Query is primarily public equity research / stock market investing. Deliver SOIC's teachings with citations, noting that this is an equity compounding framework.
 - **`mode: "stockscans"`**: Query is primarily about StockScans tools, screening queries, or Research AI. Deliver StockScans' tutorial instructions with citations and video deep links.
+- **`mode: "suresh-kbn"` / `"shashank"` / `"thechartist"`**: Only that X account has a strong match. Deliver their dated views with post links; flag that this is opinion from short posts, not a course.
 - **`mode: "none"`**: No strong matches. Inform the user directly and offer rephrasing options.
 
 ### 4. Synthesize the Answer (Multi-Expert Queries)
 
-When both experts contribute, structure the response with clarity:
+When more than one expert contributes (including X accounts), structure the response with clarity. For X experts add a short **"What the X accounts are saying (dated)"** block with date + link per claim, and call out agreement or disagreement between the X traders and the course/teaching experts:
 
 #### A. Executive Summary
 
@@ -90,6 +99,23 @@ When the two experts differ in philosophy, do NOT force an artificial consensus.
      - **Cash Drag vs War Chest**: Lamba sees excess idle bank balances as capital inefficiency/mismanagement; SOIC sees net cash as strategic option value for capex during industry downcycles.
      - **Market Timing vs Stock Selection**: Lamba highlights macroeconomic cycle timing; SOIC emphasizes that high-quality businesses with pricing power outgrow macro cycles.
    - Provide clear guidance on when the user should apply which mental model (e.g. running a business vs investing in a listed stock vs screening on the platform).
+
+### 4b. Recency rule — newest knowledge wins (always-on, applies to every expert and platform)
+
+`search_expert.py` dates every hit, re-ranks each expert's results by freshness (half-lives: X posts 90 d,
+YouTube/course 1 y, Dr. Lamba 3 y) and returns `recencyPolicy`, a newest-first cross-expert `timeline`, and
+per-expert `newestDate`/`oldestDate`. Hits carry `date`, `freshness`, `adjScore`, `relevanceRank`,
+`possiblySupersededBy`. The best hit of each platform (X / YouTube / course) of an expert is always kept in
+the cut, so an expert's latest tweets are never crowded out by a large course corpus.
+
+- **Per expert, across platforms:** the latest dated view wins — a 2026 tweet from @ishmohit1 outranks a
+  2024 SOIC video, which outranks undated Learnyst material, when they disagree.
+- **Across experts:** recency decides conflicts *within one expert's own evolving view* and orders the
+  evidence; do not declare a different person wrong just because their source is older — show both, dated.
+- In section C (Divergent views) label each stance with its date and mark superseded ones "earlier view".
+- Name the exceptions: timeless principles (accounting math) and one-line replies without reasoning.
+- Undated Learnyst lessons: never invent a date; dated items win conflicts against them.
+- If the newest evidence on the topic is over a year old (`newestDate`), tell the user the view may be stale.
 
 ### 5. Token-Optimization Note (conventions.md rule 11)
 

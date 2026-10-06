@@ -12,6 +12,7 @@
  */
 
 const { groundValues } = require('./verify');
+const { promptFor } = require('./prompts');
 
 const FIELDS = [
   'revenue',
@@ -48,18 +49,7 @@ const RESULT_SCHEMA = {
   additionalProperties: false,
 };
 
-const SYSTEM_PROMPT = [
-  "You read one page of an Indian listed company's quarterly financial results.",
-  'Extract the Statement of Profit and Loss for the CURRENT QUARTER only: the first numeric column.',
-  'Rules:',
-  '- Copy every number exactly as printed. Do not compute, round, convert or fix anything.',
-  '- A number in brackets is negative.',
-  '- If a line is not on the page, use null. Never guess.',
-  '- "unit" is the unit printed in the table heading (crore, lakh, million, thousand), otherwise "unknown".',
-  '- "basis" is "consolidated" or "standalone" as the page title says, otherwise "unknown".',
-  '- Fields: revenue (revenue from operations), otherIncome, totalIncome, employeeCost (employee benefit expense), interest (finance costs), depreciation (depreciation and amortisation), otherExpenses, totalExpenses, pbt (profit before tax, after exceptional items), tax (total tax expense), pat (profit for the period, before minority interest), epsBasic (basic earnings per share in rupees).',
-  'Answer with JSON only.',
-].join('\n');
+const SYSTEM_PROMPT = promptFor('chat').system; // default text; extractWithTier3 picks the style per model
 
 function buildUserPrompt({ pageText, mode }) {
   if (mode === 'image') return 'The page is attached as an image. Extract the fields.';
@@ -117,12 +107,19 @@ async function postJson(url, body, { timeoutMs = 180000, headers = {} } = {}) {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), timeoutMs);
   try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', ...headers },
-      body: JSON.stringify(body),
-      signal: ctl.signal,
-    });
+    let res;
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', ...headers },
+        body: JSON.stringify(body),
+        signal: ctl.signal,
+      });
+    } catch (e) {
+      // undici reports every network failure as "fetch failed"; the real cause is on e.cause
+      const cause = e.cause ? e.cause.code || e.cause.message : e.name;
+      throw new Error(`cannot reach ${url} (${cause})`);
+    }
     const text = await res.text();
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${text.slice(0, 200)}`);
     return JSON.parse(text);
@@ -139,12 +136,36 @@ class OllamaProvider {
     numCtx = 8192,
     keepAlive = '10m',
     timeoutMs,
+    think,
+    numPredict,
   } = {}) {
     if (!model) throw new Error('OllamaProvider: model is required');
-    Object.assign(this, { name: `ollama:${model}`, model, baseUrl, numCtx, keepAlive, timeoutMs });
+    // Thinking models spend the whole token budget on hidden reasoning and return empty content unless told not to.
+    const thinks =
+      think !== undefined
+        ? think
+        : /qwen3|deepseek-r1|gpt-oss|magistral/i.test(model)
+          ? false
+          : undefined;
+    Object.assign(this, {
+      name: `ollama:${model}`,
+      model,
+      baseUrl,
+      numCtx,
+      keepAlive,
+      timeoutMs,
+      think: thinks,
+      numPredict,
+    });
   }
-  async chat({ system, user, images = [], schema }) {
-    const msg = { role: 'user', content: user };
+  async chat({ system, user, images = [], schema, maxTokens, stop, cacheBust = false }) {
+    // maxTokens: undefined -> no cap (num_predict -1); the call-level value wins over the provider default
+    const cap = maxTokens !== undefined ? maxTokens : this.numPredict;
+    // cacheBust: a unique suffix per call stops Ollama 0.34.x from matching this request's prompt cache to a different image
+    const msg = {
+      role: 'user',
+      content: cacheBust ? `${user} [${Math.random().toString(36).slice(2, 8)}]` : user,
+    };
     if (images.length) msg.images = images.map((b) => b.toString('base64'));
     const r = await postJson(
       `${this.baseUrl}/api/chat`,
@@ -152,26 +173,38 @@ class OllamaProvider {
         model: this.model,
         stream: false,
         keep_alive: this.keepAlive,
-        messages: [{ role: 'system', content: system }, msg],
+        messages: system ? [{ role: 'system', content: system }, msg] : [msg],
         format: schema,
-        options: { temperature: 0, num_ctx: this.numCtx, num_predict: 1024 },
+        think: this.think,
+        options: {
+          temperature: 0,
+          num_ctx: this.numCtx,
+          num_predict: cap > 0 ? cap : -1,
+          ...(stop ? { stop } : {}),
+        },
       },
       { timeoutMs: this.timeoutMs }
     );
     return {
       content: r.message && r.message.content,
-      tokens: { input: r.prompt_eval_count || 0, output: r.eval_count || 0 },
+      thinking: r.message && r.message.thinking,
+      tokens: {
+        input: r.prompt_eval_count || 0,
+        output: r.eval_count || 0,
+        cut: r.done_reason === 'length',
+      },
     };
   }
 }
 
 /** OpenAI-compatible local server (llama.cpp `llama-server`, LM Studio, mlx-lm): /v1/chat/completions. */
 class OpenAICompatProvider {
-  constructor({ model, baseUrl = 'http://127.0.0.1:8080/v1', timeoutMs } = {}) {
+  constructor({ model, baseUrl = 'http://127.0.0.1:8080/v1', timeoutMs, numPredict } = {}) {
     if (!model) throw new Error('OpenAICompatProvider: model is required');
-    Object.assign(this, { name: `openai-compat:${model}`, model, baseUrl, timeoutMs });
+    Object.assign(this, { name: `openai-compat:${model}`, model, baseUrl, timeoutMs, numPredict });
   }
-  async chat({ system, user, images = [], schema }) {
+  async chat({ system, user, images = [], schema, maxTokens }) {
+    const cap = maxTokens !== undefined ? maxTokens : this.numPredict;
     const content = images.length
       ? [
           { type: 'text', text: user },
@@ -186,7 +219,7 @@ class OpenAICompatProvider {
       {
         model: this.model,
         temperature: 0,
-        max_tokens: 1024,
+        ...(cap > 0 ? { max_tokens: cap } : {}),
         messages: [
           { role: 'system', content: system },
           { role: 'user', content },
@@ -201,7 +234,11 @@ class OpenAICompatProvider {
     const u = r.usage || {};
     return {
       content: r.choices && r.choices[0] && r.choices[0].message && r.choices[0].message.content,
-      tokens: { input: u.prompt_tokens || 0, output: u.completion_tokens || 0 },
+      tokens: {
+        input: u.prompt_tokens || 0,
+        output: u.completion_tokens || 0,
+        cut: !!(r.choices && r.choices[0] && r.choices[0].finish_reason === 'length'),
+      },
     };
   }
 }
@@ -221,16 +258,16 @@ class MockProvider {
 }
 
 /** "ollama:qwen2.5:7b" | "openai:model@http://127.0.0.1:8080/v1" -> provider. */
-function providerFromSpec(spec) {
+function providerFromSpec(spec, { numPredict } = {}) {
   const m = /^(ollama|openai):(.+)$/.exec(spec);
   if (!m)
     throw new Error(`bad candidate spec: ${spec} (use ollama:<model> or openai:<model>[@baseUrl])`);
   if (m[1] === 'ollama') {
     const [model, baseUrl] = m[2].split('@');
-    return new OllamaProvider({ model, ...(baseUrl ? { baseUrl } : {}) });
+    return new OllamaProvider({ model, numPredict, ...(baseUrl ? { baseUrl } : {}) });
   }
   const [model, baseUrl] = m[2].split('@');
-  return new OpenAICompatProvider({ model, ...(baseUrl ? { baseUrl } : {}) });
+  return new OpenAICompatProvider({ model, numPredict, ...(baseUrl ? { baseUrl } : {}) });
 }
 
 // ── the extraction call ──────────────────────────────────────────────────
@@ -253,6 +290,7 @@ async function extractWithTier3({
   mode = 'text',
   unitHint = null,
   unitFallback = null,
+  promptStyle = null,
 }) {
   const t0 = Date.now();
   const images = mode === 'text' || !imagePng ? [] : [imagePng];
@@ -260,9 +298,10 @@ async function extractWithTier3({
     pageText: pageText || ocrText,
     mode: images.length ? mode : 'text',
   });
+  const prompt = promptFor(provider.model, promptStyle);
   let reply;
   try {
-    reply = await provider.chat({ system: SYSTEM_PROMPT, user, images, schema: RESULT_SCHEMA });
+    reply = await provider.chat({ system: prompt.system, user, images, schema: RESULT_SCHEMA });
   } catch (e) {
     return {
       ok: false,
@@ -273,7 +312,19 @@ async function extractWithTier3({
   }
   const parsed = parseModelJson(reply.content);
   const tokens = reply.tokens || { input: 0, output: 0 };
-  if (parsed.error) return { ok: false, reason: parsed.error, tokens, ms: Date.now() - t0 };
+  if (parsed.error) {
+    // keep the head of what the model actually said: an empty reply and a prose reply need different fixes
+    const said = String(reply.content || '')
+      .replace(/\s+/g, ' ')
+      .slice(0, 100);
+    const thought = reply.thinking ? ` | thinking(${String(reply.thinking).length} chars)` : '';
+    return {
+      ok: false,
+      reason: `${parsed.error}: ${JSON.stringify(said)}${thought}`,
+      tokens,
+      ms: Date.now() - t0,
+    };
+  }
   const { grounded, ungrounded } = groundValues(parsed.values, `${pageText}\n${ocrText}`);
   // A unit printed in the page's own text beats the model's guess; a document-level unit only fills a gap.
   if (unitHint) parsed.unit = unitHint;
@@ -286,6 +337,7 @@ async function extractWithTier3({
   return {
     ok: Object.keys(grounded).length > 0,
     reason: Object.keys(grounded).length ? undefined : 'nothing-grounded',
+    promptStyle: prompt.style,
     unit: parsed.unit,
     basis: parsed.basis,
     period: parsed.period,

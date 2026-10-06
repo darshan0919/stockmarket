@@ -355,25 +355,27 @@ duty, a PLI scheme detail) — a targeted search, cited.
 
 Read `references/growth_catalyst_framework.md` in full before analysing — it
 defines the "new" taxonomy (new base creation, new industry cycle, new
-management change, new corporate action, new capex, new de-bottlenecking, new
+management change, new corporate action, new capex / capacity deficits, new de-bottlenecking, new
 value-chain position, new molecule commercialization, new value-added mix,
-new geography, new warrants, new deleveraging, etc. — §2, also nameable via
-the **CATALYST mnemonic** appended to §4: Capex, Acquisitions, Turnaround,
-Approvals, Large orders, Year Zero, Switch, Theme), the three-bucket growth
-taxonomy (§1b — steady/fast/hyper-growth), concave-vs-convex (§1c), Train
-A/B/C catalyst timing (§1d), young-vs-old momentum (§1e), the Weinstein
-technical stage overlay (§1f), the new-vs-confirmation discipline, the
-structural-vs-cyclical checklist (§3b), sector-level context (§4b), the TGPV
-Theme→Growth→Promoter→Valuation sequencing (§4c), the J-curve lifecycle staging
-(§5a), fake-J-curve checklist (§5b), the **J-Curve Inflection tag rubric (§5f — mandatory,
+new geography, new warrants, new deleveraging, etc. — §2, formalized via
+the 8-letter **C-A-T-A-L-Y-S-T Taxonomy** in §4: **C**apex & Capacity Deficits,
+**A**cquisitions & Alliances, **T**urnaround in Earnings, **A**pprovals & Actions,
+**L**arge Orders, **Y**ear Zero, **S**witch in Strategy/Management, **T**heme & Tailwinds),
+the three-bucket growth taxonomy (§1b — steady/fast/hyper-growth), concave-vs-convex (§1c),
+Train A/B/C catalyst timing (§1d), young-vs-old momentum (§1e), the Weinstein
+technical stage overlay & Super Performance Zone (§1f), the new-vs-confirmation discipline,
+the structural-vs-cyclical checklist (§3b), behavioral stop guardrail (§3c),
+sector-level context (§4b), the TGPV Theme→Growth→Promoter→Valuation sequencing (§4c),
+the J-curve lifecycle staging (§5a), fake-J-curve checklist (§5b), the **J-Curve Inflection tag rubric (§5f — mandatory,
 see Phase 3g below)**, leading/lagging signal discipline (§5d), GARP entry
 discipline (§5g), and theme relative-strength screening (§5h). For detailed sector
-templates (EMS value chain, shipbuilding, KRN capacity ramp, data centers), see
-[`references/sector_case_studies.md`](references/sector_case_studies.md). For candidate
-generation filters (Potential J Curve, Turnaround, Volume Rocketing), see
-[`references/screener_recipes.md`](references/screener_recipes.md). Apply it uniformly across
-all four document sets fetched in Phase 1 — an announcement, a transcript line, and a PPT slide
-are just three different containers for the same kind of "new" fact.
+templates (EMS value chain, shipbuilding, KRN capacity ramp, data centers, unlisted NSE lifecycle,
+Rolex Rings rate-of-change guidance, critical component capacity deficits, and strategic M&A leaps),
+see [`references/sector_case_studies.md`](references/sector_case_studies.md). For candidate
+generation filters (Potential J Curve, Turnaround, Volume Rocketing, Super Growth 50, Early Stage 2,
+StockBee 4%, 3-Week VCP, Deleveraging), see [`references/screener_recipes.md`](references/screener_recipes.md).
+Apply it uniformly across all four document sets fetched in Phase 1 — an announcement, a transcript line,
+and a PPT slide are just three different containers for the same kind of "new" fact.
 
 **Candidate screening filters are Stage 0 tools, not part of single-company Phase 2/3 reads** —
 see [`references/screener_recipes.md`](references/screener_recipes.md). Passing a screen is a
@@ -576,13 +578,27 @@ Stage 3 story). Layer in the lightweight GARP checks from framework §5g
 (credit rating report if available, SOTP gut-check for multi-segment names,
 PEG as a sanity check) — this is not a substitute for `financial-model`, just
 enough to say whether the catalyst identified in 3b looks already priced in.
-**Float Scarcity & Squeeze Check (SOIC · 28.06.26):** Check whether public float
-is contracting via buybacks, promoter warrant conversion (promoter locking in current
-prices for 18–36 months), or institutional accumulation crossing the ₹6,000–7,000 Cr
-threshold where mutual funds begin taking positions.
+**Super Performance Zone Overlay (SOIC · Class 7):** Check whether the stock is
+setting up in the "Super Performance Zone" (framework §1f) — confluence of (1) multi-month
+base breakout, (2) volume expansion on up-weeks vs contracting volume on pullbacks,
+(3) 30-WEMA curling upward with price above rising 30-WEMA, and (4) Relative Strength
+(RS vs Nifty 500) making new 52-week highs. Young Stage 2 inflection + fundamental
+C-A-T-A-L-Y-S-T alignment offers maximum asymmetric reward-to-risk.
+**Float Scarcity & Squeeze Check (SOIC · 28.06.26 & Class 7):** Check whether public float
+is contracting via buybacks (e.g. Rolex Rings case), promoter warrant conversion (promoter
+locking in current prices for 18–36 months), or institutional accumulation crossing the
+₹6,000–7,000 Cr threshold where mutual funds begin taking positions.
 
-**3e. Key risks (3–4)** — execution/regulatory/commodity/demand/balance-sheet/
-concentration, each with a mitigant or probability qualifier.
+**3e. Key risks & Structural Exit Protocol** — 3–4 risks
+(execution/regulatory/commodity/demand/balance-sheet/concentration, each with a mitigant or
+probability qualifier) + **3-Step Exit Protocol (SOIC · Class 7):** Long before audited
+financials confirm earnings deceleration, technical distribution signals appear. When evaluating
+operational or thesis breakdown risks, track:
+
+1. _Monthly Lower Highs / Failure at Resistance:_ Stock stalls after multi-month run and makes lower monthly highs.
+2. _Sector Stage 4 Breakdown:_ Sector index rolls over below declining 30-WEMA with breadth deteriorating.
+3. _Monthly V-Stop Turns Negative:_ Monthly volatility stop flips negative on high volume.
+   If all 3 trip, re-rating thesis is officially invalidated regardless of optimistic management narrative.
 
 **3f. So-what verdict** (3–6 sentences) — does this document set, taken
 together, change how the market should price forward EPS? Note sector-level
@@ -592,6 +608,11 @@ escalating to `consecutive-filings-diff`, `financial-model`, or
 `investment-thesis-engine`? If Darshan holds a documented thesis on file
 (from `buildCompanyContext`), does this support/contradict/sit orthogonal to
 it?
+**Behavioral Guardrail — Ego vs. Portfolio Loss (SOIC · Class 7 @01:26:14):**
+Explicitly reinforce that an investment thesis is a probabilistic hypothesis, not an
+identity. If a company's forward milestone fails to materialize or the 3-step exit
+triggers fire, take an 8–10% loss decisively without letting ego demand waiting for
+audited confirmation or trying to break even. Capital preservation precedes re-rating compounding.
 
 **3g. J-Curve Inflection tag (mandatory, computed last).** Apply framework
 §5f's four-input rubric — grounded in `health` from `computeJCurveFinancialHealth`:

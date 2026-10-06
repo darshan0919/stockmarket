@@ -111,6 +111,13 @@ Do not skip straight to editing skill files from the raw transcript text yoursel
 the main context — the concatenated file is often hundreds of KB; let the subagent
 spend tokens digesting it and return only the structured result.
 
+### Recency rule when lessons disagree (Phase 3)
+
+Wire the **latest** teaching into the target skill. Order lessons by date (YouTube `publishedAt`; Learnyst
+has no date, only lesson-id order — see `skills/_shared/recency.py`). When two lessons conflict, encode the
+newer view and note the older one as superseded in the skill's references; never merge them into a hedge.
+Timeless principles (accounting identities, definitions) are exempt.
+
 ## Phase 4 — Identify target skill(s) (scripted candidates, human confirms)
 
 Run `scripts/suggest_target_skills.py` against the same keywords from Phase 1 to get

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>X Timeline Capture</title>
+<style>
+  :root{color-scheme:light dark;--bg:#fff;--card:#f6f7f9;--fg:#111;--mut:#667;--line:#d8dbe0;--acc:#1d6fe0;--ok:#1a7f4b;--warn:#b25e00;--bad:#c62828}
+  @media (prefers-color-scheme:dark){:root{--bg:#15181c;--card:#1c2026;--fg:#eaecef;--mut:#9aa3ad;--line:#2d333b;--acc:#58a6ff;--ok:#4cc38a;--warn:#e0a050;--bad:#ff7b72}}
+  *{box-sizing:border-box}
+  body{width:380px;margin:0;padding:14px;background:var(--bg);color:var(--fg);font:13px/1.4 system-ui,sans-serif}
+  h1{font-size:15px;margin:0 0 10px}
+  section{margin-bottom:14px}
+  .lbl{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;color:var(--mut);font-size:12px}
+  .lbl button.link{background:none;border:0;color:var(--acc);padding:0 0 0 10px;cursor:pointer;font:inherit}
+  #experts{border:1px solid var(--line);border-radius:8px;max-height:180px;overflow:auto}
+  .ex{display:flex;gap:9px;align-items:flex-start;padding:7px 9px;border-bottom:1px solid var(--line);cursor:pointer}
+  .ex:last-child{border-bottom:0}.ex input{margin-top:3px}
+  .ex .n{font-weight:600}.ex .c{color:var(--mut);font-size:11.5px}
+  fieldset{border:0;padding:0;margin:0}fieldset:disabled{opacity:.55}fieldset:disabled .ex{cursor:default}
+  .row{display:flex;gap:6px}
+  input[type=text],select{flex:1;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:transparent;color:inherit;font:inherit}
+  button{padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:transparent;color:inherit;cursor:pointer;font:inherit}
+  button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+  button.primary{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600;flex:1}
+  button.primary.pause{background:transparent;color:var(--fg);border-color:var(--line)}
+  button.danger{color:var(--bad)}
+  .hint{color:var(--mut);font-size:11.5px;margin-top:4px}
+  .opt{display:flex;gap:8px;align-items:flex-start;font-size:12px;margin-top:10px}
+  #warn{display:none;margin-bottom:10px;padding:8px 9px;border:1px solid var(--warn);border-radius:8px;color:var(--warn);font-size:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 11px}
+  .head{font-weight:600}.head.bad{color:var(--bad)}.head.ok{color:var(--ok)}.head.warn{color:var(--warn)}
+  .sub{color:var(--mut);font-size:12px;margin-top:2px}.sub.bad{color:var(--bad)}
+  .bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin:8px 0 2px}
+  .bar>i{display:block;height:100%;background:var(--acc);width:0;transition:width .4s}
+  .bar.sm{height:4px;margin:5px 0 0}
+  ul{list-style:none;margin:8px 0 0;padding:0}
+  li.u{display:grid;grid-template-columns:20px 1fr;gap:2px 8px;padding:6px 0;border-top:1px solid var(--line)}
+  li.u:first-child{border-top:0}
+  .ic{width:16px;height:16px;margin-top:2px;text-align:center;font-size:13px;line-height:16px}
+  .ic.done,.ic.cached{color:var(--ok)}.ic.error,.ic.login-required{color:var(--bad)}.ic.rate-limited,.ic.paused{color:var(--warn)}.ic.queued{color:var(--mut)}
+  .spin{border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:s .8s linear infinite}
+  @keyframes s{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.spin{animation:none}.bar>i{transition:none}}
+  .dl{white-space:pre-line}
+  .vn{margin:2px 0 0;padding-left:14px;color:var(--mut);font-size:11.5px;list-style:disc}
+  .vs{font-size:12px;margin-top:3px}.vs.ok{color:var(--ok)}.vs.gap,.vs.suspect,.vs.unchecked,.vs.rate-limited,.vs.error{color:var(--warn)}
+  .rg{display:block;margin-top:2px;font-size:11px}
+  .uh{font-weight:600}.us{color:var(--mut);font-size:12px}
+</style></head><body>
+<h1>X Timeline Capture</h1>
+<div id="warn" role="alert"></div>
+
+<fieldset id="setup">
+  <section>
+    <div class="lbl"><span id="ulbl">Users</span><span><button class="link" id="all">All</button><button class="link" id="none">None</button></span></div>
+    <div id="experts" role="group" aria-labelledby="ulbl"></div>
+    <div class="row" style="margin-top:6px"><input type="text" id="newHandle" placeholder="Add @username" aria-label="Add a username"><button id="add">Add</button></div>
+  </section>
+  <section>
+    <div class="lbl"><label for="interval">Capture the last…</label></div>
+    <select id="interval"></select>
+    <div class="hint">Ends today. Anything already saved for a user is skipped.</div>
+  </section>
+</fieldset>
+
+<section class="row">
+  <button class="primary" id="main">Start capture</button>
+  <button id="verify" title="Re-check each saved range against X and the KB, and fix gaps">Verify</button>
+  <button class="danger" id="cancel" hidden>Cancel</button>
+</section>
+
+<section id="statusCard" class="card" aria-live="polite">
+  <div class="head" id="headline">Ready</div>
+  <div class="sub" id="detail"></div>
+  <div class="bar" role="progressbar" aria-label="Overall progress" aria-valuemin="0" aria-valuemax="100" id="overall"><i></i></div>
+  <ul id="users"></ul>
+</section>
+
+<label class="opt"><input type="checkbox" id="auto"><span>Auto-refresh selected users once a day (new posts only; Chrome must be open)</span></label>
+<script src="core.js"></script><script src="popup.js"></script>
+</body></html>

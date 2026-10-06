@@ -132,7 +132,7 @@ function canonicalSiteKey(key) {
 // defaults...` below) for a site not listed here, or to override one that is.
 const SITE_DEFAULTS = {
   soic: { schoolId: '110998', bundleId: '97666', origin: 'https://learn.soic.in' },
-  chartitude: { schoolId: '166281', bundleId: '189631', origin: 'https://learn.chartitude.com' },
+  //chartitude: { schoolId: '166281', bundleId: '189631', origin: 'https://learn.chartitude.com' },
 };
 
 /**

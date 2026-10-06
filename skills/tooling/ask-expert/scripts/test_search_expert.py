@@ -13,6 +13,14 @@ class TestSearchExpert(unittest.TestCase):
         self.assertIsNotNone(search_expert.search_soic)
         self.assertIsNotNone(search_expert.search_anil_lamba)
         self.assertIsNotNone(search_expert.search_stockscans)
+        self.assertIsNotNone(search_expert.search_xposts)
+
+    def test_x_experts_registered(self):
+        self.assertEqual(
+            set(search_expert.X_EXPERTS),
+            {"suresh-kbn", "shashank", "thechartist"},
+        )
+        self.assertIn("ishmohit1", search_expert.SOIC_X_HANDLES)
 
     def test_search_expert_data_fetch(self):
         data_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../data"))
@@ -32,6 +40,21 @@ class TestSearchExpert(unittest.TestCase):
         # Test StockScans search (returns list, empty until transcripts fetched or matching mock)
         stockscans_hits = search_expert.search_stockscans_corpus(data_root, "concall", top_n=2, force_reindex=False)
         self.assertIsInstance(stockscans_hits, list)
+
+
+    def test_registry_drives_x_experts(self):
+        import json, tempfile
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(search_expert.load_x_registry(d)[1], ["ishmohit1"])  # fallback defaults
+            reg = {"experts": {
+                "a": {"handle": "A1", "name": "Alpha", "expertKey": "alpha"},
+                "b": {"handle": "B1", "name": "Bravo", "expertKey": "soic", "mergeInto": "soic"},
+            }}
+            with open(os.path.join(d, "x-experts.json"), "w") as f:
+                json.dump(reg, f)
+            experts, soic = search_expert.load_x_registry(d)
+            self.assertEqual(experts, {"alpha": ("A1", "Alpha")})
+            self.assertEqual(soic, ["B1"])
 
 
 if __name__ == "__main__":

@@ -31,6 +31,9 @@ import re
 import sys
 import time
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../_shared"))
+import recency  # noqa: E402  newest-knowledge-wins layer (dates, recency re-rank, supersession flags)
+
 STOPWORDS = {
     "a", "an", "the", "and", "or", "but", "if", "of", "to", "in", "on", "for",
     "is", "are", "was", "were", "be", "been", "being", "it", "its", "this",
@@ -293,7 +296,7 @@ def main():
         print(json.dumps({"error": "query had no searchable terms after stopword removal"}), file=sys.stderr)
         sys.exit(1)
 
-    top_scores = score_docs(index, query_tokens, args.top)
+    top_scores = score_docs(index, query_tokens, args.top * recency.CANDIDATE_MULT)
 
     results = []
     for score, doc_id in top_scores:
@@ -323,6 +326,7 @@ def main():
         results.append(
             {
                 "id": doc_id,
+                "expert": "stockscans",
                 "source": "youtube",
                 "score": round(score, 3),
                 "title": meta.get("title"),
@@ -334,9 +338,11 @@ def main():
             }
         )
 
+    results = recency.finalize(results, args.data_root, args.top)
     print(
         json.dumps(
             {
+                "recencyPolicy": recency.POLICY,
                 "corpusSize": {"totalVideos": len(stockscans_index), "indexedWithTranscripts": index["nDocs"]},
                 "indexBuilt": index["builtAt"],
                 "results": results,

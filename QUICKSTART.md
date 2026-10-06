@@ -34,7 +34,7 @@ mongod --dbpath /path/to/data/directory
 ```bash
 cd /path/to/stockmarket
 
-yarn install
+yarn setup   # = yarn install + registers the X-capture extension's native host (best-effort)
 
 # Root .env (see .env.example for the full list)
 cat >> .env << 'EOF'

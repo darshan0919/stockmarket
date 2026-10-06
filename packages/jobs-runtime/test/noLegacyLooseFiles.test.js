@@ -48,6 +48,16 @@ describe('Zero loose files & clean cutover verification', () => {
     }
   });
 
+  test('only .jsonl files exist in x-posts/', () => {
+    const dir = path.join(root, 'x-posts');
+    if (fs.existsSync(dir)) {
+      const nonJsonl = fs
+        .readdirSync(dir)
+        .filter((f) => !f.endsWith('.jsonl') && !f.startsWith('.'));
+      expect(nonJsonl).toEqual([]);
+    }
+  });
+
   test('only shard_*.jsonl files exist in sharded cache directories', () => {
     const cacheDirs = ['cache/pdf-text', 'cache/pdf-text-full', 'cache/monthly-updates-text'];
 

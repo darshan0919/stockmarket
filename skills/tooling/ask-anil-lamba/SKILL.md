@@ -76,6 +76,24 @@ Read the returned excerpts and synthesize a structured, direct answer:
 - **Surface the video URL**: Provide the exact deep link (`https://www.youtube.com/watch?v=...&t=...s`) so the user can watch the specific clip.
 - **Differentiate from equity investing**: Dr. Anil Lamba teaches business financial management and operational solvency. If the user's question is about evaluating a listed stock for investment or valuation multiples (P/E, P/B), answer the financial statement mechanics part, and refer them to `ask-soic` or `ask-expert` for equity valuation.
 
+### 4b. Recency rule — newest knowledge wins (always-on)
+
+The script dates every hit and re-ranks by freshness (`date`, `freshness`, `adjScore`, `relevanceRank`,
+`possiblySupersededBy`; policy text in the output's `recencyPolicy`; logic in `skills/_shared/recency.py`).
+Market regimes change, so the most recent view is the one that reflects what currently works:
+
+- **When excerpts conflict, the newest dated one is the current view.** Present older ones as "earlier
+  view (<date>), since changed" — never average them or give them equal weight.
+- Check `possiblySupersededBy` on older hits: a candidate only; you judge whether the newer hit truly
+  contradicts it (same question, opposite advice) or merely adds nuance.
+- State the date next to every claim about market behaviour, tactics, valuation levels or screening rules.
+- **Exceptions you must name explicitly:** timeless principles (accounting identities, arithmetic,
+  definitions) where age is irrelevant; and a newer hit that is a one-line reply with no reasoning.
+- `freshness: "undated"` (Learnyst lessons) has no calendar date — only a lesson-order hint. Say "undated
+  course material" and never invent a date; when it conflicts with a dated YouTube/X item, the dated, newer
+  item wins.
+- Ranking is a weighting, not a filter: an old but far more relevant hit can still appear — label it stale.
+
 ### 5. Token-Optimization Note (conventions.md rule 11)
 
 End with a short, evidence-based note on what could be cheaper next time (e.g. cache hit efficiency, number of excerpts consulted vs returned).

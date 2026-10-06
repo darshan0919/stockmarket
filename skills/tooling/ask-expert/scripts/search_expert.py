@@ -39,6 +39,45 @@ def load_module(module_name, rel_path):
 search_soic = load_module("search_soic", "skills/tooling/ask-soic/scripts/search_soic.py")
 search_anil_lamba = load_module("search_anil_lamba", "skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py")
 search_stockscans = load_module("search_stockscans", "skills/tooling/ask-stockscans/scripts/search_stockscans.py")
+search_xposts = load_module("search_xposts", "skills/tooling/ask-expert/scripts/search_xposts.py")
+# Shared "newest knowledge wins" layer (dates, recency-weighted re-rank, supersession flags, policy text).
+recency = load_module("recency", "skills/_shared/recency.py")
+
+# X (Twitter) experts come from the KB registry data/x-experts.json (written by the capture extension /
+# importXPosts.js): expert key -> (handle, display name). Accounts with mergeInto "soic" are folded into
+# the SOIC expert. Falls back to these defaults when the registry does not exist yet.
+_DEFAULT_X_EXPERTS = {
+    "suresh-kbn": ("SureshKBN", "Suresh K"),
+    "shashank": ("Shashank1171", "Shashank"),
+    "thechartist": ("thechartist26", "The Chartist"),
+}
+_DEFAULT_SOIC_X = ["ishmohit1"]
+
+
+def load_x_registry(data_root):
+    """Return (X_EXPERTS, SOIC_X_HANDLES) from <data_root>/x-experts.json, else defaults."""
+    try:
+        with open(os.path.join(data_root, "x-experts.json"), encoding="utf-8") as f:
+            reg = json.load(f)
+        experts, soic = {}, []
+        for e in (reg.get("experts") or {}).values():
+            handle = e.get("handle")
+            if not handle:
+                continue
+            if e.get("mergeInto") == "soic":
+                soic.append(handle)
+            elif e.get("expertKey"):
+                experts[e["expertKey"]] = (handle, e.get("name") or handle)
+        if not experts and not soic:
+            return dict(_DEFAULT_X_EXPERTS), list(_DEFAULT_SOIC_X)
+        return experts, soic
+    except (OSError, ValueError):
+        return dict(_DEFAULT_X_EXPERTS), list(_DEFAULT_SOIC_X)
+
+
+X_EXPERTS = dict(_DEFAULT_X_EXPERTS)
+SOIC_X_HANDLES = list(_DEFAULT_SOIC_X)
+THRESHOLD = 3.0
 
 
 def search_lamba_corpus(data_root, query, top_n, force_reindex):
@@ -233,12 +272,19 @@ def search_stockscans_corpus(data_root, query, top_n, force_reindex):
 
 
 def main():
+    global X_EXPERTS, SOIC_X_HANDLES
+    pre = argparse.ArgumentParser(add_help=False)
+    pre.add_argument("--data-root")
+    known, _ = pre.parse_known_args()
+    if known.data_root:
+        X_EXPERTS, SOIC_X_HANDLES = load_x_registry(known.data_root)
+
     ap = argparse.ArgumentParser()
     ap.add_argument("--data-root", required=True, help="path to <repo>/data")
     ap.add_argument("--query", required=True, help="free-text query")
     ap.add_argument(
         "--expert",
-        choices=["auto", "all", "both", "anil-lamba", "soic", "stockscans"],
+        choices=["auto", "all", "both", "anil-lamba", "soic", "stockscans"] + sorted(X_EXPERTS),
         default="auto",
         help="which expert(s) to query (default: auto)",
     )
@@ -246,86 +292,79 @@ def main():
     ap.add_argument("--reindex", action="store_true", help="force rebuild of the cached corpus indices")
     args = ap.parse_args()
 
-    lamba_results = []
-    soic_results = []
-    stockscans_results = []
+    def wanted(key):
+        return args.expert in ("all", "both", "auto", key)
 
-    if args.expert in ("all", "both", "anil-lamba", "auto"):
-        lamba_results = search_lamba_corpus(args.data_root, args.query, args.top, args.reindex)
+    cand = args.top * recency.CANDIDATE_MULT  # over-retrieve by relevance, then re-rank by recency
+    pools = {"anil-lamba": [], "soic": [], "stockscans": []}
+    for key in X_EXPERTS:
+        pools[key] = []
 
-    if args.expert in ("all", "both", "soic", "auto"):
-        soic_results = search_soic_corpus(args.data_root, args.query, args.top, args.reindex)
+    if wanted("anil-lamba"):
+        pools["anil-lamba"] = search_lamba_corpus(args.data_root, args.query, cand, args.reindex)
+    if wanted("soic"):
+        soic = search_soic_corpus(args.data_root, args.query, cand, args.reindex)
+        soic += search_xposts.search_handles(
+            args.data_root, args.query, SOIC_X_HANDLES, "soic", cand, args.reindex
+        )
+        pools["soic"] = soic  # trimmed by recency.finalize below (top + a little room for X posts)
+    if wanted("stockscans"):
+        pools["stockscans"] = search_stockscans_corpus(args.data_root, args.query, cand, args.reindex)
+    for key, (handle, _name) in X_EXPERTS.items():
+        if wanted(key):
+            pools[key] = search_xposts.search_handles(
+                args.data_root, args.query, [handle], key, cand, args.reindex
+            )
 
-    if args.expert in ("all", "both", "stockscans", "auto"):
-        stockscans_results = search_stockscans_corpus(args.data_root, args.query, args.top, args.reindex)
+    # Newest-wins: date every hit, weight by freshness, re-rank, flag older hits a newer one may supersede.
+    dates = recency.load_dates(args.data_root)
+    for key in list(pools):
+        keep = args.top + (len(SOIC_X_HANDLES) * 2 if key == "soic" else 0)
+        pools[key] = recency.finalize(pools[key], args.data_root, keep, dates=dates)
 
-    # In 'auto' mode, determine whether to return multiple or just the relevant one
     mode = args.expert
     if args.expert == "auto":
-        has_lamba = len(lamba_results) > 0 and lamba_results[0]["score"] >= 3.0
-        has_soic = len(soic_results) > 0 and soic_results[0]["score"] >= 3.0
-        has_stockscans = len(stockscans_results) > 0 and stockscans_results[0]["score"] >= 3.0
-
-        active = []
-        if has_lamba:
-            active.append("anil-lamba")
-        if has_soic:
-            active.append("soic")
-        if has_stockscans:
-            active.append("stockscans")
-
+        active = [k for k, v in pools.items() if v and max(r["score"] for r in v) >= THRESHOLD]
         if len(active) >= 2:
             mode = "both" if len(active) == 2 else "all"
         elif len(active) == 1:
             mode = active[0]
-            if mode != "anil-lamba":
-                lamba_results = []
-            if mode != "soic":
-                soic_results = []
-            if mode != "stockscans":
-                stockscans_results = []
         else:
-            candidates = [
-                ("anil-lamba", lamba_results),
-                ("soic", soic_results),
-                ("stockscans", stockscans_results),
-            ]
-            non_empty = [c for c in candidates if len(c[1]) > 0]
-            if non_empty:
-                best_expert, _ = max(non_empty, key=lambda c: c[1][0]["score"])
-                mode = best_expert
-                if mode != "anil-lamba":
-                    lamba_results = []
-                if mode != "soic":
-                    soic_results = []
-                if mode != "stockscans":
-                    stockscans_results = []
-            else:
-                mode = "none"
+            non_empty = [(k, v) for k, v in pools.items() if v]
+            mode = max(non_empty, key=lambda c: max(r["score"] for r in c[1]))[0] if non_empty else "none"
+        if mode not in ("both", "all", "none"):
+            pools = {k: (v if k == mode else []) for k, v in pools.items()}
 
-    output = {
+    def block(results):
+        dated = [r["date"] for r in results if r.get("date")]
+        return {
+            "count": len(results),
+            "topScore": max((r["score"] for r in results), default=0.0),
+            "newestDate": max(dated, default=None),
+            "oldestDate": min(dated, default=None),
+            "results": results,
+        }
+
+    def camel(key):
+        head, *rest = key.split("-")
+        return head + "".join(w.capitalize() for w in rest)
+
+    experts = {
+        "anilLamba": block(pools["anil-lamba"]),
+        "soic": block(pools["soic"]),
+        "stockscans": block(pools["stockscans"]),
+    }
+    for key in X_EXPERTS:
+        experts[camel(key)] = block(pools[key])
+
+    out = {
         "query": args.query,
         "mode": mode,
-        "experts": {
-            "anilLamba": {
-                "count": len(lamba_results),
-                "topScore": lamba_results[0]["score"] if lamba_results else 0.0,
-                "results": lamba_results,
-            },
-            "soic": {
-                "count": len(soic_results),
-                "topScore": soic_results[0]["score"] if soic_results else 0.0,
-                "results": soic_results,
-            },
-            "stockscans": {
-                "count": len(stockscans_results),
-                "topScore": stockscans_results[0]["score"] if stockscans_results else 0.0,
-                "results": stockscans_results,
-            },
-        },
+        "recencyPolicy": recency.POLICY,
+        "timeline": recency.timeline({k: v["results"] for k, v in experts.items()}),
+        "experts": experts,
     }
-
-    print(json.dumps(output, indent=2))
+    print(json.dumps(out, indent=2))
 
 
 if __name__ == "__main__":
