@@ -24,20 +24,38 @@
 const tolOf = (a, b) => Math.max(0.03, 0.006 * Math.max(Math.abs(a), Math.abs(b)));
 const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
 
+/**
+ * An identity among near-zero values proves nothing (0.01 - 0 = 0.01 holds for any garbage), so it only counts when its operands
+ * are not negligible next to the column's scale (its total income or revenue).
+ */
+function nonVacuous(operands, c) {
+  const scaleRef = Math.max(Math.abs(c.totalIncome) || 0, Math.abs(c.revenue) || 0);
+  if (!scaleRef) return true;
+  return Math.max(...operands.map((x) => Math.abs(x))) >= 0.002 * scaleRef;
+}
+
 function verifyIncomeStatement(cur) {
   const c = cur || {};
   const checks = [];
-  const add = (id, soft, expected, actual) => {
-    const ok = Math.abs(expected - actual) <= tolOf(expected, actual);
+  const add = (id, soft, expected, actual, operands = [expected, actual]) => {
+    const ok = Math.abs(expected - actual) <= tolOf(expected, actual) && nonVacuous(operands, c);
     checks.push({ id, soft, ok, expected, actual });
   };
   if (isNum(c.totalIncome) && isNum(c.revenue)) {
-    add('C1', false, c.revenue + (isNum(c.otherIncome) ? c.otherIncome : 0), c.totalIncome);
+    add('C1', false, c.revenue + (isNum(c.otherIncome) ? c.otherIncome : 0), c.totalIncome, [
+      c.revenue,
+      c.totalIncome,
+    ]);
   }
   if (isNum(c.pbt) && isNum(c.totalIncome) && isNum(c.totalExpenses)) {
-    add('C2', true, c.totalIncome - c.totalExpenses, c.pbt);
+    add('C2', true, c.totalIncome - c.totalExpenses, c.pbt, [
+      c.totalIncome,
+      c.totalExpenses,
+      c.pbt,
+    ]);
   }
-  if (isNum(c.pat) && isNum(c.pbt) && isNum(c.tax)) add('C3', true, c.pbt - c.tax, c.pat);
+  if (isNum(c.pat) && isNum(c.pbt) && isNum(c.tax))
+    add('C3', true, c.pbt - c.tax, c.pat, [c.pbt, c.tax, c.pat]);
   const passed = checks.filter((k) => k.ok).length;
   const hardFailed = checks.some((k) => !k.ok && !k.soft);
   let verdict;
@@ -84,6 +102,119 @@ function groundValues(values, text) {
   return { grounded, ungrounded };
 }
 
+// Each identity lists its operands and how to solve for any one of them from the others.
+const IDENTITIES = [
+  {
+    id: 'C1',
+    fields: ['revenue', 'otherIncome', 'totalIncome'],
+    optional: ['otherIncome'],
+    solve: {
+      revenue: (c) => c.totalIncome - (isNum(c.otherIncome) ? c.otherIncome : 0),
+      otherIncome: (c) => c.totalIncome - c.revenue,
+      totalIncome: (c) => c.revenue + (isNum(c.otherIncome) ? c.otherIncome : 0),
+    },
+  },
+  {
+    id: 'C2',
+    fields: ['totalIncome', 'totalExpenses', 'pbt'],
+    solve: {
+      totalIncome: (c) => c.pbt + c.totalExpenses,
+      totalExpenses: (c) => c.totalIncome - c.pbt,
+      pbt: (c) => c.totalIncome - c.totalExpenses,
+    },
+  },
+  {
+    id: 'C3',
+    fields: ['pbt', 'tax', 'pat'],
+    solve: {
+      pbt: (c) => c.pat + c.tax,
+      tax: (c) => c.pbt - c.pat,
+      pat: (c) => c.pbt - c.tax,
+    },
+  },
+];
+
+/**
+ * Arithmetic repair. When an identity fails, the wrong operand is usually one that no passing identity and no second
+ * OCR read vouches for. For each such suspect: solve it from the others and accept the solved value ONLY if it is printed on the
+ * page (L1), else drop the suspect. A missing field beats a wrong one, and a wrong value never survives a failed identity.
+ *
+ * @param {object} cur   field -> value in crore
+ * @param {object} ctx   step: smallest printed decimal step (0.01 for two-decimal tables, 1 for whole numbers); printed: Set of numbers printed on the page (document units); scale: crore per printed unit;
+ *                       votes: field -> number of OCR reads that agree (>=2 counts as corroborated)
+ */
+function reconcileIncomeStatement(cur, { printed, scale = 1, votes = {}, step = 0.01 } = {}) {
+  const c = { ...cur };
+  // rounding tolerance of the PRINTED figures (each operand is off by up to half a step), far tighter than the verdict's 0.6%
+  const tolR = (a, b) => 1.5 * step * scale + 5e-4 * Math.max(Math.abs(a), Math.abs(b));
+  const repaired = [];
+  const dropped = [];
+  const holds = (idn) => {
+    const need = idn.fields.filter((f) => !(idn.optional || []).includes(f));
+    if (!need.every((f) => isNum(c[f]))) return null; // cannot be checked
+    if (
+      !nonVacuous(
+        need.map((f) => c[f]),
+        c
+      )
+    )
+      return false;
+    const want = idn.solve[idn.fields[idn.fields.length - 1]](c);
+    return (
+      Math.abs(want - c[idn.fields[idn.fields.length - 1]]) <=
+      tolR(want, c[idn.fields[idn.fields.length - 1]])
+    );
+  };
+  for (let round = 0; round < 4; round += 1) {
+    const state = IDENTITIES.map((idn) => ({ idn, ok: holds(idn) }));
+    const failing = state.filter((x) => x.ok === false);
+    if (!failing.length) break;
+    const vouched = new Set();
+    for (const x of state) if (x.ok === true) x.idn.fields.forEach((f) => vouched.add(f));
+    for (const f of Object.keys(votes)) if (votes[f] >= 2) vouched.add(f);
+    const first = failing[0].idn;
+    const suspects = first.fields.filter((f) => isNum(c[f]) && !vouched.has(f));
+    if (!suspects.length) break; // every operand is vouched for elsewhere: leave it to the verdict (a soft identity may be legitimately off)
+    let fixed = false;
+    for (const f of suspects) {
+      const v = first.solve[f](c);
+      const printedForm = Math.round((Math.abs(v) / scale) * 10000) / 10000;
+      const tryC = { ...c, [f]: v };
+      if (isNum(v) && printed && printed.has(printedForm) && holdsWith(first, tryC)) {
+        repaired.push({ field: f, from: c[f], to: v });
+        c[f] = v;
+        fixed = true;
+        break;
+      }
+    }
+    if (!fixed) {
+      for (const f of suspects) {
+        dropped.push(f);
+        delete c[f];
+      }
+    }
+  }
+  // With two or more reads, a field that no passing identity vouches for must be backed by two reads, else it is dropped.
+  if (Object.keys(votes).length) {
+    const vouchedNow = new Set();
+    for (const idn of IDENTITIES)
+      if (holds(idn) === true) idn.fields.forEach((f) => vouchedNow.add(f));
+    for (const f of Object.keys(c)) {
+      if (!vouchedNow.has(f) && !(votes[f] >= 2)) {
+        dropped.push(f);
+        delete c[f];
+      }
+    }
+  }
+  return { cur: c, repaired, dropped };
+
+  function holdsWith(idn, vals) {
+    const last = idn.fields[idn.fields.length - 1];
+    const want = idn.solve[last](vals);
+    return Math.abs(want - vals[last]) <= tolR(want, vals[last]);
+  }
+}
+
 const COMPONENTS = ['employeeCost', 'interest', 'depreciation', 'otherExpenses'];
 
 /**
@@ -119,4 +250,10 @@ function sanitizeCurrent(cur) {
   return { cur: out, dropped };
 }
 
-module.exports = { sanitizeCurrent, verifyIncomeStatement, printedNumbers, groundValues };
+module.exports = {
+  sanitizeCurrent,
+  verifyIncomeStatement,
+  printedNumbers,
+  groundValues,
+  reconcileIncomeStatement,
+};

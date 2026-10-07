@@ -160,6 +160,16 @@ describe('reposts and articles', () => {
   });
 });
 
+describe('posts stream', () => {
+  test('posts stream keeps its own coverage and its rows are stored', () => {
+    capture.commitRows('Exp', [row({ id: '70', by: 'Exp', at: T(3), text: 'An original post', conv: '70' })], { coverage: { fromMs: 5, toMs: 15 }, stream: 'posts' });
+    const e = experts.publicConfig().experts.find((x) => x.handle === 'Exp');
+    expect(e.coverage).toBeNull();
+    expect(e.coverageBy.posts).toMatchObject({ fromMs: 5, toMs: 15 });
+    expect(capture.loadRaw('Exp').has('70')).toBe(true);
+  });
+});
+
 describe('verify support in the host', () => {
   test('checkIds returns only ids missing from the KB; setCoverage replaces (can shrink) a range', () => {
     handlers.safeHandle({ type: 'commit', handle: 'Exp', rows: [row({ id: '1', by: 'Exp', at: T(1), text: 'a', conv: '1' })], coverage: { fromMs: 0, toMs: 100, exhausted: true } });

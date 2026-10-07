@@ -169,6 +169,25 @@ clean alone). What remains: 11 documents where the table is never located (wide 
 (dropped digits and decimals, e.g. 0.01 vs 0.1105), and missing rows. Untested ideas: tesseract TSV word boxes to rebuild columns, crop the
 standalone and consolidated halves separately, and a fast low-resolution pass to find the result page in scans. 30 documents is small.
 
+## Tesseract accuracy work (2026-10-07): two-read consensus + arithmetic repair
+
+What changed in the result router's Tier 2 (all measured on dev docs against XBRL truth, scored with `bench.js`/`report.js`):
+
+1. `consensus.js`: the page is OCR'd under up to four settings (`LADDER` in `router.js`); per field the value most reads agree on wins.
+2. `verify.reconcileIncomeStatement`: when an arithmetic identity fails, the unvouched operand is replaced ONLY by a solved value that is printed on the page,
+   otherwise dropped. A field no identity vouches for needs two reads. Identities among near-zero values no longer count (0.01 - 0 = 0.01).
+3. Bug fixes: EPS was rescaled by the statement unit (all 3 power-of-ten errors); a failing soft identity was ignored.
+
+| run                                | docs              | served | strict accuracy on served fields printed | notes                                 |
+| ---------------------------------- | ----------------- | ------ | ---------------------------------------- | ------------------------------------- |
+| tess-1 single read (300 dpi clean) | 30 tuned-on       | 9      | 81%                                      |                                       |
+| tess-4 ladder + repair             | 30 tuned-on       | 18     | 96.9% (99.4% excluding otherExpenses)    | tuned on these 30, so optimistic      |
+| tess-5h same code                  | 40 fresh dev docs | 19     | 82.2% (85.5% excluding otherExpenses)    | 4 wrong-basis docs; the honest number |
+
+The holdout shows overfitting. Its errors are systematic, not OCR noise: (a) two DATAMATICS filings were served as a verified table of the wrong entity or column
+(22 wrong fields); (b) profit before tax read from the "before exceptional items" line (BIRLACORPN, CCAVENUE, FORCEMOT); (c) a dropped decimal (92 vs 5.92).
+`otherExpenses` is not comparable: the PDF prints one line, XBRL sums several. Nothing here clears the 98% gate, and the corpus must stay as the test bed.
+
 ## Reading the report
 
 `coverage` = served docs / docs; `servedAcc` = field accuracy among served docs (basis must match XBRL truth);

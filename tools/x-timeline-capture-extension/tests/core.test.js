@@ -301,14 +301,14 @@ test('describeJob shows stored counts per user next to this-run counts', () => {
   assert.equal(C.storedLine(null), '');
 });
 
-test('planAll plans main, reposts and articles; articles always go back to the beginning', () => {
+test('planAll plans main, posts, reposts and articles; articles always go back to the beginning', () => {
   const now = 1e12;
   const p = C.planAll(null, now, 7 * 86400000);
-  assert.deepEqual(p.map((x) => x.stream), ['main', 'reposts', 'articles']);
+  assert.deepEqual(p.map((x) => x.stream), ['main', 'posts', 'reposts', 'articles']);
   assert.equal(p[0].stopAtMs, now - 7 * 86400000);
-  assert.ok(p[2].stopAtMs < now - 365 * 86400000);
+  assert.ok(p[3].stopAtMs < now - 365 * 86400000);
   const cached = { fromMs: now - 400 * 86400000, toMs: now - 60000, exhausted: false, olderCursor: 'c' };
-  const q = C.planAll({ main: cached, reposts: cached, articles: { ...cached, exhausted: true } }, now, 30 * 86400000);
+  const q = C.planAll({ main: cached, posts: cached, reposts: cached, articles: { ...cached, exhausted: true } }, now, 30 * 86400000);
   assert.equal(q.length, 0); // everything inside the saved ranges
 });
 
@@ -326,8 +326,11 @@ test('assessCoverage: all recent items stored -> ok; missing in-range item -> ga
   a = C.assessCoverage({ handle: 'Exp', stream: 'main', cov: old, newest: { rows: [mk('9', 1)] }, missing: new Set(['9']) });
   assert.equal(a.state, 'unchecked'); assert.equal(a.heal.length, 1); assert.equal(a.patch, null);
   // "from the beginning" claim with far fewer stored tweets than X reports -> dropped
-  a = C.assessCoverage({ handle: 'Exp', stream: 'main', cov: { ...cov, exhausted: true }, newest: { rows: [mk('1', 1)] }, missing: new Set(), statuses: 1000, storedTotal: 234 });
+  a = C.assessCoverage({ handle: 'Exp', stream: 'main', cov: { ...cov, exhausted: true }, newest: { rows: [mk('1', 1)] }, missing: new Set(), statuses: 1000, storedTotal: 100 });
   assert.equal(a.state, 'suspect'); assert.equal(a.patch.exhausted, false);
+  // 25-90%: a real walk ended there -> keep the claim, label it partial (X serves no more)
+  a = C.assessCoverage({ handle: 'Exp', stream: 'main', cov: { ...cov, exhausted: true }, newest: { rows: [mk('1', 1)] }, missing: new Set(), statuses: 1000, storedTotal: 450 });
+  assert.equal(a.state, 'partial'); assert.equal(a.patch, null);
   a = C.assessCoverage({ handle: 'Exp', stream: 'main', cov: { ...cov, exhausted: true }, newest: { rows: [mk('1', 1)] }, missing: new Set(), statuses: 1000, storedTotal: 950 });
   assert.equal(a.state, 'ok');
   // cursor that lands on recent posts, or is rejected by X -> dropped

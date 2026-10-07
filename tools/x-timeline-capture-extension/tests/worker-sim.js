@@ -99,6 +99,7 @@ const assert = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) pro
   hostLog.length = 0;
   pages = [
     { status: 200, userId: 'u', rows: [row('11', 1)], next: null },
+    { status: 200, userId: 'u', rows: [row('12', 1)], next: null }, // Posts tab (UserTweets): originals live here
     { status: 200, userId: 'u', rows: [{ id: '21', by: 'Exp', at: T(1), text: 'RT @A: x', conv: '21', rt: { id: '99', by: 'A', text: 'x' } }], next: null },
     { status: 200, userId: 'u', rows: [row('31', 2, { article: { title: 'T', text: 'body' } })], next: null },
   ];
@@ -108,8 +109,8 @@ const assert = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) pro
   await send({ type: 'XCAP_START', handles: ['Exp'], intervalDays: 30 });
   await wait(6500);
   commits = hostLog.filter((m) => m.type === 'commit');
-  assert(JSON.stringify(fetched) === JSON.stringify(['main', 'reposts', 'articles']), 'streams fetched in order: ' + fetched.join(','));
-  assert(commits.map((c) => c.stream).join(',') === 'main,reposts,articles', 'each stream committed with its tag: ' + commits.map((c) => c.stream).join(','));
+  assert(JSON.stringify(fetched) === JSON.stringify(['main', 'posts', 'reposts', 'articles']), 'streams fetched in order: ' + fetched.join(','));
+  assert(commits.map((c) => c.stream).join(',') === 'main,posts,reposts,articles', 'each stream committed with its tag: ' + commits.map((c) => c.stream).join(','));
   assert(store.job.status === 'done' && store.job.per.Exp.counts.reposts === 1 && store.job.per.Exp.counts.articles === 1, 'job done with live counts ' + JSON.stringify(store.job.per.Exp.counts));
   // 5) Verify: heals a missing in-range item, shortens the range, drops a "from the beginning" claim that the counts contradict
   await send({ type: 'XCAP_CANCEL' });

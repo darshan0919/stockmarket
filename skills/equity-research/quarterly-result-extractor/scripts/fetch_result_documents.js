@@ -17,6 +17,8 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { loadEnv } = require('../../../../packages/jobs-runtime/lib/env');
+loadEnv();
 const { fetchDocuments } = require('../../../../stock-api/src/fetchers/documentsFetcher.js');
 const {
   ConcallTranscriptResolver,
@@ -26,7 +28,7 @@ function parseArgs(argv) {
   const out = { ticker: null, outDir: null };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (a === '--ticker') out.ticker = argv[++i];
+    if (a === '--ticker' || a === '--companyId') out.ticker = argv[++i];
     else if (a === '--out-dir') out.outDir = argv[++i];
   }
   return out;

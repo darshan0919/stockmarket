@@ -15,13 +15,14 @@ let toast = null; // transient inline error
 function rng(c) {
   if (!c) return 'not captured yet';
   const v = c.verify;
-  const mark = !v ? '' : v.state === 'ok' ? ` ✓ verified ${day(v.at)}` : ' ⚠ check';
-  return `${c.exhausted ? 'from the beginning' : day(c.fromMs)} → ${day(c.toMs)}${mark}`;
+  const mark = !v ? '' : v.state === 'ok' ? ` ✓ verified ${day(v.at)}` : v.state === 'partial' ? ` ✓ all that X serves (${day(v.at)})` : ' ⚠ check';
+  const from = !c.exhausted ? day(c.fromMs) : v && v.state === 'partial' ? 'oldest X serves' : 'from the beginning';
+  return `${from} → ${day(c.toMs)}${mark}`;
 }
 /** One saved range per capture stream (they are separate timelines on X, so each has its own range). */
 function covText(e) {
   const by = e.coverageBy || {};
-  return `<span class="rg">Posts &amp; replies: ${rng(e.coverage)}<br>Reposts: ${rng(by.reposts)}<br>Articles: ${rng(by.articles)}</span>`;
+  return `<span class="rg">Replies timeline: ${rng(e.coverage)}<br>Posts: ${rng(by.posts)}<br>Reposts: ${rng(by.reposts)}<br>Articles: ${rng(by.articles)}</span>`;
 }
 function statText(e) {
   const l = globalThis.XCap.storedLine(e.stats);

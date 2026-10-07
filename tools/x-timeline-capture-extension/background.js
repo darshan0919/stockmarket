@@ -147,8 +147,8 @@ function migrateJob(job) {
   job.cov = job.cov || {};
   for (const h of job.handles || []) {
     const c = job.cov[lc(h)];
-    const nested = c && typeof c === 'object' && ('main' in c || 'reposts' in c || 'articles' in c);
-    if (!nested) job.cov[lc(h)] = { main: c && c.toMs ? c : null, reposts: null, articles: null };
+    const nested = c && typeof c === 'object' && ('main' in c || 'posts' in c || 'reposts' in c || 'articles' in c);
+    if (!nested) job.cov[lc(h)] = { main: c && c.toMs ? c : null, posts: null, reposts: null, articles: null };
     const per = job.per && job.per[h];
     if (per && !per.counts) per.counts = { posts: 0, replies: 0, reposts: 0, articles: 0 };
   }
@@ -180,6 +180,7 @@ async function startJob({ handles, intervalDays, auto }) {
   for (const e of cfg.config.experts)
     cov[lc(e.handle)] = {
       main: e.coverage || null,
+      posts: e.coverageBy?.posts || null,
       reposts: e.coverageBy?.reposts || null,
       articles: e.coverageBy?.articles || null,
     };
@@ -282,6 +283,7 @@ async function commitPhase(job, handle, { final, exhausted, nextCursor }) {
         if (e)
           job.cov[lc(handle)] = {
             main: e.coverage || null,
+            posts: e.coverageBy?.posts || null,
             reposts: e.coverageBy?.reposts || null,
             articles: e.coverageBy?.articles || null,
           };
@@ -503,7 +505,7 @@ async function fetchStream(tabId, handle, stream, cursor, userId) {
 }
 
 async function verifyUser(handle, expert, tabId) {
-  const covs = { main: expert && expert.coverage, reposts: expert && expert.coverageBy && expert.coverageBy.reposts, articles: expert && expert.coverageBy && expert.coverageBy.articles };
+  const covs = { main: expert && expert.coverage, posts: expert && expert.coverageBy && expert.coverageBy.posts, reposts: expert && expert.coverageBy && expert.coverageBy.reposts, articles: expert && expert.coverageBy && expert.coverageBy.articles };
   const out = {};
   let userId = null, statuses = null;
   for (const stream of C.STREAMS) {

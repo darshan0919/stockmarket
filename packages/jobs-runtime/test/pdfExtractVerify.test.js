@@ -75,3 +75,74 @@ describe('sanitizeCurrent', () => {
     expect(cur.totalExpenses).toBeUndefined();
   });
 });
+
+describe('reconcileIncomeStatement', () => {
+  const { reconcileIncomeStatement, printedNumbers } = require('../lib/pdfExtract/verify');
+  const printed = printedNumbers('Tax expenses 23.80   Profit 67.12   90.92');
+  test('a wrong operand is repaired when the solved value is printed on the page', () => {
+    const r = reconcileIncomeStatement(
+      {
+        revenue: 622.26,
+        otherIncome: 3.19,
+        totalIncome: 625.45,
+        totalExpenses: 534.53,
+        pbt: 90.92,
+        tax: 7,
+        pat: 67.12,
+      },
+      { printed, scale: 1 }
+    );
+    expect(r.cur.tax).toBeCloseTo(23.8, 4);
+    expect(r.repaired).toEqual([{ field: 'tax', from: 7, to: expect.closeTo(23.8, 4) }]);
+  });
+  test('an unvouched suspect with no printed fix is dropped, never served', () => {
+    const r = reconcileIncomeStatement(
+      {
+        revenue: 43.7362,
+        otherIncome: 0.01,
+        totalIncome: 43.8467,
+        totalExpenses: 37.4359,
+        pbt: 6.4107,
+      },
+      { printed: new Set([4373.62]), scale: 0.01, votes: { revenue: 3 } }
+    );
+    expect(r.dropped).toEqual(['otherIncome']);
+    expect(r.cur.otherIncome).toBeUndefined();
+    expect(r.cur.revenue).toBe(43.7362);
+  });
+  test('a lakh-scaled repair is matched against the printed lakh figure', () => {
+    const r = reconcileIncomeStatement(
+      { revenue: 43.7362, otherIncome: 0.01, totalIncome: 43.8467 },
+      { printed: new Set([4373.62, 11.05]), scale: 0.01 }
+    );
+    expect(r.cur.otherIncome).toBeCloseTo(0.1105, 4);
+  });
+  test('a clean column is untouched, and soft-identity gaps vouched elsewhere are left alone', () => {
+    const clean = { revenue: 10, totalIncome: 10, totalExpenses: 7, pbt: 3, tax: 1, pat: 2 };
+    expect(reconcileIncomeStatement(clean, {}).cur).toEqual(clean);
+  });
+});
+
+describe('vacuous identities and single-read fields', () => {
+  const { verifyIncomeStatement, reconcileIncomeStatement } = require('../lib/pdfExtract/verify');
+  test('an identity among near-zero garbage does not count as verification', () => {
+    const v = verifyIncomeStatement({
+      revenue: 10.3469,
+      otherIncome: 2.7716,
+      totalIncome: 13.1185,
+      pbt: 0.01,
+      tax: 0,
+      pat: 0.01,
+    });
+    expect(v.verdict).toBe('consistent'); // only C1 counts
+  });
+  test('with votes, a field no identity vouches for needs two reads', () => {
+    const r = reconcileIncomeStatement(
+      { revenue: 10, totalIncome: 10, employeeCost: 0.3424, interest: 0.32 },
+      { printed: new Set(), votes: { revenue: 2, totalIncome: 2, employeeCost: 1, interest: 2 } }
+    );
+    expect(r.cur.employeeCost).toBeUndefined();
+    expect(r.cur.interest).toBe(0.32);
+    expect(r.dropped).toContain('employeeCost');
+  });
+});

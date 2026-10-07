@@ -23,8 +23,15 @@ const skillDir = path.join(
 const { extractIncomeStatement } = require(path.join(skillDir, 'extract_income_statement.js'));
 const { pageTexts, rankResultPages, renderPagePng, ocrPage } = require('./pages');
 const { modelOcrPage } = require('./ocrmodel');
-const { verifyIncomeStatement, sanitizeCurrent } = require('./verify');
+const {
+  verifyIncomeStatement,
+  sanitizeCurrent,
+  printedNumbers,
+  reconcileIncomeStatement,
+} = require('./verify');
 const { extractWithTier3, TO_CRORE } = require('./tier3');
+const { mergeParses, headlineAgreed } = require('./consensus');
+const { splitSideBySide } = require('./layout');
 
 const SERVABLE = new Set(['verified', 'consistent']);
 
@@ -34,6 +41,24 @@ function tier1OnText(text) {
   const cur = {};
   for (const [k, v] of Object.entries(ex.raw.cur || {})) if (typeof v === 'number') cur[k] = v;
   return { unit: ex.unit, basis: ex.consolidated ? 'consolidated' : 'standalone', cur };
+}
+
+/**
+ * Parse one page into one candidate per basis. A page printing STANDALONE and CONSOLIDATED side by side is cut into its blocks first
+ * (layout.js), otherwise the parser reads the left block and the page's wording mislabels it.
+ */
+function parsePage(text) {
+  const sp = splitSideBySide(text);
+  if (sp) {
+    const out = [];
+    for (const part of sp.parts) {
+      const g = tier1OnText(part.text);
+      if (g) out.push({ ...g, basis: part.basis });
+    }
+    if (out.length) return out;
+  }
+  const g = tier1OnText(text);
+  return g ? [g] : [];
 }
 
 /** Basis a page declares in its heading (first 1800 chars): 'consolidated' | 'standalone' | null. */
@@ -65,8 +90,40 @@ function textUnit(text) {
 function applyUnitHint(got, hint) {
   const f = TO_CRORE[hint];
   const cur = {};
-  for (const [k, v] of Object.entries(got.cur)) cur[k] = f && f !== 1 ? +(v * f).toFixed(6) : v;
+  // per-share values (EPS) are in rupees whatever the statement's unit, so they are never rescaled
+  for (const [k, v] of Object.entries(got.cur))
+    cur[k] = f && f !== 1 && !/^eps/i.test(k) ? +(v * f).toFixed(6) : v;
   return { ...got, cur, unit: hint, unitFrom: 'hint' };
+}
+
+// Tesseract settings tried in turn; measured on the dev split (docs/LOCAL_MODEL_EXTRACTION.md). Needs ImageMagick for 'clean'.
+const LADDER = [
+  { dpi: 300, prep: 'clean', psm: 6 },
+  { dpi: 400, prep: 'clean', psm: 6 },
+  { dpi: 300, prep: 'gray', psm: 4 },
+  { dpi: 200, prep: 'none', psm: 6 },
+];
+
+/** Smallest decimal step the page prints figures in: 0.01 for two-decimal tables, 0.1, or 1 for whole numbers. */
+function printedStep(text) {
+  const dec = String(text || '').match(/\d[\d,]*\.\d+/g) || [];
+  if (!dec.length) return 1;
+  const two = dec.filter((x) => /\.\d{2}$/.test(x)).length;
+  return two / dec.length >= 0.5 ? 0.01 : 0.1;
+}
+
+/** Arithmetic repair of a parsed column (verify.reconcileIncomeStatement), then the normal judgement. */
+function judgeReconciled(c, { text, votes } = {}) {
+  const rec = reconcileIncomeStatement(c.cur, {
+    printed: printedNumbers(text),
+    scale: TO_CRORE[c.unit] || 1,
+    step: printedStep(text),
+    votes,
+  });
+  const j = judge({ ...c, cur: rec.cur });
+  if (rec.repaired.length) j.repaired = rec.repaired;
+  if (rec.dropped.length) j.droppedByIdentity = rec.dropped;
+  return j;
 }
 
 function judge(c) {
@@ -157,8 +214,7 @@ async function extractResultPdf(file, opts = {}) {
       .map((r) => r);
   if (!opts.skipTier1 && !opts.forceOcr) {
     for (const r of ranked) {
-      const got = tier1OnText(`${tail(r.page)}\n${pages[r.page - 1]}`);
-      if (got) {
+      for (const got of parsePage(`${tail(r.page)}\n${pages[r.page - 1]}`)) {
         const j = judge({ tier: 1, page: r.page, ...got });
         t1.push(j);
         if (j.servable) parsedPages.add(r.page);
@@ -174,6 +230,54 @@ async function extractResultPdf(file, opts = {}) {
     if (best && (best.basis === 'consolidated' || !pendingConsolidated().length)) return done(best);
     if (best) fallback = best;
   }
+
+  // Tesseract read of one page. With the default ladder the page is read under several settings and a column is served only
+  // when its identities verify or two reads agree on every headline field; a single explicit variant keeps the one-read rule.
+  const variants = opts.tesseract ? [opts.tesseract] : LADDER;
+  const readTesseract = (page) => {
+    const reads = [];
+    let firstText = '';
+    const groups = () => {
+      const g = new Map();
+      for (const x of reads) g.set(x.basis, [...(g.get(x.basis) || []), x]);
+      return g;
+    };
+    for (const v of variants) {
+      const text = ocrPage(file, page, v);
+      if (!text) continue;
+      if (!firstText) firstText = text;
+      for (const got of parsePage(text)) {
+        const hinted = withUnitHint(got, page);
+        const judged = judgeReconciled({ tier: 2, page, ...hinted }, { text });
+        reads.push({ ...hinted, judged, text });
+      }
+      if (variants.length > 1 && reads.length >= 2) {
+        // enough reads once every field the reads found is backed by two of them, for each basis on the page
+        const enough = [...groups().values()].every(
+          (rs) => rs.length >= 2 && Object.values(mergeParses(rs).votes).every((n) => n >= 2)
+        );
+        if (enough) break;
+      }
+    }
+    if (variants.length === 1) return { text: firstText, candidates: reads.map((x) => x.judged) };
+    const candidates = reads.map((x) => ({
+      ...x.judged,
+      servable: x.judged.servable && x.judged.verification === 'verified',
+      readsAgreed: 1,
+    }));
+    for (const rs of groups().values()) {
+      if (rs.length < 2) continue;
+      const merged = mergeParses(rs);
+      const mj = judgeReconciled(
+        { tier: 2, page, unit: merged.unit, basis: merged.basis, cur: merged.cur },
+        { text: rs.map((x) => x.text).join('\n'), votes: merged.votes }
+      );
+      mj.readsAgreed = merged.reads;
+      mj.servable = mj.servable && (mj.verification === 'verified' || headlineAgreed(merged));
+      candidates.push(mj);
+    }
+    return { text: firstText, candidates };
+  };
 
   // Tier 2 (OCR) on the best pages that look like result pages
   const ocrTexts = new Map();
@@ -199,10 +303,16 @@ async function extractResultPdf(file, opts = {}) {
           if (!modelFailure) modelFailure = `ocr-model ${m.error}`;
         }
       }
-      if (!text) text = ocrPage(file, r.page, tess); // tesseract: default, and the fallback when the model returns nothing
-      ocrTexts.set(r.page, text);
-      const got = text ? tier1OnText(text) : null;
-      if (got) t2.push(judge({ tier: 2, page: r.page, ...withUnitHint(got, r.page) }));
+      if (text) {
+        // an OCR model's text is parsed as one read
+        ocrTexts.set(r.page, text);
+        for (const got of parsePage(text))
+          t2.push(judge({ tier: 2, page: r.page, ...withUnitHint(got, r.page) }));
+      } else {
+        const rd = readTesseract(r.page);
+        if (rd.text) ocrTexts.set(r.page, rd.text);
+        t2.push(...rd.candidates);
+      }
     }
     trail.push({
       tier: 2,
@@ -326,6 +436,7 @@ async function extractResultPdf(file, opts = {}) {
 module.exports = {
   extractResultPdf,
   tier1OnText,
+  parsePage,
   judge,
   pickBest,
   declaredBasis,

@@ -297,6 +297,10 @@ describe('applyUnitHint', () => {
     expect(r.unit).toBe('lakh');
     expect(r.cur).toEqual({ revenue: 49.0401, pat: 9.3408 });
   });
+  test('per-share values keep their rupee value', () => {
+    const r = applyUnitHint({ cur: { revenue: 4373.62, epsBasic: 1.96 } }, 'lakh');
+    expect(r.cur).toEqual({ revenue: 43.7362, epsBasic: 1.96 });
+  });
   test('a hinted crore unit leaves values alone; million divides by ten', () => {
     expect(applyUnitHint({ cur: { revenue: 12.5 } }, 'crore').cur).toEqual({ revenue: 12.5 });
     expect(applyUnitHint({ cur: { revenue: 500 } }, 'million').cur).toEqual({ revenue: 50 });

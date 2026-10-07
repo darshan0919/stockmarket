@@ -75,7 +75,9 @@ function parseCandidate(spec) {
     // ocr=<ocr model>[+<extraction model>[/mode]]: Tier 2 reads pages with the OCR model; the optional second model is Tier 3
     // the engine 'tesseract' is the current Tier 2; ocronly= skips the text-layer parse so every engine reads the same pages
     const opts = tess
-      ? { tesseract: parseTess(tess[1]) }
+      ? tess[1]
+        ? { tesseract: parseTess(tess[1]) }
+        : {}
       : { ocrModel: { provider: providerFromSpec(o[2], PROV) } };
     if (o[1] === 'ocronly') opts.forceOcr = true;
     if (o[3]) {

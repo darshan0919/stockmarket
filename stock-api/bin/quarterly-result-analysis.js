@@ -72,7 +72,8 @@ Options:
     return;
   }
 
-  const latestDoc = docRecords[docRecords.length - 1];
+  const latestDocIndex = docRecords[docRecords.length - 1];
+  const latestDoc = db.readReport(latestDocIndex.id) || latestDocIndex;
 
   // 3. Build deterministic analytical context
   try {

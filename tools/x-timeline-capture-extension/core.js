@@ -5,8 +5,8 @@
 (function (root) {
   const OP = 'UserRepliesTimeline'; // posts + replies + quotes (UserTweets excludes replies)
   // Capture streams = the profile tabs. Each has its own coverage (cache range) per user.
-  const OPS = { main: OP, reposts: 'UserRepostsTimeline', articles: 'UserArticlesTweets' };
-  const STREAMS = ['main', 'reposts', 'articles'];
+  const OPS = { main: OP, posts: 'UserTweets', reposts: 'UserRepostsTimeline', articles: 'UserArticlesTweets' };
+  const STREAMS = ['main', 'posts', 'reposts', 'articles'];
   const ALL_MS = 36500 * 86400000;
   const BEARER =
     'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'; // public web-client bearer
@@ -208,7 +208,7 @@
 
   /** Coverage patch sent to the host when a phase (or checkpoint of it) is committed. */
 
-  /** Phases for every stream of a user. cov = { main, reposts, articles } (each may be null). Articles are few: always everything. */
+  /** Phases for every stream of a user. cov = { main, posts, reposts, articles } (each may be null). Articles are few: always everything. */
   function planAll(cov, nowMs, intervalMs) {
     const out = [];
     for (const stream of STREAMS) {
@@ -269,7 +269,7 @@
     new: 'Fetching new posts',
     older: 'Fetching older posts',
   };
-  const STREAM_LABEL = { reposts: 'Fetching reposts', articles: 'Fetching articles' };
+  const STREAM_LABEL = { main: 'Fetching replies timeline', posts: 'Fetching posts', reposts: 'Fetching reposts', articles: 'Fetching articles' };
 
   const fmtN = (n) => Number(n || 0).toLocaleString('en-US');
   function storedLine(stats) {
@@ -428,10 +428,16 @@
     }
     if (a.stream === 'main' && a.statuses > 0 && a.storedTotal != null) {
       const pct = Math.round((a.storedTotal / a.statuses) * 100);
-      if (cov.exhausted && pct < 80) {
+      if (cov.exhausted && pct < PARTIAL_PCT) {
+        // Far below X's own total (e.g. 4%): the "from the beginning" claim is almost certainly a capture bug.
         patch = { ...(patch || {}), exhausted: false, olderCursor: null };
         if (state === 'ok' || state === 'unchecked') state = 'suspect';
         notes.push(`Marked "from the beginning" but only ${a.storedTotal.toLocaleString('en-US')} of ~${a.statuses.toLocaleString('en-US')} tweets are stored (${pct}%). The claim was dropped; run Start to continue.`);
+      } else if (cov.exhausted && pct < 90) {
+        // A real walk reached the end of what X serves. The rest is probably deleted / hidden / not served by X
+        // (X's own total includes tweets that no longer appear on any timeline). Keep the claim, but say so.
+        if (state === 'ok') state = 'partial';
+        notes.push(`Complete as far as X serves: ${a.storedTotal.toLocaleString('en-US')} of the ~${a.statuses.toLocaleString('en-US')} tweets X reports (${pct}%). The rest is not returned by X's timeline (deleted, hidden or capped by X) - not a capture gap we can fix.`);
       } else {
         notes.push(`Stored ${a.storedTotal.toLocaleString('en-US')} of ~${a.statuses.toLocaleString('en-US')} tweets on X (${pct}%).`);
       }
@@ -439,8 +445,9 @@
     return { state, notes, heal: [...heal.values()], patch, checked };
   }
 
-  const VSTATE = { ok: 'Verified', unchecked: 'Could not compare', gap: 'Gap found and fixed', suspect: 'Needs a re-run', skipped: 'Not captured yet', 'rate-limited': 'Rate-limited, try later', error: 'Error' };
-  const STREAM_NAME = { main: 'Posts & replies', reposts: 'Reposts', articles: 'Articles' };
+  const PARTIAL_PCT = 25; // below this share of X's reported total, an exhausted claim is treated as a capture bug
+  const VSTATE = { ok: 'Verified', partial: 'Complete as far as X serves', unchecked: 'Could not compare', gap: 'Gap found and fixed', suspect: 'Needs a re-run', skipped: 'Not captured yet', 'rate-limited': 'Rate-limited, try later', error: 'Error' };
+  const STREAM_NAME = { main: 'Replies timeline', posts: 'Posts', reposts: 'Reposts', articles: 'Articles' };
 
   /** View-model for the Verify run (stored in chrome.storage as `vjob`). */
   function describeVerify(v) {
@@ -448,12 +455,12 @@
     const users = v.handles.map((h) => {
       const rs = (v.results && v.results[h]) || {};
       const streams = STREAMS.filter((s) => rs[s]).map((s) => ({ stream: s, name: STREAM_NAME[s], state: rs[s].state, label: VSTATE[rs[s].state] || rs[s].state, notes: rs[s].notes || [] }));
-      const worst = ['error', 'rate-limited', 'suspect', 'gap', 'unchecked'].find((k) => streams.some((x) => x.state === k)) || (streams.length ? 'ok' : 'queued');
+      const worst = ['error', 'rate-limited', 'suspect', 'gap', 'unchecked', 'partial'].find((k) => streams.some((x) => x.state === k)) || (streams.length ? 'ok' : 'queued');
       const active = v.status === 'running' && v.handles[v.idx] === h;
       return { handle: h, state: active ? 'active' : worst, streams, label: active ? 'Checking…' : streams.length ? '' : 'Waiting' };
     });
     const flat = users.flatMap((u) => u.streams).filter((x) => x.state !== 'skipped');
-    const bad = flat.filter((x) => x.state !== 'ok').length;
+    const bad = flat.filter((x) => x.state !== 'ok' && x.state !== 'partial').length;
     let headline;
     if (v.status === 'running') headline = `Verifying @${v.handles[v.idx]} (${v.idx + 1} of ${v.handles.length})`;
     else if (v.status === 'error') headline = 'Verify stopped because of an error';

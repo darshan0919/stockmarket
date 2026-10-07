@@ -62,11 +62,41 @@ function formatPct(num, decimals = 1, showSign = false) {
 function computeKpiCards(headline) {
   if (!headline) return [];
 
+  let normalized = headline;
+  if (Array.isArray(headline)) {
+    normalized = {};
+    for (const card of headline) {
+      if (card.key === 'revenue') {
+        normalized.revenue = { val: card.value, yoyPct: card.yoyPct, qoqPct: card.qoqPct };
+      } else if (card.key === 'ebitdaMargin') {
+        normalized.ebitdaMargin = {
+          val: card.value,
+          yoyBps: card.yoyBpsChange,
+          qoqBps: card.qoqBpsChange,
+          yoyVal: card.priorYValue,
+          qoqVal: card.priorQValue,
+        };
+      } else if (card.key === 'pat') {
+        normalized.pat = { val: card.value, yoyPct: card.yoyPct, qoqPct: card.qoqPct };
+      } else if (card.key === 'effectiveTaxRate') {
+        normalized.effectiveTaxRate = {
+          val: card.value,
+          yoyBps: card.yoyBpsChange,
+          qoqBps: card.qoqBpsChange,
+          yoyVal: card.priorYValue,
+          qoqVal: card.priorQValue,
+        };
+      } else if (card.key === 'eps') {
+        normalized.eps = { val: card.value, yoyPct: card.yoyPct, qoqPct: card.qoqPct };
+      }
+    }
+  }
+
   const cards = [];
 
   // 1. Revenue
-  if (headline.revenue) {
-    const rev = headline.revenue;
+  if (normalized.revenue) {
+    const rev = normalized.revenue;
     const yoy = rev.yoyPct !== undefined ? rev.yoyPct : null;
     const qoq = rev.qoqPct !== undefined ? rev.qoqPct : null;
     let tone = 'neutral';
@@ -93,8 +123,8 @@ function computeKpiCards(headline) {
   }
 
   // 2. EBITDA Margin
-  if (headline.ebitdaMargin) {
-    const mrg = headline.ebitdaMargin;
+  if (normalized.ebitdaMargin) {
+    const mrg = normalized.ebitdaMargin;
     const yoyBps = mrg.yoyBps !== undefined ? mrg.yoyBps : null;
     let tone = 'neutral';
     if (yoyBps !== null) {
@@ -119,8 +149,8 @@ function computeKpiCards(headline) {
   }
 
   // 3. PAT
-  if (headline.pat) {
-    const pat = headline.pat;
+  if (normalized.pat) {
+    const pat = normalized.pat;
     const yoy = pat.yoyPct !== undefined ? pat.yoyPct : null;
     let tone = 'neutral';
     if (yoy !== null) {
@@ -144,8 +174,8 @@ function computeKpiCards(headline) {
   }
 
   // 4. Effective Tax Rate
-  if (headline.effectiveTaxRate) {
-    const tax = headline.effectiveTaxRate;
+  if (normalized.effectiveTaxRate) {
+    const tax = normalized.effectiveTaxRate;
     const yoyBps = tax.yoyBps !== undefined ? tax.yoyBps : null;
     let tone = 'neutral';
     // Lower tax rate without underlying reason is neutral/risk of reversal
@@ -171,8 +201,8 @@ function computeKpiCards(headline) {
   }
 
   // 5. EPS
-  if (headline.eps) {
-    const eps = headline.eps;
+  if (normalized.eps) {
+    const eps = normalized.eps;
     const yoy = eps.yoyPct !== undefined ? eps.yoyPct : null;
     let tone = 'neutral';
     if (yoy !== null) {
@@ -319,11 +349,17 @@ function computeMandatoryChips(record) {
   }
 
   // Check headline margins
-  if (record.headlineFinancials && record.headlineFinancials.ebitdaMargin) {
-    const yoyBps = record.headlineFinancials.ebitdaMargin.yoyBps;
-    if (yoyBps >= 200) {
+  let mrgYoyBps = null;
+  if (Array.isArray(record.headlineFinancials)) {
+    const card = record.headlineFinancials.find((c) => c.key === 'ebitdaMargin');
+    if (card) mrgYoyBps = card.yoyBpsChange;
+  } else if (record.headlineFinancials && record.headlineFinancials.ebitdaMargin) {
+    mrgYoyBps = record.headlineFinancials.ebitdaMargin.yoyBps;
+  }
+  if (mrgYoyBps != null) {
+    if (mrgYoyBps >= 200) {
       chips.push('MARGIN INFLECTION');
-    } else if (yoyBps <= -200) {
+    } else if (mrgYoyBps <= -200) {
       chips.push('MARGIN COMPRESSION');
     }
   }
