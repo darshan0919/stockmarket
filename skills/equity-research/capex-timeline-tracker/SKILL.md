@@ -86,25 +86,34 @@ Assemble all disclosures into a **single, unified vertical chronological stream*
 
 ### Phase 4: Production & Revenue Scaling Model
 
-Synthesize a 4-stage progression table:
+Compute multi-plant capacity expansion metrics deterministically via `@stock/api/analyzers/capexScalingCalculator`:
 
-- **Phase 0 (Base):** Baseline capacity and revenue.
-- **Phase 1 (Debottlenecking):** Incremental efficiency gains.
-- **Phase 2 (Wave 1 Expansion):** Brownfield completion and trial batch impact.
-- **Phase 3 (Wave 2 Greenfield):** Long-term pipeline and full revenue potential.
+- Run `calculateCapacityProgression(baseCapacity, expansions)` to compute total installed capacity, capacity multiplier, and facility contribution breakdown.
+- Run `calculateRevenuePotential({ capacity, realizationPerUnit, assetTurnover, utilizationMin, utilizationMax })` to establish peak top-line brackets.
+- Synthesize a 4-stage progression table:
+  - **Phase 0 (Base):** Baseline capacity and audited revenue.
+  - **Phase 1 (Debottlenecking):** Incremental efficiency gains and margin expansion.
+  - **Phase 2 (Wave 1 Expansion):** Brownfield completion and trial batch impact.
+  - **Phase 3 (Wave 2 Greenfield):** Long-term pipeline and full revenue potential.
+- Apply adversarial forensics from [`references/capex_methodology.md`](references/capex_methodology.md):
+  - Dr. Anil Lamba checks: CWIP aging, capitalized interest traps, and break-even escalation risks.
+  - SOIC checks: Incremental asset turn dilution test and Management Walk-the-Talk credibility grading (Green / Yellow / Red Light).
 
 ### Phase 5: Artifact Generation & Storage
 
 1. Persist canonical JSON DTO via `packages/jobs-runtime/lib/db.js` (`saveReport`).
-2. Generate single self-contained HTML report with responsive styling and print CSS (`@page { size: A4 portrait; }`).
+2. Populate the standardized output template [`references/template_capex_master.html`](references/template_capex_master.html) to ensure identical, institutional-grade 2-page output across all runs.
 3. Render institutional PDF using `skills/_shared/resolve.sh render-pdf --html report.html --pdf jobs/data/rerating-catalysts/<TICKER>_Capex_Master.pdf`.
 4. Copy PDF to `data/reports/` and push to Google Drive via `yarn data:push`.
 5. Return the direct Google Drive sharing URL to the user.
 
 ---
 
-## 4. Report Design Guidelines
+## 4. Report Design Guidelines & Template Standards
 
+- **Standard Template:** Always use and populate [`references/template_capex_master.html`](references/template_capex_master.html) as the single visual foundation.
+- **Strict 2-Page Fit:** Maintain `<div class="page-break"></div>` between Page 1 (Footprint & Timeline Part 1) and Page 2 (Timeline Part 2, Scaling Model Table & Analytical Verdict). Keep font sizes (~8.8px) and margins tight to fit cleanly within Puppeteer's 18mm/15mm page constraints with zero 3rd-page spill.
+- **Timeline Card Alignment:** Inside each `.v-card .v-head`, the title (`.doc-type`) MUST be left-aligned directly following the date badge, with the scope tag (`.scope-tag`) pushed to the far right via `margin-left: auto`. Never center-align the filing title.
 - **No Duplication:** Avoid having both a visual horizontal flow AND a comprehensive filing table. Use a clean, **vertical chronological stream** that carries all data, metrics, and future committed milestones within each dated node.
 - **Color Coding:**
   - `Completed / Commissioned`: Emerald Green (`#16a34a`, background `#dcfce7`).

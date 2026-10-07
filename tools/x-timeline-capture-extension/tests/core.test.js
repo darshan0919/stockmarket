@@ -301,15 +301,20 @@ test('describeJob shows stored counts per user next to this-run counts', () => {
   assert.equal(C.storedLine(null), '');
 });
 
-test('planAll plans main, posts, reposts and articles; articles always go back to the beginning', () => {
+test('planAll plans posts, main, reposts and articles; articles always go back to the beginning', () => {
   const now = 1e12;
   const p = C.planAll(null, now, 7 * 86400000);
-  assert.deepEqual(p.map((x) => x.stream), ['main', 'posts', 'reposts', 'articles']);
+  assert.deepEqual(p.map((x) => x.stream), ['originals', 'main', 'reposts', 'articles']);
   assert.equal(p[0].stopAtMs, now - 7 * 86400000);
   assert.ok(p[3].stopAtMs < now - 365 * 86400000);
   const cached = { fromMs: now - 400 * 86400000, toMs: now - 60000, exhausted: false, olderCursor: 'c' };
-  const q = C.planAll({ main: cached, posts: cached, reposts: cached, articles: { ...cached, exhausted: true } }, now, 30 * 86400000);
+  const q = C.planAll({ main: cached, originals: cached, reposts: cached, articles: { ...cached, exhausted: true } }, now, 30 * 86400000);
   assert.equal(q.length, 0); // everything inside the saved ranges
+});
+
+test('planAll with `only` plans just that stream (used for per-stream rounds across users)', () => {
+  const p = C.planAll(null, 1e12, 86400000, 'main');
+  assert.deepEqual(p.map((x) => x.stream), ['main']);
 });
 
 test('assessCoverage: all recent items stored -> ok; missing in-range item -> gap + shortened range; stale claims dropped', () => {

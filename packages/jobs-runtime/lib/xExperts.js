@@ -130,7 +130,7 @@ function applyCoverage(existing, patch, nowIso = new Date().toISOString()) {
   };
 }
 
-/** stream: 'main' (UserRepliesTimeline: replies etc., e.coverage) | 'posts' (UserTweets, the Posts tab) | 'reposts' | 'articles' (e.coverageBy[stream]). */
+/** stream: 'main' (UserRepliesTimeline: replies etc., e.coverage) | 'originals' (UserOriginalsTimeline, the Posts tab) | 'reposts' | 'articles' (e.coverageBy[stream]). */
 function updateCoverage(handle, patch, stream = 'main') {
   const reg = load();
   const e = reg.experts[lc(handle)];
@@ -140,7 +140,7 @@ function updateCoverage(handle, patch, stream = 'main') {
     save(reg);
     return e.coverage;
   }
-  if (!['posts', 'reposts', 'articles'].includes(stream)) throw new Error(`unknown stream: ${stream}`);
+  if (!['originals', 'reposts', 'articles'].includes(stream)) throw new Error(`unknown stream: ${stream}`);
   e.coverageBy = e.coverageBy || {};
   e.coverageBy[stream] = applyCoverage(e.coverageBy[stream], patch);
   save(reg);
@@ -153,7 +153,7 @@ function replaceCoverage(handle, stream, coverage) {
   const e = reg.experts[lc(handle)];
   if (!e) throw new Error(`unknown expert @${handle}`);
   if (stream === 'main') e.coverage = coverage;
-  else if (['posts', 'reposts', 'articles'].includes(stream)) {
+  else if (['originals', 'reposts', 'articles'].includes(stream)) {
     e.coverageBy = e.coverageBy || {};
     if (coverage) e.coverageBy[stream] = coverage;
     else delete e.coverageBy[stream];

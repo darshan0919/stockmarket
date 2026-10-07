@@ -38,7 +38,7 @@ const assert = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) pro
   await wait(3500);
   let commits = hostLog.filter((m) => m.type === 'commit');
   assert(commits.length === 1 && commits[0].rows.length === 2, 'rate limit: rows flushed to KB (' + commits.length + ' commit, ' + (commits[0] && commits[0].rows.length) + ' rows)');
-  assert(commits[0] && commits[0].coverage && commits[0].stream === 'main' && commits[0].coverage.olderCursor === 'c1', 'rate limit: partial coverage carries the older cursor');
+  assert(commits[0] && commits[0].coverage && commits[0].stream === 'originals' && commits[0].coverage.olderCursor === 'c1', 'rate limit: partial coverage carries the older cursor');
   const j = store.job; assert(j.status === 'running' && j.resumeAt > Date.now() && j.dirty === false, 'rate limit: job waiting, clean');
   // 2) resume then pause: flush on pause
   j.resumeAt = null; store.job = j; hostLog.length = 0;
@@ -86,7 +86,7 @@ const assert = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) pro
   const rep = (n, nxt) => ({ status: 200, userId: 'u', rows: [row('77', 1)], next: nxt });
   pages = [rep(1, 'a'), rep(2, 'b'), rep(3, 'c'), rep(4, null), { status: 200, userId: 'u', rows: [], next: null }, { status: 200, userId: 'u', rows: [], next: null }];
   const f2 = []; const o2 = chrome.tabs.sendMessage;
-  chrome.tabs.sendMessage = async (id, m) => { if (m.type === 'XCAP_FETCH_PAGE') f2.push(m.stream); return o2(id, m); };
+  chrome.tabs.sendMessage = async (id, m) => { if (m.type === 'XCAP_FETCH_PAGE') { f2.push(m.stream); if (m.stream !== 'main') return { status: 200, userId: 'u', rows: [], next: null }; } return o2(id, m); };
   await send({ type: 'XCAP_START', handles: ['Exp'], intervalDays: 30 });
   await wait(7500);
   chrome.tabs.sendMessage = o2;
@@ -98,8 +98,8 @@ const assert = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) pro
   // 4) all three streams run for one user and each commits with its own stream tag
   hostLog.length = 0;
   pages = [
-    { status: 200, userId: 'u', rows: [row('11', 1)], next: null },
-    { status: 200, userId: 'u', rows: [row('12', 1)], next: null }, // Posts tab (UserTweets): originals live here
+    { status: 200, userId: 'u', rows: [row('12', 1)], next: null }, // posts first (UserOriginalsTimeline)
+    { status: 200, userId: 'u', rows: [row('11', 1)], next: null }, // then the replies timeline
     { status: 200, userId: 'u', rows: [{ id: '21', by: 'Exp', at: T(1), text: 'RT @A: x', conv: '21', rt: { id: '99', by: 'A', text: 'x' } }], next: null },
     { status: 200, userId: 'u', rows: [row('31', 2, { article: { title: 'T', text: 'body' } })], next: null },
   ];
@@ -109,8 +109,8 @@ const assert = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) pro
   await send({ type: 'XCAP_START', handles: ['Exp'], intervalDays: 30 });
   await wait(6500);
   commits = hostLog.filter((m) => m.type === 'commit');
-  assert(JSON.stringify(fetched) === JSON.stringify(['main', 'posts', 'reposts', 'articles']), 'streams fetched in order: ' + fetched.join(','));
-  assert(commits.map((c) => c.stream).join(',') === 'main,posts,reposts,articles', 'each stream committed with its tag: ' + commits.map((c) => c.stream).join(','));
+  assert(JSON.stringify(fetched) === JSON.stringify(['originals', 'main', 'reposts', 'articles']), 'streams fetched in order: ' + fetched.join(','));
+  assert(commits.map((c) => c.stream).join(',') === 'originals,main,reposts,articles', 'each stream committed with its tag: ' + commits.map((c) => c.stream).join(','));
   assert(store.job.status === 'done' && store.job.per.Exp.counts.reposts === 1 && store.job.per.Exp.counts.articles === 1, 'job done with live counts ' + JSON.stringify(store.job.per.Exp.counts));
   // 5) Verify: heals a missing in-range item, shortens the range, drops a "from the beginning" claim that the counts contradict
   await send({ type: 'XCAP_CANCEL' });

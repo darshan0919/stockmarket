@@ -16,9 +16,9 @@ Captures posts, replies, quotes, long posts and articles of followed X accounts 
 - **Start**: only the part of the interval _not already cached_ is fetched.
 - **Auto-refresh** (checkbox): once a day, for the selected users, fetches only new posts since the last capture (≈1–2 pages/user). Needs Chrome open + logged in + host installed.
 
-## What is captured (four streams per user = the profile tabs)
+## What is captured (four streams per user, fetched in this priority: posts → replies → reposts → articles (each stream for ALL users before the next starts))
 1. **Replies timeline** (replies, quotes, threads) — `UserRepliesTimeline`. In practice this does **not** return most original top-level posts, so it is not used as the "posts" source.
-2. **Posts** (the `/` Posts tab: originals, pinned, reposts, deduped by id) — `UserTweets`
+2. **Posts** (the `/` Posts tab: originals, pinned, reposts, deduped by id) — `UserOriginalsTimeline`
 3. **Reposts** (`/reposts` tab) — `UserRepostsTimeline`; stored as `repost` docs (text of the original, labelled with its author)
 4. **Articles** (`/articles` tab) — `UserArticlesTweets`; always fetched in full (few), full text indexed
 

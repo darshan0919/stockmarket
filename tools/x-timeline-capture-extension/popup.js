@@ -22,7 +22,7 @@ function rng(c) {
 /** One saved range per capture stream (they are separate timelines on X, so each has its own range). */
 function covText(e) {
   const by = e.coverageBy || {};
-  return `<span class="rg">Replies timeline: ${rng(e.coverage)}<br>Posts: ${rng(by.posts)}<br>Reposts: ${rng(by.reposts)}<br>Articles: ${rng(by.articles)}</span>`;
+  return `<span class="rg">Replies timeline: ${rng(e.coverage)}<br>Posts: ${rng(by.originals)}<br>Reposts: ${rng(by.reposts)}<br>Articles: ${rng(by.articles)}</span>`;
 }
 function statText(e) {
   const l = globalThis.XCap.storedLine(e.stats);

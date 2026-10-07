@@ -53,7 +53,7 @@ function appendRaw(handle, rows) {
 /**
  * @param {string} handle
  * @param {Array<object>} rows  captured rows (own + context)
- * @param {{ coverage?: {fromMs:number,toMs:number,exhausted?:boolean,olderCursor?:string|null}, stream?: 'main'|'posts'|'reposts'|'articles', name?: string }} [opts]
+ * @param {{ coverage?: {fromMs:number,toMs:number,exhausted?:boolean,olderCursor?:string|null}, stream?: 'main'|'originals'|'reposts'|'articles', name?: string }} [opts]
  */
 /**
  * What is stored for a handle, counted per tweet (what you see on X): posts (own tweets that are not

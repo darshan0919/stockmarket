@@ -5,8 +5,9 @@
 (function (root) {
   const OP = 'UserRepliesTimeline'; // posts + replies + quotes (UserTweets excludes replies)
   // Capture streams = the profile tabs. Each has its own coverage (cache range) per user.
-  const OPS = { main: OP, posts: 'UserTweets', reposts: 'UserRepostsTimeline', articles: 'UserArticlesTweets' };
-  const STREAMS = ['main', 'posts', 'reposts', 'articles'];
+  const OPS = { originals: 'UserOriginalsTimeline', main: OP, reposts: 'UserRepostsTimeline', articles: 'UserArticlesTweets' };
+  // Fetch priority: originals (posts) > replies timeline > reposts > articles.
+  const STREAMS = ['originals', 'main', 'reposts', 'articles'];
   const ALL_MS = 36500 * 86400000;
   const BEARER =
     'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'; // public web-client bearer
@@ -208,10 +209,10 @@
 
   /** Coverage patch sent to the host when a phase (or checkpoint of it) is committed. */
 
-  /** Phases for every stream of a user. cov = { main, posts, reposts, articles } (each may be null). Articles are few: always everything. */
-  function planAll(cov, nowMs, intervalMs) {
+  /** Phases for every stream of a user. cov = { originals, main, reposts, articles } (each may be null). Articles are few: always everything. */
+  function planAll(cov, nowMs, intervalMs, only) {
     const out = [];
-    for (const stream of STREAMS) {
+    for (const stream of only ? [only] : STREAMS) {
       for (const p of planHandle(
         (cov || {})[stream] || null,
         nowMs,
@@ -269,7 +270,7 @@
     new: 'Fetching new posts',
     older: 'Fetching older posts',
   };
-  const STREAM_LABEL = { main: 'Fetching replies timeline', posts: 'Fetching posts', reposts: 'Fetching reposts', articles: 'Fetching articles' };
+  const STREAM_LABEL = { main: 'Fetching replies timeline', originals: 'Fetching posts', reposts: 'Fetching reposts', articles: 'Fetching articles' };
 
   const fmtN = (n) => Number(n || 0).toLocaleString('en-US');
   function storedLine(stats) {
@@ -447,7 +448,7 @@
 
   const PARTIAL_PCT = 25; // below this share of X's reported total, an exhausted claim is treated as a capture bug
   const VSTATE = { ok: 'Verified', partial: 'Complete as far as X serves', unchecked: 'Could not compare', gap: 'Gap found and fixed', suspect: 'Needs a re-run', skipped: 'Not captured yet', 'rate-limited': 'Rate-limited, try later', error: 'Error' };
-  const STREAM_NAME = { main: 'Replies timeline', posts: 'Posts', reposts: 'Reposts', articles: 'Articles' };
+  const STREAM_NAME = { main: 'Replies timeline', originals: 'Posts', reposts: 'Reposts', articles: 'Articles' };
 
   /** View-model for the Verify run (stored in chrome.storage as `vjob`). */
   function describeVerify(v) {

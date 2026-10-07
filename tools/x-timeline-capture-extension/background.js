@@ -147,8 +147,8 @@ function migrateJob(job) {
   job.cov = job.cov || {};
   for (const h of job.handles || []) {
     const c = job.cov[lc(h)];
-    const nested = c && typeof c === 'object' && ('main' in c || 'posts' in c || 'reposts' in c || 'articles' in c);
-    if (!nested) job.cov[lc(h)] = { main: c && c.toMs ? c : null, posts: null, reposts: null, articles: null };
+    const nested = c && typeof c === 'object' && ('main' in c || 'originals' in c || 'reposts' in c || 'articles' in c);
+    if (!nested) job.cov[lc(h)] = { main: c && c.toMs ? c : null, originals: null, reposts: null, articles: null };
     const per = job.per && job.per[h];
     if (per && !per.counts) per.counts = { posts: 0, replies: 0, reposts: 0, articles: 0 };
   }
@@ -180,7 +180,7 @@ async function startJob({ handles, intervalDays, auto }) {
   for (const e of cfg.config.experts)
     cov[lc(e.handle)] = {
       main: e.coverage || null,
-      posts: e.coverageBy?.posts || null,
+      originals: e.coverageBy?.originals || null,
       reposts: e.coverageBy?.reposts || null,
       articles: e.coverageBy?.articles || null,
     };
@@ -283,7 +283,7 @@ async function commitPhase(job, handle, { final, exhausted, nextCursor }) {
         if (e)
           job.cov[lc(handle)] = {
             main: e.coverage || null,
-            posts: e.coverageBy?.posts || null,
+            originals: e.coverageBy?.originals || null,
             reposts: e.coverageBy?.reposts || null,
             articles: e.coverageBy?.articles || null,
           };
@@ -331,7 +331,14 @@ function advanceHandle(job, state) {
   job.userId = null;
   job.cursor = null;
   job.phase = null;
-  if (job.idx >= job.handles.length) job.status = 'done';
+  if (job.idx >= job.handles.length) {
+    // Round = one stream for ALL users. Next round only starts when every user's current stream is done.
+    if ((job.round || 0) < C.STREAMS.length - 1) {
+      job.round = (job.round || 0) + 1;
+      job.idx = 0;
+      job.plans = {};
+    } else job.status = 'done';
+  }
 }
 
 async function step(job) {
@@ -340,7 +347,7 @@ async function step(job) {
 
   if (!job.phase) {
     const plan = (job.plans[handle] =
-      job.plans[handle] || C.planAll(job.cov[lc(handle)], Date.now(), job.intervalMs));
+      job.plans[handle] || C.planAll(job.cov[lc(handle)], Date.now(), job.intervalMs, C.STREAMS[job.round || 0]));
     const next = plan.shift();
     if (!next) {
       advanceHandle(job, 'cached');
@@ -505,7 +512,7 @@ async function fetchStream(tabId, handle, stream, cursor, userId) {
 }
 
 async function verifyUser(handle, expert, tabId) {
-  const covs = { main: expert && expert.coverage, posts: expert && expert.coverageBy && expert.coverageBy.posts, reposts: expert && expert.coverageBy && expert.coverageBy.reposts, articles: expert && expert.coverageBy && expert.coverageBy.articles };
+  const covs = { main: expert && expert.coverage, originals: expert && expert.coverageBy && expert.coverageBy.originals, reposts: expert && expert.coverageBy && expert.coverageBy.reposts, articles: expert && expert.coverageBy && expert.coverageBy.articles };
   const out = {};
   let userId = null, statuses = null;
   for (const stream of C.STREAMS) {

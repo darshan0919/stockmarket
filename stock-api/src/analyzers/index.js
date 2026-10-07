@@ -60,4 +60,6 @@ module.exports = {
   SIGNAL_THRESHOLDS,
   computePatBridge: require('./patBridge').computePatBridge,
   computeJCurveFinancialHealth: require('./jcurveFinancialMetrics').computeJCurveFinancialHealth,
+  calculateCapacityProgression: require('./capexScalingCalculator').calculateCapacityProgression,
+  calculateRevenuePotential: require('./capexScalingCalculator').calculateRevenuePotential,
 };

@@ -160,12 +160,12 @@ describe('reposts and articles', () => {
   });
 });
 
-describe('posts stream', () => {
-  test('posts stream keeps its own coverage and its rows are stored', () => {
-    capture.commitRows('Exp', [row({ id: '70', by: 'Exp', at: T(3), text: 'An original post', conv: '70' })], { coverage: { fromMs: 5, toMs: 15 }, stream: 'posts' });
+describe('originals stream', () => {
+  test('originals stream keeps its own coverage and its rows are stored', () => {
+    capture.commitRows('Exp', [row({ id: '70', by: 'Exp', at: T(3), text: 'An original post', conv: '70' })], { coverage: { fromMs: 5, toMs: 15 }, stream: 'originals' });
     const e = experts.publicConfig().experts.find((x) => x.handle === 'Exp');
     expect(e.coverage).toBeNull();
-    expect(e.coverageBy.posts).toMatchObject({ fromMs: 5, toMs: 15 });
+    expect(e.coverageBy.originals).toMatchObject({ fromMs: 5, toMs: 15 });
     expect(capture.loadRaw('Exp').has('70')).toBe(true);
   });
 });
