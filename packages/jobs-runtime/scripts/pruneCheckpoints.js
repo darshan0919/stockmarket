@@ -25,11 +25,23 @@ function formatBytes(bytes) {
   return `${bytes} B`;
 }
 
-function pruneCheckpoints() {
-  const isDryRun = hasFlag('--dry-run');
-  const keepCount = Math.max(1, parseInt(argValue('--keep') || '1', 10));
+/**
+ * Prune old collection checkpoints and stray temporary/corrupt files.
+ *
+ * @param {Object} [opts]
+ * @param {string} [opts.root] Data root directory (defaults to db.dataRoot())
+ * @param {number} [opts.keep] Number of snapshots to keep per collection (defaults to 1)
+ * @param {boolean} [opts.dryRun] If true, report deletions without deleting files
+ * @returns {{ deletedFiles: number, bytesFreed: number }}
+ */
+function pruneCheckpoints(opts = {}) {
+  const isDryRun = opts.dryRun !== undefined ? Boolean(opts.dryRun) : hasFlag('--dry-run');
+  const keepCount =
+    opts.keep !== undefined
+      ? Math.max(1, opts.keep)
+      : Math.max(1, parseInt(argValue('--keep') || '1', 10));
 
-  const root = db.dataRoot();
+  const root = opts.root || db.dataRoot();
   const cpDir = path.join(root, '_meta', 'checkpoints');
 
   console.log(`[prune-checkpoints] Target directory: ${cpDir}`);
@@ -127,6 +139,7 @@ function pruneCheckpoints() {
     `[prune-checkpoints] Summary: ${isDryRun ? 'Would delete' : 'Deleted'} ${totalDeletedFiles} file(s), freeing ${formatBytes(totalBytesFreed)}.`
   );
   console.log('────────────────────────────────────────────────────────\n');
+  return { deletedFiles: totalDeletedFiles, bytesFreed: totalBytesFreed };
 }
 
 if (require.main === module) {

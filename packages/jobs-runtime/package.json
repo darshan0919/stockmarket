@@ -16,6 +16,7 @@
     "data:migrate-transcripts": "node scripts/migrateTranscriptsToShards.js",
     "data:prune-remote": "node scripts/pruneRemoteOrphans.js",
     "data:prune-checkpoints": "node scripts/pruneCheckpoints.js",
+    "data:sync": "node scripts/pruneCheckpoints.js && node scripts/data.js push && node scripts/data.js pull && echo 'Sync complete' && node scripts/data.js status",
     "data:migrate": "node scripts/migrateToV2.js",
     "data:rebuild-links": "node scripts/rebuildLinks.js",
     "data:auth": "node scripts/googleAuth.js",
