@@ -60,7 +60,9 @@
       });
       if (u.status === 429) return { status: 429, resetAt: u.resetAt };
       userId = u.json?.data?.user?.result?.rest_id;
-      statusesCount = u.json?.data?.user?.result?.legacy?.statuses_count ?? null;
+      const ures = u.json?.data?.user?.result;
+      // X moved the total-post counter: legacy.statuses_count is gone, it is now tweet_counts.tweets
+      statusesCount = ures?.tweet_counts?.tweets ?? ures?.legacy?.statuses_count ?? null;
       if (!userId) return { error: `unresolved handle @${handle} (HTTP ${u.status})` };
     }
     const vars = {
@@ -74,8 +76,8 @@
     const r = await gql(C.OPS[stream || 'main'], vars);
     if (r.status === 429) return { status: 429, resetAt: r.resetAt, userId };
     if (r.status !== 200 || !r.json) return { error: `HTTP ${r.status} ${r.snippet}`, userId };
-    const { rows, next } = C.parseTimeline(r.json);
-    return { status: 200, userId, rows, next, statusesCount };
+    const { rows, next, end } = C.parseTimeline(r.json);
+    return { status: 200, userId, rows, next, end, statusesCount };
   }
 
   chrome.runtime.onMessage.addListener((msg, _sender, send) => {

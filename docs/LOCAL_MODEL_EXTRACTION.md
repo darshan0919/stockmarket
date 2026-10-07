@@ -188,6 +188,17 @@ The holdout shows overfitting. Its errors are systematic, not OCR noise: (a) two
 (22 wrong fields); (b) profit before tax read from the "before exceptional items" line (BIRLACORPN, CCAVENUE, FORCEMOT); (c) a dropped decimal (92 vs 5.92).
 `otherExpenses` is not comparable: the PDF prints one line, XBRL sums several. Nothing here clears the 98% gate, and the corpus must stay as the test bed.
 
+Side-by-side pages (`layout.js`, added 2026-10-07): a page printing STANDALONE and CONSOLIDATED columns is cut into its two blocks before parsing; previously the left block was served as consolidated.
+
+| run                           | docs | served | strict accuracy on served fields printed (excluding otherExpenses) | notes                                                                                                                                                         |
+| ----------------------------- | ---- | ------ | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| tess-5h (before layout split) | 40   | 19     | 85.5%                                                              |                                                                                                                                                               |
+| tess-6 (same 40 docs, after)  | 40   | 19     | 95.3%                                                              | burned for tuning; the 4 PBT misses are an XBRL definition gap (XBRL ProfitBeforeTax excludes the JV/associate share the face statement adds)                 |
+| tess-7 (40 fresh dev docs)    | 39   | 24     | 82.4%                                                              | the honest number: 1 power-of-ten, wrong column/entity served as "verified" (MICEL, KKCL, INTLCONV), digit slips (49.9353 vs 19.9353), integer-printed tables |
+
+Takeaway: two reads + arithmetic catch some errors but not column shifts, so tesseract-only text parsing stays around 80-85% on unseen filings. Next: choose columns by the
+date headings and word positions (tesseract TSV), then re-measure on a fresh set. Do not promote PDF values over XBRL.
+
 ## Reading the report
 
 `coverage` = served docs / docs; `servedAcc` = field accuracy among served docs (basis must match XBRL truth);
@@ -226,3 +237,23 @@ run, so every Tier 3 accuracy or speed number is still unmeasured.
 - Cheapest first: Tiers 1-2 cost nothing and serve what verifies; the model only sees abstained pages.
 - Token saving on your side: ask for `report.js --json` output plus the 5 worst docs rather than pasting tables; the
   agent reads the JSONL itself. Candidate sweeps and report generation are scripts, not LLM work.
+
+## Closure: tesseract fallback (2026-10-08)
+
+Decision: PDF extraction is a **fallback only**; XBRL stays primary. When XBRL is unavailable the PDF values are used as printed
+(including "Profit before tax" and "Other expenses" as the filing prints them; they may differ from XBRL's definitions).
+
+Final additions: label-in-the-middle side-by-side tables (`layout.js` `splitMid`), and `dropSuspectIntegers` (non-headline fields that
+come back as bare non-zero integers in a decimal-printed table are dropped, since OCR loses decimal points).
+
+Fresh held-out run `tess-9` (30 dev result filings not used in any earlier tesseract run, 3 of 4 workers; a few heavy docs skipped):
+
+| metric | value |
+|---|---|
+| docs served | 12 of 30 (rest abstained) |
+| field accuracy, excl. other expenses, before integer rule | 89.0% |
+| same rows re-scored with the integer rule | 92.1% (105 right, 9 wrong, 4 dropped, none of the dropped were correct) |
+
+Gate (>=98%, zero sign flips, zero pow10) is **not met**. Remaining errors: digit slips inside numbers that two reads agree on
+(GUFICBIO, METROBRAND), wrong column or entity, integer-printed tables. Treat PDF values as hints that need a second source.
+Corpus deletion: `rm -rf data/pdf-corpus/pdfs data/pdf-corpus/scan` (keeps truth, manifest and run logs).

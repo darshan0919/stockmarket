@@ -52,3 +52,21 @@ describe('splitRow', () => {
     });
   });
 });
+
+describe('label-in-the-middle tables', () => {
+  test('values left and right of the label are split per basis', () => {
+    const { splitSideBySide: split } = require('../lib/pdfExtract/layout');
+    const text = [
+      '   Standalone                                   Consolidated',
+      '   Quarter ended                                Quarter ended',
+      '  1228.94  5079.49  1161.21  8727.83   Revenue from Operations   4371.95  5079.49  1161.21  19052.34',
+      '    21.58    34.69    13.87   116.19    Other Income   21.58   34.69   13.87   116.19',
+      '  1250.52  5114.18  1175.08  8844.02   Total Income   4393.53  5114.18  1175.08  19168.53',
+      '   439.14  3386.54   614.66  5069.70   Cost of Material Consumed   439.14  3386.54  614.66  5069.70',
+    ].join('\n');
+    const r = split(text);
+    expect(r.order).toEqual(['standalone', 'consolidated']);
+    expect(r.parts[1].text).toMatch(/Revenue from Operations\s+4371\.95/);
+    expect(r.parts[0].text).toMatch(/Revenue from Operations\s+1228\.94/);
+  });
+});

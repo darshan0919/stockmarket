@@ -95,6 +95,32 @@ const assert = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) pro
   assert(mainFetches === 4, 'duplicate rows do not end the walk early: main pages fetched = ' + mainFetches);
   assert(mainCommit && mainCommit.coverage && mainCommit.coverage.exhausted === true, 'exhausted only when X has no next cursor');
   await send({ type: 'XCAP_CANCEL' });
+  // 3d) transient network error ("Failed to fetch") is retried, not fatal
+  hostLog.length = 0;
+  pages = [{ error: 'Failed to fetch' }, { status: 200, userId: 'u', rows: [row('88', 1)], next: null }];
+  await send({ type: 'XCAP_START', handles: ['Exp'], intervalDays: 30 });
+  await wait(2500);
+  assert(store.job && store.job.status === 'running' && store.job.netRetries === 1, 'network error: job keeps running, retry counted: ' + (store.job && store.job.status + '/' + store.job.netRetries));
+  await wait(6000);
+  assert(!store.job || store.job.error == null, 'network error: recovered after retry (no error)');
+  await send({ type: 'XCAP_CANCEL' });
+  // 3e) pages that only repeat the pinned tweet with fresh cursors must END the stream (used to loop forever)
+  hostLog.length = 0;
+  const pin = (n) => ({ status: 200, userId: 'u', rows: [row('pin', 1, { pinned: true })], next: 'p' + n });
+  pages = [pin(1), pin(2), pin(3), pin(4), pin(5), pin(6)];
+  await send({ type: 'XCAP_START', handles: ['Exp'], intervalDays: 30 });
+  await wait(6000);
+  const oc = hostLog.filter((m) => m.type === 'commit' && m.stream === 'originals').pop();
+  assert(oc && oc.coverage && oc.coverage.exhausted === true, 'pinned-only pages end the stream (exhausted): ' + JSON.stringify(oc && oc.coverage));
+  await send({ type: 'XCAP_CANCEL' });
+  // 3f) explicit TerminateTimeline marker on a page without new own tweets ends the stream at once
+  hostLog.length = 0;
+  pages = [{ status: 200, userId: 'u', rows: [row('pin', 1, { pinned: true })], next: 'q1', end: true }, { status: 200, userId: 'u', rows: [row('x1', 2)], next: 'q2' }];
+  await send({ type: 'XCAP_START', handles: ['Exp'], intervalDays: 30 });
+  await wait(2500);
+  const oc2 = hostLog.filter((m) => m.type === 'commit' && m.stream === 'originals').pop();
+  assert(oc2 && oc2.coverage && oc2.coverage.exhausted === true, 'TerminateTimeline ends the stream after ONE page: ' + JSON.stringify(oc2 && oc2.coverage));
+  await send({ type: 'XCAP_CANCEL' });
   // 4) all three streams run for one user and each commits with its own stream tag
   hostLog.length = 0;
   pages = [

@@ -146,3 +146,25 @@ describe('vacuous identities and single-read fields', () => {
     expect(r.dropped).toContain('employeeCost');
   });
 });
+
+describe('dropSuspectIntegers', () => {
+  const { dropSuspectIntegers } = require('../lib/pdfExtract/verify');
+  test('drops bare integers for non-headline fields in a decimal table', () => {
+    const r = dropSuspectIntegers({
+      revenue: 12.34,
+      totalIncome: 13.45,
+      pbt: 2.31,
+      depreciation: 29,
+      epsBasic: 2,
+      tax: 0,
+    });
+    expect(r.cur.depreciation).toBeUndefined();
+    expect(r.cur.epsBasic).toBeUndefined();
+    expect(r.cur.tax).toBe(0);
+    expect(r.cur.revenue).toBe(12.34);
+  });
+  test('leaves integer-printed tables alone', () => {
+    const cur = { revenue: 324, totalIncome: 340, depreciation: 12, epsBasic: 6 };
+    expect(dropSuspectIntegers(cur).cur).toEqual(cur);
+  });
+});

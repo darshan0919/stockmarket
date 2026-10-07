@@ -83,7 +83,9 @@
   function parseTimeline(json) {
     const rows = [];
     let next = null;
+    let end = false; // X's explicit "no more items" marker
     for (const ins of find(json, 'instructions') || []) {
+      if (ins.type === 'TimelineTerminateTimeline') end = true;
       for (const e of ins.entries || (ins.entry ? [ins.entry] : [])) {
         const c = e.content;
         if (c?.cursorType === 'Bottom') next = c.value;
@@ -101,7 +103,7 @@
         }
       }
     }
-    return { rows, next };
+    return { rows, next, end };
   }
 
   /** Scrape query id + featureSwitches + fieldToggles for an operation from X's main.js text. */
@@ -323,7 +325,13 @@
                 : state === 'login-required'
                   ? 'Needs login'
                   : (STREAM_LABEL[p.stream] || PHASE_LABEL[p.state] || 'Starting…') +
-                    (p.rewalk ? ' (re-walking, no saved cursor)' : '');
+                    (p.rewalk
+                      ? ' (re-walking, no saved cursor)'
+                      : p.state === 'new'
+                        ? ' · catching up on new items'
+                        : p.state === 'older'
+                          ? ' · going back in time'
+                          : '');
       }
       const c = p.counts;
       const run =

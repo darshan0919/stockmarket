@@ -250,7 +250,37 @@ function sanitizeCurrent(cur) {
   return { cur: out, dropped };
 }
 
+/**
+ * OCR drops decimal points and trailing digits ("5.92" -> "92", "2.85" -> "2"). In a table that prints decimals, a non-headline
+ * field that comes back as a bare non-zero integer is more likely a damaged read than a real round number, so it is dropped.
+ * Headline fields are protected by the arithmetic identities; the rest (components, tax, EPS) are not.
+ */
+const SUSPECT_FIELDS = [
+  'employeeCost',
+  'interest',
+  'depreciation',
+  'otherExpenses',
+  'tax',
+  'epsBasic',
+  'epsDiluted',
+];
+function dropSuspectIntegers(cur) {
+  const vals = Object.values(cur || {}).filter((v) => typeof v === 'number' && Number.isFinite(v));
+  if (vals.filter((v) => !Number.isInteger(v)).length < 3) return { cur, dropped: [] };
+  const out = { ...cur };
+  const dropped = [];
+  for (const k of SUSPECT_FIELDS) {
+    const v = out[k];
+    if (typeof v === 'number' && Number.isInteger(v) && v !== 0) {
+      delete out[k];
+      dropped.push(k);
+    }
+  }
+  return { cur: out, dropped };
+}
+
 module.exports = {
+  dropSuspectIntegers,
   sanitizeCurrent,
   verifyIncomeStatement,
   printedNumbers,

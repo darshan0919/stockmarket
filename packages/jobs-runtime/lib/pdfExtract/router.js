@@ -28,6 +28,7 @@ const {
   sanitizeCurrent,
   printedNumbers,
   reconcileIncomeStatement,
+  dropSuspectIntegers,
 } = require('./verify');
 const { extractWithTier3, TO_CRORE } = require('./tier3');
 const { mergeParses, headlineAgreed } = require('./consensus');
@@ -411,6 +412,10 @@ async function extractResultPdf(file, opts = {}) {
   };
 
   function done(c, partial = false) {
+    if (c.tier === 2) {
+      const d = dropSuspectIntegers(c.cur);
+      c = { ...c, cur: d.cur, dropped: [...(c.dropped || []), ...d.dropped] };
+    }
     return {
       partial: partial || undefined,
       ...base,

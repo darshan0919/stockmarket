@@ -27,6 +27,29 @@ function splitRow(line) {
   return { label, values };
 }
 
+/** Rows that print values on BOTH sides of the label: `1228.94 5079.49 .. Revenue 4371.95 5079.49 ..`. */
+function splitMid(line) {
+  const toks = [];
+  const re = /\S+/g;
+  let m;
+  while ((m = re.exec(line)) !== null) toks.push(m[0]);
+  let a = 0;
+  while (a < toks.length && NUM.test(toks[a])) a += 1;
+  let b = toks.length;
+  while (b > a && NUM.test(toks[b - 1])) b -= 1;
+  const left = toks.slice(0, a);
+  const right = toks.slice(b);
+  if (left.length < 3 || left.length !== right.length || b <= a) return null;
+  return { label: toks.slice(a, b).join(' '), values: [...left, ...right] };
+}
+
+/** Put label-in-the-middle tables into the usual `label v1 v2 ..` form (left block first). */
+function normaliseMid(lines) {
+  const mids = lines.map(splitMid);
+  if (mids.filter(Boolean).length < 4) return lines;
+  return lines.map((l, i) => (mids[i] ? `${mids[i].label}   ${mids[i].values.join('   ')}` : l));
+}
+
 function basisOrder(headerLines) {
   const head = headerLines.join('\n').toLowerCase();
   const s = head.search(/stand-?alone/);
@@ -37,7 +60,7 @@ function basisOrder(headerLines) {
 
 /** @returns {null | {order: string[], k: number, parts: Array<{basis: string, text: string}>}} */
 function splitSideBySide(text) {
-  const lines = String(text || '').split('\n');
+  const lines = normaliseMid(String(text || '').split('\n'));
   // the column headings sit in the first part of the table; find a window naming both bases
   let hi = -1;
   let order = null;
@@ -72,4 +95,4 @@ function splitSideBySide(text) {
   return { order, k, parts };
 }
 
-module.exports = { splitSideBySide, splitRow };
+module.exports = { splitSideBySide, splitRow, splitMid };

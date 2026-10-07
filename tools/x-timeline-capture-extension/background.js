@@ -17,6 +17,9 @@ const TICK = 'xcap-tick';
 const RESUME = 'xcap-resume'; // separate name: creating an alarm replaces any alarm with the same name
 const DAILY = 'xcap-daily';
 const PAGE_DELAY_MS = 1200;
+const EMPTY_PAGES_END = 3; // consecutive pages without a new own tweet = end of what X serves
+const NET_RETRY_MS = [5000, 15000, 45000, 90000]; // transient network errors: retry the same page
+const TRANSIENT_ERR = /failed to fetch|networkerror|network request failed|load failed|did not respond/i;
 const CHECKPOINT_PAGES = 15;
 const DEFAULT_COOLDOWN_MS = 13 * 60 * 1000;
 const MAX_COOLDOWN_MS = 17 * 60 * 1000;
@@ -401,10 +404,22 @@ async function step(job) {
     return saveJob(job);
   }
   if (res.error) {
+    // A dropped connection / hung request is usually transient: retry the SAME page with backoff before giving up.
+    const tries = job.netRetries || 0;
+    if (TRANSIENT_ERR.test(res.error) && tries < NET_RETRY_MS.length) {
+      job.netRetries = tries + 1;
+      job.note = `Network hiccup (${res.error}) – retry ${job.netRetries}/${NET_RETRY_MS.length}`;
+      await saveJob(job);
+      await sleep(NET_RETRY_MS[tries]);
+      return;
+    }
+    await flush(job); // keep everything fetched so far
     job.status = 'error';
     job.error = `@${handle}: ${res.error}`;
     return saveJob(job);
   }
+  job.netRetries = 0;
+  job.note = null;
   if (res.userId) job.userId = res.userId;
 
   if (res.status === 429) {
@@ -443,9 +458,12 @@ async function step(job) {
   per.pages++;
   // End of timeline = X gives no next cursor, repeats the cursor, or returns two empty pages in a row.
   // (Never infer it from "rows were already stored": a retried / resumed page re-delivers known rows.)
-  phase.emptyStreak = res.rows.length === 0 ? phase.emptyStreak + 1 : 0;
+  // A page with no NEW own tweet (empty, only the pinned tweet, or only other people's tweets) is not progress:
+  // X can keep handing out fresh bottom cursors past the end of what it serves, which looped forever.
+  const ownFresh = res.rows.filter((r) => lc(r.by) === lc(handle) && !r.pinned).length;
+  phase.emptyStreak = ownFresh === 0 ? phase.emptyStreak + 1 : 0;
 
-  const exhausted = !res.next || res.next === job.cursor || phase.emptyStreak >= 2;
+  const exhausted = !res.next || res.next === job.cursor || (res.end && ownFresh === 0) || phase.emptyStreak >= EMPTY_PAGES_END;
   const reached = phase.oldestMs <= phase.stopAtMs;
   try {
     if (exhausted || reached) {
