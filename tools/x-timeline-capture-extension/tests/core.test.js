@@ -304,54 +304,158 @@ test('describeJob shows stored counts per user next to this-run counts', () => {
 test('planAll plans posts, main, reposts and articles; articles always go back to the beginning', () => {
   const now = 1e12;
   const p = C.planAll(null, now, 7 * 86400000);
-  assert.deepEqual(p.map((x) => x.stream), ['originals', 'main', 'reposts', 'articles']);
+  assert.deepEqual(
+    p.map((x) => x.stream),
+    ['originals', 'main', 'reposts', 'articles']
+  );
   assert.equal(p[0].stopAtMs, now - 7 * 86400000);
   assert.ok(p[3].stopAtMs < now - 365 * 86400000);
-  const cached = { fromMs: now - 400 * 86400000, toMs: now - 60000, exhausted: false, olderCursor: 'c' };
-  const q = C.planAll({ main: cached, originals: cached, reposts: cached, articles: { ...cached, exhausted: true } }, now, 30 * 86400000);
+  const cached = {
+    fromMs: now - 400 * 86400000,
+    toMs: now - 60000,
+    exhausted: false,
+    olderCursor: 'c',
+  };
+  const q = C.planAll(
+    { main: cached, originals: cached, reposts: cached, articles: { ...cached, exhausted: true } },
+    now,
+    30 * 86400000
+  );
   assert.equal(q.length, 0); // everything inside the saved ranges
 });
 
 test('planAll with `only` plans just that stream (used for per-stream rounds across users)', () => {
   const p = C.planAll(null, 1e12, 86400000, 'main');
-  assert.deepEqual(p.map((x) => x.stream), ['main']);
+  assert.deepEqual(
+    p.map((x) => x.stream),
+    ['main']
+  );
 });
 
 test('assessCoverage: all recent items stored -> ok; missing in-range item -> gap + shortened range; stale claims dropped', () => {
-  const DAY = 86400000, now = Date.UTC(2026, 9, 6);
-  const mk = (id, ageDays) => ({ id, by: 'Exp', at: new Date(now - ageDays * DAY).toUTCString(), text: id });
+  const DAY = 86400000,
+    now = Date.UTC(2026, 9, 6);
+  const mk = (id, ageDays) => ({
+    id,
+    by: 'Exp',
+    at: new Date(now - ageDays * DAY).toUTCString(),
+    text: id,
+  });
   const cov = { fromMs: now - 100 * DAY, toMs: now - 1000, exhausted: false, olderCursor: null };
-  let a = C.assessCoverage({ handle: 'Exp', stream: 'main', cov, newest: { rows: [mk('1', 1), mk('2', 2)] }, missing: new Set() });
-  assert.equal(a.state, 'ok'); assert.equal(a.checked, 2); assert.equal(a.patch, null);
-  a = C.assessCoverage({ handle: 'Exp', stream: 'main', cov, newest: { rows: [mk('1', 1), mk('2', 2)] }, missing: new Set(['2']) });
-  assert.equal(a.state, 'gap'); assert.deepEqual(a.heal.map((r) => r.id), ['2']);
+  let a = C.assessCoverage({
+    handle: 'Exp',
+    stream: 'main',
+    cov,
+    newest: { rows: [mk('1', 1), mk('2', 2)] },
+    missing: new Set(),
+  });
+  assert.equal(a.state, 'ok');
+  assert.equal(a.checked, 2);
+  assert.equal(a.patch, null);
+  a = C.assessCoverage({
+    handle: 'Exp',
+    stream: 'main',
+    cov,
+    newest: { rows: [mk('1', 1), mk('2', 2)] },
+    missing: new Set(['2']),
+  });
+  assert.equal(a.state, 'gap');
+  assert.deepEqual(
+    a.heal.map((r) => r.id),
+    ['2']
+  );
   assert.equal(a.patch.toMs, Date.parse(mk('2', 2).at) - 1);
   // items newer than the saved range are "new", not a gap (but are healed into the KB)
   const old = { ...cov, toMs: now - 30 * DAY };
-  a = C.assessCoverage({ handle: 'Exp', stream: 'main', cov: old, newest: { rows: [mk('9', 1)] }, missing: new Set(['9']) });
-  assert.equal(a.state, 'unchecked'); assert.equal(a.heal.length, 1); assert.equal(a.patch, null);
+  a = C.assessCoverage({
+    handle: 'Exp',
+    stream: 'main',
+    cov: old,
+    newest: { rows: [mk('9', 1)] },
+    missing: new Set(['9']),
+  });
+  assert.equal(a.state, 'unchecked');
+  assert.equal(a.heal.length, 1);
+  assert.equal(a.patch, null);
   // "from the beginning" claim with far fewer stored tweets than X reports -> dropped
-  a = C.assessCoverage({ handle: 'Exp', stream: 'main', cov: { ...cov, exhausted: true }, newest: { rows: [mk('1', 1)] }, missing: new Set(), statuses: 1000, storedTotal: 100 });
-  assert.equal(a.state, 'suspect'); assert.equal(a.patch.exhausted, false);
+  a = C.assessCoverage({
+    handle: 'Exp',
+    stream: 'main',
+    cov: { ...cov, exhausted: true },
+    newest: { rows: [mk('1', 1)] },
+    missing: new Set(),
+    statuses: 1000,
+    storedTotal: 100,
+  });
+  assert.equal(a.state, 'suspect');
+  assert.equal(a.patch.exhausted, false);
   // 25-90%: a real walk ended there -> keep the claim, label it partial (X serves no more)
-  a = C.assessCoverage({ handle: 'Exp', stream: 'main', cov: { ...cov, exhausted: true }, newest: { rows: [mk('1', 1)] }, missing: new Set(), statuses: 1000, storedTotal: 450 });
-  assert.equal(a.state, 'partial'); assert.equal(a.patch, null);
-  a = C.assessCoverage({ handle: 'Exp', stream: 'main', cov: { ...cov, exhausted: true }, newest: { rows: [mk('1', 1)] }, missing: new Set(), statuses: 1000, storedTotal: 950 });
+  a = C.assessCoverage({
+    handle: 'Exp',
+    stream: 'main',
+    cov: { ...cov, exhausted: true },
+    newest: { rows: [mk('1', 1)] },
+    missing: new Set(),
+    statuses: 1000,
+    storedTotal: 450,
+  });
+  assert.equal(a.state, 'partial');
+  assert.equal(a.patch, null);
+  a = C.assessCoverage({
+    handle: 'Exp',
+    stream: 'main',
+    cov: { ...cov, exhausted: true },
+    newest: { rows: [mk('1', 1)] },
+    missing: new Set(),
+    statuses: 1000,
+    storedTotal: 950,
+  });
   assert.equal(a.state, 'ok');
   // cursor that lands on recent posts, or is rejected by X -> dropped
   const withCur = { ...cov, olderCursor: 'c' };
-  a = C.assessCoverage({ handle: 'Exp', stream: 'main', cov: withCur, newest: { rows: [mk('1', 1)] }, edge: { rows: [mk('5', 2)] }, missing: new Set(), });
-  assert.equal(a.patch.olderCursor, null); assert.equal(a.state, 'suspect');
-  a = C.assessCoverage({ handle: 'Exp', stream: 'main', cov: withCur, newest: { rows: [mk('1', 1)] }, edgeError: 'HTTP 400', missing: new Set() });
+  a = C.assessCoverage({
+    handle: 'Exp',
+    stream: 'main',
+    cov: withCur,
+    newest: { rows: [mk('1', 1)] },
+    edge: { rows: [mk('5', 2)] },
+    missing: new Set(),
+  });
   assert.equal(a.patch.olderCursor, null);
-  a = C.assessCoverage({ handle: 'Exp', stream: 'main', cov: withCur, newest: { rows: [mk('1', 1)] }, edge: { rows: [mk('6', 99)] }, missing: new Set() });
+  assert.equal(a.state, 'suspect');
+  a = C.assessCoverage({
+    handle: 'Exp',
+    stream: 'main',
+    cov: withCur,
+    newest: { rows: [mk('1', 1)] },
+    edgeError: 'HTTP 400',
+    missing: new Set(),
+  });
+  assert.equal(a.patch.olderCursor, null);
+  a = C.assessCoverage({
+    handle: 'Exp',
+    stream: 'main',
+    cov: withCur,
+    newest: { rows: [mk('1', 1)] },
+    edge: { rows: [mk('6', 99)] },
+    missing: new Set(),
+  });
   assert.equal(a.state, 'ok');
 });
 
 test('describeVerify summarises results per user and stream', () => {
-  const v = { status: 'done', handles: ['a', 'b'], idx: 2, results: { a: { main: { state: 'ok', notes: [] }, reposts: { state: 'skipped', notes: [] } }, b: { main: { state: 'gap', notes: ['x'] } } } };
+  const v = {
+    status: 'done',
+    handles: ['a', 'b'],
+    idx: 2,
+    results: {
+      a: { main: { state: 'ok', notes: [] }, reposts: { state: 'skipped', notes: [] } },
+      b: { main: { state: 'gap', notes: ['x'] } },
+    },
+  };
   const d = C.describeVerify(v);
   assert.match(d.headline, /1 of 2 checks need attention/);
-  assert.equal(d.users[0].state, 'ok'); assert.equal(d.users[1].state, 'gap');
+  assert.equal(d.users[0].state, 'ok');
+  assert.equal(d.users[1].state, 'gap');
   assert.equal(C.describeVerify({ ...v, status: 'running', idx: 1 }).users[1].state, 'active');
 });

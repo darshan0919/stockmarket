@@ -101,6 +101,13 @@ EBITDA/unit) or `[assumption]` (something you had to infer because management
 didn't state it explicitly — always name what the assumption is). Never
 present your own estimate as if it were management's number.
 
+## Use with the PEAD read (added 2026-10-09)
+
+The ranker's output is the _expectation_ side. When results arrive, `quarterly-result-analysis` runs the
+PEAD read (G1-G5). G4 (management delivered on last quarter's guide) should be fed from this ranker's
+guided-vs-reported delta for the prior quarter instead of being re-derived. Rank score does not imply
+a PEAD candidate; the post-result gates decide.
+
 ## Ranking basis: guided growth vs. reported history (added 2026-09-20)
 
 The default sort answers "who is promising the most growth, measured against

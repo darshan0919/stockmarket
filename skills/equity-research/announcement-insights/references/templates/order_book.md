@@ -32,3 +32,6 @@ Both figures (the ratio and, where computable, the quarterly accretion) belong i
 `insight` prose per `_global.md` structure point (a)/(b), and the ratio specifically
 should also inform `epsImpact.magnitude` when an EPS/PAT-margin linkage is honestly
 derivable (state assumed margin if used, and flag it as an estimate).
+
+**Filing-quality checks (state each in one clause).** (1) Is this a formal exchange filing, or a social-media/related-party mention? If only the latter, say "formal filing awaited". (2) Is it new, or a duplicate of an earlier order announcement (check the company's prior order notes)? (3) Is the counterparty the listed entity, not a subsidiary/parent? (4) Execution period and margin on the order — if undisclosed, say so; a large order with long execution makes quarters lumpy. (5) Repeat client or new logo; marquee or not. (6) Price link: if no new orders follow the current book, assume it is already priced in. Frequent small order announcements are routine; flag a shift to larger orders. For EPC companies, execution speed, working capital and collections matter more than the size of the order book.
+(Source: SureshKBN filings consolidation, data/assets/filings-framework-sureshkbn.md; kbf_x-sureshkbn_filing-read, draft pending Darshan's review.)

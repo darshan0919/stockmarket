@@ -73,26 +73,24 @@ function formatInlineMarkdown(text) {
  * Generate HTML string for a styled table.
  */
 function styledTableHtml(data, palette, opts = {}) {
-  const borderColor = opts.borderColor || palette.border || '#dddddd';
-  const altBg = opts.altBg !== undefined ? opts.altBg : palette.alt_row || palette.tint;
+  const borderColor = opts.borderColor || palette.border || '#e2e8f0';
+  const altBg = opts.altBg !== undefined ? opts.altBg : '#f8fafc';
 
-  let html = `<table style="width: 100%; border-collapse: collapse; font-family: Helvetica, Arial, sans-serif; font-size: 9.8px;">`;
+  let html = `<table style="width: 100%; border-collapse: collapse; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 9.5px; border: 1px solid ${borderColor}; margin: 6px 0;">`;
 
   data.forEach((row, rowIndex) => {
     const isHeader = rowIndex === 0;
-    const bg = isHeader ? 'transparent' : rowIndex % 2 === 0 ? altBg : '#ffffff';
-    const color = isHeader ? palette.muted || '#666666' : palette.text || '#1a1a1a';
-    const fontWeight = isHeader ? '600' : 'normal';
-    const borderStyle = isHeader
-      ? `1.5px solid ${palette.primary || '#111111'}`
-      : `0.5px solid ${borderColor}`;
+    const bg = isHeader ? '#f1f5f9' : rowIndex % 2 === 0 ? altBg : '#ffffff';
+    const color = isHeader ? '#334155' : palette.text || '#1e293b';
+    const fontWeight = isHeader ? '700' : 'normal';
+    const borderStyle = isHeader ? `1.5px solid #cbd5e1` : `0.5px solid ${borderColor}`;
 
-    html += `<tr style="background-color: ${bg}; color: ${color}; font-weight: ${fontWeight};">`;
+    html += `<tr style="background-color: ${bg} !important; color: ${color}; font-weight: ${fontWeight};">`;
     row.forEach((cell) => {
       const tag = isHeader ? 'th' : 'td';
       const headerStyle = isHeader
-        ? `font-family: monospace, Helvetica; font-size: 8px; text-transform: uppercase; letter-spacing: 0.04em; padding: 4px 6px; text-align: left; border-bottom: ${borderStyle};`
-        : `padding: 4px 6px; text-align: left; vertical-align: top; border-bottom: ${borderStyle};`;
+        ? `font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 8px; text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 8px; text-align: left; border-bottom: ${borderStyle}; background-color: #f1f5f9 !important; color: #334155; font-weight: 700;`
+        : `padding: 5.5px 8px; text-align: left; vertical-align: top; border-bottom: ${borderStyle};`;
       html += `<${tag} style="${headerStyle}">${formatInlineMarkdown(cell)}</${tag}>`;
     });
     html += `</tr>`;

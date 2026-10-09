@@ -5,7 +5,12 @@
 (function (root) {
   const OP = 'UserRepliesTimeline'; // posts + replies + quotes (UserTweets excludes replies)
   // Capture streams = the profile tabs. Each has its own coverage (cache range) per user.
-  const OPS = { originals: 'UserOriginalsTimeline', main: OP, reposts: 'UserRepostsTimeline', articles: 'UserArticlesTweets' };
+  const OPS = {
+    originals: 'UserOriginalsTimeline',
+    main: OP,
+    reposts: 'UserRepostsTimeline',
+    articles: 'UserArticlesTweets',
+  };
   // Fetch priority: originals (posts) > replies timeline > reposts > articles.
   const STREAMS = ['originals', 'main', 'reposts', 'articles'];
   const ALL_MS = 36500 * 86400000;
@@ -272,7 +277,12 @@
     new: 'Fetching new posts',
     older: 'Fetching older posts',
   };
-  const STREAM_LABEL = { main: 'Fetching replies timeline', originals: 'Fetching posts', reposts: 'Fetching reposts', articles: 'Fetching articles' };
+  const STREAM_LABEL = {
+    main: 'Fetching replies timeline',
+    originals: 'Fetching posts',
+    reposts: 'Fetching reposts',
+    articles: 'Fetching articles',
+  };
 
   const fmtN = (n) => Number(n || 0).toLocaleString('en-US');
   function storedLine(stats) {
@@ -397,26 +407,39 @@
     const h = lc(a.handle);
     const cov = a.cov;
     const notes = [];
-    const own = (rows) => (rows || [])
-      .filter((r) => lc(r.by) === h && !r.pinned)
-      .map((r) => ({ r, t: Date.parse(r.at) }))
-      .filter((x) => !Number.isNaN(x.t));
+    const own = (rows) =>
+      (rows || [])
+        .filter((r) => lc(r.by) === h && !r.pinned)
+        .map((r) => ({ r, t: Date.parse(r.at) }))
+        .filter((x) => !Number.isNaN(x.t));
     const inRange = (t) => t >= cov.fromMs && t <= cov.toMs;
     const heal = new Map();
-    let checked = 0, gapMin = Infinity, gapN = 0;
+    let checked = 0,
+      gapMin = Infinity,
+      gapN = 0;
     for (const x of own(a.newest && a.newest.rows)) {
       if (inRange(x.t)) checked++;
-      if (a.missing.has(x.r.id)) { heal.set(x.r.id, x.r); if (inRange(x.t)) { gapN++; gapMin = Math.min(gapMin, x.t); } }
+      if (a.missing.has(x.r.id)) {
+        heal.set(x.r.id, x.r);
+        if (inRange(x.t)) {
+          gapN++;
+          gapMin = Math.min(gapMin, x.t);
+        }
+      }
     }
     let patch = null;
     let state = 'ok';
     if (gapN) {
       state = 'gap';
       patch = { toMs: gapMin - 1 };
-      notes.push(`${gapN} item(s) inside the saved range were missing from the KB (now added). The range was shortened so the next run re-checks from ${new Date(gapMin).toISOString().slice(0, 10)}.`);
+      notes.push(
+        `${gapN} item(s) inside the saved range were missing from the KB (now added). The range was shortened so the next run re-checks from ${new Date(gapMin).toISOString().slice(0, 10)}.`
+      );
     } else if (!checked) {
       state = 'unchecked';
-      notes.push('Nothing to compare: the newest items on X are newer than the saved range. Run Start to refresh, then verify again.');
+      notes.push(
+        'Nothing to compare: the newest items on X are newer than the saved range. Run Start to refresh, then verify again.'
+      );
     } else {
       notes.push(`${checked} recent items checked: all stored.`);
     }
@@ -427,12 +450,15 @@
         const e = own(a.edge.rows);
         for (const x of e) if (a.missing.has(x.r.id)) heal.set(x.r.id, x.r);
         const top = e.reduce((m, x) => Math.max(m, x.t), 0);
-        if (top && top > cov.fromMs + 3 * DAY) edgeBad = 'the saved cursor points at newer posts than the range start';
+        if (top && top > cov.fromMs + 3 * DAY)
+          edgeBad = 'the saved cursor points at newer posts than the range start';
       }
       if (edgeBad) {
         patch = { ...(patch || {}), olderCursor: null };
         if (state === 'ok') state = 'suspect';
-        notes.push(`Older-edge check failed: ${edgeBad}. The cursor was dropped; the next run will walk back again.`);
+        notes.push(
+          `Older-edge check failed: ${edgeBad}. The cursor was dropped; the next run will walk back again.`
+        );
       }
     }
     if (a.stream === 'main' && a.statuses > 0 && a.storedTotal != null) {
@@ -441,43 +467,89 @@
         // Far below X's own total (e.g. 4%): the "from the beginning" claim is almost certainly a capture bug.
         patch = { ...(patch || {}), exhausted: false, olderCursor: null };
         if (state === 'ok' || state === 'unchecked') state = 'suspect';
-        notes.push(`Marked "from the beginning" but only ${a.storedTotal.toLocaleString('en-US')} of ~${a.statuses.toLocaleString('en-US')} tweets are stored (${pct}%). The claim was dropped; run Start to continue.`);
+        notes.push(
+          `Marked "from the beginning" but only ${a.storedTotal.toLocaleString('en-US')} of ~${a.statuses.toLocaleString('en-US')} tweets are stored (${pct}%). The claim was dropped; run Start to continue.`
+        );
       } else if (cov.exhausted && pct < 90) {
         // A real walk reached the end of what X serves. The rest is probably deleted / hidden / not served by X
         // (X's own total includes tweets that no longer appear on any timeline). Keep the claim, but say so.
         if (state === 'ok') state = 'partial';
-        notes.push(`Complete as far as X serves: ${a.storedTotal.toLocaleString('en-US')} of the ~${a.statuses.toLocaleString('en-US')} tweets X reports (${pct}%). The rest is not returned by X's timeline (deleted, hidden or capped by X) - not a capture gap we can fix.`);
+        notes.push(
+          `Complete as far as X serves: ${a.storedTotal.toLocaleString('en-US')} of the ~${a.statuses.toLocaleString('en-US')} tweets X reports (${pct}%). The rest is not returned by X's timeline (deleted, hidden or capped by X) - not a capture gap we can fix.`
+        );
       } else {
-        notes.push(`Stored ${a.storedTotal.toLocaleString('en-US')} of ~${a.statuses.toLocaleString('en-US')} tweets on X (${pct}%).`);
+        notes.push(
+          `Stored ${a.storedTotal.toLocaleString('en-US')} of ~${a.statuses.toLocaleString('en-US')} tweets on X (${pct}%).`
+        );
       }
     }
     return { state, notes, heal: [...heal.values()], patch, checked };
   }
 
   const PARTIAL_PCT = 25; // below this share of X's reported total, an exhausted claim is treated as a capture bug
-  const VSTATE = { ok: 'Verified', partial: 'Complete as far as X serves', unchecked: 'Could not compare', gap: 'Gap found and fixed', suspect: 'Needs a re-run', skipped: 'Not captured yet', 'rate-limited': 'Rate-limited, try later', error: 'Error' };
-  const STREAM_NAME = { main: 'Replies timeline', originals: 'Posts', reposts: 'Reposts', articles: 'Articles' };
+  const VSTATE = {
+    ok: 'Verified',
+    partial: 'Complete as far as X serves',
+    unchecked: 'Could not compare',
+    gap: 'Gap found and fixed',
+    suspect: 'Needs a re-run',
+    skipped: 'Not captured yet',
+    'rate-limited': 'Rate-limited, try later',
+    error: 'Error',
+  };
+  const STREAM_NAME = {
+    main: 'Replies timeline',
+    originals: 'Posts',
+    reposts: 'Reposts',
+    articles: 'Articles',
+  };
 
   /** View-model for the Verify run (stored in chrome.storage as `vjob`). */
   function describeVerify(v) {
     if (!v) return null;
     const users = v.handles.map((h) => {
       const rs = (v.results && v.results[h]) || {};
-      const streams = STREAMS.filter((s) => rs[s]).map((s) => ({ stream: s, name: STREAM_NAME[s], state: rs[s].state, label: VSTATE[rs[s].state] || rs[s].state, notes: rs[s].notes || [] }));
-      const worst = ['error', 'rate-limited', 'suspect', 'gap', 'unchecked', 'partial'].find((k) => streams.some((x) => x.state === k)) || (streams.length ? 'ok' : 'queued');
+      const streams = STREAMS.filter((s) => rs[s]).map((s) => ({
+        stream: s,
+        name: STREAM_NAME[s],
+        state: rs[s].state,
+        label: VSTATE[rs[s].state] || rs[s].state,
+        notes: rs[s].notes || [],
+      }));
+      const worst =
+        ['error', 'rate-limited', 'suspect', 'gap', 'unchecked', 'partial'].find((k) =>
+          streams.some((x) => x.state === k)
+        ) || (streams.length ? 'ok' : 'queued');
       const active = v.status === 'running' && v.handles[v.idx] === h;
-      return { handle: h, state: active ? 'active' : worst, streams, label: active ? 'Checking…' : streams.length ? '' : 'Waiting' };
+      return {
+        handle: h,
+        state: active ? 'active' : worst,
+        streams,
+        label: active ? 'Checking…' : streams.length ? '' : 'Waiting',
+      };
     });
     const flat = users.flatMap((u) => u.streams).filter((x) => x.state !== 'skipped');
     const bad = flat.filter((x) => x.state !== 'ok' && x.state !== 'partial').length;
     let headline;
-    if (v.status === 'running') headline = `Verifying @${v.handles[v.idx]} (${v.idx + 1} of ${v.handles.length})`;
+    if (v.status === 'running')
+      headline = `Verifying @${v.handles[v.idx]} (${v.idx + 1} of ${v.handles.length})`;
     else if (v.status === 'error') headline = 'Verify stopped because of an error';
-    else headline = bad ? `Verify finished: ${bad} of ${flat.length} checks need attention` : `Verify finished: all ${flat.length} checks passed`;
-    return { status: v.status, headline, detail: v.error || '', users, busy: v.status === 'running' };
+    else
+      headline = bad
+        ? `Verify finished: ${bad} of ${flat.length} checks need attention`
+        : `Verify finished: all ${flat.length} checks passed`;
+    return {
+      status: v.status,
+      headline,
+      detail: v.error || '',
+      users,
+      busy: v.status === 'running',
+    };
   }
 
-  const api = { assessCoverage, describeVerify,
+  const api = {
+    assessCoverage,
+    describeVerify,
     OPS,
     STREAMS,
     planAll,

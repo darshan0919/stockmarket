@@ -96,7 +96,11 @@ skills/
 │   ├── order-book-tracker-workspace/
 │   ├── ipo-subscription-ranker/
 │   ├── tweet-signals/
-│   └── tweet-investor-playbook/
+│   ├── tweet-investor-playbook/
+│   ├── ask-soic/                    # lookup & answer tool for SOIC teaching corpus
+│   ├── ask-anil-lamba/              # lookup & answer tool for Dr. Anil Lamba corpus
+│   ├── ask-stockscans/              # lookup & answer tool for StockScans YouTube tutorials
+│   └── ask-expert/                  # multi-expert orchestrator (Anil Lamba + SOIC + StockScans)
 ├── tooling/                         # meta-skills that operate on this repo itself
 │   ├── find-skills/
 │   ├── skill-manager/
@@ -104,13 +108,10 @@ skills/
 │   ├── cowork-task-architect/
 │   ├── conversation-capture/
 │   ├── concept-transcript-integrator/
+│   ├── learn-and-automate/          # interactive learn → frameworks → automation engine (question-first)
 │   ├── token-usage-analyzer/
 │   ├── render-pdf/
-│   ├── output-dto-standard/         # a written standard, not an invocable skill
-│   ├── ask-soic/                    # lookup & answer tool for SOIC teaching corpus
-│   ├── ask-anil-lamba/              # lookup & answer tool for Dr. Anil Lamba corpus
-│   ├── ask-stockscans/               # lookup & answer tool for StockScans YouTube tutorials
-│   └── ask-expert/                  # multi-expert orchestrator (Anil Lamba + SOIC + StockScans)
+│   └── output-dto-standard/         # a written standard, not an invocable skill
 └── development/                     # generic engineering-practice skills (Cursor/Claude Code, not Claude Web)
     ├── api-design/
     ├── api-documentation/

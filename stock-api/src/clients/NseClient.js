@@ -1,6 +1,7 @@
 'use strict';
 
 const { NseSession, NSE_HOME_URL } = require('../http/nseSession');
+const { NseMcpSession } = require('../http/nseMcpSession');
 
 /**
  * NSE client — primarily price-action (real-time price, volume, delivery %,
@@ -9,18 +10,55 @@ const { NseSession, NSE_HOME_URL } = require('../http/nseSession');
  * {@link StockscansClient} also has a version of it. Prefer NSE/BSE directly
  * wherever they're reliable — fall back to Stockscans where they aren't.
  *
- * Known reliability gap (verified 10-Jul-2026): NSE's `/api/search/autocomplete`
- * symbol-search route 404s (likely retired/bot-gated post the 2026 GIGW
- * revamp) — use {@link BseClient#getScripCode} (BSE PeerSmartSearch, verified
- * working) or Stockscans search for symbol resolution instead.
+ * Official NSE MCP backend (verified live 2026-10-10): backed by in-memory
+ * Redis/JVM caches on mcp.nseindia.in for high-speed EOD OHLCV, market mood,
+ * symbol search/lookup, and index valuation ratios without website scraper bot blocks.
  */
+/**
+ * Normalise NSE `/api/fiidiiTradeReact` rows (strings, Rs crore) into numbers.
+ * Pure function (unit-tested). Returns null if either category is missing.
+ * @param {Array<Object>} rows
+ */
+function parseFiiDii(rows) {
+  if (!Array.isArray(rows)) return null;
+  const num = (v) => {
+    const n = Number(String(v).replace(/,/g, ''));
+    return Number.isFinite(n) ? n : null;
+  };
+  const pick = (re) => rows.find((r) => re.test(String(r.category || '')));
+  const f = pick(/^FII/i);
+  const d = pick(/^DII/i);
+  if (!f || !d) return null;
+  const shape = (r) => ({ buy: num(r.buyValue), sell: num(r.sellValue), net: num(r.netValue) });
+  const m = /^(\d{2})-([A-Za-z]{3})-(\d{4})$/.exec(f.date || '');
+  const months = {
+    jan: '01',
+    feb: '02',
+    mar: '03',
+    apr: '04',
+    may: '05',
+    jun: '06',
+    jul: '07',
+    aug: '08',
+    sep: '09',
+    oct: '10',
+    nov: '11',
+    dec: '12',
+  };
+  const iso =
+    m && months[m[2].toLowerCase()] ? `${m[3]}-${months[m[2].toLowerCase()]}-${m[1]}` : null;
+  return { date: iso, fii: shape(f), dii: shape(d) };
+}
+
 class NseClient {
   /**
    * @param {Object} [opts]
    * @param {NseSession} [opts.session]
+   * @param {NseMcpSession} [opts.mcpSession]
    */
-  constructor({ session } = {}) {
+  constructor({ session, mcpSession } = {}) {
     this.session = session || new NseSession();
+    this.mcpSession = mcpSession || new NseMcpSession();
   }
 
   _quoteReferer(symbol) {
@@ -410,6 +448,19 @@ class NseClient {
   }
 
   /**
+   * Daily FII/FPI and DII cash-market activity (Rs crore) — latest session NSE has published.
+   * Endpoint verified live 2026-10-10: `/api/fiidiiTradeReact` returns one row per category.
+   * @returns {Promise<{date: string, fii: {buy:number,sell:number,net:number}, dii: {buy:number,sell:number,net:number}}|null>}
+   */
+  async getFiiDiiActivity() {
+    const res = await this.session.get('/fiidiiTradeReact', {
+      referer: `${NSE_HOME_URL}reports/fii-dii`,
+      timeout: 20000,
+    });
+    return parseFiiDii(res.data);
+  }
+
+  /**
    * Corporate Actions (Dividends, Splits, Bonus, etc.)
    * @param {string} [fromDate] - DD-MM-YYYY
    * @param {string} [toDate]   - DD-MM-YYYY
@@ -448,6 +499,148 @@ class NseClient {
     });
     return Array.isArray(res.data) ? res.data : res.data?.data || [];
   }
+
+  // ── Official NSE MCP Backend (In-Memory Redis/JVM) ──────────────────────────
+
+  /**
+   * @typedef {Object} NseOhlcvCandle
+   * @property {string} date - Trade date YYYY-MM-DD
+   * @property {number} open - Open price
+   * @property {number} high - Day high price
+   * @property {number} low - Day low price
+   * @property {number} close - Close / last traded price
+   * @property {number} prevClose - Previous trading session close
+   * @property {number} volume - Total traded share quantity
+   * @property {number} totalTradedValue - Traded turnover in ₹
+   * @property {string} series - Equity series (typically 'EQ')
+   */
+
+  /**
+   * Daily EOD OHLCV price history for an NSE stock from the official Bhavcopy in-memory store.
+   * Covers ~5,000 listed equities up to 5 years of daily bars with sub-50ms latency.
+   * Sorted in ascending chronological order.
+   *
+   * @param {string} symbol - NSE symbol without prefix (e.g. 'RELIANCE', 'INFY')
+   * @param {Object} [opts]
+   * @param {number} [opts.months=3] - Lookback chunk in months (1–3 per chunk)
+   * @param {string} [opts.endDate='today'] - End date YYYY-MM-DD or 'today'
+   * @returns {Promise<NseOhlcvCandle[]>}
+   */
+  async getHistoricalOhlcv(symbol, { months = 3, endDate = 'today' } = {}) {
+    const upper = String(symbol).replace(/^NSE:/i, '').trim().toUpperCase();
+    const raw = await this.mcpSession.callTool(NseMcpSession.BHAVCOPY_URL, 'get_stock_history', {
+      symbol: upper,
+      months,
+      endDate,
+    });
+    const rows = Array.isArray(raw?.data) ? raw.data : [];
+    return rows
+      .map((r) => ({
+        date: r.date,
+        open: Number(r.open),
+        high: Number(r.high),
+        low: Number(r.low),
+        close: Number(r.close),
+        prevClose: Number(r.prevClose),
+        volume: Number(r.volume),
+        totalTradedValue: Number(r.totalTradedValue),
+        series: r.series || 'EQ',
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  /**
+   * Search for NSE stock symbols by company name or partial symbol.
+   * @param {string} query - Keyword or partial symbol (e.g. 'ZOMATO', 'TATA')
+   * @returns {Promise<{ query: string, count: number, results: Array<{ symbol: string, last_close: number, pct_change: number, last_date: string }> }>}
+   */
+  async searchSymbols(query) {
+    return this.mcpSession.callTool(NseMcpSession.BHAVCOPY_URL, 'search_symbols', {
+      query: String(query).trim(),
+    });
+  }
+
+  /**
+   * Direct symbol resolution & disambiguation from official master list.
+   * Restores symbol discovery broken by NSE's retired /api/search/autocomplete route.
+   * @param {string} query - Keyword or partial symbol
+   * @returns {Promise<{ symbols: string[], query: string, count: number }>}
+   */
+  async lookupSymbol(query) {
+    return this.mcpSession.callTool(NseMcpSession.BHAVCOPY_URL, 'nse_lookup_symbol', {
+      query: String(query).trim(),
+    });
+  }
+
+  /**
+   * @typedef {Object} NseMarketMood
+   * @property {string} date - Trade date YYYY-MM-DD
+   * @property {Object} benchmarks - Close and % change for Nifty 50, Next 50, 500, Midcap 100, Smallcap 100
+   * @property {{ up: number, down: number, unchanged: number, up_pct: number, reading: string, equity_indices: number }} index_breadth
+   * @property {{ up: number, down: number, unchanged: number, up_pct: number, reading: string, stocks: number }} stock_breadth
+   * @property {{ level: number, change_1d_pct: number, vs_1w_ago: Object, vs_1m_ago: Object, range: { min: number, max: number, mean: number, percentile: number, trading_days: number } }} india_vix
+   * @property {string} method - Statistical methodology explanation
+   */
+
+  /**
+   * Comprehensive market mood snapshot: official India VIX with historical percentile rank,
+   * exchange-wide stock advance/decline breadth (~3,000 equities), index breadth, and benchmark changes.
+   * @param {string} [date='today'] - Date YYYY-MM-DD or 'today'
+   * @returns {Promise<NseMarketMood>}
+   */
+  async getMarketMood(date = 'today') {
+    return this.mcpSession.callTool(NseMcpSession.BHAVCOPY_URL, 'get_market_mood', { date });
+  }
+
+  /**
+   * Valuation ratios of an NSE equity index (P/E, P/B, Dividend Yield) with statistical range
+   * over up to 60 months (percentile, min, max, median, mean).
+   * @param {string} indexName - Case-insensitive index name (e.g. 'Nifty 50', 'Nifty Bank')
+   * @param {Object} [opts]
+   * @param {number} [opts.months=24] - Lookback window in months (1–60)
+   * @param {string} [opts.date='today'] - As-of date YYYY-MM-DD or 'today'
+   * @returns {Promise<Object>}
+   */
+  async getIndexValuation(indexName, { months = 24, date = 'today' } = {}) {
+    return this.mcpSession.callTool(NseMcpSession.BHAVCOPY_URL, 'get_index_valuation', {
+      indexName,
+      months,
+      date,
+    });
+  }
+
+  /**
+   * Benchmark comparison: Return, Beta, and Pearson correlation of an NSE stock vs a benchmark index
+   * over a specified lookback window, adjusted for corporate actions (splits and bonus issues).
+   * @param {string} symbol - NSE symbol without prefix
+   * @param {Object} [opts]
+   * @param {string} [opts.indexName='Nifty 50'] - Benchmark index name
+   * @param {number} [opts.months=12] - Lookback window in months (1–24)
+   * @param {string} [opts.date='today'] - End date YYYY-MM-DD or 'today'
+   * @returns {Promise<Object>}
+   */
+  async getStockVsIndex(symbol, { indexName = 'Nifty 50', months = 12, date = 'today' } = {}) {
+    const upper = String(symbol).replace(/^NSE:/i, '').trim().toUpperCase();
+    return this.mcpSession.callTool(NseMcpSession.BHAVCOPY_URL, 'get_stock_vs_index', {
+      symbol: upper,
+      indexName,
+      months,
+      date,
+    });
+  }
+
+  /**
+   * Live stock price quote from the official cash-market live stream.
+   * Faster and more reliable than /quote-equity (no Akamai homepage cookie warmup required).
+   * @param {string} symbol - NSE symbol without prefix
+   * @returns {Promise<{ updatedAt: string, stock: { symbol: string, openPrice: number, highPrice: number, lowPrice: number, lastTradedPrice: number, preClosePrice: number, change: number, perChange: number, volume: number, value: number, fiftyTwoWeekHigh: number, fiftyTwoWeekLow: number, perChange30d: number, latestTimestamp: string } }>}
+   */
+  async getLiveStockQuote(symbol) {
+    const upper = String(symbol).replace(/^NSE:/i, '').trim().toUpperCase();
+    return this.mcpSession.callTool(NseMcpSession.CMMKT_URL, 'cm_get_stock_quote', {
+      symbol: upper,
+    });
+  }
 }
 
-module.exports = { NseClient };
+module.exports = { NseClient, parseFiiDii };

@@ -1,0 +1,262 @@
+{
+  "jcurve": {
+    "title": "J-curve, re-rating, inflection & catalysts",
+    "groups": {
+      "core": "j[\\s\\-]?curve",
+      "rerating": "re[\\s\\-]?rat(?:e|ing|ed)",
+      "inflection": "inflection|turning point|turn ?around|turnaround|trough|bottoming",
+      "explosive": "explosi|game[\\s\\-]?changer|step[\\s\\-]?change|hockey|blockbuster|jackpot|sleeper",
+      "catalyst": "catalyst|trigger",
+      "earnings-shift": "loss[\\s\\-]to[\\s\\-]profit|breakeven|break[\\s\\-]even|operating leverage|eps (?:jump|inflect|surge|accelerat)|pat (?:jump|inflect|surge|accelerat)|earnings (?:jump|surge|accelerat|inflect|visibility)|margin expansion",
+      "phase": "next leg|new leg|new base|pivot|monetis|monetiz|ramp[\\s\\-]?up|scale[\\s\\-]?up|commission|new phase"
+    },
+    "weak": ["catalyst", "phase"],
+    "weakMinChars": 150,
+    "kinds": [
+      "definition",
+      "stage_signal",
+      "trigger",
+      "metric",
+      "rerating_mechanic",
+      "timing",
+      "case",
+      "pitfall",
+      "checklist_item",
+      "entry_exit",
+      "monitor"
+    ],
+    "repostKinds": ["case", "metric", "rerating_mechanic"],
+    "kindMap": {
+      "definition": "framework",
+      "stage_signal": "heuristic",
+      "metric": "heuristic",
+      "timing": "heuristic",
+      "rerating_mechanic": "heuristic",
+      "trigger": "entry_signal",
+      "pitfall": "anti_pattern",
+      "checklist_item": "checklist_item",
+      "monitor": "checklist_item",
+      "entry_exit": "rule",
+      "case": "pick"
+    }
+  },
+  "pead": {
+    "title": "PEAD, result quality, post-result triggers & concall guidance",
+    "groups": {
+      "pead": "\\bpead\\b|post[\\s\\-]?earnings|earnings drift|episodic pivot|\\bep\\b",
+      "surprise": "surprise|beat(?:s|ing)? (?:the )?(?:estimate|expectation|street)|miss(?:ed|es)? (?:the )?(?:estimate|expectation)|expectations? (?:are|is|were)? ?(?:priced|high|low)|priced[\\s\\-]?in|already in the price",
+      "reaction": "gap[\\s\\-]?up|gap[\\s\\-]?down|earnings gap|post[\\s\\-]?result|after (?:the )?results?|results? day|reaction to (?:the )?results?|result reaction|stock (?:ignor|shrug|didn)",
+      "quality": "quality of (?:earnings|results?|profit|growth)|one[\\s\\-]?off|exceptional|other income|base effect|low base|non[\\s\\-]?operational|below[\\s\\-]the[\\s\\-]line|tax (?:reversal|credit)|inventory gain|operating leverage|margin (?:expansion|contraction|surprise)|ebitda margin|\\bpat\\b",
+      "post-result-trigger": "new trigger|next trigger|after (?:the )?(?:results?|concall)|fresh (?:order|capex)|capex announcement|order (?:inflow|book) (?:after|post)|q\\+1|next quarter|following quarter|consecutive quarter|back[\\s\\-]to[\\s\\-]back",
+      "guidance": "guidance|guided|guides|concall|con[\\s\\-]call|earnings call|management commentary|walk(?:ed|s|ing)? the talk|outlook|tone of (?:the )?(?:call|management)"
+    },
+    "weak": ["quality", "guidance", "post-result-trigger", "reaction"],
+    "weakMinChars": 150,
+    "kinds": [
+      "definition",
+      "result_quality",
+      "reaction_signal",
+      "post_result_trigger",
+      "guidance_signal",
+      "expectation",
+      "timing",
+      "case",
+      "pitfall",
+      "checklist_item",
+      "entry_exit",
+      "monitor"
+    ],
+    "repostKinds": ["case", "reaction_signal", "expectation"],
+    "kindMap": {
+      "definition": "framework",
+      "result_quality": "heuristic",
+      "reaction_signal": "heuristic",
+      "post_result_trigger": "entry_signal",
+      "guidance_signal": "heuristic",
+      "expectation": "heuristic",
+      "timing": "heuristic",
+      "case": "pick",
+      "pitfall": "anti_pattern",
+      "checklist_item": "checklist_item",
+      "entry_exit": "rule",
+      "monitor": "checklist_item"
+    }
+  },
+  "filings": {
+    "title": "Filings, announcements & disclosures",
+    "groups": {
+      "filing": "announcement|filing|filed|disclosure|intimation|regulation 30|\\bsebi\\b|exchange (?:filing|notice)|bse (?:filing|announcement)|nse (?:filing|announcement)|press release|stock exchange",
+      "orders": "order (?:win|won|inflow|book)|bags? (?:an? )?order|letter of intent|\\bloi\\b|work order|new order|empanel|\\brfq\\b",
+      "capital": "preferential|\\bqip\\b|rights issue|warrants?|allotment|fund[\\s\\-]?raise|fundraise|buy[\\s\\-]?back|\\bofs\\b|dilution|pledge|ncd",
+      "corporate-action": "demerger|merger|amalgamation|acquisition|acquires?|slump sale|stake (?:sale|buy|purchase)|\\bsast\\b|open offer|delist|bonus|stock split|dividend",
+      "deals": "bulk deal|block deal|insider|promoter (?:buy|buying|sell|selling|pledg|stake)|fii|dii|mutual fund (?:buy|stake)|shareholding",
+      "ppt-ar": "investor presentation|\\bppt\\b|\\binvestor ppt\\b|annual report|\\bdrhp\\b|\\brhp\\b|\\bdrhp\\b|\\bipo\\b|credit rating|rating (?:upgrade|downgrade)|auditor|resign|board meeting|capex (?:announce|plan)|commission(?:ed|ing) of"
+    },
+    "weak": ["filing", "corporate-action", "deals", "ppt-ar", "capital"],
+    "weakMinChars": 150,
+    "kinds": [
+      "definition",
+      "filing_signal",
+      "trigger_read",
+      "red_flag",
+      "source_howto",
+      "expectation",
+      "timing",
+      "case",
+      "pitfall",
+      "checklist_item",
+      "entry_exit",
+      "monitor"
+    ],
+    "repostKinds": ["case", "filing_signal", "expectation"],
+    "kindMap": {
+      "definition": "framework",
+      "filing_signal": "heuristic",
+      "trigger_read": "entry_signal",
+      "red_flag": "anti_pattern",
+      "source_howto": "tool_workflow",
+      "expectation": "heuristic",
+      "timing": "heuristic",
+      "case": "pick",
+      "pitfall": "anti_pattern",
+      "checklist_item": "checklist_item",
+      "entry_exit": "rule",
+      "monitor": "checklist_item"
+    }
+  },
+  "technical": {
+    "title": "Technical entries, exits, market regime & sector rotation (price action)",
+    "groups": {
+      "setup": "breakout|base[\\s\\-]?(?:building|breakout)|long base|tight (?:consolidation|range)|consolidation|\\bvcp\\b|darvas|cup (?:and|&) handle|\\bflag\\b|pennant|stage[\\s\\-]?2|retest|pull[\\s\\-]?back|shake[\\s\\-]?out|gap[\\s\\-]?up entry|buyable",
+      "levels": "\\b\\d{2,3}\\s?[\\-]?(?:dma|ema|sma)\\b|moving average|trend[\\s\\-]?line|support|resistance|52[\\s\\-]?(?:week|wk)[\\s\\-]?high|all[\\s\\-]?time high|\\bath\\b|pivot|\\bbreakdown\\b",
+      "volume": "volume|delivery|accumulat|distribution|dry(?:ing)? up|unusual volume|volume spike",
+      "rs-sector": "relative strength|\\brs\\b|sector rotation|industry group|leading sector|strongest sector|sector (?:is )?(?:leading|lagging)|top gainers",
+      "exit": "lower high|higher high|double top|rounding top|failed breakout|upper wick|topping|exit(?:ing)?\\b|book(?:ing)? profit|trail(?:ing)?|cut (?:your )?losers?|sell(?:ing)? (?:near|into|at) high",
+      "regime": "market (?:is )?(?:weak|strong|correction|breadth|trend)|breadth|follow[\\s\\-]?through|bull market|bear market|scan count|risk[\\s\\-]?(?:on|off)|liquidity|nifty (?:is|trend)"
+    },
+    "weak": ["levels", "volume", "exit", "regime"],
+    "weakMinChars": 150,
+    "kinds": [
+      "definition",
+      "setup",
+      "entry_trigger",
+      "confirmation",
+      "exit_signal",
+      "regime_signal",
+      "sector_rotation",
+      "volume_signal",
+      "level_rule",
+      "timing",
+      "case",
+      "pitfall",
+      "checklist_item",
+      "monitor"
+    ],
+    "repostKinds": ["case", "setup", "regime_signal", "sector_rotation"],
+    "kindMap": {
+      "definition": "framework",
+      "setup": "heuristic",
+      "entry_trigger": "entry_signal",
+      "confirmation": "heuristic",
+      "exit_signal": "exit_signal",
+      "regime_signal": "macro_view",
+      "sector_rotation": "sector_view",
+      "volume_signal": "heuristic",
+      "level_rule": "rule",
+      "timing": "heuristic",
+      "case": "pick",
+      "pitfall": "anti_pattern",
+      "checklist_item": "checklist_item",
+      "monitor": "checklist_item"
+    }
+  },
+  "macro": {
+    "title": "Macro, liquidity, policy & news (top-down drivers of market and sector direction)",
+    "groups": {
+      "liquidity": "liquidity|\\bfii\\b|\\bfpi\\b|\\bdii\\b|fii flows?|foreign (?:investors?|flows?|selling|buying)|mutual fund flows?|\\bsip\\b|money supply|\\bcrr\\b|\\bomo\\b|rate[\\s\\-]?cuts?|rate[\\s\\-]?hikes?|\\brepo\\b|\\brbi\\b|monetary policy|\\bfed\\b|fomc",
+      "rates-fx": "bond yields?|\\b10[\\s\\-]?(?:y|yr|year)\\b|us yields?|treasur(?:y|ies)|dollar index|\\bdxy\\b|rupee|\\busd[\\s\\-]?inr\\b|inflation|\\bcpi\\b|\\bwpi\\b|\\bgdp\\b|\\biip\\b",
+      "commodity-geo": "crude|brent|oil prices?|gold|copper|commodit(?:y|ies)|war\\b|geopolit|tariffs?|trump|china|opec|red sea|shipping rates?",
+      "policy": "\\bpli\\b|budget|policy|subsid(?:y|ies)|anti[\\s\\-]?dumping|import dut(?:y|ies)|\\bgst\\b|\\bsebi\\b|govt|government|defence budget|capex cycle|infra(?:structure)? spend|china\\s?\\+\\s?1|import substitution|make in india|rbi (?:rule|norm|circular)|ban\\b|regulat",
+      "news": "news|headline|announcement reaction|market reaction|priced in|sentiment|panic|euphoria|fear|greed|\\bvix\\b|narrative|catalyst",
+      "cycle": "earnings cycle|earnings growth|nifty (?:eps|pe)|market cap to gdp|bubble|valuation of (?:the )?market|bull market|bear market|correction|bottom|crash|recession|soft landing|cycle"
+    },
+    "weak": ["news", "cycle", "commodity-geo", "policy"],
+    "weakMinChars": 150,
+    "kinds": [
+      "liquidity_signal",
+      "rates_fx_signal",
+      "commodity_signal",
+      "policy_tailwind",
+      "news_reaction",
+      "regime_rule",
+      "indicator",
+      "transmission",
+      "sector_beneficiary",
+      "risk_event",
+      "definition",
+      "case",
+      "pitfall",
+      "monitor",
+      "checklist_item"
+    ],
+    "repostKinds": ["case", "policy_tailwind", "risk_event", "news_reaction"],
+    "kindMap": {
+      "liquidity_signal": "macro_view",
+      "rates_fx_signal": "macro_view",
+      "commodity_signal": "macro_view",
+      "policy_tailwind": "macro_view",
+      "news_reaction": "heuristic",
+      "regime_rule": "rule",
+      "indicator": "rule",
+      "transmission": "framework",
+      "sector_beneficiary": "sector_view",
+      "risk_event": "macro_view",
+      "definition": "framework",
+      "case": "pick",
+      "pitfall": "anti_pattern",
+      "monitor": "checklist_item",
+      "checklist_item": "checklist_item"
+    }
+  },
+  "sector": {
+    "title": "Sector & theme selection, value chain and rotation (finding where the tailwind is)",
+    "groups": {
+      "rotation": "sector rotation|rotation|leading sectors?|sector (?:is )?(?:leading|lagging)|theme|top (?:2|3|4|5) sectors?|money (?:is )?(?:flowing|moving|rotating)|flows? into",
+      "tailwind": "tailwinds?|headwinds?|structural|cyclical|upcycle|down[\\s\\-]?cycle|inflection|supercycle|trough|peak cycle|early cycle|late cycle|capex cycle",
+      "valuechain": "value chain|supply chain|beneficiar(?:y|ies)|second[\\s\\-]order|proxy|proxies|picks and shovels|bottleneck|oligopoly|market share|\\btam\\b|capacity (?:addition|utili[sz]ation)|pricing power|moat",
+      "sector-name": "\\b(?:defence|railways?|power|transformers?|textiles?|chemicals?|pharma|auto ancillar\\w+|\\bcv\\b|capital goods|\\bems\\b|data cent\\w+|solar|gold loans?|nbfc|banks?|real estate|cement|steel|metals?)\\b",
+      "how": "how to (?:find|identify|pick|choose|spot)|framework|checklist|process|approach|step[\\s\\-]?1|first (?:identify|find|look)|look for"
+    },
+    "weak": ["sector-name", "how", "rotation"],
+    "weakMinChars": 200,
+    "kinds": [
+      "selection_rule",
+      "rotation_rule",
+      "cycle_phase",
+      "value_chain_link",
+      "beneficiary",
+      "tailwind_test",
+      "headwind_test",
+      "pitfall",
+      "checklist_item",
+      "definition",
+      "case",
+      "monitor"
+    ],
+    "repostKinds": ["case", "beneficiary"],
+    "kindMap": {
+      "selection_rule": "rule",
+      "rotation_rule": "heuristic",
+      "cycle_phase": "sector_view",
+      "value_chain_link": "framework",
+      "beneficiary": "sector_view",
+      "tailwind_test": "rule",
+      "headwind_test": "rule",
+      "pitfall": "anti_pattern",
+      "checklist_item": "checklist_item",
+      "definition": "framework",
+      "case": "pick",
+      "monitor": "checklist_item"
+    }
+  }
+}

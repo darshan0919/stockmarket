@@ -799,3 +799,45 @@ describe('companyContext', () => {
     expect(ctx.reports).toHaveLength(1);
   });
 });
+
+describe('knowledge-units collection (learn-and-automate)', () => {
+  const unit = (over = {}) => ({
+    id: 'kbu_x-sureshkbn_deadbeef',
+    type: 'kb-unit',
+    sourceKey: 'x:sureshkbn',
+    creator: 'learn-and-automate',
+    date: '2026-10-06',
+    kind: 'rule',
+    topic: 'liquidity-float',
+    statement: 'Avoid low-float stocks without plant visits',
+    ...over,
+  });
+
+  test('dedup: same logical unit twice ⇒ 1 record', () => {
+    db.upsertMany('knowledge-units', [unit()]);
+    const s2 = db.upsertMany('knowledge-units', [unit()]);
+    expect(s2.unchanged).toBe(1);
+    expect(db.find('knowledge-units', { type: 'kb-unit' })).toHaveLength(1);
+  });
+
+  test('envelope enforced: creator required', () => {
+    expect(() => db.upsertMany('knowledge-units', [unit({ creator: undefined })])).toThrow(
+      /creator/
+    );
+  });
+
+  test("persist.prepare never lets a re-verified unit wipe the user's stance", () => {
+    const { prepare } = require('../../../skills/tooling/learn-and-automate/scripts/persist');
+    db.upsertMany('knowledge-units', [unit({ userStance: 'adopt', userNote: 'mine' })]);
+    const existing = db.get('knowledge-units', 'kbu_x-sureshkbn_deadbeef');
+    const [rec] = prepare(unit({ userStance: null }), { patch: false, existing });
+    db.upsertMany('knowledge-units', [rec]);
+    expect(db.get('knowledge-units', 'kbu_x-sureshkbn_deadbeef').userStance).toBe('adopt');
+    const [p] = prepare(
+      { id: rec.id, type: 'kb-unit', sourceKey: 'x:sureshkbn', userStance: 'reject' },
+      { patch: true, existing }
+    );
+    db.upsertMany('knowledge-units', [p]);
+    expect(db.get('knowledge-units', 'kbu_x-sureshkbn_deadbeef').userStance).toBe('reject');
+  });
+});

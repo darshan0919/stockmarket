@@ -1,7 +1,7 @@
 ---
 name: quarterly-result-analysis
 description: >-
-  Stage 2 (flagship model) of the 2-skill quarterly-result pipeline — industry-agnostic single-quarter result interpretation for Indian listed companies, reading quarterly-result-extractor's persisted DB record (fetched documents + deterministic income-statement signal scan + recall-first tone/guidance/strategic excerpts) and applying the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist. Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks "analyse this quarter", "what changed this quarter", "is the business getting better", "what's management signalling", "result analysis", "quarterly snapshot", "post-result note", or provides a Stockscans ticker with result-day intent. Auto-invokes quarterly-result-extractor when given only a ticker and no DB record exists yet. Also supports single-statement quality modes via `--statement income|balance-sheet|cashflow` (comma-separable): a lean, bulk-safe path that grades ONE financial statement CLEAN/WATCH/STRAINED/RED-FLAG from its deterministic signal scan and skips the transcript, tone work, widget and PDF entirely — use it for "income statement quality only", "is the balance sheet clean", "check cash conversion", "run this across today's results", or any bulk screen across many companies' results. Output is BOTH an interactive briefing widget AND a Drive-shareable PDF (same underlying DTO), opening with a bird's-eye KPI strip (Revenue/EBITDA margin/PAT/tax rate/EPS and other decision-relevant metrics, each with a comparison subtext), tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), multi-year deep dives (use equity-research-deepdive), or raw document fetching without interpretation (use quarterly-result-extractor directly).
+  Stage 2 (flagship model) of the 2-skill quarterly-result pipeline — industry-agnostic single-quarter result interpretation for Indian listed companies, reading quarterly-result-extractor's persisted DB record (fetched documents + deterministic income-statement signal scan + recall-first tone/guidance/strategic excerpts) and applying the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist. Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks "analyse this quarter", "what changed this quarter", "is the business getting better", "what's management signalling", "result analysis", "quarterly snapshot", "post-result note", or provides a Stockscans ticker with result-day intent. Auto-invokes quarterly-result-extractor when given only a ticker and no DB record exists yet. Also supports single-statement quality modes via `--statement income|balance-sheet|cashflow` (comma-separable): a lean, bulk-safe path that grades ONE financial statement CLEAN/WATCH/STRAINED/RED-FLAG from its deterministic signal scan and skips the transcript, tone work, widget and PDF entirely — use it for "income statement quality only", "is the balance sheet clean", "check cash conversion", "run this across today's results", or any bulk screen across many companies' results. Output is a deterministic Drive-shareable PDF report (same underlying DTO; HTML only when explicitly requested), opening with a bird's-eye KPI strip (Revenue/EBITDA margin/PAT/tax rate/EPS and other decision-relevant metrics, each with a comparison subtext showing rate of change), tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), multi-year deep dives (use equity-research-deepdive), or raw document fetching without interpretation (use quarterly-result-extractor directly).
 ---
 
 # Quarterly Result Analysis
@@ -203,7 +203,7 @@ The LLM's task in Phase 1.5 is purely **editorial selection and strategic weight
 3. **Tone and Comparisons**: Use the pre-computed `tone` (`pos`/`neg`/`neutral`) and basis strings directly
    to guarantee zero calculation errors.
 
-### Phase 2 — 3-basket analysis
+### Phase 2 — 3-basket analysis & Forward Guidance
 
 Open [`references/basket_framework.md`](references/basket_framework.md) and run the full framework. The three baskets and a final checklist:
 
@@ -213,6 +213,21 @@ Open [`references/basket_framework.md`](references/basket_framework.md) and run 
 | 2. **RISK**       | What can go wrong? | Business risks · Management commentary risks · Industry & macro risks                               |
 | 3. **MANAGEMENT** | Between the lines  | Tone · Change vs prior quarters · Strategic direction (3-5 yr) · Capital allocation quality         |
 | **Final**         | What to monitor    | Investor monitoring checklist — 6-10 items over 2-8 quarters                                        |
+
+#### Forward Guidance & Bottom-Line Accrual Table Protocol (Mandatory)
+
+Whenever management commentary or presentations include quantitative or qualitative targets, compile a structured Guidance Table:
+
+- **Current Base vs Guided Target**: Always pair the current baseline value alongside the future guided value, and explicitly calculate the **% Change** (or bps change for ratios).
+- **Mandatory Bottom-Line Row**: Include a future value row for bottom-line metrics:
+  - **PAT** for corporates / general industrials.
+  - **Book Value / BVPS** for NBFCs, banks, and lending institutions.
+- **Direct vs. Derived Classification**:
+  - If the bottom-line metric was **directly guided** by management (e.g. "PAT target of ₹500 Cr"), mark as `DIRECTLY GUIDED` and do not re-derive.
+  - If indirectly guided (e.g., revenue + margin guidance, or AUM growth + RoA target), systematically calculate the implied bottom-line metric, mark as `DERIVED`, and state the exact formula in `derivationBasis`.
+- **Strict No-Extrapolation Guardrail**:
+  - Do NOT extrapolate or guess a bottom-line metric if guidance for its required dependencies was not provided by management.
+  - In that case, leave the guided value and % change cells empty (`—`), mark as `UNGUIDED`, and document: `"Dependencies unguided — no extrapolation"`.
 
 Two reference files support this phase:
 
@@ -228,8 +243,9 @@ DTO Drive-mirrored and re-readable by the Phase 4 PDF step or any other skill, p
 `docs/DATA_RULES.md` §2. The DTO: `kpiStrip` (the 4-8 selected cards — `label`, `value`,
 `subtext`, `tone`), `statementHealth` (three badges: `income`, `balanceSheet`, `cashflow`,
 each carrying `grade` e.g. CLEAN/WATCH/STRAINED/RED-FLAG or ABSENT, plus a 1-liner quantified `brief` with numbers),
-the verdict chips, Basket 1/2/3 items (each with its
-STRUCTURAL/CYCLICAL/TEMPORARY or HIGH/MED/LOW tag), the monitoring checklist rows
+`peadRead` (`verdict`, one line per gate G1-G5, `pricedIn`, `flags[]` from `scripts/peadPricedIn.js`), the verdict chips,
+`guidanceTable` (array of objects: `metric`, `currentValue`, `guidedValue`, `pctChange`, `timeline`, `nature` (`DIRECTLY GUIDED`|`DERIVED`|`UNGUIDED`), `derivationBasis`),
+Basket 1/2/3 items (each with its STRUCTURAL/CYCLICAL/TEMPORARY or HIGH/MED/LOW tag), the monitoring checklist rows
 (`kpi`, `threshold`, `horizon`, `source`), and the header fields (company, ticker,
 quarter, result date, CMP, market cap). The object MUST carry the standard envelope from
 `skills/tooling/output-dto-standard/SKILL.md`: `companyId` (canonical `EXCH:SYMBOL`),
@@ -243,23 +259,34 @@ The primary output is an interactive HTML widget rendered via `visualize:show_wi
 templated from the Phase 2.5 JSON DTO — the widget's content must be reproducible from
 that file, not drafted separately. Use [`assets/result_widget_template.html`](assets/result_widget_template.html) as the structural reference — copy the `<style>` block and section skeletons, populate with the Phase 2 findings from the JSON DTO.
 
-### Phase 4 — Render the PDF artifact
+### Phase 4 — Render the PDF artifact (Deterministic Generator)
 
-Always also produce a PDF from the SAME Phase 2.5 DTO — see
-[`skills/_shared/pdf-artifact-step.md`](../../_shared/pdf-artifact-step.md) for the full
-mechanics (build a hex-color standalone HTML using `pdf-design-guide.md`'s component
-vocabulary — the `.kpi`/`.grid4` classes map directly onto the KPI strip, `.chip` onto the
-verdict tags, `.hl` onto the callouts — then call `render-pdf`). Save to
-`data/assets/quarterly-result-analysis/<Company>_Q<X>_FY<YY>_ResultAnalysis.pdf` and end
-the run with `node packages/jobs-runtime/scripts/data.js push` so it's Drive-shareable. Do
-this on every run, not only when the user explicitly asks for a file — a Drive link is what
-makes the note forwardable, and the whole point of persisting the DTO in Phase 2.5 is that
-this step costs no extra analysis, only a render. If the render pipeline (`render-pdf`,
-`yarn`/`node` tooling) is genuinely unavailable in the current environment, that is a
-blocker to flag explicitly in the closing text ("PDF not rendered — render pipeline
-unavailable in this session") — never finish the run silently having produced only the
-widget, since that reads to the user as if the PDF requirement was satisfied when it
-wasn't.
+Always produce a PDF from the SAME Phase 2.5 DTO using the skill's deterministic report generator:
+
+```bash
+yarn workspace @stock/api render-quarterly-result-pdf --input <dto.json> --output data/assets/quarterly-result-analysis/<Company>_Q<X>_FY<YY>_ResultAnalysis.pdf
+```
+
+_(or via Node API: `const { createQuarterlyResultPdf } = require('@stock/api'); await createQuarterlyResultPdf(dto, { outputPath });`)_
+
+**Skill-Level Layout & Color Consistency Mandate:**
+
+- **Zero Visual Drift**: Ad-hoc or LLM-invented HTML styling is strictly prohibited. Every report must follow the unified institutional design system (`skills/_shared/pdf-design-guide.md`, `wrapHtml()`, `.chip`, `.hl`, `.kpi`, `.grid4`, `.vmatrix`).
+- **Fixed Layout Determinism**: All fixed sections render with deterministic color coding and hierarchy:
+  1. Header band (eyebrow, title, metadata subtitle, thick rule)
+  2. Bird's-eye KPI strip (4–8 `.kpi` cards in `.grid4` with verified basis and directional tone borders)
+  3. Statement Health badges (`CLEAN` / `WATCH` / `STRAINED` / `RED-FLAG` or `ABSENT`) and 1-liner quantified briefs
+  4. Verdict & catalyst chips band (`.chip-g`, `.chip-y`, `.chip-r`, `.chip-b`)
+  5. _(For NBFC / Banks)_ NBFC & Financial Institution Quality Audit (RoA tree, 6 MOB 30+ DPD vintage, CRAR/leverage, updated BVPS & P/B, growth funding gap)
+  6. Forward Guidance & Bottom-Line Accrual Table (Current vs Guided Targets, % Change, Derived PAT / Book Value)
+  7. Basket 1 — Business (`STRUCTURAL` [.chip-g], `CYCLICAL` [.chip-y], `TEMPORARY` [.chip-b])
+  8. Basket 2 — Risk (`HIGH` [.chip-r], `MED` [.chip-y], `LOW` [.chip-b], plus SOIC evasion tags)
+  9. Basket 3 — Management (Tone badge + verbatim quote, narrative shift, 3–5yr build, capital allocation)
+  10. PEAD Reaction & Gates evaluation (G1–G5 assessment + verdict badge)
+  11. Forward Investor Monitoring Checklist (falsifiable `# | KPI | Threshold | Horizon | Source` table)
+- **Runtime Improvisation Space (`data.additional`)**: When unique, scenario-specific nuance arises (e.g. bear/base/bull scenarios, granular segment or product mix tables, borrower cohort breakdowns, peer matrices) that does not fit fixed schema keys, place it into `data.additional`. The built-in smart renderer (`renderAdditionalHtml`) shape-sniffs the JSON and renders it into a dedicated "Additional Nuance & Improvisation" section without breaking the layout skeleton.
+
+Save to `data/assets/quarterly-result-analysis/<Company>_Q<X>_FY<YY>_ResultAnalysis.pdf` and end the run with `node packages/jobs-runtime/scripts/data.js push` so it's Drive-shareable. Do this on every run, not only when the user explicitly asks for a file — a Drive link is what makes the note forwardable, and the whole point of persisting the DTO in Phase 2.5 is that this step costs no extra analysis, only a render. If the render pipeline (`render-pdf`, `yarn`/`node` tooling) is genuinely unavailable in the current environment, that is a blocker to flag explicitly in the closing text ("PDF not rendered — render pipeline unavailable in this session") — never finish the run silently having produced only the widget.
 
 Widget structure (top to bottom):
 
@@ -288,6 +315,10 @@ After the widget renders, write 2-3 short paragraphs outside it. Lead each with 
 
 **Income Statement Signal Scan (mandatory).** When assessing revenue/margin/profit performance for the period (Basket 1B — Margin & Profitability Triggers), run the full line-by-line + combination scan in `skills/_shared/income-statement-signals.md` against both QoQ and YoY baselines — it covers every P&L line (Other Income composition, RM cost, the inventory-gains check, employee cost vs. revenue, D&A/interest step-ups, exceptional items, tax-rate swings, EPS dilution) plus the holistic combination reads, with a materiality bar so the write-up stays terse. See `references/basket_framework.md` §1B for how this feeds the `SUSTAINABLE`/`CYCLICAL`/`TEMPORARY` tags. A quarter's "blockbuster" result must be explicitly flagged in the verdict chips (e.g. `INVENTORY-GAIN DRIVEN`, `TAX-RATE DRIVEN`, `NON-OPERATING BEAT`) whenever a non-structural driver clears the materiality bar — never buried in a sub-bullet. **Sourcing rule (XBRL first via `extract_result_xbrl.js`, PDF fallback; see `skills/_shared/income-statement-signals.md` §Sourcing):** every P&L line traces back to the actual quarterly Result filing — this skill reads that scan pre-computed from `quarterly-result-extractor`'s DB record (Phase 1), it does not re-fetch or re-derive it from web search or news-article summaries; web search may only add qualitative color on top of figures already sourced this way. Report only what clears the materiality bar in the shared scan, ranked by contribution to the PBT/PAT delta; if nothing clears the bar, say so in one line.
 
+**Result-reaction checklist (mandatory, one short block in the verdict).** Before any view, state in one line each: (1) is the headline a _business update_ (orders, capacity, pipeline) rather than earnings — updates are not earnings; margins and execution decide result quality; (2) the six context items: base effect, margin quality, one-offs not annualised, guidance, valuation, expectations; (3) a `Q+1 CONFIRMATION PENDING` tag when the quarter is good but not yet proven to sustain — a good quarter is confirmed by the next one, and PEAD alone does not justify a bigger position or longer hold. Never label a result "excellent/great" without the six items. (Derived from `kbf_x-sureshkbn_result-reaction-ladder`, draft; the P&L scan above already supplies items 2-3 of the six — reuse it, do not re-derive.)
+
+**PEAD read (mandatory, one block next to the checklist above; a screen for judgment, not a verdict engine).** Answer five gates in order and put the result in the verdict as `peadRead` — (G1) _Surprise/shock vs expectations_ (not vs last year): what is the surprise element? In-line or expected results are not PEAD; (G2) _Result quality_: operating vs non-operating, base effect, dilution (EPS not PAT), cash flow — reuse the Income Statement / Balance Sheet / Cash Flow scans, do not re-derive; (G3) _Priced in?_ run `node skills/equity-research/quarterly-result-analysis/scripts/peadPricedIn.js '<json>'` with pre-result run-up %, day-0 reaction %, forward P/E vs 1Y/3Y median P/E, PAT growth, other-income share of PBT and float % (missing inputs → `UNKNOWN`, never guess); (G4) _Concall & guidance_: forward guidance raised/cut, did management deliver on last quarter's guided numbers, conditional vs firm targets (feeds Basket 2B/3B — and `management-credibility-tracker` when its record exists); (G5) _New triggers with/after the result_: fresh orders, capex announced or going live, mix shift, debt retirement. Verdict tag `peadRead.verdict`: `PEAD_CANDIDATE` (G1-G2 pass, G3 not PRICED_IN, G4 supportive), `WATCH_Q+1` (good but unproven — pair with `Q+1 CONFIRMATION PENDING`), `PRICED_IN`, or `NOT_PEAD`. Never recommend a pre-result entry; PEAD starts after the print and the call. Sizing language stays High conviction / Standard / Tracking only. Thresholds in the script are illustrative (from SureshKBN's posts, `data/assets/pead-framework-sureshkbn.md`) and unbacktested; his own rule is that this cannot be fully automated, so state the judgment behind each gate in one line. Derived from `kbf_x-sureshkbn_pead-gates` (draft).
+
 **Balance Sheet & Cash Flow Signal Scans (mandatory when the statements are fresh).** Basket 1C
 reads both scans in full from the extractor's record — `balanceSheetSignals` and
 `cashflowSignals`, per `skills/_shared/balance-sheet-signals.md` and
@@ -309,11 +340,35 @@ statements, so report it once with both numbers rather than twice in different w
 
 **Q1/Q3 Structural Cap Rule (Working Capital Safeguard).** Under SEBI LODR Reg 33(3), balance sheet and cash flow statements are filed only half-yearly (routinely `ABSENT` in Q1 and Q3). In any quarter where `statementAvailability.balanceSheet.status` is `ABSENT`, **no margin expansion may be tagged `STRUCTURAL` unconditionally**. It may only be tagged `STRUCTURAL (CONDITIONAL ON H1 WORKING CAPITAL AUDIT)` because operating leverage without cash flow verification can mask severe working capital ballooning (Dr. Anil Lamba: _Profit ≠ Cash_). Item #1 of the forward Investor Monitoring Checklist must track H1 Working Capital Days.
 
+**NBFC & Financial Institutions Quality Checks Protocol (Mandatory for Banks/NBFCs).** Whenever analyzing a company from the NBFC, banking, or lending industry (identified via `context.isNbfc === true`, `companyMaster`, or `family === 'nbfc'`), the standard industrial quality checks must adapt to financial institution economics:
+
+1. **Cash Flow Re-classification Rule**: Never flag `POOR CASH CONVERSION` or `WORKING-CAPITAL CASH DRAIN` for an NBFC. Under Ind AS, loan disbursements are operating cash outflows. Fast AUM growth (e.g. +35–55% YoY) structurally creates negative CFO. Instead, evaluate the **Growth Funding Gap**: was negative CFO adequately funded via debt borrowings and equity capital? Grade cash flow `CLEAN` when external financing covers loan disbursements, and audit Asset-Liability Management (ALM) liquidity buffers.
+2. **RoA Tree Decomposition**: Mandatory analysis of Return on Assets (RoA):
+   $$\text{RoA} = (\text{NIM} + \text{Fee Income}\% \text{ of AUM}) - \text{Opex to Assets} - \text{Credit Cost to Assets} - \text{Tax}$$
+   Contrast each branch against historical levels and guided corridors.
+3. **Asset Quality & Cohort Vintage Early Warning**: Do not rely on lagging Gross NPA / Net NPA alone. Mandate checking leading-edge cohort delinquencies: 6 MOB 30+ DPD (6 Months On Book 30+ Days Past Due) and 90+ DPD trends, particularly in unsecured / consumer portfolios. Track Credit Cost (% of AUM) and Provision Coverage Ratio (PCR).
+4. **Capital Adequacy & Leverage Discipline**: Track CRAR / Tier 1 Capital Ratio (statutory RBI 15% floor, well-capitalized lenders > 18–20%) and Financial Leverage ($\text{Debt}/\text{Equity}$ in healthy $3.5\text{x}–5.5\text{x}$ range; flag $>6.5\text{x}$ or aggressive dilution).
+5. **Mandatory Updated BVPS and P/B Ratio Calculation**: On every fresh half-yearly (H1) or annual (FY) balance sheet filing, calculate updated Book Value Per Share ($\text{BVPS} = \text{Net Worth} / \text{Diluted Shares}$) and updated Price-to-Book ($\text{P/B} = \text{CMP} / \text{BVPS}$). Benchmark P/B against peers and against the RoA/RoE quality matrix (e.g. RoA $>3.5\%$ justifies premium $>3.0\text{x}$ P/B; RoA $<2.0\%$ caps multiple at $1.2\text{x}–1.8\text{x}$).
+6. **KPI Strip Adaptation**: Prioritize AUM, RoA, NIM+Fees, Gross NPA / Credit Cost, Net Worth, Updated BVPS, and P/B over industrial EBITDA and gross margin.
+
 **SOIC Language Ladder Evasion Classification.** In Basket 2B (Management Commentary Risks), whenever identifying evasive or dodged analyst responses, mandate quoting the question-and-answer pair and classifying the evasion tactic into one of three SOIC evasion patterns:
 
 1. `Horizon Pivot`: Answering a near-term margin compression or volume miss with a 3–5 year macro vision or TAM narrative.
 2. `Exclusion Shelter`: Fabricating a "normalized" margin by stripping out routine operating costs as "non-operational".
 3. `Dilution Hedge`: Replacing quantitative guidance commitments with vague qualitative adverbs ("healthy", "encouraging", "satisfactory").
+
+**Forward Guidance & Bottom-Line Accrual Protocol (Mandatory).** Whenever management shares forward guidance:
+
+1. **Always pair Base with Target**: Include Current Value (Base) alongside Guided Value (Target) with explicit `% Change` calculation (or basis point delta for percentages/margins).
+2. **Mandatory Bottom-Line Row (PAT or Book Value)**: Add explicit future value rows for the company's ultimate bottom-line metric:
+   - For **general corporates / industrials**: **PAT** (Profit After Tax).
+   - For **NBFCs / Banks / financial lenders**: **Book Value / BVPS / Net Worth**.
+3. **Direct vs. Derived Rule**:
+   - If the bottom-line metric was _directly guided_ by management (e.g. "We target FY27 PAT of ₹500 Cr"), mark as `DIRECTLY GUIDED` and do not re-derive.
+   - If _indirectly guided_ (e.g. sales growth of 25% + EBITDA margin of 18%; or AUM growth of 35% + RoA of 4.5%), derive the implied future bottom-line metric before adding, mark as `DERIVED`, and state the exact mathematical derivation in `derivationBasis`.
+4. **Strict No-Extrapolation Guardrail**:
+   - Do NOT extrapolate or guess a bottom-line metric if guidance for its required dependencies is missing or unguided (e.g., volume guided without realization/margin, or loan book guided without credit cost/RoA).
+   - In that situation, leave the cell empty (`—`), mark as `UNGUIDED`, and document: `Dependencies unguided — no extrapolation`.
 
 **Falsifiable monitoring items only.** Every item in the forward checklist must have a number threshold and a quarter horizon. "Watch margins" is not a checklist item. "Gross margin staying above 28% in Q1 FY27" is.
 
@@ -342,12 +397,11 @@ is going to be forwarded as a finding in its own right.
 
 ### Full runs (default, no `--statement`)
 
-Two artifacts, both from the same Phase 2.5 DTO, every run:
+**Deliverable Rules (`AGENTS.md` §12, `skills/_shared/conventions.md` §18):**
 
-1. The interactive widget (Phase 3) — fast to read in-session, the primary read.
-2. The PDF (Phase 4) — `data/assets/quarterly-result-analysis/<Company>_Q<X>_FY<YY>_ResultAnalysis.pdf`, Drive-shareable. Mention its path/Drive link in the closing paragraphs after the widget — don't make the user ask for a file separately.
-
-If the user wants the fuller multi-year format instead of this single-quarter note, route to `equity-research-deepdive`.
+1. **PDF ONLY by default**: Save the deterministic PDF to `data/assets/quarterly-result-analysis/<Company>_Q<X>_FY<YY>_ResultAnalysis.pdf`. Do NOT create both HTML and PDF files. Only create an HTML file when explicitly requested by the user (`format: 'html'`, `--html`, or conversational prompt).
+2. **Chat Conciseness (Zero PDF Echo)**: Never reprint or reproduce the content or sections of the PDF report in the chat reply unless explicitly asked. Output only a concise executive takeaway, key metric rate-of-change highlights, and the markdown file link to the PDF.
+3. **Contextual Rate of Change ($\Delta$)**: Every metric or ratio presented (e.g. updated P/B, BVPS, RoA, RoE, NIM, PAT, margins, growth rates) must include contextual baseline comparison points (historical prior period value or forward guided target with % change) so the reader can evaluate direction and velocity.
 
 ## Related skills
 

@@ -31,6 +31,14 @@ A cheap-looking multiple on peak, over-earning margins is not actually cheap. Be
 - If near a low: check whether this is genuine structural impairment (competitive entry, regulatory, oversupply) vs a temporary cyclical trough that reverts (capital-cycle logic: oversupply → margin compression → capitulation/exits → supply rationalizes → margin recovers).
 - Nifty long-run reference: aggregate earnings growth ~12–14% CAGR, aggregate ROE ~14% — useful anchor for "is this company/sector's current trajectory unusually good or bad vs the market's own long-run mean."
 
+## Pricing horizon (added 2026-10-09)
+
+- Default valuation base is **FY27** earnings. Use FY28 only for hot sectors where the market is visibly
+  pricing out-year earnings, and say so explicitly.
+- A multiple above **50x** on the chosen base triggers full scrutiny (cycle check above, PEAD priced-in flags,
+  `spentRerating.js`) in **every** sector, not only the expensive ones.
+- This file deliberately sets no P/E bands. Bands need Darshan's own numbers.
+
 ## Rate sensitivity (apply as a multiplier-adjustment overlay, all sectors)
 
 Rising discount rates compress P/E most for high-growth/high-multiple names (terminal value ≈ 55-60% of total DCF value, so it's disproportionately rate-sensitive) and least for low-growth/value names. When comparing a current multiple to a course-era anchor, ask whether the risk-free-rate backdrop has shifted materially since — if 10Y yields have moved meaningfully, shift the acceptable multiple range in the same direction the anchor era's yields imply.

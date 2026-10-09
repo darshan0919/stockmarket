@@ -97,7 +97,9 @@ if (require.main === module) {
       try {
         main();
       } catch (e) {
-        console.warn(`x-timeline-capture host: skipped (${e.message}). Run install.js manually if you use the extension.`);
+        console.warn(
+          `x-timeline-capture host: skipped (${e.message}). Run install.js manually if you use the extension.`
+        );
       }
     }
   } else main();

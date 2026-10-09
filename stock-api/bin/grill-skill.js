@@ -114,7 +114,10 @@ Options:
   if (withKb) {
     try {
       // Query ask-soic
-      const soicScript = path.join(REPO_ROOT, 'skills/tooling/ask-soic/scripts/search_soic.py');
+      const soicScript = path.join(
+        REPO_ROOT,
+        'skills/equity-research/ask-soic/scripts/search_soic.py'
+      );
       const soicQuery = `${targetSkill.replace(/-/g, ' ')} framework quality red flags`;
       const soicProc = spawnSync(
         'python3',

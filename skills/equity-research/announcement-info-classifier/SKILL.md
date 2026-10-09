@@ -299,6 +299,8 @@ real work in.
 Every claim gets exactly one bucket. Don't force a single verdict for the whole
 announcement when it contains a mix (this is common — see the order-win example in Step 2) — bucket the claims individually, then roll up.
 
+**Duplicate / re-post guard (from the SureshKBN filings consolidation).** Before bucketing an order win, fundraise or corporate action as NEW, check whether the same event was already announced (earlier exchange filing, related-party mention, or a social-media re-post of the same order). A re-announcement of an existing item is KNOWN (or FOLLOW-UP if it adds execution/size detail), however many handles re-post it. Reactions are also faster now than they used to be, so if the item was already out for days, treat price-implied "NEW" with suspicion.
+
 ### Signal-strength verdict (the point of doing this at all)
 
 After bucketing, write a one-line verdict on how much of the announcement's apparent

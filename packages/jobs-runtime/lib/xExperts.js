@@ -140,7 +140,8 @@ function updateCoverage(handle, patch, stream = 'main') {
     save(reg);
     return e.coverage;
   }
-  if (!['originals', 'reposts', 'articles'].includes(stream)) throw new Error(`unknown stream: ${stream}`);
+  if (!['originals', 'reposts', 'articles'].includes(stream))
+    throw new Error(`unknown stream: ${stream}`);
   e.coverageBy = e.coverageBy || {};
   e.coverageBy[stream] = applyCoverage(e.coverageBy[stream], patch);
   save(reg);

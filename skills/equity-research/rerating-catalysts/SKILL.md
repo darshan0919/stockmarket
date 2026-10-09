@@ -133,6 +133,8 @@ What brief mode returns — and nothing else:
   "companyId": "NSE:XYZ",
   "jCurveTag": "STRONG|MODERATE|WEAK|NONE",
   "jCurveReason": "one sentence naming the trigger and the quarter",
+  "reratingPhase": "EARLY|IN_PROGRESS|SPENT|UNKNOWN",
+  "spentFlags": ["PE_EXPANDED_2X"],
   "thesis": "one or two sentences: what changes forward EPS, quantified and timed",
   "catalysts": [{ "name": "...", "conviction": "...", "timeline": "..." }],
   "sourceFilingIds": ["<stable ids of every document this brief drew on>"],
@@ -629,6 +631,13 @@ a synthesis step, not a new document read. A `NONE` tag is a normal, common outc
 (most quarters for most companies) — say so plainly rather than stretching the evidence
 to avoid it.
 
+**Spent-rerating check (framework §5a Stage 4, §5f cap).** Run
+`node skills/equity-research/rerating-catalysts/scripts/spentRerating.js '<json>'` with P/E now and
+a year ago (Screener/Stockscans), post-result price reactions for the last 2 results, months since
+the first re-rating, plus OCF, PAT, debtor days and 8-quarter sales CAGR where available. If it
+returns `SPENT`, cap `jCurveTag` at MODERATE; surface `fakeFlags` in the risks list. Missing inputs
+→ `UNKNOWN`; never guess them.
+
 **Fifth input — corroborating signal-scan history (from Phase 1 step 5).**
 Repeated ACT-tier appearances in `gainers-signal`/`volume-rocketing` or S1/S2
 notes in `post-close-scan-insights` over the trailing 3 months are the market
@@ -680,7 +689,7 @@ each entry: `date`, `returnPct`, `volumeMultiple`, `medianVolume`, `whyBasis`
 (`filing`/`classified`/`catalyst`/`concall`/`sector`/`none`), `whyDetail`,
 `linkage` (`explained`/`unexplained`/`mismatched`), `sources[]`; empty array
 when zero spike days were found, never omitted), `whatsInThePrice`, `risks[]`, `verdict`,
-**`jCurveTag` (`STRONG`/`MODERATE`/`WEAK`/`NONE`, per framework §5f — mandatory,
+**`reratingPhase`, `spentFlags`, `fakeFlags`** (from `scripts/spentRerating.js`; `reratingPhase` `UNKNOWN` when P/E history is missing), **`jCurveTag` (`STRONG`/`MODERATE`/`WEAK`/`NONE`, per framework §5f — mandatory,
 never omit even when `NONE`), `jCurveReason`** (one sentence naming the
 trigger and quarter, or the failed check for a `NONE` tag).
 
@@ -696,29 +705,30 @@ Then render:
   just in the full widget/PDF path. Nothing else in this skill counts as
   "quick" — a full catalyst note or an HTML widget is a report, and reports
   always get the PDF companion below.
-- **Every other run — HTML widget AND a 1-page PDF, always, from the same
-  DTO.** Do not gate the PDF on the user asking for a shareable file; a
-  Drive link is what makes the note forwardable outside the chat session,
-  and per `output-dto-standard` the render is free once the DTO exists —
-  skipping it only because nobody explicitly asked defeats the point of
-  persisting the DTO in the first place (same reasoning as
-  `quarterly-result-analysis`'s Phase 4). **Render the `jCurveTag` as a
-  prominent badge at the very top of both the widget and the PDF, above the
-  3a company snapshot** — a colored badge (e.g. green/STRONG, amber/MODERATE,
-  grey/WEAK, muted/NONE per `skills/_shared/pdf-design-guide.md`'s severity
-  palette) with the `jCurveReason` sentence directly beneath it. This is the
-  first thing a reader sees, before the KPI table. Render the rest of the
-  widget with the card-based severity layout used by
-  `watchlist-catalyst-scanner` (HIGH CONVICTION catalysts get stronger visual
-  treatment), and render the PDF via `skills/_shared/pdf-design-guide.md`'s
-  palette/component vocabulary through the two-step pipeline (`resolve.sh
-rerating-catalysts --input data.json --output report.html` then
-  `resolve.sh render-pdf --html report.html --pdf
-data/rerating-catalysts/<Company>_Output.pdf`). If content spills past 1
-  page, cut catalyst body text first, then drop to 5 catalysts — never drop
-  the "what's in the price" section, and never drop the top-of-report
-  J-Curve badge. Mention the PDF's path/Drive link in the closing text so
-  the user doesn't have to ask for a file separately.
+- **Every other run — 1-page PDF ONLY by default, always, from the same
+  DTO using the deterministic report generator (never create both HTML and PDF unless explicitly requested):**
+
+  ```bash
+  yarn workspace @stock/api render-rerating-catalysts-pdf --input <dto.json> --output data/assets/rerating-catalysts/<Company>_Output.pdf
+  ```
+
+  _(or via Node API: `const { createReratingCatalystsPdf } = require('@stock/api'); await createReratingCatalystsPdf(dto, { outputPath });`)_
+
+  **Skill-Level Layout, Deliverables & Consistency Mandates (`AGENTS.md` §12, `skills/_shared/conventions.md` §18):**
+  - **PDF-Only Default**: Produce only the PDF artifact by default. Do not generate or save HTML files unless explicitly requested by the user (`format: 'html'`, `--html`, or conversational prompt).
+  - **Chat Conciseness (Zero PDF Echo)**: Never reprint or reproduce the content or sections of the PDF report in the chat reply unless explicitly asked. Output only a concise executive takeaway, critical rate-of-change highlights, and the markdown file link to the PDF.
+  - **Contextual Rate of Change ($\Delta$)**: Every metric or ratio presented must include contextual baseline comparison points (historical prior period value or forward guided target with % change) so the reader can evaluate direction and velocity.
+  - **Zero Visual Drift**: Hand-rolled ad-hoc HTML or inconsistent colors across runs are strictly forbidden. All output must be generated through `createReratingCatalystsPdf` conforming to `skills/_shared/pdf-design-guide.md` and `wrapHtml()`.
+  - **Fixed Layout Determinism**:
+    1. **Top J-Curve Inflection Banner**: Prominent badge at the very top of both widget and PDF (`STRONG` [.chip-g], `MODERATE` [.chip-y], `WEAK` [.chip-r], `NONE` [.chip-b]) with `jCurveReason`, Combined Leverage Multiple, Operating & Financial Leverage, and spent/fake flags.
+    2. **Section 01**: Company Snapshot & 8-column Financial KPI table (`FY Rev | FY PAT | EBITDA Mgn | ROE | ROCE | Debt | PE (TTM) | Div Yield`).
+    3. **Section 02**: Core Growth Catalysts (numbered 5–8 cards with `newCategory` chips, `newVsConfirmation` tags, conviction badges, timeline, and forward markers).
+    4. **Section 03**: Recent Corporate Flow & Management Activity (Weekly announcement signals, management interview scans, and Price-Volume Spike Days table).
+    5. **Section 04**: What's in the Price? (incremental perception vs consensus, Super Performance Zone & float scarcity checks).
+    6. **Section 05**: Key Risks & Structural Exit Protocol (execution risks + SOIC 3-step exit rules).
+    7. **Section 06**: So-What Verdict & Forward Sizing Stance.
+  - **Runtime Improvisation Space (`data.additional`)**: When company-specific or sector-specific nuance arises that does not fit fixed schema keys (e.g. order book breakdowns by product/export, capacity commercialisation schedules, unlisted subsidiary SOTP, custom peer comparisons), store it in `data.additional`. The smart renderer (`renderAdditionalHtml`) shape-sniffs the JSON and formats it into Section 07 without modifying or disrupting the core report structure.
+
 - If the PDF render tooling is genuinely unavailable in the current
   environment (e.g. a sandbox without the render pipeline installed), say so
   explicitly and offer to render it on request — do not silently drop the
@@ -741,6 +751,7 @@ rerating-catalysts/
     ├── extract_rerating_signatures.py     (Stage 1 — zero-LLM recall pass for a single candidate)
     ├── brief_cache.js                     (--mode brief: filing + company caches, plan/get/put)
     ├── matchSpikeAnnouncements.js         (Phase 2.5 — WHY-candidate assembly for spike days)
+    ├── spentRerating.js                   (Phase 3g — deterministic spent-rerating phase + extra fake-J-curve flags; thresholds unbacktested)
     ├── compute_signal_history.js          (Phase 1 step 5 — 3-month ACT/S1/S2 scan-history lookback, feeds Phase 3g)
     └── fetch_management_interviews.js     (Phase 1 step 6, full mode only — last 3mo/5-max interview takeaways via Stockscans Interview Scans, videoId-cached)
 ```

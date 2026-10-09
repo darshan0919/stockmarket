@@ -17,7 +17,7 @@ This skill orchestrates routing, composition, delivery, and validation:
 - PDF extraction and note templates belong to [`announcement-insights`](../announcement-insights/SKILL.md).
 - Claim novelty (NEW/KNOWN/FOLLOW-UP) belongs to [`announcement-info-classifier`](../announcement-info-classifier/SKILL.md).
 - Multi-quarter cost-base inspection belongs to [`rerating-catalysts`](../rerating-catalysts/SKILL.md).
-- Investing frameworks belong to [`ask-soic`](../../tooling/ask-soic/SKILL.md).
+- Investing frameworks belong to [`ask-soic`](../ask-soic/SKILL.md).
 - Full earnings depth belongs to `quarterly-result-analysis` and `concall-analysis`.
 
 Script-first: `packages/jobs-runtime/postCloseScanInsights.js` owns deterministic logic (scan pagination, noise filtering, duplicate grouping, signal scoring, digest rendering, and market data enrichment). Shells out to `packages/jobs-runtime/watchlistInsights.js` for shared notes DB commands.
@@ -207,7 +207,10 @@ Select non-routine items clearing the S3 boundary (`signalScore >= 35`), descend
 1. Reuse Step 4's extraction (`headline`, `thesisChain`, `epsImpact`).
 2. Cross-reference `buildBaselines.js` card (`claimIndex`) or last 4 concalls + PPT + announcement history.
 3. Classify each claim: `NEW` / `KNOWN` / `FOLLOW-UP`.
-4. Attach `infoClassification: {claims[], verdict, baselineCoverage}` directly to the item's insight object.
+4. For announcement-sourced items, add the filing status line (`announcement-insights` `_global.md` FILING STATUS LINE)
+   and run `filingClusterFlags.js <companyId>`; surface any flag next to the item (`POSSIBLE_DUPLICATE_ORDER`
+   means check whether the order was already disclosed before calling it `NEW`).
+5. Attach `infoClassification: {claims[], verdict, baselineCoverage}` directly to the item's insight object.
 
 ---
 

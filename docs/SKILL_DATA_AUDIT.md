@@ -34,6 +34,28 @@ tweet-investor-playbook.
 
 ## B2. Meta-skills that persist a run record (not company-scoped)
 
+SOIC signal detectors (market-regime-daily, sector/entry/exit detectors; taxonomy in
+`docs/SOIC_SIGNAL_TAXONOMY_V1.md`) — write **new collection `signal-ledger.json`**
+(DATA_RULES §3: a mutable state machine keyed by scope+entity+signal; market- and
+sector-level signals have no companyId so `companies.state.<skill>` cannot hold them;
+events are append-only). Registered in db.js SINGLE_FILE_COLLECTIONS + data.js
+IS_COLLECTION; tested in `test/signalLedger.test.js`. Type `signal-state`; every
+transition is also appended to events as type `signal_transition` (so use the existing
+events collection for history). Writes only via `lib/signalLedger.js`; each signalId is
+owned by one detector (`creator`), `scope` is `global` (or `user:<id>` for per-user overlays).
+
+learn-and-automate (`skills/tooling/learn-and-automate/`) — digests a source (X expert,
+Learnyst, YouTube, file) into **new collection `knowledge-units.json`** (DATA_RULES §3:
+new entity class keyed by source, thousands of small records individually updated with
+Darshan's stance — fits neither reports nor notes/events; registered in db.js
+SINGLE_FILE_COLLECTIONS + data.js IS_COLLECTION, tested in db.test.js). Types:
+`kb-unit` (LLM-extracted, script-verified rule; `modelUsed`), `kb-question` (only
+answered/decided/parked — template questions are re-derivable and stay in `data/runs/`),
+`kb-framework`, `kb-automation`, `kb-learner-profile`. Run record → `reports.json`
+`type=learning-run`. Intermediates (docs, candidates, chunks, raw units) →
+`data/runs/learn-and-automate/<source-slug>/`; chart images → `data/cache/learn-and-automate/`;
+KB render → `data/assets/knowledge-<slug>.md`. Writes only via `scripts/persist.js` → `lib/db.js`.
+
 concept-transcript-integrator (`skills/tooling/concept-transcript-integrator/`) — reads
 Learnyst lesson transcripts for a concept (reusing the `learnyst-lessons.json` cache
 populated by `learnyst-transcript-refresh`, never re-implementing the fetch), digests

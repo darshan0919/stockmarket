@@ -1,0 +1,287 @@
+{
+  "_doc": "Curriculum topics for knowledge units. Recall extraction MUST pick `topic` from these keys (sector views use `sector:<name>`). `keywords` drive follower-question routing and fallback clustering only \u2014 never judgment.",
+  "topics": {
+    "screening": {
+      "title": "Screening & stock selection",
+      "keywords": [
+        "screen",
+        "filter",
+        "criteria",
+        "shortlist",
+        "select",
+        "pick",
+        "multibagger",
+        "quality",
+        "small cap",
+        "smallcap",
+        "midcap"
+      ]
+    },
+    "entry": {
+      "title": "Entry rules & timing",
+      "keywords": [
+        "entry",
+        "buy",
+        "initiate",
+        "add",
+        "accumulate",
+        "breakout",
+        "resistance",
+        "dip",
+        "panic",
+        "averag"
+      ]
+    },
+    "exit": {
+      "title": "Exit / sell rules",
+      "keywords": [
+        "exit",
+        "sell",
+        "book",
+        "trim",
+        "stop loss",
+        "stoploss",
+        "sl ",
+        "target",
+        "booked",
+        "profit booking"
+      ]
+    },
+    "sizing-risk": {
+      "title": "Position sizing & risk",
+      "keywords": [
+        "allocation",
+        "position size",
+        "sizing",
+        "risk",
+        "concentrat",
+        "diversif",
+        "leverage",
+        "margin",
+        "drawdown"
+      ]
+    },
+    "portfolio": {
+      "title": "Portfolio management & rotation",
+      "keywords": [
+        "portfolio",
+        "pf",
+        "rotate",
+        "switch",
+        "rebalanc",
+        "cash",
+        "fresh capital",
+        "holding"
+      ]
+    },
+    "valuation": {
+      "title": "Valuation & 'priced in'",
+      "keywords": [
+        "valuation",
+        "pe ",
+        "p/e",
+        "multiple",
+        "priced in",
+        "rerating",
+        "re-rating",
+        "derating",
+        "expensive",
+        "cheap",
+        "ev/ebitda",
+        "market cap"
+      ]
+    },
+    "earnings-growth": {
+      "title": "Earnings visibility & growth",
+      "keywords": [
+        "earnings",
+        "eps",
+        "growth",
+        "visibility",
+        "guidance",
+        "revenue",
+        "margin",
+        "profit",
+        "pat",
+        "ebitda",
+        "order book",
+        "orderbook"
+      ]
+    },
+    "results-concalls": {
+      "title": "Reading results, concalls & filings",
+      "keywords": [
+        "result",
+        "quarter",
+        "q1",
+        "q2",
+        "q3",
+        "q4",
+        "concall",
+        "con call",
+        "ppt",
+        "presentation",
+        "annual report",
+        "filing"
+      ]
+    },
+    "management": {
+      "title": "Management, promoters & governance",
+      "keywords": [
+        "management",
+        "promoter",
+        "governance",
+        "pledge",
+        "integrity",
+        "plant visit",
+        "agm",
+        "ceo",
+        "md "
+      ]
+    },
+    "liquidity-float": {
+      "title": "Liquidity, float & market structure",
+      "keywords": [
+        "float",
+        "liquidity",
+        "volume",
+        "delivery",
+        "operator",
+        "circuit",
+        "sme",
+        "bulk deal",
+        "block deal"
+      ]
+    },
+    "macro": {
+      "title": "Macro gates (oil, bonds, rates, FII)",
+      "keywords": [
+        "macro",
+        "oil",
+        "crude",
+        "bond",
+        "yield",
+        "rate",
+        "rbi",
+        "fed",
+        "fii",
+        "dii",
+        "dollar",
+        "rupee",
+        "inflation",
+        "war",
+        "tariff",
+        "trump"
+      ]
+    },
+    "cycles-themes": {
+      "title": "Cycles, themes & capex",
+      "keywords": [
+        "cycle",
+        "theme",
+        "capex",
+        "tailwind",
+        "supercycle",
+        "boom",
+        "pli",
+        "policy",
+        "budget"
+      ]
+    },
+    "technicals": {
+      "title": "Price action & technicals",
+      "keywords": [
+        "chart",
+        "breakout",
+        "support",
+        "resistance",
+        "trend",
+        "dma",
+        "moving average",
+        "volume",
+        "stage",
+        "base"
+      ]
+    },
+    "psychology": {
+      "title": "Psychology, patience & behaviour",
+      "keywords": [
+        "patience",
+        "fear",
+        "greed",
+        "emotion",
+        "conviction",
+        "discipline",
+        "mistake",
+        "learn",
+        "ego",
+        "noise"
+      ]
+    },
+    "process": {
+      "title": "Research process & routines",
+      "keywords": [
+        "process",
+        "routine",
+        "research",
+        "read",
+        "track",
+        "checklist",
+        "daily",
+        "weekly",
+        "information",
+        "source",
+        "network"
+      ]
+    },
+    "ipo": {
+      "title": "IPOs & new listings",
+      "keywords": ["ipo", "listing", "anchor", "drhp", "subscription", "gmp"]
+    },
+    "sector": {
+      "title": "Sector playbooks (use sector:<name>)",
+      "keywords": [
+        "power",
+        "renewable",
+        "solar",
+        "wind",
+        "transformer",
+        "t&d",
+        "cable",
+        "wire",
+        "defence",
+        "defense",
+        "railway",
+        "bank",
+        "nbfc",
+        "pharma",
+        "chemical",
+        "textile",
+        "auto",
+        "ems",
+        "data center",
+        "realty",
+        "metal",
+        "cement",
+        "infra"
+      ]
+    },
+    "jcurve": {
+      "title": "J-curve, re-rating & inflection",
+      "keywords": [
+        "j curve",
+        "j-curve",
+        "jcurve",
+        "inflection",
+        "turnaround",
+        "hockey stick",
+        "re-rating",
+        "rerating",
+        "catalyst",
+        "trigger",
+        "loss to profit",
+        "operating leverage"
+      ]
+    }
+  }
+}

@@ -1,14 +1,14 @@
-# Shared step — render a PDF artifact alongside the interactive widget
+# Shared step — render a PDF artifact (PDF-only default)
 
-Any skill whose primary deliverable is a `visualize:show_widget` HTML briefing should ALSO
-produce a PDF of the same content, saved somewhere Drive-mirrored so it has a shareable URL.
-The interactive widget stays the fast, in-session read; the PDF is what the user forwards,
-archives, or opens outside this session. Don't replace one with the other — do both.
+Any skill whose primary deliverable is an analytical report, briefing, or note MUST produce a PDF of the content, saved under `data/assets/<skill-name>/` so it is Drive-mirrored and has a durable shareable URL.
 
-Reference this file from a skill's SKILL.md with one line ("PDF artifact: see
-`skills/_shared/pdf-artifact-step.md`, save to `data/assets/<skill-name>/`") instead of
-copy-pasting the steps below — if this step's mechanics change, they should change in one
-place, not in every skill that uses it (`skills/_shared/conventions.md` §18).
+**Core Output Rules (`AGENTS.md` §12, `skills/_shared/conventions.md` §18):**
+
+1. **PDF-Only Default**: Only produce the PDF artifact by default. Do NOT save both HTML and PDF files. Only create an HTML file when explicitly requested by the user (`format: 'html'`, `--html`, or conversational prompt).
+2. **Chat Conciseness (Zero PDF Echo)**: Never reprint or reproduce the content or sections of the PDF report in the chat reply unless explicitly asked. Output only a concise executive takeaway, key metric highlights / rate-of-change summary, and the markdown file link to the PDF.
+3. **Contextual Rate of Change ($\Delta$)**: Always present metrics with their contextual baseline comparison point (prior historical period value or forward guided target with % change) so the rate of change is clear.
+
+Reference this file from a skill's SKILL.md with one line ("PDF artifact: see `skills/_shared/pdf-artifact-step.md`, save to `data/assets/<skill-name>/`") instead of copy-pasting the steps below — if this step's mechanics change, they should change in one place, not in every skill that uses it (`skills/_shared/conventions.md` §18).
 
 ## Why a separate HTML build, not a screenshot of the widget
 
@@ -43,10 +43,7 @@ hand-written HTML documents will, eventually.
 3. **Push.** End the run with `node packages/jobs-runtime/scripts/data.js push` (same
    convention every DB-writing skill already follows) so the PDF actually reaches Drive and
    gets a shareable URL, not just a local file.
-4. **Surface both outputs to the user** — render the interactive widget first (fast to read
-   in-session), then mention the PDF's path/Drive link in the closing paragraphs ("also saved
-   as `<Company>_<ReportLabel>.pdf`, shareable via Drive") — don't make the user ask for a
-   PDF separately once this step exists.
+4. **Surface the PDF to the user** — provide a concise analytical summary with rate-of-change highlights and the direct markdown link to the saved PDF artifact ("Saved as `<Company>_<ReportLabel>.pdf`"). Never dump or reprint the PDF content into the chat response unless explicitly asked.
 
 ## If the render pipeline is unavailable
 

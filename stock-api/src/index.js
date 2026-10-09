@@ -23,6 +23,7 @@
 
 const { HttpClient } = require('./http/HttpClient');
 const { NseSession } = require('./http/nseSession');
+const { NseMcpSession } = require('./http/nseMcpSession');
 const bseHttp = require('./http/bseHttp');
 const { StockscansAuth } = require('./auth/stockscansAuth');
 const {
@@ -32,6 +33,7 @@ const {
 } = require('./clients/StockscansClient');
 const { NseClient } = require('./clients/NseClient');
 const { BseClient, parseBseSmartSearchHtml } = require('./clients/BseClient');
+const { TradingViewClient, MACRO_TICKERS } = require('./clients/TradingViewClient');
 const { ScreenerAuth } = require('./auth/screenerAuth');
 const { ScreenerClient, SCREENER_BASE_URL } = require('./clients/ScreenerClient');
 
@@ -39,27 +41,33 @@ const { ScreenerClient, SCREENER_BASE_URL } = require('./clients/ScreenerClient'
 // One shared NseSession backs both the price-action client and any low-level
 // transport callers (e.g. backend adapters) so they share a single cookie jar.
 const nseSession = new NseSession();
+const nseMcpSession = new NseMcpSession();
 const stockscans = new StockscansClient();
-const nse = new NseClient({ session: nseSession });
+const nse = new NseClient({ session: nseSession, mcpSession: nseMcpSession });
 const bse = new BseClient();
 const screener = new ScreenerClient();
+const tradingview = new TradingViewClient();
 
 module.exports = {
   // Classes (for DI / custom config)
   HttpClient,
   NseSession,
+  NseMcpSession,
   StockscansAuth,
   StockscansClient,
   NseClient,
   BseClient,
   ScreenerAuth,
   ScreenerClient,
+  TradingViewClient,
   // Default singletons
   stockscans,
   nse,
   bse,
   screener,
+  tradingview,
   nseSession,
+  nseMcpSession,
   // Low-level transport (for adapters)
   bseHttp,
   // Helpers / constants
@@ -67,12 +75,14 @@ module.exports = {
   STOCKSCANS_BASE_URL,
   S3_BASE_URL,
   SCREENER_BASE_URL,
+  MACRO_TICKERS,
 };
 
 const generators = require('./generators');
 const analyzers = require('./analyzers');
 const { fetchEventReactionMetrics } = require('./orchestration/eventReactionMetrics');
 const { fetchReactionCandles } = require('./fetchers/reactionCandlesFetcher');
+const { fetchDailyCandles } = require('./fetchers/dailyCandlesFetcher');
 
 Object.assign(module.exports, {
   // Generators
@@ -82,4 +92,5 @@ Object.assign(module.exports, {
   // Event-reaction-signals orchestration
   fetchEventReactionMetrics,
   fetchReactionCandles,
+  fetchDailyCandles,
 });

@@ -15,8 +15,18 @@ let toast = null; // transient inline error
 function rng(c) {
   if (!c) return 'not captured yet';
   const v = c.verify;
-  const mark = !v ? '' : v.state === 'ok' ? ` ✓ verified ${day(v.at)}` : v.state === 'partial' ? ` ✓ all that X serves (${day(v.at)})` : ' ⚠ check';
-  const from = !c.exhausted ? day(c.fromMs) : v && v.state === 'partial' ? 'oldest X serves' : 'from the beginning';
+  const mark = !v
+    ? ''
+    : v.state === 'ok'
+      ? ` ✓ verified ${day(v.at)}`
+      : v.state === 'partial'
+        ? ` ✓ all that X serves (${day(v.at)})`
+        : ' ⚠ check';
+  const from = !c.exhausted
+    ? day(c.fromMs)
+    : v && v.state === 'partial'
+      ? 'oldest X serves'
+      : 'from the beginning';
   return `${from} → ${day(c.toMs)}${mark}`;
 }
 /** One saved range per capture stream (they are separate timelines on X, so each has its own range). */
@@ -73,15 +83,37 @@ const ICON = {
 };
 
 function renderVerify(vv) {
-  $('headline').className = `head ${vv.status === 'error' ? 'bad' : vv.status === 'done' && vv.headline.includes('passed') ? 'ok' : vv.status === 'done' ? 'warn' : ''}`;
+  $('headline').className =
+    `head ${vv.status === 'error' ? 'bad' : vv.status === 'done' && vv.headline.includes('passed') ? 'ok' : vv.status === 'done' ? 'warn' : ''}`;
   $('headline').textContent = toast || vv.headline;
   $('detail').className = 'sub';
   $('detail').textContent = toast ? '' : vv.detail;
   $('overall').style.display = 'none';
-  $('users').innerHTML = vv.users.map((u) => `<li class="u"><span class="ic ${u.state === 'active' ? 'spin' : u.state}" aria-hidden="true">${u.state === 'active' ? '' : u.state === 'ok' ? '✓' : u.state === 'queued' ? '○' : '!'}</span>
+  $('users').innerHTML = vv.users
+    .map(
+      (
+        u
+      ) => `<li class="u"><span class="ic ${u.state === 'active' ? 'spin' : u.state}" aria-hidden="true">${u.state === 'active' ? '' : u.state === 'ok' ? '✓' : u.state === 'queued' ? '○' : '!'}</span>
     <div><div class="uh">@${esc(u.handle)} <span class="us">${u.label ? '· ' + esc(u.label) : ''}</span></div>
-    ${u.streams.filter((x) => x.state !== 'skipped').map((x) => `<div class="vs ${x.state}">${esc(x.name)}: ${esc(x.label)}</div>${x.notes.length ? `<ul class="vn">${x.notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}`).join('')}
-    ${u.streams.some((x) => x.state === 'skipped') ? `<div class="us">Not captured yet: ${esc(u.streams.filter((x) => x.state === 'skipped').map((x) => x.name).join(', '))}</div>` : ''}</div></li>`).join('');
+    ${u.streams
+      .filter((x) => x.state !== 'skipped')
+      .map(
+        (x) =>
+          `<div class="vs ${x.state}">${esc(x.name)}: ${esc(x.label)}</div>${x.notes.length ? `<ul class="vn">${x.notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}`
+      )
+      .join('')}
+    ${
+      u.streams.some((x) => x.state === 'skipped')
+        ? `<div class="us">Not captured yet: ${esc(
+            u.streams
+              .filter((x) => x.state === 'skipped')
+              .map((x) => x.name)
+              .join(', ')
+          )}</div>`
+        : ''
+    }</div></li>`
+    )
+    .join('');
   $('main').textContent = 'Start capture';
   $('main').dataset.action = 'start';
   $('main').className = 'primary';
@@ -185,7 +217,8 @@ chrome.storage.onChanged.addListener((ch) => {
   if (ch.vjob) {
     vjob = ch.vjob.newValue || null;
     render();
-    if (!vjob || vjob.status !== 'running') send({ type: 'XCAP_CONFIG' }).then((r) => r.ok && applyConfig(r));
+    if (!vjob || vjob.status !== 'running')
+      send({ type: 'XCAP_CONFIG' }).then((r) => r.ok && applyConfig(r));
   }
   if (!ch.job) return;
   const prevN = job ? (job.summary || []).length : 0;

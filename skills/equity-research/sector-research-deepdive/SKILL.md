@@ -97,6 +97,15 @@ Use the 19-section framework in [`references/sector_framework.md`](references/se
 
 **Data density target:** 15–20 tables across all sections. **At least 5 must be business-model or unit-economics focused** (per-transaction P&L, customer behaviour, moat mechanism, margin drivers), not financial-summary focused.
 
+**Tailwind / Headwind Test (mandatory; source: SOIC sector playbook, `kba_x-soic-handles_sector-playbook_tailwind-test-step`).** Before the sector gets a gate tag, classify each claimed tailwind and headwind as **structural** or **transient** with evidence, not narrative:
+
+- _Persistence:_ has the driver shown up for ≥3–4 consecutive quarters of reported numbers (not just management commentary)?
+- _Demand proof:_ order books / TAM / volume data, not announcements alone ("policy is necessary, not sufficient — the test is orders and earnings").
+- _Policy support:_ is there a funded, dated programme (not a statement of intent)?
+- _Supply reality:_ announced capacity vs actual output/utilisation.
+- _Headwinds:_ structural headwind → avoid; transient headwind → wait 1–2 quarters for it to clear before judging the sector.
+  Output one line per driver: `driver | structural/transient | evidence (quarters, source) | confidence`, and a sector-gate tag (`tailwind-structural`, `tailwind-transient`, `headwind-transient`, `headwind-structural`, `unclear`). Thresholds (3–4 quarters, 1–2 quarter wait) are single-author claims, uncalibrated; mark them as such in the report.
+
 ### Phase 4 — Writing
 
 Tone & style rules (full list in [`references/sector_framework.md`](references/sector_framework.md) §Tone & Style):

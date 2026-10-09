@@ -746,7 +746,7 @@
         "soic framework for",
         "what does soic teach about"
       ],
-      "entry": "skills/tooling/ask-soic/scripts/search_soic.py",
+      "entry": "skills/equity-research/ask-soic/scripts/search_soic.py",
       "modules": []
     },
     {
@@ -764,7 +764,7 @@
         "profit can destroy business",
         "why more profit equals less cash"
       ],
-      "entry": "skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py",
+      "entry": "skills/equity-research/ask-anil-lamba/scripts/search_anil_lamba.py",
       "modules": []
     },
     {
@@ -781,12 +781,12 @@
         "stockscans ipo scans",
         "stockscans custom index"
       ],
-      "entry": "skills/tooling/ask-stockscans/scripts/search_stockscans.py",
+      "entry": "skills/equity-research/ask-stockscans/scripts/search_stockscans.py",
       "modules": []
     },
     {
       "name": "ask-expert",
-      "description": "Orchestrate financial, business, and investing questions by consulting Dr. Anil Lamba (author of 'Romancing the Balance Sheet' — corporate finance, balance sheet literacy, working capital, marginal costing, leverage), SOIC (School of Intrinsic Compounding — equity research, stock valuation, sector analysis, growth catalysts, public market compounding), and StockScans (official tutorials on screening tools, Research AI, concall & interview scans, order book tracking, and result season prep). Use whenever the user asks broad investing or business questions, asks \"what do the experts say about X\", \"how should I think about debt/cash/growth/profit\", \"compare Anil Lamba and SOIC on Y\", \"how to screen for high-compounder stocks on StockScans\", or asks questions spanning operational financial management, public equity investing, and screening platform execution. Synthesizes harmonious learnings into a cohesive operational + investment framework, and explicitly isolates, contrasts, and explains conflicting or diverging viewpoints with citations and timestamped deep links.",
+      "description": "Orchestrate financial, business, and investing questions by consulting Dr. Anil Lamba (author of 'Romancing the Balance Sheet' — corporate finance, balance sheet literacy, working capital, marginal costing, leverage), SOIC (School of Intrinsic Compounding — equity research, stock valuation, sector analysis, growth catalysts, public market compounding), StockScans (official tutorials on screening tools, Research AI, concall & interview scans, order book tracking, and result season prep), and four followed X (Twitter) accounts — @ishmohit1 (SOIC founder, folded into SOIC), @SureshKBN, @Shashank1171, @thechartist26 — whose posts, threads, replies and articles are in the `x-posts` KB collection. Use whenever the user asks broad investing or business questions, asks \"what do the experts say about X\", \"how should I think about debt/cash/growth/profit\", \"compare Anil Lamba and SOIC on Y\", \"how to screen for high-compounder stocks on StockScans\", or asks questions spanning operational financial management, public equity investing, and screening platform execution. Synthesizes harmonious learnings into a cohesive operational + investment framework, and explicitly isolates, contrasts, and explains conflicting or diverging viewpoints with citations and timestamped deep links.",
       "aliases": [
         "ask expert",
         "what do experts say about",
@@ -796,11 +796,11 @@
         "expert opinion on",
         "corporate finance vs equity investing"
       ],
-      "entry": "skills/tooling/ask-expert/scripts/search_expert.py",
+      "entry": "skills/equity-research/ask-expert/scripts/search_expert.py",
       "modules": [
-        "skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py",
-        "skills/tooling/ask-soic/scripts/search_soic.py",
-        "skills/tooling/ask-stockscans/scripts/search_stockscans.py"
+        "skills/equity-research/ask-anil-lamba/scripts/search_anil_lamba.py",
+        "skills/equity-research/ask-soic/scripts/search_soic.py",
+        "skills/equity-research/ask-stockscans/scripts/search_stockscans.py"
       ]
     },
     {
@@ -1157,6 +1157,16 @@
       "description": "Exported from balanceSheetSignals.js"
     },
     {
+      "name": "calculateCapacityProgression",
+      "file": "stock-api/src/analyzers/capexScalingCalculator.js",
+      "description": "Exported from capexScalingCalculator.js"
+    },
+    {
+      "name": "calculateRevenuePotential",
+      "file": "stock-api/src/analyzers/capexScalingCalculator.js",
+      "description": "Exported from capexScalingCalculator.js"
+    },
+    {
       "name": "extractValueCrore",
       "file": "stock-api/src/analyzers/catalystRules.js",
       "description": "Exported from catalystRules.js"
@@ -1427,6 +1437,26 @@
       "description": "Exported from index.js"
     },
     {
+      "name": "computePatBridge",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "computeJCurveFinancialHealth",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "pctGrowth",
+      "file": "stock-api/src/analyzers/jcurveFinancialMetrics.js",
+      "description": "Exported from jcurveFinancialMetrics.js"
+    },
+    {
+      "name": "round",
+      "file": "stock-api/src/analyzers/jcurveFinancialMetrics.js",
+      "description": "Exported from jcurveFinancialMetrics.js"
+    },
+    {
       "name": "sniffAndParse",
       "file": "stock-api/src/analyzers/parseTweetDump.js",
       "description": "Exported from parseTweetDump.js"
@@ -1440,6 +1470,16 @@
       "name": "normaliseTweet",
       "file": "stock-api/src/analyzers/parseTweetDump.js",
       "description": "Exported from parseTweetDump.js"
+    },
+    {
+      "name": "normalizeRate",
+      "file": "stock-api/src/analyzers/patBridge.js",
+      "description": "Exported from patBridge.js"
+    },
+    {
+      "name": "roundTo",
+      "file": "stock-api/src/analyzers/patBridge.js",
+      "description": "Exported from patBridge.js"
     },
     {
       "name": "normalizeCandles",
@@ -1485,6 +1525,36 @@
       "name": "findRecentSpikeDays",
       "file": "stock-api/src/analyzers/priceSpikeSignals.js",
       "description": "Exported from priceSpikeSignals.js"
+    },
+    {
+      "name": "computeKpiCards",
+      "file": "stock-api/src/analyzers/resultAnalysisContext.js",
+      "description": "Exported from resultAnalysisContext.js"
+    },
+    {
+      "name": "gradeStatementHealth",
+      "file": "stock-api/src/analyzers/resultAnalysisContext.js",
+      "description": "Exported from resultAnalysisContext.js"
+    },
+    {
+      "name": "computeMandatoryChips",
+      "file": "stock-api/src/analyzers/resultAnalysisContext.js",
+      "description": "Exported from resultAnalysisContext.js"
+    },
+    {
+      "name": "buildAnalysisContext",
+      "file": "stock-api/src/analyzers/resultAnalysisContext.js",
+      "description": "Exported from resultAnalysisContext.js"
+    },
+    {
+      "name": "formatRsCr",
+      "file": "stock-api/src/analyzers/resultAnalysisContext.js",
+      "description": "Exported from resultAnalysisContext.js"
+    },
+    {
+      "name": "formatPct",
+      "file": "stock-api/src/analyzers/resultAnalysisContext.js",
+      "description": "Exported from resultAnalysisContext.js"
     },
     {
       "name": "parseScanId",

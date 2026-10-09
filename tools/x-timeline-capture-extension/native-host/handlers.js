@@ -34,12 +34,14 @@ function handle(msg) {
       return { ok: true, config: config() };
     case 'checkIds': {
       // Which of these tweet ids are NOT in the KB's raw cache yet (used by Verify).
-      if (!msg.handle || !Array.isArray(msg.ids)) throw new Error('checkIds needs { handle, ids[] }');
+      if (!msg.handle || !Array.isArray(msg.ids))
+        throw new Error('checkIds needs { handle, ids[] }');
       const raw = loadRaw(msg.handle);
       return { ok: true, missing: msg.ids.filter((id) => !raw.has(id)) };
     }
     case 'setCoverage': {
-      if (!msg.handle || !msg.stream) throw new Error('setCoverage needs { handle, stream, coverage }');
+      if (!msg.handle || !msg.stream)
+        throw new Error('setCoverage needs { handle, stream, coverage }');
       experts.replaceCoverage(msg.handle, msg.stream, msg.coverage || null);
       return { ok: true, config: config() };
     }

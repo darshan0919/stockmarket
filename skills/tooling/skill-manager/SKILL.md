@@ -150,6 +150,17 @@ set'}` instead of throwing — in a sandboxed/Cowork run where nothing sourced
     `creationTime`/`modifiedTime`, full stop) or "when did the external thing happen"
     (anything goes, it's not this rule's concern).
 
+11. **Mandatory `/grill-skill` Execution at the End (NON-NEGOTIABLE)**: Whenever creating
+    or making ANY modifications to a skill in this repository, you MUST execute
+    `/grill-skill` (`yarn workspace @stock/api grill-skill --target <skill-name>` or
+    `node stock-api/bin/grill-skill.js --target <skill-name>`) at the conclusion of your
+    changes before declaring the work complete. This mandatory audit verifies the skill
+    across 6 core dimensions: reasoning quality (orchestration vs reasoning), reusability,
+    caching & zero-rework, token reduction, skill-to-script boundary (logic vs reasoning),
+    and model tiering. It computes the deterministic content hash and updates the Living
+    Thinking Ledger in the DB. Never consider any skill task finished without running
+    `/grill-skill`.
+
 At a high level, the process of creating a skill goes like this:
 
 - Decide what you want the skill to do and roughly how it should do it
@@ -624,6 +635,7 @@ Repeating one more time the core loop here for emphasis:
   - Create benchmark.json and build the review page from `assets/eval_review.html` to help the user review them
   - Run quantitative evals
 - Repeat until you and the user are satisfied
+- Run `/grill-skill` on the skill to audit invariants, caching, and token discipline
 - Package the final skill and return it to the user.
 
 Please add steps to your TodoList, if you have such a thing, to make sure you don't forget. If you're in Cowork, please specifically put "Create evals JSON and build the review page from assets/eval_review.html so human can review test cases" in your TodoList to make sure it happens.

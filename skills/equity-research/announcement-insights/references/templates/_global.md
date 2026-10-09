@@ -79,3 +79,12 @@ Q2FY27' or 'FY28 onward'>", confidence: "high"|"medium"|"low"}`. `confidence`
    be small. See `references/demerger-merger-management-change-playbook.md` for
    the full valuation/timing framework behind this — don't skip straight to
    writing the insight without reading it at least once per category.
+
+══════════════════════════════════════════════════════════════════
+FILING STATUS LINE (added from the SureshKBN filings consolidation)
+══════════════════════════════════════════════════════════════════
+In the `insight`, state in one clause (a) whether this is a formal exchange filing or only a
+social/related-party mention, and (b) whether it is NEW or a repeat/duplicate of an earlier
+announcement for this company (check its notes). An announcement is information, not analysis;
+the economic read (size vs revenue, execution/timeline, margin, dilution vs EPS growth) decides
+significance. Do not infer from insider/auditor hints; verify in the filing.

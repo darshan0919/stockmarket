@@ -37,6 +37,14 @@ why. Map the chain raw input → end customer into 5–8 stages. For EACH stage 
 journey — acquisition → first transaction → repeat behaviour → monetisation → LTV — and do
 per-transaction unit economics per stage instead of stage margins.
 
+## Proxy ladder (mandatory when the thesis rides on a theme or a customer)
+
+(Source: SOIC sector playbook, `kba_x-soic-handles_sector-playbook_proxy-ladder`.) For each company named as a beneficiary, rate its distance from the theme: **primary** (sells the theme's core product), **secondary** (supplies the primary players), **proxy-of-proxy** (exposed only through a chain of customers/sentiment). Then:
+
+- _Quantified exposure:_ % of revenue, order book, margins and capacity actually tied to the theme — a number from a filing, or mark it "unquantified" (unquantified = treat as proxy-of-proxy).
+- _Customer squeeze (suppliers only):_ can the dominant customer force price-downs or in-source? Check customer concentration, contract tenor and switching cost.
+  Add `proxyDistance`, `exposurePct` (or null) and `customerSqueezeRisk` to each company's DTO record. Distance ratings are judgement; the exposure figure must be sourced.
+
 ## Output
 
 **Persist the JSON DTO first.** Before writing the stage-by-stage table or rendering the

@@ -50,6 +50,8 @@ data/
   youtube-transcripts.json # index of fetched YouTube video caption transcripts
   x-posts.json             # slim index of followed experts' X posts/threads/replies (ask-expert)
   x-posts/shard_<hex>.jsonl # full x-post docs, 16 md5 shards (see tools/x-timeline-capture)
+  knowledge-units.json     # learn-and-automate: kb-unit / kb-question / kb-framework / kb-automation / kb-learner-profile (keyed by sourceKey; written only via persist.js)
+  signal-ledger.json       # SOIC signal state machine: one `signal-state` record per (scope, entityType, entityId, signalId); transitions are appended to events as type `signal_transition` (written only via lib/signalLedger.js)
   youtube-transcripts/<channel>.jsonl # channel transcripts in a single stream (e.g. anillamba.jsonl, soicfinance.jsonl)
   cache/                # structured cache stores:
                         #   Heavy (> 10 MB): 16 hex shards (e.g. pdf-text/shard_<hex>.jsonl, doc-extracts/<cat>/shard_<hex>.jsonl)

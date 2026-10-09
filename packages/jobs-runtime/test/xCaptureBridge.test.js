@@ -141,11 +141,31 @@ describe('reposts and articles', () => {
   test('reposts become searchable docs labelled with the original author; articles are counted; streams keep separate coverage', () => {
     const rt = row({ id: '7', by: 'Other', at: T(0), text: 'Margin of safety matters', conv: '7' });
     const rows = [
-      row({ id: '50', by: 'Exp', at: T(5), text: 'RT @Other: Margin of safety matters', conv: '50', rt }),
-      row({ id: '51', by: 'Exp', at: T(6), text: 'My article', conv: '51', article: { title: 'Deep dive', text: 'long body' } }),
+      row({
+        id: '50',
+        by: 'Exp',
+        at: T(5),
+        text: 'RT @Other: Margin of safety matters',
+        conv: '50',
+        rt,
+      }),
+      row({
+        id: '51',
+        by: 'Exp',
+        at: T(6),
+        text: 'My article',
+        conv: '51',
+        article: { title: 'Deep dive', text: 'long body' },
+      }),
     ];
-    capture.commitRows('Exp', rows.slice(0, 1), { coverage: { fromMs: 1, toMs: 9 }, stream: 'reposts' });
-    capture.commitRows('Exp', rows.slice(1), { coverage: { fromMs: 2, toMs: 8, exhausted: true }, stream: 'articles' });
+    capture.commitRows('Exp', rows.slice(0, 1), {
+      coverage: { fromMs: 1, toMs: 9 },
+      stream: 'reposts',
+    });
+    capture.commitRows('Exp', rows.slice(1), {
+      coverage: { fromMs: 2, toMs: 8, exhausted: true },
+      stream: 'articles',
+    });
     const e = experts.publicConfig().experts.find((x) => x.handle === 'Exp');
     expect(e.coverage).toBeNull();
     expect(e.coverageBy.reposts).toMatchObject({ fromMs: 1, toMs: 9 });
@@ -162,7 +182,11 @@ describe('reposts and articles', () => {
 
 describe('originals stream', () => {
   test('originals stream keeps its own coverage and its rows are stored', () => {
-    capture.commitRows('Exp', [row({ id: '70', by: 'Exp', at: T(3), text: 'An original post', conv: '70' })], { coverage: { fromMs: 5, toMs: 15 }, stream: 'originals' });
+    capture.commitRows(
+      'Exp',
+      [row({ id: '70', by: 'Exp', at: T(3), text: 'An original post', conv: '70' })],
+      { coverage: { fromMs: 5, toMs: 15 }, stream: 'originals' }
+    );
     const e = experts.publicConfig().experts.find((x) => x.handle === 'Exp');
     expect(e.coverage).toBeNull();
     expect(e.coverageBy.originals).toMatchObject({ fromMs: 5, toMs: 15 });
@@ -172,12 +196,33 @@ describe('originals stream', () => {
 
 describe('verify support in the host', () => {
   test('checkIds returns only ids missing from the KB; setCoverage replaces (can shrink) a range', () => {
-    handlers.safeHandle({ type: 'commit', handle: 'Exp', rows: [row({ id: '1', by: 'Exp', at: T(1), text: 'a', conv: '1' })], coverage: { fromMs: 0, toMs: 100, exhausted: true } });
-    expect(handlers.safeHandle({ type: 'checkIds', handle: 'Exp', ids: ['1', '2'] }).missing).toEqual(['2']);
+    handlers.safeHandle({
+      type: 'commit',
+      handle: 'Exp',
+      rows: [row({ id: '1', by: 'Exp', at: T(1), text: 'a', conv: '1' })],
+      coverage: { fromMs: 0, toMs: 100, exhausted: true },
+    });
+    expect(
+      handlers.safeHandle({ type: 'checkIds', handle: 'Exp', ids: ['1', '2'] }).missing
+    ).toEqual(['2']);
     expect(handlers.safeHandle({ type: 'checkIds', handle: 'Exp' }).ok).toBe(false);
-    const r = handlers.safeHandle({ type: 'setCoverage', handle: 'Exp', stream: 'main', coverage: { fromMs: 50, toMs: 60, exhausted: false } });
-    expect(r.config.experts.find((e) => e.handle === 'Exp').coverage).toMatchObject({ fromMs: 50, toMs: 60, exhausted: false });
-    handlers.safeHandle({ type: 'setCoverage', handle: 'Exp', stream: 'reposts', coverage: { fromMs: 1, toMs: 2 } });
+    const r = handlers.safeHandle({
+      type: 'setCoverage',
+      handle: 'Exp',
+      stream: 'main',
+      coverage: { fromMs: 50, toMs: 60, exhausted: false },
+    });
+    expect(r.config.experts.find((e) => e.handle === 'Exp').coverage).toMatchObject({
+      fromMs: 50,
+      toMs: 60,
+      exhausted: false,
+    });
+    handlers.safeHandle({
+      type: 'setCoverage',
+      handle: 'Exp',
+      stream: 'reposts',
+      coverage: { fromMs: 1, toMs: 2 },
+    });
     handlers.safeHandle({ type: 'setCoverage', handle: 'Exp', stream: 'reposts', coverage: null });
     expect(experts.load().experts.exp.coverageBy.reposts).toBeUndefined();
   });

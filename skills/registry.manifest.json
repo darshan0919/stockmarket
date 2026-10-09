@@ -913,8 +913,8 @@
       "modules": ["packages/jobs-runtime/lib/thesisCardEmail.js"]
     },
     "ask-soic": {
-      "skill_md": "skills/tooling/ask-soic/SKILL.md",
-      "entry": "skills/tooling/ask-soic/scripts/search_soic.py",
+      "skill_md": "skills/equity-research/ask-soic/SKILL.md",
+      "entry": "skills/equity-research/ask-soic/scripts/search_soic.py",
       "mode": "clone",
       "modules": [],
       "references": [],
@@ -931,8 +931,8 @@
       ]
     },
     "ask-anil-lamba": {
-      "skill_md": "skills/tooling/ask-anil-lamba/SKILL.md",
-      "entry": "skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py",
+      "skill_md": "skills/equity-research/ask-anil-lamba/SKILL.md",
+      "entry": "skills/equity-research/ask-anil-lamba/scripts/search_anil_lamba.py",
       "mode": "clone",
       "modules": [],
       "references": [],
@@ -951,8 +951,8 @@
       ]
     },
     "ask-stockscans": {
-      "skill_md": "skills/tooling/ask-stockscans/SKILL.md",
-      "entry": "skills/tooling/ask-stockscans/scripts/search_stockscans.py",
+      "skill_md": "skills/equity-research/ask-stockscans/SKILL.md",
+      "entry": "skills/equity-research/ask-stockscans/scripts/search_stockscans.py",
       "mode": "clone",
       "modules": [],
       "references": [],
@@ -970,13 +970,13 @@
       ]
     },
     "ask-expert": {
-      "skill_md": "skills/tooling/ask-expert/SKILL.md",
-      "entry": "skills/tooling/ask-expert/scripts/search_expert.py",
+      "skill_md": "skills/equity-research/ask-expert/SKILL.md",
+      "entry": "skills/equity-research/ask-expert/scripts/search_expert.py",
       "mode": "clone",
       "modules": [
-        "skills/tooling/ask-anil-lamba/scripts/search_anil_lamba.py",
-        "skills/tooling/ask-soic/scripts/search_soic.py",
-        "skills/tooling/ask-stockscans/scripts/search_stockscans.py"
+        "skills/equity-research/ask-anil-lamba/scripts/search_anil_lamba.py",
+        "skills/equity-research/ask-soic/scripts/search_soic.py",
+        "skills/equity-research/ask-stockscans/scripts/search_stockscans.py"
       ],
       "references": [],
       "shared": ["skills/_shared/conventions.md"],

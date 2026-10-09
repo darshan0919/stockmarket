@@ -46,6 +46,10 @@ function cleanText(t) {
     .trim();
 }
 
+function hasPhoto(r) {
+  return Boolean(r && (r.media || []).some((m) => m && m.type === 'photo'));
+}
+
 function isPureRetweet(row) {
   return Boolean(row.rt) || /^RT @\w+:/.test(row.text || '');
 }
@@ -140,7 +144,7 @@ function buildDocs(rows, handle, opts = {}) {
       .map((r) => cleanText(r.text))
       .filter(Boolean)
       .join('\n\n');
-    if (!text && !g.rows.some((r) => r.article)) continue;
+    if (!text && !g.rows.some((r) => r.article) && !g.rows.some(hasPhoto)) continue; // image-only posts (frameworks, charts) are content
 
     const articles = g.rows
       .filter((r) => r.article && (r.article.title || r.article.text))
@@ -185,7 +189,7 @@ function buildDocs(rows, handle, opts = {}) {
             },
           ]
         : [];
-    if (!text && !oArticle.length) continue;
+    if (!text && !oArticle.length && !hasPhoto(o)) continue;
     docs.push({
       type: 'x-post',
       handle,

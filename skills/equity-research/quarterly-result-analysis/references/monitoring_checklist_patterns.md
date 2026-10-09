@@ -64,14 +64,20 @@ The taxonomy is industry-agnostic, but the _specific_ KPIs vary. Below are examp
 
 ### Financials (banks, NBFCs)
 
-| KPI                       | Threshold pattern           |
-| ------------------------- | --------------------------- |
-| AUM / loan book growth    | ≥ X% YoY                    |
-| Net Interest Margin (NIM) | ≥ X%                        |
-| Gross NPA / Net NPA       | ≤ X%                        |
-| Credit cost               | ≤ X bps                     |
-| C/I ratio                 | ≤ X%                        |
-| Cost of funds             | within Y bps of policy rate |
+| KPI                                   | Threshold pattern                               |
+| ------------------------------------- | ----------------------------------------------- |
+| AUM / loan book growth                | ≥ X% YoY                                        |
+| Net Interest Margin (NIM) + Fees      | ≥ X% of AUM                                     |
+| Gross NPA / Net NPA                   | ≤ X%                                            |
+| Credit cost (% of AUM)                | ≤ X bps / ≤ Y%                                  |
+| 6 MOB 30+ DPD (cohort delinquency)    | ≤ X bps (early warning on vintage)              |
+| Return on Assets (RoA)                | ≥ X.X% (sustainable compounding floor)          |
+| Cost to Income (C/I) / Opex to Assets | ≤ X%                                            |
+| Cost of funds                         | within Y bps of policy rate                     |
+| CRAR / Tier 1 Capital                 | ≥ 18–20% (well above 15% RBI statutory minimum) |
+| Financial Leverage (Debt/Equity)      | within 3.5x–5.5x healthy corridor               |
+| Updated P/B ratio vs RoA              | aligned with peer valuation matrix on fresh BS  |
+| ALM cumulative mismatch (1M–1Y)       | positive cumulative mismatch across all buckets |
 
 ### IT services
 
@@ -142,6 +148,12 @@ A non-company KPI that historically leads the company's numbers by 1-2 quarters:
 ## Pattern 5 — the "balance sheet inflection" item
 
 > #4 — Net debt / EBITDA below 1.5×. Q4 FY26 actual: 2.1×. Management plan: deleveraging through CFO + asset sale. Watch H1 FY27 quarterly cash flow for net debt trajectory. Below 1.5× unlocks the dividend resumption.
+
+## Pattern 6 — the "Q+1 confirmation" item
+
+> #3 — Q+1 confirmation of the margin step-up. Q2 FY26 EBITDA margin 17.8% vs 13.1% a year ago. Watch Q3 FY26 (Feb): ≥16.5% and fresh orders ≥ ₹X cr confirms the step-up is not a one-off; a fade back below 15% means treat Q2 as a one-quarter beat and do not size up. (A faded PEAD followed by a confirming next quarter is the setup that can re-trigger the move.)
+
+Use this for any quarter tagged `Q+1 CONFIRMATION PENDING` in the verdict. Give the metric, the threshold that confirms, the threshold that fails, and the date.
 
 ## Final formatting in the widget
 

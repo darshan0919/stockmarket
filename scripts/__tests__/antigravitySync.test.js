@@ -151,3 +151,81 @@ describe('antigravity-sync: updateSidecarsConfig', () => {
     });
   });
 });
+
+describe('antigravity-sync: compressDescription and writeRouterSkill', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const os = require('os');
+  const { compressDescription, writeRouterSkill } = require('../antigravity-sync-tasks-and-skills');
+
+  describe('compressDescription', () => {
+    test('returns empty string when description is null or empty', () => {
+      expect(compressDescription('')).toBe('');
+      expect(compressDescription(null)).toBe('');
+    });
+
+    test('preserves short descriptions as-is', () => {
+      const shortDesc = 'Single-quarter result interpretation for Indian listed companies.';
+      expect(compressDescription(shortDesc)).toBe(shortDesc);
+    });
+
+    test('compresses verbose descriptions under maxLen while preserving first sentence and trigger phrases', () => {
+      const longDesc =
+        'Stage 2 of the 2-skill quarterly-result pipeline for Indian listed companies across Business, Risk, Management. ' +
+        'Use whenever the user uploads a quarterly investor presentation or result PDF and asks "analyse this quarter". ' +
+        'Also supports single-statement quality modes via --statement income|balance-sheet|cashflow: a lean, bulk-safe path that grades ONE financial statement. ' +
+        'Output is a deterministic Drive-shareable PDF report opening with a bird-eye KPI strip. NOT for two-quarter forensic diffs or transcript-only dives.';
+
+      const result = compressDescription(longDesc, 280);
+      expect(result.length).toBeLessThanOrEqual(280);
+      expect(result).toContain('Stage 2');
+      expect(result).toContain('Use whenever');
+    });
+
+    test('strips leading YAML block indicators like >- or >', () => {
+      const yamlDesc =
+        '>-\n  A specialized equity research skill for company valuation.\n  Use when requested.';
+      const result = compressDescription(yamlDesc);
+      expect(result.startsWith('>-')).toBe(false);
+      expect(result.startsWith('>')).toBe(false);
+      expect(result).toContain('A specialized equity research skill');
+    });
+  });
+
+  describe('writeRouterSkill', () => {
+    let tmpDir;
+
+    beforeEach(() => {
+      tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'router-skill-test-'));
+    });
+
+    afterEach(() => {
+      if (fs.existsSync(tmpDir)) {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    test('creates router SKILL.md pointing to repo source and deletes extraneous files', () => {
+      // Simulate an old dirty skill directory with leftover files
+      fs.writeFileSync(path.join(tmpDir, 'old-script.js'), 'console.log("debris");');
+      fs.writeFileSync(path.join(tmpDir, 'reference.md'), '# Old reference');
+
+      writeRouterSkill(
+        'test-skill',
+        'Test skill description for unit tests. Use when testing router generation.',
+        'skills/equity-research/test-skill/SKILL.md',
+        tmpDir
+      );
+
+      const files = fs.readdirSync(tmpDir);
+      expect(files).toEqual(['SKILL.md']);
+
+      const content = fs.readFileSync(path.join(tmpDir, 'SKILL.md'), 'utf8');
+      expect(content).toContain('name: test-skill');
+      expect(content).toContain('Router for the "test-skill" skill');
+      expect(content).toContain('skills/registry.json');
+      expect(content).toContain('skills/equity-research/test-skill/SKILL.md');
+      expect(content).not.toContain('old-script.js');
+    });
+  });
+});

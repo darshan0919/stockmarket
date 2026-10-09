@@ -193,6 +193,19 @@ Strict rules from `_shared/conventions.md` §5:
 - CSS variables in both `:root` and `[data-theme="dark"]`
 - Missing data → `---------`
 
+## Additional structured outputs (added 2026-10-09)
+
+Add these fields to the schema-mode dict. They feed `quarterly-result-analysis` PEAD gate G4 and
+`rerating-catalysts`:
+
+- `guidanceUpgradeStreak`: count of consecutive recent quarters where guidance was raised or beaten
+  (integer; 0 if the latest was a cut or miss). Cite the quarter and concall line for each step.
+- `promoterGroupStress`: `NONE` / `WATCH` / `STRESS`. `WATCH` or `STRESS` when promoter pledge is rising,
+  group entities have debt-servicing or regulatory events, or `filingClusterFlags.js` returns
+  `REPEAT_PROMOTER_SELLING`. State the evidence; do not infer from silence.
+- `lastQuarterDelivery`: `{guided, actual, deliveredPct, verdict: MET|BEAT|MISSED}` for the single
+  most recent guided quarter, so G4 can consume it directly.
+
 ## Cross-skill integration
 
 When called from `equity-research-deepdive`:

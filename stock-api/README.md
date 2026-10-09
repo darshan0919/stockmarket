@@ -50,6 +50,23 @@ node sync-skills.js --skills-root /path/to/skill-sources --check   # CI: fail if
 
 `scripts/_vendor/` in each skill is **generated** — edit `python/*` and re-sync.
 
+## Quarterly Result Extraction Scripts
+
+- `fetch-result-documents`: Fetches latest PPT, Result, and Transcripts for a company into an output folder.
+- `extract-result-text`: Converts downloaded Result and PPT PDFs to layout-preserving text.
+- `extract-result-xbrl`: Extracts structured quarterly financial numbers from NSE/BSE XBRL filings.
+- `extract-result-narrative`: Extracts exceptional items and auditor qualifications from filing text.
+- `extract-income-statement`: Parses income statement tables from filing text.
+- `extract-statements`: Extracts Balance Sheet and Cash Flow statements from filing or presentation text.
+- `run-statement-signals`: Runs deterministic signal scans over Balance Sheet and Cash Flow statements.
+- `compute-headline-financials`: Computes headline metrics (Revenue, EBITDA margin, PAT, Tax Rate, EPS).
+- `save-result-documents`: Persists quarterly-result-documents DTO to the database chokepoint.
+
+## Deterministic Report Rendering Scripts
+
+- `render-quarterly-result-pdf`: Renders a `quarterly-result` JSON DTO into an institutional HTML/PDF report with standardized palette, NBFC quality checks, and runtime improvisation space (`--input <path> --output <path>`).
+- `render-rerating-catalysts-pdf`: Renders a `rerating-catalysts` JSON DTO into an institutional HTML/PDF report with J-Curve inflection banner, core triggers, spike analysis, and runtime improvisation space (`--input <path> --output <path>`).
+
 ## Test
 
 ```bash

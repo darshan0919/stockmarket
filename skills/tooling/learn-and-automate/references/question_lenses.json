@@ -1,0 +1,328 @@
+{
+  "_doc": "Machine-readable question lenses (human guide: question_lenses.md). `templates` use {statement}, {topic}, {term}, {source}. `appliesTo`: unit kinds, or 'module' for one-per-module questions. `needsUser`: decision questions only Darshan can answer. `detect`: regexes used to score which lenses a free-text question uses (Darshan's own questions).",
+  "vagueTerms": [
+    "low",
+    "high",
+    "good",
+    "strong",
+    "weak",
+    "cheap",
+    "expensive",
+    "big",
+    "small",
+    "large",
+    "decent",
+    "reasonable",
+    "enough",
+    "stable",
+    "stabilised",
+    "stabilized",
+    "quality",
+    "visibility",
+    "float",
+    "momentum",
+    "soon",
+    "long term",
+    "short term",
+    "most",
+    "many",
+    "few",
+    "significant",
+    "huge",
+    "best"
+  ],
+  "lenses": {
+    "L1": {
+      "name": "Clarify",
+      "weight": 1.2,
+      "needsUser": false,
+      "appliesTo": [
+        "rule",
+        "checklist_item",
+        "do",
+        "dont",
+        "heuristic",
+        "entry_signal",
+        "exit_signal",
+        "sizing",
+        "framework",
+        "anti_pattern",
+        "macro_view",
+        "sector_view",
+        "process"
+      ],
+      "onlyIfVague": true,
+      "templates": [
+        "What exactly does \"{term}\" mean here — what number or threshold would {source} use?"
+      ],
+      "detect": [
+        "what (exactly |precisely )?(does|is|are)",
+        "mean",
+        "defin",
+        "threshold",
+        "how much",
+        "how many",
+        "what number",
+        "\\bexactly\\b"
+      ]
+    },
+    "L2": {
+      "name": "Assumptions",
+      "weight": 1.0,
+      "needsUser": false,
+      "appliesTo": [
+        "rule",
+        "heuristic",
+        "entry_signal",
+        "exit_signal",
+        "sizing",
+        "framework",
+        "sector_view",
+        "macro_view"
+      ],
+      "templates": [
+        "What must be true (liquidity, macro, cycle stage, company size) for \"{statement}\" to work?"
+      ],
+      "detect": ["assum", "must be true", "depend", "precondition", "only if", "provided that"]
+    },
+    "L3": {
+      "name": "Evidence",
+      "weight": 1.1,
+      "needsUser": false,
+      "appliesTo": [
+        "rule",
+        "checklist_item",
+        "do",
+        "dont",
+        "heuristic",
+        "entry_signal",
+        "exit_signal",
+        "sizing",
+        "framework",
+        "pick",
+        "sector_view"
+      ],
+      "templates": [
+        "Where did {source} actually apply \"{statement}\" — which stocks/dates — and are there counter-examples where he broke it?"
+      ],
+      "detect": [
+        "example",
+        "evidence",
+        "proof",
+        "where did",
+        "which stock",
+        "track record",
+        "instance",
+        "counter"
+      ]
+    },
+    "L4": {
+      "name": "Mechanism",
+      "weight": 1.1,
+      "needsUser": false,
+      "appliesTo": [
+        "rule",
+        "heuristic",
+        "entry_signal",
+        "exit_signal",
+        "framework",
+        "sector_view",
+        "macro_view",
+        "mindset"
+      ],
+      "templates": [
+        "Why does \"{statement}\" make money — what is the economic or behavioural cause?"
+      ],
+      "detect": ["\\bwhy\\b", "cause", "because", "mechanism", "how does .* work", "reason"]
+    },
+    "L5": {
+      "name": "Boundary",
+      "weight": 1.2,
+      "needsUser": false,
+      "appliesTo": [
+        "rule",
+        "checklist_item",
+        "do",
+        "dont",
+        "heuristic",
+        "entry_signal",
+        "exit_signal",
+        "sizing",
+        "framework",
+        "sector_view"
+      ],
+      "templates": [
+        "When does \"{statement}\" NOT apply — which sectors, market caps, or market regimes (bear market, sideways)?"
+      ],
+      "detect": [
+        "when (does|would) .* not",
+        "not apply",
+        "exception",
+        "except",
+        "bear",
+        "sideways",
+        "which sector",
+        "limit",
+        "boundary",
+        "edge case"
+      ]
+    },
+    "L6": {
+      "name": "Conflict",
+      "weight": 1.0,
+      "needsUser": false,
+      "appliesTo": [
+        "rule",
+        "heuristic",
+        "entry_signal",
+        "exit_signal",
+        "sizing",
+        "framework",
+        "sector_view",
+        "macro_view"
+      ],
+      "templates": [
+        "Does \"{statement}\" conflict with an older view of {source}, with SOIC/Anil Lamba, or with the other followed experts — and which view is newer?"
+      ],
+      "detect": [
+        "conflict",
+        "contradict",
+        "disagree",
+        "earlier (he|she|they) said",
+        "versus",
+        "\\bvs\\b",
+        "other expert",
+        "soic",
+        "changed (his|her) view"
+      ]
+    },
+    "L7": {
+      "name": "Inversion",
+      "weight": 1.3,
+      "needsUser": false,
+      "appliesTo": ["rule", "heuristic", "entry_signal", "exit_signal", "sizing", "framework"],
+      "templates": [
+        "How would following \"{statement}\" lose money? What is the opposite rule, and when does it win?"
+      ],
+      "detect": [
+        "lose money",
+        "fail",
+        "go wrong",
+        "opposite",
+        "invert",
+        "pre-?mortem",
+        "downside",
+        "what if .* wrong",
+        "risk of"
+      ]
+    },
+    "L8": {
+      "name": "Operationalize",
+      "weight": 1.3,
+      "needsUser": false,
+      "appliesTo": [
+        "rule",
+        "checklist_item",
+        "do",
+        "dont",
+        "entry_signal",
+        "exit_signal",
+        "sizing",
+        "framework",
+        "process"
+      ],
+      "templates": [
+        "Which Stockscans/Screener/NSE field measures \"{statement}\", can a script check it, and how often (daily/weekly/quarterly)?"
+      ],
+      "detect": [
+        "field",
+        "screen(er)?",
+        "scan",
+        "measure",
+        "metric",
+        "data",
+        "automat",
+        "script",
+        "track"
+      ]
+    },
+    "L9": {
+      "name": "Action",
+      "weight": 1.2,
+      "needsUser": false,
+      "appliesTo": [
+        "rule",
+        "checklist_item",
+        "entry_signal",
+        "exit_signal",
+        "sizing",
+        "framework",
+        "macro_view"
+      ],
+      "templates": [
+        "When \"{statement}\" triggers, what exactly do I do — buy/add/trim/exit, how much, and where is the stop?"
+      ],
+      "detect": [
+        "what (do|should) (i|we) do",
+        "buy",
+        "sell",
+        "exit",
+        "add",
+        "trim",
+        "how much",
+        "position",
+        "stop"
+      ]
+    },
+    "L10": {
+      "name": "Validate",
+      "weight": 1.0,
+      "needsUser": false,
+      "appliesTo": ["rule", "heuristic", "entry_signal", "exit_signal", "sizing", "framework"],
+      "templates": [
+        "How will we know \"{statement}\" works — which metric, over what period, against what benchmark?"
+      ],
+      "detect": [
+        "backtest",
+        "validat",
+        "how (will|do) we know",
+        "benchmark",
+        "hit rate",
+        "measure success",
+        "works?"
+      ]
+    },
+    "L11": {
+      "name": "Personal fit",
+      "weight": 1.5,
+      "needsUser": true,
+      "appliesTo": ["module"],
+      "templates": [
+        "Which of {source}'s {topic} rules fit MY style (swing/momentum vs long-term), capital and time — adopt, adapt or reject each?"
+      ],
+      "detect": [
+        "\\b(me|my|i)\\b.*(style|fit|suit)",
+        "should i",
+        "for me",
+        "my portfolio",
+        "my time"
+      ]
+    },
+    "L12": {
+      "name": "Priority",
+      "weight": 1.5,
+      "needsUser": true,
+      "appliesTo": ["module"],
+      "templates": ["Which 3 {topic} rules matter most to me, and which can be ignored?"],
+      "detect": ["priorit", "most important", "matter most", "which first", "rank"]
+    },
+    "L13": {
+      "name": "Meta",
+      "weight": 0.8,
+      "needsUser": true,
+      "appliesTo": ["module"],
+      "templates": ["What question about {topic} have we NOT asked that would change how I act?"],
+      "detect": ["right question", "not asked", "missing", "what else", "blind spot"]
+    }
+  }
+}

@@ -248,11 +248,11 @@ come back as bare non-zero integers in a decimal-printed table are dropped, sinc
 
 Fresh held-out run `tess-9` (30 dev result filings not used in any earlier tesseract run, 3 of 4 workers; a few heavy docs skipped):
 
-| metric | value |
-|---|---|
-| docs served | 12 of 30 (rest abstained) |
-| field accuracy, excl. other expenses, before integer rule | 89.0% |
-| same rows re-scored with the integer rule | 92.1% (105 right, 9 wrong, 4 dropped, none of the dropped were correct) |
+| metric                                                    | value                                                                   |
+| --------------------------------------------------------- | ----------------------------------------------------------------------- |
+| docs served                                               | 12 of 30 (rest abstained)                                               |
+| field accuracy, excl. other expenses, before integer rule | 89.0%                                                                   |
+| same rows re-scored with the integer rule                 | 92.1% (105 right, 9 wrong, 4 dropped, none of the dropped were correct) |
 
 Gate (>=98%, zero sign flips, zero pow10) is **not met**. Remaining errors: digit slips inside numbers that two reads agree on
 (GUFICBIO, METROBRAND), wrong column or entity, integer-printed tables. Treat PDF values as hints that need a second source.

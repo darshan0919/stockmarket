@@ -54,8 +54,8 @@ describe('capexScalingCalculator', () => {
       const res = calculateRevenuePotential({
         capacity: 4500,
         realizationPerUnit: 200000,
-        utilizationMin: 0.70,
-        utilizationMax: 0.90,
+        utilizationMin: 0.7,
+        utilizationMax: 0.9,
       });
 
       expect(res.method).toBe('realization');
@@ -70,8 +70,8 @@ describe('capexScalingCalculator', () => {
         capacity: 6012,
         capexOutlay: 45,
         assetTurnover: 2.5,
-        utilizationMin: 0.70,
-        utilizationMax: 0.90,
+        utilizationMin: 0.7,
+        utilizationMax: 0.9,
       });
 
       expect(res.method).toBe('asset-turn');

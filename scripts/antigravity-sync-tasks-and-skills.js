@@ -205,6 +205,54 @@ function titleCase(str) {
 }
 
 /**
+ * Produces a concise, trigger-preserving description for the router frontmatter.
+ * Antigravity enforces a strict context budget across the global skills catalog
+ * (listing each skill name, path, and description in the agent system prompt).
+ * Capping descriptions to ~320 chars while preserving what the skill does and
+ * primary trigger keywords prevents exceeding the prompt budget and ensures no
+ * skills are dropped.
+ *
+ * @param {string} desc - Full description from the repo SKILL.md.
+ * @param {number} [maxLen=320] - Maximum target character length.
+ * @returns {string} Clean, concise description string.
+ */
+function compressDescription(desc, maxLen = 320) {
+  if (!desc) return '';
+  let clean = desc.replace(/\s+/g, ' ').trim();
+  clean = clean.replace(/^(?:>-|>)\s*/, '').trim();
+  if (clean.length <= maxLen) return clean;
+
+  const sentences = clean.split(/(?<=[.?!])\s+/);
+  const firstSentence = sentences[0] || '';
+
+  const triggerSentence = sentences.find(
+    (s, idx) => idx > 0 && /\b(use\s+(?:when|whenever|this)|invoke|trigger|run\s+when)\b/i.test(s)
+  );
+
+  let combined = firstSentence;
+  if (triggerSentence && (firstSentence + ' ' + triggerSentence).length <= maxLen) {
+    combined = firstSentence + ' ' + triggerSentence;
+  } else if (triggerSentence) {
+    const budgetForTrigger = maxLen - firstSentence.length - 1;
+    if (budgetForTrigger > 80) {
+      combined = firstSentence + ' ' + triggerSentence.slice(0, budgetForTrigger).trim() + '...';
+    }
+  }
+
+  if (combined.length > maxLen) {
+    const sub = combined.slice(0, maxLen);
+    const lastPunct = Math.max(sub.lastIndexOf('. '), sub.lastIndexOf('; '), sub.lastIndexOf(', '));
+    if (lastPunct > 180) {
+      combined = sub.slice(0, lastPunct) + '...';
+    } else {
+      combined = sub.trim() + '...';
+    }
+  }
+
+  return combined;
+}
+
+/**
  * Writes a MINIMAL router SKILL.md into Antigravity's Global Skills dir, instead of
  * copying the skill's full content/scripts/references there. The router's only job is
  * to point Antigravity at the single source of truth (the stockmarket repo's
@@ -220,8 +268,8 @@ function titleCase(str) {
  * @param {string} skillName - Registry/skill identifier (matches the repo skill's
  *   frontmatter `name` and its key/derived name in skills/registry.json).
  * @param {string} description - The real description pulled from the repo SKILL.md
- *   frontmatter. Never weakened or shortened — Antigravity uses it to decide when to
- *   trigger the router.
+ *   frontmatter. Compressed to fit within Antigravity's prompt context budget while
+ *   preserving key triggers.
  * @param {string} skillMdRepoPath - Repo-relative path to the real SKILL.md (e.g.
  *   "skills/equity-research/rerating-catalysts/SKILL.md"), used to build both the
  *   local-checkout read path and the GitHub raw fallback URL.
@@ -236,12 +284,8 @@ function writeRouterSkill(skillName, description, skillMdRepoPath, destDir) {
 
   // Format description using YAML block scalar (>-) with 2-space indentation
   // to ensure valid YAML even if description contains colons, quotes, or special characters.
-  const cleanDesc = (description || '')
-    .split('\n')
-    .map((l) => l.trim())
-    .filter(Boolean)
-    .join(' ');
-  const indentedDesc = cleanDesc ? `  ${cleanDesc}` : '  ';
+  const compressed = compressDescription(description, 320);
+  const indentedDesc = compressed ? `  ${compressed}` : '  ';
 
   const routerContent = `---
 name: ${skillName}
@@ -337,9 +381,20 @@ function updateSidecarsConfig(configData, syncedFolders, projId) {
     configData.sidecars = {};
   }
 
-  for (const k of Object.keys(configData.sidecars)) {
-    if (!syncedFolders.includes(k)) {
-      delete configData.sidecars[k];
+  if (syncedFolders && syncedFolders.length > 0) {
+    for (const k of Object.keys(configData.sidecars)) {
+      if (!syncedFolders.includes(k)) {
+        // If projId is specified, do not prune sidecars that belong to another project
+        if (
+          projId &&
+          configData.sidecars[k] &&
+          configData.sidecars[k].projectId &&
+          configData.sidecars[k].projectId !== projId
+        ) {
+          continue;
+        }
+        delete configData.sidecars[k];
+      }
     }
   }
 
@@ -483,7 +538,7 @@ function syncScheduledTasks() {
   console.log(`✅ Synchronized ${syncedSidecars} UI Sidecars.`);
 }
 
-function syncCategorySkills(categoryDir) {
+function syncCategorySkills(categoryDir, syncedSkillNames = new Set()) {
   if (!fs.existsSync(categoryDir)) return 0;
   const items = fs.readdirSync(categoryDir);
   let synced = 0;
@@ -506,6 +561,7 @@ function syncCategorySkills(categoryDir) {
           .join('/');
         // MINIMAL router only — never the full skill bundle. See writeRouterSkill().
         writeRouterSkill(skillName, parsed && parsed.description, skillMdRepoPath, globalSkillDir);
+        syncedSkillNames.add(skillName);
         synced++;
       }
     }
@@ -516,19 +572,40 @@ function syncCategorySkills(categoryDir) {
 
 function syncAllSkills() {
   console.log(
-    '\n🔄 [2/2] Syncing Equity Research & Tooling Repository Skills -> Antigravity Global Skills...'
+    '\n🔄 [2/2] Syncing Repository Skills -> Antigravity Global Skills (Router Facades ONLY)...'
   );
   let totalSynced = 0;
+  const syncedSkillNames = new Set();
 
   for (const category of TARGET_SKILL_CATEGORIES) {
     const categoryDir = path.join(REPO_SKILLS_DIR, category);
-    const categoryCount = syncCategorySkills(categoryDir);
+    const categoryCount = syncCategorySkills(categoryDir, syncedSkillNames);
     console.log(`  - ${category}: ${categoryCount} skills synced`);
     totalSynced += categoryCount;
   }
 
+  // Prune any orphaned, deprecated, or stale global skill directories from ~/.gemini/config/skills/
+  let prunedSkills = 0;
+  if (fs.existsSync(GLOBAL_SKILLS_DIR)) {
+    for (const d of fs.readdirSync(GLOBAL_SKILLS_DIR)) {
+      if (!syncedSkillNames.has(d) && !d.startsWith('.')) {
+        const orphanDir = path.join(GLOBAL_SKILLS_DIR, d);
+        if (fs.statSync(orphanDir).isDirectory()) {
+          fs.rmSync(orphanDir, { recursive: true, force: true });
+          prunedSkills++;
+        }
+      }
+    }
+  }
+
+  if (prunedSkills > 0) {
+    console.log(
+      `🧹 Removed ${prunedSkills} orphaned/deprecated global skill director${prunedSkills === 1 ? 'y' : 'ies'} (not present in repo).`
+    );
+  }
+
   console.log(
-    `✅ Synchronized ${totalSynced} Equity Research & Tooling Skills to ~/.gemini/config/skills/`
+    `✅ Synchronized ${totalSynced} router skills to ~/.gemini/config/skills/ (zero heavy lifting, 100% facade).`
   );
 }
 
@@ -552,10 +629,12 @@ if (require.main === module) {
 module.exports = {
   updateSidecarsConfig,
   writeRouterSkill,
+  compressDescription,
   parseSkillMd,
   titleCase,
   getProjectId,
   syncScheduledTasks,
+  syncCategorySkills,
   syncAllSkills,
   syncRules,
   main,

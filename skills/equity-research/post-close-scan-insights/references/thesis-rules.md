@@ -112,7 +112,7 @@ Attach the script's `bridge` output directly to the note payload as `patBridge`:
 Before settling a judgment that turns on framework rather than arithmetic —
 what this deal structure usually means, how this regulatory mechanism works,
 whether this pattern historically preceded a re-rating — query
-`ask-soic` (`skills/tooling/ask-soic/SKILL.md`, TF-IDF search over 1,100+
+`ask-soic` (`skills/equity-research/ask-soic/SKILL.md`, TF-IDF search over 1,100+
 Learnyst and YouTube transcripts, returning cited synthesis). Cite what it
 returns in the note. This is the cheapest available check against confidently
 reasoning from first principles about something the knowledge base already

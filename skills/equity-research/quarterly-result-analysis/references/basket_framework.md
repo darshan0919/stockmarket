@@ -80,14 +80,40 @@ For each margin trigger, label sustainability:
 - If Gross Margin expanded or remained steady ($\ge 0$ bps), but EBITDA Margin compressed ($\le -50$ bps), tag the driver as `OVERHEAD/SG&A DRAG` or `INTEGRATION/INVESTMENT DRAG` rather than raw material inflation. Management attributing this to "general market headwinds" is an evasion; evaluate fixed cost absorption, new capacity commercialisation costs, or wage bill expansion. If due to integration of lower-margin acquisitions or upfront plant commercialisation, evaluate EBITDA margin recovery across a 2-4 quarter integration runway.
 - If Gross Margin contracted ($\le -100$ bps), tag as `RAW MATERIAL / PRICING POWER LOSS`, indicating that input cost surges could not be passed on to counterparties.
 
+**NBFC RoA Tree & Profitability Quality Rule (Mandatory for Banks/NBFCs).** For NBFCs and financial institutions, replace raw Gross Margin / EBITDA margin spread analysis with the **RoA Tree**:
+
+- **NIM + Fee Income (% of AUM):** Is the lender protecting net spreads against rising cost of funds? Check pricing power in core loan segments.
+- **Cost-to-Income / Opex to AUM:** Are branch expansion and digital collection expenses stabilizing as a % of AUM?
+- **Credit Cost (% of AUM):** Dissect credit provisions vs loan write-offs. Check whether credit cost is trending down due to superior cohort vintage quality or artificial forbearance.
+- **Return on Assets (RoA) & Return on Equity (RoE):** High RoA (>3.0–4.0%) compounders sustain premium multiples. Decompose RoE via financial leverage:
+  $$\text{RoE} = \text{RoA} \times \frac{\text{Total Assets}}{\text{Net Worth}} = \text{RoA} \times (\text{Leverage})$$
+  Ensure RoE expansion is driven by high RoA, not by dangerous over-leveraging ($>6.5\text{x}$ Debt/Equity).
+
 **Q1/Q3 Structural Cap Rule (Working Capital Safeguard).** In Q1/Q3 filings where Balance Sheet & Cash Flow are `ABSENT` under SEBI LODR Reg 33(3), **no margin expansion may be tagged `SUSTAINABLE` / `STRUCTURAL` unconditionally**. Tag it as `STRUCTURAL (CONDITIONAL ON H1 WORKING CAPITAL AUDIT)` because apparent operating leverage can be an illusion manufactured by swelling receivables or channel inventory (Dr. Anil Lamba: _Profit ≠ Cash_). Mandate that Item #1 in the forward Investor Monitoring Checklist tracks H1 Working Capital Days.
 
 ## 1C. Capex, Balance Sheet & Cash Flow
 
-**Dr. Anil Lamba Working Capital Drain Audit (Mandatory on Chip Trigger).** When `resultAnalysisContext.js` triggers `WORKING-CAPITAL DRAIN (DEBTORS SPIKE)`, `INVENTORY BLOAT`, or `POOR CASH CONVERSION`:
+**Dr. Anil Lamba Working Capital Drain Audit (Mandatory on Chip Trigger for Industrials).** When `resultAnalysisContext.js` triggers `WORKING-CAPITAL DRAIN (DEBTORS SPIKE)`, `INVENTORY BLOAT`, or `POOR CASH CONVERSION`:
 
 - Grounded in Dr. Anil Lamba corporate finance rules (_My 2 GOLDEN Finance Rules @ 00:09:49_ and _How Vendor Credit Can Get you STUCK @ 00:01:30_): _Profit is an opinion, cash is a fact._ The LLM must not celebrate headline PAT growth if receivables growth outpaced revenue growth (debtors YoY% > revenue YoY% by $\ge 20$ percentage points) or CFO/PAT conversion ratio dropped below 0.6x.
 - Mandate an explicit audit in this sub-section: Is growth being manufactured by extending aggressive credit terms to distributors (channel stuffing)? Are unsold finished goods accumulating in inventory? If so, tag as `WORKING CAPITAL TRAP` in Basket 2 risks with `HIGH` severity.
+
+**NBFC Lending Cash Flow & Growth Funding Rule (Mandatory for Banks/NBFCs).**
+
+- For NBFCs and financial lenders, the Dr. Anil Lamba industrial working capital drain rule does NOT apply to loan book disbursements. Under Ind AS, advancing retail/wholesale loans is classified as an operating cash outflow. Rapidly compounding lenders (growing AUM > 25–50% YoY) will structurally report negative CFO.
+- **The True Audit Question for NBFC Cash Flow:** Is the negative operating cash flow matched and funded by external debt/equity financing?
+  - Reconcile the **Funding Gap Identity**:
+    $$\text{Operating Disbursement Gap} \le \text{Net Borrowings Raised} + \text{Fresh Equity / QIP Raised}$$
+  - Check **Asset-Liability Management (ALM)**: Are cumulative liquidity mismatches positive across 1-month, 3-month, 6-month, and 1-year time buckets? Does the company maintain an unencumbered liquidity buffer (cash + liquid mutual funds + undrawn sanction lines)?
+  - If loan disbursements are adequately funded and ALM buckets are positive, grade cash flow `CLEAN` and tag as `AUM EXPANSION FUNDED`.
+
+**NBFC Mandatory Updated BVPS & P/B Ratio Audit.**
+Whenever a fresh balance sheet is filed (H1 or FY close):
+
+1. Compute updated **Net Worth** (Share Capital + Reserves).
+2. Calculate updated **Book Value Per Share (BVPS)** = $\text{Net Worth} / \text{Diluted Shares}$.
+3. Calculate fresh **Price-to-Book (P/B) Ratio** = $\text{CMP} / \text{BVPS}$.
+4. Contrast the updated P/B against peer NBFCs and historical median multiples, contextualized against the lender's RoA and growth tier.
 
 **Run both statement scans first — this sub-section is evidence-led, not commentary-led.** For
 years this sub-section was a list of things to look for in the concall, which meant the balance
@@ -162,7 +188,28 @@ Hidden triggers that don't show up in this quarter's numbers but are visible in 
 - operating leverage (next leg of revenue with no new capex)
 - digital / platform scaling (DAU/MAU growth, take rates)
 
+- post-result confirmations (PEAD gate G5): fresh orders after the result, capex announced on the call or going live, debt retirement, mix shift — without a fresh trigger a post-result move tends to fade within weeks
+
 Tag each as `HIGH CONVICTION` (in book / contracted), `MEDIUM CONVICTION` (guided not contracted), or `OPTIONALITY` (asymmetric upside not in consensus). This taxonomy is shared with `growth-triggers-1pager`.
+
+### Mandatory Forward Guidance & Bottom-Line Accrual Table Specification
+
+Whenever management issues qualitative or quantitative forward guidance on earnings, volumes, revenue, or margins:
+
+1. **Table Structure**:
+   `Metric | Current Value (Base) | Guided Value (Target) | % Change | Timeline | Nature | Source / Derivation Basis`
+2. **Current Baseline & % Change**:
+   Every guided target must be explicitly compared against the current base period (e.g. TTM, current FY, or current quarter annualized), with percentage change calculated and directionally color-coded.
+3. **Mandatory Bottom-Line Row (PAT or Book Value)**:
+   - For **general corporates**: Add future **PAT** row.
+     - If directly guided: mark `DIRECTLY GUIDED`.
+     - If indirectly guided (e.g. Revenue of ₹1,000 Cr with 18% EBITDA margin): derive implied PAT ($\text{EBITDA} - \text{D&A} - \text{Interest} - \text{Taxes}$), mark `DERIVED`, and state formula.
+   - For **NBFCs / Banks / Lending Institutions**: Add future **Book Value / BVPS / Net Worth** row.
+     - If directly guided: mark `DIRECTLY GUIDED`.
+     - If indirectly guided (e.g. AUM growth of 35% with 4.5% RoA corridor and 20% dividend payout): derive implied Net Worth accretion ($\text{Net Worth}_{\text{target}} = \text{Net Worth}_{\text{base}} + \text{Projected PAT} \times \text{Retention Ratio}$), mark `DERIVED`, and show the calculation.
+4. **Strict No-Extrapolation Guardrail**:
+   - Never extrapolate or hypothesize a bottom-line metric when the underlying dependencies are unguided (e.g. revenue guided but margin unguided; or AUM guided but RoA/credit costs unguided).
+   - In such cases, leave Target and % Change cells empty (`—`), mark as `UNGUIDED`, and write in derivation basis: `Dependencies unguided — no extrapolation`.
 
 ---
 
@@ -209,6 +256,8 @@ The highest-signal section. Track:
 - **Delayed capex** — phasing shifted, commissioning pushed
 - **Softer demand outlook** — sector-level qualifiers replacing company-specific confidence
 - **Contradiction in statements** — within the same call, or between PPT + Concall
+
+- **Walk-the-talk gap** — compare this quarter's actuals with the numbers guided on the _previous_ call (revenue, margin, capex timing); a miss lowers the credibility of new guidance. Conditional targets ("subject to") are not firm; most companies avoid bottom-line guidance, so sales guidance tied to orders/capacity is more credible than PAT "visioning". (PEAD gate G4). When recording forward guidance, always compile the mandatory Guidance Table per Section 1D (Current vs Guided, % Change, derived PAT / Book Value, and no extrapolation of unguided dependencies).
 
 **Three high-signal questions to ask explicitly:**
 

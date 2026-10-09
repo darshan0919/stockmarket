@@ -84,6 +84,11 @@ trigger actually shows up in the P&L:
   or order book now (e.g., a PLI-driven order book stepping from ~₹1-2,000cr to ~₹6,000cr
   in one disclosure). Closest to §5a's Stage 2.
 
+**Entry-timing notes (SureshKBN consolidation).** For capex plays, enter right after commissioning
+starts: aim for the first clean quarter and before utilisation tops ~70% (illustrative). For
+early (Base Building → Inflection) entries, size small and add only after Q+1 confirmation. A
+Stage 4 (Spent) name is not a J-curve entry.
+
 **Preference ordering: C > B > A.** A portfolio-construction rule of thumb from the source
 material: skew a growth-catalyst portfolio roughly 80% into Train B/C names, with at most
 15-20% in Train A, and only with a strict time-based stop (exit if the promised catalyst
@@ -392,6 +397,20 @@ one-line addition to 3b/3f, not a separate section:
 | **2. Inflection**    | Revenue growth starts improving, capacity utilisation rises, orders convert into sales, management commentary shifts from "we expect" to "we are seeing."                                            | Often the best risk/reward stage — the "new" fact is now confirmable, not just guided.      |
 | **3. Acceleration**  | Revenue +20-30%+, EBITDA +30-50%+, PAT +40-70%+, ROCE improving, debt falling, and critically **PAT growth > EBITDA growth > Revenue growth** (operating + financial leverage compounding together). | Consensus is catching up; re-rating is partly or mostly underway.                           |
 
+### Extended stages (0, 4 Spent, 5 Failed) — SureshKBN J-curve consolidation, `data/assets/jcurve-framework-sureshkbn.md`
+
+The three stages above only cover a live J-curve. Also name these when they apply:
+
+| Stage                        | What it looks like                                                                                                                                       | Action implication                                                                                                                      |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **0. Story / pre-trigger**   | Flat, low-growth base; EBITDA margin ~2-3% (break-even only); trigger announced but capex/orders not live.                                               | Watch-list only; track every quarter + concall.                                                                                         |
+| **4. Spent / mature**        | Stock stops reacting to good results; P/E has already moved e.g. 10-17x → 40-60x and holds support there; next leg only from orders, margins, cash flow. | Not a J-curve entry (may be a compounder). Cap the §5f tag at MODERATE. Use `scripts/spentRerating.js` (`reratingPhase`, `spentFlags`). |
+| **5. Failed / never-ending** | Flat sales for years, repeated turnaround plans, stage shifts that reverse.                                                                              | Reject; no J-curve credit.                                                                                                              |
+
+A sector rarely re-rates a second time in the same capex cycle at the same speed; a repeat needs
+new orders as big as the ones behind the first re-rating. Thresholds in `spentRerating.js` are
+illustrative (from his posts) and unbacktested — treat flags as prompts for judgment, not verdicts.
+
 Use the growth-rate ordering (PAT growth > EBITDA growth > Revenue growth) as
 a quick check on whether a company claiming "Acceleration" actually has
 operating leverage showing up, or whether PAT is being flattered by
@@ -438,6 +457,15 @@ the fake-J-curve check explicitly as the reason you're running that scan:
 - Other income spike (treasury income, dividend from a subsidiary, forex gain)
 - Forex gain (translation or transaction gain that reverses next quarter)
 - Temporary commodity benefit (input cost tailwind that is cyclical, not structural)
+
+Additional fake/failed checks (added from the SureshKBN consolidation; deterministic ones are in `scripts/spentRerating.js` → `fakeFlags`):
+
+- Cash-flow divergence — strong P&L with negative operating cash flow (`CASH_FLOW_DIVERGENCE`); follow the cash
+- Receivables stuck/rising (`RECEIVABLES_RISING`), especially government counterparties
+- Balance sheet cannot survive the turnaround (interest cover, fresh equity)
+- Never-ending turnaround — flat sales for years (`NEVER_ENDING_TURNAROUND`)
+- Margin capped by design (vendor to a dominant OEM, falling realisations) or EBITDA stuck ~2-3% (`THIN_MARGIN_BREAKEVEN_ONLY`)
+- Sales growth without margin expansion (or margin without sales growth) — neither converts to EPS
 
 The standing question through all of this: **is the core business truly
 accelerating, or is the P&L just accelerating this quarter?** If a catalyst's
@@ -531,6 +559,11 @@ trigger is disclosed), say so explicitly in 3f rather than silently picking one.
    arguably the highest-conviction STRONG case (most of the re-rating is still ahead, per
    §5d/§5e), while a late-stage (Acceleration) company clearing checks 1-3 is still STRONG
    but the framing in 3d should reflect that more of the move may already be priced in.
+
+**Spent cap.** If `scripts/spentRerating.js` returns `reratingPhase: SPENT` (two or more spent
+flags), cap the tag at **MODERATE** and say so in the reason clause (e.g. "capped: re-rating
+appears spent — P/E 2x vs a year ago, muted reaction to last 2 results"). Missing P/E history →
+`UNKNOWN`, no cap. Report `reratingPhase`, `spentFlags` and `fakeFlags` alongside the tag.
 
 ### Tag assignment
 

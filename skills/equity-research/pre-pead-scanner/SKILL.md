@@ -40,6 +40,14 @@ Post-earnings-announcement drift (PEAD) exists because the market under-reacts t
 
 Do **not** use this for a single named stock (use `growth-triggers-1pager` or `equity-research-deepdive`), for post-results interpretation (use `quarterly-result-analysis`), or for a two-quarter forensic diff (use `consecutive-filings-diff`).
 
+## Use of output with the PEAD read (added 2026-10-09)
+
+This ranking is a **pre-result shortlist only**. After the result prints, the candidate must pass the
+`PEAD read` in `quarterly-result-analysis` (gates G1-G5, `scripts/peadPricedIn.js`) before it is
+treated as a PEAD candidate. A shortlist name that ran up pre-result or trades above its own 1y/3y median P/E
+comes out as `PRICED_IN`, which is expected. Raw-return backtests of the "priced-in" label were
+inconclusive (see `data/assets/` backtest note), so treat it as a flag to read, not an auto-reject.
+
 ## The workflow at a glance
 
 Nine steps plus a quarter-level macro overlay, run in order — each gates or feeds the next. A company that fails a gate drops out and is reported as _excluded_, never silently dropped. **Read `references/workflow.md` for the commands, decision rules, and gates before starting** — it is the operational heart of this skill.

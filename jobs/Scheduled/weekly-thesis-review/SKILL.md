@@ -11,6 +11,7 @@ You are running the weekly Investment Thesis review for Darshan's stockmarket pr
    - Re-anchor valuation for each ticker to live CMP/PE/MCap from Screener/Stockscans (never calculate P/E from quarterly PAT; sanity-check CMP × shares ≈ MCap).
    - Scan the past 7 days of announcements and news per ticker; apply mode "update" for anything material.
    - Check every monitorable threshold; mark PASS/BREACH.
+   - Run `node skills/equity-research/investment-thesis-engine/scripts/exit_checks.js <thesis.json> <live CMP>` for every thesis and list any `PRICE_STOP_BREACH` / `TIME_STOP_REVIEW` / `NO_EXIT_PLAN` flags in the briefing (deterministic, no judgment).
    - Flag stale theses (no pillar re-scored in >1 quarter) and trigger decay (all HIGH-conviction triggers done/derailed with nothing new for 2 quarters).
    - Recompute signals deterministically; a signal moves at most one notch unless a hard gate (forensic RED, auditor resignation, pledge>30%+D/E>0.7, credibility ≤ -2) fires.
 4. Sync all updated thesis files back to Drive and append history lines.

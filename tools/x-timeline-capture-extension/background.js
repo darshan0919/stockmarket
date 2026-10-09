@@ -19,7 +19,8 @@ const DAILY = 'xcap-daily';
 const PAGE_DELAY_MS = 1200;
 const EMPTY_PAGES_END = 3; // consecutive pages without a new own tweet = end of what X serves
 const NET_RETRY_MS = [5000, 15000, 45000, 90000]; // transient network errors: retry the same page
-const TRANSIENT_ERR = /failed to fetch|networkerror|network request failed|load failed|did not respond/i;
+const TRANSIENT_ERR =
+  /failed to fetch|networkerror|network request failed|load failed|did not respond/i;
 const CHECKPOINT_PAGES = 15;
 const DEFAULT_COOLDOWN_MS = 13 * 60 * 1000;
 const MAX_COOLDOWN_MS = 17 * 60 * 1000;
@@ -150,8 +151,17 @@ function migrateJob(job) {
   job.cov = job.cov || {};
   for (const h of job.handles || []) {
     const c = job.cov[lc(h)];
-    const nested = c && typeof c === 'object' && ('main' in c || 'originals' in c || 'reposts' in c || 'articles' in c);
-    if (!nested) job.cov[lc(h)] = { main: c && c.toMs ? c : null, originals: null, reposts: null, articles: null };
+    const nested =
+      c &&
+      typeof c === 'object' &&
+      ('main' in c || 'originals' in c || 'reposts' in c || 'articles' in c);
+    if (!nested)
+      job.cov[lc(h)] = {
+        main: c && c.toMs ? c : null,
+        originals: null,
+        reposts: null,
+        articles: null,
+      };
     const per = job.per && job.per[h];
     if (per && !per.counts) per.counts = { posts: 0, replies: 0, reposts: 0, articles: 0 };
   }
@@ -174,7 +184,8 @@ async function saveJob(job, { force = false } = {}) {
 
 async function startJob({ handles, intervalDays, auto }) {
   const vj = await getV();
-  if (vj && vj.status === 'running') throw new Error('Verification is running: wait for it to finish.');
+  if (vj && vj.status === 'running')
+    throw new Error('Verification is running: wait for it to finish.');
   await chrome.storage.local.remove('vjob');
   const hs = C.parseHandles(Array.isArray(handles) ? handles.join(' ') : handles);
   if (!hs.length) throw new Error('select at least one user');
@@ -350,7 +361,8 @@ async function step(job) {
 
   if (!job.phase) {
     const plan = (job.plans[handle] =
-      job.plans[handle] || C.planAll(job.cov[lc(handle)], Date.now(), job.intervalMs, C.STREAMS[job.round || 0]));
+      job.plans[handle] ||
+      C.planAll(job.cov[lc(handle)], Date.now(), job.intervalMs, C.STREAMS[job.round || 0]));
     const next = plan.shift();
     if (!next) {
       advanceHandle(job, 'cached');
@@ -463,7 +475,11 @@ async function step(job) {
   const ownFresh = res.rows.filter((r) => lc(r.by) === lc(handle) && !r.pinned).length;
   phase.emptyStreak = ownFresh === 0 ? phase.emptyStreak + 1 : 0;
 
-  const exhausted = !res.next || res.next === job.cursor || (res.end && ownFresh === 0) || phase.emptyStreak >= EMPTY_PAGES_END;
+  const exhausted =
+    !res.next ||
+    res.next === job.cursor ||
+    (res.end && ownFresh === 0) ||
+    phase.emptyStreak >= EMPTY_PAGES_END;
   const reached = phase.oldestMs <= phase.stopAtMs;
   try {
     if (exhausted || reached) {
@@ -522,7 +538,9 @@ class RateLimited extends Error {}
 
 async function fetchStream(tabId, handle, stream, cursor, userId) {
   const res = await Promise.race([
-    chrome.tabs.sendMessage(tabId, { type: 'XCAP_FETCH_PAGE', handle, userId, cursor, stream }).catch((e) => ({ error: String(e) })),
+    chrome.tabs
+      .sendMessage(tabId, { type: 'XCAP_FETCH_PAGE', handle, userId, cursor, stream })
+      .catch((e) => ({ error: String(e) })),
     sleep(60000).then(() => ({ error: 'x.com did not respond within 60 s' })),
   ]);
   if (res.status === 429) throw new RateLimited();
@@ -530,34 +548,63 @@ async function fetchStream(tabId, handle, stream, cursor, userId) {
 }
 
 async function verifyUser(handle, expert, tabId) {
-  const covs = { main: expert && expert.coverage, originals: expert && expert.coverageBy && expert.coverageBy.originals, reposts: expert && expert.coverageBy && expert.coverageBy.reposts, articles: expert && expert.coverageBy && expert.coverageBy.articles };
+  const covs = {
+    main: expert && expert.coverage,
+    originals: expert && expert.coverageBy && expert.coverageBy.originals,
+    reposts: expert && expert.coverageBy && expert.coverageBy.reposts,
+    articles: expert && expert.coverageBy && expert.coverageBy.articles,
+  };
   const out = {};
-  let userId = null, statuses = null;
+  let userId = null,
+    statuses = null;
   for (const stream of C.STREAMS) {
     const cov = covs[stream];
-    if (!cov) { out[stream] = { state: 'skipped', notes: [] }; continue; }
+    if (!cov) {
+      out[stream] = { state: 'skipped', notes: [] };
+      continue;
+    }
     const first = await fetchStream(tabId, handle, stream, null, userId);
-    if (first.error === 'login-required') throw new Error('Log in to x.com in this Chrome profile, then verify again.');
-    if (first.error) { out[stream] = { state: 'error', notes: [first.error] }; continue; }
+    if (first.error === 'login-required')
+      throw new Error('Log in to x.com in this Chrome profile, then verify again.');
+    if (first.error) {
+      out[stream] = { state: 'error', notes: [first.error] };
+      continue;
+    }
     userId = first.userId || userId;
     if (first.statusesCount != null) statuses = first.statusesCount;
-    let edge = null, edgeError = null;
+    let edge = null,
+      edgeError = null;
     if (cov.olderCursor) {
       const r = await fetchStream(tabId, handle, stream, cov.olderCursor, userId);
-      if (r.error) edgeError = r.error; else edge = r;
+      if (r.error) edgeError = r.error;
+      else edge = r;
     }
     const pages = [first, edge].filter(Boolean);
     const allRows = pages.flatMap((p) => p.rows);
     const ids = [...new Set(allRows.filter((r) => lc(r.by) === lc(handle)).map((r) => r.id))];
     const chk = await hostCall({ type: 'checkIds', handle, ids });
-    if (!chk.ok) throw new Error(chk.hostMissing ? 'The KB bridge is not installed, so nothing can be verified.' : chk.error);
+    if (!chk.ok)
+      throw new Error(
+        chk.hostMissing ? 'The KB bridge is not installed, so nothing can be verified.' : chk.error
+      );
     const st = expert.stats;
-    const a = C.assessCoverage({ handle, stream, cov, newest: first, edge, edgeError, missing: new Set(chk.missing), statuses, storedTotal: st ? st.posts + st.replies + st.reposts : null });
+    const a = C.assessCoverage({
+      handle,
+      stream,
+      cov,
+      newest: first,
+      edge,
+      edgeError,
+      missing: new Set(chk.missing),
+      statuses,
+      storedTotal: st ? st.posts + st.replies + st.reposts : null,
+    });
     const notes = [...a.notes];
     if (a.heal.length) {
       const byId = new Map(allRows.map((r) => [r.id, r]));
       const rows = new Map(a.heal.map((r) => [r.id, r]));
-      for (const r of a.heal) if (r.reply_to && byId.has(r.reply_to)) rows.set(r.reply_to, byId.get(r.reply_to)); // keep reply context
+      for (const r of a.heal)
+        if (r.reply_to && byId.has(r.reply_to)) rows.set(r.reply_to, byId.get(r.reply_to)); // keep reply context
       const c = await hostCall({ type: 'commit', handle, rows: [...rows.values()], stream });
       if (c.ok) notes.push(`${a.heal.length} missing item(s) added to the KB.`);
     }
@@ -570,11 +617,15 @@ async function verifyUser(handle, expert, tabId) {
 
 async function startVerify(handles) {
   const j = await getJob();
-  if (j && ['running', 'paused', 'error', 'login-required'].includes(j.status)) throw new Error('A capture is in progress: pause or cancel it first.');
+  if (j && ['running', 'paused', 'error', 'login-required'].includes(j.status))
+    throw new Error('A capture is in progress: pause or cancel it first.');
   const cur = await getV();
   if (cur && cur.status === 'running') throw new Error('Verification is already running.');
   const cfg = await getConfig();
-  if (cfg.hostMissing) throw new Error('Install the KB bridge first: nothing can be verified without it (see README).');
+  if (cfg.hostMissing)
+    throw new Error(
+      'Install the KB bridge first: nothing can be verified without it (see README).'
+    );
   const hs = C.parseHandles(Array.isArray(handles) ? handles.join(' ') : handles);
   if (!hs.length) throw new Error('select at least one user');
   await chrome.storage.local.remove('job');
@@ -598,8 +649,22 @@ async function runVerify() {
         v.results[h] = await verifyUser(h, expert, tabId);
       } catch (e) {
         if (e instanceof RateLimited) {
-          v.results[h] = Object.fromEntries(C.STREAMS.map((s) => [s, { state: 'rate-limited', notes: ['X rate limit reached. Try again in about 15 minutes.'] }]));
-          for (const rest of v.handles.slice(v.idx + 1)) v.results[rest] = Object.fromEntries(C.STREAMS.map((s) => [s, { state: 'rate-limited', notes: ['Not checked (rate limit).'] }]));
+          v.results[h] = Object.fromEntries(
+            C.STREAMS.map((s) => [
+              s,
+              {
+                state: 'rate-limited',
+                notes: ['X rate limit reached. Try again in about 15 minutes.'],
+              },
+            ])
+          );
+          for (const rest of v.handles.slice(v.idx + 1))
+            v.results[rest] = Object.fromEntries(
+              C.STREAMS.map((s) => [
+                s,
+                { state: 'rate-limited', notes: ['Not checked (rate limit).'] },
+              ])
+            );
           v.error = 'X rate limit reached; the remaining users were not verified.';
           v.idx = v.handles.length;
           break;
@@ -611,7 +676,11 @@ async function runVerify() {
     await saveV(v);
   } catch (e) {
     const v = await getV();
-    if (v) { v.status = 'error'; v.error = String((e && e.message) || e); await saveV(v); }
+    if (v) {
+      v.status = 'error';
+      v.error = String((e && e.message) || e);
+      await saveV(v);
+    }
   } finally {
     verifying = false;
   }
@@ -625,7 +694,11 @@ chrome.alarms.get(DAILY, (a) => {
 chrome.alarms.onAlarm.addListener(async (a) => {
   if (a.name === TICK || a.name === RESUME) {
     const v = await getV();
-    if (v && v.status === 'running' && !verifying) { v.status = 'error'; v.error = 'Verification was interrupted (Chrome restarted). Press Verify again.'; await saveV(v); }
+    if (v && v.status === 'running' && !verifying) {
+      v.status = 'error';
+      v.error = 'Verification was interrupted (Chrome restarted). Press Verify again.';
+      await saveV(v);
+    }
     return run().catch(() => {});
   }
   if (a.name === DAILY) {
@@ -678,7 +751,9 @@ chrome.runtime.onMessage.addListener((msg, _s, send) => {
         })()
       );
       return true;
-    case 'XCAP_VERIFY': reply(startVerify(msg.handles)); return true;
+    case 'XCAP_VERIFY':
+      reply(startVerify(msg.handles));
+      return true;
     case 'XCAP_CANCEL':
       // Same as Pause for the data: everything already fetched is written to the KB first (rows + the
       // contiguous part of the saved range, incl. the resume cursor) — only the *job* (user list, interval,
@@ -701,7 +776,12 @@ chrome.runtime.onMessage.addListener((msg, _s, send) => {
             await chrome.storage.local.remove('job');
             chrome.alarms.clear(RESUME);
           }
-          return { ok: saved, error: saved ? null : 'KB write failed — nothing was discarded; job kept (paused). Retry Cancel or Resume.' };
+          return {
+            ok: saved,
+            error: saved
+              ? null
+              : 'KB write failed — nothing was discarded; job kept (paused). Retry Cancel or Resume.',
+          };
         })()
       );
       return true;

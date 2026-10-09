@@ -56,7 +56,9 @@ function calculateCapacityProgression(baseCapacity, expansions = []) {
 
   const totalExpandedCapacity = baseCapacity + totalAdded;
   const expansionMultiplier = Number((totalExpandedCapacity / baseCapacity).toFixed(2));
-  const expansionPercentage = Number((((totalExpandedCapacity - baseCapacity) / baseCapacity) * 100).toFixed(1));
+  const expansionPercentage = Number(
+    (((totalExpandedCapacity - baseCapacity) / baseCapacity) * 100).toFixed(1)
+  );
 
   const facilityBreakdown = validExpansions.map((exp) => {
     const add = typeof exp.capacityAdd === 'number' && exp.capacityAdd > 0 ? exp.capacityAdd : 0;
@@ -96,8 +98,8 @@ function calculateRevenuePotential({
   realizationPerUnit,
   capexOutlay,
   assetTurnover,
-  utilizationMin = 0.70,
-  utilizationMax = 0.90,
+  utilizationMin = 0.7,
+  utilizationMax = 0.9,
 }) {
   if (typeof realizationPerUnit === 'number' && realizationPerUnit > 0) {
     // Volume × Realization method (converted to ₹ Cr)
@@ -107,7 +109,12 @@ function calculateRevenuePotential({
     return { revenueMinCr, revenueMaxCr, method: 'realization' };
   }
 
-  if (typeof capexOutlay === 'number' && capexOutlay > 0 && typeof assetTurnover === 'number' && assetTurnover > 0) {
+  if (
+    typeof capexOutlay === 'number' &&
+    capexOutlay > 0 &&
+    typeof assetTurnover === 'number' &&
+    assetTurnover > 0
+  ) {
     // Capex × Asset Turn method
     const peakSalesCr = capexOutlay * assetTurnover;
     const revenueMinCr = Number((peakSalesCr * utilizationMin).toFixed(2));

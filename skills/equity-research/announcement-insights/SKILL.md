@@ -187,6 +187,16 @@ If `null` (new company), use the `stock-report` skill for a 2-3 sentence
 `businessSummary` before proceeding — the trend/contradiction check in every template
 needs this history to mean anything.
 
+Then run the cross-filing cluster check (pure script, no LLM; reuses the notes just loaded):
+
+```bash
+node skills/equity-research/announcement-insights/scripts/filingClusterFlags.js "<companyId>"
+```
+
+Flags (`KMP_EXIT_CLUSTER`, `AUDITOR_EXIT`, `REPEAT_PROMOTER_SELLING`, `REPEAT_DILUTION`,
+`POSSIBLE_DUPLICATE_ORDER`) go into the note as context for the template's filing-quality checks. They are
+prompts to look, not verdicts: a flagged order may still be genuinely new.
+
 ## Step 3 — Fetch the template for this category + depth, and follow it exactly
 
 ```bash

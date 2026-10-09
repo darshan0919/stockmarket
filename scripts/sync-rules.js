@@ -103,6 +103,9 @@ function runVerification() {
           'rule-safety-rails',
           'rule-platform-sync',
           'rule-company-master',
+          'rule-pdf-only-default',
+          'rule-chat-conciseness-no-pdf-echo',
+          'rule-contextual-rate-of-change',
         ];
         const existingIds = new Set(data.rules.map((r) => r.id));
         for (const reqId of requiredRuleIds) {

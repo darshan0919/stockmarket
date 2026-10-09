@@ -97,7 +97,7 @@ refresh, forensic re-run, price move that changes valuation materially, or a sch
 
 Iterate every `*_thesis.json` in the store. For each: check staleness (>1 quarter without
 update = flag), re-anchor valuation to live CMP, run `fundamental-shift-scanner`-style
-7-day announcement check, apply mode 2 for anything material. Output a one-table briefing:
+7-day announcement check, apply mode 2 for anything material. Also run `node skills/equity-research/investment-thesis-engine/scripts/exit_checks.js <thesis.json> <cmp>` per thesis (deterministic; surfaces `PRICE_STOP_BREACH`, `TIME_STOP_REVIEW`, `NO_EXIT_PLAN`, `CONFIRMATION_FAILED`) and list flagged names in the briefing. Output a one-table briefing:
 Ticker | Signal (Δ) | Conviction | Stale? | Breached monitorables | Next catalyst.
 
 ### 4. `signal` — recompute only

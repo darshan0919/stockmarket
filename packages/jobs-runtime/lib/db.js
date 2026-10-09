@@ -99,6 +99,29 @@ const SINGLE_FILE_COLLECTIONS = [
   // lives in x-posts/shard_<hex>.jsonl, this file holds the slim index. Written
   // via saveXPosts() below, never directly.
   'x-posts',
+  // knowledge-units: learned knowledge from expert/course sources
+  // (learn-and-automate skill) — atomic rules/do's/don'ts/sector views
+  // (kb-unit), answered/decided questions (kb-question), derived frameworks
+  // (kb-framework), automation-map decisions (kb-automation) and the learner's
+  // question-lens profile (kb-learner-profile). DATA_RULES.md §3 justification:
+  // a new entity class keyed by SOURCE (x:<handle>, learnyst:<kw>…), not by
+  // company; one source yields thousands of small, individually-updated records
+  // (Darshan's adopt/adapt/reject stance per rule), which fits neither
+  // reports (one DTO per run) nor notes/events (company/date-scoped). Written
+  // only via skills/tooling/learn-and-automate/scripts/persist.js → upsertMany.
+  'knowledge-units',
+  // signal-ledger: keyed CURRENT STATE of each (signal, entity) pair produced by the
+  // SOIC signal detectors (market regime, sector, stock entry/exit signals; see
+  // docs/SOIC_SIGNAL_TAXONOMY_V1.md) with lifecycle detected -> confirmed ->
+  // entry-ready -> invalidated|spent. DATA_RULES.md §3 justification: the entity is a
+  // MUTABLE state machine keyed by signal+entity (+ scope for future multi-user
+  // overlays), not a dated occurrence (events are append-only) and not company-only
+  // (market- and sector-level signals have no companyId, so companies.json
+  // state.<skill> cannot hold them). Every state TRANSITION is also appended to the
+  // events log (type `signal_transition`) so history stays append-only. Written only
+  // via lib/signalLedger.js (applyObservations); each signalId is owned by exactly one
+  // detector (record.creator) so concurrent detectors never write the same key.
+  'signal-ledger',
 ];
 const LINK_CAP = 200; // max event/note/insight ids kept on a company object
 const LOCK_STALE_MS = 5 * 60 * 1000;

@@ -77,6 +77,19 @@
       "status": "PASS|BREACH|UNCHECKED"
     }
   ],
+  "exit_plan": {
+    "what_must_go_right": ["order inflow continues", "EBITDA margin >= 12%"],
+    "price_stop": 0,
+    "entry_date": "2026-07-04",
+    "entry_price": 0,
+    "time_stop_days": 90,
+    "meaningful_move_pct": 0,
+    "peak_price": 0,
+    "giveback_pct": 10,
+    "max_hold_days": 730,
+    "horizon_override_reason": "",
+    "confirmation_status": "pending|confirmed|failed"
+  },
   "what_would_change_thesis": {
     "upgrade": ["contribution margin > 4% for 2 consecutive quarters"],
     "downgrade": ["2 consecutive guidance misses", "auditor resignation (instant AVOID)"]
@@ -98,6 +111,8 @@
 ```
 
 Notes:
+
+- `exit_plan` (added 2026-10-09 from `kbf_x-sureshkbn_exit-plan-before-entry`): written BEFORE entry. `time_stop_days` / `meaningful_move_pct` are the user's own numbers — never invent defaults. `scripts/exit_checks.js` flags `PRICE_STOP_BREACH`, `TIME_STOP_REVIEW`, `PROFIT_GIVEBACK` (share of the peak gain given back; `peak_price` = max CMP since entry, updated by the weekly review) and `HORIZON_EXCEEDED` (held > `max_hold_days`, silenced by a written `horizon_override_reason`). No numeric position sizing lives here (sizing language stays High conviction / Standard / Tracking).
 
 - `evidence_log` is append-only; ids are stable (`e1, e2, ...`). Every pillar score must
   reference at least one evidence id. Every evidence entry carries an [R]/[D]/[E] `tag`.
