@@ -1,0 +1,84 @@
+{
+  "_doc": "Codified policy-event sources for the policy-event-tracker. type=rss sources are fetched by policySourcesFetch.js; type=web sources have no verified machine feed and are checked by the agent via WebFetch/WebSearch. verifiedOn = date the URL/feed was last confirmed reachable from the device shell. NEVER add a URL here that has not been fetched successfully.",
+  "sources": [
+    {
+      "id": "rbi-press",
+      "name": "RBI press releases",
+      "type": "rss",
+      "authority": "official",
+      "url": "https://rbi.org.in/pressreleases_rss.xml",
+      "covers": [
+        "rate",
+        "regulation"
+      ],
+      "verifiedOn": "2026-10-11",
+      "noiseTitleRegex": "^Auction of|Treasury Bills|OMO (Sale|Purchase)|Money Market Operations|Reference Rate|Weekly Statistical|Variable Rate (Reverse )?Repo|Survey:|Result of|Full Auction Results|Working Paper"
+    },
+    {
+      "id": "sebi",
+      "name": "SEBI RSS feed (orders, circulars, regulations)",
+      "type": "rss",
+      "authority": "official",
+      "url": "https://www.sebi.gov.in/sebirss.xml",
+      "linkFix": "doubleHttpsPrefix",
+      "noiseTitleRegex": "^(Adjudication|Settlement|Exemption|Final|Interim|Confirmatory) Order|Order in the matter of|Show Cause|Recovery Certificate|Corrigendum|^\\.?Appeal No\\.|Notice of Demand|Attachment Order|Press Release on Recovery",
+      "covers": [
+        "regulation"
+      ],
+      "verifiedOn": "2026-10-11"
+    },
+    {
+      "id": "pib-releases",
+      "name": "PIB all releases (Union Cabinet decisions, ministries)",
+      "type": "web",
+      "authority": "official",
+      "url": "https://www.pib.gov.in/allRel.aspx",
+      "agentHint": "Page is JS-rendered; no verified RSS URL. Use WebSearch 'Union Cabinet approves <month year> PIB' and WebFetch the PIB PressReleasePage link; require the PRID URL as the source.",
+      "covers": [
+        "budget",
+        "capex",
+        "subsidy",
+        "tax",
+        "trade",
+        "tariff",
+        "other"
+      ],
+      "verifiedOn": "2026-10-11"
+    },
+    {
+      "id": "cbic",
+      "name": "CBIC (GST / customs notifications)",
+      "type": "web",
+      "authority": "official",
+      "url": "https://www.cbic.gov.in/",
+      "agentHint": "Not reachable from the device shell on 2026-10-11 (timeout); use WebSearch for 'GST Council' / 'CBIC notification' and cite the cbic.gov.in or PIB link.",
+      "covers": [
+        "tax",
+        "tariff"
+      ],
+      "verifiedOn": null
+    }
+  ],
+  "kindHints": [
+    {
+      "kind": "rate",
+      "regex": "repo rate|policy rate|MPC|monetary policy|CRR|SLR|reverse repo|VRRR"
+    },
+    {
+      "kind": "regulation",
+      "regex": "regulat|master direction|circular|norms|framework|guidelines|foreign exchange|forex"
+    },
+    {
+      "kind": "tax",
+      "regex": "\\bGST\\b|income tax|tax rate|customs duty"
+    },
+    {
+      "kind": "tariff",
+      "regex": "tariff|anti-dumping|safeguard duty|import duty"
+    },
+    {
+      "kind": "subsidy",
+      "regex": "\\bPLI\\b|incentive scheme|subsidy"
+    }
+  ]
+}

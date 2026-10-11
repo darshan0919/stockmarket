@@ -142,7 +142,7 @@ Every review evaluates the target skill along these 6 dimensions (detailed in [r
    The script automatically:
    - Computes the deterministic `contentHash` (`SHA-256` of `SKILL.md` + `references/`).
    - Retrieves the most recent `skill-review` report from `packages/jobs-runtime/lib/db.js` (`reports`), loading settled decisions and prior thinking rationales.
-   - Runs static inspection ([inspect-skill.js](file:///Users/darshanpatel/code/stockmarket/scripts/inspect-skill.js)) for line count, script candidates, and caching.
+   - Runs static inspection ([`inspect-skill.js`](scripts/inspect-skill.js)) for line count, script candidates, and caching.
    - Queries `ask-soic` (`search_soic.py`), `ask-expert` (`search_expert.py`), and historical DB reports for relevant market teachings and failure edge cases.
 
 2. **Re-Run Evaluation Check:**

@@ -21,6 +21,8 @@
     "near-highs-digest": "yarn workspace @stock/jobs-runtime near-highs-digest",
     "market-regime-daily": "yarn workspace @stock/jobs-runtime market-regime-daily",
     "technical-setups-daily": "yarn workspace @stock/jobs-runtime technical-setups-daily",
+    "mtf-flush-daily": "yarn workspace @stock/jobs-runtime mtf-flush-daily",
+    "mtf-flush-outcomes": "yarn workspace @stock/jobs-runtime mtf-flush-outcomes",
     "sector-clusters-daily": "yarn workspace @stock/jobs-runtime sector-clusters-daily",
     "exit-watch-daily": "yarn workspace @stock/jobs-runtime exit-watch-daily",
     "policy-events": "yarn workspace @stock/jobs-runtime policy-events",

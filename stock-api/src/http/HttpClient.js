@@ -17,6 +17,7 @@ const API_LABELS = [
   ['bseindia.com', 'bse'],
   ['perplexity.ai', 'perplexity'],
   ['tradingview.com', 'tradingview'],
+  ['indiamtf.com', 'indiamtf'],
 ];
 
 /** Derive a short API label from a request URL for usage-tracking purposes. */

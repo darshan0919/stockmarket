@@ -67,7 +67,18 @@ async function fetchBreadth() {
     index: def.index || [],
     scanId: NEAR_HIGHS_SCAN_ID,
   });
-  return { universe, above20, above50, above200, nearHighsCount };
+  // 1M-gainer breadth (process-playbook breadth-gaps). Context only; a failure must not drop breadth.
+  let gainers1m = null;
+  let gainers1mOver10 = null;
+  try {
+    [gainers1m, gainers1mOver10] = await Promise.all([
+      countScan([{ left: 'Returns 1M', sign: '>', right: '0' }], { index: idx }),
+      countScan([{ left: 'Returns 1M', sign: '>', right: '10' }], { index: idx }),
+    ]);
+  } catch (e) {
+    console.error(`[market-regime] 1M-gainer breadth skipped: ${e.message}`);
+  }
+  return { universe, above20, above50, above200, nearHighsCount, gainers1m, gainers1mOver10 };
 }
 
 async function settle(label, fn) {

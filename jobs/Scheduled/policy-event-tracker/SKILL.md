@@ -13,10 +13,13 @@ Top-down policy layer (`docs/SOIC_SIGNAL_PLAN.md`; macro playbook §4: "policy i
 ## Execution Plan (weekly discovery)
 
 1. `export STOCKMARKET_JOB_NAME=policy-event-tracker`
-2. WebSearch (standard mode first; extended only if thin) for policy events dated in the last 7 days. Use official sources where possible (PIB, RBI, SEBI, CBIC, Union Cabinet briefings) and a second source for each event. NEVER invent a date, URL or ticker; if the date or source is not verifiable, skip the event and say so.
+2. Candidates, in this order (registry: `packages/jobs-runtime/lib/policySources.json`, never add a URL that has not been fetched successfully):
+   a. `node packages/jobs-runtime/lib/policySourcesFetch.js --days 7` — zero-LLM pass over the machine-readable official feeds (RBI press releases, SEBI RSS). Returns dated, https-linked `candidates` (drop `likelyNoise`; `kindHint` is only a hint), `webOnly` sources, and `errors` (a failed feed = say so in the report, do not guess its contents).
+   b. For each `webOnly` source (PIB for Union Cabinet decisions, CBIC for GST/customs) follow its `agentHint`: WebSearch (standard first; extended only if thin) then WebFetch the official page.
+   c. Every event needs an official-source URL where one exists PLUS a second independent source (WebSearch). Judgement stays with you: is it genuinely NEW, dated within 7 days, and market-relevant (routine auctions/orders are not events)? NEVER invent a date, URL or ticker; if the date or source is not verifiable, skip the event and say so.
 3. Skip events already registered: check `yarn workspace @stock/jobs-runtime policy-events run --dry-run` output (`report[].title`).
 4. For each new event write `{date, title, kind, sectors, basket, sourceUrls, summary}` to a temp JSON (basket = direct beneficiaries/victims that trade in India with real liquidity; state the mapping rationale in `summary`). Validate with `yarn workspace @stock/jobs-runtime policy-events add --file <json> --dry-run`, fix rejections, then run without `--dry-run`.
-5. `yarn workspace @stock/jobs-runtime policy-events run` then `yarn workspace @stock/jobs-runtime data:push`.
+5. `yarn workspace @stock/jobs-runtime policy-events run --email` (weekly discovery run only: also emails the absorption table with source links to `DEALS_DIGEST_TO`; the daily run omits `--email` and stays silent) then `yarn workspace @stock/jobs-runtime data:push`.
 6. Report: events added (with source links), events skipped and why, current absorption table, `filesTouched`. Set any note's `modelUsed` to the exact executing model.
 
 ## Daily absorption (script only)

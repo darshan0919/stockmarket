@@ -134,3 +134,75 @@ Sectors not directly covered in the source course but that will come up in pract
 - Several sector rows (Packaging, Wealth Management, Auto Ancillaries) rest on a single or handful of named examples in the transcripts — thinner evidentiary basis than the Banks/Cement/Real Estate/Pharma/Hospitals rows, which had multiple worked examples and explicit numeric ranges across more than one lesson. Weight confidence accordingly when a skill cites this file.
 - The §General valuation techniques section (items 1–11) mixes durable analytical discipline (stripping one-off items, checking float before trusting a multiple, separating transactional from intrinsic P/E) with specific cited statistics (the "-8% average 3-year alpha above 50x P/E" figure, the "~1 in 50 sub-15x-P/E stocks beat the index" figure) that were stated by the instructor as coming from named third-party studies (Motilal Oswal-style wealth-creation studies) but were not independently re-verified against the original study in this pass — treat the _techniques_ as reliable teaching, and the _specific statistics_ as claims to verify against the primary study before quoting in a published output.
 - ASR (speech-to-text) transcription of spoken, sometimes Hindi-English-mixed lectures can introduce numeric errors (a "26x" could be a mis-transcribed spoken number) — any specific number pulled from here for a HIGH-STAKES output (e.g., a published target price) should be cross-checked against the original transcript's `transcriptTimestamped` field, or against an independent source, before being stated as fact rather than as framework. One lesson in this pass (Level 2 Hindi, "Case Studies: best way to teach valuations") was confirmed to be fully interpretable Hinglish with no meaningful untranslatable content, but future lessons pulled into this file may not be — flag explicitly if a future addition has any genuinely uninterpretable stretch.
+
+---
+
+## Additions from SOIC teaching + X handles (2026-10-11, unverified against the model's own research)
+
+Source: `knowledge-units.json` kb-units (non-rejected) cross-checked against `data/runs/learn-and-automate/_combined/{valuation,sector}-teaching/framework.md`. Rank when sources disagree: SOIC teaching (Learnyst/YouTube) > Suresh > ishmohit > Shashank > chartist. Purely additive; nothing above was changed. "(single-source)" = rests on one unit. Ids in `[[ ]]` are the last 8 hex of the unit id.
+
+### New sector-specific KPIs (not already listed above)
+
+- **Banks:** spread management plus NPA control drive P/B, since funding costs are similar across banks. [[eb2e15be]]
+- **Banks:** provisions depress ROE while PPOP grows; ROE rebounds as provisions normalise (tier 2-3 banks, NBFCs). Single-source, X. [[324abc46]]
+- **Banks:** CASA trend as the turnaround tell for a small bank. Single-source, X. [[43d86094]]
+- **Banks:** separate structural drivers (PSU balance-sheet clean-up) from transient ones (NIM gains). Single-source, X. [[06a02b8c]]
+- **Banks:** public-sector banks are an avoid once the credit cycle turns down from its peak (credit cost up, growth down). [[81d8eac4]]
+- **NBFC / Small Finance / Microfinance:** collection efficiency is the recovery indicator after a downtrend. [[52f1a73b]]
+- **NBFC / Small Finance / Microfinance:** read the cycle from the portfolio-at-risk 31-90 day trend; falling PAR means the upcycle is taking hold. [[dda9d541]]
+- **NBFC / Small Finance / Microfinance:** a microfinance credit cycle runs about 12-15 months from bad to recovery; buy only after the bad phase is mostly over. [[7473315a]]
+- **NBFC / Microfinance:** further re-rating needs one or two more quarters of stable asset quality and credit cost. Single-source, X. [[14097613]]
+- **Life Insurance:** sum assured as the market-share measure. Single-source, X. [[7762911c]]
+- **Cement:** capacity-footprint expansion (who is adding capacity) as the market-share signal. [[5cb3ccfc]]
+- **Cement:** a regional player going pan-India can close its EV/ton gap to pan-India peers. [[be53d46c]]
+- **Real Estate:** breadth check, whether most developers show pre-sales growth over the last 2-3 years. [[bd83a191]]
+- **Hotels:** tier 2/3 supply added by local landowners is an oversupply risk to monitor. [[8791cd54]]
+- **Hospitals:** surgery mix and international-patient share alongside occupied beds and ARPOB (confirms file), plus new capacity taking years to turn EBITDA-positive. [[11961e0a]] [[8864f5e5]]
+- **IT Services:** revenue per employee as a sector metric. Single-source, X. [[353cf294]]
+- **IT Services:** contract value and contract type alongside order booking and pipeline. [[91d07a0c]]
+- **Pharma, generic API:** API prices swing margins; do not value on peak margins. [[1941a758]]
+- **Pharma, formulations:** margin expansion from a temporary window of exclusive launches may not last. [[2ad02be8]]
+- **Pharma, CDMO:** revenue turns cyclical when a made drug goes off patent; patented CDMOs with US plus India capacity are the Biosecure-type beneficiaries. [[1f981e38]] [[4762f8a4]]
+- **Pharma:** NCE outcomes are binary, so not modelable like CDMO/branded. [[17223f13]]
+- **Pharma:** regulated-market sales need GMP; non-GMP intermediates face lower barriers. [[47d094f0]]
+- **Chemicals:** mix shift to higher value-added products as the margin-expansion test; price-takers cannot pass on input-cost spikes. [[42451340]] [[1561bb3b]]
+- **Chemicals:** anti-dumping duties in a critical supply chain push capacity into the duty-imposing market. [[48d3d7f0]]
+- **Chemicals:** lower raw-material dependence on China is lifting margins. Single-source, X. [[d9aab19e]]
+- **Commodities, sugar-type:** industries whose ROC/ROE stay below cost of capital are not worth owning even in price spikes. [[3e8d42ff]]
+- **Commodities, solar:** module capacity heading to overcapacity with cell output well below stated capacity; pre-IPO bidders may inflate order books. Single-source each, X. [[2abc2ed9]] [[55050f0e]]
+- **Commodities / cyclicals:** P/B bands (buy around 0.7-0.8x, exit 1.3-1.5x) as a rule of thumb. Single-source, YouTube 2023. [[59e663e1]]
+- **EPC:** execution speed, working capital and collections matter more than order-book size; a slow-executing book delays returns. [[ba7da4cc]] [[c55d4d96]] [[32530567]]
+- **EPC / B2G:** delayed government receivables create working-capital stress (solar pump, EPC, roads, water). [[d35a3f3b]]
+- **EPC / capital goods:** order-book visibility is only about 6 months; check data-centre share of the book. [[16a3e626]] [[68fe399d]] [[ff8245d8]]
+- **EPC / capital goods:** when new orders stop, order-book/market-cap, P/S and P/E de-rate together. [[af41f83b]]
+- **Infra SME (single-source):** cheap-looking only after most of the order book is executed, so buy at high P/E and sell at low P/E, like a metal. [[190979a4]]
+- **Platform:** volume growth inflecting vs fading plus expected profitability; hard to value before profits show. [[73be261a]] [[56e3a69c]]
+- **Capital Markets / Exchanges:** exchange earnings tied to gold/silver volatility can reverse quickly when volatility falls. [[63b9eb16]] [[5d6fb09b]]
+- **Alcohol:** premiumisation lifts value growth above volume growth. [[1ff02ebb]]
+- **FMCG:** volume growth and category presence as the two key metrics; growth from distribution expansion or premiumisation, best when both. [[b6b6dd1d]] [[2c9c624a]]
+- **FMCG (single-source):** above-trend volume in a mature category must come from share gain from unorganised players; verify before expecting a re-rate. [[8a501f95]]
+- **Auto Ancillaries / OEMs:** monthly dispatches and market-share gain are the leading signal. [[a5db01db]]
+- **Jewellery (not in table):** studded mix lifts ROE, bullion mix dilutes it; compare peers on product mix. [[98b0f82c]]
+- **Holding / SOTP:** the thesis rests on the highest-multiple segment becoming the dominant share of profit; adjust unlock gains for tax and transaction costs. [[3ef0be02]] [[24bc84af]]
+
+### Candidate KPIs for sectors in "Not-yet-covered" (no benchmark ranges added)
+
+- **Defence:** order book is the primary metric, quarterly numbers secondary; one order larger than the current book can reset revenue; defence share of a manufacturer's order book; domestic vs export inflows. [[07580284]] [[a12c7f71]] [[11106693]] [[b38c4935]]
+- **Power / transmission (T&D):** power-grid capex guidance leads transmission EPC orders; payers matter (quasi-B2G grid clients pay on time); short-duration order books plus operating leverage. [[de97fa09]] [[ba816d79]] [[412eaa67]]
+- **Textiles:** destocking-to-restocking turn; growth turn comes after restocking runs a couple of quarters. [[00605558]]
+- **Shipping / logistics:** fleet efficiency, utilisation, vessel count. [[361e2698]]
+- **Airlines (single-source):** slot reallocation benefits the carrier with capacity to absorb it. [[6f6daae4]]
+- **Data centres / AI capex:** start from end-market capacity growth, then find which listed names capture it; second-order suppliers (power, cooling, cables). [[a4db701b]] [[7c4771f5]]
+
+### Conflicts / caveats
+
+- File says it "deliberately sets no P/E bands"; teaching quotes numeric anchors (cement EV/EBITDA about 8-9x trough to 15x peak, depositories 30-35x trough to 70-75x peak, MNC-linked agrochem 35-40x, leading capital goods 40-50x vs 30x, EPC P/S 4-5x). Listed here for awareness only, not adopted as bands. [[a2d43a90]] [[1553b9e3]] [[3723f6ce]] [[a2c4ac14]] [[45c98696]]
+- EPC order book: teaching values on the forward order book (and de-rates when orders stop), while Suresh stresses execution, working capital and collections over size, and calls high-P/E T&D EPC names with large books under-rewarded. The latter sits against the file's "order-book-size inflation on low margins is a bubble" warning. Teaching ranks first; treat the Suresh claim as contested. [[46ef3242]] [[af41f83b]] [[c55d4d96]] [[6acece22]] [[45c98696]]
+- Capital-goods order books rarely show more than about 6 months of visibility, which tempers the file's "market prices the forward order pipeline". [[16a3e626]] [[68fe399d]]
+- CDMO: teaching gives MNC-pipeline CDMOs the highest valuation (SOTP CDMO 40-50x) but the sector playbook also calls CDMO cyclical, not structural (off-patent risk). Keep the file's pipeline hierarchy and add the cyclicality caveat. [[a9c3347e]] [[1f981e38]]
+- NIM as a banks KPI: Suresh calls NIM gains transient and ishmohit says rate cuts hurt bank margins (only fixed-rate NBFC books gain), which is a margin-direction claim and does not contradict the rate-sensitivity overlay on multiples. Both single-source X. [[06a02b8c]] [[59582635]]
+- FMCG: ishmohit would hold a double-digit-volume consumer name until valuation is "insane", looser than the file's PEG ceiling (about 1.67x for FMCG). Teaching prevails; keep the file's discipline. Single-source, X. [[5285b551]]
+- Life insurance: sum assured (Suresh) is a scale measure and does not replace VNB margin or embedded value, which teaching and ishmohit endorse. [[7762911c]] [[4d0ac6f2]] [[0a0b2d69]]
+- Solar sits in the "Not-yet-covered" list pointing to another file, but ishmohit treats solar as a pure global commodity with non-permanent peak margins; cross-check against the commodity row. [[917c0259]]
+- Chartist cycle-metric set (price, demand growth, utilisation, order book, volume growth) is a generic checklist, not a sector KPI, and is lowest-ranked. Single-source. [[4ed51147]]
+- Most X-handle units are one-liners from single posts; teaching units are undated and may be stale. Both are unverified against company filings.

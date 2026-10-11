@@ -1,700 +1,172 @@
 # Dead Code & Coding Practice Action Items
 
-> **Last Updated:** 2026-10-09T21:15:40.511Z
+> **Last Updated:** 2026-10-11T13:35:47.190Z
 > **Status:** Automated Scan Completed
-> **Active Action Items:** 95
+> **Active Action Items:** 25
 
 ---
 
 ## 📊 Summary Breakdown
 
-| Category                        | Flagged Items |  Priority   |
-| :------------------------------ | :-----------: | :---------: |
-| **Coding Standard Violation**   |       1       | High/Medium |
-| **Unused File**                 |      50       | High/Medium |
-| **Unreferenced Non-Code File**  |      40       | High/Medium |
-| **Data Directory Hanging Node** |       4       | High/Medium |
-
-## 🗂️ Whole-Directory Findings (sorted by file count — check these first)
-
-| Directory                                    | Files | Category                   | Action                                                                              |
-| :------------------------------------------- | :---: | :------------------------- | :---------------------------------------------------------------------------------- |
-| `_to_delete/learn-and-automate/`             |  21   | Unreferenced Non-Code File | `[VERIFY] _to_delete/learn-and-automate/ — confirm unused, then delete or relocate` |
-| `tmp/pcsi-run/`                              |  10   | Unreferenced Non-Code File | `[DELETE] tmp/pcsi-run/ — files under repo-root tmp/ are always considered dead`    |
-| `jobs/data/`                                 |   7   | Unreferenced Non-Code File | `[DELETE] jobs/data/ — files under jobs/data/ are always considered dead`           |
-| `_to_delete/tmp_diag3_orderbook_1791311583/` |   6   | Unused File                | `[DELETE] _to_delete/tmp_diag3_orderbook_1791311583/`                               |
-| `scripts/xbrl/`                              |   5   | Unused File                | `[DELETE] scripts/xbrl/`                                                            |
-| `_to_delete/tmp_diag2_postclose_1791309085/` |   2   | Unused File                | `[DELETE] _to_delete/tmp_diag2_postclose_1791309085/`                               |
-| `_to_delete/tmp_diag_postclose_1791308657/`  |   2   | Unused File                | `[DELETE] _to_delete/tmp_diag_postclose_1791308657/`                                |
-| `_to_delete/cache_test_debris/`              |   2   | Unreferenced Non-Code File | `[VERIFY] _to_delete/cache_test_debris/ — confirm unused, then delete or relocate`  |
+| Category | Flagged Items | Priority |
+| :--- | :---: | :---: |
+| **Unused File** | 13 | High/Medium |
+| **Unreferenced Non-Code File** | 8 | High/Medium |
+| **Data Directory Hanging Node** | 4 | High/Medium |
 
 ---
 
 ## 📋 Action Items List
 
-The following items were identified by analyzing scheduled jobs, skills, workspace APIs, and frontend applications. Corresponding entries have also been synchronized to [`data/tasks.json`](file:///Users/darshanpatel/code/stockmarket/data/tasks.json).
+The following items were identified by analyzing scheduled jobs, skills, workspace APIs, and frontend applications. Corresponding entries have also been synchronized to [`data/tasks.json`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/data/tasks.json).
 
-### 1. [High] Refactor hardcoded user absolute path in skills/tooling/grill-skill/SKILL.md
-
-- **Category:** Coding Standard Violation
-- **Target File:** [`skills/tooling/grill-skill/SKILL.md`](file:///Users/darshanpatel/code/stockmarket/skills/tooling/grill-skill/SKILL.md)
-- **Details:** Hardcoded path(s) found: /Users/darshanpatel/code/stockmarket. Use process.cwd(), relative paths, or environment variables instead.
-- **Recommended Action:** `[REFACTOR] Replace static absolute paths in skills/tooling/grill-skill/SKILL.md`
-
-### 2. [High] Investigate unreferenced folder \_to_delete/tmp_diag3_orderbook_1791311583/ (6 files, all unreferenced)
-
+### 1. [High] Investigate unreferenced source file bt.py
 - **Category:** Unused File
-- **Target File:** [`_to_delete/tmp_diag3_orderbook_1791311583`](file:///Users/darshanpatel/code/stockmarket/_to_delete/tmp_diag3_orderbook_1791311583)
-- **Details:** Every file that exists under \_to_delete/tmp_diag3_orderbook_1791311583/ (recursively, 6 total) is unreachable from any entry root. Representative reason: all 6 files under this folder are unreferenced. Full file list: \_to_delete/tmp_diag3_orderbook_1791311583/bisect.js, \_to_delete/tmp_diag3_orderbook_1791311583/test_ensurebase.js, \_to_delete/tmp_diag3_orderbook_1791311583/test_extract.js, \_to_delete/tmp_diag3_orderbook_1791311583/test_financials.js, \_to_delete/tmp_diag3_orderbook_1791311583/test_resolvefacts.js, \_to_delete/tmp_diag3_orderbook_1791311583/test_rollup.js
-- **Recommended Action:** `[DELETE] _to_delete/tmp_diag3_orderbook_1791311583/`
-
-### 3. [High] Investigate unreferenced folder scripts/xbrl/ (5 files, all unreferenced)
-
-- **Category:** Unused File
-- **Target File:** [`scripts/xbrl`](file:///Users/darshanpatel/code/stockmarket/scripts/xbrl)
-- **Details:** Every file that exists under scripts/xbrl/ (recursively, 5 total) is unreachable from any entry root. Representative reason: all 5 files under this folder are unreferenced. Full file list: scripts/xbrl/backfill_bse_scrip.js, scripts/xbrl/compare_pdf.js, scripts/xbrl/validate_events.js, scripts/xbrl/validate_filings.js, scripts/xbrl/validate_results.js
-- **Recommended Action:** `[DELETE] scripts/xbrl/`
-
-### 4. [High] Investigate unreferenced folder \_to_delete/tmp_diag2_postclose_1791309085/ (2 files, all unreferenced)
-
-- **Category:** Unused File
-- **Target File:** [`_to_delete/tmp_diag2_postclose_1791309085`](file:///Users/darshanpatel/code/stockmarket/_to_delete/tmp_diag2_postclose_1791309085)
-- **Details:** Every file that exists under \_to_delete/tmp_diag2_postclose_1791309085/ (recursively, 2 total) is unreachable from any entry root. Representative reason: all 2 files under this folder are unreferenced. Full file list: \_to_delete/tmp_diag2_postclose_1791309085/check.js, \_to_delete/tmp_diag2_postclose_1791309085/send_safe.js
-- **Recommended Action:** `[DELETE] _to_delete/tmp_diag2_postclose_1791309085/`
-
-### 5. [High] Investigate unreferenced folder \_to_delete/tmp_diag_postclose_1791308657/ (2 files, all unreferenced)
-
-- **Category:** Unused File
-- **Target File:** [`_to_delete/tmp_diag_postclose_1791308657`](file:///Users/darshanpatel/code/stockmarket/_to_delete/tmp_diag_postclose_1791308657)
-- **Details:** Every file that exists under \_to_delete/tmp_diag_postclose_1791308657/ (recursively, 2 total) is unreachable from any entry root. Representative reason: all 2 files under this folder are unreferenced. Full file list: \_to_delete/tmp_diag_postclose_1791308657/diag6.js, \_to_delete/tmp_diag_postclose_1791308657/diag7.js
-- **Recommended Action:** `[DELETE] _to_delete/tmp_diag_postclose_1791308657/`
-
-### 6. [High] Investigate unreferenced source file \_tmp_ann_scan.js
-
-- **Category:** Unused File
-- **Target File:** [`_tmp_ann_scan.js`](file:///Users/darshanpatel/code/stockmarket/_tmp_ann_scan.js)
+- **Target File:** [`docs/mtf-flush-signal/bt.py`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/docs/mtf-flush-signal/bt.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _tmp_ann_scan.js`
+- **Recommended Action:** `[DELETE] docs/mtf-flush-signal/bt.py`
 
-### 7. [High] Investigate unreferenced source file \_tmp_build_baseline.js
-
+### 2. [High] Investigate unreferenced source file cand.py
 - **Category:** Unused File
-- **Target File:** [`_tmp_build_baseline.js`](file:///Users/darshanpatel/code/stockmarket/_tmp_build_baseline.js)
+- **Target File:** [`docs/mtf-flush-signal/cand.py`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/docs/mtf-flush-signal/cand.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _tmp_build_baseline.js`
+- **Recommended Action:** `[DELETE] docs/mtf-flush-signal/cand.py`
 
-### 8. [High] Investigate unreferenced source file \_tmp_build_baseline2.js
-
+### 3. [High] Investigate unreferenced source file case.py
 - **Category:** Unused File
-- **Target File:** [`_tmp_build_baseline2.js`](file:///Users/darshanpatel/code/stockmarket/_tmp_build_baseline2.js)
+- **Target File:** [`docs/mtf-flush-signal/case.py`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/docs/mtf-flush-signal/case.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _tmp_build_baseline2.js`
+- **Recommended Action:** `[DELETE] docs/mtf-flush-signal/case.py`
 
-### 9. [High] Investigate unreferenced source file \_tmp_build_baseline3.js
-
+### 4. [High] Investigate unreferenced source file dl.py
 - **Category:** Unused File
-- **Target File:** [`_tmp_build_baseline3.js`](file:///Users/darshanpatel/code/stockmarket/_tmp_build_baseline3.js)
+- **Target File:** [`docs/mtf-flush-signal/dl.py`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/docs/mtf-flush-signal/dl.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _tmp_build_baseline3.js`
+- **Recommended Action:** `[DELETE] docs/mtf-flush-signal/dl.py`
 
-### 10. [High] Investigate unreferenced source file \_tmp_concall_full.js
-
+### 5. [High] Investigate unreferenced source file dl_deliv.py
 - **Category:** Unused File
-- **Target File:** [`_tmp_concall_full.js`](file:///Users/darshanpatel/code/stockmarket/_tmp_concall_full.js)
+- **Target File:** [`docs/mtf-flush-signal/dl_deliv.py`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/docs/mtf-flush-signal/dl_deliv.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _tmp_concall_full.js`
+- **Recommended Action:** `[DELETE] docs/mtf-flush-signal/dl_deliv.py`
 
-### 11. [High] Investigate unreferenced source file \_tmp_concall_notes.js
-
+### 6. [High] Investigate unreferenced source file dl_ohlc.py
 - **Category:** Unused File
-- **Target File:** [`_tmp_concall_notes.js`](file:///Users/darshanpatel/code/stockmarket/_tmp_concall_notes.js)
+- **Target File:** [`docs/mtf-flush-signal/dl_ohlc.py`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/docs/mtf-flush-signal/dl_ohlc.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _tmp_concall_notes.js`
+- **Recommended Action:** `[DELETE] docs/mtf-flush-signal/dl_ohlc.py`
 
-### 12. [High] Investigate unreferenced source file .pead_extract_units.py
-
+### 7. [High] Investigate unreferenced source file feat.py
 - **Category:** Unused File
-- **Target File:** [`_to_delete/.pead_extract_units.py`](file:///Users/darshanpatel/code/stockmarket/_to_delete/.pead_extract_units.py)
+- **Target File:** [`docs/mtf-flush-signal/feat.py`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/docs/mtf-flush-signal/feat.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _to_delete/.pead_extract_units.py`
+- **Recommended Action:** `[DELETE] docs/mtf-flush-signal/feat.py`
 
-### 13. [High] Investigate unreferenced source file \_b.js
-
+### 8. [High] Investigate unreferenced source file feat2.py
 - **Category:** Unused File
-- **Target File:** [`_to_delete/_b.js`](file:///Users/darshanpatel/code/stockmarket/_to_delete/_b.js)
+- **Target File:** [`docs/mtf-flush-signal/feat2.py`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/docs/mtf-flush-signal/feat2.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _to_delete/_b.js`
+- **Recommended Action:** `[DELETE] docs/mtf-flush-signal/feat2.py`
 
-### 14. [High] Investigate unreferenced source file \_h.js
-
+### 9. [High] Investigate unreferenced source file uni.py
 - **Category:** Unused File
-- **Target File:** [`_to_delete/_h.js`](file:///Users/darshanpatel/code/stockmarket/_to_delete/_h.js)
+- **Target File:** [`docs/mtf-flush-signal/uni.py`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/docs/mtf-flush-signal/uni.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _to_delete/_h.js`
+- **Recommended Action:** `[DELETE] docs/mtf-flush-signal/uni.py`
 
-### 15. [High] Investigate unreferenced source file \_n.js
-
+### 10. [High] Investigate unreferenced source file uni2.py
 - **Category:** Unused File
-- **Target File:** [`_to_delete/_n.js`](file:///Users/darshanpatel/code/stockmarket/_to_delete/_n.js)
+- **Target File:** [`docs/mtf-flush-signal/uni2.py`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/docs/mtf-flush-signal/uni2.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _to_delete/_n.js`
+- **Recommended Action:** `[DELETE] docs/mtf-flush-signal/uni2.py`
 
-### 16. [High] Investigate unreferenced source file \_o.js
-
+### 11. [High] Investigate unreferenced source file _nb.js
 - **Category:** Unused File
-- **Target File:** [`_to_delete/_o.js`](file:///Users/darshanpatel/code/stockmarket/_to_delete/_o.js)
+- **Target File:** [`packages/jobs-runtime/_nb.js`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/packages/jobs-runtime/_nb.js)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _to_delete/_o.js`
+- **Recommended Action:** `[DELETE] packages/jobs-runtime/_nb.js`
 
-### 17. [High] Investigate unreferenced source file \_p.js
-
+### 12. [High] Investigate unreferenced source file signalCalibrationReplay.js
 - **Category:** Unused File
-- **Target File:** [`_to_delete/_p.js`](file:///Users/darshanpatel/code/stockmarket/_to_delete/_p.js)
+- **Target File:** [`packages/jobs-runtime/signalCalibrationReplay.js`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/packages/jobs-runtime/signalCalibrationReplay.js)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _to_delete/_p.js`
+- **Recommended Action:** `[DELETE] packages/jobs-runtime/signalCalibrationReplay.js`
 
-### 18. [High] Investigate unreferenced source file \_q.js
-
+### 13. [High] Investigate unreferenced source file capture.js
 - **Category:** Unused File
-- **Target File:** [`_to_delete/_q.js`](file:///Users/darshanpatel/code/stockmarket/_to_delete/_q.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _to_delete/_q.js`
-
-### 19. [High] Investigate unreferenced source file \_q2.js
-
-- **Category:** Unused File
-- **Target File:** [`_to_delete/_q2.js`](file:///Users/darshanpatel/code/stockmarket/_to_delete/_q2.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _to_delete/_q2.js`
-
-### 20. [High] Investigate unreferenced source file \_q3.js
-
-- **Category:** Unused File
-- **Target File:** [`_to_delete/_q3.js`](file:///Users/darshanpatel/code/stockmarket/_to_delete/_q3.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _to_delete/_q3.js`
-
-### 21. [High] Investigate unreferenced source file \_q4.js
-
-- **Category:** Unused File
-- **Target File:** [`_to_delete/_q4.js`](file:///Users/darshanpatel/code/stockmarket/_to_delete/_q4.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _to_delete/_q4.js`
-
-### 22. [High] Investigate unreferenced source file \_q5.js
-
-- **Category:** Unused File
-- **Target File:** [`_to_delete/_q5.js`](file:///Users/darshanpatel/code/stockmarket/_to_delete/_q5.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _to_delete/_q5.js`
-
-### 23. [High] Investigate unreferenced source file \_r.js
-
-- **Category:** Unused File
-- **Target File:** [`_to_delete/_r.js`](file:///Users/darshanpatel/code/stockmarket/_to_delete/_r.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _to_delete/_r.js`
-
-### 24. [High] Investigate unreferenced source file \_w.js
-
-- **Category:** Unused File
-- **Target File:** [`_to_delete/_w.js`](file:///Users/darshanpatel/code/stockmarket/_to_delete/_w.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _to_delete/_w.js`
-
-### 25. [High] Investigate unreferenced source file save_research_dtos_tmp_20260925.js
-
-- **Category:** Unused File
-- **Target File:** [`_to_delete/save_research_dtos_tmp_20260925.js`](file:///Users/darshanpatel/code/stockmarket/_to_delete/save_research_dtos_tmp_20260925.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] _to_delete/save_research_dtos_tmp_20260925.js`
-
-### 26. [High] Investigate unreferenced source file \_tmp_debug_email.js
-
-- **Category:** Unused File
-- **Target File:** [`packages/jobs-runtime/_tmp_debug_email.js`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/_tmp_debug_email.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] packages/jobs-runtime/_tmp_debug_email.js`
-
-### 27. [High] Investigate unreferenced source file \_tmp_debug_email2.js
-
-- **Category:** Unused File
-- **Target File:** [`packages/jobs-runtime/_tmp_debug_email2.js`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/_tmp_debug_email2.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] packages/jobs-runtime/_tmp_debug_email2.js`
-
-### 28. [High] Investigate unreferenced source file \_tmp_debug_senddigest.js
-
-- **Category:** Unused File
-- **Target File:** [`packages/jobs-runtime/_tmp_debug_senddigest.js`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/_tmp_debug_senddigest.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] packages/jobs-runtime/_tmp_debug_senddigest.js`
-
-### 29. [High] Investigate unreferenced source file oce_instrumented.js
-
-- **Category:** Unused File
-- **Target File:** [`packages/jobs-runtime/lib/oce_instrumented.js`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/lib/oce_instrumented.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] packages/jobs-runtime/lib/oce_instrumented.js`
-
-### 30. [High] Investigate unreferenced source file index.js
-
-- **Category:** Unused File
-- **Target File:** [`packages/jobs-runtime/lib/pdfExtract/index.js`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/lib/pdfExtract/index.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] packages/jobs-runtime/lib/pdfExtract/index.js`
-
-### 31. [High] Investigate unreferenced source file rebuildXPostsImageOnly.js
-
-- **Category:** Unused File
-- **Target File:** [`packages/jobs-runtime/scripts/rebuildXPostsImageOnly.js`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/scripts/rebuildXPostsImageOnly.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] packages/jobs-runtime/scripts/rebuildXPostsImageOnly.js`
-
-### 32. [High] Investigate unreferenced source file tmp_gainers_research_20260921.js
-
-- **Category:** Unused File
-- **Target File:** [`packages/jobs-runtime/tmp_gainers_research_20260921.js`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/tmp_gainers_research_20260921.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] packages/jobs-runtime/tmp_gainers_research_20260921.js`
-
-### 33. [High] Investigate unreferenced source file tmp_pdftest.js
-
-- **Category:** Unused File
-- **Target File:** [`packages/jobs-runtime/tmp_pdftest.js`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/tmp_pdftest.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] packages/jobs-runtime/tmp_pdftest.js`
-
-### 34. [High] Investigate unreferenced source file tmp_resolvetest2.js
-
-- **Category:** Unused File
-- **Target File:** [`packages/jobs-runtime/tmp_resolvetest2.js`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/tmp_resolvetest2.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] packages/jobs-runtime/tmp_resolvetest2.js`
-
-### 35. [High] Investigate unreferenced source file tmp_resolvetest3.js
-
-- **Category:** Unused File
-- **Target File:** [`packages/jobs-runtime/tmp_resolvetest3.js`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/tmp_resolvetest3.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] packages/jobs-runtime/tmp_resolvetest3.js`
-
-### 36. [High] Investigate unreferenced source file tmp_resolvetest4.js
-
-- **Category:** Unused File
-- **Target File:** [`packages/jobs-runtime/tmp_resolvetest4.js`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/tmp_resolvetest4.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] packages/jobs-runtime/tmp_resolvetest4.js`
-
-### 37. [High] Investigate unreferenced source file tmp_resolvetest5.js
-
-- **Category:** Unused File
-- **Target File:** [`packages/jobs-runtime/tmp_resolvetest5.js`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/tmp_resolvetest5.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] packages/jobs-runtime/tmp_resolvetest5.js`
-
-### 38. [High] Investigate unreferenced source file tmp_resolvetest6.js
-
-- **Category:** Unused File
-- **Target File:** [`packages/jobs-runtime/tmp_resolvetest6.js`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/tmp_resolvetest6.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] packages/jobs-runtime/tmp_resolvetest6.js`
-
-### 39. [High] Investigate unreferenced source file eval_verify.js
-
-- **Category:** Unused File
-- **Target File:** [`scripts/pdf-corpus/eval_verify.js`](file:///Users/darshanpatel/code/stockmarket/scripts/pdf-corpus/eval_verify.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] scripts/pdf-corpus/eval_verify.js`
-
-### 40. [High] Investigate unreferenced source file list_docs.js
-
-- **Category:** Unused File
-- **Target File:** [`scripts/pdf-corpus/list_docs.js`](file:///Users/darshanpatel/code/stockmarket/scripts/pdf-corpus/list_docs.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] scripts/pdf-corpus/list_docs.js`
-
-### 41. [High] Investigate unreferenced source file ping_models.js
-
-- **Category:** Unused File
-- **Target File:** [`scripts/pdf-corpus/ping_models.js`](file:///Users/darshanpatel/code/stockmarket/scripts/pdf-corpus/ping_models.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] scripts/pdf-corpus/ping_models.js`
-
-### 42. [High] Investigate unreferenced source file select_docs.js
-
-- **Category:** Unused File
-- **Target File:** [`scripts/pdf-corpus/select_docs.js`](file:///Users/darshanpatel/code/stockmarket/scripts/pdf-corpus/select_docs.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] scripts/pdf-corpus/select_docs.js`
-
-### 43. [High] Investigate unreferenced source file save_dtos.js
-
-- **Category:** Unused File
-- **Target File:** [`tmp/gainers-signal-batch2/save_dtos.js`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers-signal-batch2/save_dtos.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] tmp/gainers-signal-batch2/save_dtos.js`
-
-### 44. [High] Investigate unreferenced source file build_content.py
-
-- **Category:** Unused File
-- **Target File:** [`tmp/gainers_run/build_content.py`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/build_content.py)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/build_content.py`
-
-### 45. [High] Investigate unreferenced source file save_reports_20260923.js
-
-- **Category:** Unused File
-- **Target File:** [`tmp/gainers_run/save_reports_20260923.js`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/save_reports_20260923.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/save_reports_20260923.js`
-
-### 46. [High] Investigate unreferenced source file save_reports_20260930.js
-
-- **Category:** Unused File
-- **Target File:** [`tmp/gainers_run/save_reports_20260930.js`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/save_reports_20260930.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/save_reports_20260930.js`
-
-### 47. [High] Investigate unreferenced source file tmp_check_extracts.js
-
-- **Category:** Unused File
-- **Target File:** [`tmp_check_extracts.js`](file:///Users/darshanpatel/code/stockmarket/tmp_check_extracts.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] tmp_check_extracts.js`
-
-### 48. [High] Investigate unreferenced source file tmp_check_extracts2.js
-
-- **Category:** Unused File
-- **Target File:** [`tmp_check_extracts2.js`](file:///Users/darshanpatel/code/stockmarket/tmp_check_extracts2.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] tmp_check_extracts2.js`
-
-### 49. [High] Investigate unreferenced source file tmp_fetch_ann.js
-
-- **Category:** Unused File
-- **Target File:** [`tmp_fetch_ann.js`](file:///Users/darshanpatel/code/stockmarket/tmp_fetch_ann.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] tmp_fetch_ann.js`
-
-### 50. [High] Investigate unreferenced source file tmp_fetch_briefs.js
-
-- **Category:** Unused File
-- **Target File:** [`tmp_fetch_briefs.js`](file:///Users/darshanpatel/code/stockmarket/tmp_fetch_briefs.js)
-- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
-- **Recommended Action:** `[DELETE] tmp_fetch_briefs.js`
-
-### 51. [High] Investigate unreferenced source file capture.js
-
-- **Category:** Unused File
-- **Target File:** [`tools/x-timeline-capture/capture.js`](file:///Users/darshanpatel/code/stockmarket/tools/x-timeline-capture/capture.js)
+- **Target File:** [`tools/x-timeline-capture/capture.js`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/tools/x-timeline-capture/capture.js)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
 - **Recommended Action:** `[DELETE] tools/x-timeline-capture/capture.js`
 
-### 52. [Low] Investigate unreferenced folder \_to_delete/learn-and-automate/ (21 files, all unreferenced)
-
+### 14. [Low] Investigate unreferenced file _pe_tmp.json
 - **Category:** Unreferenced Non-Code File
-- **Target File:** [`_to_delete/learn-and-automate`](file:///Users/darshanpatel/code/stockmarket/_to_delete/learn-and-automate)
-- **Details:** Every file that exists under \_to_delete/learn-and-automate/ (recursively, 21 total) is not referenced by any reachable code. Full file list: \_to_delete/learn-and-automate/jcurve-old/chunks.json, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t1-c001.txt, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t1-c002.txt, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t1-c003.txt, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t1-c004.txt, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t1-c005.txt, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t1-c006.txt, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t1-c007.txt, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t1-c008.txt, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t1-c009.txt, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t1-c010.txt, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t2-c001.txt, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t2-c002.txt, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t2-c003.txt, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t2-c004.txt, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t2-c005.txt, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t3-c001.txt, \_to_delete/learn-and-automate/jcurve-old/chunks/jcurve-t3-c002.txt, \_to_delete/learn-and-automate/jcurve-old/docs.jsonl, \_to_delete/learn-and-automate/kb.py.b, \_to_delete/learn-and-automate/pipeline.py.bak
-- **Recommended Action:** `[VERIFY] _to_delete/learn-and-automate/ — confirm unused, then delete or relocate`
-
-### 53. [Low] Investigate unreferenced folder tmp/pcsi-run/ (10 files, all unreferenced)
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/pcsi-run`](file:///Users/darshanpatel/code/stockmarket/tmp/pcsi-run)
-- **Details:** Every file that exists under tmp/pcsi-run/ (recursively, 10 total) is not referenced by any reachable code. Full file list: tmp/pcsi-run/01-resolve-scan.json, tmp/pcsi-run/02-fetch-scan.json, tmp/pcsi-run/03-filter-noise.raw, tmp/pcsi-run/04-categorise.raw, tmp/pcsi-run/categorise-clean.json, tmp/pcsi-run/fetch-scan-clean.json, tmp/pcsi-run/filter-noise-clean.json, tmp/pcsi-run/followers.json, tmp/pcsi-run/leads.json, tmp/pcsi-run/pdf-urls.json
-- **Recommended Action:** `[DELETE] tmp/pcsi-run/ — files under repo-root tmp/ are always considered dead`
-
-### 54. [Low] Investigate unreferenced folder jobs/data/ (7 files, all unreferenced)
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`jobs/data`](file:///Users/darshanpatel/code/stockmarket/jobs/data)
-- **Details:** Every file that exists under jobs/data/ (recursively, 7 total) is not referenced by any reachable code. Full file list: jobs/data/quarterly-result-analysis/ARCIL_Q1_FY27_ResultAnalysis.pdf, jobs/data/rerating-catalysts/MONEYVIEW_Output.pdf, jobs/data/rerating-catalysts/PATELCHEM_Multi_Plant_Capex_Master.html, jobs/data/rerating-catalysts/PATELCHEM_Multi_Plant_Capex_Master.pdf, jobs/data/rerating-catalysts/PATELCHEM_Output.pdf, jobs/data/rerating-catalysts/PATELCHEM_Talod_Capex_Timeline.html, jobs/data/rerating-catalysts/PATELCHEM_Talod_Capex_Timeline.pdf
-- **Recommended Action:** `[DELETE] jobs/data/ — files under jobs/data/ are always considered dead`
-
-### 55. [Low] Investigate unreferenced folder \_to_delete/cache_test_debris/ (2 files, all unreferenced)
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`_to_delete/cache_test_debris`](file:///Users/darshanpatel/code/stockmarket/_to_delete/cache_test_debris)
-- **Details:** Every file that exists under \_to_delete/cache_test_debris/ (recursively, 2 total) is not referenced by any reachable code. Full file list: \_to_delete/cache_test_debris/bs_HNDFDS_TEST/2026FYTEST-bs.json, \_to_delete/cache_test_debris/cf_HNDFDS_TEST/2026FYTEST-cf.json
-- **Recommended Action:** `[VERIFY] _to_delete/cache_test_debris/ — confirm unused, then delete or relocate`
-
-### 56. [Low] Investigate unreferenced file .shadow_pass_results_tmp.json
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`_to_delete/.shadow_pass_results_tmp.json`](file:///Users/darshanpatel/code/stockmarket/_to_delete/.shadow_pass_results_tmp.json)
+- **Target File:** [`packages/jobs-runtime/_pe_tmp.json`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/packages/jobs-runtime/_pe_tmp.json)
 - **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[VERIFY] _to_delete/.shadow_pass_results_tmp.json — confirm unused, then delete or relocate`
+- **Recommended Action:** `[VERIFY] packages/jobs-runtime/_pe_tmp.json — confirm unused, then delete or relocate`
 
-### 57. [Low] Investigate unreferenced file gainers_content_20260924_stray.json
-
+### 15. [Low] Investigate unreferenced file _unm.js.todelete
 - **Category:** Unreferenced Non-Code File
-- **Target File:** [`_to_delete/gainers_content_20260924_stray.json`](file:///Users/darshanpatel/code/stockmarket/_to_delete/gainers_content_20260924_stray.json)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[VERIFY] _to_delete/gainers_content_20260924_stray.json — confirm unused, then delete or relocate`
-
-### 58. [Low] Investigate unreferenced file gainers_email_preview_20260925.html
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`_to_delete/gainers_email_preview_20260925.html`](file:///Users/darshanpatel/code/stockmarket/_to_delete/gainers_email_preview_20260925.html)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[VERIFY] _to_delete/gainers_email_preview_20260925.html — confirm unused, then delete or relocate`
-
-### 59. [Low] Investigate unreferenced file sample_stage1.json.tmp
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`_to_delete/sample_stage1.json.tmp`](file:///Users/darshanpatel/code/stockmarket/_to_delete/sample_stage1.json.tmp)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[VERIFY] _to_delete/sample_stage1.json.tmp — confirm unused, then delete or relocate`
-
-### 60. [Low] Investigate unreferenced file shadow_pass_v2_results.json.tmp
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`_to_delete/shadow_pass_v2_results.json.tmp`](file:///Users/darshanpatel/code/stockmarket/_to_delete/shadow_pass_v2_results.json.tmp)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[VERIFY] _to_delete/shadow_pass_v2_results.json.tmp — confirm unused, then delete or relocate`
-
-### 61. [Low] Investigate unreferenced file shadow_pass_v3_results.json.tmp
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`_to_delete/shadow_pass_v3_results.json.tmp`](file:///Users/darshanpatel/code/stockmarket/_to_delete/shadow_pass_v3_results.json.tmp)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[VERIFY] _to_delete/shadow_pass_v3_results.json.tmp — confirm unused, then delete or relocate`
-
-### 62. [Low] Investigate unreferenced file shadow_pass_v4_results.json.tmp
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`_to_delete/shadow_pass_v4_results.json.tmp`](file:///Users/darshanpatel/code/stockmarket/_to_delete/shadow_pass_v4_results.json.tmp)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[VERIFY] _to_delete/shadow_pass_v4_results.json.tmp — confirm unused, then delete or relocate`
-
-### 63. [Low] Investigate unreferenced file tmp_gainers_content_20260921.json
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`packages/jobs-runtime/tmp_gainers_content_20260921.json`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/tmp_gainers_content_20260921.json)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] packages/jobs-runtime/tmp_gainers_content_20260921.json — files starting with tmp_* are always considered dead`
-
-### 64. [Low] Investigate unreferenced file tmp_gainers_stats_20260921.json
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`packages/jobs-runtime/tmp_gainers_stats_20260921.json`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/tmp_gainers_stats_20260921.json)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] packages/jobs-runtime/tmp_gainers_stats_20260921.json — files starting with tmp_* are always considered dead`
-
-### 65. [Low] Investigate unreferenced file \_unm.js.todelete
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`scripts/pdf-corpus/_unm.js.todelete`](file:///Users/darshanpatel/code/stockmarket/scripts/pdf-corpus/_unm.js.todelete)
+- **Target File:** [`scripts/pdf-corpus/_unm.js.todelete`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/scripts/pdf-corpus/_unm.js.todelete)
 - **Details:** Non-code file path/name not referenced by any reachable code.
 - **Recommended Action:** `[VERIFY] scripts/pdf-corpus/_unm.js.todelete — confirm unused, then delete or relocate`
 
-### 66. [Low] Investigate unreferenced file NSE_KANOHAR_DRHP_2026-01-23.pdf
-
+### 16. [Low] Investigate unreferenced file NSE_KANOHAR_DRHP_2026-01-23.pdf
 - **Category:** Unreferenced Non-Code File
-- **Target File:** [`stock_documents/NSE_KANOHAR_DRHP_2026-01-23.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_KANOHAR_DRHP_2026-01-23.pdf)
+- **Target File:** [`stock_documents/NSE_KANOHAR_DRHP_2026-01-23.pdf`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/stock_documents/NSE_KANOHAR_DRHP_2026-01-23.pdf)
 - **Details:** Non-code file path/name not referenced by any reachable code.
 - **Recommended Action:** `[VERIFY] stock_documents/NSE_KANOHAR_DRHP_2026-01-23.pdf — confirm unused, then delete or relocate`
 
-### 67. [Low] Investigate unreferenced file NSE_KANOHAR_PPT_202609.pdf
-
+### 17. [Low] Investigate unreferenced file NSE_KANOHAR_PPT_202609.pdf
 - **Category:** Unreferenced Non-Code File
-- **Target File:** [`stock_documents/NSE_KANOHAR_PPT_202609.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_KANOHAR_PPT_202609.pdf)
+- **Target File:** [`stock_documents/NSE_KANOHAR_PPT_202609.pdf`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/stock_documents/NSE_KANOHAR_PPT_202609.pdf)
 - **Details:** Non-code file path/name not referenced by any reachable code.
 - **Recommended Action:** `[VERIFY] stock_documents/NSE_KANOHAR_PPT_202609.pdf — confirm unused, then delete or relocate`
 
-### 68. [Low] Investigate unreferenced file NSE_KANOHAR_Result_202609.pdf
-
+### 18. [Low] Investigate unreferenced file NSE_KANOHAR_Result_202609.pdf
 - **Category:** Unreferenced Non-Code File
-- **Target File:** [`stock_documents/NSE_KANOHAR_Result_202609.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_KANOHAR_Result_202609.pdf)
+- **Target File:** [`stock_documents/NSE_KANOHAR_Result_202609.pdf`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/stock_documents/NSE_KANOHAR_Result_202609.pdf)
 - **Details:** Non-code file path/name not referenced by any reachable code.
 - **Recommended Action:** `[VERIFY] stock_documents/NSE_KANOHAR_Result_202609.pdf — confirm unused, then delete or relocate`
 
-### 69. [Low] Investigate unreferenced file NSE_SUPRIYA_PPT_202603.pdf
-
+### 19. [Low] Investigate unreferenced file NSE_SUPRIYA_PPT_202603.pdf
 - **Category:** Unreferenced Non-Code File
-- **Target File:** [`stock_documents/NSE_SUPRIYA_PPT_202603.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_SUPRIYA_PPT_202603.pdf)
+- **Target File:** [`stock_documents/NSE_SUPRIYA_PPT_202603.pdf`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/stock_documents/NSE_SUPRIYA_PPT_202603.pdf)
 - **Details:** Non-code file path/name not referenced by any reachable code.
 - **Recommended Action:** `[VERIFY] stock_documents/NSE_SUPRIYA_PPT_202603.pdf — confirm unused, then delete or relocate`
 
-### 70. [Low] Investigate unreferenced file NSE_SUPRIYA_PPT_202606.pdf
-
+### 20. [Low] Investigate unreferenced file NSE_SUPRIYA_PPT_202606.pdf
 - **Category:** Unreferenced Non-Code File
-- **Target File:** [`stock_documents/NSE_SUPRIYA_PPT_202606.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_SUPRIYA_PPT_202606.pdf)
+- **Target File:** [`stock_documents/NSE_SUPRIYA_PPT_202606.pdf`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/stock_documents/NSE_SUPRIYA_PPT_202606.pdf)
 - **Details:** Non-code file path/name not referenced by any reachable code.
 - **Recommended Action:** `[VERIFY] stock_documents/NSE_SUPRIYA_PPT_202606.pdf — confirm unused, then delete or relocate`
 
-### 71. [Low] Investigate unreferenced file NSE_SUPRIYA_Result_202606.pdf
-
+### 21. [Low] Investigate unreferenced file NSE_SUPRIYA_Result_202606.pdf
 - **Category:** Unreferenced Non-Code File
-- **Target File:** [`stock_documents/NSE_SUPRIYA_Result_202606.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_SUPRIYA_Result_202606.pdf)
+- **Target File:** [`stock_documents/NSE_SUPRIYA_Result_202606.pdf`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/stock_documents/NSE_SUPRIYA_Result_202606.pdf)
 - **Details:** Non-code file path/name not referenced by any reachable code.
 - **Recommended Action:** `[VERIFY] stock_documents/NSE_SUPRIYA_Result_202606.pdf — confirm unused, then delete or relocate`
 
-### 72. [Low] Investigate unreferenced file save_dtos.js.bak
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers-signal-batch2/save_dtos.js.bak`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers-signal-batch2/save_dtos.js.bak)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers-signal-batch2/save_dtos.js.bak — files under repo-root tmp/ are always considered dead`
-
-### 73. [Low] Investigate unreferenced file pdf_aastha_mgmt.txt
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/pdf_aastha_mgmt.txt`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/pdf_aastha_mgmt.txt)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/pdf_aastha_mgmt.txt — files under repo-root tmp/ are always considered dead`
-
-### 74. [Low] Investigate unreferenced file pdf_kabraextru.txt
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/pdf_kabraextru.txt`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/pdf_kabraextru.txt)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/pdf_kabraextru.txt — files under repo-root tmp/ are always considered dead`
-
-### 75. [Low] Investigate unreferenced file pdf_maninds.txt
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/pdf_maninds.txt`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/pdf_maninds.txt)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/pdf_maninds.txt — files under repo-root tmp/ are always considered dead`
-
-### 76. [Low] Investigate unreferenced file pdf_olaelec.txt
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/pdf_olaelec.txt`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/pdf_olaelec.txt)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/pdf_olaelec.txt — files under repo-root tmp/ are always considered dead`
-
-### 77. [Low] Investigate unreferenced file pdf_optiemus_termsheet.txt
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/pdf_optiemus_termsheet.txt`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/pdf_optiemus_termsheet.txt)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/pdf_optiemus_termsheet.txt — files under repo-root tmp/ are always considered dead`
-
-### 78. [Low] Investigate unreferenced file pdf_raymondrel_board.txt
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/pdf_raymondrel_board.txt`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/pdf_raymondrel_board.txt)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/pdf_raymondrel_board.txt — files under repo-root tmp/ are always considered dead`
-
-### 79. [Low] Investigate unreferenced file pdf_raymondrel_press.txt
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/pdf_raymondrel_press.txt`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/pdf_raymondrel_press.txt)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/pdf_raymondrel_press.txt — files under repo-root tmp/ are always considered dead`
-
-### 80. [Low] Investigate unreferenced file pdf_sanathan.txt
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/pdf_sanathan.txt`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/pdf_sanathan.txt)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/pdf_sanathan.txt — files under repo-root tmp/ are always considered dead`
-
-### 81. [Low] Investigate unreferenced file pdf_sunflag.txt
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/pdf_sunflag.txt`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/pdf_sunflag.txt)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/pdf_sunflag.txt — files under repo-root tmp/ are always considered dead`
-
-### 82. [Low] Investigate unreferenced file step1_scanner.log
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/step1_scanner.log`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/step1_scanner.log)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/step1_scanner.log — files under repo-root tmp/ are always considered dead`
-
-### 83. [Low] Investigate unreferenced file step1_scanner_v2.log
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/step1_scanner_v2.log`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/step1_scanner_v2.log)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/step1_scanner_v2.log — files under repo-root tmp/ are always considered dead`
-
-### 84. [Low] Investigate unreferenced file step1_scanner_v3.log
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/step1_scanner_v3.log`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/step1_scanner_v3.log)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/step1_scanner_v3.log — files under repo-root tmp/ are always considered dead`
-
-### 85. [Low] Investigate unreferenced file step1b_ttl.log
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/step1b_ttl.log`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/step1b_ttl.log)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/step1b_ttl.log — files under repo-root tmp/ are always considered dead`
-
-### 86. [Low] Investigate unreferenced file step2_classifier.log
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/step2_classifier.log`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/step2_classifier.log)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/step2_classifier.log — files under repo-root tmp/ are always considered dead`
-
-### 87. [Low] Investigate unreferenced file step7_render.log
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/step7_render.log`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/step7_render.log)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/step7_render.log — files under repo-root tmp/ are always considered dead`
-
-### 88. [Low] Investigate unreferenced file step7_send.log
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/step7_send.log`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/step7_send.log)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/step7_send.log — files under repo-root tmp/ are always considered dead`
-
-### 89. [Low] Investigate unreferenced file step8_push.log
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/step8_push.log`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/step8_push.log)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/step8_push.log — files under repo-root tmp/ are always considered dead`
-
-### 90. [Low] Investigate unreferenced file stockscans_coverage.json
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/gainers_run/stockscans_coverage.json`](file:///Users/darshanpatel/code/stockmarket/tmp/gainers_run/stockscans_coverage.json)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/gainers_run/stockscans_coverage.json — files under repo-root tmp/ are always considered dead`
-
-### 91. [Low] Investigate unreferenced file pcw-pdf-texts.json
-
-- **Category:** Unreferenced Non-Code File
-- **Target File:** [`tmp/pcw-pdf-texts.json`](file:///Users/darshanpatel/code/stockmarket/tmp/pcw-pdf-texts.json)
-- **Details:** Non-code file path/name not referenced by any reachable code.
-- **Recommended Action:** `[DELETE] tmp/pcw-pdf-texts.json — files under repo-root tmp/ are always considered dead`
-
-### 92. [Medium] Verify data/\_push_log.txt is actually orphaned
-
+### 22. [Medium] Verify data/_push_log.txt is actually orphaned
 - **Category:** Data Directory Hanging Node
-- **Target File:** [`data/_push_log.txt`](file:///Users/darshanpatel/code/stockmarket/data/_push_log.txt)
-- **Details:** No data-layer file (db.js/jsonlStore.js/wrapper) or data-layer consumer references this collection name ('\_push_log.txt'). Either it's genuinely orphaned scratch/backup data, or something is reading/writing it by a path pattern this scan cannot statically detect (verify manually before deleting).
+- **Target File:** [`data/_push_log.txt`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/data/_push_log.txt)
+- **Details:** No data-layer file (db.js/jsonlStore.js/wrapper) or data-layer consumer references this collection name ('_push_log.txt'). Either it's genuinely orphaned scratch/backup data, or something is reading/writing it by a path pattern this scan cannot statically detect (verify manually before deleting).
 - **Recommended Action:** `[DELETE] data/_push_log.txt — 0-byte file is always considered dead`
 
-### 93. [Medium] Verify data/scratch is actually orphaned
-
+### 23. [Medium] Verify data/scratch is actually orphaned
 - **Category:** Data Directory Hanging Node
-- **Target File:** [`data/scratch`](file:///Users/darshanpatel/code/stockmarket/data/scratch)
+- **Target File:** [`data/scratch`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/data/scratch)
 - **Details:** No data-layer file (db.js/jsonlStore.js/wrapper) or data-layer consumer references this collection name ('scratch'). Either it's genuinely orphaned scratch/backup data, or something is reading/writing it by a path pattern this scan cannot statically detect (verify manually before deleting).
 - **Recommended Action:** `[VERIFY] data/scratch — no data-layer code references this collection name`
 
-### 94. [Medium] Verify data/stockmarket.db is actually orphaned
-
+### 24. [Medium] Verify data/stockmarket.db is actually orphaned
 - **Category:** Data Directory Hanging Node
-- **Target File:** [`data/stockmarket.db`](file:///Users/darshanpatel/code/stockmarket/data/stockmarket.db)
+- **Target File:** [`data/stockmarket.db`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/data/stockmarket.db)
 - **Details:** No data-layer file (db.js/jsonlStore.js/wrapper) or data-layer consumer references this collection name ('stockmarket.db'). Either it's genuinely orphaned scratch/backup data, or something is reading/writing it by a path pattern this scan cannot statically detect (verify manually before deleting).
 - **Recommended Action:** `[DELETE] data/stockmarket.db — 0-byte file is always considered dead`
 
-### 95. [Medium] Verify data/tmp_save_gainers_reports.js is actually orphaned
-
+### 25. [Medium] Verify data/tmp_save_gainers_reports.js is actually orphaned
 - **Category:** Data Directory Hanging Node
-- **Target File:** [`data/tmp_save_gainers_reports.js`](file:///Users/darshanpatel/code/stockmarket/data/tmp_save_gainers_reports.js)
+- **Target File:** [`data/tmp_save_gainers_reports.js`](file:///sessions/rcw-01hxqc4ca1vmbakemtednrrl/mnt/stockmarket/data/tmp_save_gainers_reports.js)
 - **Details:** No data-layer file (db.js/jsonlStore.js/wrapper) or data-layer consumer references this collection name ('tmp_save_gainers_reports.js'). Either it's genuinely orphaned scratch/backup data, or something is reading/writing it by a path pattern this scan cannot statically detect (verify manually before deleting).
 - **Recommended Action:** `[DELETE] data/tmp_save_gainers_reports.js — files starting with tmp_* are always considered dead`
+

@@ -22,3 +22,16 @@ test('unknown without inputs, muted reaction + low float flags', () => {
   expect(r.flags).toEqual(['MUTED_REACTION_TO_GOOD_RESULT', 'LOW_FLOAT']);
   expect(r.pricedIn).toBe('PARTIAL');
 });
+
+describe('NEAR_52W_HIGH (informational)', () => {
+  const { peadPricedIn } = require('./peadPricedIn');
+  test('flags within 5% of 52wH but does not change pricedIn', () => {
+    const r = peadPricedIn({ fromHigh52Pct: 3 });
+    expect(r.flags).toContain('NEAR_52W_HIGH');
+    expect(r.pricedIn).toBe('UNKNOWN');
+  });
+  test('not flagged when far or missing', () => {
+    expect(peadPricedIn({ fromHigh52Pct: 12 }).flags).not.toContain('NEAR_52W_HIGH');
+    expect(peadPricedIn({}).flags).not.toContain('NEAR_52W_HIGH');
+  });
+});

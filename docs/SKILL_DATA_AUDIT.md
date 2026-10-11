@@ -44,6 +44,8 @@ transition is also appended to events as type `signal_transition` (so use the ex
 events collection for history). Writes only via `lib/signalLedger.js`; each signalId is
 owned by one detector (`creator`), `scope` is `global` (or `user:<id>` for per-user overlays).
 
+mtf-flush-daily (`jobs/Scheduled/mtf-flush-daily/`) — no new collection: ledger states (signalId `MTF-flush`, creator `mtf-flush`) via `lib/signalLedger.js`; one `mtf_flush_scan` event/day in `events`; `mtf_flush_outcome` events from `mtf-flush-outcomes` (weekly, one per matured signal); disposable `cache/mtf-flush-book.json` via StorageService (single ~0.6 MB file, 70-session rolling window).
+
 learn-and-automate (`skills/tooling/learn-and-automate/`) — digests a source (X expert,
 Learnyst, YouTube, file) into **new collection `knowledge-units.json`** (DATA_RULES §3:
 new entity class keyed by source, thousands of small records individually updated with

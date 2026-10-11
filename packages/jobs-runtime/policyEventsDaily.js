@@ -8,7 +8,8 @@
  *   node policyEventsDaily.js add --file events.json [--dry-run]
  *       events.json = [{date:'YYYY-MM-DD', title, kind, sectors:[..], basket:['NSE:X',..], sourceUrls:['https://..'], summary?}]
  *       Validation: date, title, >=1 https source URL, 3..25 NSE/BSE basket tickers. Re-adding the same title+type = upsert.
- *   node policyEventsDaily.js run [--dry-run]
+ *   node policyEventsDaily.js run [--dry-run] [--email]
+ *       --email: also mails the absorption table + source links (weekly discovery run only; the daily run stays silent).
  *       For every open policy_event (<=120d): basket equal-weight return since the event date minus CNX500,
  *       -> signal-ledger 'P1-policy-absorption' (entityType sector, entityId = event id), detector `policy-event-tracker`.
  *
@@ -18,6 +19,7 @@
 
 const fs = require('fs');
 const { stockscans } = require('@stock/api');
+const { sendHtmlEmail } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
 const apiUsageTracker = require('./lib/apiUsageTracker');
 const { resolveJobName } = require('./lib/scriptJobName');
@@ -95,12 +97,30 @@ async function candles(t) {
   return d.prices;
 }
 
-async function run(db, dryRun) {
+
+const esc = (x) =>
+  String(x == null ? '' : x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+function buildEmail(today, rows) {
+  const tr = rows
+    .map((r) => {
+      const links = (r.sourceUrls || [])
+        .map((u, i) => `<a href="${esc(u)}">src${i + 1}</a>`)
+        .join(' ');
+      return `<tr><td>${esc(r.date)}</td><td>${esc(r.title)}</td><td>${esc(r.state)}</td><td>${r.basketRetPct}%</td><td>${r.benchRetPct}%</td><td><b>${r.excessPct}%</b></td><td>${r.names}</td><td>${links}</td></tr>`;
+    })
+    .join('');
+  const html = `<p>Policy event absorption vs CNX500 as of ${esc(today)}. Thresholds (5%/20%) are uncalibrated assumptions; <i>confirmed</i> means "check orders/earnings", not "buy". Excess sign is not direction-adjusted (victim baskets read inverted). Research aid, not investment advice.</p><table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;font-size:13px"><tr><th>Event date</th><th>Event</th><th>State</th><th>Basket</th><th>CNX500</th><th>Excess</th><th>Names</th><th>Sources</th></tr>${tr}</table>`;
+  return { subject: `Policy events absorption - ${today} (${rows.length} open)`, html };
+}
+
+async function run(db, dryRun, sendEmail) {
   const events = db.find('events', { type: 'policy_event' });
   const bench = await candles(BENCH);
   const today = bench[bench.length - 1][0];
   const observations = [];
   const report = [];
+  const mailRows = [];
   const cache = new Map();
   for (const ev of events) {
     const age = ageDays(ev.date, today);
@@ -136,14 +156,25 @@ async function run(db, dryRun) {
       },
     });
     report.push({ id: ev.id, title: ev.summary, age, state, ...a });
+    mailRows.push({ date: ev.date, title: ev.title, sourceUrls: ev.sourceUrls, state, ...a });
   }
   const ledger = !dryRun
     ? signalLedger.applyObservations(observations, { detector: DETECTOR, date: today })
     : null;
+  let email = { status: 'skipped', reason: sendEmail ? 'dry-run or no rows' : 'no --email' };
+  if (sendEmail && !dryRun && mailRows.length) {
+    const m = buildEmail(today, mailRows);
+    email = await sendHtmlEmail({
+      subject: m.subject,
+      htmlBody: m.html,
+      to: process.env.DEALS_DIGEST_TO || undefined,
+    });
+  }
   console.log(
     JSON.stringify(
       {
         today,
+        email,
         thresholds: THRESH,
         events: events.length,
         report,
@@ -163,7 +194,7 @@ async function main() {
   const db = require('./lib/db');
   const cmd = process.argv[2];
   if (cmd === 'add') return add(db, dryRun);
-  if (cmd === 'run') return run(db, dryRun);
+  if (cmd === 'run') return run(db, dryRun, process.argv.includes('--email'));
   throw new Error('usage: policyEventsDaily.js add --file f.json | run  [--dry-run]');
 }
 
@@ -177,4 +208,4 @@ if (require.main === module) {
     })
     .finally(() => apiUsageTracker.flush(jobName));
 }
-module.exports = { validate };
+module.exports = { validate, buildEmail };

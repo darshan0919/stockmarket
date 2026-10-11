@@ -34,6 +34,7 @@ const {
 const { NseClient } = require('./clients/NseClient');
 const { BseClient, parseBseSmartSearchHtml } = require('./clients/BseClient');
 const { TradingViewClient, MACRO_TICKERS } = require('./clients/TradingViewClient');
+const { IndiaMtfClient } = require('./clients/IndiaMtfClient');
 const { ScreenerAuth } = require('./auth/screenerAuth');
 const { ScreenerClient, SCREENER_BASE_URL } = require('./clients/ScreenerClient');
 
@@ -47,6 +48,7 @@ const nse = new NseClient({ session: nseSession, mcpSession: nseMcpSession });
 const bse = new BseClient();
 const screener = new ScreenerClient();
 const tradingview = new TradingViewClient();
+const indiamtf = new IndiaMtfClient();
 
 module.exports = {
   // Classes (for DI / custom config)
@@ -60,12 +62,14 @@ module.exports = {
   ScreenerAuth,
   ScreenerClient,
   TradingViewClient,
+  IndiaMtfClient,
   // Default singletons
   stockscans,
   nse,
   bse,
   screener,
   tradingview,
+  indiamtf,
   nseSession,
   nseMcpSession,
   // Low-level transport (for adapters)

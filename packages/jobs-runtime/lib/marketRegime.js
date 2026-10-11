@@ -46,6 +46,8 @@ function buildObservations(snap, history = []) {
     pctAbove50SMA: p50,
     pctAbove200SMA: p200,
     universe: b.universe,
+    pctGainers1M: pct(b.gainers1m, b.universe),
+    pctGainers1MOver10: pct(b.gainers1mOver10, b.universe),
     threshold: t,
   };
 

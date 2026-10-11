@@ -8,6 +8,7 @@ const { loadEnv, argValue } = require('./lib/env');
 const { cachePath } = require('./lib/db');
 const apiUsageTracker = require('./lib/apiUsageTracker');
 const { resolveJobName } = require('./lib/scriptJobName');
+const signalLedger = require('./lib/signalLedger');
 
 /**
  * Paginate StockscansClient#runScan to completion for this digest's saved
@@ -63,15 +64,53 @@ function makeLink(name, type) {
   return `<a href="${url}" style="color:#1a237e;text-decoration:none">${name || 'Unknown'}</a>`;
 }
 
-function tableHtml(title, counts, streakMap, streakScoreMap, type) {
+
+/**
+ * Zero-API enrichment from data the other detectors already store: latest weekly sector RS snapshot (rs1/rs3 vs the Nifty 500
+ * median) and active sector-level ledger states (S1 cluster, S2 RS rising, X4 rollover, S3 focus concentration, P1 policy).
+ * Best-effort: any failure returns an empty map so the digest itself never breaks.
+ */
+function sectorEnrichment() {
+  const out = new Map();
+  try {
+    const db = require('./lib/db');
+    const snaps = db.find('events', { type: 'sector_rs_snapshot' }).sort((a, b) => (a.date < b.date ? -1 : 1));
+    const last = snaps[snaps.length - 1];
+    const rs = new Map(((last && last.industries) || []).map((i) => [i.industry, i]));
+    const short = { 'S1-sector-cluster': 'S1', 'S2-sector-rs-rising': 'S2', 'X4-sector-rs-rollover': 'X4', 'S3-focus-concentration': 'S3', 'P1-policy-absorption': 'P1' };
+    const states = signalLedger.getStates({ entityType: 'sector', activeOnly: true });
+    const names = new Set([...rs.keys(), ...states.map((r) => r.entityId)]);
+    for (const n of names) {
+      const flags = states.filter((r) => r.entityId === n && short[r.signalId]).map((r) => `${short[r.signalId]}${r.state === 'confirmed' ? '+' : ''}`);
+      const i = rs.get(n);
+      out.set(n, { rs1: i ? i.rs1 : null, rs3: i ? i.rs3 : null, flags, week: last ? last.week : null });
+    }
+  } catch (e) {
+    console.error(`[near-highs-digest] enrichment skipped: ${e.message}`);
+  }
+  return out;
+}
+
+function enrichCells(enrich, name) {
+  const e = enrich && enrich.get(name);
+  const td = (v) => `<td style="border-bottom:1px solid #eee;text-align:right">${v}</td>`;
+  if (!e) return td('–') + td('');
+  const f = (v) => (v == null ? '–' : `${v > 0 ? '+' : ''}${v}`);
+  const col = (v) => (v == null ? '#666' : v > 0 ? '#1b5e20' : '#b71c1c');
+  return (
+    td(`<span style="color:${col(e.rs1)}">${f(e.rs1)}</span> / <span style="color:${col(e.rs3)}">${f(e.rs3)}</span>`) + td(e.flags.join(' '))
+  );
+}
+
+function tableHtml(title, counts, streakMap, streakScoreMap, type, enrich = null) {
   const rows = counts.map(
     (c) =>
-      `<tr><td style="border-bottom:1px solid #eee">${makeLink(c.name, type)}</td><td style="border-bottom:1px solid #eee;text-align:right">${c.count}</td><td style="border-bottom:1px solid #eee;text-align:right">${streakMap[c.name] || 1}</td><td style="border-bottom:1px solid #eee;text-align:right">${streakScoreMap[c.name] || c.count}</td></tr>`
+      `<tr><td style="border-bottom:1px solid #eee">${makeLink(c.name, type)}</td><td style="border-bottom:1px solid #eee;text-align:right">${c.count}</td><td style="border-bottom:1px solid #eee;text-align:right">${streakMap[c.name] || 1}</td><td style="border-bottom:1px solid #eee;text-align:right">${streakScoreMap[c.name] || c.count}</td>${enrich ? enrichCells(enrich, c.name) : ''}</tr>`
   );
   return `
   <h3 style="margin:24px 0 6px;font-family:Arial,sans-serif;color:#1a237e">${title}</h3>
   <table cellpadding="6" cellspacing="0" border="0" style="border-collapse:collapse;font:13px Arial;width:100%;max-width:500px;white-space:nowrap">
-    <tr style="background:#e8eaf6;text-align:left"><th style="border-bottom:2px solid #9fa8da">Name</th><th style="border-bottom:2px solid #9fa8da;text-align:right">Count</th><th style="border-bottom:2px solid #9fa8da;text-align:right">Streak</th><th style="border-bottom:2px solid #9fa8da;text-align:right">Streak Score</th></tr>
+    <tr style="background:#e8eaf6;text-align:left"><th style="border-bottom:2px solid #9fa8da">Name</th><th style="border-bottom:2px solid #9fa8da;text-align:right">Count</th><th style="border-bottom:2px solid #9fa8da;text-align:right">Streak</th><th style="border-bottom:2px solid #9fa8da;text-align:right">Streak Score</th>${enrich ? '<th style="border-bottom:2px solid #9fa8da;text-align:right" title="Industry median return minus Nifty 500 median, 1M / 3M, percentage points (weekly snapshot)">RS 1M / 3M</th><th style="border-bottom:2px solid #9fa8da;text-align:right" title="Active ledger signals: S1 cluster, S2 RS rising, X4 rollover, S3 focus concentration, P1 policy; + = confirmed">Signals</th>' : ''}</tr>
     ${rows.join('\n')}
   </table>`;
 }
@@ -190,7 +229,7 @@ async function main() {
 
   const htmlBody = `
 <div style="max-width:860px">
-  ${tableHtml('Industry vs Count', industrySorted, cache.industryStreaks, cache.industryStreakScores, 'industry')}
+  ${tableHtml('Industry vs Count', industrySorted, cache.industryStreaks, cache.industryStreakScores, 'industry', sectorEnrichment())}
   ${tableHtml('Sector vs Count', sectorSorted, cache.sectorStreaks, cache.sectorStreakScores, 'sector')}
   <p style="font:11px Arial;color:#999;margin:24px 0 0;border-top:1px solid #eee;padding-top:8px">${scanSourceHtml(payload.scan)}</p>
 </div>`;
@@ -229,4 +268,4 @@ if (require.main === module) {
     })
     .finally(() => apiUsageTracker.flush(jobName));
 }
-module.exports = { main };
+module.exports = { main, sectorEnrichment, tableHtml };

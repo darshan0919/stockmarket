@@ -1,11 +1,11 @@
 ---
 name: exit-watch-daily
-description: Exit Watch Daily — SOIC exit signals (weekly lower highs, failed breakout, 20/50 DMA loss, structural line) on the Portfolio watchlist into the signal ledger
+description: Exit Watch Daily — SOIC exit signals X1-X7 (lower highs, failed breakout, 20/50 DMA loss, industry RS rollover, distribution, fundamental exit, structural line) on the Portfolio watchlist into the signal ledger
 ---
 
 ## Context
 
-Exit-side detector (`docs/SOIC_SIGNAL_PLAN.md`, taxonomy X1/X2/X3/X7). Tracked set = Stockscans watchlist "Portfolio" (id 838b3f7ec88e17ba127ba8a3). Purely scripted from daily candles; X7 uses the support level stored by the entry detectors (E1/E2) for names that have one. X4 (sector RS rollover), X5 (distribution/deals) and X6 (fundamental) are NOT covered. Parameters are uncalibrated ASSUMPTIONS (`lib/exitSignals.js`). Creator: `exit-watch`. Position sizing / stop-loss rules are out of scope.
+Exit-side detector (`docs/SOIC_SIGNAL_PLAN.md`, taxonomy X1-X7). Tracked set = Stockscans watchlist "Portfolio" (id 838b3f7ec88e17ba127ba8a3). Purely scripted from daily candles; X7 uses the support level stored by the entry detectors (E1/E2) for names that have one. Also X4 industry RS rollover (Nifty 500 vs held industries, Performance scan 1M/3M medians), X5 distribution (rising on falling volume, NSE block SELLs ≥₹10 Cr/5d, repeat failed breakouts, FII holding fall), X6 fundamental exit (stretched valuation, muted result reaction, CFO/PAT<0, pledge ≥20%) via `lib/exitSignalsExtra.js`. Not modelled: DII change, insider selling, 'other sectors improving' (X4), thesis-break (thesis-delta jobs own it). Parameters are uncalibrated ASSUMPTIONS (`lib/exitSignals.js`). Creator: `exit-watch`. Position sizing / stop-loss rules are out of scope.
 
 Suggested slot: ~22:55 IST (≥30 min after sector-clusters-daily).
 
