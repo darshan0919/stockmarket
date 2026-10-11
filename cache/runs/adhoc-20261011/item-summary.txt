@@ -1,0 +1,104 @@
+1. [capacity] NSE:STYLEBAAZA Baazar Style Retail Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=2z9aanabp8bsx0epj8j9h4wo.pdf annId=2z9aanabp8bsx0epj8j9h4wo.pdf
+   title:  Intimation Of Opening Of A New Retail Store Of The Company
+2. [general] NSE:PNGJL P N Gadgil Jewellers Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=oqpkr8tbiad0cgrfh0efvxvb.pdf annId=oqpkr8tbiad0cgrfh0efvxvb.pdf
+   title: Announcement under Regulation 30 (LODR)-Press Release / Media Release
+3. [general] NSE:PNGJL P N Gadgil Jewellers Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=9a2dk0g78sstx0e8ucli578w.pdf annId=9a2dk0g78sstx0e8ucli578w.pdf
+   title: Intimation Of Store Opening
+4. [anticipation] NSE:AEROFLEX Aeroflex Industries Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=c0l5rf05p8l8e15c7yq7tne9.pdf annId=c0l5rf05p8l8e15c7yq7tne9.pdf
+   title: Board Meeting Intimation for To Consider And Approve The CompanyS Expansion Plans Including Further Capacity Enhancements.
+5. [investor_presentation] NSE:63MOONS 63 Moons Technologies Ltd | heavy=true dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=5qzbswnrsmf4kfvui3xz91hk.pdf annId=5qzbswnrsmf4kfvui3xz91hk.pdf
+   title: Investor Update For H1 (FY 2026-27) Received From Our Subsidiary-63SATS Cybertech Ltd.
+6. [order_book] NSE:VIVIANA Viviana Power Tech Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=vj65n8q04dnd9090wjb97qnn.pdf annId=vj65n8q04dnd9090wjb97qnn.pdf
+   title: Bagging/Receiving of orders/contracts
+7. [general] NSE:PRIMECAB Prime Cable Industries Limited | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=nhy0sc9fadb8rapdku5ch3o6.pdf annId=nhy0sc9fadb8rapdku5ch3o6.pdf
+   title: General Updates
+8. [general] NSE:SHEETAL Sheetal Universal Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=hgqp0rqdfjy0stbwbzmxq396.pdf annId=hgqp0rqdfjy0stbwbzmxq396.pdf
+   title: Outcome of Board Meeting
+9. [general] NSE:FELIX Felix Industries Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=0arnmont4o1afkquh37gbmua.pdf annId=0arnmont4o1afkquh37gbmua.pdf
+   title: General Updates
+10. [order_book] NSE:INNOMET Innomet Advanced Materials Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=lq3h5q0p2vvg95ipyxojyrz4.pdf annId=lq3h5q0p2vvg95ipyxojyrz4.pdf
+   title: Bagging/Receiving of orders/contracts
+11. [general] BSE:AIRFLOA Airfloa Rail Technology Ltd | heavy=false dupLead=false dupOf=4v6dzrkfpdduc10ecx7gti4m.pdf alreadyProc=false highConv=false sig=undefined ssUrl=5z0dhbs7n1ypfv7g85fzx0t1.pdf annId=5z0dhbs7n1ypfv7g85fzx0t1.pdf
+   title: Announcement under Regulation 30 (LODR)-Press Release / Media Release
+12. [general] BSE:GRANDOAK Grand Oak Canyons Distillery Ltd | heavy=false dupLead=false dupOf=shd1wslxyf8nqtc52mep3ks7.pdf alreadyProc=false highConv=false sig=undefined ssUrl=abnkh0up1pm1a8c79opdotcz.pdf annId=abnkh0up1pm1a8c79opdotcz.pdf
+   title: Disclosure Of Related Party Transaction Pursuant To Regulation 23(9) Of
+Securities And Exchange Board Of India (Listing Obligation And Disclosure Requirements)
+Regulations 2015.
+13. [results] BSE:GRANDOAK Grand Oak Canyons Distillery Ltd | heavy=true dupLead=false dupOf=shd1wslxyf8nqtc52mep3ks7.pdf alreadyProc=false highConv=false sig=undefined ssUrl=6nvnwmn7j3nh71h1p24ye2lw.pdf annId=6nvnwmn7j3nh71h1p24ye2lw.pdf
+   title: Submission Of Un-Audited Financial Results Of (Grand Oak Canyons Distillery Limited) For The Quarter And Half Year Ended On September 30Th 2026 And Along With Limited Review Report Thereon.
+14. [general] BSE:GRANDOAK Grand Oak Canyons Distillery Ltd | heavy=false dupLead=false dupOf=shd1wslxyf8nqtc52mep3ks7.pdf alreadyProc=false highConv=false sig=undefined ssUrl=tnar41clyjp3cvivgxwr9l2f.pdf annId=tnar41clyjp3cvivgxwr9l2f.pdf
+   title: Undertaking For Non- Applicability Of Regulation 32 Of SEBI (LODR) Regulations 2015
+For The Quarter And Half Year Ended On September 30Th 2026.
+15. [results] BSE:GRANDOAK Grand Oak Canyons Distillery Ltd | heavy=true dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=shd1wslxyf8nqtc52mep3ks7.pdf annId=shd1wslxyf8nqtc52mep3ks7.pdf
+   title: Board Meeting Outcome for Outcome Of Meeting Of Board Of Directors Held On10th October 2026 At Pursuant To Regulation 30 Of
+The SEBI (Listing Obligations And Disclosure Requirements) Regulations 2015.
+16. [shareholding_change] NSE:AIIL Authum Investment & Infrastructure Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=1zk0nfpr4ja099orjfjgf2y7.pdf annId=1zk0nfpr4ja099orjfjgf2y7.pdf
+   title: Announcement under Regulation 30 (LODR)-Updates on Acquisition
+17. [general] NSE:MANBA Manba Finance Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=8dw54ytvnmqyiybm9lrxpb6n.pdf annId=8dw54ytvnmqyiybm9lrxpb6n.pdf
+   title: Compliances-Half Yearly Report (SEBI Circular No. CIR/IMD/DF-1/67/2017) 
+18. [acquisition] NSE:STLNETWORK STL Networks Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=true sig=undefined ssUrl=bugvyuowldx6zctagyv9vmz6.pdf annId=bugvyuowldx6zctagyv9vmz6.pdf
+   title: Announcement under Regulation 30 (LODR)-Acquisition
+19. [order_book] BSE:FABCLEAN Fabtech Cleanrooms Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=xq1i9ra0wox1jacwnq323iv0.pdf annId=xq1i9ra0wox1jacwnq323iv0.pdf
+   title: Announcement On Order Booking And Update
+20. [general] NSE:ADFFOODS ADF Foods Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=fuz3ca97pk950bbb8gdxu74g.pdf annId=fuz3ca97pk950bbb8gdxu74g.pdf
+   title: Announcement Under Regulation 30 (LODR) - Update On Litigation.
+21. [results] NSE:PREMIERPOL Premier Polyfilm Ltd | heavy=true dupLead=false dupOf=k3m0mksubr5ie3kn6dlyfokp.pdf alreadyProc=false highConv=false sig=undefined ssUrl=ogawsf49k7bbqgly57er24xf.pdf annId=ogawsf49k7bbqgly57er24xf.pdf
+   title: UNAUDITED FINANCIAL RESULTS FOR THE QUARTER AND HALF YEAR ENDED ON 30-09-2026
+22. [results] NSE:PREMIERPOL Premier Polyfilm Ltd | heavy=true dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=k3m0mksubr5ie3kn6dlyfokp.pdf annId=k3m0mksubr5ie3kn6dlyfokp.pdf
+   title: Board Meeting Outcome for Board Meeting Outcome For The Approval Of Unaudited Financial Results For The Quarter And Half Year Ended On 30-09-2026
+23. [fundraise] NSE:PTCIL PTC Industries Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=fhb2smw44cibxz86yvobdd3c.pdf annId=fhb2smw44cibxz86yvobdd3c.pdf
+   title: Corrigendum To The Outcome Of The Meeting Of The Listing And Fund Raising Committee Held On October 09 2026
+
+
+24. [general] NSE:KRYSTAL Krystal Integrated Services Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=tduuvzp038wt7ck82qygpxif.pdf annId=tduuvzp038wt7ck82qygpxif.pdf
+   title: Announcement under Regulation 30 (LODR)-Press Release / Media Release
+25. [capacity] NSE:STYLEBAAZA Baazar Style Retail Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=exfjgfxb42y6sqfitz75uv7s.pdf annId=exfjgfxb42y6sqfitz75uv7s.pdf
+   title: Intimation Of Opening Of New Retail Store Of The Company
+26. [general] NSE:GRWRHITECH Garware Hi Tech Films Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=tt5bwvyxtscufjxn1dksbtos.pdf annId=tt5bwvyxtscufjxn1dksbtos.pdf
+   title: Announcement under Regulation 30 (LODR)-Code of Conduct under SEBI (PIT) Regulations 2015
+27. [general] NSE:ACMESOLAR ACME Solar Holdings Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=8o821wxq6w40h9m1a9ce00b3.pdf annId=8o821wxq6w40h9m1a9ce00b3.pdf
+   title: Intimation Of Grant Of Esops
+28. [general] NSE:LLOYDSENGG Lloyds Engineering Works Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=44q6vpmf8t2e9ldkl5ugmk5r.pdf annId=44q6vpmf8t2e9ldkl5ugmk5r.pdf
+   title: Grant Of ESOP
+29. [general] BSE:AIRFLOA Airfloa Rail Technology Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=4v6dzrkfpdduc10ecx7gti4m.pdf annId=4v6dzrkfpdduc10ecx7gti4m.pdf
+   title: Signing Of MOU With KTK Group Co. Ltd.
+30. [acquisition] NSE:HERITGFOOD Heritage Foods Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=true sig=undefined ssUrl=quc9yq97s4nc1zn0r4s79quh.pdf annId=quc9yq97s4nc1zn0r4s79quh.pdf
+   title: Update On Acquisition Of 5.60% Equity Share Capital Of Heritage Novandie Foods Limited
+31. [general] NSE:SHILPAMED Shilpa Medicare Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=oka4950ils5a2mb75y0hst6g.pdf annId=oka4950ils5a2mb75y0hst6g.pdf
+   title: Europe GMP Approval Of Shilpa Medicare Ltd. Unit 4 Jadcherla Telangana.
+32. [fundraise] NSE:CGCL Capri Global Capital Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=c79yg0waudk7u8nlcgydmism.pdf annId=c79yg0waudk7u8nlcgydmism.pdf
+   title: Board Meeting Intimation for To Consider Proposal For Raising Of Funds
+33. [general] NSE:VINDHYATEL Vindhya Telelinks Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=xlykx3f9g6cbqk9cpk5bduob.pdf annId=xlykx3f9g6cbqk9cpk5bduob.pdf
+   title: Disclosure Under Regulation 30 Of The Securities And Exchange Board Of India (Listing Obligations And Disclosure Requirements) Regulations 2015.
+34. [general] BSE:TEJASSVI Tejassvi Aaharam Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=jvmkgtwuitbhpoys2ayel3lp.pdf annId=jvmkgtwuitbhpoys2ayel3lp.pdf
+   title: Announcement Under Regulation 30 Of SEBI (LODR) Regulation 2015 - Receipt Of Trading Approval
+35. [anticipation] NSE:FAIRCHEMOR Fairchem Organics Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=huuguopcajeztv8fa1fk15er.pdf annId=huuguopcajeztv8fa1fk15er.pdf
+   title: Board Meeting Intimation for Unaudited Financial Results For Quarter And Half Year Ended September 30 2026
+36. [general] BSE:TANFACIND Tanfac Industries Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=opi0wqxbx03gn1ijwhnd11ub.pdf annId=opi0wqxbx03gn1ijwhnd11ub.pdf
+   title: Intimation Of Receipt Of Trading Approval For 424647 Equity Shares Issued On Preferential Basis.
+37. [general] BSE:PSPLATINA Property Share Investment Trust- Propshare Platina | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=ldofyjpa9gl40ywzb0eksb9m.pdf annId=ldofyjpa9gl40ywzb0eksb9m.pdf
+   title: Reg 23(5)(i): Disclosure of material issue
+38. [general] NSE:PTCIL PTC Industries Ltd | heavy=false dupLead=false dupOf=tbz7mq0vz7v4l6w0reh1tap1.pdf alreadyProc=false highConv=false sig=undefined ssUrl=t5qe7oizzydblj48wjy9a8a4.pdf annId=t5qe7oizzydblj48wjy9a8a4.pdf
+   title: Announcement under Regulation 30 (LODR)-Allotment
+39. [fundraise] NSE:PTCIL PTC Industries Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=tbz7mq0vz7v4l6w0reh1tap1.pdf annId=tbz7mq0vz7v4l6w0reh1tap1.pdf
+   title: Announcement under Regulation 30 (LODR)-Qualified Institutional Placement
+40. [anticipation] NSE:CHENNPETRO Chennai Petroleum Corporation Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=3hjnbjpbi5s3an7jtgm01rrj.pdf annId=3hjnbjpbi5s3an7jtgm01rrj.pdf
+   title: Board Meeting Intimation for Consideration Of Audited Financial Results For The Quarter And Half Year Ended 30.09.2026
+41. [anticipation] NSE:VERTIS Vertis Infrastructure Trust | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=654rs4pal8bz598yitlgvhdf.pdf annId=654rs4pal8bz598yitlgvhdf.pdf
+   title: Updates
+42. [general] NSE:SEAMECLTD SEAMEC Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=csf7p0vz3ej8xuzns32iqjkw.pdf annId=csf7p0vz3ej8xuzns32iqjkw.pdf
+   title: Announcements Under Regulation 30 Of SEBI (LODR) Regulations 2015 - Updates
+43. [buyback] NSE:SIS SIS Ltd | heavy=false dupLead=false dupOf=cacw7zoj1sxn0er9wcfb4yxm.pdf alreadyProc=false highConv=false sig=undefined ssUrl=qgyzmdwji35vevueyz08nd25.pdf annId=qgyzmdwji35vevueyz08nd25.pdf
+   title: Corporate Action-Updates on Buy back
+44. [general] NSE:SIS SIS Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=cacw7zoj1sxn0er9wcfb4yxm.pdf annId=cacw7zoj1sxn0er9wcfb4yxm.pdf
+   title: Announcement under Regulation 30 (LODR)-Daily Buy Back of equity shares
+45. [general] NSE:POONAWALLA Poonawalla Fincorp Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=0quo6y9igc9k1y6e4p8qkckd.pdf annId=0quo6y9igc9k1y6e4p8qkckd.pdf
+   title: Related Party Transaction Statement For Half Year Ended September 30 2026
+46. [regulatory] NSE:RUBICON Rubicon Research Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=d72ylcbszmtfyyo6mkwpebdz.pdf annId=d72ylcbszmtfyyo6mkwpebdz.pdf
+   title: Disclosure Under Regulation 30 Of SEBI (Listing Obligations And Disclosure Requirements) Regulations 2015 -US FDA Inspection Of The Companys Manufacturing Facility In Satara Maharashtra India.
+47. [anticipation] NSE:AURUM Aurum Proptech Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=ypckeb5yy366m19qxf1uxwxf.pdf annId=ypckeb5yy366m19qxf1uxwxf.pdf
+   title: Board Meeting Intimation for Consideration And Approval Of Unaudited Financial Results For The Quarter And Half Year Ended September 30 2026
+48. [general] NSE:KPIL Kalpataru Projects International Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=g7ze1olavwtxvqrf9bvey7el.pdf annId=g7ze1olavwtxvqrf9bvey7el.pdf
+   title: Disclosure Under Regulation 30 Of Securities And Exchange Board Of India (Listing Obligations And Disclosure Requirements) Regulations 2015
+49. [fundraise] NSE:VIJIFIN Viji Finance Ltd | heavy=false dupLead=true dupOf=- alreadyProc=false highConv=false sig=undefined ssUrl=upe1pbl3h5fbnrt14ivc89g2.pdf annId=upe1pbl3h5fbnrt14ivc89g2.pdf
+   title: Intimation Of Receipt Of Listing Approval From BSE & NSE For Listing Of 10000000 Equity Shares Issued To Non Promoters/Public Category On Preferential Basis Pursuant To Conversion Of Warrants.

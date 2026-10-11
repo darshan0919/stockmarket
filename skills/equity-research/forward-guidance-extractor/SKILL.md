@@ -333,11 +333,11 @@ Copy the finished file to the user's workspace folder and present it.
 
 ## Phase 5 -- Finish the run
 
-1. `yarn data:push` (mandatory, per `conventions.md` §6).
-2. Report a **Files touched** section: every `reports.json`/`reports/<id>.json`
+1. Report a **Files touched** section: every `reports.json`/`reports/<id>.json`
    written (with the record count), plus the `.xlsx` path, read from
-   `db.touchedFiles()` / the `data:push` output — never from memory.
-3. **Always end the run with a "How to save tokens/time next run" note**
+   `db.touchedFiles()` — never from memory. (Note: do not run `yarn data:push`
+   as part of this skill).
+2. **Always end the run with a "How to save tokens/time next run" note**
    (see below).
 
 ## Phase 6 -- Optional PEAD/surprise ranking (ONLY when the user explicitly asks)

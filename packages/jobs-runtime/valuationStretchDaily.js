@@ -23,15 +23,24 @@ const payload = (offset) => ({
   ratiosType: 'Default',
   timePeriod: 'Latest',
   scan: {
-    scanId: DETECTOR, scanName: DETECTOR, scanDescription: '', industry: [], index: [], tags: [],
-    watchlistIds: [], alertFrequency: null,
+    scanId: DETECTOR,
+    scanName: DETECTOR,
+    scanDescription: '',
+    industry: [],
+    index: [],
+    tags: [],
+    watchlistIds: [],
+    alertFrequency: null,
     filters: [
       { left: 'Market Capitalization', sign: '>=', right: '500' },
       { left: 'Volume SMA 20D * SMA 20D', sign: '>=', right: '7' },
       { left: 'Close Price', sign: '>', right: '0' },
     ],
   },
-  watchlistIds: [], order: 'desc', orderBy: 'Market Capitalization', offset,
+  watchlistIds: [],
+  order: 'desc',
+  orderBy: 'Market Capitalization',
+  offset,
 });
 
 async function fetchUniverse() {
@@ -48,10 +57,24 @@ async function fetchUniverse() {
   }
   if (!header) throw new Error('universe scan returned no rows');
   const ix = (n) => header.indexOf(n);
-  const c = { id: ix('companyId'), name: ix('Name'), pe: ix('Price To Earnings'), peg: ix('PEG'), ind: ix('Industry PE Median') };
-  const missing = Object.entries(c).filter(([, i]) => i < 0).map(([k]) => k);
+  const c = {
+    id: ix('companyId'),
+    name: ix('Name'),
+    pe: ix('Price To Earnings'),
+    peg: ix('PEG'),
+    ind: ix('Industry PE Median'),
+  };
+  const missing = Object.entries(c)
+    .filter(([, i]) => i < 0)
+    .map(([k]) => k);
   if (missing.length) throw new Error(`universe scan missing columns: ${missing.join(',')}`);
-  return rows.map((r) => ({ id: r[c.id], name: r[c.name], pe: r[c.pe], peg: r[c.peg], industryPe: r[c.ind] }));
+  return rows.map((r) => ({
+    id: r[c.id],
+    name: r[c.name],
+    pe: r[c.pe],
+    peg: r[c.peg],
+    industryPe: r[c.ind],
+  }));
 }
 
 async function main() {
@@ -60,30 +83,61 @@ async function main() {
   const db = require('./lib/db');
   const universe = await fetchUniverse();
   const weakRegime =
-    signalLedger.getStates({ signalIds: ['M4-deep-correction', 'M3-weak-macro'], entityType: 'market', activeOnly: true }).length > 0;
+    signalLedger.getStates({
+      signalIds: ['M4-deep-correction', 'M3-weak-macro'],
+      entityType: 'market',
+      activeOnly: true,
+    }).length > 0;
   const sessionDate = new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 10);
   const observations = universe.map((u) => {
     const ev = evaluate({ pe: u.pe, peg: u.peg, industryPe: u.industryPe, weakRegime });
     return {
-      signalId: SIGNAL, entityType: 'company', entityId: u.id, state: ev.state, minMisses: 3,
+      signalId: SIGNAL,
+      entityType: 'company',
+      entityId: u.id,
+      state: ev.state,
+      minMisses: 3,
       evidence: { name: u.name, flags: ev.flags, ...ev.evidence },
     };
   });
   const flagged = observations.filter((o) => o.state);
-  const ledger = dryRun ? null : signalLedger.applyObservations(observations, { detector: DETECTOR, date: sessionDate });
-  console.log(JSON.stringify({
-    sessionDate, dryRun, weakRegime, universe: universe.length,
-    detected: flagged.filter((o) => o.state === 'detected').length,
-    confirmed: flagged.filter((o) => o.state === 'confirmed').length,
-    sample: flagged.slice(0, 15).map((o) => ({ id: o.entityId, name: o.evidence.name, state: o.state, flags: o.evidence.flags })),
-    ledger, filesTouched: dryRun ? [] : db.touchedFiles(),
-  }, null, 2));
+  const ledger = dryRun
+    ? null
+    : signalLedger.applyObservations(observations, { detector: DETECTOR, date: sessionDate });
+  console.log(
+    JSON.stringify(
+      {
+        sessionDate,
+        dryRun,
+        weakRegime,
+        universe: universe.length,
+        detected: flagged.filter((o) => o.state === 'detected').length,
+        confirmed: flagged.filter((o) => o.state === 'confirmed').length,
+        sample: flagged
+          .slice(0, 15)
+          .map((o) => ({
+            id: o.entityId,
+            name: o.evidence.name,
+            state: o.state,
+            flags: o.evidence.flags,
+          })),
+        ledger,
+        filesTouched: dryRun ? [] : db.touchedFiles(),
+      },
+      null,
+      2
+    )
+  );
 }
 
 if (require.main === module) {
   const jobName = resolveJobName(DETECTOR);
   stockscans.setJobName(jobName);
-  main().catch((e) => { console.error('valuationStretchDaily failed:', e); process.exit(1); })
+  main()
+    .catch((e) => {
+      console.error('valuationStretchDaily failed:', e);
+      process.exit(1);
+    })
     .finally(() => apiUsageTracker.flush(jobName));
 }
 module.exports = { main, fetchUniverse };

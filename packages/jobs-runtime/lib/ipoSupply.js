@@ -34,7 +34,11 @@ const toNum = (x) => (x == null || x === '' ? null : Number(String(x).replace(/,
 function monthsBetween(fromIso, toIso) {
   const a = new Date(fromIso + 'T00:00:00Z');
   const b = new Date(toIso + 'T00:00:00Z');
-  return (b.getUTCFullYear() - a.getUTCFullYear()) * 12 + (b.getUTCMonth() - a.getUTCMonth()) + (b.getUTCDate() - a.getUTCDate()) / 30;
+  return (
+    (b.getUTCFullYear() - a.getUTCFullYear()) * 12 +
+    (b.getUTCMonth() - a.getUTCMonth()) +
+    (b.getUTCDate() - a.getUTCDate()) / 30
+  );
 }
 function addMonths(iso, m) {
   const d = new Date(iso + 'T00:00:00Z');
@@ -85,19 +89,32 @@ function lockInExpiry({ listingDate, today, issueSizeCr, marketCapCr }) {
   ];
   const t = Date.parse(today + 'T00:00:00Z');
   const hit = events
-    .map(([kind, date]) => ({ kind, date, days: Math.round((Date.parse(date + 'T00:00:00Z') - t) / DAY) }))
+    .map(([kind, date]) => ({
+      kind,
+      date,
+      days: Math.round((Date.parse(date + 'T00:00:00Z') - t) / DAY),
+    }))
     .filter((e) => e.days >= -TH.lockBeforeDays && e.days <= TH.lockAfterDays)
     .sort((a, b) => Math.abs(a.days) - Math.abs(b.days))[0];
   if (!hit) return { state: null, evidence: {} };
-  const big = (num(issueSizeCr) && issueSizeCr >= TH.lockConfirmIssueCr) || (num(marketCapCr) && marketCapCr >= TH.lockConfirmMcapCr);
+  const big =
+    (num(issueSizeCr) && issueSizeCr >= TH.lockConfirmIssueCr) ||
+    (num(marketCapCr) && marketCapCr >= TH.lockConfirmMcapCr);
   return {
     state: big ? 'confirmed' : 'detected',
-    evidence: { event: hit.kind, date: hit.date, daysAway: hit.days, issueSizeCr: issueSizeCr ?? null, marketCapCr: marketCapCr ?? null },
+    evidence: {
+      event: hit.kind,
+      date: hit.date,
+      daysAway: hit.days,
+      issueSizeCr: issueSizeCr ?? null,
+      marketCapCr: marketCapCr ?? null,
+    },
   };
 }
 
 const OFS = /\boffer\s+for\s+sale\b|\bOFS\b/i;
-const OFS_NOISE = /\b(ipo|initial public offer)\b.*\boffer for sale\b|red herring|draft red herring|\bDRHP\b|price band/i;
+const OFS_NOISE =
+  /\b(ipo|initial public offer)\b.*\boffer for sale\b|red herring|draft red herring|\bDRHP\b|price band/i;
 const OFS_PROMOTER = /promoter|government|GoI|disinvest|stake sale/i;
 /** @returns {'PROMOTER_OFS'|'OFS'|null} from announcement title + description */
 function ofsKind({ title = '', description = '' } = {}) {
@@ -110,4 +127,14 @@ function ofsState(kind, pe) {
   return num(pe) && pe > TH.ofsPe ? 'confirmed' : 'detected';
 }
 
-module.exports = { TH, monthsBetween, addMonths, addDays, ipoReview, lockInExpiry, ofsKind, ofsState, toNum };
+module.exports = {
+  TH,
+  monthsBetween,
+  addMonths,
+  addDays,
+  ipoReview,
+  lockInExpiry,
+  ofsKind,
+  ofsState,
+  toNum,
+};

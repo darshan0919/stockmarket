@@ -18,15 +18,28 @@ const { fadedState, TH } = require('./lib/resultsSeasonPrep');
 const DETECTOR = 'results-season-prep';
 const SIGNAL = 'R1-faded-post-result';
 const payload = (offset) => ({
-  ratiosType: 'Default', timePeriod: 'Latest',
-  scan: { scanId: DETECTOR, scanName: DETECTOR, scanDescription: '', industry: [], index: [], tags: [], watchlistIds: [], alertFrequency: null,
+  ratiosType: 'Default',
+  timePeriod: 'Latest',
+  scan: {
+    scanId: DETECTOR,
+    scanName: DETECTOR,
+    scanDescription: '',
+    industry: [],
+    index: [],
+    tags: [],
+    watchlistIds: [],
+    alertFrequency: null,
     filters: [
       { left: 'Market Capitalization', sign: '>=', right: '500' },
       { left: 'Volume SMA 20D * SMA 20D', sign: '>=', right: '7' },
       { left: 'Days From Result', sign: '<=', right: String(-TH.minDaysFromResult) },
       { left: 'Days From Result', sign: '>=', right: String(-TH.maxDaysFromResult) },
-    ] },
-  watchlistIds: [], order: 'desc', orderBy: 'Market Capitalization', offset,
+    ],
+  },
+  watchlistIds: [],
+  order: 'desc',
+  orderBy: 'Market Capitalization',
+  offset,
 });
 
 async function main() {
@@ -45,28 +58,63 @@ async function main() {
     await new Promise((r) => setTimeout(r, 700));
   }
   if (!header) throw new Error('scan returned no rows');
-  const ix = (n) => { const i = header.indexOf(n); if (i < 0) throw new Error(`missing column ${n}`); return i; };
-  const c = { id: ix('companyId'), name: ix('Name'), d: ix('Days From Result'), r: ix('Returns Since Result'), p: ix('PAT Growth YoY'), ind: ix('Industry') };
+  const ix = (n) => {
+    const i = header.indexOf(n);
+    if (i < 0) throw new Error(`missing column ${n}`);
+    return i;
+  };
+  const c = {
+    id: ix('companyId'),
+    name: ix('Name'),
+    d: ix('Days From Result'),
+    r: ix('Returns Since Result'),
+    p: ix('PAT Growth YoY'),
+    ind: ix('Industry'),
+  };
   const observations = rows.map((r) => {
     const m = { daysFromResult: r[c.d], returnsSinceResult: r[c.r], patGrowthYoY: r[c.p] };
-    return { signalId: SIGNAL, entityType: 'company', entityId: r[c.id], state: fadedState(m), minMisses: 3,
-      evidence: { name: r[c.name], industry: r[c.ind], ...m, calibrated: false } };
+    return {
+      signalId: SIGNAL,
+      entityType: 'company',
+      entityId: r[c.id],
+      state: fadedState(m),
+      minMisses: 3,
+      evidence: { name: r[c.name], industry: r[c.ind], ...m, calibrated: false },
+    };
   });
   const sessionDate = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
-  const ledger = dryRun ? null : signalLedger.applyObservations(observations, { detector: DETECTOR, date: sessionDate });
+  const ledger = dryRun
+    ? null
+    : signalLedger.applyObservations(observations, { detector: DETECTOR, date: sessionDate });
   const flagged = observations.filter((o) => o.state);
-  console.log(JSON.stringify({
-    sessionDate, dryRun, screened: rows.length, detected: flagged.filter((o) => o.state === 'detected').length,
-    confirmed: flagged.filter((o) => o.state === 'confirmed').length,
-    sample: flagged.slice(0, 15).map((o) => ({ id: o.entityId, state: o.state, ...o.evidence })),
-    ledger, filesTouched: dryRun ? [] : db.touchedFiles(),
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        sessionDate,
+        dryRun,
+        screened: rows.length,
+        detected: flagged.filter((o) => o.state === 'detected').length,
+        confirmed: flagged.filter((o) => o.state === 'confirmed').length,
+        sample: flagged
+          .slice(0, 15)
+          .map((o) => ({ id: o.entityId, state: o.state, ...o.evidence })),
+        ledger,
+        filesTouched: dryRun ? [] : db.touchedFiles(),
+      },
+      null,
+      2
+    )
+  );
 }
 
 if (require.main === module) {
   const jobName = resolveJobName(DETECTOR);
   stockscans.setJobName(jobName);
-  main().catch((e) => { console.error('resultsSeasonPrepDaily failed:', e.message); process.exit(1); })
+  main()
+    .catch((e) => {
+      console.error('resultsSeasonPrepDaily failed:', e.message);
+      process.exit(1);
+    })
     .finally(() => apiUsageTracker.flush(jobName));
 }
 module.exports = { main };

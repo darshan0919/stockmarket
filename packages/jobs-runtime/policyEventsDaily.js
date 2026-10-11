@@ -97,9 +97,11 @@ async function candles(t) {
   return d.prices;
 }
 
-
 const esc = (x) =>
-  String(x == null ? '' : x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  String(x == null ? '' : x).replace(
+    /[&<>"]/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]
+  );
 
 function buildEmail(today, rows) {
   const tr = rows

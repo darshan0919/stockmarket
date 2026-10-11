@@ -19,13 +19,21 @@ function evaluate({ pe, peg, industryPe, weakRegime = false } = {}) {
   }
   const premiumPct =
     num(pe) && pe > 0 && num(industryPe) && industryPe > 0 ? (pe / industryPe - 1) * 100 : null;
-  if (premiumPct != null && premiumPct >= T.premiumToIndustryPct) flags.push('PE_PREMIUM_TO_INDUSTRY');
+  if (premiumPct != null && premiumPct >= T.premiumToIndustryPct)
+    flags.push('PE_PREMIUM_TO_INDUSTRY');
   if (weakRegime && num(pe) && pe > T.pe50) flags.push('PE_GT_50_WEAK_REGIME');
   const state = flags.length >= 2 ? 'confirmed' : flags.length === 1 ? 'detected' : null;
   return {
     state,
     flags,
-    evidence: { pe, peg, industryPe, premiumToIndustryPct: premiumPct, weakRegime, calibrated: false },
+    evidence: {
+      pe,
+      peg,
+      industryPe,
+      premiumToIndustryPct: premiumPct,
+      weakRegime,
+      calibrated: false,
+    },
   };
 }
 module.exports = { evaluate, T };

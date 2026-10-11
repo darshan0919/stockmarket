@@ -22,6 +22,7 @@ function tierBlock(label, blurb, rows, color, stockscansLink) {
         `<td align="right">${pct(f.lowWick, 0)}</td><td align="right">${pct(f.dist20)}</td>` +
         `<td align="right">${f.rank == null ? '–' : f.rank.toFixed(2)}</td><td align="right">${pct(f.hi250, 0)}</td>` +
         `<td align="right">${f.close.toFixed(1)}</td>` +
+        `<td align="right">${f.ema20 ? f.ema20.toFixed(1) : '–'} / ${f.ema50 ? f.ema50.toFixed(1) : '–'}</td>` +
         `<td>${r.failed.length ? 'missed: ' + esc(r.failed.join(', ')) : ''}</td></tr>`
       );
     })
@@ -29,12 +30,12 @@ function tierBlock(label, blurb, rows, color, stockscansLink) {
   return (
     `<h3 style="color:${color};margin:16px 0 2px">${label} (${rows.length})</h3><div style="color:#666">${blurb}</div>` +
     `<table cellpadding="5" border="1" style="border-collapse:collapse;font:12px Arial"><tr style="background:#f3f3f3">` +
-    `<th>Stock</th><th>Score</th><th>MTF 10d Δ</th><th>vs 60d peak</th><th>Book ₹Cr</th><th>Low wick</th><th>vs EMA20</th><th>120d rank</th><th>vs 250d hi</th><th>Close</th><th>Note</th></tr>${body}</table>`
+    `<th>Stock</th><th>Score</th><th>MTF 10d Δ</th><th>vs 60d peak</th><th>Book ₹Cr</th><th>Low wick</th><th>vs EMA20</th><th>120d rank</th><th>vs 250d hi</th><th>Close</th><th>EMA20 / 50EMA</th><th>Note</th></tr>${body}</table>`
   );
 }
 
 function formatEmail(
-  { signalDate, rows, stage1, flushMedian, rankSize, newCount, fetchErrors = [] },
+  { signalDate, rows, stage1, flushMedian, rankSize, newCount, fetchErrors = [], market = null },
   stockscansLink
 ) {
   const A = rows.filter((r) => r.tier === 'A');
@@ -46,6 +47,10 @@ function formatEmail(
     `Scored &amp; categorised: <b>${newCount} new</b> of ${rows.length} active. Rank universe: ${rankSize || 'unavailable'} stocks.</p>` +
     (fetchErrors.length
       ? `<p style="color:#a00"><b>Data gaps:</b> could not evaluate ${esc(fetchErrors.join(', '))} (fetch failed after retries) — re-run to include them.</p>`
+      : '') +
+    (market
+      ? `<p style="color:#444">Market MTF book (NSE+BSE): ${pct(market.d1, 2)} on the day, ${pct(market.d5, 2)} over 5 sessions; ${pct(market.breadth, 0)} of liquid names cut shares financed &gt;3% today. ` +
+        `<i>Context only: back-test found no reliable edge from market-wide unwind days (signs flip across measures), so it is not scored.</i></p>`
       : '') +
     tierBlock(
       'Tier A — Prime',

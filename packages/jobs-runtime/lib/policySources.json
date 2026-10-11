@@ -7,10 +7,7 @@
       "type": "rss",
       "authority": "official",
       "url": "https://rbi.org.in/pressreleases_rss.xml",
-      "covers": [
-        "rate",
-        "regulation"
-      ],
+      "covers": ["rate", "regulation"],
       "verifiedOn": "2026-10-11",
       "noiseTitleRegex": "^Auction of|Treasury Bills|OMO (Sale|Purchase)|Money Market Operations|Reference Rate|Weekly Statistical|Variable Rate (Reverse )?Repo|Survey:|Result of|Full Auction Results|Working Paper"
     },
@@ -22,9 +19,7 @@
       "url": "https://www.sebi.gov.in/sebirss.xml",
       "linkFix": "doubleHttpsPrefix",
       "noiseTitleRegex": "^(Adjudication|Settlement|Exemption|Final|Interim|Confirmatory) Order|Order in the matter of|Show Cause|Recovery Certificate|Corrigendum|^\\.?Appeal No\\.|Notice of Demand|Attachment Order|Press Release on Recovery",
-      "covers": [
-        "regulation"
-      ],
+      "covers": ["regulation"],
       "verifiedOn": "2026-10-11"
     },
     {
@@ -34,15 +29,7 @@
       "authority": "official",
       "url": "https://www.pib.gov.in/allRel.aspx",
       "agentHint": "Page is JS-rendered; no verified RSS URL. Use WebSearch 'Union Cabinet approves <month year> PIB' and WebFetch the PIB PressReleasePage link; require the PRID URL as the source.",
-      "covers": [
-        "budget",
-        "capex",
-        "subsidy",
-        "tax",
-        "trade",
-        "tariff",
-        "other"
-      ],
+      "covers": ["budget", "capex", "subsidy", "tax", "trade", "tariff", "other"],
       "verifiedOn": "2026-10-11"
     },
     {
@@ -52,10 +39,7 @@
       "authority": "official",
       "url": "https://www.cbic.gov.in/",
       "agentHint": "Not reachable from the device shell on 2026-10-11 (timeout); use WebSearch for 'GST Council' / 'CBIC notification' and cite the cbic.gov.in or PIB link.",
-      "covers": [
-        "tax",
-        "tariff"
-      ],
+      "covers": ["tax", "tariff"],
       "verifiedOn": null
     }
   ],

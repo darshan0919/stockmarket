@@ -30,7 +30,9 @@ async function universe(errors, today) {
   try {
     const c = JSON.parse(fs.readFileSync(CACHE, 'utf8'));
     if (c.date === today && c.rows && c.rows.length > 1000) return new Map(c.rows); // same-day reuse (avoids Stockscans 429s on reruns)
-  } catch (_) { /* no cache */ }
+  } catch (_) {
+    /* no cache */
+  }
   const m = new Map();
   let header = null;
   for (let offset = 0; offset < 4000; offset += 50) {
@@ -38,9 +40,24 @@ async function universe(errors, today) {
       {
         ratiosType: 'Default',
         timePeriod: 'Latest',
-        scan: { scanId: DETECTOR, scanName: DETECTOR, scanDescription: '', industry: [], index: [], tags: [], watchlistIds: [], alertFrequency: null,
-          filters: [{ left: 'Market Capitalization', sign: '>=', right: '100' }, { left: 'Close Price', sign: '>', right: '0' }] },
-        watchlistIds: [], order: 'desc', orderBy: 'Market Capitalization', offset,
+        scan: {
+          scanId: DETECTOR,
+          scanName: DETECTOR,
+          scanDescription: '',
+          industry: [],
+          index: [],
+          tags: [],
+          watchlistIds: [],
+          alertFrequency: null,
+          filters: [
+            { left: 'Market Capitalization', sign: '>=', right: '100' },
+            { left: 'Close Price', sign: '>', right: '0' },
+          ],
+        },
+        watchlistIds: [],
+        order: 'desc',
+        orderBy: 'Market Capitalization',
+        offset,
       },
       DETECTOR
     );
@@ -49,7 +66,13 @@ async function universe(errors, today) {
     header = header || t[0];
     const ix = (n) => header.indexOf(n);
     for (const r of t.slice(1))
-      m.set(r[ix('companyId')], { name: r[ix('Name')], mcap: r[ix('Market Capitalization')], close: r[ix('Close Price')], pe: r[ix('Price To Earnings')], patYoY: r[ix('PAT Growth YoY')] });
+      m.set(r[ix('companyId')], {
+        name: r[ix('Name')],
+        mcap: r[ix('Market Capitalization')],
+        close: r[ix('Close Price')],
+        pe: r[ix('Price To Earnings')],
+        patYoY: r[ix('PAT Growth YoY')],
+      });
     if (offset + 50 >= d.total) break;
     await sleep(1000);
   }
@@ -58,7 +81,9 @@ async function universe(errors, today) {
     try {
       fs.mkdirSync(path.dirname(CACHE), { recursive: true });
       fs.writeFileSync(CACHE, JSON.stringify({ date: today, rows: [...m] }));
-    } catch (_) { /* cache is best-effort */ }
+    } catch (_) {
+      /* cache is best-effort */
+    }
   }
   return m;
 }
@@ -72,7 +97,12 @@ async function recentOfs(todayIso, errors) {
     for (const a of rows) {
       const kind = S.ofsKind({ title: a.desc, description: a.attchmntText });
       if (kind && a.symbol && !found.has(`NSE:${a.symbol}`))
-        found.set(`NSE:${a.symbol}`, { kind, title: a.desc, date: String(a.an_dt || a.sort_date || '').slice(0, 10), name: a.sm_name });
+        found.set(`NSE:${a.symbol}`, {
+          kind,
+          title: a.desc,
+          date: String(a.an_dt || a.sort_date || '').slice(0, 10),
+          name: a.sm_name,
+        });
     }
   } catch (e) {
     errors.push(`nse announcements: ${e.message}`);
@@ -89,39 +119,115 @@ async function main() {
 
   const uni = await universe(errors, today);
   const from = S.addMonths(today, -25);
-  const ipos = await fetchPerformanceWindow({ fromDate: from, toDate: today, ipoType: 'mainboard' });
+  const ipos = await fetchPerformanceWindow({
+    fromDate: from,
+    toDate: today,
+    ipoType: 'mainboard',
+  });
 
   const obs = [];
   let skippedNoSymbol = 0;
   for (const r of ipos) {
-    if (!r.nse_script_symbol) { skippedNoSymbol++; continue; }
+    if (!r.nse_script_symbol) {
+      skippedNoSymbol++;
+      continue;
+    }
     const id = `NSE:${r.nse_script_symbol}`;
     const u = uni.get(id) || {};
     const listingDate = r.ipo_year;
-    const base = { name: r.company_name, listingDate, issueSizeCr: S.toNum(r.ipo_size), ofsPct: S.toNum(r.ofs_percent), calibrated: false };
-    const rev = S.ipoReview({ listingDate, today, offerPrice: S.toNum(r.offer_price), close: u.close, ipoPe: r.price_to_earning, pe: u.pe, patYoY: u.patYoY });
-    obs.push({ signalId: 'P3-ipo-review-window', entityType: 'company', entityId: id, state: rev.state, minMisses: 3, evidence: { ...base, ...rev.evidence } });
-    const lock = S.lockInExpiry({ listingDate, today, issueSizeCr: S.toNum(r.ipo_size), marketCapCr: u.mcap });
-    obs.push({ signalId: 'P4-lockin-expiry', entityType: 'company', entityId: id, state: lock.state, minMisses: 2, evidence: { ...base, ...lock.evidence } });
+    const base = {
+      name: r.company_name,
+      listingDate,
+      issueSizeCr: S.toNum(r.ipo_size),
+      ofsPct: S.toNum(r.ofs_percent),
+      calibrated: false,
+    };
+    const rev = S.ipoReview({
+      listingDate,
+      today,
+      offerPrice: S.toNum(r.offer_price),
+      close: u.close,
+      ipoPe: r.price_to_earning,
+      pe: u.pe,
+      patYoY: u.patYoY,
+    });
+    obs.push({
+      signalId: 'P3-ipo-review-window',
+      entityType: 'company',
+      entityId: id,
+      state: rev.state,
+      minMisses: 3,
+      evidence: { ...base, ...rev.evidence },
+    });
+    const lock = S.lockInExpiry({
+      listingDate,
+      today,
+      issueSizeCr: S.toNum(r.ipo_size),
+      marketCapCr: u.mcap,
+    });
+    obs.push({
+      signalId: 'P4-lockin-expiry',
+      entityType: 'company',
+      entityId: id,
+      state: lock.state,
+      minMisses: 2,
+      evidence: { ...base, ...lock.evidence },
+    });
   }
   const ofs = await recentOfs(today, errors);
   for (const [id, f] of ofs) {
     const u = uni.get(id) || {};
-    obs.push({ signalId: 'P5-ofs-announcement', entityType: 'company', entityId: id, state: S.ofsState(f.kind, u.pe), minMisses: 3,
-      evidence: { name: f.name || u.name, kind: f.kind, title: f.title, announced: f.date, pe: u.pe ?? null, calibrated: false } });
+    obs.push({
+      signalId: 'P5-ofs-announcement',
+      entityType: 'company',
+      entityId: id,
+      state: S.ofsState(f.kind, u.pe),
+      minMisses: 3,
+      evidence: {
+        name: f.name || u.name,
+        kind: f.kind,
+        title: f.title,
+        announced: f.date,
+        pe: u.pe ?? null,
+        calibrated: false,
+      },
+    });
   }
 
-  const ledger = !dryRun && !errors.length ? signalLedger.applyObservations(obs, { detector: DETECTOR, date: today }) : null;
-  console.log(JSON.stringify({
-    sessionDate: today, dryRun, errors, universe: uni.size, ipoRows: ipos.length, skippedNoSymbol, ofsFound: ofs.size,
-    flagged: obs.filter((o) => o.state).map((o) => ({ id: o.entityId, signal: o.signalId, state: o.state, ...o.evidence })),
-    ledger, filesTouched: dryRun ? [] : db.touchedFiles(),
-  }, null, 2));
+  const ledger =
+    !dryRun && !errors.length
+      ? signalLedger.applyObservations(obs, { detector: DETECTOR, date: today })
+      : null;
+  console.log(
+    JSON.stringify(
+      {
+        sessionDate: today,
+        dryRun,
+        errors,
+        universe: uni.size,
+        ipoRows: ipos.length,
+        skippedNoSymbol,
+        ofsFound: ofs.size,
+        flagged: obs
+          .filter((o) => o.state)
+          .map((o) => ({ id: o.entityId, signal: o.signalId, state: o.state, ...o.evidence })),
+        ledger,
+        filesTouched: dryRun ? [] : db.touchedFiles(),
+      },
+      null,
+      2
+    )
+  );
 }
 
 if (require.main === module) {
   const jobName = resolveJobName(DETECTOR);
   stockscans.setJobName(jobName);
-  main().catch((e) => { console.error('ipoSupplyDaily failed:', e); process.exit(1); }).finally(() => apiUsageTracker.flush(jobName));
+  main()
+    .catch((e) => {
+      console.error('ipoSupplyDaily failed:', e);
+      process.exit(1);
+    })
+    .finally(() => apiUsageTracker.flush(jobName));
 }
 module.exports = { main };

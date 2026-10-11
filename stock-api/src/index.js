@@ -34,7 +34,7 @@ const {
 const { NseClient } = require('./clients/NseClient');
 const { BseClient, parseBseSmartSearchHtml } = require('./clients/BseClient');
 const { TradingViewClient, MACRO_TICKERS } = require('./clients/TradingViewClient');
-const { IndiaMtfClient } = require('./clients/IndiaMtfClient');
+const { IndiaMtfClient, parseLatestDate } = require('./clients/IndiaMtfClient');
 const { ScreenerAuth } = require('./auth/screenerAuth');
 const { ScreenerClient, SCREENER_BASE_URL } = require('./clients/ScreenerClient');
 
@@ -63,6 +63,7 @@ module.exports = {
   ScreenerClient,
   TradingViewClient,
   IndiaMtfClient,
+  parseLatestDate,
   // Default singletons
   stockscans,
   nse,

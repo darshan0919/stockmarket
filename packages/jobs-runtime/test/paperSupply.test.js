@@ -2,12 +2,20 @@
 const P = require('../lib/paperSupply');
 test('fundraiseKind', () => {
   expect(P.fundraiseKind({ title: 'Board approves QIP of Rs 500 Cr' })).toBe('QIP');
-  expect(P.fundraiseKind({ description: 'Preferential allotment of warrants to promoter' })).toBe('PREFERENTIAL');
-  expect(P.fundraiseKind({ title: 'Statement of Deviation / Variation for proceeds of preferential issue' })).toBeNull();
+  expect(P.fundraiseKind({ description: 'Preferential allotment of warrants to promoter' })).toBe(
+    'PREFERENTIAL'
+  );
+  expect(
+    P.fundraiseKind({
+      title: 'Statement of Deviation / Variation for proceeds of preferential issue',
+    })
+  ).toBeNull();
   expect(P.fundraiseKind({ title: 'Outcome of Board Meeting' })).toBeNull();
 });
 test('conversion allotments are capped at detected', () => {
-  expect(P.fundraiseKind({ title: 'Allotment of shares pursuant to conversion of warrants' })).toBe('PREFERENTIAL_CONVERSION');
+  expect(P.fundraiseKind({ title: 'Allotment of shares pursuant to conversion of warrants' })).toBe(
+    'PREFERENTIAL_CONVERSION'
+  );
   expect(P.fundraiseState('PREFERENTIAL_CONVERSION', 200)).toBe('detected');
 });
 test('blockSellState needs high PE and size', () => {

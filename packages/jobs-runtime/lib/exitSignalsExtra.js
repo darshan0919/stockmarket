@@ -105,7 +105,8 @@ function distribution({ candles = [], blockSellCr = null, fiiChangePp = null } =
     if (fiiChangePp <= T.x5FiiSellPp) flags.push('FII_SELLING');
   }
   const bigBlock = num(blockSellCr) && blockSellCr >= T.x5BlockConfirmedCr;
-  const state = flags.length >= 2 || bigBlock ? 'confirmed' : flags.length === 1 ? 'detected' : null;
+  const state =
+    flags.length >= 2 || bigBlock ? 'confirmed' : flags.length === 1 ? 'detected' : null;
   return { state, flags, evidence };
 }
 
@@ -124,7 +125,8 @@ function fundamentalExit(r = {}) {
     r.returnsSinceResult < T.x6MutedPct
   )
     flags.push('MUTED_REACTION');
-  if (num(r.cfoToPat) && r.cfoToPat < 0 && num(r.patYoY) && r.patYoY > 0) flags.push('CASH_DIVERGENCE');
+  if (num(r.cfoToPat) && r.cfoToPat < 0 && num(r.patYoY) && r.patYoY > 0)
+    flags.push('CASH_DIVERGENCE');
   if (num(r.pledgedPct) && r.pledgedPct >= T.x6Pledge) flags.push('HIGH_PLEDGE');
   const state = flags.length >= 2 ? 'confirmed' : flags.length === 1 ? 'detected' : null;
   return {

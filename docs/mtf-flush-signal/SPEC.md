@@ -37,7 +37,7 @@ was negative (-1.9% 5d, n=83).
 
 - Only ~15 months, one regime (bull, with Mar-2026 and Sep-2026 shocks); price data starts Apr 2025.
 - q (shares financed) also moves on splits/bonus/corporate actions -> false "flushes" not removed.
-- Closes only: no intraday low, no volume/delivery; "DEMA" approximated by EMA20.
+- Closes only: no intraday low, no volume/delivery; "DEMA" = Daily EMA (Shashank, 18 May: "D in DEMA is daily"), i.e. EMA20 is the same thing.
 - Equal-weight same-day control is crude; clustering of events on market-wide flush days; no costs/slippage.
 - A flush may matter only with a catalyst tag (Shashank's condition) - not yet joined.
 
@@ -80,7 +80,7 @@ Median 20d excess / hit rate (train | test):
 ### What could be wrong
 
 11 variants tried (multiple testing); overlapping events; before costs/slippage; delivery % and catalyst tag not tested;
-quantity can still move on corporate actions I did not detect (>0.5% price gap filter only); EMA20 not DEMA; MTF data lag 1 day.
+quantity can still move on corporate actions I did not detect (>0.5% price gap filter only); MTF data lag 1 day.
 
 ---
 
@@ -131,6 +131,20 @@ after D+1's close, so the practical entry is D+2 (tested: edge mostly retained, 
 Note: this run's G4 list differs from the research list above (research used the ~1,000-name book universe with percentile rank over book>=20 Cr stocks;
 the job ranks against the whole EQ bhavcopy universe, ~2,940 names) so small differences are expected.
 
-**Open / not encoded:** Shashank's own flush definition (not in the KB), earnings-catalyst tag (no point-in-time history), his DEMA20 (EMA20 used),
-11 Oct reply thread (not in the captured X cache, last capture 30 Sep; a live X search found only the 9 Oct MOREPENLAB call), official NSE/BSE MTF file
+**Open / not encoded:** Shashank's own flush definition (not in the KB), earnings-catalyst tag (no point-in-time history), (his DEMA is a plain daily EMA, so EMA20 matches),
+11 Oct reply (found in the refreshed X cache): asked "How to know it's mtf flush out", Shashank quote-posted SniPayne's chart (IndiaMTF): "The reason for Morepen fall last week was MTF unwinding, multiple brokers stopped MTF all at once, triggering haircut increase." So his flush-out test is: price fall + visible MTF book unwind on IndiaMTF, attributed to broker-wide MTF stops/haircut hikes (forced liquidation, not fundamental selling). On the 124 level he said only "No one knows the exact level so staggering works best" (9 Oct, reply to HarshKhatod10) -> he scales in, not a single entry. X cache refreshed to 11 Oct 09:52 UTC; earlier "cache stops 30 Sep" was my string-sort error. Still open: official NSE/BSE MTF file
 URLs (unverified; aggregator dependency remains). Calibrate weights only after 30+ matured signals per tier (`mtf-flush-outcomes`).
+
+---
+
+## Update 2026-10-12 (v5): market-wide unwind test, levels
+
+Shashank's explanation of a flush-out (11 Oct) is brokers cutting MTF together (haircut hikes). Test (`uni3.py`): split the 541 G4 signals by market-wide
+MTF stress on the signal day (NSE book 1d/5d/10d change, liquidated/opening ratio, breadth = share of liquid names cutting shares financed >3% in a day or >10% in 5 days).
+Result: NO reliable relationship. Median 20d excess, stress vs calm side: net1 +0.39% vs +1.76%; net5 +0.91% vs +1.61%; net10 +1.63% vs +0.96%;
+breadth +1.62% vs +0.96%; breadth5 +1.21% vs +1.40% (signs flip across measures; the liq ratio is not stationary, train n=2 on one side). So market-wide
+unwind is shown in the email as unscored context, not used as a filter or in the score.
+MOREPENLAB 8 Oct: market book -0.34% on the day, -1.0% over 5 sessions, breadth 6.7% (below the 9% median) -> no visible market-wide unwind, consistent with
+its mild own unwind (-2.6% in 10 sessions). His claim may rest on value (Rs Cr) or on intraday data we do not have.
+Email now also shows EMA20 / 50-EMA levels per stock (his support / exit lines: reduce below 20 DEMA, exit below 50 DEMA, DEMA = daily EMA).
+Untested: whether a touch of EMA20 with a rejection wick beats random touches.

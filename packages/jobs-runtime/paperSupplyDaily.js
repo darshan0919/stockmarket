@@ -23,13 +23,26 @@ const ddmmyyyy = (d) =>
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const peScan = (offset) => ({
-  ratiosType: 'Default', timePeriod: 'Latest',
-  scan: { scanId: DETECTOR, scanName: DETECTOR, scanDescription: '', industry: [], index: [], tags: [], watchlistIds: [], alertFrequency: null,
+  ratiosType: 'Default',
+  timePeriod: 'Latest',
+  scan: {
+    scanId: DETECTOR,
+    scanName: DETECTOR,
+    scanDescription: '',
+    industry: [],
+    index: [],
+    tags: [],
+    watchlistIds: [],
+    alertFrequency: null,
     filters: [
       { left: 'Market Capitalization', sign: '>=', right: '300' },
       { left: 'Price To Earnings', sign: '>', right: String(P.TH.pe) },
-    ] },
-  watchlistIds: [], order: 'desc', orderBy: 'Market Capitalization', offset,
+    ],
+  },
+  watchlistIds: [],
+  order: 'desc',
+  orderBy: 'Market Capitalization',
+  offset,
 });
 
 async function highPeUniverse() {
@@ -46,7 +59,11 @@ async function highPeUniverse() {
   }
   const m = new Map();
   if (!header) return m;
-  const c = { id: header.indexOf('companyId'), name: header.indexOf('Name'), pe: header.indexOf('Price To Earnings') };
+  const c = {
+    id: header.indexOf('companyId'),
+    name: header.indexOf('Name'),
+    pe: header.indexOf('Price To Earnings'),
+  };
   if (Object.values(c).some((i) => i < 0)) throw new Error('PE scan missing columns');
   for (const r of rows) m.set(r[c.id], { name: r[c.name], pe: r[c.pe] });
   return m;
@@ -62,7 +79,9 @@ async function recentBlockSells(todayIso, errors) {
   for (const d of days) {
     try {
       all.push(...(await nse.getHistoricalBlockDeals(ddmmyyyy(d), ddmmyyyy(d))));
-    } catch (e) { errors.push(`${d.toISOString().slice(0, 10)}: ${e.message}`); }
+    } catch (e) {
+      errors.push(`${d.toISOString().slice(0, 10)}: ${e.message}`);
+    }
     await sleep(400);
   }
   return P.sellValueBySymbol(all);
@@ -77,17 +96,39 @@ async function recentFundraises(todayIso, errors) {
       let page;
       try {
         page = await stockscans.scanAnnouncements({
-          scan: { scanId: '59822b15a2859d183df3770d', scanName: 'Recordings', filters: [], industry: [], index: [], watchlistIds: [],
-            searchFilters: ['QIP', 'qualified institutions placement', 'preferential issue', 'preferential allotment'],
-            announcementType: 'All', alerts: false, searchMode: 'full', companyIds: [], companyFilters: [] },
-          offset, quarterDate: q });
-      } catch (e) { errors.push(`announcements ${q}@${offset}: ${e.message}`); break; }
+          scan: {
+            scanId: '59822b15a2859d183df3770d',
+            scanName: 'Recordings',
+            filters: [],
+            industry: [],
+            index: [],
+            watchlistIds: [],
+            searchFilters: [
+              'QIP',
+              'qualified institutions placement',
+              'preferential issue',
+              'preferential allotment',
+            ],
+            announcementType: 'All',
+            alerts: false,
+            searchMode: 'full',
+            companyIds: [],
+            companyFilters: [],
+          },
+          offset,
+          quarterDate: q,
+        });
+      } catch (e) {
+        errors.push(`announcements ${q}@${offset}: ${e.message}`);
+        break;
+      }
       const items = page.announcements || [];
       if (!items.length) break;
       for (const a of items) {
         if (a.date < cutoff) continue;
         const kind = P.fundraiseKind(a);
-        if (kind && !found.has(a.companyId)) found.set(a.companyId, { kind, title: a.title, date: a.date, name: a.name });
+        if (kind && !found.has(a.companyId))
+          found.set(a.companyId, { kind, title: a.title, date: a.date, name: a.name });
       }
       offset += items.length;
       if (offset >= page.total) break;
@@ -113,21 +154,57 @@ async function main() {
     const id = `NSE:${sym}`;
     const u = pe.get(id);
     if (!u) continue;
-    observations.push({ signalId: 'P1-highpe-block-sell', entityType: 'company', entityId: id, state: P.blockSellState(cr, u.pe), minMisses: 2,
-      evidence: { name: u.name, pe: u.pe, sellValueCr5d: Math.round(cr), calibrated: false } });
+    observations.push({
+      signalId: 'P1-highpe-block-sell',
+      entityType: 'company',
+      entityId: id,
+      state: P.blockSellState(cr, u.pe),
+      minMisses: 2,
+      evidence: { name: u.name, pe: u.pe, sellValueCr5d: Math.round(cr), calibrated: false },
+    });
   }
   for (const [id, f] of raises) {
     const u = pe.get(id);
     if (!u) continue;
-    observations.push({ signalId: 'P2-highpe-fundraise', entityType: 'company', entityId: id, state: P.fundraiseState(f.kind, u.pe), minMisses: 3,
-      evidence: { name: u.name, pe: u.pe, kind: f.kind, title: f.title, announced: f.date, calibrated: false } });
+    observations.push({
+      signalId: 'P2-highpe-fundraise',
+      entityType: 'company',
+      entityId: id,
+      state: P.fundraiseState(f.kind, u.pe),
+      minMisses: 3,
+      evidence: {
+        name: u.name,
+        pe: u.pe,
+        kind: f.kind,
+        title: f.title,
+        announced: f.date,
+        calibrated: false,
+      },
+    });
   }
-  const ledger = !dryRun && !errors.length ? signalLedger.applyObservations(observations, { detector: DETECTOR, date: todayIso }) : null;
-  console.log(JSON.stringify({
-    sessionDate: todayIso, dryRun, errors, highPeUniverse: pe.size, blockSymbols: blocks.size, fundraisesFound: raises.size,
-    flagged: observations.filter((o) => o.state).map((o) => ({ id: o.entityId, signal: o.signalId, state: o.state, ...o.evidence })),
-    ledger, filesTouched: dryRun ? [] : db.touchedFiles(),
-  }, null, 2));
+  const ledger =
+    !dryRun && !errors.length
+      ? signalLedger.applyObservations(observations, { detector: DETECTOR, date: todayIso })
+      : null;
+  console.log(
+    JSON.stringify(
+      {
+        sessionDate: todayIso,
+        dryRun,
+        errors,
+        highPeUniverse: pe.size,
+        blockSymbols: blocks.size,
+        fundraisesFound: raises.size,
+        flagged: observations
+          .filter((o) => o.state)
+          .map((o) => ({ id: o.entityId, signal: o.signalId, state: o.state, ...o.evidence })),
+        ledger,
+        filesTouched: dryRun ? [] : db.touchedFiles(),
+      },
+      null,
+      2
+    )
+  );
   if (errors.length && !dryRun) process.exitCode = 1;
 }
 
@@ -135,7 +212,11 @@ if (require.main === module) {
   const jobName = resolveJobName(DETECTOR);
   stockscans.setJobName(jobName);
   nse.setJobName && nse.setJobName(jobName);
-  main().catch((e) => { console.error('paperSupplyDaily failed:', e.message); process.exit(1); })
+  main()
+    .catch((e) => {
+      console.error('paperSupplyDaily failed:', e.message);
+      process.exit(1);
+    })
     .finally(() => apiUsageTracker.flush(jobName));
 }
 module.exports = { main };

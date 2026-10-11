@@ -28,12 +28,15 @@ const WARMUP = 70;
 const safe = (t) => t.replace(/[^A-Za-z0-9_-]/g, '_');
 
 function pickUniverse(n, minM, maxM) {
-  const rows = JSON.parse(fs.readFileSync(UNIVERSE, 'utf8')).rows
-    .map(([id, u]) => ({ id, mcap: u.mcap }))
+  const rows = JSON.parse(fs.readFileSync(UNIVERSE, 'utf8'))
+    .rows.map(([id, u]) => ({ id, mcap: u.mcap }))
     .filter((r) => r.id.startsWith('NSE:') && r.mcap >= minM && r.mcap <= maxM)
     .sort((a, b) => b.mcap - a.mcap);
   const step = Math.max(1, Math.floor(rows.length / n));
-  return rows.filter((_, i) => i % step === 0).slice(0, n).map((r) => r.id);
+  return rows
+    .filter((_, i) => i % step === 0)
+    .slice(0, n)
+    .map((r) => r.id);
 }
 
 async function loadCandles(tickers, noFetch) {
@@ -49,7 +52,10 @@ async function loadCandles(tickers, noFetch) {
         try {
           if (fs.existsSync(f)) {
             const c = JSON.parse(fs.readFileSync(f, 'utf8'));
-            if (c.length >= 400) { out.set(tk, c); continue; }
+            if (c.length >= 400) {
+              out.set(tk, c);
+              continue;
+            }
           }
           if (noFetch) continue;
           const d = await stockscans.ohlcv(tk, { tf: '1D' });
@@ -75,7 +81,11 @@ function main() {
 async function run() {
   loadEnv(argValue('--env-file'));
   const n = parseInt(argValue('--n') || '150', 10);
-  const tickers = pickUniverse(n, Number(argValue('--min-mcap') || 2000), Number(argValue('--max-mcap') || 200000));
+  const tickers = pickUniverse(
+    n,
+    Number(argValue('--min-mcap') || 2000),
+    Number(argValue('--max-mcap') || 200000)
+  );
   const { candles, fetched } = await loadCandles(tickers, process.argv.includes('--no-fetch'));
 
   // per-date equal-weight average forward return (benchmark) for each horizon
@@ -118,7 +128,9 @@ async function run() {
   const baseline = [];
 
   for (const { tk, c, closes, dates } of series) {
-    const flags = Object.fromEntries(Object.keys(buckets).map((k) => [k, new Array(c.length).fill(false)]));
+    const flags = Object.fromEntries(
+      Object.keys(buckets).map((k) => [k, new Array(c.length).fill(false)])
+    );
     for (let t = WARMUP; t < c.length - 1; t++) {
       const sl = c.slice(0, t + 1);
       const ev = exitSignals.evaluate(sl);
@@ -129,7 +141,8 @@ async function run() {
       flags['X3 close<50EMA (confirmed)'][t] = ev.X3 === 'confirmed';
       const d = X.distribution({ candles: sl });
       flags['X5 rising on falling volume'][t] = d.flags.includes('RISING_ON_FALLING_VOLUME');
-      flags['X5 repeat failed breakouts (>=2/60d)'][t] = d.flags.includes('REPEAT_FAILED_BREAKOUTS');
+      flags['X5 repeat failed breakouts (>=2/60d)'][t] =
+        d.flags.includes('REPEAT_FAILED_BREAKOUTS');
       if (t % 10 === 0) {
         const e = { ticker: tk, date: dates[t] };
         for (const h of C.HORIZONS) {
@@ -167,8 +180,17 @@ async function run() {
 
   const res = {
     ran: new Date().toISOString(),
-    universe: { requested: tickers.length, withCandles: candles.size, droppedForSplitArtifacts: dropped.length, used: series.length, fetched },
-    window: { from: series[0] && series[0].dates[WARMUP], to: series[0] && series[0].dates[series[0].dates.length - 1] },
+    universe: {
+      requested: tickers.length,
+      withCandles: candles.size,
+      droppedForSplitArtifacts: dropped.length,
+      used: series.length,
+      fetched,
+    },
+    window: {
+      from: series[0] && series[0].dates[WARMUP],
+      to: series[0] && series[0].dates[series[0].dates.length - 1],
+    },
     caveats: [
       'survivorship bias: sample is names listed and liquid today',
       'benchmark = cross-sectional MEDIAN return over the same dates (not index); tickers with >30% one-day moves dropped as split artifacts',
@@ -180,7 +202,10 @@ async function run() {
   };
   // keep event rows for follow-up analysis (clustering, medians)
   fs.mkdirSync(OUT_DIR, { recursive: true });
-  fs.writeFileSync(path.join(OUT_DIR, `exit-replay-${new Date().toISOString().slice(0, 10)}.events.json`), JSON.stringify(buckets));
+  fs.writeFileSync(
+    path.join(OUT_DIR, `exit-replay-${new Date().toISOString().slice(0, 10)}.events.json`),
+    JSON.stringify(buckets)
+  );
   fs.mkdirSync(OUT_DIR, { recursive: true });
   const outFile = path.join(OUT_DIR, `exit-replay-${new Date().toISOString().slice(0, 10)}.json`);
   fs.writeFileSync(outFile, JSON.stringify(res, null, 2));
@@ -190,6 +215,11 @@ async function run() {
 if (require.main === module) {
   const jobName = resolveJobName('signal-calibration-replay');
   stockscans.setJobName(jobName);
-  run().catch((e) => { console.error('signalCalibrationReplay failed:', e); process.exit(1); }).finally(() => apiUsageTracker.flush(jobName));
+  run()
+    .catch((e) => {
+      console.error('signalCalibrationReplay failed:', e);
+      process.exit(1);
+    })
+    .finally(() => apiUsageTracker.flush(jobName));
 }
 module.exports = { pickUniverse, run, main };

@@ -1,0 +1,23 @@
+{
+  "orderCards": {
+    "orderCards": 3,
+    "withRatio": 2,
+    "top": [
+      "BSE:FABCLEAN",
+      "NSE:VIVIANA"
+    ],
+    "bookOk": 0,
+    "bookFailed": [
+      {
+        "companyId": "BSE:FABCLEAN",
+        "reason": "roll-up failed: keyedLock: found a stale lock for \"order-ledger:BSE:FABCLEAN\" (age 120s, over the 120s staleness cap) but could not remove it at /sessions/rcw-01cpcdza9dpekqfevu5hmccj/mnt/stockmarket/data/cache/locks/order-ledger_BSE_FABCLEAN (EPERM: EPERM: operation not permitted, rmdir '/sessions/rcw-01cpcdza9dpekqfevu5hmccj/mnt/stockmarket/data/cache/locks/order-ledger_BSE_FABCLEAN'). This usually means this process lacks delete permission on data/cache/locks/ — grant it, or remove that directory manually, then retry."
+      },
+      {
+        "companyId": "NSE:VIVIANA",
+        "reason": "roll-up failed: keyedLock: found a stale lock for \"order-ledger:BSE:FABCLEAN\" (age 120s, over the 120s staleness cap) but could not remove it at /sessions/rcw-01cpcdza9dpekqfevu5hmccj/mnt/stockmarket/data/cache/locks/order-ledger_BSE_FABCLEAN (EPERM: EPERM: operation not permitted, rmdir '/sessions/rcw-01cpcdza9dpekqfevu5hmccj/mnt/stockmarket/data/cache/locks/order-ledger_BSE_FABCLEAN'). This usually means this process lacks delete permission on data/cache/locks/ — grant it, or remove that directory manually, then retry."
+      }
+    ],
+    "pendingBases": [],
+    "revenueFailed": []
+  }
+}

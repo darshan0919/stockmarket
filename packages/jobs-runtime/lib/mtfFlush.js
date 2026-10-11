@@ -13,7 +13,7 @@
  *
  * EVIDENCE (back-test 2024-01..2026-10, entry at next close, excess vs same-day median stock):
  * median 20d excess ~ +1.6% (train) / +1.0% (test), hit-rate ~58% — a SMALL edge; ~26 variants were
- * tried, no costs, EMA20 not DEMA, "leader" is a price proxy. The 0-100 score below is a RANKING
+ * tried, no costs, "leader" is a price proxy. The 0-100 score below is a RANKING
  * HEURISTIC (weights are ASSUMPTIONS, uncalibrated) — it orders signals, it does not forecast returns.
  */
 
@@ -120,6 +120,9 @@ function candleFeatures(candles) {
     upWick: range > 0 ? (k.high - Math.max(k.open, k.close)) / range : null,
     clv: range > 0 ? (k.close - k.low) / range : null,
     dist20: k.close / e20 - 1,
+    ema20: e20,
+    ema50: ema(closes.slice(-150), 50),
+    low: k.low,
     above50: k.close > mean(closes.slice(-50)),
     hi250: k.close / hi250 - 1,
     ret120: n > 120 ? k.close / closes[n - 121] - 1 : null,
@@ -282,7 +285,36 @@ function summarizeOutcomes(rows, horizon = 20) {
   return out;
 }
 
+/** Market-wide MTF context (informational only: not scored, see SPEC v5). latest = /latest.json, q = cache.q. */
+function marketContext(latest, cache) {
+  const c = (latest && latest.combined) || {};
+  const daily = Array.isArray(c.daily) ? c.daily : [];
+  const net = c.net;
+  const d1 = isNum(net) && isNum(c.net_prev) && c.net_prev > 0 ? net / c.net_prev - 1 : null;
+  const ref5 = daily.length > 5 ? daily[daily.length - 6][1] : null;
+  const d5 = isNum(net) && isNum(ref5) && ref5 > 0 ? net / ref5 - 1 : null;
+  const n = cache.dates.length;
+  let elig = 0;
+  let falling = 0;
+  for (const [sym, series] of Object.entries(cache.q)) {
+    const a = series[n - 1];
+    const b = series[n - 2];
+    if (!isNum(a) || !isNum(b) || ((cache.meta[sym] || {}).cr || 0) < THRESH.minBookCr) continue;
+    elig++;
+    if (a / b - 1 <= -0.03) falling++;
+  }
+  return {
+    net,
+    d1,
+    d5,
+    breadth: elig ? falling / elig : null,
+    fresh: c.fresh ?? null,
+    liq: c.liq ?? null,
+  };
+}
+
 module.exports = {
+  marketContext,
   computeOutcome,
   summarizeOutcomes,
   THRESH,

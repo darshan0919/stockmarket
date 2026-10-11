@@ -13,8 +13,20 @@
  * base otherwise. "Duration" = months since the 24M low.
  */
 const TH = Object.freeze({
-  windowDays: 730, crowdedX: 2.0, warmX: 1.7, runX: 1.3, fadeDd: 0.15,
-  ipoCount: 4, ipoShare: 0.25, pePremium: 1.5, peMinSnaps: 26, peBaseSnaps: 13, minMembers: 5, minIndexMembers: 3, indexMcapCr: 500, maxDayMove: 0.3,
+  windowDays: 730,
+  crowdedX: 2.0,
+  warmX: 1.7,
+  runX: 1.3,
+  fadeDd: 0.15,
+  ipoCount: 4,
+  ipoShare: 0.25,
+  pePremium: 1.5,
+  peMinSnaps: 26,
+  peBaseSnaps: 13,
+  minMembers: 5,
+  minIndexMembers: 3,
+  indexMcapCr: 500,
+  maxDayMove: 0.3,
 });
 const num = (x) => typeof x === 'number' && Number.isFinite(x);
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -32,7 +44,11 @@ function sectorIndex(memberCandles, th = TH, minStart = null) {
     if (!c || c.length < 60) continue;
     if (minStart && c[0][0] > minStart) continue; // history must span the whole window: a recent listing's first price is not a cycle low
     let bad = false;
-    for (let i = 1; i < c.length; i++) if (c[i - 1][4] > 0 && Math.abs(c[i][4] / c[i - 1][4] - 1) > th.maxDayMove) { bad = true; break; }
+    for (let i = 1; i < c.length; i++)
+      if (c[i - 1][4] > 0 && Math.abs(c[i][4] / c[i - 1][4] - 1) > th.maxDayMove) {
+        bad = true;
+        break;
+      }
     if (!bad) good.push(c);
   }
   const rets = new Map();
@@ -46,7 +62,11 @@ function sectorIndex(memberCandles, th = TH, minStart = null) {
     }
   const dates = [...rets.keys()].sort();
   let v = 100;
-  const series = dates.map((d) => { const e = rets.get(d); v *= 1 + e.s / e.n; return [d, v]; });
+  const series = dates.map((d) => {
+    const e = rets.get(d);
+    v *= 1 + e.s / e.n;
+    return [d, v];
+  });
   return { series, used: good.length };
 }
 
@@ -55,16 +75,30 @@ function priceTest(series, th = TH) {
   const last = series[series.length - 1];
   const cut = new Date(Date.parse(last[0]) - th.windowDays * 86400000).toISOString().slice(0, 10);
   const win = series.filter((p) => p[0] >= cut);
-  let lo = win[0], hi = win[0];
-  for (const p of win) { if (p[1] < lo[1]) lo = p; if (p[1] > hi[1]) hi = p; }
+  let lo = win[0],
+    hi = win[0];
+  for (const p of win) {
+    if (p[1] < lo[1]) lo = p;
+    if (p[1] > hi[1]) hi = p;
+  }
   const x = last[1] / lo[1];
   const peakX = hi[1] / lo[1];
   const dd = 1 - last[1] / hi[1];
-  const months = Math.round(((Date.parse(last[0]) - Date.parse(lo[0])) / 86400000 / 30.4) * 10) / 10;
+  const months =
+    Math.round(((Date.parse(last[0]) - Date.parse(lo[0])) / 86400000 / 30.4) * 10) / 10;
   const fading = peakX >= th.warmX && dd >= th.fadeDd && Date.parse(hi[0]) > Date.parse(lo[0]);
   const flag = x >= th.crowdedX ? 'crowded' : x >= th.warmX ? 'warm' : null;
   const phase = fading ? 'fading' : x >= th.warmX ? 'crowded' : x >= th.runX ? 'run' : 'base';
-  return { flag, phase, x: r2(x), peakX: r2(peakX), drawdownPct: r2(dd * 100), runStart: lo[0], monthsSinceLow: months, asOf: last[0] };
+  return {
+    flag,
+    phase,
+    x: r2(x),
+    peakX: r2(peakX),
+    drawdownPct: r2(dd * 100),
+    runStart: lo[0],
+    monthsSinceLow: months,
+    asOf: last[0],
+  };
 }
 
 /** @param {string[]} listingDates IPO listing dates of the industry's names  @param {number} members names in the industry */
@@ -72,17 +106,31 @@ function supplyTest(listingDates, members, today, th = TH) {
   const cut = new Date(Date.parse(today) - 365 * 86400000).toISOString().slice(0, 10);
   const n = listingDates.filter((d) => d && d >= cut && d <= today).length;
   const share = members > 0 ? n / members : 0;
-  return { flag: n >= th.ipoCount || (n >= 1 && share >= th.ipoShare) ? 'crowded' : null, ipos12m: n, members, sharePct: r2(share * 100) };
+  return {
+    flag: n >= th.ipoCount || (n >= 1 && share >= th.ipoShare) ? 'crowded' : null,
+    ipos12m: n,
+    members,
+    sharePct: r2(share * 100),
+  };
 }
 
 /** @param {{industry:string,medianPe:number,week:string}[][]} snaps chronological sector_pe_snapshot industries arrays */
 function peTest(industry, snaps, th = TH) {
-  const hist = snaps.map((s) => (s.find((i) => i.industry === industry) || {}).medianPe).filter(num);
-  if (snaps.length < th.peMinSnaps || hist.length < th.peMinSnaps) return { flag: null, insufficient: true, snapshots: snaps.length };
+  const hist = snaps
+    .map((s) => (s.find((i) => i.industry === industry) || {}).medianPe)
+    .filter(num);
+  if (snaps.length < th.peMinSnaps || hist.length < th.peMinSnaps)
+    return { flag: null, insufficient: true, snapshots: snaps.length };
   const base = median(hist.slice(0, th.peBaseSnaps));
   const now = hist[hist.length - 1];
   const ratio = base > 0 ? now / base : null;
-  return { flag: num(ratio) && ratio >= th.pePremium ? 'stretched' : null, ratio: num(ratio) ? r2(ratio) : null, now, base: r2(base), snapshots: snaps.length };
+  return {
+    flag: num(ratio) && ratio >= th.pePremium ? 'stretched' : null,
+    ratio: num(ratio) ? r2(ratio) : null,
+    now,
+    base: r2(base),
+    snapshots: snaps.length,
+  };
 }
 
 function evaluate({ price, supply, pe }) {

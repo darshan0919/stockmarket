@@ -226,3 +226,32 @@ describe('formatEmail', () => {
     expect(html).toContain('missed: wick');
   });
 });
+
+describe('marketContext', () => {
+  test('computes 1d/5d book change and breadth of cutters', () => {
+    const latest = {
+      combined: {
+        net: 99,
+        net_prev: 100,
+        daily: [
+          ['a', 110],
+          ['b', 108],
+          ['c', 106],
+          ['d', 104],
+          ['e', 102],
+          ['f', 100],
+          ['g', 99],
+        ],
+      },
+    };
+    const cache = {
+      dates: ['x', 'y'],
+      q: { A: [100, 90], B: [100, 100], C: [100, 50] },
+      meta: { A: { cr: 50 }, B: { cr: 50 }, C: { cr: 5 } },
+    };
+    const mc = m.marketContext(latest, cache);
+    expect(mc.d1).toBeCloseTo(-0.01);
+    expect(mc.d5).toBeCloseTo(99 / 108 - 1);
+    expect(mc.breadth).toBeCloseTo(0.5); // C is illiquid and excluded
+  });
+});

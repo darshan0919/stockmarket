@@ -64,7 +64,6 @@ function makeLink(name, type) {
   return `<a href="${url}" style="color:#1a237e;text-decoration:none">${name || 'Unknown'}</a>`;
 }
 
-
 /**
  * Zero-API enrichment from data the other detectors already store: latest weekly sector RS snapshot (rs1/rs3 vs the Nifty 500
  * median) and active sector-level ledger states (S1 cluster, S2 RS rising, X4 rollover, S3 focus concentration, P1 policy).
@@ -74,16 +73,31 @@ function sectorEnrichment() {
   const out = new Map();
   try {
     const db = require('./lib/db');
-    const snaps = db.find('events', { type: 'sector_rs_snapshot' }).sort((a, b) => (a.date < b.date ? -1 : 1));
+    const snaps = db
+      .find('events', { type: 'sector_rs_snapshot' })
+      .sort((a, b) => (a.date < b.date ? -1 : 1));
     const last = snaps[snaps.length - 1];
     const rs = new Map(((last && last.industries) || []).map((i) => [i.industry, i]));
-    const short = { 'S1-sector-cluster': 'S1', 'S2-sector-rs-rising': 'S2', 'X4-sector-rs-rollover': 'X4', 'S3-focus-concentration': 'S3', 'P1-policy-absorption': 'P1' };
+    const short = {
+      'S1-sector-cluster': 'S1',
+      'S2-sector-rs-rising': 'S2',
+      'X4-sector-rs-rollover': 'X4',
+      'S3-focus-concentration': 'S3',
+      'P1-policy-absorption': 'P1',
+    };
     const states = signalLedger.getStates({ entityType: 'sector', activeOnly: true });
     const names = new Set([...rs.keys(), ...states.map((r) => r.entityId)]);
     for (const n of names) {
-      const flags = states.filter((r) => r.entityId === n && short[r.signalId]).map((r) => `${short[r.signalId]}${r.state === 'confirmed' ? '+' : ''}`);
+      const flags = states
+        .filter((r) => r.entityId === n && short[r.signalId])
+        .map((r) => `${short[r.signalId]}${r.state === 'confirmed' ? '+' : ''}`);
       const i = rs.get(n);
-      out.set(n, { rs1: i ? i.rs1 : null, rs3: i ? i.rs3 : null, flags, week: last ? last.week : null });
+      out.set(n, {
+        rs1: i ? i.rs1 : null,
+        rs3: i ? i.rs3 : null,
+        flags,
+        week: last ? last.week : null,
+      });
     }
   } catch (e) {
     console.error(`[near-highs-digest] enrichment skipped: ${e.message}`);
@@ -98,7 +112,9 @@ function enrichCells(enrich, name) {
   const f = (v) => (v == null ? '–' : `${v > 0 ? '+' : ''}${v}`);
   const col = (v) => (v == null ? '#666' : v > 0 ? '#1b5e20' : '#b71c1c');
   return (
-    td(`<span style="color:${col(e.rs1)}">${f(e.rs1)}</span> / <span style="color:${col(e.rs3)}">${f(e.rs3)}</span>`) + td(e.flags.join(' '))
+    td(
+      `<span style="color:${col(e.rs1)}">${f(e.rs1)}</span> / <span style="color:${col(e.rs3)}">${f(e.rs3)}</span>`
+    ) + td(e.flags.join(' '))
   );
 }
 

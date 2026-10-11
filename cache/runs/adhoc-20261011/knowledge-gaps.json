@@ -1,0 +1,22 @@
+[
+  {
+    "companyId": "NSE:VIVIANA",
+    "gap": "Viviana Power Tech: no prior notes/financial baseline on file -- need current order book size and typical EPC margin to size this Rs 466.73cr order's EPS contribution."
+  },
+  {
+    "companyId": "NSE:AIIL",
+    "gap": "Authum/WWIL/VEPL: the final debt-vs-equity split and VEPL's own earnings profile are not yet disclosed -- needed before this Rs 350cr commitment can be read through to Authum's own EPS."
+  },
+  {
+    "companyId": "NSE:PTCIL",
+    "gap": "PTC Industries QIP: use of proceeds (capex vs debt-paydown) is not disclosed in either the outcome or corrigendum filing -- needed to run a PAT-to-EPS accretion/dilution bridge."
+  },
+  {
+    "companyId": "NSE:GRWRHITECH",
+    "gap": "Garware Hi-Tech PIT violation: the transaction value/nature for the flagged Designated Person is not visible in the captured PDF text -- re-read the full Annexure A on the next slot to confirm whether this is immaterial or needs escalation."
+  },
+  {
+    "companyId": "BSE:TEJASSVI",
+    "gap": "Tejassvi Aaharam: the original preferential-issue resolution (rationale, use of proceeds, allottee identities) is outside this run's window -- pull it to assess whether this at-par 8.3x dilution is benign (e.g. promoter infusion) or a red flag."
+  }
+]

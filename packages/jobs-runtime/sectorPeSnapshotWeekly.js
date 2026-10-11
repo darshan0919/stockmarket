@@ -16,10 +16,26 @@ const { aggregateByIndustry, weekKey } = require('./lib/sectorPe');
 
 const DETECTOR = 'sector-pe-snapshot';
 const payload = (offset) => ({
-  ratiosType: 'Default', timePeriod: 'Latest',
-  scan: { scanId: DETECTOR, scanName: DETECTOR, scanDescription: '', industry: [], index: [], tags: [], watchlistIds: [], alertFrequency: null,
-    filters: [{ left: 'Market Capitalization', sign: '>=', right: '500' }, { left: 'Close Price', sign: '>', right: '0' }] },
-  watchlistIds: [], order: 'desc', orderBy: 'Market Capitalization', offset,
+  ratiosType: 'Default',
+  timePeriod: 'Latest',
+  scan: {
+    scanId: DETECTOR,
+    scanName: DETECTOR,
+    scanDescription: '',
+    industry: [],
+    index: [],
+    tags: [],
+    watchlistIds: [],
+    alertFrequency: null,
+    filters: [
+      { left: 'Market Capitalization', sign: '>=', right: '500' },
+      { left: 'Close Price', sign: '>', right: '0' },
+    ],
+  },
+  watchlistIds: [],
+  order: 'desc',
+  orderBy: 'Market Capitalization',
+  offset,
 });
 
 async function main() {
@@ -45,18 +61,61 @@ async function main() {
     await new Promise((r) => setTimeout(r, 700));
   }
   if (!header) throw new Error('scan returned no rows');
-  const ix = (n) => { const i = header.indexOf(n); if (i < 0) throw new Error(`missing column ${n}`); return i; };
-  const c = { pe: ix('Price To Earnings'), ind: ix('Industry'), sec: ix('Sector'), ipe: ix('Industry PE Median') };
-  const industries = aggregateByIndustry(raw.map((r) => ({ industry: r[c.ind], sector: r[c.sec], pe: r[c.pe], industryPeMedian: r[c.ipe] })));
+  const ix = (n) => {
+    const i = header.indexOf(n);
+    if (i < 0) throw new Error(`missing column ${n}`);
+    return i;
+  };
+  const c = {
+    pe: ix('Price To Earnings'),
+    ind: ix('Industry'),
+    sec: ix('Sector'),
+    ipe: ix('Industry PE Median'),
+  };
+  const industries = aggregateByIndustry(
+    raw.map((r) => ({
+      industry: r[c.ind],
+      sector: r[c.sec],
+      pe: r[c.pe],
+      industryPeMedian: r[c.ipe],
+    }))
+  );
   if (!dryRun)
-    db.appendEvents([{ type: 'sector_pe_snapshot', creator: DETECTOR, date: today, week: wk, summary: `sector PE snapshot ${wk} (${industries.length} industries)`, universe: raw.length, industries }]);
-  console.log(JSON.stringify({ week: wk, dryRun, universe: raw.length, industries: industries.length, sample: industries.slice(0, 5), filesTouched: dryRun ? [] : db.touchedFiles() }, null, 2));
+    db.appendEvents([
+      {
+        type: 'sector_pe_snapshot',
+        creator: DETECTOR,
+        date: today,
+        week: wk,
+        summary: `sector PE snapshot ${wk} (${industries.length} industries)`,
+        universe: raw.length,
+        industries,
+      },
+    ]);
+  console.log(
+    JSON.stringify(
+      {
+        week: wk,
+        dryRun,
+        universe: raw.length,
+        industries: industries.length,
+        sample: industries.slice(0, 5),
+        filesTouched: dryRun ? [] : db.touchedFiles(),
+      },
+      null,
+      2
+    )
+  );
 }
 
 if (require.main === module) {
   const jobName = resolveJobName(DETECTOR);
   stockscans.setJobName(jobName);
-  main().catch((e) => { console.error('sectorPeSnapshotWeekly failed:', e.message); process.exit(1); })
+  main()
+    .catch((e) => {
+      console.error('sectorPeSnapshotWeekly failed:', e.message);
+      process.exit(1);
+    })
     .finally(() => apiUsageTracker.flush(jobName));
 }
 module.exports = { main };

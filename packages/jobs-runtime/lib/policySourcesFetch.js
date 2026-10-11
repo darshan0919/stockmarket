@@ -10,7 +10,20 @@
 
 const registry = require('./policySources.json');
 
-const MONTHS = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
+const MONTHS = {
+  jan: 1,
+  feb: 2,
+  mar: 3,
+  apr: 4,
+  may: 5,
+  jun: 6,
+  jul: 7,
+  aug: 8,
+  sep: 9,
+  oct: 10,
+  nov: 11,
+  dec: 12,
+};
 
 /** "Sat, 10 Oct 2026 01:25:00" | "09 Oct, 2026 +0530" -> "2026-10-10" (calendar date as written, no tz shift) */
 function parseDate(s) {
@@ -70,7 +83,10 @@ function parseFeed(xml, src, { sinceDate, today }) {
 }
 
 async function fetchText(url) {
-  const r = await fetch(url, { headers: { 'user-agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(20000) });
+  const r = await fetch(url, {
+    headers: { 'user-agent': 'Mozilla/5.0' },
+    signal: AbortSignal.timeout(20000),
+  });
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.text();
 }
@@ -90,7 +106,13 @@ async function main(argv = process.argv) {
   for (const src of registry.sources) {
     if (only && !only.includes(src.id)) continue;
     if (src.type !== 'rss') {
-      webOnly.push({ id: src.id, name: src.name, url: src.url, agentHint: src.agentHint, verifiedOn: src.verifiedOn });
+      webOnly.push({
+        id: src.id,
+        name: src.name,
+        url: src.url,
+        agentHint: src.agentHint,
+        verifiedOn: src.verifiedOn,
+      });
       continue;
     }
     try {

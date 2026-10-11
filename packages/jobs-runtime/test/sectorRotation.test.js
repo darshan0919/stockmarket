@@ -4,7 +4,12 @@ const R = require('../lib/sectorRotation');
 const mk = (industry, n, r1m, r3m) => Array.from({ length: n }, () => ({ industry, r1m, r3m }));
 
 describe('industryRs', () => {
-  const rows = [...mk('A', 6, 8, 10), ...mk('B', 6, -2, 15), ...mk('C', 6, 0, 0), ...mk('Tiny', 2, 50, 50)];
+  const rows = [
+    ...mk('A', 6, 8, 10),
+    ...mk('B', 6, -2, 15),
+    ...mk('C', 6, 0, 0),
+    ...mk('Tiny', 2, 50, 50),
+  ];
   const t = R.industryRs(rows);
   test('market medians and small industries dropped', () => {
     expect(t.industries.map((i) => i.industry).sort()).toEqual(['A', 'B', 'C']);
@@ -14,7 +19,12 @@ describe('industryRs', () => {
 });
 
 describe('rsObservations', () => {
-  const t = R.industryRs([...mk('A', 6, 8, 10), ...mk('B', 6, -6, 15), ...mk('C', 6, 0, 0), ...mk('D', 6, 0, 0)]);
+  const t = R.industryRs([
+    ...mk('A', 6, 8, 10),
+    ...mk('B', 6, -6, 15),
+    ...mk('C', 6, 0, 0),
+    ...mk('D', 6, 0, 0),
+  ]);
   const by = (obs, sig, ind) => obs.find((o) => o.signalId === sig && o.entityId === ind).state;
   test('no history: A rising (rs1 8 > rs3/3), confirmed (rs3>0, all beat)', () => {
     const o = R.rsObservations(t);
@@ -33,7 +43,8 @@ describe('rsObservations', () => {
 
 describe('focusConcentration (S3)', () => {
   const f = (ind, n) => Array.from({ length: n }, (_, i) => ({ id: `${ind}${i}`, industry: ind }));
-  test('too few names -> insufficient', () => expect(R.focusConcentration(f('A', 5)).insufficient).toBe(true));
+  test('too few names -> insufficient', () =>
+    expect(R.focusConcentration(f('A', 5)).insufficient).toBe(true));
   test('3 of 11 in one industry -> detected', () => {
     const r = R.focusConcentration([...f('A', 3), ...f('B', 4), ...f('C', 4)]);
     expect(r.observations.find((o) => o.entityId === 'A').state).toBe('detected');

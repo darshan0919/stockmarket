@@ -216,7 +216,12 @@ async function main() {
               entityId: tk,
               state: ex[k].state,
               minMisses: 2,
-              evidence: { ...(ex[k].evidence || {}), flags: ex[k].flags, industry: row.Industry, calibrated: false },
+              evidence: {
+                ...(ex[k].evidence || {}),
+                flags: ex[k].flags,
+                industry: row.Industry,
+                calibrated: false,
+              },
             });
           for (const k of Object.keys(MAP)) {
             if (k === 'X7' && !lines.has(tk)) continue;
@@ -252,7 +257,12 @@ async function main() {
         errors,
         flagged: observations
           .filter((o) => o.state)
-          .map((o) => ({ id: o.entityId, signal: o.signalId, state: o.state, flags: o.evidence.flags })),
+          .map((o) => ({
+            id: o.entityId,
+            signal: o.signalId,
+            state: o.state,
+            flags: o.evidence.flags,
+          })),
         x4: observations
           .filter((o) => o.signalId === MAP_EXTRA.X4)
           .map((o) => ({ id: o.entityId, state: o.state, ...o.evidence })),

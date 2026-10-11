@@ -15,7 +15,12 @@ function aggregateByIndustry(rows, minN = 3) {
   const g = new Map();
   for (const r of rows) {
     if (!r.industry) continue;
-    const e = g.get(r.industry) || { industry: r.industry, sector: r.sector || null, pes: [], plat: [] };
+    const e = g.get(r.industry) || {
+      industry: r.industry,
+      sector: r.sector || null,
+      pes: [],
+      plat: [],
+    };
     if (num(r.pe) && r.pe > 0) e.pes.push(r.pe);
     if (num(r.industryPeMedian) && r.industryPeMedian > 0) e.plat.push(r.industryPeMedian);
     g.set(r.industry, e);

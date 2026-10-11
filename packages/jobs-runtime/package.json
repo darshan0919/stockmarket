@@ -39,6 +39,7 @@
     "ipo-supply-daily": "node ipoSupplyDaily.js",
     "sector-rotation-daily": "node sectorRotationDaily.js",
     "sector-lifecycle-weekly": "node sectorLifecycleWeekly.js",
+    "sector-cluster-replay": "node sectorClusterReplay.js",
     "signal-calibration-replay": "node signalCalibrationReplay.js",
     "funnel-gaps-daily": "node funnelGapsDaily.js",
     "policy-events": "node policyEventsDaily.js",

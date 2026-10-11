@@ -17,7 +17,7 @@
  *                         [--max-candidates N] [--env-file path]
  */
 
-const { indiamtf, nse } = require('@stock/api');
+const { indiamtf, nse, parseLatestDate } = require('@stock/api');
 const { sendHtmlEmail, stockscansLink, StorageService } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
 const apiUsageTracker = require('./lib/apiUsageTracker');
@@ -136,7 +136,8 @@ async function main() {
   const db = require('./lib/db');
   StorageService.init();
 
-  const signalDate = argValue('--date') || (await indiamtf.latestDate());
+  const latestJson = await indiamtf.latest().catch(() => null);
+  const signalDate = argValue('--date') || parseLatestDate(latestJson);
   if (!signalDate) throw new Error('could not determine latest MTF date from indiamtf.com');
 
   // 1) book cache
@@ -289,6 +290,10 @@ async function main() {
     status: 'skipped',
     reason: noEmail ? '--no-email' : dryRun ? '--dry-run' : 'no new signals',
   };
+  const market =
+    latestJson && parseLatestDate(latestJson) === signalDate
+      ? m.marketContext(latestJson, cache)
+      : null;
   const mail = formatEmail(
     {
       signalDate,
@@ -298,6 +303,7 @@ async function main() {
       rankSize: universe ? universe.size : 0,
       newCount,
       fetchErrors: fetchErrors.map((e) => e.symbol),
+      market,
     },
     stockscansLink
   );
@@ -318,6 +324,7 @@ async function main() {
         bookSessions: cache.dates.length,
         bookFetched: fetched,
         bookErrors,
+        market,
         stage1: stage1Syms.length,
         stage1Median20: flushMedian,
         stage2Evaluated: ok.length,

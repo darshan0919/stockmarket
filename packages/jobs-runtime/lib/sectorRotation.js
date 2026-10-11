@@ -12,7 +12,17 @@
  *   S3:         focus set size >= 8; industry holds >= 3 focus names and >= 25% of the set -> detected; >= 4 names or >= 40% -> confirmed.
  * Market = the scan universe's own median (default Nifty 500), not the index return.
  */
-const TH = Object.freeze({ minN: 5, shareConfirm: 0.6, rolloverGapPp: 3, rolloverShare: 0.4, focusMin: 8, focusNames: 3, focusShare: 0.25, focusNamesConfirm: 4, focusShareConfirm: 0.4 });
+const TH = Object.freeze({
+  minN: 5,
+  shareConfirm: 0.6,
+  rolloverGapPp: 3,
+  rolloverShare: 0.4,
+  focusMin: 8,
+  focusNames: 3,
+  focusShare: 0.25,
+  focusNamesConfirm: 4,
+  focusShareConfirm: 0.4,
+});
 const num = (x) => typeof x === 'number' && Number.isFinite(x);
 const r2 = (x) => Math.round(x * 100) / 100;
 const median = (a) => {
@@ -46,7 +56,11 @@ function industryRs(rows, minN = TH.minN) {
       share1m: r2(m.filter((x) => x.r1m > mkt1m).length / m.length),
     });
   }
-  return { mkt1m: r2(mkt1m), mkt3m: r2(mkt3m), industries: industries.sort((a, b) => b.rs1 - a.rs1) };
+  return {
+    mkt1m: r2(mkt1m),
+    mkt3m: r2(mkt3m),
+    industries: industries.sort((a, b) => b.rs1 - a.rs1),
+  };
 }
 
 /** @param {object} table industryRs() output  @param {object|null} prev last week's industries (array) */
@@ -57,12 +71,34 @@ function rsObservations(table, prev = null) {
     const p = pm.get(i.industry);
     const rising = p ? i.rs1 > p.rs1 : i.rs1 > i.rs3 / 3;
     let s2 = null;
-    if (i.rs1 > 0 && rising) s2 = i.rs3 > 0 && i.share1m >= TH.shareConfirm ? 'confirmed' : 'detected';
+    if (i.rs1 > 0 && rising)
+      s2 = i.rs3 > 0 && i.share1m >= TH.shareConfirm ? 'confirmed' : 'detected';
     let x4 = null;
-    if (i.rs3 > 0 && i.rs1 < 0) x4 = i.rs1 <= -TH.rolloverGapPp && i.share1m < TH.rolloverShare ? 'confirmed' : 'detected';
-    const ev = { ...i, mkt1m: table.mkt1m, mkt3m: table.mkt3m, prevRs1: p ? p.rs1 : null, calibrated: false };
-    obs.push({ signalId: 'S2-sector-rs-rising', entityType: 'sector', entityId: i.industry, state: s2, minMisses: 2, evidence: ev });
-    obs.push({ signalId: 'X4-sector-rs-rollover', entityType: 'sector', entityId: i.industry, state: x4, minMisses: 2, evidence: ev });
+    if (i.rs3 > 0 && i.rs1 < 0)
+      x4 = i.rs1 <= -TH.rolloverGapPp && i.share1m < TH.rolloverShare ? 'confirmed' : 'detected';
+    const ev = {
+      ...i,
+      mkt1m: table.mkt1m,
+      mkt3m: table.mkt3m,
+      prevRs1: p ? p.rs1 : null,
+      calibrated: false,
+    };
+    obs.push({
+      signalId: 'S2-sector-rs-rising',
+      entityType: 'sector',
+      entityId: i.industry,
+      state: s2,
+      minMisses: 2,
+      evidence: ev,
+    });
+    obs.push({
+      signalId: 'X4-sector-rs-rollover',
+      entityType: 'sector',
+      entityId: i.industry,
+      state: x4,
+      minMisses: 2,
+      evidence: ev,
+    });
   }
   return obs;
 }
@@ -70,7 +106,8 @@ function rsObservations(table, prev = null) {
 /** @param {{id:string,industry:string|null}[]} focus  names currently in an entry-side state */
 function focusConcentration(focus, th = TH) {
   const names = focus.filter((f) => f.industry);
-  if (names.length < th.focusMin) return { insufficient: true, size: names.length, observations: [] };
+  if (names.length < th.focusMin)
+    return { insufficient: true, size: names.length, observations: [] };
   const g = new Map();
   for (const f of names) (g.get(f.industry) || g.set(f.industry, []).get(f.industry)).push(f.id);
   const observations = [];
@@ -78,14 +115,23 @@ function focusConcentration(focus, th = TH) {
     const share = ids.length / names.length;
     let state = null;
     if (ids.length >= th.focusNames && share >= th.focusShare)
-      state = ids.length >= th.focusNamesConfirm || share >= th.focusShareConfirm ? 'confirmed' : 'detected';
+      state =
+        ids.length >= th.focusNamesConfirm || share >= th.focusShareConfirm
+          ? 'confirmed'
+          : 'detected';
     observations.push({
       signalId: 'S3-focus-concentration',
       entityType: 'sector',
       entityId: industry,
       state,
       minMisses: 2,
-      evidence: { names: ids, count: ids.length, focusSize: names.length, sharePct: r2(share * 100), calibrated: false },
+      evidence: {
+        names: ids,
+        count: ids.length,
+        focusSize: names.length,
+        sharePct: r2(share * 100),
+        calibrated: false,
+      },
     });
   }
   return { insufficient: false, size: names.length, observations };

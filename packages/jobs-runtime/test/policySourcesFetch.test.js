@@ -8,9 +8,9 @@ describe('policySourcesFetch', () => {
     expect(parseDate('garbage')).toBeNull();
   });
   test('fixLink strips SEBI double https prefix', () => {
-    expect(fixLink('https://www.sebi.gov.in/https://www.sebi.gov.in/a.pdf', 'doubleHttpsPrefix')).toBe(
-      'https://www.sebi.gov.in/a.pdf'
-    );
+    expect(
+      fixLink('https://www.sebi.gov.in/https://www.sebi.gov.in/a.pdf', 'doubleHttpsPrefix')
+    ).toBe('https://www.sebi.gov.in/a.pdf');
     expect(fixLink('https://x.y/a', 'doubleHttpsPrefix')).toBe('https://x.y/a');
   });
   test('kindHint', () => {

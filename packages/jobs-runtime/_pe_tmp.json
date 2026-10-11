@@ -1,10 +1,48 @@
 [
-{"date":"2026-10-06","title":"Union Cabinet approves Integrated Transport and Logistics Authority (ITLA)","kind":"capex","sectors":["logistics","ports","transport infrastructure"],
- "basket":["NSE:CONCOR","NSE:ADANIPORTS","NSE:JSWINFRA","NSE:DELHIVERY","NSE:BLUEDART","NSE:TCIEXP","NSE:MAHLOG","NSE:GPPL","NSE:GATEWAY","NSE:ALLCARGO"],
- "sourceUrls":["https://yourstory.com/2026/10/cabinet-approves-proposal-to-set-up-integrated-transport-and-logistics-authority","https://www.maritimegateway.com/cabinet-approves-new-integrated-transport-logistics-authority-to-plan-indias-transport-network-across-modes/","https://www.gktoday.in/cabinet-approves-integrated-transport-and-logistics-authority"],
- "summary":"Cabinet (6 Oct 2026) approved ITLA as top body for multimodal transport/logistics planning, National Transport Master Plan (10y+), technical appraisal of projects >=Rs500cr. Planning body, no funding outlay stated: basket = listed logistics/port/rail-freight proxies; indirect and weak, test is orders/earnings. PIB primary link not verified; secondary sources only."},
-{"date":"2026-10-07","title":"RBI MPC hikes repo rate 25bp to 5.50%, stance to calibrated tightening","kind":"rate","sectors":["housing finance","NBFC"],
- "basket":["NSE:BAJFINANCE","NSE:CHOLAFIN","NSE:LICHSGFIN","NSE:PNBHOUSING","NSE:CANFINHOME","NSE:AAVAS","NSE:HOMEFIRST","NSE:APTUS"],
- "sourceUrls":["https://teamleaseregtech.com/updates/article/60123/rbi-mpc-hikes-repo-rate-to-550-and-adopts-a-calibrated-tightening-stan","https://www.gktoday.in/rbi-hikes-repo-rate-by-25-basis-points-to-5-50/","https://www.5paisa.com/index.php/blog/rbi-mpc-meeting-schedule"],
- "summary":"RBI MPC 7 Oct 2026 raised repo 5.25%->5.50% and shifted stance to calibrated tightening (per secondary sources; rbi.org.in release not verified). Basket = rate-sensitive borrowing-cost-exposed NBFCs/HFCs, likely VICTIMS: negative excess return = absorbed. Direction not encoded by script; read sign manually."}
+  {
+    "date": "2026-10-06",
+    "title": "Union Cabinet approves Integrated Transport and Logistics Authority (ITLA)",
+    "kind": "capex",
+    "sectors": ["logistics", "ports", "transport infrastructure"],
+    "basket": [
+      "NSE:CONCOR",
+      "NSE:ADANIPORTS",
+      "NSE:JSWINFRA",
+      "NSE:DELHIVERY",
+      "NSE:BLUEDART",
+      "NSE:TCIEXP",
+      "NSE:MAHLOG",
+      "NSE:GPPL",
+      "NSE:GATEWAY",
+      "NSE:ALLCARGO"
+    ],
+    "sourceUrls": [
+      "https://yourstory.com/2026/10/cabinet-approves-proposal-to-set-up-integrated-transport-and-logistics-authority",
+      "https://www.maritimegateway.com/cabinet-approves-new-integrated-transport-logistics-authority-to-plan-indias-transport-network-across-modes/",
+      "https://www.gktoday.in/cabinet-approves-integrated-transport-and-logistics-authority"
+    ],
+    "summary": "Cabinet (6 Oct 2026) approved ITLA as top body for multimodal transport/logistics planning, National Transport Master Plan (10y+), technical appraisal of projects >=Rs500cr. Planning body, no funding outlay stated: basket = listed logistics/port/rail-freight proxies; indirect and weak, test is orders/earnings. PIB primary link not verified; secondary sources only."
+  },
+  {
+    "date": "2026-10-07",
+    "title": "RBI MPC hikes repo rate 25bp to 5.50%, stance to calibrated tightening",
+    "kind": "rate",
+    "sectors": ["housing finance", "NBFC"],
+    "basket": [
+      "NSE:BAJFINANCE",
+      "NSE:CHOLAFIN",
+      "NSE:LICHSGFIN",
+      "NSE:PNBHOUSING",
+      "NSE:CANFINHOME",
+      "NSE:AAVAS",
+      "NSE:HOMEFIRST",
+      "NSE:APTUS"
+    ],
+    "sourceUrls": [
+      "https://teamleaseregtech.com/updates/article/60123/rbi-mpc-hikes-repo-rate-to-550-and-adopts-a-calibrated-tightening-stan",
+      "https://www.gktoday.in/rbi-hikes-repo-rate-by-25-basis-points-to-5-50/",
+      "https://www.5paisa.com/index.php/blog/rbi-mpc-meeting-schedule"
+    ],
+    "summary": "RBI MPC 7 Oct 2026 raised repo 5.25%->5.50% and shifted stance to calibrated tightening (per secondary sources; rbi.org.in release not verified). Basket = rate-sensitive borrowing-cost-exposed NBFCs/HFCs, likely VICTIMS: negative excess return = absorbed. Direction not encoded by script; read sign manually."
+  }
 ]

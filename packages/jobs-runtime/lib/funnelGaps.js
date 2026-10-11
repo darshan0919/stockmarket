@@ -8,6 +8,8 @@
  */
 const T = { epsGrowthQoQPct: 25, ipoMaxCandles: 250 };
 const num = (x) => typeof x === 'number' && Number.isFinite(x);
-const epsGrowth = (patGrowthQoQ) => (num(patGrowthQoQ) && patGrowthQoQ > T.epsGrowthQoQPct ? 'detected' : null);
-const recentIpo = (candleCount) => (num(candleCount) && candleCount > 0 && candleCount < T.ipoMaxCandles ? 'detected' : null);
+const epsGrowth = (patGrowthQoQ) =>
+  num(patGrowthQoQ) && patGrowthQoQ > T.epsGrowthQoQPct ? 'detected' : null;
+const recentIpo = (candleCount) =>
+  num(candleCount) && candleCount > 0 && candleCount < T.ipoMaxCandles ? 'detected' : null;
 module.exports = { epsGrowth, recentIpo, T };

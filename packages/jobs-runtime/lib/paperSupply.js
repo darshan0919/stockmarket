@@ -27,7 +27,11 @@ function fundraiseKind({ title = '', description = '' } = {}) {
 
 function blockSellState(valueCr, pe, th = TH) {
   if (!num(valueCr) || !num(pe) || pe <= th.pe) return null;
-  return valueCr >= th.blockConfirmedCr ? 'confirmed' : valueCr >= th.blockDetectedCr ? 'detected' : null;
+  return valueCr >= th.blockConfirmedCr
+    ? 'confirmed'
+    : valueCr >= th.blockDetectedCr
+      ? 'detected'
+      : null;
 }
 
 function fundraiseState(kind, pe, th = TH) {
@@ -54,4 +58,11 @@ function quarterDate(iso) {
   return `${y}${String(qm).padStart(2, '0')}`;
 }
 
-module.exports = { TH, fundraiseKind, blockSellState, fundraiseState, sellValueBySymbol, quarterDate };
+module.exports = {
+  TH,
+  fundraiseKind,
+  blockSellState,
+  fundraiseState,
+  sellValueBySymbol,
+  quarterDate,
+};

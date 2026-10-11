@@ -23,7 +23,6 @@
  * `enriched.json` is the array produced by compute_guidance_value.py.
  *
  * Prints the saved DTO id and the touched-files manifest (DATA_RULES.md §7).
- * The skill's final step must still run `node packages/jobs-runtime/scripts/data.js push`.
  */
 
 const fs = require('fs');
@@ -43,6 +42,8 @@ function parseArgs(argv) {
     else if (a === '--transcript-available') out.transcriptAvailable = argv[++i] !== 'false';
     else if (a === '--stale-note') out.staleNote = argv[++i];
     else if (a === '--model') out.model = argv[++i];
+    else if (a === '--scan-row-file') out.scanRow = JSON.parse(fs.readFileSync(argv[++i], 'utf8'));
+    else if (a === '--scan-row') out.scanRow = JSON.parse(argv[++i]);
   }
   return out;
 }
@@ -86,6 +87,7 @@ function main() {
   // above were extracted by an LLM reading the transcript (Phase 2/3), even though
   // this save step itself is deterministic — so the DTO still needs it.
   if (args.model) dto.modelUsed = args.model;
+  if (args.scanRow) dto.scanRow = args.scanRow;
 
   const id = db.saveReport(dto);
   const touched = db.touchedFiles ? db.touchedFiles() : [];

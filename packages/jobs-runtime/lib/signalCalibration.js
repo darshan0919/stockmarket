@@ -55,7 +55,10 @@ function summarize(events) {
     const ex = events.map((e) => e[`ex${h}`]).filter(num);
     const raw = events.map((e) => e[`raw${h}`]).filter(num);
     const m = mean(ex);
-    const sd = ex.length > 1 ? Math.sqrt(mean(ex.map((x) => (x - m) ** 2)) * (ex.length / (ex.length - 1))) : null;
+    const sd =
+      ex.length > 1
+        ? Math.sqrt(mean(ex.map((x) => (x - m) ** 2)) * (ex.length / (ex.length - 1)))
+        : null;
     out[`h${h}`] = {
       n: ex.length,
       meanExcess: r2(m),
@@ -67,7 +70,11 @@ function summarize(events) {
   }
   const dd = events.map((e) => e.dd21).filter(num);
   out.dd21 = dd.length
-    ? { n: dd.length, pctDrawdown10: r2((dd.filter((x) => x <= -10).length / dd.length) * 100), medianWorstDd: r2(median(dd)) }
+    ? {
+        n: dd.length,
+        pctDrawdown10: r2((dd.filter((x) => x <= -10).length / dd.length) * 100),
+        medianWorstDd: r2(median(dd)),
+      }
     : null;
   return out;
 }
@@ -83,7 +90,8 @@ function exitVerdict(s, base, { minN = 30 } = {}) {
   if (!a || !b || a.n < minN || !base) return 'insufficient';
   const d21 = a.meanExcess - base.h21.meanExcess;
   const d63 = b.meanExcess - base.h63.meanExcess;
-  const negUp = a.pctNegExcess - base.h21.pctNegExcess >= 2 || b.pctNegExcess - base.h63.pctNegExcess >= 2;
+  const negUp =
+    a.pctNegExcess - base.h21.pctNegExcess >= 2 || b.pctNegExcess - base.h63.pctNegExcess >= 2;
   if (d21 <= -1 && d63 <= -2 && negUp) return 'supports';
   if (d21 >= 0.5 && d63 >= 0.5) return 'contradicts';
   return 'mixed';
@@ -92,8 +100,19 @@ function exitVerdict(s, base, { minN = 30 } = {}) {
 /** group events by calendar year of `date` and summarize each (consistency check) */
 function byYear(events) {
   const g = {};
-  for (const e of events) (g[String(e.date).slice(0, 4)] = g[String(e.date).slice(0, 4)] || []).push(e);
+  for (const e of events)
+    (g[String(e.date).slice(0, 4)] = g[String(e.date).slice(0, 4)] || []).push(e);
   return Object.fromEntries(Object.entries(g).map(([y, ev]) => [y, summarize(ev)]));
 }
 
-module.exports = { HORIZONS, onsets, fwdReturn, fwdDrawdown, summarize, exitVerdict, byYear, mean, median };
+module.exports = {
+  HORIZONS,
+  onsets,
+  fwdReturn,
+  fwdDrawdown,
+  summarize,
+  exitVerdict,
+  byYear,
+  mean,
+  median,
+};

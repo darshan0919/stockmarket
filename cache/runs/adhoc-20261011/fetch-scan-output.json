@@ -1,0 +1,705 @@
+{
+  "cutoffUtc": "2026-10-09T13:54:16.487Z",
+  "windowStartIstHuman": "09 Oct 2026 07:24 PM IST",
+  "windowEndIstHuman": "12 Oct 2026 12:37 AM IST",
+  "slot": "adhoc",
+  "slotLabel": "Ad-hoc run",
+  "scanSource": "live",
+  "scanName": "Signals - DND",
+  "scanFilterCount": 5,
+  "scanResolvedAtIso": "2026-10-11T19:07:14.933Z",
+  "quarterDate": "202612",
+  "totalFetched": 150,
+  "inWindow": [
+    {
+      "date": "2026-10-11",
+      "title": " Intimation Of Opening Of A New Retail Store Of The Company",
+      "description": "General - Pursuant to Regulation 30 of the Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements Regulations) 2015 this is to inform that the Company has opened a new store of Style Baazar at Raniganj West Bengal today.",
+      "ssUrl": "2z9aanabp8bsx0epj8j9h4wo.pdf",
+      "createdAt": "2026-10-11T22:20:24.612350",
+      "companyId": "NSE:STYLEBAAZA",
+      "name": "Baazar Style Retail Ltd",
+      "__parsedUtc": "2026-10-11T16:50:24.000Z"
+    },
+    {
+      "date": "2026-10-11",
+      "title": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+      "description": "Press Release / Media Release - Intimation of Press Release",
+      "ssUrl": "oqpkr8tbiad0cgrfh0efvxvb.pdf",
+      "createdAt": "2026-10-11T17:00:04.675986",
+      "companyId": "NSE:PNGJL",
+      "name": "P N Gadgil Jewellers Ltd",
+      "__parsedUtc": "2026-10-11T11:30:04.000Z"
+    },
+    {
+      "date": "2026-10-11",
+      "title": "Intimation Of Store Opening",
+      "description": "General - Intimation of Store Opening in Ayodhya Uttar Pradesh",
+      "ssUrl": "9a2dk0g78sstx0e8ucli578w.pdf",
+      "createdAt": "2026-10-11T16:56:10.403327",
+      "companyId": "NSE:PNGJL",
+      "name": "P N Gadgil Jewellers Ltd",
+      "__parsedUtc": "2026-10-11T11:26:10.000Z"
+    },
+    {
+      "date": "2026-10-11",
+      "title": "Board Meeting Intimation for To Consider And Approve The CompanyS Expansion Plans Including Further Capacity Enhancements.",
+      "description": "Board Meeting - Aeroflex Industries Ltdhas informed BSE that the meeting of the Board of Directors of the Company is scheduled on 14/10/2026 inter alia to consider and approve the Companys expansion plans including further capacity enhancements.",
+      "ssUrl": "c0l5rf05p8l8e15c7yq7tne9.pdf",
+      "createdAt": "2026-10-11T11:21:09.406387",
+      "companyId": "NSE:AEROFLEX",
+      "name": "Aeroflex Industries Ltd",
+      "__parsedUtc": "2026-10-11T05:51:09.000Z"
+    },
+    {
+      "date": "2026-10-11",
+      "title": "Investor Update For H1 (FY 2026-27) Received From Our Subsidiary-63SATS Cybertech Ltd.",
+      "description": "General - Investor update for H1 (FY 2026-27) received from our Subsidiary-63SATS Cybertech Ltd.",
+      "ssUrl": "5qzbswnrsmf4kfvui3xz91hk.pdf",
+      "createdAt": "2026-10-11T10:51:02.951664",
+      "companyId": "NSE:63MOONS",
+      "name": "63 Moons Technologies Ltd",
+      "__parsedUtc": "2026-10-11T05:21:02.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Bagging/Receiving of orders/contracts",
+      "description": "Viviana Power Tech Limited has informed the Exchange about receiving a new turnkey contract aggregating to Rs. 466,73,61,738.00 (Rupees Four Hundred Sixty-Six Crore Seventy-Three Lakh Sixty-One Thousand Seven Hundred Thirty-Eight Only), inclusive of taxes, from existing client M/s. Madhya Gujarat Vij Company Limited (MGVCL).",
+      "ssUrl": "vj65n8q04dnd9090wjb97qnn.pdf",
+      "createdAt": "2026-10-10T21:23:54.347466",
+      "companyId": "NSE:VIVIANA",
+      "name": "Viviana Power Tech Ltd",
+      "__parsedUtc": "2026-10-10T15:53:54.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Shareholders meeting",
+      "description": "Connplex Cinemas Limited has submitted the Exchange a copy Srutinizers report of Extraordinary General Meeting held on October 09, 2026. Further, the company has informed the Exchange regarding voting results.",
+      "ssUrl": "gx20dg17j524gu3oq3bwlsyn.pdf",
+      "createdAt": "2026-10-10T21:23:54.151429",
+      "companyId": "NSE:CONNPLEX",
+      "name": "Connplex Cinemas Ltd",
+      "__parsedUtc": "2026-10-10T15:53:54.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "General Updates",
+      "description": "Prime Cable Industries Limited has informed the Exchange about General Updates for Change in Market Maker",
+      "ssUrl": "nhy0sc9fadb8rapdku5ch3o6.pdf",
+      "createdAt": "2026-10-10T21:23:52.214446",
+      "companyId": "NSE:PRIMECAB",
+      "name": "Prime Cable Industries Limited",
+      "__parsedUtc": "2026-10-10T15:53:52.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Shareholders meeting",
+      "description": "Oneclick Logistics India Limited has submitted the Exchange a copy Srutinizers report of Postal Ballot. Further, the company has informed the Exchange regarding voting results.",
+      "ssUrl": "div322u8c56g9mm13l58xlh7.pdf",
+      "createdAt": "2026-10-10T21:23:52.121539",
+      "companyId": "NSE:OLIL",
+      "name": "OneClick Logistics India Ltd",
+      "__parsedUtc": "2026-10-10T15:53:52.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Outcome of Board Meeting",
+      "description": "Outcome of Board Meeting held today i.e. Saturday, 10th October, 2026",
+      "ssUrl": "hgqp0rqdfjy0stbwbzmxq396.pdf",
+      "createdAt": "2026-10-10T21:23:50.421219",
+      "companyId": "NSE:SHEETAL",
+      "name": "Sheetal Universal Ltd",
+      "__parsedUtc": "2026-10-10T15:53:50.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "General Updates",
+      "description": "Felix Industries Limited has informed the Exchange about General Updates",
+      "ssUrl": "0arnmont4o1afkquh37gbmua.pdf",
+      "createdAt": "2026-10-10T21:23:49.978536",
+      "companyId": "NSE:FELIX",
+      "name": "Felix Industries Ltd",
+      "__parsedUtc": "2026-10-10T15:53:49.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Bagging/Receiving of orders/contracts",
+      "description": "Innomet Advanced Materials Limited has informed the Exchange about Bagging/Receiving of orders/contracts",
+      "ssUrl": "lq3h5q0p2vvg95ipyxojyrz4.pdf",
+      "createdAt": "2026-10-10T21:23:49.964864",
+      "companyId": "NSE:INNOMET",
+      "name": "Innomet Advanced Materials Ltd",
+      "__parsedUtc": "2026-10-10T15:53:49.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+      "description": "Press Release / Media Release - Press Release with regard to Signing of MOU with KTK Group Co. Ltd",
+      "ssUrl": "5z0dhbs7n1ypfv7g85fzx0t1.pdf",
+      "createdAt": "2026-10-10T20:42:32.218739",
+      "companyId": "BSE:AIRFLOA",
+      "name": "Airfloa Rail Technology Ltd",
+      "__parsedUtc": "2026-10-10T15:12:32.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Disclosure Of Related Party Transaction Pursuant To Regulation 23(9) Of\r\nSecurities And Exchange Board Of India (Listing Obligation And Disclosure Requirements)\r\nRegulations 2015.",
+      "description": "General - Disclosure of Related Party Transaction as par Regulation 23(9) of SEBI (LODR) Regulation 2015",
+      "ssUrl": "abnkh0up1pm1a8c79opdotcz.pdf",
+      "createdAt": "2026-10-10T20:12:29.959708",
+      "companyId": "BSE:GRANDOAK",
+      "name": "Grand Oak Canyons Distillery Ltd",
+      "__parsedUtc": "2026-10-10T14:42:29.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Submission Of Un-Audited Financial Results Of (Grand Oak Canyons Distillery Limited) For The Quarter And Half Year Ended On September 30Th 2026 And Along With Limited Review Report Thereon.",
+      "description": "Financial Results - Submission of Un-Audited Financial results for 30th sep 2026",
+      "ssUrl": "6nvnwmn7j3nh71h1p24ye2lw.pdf",
+      "createdAt": "2026-10-10T19:51:55.356730",
+      "companyId": "BSE:GRANDOAK",
+      "name": "Grand Oak Canyons Distillery Ltd",
+      "__parsedUtc": "2026-10-10T14:21:55.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Undertaking For Non- Applicability Of Regulation 32 Of SEBI (LODR) Regulations 2015\r\nFor The Quarter And Half Year Ended On September 30Th 2026.",
+      "description": "Reg. 32 (1) (3) - Statement of Deviation & Variation - Undertaking for Non-Applicability of Regulation 32 of SEBI (LODR) Regulation 2015 for the quarter and Half year ended on September 30th 2026",
+      "ssUrl": "tnar41clyjp3cvivgxwr9l2f.pdf",
+      "createdAt": "2026-10-10T19:40:42.887796",
+      "companyId": "BSE:GRANDOAK",
+      "name": "Grand Oak Canyons Distillery Ltd",
+      "__parsedUtc": "2026-10-10T14:10:42.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Board Meeting Outcome for Outcome Of Meeting Of Board Of Directors Held On10th October 2026 At Pursuant To Regulation 30 Of\r\nThe SEBI (Listing Obligations And Disclosure Requirements) Regulations 2015.",
+      "description": "Outcome of Board Meeting - Pursuant to the provisions of Regulation 30 and other applicable provisions of SEBI (Listing Obligations and Disclosure Requirements) Regulations 2015 we wish to inform that the meeting of the Board of Directors of the Company was held today i.e. Saturday 10thOctober 2026 which commenced at 04:10 P.M. and concluded at 04:40 P.M at the Corporate Address of the Company at J-71 Lower Ground Floor J Block Paryavaran Complex Ignou Road Neb Sarai New Delhi India 110062. 1 1. UN-AUDITED FINANCIAL RESULTS 2. STATEMENT OF DEVIATION OR VARIATION UNDER REGULATION 32 OF SEBI (LODR) REGULATIONS 2015",
+      "ssUrl": "shd1wslxyf8nqtc52mep3ks7.pdf",
+      "createdAt": "2026-10-10T19:31:19.211417",
+      "companyId": "BSE:GRANDOAK",
+      "name": "Grand Oak Canyons Distillery Ltd",
+      "__parsedUtc": "2026-10-10T14:01:19.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": " Shareholder Meeting / Postal Ballot-Scrutinizer\"s Report",
+      "description": "Postal Ballot - Postal Ballot Result-Scrutinizers Report",
+      "ssUrl": "rumd66idzkix9ad0sw0ms499.pdf",
+      "createdAt": "2026-10-10T19:16:19.078847",
+      "companyId": "NSE:CYIENT",
+      "name": "Cyient Ltd",
+      "__parsedUtc": "2026-10-10T13:46:19.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Shareholder Meeting / Postal Ballot-Outcome of Postal_Ballot",
+      "description": "Postal Ballot - Result of Postal Ballot",
+      "ssUrl": "nl8gcdjm8tflrq15nfjx2edx.pdf",
+      "createdAt": "2026-10-10T19:10:42.672862",
+      "companyId": "NSE:CYIENT",
+      "name": "Cyient Ltd",
+      "__parsedUtc": "2026-10-10T13:40:42.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Announcement under Regulation 30 (LODR)-Updates on Acquisition",
+      "description": "Acquisition - In continuation to our announcement dated July 28 2026 and February 20 2026 this is an update on the Acquisition of Shares of Vibhav Energy Private Limited.",
+      "ssUrl": "1zk0nfpr4ja099orjfjgf2y7.pdf",
+      "createdAt": "2026-10-10T19:05:05.071586",
+      "companyId": "NSE:AIIL",
+      "name": "Authum Investment & Infrastructure Ltd",
+      "__parsedUtc": "2026-10-10T13:35:05.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "description": "Analyst / Investor Meet - Results Conference Call -Q2 FY27",
+      "ssUrl": "w0my94kssg53krzzbkly37f8.pdf",
+      "createdAt": "2026-10-10T18:33:14.376374",
+      "companyId": "NSE:CYIENT",
+      "name": "Cyient Ltd",
+      "__parsedUtc": "2026-10-10T13:03:14.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Compliances-Half Yearly Report (SEBI Circular No. CIR/IMD/DF-1/67/2017) ",
+      "description": "Half Yearly Report (SEBI Circular No. CIR/IMD/DF-1/67/2017) - Submission of Half Yearly Report as per SEBI circular for September 2026",
+      "ssUrl": "8dw54ytvnmqyiybm9lrxpb6n.pdf",
+      "createdAt": "2026-10-10T18:33:12.356154",
+      "companyId": "NSE:MANBA",
+      "name": "Manba Finance Ltd",
+      "__parsedUtc": "2026-10-10T13:03:12.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Intimation Of ESG Rating",
+      "description": "General - Solara Active Pharma has informed the Exchange regarding the ESG Rating received from Crisil ESG Rating & Analytics Limited",
+      "ssUrl": "5hz84vycl15deriq77gpsgka.pdf",
+      "createdAt": "2026-10-10T18:29:26.239397",
+      "companyId": "NSE:SOLARA",
+      "name": "Solara Active Pharma Sciences Ltd",
+      "__parsedUtc": "2026-10-10T12:59:26.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Announcement under Regulation 30 (LODR)-Acquisition",
+      "description": "Acquisition - Incorporation of Wholly Owned Subsidiary of the Company",
+      "ssUrl": "bugvyuowldx6zctagyv9vmz6.pdf",
+      "createdAt": "2026-10-10T18:23:53.058794",
+      "companyId": "NSE:STLNETWORK",
+      "name": "STL Networks Ltd",
+      "__parsedUtc": "2026-10-10T12:53:53.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Announcement On Order Booking And Update",
+      "description": "General - Announcement on Order Booking and update",
+      "ssUrl": "xq1i9ra0wox1jacwnq323iv0.pdf",
+      "createdAt": "2026-10-10T18:07:03.000211",
+      "companyId": "BSE:FABCLEAN",
+      "name": "Fabtech Cleanrooms Ltd",
+      "__parsedUtc": "2026-10-10T12:37:03.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Announcement under Regulation 30 (LODR)-Change in Directorate",
+      "description": "Change in Directorate - Appointment of Shri Jitendra Agarwal as an Additional Director (Non-Executive Independent Director) of the Company w.e.f. October 102026",
+      "ssUrl": "0hnn4dss18uwrhmjy797o7fj.pdf",
+      "createdAt": "2026-10-10T17:20:07.540774",
+      "companyId": "BSE:SGMART",
+      "name": "SG Mart Ltd",
+      "__parsedUtc": "2026-10-10T11:50:07.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Submission Of The Minutes Of The 42Nd Annual General Meeting Of The Company Held On Tuesday 29Th Day Of September 2026.",
+      "description": "AGM - .",
+      "ssUrl": "oy5jqskajv4nj9dbtaaa4cid.pdf",
+      "createdAt": "2026-10-10T16:29:29.690664",
+      "companyId": "NSE:COMSYN",
+      "name": "Commercial Syn Bags Ltd",
+      "__parsedUtc": "2026-10-10T10:59:29.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Announcement Under Regulation 30 (LODR) - Update On Litigation.",
+      "description": "General - Intimation under Regulation 30 of SEBI (LODR) Regulations 2015 - Update on Litigation.",
+      "ssUrl": "fuz3ca97pk950bbb8gdxu74g.pdf",
+      "createdAt": "2026-10-10T16:25:42.705629",
+      "companyId": "NSE:ADFFOODS",
+      "name": "ADF Foods Ltd",
+      "__parsedUtc": "2026-10-10T10:55:42.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Announcement under Regulation 30 (LODR)-Resignation of Chief Financial Officer (CFO)",
+      "description": "Resignation of Chief Financial Officer (CFO) - Resignation from the post of Chief Financial Officer of the Company.",
+      "ssUrl": "qbnyff22ztb1zqjhr88kozy5.pdf",
+      "createdAt": "2026-10-10T15:31:16.806643",
+      "companyId": "NSE:KESORAMIND",
+      "name": "Kesoram Industries Ltd",
+      "__parsedUtc": "2026-10-10T10:01:16.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "UNAUDITED FINANCIAL RESULTS FOR THE QUARTER AND HALF YEAR ENDED ON 30-09-2026",
+      "description": "Financial Results - Please enclosed herewith copy of Financial Results for your reference.",
+      "ssUrl": "ogawsf49k7bbqgly57er24xf.pdf",
+      "createdAt": "2026-10-10T15:27:29.260838",
+      "companyId": "NSE:PREMIERPOL",
+      "name": "Premier Polyfilm Ltd",
+      "__parsedUtc": "2026-10-10T09:57:29.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Board Meeting Outcome for Board Meeting Outcome For The Approval Of Unaudited Financial Results For The Quarter And Half Year Ended On 30-09-2026",
+      "description": "Outcome of Board Meeting - Please find enclosed Outcome along with Unaudited results for your reference.",
+      "ssUrl": "k3m0mksubr5ie3kn6dlyfokp.pdf",
+      "createdAt": "2026-10-10T15:01:16.231446",
+      "companyId": "NSE:PREMIERPOL",
+      "name": "Premier Polyfilm Ltd",
+      "__parsedUtc": "2026-10-10T09:31:16.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Corrigendum To The Outcome Of The Meeting Of The Listing And Fund Raising Committee Held On October 09 2026\r\n\r\n",
+      "description": "General - As enclosed.",
+      "ssUrl": "fhb2smw44cibxz86yvobdd3c.pdf",
+      "createdAt": "2026-10-10T14:40:40.990550",
+      "companyId": "NSE:PTCIL",
+      "name": "PTC Industries Ltd",
+      "__parsedUtc": "2026-10-10T09:10:40.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+      "description": "Press Release / Media Release - Announcement under Regulation 30 of SEBI (Listing Obligations and Disclosure Requirements) Regulations 2015-Press Release",
+      "ssUrl": "tduuvzp038wt7ck82qygpxif.pdf",
+      "createdAt": "2026-10-10T14:35:03.133577",
+      "companyId": "NSE:KRYSTAL",
+      "name": "Krystal Integrated Services Ltd",
+      "__parsedUtc": "2026-10-10T09:05:03.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Intimation Of Opening Of New Retail Store Of The Company",
+      "description": "General - Pursuant to Regulation 30 of the Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations 2015 this is to inform that the Company has opened a new store of Style Baazar at Naini Prayagraj Uttar Pradesh today.",
+      "ssUrl": "exfjgfxb42y6sqfitz75uv7s.pdf",
+      "createdAt": "2026-10-10T14:14:29.674760",
+      "companyId": "NSE:STYLEBAAZA",
+      "name": "Baazar Style Retail Ltd",
+      "__parsedUtc": "2026-10-10T08:44:29.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Announcement under Regulation 30 (LODR)-Code of Conduct under SEBI (PIT) Regulations 2015",
+      "description": "Code of Conduct under SEBI (PIT) Regulations 2015 - Reporting under SEBI (PIT) Regulations 2015",
+      "ssUrl": "tt5bwvyxtscufjxn1dksbtos.pdf",
+      "createdAt": "2026-10-10T14:05:03.955746",
+      "companyId": "NSE:GRWRHITECH",
+      "name": "Garware Hi Tech Films Ltd",
+      "__parsedUtc": "2026-10-10T08:35:03.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Intimation Of Grant Of Esops",
+      "description": "General - Intimation of grant of ESOPs",
+      "ssUrl": "8o821wxq6w40h9m1a9ce00b3.pdf",
+      "createdAt": "2026-10-10T13:53:52.668958",
+      "companyId": "NSE:ACMESOLAR",
+      "name": "ACME Solar Holdings Ltd",
+      "__parsedUtc": "2026-10-10T08:23:52.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Grant Of ESOP",
+      "description": "General - Please refer attached file for further details",
+      "ssUrl": "44q6vpmf8t2e9ldkl5ugmk5r.pdf",
+      "createdAt": "2026-10-10T13:48:20.335421",
+      "companyId": "NSE:LLOYDSENGG",
+      "name": "Lloyds Engineering Works Ltd",
+      "__parsedUtc": "2026-10-10T08:18:20.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Signing Of MOU With KTK Group Co. Ltd.",
+      "description": "General - Signing of MOU with KTK Group Co. Ltd a Company incorporated under the Law of China having its place of business in India for joint participation of Tendering process for excution of Eligible Platform Screen Door (PSD) projects in India.",
+      "ssUrl": "4v6dzrkfpdduc10ecx7gti4m.pdf",
+      "createdAt": "2026-10-10T13:22:02.943955",
+      "companyId": "BSE:AIRFLOA",
+      "name": "Airfloa Rail Technology Ltd",
+      "__parsedUtc": "2026-10-10T07:52:02.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Update On Acquisition Of 5.60% Equity Share Capital Of Heritage Novandie Foods Limited",
+      "description": "General - Update on acquisition of 5.60% equity share capital of Heritage Novandie Foods Limited",
+      "ssUrl": "quc9yq97s4nc1zn0r4s79quh.pdf",
+      "createdAt": "2026-10-10T13:05:11.493713",
+      "companyId": "NSE:HERITGFOOD",
+      "name": "Heritage Foods Ltd",
+      "__parsedUtc": "2026-10-10T07:35:11.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Europe GMP Approval Of Shilpa Medicare Ltd. Unit 4 Jadcherla Telangana.",
+      "description": "General - Europe GMP approval of Shilpa Medicare Limited. Unit 4 Jadcherla Telangana.",
+      "ssUrl": "oka4950ils5a2mb75y0hst6g.pdf",
+      "createdAt": "2026-10-10T12:44:30.905023",
+      "companyId": "NSE:SHILPAMED",
+      "name": "Shilpa Medicare Ltd",
+      "__parsedUtc": "2026-10-10T07:14:30.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Board Meeting Intimation for To Consider Proposal For Raising Of Funds",
+      "description": "Board Meeting - Capri Global Capital Ltdhas informed BSE that the meeting of the Board of Directors of the Company is scheduled on 14/10/2026 inter alia to consider and approve proposal for raising of funds",
+      "ssUrl": "c79yg0waudk7u8nlcgydmism.pdf",
+      "createdAt": "2026-10-10T11:37:03.343316",
+      "companyId": "NSE:CGCL",
+      "name": "Capri Global Capital Ltd",
+      "__parsedUtc": "2026-10-10T06:07:03.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Disclosure Under Regulation 30 Of The Securities And Exchange Board Of India (Listing Obligations And Disclosure Requirements) Regulations 2015.",
+      "description": "General - Disclosure under Regulation 30 of the Securities and Exchange Board of India ( Listing Obligations and Disclosure Requirements) Regulations 2015.",
+      "ssUrl": "xlykx3f9g6cbqk9cpk5bduob.pdf",
+      "createdAt": "2026-10-10T11:37:01.861223",
+      "companyId": "NSE:VINDHYATEL",
+      "name": "Vindhya Telelinks Ltd",
+      "__parsedUtc": "2026-10-10T06:07:01.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "description": "Analyst / Investor Meet - Please find enclosed the details of earnings call to be held on 15 October 2026",
+      "ssUrl": "r1ndxp2vhx8nog8nqr5xupqb.pdf",
+      "createdAt": "2026-10-10T11:14:38.488967",
+      "companyId": "NSE:CYIENTDLM",
+      "name": "Cyient DLM Ltd",
+      "__parsedUtc": "2026-10-10T05:44:38.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Disclosures under Reg. 31(1) and 31(2) of SEBI (SAST) Regulations 2011.",
+      "description": "Disclosures under Reg. 31(1) and 31(2) of SEBI (SAST) Regulations 2011 - The Exchange has received Disclosure under Regulation 31(1) and 31(2) of SEBI (Substantial Acquisition of Shares & Takeovers) Regulations 2011 on October 09 2026 for Melligeri Pvt Family Foundation (Mellwood Trustee Services Pvt Ltd)",
+      "ssUrl": "xcj4yazzn3cd5s2u3csnq2mr.pdf",
+      "createdAt": "2026-10-10T10:54:01.654401",
+      "companyId": "NSE:AEQUS",
+      "name": "Aequs Ltd",
+      "__parsedUtc": "2026-10-10T05:24:01.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Announcement Under Regulation 30 Of SEBI (LODR) Regulation 2015 - Receipt Of Trading Approval",
+      "description": "General - Intimation of receipt of Trading Approval from BSE is enclosed",
+      "ssUrl": "jvmkgtwuitbhpoys2ayel3lp.pdf",
+      "createdAt": "2026-10-10T10:38:59.334368",
+      "companyId": "BSE:TEJASSVI",
+      "name": "Tejassvi Aaharam Ltd",
+      "__parsedUtc": "2026-10-10T05:08:59.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Board Meeting Intimation for Unaudited Financial Results For Quarter And Half Year Ended September 30 2026",
+      "description": "Board Meeting - Fairchem Organics Ltdhas informed BSE that the meeting of the Board of Directors of the Company is scheduled on 22/10/2026 inter alia to consider and approve the Unaudited Financial Results for the quarter and half year ended September 30 2026",
+      "ssUrl": "huuguopcajeztv8fa1fk15er.pdf",
+      "createdAt": "2026-10-10T10:27:46.464769",
+      "companyId": "NSE:FAIRCHEMOR",
+      "name": "Fairchem Organics Ltd",
+      "__parsedUtc": "2026-10-10T04:57:46.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Intimation Of Receipt Of Trading Approval For 424647 Equity Shares Issued On Preferential Basis.",
+      "description": "General - Intimation of receipt of Trading Approval",
+      "ssUrl": "opi0wqxbx03gn1ijwhnd11ub.pdf",
+      "createdAt": "2026-10-10T10:18:21.122709",
+      "companyId": "BSE:TANFACIND",
+      "name": "Tanfac Industries Ltd",
+      "__parsedUtc": "2026-10-10T04:48:21.000Z"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Reg 23(5)(i): Disclosure of material issue",
+      "description": "GENERAL - Property Share Investment Trust - Propshare Platina has informed the Exchange regarding Disclosure of material issue",
+      "ssUrl": "ldofyjpa9gl40ywzb0eksb9m.pdf",
+      "createdAt": "2026-10-10T09:46:37.258755",
+      "companyId": "BSE:PSPLATINA",
+      "name": "Property Share Investment Trust- Propshare Platina",
+      "__parsedUtc": "2026-10-10T04:16:37.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Announcement under Regulation 30 (LODR)-Allotment",
+      "description": "Allotment of Equity Shares - As enclosed.",
+      "ssUrl": "t5qe7oizzydblj48wjy9a8a4.pdf",
+      "createdAt": "2026-10-09T23:51:26.532578",
+      "companyId": "NSE:PTCIL",
+      "name": "PTC Industries Ltd",
+      "__parsedUtc": "2026-10-09T18:21:26.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Announcement under Regulation 30 (LODR)-Qualified Institutional Placement",
+      "description": "Qualified Institutional Placement - As enclosed",
+      "ssUrl": "tbz7mq0vz7v4l6w0reh1tap1.pdf",
+      "createdAt": "2026-10-09T22:47:27.984537",
+      "companyId": "NSE:PTCIL",
+      "name": "PTC Industries Ltd",
+      "__parsedUtc": "2026-10-09T17:17:27.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Board Meeting Intimation for Consideration Of Audited Financial Results For The Quarter And Half Year Ended 30.09.2026",
+      "description": "Board Meeting - Chennai Petroleum Corporation Ltdhas informed BSE that the meeting of the Board of Directors of the Company is scheduled on 22/10/2026 inter alia to consider and approve Board Meeting Intimation for the quarter and half year ended 30.09.2026",
+      "ssUrl": "3hjnbjpbi5s3an7jtgm01rrj.pdf",
+      "createdAt": "2026-10-09T22:47:24.586128",
+      "companyId": "NSE:CHENNPETRO",
+      "name": "Chennai Petroleum Corporation Ltd",
+      "__parsedUtc": "2026-10-09T17:17:24.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Resignation of Director/KMP/SMP",
+      "description": "Akiko Global Services Limited has informed the Exchange about Resignation of Director/KMP/SMP",
+      "ssUrl": "5bmjjps6j9ydi7bw10zi9xx7.pdf",
+      "createdAt": "2026-10-09T22:22:49.423005",
+      "companyId": "NSE:AKIKO",
+      "name": "Akiko Global Services Ltd",
+      "__parsedUtc": "2026-10-09T16:52:49.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Resignation of Director/KMP/SMP",
+      "description": "Akiko Global Services Limited has informed the Exchange about Resignation of Director/KMP/SMP",
+      "ssUrl": "gn7mckqkqvcve98aerc7rrgh.pdf",
+      "createdAt": "2026-10-09T22:22:49.199855",
+      "companyId": "NSE:AKIKO",
+      "name": "Akiko Global Services Ltd",
+      "__parsedUtc": "2026-10-09T16:52:49.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Updates",
+      "description": "Vertis Infrastructure Trust has informed the Exchange regarding intimation of the meeting of the Board of Directors of Vertis Fund Advisors Private Limited scheduled to be held on Thursday, October 15, 2026.",
+      "ssUrl": "654rs4pal8bz598yitlgvhdf.pdf",
+      "createdAt": "2026-10-09T22:22:49.115680",
+      "companyId": "NSE:VERTIS",
+      "name": "Vertis Infrastructure Trust",
+      "__parsedUtc": "2026-10-09T16:52:49.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Resignation",
+      "description": "Mr. Tarun Gahlot (DIN: 10722326), has resigned from the position of Non-Executive Independent Director of the Company with effect from 8th October, 2026, due to personal reasons.",
+      "ssUrl": "d10757futdjjvdj8glofq2wo.pdf",
+      "createdAt": "2026-10-09T22:22:48.842764",
+      "companyId": "NSE:AKIKO",
+      "name": "Akiko Global Services Ltd",
+      "__parsedUtc": "2026-10-09T16:52:48.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Change in Management",
+      "description": "Mr. Tarun Gahlot (DIN: 10722326), has resigned from the position of Non-Executive Independent Director of the Company with effect from 8th October, 2026, due to personal reasons.",
+      "ssUrl": "6j814dfwmd99oz55zhy7b2ff.pdf",
+      "createdAt": "2026-10-09T22:22:48.608848",
+      "companyId": "NSE:AKIKO",
+      "name": "Akiko Global Services Ltd",
+      "__parsedUtc": "2026-10-09T16:52:48.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Announcements Under Regulation 30 Of SEBI (LODR) Regulations 2015 - Updates",
+      "description": "General - Intimation on Deployment Status of Vessel \"SEAMEC PRINCESS\" - completion of Statutory Dry Docking.",
+      "ssUrl": "csf7p0vz3ej8xuzns32iqjkw.pdf",
+      "createdAt": "2026-10-09T22:00:15.306953",
+      "companyId": "NSE:SEAMECLTD",
+      "name": "SEAMEC Ltd",
+      "__parsedUtc": "2026-10-09T16:30:15.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Corporate Action-Updates on Buy back",
+      "description": "Buy back - SIS Limited has informed that 689000 equity shares of face value of Rs. 5/- each have been extinguished pursuant to the ongoing buyback through the open market route on the stock exchanges.",
+      "ssUrl": "qgyzmdwji35vevueyz08nd25.pdf",
+      "createdAt": "2026-10-09T21:56:25.243718",
+      "companyId": "NSE:SIS",
+      "name": "SIS Ltd",
+      "__parsedUtc": "2026-10-09T16:26:25.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Announcement under Regulation 30 (LODR)-Daily Buy Back of equity shares",
+      "description": "Daily Buy Back of equity shares - SIS Limited has informed the Exchange regarding daily report with respect to Equity Shares bought back by the Company on October 9 2026.",
+      "ssUrl": "cacw7zoj1sxn0er9wcfb4yxm.pdf",
+      "createdAt": "2026-10-09T21:35:48.753844",
+      "companyId": "NSE:SIS",
+      "name": "SIS Ltd",
+      "__parsedUtc": "2026-10-09T16:05:48.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Corrigendum To The Notice Of The Extra-Ordinary General Meeting (EGM) To Be Held On October 19 2026",
+      "description": "EGM - We hereby submit the Corrigendum to the Notice of Extra-Ordinary General Meeting to be held on October 19 2026",
+      "ssUrl": "e0ypw8urbpz5q4sbqxzij2e5.pdf",
+      "createdAt": "2026-10-09T21:19:01.773223",
+      "companyId": "NSE:QPOWER",
+      "name": "Quality Power Electrical Equipments Ltd",
+      "__parsedUtc": "2026-10-09T15:49:01.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Related Party Transaction Statement For Half Year Ended September 30 2026",
+      "description": "General - Related Party Transaction Statement for the half year ended September 30 2026",
+      "ssUrl": "0quo6y9igc9k1y6e4p8qkckd.pdf",
+      "createdAt": "2026-10-09T20:24:41.704515",
+      "companyId": "NSE:POONAWALLA",
+      "name": "Poonawalla Fincorp Ltd",
+      "__parsedUtc": "2026-10-09T14:54:41.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Announcement under Regulation 30 (LODR)-Earnings Call Transcript",
+      "description": "Earnings Call Transcript - Earnings Call Transcript Q2 FY27 Audio Transcript",
+      "ssUrl": "nxsv5j0et7pnetbdcyx7g9yu.pdf",
+      "createdAt": "2026-10-09T20:24:41.437625",
+      "companyId": "NSE:POONAWALLA",
+      "name": "Poonawalla Fincorp Ltd",
+      "__parsedUtc": "2026-10-09T14:54:41.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Disclosure Under Regulation 30 Of SEBI (Listing Obligations And Disclosure Requirements) Regulations 2015 -US FDA Inspection Of The Companys Manufacturing Facility In Satara Maharashtra India.",
+      "description": "General - Disclosure under Regulation 30 of SEBI (Listing Obligations and Disclosure Requirements) Regulations 2015 - US FDA inspection of the Companys manufacturing facility in Satara Maharashtra India",
+      "ssUrl": "d72ylcbszmtfyyo6mkwpebdz.pdf",
+      "createdAt": "2026-10-09T20:18:56.271159",
+      "companyId": "NSE:RUBICON",
+      "name": "Rubicon Research Ltd",
+      "__parsedUtc": "2026-10-09T14:48:56.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "description": "Analyst / Investor Meet - Intimation of Earnings Call",
+      "ssUrl": "uu757b4eo8f00o1c2ff0t16g.pdf",
+      "createdAt": "2026-10-09T20:18:53.485315",
+      "companyId": "NSE:AURUM",
+      "name": "Aurum Proptech Ltd",
+      "__parsedUtc": "2026-10-09T14:48:53.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Announcement under Regulation 30 (LODR)-Change in Directorate",
+      "description": "Change in Directorate - Intimation with respect to the resignation of Mr. Amit Dixit Mr. Dhaval Jitendra Buch and Mr. Animesh Agrawal as Non-Executive Non-Independent Directors of the Company with effect from October 9 2026 is enclosed herewith.",
+      "ssUrl": "apmg1ecmyxp2dybmzy9dogv4.pdf",
+      "createdAt": "2026-10-09T20:15:04.432399",
+      "companyId": "NSE:EPL",
+      "name": "EPL Ltd",
+      "__parsedUtc": "2026-10-09T14:45:04.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Board Meeting Intimation for Consideration And Approval Of Unaudited Financial Results For The Quarter And Half Year Ended September 30 2026",
+      "description": "Board Meeting - Aurum Proptech Ltdhas informed BSE that the meeting of the Board of Directors of the Company is scheduled on 16/10/2026 inter alia to consider and approve the Unaudited Financial Results for the Quarter and Half Year Ended September 30 2026",
+      "ssUrl": "ypckeb5yy366m19qxf1uxwxf.pdf",
+      "createdAt": "2026-10-09T20:09:27.488194",
+      "companyId": "NSE:AURUM",
+      "name": "Aurum Proptech Ltd",
+      "__parsedUtc": "2026-10-09T14:39:27.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Disclosure Under Regulation 30 Of Securities And Exchange Board Of India (Listing Obligations And Disclosure Requirements) Regulations 2015",
+      "description": "General - Disclosure under Regulation 30 of SEBI (Listing Obligations and Disclosure Requirements) Regulations 2015",
+      "ssUrl": "g7ze1olavwtxvqrf9bvey7el.pdf",
+      "createdAt": "2026-10-09T20:09:25.137803",
+      "companyId": "NSE:KPIL",
+      "name": "Kalpataru Projects International Ltd",
+      "__parsedUtc": "2026-10-09T14:39:25.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Minutes Of The 50Th Annual General Meeting Of The Company. \r\n",
+      "description": "AGM - Minutes of the 50th Annual General Meeting of the Company held on Wednesday 16th September 2026",
+      "ssUrl": "yciak2yy0p5977h3lrrhybth.pdf",
+      "createdAt": "2026-10-09T19:41:20.196897",
+      "companyId": "NSE:BALRAMCHIN",
+      "name": "Balrampur Chini Mills Ltd",
+      "__parsedUtc": "2026-10-09T14:11:20.000Z"
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Intimation Of Receipt Of Listing Approval From BSE & NSE For Listing Of 10000000 Equity Shares Issued To Non Promoters/Public Category On Preferential Basis Pursuant To Conversion Of Warrants.",
+      "description": "General - Intimation of receipt of Listing approval from BSE and NSE for listing of 10000000 equity shares issued to non promoters/public category on preferential basis pursuant to conversion of warrants.",
+      "ssUrl": "upe1pbl3h5fbnrt14ivc89g2.pdf",
+      "createdAt": "2026-10-09T19:28:17.730337",
+      "companyId": "NSE:VIJIFIN",
+      "name": "Viji Finance Ltd",
+      "__parsedUtc": "2026-10-09T13:58:17.000Z"
+    }
+  ]
+}
