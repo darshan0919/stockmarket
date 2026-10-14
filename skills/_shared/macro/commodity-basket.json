@@ -1,0 +1,175 @@
+{
+  "_doc": "Shared macro input map (2026-10-14). instruments = TradingView scanner tickers (live-verified 2026-10-14 via stock-api/src/clients/TradingViewClient.js getPerformance). industries = first-match-wins regex over company-master `sector` + ' | ' + `industry`; each maps to the instruments whose QoQ move most plausibly moves that industry's revenue (realisation) or margin (input cost). `role`: input_cost (rise = margin headwind unless passed through), realisation (rise = revenue/margin tailwind), fx_revenue (USDINR up = tailwind for USD billers), rate (IN10Y/repo proxy: up = funding-cost headwind). `lagQuarters` = typical pass-through lag (judgment default; the agent overrides from the concall). This is a STARTING basket — growth-predictor's agent adds/removes instruments from the company's own concall (RM mix) via --extra-tickers.",
+  "always": ["brent", "usdinr", "in10y"],
+  "instruments": {
+    "brent": { "ticker": "ICEEUR:BRN1!", "unit": "USD/bbl", "label": "Brent crude" },
+    "wti": { "ticker": "NYMEX:CL1!", "unit": "USD/bbl", "label": "WTI crude" },
+    "diesel": {
+      "ticker": "NYMEX:HO1!",
+      "unit": "USD/gal",
+      "label": "ULSD / diesel (freight proxy)"
+    },
+    "natgas": { "ticker": "NYMEX:NG1!", "unit": "USD/mmBtu", "label": "Henry Hub natural gas" },
+    "coal": { "ticker": "ICEEUR:NCF1!", "unit": "USD/t", "label": "Newcastle thermal coal" },
+    "copper": { "ticker": "MCX:COPPER1!", "unit": "INR/kg", "label": "Copper (MCX)" },
+    "aluminium": { "ticker": "MCX:ALUMINIUM1!", "unit": "INR/kg", "label": "Aluminium (MCX)" },
+    "zinc": { "ticker": "MCX:ZINC1!", "unit": "INR/kg", "label": "Zinc (MCX)" },
+    "lead": { "ticker": "MCX:LEAD1!", "unit": "INR/kg", "label": "Lead (MCX)" },
+    "nickel": { "ticker": "MCX:NICKEL1!", "unit": "INR/kg", "label": "Nickel (MCX)" },
+    "hrc": { "ticker": "COMEX:HRC1!", "unit": "USD/st", "label": "US HRC steel" },
+    "ironore": { "ticker": "SGX:FEF1!", "unit": "USD/t", "label": "Iron ore 62% (SGX)" },
+    "gold": { "ticker": "TVC:GOLD", "unit": "USD/oz", "label": "Gold" },
+    "silver": { "ticker": "TVC:SILVER", "unit": "USD/oz", "label": "Silver" },
+    "cotton": { "ticker": "ICEUS:CT1!", "unit": "USc/lb", "label": "Cotton No.2" },
+    "palmoil": { "ticker": "MYX:FCPO1!", "unit": "MYR/t", "label": "Crude palm oil" },
+    "soybean": { "ticker": "CBOT:ZS1!", "unit": "USc/bu", "label": "Soybean" },
+    "wheat": { "ticker": "CBOT:ZW1!", "unit": "USc/bu", "label": "Wheat" },
+    "sugar": { "ticker": "ICEUS:SB1!", "unit": "USc/lb", "label": "Raw sugar No.11" },
+    "rubber": { "ticker": "SGX:TF1!", "unit": "USc/kg", "label": "Natural rubber TSR20" },
+    "usdinr": { "ticker": "FX_IDC:USDINR", "unit": "INR", "label": "USD/INR" },
+    "in10y": { "ticker": "TVC:IN10Y", "unit": "%", "label": "India 10Y G-sec yield" },
+    "us10y": { "ticker": "TVC:US10Y", "unit": "%", "label": "US 10Y yield" }
+  },
+  "industries": [
+    {
+      "match": "Cables|Wires|Conductor|Transmission Line",
+      "inputs": ["copper", "aluminium"],
+      "role": "input_cost",
+      "lagQuarters": 1,
+      "note": "Metal is largely passed through via price-variation clauses (revenue moves with metal); margin hit comes from inventory/lag and fixed-price orders (kb:1b89c3ec, kb:4e67b69f)"
+    },
+    {
+      "match": "Transformer|Electric Equipment|Electrical Equipment|Capital Goods Electric",
+      "inputs": ["copper", "aluminium", "hrc"],
+      "role": "input_cost",
+      "lagQuarters": 1,
+      "note": "CRGO/copper; order-book pricing fixed at bid -> lagged margin impact"
+    },
+    {
+      "match": "Steel Tubes|Steel Pipes|Steel Products|Steel Wires|Steel Rolling|Steel$|Steel Sponge|Ferro Alloys|Castings|Forgings",
+      "inputs": ["hrc", "ironore", "coal"],
+      "role": "realisation",
+      "lagQuarters": 0,
+      "note": "Realisation-led: price moves hit revenue and spread immediately; track working capital when steel moves (kb:505a57f0)"
+    },
+    {
+      "match": "Aluminium|Metal Copper|Non Ferrous|Zinc|Mining and Minerals",
+      "inputs": ["aluminium", "copper", "zinc", "lead"],
+      "role": "realisation",
+      "lagQuarters": 0,
+      "note": "Commodity price taker; normalise margins over the cycle (kb:6ff2f711)"
+    },
+    {
+      "match": "Paints|Dyes and Pigments|Petrochemicals|Plastics|Packaging|Polymers|Lubricants|Chemicals Organic|Specialty Chemicals|Pesticides|Agrochemicals",
+      "inputs": ["brent", "natgas"],
+      "role": "input_cost",
+      "lagQuarters": 1,
+      "note": "Crude-linked RM (VAM, TiO2 feedstock, polymers, solvents); pass-through typically lags a quarter"
+    },
+    {
+      "match": "Tyres|Rubber",
+      "inputs": ["rubber", "brent"],
+      "role": "input_cost",
+      "lagQuarters": 1,
+      "note": "Natural + synthetic (crude-linked) rubber; take the NR:SR mix from the concall"
+    },
+    {
+      "match": "Fertili",
+      "inputs": ["natgas", "brent"],
+      "role": "input_cost",
+      "lagQuarters": 0,
+      "note": "Gas feedstock; subsidy regime often passes cost through — check concall"
+    },
+    {
+      "match": "Cement|Ceramic|Tiles|Glass|Refractor",
+      "inputs": ["coal", "natgas", "diesel"],
+      "role": "input_cost",
+      "lagQuarters": 1,
+      "note": "Power & fuel (pet coke/coal/gas) and freight are the swing costs"
+    },
+    {
+      "match": "Refineries|Oil Marketing|Gas Distribution",
+      "inputs": ["brent", "natgas"],
+      "role": "input_cost",
+      "lagQuarters": 0,
+      "note": "GRM / marketing margin / APM gas price; use management's per-unit economics (kb:f91e4538)"
+    },
+    {
+      "match": "Oil Drilling|Exploration",
+      "inputs": ["brent", "natgas"],
+      "role": "realisation",
+      "lagQuarters": 0,
+      "note": "Realisation tailwind; windfall-tax risk"
+    },
+    {
+      "match": "Aviation|Airline|Logistics|Transport|Shipping",
+      "inputs": ["brent", "diesel"],
+      "role": "input_cost",
+      "lagQuarters": 0,
+      "note": "Fuel is the swing cost"
+    },
+    {
+      "match": "Jewel|Gems|Diamond",
+      "inputs": ["gold", "silver"],
+      "role": "realisation",
+      "lagQuarters": 0,
+      "note": "Gold price lifts revenue; inventory gains/losses distort margin — strip them"
+    },
+    {
+      "match": "Textiles|Apparel|Yarn|Spinning|Hosiery|Weaving",
+      "inputs": ["cotton", "brent", "usdinr"],
+      "role": "input_cost",
+      "lagQuarters": 1,
+      "note": "Cotton/polyester RM; exporters gain on weak INR"
+    },
+    {
+      "match": "FMCG|Edible Oil|Solvent Extraction|Food|Dairy|Personal Care",
+      "inputs": ["palmoil", "soybean", "wheat", "brent"],
+      "role": "input_cost",
+      "lagQuarters": 1,
+      "note": "Veg-oil/agri + crude-linked packaging; see skills/_shared/sector-playbooks/"
+    },
+    {
+      "match": "Sugar|Alcoholic|Distiller",
+      "inputs": ["sugar"],
+      "role": "realisation",
+      "lagQuarters": 0,
+      "note": "Domestic sugar price is policy-set; global is a weak proxy"
+    },
+    {
+      "match": "Auto|Bearings|Auto Components|Gears|Engine Parts",
+      "inputs": ["hrc", "aluminium", "copper", "rubber"],
+      "role": "input_cost",
+      "lagQuarters": 1,
+      "note": "OEM pass-through clauses usually reset quarterly with a lag"
+    },
+    {
+      "match": "IT Services|IT Enabled|Engineering R and D|BPO|IT Product",
+      "inputs": ["usdinr"],
+      "role": "fx_revenue",
+      "lagQuarters": 0,
+      "note": "Weak INR = translation tailwind for USD billers with INR costs (kb:57c093fa)"
+    },
+    {
+      "match": "Pharma",
+      "inputs": ["usdinr"],
+      "role": "fx_revenue",
+      "lagQuarters": 0,
+      "note": "Exporters gain on weak INR; API costs import-linked"
+    },
+    {
+      "match": "Bank|NBFC|Finance|Microfinance|Housing Finance",
+      "inputs": ["in10y"],
+      "role": "rate",
+      "lagQuarters": 1,
+      "note": "Rate cuts compress bank NIM, help fixed-rate NBFCs (kb:59582635, kb:f7b27ca6); model NII = AUM x NIM"
+    },
+    {
+      "match": "Power Generation",
+      "inputs": ["coal", "natgas"],
+      "role": "input_cost",
+      "lagQuarters": 0,
+      "note": "Regulated plants pass fuel through; merchant plants do not"
+    }
+  ]
+}

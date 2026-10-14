@@ -445,4 +445,15 @@ add-note` (`watchlist-insights`, `announcement-insights`, `announcement-info-cla
 
 29. **Contextual metrics & Rate of Change ($\Delta$).** For any financial ratio, metric, or quality indicator presented in reports, briefings, or tables (e.g. updated P/B, BVPS, RoA, RoE, NIM, PAT, margins, AUM growth, credit cost), **always present contextual comparison data points** — either historical baseline value alongside the latest value (e.g. prior FY or prior Q vs latest Q with % or bps change), OR current baseline value alongside forward guided target (with % change) depending upon the section of the report. Never present a standalone or updated metric in isolation without its prior baseline; the user must always be able to clearly see the "rate of change" ($\Delta$).
 
+30. **Information Freshness & Provenance Tagging (`NEW` vs `CONFIRMATION` / `DERIVED`):** Whenever information from the latest source document is presented or mixed alongside historical context (such as past concalls, earlier presentations, or baseline thesis tables across all reports: `quarterly-result-analysis`, `rerating-catalysts`, `forward-guidance`, `announcement-insights`, etc.):
+    - Explicitly tag genuine fresh disclosures that originate from the current document with `NEW` (`.chip-g`).
+    - Explicitly tag ongoing/re-stated items from past quarters as `CONFIRMATION` or `HISTORICAL` (`.chip-b`).
+    - Whenever claims, deductions, or industry hypotheses are made based on general knowledge or economic extrapolation rather than direct quotation from the context source (e.g. attributing margin expansion to "crack spreads" or "refinery throughput" when the filing does not state it), tag that claim with `DERIVED` (`.chip-y`) and clearly separate it from verbatim/sourced disclosures.
+
+31. **Investor Sentiment & Provenance Text Color-Coding:** In addition to badge chips, apply semantic inline text color-coding across excerpts, drivers, and statement analysis in all generated reports:
+    - Key positive developments / operating tailwinds: green (`.text-pos`, `#15803d` / `#27500a`).
+    - Key risks, headwinds, operational impairments, or misses: red (`.text-neg`, `#b91c1c` / `#a32d2d`).
+    - Extrapolated / derived claims or watch items: amber (`.text-derived`, `#b45309` / `#854f0b`).
+    - Selectively highlight the critical excerpt clauses and figures containing the high-impact sentiment inflection points rather than color-coding entire paragraphs indiscriminately. In markdown/text fields, use `{+positive text+}` for green, `{-negative text-}` for red, and `{~derived text~}` for amber, which map to `<span class="text-pos">`, `<span class="text-neg">`, and `<span class="text-derived">` in the PDF renderer.
+
 These conventions ensure that skills can execute in any environment: Cowork, Antigravity, local terminal, or Claude web.

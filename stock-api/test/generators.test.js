@@ -303,4 +303,50 @@ describe('Report Generators', () => {
     expect(res.html).toContain('Additional Nuance & Improvisation');
     expect(res.html).toContain('Domestic Simulator');
   });
+
+  it('should render rerating-catalysts Event Chain Theses with basis chips and markers', async () => {
+    const res = await createReratingCatalystsPdf({
+      company: 'Zen Technologies Ltd',
+      ticker: 'NSE:ZENTEC',
+      verdict: 'Track thesis A.',
+      eventChainTheses: [
+        {
+          title: 'Anti-drone exports → global counter-UAS sub-theme',
+          archetype: 'theme',
+          confidence: 'GROUNDED',
+          theme: 'Defence exports',
+          subTheme: 'Counter-UAS',
+          chain: [
+            { basis: 'FACT', claim: 'Export orders of ₹350 Cr', source: 'Transcript Q1 FY27' },
+            { basis: 'KB', claim: 'Orders over policy', source: 'X · @SureshKBN · 2026-08-02' },
+            { basis: 'INFERENCE', claim: 'Repeat buyers widen visibility' },
+          ],
+          expertLens: { sureshKbn: 'First-order proxy with orders', soic: 'Train B, Inflection' },
+          whyMarketPays: 'Scarcity of listed counter-UAS pure-plays',
+          precedent: { name: 'Peer X', detail: 'P/E 30x → 60x', source: 'https://example.com' },
+          whatMustBeTrue: ['Export billing starts Q3'],
+          confirmationMarker: 'Q3 FY27 export revenue ≥ ₹85 Cr',
+          killSignal: 'Export licence delay beyond Q4',
+          skepticRead: 'One-off order lumpiness',
+        },
+      ],
+    });
+    expect(res.html).toContain('06&nbsp;&nbsp;Event Chain Theses');
+    expect(res.html).toContain('07&nbsp;&nbsp;So-What Verdict');
+    expect(res.html).toContain('A. Anti-drone exports');
+    expect(res.html).toContain('chip chip-g">GROUNDED');
+    expect(res.html).toContain('chip chip-y">INFERENCE');
+    expect(res.html).toContain('Kills it:');
+    expect(res.html).toContain('Peer X — P/E 30x → 60x');
+  });
+
+  it('should render eventChainNote alone and omit the section when neither is present', async () => {
+    const withNote = await createReratingCatalystsPdf({
+      company: 'Quiet Co',
+      eventChainNote: 'No credible chain beyond catalyst 1.',
+    });
+    expect(withNote.html).toContain('No credible chain beyond catalyst 1.');
+    const without = await createReratingCatalystsPdf({ company: 'Quiet Co' });
+    expect(without.html).not.toContain('Event Chain Theses');
+  });
 });

@@ -205,10 +205,12 @@ function wrapHtml(title, subtitle, bodyHtml, options = {}) {
             .hl-g { background: #f0fdf4 !important; border-left: 3.5px solid #16a34a !important; border-color: #bbf7d0 !important; color: #14532d !important; }
             .hl-r { background: #fef2f2 !important; border-left: 3.5px solid #dc2626 !important; border-color: #fecaca !important; color: #7f1d1d !important; }
             .hl-y { background: #fffbeb !important; border-left: 3.5px solid #d97706 !important; border-color: #fde68a !important; color: #78350f !important; }
-            .hl-b { background: #eff6ff !important; border-left: 3.5px solid #2563eb !important; border-color: #bfdbfe !important; color: #1e3a8a !important; }
-
             .up { color: #16a34a !important; font-weight: 700; }
             .dn { color: #dc2626 !important; font-weight: 700; }
+            .text-pos, .text-good { color: #15803d !important; font-weight: 600; }
+            .text-neg, .text-bad { color: #b91c1c !important; font-weight: 600; }
+            .text-warn, .text-derived { color: #b45309 !important; font-weight: 600; }
+            .text-neutral, .text-historical { color: #475569 !important; }
 
             .verdict-band {
                 display: flex;

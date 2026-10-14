@@ -51,6 +51,25 @@ class TradingViewClient {
     return parseScannerResponse(data);
   }
 
+  /**
+   * Last price plus trailing performance and moving averages -- the inputs a quarter-on-quarter
+   * macro read needs without a price-history endpoint (growth-predictor's macro overlay).
+   * SMA50 (~2.4 trading months) approximates the latest-quarter average; Perf.3M is the
+   * point-to-point change over ~one quarter. Rows without a numeric close are dropped.
+   * @param {string[]} tickers
+   * @returns {Promise<Record<string,{price:number,changePct:number|null,perf1M:number|null,
+   *   perf3M:number|null,perf6M:number|null,perf1Y:number|null,sma20:number|null,sma50:number|null,
+   *   sma100:number|null,name:string,description:string}>>}
+   */
+  async getPerformance(tickers) {
+    const { data } = await this.http.post(
+      `${SCANNER_URL}/global/scan`,
+      { symbols: { tickers }, columns: PERF_COLUMNS },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    return parsePerformanceResponse(data);
+  }
+
   /** Convenience: the macro dashboard instruments keyed by short name (null when absent). */
   async getMacroSnapshot() {
     const keys = Object.keys(MACRO_TICKERS);
@@ -77,4 +96,50 @@ function parseScannerResponse(data) {
   return out;
 }
 
-module.exports = { TradingViewClient, parseScannerResponse, MACRO_TICKERS, SCANNER_URL };
+/** Column order for getPerformance (positional in the scanner's `d` array). */
+const PERF_COLUMNS = Object.freeze([
+  'name',
+  'close',
+  'change',
+  'Perf.1M',
+  'Perf.3M',
+  'Perf.6M',
+  'Perf.Y',
+  'SMA20',
+  'SMA50',
+  'SMA100',
+  'description',
+]);
+
+/** Pure parser (unit-tested): performance scan JSON -> map keyed by full ticker. */
+function parsePerformanceResponse(data) {
+  const n = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+  const out = {};
+  for (const row of (data && data.data) || []) {
+    const [name, close, change, p1, p3, p6, py, s20, s50, s100, description] = row.d || [];
+    if (typeof close !== 'number') continue;
+    out[row.s] = {
+      name,
+      price: close,
+      changePct: n(change),
+      perf1M: n(p1),
+      perf3M: n(p3),
+      perf6M: n(p6),
+      perf1Y: n(py),
+      sma20: n(s20),
+      sma50: n(s50),
+      sma100: n(s100),
+      description,
+    };
+  }
+  return out;
+}
+
+module.exports = {
+  TradingViewClient,
+  parseScannerResponse,
+  parsePerformanceResponse,
+  PERF_COLUMNS,
+  MACRO_TICKERS,
+  SCANNER_URL,
+};

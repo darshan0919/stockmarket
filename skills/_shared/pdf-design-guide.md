@@ -211,6 +211,13 @@ consistently across every skill's output.
 - **Verdict band** — a flex-wrapped row of 5-8 chips closing the report, one clause each,
   covering the most decision-relevant facts (what changed, what's confirmed vs assumed, what
   the market is/isn't pricing in).
+- **Semantic Text Colors** `.text-pos` / `.text-good` (`#15803d`), `.text-neg` / `.text-bad` (`#b91c1c`),
+  `.text-warn` / `.text-derived` (`#b45309`), `.text-neutral` / `.text-historical` (`#475569`) — inline text
+  color classes applied to key phrases, metrics, or excerpt clauses reflecting investor sentiment (positive
+  tailwinds vs negative risks/misses) and data provenance (verbatim vs derived/hypothesized). Markdown inputs
+  can use shorthand delimiters: `{+positive+}` for green, `{-negative-}` for red, and `{~derived~}` for amber.
+- **Freshness & Provenance Chips** — standard mapping for chips: `NEW` (`.chip-g`), `CONFIRMATION` /
+  `HISTORICAL` (`.chip-b`), and `DERIVED` / `ESTIMATE` (`.chip-y`).
 
 ## Report skeleton (adapt section count/order to the skill, keep the shell)
 
@@ -338,6 +345,25 @@ td.r {
 .dn {
   color: #a32d2d;
   font-weight: 600;
+}
+.text-pos,
+.text-good {
+  color: #15803d;
+  font-weight: 500;
+}
+.text-neg,
+.text-bad {
+  color: #b91c1c;
+  font-weight: 500;
+}
+.text-warn,
+.text-derived {
+  color: #b45309;
+  font-weight: 500;
+}
+.text-neutral,
+.text-historical {
+  color: #475569;
 }
 .chip {
   display: inline-block;

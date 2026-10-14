@@ -77,6 +77,43 @@ function save(companyId, ssUrl, date, record) {
  * @returns {Promise<string>}
  */
 async function textFromBuffer(buf) {
+  try {
+    return await textFromBufferPdfjs(buf);
+  } catch (e) {
+    // pdfjs needs DOMMatrix/canvas polyfills that are missing when node_modules were installed
+    // for a different platform (e.g. a macOS checkout mounted into a Linux sandbox:
+    // "DOMMatrix is not defined"). Poppler's pdftotext reads the same embedded text layer, so fall
+    // back to it rather than reporting the filing as unreadable (found 2026-10-14, growth-predictor).
+    const viaPoppler = textFromBufferPoppler(buf);
+    if (viaPoppler !== null) return viaPoppler;
+    throw e;
+  }
+}
+
+/** pdftotext fallback; returns null when poppler is not installed. */
+function textFromBufferPoppler(buf) {
+  const os = require('os');
+  const { execFileSync } = require('child_process');
+  const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'annpdf_')), 'doc.pdf');
+  fs.writeFileSync(tmp, buf);
+  try {
+    return execFileSync('pdftotext', ['-layout', '-q', tmp, '-'], {
+      encoding: 'utf8',
+      timeout: 60000,
+      maxBuffer: 256 * 1024 * 1024,
+    });
+  } catch (_) {
+    return null;
+  } finally {
+    try {
+      fs.rmSync(path.dirname(tmp), { recursive: true, force: true });
+    } catch (_) {
+      /* temp dir outside data/ — best effort */
+    }
+  }
+}
+
+async function textFromBufferPdfjs(buf) {
   // pdfjs-dist ships ESM only; the legacy build is the CommonJS-friendly one.
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
   const doc = await pdfjs.getDocument({

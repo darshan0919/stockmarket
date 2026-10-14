@@ -504,7 +504,10 @@ const EXTRACTIONS = {
 
 function cleanText(s) {
   if (!s) return '';
-  return s.replace(/\{\{bid:\d+\}\}/g, '').replace(/\[\d+\](?:\[\d+\])*/g, '').trim();
+  return s
+    .replace(/\{\{bid:\d+\}\}/g, '')
+    .replace(/\[\d+\](?:\[\d+\])*/g, '')
+    .trim();
 }
 
 function formatQuarter(qStr) {
@@ -564,7 +567,7 @@ function parseGuidanceRow(commitmentRaw, specificsRaw, timelineRaw) {
     else if (/aum/i.test(combined)) metric = 'AUM';
     else if (/sales/i.test(combined)) metric = 'Sales';
     else metric = 'Revenue';
-  } else if (/volume/i.test(combined) && (/growth|mt|tonnes/i.test(combined))) {
+  } else if (/volume/i.test(combined) && /growth|mt|tonnes/i.test(combined)) {
     cat = 'Top Line';
     metric = 'Volume';
   }
@@ -655,7 +658,7 @@ function parseGuidanceRow(commitmentRaw, specificsRaw, timelineRaw) {
     else if (singlePct) absVal = parseFloat(singlePct[1]);
     else if (bpsRange)
       absVal =
-        Math.round((((parseFloat(bpsRange[1]) + parseFloat(bpsRange[2])) / 2.0) / 100) * 100) / 100;
+        Math.round(((parseFloat(bpsRange[1]) + parseFloat(bpsRange[2])) / 2.0 / 100) * 100) / 100;
     else if (singleBps) absVal = parseFloat(singleBps[1]) / 100;
   } else if (/growth|cagr/i.test(combined) || (singlePct && !singleCr && !unitMatch)) {
     if (pctRange)
@@ -772,7 +775,9 @@ async function run() {
     }
 
     if (!extraction) {
-      console.warn(`[${i + 1}/${manifest.fetched.length}] No extraction definition or raw file for ${ticker}`);
+      console.warn(
+        `[${i + 1}/${manifest.fetched.length}] No extraction definition or raw file for ${ticker}`
+      );
       continue;
     }
 
@@ -810,7 +815,9 @@ async function run() {
       'true',
     ].join(' ');
 
-    console.log(`[${i + 1}/${manifest.fetched.length}] Saving forward guidance for ${ticker} (${extraction.items.length} items)...`);
+    console.log(
+      `[${i + 1}/${manifest.fetched.length}] Saving forward guidance for ${ticker} (${extraction.items.length} items)...`
+    );
     const saveRes = JSON.parse(execSync(saveCmd, { encoding: 'utf8' }));
 
     const guidance = JSON.parse(fs.readFileSync(enrichedFile, 'utf8'));

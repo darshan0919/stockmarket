@@ -3,6 +3,8 @@
 const { parseFiiDii } = require('../src/clients/NseClient');
 const {
   parseScannerResponse,
+  parsePerformanceResponse,
+  PERF_COLUMNS,
   MACRO_TICKERS,
   TradingViewClient,
 } = require('../src/clients/TradingViewClient');
@@ -56,5 +58,46 @@ describe('TradingView parser + client', () => {
     expect(snap.us10y.price).toBe(5.253);
     expect(snap.brent).toBeNull();
     expect(Object.keys(snap)).toEqual(Object.keys(MACRO_TICKERS));
+  });
+});
+
+describe('TradingView getPerformance', () => {
+  const payload = {
+    totalCount: 2,
+    data: [
+      {
+        s: 'MCX:COPPER1!',
+        d: [
+          'COPPER1!',
+          1411.25,
+          -0.39,
+          3.0,
+          7.1,
+          11.3,
+          40.9,
+          1409.4,
+          1392.5,
+          1354.7,
+          'Copper Futures',
+        ],
+      },
+      { s: 'BAD:Y', d: ['Y', null, null, null, null, null, null, null, null, null, 'no price'] },
+    ],
+  };
+  test('parsePerformanceResponse maps positional columns and drops priceless rows', () => {
+    const q = parsePerformanceResponse(payload);
+    expect(Object.keys(q)).toEqual(['MCX:COPPER1!']);
+    expect(q['MCX:COPPER1!']).toMatchObject({
+      price: 1411.25,
+      perf3M: 7.1,
+      sma50: 1392.5,
+      sma100: 1354.7,
+    });
+  });
+  test('getPerformance posts PERF_COLUMNS to the global scanner', async () => {
+    const http = { post: jest.fn().mockResolvedValue({ data: payload }) };
+    const q = await new TradingViewClient({ http }).getPerformance(['MCX:COPPER1!']);
+    expect(http.post.mock.calls[0][1].columns).toEqual([...PERF_COLUMNS]);
+    expect(q['MCX:COPPER1!'].perf1Y).toBe(40.9);
   });
 });

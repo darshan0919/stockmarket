@@ -106,6 +106,8 @@ function runVerification() {
           'rule-pdf-only-default',
           'rule-chat-conciseness-no-pdf-echo',
           'rule-contextual-rate-of-change',
+          'rule-freshness-provenance-tagging',
+          'rule-sentiment-text-color-coding',
         ];
         const existingIds = new Set(data.rules.map((r) => r.id));
         for (const reqId of requiredRuleIds) {

@@ -278,6 +278,76 @@ function renderKeyRisks(data) {
   return html;
 }
 
+const THESIS_CONFIDENCE_CHIP = { GROUNDED: 'chip-g', PLAUSIBLE: 'chip-y', SPECULATIVE: 'chip-r' };
+const CHAIN_BASIS_CHIP = { FACT: 'chip-g', KB: 'chip-b', WEB: 'chip-b', INFERENCE: 'chip-y' };
+
+/**
+ * Renders one causal-chain link with its evidence-basis chip and citation.
+ * @param {{basis?: string, claim?: string, source?: string, url?: string}} link
+ * @returns {string}
+ */
+function renderChainLink(link) {
+  const basis = (link.basis || 'INFERENCE').toUpperCase();
+  const src = link.source || link.url || '';
+  return `<div style="font-size: 9.4px; margin: 1px 0 1px 6px;">→ <span class="chip ${CHAIN_BASIS_CHIP[basis] || 'chip-b'}">${basis}</span> ${formatInlineMarkdown(link.claim || '')}${src ? ` <span style="color: ${INSTITUTIONAL_LIGHT.muted};">[${formatInlineMarkdown(src)}]</span>` : ''}</div>`;
+}
+
+/**
+ * Renders Section 06 — Event Chain Theses (Phase 3h growth-story hypotheses).
+ * Shows eventChainNote alone when no thesis cleared the grounding rules.
+ * @param {Object} data DTO with eventChainTheses[] and/or eventChainNote
+ * @returns {string}
+ */
+function renderEventChainTheses(data) {
+  const theses = data.eventChainTheses || [];
+  const note = data.eventChainNote || '';
+  if (!theses.length && !note) return '';
+  let html = `<div class="sec">`;
+  html += `<div class="sec-hd">06&nbsp;&nbsp;Event Chain Theses (Growth-Story Hypotheses — not catalysts)</div>`;
+  if (!theses.length) {
+    html += `<p style="font-size: 9.8px; margin: 2px 0;">${formatInlineMarkdown(note)}</p></div>`;
+    return html;
+  }
+  theses.forEach((t, idx) => {
+    const conf = (t.confidence || 'SPECULATIVE').toUpperCase();
+    const theme = [t.theme, t.subTheme].filter(Boolean).join(' › ');
+    const lens = t.expertLens || {};
+    const lensLine = [
+      lens.sureshKbn && `<b>SureshKBN lens:</b> ${formatInlineMarkdown(lens.sureshKbn)}`,
+      lens.soic && `<b>SOIC lens:</b> ${formatInlineMarkdown(lens.soic)}`,
+    ]
+      .filter(Boolean)
+      .join(' &nbsp;|&nbsp; ');
+    const p = t.precedent || {};
+    const precedent = [p.name, p.detail, p.source].filter(Boolean).join(' — ');
+    const mustBeTrue = (t.whatMustBeTrue || []).map((m) => formatInlineMarkdown(m)).join('; ');
+    html += `
+      <div style="background-color: #ffffff; border: 0.5px solid ${INSTITUTIONAL_LIGHT.border}; border-radius: 4px; padding: 7px 10px; margin-bottom: 6px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3px;">
+          <div>
+            <span style="font-weight: 600; font-size: 10.5px; color: ${INSTITUTIONAL_LIGHT.primary};">${String.fromCharCode(65 + idx)}. ${formatInlineMarkdown(t.title || 'Thesis')}</span>
+            <div style="margin-top: 2px;">${t.archetype ? `<span class="chip chip-b">${t.archetype}</span>` : ''} ${theme ? `<span class="chip chip-b">${formatInlineMarkdown(theme)}</span>` : ''}</div>
+          </div>
+          <span class="chip ${THESIS_CONFIDENCE_CHIP[conf] || 'chip-b'}">${conf}</span>
+        </div>
+        ${(t.chain || []).map(renderChainLink).join('')}
+        ${lensLine ? `<p style="font-size: 9.2px; margin: 3px 0 0;">${lensLine}</p>` : ''}
+        <div style="font-size: 8.8px; color: ${INSTITUTIONAL_LIGHT.muted}; border-top: 0.5px solid ${INSTITUTIONAL_LIGHT.border}; padding-top: 3px; margin-top: 4px;">
+          ${t.whyMarketPays ? `<div><b>Why the market pays:</b> ${formatInlineMarkdown(t.whyMarketPays)}</div>` : ''}
+          ${precedent ? `<div><b>Precedent:</b> ${formatInlineMarkdown(precedent)}</div>` : ''}
+          ${t.epsBridge ? `<div><b>EPS bridge:</b> ${formatInlineMarkdown(t.epsBridge)}</div>` : ''}
+          ${mustBeTrue ? `<div><b>Must be true:</b> ${mustBeTrue}</div>` : ''}
+          ${t.confirmationMarker ? `<div><b>Confirms if:</b> ${formatInlineMarkdown(t.confirmationMarker)}</div>` : ''}
+          ${t.killSignal ? `<div><b>Kills it:</b> ${formatInlineMarkdown(t.killSignal)}</div>` : ''}
+          ${t.skepticRead ? `<div><b>Skeptic's read:</b> ${formatInlineMarkdown(t.skepticRead)}</div>` : ''}
+        </div>
+      </div>
+    `;
+  });
+  html += `</div>`;
+  return html;
+}
+
 /**
  * Renders the So-What verdict.
  * @param {Object} data
@@ -287,7 +357,7 @@ function renderVerdict(data) {
   const verdict = data.verdict || data.so_what || '';
   if (!verdict) return '';
   let html = `<div class="sec">`;
-  html += `<div class="sec-hd">06&nbsp;&nbsp;So-What Verdict & Forward Sizing Stance</div>`;
+  html += `<div class="sec-hd">07&nbsp;&nbsp;So-What Verdict & Forward Sizing Stance</div>`;
   html += `<p style="font-size: 10px; margin-bottom: 4px; text-align: justify;">${formatInlineMarkdown(verdict)}</p>`;
   html += `</div>`;
   return html;
@@ -334,12 +404,15 @@ async function createReratingCatalystsPdf(data, options = {}) {
   // 6. Section 05: Key Risks & Exit Protocol
   bodyHtml += renderKeyRisks(data);
 
-  // 7. Section 06: So-What Verdict
+  // 7. Section 06: Event Chain Theses (Phase 3h hypotheses)
+  bodyHtml += renderEventChainTheses(data);
+
+  // 8. Section 07: So-What Verdict
   bodyHtml += renderVerdict(data);
 
-  // 8. Section 07: Runtime Improvisation Space: data.additional
+  // 9. Section 08: Runtime Improvisation Space: data.additional
   if (data.additional) {
-    bodyHtml += renderAdditionalHtml(data.additional, '07', 'Additional Nuance & Improvisation');
+    bodyHtml += renderAdditionalHtml(data.additional, '08', 'Additional Nuance & Improvisation');
   }
 
   const modelUsed = data.modelUsed || data.model_used || options.modelUsed;

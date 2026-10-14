@@ -65,6 +65,7 @@ Available high-level agentic skills defined in the project:
 | N/A                                                                                                                                                | `N/A`                                                                     | volume rocketing, volume surge signal, volume rocket scan, 8am volume rocketing run, volume breakout signal, volume surge gainers                                                                                                                                                                                 |
 | N/A                                                                                                                                                | `N/A`                                                                     | fetch quarterly result documents, quarterly result extractor, pull result and transcript, extract result data                                                                                                                                                                                                     |
 | [packages/jobs-runtime/monthlyUpdates/cli.js](packages/jobs-runtime/monthlyUpdates/cli.js)                                                         | `packages/jobs-runtime/monthlyUpdates/cli.js`                             | monthly updates, monthly sales numbers, monthly business update, auto sales for the month, monthly volume tracker, who reported monthly numbers, monthly sales tracker, refresh the monthly updates page, monthly volumes trend, compare monthly sales, 1st of month sales numbers, auto volumes, tractor volumes |
+| [skills/equity-research/growth-predictor/scripts/gather_inputs.js](skills/equity-research/growth-predictor/scripts/gather_inputs.js)               | `skills/equity-research/growth-predictor/scripts/gather_inputs.js`        | growth predictor, predict next quarter, predict upcoming quarter, estimate next quarter revenue and pat, forecast eps, what will the company report, do the maths before results, qoq yoy fyofy estimate, quarter forecast, score growth predictions                                                              |
 
 ---
 
@@ -245,6 +246,7 @@ Instantiable classes for DI or custom configurations:
 - **Key Methods**:
   - `setJobName()`
   - `getQuotes()`
+  - `getPerformance()`
   - `getMacroSnapshot()`
 
 ### HttpClient
@@ -317,21 +319,22 @@ Instantiable classes for DI or custom configurations:
 
 Core singletons and client functions for interacting with external platforms:
 
-| API / Client Name         | Source File                                                                              | Description                        |
-| ------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------- |
-| `parseBseSmartSearchHtml` | [stock-api/src/clients/BseClient.js](stock-api/src/clients/BseClient.js)                 | Exported from BseClient.js         |
-| `parseScripwiseCsv`       | [stock-api/src/clients/IndiaMtfClient.js](stock-api/src/clients/IndiaMtfClient.js)       | Exported from IndiaMtfClient.js    |
-| `parseLatestDate`         | [stock-api/src/clients/IndiaMtfClient.js](stock-api/src/clients/IndiaMtfClient.js)       | Exported from IndiaMtfClient.js    |
-| `parseHumanDate`          | [stock-api/src/clients/IndiaMtfClient.js](stock-api/src/clients/IndiaMtfClient.js)       | Exported from IndiaMtfClient.js    |
-| `parseFiiDii`             | [stock-api/src/clients/NseClient.js](stock-api/src/clients/NseClient.js)                 | Exported from NseClient.js         |
-| `toPerplexityTicker`      | [stock-api/src/clients/PerplexityClient.js](stock-api/src/clients/PerplexityClient.js)   | Exported from PerplexityClient.js  |
-| `paragraphsToText`        | [stock-api/src/clients/PerplexityClient.js](stock-api/src/clients/PerplexityClient.js)   | Exported from PerplexityClient.js  |
-| `parseScannerResponse`    | [stock-api/src/clients/TradingViewClient.js](stock-api/src/clients/TradingViewClient.js) | Exported from TradingViewClient.js |
-| `apiLabelFor`             | [stock-api/src/http/HttpClient.js](stock-api/src/http/HttpClient.js)                     | Exported from HttpClient.js        |
-| `bseGetXbrlFile`          | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                           | Exported from bseHttp.js           |
-| `buildBseUrl`             | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                           | Exported from bseHttp.js           |
-| `bseGetText`              | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                           | Exported from bseHttp.js           |
-| `bseGetJson`              | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                           | Exported from bseHttp.js           |
+| API / Client Name          | Source File                                                                              | Description                        |
+| -------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------- |
+| `parseBseSmartSearchHtml`  | [stock-api/src/clients/BseClient.js](stock-api/src/clients/BseClient.js)                 | Exported from BseClient.js         |
+| `parseScripwiseCsv`        | [stock-api/src/clients/IndiaMtfClient.js](stock-api/src/clients/IndiaMtfClient.js)       | Exported from IndiaMtfClient.js    |
+| `parseLatestDate`          | [stock-api/src/clients/IndiaMtfClient.js](stock-api/src/clients/IndiaMtfClient.js)       | Exported from IndiaMtfClient.js    |
+| `parseHumanDate`           | [stock-api/src/clients/IndiaMtfClient.js](stock-api/src/clients/IndiaMtfClient.js)       | Exported from IndiaMtfClient.js    |
+| `parseFiiDii`              | [stock-api/src/clients/NseClient.js](stock-api/src/clients/NseClient.js)                 | Exported from NseClient.js         |
+| `toPerplexityTicker`       | [stock-api/src/clients/PerplexityClient.js](stock-api/src/clients/PerplexityClient.js)   | Exported from PerplexityClient.js  |
+| `paragraphsToText`         | [stock-api/src/clients/PerplexityClient.js](stock-api/src/clients/PerplexityClient.js)   | Exported from PerplexityClient.js  |
+| `parseScannerResponse`     | [stock-api/src/clients/TradingViewClient.js](stock-api/src/clients/TradingViewClient.js) | Exported from TradingViewClient.js |
+| `parsePerformanceResponse` | [stock-api/src/clients/TradingViewClient.js](stock-api/src/clients/TradingViewClient.js) | Exported from TradingViewClient.js |
+| `apiLabelFor`              | [stock-api/src/http/HttpClient.js](stock-api/src/http/HttpClient.js)                     | Exported from HttpClient.js        |
+| `bseGetXbrlFile`           | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                           | Exported from bseHttp.js           |
+| `buildBseUrl`              | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                           | Exported from bseHttp.js           |
+| `bseGetText`               | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                           | Exported from bseHttp.js           |
+| `bseGetJson`               | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                           | Exported from bseHttp.js           |
 
 ---
 

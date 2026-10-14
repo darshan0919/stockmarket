@@ -13,12 +13,15 @@ description: >-
   changed this week", "any recent news on X", "why will this stock re-rate",
   "growth catalyst", "conviction note", "1-pager", "is anything fundamentally
   different about this company", "what has management been saying in recent
-  interviews", or any request for a Stockscans ticker that wants a
+  interviews", "what's the bigger growth story here", "event chain thesis",
+  "how would SureshKBN / SOIC read this", or any request for a Stockscans ticker that wants a
   forward-looking, EPS-accrual-oriented read rather than a backward results
   recap. Auto-fetches the last 7 days of announcements, last 4 concall
   transcripts, last 4 quarterly results, last 2 investor PPTs, and (full mode)
   up to the last 5 management interviews from the trailing 3 months, when
-  given only a ticker. Supersedes fundamental-shift-scanner and
+  given only a ticker. Full mode also writes 2-3 grounded Event Chain Theses
+  (Phase 3h): growth-story hypotheses that follow a filed fact through
+  SureshKBN/SOIC KB lenses to a live theme and a reason the market would pay. Supersedes fundamental-shift-scanner and
   growth-triggers-1pager — do not use those skills for new work. Also exposes
   `--mode brief`: a cached, render-free EPS-thesis-only variant that other
   skills (gainers-signal, volume-rocketing) call per company without paying for
@@ -144,7 +147,9 @@ What brief mode returns — and nothing else:
 }
 ```
 
-No HTML widget, no PDF, no `db.saveReport` of a full report DTO. Those exist to
+No Event Chain Theses either (Phase 3h is full mode only; it needs the KB pack
+and web searches a per-name brief can't afford). No HTML widget, no PDF, no
+`db.saveReport` of a full report DTO. Those exist to
 make a standalone note forwardable; a brief is a field on someone else's email
 card, and rendering a PDF nobody opens for 20 companies a day is pure waste.
 The brief IS persisted — to the cache below, which is what makes tomorrow cheap.
@@ -260,10 +265,10 @@ re-read, never a thesis guessed from a title.
 
 ## Model Tiering Matrix (Enforced)
 
-| Task / Sub-stage                         | Classification             | Model Tier                                                                | Execution Strategy                                                                                                              |
-| :--------------------------------------- | :------------------------- | :------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------ |
-| **Tasks 1–5 (Phase 2, 2.5, 3b, 3d, 3g)** | **Mission-Critical Alpha** | **Frontier Cloud** (Claude 3.5 Sonnet / Gemini Pro)                       | Deep causal analysis of triggers, fake J-curve interrogation, 6-rung spike day explanation, and final J-Curve Inflection badge. |
-| **Task 6 (Phase 1, 3a, 3c)**             | **Routine / Commodity**    | **Cheap / Local Model / Script** (Gemini Flash Lite / Qwen 2.5 / Node.js) | Document acquisition, 8-column KPI table formatting, and routine compliance noise filtering (AGM, book closure).                |
+| Task / Sub-stage                             | Classification             | Model Tier                                                                | Execution Strategy                                                                                                              |
+| :------------------------------------------- | :------------------------- | :------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------ |
+| **Tasks 1–5 (Phase 2, 2.5, 3b, 3d, 3g, 3h)** | **Mission-Critical Alpha** | **Frontier Cloud** (Claude 3.5 Sonnet / Gemini Pro)                       | Deep causal analysis of triggers, fake J-curve interrogation, 6-rung spike day explanation, and final J-Curve Inflection badge. |
+| **Task 6 (Phase 1, 3a, 3c)**                 | **Routine / Commodity**    | **Cheap / Local Model / Script** (Gemini Flash Lite / Qwen 2.5 / Node.js) | Document acquisition, 8-column KPI table formatting, and routine compliance noise filtering (AGM, book closure).                |
 
 ## Workflow
 
@@ -657,6 +662,53 @@ over the trailing 90 days"). Zero appearances is a normal, common outcome and
 is not itself evidence against a tag — plenty of genuine re-ratings begin
 before delivery volume catches up.
 
+**3h. Event Chain Thesis (full mode, mandatory to attempt, computed after 3g).**
+This is where you think like a smart investor instead of a filing reader. Take
+the strongest facts from 3b/3c/2.5, ask what each one sets in motion, and follow
+that chain to **2-3 growth-story hypotheses**. Each one shows how this event
+could plug into a larger theme or sub-theme with live tailwinds, and why the
+market would pay up for it. Read between the lines and connect the dots, but
+stay tied to what is actually filed and to what is actually working in markets
+now. The full method is in
+[`references/event_chain_thesis.md`](references/event_chain_thesis.md). Read it
+before starting this step.
+
+1. Persist a draft DTO (sector + ranked `catalysts[]`) to the scratch dir and
+   run the zero-LLM KB evidence pack:
+   `yarn rerating:thesis-evidence --dto /tmp/<safe_ticker>_rerating/draft_dto.json --query "<theme words you suspect>"`.
+   This returns dated SureshKBN / SOIC (+ @ishmohit1) / followed-X hits per
+   lens, plus pointers to the matching sector-playbook sections. Read only
+   those sections.
+2. Answer the question bank (method §2) from that evidence, the Phase 2
+   facts, and 2-4 targeted cited web searches (theme tailwind data, a peer
+   that already re-rated, consensus coverage). The questions:
+   - How would **SureshKBN** see this? (top-down chain, orders-not-policy, first-order proxy, structural-vs-transient, which FY is priced, price confirmation)
+   - How would **SOIC** see this? (C-A-T-A-L-Y-S-T, NEW-vs-known, Train A/B/C, J-curve stage, TGPV)
+   - How can this become part of a **larger theme or sub-theme** with ongoing tailwinds, and where in the value chain does it sit?
+   - **Why would this news attract investors to pay almost any price?** Name the mechanism: scarcity, visibility, TAM step-change, rate-of-change, or quality shift.
+   - What is **already working in markets**? (a named, cited precedent)
+   - What does the event reveal about customers, suppliers and competitors? Why now? What isn't being said?
+   - How does this die? (inversion and skeptic read: mandatory)
+3. Write each thesis as a 3-6 link causal chain. Tag every link `FACT` / `KB`
+   / `WEB` / `INFERENCE` and cite every non-inference link. Use at most one
+   thesis per archetype (`direct`, `theme`, `between-the-lines`).
+4. Apply the grounding rules (method §4) before shipping a thesis:
+   - Link 1 is a filed FACT.
+   - No more than 2 INFERENCE links in a row.
+   - At least one KB link and one market precedent, or the thesis is capped at `SPECULATIVE`.
+   - No new numbers.
+   - Never lean on profit the fake-J-curve audit flagged.
+   - Each thesis carries `whatMustBeTrue`, a dated `confirmationMarker` and a `killSignal`.
+   - At most one `SPECULATIVE` thesis.
+5. Zero credible chains is a legitimate result. Write `eventChainNote` in one
+   sentence and move on; never pad with generic theme talk.
+
+Theses are hypotheses, not evidence. They **never change the 3g `jCurveTag`**.
+Feed them back into 3d (which thesis is already in the price) and 3f (which
+thesis to track, its marker, and whether to escalate to
+`investment-thesis-engine` / `value-chain-analysis` /
+`sector-research-deepdive`).
+
 ### Phase 4 — Persist the JSON DTO, then render
 
 Per `output-dto-standard` (`skills/tooling/output-dto-standard/SKILL.md`),
@@ -691,7 +743,13 @@ each entry: `date`, `returnPct`, `volumeMultiple`, `medianVolume`, `whyBasis`
 when zero spike days were found, never omitted), `whatsInThePrice`, `risks[]`, `verdict`,
 **`reratingPhase`, `spentFlags`, `fakeFlags`** (from `scripts/spentRerating.js`; `reratingPhase` `UNKNOWN` when P/E history is missing), **`jCurveTag` (`STRONG`/`MODERATE`/`WEAK`/`NONE`, per framework §5f — mandatory,
 never omit even when `NONE`), `jCurveReason`** (one sentence naming the
-trigger and quarter, or the failed check for a `NONE` tag).
+trigger and quarter, or the failed check for a `NONE` tag),
+**`eventChainTheses[]`** (Phase 3h, full mode only; 0-3 entries, shape in
+`references/event_chain_thesis.md` §7: `title`, `archetype`, `confidence`,
+`theme`, `subTheme`, `chain[]` of `{basis, claim, source, url}`, `expertLens`,
+`whyMarketPays`, `precedent`, `epsBridge`, `whatMustBeTrue[]`,
+`confirmationMarker`, `killSignal`, `skepticRead`) and **`eventChainNote`**
+(required when `eventChainTheses` is empty: why no credible chain exists).
 
 Then render:
 
@@ -726,8 +784,9 @@ Then render:
     4. **Section 03**: Recent Corporate Flow & Management Activity (Weekly announcement signals, management interview scans, and Price-Volume Spike Days table).
     5. **Section 04**: What's in the Price? (incremental perception vs consensus, Super Performance Zone & float scarcity checks).
     6. **Section 05**: Key Risks & Structural Exit Protocol (execution risks + SOIC 3-step exit rules).
-    7. **Section 06**: So-What Verdict & Forward Sizing Stance.
-  - **Runtime Improvisation Space (`data.additional`)**: When company-specific or sector-specific nuance arises that does not fit fixed schema keys (e.g. order book breakdowns by product/export, capacity commercialisation schedules, unlisted subsidiary SOTP, custom peer comparisons), store it in `data.additional`. The smart renderer (`renderAdditionalHtml`) shape-sniffs the JSON and formats it into Section 07 without modifying or disrupting the core report structure.
+    7. **Section 06**: Event Chain Theses (2-3 hypothesis cards, each with an archetype, a confidence chip and a theme; the causal chain with basis chips per link; why the market pays; a precedent; must-be-true items; and confirm/kill markers. When there are no theses, `eventChainNote` renders on its own).
+    8. **Section 07**: So-What Verdict & Forward Sizing Stance.
+  - **Runtime Improvisation Space (`data.additional`)**: When company-specific or sector-specific nuance arises that does not fit fixed schema keys (e.g. order book breakdowns by product/export, capacity commercialisation schedules, unlisted subsidiary SOTP, custom peer comparisons), store it in `data.additional`. The smart renderer (`renderAdditionalHtml`) shape-sniffs the JSON and formats it into Section 08 without modifying or disrupting the core report structure.
 
 - If the PDF render tooling is genuinely unavailable in the current
   environment (e.g. a sandbox without the render pipeline installed), say so
@@ -745,7 +804,8 @@ rerating-catalysts/
 ├── references/
 │   ├── growth_catalyst_framework.md   (Core "new" methodology & J-curve rubric)
 │   ├── screener_recipes.md            (StockScans filter recipes: Potential J-Curve, Turnaround, Volume)
-│   └── sector_case_studies.md         (Sector margin templates: EMS, Shipbuilding, KRN, Data Centers)
+│   ├── sector_case_studies.md         (Sector margin templates: EMS, Shipbuilding, KRN, Data Centers)
+│   └── event_chain_thesis.md          (Phase 3h — question bank, chain grounding rules, DTO shape)
 └── scripts/
     ├── prefilter_rerating_candidates.js   (Stage 0 — zero-LLM pre-filter for batch runs)
     ├── extract_rerating_signatures.py     (Stage 1 — zero-LLM recall pass for a single candidate)
@@ -753,7 +813,9 @@ rerating-catalysts/
     ├── matchSpikeAnnouncements.js         (Phase 2.5 — WHY-candidate assembly for spike days)
     ├── spentRerating.js                   (Phase 3g — deterministic spent-rerating phase + extra fake-J-curve flags; thresholds unbacktested)
     ├── compute_signal_history.js          (Phase 1 step 5 — 3-month ACT/S1/S2 scan-history lookback, feeds Phase 3g)
-    └── fetch_management_interviews.js     (Phase 1 step 6, full mode only — last 3mo/5-max interview takeaways via Stockscans Interview Scans, videoId-cached)
+    ├── fetch_management_interviews.js     (Phase 1 step 6, full mode only — last 3mo/5-max interview takeaways via Stockscans Interview Scans, videoId-cached)
+    ├── thesis_evidence_pack.py            (Phase 3h — zero-LLM KB evidence pack over ask-expert corpora; `yarn rerating:thesis-evidence`)
+    └── test_thesis_evidence_pack.py       (`yarn rerating:test`)
 ```
 
 `stock-api/src/analyzers/jcurveFinancialMetrics.js` (`computeJCurveFinancialHealth`)
@@ -825,6 +887,16 @@ or newly saved reports/caches are synchronized via `yarn data:push`.
 - **SAST/PIT filings never imply direction from the title alone** — open the
   PDF before characterising a promoter/insider stake change as bullish or
   bearish.
+- **Don't let an Event Chain Thesis become fiction.** If a link has no FACT,
+  KB, WEB or checkable basis, it isn't a chain; it's a story. Never quote an
+  expert for something they didn't say (paraphrase only from evidence-pack
+  hits, dated). Never present a thesis as a catalyst or let it lift the
+  `jCurveTag`. Generic "India capex / China+1 / AI" lines with no company-specific
+  link to a filed fact fail Rule 1: drop them.
+- **Don't confuse "out of the box" with "unverifiable".** The
+  `between-the-lines` thesis is meant to be non-obvious, but it still needs a
+  dated `confirmationMarker` that a future filing or price print can prove or
+  kill.
 - **Don't treat an interview takeaway as filing-grade evidence.** It's a
   Stockscans-generated summary, not a verified transcript excerpt — a
   specific number quoted only in an interview takeaway gets "per management

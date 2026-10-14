@@ -82,64 +82,26 @@ Usage:
       --actuals actuals.json --out pead_annotations_growth.json
 """
 import argparse
+import importlib.util
 import json
-import re
+import os
+
+# Shared fiscal-period helpers (extracted 2026-10-14; also used by growth-predictor) -- one
+# definition of FY labels, growth-off-base, seasonality phasing and tax fallback (conventions §17).
+_REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+_spec = importlib.util.spec_from_file_location("fiscal_periods", os.path.join(_REPO, "skills", "_shared", "fiscal_periods.py"))
+_fp = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_fp)
+fy_num, pct_change, r1, tax_rate, default_weights = _fp.fy_num, _fp.pct_change, _fp.r1, _fp.tax_rate, _fp.default_weights
+_num = _fp.num
 
 # --- scoring constants (documented above; change here only) ------------------
 METRIC_W = {"pat": 0.40, "operating_profit": 0.35, "revenue": 0.25}
 HORIZON_W = {"fyofy": 0.40, "yoy": 0.40, "qoq": 0.20}
 HORIZON_CAP = {"fyofy": 100.0, "yoy": 100.0, "qoq": 25.0}
-QUARTERS = ["Q1", "Q2", "Q3", "Q4"]
+QUARTERS = _fp.QUARTERS
 SMALL_BASE_PAT_CR = 10.0  # growth off a PAT base below this is flagged as noisy
 IMPLAUSIBLE_OPM = (-20.0, 60.0)
-
-
-def fy_num(label):
-    """'FY27' / 'FY2027' -> 2027."""
-    m = re.match(r"^FY(\d{2,4})$", str(label).strip().upper())
-    if not m:
-        raise ValueError(f"bad FY label {label!r}")
-    n = int(m.group(1))
-    return n + 2000 if n < 100 else n
-
-
-def pct_change(new, base):
-    if new is None or base is None or base <= 0:
-        return None
-    return (new / base - 1.0) * 100.0
-
-
-def r1(x):
-    return None if x is None else round(x, 1)
-
-
-def _num(x):
-    return None if x is None else float(x)
-
-
-def tax_rate(base_fy, latest, assumptions):
-    for rec in (base_fy, latest):
-        if rec and rec.get("pbt") and rec.get("tax") is not None and rec["pbt"] > 0:
-            t = rec["tax"] / rec["pbt"]
-            if 0 <= t <= 0.5:
-                return t
-    assumptions.append("[assumption] tax rate 25% (no usable tax/PBT in actuals)")
-    return 0.25
-
-
-def default_weights(remaining, seasonality, assumptions):
-    """Seasonal-average revenue shares restricted to `remaining` quarters, renormalised."""
-    fys = sorted(seasonality)
-    if fys:
-        raw = {q: sum(seasonality[fy][q] for fy in fys) / len(fys) for q in remaining}
-        tot = sum(raw.values())
-        if tot > 0:
-            assumptions.append(
-                f"[assumption] quarterly phasing = average seasonality of {', '.join(fys)} (not overridden)"
-            )
-            return {q: v / tot for q, v in raw.items()}
-    assumptions.append("[assumption] quarterly phasing = equal split (no seasonality history)")
-    return {q: 1.0 / len(remaining) for q in remaining}
 
 
 def resolve_weights(remaining, gi, seasonality, assumptions, flags):

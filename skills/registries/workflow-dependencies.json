@@ -912,6 +912,43 @@
         "stock-api/src/utils/concurrency.js",
         "stock-api/src/utils/companyId.js"
       ]
+    },
+    {
+      "name": "growth-predictor",
+      "description": ">",
+      "aliases": [
+        "growth predictor",
+        "predict next quarter",
+        "predict upcoming quarter",
+        "estimate next quarter revenue and pat",
+        "forecast eps",
+        "what will the company report",
+        "do the maths before results",
+        "qoq yoy fyofy estimate",
+        "quarter forecast",
+        "score growth predictions"
+      ],
+      "entry": "skills/equity-research/growth-predictor/scripts/gather_inputs.js",
+      "modules": [
+        "skills/equity-research/growth-predictor/scripts/gather_inputs.js",
+        "skills/equity-research/growth-predictor/scripts/project_pl.py",
+        "skills/equity-research/growth-predictor/scripts/save_prediction.js",
+        "skills/equity-research/growth-predictor/scripts/score_prediction.js",
+        "skills/_shared/fiscal_periods.py",
+        "skills/_shared/kb_cite.py",
+        "stock-api/src/analyzers/companyFinancials.js",
+        "stock-api/src/clients/StockscansClient.js",
+        "stock-api/src/clients/TradingViewClient.js",
+        "packages/jobs-runtime/lib/announcementTaxonomy.js",
+        "packages/jobs-runtime/lib/announcementPdfText.js",
+        "packages/jobs-runtime/lib/stockscansContext.js",
+        "packages/jobs-runtime/lib/concallNotesStore.js",
+        "packages/jobs-runtime/lib/orderBookLedger.js",
+        "packages/jobs-runtime/lib/companyContext.js",
+        "packages/jobs-runtime/lib/db.js",
+        "stock-api/src/analyzers/incomeStatementSignals.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/extract_result_xbrl.js"
+      ]
     }
   ],
   "classes": [
@@ -1074,7 +1111,7 @@
     {
       "name": "TradingViewClient",
       "file": "stock-api/src/clients/TradingViewClient.js",
-      "methods": ["setJobName", "getQuotes", "getMacroSnapshot"]
+      "methods": ["setJobName", "getQuotes", "getPerformance", "getMacroSnapshot"]
     },
     {
       "name": "HttpClient",
@@ -1172,6 +1209,11 @@
     },
     {
       "name": "parseScannerResponse",
+      "file": "stock-api/src/clients/TradingViewClient.js",
+      "description": "Exported from TradingViewClient.js"
+    },
+    {
+      "name": "parsePerformanceResponse",
       "file": "stock-api/src/clients/TradingViewClient.js",
       "description": "Exported from TradingViewClient.js"
     },

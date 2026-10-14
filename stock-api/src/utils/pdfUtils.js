@@ -59,13 +59,20 @@ function parseMarkdownTable(text) {
 }
 
 /**
- * Convert **bold**, *italic*, `code` inline markdown to HTML tags.
+ * Convert **bold**, *italic*, `code`, and inline sentiment/derived markdown to HTML tags:
+ * {+positive text+} -> <span class="text-pos">positive text</span>
+ * {-negative text-} -> <span class="text-neg">negative text</span>
+ * {~derived text~}  -> <span class="text-derived">derived text</span>
  */
 function formatInlineMarkdown(text) {
-  let html = text;
+  if (!text) return '';
+  let html = String(text);
   html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
   html = html.replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, '<i>$1</i>');
   html = html.replace(/`(.*?)`/g, '<code>$1</code>');
+  html = html.replace(/\{\+(.*?)\+\}/g, '<span class="text-pos">$1</span>');
+  html = html.replace(/\{\-(.*?)\-\}/g, '<span class="text-neg">$1</span>');
+  html = html.replace(/\{\~(.*?)\~\}/g, '<span class="text-derived">$1</span>');
   return html;
 }
 

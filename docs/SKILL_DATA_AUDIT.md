@@ -14,7 +14,12 @@ annual-report-analysis, concall-analysis, consecutive-filings-diff, drhp-ipo-ana
 equity-research-deepdive, equity-research-dashboard, equity-research-master,
 financial-model, forensic-accounting, growth-triggers-1pager,
 management-credibility-tracker, quarterly-result-analysis, stage2-catalyst-analysis,
-stock-report, value-chain-analysis.
+stock-report, value-chain-analysis, growth-predictor.
+
+- **growth-predictor** (2026-10-14): `reports.json` `type=growth-prediction` (bear/base/bull
+  projection + narrative, `status: open|scored`); its post-result score →
+  `validation.json` `type=growth-prediction-score` (`insightId` = the prediction id). Run inputs
+  (gathered bundle, assumptions, narrative, projection, render HTML) → `runs/growth-predictor_*`.
 
 - **Need**: company identity (Kite master), primary docs (Stockscans fetch — regenerable),
   prior reports + notes + thesis + recent events for the same company (**context**).

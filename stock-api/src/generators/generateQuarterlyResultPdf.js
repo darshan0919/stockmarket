@@ -22,13 +22,19 @@ const { renderAdditionalHtml } = require('../utils/renderAdditional');
  */
 function getTagClass(tag) {
   const t = (tag || '').toUpperCase();
-  if (/NO_INFLECTION|NOT_APPLICABLE|NOT_YET|NEEDS_ACTUAL|EXCLUDED|EXPIRED|INSUFFICIENT/.test(t)) {
+  if (
+    /NO_INFLECTION|NOT_APPLICABLE|NOT_YET|NEEDS_ACTUAL|EXCLUDED|EXPIRED|INSUFFICIENT|HISTORICAL|CONFIRMATION/.test(
+      t
+    )
+  ) {
     return 'chip-b';
   }
-  if (/MISSED|BEHIND|GUIDANCE MISS/.test(t)) return 'chip-r';
-  if (/EMERGING|PARTIAL|MIXED|PENDING/.test(t)) return 'chip-y';
-  if (/^(MET|AHEAD|ON_TRACK|DELIVERED|CONFIRMED_AND_BEAT)$/.test(t)) return 'chip-g';
+  if (/MISSED|BEHIND|GUIDANCE MISS|NEGATIVE|RED-FLAG|HEADWIND|IMPAIRMENT/.test(t)) return 'chip-r';
+  if (/EMERGING|PARTIAL|MIXED|PENDING|DERIVED|ESTIMATE/.test(t)) return 'chip-y';
+  if (/^(MET|AHEAD|ON_TRACK|DELIVERED|CONFIRMED_AND_BEAT|NEW|FRESH)$/.test(t)) return 'chip-g';
   if (
+    t.includes('NEW') ||
+    t.includes('FRESH') ||
     t.includes('STRUCTURAL') ||
     t.includes('HIGH') ||
     t.includes('CLEAN') ||
@@ -45,6 +51,7 @@ function getTagClass(tag) {
     return 'chip-g';
   }
   if (
+    t.includes('DERIVED') ||
     t.includes('CYCLICAL') ||
     t.includes('MED') ||
     t.includes('WATCH') ||
@@ -437,6 +444,23 @@ function renderInflectionPoint(inf) {
   if (foot.length) {
     html += `<p style="margin: 4px 0; font-size: 9.5px;">${foot.join(' &nbsp;·&nbsp; ')}</p>`;
   }
+  if (Array.isArray(inf.newCatalysts) && inf.newCatalysts.length) {
+    const catRows = [['Catalyst', 'Details', 'Timeline', 'Conviction', 'Status / Source']];
+    inf.newCatalysts.forEach((c) => {
+      const tag = c.isNew ? 'NEW' : c.tag || 'CONFIRMATION';
+      const chip = `<span class="chip ${getTagClass(tag)}">${tag}</span>`;
+      catRows.push([
+        `[${c.letter}] ${c.title}`,
+        c.number || '—',
+        c.timeline || '—',
+        c.conviction || '—',
+        `${chip} ${c.source || ''}`.trim(),
+      ]);
+    });
+    html += `<div style="margin-top: 6px;"><div class="label" style="margin-bottom: 2px;">Catalyst Pipeline & Freshness</div>`;
+    html += styledTableHtml(catRows, INSTITUTIONAL_LIGHT);
+    html += `</div>`;
+  }
   html += `</div>`;
   return html;
 }
@@ -529,9 +553,12 @@ function renderBasket1(b1) {
     { title: 'Margin & Profitability Triggers', items: b1.marginTriggers || b1.margin_triggers },
     {
       title: 'Capex, Balance Sheet & Cash Flow',
-      items: b1.capexBsCashflow || b1.capex_bs_cashflow,
+      items: b1.capexBsCashflow || b1.capex_bs_cashflow || b1.capexAndCashFlow,
     },
-    { title: 'Future Earnings Triggers', items: b1.futureTriggers || b1.future_triggers },
+    {
+      title: 'Future Earnings Triggers',
+      items: b1.futureTriggers || b1.future_triggers || b1.futureEarningsTriggers,
+    },
   ];
 
   sections.forEach((sec) => {
@@ -566,9 +593,12 @@ function renderBasket2(b2) {
     { title: 'Business & Operating Risks', items: b2.businessRisks || b2.business_risks },
     {
       title: 'Management Commentary & Dodging Risks',
-      items: b2.commentaryRisks || b2.commentary_risks,
+      items: b2.commentaryRisks || b2.commentary_risks || b2.managementCommentaryRisks,
     },
-    { title: 'Industry & Macro Risks', items: b2.macroRisks || b2.macro_risks },
+    {
+      title: 'Industry & Macro Risks',
+      items: b2.macroRisks || b2.macro_risks || b2.industryAndMacroRisks,
+    },
   ];
 
   sections.forEach((sec) => {
@@ -586,7 +616,7 @@ function renderBasket2(b2) {
         if (it.quote) {
           text += ` <span class="quote">"${it.quote}"</span>`;
         }
-        html += renderObservation(text, it.severity || it.level, '⚠');
+        html += renderObservation(text, it.severity || it.level || it.tag, '⚠');
       }
     });
     html += `</div>`;
@@ -608,7 +638,7 @@ function renderBasket3(b3) {
 
   if (b3.tone) {
     const t = typeof b3.tone === 'object' ? b3.tone.label || b3.tone.classification : b3.tone;
-    const q = typeof b3.tone === 'object' ? b3.tone.quote : '';
+    const q = typeof b3.tone === 'object' ? b3.tone.quote : b3.toneEvidenceQuote || '';
     const cls = getTagClass(t);
     html += `
       <div style="margin-top: 5px;">
@@ -630,8 +660,8 @@ function renderBasket3(b3) {
     html += `</div>`;
   }
 
-  if (b3.strategicBuild || b3.strategic_direction) {
-    const strat = b3.strategicBuild || b3.strategic_direction;
+  if (b3.strategicBuild || b3.strategic_direction || b3.strategicBuild3to5Year) {
+    const strat = b3.strategicBuild || b3.strategic_direction || b3.strategicBuild3to5Year;
     html += `<div style="margin-top: 6px;"><div class="label">3–5 Year Strategic Trajectory</div>`;
     if (Array.isArray(strat)) {
       strat.forEach((s) => (html += renderObservation(s)));
@@ -641,9 +671,9 @@ function renderBasket3(b3) {
     html += `</div>`;
   }
 
-  if (b3.capitalAllocation || b3.capital_allocation) {
-    const ca = b3.capitalAllocation || b3.capital_allocation;
-    const grade = typeof ca === 'object' ? ca.grade : '';
+  if (b3.capitalAllocation || b3.capital_allocation || b3.capitalAllocationDetails) {
+    const ca = b3.capitalAllocation || b3.capital_allocation || b3.capitalAllocationDetails;
+    const grade = typeof ca === 'object' ? ca.grade : b3.capitalAllocationQuality || '';
     const desc = typeof ca === 'object' ? ca.rationale || ca.details : ca;
     html += `<div style="margin-top: 6px;"><div class="label">Capital Allocation Discipline ${grade ? `<span class="chip ${getTagClass(grade)}">${grade}</span>` : ''}</div>`;
     html += `<p style="font-size: 10px; margin: 2px 0;">${formatInlineMarkdown(String(desc))}</p></div>`;
@@ -666,15 +696,23 @@ function renderPeadRead(pead) {
   const gates = pead.gates || {};
   const rows = [
     ['Gate', 'Evaluation', 'Status'],
-    ['G1: Surprise vs Expectations', gates.g1 || pead.g1 || '—', 'Assessed'],
-    ['G2: Result Quality', gates.g2 || pead.g2 || '—', 'Assessed'],
+    ['G1: Surprise vs Expectations', gates.g1 || gates.g1_surprise || pead.g1 || '—', 'Assessed'],
+    ['G2: Result Quality', gates.g2 || gates.g2_quality || pead.g2 || '—', 'Assessed'],
     [
       'G3: Priced In? (Valuation / Runup)',
-      gates.g3 || pead.g3 || (pead.pricedIn ? 'PRICED IN' : 'NOT PRICED IN'),
+      gates.g3 || gates.g3_pricedIn || pead.g3 || (pead.pricedIn ? 'PRICED IN' : 'NOT PRICED IN'),
       pead.pricedIn ? 'FLAG' : 'CLEAN',
     ],
-    ['G4: Concall & Guidance Delivery', gates.g4 || pead.g4 || '—', 'Assessed'],
-    ['G5: Forward Catalysts Post-Result', gates.g5 || pead.g5 || '—', 'Assessed'],
+    [
+      'G4: Concall & Guidance Delivery',
+      gates.g4 || gates.g4_guidance || pead.g4 || '—',
+      'Assessed',
+    ],
+    [
+      'G5: Forward Catalysts Post-Result',
+      gates.g5 || gates.g5_triggers || pead.g5 || '—',
+      'Assessed',
+    ],
   ];
 
   let html = `<div class="sec">`;

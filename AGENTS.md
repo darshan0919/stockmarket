@@ -263,6 +263,15 @@ There are core development principles that are **permanent** across all AI codin
 10. **Skill Deliverables (PDF-Only Default)**: When generating reports, briefings, or analyses across all skills, produce **only the PDF artifact** by default. Never generate both HTML and PDF unless the user explicitly requests HTML (`format: 'html'`, `--html`, or an explicit conversational prompt). Ephemeral/scratch HTML files must not be saved in `data/assets/` by default.
 11. **Chat Conciseness (Zero PDF Duplication)**: Never reprint or reproduce the content or sections of the PDF report in the chat reply unless explicitly asked by the user. Chat replies must remain concise and analytical, presenting only high-level executive takeaways, critical metric rate-of-change highlights, and the direct clickable link to the generated PDF artifact.
 12. **Contextual Metrics & Rate of Change ($\Delta$)**: Never present a standalone or updated metric/ratio (such as updated P/B, BVPS, RoA, RoE, NIM, PAT, margins, or growth rates) in isolation. Always pair the metric with its contextual baseline comparison point (historical prior period value alongside latest value, or current baseline value alongside forward guided target) with explicit rate of change ($\Delta$ in % or basis points) so the reader can immediately evaluate direction and velocity.
+13. **Information Freshness & Provenance Tagging (`NEW` vs `CONFIRMATION` / `DERIVED`)**: Whenever information from the latest source document is presented or mixed alongside historical context (such as past concalls, earlier presentations, or baseline thesis tables across all reports: quarterly-result-analysis, rerating-catalysts, forward-guidance, announcement-insights, etc.):
+    - Explicitly tag genuine fresh disclosures that originate from the current document with `NEW` (`.chip-g`).
+    - Explicitly tag ongoing/re-stated items from past quarters as `CONFIRMATION` or `HISTORICAL` (`.chip-b`).
+    - Whenever claims, deductions, or industry hypotheses are made based on general knowledge or economic extrapolation rather than direct quotation from the context source (e.g. attributing margin expansion to "crack spreads" or "refinery throughput" when the filing does not state it), tag that claim with `DERIVED` (`.chip-y`) and clearly separate it from verbatim/sourced disclosures.
+14. **Investor Sentiment & Provenance Text Color-Coding**: In addition to badge chips, apply semantic inline text color-coding across excerpts, drivers, and statement analysis in all generated reports:
+    - Key positive developments / operating tailwinds: green (`.text-pos`, `#15803d` / `#27500a`).
+    - Key risks, headwinds, operational impairments, or misses: red (`.text-neg`, `#b91c1c` / `#a32d2d`).
+    - Extrapolated / derived claims or watch items: amber (`.text-derived`, `#b45309` / `#854f0b`).
+    - Selectively highlight the critical excerpt clauses and figures containing the high-impact sentiment inflection points rather than color-coding entire paragraphs indiscriminately.
 
 ## 13. External skill packs — planning, productivity, and code review
 

@@ -249,7 +249,10 @@ function compute(lineData, context = {}) {
       });
     }
   }
-  if (byKey.depreciation && byKey.interest) {
+  // "Stepped up" means up: both lines must have risen (QoQ, else YoY). Before 2026-10-14 this fired on
+  // any material move, so a quarter where D&A and interest both FELL was flagged as fresh capex.
+  const rose = (d) => (d.qoqDelta != null ? d.qoqDelta > 0 : d.yoyDelta != null && d.yoyDelta > 0);
+  if (byKey.depreciation && byKey.interest && rose(byKey.depreciation) && rose(byKey.interest)) {
     combinations.push({
       flag: 'CAPEX_COMMISSIONED_NOT_YET_CONTRIBUTING',
       note: 'D&A and interest both stepped up — check whether revenue reflects the new capacity yet.',
