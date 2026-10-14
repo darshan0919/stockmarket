@@ -62,4 +62,5 @@ module.exports = {
   computeJCurveFinancialHealth: require('./jcurveFinancialMetrics').computeJCurveFinancialHealth,
   calculateCapacityProgression: require('./capexScalingCalculator').calculateCapacityProgression,
   calculateRevenuePotential: require('./capexScalingCalculator').calculateRevenuePotential,
+  ...require('./resultTimingAnalyzer'),
 };

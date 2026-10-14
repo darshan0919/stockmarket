@@ -1,6 +1,26 @@
 {
   "skills": [
     {
+      "name": "result-timing-analyzer",
+      "description": "Analyze and predict financial results announcement timing and patterns for any Indian listed company using official exchange filings (NSE primary, BSE fallback). Computes exact submission timestamps, exchange dissemination times, market session distribution (market hours vs post-market), day-of-week preference, reporting turnaround velocity, and seasonal timing windows over the last 8-16 quarters. Use whenever the user asks \"at what time does [company] declare results\", \"when does [company] announce results\", \"board meeting outcome timing\", \"earnings release time\", \"result timing stats\", or wants to know if a company announces during market hours or post-market.",
+      "aliases": [
+        "result timing",
+        "earnings timing",
+        "when does company declare results",
+        "at what time results are declared",
+        "board meeting outcome time",
+        "result declaration time",
+        "result timing stats",
+        "result timing analyzer"
+      ],
+      "entry": "stock-api/bin/result-timing-analyzer.js",
+      "modules": [
+        "stock-api/src/analyzers/resultTimingAnalyzer.js",
+        "stock-api/src/clients/NseClient.js",
+        "stock-api/src/clients/BseClient.js"
+      ]
+    },
+    {
       "name": "announcement-taxonomy",
       "description": "The reasoning layer over the deterministic announcement classifier — reads a filing, judges independently whether it sits on the EPS-accretion / J-curve / re-rating path (SOIC growth-catalyst framework), compares that judgment to what `lib/announcementTaxonomy.js` computed, and writes every disagreement back as a learned rule so the script gets better over time. Use when classifying a filing's SIGNIFICANCE (not just its category), when a scan's classification looks wrong, when asked \"is this filing actually a big deal / does this justify a re-rating\", or as the review layer any announcement-consuming skill (gainers-signal, volume-rocketing, watchlist-insights, post-close-scan-insights) calls before trusting a script verdict on a high-stakes name. Also run standalone as a weekly audit of the taxonomy's accuracy (`status`, `promote-rule --auto`).",
       "aliases": [
@@ -225,7 +245,9 @@
         "stock-api/src/fetchers/documentsFetcher.js",
         "stock-api/src/analyzers/incomeStatementSignals.js",
         "stock-api/src/analyzers/balanceSheetSignals.js",
-        "stock-api/src/analyzers/cashflowSignals.js"
+        "stock-api/src/analyzers/cashflowSignals.js",
+        "stock-api/src/analyzers/resultInflection.js",
+        "stock-api/src/utils/fiscalQuarter.js"
       ]
     },
     {
@@ -949,6 +971,11 @@
       ]
     },
     {
+      "name": "IndiaMtfClient",
+      "file": "stock-api/src/clients/IndiaMtfClient.js",
+      "methods": ["setJobName", "latest", "latestDate", "scripwiseDaily"]
+    },
+    {
       "name": "NseClient",
       "file": "stock-api/src/clients/NseClient.js",
       "methods": [
@@ -964,14 +991,23 @@
         "getSastReg29",
         "getInsiderFilings",
         "getIntegratedFilings",
+        "getFinancialResults",
         "getShareholdingFilings",
         "getVotingResultFilings",
         "getXbrlAnnouncements",
         "getBrsrFilings",
         "fetchArchiveXml",
         "getLiveVariations",
+        "getFiiDiiActivity",
         "getCorporateActions",
-        "getBoardMeetings"
+        "getBoardMeetings",
+        "getHistoricalOhlcv",
+        "searchSymbols",
+        "lookupSymbol",
+        "getMarketMood",
+        "getIndexValuation",
+        "getStockVsIndex",
+        "getLiveStockQuote"
       ]
     },
     {
@@ -1036,6 +1072,11 @@
       ]
     },
     {
+      "name": "TradingViewClient",
+      "file": "stock-api/src/clients/TradingViewClient.js",
+      "methods": ["setJobName", "getQuotes", "getMacroSnapshot"]
+    },
+    {
       "name": "HttpClient",
       "file": "stock-api/src/http/HttpClient.js",
       "methods": [
@@ -1048,6 +1089,11 @@
         "put",
         "delete"
       ]
+    },
+    {
+      "name": "NseMcpSession",
+      "file": "stock-api/src/http/nseMcpSession.js",
+      "methods": ["_baseHeaders", "initialize", "clearSession", "callTool"]
     },
     {
       "name": "NseSession",
@@ -1095,6 +1141,26 @@
       "description": "Exported from BseClient.js"
     },
     {
+      "name": "parseScripwiseCsv",
+      "file": "stock-api/src/clients/IndiaMtfClient.js",
+      "description": "Exported from IndiaMtfClient.js"
+    },
+    {
+      "name": "parseLatestDate",
+      "file": "stock-api/src/clients/IndiaMtfClient.js",
+      "description": "Exported from IndiaMtfClient.js"
+    },
+    {
+      "name": "parseHumanDate",
+      "file": "stock-api/src/clients/IndiaMtfClient.js",
+      "description": "Exported from IndiaMtfClient.js"
+    },
+    {
+      "name": "parseFiiDii",
+      "file": "stock-api/src/clients/NseClient.js",
+      "description": "Exported from NseClient.js"
+    },
+    {
       "name": "toPerplexityTicker",
       "file": "stock-api/src/clients/PerplexityClient.js",
       "description": "Exported from PerplexityClient.js"
@@ -1103,6 +1169,11 @@
       "name": "paragraphsToText",
       "file": "stock-api/src/clients/PerplexityClient.js",
       "description": "Exported from PerplexityClient.js"
+    },
+    {
+      "name": "parseScannerResponse",
+      "file": "stock-api/src/clients/TradingViewClient.js",
+      "description": "Exported from TradingViewClient.js"
     },
     {
       "name": "apiLabelFor",
@@ -1447,6 +1518,11 @@
       "description": "Exported from index.js"
     },
     {
+      "name": "...require('./resultTimingAnalyzer')",
+      "file": "stock-api/src/analyzers/index.js",
+      "description": "Exported from index.js"
+    },
+    {
       "name": "pctGrowth",
       "file": "stock-api/src/analyzers/jcurveFinancialMetrics.js",
       "description": "Exported from jcurveFinancialMetrics.js"
@@ -1547,6 +1623,16 @@
       "description": "Exported from resultAnalysisContext.js"
     },
     {
+      "name": "buildNbfcQualityChecks",
+      "file": "stock-api/src/analyzers/resultAnalysisContext.js",
+      "description": "Exported from resultAnalysisContext.js"
+    },
+    {
+      "name": "isNbfcRecord",
+      "file": "stock-api/src/analyzers/resultAnalysisContext.js",
+      "description": "Exported from resultAnalysisContext.js"
+    },
+    {
       "name": "formatRsCr",
       "file": "stock-api/src/analyzers/resultAnalysisContext.js",
       "description": "Exported from resultAnalysisContext.js"
@@ -1555,6 +1641,126 @@
       "name": "formatPct",
       "file": "stock-api/src/analyzers/resultAnalysisContext.js",
       "description": "Exported from resultAnalysisContext.js"
+    },
+    {
+      "name": "normalizeQuarter",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "parsePeriod",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "parseRange",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "collectPriorGuidance",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "measurability",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "buildWalkTheTalkLedger",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "scoreRow",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "scoreWalkTheTalk",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "marginLeg",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "operatingLeverage",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "guidanceTrustLeg",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "catalystLeg",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "inflectionVerdict",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "buildNextInflection",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "buildSeeds",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "prepareInflectionContext",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "finalizeInflection",
+      "file": "stock-api/src/analyzers/resultInflection.js",
+      "description": "Exported from resultInflection.js"
+    },
+    {
+      "name": "analyzeResultTimings",
+      "file": "stock-api/src/analyzers/resultTimingAnalyzer.js",
+      "description": "Exported from resultTimingAnalyzer.js"
+    },
+    {
+      "name": "computeTimingStats",
+      "file": "stock-api/src/analyzers/resultTimingAnalyzer.js",
+      "description": "Exported from resultTimingAnalyzer.js"
+    },
+    {
+      "name": "formatSummaryTable",
+      "file": "stock-api/src/analyzers/resultTimingAnalyzer.js",
+      "description": "Exported from resultTimingAnalyzer.js"
+    },
+    {
+      "name": "parseTimeMinutes",
+      "file": "stock-api/src/analyzers/resultTimingAnalyzer.js",
+      "description": "Exported from resultTimingAnalyzer.js"
+    },
+    {
+      "name": "classifyMarketSession",
+      "file": "stock-api/src/analyzers/resultTimingAnalyzer.js",
+      "description": "Exported from resultTimingAnalyzer.js"
+    },
+    {
+      "name": "deriveQuarterLabel",
+      "file": "stock-api/src/analyzers/resultTimingAnalyzer.js",
+      "description": "Exported from resultTimingAnalyzer.js"
+    },
+    {
+      "name": "isPrimaryResultAnnouncement",
+      "file": "stock-api/src/analyzers/resultTimingAnalyzer.js",
+      "description": "Exported from resultTimingAnalyzer.js"
     },
     {
       "name": "parseScanId",
@@ -1660,6 +1866,16 @@
       "name": "announcementFilename",
       "file": "stock-api/src/fetchers/announcementsFetcher.js",
       "description": "Exported from announcementsFetcher.js"
+    },
+    {
+      "name": "fetchDailyCandles",
+      "file": "stock-api/src/fetchers/dailyCandlesFetcher.js",
+      "description": "Exported from dailyCandlesFetcher.js"
+    },
+    {
+      "name": "normalizeStockscansPrices",
+      "file": "stock-api/src/fetchers/dailyCandlesFetcher.js",
+      "description": "Exported from dailyCandlesFetcher.js"
     },
     {
       "name": "fetchDocuments",
@@ -1772,6 +1988,26 @@
       "description": "Exported from generatePeerPdf.js"
     },
     {
+      "name": "createQuarterlyResultPdf",
+      "file": "stock-api/src/generators/generateQuarterlyResultPdf.js",
+      "description": "Exported from generateQuarterlyResultPdf.js"
+    },
+    {
+      "name": "renderInflectionPoint",
+      "file": "stock-api/src/generators/generateQuarterlyResultPdf.js",
+      "description": "Exported from generateQuarterlyResultPdf.js"
+    },
+    {
+      "name": "renderWalkTheTalk",
+      "file": "stock-api/src/generators/generateQuarterlyResultPdf.js",
+      "description": "Exported from generateQuarterlyResultPdf.js"
+    },
+    {
+      "name": "renderNextInflection",
+      "file": "stock-api/src/generators/generateQuarterlyResultPdf.js",
+      "description": "Exported from generateQuarterlyResultPdf.js"
+    },
+    {
       "name": "createResearchReport",
       "file": "stock-api/src/generators/generateReport.js",
       "description": "Exported from generateReport.js"
@@ -1787,9 +2023,19 @@
       "description": "Exported from generateReport.js"
     },
     {
+      "name": "createReratingCatalystsPdf",
+      "file": "stock-api/src/generators/generateReratingCatalystsPdf.js",
+      "description": "Exported from generateReratingCatalystsPdf.js"
+    },
+    {
       "name": "createSectorReport",
       "file": "stock-api/src/generators/generateSectorReport.js",
       "description": "Exported from generateSectorReport.js"
+    },
+    {
+      "name": "parseLatestDate",
+      "file": "stock-api/src/index.js",
+      "description": "Exported from index.js"
     },
     {
       "name": "nse",
@@ -1807,7 +2053,22 @@
       "description": "Exported from index.js"
     },
     {
+      "name": "tradingview",
+      "file": "stock-api/src/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "indiamtf",
+      "file": "stock-api/src/index.js",
+      "description": "Exported from index.js"
+    },
+    {
       "name": "nseSession",
+      "file": "stock-api/src/index.js",
+      "description": "Exported from index.js"
+    },
+    {
+      "name": "nseMcpSession",
       "file": "stock-api/src/index.js",
       "description": "Exported from index.js"
     },
@@ -2020,6 +2281,16 @@
       "name": "calloutHtml",
       "file": "stock-api/src/utils/pdfUtils.js",
       "description": "Exported from pdfUtils.js"
+    },
+    {
+      "name": "renderValue",
+      "file": "stock-api/src/utils/renderAdditional.js",
+      "description": "Exported from renderAdditional.js"
+    },
+    {
+      "name": "renderAdditionalHtml",
+      "file": "stock-api/src/utils/renderAdditional.js",
+      "description": "Exported from renderAdditional.js"
     },
     {
       "name": "buildTranscriptContent",

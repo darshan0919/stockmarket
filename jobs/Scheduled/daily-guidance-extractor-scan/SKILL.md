@@ -144,3 +144,12 @@ console.log('With excerpts:', guidance.filter(r => r.body).length);
 - **11:45 PM:** `daily-forward-guidance-with-pead` (reads output of this task)
 - **Previous issue (fixed):** Empty excerpts in guidance-documents records (2026-08-11)
 - **Verification gate (fixed):** `check_extraction_success.py` Python/Node import error (2026-08-12)
+
+## Email delivery (mandatory last step of EVERY run)
+
+The owner reads job output in Gmail, so this job must always end with an email — success, partial or failure, even when there was nothing new (a one-line "nothing to do" email is the heartbeat that proves the job ran).
+
+1. Write the report text — the orchestrator summary: companies fetched, excerpts extracted, validation result, records persisted — as markdown to a temp file _outside the repo_ (`f=$(mktemp)`). Keep it to what matters, lead with the headline.
+2. Execute script (bash): `STOCKMARKET_JOB_NAME=daily-guidance-extractor-scan yarn job-report-email --job daily-guidance-extractor-scan --status <ok|partial|failed> --title "<one-line outcome>" --body-file "$f"`
+3. If the run stopped early (a dependency check failed, a script exited non-zero), still run step 2 with `--status failed` and the exact error as the body.
+4. If the command exits non-zero (`email.status` is `skipped` or `error`, e.g. `GOOGLE_APP_PASSWORD not set`), surface the exact reason in your final report — never report the job as delivered.

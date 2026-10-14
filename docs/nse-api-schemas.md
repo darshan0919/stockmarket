@@ -357,3 +357,57 @@ Response:
   }
 }
 ```
+
+---
+
+## 5. Corporates Financial Results (`/api/corporates-financial-results`)
+
+- **Method**: `GET`
+- **Path**: `https://www.nseindia.com/api/corporates-financial-results`
+- **Client Method**: `NseClient.prototype.getFinancialResults(symbol, period = 'Quarterly', index = 'equities')`
+- **Auth**: Standard `NseSession` cookie warmup (`NseSession.js`), with browser-like User-Agent and Referer `https://www.nseindia.com/companies-listing/corporate-filings-financial-results`.
+
+### Request Parameters
+
+| Parameter | Type     | Required | Description                                              |
+| :-------- | :------- | :------- | :------------------------------------------------------- |
+| `symbol`  | `string` | Yes      | NSE ticker symbol (e.g. `'MRPL'`).                       |
+| `period`  | `string` | No       | `'Quarterly'` (default), `'Half Yearly'`, or `'Annual'`. |
+| `index`   | `string` | No       | `'equities'` (default), `'sme'`.                         |
+
+### Response Schema
+
+Array of quarterly/annual filing objects:
+
+```json
+[
+  {
+    "symbol": "MRPL",
+    "companyName": "Mangalore Refinery and Petrochemicals Limited",
+    "isin": "INE103A01014",
+    "industry": "-",
+    "period": "Quarterly",
+    "financialYear": "01-Apr-2024 To 31-Mar-2025",
+    "relatingTo": "Third Quarter",
+    "fromDate": "01-Oct-2024",
+    "toDate": "31-Dec-2024",
+    "audited": "Un-Audited",
+    "consolidated": "Consolidated",
+    "cumulative": "Non-cumulative",
+    "filingDate": "20-Jan-2025 14:27",
+    "broadCastDate": "20-Jan-2025 14:27:41",
+    "exchdisstime": "20-Jan-2025 14:28:31",
+    "difference": "00:00:50",
+    "format": "New",
+    "indAs": "Ind-AS New",
+    "reInd": "N",
+    "bank": "N",
+    "seqNumber": "1189983",
+    "oldNewFlag": "N",
+    "params": "01-Oct-202431-Dec-2024Q3UNNCNEMRPL",
+    "resultDescription": null,
+    "resultDetailedDataLink": null,
+    "xbrl": "https://nsearchives.nseindia.com/corporate/xbrl/INDAS_117382_1352118_20012025022741.xml"
+  }
+]
+```

@@ -61,10 +61,11 @@ node sync-skills.js --skills-root /path/to/skill-sources --check   # CI: fail if
 - `run-statement-signals`: Runs deterministic signal scans over Balance Sheet and Cash Flow statements.
 - `compute-headline-financials`: Computes headline metrics (Revenue, EBITDA margin, PAT, Tax Rate, EPS).
 - `save-result-documents`: Persists quarterly-result-documents DTO to the database chokepoint.
+- `quarterly-result-analysis`: `--check-cache` / `--prepare` (KPI cards, statement health, chips, plus `inflectionPrep`: walk-the-talk ledger of prior guidance, margin leg, catalyst and next-inflection seeds) / `--score-inflection <file>` (scores the agent-completed input into `walkTheTalk`, `inflectionPoint`, `nextInflection` DTO blocks; logic in `src/analyzers/resultInflection.js`).
 
 ## Deterministic Report Rendering Scripts
 
-- `render-quarterly-result-pdf`: Renders a `quarterly-result` JSON DTO into an institutional HTML/PDF report with standardized palette, NBFC quality checks, and runtime improvisation space (`--input <path> --output <path>`).
+- `render-quarterly-result-pdf`: Renders a `quarterly-result` JSON DTO into an institutional HTML/PDF report with standardized palette, NBFC quality checks, Inflection Point / Walk the Talk / Next Inflection sections, and runtime improvisation space (`--input <path> --output <path>`).
 - `render-rerating-catalysts-pdf`: Renders a `rerating-catalysts` JSON DTO into an institutional HTML/PDF report with J-Curve inflection banner, core triggers, spike analysis, and runtime improvisation space (`--input <path> --output <path>`).
 
 ## Test

@@ -250,14 +250,12 @@ async function main() {
             peakX: r.price.peakX,
             drawdownPct: r.price.drawdownPct,
           })),
-        top10ByRun: rows
-          .slice(0, 10)
-          .map((r) => ({
-            industry: r.industry,
-            x: r.price.x,
-            phase: r.phase,
-            ipos12m: r.supply.ipos12m,
-          })),
+        top10ByRun: rows.slice(0, 10).map((r) => ({
+          industry: r.industry,
+          x: r.price.x,
+          phase: r.phase,
+          ipos12m: r.supply.ipos12m,
+        })),
         ledger,
         filesTouched: dryRun ? [] : db.touchedFiles(),
       },

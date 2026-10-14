@@ -342,6 +342,44 @@ class NseClient {
   }
 
   /**
+   * @typedef {Object} NseCorporateFinancialResult
+   * @property {string} symbol - NSE ticker symbol
+   * @property {string} companyName - Full company name
+   * @property {string} isin - ISIN code
+   * @property {string} period - 'Quarterly' | 'Half Yearly' | 'Annual'
+   * @property {string} financialYear - Financial year range (e.g. '01-Apr-2024 To 31-Mar-2025')
+   * @property {string} relatingTo - Quarter descriptor (e.g. 'First Quarter', 'Second Quarter', 'Third Quarter', 'Fourth Quarter')
+   * @property {string} fromDate - Period start (DD-Mon-YYYY)
+   * @property {string} toDate - Period end / quarter end date (DD-Mon-YYYY)
+   * @property {string} audited - 'Audited' | 'Un-Audited'
+   * @property {string} consolidated - 'Consolidated' | 'Non-Consolidated'
+   * @property {string} broadCastDate - Submission broadcast timestamp (DD-Mon-YYYY HH:mm:ss)
+   * @property {string} filingDate - Filing date/time (DD-Mon-YYYY HH:mm)
+   * @property {string} exchdisstime - Exchange dissemination timestamp (DD-Mon-YYYY HH:mm:ss)
+   * @property {string} difference - Dissemination delay
+   * @property {string} xbrl - Absolute URL to XBRL XML filing on nsearchives
+   */
+
+  /**
+   * Historical quarterly/annual corporate financial results for a symbol.
+   * Endpoint: /api/corporates-financial-results?index=equities&symbol=SYMBOL&period=Quarterly
+   * @param {string} symbol
+   * @param {'Quarterly'|'Half Yearly'|'Annual'} [period='Quarterly']
+   * @param {'equities'|'sme'} [index='equities']
+   * @returns {Promise<NseCorporateFinancialResult[]>}
+   */
+  async getFinancialResults(symbol, period = 'Quarterly', index = 'equities') {
+    const upper = String(symbol).toUpperCase();
+    const res = await this.session.get('/corporates-financial-results', {
+      params: { index, symbol: upper, period },
+      referer: `${NSE_HOME_URL}companies-listing/corporate-filings-financial-results`,
+      symbol: upper,
+      timeout: 60000,
+    });
+    return Array.isArray(res.data) ? res.data : res.data?.data || [];
+  }
+
+  /**
    * Shareholding-pattern filings for one symbol. Rows carry `xbrl` (in-bse-shp
    * XML), `date` (quarter end), `recordId`, `typeOfSubmission`.
    * @param {string} symbol

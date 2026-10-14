@@ -36,3 +36,12 @@ This task MUST NOT run if Step 1 fails. The extraction task (1:00 AM) must succe
 - All 3-basket interpretation (Business / Risk / Management) is judgment-based and must include tone analysis, narrative-shift detection, and forward monitoring checklist.
 - Every observation must be tagged STRUCTURAL / CYCLICAL / TEMPORARY.
 - PDFs are saved and pushed to Drive for sharing; full file-touched manifest must be included in the run summary.
+
+## Email delivery (mandatory last step of EVERY run)
+
+The owner reads job output in Gmail, so this job must always end with an email — success, partial or failure, even when there was nothing new (a one-line "nothing to do" email is the heartbeat that proves the job ran).
+
+1. Write the report text — per-company one-line verdict (signal, key YoY/QoQ moves) plus failures/skips — as markdown to a temp file _outside the repo_ (`f=$(mktemp)`). Keep it to what matters, lead with the headline.
+2. Execute script (bash): `STOCKMARKET_JOB_NAME=daily-quarterly-result-analysis yarn job-report-email --job daily-quarterly-result-analysis --status <ok|partial|failed> --title "<one-line outcome>" --body-file "$f"` `--attach <PDF>` for each analysis PDF this run produced (skip attachments if more than 8; list their paths instead).
+3. If the run stopped early (a dependency check failed, a script exited non-zero), still run step 2 with `--status failed` and the exact error as the body.
+4. If the command exits non-zero (`email.status` is `skipped` or `error`, e.g. `GOOGLE_APP_PASSWORD not set`), surface the exact reason in your final report — never report the job as delivered.

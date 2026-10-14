@@ -14,3 +14,12 @@ You are running the daily Investment Thesis delta scan for Darshan's stockmarket
 Rules: date and cite every claim; never invent events; anchor CMP/PE to Screener/Stockscans, never training data. This is research aid, not investment advice.
 
 Final step (every run, per `skills/tooling/cowork-task-architect/SKILL.md`): execute `python scripts/metrics/track_invocation.py --name daily-thesis-delta-scan --type task --model <the exact model executing this run, e.g. claude-sonnet-5>`, and set that same model string as `modelUsed` on every thesis you write in step 4 (re-scoring and signal recomputation are LLM judgment, per `investment-thesis-engine/SKILL.md`).
+
+## Email delivery (mandatory last step of EVERY run)
+
+The owner reads job output in Gmail, so this job must always end with an email — success, partial or failure, even when there was nothing new (a one-line "nothing to do" email is the heartbeat that proves the job ran).
+
+1. Write the report text — the briefing table from step 5 (Ticker | Event | Pillar(s) | Signal old→new | Monitorable breaches); if nothing material, one line saying so — as markdown to a temp file _outside the repo_ (`f=$(mktemp)`). Keep it to what matters, lead with the headline.
+2. Execute script (bash): `STOCKMARKET_JOB_NAME=daily-thesis-delta-scan yarn job-report-email --job daily-thesis-delta-scan --status <ok|partial|failed> --title "<one-line outcome>" --body-file "$f"`
+3. If the run stopped early (a dependency check failed, a script exited non-zero), still run step 2 with `--status failed` and the exact error as the body.
+4. If the command exits non-zero (`email.status` is `skipped` or `error`, e.g. `GOOGLE_APP_PASSWORD not set`), surface the exact reason in your final report — never report the job as delivered.

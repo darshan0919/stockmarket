@@ -20,3 +20,12 @@ You are running the weekly Investment Thesis review for Darshan's stockmarket pr
 Rules: every claim dated and cited; no invented events; research aid, not investment advice.
 
 Final step (every run, per `skills/tooling/cowork-task-architect/SKILL.md`): execute `python scripts/metrics/track_invocation.py --name weekly-thesis-review --type task --model <the exact model executing this run, e.g. claude-sonnet-5>`, and set that same model string as `modelUsed` on every thesis file updated in step 3/4.
+
+## Email delivery (mandatory last step of EVERY run)
+
+The owner reads job output in Gmail, so this job must always end with an email — success, partial or failure, even when there was nothing new (a one-line "nothing to do" email is the heartbeat that proves the job ran).
+
+1. Write the report text — the full briefing from step 5 (table + 3-5 sentence commentary) — as markdown to a temp file _outside the repo_ (`f=$(mktemp)`). Keep it to what matters, lead with the headline.
+2. Execute script (bash): `STOCKMARKET_JOB_NAME=weekly-thesis-review yarn job-report-email --job weekly-thesis-review --status <ok|partial|failed> --title "<one-line outcome>" --body-file "$f"`
+3. If the run stopped early (a dependency check failed, a script exited non-zero), still run step 2 with `--status failed` and the exact error as the body.
+4. If the command exits non-zero (`email.status` is `skipped` or `error`, e.g. `GOOGLE_APP_PASSWORD not set`), surface the exact reason in your final report — never report the job as delivered.

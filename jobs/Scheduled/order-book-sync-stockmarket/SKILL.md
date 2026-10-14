@@ -16,3 +16,12 @@ Run it in **sync mode**:
 4. Report the run summary, including a "Files touched" section built from `db.touchedFiles()` and the `data:push` output — never from memory.
 
 Final step (every run, per `skills/tooling/cowork-task-architect/SKILL.md`): execute `python scripts/metrics/track_invocation.py --name order-book-sync-stockmarket --type task --model <the exact model executing this run, e.g. claude-sonnet-5>`. Set `modelUsed` on any record you resolved by judgment in step 2, since those did involve a model.
+
+## Email delivery (mandatory last step of EVERY run)
+
+The owner reads job output in Gmail, so this job must always end with an email — success, partial or failure, even when there was nothing new (a one-line "nothing to do" email is the heartbeat that proves the job ran).
+
+1. Write the report text — companies refreshed, new order wins found (company, size, customer), errors — as markdown to a temp file _outside the repo_ (`f=$(mktemp)`). Keep it to what matters, lead with the headline.
+2. Execute script (bash): `STOCKMARKET_JOB_NAME=order-book-sync-stockmarket yarn job-report-email --job order-book-sync-stockmarket --status <ok|partial|failed> --title "<one-line outcome>" --body-file "$f"`
+3. If the run stopped early (a dependency check failed, a script exited non-zero), still run step 2 with `--status failed` and the exact error as the body.
+4. If the command exits non-zero (`email.status` is `skipped` or `error`, e.g. `GOOGLE_APP_PASSWORD not set`), surface the exact reason in your final report — never report the job as delivered.

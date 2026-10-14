@@ -1,18 +1,25 @@
 # Dead Code & Coding Practice Action Items
 
-> **Last Updated:** 2026-10-11T17:17:48.241Z
+> **Last Updated:** 2026-10-14T10:45:45.242Z
 > **Status:** Automated Scan Completed
-> **Active Action Items:** 26
+> **Active Action Items:** 155
 
 ---
 
 ## 📊 Summary Breakdown
 
-| Category                        | Flagged Items |  Priority   |
-| :------------------------------ | :-----------: | :---------: |
-| **Unused File**                 |      13       | High/Medium |
-| **Unreferenced Non-Code File**  |       9       | High/Medium |
-| **Data Directory Hanging Node** |       4       | High/Medium |
+| Category | Flagged Items | Priority |
+| :--- | :---: | :---: |
+| **Committed Stray Artifact** | 10 | High/Medium |
+| **Unused File** | 32 | High/Medium |
+| **Unreferenced Non-Code File** | 109 | High/Medium |
+| **Data Directory Hanging Node** | 4 | High/Medium |
+
+## 🗂️ Whole-Directory Findings (sorted by file count — check these first)
+
+| Directory | Files | Category | Action |
+| :--- | :---: | :--- | :--- |
+| `packages/jobs-runtime/_to_delete/` | 4 | Unused File | `[DELETE] packages/jobs-runtime/_to_delete/` |
 
 ---
 
@@ -20,184 +27,933 @@
 
 The following items were identified by analyzing scheduled jobs, skills, workspace APIs, and frontend applications. Corresponding entries have also been synchronized to [`data/tasks.json`](file:///Users/darshanpatel/code/stockmarket/data/tasks.json).
 
-### 1. [High] Investigate unreferenced source file bt.py
+### 1. [High] Remove committed artifact/binary .pcsi_run/send-digest.out
+- **Category:** Committed Stray Artifact
+- **Target File:** [`.pcsi_run/send-digest.out`](file:///Users/darshanpatel/code/stockmarket/.pcsi_run/send-digest.out)
+- **Details:** File '.pcsi_run/send-digest.out' is a generated artifact, media file, or build binary (.out) committed to git. Per docs/DATA_RULES.md, generated artifacts belong in data/assets/ or data/runs/ and must not be tracked in git.
+- **Recommended Action:** `[REMOVE FROM GIT] git rm --cached .pcsi_run/send-digest.out`
 
+### 2. [High] Remove committed root session data _scratch_briefs.json
+- **Category:** Committed Stray Artifact
+- **Target File:** [`_scratch_briefs.json`](file:///Users/darshanpatel/code/stockmarket/_scratch_briefs.json)
+- **Details:** File '_scratch_briefs.json' is a scratch JSON/HTML payload left at the repository root. Per clean code standards, remove or relocate into data/runs/ or data/assets/.
+- **Recommended Action:** `[REMOVE FROM GIT] git rm --cached _scratch_briefs.json`
+
+### 3. [High] Remove committed root session data _scratch_content.json
+- **Category:** Committed Stray Artifact
+- **Target File:** [`_scratch_content.json`](file:///Users/darshanpatel/code/stockmarket/_scratch_content.json)
+- **Details:** File '_scratch_content.json' is a scratch JSON/HTML payload left at the repository root. Per clean code standards, remove or relocate into data/runs/ or data/assets/.
+- **Recommended Action:** `[REMOVE FROM GIT] git rm --cached _scratch_content.json`
+
+### 4. [High] Remove committed root session data _scratch_dto_hcltech.json
+- **Category:** Committed Stray Artifact
+- **Target File:** [`_scratch_dto_hcltech.json`](file:///Users/darshanpatel/code/stockmarket/_scratch_dto_hcltech.json)
+- **Details:** File '_scratch_dto_hcltech.json' is a scratch JSON/HTML payload left at the repository root. Per clean code standards, remove or relocate into data/runs/ or data/assets/.
+- **Recommended Action:** `[REMOVE FROM GIT] git rm --cached _scratch_dto_hcltech.json`
+
+### 5. [High] Remove committed root session data _scratch_dto_shriramfin.json
+- **Category:** Committed Stray Artifact
+- **Target File:** [`_scratch_dto_shriramfin.json`](file:///Users/darshanpatel/code/stockmarket/_scratch_dto_shriramfin.json)
+- **Details:** File '_scratch_dto_shriramfin.json' is a scratch JSON/HTML payload left at the repository root. Per clean code standards, remove or relocate into data/runs/ or data/assets/.
+- **Recommended Action:** `[REMOVE FROM GIT] git rm --cached _scratch_dto_shriramfin.json`
+
+### 6. [High] Remove committed root session data _scratch_dto_tcs.json
+- **Category:** Committed Stray Artifact
+- **Target File:** [`_scratch_dto_tcs.json`](file:///Users/darshanpatel/code/stockmarket/_scratch_dto_tcs.json)
+- **Details:** File '_scratch_dto_tcs.json' is a scratch JSON/HTML payload left at the repository root. Per clean code standards, remove or relocate into data/runs/ or data/assets/.
+- **Recommended Action:** `[REMOVE FROM GIT] git rm --cached _scratch_dto_tcs.json`
+
+### 7. [High] Remove committed root session data _scratch_render.html
+- **Category:** Committed Stray Artifact
+- **Target File:** [`_scratch_render.html`](file:///Users/darshanpatel/code/stockmarket/_scratch_render.html)
+- **Details:** File '_scratch_render.html' is a scratch JSON/HTML payload left at the repository root. Per clean code standards, remove or relocate into data/runs/ or data/assets/.
+- **Recommended Action:** `[REMOVE FROM GIT] git rm --cached _scratch_render.html`
+
+### 8. [High] Remove committed root session data _scratch_research_dtos.json
+- **Category:** Committed Stray Artifact
+- **Target File:** [`_scratch_research_dtos.json`](file:///Users/darshanpatel/code/stockmarket/_scratch_research_dtos.json)
+- **Details:** File '_scratch_research_dtos.json' is a scratch JSON/HTML payload left at the repository root. Per clean code standards, remove or relocate into data/runs/ or data/assets/.
+- **Recommended Action:** `[REMOVE FROM GIT] git rm --cached _scratch_research_dtos.json`
+
+### 9. [High] Remove committed root session data _scratch_stats.json
+- **Category:** Committed Stray Artifact
+- **Target File:** [`_scratch_stats.json`](file:///Users/darshanpatel/code/stockmarket/_scratch_stats.json)
+- **Details:** File '_scratch_stats.json' is a scratch JSON/HTML payload left at the repository root. Per clean code standards, remove or relocate into data/runs/ or data/assets/.
+- **Recommended Action:** `[REMOVE FROM GIT] git rm --cached _scratch_stats.json`
+
+### 10. [High] Remove committed root session data _scratch_urls.json
+- **Category:** Committed Stray Artifact
+- **Target File:** [`_scratch_urls.json`](file:///Users/darshanpatel/code/stockmarket/_scratch_urls.json)
+- **Details:** File '_scratch_urls.json' is a scratch JSON/HTML payload left at the repository root. Per clean code standards, remove or relocate into data/runs/ or data/assets/.
+- **Recommended Action:** `[REMOVE FROM GIT] git rm --cached _scratch_urls.json`
+
+### 11. [High] Investigate unreferenced folder packages/jobs-runtime/_to_delete/ (4 files, all unreferenced)
+- **Category:** Unused File
+- **Target File:** [`packages/jobs-runtime/_to_delete`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/_to_delete)
+- **Details:** Every file that exists under packages/jobs-runtime/_to_delete/ (recursively, 4 total) is unreachable from any entry root. Representative reason: all 4 files under this folder are unreferenced. Full file list: packages/jobs-runtime/_to_delete/_pcsi_targeted_push_20261014.js, packages/jobs-runtime/_to_delete/_tmp_push2.js, packages/jobs-runtime/_to_delete/_tmp_pushChanged.js, packages/jobs-runtime/_to_delete/probe_listing_tmp.js
+- **Recommended Action:** `[DELETE] packages/jobs-runtime/_to_delete/`
+
+### 12. [High] Investigate unreferenced source file .pcsi_batch_scratch.js
+- **Category:** Unused File
+- **Target File:** [`.pcsi_batch_scratch.js`](file:///Users/darshanpatel/code/stockmarket/.pcsi_batch_scratch.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] .pcsi_batch_scratch.js`
+
+### 13. [High] Investigate unreferenced source file .pcsi_infoclass_scratch.js
+- **Category:** Unused File
+- **Target File:** [`.pcsi_infoclass_scratch.js`](file:///Users/darshanpatel/code/stockmarket/.pcsi_infoclass_scratch.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] .pcsi_infoclass_scratch.js`
+
+### 14. [High] Investigate unreferenced source file _scratch_check_extracts.js
+- **Category:** Unused File
+- **Target File:** [`_scratch_check_extracts.js`](file:///Users/darshanpatel/code/stockmarket/_scratch_check_extracts.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] _scratch_check_extracts.js`
+
+### 15. [High] Investigate unreferenced source file _scratch_ctx.js
+- **Category:** Unused File
+- **Target File:** [`_scratch_ctx.js`](file:///Users/darshanpatel/code/stockmarket/_scratch_ctx.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] _scratch_ctx.js`
+
+### 16. [High] Investigate unreferenced source file _scratch_listdocs.js
+- **Category:** Unused File
+- **Target File:** [`_scratch_listdocs.js`](file:///Users/darshanpatel/code/stockmarket/_scratch_listdocs.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] _scratch_listdocs.js`
+
+### 17. [High] Investigate unreferenced source file _scratch_put_briefs.js
+- **Category:** Unused File
+- **Target File:** [`_scratch_put_briefs.js`](file:///Users/darshanpatel/code/stockmarket/_scratch_put_briefs.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] _scratch_put_briefs.js`
+
+### 18. [High] Investigate unreferenced source file _scratch_put_filings.js
+- **Category:** Unused File
+- **Target File:** [`_scratch_put_filings.js`](file:///Users/darshanpatel/code/stockmarket/_scratch_put_filings.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] _scratch_put_filings.js`
+
+### 19. [High] Investigate unreferenced source file _scratch_s3url.js
+- **Category:** Unused File
+- **Target File:** [`_scratch_s3url.js`](file:///Users/darshanpatel/code/stockmarket/_scratch_s3url.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] _scratch_s3url.js`
+
+### 20. [High] Investigate unreferenced source file _scratch_save_full_reports.js
+- **Category:** Unused File
+- **Target File:** [`_scratch_save_full_reports.js`](file:///Users/darshanpatel/code/stockmarket/_scratch_save_full_reports.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] _scratch_save_full_reports.js`
+
+### 21. [High] Investigate unreferenced source file _scratch_save_research.js
+- **Category:** Unused File
+- **Target File:** [`_scratch_save_research.js`](file:///Users/darshanpatel/code/stockmarket/_scratch_save_research.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] _scratch_save_research.js`
+
+### 22. [High] Investigate unreferenced source file batch-read.js
+- **Category:** Unused File
+- **Target File:** [`cache/runs/adhoc-20261011/batch-read.js`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/batch-read.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261011/batch-read.js`
+
+### 23. [High] Investigate unreferenced source file resolve-order-bases.js
+- **Category:** Unused File
+- **Target File:** [`cache/runs/adhoc-20261011/resolve-order-bases.js`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/resolve-order-bases.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261011/resolve-order-bases.js`
+
+### 24. [High] Investigate unreferenced source file route-remaining.js
+- **Category:** Unused File
+- **Target File:** [`cache/runs/adhoc-20261011/route-remaining.js`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/route-remaining.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261011/route-remaining.js`
+
+### 25. [High] Investigate unreferenced source file write-notes.js
+- **Category:** Unused File
+- **Target File:** [`cache/runs/adhoc-20261011/write-notes.js`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/write-notes.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261011/write-notes.js`
+
+### 26. [High] Investigate unreferenced source file batch-read.js
+- **Category:** Unused File
+- **Target File:** [`cache/runs/adhoc-20261013/batch-read.js`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/batch-read.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261013/batch-read.js`
+
+### 27. [High] Investigate unreferenced source file batch-read2.js
+- **Category:** Unused File
+- **Target File:** [`cache/runs/adhoc-20261013/batch-read2.js`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/batch-read2.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261013/batch-read2.js`
+
+### 28. [High] Investigate unreferenced source file write-notes.js
+- **Category:** Unused File
+- **Target File:** [`cache/runs/adhoc-20261013/write-notes.js`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/write-notes.js)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261013/write-notes.js`
+
+### 29. [High] Investigate unreferenced source file bt.py
 - **Category:** Unused File
 - **Target File:** [`docs/mtf-flush-signal/bt.py`](file:///Users/darshanpatel/code/stockmarket/docs/mtf-flush-signal/bt.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
 - **Recommended Action:** `[DELETE] docs/mtf-flush-signal/bt.py`
 
-### 2. [High] Investigate unreferenced source file cand.py
-
+### 30. [High] Investigate unreferenced source file cand.py
 - **Category:** Unused File
 - **Target File:** [`docs/mtf-flush-signal/cand.py`](file:///Users/darshanpatel/code/stockmarket/docs/mtf-flush-signal/cand.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
 - **Recommended Action:** `[DELETE] docs/mtf-flush-signal/cand.py`
 
-### 3. [High] Investigate unreferenced source file case.py
-
+### 31. [High] Investigate unreferenced source file case.py
 - **Category:** Unused File
 - **Target File:** [`docs/mtf-flush-signal/case.py`](file:///Users/darshanpatel/code/stockmarket/docs/mtf-flush-signal/case.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
 - **Recommended Action:** `[DELETE] docs/mtf-flush-signal/case.py`
 
-### 4. [High] Investigate unreferenced source file dl.py
-
+### 32. [High] Investigate unreferenced source file dl.py
 - **Category:** Unused File
 - **Target File:** [`docs/mtf-flush-signal/dl.py`](file:///Users/darshanpatel/code/stockmarket/docs/mtf-flush-signal/dl.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
 - **Recommended Action:** `[DELETE] docs/mtf-flush-signal/dl.py`
 
-### 5. [High] Investigate unreferenced source file dl_deliv.py
-
+### 33. [High] Investigate unreferenced source file dl_deliv.py
 - **Category:** Unused File
 - **Target File:** [`docs/mtf-flush-signal/dl_deliv.py`](file:///Users/darshanpatel/code/stockmarket/docs/mtf-flush-signal/dl_deliv.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
 - **Recommended Action:** `[DELETE] docs/mtf-flush-signal/dl_deliv.py`
 
-### 6. [High] Investigate unreferenced source file dl_ohlc.py
-
+### 34. [High] Investigate unreferenced source file dl_ohlc.py
 - **Category:** Unused File
 - **Target File:** [`docs/mtf-flush-signal/dl_ohlc.py`](file:///Users/darshanpatel/code/stockmarket/docs/mtf-flush-signal/dl_ohlc.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
 - **Recommended Action:** `[DELETE] docs/mtf-flush-signal/dl_ohlc.py`
 
-### 7. [High] Investigate unreferenced source file feat.py
-
+### 35. [High] Investigate unreferenced source file feat.py
 - **Category:** Unused File
 - **Target File:** [`docs/mtf-flush-signal/feat.py`](file:///Users/darshanpatel/code/stockmarket/docs/mtf-flush-signal/feat.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
 - **Recommended Action:** `[DELETE] docs/mtf-flush-signal/feat.py`
 
-### 8. [High] Investigate unreferenced source file feat2.py
-
+### 36. [High] Investigate unreferenced source file feat2.py
 - **Category:** Unused File
 - **Target File:** [`docs/mtf-flush-signal/feat2.py`](file:///Users/darshanpatel/code/stockmarket/docs/mtf-flush-signal/feat2.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
 - **Recommended Action:** `[DELETE] docs/mtf-flush-signal/feat2.py`
 
-### 9. [High] Investigate unreferenced source file uni.py
-
+### 37. [High] Investigate unreferenced source file uni.py
 - **Category:** Unused File
 - **Target File:** [`docs/mtf-flush-signal/uni.py`](file:///Users/darshanpatel/code/stockmarket/docs/mtf-flush-signal/uni.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
 - **Recommended Action:** `[DELETE] docs/mtf-flush-signal/uni.py`
 
-### 10. [High] Investigate unreferenced source file uni2.py
-
+### 38. [High] Investigate unreferenced source file uni2.py
 - **Category:** Unused File
 - **Target File:** [`docs/mtf-flush-signal/uni2.py`](file:///Users/darshanpatel/code/stockmarket/docs/mtf-flush-signal/uni2.py)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
 - **Recommended Action:** `[DELETE] docs/mtf-flush-signal/uni2.py`
 
-### 11. [High] Investigate unreferenced source file \_m.js
+### 39. [High] Investigate unreferenced source file uni3.py
+- **Category:** Unused File
+- **Target File:** [`docs/mtf-flush-signal/uni3.py`](file:///Users/darshanpatel/code/stockmarket/docs/mtf-flush-signal/uni3.py)
+- **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
+- **Recommended Action:** `[DELETE] docs/mtf-flush-signal/uni3.py`
 
+### 40. [High] Investigate unreferenced source file _m.js
 - **Category:** Unused File
 - **Target File:** [`packages/jobs-runtime/_m.js`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/_m.js)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
 - **Recommended Action:** `[DELETE] packages/jobs-runtime/_m.js`
 
-### 12. [High] Investigate unreferenced source file \_nb.js
-
+### 41. [High] Investigate unreferenced source file _nb.js
 - **Category:** Unused File
 - **Target File:** [`packages/jobs-runtime/_nb.js`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/_nb.js)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
 - **Recommended Action:** `[DELETE] packages/jobs-runtime/_nb.js`
 
-### 13. [High] Investigate unreferenced source file capture.js
-
+### 42. [High] Investigate unreferenced source file capture.js
 - **Category:** Unused File
 - **Target File:** [`tools/x-timeline-capture/capture.js`](file:///Users/darshanpatel/code/stockmarket/tools/x-timeline-capture/capture.js)
 - **Details:** Not reachable from any skill, scheduled job, package.json script, or UI entry point.
 - **Recommended Action:** `[DELETE] tools/x-timeline-capture/capture.js`
 
-### 14. [Low] Investigate unreferenced file Forward_Guidance_20261011.xlsx
+### 43. [Low] Investigate unreferenced file empty.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`.pcsi_run/empty.json`](file:///Users/darshanpatel/code/stockmarket/.pcsi_run/empty.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] .pcsi_run/empty.json — confirm unused, then delete or relocate`
 
+### 44. [Low] Investigate unreferenced file routine-items.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`.pcsi_run/routine-items.json`](file:///Users/darshanpatel/code/stockmarket/.pcsi_run/routine-items.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] .pcsi_run/routine-items.json — confirm unused, then delete or relocate`
+
+### 45. [Low] Investigate unreferenced file send-digest.err
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`.pcsi_run/send-digest.err`](file:///Users/darshanpatel/code/stockmarket/.pcsi_run/send-digest.err)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] .pcsi_run/send-digest.err — confirm unused, then delete or relocate`
+
+### 46. [Low] Investigate unreferenced file send-digest.out
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`.pcsi_run/send-digest.out`](file:///Users/darshanpatel/code/stockmarket/.pcsi_run/send-digest.out)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] .pcsi_run/send-digest.out — confirm unused, then delete or relocate`
+
+### 47. [Low] Investigate unreferenced file stats.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`.pcsi_run/stats.json`](file:///Users/darshanpatel/code/stockmarket/.pcsi_run/stats.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] .pcsi_run/stats.json — confirm unused, then delete or relocate`
+
+### 48. [Low] Investigate unreferenced file Forward_Guidance_20261011.xlsx
 - **Category:** Unreferenced Non-Code File
 - **Target File:** [`Forward_Guidance_20261011.xlsx`](file:///Users/darshanpatel/code/stockmarket/Forward_Guidance_20261011.xlsx)
 - **Details:** Non-code file path/name not referenced by any reachable code.
 - **Recommended Action:** `[VERIFY] Forward_Guidance_20261011.xlsx — confirm unused, then delete or relocate`
 
-### 15. [Low] Investigate unreferenced file \_pe_tmp.json
+### 49. [Low] Investigate unreferenced file Forward_Guidance_20261012.xlsx
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`Forward_Guidance_20261012.xlsx`](file:///Users/darshanpatel/code/stockmarket/Forward_Guidance_20261012.xlsx)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] Forward_Guidance_20261012.xlsx — confirm unused, then delete or relocate`
 
+### 50. [Low] Investigate unreferenced file Forward_Guidance_20261014.xlsx
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`Forward_Guidance_20261014.xlsx`](file:///Users/darshanpatel/code/stockmarket/Forward_Guidance_20261014.xlsx)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] Forward_Guidance_20261014.xlsx — confirm unused, then delete or relocate`
+
+### 51. [Low] Investigate unreferenced file PEAD_Ranking_Upcoming_Results_20261014.xlsx
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`PEAD_Ranking_Upcoming_Results_20261014.xlsx`](file:///Users/darshanpatel/code/stockmarket/PEAD_Ranking_Upcoming_Results_20261014.xlsx)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] PEAD_Ranking_Upcoming_Results_20261014.xlsx — confirm unused, then delete or relocate`
+
+### 52. [Low] Investigate unreferenced file _scratch_briefs.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`_scratch_briefs.json`](file:///Users/darshanpatel/code/stockmarket/_scratch_briefs.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] _scratch_briefs.json — confirm unused, then delete or relocate`
+
+### 53. [Low] Investigate unreferenced file _scratch_content.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`_scratch_content.json`](file:///Users/darshanpatel/code/stockmarket/_scratch_content.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] _scratch_content.json — confirm unused, then delete or relocate`
+
+### 54. [Low] Investigate unreferenced file _scratch_dto_hcltech.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`_scratch_dto_hcltech.json`](file:///Users/darshanpatel/code/stockmarket/_scratch_dto_hcltech.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] _scratch_dto_hcltech.json — confirm unused, then delete or relocate`
+
+### 55. [Low] Investigate unreferenced file _scratch_dto_shriramfin.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`_scratch_dto_shriramfin.json`](file:///Users/darshanpatel/code/stockmarket/_scratch_dto_shriramfin.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] _scratch_dto_shriramfin.json — confirm unused, then delete or relocate`
+
+### 56. [Low] Investigate unreferenced file _scratch_dto_tcs.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`_scratch_dto_tcs.json`](file:///Users/darshanpatel/code/stockmarket/_scratch_dto_tcs.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] _scratch_dto_tcs.json — confirm unused, then delete or relocate`
+
+### 57. [Low] Investigate unreferenced file _scratch_render.html
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`_scratch_render.html`](file:///Users/darshanpatel/code/stockmarket/_scratch_render.html)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] _scratch_render.html — confirm unused, then delete or relocate`
+
+### 58. [Low] Investigate unreferenced file _scratch_research_dtos.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`_scratch_research_dtos.json`](file:///Users/darshanpatel/code/stockmarket/_scratch_research_dtos.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] _scratch_research_dtos.json — confirm unused, then delete or relocate`
+
+### 59. [Low] Investigate unreferenced file _scratch_stats.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`_scratch_stats.json`](file:///Users/darshanpatel/code/stockmarket/_scratch_stats.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] _scratch_stats.json — confirm unused, then delete or relocate`
+
+### 60. [Low] Investigate unreferenced file _scratch_urls.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`_scratch_urls.json`](file:///Users/darshanpatel/code/stockmarket/_scratch_urls.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] _scratch_urls.json — confirm unused, then delete or relocate`
+
+### 61. [Low] Investigate unreferenced file batch-read.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/batch-read.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/batch-read.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/batch-read.stderr.log — confirm unused, then delete or relocate`
+
+### 62. [Low] Investigate unreferenced file batch-read.stdout.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/batch-read.stdout.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/batch-read.stdout.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/batch-read.stdout.log — confirm unused, then delete or relocate`
+
+### 63. [Low] Investigate unreferenced file categorise-output.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/categorise-output.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/categorise-output.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/categorise-output.json — confirm unused, then delete or relocate`
+
+### 64. [Low] Investigate unreferenced file categorise.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/categorise.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/categorise.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/categorise.stderr.log — confirm unused, then delete or relocate`
+
+### 65. [Low] Investigate unreferenced file commit-window.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/commit-window.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/commit-window.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/commit-window.stderr.log — confirm unused, then delete or relocate`
+
+### 66. [Low] Investigate unreferenced file commit-window.stdout.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/commit-window.stdout.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/commit-window.stdout.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/commit-window.stdout.log — confirm unused, then delete or relocate`
+
+### 67. [Low] Investigate unreferenced file data-push-bg.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/data-push-bg.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/data-push-bg.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261011/data-push-bg.log — 0-byte file is always considered dead`
+
+### 68. [Low] Investigate unreferenced file data-push.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/data-push.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/data-push.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261011/data-push.stderr.log — 0-byte file is always considered dead`
+
+### 69. [Low] Investigate unreferenced file data-push.stdout.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/data-push.stdout.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/data-push.stdout.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261011/data-push.stdout.log — 0-byte file is always considered dead`
+
+### 70. [Low] Investigate unreferenced file data-push2.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/data-push2.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/data-push2.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261011/data-push2.stderr.log — 0-byte file is always considered dead`
+
+### 71. [Low] Investigate unreferenced file data-push2.stdout.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/data-push2.stdout.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/data-push2.stdout.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261011/data-push2.stdout.log — 0-byte file is always considered dead`
+
+### 72. [Low] Investigate unreferenced file data-push3.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/data-push3.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/data-push3.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261011/data-push3.stderr.log — 0-byte file is always considered dead`
+
+### 73. [Low] Investigate unreferenced file data-push3.stdout.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/data-push3.stdout.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/data-push3.stdout.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261011/data-push3.stdout.log — 0-byte file is always considered dead`
+
+### 74. [Low] Investigate unreferenced file data-push4.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/data-push4.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/data-push4.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261011/data-push4.log — 0-byte file is always considered dead`
+
+### 75. [Low] Investigate unreferenced file deep-dive.txt
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/deep-dive.txt`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/deep-dive.txt)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/deep-dive.txt — confirm unused, then delete or relocate`
+
+### 76. [Low] Investigate unreferenced file enrich-orders.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/enrich-orders.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/enrich-orders.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/enrich-orders.stderr.log — confirm unused, then delete or relocate`
+
+### 77. [Low] Investigate unreferenced file enrich-orders2.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/enrich-orders2.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/enrich-orders2.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/enrich-orders2.stderr.log — confirm unused, then delete or relocate`
+
+### 78. [Low] Investigate unreferenced file enrich-orders3.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/enrich-orders3.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/enrich-orders3.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/enrich-orders3.stderr.log — confirm unused, then delete or relocate`
+
+### 79. [Low] Investigate unreferenced file enrich-orders4.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/enrich-orders4.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/enrich-orders4.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/enrich-orders4.stderr.log — confirm unused, then delete or relocate`
+
+### 80. [Low] Investigate unreferenced file enrich-orders5.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/enrich-orders5.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/enrich-orders5.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/enrich-orders5.stderr.log — confirm unused, then delete or relocate`
+
+### 81. [Low] Investigate unreferenced file fetch-scan-output.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/fetch-scan-output.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/fetch-scan-output.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/fetch-scan-output.json — confirm unused, then delete or relocate`
+
+### 82. [Low] Investigate unreferenced file fetch-scan.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/fetch-scan.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/fetch-scan.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/fetch-scan.stderr.log — confirm unused, then delete or relocate`
+
+### 83. [Low] Investigate unreferenced file filter-noise-output.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/filter-noise-output.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/filter-noise-output.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/filter-noise-output.json — confirm unused, then delete or relocate`
+
+### 84. [Low] Investigate unreferenced file filter-noise.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/filter-noise.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/filter-noise.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/filter-noise.stderr.log — confirm unused, then delete or relocate`
+
+### 85. [Low] Investigate unreferenced file insights-array.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/insights-array.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/insights-array.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/insights-array.json — confirm unused, then delete or relocate`
+
+### 86. [Low] Investigate unreferenced file insights-enriched.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/insights-enriched.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/insights-enriched.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/insights-enriched.json — confirm unused, then delete or relocate`
+
+### 87. [Low] Investigate unreferenced file insights-enriched2.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/insights-enriched2.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/insights-enriched2.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/insights-enriched2.json — confirm unused, then delete or relocate`
+
+### 88. [Low] Investigate unreferenced file insights-enriched3.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/insights-enriched3.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/insights-enriched3.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/insights-enriched3.json — confirm unused, then delete or relocate`
+
+### 89. [Low] Investigate unreferenced file item-summary.txt
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/item-summary.txt`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/item-summary.txt)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/item-summary.txt — confirm unused, then delete or relocate`
+
+### 90. [Low] Investigate unreferenced file knowledge-gaps.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/knowledge-gaps.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/knowledge-gaps.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/knowledge-gaps.json — confirm unused, then delete or relocate`
+
+### 91. [Low] Investigate unreferenced file pdf-texts.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/pdf-texts.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/pdf-texts.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/pdf-texts.json — confirm unused, then delete or relocate`
+
+### 92. [Low] Investigate unreferenced file pdf-urls.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/pdf-urls.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/pdf-urls.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/pdf-urls.json — confirm unused, then delete or relocate`
+
+### 93. [Low] Investigate unreferenced file prefetch.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/prefetch.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/prefetch.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/prefetch.log — confirm unused, then delete or relocate`
+
+### 94. [Low] Investigate unreferenced file route-remaining.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/route-remaining.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/route-remaining.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261011/route-remaining.stderr.log — 0-byte file is always considered dead`
+
+### 95. [Low] Investigate unreferenced file route-remaining.stdout.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/route-remaining.stdout.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/route-remaining.stdout.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/route-remaining.stdout.log — confirm unused, then delete or relocate`
+
+### 96. [Low] Investigate unreferenced file routine-items.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/routine-items.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/routine-items.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/routine-items.json — confirm unused, then delete or relocate`
+
+### 97. [Low] Investigate unreferenced file send-digest.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/send-digest.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/send-digest.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/send-digest.stderr.log — confirm unused, then delete or relocate`
+
+### 98. [Low] Investigate unreferenced file send-digest.stdout.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/send-digest.stdout.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/send-digest.stdout.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/send-digest.stdout.log — confirm unused, then delete or relocate`
+
+### 99. [Low] Investigate unreferenced file stats.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/stats.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/stats.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/stats.json — confirm unused, then delete or relocate`
+
+### 100. [Low] Investigate unreferenced file texts-preview.txt
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/texts-preview.txt`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/texts-preview.txt)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/texts-preview.txt — confirm unused, then delete or relocate`
+
+### 101. [Low] Investigate unreferenced file write-notes.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/write-notes.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/write-notes.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/write-notes.stderr.log — confirm unused, then delete or relocate`
+
+### 102. [Low] Investigate unreferenced file write-notes.stdout.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261011/write-notes.stdout.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261011/write-notes.stdout.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261011/write-notes.stdout.log — confirm unused, then delete or relocate`
+
+### 103. [Low] Investigate unreferenced file batch-read.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/batch-read.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/batch-read.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/batch-read.stderr.log — confirm unused, then delete or relocate`
+
+### 104. [Low] Investigate unreferenced file batch-read.stdout.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/batch-read.stdout.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/batch-read.stdout.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261013/batch-read.stdout.log — 0-byte file is always considered dead`
+
+### 105. [Low] Investigate unreferenced file batch-read2.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/batch-read2.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/batch-read2.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/batch-read2.stderr.log — confirm unused, then delete or relocate`
+
+### 106. [Low] Investigate unreferenced file batch-read2.stdout.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/batch-read2.stdout.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/batch-read2.stdout.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261013/batch-read2.stdout.log — 0-byte file is always considered dead`
+
+### 107. [Low] Investigate unreferenced file categorise-output.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/categorise-output.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/categorise-output.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/categorise-output.json — confirm unused, then delete or relocate`
+
+### 108. [Low] Investigate unreferenced file commit-window.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/commit-window.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/commit-window.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/commit-window.stderr.log — confirm unused, then delete or relocate`
+
+### 109. [Low] Investigate unreferenced file commit-window.stdout.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/commit-window.stdout.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/commit-window.stdout.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/commit-window.stdout.log — confirm unused, then delete or relocate`
+
+### 110. [Low] Investigate unreferenced file data-push.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/data-push.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/data-push.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261013/data-push.stderr.log — 0-byte file is always considered dead`
+
+### 111. [Low] Investigate unreferenced file data-push.stdout.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/data-push.stdout.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/data-push.stdout.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261013/data-push.stdout.log — 0-byte file is always considered dead`
+
+### 112. [Low] Investigate unreferenced file data-push2.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/data-push2.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/data-push2.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261013/data-push2.stderr.log — 0-byte file is always considered dead`
+
+### 113. [Low] Investigate unreferenced file data-push2.stdout.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/data-push2.stdout.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/data-push2.stdout.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261013/data-push2.stdout.log — 0-byte file is always considered dead`
+
+### 114. [Low] Investigate unreferenced file data-push3.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/data-push3.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/data-push3.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261013/data-push3.stderr.log — 0-byte file is always considered dead`
+
+### 115. [Low] Investigate unreferenced file data-push3.stdout.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/data-push3.stdout.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/data-push3.stdout.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261013/data-push3.stdout.log — 0-byte file is always considered dead`
+
+### 116. [Low] Investigate unreferenced file data-push4.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/data-push4.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/data-push4.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[DELETE] cache/runs/adhoc-20261013/data-push4.log — 0-byte file is always considered dead`
+
+### 117. [Low] Investigate unreferenced file deep1.txt
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/deep1.txt`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/deep1.txt)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/deep1.txt — confirm unused, then delete or relocate`
+
+### 118. [Low] Investigate unreferenced file deep2.txt
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/deep2.txt`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/deep2.txt)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/deep2.txt — confirm unused, then delete or relocate`
+
+### 119. [Low] Investigate unreferenced file fetch-scan-output.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/fetch-scan-output.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/fetch-scan-output.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/fetch-scan-output.json — confirm unused, then delete or relocate`
+
+### 120. [Low] Investigate unreferenced file filter-noise-output.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/filter-noise-output.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/filter-noise-output.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/filter-noise-output.json — confirm unused, then delete or relocate`
+
+### 121. [Low] Investigate unreferenced file insights-array.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/insights-array.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/insights-array.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/insights-array.json — confirm unused, then delete or relocate`
+
+### 122. [Low] Investigate unreferenced file knowledge-gaps.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/knowledge-gaps.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/knowledge-gaps.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/knowledge-gaps.json — confirm unused, then delete or relocate`
+
+### 123. [Low] Investigate unreferenced file pdf-texts.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/pdf-texts.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/pdf-texts.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/pdf-texts.json — confirm unused, then delete or relocate`
+
+### 124. [Low] Investigate unreferenced file pdf-urls.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/pdf-urls.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/pdf-urls.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/pdf-urls.json — confirm unused, then delete or relocate`
+
+### 125. [Low] Investigate unreferenced file remaining-routine.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/remaining-routine.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/remaining-routine.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/remaining-routine.json — confirm unused, then delete or relocate`
+
+### 126. [Low] Investigate unreferenced file routine-items.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/routine-items.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/routine-items.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/routine-items.json — confirm unused, then delete or relocate`
+
+### 127. [Low] Investigate unreferenced file send-digest.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/send-digest.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/send-digest.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/send-digest.stderr.log — confirm unused, then delete or relocate`
+
+### 128. [Low] Investigate unreferenced file send-digest.stdout.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/send-digest.stdout.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/send-digest.stdout.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/send-digest.stdout.log — confirm unused, then delete or relocate`
+
+### 129. [Low] Investigate unreferenced file stats.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/stats.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/stats.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/stats.json — confirm unused, then delete or relocate`
+
+### 130. [Low] Investigate unreferenced file texts-preview.txt
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/texts-preview.txt`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/texts-preview.txt)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/texts-preview.txt — confirm unused, then delete or relocate`
+
+### 131. [Low] Investigate unreferenced file write-notes-results.json
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/write-notes-results.json`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/write-notes-results.json)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/write-notes-results.json — confirm unused, then delete or relocate`
+
+### 132. [Low] Investigate unreferenced file write-notes.stderr.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/write-notes.stderr.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/write-notes.stderr.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/write-notes.stderr.log — confirm unused, then delete or relocate`
+
+### 133. [Low] Investigate unreferenced file write-notes.stdout.log
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`cache/runs/adhoc-20261013/write-notes.stdout.log`](file:///Users/darshanpatel/code/stockmarket/cache/runs/adhoc-20261013/write-notes.stdout.log)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] cache/runs/adhoc-20261013/write-notes.stdout.log — confirm unused, then delete or relocate`
+
+### 134. [Low] Investigate unreferenced file _pe_tmp.json
 - **Category:** Unreferenced Non-Code File
 - **Target File:** [`packages/jobs-runtime/_pe_tmp.json`](file:///Users/darshanpatel/code/stockmarket/packages/jobs-runtime/_pe_tmp.json)
 - **Details:** Non-code file path/name not referenced by any reachable code.
 - **Recommended Action:** `[VERIFY] packages/jobs-runtime/_pe_tmp.json — confirm unused, then delete or relocate`
 
-### 16. [Low] Investigate unreferenced file \_unm.js.todelete
-
+### 135. [Low] Investigate unreferenced file _unm.js.todelete
 - **Category:** Unreferenced Non-Code File
 - **Target File:** [`scripts/pdf-corpus/_unm.js.todelete`](file:///Users/darshanpatel/code/stockmarket/scripts/pdf-corpus/_unm.js.todelete)
 - **Details:** Non-code file path/name not referenced by any reachable code.
 - **Recommended Action:** `[VERIFY] scripts/pdf-corpus/_unm.js.todelete — confirm unused, then delete or relocate`
 
-### 17. [Low] Investigate unreferenced file NSE_KANOHAR_DRHP_2026-01-23.pdf
-
+### 136. [Low] Investigate unreferenced file NSE_KANOHAR_DRHP_2026-01-23.pdf
 - **Category:** Unreferenced Non-Code File
 - **Target File:** [`stock_documents/NSE_KANOHAR_DRHP_2026-01-23.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_KANOHAR_DRHP_2026-01-23.pdf)
 - **Details:** Non-code file path/name not referenced by any reachable code.
 - **Recommended Action:** `[VERIFY] stock_documents/NSE_KANOHAR_DRHP_2026-01-23.pdf — confirm unused, then delete or relocate`
 
-### 18. [Low] Investigate unreferenced file NSE_KANOHAR_PPT_202609.pdf
-
+### 137. [Low] Investigate unreferenced file NSE_KANOHAR_PPT_202609.pdf
 - **Category:** Unreferenced Non-Code File
 - **Target File:** [`stock_documents/NSE_KANOHAR_PPT_202609.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_KANOHAR_PPT_202609.pdf)
 - **Details:** Non-code file path/name not referenced by any reachable code.
 - **Recommended Action:** `[VERIFY] stock_documents/NSE_KANOHAR_PPT_202609.pdf — confirm unused, then delete or relocate`
 
-### 19. [Low] Investigate unreferenced file NSE_KANOHAR_Result_202609.pdf
-
+### 138. [Low] Investigate unreferenced file NSE_KANOHAR_Result_202609.pdf
 - **Category:** Unreferenced Non-Code File
 - **Target File:** [`stock_documents/NSE_KANOHAR_Result_202609.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_KANOHAR_Result_202609.pdf)
 - **Details:** Non-code file path/name not referenced by any reachable code.
 - **Recommended Action:** `[VERIFY] stock_documents/NSE_KANOHAR_Result_202609.pdf — confirm unused, then delete or relocate`
 
-### 20. [Low] Investigate unreferenced file NSE_SUPRIYA_PPT_202603.pdf
+### 139. [Low] Investigate unreferenced file NSE_MRPL_Result_202506.pdf
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`stock_documents/NSE_MRPL_Result_202506.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_MRPL_Result_202506.pdf)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] stock_documents/NSE_MRPL_Result_202506.pdf — confirm unused, then delete or relocate`
 
+### 140. [Low] Investigate unreferenced file NSE_MRPL_Result_202509.pdf
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`stock_documents/NSE_MRPL_Result_202509.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_MRPL_Result_202509.pdf)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] stock_documents/NSE_MRPL_Result_202509.pdf — confirm unused, then delete or relocate`
+
+### 141. [Low] Investigate unreferenced file NSE_MRPL_Result_202512.pdf
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`stock_documents/NSE_MRPL_Result_202512.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_MRPL_Result_202512.pdf)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] stock_documents/NSE_MRPL_Result_202512.pdf — confirm unused, then delete or relocate`
+
+### 142. [Low] Investigate unreferenced file NSE_MRPL_Result_202603.pdf
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`stock_documents/NSE_MRPL_Result_202603.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_MRPL_Result_202603.pdf)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] stock_documents/NSE_MRPL_Result_202603.pdf — confirm unused, then delete or relocate`
+
+### 143. [Low] Investigate unreferenced file NSE_MRPL_Result_202606.pdf
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`stock_documents/NSE_MRPL_Result_202606.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_MRPL_Result_202606.pdf)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] stock_documents/NSE_MRPL_Result_202606.pdf — confirm unused, then delete or relocate`
+
+### 144. [Low] Investigate unreferenced file NSE_MRPL_Transcript_202403.pdf
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`stock_documents/NSE_MRPL_Transcript_202403.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_MRPL_Transcript_202403.pdf)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] stock_documents/NSE_MRPL_Transcript_202403.pdf — confirm unused, then delete or relocate`
+
+### 145. [Low] Investigate unreferenced file NSE_MRPL_Transcript_202503.pdf
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`stock_documents/NSE_MRPL_Transcript_202503.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_MRPL_Transcript_202503.pdf)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] stock_documents/NSE_MRPL_Transcript_202503.pdf — confirm unused, then delete or relocate`
+
+### 146. [Low] Investigate unreferenced file NSE_MRPL_Transcript_202506.pdf
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`stock_documents/NSE_MRPL_Transcript_202506.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_MRPL_Transcript_202506.pdf)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] stock_documents/NSE_MRPL_Transcript_202506.pdf — confirm unused, then delete or relocate`
+
+### 147. [Low] Investigate unreferenced file NSE_MRPL_Transcript_202509.pdf
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`stock_documents/NSE_MRPL_Transcript_202509.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_MRPL_Transcript_202509.pdf)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] stock_documents/NSE_MRPL_Transcript_202509.pdf — confirm unused, then delete or relocate`
+
+### 148. [Low] Investigate unreferenced file NSE_MRPL_Transcript_202512.pdf
+- **Category:** Unreferenced Non-Code File
+- **Target File:** [`stock_documents/NSE_MRPL_Transcript_202512.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_MRPL_Transcript_202512.pdf)
+- **Details:** Non-code file path/name not referenced by any reachable code.
+- **Recommended Action:** `[VERIFY] stock_documents/NSE_MRPL_Transcript_202512.pdf — confirm unused, then delete or relocate`
+
+### 149. [Low] Investigate unreferenced file NSE_SUPRIYA_PPT_202603.pdf
 - **Category:** Unreferenced Non-Code File
 - **Target File:** [`stock_documents/NSE_SUPRIYA_PPT_202603.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_SUPRIYA_PPT_202603.pdf)
 - **Details:** Non-code file path/name not referenced by any reachable code.
 - **Recommended Action:** `[VERIFY] stock_documents/NSE_SUPRIYA_PPT_202603.pdf — confirm unused, then delete or relocate`
 
-### 21. [Low] Investigate unreferenced file NSE_SUPRIYA_PPT_202606.pdf
-
+### 150. [Low] Investigate unreferenced file NSE_SUPRIYA_PPT_202606.pdf
 - **Category:** Unreferenced Non-Code File
 - **Target File:** [`stock_documents/NSE_SUPRIYA_PPT_202606.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_SUPRIYA_PPT_202606.pdf)
 - **Details:** Non-code file path/name not referenced by any reachable code.
 - **Recommended Action:** `[VERIFY] stock_documents/NSE_SUPRIYA_PPT_202606.pdf — confirm unused, then delete or relocate`
 
-### 22. [Low] Investigate unreferenced file NSE_SUPRIYA_Result_202606.pdf
-
+### 151. [Low] Investigate unreferenced file NSE_SUPRIYA_Result_202606.pdf
 - **Category:** Unreferenced Non-Code File
 - **Target File:** [`stock_documents/NSE_SUPRIYA_Result_202606.pdf`](file:///Users/darshanpatel/code/stockmarket/stock_documents/NSE_SUPRIYA_Result_202606.pdf)
 - **Details:** Non-code file path/name not referenced by any reachable code.
 - **Recommended Action:** `[VERIFY] stock_documents/NSE_SUPRIYA_Result_202606.pdf — confirm unused, then delete or relocate`
 
-### 23. [Medium] Verify data/\_push_log.txt is actually orphaned
-
+### 152. [Medium] Verify data/_push_log.txt is actually orphaned
 - **Category:** Data Directory Hanging Node
 - **Target File:** [`data/_push_log.txt`](file:///Users/darshanpatel/code/stockmarket/data/_push_log.txt)
-- **Details:** No data-layer file (db.js/jsonlStore.js/wrapper) or data-layer consumer references this collection name ('\_push_log.txt'). Either it's genuinely orphaned scratch/backup data, or something is reading/writing it by a path pattern this scan cannot statically detect (verify manually before deleting).
+- **Details:** No data-layer file (db.js/jsonlStore.js/wrapper) or data-layer consumer references this collection name ('_push_log.txt'). Either it's genuinely orphaned scratch/backup data, or something is reading/writing it by a path pattern this scan cannot statically detect (verify manually before deleting).
 - **Recommended Action:** `[DELETE] data/_push_log.txt — 0-byte file is always considered dead`
 
-### 24. [Medium] Verify data/scratch is actually orphaned
-
+### 153. [Medium] Verify data/scratch is actually orphaned
 - **Category:** Data Directory Hanging Node
 - **Target File:** [`data/scratch`](file:///Users/darshanpatel/code/stockmarket/data/scratch)
 - **Details:** No data-layer file (db.js/jsonlStore.js/wrapper) or data-layer consumer references this collection name ('scratch'). Either it's genuinely orphaned scratch/backup data, or something is reading/writing it by a path pattern this scan cannot statically detect (verify manually before deleting).
 - **Recommended Action:** `[VERIFY] data/scratch — no data-layer code references this collection name`
 
-### 25. [Medium] Verify data/stockmarket.db is actually orphaned
-
+### 154. [Medium] Verify data/stockmarket.db is actually orphaned
 - **Category:** Data Directory Hanging Node
 - **Target File:** [`data/stockmarket.db`](file:///Users/darshanpatel/code/stockmarket/data/stockmarket.db)
 - **Details:** No data-layer file (db.js/jsonlStore.js/wrapper) or data-layer consumer references this collection name ('stockmarket.db'). Either it's genuinely orphaned scratch/backup data, or something is reading/writing it by a path pattern this scan cannot statically detect (verify manually before deleting).
 - **Recommended Action:** `[DELETE] data/stockmarket.db — 0-byte file is always considered dead`
 
-### 26. [Medium] Verify data/tmp_save_gainers_reports.js is actually orphaned
-
+### 155. [Medium] Verify data/tmp_save_gainers_reports.js is actually orphaned
 - **Category:** Data Directory Hanging Node
 - **Target File:** [`data/tmp_save_gainers_reports.js`](file:///Users/darshanpatel/code/stockmarket/data/tmp_save_gainers_reports.js)
 - **Details:** No data-layer file (db.js/jsonlStore.js/wrapper) or data-layer consumer references this collection name ('tmp_save_gainers_reports.js'). Either it's genuinely orphaned scratch/backup data, or something is reading/writing it by a path pattern this scan cannot statically detect (verify manually before deleting).
 - **Recommended Action:** `[DELETE] data/tmp_save_gainers_reports.js — files starting with tmp_* are always considered dead`
+

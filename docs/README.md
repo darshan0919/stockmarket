@@ -101,6 +101,12 @@ stockmarket/
   [DATA_ECOSYSTEM.md](./DATA_ECOSYSTEM.md) and [DATA_RULES.md](./DATA_RULES.md).
   This is a separate data layer from the MongoDB one above — the two coexist
   for different purposes.
+- **Every scheduled job must end with an email to the owner's Gmail.** Jobs with a
+  purpose-built digest (e.g. `deals-digest`, `weekly-gainers-digest`) send it themselves; all
+  others call `yarn job-report-email --job <name> --status ok|partial|failed --title "…"
+--body-file <md> [--attach <file>]` as their last step (`packages/jobs-runtime/jobReportEmail.js`
+  — renders a markdown report to HTML via `sendHtmlEmail`, exits non-zero if not actually sent).
+  Signal-ledger jobs email only when a signal changes (`signal-ledger-digest`).
 
 ## Getting Started
 

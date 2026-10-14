@@ -1,0 +1,46 @@
+{
+  "orderCards": {
+    "orderCards": 3,
+    "withRatio": 2,
+    "top": ["BSE:FABCLEAN", "NSE:VIVIANA"],
+    "bookOk": 0,
+    "bookFailed": [
+      {
+        "companyId": "BSE:FABCLEAN",
+        "reason": "order-book base awaiting agent resolution"
+      },
+      {
+        "companyId": "NSE:VIVIANA",
+        "reason": "order-book base awaiting agent resolution"
+      }
+    ],
+    "pendingBases": [
+      {
+        "companyId": "BSE:FABCLEAN",
+        "quarter": "202606",
+        "llmFallbackPrompt": {
+          "companyId": "BSE:FABCLEAN",
+          "date": "202606",
+          "instructions": "Below are every \"order book\"/\"backlog\" bullet from this company's concall notes. Return ONLY JSON: {\"valueCr\": <number|null>, \"unit\": \"Cr\", \"label\": \"<which bullet you used>\", \"reasoning\": \"<max 15 words>\"}. Pick the single company-WIDE outstanding order book total (not a JV/segment/product-line/vertical sub-figure, not guidance, not a percentage or ratio). If no such total is stated (only segments/qualitative text), return {\"valueCr\": null}.",
+          "bullets": [
+            "* {{bid:4}}**Order book visibility is deep, but Q1 execution light by design:** ₹96.5 crore of new orders added in the quarter against an active pipeline of over ₹9,300 crore in inquiries, yet the business remains structurally H2-weighted and {-large orders were delayed, not cancelled, by geopolitical uncertainty-}. [1][2][4][5]"
+          ]
+        }
+      },
+      {
+        "companyId": "NSE:VIVIANA",
+        "quarter": "202606",
+        "llmFallbackPrompt": {
+          "companyId": "NSE:VIVIANA",
+          "date": "202606",
+          "instructions": "Below are every \"order book\"/\"backlog\" bullet from this company's concall notes. Return ONLY JSON: {\"valueCr\": <number|null>, \"unit\": \"Cr\", \"label\": \"<which bullet you used>\", \"reasoning\": \"<max 15 words>\"}. Pick the single company-WIDE outstanding order book total (not a JV/segment/product-line/vertical sub-figure, not guidance, not a percentage or ratio). If no such total is stated (only segments/qualitative text), return {\"valueCr\": null}.",
+          "bullets": [
+            "* {{bid:15}}**Order book crossed a milestone:** The order book now stands at **₹1,312.53 crores**, providing long-term revenue visibility and confidence in substantial growth over multiple quarters. [7]",
+            "* {{bid:22}}**FY27 order book expectation:** Conservatively, management expects maybe ₹500–600 crores of order book by FY27, with internal expectation much higher. [10]"
+          ]
+        }
+      }
+    ],
+    "revenueFailed": []
+  }
+}

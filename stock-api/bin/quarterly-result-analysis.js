@@ -10,7 +10,22 @@ const path = require('path');
 const { loadEnv, argValue, hasFlag } = require('../../packages/jobs-runtime/lib/env');
 const db = require('../../packages/jobs-runtime/lib/db');
 const { resolveCompanyId } = require('../../packages/jobs-runtime/lib/companyMaster');
+const fs = require('fs');
 const { buildAnalysisContext } = require('../src/analyzers/resultAnalysisContext');
+const {
+  prepareInflectionContext,
+  finalizeInflection,
+} = require('../src/analyzers/resultInflection');
+
+/**
+ * Load every DTO of `type` for a company (full bodies), passed explicitly into the pure analyzers.
+ * @param {string} type
+ * @param {string} companyId
+ * @returns {Array<Object>}
+ */
+function loadAll(type, companyId) {
+  return db.find('reports', { type, companyId }).map((r) => db.readReport(r.id) || r);
+}
 
 function main() {
   loadEnv(argValue('--env-file', process.argv));
@@ -23,7 +38,12 @@ Options:
   --companyId <id>   Canonical companyId (e.g. NSE:TCS, BSE:500325, or raw ticker)
   --date <YYYY-MM-DD> Extraction date to scope DB lookup
   --check-cache       Check if a completed quarterly-result report already exists
-  --prepare           Pre-compute KPI cards, statement health & context for LLM (default)
+  --prepare           Pre-compute KPI cards, statement health & context for LLM (default);
+                      includes inflectionPrep (walk-the-talk ledger, inflection seeds)
+  --score-inflection <file>
+                      Score the agent-completed inflection input JSON
+                      ({walkTheTalkLedger, newCatalysts, nextTriggers, marginLegOverride})
+                      into walkTheTalk / inflectionPoint / nextInflection DTO blocks
   --help              Show this help message`);
     process.exit(0);
   }
@@ -75,9 +95,24 @@ Options:
   const latestDocIndex = docRecords[docRecords.length - 1];
   const latestDoc = db.readReport(latestDocIndex.id) || latestDocIndex;
 
+  const inflectionPrep = prepareInflectionContext({
+    record: latestDoc,
+    forwardGuidanceDtos: loadAll('forward-guidance', companyId),
+    priorResultDtos: loadAll('quarterly-result', companyId),
+    reratingReports: loadAll('rerating-catalysts', companyId),
+  });
+
+  const scoreFile = argValue('--score-inflection', argv);
+  if (scoreFile) {
+    const agentInput = JSON.parse(fs.readFileSync(path.resolve(scoreFile), 'utf8'));
+    const blocks = finalizeInflection({ record: latestDoc, prep: inflectionPrep, agentInput });
+    console.log(JSON.stringify({ ok: true, companyId, ...blocks }));
+    return;
+  }
+
   // 3. Build deterministic analytical context
   try {
-    const context = buildAnalysisContext(latestDoc);
+    const context = { ...buildAnalysisContext(latestDoc), inflectionPrep };
     console.log(
       JSON.stringify({
         ok: true,

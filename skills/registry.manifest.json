@@ -10,6 +10,28 @@
     "skills/equity-research/_shared/scan-signal-pipeline.md"
   ],
   "skills": {
+    "result-timing-analyzer": {
+      "skill_md": "skills/equity-research/result-timing-analyzer/SKILL.md",
+      "entry": "stock-api/bin/result-timing-analyzer.js",
+      "mode": "bundle",
+      "modules": [
+        "stock-api/src/analyzers/resultTimingAnalyzer.js",
+        "stock-api/src/clients/NseClient.js",
+        "stock-api/src/clients/BseClient.js"
+      ],
+      "references": ["docs/nse-api-schemas.md"],
+      "shared": ["skills/_shared/conventions.md"],
+      "aliases": [
+        "result timing",
+        "earnings timing",
+        "when does company declare results",
+        "at what time results are declared",
+        "board meeting outcome time",
+        "result declaration time",
+        "result timing stats",
+        "result timing analyzer"
+      ]
+    },
     "announcement-taxonomy": {
       "skill_md": "skills/equity-research/announcement-taxonomy/SKILL.md",
       "entry": "skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js",
@@ -277,10 +299,13 @@
         "stock-api/src/fetchers/documentsFetcher.js",
         "stock-api/src/analyzers/incomeStatementSignals.js",
         "stock-api/src/analyzers/balanceSheetSignals.js",
-        "stock-api/src/analyzers/cashflowSignals.js"
+        "stock-api/src/analyzers/cashflowSignals.js",
+        "stock-api/src/analyzers/resultInflection.js",
+        "stock-api/src/utils/fiscalQuarter.js"
       ],
       "references": [
         "skills/equity-research/quarterly-result-analysis/references/basket_framework.md",
+        "skills/equity-research/quarterly-result-analysis/references/inflection_walk_the_talk.md",
         "skills/equity-research/quarterly-result-analysis/references/monitoring_checklist_patterns.md",
         "skills/equity-research/quarterly-result-analysis/references/tone_taxonomy.md",
         "skills/equity-research/quarterly-result-analysis/references/statement_quality_modes.md"

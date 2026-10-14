@@ -39,3 +39,12 @@ Call the following exact script in order:
 Do NOT run any data fetching, CSV parsing, or company reconciliation logic directly — the script above does all of that deterministically. Your only job is to run it and report its output.
 
 This run is purely scripted (fetch/parse/normalize/upsert) — no LLM judgment step writes a DTO, so no `modelUsed` field is needed on any data record.
+
+## Email delivery (mandatory last step of EVERY run)
+
+The owner reads job output in Gmail, so this job must always end with an email — success, partial or failure, even when there was nothing new (a one-line "nothing to do" email is the heartbeat that proves the job ran).
+
+1. Write the report text — the JSON summary printed by `company-master-sync` (counts added/updated/unmapped, any errors) — as markdown to a temp file _outside the repo_ (`f=$(mktemp)`). Keep it to what matters, lead with the headline.
+2. Execute script (bash): `STOCKMARKET_JOB_NAME=daily-company-master-sync yarn job-report-email --job daily-company-master-sync --status <ok|partial|failed> --title "<one-line outcome>" --body-file "$f"`
+3. If the run stopped early (a dependency check failed, a script exited non-zero), still run step 2 with `--status failed` and the exact error as the body.
+4. If the command exits non-zero (`email.status` is `skipped` or `error`, e.g. `GOOGLE_APP_PASSWORD not set`), surface the exact reason in your final report — never report the job as delivered.

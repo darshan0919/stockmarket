@@ -22,6 +22,12 @@ const { renderAdditionalHtml } = require('../utils/renderAdditional');
  */
 function getTagClass(tag) {
   const t = (tag || '').toUpperCase();
+  if (/NO_INFLECTION|NOT_APPLICABLE|NOT_YET|NEEDS_ACTUAL|EXCLUDED|EXPIRED|INSUFFICIENT/.test(t)) {
+    return 'chip-b';
+  }
+  if (/MISSED|BEHIND|GUIDANCE MISS/.test(t)) return 'chip-r';
+  if (/EMERGING|PARTIAL|MIXED|PENDING/.test(t)) return 'chip-y';
+  if (/^(MET|AHEAD|ON_TRACK|DELIVERED|CONFIRMED_AND_BEAT)$/.test(t)) return 'chip-g';
   if (
     t.includes('STRUCTURAL') ||
     t.includes('HIGH') ||
@@ -382,6 +388,133 @@ function renderGuidanceTable(guidance) {
 }
 
 /**
+ * Builds a section header with a right-aligned verdict chip (shared by the three sections below).
+ * @param {string} title
+ * @param {string} verdict
+ * @returns {string}
+ */
+function sectionHeaderWithChip(title, verdict) {
+  return `
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid ${INSTITUTIONAL_LIGHT.border}; padding-bottom: 3px; margin-bottom: 6px;">
+      <span class="sec-hd" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">${title}</span>
+      ${verdict ? `<span class="chip ${getTagClass(verdict)}" style="font-size: 9px; padding: 3px 8px;">${formatInlineMarkdown(verdict)}</span>` : ''}
+    </div>
+  `;
+}
+
+/**
+ * Builds the Inflection Point section: three legs (margin, guidance trust, new catalyst),
+ * verdict, J-curve stage and the revenue → EBITDA → PAT growth ladder.
+ * @param {Object} inf DTO.inflectionPoint (resultInflection.finalizeInflection output)
+ * @returns {string}
+ */
+function renderInflectionPoint(inf) {
+  if (!inf || !inf.legs) return '';
+  const legLabels = {
+    margin: 'Margins expanding significantly',
+    guidanceTrust: 'Past guidance confirmed & beaten',
+    newCatalyst: 'New C-A-T-A-L-Y-S-T trigger',
+  };
+  const rows = [['Leg', 'Status', 'Evidence']];
+  Object.entries(legLabels).forEach(([k, label]) => {
+    const leg = inf.legs[k];
+    if (!leg) return;
+    const status = String(leg.status || '—');
+    const note = [leg.reason, leg.conditional].filter(Boolean).join(' — ');
+    rows.push([label, `<span class="chip ${getTagClass(status)}">${status}</span>`, note || '—']);
+  });
+  const ol = inf.operatingLeverage;
+  let html = `<div class="sec">`;
+  html += sectionHeaderWithChip('Inflection Point', String(inf.verdict || '').replace(/_/g, ' '));
+  html += styledTableHtml(rows, INSTITUTIONAL_LIGHT);
+  const foot = [];
+  if (inf.jCurveStage) foot.push(`<b>J-curve stage:</b> ${inf.jCurveStage}`);
+  if (ol) {
+    foot.push(
+      `<b>Growth ladder (YoY):</b> Revenue ${ol.revenueYoY}% → EBITDA ${ol.ebitdaYoY}% → PAT ${ol.patYoY}%${ol.leverageOrdered ? ' (operating leverage compounding)' : ''}`
+    );
+  }
+  if (foot.length) {
+    html += `<p style="margin: 4px 0; font-size: 9.5px;">${foot.join(' &nbsp;·&nbsp; ')}</p>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+/**
+ * Builds the Walk the Talk ledger: every prior guide measurable this quarter vs the actual.
+ * @param {Object} wtt DTO.walkTheTalk ({rows, summary})
+ * @returns {string}
+ */
+function renderWalkTheTalk(wtt) {
+  if (!wtt || !Array.isArray(wtt.rows) || !wtt.rows.length) return '';
+  const fmtGuide = (r) => {
+    if (r.guidedMid == null) return '—';
+    const u = r.unit === '%' ? '%' : r.unit ? ` ${r.unit}` : '';
+    const g =
+      r.guidedLow !== r.guidedHigh ? `${r.guidedLow}–${r.guidedHigh}${u}` : `${r.guidedMid}${u}`;
+    return r.kind === 'growth' ? `${g} growth` : g;
+  };
+  const shown = wtt.rows.filter((r) => !['NOT_YET_MEASURABLE', 'EXPIRED'].includes(r.status));
+  const rows = [
+    ['Guided metric', 'Period', 'Guided (stated in)', 'Actual', 'Status', 'Gap / basis'],
+  ];
+  shown.forEach((r) => {
+    const actual =
+      r.actual != null ? `${r.actual}${r.unit === '%' ? '%' : ''}` : r.milestoneOutcome || '—';
+    const rev = r.revision ? ` · ${r.revision.direction} from ${r.revision.from}` : '';
+    rows.push([
+      r.metric,
+      `${r.period}${r.measurability === 'INTERIM' ? ' (interim)' : ''}`,
+      `${fmtGuide(r)} (${r.statedIn}${rev})`,
+      actual,
+      `<span class="chip ${getTagClass(r.status)}">${r.status}</span>`,
+      [r.gap, r.actualBasis || r.excludeReason].filter(Boolean).join(' — ') || '—',
+    ]);
+  });
+  const sm = wtt.summary || {};
+  let html = `<div class="sec">`;
+  html += sectionHeaderWithChip('Walk the Talk — Prior Guidance vs This Quarter', sm.verdict);
+  html += styledTableHtml(rows, INSTITUTIONAL_LIGHT);
+  if (sm.scored != null) {
+    html += `<p style="margin: 4px 0; font-size: 9.5px;"><b>${sm.beats} beat · ${sm.met} met · ${sm.missed} missed</b> of ${sm.scored} measurable${sm.beatRate != null ? ` (beat rate ${sm.beatRate}%)` : ''}; ${sm.notYetMeasurable || 0} not yet measurable; clean-delivery streak ${sm.consecutiveCleanQuarters || 0} quarter(s).</p>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+/**
+ * Builds the Next Inflection timeline (capacity / margin / order-book triggers, nearest first).
+ * @param {Object} nx DTO.nextInflection ({triggers, next})
+ * @returns {string}
+ */
+function renderNextInflection(nx) {
+  if (!nx || !Array.isArray(nx.triggers) || !nx.triggers.length) return '';
+  const rows = [['When', 'Type', 'Trigger', 'Magnitude', 'Train', 'Conviction', 'Source']];
+  nx.triggers.forEach((t) => {
+    const away =
+      t.quartersAway == null ? '' : ` (${t.quartersAway <= 0 ? 'live' : `+${t.quartersAway}Q`})`;
+    rows.push([
+      `${t.expectedQuarter || '—'}${away}`,
+      String(t.type || '').replace('_', ' '),
+      t.what || '—',
+      t.magnitudeText || '—',
+      t.train || '—',
+      t.conviction || '—',
+      t.source || '—',
+    ]);
+  });
+  const next = nx.next
+    ? `NEXT: ${nx.next.type.replace('_', ' ')} · ${nx.next.expectedQuarter}`
+    : '';
+  let html = `<div class="sec">`;
+  html += sectionHeaderWithChip('Next Inflection Point', next);
+  html += styledTableHtml(rows, INSTITUTIONAL_LIGHT);
+  html += `</div>`;
+  return html;
+}
+
+/**
  * Builds Basket 1: Business.
  * @param {Object} b1
  * @returns {string}
@@ -616,12 +749,18 @@ async function createQuarterlyResultPdf(data, options = {}) {
   const verdictChips = data.verdictChips || data.verdict_chips || data.chips || [];
   bodyHtml += renderVerdictChips(verdictChips);
 
+  // 3b. Inflection Point (directly under the verdict, like the J-curve badge)
+  bodyHtml += renderInflectionPoint(data.inflectionPoint);
+
   // 4. (If NBFC): NBFC Quality Checks
   const nbfcChecks =
     data.nbfcQualityChecks || data.nbfc_quality_checks || (data.isNbfc ? data.nbfc : null);
   if (nbfcChecks) {
     bodyHtml += renderNbfcQualityChecks(nbfcChecks);
   }
+
+  // 4b. Walk the Talk — past guidance judged before the forward table
+  bodyHtml += renderWalkTheTalk(data.walkTheTalk);
 
   // 5. Forward Guidance & Bottom-Line Accrual Table
   const guidance =
@@ -632,6 +771,9 @@ async function createQuarterlyResultPdf(data, options = {}) {
   if (guidance) {
     bodyHtml += renderGuidanceTable(guidance);
   }
+
+  // 5b. Next Inflection Point timeline
+  bodyHtml += renderNextInflection(data.nextInflection);
 
   // 6. Basket 1: Business
   const basket1 = data.basket1 || data.business;
@@ -699,4 +841,7 @@ async function createQuarterlyResultPdf(data, options = {}) {
 
 module.exports = {
   createQuarterlyResultPdf,
+  renderInflectionPoint,
+  renderWalkTheTalk,
+  renderNextInflection,
 };

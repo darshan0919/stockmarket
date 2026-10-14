@@ -1,0 +1,263 @@
+[
+  {
+    "companyId": "NSE:3IINFOLTD",
+    "name": "3i Infotech Limited",
+    "title": "Grant of Stock Options Under ESOP 2023",
+    "category": "general",
+    "date": "2026-10-13",
+    "announcementId": "8cq29yqiedt633udh3n72pzx.pdf",
+    "reason": "ESOP grant of 8,75,000 options to employees — routine compensation mechanics"
+  },
+  {
+    "companyId": "BSE:PURPLEFIN",
+    "name": "Purple Financial Services",
+    "title": "Half Yearly Statement of Debt Securities",
+    "category": "general",
+    "date": "2026-10-13",
+    "announcementId": "ycnusvfi4td933amwbt1jnt7.pdf",
+    "reason": "Routine half-yearly ISIN/debt-securities statement"
+  },
+  {
+    "companyId": "BSE:TOTEM",
+    "name": "Totem Infrastructure",
+    "title": "Statutory auditor conversion to LLP",
+    "category": "general",
+    "date": "2026-10-13",
+    "announcementId": "fm9ypvteplaic4ud2qc2ifgh.pdf",
+    "reason": "Auditor firm converted to LLP; no change in engagement"
+  },
+  {
+    "companyId": "NSE:SOFTTECH",
+    "name": "Softtech Engineers",
+    "title": "Share Capital Reconciliation Audit Cert.",
+    "category": "general",
+    "date": "2026-10-13",
+    "announcementId": "cqnvxezujpl83kec5yl5ncn0.pdf",
+    "reason": "Routine quarterly Reg 76 audit certificate"
+  },
+  {
+    "companyId": "NSE:SPORTKING",
+    "name": "Sportking India",
+    "title": "Board Meeting Intimation (Q2 results)",
+    "category": "anticipation",
+    "date": "2026-10-13",
+    "announcementId": "78ggic7q7h1x1lxd1wjh8j4z.pdf",
+    "reason": "Standard board-meeting-for-results intimation"
+  },
+  {
+    "companyId": "NSE:HFCL",
+    "name": "HFCL Limited",
+    "title": "Board Meeting Intimation",
+    "category": "shareholding_change",
+    "date": "2026-10-13",
+    "announcementId": "ib8aci91jd22mxd72k9be8tw.pdf",
+    "reason": "Generic board-meeting intimation, no agenda specifics"
+  },
+  {
+    "companyId": "NSE:ANZEN",
+    "name": "Anzen India Energy Yield Plus Trust",
+    "title": "Quarterly CG Compliance Report",
+    "category": "general",
+    "date": "2026-10-13",
+    "announcementId": "l46nvquu1we1lk6bi46n3u58.pdf",
+    "reason": "Routine quarterly CG compliance report"
+  },
+  {
+    "companyId": "NSE:PAISALO",
+    "name": "Paisalo Digital",
+    "title": "Allotment of Commercial Papers (~Rs 10cr)",
+    "category": "general",
+    "date": "2026-10-13",
+    "announcementId": "35v9gh89glvxhvv4q2uhn259.pdf",
+    "reason": "Small routine CP allotment"
+  },
+  {
+    "companyId": "NSE:ADVANCE",
+    "name": "Advance Agrolife",
+    "title": "Clarification on Price Movement",
+    "category": "general",
+    "date": "2026-10-13",
+    "announcementId": "o2hn9i3hhk0cf262r4o8gwc9.pdf",
+    "reason": "Standard price-movement clarification, no new disclosure"
+  },
+  {
+    "companyId": "NSE:DHANBANK",
+    "name": "Dhanlaxmi Bank",
+    "title": "Board Meeting Intimation (Reg 29/50)",
+    "category": "shareholding_change",
+    "date": "2026-10-13",
+    "announcementId": "5z7baced58a08qubcbxdwfbk.pdf",
+    "reason": "Generic board-meeting intimation for results"
+  },
+  {
+    "companyId": "NSE:NELCO",
+    "name": "Nelco Limited",
+    "title": "Board Meeting Intimation (Q2 results)",
+    "category": "anticipation",
+    "date": "2026-10-13",
+    "announcementId": "i67by1rbeg53uvy27oh1mugt.pdf",
+    "reason": "Standard board-meeting-for-results intimation"
+  },
+  {
+    "companyId": "NSE:SENORES",
+    "name": "Senores Pharmaceuticals",
+    "title": "Re-appointment of existing MD",
+    "category": "general",
+    "date": "2026-10-13",
+    "announcementId": "1ahbh6j3crh32r4h8sqfq6hp.pdf",
+    "reason": "Re-appointment of incumbent MD — continuity, not new"
+  },
+  {
+    "companyId": "NSE:EMUDHRA",
+    "name": "eMudhra Limited",
+    "title": "Board Meeting Intimation (Q2 results)",
+    "category": "anticipation",
+    "date": "2026-10-13",
+    "announcementId": "1pggblhh71j0qrasdk7pbjvq.pdf",
+    "reason": "Standard board-meeting-for-results intimation"
+  },
+  {
+    "companyId": "NSE:MSTCLTD",
+    "name": "MSTC Limited",
+    "title": "Share Capital Reconciliation Audit",
+    "category": "general",
+    "date": "2026-10-13",
+    "announcementId": "ia15r7op0eccpnsddcem1f6z.pdf",
+    "reason": "Routine quarterly Reg 76 audit report"
+  },
+  {
+    "companyId": "NSE:MGEL",
+    "name": "Mangalam Global Enterprise",
+    "title": "New retail store opening",
+    "category": "general",
+    "date": "2026-10-13",
+    "announcementId": "uojer03c1545y1cq6qqrchvo.pdf",
+    "reason": "Single new store opening — immaterial scale"
+  },
+  {
+    "companyId": "NSE:CGCL",
+    "name": "Capri Global Capital",
+    "title": "Navratri promotional offer press release",
+    "category": "general",
+    "date": "2026-10-13",
+    "announcementId": "y59gu3wu8waem5kji5gnagzn.pdf",
+    "reason": "Seasonal marketing press release, not a new business development"
+  },
+  {
+    "companyId": "NSE:BOSCH-HCIL",
+    "name": "Bosch Home Comfort India",
+    "title": "Board Meeting Notice (results)",
+    "category": "anticipation",
+    "date": "2026-10-13",
+    "announcementId": "ditr86ck8ye9xdm757drrjf0.pdf",
+    "reason": "Standard board-meeting-for-results notice"
+  },
+  {
+    "companyId": "BSE:PSPLATINA",
+    "name": "PropShare Platina REIT",
+    "title": "Tenant change in Prestige Tech Platina",
+    "category": "general",
+    "date": "2026-10-13",
+    "announcementId": "7arma4hcjut7av7cwt1dpgki.pdf",
+    "reason": "Routine REIT occupancy/tenancy update"
+  },
+  {
+    "companyId": "BSE:PSPLATINA",
+    "name": "PropShare Platina REIT",
+    "title": "Half-yearly valuation report (NAV ~Rs103/unit)",
+    "category": "general",
+    "date": "2026-10-12",
+    "announcementId": "3iugsmg7noskas1fltrd6oju.pdf",
+    "reason": "Routine periodic REIT valuation report"
+  },
+  {
+    "companyId": "NSE:DENTALKART",
+    "name": "Vasa Denticity (Dentalkart)",
+    "title": "Quarterly CG Compliance Report",
+    "category": "general",
+    "date": "2026-10-12",
+    "announcementId": "6jm9bxom8asvxpjapvn8so4m.pdf",
+    "reason": "Routine quarterly CG compliance report"
+  },
+  {
+    "companyId": "NSE:JUSTDIAL",
+    "name": "Just Dial Limited",
+    "title": "Board Meeting Intimation (Q2 results)",
+    "category": "anticipation",
+    "date": "2026-10-12",
+    "announcementId": "fdee5mcu2hewuv7jkh18aen1.pdf",
+    "reason": "Standard board-meeting-for-results intimation"
+  },
+  {
+    "companyId": "NSE:J&KBANK",
+    "name": "Jammu & Kashmir Bank",
+    "title": "Board Meeting Intimation (Q2 results)",
+    "category": "anticipation",
+    "date": "2026-10-12",
+    "announcementId": "ne59t5c8e9ophnu1tz2ek69n.pdf",
+    "reason": "Standard board-meeting-for-results intimation"
+  },
+  {
+    "companyId": "NSE:SPUNWEB",
+    "name": "Spunweb Nonwoven",
+    "title": "Clarification on Price Movement",
+    "category": "general",
+    "date": "2026-10-12",
+    "announcementId": "yp46b7zelxur5hq41dlhm1un.pdf",
+    "reason": "Standard price-movement clarification, no new disclosure"
+  },
+  {
+    "companyId": "NSE:ETL",
+    "name": "Emkay Tools Limited",
+    "title": "Auditor change + MD continuation beyond 70",
+    "category": "general",
+    "date": "2026-10-12",
+    "announcementId": "wup1uflnocl2akqgaustalbg.pdf",
+    "reason": "Routine auditor replacement and MD age-70 continuation"
+  },
+  {
+    "companyId": "NSE:COMMITTED",
+    "name": "Committed Cargo Care",
+    "title": "Non-applicability of CG provisions (SME)",
+    "category": "general",
+    "date": "2026-10-12",
+    "announcementId": "9ub0om3pipzkqjuwkazr8hkn.pdf",
+    "reason": "Routine SME-platform CG non-applicability notice"
+  },
+  {
+    "companyId": "NSE:MAXVOLT",
+    "name": "Maxvolt Energy Industries",
+    "title": "Internal auditor change + KMP appointment",
+    "category": "general",
+    "date": "2026-10-12",
+    "announcementId": "dor2r00djjy8021r21qikw4i.pdf",
+    "reason": "Routine internal-auditor change and KMP appointment"
+  },
+  {
+    "companyId": "NSE:VERTIS",
+    "name": "Vertis Infrastructure Trust",
+    "title": "Compliance Officer / RTA quarterly details",
+    "category": "general",
+    "date": "2026-10-12",
+    "announcementId": "k1am2aj5wrcqja0pvp9m0ift.pdf",
+    "reason": "Routine quarterly compliance-officer/RTA disclosure"
+  },
+  {
+    "companyId": "NSE:PRIMECAB",
+    "name": "Prime Cable Industries",
+    "title": "Market Maker change",
+    "category": "general",
+    "date": "2026-10-12",
+    "announcementId": "3x943vfd7hiowl6sn5dnzwcx.pdf",
+    "reason": "Administrative market-maker change, no financial impact"
+  },
+  {
+    "companyId": "NSE:CAPINVIT",
+    "name": "Capital Infra Trust",
+    "title": "Quarterly asset valuation report",
+    "category": "general",
+    "date": "2026-10-12",
+    "announcementId": "2hdq81je4qdm9h53x9vqjucn.pdf",
+    "reason": "Routine periodic InvIT asset-valuation report"
+  }
+]

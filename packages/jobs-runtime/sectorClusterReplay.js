@@ -20,7 +20,13 @@ const DIR = path.join(ROOT, 'data', 'cache', 'sector-lifecycle-ohlcv');
 const WARM = 252;
 const NEAR = 0.95;
 const MIN_UNI = 6;
-const P = SC.DEFAULTS || { minNames: 3, minShare: 0.1, minLift: 1.5, persistDays: 5, persistMin: 4 };
+const P = SC.DEFAULTS || {
+  minNames: 3,
+  minShare: 0.1,
+  minLift: 1.5,
+  persistDays: 5,
+  persistMin: 4,
+};
 
 function main() {
   const db = require('./lib/db');
@@ -31,14 +37,26 @@ function main() {
     const id = f.replace(/\.json$/, '').replace(/^(NSE|BSE)_/, '$1:');
     const ind = industryOf.get(id);
     const cl = c.map((r) => r[4]);
-    if (!ind || c.length < WARM + 80 || cl.some((x, i) => i > 0 && cl[i - 1] > 0 && Math.abs(x / cl[i - 1] - 1) > 0.3)) continue;
+    if (
+      !ind ||
+      c.length < WARM + 80 ||
+      cl.some((x, i) => i > 0 && cl[i - 1] > 0 && Math.abs(x / cl[i - 1] - 1) > 0.3)
+    )
+      continue;
     const near = new Array(c.length).fill(null);
     for (let i = WARM; i < c.length; i++) {
       let hi = 0;
       for (let k = i - 251; k <= i; k++) if (cl[k] > hi) hi = cl[k];
       near[i] = cl[i] >= NEAR * hi;
     }
-    names.push({ id, ind, cl, dates: c.map((r) => r[0]), near, at: new Map(c.map((r, i) => [r[0], i])) });
+    names.push({
+      id,
+      ind,
+      cl,
+      dates: c.map((r) => r[0]),
+      near,
+      at: new Map(c.map((r, i) => [r[0], i])),
+    });
   }
   const dates = [...new Set(names.flatMap((n) => n.dates))].sort();
   const byInd = new Map();
@@ -49,15 +67,28 @@ function main() {
   for (const d of dates) {
     for (const h of C.HORIZONS) {
       const a = [];
-      for (const n of names) { const i = n.at.get(d); if (i != null) { const r = C.fwdReturn(n.cl, i, h); if (r != null) a.push(r); } }
+      for (const n of names) {
+        const i = n.at.get(d);
+        if (i != null) {
+          const r = C.fwdReturn(n.cl, i, h);
+          if (r != null) a.push(r);
+        }
+      }
       if (a.length >= 100) bench.set(`${d}|${h}`, C.median(a));
     }
   }
   // market-wide near-high base rate per date
   const base = new Map();
   for (const d of dates) {
-    let n1 = 0, N = 0;
-    for (const n of names) { const i = n.at.get(d); if (i != null && n.near[i] != null) { N++; if (n.near[i]) n1++; } }
+    let n1 = 0,
+      N = 0;
+    for (const n of names) {
+      const i = n.at.get(d);
+      if (i != null && n.near[i] != null) {
+        N++;
+        if (n.near[i]) n1++;
+      }
+    }
     if (N >= 100) base.set(d, n1 / N);
   }
 
@@ -65,7 +96,13 @@ function main() {
     const e = { ticker: ind, date: d };
     for (const h of C.HORIZONS) {
       const rs = [];
-      for (const n of members) { const i = n.at.get(d); if (i != null) { const r = C.fwdReturn(n.cl, i, h); if (r != null) rs.push(r); } }
+      for (const n of members) {
+        const i = n.at.get(d);
+        if (i != null) {
+          const r = C.fwdReturn(n.cl, i, h);
+          if (r != null) rs.push(r);
+        }
+      }
       const b = bench.get(`${d}|${h}`);
       const r = rs.length >= 3 ? C.mean(rs) : null;
       e[`raw${h}`] = r;
@@ -82,13 +119,25 @@ function main() {
     const hits = dates.map((d) => {
       const b = base.get(d);
       if (b == null) return false;
-      let n1 = 0, N = 0;
-      for (const m of members) { const i = m.at.get(d); if (i != null && m.near[i] != null) { N++; if (m.near[i]) n1++; } }
+      let n1 = 0,
+        N = 0;
+      for (const m of members) {
+        const i = m.at.get(d);
+        if (i != null && m.near[i] != null) {
+          N++;
+          if (m.near[i]) n1++;
+        }
+      }
       return N >= MIN_UNI && n1 >= P.minNames && n1 / N >= Math.max(P.minShare, P.minLift * b);
     });
-    const active = hits.map((_, t) => t >= P.persistDays - 1 && hits.slice(t - P.persistDays + 1, t + 1).filter(Boolean).length >= P.persistMin);
+    const active = hits.map(
+      (_, t) =>
+        t >= P.persistDays - 1 &&
+        hits.slice(t - P.persistDays + 1, t + 1).filter(Boolean).length >= P.persistMin
+    );
     for (const t of C.onsets(active, cooldown)) cluster.push(event(ind, members, dates[t]));
-    for (let t = 0; t < dates.length; t += 10) if (base.has(dates[t])) baseline.push(event(ind, members, dates[t]));
+    for (let t = 0; t < dates.length; t += 10)
+      if (base.has(dates[t])) baseline.push(event(ind, members, dates[t]));
   }
 
   const b = C.summarize(baseline);
@@ -103,7 +152,10 @@ function main() {
   })();
   const out = {
     ran: new Date().toISOString(),
-    universe: { names: names.length, industries: [...byInd].filter(([, m]) => m.length >= MIN_UNI).length },
+    universe: {
+      names: names.length,
+      industries: [...byInd].filter(([, m]) => m.length >= MIN_UNI).length,
+    },
     window: { from: dates[WARM], to: dates[dates.length - 1] },
     rule: { nearHighPct: NEAR * 100, ...P, minUniverse: MIN_UNI, cooldown },
     cluster: { ...s, verdict, byYear: C.byYear(cluster) },
@@ -117,8 +169,29 @@ function main() {
   };
   const dir = path.join(ROOT, 'data', 'cache', 'calibration');
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, `cluster-replay-${new Date().toISOString().slice(0, 10)}.json`), JSON.stringify(out, null, 1));
-  console.log(JSON.stringify({ ...out, cluster: { ...out.cluster, byYear: Object.fromEntries(Object.entries(out.cluster.byYear).map(([y, v]) => [y, { n: v.n, h21: v.h21 && v.h21.meanExcess, h63: v.h63 && v.h63.meanExcess }])) }, baseline: { n: b.n, h21: b.h21, h63: b.h63 } }, null, 1));
+  fs.writeFileSync(
+    path.join(dir, `cluster-replay-${new Date().toISOString().slice(0, 10)}.json`),
+    JSON.stringify(out, null, 1)
+  );
+  console.log(
+    JSON.stringify(
+      {
+        ...out,
+        cluster: {
+          ...out.cluster,
+          byYear: Object.fromEntries(
+            Object.entries(out.cluster.byYear).map(([y, v]) => [
+              y,
+              { n: v.n, h21: v.h21 && v.h21.meanExcess, h63: v.h63 && v.h63.meanExcess },
+            ])
+          ),
+        },
+        baseline: { n: b.n, h21: b.h21, h63: b.h63 },
+      },
+      null,
+      1
+    )
+  );
 }
 if (require.main === module) main();
 module.exports = { main };

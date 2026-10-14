@@ -39,3 +39,12 @@ Run `quarterly-result-extractor` daily at 1:00 AM for all companies that filed r
 - It persists deterministic extraction (documents, signals, excerpts) to the `quarterly-result-documents` collection.
 - The downstream `daily-quarterly-result-analysis` task will NOT run if this extraction check fails.
 - Check the run summary for file-touched manifest listing created/modified records.
+
+## Email delivery (mandatory last step of EVERY run)
+
+The owner reads job output in Gmail, so this job must always end with an email — success, partial or failure, even when there was nothing new (a one-line "nothing to do" email is the heartbeat that proves the job ran).
+
+1. Write the report text — companies with results found, extracted OK vs failed, and records persisted — as markdown to a temp file _outside the repo_ (`f=$(mktemp)`). Keep it to what matters, lead with the headline.
+2. Execute script (bash): `STOCKMARKET_JOB_NAME=daily-quarterly-result-extraction yarn job-report-email --job daily-quarterly-result-extraction --status <ok|partial|failed> --title "<one-line outcome>" --body-file "$f"`
+3. If the run stopped early (a dependency check failed, a script exited non-zero), still run step 2 with `--status failed` and the exact error as the body.
+4. If the command exits non-zero (`email.status` is `skipped` or `error`, e.g. `GOOGLE_APP_PASSWORD not set`), surface the exact reason in your final report — never report the job as delivered.

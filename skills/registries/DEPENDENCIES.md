@@ -13,6 +13,7 @@ Available high-level agentic skills defined in the project:
 
 | Skill Name                                                                                                                                         | Entry Point                                                               | Aliases / Keywords                                                                                                                                                                                                                                                                                                |
 | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [stock-api/bin/result-timing-analyzer.js](stock-api/bin/result-timing-analyzer.js)                                                                 | `stock-api/bin/result-timing-analyzer.js`                                 | result timing, earnings timing, when does company declare results, at what time results are declared, board meeting outcome time, result declaration time, result timing stats, result timing analyzer                                                                                                            |
 | [skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js](skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js) | `skills/equity-research/announcement-taxonomy/scripts/taxonomy_review.js` | announcement taxonomy, classify this filing, significance of this announcement, is this filing a big deal, EPS accretion filing, J-curve filing, re-rating filing, taxonomy accuracy, taxonomy mismatch, improve announcement rules, strength of announcement                                                     |
 | [stock-api/bin/stock-documents-fetcher.js](stock-api/bin/stock-documents-fetcher.js)                                                               | `stock-api/bin/stock-documents-fetcher.js`                                | fetch documents, fetch transcripts, fetch annual reports, download filings, get concall, pull documents, stockscans fetch, fetch ppt, get investor presentation                                                                                                                                                   |
 | [stock-api/bin/concall-analysis.js](stock-api/bin/concall-analysis.js)                                                                             | `stock-api/bin/concall-analysis.js`                                       | concall, earnings call analysis, transcript analysis, concall deep dive, quarterly call, concall brief, multi quarter concall, peer concall                                                                                                                                                                       |
@@ -133,6 +134,15 @@ Instantiable classes for DI or custom configurations:
   - `getBoardMeetings()`
   - `getSastAnnouncements()`
 
+### IndiaMtfClient
+
+- **Source File**: [stock-api/src/clients/IndiaMtfClient.js](stock-api/src/clients/IndiaMtfClient.js)
+- **Key Methods**:
+  - `setJobName()`
+  - `latest()`
+  - `latestDate()`
+  - `scripwiseDaily()`
+
 ### NseClient
 
 - **Source File**: [stock-api/src/clients/NseClient.js](stock-api/src/clients/NseClient.js)
@@ -149,14 +159,23 @@ Instantiable classes for DI or custom configurations:
   - `getSastReg29()`
   - `getInsiderFilings()`
   - `getIntegratedFilings()`
+  - `getFinancialResults()`
   - `getShareholdingFilings()`
   - `getVotingResultFilings()`
   - `getXbrlAnnouncements()`
   - `getBrsrFilings()`
   - `fetchArchiveXml()`
   - `getLiveVariations()`
+  - `getFiiDiiActivity()`
   - `getCorporateActions()`
   - `getBoardMeetings()`
+  - `getHistoricalOhlcv()`
+  - `searchSymbols()`
+  - `lookupSymbol()`
+  - `getMarketMood()`
+  - `getIndexValuation()`
+  - `getStockVsIndex()`
+  - `getLiveStockQuote()`
 
 ### PerplexityClient
 
@@ -220,6 +239,14 @@ Instantiable classes for DI or custom configurations:
   - `validateAuth()`
   - `resultsScan()`
 
+### TradingViewClient
+
+- **Source File**: [stock-api/src/clients/TradingViewClient.js](stock-api/src/clients/TradingViewClient.js)
+- **Key Methods**:
+  - `setJobName()`
+  - `getQuotes()`
+  - `getMacroSnapshot()`
+
 ### HttpClient
 
 - **Source File**: [stock-api/src/http/HttpClient.js](stock-api/src/http/HttpClient.js)
@@ -232,6 +259,15 @@ Instantiable classes for DI or custom configurations:
   - `post()`
   - `put()`
   - `delete()`
+
+### NseMcpSession
+
+- **Source File**: [stock-api/src/http/nseMcpSession.js](stock-api/src/http/nseMcpSession.js)
+- **Key Methods**:
+  - `_baseHeaders()`
+  - `initialize()`
+  - `clearSession()`
+  - `callTool()`
 
 ### NseSession
 
@@ -281,16 +317,21 @@ Instantiable classes for DI or custom configurations:
 
 Core singletons and client functions for interacting with external platforms:
 
-| API / Client Name         | Source File                                                                            | Description                       |
-| ------------------------- | -------------------------------------------------------------------------------------- | --------------------------------- |
-| `parseBseSmartSearchHtml` | [stock-api/src/clients/BseClient.js](stock-api/src/clients/BseClient.js)               | Exported from BseClient.js        |
-| `toPerplexityTicker`      | [stock-api/src/clients/PerplexityClient.js](stock-api/src/clients/PerplexityClient.js) | Exported from PerplexityClient.js |
-| `paragraphsToText`        | [stock-api/src/clients/PerplexityClient.js](stock-api/src/clients/PerplexityClient.js) | Exported from PerplexityClient.js |
-| `apiLabelFor`             | [stock-api/src/http/HttpClient.js](stock-api/src/http/HttpClient.js)                   | Exported from HttpClient.js       |
-| `bseGetXbrlFile`          | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                         | Exported from bseHttp.js          |
-| `buildBseUrl`             | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                         | Exported from bseHttp.js          |
-| `bseGetText`              | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                         | Exported from bseHttp.js          |
-| `bseGetJson`              | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                         | Exported from bseHttp.js          |
+| API / Client Name         | Source File                                                                              | Description                        |
+| ------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------- |
+| `parseBseSmartSearchHtml` | [stock-api/src/clients/BseClient.js](stock-api/src/clients/BseClient.js)                 | Exported from BseClient.js         |
+| `parseScripwiseCsv`       | [stock-api/src/clients/IndiaMtfClient.js](stock-api/src/clients/IndiaMtfClient.js)       | Exported from IndiaMtfClient.js    |
+| `parseLatestDate`         | [stock-api/src/clients/IndiaMtfClient.js](stock-api/src/clients/IndiaMtfClient.js)       | Exported from IndiaMtfClient.js    |
+| `parseHumanDate`          | [stock-api/src/clients/IndiaMtfClient.js](stock-api/src/clients/IndiaMtfClient.js)       | Exported from IndiaMtfClient.js    |
+| `parseFiiDii`             | [stock-api/src/clients/NseClient.js](stock-api/src/clients/NseClient.js)                 | Exported from NseClient.js         |
+| `toPerplexityTicker`      | [stock-api/src/clients/PerplexityClient.js](stock-api/src/clients/PerplexityClient.js)   | Exported from PerplexityClient.js  |
+| `paragraphsToText`        | [stock-api/src/clients/PerplexityClient.js](stock-api/src/clients/PerplexityClient.js)   | Exported from PerplexityClient.js  |
+| `parseScannerResponse`    | [stock-api/src/clients/TradingViewClient.js](stock-api/src/clients/TradingViewClient.js) | Exported from TradingViewClient.js |
+| `apiLabelFor`             | [stock-api/src/http/HttpClient.js](stock-api/src/http/HttpClient.js)                     | Exported from HttpClient.js        |
+| `bseGetXbrlFile`          | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                           | Exported from bseHttp.js           |
+| `buildBseUrl`             | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                           | Exported from bseHttp.js           |
+| `bseGetText`              | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                           | Exported from bseHttp.js           |
+| `bseGetJson`              | [stock-api/src/http/bseHttp.js](stock-api/src/http/bseHttp.js)                           | Exported from bseHttp.js           |
 
 ---
 
@@ -298,188 +339,228 @@ Core singletons and client functions for interacting with external platforms:
 
 Helper functions and utilities for common processes (data parsing, PDF generation, formatting, etc.):
 
-| Utility Name                    | Source File                                                                                                    | Description                                |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| `compute`                       | [stock-api/src/analyzers/balanceSheetSignals.js](stock-api/src/analyzers/balanceSheetSignals.js)               | Exported from balanceSheetSignals.js       |
-| `getOrCompute`                  | [stock-api/src/analyzers/balanceSheetSignals.js](stock-api/src/analyzers/balanceSheetSignals.js)               | Exported from balanceSheetSignals.js       |
-| `readCache`                     | [stock-api/src/analyzers/balanceSheetSignals.js](stock-api/src/analyzers/balanceSheetSignals.js)               | Exported from balanceSheetSignals.js       |
-| `writeCache`                    | [stock-api/src/analyzers/balanceSheetSignals.js](stock-api/src/analyzers/balanceSheetSignals.js)               | Exported from balanceSheetSignals.js       |
-| `derive`                        | [stock-api/src/analyzers/balanceSheetSignals.js](stock-api/src/analyzers/balanceSheetSignals.js)               | Exported from balanceSheetSignals.js       |
-| `calculateCapacityProgression`  | [stock-api/src/analyzers/capexScalingCalculator.js](stock-api/src/analyzers/capexScalingCalculator.js)         | Exported from capexScalingCalculator.js    |
-| `calculateRevenuePotential`     | [stock-api/src/analyzers/capexScalingCalculator.js](stock-api/src/analyzers/capexScalingCalculator.js)         | Exported from capexScalingCalculator.js    |
-| `extractValueCrore`             | [stock-api/src/analyzers/catalystRules.js](stock-api/src/analyzers/catalystRules.js)                           | Exported from catalystRules.js             |
-| `findNames`                     | [stock-api/src/analyzers/catalystRules.js](stock-api/src/analyzers/catalystRules.js)                           | Exported from catalystRules.js             |
-| `classify`                      | [stock-api/src/analyzers/catalystRules.js](stock-api/src/analyzers/catalystRules.js)                           | Exported from catalystRules.js             |
-| `priceVolumeAlerts`             | [stock-api/src/analyzers/catalystRules.js](stock-api/src/analyzers/catalystRules.js)                           | Exported from catalystRules.js             |
-| `computeJCurveScore`            | [stock-api/src/analyzers/catalystRules.js](stock-api/src/analyzers/catalystRules.js)                           | Exported from catalystRules.js             |
-| `jCurvePatThresholdHint`        | [stock-api/src/analyzers/catalystRules.js](stock-api/src/analyzers/catalystRules.js)                           | Exported from catalystRules.js             |
-| `parseCompanyPage`              | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                   | Exported from companyFinancials.js         |
-| `selectBaselines`               | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                   | Exported from companyFinancials.js         |
-| `seasonalShares`                | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                   | Exported from companyFinancials.js         |
-| `getCompanyFinancials`          | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                   | Exported from companyFinancials.js         |
-| `parsePeriodHeader`             | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                   | Exported from companyFinancials.js         |
-| `quarterLabel`                  | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                   | Exported from companyFinancials.js         |
-| `yearLabel`                     | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                   | Exported from companyFinancials.js         |
-| `shiftQuarter`                  | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                   | Exported from companyFinancials.js         |
-| `textNodes`                     | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                   | Exported from companyFinancials.js         |
-| `hhiClassification`             | [stock-api/src/analyzers/computeConcentration.js](stock-api/src/analyzers/computeConcentration.js)             | Exported from computeConcentration.js      |
-| `crN`                           | [stock-api/src/analyzers/computeConcentration.js](stock-api/src/analyzers/computeConcentration.js)             | Exported from computeConcentration.js      |
-| `hhi`                           | [stock-api/src/analyzers/computeConcentration.js](stock-api/src/analyzers/computeConcentration.js)             | Exported from computeConcentration.js      |
-| `computeMetrics`                | [stock-api/src/analyzers/computeConcentration.js](stock-api/src/analyzers/computeConcentration.js)             | Exported from computeConcentration.js      |
-| `deltaBps`                      | [stock-api/src/analyzers/computeConcentration.js](stock-api/src/analyzers/computeConcentration.js)             | Exported from computeConcentration.js      |
-| `asymmetricFlag`                | [stock-api/src/analyzers/computeConcentration.js](stock-api/src/analyzers/computeConcentration.js)             | Exported from computeConcentration.js      |
-| `classifyEventText`             | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)             | Exported from eventReactionSignals.js      |
-| `parseNseTimestamp`             | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)             | Exported from eventReactionSignals.js      |
-| `parseBseTimestamp`             | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)             | Exported from eventReactionSignals.js      |
-| `normalizeNseAnnouncement`      | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)             | Exported from eventReactionSignals.js      |
-| `normalizeBseAnnouncement`      | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)             | Exported from eventReactionSignals.js      |
-| `mergeAnnouncements`            | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)             | Exported from eventReactionSignals.js      |
-| `findLatestEvent`               | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)             | Exported from eventReactionSignals.js      |
-| `earliestEventTimestamp`        | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)             | Exported from eventReactionSignals.js      |
-| `normalizeOhlcv`                | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)             | Exported from eventReactionSignals.js      |
-| `candleIndexAtOrAfter`          | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)             | Exported from eventReactionSignals.js      |
-| `candleIndexAtOrBefore`         | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)             | Exported from eventReactionSignals.js      |
-| `computeReactionMetrics`        | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)             | Exported from eventReactionSignals.js      |
-| `classifySignal`                | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)             | Exported from eventReactionSignals.js      |
-| `evaluateCatalystRules`         | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `computeConcentration`          | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `computeHHI`                    | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `parseTweetDump`                | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `runScan`                       | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `resolveUniverse`               | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `applyLiquidityGate`            | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `postEventReturns`              | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `eventReturns`                  | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `driftSignature`                | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `parseScreenerInsights`         | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `detectAuthState`               | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `parseProsCons`                 | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `parseTopRatios`                | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `tagInsights`                   | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `avgTradedValueCr`              | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `toCandles`                     | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `fetchPriceMetrics`             | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `normalizePvd`                  | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `scanCatalysts`                 | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `computePatBridge`              | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `computeJCurveFinancialHealth`  | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                           | Exported from index.js                     |
-| `pctGrowth`                     | [stock-api/src/analyzers/jcurveFinancialMetrics.js](stock-api/src/analyzers/jcurveFinancialMetrics.js)         | Exported from jcurveFinancialMetrics.js    |
-| `round`                         | [stock-api/src/analyzers/jcurveFinancialMetrics.js](stock-api/src/analyzers/jcurveFinancialMetrics.js)         | Exported from jcurveFinancialMetrics.js    |
-| `sniffAndParse`                 | [stock-api/src/analyzers/parseTweetDump.js](stock-api/src/analyzers/parseTweetDump.js)                         | Exported from parseTweetDump.js            |
-| `resolveReplyContext`           | [stock-api/src/analyzers/parseTweetDump.js](stock-api/src/analyzers/parseTweetDump.js)                         | Exported from parseTweetDump.js            |
-| `normaliseTweet`                | [stock-api/src/analyzers/parseTweetDump.js](stock-api/src/analyzers/parseTweetDump.js)                         | Exported from parseTweetDump.js            |
-| `normalizeRate`                 | [stock-api/src/analyzers/patBridge.js](stock-api/src/analyzers/patBridge.js)                                   | Exported from patBridge.js                 |
-| `roundTo`                       | [stock-api/src/analyzers/patBridge.js](stock-api/src/analyzers/patBridge.js)                                   | Exported from patBridge.js                 |
-| `normalizeCandles`              | [stock-api/src/analyzers/postEventReturns.js](stock-api/src/analyzers/postEventReturns.js)                     | Exported from postEventReturns.js          |
-| `anchorIndex`                   | [stock-api/src/analyzers/postEventReturns.js](stock-api/src/analyzers/postEventReturns.js)                     | Exported from postEventReturns.js          |
-| `forwardReturn`                 | [stock-api/src/analyzers/postEventReturns.js](stock-api/src/analyzers/postEventReturns.js)                     | Exported from postEventReturns.js          |
-| `tsToDate`                      | [stock-api/src/analyzers/postEventReturns.js](stock-api/src/analyzers/postEventReturns.js)                     | Exported from postEventReturns.js          |
-| `toIsoDate`                     | [stock-api/src/analyzers/priceMetrics.js](stock-api/src/analyzers/priceMetrics.js)                             | Exported from priceMetrics.js              |
-| `median`                        | [stock-api/src/analyzers/priceSpikeSignals.js](stock-api/src/analyzers/priceSpikeSignals.js)                   | Exported from priceSpikeSignals.js         |
-| `computeDailyMetrics`           | [stock-api/src/analyzers/priceSpikeSignals.js](stock-api/src/analyzers/priceSpikeSignals.js)                   | Exported from priceSpikeSignals.js         |
-| `findSpikeDays`                 | [stock-api/src/analyzers/priceSpikeSignals.js](stock-api/src/analyzers/priceSpikeSignals.js)                   | Exported from priceSpikeSignals.js         |
-| `findRecentSpikeDays`           | [stock-api/src/analyzers/priceSpikeSignals.js](stock-api/src/analyzers/priceSpikeSignals.js)                   | Exported from priceSpikeSignals.js         |
-| `computeKpiCards`               | [stock-api/src/analyzers/resultAnalysisContext.js](stock-api/src/analyzers/resultAnalysisContext.js)           | Exported from resultAnalysisContext.js     |
-| `gradeStatementHealth`          | [stock-api/src/analyzers/resultAnalysisContext.js](stock-api/src/analyzers/resultAnalysisContext.js)           | Exported from resultAnalysisContext.js     |
-| `computeMandatoryChips`         | [stock-api/src/analyzers/resultAnalysisContext.js](stock-api/src/analyzers/resultAnalysisContext.js)           | Exported from resultAnalysisContext.js     |
-| `buildAnalysisContext`          | [stock-api/src/analyzers/resultAnalysisContext.js](stock-api/src/analyzers/resultAnalysisContext.js)           | Exported from resultAnalysisContext.js     |
-| `formatRsCr`                    | [stock-api/src/analyzers/resultAnalysisContext.js](stock-api/src/analyzers/resultAnalysisContext.js)           | Exported from resultAnalysisContext.js     |
-| `formatPct`                     | [stock-api/src/analyzers/resultAnalysisContext.js](stock-api/src/analyzers/resultAnalysisContext.js)           | Exported from resultAnalysisContext.js     |
-| `parseScanId`                   | [stock-api/src/analyzers/runScan.js](stock-api/src/analyzers/runScan.js)                                       | Exported from runScan.js                   |
-| `buildRunPayload`               | [stock-api/src/analyzers/runScan.js](stock-api/src/analyzers/runScan.js)                                       | Exported from runScan.js                   |
-| `flattenTable`                  | [stock-api/src/analyzers/runScan.js](stock-api/src/analyzers/runScan.js)                                       | Exported from runScan.js                   |
-| `col`                           | [stock-api/src/analyzers/runScan.js](stock-api/src/analyzers/runScan.js)                                       | Exported from runScan.js                   |
-| `toCrore`                       | [stock-api/src/analyzers/runScan.js](stock-api/src/analyzers/runScan.js)                                       | Exported from runScan.js                   |
-| `parseNum`                      | [stock-api/src/analyzers/runScan.js](stock-api/src/analyzers/runScan.js)                                       | Exported from runScan.js                   |
-| `renderHtml`                    | [stock-api/src/analyzers/scanCatalysts.js](stock-api/src/analyzers/scanCatalysts.js)                           | Exported from scanCatalysts.js             |
-| `fetchAnnouncementsBatch`       | [stock-api/src/analyzers/scanCatalysts.js](stock-api/src/analyzers/scanCatalysts.js)                           | Exported from scanCatalysts.js             |
-| `pickRatio`                     | [stock-api/src/analyzers/screenerInsights.js](stock-api/src/analyzers/screenerInsights.js)                     | Exported from screenerInsights.js          |
-| `stripTags`                     | [stock-api/src/analyzers/screenerInsights.js](stock-api/src/analyzers/screenerInsights.js)                     | Exported from screenerInsights.js          |
-| `fetchAndExtract`               | [stock-api/src/fetchers/announcementScanner.js](stock-api/src/fetchers/announcementScanner.js)                 | Exported from announcementScanner.js       |
-| `lastNQuarterDates`             | [stock-api/src/fetchers/announcementScanner.js](stock-api/src/fetchers/announcementScanner.js)                 | Exported from announcementScanner.js       |
-| `fetchQuarter`                  | [stock-api/src/fetchers/announcementScanner.js](stock-api/src/fetchers/announcementScanner.js)                 | Exported from announcementScanner.js       |
-| `extractNgrams`                 | [stock-api/src/fetchers/announcementScanner.js](stock-api/src/fetchers/announcementScanner.js)                 | Exported from announcementScanner.js       |
-| `extractCandidatePhrases`       | [stock-api/src/fetchers/announcementScanner.js](stock-api/src/fetchers/announcementScanner.js)                 | Exported from announcementScanner.js       |
-| `tokenize`                      | [stock-api/src/fetchers/announcementScanner.js](stock-api/src/fetchers/announcementScanner.js)                 | Exported from announcementScanner.js       |
-| `fetchAnnouncements`            | [stock-api/src/fetchers/announcementsFetcher.js](stock-api/src/fetchers/announcementsFetcher.js)               | Exported from announcementsFetcher.js      |
-| `iterAnnouncements`             | [stock-api/src/fetchers/announcementsFetcher.js](stock-api/src/fetchers/announcementsFetcher.js)               | Exported from announcementsFetcher.js      |
-| `matchesQuery`                  | [stock-api/src/fetchers/announcementsFetcher.js](stock-api/src/fetchers/announcementsFetcher.js)               | Exported from announcementsFetcher.js      |
-| `inDateRange`                   | [stock-api/src/fetchers/announcementsFetcher.js](stock-api/src/fetchers/announcementsFetcher.js)               | Exported from announcementsFetcher.js      |
-| `announcementFilename`          | [stock-api/src/fetchers/announcementsFetcher.js](stock-api/src/fetchers/announcementsFetcher.js)               | Exported from announcementsFetcher.js      |
-| `fetchDocuments`                | [stock-api/src/fetchers/documentsFetcher.js](stock-api/src/fetchers/documentsFetcher.js)                       | Exported from documentsFetcher.js          |
-| `filterDocuments`               | [stock-api/src/fetchers/documentsFetcher.js](stock-api/src/fetchers/documentsFetcher.js)                       | Exported from documentsFetcher.js          |
-| `normaliseType`                 | [stock-api/src/fetchers/documentsFetcher.js](stock-api/src/fetchers/documentsFetcher.js)                       | Exported from documentsFetcher.js          |
-| `parseDateFilter`               | [stock-api/src/fetchers/documentsFetcher.js](stock-api/src/fetchers/documentsFetcher.js)                       | Exported from documentsFetcher.js          |
-| `docYyyymm`                     | [stock-api/src/fetchers/documentsFetcher.js](stock-api/src/fetchers/documentsFetcher.js)                       | Exported from documentsFetcher.js          |
-| `safeTicker`                    | [stock-api/src/fetchers/documentsFetcher.js](stock-api/src/fetchers/documentsFetcher.js)                       | Exported from documentsFetcher.js          |
-| `buildFilename`                 | [stock-api/src/fetchers/documentsFetcher.js](stock-api/src/fetchers/documentsFetcher.js)                       | Exported from documentsFetcher.js          |
-| `toIstNaiveString`              | [stock-api/src/fetchers/reactionCandlesFetcher.js](stock-api/src/fetchers/reactionCandlesFetcher.js)           | Exported from reactionCandlesFetcher.js    |
-| `toIstDateString`               | [stock-api/src/fetchers/reactionCandlesFetcher.js](stock-api/src/fetchers/reactionCandlesFetcher.js)           | Exported from reactionCandlesFetcher.js    |
-| `normalizeRows`                 | [stock-api/src/fetchers/reactionCandlesFetcher.js](stock-api/src/fetchers/reactionCandlesFetcher.js)           | Exported from reactionCandlesFetcher.js    |
-| `fetchTier`                     | [stock-api/src/fetchers/reactionCandlesFetcher.js](stock-api/src/fetchers/reactionCandlesFetcher.js)           | Exported from reactionCandlesFetcher.js    |
-| `fetchReactionCandles`          | [stock-api/src/fetchers/reactionCandlesFetcher.js](stock-api/src/fetchers/reactionCandlesFetcher.js)           | Exported from reactionCandlesFetcher.js    |
-| `createConcallPdf`              | [stock-api/src/generators/generateConcallPdf.js](stock-api/src/generators/generateConcallPdf.js)               | Exported from generateConcallPdf.js        |
-| `createCredibilityWidget`       | [stock-api/src/generators/generateCredibilityWidget.js](stock-api/src/generators/generateCredibilityWidget.js) | Exported from generateCredibilityWidget.js |
-| `getCredibilitySchema`          | [stock-api/src/generators/generateCredibilityWidget.js](stock-api/src/generators/generateCredibilityWidget.js) | Exported from generateCredibilityWidget.js |
-| `createDrhpPdf`                 | [stock-api/src/generators/generateDrhpPdf.js](stock-api/src/generators/generateDrhpPdf.js)                     | Exported from generateDrhpPdf.js           |
-| `createForensicPdf`             | [stock-api/src/generators/generateForensicPdf.js](stock-api/src/generators/generateForensicPdf.js)             | Exported from generateForensicPdf.js       |
-| `getForensicSchema`             | [stock-api/src/generators/generateForensicPdf.js](stock-api/src/generators/generateForensicPdf.js)             | Exported from generateForensicPdf.js       |
-| `createGrowthTriggersPdf`       | [stock-api/src/generators/generateGrowthTriggersPdf.js](stock-api/src/generators/generateGrowthTriggersPdf.js) | Exported from generateGrowthTriggersPdf.js |
-| `createMarketShareWidget`       | [stock-api/src/generators/generateMarketShareHtml.js](stock-api/src/generators/generateMarketShareHtml.js)     | Exported from generateMarketShareHtml.js   |
-| `createPeerComparisonPdf`       | [stock-api/src/generators/generatePeerPdf.js](stock-api/src/generators/generatePeerPdf.js)                     | Exported from generatePeerPdf.js           |
-| `getPeerSchema`                 | [stock-api/src/generators/generatePeerPdf.js](stock-api/src/generators/generatePeerPdf.js)                     | Exported from generatePeerPdf.js           |
-| `createResearchReport`          | [stock-api/src/generators/generateReport.js](stock-api/src/generators/generateReport.js)                       | Exported from generateReport.js            |
-| `createResearchReportFromDto`   | [stock-api/src/generators/generateReport.js](stock-api/src/generators/generateReport.js)                       | Exported from generateReport.js            |
-| `writeReportDto`                | [stock-api/src/generators/generateReport.js](stock-api/src/generators/generateReport.js)                       | Exported from generateReport.js            |
-| `createSectorReport`            | [stock-api/src/generators/generateSectorReport.js](stock-api/src/generators/generateSectorReport.js)           | Exported from generateSectorReport.js      |
-| `nse`                           | [stock-api/src/index.js](stock-api/src/index.js)                                                               | Exported from index.js                     |
-| `bse`                           | [stock-api/src/index.js](stock-api/src/index.js)                                                               | Exported from index.js                     |
-| `screener`                      | [stock-api/src/index.js](stock-api/src/index.js)                                                               | Exported from index.js                     |
-| `nseSession`                    | [stock-api/src/index.js](stock-api/src/index.js)                                                               | Exported from index.js                     |
-| `fetchEventReactionMetrics`     | [stock-api/src/orchestration/eventReactionMetrics.js](stock-api/src/orchestration/eventReactionMetrics.js)     | Exported from eventReactionMetrics.js      |
-| `fmtNse`                        | [stock-api/src/orchestration/eventReactionMetrics.js](stock-api/src/orchestration/eventReactionMetrics.js)     | Exported from eventReactionMetrics.js      |
-| `fmtBse`                        | [stock-api/src/orchestration/eventReactionMetrics.js](stock-api/src/orchestration/eventReactionMetrics.js)     | Exported from eventReactionMetrics.js      |
-| `normalizeText`                 | [stock-api/src/utils/announcementNoiseFilter.js](stock-api/src/utils/announcementNoiseFilter.js)               | Exported from announcementNoiseFilter.js   |
-| `normalizeKeywordList`          | [stock-api/src/utils/announcementNoiseFilter.js](stock-api/src/utils/announcementNoiseFilter.js)               | Exported from announcementNoiseFilter.js   |
-| `keywordToRegExp`               | [stock-api/src/utils/announcementNoiseFilter.js](stock-api/src/utils/announcementNoiseFilter.js)               | Exported from announcementNoiseFilter.js   |
-| `loadNoiseKeywords`             | [stock-api/src/utils/announcementNoiseFilter.js](stock-api/src/utils/announcementNoiseFilter.js)               | Exported from announcementNoiseFilter.js   |
-| `saveNoiseKeywords`             | [stock-api/src/utils/announcementNoiseFilter.js](stock-api/src/utils/announcementNoiseFilter.js)               | Exported from announcementNoiseFilter.js   |
-| `shouldIgnoreAnnouncement`      | [stock-api/src/utils/announcementNoiseFilter.js](stock-api/src/utils/announcementNoiseFilter.js)               | Exported from announcementNoiseFilter.js   |
-| `matchedNoiseKeyword`           | [stock-api/src/utils/announcementNoiseFilter.js](stock-api/src/utils/announcementNoiseFilter.js)               | Exported from announcementNoiseFilter.js   |
-| `scanAnnouncementsForCompanies` | [stock-api/src/utils/bulkAnnouncementScan.js](stock-api/src/utils/bulkAnnouncementScan.js)                     | Exported from bulkAnnouncementScan.js      |
-| `scanAllPages`                  | [stock-api/src/utils/bulkAnnouncementScan.js](stock-api/src/utils/bulkAnnouncementScan.js)                     | Exported from bulkAnnouncementScan.js      |
-| `computeReleaseQuarterDate`     | [stock-api/src/utils/bulkAnnouncementScan.js](stock-api/src/utils/bulkAnnouncementScan.js)                     | Exported from bulkAnnouncementScan.js      |
-| `buildAnnouncementScanBody`     | [stock-api/src/utils/bulkAnnouncementScan.js](stock-api/src/utils/bulkAnnouncementScan.js)                     | Exported from bulkAnnouncementScan.js      |
-| `expandQuarters`                | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
-| `assertTypes`                   | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
-| `withBackoff`                   | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
-| `isRetryable`                   | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
-| `retryAfterMs`                  | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
-| `createPacer`                   | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
-| `buildScan`                     | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
-| `normalizeRow`                  | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
-| `scanUnit`                      | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
-| `runBulkScan`                   | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
-| `cleanupWatchlists`             | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                 | Exported from bulkFilingScan.js            |
-| `sanitizeCompanyId`             | [stock-api/src/utils/companyId.js](stock-api/src/utils/companyId.js)                                           | Exported from companyId.js                 |
-| `resolveCompanyId`              | [stock-api/src/utils/companyId.js](stock-api/src/utils/companyId.js)                                           | Exported from companyId.js                 |
-| `resolveCompanyIdentity`        | [stock-api/src/utils/companyId.js](stock-api/src/utils/companyId.js)                                           | Exported from companyId.js                 |
-| `mapWithConcurrency`            | [stock-api/src/utils/concurrency.js](stock-api/src/utils/concurrency.js)                                       | Exported from concurrency.js               |
-| `withRetry`                     | [stock-api/src/utils/concurrency.js](stock-api/src/utils/concurrency.js)                                       | Exported from concurrency.js               |
-| `chunk`                         | [stock-api/src/utils/concurrency.js](stock-api/src/utils/concurrency.js)                                       | Exported from concurrency.js               |
-| `latestCompletedQuarter`        | [stock-api/src/utils/fiscalQuarter.js](stock-api/src/utils/fiscalQuarter.js)                                   | Exported from fiscalQuarter.js             |
-| `parseQuarterString`            | [stock-api/src/utils/fiscalQuarter.js](stock-api/src/utils/fiscalQuarter.js)                                   | Exported from fiscalQuarter.js             |
-| `calendarToQuarter`             | [stock-api/src/utils/fiscalQuarter.js](stock-api/src/utils/fiscalQuarter.js)                                   | Exported from fiscalQuarter.js             |
-| `wrapHtml`                      | [stock-api/src/utils/pdfRenderer.js](stock-api/src/utils/pdfRenderer.js)                                       | Exported from pdfRenderer.js               |
-| `markdownToHtml`                | [stock-api/src/utils/pdfRenderer.js](stock-api/src/utils/pdfRenderer.js)                                       | Exported from pdfRenderer.js               |
-| `renderPdf`                     | [stock-api/src/utils/pdfRenderer.js](stock-api/src/utils/pdfRenderer.js)                                       | Exported from pdfRenderer.js               |
-| `parseMarkdownTable`            | [stock-api/src/utils/pdfUtils.js](stock-api/src/utils/pdfUtils.js)                                             | Exported from pdfUtils.js                  |
-| `formatInlineMarkdown`          | [stock-api/src/utils/pdfUtils.js](stock-api/src/utils/pdfUtils.js)                                             | Exported from pdfUtils.js                  |
-| `styledTableHtml`               | [stock-api/src/utils/pdfUtils.js](stock-api/src/utils/pdfUtils.js)                                             | Exported from pdfUtils.js                  |
-| `chipHtml`                      | [stock-api/src/utils/pdfUtils.js](stock-api/src/utils/pdfUtils.js)                                             | Exported from pdfUtils.js                  |
-| `calloutHtml`                   | [stock-api/src/utils/pdfUtils.js](stock-api/src/utils/pdfUtils.js)                                             | Exported from pdfUtils.js                  |
-| `buildTranscriptContent`        | [stock-api/src/utils/transcriptSchema.js](stock-api/src/utils/transcriptSchema.js)                             | Exported from transcriptSchema.js          |
-| `segmentsFromParagraphs`        | [stock-api/src/utils/transcriptSchema.js](stock-api/src/utils/transcriptSchema.js)                             | Exported from transcriptSchema.js          |
-| `parseSpeakerLabeledText`       | [stock-api/src/utils/transcriptSchema.js](stock-api/src/utils/transcriptSchema.js)                             | Exported from transcriptSchema.js          |
-| `segmentsToFullText`            | [stock-api/src/utils/transcriptSchema.js](stock-api/src/utils/transcriptSchema.js)                             | Exported from transcriptSchema.js          |
-| `classifyRole`                  | [stock-api/src/utils/transcriptSchema.js](stock-api/src/utils/transcriptSchema.js)                             | Exported from transcriptSchema.js          |
+| Utility Name                           | Source File                                                                                                          | Description                                   |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `compute`                              | [stock-api/src/analyzers/balanceSheetSignals.js](stock-api/src/analyzers/balanceSheetSignals.js)                     | Exported from balanceSheetSignals.js          |
+| `getOrCompute`                         | [stock-api/src/analyzers/balanceSheetSignals.js](stock-api/src/analyzers/balanceSheetSignals.js)                     | Exported from balanceSheetSignals.js          |
+| `readCache`                            | [stock-api/src/analyzers/balanceSheetSignals.js](stock-api/src/analyzers/balanceSheetSignals.js)                     | Exported from balanceSheetSignals.js          |
+| `writeCache`                           | [stock-api/src/analyzers/balanceSheetSignals.js](stock-api/src/analyzers/balanceSheetSignals.js)                     | Exported from balanceSheetSignals.js          |
+| `derive`                               | [stock-api/src/analyzers/balanceSheetSignals.js](stock-api/src/analyzers/balanceSheetSignals.js)                     | Exported from balanceSheetSignals.js          |
+| `calculateCapacityProgression`         | [stock-api/src/analyzers/capexScalingCalculator.js](stock-api/src/analyzers/capexScalingCalculator.js)               | Exported from capexScalingCalculator.js       |
+| `calculateRevenuePotential`            | [stock-api/src/analyzers/capexScalingCalculator.js](stock-api/src/analyzers/capexScalingCalculator.js)               | Exported from capexScalingCalculator.js       |
+| `extractValueCrore`                    | [stock-api/src/analyzers/catalystRules.js](stock-api/src/analyzers/catalystRules.js)                                 | Exported from catalystRules.js                |
+| `findNames`                            | [stock-api/src/analyzers/catalystRules.js](stock-api/src/analyzers/catalystRules.js)                                 | Exported from catalystRules.js                |
+| `classify`                             | [stock-api/src/analyzers/catalystRules.js](stock-api/src/analyzers/catalystRules.js)                                 | Exported from catalystRules.js                |
+| `priceVolumeAlerts`                    | [stock-api/src/analyzers/catalystRules.js](stock-api/src/analyzers/catalystRules.js)                                 | Exported from catalystRules.js                |
+| `computeJCurveScore`                   | [stock-api/src/analyzers/catalystRules.js](stock-api/src/analyzers/catalystRules.js)                                 | Exported from catalystRules.js                |
+| `jCurvePatThresholdHint`               | [stock-api/src/analyzers/catalystRules.js](stock-api/src/analyzers/catalystRules.js)                                 | Exported from catalystRules.js                |
+| `parseCompanyPage`                     | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                         | Exported from companyFinancials.js            |
+| `selectBaselines`                      | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                         | Exported from companyFinancials.js            |
+| `seasonalShares`                       | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                         | Exported from companyFinancials.js            |
+| `getCompanyFinancials`                 | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                         | Exported from companyFinancials.js            |
+| `parsePeriodHeader`                    | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                         | Exported from companyFinancials.js            |
+| `quarterLabel`                         | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                         | Exported from companyFinancials.js            |
+| `yearLabel`                            | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                         | Exported from companyFinancials.js            |
+| `shiftQuarter`                         | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                         | Exported from companyFinancials.js            |
+| `textNodes`                            | [stock-api/src/analyzers/companyFinancials.js](stock-api/src/analyzers/companyFinancials.js)                         | Exported from companyFinancials.js            |
+| `hhiClassification`                    | [stock-api/src/analyzers/computeConcentration.js](stock-api/src/analyzers/computeConcentration.js)                   | Exported from computeConcentration.js         |
+| `crN`                                  | [stock-api/src/analyzers/computeConcentration.js](stock-api/src/analyzers/computeConcentration.js)                   | Exported from computeConcentration.js         |
+| `hhi`                                  | [stock-api/src/analyzers/computeConcentration.js](stock-api/src/analyzers/computeConcentration.js)                   | Exported from computeConcentration.js         |
+| `computeMetrics`                       | [stock-api/src/analyzers/computeConcentration.js](stock-api/src/analyzers/computeConcentration.js)                   | Exported from computeConcentration.js         |
+| `deltaBps`                             | [stock-api/src/analyzers/computeConcentration.js](stock-api/src/analyzers/computeConcentration.js)                   | Exported from computeConcentration.js         |
+| `asymmetricFlag`                       | [stock-api/src/analyzers/computeConcentration.js](stock-api/src/analyzers/computeConcentration.js)                   | Exported from computeConcentration.js         |
+| `classifyEventText`                    | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)                   | Exported from eventReactionSignals.js         |
+| `parseNseTimestamp`                    | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)                   | Exported from eventReactionSignals.js         |
+| `parseBseTimestamp`                    | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)                   | Exported from eventReactionSignals.js         |
+| `normalizeNseAnnouncement`             | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)                   | Exported from eventReactionSignals.js         |
+| `normalizeBseAnnouncement`             | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)                   | Exported from eventReactionSignals.js         |
+| `mergeAnnouncements`                   | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)                   | Exported from eventReactionSignals.js         |
+| `findLatestEvent`                      | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)                   | Exported from eventReactionSignals.js         |
+| `earliestEventTimestamp`               | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)                   | Exported from eventReactionSignals.js         |
+| `normalizeOhlcv`                       | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)                   | Exported from eventReactionSignals.js         |
+| `candleIndexAtOrAfter`                 | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)                   | Exported from eventReactionSignals.js         |
+| `candleIndexAtOrBefore`                | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)                   | Exported from eventReactionSignals.js         |
+| `computeReactionMetrics`               | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)                   | Exported from eventReactionSignals.js         |
+| `classifySignal`                       | [stock-api/src/analyzers/eventReactionSignals.js](stock-api/src/analyzers/eventReactionSignals.js)                   | Exported from eventReactionSignals.js         |
+| `evaluateCatalystRules`                | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `computeConcentration`                 | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `computeHHI`                           | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `parseTweetDump`                       | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `runScan`                              | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `resolveUniverse`                      | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `applyLiquidityGate`                   | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `postEventReturns`                     | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `eventReturns`                         | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `driftSignature`                       | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `parseScreenerInsights`                | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `detectAuthState`                      | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `parseProsCons`                        | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `parseTopRatios`                       | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `tagInsights`                          | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `avgTradedValueCr`                     | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `toCandles`                            | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `fetchPriceMetrics`                    | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `normalizePvd`                         | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `scanCatalysts`                        | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `computePatBridge`                     | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `computeJCurveFinancialHealth`         | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `...require('./resultTimingAnalyzer')` | [stock-api/src/analyzers/index.js](stock-api/src/analyzers/index.js)                                                 | Exported from index.js                        |
+| `pctGrowth`                            | [stock-api/src/analyzers/jcurveFinancialMetrics.js](stock-api/src/analyzers/jcurveFinancialMetrics.js)               | Exported from jcurveFinancialMetrics.js       |
+| `round`                                | [stock-api/src/analyzers/jcurveFinancialMetrics.js](stock-api/src/analyzers/jcurveFinancialMetrics.js)               | Exported from jcurveFinancialMetrics.js       |
+| `sniffAndParse`                        | [stock-api/src/analyzers/parseTweetDump.js](stock-api/src/analyzers/parseTweetDump.js)                               | Exported from parseTweetDump.js               |
+| `resolveReplyContext`                  | [stock-api/src/analyzers/parseTweetDump.js](stock-api/src/analyzers/parseTweetDump.js)                               | Exported from parseTweetDump.js               |
+| `normaliseTweet`                       | [stock-api/src/analyzers/parseTweetDump.js](stock-api/src/analyzers/parseTweetDump.js)                               | Exported from parseTweetDump.js               |
+| `normalizeRate`                        | [stock-api/src/analyzers/patBridge.js](stock-api/src/analyzers/patBridge.js)                                         | Exported from patBridge.js                    |
+| `roundTo`                              | [stock-api/src/analyzers/patBridge.js](stock-api/src/analyzers/patBridge.js)                                         | Exported from patBridge.js                    |
+| `normalizeCandles`                     | [stock-api/src/analyzers/postEventReturns.js](stock-api/src/analyzers/postEventReturns.js)                           | Exported from postEventReturns.js             |
+| `anchorIndex`                          | [stock-api/src/analyzers/postEventReturns.js](stock-api/src/analyzers/postEventReturns.js)                           | Exported from postEventReturns.js             |
+| `forwardReturn`                        | [stock-api/src/analyzers/postEventReturns.js](stock-api/src/analyzers/postEventReturns.js)                           | Exported from postEventReturns.js             |
+| `tsToDate`                             | [stock-api/src/analyzers/postEventReturns.js](stock-api/src/analyzers/postEventReturns.js)                           | Exported from postEventReturns.js             |
+| `toIsoDate`                            | [stock-api/src/analyzers/priceMetrics.js](stock-api/src/analyzers/priceMetrics.js)                                   | Exported from priceMetrics.js                 |
+| `median`                               | [stock-api/src/analyzers/priceSpikeSignals.js](stock-api/src/analyzers/priceSpikeSignals.js)                         | Exported from priceSpikeSignals.js            |
+| `computeDailyMetrics`                  | [stock-api/src/analyzers/priceSpikeSignals.js](stock-api/src/analyzers/priceSpikeSignals.js)                         | Exported from priceSpikeSignals.js            |
+| `findSpikeDays`                        | [stock-api/src/analyzers/priceSpikeSignals.js](stock-api/src/analyzers/priceSpikeSignals.js)                         | Exported from priceSpikeSignals.js            |
+| `findRecentSpikeDays`                  | [stock-api/src/analyzers/priceSpikeSignals.js](stock-api/src/analyzers/priceSpikeSignals.js)                         | Exported from priceSpikeSignals.js            |
+| `computeKpiCards`                      | [stock-api/src/analyzers/resultAnalysisContext.js](stock-api/src/analyzers/resultAnalysisContext.js)                 | Exported from resultAnalysisContext.js        |
+| `gradeStatementHealth`                 | [stock-api/src/analyzers/resultAnalysisContext.js](stock-api/src/analyzers/resultAnalysisContext.js)                 | Exported from resultAnalysisContext.js        |
+| `computeMandatoryChips`                | [stock-api/src/analyzers/resultAnalysisContext.js](stock-api/src/analyzers/resultAnalysisContext.js)                 | Exported from resultAnalysisContext.js        |
+| `buildAnalysisContext`                 | [stock-api/src/analyzers/resultAnalysisContext.js](stock-api/src/analyzers/resultAnalysisContext.js)                 | Exported from resultAnalysisContext.js        |
+| `buildNbfcQualityChecks`               | [stock-api/src/analyzers/resultAnalysisContext.js](stock-api/src/analyzers/resultAnalysisContext.js)                 | Exported from resultAnalysisContext.js        |
+| `isNbfcRecord`                         | [stock-api/src/analyzers/resultAnalysisContext.js](stock-api/src/analyzers/resultAnalysisContext.js)                 | Exported from resultAnalysisContext.js        |
+| `formatRsCr`                           | [stock-api/src/analyzers/resultAnalysisContext.js](stock-api/src/analyzers/resultAnalysisContext.js)                 | Exported from resultAnalysisContext.js        |
+| `formatPct`                            | [stock-api/src/analyzers/resultAnalysisContext.js](stock-api/src/analyzers/resultAnalysisContext.js)                 | Exported from resultAnalysisContext.js        |
+| `normalizeQuarter`                     | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `parsePeriod`                          | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `parseRange`                           | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `collectPriorGuidance`                 | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `measurability`                        | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `buildWalkTheTalkLedger`               | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `scoreRow`                             | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `scoreWalkTheTalk`                     | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `marginLeg`                            | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `operatingLeverage`                    | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `guidanceTrustLeg`                     | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `catalystLeg`                          | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `inflectionVerdict`                    | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `buildNextInflection`                  | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `buildSeeds`                           | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `prepareInflectionContext`             | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `finalizeInflection`                   | [stock-api/src/analyzers/resultInflection.js](stock-api/src/analyzers/resultInflection.js)                           | Exported from resultInflection.js             |
+| `analyzeResultTimings`                 | [stock-api/src/analyzers/resultTimingAnalyzer.js](stock-api/src/analyzers/resultTimingAnalyzer.js)                   | Exported from resultTimingAnalyzer.js         |
+| `computeTimingStats`                   | [stock-api/src/analyzers/resultTimingAnalyzer.js](stock-api/src/analyzers/resultTimingAnalyzer.js)                   | Exported from resultTimingAnalyzer.js         |
+| `formatSummaryTable`                   | [stock-api/src/analyzers/resultTimingAnalyzer.js](stock-api/src/analyzers/resultTimingAnalyzer.js)                   | Exported from resultTimingAnalyzer.js         |
+| `parseTimeMinutes`                     | [stock-api/src/analyzers/resultTimingAnalyzer.js](stock-api/src/analyzers/resultTimingAnalyzer.js)                   | Exported from resultTimingAnalyzer.js         |
+| `classifyMarketSession`                | [stock-api/src/analyzers/resultTimingAnalyzer.js](stock-api/src/analyzers/resultTimingAnalyzer.js)                   | Exported from resultTimingAnalyzer.js         |
+| `deriveQuarterLabel`                   | [stock-api/src/analyzers/resultTimingAnalyzer.js](stock-api/src/analyzers/resultTimingAnalyzer.js)                   | Exported from resultTimingAnalyzer.js         |
+| `isPrimaryResultAnnouncement`          | [stock-api/src/analyzers/resultTimingAnalyzer.js](stock-api/src/analyzers/resultTimingAnalyzer.js)                   | Exported from resultTimingAnalyzer.js         |
+| `parseScanId`                          | [stock-api/src/analyzers/runScan.js](stock-api/src/analyzers/runScan.js)                                             | Exported from runScan.js                      |
+| `buildRunPayload`                      | [stock-api/src/analyzers/runScan.js](stock-api/src/analyzers/runScan.js)                                             | Exported from runScan.js                      |
+| `flattenTable`                         | [stock-api/src/analyzers/runScan.js](stock-api/src/analyzers/runScan.js)                                             | Exported from runScan.js                      |
+| `col`                                  | [stock-api/src/analyzers/runScan.js](stock-api/src/analyzers/runScan.js)                                             | Exported from runScan.js                      |
+| `toCrore`                              | [stock-api/src/analyzers/runScan.js](stock-api/src/analyzers/runScan.js)                                             | Exported from runScan.js                      |
+| `parseNum`                             | [stock-api/src/analyzers/runScan.js](stock-api/src/analyzers/runScan.js)                                             | Exported from runScan.js                      |
+| `renderHtml`                           | [stock-api/src/analyzers/scanCatalysts.js](stock-api/src/analyzers/scanCatalysts.js)                                 | Exported from scanCatalysts.js                |
+| `fetchAnnouncementsBatch`              | [stock-api/src/analyzers/scanCatalysts.js](stock-api/src/analyzers/scanCatalysts.js)                                 | Exported from scanCatalysts.js                |
+| `pickRatio`                            | [stock-api/src/analyzers/screenerInsights.js](stock-api/src/analyzers/screenerInsights.js)                           | Exported from screenerInsights.js             |
+| `stripTags`                            | [stock-api/src/analyzers/screenerInsights.js](stock-api/src/analyzers/screenerInsights.js)                           | Exported from screenerInsights.js             |
+| `fetchAndExtract`                      | [stock-api/src/fetchers/announcementScanner.js](stock-api/src/fetchers/announcementScanner.js)                       | Exported from announcementScanner.js          |
+| `lastNQuarterDates`                    | [stock-api/src/fetchers/announcementScanner.js](stock-api/src/fetchers/announcementScanner.js)                       | Exported from announcementScanner.js          |
+| `fetchQuarter`                         | [stock-api/src/fetchers/announcementScanner.js](stock-api/src/fetchers/announcementScanner.js)                       | Exported from announcementScanner.js          |
+| `extractNgrams`                        | [stock-api/src/fetchers/announcementScanner.js](stock-api/src/fetchers/announcementScanner.js)                       | Exported from announcementScanner.js          |
+| `extractCandidatePhrases`              | [stock-api/src/fetchers/announcementScanner.js](stock-api/src/fetchers/announcementScanner.js)                       | Exported from announcementScanner.js          |
+| `tokenize`                             | [stock-api/src/fetchers/announcementScanner.js](stock-api/src/fetchers/announcementScanner.js)                       | Exported from announcementScanner.js          |
+| `fetchAnnouncements`                   | [stock-api/src/fetchers/announcementsFetcher.js](stock-api/src/fetchers/announcementsFetcher.js)                     | Exported from announcementsFetcher.js         |
+| `iterAnnouncements`                    | [stock-api/src/fetchers/announcementsFetcher.js](stock-api/src/fetchers/announcementsFetcher.js)                     | Exported from announcementsFetcher.js         |
+| `matchesQuery`                         | [stock-api/src/fetchers/announcementsFetcher.js](stock-api/src/fetchers/announcementsFetcher.js)                     | Exported from announcementsFetcher.js         |
+| `inDateRange`                          | [stock-api/src/fetchers/announcementsFetcher.js](stock-api/src/fetchers/announcementsFetcher.js)                     | Exported from announcementsFetcher.js         |
+| `announcementFilename`                 | [stock-api/src/fetchers/announcementsFetcher.js](stock-api/src/fetchers/announcementsFetcher.js)                     | Exported from announcementsFetcher.js         |
+| `fetchDailyCandles`                    | [stock-api/src/fetchers/dailyCandlesFetcher.js](stock-api/src/fetchers/dailyCandlesFetcher.js)                       | Exported from dailyCandlesFetcher.js          |
+| `normalizeStockscansPrices`            | [stock-api/src/fetchers/dailyCandlesFetcher.js](stock-api/src/fetchers/dailyCandlesFetcher.js)                       | Exported from dailyCandlesFetcher.js          |
+| `fetchDocuments`                       | [stock-api/src/fetchers/documentsFetcher.js](stock-api/src/fetchers/documentsFetcher.js)                             | Exported from documentsFetcher.js             |
+| `filterDocuments`                      | [stock-api/src/fetchers/documentsFetcher.js](stock-api/src/fetchers/documentsFetcher.js)                             | Exported from documentsFetcher.js             |
+| `normaliseType`                        | [stock-api/src/fetchers/documentsFetcher.js](stock-api/src/fetchers/documentsFetcher.js)                             | Exported from documentsFetcher.js             |
+| `parseDateFilter`                      | [stock-api/src/fetchers/documentsFetcher.js](stock-api/src/fetchers/documentsFetcher.js)                             | Exported from documentsFetcher.js             |
+| `docYyyymm`                            | [stock-api/src/fetchers/documentsFetcher.js](stock-api/src/fetchers/documentsFetcher.js)                             | Exported from documentsFetcher.js             |
+| `safeTicker`                           | [stock-api/src/fetchers/documentsFetcher.js](stock-api/src/fetchers/documentsFetcher.js)                             | Exported from documentsFetcher.js             |
+| `buildFilename`                        | [stock-api/src/fetchers/documentsFetcher.js](stock-api/src/fetchers/documentsFetcher.js)                             | Exported from documentsFetcher.js             |
+| `toIstNaiveString`                     | [stock-api/src/fetchers/reactionCandlesFetcher.js](stock-api/src/fetchers/reactionCandlesFetcher.js)                 | Exported from reactionCandlesFetcher.js       |
+| `toIstDateString`                      | [stock-api/src/fetchers/reactionCandlesFetcher.js](stock-api/src/fetchers/reactionCandlesFetcher.js)                 | Exported from reactionCandlesFetcher.js       |
+| `normalizeRows`                        | [stock-api/src/fetchers/reactionCandlesFetcher.js](stock-api/src/fetchers/reactionCandlesFetcher.js)                 | Exported from reactionCandlesFetcher.js       |
+| `fetchTier`                            | [stock-api/src/fetchers/reactionCandlesFetcher.js](stock-api/src/fetchers/reactionCandlesFetcher.js)                 | Exported from reactionCandlesFetcher.js       |
+| `fetchReactionCandles`                 | [stock-api/src/fetchers/reactionCandlesFetcher.js](stock-api/src/fetchers/reactionCandlesFetcher.js)                 | Exported from reactionCandlesFetcher.js       |
+| `createConcallPdf`                     | [stock-api/src/generators/generateConcallPdf.js](stock-api/src/generators/generateConcallPdf.js)                     | Exported from generateConcallPdf.js           |
+| `createCredibilityWidget`              | [stock-api/src/generators/generateCredibilityWidget.js](stock-api/src/generators/generateCredibilityWidget.js)       | Exported from generateCredibilityWidget.js    |
+| `getCredibilitySchema`                 | [stock-api/src/generators/generateCredibilityWidget.js](stock-api/src/generators/generateCredibilityWidget.js)       | Exported from generateCredibilityWidget.js    |
+| `createDrhpPdf`                        | [stock-api/src/generators/generateDrhpPdf.js](stock-api/src/generators/generateDrhpPdf.js)                           | Exported from generateDrhpPdf.js              |
+| `createForensicPdf`                    | [stock-api/src/generators/generateForensicPdf.js](stock-api/src/generators/generateForensicPdf.js)                   | Exported from generateForensicPdf.js          |
+| `getForensicSchema`                    | [stock-api/src/generators/generateForensicPdf.js](stock-api/src/generators/generateForensicPdf.js)                   | Exported from generateForensicPdf.js          |
+| `createGrowthTriggersPdf`              | [stock-api/src/generators/generateGrowthTriggersPdf.js](stock-api/src/generators/generateGrowthTriggersPdf.js)       | Exported from generateGrowthTriggersPdf.js    |
+| `createMarketShareWidget`              | [stock-api/src/generators/generateMarketShareHtml.js](stock-api/src/generators/generateMarketShareHtml.js)           | Exported from generateMarketShareHtml.js      |
+| `createPeerComparisonPdf`              | [stock-api/src/generators/generatePeerPdf.js](stock-api/src/generators/generatePeerPdf.js)                           | Exported from generatePeerPdf.js              |
+| `getPeerSchema`                        | [stock-api/src/generators/generatePeerPdf.js](stock-api/src/generators/generatePeerPdf.js)                           | Exported from generatePeerPdf.js              |
+| `createQuarterlyResultPdf`             | [stock-api/src/generators/generateQuarterlyResultPdf.js](stock-api/src/generators/generateQuarterlyResultPdf.js)     | Exported from generateQuarterlyResultPdf.js   |
+| `renderInflectionPoint`                | [stock-api/src/generators/generateQuarterlyResultPdf.js](stock-api/src/generators/generateQuarterlyResultPdf.js)     | Exported from generateQuarterlyResultPdf.js   |
+| `renderWalkTheTalk`                    | [stock-api/src/generators/generateQuarterlyResultPdf.js](stock-api/src/generators/generateQuarterlyResultPdf.js)     | Exported from generateQuarterlyResultPdf.js   |
+| `renderNextInflection`                 | [stock-api/src/generators/generateQuarterlyResultPdf.js](stock-api/src/generators/generateQuarterlyResultPdf.js)     | Exported from generateQuarterlyResultPdf.js   |
+| `createResearchReport`                 | [stock-api/src/generators/generateReport.js](stock-api/src/generators/generateReport.js)                             | Exported from generateReport.js               |
+| `createResearchReportFromDto`          | [stock-api/src/generators/generateReport.js](stock-api/src/generators/generateReport.js)                             | Exported from generateReport.js               |
+| `writeReportDto`                       | [stock-api/src/generators/generateReport.js](stock-api/src/generators/generateReport.js)                             | Exported from generateReport.js               |
+| `createReratingCatalystsPdf`           | [stock-api/src/generators/generateReratingCatalystsPdf.js](stock-api/src/generators/generateReratingCatalystsPdf.js) | Exported from generateReratingCatalystsPdf.js |
+| `createSectorReport`                   | [stock-api/src/generators/generateSectorReport.js](stock-api/src/generators/generateSectorReport.js)                 | Exported from generateSectorReport.js         |
+| `parseLatestDate`                      | [stock-api/src/index.js](stock-api/src/index.js)                                                                     | Exported from index.js                        |
+| `nse`                                  | [stock-api/src/index.js](stock-api/src/index.js)                                                                     | Exported from index.js                        |
+| `bse`                                  | [stock-api/src/index.js](stock-api/src/index.js)                                                                     | Exported from index.js                        |
+| `screener`                             | [stock-api/src/index.js](stock-api/src/index.js)                                                                     | Exported from index.js                        |
+| `tradingview`                          | [stock-api/src/index.js](stock-api/src/index.js)                                                                     | Exported from index.js                        |
+| `indiamtf`                             | [stock-api/src/index.js](stock-api/src/index.js)                                                                     | Exported from index.js                        |
+| `nseSession`                           | [stock-api/src/index.js](stock-api/src/index.js)                                                                     | Exported from index.js                        |
+| `nseMcpSession`                        | [stock-api/src/index.js](stock-api/src/index.js)                                                                     | Exported from index.js                        |
+| `fetchEventReactionMetrics`            | [stock-api/src/orchestration/eventReactionMetrics.js](stock-api/src/orchestration/eventReactionMetrics.js)           | Exported from eventReactionMetrics.js         |
+| `fmtNse`                               | [stock-api/src/orchestration/eventReactionMetrics.js](stock-api/src/orchestration/eventReactionMetrics.js)           | Exported from eventReactionMetrics.js         |
+| `fmtBse`                               | [stock-api/src/orchestration/eventReactionMetrics.js](stock-api/src/orchestration/eventReactionMetrics.js)           | Exported from eventReactionMetrics.js         |
+| `normalizeText`                        | [stock-api/src/utils/announcementNoiseFilter.js](stock-api/src/utils/announcementNoiseFilter.js)                     | Exported from announcementNoiseFilter.js      |
+| `normalizeKeywordList`                 | [stock-api/src/utils/announcementNoiseFilter.js](stock-api/src/utils/announcementNoiseFilter.js)                     | Exported from announcementNoiseFilter.js      |
+| `keywordToRegExp`                      | [stock-api/src/utils/announcementNoiseFilter.js](stock-api/src/utils/announcementNoiseFilter.js)                     | Exported from announcementNoiseFilter.js      |
+| `loadNoiseKeywords`                    | [stock-api/src/utils/announcementNoiseFilter.js](stock-api/src/utils/announcementNoiseFilter.js)                     | Exported from announcementNoiseFilter.js      |
+| `saveNoiseKeywords`                    | [stock-api/src/utils/announcementNoiseFilter.js](stock-api/src/utils/announcementNoiseFilter.js)                     | Exported from announcementNoiseFilter.js      |
+| `shouldIgnoreAnnouncement`             | [stock-api/src/utils/announcementNoiseFilter.js](stock-api/src/utils/announcementNoiseFilter.js)                     | Exported from announcementNoiseFilter.js      |
+| `matchedNoiseKeyword`                  | [stock-api/src/utils/announcementNoiseFilter.js](stock-api/src/utils/announcementNoiseFilter.js)                     | Exported from announcementNoiseFilter.js      |
+| `scanAnnouncementsForCompanies`        | [stock-api/src/utils/bulkAnnouncementScan.js](stock-api/src/utils/bulkAnnouncementScan.js)                           | Exported from bulkAnnouncementScan.js         |
+| `scanAllPages`                         | [stock-api/src/utils/bulkAnnouncementScan.js](stock-api/src/utils/bulkAnnouncementScan.js)                           | Exported from bulkAnnouncementScan.js         |
+| `computeReleaseQuarterDate`            | [stock-api/src/utils/bulkAnnouncementScan.js](stock-api/src/utils/bulkAnnouncementScan.js)                           | Exported from bulkAnnouncementScan.js         |
+| `buildAnnouncementScanBody`            | [stock-api/src/utils/bulkAnnouncementScan.js](stock-api/src/utils/bulkAnnouncementScan.js)                           | Exported from bulkAnnouncementScan.js         |
+| `expandQuarters`                       | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                       | Exported from bulkFilingScan.js               |
+| `assertTypes`                          | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                       | Exported from bulkFilingScan.js               |
+| `withBackoff`                          | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                       | Exported from bulkFilingScan.js               |
+| `isRetryable`                          | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                       | Exported from bulkFilingScan.js               |
+| `retryAfterMs`                         | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                       | Exported from bulkFilingScan.js               |
+| `createPacer`                          | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                       | Exported from bulkFilingScan.js               |
+| `buildScan`                            | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                       | Exported from bulkFilingScan.js               |
+| `normalizeRow`                         | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                       | Exported from bulkFilingScan.js               |
+| `scanUnit`                             | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                       | Exported from bulkFilingScan.js               |
+| `runBulkScan`                          | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                       | Exported from bulkFilingScan.js               |
+| `cleanupWatchlists`                    | [stock-api/src/utils/bulkFilingScan.js](stock-api/src/utils/bulkFilingScan.js)                                       | Exported from bulkFilingScan.js               |
+| `sanitizeCompanyId`                    | [stock-api/src/utils/companyId.js](stock-api/src/utils/companyId.js)                                                 | Exported from companyId.js                    |
+| `resolveCompanyId`                     | [stock-api/src/utils/companyId.js](stock-api/src/utils/companyId.js)                                                 | Exported from companyId.js                    |
+| `resolveCompanyIdentity`               | [stock-api/src/utils/companyId.js](stock-api/src/utils/companyId.js)                                                 | Exported from companyId.js                    |
+| `mapWithConcurrency`                   | [stock-api/src/utils/concurrency.js](stock-api/src/utils/concurrency.js)                                             | Exported from concurrency.js                  |
+| `withRetry`                            | [stock-api/src/utils/concurrency.js](stock-api/src/utils/concurrency.js)                                             | Exported from concurrency.js                  |
+| `chunk`                                | [stock-api/src/utils/concurrency.js](stock-api/src/utils/concurrency.js)                                             | Exported from concurrency.js                  |
+| `latestCompletedQuarter`               | [stock-api/src/utils/fiscalQuarter.js](stock-api/src/utils/fiscalQuarter.js)                                         | Exported from fiscalQuarter.js                |
+| `parseQuarterString`                   | [stock-api/src/utils/fiscalQuarter.js](stock-api/src/utils/fiscalQuarter.js)                                         | Exported from fiscalQuarter.js                |
+| `calendarToQuarter`                    | [stock-api/src/utils/fiscalQuarter.js](stock-api/src/utils/fiscalQuarter.js)                                         | Exported from fiscalQuarter.js                |
+| `wrapHtml`                             | [stock-api/src/utils/pdfRenderer.js](stock-api/src/utils/pdfRenderer.js)                                             | Exported from pdfRenderer.js                  |
+| `markdownToHtml`                       | [stock-api/src/utils/pdfRenderer.js](stock-api/src/utils/pdfRenderer.js)                                             | Exported from pdfRenderer.js                  |
+| `renderPdf`                            | [stock-api/src/utils/pdfRenderer.js](stock-api/src/utils/pdfRenderer.js)                                             | Exported from pdfRenderer.js                  |
+| `parseMarkdownTable`                   | [stock-api/src/utils/pdfUtils.js](stock-api/src/utils/pdfUtils.js)                                                   | Exported from pdfUtils.js                     |
+| `formatInlineMarkdown`                 | [stock-api/src/utils/pdfUtils.js](stock-api/src/utils/pdfUtils.js)                                                   | Exported from pdfUtils.js                     |
+| `styledTableHtml`                      | [stock-api/src/utils/pdfUtils.js](stock-api/src/utils/pdfUtils.js)                                                   | Exported from pdfUtils.js                     |
+| `chipHtml`                             | [stock-api/src/utils/pdfUtils.js](stock-api/src/utils/pdfUtils.js)                                                   | Exported from pdfUtils.js                     |
+| `calloutHtml`                          | [stock-api/src/utils/pdfUtils.js](stock-api/src/utils/pdfUtils.js)                                                   | Exported from pdfUtils.js                     |
+| `renderValue`                          | [stock-api/src/utils/renderAdditional.js](stock-api/src/utils/renderAdditional.js)                                   | Exported from renderAdditional.js             |
+| `renderAdditionalHtml`                 | [stock-api/src/utils/renderAdditional.js](stock-api/src/utils/renderAdditional.js)                                   | Exported from renderAdditional.js             |
+| `buildTranscriptContent`               | [stock-api/src/utils/transcriptSchema.js](stock-api/src/utils/transcriptSchema.js)                                   | Exported from transcriptSchema.js             |
+| `segmentsFromParagraphs`               | [stock-api/src/utils/transcriptSchema.js](stock-api/src/utils/transcriptSchema.js)                                   | Exported from transcriptSchema.js             |
+| `parseSpeakerLabeledText`              | [stock-api/src/utils/transcriptSchema.js](stock-api/src/utils/transcriptSchema.js)                                   | Exported from transcriptSchema.js             |
+| `segmentsToFullText`                   | [stock-api/src/utils/transcriptSchema.js](stock-api/src/utils/transcriptSchema.js)                                   | Exported from transcriptSchema.js             |
+| `classifyRole`                         | [stock-api/src/utils/transcriptSchema.js](stock-api/src/utils/transcriptSchema.js)                                   | Exported from transcriptSchema.js             |

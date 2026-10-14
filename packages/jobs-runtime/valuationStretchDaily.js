@@ -113,14 +113,12 @@ async function main() {
         universe: universe.length,
         detected: flagged.filter((o) => o.state === 'detected').length,
         confirmed: flagged.filter((o) => o.state === 'confirmed').length,
-        sample: flagged
-          .slice(0, 15)
-          .map((o) => ({
-            id: o.entityId,
-            name: o.evidence.name,
-            state: o.state,
-            flags: o.evidence.flags,
-          })),
+        sample: flagged.slice(0, 15).map((o) => ({
+          id: o.entityId,
+          name: o.evidence.name,
+          state: o.state,
+          flags: o.evidence.flags,
+        })),
         ledger,
         filesTouched: dryRun ? [] : db.touchedFiles(),
       },

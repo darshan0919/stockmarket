@@ -1,0 +1,11 @@
+{
+  "slot": "adhoc",
+  "total": 69,
+  "noiseDropped": 20,
+  "alreadyProcessed": 0,
+  "duplicateCollapsed": 7,
+  "heavyDocSkipped": 3,
+  "routine": 16,
+  "insights": 20,
+  "insightAnnouncementIds": 23
+}

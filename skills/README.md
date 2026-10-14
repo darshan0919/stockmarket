@@ -65,6 +65,7 @@ skills/
 │   ├── annual-report-analysis/
 │   ├── quarterly-result-analysis/
 │   ├── quarterly-result-extractor/
+│   ├── result-timing-analyzer/
 │   ├── consecutive-filings-diff/
 │   ├── financial-model/
 │   ├── pre-pead-scanner/

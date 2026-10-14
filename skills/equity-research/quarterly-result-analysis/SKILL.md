@@ -1,7 +1,7 @@
 ---
 name: quarterly-result-analysis
 description: >-
-  Stage 2 (flagship model) of the 2-skill quarterly-result pipeline — industry-agnostic single-quarter result interpretation for Indian listed companies, reading quarterly-result-extractor's persisted DB record (fetched documents + deterministic income-statement signal scan + recall-first tone/guidance/strategic excerpts) and applying the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist. Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks "analyse this quarter", "what changed this quarter", "is the business getting better", "what's management signalling", "result analysis", "quarterly snapshot", "post-result note", or provides a Stockscans ticker with result-day intent. Auto-invokes quarterly-result-extractor when given only a ticker and no DB record exists yet. Also supports single-statement quality modes via `--statement income|balance-sheet|cashflow` (comma-separable): a lean, bulk-safe path that grades ONE financial statement CLEAN/WATCH/STRAINED/RED-FLAG from its deterministic signal scan and skips the transcript, tone work, widget and PDF entirely — use it for "income statement quality only", "is the balance sheet clean", "check cash conversion", "run this across today's results", or any bulk screen across many companies' results. Output is a deterministic Drive-shareable PDF report (same underlying DTO; HTML only when explicitly requested), opening with a bird's-eye KPI strip (Revenue/EBITDA margin/PAT/tax rate/EPS and other decision-relevant metrics, each with a comparison subtext showing rate of change), tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), multi-year deep dives (use equity-research-deepdive), or raw document fetching without interpretation (use quarterly-result-extractor directly).
+  Stage 2 (flagship model) of the 2-skill quarterly-result pipeline — industry-agnostic single-quarter result interpretation for Indian listed companies, reading quarterly-result-extractor's persisted DB record (fetched documents + deterministic income-statement signal scan + recall-first tone/guidance/strategic excerpts) and applying the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist, and three scored result-day verdicts — Inflection Point (significant margin expansion + past guidance confirmed-and-beaten + a new C-A-T-A-L-Y-S-T trigger), Walk the Talk (every measurable prior guide vs this quarter's actual, not just sales/profit) and Next Inflection (dated capacity / margin / order-book step-ups). Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks "analyse this quarter", "is this an inflection point", "did they deliver on guidance", "walk the talk", "when is the next trigger", "what changed this quarter", "is the business getting better", "what's management signalling", "result analysis", "quarterly snapshot", "post-result note", or provides a Stockscans ticker with result-day intent. Auto-invokes quarterly-result-extractor when given only a ticker and no DB record exists yet. Also supports single-statement quality modes via `--statement income|balance-sheet|cashflow` (comma-separable): a lean, bulk-safe path that grades ONE financial statement CLEAN/WATCH/STRAINED/RED-FLAG from its deterministic signal scan and skips the transcript, tone work, widget and PDF entirely — use it for "income statement quality only", "is the balance sheet clean", "check cash conversion", "run this across today's results", or any bulk screen across many companies' results. Output is a deterministic Drive-shareable PDF report (same underlying DTO; HTML only when explicitly requested), opening with a bird's-eye KPI strip (Revenue/EBITDA margin/PAT/tax rate/EPS and other decision-relevant metrics, each with a comparison subtext showing rate of change), tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), multi-year deep dives (use equity-research-deepdive), or raw document fetching without interpretation (use quarterly-result-extractor directly).
 ---
 
 # Quarterly Result Analysis
@@ -55,7 +55,8 @@ judging what the quarter's disclosures actually MEAN for the thesis.
 | Full 15-40 page deep dive across years                                       | `equity-research-deepdive`         |
 | 1-page conviction note with growth triggers                                  | `growth-triggers-1pager`           |
 | 3-year fraud / accounting quality scan                                       | `forensic-accounting`              |
-| Walk-the-talk credibility scoring (4-8 calls)                                | `management-credibility-tracker`   |
+| Walk-the-talk credibility scoring across 4-8 calls (multi-year pattern)      | `management-credibility-tracker`   |
+| Did THIS quarter deliver on the last guidance? Inflection now / next?        | **THIS SKILL**, Phase 1.8          |
 | A graded quality read on ONE statement, or a bulk screen across many results | **THIS SKILL**, `--statement` mode |
 | **"What does THIS quarter mean for the thesis?" interpretive note**          | **THIS SKILL**                     |
 
@@ -101,7 +102,8 @@ what it leaves out:
   (`incomeStatementSignals` / `balanceSheetSignals` / `cashflowSignals`), plus
   `statementAvailability` for the staleness verdict.
 - **Skips:** the transcript entirely, tone classification, narrative-shift tracking, the
-  3-basket framework, the KPI strip, the monitoring checklist, the widget, and the PDF.
+  3-basket framework, the KPI strip, Phase 1.8 (inflection / walk the talk / next
+  inflection), the monitoring checklist, the widget, and the PDF.
 - **Produces:** one graded verdict per company per statement (`CLEAN` / `WATCH` / `STRAINED` /
   `RED-FLAG`) with 3-8 ranked findings, persisted as a `statement-quality` report.
 
@@ -184,6 +186,9 @@ Do NOT ingest raw 20–40 page PDFs or full transcripts into the prompt. The LLM
 - `possiblyDropped` — topics present in prior calls but absent in this one.
 - `statementAvailability` — per-statement availability and staleness status.
 - `resultNarrative` — exceptional items and auditor qualifications.
+- `inflectionPrep` — Phase 1.8 inputs: `walkTheTalkLedger` (every prior guide with
+  measurability and auto-filled headline actuals), `marginLeg`, `operatingLeverage`,
+  `catalystCandidates`, `nextInflectionSeeds`, prior verdict history.
 
 ### Phase 1.5 — Select the KPI strip
 
@@ -202,6 +207,32 @@ The LLM's task in Phase 1.5 is purely **editorial selection and strategic weight
    verbatim from the excerpt.
 3. **Tone and Comparisons**: Use the pre-computed `tone` (`pos`/`neg`/`neutral`) and basis strings directly
    to guarantee zero calculation errors.
+
+### Phase 1.8 — Inflection Point · Walk the Talk · Next Inflection (mandatory, full runs)
+
+Open [`references/inflection_walk_the_talk.md`](references/inflection_walk_the_talk.md) and
+follow it. In one paragraph:
+
+1. **Walk the Talk** — complete `inflectionPrep.walkTheTalkLedger`: fill every measurable
+   row's `actual` from the quarter's disclosures (order book, capacity, utilisation, ROCE,
+   NIM, credit cost, WC days, debt, volumes, segment numbers — every guided metric, not just
+   revenue and PAT), set `milestoneOutcome` on milestone rows, `exclude` bad rows with a
+   reason. Never score by hand.
+2. **Inflection Point** — judge `catalystCandidates` into `newCatalysts` (C-A-T-A-L-Y-S-T
+   letter, number, timeline, conviction, `isNew` only if not in last quarter's disclosures).
+   The margin and guidance-trust legs are computed — don't override them except
+   `marginLegOverride` for NBFCs/banks (NIM/RoA).
+3. **Next Inflection** — name the dated `CAPACITY` / `MARGIN` / `ORDER_BOOK` triggers from
+   `nextInflectionSeeds` with the raw magnitude inputs.
+4. Write those three keys to `<scratchpad>/<X>_inflection_input.json` and run
+   `yarn workspace @stock/api quarterly-result-analysis --companyId <id> [--date <d>] --score-inflection <file>`.
+   Paste the returned `walkTheTalk`, `inflectionPoint`, `nextInflection` into the DTO as-is.
+
+Reuse, don't re-derive: PEAD **G4** cites `walkTheTalk.summary`; **G5** cites
+`inflectionPoint.legs.newCatalyst` and `nextInflection.next`; `inflectionPoint.chips` go
+into the verdict chips; `nextInflection.checklistSeeds` become monitoring-checklist rows;
+Basket 1D (future earnings triggers) points at the Next Inflection table instead of
+re-listing it.
 
 ### Phase 2 — 3-basket analysis & Forward Guidance
 
@@ -245,6 +276,7 @@ DTO Drive-mirrored and re-readable by the Phase 4 PDF step or any other skill, p
 each carrying `grade` e.g. CLEAN/WATCH/STRAINED/RED-FLAG or ABSENT, plus a 1-liner quantified `brief` with numbers),
 `peadRead` (`verdict`, one line per gate G1-G5, `pricedIn`, `flags[]` from `scripts/peadPricedIn.js`), the verdict chips,
 `guidanceTable` (array of objects: `metric`, `currentValue`, `guidedValue`, `pctChange`, `timeline`, `nature` (`DIRECTLY GUIDED`|`DERIVED`|`UNGUIDED`), `derivationBasis`),
+`walkTheTalk`, `inflectionPoint`, `nextInflection` (verbatim from Phase 1.8's `--score-inflection` — next quarter's run reads `walkTheTalk.summary.verdict` and `inflectionPoint.verdict` back for the clean-delivery streak and the Q+1 confirmation),
 Basket 1/2/3 items (each with its STRUCTURAL/CYCLICAL/TEMPORARY or HIGH/MED/LOW tag), the monitoring checklist rows
 (`kpi`, `threshold`, `horizon`, `source`), and the header fields (company, ticker,
 quarter, result date, CMP, market cap). The object MUST carry the standard envelope from
@@ -277,8 +309,11 @@ _(or via Node API: `const { createQuarterlyResultPdf } = require('@stock/api'); 
   2. Bird's-eye KPI strip (4–8 `.kpi` cards in `.grid4` with verified basis and directional tone borders)
   3. Statement Health badges (`CLEAN` / `WATCH` / `STRAINED` / `RED-FLAG` or `ABSENT`) and 1-liner quantified briefs
   4. Verdict & catalyst chips band (`.chip-g`, `.chip-y`, `.chip-r`, `.chip-b`)
+     4a. Inflection Point (three legs with PASS/PARTIAL/FAIL, verdict, J-curve stage, growth ladder)
   5. _(For NBFC / Banks)_ NBFC & Financial Institution Quality Audit (RoA tree, 6 MOB 30+ DPD vintage, CRAR/leverage, updated BVPS & P/B, growth funding gap)
+     5a. Walk the Talk (prior guide · period · guided · actual · BEAT/MET/MISSED or AHEAD/ON_TRACK/BEHIND · gap)
   6. Forward Guidance & Bottom-Line Accrual Table (Current vs Guided Targets, % Change, Derived PAT / Book Value)
+     6a. Next Inflection Point (dated capacity / margin / order-book triggers, quarters-away, Train A/B/C)
   7. Basket 1 — Business (`STRUCTURAL` [.chip-g], `CYCLICAL` [.chip-y], `TEMPORARY` [.chip-b])
   8. Basket 2 — Risk (`HIGH` [.chip-r], `MED` [.chip-y], `LOW` [.chip-b], plus SOIC evasion tags)
   9. Basket 3 — Management (Tone badge + verbatim quote, narrative shift, 3–5yr build, capital allocation)
@@ -293,7 +328,8 @@ Widget structure (top to bottom):
 1. **Header band** — company + ticker + quarter + result date + CMP + market cap
 2. **KPI strip** — 4-8 bird's-eye headline metric cards from Phase 1.5 (`.kpi-strip`/`.kpi-card` in the template) — label, big value, colored comparison subtext
 3. **Statement Health Badges & 1-Liner Briefs** — Three badges (Income, Balance Sheet, Cash Flow) grading each statement (`CLEAN` / `WATCH` / `STRAINED` / `RED-FLAG` or `ABSENT (<Reason>)` when half-yearly compliance applies), accompanied by a 1-sentence quantified brief explaining the badge. This directly combines the deterministic statement-quality scans into the consolidated note.
-4. **Verdict chips** — 5 to 8 single-word tags summarising the quarter (e.g. `MARGIN INFLECTION`, `EXPORT SCALE-UP`, `CAUTIOUS TONE`, `CAPEX HEAVY`)
+4. **Verdict chips** — 5 to 8 single-word tags summarising the quarter (e.g. `MARGIN INFLECTION`, `EXPORT SCALE-UP`, `CAUTIOUS TONE`, `CAPEX HEAVY`), including `inflectionPoint.chips`
+   4a. **Inflection Point · Walk the Talk · Next Inflection** — the three Phase 1.8 tables, same order as the PDF
 5. **Basket 1 — BUSINESS** — growth drivers, margins, capex/BS/CF, future triggers; each item tagged `STRUCTURAL` / `CYCLICAL` / `TEMPORARY`
 6. **Basket 2 — RISK** — business, commentary, macro; each item with severity (`HIGH` / `MED` / `LOW`)
 7. **Basket 3 — MANAGEMENT** — tone label + evidence quote · narrative shift vs prior · 3-5yr strategic build · capital allocation grade
@@ -369,6 +405,13 @@ statements, so report it once with both numbers rather than twice in different w
 4. **Strict No-Extrapolation Guardrail**:
    - Do NOT extrapolate or guess a bottom-line metric if guidance for its required dependencies is missing or unguided (e.g., volume guided without realization/margin, or loan book guided without credit cost/RoA).
    - In that situation, leave the cell empty (`—`), mark as `UNGUIDED`, and document: `Dependencies unguided — no extrapolation`.
+
+**Inflection needs all its evidence, not one good number.** A +300 bps margin quarter alone is
+`INFLECTION_EMERGING`, not confirmed; confirmation needs a second leg (guidance beaten, or a
+new dated trigger). A first-time confirmation always carries `Q+1 CONFIRMATION PENDING`.
+Before writing the verdict, read the "What could be wrong" list in
+`references/inflection_walk_the_talk.md` (proxy actuals, dropped guides, sandbagging,
+mix-driven margins) and say in one line which, if any, applies.
 
 **Falsifiable monitoring items only.** Every item in the forward checklist must have a number threshold and a quarter horizon. "Watch margins" is not a checklist item. "Gross margin staying above 28% in Q1 FY27" is.
 

@@ -32,3 +32,12 @@ Call the following exact script:
 6. Commit nothing. Deletions/fixes from step 4 are real filesystem/dependency changes but stay unstaged in the working tree — per this repo's safety rails (`CLAUDE.md`), no job or skill ever commits or pushes; Darshan reviews the diff and commits manually.
 
 Final step (every run, per `skills/tooling/cowork-task-architect/SKILL.md`): execute `python scripts/metrics/track_invocation.py --name periodic-dead-code-scan --type task --model <the exact model executing this run, e.g. claude-sonnet-5>`. No `modelUsed` needed for the scan itself (purely scripted static analysis) — but the step-5 categorical analysis IS LLM judgment, so report which model produced it.
+
+## Email delivery (mandatory last step of EVERY run)
+
+The owner reads job output in Gmail, so this job must always end with an email — success, partial or failure, even when there was nothing new (a one-line "nothing to do" email is the heartbeat that proves the job ran).
+
+1. Write the report text — the action-items report (auto-actioned items, blockers by category, counts) — as markdown to a temp file _outside the repo_ (`f=$(mktemp)`). Keep it to what matters, lead with the headline.
+2. Execute script (bash): `STOCKMARKET_JOB_NAME=periodic-dead-code-scan yarn job-report-email --job periodic-dead-code-scan --status <ok|partial|failed> --title "<one-line outcome>" --body-file "$f"` `--attach <report file>` if the scan wrote one.
+3. If the run stopped early (a dependency check failed, a script exited non-zero), still run step 2 with `--status failed` and the exact error as the body.
+4. If the command exits non-zero (`email.status` is `skipped` or `error`, e.g. `GOOGLE_APP_PASSWORD not set`), surface the exact reason in your final report — never report the job as delivered.

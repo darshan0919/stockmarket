@@ -3,17 +3,50 @@ const path = require('path');
 const WI_JOB = path.resolve('packages/jobs-runtime/watchlistInsights.js');
 
 function run(args, input) {
-  return execFileSync('node', [WI_JOB, ...args], { input, maxBuffer: 1024 * 1024 * 20 }).toString('utf8');
+  return execFileSync('node', [WI_JOB, ...args], { input, maxBuffer: 1024 * 1024 * 20 }).toString(
+    'utf8'
+  );
 }
 
 // --- Heavy-doc-skip (no Filing Extract available) ---
 const HEAVY = [
-  { companyId: 'NSE:63MOONS', name: '63 Moons Technologies Ltd', title: 'Investor Update For H1 (FY 2026-27) Received From Our Subsidiary-63SATS Cybertech Ltd.', category: 'investor_presentation', announcementId: '5qzbswnrsmf4kfvui3xz91hk.pdf', date: '2026-10-11' },
-  { companyId: 'BSE:GRANDOAK', name: 'Grand Oak Canyons Distillery Ltd', title: 'Board Meeting Outcome for Outcome Of Meeting Of Board Of Directors Held On10th October 2026', category: 'results', announcementId: 'shd1wslxyf8nqtc52mep3ks7.pdf', date: '2026-10-10' },
-  { companyId: 'NSE:PREMIERPOL', name: 'Premier Polyfilm Ltd', title: 'Board Meeting Outcome for Board Meeting Outcome For The Approval Of Unaudited Financial Results', category: 'results', announcementId: 'k3m0mksubr5ie3kn6dlyfokp.pdf', date: '2026-10-10' },
+  {
+    companyId: 'NSE:63MOONS',
+    name: '63 Moons Technologies Ltd',
+    title: 'Investor Update For H1 (FY 2026-27) Received From Our Subsidiary-63SATS Cybertech Ltd.',
+    category: 'investor_presentation',
+    announcementId: '5qzbswnrsmf4kfvui3xz91hk.pdf',
+    date: '2026-10-11',
+  },
+  {
+    companyId: 'BSE:GRANDOAK',
+    name: 'Grand Oak Canyons Distillery Ltd',
+    title:
+      'Board Meeting Outcome for Outcome Of Meeting Of Board Of Directors Held On10th October 2026',
+    category: 'results',
+    announcementId: 'shd1wslxyf8nqtc52mep3ks7.pdf',
+    date: '2026-10-10',
+  },
+  {
+    companyId: 'NSE:PREMIERPOL',
+    name: 'Premier Polyfilm Ltd',
+    title:
+      'Board Meeting Outcome for Board Meeting Outcome For The Approval Of Unaudited Financial Results',
+    category: 'results',
+    announcementId: 'k3m0mksubr5ie3kn6dlyfokp.pdf',
+    date: '2026-10-10',
+  },
 ];
 for (const h of HEAVY) {
-  const payload = JSON.stringify({ companyId: h.companyId, name: h.name, title: h.title, category: h.category, announcementId: h.announcementId, date: h.date, heavyDocumentSkipReason: 'no Filing Extract available in docExtracts for this category/url' });
+  const payload = JSON.stringify({
+    companyId: h.companyId,
+    name: h.name,
+    title: h.title,
+    category: h.category,
+    announcementId: h.announcementId,
+    date: h.date,
+    heavyDocumentSkipReason: 'no Filing Extract available in docExtracts for this category/url',
+  });
   run(['log-heavy-skip', payload]);
   run(['mark-processed', h.companyId, h.announcementId, 'heavy-doc-skip']);
   console.log('heavy-doc-skip:', h.companyId, h.announcementId);
@@ -59,5 +92,8 @@ for (const [cid, annId] of ROUTINE) {
   routineLog.push({ companyId: cid, announcementId: annId });
   console.log('routine:', cid, annId);
 }
-require('fs').writeFileSync('cache/runs/adhoc-20261011/routine-items.json', JSON.stringify(routineLog, null, 2));
+require('fs').writeFileSync(
+  'cache/runs/adhoc-20261011/routine-items.json',
+  JSON.stringify(routineLog, null, 2)
+);
 console.log('done. heavy=', HEAVY.length, 'dup=', DUPS.length, 'routine=', ROUTINE.length);

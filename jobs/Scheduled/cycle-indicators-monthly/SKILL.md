@@ -19,3 +19,12 @@ Indicators: `iip-yoy`, `credit-growth-yoy`, `pmi-manufacturing`, `pmi-services`,
 6. Report: readings added (with links), skipped and why, trend table, `filesTouched`. Set any note's `modelUsed` to the exact executing model.
 
 Final step: `python scripts/metrics/track_invocation.py --name cycle-indicators-monthly --type task --model <exact model>`.
+
+## Email delivery (mandatory last step of EVERY run)
+
+The owner reads job output in Gmail, so this job must always end with an email — success, partial or failure, even when there was nothing new (a one-line "nothing to do" email is the heartbeat that proves the job ran).
+
+1. Write the report text — the indicators computed this month with latest values and direction vs last month — as markdown to a temp file _outside the repo_ (`f=$(mktemp)`). Keep it to what matters, lead with the headline.
+2. Execute script (bash): `STOCKMARKET_JOB_NAME=cycle-indicators-monthly yarn job-report-email --job cycle-indicators-monthly --status <ok|partial|failed> --title "<one-line outcome>" --body-file "$f"`
+3. If the run stopped early (a dependency check failed, a script exited non-zero), still run step 2 with `--status failed` and the exact error as the body.
+4. If the command exits non-zero (`email.status` is `skipped` or `error`, e.g. `GOOGLE_APP_PASSWORD not set`), surface the exact reason in your final report — never report the job as delivered.

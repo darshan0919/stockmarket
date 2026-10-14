@@ -2,10 +2,7 @@
   "orderCards": {
     "orderCards": 3,
     "withRatio": 2,
-    "top": [
-      "BSE:FABCLEAN",
-      "NSE:VIVIANA"
-    ],
+    "top": ["BSE:FABCLEAN", "NSE:VIVIANA"],
     "bookOk": 0,
     "bookFailed": [
       {

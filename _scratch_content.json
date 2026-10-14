@@ -1,0 +1,327 @@
+{
+  "lead": "Four names cleared the ACT bar today, but the clearest trigger among them is speculative, not fundamental: Bandhan Bank (+9.21%, ₹214 Cr delivered) is running on an unconfirmed media report that Abu Dhabi's IHC is exploring the promoter stake — which the bank itself has denied knowledge of — worth watching for confirmation, not acting on in size. HCL Technologies' ACT-tier rally (+7.94%, ₹954 Cr delivered) looks larger than its Q2FY27 numbers justify on a strict read (PAT only +2.2% YoY despite an 11.5% revenue beat). The best fundamental story in the ENTIRE scan isn't even ACT tier — it's WATCH-tier Shriram Finance (PAT +59.8% YoY) and Caliber Mining & Logistics (STRONG J-curve tag on a 5x order-book step-change) — both covered as full reports below.",
+  "caveats": [
+    "No company in today's top-10 EPS-thesis set had a cached rerating-catalysts brief or filing-extract hit — every brief was built fresh this run (briefCacheHits=0, briefExtractHits=0); the pre-processing queue has no coverage on today's names yet.",
+    "The 3 full rerating-catalysts reports (TCS, HCL Technologies, Shriram Finance) were rendered as HTML widgets only, not PDF — this run's environment has no ARM64-compatible Chrome for Puppeteer to render the PDF; Drive links are unset for the same reason (yarn data:push did not complete within this run's time budget — see footer).",
+    "Stockscans' own growth-catalyst/concall-notes cache (WHY rung 3a) was cold for all 10 EPS-thesis names today — every brief had to be built from this run's own document reads rather than served from that cache."
+  ],
+  "cards": {
+    "NSE:HCLTECH": {
+      "headline": "Q2FY27 revenue beat (+11.5% YoY) but PAT growth soft (+2.2% YoY) — rally looks ahead of the numbers",
+      "thesisChain": [
+        "Revenue ₹35,620 Cr, +11.5% YoY, +3.0% QoQ",
+        "but Net Income ₹5,132 Cr grew only +2.2% YoY on an 18.2% EBIT margin diluted by restructuring costs",
+        "so the +7.94%, ₹954 Cr-delivery ACT-tier reaction looks bigger than the quantified profit growth justifies — market likely crediting the AI-bookings story ($3,258M TCV, $219M Advanced AI revenue) instead"
+      ],
+      "why": {
+        "text": "Q2FY27 results + investor release (12-Oct-2026) are the proximate filing, but PAT growth (+2.2% YoY) is too modest on its own to explain an ACT-tier, ₹954 Cr-delivery move — flagged mismatched.",
+        "basis": "filing",
+        "sources": ["BSE filing 12-Oct-2026 (Q2FY27 Investor Release)"]
+      },
+      "epsThesis": {
+        "jCurveTag": "WEAK",
+        "jCurveReason": "PAT +2.2% YoY is far below the 30% YoY threshold and even below revenue growth — a margin-dilutive quarter, not a re-rating inflection.",
+        "thesis": "Revenue beat undercut by muted profit growth; GenAI/Advanced-AI revenue ($219M) and large bookings ($3,258M TCV) are the standout optionality, not yet flowing through to PAT.",
+        "asOf": "2026-10-13"
+      },
+      "epsImpact": {
+        "direction": "neutral",
+        "magnitude": "PAT +2.2% YoY vs revenue +11.5% YoY",
+        "timeline": "FY27",
+        "confidence": "medium"
+      },
+      "linkage": "mismatched",
+      "tags": ["results", "ai_theme", "margin_dilution"],
+      "reportDriveUrl": null
+    },
+    "NSE:BANDHANBNK": {
+      "headline": "M&A rumour (Abu Dhabi IHC exploring promoter stake) — company denies any knowledge",
+      "thesisChain": [
+        "Moneycontrol report (13-Oct) says IHC is exploring a promoter-stake acquisition",
+        "stock jumped 9.02% intraday on the report",
+        "Bandhan's own Reg-30 clarification says it has no knowledge of any such negotiation — purely speculative, fade risk if unconfirmed"
+      ],
+      "why": {
+        "text": "Exchange-mandated clarification filing directly addresses the move — rumour-driven, explicitly denied by the company, not a fundamental catalyst.",
+        "basis": "filing",
+        "sources": ["BSE/NSE Reg-30 clarification, 13-Oct-2026"]
+      },
+      "linkage": "explained",
+      "tags": ["ma_rumor", "speculative"],
+      "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/85f31rvkab27xz753tkx65hs.pdf"
+    },
+    "NSE:BSOFT": {
+      "headline": "Named an OpenAI Select Partner — real AI-theme catalyst, but no deal value disclosed",
+      "thesisChain": [
+        "Birlasoft named an OpenAI Select Partner (8-Oct press release)",
+        "positions Birlasoft in the OpenAI Partner Network for enterprise AI delivery",
+        "no revenue/TCV figure disclosed — sentiment/optionality tailwind, not yet an EPS number"
+      ],
+      "why": {
+        "text": "Genuine AI-alliance announcement timed with the move; unquantified but plausible, and corroborated by a broader same-day IT-sector move.",
+        "basis": "filing",
+        "sources": ["BSE filing 08-Oct-2026 (Press Release)"]
+      },
+      "epsThesis": {
+        "jCurveTag": "NONE",
+        "jCurveReason": "Unquantified strategic alliance — cannot clear the PAT/revenue inputs of the J-curve rubric.",
+        "thesis": "OpenAI Select Partner status is a real AI-theme tailwind with no disclosed deal value yet.",
+        "asOf": "2026-10-13"
+      },
+      "epsImpact": {
+        "direction": "positive",
+        "magnitude": "undisclosed",
+        "timeline": "undisclosed",
+        "confidence": "low"
+      },
+      "linkage": "explained",
+      "tags": ["ai_theme", "alliance"],
+      "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/5ohyrgufbsn4e87efe5f9g5y.pdf"
+    },
+    "NSE:PNCINFRA": {
+      "headline": "Only filing is an immaterial Kazakhstan subsidiary incorporation — move unexplained",
+      "thesisChain": [
+        "Incorporated a pre-revenue subsidiary in Kazakhstan (roads/highways)",
+        "charter capital ~₹5 lakh-equivalent — immaterial against PNC's balance sheet",
+        "doesn't plausibly account for an ACT-tier, ₹60 Cr-delivery, +11.23% move; checked catalyst/concall/sector — none found"
+      ],
+      "why": {
+        "text": "A filing exists but is immaterial — checked catalyst, concall and sector, found nothing that explains the size of today's move.",
+        "basis": "none",
+        "sources": ["BSE filing 08-Oct-2026 (Kazakhstan subsidiary incorporation)"]
+      },
+      "epsThesis": {
+        "jCurveTag": "NONE",
+        "jCurveReason": "Only filing is immaterial; no EPS-moving fact disclosed.",
+        "thesis": "No EPS-accretive catalyst from today's filing.",
+        "asOf": "2026-10-13"
+      },
+      "linkage": "mismatched",
+      "tags": ["unexplained"],
+      "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/i9xnuod5sbll4s0lhshcy25k.pdf"
+    },
+    "NSE:TCS": {
+      "headline": "Q2FY27 results beat — PAT +15.0% YoY, EPS ₹38.37",
+      "thesisChain": [
+        "Revenue ₹73,188 Cr, +11.2% YoY",
+        "PAT ₹13,884 Cr, +15.0% YoY, EPS ₹38.37",
+        "2nd interim dividend ₹12/share — steady double-digit compounding, not a re-rating event"
+      ],
+      "why": {
+        "text": "Q2FY27 results are a genuine, broad-based beat and plausibly explain the delivery-backed buying.",
+        "basis": "filing",
+        "sources": ["BSE filing 08-Oct-2026 (Q2FY27 results)"]
+      },
+      "epsThesis": {
+        "jCurveTag": "WEAK",
+        "jCurveReason": "PAT +15.0% YoY is a good quarter but well under the 30% J-curve threshold — steady-grower confirmation, not an inflection.",
+        "thesis": "Broad-based double-digit revenue/PAT growth; EPS impact positive-but-incremental.",
+        "asOf": "2026-10-13"
+      },
+      "epsImpact": {
+        "direction": "positive",
+        "magnitude": "PAT +15.0% YoY, EPS ₹38.37",
+        "timeline": "FY27",
+        "confidence": "high"
+      },
+      "linkage": "explained",
+      "tags": ["results"],
+      "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/oy9idqqeqlfcvupl5uh3sepi.pdf"
+    },
+    "NSE:SHRIRAMFIN": {
+      "headline": "Strongest fundamentals in today's scan — PAT +59.8% YoY (Q1FY27) — but no fresh filing explains TODAY's move",
+      "thesisChain": [
+        "Q1FY27 (Jul-2026): AUM ₹3.14 lakh Cr (+15.3% YoY), NII +33.7% YoY, PAT +59.8% YoY, ROA 3.93%",
+        "EPS +29.4% YoY lagging PAT growth points to dilution from a capital raise (book value/share +48.5% YoY, unverified)",
+        "separately completed a ~$460M senior-notes buyback (30-Sep), but neither filing is from the 7-day scoring window — today's specific trigger is UNEXPLAINED despite the strong underlying story"
+      ],
+      "why": {
+        "text": "No filing in the 7-day scoring window explains today specifically; strongest available explanation is the Q1FY27 profitability inflection, dated.",
+        "basis": "catalyst",
+        "sources": ["Investor Update PPT Q1FY27, 24-Jul-2026"]
+      },
+      "epsThesis": {
+        "jCurveTag": "MODERATE",
+        "jCurveReason": "PAT +59.8% YoY and NII +33.7% YoY clear the 30% bar with ROA improving to 3.93%; capped at MODERATE pending a fake-J-curve/XBRL audit this run didn't have time to complete, and an unverified capital-raise signal (book value/share +48.5% YoY).",
+        "thesis": "Clear profitability inflection for India's largest vehicle-finance NBFC; Q2FY27 results (not yet filed) are the direct test of whether it continues.",
+        "asOf": "2026-10-13"
+      },
+      "epsImpact": {
+        "direction": "positive",
+        "magnitude": "PAT +59.8% YoY",
+        "timeline": "FY27",
+        "confidence": "medium"
+      },
+      "linkage": "unexplained",
+      "tags": ["nbfc", "profitability_inflection"],
+      "reportDriveUrl": null
+    },
+    "NSE:CMLL": {
+      "headline": "STRONG J-curve tag — order book 5x FY26 revenue, CRISIL upgrade — but dated, not today's news",
+      "thesisChain": [
+        "Order book stepped from ₹5,668 Cr to ₹9,125 Cr within Q1FY27 (now 5x FY26 revenue)",
+        "FY27 guidance: +45-50% revenue, +35%+ EBITDA/PAT",
+        "CRISIL upgraded the rating to A-/Positive in Aug-2026, citing the order book and IPO-led deleveraging — genuine EPS-accretion setup, but sourced from a 2-month-old deck with no fresh filing today"
+      ],
+      "why": {
+        "text": "No filing in the 14-day window; the catalyst is real and strong but dated — explains the ongoing re-rating story, not specifically today's move.",
+        "basis": "catalyst",
+        "sources": ["Investor PPT Q1FY27, 12-Aug-2026"]
+      },
+      "epsThesis": {
+        "jCurveTag": "STRONG",
+        "jCurveReason": "Order book step-change (5x FY26 revenue) + FY27 guidance of 45-50% revenue growth + CRISIL rating upgrade — a textbook Large-Orders + new-industry-cycle catalyst.",
+        "thesis": "Order book of ₹9,125 Cr built on Coal India subsidiary contracts, with management guiding 45-50% FY27 revenue growth and a CRISIL upgrade citing IPO-led deleveraging.",
+        "asOf": "2026-10-13"
+      },
+      "epsImpact": {
+        "direction": "positive",
+        "magnitude": "FY27 guide: revenue +45-50%, EBITDA/PAT +35%+",
+        "timeline": "FY27-29",
+        "confidence": "medium"
+      },
+      "linkage": "explained",
+      "tags": ["order_book", "rating_upgrade", "j_curve"],
+      "reportDriveUrl": null
+    },
+    "NSE:SHRINGARMS": {
+      "headline": "Highest return in the entire scan (+14.87%) on thin delivery — genuinely unexplained",
+      "thesisChain": [
+        "Q1FY27 revenue +64.9% YoY but PAT only +19.3% YoY with margins compressing 240-420bps (stale, Aug-2026 deck)",
+        "no filing in the 14-day window",
+        "delivery% is low (5.78%) against the day's outsized return — possible thin-float volatility rather than a fundamentals-driven move"
+      ],
+      "why": {
+        "text": "Checked filings (none), the latest catalyst deck (mixed/stale), concall and sector — nothing confidently explains today's move.",
+        "basis": "none",
+        "sources": []
+      },
+      "epsThesis": {
+        "jCurveTag": "WEAK",
+        "jCurveReason": "Revenue growth strong but margins compressing 240-420bps YoY — fails the operating-leverage-confirmed input.",
+        "thesis": "Revenue scale-up without matching profit flow-through.",
+        "asOf": "2026-10-13"
+      },
+      "linkage": "unexplained",
+      "tags": ["unexplained", "thin_float_caution"]
+    },
+    "NSE:KPITTECH": {
+      "headline": "No company-specific trigger — possible unconfirmed IT-sector sympathy",
+      "thesisChain": [
+        "Q1FY27 (most recent on file): CC revenue roughly flat QoQ, PAT ~₹117 Cr, $257M new deal TCV — soft, no fresh filing",
+        "scan's informal 'IT Services' sector tag shows 6 names averaging +8.53% today",
+        "but KPIT's own industry tag differs from that cluster and the formal delivery-confirmed sector_clusters output is empty — unconfirmed, not a basis"
+      ],
+      "why": {
+        "text": "No filing, no cached catalyst, no cached concall notes; sector color is informal only.",
+        "basis": "none",
+        "sources": []
+      },
+      "epsThesis": {
+        "jCurveTag": "NONE",
+        "jCurveReason": "No fresh filing; Q1FY27 showed flattish CC revenue QoQ.",
+        "thesis": "Healthy deal pipeline ($257M TCV) but soft billing conversion.",
+        "asOf": "2026-10-13"
+      },
+      "linkage": "unexplained",
+      "tags": ["unexplained", "sector_sympathy_unconfirmed"]
+    },
+    "NSE:63MOONS": {
+      "headline": "No fresh filing — possible unconfirmed IT-sector sympathy",
+      "thesisChain": [
+        "No announcement in the 14-day window; latest result on file is Q1FY27 (Aug-2026)",
+        "appears in the scan's informal 'IT Services' sector tag (6 names, avg +8.53% today)",
+        "formal delivery-confirmed sector_clusters output is empty — background color only, not a confirmed basis"
+      ],
+      "why": {
+        "text": "No filing, no cached catalyst or concall notes; sector color is informal only.",
+        "basis": "none",
+        "sources": []
+      },
+      "linkage": "unexplained",
+      "tags": ["unexplained", "sector_sympathy_unconfirmed"]
+    },
+    "NSE:VIKRAN": {
+      "headline": "₹2,941 Cr IREDA term loan finalizes financing for its own ₹3,518 Cr solar EPC order",
+      "thesisChain": [
+        "WOS NOPL signed a ₹2,941.19 Cr rupee term loan with IREDA",
+        "financing a 969 MWac/1,163 MWp solar project (152 sites, Maharashtra)",
+        "completes financing for the EPC contract already awarded to Vikran Engineering worth ₹3,517.98 Cr — a concrete, quantified order-financing milestone"
+      ],
+      "why": {
+        "text": "Concrete, quantified financing milestone directly tied to Vikran's own EPC order.",
+        "basis": "filing",
+        "sources": ["BSE filing 12-Oct-2026 (Facility Agreement intimation)"]
+      },
+      "linkage": "explained",
+      "tags": ["order_book", "solar", "financing"],
+      "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/3yuu2fhsn8189hwygw3jcri6.pdf"
+    },
+    "NSE:NEWGEN": {
+      "headline": "Only filing is a routine EVP (non-C-suite) retirement — move unexplained",
+      "thesisChain": [
+        "Scanner flagged the filing has_material_ann=true by category",
+        "content read: EVP-Global Business Strategy & HR retiring, not a C-suite KMP, no stated business impact",
+        "category flag vs. content read is a clean mismatch example — checked catalyst/sector, nothing else found"
+      ],
+      "why": {
+        "text": "Category-level flag said material; content read says routine. No other explanation found.",
+        "basis": "none",
+        "sources": ["BSE filing 12-Oct-2026 (KMP Retirement)"]
+      },
+      "linkage": "mismatched",
+      "tags": ["unexplained", "category_vs_content_mismatch"],
+      "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/btvpyvdkcgrecod1b2161irf.pdf"
+    },
+    "NSE:SMLMAH": {
+      "headline": "Planned CFO/CHRO transition — orderly succession, not obviously market-moving",
+      "thesisChain": [
+        "CFO cessation (planned exit) + interim CFO + new CFO from 1-Jan-2027 + new CHRO",
+        "orderly, board-approved succession, not a crisis departure",
+        "doesn't obviously justify a +6.51%, 35.73%-delivery move; checked catalyst/concall/sector — none found"
+      ],
+      "why": {
+        "text": "A filing exists but reads as routine management succession.",
+        "basis": "none",
+        "sources": ["BSE filing 12-Oct-2026 (Board Outcome — KMP changes)"]
+      },
+      "linkage": "mismatched",
+      "tags": ["management_change", "unexplained"],
+      "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/h9wxrkpfhkd5qgvao2e7qfdz.pdf"
+    },
+    "NSE:INDIAGLYCO": {
+      "headline": "Highest-return WATCH name (+10.16%) with no proportionate trigger — demerger is old news",
+      "thesisChain": [
+        "Only filings are a demerger cost-apportionment notice (demerger completed via NCLT order Jul-2026, shares allotted Sep-2026 — already priced in) and a trivial ₹6.22 lakh GST penalty",
+        "neither plausibly drives a 10%+ move",
+        "checked catalyst/concall/sector — none found"
+      ],
+      "why": {
+        "text": "Both filings in the window are stale/administrative or immaterial; genuinely unexplained.",
+        "basis": "none",
+        "sources": [
+          "BSE filing 06-Oct-2026 (demerger cost apportionment)",
+          "BSE filing 10-Oct-2026 (GST order)"
+        ]
+      },
+      "linkage": "unexplained",
+      "tags": ["unexplained", "demerger_stale"]
+    },
+    "NSE:UTTAMSUGAR": {
+      "headline": "Exchange sought a price-movement clarification on yesterday's move — company denies any undisclosed information",
+      "thesisChain": [
+        "Exchange issued a clarification request on 13-Oct-2026 citing Oct-12's volume/price movement",
+        "Uttam Sugar's reply: unaware of any information or impending announcement that would bear on the price; calls the move purely market-driven",
+        "same denial pattern as Bandhan Bank — genuinely no company-specific cause found"
+      ],
+      "why": {
+        "text": "Company's own exchange-mandated reply explicitly denies any undisclosed cause; checked catalyst/concall/sector — none found either.",
+        "basis": "none",
+        "sources": ["BSE filing 13-Oct-2026 (Reply to Clarification on Price Movement)"]
+      },
+      "linkage": "unexplained",
+      "tags": ["unexplained", "exchange_clarification"],
+      "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/cvcjlateoqprotemuhqetnpy.pdf"
+    }
+  }
+}

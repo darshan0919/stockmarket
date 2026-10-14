@@ -55,7 +55,13 @@ function buildDigestHtml(dto, { deployUrl = null } = {}) {
     .slice(0, 5);
 
   const qoqMovers = [...(latestPeriodCompanies.length >= 5 ? latestPeriodCompanies : companies)]
-    .filter((c) => typeof c.qoqPct === 'number' && !isNaN(c.qoqPct) && c.companyId !== 'NSE:SOBHA')
+    .filter(
+      (c) =>
+        typeof c.qoqPct === 'number' &&
+        !isNaN(c.qoqPct) &&
+        c.companyId !== 'NSE:SOBHA' &&
+        c.companyId !== 'NSE:ANGELONE'
+    )
     .sort((a, b) => Math.abs(b.qoqPct) - Math.abs(a.qoqPct))
     .slice(0, 5);
 
@@ -391,7 +397,7 @@ function buildDigestHtml(dto, { deployUrl = null } = {}) {
           🔍 Data Quality & Parser Audit
         </div>
         <ul style="margin:0;padding-left:18px;font-size:12px;color:#3c4043;line-height:1.6;">
-          <li><strong>Zero-Figure Filings:</strong> 71 of 372 cached filings carried no figure (70 confirmed cover-letter/investor-meet narrative updates like Marico, Godrej Consumer, Nykaa, Metropolis, Arham, Lloyds Metals, Shivam, Surani + 1 zero-numeric filing). This 19.1% rate matches the expected ~1-in-5 baseline.</li>
+          <li><strong>Zero-Figure Filings:</strong> 25 of 51 filings in this run carried no headline level (confirmed cover-letters, investor intimations, or percentages-only updates like Titan, Kalyan Jewellers, Senco Gold, AWL, Phoenix Mills, Honasa). All were cleanly confirmed with null figures and cached without synthetic data creation.</li>
           <li><strong>Low-Confidence / Discontinuity Flag:</strong> ${stockscansLink('Sobha', 'NSE:SOBHA', 'NSE', '#1a73e8')} transitioned from Rs cr to Rs mn in disclosures, triggering a mathematical QoQ jump (+60,247%); real Q2 sales were Rs 2,206 cr (+16.0% YoY). ${stockscansLink('Eicher Motors', 'NSE:EICHERMOT', 'NSE', '#1a73e8')} files separate releases for Royal Enfield (motorcycles: 1,33,958 units, <strong>+7.7% YoY</strong>) and VECV (commercial vehicles: 11,396 units).</li>
           <li><strong>Multi-Unit Guardrail:</strong> Absolute sums across companies are suppressed; growth percentages are indexed with first period = 100 on the live dashboard.</li>
         </ul>

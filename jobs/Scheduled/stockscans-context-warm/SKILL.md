@@ -45,3 +45,12 @@ Three things to actually flag rather than pass over:
 Final step (every run, per `skills/tooling/cowork-task-architect/SKILL.md`): execute
 `python scripts/metrics/track_invocation.py --name stockscans-context-warm --type task --model <the exact model executing this run>`.
 No DTO is written by this job, so there is no `modelUsed` to set anywhere.
+
+## Email delivery (mandatory last step of EVERY run)
+
+The owner reads job output in Gmail, so this job must always end with an email — success, partial or failure, even when there was nothing new (a one-line "nothing to do" email is the heartbeat that proves the job ran).
+
+1. Write the report text — the script summary: companies warmed, cache hits/misses, failures — as markdown to a temp file _outside the repo_ (`f=$(mktemp)`). Keep it to what matters, lead with the headline.
+2. Execute script (bash): `STOCKMARKET_JOB_NAME=stockscans-context-warm yarn job-report-email --job stockscans-context-warm --status <ok|partial|failed> --title "<one-line outcome>" --body-file "$f"`
+3. If the run stopped early (a dependency check failed, a script exited non-zero), still run step 2 with `--status failed` and the exact error as the body.
+4. If the command exits non-zero (`email.status` is `skipped` or `error`, e.g. `GOOGLE_APP_PASSWORD not set`), surface the exact reason in your final report — never report the job as delivered.

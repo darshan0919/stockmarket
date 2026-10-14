@@ -1,0 +1,10 @@
+{
+  "total": 119,
+  "noiseDropped": 45,
+  "alreadyProcessed": 0,
+  "duplicateCollapsed": 15,
+  "heavyDocSkipped": 2,
+  "routine": 43,
+  "insights": 14,
+  "ocrFailed": 1
+}

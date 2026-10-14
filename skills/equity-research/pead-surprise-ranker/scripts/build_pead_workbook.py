@@ -182,6 +182,8 @@ def build_ranked_sheet(ws, ranked):
         vals = [rank if getter is None else getter(r) for (_, _, _, getter) in cols]
         vals += [(r.get("scan_cols") or {}).get(c, "") for c in scan_cols]
         for i, v in enumerate(vals, 1):
+            if isinstance(v, list):
+                v = ", ".join(str(x) for x in v)
             cell = ws.cell(row=row, column=i, value=v)
             cell.alignment = Alignment(wrap_text=True, vertical="top")
             if i <= len(cols) and cols[i - 1][2] and isinstance(v, (int, float)):

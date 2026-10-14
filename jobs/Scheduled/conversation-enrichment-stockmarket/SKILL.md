@@ -32,3 +32,12 @@ Process ALL pending conversations this run — new AND dirty (re-chatted since l
 When the cursor shows all conversations processed and none are dirty, do nothing and report "enrichment backlog clear". Research aid, not investment advice.
 
 Final step (every run, per `skills/tooling/cowork-task-architect/SKILL.md`): execute `python scripts/metrics/track_invocation.py --name conversation-enrichment-stockmarket --type task --model <the exact model executing this run, e.g. claude-sonnet-5>`.
+
+## Email delivery (mandatory last step of EVERY run)
+
+The owner reads job output in Gmail, so this job must always end with an email — success, partial or failure, even when there was nothing new (a one-line "nothing to do" email is the heartbeat that proves the job ran).
+
+1. Write the report text — the review report from step 7 (each conversation processed, NEW vs RE-ENRICHED, artifacts read) — as markdown to a temp file _outside the repo_ (`f=$(mktemp)`). Keep it to what matters, lead with the headline.
+2. Execute script (bash): `STOCKMARKET_JOB_NAME=conversation-enrichment-stockmarket yarn job-report-email --job conversation-enrichment-stockmarket --status <ok|partial|failed> --title "<one-line outcome>" --body-file "$f"`
+3. If the run stopped early (a dependency check failed, a script exited non-zero), still run step 2 with `--status failed` and the exact error as the body.
+4. If the command exits non-zero (`email.status` is `skipped` or `error`, e.g. `GOOGLE_APP_PASSWORD not set`), surface the exact reason in your final report — never report the job as delivered.

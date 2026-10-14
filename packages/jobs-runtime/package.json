@@ -47,6 +47,7 @@
     "cycle-indicators": "node cycleIndicatorsMonthly.js",
     "technical-backtest": "node technicalBacktest.js",
     "signal-ledger-digest": "node signalLedgerDigest.js",
+    "job-report-email": "node jobReportEmail.js",
     "weekly-ppt-insights": "node weeklyPptInsights.js",
     "order-book-digest": "node orderBookDigest.js",
     "order-book-sync": "node orderBookSync.js",

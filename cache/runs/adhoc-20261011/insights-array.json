@@ -13,15 +13,9 @@
       "no EPS linkage derivable from store count alone without revenue-per-store data"
     ],
     "epsImpact": null,
-    "tags": [
-      "retail-expansion",
-      "recurring"
-    ],
+    "tags": ["retail-expansion", "recurring"],
     "pdfUrl": "https://www.stockscans.in/document/2z9aanabp8bsx0epj8j9h4wo.pdf",
-    "announcementIds": [
-      "2z9aanabp8bsx0epj8j9h4wo.pdf",
-      "exfjgfxb42y6sqfitz75uv7s.pdf"
-    ],
+    "announcementIds": ["2z9aanabp8bsx0epj8j9h4wo.pdf", "exfjgfxb42y6sqfitz75uv7s.pdf"],
     "noteId": "2a9c3dd1-4d84-4aed-b7b4-bb3adf797a68",
     "signalScore": 15,
     "date": "2026-10-11"
@@ -40,14 +34,9 @@
       "no quantified revenue/EPS contribution disclosed for a single new store"
     ],
     "epsImpact": null,
-    "tags": [
-      "retail-expansion"
-    ],
+    "tags": ["retail-expansion"],
     "pdfUrl": "https://www.stockscans.in/document/9a2dk0g78sstx0e8ucli578w.pdf",
-    "announcementIds": [
-      "oqpkr8tbiad0cgrfh0efvxvb.pdf",
-      "9a2dk0g78sstx0e8ucli578w.pdf"
-    ],
+    "announcementIds": ["oqpkr8tbiad0cgrfh0efvxvb.pdf", "9a2dk0g78sstx0e8ucli578w.pdf"],
     "noteId": "f2d0cc64-c71d-412b-b2f6-caa3adb0800f",
     "signalScore": 15,
     "date": "2026-10-11"
@@ -65,14 +54,9 @@
       "no figures yet, nothing to size until the outcome filing"
     ],
     "epsImpact": null,
-    "tags": [
-      "watch",
-      "capacity-expansion-pending"
-    ],
+    "tags": ["watch", "capacity-expansion-pending"],
     "pdfUrl": "https://www.stockscans.in/document/c0l5rf05p8l8e15c7yq7tne9.pdf",
-    "announcementIds": [
-      "c0l5rf05p8l8e15c7yq7tne9.pdf"
-    ],
+    "announcementIds": ["c0l5rf05p8l8e15c7yq7tne9.pdf"],
     "noteId": "14ece470-e35a-4d40-a79c-ba4b1e402c0d",
     "signalScore": 15,
     "date": "2026-10-11"
@@ -91,20 +75,13 @@
       "EPS impact not derivable without current order book size, margin profile or execution timeline -- flagged as a knowledge gap"
     ],
     "epsImpact": null,
-    "tags": [
-      "order-win",
-      "repeat-client"
-    ],
+    "tags": ["order-win", "repeat-client"],
     "pdfUrl": "https://www.stockscans.in/document/vj65n8q04dnd9090wjb97qnn.pdf",
-    "announcementIds": [
-      "vj65n8q04dnd9090wjb97qnn.pdf"
-    ],
+    "announcementIds": ["vj65n8q04dnd9090wjb97qnn.pdf"],
     "noteId": "4c58896b-0a16-445c-b923-f1a90946765a",
     "signalScore": 60,
     "infoClassification": {
-      "claims": [
-        "Rs 466.73cr turnkey contract awarded by MGVCL"
-      ],
+      "claims": ["Rs 466.73cr turnkey contract awarded by MGVCL"],
       "verdict": "NEW",
       "baselineCoverage": "none -- zero prior notes/filings on file for this company; no cluster flags from filingClusterFlags.js"
     },
@@ -129,14 +106,9 @@
       "timeline": "immediate",
       "confidence": "medium"
     },
-    "tags": [
-      "warrant-conversion",
-      "capital-raise"
-    ],
+    "tags": ["warrant-conversion", "capital-raise"],
     "pdfUrl": "https://www.stockscans.in/document/hgqp0rqdfjy0stbwbzmxq396.pdf",
-    "announcementIds": [
-      "hgqp0rqdfjy0stbwbzmxq396.pdf"
-    ],
+    "announcementIds": ["hgqp0rqdfjy0stbwbzmxq396.pdf"],
     "noteId": "a20dac71-bdb6-44de-83d4-b8b78c2eed52",
     "signalScore": 35,
     "date": "2026-10-10"
@@ -155,15 +127,9 @@
       "EPS/earnings linkage depends on VEPL/WWIL's wind-asset cash flows and Authum's eventual debt/equity terms there -- neither disclosed in this filing"
     ],
     "epsImpact": null,
-    "tags": [
-      "nclt-resolution",
-      "distressed-asset",
-      "completed-payment"
-    ],
+    "tags": ["nclt-resolution", "distressed-asset", "completed-payment"],
     "pdfUrl": "https://www.stockscans.in/document/1zk0nfpr4ja099orjfjgf2y7.pdf",
-    "announcementIds": [
-      "1zk0nfpr4ja099orjfjgf2y7.pdf"
-    ],
+    "announcementIds": ["1zk0nfpr4ja099orjfjgf2y7.pdf"],
     "noteId": "67d1dffa-416c-44ee-bf88-82bbc92e9ee9",
     "signalScore": 60,
     "infoClassification": {
@@ -190,15 +156,9 @@
       "no EPS linkage derivable at the incorporation stage"
     ],
     "epsImpact": null,
-    "tags": [
-      "high_conviction",
-      "follow-up",
-      "data-centre"
-    ],
+    "tags": ["high_conviction", "follow-up", "data-centre"],
     "pdfUrl": "https://www.stockscans.in/document/bugvyuowldx6zctagyv9vmz6.pdf",
-    "announcementIds": [
-      "bugvyuowldx6zctagyv9vmz6.pdf"
-    ],
+    "announcementIds": ["bugvyuowldx6zctagyv9vmz6.pdf"],
     "noteId": "d95d0830-64f8-4f77-bea8-ad2b1d4681da",
     "signalScore": 15,
     "date": "2026-10-10"
@@ -222,14 +182,9 @@
       "timeline": "execution over FY27",
       "confidence": "low"
     },
-    "tags": [
-      "order-book",
-      "monthly-cadence"
-    ],
+    "tags": ["order-book", "monthly-cadence"],
     "pdfUrl": "https://www.stockscans.in/document/xq1i9ra0wox1jacwnq323iv0.pdf",
-    "announcementIds": [
-      "xq1i9ra0wox1jacwnq323iv0.pdf"
-    ],
+    "announcementIds": ["xq1i9ra0wox1jacwnq323iv0.pdf"],
     "noteId": "2a9c31b4-b319-4cde-97bb-7ea8c8fd2074",
     "signalScore": 35,
     "date": "2026-10-10"
@@ -254,14 +209,9 @@
       "timeline": "Nov 2026 - up to 52 months out",
       "confidence": "medium"
     },
-    "tags": [
-      "litigation-recovery",
-      "cash-in"
-    ],
+    "tags": ["litigation-recovery", "cash-in"],
     "pdfUrl": "https://www.stockscans.in/document/fuz3ca97pk950bbb8gdxu74g.pdf",
-    "announcementIds": [
-      "fuz3ca97pk950bbb8gdxu74g.pdf"
-    ],
+    "announcementIds": ["fuz3ca97pk950bbb8gdxu74g.pdf"],
     "noteId": "b1ccfa6d-2df5-4475-ab09-7a999a16e4b5",
     "signalScore": 35,
     "date": "2026-10-10"
@@ -286,16 +236,9 @@
       "timeline": "immediate (QIP closed Oct 9, 2026)",
       "confidence": "medium"
     },
-    "tags": [
-      "qip",
-      "capital-raise",
-      "resolves-prior-flag"
-    ],
+    "tags": ["qip", "capital-raise", "resolves-prior-flag"],
     "pdfUrl": "https://www.stockscans.in/document/tbz7mq0vz7v4l6w0reh1tap1.pdf",
-    "announcementIds": [
-      "fhb2smw44cibxz86yvobdd3c.pdf",
-      "tbz7mq0vz7v4l6w0reh1tap1.pdf"
-    ],
+    "announcementIds": ["fhb2smw44cibxz86yvobdd3c.pdf", "tbz7mq0vz7v4l6w0reh1tap1.pdf"],
     "noteId": "b27efc0d-71bf-43e8-b850-6957c4534b4a",
     "signalScore": 60,
     "infoClassification": {
@@ -327,14 +270,9 @@
       "timeline": "Oct 2026 - Mar 2027",
       "confidence": "low"
     },
-    "tags": [
-      "hiring",
-      "growth-cadence"
-    ],
+    "tags": ["hiring", "growth-cadence"],
     "pdfUrl": "https://www.stockscans.in/document/tduuvzp038wt7ck82qygpxif.pdf",
-    "announcementIds": [
-      "tduuvzp038wt7ck82qygpxif.pdf"
-    ],
+    "announcementIds": ["tduuvzp038wt7ck82qygpxif.pdf"],
     "noteId": "eca6a4fc-4df4-438a-b41b-b90941e79ac5",
     "signalScore": 15,
     "date": "2026-10-10"
@@ -353,15 +291,9 @@
       "no EPS linkage; this is a governance/compliance signal, not an earnings one"
     ],
     "epsImpact": null,
-    "tags": [
-      "governance",
-      "pit-violation",
-      "needs-follow-up"
-    ],
+    "tags": ["governance", "pit-violation", "needs-follow-up"],
     "pdfUrl": "https://www.stockscans.in/document/tt5bwvyxtscufjxn1dksbtos.pdf",
-    "announcementIds": [
-      "tt5bwvyxtscufjxn1dksbtos.pdf"
-    ],
+    "announcementIds": ["tt5bwvyxtscufjxn1dksbtos.pdf"],
     "noteId": "e1645097-22bf-4d9d-a126-15ca2ff6651b",
     "signalScore": 35,
     "date": "2026-10-10"
@@ -380,15 +312,9 @@
       "incremental optionality on top of the already-tracked KIN acquisition and existing order wins"
     ],
     "epsImpact": null,
-    "tags": [
-      "mou",
-      "new-adjacency",
-      "non-binding"
-    ],
+    "tags": ["mou", "new-adjacency", "non-binding"],
     "pdfUrl": "https://www.stockscans.in/document/4v6dzrkfpdduc10ecx7gti4m.pdf",
-    "announcementIds": [
-      "4v6dzrkfpdduc10ecx7gti4m.pdf"
-    ],
+    "announcementIds": ["4v6dzrkfpdduc10ecx7gti4m.pdf"],
     "noteId": "d22cbf08-bb88-4a1d-941b-9d750d1f8005",
     "signalScore": 15,
     "date": "2026-10-10"
@@ -407,15 +333,9 @@
       "no incremental EPS information beyond what was already known"
     ],
     "epsImpact": null,
-    "tags": [
-      "high_conviction",
-      "follow-up",
-      "intra-group"
-    ],
+    "tags": ["high_conviction", "follow-up", "intra-group"],
     "pdfUrl": "https://www.stockscans.in/document/quc9yq97s4nc1zn0r4s79quh.pdf",
-    "announcementIds": [
-      "quc9yq97s4nc1zn0r4s79quh.pdf"
-    ],
+    "announcementIds": ["quc9yq97s4nc1zn0r4s79quh.pdf"],
     "noteId": "9a361061-4c6e-4bb7-a6a8-4009f0b6b716",
     "signalScore": 35,
     "date": "2026-10-10"
@@ -439,14 +359,9 @@
       "timeline": "ongoing",
       "confidence": "low"
     },
-    "tags": [
-      "regulatory",
-      "gmp-approval"
-    ],
+    "tags": ["regulatory", "gmp-approval"],
     "pdfUrl": "https://www.stockscans.in/document/oka4950ils5a2mb75y0hst6g.pdf",
-    "announcementIds": [
-      "oka4950ils5a2mb75y0hst6g.pdf"
-    ],
+    "announcementIds": ["oka4950ils5a2mb75y0hst6g.pdf"],
     "noteId": "96429b3c-6bcd-4f42-8a1f-c23792ea71da",
     "signalScore": 15,
     "date": "2026-10-10"
@@ -465,14 +380,9 @@
       "watch the Oct 14 outcome filing for the actual terms"
     ],
     "epsImpact": null,
-    "tags": [
-      "watch",
-      "fundraise-pending"
-    ],
+    "tags": ["watch", "fundraise-pending"],
     "pdfUrl": "https://www.stockscans.in/document/c79yg0waudk7u8nlcgydmism.pdf",
-    "announcementIds": [
-      "c79yg0waudk7u8nlcgydmism.pdf"
-    ],
+    "announcementIds": ["c79yg0waudk7u8nlcgydmism.pdf"],
     "noteId": "486365ca-410e-4bd2-9320-341bcfae3efa",
     "signalScore": 15,
     "date": "2026-10-10"
@@ -496,21 +406,13 @@
       "timeline": "effective Oct 12, 2026",
       "confidence": "high"
     },
-    "tags": [
-      "dilution",
-      "at-par-issue",
-      "governance-watch"
-    ],
+    "tags": ["dilution", "at-par-issue", "governance-watch"],
     "pdfUrl": "https://www.stockscans.in/document/jvmkgtwuitbhpoys2ayel3lp.pdf",
-    "announcementIds": [
-      "jvmkgtwuitbhpoys2ayel3lp.pdf"
-    ],
+    "announcementIds": ["jvmkgtwuitbhpoys2ayel3lp.pdf"],
     "noteId": "17957980-3811-4f3a-a21f-f4ba2ad99778",
     "signalScore": 60,
     "infoClassification": {
-      "claims": [
-        "5,11,62,204 shares issued at par, paid-up capital 70L to 581.62L shares (8.3x)"
-      ],
+      "claims": ["5,11,62,204 shares issued at par, paid-up capital 70L to 581.62L shares (8.3x)"],
       "verdict": "NEW",
       "baselineCoverage": "zero prior notes for this company. Caveat: this filing is a trading-approval step, implying an earlier preferential-issue board/shareholder approval exists outside this window -- the underlying corporate action may already be known to the market even though it is new to this tracking system. No filingClusterFlags.js flags."
     },
@@ -529,14 +431,9 @@
       "nothing new to size or re-assess versus the prior two notes"
     ],
     "epsImpact": null,
-    "tags": [
-      "follow-up",
-      "already-known"
-    ],
+    "tags": ["follow-up", "already-known"],
     "pdfUrl": "https://www.stockscans.in/document/opi0wqxbx03gn1ijwhnd11ub.pdf",
-    "announcementIds": [
-      "opi0wqxbx03gn1ijwhnd11ub.pdf"
-    ],
+    "announcementIds": ["opi0wqxbx03gn1ijwhnd11ub.pdf"],
     "noteId": "c8cfc27e-ea31-44a2-96d7-d36a1668f9ed",
     "signalScore": 15,
     "date": "2026-10-10"
@@ -555,15 +452,9 @@
       "relevant backdrop to the already-flagged General Atlantic sell-down/overhang risk, though the two are separate axes (regulatory vs. ownership)"
     ],
     "epsImpact": null,
-    "tags": [
-      "fda-inspection",
-      "regulatory-clean",
-      "context-for-overhang"
-    ],
+    "tags": ["fda-inspection", "regulatory-clean", "context-for-overhang"],
     "pdfUrl": "https://www.stockscans.in/document/d72ylcbszmtfyyo6mkwpebdz.pdf",
-    "announcementIds": [
-      "d72ylcbszmtfyyo6mkwpebdz.pdf"
-    ],
+    "announcementIds": ["d72ylcbszmtfyyo6mkwpebdz.pdf"],
     "noteId": "57b6555c-bef3-4624-85e2-abf3b15ba018",
     "signalScore": 35,
     "date": "2026-10-09"
@@ -586,14 +477,9 @@
       "timeline": "immediate",
       "confidence": "medium"
     },
-    "tags": [
-      "warrant-conversion",
-      "small-raise"
-    ],
+    "tags": ["warrant-conversion", "small-raise"],
     "pdfUrl": "https://www.stockscans.in/document/upe1pbl3h5fbnrt14ivc89g2.pdf",
-    "announcementIds": [
-      "upe1pbl3h5fbnrt14ivc89g2.pdf"
-    ],
+    "announcementIds": ["upe1pbl3h5fbnrt14ivc89g2.pdf"],
     "noteId": "ead09368-9624-4363-be32-de860ccc7237",
     "signalScore": 15,
     "date": "2026-10-09"

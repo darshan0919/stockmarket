@@ -29,6 +29,7 @@
     "liquidity-supply-daily": "yarn workspace @stock/jobs-runtime liquidity-supply-daily",
     "cycle-indicators": "yarn workspace @stock/jobs-runtime cycle-indicators",
     "signal-ledger-digest": "yarn workspace @stock/jobs-runtime signal-ledger-digest",
+    "job-report-email": "yarn workspace @stock/jobs-runtime job-report-email",
     "weekly-ppt-insights": "yarn workspace @stock/jobs-runtime weekly-ppt-insights",
     "order-book-digest": "yarn workspace @stock/jobs-runtime order-book-digest",
     "order-book-sync": "yarn workspace @stock/jobs-runtime order-book-sync",

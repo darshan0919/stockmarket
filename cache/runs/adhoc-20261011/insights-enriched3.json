@@ -1,0 +1,16 @@
+{
+  "orderCards": {
+    "orderCards": 3,
+    "withRatio": 2,
+    "top": ["BSE:FABCLEAN", "NSE:VIVIANA"],
+    "bookOk": 1,
+    "bookFailed": [
+      {
+        "companyId": "BSE:FABCLEAN",
+        "reason": "company declares no order-book total"
+      }
+    ],
+    "pendingBases": [],
+    "revenueFailed": []
+  }
+}
