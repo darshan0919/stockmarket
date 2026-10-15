@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: daily-gainers-signal-stockmarket
 description: Daily Gainers Signals — top-50 gainers to conviction signals email
 ---

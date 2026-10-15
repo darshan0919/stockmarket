@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: policy-event-tracker
 description: Policy Event Tracker — weekly discovery of dated Indian policy events mapped to sector baskets, then script-computed price absorption vs CNX500 into the signal ledger (P1)
 ---

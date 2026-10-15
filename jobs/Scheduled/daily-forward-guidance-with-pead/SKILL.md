@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: daily-forward-guidance-with-pead
 description: Daily forward guidance extraction with PEAD ranking for saved scan 429918e3098ce660baec9f22
 ---

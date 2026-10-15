@@ -1,0 +1,156 @@
+[
+  {
+    "companyId": "NSE:CCL",
+    "ssUrl": "5m3vaw2uqd283odgr073rp04.pdf",
+    "duplicateOf": "pymgy0prgipzdbfsiagappcw.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:SBC",
+    "ssUrl": "ac981pcza4itbt8n1a7odert.pdf",
+    "duplicateOf": "bfmorw6uwynh4mbgctq3oh49.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:ZOTA",
+    "ssUrl": "axjmp1w2yfs0utkuxse13y2s.pdf",
+    "duplicateOf": "boqoqcv7syz8lm1hqtbq9xdw.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:AGARWALTUF",
+    "ssUrl": "zu154f2ksrpcxavdzz464tjs.pdf",
+    "duplicateOf": "tbh0w27pivmtzcbn1yz56enp.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:STYLEBAAZA",
+    "ssUrl": "yzgyoflzt34tn94qlf210ynh.pdf",
+    "duplicateOf": "wyzy6oddpskg4o12t2a8w70r.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:NXST",
+    "ssUrl": "uuxu1rxp8b65mhvrfgj87qd5.pdf",
+    "duplicateOf": "34r7z0s9swuz95drwopledyt.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "BSE:AKCAPIT",
+    "ssUrl": "u7h0ukmexm1yci45jpvb93sj.pdf",
+    "duplicateOf": "8woee91k8t4dgxwefqq1r14m.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:STYLEBAAZA",
+    "ssUrl": "4qas8krxn8weaj4e11aqt5zm.pdf",
+    "duplicateOf": "wyzy6oddpskg4o12t2a8w70r.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:BSHSL",
+    "ssUrl": "ifx5wal88jsg4wwm78yu53l2.pdf",
+    "duplicateOf": "pavtkhczm1xy8l2y9x3zdg07.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:CYIENTDLM",
+    "ssUrl": "u67go150dybrkmw6vot2n98x.pdf",
+    "duplicateOf": "u3223kd4kgl27qpeqh3hh4yx.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:KARURVYSYA",
+    "ssUrl": "g295839c7zgynufasbfunr1k.pdf",
+    "duplicateOf": "gmz9imv80qxntz6h40hehusx.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:CYIENTDLM",
+    "ssUrl": "nc5f7yrmtsy3bekrx1g934nt.pdf",
+    "duplicateOf": "u3223kd4kgl27qpeqh3hh4yx.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:ANGELONE",
+    "ssUrl": "lqrylp1zc2jl9vnrtml66kpj.pdf",
+    "duplicateOf": "pg5m9uvjpnth521c5f46c52r.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:ORIENTHOT",
+    "ssUrl": "xg47urgtf80idvejusq9t60w.pdf",
+    "duplicateOf": "r7phwpywuufs2min7z8cbp91.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:MINDSPACE",
+    "ssUrl": "1cqswan8izqlri7zn8gvipbo.pdf",
+    "duplicateOf": "vq9kc3vii1y3ov6z8wb0cq74.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:KARURVYSYA",
+    "ssUrl": "607sbxpaewdm4or3wqrxjfku.pdf",
+    "duplicateOf": "gmz9imv80qxntz6h40hehusx.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:CYIENTDLM",
+    "ssUrl": "9quaii4ivtf7lbdgww35m30c.pdf",
+    "duplicateOf": "u3223kd4kgl27qpeqh3hh4yx.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:IIFL",
+    "ssUrl": "xsqjq4ouendambjpndamz67m.pdf",
+    "duplicateOf": "655ll16j0xi98ss5fjto7owj.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:ORIENTHOT",
+    "ssUrl": "v9txq6pbbw36zjdh3wb2ynaq.pdf",
+    "duplicateOf": "r7phwpywuufs2min7z8cbp91.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:IIFL",
+    "ssUrl": "sht0dhkst304nei0c095tum5.pdf",
+    "duplicateOf": "655ll16j0xi98ss5fjto7owj.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:IIFL",
+    "ssUrl": "q56veacdbfylejan6cbhkwsr.pdf",
+    "duplicateOf": "655ll16j0xi98ss5fjto7owj.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  },
+  {
+    "companyId": "NSE:IIFL",
+    "ssUrl": "ees50ntrr07q31jqp6wupnb5.pdf",
+    "duplicateOf": "655ll16j0xi98ss5fjto7owj.pdf",
+    "status": "ok",
+    "out": "{\"status\":\"ok\",\"usecase\":\"duplicate-of-existing-note\"}"
+  }
+]

@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: daily-ipo-subscription-analysis-stockmarket
 description: Daily IPO Subscription Digest — IPOs listing tomorrow ranked by subscription quality, top 3 DRHP/RHP-analysed, emailed
 ---

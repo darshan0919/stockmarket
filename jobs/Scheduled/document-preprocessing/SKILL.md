@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: document-preprocessing
 description: Drain the filing pre-processing queue — turn newly-filed documents into verified, page-anchored Filing Extracts so the daily scan skills reason over JSON instead of re-reading PDFs.
 ---

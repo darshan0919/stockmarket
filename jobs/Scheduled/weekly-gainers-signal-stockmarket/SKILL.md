@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: weekly-gainers-signal-stockmarket
 description: Weekly Gainers Signal — top-20 weekly gainers to full J-Curve report PDFs + Thesis Card email
 ---

@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: watchlist-daily-insights-stockmarket
 description: Watchlist Signals — daily digest across Near Highs + Radar watchlists (deterministic window: since the last confirmed-complete run, at least back to the previous day's 8AM IST)
 ---

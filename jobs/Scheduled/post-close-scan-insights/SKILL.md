@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: post-close-scan-insights
 description: Announcement Signals — a slot of the full-day corporate-filing signal engine over the "Signals - DND" Stockscans scan
 ---

@@ -1,6 +1,7 @@
 ---
 name: sector-pe-snapshot-weekly
 description: Sector PE Snapshot Weekly — stores one weekly snapshot of industry median P/E (204 industries) to build the PE history the sector-PE-phase automation needs
+model: flash_lite
 ---
 
 ## Context

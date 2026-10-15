@@ -1,6 +1,7 @@
 ---
 name: periodic-dead-code-scan
 description: Periodic Dead Code & Coding Practice Scan — weekly scan for dead code, unused dependencies, and practice violations
+model: flash
 ---
 
 ## Context

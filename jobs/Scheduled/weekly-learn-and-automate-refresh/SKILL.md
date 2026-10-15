@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: weekly-learn-and-automate-refresh
 description: Weekly refresh of the learn-and-automate knowledge base for X experts (first: @SureshKBN) — script-first delta ingest, cheap-tier extraction of new posts only, verified persist, NEW/CHANGED/CONTRADICTS digest
 ---

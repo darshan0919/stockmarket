@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: daily-quarterly-result-extraction
 description: Daily quarterly result extraction at 1:00 AM for companies with results filed yesterday
 ---

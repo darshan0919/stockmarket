@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: daily-volume-rocketing-signal-stockmarket
 description: Daily Volume Rocketing Signals — top volume-surge stocks (deduped against gainers-signal) to conviction signals email
 ---

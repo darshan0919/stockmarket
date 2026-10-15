@@ -1,0 +1,179 @@
+'use strict';
+
+const {
+  formatMarketCap,
+  formatPct,
+  fetchScan,
+  sendEmptyScanEmail,
+  sendReportEmail,
+  SCAN_ID,
+} = require('../dailyQuarterlyResultAnalysis');
+
+jest.mock('@stock/api', () => ({
+  stockscans: {
+    getScanMetadata: jest.fn(),
+    runScan: jest.fn(),
+  },
+}));
+
+jest.mock('@stock/cloud-utils', () => {
+  const actual = jest.requireActual('@stock/cloud-utils');
+  return {
+    ...actual,
+    sendHtmlEmail: jest.fn(),
+  };
+});
+
+jest.mock('../lib/db', () => ({
+  dataRoot: jest.fn(() => '/tmp/mock-data-root'),
+  resolveDriveUrl: jest.fn((rel) =>
+    rel ? `https://drive.google.com/file/d/mockDriveId/view` : null
+  ),
+  touchedFiles: jest.fn(() => []),
+  trackTouched: jest.fn(),
+}));
+
+const { stockscans } = require('@stock/api');
+const { sendHtmlEmail } = require('@stock/cloud-utils');
+const fs = require('fs');
+
+describe('dailyQuarterlyResultAnalysis formatting helpers', () => {
+  test('formatMarketCap formats positive amounts and handles null/empty', () => {
+    expect(formatMarketCap(4086.04)).toBe('₹4,086 Cr');
+    expect(formatMarketCap(25527.62)).toBe('₹25,528 Cr');
+    expect(formatMarketCap(null)).toBe('—');
+    expect(formatMarketCap('')).toBe('—');
+  });
+
+  test('formatPct formats positive, negative and zero percentages with sign', () => {
+    expect(formatPct(103.52)).toBe('+103.5%');
+    expect(formatPct(-12.64)).toBe('-12.6%');
+    expect(formatPct(0)).toBe('0.0%');
+    expect(formatPct(null)).toBe('—');
+  });
+});
+
+describe('fetchScan', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('paginates scan results to completion and maps columns in order', () => {
+    stockscans.getScanMetadata.mockResolvedValueOnce({
+      scanId: SCAN_ID,
+      scanName: 'Quality Result - DND',
+      watchlistIds: [],
+    });
+
+    // Page 1 with 2 rows, total = 3
+    stockscans.runScan.mockResolvedValueOnce({
+      total: 3,
+      table: [
+        [
+          'companyId',
+          'Name',
+          'Market Capitalization',
+          'PAT Growth YoY',
+          'Revenue Growth YoY',
+          'PAT Growth TTM',
+        ],
+        ['NSE:SWSOLAR', 'Sterling & Wilson', 4086.04, 103.52, -12.64, 158.14],
+        ['NSE:IIFL', 'IIFL Finance', 25527.62, 92.61, 28.48, 157.78],
+      ],
+    });
+
+    // Page 2 with 1 row, total = 3
+    stockscans.runScan.mockResolvedValueOnce({
+      total: 3,
+      table: [
+        [
+          'companyId',
+          'Name',
+          'Market Capitalization',
+          'PAT Growth YoY',
+          'Revenue Growth YoY',
+          'PAT Growth TTM',
+        ],
+        ['NSE:SBC', 'SBC Exports', 3057.62, 37.11, 94.01, 105.92],
+      ],
+    });
+
+    jest.spyOn(fs, 'mkdirSync').mockReturnValue(true);
+    jest.spyOn(fs, 'writeFileSync').mockReturnValue(true);
+
+    return fetchScan({ date: '2026-10-16' }).then((res) => {
+      expect(res.count).toBe(3);
+      expect(res.companies[0].companyId).toBe('NSE:SWSOLAR');
+      expect(res.companies[0].patTtm).toBe(158.14);
+      expect(res.companies[1].companyId).toBe('NSE:IIFL');
+      expect(res.companies[2].companyId).toBe('NSE:SBC');
+      expect(stockscans.runScan).toHaveBeenCalledTimes(2);
+    });
+  });
+});
+
+describe('sendEmptyScanEmail', () => {
+  test('sends email when zero companies in scan', async () => {
+    sendHtmlEmail.mockResolvedValueOnce({ status: 'sent', to: 'test@example.com' });
+
+    const res = await sendEmptyScanEmail({
+      date: '2026-10-16',
+      scanId: SCAN_ID,
+      scanName: 'Quality Result - DND',
+      count: 0,
+    });
+
+    expect(res.status).toBe('sent');
+    expect(sendHtmlEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: expect.stringContaining('0 companies in scan'),
+        htmlBody: expect.stringContaining('Quality Result - DND'),
+      })
+    );
+  });
+});
+
+describe('sendReportEmail', () => {
+  test('generates table with required columns in original PAT Growth TTM order', async () => {
+    sendHtmlEmail.mockResolvedValueOnce({ status: 'sent', to: 'test@example.com' });
+
+    jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    jest.spyOn(fs, 'readFileSync').mockReturnValue(
+      JSON.stringify({
+        date: '2026-10-16',
+        scanId: SCAN_ID,
+        scanName: 'Quality Result - DND',
+        count: 2,
+        companies: [
+          {
+            companyId: 'NSE:SWSOLAR',
+            name: 'Sterling & Wilson Renewable Energy Ltd',
+            marketCap: 4086.04,
+            revenueYoY: -12.64,
+            patYoY: 103.52,
+            patTtm: 158.14,
+          },
+          {
+            companyId: 'NSE:IIFL',
+            name: 'IIFL Finance Ltd',
+            marketCap: 25527.62,
+            revenueYoY: 28.48,
+            patYoY: 92.61,
+            patTtm: 157.78,
+          },
+        ],
+      })
+    );
+
+    const res = await sendReportEmail({ date: '2026-10-16' });
+
+    expect(res.sent).toBe(true);
+    expect(res.count).toBe(2);
+    expect(sendHtmlEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: expect.stringContaining('2 companies analyzed'),
+        htmlBody: expect.stringMatching(/Sterling &amp; Wilson|Sterling & Wilson/),
+      })
+    );
+  });
+});

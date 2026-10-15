@@ -285,6 +285,85 @@ function summarizeOutcomes(rows, horizon = 20) {
   return out;
 }
 
+/**
+ * Recovery check of ONE past signal as of the latest candle. Pure.
+ * candles ascending {date,open,high,low,close,prevClose,volume} (>= 51 up to now); bench ascending {date,close};
+ * qDates/qSeries = rolling book cache (shares financed). Expected recovery (SPEC: flush = forced MTF selling, price
+ * should hold the signal-day low, reclaim/hold EMA20 and the book should stop shrinking):
+ *   too-early  < 2 sessions after the signal day
+ *   failed     close < 50-EMA (his exit line) OR undercut the signal-day low on a closing basis
+ *   weak       close < EMA20 (his reduce line) OR below the signal-day close after >= 3 sessions
+ *   mixed      price fine but the funded book is STILL unwinding (> 3% below the signal-day level)
+ *   on-track   close >= EMA20, >= signal-day close, book not still unwinding
+ */
+function assessRecovery({ signalDate, candles, bench = [], qDates = [], qSeries = [] }) {
+  const iS = candles.findIndex((c) => c.date === signalDate);
+  if (iS < 0) return { verdict: 'no-data', reason: 'signal-day candle missing' };
+  const sig = candles[iS];
+  const last = candles[candles.length - 1];
+  const sessions = candles.length - 1 - iS;
+  const cf = candleFeatures(candles);
+  const after = candles.slice(iS + 1);
+  const entry = after[0] || null;
+  const bAt = new Map(bench.map((b) => [b.date, b.close]));
+  const ret = last.close / sig.close - 1;
+  const retEntry = entry && sessions >= 2 ? last.close / entry.close - 1 : null;
+  const b0 = entry ? bAt.get(entry.date) : null;
+  const b1 = bAt.get(last.date);
+  const excess = retEntry != null && b0 && b1 ? retEntry - (b1 / b0 - 1) : null;
+  const minLow = after.length ? Math.min(...after.map((c) => c.low)) : null;
+  const minClose = after.length ? Math.min(...after.map((c) => c.close)) : null;
+  // MTF book: level at signal day vs now vs pre-flush (10 sessions before the signal day)
+  const iq = qDates.indexOf(signalDate);
+  const qSig = iq >= 0 ? qSeries[iq] : null;
+  const qNow = qSeries.length ? qSeries[qSeries.length - 1] : null;
+  const qPre = iq >= 10 ? qSeries[iq - 10] : null;
+  const qChg = isNum(qSig) && qSig > 0 && isNum(qNow) ? qNow / qSig - 1 : null;
+  const rebuilt =
+    isNum(qPre) && isNum(qSig) && isNum(qNow) && qPre > qSig ? (qNow - qSig) / (qPre - qSig) : null;
+  const mtfState =
+    qChg == null ? 'n/a' : qChg > 0.03 ? 'rebuilding' : qChg < -0.03 ? 'still-unwinding' : 'flat';
+  const reasons = [];
+  let verdict;
+  if (sessions < 2) verdict = 'too-early';
+  else if (cf && last.close < cf.ema50) {
+    verdict = 'failed';
+    reasons.push('closed below 50-EMA');
+  } else if (minClose != null && minClose < sig.low) {
+    verdict = 'failed';
+    reasons.push('closed below signal-day low');
+  } else if (cf && last.close < cf.ema20) {
+    verdict = 'weak';
+    reasons.push('below EMA20');
+  } else if (sessions >= 3 && ret < 0) {
+    verdict = 'weak';
+    reasons.push('below signal-day close');
+  } else if (mtfState === 'still-unwinding') {
+    verdict = 'mixed';
+    reasons.push('funded book still shrinking');
+  } else verdict = 'on-track';
+  return {
+    verdict,
+    reasons,
+    sessions,
+    lastDate: last.date,
+    signalClose: sig.close,
+    signalLow: sig.low,
+    close: last.close,
+    ret,
+    retEntry,
+    excess,
+    maxAdverse: minLow != null ? minLow / sig.close - 1 : null,
+    ema20: cf ? cf.ema20 : null,
+    ema50: cf ? cf.ema50 : null,
+    dist20: cf ? cf.dist20 : null,
+    mtfState,
+    qChg,
+    rebuilt,
+    mtfLastDate: qDates.length ? qDates[qDates.length - 1] : null,
+  };
+}
+
 /** Market-wide MTF context (informational only: not scored, see SPEC v5). latest = /latest.json, q = cache.q. */
 function marketContext(latest, cache) {
   const c = (latest && latest.combined) || {};
@@ -314,6 +393,7 @@ function marketContext(latest, cache) {
 }
 
 module.exports = {
+  assessRecovery,
   marketContext,
   computeOutcome,
   summarizeOutcomes,

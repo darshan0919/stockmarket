@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: daily-tweet-signals-stockmarket
 description: Daily Tweet Signals — X list capture to conviction signals email
 ---

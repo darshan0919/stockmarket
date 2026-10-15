@@ -169,4 +169,4 @@ if (require.main === module) {
     .finally(() => apiUsageTracker.flush(jobName));
 }
 
-module.exports = { main };
+module.exports = { main, history };

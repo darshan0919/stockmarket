@@ -4,10 +4,15 @@ const { buildJobReport, markdownToHtml } = require('../lib/jobReportEmail');
 const { argValues } = require('../jobReportEmail');
 
 describe('markdownToHtml', () => {
-  test('escapes html and renders bullets, headings, tables, bold', () => {
-    const h = markdownToHtml('## T <x>\n- **a** & b\n\n| k | v |\n|---|---|\n| 1 | 2 |');
+  test('escapes html and renders bullets, headings, tables, bold, and links', () => {
+    const h = markdownToHtml(
+      '## T <x>\n- **a** & b\n- [Example](https://example.com)\n\n| k | v |\n|---|---|\n| [Link](https://foo.bar) | 2 |'
+    );
     expect(h).toContain('T &lt;x&gt;');
     expect(h).toContain('<li><b>a</b> &amp; b</li>');
+    expect(h).toContain('<a href="https://example.com"');
+    expect(h).toContain('Example</a>');
+    expect(h).toContain('<a href="https://foo.bar"');
     expect(h).toContain('<th');
     expect(h).toContain('<td');
     expect(h).not.toContain('<x>');

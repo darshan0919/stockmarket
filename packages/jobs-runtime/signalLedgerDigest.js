@@ -2,8 +2,8 @@
 'use strict';
 
 /**
- * signalLedgerDigest — emails ONLY the signal-ledger transitions since a date (default: yesterday,
- * IST). Sends nothing when there are none. Zero LLM.
+ * signalLedgerDigest — emails a tiered digest (regime / act / risk / watch / collapsed noise) of signal-ledger
+ * transitions since a date (default: yesterday, IST). Sends nothing when nothing is actionable. Zero LLM.
  *   node signalLedgerDigest.js [--since YYYY-MM-DD] [--no-email] [--env-file path]
  */
 
@@ -24,9 +24,13 @@ async function main() {
 
   const transitions = db.find('events', { type: 'signal_transition', since });
   const active = signalLedger.getStates({ activeOnly: true });
-  const digest = formatDigest(transitions, active, { label: `since ${since}` });
+  const snapshots = db
+    .find('events', { type: 'market_snapshot' })
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+    .slice(-2);
+  const digest = formatDigest(transitions, active, { label: `since ${since}`, snapshots });
 
-  let email = { status: 'skipped', reason: digest ? '--no-email' : 'no transitions' };
+  let email = { status: 'skipped', reason: digest ? '--no-email' : 'no actionable transitions' };
   if (digest && !noEmail) {
     email = await sendHtmlEmail({
       subject: digest.subject,
@@ -36,7 +40,13 @@ async function main() {
   }
   console.log(
     JSON.stringify(
-      { since, transitions: transitions.length, active: active.length, email },
+      {
+        since,
+        transitions: transitions.length,
+        active: active.length,
+        tiers: digest?.stats,
+        email,
+      },
       null,
       2
     )

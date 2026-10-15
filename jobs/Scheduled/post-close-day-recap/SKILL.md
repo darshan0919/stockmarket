@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: post-close-day-recap
 description: Announcement Signals day recap — re-sends the trading day's thesis cards enriched with settled end-of-day market data and re-ranked by what the market actually did
 ---

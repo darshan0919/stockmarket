@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: daily-thesis-delta-scan
 description: Thesis Delta Scan — apply new announcements/results to stored theses, flag signal changes
 ---

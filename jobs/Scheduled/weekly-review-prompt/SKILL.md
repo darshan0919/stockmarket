@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: weekly-review-prompt
 description: Weekly Review Prompt — weekend routine from the SOIC process playbook: which top-10 weekly gainers sustained, trade-book review prompt, journal prompt (no sizing)
 ---

@@ -1,6 +1,7 @@
 ---
 name: sector-lifecycle-weekly
 description: Sector Lifecycle Weekly — S4 crowding context per industry (sector price 2x in 24m, IPO listing rush, sector P/E premium) with cycle phase and duration, into the signal ledger
+model: flash_lite
 ---
 
 ## Context

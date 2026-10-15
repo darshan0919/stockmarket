@@ -1,6 +1,7 @@
 ---
 name: weekly-gainers-digest
 description: Weekly Gainers Digest — top weekly gainers by Industry/Sector with streak scoring emailed weekly
+model: flash_lite
 ---
 
 ## Context

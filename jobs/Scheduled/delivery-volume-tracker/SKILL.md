@@ -1,6 +1,7 @@
 ---
 name: delivery-volume-tracker
-description: Intraday delivery-vs-traded-volume snapshot and hourly breakdown email report for Darshan's portfolio watchlist (Slot 1: 10:25 IST, weekdays only).
+description: Intraday delivery-vs-traded-volume snapshot and hourly breakdown email report for Darshan's portfolio watchlist (hourly slots from 10:25 to 17:25 IST, weekdays only).
+model: flash_lite
 ---
 
 ## Context

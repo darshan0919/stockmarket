@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: monthly-business-updates
 description: Monthly job — collect the 1st-of-month business/sales update filings, parse them, refresh the interactive tracker page, publish it, and send Darshan the link
 ---

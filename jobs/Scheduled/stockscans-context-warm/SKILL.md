@@ -1,6 +1,7 @@
 ---
 name: stockscans-context-warm
 description: Warm the Stockscans research-context cache (business overview, growth catalysts, latest concall notes) for the standing universe, so the daily scan skills get them as a free local lookup instead of a document read.
+model: flash_lite
 ---
 
 Run the warm job and report its output. **This job has no reasoning step** — do not

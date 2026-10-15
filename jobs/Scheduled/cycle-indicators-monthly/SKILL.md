@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: cycle-indicators-monthly
 description: Cycle Indicators Monthly — agent fetches published India macro-cycle readings (IIP, credit growth, PMI, GST, power demand) with sources; script scores direction into the signal ledger (C1)
 ---

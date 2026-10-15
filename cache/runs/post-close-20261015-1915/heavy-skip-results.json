@@ -1,0 +1,65 @@
+[
+  {
+    "companyId": "NSE:KABRAEXTRU",
+    "ssUrl": "hp6sthbgxkuwp9u6vzt3ia29.pdf",
+    "status": "ok",
+    "log": "{\"status\":\"ok\",\"totalSkippedToday\":1}",
+    "mark": "{\"status\":\"ok\",\"usecase\":\"heavy-doc-skip\"}"
+  },
+  {
+    "companyId": "NSE:CCL",
+    "ssUrl": "pymgy0prgipzdbfsiagappcw.pdf",
+    "status": "ok",
+    "log": "{\"status\":\"ok\",\"totalSkippedToday\":2}",
+    "mark": "{\"status\":\"ok\",\"usecase\":\"heavy-doc-skip\"}"
+  },
+  {
+    "companyId": "NSE:SBC",
+    "ssUrl": "bfmorw6uwynh4mbgctq3oh49.pdf",
+    "status": "ok",
+    "log": "{\"status\":\"ok\",\"totalSkippedToday\":3}",
+    "mark": "{\"status\":\"ok\",\"usecase\":\"heavy-doc-skip\"}"
+  },
+  {
+    "companyId": "NSE:LOTUSDEV",
+    "ssUrl": "4xkyjwvq2k8nld6djckjrr6p.pdf",
+    "status": "ok",
+    "log": "{\"status\":\"ok\",\"totalSkippedToday\":4}",
+    "mark": "{\"status\":\"ok\",\"usecase\":\"heavy-doc-skip\"}"
+  },
+  {
+    "companyId": "NSE:SEJALLTD",
+    "ssUrl": "p8vqmos29qord7058vt1v4rm.pdf",
+    "status": "ok",
+    "log": "{\"status\":\"ok\",\"totalSkippedToday\":5}",
+    "mark": "{\"status\":\"ok\",\"usecase\":\"heavy-doc-skip\"}"
+  },
+  {
+    "companyId": "NSE:BSHSL",
+    "ssUrl": "pavtkhczm1xy8l2y9x3zdg07.pdf",
+    "status": "ok",
+    "log": "{\"status\":\"ok\",\"totalSkippedToday\":6}",
+    "mark": "{\"status\":\"ok\",\"usecase\":\"heavy-doc-skip\"}"
+  },
+  {
+    "companyId": "NSE:CYIENTDLM",
+    "ssUrl": "g8saaqm05pz5t5ou0kwhs5dr.pdf",
+    "status": "ok",
+    "log": "{\"status\":\"ok\",\"totalSkippedToday\":7}",
+    "mark": "{\"status\":\"ok\",\"usecase\":\"heavy-doc-skip\"}"
+  },
+  {
+    "companyId": "NSE:KARURVYSYA",
+    "ssUrl": "gmz9imv80qxntz6h40hehusx.pdf",
+    "status": "ok",
+    "log": "{\"status\":\"ok\",\"totalSkippedToday\":8}",
+    "mark": "{\"status\":\"ok\",\"usecase\":\"heavy-doc-skip\"}"
+  },
+  {
+    "companyId": "NSE:HERITGFOOD",
+    "ssUrl": "q9qnot30soh87qc2t256vlhs.pdf",
+    "status": "ok",
+    "log": "{\"status\":\"ok\",\"totalSkippedToday\":9}",
+    "mark": "{\"status\":\"ok\",\"usecase\":\"heavy-doc-skip\"}"
+  }
+]

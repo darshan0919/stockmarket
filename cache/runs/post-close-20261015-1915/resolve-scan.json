@@ -1,0 +1,46 @@
+{
+  "scan": {
+    "scanId": "7e07567f7867028e90a6e368",
+    "scanName": "Signals - DND",
+    "filters": [
+      {
+        "left": "Market Capitalization",
+        "sign": ">=",
+        "right": "300"
+      },
+      {
+        "left": "Retail Holdings * Market Capitalization",
+        "sign": ">=",
+        "right": "5000"
+      },
+      {
+        "left": "Close Price",
+        "sign": ">=",
+        "right": "EMA 200D"
+      },
+      {
+        "left": "FII Holdings + DII Holdings",
+        "sign": ">=",
+        "right": "0"
+      },
+      {
+        "left": "Market Capitalization",
+        "sign": "<",
+        "right": "70000"
+      }
+    ],
+    "industry": [],
+    "index": [],
+    "watchlistIds": [],
+    "searchFilters": [],
+    "announcementType": "All",
+    "alerts": false,
+    "searchMode": "quick",
+    "companyIds": [],
+    "companyFilters": []
+  },
+  "source": "live",
+  "resolvedAtIso": "2026-10-15T17:09:20.752Z",
+  "scanName": "Signals - DND",
+  "filterCount": 5
+}

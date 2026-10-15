@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: daily-guidance-extractor-scan
 description: Daily guidance document extraction for saved scan 429918e3098ce660baec9f22 (FIX: now uses orchestrator to ensure Step 2 always runs)
 ---

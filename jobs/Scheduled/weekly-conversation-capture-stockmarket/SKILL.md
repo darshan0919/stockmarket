@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: weekly-conversation-capture-stockmarket
 description: Conversation Capture — weekly: store new stockmarket chats into the conversations DB collection
 ---

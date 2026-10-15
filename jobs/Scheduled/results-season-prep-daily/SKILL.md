@@ -1,6 +1,7 @@
 ---
 name: results-season-prep-daily
 description: Results Season Prep — pre-results watchlist of liquid names whose last good result faded (PAT YoY>20%, negative return since result, 70-120 days since result) into the signal ledger
+model: flash_lite
 ---
 
 ## Context

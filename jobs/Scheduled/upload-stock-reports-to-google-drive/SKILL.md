@@ -1,6 +1,7 @@
 ---
 name: upload-stock-reports-to-google-drive
 description: Drive Sync & Audit — prune checkpoints, push data/ mirror to Drive (StockMarket/data/v2), audit repo for stray data files
+model: flash_lite
 ---
 
 Run this in order. This is an unattended scheduled run — execute autonomously, don't ask questions, and only take the specific actions listed below (no other writes, deletes, code edits, or file moves).

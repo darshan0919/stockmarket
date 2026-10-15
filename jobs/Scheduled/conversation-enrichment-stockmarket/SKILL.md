@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: conversation-enrichment-stockmarket
 description: Conversation Enrichment — weekly: process all new-or-updated stockmarket chats into notes/reports/prompts
 ---

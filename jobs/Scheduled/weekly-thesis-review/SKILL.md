@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: weekly-thesis-review
 description: Thesis Weekly Review — deep Saturday review: staleness, valuation re-anchor, monitorables
 ---

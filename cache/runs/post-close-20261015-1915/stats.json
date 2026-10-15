@@ -1,0 +1,10 @@
+{
+  "total": 172,
+  "noiseDropped": 71,
+  "duplicateCollapsed": 22,
+  "heavyDocSkipped": 9,
+  "alreadyProcessed": 0,
+  "routine": 36,
+  "insights": 34,
+  "reconciledTotal": 172
+}

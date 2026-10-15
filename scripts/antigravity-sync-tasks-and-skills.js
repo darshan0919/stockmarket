@@ -12,41 +12,65 @@ const TARGET_SKILL_CATEGORIES = ['equity-research', 'tooling', 'development'];
 
 // Overrides map for known sidecar UI display names, folder names, and default cron schedules
 const SIDECAR_OVERRIDES = {
-  'daily-deals-digest': {
-    sidecarFolder: 'dealsdigest',
-    displayName: 'Deals Digest',
-    cron: '0 20 * * *',
+  'post-market-digests-suite': {
+    sidecarFolder: 'post-market-digests-suite',
+    displayName: 'Post-Market Digests Suite',
+    cron: '30 20 * * 1-5',
+    model: 'flash_lite',
   },
-  'daily-gainers-digest': {
-    sidecarFolder: 'dailygainersdigest',
-    displayName: 'Daily Gainers Digest',
-    cron: '0 20 * * *',
+  'soic-macro-structural-daily': {
+    sidecarFolder: 'soic-macro-structural-daily',
+    displayName: 'SOIC Macro & Structural Supply',
+    cron: '0 19 * * 1-5',
+    model: 'flash_lite',
+  },
+  'soic-setups-rotation-daily': {
+    sidecarFolder: 'soic-setups-rotation-daily',
+    displayName: 'SOIC Setups, Rotation & Exits',
+    cron: '15 19 * * 1-5',
+    model: 'flash_lite',
+  },
+  'mtf-flush-suite-daily': {
+    sidecarFolder: 'mtf-flush-suite-daily',
+    displayName: 'MTF Flush Trading Suite',
+    cron: '30 19 * * 1-5',
+    model: 'flash_lite',
+  },
+  'daily-gainers-signal-stockmarket': {
+    sidecarFolder: 'daily-gainers-signal',
+    displayName: 'Daily Gainers Signal',
+    cron: '45 18 * * 1-5',
+    model: 'flash',
+  },
+  'post-close-day-recap': {
+    sidecarFolder: 'post-close-day-recap',
+    displayName: 'Post-Close Announcement Recap',
+    cron: '45 23 * * 1-5',
+    model: 'flash_lite',
   },
   'weekly-gainers-digest': {
     sidecarFolder: 'weeklygainersdigest',
     displayName: 'Weekly Gainers Digest',
     cron: '0 20 * * 0',
-  },
-  'near-highs-digest': {
-    sidecarFolder: 'nearhighsdigest',
-    displayName: 'Near Highs Digest',
-    cron: '0 20 * * *',
+    model: 'flash_lite',
   },
   'periodic-dead-code-scan': {
     sidecarFolder: 'dead-code-tasks',
     displayName: 'Dead Code Tasks',
     cron: '0 9 * * 0',
+    model: 'flash',
   },
-  // 16:00 (4:00 PM) weekdays only — syncs Near Highs, Upcoming Results & Relative Strength scans to watchlists after market close.
-  'watchlist-sync-stockmarket': {
-    sidecarFolder: 'watchlist-sync',
-    displayName: 'Watchlist Sync',
-    cron: '0 16 * * 1-5',
+  'policy-event-tracker': {
+    sidecarFolder: 'policy-event-tracker',
+    displayName: 'Policy Event Tracker',
+    cron: '30 18 * * 0',
+    model: 'flash_lite',
   },
   'upload-stock-reports-to-google-drive': {
     sidecarFolder: 'data-sync',
     displayName: 'Data Sync',
     cron: '0 1 * * *',
+    model: 'flash_lite',
   },
   // Every 30 min through the filing day. This job drains the pre-processing
   // queue, and its whole value is being AHEAD of the post-close slots — the
@@ -71,6 +95,7 @@ const SIDECAR_OVERRIDES = {
     sidecarFolder: 'stockscans-context-warm',
     displayName: 'Stockscans Context Warm',
     cron: '15 */3 * * *',
+    model: 'flash_lite',
   },
   // 21:00 — after the 20:00 digests, which write the same events collection,
   // and late enough that the day's exchange filings have been disseminated.
@@ -78,56 +103,20 @@ const SIDECAR_OVERRIDES = {
     sidecarFolder: 'order-book-sync',
     displayName: 'Order Book Sync',
     cron: '0 21 * * *',
+    model: 'flash',
   },
-  // 22:00 (10:00 PM) daily — refreshes Kite instruments, reconciles NSE/BSE
-  // mappings, overlays companies.json, and backfills missing scrip codes.
-  'daily-company-master-sync': {
-    sidecarFolder: 'company-master-sync',
-    displayName: 'Company Master Sync',
-    cron: '0 22 * * *',
-  },
-  // Delivery Volume Tracker — 8 slots across the trading day (10:25, 11:25, 12:25,
-  // 13:25, 14:25, 15:25, 16:25 [close], and 17:25 [final NCL settlement] snapshot-then-report).
+  // Delivery Volume Tracker — single consolidated hourly schedule across the trading day (10:25 to 17:25).
   // Runs Monday through Friday (1-5) on weekdays only.
   'delivery-volume-tracker': {
     sidecarFolder: 'delivery-volume-tracker',
-    displayName: 'Delivery Volume Tracker - 10:25',
-    cron: '25 10 * * 1-5',
+    displayName: 'Delivery Volume Tracker (Hourly)',
+    cron: '25 10-17 * * 1-5',
+    model: 'flash_lite',
   },
-  'delivery-volume-tracker-1125': {
-    sidecarFolder: 'delivery-volume-tracker-1125',
-    displayName: 'Delivery Volume Tracker - 11:25',
-    cron: '25 11 * * 1-5',
-  },
-  'delivery-volume-tracker-1225': {
-    sidecarFolder: 'delivery-volume-tracker-1225',
-    displayName: 'Delivery Volume Tracker - 12:25',
-    cron: '25 12 * * 1-5',
-  },
-  'delivery-volume-tracker-1325': {
-    sidecarFolder: 'delivery-volume-tracker-1325',
-    displayName: 'Delivery Volume Tracker - 13:25',
-    cron: '25 13 * * 1-5',
-  },
-  'delivery-volume-tracker-1425': {
-    sidecarFolder: 'delivery-volume-tracker-1425',
-    displayName: 'Delivery Volume Tracker - 14:25',
-    cron: '25 14 * * 1-5',
-  },
-  'delivery-volume-tracker-1525': {
-    sidecarFolder: 'delivery-volume-tracker-1525',
-    displayName: 'Delivery Volume Tracker - 15:25',
-    cron: '25 15 * * 1-5',
-  },
-  'delivery-volume-tracker-1625': {
-    sidecarFolder: 'delivery-volume-tracker-1625',
-    displayName: 'Delivery Volume Tracker - 16:25',
-    cron: '25 16 * * 1-5',
-  },
-  'delivery-volume-tracker-final': {
-    sidecarFolder: 'delivery-volume-tracker-final',
-    displayName: 'Delivery Volume Tracker - Final (17:25)',
-    cron: '25 17 * * 1-5',
+  'daily-quarterly-result-analysis': {
+    sidecarFolder: 'daily-quarterly-result-analysis',
+    displayName: 'Daily Quarterly Result Analysis',
+    model: 'gemini-3.8-flash-high',
   },
 };
 
@@ -137,6 +126,7 @@ function parseSkillMd(filePath) {
 
   let name = '';
   let description = '';
+  let model = '';
   let promptText = content;
 
   const fmMatch = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
@@ -147,12 +137,13 @@ function parseSkillMd(filePath) {
       if (parsedYaml && typeof parsedYaml === 'object') {
         if (parsedYaml.name) name = String(parsedYaml.name).trim();
         if (parsedYaml.description) description = String(parsedYaml.description).trim();
+        if (parsedYaml.model) model = String(parsedYaml.model).trim();
       }
     } catch (err) {
       // Fallback manual parser if js-yaml fails on malformed YAML
     }
 
-    if (!name || !description) {
+    if (!name || !description || !model) {
       const yamlLines = fmMatch[1].split('\n');
       let capturingDesc = false;
       let descLines = [];
@@ -160,6 +151,12 @@ function parseSkillMd(filePath) {
         const nameMatch = line.match(/^name:\s*(.+)$/);
         if (nameMatch) {
           if (!name) name = nameMatch[1].trim();
+          capturingDesc = false;
+          continue;
+        }
+        const modelMatch = line.match(/^model:\s*(.+)$/);
+        if (modelMatch) {
+          if (!model) model = modelMatch[1].trim();
           capturingDesc = false;
           continue;
         }
@@ -193,7 +190,7 @@ function parseSkillMd(filePath) {
     promptText = fmMatch[2].trim();
   }
 
-  return { name, description, promptText, fullContent: content };
+  return { name, description, model, promptText, fullContent: content };
 }
 
 function titleCase(str) {
@@ -461,6 +458,13 @@ function syncScheduledTasks() {
       }
     }
 
+    const modelToUse = override.model || parsed.model || null;
+    const conversationArgs = [cronToUse, 'agentapi', 'new-conversation'];
+    if (modelToUse) {
+      conversationArgs.push(`--model=${modelToUse}`);
+    }
+    conversationArgs.push(parsed.promptText);
+
     // 1. Sync UI Sidecar
     const sidecarPayload = {
       builtin: 'schedule',
@@ -468,7 +472,7 @@ function syncScheduledTasks() {
       projectId: getProjectId(),
       project_id: getProjectId(),
       workspace_uris: ['file://' + require('path').resolve(__dirname, '../')],
-      args: [cronToUse, 'agentapi', 'new-conversation', parsed.promptText],
+      args: conversationArgs,
       display_name: displayName,
     };
 

@@ -1,4 +1,5 @@
 ---
+model: flash_lite
 name: weekly-insight-review-stockmarket
 description: Insight Review & Upgrade — weekly: turn accumulated insights into proposals + keep the DB lean
 ---

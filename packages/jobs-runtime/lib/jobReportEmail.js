@@ -21,11 +21,15 @@ function esc(s) {
   );
 }
 
-/** Inline markdown on already-escaped text: **bold**, `code`. */
+/** Inline markdown on already-escaped text: **bold**, `code`, [label](url). */
 function inline(escaped) {
   return escaped
     .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
-    .replace(/`([^`]+)`/g, '<code style="background:#f2f2f2;padding:0 3px">$1</code>');
+    .replace(/`([^`]+)`/g, '<code style="background:#f2f2f2;padding:0 3px">$1</code>')
+    .replace(
+      /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+      '<a href="$2" style="color:#0969da;text-decoration:none">$1</a>'
+    );
 }
 
 const isRow = (l) => /^\s*\|.*\|\s*$/.test(l);
