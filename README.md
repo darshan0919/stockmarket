@@ -7,35 +7,133 @@
 
 # 📈 Stock Market AI Ecosystem
 
-A comprehensive, **platform-agnostic AI ecosystem** built for advanced stock research, screening, and tracking. What started as a local-first stock screener has evolved into an ultimate system to simplify and automate the investing journey.
+A full-stack, **platform-agnostic AI ecosystem** built for institutional-grade Indian equity research, real-time screening, multi-tiered catalyst detection, and automated portfolio tracking.
 
-> **Our Ultimate Goal**: Constantly learn ➔ take notes ➔ convert to actionable insights ➔ implement into our thesis/signal generation system ➔ review/test ➔ iterate.
+> **Our Ultimate Engine**: Learn from Market & Filings ➔ Ingest & Preprocess ➔ Deterministic Signals & AI Thesis Extraction ➔ Signal Ledger & Outcome Tracking ➔ Multi-Channel Digest Reporting.
 
-By wrapping around and enhancing existing third-party APIs (NSE, BSE, Stockscans, LLMs), we provide a robust, cross-platform product suite that manages data pipelines efficiently with minimal resources.
+---
 
-## 🌟 Ecosystem Vision & Highlights
+## 🏛️ Ecosystem Architecture & Interaction Flow
 
-- **Platform-Agnostic Architecture**: Designed to seamlessly integrate cross-platform tools, bridging web interfaces, automated background jobs, and AI agents.
-- **Robust Database Management (Minimal Resources)**: Leveraging highly optimized data pipelines (`@stock/jobs` and `cowork-jobs`), the system syncs, offloads, and manages massive datasets without overwhelming local or cloud resources.
-- **Enhanced Third-Party APIs**: We wrap existing APIs (NSE, BSE, AlphaVantage) and augment them with AI and custom caching layers to deliver enriched insights faster.
-- **Automated AI Insights**: Wrapping around LLMs and skills to parse filings, extract catalysts, and generate actionable insights automatically.
+The monorepo operates on a modular, multi-tier pipeline where external data feeds, background scheduled jobs, agent skills, and full-stack web applications interact seamlessly through shared chokepoints:
 
-## 🚀 Achievements & Roadmap
+```mermaid
+flowchart TD
+    subgraph External_Sources["🌐 External Data Ingestion"]
+        NSE["NSE (Quotes, Delivery, XBRL, Deals)"]
+        BSE["BSE (Scrip, Corporate Actions)"]
+        SS["Stockscans (Scans, Filings, Transcripts)"]
+        KITE["Zerodha Kite Connect (Instruments)"]
+        LRN["Learnyst / YouTube / X Transcripts"]
+    end
 
-### What We've Achieved So Far
+    subgraph Chokepoints["🛡️ Core Abstractions & Storage Chokepoints"]
+        CM["Company Master (companyMaster.js)"]
+        DB["Data Layer Chokepoint (db.js / Data Ecosystem v2)"]
+        GDRIVE[("Google Drive Mirror (StockMarket/data/v2)")]
+        MONGO[("MongoDB (screener-api Cache & Web State)")]
+    end
 
-- **Comprehensive Screener**: Fast, auto-complete search across 500+ stocks with 15+ fundamental and technical filters.
-- **Technical & Fundamental Workbenches**: 5-year interactive price charts, SMA overlays, RSI, MACD, and 4-quarter P&L/Balance Sheets.
-- **Automated Data Pipelines**: Cron-scheduled jobs that offload and sync data autonomously.
-- **AI-Powered Watchlists**: Real-time tracking infused with AI insight validation.
-- **Corporate Announcements Scanner**: Dedicated workflows to scan and analyze corporate documents and track top gainers live.
+    subgraph Engine["⚙️ Execution Engines (@stock/jobs-runtime)"]
+        INTRA["Intraday Delivery Volume Tracker"]
+        SOIC["SOIC Signals Suite (Macro, Rotation, MTF)"]
+        PMS["Post-Market Digests Suite"]
+        QTR["Quarterly Result & PEAD Pipelines"]
+    end
 
-### What to Expect Next
+    subgraph Skills_Layer["🧠 Agent Skills & AI Research (skills/)"]
+        RESEARCH["Equity Research Deep Dives (concall, forensic, thesis)"]
+        SIGNALS["Actionability Classifiers (gainers-signal, rerating-catalysts)"]
+        LEARN["Knowledge Ingestion (learn-and-automate)"]
+    end
 
-- **Advanced Signal Generation**: Transforming raw notes and learned patterns into automated trading/investing signals.
-- **Broader Market Coverage**: Expanding to the broader NSE 500 and beyond.
-- **Real-time Event Streaming**: Upgrading to WebSocket-based live price feeds and alerts.
-- **Backtesting Engine**: A robust engine to test our generated signals against historical data.
+    subgraph UI_And_Consumers["📊 Delivery & User Surfaces"]
+        EMAIL["Gmail Reports (Deals, Gainers, Setups, Scored MTF)"]
+        WEB["Next.js Web App (screener-web) + Express API"]
+        FUTURE["🔮 Unified Research Dashboard (Future Web Portal)"]
+    end
+
+    NSE & BSE & SS & KITE --> Engine
+    KITE & SS --> CM --> Engine
+    Engine --> DB
+    DB <--> GDRIVE
+    Engine --> EMAIL
+    Engine --> Skills_Layer
+    Skills_Layer --> DB
+    DB --> FUTURE
+    MONGO <--> WEB
+```
+
+### How the Components Interact:
+
+1. **The Workspace Facade (`package.json`)**: All scripts and background jobs are invoked strictly through `yarn <script>` commands at the root or workspace level—never through raw `node` paths.
+2. **Deterministic Scripts vs. AI Judgment**: All data ingestion, ratio calculations, exchange scraping, deduplication, and file generation are handled 100% deterministically by Node.js scripts in `packages/jobs-runtime/`. LLM models (`flash_lite`, `flash`, `pro`) are called only for high-leverage qualitative extraction, sentiment analysis, and investment thesis cards.
+3. **Canonical Data Chokepoints**:
+   - `packages/jobs-runtime/lib/companyMaster.js`: Resolves tickers/scrips to a canonical `EXCH:SYMBOL` identity.
+   - `packages/jobs-runtime/lib/db.js`: The **single chokepoint** authorized to persist files under `data/` and manage JSON collections (`events`, `signal-ledger`, `companies`).
+4. **Output DTO Standard**: Every job outputs a structured, reproducible JSON DTO before any HTML email is composed or PDF is rendered, preventing analytical drift.
+
+---
+
+## ⏰ Scheduled Cron Jobs Timeline
+
+All daily micro-jobs have been consolidated into cohesive pipelines organized by market hours, execution dependencies, and cognitive tiers:
+
+```
+09:00       10:25               16:00       18:30    19:00    19:15    19:30    20:30        21:15    23:45       01:00
+  │           │                   │           │        │        │        │        │            │        │           │
+  │     [MARKET HOURS]            │           │        │        │        │        │            │        │     [OFF-HOURS]
+  │           │                   │           │        │        │        │        │            │        │           │
+  ▼           ▼                   ▼           ▼        ▼        ▼        ▼        ▼            ▼        ▼           ▼
+Sunday     Intraday           (Intraday    Weekly    SOIC     SOIC      MTF     Post-Market   Daily    Post-Close  Drive Sync
+Code Audit Hourly Volumes     Closes at    Policy    Macro    Setups    Flush   Digests       Results  Recap       & Backup
+(Weekly)   (10:25 to 17:25)   17:25)       Events    Sweep    Rotation  Suite   Suite         Analysis Cards       (Nightly)
+```
+
+### Comprehensive Cron Job Schedule
+
+| Slot / Timing                                  | Job Name / Workspace Facade                                                 | Model Tier                        | Purpose & Execution Flow                                                                                                                                                                                                                                                                                                                                                                                  | Output / Notifications                                                 |
+| :--------------------------------------------- | :-------------------------------------------------------------------------- | :-------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------- |
+| **`25 10-17 * * 1-5`**<br>(Hourly 10:25–17:25) | `delivery-volume-tracker`<br>`yarn delivery-volume-snapshot-then-report`    | `flash_lite`<br>(Low)             | Captures live intraday traded vs. delivery volumes across Darshan's portfolio watchlist. Tracks accumulation vs. algo churn.                                                                                                                                                                                                                                                                              | Hourly cumulative email table with volume ratios and settlement flags. |
+| **`45 18 * * 1-5`**<br>(18:45 IST)             | `daily-gainers-signal`<br>`yarn gainers-signal`                             | `flash`<br>(Medium)               | Screens top 50 market gainers, filters for delivery value & mcap, classifies actionability (ACT/WATCH/NOTED), and generates J-Curve thesis cards.                                                                                                                                                                                                                                                         | Daily Gainers Actionability email with direct PDF thesis cards.        |
+| **`0 19 * * 1-5`**<br>(19:00 IST)              | `soic-macro-structural-daily`<br>`yarn soic-macro-structural-daily`         | `flash_lite`<br>(Low)             | Top-down macro & structural supply sweep:<br>1. Nifty 500 breadth, Brent, US10Y, USDINR, FII/DII (`M1-M4`)<br>2. Block-deal supply spikes & FII outflow (`L1-L2`)<br>3. Paper supply & QIP watch in P/E>50 names (`V2`)<br>4. IPO lock-in expiries & OFS filings<br>5. Policy price absorption vs. CNX500 (`P1`)                                                                                          | Unified Signal Ledger email (sent only on state changes/transitions).  |
+| **`15 19 * * 1-5`**<br>(19:15 IST)             | `soic-setups-rotation-daily`<br>`yarn soic-setups-rotation-daily`           | `flash_lite`<br>(Low)             | Bottom-up technical setups, breadth clusters & exits:<br>1. RS $\ge 90$ base-breakout (E1) & pullback (E2) setups<br>2. Near-high industry concentration (`S1`)<br>3. Sector rotation & relative strength (`S2-S3`)<br>4. SOIC valuation stretch flags (`V1`)<br>5. Trailing watchlist exit alerts (`X1-X7`)<br>6. QoQ earnings gap lists                                                                 | Unified Signal Ledger email (sent only on state changes/transitions).  |
+| **`30 19 * * 1-5`**<br>(19:30 IST)             | `mtf-flush-suite-daily`<br>`yarn mtf-flush-suite-daily`                     | `flash_lite`<br>(Low)             | Shashank's Margin Trading Facility (MTF) Rule G4 trading lifecycle:<br>1. Scans today's new MTF flush entries & scores 0–100 (Tier A/B/C)<br>2. 7-day price recovery check vs. 20/50 EMA<br>3. Tracks realised 5/10/20-day returns of mature signals                                                                                                                                                      | Scored MTF entry alert email + per-signal recovery verdicts.           |
+| **`30 20 * * 1-5`**<br>(20:30 IST)             | `post-market-digests-suite`<br>`yarn post-market-digests-suite`             | `flash_lite`<br>(Low)             | Post-market data consolidation & activity digests:<br>1. Watchlist Sync (Near Highs, Upcoming Results, RS)<br>2. Company Master Sync (Kite Connect + Stockscans reconciliation)<br>3. Daily Deals Digest (Bulk, Block, SAST Reg 29, Insider PIT)<br>4. Daily Gainers Digest (Top gainers by sector with streaks)<br>5. Near Highs Digest (Stocks within 5% of 52W high)<br>6. Idempotent `yarn data:push` | **Individual HTML emails** for Deals, Gainers, and Near Highs digests. |
+| **`15 21 * * 1-5`**<br>(21:15 IST)             | `daily-quarterly-result-analysis`<br>`yarn daily-quarterly-result-analysis` | `gemini-3.8-flash-high`<br>(High) | Flagship earnings analysis: analyzes quarterly PPTs, results filings, and concall transcripts. Extracts rate of change ($\Delta$), margins, guidance commitments, and sentiment inflections.                                                                                                                                                                                                              | Institutional Results Analysis report + structured events record.      |
+| **`45 23 * * 1-5`**<br>(23:45 IST)             | `post-close-day-recap`<br>`yarn post-close-day-recap`                       | `flash_lite`<br>(Low)             | End-of-day announcement recap: re-ranks all thesis cards from the day's corporate filings against settled NSE delivery percentages and closing price returns.                                                                                                                                                                                                                                             | Consolidated Day Recap email with settled market data.                 |
+| **`0 1 * * *`**<br>(Nightly 01:00 IST)         | `upload-stock-reports-to-google-drive`<br>`yarn data:sync`                  | `flash_lite`<br>(Low)             | Off-hours maintenance: prunes old checkpoint caches, audits stray files, and performs bidirectional mirror sync with Google Drive (`StockMarket/data/v2`).                                                                                                                                                                                                                                                | Execution log & sync status report.                                    |
+| **`0 9 * * 0`**<br>(Sundays 09:00 IST)         | `periodic-dead-code-scan`<br>`yarn dead-code:scan`                          | `flash`<br>(Medium)               | Static codebase analysis: audits monorepo for unreferenced files, orphaned exports, dead dependencies, and coding standard violations. Updates `data/tasks.json`.                                                                                                                                                                                                                                         | Markdown action plan at `DEAD_CODE_ACTION_ITEMS.md`.                   |
+| **`30 18 * * 0`**<br>(Sundays 18:30 IST)       | `policy-event-tracker`<br>`yarn policy-events add`                          | `flash_lite`<br>(Low)             | Scans RBI press releases, SEBI RSS, and PIB cabinet decisions. Identifies fresh government policies and maps them to 3–25 ticker sector proxy baskets for the upcoming week.                                                                                                                                                                                                                              | Weekly policy absorption email table with official source links.       |
+| **`0 20 * * 0`**<br>(Sundays 20:00 IST)        | `weekly-gainers-digest`<br>`yarn weekly-gainers-digest`                     | `flash_lite`<br>(Low)             | Weekly top gainers across all industries with multi-week persistence scoring and sector concentration analysis.                                                                                                                                                                                                                                                                                           | Weekly Gainers Digest email.                                           |
+
+---
+
+## 🔮 Future Vision: The Unified Research & Signal Dashboard
+
+While today's notifications are broadcast via automated Gmail HTML reports, the entire backend is architected around **structured, schema-validated JSON DTOs stored in flat collections** (`data/events/`, `data/signal-ledger/`, `data/runs/`).
+
+This architecture makes it straightforward to replace or complement email alerts with a **modern, centralized Next.js Web Dashboard**:
+
+```
+┌───────────────────────────────────────────────────────────────────────────────────────┐
+│                        STOCK SCREENER & SIGNAL PORTAL (VISION)                        │
+├────────────────────────────────┬──────────────────────────────────────────────────────┤
+│ 📊 MARKET REGIME BANNER        │ Breadth: 64% > 50 DMA · Macro: Neutral · FII: Net Buy │
+├────────────────────────────────┴──────────────────────────────────────────────────────┤
+│ 🔔 LIVE SIGNAL LEDGER FEED     │ 🚀 E1 Breakout: DATAPATTNS · ⚠️ X2 Loss: TATACHEM    │
+├────────────────────────────────┬──────────────────────────────────────────────────────┤
+│ 📑 DAILY INTELLIGENCE REPORTS  │ 📦 INTRADAY DELIVERY FLOWS                           │
+│  • Deals Digest (Bulk/SAST)    │   Track portfolio accumulation % in real-time        │
+│  • Top Gainers & J-Curves      ├──────────────────────────────────────────────────────┤
+│  • Earnings Concall Analysis   │ 🎯 MTF FLUSH WATCHLIST                               │
+│  • Policy Event Proxy Baskets  │   View Tier-A flush rebounds & outcome stats         │
+└────────────────────────────────┴──────────────────────────────────────────────────────┘
+```
+
+- **Zero Email Clutter**: View interactive daily digests, historical trends, and signal transitions directly in the browser with dark mode and multi-tab layouts.
+- **Instant PDF & Briefing Access**: One-click viewing of generated Puppeteer equity research PDFs, concall tear-sheets, and thesis cards.
+- **Interactive Signal Replay**: Backtest and inspect historical SOIC signals (`M1-M4`, `S1-S4`, `E1-E2`, `G4`, `P1`) with live price overlays.
 
 ---
 
@@ -73,13 +171,15 @@ By wrapping around and enhancing existing third-party APIs (NSE, BSE, Stockscans
 
 ### Skills & jobs (the bulk of the repo's value today)
 
-- **`skills/`** - 79+ Claude Agent Skills for Indian equity research (concall
+- **`skills/`** - 79+ Agent Skills for Indian equity research (concall
   analysis, forensic accounting, DRHP/IPO analysis, quarterly-result
-  analysis, etc.) — run via Claude Code/Cowork, not the web stack. See
+  analysis, etc.) — run via Claude Code/Cowork and Google Antigravity. See
   `skills/README.md`.
-- **`jobs/Scheduled/`** - scheduled automation jobs (digests, trackers,
+- **`packages/jobs-runtime/`** - Shared execution runtime, deterministic scrapers,
+  and data access chokepoints (`lib/db.js`, `lib/companyMaster.js`).
+- **`jobs/Scheduled/`** - Scheduled automation jobs (digests, trackers,
   scanners) that delegate to `packages/jobs-runtime/`.
-- **Data Ecosystem v2** - flat JSON collections under `data/`, accessed only
+- **Data Ecosystem v2** - Flat JSON collections under `data/`, accessed only
   through `packages/jobs-runtime/lib/db.js`, mirrored to Google Drive. See
   `docs/DATA_ECOSYSTEM.md` and `docs/DATA_RULES.md`. This is separate from
   the MongoDB layer above — MongoDB backs `screener-api`'s own transactional
