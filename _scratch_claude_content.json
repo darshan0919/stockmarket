@@ -1,0 +1,331 @@
+{
+  "lead": "No sector-wide cluster today, but the strongest signal is the actual IDBI privatization approval (Cabinet-approved Fairfax sale, +329cr delivery) alongside a genuine blowout quarter from Transformers & Rectifiers (PAT +338% YoY, order book Rs7,237cr). 6 ACT names, all filing-explained; 3 WATCH names (Rain, West Coast Paper, Indo SMC) are delivery-backed with no discoverable trigger after checking filings, Stockscans catalysts and concalls - flagged honestly as unexplained rather than guessed at.",
+  "caveats": [
+    "Filing Extract Store had zero cache hits for today's universe (contentFromExtractCache: 0/75) - every content classification was a live fetch; the preprocessing queue needs to run before this scan, not after.",
+    "EPS theses below were built from each company's own trigger filing read this run, not a full rerating-catalysts 4-concall/2-PPT document sweep - treat them as lightweight briefs, not the full J-curve build.",
+    "Full widget+PDF J-curve reports for the top-3 (TARIL/IDBI/SSRETAIL) were not generated this run - that requires multi-agent Workflow orchestration outside this session's current scope. Flagging as a deferral, not a silent drop."
+  ],
+  "cards": {
+    "NSE:TARIL": {
+      "headline": "PAT +338% YoY; order book Rs7,237cr (+32%), inquiry pipeline Rs21,000cr",
+      "thesisChain": [
+        "Q2FY27 revenue +66%, EBITDA +205%, PAT +338% YoY",
+        "order inflow +97% YoY to Rs1,169cr",
+        "so the order book itself grew 32% YoY to Rs7,237cr with 18-24mo visibility"
+      ],
+      "why": {
+        "text": "Q2FY27 PAT up 338% YoY (Rs75cr) on EBITDA +205% (Rs114cr) and revenue +66% (Rs709cr); order inflow +97% YoY to Rs1,169cr lifted the unexecuted order book 32% YoY to Rs7,237cr.",
+        "basis": "filing",
+        "sources": ["BSE/NSE filing 13-Oct-2026"]
+      },
+      "epsImpact": {
+        "direction": "positive",
+        "magnitude": "PAT +338% YoY this quarter; multi-year order book visibility",
+        "timeline": "FY27-FY29",
+        "confidence": "high"
+      },
+      "linkage": "explained",
+      "tags": ["results", "order_book"],
+      "epsThesis": {
+        "jCurveTag": "STRONG",
+        "jCurveReason": "Q2FY27 PAT +338% YoY on EBITDA margin expansion (8.7%->16.1%... actually 16.1% margin, up from 8.7%) and record order inflow; the Rs7,237cr order book (+32% YoY, 18-24mo executable) plus Rs21,000cr inquiry pipeline give multi-year revenue visibility.",
+        "thesis": "A genuine J-curve name if execution holds: margin expansion plus a record, growing order book extend visible EPS growth well beyond this quarter, not just a one-off beat.",
+        "catalysts": [
+          {
+            "name": "Order book Rs7,237cr (+32% YoY); order inflow +97% YoY to Rs1,169cr",
+            "conviction": "HIGH CONVICTION - filed 13-Oct-2026, fresh",
+            "timeline": "Q2FY27, executable over 18-24 months"
+          },
+          {
+            "name": "EBITDA margin expansion to 16.1% from 8.7% YoY on operating leverage",
+            "conviction": "HIGH CONVICTION",
+            "timeline": "Q2FY27"
+          }
+        ],
+        "catalystRisks": [
+          "YoY comps get tougher from here (base effect)",
+          "execution risk scaling into a Rs7,237cr backlog"
+        ],
+        "sourceFilingIds": [],
+        "builtAt": "2026-10-14T20:30:00.000Z",
+        "modelUsed": "claude-sonnet-5",
+        "contextUsed": [
+          "announcement:TARIL:2026-10-13:results",
+          "announcement:TARIL:2026-10-13:order_book"
+        ],
+        "creator": "rerating-catalysts",
+        "mode": "brief",
+        "cacheReason": "built from today's trigger filing only (gainers-signal run) - not a full document sweep"
+      }
+    },
+    "NSE:IDBI": {
+      "headline": "Cabinet approves Fairfax as strategic buyer for 60.72% IDBI stake",
+      "thesisChain": [
+        "CCEA approves sale of GoI (30.48%) + LIC (30.24%) stake",
+        "to Fairfax Financial Holdings (via 10955230 Canada Inc.)",
+        "so a 4-year disinvestment overhang is finally resolved"
+      ],
+      "why": {
+        "text": "Ministry of Finance press release confirms CCEA approved Fairfax Financial Holdings as Strategic Buyer for 60.72% of IDBI Bank.",
+        "basis": "filing",
+        "sources": ["PIB/Ministry of Finance release via BSE/NSE filing 14-Oct-2026"]
+      },
+      "epsImpact": {
+        "direction": "positive",
+        "magnitude": "re-rating on resolved ownership overhang, not an EPS move",
+        "timeline": "deal completion undisclosed",
+        "confidence": "medium"
+      },
+      "linkage": "explained",
+      "tags": ["corporate_action", "disinvestment"],
+      "epsThesis": {
+        "jCurveTag": "STRONG",
+        "jCurveReason": "Not an operating J-curve but a binary corporate-action re-rating: CCEA formally approved selling 60.72% of IDBI Bank to Fairfax Financial Holdings, ending four years of disinvestment overhang.",
+        "thesis": "Re-rating driven by resolution of ownership-structure uncertainty and the prospect of private-style governance under Fairfax, not by an EPS growth curve.",
+        "catalysts": [
+          {
+            "name": "CCEA approves Fairfax Financial Holdings as strategic buyer for 60.72% stake",
+            "conviction": "HIGH CONVICTION - official PIB/Ministry of Finance release 14-Oct-2026",
+            "timeline": "deal completion timeline not yet disclosed"
+          }
+        ],
+        "catalystRisks": [
+          "RBI and other regulatory approvals for the buyer still pending",
+          "post-deal strategic direction and integration uncertain",
+          "no disclosed completion timeline"
+        ],
+        "sourceFilingIds": [],
+        "builtAt": "2026-10-14T20:30:00.000Z",
+        "modelUsed": "claude-sonnet-5",
+        "contextUsed": ["announcement:IDBI:2026-10-14:fundraise"],
+        "creator": "rerating-catalysts",
+        "mode": "brief",
+        "cacheReason": "built from today's trigger filing only (gainers-signal run) - not a full document sweep"
+      }
+    },
+    "NSE:SSRETAIL": {
+      "headline": "Record Q1FY27: revenue +59% YoY, SSS +34%, 33 new stores",
+      "thesisChain": [
+        "Q1FY27 revenue +59% YoY, EBITDA +51%, PAT +61%",
+        "same-store sales +34%, 33 net new stores (536 total)",
+        "reinforced today by Chairman's media interview"
+      ],
+      "why": {
+        "text": "Media release \"SS Retail Posts Record Q1 FY27\" (revenue +59% YoY, SSS +34%) dated 13-Oct, reinforced by a Chairman media interview on 14-Oct. Note: Q1FY27 = Apr-Jun26, an unusually long reporting lag.",
+        "basis": "filing",
+        "sources": ["BSE/NSE media release 13-Oct-2026", "media interview intimation 14-Oct-2026"]
+      },
+      "epsImpact": {
+        "direction": "positive",
+        "magnitude": "revenue +59% YoY; EBITDA margin only 5.8%",
+        "timeline": "Q1FY27",
+        "confidence": "medium"
+      },
+      "linkage": "explained",
+      "tags": ["results"],
+      "epsThesis": {
+        "jCurveTag": "MODERATE",
+        "jCurveReason": "Record Q1FY27 growth (revenue +59% YoY, SSS +34%, 33 new stores) is genuine, but the unusual results lag (Q1FY27 = Apr-Jun26, disclosed only in mid-Oct) and thin 5.8% EBITDA margin temper conviction.",
+        "thesis": "Aggressive, profitable store rollout with strong same-store growth, but data freshness and margin thinness are real caveats on the pace of EPS accretion.",
+        "catalysts": [
+          {
+            "name": "Revenue +59% YoY, EBITDA +51%, PAT +61%, SSS +34%, 33 net new stores",
+            "conviction": "MODERATE - genuine growth, but reported with an unusual lag",
+            "timeline": "Q1FY27 (Apr-Jun 2026)"
+          }
+        ],
+        "catalystRisks": [
+          "unusual results-reporting lag raises a data-freshness question",
+          "EBITDA margin only 5.8%, thin for a growth narrative",
+          "recently consolidated Olineo/Nexora added 79bps of EBITDA-level cost"
+        ],
+        "sourceFilingIds": [],
+        "builtAt": "2026-10-14T20:30:00.000Z",
+        "modelUsed": "claude-sonnet-5",
+        "contextUsed": ["announcement:SSRETAIL:2026-10-13:results"],
+        "creator": "rerating-catalysts",
+        "mode": "brief",
+        "cacheReason": "built from today's trigger filing only (gainers-signal run) - not a full document sweep"
+      }
+    },
+    "NSE:ELECON": {
+      "headline": "Q2FY27 steady growth + interim dividend; Gear order book +37% YoY",
+      "thesisChain": [
+        "consolidated revenue +8.5%, EBITDA +11.1% YoY",
+        "Gear division order book +37% YoY to Rs1,056cr",
+        "but standalone EPS fell YoY (Rs3.33 vs Rs3.52) - mixed, not a blowout"
+      ],
+      "why": {
+        "text": "Q2FY27 consolidated revenue +8.5% YoY, EBITDA +11.1% (margin 23.9%); Gear order book +37% YoY to Rs1,056cr; interim dividend Re0.50/share declared. Standalone EPS down YoY.",
+        "basis": "filing",
+        "sources": ["BSE/NSE filing 14-Oct-2026"]
+      },
+      "epsImpact": {
+        "direction": "neutral",
+        "magnitude": "Gear order book +37% YoY vs standalone EPS -5% YoY",
+        "timeline": "H1FY27",
+        "confidence": "medium"
+      },
+      "linkage": "explained",
+      "tags": ["results", "order_book", "dividend"],
+      "epsThesis": {
+        "jCurveTag": "MODERATE",
+        "jCurveReason": "Consolidated growth is real but modest (revenue +8.5%, EBITDA +11.1% YoY); the Gear division's order book (+37% YoY to Rs1,056cr) is the strongest single data point, while standalone EPS actually declined YoY - this reads as steady compounding, not an inflection.",
+        "thesis": "A quality compounder with a growing order book in its core Gear segment, but this quarter is not itself an EPS inflection - standalone EPS fell YoY and MHE division margins compressed.",
+        "catalysts": [
+          {
+            "name": "Gear division order book +37% YoY to Rs1,056cr; EBIT +27.2% YoY",
+            "conviction": "HIGH CONVICTION - filed 14-Oct-2026",
+            "timeline": "H1FY27, executable ahead"
+          },
+          {
+            "name": "MHE division order book +27.3% YoY to Rs579cr",
+            "conviction": "MODERATE",
+            "timeline": "H1FY27"
+          }
+        ],
+        "catalystRisks": [
+          "standalone EPS down YoY (Rs3.33 vs Rs3.52)",
+          "MHE margin compression from unfavorable product mix and delayed clearances"
+        ],
+        "sourceFilingIds": [],
+        "builtAt": "2026-10-14T20:30:00.000Z",
+        "modelUsed": "claude-sonnet-5",
+        "contextUsed": [
+          "announcement:ELECON:2026-10-14:results",
+          "announcement:ELECON:2026-10-14:order_book"
+        ],
+        "creator": "rerating-catalysts",
+        "mode": "brief",
+        "cacheReason": "built from today's trigger filing only (gainers-signal run) - not a full document sweep"
+      }
+    },
+    "BSE:MRTX": {
+      "headline": "H1FY27 revenue +90% YoY; recently-IPO'd defence electronics name",
+      "thesisChain": [
+        "H1FY27 revenue +90.15% YoY to Rs106.37cr",
+        "order book Rs101.64cr with BEL/HAL/CERN approvals",
+        "still deploying IPO capex, 65% capacity utilisation"
+      ],
+      "why": {
+        "text": "H1FY27 Business Update shows revenue +90.15% YoY to Rs106.37cr and an order book of Rs101.64cr, with BEL/HAL/CERN approvals.",
+        "basis": "filing",
+        "sources": ["BSE filing 13-Oct-2026"]
+      },
+      "epsImpact": {
+        "direction": "positive",
+        "magnitude": "revenue +90% YoY off a small base",
+        "timeline": "H1FY27",
+        "confidence": "medium"
+      },
+      "linkage": "explained",
+      "tags": ["results", "order_book"]
+    },
+    "NSE:MVELECTRO": {
+      "headline": "Kotak MF crosses 5% stake - modest buy, doesn't fully explain +17% move",
+      "thesisChain": [
+        "Kotak Mahindra MF stake 4.67% -> 5.04%",
+        "a 100,000-share open-market purchase (0.37pp)",
+        "but that's a thin explanation for a Rs99cr delivery day"
+      ],
+      "why": {
+        "text": "A SAST filing shows Kotak Mahindra MF crossing 5% via a modest 100,000-share purchase - real but a thin explanation for a +17.2% day on Rs99cr delivery.",
+        "basis": "filing",
+        "sources": ["SAST Reg.29(1) disclosure 13-Oct-2026"]
+      },
+      "epsImpact": {
+        "direction": "neutral",
+        "magnitude": "no operating catalyst found",
+        "timeline": "n/a",
+        "confidence": "low"
+      },
+      "linkage": "mismatched",
+      "tags": ["shareholding_change"],
+      "epsThesis": {
+        "jCurveTag": "WEAK",
+        "jCurveReason": "The only disclosed catalyst is a modest SAST threshold-crossing (Kotak MF, 4.67%->5.04% via a 100,000-share open-market buy) - a positive signal of institutional interest but not an operating or EPS catalyst, and it under-explains the day's move.",
+        "thesis": "No operating catalyst identified this run; the thesis rests entirely on one mutual fund's incremental accumulation, which is thin support for a J-curve call.",
+        "catalysts": [
+          {
+            "name": "Kotak Mahindra MF crosses 5% ownership via open-market purchase",
+            "conviction": "LOW CONVICTION - threshold-crossing disclosure, not an operating catalyst",
+            "timeline": "13-Oct-2026"
+          }
+        ],
+        "catalystRisks": [
+          "no operating/EPS catalyst found to accompany the price move",
+          "filing under-explains the magnitude of the day's move (+17% on Rs99cr delivery)"
+        ],
+        "sourceFilingIds": [],
+        "builtAt": "2026-10-14T20:30:00.000Z",
+        "modelUsed": "claude-sonnet-5",
+        "contextUsed": ["announcement:MVELECTRO:2026-10-13:fundraise"],
+        "creator": "rerating-catalysts",
+        "mode": "brief",
+        "cacheReason": "built from today's trigger filing only (gainers-signal run) - not a full document sweep"
+      }
+    },
+    "NSE:EIMCOELECO": {
+      "headline": "Q2FY27: revenue +71%, EBITDA +109% YoY; CFO resigning",
+      "why": {
+        "text": "Q2&H1FY27 results: revenue +70.9% YoY, EBITDA +108.8% YoY (margin 18.8%), PAT +46.5% YoY, order pipeline Rs133cr. Same filing discloses CFO resignation effective 30-Oct.",
+        "basis": "filing",
+        "sources": ["BSE/NSE filing 13-Oct-2026"]
+      },
+      "linkage": "explained",
+      "tags": ["results", "management_change"]
+    },
+    "NSE:SEJALLTD": {
+      "headline": "Q2FY27 results approved - figures not legible in the filed PDF",
+      "why": {
+        "text": "Board approved Q2FY27 results and a clean limited-review report was filed, but the P&L pages are a scanned image that didn't OCR into legible figures - can't confirm the quantum behind today's +20% move (the largest % mover in the universe).",
+        "basis": "filing",
+        "sources": ["BSE/NSE filing 13-Oct-2026 (figures not machine-readable)"]
+      },
+      "linkage": "mismatched",
+      "tags": ["results"]
+    },
+    "NSE:RAIN": {
+      "why": {
+        "basis": "none",
+        "text": "No discoverable trigger - checked filings (14d), re-rating catalysts, and concall."
+      },
+      "linkage": "unexplained"
+    },
+    "NSE:WSTCSTPAPR": {
+      "why": {
+        "basis": "none",
+        "text": "No discoverable trigger - checked filings (14d), re-rating catalysts, and concall."
+      },
+      "linkage": "unexplained"
+    },
+    "BSE:INDOSMC": {
+      "why": {
+        "basis": "none",
+        "text": "No discoverable trigger - checked filings (14d), re-rating catalysts, and concall."
+      },
+      "linkage": "unexplained"
+    },
+    "NSE:VEDPOWER": {
+      "why": {
+        "basis": "none",
+        "text": "Only a SUPPORTING-strength investor-meet intimation in the window, not a STRONG filing. No discoverable trigger."
+      },
+      "linkage": "unexplained"
+    },
+    "NSE:VOGL": {
+      "why": {
+        "basis": "none",
+        "text": "Only a SUPPORTING-strength investor-meet intimation in the window, not a STRONG filing. No discoverable trigger."
+      },
+      "linkage": "unexplained"
+    },
+    "NSE:KROSS": {
+      "why": {
+        "basis": "none",
+        "text": "Only SUPPORTING-strength filings (investor_meet, shareholding_change) in the window; the shareholding_change filing was deferred (not read) this run. No confirmed trigger."
+      },
+      "linkage": "unexplained"
+    }
+  }
+}

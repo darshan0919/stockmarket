@@ -37,7 +37,7 @@ const SIDECAR_OVERRIDES = {
     displayName: 'Dead Code Tasks',
     cron: '0 9 * * 0',
   },
-  // 16:00 (4:00 PM) weekdays only — syncs Near Highs scan to watchlist after market close.
+  // 16:00 (4:00 PM) weekdays only — syncs Near Highs, Upcoming Results & Relative Strength scans to watchlists after market close.
   'watchlist-sync-stockmarket': {
     sidecarFolder: 'watchlist-sync',
     displayName: 'Watchlist Sync',

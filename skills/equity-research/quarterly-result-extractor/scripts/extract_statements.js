@@ -93,10 +93,10 @@ function readJsonIfExists(p) {
 // the interesting items tend to sit.
 
 const BS_HEADINGS = [
-  /statement\s+of\s+(?:consolidated\s+|standalone\s+|unaudited\s+|audited\s+)*assets\s+and\s+liabilities/i,
-  /(?:consolidated\s+|standalone\s+)?balance\s+sheet/i,
+  /statement\s+of\s+(?:consolidated\s+|standalone\s+|unaudited\s+|audited\s+|and\s+|&\s+)*assets\s+(?:and|&)\s+liabilities/i,
+  /(?<!as\s+per\s+)(?:consolidated\s+|standalone\s+)?balance\s+sheet(?!\s+of\s+previous)/i,
   /statement\s+of\s+financial\s+position/i,
-  /\bassets\s+and\s+liabilities\b/i,
+  /\bassets\s+(?:and|&)\s+liabilities\b/i,
 ];
 const CF_HEADINGS = [
   /statement\s+of\s+(?:consolidated\s+|standalone\s+)?cash\s*flows?/i,
@@ -179,7 +179,7 @@ function parseNumberToken(tok) {
   return neg ? -v : v;
 }
 
-const NUM_RE = /\(?-?[\d][\d,]*(?:\.\d+)?\)?|[-–—]/g;
+const NUM_RE = /\(?-?[\d][\d,]*(?:\.\d+)?\)?|(?<=\s|^)[-–—](?=\s|$)/g;
 
 // A numbered/lettered line-item marker at the start of a row ("1  Revenue
 // from operations ...", "(a) Cost of materials consumed ...") is not part of
@@ -245,19 +245,30 @@ function parseRows(body) {
       pendingLabelParts = [];
       continue;
     }
-    const nums = line.match(NUM_RE) || [];
-    const parsed = nums.map(parseNumberToken).filter((v) => v != null);
-    const hasLetters = /[A-Za-z]/.test(line);
-    if (!nums.length) {
-      // A line with NO numeric-looking tokens at all (not even a dash) is
-      // either a genuine sub-heading or (another) fragment of a wrapped
-      // label. Accumulate it (only if it reads like label text) in case a
-      // later line is the numbers it belongs to.
-      if (hasLetters) pendingLabelParts.push(line.trim());
-      else pendingLabelParts = [];
-      continue;
+    // Find where numeric columns begin: either first digit or isolated dash with 2+ spaces
+    let dataIdx = line.search(/\(?-?\d/);
+    const dashMatch = line.search(/\s{2,}[-–—](?:\s|$)/);
+    if (dashMatch !== -1 && (dataIdx === -1 || dashMatch < dataIdx)) {
+      dataIdx = dashMatch;
     }
-    if (!parsed.length) {
+
+    let label = '';
+    let dataPart = '';
+    if (dataIdx > 0) {
+      label = line.slice(0, dataIdx).trim();
+      dataPart = line.slice(dataIdx);
+    } else if (dataIdx === 0) {
+      label = '';
+      dataPart = line;
+    } else {
+      label = line;
+      dataPart = '';
+    }
+
+    const nums = dataPart ? dataPart.match(NUM_RE) || [] : [];
+
+    const hasNonDash = nums.some((n) => !/^[-–—]$/.test(n.trim()));
+    if (!hasNonDash && nums.length) {
       // Numeric-LOOKING tokens are present but every one is a dash ("nil
       // disclosed") -- e.g. "Purchase of Stock in Trade    -    -". This is
       // its own complete (if uninteresting) row, NOT a label fragment:
@@ -269,18 +280,35 @@ function parseRows(body) {
       pendingLabelParts = [];
       continue;
     }
+    const parsed = nums
+      .map((tok) => {
+        if (/^[-–—]$/.test(tok.trim())) return 0;
+        return parseNumberToken(tok);
+      })
+      .filter((v) => v != null);
+    const hasLetters = /[A-Za-z]/.test(line);
+    if (!nums.length) {
+      // A line with NO numeric-looking tokens at all (not even a dash) is
+      // either a genuine sub-heading or (another) fragment of a wrapped
+      // label. Accumulate it (only if it reads like label text) in case a
+      // later line is the numbers it belongs to.
+      if (hasLetters) pendingLabelParts.push(line.trim());
+      else pendingLabelParts = [];
+      continue;
+    }
+    if (!parsed.length) {
+      pendingLabelParts = [];
+      continue;
+    }
     if (!hasLetters && pendingLabelParts.length) {
       // Numbers-only line right after 1+ held label fragments -> this is
       // that label's continuation, not a standalone (unlabelled) data row.
-      const label = pendingLabelParts.join(' ');
-      rows.push({ label, values: parsed, raw: `${label} ${line}` });
+      const fullLabel = pendingLabelParts.join(' ');
+      rows.push({ label: fullLabel, values: parsed, raw: `${fullLabel} ${line}` });
       pendingLabelParts = [];
       continue;
     }
     pendingLabelParts = [];
-    // Label = text before the first numeric token.
-    const firstNumIdx = line.search(/\(?-?\d/);
-    const label = (firstNumIdx > 0 ? line.slice(0, firstNumIdx) : line).trim();
     if (!label || !/[A-Za-z]/.test(label)) continue;
     rows.push({ label, values: parsed, raw: line });
   }
@@ -474,7 +502,7 @@ const CF_MAP = [
   ],
 ];
 
-function mapRows(rows, map, toCr) {
+function mapRows(rows, map, toCr, isConsolidatedSideBySide = false) {
   const snapshot = {};
   const unmatched = [];
   const seen = new Set();
@@ -487,11 +515,18 @@ function mapRows(rows, map, toCr) {
     const key = hit[1];
     if (seen.has(key)) continue; // first occurrence wins (statement body precedes notes)
     seen.add(key);
-    const raw = row.values[0];
+    let curIdx = 0;
+    let priorIdx = 1;
+    if (isConsolidatedSideBySide && row.values.length >= 4) {
+      curIdx = 2;
+      priorIdx = 3;
+    }
+    const raw = row.values[curIdx];
     snapshot[key] = toCr == null ? raw : raw * toCr;
-    // Column 2, when present, is the comparative period the filing itself prints.
-    if (row.values.length > 1) {
-      snapshot[`__prior_${key}`] = toCr == null ? row.values[1] : row.values[1] * toCr;
+    // Column 2 (or 4), when present, is the comparative period the filing itself prints.
+    if (row.values.length > priorIdx && row.values[priorIdx] != null) {
+      snapshot[`__prior_${key}`] =
+        toCr == null ? row.values[priorIdx] : row.values[priorIdx] * toCr;
     }
   }
   return { snapshot, unmatched };
@@ -565,16 +600,22 @@ function extractOne({ resultText, pptText, headings, map, kind, stopAt = [] }) {
   ]) {
     const sec = locateSection(text, headings, { stopAt });
     if (!sec) continue;
-    const scale = detectUnitScale(sec.body);
+    const isConsolidatedSideBySide =
+      /\bstandalone\b[\s\S]{0,300}?\bconsolidated\b/i.test(sec.body.slice(0, 1500)) ||
+      /\bconsolidated\b[\s\S]{0,300}?\bstandalone\b/i.test(sec.body.slice(0, 1500));
+    const scale = detectUnitScale(
+      sec.body,
+      text.slice(Math.max(0, (sec.startOffset || 0) - 2500), sec.startOffset || 0)
+    );
     const rows = parseRows(sec.body);
     if (rows.length < 4) continue;
-    const { snapshot, unmatched } = mapRows(rows, map, scale.toCr);
+    const { snapshot, unmatched } = mapRows(rows, map, scale.toCr, isConsolidatedSideBySide);
     const split = splitPriorColumn(snapshot);
     if (Object.keys(split.current).length < 4) continue;
     return {
       found: true,
       source: sourceName,
-      consolidated: sec.consolidated,
+      consolidated: sec.consolidated || isConsolidatedSideBySide,
       unit: scale.unit,
       unitScaleToCr: scale.toCr,
       asOfDate: parseAsOfDate(sec.body),

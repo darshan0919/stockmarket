@@ -360,8 +360,12 @@ function renderValue(value, _keyLabel = null) {
       const sub = renderValue(v, k);
       if (!sub) continue;
       const label = formatLabel(k);
+      const isExtraMile = /extra[-_ ]?mile/i.test(k);
+      const badge = isExtraMile
+        ? ' <span class="chip chip-g" style="font-size:7.5px; padding:1.5px 5px; margin-left:4px;">EXPERIMENTAL · 1% FACTOR</span>'
+        : '';
       parts.push(
-        `<div style="margin-top:8px;"><div class="label" style="margin-bottom:4px;">${esc(label)}</div>${sub}</div>`
+        `<div style="margin-top:8px;"><div class="label" style="margin-bottom:4px;">${esc(label)}${badge}</div>${sub}</div>`
       );
     }
     return parts.join('');

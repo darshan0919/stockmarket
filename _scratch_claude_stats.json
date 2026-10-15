@@ -1,0 +1,21 @@
+{
+  "universe": 50,
+  "qualified": 34,
+  "act": 6,
+  "watch": 8,
+  "noted": 20,
+  "researched": 20,
+  "extractHits": 0,
+  "pdfReads": 18,
+  "epsBriefs": 5,
+  "briefCacheHits": 1,
+  "briefExtractHits": 0,
+  "dedupedFromGainers": 0,
+  "contentClassified": 75,
+  "contentFromExtractCache": 0,
+  "contentFromLiveFetch": 75,
+  "contentFetchFailed": 0,
+  "watchlistTtlAdded": 34,
+  "watchlistTtlRemoved": 0,
+  "watchlistTtlActiveAfter": 34
+}

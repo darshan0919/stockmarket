@@ -171,7 +171,7 @@ const IS_MAP = [
   [/depreciation.*amorti[sz]ation/i, 'depreciation'],
   [/other\s+expens|other\s+expenditure/i, 'otherExpenses'],
   [/total\s+expens/i, 'totalExpenses'],
-  [/(?:profit|loss).*before\s+exceptional\s+items?\s+and\s+tax/i, 'pbtBeforeExceptional'],
+  [/(?:profit|loss).*before\s+exceptional\s+items?\s+(?:and|&)\s+tax/i, 'pbtBeforeExceptional'],
   [/exceptional\s+items?/i, 'exceptionalItems'],
   // Leading word made (profit|loss) rather than a mandatory "profit" 2026-09-23:
   // the 80-company shadow pass found several genuinely loss-making companies
@@ -192,7 +192,7 @@ const IS_MAP = [
 ];
 
 /** Capture up to 3 leading numeric columns per row (current, QoQ, YoY). */
-function mapRows3Col(rows, map, toCr) {
+function mapRows3Col(rows, map, toCr, isConsolidatedSideBySide = false) {
   const cur = {};
   const qoq = {};
   const yoy = {};
@@ -218,11 +218,18 @@ function mapRows3Col(rows, map, toCr) {
     if (seen.has(key)) continue; // first occurrence wins
     seen.add(key);
     const scale = (v) => (toCr == null || key.startsWith('eps') ? v : v * toCr);
-    if (row.values[0] != null) cur[key] = scale(row.values[0]);
-    if (row.values[1] != null) qoq[key] = scale(row.values[1]);
-    if (row.values[2] != null) yoy[key] = scale(row.values[2]);
-    if (row.values[3] != null) ytdCur[key] = scale(row.values[3]);
-    if (row.values[4] != null) ytdPrior[key] = scale(row.values[4]);
+
+    let offset = 0;
+    if (isConsolidatedSideBySide) {
+      if (row.values.length >= 10) offset = 6;
+      else if (row.values.length >= 6) offset = 3;
+    }
+
+    if (row.values[offset + 0] != null) cur[key] = scale(row.values[offset + 0]);
+    if (row.values[offset + 1] != null) qoq[key] = scale(row.values[offset + 1]);
+    if (row.values[offset + 2] != null) yoy[key] = scale(row.values[offset + 2]);
+    if (row.values[offset + 3] != null) ytdCur[key] = scale(row.values[offset + 3]);
+    if (row.values[offset + 4] != null) ytdPrior[key] = scale(row.values[offset + 4]);
   }
   return { cur, qoq, yoy, ytdCur, ytdPrior, unmatched };
 }
@@ -447,7 +454,15 @@ function extractIncomeStatement({ resultText, pptText }) {
     );
     const rows = parseRows(sec.body);
     if (rows.length < 6) continue; // a real P&L table has well over 6 line items
-    const { cur, qoq, yoy, ytdCur, ytdPrior, unmatched } = mapRows3Col(rows, IS_MAP, scale.toCr);
+    const isConsolidatedSideBySide =
+      /\bstandalone\b[\s\S]{0,300}?\bconsolidated\b/i.test(sec.body.slice(0, 1500)) ||
+      /\bconsolidated\b[\s\S]{0,300}?\bstandalone\b/i.test(sec.body.slice(0, 1500));
+    const { cur, qoq, yoy, ytdCur, ytdPrior, unmatched } = mapRows3Col(
+      rows,
+      IS_MAP,
+      scale.toCr,
+      isConsolidatedSideBySide
+    );
     // Fallback: when a filing has no exceptional items in the quarter, some
     // companies print ONLY "Profit/(Loss) before exceptional items and tax"
     // and never a separate "...before tax" line -- confirmed 2026-09-23

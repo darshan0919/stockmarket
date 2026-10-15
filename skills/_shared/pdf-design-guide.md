@@ -46,10 +46,11 @@ Concretely:
   an acceptable compression.
 - **The `additional` field** (any-shape escape hatch for nuance a skill's fixed schema didn't
   anticipate) must be rendered via the shared `render_additional_html()` in
-  [`skills/_shared/render_additional.py`](render_additional.py) — never hand-rolled per skill.
+  [`skills/_shared/render_additional.py`](render_additional.py) (or `stock-api/src/utils/renderAdditional.js`) — never hand-rolled per skill.
   It shape-sniffs the JSON (scalar → callout, flat dict → kv table, dict-of-dicts → subsections,
   list-of-similar-dicts → table, list-of-dicts → card grid, list-of-scalars → bullets) and emits
   markup using only the classes below, so new one-off insights never require new render code.
+- **Extra-Mile Research subsection**: Whenever `additional` contains an `"Extra-Mile Research"` (or `"Extra Mile Research"`) key, it represents the AI agent's independent, out-of-the-box research (via internet search or `/ask-expert`). The renderer flags this subsection with an experimental chip badge (`.chip-g`), distinguishing it from regular report tables and highlighting novel angles that expand project knowledge.
 
 ## Color coding — beyond red/yellow/green flags (2026-07-24)
 

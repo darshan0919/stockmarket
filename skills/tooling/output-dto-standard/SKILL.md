@@ -104,6 +104,10 @@ same component vocabulary as `skills/_shared/pdf-design-guide.md`, so every skil
 free without writing per-insight rendering code. See that module's docstring for the full
 shape → layout rule table.
 
+### `Extra-Mile Research` subsection ("The 1% Factor" / Experimental Thesis)
+
+Inside `additional`, skills are encouraged to include an `"Extra-Mile Research"` (or `"Extra Mile Research"`) subsection whenever the agent conducts independent research via web search or `/ask-expert` (Dr. Anil Lamba, SOIC, Stockscans, X investors). This section is experimental, non-duplicative with earlier sections, and acts as the "X factor" compounding project analytical depth by 1% daily (see Rule 15 in `AGENTS.md` and Convention §32).
+
 ## Recommended (not yet mandatory)
 
 Each skill should ideally also:

@@ -265,9 +265,14 @@ def render_value(value, key_label: str | None = None) -> str:
             sub = render_value(v, key_label=k)
             if not sub:
                 continue
+            badge = (
+                ' <span class="chip chip-g" style="font-size:7.5px; padding:1.5px 5px; margin-left:4px;">EXPERIMENTAL · 1% FACTOR</span>'
+                if "extra" in k.lower() and "mile" in k.lower()
+                else ""
+            )
             parts.append(
                 f'<div style="margin-top:8px;"><div class="label" style="margin-bottom:4px;">'
-                f'{_esc(k).replace("_"," ").title()}</div>{sub}</div>'
+                f'{_esc(k).replace("_"," ").title()}{badge}</div>{sub}</div>'
             )
         return "".join(parts)
 
