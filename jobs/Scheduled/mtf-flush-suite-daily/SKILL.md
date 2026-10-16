@@ -10,6 +10,7 @@ Consolidated daily suite for Shashank's Margin Trading Facility (MTF) flush-out 
 Runs at 19:30 IST on weekdays.
 
 Executes sequentially:
+
 1. **MTF Flush Daily** (`yarn mtf-flush-daily`): Scans today's new MTF flush entries, scores 0-100 (tiers A/B/C), logs to signal ledger, and emails new entry alerts.
 2. **MTF Flush Recovery** (`yarn mtf-flush-recovery`): Reviews last 7 days of signals to verify whether expected bounce/recovery occurred (vs 20/50 EMA), emailing per-signal verdicts.
 3. **MTF Flush Outcomes** (`yarn mtf-flush-outcomes`): Tracks realised 5/10/20-session returns as signals mature.

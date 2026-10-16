@@ -10,6 +10,7 @@ Consolidated daily suite for bottom-up setups, breadth clusters, rotation, and e
 Runs at 19:15 IST on weekdays.
 
 Executes sequentially:
+
 1. **Technical Setups** (`yarn technical-setups-daily`): RS>=90 leaders scanned for base-breakout (E1) and pullback (E2).
 2. **Sector Clusters** (`yarn sector-clusters-daily`): Near-high industry concentration (S1).
 3. **Sector Rotation** (`yarn sector-rotation-daily`): Industry concentration (S3) and relative strength (S2).

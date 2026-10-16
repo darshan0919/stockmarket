@@ -53,7 +53,7 @@ class TradingViewClient {
 
   /**
    * Last price plus trailing performance and moving averages -- the inputs a quarter-on-quarter
-   * macro read needs without a price-history endpoint (growth-predictor's macro overlay).
+   * macro read needs without a price-history endpoint (pead-predictor's macro overlay).
    * SMA50 (~2.4 trading months) approximates the latest-quarter average; Perf.3M is the
    * point-to-point change over ~one quarter. Rows without a numeric close are dropped.
    * @param {string[]} tickers

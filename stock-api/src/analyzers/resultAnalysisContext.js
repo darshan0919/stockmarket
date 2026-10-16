@@ -156,7 +156,7 @@ function computeKpiCards(headline, opts = {}) {
   const isNbfc = Boolean(opts && opts.isNbfc);
   const kpiExcerpts = (opts && opts.kpiExcerpts) || [];
 
-  let normalized = headline;
+  let normalized = headline || {};
   if (Array.isArray(headline)) {
     normalized = {};
     for (const card of headline) {
@@ -528,6 +528,113 @@ function gradeStatementHealth(record) {
 }
 
 /**
+ * Deterministically compute raw material cost intensity and industry-specific signals.
+ * @param {Object} record Extraction record
+ * @returns {Object|null}
+ */
+function computeRawMaterialAndIndustrySignals(record) {
+  if (!record || isNbfcRecord(record)) return null;
+
+  const inc = record.incomeStatementSignals;
+  const raw = record.incomeStatement?.raw || record.rawFinancials || null;
+  const headline = record.incomeStatement?.headline || record.headlineFinancials || {};
+
+  let rmPctCurrent = null;
+  let rmPctQoq = null;
+  let rmPctYoy = null;
+  let qoqBps = null;
+  let yoyBps = null;
+
+  const rmHeadline =
+    headline.costOfMaterialsPctSales ||
+    (Array.isArray(headline) ? headline.find((c) => c.key === 'costOfMaterialsPctSales') : null);
+  if (rmHeadline) {
+    rmPctCurrent = rmHeadline.value ?? rmHeadline.val ?? null;
+    rmPctQoq = rmHeadline.qoq ?? null;
+    rmPctYoy = rmHeadline.yoy ?? null;
+    qoqBps = rmHeadline.deltaBpsQoQ ?? null;
+    yoyBps = rmHeadline.deltaBpsYoY ?? null;
+  }
+
+  if (rmPctCurrent == null && raw?.cur?.revenue && raw?.cur?.costOfMaterials) {
+    const curTot = (raw.cur.costOfMaterials || 0) + (raw.cur.changeInInventories || 0);
+    rmPctCurrent = (curTot / raw.cur.revenue) * 100;
+    if (raw.qoq?.revenue && raw.qoq?.costOfMaterials) {
+      const qoqTot = (raw.qoq.costOfMaterials || 0) + (raw.qoq.changeInInventories || 0);
+      rmPctQoq = (qoqTot / raw.qoq.revenue) * 100;
+      qoqBps = Math.round((rmPctCurrent - rmPctQoq) * 100);
+    }
+    if (raw.yoy?.revenue && raw.yoy?.costOfMaterials) {
+      const yoyTot = (raw.yoy.costOfMaterials || 0) + (raw.yoy.changeInInventories || 0);
+      rmPctYoy = (yoyTot / raw.yoy.revenue) * 100;
+      yoyBps = Math.round((rmPctCurrent - rmPctYoy) * 100);
+    }
+  }
+
+  if (rmPctCurrent == null) {
+    const rmItem = inc?.material?.find((m) => m.key === 'costOfMaterials');
+    if (rmItem && rmItem.pctOfSalesQoQDeltaBps != null) {
+      qoqBps = rmItem.pctOfSalesQoQDeltaBps;
+    }
+  }
+
+  if (qoqBps == null && yoyBps == null && rmPctCurrent == null) return null;
+
+  const primaryBps = qoqBps != null ? qoqBps : yoyBps || 0;
+  let direction = 'NEUTRAL';
+  let signal = 'STABLE_RAW_MATERIAL_INTENSITY';
+  let alert = false;
+
+  if (primaryBps >= 800) {
+    direction = 'HEADWIND';
+    signal = 'ACUTE_RAW_MATERIAL_INFLATION_SQUEEZE';
+    alert = true;
+  } else if (primaryBps >= 300) {
+    direction = 'HEADWIND';
+    signal = 'RAW_MATERIAL_COST_INFLATION';
+    alert = true;
+  } else if (primaryBps <= -800) {
+    direction = 'TAILWIND';
+    signal = 'SUBSTANTIAL_GROSS_MARGIN_EXPANSION';
+  } else if (primaryBps <= -300) {
+    direction = 'TAILWIND';
+    signal = 'RAW_MATERIAL_DEFLATION_BENEFIT';
+  }
+
+  const industry = String(
+    record.industry || record.sector || record.companyProfile?.industry || 'Manufacturing'
+  ).trim();
+
+  let summary = '';
+  if (direction === 'HEADWIND') {
+    summary = `Raw material expenses surged by ${primaryBps > 0 ? '+' : ''}${primaryBps} bps ${
+      qoqBps != null ? 'QoQ' : 'YoY'
+    }, driving severe gross margin compression.`;
+  } else if (direction === 'TAILWIND') {
+    summary = `Raw material expenses eased by ${Math.abs(primaryBps)} bps ${
+      qoqBps != null ? 'QoQ' : 'YoY'
+    }, creating gross margin expansion.`;
+  } else {
+    summary = `Raw material cost intensity remained stable (${primaryBps > 0 ? '+' : ''}${primaryBps} bps).`;
+  }
+
+  return {
+    direction,
+    signal,
+    alert,
+    industry,
+    rmPctSales: {
+      current: rmPctCurrent != null ? Number(rmPctCurrent.toFixed(2)) : null,
+      qoq: rmPctQoq != null ? Number(rmPctQoq.toFixed(2)) : null,
+      yoy: rmPctYoy != null ? Number(rmPctYoy.toFixed(2)) : null,
+      qoqDeltaBps: qoqBps,
+      yoyDeltaBps: yoyBps,
+    },
+    summary,
+  };
+}
+
+/**
  * Check mandatory verdict chip triggers based on deterministic financial signals.
  * @param {Object} record Extraction record
  * @returns {string[]} Mandatory verdict chips
@@ -595,6 +702,16 @@ function computeMandatoryChips(record) {
         if (item.id === 'workingCapitalDrag') {
           chips.push('WORKING-CAPITAL CASH DRAIN');
         }
+      }
+    }
+
+    // Check raw material & industry signals
+    const rmSig = computeRawMaterialAndIndustrySignals(record);
+    if (rmSig) {
+      if (rmSig.direction === 'HEADWIND' && rmSig.alert) {
+        chips.push('RM INFLATION SQUEEZE');
+      } else if (rmSig.direction === 'TAILWIND') {
+        chips.push('GROSS MARGIN EXPANSION');
       }
     }
   } else {
@@ -787,6 +904,7 @@ function buildAnalysisContext(record) {
   const statementHealth = gradeStatementHealth(record);
   const mandatoryChips = computeMandatoryChips(record);
   const nbfcQualityChecks = isNbfc ? buildNbfcQualityChecks(record) : null;
+  const rawMaterialAndIndustrySignals = computeRawMaterialAndIndustrySignals(record);
 
   return {
     companyId: record.companyId,
@@ -800,6 +918,7 @@ function buildAnalysisContext(record) {
     computedKpiCards,
     statementHealth,
     mandatoryChips,
+    rawMaterialAndIndustrySignals,
     nbfcQualityChecks,
     toneExcerpts: record.toneExcerpts || [],
     guidanceExcerpts: record.guidanceExcerpts || [],
@@ -814,6 +933,7 @@ module.exports = {
   computeKpiCards,
   gradeStatementHealth,
   computeMandatoryChips,
+  computeRawMaterialAndIndustrySignals,
   buildAnalysisContext,
   buildNbfcQualityChecks,
   isNbfcRecord,

@@ -2,16 +2,16 @@
 'use strict';
 
 /**
- * growth-predictor — Step 5 (deterministic, no LLM): persist + render.
+ * pead-predictor — Step 5 (deterministic, no LLM): persist + render.
  *
- * Joins the three run files into ONE `growth-prediction` report DTO (DATA_RULES §2: reports.json +
+ * Joins the three run files into ONE `pead-prediction` report DTO (DATA_RULES §2: reports.json +
  * body, via db.saveReport) and renders the PDF as a pure template of that DTO (conventions §5/§18):
  *
- *   inputs      gather_inputs.js output     (facts: actuals, filings, guidance, macro, context ids)
+ *   inputs      gather_inputs.js output     (facts: actuals, filings, priceAction, guidance, macro, context ids)
  *   projection  project_pl.py output        (numbers: scenarios, deltas, attribution, flags)
- *   narrative   agent-written JSON          (judgment: credibility, dot-connect, macro read, caveats)
+ *   narrative   agent-written JSON          (judgment: credibility, dot-connect, macro read, pead scorecard)
  *
- * Deterministic id = rpt_growth-predictor_<companyId>_<asOf>_<hash(targetQuarter)> → a same-day re-run
+ * Deterministic id = rpt_pead-predictor_<companyId>_<asOf>_<hash(targetQuarter)> → a same-day re-run
  * upserts instead of duplicating. PDF: Puppeteer (pdfRenderer.renderPdf) → WeasyPrint fallback
  * (skills/_shared/pdf-artifact-step.md). Prints {id, pdf, touched}.
  *
@@ -58,11 +58,35 @@ function buildBody(dto) {
   const yoy = (base.deltas.yoy || {}).reported || {};
   const fyD = (base.deltas.fyofy || {}).reported || {};
   const fyCore = (base.deltas.fyofy || {}).core;
+  const pa = dto.priceAction || (dto.inputs && dto.inputs.priceAction) || null;
   const h = [];
 
   h.push(
-    `<div class="hl hl-b"><b>${esc(n.headline || '')}</b><br/><span class="label">Framing: "do the maths, set no expectations" — scenarios, not a trade signal. Bands are scored against the reported result when it lands.</span></div>`
+    `<div class="hl hl-b"><b>${esc(n.headline || '')}</b><br/><span class="label">Framing (SureshKBN): "do the maths, set no expectations" — scenarios, not a trade signal. Evaluates pre-earnings accumulation vs priced-in expectations to predict PEAD drift.</span></div>`
   );
+
+  // Pre-Earnings Price Action & Volume-Delivery Footprint (Onward Tech Pattern, Suresh Gate 3)
+  if (pa) {
+    h.push(
+      `<div class="sec"><div class="sec-hd">PRE-EARNINGS PRICE ACTION &amp; DELIVERY FOOTPRINT (SURESH GATE 3)</div><div class="grid4">`
+    );
+    h.push(
+      `<div class="kpi kpi-b"><div class="label">Accumulation Pattern</div><div class="bignum" style="font-size:13px;line-height:1.2;">${esc((pa.pattern || '').replace(/_/g, ' '))}</div><div class="subnum">Hurdle: <b>${esc(pa.expectationHurdle)}</b> · Sell-Risk: <b>${esc(pa.sellTheNewsRisk)}</b></div></div>`
+    );
+    h.push(
+      `<div class="kpi kpi-b"><div class="label">Pre-Result Price Δ</div><div class="bignum">${pct(pa.return10dPct)}</div><div class="subnum">5D ${pct(pa.return5dPct)} · 20D ${pct(pa.return20dPct)}</div></div>`
+    );
+    h.push(
+      `<div class="kpi kpi-b"><div class="label">Volume Explosion</div><div class="bignum">${fmt(pa.volumeMultiplier5d)}x</div><div class="subnum">vs 20D median (peak ${fmt(pa.maxSingleDayVolMult)}x)</div></div>`
+    );
+    h.push(
+      `<div class="kpi kpi-b"><div class="label">Delivery Accumulation</div><div class="bignum">${fmt(pa.avgDeliveryPct5d)}%</div><div class="subnum">5D turnover: ₹${fmt(pa.totalDeliveryVal5dCr)} cr (${fmt(pa.deliveryMultiplier5d)}x qty)</div></div>`
+    );
+    h.push('</div>');
+    h.push(
+      `<div class="hl ${pa.sellTheNewsRisk === 'HIGH' ? 'hl-y' : 'hl-b'}" style="margin-top:6px;"><b>Expectation Bar &amp; Hurdle (Suresh Gate 3):</b> ${esc(pa.hurdleVerdict)}<br/><span class="label">Required Result for Post-Earnings Drift: <b>${esc(pa.requiredForPead)}</b></span></div></div>`
+    );
+  }
 
   // KPI strip
   h.push('<div class="grid4">');
@@ -223,16 +247,49 @@ function buildBody(dto) {
   list('ENGINE FLAGS', p.flags, (f) => `<span class="red-flag">${esc(f)}</span>`);
   list('WHAT COULD BE WRONG', n.whatCouldBeWrong, esc);
   list('WATCH ON RESULT DAY', n.watch, esc);
-  if (n.pead)
-    h.push(
-      `<div class="sec"><div class="sec-hd">PEAD READ-THROUGH</div><p>${esc(n.pead)}</p></div>`
-    );
+  if (n.pead) {
+    if (typeof n.pead === 'object' && n.pead !== null) {
+      h.push(
+        `<div class="sec"><div class="sec-hd">SURESHKBN 5-GATE PEAD PRE-FLIGHT SCORECARD</div>`
+      );
+      h.push(
+        '<table class="vmatrix"><tr><th>Gate</th><th>Dimension</th><th>Evaluation &amp; Drift Hurdle</th></tr>'
+      );
+      if (n.pead.gate1Surprise)
+        h.push(
+          `<tr><td><b>Gate 1</b></td><td>Surprise / Shock vs Expectations</td><td>${esc(n.pead.gate1Surprise)}</td></tr>`
+        );
+      if (n.pead.gate2Quality)
+        h.push(
+          `<tr><td><b>Gate 2</b></td><td>Result Quality &amp; Repeatability</td><td>${esc(n.pead.gate2Quality)}</td></tr>`
+        );
+      if (n.pead.gate3PricedIn)
+        h.push(
+          `<tr><td><b>Gate 3</b></td><td>Priced-In &amp; Valuation Headroom</td><td>${esc(n.pead.gate3PricedIn)}</td></tr>`
+        );
+      if (n.pead.gate4Guidance)
+        h.push(
+          `<tr><td><b>Gate 4</b></td><td>Concall Guidance &amp; Credibility</td><td>${esc(n.pead.gate4Guidance)}</td></tr>`
+        );
+      if (n.pead.gate5PostResultTriggers)
+        h.push(
+          `<tr><td><b>Gate 5</b></td><td>Pipeline of Post-Result Catalysts</td><td>${esc(n.pead.gate5PostResultTriggers)}</td></tr>`
+        );
+      h.push('</table>');
+      if (n.pead.summary) h.push(`<p><b>PEAD Drift Outlook:</b> ${esc(n.pead.summary)}</p>`);
+      h.push('</div>');
+    } else {
+      h.push(
+        `<div class="sec"><div class="sec-hd">PEAD READ-THROUGH</div><p>${esc(n.pead)}</p></div>`
+      );
+    }
+  }
   list('SOURCES', dto.sources, (s) =>
     s.url ? `<a href="${esc(s.url)}">${esc(s.label)}</a>` : esc(s.label)
   );
   list('EXPERT GROUNDING', n.expertCitations, esc);
   h.push(
-    `<p class="disclaimer">Generated by growth-predictor (${esc(dto.modelUsed)}) on ${esc(dto.date)} from Stockscans actuals, filings and concall material. Estimates are analytical scenarios, not investment advice.</p>`
+    `<p class="disclaimer">Generated by pead-predictor (${esc(dto.modelUsed)}) on ${esc(dto.date)} from Stockscans actuals, filings and concall material. Estimates are analytical scenarios, not investment advice.</p>`
   );
   return h.join('\n');
 }
@@ -296,9 +353,9 @@ async function main() {
   const b = projection.scenarios.base;
   const summary = `${companyId} ${projection.targetQuarter} base: Rev ₹${b.target.revenue} cr (YoY ${((b.deltas.yoy || {}).reported || {}).revenue}%), PAT ₹${b.target.pat} cr (YoY ${((b.deltas.yoy || {}).reported || {}).pat}%), EPS ₹${b.target.eps}; ${projection.fiscalYear} PAT ₹${b.fy.pat} cr (FYoFY ${((b.deltas.fyofy || {}).reported || {}).pat}%). Bands PAT ${projection.bands.pat.bear}/${projection.bands.pat.base}/${projection.bands.pat.bull}.`;
   const dto = {
-    id: db.makeId('rpt', 'growth-predictor', companyId, inputs.asOf, projection.targetQuarter),
-    type: 'growth-prediction',
-    creator: 'growth-predictor',
+    id: db.makeId('rpt', 'pead-predictor', companyId, inputs.asOf, projection.targetQuarter),
+    type: 'pead-prediction',
+    creator: 'pead-predictor',
     companyId,
     date: inputs.asOf,
     modelUsed: model,
@@ -309,6 +366,7 @@ async function main() {
     status: 'open', // -> 'scored' by score_prediction.js once the target quarter's result is filed
     projection,
     narrative,
+    priceAction: inputs.priceAction || null,
     basis: {
       latestReported: (inputs.period || {}).latestReported,
       actualsFetchedAt: (inputs.actuals || {}).fetchedAt,
@@ -336,10 +394,10 @@ async function main() {
   if (!hasFlag('--no-pdf')) {
     const safe = companyId.replace(/[^A-Za-z0-9]+/g, '_');
     pdfPath = db.assetPath(
-      path.join('growth-predictor', `${safe}_${projection.targetQuarter}_growth_prediction.pdf`)
+      path.join('pead-predictor', `${safe}_${projection.targetQuarter}_pead_prediction.pdf`)
     );
     fs.mkdirSync(path.dirname(pdfPath), { recursive: true });
-    const title = `${dto.companyName || companyId} — ${projection.targetQuarter} & ${projection.fiscalYear} growth prediction`;
+    const title = `${dto.companyName || companyId} — ${projection.targetQuarter} & ${projection.fiscalYear} PEAD prediction`;
     const html = wrapHtml(
       title,
       `As of ${inputs.asOf} · latest reported ${dto.basis.latestReported} · bear / base / bull`,
@@ -349,8 +407,8 @@ async function main() {
       html,
       pdfPath,
       title,
-      `growth-predictor · ${inputs.asOf}`,
-      db.runPath('growth-predictor', `${safe}-${inputs.asOf}`, 'render.html')
+      `pead-predictor · ${inputs.asOf}`,
+      db.runPath('pead-predictor', `${safe}-${inputs.asOf}`, 'render.html')
     );
     dto.pdfPath = path.relative(db.dataRoot(), pdfPath);
     db.trackTouched(pdfPath);

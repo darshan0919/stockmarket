@@ -367,6 +367,167 @@ function deliveryFacts(g) {
   };
 }
 
+/**
+ * Parse a scheduled board meeting / financial result date from announcement text.
+ * Handles common Indian exchange formats:
+ * - DD/MM/YYYY or DD-MM-YYYY
+ * - "October 16, 2026", "16th October 2026", "16-Oct-2026", "16 Oct 2026"
+ * @param {string} text
+ * @returns {string|null} YYYY-MM-DD
+ */
+function parseMeetingDateFromText(text) {
+  if (!text) return null;
+  // Match DD/MM/YYYY or DD-MM-YYYY
+  let m = text.match(
+    /(?:scheduled|held|meeting|meeting of the board|board of directors).*?\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\b/i
+  );
+  if (m) {
+    const [, d, mon, y] = m;
+    return `${y}-${mon.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  }
+  // Match Month DD, YYYY or DD Month YYYY (including 16th Oct 2026 or 16-Oct-2026)
+  const months = {
+    jan: 1,
+    feb: 2,
+    mar: 3,
+    apr: 4,
+    may: 5,
+    jun: 6,
+    jul: 7,
+    aug: 8,
+    sep: 9,
+    oct: 10,
+    nov: 11,
+    dec: 12,
+  };
+  m =
+    text.match(
+      /(?:scheduled|held|meeting|meeting of the board|board of directors).*?\b(\d{1,2})(?:st|nd|rd|th)?[\s\-]+(?:of\s+)?(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*[\s\-,]+(\d{4})\b/i
+    ) ||
+    text.match(
+      /(?:scheduled|held|meeting|meeting of the board|board of directors).*?\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*[\s\-]+(\d{1,2})(?:st|nd|rd|th)?[\s\-,]+(\d{4})\b/i
+    );
+  if (m) {
+    let d;
+    let monStr;
+    let y;
+    if (months[m[2]?.toLowerCase()?.slice(0, 3)]) {
+      d = m[1];
+      monStr = m[2];
+      y = m[3];
+    } else {
+      monStr = m[1];
+      d = m[2];
+      y = m[3];
+    }
+    const mon = String(months[monStr.toLowerCase().slice(0, 3)]).padStart(2, '0');
+    return `${y}-${mon}-${String(d).padStart(2, '0')}`;
+  }
+  return null;
+}
+
+/** Difference in calendar days: d2 - d1. Positive means d2 is after d1. */
+function calendarDaysDiff(d1, d2) {
+  if (!d1 || !d2) return null;
+  const t1 = new Date(d1).getTime();
+  const t2 = new Date(d2).getTime();
+  if (Number.isNaN(t1) || Number.isNaN(t2)) return null;
+  return Math.round((t2 - t1) / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * Result date proximity and pre-results anticipation detection.
+ * Identifies whether a company is approaching its results date ("Days from result")
+ * or has recently announced its result date via Board Meeting Intimation / corporate filing.
+ *
+ * @param {Object} g - gainer candidate
+ * @param {string} [marketDate] - YYYY-MM-DD
+ * @returns {Object}
+ */
+function detectResultProximity(g, marketDate) {
+  const anns = g.announcements || [];
+  const refDate = marketDate || anns[0]?.date || new Date().toISOString().slice(0, 10);
+
+  // 1. Scan announcements for recent result date / board meeting intimations
+  let bestAnn = null;
+  let parsedMeetingDate = null;
+  let announcedDaysAgo = null;
+
+  for (const a of anns) {
+    const isAnticipation =
+      a.category_derived === 'anticipation' ||
+      /board meeting intimation|notice of board meeting|intimation of board meeting/i.test(
+        a.subject || ''
+      ) ||
+      (a.category === 'Board Meeting' &&
+        /result|unaudited|audited|consider and approve/i.test(
+          `${a.subject || ''} ${a.description || ''}`
+        ));
+
+    if (isAnticipation) {
+      const aDate = a.date || (a.createdAt ? a.createdAt.slice(0, 10) : null);
+      const diff = aDate ? calendarDaysDiff(aDate, refDate) : null;
+      // Stamped recently (within last 14 days)
+      if (diff !== null && diff >= 0 && diff <= 14) {
+        bestAnn = a;
+        announcedDaysAgo = diff;
+        parsedMeetingDate = parseMeetingDateFromText(`${a.description || ''} ${a.subject || ''}`);
+        break; // Take the latest matching filing
+      }
+    }
+  }
+
+  // 2. Reconcile days to result
+  let daysToResult = null;
+  let daysSinceResult = null;
+  const scheduledDate = parsedMeetingDate || g.next_result_date || null;
+
+  if (scheduledDate && refDate) {
+    const diff = calendarDaysDiff(refDate, scheduledDate);
+    if (diff !== null && diff >= 0 && diff <= 14) {
+      daysToResult = diff;
+    }
+  }
+
+  // Fallback to Stockscans native `days_from_result`
+  const dfr = typeof g.days_from_result === 'number' ? g.days_from_result : null;
+  if (daysToResult === null && dfr !== null) {
+    if (dfr >= 0 && dfr <= 14) {
+      daysToResult = dfr;
+    } else if (dfr < 0 && dfr >= -3) {
+      daysSinceResult = Math.abs(dfr);
+    }
+  } else if (dfr !== null && dfr < 0 && dfr >= -3) {
+    daysSinceResult = Math.abs(dfr);
+  }
+
+  const isRecentlyAnnounced = announcedDaysAgo !== null && announcedDaysAgo <= 14;
+  const isPreResult = daysToResult !== null && daysToResult <= 10;
+  const isPostResult = daysSinceResult !== null && daysSinceResult <= 2;
+
+  const active = isPreResult || isPostResult || (isRecentlyAnnounced && daysToResult !== null);
+
+  let label = null;
+  if (isPreResult) {
+    label = `Pre-result accumulation (Result in ${daysToResult}d${isRecentlyAnnounced ? `, announced ${announcedDaysAgo}d ago` : ''})`;
+  } else if (isPostResult) {
+    label = `Post-result reaction (Result declared ${daysSinceResult}d ago)`;
+  }
+
+  return {
+    active,
+    type: isPreResult ? 'PRE_RESULT' : isPostResult ? 'POST_RESULT' : null,
+    days_to_result: daysToResult,
+    days_since_result: daysSinceResult,
+    announced_days_ago: announcedDaysAgo,
+    result_date: scheduledDate,
+    is_recently_announced: isRecentlyAnnounced,
+    announcement: bestAnn ? { subject: bestAnn.subject, date: bestAnn.date } : null,
+    label,
+    pead_candidate: isPreResult || isPostResult,
+  };
+}
+
 function buildEvidence(g, sectorCatalystIndustries, novelty, extra = {}) {
   const ev = [];
   const { streak, cluster } = extra;
@@ -377,6 +538,22 @@ function buildEvidence(g, sectorCatalystIndustries, novelty, extra = {}) {
     ev.push(
       `🔥 Day ${streak.streak} of consecutive appearances (since ${streak.priorDates[streak.priorDates.length - 1]})`
     );
+  }
+
+  // Result proximity / pre-results accumulation callout
+  const resProx = extra.resProx || detectResultProximity(g, extra.marketDate);
+  if (resProx && resProx.active) {
+    if (resProx.type === 'PRE_RESULT') {
+      const annStr =
+        resProx.announced_days_ago !== null
+          ? ` (date announced ${resProx.announced_days_ago}d ago)`
+          : '';
+      ev.push(
+        `📅 Pre-results accumulation — result scheduled in ${resProx.days_to_result}d${annStr} · PEAD pre-flight candidate`
+      );
+    } else if (resProx.type === 'POST_RESULT') {
+      ev.push(`📅 Post-results reaction — results declared ${resProx.days_since_result}d ago`);
+    }
   }
 
   // Announcements, strongest first — the old code emitted them in API order, so a
@@ -467,12 +644,16 @@ function buildEvidence(g, sectorCatalystIndustries, novelty, extra = {}) {
  * email is organised by: ACT / WATCH / NOTED.
  */
 function classify(g, sectorCatalystIndustries, novelty, extra = {}) {
-  const { streak = { streak: 1 }, cluster = null } = extra;
+  const { streak = { streak: 1 }, cluster = null, marketDate = null } = extra;
   const d = deliveryFacts(g);
   const anns = g.announcements || [];
   const annStrengthTop = g.ann_strength || taxonomy.strongestOf(anns);
   const hasStrongAnn = annStrengthTop === 'STRONG';
   const hasSupportingAnn = annStrengthTop === 'SUPPORTING';
+
+  // Result date proximity / anticipation detection
+  const resProx = extra.resProx || detectResultProximity(g, marketDate);
+  const isPreResultAccumulation = resProx.active && resProx.type === 'PRE_RESULT';
 
   // Is the strong news an UNSCHEDULED surprise (order win, SAST, QIP, M&A,
   // capacity) or a calendar event everyone files in the same fortnight
@@ -495,8 +676,11 @@ function classify(g, sectorCatalystIndustries, novelty, extra = {}) {
   // ── Driver: what best explains the move? ──────────────────────────────────
   let primary_driver;
   if (hasStrongAnn) primary_driver = 'FUNDAMENTAL';
+  else if (isPreResultAccumulation && (d.decent || volSpike))
+    primary_driver = 'PRE_RESULT_ACCUMULATION';
   else if (cluster) primary_driver = 'SECTOR_CATALYST';
   else if (hasSupportingAnn) primary_driver = 'FUNDAMENTAL';
+  else if (isPreResultAccumulation) primary_driver = 'PRE_RESULT_ACCUMULATION';
   else if (d.decent || volSpike || breakout) primary_driver = 'PRICE_ACTION';
   else primary_driver = 'VOLATILITY';
 
@@ -517,6 +701,29 @@ function classify(g, sectorCatalystIndustries, novelty, extra = {}) {
     score += 1;
     reasons.push('supporting announcement');
   }
+
+  // Pre-result accumulation / proximity signal (Onward Tech pattern)
+  if (isPreResultAccumulation) {
+    const annAgoStr =
+      resProx.announced_days_ago !== null
+        ? ` (date announced ${resProx.announced_days_ago}d ago)`
+        : '';
+    if (d.strong) {
+      score += 2;
+      reasons.push(
+        `pre-results accumulation: result in ${resProx.days_to_result}d${annAgoStr} with strong delivery`
+      );
+    } else if (d.decent || volSpike) {
+      score += 1.5;
+      reasons.push(
+        `pre-results accumulation: result in ${resProx.days_to_result}d${annAgoStr} with volume/delivery confirmation`
+      );
+    } else {
+      score += 0.5;
+      reasons.push(`pre-results accumulation: result in ${resProx.days_to_result}d${annAgoStr}`);
+    }
+  }
+
   if (d.strong) {
     score += 2;
     reasons.push(`delivery ${d.pct.toFixed(0)}% / ₹${d.valueCr.toFixed(0)} Cr`);
@@ -604,8 +811,10 @@ function classify(g, sectorCatalystIndustries, novelty, extra = {}) {
   // A scheduled results filing on its own is not a "known cause" for ACT — every
   // peer filed one the same week. It becomes one when delivery confirms the
   // market actually re-rated on it, which the HIGH-conviction requirement below
-  // already enforces.
-  const causeKnown = hasUnscheduledStrong || !!cluster;
+  // already enforces. Pre-result accumulation (result announced recently, result in <=10d)
+  // confirmed with decent delivery or volume surge is a KNOWN anticipatory fundamental driver.
+  const causeKnown =
+    hasUnscheduledStrong || !!cluster || (isPreResultAccumulation && (d.decent || volSpike));
   if (causeKnown && d.decent && conviction === 'HIGH') {
     tier = 'ACT';
   } else if (conviction === 'HIGH' || (conviction === 'MEDIUM' && (causeKnown || sustained))) {
@@ -621,7 +830,15 @@ function classify(g, sectorCatalystIndustries, novelty, extra = {}) {
     tier = 'NOTED';
   }
 
-  return { primary_driver, conviction, tier, score: Math.round(score * 10) / 10, reasons };
+  return {
+    primary_driver,
+    conviction,
+    tier,
+    score: Math.round(score * 10) / 10,
+    reasons,
+    result_proximity: resProx,
+    pead_candidate: !!resProx?.pead_candidate,
+  };
 }
 
 /**
@@ -762,7 +979,8 @@ function main({
 
     const streak = computeStreak(g.ticker, streakHistory);
     const cluster = clusters[g.industry] || null;
-    const extra = { streak, cluster };
+    const resProx = detectResultProximity(g, marketDate);
+    const extra = { streak, cluster, marketDate, resProx };
 
     const cls = classify(g, sectorCatalystIndustries, novelty, extra);
     const driver = cls.primary_driver;
@@ -845,6 +1063,10 @@ function main({
       // sentiment. `recentWithinDays` is computed live from the concall date —
       // see docs/stockscans-api-schemas.md.
       concall: g.concall || null,
+      days_from_result:
+        g.days_from_result ?? (resProx.type === 'PRE_RESULT' ? resProx.days_to_result : null),
+      result_proximity: resProx.active ? resProx : null,
+      pead_candidate: !!(resProx.active && resProx.type === 'PRE_RESULT'),
     });
   }
 
@@ -1089,6 +1311,9 @@ module.exports = {
   buildSectorClusters,
   selectResearchTargets,
   selectReratingTargets,
+  detectResultProximity,
+  parseMeetingDateFromText,
+  calendarDaysDiff,
   main,
   // thresholds (exported so tests assert against the definition, not a copy)
   HIGH_DELIVERY_PCT,

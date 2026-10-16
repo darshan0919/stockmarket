@@ -10,6 +10,7 @@ Consolidated daily suite for top-down macro and structural supply signals (`docs
 Runs at 19:00 IST on weekdays.
 
 Executes sequentially:
+
 1. **Market Regime** (`yarn market-regime-daily`): Nifty 500 breadth, macro (Brent, US10Y, USDINR), FII/DII flows (M1-M4).
 2. **Liquidity Supply** (`yarn liquidity-supply-daily`): NSE block-deal supply spikes and 20-session FII outflow (L1-L2).
 3. **Paper Supply** (`yarn paper-supply-daily`): Block selling, QIP/preferential fundraises in P/E>50 names (V2).

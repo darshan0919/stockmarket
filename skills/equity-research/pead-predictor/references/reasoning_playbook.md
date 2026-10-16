@@ -186,23 +186,86 @@ Inputs:
     widen them;
   - if nearly all land inside a very wide band, tighten them.
 
-## F. PEAD read-through (framing, not a signal)
+### F. Pre-Earnings Price Action & Volume-Delivery Footprint (The Onward Tech Playbook)
 
-Suresh: "do the maths before results but set no expectations", "predicting is not PEAD", "bucket
-bear/base/bull and let the result decide" (kb:75dbc5b6, kb:a7621186, kb:3eded4e6). So `narrative.pead`:
+Input: `inputs.priceAction` (assembled from NSE bhavcopy deliverable data).
 
-- states which bucket each scenario would correspond to on result day;
-- names the one or two numbers that would make the result a genuine **surprise**: e.g. "PAT ≥ bull
-  with margin ≥ 29% on a ₹N cr base = a quality beat", per the PEAD five gates
-  (`kbf_x-sureshkbn_pead-gates`);
-- reminds the reader that a beat still needs price confirmation and Q+1 confirmation before sizing up
-  (Darshan's rules, 2026-10-09).
+Pre-earnings price action is a **dual-edged sword**. It provides both an **Informed Accumulation Signal**
+and the baseline for the **Expectation Hurdle (Suresh Gate 3)**:
 
-Never recommend a pre-result entry.
+### 1. The Onward Tech Case Study (`NSE:ONWARDTEC`)
+
+Leading into its Q2 result:
+
+- **Base Phase (Sessions -20 to -6):** Tight price consolidation (₹280–295) on dormant volume (20k–40k shares/day) with high delivery percentage (60–75%).
+- **Accumulation Breakout (Sessions -5 to -1):** Volume explodes **10.7x** over the 20-day median (jumping from 25k to 117k, 308k, and peaking at 772k shares on session -2 — a **28.6x single-day volume surge**).
+- **Price Surge:** The stock rallies **+23.5% in 10 days** and **+20.9% in 5 days** (₹288 → ₹359) right into result day.
+- **Institutional Footprint:** ₹19.6 Cr of delivery turnover absorbed in 5 trading days (1.56 lakh shares delivered on 12-Oct, 2.32 lakh shares delivered on 14-Oct).
+
+### 2. The Dual-Signal Interpretation:
+
+1. **Signal 1 — Informed Smart-Money Accumulation:**
+   When delivery volume explodes alongside a price breakout into multi-month highs prior to results, institutional and informed positioning is anticipating strong operational delivery, high execution, or a blowout print.
+2. **Signal 2 — The SureshKBN Warning / Gate 3 (The Expectation Hurdle):**
+   Suresh warns: _"Did it move before results? If yes, expectations were built... If many enter on anticipation, it is never PEAD. Pre-result entrants build a base that sells on results. Most sustained PEADs had no prior run-up."_ (kb:2020663695442080090, kb:2043655924452364636, kb:2008846122262081654).
+   - When a stock surges +20% to +30% into results, the market has **already discounted** a strong quarter.
+   - An "in-line" or good base-case result will trigger **"sell the news"** profit booking as pre-result buyers exit.
+   - To trigger and sustain a genuine PEAD drift from this elevated baseline, the company faces a **very high hurdle**: it requires a **Bull-Case Blowout (PAT > Bull scenario)** PLUS a **forward guidance upgrade or major order-book trigger on the concall (Gate 4 & 5)**.
+3. **The Asymmetric Springboard Setup (The Opposite Setup):**
+   - When a company consolidates tightly in a flat base with low volume, high delivery absorption, and light positioning:
+   - Expectations are low. Any genuine operational beat shocks the market, positioning is clean, and the PEAD runway is wide and sustained (kb:1919573201346027779, kb:1921552921931460944).
+
+### 3. Hurdle & Setup Rules:
+
+- `pattern === 'MASSIVE_PRE_RESULT_ACCUMULATION_RUN_UP'` (Return10D ≥15%, Vol ≥2.5x): Expectation hurdle is **VERY_HIGH**, sell-the-news risk is **HIGH**. In `narrative.pead`, explicitly flag that base-case results will face profit taking; only a Bull-Case Blowout + Concall Guidance Upgrade can ignite PEAD drift.
+- `pattern === 'INFORMED_ACCUMULATION_BREAKOUT'` (Return10D 7–15%, Vol ≥1.8x): Expectation hurdle is **ELEVATED**, sell-the-news risk is **MODERATE**. Requires at least Base-Case Beat with expanding margins.
+- `pattern === 'TIGHT_ACCUMULATION_BASE'` (Return10D ±5%, Deliv ≥50%): Expectation hurdle is **LOW**, sell-the-news risk is **LOW**. Prime asymmetric PEAD springboard. Base-case beat triggers immediate repositioning shock.
+- `pattern === 'PRE_RESULT_DE_RISKING'` (Return10D ≤−7%): Expectation hurdle is **VERY_LOW**. Any operational beat triggers sharp relief rally.
 
 ---
 
-## G. Learnings from our own skill library (2026-10-14)
+## G. SureshKBN's 5 PEAD Gates (The Pre-Flight Scorecard)
+
+Suresh's core philosophy: _"do the maths before results, set no expectations"_, _"predicting is not PEAD — surprise cannot be predicted, but you can calculate the hurdle required for drift"_ (kb:75dbc5b6, kb:a7621186, kb:3eded4e6).
+
+Every run synthesizes `narrative.pead` across the 5 Gates (`kbf_x-sureshkbn_pead-gates`):
+
+1. **Gate 1 — Surprise / Shock vs Expectations (not vs last year):**
+   Ask what the surprise element is before expecting a reaction (kb:2011012964388913611). Judge against expectations, whisper numbers, valuation, and outlook — never optical YoY growth off a depressed base (kb:2078376278852501567, kb:1853716295432249782).
+   - In `narrative.pead.gate1Surprise`: State the exact number that shocks the street (e.g. "Target PAT ≥ ₹60 cr vs whisper ₹52 cr").
+2. **Gate 2 — Result Quality & Repeatability:**
+   Split operating EBITDA from non-operating drivers (one-offs, asset sales, forex, tax credits, other income; kb:1955445146603933795, kb:1928089548547875171).
+   - Run the **EPS dilution check**: if shares rose, did EPS beat dilution? (kb:1953618148730523954).
+   - Verify working capital and cash conversion (kb:1927156359423819936, kb:1777103709585232346).
+   - Margin sustainability: temporary inventory gains must not be annualised (kb:2086398250480001530).
+3. **Gate 3 — Priced-In & Valuation Headroom:**
+   Synthesize the pre-result price action from Section F.
+   - Valuation headroom: Compare Forward P/E (at CMP based on projected FY base/bull EPS) vs 1Y, 3Y, 5Y median P/E (kb:2060502571845050413, kb:1759865174356566278).
+   - Filter for **≥40–50% upside on paper** when guidance is delivered (kb:1956871583768969472, kb:1953741761660281059). High P/E with no headroom leaves zero room for execution slips (kb:2083110671538147582).
+4. **Gate 4 — Concall Guidance & Credibility:**
+   Forward guidance beats the trailing quarter (kb:2019406968621076716). Guidance raise or margin upgrade can drive a multi-week run (kb:1930064934274023912).
+   - Walk-the-talk track record: anchor PAT/EPS to guidance only with proven delivery (kb:1955440562863215032).
+   - Confidence trajectory: watch for slipping tone ("we will" -> "we expect/hope"; kb:2014124852547068334).
+5. **Gate 5 — Pipeline of Post-Result Catalysts:**
+   Fresh orders, capex commissioning, capacity go-live, debt prepayment (kb:2100839804649062448, kb:2087168878095015961, kb:2062345211477622969).
+   - Suresh rule: **without fresh Gate 5 triggers, most PEAD moves fade in 2–3 weeks** (kb:2107736980750770482, kb:2083874630045954090).
+
+---
+
+## H. SureshKBN Timing Horizons & Action Rules
+
+| Window                       | What he says                                                                              | Rule in pead-predictor                                                                           |
+| ---------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Pre-Result**               | Never gamble before results; do the maths, set no expectations.                           | Model bear/base/bull, quantify pre-result run-up and hurdle. Never recommend a pre-result entry. |
+| **Day 1 / Immediate**        | Fast reactions occur, but high run-up names often gap up and get sold down intraday.      | Watch if dips are bought or if pre-result buyers dump.                                           |
+| **Days 1–3 (Digestion)**     | Most sustaining PEADs pull back or digest for 1–3 days. PEAD does not finish in 1–2 days. | Best entry point is post-result digestion after the call confirms Gate 4 & 5.                    |
+| **Weeks 1–6 (Drift Window)** | Institutional/advisory capital flows in 1–2 weeks later; 30–45 days drift returns 30–80%. | The true PEAD drift horizon.                                                                     |
+| **60-Day Decay**             | Most PEAD moves fade after 45–60 days unless extended by new triggers.                    | Track if fresh orders / capacity additions land to extend the run.                               |
+| **Q+1 Confirmation**         | The second drift leg follows when Q+1 confirms the inflection.                            | Thesis validation; size up only after Q+1 confirmation.                                          |
+
+---
+
+## I. Learnings from our own skill library (2026-10-14)
 
 These rules come from our equity-research skills rather than the KB. Each one is cited by the file
 that owns it. They are read as rules here, never run as skills. Where a skill already produced a
@@ -227,9 +290,9 @@ verdict for this company, `inputs.priorAnalyses` carries it: reuse it, don't re-
 | **Sector driver model.** When P&L guidance is thin, model revenue on the sector's own unit economics: cement volume × realisation/t (EBITDA/t), hotels rooms × RevPAR, banks/NBFCs AUM × NIM → PPOP − credit cost (RoA tree), EPC order book ÷ execution period × margin, IT TCV/order-booking.                                                                                | A5         | `skills/_shared/sector-valuation-kpis.md` (KPI table), `basket_framework.md` §1B NBFC RoA tree                                           |
 | **Over-earning check.** Near a multi-year margin high, with management walking guidance down (e.g. "32%→24-26%→21-22%"), the base fades toward mid-cycle. Never extrapolate peak margins in commodity names.                                                                                                                                                                   | A, C       | `sector-valuation-kpis.md` "Over-earning / cycle check"                                                                                  |
 | **Q1/Q3 working-capital blind spot.** No balance sheet or cash flow in Q1/Q3 filings, so a margin step-up seen in such a quarter stays conditional. Keep it out of the bear case.                                                                                                                                                                                              | E          | `basket_framework.md` Q1/Q3 structural cap rule                                                                                          |
-| **Post-result fade test (PEAD G5).** Without a fresh trigger (orders, capex live, debt retirement, mix) a post-result move tends to fade within weeks. Name the trigger in `narrative.pead`.                                                                                                                                                                                   | F          | `basket_framework.md` §1D, `kbf_x-sureshkbn_pead-gates`                                                                                  |
+| **Post-result fade test (PEAD G5).** Without a fresh trigger (orders, capex live, debt retirement, mix) a post-result move tends to fade within weeks. Name the trigger in `narrative.pead`.                                                                                                                                                                                   | F, G       | `basket_framework.md` §1D, `kbf_x-sureshkbn_pead-gates`                                                                                  |
 
 Deliberate difference from quarterly-result-analysis: its guidance table refuses to extrapolate an
-unguided bottom line (`UNGUIDED — no extrapolation`). growth-predictor's job _is_ the estimate, so it
-extrapolates. Every such input must then be tagged `heuristic`/`assumption`, appear in
-`narrative.assumptions` with a sensitivity, and show up in `assumptionShare`.
+unguided bottom line (`UNGUIDED — no extrapolation`). pead-predictor's job _is_ the estimate and PEAD
+probability forecast, so it extrapolates. Every such input must then be tagged `heuristic`/`assumption`,
+appear in `narrative.assumptions` with a sensitivity, and show up in `assumptionShare`.

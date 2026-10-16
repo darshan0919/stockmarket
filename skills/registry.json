@@ -2431,20 +2431,21 @@
         "learn-and-automate status"
       ]
     },
-    "growth-predictor": {
-      "skill_md": "skills/equity-research/growth-predictor/SKILL.md",
-      "entry": "skills/equity-research/growth-predictor/scripts/gather_inputs.js",
+    "pead-predictor": {
+      "skill_md": "skills/equity-research/pead-predictor/SKILL.md",
+      "entry": "skills/equity-research/pead-predictor/scripts/gather_inputs.js",
       "mode": "clone",
       "modules": [
-        "skills/equity-research/growth-predictor/scripts/gather_inputs.js",
-        "skills/equity-research/growth-predictor/scripts/project_pl.py",
-        "skills/equity-research/growth-predictor/scripts/save_prediction.js",
-        "skills/equity-research/growth-predictor/scripts/score_prediction.js",
+        "skills/equity-research/pead-predictor/scripts/gather_inputs.js",
+        "skills/equity-research/pead-predictor/scripts/project_pl.py",
+        "skills/equity-research/pead-predictor/scripts/save_prediction.js",
+        "skills/equity-research/pead-predictor/scripts/score_prediction.js",
         "skills/_shared/fiscal_periods.py",
         "skills/_shared/kb_cite.py",
         "stock-api/src/analyzers/companyFinancials.js",
         "stock-api/src/clients/StockscansClient.js",
         "stock-api/src/clients/TradingViewClient.js",
+        "stock-api/src/clients/NseClient.js",
         "packages/jobs-runtime/lib/announcementTaxonomy.js",
         "packages/jobs-runtime/lib/announcementPdfText.js",
         "packages/jobs-runtime/lib/stockscansContext.js",
@@ -2456,14 +2457,14 @@
         "skills/equity-research/quarterly-result-extractor/scripts/extract_result_xbrl.js"
       ],
       "scripts": [
-        "skills/equity-research/growth-predictor/scripts/gather_inputs.js",
-        "skills/equity-research/growth-predictor/scripts/project_pl.py",
-        "skills/equity-research/growth-predictor/scripts/save_prediction.js",
-        "skills/equity-research/growth-predictor/scripts/score_prediction.js"
+        "skills/equity-research/pead-predictor/scripts/gather_inputs.js",
+        "skills/equity-research/pead-predictor/scripts/project_pl.py",
+        "skills/equity-research/pead-predictor/scripts/save_prediction.js",
+        "skills/equity-research/pead-predictor/scripts/score_prediction.js"
       ],
       "references": [
-        "skills/equity-research/growth-predictor/references/reasoning_playbook.md",
-        "skills/equity-research/growth-predictor/references/assumptions_schema.md"
+        "skills/equity-research/pead-predictor/references/reasoning_playbook.md",
+        "skills/equity-research/pead-predictor/references/assumptions_schema.md"
       ],
       "shared": [
         "skills/_shared/conventions.md",
@@ -2475,12 +2476,16 @@
         "skills/_shared/income-statement-signals.md",
         "skills/_shared/sector-valuation-kpis.md",
         "skills/equity-research/quarterly-result-analysis/references/basket_framework.md",
-        "skills/equity-research/management-credibility-tracker/references/credibility_framework.md"
+        "skills/equity-research/management-credibility-tracker/references/credibility_framework.md",
+        "data/assets/pead-framework-sureshkbn.md"
       ],
       "aliases": [
+        "pead predictor",
+        "predict pead",
         "growth predictor",
         "predict next quarter",
         "predict upcoming quarter",
+        "pre-earnings price action",
         "estimate next quarter revenue and pat",
         "forecast eps",
         "what will the company report",

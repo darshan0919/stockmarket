@@ -1,8 +1,8 @@
 # Earnings forecast method — next-quarter & FY Revenue / EBITDA / PAT / EPS
 
 **Shared reference** (moved here 2026-10-14 from `pre-pead-scanner/references/forward_estimation.md`, which
-is now a pointer). Used by `pre-pead-scanner` (Step 5, surprise input) and `growth-predictor` (the whole
-skill). The arithmetic of the bridge below is scripted in `growth-predictor/scripts/project_pl.py`; this
+is now a pointer). Used by `pre-pead-scanner` (Step 5, surprise input) and `pead-predictor` (the whole
+skill, formerly `growth-predictor`). The arithmetic of the bridge below is scripted in `pead-predictor/scripts/project_pl.py`; this
 file is the _method_ — which inputs to choose and why. Turn extracted guidance + reported actuals into a
 defensible estimate for the upcoming quarter; precision and honest tagging here propagate into every
 downstream score or scenario. The discipline is to **show every step** and **tag every input** `[guided]`, `[actual]`, or `[estimate]`, so the reader can rebuild the number and challenge any assumption.

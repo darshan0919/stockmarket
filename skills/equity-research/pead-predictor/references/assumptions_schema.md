@@ -1,4 +1,4 @@
-# growth-predictor — `assumptions.json` and `narrative.json` contracts
+# pead-predictor — `assumptions.json` and `narrative.json` contracts
 
 `project_pl.py` validates `assumptions.json` and refuses to run (`status: invalid_assumptions`) when any
 input lacks a `source` or uses an unknown `basis`. Every number must be traceable.
@@ -198,11 +198,14 @@ _incremental-margin premium_ or a cost item. `embedded: true` levers are reporte
     }
   ],
   "watch": ["Gross margin vs 56.7% (RM recovery)", "Decoplast new-plant utilisation commentary"],
-  "whatCouldBeWrong": [
-    "September SIAM not yet out: industry growth assumed from Jul-Aug only",
-    "..."
-  ],
-  "pead": "A quality beat needs PAT ≥ ₹61 cr (bull) with margin ≥ 29%. In-line ≈ ₹52-58 cr. Act only after the result + price confirmation; size up only after Q+1.",
+  "pead": {
+    "gate1Surprise": "Target base PAT ₹55 cr (+29% YoY) vs whisper ₹50 cr. Blowout print needs PAT ≥ ₹61 cr (bull).",
+    "gate2Quality": "Clean operating expansion: RM tailwind + ESOP dilution accounted for. Core EPS +24%.",
+    "gate3PricedIn": "Stock in MASSIVE_PRE_RESULT_ACCUMULATION_RUN_UP (+23.5% 10D, 10.7x vol). High hurdle: base case faces sell-the-news; needs bull-case beat + guidance raise.",
+    "gate4Guidance": "Management has beaten guidance 4/4 quarters. Concall needs FY27 margin guidance raise to ≥28.5%.",
+    "gate5PostResultTriggers": "Bengaluru facility commissioning in Q3FY27 is the secondary trigger needed to extend drift beyond 30 days.",
+    "summary": "High pre-result accumulation raises hurdle. Base case will likely face profit-booking; drift requires Bull-case print (PAT ≥ ₹61 cr) + concall guidance upgrade."
+  },
   "expertCitations": [
     "kb:fdb27c81 new plant 30-40% utilisation in quarter 1",
     "SOIC Learnyst 01.02.26 Part 2 Financial Modelling"

@@ -4,7 +4,7 @@ fiscal_periods.py -- shared, zero-LLM helpers for Indian fiscal-period arithmeti
 `stock-api/bin/company-financials.js` output (12 quarters, ~7 FYs, TTM, baselines).
 
 Extracted 2026-10-14 from pead-surprise-ranker/scripts/compute_growth_deltas.py so that
-growth-predictor (and any future forecasting skill) uses the SAME period labels, growth-off-base
+pead-predictor (formerly growth-predictor, and any future forecasting skill) uses the SAME period labels, growth-off-base
 rule, seasonality phasing and tax-rate fallback as the PEAD ranker -- two skills must never
 disagree on what "QoQ" or "FY27 YTD" means (conventions.md §17).
 

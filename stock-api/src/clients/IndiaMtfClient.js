@@ -66,6 +66,26 @@ class IndiaMtfClient {
       throw err;
     }
   }
+
+  /**
+   * Complete MTF time series for one stock from IndiaMTF.
+   * @param {string} symbol - NSE/BSE symbol, e.g. "CYIENTDLM"
+   * @returns {Promise<Object|null>} JSON payload containing symbol history series or null on 404/403
+   */
+  async stockHistory(symbol) {
+    try {
+      const clean = String(symbol || '')
+        .trim()
+        .toUpperCase();
+      const { data } = await this.http.get(
+        `${INDIAMTF_BASE_URL}/history/stock/${encodeURIComponent(clean)}.json`
+      );
+      return data;
+    } catch (err) {
+      if (err.response && (err.response.status === 404 || err.response.status === 403)) return null;
+      throw err;
+    }
+  }
 }
 
 const MONTHS = {

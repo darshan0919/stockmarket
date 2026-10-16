@@ -1,7 +1,7 @@
 # Quarterly macro context — dated event log & sector read-through (shared)
 
 **Shared reference** (moved here 2026-10-14 from `pre-pead-scanner/references/quarterly_macro_context.md`,
-which is now a pointer). Read by `pre-pead-scanner` (Step 3d) and `growth-predictor` (macro overlay).
+which is now a pointer). Read by `pre-pead-scanner` (Step 3d) and `pead-predictor` (formerly `growth-predictor`, macro overlay).
 One `## Q_FY__` section per fiscal quarter, newest at the TOP once more than one exists; each event carries
 inline source links. Companion files: `commodity-basket.json` (industry → live TradingView instruments for
 the numeric QoQ move) and `../sector-playbooks/` (how a sector's economics work).
@@ -24,7 +24,7 @@ pass-through lag; rate → interest/NIM; FX → translated revenue), never as a 
 
 ## Q2FY27 — detailed event log & sector read-through
 
-_(Jul–Sep 2026; **partial as of 2026-10-14** — September SIAM data not yet released. Compiled by growth-predictor's first run for this quarter from public sources cited inline. Directional overlay, not a substitute for company evidence.)_
+_(Jul–Sep 2026; **partial as of 2026-10-14** — September SIAM data not yet released. Compiled by pead-predictor's first run for this quarter from public sources cited inline. Directional overlay, not a substitute for company evidence.)_
 
 ### Event 1 — Oil re-shock: Hormuz shipping attacks push Brent back above $100
 

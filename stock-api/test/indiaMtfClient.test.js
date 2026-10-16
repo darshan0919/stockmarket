@@ -42,3 +42,18 @@ test('scripwiseDaily returns null on 404', async () => {
   };
   expect(await new IndiaMtfClient({ http }).scripwiseDaily('2026-01-01')).toBeNull();
 });
+
+test('stockHistory fetches ticker payload and returns null on 404', async () => {
+  const mockData = { ticker: 'CYIENTDLM', series: [] };
+  const http = {
+    get: async (url) => {
+      if (url.includes('CYIENTDLM')) return { data: mockData };
+      const e = new Error('nf');
+      e.response = { status: 404 };
+      throw e;
+    },
+  };
+  const client = new IndiaMtfClient({ http });
+  expect(await client.stockHistory('cyientdlm')).toEqual(mockData);
+  expect(await client.stockHistory('UNKNOWN')).toBeNull();
+});

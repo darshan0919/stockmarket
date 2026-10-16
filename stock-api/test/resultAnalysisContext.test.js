@@ -221,4 +221,45 @@ describe('resultAnalysisContext analyzer', () => {
       expect(ctx.nbfcQualityChecks.almAndFunding.covered).toBe(true);
     });
   });
+
+  describe('raw material and industry signals', () => {
+    it('detects acute raw material inflation squeeze when RM % surges', () => {
+      const record = {
+        companyId: 'NSE:AMAL',
+        industry: 'Bulk Chemicals',
+        incomeStatement: {
+          raw: {
+            cur: { revenue: 131.2, costOfMaterials: 115.8, changeInInventories: -1.0 },
+            qoq: { revenue: 96.5, costOfMaterials: 74.4, changeInInventories: -3.3 },
+            yoy: { revenue: 54.0, costOfMaterials: 38.7, changeInInventories: 0.1 },
+          },
+        },
+      };
+
+      const ctx = buildAnalysisContext(record);
+      expect(ctx.rawMaterialAndIndustrySignals).toBeDefined();
+      expect(ctx.rawMaterialAndIndustrySignals.direction).toBe('HEADWIND');
+      expect(ctx.rawMaterialAndIndustrySignals.signal).toBe('ACUTE_RAW_MATERIAL_INFLATION_SQUEEZE');
+      expect(ctx.rawMaterialAndIndustrySignals.alert).toBe(true);
+      expect(ctx.mandatoryChips).toContain('RM INFLATION SQUEEZE');
+    });
+
+    it('detects gross margin expansion when raw material costs decline', () => {
+      const record = {
+        companyId: 'NSE:TEST',
+        industry: 'Specialty Chemicals',
+        incomeStatement: {
+          raw: {
+            cur: { revenue: 100, costOfMaterials: 50, changeInInventories: 0 },
+            qoq: { revenue: 100, costOfMaterials: 60, changeInInventories: 0 },
+          },
+        },
+      };
+
+      const ctx = buildAnalysisContext(record);
+      expect(ctx.rawMaterialAndIndustrySignals).toBeDefined();
+      expect(ctx.rawMaterialAndIndustrySignals.direction).toBe('TAILWIND');
+      expect(ctx.mandatoryChips).toContain('GROSS MARGIN EXPANSION');
+    });
+  });
 });

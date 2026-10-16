@@ -89,3 +89,59 @@ test('score band + scoreOne', () => {
   assert.equal(c.n, 2);
   assert.equal(c.pctInsideBearBull.pat, 50);
 });
+
+test('analyzePreResultPriceAction detects Onward Tech massive accumulation run-up', () => {
+  // 25 days, newest first
+  const rows = [];
+  // Latest 5 days: price 295 -> 360 (+22%), volume 200k-700k
+  const recentPrices = [360, 350, 330, 310, 300];
+  const recentVols = [500000, 400000, 300000, 200000, 150000];
+  for (let i = 0; i < 5; i++) {
+    rows.push({
+      mTIMESTAMP: `Day-${i}`,
+      CH_CLOSING_PRICE: recentPrices[i],
+      CH_TOT_TRADED_QTY: recentVols[i],
+      COP_DELIV_QTY: Math.round(recentVols[i] * 0.5),
+      COP_DELIV_PERC: 50,
+    });
+  }
+  // Prior 20 days: price 280-295, volume 30k
+  for (let i = 5; i < 25; i++) {
+    rows.push({
+      mTIMESTAMP: `Day-${i}`,
+      CH_CLOSING_PRICE: 290,
+      CH_TOT_TRADED_QTY: 30000,
+      COP_DELIV_QTY: 18000,
+      COP_DELIV_PERC: 60,
+    });
+  }
+
+  const res = g.analyzePreResultPriceAction(rows);
+  assert.ok(res);
+  assert.equal(res.pattern, 'MASSIVE_PRE_RESULT_ACCUMULATION_RUN_UP');
+  assert.equal(res.expectationHurdle, 'VERY_HIGH');
+  assert.equal(res.sellTheNewsRisk, 'HIGH');
+  assert.equal(res.requiredForPead, 'BULL_CASE_BLOWOUT + GUIDANCE_RAISE');
+  assert.ok(res.volumeMultiplier5d > 5);
+  assert.ok(res.return10dPct > 20);
+});
+
+test('analyzePreResultPriceAction detects tight accumulation base (asymmetric springboard)', () => {
+  const rows = [];
+  // 25 days flat around 100 with high delivery
+  for (let i = 0; i < 25; i++) {
+    rows.push({
+      mTIMESTAMP: `Day-${i}`,
+      CH_CLOSING_PRICE: 100 + (i % 2),
+      CH_TOT_TRADED_QTY: 50000,
+      COP_DELIV_QTY: 32000,
+      COP_DELIV_PERC: 64,
+    });
+  }
+  const res = g.analyzePreResultPriceAction(rows);
+  assert.ok(res);
+  assert.equal(res.pattern, 'TIGHT_ACCUMULATION_BASE');
+  assert.equal(res.expectationHurdle, 'LOW');
+  assert.equal(res.sellTheNewsRisk, 'LOW');
+  assert.equal(res.requiredForPead, 'BASE_CASE_BEAT');
+});

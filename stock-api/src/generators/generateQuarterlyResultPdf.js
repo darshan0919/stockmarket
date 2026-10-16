@@ -173,6 +173,30 @@ function renderStatementHealth(health) {
 }
 
 /**
+ * Builds Raw Material & Industry Signals strip.
+ * @param {Object} signals
+ * @returns {string}
+ */
+function renderRawMaterialAndIndustrySignals(signals) {
+  if (!signals || !signals.signal) return '';
+  const dir = (signals.direction || 'HEADWIND').toUpperCase();
+  const chipCls = dir === 'TAILWIND' ? 'chip-g' : dir === 'HEADWIND' ? 'chip-r' : 'chip-y';
+  const hlCls = dir === 'TAILWIND' ? 'hl-g' : dir === 'HEADWIND' ? 'hl-r' : 'hl-y';
+
+  return `
+    <div style="margin: 6px 0 10px 0;">
+      <div class="hl ${hlCls}" style="padding: 6px 10px; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <span style="font-weight: 700; font-size: 10px; text-transform: uppercase;">Industry & Raw Material Signal:</span>
+          <span style="font-size: 10px; margin-left: 6px;">${formatInlineMarkdown(signals.summary || signals.signal)}</span>
+        </div>
+        <span class="chip ${chipCls}" style="font-size: 9px; padding: 2px 7px;">${signals.signal}</span>
+      </div>
+    </div>
+  `;
+}
+
+/**
  * Builds verdict chips row.
  * @param {Array<string|Object>} chips
  * @returns {string}
@@ -782,6 +806,12 @@ async function createQuarterlyResultPdf(data, options = {}) {
   // 2. Statement Health Strip
   const statementHealth = data.statementHealth || data.statement_health;
   bodyHtml += renderStatementHealth(statementHealth);
+
+  // 2b. Raw Material & Industry Signals
+  const rmSignals = data.rawMaterialAndIndustrySignals || data.raw_material_and_industry_signals;
+  if (rmSignals) {
+    bodyHtml += renderRawMaterialAndIndustrySignals(rmSignals);
+  }
 
   // 3. Verdict Chips
   const verdictChips = data.verdictChips || data.verdict_chips || data.chips || [];

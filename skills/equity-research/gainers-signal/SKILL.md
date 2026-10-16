@@ -121,6 +121,14 @@ deliberately cheap. On a gainers card this badge is genuine independent
 confirmation, which is why this skill passes it through and `volume-rocketing`
 suppresses it.
 
+**Pre-results accumulation & Days From Result.** Ingests Stockscans' `Days From Result`
+column and scans recent filings for Board Meeting Intimations. When financial results
+are scheduled within 0–10 days (announced within the last 14 days) and confirmed by
+strong delivery (% or ₹ Cr) or volume surge (e.g. Onward Technologies `NSE:ONWARDTEC`
+running +23% 2 days ahead of Q2 results), the classifier identifies `primary_driver: 'PRE_RESULT_ACCUMULATION'`,
+awards up to +2 conviction, tags `pead_candidate: true`, and renders a `📅 Result in Xd`
+badge and metric cell. These candidates flow directly into `/pead-predictor`.
+
 **Event type / labels.**
 
 | Thing             | Value                                   |

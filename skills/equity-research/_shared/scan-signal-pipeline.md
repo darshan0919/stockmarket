@@ -322,7 +322,16 @@ so the reader can weigh the answer accordingly.
    card still costs the old six-source build — prefer carded companies when time
    is short, and say how many were deferred for want of one.
 
-3. **`catalyst`** — no filing in 14 days, but a live catalyst plausibly accounts
+3. **`pre_result`** — pre-results accumulation / earnings anticipation. A recent
+   Board Meeting Intimation announced the financial results date (within the last 14
+   days), the result is scheduled within **0–10 days**, and the stock is seeing
+   heavy delivery or volume surge ahead of the announcement (e.g. Onward Tech
+   `NSE:ONWARDTEC` gaining +23% on 10x volume 2 days before results). Cite the
+   scheduled meeting date and countdown ("Result scheduled in Xd, date announced Yd
+   ago"). These names are tagged with `pead_candidate: true` as pre-flight candidates
+   for `/pead-predictor`.
+
+4. **`catalyst`** — no filing in 14 days, but a live catalyst plausibly accounts
    for accumulation. Two sources, checked in this order:
 
    a. **Stockscans' own growth-catalyst report**, free and available for ANY name
@@ -338,7 +347,7 @@ so the reader can weigh the answer accordingly.
 
    Two honesty rules. **Coverage is partial** — a company with no
    `growthCatalysts` on file is common and means "Stockscans doesn't cover this
-   one", never "this company has no catalysts"; drop to rung 4 rather than
+   one", never "this company has no catalysts"; drop to rung 5 rather than
    concluding anything from the absence. And **it is Stockscans' text, not
    ours** — say so, and never present it as this run's own analysis.
 
@@ -356,8 +365,8 @@ so the reader can weigh the answer accordingly.
    built from this company's actual filings. When they disagree, say so and
    prefer (b).
 
-4. **`concall`** — the latest concall carries a concrete forward-guidance number.
-   Check `stockscans.concallNotes` from rung 3a FIRST (it is already in hand, it
+5. **`concall`** — the latest concall carries a concrete forward-guidance number.
+   Check `stockscans.concallNotes` from rung 4a FIRST (it is already in hand, it
    names the quarter in `concallNotesQuarter`, and it is Stockscans' condensation
    of that quarter's call); only fall through to reading the transcript itself when
    `needs_transcript_research` is set AND the notes don't answer the question.
@@ -367,11 +376,11 @@ so the reader can weigh the answer accordingly.
    carry its quarter, since a stale figure presented as current is worse than
    no answer.
 
-5. **`sector`** — the name is in a delivery-confirmed sector cluster and nothing
+6. **`sector`** — the name is in a delivery-confirmed sector cluster and nothing
    company-specific explains it. The cluster IS the answer; say so plainly
    rather than reaching for a company-level narrative that isn't there.
 
-6. **`none`** — all of the above checked, genuinely nothing. Set
+7. **`none`** — all of the above checked, genuinely nothing. Set
    `why: {basis: 'none'}` and the renderer prints an explicit
    "No discoverable trigger — checked filings (14d), re-rating catalysts, and
    concall." **This is a real finding and must never be left as an empty

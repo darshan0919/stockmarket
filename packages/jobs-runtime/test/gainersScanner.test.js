@@ -340,13 +340,33 @@ describe('normaliseGainer companyId sanitization', () => {
     expect(out.company_id).toBe('NSE:SOMECO');
   });
 
-  test('leaves an unsuffixed ticker untouched', () => {
+  test('extracts days_from_result, next_result_date, and last_result_date', () => {
     const out = g.normaliseGainer({
-      companyId: 'NSE:TATASTEEL',
-      'Returns 1D': 1,
-      'Market Capitalization': 1,
+      companyId: 'NSE:ONWARDTEC',
+      Name: 'Onward Technologies',
+      'Returns 1D': 8.5,
+      'Market Capitalization': 800,
+      'Days From Result': 2,
+      'Next Result Date': '2026-10-16',
+      'Last Result Date': '2026-07-18',
     });
-    expect(out.ticker).toBe('NSE:TATASTEEL');
+    expect(out.days_from_result).toBe(2);
+    expect(out.next_result_date).toBe('2026-10-16');
+    expect(out.last_result_date).toBe('2026-07-18');
+  });
+
+  test('normalises missing or dash Days From Result to null', () => {
+    const dash = g.normaliseGainer({
+      companyId: 'NSE:TEST',
+      'Days From Result': '-',
+    });
+    expect(dash.days_from_result).toBeNull();
+
+    const empty = g.normaliseGainer({
+      companyId: 'NSE:TEST',
+      'Days From Result': '',
+    });
+    expect(empty.days_from_result).toBeNull();
   });
 });
 

@@ -1442,6 +1442,12 @@ function scanMetricsHtml(it) {
       ? cell('Streak', `${it.streak}d`, '#b54708')
       : '';
 
+  const resProx = it.result_proximity;
+  const resultCell =
+    resProx && resProx.active && typeof resProx.days_to_result === 'number'
+      ? cell('Result In', `${resProx.days_to_result}d`, '#b54708')
+      : '';
+
   // Volume / delivered-volume vs. their own 30-trading-day median (today
   // excluded from the median) — see gainersScanner.js's
   // fetchVolumeDeliveryRatios30d and docs/nse-bse-historical-deals-api.md.
@@ -1464,6 +1470,7 @@ function scanMetricsHtml(it) {
     cell('Vol/30dMed', fmtRatio(it.vol_ratio_30d), ratioColor(it.vol_ratio_30d)) +
     cell('DelVol/30dMed', fmtRatio(it.deliv_vol_ratio_30d), ratioColor(it.deliv_vol_ratio_30d)) +
     streakCell +
+    resultCell +
     `</div>`
   );
 }
@@ -1500,6 +1507,7 @@ const WHY_BASIS_LABEL = {
   classified: 'New information',
   concall: 'From concall',
   sector: 'Sector-wide',
+  pre_result: 'Pre-result accumulation',
   none: 'No discoverable trigger',
 };
 
@@ -1665,6 +1673,15 @@ function scanSignalCardHtml(it, { compact = false } = {}) {
     ? `<span style="display:inline-block;vertical-align:middle;font-size:9.5px;font-weight:700;font-family:monospace;background:#fffaeb;color:#b54708;border:1px solid #fec84b;border-radius:3px;padding:1.5px 6px;margin-left:6px;white-space:nowrap;">⚡ Vol 2.5x</span>`
     : '';
 
+  const resProx = it.result_proximity;
+  const resBadge =
+    resProx &&
+    resProx.active &&
+    resProx.type === 'PRE_RESULT' &&
+    typeof resProx.days_to_result === 'number'
+      ? `<span style="display:inline-block;vertical-align:middle;font-size:9.5px;font-weight:700;font-family:monospace;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;border-radius:3px;padding:1.5px 6px;margin-left:6px;white-space:nowrap;">📅 Result in ${resProx.days_to_result}d${resProx.is_recently_announced ? ' (New Date)' : ''}</span>`
+      : '';
+
   const linkBtn = it.pdfUrl
     ? `<a href="${esc(it.pdfUrl)}" target="_blank" title="View original filing" style="display:inline-block;vertical-align:middle;width:14px;height:14px;margin-left:8px;line-height:0;text-decoration:none;"><img src="cid:${EXPAND_ICON_CID}" width="14" height="14" alt="View filing" style="display:inline-block;vertical-align:middle;"/></a>`
     : '';
@@ -1692,7 +1709,7 @@ function scanSignalCardHtml(it, { compact = false } = {}) {
       <div style="display:flex;justify-content:space-between;flex-wrap:wrap;">
         <div style="font-weight:700;font-size:13.5px;margin-right:10px;line-height:20px;">${stockscansLink(displayName, it.companyId, 'NSE', '#101828')}</div>
         <div style="white-space:nowrap;line-height:20px;">
-          ${tierChip}${volBadge}${linkageChipHtml(it.linkage)}${linkBtn}
+          ${tierChip}${volBadge}${resBadge}${linkageChipHtml(it.linkage)}${linkBtn}
         </div>
       </div>
       ${headline}

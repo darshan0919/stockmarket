@@ -2,13 +2,16 @@
 'use strict';
 
 /**
- * growth-predictor — Step 1 (Extraction, deterministic, no LLM).
+ * pead-predictor — Step 1 (Extraction, deterministic, no LLM).
  *
  * Assembles EVERYTHING the reasoning step needs for one company into a single input bundle, so the
  * agent reads one JSON instead of re-fetching (conventions §17: extraction first, cached):
  *
  *   actuals      company-financials (12 quarters / ~7 FYs / TTM / baselines; 24h cache)
  *   shares       implied share count per quarter (PAT ÷ EPS) + dilution filings
+ *   priceAction  Pre-result price action, volume explosion & delivery accumulation (Onward Tech pattern,
+ *                SureshKBN Gate 3: return5d/10d/20d, volume surge multiplier vs 20d median, delivery %,
+ *                delivery ₹ Cr, pattern, expectation hurdle & sell-the-news risk)
  *   guidance     Stockscans concall-notes "Guidance & Commitments" + "Key Metrics" tables (parsed),
  *                growth-catalysts + business-overview text (stockscansContext, 7-day cache),
  *                guidance tables of up to 4 PRIOR concalls (concallNotesStore) for walk-the-talk,
@@ -22,14 +25,14 @@
  *   macro        TradingView performance for the industry's commodity basket + always-on macro
  *                (skills/_shared/macro/commodity-basket.json), latest market_snapshot, and whether
  *                the shared quarterly macro log already covers the target quarter
- *   history      our own prior growth-prediction DTOs + their post-result scores (calibration)
+ *   history      our own prior pead-prediction DTOs + their post-result scores (calibration)
  *   context      buildCompanyContext ids (conventions §8 → contextUsed)
  *
  * Usage:
- *   node skills/equity-research/growth-predictor/scripts/gather_inputs.js --company NSE:SJS \
- *     [--as-of 2026-10-14] [--extra-tickers MCX:NICKEL1!,SGX:TF1!] [--force] [--max-filing-text 15]
+ *   node skills/equity-research/pead-predictor/scripts/gather_inputs.js --company NSE:ONWARDTEC \
+ *     [--as-of 2026-10-16] [--extra-tickers MCX:NICKEL1!,SGX:TF1!] [--force] [--max-filing-text 15]
  *     [--out <path>] [--job <name>]
- * Writes data/runs/growth-predictor_<companySafe>-<asOf>_inputs.json (re-derivable → runs/, DATA_RULES §1)
+ * Writes data/runs/pead-predictor_<companySafe>-<asOf>_inputs.json (re-derivable → runs/, DATA_RULES §1)
  * and prints a one-line JSON summary {out, …counts, errors}.
  */
 
@@ -199,6 +202,135 @@ function macroRead(perf, instrument) {
   };
 }
 
+/** Formats an ISO date or Date to NSE format dd-mm-yyyy. */
+function toNseDate(dateInput) {
+  const d = new Date(dateInput);
+  const dd = String(d.getUTCDate()).padStart(2, '0');
+  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const yyyy = d.getUTCFullYear();
+  return `${dd}-${mm}-${yyyy}`;
+}
+
+/**
+ * Pre-earnings price action & volume delivery accumulation analyzer (SureshKBN Gate 3).
+ *
+ * Evaluates whether price/volume/delivery in the 5D/10D/20D window prior to results
+ * indicates smart-money accumulation (e.g. Onward Tech pattern: 10x volume surges,
+ * delivery expansion, 20%+ return) vs tight consolidation vs distribution,
+ * and sets the expectation hurdle rate / sell-the-news risk.
+ *
+ * @param {Array<Object>} rows - Bhavcopy rows newest first from NseClient.getPriceVolumeDeliverable
+ * @param {number|null} [marketCapCr]
+ * @returns {Object|null}
+ */
+function analyzePreResultPriceAction(rows, marketCapCr = null) {
+  if (!Array.isArray(rows) || rows.length < 5) return null;
+
+  const validRows = rows.filter((r) => r && r.CH_CLOSING_PRICE != null);
+  if (validRows.length < 5) return null;
+
+  const latest = validRows[0];
+  const r5 = validRows[Math.min(5, validRows.length - 1)];
+  const r10 = validRows[Math.min(10, validRows.length - 1)];
+  const r20 = validRows[Math.min(20, validRows.length - 1)];
+
+  const ret5d = (latest.CH_CLOSING_PRICE / r5.CH_CLOSING_PRICE - 1) * 100;
+  const ret10d = (latest.CH_CLOSING_PRICE / r10.CH_CLOSING_PRICE - 1) * 100;
+  const ret20d = (latest.CH_CLOSING_PRICE / r20.CH_CLOSING_PRICE - 1) * 100;
+
+  const last5 = validRows.slice(0, 5);
+  const prior20 = validRows.slice(5, 25);
+
+  const avgVol5d = last5.reduce((s, r) => s + (Number(r.CH_TOT_TRADED_QTY) || 0), 0) / last5.length;
+  const vols20 = prior20.map((r) => Number(r.CH_TOT_TRADED_QTY) || 0).sort((a, b) => a - b);
+  const medVol20d = vols20.length ? vols20[Math.floor(vols20.length / 2)] : avgVol5d;
+
+  const avgDelivQty5d =
+    last5.reduce((s, r) => s + (Number(r.COP_DELIV_QTY) || 0), 0) / last5.length;
+  const delivs20 = prior20.map((r) => Number(r.COP_DELIV_QTY) || 0).sort((a, b) => a - b);
+  const medDelivQty20d = delivs20.length
+    ? delivs20[Math.floor(delivs20.length / 2)]
+    : avgDelivQty5d;
+
+  const avgDelivPct5d =
+    last5.reduce((s, r) => s + (Number(r.COP_DELIV_PERC) || 0), 0) / last5.length;
+  const totalDelivVal5dCr =
+    last5.reduce(
+      (s, r) => s + (Number(r.COP_DELIV_QTY) || 0) * (Number(r.CH_CLOSING_PRICE) || 0),
+      0
+    ) / 1e7;
+
+  const volMult5d = medVol20d > 0 ? avgVol5d / medVol20d : 1;
+  const delivMult5d = medDelivQty20d > 0 ? avgDelivQty5d / medDelivQty20d : 1;
+  const maxSingleDayVolMult = Math.max(
+    ...last5.map((r) => (medVol20d > 0 ? (Number(r.CH_TOT_TRADED_QTY) || 0) / medVol20d : 1))
+  );
+
+  let pattern = 'NEUTRAL_CONSOLIDATION';
+  let expectationHurdle = 'LOW';
+  let sellTheNewsRisk = 'LOW';
+  let requiredForPead = 'BASE_CASE_BEAT';
+  let hurdleVerdict = '';
+
+  if (ret10d >= 15 || (ret5d >= 12 && volMult5d >= 2.5)) {
+    pattern = 'MASSIVE_PRE_RESULT_ACCUMULATION_RUN_UP';
+    expectationHurdle = 'VERY_HIGH';
+    sellTheNewsRisk = 'HIGH';
+    requiredForPead = 'BULL_CASE_BLOWOUT + GUIDANCE_RAISE';
+    hurdleVerdict = `Stock surged +${ret10d.toFixed(1)}% (10D) / +${ret5d.toFixed(1)}% (5D) with ${volMult5d.toFixed(1)}x volume surge (peak ${maxSingleDayVolMult.toFixed(1)}x) into results. Pre-result accumulation is heavily priced in. An in-line or good base-case result faces high sell-the-news risk. To trigger a sustained PEAD drift, company needs a BULL-CASE BLOWOUT plus strong concall guidance (Suresh Gate 3).`;
+  } else if (ret10d >= 7 || (ret5d >= 5 && volMult5d >= 1.8)) {
+    pattern = 'INFORMED_ACCUMULATION_BREAKOUT';
+    expectationHurdle = 'ELEVATED';
+    sellTheNewsRisk = 'MODERATE';
+    requiredForPead = 'BASE_BEAT_WITH_MARGIN_EXPANSION';
+    hurdleVerdict = `Pre-result volume and price breakout (+${ret10d.toFixed(1)}% in 10D, ${volMult5d.toFixed(1)}x volume) indicates smart-money anticipation. Requires at least Base-Case Beat with expanding margins to prevent post-earnings profit booking.`;
+  } else if (Math.abs(ret10d) <= 5 && avgDelivPct5d >= 50) {
+    pattern = 'TIGHT_ACCUMULATION_BASE';
+    expectationHurdle = 'LOW';
+    sellTheNewsRisk = 'LOW';
+    requiredForPead = 'BASE_CASE_BEAT';
+    hurdleVerdict = `Stock is consolidating tightly (10D return ${ret10d.toFixed(1)}%) with high delivery (${avgDelivPct5d.toFixed(1)}%). Expectations are low and positioning is clean. Asymmetric PEAD springboard setup — any solid beat triggers immediate repositioning shock (Suresh Gate 1 & 3).`;
+  } else if (ret10d <= -7) {
+    pattern = 'PRE_RESULT_DE_RISKING';
+    expectationHurdle = 'VERY_LOW';
+    sellTheNewsRisk = 'LOW';
+    requiredForPead = 'BASE_CASE_MEET_OR_BEAT';
+    hurdleVerdict = `Stock de-risked into results (${ret10d.toFixed(1)}% over 10D). Expectations are depressed. Any operational beat will trigger sharp relief rally / short squeeze.`;
+  } else {
+    pattern = 'NEUTRAL_CONSOLIDATION';
+    expectationHurdle = 'MODERATE';
+    sellTheNewsRisk = 'MODERATE';
+    requiredForPead = 'BASE_CASE_BEAT';
+    hurdleVerdict = `Normal trading range into results (+${ret10d.toFixed(1)}% over 10D). A standard base-case beat with clear concall guidance is needed for PEAD drift.`;
+  }
+
+  const recentSessions = validRows.slice(0, 10).map((r) => ({
+    date: r.mTIMESTAMP,
+    close: r.CH_CLOSING_PRICE,
+    volume: r.CH_TOT_TRADED_QTY,
+    deliveryQty: r.COP_DELIV_QTY,
+    deliveryPct: r.COP_DELIV_PERC,
+  }));
+
+  return {
+    latestClose: latest.CH_CLOSING_PRICE,
+    return5dPct: Math.round(ret5d * 10) / 10,
+    return10dPct: Math.round(ret10d * 10) / 10,
+    return20dPct: Math.round(ret20d * 10) / 10,
+    volumeMultiplier5d: Math.round(volMult5d * 10) / 10,
+    deliveryMultiplier5d: Math.round(delivMult5d * 10) / 10,
+    avgDeliveryPct5d: Math.round(avgDelivPct5d * 10) / 10,
+    totalDeliveryVal5dCr: Math.round(totalDelivVal5dCr * 10) / 10,
+    maxSingleDayVolMult: Math.round(maxSingleDayVolMult * 10) / 10,
+    pattern,
+    expectationHurdle,
+    sellTheNewsRisk,
+    requiredForPead,
+    hurdleVerdict,
+    recentSessions,
+  };
+}
+
 // ---------------------------------------------------------------- I/O
 
 async function safe(errors, label, fn) {
@@ -227,10 +359,11 @@ async function main() {
   const extraTickers = (argValue('--extra-tickers') || '').split(',').filter(Boolean);
 
   const { resolveJobName } = req('packages/jobs-runtime/lib/scriptJobName.js');
-  const jobName = resolveJobName('growth-predictor');
+  const jobName = resolveJobName('pead-predictor');
   const db = req('packages/jobs-runtime/lib/db.js');
   const { StockscansClient } = req('stock-api/src/clients/StockscansClient.js');
   const { TradingViewClient } = req('stock-api/src/clients/TradingViewClient.js');
+  const { NseClient } = req('stock-api/src/clients/NseClient.js');
   const { getCompanyFinancials } = req('stock-api/src/analyzers/companyFinancials.js');
   const tax = req('packages/jobs-runtime/lib/announcementTaxonomy.js');
   const stockscansContext = req('packages/jobs-runtime/lib/stockscansContext.js');
@@ -246,12 +379,13 @@ async function main() {
   client.setJobName && client.setJobName(jobName);
   const tv = new TradingViewClient();
   tv.setJobName(jobName);
+  const nse = new NseClient();
   const errors = [];
   const out = {
     companyId,
     asOf,
     generatedAt: new Date().toISOString(),
-    creator: 'growth-predictor',
+    creator: 'pead-predictor',
     errors,
   };
 
@@ -292,6 +426,16 @@ async function main() {
       }
     : null;
   out.shares = fin ? impliedShares(fin.quarters) : null;
+
+  // pre-result price action & volume delivery accumulation (Onward Tech pattern, Suresh Gate 3)
+  await safe(errors, 'price-action-delivery', async () => {
+    const ticker = companyId.startsWith('NSE:') ? companyId.slice(4) : companyId.split(':').pop();
+    const dTo = new Date(asOf);
+    const dFrom = new Date(dTo);
+    dFrom.setUTCDate(dFrom.getUTCDate() - 60);
+    const rows = await nse.getPriceVolumeDeliverable(ticker, toNseDate(dFrom), toNseDate(dTo));
+    out.priceAction = analyzePreResultPriceAction(rows);
+  });
 
   // Result-quality scan of the latest reported quarter (one-off detection is mission-critical):
   // XBRL line items (NSE then BSE, PDF fallback inside the extractor) -> the shared
@@ -580,21 +724,26 @@ async function main() {
   });
 
   // our own history (calibration)
-  out.history = await safe(errors, 'history', () => ({
-    priorPredictions: db
-      .find('reports', { type: 'growth-prediction', companyId })
-      .map((r) => ({ id: r.id, date: r.date, summary: r.summary })),
-    scores: (db.find('validation', { type: 'growth-prediction-score', companyId }) || []).map(
-      (v) => ({
-        id: v.id,
-        date: v.date,
-        targetQuarter: v.targetQuarter,
-        revenueErrPct: v.errors && v.errors.revenue,
-        patErrPct: v.errors && v.errors.pat,
-        band: v.band,
-      })
-    ),
-  }));
+  out.history = await safe(errors, 'history', () => {
+    const priorPredictions = [
+      ...db.find('reports', { type: 'pead-prediction', companyId }),
+      ...db.find('reports', { type: 'growth-prediction', companyId }),
+    ].map((r) => ({ id: r.id, date: r.date, summary: r.summary }));
+
+    const scores = [
+      ...(db.find('validation', { type: 'pead-prediction-score', companyId }) || []),
+      ...(db.find('validation', { type: 'growth-prediction-score', companyId }) || []),
+    ].map((v) => ({
+      id: v.id,
+      date: v.date,
+      targetQuarter: v.targetQuarter,
+      revenueErrPct: v.errors && v.errors.revenue,
+      patErrPct: v.errors && v.errors.pat,
+      band: v.band,
+    }));
+
+    return { priorPredictions, scores };
+  });
 
   // context (conventions §8)
   await safe(errors, 'company-context', () => {
@@ -619,7 +768,7 @@ async function main() {
 
   const safeId = companyId.replace(/[^A-Za-z0-9]+/g, '_');
   const outPath =
-    argValue('--out') || db.runPath('growth-predictor', `${safeId}-${asOf}`, 'inputs.json');
+    argValue('--out') || db.runPath('pead-predictor', `${safeId}-${asOf}`, 'inputs.json');
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(out, null, 1));
   apiUsageTracker.flush && apiUsageTracker.flush(jobName);
@@ -630,6 +779,8 @@ async function main() {
       company: out.identity && out.identity.name,
       latestReported: out.period && out.period.latestReported,
       target: out.period && out.period.target,
+      priceActionPattern: out.priceAction ? out.priceAction.pattern : 'none',
+      expectationHurdle: out.priceAction ? out.priceAction.expectationHurdle : 'none',
       guidanceRows: out.guidance.guidanceRows.length,
       priorConcalls: (out.guidanceHistory || []).length,
       transcriptExcerptChars: out.transcript ? out.transcript.excerpt.length : 0,
@@ -748,6 +899,8 @@ module.exports = {
   impliedShares,
   basketFor,
   macroRead,
+  analyzePreResultPriceAction,
+  toNseDate,
   ROUTINE_RE,
 };
 

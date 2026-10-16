@@ -446,3 +446,141 @@ describe('top-20 research selection', () => {
     expect(t.length).toBeGreaterThan(0);
   });
 });
+
+describe('result proximity and pre-result accumulation', () => {
+  it('parses meeting dates from various announcement text patterns', () => {
+    expect(
+      c.parseMeetingDateFromText('Board Meeting scheduled on 16/10/2026 to consider results')
+    ).toBe('2026-10-16');
+    expect(
+      c.parseMeetingDateFromText('meeting to be held on 24-07-2026 for un-audited results')
+    ).toBe('2026-07-24');
+    expect(
+      c.parseMeetingDateFromText('Board meeting on October 16, 2026 to approve Q2 results')
+    ).toBe('2026-10-16');
+    expect(c.parseMeetingDateFromText('meeting on 16th October 2026 for financial results')).toBe(
+      '2026-10-16'
+    );
+    expect(c.parseMeetingDateFromText('Closure of trading window')).toBeNull();
+  });
+
+  it('detects pre-result proximity from recent board meeting intimation', () => {
+    const marketDate = new Date('2026-10-14T00:00:00Z');
+    const g = {
+      ticker: 'NSE:ONWARDTEC',
+      announcements: [
+        {
+          subject:
+            'Board Meeting Intimation for Considering And Approving The Unaudited Financial Results',
+          description: 'meeting scheduled on 16/10/2026 to consider and approve Q2 results',
+          date: '2026-10-09',
+          category_derived: 'anticipation',
+        },
+      ],
+    };
+
+    const prox = c.detectResultProximity(g, marketDate);
+    expect(prox.active).toBe(true);
+    expect(prox.type).toBe('PRE_RESULT');
+    expect(prox.days_to_result).toBe(2);
+    expect(prox.announced_days_ago).toBe(5);
+    expect(prox.result_date).toBe('2026-10-16');
+    expect(prox.pead_candidate).toBe(true);
+    expect(prox.label).toContain('Result in 2d');
+  });
+
+  it('detects pre-result proximity using days_from_result fallback', () => {
+    const g = {
+      ticker: 'NSE:TEST',
+      days_from_result: 3,
+      next_result_date: '2026-10-19',
+      announcements: [],
+    };
+    const prox = c.detectResultProximity(g, new Date('2026-10-16T00:00:00Z'));
+    expect(prox.active).toBe(true);
+    expect(prox.type).toBe('PRE_RESULT');
+    expect(prox.days_to_result).toBe(3);
+    expect(prox.pead_candidate).toBe(true);
+  });
+
+  it('detects post-result reaction for recent results (<= 2 days)', () => {
+    const g = {
+      ticker: 'NSE:POST',
+      days_from_result: -1,
+      last_result_date: '2026-10-15',
+      announcements: [],
+    };
+    const prox = c.detectResultProximity(g, new Date('2026-10-16T00:00:00Z'));
+    expect(prox.active).toBe(true);
+    expect(prox.type).toBe('POST_RESULT');
+    expect(prox.days_since_result).toBe(1);
+    expect(prox.pead_candidate).toBe(true);
+  });
+
+  it('ignores announcements where result is too far out (> 10 days)', () => {
+    const marketDate = new Date('2026-10-01T00:00:00Z');
+    const g = {
+      ticker: 'NSE:FAR',
+      announcements: [
+        {
+          subject: 'Board Meeting Intimation',
+          description: 'meeting scheduled on 25/10/2026',
+          date: '2026-09-30',
+          category_derived: 'anticipation',
+        },
+      ],
+    };
+    const prox = c.detectResultProximity(g, marketDate);
+    expect(prox.active).toBe(false);
+  });
+
+  it('ignores board meeting announcements older than 14 days', () => {
+    const marketDate = new Date('2026-10-20T00:00:00Z');
+    const g = {
+      ticker: 'NSE:OLD',
+      announcements: [
+        {
+          subject: 'Board Meeting Intimation',
+          description: 'meeting scheduled on 22/10/2026',
+          date: '2026-09-20', // 30 days ago
+          category_derived: 'anticipation',
+        },
+      ],
+    };
+    const prox = c.detectResultProximity(g, marketDate);
+    expect(prox.active).toBe(false);
+  });
+
+  it('classifies pre-result accumulation as primary driver with score boost and qualifies for ACT', () => {
+    const g = gainer({
+      ticker: 'NSE:ONWARDTEC',
+      return_1d: 8.5,
+      delivPct: 46,
+      delivValueCr: 25,
+      volSpike: true,
+      anns: [
+        'Board Meeting Intimation for Considering And Approving The Unaudited Financial Results',
+      ],
+    });
+    // Add description with meeting date and date 5 days ago
+    g.announcements[0].description =
+      'meeting scheduled on 16/10/2026 for un-audited financial results';
+    g.announcements[0].date = '2026-10-09';
+    g.announcements[0].category_derived = 'anticipation';
+
+    const resProx = c.detectResultProximity(g, new Date('2026-10-14T00:00:00Z'));
+    const r = c.classify(g, new Set(), null, { resProx });
+    const ev = c.buildEvidence(g, new Set(), null, { resProx });
+
+    expect(r.primary_driver).toBe('PRE_RESULT_ACCUMULATION');
+    expect(r.tier).toBe('ACT');
+    expect(r.conviction).toBe('HIGH');
+    expect(r.pead_candidate).toBe(true);
+    expect(r.reasons).toEqual(
+      expect.arrayContaining([expect.stringContaining('pre-results accumulation')])
+    );
+    expect(ev).toEqual(
+      expect.arrayContaining([expect.stringContaining('Pre-results accumulation')])
+    );
+  });
+});

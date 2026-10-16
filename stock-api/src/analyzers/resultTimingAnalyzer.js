@@ -9,7 +9,7 @@
  * and reporting turnaround velocity.
  */
 
-const { resolveCompanyIdentity } = require('../utils/companyId');
+const { resolveCompanyIdentity, sanitizeCompanyId } = require('../utils/companyId');
 
 const MONTH_NAMES = {
   jan: 1,
@@ -411,11 +411,12 @@ async function analyzeResultTimings(input, options = {}) {
     (identity.companyId && identity.companyId.startsWith('NSE:')) ||
     (!identity.bseTicker && !identity.companyId?.startsWith('BSE:'))
   );
-  const nseSymbol =
+  const rawNseSymbol =
     identity.nseTicker ||
     (identity.companyId?.startsWith('NSE:')
       ? identity.companyId.replace('NSE:', '')
       : identity.displaySymbol || identity.symbol || input);
+  const nseSymbol = sanitizeCompanyId(rawNseSymbol);
   const bseScrip =
     identity.bseTicker ||
     (identity.companyId?.startsWith('BSE:') ? identity.companyId.replace('BSE:', '') : null);

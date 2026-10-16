@@ -227,6 +227,15 @@ function normaliseGainer(raw) {
       const v = pick(raw, 'Price To Earnings', 'price_to_earnings', 'pe_ratio', 'PE');
       return v === null || v === undefined || v === '' || v === '-' ? null : toFloat(v, null);
     })(),
+    // Days From Result — column 9 of the `ratiosType: 'Default'` scan table
+    // (docs/stockscans-api-schemas.md). Positive/zero = days until upcoming result
+    // (pre-earnings accumulation window); negative = days since past result.
+    days_from_result: (() => {
+      const v = pick(raw, 'Days From Result', 'days_from_result', 'daysFromResult');
+      return v === null || v === undefined || v === '' || v === '-' ? null : toFloat(v, null);
+    })(),
+    next_result_date: pick(raw, 'Next Result Date', 'next_result_date', 'nextResultDate') || null,
+    last_result_date: pick(raw, 'Last Result Date', 'last_result_date', 'lastResultDate') || null,
     raw,
   };
 }
@@ -288,7 +297,7 @@ function priceActionSignals(candles) {
     return null;
   };
   const closes = candles.map((c) => fnum(c, 'close', 'c', 'Close')).filter(Boolean);
-  const volumes = candles.map((c) => fnum(c, 'volume', 'v', 'Volume')).filter(Boolean);
+  const _volumes = candles.map((c) => fnum(c, 'volume', 'v', 'Volume')).filter(Boolean);
   const highs = candles.map((c) => fnum(c, 'high', 'h', 'High')).filter(Boolean);
   const lows = candles.map((c) => fnum(c, 'low', 'l', 'Low')).filter(Boolean);
   if (closes.length === 0) return { error: 'empty candles' };

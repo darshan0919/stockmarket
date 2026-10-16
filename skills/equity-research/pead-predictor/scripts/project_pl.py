@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-growth-predictor -- Step 3 (deterministic P&L engine, no LLM).
+pead-predictor -- Step 3 (deterministic P&L engine, no LLM).
 
 The agent (Step 2) writes `assumptions.json`: WHAT each line driver is and WHY (guided / filing /
 heuristic / assumption, with a source). This script does ALL the arithmetic, identically for every company,

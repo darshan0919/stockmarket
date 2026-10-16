@@ -83,7 +83,7 @@ async function textFromBuffer(buf) {
     // pdfjs needs DOMMatrix/canvas polyfills that are missing when node_modules were installed
     // for a different platform (e.g. a macOS checkout mounted into a Linux sandbox:
     // "DOMMatrix is not defined"). Poppler's pdftotext reads the same embedded text layer, so fall
-    // back to it rather than reporting the filing as unreadable (found 2026-10-14, growth-predictor).
+    // back to it rather than reporting the filing as unreadable (found 2026-10-14, pead-predictor).
     const viaPoppler = textFromBufferPoppler(buf);
     if (viaPoppler !== null) return viaPoppler;
     throw e;

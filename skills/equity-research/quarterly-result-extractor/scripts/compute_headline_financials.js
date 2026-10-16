@@ -60,9 +60,25 @@ function pctChange(curr, prev) {
   return ((curr - prev) / Math.abs(prev)) * 100;
 }
 
+function getEbitda(snap) {
+  if (!snap) return null;
+  if (snap.ebitda != null) return snap.ebitda;
+  if (snap.revenue != null && snap.employeeCost != null && snap.otherExpenses != null) {
+    const mat = snap.costOfMaterials || 0;
+    const inv = snap.changeInInventories || 0;
+    return snap.revenue - (mat + inv + snap.employeeCost + snap.otherExpenses);
+  }
+  if (snap.pbt != null && snap.depreciation != null) {
+    return snap.pbt - (snap.otherIncome || 0) + (snap.interest || 0) + snap.depreciation;
+  }
+  return null;
+}
+
 function ebitdaMarginPct(snap) {
-  if (!snap || snap.ebitda == null || snap.revenue == null || snap.revenue === 0) return null;
-  return (snap.ebitda / snap.revenue) * 100;
+  if (!snap || snap.revenue == null || snap.revenue === 0) return null;
+  const ebitda = getEbitda(snap);
+  if (ebitda == null) return null;
+  return (ebitda / snap.revenue) * 100;
 }
 
 function effectiveTaxRatePct(snap) {

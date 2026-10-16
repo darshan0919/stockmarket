@@ -89,7 +89,10 @@ async function main() {
   const { argValue, hasFlag, loadEnv } = req('packages/jobs-runtime/lib/env.js');
   loadEnv(argValue('--env-file'));
   const db = req('packages/jobs-runtime/lib/db.js');
-  const existing = db.find('validation', { type: 'growth-prediction-score' }) || [];
+  const existing = [
+    ...(db.find('validation', { type: 'pead-prediction-score' }) || []),
+    ...(db.find('validation', { type: 'growth-prediction-score' }) || []),
+  ];
   if (hasFlag('--summary')) {
     console.log(JSON.stringify({ calibration: calibration(existing) }));
     return;
@@ -98,13 +101,16 @@ async function main() {
   const { StockscansClient } = req('stock-api/src/clients/StockscansClient.js');
   const { getCompanyFinancials } = req('stock-api/src/analyzers/companyFinancials.js');
   const apiUsageTracker = req('packages/jobs-runtime/lib/apiUsageTracker.js');
-  const jobName = resolveJobName('growth-predictor');
+  const jobName = resolveJobName('pead-predictor');
   const client = new StockscansClient();
   client.setJobName && client.setJobName(jobName);
 
   const only = argValue('--company');
-  const open = db
-    .find('reports', { type: 'growth-prediction', ...(only ? { companyId: only } : {}) })
+  const openReports = [
+    ...db.find('reports', { type: 'pead-prediction', ...(only ? { companyId: only } : {}) }),
+    ...db.find('reports', { type: 'growth-prediction', ...(only ? { companyId: only } : {}) }),
+  ];
+  const open = openReports
     .map((r) => db.readReport(r.id))
     .filter((r) => r && r.status !== 'scored');
   const results = [];
@@ -124,8 +130,8 @@ async function main() {
     }
     const s = scoreOne(dto, row);
     const record = {
-      type: 'growth-prediction-score',
-      creator: 'growth-predictor',
+      type: 'pead-prediction-score',
+      creator: 'pead-predictor',
       companyId: dto.companyId,
       date: new Date().toISOString().slice(0, 10),
       insightId: dto.id,

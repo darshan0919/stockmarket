@@ -236,16 +236,12 @@ function mapRows3Col(rows, map, toCr, isConsolidatedSideBySide = false) {
 
 // ── derived metrics (same formulas as the manual build script this replaces) ─
 function coreEbitda(p) {
-  if (
-    p.revenue == null ||
-    p.costOfMaterials == null ||
-    p.employeeCost == null ||
-    p.otherExpenses == null
-  ) {
+  if (p.revenue == null || p.employeeCost == null || p.otherExpenses == null) {
     return null;
   }
+  const mat = p.costOfMaterials || 0;
   const inv = p.changeInInventories || 0;
-  return p.revenue - (p.costOfMaterials + inv + p.employeeCost + p.otherExpenses);
+  return p.revenue - (mat + inv + p.employeeCost + p.otherExpenses);
 }
 function taxRate(p) {
   const tax = (p.currentTax || 0) + (p.deferredTax || 0) || p.tax;

@@ -86,7 +86,7 @@ import importlib.util
 import json
 import os
 
-# Shared fiscal-period helpers (extracted 2026-10-14; also used by growth-predictor) -- one
+# Shared fiscal-period helpers (extracted 2026-10-14; also used by pead-predictor) -- one
 # definition of FY labels, growth-off-base, seasonality phasing and tax fallback (conventions §17).
 _REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 _spec = importlib.util.spec_from_file_location("fiscal_periods", os.path.join(_REPO, "skills", "_shared", "fiscal_periods.py"))

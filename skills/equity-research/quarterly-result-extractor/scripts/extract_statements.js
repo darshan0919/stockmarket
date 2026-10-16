@@ -236,6 +236,15 @@ function parseRows(body) {
       pendingLabelParts = [];
       continue;
     }
+    // Clean leading table border/bullet symbols before numbered markers: e.g. "-03. Profit before tax" -> "03. Profit before tax"
+    line = line.replace(/^[-–—*•+~|]\s*(?=\d+\s*[.)|\]]?\s+[A-Za-z(])/, '');
+    // If pendingLabelParts is active, clean leading bullet/dash before continuation numbers: e.g. "- 11,579.02" -> "11,579.02"
+    if (pendingLabelParts.length > 0) {
+      line = line.replace(/^[-–—|]\s+(?=\(?[\d:])/i, '');
+    }
+    // Normalize OCR digit confusion in numbers: e.g. ":i,865.08" -> "3,865.08"
+    line = line.replace(/(?<=\s|^)[:;]i(?=[\d,])/gi, '3');
+
     const markerMatch = line.match(ITEM_MARKER_RE);
     if (markerMatch) line = line.slice(markerMatch[0].length);
     // A heading like "...for the half-year ended 30th September, 2026" carries
@@ -245,11 +254,42 @@ function parseRows(body) {
       pendingLabelParts = [];
       continue;
     }
-    // Find where numeric columns begin: either first digit or isolated dash with 2+ spaces
-    let dataIdx = line.search(/\(?-?\d/);
-    const dashMatch = line.search(/\s{2,}[-–—](?:\s|$)/);
-    if (dashMatch !== -1 && (dataIdx === -1 || dashMatch < dataIdx)) {
-      dataIdx = dashMatch;
+    // Find where numeric columns begin: either first digit (for numbers-only continuation lines)
+    // or the first number/dash preceded by a 2+ space column gap or a single space before non-parenthetical numbers.
+    // Falling back to bare digit/dash only if no 2+ space gap exists prevents parenthesized notes or
+    // formulas inside labels (e.g. "Net profit for the period/ year (7 - 8)") from having their
+    // internal digits/dashes mistaken for data columns.
+    let dataIdx = -1;
+    if (/^\(?-?\d/.test(line)) {
+      dataIdx = 0;
+    } else {
+      const colMatch = line.search(/\s{2,}(?:\(?-?\d|[-–—](?:\s|$))/);
+      const singleMatch = line.search(/\s(?:\(?-?\d[\d,]*(?:\.\d+)?\)?|[-–—])(?:\s|$)/);
+
+      if (singleMatch !== -1) {
+        const candidate = line.slice(singleMatch + 1);
+        const parenClose = candidate.indexOf(')');
+        const nextCol = candidate.search(/\s{2,}(?:\(?-?\d|[-–—](?:\s|$))/);
+        if (parenClose !== -1 && (nextCol === -1 || parenClose < nextCol)) {
+          if (colMatch !== -1) {
+            const after = line.slice(colMatch);
+            const nonSpace = after.search(/\S/);
+            dataIdx = colMatch + (nonSpace !== -1 ? nonSpace : 0);
+          }
+        } else {
+          dataIdx = singleMatch + 1;
+        }
+      } else if (colMatch !== -1) {
+        const after = line.slice(colMatch);
+        const nonSpace = after.search(/\S/);
+        dataIdx = colMatch + (nonSpace !== -1 ? nonSpace : 0);
+      } else {
+        dataIdx = line.search(/\(?-?\d/);
+        const dashMatch = line.search(/\s{2,}[-–—](?:\s|$)/);
+        if (dashMatch !== -1 && (dataIdx === -1 || dashMatch < dataIdx)) {
+          dataIdx = dashMatch;
+        }
+      }
     }
 
     let label = '';
@@ -326,6 +366,21 @@ function parseRows(body) {
  */
 function detectUnitScale(body, preceding = '') {
   const head = body.slice(0, 1500);
+  const tail = String(preceding || '');
+  const searchScope = head + '\n' + tail.slice(-1500);
+
+  // Parenthesized unit: e.g. '(₹ lakh)', '(f lakh)', '(tlakh)', '(Rs in Lakhs)'
+  const parenMatch = searchScope.match(
+    /\(\s*[`₹~ft]?\s*(?:rs\.?|inr|₹)?\s*(?:in\s*)?(lakhs?|lacs?|millions?|mn|mio|crores?|crs?\.?|thousands?)\s*\)/i
+  );
+  if (parenMatch) {
+    const w = parenMatch[1].toLowerCase();
+    if (/^(lakh|lac)/.test(w)) return { unit: 'lakh', toCr: 0.01 };
+    if (/^(million|mn|mio)/.test(w)) return { unit: 'million', toCr: 0.1 };
+    if (/^cr/.test(w)) return { unit: 'crore', toCr: 1 };
+    if (/^thousand/.test(w)) return { unit: 'thousand', toCr: 0.0001 };
+  }
+
   // Proximity check rather than a fixed-token-count regex: a broken font can
   // glue a corrupted rupee-symbol glyph directly onto the unit word with NO
   // separating whitespace (confirmed 2026-09-23: the SAME real filing had
@@ -348,7 +403,6 @@ function detectUnitScale(body, preceding = '') {
   // column-header block, found 2026-10-03: 136 of 145 baseline docs came back 'unknown' because only
   // the body below the heading was searched). Fall back to the text just before the section, taking
   // the match NEAREST to the table, and accept the common spellings (lacs, mn, mio, crs, InLakhs).
-  const tail = String(preceding || '');
   if (tail) {
     const re =
       /\bin\s*[`₹~]?\s*(?:rs\.?|inr|₹)?\s*[`₹~]?\s*(lakhs?|lacs?|millions?|mn|mio|crores?|crs?\.?|thousands?)\b|\(\s*(?:rs\.?|inr|₹|`)?\s*(?:in\s*)?(lakhs?|lacs?|millions?|mn|mio|crores?|crs?\.?)\s*\)/gi;

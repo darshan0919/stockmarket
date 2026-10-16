@@ -17,6 +17,13 @@ Columns: `symbol,isin,name,nse_cr,bse_cr,combined_cr,nse_qty,bse_qty,rank,pct_of
 Shares financed `q` = `nse_qty + bse_qty` (matches the `q` of `/history/stock/<TICKER>.json`). Rows with names containing
 commas are skipped (column count mismatch) rather than mis-parsed.
 
+## GET /history/stock/<TICKER>.json
+
+Client method: `IndiaMtfClient.stockHistory(symbol)`.
+Complete per-scrip MTF history and windowed deltas. Returns null on 404/403.
+
+- Response payload: `{ticker, isin, name, sector, industry, latest: {date, cr, pct, rank, days, peak_cr, peak_date, trough_cr, first_date, first_cr, nse, bse, q, nq, bq}, windows: {'1d': {ref_date, cr, pct, q, q_pct}, '10d': ..., '30d': ..., '90d': ..., '180d': ..., '1y': ...}, max_add: {cr, date}, max_unwind: {cr, date}, series: [{d, cr, pct, rank, nse, bse, q, nq, bq}, ...], price: [[date, close], ...]}`
+
 ## Not used by the job (documented for research)
 
-`/history/stock/<TICKER>.json` (series `{d,cr,pct,rank,nse,bse,q,nq,bq}`, `price` from ~Apr 2025), `/history/stock/index.json` (1,502 scrips), `/history/snapshots.json`.
+`/history/stock/index.json` (1,502 scrips), `/history/snapshots.json`.

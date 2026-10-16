@@ -42,7 +42,7 @@ Returns `{ [ticker]: { name, price, changePct, description } }`. `change` = % ch
 
 Returns `{ [ticker]: { name, price, changePct, perf1M, perf3M, perf6M, perf1Y, sma20, sma50, sma100, description } }`.
 
-| Column                                       | Meaning                                              | Use in growth-predictor                                                                                                                            |
+| Column                                       | Meaning                                              | Use in pead-predictor (growth-predictor)                                                                                                           |
 | -------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Perf.1M` / `Perf.3M` / `Perf.6M` / `Perf.Y` | % change over 1 / 3 / 6 / 12 months (point to point) | `Perf.3M` ≈ QoQ move of the input                                                                                                                  |
 | `SMA20` / `SMA50` / `SMA100`                 | simple moving average of daily closes                | `SMA50` ≈ latest-quarter average (~2.4 trading months); `SMA100` ≈ two-quarter average. Both are **approximations** — tagged `[approx]` in outputs |

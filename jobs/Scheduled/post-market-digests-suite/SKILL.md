@@ -10,6 +10,7 @@ Consolidated Post-Market Watchlist, Universe Sync and Daily Digests Suite.
 Runs on weekdays at 20:30 IST after market close and exchange filings dissemination.
 
 Executes the following sequence deterministically:
+
 1. **Watchlist Sync** (`yarn watchlist-updater`): Syncs Near Highs, Upcoming Results & Relative Strength scans to watchlists.
 2. **Company Master Sync** (`yarn company-master-sync`): Reconciles Kite Connect instruments, NSE/BSE mappings, and Stockscans universe.
 3. **Daily Deals Digest** (`yarn deals-digest`): Top NSE/BSE bulk, block, SAST Reg 29 & insider PIT trades (sends its own HTML email report).
