@@ -135,9 +135,13 @@ Inputs:
    at the top, every claim cited, marked partial if the quarter is still running. Do this once per
    quarter for everyone. Never answer from memory for a live quarter.
 2. Quantify only through a channel:
-   - **Input cost → margin bps.** Pass-through lag from the concall (e.g. "1-2 quarters" → most of a
-     Q2 spike shows up in Q2-Q3). Size from management's own sensitivity when given (e.g. "RM impact
-     50-60 bps").
+   - **Input cost → margin bps.** Calculate the direct commodity spread impact:
+     $$\Delta \text{Gross Margin (bps)} \approx -(\text{RM Intensity \%}) \times (\Delta \text{Feedstock Price \%}) \times (1 - \text{Pass-Through Rate}_{\text{Quarter}})$$
+     Classify industry pass-through contracts into 4 lag tiers:
+     - _Tier 1 (Immediate / ≤15 days)_: Spot commodity price takers (Jewellery, Sugar, Scrap).
+     - _Tier 2 (Short Lag / 30–45 days)_: Merchant bulk chemicals (Sulphuric Acid, Oleum, Caustic Soda, Phenol).
+     - _Tier 3 (Quarterly Lag / 60–90 days)_: Auto ancillaries, power cables, industrial chemicals.
+     - _Tier 4 (Sticky / 90–150+ days)_: Branded consumer goods, paints, adhesives, FMCG.
    - **Rates → interest / NIM.** Floating debt × Δrate. For banks/NBFCs, read NIM direction (rate
      cuts compress bank NIM, help fixed-rate NBFCs; kb:59582635).
    - **FX → translated revenue** for exporters (export share × ΔUSDINR) and imported RM cost.
@@ -162,14 +166,19 @@ Inputs:
    insurance claims, labour-code catch-ups (kb:5b295eb1, kb:a6b5c1da).
 2. **Never annualise a temporary benefit.** That covers a seasonal gross-margin spike or a one-quarter
    price lag (kb:f95df422, kb:18ac2964).
-3. **Phase the FY in two passes.**
+3. **Inventory Buffer Depletion & Ramp-Up Acceleration Math:**
+   - Extract `Opening RM Buffer (₹ Cr)` = `Raw Material Inventory (Q-1) + Inventory Change (P&L Q-1)` (a negative inventory change in Q-1 confirms an opening stock build at lower costs).
+   - Calculate buffer coverage:
+     $$\text{Buffer Days} = \frac{\text{Opening RM Buffer (₹ Cr)}}{\text{Target Quarter Daily RM Consumption Run-Rate}}$$
+   - _The Ramp Acceleration Trap_: When volume expands sharply (e.g. greenfield ramp-up +30–50% QoQ), daily raw material consumption surges proportionately, burning through low-cost opening inventory in 15–20 days instead of 45 days. The remainder of the quarter is exposed to 100% spot commodity inflation.
+4. **Phase the FY in two passes.**
    - Across years: a multi-year target is back-ended if the capacity is late and front-loaded if it
      exists today.
    - Across quarters: capacity go-live dates first, then the company's own seasonality.
      `project_pl` defaults to the average past seasonality and flags quarters whose implied QoQ is more
      than 15pp from history.
    - For lumpy order-execution businesses, judge on 9M or H1 rather than a single QoQ (kb:c5777d77).
-4. **Low or one-off-inflated base.** YoY growth off a weak base is flagged in the narrative and never
+5. **Low or one-off-inflated base.** YoY growth off a weak base is flagged in the narrative and never
    presented as acceleration (kb:17155ded).
 
 ---
@@ -249,6 +258,12 @@ Every run synthesizes `narrative.pead` across the 5 Gates (`kbf_x-sureshkbn_pead
 5. **Gate 5 — Pipeline of Post-Result Catalysts:**
    Fresh orders, capex commissioning, capacity go-live, debt prepayment (kb:2100839804649062448, kb:2087168878095015961, kb:2062345211477622969).
    - Suresh rule: **without fresh Gate 5 triggers, most PEAD moves fade in 2–3 weeks** (kb:2107736980750770482, kb:2083874630045954090).
+6. **Pre-Earnings Margin Squeeze Alert ("Reverse PEAD" / Sell-the-Print Warning):**
+   When `inputs.macro` detects an acute feedstock spike (≥+25% QoQ) for an industry in Tier 2/3/4 pass-through lag:
+   - Issue an explicit `ACUTE_MARGIN_SQUEEZE_RISK` alert in `narrative.pead`.
+   - Calculate the downside surprise hurdle: explain that strong top-line capacity volume will decouple from bottom-line PAT due to the margin spread collapse.
+   - Flag the risk of an aggressive post-earnings dump upon margin revelation (the Amal pattern: revenue +143% YoY, gross margin -1,380 bps QoQ, day-0 crash -18%).
+   - Warn against entering pre-results based on optical volume growth.
 
 ---
 

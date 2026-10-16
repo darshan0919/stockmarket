@@ -28,7 +28,24 @@
     "rubber": { "ticker": "SGX:TF1!", "unit": "USc/kg", "label": "Natural rubber TSR20" },
     "usdinr": { "ticker": "FX_IDC:USDINR", "unit": "INR", "label": "USD/INR" },
     "in10y": { "ticker": "TVC:IN10Y", "unit": "%", "label": "India 10Y G-sec yield" },
-    "us10y": { "ticker": "TVC:US10Y", "unit": "%", "label": "US 10Y yield" }
+    "us10y": { "ticker": "TVC:US10Y", "unit": "%", "label": "US 10Y yield" },
+    "sulfur": {
+      "ticker": "TE:SULFUR",
+      "source": "TradingEconomics",
+      "unit": "CNY/T",
+      "label": "Sulfur (TradingEconomics benchmark OTC/CFD)"
+    },
+    "urea": {
+      "ticker": "CBOT:UREA1!",
+      "source": "CBOT",
+      "unit": "USD/t",
+      "label": "Urea granular (CBOT)"
+    },
+    "sodaash": {
+      "ticker": "CZCE:SA1!",
+      "unit": "CNY/t",
+      "label": "Soda Ash (CZCE)"
+    }
   },
   "industries": [
     {
@@ -74,11 +91,18 @@
       "note": "Natural + synthetic (crude-linked) rubber; take the NR:SR mix from the concall"
     },
     {
-      "match": "Fertili",
-      "inputs": ["natgas", "brent"],
+      "match": "Sulphuric Acid|Oleum|Bulk Chemicals Inorganic",
+      "inputs": ["sulfur", "natgas"],
       "role": "input_cost",
-      "lagQuarters": 0,
-      "note": "Gas feedstock; subsidy regime often passes cost through — check concall"
+      "lagQuarters": 1,
+      "note": "Elemental sulphur is the sole direct feedstock (1 MT acid requires ~0.33 MT sulphur); acute spot spikes compress merchant spreads with 30-60 day contract lag"
+    },
+    {
+      "match": "Fertili",
+      "inputs": ["sulfur", "urea", "natgas", "brent"],
+      "role": "input_cost",
+      "lagQuarters": 1,
+      "note": "Gas feedstock (urea) and elemental sulphur (DAP/SSP phosphatic fertilizers); subsidy revision and retail price caps create quarterly lag"
     },
     {
       "match": "Cement|Ceramic|Tiles|Glass|Refractor",
