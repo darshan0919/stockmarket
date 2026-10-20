@@ -90,6 +90,31 @@ Guardrails (also the "what could be wrong"):
 - **Only credit capacity that is live _this_ quarter.** A line commissioning next fiscal does nothing for the near-term PAT — a common and costly error.
 - **Depreciation and interest step up when the asset capitalises** — the same commissioning that adds revenue also ends interest-capitalisation and starts book depreciation. Net the D&A/interest step-up against the incremental EBITDA, or you overstate PAT (see Lever 2).
 - **Ramp is rarely instant.** Use the _stated_ utilisation for the quarter, not nameplate. A plant at 40% ramp doesn't deliver full-capacity leverage yet.
+  - _Exception — Supply-Constrained Tech Infrastructure (The E2E Rule):_ For accelerated compute (e.g. Nvidia GPU clusters), cloud infrastructure, or pre-booked contracts with existing customer waitlists, there is zero demand-gestation lag. The moment assets move from CWIP into active Gross Block, billing begins immediately at 85–95%+ utilisation.
+
+### The Three-Tier Input Confidence Hierarchy (Guaranteed vs Guided vs Assumed)
+
+To maximize forecast precision and avoid treating all P&L lines as uniform guesses, stratify every quarterly forecast into three distinct confidence tiers:
+
+1. **Tier 1: Guaranteed / Accounting Invariants (Zero-Variance Bounds)**:
+   - **Depreciation & Amortization (D&A):** For capital-heavy businesses (datacenters, cloud infra, semiconductors, manufacturing), D&A is an accounting identity dictated by `Gross PPE + CWIP Capitalisation Schedule × Ind AS Useful Life SLM Rate`. In E2E Q2FY27, this arithmetic predicted ₹74.0 Cr vs ₹73.97 Cr actual (**-0.04% error**).
+   - **Effective Corporate Tax Rate:** Under Section 115BAA, Indian corporate tax is 22% + 10% surcharge + 4% cess = 25.17% (25.14% deferred tax). Unless one-offs, MAT credits, or tax holidays exist, lock this at 25.14% (E2E predicted 25.15% vs 25.14% actual, **-0.01% error**).
+   - **Contractual Borrowing Costs:** Existing debt outstanding × contractual interest rate (pro-rated for repayment/drawdown dates).
+2. **Tier 2: Guided Anchors (Management Bounds / Walk-the-Talk Tested):**
+   - Explicit management guidance floors from concalls (e.g. E2E's guided 75.2% sustainable EBITDA margin floor).
+   - Filing-confirmed tariff or price revisions with proven customer retention.
+3. **Tier 3: Assumed Levers (Scenario Sensitivity Space):**
+   - Commercialisation timing (full 90-day vs partial-quarter billing days).
+   - Operating leverage gearing on fixed SG&A and employee expenses.
+   - This locks down 65–75% of the P&L structure as mathematical invariants, collapsing uncertainty into 1–2 key operating levers.
+
+### Peer Anti-Thesis Forensic Stress-Testing (The CoreWeave Rule)
+
+When forecasting a high-growth thematic or capital-intensive inflection name (AI cloud, renewables, battery storage, EMS), cross-examine the company against the **specific failure modes of global or domestic peers** in the same niche:
+
+- _Anatomy of the Peer Trap (e.g. CoreWeave):_ Heavy asset-backed debt (Debt/Revenue >3.0x), interest eating >20% of revenue, and negative operating cash flow.
+- _Target Company Rebuttal Audit:_ Check whether the subject company's balance sheet replicates or refutes the peer's failure mode (e.g. E2E had Net Cash of +₹284 Cr, debt/revenue of 0.5x, and H1 operating cash flow of ₹396 Cr 100% self-funding capex).
+- _Takeaway:_ If the peer's failure mode is empirically disproven by the company's audited balance sheet and cash conversion, analysts can confidently hold the Bull scenario without taking unwarranted defensive haircuts.
 
 ### Lever 2 — Balance-sheet deleverage (financing side of the bridge)
 

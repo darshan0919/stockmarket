@@ -1,0 +1,155 @@
+[
+  {
+    "companyId": "NSE:GABRIEL",
+    "name": "Gabriel India Ltd",
+    "category": "acquisition",
+    "significance": "medium",
+    "tags": ["acquisition", "high_conviction"],
+    "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/h2mqdk0p3vfjk7dv3f4ci3jl.pdf",
+    "announcementId": "h2mqdk0p3vfjk7dv3f4ci3jl.pdf",
+    "headline": "Faurecia-Gabriel seating JV formally incorporated; Faurecia holds nominal control (50%+1 share) on an initial Rs20cr tranche",
+    "thesisChain": [
+      "Gabriel India and Faurecia Automotive Seating India incorporate 'Faurecia Anand Seating India Pvt Ltd' on 19-Oct-2026, completing the JVA first disclosed 6-Oct-2026",
+      "Faurecia subscribes 50%+1 share (Rs10.00cr) vs Gabriel's 50%-1 share (Rs9.99cr) of an initial Rs20cr paid-up tranche, giving Faurecia nominal board/voting control",
+      "Initial capital call is a small fraction of Gabriel's balance sheet, so near-term P&L impact is immaterial",
+      "No EPS impact is derivable until the JV scales seating production and wins OEM business, likely FY28 onward"
+    ],
+    "epsImpact": {"direction": "neutral", "magnitude": "immaterial at the Rs20cr initial tranche", "timeline": "FY28 onward, pending OEM wins", "confidence": "low"},
+    "insight": "FOLLOW-UP to the 6-Oct-2026 JVA (already 'high' significance). New today: JV incorporated 19-Oct-2026 as 'Faurecia Anand Seating India Pvt Ltd'; subscription split shows Faurecia at 50%+1 share vs Gabriel's 50%-1 share of an initial Rs20cr tranche -- nominal control for Faurecia rather than a strict 50-50. Immaterial to near-term P&L. Watch for the JV's first OEM order win.",
+    "infoClassification": {
+      "claims": [
+        {"claim": "JV company formally incorporated 19-Oct-2026", "bucket": "NEW"},
+        {"claim": "Faurecia holds 50%+1 share (nominal control)", "bucket": "NEW"},
+        {"claim": "JVA terms, Rs20cr initial investment, 50-50 framing", "bucket": "KNOWN"}
+      ],
+      "verdict": "FOLLOW-UP",
+      "baselineCoverage": "Checked against company notes DB (6-Oct-2026 JVA disclosure, board-outcome companion filing)"
+    }
+  },
+  {
+    "companyId": "NSE:CEMPRO",
+    "name": "Cemindia Projects Ltd",
+    "category": "fundraise",
+    "significance": "high",
+    "tags": ["fundraise", "equity_dilution"],
+    "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/t3qc6jpx32b3dmtillrzs442.pdf",
+    "announcementId": "t3qc6jpx32b3dmtillrzs442.pdf",
+    "headline": "Cemindia QIP closes at Rs1,108/share (4.37% discount to Rs1,158.58 floor), raising ~Rs1,400cr",
+    "thesisChain": [
+      "Management Committee closes the QIP on 19-Oct-2026, allocating 1,26,35,379 equity shares at Rs1,108.00/share",
+      "Issue price is a 4.37% discount to the SEBI-formula floor of Rs1,158.58, implying gross proceeds of roughly Rs1,400cr",
+      "Finalises the pricing signal already flagged 14-Oct-2026 when the QIP opened at the floor price",
+      "Fresh equity strengthens the balance sheet for an EPC/construction company, funding growth capex/working capital"
+    ],
+    "epsImpact": {"direction": "negative", "magnitude": "~1.26cr new shares issued -- near-term EPS dilution, offset by ~Rs1,400cr proceeds", "timeline": "FY27 onward", "confidence": "medium"},
+    "insight": "FOLLOW-UP that finalises the QIP flagged 'high' on 14-Oct-2026. New today: final pricing (Rs1,108/share, 4.37% discount) and allotment (1,26,35,379 shares), implying ~Rs1,400cr raised for Cemindia Projects (formerly ITD Cementation India). Dilutive mechanically but balance-sheet accretive. Watch use-of-proceeds disclosure and next quarter's order-book commentary.",
+    "infoClassification": {
+      "claims": [
+        {"claim": "Final issue price Rs1,108/share, 4.37% discount to floor", "bucket": "NEW"},
+        {"claim": "1,26,35,379 shares allotted, ~Rs1,400cr raised", "bucket": "NEW"},
+        {"claim": "QIP process itself, floor price Rs1,158.58, BRLMs", "bucket": "KNOWN"}
+      ],
+      "verdict": "NEW",
+      "baselineCoverage": "Checked against company notes DB (14-Oct-2026 QIP-opening note)"
+    }
+  },
+  {
+    "companyId": "BSE:SYSTEMATIC",
+    "name": "Systematic Industries Ltd",
+    "category": "acquisition",
+    "significance": "medium",
+    "tags": ["acquisition", "high_conviction"],
+    "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/o28dhl67a4lp33gwmlimxgaf.pdf",
+    "announcementId": "o28dhl67a4lp33gwmlimxgaf.pdf",
+    "headline": "Related-party SPA finalized: Systematic Industries to buy 100% of WBIPL for Rs21.5cr from a promoter-group seller -- confirms the 9-Sep-2026 flagged deal",
+    "thesisChain": [
+      "Systematic Industries signs an SPA on 19-Oct-2026 to acquire 100% of Wire Brigade Industries Pvt Ltd (WBIPL) from Veritas Industries Pvt Ltd (VIPL) at Rs21,500/share, aggregating Rs21.5cr",
+      "VIPL and WBIPL are both Promoter Group entities -- a related-party transaction stated to be at arm's length",
+      "Consideration is cash plus share swap; WBIPL becomes a wholly-owned subsidiary on completion",
+      "Same deal already flagged 'high' significance on 9-Sep-2026 (funded by an insider-heavy Rs33.94cr preferential issue) -- today fixes the exact SPA date and per-share price"
+    ],
+    "epsImpact": null,
+    "insight": "FOLLOW-UP, not new information in substance -- the Sep-9 note already flagged this related-party acquisition (~Rs21.5cr) funded by an insider-heavy Rs33.94cr preferential issue, at 'high' significance. Today: formal SPA signed (19-Oct-2026) for 100% of WBIPL from Veritas Industries (Promoter Group) at Rs21,500/share. No independent valuation or target financials disclosed in this filing -- governance scrutiny warranted given the related-party nature. Watch for WBIPL financials in next consolidated results.",
+    "infoClassification": {
+      "claims": [
+        {"claim": "SPA signed 19-Oct-2026 at Rs21,500/share, Rs21.5cr total", "bucket": "FOLLOW-UP"},
+        {"claim": "Acquisition of WBIPL (100%) from promoter-group VIPL for ~Rs21.5cr", "bucket": "KNOWN"}
+      ],
+      "verdict": "FOLLOW-UP",
+      "baselineCoverage": "Checked against company notes DB (9-Sep-2026 related-party acquisition disclosure)"
+    }
+  },
+  {
+    "companyId": "BSE:AERPACE",
+    "name": "Aerpace Industries Ltd",
+    "category": "general",
+    "significance": "medium",
+    "tags": ["capex", "debt"],
+    "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/m8tkuwqhc7aahhqty693j66m.pdf",
+    "announcementId": "m8tkuwqhc7aahhqty693j66m.pdf",
+    "headline": "Aerpace redirects Rs30cr of promoter-warrant proceeds from working capital to capex (Rs15cr) + debt repayment (Rs15cr), while standalone losses continue",
+    "thesisChain": [
+      "Board approves variation in use-of-proceeds for the Rs48.825cr preferential warrant issue to N.K. Family Private Trust (Promoter Group), allotted 26-Sep-2026",
+      "Of the Rs36.62cr balance still receivable on warrant conversion, Rs30cr is redirected: Rs15cr to capex, Rs15cr to debt repayment; Rs6.62cr remains working capital",
+      "Change requires shareholder approval (postal ballot/EGM)",
+      "Same filing's Q2FY27 standalone results (OCR-degraded) directionally show the loss before tax widening vs both the prior quarter and prior-year quarter"
+    ],
+    "epsImpact": {"direction": "neutral", "magnitude": "no fresh capital raised; standalone P&L remains loss-making", "timeline": "18-21 months for deployment", "confidence": "low"},
+    "insight": "FOLLOW-UP to the 28-Sep-2026 note on the Rs48.825cr promoter warrant allotment. New today: a shareholder-approval-gated change in use of proceeds -- Rs30cr redirected from working capital to capex (Rs15cr) and debt repayment (Rs15cr). Same-filing standalone results (text OCR-degraded) directionally show widening losses on a sub-Rs1.5cr revenue base. Watch the postal-ballot outcome and next quarter's standalone numbers.",
+    "infoClassification": {
+      "claims": [
+        {"claim": "Rs30cr of warrant proceeds redirected to capex+debt repayment", "bucket": "NEW"},
+        {"claim": "Original Rs48.825cr preferential warrant issue to promoter trust", "bucket": "KNOWN"}
+      ],
+      "verdict": "NEW",
+      "baselineCoverage": "Checked against company notes DB (28-Sep-2026 warrant-allotment note)"
+    }
+  },
+  {
+    "companyId": "NSE:DELTACORP",
+    "name": "Delta Corp Ltd",
+    "category": "results",
+    "significance": "high",
+    "tags": ["regulatory"],
+    "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/qhr0vxiy1d2i6kyaobv8n402.pdf",
+    "announcementId": "qhr0vxiy1d2i6kyaobv8n402.pdf",
+    "headline": "Rs319.6cr GST provision swings Delta Corp standalone Q2FY27 to a loss -- SC casino-tax demand crystallizes far below the Rs16,823cr+ show-cause ceiling",
+    "thesisChain": [
+      "Supreme Court's 27-May-2026 judgment on casino/online-gaming GST settles the valuation basis for long-pending show-cause notices (originally up to ~Rs16,823cr + Rs6,384cr + Rs1,884cr across entities/periods)",
+      "Adjudication orders under Rule 31C determine casino-transaction GST demand at Rs78.56cr and mixed-supply demand at Rs93.80cr for Jul2017-Mar2022",
+      "Extending the same basis through Sep2023/Sep2025, the company books a cumulative Rs319.60cr provision (incl. interest) -- Rs200.62cr already taken in Q1FY27, balance in Q2FY27",
+      "Standalone Q2FY27 EPS swings to Rs(2.99) vs +Rs0.84 YoY; H1FY27 EPS Rs(7.07) vs +Rs1.80 YoY",
+      "Company already paid ~Rs49cr principal post-quarter, plans to contest the balance; separately no longer needs to indemnify Head Digital Works for DGL's GST exposure"
+    ],
+    "epsImpact": {"direction": "negative", "magnitude": "Q2FY27 standalone EPS swings to ~Rs(2.99) from +Rs0.84 YoY on a one-time Rs319.6cr exceptional GST provision", "timeline": "Q2FY27 non-recurring", "confidence": "high"},
+    "insight": "FOLLOW-UP that quantifies a risk flagged 'high' on 28-Sep-2026 (then a Rs116.4cr differential demand) -- today's actual P&L hit is larger: Rs319.60cr cumulative GST provision across Q1+Q2 FY27, following Supreme Court-settled adjudication orders. Swings standalone Q2FY27 to a loss (EPS Rs(2.99) vs +Rs0.84 YoY). The final provisioned number is dramatically smaller than the theoretical worst case (north of Rs16,800cr across entities) once feared, so this is also a tail-risk de-risking event despite driving this quarter's headline loss. Watch further adjudication orders and any litigation-driven reduction in a future quarter.",
+    "infoClassification": {
+      "claims": [
+        {"claim": "Rs319.60cr cumulative GST provision booked across Q1+Q2 FY27", "bucket": "NEW"},
+        {"claim": "Standalone Q2FY27 EPS Rs(2.99), H1FY27 EPS Rs(7.07)", "bucket": "NEW"},
+        {"claim": "Rs49cr principal already paid post-quarter under Rule 31C order", "bucket": "NEW"},
+        {"claim": "No longer required to indemnify Head Digital Works for DGL GST exposure", "bucket": "NEW"},
+        {"claim": "Underlying GST litigation and Supreme Court judgment itself", "bucket": "KNOWN"}
+      ],
+      "verdict": "NEW",
+      "baselineCoverage": "Checked against company notes DB (28-Sep-2026 Rs116.4cr GST-demand note)"
+    }
+  },
+  {
+    "companyId": "BSE:MEGAMONT",
+    "name": "Megamont Ltd",
+    "category": "general",
+    "significance": "low",
+    "tags": ["order_win"],
+    "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/vdbh9ahvn0kvy8ku404yx6vp.pdf",
+    "announcementId": "vdbh9ahvn0kvy8ku404yx6vp.pdf",
+    "headline": "Megamont wins Rs6.04cr edible-oil supply order from AWL Agri -- second small order-book add this month",
+    "thesisChain": [
+      "Megamont secures a Rs6.04cr order from AWL Agri Business for crude degummed soyabean oil supply to its Surat facility, dispatches already underway, execution within October 2026",
+      "Follows the Rs2.13cr Pigeon Peas import order flagged 15-Oct-2026, continuing a trading/agri-commodity order-book build",
+      "Order size is immaterial against the scan's Rs300cr+ market-cap floor"
+    ],
+    "epsImpact": null,
+    "insight": "New, incremental information continuing a trend: Megamont's second disclosed small commodity-trading order this month (Rs6.04cr from AWL Agri, after the Rs2.13cr Pigeon Peas deal on 15-Oct-2026). Individually immaterial; watch whether order sizes/frequency keep scaling."
+  }
+]

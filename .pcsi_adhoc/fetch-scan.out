@@ -1,0 +1,506 @@
+[timing] fetch-scan started at 2026-10-20T01:49:33.878Z
+{
+  "cutoffUtc": "2026-10-19T13:48:40.678Z",
+  "windowStartIstHuman": "19 Oct 2026 07:18 PM IST",
+  "windowEndIstHuman": "20 Oct 2026 07:19 AM IST",
+  "slot": "adhoc",
+  "slotLabel": "Ad-hoc run",
+  "scanSource": "live",
+  "scanName": "Signals - DND",
+  "scanFilterCount": 5,
+  "scanResolvedAtIso": "2026-10-20T01:49:34.025Z",
+  "quarterDate": "202612",
+  "totalFetched": 120,
+  "inWindow": [
+    {
+      "date": "2026-10-20",
+      "title": "Intimation Of Waiver Of Fine By National Stock Exchange(NSE)",
+      "description": "General - Dear Sir/Maam We wish to inform you that NSE vide its letter dated October 19 2026 has informed the company that its application seeking waiver of fines levied for non-compliance has been considered favorably by the relevant authority of NSE.",
+      "ssUrl": "pbyzptqmjtfy8ri8l37bd8t8.pdf",
+      "createdAt": "2026-10-20T01:22:55.023128",
+      "companyId": "NSE:HMAAGRO",
+      "name": "HMA Agro Industries Ltd",
+      "__parsedUtc": "2026-10-19T19:52:55.000Z"
+    },
+    {
+      "date": "2026-10-20",
+      "title": "Results - Financial Results For 30-09-2026",
+      "description": "Financial Results - RESULTS - FINANCIAL RESULTS FOR 30-09-2026",
+      "ssUrl": "0br4ubkznz4ypkfxabqeva5p.pdf",
+      "createdAt": "2026-10-20T01:22:52.122978",
+      "companyId": "NSE:GALLANTT",
+      "name": "Gallantt Ispat Ltd",
+      "__parsedUtc": "2026-10-19T19:52:52.000Z"
+    },
+    {
+      "date": "2026-10-20",
+      "title": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "description": "Analyst / Investor Meet - Investor Meet call for half year ended on 30.09.2026",
+      "ssUrl": "n25vx2sa6vxanbsyay1fx361.pdf",
+      "createdAt": "2026-10-20T01:13:31.096819",
+      "companyId": "BSE:INFINITY",
+      "name": "Infinity Infoway Ltd",
+      "__parsedUtc": "2026-10-19T19:43:31.000Z"
+    },
+    {
+      "date": "2026-10-20",
+      "title": "Board Meeting Outcome for Board Meeting Outcome For Approval Of Unaudited Financial Results",
+      "description": "Outcome of Board Meeting - Board Meeting Outcome for Approval Of Unaudited Financial Results",
+      "ssUrl": "pxzhd0m0iiv8xkn9bh37zxwc.pdf",
+      "createdAt": "2026-10-20T01:13:29.999095",
+      "companyId": "NSE:GALLANTT",
+      "name": "Gallantt Ispat Ltd",
+      "__parsedUtc": "2026-10-19T19:43:29.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Allotment",
+      "description": "Allotment of Equity Shares - Allotment of equity shares to eligible Qualified Institutional Investors",
+      "ssUrl": "zvqoafnc2uwm9hqvzgfanhqj.pdf",
+      "createdAt": "2026-10-19T23:51:05.398330",
+      "companyId": "NSE:CEMPRO",
+      "name": "Cemindia Projects Ltd",
+      "__parsedUtc": "2026-10-19T18:21:05.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Results - Financial Result 30-09-2026",
+      "description": "Financial Results - Result - Financial Result 30-09-2026",
+      "ssUrl": "9qu4g5akj7yqw66kcbpafhcv.pdf",
+      "createdAt": "2026-10-19T23:36:05.698182",
+      "companyId": "NSE:GALLANTT",
+      "name": "Gallantt Ispat Ltd",
+      "__parsedUtc": "2026-10-19T18:06:05.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Board Meeting Outcome for  Board Meeting Outcome For Approval Of Unaudited Financial Results",
+      "description": "Outcome of Board Meeting - Board Meeting Outcome for Approval Of Unaudited Financial Results",
+      "ssUrl": "hl3uoef9rjzpz8tzd22g8qio.pdf",
+      "createdAt": "2026-10-19T23:30:28.707869",
+      "companyId": "NSE:GALLANTT",
+      "name": "Gallantt Ispat Ltd",
+      "__parsedUtc": "2026-10-19T18:00:28.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Investor Presentation",
+      "description": "Investor Presentation - Investor Presentation on Unaudited Financial Results for the second quarter and half year ended September 30 2026",
+      "ssUrl": "puprzzmjenjrhzgain15w815.pdf",
+      "createdAt": "2026-10-19T22:34:07.778010",
+      "companyId": "NSE:JUSTDIAL",
+      "name": "Just Dial Ltd",
+      "__parsedUtc": "2026-10-19T17:04:07.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Reg 26K: Quarterly Compliance Report on Corporate governance",
+      "description": "GENERAL - Indus Infra Trust has informed the Exchange regarding Submission of the Compliance Report on Corporate Governance for the Q2 FY 2026-27",
+      "ssUrl": "06ivaxmxknmldhqu05pubxna.pdf",
+      "createdAt": "2026-10-19T22:30:22.102968",
+      "companyId": "NSE:INDUSINVIT",
+      "name": "Indus Infra Trust",
+      "__parsedUtc": "2026-10-19T17:00:22.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+      "description": "Press Release / Media Release - Press release - Company Secure Orders worth Rs.6.04 Crores for Supply of Crude Degummed Soyabean oil to AWLAgri Business Limited",
+      "ssUrl": "vdbh9ahvn0kvy8ku404yx6vp.pdf",
+      "createdAt": "2026-10-19T22:30:18.314001",
+      "companyId": "BSE:MEGAMONT",
+      "name": "Megamont Ltd",
+      "__parsedUtc": "2026-10-19T17:00:18.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+      "description": "Press Release / Media Release - Press Release - Unaudited Financial Results for the second quarter and half year ended September 30 2026",
+      "ssUrl": "n3jt4eim6vo94t1lmubgwbcp.pdf",
+      "createdAt": "2026-10-19T22:19:02.383490",
+      "companyId": "NSE:JUSTDIAL",
+      "name": "Just Dial Ltd",
+      "__parsedUtc": "2026-10-19T16:49:02.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Corrigendum To The Notice Of Extra Ordinary General Meeting To Be Held On October 24 2026",
+      "description": "EGM - Corrigendum to the Notice of Extra Ordinary General Meeting to be held on October 24 2026",
+      "ssUrl": "lhw2ob0fjfvbvpjlay1o1ldb.pdf",
+      "createdAt": "2026-10-19T22:02:02.745098",
+      "companyId": "NSE:SWARAJ",
+      "name": "Swaraj Suiting Ltd",
+      "__parsedUtc": "2026-10-19T16:32:02.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Credit Rating",
+      "description": "Credit Rating - Announcement under Regulation 30 of SEBI (LODR) Regulations 2015 - Credit Rating",
+      "ssUrl": "vg0pef1htwxp9litjmjsqvs4.pdf",
+      "createdAt": "2026-10-19T21:56:27.408440",
+      "companyId": "NSE:SATIN",
+      "name": "Satin Creditcare Network Ltd",
+      "__parsedUtc": "2026-10-19T16:26:27.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "description": "Analyst / Investor Meet - In continuation of our intimation dated October 16 2026 regarding the date of the Board Meeting inter alia to consider and approve the Unaudited Financial Results of DCB Bank Limited (the Bank) for the quarter and half year ended September 30 2026 we wish to inform you that the Bank will host an earnings call with analysts and investors on Friday October 23 2026 at 18:30 hours (IST) to discuss the Financial Results with the participants.",
+      "ssUrl": "38t5wo8amqyqz0ivl85l8env.pdf",
+      "createdAt": "2026-10-19T21:50:49.112606",
+      "companyId": "NSE:DCBBANK",
+      "name": "DCB Bank Ltd",
+      "__parsedUtc": "2026-10-19T16:20:49.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome",
+      "description": "Analyst / Investor Meet - Audio recording of Conference call on the Unaudited Financial Results (Standalone and Consolidated) for the quarter and half year ended 30th September 2026",
+      "ssUrl": "rvxh34lnyzzpj0b4ms645txu.pdf",
+      "createdAt": "2026-10-19T21:50:44.215589",
+      "companyId": "NSE:PIRAMALFIN",
+      "name": "Piramal Finance Ltd",
+      "__parsedUtc": "2026-10-19T16:20:44.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Qualified Institutional Placement",
+      "description": "Qualified Institutional Placement - Intimation regarding approval of closure of QIPs and Placement document",
+      "ssUrl": "t3qc6jpx32b3dmtillrzs442.pdf",
+      "createdAt": "2026-10-19T21:50:43.158237",
+      "companyId": "NSE:CEMPRO",
+      "name": "Cemindia Projects Ltd",
+      "__parsedUtc": "2026-10-19T16:20:43.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Contact Details Of Key Managerial Personnel Of The Company Authorised Under Regulation 30(5) Of The Securities And Exchange Board Of India (Listing Obligations And Disclosure Requirements) Regulations 2015.",
+      "description": "General - Contact Details of Key Managerial Personnel of the Company authorised under Regulation 30(5) of the Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations 2015.",
+      "ssUrl": "ys130rz6c5e7ihs7jc4j3yu3.pdf",
+      "createdAt": "2026-10-19T21:37:44.319645",
+      "companyId": "NSE:JUSTDIAL",
+      "name": "Just Dial Ltd",
+      "__parsedUtc": "2026-10-19T16:07:44.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "description": "Analyst / Investor Meet - Intimation of analyst meet",
+      "ssUrl": "kixbxem5cph0ptvhbuyl0yax.pdf",
+      "createdAt": "2026-10-19T21:37:39.621773",
+      "companyId": "NSE:ADOR",
+      "name": "Ador Welding Ltd",
+      "__parsedUtc": "2026-10-19T16:07:39.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Unaudited Financial Results For The Quarter And Half Year Ended September 30 2026",
+      "description": "Financial Results - Unaudited Financial Results for the quarter and half year ended September 30 2026",
+      "ssUrl": "zfx1tet09sdtyo7nrop7u6wb.pdf",
+      "createdAt": "2026-10-19T21:28:14.913749",
+      "companyId": "NSE:GOCLCORP",
+      "name": "GOCL Corporation Ltd",
+      "__parsedUtc": "2026-10-19T15:58:14.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Updated Investor Presentation",
+      "description": "General - Updated Investor Presentation.",
+      "ssUrl": "t9ubg64r90xad8pbql08ci78.pdf",
+      "createdAt": "2026-10-19T21:22:37.441971",
+      "companyId": "NSE:TATVA",
+      "name": "Tatva Chintan Pharma Chem Ltd",
+      "__parsedUtc": "2026-10-19T15:52:37.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Quarterly Compliance Report on Corporate governance - within 21 days from the end of the quarter",
+      "description": "Vertis Infrastructure Trust has informed regarding Submission of the Compliance Report on Corporate Governance for the Q2 of FY 2026-27.",
+      "ssUrl": "bf71jpysf98h48tyygvx4ws5.pdf",
+      "createdAt": "2026-10-19T21:22:37.369185",
+      "companyId": "NSE:VERTIS",
+      "name": "Vertis Infrastructure Trust",
+      "__parsedUtc": "2026-10-19T15:52:37.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Unaudited Financial Results For The Second Quarter And Half Year Ended September 30 2026",
+      "description": "Financial Results - Unaudited Financial Results for the second quarter and half year ended September 30 2026",
+      "ssUrl": "4sn00rrt3n1j54vx5no2whag.pdf",
+      "createdAt": "2026-10-19T21:15:14.069134",
+      "companyId": "NSE:JUSTDIAL",
+      "name": "Just Dial Ltd",
+      "__parsedUtc": "2026-10-19T15:45:14.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Board Meeting Outcome for Unaudited Financial Results For The Quarter And Half Year Ended September 30 2026 And Update On Scheme Of Merger Of HNPCL With GOCL",
+      "description": "Outcome of Board Meeting - Outcome of the Board meeting - Unaudited Financial Results for the quarter and half year ended September 30 2026 and update on Scheme of Merger of HNPCL with GOCL",
+      "ssUrl": "au17aoaguh1mljfj3arxpd1h.pdf",
+      "createdAt": "2026-10-19T21:15:08.598310",
+      "companyId": "NSE:GOCLCORP",
+      "name": "GOCL Corporation Ltd",
+      "__parsedUtc": "2026-10-19T15:45:08.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Financial Results For The Quarter And Half Year Ended September 30 2026.",
+      "description": "Financial Results - Unaudited Standalone and Consolidated Financial Results for the quarter and half year ended September 30 2026",
+      "ssUrl": "7da5wel38u3vniqevrkkwgx3.pdf",
+      "createdAt": "2026-10-19T21:05:47.759396",
+      "companyId": "BSE:AERPACE",
+      "name": "Aerpace Industries Ltd",
+      "__parsedUtc": "2026-10-19T15:35:47.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Un-Audited Financial Results For The Quarter And Half Year Ended 30Th September 2026",
+      "description": "Financial Results - Unaudited Financial Results for the quarter and half year ended 30th September 2026",
+      "ssUrl": "80zbdssryba6zwg6i53d4gzt.pdf",
+      "createdAt": "2026-10-19T21:00:06.239750",
+      "companyId": "NSE:DELTACORP",
+      "name": "Delta Corp Ltd",
+      "__parsedUtc": "2026-10-19T15:30:06.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Memorandum of Understanding /Agreements",
+      "description": "Memorandum of Understanding /Agreements - Disclosure under Regulation 30 for Intimation of Execution of SPA",
+      "ssUrl": "o28dhl67a4lp33gwmlimxgaf.pdf",
+      "createdAt": "2026-10-19T21:00:04.469191",
+      "companyId": "BSE:SYSTEMATIC",
+      "name": "Systematic Industries Ltd",
+      "__parsedUtc": "2026-10-19T15:30:04.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Board Meeting Outcome for Unaudited Standalone And Consolidated Financials Results For The Quarter And Half Year Ended September  30 2026",
+      "description": "Outcome of Board Meeting - Unaudited Standalone and Consolidated Financials Results for the quarter and half year ended September 30 2026",
+      "ssUrl": "m8tkuwqhc7aahhqty693j66m.pdf",
+      "createdAt": "2026-10-19T20:54:32.757024",
+      "companyId": "BSE:AERPACE",
+      "name": "Aerpace Industries Ltd",
+      "__parsedUtc": "2026-10-19T15:24:32.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Board Meeting Outcome for Outcome Of Board Meeting",
+      "description": "Outcome of Board Meeting - Outcome of Board Meeting",
+      "ssUrl": "qhr0vxiy1d2i6kyaobv8n402.pdf",
+      "createdAt": "2026-10-19T20:48:52.401027",
+      "companyId": "NSE:DELTACORP",
+      "name": "Delta Corp Ltd",
+      "__parsedUtc": "2026-10-19T15:18:52.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Change in Management",
+      "description": "Change in Management - The Karnataka Bank Limited has informed the Exchange about Change in Senior Management of the Bank - Resignation of Chief Operating Officer of the Bank",
+      "ssUrl": "alar8xibnzlzgu05i2halh7e.pdf",
+      "createdAt": "2026-10-19T20:45:06.925319",
+      "companyId": "NSE:KTKBANK",
+      "name": "Karnataka Bank Ltd",
+      "__parsedUtc": "2026-10-19T15:15:06.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "description": "Analyst / Investor Meet - Intimation of Conference Call",
+      "ssUrl": "t9dohc76g4ozsi0d206suwfo.pdf",
+      "createdAt": "2026-10-19T20:45:06.144345",
+      "companyId": "BSE:KALYANI",
+      "name": "Kalyani Cast-Tech Ltd",
+      "__parsedUtc": "2026-10-19T15:15:06.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Board Meeting Outcome for Unaudited Financial Results For The Second Quarter And Half Year Ended September 30 2026",
+      "description": "Outcome of Board Meeting - Just Dial Limited has informed the Exchange regarding Outcome of Board Meeting held on October 19 2026.",
+      "ssUrl": "iv90x1orhijq6cn2bobjfxog.pdf",
+      "createdAt": "2026-10-19T20:32:04.614767",
+      "companyId": "NSE:JUSTDIAL",
+      "name": "Just Dial Ltd",
+      "__parsedUtc": "2026-10-19T15:02:04.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "description": "Analyst / Investor Meet - Earnings Call - 2QFY27",
+      "ssUrl": "6d4c8tjxzu54c6qstod95c6z.pdf",
+      "createdAt": "2026-10-19T20:32:02.139344",
+      "companyId": "NSE:ABDL",
+      "name": "Allied Blenders & Distillers Ltd",
+      "__parsedUtc": "2026-10-19T15:02:02.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Board Meeting Intimation for Meeting Of The Board Of Directors Of The Company Is Scheduled To Be Held On October 26 2026.",
+      "description": "Board Meeting - Nazara Technologies Ltdhas informed BSE that the meeting of the Board of Directors of the Company is scheduled on 26/10/2026 inter alia to consider and approve the Unaudited Financial Results (Consolidated and Standalone) of the Company for the quarter and half-year ended September 30 2026.",
+      "ssUrl": "gajowz6noyjd91qdqvikokg4.pdf",
+      "createdAt": "2026-10-19T20:22:36.532714",
+      "companyId": "NSE:NAZARA",
+      "name": "Nazara Technologies Ltd",
+      "__parsedUtc": "2026-10-19T14:52:36.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Board Meeting Intimation for Prior Intimation Of Board Meeting Scheduled To Be Held On 23/10/2026",
+      "description": "Board Meeting - Regency Fincorp Ltdhas informed BSE that the meeting of the Board of Directors of the Company is scheduled on 23/10/2026 inter alia to consider and approve The standalone and consolidated un-audited Financial Results along with Limited Review Report of the company for the quarter and half year ended 30th September 2026 and issuance of Non convertible debentures on private placement basis.",
+      "ssUrl": "b4i3jc9d36bx6mpxqmzujqb3.pdf",
+      "createdAt": "2026-10-19T20:03:54.818592",
+      "companyId": "BSE:REGENCY",
+      "name": "Regency Fincorp Ltd",
+      "__parsedUtc": "2026-10-19T14:33:54.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome",
+      "description": "Analyst / Investor Meet - This is further to our earlier intimation of today. In terms of Regulation 30 read with Para A of Part A of Schedule III of the Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations 2015 (SEBI Listing Regulations) the audio recording of the Investors/ Analysts Conference Call held on October 19 2026 is hosted on Companys website i.e. https://www.hfcl.com/. This is for the information of all the stakeholders.",
+      "ssUrl": "e3ae8w02s21aq3pbh7f0z5aj.pdf",
+      "createdAt": "2026-10-19T19:58:13.174628",
+      "companyId": "NSE:HFCL",
+      "name": "HFCL Ltd",
+      "__parsedUtc": "2026-10-19T14:28:13.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Shareholder Meeting / Postal Ballot-Outcome of EGM",
+      "description": "EGM - Proceedings of the Extra Ordinary General Meeting of the Company held on Monday 19th October 2026 through Video Conferencing/Other Audio-Visual means.",
+      "ssUrl": "qg8xff4lzlwi4kvfkex2shb2.pdf",
+      "createdAt": "2026-10-19T19:50:45.230189",
+      "companyId": "NSE:QPOWER",
+      "name": "Quality Power Electrical Equipments Ltd",
+      "__parsedUtc": "2026-10-19T14:20:45.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "description": "Analyst / Investor Meet - Intimation of Conference Call",
+      "ssUrl": "dg0xdsu3fuh0vxfr14mgctla.pdf",
+      "createdAt": "2026-10-19T19:50:44.061613",
+      "companyId": "BSE:WELSPLSOL",
+      "name": "Welspun Specialty Solutions Ltd",
+      "__parsedUtc": "2026-10-19T14:20:44.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Allotment of ESOP / ESPS",
+      "description": "Allotment of ESOP / ESPS - Allotment of equity shares pursuant to exercise of vested stock options under the KBL Stock Option Scheme 2018",
+      "ssUrl": "ct4iqkxtyephbkmtzeaa1w1a.pdf",
+      "createdAt": "2026-10-19T19:47:00.426024",
+      "companyId": "NSE:KTKBANK",
+      "name": "Karnataka Bank Ltd",
+      "__parsedUtc": "2026-10-19T14:17:00.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome",
+      "description": "Analyst / Investor Meet - RBL Bank Limited informs the exchange about Investor Meets.",
+      "ssUrl": "a3oz8qu48qak6rs17gipgyu1.pdf",
+      "createdAt": "2026-10-19T19:39:32.746530",
+      "companyId": "NSE:RBLBANK",
+      "name": "RBL Bank Ltd",
+      "__parsedUtc": "2026-10-19T14:09:32.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement Under Regulation 30 (LODR) - Update On Joint Venture Agreement With Faurecia Automotive Seating India Private Limited",
+      "description": "General - Announcement under Regulation 30 (LODR) - Update on Joint Venture Agreement with Faurecia Automotive Seating India Private Limited",
+      "ssUrl": "h2mqdk0p3vfjk7dv3f4ci3jl.pdf",
+      "createdAt": "2026-10-19T19:39:28.429026",
+      "companyId": "NSE:GABRIEL",
+      "name": "Gabriel India Ltd",
+      "__parsedUtc": "2026-10-19T14:09:28.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Shareholder Meeting / Postal Ballot-Outcome of Postal_Ballot",
+      "description": "Postal Ballot - Outcome of Postal Ballot",
+      "ssUrl": "rnk0jrrt9nwpnwvvvro56rgj.pdf",
+      "createdAt": "2026-10-19T19:35:45.700340",
+      "companyId": "NSE:MANORAMA",
+      "name": "Manorama Industries Ltd",
+      "__parsedUtc": "2026-10-19T14:05:45.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Intimation Regarding Listing And Trading Of Equity Shares Of The Company On National Stock Exchange Of India Limited",
+      "description": "General - Intimation regarding Listing and Trading of Equity Shares of the Company on National Stock Exchange of India Limited",
+      "ssUrl": "dae30f1nddaz0hwoy50qpvj0.pdf",
+      "createdAt": "2026-10-19T19:35:42.049402",
+      "companyId": "BSE:IIRM",
+      "name": "IIRM Holdings India Ltd",
+      "__parsedUtc": "2026-10-19T14:05:42.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": " Shareholder Meeting / Postal Ballot-Scrutinizer\"s Report",
+      "description": "Postal Ballot - Scrutinizers Report",
+      "ssUrl": "qapwuj6t9pugu17f1l0npyoa.pdf",
+      "createdAt": "2026-10-19T19:28:16.637764",
+      "companyId": "NSE:MANORAMA",
+      "name": "Manorama Industries Ltd",
+      "__parsedUtc": "2026-10-19T13:58:16.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "description": "Analyst / Investor Meet - Aeroflex Industries Limited has informed the Exchange about Schedule of Earning Call.",
+      "ssUrl": "8m3yge7e1o3muhl7cg9l4g4t.pdf",
+      "createdAt": "2026-10-19T19:28:16.022031",
+      "companyId": "NSE:AEROFLEX",
+      "name": "Aeroflex Industries Ltd",
+      "__parsedUtc": "2026-10-19T13:58:16.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement Under Regulation 30 (LODR)- Listing Approval",
+      "description": "General - Announcement under Regulation 30 (LODR)- Listing Approval",
+      "ssUrl": "bdlf15712bkn1be61wsx65jz.pdf",
+      "createdAt": "2026-10-19T19:28:15.978141",
+      "companyId": "BSE:ACSTECH",
+      "name": "ACS Technologies Ltd",
+      "__parsedUtc": "2026-10-19T13:58:15.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Q2 FY 27 Earnings Conference Call Recording",
+      "description": "General - Intimation attached",
+      "ssUrl": "ahstz96ui9wwzqnvhy01ld9g.pdf",
+      "createdAt": "2026-10-19T19:28:14.878848",
+      "companyId": "NSE:LTTS",
+      "name": "L&T Technology Services Ltd",
+      "__parsedUtc": "2026-10-19T13:58:14.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Earnings Call Transcript",
+      "description": "Earnings Call Transcript - Enclosed herewith transcript of the Earnings Call held on Friday October 16 2026.",
+      "ssUrl": "7shjnblmztbeve9qxvw9sz53.pdf",
+      "createdAt": "2026-10-19T19:28:12.237926",
+      "companyId": "NSE:LOTUSDEV",
+      "name": "Sri Lotus Developers & Realty Ltd",
+      "__parsedUtc": "2026-10-19T13:58:12.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "description": "Analyst / Investor Meet - Intimation of Earnings Conference Call on Unaudited Financials Results / Business Performance of the Company for the quarter and half year ended September 30 2026.",
+      "ssUrl": "uhbjr50rdkf8qc2dwtwgznsm.pdf",
+      "createdAt": "2026-10-19T19:28:10.761233",
+      "companyId": "NSE:GRWRHITECH",
+      "name": "Garware Hi Tech Films Ltd",
+      "__parsedUtc": "2026-10-19T13:58:10.000Z"
+    },
+    {
+      "date": "2026-10-19",
+      "title": "Disclosure Of Contact Details Of Key Managerial Personnel Under Regulation 30(5) Of The SEBI (Listing Obligations And Disclosure Requirements) Regulations 2015",
+      "description": "General - Disclosure of Contact Details of Key Managerial Personnel under Regulation 30(5) of the SEBI (Listing Obligations and Disclosure Requirements ) Regulations 2015",
+      "ssUrl": "ao6pjhge9rcj50wumnnb6lsy.pdf",
+      "createdAt": "2026-10-19T19:22:33.791010",
+      "companyId": "NSE:DIACABS",
+      "name": "Diamond Power Infrastructure Ltd",
+      "__parsedUtc": "2026-10-19T13:52:33.000Z"
+    }
+  ]
+}[timing] fetch-scan ok in 595ms (0.6s)

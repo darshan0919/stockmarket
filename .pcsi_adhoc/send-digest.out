@@ -1,0 +1,41 @@
+{
+  "status": "sent",
+  "subject": "[Ad-hoc run] Announcement Signals — 20 Oct 2026 (2 S1/S2)",
+  "slot": "adhoc",
+  "count": 22,
+  "filingCount": 22,
+  "routineCount": 8,
+  "announcementSignalsWatchlist": {
+    "added": [
+      "NSE:CEMPRO",
+      "NSE:DELTACORP"
+    ],
+    "removed": [],
+    "activeAfter": 2
+  },
+  "orderCards": {
+    "orderCards": 1,
+    "withRatio": 1,
+    "top": [
+      "BSE:MSECL"
+    ],
+    "bookOk": 0,
+    "bookFailed": [
+      {
+        "companyId": "BSE:MSECL",
+        "reason": "roll-up failed: keyedLock: found a stale lock for \"order-ledger:BSE:MSECL\" (age 43145s, over the 120s staleness cap) but could not remove it at /sessions/rcw-01l8h1akkmwrhiyi6qcjsndc/mnt/stockmarket/data/cache/locks/order-ledger_BSE_MSECL (EPERM: EPERM: operation not permitted, rmdir '/sessions/rcw-01l8h1akkmwrhiyi6qcjsndc/mnt/stockmarket/data/cache/locks/order-ledger_BSE_MSECL'). This usually means this process lacks delete permission on data/cache/locks/ — grant it, or remove that directory manually, then retry."
+      }
+    ],
+    "pendingBases": [],
+    "revenueFailed": []
+  },
+  "tickersNeedingRatios": 22,
+  "tickersWithMcap": 21,
+  "tickersWithPE": 18,
+  "tierCounts": {
+    "S3": 11,
+    "S1": 2,
+    "S4": 5,
+    "S5": 4
+  }
+}

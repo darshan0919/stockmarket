@@ -1,0 +1,28 @@
+{
+  "companyId": "BSE:MEGAMONT",
+  "ticker": "MEGAMONT",
+  "name": "Megamont Ltd",
+  "note": {
+    "sourceSkill": "post-close-scan-insights",
+    "usecase": "announcement-insights:standard",
+    "depth": "standard",
+    "type": "announcement-insights",
+    "announcementId": "vdbh9ahvn0kvy8ku404yx6vp.pdf",
+    "announcementTitle": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+    "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/vdbh9ahvn0kvy8ku404yx6vp.pdf",
+    "category": "general",
+    "significance": "low",
+    "tags": ["order_win"],
+    "headline": "Megamont wins Rs6.04cr edible-oil supply order from AWL Agri -- second small order-book add this month",
+    "thesisChain": [
+      "Megamont (formerly VR Woodart) secures a Rs6.04cr order from AWL Agri Business (formerly Adani Wilmar) to supply crude degummed soyabean oil to its Surat facility, dispatches already underway, execution within October 2026",
+      "This follows the Rs2.13cr Pigeon Peas import order flagged 15-Oct-2026, continuing a pattern of the company building a trading/agri-commodity order book",
+      "Order size is immaterial against the scan's Rs300cr+ market-cap floor, so no EPS linkage is derivable from this filing alone"
+    ],
+    "epsImpact": null,
+    "insight": "Formal Regulation 30 filing (Press Release). This is new, incremental information continuing a trend: Megamont has secured a Rs6.04cr order from AWL Agri Business for crude degummed soyabean oil supply to its Surat facility, with dispatches already begun and full execution within October 2026. This is the company's second disclosed small commodity-trading order this month, after the Rs2.13cr Pigeon Peas import deal flagged 15-Oct-2026, suggesting a deliberate diversification into edible-oil/agri-commodity trading. Individually immaterial relative to the scan's market-cap floor, but worth tracking as a cadence -- watch whether order sizes and frequency keep scaling up, which would start to matter for revenue.",
+    "numPages": null,
+    "isHeavyParse": false,
+    "modelUsed": "claude-sonnet-5"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "total": 49,
+  "noiseDropped": 22,
+  "alreadyProcessed": 0,
+  "duplicateCollapsed": 8,
+  "heavyDocSkipped": 5,
+  "routine": 8,
+  "insights": 6
+}

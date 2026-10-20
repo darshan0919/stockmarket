@@ -1,0 +1,34 @@
+{
+  "companyId": "NSE:CEMPRO",
+  "ticker": "CEMPRO",
+  "name": "Cemindia Projects Ltd",
+  "note": {
+    "sourceSkill": "post-close-scan-insights",
+    "usecase": "announcement-insights:standard",
+    "depth": "standard",
+    "type": "announcement-insights",
+    "announcementId": "t3qc6jpx32b3dmtillrzs442.pdf",
+    "announcementTitle": "Announcement under Regulation 30 (LODR)-Qualified Institutional Placement",
+    "pdfUrl": "https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/t3qc6jpx32b3dmtillrzs442.pdf",
+    "category": "fundraise",
+    "significance": "high",
+    "tags": ["fundraise", "equity_dilution"],
+    "headline": "Cemindia QIP closes at Rs1,108/share (4.37% discount to Rs1,158.58 floor), raising ~Rs1,400cr",
+    "thesisChain": [
+      "Management Committee closes the QIP on 19-Oct-2026 and allocates 1,26,35,379 equity shares at Rs1,108.00/share (Rs1,107 premium on Re1 face value)",
+      "Issue price is a 4.37% discount to the SEBI-formula floor price of Rs1,158.58, implying gross proceeds of roughly Rs1,400cr",
+      "This confirms and finalises the pricing signal already flagged on 14-Oct-2026 when the QIP opened at that floor price",
+      "Fresh equity strengthens the balance sheet for an EPC/construction company and funds working-capital/growth capex, offsetting near-term EPS dilution from the new shares"
+    ],
+    "epsImpact": {
+      "direction": "negative",
+      "magnitude": "~1.26cr new equity shares issued -- near-term EPS dilution, with proceeds (~Rs1,400cr) intended to fund growth/working capital",
+      "timeline": "FY27 onward",
+      "confidence": "medium"
+    },
+    "insight": "Formal exchange filing (Regulation 30), and a FOLLOW-UP that finalises the QIP already flagged as 'high' significance on 14-Oct-2026 when it opened at the Rs1,158.58 floor price. What is new today: the issue closed at Rs1,108.00/share (a 4.37% discretionary discount), with 1,26,35,379 shares allotted to QIBs, implying gross proceeds of roughly Rs1,400cr -- a large capital raise for Cemindia Projects (formerly ITD Cementation India). The raise dilutes existing shareholders mechanically but strengthens the balance sheet; BRLMs were SBI Caps, ICICI Securities and IIFL Capital per the 14-Oct note. Watch the use-of-proceeds disclosure and the next quarter's order-book/working-capital commentary to see whether this funds bid capacity for larger EPC orders.",
+    "numPages": null,
+    "isHeavyParse": false,
+    "modelUsed": "claude-sonnet-5"
+  }
+}
