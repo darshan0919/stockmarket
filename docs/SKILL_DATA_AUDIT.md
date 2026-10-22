@@ -21,6 +21,15 @@ stock-report, value-chain-analysis, pead-predictor (formerly growth-predictor).
   `validation.json` `type=pead-prediction-score` (or `growth-prediction-score`, `insightId` = the prediction id). Run inputs
   (gathered bundle, assumptions, narrative, projection, render HTML) → `runs/pead-predictor_*`.
 
+- **quarterly-result-extractor history pack** (2026-10-22): `reports.json` `type=concall-digest`
+  (one per company + call quarter, `date` = quarter end; frontier-model reading of one concall —
+  guidance, tone, topics, one-offs, catalysts — admitted only when every quote passes
+  verifyExtract L1; `modelUsed` set) and `type=quarterly-result-history` (one per company +
+  target quarter, `date` = target quarter end, script-assembled from digests + DTOs + filings;
+  no `modelUsed`). Read by quarterly-result-analysis (`--prepare` → `historyContext`) and
+  pead-predictor (`historyPack`). Staged transcript text → `/tmp` only. Design:
+  `docs/QUARTERLY_RESULT_HISTORY_PACK_PLAN.md`.
+
 - **Need**: company identity (Kite master), primary docs (Stockscans fetch — regenerable),
   prior reports + notes + thesis + recent events for the same company (**context**).
 - **Generate**: analysis DTO (LLM output) + rendered PDF/HTML.

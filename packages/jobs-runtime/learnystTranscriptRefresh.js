@@ -99,6 +99,7 @@ const { loadEnv, hasFlag, argValue } = require('./lib/env');
 // Reused, not reimplemented (conventions.md §7/§17): the yt-dlp caption
 // pipeline for a lesson whose video is externally hosted on YouTube.
 const youtubeRefresh = require('./youtubeTranscriptRefresh');
+const artifactProcessor = require('./lib/learnystArtifactProcessor');
 
 // ── Config ───────────────────────────────────────────────────────────────────
 
@@ -111,7 +112,7 @@ const DEFAULT_FFMPEG_PATH = process.env.FFMPEG_PATH || 'ffmpeg';
 // By default only SOIC is processed; Chartitude / Chartist is disabled by
 // default and can be opted into via `--site chartitude` (or `--site chartist`)
 // or by setting LEARNYST_SITE_KEYS.
-const DEFAULT_SITE_KEYS = ['soic', 'chartitude'];
+const DEFAULT_SITE_KEYS = ['soic'];
 
 const SITE_ALIASES = {
   chartist: 'chartitude',
@@ -132,7 +133,7 @@ function canonicalSiteKey(key) {
 // defaults...` below) for a site not listed here, or to override one that is.
 const SITE_DEFAULTS = {
   soic: { schoolId: '110998', bundleId: '97666', origin: 'https://learn.soic.in' },
-  //chartitude: { schoolId: '166281', bundleId: '189631', origin: 'https://learn.chartitude.com' },
+  chartitude: { schoolId: '166281', bundleId: '189631', origin: 'https://learn.chartitude.com' },
 };
 
 /**
@@ -271,6 +272,8 @@ function parseArgs(argv) {
     recheckNoCaptions: hasFlag('--recheck-no-captions', argv),
     skipAttachments: hasFlag('--skip-attachments', argv),
     attachmentsOnly: hasFlag('--attachments-only', argv),
+    processArtifacts: !hasFlag('--skip-processing', argv),
+    cleanRaw: !hasFlag('--keep-raw', argv),
     videoLessonId: argValue('--video', argv) || null,
     audioLessonId: (
       argValue('--audio', argv) ||
@@ -1304,6 +1307,7 @@ async function main() {
     lessonsYoutubeNoCaptionsCachedSkipped: 0,
     lessonsFailed: [],
     attachmentsDownloaded: 0,
+    attachmentsProcessed: 0,
     attachmentsCachedSkipped: 0,
     attachmentsFailed: [],
   };
@@ -1327,6 +1331,7 @@ async function main() {
       ...summary.lessonsFailed.map((l) => ({ site: cfg.key, ...l }))
     );
     combinedSummary.attachmentsDownloaded += summary.attachmentsDownloaded || 0;
+    combinedSummary.attachmentsProcessed += summary.attachmentsProcessed || 0;
     combinedSummary.attachmentsCachedSkipped += summary.attachmentsCachedSkipped || 0;
     combinedSummary.attachmentsFailed.push(
       ...(summary.attachmentsFailed || []).map((a) => ({ site: cfg.key, ...a }))
@@ -1378,6 +1383,7 @@ async function runSite(cfg, args) {
     lessonsYoutubeNoCaptionsCachedSkipped: 0,
     lessonsFailed: [],
     attachmentsDownloaded: 0,
+    attachmentsProcessed: 0,
     attachmentsCachedSkipped: 0,
     attachmentsFailed: [],
   };
@@ -1479,6 +1485,27 @@ async function runSite(cfg, args) {
               console.log(
                 `${label}: downloaded attachment ${att.src} (${Math.round(sizeBytes / 1024)} KB)`
               );
+
+              // Process non-text attachment into txt/md/json
+              if (args.processArtifacts) {
+                try {
+                  const proc = await artifactProcessor.processAttachmentFile(destPath, {
+                    cleanRaw: args.cleanRaw,
+                  });
+                  att.processed = true;
+                  att.processedPath = proc.processedPath;
+                  att.newPath = proc.newPath;
+                  att.processedAt = new Date().toISOString();
+                  summary.attachmentsProcessed++;
+                  console.log(
+                    `${label}: processed ${att.src} -> ${proc.processedFile} (${proc.format}, ${proc.chars} chars)`
+                  );
+                } catch (procErr) {
+                  console.warn(
+                    `${label}: artifact processing warning for ${att.src}: ${procErr.message}`
+                  );
+                }
+              }
             } catch (attErr) {
               console.error(
                 `${label}: FAILED to download attachment ${att.src} — ${attErr.message}`

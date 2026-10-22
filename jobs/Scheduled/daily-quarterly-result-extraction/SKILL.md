@@ -22,7 +22,13 @@ Run `quarterly-result-extractor` daily at 1:00 AM for all companies that filed r
 
 2. For each company returned from Step 1, execute skill: `skills/equity-research/quarterly-result-extractor/SKILL.md` (local mounted repo path).
 
-   **Parameters:** Pass each companyId from Step 1 as `--companyId <NSE:SYMBOL>`.
+   **Parameters:** Pass each companyId from Step 1 as `--companyId <NSE:SYMBOL>` and
+   `--date $(date -d yesterday +%Y-%m-%d)`; the run resolves to `post` mode (the result is
+   filed). Step 0 C (`build-pack`) is script-only — run it if no pack exists. This job runs on
+   a cheap tier, so leave concall digests **pending** (do not write them — they are
+   Mission-Critical and belong to `results-history-pack-daily` or the frontier
+   `quarterly-result-analysis` run); pass `--skip-prior` to Step 1 when a pack exists and the
+   pack id to Step 4 as `--history-pack`.
 
    **Output:** Persists `quarterly-result-documents` records to DB with `date: <yesterday>` and `creator: "quarterly-result-extractor"`.
 

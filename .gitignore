@@ -124,3 +124,6 @@ stock_documents/
 a.out
 _gs_*
 anchor_6mo_v4*
+/.pcsi*
+/_scratch*
+/.tmp*

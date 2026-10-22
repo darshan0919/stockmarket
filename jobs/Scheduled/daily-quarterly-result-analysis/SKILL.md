@@ -13,7 +13,7 @@ If the output of the scan is empty (zero companies), do NOT call the `/quarterly
 For each company returned from the scan:
 
 1. Run `/quarterly-result-analysis` to produce the analysis DTO and PDF report.
-2. Push the generated PDFs to Google Drive via `yarn data:push`.
+2. Push ONLY the generated PDFs and run manifest to Google Drive via targeted push: `yarn daily-quarterly-result-analysis --push` (do NOT run full repository `yarn data:push`).
 3. Send an email with a summary table containing:
    - Company Name (linkified to Stockscans)
    - Market Cap
@@ -39,12 +39,18 @@ For each company returned from the scan:
 
    **Parameters:** Pass each companyId as `--companyId <NSE:SYMBOL>`.
 
+   History comes pre-built from `results-history-pack-daily` (the `quarterly-result-history`
+   pack). This run is a cheap tier: if `--prepare` reports `historyPackMissing` or pending
+   digests, run only the extractor's Step 0 A and C (script) and proceed — never write concall
+   digests here; list the companies with incomplete history in the email.
+
    **Output:**
    - Persists `quarterly-result` report DTO to DB.
    - Renders interactive widget + deterministic PDF to `data/assets/quarterly-result-analysis/<Company>_Q<X>_FY<YY>_ResultAnalysis.pdf`.
 
-3. Execute data push: `yarn data:push`
-   (idempotent, push-only: uploads generated PDFs and records to Google Drive and records Drive file IDs in `sync-state.json`).
+3. Execute targeted data push: `yarn daily-quarterly-result-analysis --push`
+   (Fallback: `node packages/jobs-runtime/dailyQuarterlyResultAnalysis.js --push` or `yarn workspace @stock/jobs-runtime data:push --files <generated-pdfs>`)
+   **Speed note:** Do NOT run global `yarn data:push` (which crawls the entire repository). The targeted push uploads only the job's generated PDFs and run manifest directly in seconds and records Drive file IDs in `sync-state.json`.
 
 4. Deliver summary email: `yarn daily-quarterly-result-analysis --email`
    (Fallback: `node packages/jobs-runtime/dailyQuarterlyResultAnalysis.js --email`)

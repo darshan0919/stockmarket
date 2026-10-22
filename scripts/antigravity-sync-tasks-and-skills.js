@@ -116,7 +116,7 @@ const SIDECAR_OVERRIDES = {
   'daily-quarterly-result-analysis': {
     sidecarFolder: 'daily-quarterly-result-analysis',
     displayName: 'Daily Quarterly Result Analysis',
-    model: 'gemini-3.8-flash-high',
+    model: 'flash',
   },
 };
 
@@ -341,11 +341,23 @@ references (e.g. \`docs/DATA_RULES.md\`) take precedence over anything implied h
   }
 }
 
-function getProjectId() {
-  const projectsDir = path.join(os.homedir(), '.gemini/config/projects');
+/**
+ * Resolves the canonical Antigravity project ID for the current repository.
+ * Searches ~/.gemini/config/projects/ for a project matching the repository's
+ * folder URI and prioritizes the canonical project named after the repo directory (e.g. 'stockmarket').
+ *
+ * @param {string} [customProjectsDir] - Optional directory path for testing.
+ * @returns {string|undefined} The canonical project ID, or undefined if not found.
+ */
+function getProjectId(customProjectsDir) {
+  const projectsDir = customProjectsDir || path.join(os.homedir(), '.gemini/config/projects');
   if (!fs.existsSync(projectsDir)) return undefined;
   const repoUri = 'file://' + path.resolve(__dirname, '../');
+  const repoName = path.basename(path.resolve(__dirname, '../'));
   const files = fs.readdirSync(projectsDir);
+
+  let fallbackId = undefined;
+
   for (const file of files) {
     if (file.endsWith('.json')) {
       try {
@@ -353,14 +365,87 @@ function getProjectId() {
         if (data.projectResources && data.projectResources.resources) {
           for (const res of data.projectResources.resources) {
             if (res.gitFolder && res.gitFolder.folderUri === repoUri) {
-              return data.id;
+              if (data.name === repoName) {
+                return data.id;
+              }
+              if (!fallbackId) {
+                fallbackId = data.id;
+              }
             }
           }
         }
-      } catch (err) {}
+      } catch (err) {
+        // Ignore unparseable project JSON
+      }
     }
   }
-  return undefined;
+  return fallbackId;
+}
+
+/**
+ * Prunes duplicate project files in ~/.gemini/config/projects/ that point to this repository,
+ * ensuring only the canonical project file remains.
+ * Migrates any conversations in conversation_summaries.db belonging to pruned projects
+ * to the canonical project ID.
+ *
+ * @param {string} canonicalProjId - The canonical project ID for this repo.
+ * @param {string} [customProjectsDir] - Optional directory path for testing.
+ * @param {string} [customDbPath] - Optional sqlite db path for testing.
+ * @returns {number} Number of duplicate project files removed.
+ */
+function pruneDuplicateProjects(canonicalProjId, customProjectsDir, customDbPath) {
+  if (!canonicalProjId) return 0;
+  const projectsDir = customProjectsDir || path.join(os.homedir(), '.gemini/config/projects');
+  if (!fs.existsSync(projectsDir)) return 0;
+
+  const repoUri = 'file://' + path.resolve(__dirname, '../');
+  const files = fs.readdirSync(projectsDir);
+  const duplicateIds = [];
+  let prunedCount = 0;
+
+  for (const file of files) {
+    if (file.endsWith('.json')) {
+      const filePath = path.join(projectsDir, file);
+      try {
+        const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        if (
+          data.id &&
+          data.id !== canonicalProjId &&
+          data.projectResources &&
+          data.projectResources.resources
+        ) {
+          const pointsToThisRepo = data.projectResources.resources.some(
+            (res) => res.gitFolder && res.gitFolder.folderUri === repoUri
+          );
+          if (pointsToThisRepo) {
+            duplicateIds.push(data.id);
+            fs.rmSync(filePath, { force: true });
+            prunedCount++;
+          }
+        }
+      } catch (err) {
+        // Ignore unparseable duplicate project JSON
+      }
+    }
+  }
+
+  // Migrate any conversations assigned to duplicate project IDs in conversation_summaries.db
+  if (duplicateIds.length > 0) {
+    const dbPath =
+      customDbPath || path.join(os.homedir(), '.gemini/antigravity/conversation_summaries.db');
+    if (fs.existsSync(dbPath)) {
+      try {
+        const { execFileSync } = require('child_process');
+        const placeholders = duplicateIds.map((id) => `'${id.replace(/'/g, "''")}'`).join(',');
+        const sql = `UPDATE conversation_summaries SET project_id = '${canonicalProjId}' WHERE project_id IN (${placeholders});`;
+        execFileSync('sqlite3', [dbPath, sql], { stdio: 'pipe' });
+      } catch (err) {
+        // Fallback or warning if sqlite3 CLI is unavailable or fails
+      }
+    }
+  }
+
+  return prunedCount;
 }
 
 /**
@@ -418,6 +503,14 @@ function syncScheduledTasks() {
   if (!fs.existsSync(SIDECARS_DIR)) fs.mkdirSync(SIDECARS_DIR, { recursive: true });
   if (!fs.existsSync(GLOBAL_SKILLS_DIR)) fs.mkdirSync(GLOBAL_SKILLS_DIR, { recursive: true });
 
+  const projId = getProjectId();
+  const prunedProjects = pruneDuplicateProjects(projId);
+  if (prunedProjects > 0) {
+    console.log(
+      `🧹 Removed ${prunedProjects} duplicate project file${prunedProjects === 1 ? '' : 's'} pointing to stockmarket and consolidated conversations.`
+    );
+  }
+
   const jobFolders = fs.readdirSync(JOBS_DIR).filter((f) => {
     const fullPath = path.join(JOBS_DIR, f);
     return fs.statSync(fullPath).isDirectory() && fs.existsSync(path.join(fullPath, 'SKILL.md'));
@@ -469,8 +562,8 @@ function syncScheduledTasks() {
     const sidecarPayload = {
       builtin: 'schedule',
       restart_policy: 'always',
-      projectId: getProjectId(),
-      project_id: getProjectId(),
+      projectId: projId,
+      project_id: projId,
       workspace_uris: ['file://' + require('path').resolve(__dirname, '../')],
       args: conversationArgs,
       display_name: displayName,
@@ -501,7 +594,6 @@ function syncScheduledTasks() {
   if (fs.existsSync(configPath)) {
     try {
       const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-      const projId = getProjectId();
       updateSidecarsConfig(configData, syncedFolders, projId);
       fs.writeFileSync(configPath, JSON.stringify(configData, null, 2) + '\n', 'utf8');
       console.log('Synced Folders:', syncedFolders);
@@ -637,6 +729,7 @@ module.exports = {
   parseSkillMd,
   titleCase,
   getProjectId,
+  pruneDuplicateProjects,
   syncScheduledTasks,
   syncCategorySkills,
   syncAllSkills,

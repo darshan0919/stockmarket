@@ -461,4 +461,10 @@ add-note` (`watchlist-insights`, `announcement-insights`, `announcement-info-cla
     - **Knowledge Expansion**: It serves as an experimental breeding ground for expanding the analytical universe of our skills and identifying novel rules or analytical angles to institutionalize into future research methodologies.
     - **The 1% Daily Compounder**: While not strictly mandatory on every run if no fresh angle exists, it represents the "X factor" that continuously improves the project's analytical depth by giving 1% extra in every research output created.
 
+33. **Zero CWD / Ad-Hoc Scratch Folders & Strict DB Handbook Boundary (Explicit Permission Gate):**
+    Under no circumstances may an AI agent, skill, or scheduled job create ad-hoc scratch folders, temporary directories, or transient files in the repository root or current working directory (such as `.pcsi_*`, `_scratch_*`, `.tmp_*`, `tmp_*`).
+    - **Transient Files**: Intermediate pipeline files must either be processed via in-memory streaming/pipes, or stored in OS temp (`os.tmpdir()`) or `data/runs/<job-name>-<timestamp>/` (via `db.runPath()`), and MUST be automatically cleaned up upon run completion.
+    - **Persistent Data**: All persistent storage must strictly follow the DB related handbook (`packages/jobs-runtime/lib/db.js`, `StorageService`, `docs/DATA_ECOSYSTEM.md`).
+    - **Explicit User Permission Gate**: If any operation, skill, or script requires creating files, folders, or schemas outside of the established DB collections and existing scripts, the agent/skill **MUST ask the user for explicit permission** before proceeding.
+
 These conventions ensure that skills can execute in any environment: Cowork, Antigravity, local terminal, or Claude web.

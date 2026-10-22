@@ -109,7 +109,7 @@ if (require.main === module) {
       process.exit(1);
     })
     .finally(() => {
-      apiUsageTracker.printSummary(jobName);
+      apiUsageTracker.flush(jobName);
     });
 }
 

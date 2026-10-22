@@ -174,6 +174,9 @@ const INFO_CLASS_TONE = {
   NEW: { bg: '#fef3f2', fg: '#b42318', border: '#fda29b' },
   FOLLOW_UP: { bg: '#fffaeb', fg: '#b54708', border: '#fec84b' },
   KNOWN: { bg: '#f9fafb', fg: '#667085', border: '#d0d5dd' },
+  CONFIRMATION: { bg: '#eff8ff', fg: '#175cd3', border: '#b2ddff' },
+  HISTORICAL: { bg: '#f9fafb', fg: '#667085', border: '#d0d5dd' },
+  DERIVED: { bg: '#fffaeb', fg: '#b54708', border: '#fec84b' },
 };
 
 // Renders the "Returns 1D / Delivery % / Traded Delivery Value / Vol-vs-7D-Avg"
@@ -470,28 +473,93 @@ function thesisChainHtml(it) {
 // rather than silently truncating without saying so.
 const INFO_CLASS_MAX_CLAIMS_SHOWN = 4;
 
+/**
+ * Normalizes a claim item from either string or object format into a canonical
+ * `{ bucket, claim, priorSource }` shape. Supports string forms with bracketed or
+ * prefixed bucket tags (e.g. "[NEW] ...", "KNOWN: ...") and object forms
+ * ({ claim, bucket, priorSource } or fallbacks like text/statement/title/basis).
+ *
+ * @param {string|Object} c
+ * @returns {{ bucket: string, claim: string, priorSource: string }|null}
+ */
+function parseClaimItem(c) {
+  if (!c) return null;
+  if (typeof c === 'string') {
+    const trimmed = c.trim();
+    if (!trimmed) return null;
+    const m = trimmed.match(
+      /^\[?(NEW|KNOWN|FOLLOW[-_]?UP|CONFIRMATION|HISTORICAL|DERIVED)\]?[:\s-]+(.*)$/i
+    );
+    if (m) {
+      return {
+        bucket: m[1].toUpperCase().replace(/[\s-]+/g, '_'),
+        claim: m[2].trim(),
+        priorSource: '',
+      };
+    }
+    return {
+      bucket: '',
+      claim: trimmed,
+      priorSource: '',
+    };
+  }
+  if (typeof c === 'object') {
+    let claim = String(c.claim || c.text || c.statement || c.title || '').trim();
+    let bucket = String(c.bucket || c.tag || c.type || '').trim();
+    const priorSource = String(c.priorSource || c.source || c.basis || '').trim();
+    if (!claim && !bucket) return null;
+    if (!bucket && claim) {
+      const m = claim.match(
+        /^\[?(NEW|KNOWN|FOLLOW[-_]?UP|CONFIRMATION|HISTORICAL|DERIVED)\]?[:\s-]+(.*)$/i
+      );
+      if (m) {
+        bucket = m[1].toUpperCase().replace(/[\s-]+/g, '_');
+        claim = m[2].trim();
+      }
+    }
+    return {
+      bucket: bucket ? bucket.toUpperCase().replace(/[\s-]+/g, '_') : '',
+      claim,
+      priorSource,
+    };
+  }
+  return null;
+}
+
 function infoClassificationHtml(infoClassification) {
-  if (!infoClassification || !Array.isArray(infoClassification.claims)) return '';
-  const { claims, verdict, baselineCoverage } = infoClassification;
-  if (!claims.length && !verdict) return '';
+  if (!infoClassification || typeof infoClassification !== 'object') return '';
+  const rawClaims = Array.isArray(infoClassification.claims)
+    ? infoClassification.claims
+    : typeof infoClassification.claims === 'string' && infoClassification.claims.trim()
+      ? [infoClassification.claims.trim()]
+      : [];
+  const parsedClaims = rawClaims.map(parseClaimItem).filter(Boolean);
+  const verdict = String(infoClassification.verdict || '').trim();
+  const { baselineCoverage } = infoClassification;
+
+  if (!parsedClaims.length && !verdict) return '';
 
   const bucketChip = (bucket) => {
-    const key = String(bucket || '')
+    if (!bucket) return '<span style="color:#98a2b3;margin-right:6px;">&bull;</span>';
+    const key = String(bucket)
+      .trim()
       .toUpperCase()
       .replace(/[\s-]+/g, '_');
+    if (!key) return '<span style="color:#98a2b3;margin-right:6px;">&bull;</span>';
     const tone = INFO_CLASS_TONE[key] || INFO_CLASS_TONE.KNOWN;
     const label = key === 'FOLLOW_UP' ? 'FOLLOW-UP' : key;
     return `<span style="display:inline-block;vertical-align:middle;font-size:9.5px;font-weight:700;font-family:monospace;letter-spacing:0.03em;background:${tone.bg};color:${tone.fg};border:1px solid ${tone.border};border-radius:3px;padding:1px 6px;margin-right:6px;white-space:nowrap;">${esc(label)}</span>`;
   };
 
-  const shown = claims.slice(0, INFO_CLASS_MAX_CLAIMS_SHOWN);
-  const omitted = claims.length - shown.length;
+  const shown = parsedClaims.slice(0, INFO_CLASS_MAX_CLAIMS_SHOWN);
+  const omitted = parsedClaims.length - shown.length;
   const claimRows = shown
     .map((c) => {
       const src = c.priorSource
         ? ` <span style="color:#98a2b3;">(${esc(c.priorSource)})</span>`
         : '';
-      return `<div style="font-size:11.5px;line-height:1.6;color:#475467;margin-top:3px;">${bucketChip(c.bucket)}${esc(c.claim || '')}${src}</div>`;
+      const text = c.claim ? esc(c.claim) : '';
+      return `<div style="font-size:11.5px;line-height:1.6;color:#475467;margin-top:3px;">${bucketChip(c.bucket)}${text}${src}</div>`;
     })
     .join('');
   const omittedRow =
@@ -800,8 +868,11 @@ function computeRankScore(it) {
 
   const ic = it.infoClassification;
   if (ic && Array.isArray(ic.claims) && ic.claims.length) {
-    const newCount = ic.claims.filter((c) => String(c.bucket || '').toUpperCase() === 'NEW').length;
-    score += (newCount / ic.claims.length) * 35;
+    const valid = ic.claims.map(parseClaimItem).filter(Boolean);
+    if (valid.length) {
+      const newCount = valid.filter((c) => c.bucket === 'NEW').length;
+      score += (newCount / valid.length) * 35;
+    }
   }
 
   score += extractEvidenceScore(it.extractEvidence);
@@ -1937,6 +2008,7 @@ module.exports = {
   tagPillsHtml,
   epsImpactHtml,
   thesisChainHtml,
+  parseClaimItem,
   infoClassificationHtml,
   marketDataHtml,
   orderMetricsHtml,

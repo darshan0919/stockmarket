@@ -527,3 +527,97 @@ describe('marketDataHtml: the ratio columns added for the day recap', () => {
     ).toBe('');
   });
 });
+
+describe('infoClassificationHtml rendering and parsing', () => {
+  test('renders string claims cleanly with bullet markers and zero empty tags', () => {
+    const html = t.infoClassificationHtml({
+      claims: [
+        'Q2 results board meeting scheduled for 21-Oct-2026',
+        'All mortgaged assets and guarantees released by 14-bank consortium',
+      ],
+      verdict: 'Turnaround digestion meeting pre-results earnings anticipation',
+    });
+    expect(html).toContain('Info classification');
+    expect(html).toContain('Turnaround digestion meeting pre-results earnings anticipation');
+    expect(html).toContain('Q2 results board meeting scheduled for 21-Oct-2026');
+    expect(html).toContain('All mortgaged assets and guarantees released by 14-bank consortium');
+    expect(html).toContain('&bull;');
+    // Critical regression test: no empty chip tag `<span style="..."></span>`
+    expect(html).not.toMatch(/<span[^>]*><\/span>/);
+  });
+
+  test('extracts bracketed or prefixed bucket tags from claim strings', () => {
+    const html = t.infoClassificationHtml({
+      claims: [
+        '[NEW] Q2 revenue +28% YoY',
+        'KNOWN: Consortium charge release previously disclosed',
+        '[FOLLOW-UP] Board meeting to adopt accounts',
+      ],
+      verdict: 'Fresh disclosures confirmed',
+    });
+    expect(html).toContain('>NEW</span>');
+    expect(html).toContain('>KNOWN</span>');
+    expect(html).toContain('>FOLLOW-UP</span>');
+    expect(html).toContain('Q2 revenue +28% YoY');
+    expect(html).toContain('Consortium charge release previously disclosed');
+    expect(html).not.toMatch(/<span[^>]*><\/span>/);
+  });
+
+  test('renders canonical object claims with bucket and priorSource', () => {
+    const html = t.infoClassificationHtml({
+      claims: [
+        {
+          claim: 'Net NPA collapsed to 0.09%',
+          bucket: 'NEW',
+          priorSource: 'Q2 filing',
+        },
+      ],
+      verdict: 'Asset quality inflection',
+    });
+    expect(html).toContain('>NEW</span>');
+    expect(html).toContain('Net NPA collapsed to 0.09%');
+    expect(html).toContain('(Q2 filing)');
+    expect(html).not.toMatch(/<span[^>]*><\/span>/);
+  });
+
+  test('renders object claims without bucket cleanly with bullets and zero empty tags', () => {
+    const html = t.infoClassificationHtml({
+      claims: [{ claim: 'Pre-results accumulation' }, { text: 'Second unbucketed claim' }],
+      verdict: 'Observation',
+    });
+    expect(html).toContain('&bull;');
+    expect(html).toContain('Pre-results accumulation');
+    expect(html).toContain('Second unbucketed claim');
+    expect(html).not.toMatch(/<span[^>]*><\/span>/);
+  });
+
+  test('handles thin baseline badge and omission capping at 4 claims', () => {
+    const html = t.infoClassificationHtml({
+      claims: ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'],
+      verdict: 'Multi-claim filing',
+      baselineCoverage: { thinBaseline: true },
+    });
+    expect(html).toContain('(THIN BASELINE)');
+    expect(html).toContain('+ 2 more claim(s) — see saved note');
+    expect(html).toContain('c4');
+    expect(html).not.toContain('c5');
+    expect(html).not.toMatch(/<span[^>]*><\/span>/);
+  });
+
+  test('returns empty string for null, empty claims and missing verdict', () => {
+    expect(t.infoClassificationHtml(null)).toBe('');
+    expect(t.infoClassificationHtml({})).toBe('');
+    expect(t.infoClassificationHtml({ claims: [] })).toBe('');
+    expect(t.infoClassificationHtml({ claims: ['', '  ', null] })).toBe('');
+  });
+
+  test('renders verdict even when claims list is empty', () => {
+    const html = t.infoClassificationHtml({
+      claims: [],
+      verdict: 'Only verdict present',
+    });
+    expect(html).toContain('Info classification');
+    expect(html).toContain('Only verdict present');
+    expect(html).not.toMatch(/<span[^>]*><\/span>/);
+  });
+});

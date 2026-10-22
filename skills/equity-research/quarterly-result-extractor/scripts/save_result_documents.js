@@ -22,7 +22,7 @@
  *     --statements <statements.json> \
  *     --bs-signals <balance_sheet_signals.json> \
  *     --cf-signals <cashflow_signals.json> \
- *     [--model-used claude-sonnet-5]     # only if Step 3 involved LLM judgment beyond recall
+ *     [--history-pack <quarterly-result-history id>]
  */
 const fs = require('fs');
 const db = require('../../../../packages/jobs-runtime/lib/db.js');
@@ -50,6 +50,7 @@ function parseArgs(argv) {
     else if (a === '--income-statement') out.incomeStatement = argv[++i];
     else if (a === '--narrative') out.narrative = argv[++i];
     else if (a === '--creator') out.creator = argv[++i];
+    else if (a === '--history-pack') out.historyPack = argv[++i];
   }
   return out;
 }
@@ -85,10 +86,14 @@ function main() {
   const dto = {
     creator: args.creator,
     type: 'quarterly-result-documents',
-    date: today,
+    // The business date the record is about: the scheduled job's --date when given
+    // (so `daily-quarterly-result-analysis --date` finds it), else the run date.
+    date: manifest.date || today,
     companyId: manifest.companyId || manifest.ticker,
     quarter: manifest.quarter || null,
     found: manifest.found,
+    // The quarterly-result-history pack this delta builds on (null = none existed).
+    historyPackId: args.historyPack || null,
     transcriptMissing: !!manifest.transcriptMissing,
     notYetOut: !!manifest.notYetOut,
     incomeStatementSignals: signals || null,

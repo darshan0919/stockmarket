@@ -30,7 +30,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const os = require('os');
-const { loadEnv, hasFlag } = require('../lib/env');
+const { loadEnv, hasFlag, argValue } = require('../lib/env');
 loadEnv();
 const db = require('../lib/db');
 const {
@@ -170,14 +170,50 @@ async function mergeFromDrive(drive, rel) {
 
 // ── commands ─────────────────────────────────────────────────────────────────
 
-async function push({ dryRun }) {
+async function push(opts = {}) {
+  const dryRun = !!opts.dryRun;
   const state = loadState();
   const { drive } = createDriveClient();
-  const locals = walkLocal();
   const root = db.dataRoot();
 
+  const isTargeted = !!(opts.only || opts.files);
+  let locals;
+  if (opts.files && opts.files.length > 0) {
+    const fileList = Array.isArray(opts.files) ? opts.files : String(opts.files).split(',');
+    locals = fileList
+      .map((f) =>
+        f
+          .trim()
+          .replace(/^.*?\bdata\//, '')
+          .replace(/^\/+/, '')
+      )
+      .filter((rel) => {
+        const abs = path.join(root, rel);
+        return fs.existsSync(abs) && !NEVER_SYNC(rel);
+      });
+  } else {
+    locals = walkLocal();
+    if (opts.only) {
+      const prefixes = (Array.isArray(opts.only) ? opts.only : String(opts.only).split(','))
+        .map((p) =>
+          p
+            .trim()
+            .replace(/^.*?\bdata\//, '')
+            .replace(/^\/+/, '')
+        )
+        .filter(Boolean);
+      locals = locals.filter((rel) =>
+        prefixes.some((p) => rel === p || rel.startsWith(p.endsWith('/') ? p : `${p}/`))
+      );
+    }
+  }
+
   // Drive-side listing once, to detect remote drift for conflict handling.
-  const remote = new Map((await listAllFiles(drive, DRIVE_ROOT)).map((f) => [f.driveRel, f]));
+  // In targeted mode, skip full-drive scan; rely on sync-state cache + per-file resolution for maximum speed.
+  let remote = new Map();
+  if (!isTargeted) {
+    remote = new Map((await listAllFiles(drive, DRIVE_ROOT)).map((f) => [f.driveRel, f]));
+  }
 
   let uploaded = 0,
     skipped = 0,
@@ -290,7 +326,7 @@ async function push({ dryRun }) {
   }
 
   // Refresh driveModifiedTime in one listing (needed for future drift detection).
-  if (!dryRun && uploaded) {
+  if (!dryRun && uploaded && !isTargeted) {
     const fresh = new Map((await listAllFiles(drive, DRIVE_ROOT)).map((f) => [f.driveRel, f]));
     for (const [rel, entry] of Object.entries(state.files)) {
       const f = fresh.get(rel);
@@ -304,7 +340,7 @@ async function push({ dryRun }) {
 
   const alreadySynced = skipped - skippedAlreadyOnDrive.length;
   console.log(
-    `[data push] uploaded=${uploaded} merged=${merged} skipped=${skipped}${dryRun ? ' (dry-run)' : ''}`
+    `[data push] uploaded=${uploaded} merged=${merged} skipped=${skipped}${dryRun ? ' (dry-run)' : ''}${isTargeted ? ' (targeted)' : ''}`
   );
   console.log(
     `[data push]   of ${skipped} skipped: ${alreadySynced} unchanged since last sync, ` +
@@ -320,13 +356,16 @@ async function push({ dryRun }) {
         'This is expected on a re-run right after a clean sync; it is not a failure.'
     );
   }
-  checkStorageStrategyThresholds(db.dataRoot());
-  printStorageStatsTable(db.dataRoot());
+  if (!isTargeted) {
+    checkStorageStrategyThresholds(db.dataRoot());
+    printStorageStatsTable(db.dataRoot());
+  }
   if (errors.length) {
     console.error(`[data push] ${errors.length} error(s) — NOT pruning those files:`);
     errors.forEach((e) => console.error(`  - ${e}`));
     process.exit(1);
   }
+  return { uploaded, skipped, merged, uploadedRels, errors };
 }
 
 async function pull({ dryRun }) {
@@ -551,21 +590,40 @@ function checkStorageStrategyThresholds(root) {
   return { alerts, optimizations };
 }
 
-(async () => {
-  const cmd = process.argv[2];
-  const opts = { dryRun: hasFlag('--dry-run') };
-  try {
-    if (cmd === 'push') await push(opts);
-    else if (cmd === 'pull') await pull(opts);
-    else if (cmd === 'status') await status();
-    else if (cmd === 'thresholds') checkStorageStrategyThresholds(db.dataRoot());
-    else if (cmd === 'stats') printStorageStatsTable(db.dataRoot());
-    else {
-      console.log('Usage: node data.js <push|pull|status|thresholds|stats> [--dry-run]');
-      process.exit(2);
+if (require.main === module) {
+  (async () => {
+    const cmd = process.argv[2];
+    const onlyArg = argValue('--only', process.argv);
+    const filesArg = argValue('--files', process.argv);
+    const opts = {
+      dryRun: hasFlag('--dry-run'),
+      only: onlyArg || undefined,
+      files: filesArg || undefined,
+    };
+    try {
+      if (cmd === 'push') await push(opts);
+      else if (cmd === 'pull') await pull(opts);
+      else if (cmd === 'status') await status();
+      else if (cmd === 'thresholds') checkStorageStrategyThresholds(db.dataRoot());
+      else if (cmd === 'stats') printStorageStatsTable(db.dataRoot());
+      else {
+        console.log(
+          'Usage: node data.js <push|pull|status|thresholds|stats> [--dry-run] [--only <prefix>] [--files <f1,f2>]'
+        );
+        process.exit(2);
+      }
+    } catch (e) {
+      console.error(`[data ${cmd}] FAILED:`, e.message);
+      process.exit(1);
     }
-  } catch (e) {
-    console.error(`[data ${cmd}] FAILED:`, e.message);
-    process.exit(1);
-  }
-})();
+  })();
+}
+
+module.exports = {
+  push,
+  pull,
+  status,
+  walkLocal,
+  loadState,
+  saveState,
+};

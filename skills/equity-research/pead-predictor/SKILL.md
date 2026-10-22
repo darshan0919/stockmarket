@@ -133,6 +133,10 @@ One bundle assembling:
 - **TradingView macro basket** and shared quarterly macro context.
 - **Result-quality scan** of latest reported quarter (`resultScan`).
 - **Prior analyses**: latest quarterly-result, rerating-catalysts, credibility DTOs.
+- **History pack** (`historyPack`, when `quarterly-result-extractor --mode pre` has run): verified
+  prior-call digests — tone/topic arc, one-off recurrence (>= 2 of 4 = recurrent), known
+  catalysts, prior-guidance ledger with measurability. Prefer it over re-reading old transcripts;
+  the gather helpers are shared with it (`packages/jobs-runtime/lib/resultHistory/inputs.js`).
 
 ### 2. Reason (model; Mission-Critical — follow `references/reasoning_playbook.md` exactly)
 

@@ -1,7 +1,15 @@
 ---
 name: quarterly-result-extractor
 description: >
-  Stage 1 of the 2-skill quarterly-result pipeline: fetches the latest PPT +
+  Stage 1 of the 2-skill quarterly-result pipeline, runnable before OR after the
+  result. Before the result (`--mode pre`, Stockscans Days From Result >= 0) it
+  builds the quarterly-result-history pack — once-per-call frontier digests of
+  the last 4 concalls (guidance, tone, topics, one-offs, catalysts), the prior
+  guidance ledger, one-off recurrence, known catalysts, prior verdicts, 12Q
+  financials, filings since the last result and the pre-result price set-up —
+  so quarterly-result-analysis never generates history at runtime. After the
+  result (`--mode post`) it ensures the pack exists, then fetches the target
+  quarter's PPT +
   Result + Transcript (and the prior quarter's Transcript, for narrative-shift
   comparison) for an Indian listed company from Stockscans, runs the
   deterministic income-statement-signals scan against the Result filing,
@@ -53,58 +61,77 @@ requested one company at a time).
 
 **Optional parameters:**
 
-- `--date YYYY-MM-DD` — scope extraction to a specific date (for daily scheduled jobs).
-  When provided, fetches documents filed on that exact date instead of the latest quarter.
-  Defaults to the current/latest quarter if omitted.
+- `--mode auto|pre|post` (default `auto`) — see Step 0.
+- `--date YYYY-MM-DD` — business date for scheduled jobs: the target quarter is the latest
+  quarter completed as of that date, and the persisted record's `date` is this value.
+- `--quarter YYYYMM` — explicit target quarter (overrides `--date`).
+
+## Step 0 — Mode and history pack (run first, every invocation)
+
+The goal of the split: `quarterly-result-analysis` must never generate historic context at
+runtime. Everything about the past is prepared here, ideally before the result, as one
+`quarterly-result-history` report per company + target quarter.
+
+**Mode** (`lib/resultHistory/period.js` `resolveResultMode`, from the company's own Stockscans
+document list — never the calendar alone): `post` when the target quarter's Result is filed,
+`pre` when it is not (the upcoming result; Stockscans "Days From Result" >= 0). Every Step 0
+script prints the resolved `mode` and `targetQuarter`.
+
+```bash
+SAFE=$(echo "$COMPANY_ID" | tr ':' '_'); HIST_DIR="/tmp/${SAFE}_qrh"
+# A. transcripts still lacking a concall digest (last 4 before the target; in post mode the
+#    target quarter's own call too), full text staged for reading
+yarn quarterly-result-extractor:pending-digests --companyId "$COMPANY_ID" --out-dir "$HIST_DIR" [--date|--quarter]
+# B. for EACH pending entry: read its textPath, write <HIST_DIR>/<YYYYMM>_digest.json per
+#    references/call_digest.md, then
+yarn quarterly-result-extractor:save-digest --companyId "$COMPANY_ID" --quarter <YYYYMM> \
+  --digest "$HIST_DIR/<YYYYMM>_digest.json" --model <exact model id>
+# C. assemble + persist the pack (date = target quarter end, so re-runs upsert)
+yarn quarterly-result-extractor:build-pack --companyId "$COMPANY_ID" [--date|--quarter]
+```
+
+- **B is the only reasoning in Step 0, and it is Mission-Critical** (prior guidance, tone and
+  topic baseline, one-off excuses, catalysts — classified by Darshan, 2026-10-22). Run it on the
+  frontier tier, follow [`references/call_digest.md`](references/call_digest.md) exactly, and
+  never paraphrase a quote: `save-digest` refuses (exit 3) unless every quote is verbatim in the
+  transcript. A digest is written once per call, ever — later packs and later quarters reuse it.
+  A cheap-tier session (the 1 AM job) leaves digests pending rather than writing them; the pack's
+  `digestCoverage.pending` says which, and the next frontier run (or quarterly-result-analysis
+  Phase 0) completes them and re-runs C.
+- **`pre` mode stops after C.** Do not run Steps 1-4: the result is not out.
+- **`post` mode** continues to Steps 1-4 as a _delta_ on top of the pack: pass `--skip-prior` to
+  Step 1 (the pack already holds the prior calls), seed Step 3's `possiblyDropped` from
+  `yarn quarterly-result-extractor:possibly-dropped --companyId "$COMPANY_ID"`, and pass the pack
+  id to Step 4 as `--history-pack`. If no pack exists for the target quarter, run A-C first —
+  that is the auto-build path, and it makes the next quarter's pack nearly free.
+- The pack carries: `priorGuidance` + `walkTheTalkSkeleton` (measurability vs the target quarter),
+  `narrative` (tone + topics per prior call), `oneOffRecurrence` (>= 2 of 4 = recurrent),
+  `knownCatalysts`, `priorVerdicts` (walk-the-talk / inflection / PEAD chain, open Q+1, last
+  monitoring checklist), `concallNotesGuidance` (Stockscans concall-notes tables — cross-check
+  only), 12Q `financials`, `filings` since the prior quarter end (KNOWN vs NEW at the concall
+  boundary), `priceAction` (pre mode only — a post-mode build would measure the reaction itself),
+  `priorAnalyses`, `coversThrough` watermark and `errors`.
 
 ## Step 1 — Fetch documents (script, zero LLM)
 
 ```bash
-# Standard usage (latest quarter):
-export STOCKSCANS_AUTH_TOKEN="$(grep '^STOCKSCANS_AUTH_TOKEN' .env | cut -d= -f2-)"
 COMPANY_ID="NSE:SWARAJENG"
 SAFE=$(echo "$COMPANY_ID" | tr ':' '_')
-DOCS_DIR="/tmp/${SAFE}_qra_docs"
-node skills/equity-research/quarterly-result-extractor/scripts/fetch_result_documents.js \
-  --companyId "$COMPANY_ID" --out-dir "$DOCS_DIR" > "${DOCS_DIR}/manifest.json"
-
-# Scheduled task usage (specific date):
-node skills/equity-research/quarterly-result-extractor/scripts/fetch_result_documents.js \
-  --companyId "$COMPANY_ID" --date "2026-08-10" --out-dir "$DOCS_DIR" > "${DOCS_DIR}/manifest.json"
+DOCS_DIR="/tmp/${SAFE}_qra_docs"; mkdir -p "$DOCS_DIR"
+yarn quarterly-result-extractor:fetch --companyId "$COMPANY_ID" --out-dir "$DOCS_DIR" \
+  --skip-prior [--date 2026-10-21 | --quarter 202609] > "${DOCS_DIR}/manifest.json"
 ```
 
-`fetch_result_documents.js` wraps `documentsFetcher.js` (`fetchDocuments()`)
-and `get-concall-transcript-url.js` (`ConcallTranscriptResolver`) — the same
-two primitives the old single-skill Phase 1 called inline, now behind one
-script instead of ad-hoc bash:
+The script resolves the target quarter from the company's document list (Step 0) and downloads
+that exact quarter's PPT/Result/Transcript — `--date` is honoured (it was silently ignored before
+2026-10-22) and `manifest.quarter` is the Result's own quarter, not whatever transcript the
+resolver returned first. `--skip-prior` whenever a history pack exists; without it the script
+also downloads the newest Transcript before the target quarter (no pack → narrative-shift
+fallback).
 
-1. **Date-scoped behavior:** If `--date` is provided, fetches documents filed on that
-   specific date; otherwise fetches the latest quarter's documents.
-2. PPT + Result, straight from Stockscans (`fetchDocuments`
-   with `types: ['PPT', 'Result']`, `startDate`/`endDate` = either the specific
-   date window or current quarter).
-3. Latest Transcript: resolved via `ConcallTranscriptResolver` first (guaranteed
-   to exist for every reported quarter now), then downloaded through
-   `fetchDocuments` if resolution succeeds. On resolver `error` with PPT/Result
-   also empty, results genuinely aren't out yet — stop and say so. On resolver
-   `error` with PPT/Result present, proceed without a transcript and set
-   `transcriptMissing: true` in the manifest — don't fail the whole fetch.
-4. The PRIOR quarter's Transcript (`--last-n 2` semantics), for the
-   narrative-shift comparison `quarterly-result-analysis` needs. Which of
-   the two returned entries is "prior" depends on whether the resolver
-   call succeeded for the target quarter — see the script's inline comment;
-   this logic moved verbatim from the old Phase 1, it did not change.
-
-Output: `manifest.json` — `{ticker, companyId, quarter, found: {PPT, Result, Transcript, PriorTranscript}, transcriptMissing, pdfPaths}`.
+Output: `manifest.json` — `{ticker, companyId, date, quarter, mode, latestFiledQuarter, found: {PPT, Result, Transcript, PriorTranscript}, transcriptMissing, notYetOut, pdfPaths}`.
 `pdfPaths` are downloaded PDFs, not text — run Step 1.5 below to turn
 `pdfPaths.Result`/`pdfPaths.PPT` into text before Steps 2 and 2.6.
-
-**Correction (2026-09-23):** earlier revisions of this doc said to run
-`pdfPaths` through `stock-api/src/utils/pdfUtils.js` — that file is an
-HTML-rendering helper for building the OUTPUT pdf and has no PDF-reading
-code at all. It never did what this step needed; every prior run of this
-skill turned a Result PDF into text by an agent invoking `pdftotext -layout`
-by hand and reading the output. Step 1.5 is the actual, scripted fix.
 
 ## Step 1.5 — PDF → layout-preserving text (script, zero LLM)
 
@@ -325,17 +352,6 @@ from Q3's filing, and keying by date makes that a cache hit against
 `balanceSheetSignals.js`/`cashflowSignals.js`'s own `getOrCompute` instead of
 a second scan of identical numbers.
 
-**Correction (2026-09-23):** earlier revisions of this doc left `bsContext`/
-`cfContext`/`companyId`/`bsPeriod`/`cfPeriod` as free variables in two inline
-`node -e` heredocs — i.e. an agent was expected to build the context objects
-by hand each run. That's tolerable for `companyId`/period, but NOT for the
-context figures: `ebitdaForPeriod`/`patForPeriod`/`revenueForPeriod`/
-`taxChargeForPeriod` (`cashflowSignals`) and `revenueAnnualised`/
-`cogsAnnualised` (`balanceSheetSignals`) must cover **exactly** the window
-the statement covers — get that wrong and every conversion/day-count ratio
-is silently wrong, which is exactly the kind of derived-number judgment call
-conventions.md §17 says belongs in a script.
-
 `run_statement_signals.js` builds both context objects itself, from
 Step 2's `extract_income_statement.js` output — specifically its `ytd`
 field, the filing's own 4th/5th P&L columns (the cumulative YTD/FY figures a
@@ -376,10 +392,11 @@ Read the Transcript + PPT text and pull out every passage relevant to:
   signal sits inside an analyst question.
 - **Strategic / capital-allocation commentary** — capex plans, M&A, buyback,
   dividend policy, 3-5yr direction statements.
-- **Topics present in the PRIOR transcript but silent this quarter** — do a
-  simple keyword/topic diff between this quarter's excerpts and the prior
-  transcript's excerpts (topics mentioned there, absent here); flag as
-  `possiblyDropped`, don't editorialise on why.
+- **Topics present in PRIOR calls but silent this quarter** — start from
+  `yarn quarterly-result-extractor:possibly-dropped` (pack topics whose keywords are absent
+  from this transcript, last 3 calls); keep the ones a read of this transcript confirms are
+  really absent and flag them as `possiblyDropped`, don't editorialise on why. Only without a
+  pack: diff against the prior transcript downloaded in Step 1.
 - **Quantified operational/governance KPIs outside the P&L** — anything with
   a number that Step 2.5 can't reach because it isn't a P&L line: ROCE/ROE,
   volume or utilisation growth (actual or guided), related-party transaction
@@ -409,7 +426,8 @@ node skills/equity-research/quarterly-result-extractor/scripts/save_result_docum
   --bs-signals "${DOCS_DIR}/balance_sheet_signals.json" \
   --cf-signals "${DOCS_DIR}/cashflow_signals.json" \
   --income-statement "${DOCS_DIR}/income_statement.json" \
-  --narrative "${DOCS_DIR}/narrative.json"
+  --narrative "${DOCS_DIR}/narrative.json" \
+  --history-pack <quarterly-result-history id from Step 0 C>
 ```
 
 Saves ONE `quarterly-result-documents` report via `db.saveReport()`, envelope
@@ -417,8 +435,9 @@ per `docs/DATA_RULES.md` §4 (`id`, `creationTime`, `modifiedTime`,
 `creator: "quarterly-result-extractor"`, `companyId`, `date`). The `date` field
 is set to:
 
-- The `--date` parameter value if provided (scoped extraction for scheduled jobs)
-- The extracted document's filing date otherwise (for interactive/manual runs)
+- The `--date` parameter value if provided (carried through `manifest.date`, so the daily
+  analysis job's `--date` lookup finds the record)
+- The run date otherwise (interactive/manual runs)
 
 The record carries `statementAvailability` (per-statement found/source/as-at/
 staleness verdict) alongside the normalized `balanceSheet`/`cashflow` snapshots
@@ -445,7 +464,13 @@ must be able to do its job from the DB record alone.
 ```
 quarterly-result-extractor/
 ├── SKILL.md
+├── references/
+│   └── call_digest.md                  (Step 0 B — the once-per-call digest schema + rules)
 └── scripts/
+    ├── prepare_call_digests.js         (Step 0 A — pending digests + staged transcript text)
+    ├── save_call_digest.js             (Step 0 B — validate, quote-verify, persist concall-digest)
+    ├── build_history_pack.js           (Step 0 C — assemble + persist quarterly-result-history)
+    ├── possibly_dropped.js             (Step 3 seed — prior-call topics absent this quarter)
     ├── fetch_result_documents.js       (Step 1)
     ├── extract_result_text.js          (Step 1.5 — PDF -> layout-preserving text)
     ├── extract_result_xbrl.js          (Step 1.6 — XBRL-first P&L/BS/CF + prior periods + issue log,
@@ -464,9 +489,13 @@ quarterly-result-extractor/
     └── save_result_documents.js        (Step 4)
 ```
 
+Shared logic lives in `packages/jobs-runtime/lib/resultHistory/` (`period.js`, `inputs.js` —
+also used by `pead-predictor`, `callDigest.js`, `historyPack.js`, `runtime.js`). Design:
+[`docs/QUARTERLY_RESULT_HISTORY_PACK_PLAN.md`](../../../docs/QUARTERLY_RESULT_HISTORY_PACK_PLAN.md).
+
 ## Related skills
 
-- `quarterly-result-analysis` — Stage 2, reads this skill's
+- `quarterly-result-analysis` — Stage 2, reads this skill's `quarterly-result-history` pack and
   `quarterly-result-documents` DB record and produces the 3-basket
   interpretive note + widget. Auto-invokes this skill when given only a
   ticker and no record exists yet.

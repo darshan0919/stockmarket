@@ -474,7 +474,12 @@ Use `render` instead of `send` for the `email: off` path.
       "epsThesis": { "...Step 6's brief, verbatim..." },
       "epsImpact": { "direction": "positive", "magnitude": "+12% FY27 EPS", "timeline": "FY27", "confidence": "high" },
       "linkage": "explained",
-      "infoClassification": { "claims": [], "verdict": "..." },
+      "infoClassification": {
+        "claims": [
+          { "claim": "...", "bucket": "NEW|KNOWN|FOLLOW_UP" }
+        ],
+        "verdict": "..."
+      },
       "tags": ["order_book"],
       "pdfUrl": "https://..."
     }

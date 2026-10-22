@@ -22,6 +22,10 @@ const { renderAdditionalHtml } = require('../utils/renderAdditional');
  */
 function getTagClass(tag) {
   const t = (tag || '').toUpperCase();
+  if (/^(RAISE|RAISED|UPGRADE|UPGRADED)$/.test(t)) return 'chip-g';
+  if (/^(CUT|LOWERED|DOWNGRADE|DOWNGRADED)$/.test(t)) return 'chip-r';
+  if (/^(REAFFIRM|REAFFIRMED|MAINTAINED|REITERATED)$/.test(t)) return 'chip-b';
+  if (/^(SILENT|DROPPED|OMITTED|UNMENTIONED)$/.test(t)) return 'chip-y';
   if (
     /NO_INFLECTION|NOT_APPLICABLE|NOT_YET|NEEDS_ACTUAL|EXCLUDED|EXPIRED|INSUFFICIENT|HISTORICAL|CONFIRMATION/.test(
       t
@@ -345,6 +349,7 @@ function renderGuidanceTable(guidance) {
     'Guided Value (Target)',
     '% Change',
     'Timeline',
+    'Guidance Delta',
     'Nature',
     'Source / Derivation Basis',
   ];
@@ -375,6 +380,14 @@ function renderGuidanceTable(guidance) {
       }
     }
 
+    // Incremental guidance delta tag: Raise, Cut, Reaffirm, Silent (or New)
+    const rawDelta = r.deltaTag || r.guidanceDelta || r.delta || r.revision || r.tag || '';
+    let deltaChip = '—';
+    if (rawDelta) {
+      const dUpper = String(rawDelta).trim().toUpperCase();
+      deltaChip = `<span class="chip ${getTagClass(dUpper)}">${dUpper}</span>`;
+    }
+
     let natureChip = '';
     const natureUpper = String(
       r.nature || (isUnguided ? 'UNGUIDED' : 'DIRECTLY GUIDED')
@@ -401,6 +414,7 @@ function renderGuidanceTable(guidance) {
       futureVal,
       pctFormatted,
       r.timeline || r.horizon || '—',
+      deltaChip,
       natureChip,
       note,
     ]);

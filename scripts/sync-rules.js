@@ -109,6 +109,7 @@ function runVerification() {
           'rule-freshness-provenance-tagging',
           'rule-sentiment-text-color-coding',
           'rule-extra-mile-research',
+          'rule-zero-cwd-debris-permission-boundary',
         ];
         const existingIds = new Set(data.rules.map((r) => r.id));
         for (const reqId of requiredRuleIds) {

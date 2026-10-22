@@ -15,7 +15,14 @@ const { buildAnalysisContext } = require('../src/analyzers/resultAnalysisContext
 const {
   prepareInflectionContext,
   finalizeInflection,
+  normalizeQuarter,
 } = require('../src/analyzers/resultInflection');
+const { quarterEndIso } = require('../../packages/jobs-runtime/lib/resultHistory/period');
+const {
+  REPORT_TYPE: HISTORY_TYPE,
+  historyContextOf,
+} = require('../../packages/jobs-runtime/lib/resultHistory/historyPack');
+const { listDigests } = require('../../packages/jobs-runtime/lib/resultHistory/callDigest');
 
 /**
  * Load every DTO of `type` for a company (full bodies), passed explicitly into the pure analyzers.
@@ -95,11 +102,27 @@ Options:
   const latestDocIndex = docRecords[docRecords.length - 1];
   const latestDoc = db.readReport(latestDocIndex.id) || latestDocIndex;
 
+  // History pack (quarterly-result-extractor Step 0): everything about the past, prepared
+  // before the result. Keyed by the target quarter's end date.
+  const yyyymm = normalizeQuarter(latestDoc.quarter, latestDoc.date);
+  const packIndex = yyyymm
+    ? (
+        db.find('reports', { type: HISTORY_TYPE, companyId, date: quarterEndIso(yyyymm) }) || []
+      ).pop()
+    : null;
+  const pack = packIndex ? db.readReport(packIndex.id) || packIndex : null;
+  const currentCallDigest = yyyymm
+    ? listDigests(db, companyId).find(
+        (d) => String(d.quarter) === yyyymm && d.verification?.status === 'pass'
+      ) || null
+    : null;
+
   const inflectionPrep = prepareInflectionContext({
     record: latestDoc,
     forwardGuidanceDtos: loadAll('forward-guidance', companyId),
     priorResultDtos: loadAll('quarterly-result', companyId),
     reratingReports: loadAll('rerating-catalysts', companyId),
+    priorGuidance: pack ? pack.priorGuidance : null,
   });
 
   const scoreFile = argValue('--score-inflection', argv);
@@ -112,7 +135,17 @@ Options:
 
   // 3. Build deterministic analytical context
   try {
-    const context = { ...buildAnalysisContext(latestDoc), inflectionPrep };
+    // Records written before headlineFinancials existed (pre-2026-09) cannot feed the KPI
+    // strip or Walk the Talk auto-actuals: flag them so Phase 0 re-runs the extractor.
+    const recordStale = !latestDoc.notYetOut && !Array.isArray(latestDoc.headlineFinancials);
+    const context = {
+      ...buildAnalysisContext(latestDoc),
+      inflectionPrep,
+      recordStale,
+      historyPackMissing: !pack,
+      historyContext: historyContextOf(pack),
+      currentCallDigest,
+    };
     console.log(
       JSON.stringify({
         ok: true,

@@ -68,6 +68,8 @@ are easy to violate by accident:
 
 - Never write files under `data/` directly — only `packages/jobs-runtime/lib/db.js` does.
 - `data/` is gitignored — never `git add` anything under it.
+- Zero ad-hoc or scratch folders in repo root or cwd (e.g. `.pcsi_*`, `_scratch_*`, `.tmp_*`). Transient pipeline files belong in `os.tmpdir()` or `data/runs/` and must be deleted upon completion.
+- Strictly abide by existing scripts and the DB related handbook (`packages/jobs-runtime/lib/db.js`, `StorageService`). If anything outside of that is required, the agent/skill MUST ask the user for permission.
 - Every skill run ends with a files-touched manifest and a token-optimization suggestion (see conventions doc §9/§11).
 
 When adding a new external API integration, document its payload/response
@@ -213,6 +215,11 @@ file under `docs/` and link it from `docs/README.md`.
   code, no commented-out blocks, no unused exports left behind by a
   refactor — run `yarn dead-code:scan` after any removal/rename to confirm
   nothing references the old path.
+- **Zero CWD / Ad-Hoc Scratch Folders**: Never create temporary directories,
+  dot-folders, or scratch files in the repository root or current working
+  directory (e.g. `.pcsi_*`, `_scratch_*`, `.tmp_*`, `tmp_*`). Intermediate
+  files must be kept in memory or placed in OS temp (`os.tmpdir()`) or
+  `data/runs/` and deleted upon task completion.
 
 ## 8. Local issue tracking ("Jira")
 
@@ -277,6 +284,8 @@ There are core development principles that are **permanent** across all AI codin
     - **Zero Duplication**: It must never repeat facts, metrics, or arguments already stated in the report's structured sections above; it must deliver genuinely new, incremental value.
     - **Knowledge Expansion**: It serves as an experimental breeding ground for expanding the analytical universe of our skills and identifying novel rules or analytical angles to institutionalize into future research methodologies.
     - **The 1% Daily Compounder**: While not strictly mandatory on every run if no fresh angle exists, it represents the "X factor" that continuously improves the project's analytical depth by giving 1% extra in every research output created.
+16. **Zero CWD Scratch Folders & Strict DB Handbook Boundary (Explicit Permission Gate)**:
+    Under no circumstances may any AI agent, scheduled job, or skill create temporary, scratch, or intermediate files/folders at the repository root or in the current working directory (such as `.pcsi_*`, `_scratch_*`, `.tmp_*`, `tmp_*`). All transient files must reside strictly in OS temp (`os.tmpdir()`) or under `data/runs/<job-run-id>/` (via `db.runPath()`) and MUST be deleted upon completion. Persistent storage must strictly follow the DB related handbook (`packages/jobs-runtime/lib/db.js`, `StorageService`, `docs/DATA_ECOSYSTEM.md`). **Strict Permission Gate**: If any operation or task requires creating files, directories, or persistence mechanisms outside existing scripts and the DB handbook, it **MUST ask the user for explicit permission** before creating them.
 
 ## 13. External skill packs — planning, productivity, and code review
 

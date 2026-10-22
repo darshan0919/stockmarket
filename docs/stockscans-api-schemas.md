@@ -692,6 +692,13 @@ full column order for `ratiosType: "Default"`:
 34 Sector
 ```
 
+**`Days From Result` sign (live-confirmed 2026-10-22):** negative = days since the last
+result (Reliance `-86`), **`>= 0` = an UPCOMING result date already intimated** (`0` = today).
+A filter `Days From Result >= 0` AND `<= 7` with `Market Capitalization >= 500` returned 276
+companies on 2026-10-22, ordered by `Days From Result` asc (first rows `0`: BSE:GHVINFRA,
+NSE:ACCELYA, NSE:ADANIENSOL …). Used by `resultsHistoryPackUniverse.js` (pre-result history
+packs) and, for past results, `resultsSeasonPrepDaily.js`.
+
 Column order/count is tied to `ratiosType: "Default"` — a different
 `ratiosType` (e.g. `"Performance"`, used elsewhere in this codebase for
 `watchlistTable`) may return a different column set; re-confirm indices

@@ -6,6 +6,7 @@ const {
   fetchScan,
   sendEmptyScanEmail,
   sendReportEmail,
+  pushJobAssets,
   SCAN_ID,
 } = require('../dailyQuarterlyResultAnalysis');
 
@@ -35,6 +36,7 @@ jest.mock('../lib/db', () => ({
 
 const { stockscans } = require('@stock/api');
 const { sendHtmlEmail } = require('@stock/cloud-utils');
+const dataScript = require('../scripts/data');
 const fs = require('fs');
 
 describe('dailyQuarterlyResultAnalysis formatting helpers', () => {
@@ -137,8 +139,8 @@ describe('sendReportEmail', () => {
   test('generates table with required columns in original PAT Growth TTM order', async () => {
     sendHtmlEmail.mockResolvedValueOnce({ status: 'sent', to: 'test@example.com' });
 
-    jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-    jest.spyOn(fs, 'readFileSync').mockReturnValue(
+    const existsSpy = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    const readSpy = jest.spyOn(fs, 'readFileSync').mockReturnValue(
       JSON.stringify({
         date: '2026-10-16',
         scanId: SCAN_ID,
@@ -175,5 +177,47 @@ describe('sendReportEmail', () => {
         htmlBody: expect.stringMatching(/Sterling &amp; Wilson|Sterling & Wilson/),
       })
     );
+    existsSpy.mockRestore();
+    readSpy.mockRestore();
+  });
+});
+
+describe('pushJobAssets', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('calls targeted data.push with only the job files and run manifest', async () => {
+    const pushSpy = jest.spyOn(dataScript, 'push').mockResolvedValueOnce({
+      uploadedRels: ['runs/daily-quarterly-result-analysis-2026-10-16.json'],
+      skipped: 0,
+      errors: [],
+    });
+
+    const existsSpy = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    const readSpy = jest.spyOn(fs, 'readFileSync').mockReturnValue(
+      JSON.stringify({
+        date: '2026-10-16',
+        scanId: SCAN_ID,
+        count: 1,
+        companies: [
+          {
+            companyId: 'NSE:SWSOLAR',
+            name: 'Sterling & Wilson Renewable Energy Ltd',
+          },
+        ],
+      })
+    );
+
+    const res = await pushJobAssets({ date: '2026-10-16' });
+    expect(pushSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        files: expect.arrayContaining([expect.stringContaining('daily-quarterly-result-analysis')]),
+      })
+    );
+    expect(res.pushed).toContain('runs/daily-quarterly-result-analysis-2026-10-16.json');
+    pushSpy.mockRestore();
+    existsSpy.mockRestore();
+    readSpy.mockRestore();
   });
 });

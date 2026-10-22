@@ -1,7 +1,7 @@
 ---
 name: quarterly-result-analysis
 description: >-
-  Stage 2 (flagship model) of the 2-skill quarterly-result pipeline — industry-agnostic single-quarter result interpretation for Indian listed companies, reading quarterly-result-extractor's persisted DB record (fetched documents + deterministic income-statement signal scan + recall-first tone/guidance/strategic excerpts) and applying the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist, and three scored result-day verdicts — Inflection Point (significant margin expansion + past guidance confirmed-and-beaten + a new C-A-T-A-L-Y-S-T trigger), Walk the Talk (every measurable prior guide vs this quarter's actual, not just sales/profit) and Next Inflection (dated capacity / margin / order-book step-ups). Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks "analyse this quarter", "is this an inflection point", "did they deliver on guidance", "walk the talk", "when is the next trigger", "what changed this quarter", "is the business getting better", "what's management signalling", "result analysis", "quarterly snapshot", "post-result note", or provides a Stockscans ticker with result-day intent. Auto-invokes quarterly-result-extractor when given only a ticker and no DB record exists yet. Also supports single-statement quality modes via `--statement income|balance-sheet|cashflow` (comma-separable): a lean, bulk-safe path that grades ONE financial statement CLEAN/WATCH/STRAINED/RED-FLAG from its deterministic signal scan and skips the transcript, tone work, widget and PDF entirely — use it for "income statement quality only", "is the balance sheet clean", "check cash conversion", "run this across today's results", or any bulk screen across many companies' results. Output is a deterministic Drive-shareable PDF report (same underlying DTO; HTML only when explicitly requested), opening with a bird's-eye KPI strip (Revenue/EBITDA margin/PAT/tax rate/EPS and other decision-relevant metrics, each with a comparison subtext showing rate of change), tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), multi-year deep dives (use equity-research-deepdive), or raw document fetching without interpretation (use quarterly-result-extractor directly).
+  Stage 2 (flagship model) of the 2-skill quarterly-result pipeline — industry-agnostic single-quarter result interpretation for Indian listed companies, reading quarterly-result-extractor's pre-built history pack (prior-call digests, guidance ledger, one-off recurrence, known catalysts, prior verdicts — never generated at runtime) and persisted DB record (fetched documents + deterministic income-statement signal scan + recall-first tone/guidance/strategic excerpts) and applying the 3-basket framework (Business / Risk / Management) plus a forward 2-8 quarter monitoring checklist, and three scored result-day verdicts — Inflection Point (significant margin expansion + past guidance confirmed-and-beaten + a new C-A-T-A-L-Y-S-T trigger), Walk the Talk (every measurable prior guide vs this quarter's actual, not just sales/profit) and Next Inflection (dated capacity / margin / order-book step-ups). Use whenever the user uploads a quarterly investor presentation, concall, or result PDF and asks "analyse this quarter", "is this an inflection point", "did they deliver on guidance", "walk the talk", "when is the next trigger", "what changed this quarter", "is the business getting better", "what's management signalling", "result analysis", "quarterly snapshot", "post-result note", or provides a Stockscans ticker with result-day intent. Auto-invokes quarterly-result-extractor when given only a ticker and no DB record exists yet. Also supports single-statement quality modes via `--statement income|balance-sheet|cashflow` (comma-separable): a lean, bulk-safe path that grades ONE financial statement CLEAN/WATCH/STRAINED/RED-FLAG from its deterministic signal scan and skips the transcript, tone work, widget and PDF entirely — use it for "income statement quality only", "is the balance sheet clean", "check cash conversion", "run this across today's results", or any bulk screen across many companies' results. Output is a deterministic Drive-shareable PDF report (same underlying DTO; HTML only when explicitly requested), opening with a bird's-eye KPI strip (Revenue/EBITDA margin/PAT/tax rate/EPS and other decision-relevant metrics, each with a comparison subtext showing rate of change), tagging every observation Structural / Cyclical / Temporary, classifying management tone, tracking narrative shift vs prior quarters, ending with a forward checklist. NOT for two-quarter forensic diffs (use consecutive-filings-diff), transcript-only dives (use concall-analysis), multi-year deep dives (use equity-research-deepdive), or raw document fetching without interpretation (use quarterly-result-extractor directly).
 ---
 
 # Quarterly Result Analysis
@@ -160,6 +160,20 @@ Then `db.readReport(id)` for the full body. Three distinct cases:
    user directly and stop (don't paper over the gap with annual report data
    or web summaries).
 
+Two more checks on the `--prepare` output (Phase 1), before any reasoning:
+
+4. **`recordStale: true`** — the record predates `headlineFinancials` (pre-2026-09 schema).
+   Re-invoke `quarterly-result-extractor` for the quarter; never analyse a stale record.
+5. **`historyPackMissing: true`, or `historyContext.digestCoverage.pending` non-empty** — the
+   history was not prepared before the result. Run `quarterly-result-extractor` Step 0 (A-C) for
+   this quarter now (auto-build; the digests it writes are reused by every later quarter), then
+   re-run `--prepare`. This is the ONLY place history is ever generated during this skill, and
+   it happens once per company, not once per run. If `currentCallDigest` is null and the
+   quarter's transcript exists, digest it in the same Step 0 B pass (`role: current`) — that
+   reading is next quarter's history. Digests are Mission-Critical and frontier-only: a cheap-tier session
+   (e.g. a scheduled flash run) runs only Step 0 A and C, leaves digests pending, and states
+   "history incomplete: <pending quarters>" in the note instead of reading old transcripts.
+
 If the record is more than a few days old and the user's intent is clearly
 "result just dropped" (result-day intent), re-invoke `quarterly-result-extractor`
 rather than trusting a stale record — a same-day re-run is cheap (Step 2's
@@ -187,8 +201,23 @@ Do NOT ingest raw 20–40 page PDFs or full transcripts into the prompt. The LLM
 - `statementAvailability` — per-statement availability and staleness status.
 - `resultNarrative` — exceptional items and auditor qualifications.
 - `inflectionPrep` — Phase 1.8 inputs: `walkTheTalkLedger` (every prior guide with
-  measurability and auto-filled headline actuals), `marginLeg`, `operatingLeverage`,
-  `catalystCandidates`, `nextInflectionSeeds`, prior verdict history.
+  measurability and auto-filled headline actuals — built from the history pack's
+  `priorGuidance`, which includes guidance from verified concall digests), `marginLeg`,
+  `operatingLeverage`, `catalystCandidates`, `nextInflectionSeeds`, prior verdict history.
+- `historyContext` — the pre-built history pack (`quarterly-result-extractor` Step 0):
+  `narrative` (tone label + quote and topic inventory of each prior call, newest first),
+  `oneOffRecurrence` (one-off excuses across the trailing 4 calls, `recurrent` at >= 2),
+  `knownCatalysts` (everything already disclosed before this quarter), `priorVerdicts`
+  (walk-the-talk / inflection / PEAD chain, open `Q+1 CONFIRMATION PENDING`, last monitoring
+  checklist), `concallNotesGuidance` (Stockscans cross-check), `priceAction` (pre-result
+  run-up for PEAD G3) and `newFilingsSinceLastResult`.
+- `currentCallDigest` — this quarter's call read once (tone, guidance, topics, one-offs,
+  catalysts, all quote-verified), when Step 0 B has run on it.
+
+**History Rule (Mandatory):** all history comes from `historyContext` and `inflectionPrep`. Do
+NOT fetch or read prior transcripts, prior PPTs or older filings during this skill — the pack
+already holds their verified reading. Reason only about the delta: this quarter's documents
+against the pack.
 
 ### Phase 1.5 — Select the KPI strip
 
@@ -250,6 +279,13 @@ Open [`references/basket_framework.md`](references/basket_framework.md) and run 
 Whenever management commentary or presentations include quantitative or qualitative targets, compile a structured Guidance Table:
 
 - **Current Base vs Guided Target**: Always pair the current baseline value alongside the future guided value, and explicitly calculate the **% Change** (or bps change for ratios).
+- **Incremental Guidance Delta Tagging (`deltaTag`)**:
+  Evaluate the incremental shift of each metric's guidance in the latest result filings compared against prior quarter guidance, tagged with one of:
+  - **`Raise`** (`.chip-g`): Target raised or upgraded in the latest filings (e.g., higher revenue/margin targets, increased AUM growth corridor, or accelerated commissioning).
+  - **`Cut`** (`.chip-r`): Target lowered, cut, or delayed (e.g., volume growth lowered, capex pushed out, credit cost corridor worsened).
+  - **`Reaffirm`** (`.chip-b`): Prior guidance explicitly reiterated or confirmed unchanged in latest filings.
+  - **`Silent`** (`.chip-y`): Metric was previously guided by management in earlier calls/presentations (per `historyContext.priorGuidance` or past investor PPTs), but management **omitted / didn't speak about that particular metric's guidance in latest result filings** (crucial alert for quiet guidance withdrawal).
+  - _(For guidance introduced for the first time without prior history, tag as `New`)_.
 - **Mandatory Bottom-Line Row**: Include a future value row for bottom-line metrics:
   - **PAT** for corporates / general industrials.
   - **Book Value / BVPS** for NBFCs, banks, and lending institutions.
@@ -275,7 +311,7 @@ DTO Drive-mirrored and re-readable by the Phase 4 PDF step or any other skill, p
 `subtext`, `tone`), `statementHealth` (three badges: `income`, `balanceSheet`, `cashflow`,
 each carrying `grade` e.g. CLEAN/WATCH/STRAINED/RED-FLAG or ABSENT, plus a 1-liner quantified `brief` with numbers),
 `peadRead` (`verdict`, one line per gate G1-G5, `pricedIn`, `flags[]` from `scripts/peadPricedIn.js`), the verdict chips,
-`guidanceTable` (array of objects: `metric`, `currentValue`, `guidedValue`, `pctChange`, `timeline`, `nature` (`DIRECTLY GUIDED`|`DERIVED`|`UNGUIDED`), `derivationBasis`),
+`guidanceTable` (array of objects: `metric`, `currentValue`, `guidedValue`, `pctChange`, `timeline`, `deltaTag` (`Raise`|`Cut`|`Reaffirm`|`Silent`|`New`), `nature` (`DIRECTLY GUIDED`|`DERIVED`|`UNGUIDED`), `derivationBasis`),
 `walkTheTalk`, `inflectionPoint`, `nextInflection` (verbatim from Phase 1.8's `--score-inflection` — next quarter's run reads `walkTheTalk.summary.verdict` and `inflectionPoint.verdict` back for the clean-delivery streak and the Q+1 confirmation),
 Basket 1/2/3 items (each with its STRUCTURAL/CYCLICAL/TEMPORARY or HIGH/MED/LOW tag), the monitoring checklist rows
 (`kpi`, `threshold`, `horizon`, `source`), and the header fields (company, ticker,
@@ -353,7 +389,7 @@ After the widget renders, write 2-3 short paragraphs outside it. Lead each with 
 
 **Result-reaction checklist (mandatory, one short block in the verdict).** Before any view, state in one line each: (1) is the headline a _business update_ (orders, capacity, pipeline) rather than earnings — updates are not earnings; margins and execution decide result quality; (2) the six context items: base effect, margin quality, one-offs not annualised, guidance, valuation, expectations; (3) a `Q+1 CONFIRMATION PENDING` tag when the quarter is good but not yet proven to sustain — a good quarter is confirmed by the next one, and PEAD alone does not justify a bigger position or longer hold. Never label a result "excellent/great" without the six items. (Derived from `kbf_x-sureshkbn_result-reaction-ladder`, draft; the P&L scan above already supplies items 2-3 of the six — reuse it, do not re-derive.)
 
-**PEAD read (mandatory, one block next to the checklist above; a screen for judgment, not a verdict engine).** Answer five gates in order and put the result in the verdict as `peadRead` — (G1) _Surprise/shock vs expectations_ (not vs last year): what is the surprise element? In-line or expected results are not PEAD; (G2) _Result quality_: operating vs non-operating, base effect, dilution (EPS not PAT), cash flow — reuse the Income Statement / Balance Sheet / Cash Flow scans, do not re-derive; (G3) _Priced in?_ run `node skills/equity-research/quarterly-result-analysis/scripts/peadPricedIn.js '<json>'` with pre-result run-up %, day-0 reaction %, forward P/E vs 1Y/3Y median P/E, PAT growth, other-income share of PBT and float % (missing inputs → `UNKNOWN`, never guess); (G4) _Concall & guidance_: forward guidance raised/cut, did management deliver on last quarter's guided numbers, conditional vs firm targets (feeds Basket 2B/3B — and `management-credibility-tracker` when its record exists); (G5) _New triggers with/after the result_: fresh orders, capex announced or going live, mix shift, debt retirement. Verdict tag `peadRead.verdict`: `PEAD_CANDIDATE` (G1-G2 pass, G3 not PRICED_IN, G4 supportive), `WATCH_Q+1` (good but unproven — pair with `Q+1 CONFIRMATION PENDING`), `PRICED_IN`, or `NOT_PEAD`. Never recommend a pre-result entry; PEAD starts after the print and the call. Sizing language stays High conviction / Standard / Tracking only. Thresholds in the script are illustrative (from SureshKBN's posts, `data/assets/pead-framework-sureshkbn.md`) and unbacktested; his own rule is that this cannot be fully automated, so state the judgment behind each gate in one line. Derived from `kbf_x-sureshkbn_pead-gates` (draft).
+**PEAD read (mandatory, one block next to the checklist above; a screen for judgment, not a verdict engine).** Answer five gates in order and put the result in the verdict as `peadRead` — (G1) _Surprise/shock vs expectations_ (not vs last year): what is the surprise element? In-line or expected results are not PEAD; (G2) _Result quality_: operating vs non-operating, base effect, dilution (EPS not PAT), cash flow — reuse the Income Statement / Balance Sheet / Cash Flow scans, do not re-derive; (G3) _Priced in?_ run `node skills/equity-research/quarterly-result-analysis/scripts/peadPricedIn.js '<json>'` with pre-result run-up % (`historyContext.priceAction`, captured before the print), day-0 reaction %, forward P/E vs 1Y/3Y median P/E, PAT growth, other-income share of PBT and float % (missing inputs → `UNKNOWN`, never guess); (G4) _Concall & guidance_: forward guidance raised/cut, did management deliver on last quarter's guided numbers, conditional vs firm targets (feeds Basket 2B/3B — and `management-credibility-tracker` when its record exists); (G5) _New triggers with/after the result_: fresh orders, capex announced or going live, mix shift, debt retirement. Verdict tag `peadRead.verdict`: `PEAD_CANDIDATE` (G1-G2 pass, G3 not PRICED_IN, G4 supportive), `WATCH_Q+1` (good but unproven — pair with `Q+1 CONFIRMATION PENDING`), `PRICED_IN`, or `NOT_PEAD`. Never recommend a pre-result entry; PEAD starts after the print and the call. Sizing language stays High conviction / Standard / Tracking only. Thresholds in the script are illustrative (from SureshKBN's posts, `data/assets/pead-framework-sureshkbn.md`) and unbacktested; his own rule is that this cannot be fully automated, so state the judgment behind each gate in one line. Derived from `kbf_x-sureshkbn_pead-gates` (draft).
 
 **Balance Sheet & Cash Flow Signal Scans (mandatory when the statements are fresh).** Basket 1C
 reads both scans in full from the extractor's record — `balanceSheetSignals` and
@@ -370,9 +406,9 @@ statements, so report it once with both numbers rather than twice in different w
 
 **Avoid number-repetition.** The investor presentation already contains the numbers. This skill is for interpretation, not summary. If you find yourself listing "revenue Rs X Cr, EBITDA Rs Y Cr, PAT Rs Z Cr" — stop. State only the numbers that change the thesis.
 
-**Track what management _stopped_ saying.** If a topic that dominated three prior calls (e.g., "exports will scale to 20%") is silent this quarter — that is a yellow flag. The Management basket's "Change vs prior quarters" sub-section is where this lives; `quarterly-result-extractor`'s `possiblyDropped` field is the starting point, not the final word — verify against the prior transcript excerpts before calling something dropped.
+**Track what management _stopped_ saying.** If a topic that dominated three prior calls (e.g., "exports will scale to 20%") is silent this quarter — that is a yellow flag. The Management basket's "Change vs prior quarters" sub-section is where this lives; `quarterly-result-extractor`'s `possiblyDropped` field is the starting point, not the final word — verify against `historyContext.narrative` (each prior call's topics with a verbatim quote) before calling something dropped.
 
-**One-Off Margin Recurrence Audit.** Whenever management attributes a margin shortfall or operational miss to "one-off" costs (water, power, freight, FX, plant maintenance, temporary RM spike), cross-verify against prior quarters. If "one-off" or "exceptional" excuses appeared in $\ge 2$ of the last 4 quarters, **disqualify the `TEMPORARY` tag**, flag `RECURRENT OPERATIONAL DRAG`, and downgrade management capital allocation & credibility to `LOW`. Real compounders (like TD Power) sandbag and deliver; promotional managements repeatedly lean on "one-off" excuses.
+**One-Off Margin Recurrence Audit.** Whenever management attributes a margin shortfall or operational miss to "one-off" costs (water, power, freight, FX, plant maintenance, temporary RM spike), cross-verify against prior quarters using `historyContext.oneOffRecurrence` (pre-counted from the verified call digests — do not re-read old calls). If "one-off" or "exceptional" excuses appeared in $\ge 2$ of the last 4 quarters (`recurrent: true`, or this quarter's excuse makes it so), **disqualify the `TEMPORARY` tag**, flag `RECURRENT OPERATIONAL DRAG`, and downgrade management capital allocation & credibility to `LOW`. Real compounders (like TD Power) sandbag and deliver; promotional managements repeatedly lean on "one-off" excuses.
 
 **Q1/Q3 Structural Cap Rule (Working Capital Safeguard).** Under SEBI LODR Reg 33(3), balance sheet and cash flow statements are filed only half-yearly (routinely `ABSENT` in Q1 and Q3). In any quarter where `statementAvailability.balanceSheet.status` is `ABSENT`, **no margin expansion may be tagged `STRUCTURAL` unconditionally**. It may only be tagged `STRUCTURAL (CONDITIONAL ON H1 WORKING CAPITAL AUDIT)` because operating leverage without cash flow verification can mask severe working capital ballooning (Dr. Anil Lamba: _Profit ≠ Cash_). Item #1 of the forward Investor Monitoring Checklist must track H1 Working Capital Days.
 
@@ -448,7 +484,8 @@ is going to be forwarded as a finding in its own right.
 
 ## Related skills
 
-- `quarterly-result-extractor` — Stage 1, fetches PPT/Result/Transcript,
+- `quarterly-result-extractor` — Stage 1. Before the result it builds the
+  `quarterly-result-history` pack (Phase 1's `historyContext`); after it,
   runs the income-statement signal scan, and pulls recall-first
   tone/guidance/strategic excerpts, persisting all of it as one DB record
   this skill reads. Auto-invoked by Phase 0 when no record exists yet; call

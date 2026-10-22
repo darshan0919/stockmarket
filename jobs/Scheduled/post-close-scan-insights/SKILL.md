@@ -68,6 +68,8 @@ Do NOT run any logic directly — every fetch, filter, categorisation, PDF read,
 note write and digest send goes through the documented commands. This job prompt
 is orchestration only.
 
+Zero CWD Scratch Directories: Under NO circumstances create ad-hoc scratch folders or temporary files in the repository root or current working directory (e.g. `.pcsi_*`, `_scratch_*`, `.tmp_*`). Intermediate pipeline outputs must be piped in memory or stored in `os.tmpdir()` and automatically deleted at run completion. Strictly follow `packages/jobs-runtime/lib/db.js` and existing scripts. If anything outside existing scripts and the DB handbook is required, you MUST ask the user for permission first.
+
 Rules: follow the skill's "Rules" section verbatim — files-touched manifest, one
 PDF at a time (no title-only insights), correct `usecase` tagging, funnel
 reconciliation, all outputs under `data/`, and a concrete evidence-based

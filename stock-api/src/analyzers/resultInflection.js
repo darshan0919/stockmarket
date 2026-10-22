@@ -235,11 +235,34 @@ function fromGuidanceTableRow(r, src) {
  * @param {string} args.currentYyyymm Quarter being analysed
  * @param {Array<Object>} [args.forwardGuidanceDtos] Full forward-guidance DTOs for the company
  * @param {Array<Object>} [args.priorResultDtos] Full prior quarterly-result DTOs for the company
+ * @param {Array<Object>} [args.callDigests] concall-digest DTOs (history pack). Used only for
+ *   quarters with no forward-guidance DTO, so one call is never counted twice.
  * @returns {Array<Object>}
  */
-function collectPriorGuidance({ currentYyyymm, forwardGuidanceDtos = [], priorResultDtos = [] }) {
+function collectPriorGuidance({
+  currentYyyymm,
+  forwardGuidanceDtos = [],
+  priorResultDtos = [],
+  callDigests = [],
+}) {
   const curIdx = quarterIndex(currentYyyymm);
   const rows = [];
+  const fgQuarters = new Set(
+    forwardGuidanceDtos.map((d) => normalizeQuarter(d.quarter, d.date)).filter(Boolean)
+  );
+  for (const dto of callDigests) {
+    const yyyymm = normalizeQuarter(dto.quarter, dto.date);
+    if (!yyyymm || quarterIndex(yyyymm) >= curIdx || fgQuarters.has(yyyymm)) continue;
+    for (const g of dto.guidance || []) {
+      rows.push(
+        fromForwardGuidanceItem(g, {
+          sourceType: 'concall-digest',
+          sourceId: dto.id,
+          sourceYyyymm: yyyymm,
+        })
+      );
+    }
+  }
   for (const dto of forwardGuidanceDtos) {
     const yyyymm = normalizeQuarter(dto.quarter, dto.date);
     if (!yyyymm || quarterIndex(yyyymm) >= curIdx) continue;
@@ -784,6 +807,8 @@ function buildSeeds(record, { currentForwardGuidance = null, reratingReport = nu
  * @param {Array<Object>} [args.forwardGuidanceDtos] all forward-guidance DTOs for the company
  * @param {Array<Object>} [args.priorResultDtos] all quarterly-result DTOs for the company
  * @param {Array<Object>} [args.reratingReports] rerating-catalysts DTOs for the company
+ * @param {Array<Object>} [args.priorGuidance] pre-collected prior guidance (history pack's
+ *   `priorGuidance`); when given, it is used as-is instead of re-collecting from the DTOs
  * @returns {Object}
  */
 function prepareInflectionContext({
@@ -791,15 +816,18 @@ function prepareInflectionContext({
   forwardGuidanceDtos = [],
   priorResultDtos = [],
   reratingReports = [],
+  priorGuidance: packedPriorGuidance = null,
 }) {
   const currentYyyymm = normalizeQuarter(record.quarter, record.date);
   if (!currentYyyymm) return { error: 'Cannot resolve the current quarter from the record' };
   const curIdx = quarterIndex(currentYyyymm);
-  const priorGuidance = collectPriorGuidance({
-    currentYyyymm,
-    forwardGuidanceDtos,
-    priorResultDtos,
-  });
+  const priorGuidance =
+    packedPriorGuidance ||
+    collectPriorGuidance({
+      currentYyyymm,
+      forwardGuidanceDtos,
+      priorResultDtos,
+    });
   const currentFg =
     forwardGuidanceDtos.find((d) => normalizeQuarter(d.quarter, d.date) === currentYyyymm) || null;
   const prior = priorResultDtos
@@ -877,6 +905,7 @@ function sign(n) {
 }
 
 module.exports = {
+  quarterIndex,
   normalizeQuarter,
   quarterLabel,
   parsePeriod,

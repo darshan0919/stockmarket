@@ -73,7 +73,7 @@ For each margin trigger, label sustainability:
 
 **Income Statement Signal Scan (mandatory).** Before tagging a margin/profit trigger `SUSTAINABLE`, run the full scan in `skills/_shared/income-statement-signals.md` (QoQ + YoY, all 15 P&L lines plus the combination reads) — inventory gains are item 4 of that framework, alongside Other Income composition, RM-cost moves, tax-rate swings, and exceptional items, any of which can manufacture the same false-`SUSTAINABLE` read. Quantify the estimated contribution to PAT/EBITDA of whatever clears the shared scan's materiality bar, and tag the trigger `TEMPORARY` or `CYCLICAL` — never `SUSTAINABLE` — when it does. Call this out prominently in the verdict chips (e.g. `INVENTORY-GAIN DRIVEN`, `TAX-RATE DRIVEN`, `NON-OPERATING BEAT`) whenever it materially affects the headline result, distinguishing it from genuinely structural drivers (volume growth, pricing power, cost efficiency, mix improvement).
 
-**One-Off Recurrence Audit (mandatory).** When management attributes margin compression to "one-off" costs (water, power, freight, FX, plant maintenance, temporary RM surge), inspect prior quarters. If "one-off" or "exceptional" operational excuses were cited in $\ge 2$ of the trailing 4 quarters, **disqualify the `TEMPORARY` tag**. Tag as `RECURRENT OPERATIONAL DRAG` and penalize the management credibility / capital allocation grade to `LOW`.
+**One-Off Recurrence Audit (mandatory).** When management attributes margin compression to "one-off" costs (water, power, freight, FX, plant maintenance, temporary RM surge), inspect prior quarters via `historyContext.oneOffRecurrence` (pre-counted from the verified call digests). If "one-off" or "exceptional" operational excuses were cited in $\ge 2$ of the trailing 4 quarters, **disqualify the `TEMPORARY` tag**. Tag as `RECURRENT OPERATIONAL DRAG` and penalize the management credibility / capital allocation grade to `LOW`.
 
 **SOIC Operating Leverage & Margin Spread Rule (mandatory).** Grounded in SOIC teaching (_17.05.26 Earnings Decoded @ 01:22:07_): When top-line expands, examine the divergence between Gross Margin spread (YoY bps) and EBITDA Margin spread (YoY bps):
 
@@ -197,17 +197,24 @@ Tag each as `HIGH CONVICTION` (in book / contracted), `MEDIUM CONVICTION` (guide
 Whenever management issues qualitative or quantitative forward guidance on earnings, volumes, revenue, or margins:
 
 1. **Table Structure**:
-   `Metric | Current Value (Base) | Guided Value (Target) | % Change | Timeline | Nature | Source / Derivation Basis`
+   `Metric | Current Value (Base) | Guided Value (Target) | % Change | Timeline | Guidance Delta | Nature | Source / Derivation Basis`
 2. **Current Baseline & % Change**:
    Every guided target must be explicitly compared against the current base period (e.g. TTM, current FY, or current quarter annualized), with percentage change calculated and directionally color-coded.
-3. **Mandatory Bottom-Line Row (PAT or Book Value)**:
+3. **Incremental Guidance Delta Tagging (`deltaTag`)**:
+   Every guided row must be explicitly compared against prior guidance disclosures to tag the incremental guidance direction in latest result filings:
+   - **`RAISE`** (`.chip-g`): Guidance raised / upgraded in latest result filings (e.g. higher growth targets, expanded margin corridor, accelerated project timelines).
+   - **`CUT`** (`.chip-r`): Guidance lowered / cut in latest result filings (e.g. reduced growth rate, lower volume guidance, higher credit cost, delayed capex).
+   - **`REAFFIRM`** (`.chip-b`): Prior guidance explicitly reiterated / confirmed unchanged in latest filings.
+   - **`SILENT`** (`.chip-y`): Metric was previously guided by management in earlier calls or investor presentations, but management **didn't speak about that particular metric's guidance in latest result filings** (critical alert for quiet guidance withdrawal or loss of momentum).
+   - _(For guidance introduced for the first time without prior history, tag as `NEW`)_.
+4. **Mandatory Bottom-Line Row (PAT or Book Value)**:
    - For **general corporates**: Add future **PAT** row.
      - If directly guided: mark `DIRECTLY GUIDED`.
      - If indirectly guided (e.g. Revenue of ₹1,000 Cr with 18% EBITDA margin): derive implied PAT ($\text{EBITDA} - \text{D&A} - \text{Interest} - \text{Taxes}$), mark `DERIVED`, and state formula.
    - For **NBFCs / Banks / Lending Institutions**: Add future **Book Value / BVPS / Net Worth** row.
      - If directly guided: mark `DIRECTLY GUIDED`.
      - If indirectly guided (e.g. AUM growth of 35% with 4.5% RoA corridor and 20% dividend payout): derive implied Net Worth accretion ($\text{Net Worth}_{\text{target}} = \text{Net Worth}_{\text{base}} + \text{Projected PAT} \times \text{Retention Ratio}$), mark `DERIVED`, and show the calculation.
-4. **Strict No-Extrapolation Guardrail**:
+5. **Strict No-Extrapolation Guardrail**:
    - Never extrapolate or hypothesize a bottom-line metric when the underlying dependencies are unguided (e.g. revenue guided but margin unguided; or AUM guided but RoA/credit costs unguided).
    - In such cases, leave Target and % Change cells empty (`—`), mark as `UNGUIDED`, and write in derivation basis: `Dependencies unguided — no extrapolation`.
 
@@ -262,7 +269,7 @@ The highest-signal section. Track:
 **Three high-signal questions to ask explicitly:**
 
 1. **What did management _avoid_ answering?** Note specific analyst questions where the response was vague or pivoted. Quote both Q and A.
-2. **What did they stop discussing?** Topics that dominated 2-3 prior calls and are absent now. Requires prior transcript context.
+2. **What did they stop discussing?** Topics that dominated 2-3 prior calls and are absent now. Read them from `historyContext.narrative` (topics + quote per prior call) and the extractor's `possiblyDropped` — never re-read old transcripts.
 3. **Where did confidence reduce?** Language ladder: "will" → "expect" → "endeavour to" → "depends on" is a tell.
 
 **SOIC Evasion Pattern Taxonomy (mandatory for dodged questions):**
@@ -316,7 +323,7 @@ The tone may be a _blend_ (e.g., "confident on margins, cautious on volumes"). S
 
 ## 3B. Change vs Previous Quarters
 
-This requires the prior transcript. The narrative arc is more informative than any single quarter's snapshot. Identify shifts in commentary:
+The prior calls' reading is pre-built in `historyContext.narrative` (tone label + quote, topics + quote, newest first). The narrative arc is more informative than any single quarter's snapshot. Identify shifts in commentary:
 
 - **survival → expansion** (deleveraging done, now growth capex)
 - **debt reduction → growth capex** (capital allocation pivot)
@@ -331,7 +338,7 @@ For each shift, write:
 
 - What changed
 - One evidence quote from this call
-- One contrast quote from a prior call (1-3 quarters back)
+- One contrast quote from a prior call (1-3 quarters back) — taken from `historyContext.narrative`
 - Why it matters for the thesis
 
 ## 3C. Strategic Direction (3-5 year)

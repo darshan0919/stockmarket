@@ -247,7 +247,10 @@
         "stock-api/src/analyzers/balanceSheetSignals.js",
         "stock-api/src/analyzers/cashflowSignals.js",
         "stock-api/src/analyzers/resultInflection.js",
-        "stock-api/src/utils/fiscalQuarter.js"
+        "stock-api/src/utils/fiscalQuarter.js",
+        "packages/jobs-runtime/lib/resultHistory/historyPack.js",
+        "packages/jobs-runtime/lib/resultHistory/callDigest.js",
+        "packages/jobs-runtime/lib/resultHistory/period.js"
       ]
     },
     {
@@ -877,7 +880,18 @@
         "stock-api/src/http/bseHttp.js",
         "skills/equity-research/quarterly-result-extractor/scripts/extract_result_xbrl.js",
         "skills/equity-research/quarterly-result-extractor/scripts/extract_result_narrative.js",
-        "skills/equity-research/quarterly-result-extractor/scripts/extract_income_statement.js"
+        "skills/equity-research/quarterly-result-extractor/scripts/extract_income_statement.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/prepare_call_digests.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/save_call_digest.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/build_history_pack.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/possibly_dropped.js",
+        "packages/jobs-runtime/lib/verifyExtract.js",
+        "stock-api/src/analyzers/resultInflection.js",
+        "packages/jobs-runtime/lib/resultHistory/period.js",
+        "packages/jobs-runtime/lib/resultHistory/inputs.js",
+        "packages/jobs-runtime/lib/resultHistory/callDigest.js",
+        "packages/jobs-runtime/lib/resultHistory/historyPack.js",
+        "packages/jobs-runtime/lib/resultHistory/runtime.js"
       ]
     },
     {
@@ -934,6 +948,8 @@
       "entry": "skills/equity-research/pead-predictor/scripts/gather_inputs.js",
       "modules": [
         "skills/equity-research/pead-predictor/scripts/gather_inputs.js",
+        "packages/jobs-runtime/lib/resultHistory/inputs.js",
+        "packages/jobs-runtime/lib/resultHistory/historyPack.js",
         "skills/equity-research/pead-predictor/scripts/project_pl.py",
         "skills/equity-research/pead-predictor/scripts/save_prediction.js",
         "skills/equity-research/pead-predictor/scripts/score_prediction.js",

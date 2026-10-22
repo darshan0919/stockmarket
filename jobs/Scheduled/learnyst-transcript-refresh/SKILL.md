@@ -1,7 +1,7 @@
 ---
 name: learnyst-transcript-refresh
-description: Learnyst Transcript & Attachment Refresh — fetches AI transcripts and lesson attachments (PDFs, spreadsheets) across all configured Learnyst memberships (SOIC, Chartitude, ...), cache-first
-model: flash_lite
+description: Learnyst Transcript & Attachment Refresh — fetches AI transcripts and lesson attachments (PDFs, spreadsheets) across all configured Learnyst memberships (SOIC, Chartitude, ...), cache-first, converts non-text artifacts into formatted txt/md/json, and allows flagship model execution
+model: pro
 ---
 
 ## Context

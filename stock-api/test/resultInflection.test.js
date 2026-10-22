@@ -288,3 +288,56 @@ describe('resultInflection — next inflection & end-to-end', () => {
     expect(ri.prepareInflectionContext({ record: { quarter: 'x' } }).error).toBeDefined();
   });
 });
+
+describe('resultInflection — history pack inputs', () => {
+  const digestQ1 = {
+    id: 'dg1',
+    quarter: '202606',
+    guidance: [
+      {
+        metric: 'Capex',
+        period_guided: 'FY27',
+        absolute_value: 225,
+        absolute_unit: 'cr',
+        quote: 'x',
+      },
+    ],
+  };
+  const digestQ4 = {
+    id: 'dg0',
+    quarter: '202603',
+    guidance: [{ metric: 'Volume growth', period_guided: 'FY27', relative_pct: 20, quote: 'y' }],
+  };
+
+  it('uses digest guidance only for quarters without a forward-guidance DTO', () => {
+    const rows = ri.collectPriorGuidance({
+      currentYyyymm: '202609',
+      forwardGuidanceDtos: [fgPrior],
+      callDigests: [digestQ1, digestQ4],
+    });
+    const sources = rows.map((r) => r.sourceType);
+    expect(sources).toContain('concall-digest');
+    // Q1FY27 has fgPrior, so dg1 (same quarter) is skipped; dg0 (Q4FY26) is used.
+    expect(rows.some((r) => r.sourceId === 'dg1')).toBe(false);
+    expect(rows.find((r) => r.sourceId === 'dg0').metric).toBe('Volume growth');
+  });
+
+  it('ignores digests from the current quarter or later', () => {
+    const rows = ri.collectPriorGuidance({
+      currentYyyymm: '202606',
+      callDigests: [digestQ1],
+    });
+    expect(rows).toEqual([]);
+  });
+
+  it('prepareInflectionContext uses packed priorGuidance as-is when given', () => {
+    const packed = ri.collectPriorGuidance({ currentYyyymm: '202609', callDigests: [digestQ4] });
+    const prep = ri.prepareInflectionContext({
+      record,
+      forwardGuidanceDtos: [fgPrior],
+      priorGuidance: packed,
+    });
+    expect(prep.priorGuidanceSources).toEqual(['dg0']);
+    expect(prep.walkTheTalkLedger).toHaveLength(1);
+  });
+});

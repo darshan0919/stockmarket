@@ -286,6 +286,8 @@ Persists to `postclose-followup`. Once a pattern has ≥8 samples, review `postC
 
 ## Rules & Quality Checklist
 
+- [x] **Zero CWD / Ad-Hoc Scratch Folders:** Never create scratch folders (e.g. `.pcsi_*`, `_scratch_*`, `.tmp_*`) in the repository root or current working directory. All intermediate pipeline files must use `os.tmpdir()` or `data/runs/pcsi-<timestamp>` and MUST be cleaned up at run completion.
+- [x] **Strict DB Handbook Boundary:** All persistent data must strictly abide by `packages/jobs-runtime/lib/db.js` (`NotesDb`, `appendNotes`, `processedAnnouncements`). If anything outside existing scripts and the DB handbook is required, the agent/skill MUST ask the user for permission first.
 - [x] **Files-Touched Manifest:** End run listing all touched DB stores, cache files, and `data:push` records.
 - [x] **No Title-Only Insights:** Every surviving non-heavy document gets its PDF opened and read.
 - [x] **Attribution:** All notes set `sourceSkill: "post-close-scan-insights"` and `usecase: "announcement-insights:<depth>"`.

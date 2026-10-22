@@ -181,6 +181,7 @@ describe('Report Generators', () => {
           guidedValue: '₹48,000 Cr',
           pctChange: '+39.1%',
           timeline: 'FY28',
+          deltaTag: 'Raise',
           nature: 'DIRECTLY GUIDED',
           derivationBasis: 'Concall: Target 35-40% CAGR on secured assets',
         },
@@ -190,9 +191,30 @@ describe('Report Generators', () => {
           guidedValue: '₹12,100 Cr',
           pctChange: '+37.8%',
           timeline: 'FY28',
+          deltaTag: 'Reaffirm',
           nature: 'DERIVED',
           derivationBasis:
             'Derived: Base Net Worth + Projected 2-yr PAT at 4.6% RoA with 85% retention',
+        },
+        {
+          metric: 'Net Interest Margin (NIM)',
+          currentValue: '11.5%',
+          guidedValue: '10.8%',
+          pctChange: '-70 bps',
+          timeline: 'FY28',
+          deltaTag: 'Cut',
+          nature: 'DIRECTLY GUIDED',
+          derivationBasis: 'Concall: Cost of funds pressure narrowing spreads',
+        },
+        {
+          metric: 'Disbursement Run-Rate',
+          currentValue: '₹4,000 Cr/qtr',
+          guidedValue: '₹5,500 Cr/qtr',
+          pctChange: '—',
+          timeline: 'FY28',
+          deltaTag: 'Silent',
+          nature: 'DIRECTLY GUIDED',
+          derivationBasis: 'Guided in Q1FY27; omitted/silent in Q2FY27 filings',
         },
         {
           metric: 'Credit Cost',
@@ -200,6 +222,7 @@ describe('Report Generators', () => {
           guidedValue: '—',
           pctChange: '—',
           timeline: 'FY28',
+          deltaTag: '—',
           nature: 'UNGUIDED',
           derivationBasis: 'Dependencies unguided — no extrapolation',
         },
@@ -212,6 +235,11 @@ describe('Report Generators', () => {
     expect(res.html).toContain('Current Value (Base)');
     expect(res.html).toContain('Guided Value (Target)');
     expect(res.html).toContain('% Change');
+    expect(res.html).toContain('Guidance Delta');
+    expect(res.html).toContain('chip-g">RAISE');
+    expect(res.html).toContain('chip-b">REAFFIRM');
+    expect(res.html).toContain('chip-r">CUT');
+    expect(res.html).toContain('chip-y">SILENT');
     expect(res.html).toContain('+39.1%');
     expect(res.html).toContain('DIRECTLY GUIDED');
     expect(res.html).toContain('Book Value (Net Worth)');

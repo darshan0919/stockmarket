@@ -95,12 +95,13 @@ debt, tax rate). Verdict: `CONFIRMED_AND_BEAT` (no misses, ≥1 beat) · `DELIVE
 · `MIXED` · `MISSED` · `INSUFFICIENT_DATA`. `consecutiveCleanQuarters` chains through prior
 `quarterly-result` DTOs.
 
-**When `INSUFFICIENT_DATA` because nothing prior is on file** (interactive runs only — the
-daily job just reports it): fetch the previous quarter's transcript through
-`concall-transcript-extractor` (DB hit first), extract its guidance rows in the
-forward-guidance item schema, persist with
-`skills/equity-research/forward-guidance-extractor/scripts/save_forward_guidance.js --quarter <PRIOR_Q>`,
-and re-run `--prepare`. Persisting means the next quarter's run gets it for free.
+**Prior guidance comes from the history pack, never from a runtime transcript read.** The
+ledger is built from the pack's `priorGuidance`: `forward-guidance` DTOs, earlier
+`quarterly-result` guidance tables, and the verified `concall-digest` guidance of every prior
+call that has no forward-guidance DTO (`sourceType: concall-digest`). **When `INSUFFICIENT_DATA`
+because nothing prior is on file**, the cause is a missing or incomplete pack
+(`historyPackMissing` / `digestCoverage.pending`): run `quarterly-result-extractor` Step 0 and
+re-run `--prepare` (SKILL.md Phase 0 check 5) — do not read old transcripts here.
 
 Feeds PEAD **G4** — quote `walkTheTalk.summary` there, do not re-judge it.
 
@@ -114,7 +115,9 @@ Feeds PEAD **G4** — quote `walkTheTalk.summary` there, do not re-judge it.
 
 **newCatalysts — how to judge.** Start from `inflectionPrep.catalystCandidates`
 (strategic excerpts + the latest `rerating-catalysts` DTO if it is newer than the last
-result). Tag each with its C-A-T-A-L-Y-S-T letter
+result). `isNew` is a diff against `historyContext.knownCatalysts` (every catalyst disclosed on
+the prior calls, with the quarter it was first seen) — a candidate already there with the same
+number and timeline is a confirmation; a changed number/timeline is a revision worth stating. Tag each with its C-A-T-A-L-Y-S-T letter
 (`rerating-catalysts/references/growth_catalyst_framework.md` §4: **C**apex/capacity,
 **A**cquisition/alliance, **T**urnaround, **A**pprovals/policy, **L**arge orders, **Y**ear-zero
 new product/business, **S**witch in strategy/management, **T**heme). `isNew: true` only if it

@@ -871,10 +871,16 @@ function saveLearnystTranscript(dto) {
       // downloadUrl/sizeBytes/state/downloadedAt) into the slim index.
       hasAttachments: Array.isArray(attachments) && attachments.length > 0,
       attachmentPaths: Array.isArray(attachments)
-        ? attachments.map((a) => a && a.localPath).filter(Boolean)
+        ? attachments.map((a) => a && (a.processedPath || a.newPath || a.localPath)).filter(Boolean)
         : [],
-      videoPath: (dto.video && dto.video.localPath) || dto.videoPath || null,
-      audioPath: (dto.audio && dto.audio.localPath) || dto.audioPath || null,
+      videoPath:
+        (dto.video && (dto.video.processedPath || dto.video.newPath || dto.video.localPath)) ||
+        dto.videoPath ||
+        null,
+      audioPath:
+        (dto.audio && (dto.audio.processedPath || dto.audio.newPath || dto.audio.localPath)) ||
+        dto.audioPath ||
+        null,
       body: `learnyst-lessons/${partitionName}`,
     },
   ]);
@@ -1067,10 +1073,21 @@ function learnystAttachmentPath(filename) {
 function hasLearnystAttachment(filename) {
   const p = path.join(DIRS.assets(), 'learnyst-attachments', filename);
   try {
-    return fs.existsSync(p) && fs.statSync(p).size > 0;
+    if (fs.existsSync(p) && fs.statSync(p).size > 0) return true;
   } catch {
-    return false;
+    // continue
   }
+  const ext = path.extname(filename);
+  const base = filename.slice(0, -ext.length);
+  for (const cExt of ['.txt', '.md', '.json']) {
+    const cp = path.join(DIRS.assets(), 'learnyst-attachments', `${base}${cExt}`);
+    try {
+      if (fs.existsSync(cp) && fs.statSync(cp).size > 0) return true;
+    } catch {
+      // continue
+    }
+  }
+  return false;
 }
 function learnystVideoPath(filename) {
   init();
@@ -1081,10 +1098,19 @@ function learnystVideoPath(filename) {
 function hasLearnystVideo(filename) {
   const p = path.join(DIRS.assets(), 'learnyst-videos', filename);
   try {
-    return fs.existsSync(p) && fs.statSync(p).size > 0;
+    if (fs.existsSync(p) && fs.statSync(p).size > 0) return true;
   } catch {
-    return false;
+    // continue
   }
+  const ext = path.extname(filename);
+  const base = filename.slice(0, -ext.length);
+  const tp = path.join(DIRS.assets(), 'learnyst-videos', `${base}.transcript.json`);
+  try {
+    if (fs.existsSync(tp) && fs.statSync(tp).size > 0) return true;
+  } catch {
+    // continue
+  }
+  return false;
 }
 function learnystAudioPath(filename) {
   init();
@@ -1095,10 +1121,19 @@ function learnystAudioPath(filename) {
 function hasLearnystAudio(filename) {
   const p = path.join(DIRS.assets(), 'learnyst-audio', filename);
   try {
-    return fs.existsSync(p) && fs.statSync(p).size > 0;
+    if (fs.existsSync(p) && fs.statSync(p).size > 0) return true;
   } catch {
-    return false;
+    // continue
   }
+  const ext = path.extname(filename);
+  const base = filename.slice(0, -ext.length);
+  const tp = path.join(DIRS.assets(), 'learnyst-audio', `${base}.transcript.json`);
+  try {
+    if (fs.existsSync(tp) && fs.statSync(tp).size > 0) return true;
+  } catch {
+    // continue
+  }
+  return false;
 }
 
 /**

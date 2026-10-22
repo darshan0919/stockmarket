@@ -1,6 +1,10 @@
 'use strict';
 
-const { updateSidecarsConfig } = require('../antigravity-sync-tasks-and-skills');
+const {
+  updateSidecarsConfig,
+  getProjectId,
+  pruneDuplicateProjects,
+} = require('../antigravity-sync-tasks-and-skills');
 
 describe('antigravity-sync: updateSidecarsConfig', () => {
   const PROJ_ID = 'test-project-12345';
@@ -226,6 +230,160 @@ describe('antigravity-sync: compressDescription and writeRouterSkill', () => {
       expect(content).toContain('skills/registry.json');
       expect(content).toContain('skills/equity-research/test-skill/SKILL.md');
       expect(content).not.toContain('old-script.js');
+    });
+  });
+});
+
+describe('antigravity-sync: getProjectId and pruneDuplicateProjects', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const os = require('os');
+  const repoUri = 'file://' + path.resolve(__dirname, '../../');
+
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'projects-test-'));
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(tmpDir)) {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  describe('getProjectId', () => {
+    test('returns undefined if projectsDir does not exist or has no json files', () => {
+      const nonExistent = path.join(tmpDir, 'does-not-exist');
+      expect(getProjectId(nonExistent)).toBeUndefined();
+      expect(getProjectId(tmpDir)).toBeUndefined();
+    });
+
+    test('prioritizes canonical project named stockmarket over duplicates pointing to the same folder', () => {
+      // Create a duplicate/phantom project file (which might sort alphabetically first)
+      const duplicateProj = {
+        id: 'duplicate-uuid-1111',
+        name: 'daily-gainers-signal',
+        projectResources: {
+          resources: [{ gitFolder: { folderUri: repoUri } }],
+        },
+      };
+      fs.writeFileSync(
+        path.join(tmpDir, '000-duplicate.json'),
+        JSON.stringify(duplicateProj, null, 2)
+      );
+
+      // Create the canonical project file
+      const canonicalProj = {
+        id: 'canonical-uuid-9999',
+        name: 'stockmarket',
+        projectResources: {
+          resources: [{ gitFolder: { folderUri: repoUri } }],
+        },
+      };
+      fs.writeFileSync(
+        path.join(tmpDir, 'zzz-canonical.json'),
+        JSON.stringify(canonicalProj, null, 2)
+      );
+
+      // Even though 000-duplicate is read first, getProjectId returns canonical-uuid-9999
+      const result = getProjectId(tmpDir);
+      expect(result).toBe('canonical-uuid-9999');
+    });
+
+    test('falls back to first matching project if stockmarket name is not found', () => {
+      const otherProj = {
+        id: 'fallback-uuid-2222',
+        name: 'custom-name',
+        projectResources: {
+          resources: [{ gitFolder: { folderUri: repoUri } }],
+        },
+      };
+      fs.writeFileSync(path.join(tmpDir, 'custom.json'), JSON.stringify(otherProj, null, 2));
+
+      const result = getProjectId(tmpDir);
+      expect(result).toBe('fallback-uuid-2222');
+    });
+
+    test('ignores projects pointing to a different folderUri', () => {
+      const unrelatedProj = {
+        id: 'unrelated-uuid-3333',
+        name: 'other-repo',
+        projectResources: {
+          resources: [{ gitFolder: { folderUri: 'file:///some/other/path' } }],
+        },
+      };
+      fs.writeFileSync(path.join(tmpDir, 'unrelated.json'), JSON.stringify(unrelatedProj, null, 2));
+
+      const result = getProjectId(tmpDir);
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('pruneDuplicateProjects', () => {
+    test('returns 0 when canonicalProjId is undefined', () => {
+      expect(pruneDuplicateProjects(undefined, tmpDir)).toBe(0);
+    });
+
+    test('removes duplicate project files pointing to repoUri while preserving canonical and unrelated projects', () => {
+      const canonicalId = 'canonical-uuid-9999';
+
+      // 1. Canonical project file
+      fs.writeFileSync(
+        path.join(tmpDir, `${canonicalId}.json`),
+        JSON.stringify({
+          id: canonicalId,
+          name: 'stockmarket',
+          projectResources: {
+            resources: [{ gitFolder: { folderUri: repoUri } }],
+          },
+        })
+      );
+
+      // 2. Duplicate project file 1
+      fs.writeFileSync(
+        path.join(tmpDir, 'dup-1.json'),
+        JSON.stringify({
+          id: 'dup-1',
+          name: 'exit-watch-daily',
+          projectResources: {
+            resources: [{ gitFolder: { folderUri: repoUri } }],
+          },
+        })
+      );
+
+      // 3. Duplicate project file 2
+      fs.writeFileSync(
+        path.join(tmpDir, 'dup-2.json'),
+        JSON.stringify({
+          id: 'dup-2',
+          name: 'daily-volume-rocketing-signal',
+          projectResources: {
+            resources: [{ gitFolder: { folderUri: repoUri } }],
+          },
+        })
+      );
+
+      // 4. Unrelated project file (pointing to a different repo)
+      fs.writeFileSync(
+        path.join(tmpDir, 'other-repo.json'),
+        JSON.stringify({
+          id: 'other-repo-id',
+          name: 'other-project',
+          projectResources: {
+            resources: [{ gitFolder: { folderUri: 'file:///Users/darshanpatel/code/other' } }],
+          },
+        })
+      );
+
+      const prunedCount = pruneDuplicateProjects(canonicalId, tmpDir);
+      expect(prunedCount).toBe(2);
+
+      const remainingFiles = fs.readdirSync(tmpDir);
+      expect(remainingFiles).toContain(`${canonicalId}.json`);
+      expect(remainingFiles).toContain('other-repo.json');
+      expect(remainingFiles).not.toContain('dup-1.json');
+      expect(remainingFiles).not.toContain('dup-2.json');
     });
   });
 });

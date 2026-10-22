@@ -152,7 +152,7 @@ A management's tone is often a _blend_ — confident on margins, cautious on vol
 
 > "The order book supports 25-28% growth. We are guiding 18-20%. We have learned from prior quarters that surprises on the upside are easier to handle than missing on the downside." — MD, Q3 FY26 Concall
 
-**Verify with history:** Conservative is the most flattering label. Don't apply unless the trailing 4-8 quarters show a pattern of beating guidance materially. Otherwise it is just CAUTIOUS in disguise.
+**Verify with history:** Conservative is the most flattering label. Don't apply unless the trailing 4-8 quarters show a pattern of beating guidance materially (`historyContext.priorVerdicts.walkTheTalk` — `CONFIRMED_AND_BEAT`/`DELIVERED` streak — and `historyContext.narrative` tone labels). Otherwise it is just CAUTIOUS in disguise.
 
 ---
 
@@ -177,7 +177,7 @@ For each quarter's analysis, do the following:
 
 # Tone change as a leading indicator
 
-A _change_ in tone vs prior quarters is usually a stronger signal than the absolute tone of any single quarter. Specifically:
+A _change_ in tone vs prior quarters is usually a stronger signal than the absolute tone of any single quarter. The prior labels (with quotes) are in `historyContext.narrative`; this quarter's label is `currentCallDigest.tone` when present. Specifically:
 
 | Prior 2-3 quarters → This quarter | Significance                                            |
 | --------------------------------- | ------------------------------------------------------- |

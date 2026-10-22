@@ -348,7 +348,10 @@
         "packages/jobs-runtime/lib/db.js",
         "stock-api/src/analyzers/balanceSheetSignals.js",
         "stock-api/src/analyzers/cashflowSignals.js",
-        "stock-api/src/analyzers/resultInflection.js"
+        "stock-api/src/analyzers/resultInflection.js",
+        "packages/jobs-runtime/lib/resultHistory/historyPack.js",
+        "packages/jobs-runtime/lib/resultHistory/callDigest.js",
+        "packages/jobs-runtime/lib/resultHistory/period.js"
       ],
       "references": [
         "skills/equity-research/quarterly-result-analysis/references/basket_framework.md",
@@ -400,9 +403,20 @@
         "packages/jobs-runtime/lib/db.js",
         "skills/equity-research/quarterly-result-extractor/scripts/extract_statements.js",
         "stock-api/src/analyzers/balanceSheetSignals.js",
-        "stock-api/src/analyzers/cashflowSignals.js"
+        "stock-api/src/analyzers/cashflowSignals.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/prepare_call_digests.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/save_call_digest.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/build_history_pack.js",
+        "skills/equity-research/quarterly-result-extractor/scripts/possibly_dropped.js",
+        "packages/jobs-runtime/lib/verifyExtract.js",
+        "stock-api/src/analyzers/resultInflection.js",
+        "packages/jobs-runtime/lib/resultHistory/period.js",
+        "packages/jobs-runtime/lib/resultHistory/inputs.js",
+        "packages/jobs-runtime/lib/resultHistory/callDigest.js",
+        "packages/jobs-runtime/lib/resultHistory/historyPack.js",
+        "packages/jobs-runtime/lib/resultHistory/runtime.js"
       ],
-      "references": [],
+      "references": ["skills/equity-research/quarterly-result-extractor/references/call_digest.md"],
       "shared": [
         "skills/_shared/conventions.md",
         "skills/_shared/income-statement-signals.md",
@@ -413,7 +427,11 @@
         "fetch quarterly result documents",
         "quarterly result extractor",
         "pull result and transcript",
-        "extract result data"
+        "extract result data",
+        "build history pack",
+        "prepare history before result",
+        "pre-result history pack",
+        "concall digest"
       ]
     },
     "consecutive-filings-diff": {
@@ -2437,6 +2455,8 @@
       "mode": "clone",
       "modules": [
         "skills/equity-research/pead-predictor/scripts/gather_inputs.js",
+        "packages/jobs-runtime/lib/resultHistory/inputs.js",
+        "packages/jobs-runtime/lib/resultHistory/historyPack.js",
         "skills/equity-research/pead-predictor/scripts/project_pl.py",
         "skills/equity-research/pead-predictor/scripts/save_prediction.js",
         "skills/equity-research/pead-predictor/scripts/score_prediction.js",
