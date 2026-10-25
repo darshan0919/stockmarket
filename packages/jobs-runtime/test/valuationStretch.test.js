@@ -15,6 +15,17 @@ describe('valuationStretch.evaluate', () => {
       'PE_GT_50_WEAK_REGIME'
     );
   });
+  test('flags SureshKBN valuation cycle peak and cyclical extrapolation risk', () => {
+    const res = evaluate({
+      pe: 45,
+      industryPe: 30,
+      expectationDecel: true,
+      cyclicalExtrapolationRisk: true,
+    });
+    expect(res.flags).toContain('VALUATION_CYCLE_PEAK_RISK');
+    expect(res.flags).toContain('CYCLICAL_EXTRAPOLATION_RISK');
+    expect(res.state).toBe('confirmed');
+  });
   test('negative PEG / PE ignored', () =>
     expect(evaluate({ pe: -5, peg: -1, industryPe: 10 }).state).toBeNull());
 });

@@ -33,6 +33,7 @@ const MAP_EXTRA = {
   X4: 'X4-sector-rs-rollover',
   X5: 'X5-distribution',
   X6: 'X6-fundamental-exit',
+  X8: 'X8-theme-expiry-supply-glut',
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const ddmmyyyy = (d) =>
@@ -208,6 +209,16 @@ async function main() {
             returnsSinceResult: row['Returns Since Result'],
             cfoToPat: row['CFO To PAT'],
             pledgedPct: row['Pledged Percentage'],
+            inventoryDaysExpansionPct: row['Inventory Days Change Pct'],
+            marginDeclineBps: row['Operating Margin Decline Bps'],
+            endUserHeadwind: Boolean(row['End User Headwind']),
+          });
+          ex.X8 = X.themeExpiryExit({
+            industryCapexGrowthYoY: row['Industry Capex Growth YoY'],
+            supplyDemandRatio: row['Supply Demand Ratio'],
+            inventoryDaysExpansionPct: row['Inventory Days Change Pct'],
+            marginDeclineBps: row['Operating Margin Decline Bps'],
+            endUserHeadwind: Boolean(row['End User Headwind']),
           });
           for (const k of Object.keys(ex))
             observations.push({

@@ -31,6 +31,10 @@ const T = Object.freeze({
   x6PatYoY: 30,
   x6ResultWindowDays: 100,
   x6Pledge: 20,
+  x8IndustryCapexGrowthYoY: 40,
+  x8SupplyDemandRatio: 1.5,
+  x8InventoryExpansionPct: 25,
+  x8MarginCompressionBps: 200,
 });
 const num = (x) => typeof x === 'number' && Number.isFinite(x);
 const mx = (a) => a.reduce((m, x) => (x > m ? x : m), -Infinity);
@@ -128,6 +132,14 @@ function fundamentalExit(r = {}) {
   if (num(r.cfoToPat) && r.cfoToPat < 0 && num(r.patYoY) && r.patYoY > 0)
     flags.push('CASH_DIVERGENCE');
   if (num(r.pledgedPct) && r.pledgedPct >= T.x6Pledge) flags.push('HIGH_PLEDGE');
+  if (
+    num(r.inventoryDaysExpansionPct) &&
+    r.inventoryDaysExpansionPct >= T.x8InventoryExpansionPct &&
+    num(r.marginDeclineBps) &&
+    r.marginDeclineBps >= T.x8MarginCompressionBps
+  )
+    flags.push('CAPITAL_CYCLE_GLUT');
+  if (r.endUserHeadwind) flags.push('END_USER_HEADWIND');
   const state = flags.length >= 2 ? 'confirmed' : flags.length === 1 ? 'detected' : null;
   return {
     state,
@@ -139,8 +151,62 @@ function fundamentalExit(r = {}) {
       daysFromResult: r.daysFromResult ?? null,
       cfoToPat: r.cfoToPat ?? null,
       pledgedPct: r.pledgedPct ?? null,
+      inventoryDaysExpansionPct: r.inventoryDaysExpansionPct ?? null,
+      marginDeclineBps: r.marginDeclineBps ?? null,
+      endUserHeadwind: Boolean(r.endUserHeadwind),
     },
   };
 }
 
-module.exports = { T, median, sectorRollover, failedBreakouts, distribution, fundamentalExit };
+/**
+ * themeExpiryExit (X8) — evaluates capital cycle oversupply, capacity glut, and end-user downcycle headwinds.
+ * @param {{
+ *   industryCapexGrowthYoY?: number,
+ *   supplyDemandRatio?: number,
+ *   inventoryDaysExpansionPct?: number,
+ *   marginDeclineBps?: number,
+ *   endUserHeadwind?: boolean
+ * }} r
+ */
+function themeExpiryExit(r = {}) {
+  const flags = [];
+  if (num(r.industryCapexGrowthYoY) && r.industryCapexGrowthYoY > T.x8IndustryCapexGrowthYoY) {
+    flags.push('INDUSTRY_CAPEX_GLUT');
+  }
+  if (num(r.supplyDemandRatio) && r.supplyDemandRatio > T.x8SupplyDemandRatio) {
+    flags.push('SUPPLY_DEMAND_OVERSUPPLY');
+  }
+  if (
+    num(r.inventoryDaysExpansionPct) &&
+    r.inventoryDaysExpansionPct >= T.x8InventoryExpansionPct &&
+    num(r.marginDeclineBps) &&
+    r.marginDeclineBps >= T.x8MarginCompressionBps
+  ) {
+    flags.push('CAPITAL_CYCLE_GLUT');
+  }
+  if (r.endUserHeadwind) {
+    flags.push('END_USER_HEADWIND');
+  }
+  const state = flags.length >= 2 ? 'confirmed' : flags.length === 1 ? 'detected' : null;
+  return {
+    state,
+    flags,
+    evidence: {
+      industryCapexGrowthYoY: r.industryCapexGrowthYoY ?? null,
+      supplyDemandRatio: r.supplyDemandRatio ?? null,
+      inventoryDaysExpansionPct: r.inventoryDaysExpansionPct ?? null,
+      marginDeclineBps: r.marginDeclineBps ?? null,
+      endUserHeadwind: Boolean(r.endUserHeadwind),
+    },
+  };
+}
+
+module.exports = {
+  T,
+  median,
+  sectorRollover,
+  failedBreakouts,
+  distribution,
+  fundamentalExit,
+  themeExpiryExit,
+};

@@ -112,6 +112,29 @@ function normalizeChannelHandle(input) {
   return str.replace(/^@/, '').replace(/\/.*$/, '').trim();
 }
 
+const YOUTUBE_VIDEO_ID_PATTERNS = [
+  /youtube\.com\/watch\?(?:.*&)?v=([\w-]{11})/,
+  /youtu\.be\/([\w-]{11})/,
+  /youtube\.com\/embed\/([\w-]{11})/,
+  /youtube\.com\/shorts\/([\w-]{11})/,
+];
+
+/**
+ * Extracts an 11-char YouTube video ID from a raw ID or standard YouTube URL.
+ * @param {string} input
+ * @returns {string|null}
+ */
+function parseVideoId(input) {
+  if (!input || typeof input !== 'string') return null;
+  const str = input.trim();
+  if (/^[\w-]{11}$/.test(str)) return str;
+  for (const re of YOUTUBE_VIDEO_ID_PATTERNS) {
+    const m = str.match(re);
+    if (m) return m[1];
+  }
+  return null;
+}
+
 /**
  * Parses comma-separated channel handles or URLs from an env var string.
  * @param {string|undefined} envVal
@@ -262,6 +285,12 @@ function parseArgs(argv) {
     channelHandles,
     channelId: channelIds ? channelIds[0] : null,
     channelIds,
+    video:
+      argValue('--video', argv) ||
+      argValue('--video-url', argv) ||
+      argValue('--video-id', argv) ||
+      null,
+    asChannel: argValue('--as-channel', argv) || argValue('--as-channel-handle', argv) || null,
     only: argValue('--only', argv)
       ? new Set(
           argValue('--only', argv)
@@ -462,6 +491,67 @@ async function checkYtDlpAvailable(cfg) {
 }
 
 /**
+ * Fetch video metadata (title, publishedAt, channelId, channelTitle) via YouTube Data API
+ * with a yt-dlp fallback.
+ *
+ * @param {Object} cfg
+ * @param {Object|null} youtube
+ * @param {string} videoId
+ * @returns {Promise<{ videoId: string, title: string, publishedAt: string|null, channelId: string|null, channelTitle: string|null }>}
+ */
+async function fetchVideoMetadata(cfg, youtube, videoId) {
+  if (youtube) {
+    try {
+      const data = await withRetry(
+        async () => {
+          const res = await youtube.videos.list({
+            part: ['snippet'],
+            id: [videoId],
+          });
+          return res.data;
+        },
+        { maxRetries: cfg.maxRetries, label: `fetchVideoMetadata(${videoId})` }
+      );
+      const item = (data.items || [])[0];
+      if (item && item.snippet) {
+        return {
+          videoId,
+          title: item.snippet.title,
+          publishedAt: item.snippet.publishedAt,
+          channelId: item.snippet.channelId,
+          channelTitle: item.snippet.channelTitle,
+        };
+      }
+    } catch (err) {
+      console.warn(`YouTube API metadata lookup failed: ${err.message}, falling back to yt-dlp`);
+    }
+  }
+
+  // Fallback via yt-dlp --dump-json
+  try {
+    const { stdout } = await execFileAsync(cfg.ytDlpPath, [
+      '--dump-json',
+      '--skip-download',
+      `https://www.youtube.com/watch?v=${videoId}`,
+    ]);
+    const info = JSON.parse(stdout);
+    let pub = null;
+    if (info.upload_date && info.upload_date.length === 8) {
+      pub = `${info.upload_date.slice(0, 4)}-${info.upload_date.slice(4, 6)}-${info.upload_date.slice(6, 8)}T00:00:00Z`;
+    }
+    return {
+      videoId,
+      title: info.title || videoId,
+      publishedAt: pub,
+      channelId: info.channel_id || null,
+      channelTitle: info.channel || null,
+    };
+  } catch (err) {
+    throw new Error(`Failed to fetch video metadata for ${videoId}: ${err.message}`);
+  }
+}
+
+/**
  * Download one video's captions to a temp dir via yt-dlp, preferring manual
  * (human-uploaded) subtitles over auto-generated ones, matching
  * `cfg.captionLang` (regex-matched, so "en" also picks up "en-US"/"en-orig").
@@ -471,16 +561,21 @@ async function checkYtDlpAvailable(cfg) {
 async function fetchTranscriptViaYtDlp(cfg, videoId) {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ytt-'));
   try {
-    const attempts = [{ flag: '--write-subs', kind: 'manual' }];
-    if (cfg.allowAutoCaptions) attempts.push({ flag: '--write-auto-sub', kind: 'asr' });
+    const attempts = [{ flag: '--write-subs', subLang: `${cfg.captionLang}.*`, kind: 'manual' }];
+    if (cfg.allowAutoCaptions) {
+      // Trying orig first avoids pulling multiple caption tracks simultaneously,
+      // which can trigger YouTube's HTTP 429 rate limit on the secondary track.
+      attempts.push({ flag: '--write-auto-sub', subLang: `${cfg.captionLang}-orig`, kind: 'asr' });
+      attempts.push({ flag: '--write-auto-sub', subLang: `${cfg.captionLang}.*`, kind: 'asr' });
+    }
 
-    for (const { flag, kind } of attempts) {
+    for (const { flag, subLang, kind } of attempts) {
       const outTemplate = path.join(tmpDir, '%(id)s');
       const args = [
         '--skip-download',
         flag,
         '--sub-langs',
-        `${cfg.captionLang}.*`,
+        subLang,
         '--sub-format',
         'vtt',
         '--impersonate',
@@ -490,10 +585,16 @@ async function fetchTranscriptViaYtDlp(cfg, videoId) {
         args.push('--cookies-from-browser', cfg.ytDlpCookiesFromBrowser);
       }
       args.push('-o', outTemplate, `https://www.youtube.com/watch?v=${videoId}`);
-      await withRetry(() => execFileAsync(cfg.ytDlpPath, args), {
-        maxRetries: cfg.maxRetries,
-        label: `yt-dlp(${videoId}, ${kind})`,
-      });
+      try {
+        await withRetry(() => execFileAsync(cfg.ytDlpPath, args), {
+          maxRetries: cfg.maxRetries,
+          label: `yt-dlp(${videoId}, ${kind})`,
+        });
+      } catch (err) {
+        // If yt-dlp errored (e.g. 429 on secondary sub-track) but a valid VTT was already downloaded, proceed.
+        const vttFile = fs.readdirSync(tmpDir).find((f) => f.endsWith('.vtt'));
+        if (!vttFile) throw err;
+      }
       const vttFile = fs.readdirSync(tmpDir).find((f) => f.endsWith('.vtt'));
       if (!vttFile) continue; // no track of this kind — try the next
       const vttMatch = vttFile.match(/\.([a-zA-Z-]+)\.vtt$/);
@@ -758,6 +859,72 @@ async function main() {
     `Auth mode: ${authMode === 'oauth2' ? 'OAuth2 (Drive credentials reused)' : 'API key'}`
   );
 
+  if (args.video) {
+    const videoId = parseVideoId(args.video);
+    if (!videoId) {
+      throw new Error(`Invalid YouTube video ID or URL: "${args.video}"`);
+    }
+
+    console.log(`Processing single video: ${videoId}`);
+    const meta = await fetchVideoMetadata(cfg, youtube, videoId);
+    console.log(`Video title: ${meta.title} (${meta.publishedAt || 'unknown date'})`);
+
+    let targetChannel = null;
+    if (args.asChannel) {
+      const clean = normalizeChannelHandle(args.asChannel);
+      if (clean.startsWith('UC') && clean.length === 24) {
+        targetChannel = await fetchChannelById(cfg, youtube, clean);
+      } else {
+        targetChannel = await resolveChannel(cfg, youtube, clean);
+      }
+    }
+
+    const channelId = targetChannel ? targetChannel.channelId : meta.channelId;
+    const channelHandle = targetChannel
+      ? targetChannel.customUrl
+        ? normalizeChannelHandle(targetChannel.customUrl)
+        : normalizeChannelHandle(args.asChannel)
+      : meta.channelTitle
+        ? normalizeChannelHandle(meta.channelTitle)
+        : null;
+    const channelTitle = targetChannel ? targetChannel.channelTitle : meta.channelTitle;
+
+    console.log(
+      `Target channel: ${channelTitle || channelId} (${channelId}, handle: ${channelHandle || 'n/a'})`
+    );
+
+    const cached = alreadyFetched(channelId, videoId);
+    const cachedNoCaptions = cached && cached.captionKind === 'none';
+    if (cached && !args.force && !(cachedNoCaptions && args.recheckNoCaptions)) {
+      if (cachedNoCaptions) {
+        console.log(`Video ${videoId}: no captions (checked previously), skipping`);
+      } else {
+        console.log(`Video ${videoId}: already cached in DB, skipping (use --force to override).`);
+      }
+      return;
+    }
+
+    console.log(`Fetching transcript via yt-dlp...`);
+    const result = await fetchTranscriptViaYtDlp(cfg, videoId);
+    const dto = buildTranscriptDto({
+      channelId,
+      channelHandle,
+      channelTitle,
+      video: meta,
+      captionKind: result.captionKind || 'none',
+      captionLang: result.captionLang || null,
+      transcript: result.captionKind ? result : NO_CAPTIONS_TRANSCRIPT,
+    });
+
+    const docId = db.saveYoutubeTranscript(dto);
+    console.log(
+      `Saved transcript for ${videoId} to DB (id: ${docId}, captionKind: ${dto.captionKind})`
+    );
+    console.log('\nFiles touched:');
+    for (const f of db.touchedFiles()) console.log(`  ${f}`);
+    return;
+  }
+
   let targets = [];
   if (args.channelIds && args.channelIds.length > 0) {
     targets = args.channelIds.map((id) => ({ type: 'id', value: id }));
@@ -842,9 +1009,11 @@ module.exports = {
   createYoutubeClient,
   isInsufficientScopeError,
   parseArgs,
+  parseVideoId,
   resolveChannel,
   fetchChannelById,
   fetchChannelVideos,
+  fetchVideoMetadata,
   checkYtDlpAvailable,
   fetchTranscriptViaYtDlp,
   parseVttCues,

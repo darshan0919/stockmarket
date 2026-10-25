@@ -138,6 +138,30 @@ Notes:
 
 ---
 
+## 2b. GET youtube.googleapis.com/youtube/v3/videos (`id`)
+
+Fetches metadata for a single specific video (e.g. when downloading a video via
+`--video <url_or_id>`). Supports `--as-channel <handle_or_id>` to attribute guest
+appearances / external podcast interviews (such as SOIC appearances on third-party channels)
+directly into the subject expert's channel database partition.
+
+**Request:**
+
+```
+GET https://www.googleapis.com/youtube/v3/videos
+    ?part=snippet
+    &id=<videoId>
+    &key=<YOUTUBE_API_KEY>
+```
+
+**CLI Usage:**
+
+```bash
+yarn youtube-transcript-refresh --video "https://www.youtube.com/watch?v=O_TndKzToCI" --as-channel @SOICfinance
+```
+
+---
+
 ## 3. Caption fetch — DIRECT unauthenticated requests are blocked (2026-08)
 
 The original design of this pipeline was: scrape the watch page HTML for the

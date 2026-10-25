@@ -29,6 +29,42 @@ const MARKET = { entityType: 'market', entityId: 'IN' };
 const ev = (extra) => ({ calibrated: false, ...extra });
 
 /**
+ * resolveRecommendedHorizon — modulates target holding horizon based on market breadth (Ishmohit framework)
+ * - Euphoric breadth (>= 75% > 50-DMA): 3-6 months (trailing stops, quick profits)
+ * - Despondent correction (< 25% > 50-DMA): 24-36 months (patient accumulation of compounders)
+ * - Balanced / neutral: 12-18 months
+ * @param {number|null} p50 % of universe above 50-DMA
+ */
+function resolveRecommendedHorizon(p50) {
+  if (p50 == null) return null;
+  if (p50 >= 75) {
+    return {
+      horizon: '3-6M',
+      minMonths: 3,
+      maxMonths: 6,
+      regime: 'EUPHORIC_BREADTH',
+      stance: 'TIGHT_TRAILING_STOPS_QUICK_PROFITS',
+    };
+  }
+  if (p50 < 25) {
+    return {
+      horizon: '24-36M',
+      minMonths: 24,
+      maxMonths: 36,
+      regime: 'DESPONDENT_CORRECTION',
+      stance: 'PATIENT_ACCUMULATION_COMPOUNDERS',
+    };
+  }
+  return {
+    horizon: '12-18M',
+    minMonths: 12,
+    maxMonths: 18,
+    regime: 'BALANCED_EXPANSION',
+    stance: 'CORE_POSITIONING',
+  };
+}
+
+/**
  * @param {Object} snap  { sessionDate, breadth:{universe,above20,above50,above200,nearHighsCount},
  *                         macro:{brent,us10y,usdinr}, flows:{fiiNet,diiNet} }
  * @param {Object[]} history prior snapshots, ascending by sessionDate, EXCLUDING `snap`
@@ -41,6 +77,7 @@ function buildObservations(snap, history = []) {
   const p50 = pct(b.above50, b.universe);
   const p200 = pct(b.above200, b.universe);
   const t = THRESHOLDS.breadthPct;
+  const horizon = resolveRecommendedHorizon(p50);
   const breadthEv = {
     pctAbove20SMA: p20,
     pctAbove50SMA: p50,
@@ -49,6 +86,7 @@ function buildObservations(snap, history = []) {
     pctGainers1M: pct(b.gainers1m, b.universe),
     pctGainers1MOver10: pct(b.gainers1mOver10, b.universe),
     threshold: t,
+    recommendedHorizon: horizon,
   };
 
   if (p20 != null)
@@ -75,6 +113,31 @@ function buildObservations(snap, history = []) {
       minMisses: 2,
       evidence: ev(breadthEv),
     });
+
+  // M4-sentimental-bottom-setup: Breadth < 20% while earnings aggregate holds or retail capitulates
+  const aggPatYoY = num(
+    snap.aggregatePatGrowthYoY ?? (snap.breadth && snap.breadth.aggregatePatGrowthYoY)
+  );
+  const retailDespair = Boolean(
+    snap.sentiment && (snap.sentiment.retailDespair || snap.sentiment.taxLossHarvesting)
+  );
+  if (p50 != null || p200 != null || p20 != null) {
+    const isDeepCorrection =
+      (p50 != null && p50 < t) || (p200 != null && p200 < t) || (p20 != null && p20 < t);
+    const fundamentalsHold = aggPatYoY != null ? aggPatYoY > 0 : true;
+    const isBottomSetup = isDeepCorrection && (fundamentalsHold || retailDespair);
+    out.push({
+      ...MARKET,
+      signalId: 'M4-sentimental-bottom-setup',
+      state: isBottomSetup ? 'confirmed' : null,
+      minMisses: 2,
+      evidence: ev({
+        ...breadthEv,
+        aggregatePatGrowthYoY: aggPatYoY,
+        retailDespair,
+      }),
+    });
+  }
 
   // M2 / M3 macro
   const m = snap.macro || {};
@@ -146,4 +209,4 @@ function buildObservations(snap, history = []) {
   return out;
 }
 
-module.exports = { THRESHOLDS, buildObservations, pct };
+module.exports = { THRESHOLDS, buildObservations, pct, resolveRecommendedHorizon };

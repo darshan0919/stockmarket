@@ -49,6 +49,14 @@ Every capex audit MUST extract and synthesize the following primary metrics acro
    - Turnkey contractors, engineering consultants, land survey/plot size (sq. metres), and chemistry/product specialization.
 7. **Price-Volume Accumulation Correlated to Filings:**
    - Correlating multi-month exchange OHLCV delivery volume with disclosure milestones to identify smart accumulation waves.
+8. **Train Classification & Capacity Speedometer (SOIC Framework):**
+   - **Train Status Tag**:
+     - `Train A (Stationary)`: High ROIC but flat revenue/PAT CAGR (<10%) and no active commercialization within 12 months.
+     - `Train B (Pre-Inflection Positioning)`: Capex $\ge 70\%$ complete, commissioning expected within 6 months, or transformational order backlog $>0.5\times$ annual sales.
+     - `Train C (Inflected Moving Train)`: First or second quarter of clean capacity utilization / revenue inflection ($>30\%$ PAT YoY).
+   - **Capacity Speedometer & Boarding Risk**:
+     $$\text{Capacity Speedometer} = \frac{\text{Current Capacity Utilisation \%}}{100\%} \times \frac{1}{\text{Capex Gestation Years Remaining}}$$
+     Warns against boarding Train C at 100 km/h (capacity $>85\%$ full with Phase 2 expansion $>18-24$ months away). Board Train B 6 months prior, or Train C at 10–20 km/h during initial commercialization.
 
 ---
 

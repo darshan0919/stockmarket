@@ -32,10 +32,12 @@ const median = (a) => {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
 };
 
-/** @param {{industry:string,r1m:number,r3m:number}[]} rows universe members with an industry */
+/** @param {{industry:string,r1m:number,r3m:number,r1y?:number}[]} rows universe members with an industry */
 function industryRs(rows, minN = TH.minN) {
   const mkt1m = median(rows.map((r) => r.r1m));
   const mkt3m = median(rows.map((r) => r.r3m));
+  const rows1y = rows.map((r) => r.r1y).filter(num);
+  const mkt1y = rows1y.length ? median(rows1y) : null;
   const g = new Map();
   for (const r of rows) {
     if (!r.industry || !num(r.r1m) || !num(r.r3m)) continue;
@@ -46,19 +48,28 @@ function industryRs(rows, minN = TH.minN) {
     if (m.length < minN) continue;
     const med1m = median(m.map((x) => x.r1m));
     const med3m = median(m.map((x) => x.r3m));
+    const m1y = m.map((x) => x.r1y).filter(num);
+    const med1y = m1y.length ? median(m1y) : null;
+    const winRate1y =
+      m1y.length && num(mkt1y) ? r2(m1y.filter((x) => x > mkt1y).length / m1y.length) : null;
     industries.push({
       industry,
       n: m.length,
       med1m: r2(med1m),
       med3m: r2(med3m),
+      med1y: num(med1y) ? r2(med1y) : null,
       rs1: r2(med1m - mkt1m),
       rs3: r2(med3m - mkt3m),
+      rs1y: num(med1y) && num(mkt1y) ? r2(med1y - mkt1y) : null,
       share1m: r2(m.filter((x) => x.r1m > mkt1m).length / m.length),
+      winRate1y,
+      isWinRateLeader: winRate1y !== null ? winRate1y >= TH.shareConfirm : false,
     });
   }
   return {
     mkt1m: r2(mkt1m),
     mkt3m: r2(mkt3m),
+    mkt1y: num(mkt1y) ? r2(mkt1y) : null,
     industries: industries.sort((a, b) => b.rs1 - a.rs1),
   };
 }

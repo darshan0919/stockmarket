@@ -79,6 +79,32 @@ describe('youtubeTranscriptRefresh', () => {
       expect(args.channelId).toBe('UC_1111');
       expect(args.channelIds).toEqual(['UC_1111', 'UC_2222', 'UC_3333']);
     });
+
+    test('parses --video and --as-channel flags', () => {
+      const args = ytr.parseArgs([
+        'node',
+        'youtubeTranscriptRefresh.js',
+        '--video',
+        'https://www.youtube.com/watch?v=O_TndKzToCI',
+        '--as-channel',
+        '@SOICfinance',
+      ]);
+      expect(args.video).toBe('https://www.youtube.com/watch?v=O_TndKzToCI');
+      expect(args.asChannel).toBe('@SOICfinance');
+    });
+  });
+
+  describe('parseVideoId', () => {
+    test('extracts videoId from direct ID, watch URLs, youtu.be, embed, and shorts', () => {
+      expect(ytr.parseVideoId('O_TndKzToCI')).toBe('O_TndKzToCI');
+      expect(ytr.parseVideoId('https://www.youtube.com/watch?v=O_TndKzToCI')).toBe('O_TndKzToCI');
+      expect(ytr.parseVideoId('https://youtu.be/O_TndKzToCI')).toBe('O_TndKzToCI');
+      expect(ytr.parseVideoId('https://www.youtube.com/embed/O_TndKzToCI')).toBe('O_TndKzToCI');
+      expect(ytr.parseVideoId('https://www.youtube.com/shorts/O_TndKzToCI')).toBe('O_TndKzToCI');
+      expect(ytr.parseVideoId('')).toBeNull();
+      expect(ytr.parseVideoId(null)).toBeNull();
+      expect(ytr.parseVideoId('not-a-valid-id')).toBeNull();
+    });
   });
 
   describe('normalizeChannelHandle', () => {

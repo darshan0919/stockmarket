@@ -96,6 +96,14 @@ Nine steps plus a quarter-level macro overlay, run in order — each gates or fe
 
 **Follow the PAT, not just the topline — through the two direct levers.** Most earnings surprises are made below the revenue line. Model both structural PAT levers explicitly and net them: **capex-live operating leverage** (incremental revenue on newly-commissioned capacity drops through at a high incremental margin, so a company can guide flat blended margin and still beat on PAT) and **balance-sheet deleverage** (lower debt → lower interest → a direct, near-arithmetic lift to PAT after tax). Both are more bankable than a revenue guess and are often what the market misses; a beat attributable to them is higher-conviction. Net the capex depreciation/interest step-up against the leverage gain so the PAT beat is honest and attributable.
 
+**Kumbhakarna Dormant-to-Inflection Setup (`KUMBHAKARNA_INFLECTION`).** (SOIC Ishmohit framework)
+Screen explicitly for companies that have spent years in deep sleep but are inflecting right into the quarterly result:
+
+1. **Dormancy (3–5 Years of Subdued Growth):** 3-year PAT CAGR sits between -5% and +10%, or stock price has consolidated in a multi-year range while institutional ownership drifted lower.
+2. **Inflection Catalyst (The Awakening):** Projected or incoming quarter PAT growth $\ge 35\%$ YoY, driven by genuine structural catalysts (e.g., massive newly operational capex, major order win, or onboarding marquee counterparties like MAG7, Foxconn, global OEMs).
+3. **Valuation Multiple Compression:** P/E multiple compressed to historical lower quartiles during the consolidation, setting up the potent "twin-engine" re-rating (EPS acceleration $\times$ multiple expansion).
+4. **Tagging:** Companies clearing all 3 conditions must be badged with `KUMBHAKARNA_INFLECTION` in the briefing table and JSON DTO (`setup: "KUMBHAKARNA_INFLECTION"`) as highest-conviction re-rating candidates.
+
 **Strip one-offs before extrapolating.** Reported PAT often carries deferred-tax credits, forex, one-time provisions. Distinguish reported from cleaned earnings before projecting, or the EPS estimate — and the surprise — inherit the noise.
 
 **Show the maths, tag every input.** Every estimate and every surprise must be reconstructable from the inputs shown. Tag each input `[guided]` / `[actual]` / `[estimate]` / `[consensus]` / `[market]`. Never present an analyst estimate as company guidance, or a guidance-implied number as street consensus.

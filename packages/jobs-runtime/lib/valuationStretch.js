@@ -11,7 +11,14 @@
 const T = { pegHigh: 1.5, pegVeryHigh: 2, premiumToIndustryPct: 50, pe50: 50 };
 const num = (x) => typeof x === 'number' && Number.isFinite(x);
 
-function evaluate({ pe, peg, industryPe, weakRegime = false } = {}) {
+function evaluate({
+  pe,
+  peg,
+  industryPe,
+  weakRegime = false,
+  expectationDecel = false,
+  cyclicalExtrapolationRisk = false,
+} = {}) {
   const flags = [];
   if (num(peg) && peg > 0) {
     if (peg > T.pegVeryHigh) flags.push('PEG_GT_2');
@@ -22,6 +29,8 @@ function evaluate({ pe, peg, industryPe, weakRegime = false } = {}) {
   if (premiumPct != null && premiumPct >= T.premiumToIndustryPct)
     flags.push('PE_PREMIUM_TO_INDUSTRY');
   if (weakRegime && num(pe) && pe > T.pe50) flags.push('PE_GT_50_WEAK_REGIME');
+  if (expectationDecel) flags.push('VALUATION_CYCLE_PEAK_RISK');
+  if (cyclicalExtrapolationRisk) flags.push('CYCLICAL_EXTRAPOLATION_RISK');
   const state = flags.length >= 2 ? 'confirmed' : flags.length === 1 ? 'detected' : null;
   return {
     state,
@@ -32,6 +41,8 @@ function evaluate({ pe, peg, industryPe, weakRegime = false } = {}) {
       industryPe,
       premiumToIndustryPct: premiumPct,
       weakRegime,
+      expectationDecel,
+      cyclicalExtrapolationRisk,
       calibrated: false,
     },
   };

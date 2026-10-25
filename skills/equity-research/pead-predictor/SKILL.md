@@ -95,6 +95,15 @@ Every prediction evaluated in Step 2 audits the company against Suresh's 5 Gates
   Separate operating EBITDA from exceptional items, asset sales, forex, tax credits, and treasury income. Run the **EPS dilution check** (if shares rose, did core PAT beat dilution?). Verify working capital and operating leverage.
 - **Gate 3 — Priced-In & Valuation Headroom:**
   Pre-result price action (the Onward Tech check above). Compare Forward P/E (at current market cap based on Base/Bull FY EPS) vs 1Y, 3Y, and 5Y median P/E. Suresh's rule: filter for **≥40–50% upside on paper** when forward guidance is delivered.
+  - **Forward P/E Compression Score:**
+    $$\text{P/E}_{\text{fwd}} = \frac{\text{Current Price}}{\text{Forward EPS Estimate}}$$
+    $$\text{Compression Factor} = \frac{\text{Trailing P/E} - \text{Forward P/E}}{\text{Trailing P/E}}$$
+    If $\text{Compression Factor} \ge 30\%$, tag as `FORWARD_PE_COMPRESSION_TAILWIND` (the stock looks optically elevated on trailing P/E of 50–60x, but forward P/E compresses to 25–30x due to high-conviction $60\text{--}80\%$ PAT acceleration).
+  - **Shashank Staged Averaging-Up Protocol (Execution Discipline):**
+    - Never deploy 100% position size upfront on pre-result anticipation.
+    - **Initial Pilot Allocation (50%):** Deployed on confirmed operational inflection or earnings beat clearing Gate 1–3.
+    - **Subsequent Confirmation Allocation (50%):** Added only after price action confirms the fundamental thesis by making a higher pivot or successfully testing and holding the rising 10-EMA / 20-EMA.
+    - _Core Philosophy:_ "Averaging up is buying insurance against being wrong. If you are wrong, you lost half. If you are right, you scale into a proven winner."
 - **Gate 4 — Concall Guidance & Credibility:**
   Forward guidance beats the trailing quarter. Audit management's walk-the-talk track record across prior concalls. Watch confidence trajectory ("we target" vs "we hope/aspire").
 - **Gate 5 — Pipeline of Post-Result Catalysts:**

@@ -227,6 +227,23 @@ worth flagging ("no company-master coverage yet").
 `insight-validation`'s nightly run performs a D+2 follow-up on this run's
 ACT/HIGH picks. No action needed here.
 
+## Forward P/E Compression & Staged Averaging-Up Protocol
+
+When evaluating actionable candidates (ACT / WATCH) moving on strong delivery:
+
+1. **Forward P/E Compression Score:**
+   - Trailing P/E often appears optically elevated (50–60x) after a strong rally, deterring momentum-blind investors.
+   - Compute forward valuation:
+     $$\text{P/E}_{\text{fwd}} = \frac{\text{Current Price}}{\text{Forward EPS Estimate}}$$
+     $$\text{Compression Factor} = \frac{\text{Trailing P/E} - \text{Forward P/E}}{\text{Trailing P/E}}$$
+   - When $\text{Compression Factor} \ge 30\%$, tag the thesis with `FORWARD_PE_COMPRESSION_TAILWIND`. This highlights that near-term earnings acceleration will quickly absorb the multiple into historical normal ranges.
+
+2. **Shashank Staged Averaging-Up Protocol (Execution Discipline):**
+   - Never commit 100% allocation on the initial breakout or gainer day.
+   - **Pilot Tranche (50%):** Deployed on initial trigger qualification (ACT tier with verified delivery volume and fundamental trigger).
+   - **Confirmation Tranche (50%):** Deployed only after price follows through to a higher pivot or tests and holds the 10-EMA / 20-EMA on drying volume.
+   - _Operating rule:_ Averaging up buys insurance against being wrong. If the move fails, the loss is halved; if it works, capital scales into a validated institutional trend.
+
 ## Rules
 
 Everything in the shared doc's Rules section applies unchanged. Nothing in this

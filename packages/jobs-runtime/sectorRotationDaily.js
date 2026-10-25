@@ -55,8 +55,20 @@ async function performanceRows() {
       if (i < 0) throw new Error(`missing column ${n}`);
       return i;
     };
-    const c = { id: ix('companyId'), r1m: ix('Returns 1M'), r3m: ix('Returns 3M') };
-    for (const r of t.slice(1)) out.push({ id: r[c.id], r1m: r[c.r1m], r3m: r[c.r3m] });
+    const c = {
+      id: ix('companyId'),
+      r1m: ix('Returns 1M'),
+      r3m: ix('Returns 3M'),
+      r1y: t[0].indexOf('Returns 1Y'),
+    };
+    for (const r of t.slice(1)) {
+      out.push({
+        id: r[c.id],
+        r1m: r[c.r1m],
+        r3m: r[c.r3m],
+        r1y: c.r1y >= 0 ? r[c.r1y] : null,
+      });
+    }
     if (offset + 50 >= d.total) break;
     await sleep(1000);
   }

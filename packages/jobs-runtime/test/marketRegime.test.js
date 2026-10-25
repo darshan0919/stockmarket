@@ -1,6 +1,6 @@
 'use strict';
 
-const { buildObservations, pct } = require('../lib/marketRegime');
+const { buildObservations, pct, resolveRecommendedHorizon } = require('../lib/marketRegime');
 
 const snap = (over = {}) => ({
   sessionDate: '2026-10-09',
@@ -72,5 +72,50 @@ describe('buildObservations', () => {
   test('pct handles zero universe', () => {
     expect(pct(5, 0)).toBeNull();
     expect(pct(90, 500)).toBe(18);
+  });
+
+  test('sentimental bottom setup confirmed when deep breadth correction occurs and fundamentals hold', () => {
+    const o = buildObservations(
+      snap({
+        breadth: { universe: 500, above20: 80, above50: 85, above200: 150 },
+        aggregatePatGrowthYoY: 14.5,
+      })
+    );
+    const bottomObs = by(o, 'M4-sentimental-bottom-setup');
+    expect(bottomObs.state).toBe('confirmed');
+    expect(bottomObs.evidence.aggregatePatGrowthYoY).toBe(14.5);
+  });
+
+  test('sentimental bottom setup null when breadth is healthy', () => {
+    const o = buildObservations(
+      snap({
+        breadth: { universe: 500, above20: 300, above50: 320, above200: 350 },
+      })
+    );
+    expect(by(o, 'M4-sentimental-bottom-setup').state).toBeNull();
+  });
+});
+
+describe('resolveRecommendedHorizon', () => {
+  test('euphoric breadth (>= 75%) recommends 3-6M horizon', () => {
+    const res = resolveRecommendedHorizon(80);
+    expect(res.horizon).toBe('3-6M');
+    expect(res.regime).toBe('EUPHORIC_BREADTH');
+  });
+
+  test('despondent correction (< 25%) recommends 24-36M horizon', () => {
+    const res = resolveRecommendedHorizon(18);
+    expect(res.horizon).toBe('24-36M');
+    expect(res.regime).toBe('DESPONDENT_CORRECTION');
+  });
+
+  test('balanced breadth (35-75%) recommends 12-18M horizon', () => {
+    const res = resolveRecommendedHorizon(50);
+    expect(res.horizon).toBe('12-18M');
+    expect(res.regime).toBe('BALANCED_EXPANSION');
+  });
+
+  test('null input returns null', () => {
+    expect(resolveRecommendedHorizon(null)).toBeNull();
   });
 });

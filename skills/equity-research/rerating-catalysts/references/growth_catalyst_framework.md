@@ -96,6 +96,22 @@ hasn't shown up within the timeframe originally used to justify the position). T
 portfolio-construction heuristic, not a per-company scoring input — note it in 3f as
 sizing/allocation context, not as part of the §5f tag computation.
 
+**Boarding Speed Discipline & Capacity Speedometer (SOIC Masterclass & Podcast #396):**
+
+- Never board Train C at **100 km/h**: when capacity utilization is already $>85\%$ and the next factory/capex is 2 years away, incremental growth is capped and PE de-rating risk is extreme.
+- Board **Train B** ~6 months early (capex 70%+ deployed, concall confirms offtake) or **Train C at 10–20 km/h** on the first clean quarter of commercialization or during weekly base consolidation.
+  $$\text{Capacity Speedometer} = \frac{\text{Current Capacity Utilisation \%}}{100\%} \times \frac{1}{\text{Capex Gestation Years Remaining}}$$
+
+**Kumbhakarna Stage Inflection:**
+
+- Businesses in deep 3–5 year slumber (PAT CAGR $-5\%$ to $+10\%$, e.g. Carysil 2014–2020, Welspun Corp, TD Power at ₹200 Cr market cap) that quietly build capacity or product lines.
+- When an external catalyst strikes (IKEA white-labeling, US Permian line pipe orders, EV lightweight plastics for Lumax Autotech), profit jumps $35-50\%+$ off a low base. Prioritize these on high alert.
+
+**Anti-Extrapolation Guard (SureshKBN Framework):**
+
+- Never extrapolate today's cyclical tailwinds (optical fibers, transformers, specialty chemicals) linearly 5–10 years into the future.
+- Valuation multiples peak when the _rate of change of earnings expectations_ peaks, not when peak dollar earnings are declared. Terminal growth after Year 3 must be capped at nominal GDP baseline ($6-7\%$).
+
 ## 1e. Young vs. old momentum — the same trailing number means different things
 
 Two companies can show similar trailing growth and still carry very different forward

@@ -72,4 +72,33 @@ describe('fundamentalExit (X6)', () => {
   });
   test('high pledge', () =>
     expect(X.fundamentalExit({ pledgedPct: 35 }).flags).toEqual(['HIGH_PLEDGE']));
+  test('capital cycle glut and end-user headwind', () => {
+    const r = X.fundamentalExit({
+      inventoryDaysExpansionPct: 30,
+      marginDeclineBps: 250,
+      endUserHeadwind: true,
+    });
+    expect(r.flags).toContain('CAPITAL_CYCLE_GLUT');
+    expect(r.flags).toContain('END_USER_HEADWIND');
+    expect(r.state).toBe('confirmed');
+  });
+});
+
+describe('themeExpiryExit (X8)', () => {
+  test('clean -> null', () => expect(X.themeExpiryExit({}).state).toBeNull());
+  test('single flag industry capex glut -> detected', () => {
+    const r = X.themeExpiryExit({ industryCapexGrowthYoY: 55 });
+    expect(r.flags).toEqual(['INDUSTRY_CAPEX_GLUT']);
+    expect(r.state).toBe('detected');
+  });
+  test('oversupply + end user headwind -> confirmed', () => {
+    const r = X.themeExpiryExit({
+      supplyDemandRatio: 2.0,
+      endUserHeadwind: true,
+    });
+    expect(r.flags).toEqual(
+      expect.arrayContaining(['SUPPLY_DEMAND_OVERSUPPLY', 'END_USER_HEADWIND'])
+    );
+    expect(r.state).toBe('confirmed');
+  });
 });

@@ -1,21 +1,33 @@
 'use strict';
 const R = require('../lib/sectorRotation');
 
-const mk = (industry, n, r1m, r3m) => Array.from({ length: n }, () => ({ industry, r1m, r3m }));
+const mk = (industry, n, r1m, r3m, r1y) =>
+  Array.from({ length: n }, () => ({ industry, r1m, r3m, r1y }));
 
 describe('industryRs', () => {
   const rows = [
-    ...mk('A', 6, 8, 10),
-    ...mk('B', 6, -2, 15),
-    ...mk('C', 6, 0, 0),
-    ...mk('Tiny', 2, 50, 50),
+    ...mk('A', 6, 8, 10, 40),
+    ...mk('B', 6, -2, 15, 5),
+    ...mk('C', 6, 0, 0, 15),
+    ...mk('Tiny', 2, 50, 50, 80),
   ];
   const t = R.industryRs(rows);
   test('market medians and small industries dropped', () => {
     expect(t.industries.map((i) => i.industry).sort()).toEqual(['A', 'B', 'C']);
     expect(t.mkt1m).toBe(0);
+    expect(t.mkt1y).toBe(15);
   });
   test('sorted by rs1', () => expect(t.industries[0].industry).toBe('A'));
+  test('calculates winRate1y and flags winRateLeader when >= 60%', () => {
+    const indA = t.industries.find((i) => i.industry === 'A');
+    expect(indA.winRate1y).toBe(1);
+    expect(indA.isWinRateLeader).toBe(true);
+    expect(indA.rs1y).toBe(25);
+
+    const indB = t.industries.find((i) => i.industry === 'B');
+    expect(indB.winRate1y).toBe(0);
+    expect(indB.isWinRateLeader).toBe(false);
+  });
 });
 
 describe('rsObservations', () => {
