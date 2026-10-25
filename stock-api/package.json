@@ -9,6 +9,7 @@
     "./utils/*": "./src/utils/*.js",
     "./fetchers/*": "./src/fetchers/*.js",
     "./analyzers/*": "./src/analyzers/*.js",
+    "./generators/*": "./src/generators/*.js",
     "./stockscansClient": "./src/clients/StockscansClient.js"
   },
   "sideEffects": false,

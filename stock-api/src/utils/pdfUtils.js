@@ -70,6 +70,10 @@ function formatInlineMarkdown(text) {
   html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
   html = html.replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, '<i>$1</i>');
   html = html.replace(/`(.*?)`/g, '<code>$1</code>');
+  html = html.replace(
+    /\[(.*?)\]\((https?:\/\/[^\s)]+)\)/g,
+    '<a href="$2" target="_blank" style="color: #0284c7; text-decoration: underline;">$1</a>'
+  );
   html = html.replace(/\{\+(.*?)\+\}/g, '<span class="text-pos">$1</span>');
   html = html.replace(/\{\-(.*?)\-\}/g, '<span class="text-neg">$1</span>');
   html = html.replace(/\{\~(.*?)\~\}/g, '<span class="text-derived">$1</span>');

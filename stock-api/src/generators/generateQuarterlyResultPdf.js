@@ -799,16 +799,29 @@ function renderMonitoringChecklist(checklist) {
  * @returns {Promise<{html: string, outputPath: ?string}>}
  */
 async function createQuarterlyResultPdf(data, options = {}) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error(
+      `createQuarterlyResultPdf: input data must be a valid non-empty object, received ${data === null ? 'null' : typeof data}`
+    );
+  }
+
   const companyName = data.company_name || data.companyName || data.company || '';
   const ticker = data.ticker || data.companyId || '';
   const quarter = data.quarter || '';
   const date = data.date || data.result_date || data.resultDate || '';
-  const cmp = data.cmp || '—';
-  const marketCap = data.market_cap || data.marketCap || '—';
+  const rawCmp = data.cmp || '—';
+  const rawMarketCap = data.market_cap || data.marketCap || '—';
   const sector = data.sector || '';
 
+  const cleanCmp = String(rawCmp).replace(/^₹\s*/, '');
+  const cleanMcap = String(rawMarketCap)
+    .replace(/^₹\s*/, '')
+    .replace(/\s*Cr\s*$/i, '');
+  const cmpStr = cleanCmp === '—' ? '—' : `₹${cleanCmp}`;
+  const mcapStr = cleanMcap === '—' ? '—' : `₹${cleanMcap} Cr`;
+
   const title = `${companyName} (${ticker}) — ${quarter} Result Analysis`;
-  const subtitle = `Result Date: ${date} | CMP: ₹${cmp} | Mkt Cap: ₹${marketCap} Cr | Sector: ${sector || 'Indian Equities'}`;
+  const subtitle = `Result Date: ${date} | CMP: ${cmpStr} | Mkt Cap: ${mcapStr} | Sector: ${sector || 'Indian Equities'}`;
   const eyebrow = `QUARTERLY RESULT ANALYSIS · ${ticker} · ${quarter}`;
 
   let bodyHtml = '';
@@ -880,6 +893,12 @@ async function createQuarterlyResultPdf(data, options = {}) {
   // 10. Runtime Improvisation Space: data.additional
   if (data.additional) {
     bodyHtml += renderAdditionalHtml(data.additional, '06', 'Additional Nuance & Improvisation');
+  }
+
+  if (!bodyHtml || bodyHtml.trim().length === 0) {
+    throw new Error(
+      `createQuarterlyResultPdf: bodyHtml is empty for "${title}". Refusing to render an empty report.`
+    );
   }
 
   const modelUsed = data.modelUsed || data.model_used || options.modelUsed;

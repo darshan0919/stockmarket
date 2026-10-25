@@ -286,15 +286,24 @@ Whenever management commentary or presentations include quantitative or qualitat
   - **`Reaffirm`** (`.chip-b`): Prior guidance explicitly reiterated or confirmed unchanged in latest filings.
   - **`Silent`** (`.chip-y`): Metric was previously guided by management in earlier calls/presentations (per `historyContext.priorGuidance` or past investor PPTs), but management **omitted / didn't speak about that particular metric's guidance in latest result filings** (crucial alert for quiet guidance withdrawal).
   - _(For guidance introduced for the first time without prior history, tag as `New`)_.
+- **Delta Tag Derivation Rule for Derived Metrics**:
+  - The `Raise` (or `Cut` / `Reaffirm` / `Silent`) tag may ONLY be applied directly to `DIRECTLY GUIDED` metrics based on management's stated revisions.
+  - For `DERIVED` metrics, the delta tag MUST be derived from the mathematical combination of its underlying dependency metrics' natures (e.g. Revenue `Reaffirm` + Margin `Reaffirm` $\rightarrow$ Derived PAT is `Reaffirm`; Revenue `Reaffirm` + Margin `Raise` $\rightarrow$ Derived PAT is `Raise`; if any dependency is `Cut`, the derived tag must reflect the net combined effect). Never label a derived metric `Raise` independently without dependency justification.
 - **Mandatory Bottom-Line Row**: Include a future value row for bottom-line metrics:
   - **PAT** for corporates / general industrials.
   - **Book Value / BVPS** for NBFCs, banks, and lending institutions.
 - **Direct vs. Derived Classification**:
   - If the bottom-line metric was **directly guided** by management (e.g. "PAT target of ₹500 Cr"), mark as `DIRECTLY GUIDED` and do not re-derive.
   - If indirectly guided (e.g., revenue + margin guidance, or AUM growth + RoA target), systematically calculate the implied bottom-line metric, mark as `DERIVED`, and state the exact formula in `derivationBasis`.
-- **Strict No-Extrapolation Guardrail**:
+- **Strict No-Extrapolation & No-Unconfirmed-Annualization Guardrail**:
   - Do NOT extrapolate or guess a bottom-line metric if guidance for its required dependencies was not provided by management.
   - In that case, leave the guided value and % change cells empty (`—`), mark as `UNGUIDED`, and document: `"Dependencies unguided — no extrapolation"`.
+  - **No Unconfirmed Annualization**: Never multiply a single quarter's revenue, profit, or run-rate by 4 or apply arbitrary annual growth multipliers without explicit management confirmation. If an annualized trend or run-rate is presented as context, explicitly state the assumption in `derivationBasis` (e.g. `[Assumption: H1 run-rate annualized]`).
+- **Hyperlinked Document Citations (Mandatory in Source / Derivation Basis)**:
+  - For each guidance-related statement in the table, include an explicit hyperlinked citation in the format `[Q<X>FY<YY> PPT](<url>)`, `[Q<X>FY<YY> Result](<url>)`, `[Q<X>FY<YY> Concall](<url>)`, or `[Q<X>FY<YY> Filing](<url>)` directly pointing to the respective Stockscans or exchange filing document source.
+- **Zero Information Repetition (Cross-Section Impact Tagging)**:
+  - Do NOT re-write identical descriptive narrative across multiple sections (Verdict Chips, Inflection Point, Baskets 1/2/3, Next Inflection, PEAD).
+  - Document the primary comprehensive disclosure once in its authoritative home section, and reference it concisely in secondary sections using **Cross-Section Impact Tags** (e.g. `[Impact: Basket 1B Margins (+100 bps) | Next Inflection Q1FY28]`).
 
 Two reference files support this phase:
 

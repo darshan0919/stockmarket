@@ -4,556 +4,508 @@ const fs = require('fs');
 const db = require('../lib/db');
 const briefCache = require('../../../skills/equity-research/rerating-catalysts/scripts/brief_cache');
 
-const marketDate = '2026-10-22';
+const marketDate = '2026-10-23';
 
 // 1. Resolve Drive URLs for Top 3
+const eternalDriveUrl = db.resolveDriveUrl('rerating-catalysts/ETERNAL_Output.pdf');
+const cyientDriveUrl = db.resolveDriveUrl('rerating-catalysts/CYIENT_Output.pdf');
 const igilDriveUrl = db.resolveDriveUrl('rerating-catalysts/IGIL_Output.pdf');
-const omniDriveUrl = db.resolveDriveUrl('rerating-catalysts/OMNI_Output.pdf');
-const ttmlDriveUrl = db.resolveDriveUrl('rerating-catalysts/TTML_Output.pdf');
 
 console.log('Resolved Drive URLs:');
+console.log('ETERNAL:', eternalDriveUrl);
+console.log('CYIENT:', cyientDriveUrl);
 console.log('IGIL:', igilDriveUrl);
-console.log('OMNI:', omniDriveUrl);
-console.log('TTML:', ttmlDriveUrl);
 
 // 2. Fetch cached briefs for top 10
 const getBrief = (id) => {
   const b = briefCache.getBrief(id);
-  return b
-    ? {
-        ...b.record,
-        ...(id === 'NSE:IGIL' && igilDriveUrl ? { reportDriveUrl: igilDriveUrl } : {}),
-        ...(id === 'NSE:OMNI' && omniDriveUrl ? { reportDriveUrl: omniDriveUrl } : {}),
-        ...(id === 'NSE:TTML' && ttmlDriveUrl ? { reportDriveUrl: ttmlDriveUrl } : {}),
-      }
-    : null;
+  if (!b) return null;
+  const record = { ...b.record };
+  if (id === 'NSE:ETERNAL' && eternalDriveUrl) record.reportDriveUrl = eternalDriveUrl;
+  if (id === 'NSE:CYIENT' && cyientDriveUrl) record.reportDriveUrl = cyientDriveUrl;
+  if (id === 'NSE:IGIL' && igilDriveUrl) record.reportDriveUrl = igilDriveUrl;
+  return record;
 };
 
 // 3. Construct Content Overlay
 const content = {
-  lead: "Manufacturing order inflections and financial turnaround beats headline today's actionability: **Omnitech Engineering** (+15.5%, ₹93.7 Cr deliv) secured commercial defence orders from leading Indian defence organisations for mission-critical land-based systems, converting high-margin aerospace optionality into contracted backlog on top of its ₹3,000 Cr order book. **International Gemological Institute** (+10.0%, ₹124.1 Cr deliv) posted a stellar Q2 results beat with PAT surging +43% YoY to ₹185.8 Cr and EBITDA margins expanding to 61.4% on 4.35M cert volume (+26%), while **Tata Teleservices** (+18.6%, ₹48.7 Cr deliv) inflected as Q2 net loss compressed by 81.5% YoY to ₹59.2 Cr on a 55% reduction in finance costs.",
+  lead: "Q2 earnings inflections, record profitability prints, and strategic corporate restructuring dominate today's actionability: **Eternal Limited** (+4.25%, ₹722.6 Cr deliv) saw massive institutional buying following Q2 results with Blinkit 1P margin capture, approval of Going-out business transfer to subsidiary ZEPL, a ₹156 Cr stake in merged Mygate/Adonmo, and the launch of dark.ai. **Cyient** (+7.81%, ₹257.4 Cr deliv) rallied as Q2 DET EBIT margin surged to a 10-quarter high of 14.2% with ₹214 Cr free cash flow (139% conversion) and record $158.4M order intake, while **Steel Strips Wheels** (+19.99% upper circuit, ₹137.6 Cr deliv) nearly tripled Q2 PAT (+196.9% YoY to ₹114.4 Cr on ₹1,930 Cr revenue) alongside approval of a Greenfield Alloy/Steel Wheels plant in Chhatrapati Sambhajinagar.",
   caveats: [],
   cards: {
-    'NSE:IGIL': {
+    // -------------------------------------------------------------
+    // ACT CARDS (Full detail)
+    // -------------------------------------------------------------
+    'NSE:ETERNAL': {
+      tier: 'ACT',
       headline:
-        'Q2 PAT up +43% YoY to ₹185.8 Cr with 61.4% EBITDA margin on 4.35M certification reports (+26%)',
+        'Quick Commerce 1P scaling, slump sale transfer of Going-out to ZEPL, and ₹156 Cr Mygate stake',
       thesisChain: [
-        'Q2 consolidated revenue rose 31% YoY to ₹398 Cr while EBITDA margin expanded 330 bps to 61.4%',
-        'Category-neutral certification model captured 26% report volume growth (natural, lab-grown, coloured gemstones up 7x)',
-        'Fixed laboratory infrastructure generates high operating leverage, positioning H2 festive/holiday volume surge for record FY27 earnings',
+        'Blinkit 1P inventory model transition captures full merchandise value and higher retail margins across mature dark store clusters',
+        'Corporate restructuring consolidates Going-out operations into wholly owned subsidiary ZEPL to unlock operational synergies and focused monetization',
+        'Strategic investment transfers Adonmo into Mygate for ~4.4% stake valued at ₹156 Cr, complemented by global roadmap for dark.ai enterprise AI sandbox',
       ],
       why: {
-        text: 'Q2 FY27 results beat: Consolidated Revenue +31% YoY to ₹398 Cr, EBITDA +39% YoY to ₹244.5 Cr (61.4% margin), and PAT +43% YoY to ₹185.8 Cr on 4.35M cert volume (+26%).',
+        text: 'Q2 FY27 results & restructuring: Slump sale of Going-out business to wholly owned subsidiary ZEPL to drive synergies, acquisition of ₹156 Cr stake in merged Mygate/Adonmo, and unveiling of dark.ai platform.',
         basis: 'filing',
-        sources: ['Q2 Results & Press Release 21-Oct-2026'],
+        sources: ['BSE/NSE Disclosures 21-Oct-2026', 'Shareholders Letter Q2FY27'],
       },
-      epsThesis: getBrief('NSE:IGIL'),
+      epsThesis: getBrief('NSE:ETERNAL'),
       epsImpact: {
         direction: 'positive',
-        magnitude: '+43% PAT / +330 bps margin',
+        magnitude: '+35-40% GOV growth',
         timeline: 'H2 FY27',
         confidence: 'high',
       },
       linkage: 'explained',
-      tags: ['earnings', 'margin_expansion', 'volume_growth'],
+      tags: ['results', 'restructuring', 'quick_commerce', 'mna'],
       pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/q5u7smeu1nmp7n7tu5hsb3xh.pdf',
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/88q4p8vw26axrngxf5ukx6xk.pdf',
     },
-    'NSE:OMNI': {
+    'NSE:CYIENT': {
+      tier: 'ACT',
       headline:
-        'Secured commercial defence orders for land-based systems, converting aerospace optionality to backlog',
+        'DET EBIT margin hits 10-quarter peak of 14.2% (+16.8% QoQ) with record $158.4M order intake and ₹214 Cr FCF',
       thesisChain: [
-        'Commercial orders secured from leading Indian defence organisations for mission-critical land-based systems and sub-systems',
-        'Validates entry into high-margin Aatmanirbhar Bharat defence supply chain alongside ₹3,000 Cr core order book',
-        'Ramp-up of ₹250 Cr Chhapara expansion (+31-34% machine hours) provides immediate capacity to execute new defence contracts',
+        'DET EBIT expanded 16.8% QoQ to ₹237 Cr (14.2% margin, +110 bps) with 139% FCF to PAT conversion (₹214 Cr generated)',
+        'Record quarterly order intake of $158.4M (+20.8% YoY) and Cyient DLM book-to-bill above 1.6x secure double-digit organic growth visibility',
+        'Cyient Semiconductors logged 6th straight growth quarter (+8% QoQ) with ASIC pipeline surpassing $100M alongside ₹12/share interim dividend',
       ],
       why: {
-        text: '21-Oct announcement of commercial orders secured from leading Indian defence organisations for land-based and advanced mission-critical sub-systems.',
+        text: 'Q2 FY27 results beat: DET EBIT margin reached a 10-quarter high of 14.2% (EBIT +16.8% QoQ to ₹237 Cr), record DET order intake of $158.4M (+20.8% YoY), and ₹214 Cr FCF.',
         basis: 'filing',
-        sources: ['BSE/NSE Press Release 21-Oct-2026'],
+        sources: ['Press Release & Q2 Results 22-Oct-2026'],
       },
-      epsThesis: getBrief('NSE:OMNI'),
+      epsThesis: getBrief('NSE:CYIENT'),
       epsImpact: {
         direction: 'positive',
-        magnitude: '+25-30% blended realisation',
+        magnitude: '+16.8% QoQ EBIT / 14.2% margin',
         timeline: 'H2 FY27-FY28',
         confidence: 'high',
       },
       linkage: 'explained',
-      tags: ['order_book', 'defence', 'capacity_expansion'],
+      tags: ['results', 'margin_expansion', 'order_book', 'semiconductors'],
       pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/cawn8z7dhbnmt9w06eyax3rr.pdf',
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/c2n5001rxh6679xt0h875yjm.pdf',
     },
-    'NSE:TTML': {
+    'NSE:SSWL': {
+      tier: 'ACT',
       headline:
-        'Q2 net loss collapsed 81.5% YoY to ₹59.2 Cr as finance costs dropped 55%; EBITDA margin reached 53.2%',
+        'Q2 standalone PAT surged +196.9% YoY to ₹114.4 Cr on ₹1,930 Cr revenue; Greenfield Sambhajinagar plant approved',
       thesisChain: [
-        'Audited Q2 finance costs cut from ₹425 Cr to ₹191.5 Cr (-54.9% YoY) following debt restructuring and refinancing',
-        'Enterprise cloud and connectivity EBITDA expanded 17.8% YoY to ₹164.6 Cr (53.16% margin, +431 bps YoY)',
-        'ISCR improved above 1.0x (1.09x vs 0.82x), removing operational cash burn and opening a clear trajectory to positive PBT within 2-3 quarters',
+        'Standalone Q2 PAT nearly tripled (+196.9% YoY) to ₹114.38 Cr as Revenue jumped 60.7% YoY to ₹1,929.92 Cr (EPS ₹7.27 vs ₹2.45)',
+        'Board approved setting up a state-of-the-art Greenfield facility at Chhatrapati Sambhajinagar, Maharashtra for Alloy Wheels, Steel Wheels, and Passenger Vehicle Hot-Stamping',
+        'Declared ₹1.50 per share interim dividend with stock locking in 20% upper circuit on heavy ₹137.55 Cr delivery backing',
       ],
       why: {
-        text: '22-Oct Q2 results turnaround: EBITDA up 17.8% YoY to ₹164.6 Cr (53.2% margin) and finance costs cut by 55% YoY, narrowing net loss by 81.5% to ₹59.2 Cr.',
+        text: 'Q2 FY27 standalone PAT nearly tripled (+196.9% YoY to ₹114.38 Cr on ₹1,929.92 Cr revenue) alongside Greenfield Chhatrapati Sambhajinagar Alloy/Steel Wheels plant approval and ₹1.50 interim dividend.',
         basis: 'filing',
-        sources: ['Audited Q2 Financial Results 22-Oct-2026'],
+        sources: ['BSE/NSE Q2 Results & Outcome 23-Oct-2026'],
       },
-      epsThesis: getBrief('NSE:TTML'),
+      epsThesis: getBrief('NSE:SSWL'),
       epsImpact: {
         direction: 'positive',
-        magnitude: 'Loss narrowed by ₹261.6 Cr/quarter',
-        timeline: 'FY27-FY28',
+        magnitude: '+196.9% PAT / EPS ₹7.27',
+        timeline: 'H2 FY27-FY28',
         confidence: 'high',
       },
       linkage: 'explained',
-      tags: ['turnaround', 'deleveraging', 'earnings'],
+      tags: ['earnings', 'capacity_expansion', 'auto_ancillaries', 'dividend'],
       pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/7xqh19fwgpscul2t2e5e3t1c.pdf',
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/m6ixw4ckvymdgbxutuw8d93i.pdf',
     },
-    'BSE:VANS': {
+    'NSE:GRWRHITECH': {
+      tier: 'ACT',
       headline:
-        'Bagged ₹4.445 Cr vacuum circuit breaker order from Agrawal Power, ~19% of market cap base',
+        'Record Q2 revenue hits ₹696 Cr (+22% YoY); FY27 EBITDA margin guidance raised +200 bps to 27% (±2%)',
       thesisChain: [
-        '19-Oct order win of ₹4.45 Cr for testing & supply of double pole vacuum circuit breakers and interrupters',
-        'Short 6-month execution cycle accelerates revenue recognition in H2 FY27',
-        'Power distribution grid modernization and substation automation demand driving high order book rotation',
+        'Revenue from operations reached an all-time high of ₹696 Cr (+22% YoY, +10% QoQ) with peak quarterly EBITDA margin of 27.2% (+377 bps YoY)',
+        'H1 EBITDA margin reached 28.7%, prompting management to raise full-year FY27 EBITDA margin guidance by 200 bps to 27% (±2%) while reaffirming ₹2,500+ Cr revenue',
+        'Strong consumer demand and pricing realization across premium Solar Control and Paint Protection Films (PPF) offset Middle East headwinds',
       ],
       why: {
-        text: '19-Oct order win of ₹4.45 Cr from Agrawal Power for testing & supply of double pole vacuum circuit breakers within 6 months.',
+        text: 'Record Q2 FY27 results: Revenue hit all-time high of ₹696 Cr (+22% YoY), EBITDA surged 42% YoY (27.2% margin), and management raised FY27 EBITDA margin guidance by 200 bps to 27% (±2%).',
+        basis: 'filing',
+        sources: ['Media Release & Q2 Results 22-Oct-2026'],
+      },
+      epsThesis: getBrief('NSE:GRWRHITECH'),
+      epsImpact: {
+        direction: 'positive',
+        magnitude: '+200 bps FY27 EBITDA margin guidance',
+        timeline: 'FY27',
+        confidence: 'high',
+      },
+      linkage: 'explained',
+      tags: ['earnings', 'guidance_upgrade', 'margin_expansion', 'specialty_films'],
+      pdfUrl:
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/98u49vtszjmoil0arp0qpoxz.pdf',
+    },
+    'NSE:ANTELOPUS': {
+      tier: 'ACT',
+      headline:
+        'Pre-results institutional accumulation (+13%) ahead of 26-Oct Q2 board meeting & concall',
+      thesisChain: [
+        'Board meeting intimation filed for 26-Oct-2026 (in 3 days) to approve Q2 FY27 financial results and hold analyst earnings call',
+        'Heavy institutional delivery of ₹32.58 Cr (+13.00% price surge) confirms aggressive positioning ahead of upstream production and revenue prints',
+        'High-conviction pre-PEAD candidate in oil & gas exploration with operational momentum across producing assets',
+      ],
+      why: {
+        text: 'Pre-results accumulation: Board meeting scheduled on 26-Oct-2026 (in 3 days) to approve Q2 FY27 financial results and hold earnings call.',
+        basis: 'pre_result',
+        sources: ['BSE Board Meeting Intimation 21-Oct-2026'],
+      },
+      epsThesis: getBrief('NSE:ANTELOPUS'),
+      epsImpact: {
+        direction: 'positive',
+        magnitude: 'Pre-results accumulation',
+        timeline: 'Q2 FY27 print (26-Oct)',
+        confidence: 'high',
+      },
+      linkage: 'explained',
+      pead_candidate: true,
+      tags: ['pre_result', 'pead_candidate', 'oil_gas'],
+      pdfUrl:
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/ug07327fl6y3bz33qtlddjbg.pdf',
+    },
+    'BSE:VANS': {
+      tier: 'ACT',
+      headline:
+        'Won ₹4.445 Cr vacuum circuit breaker order from Agrawal Power, representing ~19% of market cap',
+      thesisChain: [
+        'Secured ₹4.445 Cr commercial contract from Agrawal Power for testing and supply of 33kV & 11kV double pole vacuum circuit breakers and interrupters',
+        'Six-month execution window provides sharp revenue visibility into H2 FY27 on a small-cap base',
+        'High delivery percentage of 44.23% (₹14.63 Cr delivered) drove stock to 10% upper circuit',
+      ],
+      why: {
+        text: '19-Oct order win of ₹4.445 Cr from Agrawal Power for testing & supply of double pole vacuum circuit breakers within 6 months (~19% of market cap base).',
         basis: 'filing',
         sources: ['BSE Filing 19-Oct-2026'],
       },
       epsThesis: getBrief('NSE:544971'),
       epsImpact: {
         direction: 'positive',
-        magnitude: '~19% of mcap revenue addition',
+        magnitude: '+19% of market cap in new orders',
         timeline: 'H2 FY27 (6 months)',
         confidence: 'high',
       },
       linkage: 'explained',
-      tags: ['order_book', 'capital_goods'],
+      tags: ['order_book', 'switchgear', 't_and_d'],
       pdfUrl:
         'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/smtcmjna8o6xftxhietxgo7m.pdf',
     },
-    'NSE:ONWARDTEC': {
+    'BSE:SGMART': {
+      tier: 'ACT',
       headline:
-        'Best-ever Q2 with Revenue +22.2% YoY, EBITDA +33.7%; raised FY27 revenue guidance to 15-18%',
+        'Heavy delivery accumulation (88.38% deliv, ₹9.05 Cr) in B2B steel & building materials supply network',
       thesisChain: [
-        'Q2 revenue reached ₹171.2 Cr (+22.2% YoY) with EBITDA expanding 33.7% to ₹26.6 Cr (15.6% margin)',
-        'Offshore ER&D delivery mix and automotive engineering client additions driving operational leverage',
-        'Management upgraded full-year FY27 guidance to 15-18% revenue growth and 13.8-14.3% EBITDA margin',
+        'Extremely high delivery percentage of 88.38% (₹9.05 Cr delivered) reflects institutional buying in B2B building materials aggregator',
+        'No regulatory announcements in 14-day window; accumulation driven by ongoing distribution network expansion and volume throughput',
+        'Move remains unbacked by direct company disclosures and is classified as unexplained accumulation',
       ],
       why: {
-        text: '16-Oct Q2 results beat: Revenue +22.2% YoY to ₹171.2 Cr, EBITDA +33.7% YoY to ₹26.6 Cr (15.6% margin), and raised FY27 guidance to 15-18% revenue growth.',
-        basis: 'filing',
-        sources: ['Q2 Results & Press Release 16-Oct-2026'],
+        text: 'No discoverable trigger in 14-day exchange filings; high delivery % accumulation (88.4%) across B2B construction/steel distribution player.',
+        basis: 'none',
+        sources: ['BSE Disclosures 14d'],
       },
+      epsThesis: null,
       epsImpact: {
-        direction: 'positive',
-        magnitude: 'Guidance raised to 15-18% FY27 growth',
-        timeline: 'FY27',
-        confidence: 'high',
+        direction: 'neutral',
+        magnitude: 'Unexplained accumulation',
+        timeline: 'Ongoing',
+        confidence: 'medium',
       },
-      linkage: 'explained',
-      tags: ['earnings', 'guidance_raise', 'erd'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/t9ignle6f4f46cf46wtl0vyh.pdf',
-    },
-    'BSE:PPEL': {
-      headline:
-        'H1 revenue up +68% YoY to ₹210 Cr, PAT +88% to ₹25 Cr; Pune Unit III doubles melting capacity by Sep 2027',
-      thesisChain: [
-        'H1 FY27 revenue reached ₹210.1 Cr (+68% YoY) with EBITDA up 74% to ₹39.6 Cr and PAT up 88% to ₹24.9 Cr',
-        'Unit III Pune capex underway to double melting capacity to 28,800 MTPA and casting/machining to 12,600 MTPA',
-        'Low leverage (D/E 0.08x) and 36% ROCE fund organic growth targeting ₹1,000 Cr turnover by FY30',
-      ],
-      why: {
-        text: 'H1 FY27 results: Revenue +68% YoY to ₹210 Cr, PAT +88% YoY to ₹24.9 Cr with Unit III Pune capex doubling melting capacity to 28,800 MTPA by Sep 2027.',
-        basis: 'filing',
-        sources: ['BSE Results Filing 22-Oct-2026', 'Investor Presentation H1FY27'],
-      },
-      epsImpact: {
-        direction: 'positive',
-        magnitude: '+88% PAT / Capacity doubling',
-        timeline: 'H2 FY27-FY28',
-        confidence: 'high',
-      },
-      linkage: 'explained',
-      tags: ['earnings', 'capacity_expansion', 'auto_ancillary'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/z2f448pj7muajvcqvsuf1m9i.pdf',
-    },
-    'NSE:KROSS': {
-      headline:
-        'Q2 PAT +143.5% YoY to ₹19.7 Cr on 79.6% revenue growth post axle beam plant commercialisation',
-      thesisChain: [
-        'Q2 revenue jumped 79.6% YoY to ₹235 Cr while EBITDA doubled (+107.4%) to ₹30.6 Cr',
-        'Commercial production at axle beam extrusion plant operating at 60-65% utilization driving operating leverage',
-        'Ongoing high-pressure moulding and robotic forging capacity doubling provides FY28 earnings runway',
-      ],
-      why: {
-        text: '17-Oct Q2 results explosion: Revenue +79.6% YoY to ₹235 Cr, EBITDA +107.4% to ₹30.6 Cr, and PAT +143.5% to ₹19.7 Cr following axle beam plant commissioning.',
-        basis: 'filing',
-        sources: ['Q2 Earnings Press Release 17-Oct-2026'],
-      },
-      epsThesis: getBrief('NSE:KROSS'),
-      epsImpact: {
-        direction: 'positive',
-        magnitude: '+143.5% PAT growth',
-        timeline: 'H2 FY27',
-        confidence: 'high',
-      },
-      linkage: 'explained',
-      tags: ['earnings', 'operating_leverage', 'auto_components'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/181wdl13bb1m0lju6zdidbyr.pdf',
-    },
-    'NSE:BETA': {
-      headline:
-        'H1 revenue up +29.2% to ₹263 Cr with CMO +217%; confirmed NPPA 30% margin cap has zero impact',
-      thesisChain: [
-        'H1 FY27 revenue expanded 29.2% YoY to ₹263.0 Cr propelled by 217% explosion in contract manufacturing (CMO)',
-        'Management confirmed recent NPPA trade margin capping at 30% has no material bearing on company realisations or margins',
-        'Adley oncology formulation plant debottlenecking completed, shifting delayed orders to strong H2 execution',
-      ],
-      why: {
-        text: '22-Oct Q2 results: H1 revenue +29.2% YoY to ₹263 Cr with CMO surging +217% and management confirming zero impact from NPPA trade margin cap.',
-        basis: 'filing',
-        sources: ['Board Meeting Outcome 22-Oct-2026'],
-      },
-      epsThesis: getBrief('NSE:BETA'),
-      epsImpact: {
-        direction: 'positive',
-        magnitude: '+217% CMO growth / Regulatory overhang cleared',
-        timeline: 'H2 FY27',
-        confidence: 'high',
-      },
-      linkage: 'explained',
-      tags: ['earnings', 'pharma', 'cmo'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/syb8woh4134iv040e84k7acs.pdf',
+      linkage: 'unexplained',
+      tags: ['high_delivery', 'b2b_distribution'],
+      pdfUrl: null,
     },
     'NSE:SASKEN': {
+      tier: 'ACT',
       headline:
-        'Pre-results accumulation ahead of 28-Oct board meeting for Q2 results and Interim Dividend',
+        'Pre-results accumulation (40.99% deliv) ahead of 28-Oct board meeting for Q2 results & dividend',
       thesisChain: [
-        'Board meeting scheduled on 28-Oct-2026 (in 6d) to consider Q2 FY27 earnings and declare Interim Dividend',
-        'Delivery-backed buying of ₹10.00 Cr (31.9% delivery) reflects strong smart-money positioning',
-        'Automotive semiconductor and satellite communications ER&D deals driving anticipated margin recovery',
+        'Board meeting intimation issued for 28-Oct-2026 (in 5 days) to approve Q2 FY27 financial results and declare interim dividend',
+        'High delivery % of 40.99% (₹6.45 Cr delivered) confirms accumulation in semiconductor and connected device product engineering services',
+        'Positioned as an earnings anticipation candidate for upcoming dividend declaration',
       ],
       why: {
-        text: 'Pre-results accumulation: Board meeting scheduled on 28-Oct-2026 (in 6d) to approve Q2 FY27 results and consider Interim Dividend.',
+        text: 'Pre-results accumulation: Board meeting scheduled on 28-Oct-2026 (in 5 days) to approve Q2 FY27 results and consider interim dividend.',
         basis: 'pre_result',
-        sources: ['BSE Filing 21-Oct-2026'],
+        sources: ['NSE Board Meeting Intimation 21-Oct-2026'],
       },
-      epsThesis: getBrief('NSE:SASKEN'),
+      epsThesis: null,
       epsImpact: {
         direction: 'positive',
-        magnitude: 'Dividend + Q2 inflection',
-        timeline: 'In 6 days',
+        magnitude: 'Pre-results positioning',
+        timeline: '28-Oct-2026',
         confidence: 'medium',
       },
       linkage: 'explained',
-      tags: ['pre_results', 'dividend', 'erd'],
+      pead_candidate: true,
+      tags: ['pre_result', 'pead_candidate', 'it_services', 'dividend'],
       pdfUrl:
         'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/15jiy1fy4lfsrag545tsstzu.pdf',
     },
-    'NSE:ARMEE': {
+
+    // -------------------------------------------------------------
+    // WATCH CARDS (Compact layout)
+    // -------------------------------------------------------------
+    'NSE:IGIL': {
+      tier: 'WATCH',
       headline:
-        'Q1 PAT turned positive to ₹1.82 Cr; secured 250 MW / 500 MWh BESS project from MSEDCL',
-      thesisChain: [
-        'Q1 FY27 consolidated EBITDA surged 128.6% to ₹6.95 Cr, turning net profit positive to ₹1.82 Cr',
-        'Secured flagship 250 MW / 500 MWh Battery Energy Storage System (BESS) project under 15-year BESPA with VGF',
-        'Incorporated dedicated renewable energy SPV (ArMee MH One) to scale solar and storage infrastructure',
-      ],
+        'Persistent institutional follow-through (+7.9%, ₹156.6 Cr deliv) on blowout Q2 results (+43% PAT, 61.4% EBITDA mgn)',
       why: {
-        text: '17-Oct Q1 results turnaround (PAT turned positive to ₹1.82 Cr) and bagged 250 MW / 500 MWh BESS project from MSEDCL under 15-year agreement.',
+        text: 'Follow-through accumulation post Q2 FY27 results beat: Consolidated Revenue +31% YoY to ₹398 Cr, EBITDA margin expanded to 61.4%, and PAT grew +43% YoY to ₹185.8 Cr on 4.35M reports.',
         basis: 'filing',
-        sources: ['Q1 Results Press Release 17-Oct-2026'],
+        sources: ['Q2 Results & Press Release 21-Oct-2026'],
       },
+      epsThesis: getBrief('NSE:IGIL'),
       epsImpact: {
         direction: 'positive',
-        magnitude: '250 MW / 500 MWh BESS contract',
-        timeline: '15-year agreement',
-        confidence: 'medium',
-      },
-      linkage: 'explained',
-      tags: ['bess', 'renewable_energy', 'turnaround'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/wkifg176nqqngzzml9ox993v.pdf',
-    },
-    'NSE:SUNTECK': {
-      headline:
-        'Commercial Paper issuance of ₹50 Cr at 8.15% p.a. ahead of 26-Oct Q2 board meeting',
-      thesisChain: [
-        '21-Oct Commercial Paper issuance of ₹50 Cr at competitive 8.15% p.a. optimizes short-term financing costs',
-        'Q2 results scheduled on 26-Oct (in 4d) with Mumbai luxury residential pre-sales collections expected to reflect high traction',
-        'Low gearing provides balance sheet headroom for joint development project acquisitions',
-      ],
-      why: {
-        text: '21-Oct Commercial Paper issuance of ₹50 Cr at 8.15% p.a. alongside pre-results positioning ahead of 26-Oct Q2 board meeting.',
-        basis: 'filing',
-        sources: ['BSE Filing 21-Oct-2026'],
-      },
-      epsThesis: getBrief('NSE:SUNTECK'),
-      epsImpact: {
-        direction: 'positive',
-        magnitude: 'Low-cost debt + pre-results positioning',
-        timeline: 'In 4 days',
-        confidence: 'medium',
-      },
-      linkage: 'explained',
-      tags: ['commercial_paper', 'real_estate', 'pre_results'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/t8xpdpd9znaeg9dfdhqbacdn.pdf',
-    },
-    'NSE:WSTCSTPAPR': {
-      headline: 'Paper sector delivery surge of ₹18.08 Cr amid packaging board pricing recovery',
-      thesisChain: [
-        'No material regulatory filings in 14 days; volume surge of ₹18.08 Cr (12.34% deliv)',
-        'Domestic paper and packaging board realisations stabilizing as import dumping cools',
-        'Raw material wood and chemical cost moderation supporting operating margin recovery',
-      ],
-      why: {
-        text: 'No discoverable trigger in 14-day exchange filings; paper sector price-volume accumulation.',
-        basis: 'none',
-        sources: [],
-      },
-      epsThesis: getBrief('NSE:WSTCSTPAPR'),
-      epsImpact: {
-        direction: 'positive',
-        magnitude: 'Margin normalization',
+        magnitude: '+43% PAT / 61.4% margin',
         timeline: 'H2 FY27',
+        confidence: 'high',
+      },
+      linkage: 'explained',
+      tags: ['earnings', 'margin_expansion', 'certification'],
+      pdfUrl:
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/q5u7smeu1nmp7n7tu5hsb3xh.pdf',
+    },
+    'NSE:WESTLIFE': {
+      tier: 'WATCH',
+      headline:
+        'Q2 results inflection: Revenue up 16% YoY to ₹747 Cr (13-quarter high) with double-digit SSSG of 10.1% and Operating EBITDA +29%',
+      why: {
+        text: 'Q2 FY27 results inflection: Revenue up 16% YoY to ₹747 Cr (13-quarter high), SSSG accelerating to double-digit +10.1%, and Operating EBITDA growing 29% YoY to ₹98.1 Cr.',
+        basis: 'filing',
+        sources: ['Press Release & Q2 Results 23-Oct-2026'],
+      },
+      epsThesis: getBrief('NSE:WESTLIFE'),
+      epsImpact: {
+        direction: 'positive',
+        magnitude: '+10.1% SSSG / +29% EBITDA',
+        timeline: 'H2 FY27',
+        confidence: 'high',
+      },
+      linkage: 'explained',
+      tags: ['earnings', 'qsr', 'sssg_inflection'],
+      pdfUrl:
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/zzi29x0litltzfpgdw7j3sls.pdf',
+    },
+    'NSE:LCL': {
+      tier: 'WATCH',
+      headline:
+        'Accumulating on concall fundamental strength (record ₹1,778 Cr order book and 19.9% EBITDA margin)',
+      why: {
+        text: 'No fresh filing in 14-day window; stock accumulating on Aug-2026 concall fundamental strength (record ₹1,778 Cr order book and EBITDA margin expansion to 19.9%).',
+        basis: 'catalyst',
+        sources: ['Concall Transcript Aug-2026'],
+      },
+      epsThesis: getBrief('NSE:LCL'),
+      epsImpact: {
+        direction: 'positive',
+        magnitude: '₹1,778 Cr order book backlog',
+        timeline: 'FY27',
         confidence: 'medium',
       },
-      linkage: 'unexplained',
-      tags: ['paper', 'unexplained_accumulation'],
+      linkage: 'explained',
+      tags: ['order_book', 'textile_machinery'],
       pdfUrl: null,
     },
     'NSE:PASHUPATI': {
-      headline: 'Cotton spinning price-volume accumulation of ₹16.40 Cr delivery',
-      thesisChain: [
-        'No material regulatory disclosures in 14 days; high delivery value of ₹16.40 Cr (27.98% deliv)',
-        'Cotton yarn price spread stabilization following new cotton crop arrivals',
-        'Textile spinning capacity utilization improving across northern/western clusters',
-      ],
+      tier: 'WATCH',
+      headline:
+        'High delivery percentage (41.89%, ₹11.82 Cr) in textile spinning; price-band clarification confirmed no material events',
       why: {
-        text: 'No discoverable trigger in 14-day exchange filings; sustained delivery accumulation in spinning player.',
+        text: 'No discoverable trigger in 14-day exchange filings; price-band clarification confirmed no undisclosed material events.',
         basis: 'none',
-        sources: [],
+        sources: ['NSE Clarification 21-Oct-2026'],
       },
-      epsThesis: getBrief('NSE:PASHUPATI'),
-      linkage: 'unexplained',
-      tags: ['textiles', 'unexplained_accumulation'],
-      pdfUrl: null,
-    },
-    'NSE:PLATIND': {
-      headline: 'Delivery accumulation of ₹9.55 Cr in specialty polymer additives',
-      thesisChain: [
-        'No filing in 14-day window; delivery value of ₹9.55 Cr (26.03% deliv)',
-        'PVC stabilizers and lubricants player benefiting from domestic pipe manufacturing demand',
-        'High-margin specialty chemical product mix supporting earnings base',
-      ],
-      why: {
-        text: 'No discoverable trigger in 14-day exchange filings; volume-backed accumulation in specialty polymer additives.',
-        basis: 'none',
-        sources: [],
+      epsThesis: null,
+      epsImpact: {
+        direction: 'neutral',
+        magnitude: 'Unexplained accumulation',
+        timeline: 'Ongoing',
+        confidence: 'medium',
       },
       linkage: 'unexplained',
-      tags: ['chemicals', 'unexplained_accumulation'],
+      tags: ['textiles', 'clarification'],
       pdfUrl: null,
     },
-    'NSE:SRIT': {
-      headline: 'Pre-results positioning ahead of 26-Oct Q2 board meeting',
-      thesisChain: [
-        'Board meeting scheduled on 26-Oct-2026 (in 4d) to approve Q2 FY27 financial results',
-        'Delivery-backed move of ₹7.01 Cr (25.04% deliv) reflecting earnings anticipation',
-        'Healthcare and e-governance IT solutions execution in focus',
-      ],
+    'NSE:CAPILLARY': {
+      tier: 'WATCH',
+      headline:
+        'Appointed William Swift as President - Americas Region to lead enterprise customer loyalty expansion',
       why: {
-        text: 'Pre-results accumulation: Board meeting scheduled for 26-Oct-2026 (in 4d) to approve Q2 FY27 financial results.',
-        basis: 'pre_result',
-        sources: ['BSE Filing 17-Oct-2026'],
+        text: '22-Oct appointment of William Swift as President – Americas Region (designated SMP) to spearhead enterprise expansion across North America.',
+        basis: 'filing',
+        sources: ['NSE/BSE Reg 30 Filing 22-Oct-2026'],
+      },
+      epsThesis: null,
+      epsImpact: {
+        direction: 'positive',
+        magnitude: 'North America enterprise growth',
+        timeline: 'FY27-FY28',
+        confidence: 'medium',
       },
       linkage: 'explained',
-      tags: ['pre_results', 'it_services'],
-      pdfUrl: null,
+      tags: ['management_change', 'saas', 'enterprise'],
+      pdfUrl:
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/y3raxa9q06732qq2pq8c9hcc.pdf',
     },
-    'NSE:SAKAR': {
-      headline: 'Liquid oncology formulations delivery accumulation of ₹5.49 Cr (46.38% deliv)',
-      thesisChain: [
-        'No material regulatory filings in 14-day window; 46.38% delivery on ₹5.49 Cr volume',
-        'Oncology injectable and European formulation capacity commercialisation in progress',
-        'Volume-backed small-cap pharma accumulation',
-      ],
+
+    // -------------------------------------------------------------
+    // NOTED CARDS
+    // -------------------------------------------------------------
+    'NSE:JINDALPOLY': {
+      tier: 'NOTED',
+      headline: '+11.23% price move unbacked by delivery (2.71% deliv indicates speculative intraday churn)',
       why: {
-        text: 'No discoverable trigger in 14-day exchange filings; high delivery % accumulation in oncology injectables and formulation player.',
+        text: 'No discoverable trigger in 14-day exchange filings; +11.2% price move unsupported by delivery (2.71% delivery pct reflects speculative churn).',
         basis: 'none',
-        sources: [],
+        sources: ['NSE Disclosures 14d'],
+      },
+      linkage: 'mismatched',
+    },
+    'NSE:AHCL': {
+      tier: 'NOTED',
+      headline: 'Small-cap API manufacturer gained +4.97% on ₹7.81 Cr delivery (47.86% deliv)',
+      why: {
+        text: 'No discoverable trigger in 14-day exchange filings; high delivery % accumulation in small-cap API manufacturer.',
+        basis: 'none',
+        sources: ['NSE Disclosures 14d'],
       },
       linkage: 'unexplained',
-      tags: ['pharma', 'unexplained_accumulation'],
-      pdfUrl: null,
     },
-    'NSE:MTNL': {
-      headline: 'Sympathy rally (+11.0%, ₹5.36 Cr deliv) alongside peer TTML (+18.6%)',
-      thesisChain: [
-        'No company filing in 14-day window; gained +10.99% on ₹5.36 Cr delivery',
-        "Rally driven by strong peer co-movement following Tata Teleservices' 81.5% loss compression",
-        'State-owned telecom asset monetisation and sovereign guarantee support remain tracking triggers',
-      ],
+    'NSE:KOLTEPATIL': {
+      tier: 'NOTED',
+      headline: 'Pune residential real estate developer gained +6.24% on ₹6.82 Cr delivery',
       why: {
-        text: 'Sympathy move with peer Tata Teleservices (+18.6%) in telecom services following TTML loss-compression results.',
-        basis: 'sector',
-        sources: ['Telecom Services Sector Co-movement'],
-      },
-      linkage: 'explained',
-      tags: ['telecom', 'sympathy_move'],
-      pdfUrl: null,
-    },
-    'NSE:SUPREMEPWR': {
-      headline: 'Power transformer manufacturer gained +9.72% on expanding T&D order book',
-      thesisChain: [
-        'No filings in 14d; transformer and substation supply demand remains buoyant',
-        'Renewable evacuation and state utility capex driving multi-year order backlog',
-        'SME precision power equipment player seeing continued delivery traction',
-      ],
-      why: {
-        text: 'Power transformer manufacturing tailwinds and renewable grid connection demand.',
-        basis: 'sector',
-        sources: ['Power Equipment Sector Trend'],
-      },
-      linkage: 'explained',
-      tags: ['power_transformers', 'capital_goods'],
-      pdfUrl: null,
-    },
-    'NSE:AVANA': {
-      headline: 'Electrical switchgear and relays player gained +4.97% on smart metering demand',
-      thesisChain: [
-        'No filings in 14d; industrial switchgear and relay equipment execution continuing',
-        'RDSS smart metering and distribution infrastructure schemes supporting order visibility',
-        'Price action supported by capital goods sector breadth',
-      ],
-      why: {
-        text: 'Electrical switchgear demand supported by national distribution grid modernization capex.',
-        basis: 'sector',
-        sources: ['Electrical Equipment Trend'],
-      },
-      linkage: 'explained',
-      tags: ['electrical_equipment'],
-      pdfUrl: null,
-    },
-    'NSE:SAFEENTP': {
-      headline: 'Steel fixtures trading move (+5.36%) on retail price action',
-      thesisChain: [
-        'No material regulatory filings in 14-day window',
-        'Steel retail fixtures and display shelving trade volumes',
-        'Small-cap price action without fundamental disclosure',
-      ],
-      why: {
-        text: 'No discoverable trigger in 14-day exchange filings; micro-cap steel trading price action.',
+        text: 'No discoverable trigger in 14-day exchange filings; trading on residential real estate sales velocity.',
         basis: 'none',
-        sources: [],
+        sources: ['NSE Disclosures 14d'],
       },
       linkage: 'unexplained',
-      tags: ['steel', 'price_action'],
-      pdfUrl: null,
     },
-    'NSE:CKKRETAIL': {
-      headline: 'Retail trading price action (+4.99%) without company disclosures',
-      thesisChain: [
-        'No filings in 14-day exchange window',
-        'Thin float micro-cap retail trading volume',
-        'Unexplained price-driven move',
-      ],
+    'NSE:NOVARTIND': {
+      tier: 'NOTED',
+      headline: 'MNC pharma subsidiary rose +8.31% on ₹6.13 Cr delivery with no filings',
       why: {
-        text: 'No discoverable trigger in 14-day exchange filings; retail trading price action.',
+        text: 'No discoverable trigger in 14-day exchange filings; speculative price surge in MNC pharma subsidiary.',
         basis: 'none',
-        sources: [],
+        sources: ['BSE/NSE Disclosures 14d'],
       },
       linkage: 'unexplained',
-      tags: ['retail', 'price_action'],
-      pdfUrl: null,
     },
-    'NSE:KORE': {
-      headline: 'Food processing price action (+4.98%) on thin float',
-      thesisChain: [
-        'No material regulatory announcements in 14-day window',
-        'Trading move on low floating stock',
-        'Unexplained price-driven activity',
-      ],
+    'NSE:EASEMYTRIP': {
+      tier: 'NOTED',
+      headline: 'Online travel agency rose +4.50% on ₹5.35 Cr delivery on festive travel sentiment',
       why: {
-        text: 'No discoverable trigger in 14-day exchange filings; packaged foods trading price action.',
+        text: 'No discoverable trigger in 14-day exchange filings; festive travel booking season volume interest.',
         basis: 'none',
-        sources: [],
+        sources: ['NSE Disclosures 14d'],
       },
       linkage: 'unexplained',
-      tags: ['foods', 'price_action'],
-      pdfUrl: null,
     },
-    'NSE:BLUEWATER': {
-      headline: 'Miscellaneous trading move (+4.88%) without filing trigger',
-      thesisChain: [
-        'No corporate filings in 14-day window',
-        'Low liquidity micro-cap price action',
-        'Unexplained move without discoverable trigger',
-      ],
+    'NSE:PRIZOR': {
+      tier: 'NOTED',
+      headline: 'CCTV camera manufacturer rose +9.95% with null delivery data',
       why: {
-        text: 'No discoverable trigger in 14-day exchange filings; miscellaneous price action.',
+        text: 'No discoverable trigger; delivery data unavailable for this exchange series.',
         basis: 'none',
-        sources: [],
+        sources: ['NSE Disclosures 14d'],
       },
       linkage: 'unexplained',
-      tags: ['miscellaneous', 'price_action'],
-      pdfUrl: null,
+    },
+    'NSE:KARNIKA': {
+      tier: 'NOTED',
+      headline: 'Readymade apparel manufacturer gained +5.73% with null delivery data',
+      why: {
+        text: 'No discoverable trigger; delivery data unavailable for this exchange series.',
+        basis: 'none',
+        sources: ['NSE Disclosures 14d'],
+      },
+      linkage: 'unexplained',
+    },
+    'NSE:SIMCA': {
+      tier: 'NOTED',
+      headline: 'Advertising media player gained +5.00% with null delivery data',
+      why: {
+        text: 'No discoverable trigger; delivery data unavailable for this exchange series.',
+        basis: 'none',
+        sources: ['NSE Disclosures 14d'],
+      },
+      linkage: 'unexplained',
+    },
+    'NSE:TANKUP': {
+      tier: 'NOTED',
+      headline: 'Engineering equipment player rose +5.00% with null delivery data',
+      why: {
+        text: 'No discoverable trigger; delivery data unavailable for this exchange series.',
+        basis: 'none',
+        sources: ['NSE Disclosures 14d'],
+      },
+      linkage: 'unexplained',
+    },
+    'NSE:RAVITA': {
+      tier: 'NOTED',
+      headline: 'Heavy engineering player rose +4.93% with null delivery data',
+      why: {
+        text: 'No discoverable trigger; delivery data unavailable for this exchange series.',
+        basis: 'none',
+        sources: ['NSE Disclosures 14d'],
+      },
+      linkage: 'unexplained',
+    },
+    'NSE:ENCOMPAS': {
+      tier: 'NOTED',
+      headline: 'Design and textile player rose +4.39% with null delivery data',
+      why: {
+        text: 'No discoverable trigger; delivery data unavailable for this exchange series.',
+        basis: 'none',
+        sources: ['NSE Disclosures 14d'],
+      },
+      linkage: 'unexplained',
+    },
+    'NSE:UNIHEALTH': {
+      tier: 'NOTED',
+      headline: 'Hospital and healthcare services player gained +4.28% with null delivery data',
+      why: {
+        text: 'No discoverable trigger; delivery data unavailable for this exchange series.',
+        basis: 'none',
+        sources: ['NSE Disclosures 14d'],
+      },
+      linkage: 'unexplained',
     },
   },
 };
 
-// 4. Construct Stats
+// 4. Construct Stats Object
 const stats = {
   universe: 50,
-  qualified: 23,
-  act: 5,
-  watch: 7,
-  noted: 11,
-  researched: 17,
+  qualified: 25,
+  act: 8,
+  watch: 5,
+  noted: 12,
+  researched: 18,
   extractHits: 0,
-  pdfReads: 29,
+  pdfReads: 18,
   epsBriefs: 10,
-  briefCacheHits: 1,
+  briefCacheHits: 3,
   briefExtractHits: 0,
-  dedupedFromGainers: 0,
-  contentClassified: 90,
+  contentClassified: 88,
   contentFromExtractCache: 0,
-  contentFromLiveFetch: 90,
+  contentFromLiveFetch: 88,
   contentFetchFailed: 0,
-  watchlistTtlAdded: 23,
+  watchlistTtlAdded: 25,
   watchlistTtlRemoved: 0,
-  watchlistTtlActiveAfter: 23,
+  watchlistTtlActiveAfter: 25,
   fullReports: 3,
-  reportCacheHits: 0,
+  reportCacheHits: 1,
 };
 
 // 5. Construct gainers_why rows
 const whyRows = Object.keys(content.cards).map((id) => ({
   companyId: id,
-  tier:
-    content.cards[id].tier ||
-    (id === 'NSE:OMNI' ||
-    id === 'NSE:TTML' ||
-    id === 'BSE:VANS' ||
-    id === 'NSE:ONWARDTEC' ||
-    id === 'BSE:PPEL'
-      ? 'ACT'
-      : id === 'NSE:IGIL' ||
-          id === 'NSE:KROSS' ||
-          id === 'NSE:BETA' ||
-          id === 'NSE:SASKEN' ||
-          id === 'NSE:ARMEE' ||
-          id === 'NSE:SUPREMEPWR' ||
-          id === 'NSE:AVANA'
-        ? 'WATCH'
-        : 'NOTED'),
+  tier: content.cards[id].tier || 'NOTED',
   linkage: content.cards[id].linkage,
   why: content.cards[id].why,
 }));
@@ -564,10 +516,10 @@ const whyJson = {
 };
 
 // Write files
-fs.writeFileSync('/tmp/gainers_content_20261022.json', JSON.stringify(content, null, 2), 'utf8');
-fs.writeFileSync('/tmp/gainers_stats_20261022.json', JSON.stringify(stats, null, 2), 'utf8');
-fs.writeFileSync('data/runs/gainers_why_20261022.json', JSON.stringify(whyJson, null, 2), 'utf8');
+fs.writeFileSync('/tmp/gainers_content_20261023.json', JSON.stringify(content, null, 2), 'utf8');
+fs.writeFileSync('/tmp/gainers_stats_20261023.json', JSON.stringify(stats, null, 2), 'utf8');
+fs.writeFileSync('data/runs/gainers_why_20261023.json', JSON.stringify(whyJson, null, 2), 'utf8');
 
-console.log('✅ Written: /tmp/gainers_content_20261022.json');
-console.log('✅ Written: /tmp/gainers_stats_20261022.json');
-console.log('✅ Written: data/runs/gainers_why_20261022.json');
+console.log('✅ Written: /tmp/gainers_content_20261023.json');
+console.log('✅ Written: /tmp/gainers_stats_20261023.json');
+console.log('✅ Written: data/runs/gainers_why_20261023.json');

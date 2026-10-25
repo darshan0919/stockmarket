@@ -21,6 +21,7 @@
     "soic-setups-rotation-daily": "yarn workspace @stock/jobs-runtime soic-setups-rotation-daily",
     "mtf-flush-suite-daily": "yarn workspace @stock/jobs-runtime mtf-flush-suite-daily",
     "daily-quarterly-result-analysis": "yarn workspace @stock/jobs-runtime daily-quarterly-result-analysis",
+    "batch-quarterly-result-analysis": "yarn workspace @stock/jobs-runtime batch-quarterly-result-analysis",
     "daily-gainers-digest": "yarn workspace @stock/jobs-runtime daily-gainers-digest",
     "weekly-gainers-digest": "yarn workspace @stock/jobs-runtime weekly-gainers-digest",
     "near-highs-digest": "yarn workspace @stock/jobs-runtime near-highs-digest",

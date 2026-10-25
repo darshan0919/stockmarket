@@ -249,6 +249,28 @@ describe('Report Generators', () => {
     expect(res.html).toContain('Dependencies unguided — no extrapolation');
   });
 
+  it('should reject non-object DTOs and empty bodyHtml in createQuarterlyResultPdf', async () => {
+    await expect(createQuarterlyResultPdf(null)).rejects.toThrow(
+      'createQuarterlyResultPdf: input data must be a valid non-empty object'
+    );
+    await expect(createQuarterlyResultPdf('rpt_id_string')).rejects.toThrow(
+      'createQuarterlyResultPdf: input data must be a valid non-empty object'
+    );
+    await expect(createQuarterlyResultPdf([])).rejects.toThrow(
+      'createQuarterlyResultPdf: input data must be a valid non-empty object'
+    );
+
+    // Object with no content sections -> bodyHtml is empty
+    const emptyDto = {
+      company: 'Empty Corp',
+      ticker: 'NSE:EMPTY',
+      quarter: 'Q2 FY27',
+    };
+    await expect(createQuarterlyResultPdf(emptyDto)).rejects.toThrow(
+      'Refusing to render an empty report'
+    );
+  });
+
   it('should generate rerating-catalysts HTML with deterministic J-curve banner and core triggers', async () => {
     const rcPath = path.join(tmpDir, 'rerating_catalysts.html');
     const mockDto = {

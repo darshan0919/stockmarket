@@ -43,6 +43,31 @@ async function main() {
     process.exit(1);
   }
 
+  // If input JSON was a report ID string (e.g. "rpt_quarterly-result-analysis_..."), load from DB
+  if (typeof data === 'string') {
+    try {
+      const db = require('../../packages/jobs-runtime/lib/db');
+      const loaded = db.readReport(data);
+      if (loaded && typeof loaded === 'object') {
+        data = loaded;
+      } else {
+        throw new Error(`Report ID "${data}" not found in DB`);
+      }
+    } catch (err) {
+      console.error(
+        `[render-quarterly-result-pdf] Error: Input JSON was a string ("${data}"), failed loading from DB: ${err.message}`
+      );
+      process.exit(1);
+    }
+  }
+
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    console.error(
+      `[render-quarterly-result-pdf] Error: Input data must be a valid DTO object, received ${data === null ? 'null' : typeof data}`
+    );
+    process.exit(1);
+  }
+
   try {
     const result = await createQuarterlyResultPdf(data, {
       outputPath,

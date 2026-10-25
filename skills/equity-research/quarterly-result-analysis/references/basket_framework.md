@@ -202,11 +202,12 @@ Whenever management issues qualitative or quantitative forward guidance on earni
    Every guided target must be explicitly compared against the current base period (e.g. TTM, current FY, or current quarter annualized), with percentage change calculated and directionally color-coded.
 3. **Incremental Guidance Delta Tagging (`deltaTag`)**:
    Every guided row must be explicitly compared against prior guidance disclosures to tag the incremental guidance direction in latest result filings:
-   - **`RAISE`** (`.chip-g`): Guidance raised / upgraded in latest result filings (e.g. higher growth targets, expanded margin corridor, accelerated project timelines).
+   - **`RAISE`** (`.chip-g`): Guidance raised / upgraded in latest result filings (e.g. higher growth targets, expanded margin corridor, accelerated project timelines). **Strict Rule**: `RAISE` may ONLY be tagged directly on `DIRECTLY GUIDED` metrics.
    - **`CUT`** (`.chip-r`): Guidance lowered / cut in latest result filings (e.g. reduced growth rate, lower volume guidance, higher credit cost, delayed capex).
    - **`REAFFIRM`** (`.chip-b`): Prior guidance explicitly reiterated / confirmed unchanged in latest filings.
    - **`SILENT`** (`.chip-y`): Metric was previously guided by management in earlier calls or investor presentations, but management **didn't speak about that particular metric's guidance in latest result filings** (critical alert for quiet guidance withdrawal or loss of momentum).
    - _(For guidance introduced for the first time without prior history, tag as `NEW`)_.
+   - **Tag Derivation for `DERIVED` Metrics**: For derived metrics (such as Implied PAT, Implied Margin, or Implied Book Value), the delta tag MUST be derived from the mathematical combination of its underlying dependency metrics' tags (e.g. Revenue `REAFFIRM` + Margin `REAFFIRM` $\rightarrow$ Derived PAT is `REAFFIRM`; Revenue `REAFFIRM` + Margin `RAISE` $\rightarrow$ Derived PAT is `RAISE`; if any dependency is `CUT`, the derived tag must reflect the net combined effect). Never tag a derived metric `RAISE` independently without dependency justification.
 4. **Mandatory Bottom-Line Row (PAT or Book Value)**:
    - For **general corporates**: Add future **PAT** row.
      - If directly guided: mark `DIRECTLY GUIDED`.
@@ -214,9 +215,14 @@ Whenever management issues qualitative or quantitative forward guidance on earni
    - For **NBFCs / Banks / Lending Institutions**: Add future **Book Value / BVPS / Net Worth** row.
      - If directly guided: mark `DIRECTLY GUIDED`.
      - If indirectly guided (e.g. AUM growth of 35% with 4.5% RoA corridor and 20% dividend payout): derive implied Net Worth accretion ($\text{Net Worth}_{\text{target}} = \text{Net Worth}_{\text{base}} + \text{Projected PAT} \times \text{Retention Ratio}$), mark `DERIVED`, and show the calculation.
-5. **Strict No-Extrapolation Guardrail**:
+5. **Strict No-Extrapolation & No-Unconfirmed-Annualization Guardrail**:
    - Never extrapolate or hypothesize a bottom-line metric when the underlying dependencies are unguided (e.g. revenue guided but margin unguided; or AUM guided but RoA/credit costs unguided).
    - In such cases, leave Target and % Change cells empty (`—`), mark as `UNGUIDED`, and write in derivation basis: `Dependencies unguided — no extrapolation`.
+   - **No Unconfirmed Annualization**: Never multiply a single quarter's revenue, profit, or run-rate by 4 or apply arbitrary annual growth multipliers without explicit management confirmation. If an annualized trend or run-rate is presented as context, explicitly state the assumption in `derivationBasis` (e.g. `[Assumption: H1 run-rate annualized]`).
+6. **Hyperlinked Document Citations (Mandatory in Source / Derivation Basis)**:
+   - For every guidance statement in the table, include an explicit hyperlinked citation in the format `[Q<X>FY<YY> PPT](<url>)`, `[Q<X>FY<YY> Result](<url>)`, `[Q<X>FY<YY> Concall](<url>)`, or `[Q<X>FY<YY> Filing](<url>)` directly pointing to the respective Stockscans or exchange filing document source.
+7. **Zero Information Repetition (Cross-Section Impact Tagging)**:
+   - Eliminate repetitive narrative across report sections. When a single operational trigger or corporate development (such as a major capex project, plant commissioning, tariff change, or pricing pass-through) impacts multiple sections (e.g. Verdict Chips, Inflection Point, Baskets 1/2/3, Next Inflection, PEAD), document the primary comprehensive disclosure once in its authoritative home section, and reference it concisely in secondary sections using **Cross-Section Impact Tags** (e.g. `[Impact: Basket 1B Margins (+100 bps) | Next Inflection Q1FY28]`).
 
 ---
 
