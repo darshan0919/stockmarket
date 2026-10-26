@@ -201,6 +201,56 @@ function renderRawMaterialAndIndustrySignals(signals) {
 }
 
 /**
+ * Builds Balanced Verdict Strip (Equal-Weight Red Flags & Green Flags Upfront).
+ * Mandatory under Rule 18 and basket_framework.md.
+ * @param {Object} bv { greenFlags: Array, redFlags: Array }
+ * @returns {string}
+ */
+function renderBalancedVerdict(bv) {
+  if (!bv || (!bv.greenFlags && !bv.redFlags)) return '';
+  const greens = bv.greenFlags || [];
+  const reds = bv.redFlags || [];
+  if (!greens.length && !reds.length) return '';
+
+  const renderItems = (items, defaultPrefix) => {
+    return items
+      .map((it) => {
+        if (typeof it === 'string') {
+          return renderObservation(it, null, defaultPrefix);
+        }
+        return renderObservation(
+          it.text || it.finding || it.point,
+          it.tag || it.classification,
+          defaultPrefix
+        );
+      })
+      .join('');
+  };
+
+  return `
+    <div style="margin: 6px 0 10px 0;">
+      <div class="label" style="margin-bottom: 3px;">Mandatory Balanced Verdict Strip (Anti-Euphoria & Forensic Realities)</div>
+      <div class="grid2">
+        <div class="hl hl-g" style="padding: 6px 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span style="font-weight: 700; font-size: 10px; text-transform: uppercase;">Green Flags / Near-Term Realities</span>
+            <span class="chip chip-g">${greens.length} POSITIVE TRIGGERS</span>
+          </div>
+          ${renderItems(greens, '✓')}
+        </div>
+        <div class="hl hl-r" style="padding: 6px 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span style="font-weight: 700; font-size: 10px; text-transform: uppercase;">Red Flags / Forensic Headwinds</span>
+            <span class="chip chip-r">${reds.length} RISK HEADWINDS</span>
+          </div>
+          ${renderItems(reds, '⚠')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
  * Builds verdict chips row.
  * @param {Array<string|Object>} chips
  * @returns {string}
@@ -834,7 +884,13 @@ async function createQuarterlyResultPdf(data, options = {}) {
   const statementHealth = data.statementHealth || data.statement_health;
   bodyHtml += renderStatementHealth(statementHealth);
 
-  // 2b. Raw Material & Industry Signals
+  // 2b. Balanced Verdict Strip (Mandatory Upfront per Rule 18)
+  const balancedVerdict = data.balancedVerdict || data.balanced_verdict;
+  if (balancedVerdict) {
+    bodyHtml += renderBalancedVerdict(balancedVerdict);
+  }
+
+  // 2c. Raw Material & Industry Signals
   const rmSignals = data.rawMaterialAndIndustrySignals || data.raw_material_and_industry_signals;
   if (rmSignals) {
     bodyHtml += renderRawMaterialAndIndustrySignals(rmSignals);

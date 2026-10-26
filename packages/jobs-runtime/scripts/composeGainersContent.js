@@ -357,7 +357,8 @@ const content = {
     // -------------------------------------------------------------
     'NSE:JINDALPOLY': {
       tier: 'NOTED',
-      headline: '+11.23% price move unbacked by delivery (2.71% deliv indicates speculative intraday churn)',
+      headline:
+        '+11.23% price move unbacked by delivery (2.71% deliv indicates speculative intraday churn)',
       why: {
         text: 'No discoverable trigger in 14-day exchange filings; +11.2% price move unsupported by delivery (2.71% delivery pct reflects speculative churn).',
         basis: 'none',

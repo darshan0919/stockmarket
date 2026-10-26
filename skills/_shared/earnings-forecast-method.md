@@ -113,8 +113,12 @@ To maximize forecast precision and avoid treating all P&L lines as uniform guess
 When forecasting a high-growth thematic or capital-intensive inflection name (AI cloud, renewables, battery storage, EMS), cross-examine the company against the **specific failure modes of global or domestic peers** in the same niche:
 
 - _Anatomy of the Peer Trap (e.g. CoreWeave):_ Heavy asset-backed debt (Debt/Revenue >3.0x), interest eating >20% of revenue, and negative operating cash flow.
-- _Target Company Rebuttal Audit:_ Check whether the subject company's balance sheet replicates or refutes the peer's failure mode (e.g. E2E had Net Cash of +₹284 Cr, debt/revenue of 0.5x, and H1 operating cash flow of ₹396 Cr 100% self-funding capex).
-- _Takeaway:_ If the peer's failure mode is empirically disproven by the company's audited balance sheet and cash conversion, analysts can confidently hold the Bull scenario without taking unwarranted defensive haircuts.
+- _Target Company Rebuttal Audit:_ Check whether the subject company's balance sheet replicates or refutes the peer's failure mode.
+- _Anti-"Balance Sheet Mirage" Counter-Check (Mandatory):_ Do not celebrate headline "Net Cash" or "CFO covers capex" naively. Perform a forensic balance-sheet deconstruction:
+  1. Did debt surge over the period? (e.g. in E2E H1FY27, borrowings jumped +336% from ₹103 Cr to ₹450 Cr via ₹348.5 Cr fresh borrowing draws). If so, tag as `DEBT-FUNDED LIQUIDITY`.
+  2. Did customer advances / unearned liabilities inflate CFO? (e.g. ₹129.8 Cr of E2E's ₹396.5 Cr CFO was customer advances in other current liabilities). If $>25\%$ of CFO, tag as `LIABILITY-DRIVEN CFO`.
+  3. Is there an unexecuted dilution/fundraise overhang? (e.g. E2E's ₹1,500 Cr enabling resolution represents prospective 12–15% equity dilution or massive debt load).
+- _Takeaway:_ A company can only be declared structurally safer if BOTH the peer debt-trap is refuted AND the internal balance sheet deconstruction proves that cash generation is organic, customer-diversified, and sustainable across Capital Cycles.
 
 ### Lever 2 — Balance-sheet deleverage (financing side of the bridge)
 

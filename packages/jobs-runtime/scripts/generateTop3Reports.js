@@ -14,7 +14,9 @@ async function main() {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  console.log('[generateTop3Reports] Starting generation of Top 3 full reports for ' + marketDate + '...');
+  console.log(
+    '[generateTop3Reports] Starting generation of Top 3 full reports for ' + marketDate + '...'
+  );
 
   // ==========================================
   // 1. FULL REPORT: NSE:ETERNAL
@@ -37,7 +39,7 @@ async function main() {
       patGrowthYoY: 38.5,
     },
     snapshot:
-      'Eternal Limited (formerly Zomato Limited) is India\'s dominant consumer-tech powerhouse spanning Food Delivery, Quick Commerce (Blinkit), B2B Supplies (Hyperpure), and Going-Out (ZEPL/District). Q2 FY27 highlighted major corporate restructuring with the slump sale transfer of Going-out to ZEPL, ambient digital advertising consolidation via Mygate-Adonmo (4.4% stake valued at ₹156 Cr), and the launch of dark.ai (privacy-first end-to-end encrypted AI platform).',
+      "Eternal Limited (formerly Zomato Limited) is India's dominant consumer-tech powerhouse spanning Food Delivery, Quick Commerce (Blinkit), B2B Supplies (Hyperpure), and Going-Out (ZEPL/District). Q2 FY27 highlighted major corporate restructuring with the slump sale transfer of Going-out to ZEPL, ambient digital advertising consolidation via Mygate-Adonmo (4.4% stake valued at ₹156 Cr), and the launch of dark.ai (privacy-first end-to-end encrypted AI platform).",
     kpiHeaders: [
       'Market Cap',
       'B2C Net Order Value',
@@ -68,7 +70,8 @@ async function main() {
         body: 'Blinkit continues rapid store network expansion across metro and Tier-2 clusters. Transition to 1P inventory model captures full merchandise value and higher retail margins, compounding operating leverage across mature dark stores.',
         impact: 'Accelerated top-line expansion and dark store contribution margin expansion.',
         timeline: 'H2 FY27 festive and holiday ordering peaks',
-        forwardMarker: 'Continued store additions, festive order surge, and dark store breakeven inflection',
+        forwardMarker:
+          'Continued store additions, festive order surge, and dark store breakeven inflection',
         sources: ['Q2 FY27 Shareholders Letter (21-Oct-2026)'],
       },
       {
@@ -78,7 +81,8 @@ async function main() {
         newVsConfirmation: 'NEW',
         jCurveStage: 'Stage 2 (Capability Expansion)',
         body: 'Board approved Business Transfer Agreement (BTA) to transfer Going-out India business to wholly owned subsidiary ZEPL via slump sale, consolidating TicketNew and Insider under a unified corporate entity to optimize management and capital allocation.',
-        impact: 'Streamlined corporate structure, eliminated entity friction, positioned District for dedicated monetization.',
+        impact:
+          'Streamlined corporate structure, eliminated entity friction, positioned District for dedicated monetization.',
         timeline: 'Q3-Q4 FY27 completion',
         forwardMarker: 'Execution of BTA and operational integration under ZEPL',
         sources: ['BSE/NSE Reg 30 Filings (21-Oct-2026)'],
@@ -90,7 +94,8 @@ async function main() {
         newVsConfirmation: 'NEW',
         jCurveStage: 'Stage 1 (Emerging Frontier Option)',
         body: 'Unveiled dark.ai, an end-to-end encrypted, zero-data-retention AI assistant powered by fine-tuned open-weight models for power users, researchers, enterprises, and scientists, opening non-food software revenue optionality.',
-        impact: 'Expands global addressable market into enterprise privacy software with high SaaS gross margins.',
+        impact:
+          'Expands global addressable market into enterprise privacy software with high SaaS gross margins.',
         timeline: '2026 global rollout',
         forwardMarker: 'Public benchmarks and global commercial launch',
         sources: ['Q2 FY27 Shareholders Letter Deepinder Commentary'],
@@ -115,7 +120,8 @@ async function main() {
         date: '2026-10-21',
         title: 'Strategic Stake Acquisition in Merged Mygate/Adonmo Entity',
         category: 'Strategic Investment',
-        impact: 'Transfer of Adonmo shares for 4.4% equity stake in merged Mygate valued at ₹156 Cr',
+        impact:
+          'Transfer of Adonmo shares for 4.4% equity stake in merged Mygate valued at ₹156 Cr',
         sources: 'NSE/BSE Regulation 30 Filings',
       },
     ],
@@ -178,7 +184,7 @@ async function main() {
       },
     ],
     verdict:
-      'STRONG ACCUMULATE: India\'s leading consumer platform demonstrating operating leverage across Blinkit, corporate restructuring in ZEPL, and ₹722 Cr delivery commitment.',
+      "STRONG ACCUMULATE: India's leading consumer platform demonstrating operating leverage across Blinkit, corporate restructuring in ZEPL, and ₹722 Cr delivery commitment.",
     additional: {
       strategicRestructuring: {
         'Going-Out Entity': 'ZEPL (Zomato Entertainment Pvt Ltd)',
@@ -264,7 +270,8 @@ async function main() {
         newVsConfirmation: 'NEW',
         jCurveStage: 'Stage 3 (Operational Inflection)',
         body: 'Cyient DET EBIT expanded 16.8% QoQ to ₹237 Cr with margin reaching 14.2% (+110 bps expansion), driven by pricing discipline and high-value aerospace/defense project execution. FCF conversion reached 139% of PAT.',
-        impact: '+16.8% QoQ EBIT expansion; ₹214 Cr FCF generation supporting ongoing capex and ₹12/share dividend.',
+        impact:
+          '+16.8% QoQ EBIT expansion; ₹214 Cr FCF generation supporting ongoing capex and ₹12/share dividend.',
         timeline: 'H2 FY27 sustaining 14%+ margin trajectory',
         forwardMarker: 'Continued margin expansion toward 15% DET EBIT target in FY28',
         sources: ['Q2 FY27 Press Release (22-Oct-2026)'],
@@ -288,9 +295,11 @@ async function main() {
         newVsConfirmation: 'NEW',
         jCurveStage: 'Stage 2 (High-Margin Value Add)',
         body: 'Cyient Semiconductors grew 8% QoQ for its 6th consecutive growth quarter, securing a major turnkey program with a global semiconductor leader. ASIC pipeline exceeded $100M alongside AI data-center power product R&D.',
-        impact: 'Accelerates corporate transition from engineering services to high-margin turnkey silicon IP and ASIC solutions.',
+        impact:
+          'Accelerates corporate transition from engineering services to high-margin turnkey silicon IP and ASIC solutions.',
         timeline: 'Commercialization in FY28',
-        forwardMarker: 'Initial ASIC revenue recognition and data-center power product commercialization',
+        forwardMarker:
+          'Initial ASIC revenue recognition and data-center power product commercialization',
         sources: ['Q2 FY27 Earnings Release (22-Oct-2026)'],
       },
     ],
@@ -299,7 +308,8 @@ async function main() {
         date: '2026-10-22',
         title: 'Q2 FY27 Financial Results & Press Release',
         category: 'Results',
-        impact: 'DET EBIT margin at 10-quarter high of 14.2%, order intake $158.4M, interim dividend ₹12',
+        impact:
+          'DET EBIT margin at 10-quarter high of 14.2%, order intake $158.4M, interim dividend ₹12',
         sources: 'NSE/BSE Filings',
       },
       {
@@ -348,12 +358,14 @@ async function main() {
           },
           {
             basis: 'INFERENCE',
-            claim: 'Record $158.4M order intake and 1.6x DLM book-to-bill guarantee H2 revenue visibility',
+            claim:
+              'Record $158.4M order intake and 1.6x DLM book-to-bill guarantee H2 revenue visibility',
             source: 'Management Commentary',
           },
           {
             basis: 'HYPOTHESIS',
-            claim: 'Turnkey ASIC programs will drive higher blended billing rates, expanding FY28 PAT toward ₹850 Cr',
+            claim:
+              'Turnkey ASIC programs will drive higher blended billing rates, expanding FY28 PAT toward ₹850 Cr',
             source: 'SOIC Operating Leverage Framework',
           },
         ],
@@ -645,7 +657,7 @@ async function main() {
     reratingPhase: 'EARLY',
     spentFlags: [],
     thesis:
-      'McDonald\'s West & South operator inflects after multi-quarter QSR lull with 13-quarter high revenue growth of 16% YoY, accelerating SSSG (+10.1%), and 29% EBITDA expansion supported by bullish concall tone.',
+      "McDonald's West & South operator inflects after multi-quarter QSR lull with 13-quarter high revenue growth of 16% YoY, accelerating SSSG (+10.1%), and 29% EBITDA expansion supported by bullish concall tone.",
     catalysts: [
       {
         name: 'QSR Demand Inflection: Double-Digit SSSG (10.1%) & 13-Quarter High Revenue (₹747 Cr)',
@@ -797,8 +809,7 @@ async function main() {
       tier: 'ACT',
       summary:
         'SG Mart surged +6.07% with very high delivery % of 88.38% (₹9.05 Cr delivered, Mcap ₹4,657 Cr). No regulatory filings disclosed in 14-day window; trading on ongoing B2B industrial products/building materials network expansion.',
-      trigger:
-        'No regulatory filing in 14-day window. Unexplained high delivery % accumulation.',
+      trigger: 'No regulatory filing in 14-day window. Unexplained high delivery % accumulation.',
       trigger_quantified: 'Delivery ₹9.05 Cr, Delivery % 88.38%, 1D return +6.07%.',
       linkage: 'unexplained',
       why: {
@@ -816,8 +827,7 @@ async function main() {
         'Lohia Corp gained +5.24% on ₹12.69 Cr delivery (52.32% deliv). No fresh filings in 14 days; trading on Aug-2026 concall guidance highlights (EBITDA margin expanding from 11.5% to 19.9% and record ₹1,778 Cr order book).',
       trigger:
         'No filing in 14-day window. Concall guidance (record ₹1,778 Cr order book and 19.9% EBITDA margin) remains the primary fundamental anchor.',
-      trigger_quantified:
-        'Delivery ₹12.69 Cr (52.32% deliv), 1D +5.24%, order book ₹1,778 Cr.',
+      trigger_quantified: 'Delivery ₹12.69 Cr (52.32% deliv), 1D +5.24%, order book ₹1,778 Cr.',
       linkage: 'explained',
       why: {
         text: 'No fresh filing in 14-day window; stock accumulating on Aug-2026 concall fundamental strength (record ₹1,778 Cr order book and EBITDA margin expansion to 19.9%).',
@@ -937,8 +947,7 @@ async function main() {
       tier: 'NOTED',
       summary:
         'Easy Trip Planners gained +4.50% on ₹5.35 Cr delivery (23.98% deliv). Routine board intimation; trading on festive holiday travel booking volumes.',
-      trigger:
-        'No fundamental structural filing in 14-day window. Unexplained price movement.',
+      trigger: 'No fundamental structural filing in 14-day window. Unexplained price movement.',
       trigger_quantified: 'Delivery ₹5.35 Cr (23.98% deliv), 1D +4.50%, Mcap ₹5,680 Cr.',
       linkage: 'unexplained',
       why: {
@@ -954,8 +963,7 @@ async function main() {
       tier: 'NOTED',
       summary:
         'Novartis India rose +8.31% on ₹6.13 Cr delivery (23.65% deliv). No regulatory announcements in 14-day window; MNC pharma bulk drug segment trading.',
-      trigger:
-        'No filing in 14-day window. Unexplained delivery accumulation in MNC pharma.',
+      trigger: 'No filing in 14-day window. Unexplained delivery accumulation in MNC pharma.',
       trigger_quantified: 'Delivery ₹6.13 Cr (23.65% deliv), 1D +8.31%, Mcap ₹2,470 Cr.',
       linkage: 'unexplained',
       why: {
@@ -1063,8 +1071,7 @@ async function main() {
         'Antelopus Selan Energy surged +13.00% on ₹32.58 Cr delivery (9.14% deliv). Board meeting scheduled on 26-Oct-2026 (in 3 days) to approve Q2 FY27 unaudited financial results and conduct earnings call. Strong institutional accumulation ahead of results.',
       trigger:
         'Board meeting intimation on 21-Oct for Q2 FY27 results and earnings call scheduled on 26-Oct-2026.',
-      trigger_quantified:
-        'Results scheduled in 3 days, delivery ₹32.58 Cr, 1D +13.00%.',
+      trigger_quantified: 'Results scheduled in 3 days, delivery ₹32.58 Cr, 1D +13.00%.',
       linkage: 'explained',
       why: {
         text: 'Pre-results accumulation: Board meeting scheduled on 26-Oct-2026 (in 3 days) to approve Q2 FY27 financial results and hold earnings call.',

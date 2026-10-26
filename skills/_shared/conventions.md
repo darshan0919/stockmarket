@@ -467,4 +467,18 @@ add-note` (`watchlist-insights`, `announcement-insights`, `announcement-info-cla
     - **Persistent Data**: All persistent storage must strictly follow the DB related handbook (`packages/jobs-runtime/lib/db.js`, `StorageService`, `docs/DATA_ECOSYSTEM.md`).
     - **Explicit User Permission Gate**: If any operation, skill, or script requires creating files, folders, or schemas outside of the established DB collections and existing scripts, the agent/skill **MUST ask the user for explicit permission** before proceeding.
 
+34. **Objective Research Stance & Mandatory Balanced Verdicts (Anti-"Balance Sheet Mirage" & Capital Cycles):**
+    All AI agents, skills, and analysts must maintain a strictly neutral, factual stance. Never celebrate headline P&L beats in isolation without applying adversarial counter-weights:
+    - **Mandatory Equal-Weight Red Flags Upfront**: Every analytical report (`quarterly-result-analysis`, `pead-predictor`, `rerating-catalysts`, `stock-report`) must feature a prominent upfront **Balanced Verdict Strip** presenting verified **RED FLAGS** with equal weight, prominence, and visual hierarchy alongside Green Flags. Red flags must never be buried as a passive one-liner or footnote.
+    - **Forensic Balance Sheet & Cash Flow Decomposition (Anti-"Balance Sheet Mirage")**: Whenever a fresh balance sheet/cash flow statement is filed (H1 or FY), never report "Net Cash" or "CFO covers capex" superficially. Decompose:
+      1. _Debt Trajectory & Financing Dependency_: Disclose the 6M/12M rate of change in total borrowings ($\Delta$ in % and ₹ Cr). If cash balances are accompanied by a sharp debt spike ($>+30\%$ jump), explicitly tag as `DEBT-FUNDED LIQUIDITY`.
+      2. _CFO Decomposition (Operating Profit vs. Working Capital / Advance Liabilities)_: Decompose CFO into core operational cash flow versus working capital movements. If customer advances, unearned contract deposits, or stretched payables represent $>25\%$ of CFO, explicitly tag as `LIABILITY-DRIVEN CFO` and evaluate reversal risk.
+      3. _Dilution & Fundraise Overhang_: Any unexecuted board/shareholder enabling fundraise resolution ($\ge 10\%$ of market cap or debt) must be audited upfront: quantify potential equity dilution (%) and incremental debt servicing costs, and cross-examine management concall evasion regarding structure/timing.
+      4. _Customer & Counterparty Concentration_: If $>25\%$ of revenue or capacity is tied to a single customer, group, or sovereign contract, explicitly flag as `SINGLE-COUNTERPARTY CONCENTRATION RISK` with scenario downside if delayed or contested.
+    - **Valuation & Business Cycles Protocol (The Capital Cycle & Peak Margin Reality)**:
+      Ground medium-term versus long-term insights in Business Cycles, Capital Cycles (Edward Chancellor / Marathon-AM), and Valuation Cycles (SureshKBN, SOIC, Howard Marks):
+      1. _Cycle Placement_: Identify where the business sits in its cycle: Early Acceleration $\rightarrow$ Supply Crunch / Peak Margin $\rightarrow$ Capital Influx / Capacity Tsunami $\rightarrow$ Commoditization / Margin Mean-Reversion.
+      2. _Peak Margin Traps_: In asset-heavy or technology-leasing sectors experiencing acute near-term supply shortages, peak operating margins must be treated as cyclical/transitory until long-term supply catches up. Never extrapolate peak margins or spot tariff spikes into terminal perpetuity.
+      3. _Horizon Stratification_: Explicitly separate **Near-Term / Horizon 1 (1–2 Quarters)** operational momentum from **Medium-to-Long-Term / Horizon 2 & 3 (2–5 Years)** structural economics.
+
 These conventions ensure that skills can execute in any environment: Cowork, Antigravity, local terminal, or Claude web.

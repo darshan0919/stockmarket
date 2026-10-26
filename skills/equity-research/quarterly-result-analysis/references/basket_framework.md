@@ -8,13 +8,32 @@ The framework is industry-agnostic. Apply every sub-section to every quarter, ev
 
 If a topic appears in only one of the three primary documents (e.g., capacity mentioned in PPT but not concall), flag it — silence in the concall about a deck disclosure is itself a signal.
 
-## Statement Quality Audits Strip
+## Balanced Verdict & Statement Quality Audits Strip (Mandatory Upfront)
 
-Every consolidated quarterly result note opens its findings section with the deterministic **Statement Quality Audits** strip covering all three statements:
+Every consolidated quarterly result note opens its findings section with the **Balanced Verdict Strip** featuring **Equal-Weight Red Flags & Green Flags**, followed by the deterministic Statement Quality Audits:
+
+### 1. Mandatory Balanced Verdict Strip (Zero Euphoria Protocol)
+
+Never present a one-sided bullish or euphoric verdict. Prominently display verified **RED FLAGS** upfront with equal weight, prominence, and visual hierarchy alongside Green Flags / Inflection Points:
+
+- **Green Flags / Catalysts**: Genuine operational acceleration, volume-led operating leverage, clean margin expansion, structural capacity additions, debt prepayment.
+- **Red Flags / Structural Headwinds**: Explosive debt growth, customer/counterparty concentration (>25%), working capital / debtor bloat, liability-driven CFO, unexecuted dilution/fundraise overhang, regulatory/exchange penalties, and management concall evasions.
+
+### 2. Statement Quality Audits Strip
 
 - **Income Statement**: Graded `CLEAN` / `WATCH` / `STRAINED` / `RED-FLAG` based on `incomeStatementSignals.js` + a 1-sentence brief with key numbers (revenue growth, overhead leverage, non-operating items, tax rate swings).
-- **Balance Sheet**: Graded `CLEAN` / `WATCH` / `STRAINED` / `RED-FLAG` when fresh (H1/FY), or `ABSENT (Q1/Q3 COMPLIANT)` under SEBI LODR Reg 33(3) + a 1-sentence brief with key numbers (gearing, receivable days, working capital).
-- **Cash Flow Statement**: Graded `CLEAN` / `WATCH` / `STRAINED` / `RED-FLAG` when fresh (H1/FY), or `ABSENT (Q1/Q3 COMPLIANT)` under SEBI LODR Reg 33(3) + a 1-sentence brief with key numbers (CFO/EBITDA, CFO/PAT, FCF).
+- **Balance Sheet**: Graded `CLEAN` / `WATCH` / `STRAINED` / `RED-FLAG` when fresh (H1/FY), or `ABSENT (Q1/Q3 COMPLIANT)` under SEBI LODR Reg 33(3) + a 1-sentence brief with key numbers (gearing, receivable days, working capital, debt trajectory).
+- **Cash Flow Statement**: Graded `CLEAN` / `WATCH` / `STRAINED` / `RED-FLAG` when fresh (H1/FY), or `ABSENT (Q1/Q3 COMPLIANT)` under SEBI LODR Reg 33(3) + a 1-sentence brief with key numbers (CFO/EBITDA, CFO/PAT, customer advances, FCF).
+
+### 3. Forensic Balance Sheet & Cash Flow Decomposition (Anti-"Balance Sheet Mirage")
+
+When fresh balance sheet & cash flow statements land (H1 or FY), never report "Net Cash" or "CFO self-funds capex" superficially. You MUST decompose:
+
+1. **Debt Trajectory & Financing Dependency**: Disclose the 6M/12M change in total debt ($\Delta$ in % and ₹ Cr). If cash balances are accompanied by a sharp borrowing surge ($>+30\%$), explicitly tag as `DEBT-FUNDED LIQUIDITY`.
+2. **CFO Decomposition (Operational vs. Advance Liabilities)**: Decompose CFO into core operational cash flow vs working capital. If customer advances, unearned contract deposits, or stretched payables represent $>25\%$ of CFO, tag as `LIABILITY-DRIVEN CFO` and evaluate reversal risk.
+3. **Dilution & Fundraise Overhang**: Any unexecuted board/shareholder enabling fundraise resolution ($\ge 10\%$ of market cap or debt) must be audited upfront: quantify potential equity dilution (%) and incremental debt servicing costs, and cross-examine management concall evasion regarding structure/timing.
+4. **Customer & Counterparty Concentration**: If $>25\%$ of revenue or capacity is tied to a single customer, group, or sovereign contract, explicitly flag as `SINGLE-COUNTERPARTY CONCENTRATION RISK` with scenario downside if delayed or contested.
+5. **Business & Capital Cycles (Edward Chancellor / SureshKBN / SOIC)**: Never extrapolate peak margins or spot shortages into terminal perpetuity. Classify whether margins are peak/cyclical or structural, and explicitly stratify Near-Term (1-2Q) vs Long-Term (2-5Y) economics.
 
 ---
 

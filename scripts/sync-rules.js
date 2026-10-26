@@ -111,6 +111,7 @@ function runVerification() {
           'rule-extra-mile-research',
           'rule-zero-cwd-debris-permission-boundary',
           'rule-forward-guidance-estimation-integrity',
+          'rule-objective-research-balanced-verdicts',
         ];
         const existingIds = new Set(data.rules.map((r) => r.id));
         for (const reqId of requiredRuleIds) {
