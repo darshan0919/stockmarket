@@ -1,0 +1,14 @@
+{
+  "cutoffUtc": "2026-10-27T20:02:59.526Z",
+  "windowStartIstHuman": "28 Oct 2026 01:32 AM IST",
+  "windowEndIstHuman": "28 Oct 2026 08:04 AM IST",
+  "slot": "adhoc",
+  "slotLabel": "Ad-hoc run",
+  "scanSource": "live",
+  "scanName": "Signals - DND",
+  "scanFilterCount": 5,
+  "scanResolvedAtIso": "2026-10-28T02:34:09.951Z",
+  "quarterDate": "202612",
+  "totalFetched": 60,
+  "inWindow": []
+}

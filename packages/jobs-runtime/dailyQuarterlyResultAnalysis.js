@@ -13,6 +13,9 @@
  * Capabilities:
  *   --fetch: Fetch universe from Stockscans scan, persist to data/runs, and print JSON.
  *            If count === 0, sends the zero-company heartbeat email immediately.
+ *   --analyze: Run quarterly result analysis & PDF generation for companies in the scan universe.
+ *              Also accepts --companyId <NSE:SYMBOL> to target a single company.
+ *   --push: Pushes generated PDFs and run manifest to Google Drive via targeted push.
  *   --email: Builds and sends the final analytical summary email with table:
  *            company name (linkified) | Market Cap | Revenue YoY | PAT YoY | PAT TTM | Link to analysis doc
  *            (sorted by PAT Growth TTM, original order preserved).
@@ -20,6 +23,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
+const { execSync } = require('child_process');
 const { stockscans } = require('@stock/api');
 const { sendHtmlEmail } = require('@stock/cloud-utils');
 const { loadEnv, argValue, hasFlag } = require('./lib/env');
@@ -27,6 +32,7 @@ const db = require('./lib/db');
 const apiUsageTracker = require('./lib/apiUsageTracker');
 const { resolveJobName } = require('./lib/scriptJobName');
 const { buildJobReport } = require('./lib/jobReportEmail');
+const { stockscansFor } = require('./lib/resultHistory/runtime');
 
 loadEnv();
 
@@ -58,6 +64,11 @@ function formatPct(val) {
   const sign = n > 0 ? '+' : '';
   return `${sign}${n.toFixed(1)}%`;
 }
+
+module.exports.SCAN_ID = SCAN_ID;
+module.exports.JOB_NAME = JOB_NAME;
+module.exports.formatMarketCap = formatMarketCap;
+module.exports.formatPct = formatPct;
 
 /**
  * Get date string (YYYY-MM-DD) for job run (default: today Asia/Kolkata).
@@ -235,6 +246,101 @@ function findCompanyPdf(company) {
   } catch {
     return { pdfPath: null, relPath: null, driveUrl: null };
   }
+}
+
+module.exports.findCompanyPdf = findCompanyPdf;
+
+/**
+ * Analyzes companies in the scan universe to produce quarterly-result report DTOs and deterministic PDFs.
+ * If history packs are missing or incomplete, executes Step 0 A & C to ensure the history pack exists
+ * with pending digests noted, adhering to cheap-tier execution rules.
+ * @param {Object} [opts]
+ * @param {string} [opts.date]
+ * @param {string} [opts.companyId]
+ * @param {boolean} [opts.force=false]
+ * @returns {Promise<{status: string, count: number, processed: Array<Object>}>}
+ */
+async function analyzeScanCompanies(opts = {}) {
+  const date = getJobDate(opts.date);
+  const runFile = getRunFilePath(date);
+
+  let scanResult;
+  if (fs.existsSync(runFile)) {
+    scanResult = JSON.parse(fs.readFileSync(runFile, 'utf8'));
+  } else {
+    scanResult = await fetchScan({ date });
+  }
+
+  let companies = scanResult.companies || [];
+  if (opts.companyId) {
+    const target = opts.companyId.toLowerCase();
+    companies = companies.filter(
+      (c) =>
+        (c.companyId || '').toLowerCase() === target ||
+        ((c.companyId || '').split(':')[1] || '').toLowerCase() === target
+    );
+  }
+
+  const client = stockscansFor(JOB_NAME);
+  const { processCompany } = require('./scripts/batchQuarterlyResultAnalysis');
+
+  const processed = [];
+  for (let i = 0; i < companies.length; i++) {
+    const c = companies[i];
+    console.log(
+      `[analyzeScanCompanies] [${i + 1}/${companies.length}] Analyzing ${c.companyId} (${c.name})...`
+    );
+
+    // Step 0 A and C if history pack is missing
+    try {
+      const packs =
+        typeof db.find === 'function'
+          ? db.find('reports', {
+              type: 'quarterly-result-history',
+              companyId: c.companyId,
+            })
+          : [];
+      if (!packs || packs.length === 0) {
+        console.log(
+          `[analyzeScanCompanies] History pack missing for ${c.companyId}. Running Step 0 A and C...`
+        );
+        const safe = (c.companyId || '').replace(/[^a-zA-Z0-9]/g, '_');
+        const histDir = path.join(os.tmpdir(), `${safe}_qrh`);
+        fs.mkdirSync(histDir, { recursive: true });
+        try {
+          execSync(
+            `yarn quarterly-result-extractor:pending-digests --companyId "${c.companyId}" --out-dir "${histDir}"`,
+            { stdio: 'pipe' }
+          );
+        } catch (_err) {
+          // Continue on pending digests warning
+        }
+        try {
+          execSync(`yarn quarterly-result-extractor:build-pack --companyId "${c.companyId}"`, {
+            stdio: 'pipe',
+          });
+        } catch (_err) {
+          // Continue on build pack warning
+        }
+      }
+    } catch (e) {
+      console.warn(`[analyzeScanCompanies] Step 0 A/C warning for ${c.companyId}:`, e.message);
+    }
+
+    try {
+      const res = await processCompany(c, client, opts.force);
+      processed.push({ companyId: c.companyId, pdfPath: res.pdfPath, success: true });
+    } catch (err) {
+      console.error(`[analyzeScanCompanies] Failed to analyze ${c.companyId}:`, err.message);
+      processed.push({ companyId: c.companyId, error: err.message, success: false });
+    }
+
+    if (i < companies.length - 1) {
+      await new Promise((r) => setTimeout(r, 600));
+    }
+  }
+
+  return { status: 'ok', count: processed.length, processed };
 }
 
 /**
@@ -435,6 +541,7 @@ async function sendReportEmail(opts = {}) {
 
 async function main(argv = process.argv) {
   const date = argValue('--date', argv) || undefined;
+  const companyId = argValue('--companyId', argv) || undefined;
 
   if (hasFlag('--push', argv)) {
     const res = await pushJobAssets({ date });
@@ -444,6 +551,13 @@ async function main(argv = process.argv) {
 
   if (hasFlag('--email', argv)) {
     const res = await sendReportEmail({ date });
+    console.log(JSON.stringify(res, null, 2));
+    return res;
+  }
+
+  if (hasFlag('--analyze', argv) || companyId) {
+    const force = hasFlag('--force', argv);
+    const res = await analyzeScanCompanies({ date, companyId, force });
     console.log(JSON.stringify(res, null, 2));
     return res;
   }
@@ -493,7 +607,7 @@ if (require.main === module) {
     .finally(() => apiUsageTracker.flush(jobName));
 }
 
-module.exports = {
+Object.assign(module.exports, {
   SCAN_ID,
   JOB_NAME,
   formatMarketCap,
@@ -501,7 +615,8 @@ module.exports = {
   fetchScan,
   sendEmptyScanEmail,
   findCompanyPdf,
+  analyzeScanCompanies,
   pushJobAssets,
   sendReportEmail,
   main,
-};
+});

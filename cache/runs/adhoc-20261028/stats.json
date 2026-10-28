@@ -1,0 +1,12 @@
+{
+  "total": 0,
+  "noiseDropped": 0,
+  "alreadyProcessed": 0,
+  "heavyDocSkipped": 0,
+  "routine": 0,
+  "ocrFailed": 0,
+  "insights": 0,
+  "highConviction": 0,
+  "infoClassified": 0,
+  "knowledgeGaps": 0
+}

@@ -7,6 +7,7 @@ const {
   sendEmptyScanEmail,
   sendReportEmail,
   pushJobAssets,
+  analyzeScanCompanies,
   SCAN_ID,
 } = require('../dailyQuarterlyResultAnalysis');
 
@@ -14,6 +15,7 @@ jest.mock('@stock/api', () => ({
   stockscans: {
     getScanMetadata: jest.fn(),
     runScan: jest.fn(),
+    setJobName: jest.fn(),
   },
 }));
 
@@ -32,6 +34,14 @@ jest.mock('../lib/db', () => ({
   ),
   touchedFiles: jest.fn(() => []),
   trackTouched: jest.fn(),
+}));
+
+jest.mock('../scripts/batchQuarterlyResultAnalysis', () => ({
+  processCompany: jest.fn(),
+}));
+
+jest.mock('child_process', () => ({
+  execSync: jest.fn(),
 }));
 
 const { stockscans } = require('@stock/api');
@@ -217,6 +227,46 @@ describe('pushJobAssets', () => {
     );
     expect(res.pushed).toContain('runs/daily-quarterly-result-analysis-2026-10-16.json');
     pushSpy.mockRestore();
+    existsSpy.mockRestore();
+    readSpy.mockRestore();
+  });
+});
+
+describe('analyzeScanCompanies', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('filters by companyId and processes company', async () => {
+    const existsSpy = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    const readSpy = jest.spyOn(fs, 'readFileSync').mockReturnValue(
+      JSON.stringify({
+        date: '2026-10-16',
+        scanId: SCAN_ID,
+        count: 2,
+        companies: [
+          { companyId: 'NSE:SWSOLAR', name: 'Sterling & Wilson' },
+          { companyId: 'NSE:IIFL', name: 'IIFL Finance' },
+        ],
+      })
+    );
+
+    const { processCompany } = require('../scripts/batchQuarterlyResultAnalysis');
+    processCompany.mockResolvedValueOnce({
+      pdfPath: '/tmp/test.pdf',
+      generated: true,
+    });
+
+    const res = await analyzeScanCompanies({
+      date: '2026-10-16',
+      companyId: 'NSE:SWSOLAR',
+    });
+
+    expect(res.status).toBe('ok');
+    expect(res.count).toBe(1);
+    expect(res.processed[0].companyId).toBe('NSE:SWSOLAR');
+    expect(processCompany).toHaveBeenCalledTimes(1);
+
     existsSpy.mockRestore();
     readSpy.mockRestore();
   });

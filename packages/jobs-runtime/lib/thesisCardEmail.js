@@ -1787,7 +1787,7 @@ function scanSignalCardHtml(it, { compact = false } = {}) {
       ${scanMetricsHtml(it)}
       ${compact ? '' : thesisChainHtml(it)}
       ${whyHtml(it.why)}
-      ${compact ? '' : epsThesisHtml(it.epsThesis)}
+      ${compact && !(it.epsThesis && it.epsThesis.reportDriveUrl) ? '' : epsThesisHtml(it.epsThesis)}
       ${compact ? '' : epsImpactHtml(it.epsImpact)}
       ${tagsHtml ? `<div style="margin-top:9px;">${tagsHtml}</div>` : ''}
       ${compact ? '' : infoClassificationHtml(it.infoClassification)}
