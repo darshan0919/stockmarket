@@ -219,9 +219,15 @@ async function processCompany(company, client, force = false) {
     console.warn(`[processCompany] Financials fetch warning for ${symbol}:`, err.message);
   }
 
-  const q2 = f?.quarters?.find((q) => q.yyyymm === '202609');
+  const q2 =
+    f?.quarters?.find((q) => q.yyyymm === '202609') ||
+    (f?.quarters && f.quarters.length > 0 ? f.quarters[f.quarters.length - 1] : null);
   const _q1 = f?.quarters?.find((q) => q.yyyymm === '202606');
-  const py = f?.quarters?.find((q) => q.yyyymm === '202509');
+  const py =
+    f?.quarters?.find((q) => q.yyyymm === '202509') ||
+    (q2 && f?.quarters
+      ? f.quarters.find((q) => q.yyyymm === String(Number(q2.yyyymm) - 100))
+      : null);
 
   const revVal = q2?.revenue || (marketCap ? Math.round(marketCap * 0.25) : 500);
   const revGrowth = q2?.revenue_growth_pct ?? revenueYoY ?? 20;

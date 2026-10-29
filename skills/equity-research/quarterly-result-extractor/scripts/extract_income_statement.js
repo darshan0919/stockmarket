@@ -187,7 +187,7 @@ const IS_MAP = [
   [/(?:profit|loss)(?:\s*\/\s*\(?loss\)?)?.*for\s+the\s+(period|quarter|year)/i, 'pat'],
   // "Profit after tax" / "Net profit after tax" (no "for the period"), seen unmatched on 8 of 120 dev filings.
   [/(?:net\s+)?(?:profit|loss)(?:\s*\/\s*\(?loss\)?)?.*after\s+tax/i, 'pat'],
-  [/basic\b/i, 'epsBasic'],
+  [/basic\b|not\s+annualised.*(?:quarter|period)/i, 'epsBasic'],
   [/diluted\b/i, 'epsDiluted'],
 ];
 
@@ -478,6 +478,16 @@ function extractIncomeStatement({ resultText, pptText }) {
     for (const snap of [cur, qoq, yoy, ytdCur, ytdPrior]) {
       if (snap.tax == null && (snap.currentTax != null || snap.deferredTax != null)) {
         snap.tax = (snap.currentTax || 0) + (snap.deferredTax || 0);
+      }
+    }
+    // Some filings print "Revenue from operations" as a bare heading with sub-rows "Sale of products" and "Other operating revenue"
+    // (or omit a separate revenue line). In that case, revenue is totalIncome - (otherIncome || 0).
+    for (const snap of [cur, qoq, yoy, ytdCur, ytdPrior]) {
+      if (snap.revenue == null && snap.totalIncome != null) {
+        snap.revenue = snap.totalIncome - (snap.otherIncome || 0);
+      }
+      if (snap.epsDiluted == null && snap.epsBasic != null) {
+        snap.epsDiluted = snap.epsBasic;
       }
     }
     if (cur.revenue == null || cur.pbt == null) continue; // didn't actually find the table

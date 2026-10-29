@@ -103,6 +103,19 @@ async function fetchScan(opts = {}) {
   const def = await stockscans.getScanMetadata(scanId);
   const scanName = def.scanName || 'Quality Result - DND';
 
+  if (opts.days !== undefined) {
+    const f = def.filters && def.filters.find((x) => x.left === 'Days From Result');
+    if (f) {
+      f.right = String(opts.days);
+    } else if (def.filters) {
+      def.filters.push({
+        left: 'Days From Result',
+        sign: '=',
+        right: String(opts.days),
+      });
+    }
+  }
+
   const allRows = [];
   let header = null;
   let offset = 0;
@@ -265,7 +278,9 @@ async function analyzeScanCompanies(opts = {}) {
   const runFile = getRunFilePath(date);
 
   let scanResult;
-  if (fs.existsSync(runFile)) {
+  if (opts.days !== undefined) {
+    scanResult = await fetchScan({ date, days: opts.days });
+  } else if (fs.existsSync(runFile)) {
     scanResult = JSON.parse(fs.readFileSync(runFile, 'utf8'));
   } else {
     scanResult = await fetchScan({ date });
@@ -354,7 +369,9 @@ async function pushJobAssets(opts = {}) {
   const runFile = getRunFilePath(date);
 
   let scanResult;
-  if (fs.existsSync(runFile)) {
+  if (opts.days !== undefined) {
+    scanResult = await fetchScan({ date, days: opts.days });
+  } else if (fs.existsSync(runFile)) {
     scanResult = JSON.parse(fs.readFileSync(runFile, 'utf8'));
   } else {
     scanResult = await fetchScan({ date });
@@ -403,7 +420,9 @@ async function sendReportEmail(opts = {}) {
   const runFile = getRunFilePath(date);
 
   let scanResult;
-  if (fs.existsSync(runFile)) {
+  if (opts.days !== undefined) {
+    scanResult = await fetchScan({ date, days: opts.days });
+  } else if (fs.existsSync(runFile)) {
     scanResult = JSON.parse(fs.readFileSync(runFile, 'utf8'));
   } else {
     scanResult = await fetchScan({ date });
@@ -426,7 +445,7 @@ async function sendReportEmail(opts = {}) {
       console.log(
         '[sendReportEmail] Some generated PDFs are not yet synced to Google Drive. Running targeted push...'
       );
-      await pushJobAssets({ date });
+      await pushJobAssets({ date, days: opts.days });
     } catch (pushErr) {
       console.warn(
         '[sendReportEmail] Targeted push failed, proceeding with local links:',
@@ -542,27 +561,29 @@ async function sendReportEmail(opts = {}) {
 async function main(argv = process.argv) {
   const date = argValue('--date', argv) || undefined;
   const companyId = argValue('--companyId', argv) || undefined;
+  const daysArg = argValue('--days', argv) ?? argValue('--days-from-result', argv);
+  const days = daysArg !== null && daysArg !== undefined ? Number(daysArg) : undefined;
 
   if (hasFlag('--push', argv)) {
-    const res = await pushJobAssets({ date });
+    const res = await pushJobAssets({ date, days });
     console.log(JSON.stringify(res, null, 2));
     return res;
   }
 
   if (hasFlag('--email', argv)) {
-    const res = await sendReportEmail({ date });
+    const res = await sendReportEmail({ date, days });
     console.log(JSON.stringify(res, null, 2));
     return res;
   }
 
   if (hasFlag('--analyze', argv) || companyId) {
     const force = hasFlag('--force', argv);
-    const res = await analyzeScanCompanies({ date, companyId, force });
+    const res = await analyzeScanCompanies({ date, companyId, force, days });
     console.log(JSON.stringify(res, null, 2));
     return res;
   }
 
-  const scanResult = await fetchScan({ date });
+  const scanResult = await fetchScan({ date, days });
 
   if (scanResult.count === 0) {
     console.log(

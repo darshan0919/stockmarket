@@ -122,6 +122,47 @@ describe('fetchScan', () => {
       expect(stockscans.runScan).toHaveBeenCalledTimes(2);
     });
   });
+
+  test('applies days filter when opts.days is provided', async () => {
+    stockscans.getScanMetadata.mockResolvedValueOnce({
+      scanId: SCAN_ID,
+      scanName: 'Quality Result - DND',
+      watchlistIds: [],
+      filters: [{ left: 'Days From Result', sign: '=', right: '-1' }],
+    });
+
+    stockscans.runScan.mockResolvedValueOnce({
+      total: 1,
+      table: [
+        [
+          'companyId',
+          'Name',
+          'Market Capitalization',
+          'PAT Growth YoY',
+          'Revenue Growth YoY',
+          'PAT Growth TTM',
+        ],
+        ['NSE:PVRINOX', 'PVR Inox Ltd', 14192.84, 149.38, 16.98, 1650],
+      ],
+    });
+
+    jest.spyOn(fs, 'mkdirSync').mockReturnValue(true);
+    jest.spyOn(fs, 'writeFileSync').mockReturnValue(true);
+
+    const res = await fetchScan({ date: '2026-10-28', days: 0 });
+    expect(res.count).toBe(1);
+    expect(res.companies[0].companyId).toBe('NSE:PVRINOX');
+    expect(stockscans.runScan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scan: expect.objectContaining({
+          filters: expect.arrayContaining([
+            expect.objectContaining({ left: 'Days From Result', right: '0' }),
+          ]),
+        }),
+      }),
+      SCAN_ID
+    );
+  });
 });
 
 describe('sendEmptyScanEmail', () => {

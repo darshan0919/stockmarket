@@ -135,6 +135,7 @@
     "ask-anil-lamba:search": "python3 skills/equity-research/ask-anil-lamba/scripts/search_anil_lamba.py",
     "ask-stockscans:search": "python3 skills/equity-research/ask-stockscans/scripts/search_stockscans.py",
     "ask-expert:search": "python3 skills/equity-research/ask-expert/scripts/search_expert.py",
+    "pre-pead-scanner": "yarn workspace @stock/api pre-pead-scanner",
     "pead-predictor:gather": "node skills/equity-research/pead-predictor/scripts/gather_inputs.js",
     "pead-predictor:project": "python3 skills/equity-research/pead-predictor/scripts/project_pl.py",
     "pead-predictor:save": "node skills/equity-research/pead-predictor/scripts/save_prediction.js",
