@@ -14,7 +14,9 @@ async function main() {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  console.log(`[buildGainersSignal] Starting full report generation for top 3 gainers (${marketDate})...`);
+  console.log(
+    `[buildGainersSignal] Starting full report generation for top 3 gainers (${marketDate})...`
+  );
 
   // =========================================================================
   // 1. FULL REPORT: NSE:PPLPHARMA (Piramal Pharma Ltd)
@@ -72,9 +74,11 @@ async function main() {
         newVsConfirmation: 'NEW',
         jCurveStage: 'Stage 3 (Operational Inflection)',
         body: 'CDMO division revenue surged +28% YoY to ₹1,424 Cr (H1 +23% to ₹2,646 Cr) driven by robust demand recovery for differentiated services (antibody-drug conjugates, sterile injectables, peptide manufacturing). Operational leverage across Riverview and Grangemouth sites drove EBITDA margin expansion of 350 bps.',
-        impact: 'High fixed-cost absorption yields exponential incremental margins on incremental CDMO pipeline.',
+        impact:
+          'High fixed-cost absorption yields exponential incremental margins on incremental CDMO pipeline.',
         timeline: 'H2 FY27-FY28',
-        forwardMarker: 'Continued customer audit conversions and sustained double-digit CDMO order backlog growth',
+        forwardMarker:
+          'Continued customer audit conversions and sustained double-digit CDMO order backlog growth',
         sources: ['Q2 FY27 Results Press Release (27-Oct-2026)', 'Investor Presentation Q2 FY27'],
       },
       {
@@ -86,7 +90,8 @@ async function main() {
         body: 'CHG revenue increased +26% YoY to ₹849 Cr in Q2 FY27 (H1 up +22% to ₹1,617 Cr), sustained by leading global market positions in Sevoflurane and intrathecal therapies alongside direct-to-hospital supply contracts in North America and Europe.',
         impact: 'Stable cash generation and defensive high-barrier generic hospital margins.',
         timeline: 'Ongoing FY27',
-        forwardMarker: 'SKU expansion into injectable peptides and emerging market hospital distribution wins',
+        forwardMarker:
+          'SKU expansion into injectable peptides and emerging market hospital distribution wins',
         sources: ['Q2 FY27 Results Press Release (27-Oct-2026)'],
       },
       {
@@ -96,7 +101,8 @@ async function main() {
         newVsConfirmation: 'CONFIRMATION',
         jCurveStage: 'Stage 2 (Expansion)',
         body: 'India Consumer Healthcare revenue advanced +24% YoY to ₹359 Cr in Q2 FY27, powered by core OTC brands (Lacto Calamine, Supradyn, Tetmosol, Little’s) expanding rapid distribution reach across modern trade and quick-commerce channels.',
-        impact: 'Broadens high-margin retail consumer health franchise and domestic brand asset compounding.',
+        impact:
+          'Broadens high-margin retail consumer health franchise and domestic brand asset compounding.',
         timeline: 'FY27-FY28',
         forwardMarker: 'Direct-to-consumer e-commerce growth and margin accretion toward mid-teens',
         sources: ['Q2 FY27 Results Press Release (27-Oct-2026)'],
@@ -119,7 +125,8 @@ async function main() {
         volumeMultiple: 4.8,
         medianVolume: '5.2M',
         whyBasis: 'filing',
-        whyDetail: 'Q2 FY27 results beat: Revenue +28% YoY, EBITDA +72% YoY with 350 bps margin expansion to 14.7%.',
+        whyDetail:
+          'Q2 FY27 results beat: Revenue +28% YoY, EBITDA +72% YoY with 350 bps margin expansion to 14.7%.',
         linkage: 'explained',
         sources: ['Q2 FY27 Results Press Release 27-Oct-2026'],
       },
@@ -141,42 +148,52 @@ async function main() {
         chain: [
           {
             basis: 'Regulatory Catalyst',
-            claim: 'US Biosecure Act forces global pharma sponsors to shift discovery and development from China to trusted CDMOs.',
+            claim:
+              'US Biosecure Act forces global pharma sponsors to shift discovery and development from China to trusted CDMOs.',
             source: 'US Congressional Biosecure Mandates',
             url: '',
           },
           {
             basis: 'Operational Readiness',
-            claim: 'Piramal Pharma hosted 110 customer audits and onboarded 22 new enterprise accounts in H1FY27 across western assets.',
+            claim:
+              'Piramal Pharma hosted 110 customer audits and onboarded 22 new enterprise accounts in H1FY27 across western assets.',
             source: 'Q2 FY27 Disclosures',
             url: '',
           },
           {
             basis: 'EPS Inflection',
-            claim: 'Utilization ramps at Riverview ADC and sterile filling assets, driving EBITDA margins toward 18-20% by FY28.',
+            claim:
+              'Utilization ramps at Riverview ADC and sterile filling assets, driving EBITDA margins toward 18-20% by FY28.',
             source: 'Management Concall Guidance',
             url: '',
           },
         ],
         expertLens: 'SOIC Operating Leverage & J-Curve Capacity Framework',
-        whyMarketPays: 'Market accords 35-45x multiples to scale CDMO businesses crossing 18% EBITDA margin thresholds with high client stickiness.',
-        precedent: 'Divi’s Laboratories and Syngene multiple expansion during prior western outsourcing supercycles.',
+        whyMarketPays:
+          'Market accords 35-45x multiples to scale CDMO businesses crossing 18% EBITDA margin thresholds with high client stickiness.',
+        precedent:
+          'Divi’s Laboratories and Syngene multiple expansion during prior western outsourcing supercycles.',
         epsBridge: '+35-40% PAT CAGR over FY26-FY28 on 200-300 bps annual margin accretion.',
         whatMustBeTrue: [
           'Audit success rates remain at 100% with zero OAI inspection classifications.',
           'Commercial-scale ADC and peptide pipeline orders ramp without margin dilution.',
         ],
-        confirmationMarker: 'Q3 FY27 CDMO order backlog growth and consecutive quarter of >15% EBITDA margin.',
-        killSignal: 'Warning letter on flagship US or UK manufacturing facilities or cancellation of major commercial contracts.',
-        skepticRead: 'Skeptics note trailing debt and past integration drag, which today’s ₹385 Cr EBITDA print decisively refutes.',
+        confirmationMarker:
+          'Q3 FY27 CDMO order backlog growth and consecutive quarter of >15% EBITDA margin.',
+        killSignal:
+          'Warning letter on flagship US or UK manufacturing facilities or cancellation of major commercial contracts.',
+        skepticRead:
+          'Skeptics note trailing debt and past integration drag, which today’s ₹385 Cr EBITDA print decisively refutes.',
       },
     ],
     eventChainNote: '',
     verdict:
       'Piramal Pharma has triggered a textbook Stage 3 operational J-curve inflection. The confluence of +28% top-line growth, 350 bps margin expansion, and massive ₹422.54 Cr institutional delivery confirms high-conviction structural rerating.',
     additional: {
-      'Execution Discipline': 'Staged Averaging-Up Protocol: Deploy 50% pilot allocation on today’s verified breakout; deploy remaining 50% on follow-through or test of 10-EMA on drying volume.',
-      'Valuation Tailwinds': 'Forward P/E compression exceeding 30% as H2 seasonal strength and operating leverage compress optical trailing valuation.',
+      'Execution Discipline':
+        'Staged Averaging-Up Protocol: Deploy 50% pilot allocation on today’s verified breakout; deploy remaining 50% on follow-through or test of 10-EMA on drying volume.',
+      'Valuation Tailwinds':
+        'Forward P/E compression exceeding 30% as H2 seasonal strength and operating leverage compress optical trailing valuation.',
     },
   };
 
@@ -274,7 +291,8 @@ async function main() {
         body: 'Operating EBITDA surged 61.5% QoQ to ₹147 Cr from ₹91 Cr in Q1 FY27, expanding operating margin from 12% to 18%. Fixed-cost rationalization and higher capacity utilization across discovery biology and development services restored structural operating leverage.',
         impact: 'Demonstrates immediate recovery of operating leverage as baseline capacity fills.',
         timeline: 'H2 FY27',
-        forwardMarker: 'Continued sequential expansion toward historical 23-25% EBITDA margin corridors',
+        forwardMarker:
+          'Continued sequential expansion toward historical 23-25% EBITDA margin corridors',
         sources: ['Q2 FY27 Press Release 27-Oct-2026', 'Fact Sheet Q2 FY27'],
       },
       {
@@ -284,9 +302,11 @@ async function main() {
         newVsConfirmation: 'NEW',
         jCurveStage: 'Stage 2 (Expansion)',
         body: 'Revenue from operations rebounded +13% sequentially to ₹833 Cr (from ₹736 Cr in Q1), signaling stabilization and renewed RFP activity in early-stage discovery chemistry and clinical-scale biologics production at Bangalore Biocon Park.',
-        impact: 'Re-establishes top-line growth trajectory following 3 quarters of industry destocking.',
+        impact:
+          'Re-establishes top-line growth trajectory following 3 quarters of industry destocking.',
         timeline: 'H2 FY27-FY28',
-        forwardMarker: 'Commercial batch commercialization and new client wins in biologics drug substance',
+        forwardMarker:
+          'Commercial batch commercialization and new client wins in biologics drug substance',
         sources: ['Q2 FY27 Press Release 27-Oct-2026'],
       },
       {
@@ -319,7 +339,8 @@ async function main() {
         volumeMultiple: 3.9,
         medianVolume: '2.1M',
         whyBasis: 'filing',
-        whyDetail: 'Q2 FY27 turnaround: Sequential revenue +13% QoQ to ₹833 Cr, EBITDA margin jumped 600 bps QoQ to 18.0%.',
+        whyDetail:
+          'Q2 FY27 turnaround: Sequential revenue +13% QoQ to ₹833 Cr, EBITDA margin jumped 600 bps QoQ to 18.0%.',
         linkage: 'explained',
         sources: ['Q2 FY27 Financial Results Press Release 27-Oct-2026'],
       },
@@ -341,25 +362,29 @@ async function main() {
         chain: [
           {
             basis: 'Cyclical Turnaround',
-            claim: 'US interest rate cuts and VC recapitalization unlock paused clinical trial pipelines.',
+            claim:
+              'US interest rate cuts and VC recapitalization unlock paused clinical trial pipelines.',
             source: 'Global Healthcare Financing Trends',
             url: '',
           },
           {
             basis: 'Operational Print',
-            claim: 'Syngene reports +13% sequential revenue bounce and 600 bps EBITDA expansion to 18%.',
+            claim:
+              'Syngene reports +13% sequential revenue bounce and 600 bps EBITDA expansion to 18%.',
             source: 'Q2 FY27 Results Disclosures',
             url: '',
           },
           {
             basis: 'Operating Leverage Flow-Through',
-            claim: 'Fixed laboratory and scientist costs remain flat while incremental revenue drops to bottom line at >40% flow-through.',
+            claim:
+              'Fixed laboratory and scientist costs remain flat while incremental revenue drops to bottom line at >40% flow-through.',
             source: 'Management Guidance',
             url: '',
           },
         ],
         expertLens: 'SOIC Capacity Utilization & Margin Inflection Framework',
-        whyMarketPays: 'Market rewards clean sequential turning points in high-quality research businesses with 35-40x forward multiples.',
+        whyMarketPays:
+          'Market rewards clean sequential turning points in high-quality research businesses with 35-40x forward multiples.',
         precedent: 'Syngene historical rerating during post-COVID clinical rebound in 2021-2022.',
         epsBridge: 'EPS compounding at 25-30% CAGR over FY27-FY28 as margins normalize toward 22%.',
         whatMustBeTrue: [
@@ -367,16 +392,20 @@ async function main() {
           'Biologics drug substance manufacturing utilization increases.',
         ],
         confirmationMarker: 'Q3 FY27 revenue surpassing ₹880 Cr with EBITDA margins >19%.',
-        killSignal: 'Negative sequential revenue growth in H2 FY27 or loss of dedicated center anchor accounts.',
-        skepticRead: 'Skeptics questioned duration of recovery; Q2 print provides hard numbers proving the trough is past.',
+        killSignal:
+          'Negative sequential revenue growth in H2 FY27 or loss of dedicated center anchor accounts.',
+        skepticRead:
+          'Skeptics questioned duration of recovery; Q2 print provides hard numbers proving the trough is past.',
       },
     ],
     eventChainNote: '',
     verdict:
       'Syngene has delivered an undeniable sequential operational inflection. With revenue up +13% QoQ and operating EBITDA margin restoring 600 bps to 18.0%, this marks the definitive exit from the cyclical trough.',
     additional: {
-      'Execution Discipline': 'Staged Averaging-Up Protocol: Deploy 50% pilot allocation on today’s verified breakout; deploy remaining 50% on confirmation of higher pivot above 10-EMA.',
-      'Valuation Tailwinds': 'Forward multiple normalization as street upgrades consensus FY27-FY28 EBITDA estimates.',
+      'Execution Discipline':
+        'Staged Averaging-Up Protocol: Deploy 50% pilot allocation on today’s verified breakout; deploy remaining 50% on confirmation of higher pivot above 10-EMA.',
+      'Valuation Tailwinds':
+        'Forward multiple normalization as street upgrades consensus FY27-FY28 EBITDA estimates.',
     },
   };
 
@@ -472,9 +501,11 @@ async function main() {
         newVsConfirmation: 'NEW',
         jCurveStage: 'Stage 3 (Operational Inflection)',
         body: 'Leading contract manufacturer PG Electroplast reported blowout Q2 numbers (+42.5% YoY revenue to ₹934 Cr, EBITDA +54.8% to ₹69.14 Cr, PAT +395% to ₹13.67 Cr) led by sustained air conditioner unit volume expansion, providing direct read-across of strong end-consumer demand and healthy channel inventory depletion for brand leader Voltas.',
-        impact: 'De-risks Q2-Q3 earnings print and confirms underlying volume tailwind ahead of official results.',
+        impact:
+          'De-risks Q2-Q3 earnings print and confirms underlying volume tailwind ahead of official results.',
         timeline: 'Q2-Q3 FY27',
-        forwardMarker: 'Official Q2 FY27 Unitary Cooling Products (UCP) revenue and segment EBIT margins',
+        forwardMarker:
+          'Official Q2 FY27 Unitary Cooling Products (UCP) revenue and segment EBIT margins',
         sources: ['PG Electroplast Q2 Results Release 27-Oct-2026', 'Industry Channel Checks'],
       },
       {
@@ -484,7 +515,8 @@ async function main() {
         newVsConfirmation: 'CONFIRMATION',
         jCurveStage: 'Stage 2 (Scale)',
         body: 'Voltas continues to retain ~20% leadership in domestic inverter ACs, expanding brand penetration into semi-urban and rural markets through its extensive 25,000+ customer touchpoint distribution network.',
-        impact: 'Defends dominant brand pricing power against aggressive multinational competition.',
+        impact:
+          'Defends dominant brand pricing power against aggressive multinational competition.',
         timeline: 'Ongoing FY27',
         forwardMarker: 'Secondary sales growth metrics in upcoming earnings call',
         sources: ['Corporate Presentations', 'Shareholder Reports'],
@@ -519,7 +551,8 @@ async function main() {
         volumeMultiple: 2.8,
         medianVolume: '1.4M',
         whyBasis: 'catalyst',
-        whyDetail: 'Heavy delivery accumulation (₹101.52 Cr, 32% delivery) ahead of Q2 results, driven by upstream proxy PG Electroplast blowout RAC volumes (+42.5% YoY revenue, PAT +395%).',
+        whyDetail:
+          'Heavy delivery accumulation (₹101.52 Cr, 32% delivery) ahead of Q2 results, driven by upstream proxy PG Electroplast blowout RAC volumes (+42.5% YoY revenue, PAT +395%).',
         linkage: 'explained',
         sources: ['Stockscans Market Flow', 'PGEL Results 27-Oct-2026'],
       },
@@ -541,7 +574,8 @@ async function main() {
         chain: [
           {
             basis: 'Demographic Tailwinds',
-            claim: 'India AC household penetration stands at only ~8-9% vs >60% in peer Asian markets.',
+            claim:
+              'India AC household penetration stands at only ~8-9% vs >60% in peer Asian markets.',
             source: 'Industry Research / CEAMA',
             url: '',
           },
@@ -553,30 +587,36 @@ async function main() {
           },
           {
             basis: 'Earnings Accretion',
-            claim: 'Voltas UCP division margins stabilize at 8-9% on operating leverage, while Beko JV reaches breakeven.',
+            claim:
+              'Voltas UCP division margins stabilize at 8-9% on operating leverage, while Beko JV reaches breakeven.',
             source: 'Consensus Financial Models',
             url: '',
           },
         ],
         expertLens: 'SOIC White Goods Adoption & Operating Leverage Framework',
-        whyMarketPays: 'Market accords premium 40-50x valuation multiples to dominant Tata consumer franchises with secular 15-20% volume runways.',
+        whyMarketPays:
+          'Market accords premium 40-50x valuation multiples to dominant Tata consumer franchises with secular 15-20% volume runways.',
         precedent: 'Havells and Blue Star long-term re-rating during white goods adoption cycles.',
         epsBridge: '+20-25% Consolidated PAT growth over FY26-FY28 as JV losses cease.',
         whatMustBeTrue: [
           'UCP division volume growth exceeds 15% YoY in Q2 and Q3.',
           'Competitive discounting remains disciplined among top-3 players.',
         ],
-        confirmationMarker: 'Voltas Q2 earnings release demonstrating market share retention >20% and UCP EBIT margins >8%.',
+        confirmationMarker:
+          'Voltas Q2 earnings release demonstrating market share retention >20% and UCP EBIT margins >8%.',
         killSignal: 'Sharp margin collapse in UCP segment below 6% or aggressive share loss.',
-        skepticRead: 'Skeptics cite unseasonal weather, but upstream prints prove channel inventory is clear.',
+        skepticRead:
+          'Skeptics cite unseasonal weather, but upstream prints prove channel inventory is clear.',
       },
     ],
     eventChainNote: '',
     verdict:
       'Voltas is primed for earnings surprise following verified contract-manufacturer read-across. With ₹101.52 Cr delivery backing and 32% delivery share ahead of Q2 results, accumulation indicates strong smart-money positioning.',
     additional: {
-      'Execution Discipline': 'Staged Averaging-Up Protocol: Deploy 50% pilot allocation ahead of results; deploy remaining 50% post-earnings confirmation.',
-      'Valuation Tailwinds': 'Valuation rerating supported by clean channel inventories and Voltas Beko breakeven inflection.',
+      'Execution Discipline':
+        'Staged Averaging-Up Protocol: Deploy 50% pilot allocation ahead of results; deploy remaining 50% post-earnings confirmation.',
+      'Valuation Tailwinds':
+        'Valuation rerating supported by clean channel inventories and Voltas Beko breakeven inflection.',
     },
   };
 
@@ -632,9 +672,21 @@ async function main() {
     thesis:
       'Blowout Q2 FY27 performance with revenue +42.5% YoY to ₹933.88 Cr and PAT nearly quadrupling (+395% YoY) on heavy ₹95.58 Cr delivery conviction.',
     catalysts: [
-      { name: 'RAC & EMS Capacity Utilization Surge (+42.5% YoY revenue)', conviction: 'HIGH CONVICTION', timeline: 'H2 FY27' },
-      { name: 'Backward Integration & Plastic Molding Operating Leverage (EBITDA +54.8%)', conviction: 'HIGH CONVICTION', timeline: 'FY27-FY28' },
-      { name: 'Step-Down Subsidiary NGM Capex Expansion', conviction: 'MEDIUM CONVICTION', timeline: 'FY27-FY28' },
+      {
+        name: 'RAC & EMS Capacity Utilization Surge (+42.5% YoY revenue)',
+        conviction: 'HIGH CONVICTION',
+        timeline: 'H2 FY27',
+      },
+      {
+        name: 'Backward Integration & Plastic Molding Operating Leverage (EBITDA +54.8%)',
+        conviction: 'HIGH CONVICTION',
+        timeline: 'FY27-FY28',
+      },
+      {
+        name: 'Step-Down Subsidiary NGM Capex Expansion',
+        conviction: 'MEDIUM CONVICTION',
+        timeline: 'FY27-FY28',
+      },
     ],
     sourceFilingIds: ['nz82fq1f2sfo3nj3xl4w5b3i.pdf', '4oz435ovl62kv6ccxlj4gge9.pdf'],
     builtAt: new Date().toISOString(),
@@ -654,8 +706,16 @@ async function main() {
     thesis:
       'Leadership restructuring in Zee Studios positions content pipeline for theatrical and digital licensing monetisation, supported by ₹52.36 Cr delivery accumulation.',
     catalysts: [
-      { name: 'Zee Studios Strategic Restructuring & Leadership Appointment', conviction: 'MEDIUM CONVICTION', timeline: 'Q3-Q4 FY27' },
-      { name: 'Broadcast Ad-Revenue Stabilization Post-Festive Season', conviction: 'MEDIUM CONVICTION', timeline: 'H2 FY27' },
+      {
+        name: 'Zee Studios Strategic Restructuring & Leadership Appointment',
+        conviction: 'MEDIUM CONVICTION',
+        timeline: 'Q3-Q4 FY27',
+      },
+      {
+        name: 'Broadcast Ad-Revenue Stabilization Post-Festive Season',
+        conviction: 'MEDIUM CONVICTION',
+        timeline: 'H2 FY27',
+      },
     ],
     sourceFilingIds: ['j2ohh514gwveqveoq9wfm8iu.pdf'],
     builtAt: new Date().toISOString(),
@@ -675,9 +735,21 @@ async function main() {
     thesis:
       'Regulatory milestone with FDA approval unlocking 51,200 MT greenfield capacity at Nandesari, transforming production scale across pharma excipients and specialty nutrition on ₹40.19 Cr delivery.',
     catalysts: [
-      { name: 'Gujarat FDA Approval for 51,200 MT Greenfield Pharma Facility at Nandesari', conviction: 'HIGH CONVICTION', timeline: 'Immediate H2 FY27' },
-      { name: 'High-Barrier Excipients & Specialty Nutrition Export Expansion', conviction: 'HIGH CONVICTION', timeline: 'FY27-FY28' },
-      { name: 'Q2 FY27 Unaudited Financial Results Approval', conviction: 'MEDIUM CONVICTION', timeline: 'Q2 FY27' },
+      {
+        name: 'Gujarat FDA Approval for 51,200 MT Greenfield Pharma Facility at Nandesari',
+        conviction: 'HIGH CONVICTION',
+        timeline: 'Immediate H2 FY27',
+      },
+      {
+        name: 'High-Barrier Excipients & Specialty Nutrition Export Expansion',
+        conviction: 'HIGH CONVICTION',
+        timeline: 'FY27-FY28',
+      },
+      {
+        name: 'Q2 FY27 Unaudited Financial Results Approval',
+        conviction: 'MEDIUM CONVICTION',
+        timeline: 'Q2 FY27',
+      },
     ],
     sourceFilingIds: ['hszw9ro4ja5kepjff8dlrbbq.pdf', '7qddv6wscef9a7shqwq3svf3.pdf'],
     builtAt: new Date().toISOString(),
@@ -697,8 +769,16 @@ async function main() {
     thesis:
       'Pre-earnings accumulation with board meeting scheduled in 6 days (03/11/2026) for Q2 results, benefiting from API sector export demand and chemical input price recovery.',
     catalysts: [
-      { name: 'Q2 FY27 Results Board Meeting Intimation (Scheduled 03-Nov-2026)', conviction: 'MEDIUM CONVICTION', timeline: '03-Nov-2026' },
-      { name: 'API Realization Recovery & Operating Margin Stabilization', conviction: 'MEDIUM CONVICTION', timeline: 'H2 FY27' },
+      {
+        name: 'Q2 FY27 Results Board Meeting Intimation (Scheduled 03-Nov-2026)',
+        conviction: 'MEDIUM CONVICTION',
+        timeline: '03-Nov-2026',
+      },
+      {
+        name: 'API Realization Recovery & Operating Margin Stabilization',
+        conviction: 'MEDIUM CONVICTION',
+        timeline: 'H2 FY27',
+      },
     ],
     sourceFilingIds: ['hk6sf3a7xjr0ihwim0dvfl7b.pdf'],
     builtAt: new Date().toISOString(),
@@ -718,11 +798,27 @@ async function main() {
     thesis:
       'Consolidated revenue expanded +35% YoY to ₹1,556 Cr with EBITDA at ₹228 Cr, complemented by greenfield Mechatronics plant capex approval at Manesar on ₹30.71 Cr delivery.',
     catalysts: [
-      { name: 'Greenfield Mechatronics Plant Approval at Manesar, Haryana', conviction: 'HIGH CONVICTION', timeline: 'FY27-FY28' },
-      { name: 'Consolidated Q2 Revenue Surge (+35% YoY to ₹1,556 Cr, EBITDA ₹228 Cr)', conviction: 'HIGH CONVICTION', timeline: 'H2 FY27' },
-      { name: 'IAC India Integration & High-Value Interior Systems Content-Per-Vehicle Gains', conviction: 'MEDIUM CONVICTION', timeline: 'FY27-FY28' },
+      {
+        name: 'Greenfield Mechatronics Plant Approval at Manesar, Haryana',
+        conviction: 'HIGH CONVICTION',
+        timeline: 'FY27-FY28',
+      },
+      {
+        name: 'Consolidated Q2 Revenue Surge (+35% YoY to ₹1,556 Cr, EBITDA ₹228 Cr)',
+        conviction: 'HIGH CONVICTION',
+        timeline: 'H2 FY27',
+      },
+      {
+        name: 'IAC India Integration & High-Value Interior Systems Content-Per-Vehicle Gains',
+        conviction: 'MEDIUM CONVICTION',
+        timeline: 'FY27-FY28',
+      },
     ],
-    sourceFilingIds: ['jmksz0cky8kab7w71zrkq2nz.pdf', 'abvtxfawxcjrl9nv9wbpeofq.pdf', 'ec83hlk23xevhxzxqv3osda5.pdf'],
+    sourceFilingIds: [
+      'jmksz0cky8kab7w71zrkq2nz.pdf',
+      'abvtxfawxcjrl9nv9wbpeofq.pdf',
+      'ec83hlk23xevhxzxqv3osda5.pdf',
+    ],
     builtAt: new Date().toISOString(),
     modelUsed,
     contextUsed: ['Investor Release 24-Oct-2026', 'Mechatronics Facility Intimation 24-Oct-2026'],
@@ -740,9 +836,21 @@ async function main() {
     thesis:
       'High-precision casting specialist nearly doubles H1 top-line (+68% YoY to ₹210.1 Cr) with 19% operating EBITDA margins, backed by massive 64.11% delivery conviction.',
     catalysts: [
-      { name: 'H1 FY27 Revenue Surge (+68% YoY to ₹210.1 Cr) & 19% EBITDA Margin', conviction: 'HIGH CONVICTION', timeline: 'H2 FY27' },
-      { name: 'Installed Capacity of ~13,800 MT Melting and Magnesium R&D Facility', conviction: 'HIGH CONVICTION', timeline: 'FY27-FY28' },
-      { name: 'SME IPO Proceeds Deployment into Precision Machining Capex', conviction: 'MEDIUM CONVICTION', timeline: 'H2 FY27' },
+      {
+        name: 'H1 FY27 Revenue Surge (+68% YoY to ₹210.1 Cr) & 19% EBITDA Margin',
+        conviction: 'HIGH CONVICTION',
+        timeline: 'H2 FY27',
+      },
+      {
+        name: 'Installed Capacity of ~13,800 MT Melting and Magnesium R&D Facility',
+        conviction: 'HIGH CONVICTION',
+        timeline: 'FY27-FY28',
+      },
+      {
+        name: 'SME IPO Proceeds Deployment into Precision Machining Capex',
+        conviction: 'MEDIUM CONVICTION',
+        timeline: 'H2 FY27',
+      },
     ],
     sourceFilingIds: ['i3m4xl98qtcg1l27ividj3ml.pdf', 'z2f448pj7muajvcqvsuf1m9i.pdf'],
     builtAt: new Date().toISOString(),
@@ -763,7 +871,8 @@ async function main() {
       tier: 'WATCH',
       trigger: 'Dominant Granite Mining Exporter with Captive Black Galaxy Reserves',
       trigger_quantified: 'Delivered ₹12.32 Cr at 74.69% delivery ratio with +8.76% return.',
-      summary: 'Midwest Limited witnessed high-conviction accumulation with 74.69% delivery ratio as the vertically integrated export leader in premium Absolute Black and Black Galaxy granite.',
+      summary:
+        'Midwest Limited witnessed high-conviction accumulation with 74.69% delivery ratio as the vertically integrated export leader in premium Absolute Black and Black Galaxy granite.',
       linkage: 'explained',
       why: {
         text: 'Accumulation in premium natural stone and black granite export monopolist with dominant captive quarry concessions across AP/Telangana.',
@@ -777,8 +886,10 @@ async function main() {
       research_axis: 'delivery_pct',
       tier: 'ACT',
       trigger: 'H1 FY27 Financial Results Beat & Precision Casting Margin Expansion',
-      trigger_quantified: 'H1 FY27 revenue rose +68% YoY to ₹210.1 Cr, EBITDA reached ₹39.6 Cr (19% margin), and PAT hit ₹24.9 Cr on 64.11% delivery.',
-      summary: 'Poojaa Precision Engg delivered stellar H1 numbers with 68% revenue growth and 19% EBITDA margin, backed by heavy ₹23.83 Cr delivery volume (64.11% delivery).',
+      trigger_quantified:
+        'H1 FY27 revenue rose +68% YoY to ₹210.1 Cr, EBITDA reached ₹39.6 Cr (19% margin), and PAT hit ₹24.9 Cr on 64.11% delivery.',
+      summary:
+        'Poojaa Precision Engg delivered stellar H1 numbers with 68% revenue growth and 19% EBITDA margin, backed by heavy ₹23.83 Cr delivery volume (64.11% delivery).',
       linkage: 'explained',
       why: {
         text: 'H1 FY27 revenue surged +68% YoY to ₹210.1 Cr with 19% operating EBITDA margin (₹39.6 Cr) and PAT of ₹24.9 Cr following BSE SME listing.',
@@ -792,8 +903,10 @@ async function main() {
       research_axis: 'delivery_pct',
       tier: 'ACT',
       trigger: 'Board Meeting Scheduled for Q2 Results & Potential Preferential Issue Fundraise',
-      trigger_quantified: 'Board meeting in 5 days (02/11/2026) for results and fundraise on 48.79% delivery (₹6.05 Cr).',
-      summary: 'Shree Pushkar Chemicals intimated Board meeting scheduled for November 2, 2026 to approve Q2 results AND evaluate fundraising via Preferential Issue, triggering strong pre-results buying.',
+      trigger_quantified:
+        'Board meeting in 5 days (02/11/2026) for results and fundraise on 48.79% delivery (₹6.05 Cr).',
+      summary:
+        'Shree Pushkar Chemicals intimated Board meeting scheduled for November 2, 2026 to approve Q2 results AND evaluate fundraising via Preferential Issue, triggering strong pre-results buying.',
       linkage: 'explained',
       why: {
         text: 'Board Meeting scheduled for November 2, 2026 to approve Q2 results and evaluate potential fund raising by way of Preferential Issue, alongside analyst meet intimation.',
@@ -807,8 +920,10 @@ async function main() {
       research_axis: 'delivery_pct',
       tier: 'ACT',
       trigger: 'Gujarat FDA Approval for 51,200 MT Greenfield Facility & Q2 Results Approval',
-      trigger_quantified: '51,200 MT annual capacity approved at Nandesari, backing ₹40.19 Cr delivery (44.06% delivery).',
-      summary: 'Sudeep Pharma received FDA approval for its new pharma greenfield facility at 179 Nandesari (51,200 MT capacity) and approved Q2 unaudited results, confirming major capacity commercialisation.',
+      trigger_quantified:
+        '51,200 MT annual capacity approved at Nandesari, backing ₹40.19 Cr delivery (44.06% delivery).',
+      summary:
+        'Sudeep Pharma received FDA approval for its new pharma greenfield facility at 179 Nandesari (51,200 MT capacity) and approved Q2 unaudited results, confirming major capacity commercialisation.',
       linkage: 'explained',
       why: {
         text: 'Gujarat FDA approval received authorizing commercial manufacturing operations at new 51,200 MT greenfield facility at 179 Nandesari, alongside Q2 FY27 results approval.',
@@ -823,7 +938,8 @@ async function main() {
       tier: 'WATCH',
       trigger: 'Pre-Results Board Meeting Intimation for Q2 Results',
       trigger_quantified: 'Board meeting in 7 days (04/11/2026) on 43.90% delivery (₹15.85 Cr).',
-      summary: 'SMS Pharmaceuticals rallied +7.37% on 43.90% delivery after intimating Board meeting on November 4, 2026 to approve Q2 FY27 results amid strong API sector momentum.',
+      summary:
+        'SMS Pharmaceuticals rallied +7.37% on 43.90% delivery after intimating Board meeting on November 4, 2026 to approve Q2 FY27 results amid strong API sector momentum.',
       linkage: 'explained',
       why: {
         text: 'Board Meeting scheduled for November 4, 2026 (7 days away) to approve Q2 FY27 results, supported by 43.9% delivery backing.',
@@ -837,8 +953,10 @@ async function main() {
       research_axis: 'delivery_pct',
       tier: 'WATCH',
       trigger: 'Digital Streaming Royalty Operating Leverage & Q2 Results Beat',
-      trigger_quantified: 'Q2 revenue grew +35% YoY to ₹120.1 Cr with 70.5% EBITDA margin on ₹48.04 Cr delivery (37.43%).',
-      summary: 'Tips Music continued high-margin compounding in digital streaming music publishing, delivering ₹48.04 Cr delivery on sustained streaming consumption growth.',
+      trigger_quantified:
+        'Q2 revenue grew +35% YoY to ₹120.1 Cr with 70.5% EBITDA margin on ₹48.04 Cr delivery (37.43%).',
+      summary:
+        'Tips Music continued high-margin compounding in digital streaming music publishing, delivering ₹48.04 Cr delivery on sustained streaming consumption growth.',
       linkage: 'explained',
       why: {
         text: 'Q2 FY27 financial results show 35% YoY revenue growth to ₹120.1 Cr, operating EBITDA margin of 70.5%, and PAT +23% YoY to ₹65.5 Cr, backed by interim dividend approval.',
@@ -852,8 +970,10 @@ async function main() {
       research_axis: 'delivery_pct',
       tier: 'NOTED',
       trigger: 'Imminent Board Meeting for Q2 Results',
-      trigger_quantified: 'Board meeting scheduled for tomorrow (29/10/2026) on 32.90% delivery (₹18.90 Cr, +15.24%).',
-      summary: 'Hubtown rallied +15.24% on ₹18.90 Cr delivery ahead of its Board Meeting scheduled for October 29, 2026 to consider Q2 FY27 results.',
+      trigger_quantified:
+        'Board meeting scheduled for tomorrow (29/10/2026) on 32.90% delivery (₹18.90 Cr, +15.24%).',
+      summary:
+        'Hubtown rallied +15.24% on ₹18.90 Cr delivery ahead of its Board Meeting scheduled for October 29, 2026 to consider Q2 FY27 results.',
       linkage: 'explained',
       why: {
         text: 'Board Meeting scheduled for October 29, 2026 (tomorrow, 1 day countdown) to approve Q2 standalone and consolidated financial results.',
@@ -867,8 +987,10 @@ async function main() {
       research_axis: 'delivery_pct',
       tier: 'WATCH',
       trigger: 'RAC OEM Manufacturing Read-Across & Pre-Results Buying',
-      trigger_quantified: 'Delivered ₹101.52 Cr (32.0% delivery) ahead of Q2 results on supplier PGEL blowout print (+42.5% rev, +395% PAT).',
-      summary: 'Voltas saw heavy institutional accumulation of ₹101.52 Cr (32% delivery) ahead of early November Q2 earnings, buoyed by contract-manufacturing proxy PG Electroplast blowout RAC volumes.',
+      trigger_quantified:
+        'Delivered ₹101.52 Cr (32.0% delivery) ahead of Q2 results on supplier PGEL blowout print (+42.5% rev, +395% PAT).',
+      summary:
+        'Voltas saw heavy institutional accumulation of ₹101.52 Cr (32% delivery) ahead of early November Q2 earnings, buoyed by contract-manufacturing proxy PG Electroplast blowout RAC volumes.',
       linkage: 'explained',
       why: {
         text: 'Heavy delivery accumulation (₹101.52 Cr, 32% delivery) ahead of Q2 results, driven by upstream proxy PG Electroplast blowout RAC volumes (+42.5% YoY revenue, PAT +395%).',
@@ -883,7 +1005,8 @@ async function main() {
       tier: 'NOTED',
       trigger: 'Exchange Price Movement Clarification & Momentum Continuation',
       trigger_quantified: 'Delivered ₹6.80 Cr (30.27% delivery, +10.06% return).',
-      summary: 'DCM Shriram Industries moved +10.06% following exchange price movement clarification, driven by momentum in sugar and industrial chemicals.',
+      summary:
+        'DCM Shriram Industries moved +10.06% following exchange price movement clarification, driven by momentum in sugar and industrial chemicals.',
       linkage: 'unexplained',
       why: {
         text: 'No material corporate filing in 14 days beyond routine price movement clarification; price momentum in sugar and alcohol operations.',
@@ -897,8 +1020,10 @@ async function main() {
       research_axis: 'delivery_pct',
       tier: 'WATCH',
       trigger: 'New Mechatronics Facility at Manesar & Q2 Revenue Jump (+35% YoY)',
-      trigger_quantified: 'Q2 revenue reached ₹1,556 Cr (+35% YoY), EBITDA ₹228 Cr, on ₹30.71 Cr delivery (27.39%).',
-      summary: 'Lumax Auto Technologies reported +35% YoY Q2 revenue growth to ₹1,556 Cr and announced Board approval for a new Mechatronics manufacturing plant at Manesar, Haryana.',
+      trigger_quantified:
+        'Q2 revenue reached ₹1,556 Cr (+35% YoY), EBITDA ₹228 Cr, on ₹30.71 Cr delivery (27.39%).',
+      summary:
+        'Lumax Auto Technologies reported +35% YoY Q2 revenue growth to ₹1,556 Cr and announced Board approval for a new Mechatronics manufacturing plant at Manesar, Haryana.',
       linkage: 'explained',
       why: {
         text: 'Q2 FY27 consolidated revenue jumped +35% YoY (+14% QoQ) to ₹1,556 Cr with EBITDA of ₹228 Cr, while Board approved setting up a new Mechatronics manufacturing facility at Manesar, Haryana.',
@@ -912,8 +1037,10 @@ async function main() {
       research_axis: 'delivery_value',
       tier: 'ACT',
       trigger: 'Q2 FY27 Financial Results Beat & EBITDA Margin Expansion (+350 bps)',
-      trigger_quantified: 'Q2 revenue surged +28% YoY to ₹2,617 Cr, EBITDA rose +72% YoY to ₹385 Cr on record ₹422.54 Cr delivery.',
-      summary: 'Piramal Pharma triggered massive institutional conviction with ₹422.54 Cr delivery after Q2 revenue jumped +28% YoY and EBITDA expanded +72% YoY with 350 bps margin expansion to 14.7%.',
+      trigger_quantified:
+        'Q2 revenue surged +28% YoY to ₹2,617 Cr, EBITDA rose +72% YoY to ₹385 Cr on record ₹422.54 Cr delivery.',
+      summary:
+        'Piramal Pharma triggered massive institutional conviction with ₹422.54 Cr delivery after Q2 revenue jumped +28% YoY and EBITDA expanded +72% YoY with 350 bps margin expansion to 14.7%.',
       linkage: 'explained',
       why: {
         text: 'Q2 FY27 results beat: Revenue +28% YoY to ₹2,617 Cr, EBITDA +72% YoY to ₹385 Cr with 350 bps margin expansion to 14.7%, adding 22 new customers in H1.',
@@ -927,8 +1054,10 @@ async function main() {
       research_axis: 'delivery_value',
       tier: 'ACT',
       trigger: 'Q2 FY27 Sequential Turnaround & 600 bps EBITDA Margin Rebound',
-      trigger_quantified: 'Sequential revenue up +13% QoQ to ₹833 Cr, Operating EBITDA surged +61.5% QoQ to ₹147 Cr on ₹184.55 Cr delivery.',
-      summary: 'Syngene International posted decisive sequential recovery with revenue up +13% QoQ and operating EBITDA margin improving from 12% to 18% (+600 bps), supported by ₹184.55 Cr delivery.',
+      trigger_quantified:
+        'Sequential revenue up +13% QoQ to ₹833 Cr, Operating EBITDA surged +61.5% QoQ to ₹147 Cr on ₹184.55 Cr delivery.',
+      summary:
+        'Syngene International posted decisive sequential recovery with revenue up +13% QoQ and operating EBITDA margin improving from 12% to 18% (+600 bps), supported by ₹184.55 Cr delivery.',
       linkage: 'explained',
       why: {
         text: 'Q2 FY27 sequential turnaround: Revenue +13% QoQ to ₹833 Cr, Operating EBITDA jumped +61.5% QoQ to ₹147 Cr with a 600 bps margin rebound to 18.0%.',
@@ -942,8 +1071,10 @@ async function main() {
       research_axis: 'delivery_value',
       tier: 'ACT',
       trigger: 'Q2 FY27 Blowout Numbers: Revenue +42.5% YoY, PAT +395% YoY',
-      trigger_quantified: 'Revenue reached ₹933.88 Cr (+42.5% YoY), PAT jumped to ₹13.67 Cr (+395% YoY) on ₹95.58 Cr delivery.',
-      summary: 'PG Electroplast rallied +7.16% on ₹95.58 Cr delivery as Q2 revenues surged +42.5% YoY to ₹933.88 Cr and EBITDA rose +54.8% YoY on aggressive RAC and EMS expansion.',
+      trigger_quantified:
+        'Revenue reached ₹933.88 Cr (+42.5% YoY), PAT jumped to ₹13.67 Cr (+395% YoY) on ₹95.58 Cr delivery.',
+      summary:
+        'PG Electroplast rallied +7.16% on ₹95.58 Cr delivery as Q2 revenues surged +42.5% YoY to ₹933.88 Cr and EBITDA rose +54.8% YoY on aggressive RAC and EMS expansion.',
       linkage: 'explained',
       why: {
         text: 'Q2 FY27 financial results: Revenues grew +42.5% YoY to ₹933.88 Cr, EBITDA rose +54.8% YoY to ₹69.14 Cr, and PAT skyrocketed +395% YoY to ₹13.67 Cr.',
@@ -957,8 +1088,10 @@ async function main() {
       research_axis: 'delivery_value',
       tier: 'ACT',
       trigger: 'Zee Studios Leadership Overhaul to Scale Theatrical & Digital Monetization',
-      trigger_quantified: 'Suraj Singh appointed Business Head of Zee Studios; stock rallied +6.98% on ₹52.36 Cr delivery.',
-      summary: 'Zee Entertainment Enterprises restructured leadership with the appointment of Suraj Singh as Business Head of Zee Studios, backed by strong ₹52.36 Cr institutional delivery.',
+      trigger_quantified:
+        'Suraj Singh appointed Business Head of Zee Studios; stock rallied +6.98% on ₹52.36 Cr delivery.',
+      summary:
+        'Zee Entertainment Enterprises restructured leadership with the appointment of Suraj Singh as Business Head of Zee Studios, backed by strong ₹52.36 Cr institutional delivery.',
       linkage: 'explained',
       why: {
         text: 'Appointment of Suraj Singh as Business Head of Zee Studios to revitalize theatrical and digital content monetization, backed by ₹52.36 Cr delivery accumulation.',
@@ -973,7 +1106,8 @@ async function main() {
       tier: 'WATCH',
       trigger: 'Pre-Results Accumulation Ahead of November 3 Board Meeting',
       trigger_quantified: 'Delivered ₹39.86 Cr (+11.35% return) ahead of results in 6 days.',
-      summary: 'Aarti Drugs rallied +11.35% with ₹39.86 Cr delivery following Board meeting notice scheduled for November 3, 2026 to approve Q2 FY27 audited results.',
+      summary:
+        'Aarti Drugs rallied +11.35% with ₹39.86 Cr delivery following Board meeting notice scheduled for November 3, 2026 to approve Q2 FY27 audited results.',
       linkage: 'explained',
       why: {
         text: 'Pre-results accumulation ahead of Board Meeting scheduled for November 3, 2026 (6 days countdown) to approve Q2 FY27 financial results.',
@@ -987,8 +1121,10 @@ async function main() {
       research_axis: 'delivery_value',
       tier: 'WATCH',
       trigger: 'Q2 Results Acceleration & Festive Retail Jewellery Momentum',
-      trigger_quantified: 'Q2 revenue grew +24.6% YoY to ₹625.6 Cr, PAT surged +37.1% YoY to ₹37.3 Cr on ₹20.99 Cr delivery.',
-      summary: 'Deepa Jewellers posted strong Q2 results with revenue up +24.6% YoY to ₹625.6 Cr and PAT jumping +37.1% YoY to ₹37.3 Cr, heading into a seasonally peak H2.',
+      trigger_quantified:
+        'Q2 revenue grew +24.6% YoY to ₹625.6 Cr, PAT surged +37.1% YoY to ₹37.3 Cr on ₹20.99 Cr delivery.',
+      summary:
+        'Deepa Jewellers posted strong Q2 results with revenue up +24.6% YoY to ₹625.6 Cr and PAT jumping +37.1% YoY to ₹37.3 Cr, heading into a seasonally peak H2.',
       linkage: 'explained',
       why: {
         text: 'Q2 FY27 results print: Revenue +24.6% YoY to ₹625.6 Cr, EBITDA +17.1% YoY to ₹45.3 Cr, and PAT +37.1% YoY to ₹37.3 Cr.',
@@ -1002,8 +1138,10 @@ async function main() {
       research_axis: 'delivery_value',
       tier: 'WATCH',
       trigger: 'Explosive Festive Dussehra Sales Update & Store Network Expansion',
-      trigger_quantified: 'Dussehra sales surged +62.4% YoY to ₹12.19 Cr; Navratri/Dussehra sales reached ₹38.53 Cr (+35.01% YoY) on ₹20.04 Cr delivery.',
-      summary: 'PNGS Reva Diamond Jewellery reported a blowout festive sales update with Dussehra revenue jumping +62.4% YoY to ₹12.19 Cr and expanded its retail footprint to 39 stores.',
+      trigger_quantified:
+        'Dussehra sales surged +62.4% YoY to ₹12.19 Cr; Navratri/Dussehra sales reached ₹38.53 Cr (+35.01% YoY) on ₹20.04 Cr delivery.',
+      summary:
+        'PNGS Reva Diamond Jewellery reported a blowout festive sales update with Dussehra revenue jumping +62.4% YoY to ₹12.19 Cr and expanded its retail footprint to 39 stores.',
       linkage: 'explained',
       why: {
         text: 'Dussehra sales jumped +62.4% YoY to ₹12.19 Cr and Navratri/Dussehra sales grew +35.01% YoY to ₹38.53 Cr, expanding retail network to 39 stores with new Jaipur COCO store.',
@@ -1018,7 +1156,8 @@ async function main() {
       tier: 'NOTED',
       trigger: 'Steady Q2 AUM Compounding in MSME Secured Lending',
       trigger_quantified: 'Delivered ₹15.82 Cr on +9.63% return following Q2 results release.',
-      summary: 'SBFC Finance saw steady accumulation of ₹15.82 Cr delivery following its Q2 FY27 results print, reflecting resilient micro-enterprise secured lending demand.',
+      summary:
+        'SBFC Finance saw steady accumulation of ₹15.82 Cr delivery following its Q2 FY27 results print, reflecting resilient micro-enterprise secured lending demand.',
       linkage: 'explained',
       why: {
         text: 'Q2 FY27 financial results release confirming healthy secured MSME portfolio expansion and stable asset quality.',
@@ -1032,8 +1171,10 @@ async function main() {
       research_axis: 'delivery_value',
       tier: 'NOTED',
       trigger: 'Mega Turnkey HVDC Transmission Order Win from PGCIL (₹648.91 Cr)',
-      trigger_quantified: '₹648.91 Cr turnkey HVDC transmission order from PGCIL (52.7% of market cap) on ₹14.01 Cr delivery (+14.43%).',
-      summary: 'Jyoti Structures won a massive ₹648.91 Cr order from Power Grid Corporation for ±800 kV HVDC Barmer-II transmission line in Gujarat, representing over half its entire market cap.',
+      trigger_quantified:
+        '₹648.91 Cr turnkey HVDC transmission order from PGCIL (52.7% of market cap) on ₹14.01 Cr delivery (+14.43%).',
+      summary:
+        'Jyoti Structures won a massive ₹648.91 Cr order from Power Grid Corporation for ±800 kV HVDC Barmer-II transmission line in Gujarat, representing over half its entire market cap.',
       linkage: 'explained',
       why: {
         text: 'Award of major ±800 kV HVDC Bipole Barmer-II transmission line turnkey contract valued at ₹648.91 Cr from Power Grid Corporation of India (PGCIL).',
@@ -1047,8 +1188,10 @@ async function main() {
       research_axis: 'delivery_value',
       tier: 'NOTED',
       trigger: 'Q3 & 9M Financial Results Surge (Sales +23.7% YoY, 20% Upper Circuit)',
-      trigger_quantified: 'Q3 net sales rose +23.7% YoY to ₹748.1 Cr, 9M EBIT grew +22% YoY to ₹152.8 Cr, locking 20% upper circuit on ₹9.15 Cr delivery.',
-      summary: 'Huhtamaki India locked in 20% upper circuit after reporting Q3 net sales of ₹748.1 Cr (+23.7% YoY) and 9M EBIT of ₹152.8 Cr (+22% YoY) driven by FMCG packaging volume acceleration.',
+      trigger_quantified:
+        'Q3 net sales rose +23.7% YoY to ₹748.1 Cr, 9M EBIT grew +22% YoY to ₹152.8 Cr, locking 20% upper circuit on ₹9.15 Cr delivery.',
+      summary:
+        'Huhtamaki India locked in 20% upper circuit after reporting Q3 net sales of ₹748.1 Cr (+23.7% YoY) and 9M EBIT of ₹152.8 Cr (+22% YoY) driven by FMCG packaging volume acceleration.',
       linkage: 'explained',
       why: {
         text: 'Q3 2026 net sales rose +23.7% YoY to ₹748.1 Cr and 9M EBIT surged +22% YoY to ₹152.8 Cr on volume growth and operating efficiency, locking 20% upper circuit.',

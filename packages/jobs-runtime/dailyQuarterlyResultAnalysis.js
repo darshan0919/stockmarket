@@ -507,11 +507,16 @@ async function sendReportEmail(opts = {}) {
       docLink = '—';
     }
 
-    if (pdfPath && fs.existsSync(pdfPath) && attachments.length < 8) {
-      attachments.push({
-        filename: path.basename(pdfPath),
-        content: fs.readFileSync(pdfPath),
-      });
+    // To prevent SMTP connection timeouts (Gmail drops connections on large multi-megabyte payloads),
+    // cap inline attachments to at most 1 PDF under 600KB, relying primarily on Google Drive links.
+    if (pdfPath && fs.existsSync(pdfPath) && attachments.length < 1) {
+      const content = fs.readFileSync(pdfPath);
+      if (content.length <= 600 * 1024) {
+        attachments.push({
+          filename: path.basename(pdfPath),
+          content,
+        });
+      }
     }
 
     rows.push(
@@ -555,6 +560,8 @@ async function sendReportEmail(opts = {}) {
     sent: res.status === 'sent',
     count: companies.length,
     subject,
+    ...(res.error ? { error: res.error } : {}),
+    ...(res.reason ? { reason: res.reason } : {}),
   };
 }
 

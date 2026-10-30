@@ -34,7 +34,10 @@ function parseScanId(url) {
 function parseArgs() {
   const args = process.argv.slice(2);
   let scanUrl = DEFAULT_SCAN_URL;
-  let asOf = new Date().toISOString().split('T')[0];
+  const todayIST = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(
+    new Date()
+  );
+  let asOf = todayIST;
   let force = false;
 
   for (let i = 0; i < args.length; i++) {
@@ -151,36 +154,16 @@ async function main() {
   const rows = result.table.slice(1);
   console.log(`[pre-pead-scanner] Scan returned ${rows.length} total companies.`);
 
-  // Load existing raw doc audit cache if available
-  let cachedAudit = null;
-  const auditPath = path.join(
-    REPO,
-    '.gemini',
-    'antigravity',
-    'brain',
-    'da54803c-b76a-43eb-90b9-8b837958cdf7',
-    '.system_generated',
-    'steps',
-    '80',
-    'output.txt'
-  );
-  if (fs.existsSync(auditPath) && !force) {
+  // Load existing doc audit cache if available
+  const cacheDir = db.cachePath('pre-pead-scanner');
+  if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
+  const cacheFile = path.join(cacheDir, `doc_audit_${asOf}.json`);
+  let docAuditCache = {};
+  if (fs.existsSync(cacheFile) && !force) {
     try {
-      const text = fs.readFileSync(auditPath, 'utf8');
-      const bStart = text.indexOf('[', text.indexOf('Pending Q2 FY27 Results'));
-      const bEnd = text.lastIndexOf(']');
-      if (bStart !== -1 && bEnd !== -1) {
-        cachedAudit = JSON.parse(text.slice(bStart, bEnd + 1));
-      }
+      docAuditCache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
     } catch (e) {
-      // fallback to live
-    }
-  }
-
-  const pendingMap = new Map();
-  if (cachedAudit) {
-    for (const item of cachedAudit) {
-      pendingMap.set(item.companyId, item);
+      docAuditCache = {};
     }
   }
 
@@ -211,7 +194,7 @@ async function main() {
     const industry = r[33];
     const sector = r[34];
 
-    let docInfo = pendingMap.get(companyId);
+    let docInfo = docAuditCache[companyId];
     if (!docInfo) {
       try {
         const docs = await fetchDocuments(companyId, {
@@ -242,6 +225,7 @@ async function main() {
           has202609: false,
         };
       }
+      docAuditCache[companyId] = docInfo;
     }
 
     if (
@@ -297,6 +281,13 @@ async function main() {
       hasPriorPPT: docInfo.hasPriorPPT,
       docType: docInfo.hasPriorConcall ? 'Transcript + PPT' : 'PPT Only',
     });
+  }
+
+  // Persist doc audit cache
+  try {
+    fs.writeFileSync(cacheFile, JSON.stringify(docAuditCache, null, 2), 'utf8');
+  } catch (e) {
+    // ignore cache write error
   }
 
   const scored = eligible.map(scoreCandidate);
@@ -502,7 +493,7 @@ async function main() {
 
     <div class="hl" style="background:#f1f5f9;border-left:3.5px solid #2563eb;margin-bottom:14px;">
       <strong>METHODOLOGY & THE ONWARD TECH PLAYBOOK (Suresh Gate 3):</strong>
-      Pre-earnings price action is a double-edged sword. When a stock surges +15% into results (e.g. Yasho), expectations are heavily built, setting up elevated "sell-the-news" profit booking unless a Bull-Case blowout lands. Conversely, stocks consolidating tightly in a flat base with low volume (Refex, Fabtech, Stylam, Satin, Bhageria) offer prime asymmetric springboard setups where any operational beat triggers immediate post-earnings announcement drift (PEAD).
+      Pre-earnings price action is a double-edged sword. When a stock surges into results on elevated anticipatory momentum (e.g. <em>Prizor Viztech</em> +23.8% 1W, <em>Zodiac Energy</em> +19.3% 1W, <em>Asian Energy</em> +9.6% 1W, <em>Ramkrishna Forgings</em> +9.4% 1W), expectations are heavily built, setting up elevated <span class="text-neg" style="font-weight:600;">sell-the-news</span> profit booking unless a Bull-Case blowout lands. Conversely, stocks consolidating tightly in a flat base with low volume (<em>Globus Spirits</em> +0.89% 1W, <em>Indigo Paints</em> -0.33% 1W, <em>IRM Energy</em> +1.82% 1W, <em>Sathlokhar Synergys</em> +0.15% 1W, <em>Prataap Snacks</em> -0.08% 1W, <em>Sportking India</em> +4.54% 1W) offer prime <span class="text-pos" style="font-weight:600;">asymmetric springboard setups</span> where any operational beat triggers immediate post-earnings announcement drift (PEAD). De-risking names (<em>Msafe Equipments</em> -7.85% 1W, <em>Anzen India</em> -5.99% 1W) offer high-probability relief rally setups.
     </div>
 
     <h2>01 · MASTER PRE-PEAD CONVICTION RANKING (${scored.length} ACTIVE NAMES)</h2>
@@ -570,9 +561,11 @@ async function main() {
     <h2>04 · EXTRA-MILE RESEARCH & THE 1% FACTOR</h2>
     <div class="kpi" style="padding:10px 12px;background:#f8fafc;font-size:8.5pt;line-height:1.5;">
       <ul>
-        <li><strong>Chemicals Margin Divergence:</strong> Raw material input prices (phenol, aniline, sulphur) have moderated ~8-12% QoQ, driving outsized margin expansion for specialized players like <em>Apcotex Industries</em> and <em>Bhageria Industries</em>, while commoditized caustic soda (<em>Chemfab Alkalis</em>) faces margin compression from global import dumping.</li>
-        <li><strong>Commercial Vehicles & High-Horsepower Engines:</strong> <em>Force Motors</em> continues to benefit from multi-year tailwinds in light commercial vehicles (Traveller/Urbania) alongside robust luxury engine sourcing agreements with Mercedes-Benz India and BMW India. With low leverage and tight pre-results price consolidation (+0.8% 1W), the hurdle remains modest.</li>
-        <li><strong>Multiplex Box Office Inflection:</strong> <em>PVR Inox</em> shows a massive swing with TTM PAT Growth of +383.8% off a low base. The pre-results price setup is tight (+0.9% 1W), meaning Q2 festive box office performance is not yet priced into valuation.</li>
+        <li><strong>Ethanol Pricing Realisation & Feedstock Spread Normalization (Globus Spirits · <span style="font-family:monospace;font-size:8pt;">NSE:GLOBUSSPR</span> · Rank #4 · Mcap ₹2,311 Cr · P/E 21.2x):</strong> OMC revision in procurement pricing for grain-based ethanol (damaged foodgrains/maize) alongside softening domestic maize market prices provides a sequential gross spread recovery (+150–200 bps QoQ). With the consumer IMFL premiumisation drive gaining traction in key North/East state markets and the stock consolidating tightly in a flat base (+0.89% 1W), the pre-earnings expectation hurdle remains <span class="chip chip-g">LOW</span>, creating an asymmetric setup for any margin expansion beat.</li>
+        <li><strong>Textile Spinning Spread Recovery (Sportking India · <span style="font-family:monospace;font-size:8pt;">NSE:SPORTKING</span> · Rank #6 · Mcap ₹2,730 Cr · P/E 16.9x):</strong> Domestic raw cotton prices have stabilized at competitive levels relative to global indices, widening cotton-to-yarn gross spreads. Operating at high capacity utilisation with a disciplined balance sheet (D/E 0.52x) and an explosive +122.8% YoY PAT trajectory, the modest +4.5% 1W consolidation reflects unpriced operating leverage ahead of the festive yarn off-take cycle.</li>
+        <li><strong>Decorative Coatings Margin Resilience (Indigo Paints · <span style="font-family:monospace;font-size:8pt;">NSE:INDIGOPNTS</span> · Rank #7 · Mcap ₹4,830 Cr · P/E 30.0x):</strong> Crude-derivative chemical inputs (titanium dioxide, emulsions, monomers) have remained range-bound, protecting gross margins despite aggressive promotional discounting by new entrants (Birla Opus). With differentiated focus in tier-3/4 cities, waterproof coatings, and institutional expansion, flat pre-earnings price action (-0.33% 1W) sets up an ideal asymmetric springboard (<span class="chip chip-g">LOW</span> hurdle) if volume growth clears double digits.</li>
+        <li><strong>Corporate Demerger Value Realisation (Quess Corp · <span style="font-family:monospace;font-size:8pt;">NSE:QUESS</span> · Rank #8 · Mcap ₹4,848 Cr · P/E 19.2x):</strong> The planned three-way corporate demerger into Quess Corp (Workforce Management), Digitide Solutions (BPM & Insurtech), and Bluspring Enterprises (Facility Management) approaches final regulatory milestones. Benefiting from post-monsoon general staffing additions and headcount turnaround, the company's +61.1% YoY PAT trajectory trades at a conservative 19.2x trailing P/E with tight 1W consolidation (+2.88%).</li>
+        <li><strong>City Gas Distribution Volume Inflection (IRM Energy · <span style="font-family:monospace;font-size:8pt;">NSE:IRMENERGY</span> · Rank #3 · Mcap ₹1,011 Cr · P/E 13.8x):</strong> Recent geographical area (GA) network expansions across Fatehgarh Sahib, Mandi, and Diu-Gir Somnath continue ramping up industrial and commercial CNG/PNG volumes. Increased commercial pricing power and favourable spot LNG blending cushion against domestic APM gas allocation cuts, backing a 13.8x P/E multiple and flat pre-result price positioning (+1.82% 1W).</li>
       </ul>
     </div>
   `;

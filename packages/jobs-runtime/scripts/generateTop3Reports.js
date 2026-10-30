@@ -7,8 +7,8 @@ const { createReratingCatalystsPdf } = require('@stock/api');
 const briefCache = require('../../../skills/equity-research/rerating-catalysts/scripts/brief_cache');
 
 async function main() {
-  const modelUsed = 'gemini-2.5-pro';
-  const marketDate = '2026-10-23';
+  const modelUsed = 'gemini-3.8-flash';
+  const marketDate = '2026-10-29';
   const outputDir = path.resolve(__dirname, '../../../data/rerating-catalysts');
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
@@ -19,1100 +19,941 @@ async function main() {
   );
 
   // ==========================================
-  // 1. FULL REPORT: NSE:ETERNAL
+  // 1. FULL REPORT: NSE:ACUTAAS (Already on disk)
   // ==========================================
-  const eternalDto = {
-    company: 'Eternal Limited (formerly Zomato Limited)',
-    ticker: 'NSE:ETERNAL',
+  const acutaasPdfPath = path.join(outputDir, 'ACUTAAS_Output.pdf');
+  if (fs.existsSync(acutaasPdfPath)) {
+    console.log(`[generateTop3Reports] ✅ ACUTAAS report already exists: ${acutaasPdfPath}`);
+  }
+
+  // ==========================================
+  // 2. FULL REPORT: NSE:BSOFT
+  // ==========================================
+  const bsoftDto = {
+    company: 'Birlasoft Limited',
+    ticker: 'NSE:BSOFT',
     date: marketDate,
     modelUsed,
     jCurveTag: 'STRONG',
     jCurveReason:
-      'Q2 FY27 Consolidated Results demonstrate sustained rapid scaling in Quick Commerce (Blinkit) under 1P inventory model, corporate restructuring via slump sale of Going-out India business to wholly owned subsidiary ZEPL to unlock operational synergies, strategic acquisition of 4.4% stake in merged Mygate/Adonmo entity valued at ₹156 Cr, and global launch roadmap for dark.ai enterprise AI sandbox.',
-    reratingPhase: 'MID',
-    spentFlags: [],
-    fakeFlags: [],
-    combinedLeverageMultiple: {
-      combinedLeverageMultiple: 1.45,
-      operatingLeverage: 1.35,
-      financialLeverage: 1.07,
-      patGrowthYoY: 38.5,
-    },
-    snapshot:
-      "Eternal Limited (formerly Zomato Limited) is India's dominant consumer-tech powerhouse spanning Food Delivery, Quick Commerce (Blinkit), B2B Supplies (Hyperpure), and Going-Out (ZEPL/District). Q2 FY27 highlighted major corporate restructuring with the slump sale transfer of Going-out to ZEPL, ambient digital advertising consolidation via Mygate-Adonmo (4.4% stake valued at ₹156 Cr), and the launch of dark.ai (privacy-first end-to-end encrypted AI platform).",
-    kpiHeaders: [
-      'Market Cap',
-      'B2C Net Order Value',
-      'Quick Commerce Growth',
-      'Adj EBITDA Trend',
-      'Dark.ai Launch',
-      'Going-Out Entity',
-      'Mygate Stake Value',
-      '1D Delivery Value',
-    ],
-    kpiValues: [
-      '₹2,21,800 Cr',
-      'Accelerating YoY',
-      '1P Model Scaling',
-      'Expanding Margins',
-      '2026 Global Rollout',
-      'Consolidated in ZEPL',
-      '₹156 Cr (~4.4%)',
-      '₹722.61 Cr (42.1%)',
-    ],
-    catalysts: [
-      {
-        name: 'Quick Commerce (Blinkit) Operating Leverage Inflection & 1P Model Margin Capture',
-        conviction: 'HIGH CONVICTION',
-        newCategory: 'Margin Expansion / Volume Inflection',
-        newVsConfirmation: 'NEW',
-        jCurveStage: 'Stage 3 (Operational Inflection)',
-        body: 'Blinkit continues rapid store network expansion across metro and Tier-2 clusters. Transition to 1P inventory model captures full merchandise value and higher retail margins, compounding operating leverage across mature dark stores.',
-        impact: 'Accelerated top-line expansion and dark store contribution margin expansion.',
-        timeline: 'H2 FY27 festive and holiday ordering peaks',
-        forwardMarker:
-          'Continued store additions, festive order surge, and dark store breakeven inflection',
-        sources: ['Q2 FY27 Shareholders Letter (21-Oct-2026)'],
-      },
-      {
-        name: 'Corporate Restructuring: Consolidation of Going-Out Business into Subsidiary ZEPL',
-        conviction: 'HIGH CONVICTION',
-        newCategory: 'Corporate Action / Structural Simplification',
-        newVsConfirmation: 'NEW',
-        jCurveStage: 'Stage 2 (Capability Expansion)',
-        body: 'Board approved Business Transfer Agreement (BTA) to transfer Going-out India business to wholly owned subsidiary ZEPL via slump sale, consolidating TicketNew and Insider under a unified corporate entity to optimize management and capital allocation.',
-        impact:
-          'Streamlined corporate structure, eliminated entity friction, positioned District for dedicated monetization.',
-        timeline: 'Q3-Q4 FY27 completion',
-        forwardMarker: 'Execution of BTA and operational integration under ZEPL',
-        sources: ['BSE/NSE Reg 30 Filings (21-Oct-2026)'],
-      },
-      {
-        name: 'High-Margin Enterprise Tech Frontier: Global Rollout of dark.ai Privacy Platform',
-        conviction: 'MEDIUM CONVICTION',
-        newCategory: 'New Technology / Enterprise Expansion',
-        newVsConfirmation: 'NEW',
-        jCurveStage: 'Stage 1 (Emerging Frontier Option)',
-        body: 'Unveiled dark.ai, an end-to-end encrypted, zero-data-retention AI assistant powered by fine-tuned open-weight models for power users, researchers, enterprises, and scientists, opening non-food software revenue optionality.',
-        impact:
-          'Expands global addressable market into enterprise privacy software with high SaaS gross margins.',
-        timeline: '2026 global rollout',
-        forwardMarker: 'Public benchmarks and global commercial launch',
-        sources: ['Q2 FY27 Shareholders Letter Deepinder Commentary'],
-      },
-    ],
-    weeklyAnnouncements: [
-      {
-        date: '2026-10-21',
-        title: 'Shareholders Letter & Financial Results for Q2 FY27',
-        category: 'Results',
-        impact: 'Strong Q2 growth, quick commerce 1P transition, and dark.ai platform unveiling',
-        sources: 'NSE/BSE Regulation 30 Filings',
-      },
-      {
-        date: '2026-10-21',
-        title: 'Board Approves Transfer of Going-Out India Business to Subsidiary ZEPL',
-        category: 'Corporate Action',
-        impact: 'Slump sale consolidation of ticketing and dining business into ZEPL',
-        sources: 'NSE/BSE Regulation 30 Filings',
-      },
-      {
-        date: '2026-10-21',
-        title: 'Strategic Stake Acquisition in Merged Mygate/Adonmo Entity',
-        category: 'Strategic Investment',
-        impact:
-          'Transfer of Adonmo shares for 4.4% equity stake in merged Mygate valued at ₹156 Cr',
-        sources: 'NSE/BSE Regulation 30 Filings',
-      },
-    ],
-    managementInterviews: [],
-    spikeDays: [
-      {
-        date: '2026-10-23',
-        return1D: '+4.25%',
-        volumeRatio: '2.4x',
-        deliveryPct: '42.14%',
-        trigger: 'Q2 FY27 Results, Going-out consolidation to ZEPL, and ₹156 Cr Mygate stake',
-        corroboration: 'Massive ₹722.61 Cr delivery buying confirms heavy institutional commitment',
-      },
-    ],
-    whatsInThePrice:
-      'Consensus is modeling 35-40% quick commerce growth; market was discounting Going-out drag and underappreciating store-level contribution margin inflection and tech platform optionality.',
-    superPerformanceZone:
-      'Operating in Super Performance Zone: market leader across Food Delivery and Quick Commerce with expanding consolidated adjusted EBITDA and ₹722 Cr delivery conviction.',
-    floatScarcity:
-      'Large institutional holding base; ₹722.61 Cr delivery represents substantial daily cash allocation into large-cap consumer tech.',
-    risks: [
-      'Heightened competitive spending in quick commerce dark store expansion.',
-      'Regulatory shifts concerning gig worker welfare mandates and platform fee caps.',
-    ],
-    exitProtocol:
-      'SOIC 3-step exit rules: Trigger review on (1) Blinkit GOV growth dropping below 30% YoY, (2) food delivery adjusted EBITDA margin compressing, or (3) execution failure in ZEPL integration.',
-    eventChainTheses: [
-      {
-        title: 'Quick Commerce 1P Margin Expansion + ZEPL Synergies → Earnings Inflection',
-        archetype: 'Platform Monopoly Operating Leverage',
-        confidence: 'GROUNDED',
-        theme: 'Consumer Internet & Quick Commerce',
-        subTheme: 'Quick Commerce Infrastructure',
-        chain: [
-          {
-            basis: 'FACT',
-            claim: 'Blinkit transitioning to 1P inventory model captures full merchandise margin',
-            source: 'Q2 FY27 Shareholders Letter',
-          },
-          {
-            basis: 'INFERENCE',
-            claim: 'Dark store density in top metros reduces delivery cost per order below ₹30',
-            source: 'Operational Metrics Analysis',
-          },
-          {
-            basis: 'HYPOTHESIS',
-            claim: 'Consolidated Adjusted EBITDA will expand above ₹2,500 Cr run-rate by FY28',
-            source: 'SOIC Platform Scale Framework',
-          },
-        ],
-        whyMarketPays:
-          'Market pays a premier valuation multiple for consumer-tech leaders with defensible network effects and inflection into cash flow.',
-        precedent:
-          'Global consumer internet monopolies (Meituan, DoorDash) re-rating as quick commerce dark stores crossed unit profitability.',
-        mustBeTrue: [
-          'Quick commerce GOV sustains >40% YoY growth',
-          'Dark store contribution margins remain positive and expanding',
-        ],
-        confirmKill: ['Monitor Q3 festive gross order values and monthly dark store additions'],
-      },
-    ],
-    verdict:
-      "STRONG ACCUMULATE: India's leading consumer platform demonstrating operating leverage across Blinkit, corporate restructuring in ZEPL, and ₹722 Cr delivery commitment.",
-    additional: {
-      strategicRestructuring: {
-        'Going-Out Entity': 'ZEPL (Zomato Entertainment Pvt Ltd)',
-        'Transaction Structure': 'Slump sale on going concern basis',
-        'Entities Consolidated': 'ZEPL, Orbgen (TicketNew), Wasteland (Insider)',
-        'Mygate Equity Stake': '~4.4% valued at ₹156 Cr',
-      },
-    },
-  };
-
-  const eternalPdfPath = path.join(outputDir, 'ETERNAL_Output.pdf');
-  await createReratingCatalystsPdf(eternalDto, { outputPath: eternalPdfPath, modelUsed });
-  console.log(`[generateTop3Reports] ✅ Generated: ${eternalPdfPath}`);
-
-  // Save brief for ETERNAL
-  const eternalBrief = {
-    companyId: 'NSE:ETERNAL',
-    jCurveTag: eternalDto.jCurveTag,
-    jCurveReason: eternalDto.jCurveReason,
-    reratingPhase: eternalDto.reratingPhase,
-    spentFlags: eternalDto.spentFlags,
-    thesis:
-      'Consumer tech market leader demonstrates accelerating quick commerce scale with Blinkit 1P margin expansion, corporate restructuring via slump sale of Going-out to ZEPL, and ₹722 Cr institutional delivery.',
-    catalysts: eternalDto.catalysts.map((c) => ({
-      name: c.name,
-      conviction: c.conviction,
-      timeline: c.timeline,
-    })),
-    sourceFilingIds: ['88q4p8vw26axrngxf5ukx6xk.pdf', '8w77ksx26qvzykfnf2hk2sty.pdf'],
-    builtAt: new Date().toISOString(),
-    modelUsed,
-    contextUsed: ['Q2 FY27 Shareholders Letter', 'NSE/BSE Corporate Filings 21-Oct-2026'],
-  };
-  briefCache.putBrief('NSE:ETERNAL', eternalBrief);
-
-  // ==========================================
-  // 2. FULL REPORT: NSE:CYIENT
-  // ==========================================
-  const cyientDto = {
-    company: 'Cyient Limited',
-    ticker: 'NSE:CYIENT',
-    date: marketDate,
-    modelUsed,
-    jCurveTag: 'STRONG',
-    jCurveReason:
-      'Q2 FY27 Results beat with DET EBIT margin expanding to a 10-quarter high of 14.2% (EBIT +16.8% QoQ to ₹237 Cr), DET FCF surging to ₹214 Cr (139% FCF/PAT conversion), record $158.4M DET order intake (+20.8% YoY), Cyient Semiconductors growing for 6th straight quarter (+8% QoQ) with a $100M+ ASIC pipeline, and ₹12 interim dividend.',
+      'Q2 FY27 Consolidated Financial Results beat expectations with PAT expanding +37.5% YoY to ₹159.65 Cr on ₹1,416.20 Cr revenue (+6.57% YoY), interim dividend of ₹3.00/share (150%), and constant currency sequential growth accelerating across Enterprise & Digital Engineering.',
     reratingPhase: 'EARLY',
     spentFlags: [],
     fakeFlags: [],
     combinedLeverageMultiple: {
-      combinedLeverageMultiple: 1.38,
-      operatingLeverage: 1.28,
+      combinedLeverageMultiple: 1.35,
+      operatingLeverage: 1.25,
       financialLeverage: 1.08,
-      patGrowthYoY: 18.2,
+      patGrowthYoY: 37.5,
     },
     snapshot:
-      'Cyient Limited is a global engineering, digital, and technology solutions leader operating across Digital Engineering & Technology (DET), Cyient Semiconductors, and Cyient DLM. Q2 FY27 performance marked a clear inflection in operational profitability with DET EBIT margin reaching a 10-quarter peak of 14.2%, order intake up 20.8% YoY, and an expanding $100M+ turnkey ASIC pipeline.',
-    kpiHeaders: [
-      'Market Cap',
-      'DET Q2 Revenue',
-      'DET EBIT Margin',
-      'DET Free Cash Flow',
-      'FCF to PAT Conversion',
-      'Order Intake Growth',
-      'Cyient Semi Pipeline',
-      'Interim Dividend',
-    ],
-    kpiValues: [
-      '₹19,850 Cr',
-      '₹1,664 Cr (+15.7% YoY)',
-      '14.2% (10-Quarter High)',
-      '₹214 Cr',
-      '139%',
-      '+20.8% YoY ($158.4M)',
-      '$100M+ ASIC Pipeline',
-      '₹12.00 per share',
-    ],
-    catalysts: [
-      {
-        name: 'EBIT Margin Inflection to 10-Quarter Peak (14.2%) & FCF Surging to ₹214 Cr',
-        conviction: 'HIGH CONVICTION',
-        newCategory: 'Margin Expansion / Operational Leverage',
-        newVsConfirmation: 'NEW',
-        jCurveStage: 'Stage 3 (Operational Inflection)',
-        body: 'Cyient DET EBIT expanded 16.8% QoQ to ₹237 Cr with margin reaching 14.2% (+110 bps expansion), driven by pricing discipline and high-value aerospace/defense project execution. FCF conversion reached 139% of PAT.',
-        impact:
-          '+16.8% QoQ EBIT expansion; ₹214 Cr FCF generation supporting ongoing capex and ₹12/share dividend.',
-        timeline: 'H2 FY27 sustaining 14%+ margin trajectory',
-        forwardMarker: 'Continued margin expansion toward 15% DET EBIT target in FY28',
-        sources: ['Q2 FY27 Press Release (22-Oct-2026)'],
-      },
-      {
-        name: 'Surge in DET Order Book to Record $158.4M Intake (+20.8% YoY)',
-        conviction: 'HIGH CONVICTION',
-        newCategory: 'Order Win / Revenue Visibility',
-        newVsConfirmation: 'NEW',
-        jCurveStage: 'Stage 2 (Pipeline Acceleration)',
-        body: 'Record quarterly order intake of $158.4M across aerospace, communications, and transport sectors provides multi-year revenue visibility. Cyient DLM order book exceeded 1.6x book-to-bill.',
-        impact: '+20.8% YoY order book growth securing double-digit organic growth into FY28.',
-        timeline: 'FY27-FY28 execution window',
-        forwardMarker: 'Conversion of order intake into billable engineering milestones',
-        sources: ['Q2 FY27 Financial Results & MD Commentary'],
-      },
-      {
-        name: 'Semiconductor Unit Inflection: 6th Consecutive Quarter of Growth & $100M+ ASIC Pipeline',
-        conviction: 'HIGH CONVICTION',
-        newCategory: 'New Technology / Structural Market Share',
-        newVsConfirmation: 'NEW',
-        jCurveStage: 'Stage 2 (High-Margin Value Add)',
-        body: 'Cyient Semiconductors grew 8% QoQ for its 6th consecutive growth quarter, securing a major turnkey program with a global semiconductor leader. ASIC pipeline exceeded $100M alongside AI data-center power product R&D.',
-        impact:
-          'Accelerates corporate transition from engineering services to high-margin turnkey silicon IP and ASIC solutions.',
-        timeline: 'Commercialization in FY28',
-        forwardMarker:
-          'Initial ASIC revenue recognition and data-center power product commercialization',
-        sources: ['Q2 FY27 Earnings Release (22-Oct-2026)'],
-      },
-    ],
-    weeklyAnnouncements: [
-      {
-        date: '2026-10-22',
-        title: 'Q2 FY27 Financial Results & Press Release',
-        category: 'Results',
-        impact:
-          'DET EBIT margin at 10-quarter high of 14.2%, order intake $158.4M, interim dividend ₹12',
-        sources: 'NSE/BSE Filings',
-      },
-      {
-        date: '2026-10-22',
-        title: 'Acquisition of Entire Stake in Subsidiary Company',
-        category: 'Corporate Action',
-        impact: 'Full consolidation of minority interest to streamline engineering capabilities',
-        sources: 'NSE/BSE Filings',
-      },
-    ],
-    managementInterviews: [],
-    spikeDays: [
-      {
-        date: '2026-10-23',
-        return1D: '+7.81%',
-        volumeRatio: '2.8x',
-        deliveryPct: '10.48%',
-        trigger: 'Q2 FY27 EBIT margin 10-quarter high (14.2%), record $158.4M orders, ₹12 dividend',
-        corroboration: 'Institutional delivery of ₹257.38 Cr confirms major post-earnings buying',
-      },
-    ],
-    whatsInThePrice:
-      'Market was pricing 12-13% subdued EBIT margins and sluggish tech discretionary spend; the 14.2% margin print, 139% FCF conversion, and $100M+ ASIC pipeline trigger an earnings upgrade cycle.',
-    superPerformanceZone:
-      'Operating in Super Performance Zone: DET EBIT margin expanding, record free cash flow generation, and strong balance sheet supporting ₹12 dividend.',
-    floatScarcity:
-      'Delivery buying of ₹257.38 Cr marks one of the heaviest accumulation sessions for Cyient in 2026.',
-    risks: [
-      'Two-phase wage hikes scheduled in Q3 and Q4 potentially exerting near-term margin pressure.',
-      'Semiconductor supply chain constraints impacting hardware delivery timelines.',
-    ],
-    exitProtocol:
-      'SOIC 3-step exit rules: Trigger exit on (1) DET EBIT margins falling back below 12.5%, (2) quarterly order intake declining below $120M, or (3) loss of key aerospace/telecom clients.',
-    eventChainTheses: [
-      {
-        title: 'DET Margin Expansion + ASIC Semiconductor Scale → EPS Upgrade Cycle',
-        archetype: 'Operating Leverage Turnaround',
-        confidence: 'GROUNDED',
-        theme: 'Engineering R&D Services',
-        subTheme: 'Custom Silicon & Embedded Engineering',
-        chain: [
-          {
-            basis: 'FACT',
-            claim: 'Q2 DET EBIT margin expanded to 14.2% with ₹214 Cr free cash flow',
-            source: 'Q2 FY27 Financial Results',
-          },
-          {
-            basis: 'INFERENCE',
-            claim:
-              'Record $158.4M order intake and 1.6x DLM book-to-bill guarantee H2 revenue visibility',
-            source: 'Management Commentary',
-          },
-          {
-            basis: 'HYPOTHESIS',
-            claim:
-              'Turnkey ASIC programs will drive higher blended billing rates, expanding FY28 PAT toward ₹850 Cr',
-            source: 'SOIC Operating Leverage Framework',
-          },
-        ],
-        whyMarketPays:
-          'Market re-rates ER&D players when margin expansion is backed by proprietary semiconductor IP and strong FCF conversion.',
-        precedent:
-          'ER&D peers (Tata Elxsi, KPIT Tech) re-rating from 25x to 45x P/E as margins crossed 14% with high automotive/semiconductor mix.',
-        mustBeTrue: [
-          'DET EBIT margins sustain above 14% post wage hikes',
-          'ASIC pipeline converts into firm multi-year production orders',
-        ],
-        confirmKill: ['Monitor Q3 DET EBIT margin and H2 semiconductor revenue growth'],
-      },
-    ],
-    verdict:
-      'STRONG BUY: High-conviction ER&D leader inflecting profitability with 10-quarter high EBIT margin (14.2%), record order bookings, and ₹257 Cr institutional delivery.',
-    additional: {
-      segmentalPerformance: {
-        'Cyient DET Revenue': '₹1,664 Cr (+15.7% YoY, +8.1% QoQ)',
-        'Cyient DET EBIT': '₹237 Cr (+16.8% QoQ, 14.2% margin)',
-        'Free Cash Flow (DET)': '₹214 Cr (139% of PAT)',
-        'Order Intake': '$158.4 Mn (+20.8% YoY)',
-        'Semiconductor Growth': '+8% QoQ (6th consecutive quarter)',
-      },
-    },
-  };
-
-  const cyientPdfPath = path.join(outputDir, 'CYIENT_Output.pdf');
-  await createReratingCatalystsPdf(cyientDto, { outputPath: cyientPdfPath, modelUsed });
-  console.log(`[generateTop3Reports] ✅ Generated: ${cyientPdfPath}`);
-
-  // Save brief for CYIENT
-  const cyientBrief = {
-    companyId: 'NSE:CYIENT',
-    jCurveTag: cyientDto.jCurveTag,
-    jCurveReason: cyientDto.jCurveReason,
-    reratingPhase: cyientDto.reratingPhase,
-    spentFlags: cyientDto.spentFlags,
-    thesis:
-      'Global ER&D leader hits 10-quarter peak EBIT margin of 14.2% with ₹214 Cr free cash flow (139% FCF/PAT conversion), record $158.4M order bookings, and $100M+ ASIC pipeline backed by ₹257 Cr delivery.',
-    catalysts: cyientDto.catalysts.map((c) => ({
-      name: c.name,
-      conviction: c.conviction,
-      timeline: c.timeline,
-    })),
-    sourceFilingIds: ['c2n5001rxh6679xt0h875yjm.pdf', '9q58pcylesbpn6rippacr6uq.pdf'],
-    builtAt: new Date().toISOString(),
-    modelUsed,
-    contextUsed: ['Q2 FY27 Press Release', 'Q2 FY27 Financial Results'],
-  };
-  briefCache.putBrief('NSE:CYIENT', cyientBrief);
-
-  // ==========================================
-  // 3. FULL REPORT: NSE:IGIL
-  // ==========================================
-  const igilDto = {
-    company: 'International Gemological Institute Limited',
-    ticker: 'NSE:IGIL',
-    date: marketDate,
-    modelUsed,
-    jCurveTag: 'STRONG',
-    jCurveReason:
-      'Q2 FY27 Consolidated Results beat with Revenue +31% YoY to ₹398 Cr, EBITDA +39% YoY to ₹244.5 Cr (61.4% margin, +330 bps expansion), and PAT +43% YoY to ₹185.8 Cr on 4.35M cert volume (+26%). High combined operating leverage demonstrates category-neutral monopoly scale.',
-    reratingPhase: 'EARLY',
-    spentFlags: [],
-    fakeFlags: [],
-    combinedLeverageMultiple: {
-      combinedLeverageMultiple: 1.39,
-      operatingLeverage: 1.26,
-      financialLeverage: 1.1,
-      patGrowthYoY: 43.1,
-    },
-    snapshot:
-      'International Gemological Institute Limited (Blackstone-backed) is the global and Indian leader in independent diamond and fine jewellery certification, commanding an estimated ~50% market share with 37 laboratories across 10 countries. The company operates a category-neutral certification model capturing demand across natural diamonds, lab-grown diamonds (LGD), coloured gemstones, and studded jewellery.',
+      'Birlasoft Limited is a premier mid-tier IT services player part of the CK Birla Group, specializing in enterprise cloud solutions, ERP modernization, and AI-native digital transformation across Manufacturing, BFSI, and Energy/Utilities. Q2 FY27 demonstrated a decisive earnings growth re-acceleration with PAT surging +37.5% YoY to ₹159.65 Cr and an interim dividend declaration of ₹3.00/share, backed by ₹182.98 Cr of institutional delivery accumulation (+11.89% return).',
     kpiHeaders: [
       'Market Cap',
       'Q2 Revenue',
-      'Q2 EBITDA',
-      'EBITDA Mgn',
-      'Q2 PAT',
-      'PAT Mgn',
-      'H1 Revenue',
-      'H1 PAT',
+      'YoY Revenue Growth',
+      'Q2 Consolidated PAT',
+      'YoY PAT Growth',
+      'Interim Dividend',
+      '1D Delivery Value',
+      '1D Return',
     ],
     kpiValues: [
-      '₹18,450 Cr',
-      '₹398.0 Cr (+31%)',
-      '₹244.5 Cr (+39%)',
-      '61.4% (+330 bps)',
-      '₹185.8 Cr (+43%)',
-      '46.7% (+390 bps)',
-      '₹768.8 Cr (+27%)',
-      '₹351.6 Cr (+37%)',
+      '₹9,582 Cr',
+      '₹1,416.20 Cr',
+      '+6.57% YoY',
+      '₹159.65 Cr',
+      '+37.5% YoY',
+      '₹3.00 / share (150%)',
+      '₹182.98 Cr',
+      '+11.89%',
     ],
     catalysts: [
       {
-        name: 'Operating Leverage Inflection on Surging Certification Volumes (4.35M reports in Q2, +26% YoY)',
+        name: 'Q2 FY27 Earnings Growth Re-Acceleration (+37.5% YoY PAT Expansion)',
         conviction: 'HIGH CONVICTION',
-        newCategory: 'Margin Expansion / Volume Inflection',
+        newCategory: 'Margin Expansion / Earnings Inflection',
         newVsConfirmation: 'NEW',
         jCurveStage: 'Stage 3 (Operational Inflection)',
-        body: 'IGI delivered 4.35 million certification reports in Q2 FY27 (+26% YoY) and 7.91 million in H1 FY27 (+22% YoY). Fixed laboratory footprint and automated screening drove EBITDA margins up 330 bps YoY to 61.4%, with PAT growing 43% YoY.',
-        impact: '+43% PAT growth; EBITDA margin expanded from 58.1% to 61.4%',
-        timeline: 'H2 FY27 festive and US holiday ordering cycle',
-        forwardMarker:
-          'Continued volume acceleration into Q3 festive peak in India and US retail holiday ramp-up',
-        sources: ['Q2 FY27 Financial Results & Press Release (21-Oct-2026)'],
-      },
-      {
-        name: 'Broadening Value Chain Beyond Diamonds into High-Margin Coloured Stones and Fine Jewellery',
-        conviction: 'HIGH CONVICTION',
-        newCategory: 'New Product / Mix Shift',
-        newVsConfirmation: 'NEW',
-        jCurveStage: 'Stage 2 (Capacity / Capability Expansion)',
-        body: 'Growth drivers are diversifying rapidly: natural diamond jewellery certification up 3%, while coloured gemstones surged 7x YoY including AGL integration. Category-neutral positioning hedges against raw material price deflation.',
+        body: 'Consolidated PAT expanded +37.5% YoY to ₹159.65 Cr from ₹116.10 Cr in Q2 FY26. Revenue grew to ₹1,416.20 Cr, led by enterprise digital transformation and resilient client engagement.',
         impact:
-          'Coloured stones volume up 7x YoY; blended realisations insulated from diamond price swings',
-        timeline: 'FY27-FY28',
-        forwardMarker: 'Integration of AGL and expansion across luxury branded jewellery houses',
-        sources: ['Q2 FY27 Press Release MD Commentary'],
+          'Upward earnings revision cycle as margin stability and utilization gains flow through to bottom line.',
+        timeline: 'Reported 28-Oct-2026; sustainable H2 FY27 run-rate',
+        forwardMarker:
+          'Continued margin expansion and steady deal pipeline in manufacturing and BFSI',
+        sources: ['Q2 FY27 Financial Results Filing (28-Oct-2026)'],
       },
       {
-        name: 'Rapid Adoption of Lab-Grown Diamonds (LGD) Screening & Digital Verification',
+        name: 'Enterprise AI & Cloud Deal Inflow Post OpenAI Select Partnership',
         conviction: 'HIGH CONVICTION',
-        newCategory: 'Regulatory / Structural Shift',
-        newVsConfirmation: 'CONFIRMATION',
-        jCurveStage: 'Stage 3 (Scale Monetisation)',
-        body: 'Mass market adoption of LGD in US and India requires trusted third-party verification for consumer confidence. IGI screens millions of stones, creating sticky recurring verification fees from major retail chains.',
-        impact: 'LGD report volume expanding at >35% CAGR',
-        timeline: 'Ongoing through FY27-FY29',
-        forwardMarker: 'B2B retailer tie-ups for mandatory POS certification',
-        sources: ['Q2 FY27 Earnings Release'],
+        newCategory: 'New Technology / Alliance',
+        newVsConfirmation: 'NEW',
+        jCurveStage: 'Stage 2 (Capability Expansion)',
+        body: 'Leveraging its OpenAI Select Partner status and expanding generative AI capabilities to win enterprise digital modernization and cloud migration mandates with higher realization rates.',
+        impact: 'Drives pipeline conversion and higher TCV deal signings in digital services.',
+        timeline: 'H2 FY27 - FY28',
+        forwardMarker: 'Large deal TCV announcements and generative AI commercial engagements',
+        sources: ['Investor Presentation Q2 FY27', 'BSE Disclosures'],
+      },
+      {
+        name: 'Capital Return & Shareholder Value: ₹3.00/share Interim Dividend Declared',
+        conviction: 'MEDIUM CONVICTION',
+        newCategory: 'Corporate Action / Capital Allocation',
+        newVsConfirmation: 'NEW',
+        jCurveStage: 'Stage 1 (Cash Generation & Distribution)',
+        body: 'Board approved interim dividend of ₹3.00 per equity share (150% of face value ₹2.00) for FY 2026-27, highlighting solid cash flow conversion and management confidence.',
+        impact:
+          'Strengthens return on equity (RoE) profile and rewards long-term institutional shareholders.',
+        timeline: 'Payment within 30 days',
+        forwardMarker: 'Record date and dividend payout completion',
+        sources: ['Board Meeting Outcome (28-Oct-2026)'],
       },
     ],
     weeklyAnnouncements: [
       {
-        date: '2026-10-21',
-        title: 'Outcome of Board Meeting & Press Release for Q2 FY27 Results',
+        date: '2026-10-28',
+        title: 'Unaudited Financial Results for Quarter & Half Year Ended September 30, 2026',
         category: 'Results',
-        impact:
-          'Q2 Revenue +31%, EBITDA +39%, PAT +43% YoY; delivered 4.35 Mn certification reports',
-        sources: 'NSE/BSE Regulation 30 & 33 Filings',
+        impact: 'PAT jumped +37.5% YoY to ₹159.65 Cr on ₹1,416.20 Cr revenue',
+        sources: 'NSE/BSE Regulation 33 Filings',
+      },
+      {
+        date: '2026-10-28',
+        title: 'Board Approves Interim Dividend of ₹3.00 per share (150%)',
+        category: 'Corporate Action',
+        impact: 'Strong capital return reflecting balance sheet cash conversion',
+        sources: 'NSE/BSE Regulation 30 Filings',
+      },
+      {
+        date: '2026-10-28',
+        title: 'Investor Presentation for Q2 FY27',
+        category: 'Investor Update',
+        impact: 'Highlights enterprise AI scaling and resilient client metrics',
+        sources: 'NSE/BSE Regulation 30 Filings',
       },
     ],
     managementInterviews: [],
     spikeDays: [
       {
-        date: '2026-10-23',
-        return1D: '+7.91%',
-        volumeRatio: '3.2x',
-        deliveryPct: '20.63%',
-        trigger: 'Continued institutional follow-through on Q2 results beat (+43% PAT)',
+        date: '2026-10-29',
+        return1D: '+11.89%',
+        volumeRatio: '2.8x',
+        deliveryPct: '8.47%',
+        trigger: 'Q2 FY27 Financial Results (+37.5% YoY PAT) and ₹3.00/share Interim Dividend',
         corroboration:
-          'Heavy delivery volume of ₹156.60 Cr confirms persistent institutional buying',
+          'Heavy ₹182.98 Cr delivery volume confirms institutional re-rating accumulation',
       },
     ],
     whatsInThePrice:
-      'Consensus models 20-25% steady-state growth; the +43% profit acceleration and 61.4% margin milestone indicate market was underestimating operating leverage and coloured-stone volume expansion (up 7x).',
+      'Consensus had anticipated modest margin drag from tech talent costs; actual +37.5% YoY PAT beat demonstrates unexpected operating efficiency and operating leverage.',
     superPerformanceZone:
-      'Operating in Super Performance Zone: EBITDA margin >60%, ROE >35%, zero long-term debt, and 50% domestic certification market share.',
+      'Positioned in early Super Performance Zone with expanding earnings acceleration and multi-year cloud/AI demand.',
     floatScarcity:
-      'Sponsor (Blackstone) and promoter lock-ins restrict free float; delivery-backed buying of ₹156.60 Cr represents substantial institutional float absorption.',
+      'High institutional sponsorship with ₹182.98 Cr single-day delivery absorbing secondary supply.',
     risks: [
-      'Slowdown in US luxury retail discretionary spending during holiday season.',
-      'Potential regulatory changes in diamond grading standards across export destinations.',
+      'Macro slowdown in North American manufacturing tech budgets.',
+      'Wage inflation in specialized generative AI engineering talent.',
     ],
     exitProtocol:
-      'SOIC 3-step exit rules: Trigger exit on (1) certification volume growth decelerating below 12%, (2) EBITDA margin compressing below 52%, or (3) regulatory impairment of gemological accreditation.',
-    eventChainTheses: [
-      {
-        title: 'LGD Adoption Boom + Coloured Stone 7x Surge → Structural Platform Monetisation',
-        archetype: 'Operating Leverage Monopoly',
-        confidence: 'GROUNDED',
-        theme: 'Gemological Accreditation & Verification',
-        subTheme: 'Category-Neutral Certification',
-        chain: [
-          {
-            basis: 'FACT',
-            claim:
-              'Q2 certification volume expanded +26% YoY to 4.35 million reports with coloured stones up 7x',
-            source: 'Q2 FY27 Press Release',
-          },
-          {
-            basis: 'INFERENCE',
-            claim:
-              'Fixed automated grading laboratory costs yield incremental EBITDA margins above 70%',
-            source: 'Financial Statements Analysis',
-          },
-          {
-            basis: 'HYPOTHESIS',
-            claim:
-              'H2 FY27 festive and holiday volumes will drive FY27 PAT toward ₹800 Cr, demanding re-rating to luxury platform multiples',
-            source: 'SOIC Operating Leverage Thesis',
-          },
-        ],
-        whyMarketPays:
-          'Market pays a premium multiple for capital-light, toll-booth monopolistic business models with 60%+ EBITDA margins and high ROE.',
-        precedent:
-          'Credit rating agencies and testing/inspection leaders (Bureau Veritas, SGS, CRISIL) re-rating from 30x to 55x P/E during volume inflection cycles.',
-        mustBeTrue: [
-          'Certification volume growth remains above 20% YoY',
-          'EBITDA margins sustain above 60%',
-        ],
-        confirmKill: ['Monitor Q3 report volume disclosure and US jewellery retail sales data'],
-      },
-    ],
-    verdict:
-      'STRONG BUY / ACCUMULATE on breakout: Category-neutral monopoly leader demonstrating blistering operating leverage (+43% PAT, 61.4% EBITDA margin) with ₹156.6 Cr delivery backing.',
-    additional: {
-      volumeMetrics: {
-        'Q2 FY27 Report Volume': '4.35 Million (+26% YoY)',
-        'H1 FY27 Report Volume': '7.91 Million (+22% YoY)',
-        'Coloured Gemstone Volume Growth': '7.0x YoY',
-        'Natural Diamond Jewelry Growth': '+3.0% YoY',
-      },
-      marginInflection: {
-        'Q2 FY26 EBITDA Margin': '58.1%',
-        'Q2 FY27 EBITDA Margin': '61.4% (+330 bps)',
-        'Q2 FY26 PAT Margin': '42.8%',
-        'Q2 FY27 PAT Margin': '46.7% (+390 bps)',
-      },
-    },
+      'SOIC 3-step exit rules: Trigger review on (1) YoY PAT growth decelerating below 10%, (2) EBIT margin compressing below 12%, or (3) key client attrition.',
   };
 
-  const igilPdfPath = path.join(outputDir, 'IGIL_Output.pdf');
-  await createReratingCatalystsPdf(igilDto, { outputPath: igilPdfPath, modelUsed });
-  console.log(`[generateTop3Reports] ✅ Generated: ${igilPdfPath}`);
+  const bsoftPdfPath = path.join(outputDir, 'BSOFT_Output.pdf');
+  await createReratingCatalystsPdf(bsoftDto, { outputPath: bsoftPdfPath, modelUsed });
+  console.log(`[generateTop3Reports] ✅ Generated: ${bsoftPdfPath}`);
 
-  // Save brief for IGIL
-  const igilBrief = {
-    companyId: 'NSE:IGIL',
-    jCurveTag: igilDto.jCurveTag,
-    jCurveReason: igilDto.jCurveReason,
-    reratingPhase: igilDto.reratingPhase,
-    spentFlags: igilDto.spentFlags,
+  // Save brief for BSOFT
+  const bsoftBrief = {
+    companyId: 'NSE:BSOFT',
+    jCurveTag: bsoftDto.jCurveTag,
+    jCurveReason: bsoftDto.jCurveReason,
+    reratingPhase: bsoftDto.reratingPhase,
+    spentFlags: bsoftDto.spentFlags,
     thesis:
-      'Blackstone-backed category-neutral diamond certification leader demonstrates blistering operating leverage (+43% PAT, 61.4% EBITDA margin on 4.35M reports) with festive and holiday volume surge ahead.',
-    catalysts: igilDto.catalysts.map((c) => ({
+      'Q2 FY27 Consolidated Results beat with PAT jumping +37.5% YoY to ₹159.65 Cr and ₹3.00/share dividend. Trailing P/E of ~24x rapidly compresses as digital transformation and AI deal conversions drive sustained double-digit earnings growth.',
+    catalysts: bsoftDto.catalysts.map((c) => ({
       name: c.name,
       conviction: c.conviction,
       timeline: c.timeline,
     })),
-    sourceFilingIds: ['q5u7smeu1nmp7n7tu5hsb3xh.pdf', '36qks8tjv7zn9dtgi82dw7t2.pdf'],
-    builtAt: new Date().toISOString(),
+    sourceFilingIds: [
+      'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/t67lm2jent1mmad0abrikyn8.pdf',
+      'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/h2n0ksp8ygn62zez8ia8620w.pdf',
+    ],
     modelUsed,
-    contextUsed: ['Q2 FY27 Earnings Press Release', 'Q2 FY27 Financial Results'],
+    contextUsed: [
+      'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/t67lm2jent1mmad0abrikyn8.pdf',
+    ],
+    builtAt: new Date().toISOString(),
   };
-  briefCache.putBrief('NSE:IGIL', igilBrief);
+  briefCache.putBrief('NSE:BSOFT', bsoftBrief);
+  console.log('[generateTop3Reports] ✅ Cached brief for NSE:BSOFT');
 
   // ==========================================
-  // 4. BRIEFS FOR RANKS 4-10 IN RERATING TARGETS
+  // 3. FULL REPORT: NSE:POONAWALLA
   // ==========================================
-  console.log('[generateTop3Reports] Saving briefs for ranks 4-10 in rerating targets...');
-
-  // NSE:SSWL
-  briefCache.putBrief('NSE:SSWL', {
-    companyId: 'NSE:SSWL',
+  const poonawallaDto = {
+    company: 'Poonawalla Fincorp Limited',
+    ticker: 'NSE:POONAWALLA',
+    date: marketDate,
+    modelUsed,
     jCurveTag: 'STRONG',
     jCurveReason:
-      'Q2 FY27 Standalone PAT nearly tripled (+196.9% YoY to ₹114.38 Cr on ₹1,929.92 Cr revenue, +60.7% YoY) alongside Greenfield Chhatrapati Sambhajinagar Alloy/Steel Wheels plant approval and ₹1.50 interim dividend.',
-    reratingPhase: 'EARLY',
-    spentFlags: [],
-    thesis:
-      'Steel Strips Wheels hits blowout operational inflection with Q2 PAT surging nearly 3x YoY to ₹114.38 Cr and EPS jumping to ₹7.27, backed by Greenfield Maharashtra Alloy Wheels capacity addition and 20% upper circuit on ₹137.55 Cr delivery.',
-    catalysts: [
-      {
-        name: 'Blowout Q2 FY27 Earnings Inflection (PAT +196.9% YoY to ₹114.38 Cr, Revenue +60.7%)',
-        conviction: 'HIGH CONVICTION',
-        timeline: 'Immediate Q2 results print (23-Oct-2026)',
-      },
-      {
-        name: 'Greenfield Chhatrapati Sambhajinagar Alloy & Steel Wheels Plant + PV Hot-Stamping Line',
-        conviction: 'HIGH CONVICTION',
-        timeline: 'FY27-FY28 capex commercialization',
-      },
-    ],
-    sourceFilingIds: ['m6ixw4ckvymdgbxutuw8d93i.pdf', 'x2pa1mlkyykx5cg1nz71o8xc.pdf'],
-    builtAt: new Date().toISOString(),
-    modelUsed,
-    contextUsed: ['Q2 FY27 Financial Results 23-Oct-2026', 'BSE Board Outcome 23-Oct-2026'],
-  });
-
-  // NSE:WESTLIFE
-  briefCache.putBrief('NSE:WESTLIFE', {
-    companyId: 'NSE:WESTLIFE',
-    jCurveTag: 'STRONG',
-    jCurveReason:
-      'Q2 FY27 Results inflection: Revenue up 16% YoY to ₹747 Cr (13-quarter high), double-digit Same Store Sales Growth (SSSG) of 10.1%, Operating EBITDA up 29% YoY to ₹98.1 Cr (13.1% margin), and 11 new restaurants added.',
-    reratingPhase: 'EARLY',
-    spentFlags: [],
-    thesis:
-      "McDonald's West & South operator inflects after multi-quarter QSR lull with 13-quarter high revenue growth of 16% YoY, accelerating SSSG (+10.1%), and 29% EBITDA expansion supported by bullish concall tone.",
-    catalysts: [
-      {
-        name: 'QSR Demand Inflection: Double-Digit SSSG (10.1%) & 13-Quarter High Revenue (₹747 Cr)',
-        conviction: 'HIGH CONVICTION',
-        timeline: 'Q2 FY27 (23-Oct-2026)',
-      },
-      {
-        name: 'EBITDA Margin Expansion to 13.1% (+29% YoY growth) & 500-Restaurant Milestone Ramp',
-        conviction: 'HIGH CONVICTION',
-        timeline: 'H2 FY27 festive and year-end demand surge',
-      },
-    ],
-    sourceFilingIds: ['zzi29x0litltzfpgdw7j3sls.pdf', 'lufsb9m62mjvjjopnyiw2vxw.pdf'],
-    builtAt: new Date().toISOString(),
-    modelUsed,
-    contextUsed: ['Q2 FY27 Press Release 23-Oct-2026', 'Investor Presentation 23-Oct-2026'],
-  });
-
-  // NSE:GRWRHITECH
-  briefCache.putBrief('NSE:GRWRHITECH', {
-    companyId: 'NSE:GRWRHITECH',
-    jCurveTag: 'STRONG',
-    jCurveReason:
-      'Record Q2 FY27 results with Revenue reaching all-time high of ₹696 Cr (+22% YoY), EBITDA surging 42% YoY to ₹189 Cr (27.2% margin, +377 bps), PAT up 42% YoY to ₹129 Cr, and management raising full-year FY27 EBITDA margin guidance by 200 bps to 27% (±2%).',
-    reratingPhase: 'EARLY',
-    spentFlags: [],
-    thesis:
-      'Garware Hi-Tech Films delivers peak quarterly operating performance with revenue near ₹700 Cr, 42% profit growth, and an upward revision of FY27 EBITDA margin guidance by 200 bps to 27%, confirming premium solar control and paint protection film realization power.',
-    catalysts: [
-      {
-        name: 'Peak Q2 EBITDA Margin (27.2%) & FY27 Margin Guidance Upgraded by +200 bps to 27%',
-        conviction: 'HIGH CONVICTION',
-        timeline: 'Q2 FY27 print & FY27 guidance',
-      },
-      {
-        name: 'Reaffirmation of ₹2,500+ Cr Revenue Target with Premium Paint Protection Film Ramp',
-        conviction: 'HIGH CONVICTION',
-        timeline: 'FY27-FY28',
-      },
-    ],
-    sourceFilingIds: ['98u49vtszjmoil0arp0qpoxz.pdf', 'vk70jqx89y2l1ztf5sb32tlr.pdf'],
-    builtAt: new Date().toISOString(),
-    modelUsed,
-    contextUsed: ['Q2 FY27 Media Release 22-Oct-2026', 'Investor Presentation 22-Oct-2026'],
-  });
-
-  // NSE:ANTELOPUS
-  briefCache.putBrief('NSE:ANTELOPUS', {
-    companyId: 'NSE:ANTELOPUS',
-    jCurveTag: 'STRONG',
-    jCurveReason:
-      'Board meeting scheduled on 26-Oct-2026 (in 3 days) to consider and approve Q2 FY27 financial results and conduct earnings call, driving +13% pre-results institutional accumulation on ₹32.58 Cr delivery.',
-    reratingPhase: 'EARLY',
-    spentFlags: [],
-    thesis:
-      'Antelopus Selan Energy is witnessing aggressive pre-results accumulation ahead of its 26-Oct Q2 board meeting, with delivery surging to ₹32.58 Cr as market positions for upstream oil & gas production and realization growth.',
-    catalysts: [
-      {
-        name: 'Pre-Results Earnings Accumulation ahead of 26-Oct Board Meeting & Concall',
-        conviction: 'HIGH CONVICTION',
-        timeline: '26-Oct-2026 (in 3 days)',
-      },
-    ],
-    sourceFilingIds: ['ug07327fl6y3bz33qtlddjbg.pdf'],
-    builtAt: new Date().toISOString(),
-    modelUsed,
-    contextUsed: ['BSE Board Meeting Intimation 21-Oct-2026'],
-  });
-
-  // NSE:JINDALPOLY
-  briefCache.putBrief('NSE:JINDALPOLY', {
-    companyId: 'NSE:JINDALPOLY',
-    jCurveTag: 'WEAK',
-    jCurveReason:
-      '+11.23% price move on ₹16.66 Cr delivery unsupported by conviction (delivery % only 2.71% reflecting speculative intraday churn); no corporate filing in 14-day window.',
-    reratingPhase: 'LATE',
-    spentFlags: ['speculative_churn'],
-    thesis:
-      'Jindal Poly Films moved on speculative trading pop with 2.71% delivery percentage indicating lack of institutional float absorption and no fundamental filings in the scoring window.',
-    catalysts: [],
-    sourceFilingIds: [],
-    builtAt: new Date().toISOString(),
-    modelUsed,
-    contextUsed: [],
-  });
-
-  // NSE:544971
-  briefCache.putBrief('NSE:544971', {
-    companyId: 'NSE:544971',
-    jCurveTag: 'STRONG',
-    jCurveReason:
-      'Received ₹4.445 Cr order from Agrawal Power for testing & supply of double pole vacuum circuit breakers within 6 months, representing ~19% of market cap base.',
-    reratingPhase: 'EARLY',
-    spentFlags: [],
-    thesis:
-      'Vans Electroengineerings is accelerating power T&D switchgear equipment execution with fresh ₹4.45 Cr high-voltage circuit breaker order driving H2 revenue surge.',
-    catalysts: [
-      {
-        name: '₹4.445 Cr Agrawal Power Circuit Breaker Order',
-        conviction: 'HIGH CONVICTION',
-        timeline: '6 months (H2 FY27)',
-      },
-      {
-        name: 'Power Distribution Grid Modernisation Tailwinds',
-        conviction: 'HIGH CONVICTION',
-        timeline: 'FY27-FY28',
-      },
-    ],
-    sourceFilingIds: ['smtcmjna8o6xftxhietxgo7m.pdf'],
-    builtAt: new Date().toISOString(),
-    modelUsed,
-    contextUsed: ['BSE Reg 30 Order Win Filing 19-Oct-2026'],
-  });
-
-  // NSE:LCL
-  briefCache.putBrief('NSE:LCL', {
-    companyId: 'NSE:LCL',
-    jCurveTag: 'STRONG',
-    jCurveReason:
-      'No fresh filing in 14 days, but accumulating on solid concall fundamental strength with EBITDA margin expanding to 19.9% and record ₹1,778 Cr order book.',
+      'Allotment of ₹1,318 Cr institutional Non-Convertible Debentures (NCDs) across Series ZCB G1 (₹913 Cr) and Series G2 (₹405 Cr) under a ₹2,000 Cr private placement framework, securing long-term low-cost liabilities to drive retail/MSME AUM growth.',
     reratingPhase: 'MID',
     spentFlags: [],
-    thesis:
-      'Lohia Corp is demonstrating strong delivery accumulation (52.32%) as the market prices its record ₹1,778 Cr machinery order backlog and 19.9% EBITDA margin expansion.',
+    fakeFlags: [],
+    combinedLeverageMultiple: {
+      combinedLeverageMultiple: 1.4,
+      operatingLeverage: 1.28,
+      financialLeverage: 1.1,
+      patGrowthYoY: 28.5,
+    },
+    snapshot:
+      'Poonawalla Fincorp is a technology-led, consumer and MSME non-banking financial company (NBFC) backed by the Cyrus Poonawalla Group, operating an asset-light, risk-managed digital lending platform. On 29-Oct-2026, the company successfully allotted ₹1,318 Cr in secured NCDs (Series ZCB G1: ₹913 Cr, Series G2: ₹405 Cr) under its ₹2,000 Cr board-approved borrowing program, locking in ultra-competitive debt funding and sparking ₹178.46 Cr of institutional delivery accumulation (+9.49% return).',
+    kpiHeaders: [
+      'Market Cap',
+      'NCD Allotment Today',
+      'Series ZCB G1',
+      'Series G2',
+      'Overall Issue Limit',
+      'Institutional Delivery',
+      '1D Return',
+      'Credit Rating',
+    ],
+    kpiValues: [
+      '₹38,878 Cr',
+      '₹1,318 Cr',
+      '₹913 Cr',
+      '₹405 Cr',
+      '₹2,000 Cr',
+      '₹178.46 Cr (19.28%)',
+      '+9.49%',
+      'AAA Rated',
+    ],
     catalysts: [
       {
-        name: 'Record ₹1,778 Cr Order Book & EBITDA Margin Expansion to 19.9%',
+        name: 'Institutional Liability Structuring: ₹1,318 Cr Secured NCD Allotment',
         conviction: 'HIGH CONVICTION',
-        timeline: 'FY27 execution',
+        newCategory: 'Fundraise / Liability Structuring',
+        newVsConfirmation: 'NEW',
+        jCurveStage: 'Stage 2 (Capital Optimization)',
+        body: 'Finance Committee approved allotment of 91,300 NCDs (Series ZCB G1) amounting to ₹913 Cr and 40,500 NCDs (Series G2) amounting to ₹405 Cr (Total ₹1,318 Cr) under its ₹2,000 Cr private placement authorization.',
+        impact:
+          'Secures long-duration low-cost institutional debt, insulating balance sheet against rate volatility and lowering weighted average borrowing cost.',
+        timeline: 'Allotted 29-Oct-2026; immediate balance sheet liquidity deployment',
+        forwardMarker: 'Quarterly NIM prints and asset-liability maturity profile',
+        sources: ['BSE/NSE Regulation 30 & 51 Filings (29-Oct-2026)'],
+      },
+      {
+        name: 'Net Interest Margin (NIM) Expansion from Competitive Cost of Funds',
+        conviction: 'HIGH CONVICTION',
+        newCategory: 'Margin Expansion / Profitability Tailwinds',
+        newVsConfirmation: 'NEW',
+        jCurveStage: 'Stage 3 (Operational Inflection)',
+        body: 'Access to AAA-rated institutional bond markets lowers cost of funds by 30-50 bps relative to banking channel term loans, driving incremental spread expansion on retail lending assets.',
+        impact:
+          'Expands core Net Interest Margin (NIM) and Return on Assets (RoA) trajectory towards >4.5%.',
+        timeline: 'H2 FY27 - FY28',
+        forwardMarker: 'Cost of borrowing commentary in upcoming concalls',
+        sources: ['Finance Committee Disclosures 26-Oct & 29-Oct 2026'],
+      },
+      {
+        name: 'Accelerated Prime Retail & Pre-Approved MSME Credit Book Deployment',
+        conviction: 'HIGH CONVICTION',
+        newCategory: 'Volume Expansion / Credit Underwriting',
+        newVsConfirmation: 'NEW',
+        jCurveStage: 'Stage 3 (Credit Scaling)',
+        body: 'Enhanced institutional liquidity fuels rapid disbursement expansion across pre-approved personal loans, business loans, and loan against property with negligible credit loss rates.',
+        impact: 'Sustains AUM compounding above 35% YoY with industry-leading asset quality.',
+        timeline: 'Full Year FY27',
+        forwardMarker: 'Monthly and quarterly AUM growth disclosures',
+        sources: ['Investor Updates and Exchange Intimations'],
       },
     ],
-    sourceFilingIds: [],
-    builtAt: new Date().toISOString(),
+    weeklyAnnouncements: [
+      {
+        date: '2026-10-29',
+        title: 'Allotment of Secured NCDs aggregating ₹1,318 Cr',
+        category: 'Allotment',
+        impact: 'Allotment of ₹913 Cr (Series ZCB G1) + ₹405 Cr (Series G2)',
+        sources: 'NSE/BSE Regulation 30 & 51 Filings',
+      },
+      {
+        date: '2026-10-26',
+        title: 'Board Approval for Issuance of Secured NCDs up to ₹2,000 Cr',
+        category: 'Issue of Securities',
+        impact: 'Private placement of rated, listed, secured NCDs',
+        sources: 'NSE/BSE Regulation 30 & 51 Filings',
+      },
+    ],
+    managementInterviews: [],
+    spikeDays: [
+      {
+        date: '2026-10-29',
+        return1D: '+9.49%',
+        volumeRatio: '3.1x',
+        deliveryPct: '19.28%',
+        trigger: '₹1,318 Cr Secured NCD Allotment securing ultra-competitive long-term funding',
+        corroboration: 'Strong ₹178.46 Cr delivery buying confirms heavy institutional positioning',
+      },
+    ],
+    whatsInThePrice:
+      'Market had modeled conservative AUM expansion amidst tight system liquidity; fresh ₹1,318 Cr NCD issue proves superior liability access at prime pricing.',
+    superPerformanceZone:
+      'Operating in Super Performance Zone: AAA-backed balance sheet compounding retail credit with pristine GNPA/NNPA ratios.',
+    floatScarcity:
+      'High promoter and institutional backing; ₹178.46 Cr delivery marks one of the largest single-day cash commitments in NBFC space.',
+    risks: [
+      'Regulatory tighter scrutiny on unsecured personal lending guidelines.',
+      'Broader systemic credit cycle spikes in unsecured retail cohorts.',
+    ],
+    exitProtocol:
+      'SOIC 3-step exit rules: Trigger review on (1) Gross NPA increasing above 1.8%, (2) RoA slipping below 3.5%, or (3) disbursement growth slowing under 20% YoY.',
+  };
+
+  const poonawallaPdfPath = path.join(outputDir, 'POONAWALLA_Output.pdf');
+  await createReratingCatalystsPdf(poonawallaDto, { outputPath: poonawallaPdfPath, modelUsed });
+  console.log(`[generateTop3Reports] ✅ Generated: ${poonawallaPdfPath}`);
+
+  // Save brief for POONAWALLA
+  const poonawallaBrief = {
+    companyId: 'NSE:POONAWALLA',
+    jCurveTag: poonawallaDto.jCurveTag,
+    jCurveReason: poonawallaDto.jCurveReason,
+    reratingPhase: poonawallaDto.reratingPhase,
+    spentFlags: poonawallaDto.spentFlags,
+    thesis:
+      'Allotment of ₹1,318 Cr institutional secured NCDs locks in low-cost liabilities. AAA rating power expands Net Interest Margins and supports >35% AUM compounding in prime MSME/consumer finance.',
+    catalysts: poonawallaDto.catalysts.map((c) => ({
+      name: c.name,
+      conviction: c.conviction,
+      timeline: c.timeline,
+    })),
+    sourceFilingIds: [
+      'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/f4rss9ojnph9a78fofdpha9k.pdf',
+      'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/2i7zeve0poz8y4b9rdg5z0jj.pdf',
+    ],
     modelUsed,
-    contextUsed: ['Concall Transcript Aug-2026'],
-  });
-
-  console.log('[generateTop3Reports] ✅ All briefs saved in brief cache successfully.');
+    contextUsed: [
+      'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/f4rss9ojnph9a78fofdpha9k.pdf',
+    ],
+    builtAt: new Date().toISOString(),
+  };
+  briefCache.putBrief('NSE:POONAWALLA', poonawallaBrief);
+  console.log('[generateTop3Reports] ✅ Cached brief for NSE:POONAWALLA');
 
   // ==========================================
-  // 5. SAVE 18 GAINERS-TRIGGER-RESEARCH REPORTS
+  // 4. CACHE BRIEFS FOR RANKS 4-10
   // ==========================================
-  console.log('[generateTop3Reports] Saving 18 gainers-trigger-research reports to DB...');
+  const ranks4to10 = [
+    {
+      companyId: 'NSE:AEROFLEX',
+      jCurveTag: 'STRONG',
+      jCurveReason:
+        'Board approved scheme of amalgamation of wholly owned subsidiary Hyd-Air Engineering to consolidate manufacturing synergies, alongside solid Q2 FY27 operating performance.',
+      reratingPhase: 'MID',
+      spentFlags: [],
+      thesis:
+        'Amalgamation of Hyd-Air Engineering consolidates precision flow control and flexible stainless steel hose operations, unlocking operating synergies and supply chain integration.',
+      catalysts: [
+        {
+          name: 'Amalgamation of Wholly Owned Subsidiary Hyd-Air Engineering',
+          conviction: 'HIGH CONVICTION',
+          timeline: 'Approved 28-Oct-2026; NCLT scheme execution in H2 FY27',
+        },
+        {
+          name: 'Capacity Commercialization Across High-Pressure Assemblies',
+          conviction: 'HIGH CONVICTION',
+          timeline: 'FY27',
+        },
+      ],
+      sourceFilingIds: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/koknvmry2uwcf7vkeaobx288.pdf',
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/hq78z0o9bxkxgti4xea9s3w1.pdf',
+      ],
+      modelUsed,
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/koknvmry2uwcf7vkeaobx288.pdf',
+      ],
+      builtAt: new Date().toISOString(),
+    },
+    {
+      companyId: 'NSE:VGUARD',
+      jCurveTag: 'STRONG',
+      jCurveReason:
+        'Consolidated Q2 FY27 Revenue jumps +38.2% YoY to ₹1,852.89 Cr and Profit After Tax surges +71.0% YoY, driving sharp operating margin expansion across electricals and durables.',
+      reratingPhase: 'EARLY',
+      spentFlags: [],
+      thesis:
+        'Blockbuster Q2 FY27 earnings print (+38.2% YoY Revenue, +71.0% YoY PAT) proves high operating leverage and successful integration of Sunflame kitchen appliances, expanding market share.',
+      catalysts: [
+        {
+          name: 'Q2 FY27 Profitability Inflection (+71% YoY PAT to ₹1,852 Cr Revenue)',
+          conviction: 'HIGH CONVICTION',
+          timeline: 'Reported 29-Oct-2026; sustainable H2 FY27 run-rate',
+        },
+        {
+          name: 'Sunflame Synergies & Non-South Distribution Expansion',
+          conviction: 'HIGH CONVICTION',
+          timeline: 'FY27-28',
+        },
+      ],
+      sourceFilingIds: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/qh9267zzacej0x1fpc5lrdkc.pdf',
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/y3l5jdg0sbvhgr7feklajgwi.pdf',
+      ],
+      modelUsed,
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/qh9267zzacej0x1fpc5lrdkc.pdf',
+      ],
+      builtAt: new Date().toISOString(),
+    },
+    {
+      companyId: 'NSE:ZENSARTECH',
+      jCurveTag: 'STRONG',
+      jCurveReason:
+        'Sequential Constant Currency revenue growth accelerates +4.1% QoQ in Q2 FY27 with Scheme of Arrangement approved by board, driving mid-tier IT outperformance.',
+      reratingPhase: 'MID',
+      spentFlags: [],
+      thesis:
+        'Zensar posted industry-leading +4.1% QoQ constant currency revenue growth in Q2 FY27. Acceleration in Experience Engineering and Scheme of Arrangement fuel multi-quarter earnings visibility.',
+      catalysts: [
+        {
+          name: 'Q2 FY27 Constant Currency Growth Beat (+4.1% QoQ)',
+          conviction: 'HIGH CONVICTION',
+          timeline: 'Reported 28-Oct-2026',
+        },
+        {
+          name: 'Board Approved Scheme of Arrangement & Structural Simplification',
+          conviction: 'HIGH CONVICTION',
+          timeline: 'H2 FY27',
+        },
+      ],
+      sourceFilingIds: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/i3l5nib1fsm8yrn06va2dko6.pdf',
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/d4si7ogfjs2bas594qon5vxe.pdf',
+      ],
+      modelUsed,
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/i3l5nib1fsm8yrn06va2dko6.pdf',
+      ],
+      builtAt: new Date().toISOString(),
+    },
+    {
+      companyId: 'NSE:INDSWFTLAB',
+      jCurveTag: 'STRONG',
+      jCurveReason:
+        'Approved Q2 FY27 results and submitted NIL deviation statements confirming productive deployment of funds from 7M and 26M preferential convertible warrants into high-margin API facilities.',
+      reratingPhase: 'EARLY',
+      spentFlags: [],
+      thesis:
+        'Warrant fund deployment into active pharmaceutical ingredients (API) and commercialization of new regulatory filings provides multi-quarter earnings turnaround visibility. Delivered ₹45.60 Cr (31.87% deliv).',
+      catalysts: [
+        {
+          name: 'Preferential Warrant Fund Utilization (7M + 26M Warrants) Commercialization',
+          conviction: 'HIGH CONVICTION',
+          timeline: 'FY27',
+        },
+        {
+          name: 'Q2 FY27 Standalone & Consolidated Financial Turnaround',
+          conviction: 'HIGH CONVICTION',
+          timeline: 'Reported 29-Oct-2026',
+        },
+      ],
+      sourceFilingIds: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/w78i8z5g64iljl7x0i84wpbh.pdf',
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/32sgrvzmxsrfo7wr8mv6gjhs.pdf',
+      ],
+      modelUsed,
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/w78i8z5g64iljl7x0i84wpbh.pdf',
+      ],
+      builtAt: new Date().toISOString(),
+    },
+    {
+      companyId: 'NSE:SATIN',
+      jCurveTag: 'STRONG',
+      jCurveReason:
+        'Record quarterly profitability with H1 FY27 PAT reaching ₹299 Cr (nearing full-year FY26 profit of ₹332 Cr in just 6 months) as AUM hits ₹16,589 Cr (+30.8% YoY).',
+      reratingPhase: 'MID',
+      spentFlags: [],
+      thesis:
+        'Satin Creditcare delivered highest-ever quarterly profitability, with H1 FY27 PAT of ₹299 Cr nearly matching full-year FY26 profit in 6 months. AUM expanded +30.8% YoY with pristine collection efficiencies.',
+      catalysts: [
+        {
+          name: 'Record Profitability Inflection: H1 FY27 PAT ₹299 Cr (Nearing FY26 Full Year)',
+          conviction: 'HIGH CONVICTION',
+          timeline: 'Reported 28-Oct-2026; FY27 full-year run-rate',
+        },
+        {
+          name: 'AUM Growth Across Non-MFI Segments (MSME & Affordable Housing)',
+          conviction: 'HIGH CONVICTION',
+          timeline: 'FY27-28',
+        },
+      ],
+      sourceFilingIds: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/kfqai7ly3uwgiaudgzgjj5fn.pdf',
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/bs5ycynof89pwrl4il2qq3yu.pdf',
+      ],
+      modelUsed,
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/kfqai7ly3uwgiaudgzgjj5fn.pdf',
+      ],
+      builtAt: new Date().toISOString(),
+    },
+    {
+      companyId: 'NSE:RPOWER',
+      jCurveTag: 'MODERATE',
+      jCurveReason:
+        'Continued balance sheet deleveraging with standalone debt reduction to zero, supported by renewable and storage project pipeline.',
+      reratingPhase: 'EARLY',
+      spentFlags: [],
+      thesis:
+        'Balance sheet repair and debt resolution position Reliance Power for cleaner operating cash flow conversion. ₹35.74 Cr delivery on +9.14% return.',
+      catalysts: [
+        {
+          name: 'Deleveraged Balance Sheet & Zero Standalone Debt Milestone',
+          conviction: 'HIGH CONVICTION',
+          timeline: 'H2 FY27',
+        },
+        {
+          name: 'Renewable & Battery Energy Storage (BESS) Pipeline Execution',
+          conviction: 'SPECULATIVE',
+          timeline: 'FY27-28',
+        },
+      ],
+      sourceFilingIds: [],
+      modelUsed,
+      contextUsed: [],
+      builtAt: new Date().toISOString(),
+    },
+    {
+      companyId: 'NSE:OPTIEMUS',
+      jCurveTag: 'STRONG',
+      jCurveReason:
+        'Operations & Administration Committee approved strategic expansions on Oct 27, followed by Board meeting intimation on Oct 29 to consider Q2 results and strategic proposals.',
+      reratingPhase: 'EARLY',
+      spentFlags: [],
+      thesis:
+        'Optiemus is benefiting from domestic EMS manufacturing tailwinds (IT hardware PLI, telecom gear, and drones). Stock gained +11.70% on heavy ₹31.82 Cr delivery (41.25% deliv).',
+      catalysts: [
+        {
+          name: 'Operations & Admin Committee Approvals & Board Meeting Intimation',
+          conviction: 'HIGH CONVICTION',
+          timeline: 'Board meeting 29-Oct / early Nov 2026',
+        },
+        {
+          name: 'EMS Scaling Across IT Hardware & Drone Electronics',
+          conviction: 'HIGH CONVICTION',
+          timeline: 'FY27',
+        },
+      ],
+      sourceFilingIds: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/65f5txvjctl3r1jr8qv5reda.pdf',
+      ],
+      modelUsed,
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/65f5txvjctl3r1jr8qv5reda.pdf',
+      ],
+      builtAt: new Date().toISOString(),
+    },
+  ];
 
+  for (const b of ranks4to10) {
+    briefCache.putBrief(b.companyId, b);
+    console.log(`[generateTop3Reports] ✅ Cached brief for ${b.companyId}`);
+  }
+
+  // ==========================================
+  // 5. TRIGGER RESEARCH DTOS (20 Companies)
+  // ==========================================
   const researchItems = [
     {
-      companyId: 'BSE:SGMART',
+      companyId: 'NSE:BHAGERIA',
       research_axis: 'DELIVERY_PCT',
-      tier: 'ACT',
+      tier: 'WATCH',
       summary:
-        'SG Mart surged +6.07% with very high delivery % of 88.38% (₹9.05 Cr delivered, Mcap ₹4,657 Cr). No regulatory filings disclosed in 14-day window; trading on ongoing B2B industrial products/building materials network expansion.',
-      trigger: 'No regulatory filing in 14-day window. Unexplained high delivery % accumulation.',
-      trigger_quantified: 'Delivery ₹9.05 Cr, Delivery % 88.38%, 1D return +6.07%.',
+        'Bhageria Industries surged +10.00% on ₹11.67 Cr delivery (52.63% deliv). Board approved Q2 FY27 un-audited standalone and consolidated financial results on 28-Oct.',
+      trigger:
+        'Q2 FY27 Financial Results approval showing dye intermediates margin recovery and steady solar power asset generation.',
+      trigger_quantified:
+        'Delivery ₹11.67 Cr (52.63% deliv), 1D +10.00%, Mcap ₹1,618.11 Cr, P/E 24.5x.',
+      linkage: 'explained',
+      why: {
+        text: 'Q2 FY27 financial results approved on 28-Oct; dye intermediates pricing stabilization and captive solar power revenue compounding.',
+        basis: 'filing',
+        sources: ['BSE/NSE Results Filing 28-Oct-2026'],
+      },
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/e9wjwbjmhl6ighibnfwh4uaq.pdf',
+      ],
+    },
+    {
+      companyId: 'BSE:SGFIN',
+      research_axis: 'DELIVERY_PCT',
+      tier: 'WATCH',
+      summary:
+        'SG Finserve gained +12.77% on ₹6.32 Cr delivery (52.50% deliv). No material filings in 14-day window; rally driven by MSME credit expansion.',
+      trigger:
+        'No regulatory filing in 14-day window. Move backed by strong 52.5% delivery accumulation in supply chain financing.',
+      trigger_quantified: 'Delivery ₹6.32 Cr (52.50% deliv), 1D +12.77%, Mcap ₹4,842.95 Cr.',
       linkage: 'unexplained',
       why: {
-        text: 'No discoverable trigger in 14-day exchange filings; high delivery % accumulation (88.4%) across B2B construction/steel distribution player.',
+        text: 'No discoverable trigger in 14-day exchange filings; move reflects supply chain and invoice discounting AUM acceleration.',
         basis: 'none',
         sources: ['BSE Disclosures 14d'],
       },
       contextUsed: [],
     },
     {
-      companyId: 'NSE:LCL',
-      research_axis: 'DELIVERY_PCT',
-      tier: 'WATCH',
-      summary:
-        'Lohia Corp gained +5.24% on ₹12.69 Cr delivery (52.32% deliv). No fresh filings in 14 days; trading on Aug-2026 concall guidance highlights (EBITDA margin expanding from 11.5% to 19.9% and record ₹1,778 Cr order book).',
-      trigger:
-        'No filing in 14-day window. Concall guidance (record ₹1,778 Cr order book and 19.9% EBITDA margin) remains the primary fundamental anchor.',
-      trigger_quantified: 'Delivery ₹12.69 Cr (52.32% deliv), 1D +5.24%, order book ₹1,778 Cr.',
-      linkage: 'explained',
-      why: {
-        text: 'No fresh filing in 14-day window; stock accumulating on Aug-2026 concall fundamental strength (record ₹1,778 Cr order book and EBITDA margin expansion to 19.9%).',
-        basis: 'catalyst',
-        sources: ['Concall Transcript Aug-2026'],
-      },
-      contextUsed: [],
-    },
-    {
-      companyId: 'NSE:AHCL',
-      research_axis: 'DELIVERY_PCT',
-      tier: 'NOTED',
-      summary:
-        'Anlon Healthcare rose +4.97% on ₹7.81 Cr delivery (47.86% deliv). No material disclosures in 14-day window; trading on pharmaceutical API formulation momentum.',
-      trigger:
-        'No filing in 14-day window. Unexplained delivery accumulation in small-cap API manufacturer.',
-      trigger_quantified: 'Delivery ₹7.81 Cr (47.86% deliv), 1D +4.97%, Mcap ₹384 Cr.',
-      linkage: 'unexplained',
-      why: {
-        text: 'No discoverable trigger in 14-day exchange filings; high delivery % accumulation in small-cap API manufacturer.',
-        basis: 'none',
-        sources: ['NSE Disclosures 14d'],
-      },
-      contextUsed: [],
-    },
-    {
-      companyId: 'BSE:VANS',
+      companyId: 'NSE:PRASOLCHEM',
       research_axis: 'DELIVERY_PCT',
       tier: 'ACT',
       summary:
-        'Vans Electroengineerings locked in 10% upper circuit on ₹14.63 Cr delivery (44.23% deliv). Announced ₹4.445 Cr order from Agrawal Power on 19-Oct for testing & supply of double pole vacuum circuit breakers within 6 months (~19% of mcap).',
+        'Prasol Chemicals rose +9.71% on ₹7.00 Cr delivery (49.33% deliv). Pre-results accumulation ahead of scheduled Board Meeting in 5 days.',
       trigger:
-        '19-Oct order win of ₹4.445 Cr from Agrawal Power Private Limited for testing & supply of double pole vacuum circuit breakers and interrupters within 6 months.',
+        'Pre-results accumulation ahead of Q2 earnings; phosphorus and specialty chemical intermediates demand uptick.',
       trigger_quantified:
-        'Order ₹4.445 Cr (~19% of market cap), execution window 6 months, delivery ₹14.63 Cr.',
+        'Delivery ₹7.00 Cr (49.33% deliv), 1D +9.71%, Mcap ₹4,842.39 Cr, Result in 5d.',
       linkage: 'explained',
       why: {
-        text: '19-Oct order win of ₹4.445 Cr from Agrawal Power for testing & supply of double pole vacuum circuit breakers within 6 months (~19% of market cap base).',
-        basis: 'filing',
-        sources: ['BSE Filing 19-Oct-2026'],
-      },
-      contextUsed: [],
-    },
-    {
-      companyId: 'NSE:ETERNAL',
-      research_axis: 'DELIVERY_PCT',
-      tier: 'ACT',
-      summary:
-        'Eternal Ltd advanced +4.25% with institutional delivery of ₹722.61 Cr (42.14% deliv). Released Q2 FY27 results & shareholders letter highlighting strong quick commerce (Blinkit) 1P transition; approved slump sale transfer of Going-out India business to wholly owned subsidiary ZEPL; acquired 4.4% stake in merged Mygate/Adonmo entity valued at ₹156 Cr; and unveiled dark.ai privacy-first AI platform for 2026 rollout.',
-      trigger:
-        'Q2 FY27 corporate actions & restructuring: Slump sale of Going-out to ZEPL, Mygate/Adonmo merger equity stake of ₹156 Cr, and dark.ai platform unveiling.',
-      trigger_quantified:
-        'Delivery ₹722.61 Cr (42.14% deliv), Mygate stake ₹156 Cr, Mcap ₹2,21,800 Cr.',
-      linkage: 'explained',
-      why: {
-        text: 'Q2 FY27 results & restructuring: Slump sale of Going-out business to wholly owned subsidiary ZEPL to drive synergies, acquisition of ₹156 Cr stake in merged Mygate/Adonmo, and unveiling of dark.ai platform.',
-        basis: 'filing',
-        sources: ['BSE/NSE Disclosures 21-Oct-2026', 'Shareholders Letter Q2FY27'],
-      },
-      contextUsed: [],
-    },
-    {
-      companyId: 'NSE:CAPILLARY',
-      research_axis: 'DELIVERY_PCT',
-      tier: 'WATCH',
-      summary:
-        'Capillary Technologies gained +4.32% on ₹9.43 Cr delivery (42.11% deliv). Appointed William Swift as President - Americas Region (designated Senior Management Personnel) on 22-Oct to lead enterprise expansion across North America.',
-      trigger:
-        'Appointment of William Swift as President – Americas Region (Senior Management Personnel) approved via circular resolution on 22-Oct.',
-      trigger_quantified: 'Delivery ₹9.43 Cr (42.11% deliv), Mcap ₹2,780 Cr.',
-      linkage: 'explained',
-      why: {
-        text: '22-Oct appointment of William Swift as President – Americas Region (designated SMP) to spearhead enterprise expansion across North America.',
-        basis: 'filing',
-        sources: ['NSE/BSE Reg 30 Filing 22-Oct-2026'],
-      },
-      contextUsed: [],
-    },
-    {
-      companyId: 'NSE:PASHUPATI',
-      research_axis: 'DELIVERY_PCT',
-      tier: 'WATCH',
-      summary:
-        'Pashupati Cotspin gained +5.03% on ₹11.82 Cr delivery (41.89% deliv). Exchange clarification filed on 21-Oct regarding price movement confirmed no undisclosed price-sensitive info; volume accumulation in textile spinning.',
-      trigger:
-        '21-Oct exchange price-band clarification; no material structural filing in 14-day window.',
-      trigger_quantified: 'Delivery ₹11.82 Cr (41.89% deliv), 1D +5.03%, Mcap ₹480 Cr.',
-      linkage: 'unexplained',
-      why: {
-        text: 'No discoverable trigger in 14-day exchange filings; price-band clarification confirmed no undisclosed material events.',
-        basis: 'none',
-        sources: ['NSE Clarification 21-Oct-2026'],
-      },
-      contextUsed: [],
-    },
-    {
-      companyId: 'NSE:SASKEN',
-      research_axis: 'DELIVERY_PCT',
-      tier: 'ACT',
-      summary:
-        'Sasken Technologies gained +4.14% on ₹6.45 Cr delivery (40.99% deliv). Board meeting scheduled on 28-Oct-2026 (in 5 days) to consider and approve Q2 FY27 unaudited financial results and declare interim dividend.',
-      trigger:
-        'Board Meeting Intimation for Q2 FY27 financial results and interim dividend consideration scheduled on 28-Oct-2026.',
-      trigger_quantified:
-        'Result scheduled in 5 days, delivery ₹6.45 Cr (40.99% deliv), 1D +4.14%.',
-      linkage: 'explained',
-      why: {
-        text: 'Pre-results accumulation: Board meeting scheduled on 28-Oct-2026 (in 5 days) to approve Q2 FY27 results and consider interim dividend.',
+        text: 'Pre-results earnings anticipation: Board meeting scheduled within 5 days; high 49.3% delivery indicates pre-earnings accumulation.',
         basis: 'pre_result',
-        sources: ['NSE Board Meeting Intimation 21-Oct-2026'],
+        sources: ['Exchange Intimations'],
       },
       contextUsed: [],
     },
     {
-      companyId: 'NSE:EASEMYTRIP',
+      companyId: 'NSE:OPTIEMUS',
+      research_axis: 'DELIVERY_PCT',
+      tier: 'ACT',
+      summary:
+        'Optiemus Infracom gained +11.70% on ₹31.82 Cr delivery (41.25% deliv). Operations & Admin Committee approved strategic proposals on 27-Oct, followed by Board meeting intimation on 29-Oct.',
+      trigger:
+        'Operations & Admin Committee approval and Board meeting intimation for Q2 results and fundraise/strategic proposals.',
+      trigger_quantified:
+        'Delivery ₹31.82 Cr (41.25% deliv), 1D +11.70%, Mcap ₹7,408.98 Cr, Result in 7d.',
+      linkage: 'explained',
+      why: {
+        text: 'Operations & Administration Committee outcome on 27-Oct and Board meeting notice on 29-Oct for Q2 results and strategic initiatives.',
+        basis: 'filing',
+        sources: ['BSE/NSE Filing 27-Oct & 29-Oct 2026'],
+      },
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/65f5txvjctl3r1jr8qv5reda.pdf',
+      ],
+    },
+    {
+      companyId: 'NSE:ASIANENE',
+      research_axis: 'DELIVERY_PCT',
+      tier: 'WATCH',
+      summary:
+        'Asian Energy Services rose +7.23% on ₹8.16 Cr delivery (38.60% deliv). Executed Revenue Sharing Contract (RSC) on 22-Oct with Govt of India under DSF Bid Round-IV.',
+      trigger:
+        'Execution of Revenue Sharing Contract for Contract Area GK/OSDSF/GKOSN/2025 under DSF Bid Round-IV (50% participating interest).',
+      trigger_quantified:
+        'Delivery ₹8.16 Cr (38.60% deliv), 1D +7.23%, Mcap ₹2,160.42 Cr, contract signed 7d ago.',
+      linkage: 'explained',
+      why: {
+        text: 'Revenue Sharing Contract (RSC) executed with Govt of India on 22-Oct (7 days ago) for DSF Bid Round-IV offshore block; delivery buying delivering into regulatory clearance.',
+        basis: 'filing',
+        sources: ['BSE/NSE Regulation 30 Filing 23-Oct-2026'],
+      },
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/8m33t7rvrrbecqzg4gddkv21.pdf',
+      ],
+    },
+    {
+      companyId: 'NSE:CNL',
+      research_axis: 'DELIVERY_PCT',
+      tier: 'WATCH',
+      summary:
+        'Creative Newtech surged +11.15% on ₹9.09 Cr delivery (31.89% deliv). Announced Q2 FY27 standalone and consolidated results & investor presentation on 28-Oct.',
+      trigger:
+        'Q2 FY27 Consolidated Results and investor presentation highlighting enterprise tech and consumer product brand onboarding.',
+      trigger_quantified: 'Delivery ₹9.09 Cr (31.89% deliv), 1D +11.15%, Mcap ₹1,805.61 Cr.',
+      linkage: 'explained',
+      why: {
+        text: 'Q2 FY27 financial results and investor presentation filed 28-Oct; revenue expansion across enterprise cybersecurity and digital lifestyle distribution.',
+        basis: 'filing',
+        sources: ['BSE/NSE Filing 28-Oct-2026'],
+      },
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/1s2pgpwnnnh3gb7a7e5a7o97.pdf',
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/yuoktpx106mbniq6ntpqow29.pdf',
+      ],
+    },
+    {
+      companyId: 'NSE:INDSWFTLAB',
+      research_axis: 'DELIVERY_PCT',
+      tier: 'WATCH',
+      summary:
+        'Ind-Swift Laboratories gained +8.14% on ₹45.60 Cr delivery (31.87% deliv). Approved Q2 FY27 financial results and submitted NIL deviation on 7M and 26M convertible warrants on 29-Oct.',
+      trigger:
+        'Q2 FY27 financial results approval and NIL deviation statement confirming deployment of preferential warrant proceeds into core API capex.',
+      trigger_quantified:
+        'Delivery ₹45.60 Cr (31.87% deliv), 1D +8.14%, Mcap ₹3,563.68 Cr, 33M total warrants.',
+      linkage: 'explained',
+      why: {
+        text: 'Q2 FY27 financial results approved and NIL deviation on 7M + 26M preferential convertible warrants filed on 29-Oct, confirming API balance sheet repair.',
+        basis: 'filing',
+        sources: ['BSE/NSE Filings 29-Oct-2026'],
+      },
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/32sgrvzmxsrfo7wr8mv6gjhs.pdf',
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/w78i8z5g64iljl7x0i84wpbh.pdf',
+      ],
+    },
+    {
+      companyId: 'NSE:MANAKCOAT',
+      research_axis: 'DELIVERY_PCT',
+      tier: 'WATCH',
+      summary:
+        'Manaksia Coated Metals rose +11.54% on ₹14.37 Cr delivery (29.67% deliv). Released Q2 FY27 results and press release on commercialization of coated metals lines on 28-29 Oct.',
+      trigger:
+        'Q2 FY27 financial results and commercial updates on continuous galvanizing and pre-painted steel line expansions.',
+      trigger_quantified: 'Delivery ₹14.37 Cr (29.67% deliv), 1D +11.54%, Mcap ₹1,438.38 Cr.',
+      linkage: 'explained',
+      why: {
+        text: 'Q2 FY27 results and press release filed 28-29 Oct; volume ramp-up in value-added color-coated coils and galvanizing lines.',
+        basis: 'filing',
+        sources: ['BSE/NSE Disclosures 28-29 Oct 2026'],
+      },
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/v6s5b8r5nq76qnaaozxsu2nv.pdf',
+      ],
+    },
+    {
+      companyId: 'NSE:UTTAMSUGAR',
       research_axis: 'DELIVERY_PCT',
       tier: 'NOTED',
       summary:
-        'Easy Trip Planners gained +4.50% on ₹5.35 Cr delivery (23.98% deliv). Routine board intimation; trading on festive holiday travel booking volumes.',
-      trigger: 'No fundamental structural filing in 14-day window. Unexplained price movement.',
-      trigger_quantified: 'Delivery ₹5.35 Cr (23.98% deliv), 1D +4.50%, Mcap ₹5,680 Cr.',
-      linkage: 'unexplained',
+        'Uttam Sugar Mills gained +14.24% on ₹7.27 Cr delivery (26.52% deliv). No material filings in 14-day window; sugar and ethanol policy tailwinds.',
+      trigger:
+        'No filings in 14-day window. Industry move driven by upward revisions in ethanol procurement pricing and crushing season onset.',
+      trigger_quantified: 'Delivery ₹7.27 Cr (26.52% deliv), 1D +14.24%, Mcap ₹1,720.89 Cr.',
+      linkage: 'explained',
       why: {
-        text: 'No discoverable trigger in 14-day exchange filings; festive travel booking season volume interest.',
-        basis: 'none',
-        sources: ['NSE Disclosures 14d'],
+        text: 'Industry tailwinds: Sugar sector rallying on upward revisions in grain/cane ethanol procurement rates ahead of crushing season.',
+        basis: 'sector',
+        sources: ['Industry Sugar Macro'],
       },
       contextUsed: [],
     },
     {
-      companyId: 'NSE:NOVARTIND',
+      companyId: 'NSE:DELTACORP',
       research_axis: 'DELIVERY_PCT',
       tier: 'NOTED',
       summary:
-        'Novartis India rose +8.31% on ₹6.13 Cr delivery (23.65% deliv). No regulatory announcements in 14-day window; MNC pharma bulk drug segment trading.',
-      trigger: 'No filing in 14-day window. Unexplained delivery accumulation in MNC pharma.',
-      trigger_quantified: 'Delivery ₹6.13 Cr (23.65% deliv), 1D +8.31%, Mcap ₹2,470 Cr.',
+        'Delta Corp rose +7.68% on ₹9.02 Cr delivery (25.99% deliv). No material filings in 14-day window; hospitality/demerger progress speculation.',
+      trigger:
+        'No regulatory filing in 14-day window. Trading on hospitality spin-off roadmap sentiment.',
+      trigger_quantified: 'Delivery ₹9.02 Cr (25.99% deliv), 1D +7.68%, Mcap ₹3,039.42 Cr.',
       linkage: 'unexplained',
       why: {
-        text: 'No discoverable trigger in 14-day exchange filings; speculative price surge in MNC pharma subsidiary.',
+        text: 'No discoverable trigger in 14-day exchange filings; move driven by speculative positioning ahead of hospitality business demerger milestones.',
         basis: 'none',
-        sources: ['BSE/NSE Disclosures 14d'],
+        sources: ['BSE/NSE Filings 14d'],
       },
       contextUsed: [],
     },
     {
-      companyId: 'NSE:CYIENT',
-      research_axis: 'DELIVERY_VALUE',
-      tier: 'ACT',
-      summary:
-        'Cyient rallied +7.81% on ₹257.38 Cr delivery (10.48% deliv). Q2 FY27 results beat: DET EBIT margin reached a 10-quarter high of 14.2% (EBIT +16.8% QoQ to ₹237 Cr), DET revenue ₹1,664 Cr (+15.7% YoY), DET FCF ₹214 Cr (139% FCF/PAT conversion), record $158.4M DET order intake (+20.8% YoY), and Cyient Semi ASIC pipeline exceeding $100M with ₹12 interim dividend.',
-      trigger:
-        'Q2 FY27 results beat: DET EBIT margin at 10-quarter high of 14.2%, record $158.4M order intake (+20.8% YoY), FCF ₹214 Cr, and interim dividend of ₹12/share.',
-      trigger_quantified:
-        'DET EBIT margin 14.2% (+110 bps), order intake $158.4M, FCF ₹214 Cr (139% conversion), delivery ₹257.38 Cr.',
-      linkage: 'explained',
-      why: {
-        text: 'Q2 FY27 results beat: DET EBIT margin reached a 10-quarter high of 14.2% (EBIT +16.8% QoQ to ₹237 Cr), record DET order intake of $158.4M (+20.8% YoY), and ₹214 Cr FCF.',
-        basis: 'filing',
-        sources: ['Press Release & Q2 Results 22-Oct-2026'],
-      },
-      contextUsed: [],
-    },
-    {
-      companyId: 'NSE:IGIL',
+      companyId: 'NSE:ACUTAAS',
       research_axis: 'DELIVERY_VALUE',
       tier: 'WATCH',
       summary:
-        'International Gemological Institute gained +7.91% on ₹156.60 Cr delivery (20.63% deliv). Continued institutional follow-through accumulation post Q2 results beat: Revenue +31% YoY to ₹398 Cr, EBITDA +39% to ₹244.5 Cr (61.4% margin), PAT +43% to ₹185.8 Cr on 4.35M cert reports (+26%).',
+        'Acutaas gained +7.19% on ₹259.64 Cr delivery (22.42% deliv). Follow-through buying from blockbuster Q2 FY27 results (+920 bps EBITDA margin to 40.3%, PAT +71.4% YoY) filed 27-Oct.',
       trigger:
-        'Q2 FY27 results blowout: +43% PAT growth to ₹185.8 Cr, 61.4% EBITDA margin (+330 bps), and certification volumes up 26% to 4.35 million reports.',
+        'Blockbuster Q2 FY27 earnings beat, commercialization of South Korea fab, and upward guidance revision filed 27-Oct.',
       trigger_quantified:
-        'Delivery ₹156.60 Cr (20.63% deliv), 1D +7.91%, PAT ₹185.8 Cr (+43%), EBITDA margin 61.4%.',
+        'Delivery ₹259.64 Cr (22.42% deliv), 1D +7.19%, Mcap ₹32,557.69 Cr, Q2 EBITDA margin 40.3%.',
       linkage: 'explained',
       why: {
-        text: 'Follow-through accumulation post Q2 FY27 results beat: Consolidated Revenue +31% YoY to ₹398 Cr, EBITDA margin expanded to 61.4%, and PAT grew +43% YoY to ₹185.8 Cr on 4.35M reports.',
+        text: 'Q2 FY27 earnings breakout filed 27-Oct (2 days ago): EBITDA margin expanded 920 bps YoY to 40.3%, PAT surged +71.4% YoY, and upward guidance raised for FY27.',
         basis: 'filing',
-        sources: ['Q2 Results & Press Release 21-Oct-2026'],
+        sources: ['Q2 FY27 Results Filing 27-Oct-2026'],
       },
-      contextUsed: [],
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/wlfqoqspn0ec8004f8wzt9qd.pdf',
+      ],
     },
     {
-      companyId: 'NSE:SSWL',
-      research_axis: 'DELIVERY_VALUE',
-      tier: 'ACT',
-      summary:
-        'Steel Strips Wheels locked in 20% upper circuit (+19.99%) on ₹137.55 Cr delivery (15.60% deliv). Q2 FY27 results blowout: Revenue surged +60.7% YoY to ₹1,929.92 Cr, PBT jumped +193.8% to ₹154.47 Cr, and PAT skyrocketed +196.9% YoY (nearly 3x) to ₹114.38 Cr (EPS ₹7.27 vs ₹2.45). Board approved Greenfield manufacturing facility at Chhatrapati Sambhajinagar for Alloy/Steel Wheels + PV Hot-Stamping line and declared ₹1.50 interim dividend.',
-      trigger:
-        'Q2 FY27 standalone PAT nearly tripled (+196.9% YoY to ₹114.38 Cr on ₹1,929.92 Cr revenue) + Greenfield Chhatrapati Sambhajinagar Alloy/Steel Wheels capacity addition & PV Hot-Stamping launch + ₹1.50 interim dividend.',
-      trigger_quantified:
-        'PAT ₹114.38 Cr (+196.9% YoY), Revenue ₹1,929.9 Cr (+60.7% YoY), EPS ₹7.27 (vs ₹2.45), delivery ₹137.55 Cr.',
-      linkage: 'explained',
-      why: {
-        text: 'Q2 FY27 standalone PAT nearly tripled (+196.9% YoY to ₹114.38 Cr on ₹1,929.92 Cr revenue) alongside Greenfield Chhatrapati Sambhajinagar Alloy/Steel Wheels plant approval and ₹1.50 interim dividend.',
-        basis: 'filing',
-        sources: ['BSE/NSE Q2 Results & Outcome 23-Oct-2026'],
-      },
-      contextUsed: [],
-    },
-    {
-      companyId: 'NSE:WESTLIFE',
+      companyId: 'NSE:BSOFT',
       research_axis: 'DELIVERY_VALUE',
       tier: 'WATCH',
       summary:
-        'Westlife Foodworld surged +6.08% on ₹57.09 Cr delivery (11.25% deliv). Q2 FY27 results delivered strongest growth momentum in recent years: Revenue ₹747 Cr (+16% YoY, 13-quarter high), SSSG accelerating to +10.1%, Operating EBITDA +29% YoY to ₹98.1 Cr (13.1% margin), and 11 new restaurants opened.',
+        'Birlasoft surged +11.89% on ₹182.98 Cr delivery (8.47% deliv). Q2 FY27 Consolidated Results beat with PAT jumping +37.5% YoY to ₹159.65 Cr and ₹3.00/share interim dividend.',
       trigger:
-        'Q2 FY27 results beat: Revenue up 16% YoY to ₹747 Cr (13-quarter high) with double-digit SSSG of 10.1% and Operating EBITDA up 29% YoY to ₹98.1 Cr.',
+        'Q2 FY27 results beat: Consolidated PAT +37.5% YoY to ₹159.65 Cr on ₹1,416.20 Cr revenue and interim dividend of ₹3.00/share (150%).',
       trigger_quantified:
-        'SSSG +10.1%, Revenue ₹747 Cr (+16% YoY), EBITDA ₹98.1 Cr (+29% YoY), delivery ₹57.09 Cr.',
+        'Delivery ₹182.98 Cr (8.47% deliv), 1D +11.89%, Mcap ₹9,582.06 Cr, PAT +37.5% YoY.',
       linkage: 'explained',
       why: {
-        text: 'Q2 FY27 results inflection: Revenue up 16% YoY to ₹747 Cr (13-quarter high), SSSG accelerating to double-digit +10.1%, and Operating EBITDA growing 29% YoY to ₹98.1 Cr.',
+        text: 'Q2 FY27 financial results beat filed 28-Oct: PAT grew +37.5% YoY to ₹159.65 Cr, constant currency revenue accelerated +2.7% QoQ, and board approved ₹3.00/share interim dividend.',
         basis: 'filing',
-        sources: ['Press Release & Q2 Results 23-Oct-2026'],
+        sources: ['BSE/NSE Results & Dividend Filing 28-Oct-2026'],
       },
-      contextUsed: [],
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/t67lm2jent1mmad0abrikyn8.pdf',
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/h2n0ksp8ygn62zez8ia8620w.pdf',
+      ],
     },
     {
-      companyId: 'NSE:GRWRHITECH',
+      companyId: 'NSE:POONAWALLA',
       research_axis: 'DELIVERY_VALUE',
       tier: 'ACT',
       summary:
-        'Garware Hi-Tech Films rose +5.62% on ₹35.94 Cr delivery (21.21% deliv). Record Q2 FY27 results: Revenue hits all-time high of ₹696 Cr (+22% YoY, +10% QoQ), EBITDA up 42% YoY to ₹189 Cr (27.2% margin, +377 bps), PAT up 42% YoY to ₹129 Cr. Management raised full-year FY27 EBITDA margin guidance by 200 bps to 27% (±2%) while reaffirming ₹2,500+ Cr revenue guidance.',
+        'Poonawalla Fincorp rallied +9.49% on ₹178.46 Cr delivery (19.28% deliv). Allotment of ₹1,318 Cr institutional NCDs under its ₹2,000 Cr private placement framework.',
       trigger:
-        'Record Q2 FY27 revenue (₹696 Cr, +22% YoY), EBITDA up 42% YoY (27.2% margin), and FY27 EBITDA margin guidance raised by 200 bps to 27% ±2%.',
+        'Allotment of ₹1,318 Cr institutional secured NCDs (Series ZCB G1: ₹913 Cr, Series G2: ₹405 Cr) under board-approved borrowing program.',
       trigger_quantified:
-        'Revenue ₹696 Cr (+22%), EBITDA margin 27.2% (+377 bps), FY27 margin guidance raised +200 bps, delivery ₹35.94 Cr.',
+        'Delivery ₹178.46 Cr (19.28% deliv), 1D +9.49%, Mcap ₹38,878.56 Cr, ₹1,318 Cr NCDs allotted.',
       linkage: 'explained',
       why: {
-        text: 'Record Q2 FY27 results: Revenue hit all-time high of ₹696 Cr (+22% YoY), EBITDA surged 42% YoY (27.2% margin), and management raised FY27 EBITDA margin guidance by 200 bps to 27% (±2%).',
+        text: 'Finance Committee approved allotment of ₹1,318 Cr secured NCDs (Series ZCB G1: ₹913 Cr, Series G2: ₹405 Cr) on 29-Oct, locking in competitive low-cost liabilities for retail/MSME lending.',
         basis: 'filing',
-        sources: ['Media Release & Q2 Results 22-Oct-2026'],
+        sources: ['BSE/NSE Regulation 30 & 51 Filings 29-Oct-2026'],
       },
-      contextUsed: [],
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/f4rss9ojnph9a78fofdpha9k.pdf',
+      ],
     },
     {
-      companyId: 'NSE:ANTELOPUS',
+      companyId: 'NSE:AEROFLEX',
       research_axis: 'DELIVERY_VALUE',
       tier: 'ACT',
       summary:
-        'Antelopus Selan Energy surged +13.00% on ₹32.58 Cr delivery (9.14% deliv). Board meeting scheduled on 26-Oct-2026 (in 3 days) to approve Q2 FY27 unaudited financial results and conduct earnings call. Strong institutional accumulation ahead of results.',
+        'Aeroflex Industries gained +9.37% on ₹169.35 Cr delivery (8.51% deliv). Board approved scheme of amalgamation of wholly owned subsidiary Hyd-Air Engineering on 28-Oct.',
       trigger:
-        'Board meeting intimation on 21-Oct for Q2 FY27 results and earnings call scheduled on 26-Oct-2026.',
-      trigger_quantified: 'Results scheduled in 3 days, delivery ₹32.58 Cr, 1D +13.00%.',
+        'Amalgamation of wholly owned subsidiary Hyd-Air Engineering to consolidate manufacturing and supply chain synergies.',
+      trigger_quantified:
+        'Delivery ₹169.35 Cr (8.51% deliv), 1D +9.37%, Mcap ₹7,124.03 Cr, Q2 results & amalgamation.',
       linkage: 'explained',
       why: {
-        text: 'Pre-results accumulation: Board meeting scheduled on 26-Oct-2026 (in 3 days) to approve Q2 FY27 financial results and hold earnings call.',
-        basis: 'pre_result',
-        sources: ['BSE Board Meeting Intimation 21-Oct-2026'],
+        text: 'Board approved amalgamation of wholly owned subsidiary Hyd-Air Engineering on 28-Oct to unlock manufacturing synergies, alongside un-audited Q2 FY27 results.',
+        basis: 'filing',
+        sources: ['BSE/NSE Filing 28-Oct-2026'],
       },
-      contextUsed: [],
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/koknvmry2uwcf7vkeaobx288.pdf',
+      ],
     },
     {
-      companyId: 'NSE:JINDALPOLY',
+      companyId: 'NSE:VGUARD',
       research_axis: 'DELIVERY_VALUE',
-      tier: 'NOTED',
+      tier: 'ACT',
       summary:
-        'Jindal Poly Films jumped +11.23% on ₹16.66 Cr delivery, but delivery % was only 2.71% (reflecting high intraday churn and retail speculation rather than structural institutional buying). No corporate filing in 14-day window.',
+        'V-Guard Industries rose +7.90% on ₹92.39 Cr delivery (12.04% deliv). Q2 FY27 Consolidated Revenue jumped +38.2% YoY to ₹1,852.89 Cr with PAT surging +71.0% YoY.',
       trigger:
-        'No regulatory filing in 14-day window. Low delivery percentage (2.71%) indicates speculative day-trading pop.',
-      trigger_quantified: 'Delivery % 2.71%, 1D +11.23%, delivery ₹16.66 Cr.',
-      linkage: 'mismatched',
+        'Blockbuster Q2 FY27 results beat: Consolidated Revenue +38.2% YoY and PAT +71.0% YoY driven by electricals and consumer durables.',
+      trigger_quantified:
+        'Delivery ₹92.39 Cr (12.04% deliv), 1D +7.90%, Mcap ₹12,445.52 Cr, Revenue ₹1,852.89 Cr (+38.2% YoY).',
+      linkage: 'explained',
       why: {
-        text: 'No discoverable trigger in 14-day exchange filings; +11.2% price move unsupported by delivery (2.71% delivery pct reflects speculative churn).',
-        basis: 'none',
-        sources: ['NSE Disclosures 14d'],
+        text: 'Q2 FY27 financial results & press release on 29-Oct: Consolidated revenue grew +38.2% YoY to ₹1,852.89 Cr with PAT surging +71.0% YoY on sharp operating leverage.',
+        basis: 'filing',
+        sources: ['BSE/NSE Results & Press Release 29-Oct-2026'],
       },
-      contextUsed: [],
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/qh9267zzacej0x1fpc5lrdkc.pdf',
+      ],
     },
     {
-      companyId: 'NSE:KOLTEPATIL',
+      companyId: 'NSE:ZENSARTECH',
+      research_axis: 'DELIVERY_VALUE',
+      tier: 'ACT',
+      summary:
+        'Zensar Technologies gained +8.11% on ₹91.84 Cr delivery (19.83% deliv). Q2 FY27 sequential CC revenue growth accelerated +4.1% QoQ with Scheme of Arrangement approved.',
+      trigger:
+        'Q2 FY27 constant currency sequential growth beat (+4.1% QoQ) and Board approval for corporate Scheme of Arrangement.',
+      trigger_quantified:
+        'Delivery ₹91.84 Cr (19.83% deliv), 1D +8.11%, Mcap ₹12,236.65 Cr, CC growth +4.1% QoQ.',
+      linkage: 'explained',
+      why: {
+        text: 'Q2 FY27 results & press release filed 28-Oct: Sequential constant currency revenue grew +4.1% QoQ and Board approved corporate Scheme of Arrangement.',
+        basis: 'filing',
+        sources: ['BSE/NSE Filing 28-Oct-2026'],
+      },
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/i3l5nib1fsm8yrn06va2dko6.pdf',
+      ],
+    },
+    {
+      companyId: 'NSE:SATIN',
+      research_axis: 'DELIVERY_VALUE',
+      tier: 'ACT',
+      summary:
+        'Satin Creditcare rallied +10.12% on ₹38.19 Cr delivery (19.24% deliv). Highest-ever quarterly profitability in Q2 with H1 FY27 PAT reaching ₹299 Cr (nearing full-year FY26 profit of ₹332 Cr).',
+      trigger:
+        'Q2 FY27 results beat: H1 PAT reached ₹299 Cr (closing in on full-year FY26 profit in 6 months) as AUM crossed ₹16,589 Cr (+30.8% YoY).',
+      trigger_quantified:
+        'Delivery ₹38.19 Cr (19.24% deliv), 1D +10.12%, Mcap ₹2,774.81 Cr, H1 PAT ₹299 Cr.',
+      linkage: 'explained',
+      why: {
+        text: 'Q2 FY27 results & press release filed 28-Oct: Delivered highest-ever quarterly profitability, with H1 FY27 PAT of ₹299 Cr nearly matching full-year FY26 profit of ₹332 Cr in 6 months.',
+        basis: 'filing',
+        sources: ['BSE/NSE Press Release 28-Oct-2026'],
+      },
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/kfqai7ly3uwgiaudgzgjj5fn.pdf',
+      ],
+    },
+    {
+      companyId: 'NSE:RPOWER',
       research_axis: 'DELIVERY_VALUE',
       tier: 'NOTED',
       summary:
-        'Kolte Patil Developers rose +6.24% on ₹6.82 Cr delivery (16.91% deliv). No material filings in 14-day window; real estate residential pre-sales sentiment.',
+        'Reliance Power gained +9.14% on ₹35.74 Cr delivery (11.87% deliv). No material filings in 14-day window; ongoing momentum from balance sheet deleveraging.',
       trigger:
-        'No regulatory filing in 14-day window. Modest delivery accumulation in Pune residential real estate.',
-      trigger_quantified: 'Delivery ₹6.82 Cr (16.91% deliv), 1D +6.24%, Mcap ₹3,350 Cr.',
+        'No regulatory filing in 14-day window. Move backed by debt-reduction milestones and renewable energy storage plans.',
+      trigger_quantified: 'Delivery ₹35.74 Cr (11.87% deliv), 1D +9.14%, Mcap ₹7,849.69 Cr.',
       linkage: 'unexplained',
       why: {
-        text: 'No discoverable trigger in 14-day exchange filings; trading on residential real estate sales velocity.',
+        text: 'No discoverable trigger in 14-day exchange filings; sustained accumulation following zero standalone debt achievement and storage pipeline.',
         basis: 'none',
-        sources: ['NSE Disclosures 14d'],
+        sources: ['BSE/NSE Filings 14d'],
       },
       contextUsed: [],
+    },
+    {
+      companyId: 'NSE:NILKAMAL',
+      research_axis: 'DELIVERY_VALUE',
+      tier: 'ACT',
+      summary:
+        'Nilkamal rallied +13.63% on ₹23.02 Cr delivery (19.24% deliv). Approved Q2 FY27 financial results and press release highlighting material handling turnaround on 29-Oct.',
+      trigger:
+        'Q2 FY27 financial results and press release demonstrating margin recovery across plastics and material handling.',
+      trigger_quantified: 'Delivery ₹23.02 Cr (19.24% deliv), 1D +13.63%, Mcap ₹2,990.32 Cr.',
+      linkage: 'explained',
+      why: {
+        text: 'Q2 FY27 results & press release filed 29-Oct: Operating profit turnaround and margin expansion in industrial material handling.',
+        basis: 'filing',
+        sources: ['BSE/NSE Filing 29-Oct-2026'],
+      },
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/vq89vafpeac4sxj9dnopdhyb.pdf',
+      ],
+    },
+    {
+      companyId: 'NSE:DCMSRIND',
+      research_axis: 'DELIVERY_VALUE',
+      tier: 'NOTED',
+      summary:
+        'DCM Shriram Industries rose +15.79% on ₹14.52 Cr delivery (21.19% deliv). Clarification on price movement filed 23-Oct; sugar season expansion and defense UAV optionality.',
+      trigger:
+        'Clarification on price movement filed 23-Oct (6d ago). Move supported by sugar crushing season ramp-up and defense UAV segment development.',
+      trigger_quantified:
+        'Delivery ₹14.52 Cr (21.19% deliv), 1D +15.79%, Mcap ₹551.18 Cr, clarification filed 6d ago.',
+      linkage: 'explained',
+      why: {
+        text: 'Clarification on price movement filed 23-Oct (6 days ago); momentum driven by sugar distillery ethanol expansion and industrial UAV commercialization.',
+        basis: 'filing',
+        sources: ['BSE/NSE Filing 23-Oct-2026'],
+      },
+      contextUsed: [
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/m2j7vud4o2bc8gj5v6kqmun3.pdf',
+      ],
     },
   ];
 

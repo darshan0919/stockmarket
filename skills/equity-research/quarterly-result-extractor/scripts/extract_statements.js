@@ -96,14 +96,14 @@ const BS_HEADINGS = [
   /statement\s+of\s+(?:consolidated\s+|standalone\s+|unaudited\s+|audited\s+|and\s+|&\s+)*assets\s+(?:and|&)\s+liabilities/i,
   /(?<!as\s+per\s+)(?:consolidated\s+|standalone\s+)?balance\s+sheet(?!\s+of\s+previous)/i,
   /statement\s+of\s+financial\s+position/i,
-  /\bassets\s+(?:and|&)\s+liabilities\b/i,
+  /(?<!operating\s+)\bassets\s+(?:and|&)\s+liabilities\b/i,
 ];
 const CF_HEADINGS = [
-  /statement\s+of\s+(?:consolidated\s+|standalone\s+)?cash\s*flows?/i,
-  /(?:consolidated\s+|standalone\s+)?cash\s*flow\s+statement/i,
-  /cash\s+flows?\s+from\s+operating\s+activities/i,
+  /statemen?t?\s+of\s+(?:consolidated\s+|standalone\s+)?c\s*a\s*s\s*h\s*f\s*l\s*o\s*w\s*s?/i,
+  /(?:consolidated\s+|standalone\s+)?c\s*a\s*s\s*h\s*f\s*l\s*o\s*w\s*s?\s+statement/i,
+  /c\s*a\s*s\s*h\s*f\s*l\s*o\s*w\s*s?\s+from\s+operati\s*ng\s+activ\s*it\s*ies/i,
 ];
-const CONSOLIDATED = /consolidated/i;
+const CONSOLIDATED = /c\s*o\s*n\s*s\s*o\s*l\s*i\s*d\s*a\s*t\s*e\s*d/i;
 
 /** Split text into lines with their offsets so a section can be sliced out. */
 function locateSection(text, headings, { maxChars = 20000, stopAt = [] } = {}) {
@@ -112,7 +112,19 @@ function locateSection(text, headings, { maxChars = 20000, stopAt = [] } = {}) {
   for (const re of headings) {
     let m;
     const g = new RegExp(re.source, 'gi');
-    while ((m = g.exec(text)) !== null) hits.push(m.index);
+    while ((m = g.exec(text)) !== null) {
+      const prev150 = text.slice(Math.max(0, m.index - 150), m.index);
+      const next200 = text.slice(m.index, m.index + 200);
+      if (
+        /reviewed\s+the|accompanying\s+['"]|included\s+in\s+the/i.test(prev150) ||
+        /which\s+are\s+included|the\s+['"]Statement['"]|review\s+report|Price\s+Waterhouse/i.test(
+          next200
+        )
+      ) {
+        continue; // skip auditor report sentence references
+      }
+      hits.push(m.index);
+    }
   }
   if (!hits.length) return null;
   // Prefer a CONSOLIDATED table (the investor owns the consolidated entity; also what the XBRL
@@ -126,14 +138,14 @@ function locateSection(text, headings, { maxChars = 20000, stopAt = [] } = {}) {
     if (CONSOLIDATED.test(near)) return 'consolidated';
     const win = text.slice(Math.max(0, i - 1500), i + 100);
     let last = null;
-    const re = /\b(standalone|consolidated)\b/gi;
+    const re = /\b(standalone|c\s*o\s*n\s*s\s*o\s*l\s*i\s*d\s*a\s*t\s*e\s*d)\b/gi;
     let m;
     while ((m = re.exec(win)) !== null) last = m;
     if (!last) return null;
     const ctx = win.slice(Math.max(0, last.index - 25), last.index + last[0].length + 25);
     if (/standalone\s*(?:and|&)\s*consolidated|consolidated\s*(?:and|&)\s*standalone/i.test(ctx))
       return null;
-    return last[1].toLowerCase();
+    return /standalone/i.test(last[1]) ? 'standalone' : 'consolidated';
   };
   const labelled = hits.map((i) => ({ i, basis: basisOf(i) }));
   const preferred = (labelled.find((h) => h.basis === 'consolidated') || labelled[0]).i;
@@ -244,6 +256,11 @@ function parseRows(body) {
     }
     // Normalize OCR digit confusion in numbers: e.g. ":i,865.08" -> "3,865.08"
     line = line.replace(/(?<=\s|^)[:;]i(?=[\d,])/gi, '3');
+    // Normalize stray whitespace inside numbers from pdftotext layout: e.g. "1,190 .74" -> "1,190.74", "1, 206" -> "1,206"
+    line = line.replace(/(\d)\s*,\s*(\d)/g, '$1,$2');
+    line = line.replace(/(\d)\s*\.\s*(\d)/g, '$1.$2');
+    line = line.replace(/(\d+,\d{1,2})\s+(\d{1,2}\.\d+)/g, '$1$2');
+    line = line.replace(/(\d)\s+(?=\d)/g, '$1');
 
     const markerMatch = line.match(ITEM_MARKER_RE);
     if (markerMatch) line = line.slice(markerMatch[0].length);

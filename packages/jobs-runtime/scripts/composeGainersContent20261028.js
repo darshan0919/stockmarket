@@ -30,8 +30,7 @@ const getBrief = (id) => {
 
 // 3. Construct Content Overlay
 const content = {
-  lead:
-    "Q2 earnings inflections, major capacity commercialisations, and upstream white-goods demand read-across dominate today's actionability: **Piramal Pharma** (+17.15%, ₹422.5 Cr deliv) led the entire market in institutional delivery after Q2 revenue jumped +28% YoY to ₹2,617 Cr and EBITDA surged +72% YoY (margin up 350 bps to 14.7%) on rapid CDMO utilization, while **Syngene International** (+12.19%, ₹184.6 Cr deliv) confirmed a sharp sequential turnaround with revenue +13% QoQ and operating EBITDA margin jumping 600 bps to 18.0%. **PG Electroplast** (+7.16%, ₹95.6 Cr deliv) nearly quadrupled Q2 PAT (+395% to ₹13.7 Cr on ₹933.9 Cr revenue) from explosive RAC manufacturing, providing immediate demand read-across for brand leader **Voltas** (+6.94%, ₹101.5 Cr deliv, 32% deliv) ahead of its own Q2 earnings, while **Sudeep Pharma** (+9.45%, ₹40.2 Cr deliv) secured landmark Gujarat FDA approval for its new 51,200 MT greenfield facility at Nandesari.",
+  lead: "Q2 earnings inflections, major capacity commercialisations, and upstream white-goods demand read-across dominate today's actionability: **Piramal Pharma** (+17.15%, ₹422.5 Cr deliv) led the entire market in institutional delivery after Q2 revenue jumped +28% YoY to ₹2,617 Cr and EBITDA surged +72% YoY (margin up 350 bps to 14.7%) on rapid CDMO utilization, while **Syngene International** (+12.19%, ₹184.6 Cr deliv) confirmed a sharp sequential turnaround with revenue +13% QoQ and operating EBITDA margin jumping 600 bps to 18.0%. **PG Electroplast** (+7.16%, ₹95.6 Cr deliv) nearly quadrupled Q2 PAT (+395% to ₹13.7 Cr on ₹933.9 Cr revenue) from explosive RAC manufacturing, providing immediate demand read-across for brand leader **Voltas** (+6.94%, ₹101.5 Cr deliv, 32% deliv) ahead of its own Q2 earnings, while **Sudeep Pharma** (+9.45%, ₹40.2 Cr deliv) secured landmark Gujarat FDA approval for its new 51,200 MT greenfield facility at Nandesari.",
   caveats: [],
   cards: {
     // -------------------------------------------------------------
@@ -335,7 +334,8 @@ const content = {
     // -------------------------------------------------------------
     'NSE:HUBTOWN': {
       tier: 'NOTED',
-      headline: 'Pre-results rally (+15.24%, 32.9% delivery) 1 day ahead of Board Meeting scheduled for Oct 29',
+      headline:
+        'Pre-results rally (+15.24%, 32.9% delivery) 1 day ahead of Board Meeting scheduled for Oct 29',
       why: {
         text: 'Board Meeting scheduled for October 29, 2026 (tomorrow, 1 day countdown) to approve Q2 standalone and consolidated financial results.',
         basis: 'pre_result',
@@ -345,7 +345,8 @@ const content = {
     },
     'NSE:SBFC': {
       tier: 'NOTED',
-      headline: 'Steady secured MSME loan book compounding following Q2 FY27 results release on ₹15.8 Cr delivery',
+      headline:
+        'Steady secured MSME loan book compounding following Q2 FY27 results release on ₹15.8 Cr delivery',
       why: {
         text: 'Q2 FY27 financial results release confirming healthy secured MSME portfolio expansion and stable asset quality.',
         basis: 'filing',
@@ -377,7 +378,8 @@ const content = {
     },
     'NSE:RAMKY': {
       tier: 'NOTED',
-      headline: 'Executed EPC contract agreement with RVNL for residential towers at NMDC Township, Bacheli (+17.4% gain)',
+      headline:
+        'Executed EPC contract agreement with RVNL for residential towers at NMDC Township, Bacheli (+17.4% gain)',
       why: {
         text: 'Execution of contract agreement with Rail Vikas Nigam Limited (RVNL) for residential towers in NMDC Township at Bacheli, Chhattisgarh.',
         basis: 'filing',
@@ -387,7 +389,8 @@ const content = {
     },
     'NSE:DCMSRIND': {
       tier: 'NOTED',
-      headline: 'Gained +10.1% on ₹6.8 Cr delivery (30.3% deliv) following price movement clarification to exchange',
+      headline:
+        'Gained +10.1% on ₹6.8 Cr delivery (30.3% deliv) following price movement clarification to exchange',
       why: {
         text: 'No material corporate filing in 14 days beyond routine price movement clarification; price momentum in sugar and alcohol operations.',
         basis: 'none',
