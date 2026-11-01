@@ -371,7 +371,7 @@ describe('antigravity-sync: getProjectId and pruneDuplicateProjects', () => {
           id: 'other-repo-id',
           name: 'other-project',
           projectResources: {
-            resources: [{ gitFolder: { folderUri: 'file:///Users/darshanpatel/code/other' } }],
+            resources: [{ gitFolder: { folderUri: 'file:///tmp/other-project' } }],
           },
         })
       );

@@ -18,6 +18,12 @@ const SIDECAR_OVERRIDES = {
     cron: '30 20 * * 1-5',
     model: 'flash_lite',
   },
+  'media-transcription-batch': {
+    sidecarFolder: 'media-transcription-batch',
+    displayName: 'Media Transcript Batch Worker',
+    cron: '15 3,6,11,16,22 * * *',
+    model: 'flash_lite',
+  },
   'soic-macro-structural-daily': {
     sidecarFolder: 'soic-macro-structural-daily',
     displayName: 'SOIC Macro & Structural Supply',

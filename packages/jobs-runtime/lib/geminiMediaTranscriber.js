@@ -79,15 +79,49 @@ async function uploadFileToGemini(filePath, mimeType, displayName) {
   return fileObj;
 }
 
-async function transcribeAudio(fileObj, title) {
-  console.log(`Generating transcript for ${title} using ${MODEL}...`);
-  const prompt = `You are transcribing an equity research and investing masterclass lecture from SOIC (School of Intrinsic Compounding) titled "${title}".
+/**
+ * Build domain-tailored prompt based on channel or source.
+ *
+ * @param {string} title
+ * @param {string} [channel]
+ * @returns {string}
+ */
+function buildTranscriptionPrompt(title, channel = '') {
+  const ch = (channel || '').toLowerCase();
+
+  if (ch.includes('chartitude') || ch.includes('chartist') || ch.includes('saraogi')) {
+    return `You are transcribing a technical analysis, market strategy, and trading masterclass lecture from Chartitude (The Chartist / Kunal Saraogi) titled "${title}".
+Please produce a comprehensive, structured output in Markdown with:
+1. # ${title}
+2. ## Executive Summary & Core Frameworks
+3. ## Key Trading Principles, Setups & Chart Case Studies
+4. ## Comprehensive Transcript & Structured Lecture Notes
+Include all specific stock setups, chart patterns, support/resistance levels, indicators (RSI, moving averages, breakouts, volumes), risk management rules, and market psychology lessons taught in the session.`;
+  }
+
+  if (ch.includes('lamba')) {
+    return `You are transcribing a corporate finance, accounting, and business management lecture from Dr. Anil Lamba (Romancing the Balance Sheet) titled "${title}".
+Please produce a comprehensive, structured output in Markdown with:
+1. # ${title}
+2. ## Executive Summary & Core Frameworks
+3. ## Key Financial Principles & Balance Sheet Rules
+4. ## Comprehensive Transcript & Structured Lecture Notes
+Include all financial rules (Rule of Two, Good/Bad borrowing, cost of capital, working capital cycle, inventory turns, cash flow vs profit, debtor management, leverage, solvency) and real business case studies explained in the session.`;
+  }
+
+  // Default: SOIC or general equity research
+  return `You are transcribing an equity research and investing masterclass lecture from SOIC (School of Intrinsic Compounding) titled "${title}".
 Please produce a comprehensive, structured output in Markdown with:
 1. # ${title}
 2. ## Executive Summary & Core Frameworks
 3. ## Key Investment Principles & Case Studies
 4. ## Comprehensive Transcript & Structured Lecture Notes
 Include all specific company examples, financial metrics (ROCE, ROE, margins, multiples, growth rates), business models, moat definitions, and mental models taught in the session.`;
+}
+
+async function transcribeAudio(fileObj, title, channel = '') {
+  console.log(`Generating transcript for ${title} using ${MODEL}...`);
+  const prompt = buildTranscriptionPrompt(title, channel);
 
   let attempts = 0;
   const maxAttempts = 5;
@@ -147,4 +181,5 @@ Include all specific company examples, financial metrics (ROCE, ROE, margins, mu
 module.exports = {
   uploadFileToGemini,
   transcribeAudio,
+  buildTranscriptionPrompt,
 };
