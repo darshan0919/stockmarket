@@ -178,8 +178,87 @@ async function transcribeAudio(fileObj, title, channel = '') {
   );
 }
 
+async function describeImage(filePath, mimeType = 'image/jpeg', context = {}) {
+  const stat = fs.statSync(filePath);
+  const sizeMb = (stat.size / 1024 / 1024).toFixed(2);
+  const title = context.title || context.handle || 'image';
+  console.log(`Analyzing image ${title} (${sizeMb} MB) with ${MODEL}...`);
+
+  let prompt = `Analyze this image extracted from an Indian financial/stock market research post.
+- If it is a stock price chart or technical chart: identify the stock symbol/ticker, exchange (NSE/BSE), timeframe, chart pattern, support/resistance levels, indicators, moving averages, and actionable observations.
+- If it is a financial table, quarterly result, balance sheet, or filing extract: transcribe and extract the key financial metrics (revenue, margins, EBITDA, PAT, debt, guidance, order wins).
+- If it is an educational framework, slide, infographic, or text screenshot: transcribe and structure the core principles and rules taught.
+- If it is a casual meme or non-financial photo: provide a concise 1-sentence description.
+Output a structured, clear markdown summary.`;
+
+  if (context.handle) {
+    prompt += `\nAuthor context: @${context.handle}. Tweet text context: "${context.tweet || ''}".`;
+  }
+
+  const imageBuffer = fs.readFileSync(filePath);
+  const b64Data = imageBuffer.toString('base64');
+
+  let attempts = 0;
+  const maxAttempts = 5;
+
+  while (attempts < maxAttempts) {
+    attempts++;
+    const genRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  inline_data: {
+                    mime_type: mimeType,
+                    data: b64Data,
+                  },
+                },
+                { text: prompt },
+              ],
+            },
+          ],
+        }),
+      }
+    );
+
+    if (genRes.status === 429) {
+      const errJson = await genRes.json().catch(() => ({}));
+      const retryDetails = errJson.error?.details?.find((d) => d.retryDelay);
+      let waitSec = 25;
+      if (retryDetails && retryDetails.retryDelay) {
+        const parsedSec = parseInt(retryDetails.retryDelay, 10);
+        if (!isNaN(parsedSec)) waitSec = parsedSec + 5;
+      }
+      console.log(
+        `Rate limit (429) hit, waiting ${waitSec}s before retry ${attempts}/${maxAttempts}...`
+      );
+      await new Promise((r) => setTimeout(r, waitSec * 1000));
+      continue;
+    }
+
+    if (!genRes.ok) {
+      const errText = await genRes.text();
+      throw new Error(`Generation failed (HTTP ${genRes.status}): ${errText}`);
+    }
+
+    const genJson = await genRes.json();
+    const text = genJson.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) {
+      throw new Error(`No text returned in image generation: ${JSON.stringify(genJson)}`);
+    }
+    return text.trim();
+  }
+  throw new Error(`Failed to analyze image after ${maxAttempts} attempts due to rate limits.`);
+}
+
 module.exports = {
   uploadFileToGemini,
   transcribeAudio,
+  describeImage,
   buildTranscriptionPrompt,
 };

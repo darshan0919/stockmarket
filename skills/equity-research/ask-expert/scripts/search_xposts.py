@@ -73,6 +73,8 @@ def doc_text(row):
         parts.append(ctx["text"])
     for a in row.get("articles") or []:
         parts += [a.get("title") or "", a.get("text") or a.get("preview") or ""]
+    if row.get("mediaText"):
+        parts.append(row["mediaText"])
     parts += row.get("urls") or []
     return "\n".join(p for p in parts if p)
 

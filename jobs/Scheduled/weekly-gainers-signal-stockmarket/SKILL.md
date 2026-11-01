@@ -17,12 +17,14 @@ path is missing or inaccessible.
 
 **MANDATORY STEP 7 — EMAIL SENDING**:
 Every run of this job MUST execute Step 7 and send the Thesis Card briefing email:
+
 ```bash
 node packages/jobs-runtime/scanSignalEmail.js send \
   --insights data/runs/weekly_gainers_insights_{YYYYMMDD}.json \
   --title "Weekly Gainers Signal" \
   --subject "Weekly Gainers Signal — {market_date}"
 ```
+
 Do NOT complete the task after only running the scanner/classifier or generating report PDFs. Always execute `scanSignalEmail.js send` and ensure `{ status: "sent" }` is returned before proceeding to the final tracking step.
 
 Final step (every run, per `skills/tooling/cowork-task-architect/SKILL.md`): execute `python scripts/metrics/track_invocation.py --name weekly-gainers-signal-stockmarket --type task --model <the exact model executing this run, e.g. claude-sonnet-5>`, and set that same model string as `modelUsed` on any LLM-authored DTO this run writes (the 20 full rerating-catalysts report DTOs and trigger-research DTOs — not the classifier's `weekly_gainer` events, which stay script-only per the skill's own instructions).

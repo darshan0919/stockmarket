@@ -643,6 +643,23 @@ function saveXPosts(docs) {
   return { saved: docs.length };
 }
 
+function readXPost(id) {
+  const store = getXPostsStore();
+  const direct = store.get(id, id);
+  if (direct) return direct;
+  const idx = get('x-posts', id);
+  if (idx && idx.body && idx.body.endsWith('.jsonl')) {
+    const partitionName = path.basename(idx.body);
+    const map = store._loadPartition(partitionName);
+    if (map.has(id)) return map.get(id);
+  }
+  for (const part of store.listPartitions()) {
+    const map = store._loadPartition(part);
+    if (map.has(id)) return map.get(id);
+  }
+  return null;
+}
+
 /**
  * Save an analysis report: full DTO body → reports/reports-YYYY-MM.jsonl, slim
  * index entry → reports.json, id linked into companies.json. `dto` must include
@@ -1184,8 +1201,9 @@ module.exports = {
   saveLearnystTranscript,
   readLearnystTranscript,
   saveYoutubeTranscript,
-  saveXPosts,
   readYoutubeTranscript,
+  saveXPosts,
+  readXPost,
   saveConversation,
   readConversation,
   savePrompt,
