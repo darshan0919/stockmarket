@@ -48,6 +48,9 @@ const { hasFlag } = require('./lib/env');
  * slot doesn't page anyone — only a genuinely stuck cursor should flag.
  */
 const CURSOR_CADENCE_HOURS = {
+  // daily-quarterly-result-analysis runs twice a day (8:00 AM & 8:00 PM IST);
+  // allow weekend gap (Friday 8pm to Monday 8am = 60h) before flagging.
+  'daily-quarterly-result-analysis': 72,
   // document-preprocessing/SKILL.md "## Cadence": every 30 min, 09:00-23:30 IST,
   // guaranteed passes at 12:30/15:20/18:40/21:15 -> loosest guaranteed gap ~3h.
   'document-preprocessing': 6,

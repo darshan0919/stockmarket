@@ -56,6 +56,8 @@ const {
   basketFor,
   macroRead,
   analyzePreResultPriceAction,
+  analyzeShareholdingChange,
+  parseStockscansShareholding,
   toNseDate,
   summariseResultScan,
   priorAnalyses,
@@ -172,6 +174,58 @@ async function main() {
     dFrom.setUTCDate(dFrom.getUTCDate() - 60);
     const rows = await nse.getPriceVolumeDeliverable(ticker, toNseDate(dFrom), toNseDate(dTo));
     out.priceAction = analyzePreResultPriceAction(rows);
+  });
+
+  // shareholding pattern & smart-money positioning (Promoter 4x, FII 2x, DII 1x)
+  await safe(errors, 'shareholding', async () => {
+    // 1. Stockscans native shareholding history: /api/company/holdings/shareholding/{companyId}
+    let shpData = null;
+    try {
+      shpData = await client.shareholding(companyId);
+    } catch {
+      // Endpoint error or unauthenticated, fallback to exchange XBRL below
+    }
+
+    const quarters = parseStockscansShareholding(shpData);
+    if (quarters && quarters.length >= 2) {
+      const cur = quarters[quarters.length - 1];
+      const prev = quarters[quarters.length - 2];
+      out.shareholding = {
+        ...analyzeShareholdingChange(cur, prev),
+        source: 'stockscans-api',
+        history: quarters.slice(-4),
+      };
+      return;
+    }
+
+    // 2. Fallback to exchange XBRL filings (NSE primary, BSE fallback)
+    const symbol = companyId.replace(/^(NSE|BSE):/i, '');
+    const { createIssueLog } = req('packages/jobs-runtime/lib/xbrl/issues.js');
+    const { fetchFilingSeries } = req('packages/jobs-runtime/lib/xbrl/filingsFetch.js');
+    const { BseClient } = req('stock-api/src/clients/BseClient.js');
+    const bse = new BseClient();
+    const issues = createIssueLog(`shp-${symbol}`);
+    const series = await fetchFilingSeries({
+      kind: 'shareholding',
+      symbol,
+      limit: 2,
+      nse,
+      bse,
+      issues,
+    });
+    if (series && series.items && series.items.length >= 2) {
+      out.shareholding = {
+        ...analyzeShareholdingChange(series.items[0].dto, series.items[1].dto),
+        source: `xbrl-${(series.exchange || 'nse').toLowerCase()}`,
+      };
+    } else if (series && series.items && series.items.length === 1) {
+      out.shareholding = {
+        ...analyzeShareholdingChange(series.items[0].dto, null),
+        source: `xbrl-${(series.exchange || 'nse').toLowerCase()}`,
+      };
+    } else {
+      out.shareholding = { available: false, reason: 'insufficient_filings' };
+    }
   });
 
   // Result-quality scan of the latest reported quarter (one-off detection is mission-critical):
@@ -462,6 +516,8 @@ async function main() {
       target: out.period && out.period.target,
       priceActionPattern: out.priceAction ? out.priceAction.pattern : 'none',
       expectationHurdle: out.priceAction ? out.priceAction.expectationHurdle : 'none',
+      shareholdingPattern: out.shareholding ? out.shareholding.pattern : 'none',
+      shareholdingWeightedScore: out.shareholding ? out.shareholding.weightedBuyingScore : null,
       guidanceRows: out.guidance.guidanceRows.length,
       priorConcalls: (out.guidanceHistory || []).length,
       transcriptExcerptChars: out.transcript ? out.transcript.excerpt.length : 0,
@@ -492,6 +548,8 @@ module.exports = {
   basketFor,
   macroRead,
   analyzePreResultPriceAction,
+  analyzeShareholdingChange,
+  parseStockscansShareholding,
   toNseDate,
   ROUTINE_RE,
 };

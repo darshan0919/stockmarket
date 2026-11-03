@@ -200,8 +200,8 @@ _incremental-margin premium_ or a cost item. `embedded: true` levers are reporte
   "watch": ["Gross margin vs 56.7% (RM recovery)", "Decoplast new-plant utilisation commentary"],
   "pead": {
     "gate1Surprise": "Target base PAT ₹55 cr (+29% YoY) vs whisper ₹50 cr. Blowout print needs PAT ≥ ₹61 cr (bull).",
-    "gate2Quality": "Clean operating expansion: RM tailwind + ESOP dilution accounted for. Core EPS +24%.",
-    "gate3PricedIn": "Stock in MASSIVE_PRE_RESULT_ACCUMULATION_RUN_UP (+23.5% 10D, 10.7x vol). High hurdle: base case faces sell-the-news; needs bull-case beat + guidance raise.",
+    "gate2Quality": "Clean operating expansion: RM tailwind + ESOP dilution accounted for. Latest quarter shareholding confirms smart-money absorption: Public decreased 2.2pp, absorbed by Promoter (+1.2pp, 4x) and FII (+0.8pp, 2x), giving a weighted score of +6.6. Core EPS +24%.",
+    "gate3PricedIn": "Stock in MASSIVE_PRE_RESULT_ACCUMULATION_RUN_UP (+23.5% 10D, 10.7x vol). High hurdle: base case faces sell-the-news; needs bull-case beat + guidance raise. Smart money absorption score (+6.6) confirms insider conviction behind the pre-result positioning.",
     "gate4Guidance": "Management has beaten guidance 4/4 quarters. Concall needs FY27 margin guidance raise to ≥28.5%.",
     "gate5PostResultTriggers": "Bengaluru facility commissioning in Q3FY27 is the secondary trigger needed to extend drift beyond 30 days.",
     "summary": "High pre-result accumulation raises hurdle. Base case will likely face profit-booking; drift requires Bull-case print (PAT ≥ ₹61 cr) + concall guidance upgrade."

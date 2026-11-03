@@ -78,4 +78,18 @@ describe('StockscansClient companyId sanitization', () => {
     await client.ohlcv('NSE:SOMECO-SM');
     expect(http.calls[1].url).toContain('NSE%3ASOMECO');
   });
+
+  test('shareholding() sanitizes companyId and queries holdings API with proper referer', async () => {
+    const http = fakeHttp({ companyId: 'NSE:SOMECO', aggregate: [] });
+    const client = new StockscansClient({ http });
+
+    await client.shareholding('NSE:SOMECO-BE');
+
+    expect(http.calls[0].url).toBe(
+      'https://www.stockscans.in/api/company/holdings/shareholding/NSE%3ASOMECO'
+    );
+    expect(http.calls[0].opts.headers.referer).toBe(
+      'https://www.stockscans.in/company/NSE:SOMECO/shareholdings'
+    );
+  });
 });

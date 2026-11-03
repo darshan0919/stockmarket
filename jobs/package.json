@@ -40,6 +40,7 @@
     "results-season-prep-daily": "yarn workspace @stock/jobs-runtime results-season-prep-daily",
     "paper-supply-daily": "yarn workspace @stock/jobs-runtime paper-supply-daily",
     "ipo-supply-daily": "yarn workspace @stock/jobs-runtime ipo-supply-daily",
+    "ipo-lockin": "yarn workspace @stock/jobs-runtime ipo-lockin",
     "sector-lifecycle-weekly": "yarn workspace @stock/jobs-runtime sector-lifecycle-weekly",
     "exit-watch-daily": "yarn workspace @stock/jobs-runtime exit-watch-daily",
     "policy-events": "yarn workspace @stock/jobs-runtime policy-events",

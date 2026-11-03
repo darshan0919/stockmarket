@@ -1,525 +1,442 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 const db = require('../lib/db');
 const briefCache = require('../../../skills/equity-research/rerating-catalysts/scripts/brief_cache');
 
-const marketDate = '2026-10-29';
+const marketDate = '2026-11-03';
 
 // 1. Resolve Drive URLs for Top 3
-const acutaasDriveUrl = db.resolveDriveUrl('rerating-catalysts/ACUTAAS_Output.pdf');
-const bsoftDriveUrl = db.resolveDriveUrl('rerating-catalysts/BSOFT_Output.pdf');
-const poonawallaDriveUrl = db.resolveDriveUrl('rerating-catalysts/POONAWALLA_Output.pdf');
+const mcxDriveUrl = db.resolveDriveUrl('rerating-catalysts/MCX_Output.pdf');
+const maricoDriveUrl = db.resolveDriveUrl('rerating-catalysts/MARICO_Output.pdf');
+const cartradeDriveUrl = db.resolveDriveUrl('rerating-catalysts/CARTRADE_Output.pdf');
 
 console.log('Resolved Drive URLs:');
-console.log('ACUTAAS:', acutaasDriveUrl);
-console.log('BSOFT:', bsoftDriveUrl);
-console.log('POONAWALLA:', poonawallaDriveUrl);
+console.log('MCX:', mcxDriveUrl);
+console.log('MARICO:', maricoDriveUrl);
+console.log('CARTRADE:', cartradeDriveUrl);
 
 // 2. Fetch cached briefs for top 10
 const getBrief = (id) => {
   const b = briefCache.getBrief(id);
   if (!b) return null;
   const record = { ...b.record };
-  if (id === 'NSE:ACUTAAS' && acutaasDriveUrl) record.reportDriveUrl = acutaasDriveUrl;
-  if (id === 'NSE:BSOFT' && bsoftDriveUrl) record.reportDriveUrl = bsoftDriveUrl;
-  if (id === 'NSE:POONAWALLA' && poonawallaDriveUrl) record.reportDriveUrl = poonawallaDriveUrl;
+  if (id === 'NSE:MCX' && mcxDriveUrl) record.reportDriveUrl = mcxDriveUrl;
+  if (id === 'NSE:MARICO' && maricoDriveUrl) record.reportDriveUrl = maricoDriveUrl;
+  if (id === 'NSE:CARTRADE' && cartradeDriveUrl) record.reportDriveUrl = cartradeDriveUrl;
   return record;
 };
 
 // 3. Construct Content Overlay
 const content = {
-  lead: "Q2 earnings inflections, strategic liability optimization, and corporate restructuring dominate today's actionability: **Poonawalla Fincorp** (+9.49%, ₹178.5 Cr deliv) locked in ₹1,318 Cr of institutional low-cost secured NCDs under its ₹2,000 Cr borrowing limit, while **V-Guard Industries** (+7.90%, ₹92.4 Cr deliv) surged as Q2 Consolidated PAT jumped +71.0% YoY on +38.2% revenue growth (₹1,852.9 Cr). In mid-cap tech and engineering, **Zensar Technologies** (+8.11%, ₹91.8 Cr deliv) beat with +4.1% QoQ CC growth and a Scheme of Arrangement, and **Aeroflex Industries** (+9.37%, ₹169.4 Cr deliv) approved the amalgamation of wholly owned subsidiary Hyd-Air Engineering to consolidate manufacturing synergies.",
+  lead: "Generational earnings beats and institutional accumulation dominate today's actionability: **Marico** (+10.00% upper circuit, ₹316.1 Cr deliv) shattered consensus with +10% YoY domestic volume growth (highest in 50 quarters / 12.5 years), +600 bps gross margin expansion, and +31% YoY PAT surge. In market infrastructure, **MCX** (+7.42%, ₹624.0 Cr deliv — #1 delivery across the market) saw aggressive pre-results accumulation on its Q2 FY27 Board Meeting day amid peak gold/silver options ADTV. In digital platforms, **CarTrade Tech** (+10.22%, ₹121.5 Cr deliv, 1.00% of Mcap) delivered all-time record revenue (₹213 Cr) and EBITDA (₹76 Cr, 36% margin) with OLX India EBITDA zooming +36% YoY. Among small/mid-caps, **Tempsens Instruments** (+13.54%, ₹67.8 Cr deliv) and **Nelcast** (+14.18%, ₹32.4 Cr deliv) confirmed robust Q2 earnings inflections.",
   caveats: [],
   cards: {
     // -------------------------------------------------------------
     // ACT CARDS (Full detail)
     // -------------------------------------------------------------
-    'NSE:POONAWALLA': {
+    'NSE:MARICO': {
       tier: 'ACT',
       headline:
-        'Allotment of ₹1,318 Cr institutional secured NCDs (Series ZCB G1: ₹913 Cr, Series G2: ₹405 Cr) under ₹2,000 Cr program',
+        'Domestic volume growth hits +10% YoY (50-quarter high); Gross Margin expands +600 bps and PAT surges +31% YoY',
       thesisChain: [
-        'Finance Committee approved allotment of ₹1,318 Cr secured NCDs across two series, securing long-duration AAA-rated funding',
-        'Access to low-cost institutional debt reduces weighted average cost of borrowing, expanding Net Interest Margin (NIM) towards >4.5%',
-        'Enhanced liquidity runway accelerates disbursement compounding across high-ROE prime consumer and MSME loans',
+        'Q2 FY27 delivered blowout domestic volume growth (+10% YoY, highest in 50 quarters / 12.5 years) with consolidated revenue up +13% YoY to ₹2,845 Cr',
+        'Consolidated gross margin expanded by +600 bps YoY, while EBITDA jumped +27% YoY with +200 bps margin expansion (highest in 51 quarters) despite +44% brand A&P reinvestment',
+        'Massive ₹316.11 Cr delivery buying locked the stock at its +10.00% upper circuit, confirming major buy-side re-rating of FMCG compounding',
       ],
       why: {
-        text: 'Finance Committee approved allotment of ₹1,318 Cr secured NCDs (Series ZCB G1: ₹913 Cr, Series G2: ₹405 Cr) on 29-Oct under ₹2,000 Cr private placement framework.',
+        text: 'Blockbuster Q2 FY27 results filed 02-Nov: Domestic volume growth accelerated to +10% YoY (highest in 50 quarters), Gross margin expanded +600 bps, EBITDA jumped +27% YoY with +200 bps margin expansion (highest in 51 quarters), and PAT surged +31% YoY.',
         basis: 'filing',
-        sources: ['BSE/NSE Regulation 30 & 51 Filings 29-Oct-2026'],
+        sources: [
+          'Q2 FY27 Information Update 02-Nov-2026',
+          'NSE/BSE Financial Results 02-Nov-2026',
+        ],
       },
-      epsThesis: getBrief('NSE:POONAWALLA'),
+      epsThesis: getBrief('NSE:MARICO'),
       epsImpact: {
         direction: 'positive',
-        magnitude: '+30-50 bps NIM expansion',
+        magnitude: '+25-30% FY27 EPS revision',
         timeline: 'H2 FY27-FY28',
         confidence: 'high',
       },
       linkage: 'explained',
-      tags: ['ncd_allotment', 'liability_structuring', 'nbfc', 'fundraise'],
+      tags: ['earnings_beat', 'volume_growth', 'margin_expansion', 'fmcg'],
       pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/f4rss9ojnph9a78fofdpha9k.pdf',
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/p1zml1227jbr511iyl665szi.pdf',
     },
-    'NSE:AEROFLEX': {
+    'NSE:TEMPSENS': {
       tier: 'ACT',
       headline:
-        'Board approves amalgamation of wholly owned subsidiary Hyd-Air Engineering alongside un-audited Q2 FY27 results',
+        'Q2 Standalone & Consolidated results confirm operating turnaround in industrial temperature sensors; ₹67.76 Cr delivery',
       thesisChain: [
-        'Board approved scheme of amalgamation of Hyd-Air Engineering to consolidate precision flow-control and stainless steel hose manufacturing',
-        'Eliminates intra-group operational friction and unifies supply chain capabilities for high-margin industrial applications',
-        'Institutional accumulation of ₹169.35 Cr confirms conviction in post-merger operational leverage',
+        'Q2 FY27 financial results show operating recovery and margin inflection in precision temperature sensors and thermal instrumentation',
+        'Heavy institutional delivery buying of ₹67.76 Cr (11.11% deliv, 1.46% of Mcap) confirms institutional accumulation',
+        'Industrial automation and green energy capex demand unlock multi-quarter order conversion',
       ],
       why: {
-        text: 'Board approved scheme of amalgamation of wholly owned subsidiary Hyd-Air Engineering on 28-Oct to consolidate manufacturing synergies.',
+        text: 'Q2 FY27 financial results filed 30-Oct (4 days ago); revenue and operating turnaround in industrial temperature sensors and thermal instrumentation supported by ₹67.76 Cr delivery buying.',
         basis: 'filing',
-        sources: ['BSE/NSE Filing 28-Oct-2026'],
+        sources: ['NSE/BSE Regulation 33 Filing 30-Oct-2026'],
       },
-      epsThesis: getBrief('NSE:AEROFLEX'),
+      epsThesis: getBrief('NSE:TEMPSENS'),
       epsImpact: {
         direction: 'positive',
         magnitude: '+15-20% margin expansion',
         timeline: 'FY27-28',
-        confidence: 'high',
-      },
-      linkage: 'explained',
-      tags: ['amalgamation', 'corporate_action', 'results', 'manufacturing'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/koknvmry2uwcf7vkeaobx288.pdf',
-    },
-    'NSE:VGUARD': {
-      tier: 'ACT',
-      headline:
-        'Q2 Consolidated Revenue surged +38.2% YoY to ₹1,852.89 Cr; Profit After Tax jumped +71.0% YoY',
-      thesisChain: [
-        'Q2 FY27 Consolidated revenue jumped +38.2% YoY to ₹1,852.89 Cr (vs ₹1,340.92 Cr) with broad-based electricals demand',
-        'Profit after tax jumped +71.0% YoY, demonstrating sharp operating leverage as gross margins expanded and Sunflame synergies scaled',
-        'Strong non-South distribution penetration and seasonal festive channel restocking cement market share gains',
-      ],
-      why: {
-        text: 'Blockbuster Q2 FY27 results filed 29-Oct: Consolidated revenue +38.2% YoY to ₹1,852.89 Cr and PAT +71.0% YoY on high operating leverage.',
-        basis: 'filing',
-        sources: ['BSE/NSE Results & Press Release 29-Oct-2026'],
-      },
-      epsThesis: getBrief('NSE:VGUARD'),
-      epsImpact: {
-        direction: 'positive',
-        magnitude: '+71.0% YoY PAT',
-        timeline: 'H2 FY27',
-        confidence: 'high',
-      },
-      linkage: 'explained',
-      tags: ['results', 'earnings_beat', 'operating_leverage', 'consumer_durables'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/qh9267zzacej0x1fpc5lrdkc.pdf',
-    },
-    'NSE:ZENSARTECH': {
-      tier: 'ACT',
-      headline:
-        'Q2 FY27 CC sequential revenue growth accelerates +4.1% QoQ; Board approves Scheme of Arrangement',
-      thesisChain: [
-        'Constant currency sequential revenue grew +4.1% QoQ, beating tier-2 IT peer benchmarks',
-        'Board approved Scheme of Arrangement for structural simplification and operational alignment across subsidiaries',
-        'Resilient enterprise order bookings in digital engineering and cloud infrastructure support multi-quarter revenue visibility',
-      ],
-      why: {
-        text: 'Q2 FY27 results & press release filed 28-Oct: +4.1% QoQ constant currency revenue growth beat and Board approval for Scheme of Arrangement.',
-        basis: 'filing',
-        sources: ['BSE/NSE Filing 28-Oct-2026'],
-      },
-      epsThesis: getBrief('NSE:ZENSARTECH'),
-      epsImpact: {
-        direction: 'positive',
-        magnitude: '+4.1% QoQ CC growth',
-        timeline: 'H2 FY27',
-        confidence: 'high',
-      },
-      linkage: 'explained',
-      tags: ['results', 'it_services', 'scheme_of_arrangement', 'cc_growth'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/i3l5nib1fsm8yrn06va2dko6.pdf',
-    },
-    'NSE:SATIN': {
-      tier: 'ACT',
-      headline:
-        'Record quarterly profitability: H1 FY27 PAT reaches ₹299 Cr (nearing full-year FY26 profit of ₹332 Cr) as AUM hits ₹16,589 Cr (+30.8% YoY)',
-      thesisChain: [
-        'Delivered highest-ever quarterly profitability with H1 PAT reaching ₹299 Cr, closing in on full FY26 profit in just 6 months',
-        'Assets under Management (AUM) expanded +30.8% YoY to ₹16,589 Cr with stable asset quality and disciplined credit underwriting',
-        'Strategic scaling in non-MFI book (MSME & affordable housing finance) drives diversification and structural return on equity (RoE)',
-      ],
-      why: {
-        text: 'Q2 FY27 results & press release on 28-Oct: Highest-ever profitability with H1 PAT at ₹299 Cr (near full-year FY26) and AUM +30.8% YoY to ₹16,589 Cr.',
-        basis: 'filing',
-        sources: ['BSE/NSE Press Release 28-Oct-2026'],
-      },
-      epsThesis: getBrief('NSE:SATIN'),
-      epsImpact: {
-        direction: 'positive',
-        magnitude: '₹299 Cr H1 PAT (~FY26 full year)',
-        timeline: 'FY27',
-        confidence: 'high',
-      },
-      linkage: 'explained',
-      tags: ['results', 'highest_profitability', 'mfi', 'aum_growth'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/kfqai7ly3uwgiaudgzgjj5fn.pdf',
-    },
-    'NSE:OPTIEMUS': {
-      tier: 'ACT',
-      headline:
-        'Operations & Admin Committee approved strategic expansions on 27-Oct; Board meeting intimation on 29-Oct for Q2 results & fundraise',
-      thesisChain: [
-        'Operations & Admin Committee approved operational initiatives on 27-Oct, followed by Board meeting notice on 29-Oct to consider Q2 results and strategic proposals',
-        'Capitalizes on IT hardware PLI and domestic electronics manufacturing service (EMS) demand',
-        'Heavy ₹31.82 Cr delivery buying (41.25% deliv) confirms strong institutional pre-positioning',
-      ],
-      why: {
-        text: 'Operations & Administration Committee outcome on 27-Oct and Board meeting notice on 29-Oct for Q2 results and strategic proposals.',
-        basis: 'filing',
-        sources: ['BSE/NSE Filing 27-Oct & 29-Oct 2026'],
-      },
-      epsThesis: getBrief('NSE:OPTIEMUS'),
-      epsImpact: {
-        direction: 'positive',
-        magnitude: 'Strategic proposal & EMS scaling',
-        timeline: 'H2 FY27',
         confidence: 'medium',
       },
       linkage: 'explained',
-      tags: ['board_meeting', 'ems', 'electronics_pli', 'pre_result'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/65f5txvjctl3r1jr8qv5reda.pdf',
+      tags: ['results', 'capital_goods', 'sensors', 'industrial_capex'],
+      pdfUrl: null,
     },
-    'NSE:NILKAMAL': {
+    'NSE:NELCAST': {
       tier: 'ACT',
       headline:
-        'Q2 FY27 results & press release demonstrate operating profit turnaround across material handling and plastics',
+        'Commercial vehicle and tractor casting volume inflection + export commercialization; stock rallies +14.18% on ₹32.39 Cr deliv',
       thesisChain: [
-        'Q2 FY27 un-audited results show margin stabilization and operating profit inflection in material handling division',
-        'Raw material cost stabilization (polymer inputs) expands gross spreads across retail furniture and industrial crates',
-        'Delivered ₹23.02 Cr in delivery value on +13.63% rally, confirming cash accumulation into consumer cyclicals',
+        'Q2 FY27 financial results and press release filed 02-Nov demonstrate commercial vehicle and farm equipment casting recovery',
+        'New export machining capacity commissioning expands blended realizations and margin profile',
+        'Substantial cash commitment of ₹32.39 Cr (16.96% deliv, 2.27% of Mcap) drives +14.18% breakout',
       ],
       why: {
-        text: 'Q2 FY27 financial results & press release filed 29-Oct: Operating profit turnaround and margin expansion in industrial material handling.',
+        text: 'Q2 FY27 financial results and press release filed 02-Nov: Recovery in commercial vehicle and tractor casting volumes, paired with new export capacity commissioning.',
         basis: 'filing',
-        sources: ['BSE/NSE Results & Press Release 29-Oct-2026'],
+        sources: ['NSE/BSE Regulation 30 & 33 Filings 02-Nov-2026'],
       },
-      epsThesis: null,
+      epsThesis: getBrief('NSE:NELCAST'),
       epsImpact: {
         direction: 'positive',
-        magnitude: 'Operating turnaround',
+        magnitude: '+20-25% PAT recovery',
         timeline: 'H2 FY27',
         confidence: 'high',
       },
       linkage: 'explained',
-      tags: ['results', 'plastics', 'material_handling', 'turnaround'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/vq89vafpeac4sxj9dnopdhyb.pdf',
-    },
-    'NSE:PRASOLCHEM': {
-      tier: 'ACT',
-      headline: 'Pre-results accumulation ahead of Q2 earnings; Board meeting scheduled in 5 days',
-      thesisChain: [
-        'Board meeting scheduled within 5 days to consider Q2 FY27 financial results',
-        '49.33% delivery on ₹7.00 Cr turnover confirms tight institutional accumulation ahead of earnings release',
-        'Recovery in phosphorus-based specialty chemical exports and agrochemical intermediates supports earnings re-rating',
-      ],
-      why: {
-        text: 'Pre-results earnings anticipation: Board meeting scheduled within 5 days; high 49.3% delivery indicates pre-earnings accumulation.',
-        basis: 'pre_result',
-        sources: ['Exchange Intimations'],
-      },
-      epsThesis: null,
-      epsImpact: {
-        direction: 'positive',
-        magnitude: 'Pre-results accumulation',
-        timeline: 'Q2 FY27',
-        confidence: 'medium',
-      },
-      linkage: 'explained',
-      tags: ['pre_result', 'specialty_chemicals', 'accumulation'],
+      tags: ['results', 'auto_components', 'castings', 'capacity_commissioning'],
       pdfUrl: null,
     },
 
     // -------------------------------------------------------------
-    // WATCH CARDS (Compact detail)
+    // WATCH CARDS (Compact layout)
     // -------------------------------------------------------------
-    'NSE:ACUTAAS': {
+    'NSE:MCX': {
       tier: 'WATCH',
       headline:
-        'Follow-through buying from Q2 results (+920 bps EBITDA margin to 40.3%, PAT +71.4% YoY) filed 27-Oct',
+        'Pre-results accumulation into Q2 FY27 Board Meeting (03-Nov); #1 market-wide delivery of ₹624.04 Cr on peak options ADTV',
       why: {
-        text: 'Q2 FY27 earnings breakout filed 27-Oct (2 days ago): EBITDA margin expanded 920 bps YoY to 40.3%, PAT surged +71.4% YoY, and upward guidance raised for FY27.',
-        basis: 'filing',
-        sources: ['Q2 FY27 Results Filing 27-Oct-2026'],
+        text: 'Q2 FY27 financial results board meeting scheduled for today (03-Nov-2026); record gold and silver commodity derivatives ADTV and software cost rationalization post-TCS migration drive institutional accumulation.',
+        basis: 'pre_result',
+        sources: [
+          'BSE/NSE Board Meeting Intimation 13-Oct-2026',
+          'Conference Call Intimation 22-Oct-2026',
+        ],
       },
-      epsThesis: getBrief('NSE:ACUTAAS'),
+      epsThesis: getBrief('NSE:MCX'),
       linkage: 'explained',
-      tags: ['results', 'margin_expansion', 'semiconductors'],
+      tags: ['pre_result', 'derivatives', 'market_infrastructure', 'monopoly'],
       pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/wlfqoqspn0ec8004f8wzt9qd.pdf',
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/5qagqy6ytzd0m0xet2csea1r.pdf',
     },
-    'NSE:BSOFT': {
+    'NSE:CARTRADE': {
       tier: 'WATCH',
       headline:
-        'Q2 FY27 results beat: Consolidated PAT +37.5% YoY to ₹159.65 Cr and ₹3.00/share (150%) interim dividend',
+        'Record Q2 revenue (₹213 Cr) and EBITDA (₹76 Cr, 36% margin); OLX India EBITDA zooms +36% YoY on 96% organic traffic',
       why: {
-        text: 'Q2 FY27 financial results beat filed 28-Oct: PAT grew +37.5% YoY to ₹159.65 Cr, constant currency revenue accelerated +2.7% QoQ, and board approved ₹3.00/share interim dividend.',
+        text: 'Highest-ever quarterly revenue of ₹213 Cr (+10% YoY) and EBITDA jump of +20% YoY to ₹76 Cr (36% margin) filed 28-Oct (6d ago), powered by OLX India EBITDA zooming +36% YoY; delivery volume accelerating into multi-quarter operating leverage.',
         basis: 'filing',
-        sources: ['BSE/NSE Results & Dividend Filing 28-Oct-2026'],
+        sources: ['NSE/BSE Press Release 28-Oct-2026', 'Q2 FY27 Financial Results'],
       },
-      epsThesis: getBrief('NSE:BSOFT'),
+      epsThesis: getBrief('NSE:CARTRADE'),
       linkage: 'explained',
-      tags: ['results', 'dividend', 'it_services'],
+      tags: ['earnings_record', 'platform', 'olx_synergies', 'operating_leverage'],
       pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/t67lm2jent1mmad0abrikyn8.pdf',
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/6qgfndowwnr8du63tegtdj8l.pdf',
     },
-    'NSE:INDSWFTLAB': {
+    'NSE:TECHNOCRAF': {
       tier: 'WATCH',
       headline:
-        'Q2 FY27 financial results approved and NIL deviation on 7M + 26M preferential convertible warrants',
+        'Rallies +13.28% on ₹50.81 Cr delivery (2.53% of Mcap); global scaffolding & drum closure export demand',
       why: {
-        text: 'Q2 FY27 financial results approved and NIL deviation on 7M + 26M preferential convertible warrants filed on 29-Oct, confirming API balance sheet repair.',
-        basis: 'filing',
-        sources: ['BSE/NSE Filings 29-Oct-2026'],
-      },
-      epsThesis: getBrief('NSE:INDSWFTLAB'),
-      linkage: 'explained',
-      tags: ['results', 'warrants', 'pharma_api'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/32sgrvzmxsrfo7wr8mv6gjhs.pdf',
-    },
-    'NSE:MANAKCOAT': {
-      tier: 'WATCH',
-      headline:
-        'Q2 FY27 financial results and commercial updates on continuous galvanizing and pre-painted steel line expansions',
-      why: {
-        text: 'Q2 FY27 results and press release filed 28-29 Oct; volume ramp-up in value-added color-coated coils and galvanizing lines.',
-        basis: 'filing',
-        sources: ['BSE/NSE Disclosures 28-29 Oct 2026'],
-      },
-      linkage: 'explained',
-      tags: ['results', 'steel_coating', 'expansion'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/v6s5b8r5nq76qnaaozxsu2nv.pdf',
-    },
-    'NSE:BHAGERIA': {
-      tier: 'WATCH',
-      headline:
-        'Q2 FY27 un-audited results approved showing dye intermediates recovery and captive solar power generation',
-      why: {
-        text: 'Q2 FY27 financial results approved on 28-Oct; dye intermediates pricing stabilization and captive solar power revenue compounding.',
-        basis: 'filing',
-        sources: ['BSE/NSE Results Filing 28-Oct-2026'],
-      },
-      linkage: 'explained',
-      tags: ['results', 'chemicals', 'solar_power'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/e9wjwbjmhl6ighibnfwh4uaq.pdf',
-    },
-    'NSE:CNL': {
-      tier: 'WATCH',
-      headline:
-        'Q2 FY27 Consolidated Results and investor presentation highlighting enterprise tech and consumer product brand onboarding',
-      why: {
-        text: 'Q2 FY27 financial results and investor presentation filed 28-Oct; revenue expansion across enterprise cybersecurity and digital lifestyle distribution.',
-        basis: 'filing',
-        sources: ['BSE/NSE Filing 28-Oct-2026'],
-      },
-      linkage: 'explained',
-      tags: ['results', 'tech_distribution', 'presentation'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/1s2pgpwnnnh3gb7a7e5a7o97.pdf',
-    },
-    'NSE:ASIANENE': {
-      tier: 'WATCH',
-      headline:
-        'Execution of Revenue Sharing Contract (RSC) on 22-Oct with Govt of India under DSF Bid Round-IV',
-      why: {
-        text: 'Revenue Sharing Contract (RSC) executed with Govt of India on 22-Oct (7 days ago) for DSF Bid Round-IV offshore block; delivery buying delivering into regulatory clearance.',
-        basis: 'filing',
-        sources: ['BSE/NSE Regulation 30 Filing 23-Oct-2026'],
-      },
-      linkage: 'explained',
-      tags: ['contract_award', 'oil_gas', 'revenue_sharing'],
-      pdfUrl:
-        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/8m33t7rvrrbecqzg4gddkv21.pdf',
-    },
-    'BSE:SGFIN': {
-      tier: 'WATCH',
-      headline:
-        'Supply chain financing and invoice discounting credit acceleration; 52.50% delivery',
-      why: {
-        text: 'No discoverable trigger in 14-day exchange filings; move reflects supply chain and invoice discounting AUM acceleration.',
+        text: 'No regulatory filing in 14-day exchange filings; move backed by industrial scaffolding export demand and high delivery accumulation (₹50.81 Cr, 2.53% of Mcap).',
         basis: 'none',
-        sources: ['BSE Disclosures 14d'],
+        sources: ['BSE/NSE Filings 14d'],
       },
+      epsThesis: getBrief('NSE:TECHNOCRAF'),
       linkage: 'unexplained',
-      tags: ['supply_chain_finance', 'msme_lending'],
+      tags: ['scaffolding', 'exports', 'precision_engineering'],
       pdfUrl: null,
     },
-    'NSE:CREDENT': {
+    'NSE:BALRAMCHIN': {
       tier: 'WATCH',
-      headline: 'Hospital and healthcare medical services accumulation',
+      headline:
+        'Pre-results accumulation (+9.15%, ₹40.94 Cr deliv) ahead of Q2 Board Meeting; ethanol blending procurement tailwinds',
       why: {
-        text: 'No discoverable trigger in 14-day exchange filings; trading on healthcare facility expansion sentiment.',
+        text: 'Pre-results accumulation ahead of upcoming Q2 FY27 financial results board meeting, supported by favorable policy tailwinds in ethanol blending pricing and sugar distillery capacities.',
+        basis: 'pre_result',
+        sources: ['NSE/BSE Filings 14d'],
+      },
+      epsThesis: getBrief('NSE:BALRAMCHIN'),
+      linkage: 'explained',
+      tags: ['pre_result', 'sugar', 'ethanol', 'policy_tailwinds'],
+      pdfUrl: null,
+    },
+    'NSE:KRBL': {
+      tier: 'WATCH',
+      headline:
+        'Q2 results beat + SAST Reg 29(1) institutional stake acquisition; Basmati minimum export price floor removal',
+      why: {
+        text: 'Q2 FY27 financial results filed 02-Nov and SAST Reg 29(1) stake disclosure filed 03-Nov; export margin recovery driven by removal of Basmati minimum export price floor.',
+        basis: 'filing',
+        sources: ['NSE/BSE Filings 02-Nov & 03-Nov-2026'],
+      },
+      epsThesis: getBrief('NSE:KRBL'),
+      linkage: 'explained',
+      tags: ['results', 'sast_stake_change', 'basmati_export', 'fmcg'],
+      pdfUrl: null,
+    },
+    'NSE:FUSION': {
+      tier: 'WATCH',
+      headline:
+        'Q2 results and Rights Issue monitoring report confirm capital adequacy buffer and credit provision stabilization',
+      why: {
+        text: 'Q2 FY27 results and investor presentation filed 02-Nov: Rights issue proceeds deployment confirmed by monitoring report, bolstering capital adequacy and credit loss stabilization.',
+        basis: 'filing',
+        sources: ['NSE/BSE Filings 02-Nov-2026'],
+      },
+      epsThesis: getBrief('NSE:FUSION'),
+      linkage: 'explained',
+      tags: ['results', 'rights_issue', 'mfi', 'capital_buffer'],
+      pdfUrl: null,
+    },
+    'NSE:TRIDENT': {
+      tier: 'WATCH',
+      headline:
+        'Board approves Capacity Expansion and Modernization Project alongside Q2 results; ₹30.15 Cr delivery',
+      why: {
+        text: 'Board approval of Capacity Expansion and Modernization Project filed 02-Nov alongside Q2 FY27 financial results; expanding high-margin value-added textile and yarn capacities.',
+        basis: 'filing',
+        sources: ['NSE/BSE Regulation 30 & 33 Filings 02-Nov-2026'],
+      },
+      epsThesis: getBrief('NSE:TRIDENT'),
+      linkage: 'explained',
+      tags: ['capacity_expansion', 'capex', 'results', 'textiles'],
+      pdfUrl: null,
+    },
+    'NSE:SHAREINDIA': {
+      tier: 'WATCH',
+      headline:
+        'Update on Scheme of Amalgamation filed 03-Nov following Q2 FY27 Results & 2nd Interim Dividend',
+      why: {
+        text: 'Update on Scheme of Amalgamation filed 03-Nov following Q2 FY27 results and 2nd Interim Dividend declaration on 30-Oct; expanding prop trading and retail client franchise.',
+        basis: 'filing',
+        sources: ['NSE/BSE Filings 30-Oct & 03-Nov-2026'],
+      },
+      linkage: 'explained',
+      tags: ['amalgamation', 'results', 'dividend', 'capital_markets'],
+      pdfUrl: null,
+    },
+    'NSE:MPIMANIPAL': {
+      tier: 'WATCH',
+      headline:
+        'Q2 FY27 results filed 03-Nov on high-conviction 48.07% delivery (₹17.25 Cr); banking card & secure ID demand',
+      why: {
+        text: 'Q2 FY27 financial results filed 03-Nov (today); high-conviction delivery (48.07%, ₹17.25 Cr) reflecting payment solutions and secure ID contract deliveries.',
+        basis: 'filing',
+        sources: ['NSE/BSE Filings 03-Nov-2026'],
+      },
+      linkage: 'explained',
+      tags: ['results', 'smartcards', 'payments', 'delivery_backed'],
+      pdfUrl: null,
+    },
+    'BSE:CNCRD': {
+      tier: 'WATCH',
+      headline:
+        'Q2 results filed 02-Nov confirm railway electrical order execution; extraordinary 80.61% delivery percentage',
+      why: {
+        text: 'Q2 FY27 financial results and press release filed 02-Nov; exceptional 80.61% delivery backed by Indian Railways and metro rolling stock order deliveries.',
+        basis: 'filing',
+        sources: ['BSE Filing 02-Nov-2026'],
+      },
+      linkage: 'explained',
+      tags: ['railways', 'results', 'high_delivery', 'order_execution'],
+      pdfUrl: null,
+    },
+    'BSE:AERPACE': {
+      tier: 'WATCH',
+      headline:
+        'Board meeting outcome filed 03-Nov without prior intimation; upper circuit (+19.56%) on 72.29% delivery',
+      why: {
+        text: 'Board meeting outcome filed 03-Nov (today); strong retail/HNI accumulation with 72.29% delivery value (₹10.54 Cr).',
+        basis: 'filing',
+        sources: ['BSE Filing 03-Nov-2026'],
+      },
+      linkage: 'explained',
+      tags: ['board_outcome', 'circuit', 'high_delivery'],
+      pdfUrl:
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/lqjrp7f81geu21riad8zccl4.pdf',
+    },
+    'NSE:OSELDEVICE': {
+      tier: 'WATCH',
+      headline: 'Rallies +13.00% on price momentum; commercial LED display solutions',
+      why: {
+        text: 'No regulatory filing in 14-day exchange filings; move driven by price momentum in specialized electronics.',
         basis: 'none',
-        sources: ['Exchange Disclosures 14d'],
+        sources: ['NSE/BSE Filings 14d'],
       },
       linkage: 'unexplained',
-      tags: ['hospitals', 'healthcare'],
+      tags: ['electronics', 'momentum'],
       pdfUrl: null,
     },
 
     // -------------------------------------------------------------
-    // NOTED TIER CARDS
+    // NOTED CARDS
     // -------------------------------------------------------------
-    'NSE:RPOWER': {
+    'NSE:KITEX': {
       tier: 'NOTED',
+      headline:
+        'Q2 results filed 02-Nov (+15.08%, ₹18.00 Cr deliv); Telangana infant-wear capacity ramp-up',
       why: {
-        text: 'No discoverable trigger in 14-day exchange filings; sustained accumulation following zero standalone debt achievement and storage pipeline.',
-        basis: 'none',
-        sources: ['BSE/NSE Filings 14d'],
-      },
-      linkage: 'unexplained',
-      epsThesis: getBrief('NSE:RPOWER'),
-    },
-    'NSE:DCMSRIND': {
-      tier: 'NOTED',
-      why: {
-        text: 'Clarification on price movement filed 23-Oct (6 days ago); momentum driven by sugar distillery ethanol expansion and industrial UAV commercialization.',
+        text: 'Q2 FY27 financial results filed 02-Nov; strong shipment ramp-up from newly commissioned Telangana manufacturing facility.',
         basis: 'filing',
-        sources: ['BSE/NSE Filing 23-Oct-2026'],
+        sources: ['NSE/BSE Filings 02-Nov-2026'],
       },
       linkage: 'explained',
     },
-    'NSE:APOLLOPIPE': {
+    'NSE:IZMO': {
+      tier: 'NOTED',
+      headline:
+        'Press release filed 03-Nov (+16.64%, ₹16.81 Cr deliv); Indigenous Pitch Detector for Defence Avionics qualified',
+      why: {
+        text: 'Press release filed 03-Nov (today): Subsidiary izmo microsystems successfully developed and qualified Indigenous Pitch Detector for Defence Avionics, opening high-margin defense aerospace supply chain opportunities.',
+        basis: 'filing',
+        sources: ['NSE/BSE Press Release 03-Nov-2026'],
+      },
+      linkage: 'explained',
+      pdfUrl:
+        'https://stockscans-assets.s3.ap-south-1.amazonaws.com/company-docs/126dp0w3q5fj4w6szh8nnmpe.pdf',
+    },
+    'NSE:GOCOLORS': {
+      tier: 'NOTED',
+      headline:
+        'Q2 results filed 30-Oct (+8.74%, ₹11.42 Cr deliv); festive retail restock and store expansion',
+      why: {
+        text: 'Q2 FY27 financial results filed 30-Oct (4d ago); festive seasonal retail restock and store expansion across EBO network.',
+        basis: 'filing',
+        sources: ['NSE/BSE Filings 30-Oct-2026'],
+      },
+      linkage: 'explained',
+    },
+    'NSE:SHREEPUSHK': {
+      tier: 'NOTED',
+      headline:
+        'Board approves Preferential Issue of Convertible Warrants + Q2 Results (+9.33%, ₹10.00 Cr deliv)',
+      why: {
+        text: 'Board approval of Preferential Issue of Fully Convertible Warrants and increase in authorised share capital filed 02-Nov alongside Q2 FY27 results.',
+        basis: 'filing',
+        sources: ['NSE/BSE Filings 02-Nov-2026'],
+      },
+      linkage: 'explained',
+    },
+    'NSE:MOLDTKPAC': {
+      tier: 'NOTED',
+      headline:
+        'Q2 results & PR filed 02-Nov (+8.03%, ₹6.47 Cr deliv); volume recovery in specialized pharma packaging',
+      why: {
+        text: 'Q2 FY27 financial results and press release filed 02-Nov; margin stability and volume recovery in specialized IML and pharma packaging.',
+        basis: 'filing',
+        sources: ['NSE/BSE Filings 02-Nov-2026'],
+      },
+      linkage: 'explained',
+    },
+    'NSE:INFOBEAN': {
+      tier: 'NOTED',
+      headline:
+        'Q2 results & PR filed 29-Oct (+7.37%, ₹5.01 Cr deliv); digital engineering contract signings',
+      why: {
+        text: 'Q2 FY27 financial results and press release filed 29-Oct (5d ago); digital engineering deal signings and utilization inflection.',
+        basis: 'filing',
+        sources: ['NSE/BSE Filings 29-Oct-2026'],
+      },
+      linkage: 'explained',
+    },
+    'NSE:APS': {
       tier: 'NOTED',
       why: {
-        text: 'Building materials plastic pipes demand; pre-results positioning.',
+        text: 'No regulatory filing in 14-day exchange filings; solar module sector momentum.',
         basis: 'none',
-        sources: ['BSE/NSE Filings 14d'],
+        sources: ['NSE/BSE Filings 14d'],
       },
       linkage: 'unexplained',
     },
-    'NSE:AURIONPRO': {
+    'NSE:DPEL': {
       tier: 'NOTED',
       why: {
-        text: 'Transaction banking tech platforms deal momentum.',
+        text: 'No regulatory filing in 14-day exchange filings; power transformer and transmission component demand.',
         basis: 'none',
-        sources: ['BSE/NSE Filings 14d'],
-      },
-      linkage: 'unexplained',
-    },
-    'NSE:DELTACORP': {
-      tier: 'NOTED',
-      why: {
-        text: 'Speculative positioning ahead of hospitality business demerger milestones.',
-        basis: 'none',
-        sources: ['BSE/NSE Filings 14d'],
-      },
-      linkage: 'unexplained',
-    },
-    'NSE:PRANAV': {
-      tier: 'NOTED',
-      why: {
-        text: 'Pre-results earnings anticipation: Board meeting scheduled within 8 days.',
-        basis: 'pre_result',
-        sources: ['Exchange Intimations'],
-      },
-      linkage: 'explained',
-    },
-    'NSE:UTTAMSUGAR': {
-      tier: 'NOTED',
-      why: {
-        text: 'Industry tailwinds: Sugar sector rallying on upward revisions in grain/cane ethanol procurement rates ahead of crushing season.',
-        basis: 'sector',
-        sources: ['Industry Sugar Macro'],
-      },
-      linkage: 'explained',
-    },
-    'NSE:AGIIL': {
-      tier: 'NOTED',
-      why: {
-        text: 'Pre-results earnings anticipation: Board meeting scheduled within 7 days.',
-        basis: 'pre_result',
-        sources: ['Exchange Intimations'],
-      },
-      linkage: 'explained',
-    },
-    'NSE:GAUDIUMIVF': {
-      tier: 'NOTED',
-      why: {
-        text: 'Fertility and specialized clinical chain expansion sentiment.',
-        basis: 'none',
-        sources: ['Exchange Disclosures 14d'],
+        sources: ['NSE/BSE Filings 14d'],
       },
       linkage: 'unexplained',
     },
     'NSE:KRISHCA': {
       tier: 'NOTED',
       why: {
-        text: 'Steel strapping packaging products demand.',
+        text: 'No regulatory filing in 14-day exchange filings; industrial packaging volume recovery.',
         basis: 'none',
-        sources: ['Exchange Disclosures 14d'],
+        sources: ['NSE/BSE Filings 14d'],
       },
       linkage: 'unexplained',
     },
-    'NSE:SACHEEROME': {
+    'NSE:TECHD': {
       tier: 'NOTED',
       why: {
-        text: 'Aroma chemicals and fragrance ingredients demand.',
+        text: 'No regulatory filing in 14-day exchange filings; momentum in enterprise security solutions.',
         basis: 'none',
-        sources: ['Exchange Disclosures 14d'],
+        sources: ['NSE/BSE Filings 14d'],
+      },
+      linkage: 'unexplained',
+    },
+    'NSE:VMARCIND': {
+      tier: 'NOTED',
+      why: {
+        text: 'No regulatory filing in 14-day exchange filings; power grid capex cable demand.',
+        basis: 'none',
+        sources: ['NSE/BSE Filings 14d'],
       },
       linkage: 'unexplained',
     },
   },
 };
 
-// 4. Construct Stats Footer
+// 4. Assemble Stats Footer
 const stats = {
   universe: 50,
-  qualified: 28,
-  act: 8,
-  watch: 9,
+  qualified: 26,
+  act: 3,
+  watch: 12,
   noted: 11,
   researched: 20,
   extractHits: 0,
-  pdfReads: 43,
+  pdfReads: 20,
   epsBriefs: 10,
   briefCacheHits: 1,
   briefExtractHits: 0,
-  contentClassified: 110,
-  contentFromExtractCache: 0,
-  contentFromLiveFetch: 110,
-  contentFetchFailed: 0,
-  watchlistTtlAdded: 28,
-  watchlistTtlRemoved: 0,
-  watchlistTtlActiveAfter: 28,
   fullReports: 3,
-  reportCacheHits: 1,
+  reportCacheHits: 0,
+  contentClassified: 127,
+  contentFromExtractCache: 0,
+  contentFromLiveFetch: 127,
+  contentFetchFailed: 0,
+  watchlistTtlAdded: 26,
+  watchlistTtlRemoved: 0,
+  watchlistTtlActiveAfter: 26,
 };
 
-// 5. Construct gainers_why rows
-const whyRows = Object.keys(content.cards).map((id) => ({
-  companyId: id,
-  tier: content.cards[id].tier || 'NOTED',
-  linkage: content.cards[id].linkage,
-  why: content.cards[id].why,
-}));
+// Write files to /tmp
+const contentPath = `/tmp/gainers_content_${marketDate.replace(/-/g, '')}.json`;
+const statsPath = `/tmp/gainers_stats_${marketDate.replace(/-/g, '')}.json`;
 
-const whyJson = {
-  market_date: marketDate,
-  rows: whyRows,
-};
+fs.writeFileSync(contentPath, JSON.stringify(content, null, 2));
+fs.writeFileSync(statsPath, JSON.stringify(stats, null, 2));
 
-// Write files
-fs.writeFileSync('/tmp/gainers_content_20261029.json', JSON.stringify(content, null, 2), 'utf8');
-fs.writeFileSync('/tmp/gainers_stats_20261029.json', JSON.stringify(stats, null, 2), 'utf8');
-fs.writeFileSync('data/runs/gainers_why_20261029.json', JSON.stringify(whyJson, null, 2), 'utf8');
-
-console.log('✅ Written: /tmp/gainers_content_20261029.json');
-console.log('✅ Written: /tmp/gainers_stats_20261029.json');
-console.log('✅ Written: data/runs/gainers_why_20261029.json');
+console.log(`[composeGainersContent] ✅ Written overlay to ${contentPath}`);
+console.log(`[composeGainersContent] ✅ Written stats to ${statsPath}`);

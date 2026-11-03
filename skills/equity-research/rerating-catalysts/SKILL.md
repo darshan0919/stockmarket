@@ -908,3 +908,7 @@ or newly saved reports/caches are synchronized via `yarn data:push`.
   caps and filters deterministically; if the read set feels thin, that's the
   ceiling working as designed, not a bug to work around by widening it
   ad hoc.
+
+## IPO lock-in line (≤24-month listings) — mandatory
+
+If the company listed on NSE/BSE within the last 24 months, run `yarn ipo-lockin show <companyId> --mcap <marketCapCr>` and print its first line verbatim in the report's header/risk strip (next unlock date, days away, shares, % of equity, ₹ value, % of tradable float; `est.` = date-only estimate). Put the full tranche timeline in the supply/overhang section. No output line means not a recent listing — omit. Spec: `skills/_shared/ipo-lockin-watch.md`.

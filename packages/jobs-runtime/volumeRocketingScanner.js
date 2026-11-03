@@ -19,6 +19,7 @@
 const fs = require('fs');
 const path = require('path');
 const { stockscans, nse, bse } = require('@stock/api');
+const { StorageService } = require('@stock/cloud-utils');
 const { loadEnv, argValue } = require('./lib/env');
 const apiUsageTracker = require('./lib/apiUsageTracker');
 const { resolveJobName } = require('./lib/scriptJobName');
@@ -31,14 +32,27 @@ const TARGET_COUNT = 20;
 /** companyIds already picked up by that day's gainers-signal run, so
  * volume-rocketing never reports the same name under a different hat. */
 function loadGainersTickers(mDateStr, runsDir = RUNS_DIR) {
-  const p = path.join(runsDir, `gainers_raw_${mDateStr.replace(/-/g, '')}.json`);
-  if (!fs.existsSync(p)) return new Set();
-  try {
-    const raw = JSON.parse(fs.readFileSync(p, 'utf8'));
-    return new Set((raw.gainers || []).map((g) => g.ticker).filter(Boolean));
-  } catch (_) {
-    return new Set();
+  const dateKey = mDateStr.replace(/-/g, '');
+  let raw = StorageService.readJson(`runs/gainers_raw_${dateKey}.json`);
+  if (!raw) {
+    const p = path.join(runsDir, `gainers_raw_${dateKey}.json`);
+    if (fs.existsSync(p)) {
+      try {
+        raw = JSON.parse(fs.readFileSync(p, 'utf8'));
+      } catch (err) {
+        // Ignore JSON parse failure on legacy raw file
+        void err;
+      }
+    }
   }
+  if (!raw) {
+    raw = StorageService.readJson(`runs/gainers_insights_${dateKey}.json`);
+    if (raw && Array.isArray(raw.signals)) {
+      return new Set(raw.signals.map((s) => s.ticker || s.companyId).filter(Boolean));
+    }
+  }
+  if (!raw) return new Set();
+  return new Set((raw.gainers || []).map((g) => g.ticker).filter(Boolean));
 }
 
 /**

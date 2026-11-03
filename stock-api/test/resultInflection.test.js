@@ -109,6 +109,19 @@ describe('resultInflection — period & range parsing', () => {
     expect(ri.normalizeQuarter(undefined, '2026-10-11')).toBe('202609');
     expect(ri.normalizeQuarter(undefined, undefined)).toBeNull();
   });
+
+  it('canonicalMetricKey normalises metric variations into the same canonical key', () => {
+    const k1 = ri.canonicalMetricKey('Ascelis peptide profitability', 'FY27');
+    const k2 = ri.canonicalMetricKey('Ascelis peptide CDMO profitability', 'FY27');
+    const k3 = ri.canonicalMetricKey('Ascelis peptide CDMO annual PAT', 'FY27');
+    expect(k1).toBe('ascelispeptidepat|FY27');
+    expect(k2).toBe('ascelispeptidepat|FY27');
+    expect(k3).toBe('ascelispeptidepat|FY27');
+
+    expect(ri.canonicalMetricKey('EBITDA Margin', 'Ongoing')).toBe('ebitdamargin|Ongoing');
+    expect(ri.canonicalMetricKey('Consolidated Revenue growth', 'FY27')).toBe('revenuegrowth|FY27');
+    expect(ri.canonicalMetricKey('Net Sales growth', 'FY27')).toBe('revenuegrowth|FY27');
+  });
 });
 
 describe('resultInflection — walk the talk', () => {
@@ -138,6 +151,40 @@ describe('resultInflection — walk the talk', () => {
     const em = rows.find((r) => r.metric === 'EBITDA Margin');
     expect(em.revision).toMatchObject({ direction: 'RAISED', from: 14, to: 16 });
     expect(em.firstStated).toBe('Q4FY26');
+  });
+
+  it('deduplicates recurring guidance with variant phrasing across quarters', () => {
+    const d1 = {
+      id: 'd1',
+      quarter: '202509',
+      guidance: [
+        { metric: 'Ascelis peptide profitability', period_guided: 'FY27', absolute_value: 0 },
+      ],
+    };
+    const d2 = {
+      id: 'd2',
+      quarter: '202512',
+      guidance: [
+        { metric: 'Ascelis peptide CDMO profitability', period_guided: 'FY27', absolute_value: 0 },
+      ],
+    };
+    const d3 = {
+      id: 'd3',
+      quarter: '202603',
+      guidance: [
+        { metric: 'Ascelis peptide CDMO annual PAT', period_guided: 'FY27', absolute_value: 0 },
+      ],
+    };
+
+    const rows = ri.collectPriorGuidance({
+      currentYyyymm: '202609',
+      callDigests: [d1, d2, d3],
+    });
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].metric).toBe('Ascelis peptide CDMO annual PAT');
+    expect(rows[0].firstStated).toBe('Q2FY26');
+    expect(rows[0].sourceYyyymm).toBe('202603');
   });
 
   it('auto-fills headline actuals and scores interim, final and not-yet rows', () => {

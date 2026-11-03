@@ -65,6 +65,11 @@ conservative`, judged per
    (`FY27`, `H2FY27`, `Q3FY27`) or a month (`June 2027`). Mark `conditional: true` when hedged
    ("subject to", "if demand sustains"). Analyst guesses that management did not endorse are
    not guidance.
+   _Canonical metric naming_: when extracting recurring guidance across quarters (e.g. for a
+   subsidiary, division, or specific program), use consistent, canonical naming for the metric
+   (e.g. `Ascelis peptide PAT` rather than oscillating between `Ascelis peptide profitability`,
+   `Ascelis peptide CDMO profitability`, and `Ascelis peptide CDMO annual PAT`). Consistent naming
+   ensures deterministic deduplication and revision tracking across quarters in Walk the Talk.
 3. **Topics** — the 5-12 themes management spent time on, each with 1-4 lowercase keywords that
    would appear in a later call if the theme were still alive (`possiblyDropped` diffs on these
    keywords, so pick distinctive words: `"dahej"`, not `"plant"`).

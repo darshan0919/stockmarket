@@ -83,6 +83,21 @@ Leading into its Q2 result:
 | **DE_RISKING** (Return10D ≤−7%)                    | **VERY_LOW**       | **LOW**            | **BASE_CASE_MEET_OR_BEAT** (Relief rally / squeeze)               |
 | **NEUTRAL_RANGE**                                  | **MODERATE**       | **MODERATE**       | **BASE_CASE_BEAT + CONCALL_CONFIRMATION**                         |
 
+### 4. Shareholding Change & Smart-Money Positioning (The Buying Weighting Engine)
+
+Pre-result positioning is incomplete without tracking **who is absorbing the floating stock** in the latest quarter:
+
+- **Promoter Increase:** given **4x weight** (highest insider conviction; skin in the game; forward visibility on capacity ramp, orders, and margin trajectory).
+- **FII Increase:** given **2x weight** (foreign institutional smart money; rigorous global due diligence).
+- **DII Increase:** given **1x weight** (domestic institutional flow).
+- **Overall Reflection:** reflects **how much public holding decreased** ($-\Delta \text{Public}$ and retail shareholder count reduction), weighted by who is buying:
+  $$\text{Weighted Buying Score} = 4 \times \max(0, \Delta \text{Promoter}) + 2 \times \max(0, \Delta \text{FII}) + 1 \times \max(0, \Delta \text{DII})$$
+  $$\text{Effective Buyer Multiplier} = \frac{\text{Weighted Buying Score}}{\text{Total Smart Buying}}$$
+  $$\text{Public Decrease} = -\Delta \text{Public}$$
+- **Interpretation:**
+  - When Public decreases and Promoter/FII aggressively absorb the shares (high weighted score $\ge 2.0$), it confirms informed accumulation ahead of numbers.
+  - When Public holding increases (retail expansion) while Promoter or FII reduce stake (negative net score), it signals distribution to retail.
+
 ---
 
 ## 2. SureshKBN's 5 PEAD Gates (The Pre-Flight Scorecard)
@@ -133,6 +148,7 @@ yarn pead-predictor:gather --company NSE:ONWARDTEC [--extra-tickers MCX:NICKEL1!
 One bundle assembling:
 
 - **Price Action & Volume-Delivery Footprint** (`priceAction`): 5D, 10D, 20D returns; 5D volume multiplier vs 20D median; delivery multiplier & %; 5D delivery turnover in ₹ Cr; accumulation pattern classification; expectation hurdle & sell-the-news risk.
+- **Shareholding Pattern & Smart-Money Positioning** (`shareholding`): Latest & prior quarter holdings (Promoter, FII, DII, Public, Retail, Holder count), QoQ deltas, Public decrease, 4x/2x/1x weighted buying score, and effective buyer multiplier.
 - **Actuals**: 12 quarters / ~7 FYs / TTM / baselines (company-financials, 24h cache).
 - **Implied share count & dilution steps**.
 - **Stockscans guidance tables**, plus up to 4 prior concalls' guidance for walk-the-talk.
@@ -155,7 +171,7 @@ Read the inputs JSON. Do not open PDFs already excerpted. Work through:
 - **B. Dot-connect:** Map every non-routine filing into a quantified P&L lever.
 - **C. Macro overlay:** Pass-through lag, commodity basket moves, rate/FX impact.
 - **D. Phasing + one-off cleaning:** Clean the base with quoted sources (`baseCleaning`).
-- **E. Pre-Earnings Price Action & Expectation Hurdle (Suresh Gate 3):** Read `inputs.priceAction`. Characterize accumulation vs priced-in expectations. Determine the required beat hurdle for drift.
+- **E. Pre-Earnings Price Action, Shareholding & Expectation Hurdle (Suresh Gate 2 & 3):** Read `inputs.priceAction` and `inputs.shareholding`. Evaluate volume-delivery surge alongside insider/institutional accumulation (Promoter 4x, FII 2x, DII 1x) vs retail expansion. Determine the required beat hurdle for drift.
 - **F. SureshKBN 5-Gate PEAD Pre-Flight Scorecard:** Synthesize Gates 1 through 5 in `narrative.pead`.
 
 Write `assumptions.json` and `narrative.json` per `references/assumptions_schema.md`.
@@ -197,7 +213,7 @@ yarn data:push
 ### Reply to the user (do not echo the PDF — Rule 11)
 
 1. **Headline:** One line summary.
-2. **Pre-Earnings Price Action & Expectation Bar:** Pattern (e.g. Onward Tech-style accumulation), 10D return, volume surge multiplier, delivery turnover, and the Expectation Hurdle (Suresh Gate 3).
+2. **Pre-Earnings Positioning & Expectation Bar:** Pattern (e.g. Onward Tech-style accumulation), 10D return, volume surge multiplier, delivery turnover, latest quarter shareholding change (Promoter 4x / FII 2x / DII 1x weighted buying score and Public decrease), and the Expectation Hurdle (Suresh Gate 3).
 3. **Table:** Base-case target quarter and FY (Revenue / EBITDA / PAT / EPS with QoQ, YoY, FYoFY and Bear–Bull ranges).
 4. **PEAD Drift Hurdle:** What result is required on result day to trigger drift vs risk of sell-the-news.
 5. **Key Levers & Dots Connected:** The 3–5 filings that moved numbers.
@@ -239,3 +255,7 @@ pead-predictor/
     ├── test_project_pl.py
     └── test_scripts.test.js
 ```
+
+## IPO lock-in line (≤24-month listings) — mandatory
+
+If the company listed on NSE/BSE within the last 24 months, run `yarn ipo-lockin show <companyId> --mcap <marketCapCr>` and print its first line verbatim in the report's header/risk strip (next unlock date, days away, shares, % of equity, ₹ value, % of tradable float; `est.` = date-only estimate). Put the full tranche timeline in the supply/overhang section. No output line means not a recent listing — omit. Spec: `skills/_shared/ipo-lockin-watch.md`.

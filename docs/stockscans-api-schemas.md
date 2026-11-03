@@ -515,6 +515,88 @@ only endpoint with a true per-quarter, per-company historical lookup for a
 
 ---
 
+## GET /api/company/holdings/shareholding/{companyId}
+
+Client method: `shareholding(companyId)`. Confirmed live 2026-11-02.
+
+Fetches the complete historical quarterly shareholding pattern breakdown for a
+single company across up to 12 quarters. Returns the aggregated percentage breakdown
+across Promoter, FII, DII, Public, and No Of Shareholders, as well as detailed
+holder series.
+
+- **Auth:** Required (`authtoken` cookie via `StockscansAuth`). Calling unauthenticated returns bare `{}`.
+- **Referer:** `https://www.stockscans.in/company/{companyId}/shareholdings`
+- **Path parameter:** `companyId` (URL-encoded, e.g. `NSE%3ARKFORGE`).
+
+### Response shape
+
+```json
+{
+  "companyId": "NSE:RKFORGE",
+  "aggregate": [
+    [
+      "Date",
+      "202312",
+      "202403",
+      "202406",
+      "202409",
+      "202412",
+      "202503",
+      "202506",
+      "202509",
+      "202512",
+      "202603",
+      "202606",
+      "202609"
+    ],
+    [
+      "Promoter",
+      43.14,
+      43.17,
+      43.17,
+      43.17,
+      43.16,
+      43.13,
+      43.13,
+      43.13,
+      43.13,
+      43.33,
+      43.39,
+      40.93
+    ],
+    ["FII", 23.59, 24.54, 23.76, 24.25, 24.04, 24.47, 24.45, 22.71, 21.05, 21.74, 20.43, 17.05],
+    ["DII", 2, 3.68, 4.27, 5.13, 5.41, 6, 3.59, 3.5, 4.03, 4.45, 5.09, 5.73],
+    ["Public", 31.27, 28.61, 28.8, 27.45, 27.39, 26.4, 28.83, 30.67, 31.8, 30.48, 31.09, 36.3],
+    [
+      "No Of Shareholders",
+      85637,
+      83396,
+      96223,
+      89585,
+      95357,
+      98142,
+      113670,
+      120495,
+      119647,
+      109027,
+      105810,
+      106395
+    ]
+  ],
+  "details": {
+    "public": [
+      ["Name", "202312", "..."],
+      ["Aadi Financial Advisors Llp", 1.03, "..."]
+    ]
+  }
+}
+```
+
+- `aggregate`: A 2D matrix where row 0 contains quarter identifiers (`YYYYMM`), followed by category percentage rows (`Promoter`, `FII`, `DII`, `Public`) and the `No Of Shareholders` count row. Values are in percent (`43.14`), shareholder count is an integer (`85637`).
+- `details`: Object containing specific major holder arrays grouped by category (`public`, `fii`, `dii`).
+
+---
+
 ## POST /api/user/watchlists (create), DELETE /api/user/watchlists (delete)
 
 Client methods: `createWatchlist(name, companyIds)`, `deleteWatchlist(watchlistId)`.
@@ -845,3 +927,6 @@ above for what each replaced.
   an `/api/` path).
 - `GET /api/scans/stock/saved` — `savedScans()`. Path migrated from
   `user/saved-scans` — CONFIRMED LIVE, same response shape (`{scans: [...]}`).
+- `GET /api/company/holdings/shareholding/{companyId}` — `shareholding(companyId)`.
+  Full 12-quarter shareholding history `{companyId, aggregate: [...], details: {...}}`
+  covering Promoter, FII, DII, Public %, and No Of Shareholders count — CONFIRMED LIVE.

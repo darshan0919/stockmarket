@@ -272,3 +272,7 @@ Three distinct outcomes, worth distinguishing plainly for the user:
 
 Reporting all three as "no data" would be misleading — the first is a property
 of the business, the second is a timing artifact, the third is work to do.
+
+## IPO lock-in line (≤24-month listings) — mandatory
+
+If the company listed on NSE/BSE within the last 24 months, run `yarn ipo-lockin show <companyId> --mcap <marketCapCr>` and print its first line verbatim in the report's header/risk strip (next unlock date, days away, shares, % of equity, ₹ value, % of tradable float; `est.` = date-only estimate). Put the full tranche timeline in the supply/overhang section. No output line means not a recent listing — omit. Spec: `skills/_shared/ipo-lockin-watch.md`.

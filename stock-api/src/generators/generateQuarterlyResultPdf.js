@@ -567,7 +567,9 @@ function renderWalkTheTalk(wtt) {
       r.guidedLow !== r.guidedHigh ? `${r.guidedLow}–${r.guidedHigh}${u}` : `${r.guidedMid}${u}`;
     return r.kind === 'growth' ? `${g} growth` : g;
   };
-  const shown = wtt.rows.filter((r) => !['NOT_YET_MEASURABLE', 'EXPIRED'].includes(r.status));
+  const shown = wtt.rows.filter(
+    (r) => !['NOT_YET_MEASURABLE', 'EXPIRED', 'EXCLUDED'].includes(r.status)
+  );
   const rows = [
     ['Guided metric', 'Period', 'Guided (stated in)', 'Actual', 'Status', 'Gap / basis'],
   ];

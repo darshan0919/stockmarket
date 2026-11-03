@@ -42,7 +42,7 @@ data/
   thesis-history.jsonl  # append-only thesis deltas
   events-YYYY.json      # annual event partitions (~1-3 MB per year)
   validation.json       # insight-validation ledger records (+ type=growth-prediction-score: forecast vs actual)
-  ipos.json             # per-IPO subscription-quality state
+  ipos.json             # per-IPO subscription-quality state (+ `type: ipo-lockin` exact unlock schedules, see skills/_shared/ipo-lockin-watch.md)
   supportive-investors.json # investor registry (anchor-bulk-deal-tracker script)
   unsupportive-investors.json # investor registry mirror (selling)
   learnyst-lessons.json # index of fetched Learnyst course-video transcripts

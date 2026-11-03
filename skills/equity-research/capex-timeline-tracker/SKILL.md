@@ -128,3 +128,7 @@ Compute multi-plant capacity expansion metrics deterministically via `@stock/api
   - `Under Construction / Committed Future Target`: Amber (`#f59e0b`, background `#fef3c7`).
   - `Corporate / Baseline / Audit`: Slate/Blue (`#2563eb`, background `#e0f2fe`).
 - **Formatting:** Monospace font for dates and tickers, bold figures for capacities and revenue potential, and clean KPI grid cards at the top.
+
+## IPO lock-in line (≤24-month listings) — mandatory
+
+If the company listed on NSE/BSE within the last 24 months, run `yarn ipo-lockin show <companyId> --mcap <marketCapCr>` and print its first line verbatim in the report's header/risk strip (next unlock date, days away, shares, % of equity, ₹ value, % of tradable float; `est.` = date-only estimate). Put the full tranche timeline in the supply/overhang section. No output line means not a recent listing — omit. Spec: `skills/_shared/ipo-lockin-watch.md`.

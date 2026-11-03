@@ -190,3 +190,7 @@ Missing `_Estimates.txt` → omit Tab 6 and renumber (per dashboard rule).
 - **Stale cache:** `rm -rf ~/Research/[TICKER]/_cache/`.
 - **Authtoken expired:** fetcher will print a hard error. Ask user to refresh `Stockscans_authtoken` project file (browser DevTools → Cookies → `authtoken` on stockscans.in). Token expires roughly every 3–4 weeks.
 - **0 documents for a type:** that document type may not be available for this company (e.g. SWARAJENG has no PPT or Transcript — they're common for smaller companies). Proceed with what's available; the downstream extraction will skip empty folders.
+
+## IPO lock-in line (≤24-month listings) — mandatory
+
+If the company listed on NSE/BSE within the last 24 months, run `yarn ipo-lockin show <companyId> --mcap <marketCapCr>` and print its first line verbatim in the report's header/risk strip (next unlock date, days away, shares, % of equity, ₹ value, % of tradable float; `est.` = date-only estimate). Put the full tranche timeline in the supply/overhang section. No output line means not a recent listing — omit. Spec: `skills/_shared/ipo-lockin-watch.md`.

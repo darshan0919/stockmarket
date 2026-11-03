@@ -299,6 +299,238 @@ function analyzePreResultPriceAction(rows, _marketCapCr = null) {
   };
 }
 
+/**
+ * Analyze quarter-on-quarter shareholding change and compute the smart-money buying score:
+ *   - Promoter increase: 4x weight
+ *   - FII increase: 2x weight
+ *   - DII increase: 1x weight
+ *   - Overall reflects how much public decreased, weighted by who is buying.
+ *
+ * @param {Object} cur latest quarter shareholding DTO
+ * @param {Object} [prev] previous quarter shareholding DTO
+ * @returns {Object}
+ */
+function analyzeShareholdingChange(cur, prev) {
+  if (!cur || cur.ok === false) {
+    return { available: false, reason: 'no_current_filing' };
+  }
+
+  const round2 = (v) => (v == null || Number.isNaN(v) ? null : Math.round(Number(v) * 100) / 100);
+
+  const getPromoter = (dto) => dto.promoterPct ?? dto.categories?.promoterGroup?.pct ?? null;
+  const getFii = (dto) =>
+    dto.fiiPct ?? dto.fpiPct ?? dto.categories?.institutionsForeign?.pct ?? null;
+  const getDii = (dto) => dto.diiPct ?? dto.categories?.institutionsDomestic?.pct ?? null;
+  const getPublic = (dto) => {
+    if (dto.publicPct != null) return dto.publicPct;
+    if (dto.categories?.public?.pct != null) return dto.categories.public.pct;
+    const prom = getPromoter(dto) || 0;
+    return round2(100 - prom);
+  };
+  const getRetail = (dto) => dto.retailPct ?? dto.categories?.retailUpTo2L?.pct ?? null;
+  const getHolders = (dto) => dto.totalHolders ?? dto.categories?.total?.holders ?? null;
+
+  const curPromoter = getPromoter(cur);
+  const curFii = getFii(cur);
+  const curDii = getDii(cur);
+  const curPublic = getPublic(cur);
+  const curRetail = getRetail(cur);
+  const curHolders = getHolders(cur);
+
+  const latest = {
+    asOf: cur.asOf || null,
+    promoterPct: curPromoter,
+    fiiPct: curFii,
+    diiPct: curDii,
+    publicPct: curPublic,
+    retailPct: curRetail,
+    totalHolders: curHolders,
+  };
+
+  if (!prev || prev.ok === false) {
+    return {
+      available: true,
+      hasDeltas: false,
+      asOf: cur.asOf || null,
+      latest,
+      summary: `Latest shareholding as of ${cur.asOf || 'latest quarter'}: Promoter ${curPromoter != null ? curPromoter + '%' : '–'}, FII ${curFii != null ? curFii + '%' : '–'}, DII ${curDii != null ? curDii + '%' : '–'}, Public ${curPublic != null ? curPublic + '%' : '–'}. Prior quarter not available for delta calculation.`,
+    };
+  }
+
+  const prevPromoter = getPromoter(prev);
+  const prevFii = getFii(prev);
+  const prevDii = getDii(prev);
+  const prevPublic = getPublic(prev);
+  const prevRetail = getRetail(prev);
+  const prevHolders = getHolders(prev);
+
+  const prior = {
+    asOf: prev.asOf || null,
+    promoterPct: prevPromoter,
+    fiiPct: prevFii,
+    diiPct: prevDii,
+    publicPct: prevPublic,
+    retailPct: prevRetail,
+    totalHolders: prevHolders,
+  };
+
+  const promoterDelta =
+    curPromoter != null && prevPromoter != null ? round2(curPromoter - prevPromoter) : 0;
+  const fiiDelta = curFii != null && prevFii != null ? round2(curFii - prevFii) : 0;
+  const diiDelta = curDii != null && prevDii != null ? round2(curDii - prevDii) : 0;
+  const publicDelta = curPublic != null && prevPublic != null ? round2(curPublic - prevPublic) : 0;
+  const retailDelta =
+    curRetail != null && prevRetail != null ? round2(curRetail - prevRetail) : null;
+  const holdersDelta = curHolders != null && prevHolders != null ? curHolders - prevHolders : null;
+
+  // Public decrease: positive when public/retail sold shares
+  const publicDecrease = round2(-publicDelta);
+
+  // Smart money increases
+  const promoterIncrease = Math.max(0, promoterDelta);
+  const fiiIncrease = Math.max(0, fiiDelta);
+  const diiIncrease = Math.max(0, diiDelta);
+
+  const weights = { promoter: 4, fii: 2, dii: 1 };
+  const promoterWeighted = round2(promoterIncrease * weights.promoter);
+  const fiiWeighted = round2(fiiIncrease * weights.fii);
+  const diiWeighted = round2(diiIncrease * weights.dii);
+
+  const totalSmartBuying = round2(promoterIncrease + fiiIncrease + diiIncrease);
+  const weightedBuyingScore = round2(promoterWeighted + fiiWeighted + diiWeighted);
+  const effectiveBuyerMultiplier =
+    totalSmartBuying > 0 ? round2(weightedBuyingScore / totalSmartBuying) : 0;
+  const netWeightedScore = round2(
+    promoterDelta * weights.promoter + fiiDelta * weights.fii + diiDelta * weights.dii
+  );
+
+  let pattern = 'NEUTRAL_HOLDING_PATTERN';
+  let sentiment = 'NEUTRAL';
+
+  if (
+    promoterDelta >= 0.5 ||
+    (promoterDelta > 0 &&
+      weightedBuyingScore >= 2.0 &&
+      promoterWeighted >= fiiWeighted + diiWeighted)
+  ) {
+    pattern = 'STRONG_PROMOTER_ACCUMULATION';
+    sentiment = 'HIGH_CONVICTION_BULLISH';
+  } else if (
+    fiiDelta >= 1.0 ||
+    (fiiDelta > 0 && weightedBuyingScore >= 2.0 && fiiWeighted > promoterWeighted)
+  ) {
+    pattern = 'STRONG_INSTITUTIONAL_ACCUMULATION';
+    sentiment = 'BULLISH';
+  } else if (weightedBuyingScore >= 1.5 && publicDecrease > 0) {
+    pattern = 'BALANCED_SMART_MONEY_ACCUMULATION';
+    sentiment = 'BULLISH';
+  } else if (weightedBuyingScore > 0.3 && publicDecrease > 0) {
+    pattern = 'MODERATE_SMART_MONEY_ACCUMULATION';
+    sentiment = 'MODERATELY_BULLISH';
+  } else if (publicDecrease < -0.3 || netWeightedScore <= -1.0) {
+    pattern = 'DISTRIBUTION_TO_PUBLIC';
+    sentiment = 'BEARISH_DISTRIBUTION';
+  } else {
+    pattern = 'NEUTRAL_HOLDING_PATTERN';
+    sentiment = 'NEUTRAL';
+  }
+
+  // Build analytical narrative summary
+  const buyers = [];
+  if (promoterIncrease > 0) buyers.push(`Promoter (+${promoterIncrease}pp, 4x weight)`);
+  if (fiiIncrease > 0) buyers.push(`FII (+${fiiIncrease}pp, 2x weight)`);
+  if (diiIncrease > 0) buyers.push(`DII (+${diiIncrease}pp, 1x weight)`);
+
+  let summary = '';
+  if (publicDecrease > 0) {
+    const holdersStr =
+      holdersDelta != null ? ` (holders ${holdersDelta > 0 ? '+' : ''}${holdersDelta})` : '';
+    const buyerStr = buyers.length
+      ? `absorbed primarily by ${buyers.join(', ')}`
+      : 'smart-money absorption';
+    summary = `Public holding decreased by ${publicDecrease}pp${holdersStr}, ${buyerStr}, yielding a weighted smart-money buying score of +${weightedBuyingScore}${effectiveBuyerMultiplier ? ` (${effectiveBuyerMultiplier}x effective buyer multiplier)` : ''}.`;
+  } else if (publicDecrease < 0) {
+    const sellers = [];
+    if (promoterDelta < 0) sellers.push(`Promoter (${promoterDelta}pp)`);
+    if (fiiDelta < 0) sellers.push(`FII (${fiiDelta}pp)`);
+    if (diiDelta < 0) sellers.push(`DII (${diiDelta}pp)`);
+    const sellerStr = sellers.length ? ` while ${sellers.join(', ')} reduced stake` : '';
+    summary = `Public holding expanded by +${round2(-publicDecrease)}pp${sellerStr} (net weighted score ${netWeightedScore > 0 ? '+' : ''}${netWeightedScore}), signaling distribution to retail.`;
+  } else {
+    summary = `Shareholding remained stable (Promoter Δ ${promoterDelta >= 0 ? '+' : ''}${promoterDelta}pp, FII Δ ${fiiDelta >= 0 ? '+' : ''}${fiiDelta}pp, DII Δ ${diiDelta >= 0 ? '+' : ''}${diiDelta}pp, Public Δ 0.00pp).`;
+  }
+
+  return {
+    available: true,
+    hasDeltas: true,
+    asOf: cur.asOf || null,
+    prevAsOf: prev.asOf || null,
+    latest,
+    prior,
+    deltas: {
+      promoterDelta,
+      fiiDelta,
+      diiDelta,
+      publicDelta,
+      retailDelta,
+      holdersDelta,
+    },
+    publicDecrease,
+    weights,
+    scores: {
+      promoterWeighted,
+      fiiWeighted,
+      diiWeighted,
+    },
+    totalSmartBuying,
+    weightedBuyingScore,
+    effectiveBuyerMultiplier,
+    netWeightedScore,
+    pattern,
+    sentiment,
+    summary,
+  };
+}
+
+/**
+ * Parse Stockscans shareholding API response into chronological quarters.
+ *
+ * @param {Object} data - Response from StockscansClient.shareholding(companyId)
+ * @returns {Array<{date: string, asOf: string, promoterPct: number|null, fiiPct: number|null, diiPct: number|null, publicPct: number|null, totalHolders: number|null}>|null}
+ */
+function parseStockscansShareholding(data) {
+  if (!data || !Array.isArray(data.aggregate) || data.aggregate.length < 2) return null;
+  const rows = data.aggregate;
+  const dateRow = rows.find((r) => Array.isArray(r) && String(r[0]).toLowerCase() === 'date');
+  if (!dateRow) return null;
+  const dates = dateRow.slice(1);
+  const findRow = (label) =>
+    rows.find((r) => Array.isArray(r) && String(r[0]).toLowerCase() === label.toLowerCase());
+  const promRow = findRow('promoter');
+  const fiiRow =
+    findRow('fii') || rows.find((r) => Array.isArray(r) && /fii|fpi/i.test(String(r[0])));
+  const diiRow = findRow('dii');
+  const pubRow = findRow('public');
+  const hldRow = rows.find((r) => Array.isArray(r) && /shareholder/i.test(String(r[0])));
+
+  return dates.map((d, idx) => {
+    const col = idx + 1;
+    const y = String(d).slice(0, 4);
+    const m = String(d).slice(4, 6);
+    const lastDay =
+      y && m ? new Date(Date.UTC(Number(y), Number(m), 0)).toISOString().slice(0, 10) : null;
+    return {
+      date: String(d),
+      asOf: lastDay,
+      promoterPct: promRow && promRow[col] != null ? Number(promRow[col]) : null,
+      fiiPct: fiiRow && fiiRow[col] != null ? Number(fiiRow[col]) : null,
+      diiPct: diiRow && diiRow[col] != null ? Number(diiRow[col]) : null,
+      publicPct: pubRow && pubRow[col] != null ? Number(pubRow[col]) : null,
+      totalHolders: hldRow && hldRow[col] != null ? Number(hldRow[col]) : null,
+    };
+  });
+}
+
 /** Slim the XBRL extraction + signal scan to what the reasoning step needs. Pure. */
 function summariseResultScan(x, signals) {
   if (!x || !x.found) return { found: false, issues: (x && x.issueSummary) || null };
@@ -518,6 +750,8 @@ module.exports = {
   basketFor,
   macroRead,
   analyzePreResultPriceAction,
+  analyzeShareholdingChange,
+  parseStockscansShareholding,
   toNseDate,
   summariseResultScan,
   priorAnalyses,

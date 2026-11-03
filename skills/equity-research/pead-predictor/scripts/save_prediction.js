@@ -59,6 +59,7 @@ function buildBody(dto) {
   const fyD = (base.deltas.fyofy || {}).reported || {};
   const fyCore = (base.deltas.fyofy || {}).core;
   const pa = dto.priceAction || (dto.inputs && dto.inputs.priceAction) || null;
+  const sh = dto.shareholding || (dto.inputs && dto.inputs.shareholding) || null;
   const h = [];
 
   h.push(
@@ -85,6 +86,29 @@ function buildBody(dto) {
     h.push('</div>');
     h.push(
       `<div class="hl ${pa.sellTheNewsRisk === 'HIGH' ? 'hl-y' : 'hl-b'}" style="margin-top:6px;"><b>Expectation Bar &amp; Hurdle (Suresh Gate 3):</b> ${esc(pa.hurdleVerdict)}<br/><span class="label">Required Result for Post-Earnings Drift: <b>${esc(pa.requiredForPead)}</b></span></div></div>`
+    );
+  }
+
+  // Shareholding Change & Smart-Money Positioning (Promoter 4x, FII 2x, DII 1x)
+  if (sh && sh.available && sh.hasDeltas) {
+    h.push(
+      `<div class="sec"><div class="sec-hd">LATEST QUARTER SHAREHOLDING CHANGE &amp; SMART-MONEY POSITIONING</div><div class="grid4">`
+    );
+    h.push(
+      `<div class="kpi kpi-b"><div class="label">Promoter Holding (4x wt)</div><div class="bignum">${fmt(sh.latest.promoterPct)}%</div><div class="subnum">QoQ ${pct(sh.deltas.promoterDelta)} · Score: <b>+${fmt(sh.scores.promoterWeighted)} pts</b></div></div>`
+    );
+    h.push(
+      `<div class="kpi kpi-b"><div class="label">FII Holding (2x wt)</div><div class="bignum">${fmt(sh.latest.fiiPct)}%</div><div class="subnum">QoQ ${pct(sh.deltas.fiiDelta)} · Score: <b>+${fmt(sh.scores.fiiWeighted)} pts</b></div></div>`
+    );
+    h.push(
+      `<div class="kpi kpi-b"><div class="label">DII Holding (1x wt)</div><div class="bignum">${fmt(sh.latest.diiPct)}%</div><div class="subnum">QoQ ${pct(sh.deltas.diiDelta)} · Score: <b>+${fmt(sh.scores.diiWeighted)} pts</b></div></div>`
+    );
+    h.push(
+      `<div class="kpi kpi-b"><div class="label">Public &amp; Retail Float</div><div class="bignum">${fmt(sh.latest.publicPct)}%</div><div class="subnum">Public Dec: <b>${sh.publicDecrease >= 0 ? '+' : ''}${fmt(sh.publicDecrease)}pp</b>${sh.deltas.holdersDelta != null ? ` (${fmt(sh.deltas.holdersDelta, 0)} holders)` : ''}</div></div>`
+    );
+    h.push('</div>');
+    h.push(
+      `<div class="hl ${sh.pattern === 'DISTRIBUTION_TO_PUBLIC' ? 'hl-y' : 'hl-b'}" style="margin-top:6px;"><b>Smart-Money Absorption Score:</b> +${fmt(sh.weightedBuyingScore)} pts (Effective Buyer Multiplier: <b>${fmt(sh.effectiveBuyerMultiplier)}x</b>) · <b>Pattern:</b> ${esc((sh.pattern || '').replace(/_/g, ' '))}<br/><span class="label">${esc(sh.summary)}</span></div></div>`
     );
   }
 
@@ -367,6 +391,7 @@ async function main() {
     projection,
     narrative,
     priceAction: inputs.priceAction || null,
+    shareholding: inputs.shareholding || null,
     basis: {
       latestReported: (inputs.period || {}).latestReported,
       actualsFetchedAt: (inputs.actuals || {}).fetchedAt,

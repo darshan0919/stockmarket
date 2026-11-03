@@ -147,7 +147,12 @@ describe('cursorHealth (conventions.md §25 — Task 5)', () => {
     // extended, not silently left behind, whenever a new windowCursor.js
     // caller ships. Update alongside the SKILL.md that introduces it.
     expect(Object.keys(cursorHealth.CURSOR_CADENCE_HOURS).sort()).toEqual(
-      ['document-preprocessing', 'post-close-scan-insights', 'watchlist-insights'].sort()
+      [
+        'daily-quarterly-result-analysis',
+        'document-preprocessing',
+        'post-close-scan-insights',
+        'watchlist-insights',
+      ].sort()
     );
   });
 });

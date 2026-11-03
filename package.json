@@ -70,6 +70,7 @@
     "results-history-pack-universe": "yarn workspace @stock/jobs-runtime results-history-pack-universe",
     "paper-supply-daily": "yarn workspace @stock/jobs paper-supply-daily",
     "ipo-supply-daily": "yarn workspace @stock/jobs ipo-supply-daily",
+    "ipo-lockin": "yarn workspace @stock/jobs ipo-lockin",
     "sector-rotation-daily": "yarn workspace @stock/jobs sector-rotation-daily",
     "sector-lifecycle-weekly": "yarn workspace @stock/jobs sector-lifecycle-weekly",
     "sector-cluster-replay": "yarn workspace @stock/jobs sector-cluster-replay",

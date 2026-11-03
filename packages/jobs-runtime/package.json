@@ -45,6 +45,7 @@
     "results-history-pack-universe": "node resultsHistoryPackUniverse.js",
     "paper-supply-daily": "node paperSupplyDaily.js",
     "ipo-supply-daily": "node ipoSupplyDaily.js",
+    "ipo-lockin": "node ipoLockin.js",
     "sector-rotation-daily": "node sectorRotationDaily.js",
     "sector-lifecycle-weekly": "node sectorLifecycleWeekly.js",
     "sector-cluster-replay": "node sectorClusterReplay.js",

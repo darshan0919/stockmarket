@@ -202,3 +202,7 @@ When `consecutive-filings-diff` calls this skill, it requests **deep** mode but 
 - **Q&A section is the goldmine.** If you only had time to read one part of a 40-page transcript, read the analyst Q&A. That's where the unscripted information lives.
 - **Compare to prior quarter wherever possible.** A "we expect 15% growth" carries different meaning depending on whether last quarter said 10%, 15%, or 18%.
 - **Beware the "no surprises" call** — if a 50-page transcript has no dodged questions, no tone shift, and identical guidance: either the business genuinely has no story, or you're reading too superficially.
+
+## IPO lock-in line (≤24-month listings) — mandatory
+
+If the company listed on NSE/BSE within the last 24 months, run `yarn ipo-lockin show <companyId> --mcap <marketCapCr>` and print its first line verbatim in the report's header/risk strip (next unlock date, days away, shares, % of equity, ₹ value, % of tradable float; `est.` = date-only estimate). Put the full tranche timeline in the supply/overhang section. No output line means not a recent listing — omit. Spec: `skills/_shared/ipo-lockin-watch.md`.

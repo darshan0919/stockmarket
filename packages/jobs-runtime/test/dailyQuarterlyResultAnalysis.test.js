@@ -8,6 +8,12 @@ const {
   sendReportEmail,
   pushJobAssets,
   analyzeScanCompanies,
+  resolveSlot,
+  loadCursor,
+  saveCursor,
+  isCompanyProcessed,
+  markCompanyProcessed,
+  getCombinedMorningCompanies,
   SCAN_ID,
 } = require('../dailyQuarterlyResultAnalysis');
 
@@ -307,6 +313,272 @@ describe('analyzeScanCompanies', () => {
     expect(res.count).toBe(1);
     expect(res.processed[0].companyId).toBe('NSE:SWSOLAR');
     expect(processCompany).toHaveBeenCalledTimes(1);
+
+    existsSpy.mockRestore();
+    readSpy.mockRestore();
+  });
+});
+
+describe('resolveSlot and evening days=0 filter', () => {
+  test('resolves explicit slot flags and options correctly', () => {
+    expect(resolveSlot({ slot: 'evening' })).toBe('evening');
+    expect(resolveSlot({ slot: 'morning' })).toBe('morning');
+    expect(resolveSlot({}, ['node', 'script.js', '--slot', 'evening'])).toBe('evening');
+    expect(resolveSlot({}, ['node', 'script.js', '--slot', 'morning'])).toBe('morning');
+    expect(resolveSlot({}, ['node', 'script.js', '--evening'])).toBe('evening');
+    expect(resolveSlot({}, ['node', 'script.js', '--morning'])).toBe('morning');
+    expect(resolveSlot({ days: 0 })).toBe('evening');
+    expect(resolveSlot({}, ['node', 'script.js', '--days', '0'])).toBe('evening');
+  });
+
+  test('fetchScan defaults days to 0 when slot is evening', async () => {
+    stockscans.getScanMetadata.mockResolvedValueOnce({
+      scanId: SCAN_ID,
+      scanName: 'Quality Result - DND',
+      watchlistIds: [],
+      filters: [{ left: 'Days From Result', sign: '=', right: '-1' }],
+    });
+
+    stockscans.runScan.mockResolvedValueOnce({
+      total: 1,
+      table: [
+        [
+          'companyId',
+          'Name',
+          'Market Capitalization',
+          'PAT Growth YoY',
+          'Revenue Growth YoY',
+          'PAT Growth TTM',
+        ],
+        ['NSE:TCS', 'Tata Consultancy Services', 1400000, 15.2, 8.5, 45.0],
+      ],
+    });
+
+    const existsSpy = jest.spyOn(fs, 'existsSync').mockReturnValue(false);
+    const mkdirSpy = jest.spyOn(fs, 'mkdirSync').mockReturnValue(true);
+    const writeSpy = jest.spyOn(fs, 'writeFileSync').mockReturnValue(true);
+
+    const res = await fetchScan({ date: '2026-11-03', slot: 'evening' });
+    expect(res.count).toBe(1);
+    expect(res.slot).toBe('evening');
+    expect(res.days).toBe(0);
+    expect(stockscans.runScan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scan: expect.objectContaining({
+          filters: expect.arrayContaining([
+            expect.objectContaining({ left: 'Days From Result', right: '0' }),
+          ]),
+        }),
+      }),
+      SCAN_ID
+    );
+
+    existsSpy.mockRestore();
+    mkdirSpy.mockRestore();
+    writeSpy.mockRestore();
+  });
+});
+
+describe('shared cursor and filing deduplication', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('loadCursor and saveCursor read and persist cursor file', () => {
+    const existsSpy = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    const readSpy = jest.spyOn(fs, 'readFileSync').mockReturnValue(
+      JSON.stringify({
+        lastCommittedAtMs: 123456789,
+        lastEveningRun: { date: '2026-11-03' },
+        processedCompanies: { 'NSE:INFY': { companyId: 'NSE:INFY' } },
+      })
+    );
+    const mkdirSpy = jest.spyOn(fs, 'mkdirSync').mockReturnValue(true);
+    const writeSpy = jest.spyOn(fs, 'writeFileSync').mockReturnValue(true);
+
+    const loaded = loadCursor();
+    expect(loaded.lastCommittedAtMs).toBe(123456789);
+    expect(loaded.processedCompanies['NSE:INFY'].companyId).toBe('NSE:INFY');
+
+    saveCursor(loaded);
+    expect(writeSpy).toHaveBeenCalled();
+
+    existsSpy.mockRestore();
+    readSpy.mockRestore();
+    mkdirSpy.mockRestore();
+    writeSpy.mockRestore();
+  });
+
+  test('isCompanyProcessed and markCompanyProcessed track filings accurately', () => {
+    const cursor = { processedCompanies: {} };
+    expect(isCompanyProcessed('NSE:INFY', cursor, '2026-11-03')).toBe(false);
+
+    markCompanyProcessed(
+      cursor,
+      { companyId: 'NSE:INFY', name: 'Infosys Ltd', patTtm: 50 },
+      {
+        date: '2026-11-03',
+        slot: 'evening',
+        pdfPath: '/path/to/infy.pdf',
+      }
+    );
+
+    expect(isCompanyProcessed('NSE:INFY', cursor, '2026-11-03')).toBe(true);
+    expect(cursor.processedCompanies['NSE:INFY'].slot).toBe('evening');
+    expect(cursor.processedCompanies['NSE:INFY'].pdfPath).toBe('/path/to/infy.pdf');
+  });
+
+  test('fetchScan skips companies already processed in shared cursor', async () => {
+    stockscans.getScanMetadata.mockResolvedValueOnce({
+      scanId: SCAN_ID,
+      scanName: 'Quality Result - DND',
+      watchlistIds: [],
+    });
+
+    stockscans.runScan.mockResolvedValueOnce({
+      total: 2,
+      table: [
+        [
+          'companyId',
+          'Name',
+          'Market Capitalization',
+          'PAT Growth YoY',
+          'Revenue Growth YoY',
+          'PAT Growth TTM',
+        ],
+        ['NSE:ALREADY_DONE', 'Already Processed Co', 5000, 50, 20, 100],
+        ['NSE:FRESH_CO', 'Fresh Co', 6000, 60, 25, 120],
+      ],
+    });
+
+    const existsSpy = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    const readSpy = jest.spyOn(fs, 'readFileSync').mockReturnValue(
+      JSON.stringify({
+        lastCommittedAtMs: Date.now(),
+        processedCompanies: {
+          'NSE:ALREADY_DONE': {
+            companyId: 'NSE:ALREADY_DONE',
+            date: '2026-11-03',
+            slot: 'evening',
+          },
+        },
+      })
+    );
+    const mkdirSpy = jest.spyOn(fs, 'mkdirSync').mockReturnValue(true);
+    const writeSpy = jest.spyOn(fs, 'writeFileSync').mockReturnValue(true);
+
+    const res = await fetchScan({ date: '2026-11-04', slot: 'morning' });
+
+    expect(res.count).toBe(1);
+    expect(res.companies[0].companyId).toBe('NSE:FRESH_CO');
+    expect(res.alreadyProcessed).toHaveLength(1);
+    expect(res.alreadyProcessed[0].companyId).toBe('NSE:ALREADY_DONE');
+
+    existsSpy.mockRestore();
+    readSpy.mockRestore();
+    mkdirSpy.mockRestore();
+    writeSpy.mockRestore();
+  });
+});
+
+describe('morning consolidated report email', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('getCombinedMorningCompanies merges previous evening and morning companies sorted by patTtm', () => {
+    const mockCursor = {
+      lastEveningRun: {
+        date: '2026-11-03',
+        slot: 'evening',
+        completedAt: new Date().toISOString(),
+        companies: [
+          { companyId: 'NSE:EVENING1', name: 'Evening Co 1', patTtm: 80, marketCap: 1000 },
+          { companyId: 'NSE:SHARED', name: 'Shared Co', patTtm: 150, marketCap: 3000 },
+        ],
+      },
+    };
+
+    const morningCompanies = [
+      { companyId: 'NSE:MORNING1', name: 'Morning Co 1', patTtm: 200, marketCap: 2000 },
+      { companyId: 'NSE:SHARED', name: 'Shared Co Updated', patTtm: 150, marketCap: 3000 },
+    ];
+
+    const { combined, eveningCount, morningCount } = getCombinedMorningCompanies(morningCompanies, {
+      date: '2026-11-04',
+      cursor: mockCursor,
+    });
+
+    expect(eveningCount).toBe(2);
+    expect(morningCount).toBe(2);
+    expect(combined).toHaveLength(3); // Deduplicated
+    // Ordered descending by patTtm: 200 (Morning 1), 150 (Shared), 80 (Evening 1)
+    expect(combined[0].companyId).toBe('NSE:MORNING1');
+    expect(combined[1].companyId).toBe('NSE:SHARED');
+    expect(combined[2].companyId).toBe('NSE:EVENING1');
+  });
+
+  test('sendReportEmail in morning slot includes previous evening results in consolidated table', async () => {
+    sendHtmlEmail.mockResolvedValueOnce({ status: 'sent', to: 'test@example.com' });
+
+    const existsSpy = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    const readSpy = jest.spyOn(fs, 'readFileSync').mockImplementation((filePath) => {
+      if (String(filePath).includes('cursor')) {
+        return JSON.stringify({
+          lastCommittedAtMs: Date.now(),
+          lastEveningRun: {
+            date: '2026-11-03',
+            slot: 'evening',
+            completedAt: new Date().toISOString(),
+            count: 1,
+            companies: [
+              {
+                companyId: 'NSE:EVENING_STAR',
+                name: 'Evening Star Ltd',
+                marketCap: 10000,
+                revenueYoY: 25.0,
+                patYoY: 45.0,
+                patTtm: 95.0,
+              },
+            ],
+          },
+          processedCompanies: {},
+        });
+      }
+      return JSON.stringify({
+        date: '2026-11-04',
+        scanId: SCAN_ID,
+        scanName: 'Quality Result - DND',
+        slot: 'morning',
+        count: 1,
+        companies: [
+          {
+            companyId: 'NSE:MORNING_GLORY',
+            name: 'Morning Glory Ltd',
+            marketCap: 8000,
+            revenueYoY: 30.0,
+            patYoY: 55.0,
+            patTtm: 110.0,
+          },
+        ],
+      });
+    });
+
+    const res = await sendReportEmail({ date: '2026-11-04', slot: 'morning' });
+
+    expect(res.sent).toBe(true);
+    expect(res.count).toBe(2); // Consolidated count
+    expect(sendHtmlEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: expect.stringContaining('2 companies analyzed (Full Day)'),
+        htmlBody: expect.stringContaining('Evening Star Ltd'),
+      })
+    );
+    expect(sendHtmlEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        htmlBody: expect.stringContaining('Morning Glory Ltd'),
+      })
+    );
 
     existsSpy.mockRestore();
     readSpy.mockRestore();

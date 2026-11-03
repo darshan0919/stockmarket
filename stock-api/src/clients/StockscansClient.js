@@ -649,6 +649,32 @@ class StockscansClient {
   }
 
   /**
+   * Shareholding history for a company across all reported quarters (up to 12 quarters).
+   * Returns aggregated quarterly rows for Promoter, FII, DII, Public, and No Of Shareholders,
+   * plus individual major holder breakdowns under details (public/fii/dii).
+   *
+   * Endpoint: `GET /api/company/holdings/shareholding/{companyId}`
+   * Referer: `https://www.stockscans.in/company/{companyId}/shareholdings`
+   *
+   * @typedef {Object} StockscansShareholdingResponse
+   * @property {string} companyId - e.g. "NSE:RKFORGE"
+   * @property {Array<Array<string|number|null>>} aggregate - 2D matrix: row 0 is ["Date", "YYYYMM", ...],
+   *   followed by ["Promoter", ...], ["FII", ...], ["DII", ...], ["Public", ...], ["No Of Shareholders", ...]
+   * @property {Object} [details] - Detailed institutional/public major holder holdings series
+   *
+   * @param {string} companyId - Canonical company identifier (e.g. "NSE:RKFORGE")
+   * @returns {Promise<StockscansShareholdingResponse>}
+   */
+  async shareholding(companyId) {
+    companyId = sanitizeCompanyId(companyId);
+    const { data } = await this.http.get(
+      `${BASE_URL}/api/company/holdings/shareholding/${encodeURIComponent(companyId)}`,
+      { headers: this._headers(`${BASE_URL}/company/${companyId}/shareholdings`) }
+    );
+    return data;
+  }
+
+  /**
    * AI-synthesized notes from a single concall transcript. `ssUrl` is the
    * transcript document's id — see {@link documents} (filter
    * `documentType === 'Transcript'`) or {@link latestTranscript}.

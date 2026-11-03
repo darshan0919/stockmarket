@@ -49,6 +49,8 @@
 
 const { stockscansLink } = require('@stock/cloud-utils');
 const { mergeOrderMetrics } = require('./orderMetrics');
+const { lockinText } = require('./ipoLockins');
+const { attachIpoLockins } = require('./ipoLockinStore');
 
 // User-supplied "LineExpandView" redirect/expand icon (the external-link
 // button on each card). Referenced in HTML as `cid:expand-icon` and sent as a
@@ -280,6 +282,17 @@ function marketDataHtml(marketData) {
     cell('Vol/7D-Avg', volRatio7d == null ? '—' : `${volRatio7d.toFixed(2)}x`, volColor) +
     `</div>`
   );
+}
+
+// ── IPO float-unlock line (≤24-month listings only) ───────────────────────────
+// Text comes from lib/ipoLockins.js lockinText — the same string reports print (skills/_shared/ipo-lockin-watch.md).
+// Red ≤14 days, amber ≤45, grey otherwise / when everything has already unlocked. Gmail-safe: no flexbox.
+function ipoLockinHtml(w) {
+  const text = lockinText(w);
+  if (!text) return '';
+  const days = w.status === 'PENDING' ? w.daysAway : Infinity;
+  const color = days <= 14 ? '#b42318' : days <= 45 ? '#b54708' : '#475467';
+  return `<div style="margin-top:6px;font-size:11.5px;font-family:monospace;line-height:1.7;color:${color};">🔓 ${esc(text)}</div>`;
 }
 
 function epsImpactHtml(epsImpact) {
@@ -1247,13 +1260,25 @@ function buildRoutineListHtml(routineItems) {
 
 function buildDigestHtml(
   rawInsights,
-  { cutoffIstHuman, runIstHuman, stats, slotLabel, title, knowledgeGaps, routineItems } = {}
+  {
+    cutoffIstHuman,
+    runIstHuman,
+    stats,
+    slotLabel,
+    title,
+    knowledgeGaps,
+    routineItems,
+    ipoLockins,
+  } = {}
 ) {
   // Dedupe first (defends against any duplicate note already in the DB —
   // see dedupeInsights above), THEN club by company — clubbing on
   // undeduped input would just combine duplicate text into the same card
   // instead of dropping it.
-  const insights = groupInsightsByCompany(dedupeInsights(rawInsights));
+  const insights = attachIpoLockins(
+    groupInsightsByCompany(dedupeInsights(rawInsights)),
+    ipoLockins
+  );
   // Sections are the FIVE signal tiers (S1..S5), not the three raw
   // significance labels — see SIGNAL_TIERS / computeSignalScore above. Every
   // card is stamped with its resolved score and tier once here, so the
@@ -1313,6 +1338,7 @@ function buildDigestHtml(
           const epsHtml = epsImpactHtml(it.epsImpact);
           const marketHtml = marketDataHtml(it.marketData);
           const orderHtml = orderMetricsHtml(it.orderMetrics);
+          const lockinHtml = ipoLockinHtml(it.ipoLockin);
           const infoClassHtml = infoClassificationHtml(it.infoClassification);
           // Icon-only link button to the original filing, sitting in the
           // header row next to the category tag rather than as a full-width
@@ -1374,6 +1400,7 @@ function buildDigestHtml(
           ${headline ? `<div style="font-size:14.5px;font-weight:600;line-height:1.45;color:#101828;margin-top:9px;">${headline}</div>` : ''}
           ${marketHtml}
           ${orderHtml}
+          ${lockinHtml}
           ${chainHtml}
           ${epsHtml}
           ${tagsHtml ? `<div style="margin-top:9px;">${tagsHtml}</div>` : ''}
@@ -1785,6 +1812,7 @@ function scanSignalCardHtml(it, { compact = false } = {}) {
       </div>
       ${headline}
       ${scanMetricsHtml(it)}
+      ${ipoLockinHtml(it.ipoLockin)}
       ${compact ? '' : thesisChainHtml(it)}
       ${whyHtml(it.why)}
       ${compact && !(it.epsThesis && it.epsThesis.reportDriveUrl) ? '' : epsThesisHtml(it.epsThesis)}
@@ -1927,10 +1955,12 @@ function buildScanSignalEmail(signals, opts = {}) {
     streaks = null,
     stats = null,
     caveats = [],
+    ipoLockins,
   } = opts;
 
-  const deduped = dedupeInsights(
-    (signals || []).map((s) => ({ ...s, companyId: s.companyId || s.ticker }))
+  const deduped = attachIpoLockins(
+    dedupeInsights((signals || []).map((s) => ({ ...s, companyId: s.companyId || s.ticker }))),
+    ipoLockins
   );
   const groups = { ACT: [], WATCH: [], NOTED: [] };
   for (const s of deduped) {
@@ -2012,6 +2042,7 @@ module.exports = {
   infoClassificationHtml,
   marketDataHtml,
   orderMetricsHtml,
+  ipoLockinHtml,
   computeSignalScore,
   signalTierFor,
   signalScoreChipHtml,

@@ -229,6 +229,56 @@ function fromGuidanceTableRow(r, src) {
 }
 
 /**
+ * Normalise a guided metric name and period into a canonical key for cross-quarter deduplication.
+ * Removes scope/noise tokens (annual, quarterly, guidance, run-rate, etc.), generic organizational
+ * tags (cdmo, platform, business, segment, etc.), and maps financial synonyms (profitability -> pat,
+ * sales/topline -> revenue, etc.).
+ *
+ * @param {string} metric
+ * @param {string} periodLabel
+ * @returns {string}
+ */
+function canonicalMetricKey(metric, periodLabel) {
+  let s = String(metric || '').toLowerCase();
+
+  // Strip punctuation except spaces and dashes
+  s = s.replace(/[^a-z0-9\s-]/g, ' ');
+
+  // Standardize common multi-word finance phrases
+  s = s.replace(/\bprofit\s+after\s+tax\b/g, 'pat');
+  s = s.replace(/\bnet\s+profit\b/g, 'pat');
+  s = s.replace(/\bbottom\s*line\b/g, 'pat');
+  s = s.replace(/\bprofitability\b/g, 'pat');
+  s = s.replace(/\bbreakeven\b/g, 'pat');
+  s = s.replace(/\bneutrality\b/g, 'pat');
+  s = s.replace(/\bpositive\b/g, 'pat');
+
+  s = s.replace(/\bebitda\s+margin\b/g, 'ebitdamargin');
+  s = s.replace(/\boperating\s+margin\b/g, 'ebitdamargin');
+  s = s.replace(/\bgross\s+margin\b/g, 'grossmargin');
+  s = s.replace(/\bgross\s+profit\s+margin\b/g, 'grossmargin');
+
+  s = s.replace(/\btop\s*line\b/g, 'revenue');
+  s = s.replace(/\bnet\s+sales\b/g, 'revenue');
+  s = s.replace(/\bsales\b/g, 'revenue');
+  s = s.replace(/\bturnover\b/g, 'revenue');
+
+  s = s.replace(/\bcapital\s+expenditure\b/g, 'capex');
+  s = s.replace(/\border\s+backlog\b/g, 'orderbook');
+  s = s.replace(/\border\s+inflow\b/g, 'orderinflow');
+
+  // Strip noise words / generic qualifiers
+  const NOISE_WORDS =
+    /\b(annual|annually|quarterly|blended|consolidated|standalone|overall|target|guidance|trajectory|runrate|run-rate|platform|business|segment|division|arm|vertical|unit|cdmo)\b/g;
+  s = s.replace(NOISE_WORDS, ' ');
+
+  const cleanMetric = s.replace(/[^a-z0-9]/g, '');
+  const cleanPeriod = String(periodLabel || '').trim();
+
+  return `${cleanMetric || 'metric'}|${cleanPeriod}`;
+}
+
+/**
  * Collect every guidance item stated BEFORE the current quarter, newest statement winning per
  * metric+period, keeping the superseded value so a raise/cut is visible.
  * @param {Object} args
@@ -289,12 +339,11 @@ function collectPriorGuidance({
     }
   }
 
-  const key = (r) => `${r.metric.toLowerCase().replace(/[^a-z0-9]/g, '')}|${r.period.label}`;
   const byKey = new Map();
   rows
     .sort((a, b) => quarterIndex(a.sourceYyyymm) - quarterIndex(b.sourceYyyymm))
     .forEach((r) => {
-      let k = key(r);
+      let k = canonicalMetricKey(r.metric, r.period.label);
       // Two rows for the same metric+period inside ONE source (e.g. blended vs segment margin)
       // are distinct guides, not a revision — keep both.
       while (byKey.has(k) && byKey.get(k).sourceYyyymm === r.sourceYyyymm) k += '#';
@@ -910,6 +959,7 @@ module.exports = {
   quarterLabel,
   parsePeriod,
   parseRange,
+  canonicalMetricKey,
   collectPriorGuidance,
   measurability,
   buildWalkTheTalkLedger,

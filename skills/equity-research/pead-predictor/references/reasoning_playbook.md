@@ -231,6 +231,24 @@ Leading into its Q2 result:
 - `pattern === 'TIGHT_ACCUMULATION_BASE'` (Return10D ±5%, Deliv ≥50%): Expectation hurdle is **LOW**, sell-the-news risk is **LOW**. Prime asymmetric PEAD springboard. Base-case beat triggers immediate repositioning shock.
 - `pattern === 'PRE_RESULT_DE_RISKING'` (Return10D ≤−7%): Expectation hurdle is **VERY_LOW**. Any operational beat triggers sharp relief rally.
 
+### 4. Shareholding Change & Smart-Money Positioning (The Buying Weighting Engine)
+
+Input: `inputs.shareholding` (extracted from official exchange XBRL filings via NSE/BSE).
+
+Shareholding change evaluates **who absorbed the floating stock** during the latest reported quarter:
+
+- **Promoter Increase:** given **4x weight** (highest insider conviction; skin in the game; direct visibility on forward execution).
+- **FII Increase:** given **2x weight** (foreign institutional smart money; institutional research due diligence).
+- **DII Increase:** given **1x weight** (domestic institutional mutual fund / insurance flow).
+- **Overall Reflection:** reflects **how much public holding decreased** ($-\Delta \text{Public}$ and retail shareholder count reduction), weighted by who is buying:
+  $$\text{Weighted Buying Score} = 4 \times \max(0, \Delta \text{Promoter}) + 2 \times \max(0, \Delta \text{FII}) + 1 \times \max(0, \Delta \text{DII})$$
+  $$\text{Effective Buyer Multiplier} = \frac{\text{Weighted Buying Score}}{\text{Total Smart Buying}}$$
+  $$\text{Public Decrease} = -\Delta \text{Public}$$
+- **Synthesis in Suresh Gate 2 (Quality & Alignment) and Gate 3 (Positioning):**
+  - **High-Conviction Accumulation** (`weightedBuyingScore` $\ge 2.0$ with `publicDecrease` $> 0$): Floating stock has been drained from retail hands into promoters and institutions. Confirms that pre-result volume surges represent informed smart-money absorption rather than speculative retail frenzy.
+  - **Promoter-Led Conviction** (`promoterDelta` $\ge +0.5$pp, 4x weight): Highest conviction bullish alignment ahead of earnings.
+  - **Distribution Warning** (`publicDecrease` $< 0$ or `netWeightedScore` $\le -1.0$): Public/retail shareholder base expanded while promoters or institutions offloaded shares. In `narrative.pead`, flag this as retail distribution risk.
+
 ---
 
 ## G. SureshKBN's 5 PEAD Gates (The Pre-Flight Scorecard)
